@@ -103,7 +103,7 @@ func (e *Engine) migratePoolSchema(ctx context.Context) error {
 // It is deliberately separate from the final global event-tail lock.
 func (e *Engine) guardPoolTx(ctx context.Context, tx *sql.Tx, pool string) error {
 	if !identifier.MatchString(pool) {
-		return fmt.Errorf("%w: pool identifier", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: pool identifier", ErrInvalid), "dag.pool.identity", nil)
 	}
 	q := `INSERT INTO dag_execution_pool_guards(pool_id,version)VALUES(?,0) ON CONFLICT(pool_id) DO NOTHING`
 	if e.dialect == "oceanbase" {

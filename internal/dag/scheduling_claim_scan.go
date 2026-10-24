@@ -178,7 +178,7 @@ func (t *transaction) claimCandidateBatchPool(tenant, project, worker string, ca
 			scan.node = ""
 		}
 		if len(out) > limit {
-			return nil, fmt.Errorf("%w: claim scan bound exceeded", ErrInvalid)
+			return nil, dagDiagnostic(fmt.Errorf("%w: claim scan bound exceeded", ErrInvalid), "dag.claim.scan_limit", nil)
 		}
 	}
 	if err = t.storeClaimScan(tenant, project, worker, hash, scan); err != nil {

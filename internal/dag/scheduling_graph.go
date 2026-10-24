@@ -159,7 +159,7 @@ func (t *transaction) guardFamily(tenant, project, id string) error {
 	seen := map[string]bool{}
 	for depth := 0; depth < 64; depth++ {
 		if seen[root] {
-			return fmt.Errorf("%w: execution family cycle", ErrInvalid)
+			return dagDiagnostic(fmt.Errorf("%w: execution family cycle", ErrInvalid), "dag.workflow.family_cycle", nil)
 		}
 		seen[root] = true
 		var previous string
@@ -406,7 +406,7 @@ func (t *transaction) incrementalEligible(r *runState, n *nodeState) (bool, bool
 		return false, false, err
 	}
 	if json.Unmarshal([]byte(winners), &n.WinnerNodeIDs) != nil {
-		return false, false, fmt.Errorf("%w: invalid frozen join decision", ErrInvalid)
+		return false, false, dagDiagnostic(fmt.Errorf("%w: invalid frozen join decision", ErrInvalid), "dag.join.frozen_decision", nil)
 	}
 	if total == 0 {
 		return true, false, nil
@@ -455,7 +455,7 @@ func (t *transaction) incrementalEligible(r *runState, n *nodeState) (bool, bool
 			return false, false, err
 		}
 		if len(n.WinnerNodeIDs) != count {
-			return false, false, fmt.Errorf("%w: insufficient winner evidence", ErrConflict)
+			return false, false, dagDiagnostic(fmt.Errorf("%w: insufficient winner evidence", ErrConflict), "dag.join.winner_evidence", nil)
 		}
 		if err = t.exec(`INSERT INTO dag_join_decisions(run_id,node_id,generation,winners,decided_at)VALUES(?,?,?,?,?)`, r.ID, n.ID, generation, encoded(n.WinnerNodeIDs), stamp(t.now)); err != nil {
 			return false, false, err
@@ -493,7 +493,7 @@ func (t *transaction) resetDependencies(r *runState, n *nodeState) error {
 	for _, edge := range edges {
 		source := r.find(edge.From)
 		if source == nil {
-			return fmt.Errorf("%w: missing dependency source", ErrInvalid)
+			return dagDiagnostic(fmt.Errorf("%w: missing dependency source", ErrInvalid), "dag.edge.source_missing", nil)
 		}
 		if err = t.resolveEdge(r, source, edge, false); err != nil {
 			return err

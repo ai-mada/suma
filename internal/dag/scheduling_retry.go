@@ -87,5 +87,5 @@ func validateFailureClass(value string) error {
 	case "", "transient", "permanent", "protocol":
 		return nil
 	}
-	return fmt.Errorf("%w: unknown execution failure class", ErrInvalid)
+	return dagDiagnostic(fmt.Errorf("%w: unknown execution failure class", ErrInvalid), "dag.result.failure_class", nil)
 }

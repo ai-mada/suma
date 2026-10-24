@@ -67,7 +67,7 @@ func (t *transaction) reservePoolResources(r *runState, n *nodeState, checks []p
 			return err
 		}
 		if changed != 1 {
-			return fmt.Errorf("%w: pool resource changed", ErrConflict)
+			return dagDiagnostic(fmt.Errorf("%w: pool resource changed", ErrConflict), "dag.pool.resource_changed", nil)
 		}
 		if req.ReleaseClass == "cumulative" {
 			res, err = t.tx.ExecContext(t.ctx, t.e.q(`UPDATE dag_execution_pool_policies SET budget_spent=budget_spent+? WHERE pool_id=? AND budget_spent=? AND budget_spent<=?`), req.Amount, r.ExecutionPoolID, c.consumed, maxSchedulingInteger-req.Amount)
@@ -79,7 +79,7 @@ func (t *transaction) reservePoolResources(r *runState, n *nodeState, checks []p
 				return err
 			}
 			if changed != 1 {
-				return fmt.Errorf("%w: pool budget account differs", ErrConflict)
+				return dagDiagnostic(fmt.Errorf("%w: pool budget account differs", ErrConflict), "dag.pool.budget_account", nil)
 			}
 		}
 		if err = t.exec(`INSERT INTO dag_execution_pool_ledger(pool_id,run_id,node_id,attempt,fence,name,tenant_id,project_id,grant_id,grant_version,amount,release_class,state)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`, r.ExecutionPoolID, r.ID, n.ID, n.Attempt+1, n.Fence+1, req.Name, r.TenantID, r.ProjectID, r.ExecutionPoolGrantID, r.ExecutionPoolGrantVersion, req.Amount, req.ReleaseClass, state); err != nil {
@@ -132,7 +132,7 @@ func (t *transaction) releasePoolResources(r *runState, n *nodeState, processOnl
 			return err
 		}
 		if count != 1 {
-			return fmt.Errorf("%w: pool release counter mismatch", ErrConflict)
+			return dagDiagnostic(fmt.Errorf("%w: pool release counter mismatch", ErrConflict), "dag.pool.release_counter", nil)
 		}
 		res, err = t.tx.ExecContext(t.ctx, t.e.q(`UPDATE dag_execution_pool_ledger SET state='released' WHERE pool_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND name=? AND state='active'`), r.ExecutionPoolID, r.ID, n.ID, n.Attempt, n.Fence, h.name)
 		if err != nil {

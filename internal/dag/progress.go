@@ -18,7 +18,7 @@ var progressCredential = regexp.MustCompile(`(?i)(authorization\s*[:=]\s*bearer\
 func (e *Engine) Progress(ctx context.Context, tenant, project string, a Assignment, operationID, message string, toolEvents ...*toolcontract.Event) error {
 	var toolEvent *toolcontract.Event
 	if len(toolEvents) > 1 {
-		return fmt.Errorf("%w: one tool event permitted", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: one tool event permitted", ErrInvalid), "dag.progress.event_count", nil)
 	}
 	if len(toolEvents) == 1 {
 		toolEvent = toolEvents[0]
@@ -31,7 +31,7 @@ func (e *Engine) ProgressWithAuthority(ctx context.Context, tenant, project stri
 		return err
 	}
 	if a.RunID == "" || a.NodeID == "" || a.WorkerID == "" || a.Attempt < 1 || a.Fence < 1 || strings.TrimSpace(message) == "" && toolEvent == nil || len(message) > 8192 || !utf8.ValidString(message) {
-		return fmt.Errorf("%w: progress identity and 1–8192 UTF-8 bytes required", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: progress identity and 1–8192 UTF-8 bytes required", ErrInvalid), "dag.progress.identity", nil)
 	}
 	if toolEvent != nil {
 		if err := toolcontract.ValidateEvent(*toolEvent); err != nil {

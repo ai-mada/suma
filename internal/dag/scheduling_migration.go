@@ -85,7 +85,7 @@ func (t *transaction) migrateSchedulingProject(tenant, project string) error {
 			}
 			if !safeSchedulingInteger(cap) || !safeSchedulingInteger(consumed) {
 				rows.Close()
-				return fmt.Errorf("%w: legacy resource outside safe bounds", ErrConflict)
+				return dagDiagnostic(fmt.Errorf("%w: legacy resource outside safe bounds", ErrConflict), "dag.migration.resource_bounds", nil)
 			}
 			v := cap
 			switch name {
@@ -214,7 +214,7 @@ func (t *transaction) migrateLegacyReservations(r *runState, n *nodeState) error
 		}
 		if !safeSchedulingInteger(amount) {
 			rows.Close()
-			return fmt.Errorf("%w: legacy reservation outside safe bounds", ErrConflict)
+			return dagDiagnostic(fmt.Errorf("%w: legacy reservation outside safe bounds", ErrConflict), "dag.migration.reservation_bounds", nil)
 		}
 		requests[name] = amount
 	}
@@ -267,7 +267,7 @@ func (t *transaction) migrateLegacyReservations(r *runState, n *nodeState) error
 			return err
 		}
 		if changed != 1 {
-			return fmt.Errorf("%w: legacy resource aggregate overflow", ErrConflict)
+			return dagDiagnostic(fmt.Errorf("%w: legacy resource aggregate overflow", ErrConflict), "dag.migration.resource_overflow", nil)
 		}
 		if err = t.insertIgnore(`INSERT INTO dag_reservations(run_id,node_id,name,amount)VALUES(?,?,?,?)`, "run_id,node_id,name", r.ID, n.ID, name, amount); err != nil {
 			return err

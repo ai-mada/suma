@@ -113,7 +113,7 @@ func GuardExecutionScopeTx(ctx context.Context, tx *sql.Tx, dialect, tenant, pro
 		return err
 	}
 	if before != after {
-		return fmt.Errorf("%w: execution route changed before project lock; retry with the same operation", ErrConflict)
+		return dagDiagnostic(fmt.Errorf("%w: execution route changed before project lock; retry with the same operation", ErrConflict), "dag.pool.route_changed", nil)
 	}
 	return nil
 }
@@ -166,7 +166,7 @@ func (e *Engine) WriteProjectExecutionRouteTx(ctx context.Context, tx *sql.Tx, t
 			return out, err
 		}
 		if grant != in.GrantID || version != in.GrantVersion || status != "active" {
-			return out, fmt.Errorf("%w: current bilateral pool grant required", ErrConflict)
+			return out, dagDiagnostic(fmt.Errorf("%w: current bilateral pool grant required", ErrConflict), "dag.pool.bilateral_grant", nil)
 		}
 	}
 	if expected == 0 {

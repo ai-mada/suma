@@ -61,7 +61,7 @@ func WithSource(locale Locale, key string, params Params, source string) (Render
 func Catalog() []Definition {
 	out := make([]Definition, 0, len(catalog))
 	for _, d := range catalog {
-		out = append(out, Definition{Key: d.Key, Parameters: append([]Parameter{}, d.Parameters...), Texts: map[Locale]string{ZhCN: d.Texts[ZhCN], EnUS: d.Texts[EnUS]}})
+		out = append(out, Definition{Key: d.Key, Parameters: append([]Parameter{}, d.Parameters...), Texts: map[Locale]string{ZhCN: d.Texts[ZhCN], EnUS: d.Texts[EnUS]}, SourceTemplate: d.SourceTemplate})
 	}
 	return out
 }
@@ -154,6 +154,7 @@ func safeInteger(v any) (uint64, bool) {
 
 var definitions = map[string]Definition{}
 var templates = map[string]map[Locale]*template.Template{}
+var sourceTemplates = map[string]*template.Template{}
 var sources = map[string]string{}
 
 func init() {
@@ -162,6 +163,11 @@ func init() {
 			panic("invalid or duplicate localization key")
 		}
 		definitions[d.Key] = d
+		source := d.SourceTemplate
+		if source == "" {
+			source = d.Texts[ZhCN]
+		}
+		sourceTemplates[d.Key] = compileTemplate(d, source)
 		templates[d.Key] = map[Locale]*template.Template{}
 		for _, locale := range []Locale{ZhCN, EnUS} {
 			if d.Texts[locale] == "" {
@@ -169,23 +175,7 @@ func init() {
 			}
 			// 对外发布的目录只支持 {{.name}} 纯文本替换。即使底层使用成熟的
 			// text/template，也不允许目录逐渐引入函数、条件或任意模板操作。
-			remaining := placeholderPattern.ReplaceAllString(d.Texts[locale], "")
-			if strings.Contains(remaining, "{{") || strings.Contains(remaining, "}}") {
-				panic("unsupported localization template syntax")
-			}
-			for _, match := range placeholderPattern.FindAllStringSubmatch(d.Texts[locale], -1) {
-				known := false
-				for _, parameter := range d.Parameters {
-					if parameter.Name == match[1] {
-						known = true
-						break
-					}
-				}
-				if !known {
-					panic("undeclared localization template parameter")
-				}
-			}
-			templates[d.Key][locale] = template.Must(template.New(d.Key).Option("missingkey=error").Parse(d.Texts[locale]))
+			templates[d.Key][locale] = compileTemplate(d, d.Texts[locale])
 		}
 		if len(d.Parameters) == 0 {
 			if prior, exists := sources[d.Texts[ZhCN]]; exists && prior != d.Key {
@@ -200,4 +190,26 @@ func init() {
 		}
 		sources[source] = key
 	}
+}
+
+// Canonical source and display translations share the same deliberately small
+// grammar: plain text and declared named parameters, without executable logic.
+func compileTemplate(d Definition, source string) *template.Template {
+	remaining := placeholderPattern.ReplaceAllString(source, "")
+	if strings.Contains(remaining, "{{") || strings.Contains(remaining, "}}") {
+		panic("unsupported localization template syntax")
+	}
+	for _, match := range placeholderPattern.FindAllStringSubmatch(source, -1) {
+		known := false
+		for _, p := range d.Parameters {
+			if p.Name == match[1] {
+				known = true
+				break
+			}
+		}
+		if !known {
+			panic("undeclared localization template parameter")
+		}
+	}
+	return template.Must(template.New(d.Key).Option("missingkey=error").Parse(source))
 }

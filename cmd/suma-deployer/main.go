@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"flag"
-	"log"
+	"fmt"
+	"io"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -12,18 +13,27 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ai-mada/suma/internal/commandlocale"
 	"github.com/ai-mada/suma/internal/deployer"
 )
 
-func main() {
-	config := flag.String("config", "", "administrator local static-provider JSON configuration")
-	flag.Parse()
+var version = "dev"
+
+func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr, os.LookupEnv)) }
+
+func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool)) int {
+	app := commandlocale.New("suma-deployer", "速码本地静态发布提供方", "suma local static deployment provider", out, stderr, lookup)
+	config := app.String("config", "", "管理员本地静态提供方 JSON 配置", "administrator local static-provider JSON configuration")
+	if stop, code := app.Parse(args, version); stop {
+		return code
+	}
+	logger := slog.New(slog.NewTextHandler(stderr, nil))
 	if *config == "" {
-		log.Fatal("--config is required")
+		return app.Failure("必须提供 --config", "--config is required")
 	}
 	file, err := os.Open(*config)
 	if err != nil {
-		log.Fatal("provider configuration unavailable")
+		return app.Failure("提供方配置不可用", "provider configuration unavailable")
 	}
 	decoder := json.NewDecoder(file)
 	decoder.DisallowUnknownFields()
@@ -31,7 +41,7 @@ func main() {
 	err = decoder.Decode(&cfg)
 	_ = file.Close()
 	if err != nil {
-		log.Fatal("invalid provider configuration")
+		return app.Failure("提供方配置无效", "invalid provider configuration")
 	}
 	if cfg.ManagementAddress == "" {
 		cfg.ManagementAddress = "127.0.0.1:4350"
@@ -39,32 +49,34 @@ func main() {
 	host, _, err := net.SplitHostPort(cfg.ManagementAddress)
 	ip := net.ParseIP(host)
 	if err != nil || ip == nil || !ip.IsLoopback() {
-		log.Fatal("management_address must be an explicit loopback address")
+		return app.Failure("management_address 必须是明确的回环地址", "management_address must be an explicit loopback address")
 	}
 	listener, err := net.Listen("tcp", cfg.ManagementAddress)
 	if err != nil {
-		log.Fatal("provider management listener unavailable")
+		return app.Failure("提供方管理监听器不可用", "provider management listener unavailable")
 	}
 	provider, err := deployer.New(cfg)
 	if err != nil {
 		_ = listener.Close()
-		log.Fatal(err)
+		fmt.Fprintln(stderr, err)
+		return 1
 	}
 	defer provider.Close()
 	server := &http.Server{Handler: provider.Handler(), ReadHeaderTimeout: 5 * time.Second}
 	done := make(chan error, 1)
 	go func() { done <- server.Serve(listener) }()
-	log.Printf("local static provider management listening on %s", listener.Addr())
+	logger.Info(app.Text("本地静态提供方管理服务开始监听", "local static provider management listening"), "event", "deployer.listening", "address", listener.Addr())
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	select {
 	case <-ctx.Done():
 	case err = <-done:
 		if err != http.ErrServerClosed {
-			log.Print("provider management listener stopped")
+			logger.Error(app.Text("提供方管理监听器已停止", "provider management listener stopped"), "event", "deployer.listener_stopped")
 		}
 	}
 	shutdown, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	_ = server.Shutdown(shutdown)
+	return 0
 }

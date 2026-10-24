@@ -2,6 +2,7 @@ package platform
 
 import (
 	"errors"
+	"github.com/ai-mada/suma/internal/dag"
 	"net/http"
 
 	"github.com/ai-mada/suma/internal/localization"
@@ -27,6 +28,16 @@ func localizedAPIError(w http.ResponseWriter, e *APIError, original error) map[s
 	key, found := localization.LookupSource(e.Message)
 	var params localization.Params
 	var diagnostic *diagnosticAPIError
+	// Generic annotations are accepted only for the DAG's already-public
+	// categories, with the same complete message. APIError has its own cause
+	// binding below; a joined DAG error cannot change its meaning or status.
+	var apiCause *APIError
+	if !errors.As(original, &apiCause) && original != nil && original.Error() == e.Message &&
+		(errors.Is(original, dag.ErrInvalid) || errors.Is(original, dag.ErrConflict) || errors.Is(original, dag.ErrStale) || errors.Is(original, dag.ErrUnsupported)) {
+		if rendered, valid := localization.FormatError(locale, bareDAGDiagnostic(original)); valid {
+			key, found, params = rendered.Key, true, rendered.Params
+		}
+	}
 	// Bind both cause and meaning. A valid but accidentally unrelated key must
 	// not hide the real diagnostic; compare the complete canonical source with
 	// the captured parameters instead of inferring intent from a prefix.

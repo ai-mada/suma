@@ -1421,6 +1421,14 @@ export interface ReleaseWorkerRevokeRequest {
   idempotency_key: string;
   status: string;
 }
+export interface Rendered {
+  message_key: string;
+  message_params?: { [key: string]: unknown };
+  locale: string;
+  message: string;
+  localized: boolean;
+  fallback?: string;
+}
 export interface ReservedExecution {
   run_id: string;
   node_id: string;
@@ -1814,4 +1822,9 @@ export interface Workflow {
   version: number;
   nodes: (Node)[];
   edges: (Edge)[];
+}
+export interface WorkflowValidation {
+  valid: boolean;
+  errors: (string)[];
+  diagnostics: (Rendered)[];
 }

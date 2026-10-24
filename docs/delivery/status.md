@@ -1,6 +1,10 @@
 # 当前交付状态
 
-## 当前 T-P4-009：受控平台诊断国际化
+## 当前 T-P4-010：DAG、运行命令与原生智能体国际化
+
+新增DAG151键／150注解，后端731键；原Error及sentinel身份保持。流程校验保留原始证据并返回强类型诊断，可即时切语言且保留草稿。三个运行命令中英入口、原生46键及SDK非法语言访问前拒绝已实现；独立审查两个P2修复并复核。最终Go1038／328输入、Web469／42文件／198输入、非Web45、类型／构建／合同检查通过；24程序与实际双语校验、12只读命令、1280／390局部UI及129表7690行保持已验。见[架构](../architecture/runtime-localization.md)、[验收](../quality/runtime-localization-verification.md)、[精简摘要](../quality/runtime-localization-summary.json)。原生display尚未由Go Runner转发、命令提示合同差异、库内NLS及完整P0–P7继续实施，生产未验收。
+
+## 历史 T-P4-009：受控平台诊断国际化
 
 新增447条领域静态诊断及10个参数化键，后端目录580键；原Error、状态／code／details、权限、幂等正文和历史证据保持。AST门禁覆盖83文件的546个完整静态中文原文与12处参数化生产者，合成解析边界及真实并发HTTP已有RED→GREEN。最终Go904／315输入、Web461／193输入、非Web30、类型／构建／合同检查通过；24运行文件已独立审计，实际控制面拒绝接口及中英文登录错误通过，辅助入口分行44px、1280／390部分界面及129表保持实测完成。精确边界见[验收](../quality/backend-diagnostics-verification.md)与[精简摘要](../quality/backend-diagnostics-summary.json)。门禁外的非中文／原始动态错误、其他包／展示字段、原生／通知／安装器／渠道和完整P0–P7继续实施。
 

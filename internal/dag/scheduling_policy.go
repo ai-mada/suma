@@ -139,11 +139,11 @@ func (e *Engine) readSchedulingPolicyTx(ctx context.Context, tx *sql.Tx, tenant,
 func (e *Engine) WriteSchedulingPolicyTx(ctx context.Context, tx *sql.Tx, tenant, project string, expectedVersion int, input SchedulingPolicyInput) (SchedulingPolicy, error) {
 	var out SchedulingPolicy
 	if expectedVersion < 0 || !safeSchedulingInteger(input.ConcurrencyLimit) || len(input.ResourceLimits) > 64 || input.BudgetLimit != nil && !safeSchedulingInteger(*input.BudgetLimit) {
-		return out, fmt.Errorf("%w: scheduling capacities require safe nonnegative integers", ErrInvalid)
+		return out, dagDiagnostic(fmt.Errorf("%w: scheduling capacities require safe nonnegative integers", ErrInvalid), "dag.policy.capacities", nil)
 	}
 	for name, cap := range input.ResourceLimits {
 		if !identifier.MatchString(name) || name == "execution_slots" || name == "budget" || cap != nil && !safeSchedulingInteger(*cap) {
-			return out, fmt.Errorf("%w: resource name/capacity", ErrInvalid)
+			return out, dagDiagnostic(fmt.Errorf("%w: resource name/capacity", ErrInvalid), "dag.policy.resource", nil)
 		}
 	}
 	if err := e.projectGuardTx(ctx, tx, tenant, project); err != nil {
@@ -154,7 +154,7 @@ func (e *Engine) WriteSchedulingPolicyTx(ctx context.Context, tx *sql.Tx, tenant
 		return out, err
 	}
 	if current.Version != expectedVersion {
-		return out, fmt.Errorf("%w: scheduling policy changed", ErrConflict)
+		return out, dagDiagnostic(fmt.Errorf("%w: scheduling policy changed", ErrConflict), "dag.policy.changed", nil)
 	}
 	limits := input.ResourceLimits
 	if limits == nil {
@@ -169,7 +169,7 @@ func (e *Engine) WriteSchedulingPolicyTx(ctx context.Context, tx *sql.Tx, tenant
 			var n int64
 			n, err = result.RowsAffected()
 			if err == nil && n != 1 {
-				err = fmt.Errorf("%w: scheduling policy changed", ErrConflict)
+				err = dagDiagnostic(fmt.Errorf("%w: scheduling policy changed", ErrConflict), "dag.policy.changed", nil)
 			}
 		}
 	}

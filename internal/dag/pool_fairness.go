@@ -111,7 +111,7 @@ func fairAdvance(s poolFairState, effective int64, weight int) (int64, int64, er
 	delta += rem / int64(weight)
 	rem %= int64(weight)
 	if effective > maxSchedulingInteger-delta {
-		return 0, 0, fmt.Errorf("%w: fair epoch requires normalization", ErrConflict)
+		return 0, 0, dagDiagnostic(fmt.Errorf("%w: fair epoch requires normalization", ErrConflict), "dag.pool.fair_epoch", nil)
 	}
 	return effective + delta, rem, nil
 }
@@ -156,7 +156,7 @@ func (t *transaction) writeFairState(pool, tenant, project string, old, next poo
 		return err
 	}
 	if changed != 1 {
-		return fmt.Errorf("%w: fair service entity changed", ErrConflict)
+		return dagDiagnostic(fmt.Errorf("%w: fair service entity changed", ErrConflict), "dag.pool.fair_entity", nil)
 	}
 	return nil
 }

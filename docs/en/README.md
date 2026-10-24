@@ -1,5 +1,7 @@
 # suma documentation
 
+T-P4-010 extends localization to controlled DAG diagnostics, structured workflow validation, three runtime command entry points and the native agent SDK/CLI. The backend now has 731 message keys; native display has a separate 46-key catalog. Original errors, machine codes, model/tool payloads and immutable evidence remain unchanged. Workflow errors re-render without resubmitting validation or losing drafts; unknown keys and invalid parameters show the corresponding raw compiler evidence. Explicit invalid SDK locales are rejected before events or I/O. Native `display` is currently not propagated by the Go Runner. See the [design — Chinese original](../architecture/runtime-localization.md) and [stage verification — Chinese original](../quality/runtime-localization-verification.md); these remain partial-platform evidence, with full bilingual documentation and other language surfaces still in progress.
+
 Status: implementation in progress. The platform's full accepted scope is tracked in the [implementation ledger](../delivery/implementation-plan.md); a completed local stage does not constitute acceptance of the whole platform.
 
 suma is an intelligent development platform for organizations, teams, projects, requirements, design, execution, testing, human acceptance, releases and issue feedback. Business acceptance, execution state, test evidence and deployment are distinct facts.

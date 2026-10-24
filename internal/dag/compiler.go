@@ -27,34 +27,34 @@ func predicates(n Node) []string {
 func normalize(w Workflow) (Workflow, error) {
 	w.Nodes = append([]Node(nil), w.Nodes...)
 	if len(w.Nodes) == 0 || len(w.Nodes) > 1000 {
-		return w, fmt.Errorf("%w: workflow requires 1..1000 nodes", ErrInvalid)
+		return w, dagDiagnostic(fmt.Errorf("%w: workflow requires 1..1000 nodes", ErrInvalid), "dag.workflow.node_count", nil)
 	}
 	seen := map[string]int{}
 	for i, n := range w.Nodes {
 		if n.Priority < 0 || n.Priority > 9 {
-			return w, fmt.Errorf("%w: priority must be 0..9", ErrInvalid)
+			return w, dagDiagnostic(fmt.Errorf("%w: priority must be 0..9", ErrInvalid), "dag.node.priority", nil)
 		}
 		if !identifier.MatchString(n.ID) || !types[n.Type] {
-			return w, fmt.Errorf("%w: node ID/type %q/%q", ErrInvalid, n.ID, n.Type)
+			return w, dagDiagnostic(fmt.Errorf("%w: node ID/type %q/%q", ErrInvalid, n.ID, n.Type), "dag.node.identity", diagnosticParams{"node": fmt.Sprintf("%q", n.ID), "type": fmt.Sprintf("%q", n.Type)})
 		}
 		if _, ok := seen[n.ID]; ok {
-			return w, fmt.Errorf("%w: duplicate node %s", ErrInvalid, n.ID)
+			return w, dagDiagnostic(fmt.Errorf("%w: duplicate node %s", ErrInvalid, n.ID), "dag.node.duplicate", diagnosticParams{"node": n.ID})
 		}
 		seen[n.ID] = i
 		if n.Type == "command" || n.Type == "agent" || n.Type == "test" {
 			if len(n.Command) != 1 || !identifier.MatchString(n.Command[0]) {
-				return w, fmt.Errorf("%w: command/agent/test require one allowlisted command identifier", ErrInvalid)
+				return w, dagDiagnostic(fmt.Errorf("%w: command/agent/test require one allowlisted command identifier", ErrInvalid), "dag.node.command", nil)
 			}
 		}
 		if _, _, _, err := ToolBinding(n); err != nil {
 			return w, err
 		}
 		if n.MaxRetries < 0 || n.MaxRetries > 2 || n.TimeoutSeconds < 0 || n.TimeoutSeconds > maxExecutionTimeoutSeconds || n.MaxRetries > 0 && !n.Idempotent {
-			return w, fmt.Errorf("%w: retries require idempotency and 0..2 retries; timeout must be 0..9223372036 whole seconds", ErrInvalid)
+			return w, dagDiagnostic(fmt.Errorf("%w: retries require idempotency and 0..2 retries; timeout must be 0..9223372036 whole seconds", ErrInvalid), "dag.node.retry_timeout", nil)
 		}
 		for resource, v := range n.Resources {
 			if !safeSchedulingInteger(v) || !identifier.MatchString(resource) || (resource == "budget" || resource == "execution_slots") && v == 0 {
-				return w, fmt.Errorf("%w: negative resource", ErrInvalid)
+				return w, dagDiagnostic(fmt.Errorf("%w: negative resource", ErrInvalid), "dag.node.resource", nil)
 			}
 		}
 		if n.Join == "" {
@@ -63,7 +63,7 @@ func normalize(w Workflow) (Workflow, error) {
 		switch n.Join {
 		case "all_success", "all_done", "any_success", "quorum":
 		default:
-			return w, fmt.Errorf("%w: unknown join %s", ErrInvalid, n.Join)
+			return w, dagDiagnostic(fmt.Errorf("%w: unknown join %s", ErrInvalid, n.Join), "dag.node.join", diagnosticParams{"join": n.Join})
 		}
 		if n.Name == "" {
 			n.Name = n.ID
@@ -82,7 +82,7 @@ func normalize(w Workflow) (Workflow, error) {
 		}
 		if n.Type == "timer" {
 			if numeric(n.Config, "duration_seconds") < 0 {
-				return w, fmt.Errorf("%w: negative timer duration", ErrInvalid)
+				return w, dagDiagnostic(fmt.Errorf("%w: negative timer duration", ErrInvalid), "dag.timer.duration", nil)
 			}
 		}
 		if n.Type == "subworkflow" {
@@ -94,15 +94,15 @@ func normalize(w Workflow) (Workflow, error) {
 			plugin, _ := n.Config["plugin"].(string)
 			workflow, _ := n.Config["workflow"].(string)
 			if !identifier.MatchString(plugin) || workflow == "" || len(workflow) > 500 || len(n.Command) > 0 {
-				return w, fmt.Errorf("%w: external_workflow requires plugin/workflow config and no shell command", ErrInvalid)
+				return w, dagDiagnostic(fmt.Errorf("%w: external_workflow requires plugin/workflow config and no shell command", ErrInvalid), "dag.external.binding", nil)
 			}
 			if input, ok := n.Config["input"]; ok {
 				if _, valid := input.(map[string]any); !valid {
-					return w, fmt.Errorf("%w: external workflow input must be an object", ErrInvalid)
+					return w, dagDiagnostic(fmt.Errorf("%w: external workflow input must be an object", ErrInvalid), "dag.external.input", nil)
 				}
 			}
 			if _, ok := n.Config["endpoint"]; ok {
-				return w, fmt.Errorf("%w: external endpoints must be configured by the runner administrator", ErrInvalid)
+				return w, dagDiagnostic(fmt.Errorf("%w: external endpoints must be configured by the runner administrator", ErrInvalid), "dag.external.endpoint", nil)
 			}
 		}
 		if _, _, err := compensationTemplate(n); err != nil {
@@ -114,7 +114,7 @@ func normalize(w Workflow) (Workflow, error) {
 				return w, err
 			}
 			if len(items) > 1000 {
-				return w, fmt.Errorf("%w: map expansion exceeds 1000", ErrInvalid)
+				return w, dagDiagnostic(fmt.Errorf("%w: map expansion exceeds 1000", ErrInvalid), "dag.map.expansion_limit", nil)
 			}
 			template, err := mapTemplate(n)
 			if err != nil {
@@ -122,7 +122,7 @@ func normalize(w Workflow) (Workflow, error) {
 			}
 			template.ID = "template"
 			if template.Type == "map" {
-				return w, fmt.Errorf("%w: nested map", ErrUnsupported)
+				return w, dagDiagnostic(fmt.Errorf("%w: nested map", ErrUnsupported), "dag.map.nested", nil)
 			}
 			if _, err = normalize(Workflow{Nodes: []Node{template}}); err != nil {
 				return w, err
@@ -134,16 +134,16 @@ func normalize(w Workflow) (Workflow, error) {
 	pairs := map[string]bool{}
 	add := func(e Edge) error {
 		if _, ok := seen[e.From]; !ok {
-			return fmt.Errorf("%w: missing dependency %s", ErrInvalid, e.From)
+			return dagDiagnostic(fmt.Errorf("%w: missing dependency %s", ErrInvalid, e.From), "dag.edge.source", diagnosticParams{"node": e.From})
 		}
 		if _, ok := seen[e.To]; !ok {
-			return fmt.Errorf("%w: missing target %s", ErrInvalid, e.To)
+			return dagDiagnostic(fmt.Errorf("%w: missing target %s", ErrInvalid, e.To), "dag.edge.target", diagnosticParams{"node": e.To})
 		}
 		key := e.From + "\x00" + e.To
 		if pairs[key] {
 			for _, existing := range edges {
 				if existing.From == e.From && existing.To == e.To && existing.Condition != e.Condition && e.Condition != "" && existing.Condition != "" {
-					return fmt.Errorf("%w: contradictory edge conditions", ErrInvalid)
+					return dagDiagnostic(fmt.Errorf("%w: contradictory edge conditions", ErrInvalid), "dag.edge.conditions", nil)
 				}
 			}
 			return nil
@@ -179,7 +179,7 @@ func normalize(w Workflow) (Workflow, error) {
 	queue := []string{}
 	for _, n := range w.Nodes {
 		if n.Join == "quorum" && (n.Quorum < 1 || n.Quorum > len(n.DependsOn)) {
-			return w, fmt.Errorf("%w: invalid quorum", ErrInvalid)
+			return w, dagDiagnostic(fmt.Errorf("%w: invalid quorum", ErrInvalid), "dag.node.quorum", nil)
 		}
 		if indegree[n.ID] == 0 {
 			queue = append(queue, n.ID)
@@ -198,7 +198,7 @@ func normalize(w Workflow) (Workflow, error) {
 		}
 	}
 	if count != len(w.Nodes) {
-		return w, fmt.Errorf("%w: dependency cycle", ErrInvalid)
+		return w, dagDiagnostic(fmt.Errorf("%w: dependency cycle", ErrInvalid), "dag.workflow.cycle", nil)
 	}
 	w.Edges = edges
 	if err := validateCandidateReferences(w); err != nil {
@@ -244,7 +244,7 @@ func normalize(w Workflow) (Workflow, error) {
 				lhs := strings.TrimSpace(parts[0])
 				pos := strings.LastIndex(lhs, ".")
 				if pos < 1 || !ancestors[lhs[:pos]] {
-					return w, fmt.Errorf("%w: condition references non-ancestor %q", ErrInvalid, lhs)
+					return w, dagDiagnostic(fmt.Errorf("%w: condition references non-ancestor %q", ErrInvalid, lhs), "dag.condition.ancestor", diagnosticParams{"reference": fmt.Sprintf("%q", lhs)})
 				}
 			}
 		}
@@ -258,11 +258,11 @@ func validateCondition(s string) error {
 	}
 	parts := strings.SplitN(s, "==", 2)
 	if len(parts) != 2 {
-		return fmt.Errorf("%w: condition must be true, false, or node.state/output == value", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: condition must be true, false, or node.state/output == value", ErrInvalid), "dag.condition.syntax", nil)
 	}
 	lhs := strings.TrimSpace(parts[0])
 	if !strings.HasSuffix(lhs, ".state") && !strings.HasSuffix(lhs, ".output") {
-		return fmt.Errorf("%w: unsupported condition field", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: unsupported condition field", ErrInvalid), "dag.condition.field", nil)
 	}
 	return nil
 }

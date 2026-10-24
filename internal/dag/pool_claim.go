@@ -17,7 +17,7 @@ func normalizePoolRequest(in PoolClaimRequest) (PoolClaimRequest, error) {
 	}
 	slot, err := strconv.Atoi(in.SlotID)
 	if err != nil || slot < 0 || strconv.Itoa(slot) != in.SlotID {
-		return in, fmt.Errorf("%w: slot_id must be canonical zero-based decimal", ErrInvalid)
+		return in, dagDiagnostic(fmt.Errorf("%w: slot_id must be canonical zero-based decimal", ErrInvalid), "dag.pool.slot_id", nil)
 	}
 	in.Scopes = append([]PoolCapabilityScope(nil), in.Scopes...)
 	seen := map[string]bool{}
@@ -28,7 +28,7 @@ func normalizePoolRequest(in PoolClaimRequest) (PoolClaimRequest, error) {
 		}
 		key := poolScopeKey(s.TenantID, s.ProjectID)
 		if seen[key] {
-			return in, fmt.Errorf("%w: duplicate capability scope", ErrInvalid)
+			return in, dagDiagnostic(fmt.Errorf("%w: duplicate capability scope", ErrInvalid), "dag.pool.duplicate_scope", nil)
 		}
 		seen[key] = true
 		s.Capabilities, err = normalizedCapabilities(s.Capabilities)
@@ -61,7 +61,7 @@ func (e *Engine) ClaimPoolWithOperation(ctx context.Context, request PoolClaimRe
 		return nil, err
 	}
 	if before == nil {
-		return nil, fmt.Errorf("%w: current pool authority required", ErrInvalid)
+		return nil, dagDiagnostic(fmt.Errorf("%w: current pool authority required", ErrInvalid), "dag.pool.authority", nil)
 	}
 	var authority PoolClaimAuthority
 	var out *Assignment
@@ -71,7 +71,7 @@ func (e *Engine) ClaimPoolWithOperation(ctx context.Context, request PoolClaimRe
 		}
 		slot, _ := strconv.Atoi(request.SlotID)
 		if slot >= authority.MaxSlots {
-			return fmt.Errorf("%w: slot outside registered capacity", ErrInvalid)
+			return dagDiagnostic(fmt.Errorf("%w: slot outside registered capacity", ErrInvalid), "dag.pool.slot_capacity", nil)
 		}
 		if err := e.guardPoolTx(ctx, t.tx, request.PoolID); err != nil {
 			return err
@@ -96,14 +96,14 @@ func (e *Engine) ClaimPoolWithOperation(ctx context.Context, request PoolClaimRe
 			key := poolScopeKey(supported.TenantID, supported.ProjectID)
 			given, ok := allowed[key]
 			if !ok {
-				return fmt.Errorf("%w: local capability scope is not currently authorized", ErrInvalid)
+				return dagDiagnostic(fmt.Errorf("%w: local capability scope is not currently authorized", ErrInvalid), "dag.pool.capability_authority", nil)
 			}
 			actual, err := t.currentPoolScope(request.PoolID, supported.TenantID, supported.ProjectID)
 			if err != nil {
 				return err
 			}
 			if actual.GrantID != given.GrantID || actual.GrantVersion != given.GrantVersion || actual.ProjectWeight != given.ProjectWeight || actual.Status != given.Status {
-				return fmt.Errorf("%w: pool grant changed", ErrConflict)
+				return dagDiagnostic(fmt.Errorf("%w: pool grant changed", ErrConflict), "dag.pool.grant_changed", nil)
 			}
 			caps[key] = supported.Capabilities
 			if actual.Status == "active" && len(supported.Capabilities) > 0 {
@@ -395,7 +395,7 @@ func (t *transaction) recoverPoolDispatch(in PoolClaimRequest, auth PoolClaimAut
 	}
 	if a.DispatchState == "active" {
 		if !auth.PoolActive || scope.Status != "active" {
-			return nil, false, fmt.Errorf("%w: original pool dispatch no longer eligible", ErrConflict)
+			return nil, false, dagDiagnostic(fmt.Errorf("%w: original pool dispatch no longer eligible", ErrConflict), "dag.pool.dispatch_eligibility", nil)
 		}
 		if eligible != nil {
 			ok, err := eligible(t.tx, scope, a.RunID, a.NodeID)

@@ -63,7 +63,7 @@ type queryer interface {
 
 func New(db *sql.DB, dialect string) (*Engine, error) {
 	if dialect != "sqlite" && dialect != "oceanbase" && dialect != "postgres" {
-		return nil, fmt.Errorf("%w: database dialect", ErrUnsupported)
+		return nil, dagDiagnostic(fmt.Errorf("%w: database dialect", ErrUnsupported), "dag.storage.dialect", nil)
 	}
 	e := &Engine{db: db, dialect: dialect, LeaseSeconds: 30}
 	for _, ddl := range schema {
@@ -224,7 +224,7 @@ func hashText(value string) string {
 }
 func scopeValid(t, p string) error {
 	if t == "" || p == "" || len(t) > 100 || len(p) > 100 {
-		return fmt.Errorf("%w: tenant and project required", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: tenant and project required", ErrInvalid), "dag.scope.required", nil)
 	}
 	return nil
 }
@@ -253,7 +253,7 @@ func (t *transaction) operation(tenant, project, scope, key, hash string) (strin
 		return "", err
 	}
 	if key == "" || len(key) > 150 {
-		return "", fmt.Errorf("%w: operation_id required (max 150)", ErrInvalid)
+		return "", dagDiagnostic(fmt.Errorf("%w: operation_id required (max 150)", ErrInvalid), "dag.operation.id", nil)
 	}
 	var previous, id string
 	err := t.row("SELECT fingerprint,result_id FROM dag_operations WHERE tenant_id=? AND project_id=? AND scope=? AND operation_id=?", tenant, project, scope, key).Scan(&previous, &id)
@@ -264,7 +264,7 @@ func (t *transaction) operation(tenant, project, scope, key, hash string) (strin
 		return "", err
 	}
 	if previous != hash {
-		return "", fmt.Errorf("%w: idempotency key reused for different request", ErrConflict)
+		return "", dagDiagnostic(fmt.Errorf("%w: idempotency key reused for different request", ErrConflict), "dag.operation.reused", nil)
 	}
 	return id, nil
 }
@@ -351,7 +351,7 @@ func (e *Engine) publish(ctx context.Context, tenant, project string, w Workflow
 		w.ID = uid()
 	}
 	if !identifier.MatchString(w.ID) || w.Name == "" || len(w.Name) > 255 {
-		return w, fmt.Errorf("%w: workflow ID and name required", ErrInvalid)
+		return w, dagDiagnostic(fmt.Errorf("%w: workflow ID and name required", ErrInvalid), "dag.workflow.identity", nil)
 	}
 	err = e.write(ctx, func(t *transaction) error {
 		if receipt {
@@ -362,7 +362,7 @@ func (e *Engine) publish(ctx context.Context, tenant, project string, w Workflow
 			if previous != "" {
 				parts := strings.SplitN(previous, ":", 2)
 				if len(parts) != 2 {
-					return fmt.Errorf("corrupt workflow receipt")
+					return dagDiagnostic(fmt.Errorf("corrupt workflow receipt"), "dag.workflow.corrupt_receipt", nil)
 				}
 				version, err := strconv.Atoi(parts[1])
 				if err != nil {
@@ -383,7 +383,7 @@ func (e *Engine) publish(ctx context.Context, tenant, project string, w Workflow
 			return err
 		}
 		if w.Version != 0 && w.Version != version+1 {
-			return fmt.Errorf("%w: published versions are immutable; next version is %d", ErrConflict, version+1)
+			return dagDiagnostic(fmt.Errorf("%w: published versions are immutable; next version is %d", ErrConflict, version+1), "dag.workflow.immutable_version", diagnosticParams{"version": version + 1})
 		}
 		w.Version = version + 1
 		if err := t.validateReferences(tenant, project, w); err != nil {
@@ -613,7 +613,7 @@ func (e *Engine) Runs(ctx context.Context, tenant, project string) ([]Run, error
 // returned sequence. HTTP clients use the smaller authorized 128-event window.
 func (e *Engine) Events(ctx context.Context, tenant, project, id string, after int64) ([]Event, error) {
 	if after < 0 {
-		return nil, fmt.Errorf("%w: negative event cursor", ErrInvalid)
+		return nil, dagDiagnostic(fmt.Errorf("%w: negative event cursor", ErrInvalid), "dag.events.cursor", nil)
 	}
 	var exists int
 	if err := e.db.QueryRowContext(ctx, e.q(`SELECT 1 FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, id).Scan(&exists); err != nil {
@@ -721,7 +721,7 @@ func (e *Engine) CreateRunBound(ctx context.Context, tenant, project, workflowID
 func (e *Engine) CreateRunBoundAuthorized(ctx context.Context, tenant, project, workflowID string, version int, operationID, bindingKey string, before func(*sql.Tx) error, bind func(*sql.Tx, string) error) (Run, error) {
 	var out Run
 	if version < 0 || bind != nil && bindingKey == "" {
-		return out, fmt.Errorf("%w: version and binding key", ErrInvalid)
+		return out, dagDiagnostic(fmt.Errorf("%w: version and binding key", ErrInvalid), "dag.run.binding", nil)
 	}
 	if err := scopeValid(tenant, project); err != nil {
 		return out, err

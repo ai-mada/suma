@@ -518,11 +518,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			if len(parts) == 2 && parts[1] == "validate" {
-				if e := dag.Compile(workflow); e != nil {
-					writeJSON(w, 200, map[string]any{"valid": false, "errors": []string{e.Error()}})
-				} else {
-					writeJSON(w, 200, map[string]any{"valid": true, "errors": []string{}})
-				}
+				writeJSON(w, 200, workflowValidation(w, workflow))
 				return
 			}
 			if len(parts) == 1 {

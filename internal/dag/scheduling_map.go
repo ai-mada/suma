@@ -17,14 +17,14 @@ func (t *transaction) beginMapExpansion(r *runState, n *nodeState) error {
 		return err
 	}
 	if len(items) > 1000 {
-		return fmt.Errorf("%w: map expansion exceeds 1000", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: map expansion exceeds 1000", ErrInvalid), "dag.map.expansion_limit", nil)
 	}
 	template, err := mapTemplate(n.spec)
 	if err != nil {
 		return err
 	}
 	if template.Type == "map" {
-		return fmt.Errorf("%w: nested map unsupported", ErrUnsupported)
+		return dagDiagnostic(fmt.Errorf("%w: nested map unsupported", ErrUnsupported), "dag.map.runtime_nested", nil)
 	}
 	var generation int
 	if err = t.row(`SELECT generation FROM dag_node_dependencies WHERE run_id=? AND node_id=?`, r.ID, n.ID).Scan(&generation); err != nil {
@@ -57,7 +57,7 @@ func (t *transaction) materializeMapChunk(r *runState, n *nodeState) error {
 	var items []any
 	var template Node
 	if json.Unmarshal([]byte(itemsJSON), &items) != nil || json.Unmarshal([]byte(templateJSON), &template) != nil || fingerprint(items) != inputSHA || fingerprint(template) != templateSHA || len(items) != total || next < 0 || next > total {
-		return fmt.Errorf("%w: map manifest integrity", ErrConflict)
+		return dagDiagnostic(fmt.Errorf("%w: map manifest integrity", ErrConflict), "dag.map.manifest", nil)
 	}
 	end := next + mapMaterializationChunk
 	if end > total {
@@ -105,7 +105,7 @@ func (t *transaction) materializeMapChunk(r *runState, n *nodeState) error {
 		return err
 	}
 	if changed != 1 {
-		return fmt.Errorf("%w: map expansion boundary changed", ErrConflict)
+		return dagDiagnostic(fmt.Errorf("%w: map expansion boundary changed", ErrConflict), "dag.map.boundary", nil)
 	}
 	if err = t.exec(`UPDATE dag_map_progress SET closed=? WHERE run_id=? AND node_id=?`, closed, r.ID, n.ID); err != nil {
 		return err

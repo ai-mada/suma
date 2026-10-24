@@ -13,10 +13,10 @@ func mapItems(n Node) ([]any, error) {
 	var items []any
 	raw, ok := n.Config["items"]
 	if !ok || raw == nil {
-		return nil, fmt.Errorf("%w: map config.items required", ErrInvalid)
+		return nil, dagDiagnostic(fmt.Errorf("%w: map config.items required", ErrInvalid), "dag.map.items_required", nil)
 	}
 	if err := decode(raw, &items); err != nil {
-		return nil, fmt.Errorf("%w: map config.items must be an array", ErrInvalid)
+		return nil, dagDiagnostic(fmt.Errorf("%w: map config.items must be an array", ErrInvalid), "dag.map.items_array", nil)
 	}
 	return items, nil
 }
@@ -24,7 +24,7 @@ func mapTemplate(n Node) (Node, error) {
 	template := Node{Type: "task", Command: n.Command, Idempotent: n.Idempotent, Resources: n.Resources, TimeoutSeconds: n.TimeoutSeconds, MaxRetries: n.MaxRetries, Join: "all_success", Priority: n.Priority}
 	if raw, ok := n.Config["template"]; ok {
 		if err := decode(raw, &template); err != nil {
-			return template, fmt.Errorf("%w: invalid map template", ErrInvalid)
+			return template, dagDiagnostic(fmt.Errorf("%w: invalid map template", ErrInvalid), "dag.map.template", nil)
 		}
 	}
 	return template, nil
@@ -91,10 +91,10 @@ func (e *Engine) ClaimWithOperation(ctx context.Context, tenant, project, worker
 		return nil, err
 	}
 	if worker == "" || len(worker) > 100 {
-		return nil, fmt.Errorf("%w: worker_id required", ErrInvalid)
+		return nil, dagDiagnostic(fmt.Errorf("%w: worker_id required", ErrInvalid), "dag.claim.worker", nil)
 	}
 	if len(operationID) < 8 || len(operationID) > 128 {
-		return nil, fmt.Errorf("%w: claim operation requires 8..128 characters", ErrInvalid)
+		return nil, dagDiagnostic(fmt.Errorf("%w: claim operation requires 8..128 characters", ErrInvalid), "dag.claim.operation", nil)
 	}
 	capabilities, err := normalizedCapabilities(capabilities)
 	if err != nil {
@@ -117,7 +117,7 @@ func (e *Engine) ClaimWithOperation(ctx context.Context, tenant, project, worker
 					return err
 				}
 				if !allowed {
-					return fmt.Errorf("%w: original dispatch is currently blocked; inspect its existing attempt", ErrConflict)
+					return dagDiagnostic(fmt.Errorf("%w: original dispatch is currently blocked; inspect its existing attempt", ErrConflict), "dag.claim.dispatch_blocked", nil)
 				}
 			}
 			out = previous
@@ -321,7 +321,7 @@ func (e *Engine) CompleteBound(ctx context.Context, tenant, project string, resu
 // retained separately instead of pretending a lost worker sent a stop receipt.
 func (e *Engine) CompleteManagedObservedBound(ctx context.Context, tenant, project string, result Result, before func(*sql.Tx) error, commit func(*sql.Tx, string) error) error {
 	if before == nil || commit == nil || result.ReleaseEvidence == nil || result.ArtifactEvidence != nil || result.OutcomeUnknown {
-		return fmt.Errorf("%w: managed resolution requires authority and terminal provider evidence", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: managed resolution requires authority and terminal provider evidence", ErrInvalid), "dag.result.managed_resolution", nil)
 	}
 	return e.completeBound(ctx, tenant, project, result, before, commit, true)
 }
@@ -331,7 +331,7 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 		return err
 	}
 	if len(result.Output) > 4*1024*1024 || len(result.Error) > 64*1024 {
-		return fmt.Errorf("%w: result too large", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: result too large", ErrInvalid), "dag.result.size", nil)
 	}
 	return e.writeBefore(ctx, before, func(t *transaction) error {
 		if managedResolution {
@@ -340,7 +340,7 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 				return err
 			}
 			if count != 1 {
-				return fmt.Errorf("%w: observation resolution is limited to service-managed runs", ErrInvalid)
+				return dagDiagnostic(fmt.Errorf("%w: observation resolution is limited to service-managed runs", ErrInvalid), "dag.result.observation_scope", nil)
 			}
 		}
 		hash := fingerprint(result)
@@ -362,7 +362,7 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 		}
 		if managedResolution {
 			if n.State == "running" && n.lease > t.now {
-				return fmt.Errorf("%w: worker still has a current lease", ErrConflict)
+				return dagDiagnostic(fmt.Errorf("%w: worker still has a current lease", ErrConflict), "dag.result.active_lease", nil)
 			}
 		}
 		if n.State != "running" && n.State != "reconciling" {
@@ -449,7 +449,7 @@ func (e *Engine) Tick(ctx context.Context) error {
 		return err
 	}
 	if report.Failed > 0 {
-		return fmt.Errorf("scheduler wake processing failed for %d isolated runs", report.Failed)
+		return dagDiagnostic(fmt.Errorf("scheduler wake processing failed for %d isolated runs", report.Failed), "dag.wake.isolated_failures", diagnosticParams{"count": report.Failed})
 	}
 	return nil
 }

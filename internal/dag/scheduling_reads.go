@@ -193,7 +193,7 @@ func decodeSchedulingCursor(raw, tenant, project, kind string) (schedulingCursor
 	}
 	b, err := base64.RawURLEncoding.DecodeString(raw)
 	if err != nil || len(b) > 2048 || json.Unmarshal(b, &c) != nil || c.Tenant != tenant || c.Project != project || c.Kind != kind {
-		return c, fmt.Errorf("%w: scheduling cursor scope", ErrInvalid)
+		return c, dagDiagnostic(fmt.Errorf("%w: scheduling cursor scope", ErrInvalid), "dag.scheduling.cursor", nil)
 	}
 	return c, nil
 }
@@ -278,7 +278,7 @@ func (e *Engine) QueuePage(ctx context.Context, tenant, project string, limit in
 func (e *Engine) GetAttempt(ctx context.Context, tenant, project, runID, nodeID string, attempt int) (ExecutionAttempt, error) {
 	var out ExecutionAttempt
 	if attempt < 1 {
-		return out, fmt.Errorf("%w: attempt must be positive", ErrInvalid)
+		return out, dagDiagnostic(fmt.Errorf("%w: attempt must be positive", ErrInvalid), "dag.attempt.positive", nil)
 	}
 	tx, err := e.db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
 	if err != nil {

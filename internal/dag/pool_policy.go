@@ -30,7 +30,7 @@ func (e *Engine) readPoolPolicy(ctx context.Context, tx *sql.Tx, pool string, cu
 		return out, err
 	}
 	if json.Unmarshal([]byte(limits), &out.ResourceLimits) != nil || json.Unmarshal([]byte(weights), &out.TenantWeights) != nil {
-		return out, fmt.Errorf("%w: pool policy encoding", ErrInvalid)
+		return out, dagDiagnostic(fmt.Errorf("%w: pool policy encoding", ErrInvalid), "dag.pool.policy_encoding", nil)
 	}
 	if budget.Valid {
 		v := budget.Int64
@@ -93,7 +93,7 @@ func (e *Engine) WritePoolPolicyTx(ctx context.Context, tx *sql.Tx, pool string,
 		return out, err
 	}
 	if old.Version != expected {
-		return out, fmt.Errorf("%w: pool policy changed", ErrConflict)
+		return out, dagDiagnostic(fmt.Errorf("%w: pool policy changed", ErrConflict), "dag.pool.policy_changed", nil)
 	}
 	if in.ResourceLimits == nil {
 		in.ResourceLimits = map[string]*int64{}

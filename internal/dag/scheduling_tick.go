@@ -18,7 +18,7 @@ func (e *Engine) TickBatch(ctx context.Context, limit int) (TickReport, error) {
 		limit = 100
 	}
 	if limit > 1000 {
-		return report, fmt.Errorf("%w: wake batch limit exceeds 1000", ErrInvalid)
+		return report, dagDiagnostic(fmt.Errorf("%w: wake batch limit exceeds 1000", ErrInvalid), "dag.wake.batch_limit", nil)
 	}
 	read, err := e.db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
 	if err != nil {
@@ -102,7 +102,7 @@ func (e *Engine) TickBatch(ctx context.Context, limit int) (TickReport, error) {
 					return r.loadErr
 				}
 				if n == nil {
-					return fmt.Errorf("%w: wake target missing", ErrInvalid)
+					return dagDiagnostic(fmt.Errorf("%w: wake target missing", ErrInvalid), "dag.wake.target", nil)
 				}
 				var currentGeneration int
 				if err = t.row(`SELECT generation FROM dag_node_dependencies WHERE run_id=? AND node_id=?`, r.ID, n.ID).Scan(&currentGeneration); err != nil {

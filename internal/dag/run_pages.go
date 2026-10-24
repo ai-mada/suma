@@ -30,7 +30,7 @@ func (e *Engine) ListRunsPage(ctx context.Context, tenant, project string, limit
 	if cursor != "" {
 		raw, err := base64.RawURLEncoding.DecodeString(cursor)
 		if err != nil || len(raw) > 2048 || json.Unmarshal(raw, &c) != nil || c.Tenant != tenant || c.Project != project || c.At == "" || c.ID == "" {
-			return nil, 0, "", fmt.Errorf("%w: invalid run cursor", ErrInvalid)
+			return nil, 0, "", dagDiagnostic(fmt.Errorf("%w: invalid run cursor", ErrInvalid), "dag.runs.cursor", nil)
 		}
 	}
 	tx, err := e.db.BeginTx(ctx, nil)

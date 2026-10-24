@@ -89,10 +89,10 @@ func condition(expression string, r *runState) (bool, error) {
 	pos := strings.LastIndex(lhs, ".")
 	n := r.find(lhs[:pos])
 	if n == nil {
-		return false, fmt.Errorf("%w: condition references missing node", ErrInvalid)
+		return false, dagDiagnostic(fmt.Errorf("%w: condition references missing node", ErrInvalid), "dag.condition.missing_node", nil)
 	}
 	if !terminal(n.State) {
-		return false, fmt.Errorf("%w: condition dependency is not terminal", ErrInvalid)
+		return false, dagDiagnostic(fmt.Errorf("%w: condition dependency is not terminal", ErrInvalid), "dag.condition.nonterminal", nil)
 	}
 	actual := n.State
 	if lhs[pos+1:] == "output" {
@@ -265,7 +265,7 @@ func (t *transaction) advance(r *runState) error {
 			if r.loadErr != nil {
 				return r.loadErr
 			}
-			return fmt.Errorf("%w: queued node missing", ErrInvalid)
+			return dagDiagnostic(fmt.Errorf("%w: queued node missing", ErrInvalid), "dag.scheduling.queued_node", nil)
 		}
 		if err = t.resolveOutgoing(r, n, true); err != nil {
 			return err

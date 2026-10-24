@@ -6437,6 +6437,36 @@
         ],
         "type": "object"
       },
+      "Rendered": {
+        "properties": {
+          "fallback": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "localized": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "message_key": {
+            "type": "string"
+          },
+          "message_params": {
+            "additionalProperties": {},
+            "type": "object"
+          }
+        },
+        "required": [
+          "message_key",
+          "locale",
+          "message",
+          "localized"
+        ],
+        "type": "object"
+      },
       "ReservedExecution": {
         "properties": {
           "node_id": {
@@ -8505,6 +8535,31 @@
           "version",
           "nodes",
           "edges"
+        ],
+        "type": "object"
+      },
+      "WorkflowValidation": {
+        "properties": {
+          "diagnostics": {
+            "items": {
+              "$ref": "#/components/schemas/Rendered"
+            },
+            "type": "array"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "valid",
+          "errors",
+          "diagnostics"
         ],
         "type": "object"
       }
@@ -42248,30 +42303,12 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowValidation"
+                }
               }
             },
             "description": "Successful response; creates may return 201",
-            "headers": {
-              "Content-Language": {
-                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
-                "schema": {
-                  "enum": [
-                    "zh-CN",
-                    "en-US"
-                  ],
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Created",
             "headers": {
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",

@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-010",
+  "base_commit": "e6b847838f884ce950906c4776d26e182ad33c76",
+  "status": "locally_verified_stage_only",
+  "full_platform_complete": false,
+  "production_accepted": false,
+  "verified_at": "2026-10-24T13:45:27.493Z",
+  "localization": {
+    "frontend_keys_per_locale": 2798,
+    "backend_keys": 731,
+    "new_dag_keys": 151,
+    "dag_static_keys": 137,
+    "dag_parameterized_keys": 14,
+    "dag_annotated_producers": 150,
+    "bare_sentinel_returns_preserved": 51,
+    "foreign_tool_details_preserved": 3,
+    "sql_migration_wrappers_preserved": 8,
+    "native_keys": 46,
+    "native_original_fields_preserved": true,
+    "native_display_forwarded_by_go_runner": false
+  },
+  "verification": {
+    "go": {
+      "pass_events": 1038,
+      "failed_events": 0,
+      "test_skips": 0,
+      "vet_exit": 0,
+      "input_count": 328,
+      "unchanged": true
+    },
+    "web": {
+      "passed": 469,
+      "failed": 0,
+      "pending": 0,
+      "test_files": 42,
+      "input_count": 198,
+      "unchanged": true,
+      "typecheck_exit": 0,
+      "build_exit": 0
+    },
+    "non_web": {
+      "agent": 35,
+      "desktop": 7,
+      "knowledge": 3,
+      "total": 45,
+      "exit": 0
+    },
+    "contracts": {
+      "generated_models": 214,
+      "total_schemas_including_error": 215,
+      "api_paths": 152,
+      "schema_references": 1234,
+      "check_exit": 0
+    },
+    "review": {
+      "fixed_findings": 2,
+      "severity": "P2",
+      "sdk_locale": "ADDRESSED",
+      "workflow_raw_fallback": "ADDRESSED",
+      "typecast_fixture": "one compile-time unknown intermediate only, assertions unchanged"
+    },
+    "superseded_cuts": [
+      "pre-review-fixes: passing before two P2 fixes; kept separately",
+      "typecast-failed-cut: web tests passed but typecheck exit2; retained; final fixed cut fully rerun",
+      "initial valid HTTP fixture used shell text rather than command identifier and was correctly rejected; corrected fixture only"
+    ]
+  },
+  "runtime": {
+    "cut": "20261024T133446698Z-382ada4e",
+    "production_source_inputs": 189,
+    "source_sha256": "dc0103b9ca2aada303e2583cda27f595da41f587957475e4b156ea3e88aec377",
+    "artifacts": 24,
+    "targets": 6,
+    "programs": 4,
+    "linked_modules": 36,
+    "windows_control_sha256": "7e5ed5f849031f7982b5707e2efdcab976b6360969281203f80ffbe3243eb613",
+    "windows_runner_sha256": "46a04ec92f89e649accfa7ba09d9a2aa885d09cdac150dc239f41e02365263ea",
+    "actual_control_activated": true,
+    "runner_started": false,
+    "readonly_command_probes": 12,
+    "limit": "Cross compilation and current local preview; no signing or native installation acceptance on other OS."
+  },
+  "browser": {
+    "origin": "http://pool.localhost:4324",
+    "viewports": [
+      {
+        "width": 1280,
+        "height": 720
+      },
+      {
+        "width": 390,
+        "height": 844
+      }
+    ],
+    "theme": "light only",
+    "same_unpublished_draft_retained": true,
+    "same_validation_english_chinese": true,
+    "keyboard_language_to_refresh": true,
+    "horizontal_overflow": false,
+    "console_warnings_errors": 0,
+    "entry_assets": [
+      {
+        "url": "/assets/index-CBtx7wVa.js",
+        "sha256": "d8d0ae6d1c06c1aba5bf0d60c743dca0215929c3b0ff0188c61102a4f83e2654"
+      },
+      {
+        "url": "/assets/index-DUAGU50N.css",
+        "sha256": "b13cc5714628648f00aff39083b3625a41deca5b01d28a48945e80e31d2322ed"
+      }
+    ],
+    "mutating_execution_actions": 0,
+    "limit": "Partial workflow compilation journey only. No 768/1366/1920, complete theme/keyboard/WCAG/graph capacity claim. JPEG may crop scrollbar; CSS facts determine viewport."
+  },
+  "actual_http": {
+    "requests": 6,
+    "catalog_count": 731,
+    "raw_errors_preserved": true,
+    "publish_or_run": 0
+  },
+  "data_preservation": {
+    "before_tables": 129,
+    "after_tables": 129,
+    "before_rows": 7690,
+    "after_rows": 7690,
+    "changed_tables": [],
+    "before_integrity": [
+      "ok"
+    ],
+    "after_integrity": [
+      "ok"
+    ]
+  },
+  "evidence": [
+    {
+      "path": ".cache/e2e/localization-stage-010/go-verification.json",
+      "sha256": "290468f85709b15e3f82701431cacc3e2eeaceb45b1c9d312bfbe4ba1b158f30"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/go-tests.jsonl",
+      "sha256": "25691a3c7e14f8f6bc874934edbb013b14fe58fc8e05adb45c1d0d46d5f126aa"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/web-verification.json",
+      "sha256": "d7c70052829957bb3eed495c47d207fd3977955acdd8565afb0663b510a6e6c5"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/web-tests.json",
+      "sha256": "21d996ce8b4c11864cdb9e47f0d07d4711ae062bff71953aef8f2b61b93861c4"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/web-build-verification.json",
+      "sha256": "32223d09a1afcbfb1249ac6b09e57e8088a701badc44c6ea022b78bb9ac92639"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/non-web-tests.log",
+      "sha256": "ff0dc4f98372185e5cf2025549969ad58ec1d6886089e8937364773d98ec413e"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/contracts-check.log",
+      "sha256": "d536393481a3db8c23208dd2fae7ec3687fc8203455dc287640c3fef9fd7ba6e"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/runtime-audit.json",
+      "sha256": "83134799df9f6dcdf19519200f48ed47ba6e0c563bec0b657d4ea06e477e663d"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/live-readback.json",
+      "sha256": "e5fef0994323946a4e2315c12841095a8c190f2c7de74687c407f85909350c9a"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/live-command-probes.json",
+      "sha256": "7083b8cf12778cd880c64b0ec121a0059dffd6126d139c07ffbe2e4654cf52ae"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/control-process-readback.json",
+      "sha256": "f4817c48ac401b4b7769782f3e3b509fc00c81c0caf229c81fbb128440d9600b"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/data-preservation.json",
+      "sha256": "233111c8bca9e08e79d7ecc8173434d00799d2c22d5a1714825e01ea364340ac"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/preview-before-hashes.json",
+      "sha256": "12278af8c5d6880d180c40241fb74c440c17c785f9f2f42c7625dd74c79b27b7"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/preview-after-ui-hashes.json",
+      "sha256": "080835f37d9053d782050e83a562f5e7ec0c7166786af5479bf6ef4bb8d832ca"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/ui-facts.json",
+      "sha256": "ba855ab45a3f6ca9ca955d9d299c55edb025fcecbb8a460c5a4305d6dabe9574"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/browser-console.local.json",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/dag/summary.json",
+      "sha256": "f21bbfbef057832da5c6a331c01d177f4189a6a18f84e3984c28e86887eb312c"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/commands/commands-summary.json",
+      "sha256": "ddf3b1fd42ff962cecb00616d3aa4e4b4d5378cf96a74b716c08f39e7201c874"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/native/summary-sdk-locale.json",
+      "sha256": "e5c36a40e07d651b67c22459683e42c2de7fe62ebc65fb44b10e32b281712461"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/review/native-sdk-rereview.md",
+      "sha256": "af76c7d9e852c4219841663a7ce973d9b16e907e7aaa8f29607a41d55e918864"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/review/dag-projection-rereview.md",
+      "sha256": "1fd79943e7261af05946634839e4b96360acb906d2a5f33ec9313d3c6cf878c8"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/screenshots/workflow-error-en-1280.jpg",
+      "sha256": "bb3f25f1f33dc05cfbe6b9e2c9882596d3c9084e8b7de8928b20a8dcf0ff71b2"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-010/screenshots/workflow-error-zh-390.jpg",
+      "sha256": "39406aee81076af891ee23d8a0bde692985d58fc00fd6dabf70db3841be8acfc"
+    }
+  ],
+  "remaining": [
+    "Full P0–P7 scope remains active.",
+    "Other backend/runtime display fields and raw dynamic producers; native display forwarding through Go Runner; Monaco/ReactFlow internal NLS, installers, notifications, exports, channels and complete bilingual documentation.",
+    "Existing command editor argument hint does not describe the current one-command-identifier compiler contract; align this interaction next.",
+    "Real vendor SDKs/models, OceanBase/PostgreSQL distributed acceptance, SSO/custom RBAC, plugins/skills/MCP/A2A, collaboration/offline/media/office, deployment, billing, signing, capacity and full journey acceptance."
+  ]
+}

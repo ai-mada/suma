@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 // Personal preferences must never become implicitly project-scoped when the
 // selected workbench project changes; generated clients use these parameters.
@@ -48,5 +51,26 @@ func TestLocalePreferencesContractsKeepBrowserIdentityAndExplicitVersion(t *test
 		if path == "/account/preferences" && headers["X-Suma-Expected-Organization"] {
 			t.Fatal("global account recovery must work after the same user switches organization")
 		}
+	}
+}
+
+func TestWorkflowValidationContractSeparatesRawEvidenceAndPresentation(t *testing.T) {
+	api, wire := generate()
+	op := mapAt(api, "paths", "/workflows/validate", "post")
+	if _, ok := mapAt(op, "responses")["200"]; !ok {
+		t.Fatal("validation must return200")
+	}
+	if _, ok := mapAt(op, "responses")["201"]; ok {
+		t.Fatal("validation does not create a workflow")
+	}
+	props := mapAt(api, "components", "schemas", "WorkflowValidation", "properties")
+	if mapAt(props, "errors", "items")["type"] != "string" {
+		t.Fatal("raw compiler evidence lost")
+	}
+	if mapAt(props, "diagnostics", "items")["$ref"] != "#/components/schemas/Rendered" {
+		t.Fatal("typed localized diagnostic missing")
+	}
+	if !strings.Contains(wire, "export interface WorkflowValidation") {
+		t.Fatal("wire DTO absent")
 	}
 }

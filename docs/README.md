@@ -4,6 +4,7 @@
 
 | 主题 | 入口 |
 |---|---|
+| 执行诊断与运行命令国际化 | [架构与边界](architecture/runtime-localization.md)、[专项验收](quality/runtime-localization-verification.md)、[精简摘要](quality/runtime-localization-summary.json) |
 | 产品范围、角色和原则 | [产品需求](product/prd.md) |
 | 可复用平台与专业工程 | [基础PRD](product/platform-foundation-prd.md)、[领域／SDK／扩展架构](architecture/platform-engineering.md)、[AI与人员开发SOP](delivery/ai-engineering-sop.md) |
 | 完整能力与验收范围 | [能力矩阵](product/capability-matrix.md) |

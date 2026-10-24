@@ -8,7 +8,7 @@ import { TaskDispatchDialog } from "../TaskDispatch";
 import { ToolExecutionFacts } from "../ToolFacts";
 import { CandidateSource } from "../CandidateSource";
 import { WorkflowNodeList } from "../ResponsiveWorkflow";
-import { setLocale } from "./index";
+import { setLocale, setServerCatalog } from "./index";
 import type { Session, Workflow, RecordItem } from "../api";
 import type { ToolProfile } from "../tool-model";
 import type { ReactFlowProps } from "@xyflow/react";
@@ -81,6 +81,29 @@ it("switches workflow controls without replacing its edited node draft", async (
   await act(async () => {await setLocale("zh-CN", {persist: false});});
   expect(input.isConnected).toBe(true); expect(input.value).toBe("用户节点草稿 <code>");
   expect(host.textContent).toContain("删除节点"); expect(writes).toHaveLength(0);
+});
+it("relocalizes structured workflow validation without resubmitting or losing the draft", async () => {
+  setServerCatalog({version:"fixture",template_format:"named-dot-v1",default_locale:"zh-CN",supported_locales:["zh-CN","en-US"],messages:[{key:"dag.command.single",parameters:[],texts:{"zh-CN":"必须指定一条命令。","en-US":"Specify exactly one command."}}]});
+  const base = vi.mocked(fetch).getMockImplementation()!;
+  vi.mocked(fetch).mockImplementation(async(input,options)=> {
+    if(String(input).includes("/workflows/validate")) {
+      writes.push({path:"/workflows/validate",body:JSON.parse(String(options?.body))});
+      return new Response(JSON.stringify({valid:false,errors:["invalid: one command required"],diagnostics:[{message:"必须指定一条命令。",message_key:"dag.command.single",locale:"zh-CN",localized:true}]}));
+    }
+    return base(input,options);
+  });
+  await render(<WorkflowView project={project} refresh={0} onRefresh={()=>{}} onNode={()=>{}} onRun={()=>{}}/>);
+  await click("Add the first node");
+  const input=host.querySelector<HTMLInputElement>('input[aria-label="Node name"]')!;
+  await change(input,"用户未发布草稿");
+  await click("Validate");
+  expect(host.textContent).toContain("Specify exactly one command.");
+  const requests=vi.mocked(fetch).mock.calls.length;
+  await act(async()=>{await setLocale("zh-CN",{persist:false});});
+  expect(host.textContent).toContain("必须指定一条命令。");
+  expect(input.isConnected).toBe(true);expect(input.value).toBe("用户未发布草稿");
+  expect(writes).toHaveLength(1);expect((writes[0].body.workflow as Workflow).nodes[0].name).toBe("用户未发布草稿");
+  expect(vi.mocked(fetch).mock.calls).toHaveLength(requests);
 });
 it("keeps a tool worker draft and submits its unchanged machine identity after switching", async () => {
   await render(<ToolWorkspace project={project} session={session} selected="" panel="" refresh={0} onSelect={() => {}} />);

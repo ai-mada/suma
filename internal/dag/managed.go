@@ -15,7 +15,7 @@ func (e *Engine) CreateManagedRunBound(ctx context.Context, tenant, project, run
 		return out, err
 	}
 	if !identifier.MatchString(runID) || len(runID) > 92 || before == nil || bind == nil {
-		return out, fmt.Errorf("%w: managed run requires reserved ID and authority/binding hooks", ErrInvalid)
+		return out, dagDiagnostic(fmt.Errorf("%w: managed run requires reserved ID and authority/binding hooks", ErrInvalid), "dag.run.managed_authority", nil)
 	}
 	w.ID = "managed-" + runID
 	w.Version = 1

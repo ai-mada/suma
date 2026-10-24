@@ -19,6 +19,10 @@ type Definition struct {
 	Key        string            `json:"key"`
 	Parameters []Parameter       `json:"parameters"`
 	Texts      map[Locale]string `json:"texts"`
+	// SourceTemplate proves the original producer's complete diagnostic. It is
+	// never inferred from user content or exposed as an additional source alias.
+	// Older Chinese diagnostics default to Texts[ZhCN].
+	SourceTemplate string `json:"-"`
 }
 type Rendered struct {
 	Key       string `json:"message_key"`

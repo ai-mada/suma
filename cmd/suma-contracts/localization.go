@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func localizationModels() []any {
-	return []any{platform.LocalizationCatalog{}, platform.LocalePreferenceUpdateRequest{}, platform.AccountPreferences{}, platform.OrganizationPreferences{}}
+	return []any{platform.LocalizationCatalog{}, platform.LocalePreferenceUpdateRequest{}, platform.AccountPreferences{}, platform.OrganizationPreferences{}, platform.WorkflowValidation{}}
 }
 
 func localePreferenceRoutes(add operationAdder) {

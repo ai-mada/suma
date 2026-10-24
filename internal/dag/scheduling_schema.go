@@ -107,7 +107,7 @@ func (e *Engine) projectGuardTx(ctx context.Context, tx *sql.Tx, tenant, project
 // an Engine, migrates schema, commits, or acquires the global event-tail lock.
 func GuardProjectTx(ctx context.Context, tx *sql.Tx, dialect, tenant, project string) error {
 	if dialect != "sqlite" && dialect != "oceanbase" && dialect != "postgres" {
-		return fmt.Errorf("%w: database dialect", ErrUnsupported)
+		return dagDiagnostic(fmt.Errorf("%w: database dialect", ErrUnsupported), "dag.storage.dialect", nil)
 	}
 	return (&Engine{dialect: dialect}).projectGuardTx(ctx, tx, tenant, project)
 }

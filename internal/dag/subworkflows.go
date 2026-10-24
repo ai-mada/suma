@@ -10,10 +10,10 @@ func subReference(n Node) (string, int, error) {
 	id, _ := n.Config["workflow_id"].(string)
 	version := numeric(n.Config, "workflow_version")
 	if !identifier.MatchString(id) || version < 1 || version > 2147483647 {
-		return "", 0, fmt.Errorf("%w: subworkflow requires workflow_id and positive pinned workflow_version", ErrInvalid)
+		return "", 0, dagDiagnostic(fmt.Errorf("%w: subworkflow requires workflow_id and positive pinned workflow_version", ErrInvalid), "dag.subworkflow.reference", nil)
 	}
 	if value, ok := n.Config["workflow_version"].(float64); ok && value != float64(version) {
-		return "", 0, fmt.Errorf("%w: workflow_version must be an integer", ErrInvalid)
+		return "", 0, dagDiagnostic(fmt.Errorf("%w: workflow_version must be an integer", ErrInvalid), "dag.subworkflow.integer_version", nil)
 	}
 	return id, int(version), nil
 }
@@ -25,7 +25,7 @@ func (t *transaction) workflow(tenant, project, id string, version int) (Workflo
 	}
 	err := t.row("SELECT spec FROM dag_workflows WHERE tenant_id=? AND project_id=? AND id=? AND version=?", tenant, project, id, version).Scan(&raw)
 	if err == sql.ErrNoRows {
-		return w, fmt.Errorf("%w: pinned subworkflow %s version %d is unavailable in this project", ErrInvalid, id, version)
+		return w, dagDiagnostic(fmt.Errorf("%w: pinned subworkflow %s version %d is unavailable in this project", ErrInvalid, id, version), "dag.subworkflow.unavailable", diagnosticParams{"workflow": id, "version": version})
 	}
 	if err != nil {
 		return w, err
@@ -38,12 +38,12 @@ func (t *transaction) validateReferences(tenant, project string, w Workflow) err
 	var visit func(Workflow, int, int) error
 	visit = func(w Workflow, depth, multiplier int) error {
 		if depth > 32 {
-			return fmt.Errorf("%w: subworkflow nesting exceeds 32", ErrInvalid)
+			return dagDiagnostic(fmt.Errorf("%w: subworkflow nesting exceeds 32", ErrInvalid), "dag.subworkflow.nesting", nil)
 		}
 		for _, n := range w.Nodes {
 			size += multiplier
 			if size > 10000 {
-				return fmt.Errorf("%w: materialized workflow graph exceeds 10000 nodes", ErrInvalid)
+				return dagDiagnostic(fmt.Errorf("%w: materialized workflow graph exceeds 10000 nodes", ErrInvalid), "dag.subworkflow.node_limit", nil)
 			}
 			copies := multiplier
 			if n.Type == "map" {
@@ -52,12 +52,12 @@ func (t *transaction) validateReferences(tenant, project string, w Workflow) err
 					return err
 				}
 				if len(items) > 10000/multiplier {
-					return fmt.Errorf("%w: materialized workflow graph exceeds 10000 nodes", ErrInvalid)
+					return dagDiagnostic(fmt.Errorf("%w: materialized workflow graph exceeds 10000 nodes", ErrInvalid), "dag.subworkflow.node_limit", nil)
 				}
 				copies = multiplier * len(items)
 				size += copies
 				if size > 10000 {
-					return fmt.Errorf("%w: materialized workflow graph exceeds 10000 nodes", ErrInvalid)
+					return dagDiagnostic(fmt.Errorf("%w: materialized workflow graph exceeds 10000 nodes", ErrInvalid), "dag.subworkflow.node_limit", nil)
 				}
 				template, err := mapTemplate(n)
 				if err != nil {
@@ -393,9 +393,9 @@ func (t *transaction) checkParentCommand(r *runState, action string) error {
 		}
 		node := parent.find(nodeID)
 		if parent.State != "running" || node == nil || node.Attempt != attempt || node.State != "waiting" {
-			return fmt.Errorf("%w: child lifecycle is controlled by parent run %s", ErrConflict, parentID)
+			return dagDiagnostic(fmt.Errorf("%w: child lifecycle is controlled by parent run %s", ErrConflict, parentID), "dag.subworkflow.parent_control", diagnosticParams{"run": parentID})
 		}
 		current = parentID
 	}
-	return fmt.Errorf("%w: subworkflow depth", ErrInvalid)
+	return dagDiagnostic(fmt.Errorf("%w: subworkflow depth", ErrInvalid), "dag.subworkflow.depth", nil)
 }

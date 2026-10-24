@@ -58,7 +58,7 @@ func (t *transaction) reservePolicyResources(r *runState, n *nodeState) (bool, e
 			return false, err
 		}
 		if changed != 1 {
-			return false, fmt.Errorf("%w: concurrent resource account changed", ErrConflict)
+			return false, dagDiagnostic(fmt.Errorf("%w: concurrent resource account changed", ErrConflict), "dag.resources.concurrent_changed", nil)
 		}
 		state := "active"
 		if request.ReleaseClass == "cumulative" {
@@ -72,7 +72,7 @@ func (t *transaction) reservePolicyResources(r *runState, n *nodeState) (bool, e
 				return false, budgetErr
 			}
 			if budgetChanged != 1 {
-				return false, fmt.Errorf("%w: policy and budget account differ", ErrConflict)
+				return false, dagDiagnostic(fmt.Errorf("%w: policy and budget account differ", ErrConflict), "dag.resources.budget_account", nil)
 			}
 			if err != nil {
 				return false, err
@@ -127,7 +127,7 @@ func (t *transaction) releasePolicyResources(r *runState, n *nodeState, processO
 			return err
 		}
 		if changed != 1 {
-			return fmt.Errorf("%w: resource release counter mismatch", ErrConflict)
+			return dagDiagnostic(fmt.Errorf("%w: resource release counter mismatch", ErrConflict), "dag.resources.release_counter", nil)
 		}
 		ledgerResult, err := t.tx.ExecContext(t.ctx, t.e.q(`UPDATE dag_resource_ledger SET state='released' WHERE run_id=? AND node_id=? AND attempt=? AND fence=? AND name=? AND state='active'`), r.ID, n.ID, n.Attempt, n.Fence, v.name)
 		if err != nil {
@@ -138,7 +138,7 @@ func (t *transaction) releasePolicyResources(r *runState, n *nodeState, processO
 			return err
 		}
 		if ledgerChanged != 1 {
-			return fmt.Errorf("%w: reservation already released", ErrConflict)
+			return dagDiagnostic(fmt.Errorf("%w: reservation already released", ErrConflict), "dag.resources.released", nil)
 		}
 		if err = t.exec(`DELETE FROM dag_reservations WHERE run_id=? AND node_id=? AND name=?`, r.ID, n.ID, v.name); err != nil {
 			return err
@@ -161,7 +161,7 @@ func (t *transaction) mergeResourceLimits(tenant, project string, limits map[str
 	}
 	for name, capacity := range limits {
 		if !identifier.MatchString(name) || !safeSchedulingInteger(capacity) {
-			return fmt.Errorf("%w: resource limit", ErrInvalid)
+			return dagDiagnostic(fmt.Errorf("%w: resource limit", ErrInvalid), "dag.resources.limit", nil)
 		}
 		v := capacity
 		switch name {

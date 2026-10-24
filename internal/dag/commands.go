@@ -37,7 +37,7 @@ func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runI
 			return nil
 		}
 		if expectedVersion < 1 || expectedVersion != r.Version {
-			return fmt.Errorf("%w: expected version %d, current %d", ErrConflict, expectedVersion, r.Version)
+			return dagDiagnostic(fmt.Errorf("%w: expected version %d, current %d", ErrConflict, expectedVersion, r.Version), "dag.run.version", diagnosticParams{"expected": fmt.Sprintf("%d", expectedVersion), "current": r.Version})
 		}
 		if err = t.checkParentCommand(r, action); err != nil {
 			return err
@@ -48,12 +48,12 @@ func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runI
 		switch action {
 		case "pause":
 			if r.State != "running" {
-				return fmt.Errorf("%w: only active runs can pause", ErrConflict)
+				return dagDiagnostic(fmt.Errorf("%w: only active runs can pause", ErrConflict), "dag.run.pause_active", nil)
 			}
 			r.State = "paused"
 		case "resume":
 			if r.State != "paused" {
-				return fmt.Errorf("%w: run is not paused", ErrConflict)
+				return dagDiagnostic(fmt.Errorf("%w: run is not paused", ErrConflict), "dag.run.not_paused", nil)
 			}
 			r.State = "running"
 			if err = t.resumeRunWakes(r); err != nil {
@@ -61,7 +61,7 @@ func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runI
 			}
 		case "cancel":
 			if terminal(r.State) {
-				return fmt.Errorf("%w: run already terminal", ErrConflict)
+				return dagDiagnostic(fmt.Errorf("%w: run already terminal", ErrConflict), "dag.run.terminal", nil)
 			}
 			if err = t.cancelRun(r, reason); err != nil {
 				return err
@@ -71,7 +71,7 @@ func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runI
 				return ErrNotFound
 			}
 			if n.Type != "approval" || n.State != "waiting" || r.State == "cancelling" || terminal(r.State) {
-				return fmt.Errorf("%w: approval is not waiting", ErrConflict)
+				return dagDiagnostic(fmt.Errorf("%w: approval is not waiting", ErrConflict), "dag.run.approval_waiting", nil)
 			}
 			decision, _ := payload["decision"].(string)
 			state := ""
@@ -81,23 +81,23 @@ func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runI
 			case "reject", "rejected":
 				state = "failed"
 			default:
-				return fmt.Errorf("%w: decision approve or reject required", ErrInvalid)
+				return dagDiagnostic(fmt.Errorf("%w: decision approve or reject required", ErrInvalid), "dag.run.approval_decision", nil)
 			}
 			if err = t.transition(r, n, state, reason); err != nil {
 				return err
 			}
 		case "retry":
 			if r.CompensationRunID != "" {
-				return fmt.Errorf("%w: compensated source cannot be retried; create a new run", ErrConflict)
+				return dagDiagnostic(fmt.Errorf("%w: compensated source cannot be retried; create a new run", ErrConflict), "dag.run.compensated_retry", nil)
 			}
 			if n == nil {
 				return ErrNotFound
 			}
 			if r.State == "cancelling" || r.State == "cancelled" || n.State != "failed" || !n.spec.Idempotent {
-				return fmt.Errorf("%w: retry requires failed idempotent node", ErrConflict)
+				return dagDiagnostic(fmt.Errorf("%w: retry requires failed idempotent node", ErrConflict), "dag.run.retry_node", nil)
 			}
 			if n.Type == "map" {
-				return fmt.Errorf("%w: retry individual failed map children", ErrUnsupported)
+				return dagDiagnostic(fmt.Errorf("%w: retry individual failed map children", ErrUnsupported), "dag.run.retry_map_child", nil)
 			}
 			descendants := map[string]bool{n.ID: true}
 			if n.parent != "" {
@@ -117,7 +117,7 @@ func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runI
 			}
 			for _, item := range r.nodes {
 				if descendants[item.ID] && item.ID != n.ID && item.ID != n.parent && item.State != "skipped" && item.State != "pending" {
-					return fmt.Errorf("%w: descendant %s already executed", ErrConflict, item.ID)
+					return dagDiagnostic(fmt.Errorf("%w: descendant %s already executed", ErrConflict, item.ID), "dag.run.descendant_executed", diagnosticParams{"node": item.ID})
 				}
 			}
 			r.State = "running"
@@ -145,7 +145,7 @@ func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runI
 				return ErrNotFound
 			}
 			if n.State != "reconciling" || reason == "" {
-				return fmt.Errorf("%w: reconciliation needs unknown outcome and evidence reason", ErrConflict)
+				return dagDiagnostic(fmt.Errorf("%w: reconciliation needs unknown outcome and evidence reason", ErrConflict), "dag.run.reconciliation_evidence", nil)
 			}
 			outcome, _ := payload["outcome"].(string)
 			state := ""
@@ -157,7 +157,7 @@ func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runI
 			case "failed":
 				state = "failed"
 			default:
-				return fmt.Errorf("%w: invalid reconciliation outcome", ErrInvalid)
+				return dagDiagnostic(fmt.Errorf("%w: invalid reconciliation outcome", ErrInvalid), "dag.run.reconciliation_outcome", nil)
 			}
 			if r.State == "cancelling" && state == "pending" {
 				state = "cancelled"
@@ -177,7 +177,7 @@ func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runI
 				n.lease = 0
 			}
 		default:
-			return fmt.Errorf("%w: unknown run command %q", ErrInvalid, action)
+			return dagDiagnostic(fmt.Errorf("%w: unknown run command %q", ErrInvalid, action), "dag.run.command", diagnosticParams{"action": fmt.Sprintf("%q", action)})
 		}
 		if action == "pause" || action == "resume" || action == "cancel" {
 			if err = t.controlSubruns(r, action); err != nil {

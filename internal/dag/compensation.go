@@ -27,13 +27,13 @@ func (t *transaction) publicWorkflow(tenant, project, id string) error {
 		return err
 	}
 	if count > 0 {
-		return fmt.Errorf("%w: service-managed workflow cannot be published, reused or embedded", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: service-managed workflow cannot be published, reused or embedded", ErrInvalid), "dag.workflow.service_managed", nil)
 	}
 	if err := t.row("SELECT COUNT(*) FROM dag_compensations c JOIN dag_runs r ON r.id=c.compensation_run_id WHERE r.tenant_id=? AND r.project_id=? AND r.workflow_id=?", tenant, project, id).Scan(&count); err != nil {
 		return err
 	}
 	if count > 0 {
-		return fmt.Errorf("%w: generated compensation workflow is read-only and cannot be reused", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: generated compensation workflow is read-only and cannot be reused", ErrInvalid), "dag.compensation.read_only", nil)
 	}
 	return nil
 }
@@ -44,16 +44,16 @@ func compensationTemplate(n Node) (Node, bool, error) {
 	}
 	var template Node
 	if !workerNode(n.Type) {
-		return template, false, fmt.Errorf("%w: only worker nodes may declare compensation", ErrInvalid)
+		return template, false, dagDiagnostic(fmt.Errorf("%w: only worker nodes may declare compensation", ErrInvalid), "dag.compensation.worker", nil)
 	}
 	if err := decode(raw, &template); err != nil {
-		return template, false, fmt.Errorf("%w: compensation must be a node object", ErrInvalid)
+		return template, false, dagDiagnostic(fmt.Errorf("%w: compensation must be a node object", ErrInvalid), "dag.compensation.object", nil)
 	}
 	if !workerNode(template.Type) || len(template.DependsOn) > 0 || template.Condition != "" || len(template.Branches) > 0 || template.Join != "" && template.Join != "all_success" || template.Quorum != 0 {
-		return template, false, fmt.Errorf("%w: compensation must be an unconditional worker node; inverse ordering is generated", ErrInvalid)
+		return template, false, dagDiagnostic(fmt.Errorf("%w: compensation must be an unconditional worker node; inverse ordering is generated", ErrInvalid), "dag.compensation.unconditional", nil)
 	}
 	if _, nested := template.Config["compensation"]; nested {
-		return template, false, fmt.Errorf("%w: compensation templates cannot recursively compensate", ErrInvalid)
+		return template, false, dagDiagnostic(fmt.Errorf("%w: compensation templates cannot recursively compensate", ErrInvalid), "dag.compensation.recursive", nil)
 	}
 	template.ID = "compensation"
 	if _, err := normalize(Workflow{Nodes: []Node{template}}); err != nil {
@@ -86,19 +86,19 @@ func bindSource(v any, replacements map[string]string) any {
 }
 func (t *transaction) compensate(r *runState, payload map[string]any) error {
 	if !terminal(r.State) {
-		return fmt.Errorf("%w: compensation requires a terminal run with no active or unknown work", ErrConflict)
+		return dagDiagnostic(fmt.Errorf("%w: compensation requires a terminal run with no active or unknown work", ErrConflict), "dag.compensation.terminal", nil)
 	}
 	if r.CompensationRunID != "" {
-		return fmt.Errorf("%w: compensation already requested", ErrConflict)
+		return dagDiagnostic(fmt.Errorf("%w: compensation already requested", ErrConflict), "dag.compensation.requested", nil)
 	}
 	reason, _ := payload["reason"].(string)
 	if strings.TrimSpace(reason) == "" || len(reason) > 5000 {
-		return fmt.Errorf("%w: compensation reason required", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: compensation reason required", ErrInvalid), "dag.compensation.reason", nil)
 	}
 	var parent string
 	err := t.row("SELECT original_run_id FROM dag_compensations WHERE compensation_run_id=?", r.ID).Scan(&parent)
 	if err == nil {
-		return fmt.Errorf("%w: a compensation run cannot itself be compensated", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: a compensation run cannot itself be compensated", ErrInvalid), "dag.compensation.self", nil)
 	}
 	if err != sql.ErrNoRows {
 		return err
@@ -109,13 +109,13 @@ func (t *transaction) compensate(r *runState, payload map[string]any) error {
 		explicit = true
 		var ids []string
 		if err := decode(raw, &ids); err != nil {
-			return fmt.Errorf("%w: node_ids must be strings", ErrInvalid)
+			return dagDiagnostic(fmt.Errorf("%w: node_ids must be strings", ErrInvalid), "dag.compensation.node_ids", nil)
 		}
 		for _, id := range ids {
 			selected[id] = true
 		}
 		if len(selected) == 0 {
-			return fmt.Errorf("%w: select at least one configured successful worker node", ErrInvalid)
+			return dagDiagnostic(fmt.Errorf("%w: select at least one configured successful worker node", ErrInvalid), "dag.compensation.selection", nil)
 		}
 	}
 	source := map[string]*nodeState{}
@@ -137,18 +137,18 @@ func (t *transaction) compensate(r *runState, payload map[string]any) error {
 			return err
 		}
 		if state != "succeeded" || fence != n.Fence {
-			return fmt.Errorf("%w: source attempt evidence differs from node state", ErrConflict)
+			return dagDiagnostic(fmt.Errorf("%w: source attempt evidence differs from node state", ErrConflict), "dag.compensation.source_evidence", nil)
 		}
 		source[n.ID] = n
 		templates[n.ID] = template
 	}
 	if len(source) == 0 {
-		return fmt.Errorf("%w: no successful worker nodes have explicit compensation", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: no successful worker nodes have explicit compensation", ErrInvalid), "dag.compensation.no_effects", nil)
 	}
 	if explicit {
 		for id := range selected {
 			if source[id] == nil {
-				return fmt.Errorf("%w: node %s has no successful configured compensation", ErrInvalid, id)
+				return dagDiagnostic(fmt.Errorf("%w: node %s has no successful configured compensation", ErrInvalid, id), "dag.compensation.node", diagnosticParams{"node": id})
 			}
 		}
 	}
@@ -226,7 +226,7 @@ func (t *transaction) compensate(r *runState, payload map[string]any) error {
 		visit(id)
 	}
 	if len(encoded(w)) > 2<<20 {
-		return fmt.Errorf("%w: generated compensation definition exceeds 2 MiB", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: generated compensation definition exceeds 2 MiB", ErrInvalid), "dag.compensation.definition_size", nil)
 	}
 	w, err = normalize(w)
 	if err != nil {

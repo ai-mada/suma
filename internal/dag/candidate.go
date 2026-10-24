@@ -27,7 +27,7 @@ func validateCandidateReferences(w Workflow) error {
 	for _, n := range w.Nodes {
 		for _, reserved := range []string{"candidate_commit", "candidate_attempt", "candidate_fence", "candidate_evidence_sha256"} {
 			if _, exists := n.Config[reserved]; exists {
-				return fmt.Errorf("%w: candidate proof fields belong to scheduler assignments", ErrInvalid)
+				return dagDiagnostic(fmt.Errorf("%w: candidate proof fields belong to scheduler assignments", ErrInvalid), "dag.candidate.reserved_proof", nil)
 			}
 		}
 		raw, exists := n.Config["candidate_from"]
@@ -36,11 +36,11 @@ func validateCandidateReferences(w Workflow) error {
 		}
 		source, ok := raw.(string)
 		if !ok || source == "" || n.Type != "test" && n.Type != "command" && n.Type != "agent" {
-			return fmt.Errorf("%w: candidate_from requires an immutable build/test consumer and a source node", ErrInvalid)
+			return dagDiagnostic(fmt.Errorf("%w: candidate_from requires an immutable build/test consumer and a source node", ErrInvalid), "dag.candidate.consumer", nil)
 		}
 		sourceNode, exists := nodes[source]
 		if !exists || sourceNode.Type != "command" && sourceNode.Type != "agent" {
-			return fmt.Errorf("%w: candidate source must be a static code command or agent", ErrInvalid)
+			return dagDiagnostic(fmt.Errorf("%w: candidate source must be a static code command or agent", ErrInvalid), "dag.candidate.source", nil)
 		}
 		ancestors := map[string]bool{}
 		queue := append([]string{}, parents[n.ID]...)
@@ -54,7 +54,7 @@ func validateCandidateReferences(w Workflow) error {
 			queue = append(queue, parents[id]...)
 		}
 		if !ancestors[source] {
-			return fmt.Errorf("%w: candidate source must be an explicit ancestor", ErrInvalid)
+			return dagDiagnostic(fmt.Errorf("%w: candidate source must be an explicit ancestor", ErrInvalid), "dag.candidate.ancestor", nil)
 		}
 	}
 	return nil
@@ -76,11 +76,11 @@ func validateArtifactReferences(w Workflow) error {
 		}
 		source, ok := raw.(string)
 		if !ok || source == "" || n.Type != "test" {
-			return fmt.Errorf("%w: artifact_from requires a test and an explicit build ancestor", ErrInvalid)
+			return dagDiagnostic(fmt.Errorf("%w: artifact_from requires a test and an explicit build ancestor", ErrInvalid), "dag.artifact.consumer", nil)
 		}
 		upstream, exists := nodes[source]
 		if !exists || upstream.Type != "command" && upstream.Type != "agent" {
-			return fmt.Errorf("%w: artifact source must be a static build command", ErrInvalid)
+			return dagDiagnostic(fmt.Errorf("%w: artifact source must be a static build command", ErrInvalid), "dag.artifact.source", nil)
 		}
 		seen := map[string]bool{}
 		queue := append([]string(nil), parents[n.ID]...)
@@ -94,7 +94,7 @@ func validateArtifactReferences(w Workflow) error {
 			queue = append(queue, parents[id]...)
 		}
 		if !seen[source] {
-			return fmt.Errorf("%w: artifact source is not an ancestor", ErrInvalid)
+			return dagDiagnostic(fmt.Errorf("%w: artifact source is not an ancestor", ErrInvalid), "dag.artifact.ancestor", nil)
 		}
 	}
 	return nil
@@ -127,7 +127,7 @@ func candidateFor(r *runState, n *nodeState) (*Assignment, error) {
 		return nil, errCandidatePending
 	}
 	if n.Type != "test" && n.Type != "command" && n.Type != "agent" || upstream == nil || upstream.State != "succeeded" || upstream.Attempt < 1 || upstream.Fence < 1 || !validWorkspaceProof(upstream.WorkspaceEvidence) {
-		return nil, fmt.Errorf("%w: candidate source has no clean, committed current-attempt evidence", ErrInvalid)
+		return nil, dagDiagnostic(fmt.Errorf("%w: candidate source has no clean, committed current-attempt evidence", ErrInvalid), "dag.candidate.evidence", nil)
 	}
 	return &Assignment{CandidateCommit: upstream.WorkspaceEvidence["head_commit"].(string), CandidateFrom: source, CandidateAttempt: upstream.Attempt, CandidateFence: upstream.Fence, CandidateEvidenceSHA256: upstream.WorkspaceEvidence["evidence_sha256"].(string)}, nil
 }
@@ -158,10 +158,10 @@ func (t *transaction) validateCandidateResult(r *runState, n *nodeState, result 
 	}
 	proof := result.WorkspaceEvidence
 	if !validWorkspaceProof(proof) || proof["base_commit"] != commit || proof["head_commit"] != commit || n.Type == "test" && proof["test_command"] != true {
-		return fmt.Errorf("%w: successful immutable build/test must prove the scheduler-pinned candidate commit", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: successful immutable build/test must prove the scheduler-pinned candidate commit", ErrInvalid), "dag.candidate.result_commit", nil)
 	}
 	if proof["candidate_from"] != source || !sameProofInteger(proof["candidate_attempt"], int64(attempt)) || !sameProofInteger(proof["candidate_fence"], fence) || proof["candidate_evidence_sha256"] != hash {
-		return fmt.Errorf("%w: candidate source provenance differs from the frozen assignment", ErrInvalid)
+		return dagDiagnostic(fmt.Errorf("%w: candidate source provenance differs from the frozen assignment", ErrInvalid), "dag.candidate.provenance", nil)
 	}
 	return nil
 }

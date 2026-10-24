@@ -11,12 +11,12 @@ import (
 
 func normalizedCapabilities(values []string) ([]string, error) {
 	if len(values) > 256 {
-		return nil, fmt.Errorf("%w: too many capabilities", ErrInvalid)
+		return nil, dagDiagnostic(fmt.Errorf("%w: too many capabilities", ErrInvalid), "dag.claim.capability_count", nil)
 	}
 	set := map[string]bool{}
 	for _, v := range values {
 		if v == "" || len(v) > 256 || !utf8.ValidString(v) || strings.IndexFunc(v, func(r rune) bool { return r < 32 || r == 127 }) >= 0 {
-			return nil, fmt.Errorf("%w: invalid capability", ErrInvalid)
+			return nil, dagDiagnostic(fmt.Errorf("%w: invalid capability", ErrInvalid), "dag.claim.capability", nil)
 		}
 		set[v] = true
 	}
@@ -38,7 +38,7 @@ func (t *transaction) recoverDispatch(tenant, project, worker, operationID, hash
 		return nil, false, err
 	}
 	if stored != hash || owner != worker {
-		return nil, false, fmt.Errorf("%w: claim identity or capabilities changed", ErrConflict)
+		return nil, false, dagDiagnostic(fmt.Errorf("%w: claim identity or capabilities changed", ErrConflict), "dag.claim.changed", nil)
 	}
 	if raw == "null" || raw == "" {
 		return nil, true, nil
