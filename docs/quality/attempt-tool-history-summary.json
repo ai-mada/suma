@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-012",
+  "base_commit": "79dd848ba253b23516c17e9e5ea275f04f5aa05f",
+  "status": "locally_verified_stage_only",
+  "full_platform_complete": false,
+  "production_accepted": false,
+  "localization": {
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "frontend_keys_per_locale": 2829,
+    "backend_keys": 785,
+    "native_keys": 46,
+    "all_surfaces_complete": false,
+    "raw_evidence_preserved": true
+  },
+  "verification": {
+    "go": {
+      "pass_events": 1179,
+      "failed_events": 0,
+      "test_skips": 0,
+      "vet_exit": 0,
+      "input_count": 350,
+      "unchanged": true
+    },
+    "web": {
+      "passed": 652,
+      "failed": 0,
+      "pending": 0,
+      "test_files": 50,
+      "input_count": 214,
+      "unchanged": true,
+      "typecheck_exit": 0,
+      "build_exit": 0
+    },
+    "non_web": {
+      "agent": 37,
+      "desktop": 7,
+      "knowledge": 3,
+      "total": 47,
+      "exit": 0
+    },
+    "contracts": {
+      "generated_models": 216,
+      "schemas_including_error": 217,
+      "api_paths": 153,
+      "schema_references": 1241,
+      "missing_references": 0,
+      "check_exit": 0
+    },
+    "review": {
+      "fixed_P1": 1,
+      "fixed_P2": 4,
+      "rereview": "ADDRESSED",
+      "final_unicode_boundary_outcomes": 33
+    },
+    "dependencies_changed": false
+  },
+  "runtime": {
+    "cut": "20261024T164256020Z-ba85fe20",
+    "source_inputs": 197,
+    "source_sha256": "80d309cb0ad83b56234af5d3187c981b88a3abae84a845d2b268591cf4a49e4d",
+    "artifacts": 24,
+    "targets": 6,
+    "programs": 4,
+    "linked_modules": 36,
+    "windows_control_sha256": "3a60573edac3cfa1b21de1ce3b1f1f73da8ed68451a0f519a5f2f10679328624",
+    "windows_runner_sha256": "9713003e8e7a6b2414df6158447a81be7ed210703f7bf716226eda0d10339c1f",
+    "main_preview_activated": true,
+    "original_runner_restarted": false
+  },
+  "browser": {
+    "partial_widths": [
+      390,
+      768,
+      1366,
+      1920
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "same_exact_attempt_after_refresh": true,
+    "locale_preserves_rows_raw_disclosure_focus": true,
+    "protocol_page_counts": [
+      50,
+      50,
+      50,
+      50,
+      50,
+      50,
+      34
+    ],
+    "reverse_revisit_equal": true,
+    "console_warnings_errors": 0,
+    "full_accessibility_accepted": false,
+    "entry": "/assets/index-BHCMidje.js",
+    "entry_sha256": "35360fafbda04fb45dfb41cac4c9236c47c52af9d6da38b2856ef7fbd7e2c697",
+    "served_bytes_equal_build": true,
+    "keyboard_page_navigation": "Enter advances and returns; focus continuity after page replacement unaccepted",
+    "screenshot_scope_note": "Final diagnostic file named390 actually1366, independently annotated; earlier measured390 files remain narrow evidence"
+  },
+  "actual": {
+    "native_scope": "genuine Node runtime and Runner against local HTTP429 fixture; no vendor model",
+    "native_attempts": 2,
+    "native_facts_per_attempt": [
+      5,
+      5
+    ],
+    "protocol_scope": "synthetic suma-jsonl-v1 process only; no SDK/model/project-tools",
+    "protocol_attempts": 1,
+    "protocol_facts": 334,
+    "synthetic_activity_pairs": 165,
+    "model_requests": 2,
+    "model_rejections": 2,
+    "model_invalid_requests": 0,
+    "model_active_requests": 0,
+    "result_ACKs": 3,
+    "progress_ACKs": 344,
+    "profiles_paused_version": 3,
+    "issues": 1,
+    "requirement_drafts": 1,
+    "ui_intake_actions": 2,
+    "task_accepted": false,
+    "candidate_test_or_business_acceptance": false,
+    "read_only_invariants_verified": true,
+    "own_services_stopped": true,
+    "only_changed_read_table": "suma_governance_locks",
+    "own_service_count": 3,
+    "stop_method": "Identity-checked forced idle stop after full ACK; no graceful/cancellation claim",
+    "native_run_events": 19,
+    "protocol_run_events": 339,
+    "total_run_events": 358,
+    "task_status": "todo",
+    "requirement_status": "draft",
+    "closed_tables": 129,
+    "closed_rows": 1805,
+    "closed_integrity": [
+      "ok"
+    ],
+    "closed_snapshot_sha256": "8765b98fea4d2af4e640c3fed686d88131adc80cbab8a10a39692a31a93b2610",
+    "active_reservations": 0,
+    "active_pool_slots": 0,
+    "ready_admissions": 0,
+    "native_page_counts_per_attempt": [
+      2,
+      2,
+      1
+    ],
+    "all_positions_replayed": true,
+    "page_union_equals_persistent_events": true,
+    "raw_data_equals_SQL_TEXT_bytes": true
+  },
+  "data_preservation": {
+    "before_tables": 129,
+    "after_tables": 129,
+    "original_rows": 7690,
+    "all_table_hashes_unchanged": true,
+    "integrity": [
+      "ok"
+    ]
+  },
+  "evidence_location": ".cache/e2e/attempt-history-stage-012 (ignored; private raw evidence excluded from Git)",
+  "remaining_scope": "Full P0-P7 remains active, including all-surface languages, identity/SSO/RBAC, real providers/tools, distributed databases, MCP/A2A, collaboration/offline/media/office/channels, deployment/signing/billing and scale.",
+  "verified_at": "2026-10-24T17:59:03.252470+00:00"
+}

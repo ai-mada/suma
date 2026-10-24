@@ -403,6 +403,14 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	// This read has a strict query contract. Validate after authentication and
+	// token boundaries, before the common lookup reports malformed scope as missing.
+	if r.Method == "GET" && len(parts) == 7 && parts[0] == "runs" && parts[2] == "nodes" && parts[4] == "attempts" && parts[6] == "tool-events" {
+		if _, _, _, _, queryErr := attemptHistoryQuery(r, parts[5]); queryErr != nil {
+			writeError(w, queryErr)
+			return
+		}
+	}
 	write := r.Method != "GET"
 	approve := strings.Contains(path, "/review") || (strings.Contains(path, "/commands") && (str(m, "action") == "approve" || str(m, "action") == "approval" || str(m, "action") == "reconcile" || str(m, "action") == "compensate"))
 	if err = s.Service.Authorize(ctx, p, project, write, approve); err != nil {

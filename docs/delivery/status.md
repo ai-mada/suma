@@ -1,6 +1,16 @@
 # 当前交付状态
 
-## 当前 T-P4-011：原生诊断贯通与命令编辑交互
+## 当前 T-P4-012：精确尝试工具历史（本地已验证）
+
+已实现按 project／run／node／attempt 读取持久工具事实，当前权限与选择在同一事务复核。首次读取固定watermark，位置0游标也能保存空窗口；每条返回原始`raw_data`，保留SQL正文的转义、内层重复键及数值字面量。单请求最多扫描1000个候选，单事件2MiB、事件数组4MiB；不截断或跳过未返回的有效事实。界面默认50条，可选5／25／50／100，历史页不受实时40行限制；翻页、原文、语言、焦点与刷新保持精确attempt。未知内层Unicode仅做临时兼容比较，无法证明的typed显示回退原文，不弱化来源证明。
+
+现有检查证据：Go1179通过事件／350输入、0失败／测试跳过及vet通过；Web652项／50文件／214输入、非Web47、类型与构建通过；目录为网页两语言各2829键、后端785键，合同为216领域模型加Error（共217个Schema）／153路径／1241引用。当前24运行文件批次`20261024T164256020Z-ba85fe20`对应197个生产输入，源码SHA `80d309cb0ad83b56234af5d3187c981b88a3abae84a845d2b268591cf4a49e4d`；Windows控制面SHA `3a60573edac3cfa1b21de1ce3b1f1f73da8ed68451a0f519a5f2f10679328624`。这些结果保留各自原始切面，不覆盖旧批次。
+
+实际原生进程连接真实本地HTTP429，形成两个不同fence／session的尝试，各5条工具事实；独立的165组合成协议活动形成334条事实，浏览器实际读取7页（50×6＋34）并返回6个旧位置。语言切换保持原文展开与焦点，刷新恢复精确attempt；390／768／1366／1920部分页面未见横向溢出，所查浏览器控制台0问题。Runner已排空3条结果／344条进展ACK，两个档案paused v3。
+
+**本阶段通过限定范围的本地验证。** 两条旅程的全部分页与SQL原文一致；纯读取期间仅授权协调计数变化，运行、业务、模型及回执保持。独立验证服务在排空后核对身份强制停止，关闭快照129表／1805行完整；主预览更新前后原129表／7690行保持。结果由[专项验证](../quality/attempt-tool-history-verification.md)和[精简摘要](../quality/attempt-tool-history-summary.json)最终汇总。设计与边界见[架构及SOP](../architecture/attempt-tool-history.md)。合成协议内容不代表原生SDK真实工具或厂商模型执行；本地429不代表开发成果、测试或人工验收。全部语言表面、其他系统安装、分布式数据库、规模与完整P0–P7继续实施。
+
+## 历史 T-P4-011：原生诊断贯通与命令编辑交互
 
 46条原生诊断现由Go权威目录生成SDK目录，纳入后端778键；网页两语言各2804键。版本1的`ToolDiagnostic`将已证明的键／类型参数从实际原生进程，经Runner、持久Journal、当前授权HTTP、DAG及Outbox传至界面；上游译文不作为证据，原始消息及执行／用量事实保持。命令／智能体／测试节点明确填写单个许可命令ID，自定义task／script保留独立worker语义；滚动工具事实的展开与焦点绑定原事件，避免窗口更新后显示另一条原文。
 
@@ -41,7 +51,7 @@
 工具档案、实时观察、精确命令资格、固定任务/需求/流程/工具预览和原子启动、typed执行事实、独立Agent授权已交付。实际协议夹具完成隔离开发、独立2项测试、人工验收、失败去重回流和两次真实停止；它不代表厂商模型效果。最终Go512个通过事件、0失败/跳过，vet通过；JS212项、类型和生产构建通过，合同147模型/117路径/344引用。新24程序批次`20261024T051829203Z-df0ca9b5`已构建与独立核对，Windows实际激活复验；4runs/8nodes/5attempts，原三次运行/35事件及验收回流保持。工具最终paused v5。响应式完整节点列表、桌面依赖图、精确需求导航与焦点/主题部分验证完成。[阶段验收](../quality/tool-execution-verification.md)、[当前运行包](../deployment/tool-stop-runtime-bundles.md)。完整P0–P7、厂商真实账户、集群、安装和规模目标继续实施。
 
 
-日期：2026-10-24。状态：可运行开发版本，完整产品实施进行中。
+日期：2026-10-25。状态：可运行开发版本，当前阶段终验中，完整产品实施进行中。
 
 ## 当前可运行
 
@@ -55,12 +65,13 @@
 | 持久自动化与事件续传 | internal/automation、internal/platform/automation*.go、run_stream.go、AutomationWorkspace.tsx | 真实人工/cron双触发、固定修订与流程、时区/错过/重叠、撤权与事务竞争；Chrome完整终态、正常轮换与重启上下文保持 |
 | 签名事件入口与交付追踪 | internal/platform/automation_ingress*.go、AutomationIngress.tsx、internal/cli/webhook.go | GitHub原生/Suma v1协议、本机真实Git标签/CI/监控事件触发、固定来源修订、当前授权、回执去重；重启不重复执行，来源元数据不注入执行命令 |
 | Runner与候选交接 | internal/runner、cmd/suma-runner、internal/dag/candidate.go | Windows实际独立Git工作树、进展持久ACK、固定候选交接、原失败保留及真实测试 |
+| 精确尝试工具历史 | internal/dag、internal/platform、apps/web | 当前授权与持久归属、固定窗口和有界分页、原始正文及历史页；当前原生双尝试／独立合成334条与部分四宽度观察已完成，阶段只读保持／停止／预览终验中 |
 | 真实制品与不可变发布范围 | internal/platform/artifact_*.go、release_candidate_service.go | 真实上传字节、封存、build/package-test证明、固定C与当前已验收任务范围 |
 | 发布、核对与独立回退 | internal/deployer、release_deploy*.go、ReleaseWorkspace.tsx | 真实浏览器5次操作A/B/A/B/A；健康404与实际活跃内容分开，独立批准、单调代数、问题去重回流 |
 | 原生智能体 | packages/agent-runtime | 有界循环/工具协议；未连接生产模型 |
 | 外部工具 | 工具目录与许可命令、HTTP桥接 | 实机只读探测/本地协议测试；未调用收费模型 |
 | 知识服务 | packages/knowledge | 真实本地Lance全文/向量、版本隔离、墓碑 |
-| 界面与编辑 | apps/web | 当前完整Web544项／46文件、类型及生产构建通过；原生诊断与命令编辑的部分1366／390、中英文、原文／焦点与刷新保持见当前验收；历史治理/计划/候选/发布、自动化与共享池闭环分别保留原切面，完整体验矩阵继续实施 |
+| 界面与编辑 | apps/web | 当前Web652项／50文件、类型及生产构建通过；精确attempt历史分页、双语原文／焦点／刷新和四宽度部分页面观察见当前阶段。历史治理/计划/候选/发布、自动化与共享池闭环分别保留原切面，完整体验矩阵继续实施 |
 | Windows桌面 | apps/desktop、dist/desktop | 未签名NSIS/portable及目录构建；安装/GUI/升级仍分别验收 |
 | CLI与部署配置 | cmd/suma、deploy、Dockerfile | Bubble Tea/游标分页与签名交付测试；部署8项测试及Compose组合/配置校验，镜像/Helm未实跑 |
 | Go四程序交付 | scripts/build-runtime.ps1、dist/runtime/builds | 六目标×控制面/Runner/CLI/Deployer，真实编译、构建信息与逐文件摘要；目标系统运行分别验收 |

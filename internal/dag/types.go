@@ -144,4 +144,7 @@ type Event struct {
 	Type     string         `json:"type"`
 	At       string         `json:"at"`
 	Data     map[string]any `json:"data"`
+	// RawData is present only on exact-attempt history reads. It is the original
+	// stored JSON text; Data remains the existing compatible display projection.
+	RawData string `json:"raw_data,omitempty"`
 }

@@ -15,25 +15,41 @@ export class ApiError extends Error{
  }
 }
 function localApiError(status:number,code:string,key:string,params?:Record<string,unknown>){const diagnostic=new UiError(key,params);return new ApiError(status,code,diagnostic.message,undefined,undefined,diagnostic);}
-export async function api<T=any>(path:string,body?:unknown,method?:string,headers?:Record<string,string>):Promise<T>{
- const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),30000);
+/** Raw evidence reads share transport/errors but bypass business-record normalization. */
+export async function rawApi<T=unknown>(path:string,signal?:AbortSignal):Promise<T>{return request<T>(path,undefined,undefined,undefined,signal,false);}
+export async function api<T=any>(path:string,body?:unknown,method?:string,headers?:Record<string,string>,signal?:AbortSignal):Promise<T>{return request<T>(path,body,method,headers,signal,true);}
+async function request<T>(path:string,body:unknown,method:string|undefined,headers:Record<string,string>|undefined,signal:AbortSignal|undefined,normalize:boolean):Promise<T>{
+ const cancelled=()=>new DOMException('Aborted','AbortError');
+ if(signal?.aborted)throw cancelled();
+ const controller=new AbortController(),cancel=()=>controller.abort(),timeout=setTimeout(()=>controller.abort(),30000);
+ signal?.addEventListener('abort',cancel,{once:true});
  try{
   let response:Response;
   try{response=await fetch('/api/v1'+path,{credentials:'same-origin',signal:controller.signal,headers:{'Content-Type':'application/json',...languageHeaders(),...headers},method:method??(body?'POST':'GET'),...(body?{body:JSON.stringify(body)}:{})});}
-  catch{throw localApiError(0,controller.signal.aborted?'request_timeout':'network_error',controller.signal.aborted?'common.timeout':'common.network');}
+  catch{if(signal?.aborted)throw cancelled();throw localApiError(0,controller.signal.aborted?'request_timeout':'network_error',controller.signal.aborted?'common.timeout':'common.network');}
+  // Headers already establish a refusal. An unreadable body cannot turn it
+  // into an unknown write result or suppress authorization-loss clearing.
+  const incomplete=()=>response.ok
+   ?localApiError(0,'request_timeout','common.timeout')
+   :localApiError(response.status,'request_failed','common.httpFailure',{status:response.status});
+  if(signal?.aborted)throw cancelled();
+  if(controller.signal.aborted)throw incomplete();
   let data:any;
   try{data=await response.json();}catch{
+   if(signal?.aborted)throw cancelled();
+   if(!response.ok||controller.signal.aborted)throw incomplete();
    if(response.status===204)return {} as T;
-   if(response.ok)throw localApiError(0,'response_unknown','common.responseUnknown');
-   throw localApiError(response.status,'request_failed','common.httpFailure',{status:response.status});
+   throw localApiError(0,'response_unknown','common.responseUnknown');
   }
+  if(signal?.aborted)throw cancelled();
   if(!response.ok){
    const error=data?.error,code=typeof error?.code==='string'?error.code:'request_failed';
    const diagnostic=typeof error?.message==='string'?undefined:new UiError('common.httpFailed',{status:response.status});
    throw new ApiError(response.status,code,diagnostic?.message??error.message,error?.details,error,diagnostic);
   }
-  return normalizeResponse(data) as T;
- }finally{clearTimeout(timeout);}
+  if(controller.signal.aborted)throw incomplete();
+  return (normalize?normalizeResponse(data):data) as T;
+ }finally{clearTimeout(timeout);signal?.removeEventListener('abort',cancel);}
 }
 export function normalizeResponse(value:any):any{if(Array.isArray(value))return value.map(normalizeResponse);if(value&&typeof value==='object'){const out=Object.fromEntries(Object.entries(value).map(([key,item])=>[key,normalizeResponse(item)]));if(typeof out.version==='number'&&'title' in out&&out.data){return {...out.data,...out,acceptance_criteria:Array.isArray(out.acceptance_criteria)?out.acceptance_criteria.join('\n'):out.acceptance_criteria};}return out;}return value;}
 export function recordPayload(kind:string,values:Record<string,unknown>):Record<string,unknown>{const body={...values};if('acceptance_criteria'in body)body.acceptance_criteria=String(body.acceptance_criteria||'').split('\n').map(s=>s.trim()).filter(Boolean);if(kind==='tasks')body.depends_on=String(values.depends_on||'').split(',').map(s=>s.trim()).filter(Boolean);const data:Record<string,unknown>={};for(const key of ['role','email','user_id','content','task_id','result','source_ref','release_version','task_ids']){if(key in body){data[key]=key==='task_ids'?String(body[key]||'').split(',').map(s=>s.trim()).filter(Boolean):body[key];delete body[key];}}if(Object.keys(data).length)body.data=data;return body;}

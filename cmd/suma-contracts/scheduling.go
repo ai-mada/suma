@@ -6,10 +6,11 @@ import (
 )
 
 func schedulingModels() []any {
-	return []any{platform.RunnerClaimRequest{}, platform.RunnerClaimResponse{}, platform.SchedulingPolicyView{}, platform.SchedulingPolicyPreviewRequest{}, platform.SchedulingPolicyCommitRequest{}, platform.SchedulingPolicyPreview{}, dag.ReadyPage{}, dag.NodeAdmissionSnapshot{}, dag.AttemptPage{}, dag.ExecutionAttempt{}, dag.TickReport{}}
+	return []any{platform.RunnerClaimRequest{}, platform.RunnerClaimResponse{}, platform.SchedulingPolicyView{}, platform.SchedulingPolicyPreviewRequest{}, platform.SchedulingPolicyCommitRequest{}, platform.SchedulingPolicyPreview{}, dag.ReadyPage{}, dag.NodeAdmissionSnapshot{}, dag.AttemptPage{}, dag.ExecutionAttempt{}, dag.AttemptToolEventPage{}, dag.TickReport{}}
 }
 
 func schedulingContracts(add operationAdder, paths map[string]any) {
+	attemptToolHistoryContracts(add)
 	for _, route := range []struct {
 		path, model string
 		paged       bool
@@ -47,6 +48,7 @@ func schedulingContracts(add operationAdder, paths map[string]any) {
 }
 
 func enhanceSchedulingSchemas(schemas map[string]any) {
+	enhanceAttemptToolHistorySchemas(schemas)
 	const max = int64(9007199254740991)
 	field := func(model, name string, attrs map[string]any) {
 		value := toolContractMap(schemas, model, "properties", name)

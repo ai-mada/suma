@@ -127,6 +127,21 @@ export interface AttemptReconciliation {
   outcome: string;
   reason: string;
 }
+export interface AttemptToolEventPage {
+  schema_version: number;
+  project_id: string;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  items: (Event)[];
+  watermark: number;
+  scanned_through: number;
+  has_more: boolean;
+  page_cursor: string;
+  next_cursor?: string;
+}
 export interface AutomationCommandRequest {
   project_id: string;
   action: string;
@@ -471,6 +486,7 @@ export interface Event {
   type: string;
   at: string;
   data: { [key: string]: unknown };
+  raw_data?: string;
 }
 export interface ExecutionAttempt {
   run_id: string;

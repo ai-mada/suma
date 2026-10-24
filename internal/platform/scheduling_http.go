@@ -28,6 +28,8 @@ func (s *Server) schedulingHTTP(w http.ResponseWriter, r *http.Request, p Princi
 		return true
 	}
 	switch {
+	case isNode && len(parts) == 7 && parts[4] == "attempts" && parts[6] == "tool-events" && r.Method == "GET":
+		s.attemptToolHistoryHTTP(w, r, p, scope, parts, project)
 	case path == "scheduling/policy" && r.Method == "GET":
 		out, err := s.Service.SchedulingPolicy(r.Context(), s.Engine, p, project, scope == "")
 		respond(w, 200, out, err)

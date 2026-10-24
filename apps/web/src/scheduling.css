@@ -352,3 +352,11 @@
   overflow-wrap: anywhere;
   color: var(--muted);
 }
+.attempt-tool-history { margin-block: 1rem; min-width: 0; }
+.attempt-tool-history h5 { font-size: inherit; margin-block: 1rem .5rem; }
+.attempt-tool-history-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.attempt-tool-history-actions label { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.attempt-tool-history-actions button, .attempt-tool-history-actions select, .attempt-tool-history > button { min-height: 44px; }
+.attempt-tool-history article, .attempt-tool-history time, .attempt-tool-history pre { overflow-wrap: anywhere; word-break: break-word; white-space: pre-wrap; }
+.attempt-tool-history time { display: block; }
+.attempt-tool-history summary { min-height: 44px; align-content: center; cursor: pointer; }

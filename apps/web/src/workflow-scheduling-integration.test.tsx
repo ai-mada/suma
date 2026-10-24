@@ -271,6 +271,40 @@ function graphSelection(ids: string[]) {
   });
 }
 describe("real WorkflowView graph selection and actual App routes", () => {
+  it("keeps saved attempt tools scoped through actual App links, Back, reload and close while current attempt remains separate", async () => {
+    includeAttempts = true;
+    const original=vi.mocked(fetch).getMockImplementation()!;
+    const saved=(attempt:number)=>({run_id:'run',node_id:'api',attempt,fence:attempt,worker_id:'worker-'+attempt,state:'failed',result_source:'unreported',started_at:'2026-10-25T00:00:00Z',completed_at:'2026-10-25T00:00:01Z'});
+    vi.mocked(fetch).mockImplementation(async(input,options)=>{
+      const url=new URL(String(input),'http://local'),path=url.pathname.replace('/api/v1','');
+      if(path==='/runs/run')return response({...run(),nodes:[{...node('api'),attempt:2,fence:2,worker_id:'worker-2'},node('ui')]});
+      if(path==='/runs/run/nodes/api/attempts')return response({items:[saved(1),saved(2)],total:2});
+      const match=path.match(/^\/runs\/run\/nodes\/api\/attempts\/([12])(\/tool-events)?$/);
+      if(match){const attempt=Number(match[1]),record=saved(attempt);if(!match[2])return response(record);const data={attempt,fence:attempt,worker_id:record.worker_id,tool_event:{legacy:'saved-only-attempt-'+attempt}};return response({schema_version:1,project_id:'project',run_id:'run',node_id:'api',attempt,fence:attempt,worker_id:record.worker_id,page_cursor:'saved-'+attempt,watermark:attempt,scanned_through:attempt,has_more:false,items:[{sequence:attempt,run_id:'run',node_id:'api',type:'tool_progress',at:'2026-10-25T00:00:00Z',data,raw_data:JSON.stringify(data)}]});}
+      return original(input,options);
+    });
+    history.replaceState(null,'','/?project=project&view=development&sub=runs&run=run&node=api&attempt=1');
+    await act(async()=>{root=createRoot(container);root.render(<App/>);});await advance(250);
+    const savedRegion=()=>container.querySelector('.attempt-tool-history')!;
+    expect(savedRegion().textContent).toContain('saved-only-attempt-1');
+    expect(savedRegion().textContent).not.toContain('saved-only-attempt-2');
+    expect(container.textContent).toContain('当前尝试 2');
+    const count=vi.mocked(fetch).mock.calls.length;
+    await act(async()=>{await setLocale('en-US',{persist:false});});await advance(1);
+    expect(vi.mocked(fetch).mock.calls).toHaveLength(count);
+    expect(container.textContent).toContain('Current attempt 2');
+    const link=container.querySelector<HTMLAnchorElement>('.scheduling-attempts a[href*="attempt=2"]')!;
+    await act(async()=>link.click());await advance(50);
+    expect(new URLSearchParams(location.search).get('attempt')).toBe('2');expect(savedRegion().textContent).toContain('saved-only-attempt-2');
+    await act(async()=>history.back());await advance(25);
+    expect(new URLSearchParams(location.search).get('attempt')).toBe('1');expect(savedRegion().textContent).toContain('saved-only-attempt-1');
+    await act(async()=>root!.unmount());await act(async()=>{root=createRoot(container);root.render(<App/>);});await advance(250);
+    expect(savedRegion().textContent).toContain('saved-only-attempt-1');
+    const close=[...container.querySelectorAll('button')].find(button=>button.textContent==='Close historical attempt details')!;
+    expect(close).toBeTruthy();await act(async()=>close.click());await advance(5);
+    expect(container.querySelector('.attempt-tool-history')).toBeNull();expect(document.activeElement).toBe(container.querySelector('.scheduling-attempts'));
+    expect(vi.mocked(fetch).mock.calls.every(([,options])=>!options?.method||options.method==='GET')).toBe(true);
+  });
   it("shows the exact saved run route and grant without claiming access to the owning pool", async () => {
     pooledRoute = true;
     await render();

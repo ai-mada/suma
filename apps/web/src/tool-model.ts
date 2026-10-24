@@ -362,9 +362,9 @@ export function toolFactsForAttempt(
   node: unknown,
 ): ToolEventView[] {
   const target = node as
-    | { id?: string; attempt?: number; fence?: number; worker_id?: string }
+    | { id?: string; run_id?: string; attempt?: number; fence?: number; worker_id?: string }
     | undefined;
-  if (!target?.id || !target.attempt || !target.fence || !target.worker_id)
+  if (!target?.id || !target.attempt || !Number.isSafeInteger(target.fence) || target.fence! < 0 || !target.worker_id)
     return [];
   return events.flatMap((raw) => {
     const event = raw as {
@@ -376,6 +376,7 @@ export function toolFactsForAttempt(
     };
     if (
       event.type !== "tool_progress" ||
+      (target.run_id !== undefined && event.run_id !== target.run_id) ||
       event.node_id !== target.id ||
       event.data?.attempt !== target.attempt ||
       event.data?.fence !== target.fence ||
@@ -385,8 +386,13 @@ export function toolFactsForAttempt(
     const fact = event.data!.tool_event as ToolEvent | undefined;
     if (
       !fact ||
+      typeof fact !== "object" || Array.isArray(fact) ||
       fact.schema_version !== 1 ||
       !eventKinds.has(fact.kind) ||
+      typeof fact.command_id !== "string" ||
+      typeof fact.profile_sha256 !== "string" ||
+      typeof fact.protocol !== "string" ||
+      [fact.message,fact.status,fact.session_id,fact.item_id].some(value => value !== undefined && typeof value !== "string") ||
       !id.test(fact.command_id) ||
       !digest.test(fact.profile_sha256) ||
       !Object.values(protocols).includes(fact.protocol)

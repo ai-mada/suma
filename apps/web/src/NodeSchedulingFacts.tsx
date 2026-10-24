@@ -1,10 +1,11 @@
 import { tr as t, useLocale, formatNumber } from "./i18n";
 import { useEffect, useRef } from "react";
-import { query, stateLabel } from "./api";
+import { ApiError, query, stateLabel } from "./api";
 import { ErrorNotice, Loading } from "./ui";
 import { useToolRead } from "./tool-hooks";
 import { useSchedulingPage } from "./scheduling-hooks";
 import { AdmissionFacts, AttemptFacts } from "./SchedulingFacts";
+import { AttemptToolEventHistory } from "./AttemptToolEventHistory";
 import {
   admissionCurrent,
   executionHref,
@@ -23,6 +24,7 @@ export function NodeSchedulingFacts({
   nodeFence,
   selectedAttempt,
   onAttempt,
+  historyRefresh = 0,
 }: {
   project: string;
   run: string;
@@ -33,9 +35,11 @@ export function NodeSchedulingFacts({
   nodeFence?: number;
   selectedAttempt?: string;
   onAttempt: (value: string) => void;
+  historyRefresh?: number | string;
 }) { useLocale();
   const detailRoot = useRef<HTMLDivElement>(null),
-    listRoot = useRef<HTMLElement>(null);
+    listRoot = useRef<HTMLElement>(null),
+    detailAccessLost = useRef(false);
   const base =
       "/runs/" + encodeURIComponent(run) + "/nodes/" + encodeURIComponent(node),
     snapshotKey = [runVersion, currentAttempt, nodeFence, nodeState].join(":"),
@@ -67,10 +71,13 @@ export function NodeSchedulingFacts({
       detailRoot.current?.focus({ preventScroll: true });
     }
   }, [attempt, exact.data?.attempt]);
+  // A retry cannot revive a denied cached record before authorization succeeds.
+  if (exact.failure instanceof ApiError && [401,403,404].includes(exact.failure.status)) detailAccessLost.current = true;
+  else if (!exact.loading && !exact.error) detailAccessLost.current = false;
   const current =
       diagnostic.data &&
       admissionCurrent(diagnostic.data, run, node, runVersion),
-    record = exact.data;
+    record = detailAccessLost.current ? undefined : exact.data;
   return (
     <div className="node-scheduling-facts">
       {diagnostic.error && (
@@ -190,6 +197,7 @@ export function NodeSchedulingFacts({
             record.attempt === attempt ? (
               <div ref={detailRoot} tabIndex={-1} aria-label={t("development.attempts.selected_historical_attempt_details")}>
                 <AttemptFacts attempt={record} />
+                <AttemptToolEventHistory key={JSON.stringify([project,run,node,record.attempt,record.fence,record.worker_id])} project={project} attempt={record} refresh={historyRefresh}/>
               </div>
             ) : !exact.loading && !exact.error ? (
               <p className="warning">

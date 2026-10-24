@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -293,15 +294,6 @@ func (e *Engine) GetAttempt(ctx context.Context, tenant, project, runID, nodeID 
 	if err != nil {
 		return out, err
 	}
-	if raw != "" {
-		var result Result
-		if err = json.Unmarshal([]byte(raw), &result); err != nil {
-			return out, err
-		}
-		if result.RunID == runID && result.NodeID == nodeID {
-			out.Result = &result
-		}
-	}
 	if err = attemptResultSource(&out, raw); err != nil {
 		return out, err
 	}
@@ -330,15 +322,53 @@ func attemptResultSource(out *ExecutionAttempt, raw string) error {
 	if err := json.Unmarshal([]byte(raw), &value); err != nil {
 		return err
 	}
-	switch {
-	case value.RunID == out.RunID && value.NodeID == out.NodeID:
+	object, err := rawObject([]byte(raw))
+	if err != nil {
+		return err
+	}
+	runnerShaped := false
+	hasRunKey := false
+	hasIdentityAlias := false
+	for key := range object {
+		if strings.EqualFold(key, "run_id") {
+			hasRunKey = true
+		}
+		for _, name := range []string{"run_id", "node_id", "attempt", "fence", "worker_id", "exit_code"} {
+			if strings.EqualFold(key, name) {
+				runnerShaped = true
+				if key != name && name != "exit_code" {
+					hasIdentityAlias = true
+				}
+			}
+		}
+	}
+	// Manual reconciliation stores its command payload, including node_id.
+	// Child workflow observations also have a separate persisted source shape.
+	if !hasRunKey {
+		if value.Outcome != "" {
+			out.ResultSource = "manual_reconciliation"
+			out.Reconciliation = &AttemptReconciliation{Outcome: value.Outcome, Reason: value.Reason}
+			return nil
+		}
+		if value.ChildRunID != "" {
+			out.ResultSource = "child_workflow"
+			out.ChildRunID = value.ChildRunID
+			return nil
+		}
+	}
+	if runnerShaped {
+		var result Result
+		if err = json.Unmarshal([]byte(raw), &result); err != nil {
+			return err
+		}
+		page := AttemptToolEventPage{Attempt: out.Attempt, Fence: out.Fence, WorkerID: out.WorkerID}
+		if hasIdentityAlias || !exactJSONText(object["run_id"], out.RunID) || !exactJSONText(object["node_id"], out.NodeID) || !provesAttempt([]byte(raw), page) ||
+			result.RunID != out.RunID || result.NodeID != out.NodeID || result.Attempt != out.Attempt || result.Fence != out.Fence || result.WorkerID != out.WorkerID {
+			return attemptReadError("receipt", fmt.Errorf("saved runner receipt does not match durable attempt identity"))
+		}
+		out.Result = &result
 		out.ResultSource = "runner_result"
-	case value.Outcome != "":
-		out.ResultSource = "manual_reconciliation"
-		out.Reconciliation = &AttemptReconciliation{Outcome: value.Outcome, Reason: value.Reason}
-	case value.ChildRunID != "":
-		out.ResultSource = "child_workflow"
-		out.ChildRunID = value.ChildRunID
+		return nil
 	}
 	return nil
 }

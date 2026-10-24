@@ -376,9 +376,7 @@ export function ToolExecutionFacts({
       <div className="tool-event-list">
         {recent.map(({ event, key }) => (
           <article key={key}>
-            <strong>{toolEventNames[event.kind] || t("development.facts.tool_fact")}</strong>
-            {event.status && <small>{event.status}</small>}
-            <NativeToolMessage event={event}/>
+            <ToolEventContent event={event}/>
           </article>
         ))}
       </div>
@@ -386,4 +384,9 @@ export function ToolExecutionFacts({
         {t("development.facts.tool_messages_and_usage_are_external_reports")}</p>
     </section>
   );
+}
+// Shared typed projection only; each caller owns its source/raw envelope and cap.
+export function ToolEventContent({event}:{event:ToolEvent}) { useLocale();
+  return <><strong>{toolEventNames[event.kind] || t("development.facts.tool_fact")}</strong>
+    {event.status && <small>{event.status}</small>}<NativeToolMessage event={event}/></>;
 }

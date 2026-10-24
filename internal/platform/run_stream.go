@@ -110,6 +110,41 @@ func httpQuery(r *http.Request) (map[string][]string, error) {
 	return q, nil
 }
 
+// authorizePersistentRunReadTx preserves the governance/session/scope guard used by SSE.
+func (s *Server) authorizePersistentRunReadTx(ctx context.Context, tx *sql.Tx, token string, expected Principal, scope, project, run string) error {
+	if err := s.Service.authorizeProjectTx(ctx, tx, expected, project, false, false); err != nil {
+		return err
+	}
+	var user, tenant, expiry string
+	err := tx.QueryRowContext(ctx, s.Service.q(`SELECT user_id,tenant_id,expires_at FROM suma_sessions WHERE token_hash=?`), digest(token)).Scan(&user, &tenant, &expiry)
+	if errors.Is(err, sql.ErrNoRows) {
+		return &APIError{401, "session_expired", "登录已失效", nil}
+	}
+	if err != nil {
+		return err
+	}
+	expires, parseErr := time.Parse(time.RFC3339Nano, expiry)
+	if parseErr != nil || !time.Now().Before(expires) || user != expected.ID || tenant != expected.TenantID {
+		return &APIError{401, "session_expired", "登录已失效", nil}
+	}
+	var kind, bound string
+	err = tx.QueryRowContext(ctx, s.Service.q(`SELECT kind,project_id FROM suma_token_scopes WHERE token_hash=?`), digest(token)).Scan(&kind, &bound)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
+	if kind != scope || kind != "" && (kind != "api" || bound != project) {
+		return forbidden()
+	}
+	var exists string
+	if err = tx.QueryRowContext(ctx, s.Service.q(`SELECT id FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), expected.TenantID, project, run).Scan(&exists); errors.Is(err, sql.ErrNoRows) {
+		return missing()
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // runStreamRead gives authorization and persisted-event selection one SQL
 // linearization point under the same organization lock as governance writes.
 // It never holds a transaction while waiting on the network. A second guard
@@ -120,34 +155,7 @@ func (s *Server) runStreamRead(ctx context.Context, token string, expected Princ
 		return nil, err
 	}
 	defer tx.Rollback()
-	if err = s.Service.authorizeProjectTx(ctx, tx, expected, project, false, false); err != nil {
-		return nil, err
-	}
-	var user, tenant, expiry string
-	err = tx.QueryRowContext(ctx, s.Service.q(`SELECT user_id,tenant_id,expires_at FROM suma_sessions WHERE token_hash=?`), digest(token)).Scan(&user, &tenant, &expiry)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, &APIError{401, "session_expired", "登录已失效", nil}
-	}
-	if err != nil {
-		return nil, err
-	}
-	expires, parseErr := time.Parse(time.RFC3339Nano, expiry)
-	if parseErr != nil || !time.Now().Before(expires) || user != expected.ID || tenant != expected.TenantID {
-		return nil, &APIError{401, "session_expired", "登录已失效", nil}
-	}
-	var kind, bound string
-	err = tx.QueryRowContext(ctx, s.Service.q(`SELECT kind,project_id FROM suma_token_scopes WHERE token_hash=?`), digest(token)).Scan(&kind, &bound)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return nil, err
-	}
-	if kind != scope || kind != "" && (kind != "api" || bound != project) {
-		return nil, forbidden()
-	}
-	var exists string
-	if err = tx.QueryRowContext(ctx, s.Service.q(`SELECT id FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), expected.TenantID, project, run).Scan(&exists); errors.Is(err, sql.ErrNoRows) {
-		return nil, missing()
-	}
-	if err != nil {
+	if err = s.authorizePersistentRunReadTx(ctx, tx, token, expected, scope, project, run); err != nil {
 		return nil, err
 	}
 	out := []dag.Event{}
