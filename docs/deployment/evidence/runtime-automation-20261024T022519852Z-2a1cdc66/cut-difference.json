@@ -1,0 +1,20 @@
+{
+  "previous_stamp": "20261024T021451853Z-f8fe5e7d",
+  "current_stamp": "20261024T022519852Z-2a1cdc66",
+  "previous_source_sha256": "8d7891e3bb3eb272588a8f297805338f9a48ec767880c638621feaefc7c9a43c",
+  "current_source_sha256": "bce32d56befd2866de29bccf3b321a942df28eb4f9bbd12b39264fbe12aee4cc",
+  "added": [],
+  "changed": [
+    {
+      "path": "internal/dag/engine.go",
+      "previous_sha256": "0648883f77d3db6b5a4862d42679af3d643e7220e773101432fff7c870c9fb40",
+      "current_sha256": "b516de5fadfe61536821fd4f44e6067933b369c7113c290408c6b4522b8f8dac"
+    },
+    {
+      "path": "internal/platform/run_stream.go",
+      "previous_sha256": "d22d4e055be8814110016a13bb5734f752cc003ce9fb2be6198381f2b88ec1bf",
+      "current_sha256": "965856321337cfa404ccb69153e35edf6db757a66cb273a5b9fa6c747fc99e4a"
+    }
+  ],
+  "removed": []
+}

@@ -1,0 +1,2467 @@
+[
+  {
+    "path": "dist/runtime/builds/20261023T163214029Z-3ff7853e/manifest.json",
+    "size_bytes": 1558,
+    "sha256": "a5fa8950e4a44e8a2bc4c34e183ea16b10fe3878b9e88f5552401eb5e19ce470"
+  },
+  {
+    "path": "dist/runtime/builds/20261023T163404032Z-d9c423bf/linked-modules.json",
+    "size_bytes": 21104,
+    "sha256": "73e8ca34731f24be3459118c3cb4117629fea9f2a2eff878caeabba6439f2ab9"
+  },
+  {
+    "path": "dist/runtime/builds/20261023T163404032Z-d9c423bf/manifest.json",
+    "size_bytes": 138425,
+    "sha256": "464264ea1ab8ddc7e7257c2d427453786bb03764473cccfc3bf5cdf396e7a7fa"
+  },
+  {
+    "path": "dist/runtime/builds/20261023T163404032Z-d9c423bf/source-manifest.json",
+    "size_bytes": 9282,
+    "sha256": "71d9682e7a56b2571a88bf3ae2bdb88287d6f856b4e771ba9ab1af1d3317004c"
+  },
+  {
+    "path": "dist/runtime/builds/20261023T163759813Z-4b7523bf/linked-modules.json",
+    "size_bytes": 21104,
+    "sha256": "73e8ca34731f24be3459118c3cb4117629fea9f2a2eff878caeabba6439f2ab9"
+  },
+  {
+    "path": "dist/runtime/builds/20261023T163759813Z-4b7523bf/manifest.json",
+    "size_bytes": 138540,
+    "sha256": "8ca1dcb965f5979d39bddb19f332b6ab142db23c40150f621997d0e88796dbe9"
+  },
+  {
+    "path": "dist/runtime/builds/20261023T163759813Z-4b7523bf/source-manifest.json",
+    "size_bytes": 9282,
+    "sha256": "71d9682e7a56b2571a88bf3ae2bdb88287d6f856b4e771ba9ab1af1d3317004c"
+  },
+  {
+    "path": "dist/runtime/builds/20261023T163936756Z-790199e9/manifest.json",
+    "size_bytes": 12162,
+    "sha256": "c3ac7cf50967200ce674ec7a987c0cbc6cdab24b931b2911446f6852c2f7195e"
+  },
+  {
+    "path": "dist/runtime/builds/20261023T163936756Z-790199e9/source-manifest.json",
+    "size_bytes": 9282,
+    "sha256": "71d9682e7a56b2571a88bf3ae2bdb88287d6f856b4e771ba9ab1af1d3317004c"
+  },
+  {
+    "path": "dist/runtime/builds/20261023T163937857Z-a1eb64aa/linked-modules.json",
+    "size_bytes": 11139,
+    "sha256": "9047118905c6d25fb6da41538b880cd7b88e0306d45def6ce5ba65c5c2727198"
+  },
+  {
+    "path": "dist/runtime/builds/20261023T163937857Z-a1eb64aa/manifest.json",
+    "size_bytes": 42688,
+    "sha256": "e70baa9a16cd2d44b26f7c888d6ef6eb7abcf5ebee2578c0f1384f487cdb87cd"
+  },
+  {
+    "path": "dist/runtime/builds/20261023T163937857Z-a1eb64aa/source-manifest.json",
+    "size_bytes": 9282,
+    "sha256": "71d9682e7a56b2571a88bf3ae2bdb88287d6f856b4e771ba9ab1af1d3317004c"
+  },
+  {
+    "path": "dist/runtime/builds/20261024T013101080Z-8d76ad7a/linked-modules.json",
+    "size_bytes": 23406,
+    "sha256": "fad3767e17e31cc27eb586d1f9ed293a57acd43cece37677147b7b0af29f554d"
+  },
+  {
+    "path": "dist/runtime/builds/20261024T013101080Z-8d76ad7a/manifest.json",
+    "size_bytes": 176726,
+    "sha256": "691e83cbd114b5a398886f871213b03fd5789df2e350b887a63b672bc3c34320"
+  },
+  {
+    "path": "dist/runtime/builds/20261024T013101080Z-8d76ad7a/source-manifest.json",
+    "size_bytes": 14387,
+    "sha256": "9327307dee2eeace134009b96f2ae42fd032b8c985cfe2ff1ab9ae9630a0488f"
+  },
+  {
+    "path": "dist/runtime/builds/20261024T013901937Z-e63107ea/linked-modules.json",
+    "size_bytes": 23406,
+    "sha256": "fad3767e17e31cc27eb586d1f9ed293a57acd43cece37677147b7b0af29f554d"
+  },
+  {
+    "path": "dist/runtime/builds/20261024T013901937Z-e63107ea/manifest.json",
+    "size_bytes": 176724,
+    "sha256": "d74c8cd6bdae9bfbd43b18b0a4c4b33984dfe0bcfe4cebd74f7e9120518f6210"
+  },
+  {
+    "path": "dist/runtime/builds/20261024T013901937Z-e63107ea/source-manifest.json",
+    "size_bytes": 14387,
+    "sha256": "d63289fedfe508768cb2df098cb6393c62176ba3bc2c5f29589d154e3118019f"
+  },
+  {
+    "path": "dist/runtime/builds/20261024T014255637Z-2381ecce/linked-modules.json",
+    "size_bytes": 23406,
+    "sha256": "fad3767e17e31cc27eb586d1f9ed293a57acd43cece37677147b7b0af29f554d"
+  },
+  {
+    "path": "dist/runtime/builds/20261024T014255637Z-2381ecce/manifest.json",
+    "size_bytes": 176727,
+    "sha256": "fa3cca1e386cb870142100780df157e2fde3a279b5f89b617e1ac6e4c9217464"
+  },
+  {
+    "path": "dist/runtime/builds/20261024T014255637Z-2381ecce/source-manifest.json",
+    "size_bytes": 14387,
+    "sha256": "2f8f4ec287c7ae7968cc05ddfe5703c293608854af3c32e1b1a064bfa2905086"
+  },
+  {
+    "path": "dist/runtime/builds/20261024T021451853Z-f8fe5e7d/linked-modules.json",
+    "size_bytes": 23406,
+    "sha256": "fad3767e17e31cc27eb586d1f9ed293a57acd43cece37677147b7b0af29f554d"
+  },
+  {
+    "path": "dist/runtime/builds/20261024T021451853Z-f8fe5e7d/manifest.json",
+    "size_bytes": 177770,
+    "sha256": "c9244b0665ea1bbc6c71a46ecff0ec03ffddd8c95f3677f9a889ce1132ebc666"
+  },
+  {
+    "path": "dist/runtime/builds/20261024T021451853Z-f8fe5e7d/source-manifest.json",
+    "size_bytes": 15374,
+    "sha256": "33982912e20f0ea44c6fce00323b7e574a6e2e8e70121bf89d3a0c44cf10310a"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261023T163404032Z-d9c423bf/manifest.json",
+    "size_bytes": 13669,
+    "sha256": "2fc7da6d02b681e4dce06b1767bba90270668b0ed8bc000edf2877ed638458ea"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261023T163404032Z-d9c423bf/suma",
+    "size_bytes": 10054096,
+    "sha256": "3ebbb3c3ee5561b653720ca318f2b9140dc5c6291f28c9093c948f86a293ef0e"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261023T163404032Z-d9c423bf/suma-control",
+    "size_bytes": 23236368,
+    "sha256": "6b4a61b98905f1430bb84ff76ef6bcdb9d9d584a35873a4d0fbc3a3fb3be75c5"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261023T163404032Z-d9c423bf/suma-control.buildinfo.txt",
+    "size_bytes": 2112,
+    "sha256": "d79c119f696d0d2742dcbb50c2833851ccfb6f2b5bb8f92d7a19d2023c95716a"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261023T163404032Z-d9c423bf/suma-runner",
+    "size_bytes": 9473776,
+    "sha256": "c9235aac58c09ab0520a87e49227617b52e7bd38e8e3104759fd638a6cf49267"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261023T163404032Z-d9c423bf/suma-runner.buildinfo.txt",
+    "size_bytes": 343,
+    "sha256": "727f5c9c20f42b140972acccdf27662f645f850bbde72863029392e458968245"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261023T163404032Z-d9c423bf/suma.buildinfo.txt",
+    "size_bytes": 1889,
+    "sha256": "b82c1062309c3397a4148ddbc8c8de08b13653b1d8b7070365d2564976056091"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261023T163759813Z-4b7523bf/manifest.json",
+    "size_bytes": 13669,
+    "sha256": "98a60f41f7923199e4fd3ddeca578cf0d81967e971bea6873f7a9f8e98f78f01"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261023T163759813Z-4b7523bf/suma",
+    "size_bytes": 10054096,
+    "sha256": "3ebbb3c3ee5561b653720ca318f2b9140dc5c6291f28c9093c948f86a293ef0e"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261023T163759813Z-4b7523bf/suma-control",
+    "size_bytes": 23236368,
+    "sha256": "6b4a61b98905f1430bb84ff76ef6bcdb9d9d584a35873a4d0fbc3a3fb3be75c5"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261023T163759813Z-4b7523bf/suma-control.buildinfo.txt",
+    "size_bytes": 2112,
+    "sha256": "c01ceb2db41a6f1790fcd706b658f16a0c64dd72c62d5f6f59fed13ed4141fdf"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261023T163759813Z-4b7523bf/suma-runner",
+    "size_bytes": 9473776,
+    "sha256": "c9235aac58c09ab0520a87e49227617b52e7bd38e8e3104759fd638a6cf49267"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261023T163759813Z-4b7523bf/suma-runner.buildinfo.txt",
+    "size_bytes": 343,
+    "sha256": "9ce16c789835f851a231eb8d141ccebfee1afc0832533546ff618dd4dd50f1a2"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261023T163759813Z-4b7523bf/suma.buildinfo.txt",
+    "size_bytes": 1889,
+    "sha256": "36982485bf3b502e15b20d24393d13c888336a7c42f49146a3849348866ac6ed"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013101080Z-8d76ad7a/manifest.json",
+    "size_bytes": 17656,
+    "sha256": "3644f9f2da8c65f415a47783abc183def47f595a53aafa5ef970eed645a2a194"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013101080Z-8d76ad7a/suma",
+    "size_bytes": 10054096,
+    "sha256": "3ebbb3c3ee5561b653720ca318f2b9140dc5c6291f28c9093c948f86a293ef0e"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013101080Z-8d76ad7a/suma-control",
+    "size_bytes": 23958816,
+    "sha256": "d18b858a6cd52488c8aa87a8cf3d13f2be7a7dba9fe0aaee85e494873a856735"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013101080Z-8d76ad7a/suma-control.buildinfo.txt",
+    "size_bytes": 2112,
+    "sha256": "32660f7ea2cf4a7deed714259fa1864da10cbf1f5f0dea138f2da9b596ea07e7"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013101080Z-8d76ad7a/suma-deployer",
+    "size_bytes": 15619232,
+    "sha256": "fac0ee0ded7917ef4c90e160918c56c6f07b8be15380b94b925474d7d0f606f1"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013101080Z-8d76ad7a/suma-deployer.buildinfo.txt",
+    "size_bytes": 1322,
+    "sha256": "8167adc495bd1401d2afc3d48c3145b3ec403e55c5098c7e977903a2f147bd2b"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013101080Z-8d76ad7a/suma-runner",
+    "size_bytes": 9642640,
+    "sha256": "2ebbed5a24248a35d4f8b3e0ef7e9fced44561e6e24cb9a3cfcb92cc0fd09f37"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013101080Z-8d76ad7a/suma-runner.buildinfo.txt",
+    "size_bytes": 343,
+    "sha256": "c0bb7f5f655b28cd6d9f4466652af45e3c637710aba411479966cb3cd1d3d469"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013101080Z-8d76ad7a/suma.buildinfo.txt",
+    "size_bytes": 1889,
+    "sha256": "904e91d144a9290374d2109a40f62a123e77ce25c7470454fbff33aa08c11cf3"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013901937Z-e63107ea/manifest.json",
+    "size_bytes": 17656,
+    "sha256": "fb203a42f18f67326252ae14bb0567a3d74c8e5d6d0f6b9f67fefda6bdb35074"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013901937Z-e63107ea/suma",
+    "size_bytes": 10054096,
+    "sha256": "3ebbb3c3ee5561b653720ca318f2b9140dc5c6291f28c9093c948f86a293ef0e"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013901937Z-e63107ea/suma-control",
+    "size_bytes": 23958816,
+    "sha256": "5496ca9f8c6851a129d4b46e7eef24fdd1270a64071cf15c41e490987b4063e3"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013901937Z-e63107ea/suma-control.buildinfo.txt",
+    "size_bytes": 2112,
+    "sha256": "b6a858026eaf7426db731f5b68633a7482bc33fa9255c5c2040f7f1358e5ebba"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013901937Z-e63107ea/suma-deployer",
+    "size_bytes": 15619232,
+    "sha256": "fac0ee0ded7917ef4c90e160918c56c6f07b8be15380b94b925474d7d0f606f1"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013901937Z-e63107ea/suma-deployer.buildinfo.txt",
+    "size_bytes": 1322,
+    "sha256": "e8908cb4b73f73947336e21156b54c0a6ae037ac98db7c4c1844b207d4934e87"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013901937Z-e63107ea/suma-runner",
+    "size_bytes": 9642640,
+    "sha256": "2ebbed5a24248a35d4f8b3e0ef7e9fced44561e6e24cb9a3cfcb92cc0fd09f37"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013901937Z-e63107ea/suma-runner.buildinfo.txt",
+    "size_bytes": 343,
+    "sha256": "24ec2cec6f32b89440f148a50aa5549868216cc224861f02dcaea1a479adf750"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T013901937Z-e63107ea/suma.buildinfo.txt",
+    "size_bytes": 1889,
+    "sha256": "437af35a91483a86cc99c6afa0656c1172403d04c56bb01b7fd0e7d848446191"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T014255637Z-2381ecce/manifest.json",
+    "size_bytes": 17656,
+    "sha256": "019f09ee3f5498e2d89f102fc106aa01c3ab2500d9d4f94679e30aa69fd1a9a4"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T014255637Z-2381ecce/suma",
+    "size_bytes": 10054096,
+    "sha256": "3ebbb3c3ee5561b653720ca318f2b9140dc5c6291f28c9093c948f86a293ef0e"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T014255637Z-2381ecce/suma-control",
+    "size_bytes": 23958816,
+    "sha256": "5496ca9f8c6851a129d4b46e7eef24fdd1270a64071cf15c41e490987b4063e3"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T014255637Z-2381ecce/suma-control.buildinfo.txt",
+    "size_bytes": 2112,
+    "sha256": "9ba8cd63fa0c9a68e2d7b739369e8ac0119a9bcad59bd80c80865654d533dfbb"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T014255637Z-2381ecce/suma-deployer",
+    "size_bytes": 15619232,
+    "sha256": "fac0ee0ded7917ef4c90e160918c56c6f07b8be15380b94b925474d7d0f606f1"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T014255637Z-2381ecce/suma-deployer.buildinfo.txt",
+    "size_bytes": 1322,
+    "sha256": "991b2b995d994155ac98e1c9402283da4018acee1ed2392fa2712004504e73da"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T014255637Z-2381ecce/suma-runner",
+    "size_bytes": 9642640,
+    "sha256": "2ebbed5a24248a35d4f8b3e0ef7e9fced44561e6e24cb9a3cfcb92cc0fd09f37"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T014255637Z-2381ecce/suma-runner.buildinfo.txt",
+    "size_bytes": 343,
+    "sha256": "8ebe7209e5b3698e3b83f74d1a6aa8262f2cad1042b1600465b4b70cc7cef823"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T014255637Z-2381ecce/suma.buildinfo.txt",
+    "size_bytes": 1889,
+    "sha256": "2841aae81eb4d999d474f86e15eb8a73024a3c25bb8efe5df44b85b7c682d356"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T021451853Z-f8fe5e7d/manifest.json",
+    "size_bytes": 17656,
+    "sha256": "a9ddf70a2f37d8ec0b996455a40f1e712ac6f3e181df74df3bb70cba0556e4e7"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T021451853Z-f8fe5e7d/suma",
+    "size_bytes": 10054096,
+    "sha256": "3ebbb3c3ee5561b653720ca318f2b9140dc5c6291f28c9093c948f86a293ef0e"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T021451853Z-f8fe5e7d/suma-control",
+    "size_bytes": 24570832,
+    "sha256": "12b50f1f0dfaf58c34e1d98e0128870fb39dd20566150731a1067e94846501d4"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T021451853Z-f8fe5e7d/suma-control.buildinfo.txt",
+    "size_bytes": 2112,
+    "sha256": "d7e2f43763792a7e39fe9b4f81d0ab154ac29d14bff4a0d66769d57a8cf5545d"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T021451853Z-f8fe5e7d/suma-deployer",
+    "size_bytes": 15619232,
+    "sha256": "fac0ee0ded7917ef4c90e160918c56c6f07b8be15380b94b925474d7d0f606f1"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T021451853Z-f8fe5e7d/suma-deployer.buildinfo.txt",
+    "size_bytes": 1322,
+    "sha256": "68f655fe86982f7200d5351fc9bf81780923bf8b2e32088493ce9597cdfd8a9e"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T021451853Z-f8fe5e7d/suma-runner",
+    "size_bytes": 9642640,
+    "sha256": "2ebbed5a24248a35d4f8b3e0ef7e9fced44561e6e24cb9a3cfcb92cc0fd09f37"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T021451853Z-f8fe5e7d/suma-runner.buildinfo.txt",
+    "size_bytes": 343,
+    "sha256": "d0d06dc1e18fb21a080326cfb52bc07285365248343ae2b60dbfd99cc367eec2"
+  },
+  {
+    "path": "dist/runtime/darwin-amd64/20261024T021451853Z-f8fe5e7d/suma.buildinfo.txt",
+    "size_bytes": 1889,
+    "sha256": "cc200248cc36977f9439c183164340977d4fd4dd27a91d353d973f3f71e45860"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261023T163404032Z-d9c423bf/manifest.json",
+    "size_bytes": 13674,
+    "sha256": "9127e78684e3db1eab098e94507de016ad7b43657a7cec9aab2c0c3dc3adfcac"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261023T163404032Z-d9c423bf/suma",
+    "size_bytes": 9579426,
+    "sha256": "571dc57f3cf1ff5e20e07a03d0966f46d78e425cde1cf80301609e365a3c54b2"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261023T163404032Z-d9c423bf/suma-control",
+    "size_bytes": 22451154,
+    "sha256": "e4d2f615153dec065a19f9d7280b2409cc4688b692a7f13a9a3ce5c24258b918"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261023T163404032Z-d9c423bf/suma-control.buildinfo.txt",
+    "size_bytes": 2114,
+    "sha256": "59cc293d3867aee4d11d7c34ebd84ab2f1006c23e31472e1e2ba959b425214bd"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261023T163404032Z-d9c423bf/suma-runner",
+    "size_bytes": 8978130,
+    "sha256": "581cdb0504116d023e8edefb451b4533b9135ca93aa2af55b7cfa4678d94d36a"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261023T163404032Z-d9c423bf/suma-runner.buildinfo.txt",
+    "size_bytes": 345,
+    "sha256": "7e4d4113d06ad86d938b56dd393d0069baff04c836bd60f7a1e6bdc5125d4ec1"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261023T163404032Z-d9c423bf/suma.buildinfo.txt",
+    "size_bytes": 1891,
+    "sha256": "25f0696e2f16cf9473f3996e0e76e7b5d66dd3373ffc183d9fbb92cb2c786273"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261023T163759813Z-4b7523bf/manifest.json",
+    "size_bytes": 13674,
+    "sha256": "f83d215a828c3cd0149d1b1464b66d6f162a073dd04ebd5e4d720a309afd0c39"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261023T163759813Z-4b7523bf/suma",
+    "size_bytes": 9579426,
+    "sha256": "571dc57f3cf1ff5e20e07a03d0966f46d78e425cde1cf80301609e365a3c54b2"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261023T163759813Z-4b7523bf/suma-control",
+    "size_bytes": 22451154,
+    "sha256": "e4d2f615153dec065a19f9d7280b2409cc4688b692a7f13a9a3ce5c24258b918"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261023T163759813Z-4b7523bf/suma-control.buildinfo.txt",
+    "size_bytes": 2114,
+    "sha256": "b62178b3b6d78d64129e1124304da3239556676d314a2765a6cf6de8d0b36104"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261023T163759813Z-4b7523bf/suma-runner",
+    "size_bytes": 8978130,
+    "sha256": "581cdb0504116d023e8edefb451b4533b9135ca93aa2af55b7cfa4678d94d36a"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261023T163759813Z-4b7523bf/suma-runner.buildinfo.txt",
+    "size_bytes": 345,
+    "sha256": "6fa5f47047d507b5873618ec45330edd9251288d5cba55b4717fe0a48ee04b20"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261023T163759813Z-4b7523bf/suma.buildinfo.txt",
+    "size_bytes": 1891,
+    "sha256": "fb705c07597ac8974f7c0d4a64637789afbb8ef2e808a7d409178e18bb9b4136"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013101080Z-8d76ad7a/manifest.json",
+    "size_bytes": 17663,
+    "sha256": "8bf1282a58b6142627365c08fe4f8dbd2db446829e6911c67bbe95e4337e64b3"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013101080Z-8d76ad7a/suma",
+    "size_bytes": 9579426,
+    "sha256": "571dc57f3cf1ff5e20e07a03d0966f46d78e425cde1cf80301609e365a3c54b2"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013101080Z-8d76ad7a/suma-control",
+    "size_bytes": 23109090,
+    "sha256": "94fec6bdc74bc68efdf8a57e41cd9ef02885f58027c26a57349f341aa48f0099"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013101080Z-8d76ad7a/suma-control.buildinfo.txt",
+    "size_bytes": 2114,
+    "sha256": "09410d9b0bac6f829b61ef8ac47d6ed0af072daf617afbe446b4dd1f3d8fe626"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013101080Z-8d76ad7a/suma-deployer",
+    "size_bytes": 15063506,
+    "sha256": "e8466ce31d17b4820c515edf3bc3e8033efda4463219abf018dadc4356cfb2ef"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013101080Z-8d76ad7a/suma-deployer.buildinfo.txt",
+    "size_bytes": 1324,
+    "sha256": "5dc537e9fae458f98e52bbf8b9ac0998b58a2040200f10f3539f5ebde7b11726"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013101080Z-8d76ad7a/suma-runner",
+    "size_bytes": 9152466,
+    "sha256": "d5bcad779e24f020f3cf4737ca0ba985d2d993cfaf402c45a360a0739511bb2e"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013101080Z-8d76ad7a/suma-runner.buildinfo.txt",
+    "size_bytes": 345,
+    "sha256": "863b4c4adb07efdf14904d43b8023678f0942f6951eda5b4f34e69fbfe3405a7"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013101080Z-8d76ad7a/suma.buildinfo.txt",
+    "size_bytes": 1891,
+    "sha256": "da3da64757467713404d0f61bd62b93355630eb14c5e60ae94f8fcfda62a9f0a"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013901937Z-e63107ea/manifest.json",
+    "size_bytes": 17663,
+    "sha256": "c81e4466f734a70e6445eee9d00a4744d51f0fb6df0a5d6a5b1b0bdc2e025cd4"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013901937Z-e63107ea/suma",
+    "size_bytes": 9579426,
+    "sha256": "571dc57f3cf1ff5e20e07a03d0966f46d78e425cde1cf80301609e365a3c54b2"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013901937Z-e63107ea/suma-control",
+    "size_bytes": 23109090,
+    "sha256": "ac6d617894e75f868b857294a820d56c93aa76d5745f2f904fd98eb466eb1866"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013901937Z-e63107ea/suma-control.buildinfo.txt",
+    "size_bytes": 2114,
+    "sha256": "0b9d6e78eb3da6405d8fa0b7bac785f04039e31047a1b6e8fa0715a71b4390d6"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013901937Z-e63107ea/suma-deployer",
+    "size_bytes": 15063506,
+    "sha256": "e8466ce31d17b4820c515edf3bc3e8033efda4463219abf018dadc4356cfb2ef"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013901937Z-e63107ea/suma-deployer.buildinfo.txt",
+    "size_bytes": 1324,
+    "sha256": "f97f64bc12c7b6f817b0cc16d56403587120d662257644189a5f5b5e8be344e9"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013901937Z-e63107ea/suma-runner",
+    "size_bytes": 9152466,
+    "sha256": "d5bcad779e24f020f3cf4737ca0ba985d2d993cfaf402c45a360a0739511bb2e"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013901937Z-e63107ea/suma-runner.buildinfo.txt",
+    "size_bytes": 345,
+    "sha256": "9e922dafafa007252068689e8733a341b6f67337fad191e9f1a0a6460c09a6a6"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T013901937Z-e63107ea/suma.buildinfo.txt",
+    "size_bytes": 1891,
+    "sha256": "6c815afbdb9d4d01f8761c871475cf2bb09e990bc441113fd67859d8f870588c"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T014255637Z-2381ecce/manifest.json",
+    "size_bytes": 17663,
+    "sha256": "cd089543b5258755c6d9f0c729595fc8756b4c184c67c0fe50ad78278f780801"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T014255637Z-2381ecce/suma",
+    "size_bytes": 9579426,
+    "sha256": "571dc57f3cf1ff5e20e07a03d0966f46d78e425cde1cf80301609e365a3c54b2"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T014255637Z-2381ecce/suma-control",
+    "size_bytes": 23109090,
+    "sha256": "ac6d617894e75f868b857294a820d56c93aa76d5745f2f904fd98eb466eb1866"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T014255637Z-2381ecce/suma-control.buildinfo.txt",
+    "size_bytes": 2114,
+    "sha256": "aab8427bdfb60f438ba327b7caa32b3c7e705d8a991655598062eb18c8bf41c6"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T014255637Z-2381ecce/suma-deployer",
+    "size_bytes": 15063506,
+    "sha256": "e8466ce31d17b4820c515edf3bc3e8033efda4463219abf018dadc4356cfb2ef"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T014255637Z-2381ecce/suma-deployer.buildinfo.txt",
+    "size_bytes": 1324,
+    "sha256": "7498cfc8fed505295d24e57a9741703c0452e7e8dd3a2be2b0e883ec82b6deee"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T014255637Z-2381ecce/suma-runner",
+    "size_bytes": 9152466,
+    "sha256": "d5bcad779e24f020f3cf4737ca0ba985d2d993cfaf402c45a360a0739511bb2e"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T014255637Z-2381ecce/suma-runner.buildinfo.txt",
+    "size_bytes": 345,
+    "sha256": "f85b5ecc2c7dec0e62d8aa899662eadb9c8310451473f075ff8f8eca9984e1db"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T014255637Z-2381ecce/suma.buildinfo.txt",
+    "size_bytes": 1891,
+    "sha256": "20ca7240ee2afc56cbed78927e4d83bd2e828ebfb9b5f3bf01118d7063d168a2"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T021451853Z-f8fe5e7d/manifest.json",
+    "size_bytes": 17663,
+    "sha256": "08988bf76f239800ff1a74a38b51f88e493536bf92676ffe167f95551d5110d7"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T021451853Z-f8fe5e7d/suma",
+    "size_bytes": 9579426,
+    "sha256": "571dc57f3cf1ff5e20e07a03d0966f46d78e425cde1cf80301609e365a3c54b2"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T021451853Z-f8fe5e7d/suma-control",
+    "size_bytes": 23696978,
+    "sha256": "2299d1e2df38c11ec32f55e62e8a536fdceeb7d895a13f467601fe91d436dc25"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T021451853Z-f8fe5e7d/suma-control.buildinfo.txt",
+    "size_bytes": 2114,
+    "sha256": "64d2d2441dcadcc06894b19243c13ff29f33a42edea98568a5aed806d0c47ccf"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T021451853Z-f8fe5e7d/suma-deployer",
+    "size_bytes": 15063506,
+    "sha256": "e8466ce31d17b4820c515edf3bc3e8033efda4463219abf018dadc4356cfb2ef"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T021451853Z-f8fe5e7d/suma-deployer.buildinfo.txt",
+    "size_bytes": 1324,
+    "sha256": "c5deeb13b7f0ef68bf66391951361fe0b3c1771d103b71d9273a104fdf2e11ab"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T021451853Z-f8fe5e7d/suma-runner",
+    "size_bytes": 9152466,
+    "sha256": "d5bcad779e24f020f3cf4737ca0ba985d2d993cfaf402c45a360a0739511bb2e"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T021451853Z-f8fe5e7d/suma-runner.buildinfo.txt",
+    "size_bytes": 345,
+    "sha256": "436a9ca5deb3ed0afbcfd07ef297cb178f8b0b55bce8d5f1146ae37c338feb1a"
+  },
+  {
+    "path": "dist/runtime/darwin-arm64/20261024T021451853Z-f8fe5e7d/suma.buildinfo.txt",
+    "size_bytes": 1891,
+    "sha256": "d7cb5ef9ad457ae33d49ecc2536ba5bad46f05283d8ee5da27c7b335be20bbef"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261023T163404032Z-d9c423bf/manifest.json",
+    "size_bytes": 13068,
+    "sha256": "0535405c3e88a8778411bd3ebd2150a8d16f0738a3a082899fccae15750859c0"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261023T163404032Z-d9c423bf/suma",
+    "size_bytes": 10095733,
+    "sha256": "8c55dc184d3815ea59da2b79346f7a37ee2d6dc815e96ec51f15c6f2e9d19628"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261023T163404032Z-d9c423bf/suma-control",
+    "size_bytes": 23166048,
+    "sha256": "bbfd169140821c8fcd93cdfb057b6a8e1ee9bf0923b4f4810f6271e9253e5643"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261023T163404032Z-d9c423bf/suma-control.buildinfo.txt",
+    "size_bytes": 1931,
+    "sha256": "872a70ea372199bf77be70b6b1149ab975a8049c0912ee7b8beb064aa6b02190"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261023T163404032Z-d9c423bf/suma-runner",
+    "size_bytes": 9455047,
+    "sha256": "f2953311ee0c7d5974115fc5adfa10ca2879e2107209328518fbb8bf26d717d2"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261023T163404032Z-d9c423bf/suma-runner.buildinfo.txt",
+    "size_bytes": 341,
+    "sha256": "2e9e495e88a0d6c55025bf3758b03a5386503737fdc783a203127da63e9010aa"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261023T163404032Z-d9c423bf/suma.buildinfo.txt",
+    "size_bytes": 1887,
+    "sha256": "b03756d8e665df60f4728a51791a83d4ed8719275ff5e708ad72e9687d454a6e"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261023T163759813Z-4b7523bf/manifest.json",
+    "size_bytes": 13068,
+    "sha256": "c32c76ae9df3bcc1fd9372d27850b11f9a1e1680995e1b342ef1db43cab9f623"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261023T163759813Z-4b7523bf/suma",
+    "size_bytes": 10095733,
+    "sha256": "8c55dc184d3815ea59da2b79346f7a37ee2d6dc815e96ec51f15c6f2e9d19628"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261023T163759813Z-4b7523bf/suma-control",
+    "size_bytes": 23166048,
+    "sha256": "bbfd169140821c8fcd93cdfb057b6a8e1ee9bf0923b4f4810f6271e9253e5643"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261023T163759813Z-4b7523bf/suma-control.buildinfo.txt",
+    "size_bytes": 1931,
+    "sha256": "b937d5c067c96c8246efce65bf57f14b7f0b8b00949254f7a79fb140feea4529"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261023T163759813Z-4b7523bf/suma-runner",
+    "size_bytes": 9455047,
+    "sha256": "f2953311ee0c7d5974115fc5adfa10ca2879e2107209328518fbb8bf26d717d2"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261023T163759813Z-4b7523bf/suma-runner.buildinfo.txt",
+    "size_bytes": 341,
+    "sha256": "75b82f1a0f2fd24daf2b52df35242de89dfdd0bb2f5fd82d6a41959baf0e8bc1"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261023T163759813Z-4b7523bf/suma.buildinfo.txt",
+    "size_bytes": 1887,
+    "sha256": "9f38d672180d1e40fbe6bfc928cf5c63476ba950dda0a95469a4fdd06aff1f75"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013101080Z-8d76ad7a/manifest.json",
+    "size_bytes": 16459,
+    "sha256": "825fe9ba69070c57e65f2572da5670351bb6f63a672f1753ca47be63ff14ecf6"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013101080Z-8d76ad7a/suma",
+    "size_bytes": 10095733,
+    "sha256": "8c55dc184d3815ea59da2b79346f7a37ee2d6dc815e96ec51f15c6f2e9d19628"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013101080Z-8d76ad7a/suma-control",
+    "size_bytes": 23870943,
+    "sha256": "169c2c53c1b9b6edbedddfcd34af2e0e466bf13379b78d1360984bae40804265"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013101080Z-8d76ad7a/suma-control.buildinfo.txt",
+    "size_bytes": 1931,
+    "sha256": "b41e5a1314187e587f1789966ebadbb71ae10bea13f9fc812ad98c1ae4b173e8"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013101080Z-8d76ad7a/suma-deployer",
+    "size_bytes": 15642303,
+    "sha256": "1990587613eba8ffd7a0ee6308bd3ffb2400d9f33aa2b3d362366d8965dc830e"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013101080Z-8d76ad7a/suma-deployer.buildinfo.txt",
+    "size_bytes": 1141,
+    "sha256": "cd3634654d3f47682bef57669d0bc6e873a36888d24ee3235a562977be168170"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013101080Z-8d76ad7a/suma-runner",
+    "size_bytes": 9620068,
+    "sha256": "5ee77546da427190f9dea6ec294e170f41d22f00abca96b37c621a80f8471545"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013101080Z-8d76ad7a/suma-runner.buildinfo.txt",
+    "size_bytes": 341,
+    "sha256": "e2333b9ef32c7d9cfeec43346f2cc740ec2e6c9153a5aba7a09d67293af4bbe4"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013101080Z-8d76ad7a/suma.buildinfo.txt",
+    "size_bytes": 1887,
+    "sha256": "eeaf7cd177ad2ffc1d4faa53bf70f9f03379012c7bd26a6f602def39b35314f1"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013901937Z-e63107ea/manifest.json",
+    "size_bytes": 16459,
+    "sha256": "860d1a4396583c18010de7a22ec96d82c62b7daa9a65d8b263e71ca328627612"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013901937Z-e63107ea/suma",
+    "size_bytes": 10095733,
+    "sha256": "8c55dc184d3815ea59da2b79346f7a37ee2d6dc815e96ec51f15c6f2e9d19628"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013901937Z-e63107ea/suma-control",
+    "size_bytes": 23870943,
+    "sha256": "dbf2aabdb38de256a0f2d58de1cc5251fa676ed93baca491bb146e4980371ac6"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013901937Z-e63107ea/suma-control.buildinfo.txt",
+    "size_bytes": 1931,
+    "sha256": "04fc093e75ddfebbf6d656dd1a7d19d95c62fe1f2d032804de94bb24b4433272"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013901937Z-e63107ea/suma-deployer",
+    "size_bytes": 15642303,
+    "sha256": "1990587613eba8ffd7a0ee6308bd3ffb2400d9f33aa2b3d362366d8965dc830e"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013901937Z-e63107ea/suma-deployer.buildinfo.txt",
+    "size_bytes": 1141,
+    "sha256": "5c4e015a93420216fc52647f6fdcc8abbefc029ebe05b28dd90872bc5419f723"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013901937Z-e63107ea/suma-runner",
+    "size_bytes": 9620068,
+    "sha256": "5ee77546da427190f9dea6ec294e170f41d22f00abca96b37c621a80f8471545"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013901937Z-e63107ea/suma-runner.buildinfo.txt",
+    "size_bytes": 341,
+    "sha256": "782f6caacf5656647f2a04e9b45d9750f4d0304a52bd34956aec289968417d3c"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T013901937Z-e63107ea/suma.buildinfo.txt",
+    "size_bytes": 1887,
+    "sha256": "779a383c6500103f46a58ffde6fd48431bb2b44c1e652050ed6b2abea3155c3c"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T014255637Z-2381ecce/manifest.json",
+    "size_bytes": 16459,
+    "sha256": "f0c376c1827934c947432ba6aa9372919bac98d5b9550c82918fce220044b5f3"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T014255637Z-2381ecce/suma",
+    "size_bytes": 10095733,
+    "sha256": "8c55dc184d3815ea59da2b79346f7a37ee2d6dc815e96ec51f15c6f2e9d19628"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T014255637Z-2381ecce/suma-control",
+    "size_bytes": 23870943,
+    "sha256": "dbf2aabdb38de256a0f2d58de1cc5251fa676ed93baca491bb146e4980371ac6"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T014255637Z-2381ecce/suma-control.buildinfo.txt",
+    "size_bytes": 1931,
+    "sha256": "a2e69849c137f32f6777457edd74ebbcc4fdf3cb91bfb3688ccf4df523643a54"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T014255637Z-2381ecce/suma-deployer",
+    "size_bytes": 15642303,
+    "sha256": "1990587613eba8ffd7a0ee6308bd3ffb2400d9f33aa2b3d362366d8965dc830e"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T014255637Z-2381ecce/suma-deployer.buildinfo.txt",
+    "size_bytes": 1141,
+    "sha256": "c82c65cc76f4f265aadb17e771f171c201a594fea6b2607f935b6e1b618a0b52"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T014255637Z-2381ecce/suma-runner",
+    "size_bytes": 9620068,
+    "sha256": "5ee77546da427190f9dea6ec294e170f41d22f00abca96b37c621a80f8471545"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T014255637Z-2381ecce/suma-runner.buildinfo.txt",
+    "size_bytes": 341,
+    "sha256": "10ae88d70de7b1e0949069211bf4d9c1c1445ce68c16cc4e286e7b7a53cd9b69"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T014255637Z-2381ecce/suma.buildinfo.txt",
+    "size_bytes": 1887,
+    "sha256": "1003e29b5e966c680b300af494446e1c7132ba9be6b320213d5262cdc6050cd2"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T021451853Z-f8fe5e7d/manifest.json",
+    "size_bytes": 16459,
+    "sha256": "d879cd8fa6e7294335d5888cbb9cfd5f405cd7fc2e664b7ee6f66394994b24b3"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T021451853Z-f8fe5e7d/suma",
+    "size_bytes": 10095733,
+    "sha256": "8c55dc184d3815ea59da2b79346f7a37ee2d6dc815e96ec51f15c6f2e9d19628"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T021451853Z-f8fe5e7d/suma-control",
+    "size_bytes": 24514191,
+    "sha256": "edf13f0c26922f20555ecb9debd19bb4caa4ce321c3123dc539cb64ed261c921"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T021451853Z-f8fe5e7d/suma-control.buildinfo.txt",
+    "size_bytes": 1931,
+    "sha256": "c93d1119123774cabe21fc2af8fddbbe82b2655072e06b152914c55e6ab14449"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T021451853Z-f8fe5e7d/suma-deployer",
+    "size_bytes": 15642303,
+    "sha256": "1990587613eba8ffd7a0ee6308bd3ffb2400d9f33aa2b3d362366d8965dc830e"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T021451853Z-f8fe5e7d/suma-deployer.buildinfo.txt",
+    "size_bytes": 1141,
+    "sha256": "622a4693fcb46f2c752f4d39f86f651ab6f2f6148581a923a1ea141e7902cdd1"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T021451853Z-f8fe5e7d/suma-runner",
+    "size_bytes": 9620068,
+    "sha256": "5ee77546da427190f9dea6ec294e170f41d22f00abca96b37c621a80f8471545"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T021451853Z-f8fe5e7d/suma-runner.buildinfo.txt",
+    "size_bytes": 341,
+    "sha256": "0c1c0c871725a0f9d3316ccf5d292054d743ef945197441403a38b6732562114"
+  },
+  {
+    "path": "dist/runtime/linux-amd64/20261024T021451853Z-f8fe5e7d/suma.buildinfo.txt",
+    "size_bytes": 1887,
+    "sha256": "3404e3d19269c94c7bc3486ce69adf252d7e77f73ef7bded269773870b87b7e9"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261023T163404032Z-d9c423bf/manifest.json",
+    "size_bytes": 13073,
+    "sha256": "678c3c595c2a98c2f95f7975ee327aa3db8ac92b63ca394718a4f292abe49ec7"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261023T163404032Z-d9c423bf/suma",
+    "size_bytes": 9605869,
+    "sha256": "7a13c2946064fd88414192d19ccf0e8ed5958a0b29ddabe06080a395c0b283f7"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261023T163404032Z-d9c423bf/suma-control",
+    "size_bytes": 22208695,
+    "sha256": "a79979673f0b25890a869422e5d09700ebd35e70ed4325f8cf415beb5145e732"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261023T163404032Z-d9c423bf/suma-control.buildinfo.txt",
+    "size_bytes": 1933,
+    "sha256": "b33f954b06917dadc444c364b2220e702945745ce1983b7dbb097adee75f4b98"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261023T163404032Z-d9c423bf/suma-runner",
+    "size_bytes": 8915965,
+    "sha256": "54373a849932bba8dfccdc94efc5620c7913535fba603120604455541bd9d38f"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261023T163404032Z-d9c423bf/suma-runner.buildinfo.txt",
+    "size_bytes": 343,
+    "sha256": "243c451c8a5ef01111a4383682e0b4f018d6906fdf5ca6af48978133c33cce43"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261023T163404032Z-d9c423bf/suma.buildinfo.txt",
+    "size_bytes": 1889,
+    "sha256": "71e942209284b2341f5d2f5278616445a29399f0896d34430c5f924e3429be48"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261023T163759813Z-4b7523bf/manifest.json",
+    "size_bytes": 13073,
+    "sha256": "57bcf02180ae554c658756c2e049d4fd034d28b3eb2507519c2c9f7618c4e0ce"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261023T163759813Z-4b7523bf/suma",
+    "size_bytes": 9605869,
+    "sha256": "7a13c2946064fd88414192d19ccf0e8ed5958a0b29ddabe06080a395c0b283f7"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261023T163759813Z-4b7523bf/suma-control",
+    "size_bytes": 22208695,
+    "sha256": "a79979673f0b25890a869422e5d09700ebd35e70ed4325f8cf415beb5145e732"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261023T163759813Z-4b7523bf/suma-control.buildinfo.txt",
+    "size_bytes": 1933,
+    "sha256": "c2639af7d221e6aaaa568a5a2909cd07dcffaa7854cbe48c2c235d07ef252267"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261023T163759813Z-4b7523bf/suma-runner",
+    "size_bytes": 8915965,
+    "sha256": "54373a849932bba8dfccdc94efc5620c7913535fba603120604455541bd9d38f"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261023T163759813Z-4b7523bf/suma-runner.buildinfo.txt",
+    "size_bytes": 343,
+    "sha256": "eb3e688cb4508550a328fd998ca44076e77ba5518f535120f5a817758b610a02"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261023T163759813Z-4b7523bf/suma.buildinfo.txt",
+    "size_bytes": 1889,
+    "sha256": "8be10d6bd91ae40cb73f55495ec1db4dd54949e4622f345ede77f769ff260c04"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013101080Z-8d76ad7a/manifest.json",
+    "size_bytes": 16466,
+    "sha256": "d4dc3c9235ce6127f9589677cd911a70f2e17adb34630843929fccd3fa4d00fb"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013101080Z-8d76ad7a/suma",
+    "size_bytes": 9605869,
+    "sha256": "7a13c2946064fd88414192d19ccf0e8ed5958a0b29ddabe06080a395c0b283f7"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013101080Z-8d76ad7a/suma-control",
+    "size_bytes": 22887622,
+    "sha256": "c64fd1b3be56c39b06fb7633c0374d6129138755eed8907e0e6c778ff52d9479"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013101080Z-8d76ad7a/suma-control.buildinfo.txt",
+    "size_bytes": 1933,
+    "sha256": "2b87bc618e7b4c1d5f251e2e720485614ad8aac7b6d9415662f6d8f4d395058d"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013101080Z-8d76ad7a/suma-deployer",
+    "size_bytes": 15009821,
+    "sha256": "1f42dfa24cbad317d2613d762580f2a3fcd9cc815b479526a4fa8cc6c042bb9c"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013101080Z-8d76ad7a/suma-deployer.buildinfo.txt",
+    "size_bytes": 1143,
+    "sha256": "39482ffcdf94a6ea494d155f43d303dc5bcfae05338295b02085e8389b9ada40"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013101080Z-8d76ad7a/suma-runner",
+    "size_bytes": 9088434,
+    "sha256": "5fe568d9f37c8b6df0de6654f7314d292a7a6cfefbba9655f9189c5e3a624eb8"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013101080Z-8d76ad7a/suma-runner.buildinfo.txt",
+    "size_bytes": 343,
+    "sha256": "01ed102e495614d6fbc5a1f0e4e9a46b0db3a06ad07efbe382c5709a5a8e69cc"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013101080Z-8d76ad7a/suma.buildinfo.txt",
+    "size_bytes": 1889,
+    "sha256": "0b8b22e6e564fa0caced79353c9e067052da46822a3a85811549657b4bbfe892"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013901937Z-e63107ea/manifest.json",
+    "size_bytes": 16466,
+    "sha256": "1d0c195930ecd8097e696eea25515505f1a1522b7caba4a3fe423372fdf3bb9c"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013901937Z-e63107ea/suma",
+    "size_bytes": 9605869,
+    "sha256": "7a13c2946064fd88414192d19ccf0e8ed5958a0b29ddabe06080a395c0b283f7"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013901937Z-e63107ea/suma-control",
+    "size_bytes": 22887630,
+    "sha256": "8c31d5c2d03436788201305a09f134234edf5fccbf453b0d65457943d4a3ee57"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013901937Z-e63107ea/suma-control.buildinfo.txt",
+    "size_bytes": 1933,
+    "sha256": "e8322d45fbe88621a954c9c73800b897769746ab56d83a1f83331bd1e7da353c"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013901937Z-e63107ea/suma-deployer",
+    "size_bytes": 15009821,
+    "sha256": "1f42dfa24cbad317d2613d762580f2a3fcd9cc815b479526a4fa8cc6c042bb9c"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013901937Z-e63107ea/suma-deployer.buildinfo.txt",
+    "size_bytes": 1143,
+    "sha256": "87ca427af048aa2054c9d5a8a98ce3a999e6f8d38e70e4118d774ed2db257363"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013901937Z-e63107ea/suma-runner",
+    "size_bytes": 9088434,
+    "sha256": "5fe568d9f37c8b6df0de6654f7314d292a7a6cfefbba9655f9189c5e3a624eb8"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013901937Z-e63107ea/suma-runner.buildinfo.txt",
+    "size_bytes": 343,
+    "sha256": "abf6dfbc811f588e91fe67209a9689ab2aa4c6b536cf41ac56cb2d4c58df2f3b"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T013901937Z-e63107ea/suma.buildinfo.txt",
+    "size_bytes": 1889,
+    "sha256": "95efd172de81101effe1dbcaaf4089725807a175d4741698e9c2fb3dd53800b0"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T014255637Z-2381ecce/manifest.json",
+    "size_bytes": 16466,
+    "sha256": "21cfbc44dc6acd4a1744b4d6c9b798853397ca09a48800d15a5bab8b4e78fb3a"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T014255637Z-2381ecce/suma",
+    "size_bytes": 9605869,
+    "sha256": "7a13c2946064fd88414192d19ccf0e8ed5958a0b29ddabe06080a395c0b283f7"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T014255637Z-2381ecce/suma-control",
+    "size_bytes": 22887630,
+    "sha256": "8c31d5c2d03436788201305a09f134234edf5fccbf453b0d65457943d4a3ee57"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T014255637Z-2381ecce/suma-control.buildinfo.txt",
+    "size_bytes": 1933,
+    "sha256": "45a58649337b3f34e89e3ea913edbda03f6cd227971370849f95c48b9c1aedc6"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T014255637Z-2381ecce/suma-deployer",
+    "size_bytes": 15009821,
+    "sha256": "1f42dfa24cbad317d2613d762580f2a3fcd9cc815b479526a4fa8cc6c042bb9c"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T014255637Z-2381ecce/suma-deployer.buildinfo.txt",
+    "size_bytes": 1143,
+    "sha256": "ebdff9c3934e3d3363890aedfb929a73fa151415aa0c68f18e42ecf234585f5b"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T014255637Z-2381ecce/suma-runner",
+    "size_bytes": 9088434,
+    "sha256": "5fe568d9f37c8b6df0de6654f7314d292a7a6cfefbba9655f9189c5e3a624eb8"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T014255637Z-2381ecce/suma-runner.buildinfo.txt",
+    "size_bytes": 343,
+    "sha256": "02f31447adb2ee7d4e364bb0584a80a0705c484fb3f3256ce863ea92b32c3527"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T014255637Z-2381ecce/suma.buildinfo.txt",
+    "size_bytes": 1889,
+    "sha256": "f847db659b51a2348756561b25553641e301ac21ad4ee30f8aef0e82370777e1"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T021451853Z-f8fe5e7d/manifest.json",
+    "size_bytes": 16466,
+    "sha256": "6de57c6f2800f6c6a54216a89b3256144c1dd013e6e7baea75891417b907976e"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T021451853Z-f8fe5e7d/suma",
+    "size_bytes": 9605869,
+    "sha256": "7a13c2946064fd88414192d19ccf0e8ed5958a0b29ddabe06080a395c0b283f7"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T021451853Z-f8fe5e7d/suma-control",
+    "size_bytes": 23530942,
+    "sha256": "be4729881e017584a6b2d9228381f8e102505ca02b356d8a40ca72284b7377aa"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T021451853Z-f8fe5e7d/suma-control.buildinfo.txt",
+    "size_bytes": 1933,
+    "sha256": "7326a5574d18ddda5c7a53a515eae7f0d68bc3db8729f75ab81fe833840029f9"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T021451853Z-f8fe5e7d/suma-deployer",
+    "size_bytes": 15009821,
+    "sha256": "1f42dfa24cbad317d2613d762580f2a3fcd9cc815b479526a4fa8cc6c042bb9c"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T021451853Z-f8fe5e7d/suma-deployer.buildinfo.txt",
+    "size_bytes": 1143,
+    "sha256": "e243b18f0641dd95124651c3da589643f04f212f7379971f06a777a798e9cb92"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T021451853Z-f8fe5e7d/suma-runner",
+    "size_bytes": 9088434,
+    "sha256": "5fe568d9f37c8b6df0de6654f7314d292a7a6cfefbba9655f9189c5e3a624eb8"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T021451853Z-f8fe5e7d/suma-runner.buildinfo.txt",
+    "size_bytes": 343,
+    "sha256": "d8fa9eb8dfdf83b09eb78702801a8fe8b676dcda2ba718e2a351ce781e78fb0a"
+  },
+  {
+    "path": "dist/runtime/linux-arm64/20261024T021451853Z-f8fe5e7d/suma.buildinfo.txt",
+    "size_bytes": 1889,
+    "sha256": "f0bd622cc035176d02f1912b2a0e0815a362225b45ce27df87d204d164cab3ad"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163404032Z-d9c423bf/manifest.json",
+    "size_bytes": 14364,
+    "sha256": "aa68525b54cd37f260da48fbaed4ec8f026c0ab397ec06ef515b9f4a0e42b914"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163404032Z-d9c423bf/suma-control.exe",
+    "size_bytes": 23752192,
+    "sha256": "3f95fd59d77b96ff3f177f385d494da31bb3bb8c1617a1ea14a8e831168e75a2"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163404032Z-d9c423bf/suma-control.exe.buildinfo.txt",
+    "size_bytes": 2035,
+    "sha256": "7a355a5cc4697ca5d495754788127236831ecc588bda3447886192f8cfbadebe"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163404032Z-d9c423bf/suma-runner.exe",
+    "size_bytes": 9632768,
+    "sha256": "b2ec940d0e45c9b24664032246085e57869aebc2ff291bb75cbca584e4123643"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163404032Z-d9c423bf/suma-runner.exe.buildinfo.txt",
+    "size_bytes": 349,
+    "sha256": "54e650afc7d4d0f41377ab50db2cc7d35aba9fbc66041782b57ce47db06510fb"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163404032Z-d9c423bf/suma.exe",
+    "size_bytes": 10377728,
+    "sha256": "6cbf0ea044a156394dcef5115471e276b48b4439e16f60a636d10fee846b459d"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163404032Z-d9c423bf/suma.exe.buildinfo.txt",
+    "size_bytes": 2186,
+    "sha256": "0d400eacde29a4765b44fce8a04318e03cf2f0ebb9f0c7e58c4551958c230743"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163759813Z-4b7523bf/manifest.json",
+    "size_bytes": 14364,
+    "sha256": "11a0a035b1c27c7f5994ac37f2dbc4e27d7db4bed09d279cd1fd41422eaaa323"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163759813Z-4b7523bf/suma-control.exe",
+    "size_bytes": 23752192,
+    "sha256": "3f95fd59d77b96ff3f177f385d494da31bb3bb8c1617a1ea14a8e831168e75a2"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163759813Z-4b7523bf/suma-control.exe.buildinfo.txt",
+    "size_bytes": 2035,
+    "sha256": "f4365de8f4577d68f38ef197142cef3cd62229d540c201abd0d51e32cfa73369"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163759813Z-4b7523bf/suma-runner.exe",
+    "size_bytes": 9632768,
+    "sha256": "b2ec940d0e45c9b24664032246085e57869aebc2ff291bb75cbca584e4123643"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163759813Z-4b7523bf/suma-runner.exe.buildinfo.txt",
+    "size_bytes": 349,
+    "sha256": "3064a540c01bf5ca10a4e970ef461b88efae7975adb3c4176fd5429b9ee46875"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163759813Z-4b7523bf/suma.exe",
+    "size_bytes": 10377728,
+    "sha256": "6cbf0ea044a156394dcef5115471e276b48b4439e16f60a636d10fee846b459d"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163759813Z-4b7523bf/suma.exe.buildinfo.txt",
+    "size_bytes": 2186,
+    "sha256": "a31e420941a303108f165ac5d37f65c51b4e4768c336ebb1e5af9870a9c0263f"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163937857Z-a1eb64aa/manifest.json",
+    "size_bytes": 14541,
+    "sha256": "6ebc0763d7febb92ce85388ccea02d5ed99489250eddb290b76358c048f2f66c"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163937857Z-a1eb64aa/suma-control.exe",
+    "size_bytes": 23752192,
+    "sha256": "3f95fd59d77b96ff3f177f385d494da31bb3bb8c1617a1ea14a8e831168e75a2"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163937857Z-a1eb64aa/suma-control.exe.buildinfo.txt",
+    "size_bytes": 2091,
+    "sha256": "5c8346b04c19bd3c55d4a1364f61bae16176a311b6fd7720abf415f01eea153a"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163937857Z-a1eb64aa/suma-runner.exe",
+    "size_bytes": 9632768,
+    "sha256": "b2ec940d0e45c9b24664032246085e57869aebc2ff291bb75cbca584e4123643"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163937857Z-a1eb64aa/suma-runner.exe.buildinfo.txt",
+    "size_bytes": 405,
+    "sha256": "5a03c61659532ee0809f8d7563ed57a55d678a15780815cb1243de8783bc880a"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163937857Z-a1eb64aa/suma.exe",
+    "size_bytes": 10377728,
+    "sha256": "6cbf0ea044a156394dcef5115471e276b48b4439e16f60a636d10fee846b459d"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261023T163937857Z-a1eb64aa/suma.exe.buildinfo.txt",
+    "size_bytes": 2242,
+    "sha256": "caa6ca353e6c8f9685cf114144537f414241e5628a5ded1db7ec206cd8d999ab"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013101080Z-8d76ad7a/manifest.json",
+    "size_bytes": 18081,
+    "sha256": "82e16dadc3778228dfdfb834d388250cb39b6b7542dd1d68ac2bd6f07d2c2d22"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013101080Z-8d76ad7a/suma-control.exe",
+    "size_bytes": 24480256,
+    "sha256": "cd10f1bc2cb8fb8632ff53dc8a7207216acd80846744b5c1a8ef522604c32d01"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013101080Z-8d76ad7a/suma-control.exe.buildinfo.txt",
+    "size_bytes": 2035,
+    "sha256": "b93bb54fa02409cf371cf1ce3ff66d971d3690e9c14db474e3c4fed6586107bc"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013101080Z-8d76ad7a/suma-deployer.exe",
+    "size_bytes": 16125952,
+    "sha256": "f8f6a32145d7679bbd6d04f7496c806e7e5c4f3afc8d84ee9ce8ce5098e8a433"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013101080Z-8d76ad7a/suma-deployer.exe.buildinfo.txt",
+    "size_bytes": 1245,
+    "sha256": "761cf980827210509e9e7026b5e5ba1ea25f93199f5a9fd9c2b82313f40b5d1e"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013101080Z-8d76ad7a/suma-runner.exe",
+    "size_bytes": 9798144,
+    "sha256": "9cfd758211fee9d03514d63044ee4d9e9faaf70758d76b1586a984425110b288"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013101080Z-8d76ad7a/suma-runner.exe.buildinfo.txt",
+    "size_bytes": 349,
+    "sha256": "8c8e1a74e868f86b3b2af34105278bfba596d7760ac86a9d7b6a4858b1e58caa"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013101080Z-8d76ad7a/suma.exe",
+    "size_bytes": 10377728,
+    "sha256": "6cbf0ea044a156394dcef5115471e276b48b4439e16f60a636d10fee846b459d"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013101080Z-8d76ad7a/suma.exe.buildinfo.txt",
+    "size_bytes": 2186,
+    "sha256": "7b39c855642f45a322115ed206856553771a1325b5a9e4af297e70785043378d"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013901937Z-e63107ea/manifest.json",
+    "size_bytes": 18081,
+    "sha256": "55c91976a18d8659112b86b17fecd5faa941033f8f78333f87cd31c2c2b9654d"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013901937Z-e63107ea/suma-control.exe",
+    "size_bytes": 24480256,
+    "sha256": "bcfbbf2b8ab7e39d8cf8bfd9d0ac3c2a36ab62f71cd76465fbf7737d7806b4f9"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013901937Z-e63107ea/suma-control.exe.buildinfo.txt",
+    "size_bytes": 2035,
+    "sha256": "25dec7a212f3a0fd1fa998d02975b2170fa2c414b6d5ea41ca519b6d47f8b0c0"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013901937Z-e63107ea/suma-deployer.exe",
+    "size_bytes": 16125952,
+    "sha256": "f8f6a32145d7679bbd6d04f7496c806e7e5c4f3afc8d84ee9ce8ce5098e8a433"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013901937Z-e63107ea/suma-deployer.exe.buildinfo.txt",
+    "size_bytes": 1245,
+    "sha256": "4af51b52720e7dbd072cf329e7c6f6a56f5efbc30bd3541bee8a0151abea6c11"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013901937Z-e63107ea/suma-runner.exe",
+    "size_bytes": 9798144,
+    "sha256": "9cfd758211fee9d03514d63044ee4d9e9faaf70758d76b1586a984425110b288"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013901937Z-e63107ea/suma-runner.exe.buildinfo.txt",
+    "size_bytes": 349,
+    "sha256": "28ecccde5f93df8d7b2e7502d9b9f87e441b3efd1c2dc7bb8021ab75d8754f17"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013901937Z-e63107ea/suma.exe",
+    "size_bytes": 10377728,
+    "sha256": "6cbf0ea044a156394dcef5115471e276b48b4439e16f60a636d10fee846b459d"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T013901937Z-e63107ea/suma.exe.buildinfo.txt",
+    "size_bytes": 2186,
+    "sha256": "63d94280ebd052bfec7f60d1f1b047076b582dc60b83b753aa41f0c4ccf85a9c"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T014255637Z-2381ecce/manifest.json",
+    "size_bytes": 18081,
+    "sha256": "362e88a30ac681f34250960cf7567c8997f259e50dd72cfbb2c9d679b5333d06"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T014255637Z-2381ecce/suma-control.exe",
+    "size_bytes": 24480256,
+    "sha256": "bcfbbf2b8ab7e39d8cf8bfd9d0ac3c2a36ab62f71cd76465fbf7737d7806b4f9"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T014255637Z-2381ecce/suma-control.exe.buildinfo.txt",
+    "size_bytes": 2035,
+    "sha256": "0b06197bde0a0ea3d9dfe3e943cdb6cc235ad8c24f482e3ef6e8436b1bc1b6d1"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T014255637Z-2381ecce/suma-deployer.exe",
+    "size_bytes": 16125952,
+    "sha256": "f8f6a32145d7679bbd6d04f7496c806e7e5c4f3afc8d84ee9ce8ce5098e8a433"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T014255637Z-2381ecce/suma-deployer.exe.buildinfo.txt",
+    "size_bytes": 1245,
+    "sha256": "799f295c8f199a4a6958115f030fb29cb749b6a55900093f0a0e20c8a069a94e"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T014255637Z-2381ecce/suma-runner.exe",
+    "size_bytes": 9798144,
+    "sha256": "9cfd758211fee9d03514d63044ee4d9e9faaf70758d76b1586a984425110b288"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T014255637Z-2381ecce/suma-runner.exe.buildinfo.txt",
+    "size_bytes": 349,
+    "sha256": "9c85ba7da9ba84e264766a15a407e29a23daf66c1dd8bdc685cbca8dc537b7ea"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T014255637Z-2381ecce/suma.exe",
+    "size_bytes": 10377728,
+    "sha256": "6cbf0ea044a156394dcef5115471e276b48b4439e16f60a636d10fee846b459d"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T014255637Z-2381ecce/suma.exe.buildinfo.txt",
+    "size_bytes": 2186,
+    "sha256": "874e5b1d82d44a12f7bbf6aabde15ab2415c52760949f34e77990f20c31787f7"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T021451853Z-f8fe5e7d/manifest.json",
+    "size_bytes": 18081,
+    "sha256": "20c1cb9ba895772e4363ebcf5e6ebcd29607012303f3d3e069d12404d10b14ee"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T021451853Z-f8fe5e7d/suma-control.exe",
+    "size_bytes": 25125888,
+    "sha256": "5e3ad2bea83ac90d75e381da335e39a973cabb8ac61bcd7080bf47d2597ed732"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T021451853Z-f8fe5e7d/suma-control.exe.buildinfo.txt",
+    "size_bytes": 2035,
+    "sha256": "fdd437a8eefa6a7fd7f0fafe0b733c594c75d9b0ea81730d84b11d073bd56a4e"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T021451853Z-f8fe5e7d/suma-deployer.exe",
+    "size_bytes": 16125952,
+    "sha256": "f8f6a32145d7679bbd6d04f7496c806e7e5c4f3afc8d84ee9ce8ce5098e8a433"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T021451853Z-f8fe5e7d/suma-deployer.exe.buildinfo.txt",
+    "size_bytes": 1245,
+    "sha256": "304009b54c07e07f46093ad823fc2e9d5b5b5a1b3974852f30fb692bc98071f9"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T021451853Z-f8fe5e7d/suma-runner.exe",
+    "size_bytes": 9798144,
+    "sha256": "9cfd758211fee9d03514d63044ee4d9e9faaf70758d76b1586a984425110b288"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T021451853Z-f8fe5e7d/suma-runner.exe.buildinfo.txt",
+    "size_bytes": 349,
+    "sha256": "2c8ed62efe00b8034562057abfd175edf9cadb33cc580b378f695d695d0d8307"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T021451853Z-f8fe5e7d/suma.exe",
+    "size_bytes": 10377728,
+    "sha256": "6cbf0ea044a156394dcef5115471e276b48b4439e16f60a636d10fee846b459d"
+  },
+  {
+    "path": "dist/runtime/windows-amd64/20261024T021451853Z-f8fe5e7d/suma.exe.buildinfo.txt",
+    "size_bytes": 2186,
+    "sha256": "dd88745c7ff5d026aeff63fe971b0fad33a57de6e126a214b89374afed6d7ac3"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261023T163404032Z-d9c423bf/manifest.json",
+    "size_bytes": 14369,
+    "sha256": "f1196d3767262c25a876e6f9f4b2b0abfb4ca4cd8c80ff43ff5b9d887da88088"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261023T163404032Z-d9c423bf/suma-control.exe",
+    "size_bytes": 22511616,
+    "sha256": "87bdcfa9e36b79a2817d232d9a030cfdcab78b51176eaaf69502ba5a7db2f516"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261023T163404032Z-d9c423bf/suma-control.exe.buildinfo.txt",
+    "size_bytes": 2037,
+    "sha256": "e3f213435143eaf200848b41fe7542f88550903ca8a311fa9616cd2aaa7a71a5"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261023T163404032Z-d9c423bf/suma-runner.exe",
+    "size_bytes": 8959488,
+    "sha256": "42127af4dfb69d01686d29d64a1805745d1ee48035b3a386c07556c0073368d5"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261023T163404032Z-d9c423bf/suma-runner.exe.buildinfo.txt",
+    "size_bytes": 351,
+    "sha256": "dd0a0d9f0299e3a382f3185feef365f9410e954edd7edfa7a6da063f45464b9f"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261023T163404032Z-d9c423bf/suma.exe",
+    "size_bytes": 9717248,
+    "sha256": "693cbb98fcfffaa3127d6e940e3045828c32f724d6e4942a4504ebee13f226aa"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261023T163404032Z-d9c423bf/suma.exe.buildinfo.txt",
+    "size_bytes": 2188,
+    "sha256": "f49599bd56f23da0e89438d85a6c12abd78e2c5942a0389fdd0a3abc9dc60802"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261023T163759813Z-4b7523bf/manifest.json",
+    "size_bytes": 14369,
+    "sha256": "4dac5b0d9772b2875cd01be07a96fe96832c6db38dc78073f28a1dd79c12f341"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261023T163759813Z-4b7523bf/suma-control.exe",
+    "size_bytes": 22511616,
+    "sha256": "87bdcfa9e36b79a2817d232d9a030cfdcab78b51176eaaf69502ba5a7db2f516"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261023T163759813Z-4b7523bf/suma-control.exe.buildinfo.txt",
+    "size_bytes": 2037,
+    "sha256": "b25f48b6372030fcf06bb99a50852176780d599883d5a50322ab6405cd8364c8"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261023T163759813Z-4b7523bf/suma-runner.exe",
+    "size_bytes": 8959488,
+    "sha256": "42127af4dfb69d01686d29d64a1805745d1ee48035b3a386c07556c0073368d5"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261023T163759813Z-4b7523bf/suma-runner.exe.buildinfo.txt",
+    "size_bytes": 351,
+    "sha256": "c30e2e9ad52ce08391e80e4b5b549b95a2a8277676b81a7234be18da11b217f7"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261023T163759813Z-4b7523bf/suma.exe",
+    "size_bytes": 9717248,
+    "sha256": "693cbb98fcfffaa3127d6e940e3045828c32f724d6e4942a4504ebee13f226aa"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261023T163759813Z-4b7523bf/suma.exe.buildinfo.txt",
+    "size_bytes": 2188,
+    "sha256": "15e4521da11469261abc7392585ffa0c56401ad4ab937115d50d25855d6fbe53"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013101080Z-8d76ad7a/manifest.json",
+    "size_bytes": 18088,
+    "sha256": "aee79d54ce5e65289405719dc438430482dce11dd827a1ab11f125f3d3b55ace"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013101080Z-8d76ad7a/suma-control.exe",
+    "size_bytes": 23158272,
+    "sha256": "8e8f3a0951b64bd11a7e6318bad3df416a195c15847c18dbe49203cd2cf7d8f2"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013101080Z-8d76ad7a/suma-control.exe.buildinfo.txt",
+    "size_bytes": 2037,
+    "sha256": "513a62ab4f04e4ae132ea8ae69a66f6f733ccf018e6bb8bce875ec0df9c74c6e"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013101080Z-8d76ad7a/suma-deployer.exe",
+    "size_bytes": 15244800,
+    "sha256": "bf9ca2838b1138359dafe408e6a7999bca70542f4b44dc920bb60a2978827b1e"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013101080Z-8d76ad7a/suma-deployer.exe.buildinfo.txt",
+    "size_bytes": 1247,
+    "sha256": "7bc085fff1aca0a38d366e55124f650b7742623c27da3a1c58cad48e65035c57"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013101080Z-8d76ad7a/suma-runner.exe",
+    "size_bytes": 9108480,
+    "sha256": "c15a0aa255258b2d141507f79ea6bc8025883137f421ba2966f201863e2cbb0b"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013101080Z-8d76ad7a/suma-runner.exe.buildinfo.txt",
+    "size_bytes": 351,
+    "sha256": "82e4d3b927c356a95c82811cf60523c6603b759aa6f9a269d359f95a2b2df001"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013101080Z-8d76ad7a/suma.exe",
+    "size_bytes": 9717248,
+    "sha256": "693cbb98fcfffaa3127d6e940e3045828c32f724d6e4942a4504ebee13f226aa"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013101080Z-8d76ad7a/suma.exe.buildinfo.txt",
+    "size_bytes": 2188,
+    "sha256": "4fb6c147836bde8743626e2e1693f49f95364df4288418a78be5d1769b69e4cc"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013901937Z-e63107ea/manifest.json",
+    "size_bytes": 18088,
+    "sha256": "b7126d8408b7143f7f87dfc8f48726cc740e3bc22ef3e415a0a7190a5e354b8c"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013901937Z-e63107ea/suma-control.exe",
+    "size_bytes": 23158272,
+    "sha256": "ba0b633ad123cc3036c1fdce7db68c0fe49143b279946d9a88002412748f9d10"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013901937Z-e63107ea/suma-control.exe.buildinfo.txt",
+    "size_bytes": 2037,
+    "sha256": "365a06be8b83f480b9db4bad6ff2e10bf9849431af899122980d0e3e57c48a88"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013901937Z-e63107ea/suma-deployer.exe",
+    "size_bytes": 15244800,
+    "sha256": "bf9ca2838b1138359dafe408e6a7999bca70542f4b44dc920bb60a2978827b1e"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013901937Z-e63107ea/suma-deployer.exe.buildinfo.txt",
+    "size_bytes": 1247,
+    "sha256": "e7714a09191632e63f9c39c749fd17e43971d672f2d139b806c1eac955e9400b"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013901937Z-e63107ea/suma-runner.exe",
+    "size_bytes": 9108480,
+    "sha256": "c15a0aa255258b2d141507f79ea6bc8025883137f421ba2966f201863e2cbb0b"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013901937Z-e63107ea/suma-runner.exe.buildinfo.txt",
+    "size_bytes": 351,
+    "sha256": "1f2196cd8d43890bbf961af380a6c4eda1ddfb099a31315add69dbb94dd37ea0"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013901937Z-e63107ea/suma.exe",
+    "size_bytes": 9717248,
+    "sha256": "693cbb98fcfffaa3127d6e940e3045828c32f724d6e4942a4504ebee13f226aa"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T013901937Z-e63107ea/suma.exe.buildinfo.txt",
+    "size_bytes": 2188,
+    "sha256": "d2dee1a991d6e22dfb2edf27218250b727d577aec70f910d092413274ac4fd7f"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T014255637Z-2381ecce/manifest.json",
+    "size_bytes": 18088,
+    "sha256": "3f36c5b823bf515e6a2c3185c62d7a2daf1b77a6cf0c0eb4c1e3deb1742d9669"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T014255637Z-2381ecce/suma-control.exe",
+    "size_bytes": 23158272,
+    "sha256": "ba0b633ad123cc3036c1fdce7db68c0fe49143b279946d9a88002412748f9d10"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T014255637Z-2381ecce/suma-control.exe.buildinfo.txt",
+    "size_bytes": 2037,
+    "sha256": "d3485e13486762c4ee571ab1f04956d0f0a38b804fb592fdbbba9b320ee2ebb9"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T014255637Z-2381ecce/suma-deployer.exe",
+    "size_bytes": 15244800,
+    "sha256": "bf9ca2838b1138359dafe408e6a7999bca70542f4b44dc920bb60a2978827b1e"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T014255637Z-2381ecce/suma-deployer.exe.buildinfo.txt",
+    "size_bytes": 1247,
+    "sha256": "30e8fdadd6ead74cd119fe4f52fa695927cc4861817b0c7ac7e8b9fa4a237688"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T014255637Z-2381ecce/suma-runner.exe",
+    "size_bytes": 9108480,
+    "sha256": "c15a0aa255258b2d141507f79ea6bc8025883137f421ba2966f201863e2cbb0b"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T014255637Z-2381ecce/suma-runner.exe.buildinfo.txt",
+    "size_bytes": 351,
+    "sha256": "e55e01e182f53e5d3adbd12622d6aefc775c0fb1d2ae79a6f23fd77b1f76a566"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T014255637Z-2381ecce/suma.exe",
+    "size_bytes": 9717248,
+    "sha256": "693cbb98fcfffaa3127d6e940e3045828c32f724d6e4942a4504ebee13f226aa"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T014255637Z-2381ecce/suma.exe.buildinfo.txt",
+    "size_bytes": 2188,
+    "sha256": "5b2b8e395a13de224c57b58d493a7b277076ec91f9cd03dcb3900bbdd0041634"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T021451853Z-f8fe5e7d/manifest.json",
+    "size_bytes": 18088,
+    "sha256": "ff83c75c18c26c41ff9100afb1e86d25df3b0efc546674300fd38b9bf944e7d6"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T021451853Z-f8fe5e7d/suma-control.exe",
+    "size_bytes": 23755776,
+    "sha256": "e162e8f7cc447107bc9e48732d8fcb05edd2c1974d5e0713da634995dd5bfae2"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T021451853Z-f8fe5e7d/suma-control.exe.buildinfo.txt",
+    "size_bytes": 2037,
+    "sha256": "cc36b2fecbe26b8bc9c24d795f52f103a8541ec7b21f75fb9188d6772855a005"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T021451853Z-f8fe5e7d/suma-deployer.exe",
+    "size_bytes": 15244800,
+    "sha256": "bf9ca2838b1138359dafe408e6a7999bca70542f4b44dc920bb60a2978827b1e"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T021451853Z-f8fe5e7d/suma-deployer.exe.buildinfo.txt",
+    "size_bytes": 1247,
+    "sha256": "e2faf772ab9e889fe6c2f310ef566fa079c2035e6dfacd9344c22c9feec19f21"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T021451853Z-f8fe5e7d/suma-runner.exe",
+    "size_bytes": 9108480,
+    "sha256": "c15a0aa255258b2d141507f79ea6bc8025883137f421ba2966f201863e2cbb0b"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T021451853Z-f8fe5e7d/suma-runner.exe.buildinfo.txt",
+    "size_bytes": 351,
+    "sha256": "e826be04a9291b2c1a8027c7d5e5a13ae91a63ebc245e5778770bc8c1b99c5e7"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T021451853Z-f8fe5e7d/suma.exe",
+    "size_bytes": 9717248,
+    "sha256": "693cbb98fcfffaa3127d6e940e3045828c32f724d6e4942a4504ebee13f226aa"
+  },
+  {
+    "path": "dist/runtime/windows-arm64/20261024T021451853Z-f8fe5e7d/suma.exe.buildinfo.txt",
+    "size_bytes": 2188,
+    "sha256": "7dc9d71832b52677799bfbc7a0467bcb1103d4e7cadffdde37540b7a6e1a9531"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/build-process.json",
+    "size_bytes": 174,
+    "sha256": "5202e0fb2287360117b90c46fc0d18e7fd20559992d89d767f617f6ee2cf09e1"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/build-process.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/build-process.stdout.txt",
+    "size_bytes": 955,
+    "sha256": "ff283ab09f528fb6c0c4414b6f539a459da4ed540abef66b31aba9d3c36c0753"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/cut-difference.json",
+    "size_bytes": 2386,
+    "sha256": "0743d27a8cd31262f929e2afc8cd37475db87249087ecd90c8ef508911c19dc1"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/environment-verification.json",
+    "size_bytes": 448,
+    "sha256": "6b00c79770870e750a959c697a5b4f5ef9cf653d328ca648da5691dfbbf15287"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/final-verification.json",
+    "size_bytes": 1015,
+    "sha256": "e17c4c2d09c9a033f2c344012a03115ac233e035e906a311a3e276c45b098c2b"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/go-tool-output.json",
+    "size_bytes": 77408,
+    "sha256": "4534727716202d9cc41443fce818ce7295b096ef460cb8eb8eebbe56cf6289c0"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/historical-files.json",
+    "size_bytes": 66941,
+    "sha256": "29a53c856719686eef22fa03f0a4114f19ce4a8c1ca6638da1705eaeadac3576"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/linked-module-comparison.json",
+    "size_bytes": 265,
+    "sha256": "8030633abbf85550e160343bc8be673aa897ec45e949de8936fb6a63bb33f9d0"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/linked-modules.json",
+    "size_bytes": 23406,
+    "sha256": "fad3767e17e31cc27eb586d1f9ed293a57acd43cece37677147b7b0af29f554d"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/001.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/001.stdout.txt",
+    "size_bytes": 77,
+    "sha256": "ddfeac7f349e5c3731d158ea0c6f6f95dd2115ef4d560c982f532bd3258c1410"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/002.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/002.stdout.txt",
+    "size_bytes": 21,
+    "sha256": "b4537ed75f533f993f371954de47e42a793b8e5b0587577de7e27fb3e50696bd"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/003.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/003.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/004.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/004.stdout.txt",
+    "size_bytes": 2035,
+    "sha256": "fdd437a8eefa6a7fd7f0fafe0b733c594c75d9b0ea81730d84b11d073bd56a4e"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/005.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/005.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/006.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/006.stdout.txt",
+    "size_bytes": 349,
+    "sha256": "2c8ed62efe00b8034562057abfd175edf9cadb33cc580b378f695d695d0d8307"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/007.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/007.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/008.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/008.stdout.txt",
+    "size_bytes": 1245,
+    "sha256": "304009b54c07e07f46093ad823fc2e9d5b5b5a1b3974852f30fb692bc98071f9"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/009.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/009.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/010.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/010.stdout.txt",
+    "size_bytes": 2186,
+    "sha256": "dd88745c7ff5d026aeff63fe971b0fad33a57de6e126a214b89374afed6d7ac3"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/011.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/011.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/012.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/012.stdout.txt",
+    "size_bytes": 2037,
+    "sha256": "cc36b2fecbe26b8bc9c24d795f52f103a8541ec7b21f75fb9188d6772855a005"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/013.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/013.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/014.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/014.stdout.txt",
+    "size_bytes": 351,
+    "sha256": "e826be04a9291b2c1a8027c7d5e5a13ae91a63ebc245e5778770bc8c1b99c5e7"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/015.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/015.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/016.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/016.stdout.txt",
+    "size_bytes": 1247,
+    "sha256": "e2faf772ab9e889fe6c2f310ef566fa079c2035e6dfacd9344c22c9feec19f21"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/017.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/017.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/018.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/018.stdout.txt",
+    "size_bytes": 2188,
+    "sha256": "7dc9d71832b52677799bfbc7a0467bcb1103d4e7cadffdde37540b7a6e1a9531"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/019.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/019.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/020.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/020.stdout.txt",
+    "size_bytes": 1931,
+    "sha256": "c93d1119123774cabe21fc2af8fddbbe82b2655072e06b152914c55e6ab14449"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/021.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/021.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/022.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/022.stdout.txt",
+    "size_bytes": 341,
+    "sha256": "0c1c0c871725a0f9d3316ccf5d292054d743ef945197441403a38b6732562114"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/023.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/023.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/024.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/024.stdout.txt",
+    "size_bytes": 1141,
+    "sha256": "622a4693fcb46f2c752f4d39f86f651ab6f2f6148581a923a1ea141e7902cdd1"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/025.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/025.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/026.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/026.stdout.txt",
+    "size_bytes": 1887,
+    "sha256": "3404e3d19269c94c7bc3486ce69adf252d7e77f73ef7bded269773870b87b7e9"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/027.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/027.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/028.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/028.stdout.txt",
+    "size_bytes": 1933,
+    "sha256": "7326a5574d18ddda5c7a53a515eae7f0d68bc3db8729f75ab81fe833840029f9"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/029.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/029.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/030.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/030.stdout.txt",
+    "size_bytes": 343,
+    "sha256": "d8fa9eb8dfdf83b09eb78702801a8fe8b676dcda2ba718e2a351ce781e78fb0a"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/031.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/031.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/032.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/032.stdout.txt",
+    "size_bytes": 1143,
+    "sha256": "e243b18f0641dd95124651c3da589643f04f212f7379971f06a777a798e9cb92"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/033.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/033.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/034.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/034.stdout.txt",
+    "size_bytes": 1889,
+    "sha256": "f0bd622cc035176d02f1912b2a0e0815a362225b45ce27df87d204d164cab3ad"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/035.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/035.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/036.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/036.stdout.txt",
+    "size_bytes": 2112,
+    "sha256": "d7e2f43763792a7e39fe9b4f81d0ab154ac29d14bff4a0d66769d57a8cf5545d"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/037.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/037.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/038.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/038.stdout.txt",
+    "size_bytes": 343,
+    "sha256": "d0d06dc1e18fb21a080326cfb52bc07285365248343ae2b60dbfd99cc367eec2"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/039.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/039.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/040.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/040.stdout.txt",
+    "size_bytes": 1322,
+    "sha256": "68f655fe86982f7200d5351fc9bf81780923bf8b2e32088493ce9597cdfd8a9e"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/041.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/041.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/042.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/042.stdout.txt",
+    "size_bytes": 1889,
+    "sha256": "cc200248cc36977f9439c183164340977d4fd4dd27a91d353d973f3f71e45860"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/043.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/043.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/044.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/044.stdout.txt",
+    "size_bytes": 2114,
+    "sha256": "64d2d2441dcadcc06894b19243c13ff29f33a42edea98568a5aed806d0c47ccf"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/045.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/045.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/046.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/046.stdout.txt",
+    "size_bytes": 345,
+    "sha256": "436a9ca5deb3ed0afbcfd07ef297cb178f8b0b55bce8d5f1146ae37c338feb1a"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/047.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/047.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/048.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/048.stdout.txt",
+    "size_bytes": 1324,
+    "sha256": "c5deeb13b7f0ef68bf66391951361fe0b3c1771d103b71d9273a104fdf2e11ab"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/049.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/049.stdout.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/050.stderr.txt",
+    "size_bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/logs/050.stdout.txt",
+    "size_bytes": 1891,
+    "sha256": "d7cb5ef9ad457ae33d49ecc2536ba5bad46f05283d8ee5da27c7b335be20bbef"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/manifest.json",
+    "size_bytes": 177770,
+    "sha256": "c9244b0665ea1bbc6c71a46ecff0ec03ffddd8c95f3677f9a889ce1132ebc666"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/preparation.json",
+    "size_bytes": 904,
+    "sha256": "57f796bb8ae35cef8aa73792c7d67537471d773c39da720db195101be0749346"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/sha256.json",
+    "size_bytes": 17658,
+    "sha256": "cf54b15a0986e2e85ec3890603a297bc97f221c13d3b332a37075d5eb0158347"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/source-before.json",
+    "size_bytes": 15374,
+    "sha256": "33982912e20f0ea44c6fce00323b7e574a6e2e8e70121bf89d3a0c44cf10310a"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/source-manifest.json",
+    "size_bytes": 15374,
+    "sha256": "33982912e20f0ea44c6fce00323b7e574a6e2e8e70121bf89d3a0c44cf10310a"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/verification.json",
+    "size_bytes": 9880,
+    "sha256": "06181ef74059cf520651df007bac41538df7d01caa78b61865d668dc2948d3b1"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d/verify-runtime.ps1",
+    "size_bytes": 13365,
+    "sha256": "1b8c87f5b3b6b43281183cec1cbe286fceaa614bdda40ecbc7aeaa5a1e916744"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-build-manifest.json",
+    "size_bytes": 138540,
+    "sha256": "8ca1dcb965f5979d39bddb19f332b6ab142db23c40150f621997d0e88796dbe9"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-linked-modules.json",
+    "size_bytes": 21104,
+    "sha256": "73e8ca34731f24be3459118c3cb4117629fea9f2a2eff878caeabba6439f2ab9"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013101080Z-8d76ad7a/go-tool-output.json",
+    "size_bytes": 50777,
+    "sha256": "1b4d678304e95e83858c676ad5c54381aa1ffad202aa909c1b15701c867f7ee3"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013101080Z-8d76ad7a/historical-files.json",
+    "size_bytes": 3690,
+    "sha256": "9bdf5442ad9fdfe30798a081dbaae6afe9861cc73a393a0ecf9b54acbe9d017b"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013101080Z-8d76ad7a/inventory-probe.json",
+    "size_bytes": 277,
+    "sha256": "9871a7804e7a85305fcb6f6fba07ce4f59acb829ed093eb2a5f408903741ac7a"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013101080Z-8d76ad7a/inventory-probe.ps1",
+    "size_bytes": 2335,
+    "sha256": "7bc347f4fac86f26339242667a19a475e9edd925d7c3cf021cd33193d56e0d55"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013101080Z-8d76ad7a/linked-modules.json",
+    "size_bytes": 23406,
+    "sha256": "fad3767e17e31cc27eb586d1f9ed293a57acd43cece37677147b7b0af29f554d"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013101080Z-8d76ad7a/manifest.json",
+    "size_bytes": 176726,
+    "sha256": "691e83cbd114b5a398886f871213b03fd5789df2e350b887a63b672bc3c34320"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013101080Z-8d76ad7a/module-verify.txt",
+    "size_bytes": 21,
+    "sha256": "b4537ed75f533f993f371954de47e42a793b8e5b0587577de7e27fb3e50696bd"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013101080Z-8d76ad7a/regression-probe.json",
+    "size_bytes": 121,
+    "sha256": "62ab8f74285310dcc01398829b50b85dccbf00d8c466fb26699d3eaa35220c4c"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013101080Z-8d76ad7a/sha256.json",
+    "size_bytes": 1699,
+    "sha256": "284f50d151c67ae98243cec49b6dc36521c40329cdfc22d5ee9281ffcc310d73"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013101080Z-8d76ad7a/source-manifest.json",
+    "size_bytes": 14387,
+    "sha256": "9327307dee2eeace134009b96f2ae42fd032b8c985cfe2ff1ab9ae9630a0488f"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013101080Z-8d76ad7a/toolchain-environment.json",
+    "size_bytes": 77,
+    "sha256": "ddfeac7f349e5c3731d158ea0c6f6f95dd2115ef4d560c982f532bd3258c1410"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013101080Z-8d76ad7a/verification.json",
+    "size_bytes": 5376,
+    "sha256": "29383181646a6ba6848cd726b69466891694be4527c0d7a9202e34c3bc424452"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013901937Z-e63107ea/cut-difference.json",
+    "size_bytes": 801,
+    "sha256": "69fa954de59b60237eb8eda90608a92fc420e1d7081f1fd42998a821034b3db2"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013901937Z-e63107ea/go-tool-output.json",
+    "size_bytes": 50777,
+    "sha256": "87fad1406e8a237a1340821a725ceca6409a0170b22b3ae4d10a0955ee679d25"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013901937Z-e63107ea/historical-files.json",
+    "size_bytes": 8449,
+    "sha256": "9095b9c7693be0870673644217913667f2f91b3304d0987c9a8a78d7a6e8a05e"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013901937Z-e63107ea/inventory-probe.json",
+    "size_bytes": 277,
+    "sha256": "9871a7804e7a85305fcb6f6fba07ce4f59acb829ed093eb2a5f408903741ac7a"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013901937Z-e63107ea/inventory-probe.ps1",
+    "size_bytes": 2335,
+    "sha256": "7bc347f4fac86f26339242667a19a475e9edd925d7c3cf021cd33193d56e0d55"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013901937Z-e63107ea/linked-modules.json",
+    "size_bytes": 23406,
+    "sha256": "fad3767e17e31cc27eb586d1f9ed293a57acd43cece37677147b7b0af29f554d"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013901937Z-e63107ea/manifest.json",
+    "size_bytes": 176724,
+    "sha256": "d74c8cd6bdae9bfbd43b18b0a4c4b33984dfe0bcfe4cebd74f7e9120518f6210"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013901937Z-e63107ea/module-verify.txt",
+    "size_bytes": 21,
+    "sha256": "b4537ed75f533f993f371954de47e42a793b8e5b0587577de7e27fb3e50696bd"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013901937Z-e63107ea/regression-probe.json",
+    "size_bytes": 121,
+    "sha256": "62ab8f74285310dcc01398829b50b85dccbf00d8c466fb26699d3eaa35220c4c"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013901937Z-e63107ea/sha256.json",
+    "size_bytes": 1852,
+    "sha256": "4b243b8fd62035a273b6daf3d3ddb8d7be51026db8497b24021728e2eb69f1a9"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013901937Z-e63107ea/source-manifest.json",
+    "size_bytes": 14387,
+    "sha256": "d63289fedfe508768cb2df098cb6393c62176ba3bc2c5f29589d154e3118019f"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013901937Z-e63107ea/toolchain-environment.json",
+    "size_bytes": 77,
+    "sha256": "ddfeac7f349e5c3731d158ea0c6f6f95dd2115ef4d560c982f532bd3258c1410"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T013901937Z-e63107ea/verification.json",
+    "size_bytes": 5376,
+    "sha256": "a8e30f17bb980db8b6bc39fdbc3dbe5fe6f209d0eb227718618ec52a5c1f01fc"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T014255637Z-2381ecce/cut-difference.json",
+    "size_bytes": 864,
+    "sha256": "633105b3833a61cb02090cb64a27d9be6293921804cdbeb1abb5a4f93e29c50e"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T014255637Z-2381ecce/go-tool-output.json",
+    "size_bytes": 50777,
+    "sha256": "e9037a1f9b30ea13df343b5f93782d7144177f8fb8625551a5c4ae766d3df8b3"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T014255637Z-2381ecce/historical-files.json",
+    "size_bytes": 13210,
+    "sha256": "3cb9702b3be1eae8f5b1fc56477f8ba39726d58edc7d1276d21fa53264a63993"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T014255637Z-2381ecce/inventory-probe.json",
+    "size_bytes": 277,
+    "sha256": "9871a7804e7a85305fcb6f6fba07ce4f59acb829ed093eb2a5f408903741ac7a"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T014255637Z-2381ecce/inventory-probe.ps1",
+    "size_bytes": 2335,
+    "sha256": "7bc347f4fac86f26339242667a19a475e9edd925d7c3cf021cd33193d56e0d55"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T014255637Z-2381ecce/linked-modules.json",
+    "size_bytes": 23406,
+    "sha256": "fad3767e17e31cc27eb586d1f9ed293a57acd43cece37677147b7b0af29f554d"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T014255637Z-2381ecce/manifest.json",
+    "size_bytes": 176727,
+    "sha256": "fa3cca1e386cb870142100780df157e2fde3a279b5f89b617e1ac6e4c9217464"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T014255637Z-2381ecce/module-verify.txt",
+    "size_bytes": 21,
+    "sha256": "b4537ed75f533f993f371954de47e42a793b8e5b0587577de7e27fb3e50696bd"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T014255637Z-2381ecce/regression-probe.json",
+    "size_bytes": 121,
+    "sha256": "62ab8f74285310dcc01398829b50b85dccbf00d8c466fb26699d3eaa35220c4c"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T014255637Z-2381ecce/sha256.json",
+    "size_bytes": 1853,
+    "sha256": "f55b32215bce33196154c5396437218f9e96b9d0139bffc57c9bbf54012453b2"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T014255637Z-2381ecce/source-manifest.json",
+    "size_bytes": 14387,
+    "sha256": "2f8f4ec287c7ae7968cc05ddfe5703c293608854af3c32e1b1a064bfa2905086"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T014255637Z-2381ecce/toolchain-environment.json",
+    "size_bytes": 77,
+    "sha256": "ddfeac7f349e5c3731d158ea0c6f6f95dd2115ef4d560c982f532bd3258c1410"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-release-20261024T014255637Z-2381ecce/verification.json",
+    "size_bytes": 5376,
+    "sha256": "98bad0e49b0d9a10d99455b8e1929dd9016faaf856a1415b400ce0b3e8a83133"
+  },
+  {
+    "path": "docs/deployment/evidence/runtime-source-manifest.json",
+    "size_bytes": 9282,
+    "sha256": "71d9682e7a56b2571a88bf3ae2bdb88287d6f856b4e771ba9ab1af1d3317004c"
+  },
+  {
+    "path": "docs/deployment/evidence/windows-control-sha256.json",
+    "size_bytes": 170,
+    "sha256": "d8e12eeddd13373d499dd806ace9b7daf6f09c29469a9799bd55c06dce6befb6"
+  },
+  {
+    "path": "docs/deployment/evidence/windows-package-receipt.json",
+    "size_bytes": 3298,
+    "sha256": "20a8b97708e543265f490e8f1b123db01d95f63029b77a05de82041400ac578d"
+  },
+  {
+    "path": "docs/deployment/evidence/windows-unpacked-sha256.json",
+    "size_bytes": 66976,
+    "sha256": "5390f207de31f5b490e9933f45c793d3334d11949628df0532f6381ca89bb884"
+  },
+  {
+    "path": "docs/deployment/evidence/windows-web-index-sha256.json",
+    "size_bytes": 155,
+    "sha256": "d29b639287f8ebb6430a6ec10b2db2e2afae83905493edca630bd149b64ecf69"
+  }
+]

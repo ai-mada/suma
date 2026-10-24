@@ -142,25 +142,7 @@ func newVerifiedReleaseCandidate(t *testing.T) (*fixture, ReleaseCandidate, stri
 	}
 	t.Cleanup(func() { _ = journal.Close() })
 	config := runner.ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: base, Commands: map[string]runner.CommandSpec{"develop": develop, "site-build": build, "site-test": test}, Artifacts: client, Journal: journal}
-	for _, want := range []string{"develop", "build", "package-test"} {
-		a, err := client.Claim(ctx, "release-fixture-worker", []string{"command", "test"})
-		if err != nil || a == nil || a.NodeID != want {
-			t.Fatalf("claim %s: %+v %v", want, a, err)
-		}
-		if err = journal.Accept(*a); err != nil {
-			t.Fatal(err)
-		}
-		result := runner.Execute(ctx, *a, config)
-		if result.ExitCode != 0 || result.Error != "" || result.OutcomeUnknown {
-			t.Fatalf("actual %s: %+v", want, result)
-		}
-		if err = journal.Finish(result); err != nil {
-			t.Fatal(err)
-		}
-		if err = runner.Replay(ctx, client, journal); err != nil {
-			t.Fatalf("persist actual %s: %v", want, err)
-		}
-	}
+	runReleaseFixtureWorker(t, ctx, f, client, journal, "release-fixture-worker", run["id"].(string), config, 0)
 	if original := releaseGit(t, repo, "rev-parse", "HEAD"); original != base {
 		t.Fatal("original checkout HEAD changed")
 	}

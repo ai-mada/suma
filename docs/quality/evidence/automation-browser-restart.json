@@ -1,0 +1,22 @@
+{
+  "browser": "Chrome",
+  "before": {
+    "events": 15,
+    "selected": "build",
+    "status": " 事件时间线实时连接已建立通知驱动正式状态刷新；连接状态不代表运行结果。实时列表最多保留 300 条或 16 MiB 事件。查看持久历史run_succeeded工作流 · 10/24 10:19no",
+    "url": "http://127.0.0.1:4321/?project=4cf0271555ed5013df9bb38f7cb79311&view=development&sub=runs&run=87b3aa1c2280eaab95295d63d5d7e215&node=build&status=all&layout=list&week=2026-10-19",
+    "viewport": "transform: translate(81.1559px, 263.261px) scale(0.708166);"
+  },
+  "after": {
+    "events": 15,
+    "selected": "build",
+    "status": " 事件时间线实时连接已建立通知驱动正式状态刷新；连接状态不代表运行结果。实时列表最多保留 300 条或 16 MiB 事件。查看持久历史run_succeeded工作流 · 10/24 10:19no",
+    "url": "http://127.0.0.1:4321/?project=4cf0271555ed5013df9bb38f7cb79311&view=development&sub=runs&run=87b3aa1c2280eaab95295d63d5d7e215&node=build&status=all&layout=list&week=2026-10-19",
+    "viewport": "transform: translate(81.1559px, 263.261px) scale(0.708166);"
+  },
+  "notes": [
+    "Same page; no reload across final control process restart.",
+    "After observation occurred beyond a normal 20 second connection rotation.",
+    "Only DOM state captured; no session, provider or worker credentials."
+  ]
+}

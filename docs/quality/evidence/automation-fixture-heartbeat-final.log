@@ -1,0 +1,8 @@
+=== RUN   TestArtifactsRealBytesDerivedProofAndAcceptedCandidate
+--- PASS: TestArtifactsRealBytesDerivedProofAndAcceptedCandidate (8.03s)
+=== RUN   TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback
+--- PASS: TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback (14.55s)
+=== RUN   TestReleaseFixtureWorkerRenewsActualHTTPLease
+--- PASS: TestReleaseFixtureWorkerRenewsActualHTTPLease (2.48s)
+PASS
+ok  	github.com/ai-mada/suma/internal/platform	26.134s

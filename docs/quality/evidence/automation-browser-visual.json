@@ -1,0 +1,138 @@
+{
+  "stage": "T-P4-002",
+  "captured_at": "2026-10-24T02:44:07.541110+00:00",
+  "browser": "Chrome; separate temporary test tab, original light theme restored, viewport reset and tab closed",
+  "web_entry": "/assets/index-DpCWI2E_.js",
+  "viewports": [
+    {
+      "width": 390,
+      "height": 844,
+      "client_width": 375,
+      "scroll_width": 375,
+      "theme": "light"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "client_width": 753,
+      "scroll_width": 753,
+      "theme": "light"
+    },
+    {
+      "width": 1366,
+      "height": 900,
+      "client_width": 1351,
+      "scroll_width": 1351,
+      "theme": "dark"
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "client_width": 1905,
+      "scroll_width": 1905,
+      "theme": "light"
+    }
+  ],
+  "keyboard": {
+    "flow": "Automation edit modal, no unsaved change",
+    "escape_closed_modal": true,
+    "retained_rule_detail": true,
+    "returned_focus": "编辑策略"
+  },
+  "restart": {
+    "record": "automation-browser-restart.json",
+    "same_page_no_reload": true,
+    "retained_events": 15,
+    "selected_node": "build",
+    "viewport_unchanged": true,
+    "normal_rotation_label_observed": "连接正在续传…",
+    "reconnected_label": "实时连接已建立"
+  },
+  "history": {
+    "start_cursor": 0,
+    "first_sequence": 153,
+    "last_sequence": 167,
+    "items": 15,
+    "terminal_type": "run_succeeded",
+    "terminal_public_metadata": {},
+    "next_page_items": 0,
+    "next_page_disabled": true
+  },
+  "console": {
+    "application_errors_observed": 0,
+    "unrelated_extension_errors": 1,
+    "extension_details_excluded": true
+  },
+  "screenshots": [
+    {
+      "original_name": "automation-dark-1366.png",
+      "path": "automation-dark-1366.jpg",
+      "mime": "image/jpeg",
+      "width": 1351,
+      "height": 890,
+      "sha256": "72365bcd0ade40638e80109bbbce8a12bc414b8b87d30d66c669ff6fe4910509"
+    },
+    {
+      "original_name": "automation-history-1920.png",
+      "path": "automation-history-1920.jpg",
+      "mime": "image/jpeg",
+      "width": 1904,
+      "height": 1080,
+      "sha256": "cfbb687ac6b13b947d2e25bff5848e5a533f594bba19f11817366eec68c3017e"
+    },
+    {
+      "original_name": "automation-light-1920.png",
+      "path": "automation-light-1920.jpg",
+      "mime": "image/jpeg",
+      "width": 1905,
+      "height": 1072,
+      "sha256": "63a851ceb37cdea8f8384182c704b8ce9dfb1e5a79a9503196c428bf6c91b9ca"
+    },
+    {
+      "original_name": "automation-light-390.png",
+      "path": "automation-light-390.jpg",
+      "mime": "image/jpeg",
+      "width": 375,
+      "height": 812,
+      "sha256": "08db759dd08536ba39ee3fecbc8136e45e5de554104dc024acb1deb145f995c9"
+    },
+    {
+      "original_name": "automation-light-768.png",
+      "path": "automation-light-768.jpg",
+      "mime": "image/jpeg",
+      "width": 753,
+      "height": 1004,
+      "sha256": "1ff612635cd208aa5ee74ea76aaa91fe2cdd6ad0d0cfa2c0953bb7c9fd3dcf73"
+    },
+    {
+      "original_name": "automation-triggers-390.png",
+      "path": "automation-triggers-390.jpg",
+      "mime": "image/jpeg",
+      "width": 375,
+      "height": 812,
+      "sha256": "e6e30a61b5f126a1c138c530d9c6e3f122dc816bae474de8ada6668074b57828"
+    },
+    {
+      "original_name": "automation-run-1366.jpg",
+      "path": "automation-run-1366.jpg",
+      "mime": "image/jpeg",
+      "width": 1351,
+      "height": 890,
+      "sha256": "4078a7a01a5523469e1dd046443b02666fcf586f9008651687d7b4e77cb99810"
+    },
+    {
+      "original_name": "automation-terminal-history.jpg",
+      "path": "automation-terminal-history.jpg",
+      "mime": "image/jpeg",
+      "width": 1366,
+      "height": 900,
+      "sha256": "550035e5ad429fbea5fc0b84f5e23386cf1ad096c3fb52866aaa064248584dd5"
+    }
+  ],
+  "limitations": [
+    "Partial automation/detail/run checks only; not the complete WCAG or user journey matrix.",
+    "Viewport dimensions are read from the DOM. Native JPEG content captures can exclude scrollbars; their actual dimensions and original hashes are preserved. No image editing was performed.",
+    "IAB retained run context but showed intermittent reconnect text; continuous stream/restart acceptance uses ordinary Chrome and actual HTTP/TCP tests.",
+    "1000-node/10000-node visual performance and other OS/browser combinations remain unverified."
+  ]
+}

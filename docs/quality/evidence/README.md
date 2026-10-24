@@ -2,6 +2,22 @@
 
 状态：本机证据，2026-10-24；负责人：平台集成。证据只适用于[验证报告](../verification.md)明确的范围，完整目标见[实施台账](../../delivery/implementation-plan.md)。
 
+## T-P4-002 持久自动化与事件
+
+| 证据 | 内容 |
+|---|---|
+| [最终Go记录](automation-go-tests.jsonl)、[汇总与源码](automation-go-verification.json) | 串行包全套退出0，329个通过事件、1个Windows目录链接权限场景跳过、9个受测包，vet通过 |
+| [JS138项](automation-js-tests.txt)、[类型](automation-typecheck.txt)、[网页构建](automation-web-build.txt) | web129及其余三个包各3；当前网页index-DpCWI2E_，大分块性能仍待验收 |
+| [实际旅程](automation-browser-execution.json) | UI创建/预演/启用/人工及cron触发；2运行、4真实证明、2原件重新摘要；r1历史与暂停r2分开 |
+| [同页面重启](automation-browser-restart.json)、[视觉范围](automation-browser-visual.json) | Chrome重启后15事件无重复，选中build与画布变换不变；正常轮换、持久历史153..167及空下一页 |
+| [390首屏](automation-light-390.jpg)、[390触发](automation-triggers-390.jpg)、[768](automation-light-768.jpg)、[1366深色](automation-dark-1366.jpg)、[1920浅色](automation-light-1920.jpg) | 实际DOM宽度、部分页面无横向溢出；不是完整视觉/可访问性矩阵 |
+| [修订和触发](automation-history-1920.jpg)、[运行画布](automation-run-1366.jpg)、[终态对象](automation-terminal-history.jpg) | 不可变修订、实际节点与候选/测试、公开终态空对象；[原始捕获摘要](automation-visual-files.json)保留实际JPEG格式与尺寸 |
+| [构建争用失败原文](automation-go-contention.jsonl)、[诊断](automation-go-contention-summary.json)、[真实Worker夹具修正](automation-fixture-heartbeat-receipt.json) | 原失败不擦除；生产30秒租约不放宽，夹具复用Worker.Run，短租约真实HTTP409到通过的对照 |
+| [夹具原始记录清单](automation-fixture-heartbeat-files.json)、[末轮独立审查](automation-final-review.json) | 六份原始测试记录逐字节摘要；SSE、真实Worker生命周期和历史文档来源复核，无本阶段提交阻断项 |
+| [当前运行包](../../deployment/automation-runtime-bundles.md) | 最后023250批次24文件与93份运行源码绑定；先前两个P4切面及P5文件保留历史，交叉编译不等于外系统实跑 |
+
+普通Chrome为持续连接与重启验收浏览器；IAB保留上下文但曾出现重连提示。截图原始字节未编辑，最初扩展名为PNG的原生JPEG已按真实格式更名并保留摘要。运行数据库、凭证、控制面应用日志、缓存及二进制不纳入源码提交。完整范围见[专项验收](../automation-verification.md)。
+
 ## P5 真实制品与发布
 
 | 证据 | 内容 |

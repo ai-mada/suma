@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-24T02:18:30.6273210Z",
+  "stamp": "20261024T021451853Z-f8fe5e7d",
+  "runtime_source_files_rechecked": 93,
+  "runtime_source_hash": "8d7891e3bb3eb272588a8f297805338f9a48ec767880c638621feaefc7c9a43c",
+  "current_runtime_sources_match": true,
+  "historical_files_rechecked": 319,
+  "historical_files_unchanged": true,
+  "artifact_count": 24,
+  "original_receipt_copies_identical": 3,
+  "raw_stdout_stderr_pairs_identical": 50,
+  "original_stderr_all_empty": true,
+  "documentation_links_valid": true,
+  "deployment_diff_check_exit_code": 0,
+  "windows_control_path": "dist/runtime/windows-amd64/20261024T021451853Z-f8fe5e7d/suma-control.exe",
+  "windows_control_sha256": "5e3ad2bea83ac90d75e381da335e39a973cabb8ac61bcd7080bf47d2597ed732",
+  "no_target_program_started_by_build_delivery": true,
+  "verification_scope": "Source, artifact, receipt and evidence verification; no target-system runtime, installation, signing or production acceptance."
+}

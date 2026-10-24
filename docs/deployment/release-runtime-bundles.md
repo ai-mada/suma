@@ -1,6 +1,8 @@
-# P5 四程序运行包构建记录
+# P5 四程序运行包历史构建记录
 
 状态：实际交叉编译及交付文件校验通过，目标系统运行与正式安装分别待验收。日期：2026-10-24（Asia/Shanghai）。负责人：主集成代理／运行包构建代理。关联需求：P5 制品与发布闭环、P7 跨平台交付；接口见 [发布控制面](../../contracts/release-control.md) 与 [发布执行](../../contracts/release-execution.md)。实现为 `scripts/build-runtime.ps1`。
+
+本页保留 P5 阶段的历史源码批次、摘要和原始证据。T-P4-002 自动化源码的当前四程序交付为 `20261024T023250966Z-97012787`，见 [自动化运行包索引](automation-runtime-bundles.md)；下文“最终”均限定为本页 P5 阶段，不表示已包含后续自动化源码。原 Windows 桌面安装包仍为 P5 之前的历史构建，未包含本轮 P4 自动化或 P5 发布功能。
 
 ## 程序与版本边界
 
@@ -11,9 +13,9 @@
 | `suma-deployer` | `cmd/suma-deployer` | 本机静态制品激活、内容健康检查、持久操作与核对 |
 | `suma` | `cmd/suma` | 平台命令行入口 |
 
-最新批次包含 P5 本机发布代码、环境读取事务授权、最终问题分类修正及提交前 `gofmt`：通用 `run_failed` 来源按执行问题记录，既有健康 Provider 观测保留原事实，Provider 专属问题投影不变。精确文件版本由源码清单定位。本机静态提供方的范围及配置见 [发布控制面部署](release-control.md) 和 [提供方接入](../integrations/release-provider.md)。这批 Go 程序不包含浏览器资源、Electron、Node 检索服务、模型或外部工具安装。
+本页 P5 最终批次包含 P5 本机发布代码、环境读取事务授权、最终问题分类修正及提交前 `gofmt`：通用 `run_failed` 来源按执行问题记录，既有健康 Provider 观测保留原事实，Provider 专属问题投影不变。精确文件版本由源码清单定位。本机静态提供方的范围及配置见 [发布控制面部署](release-control.md) 和 [提供方接入](../integrations/release-provider.md)。这批 Go 程序不包含浏览器资源、Electron、Node 检索服务、模型或外部工具安装。
 
-当前交付以 `20261024T014255637Z-2381ecce` 为准，目标平台主表及精确摘要见下文。与上一批次的运行时源码清单相比，唯一变化是 `internal/platform/release_deploy_plans.go` 的格式调整；[最终清单差异](evidence/runtime-release-20261024T014255637Z-2381ecce/cut-difference.json) 保存文件摘要。测试文件有独立验收记录，未计入这 87 个运行时源码文件。
+本页 P5 历史交付以 `20261024T014255637Z-2381ecce` 为准，目标平台主表及精确摘要见下文。与上一批次的运行时源码清单相比，唯一变化是 `internal/platform/release_deploy_plans.go` 的格式调整；[最终清单差异](evidence/runtime-release-20261024T014255637Z-2381ecce/cut-difference.json) 保存文件摘要。测试文件有独立验收记录，未计入这 87 个运行时源码文件。
 
 ## 历史批次（原样保留）
 

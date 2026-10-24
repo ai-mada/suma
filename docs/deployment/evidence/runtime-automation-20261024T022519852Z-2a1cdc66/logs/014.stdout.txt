@@ -1,0 +1,10 @@
+D:\codes\ai-dev-os\suma\.cache\runtime-build\20261024T022519852Z-2a1cdc66\targets\windows-arm64\suma-runner.exe: go1.24.5
+	path	github.com/ai-mada/suma/cmd/suma-runner
+	mod	github.com/ai-mada/suma	(devel)	
+	build	-buildmode=exe
+	build	-compiler=gc
+	build	-trimpath=true
+	build	CGO_ENABLED=0
+	build	GOARCH=arm64
+	build	GOOS=windows
+	build	GOARM64=v8.0

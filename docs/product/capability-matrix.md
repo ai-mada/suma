@@ -26,7 +26,7 @@
 | 能力 | 源码实现及范围 | 本地验证与证据 | 外部验收及剩余工作 |
 | --- | --- | --- | --- |
 | 真正 DAG、条件与汇合 | [compiler.go](../../internal/dag/compiler.go)、[transitions.go](../../internal/dag/transitions.go)：无环验证、条件跳过、all_success/all_done/any_success/quorum | [核心回归](../../internal/dag/engine_test.go)：菱形并行、提前汇合一次、失败保留 | 条件为受限表达式；不是任意脚本执行器 |
-| 人审、定时与信号等待 | 控制面持久等待，不占 Worker 槽位；审批带版本和回执 | 同上：审批冲突、重放、定时和信号 | 外部通知渠道与日历自动化未接入 |
+| 人审、定时与信号等待 | 控制面持久等待，不占 Worker 槽位；审批带版本和回执 | 同上：审批冲突、重放、定时和信号；cron另见自动触发 | 外部通知渠道及工作制日历集成未完成 |
 | 动态 map | 持久子节点展开、稳定身份与汇合 | 重启、重复推进、动态子节点测试 | 单次物化数量和嵌套深度受实现上限控制 |
 | 固定版本子流程 | [subworkflows.go](../../internal/dag/subworkflows.go)：固定工作流版本、父 attempt 唯一 child、等待不占槽、控制传播 | [子流程测试](../../internal/dag/subworkflow_test.go)：重启、失败、暂停、取消、嵌套边界 | 并非独立厂商流程联邦 |
 | 外部工作流 | [Runner 桥接](../../internal/runner/external.go)：管理员注册插件，精确能力匹配，真实配置传递，启动/轮询/取消协议 | [Runner 测试](../../internal/runner/external_test.go)：本地 HTTP 服务模拟 | 未接入真实厂商账户；没有插件能力时不能冒充执行成功 |
@@ -35,13 +35,13 @@
 | 暂停、取消和停止证据 | 实际停止事实与请求分开；未知状态保留资源，等待核对 | 核心与 Runner 停止回归 | 外部系统必须提供可靠终态；取消 HTTP 确认不等于已经停止 |
 | 资源、预算与调度 | 事务预留、项目资源限制、候选运行轮转 | 核心资源竞争测试 | 全局 SQL 锁串行化变更；未实现分片增量调度、租户加权公平、模型结算；未证明 1000 槽位 |
 | Runner 命令执行 | 许可命令、进程生命周期、Windows 进程树、持久回执/恢复 | [Runner 源码与测试目录](../../internal/runner)、[产物摘要](../agents/evidence/runner-sha256.json) | 容器/远端设备隔离和跨平台实机矩阵待验收 |
-| Runner 进展与恢复依据 | [progress.go](../../internal/dag/progress.go)：当前attempt/worker/fence校验、稳定操作回执、持久node_progress；界面展示真实有界输出快照，恢复按钮读取运行固定标记 | 对应DAG/Runner回归与[前端消费者模型](../../apps/web/src/planning-governance.test.ts)；实际执行结果见统一报告 | 输出快照不是完成百分比或任务验收；轮询不等于可靠WS/SSE日志回放 |
+| Runner 进展与恢复依据 | [progress.go](../../internal/dag/progress.go)：当前attempt/worker/fence校验、稳定操作回执、持久node_progress；界面展示真实有界输出快照，恢复按钮读取运行固定标记 | 对应DAG/Runner回归及[授权SSE与真实重启](../quality/automation-verification.md) | 输出快照不是完成百分比或任务验收；分布式吞吐与大规模日志性能待验收 |
 | 许可写命令隔离与证据 | [workspace.go](../../internal/runner/workspace.go)：逐attempt Git工作树、管理员固定repository/base、真实提交/差异/状态/路径清单摘要、持久操作元数据 | [真实Git工作树回归](../../internal/runner/workspace_test.go)；本轮环境和结果由验证报告记录 | 隔离依赖管理员仓库配置和本地Git；未知结果需核对，不自动切换/重置用户检出或合并 |
 | 候选来源选择与固定测试 | [候选校验与固定](../../internal/dag/candidate.go)、[选择框](../../apps/web/src/CandidateSource.tsx)：test选择本流程单个静态command/agent祖先，固定来源成功尝试的干净提交及证据 | [调度候选回归](../../internal/dag/candidate_test.go)、[Runner候选回归](../../internal/runner/candidate_test.go)、[前端消费者模型](../../apps/web/src/workflow-candidates.test.ts) | Runner须配置repository且候选提交已在本地；不自动聚合多分支，不推断跨map/子流程候选，不自动fetch或传送远端Git制品 |
 | 审阅后的合并预检 | [workspace.go](../../internal/runner/workspace.go)：核对目标HEAD、候选HEAD、测试/工作树证据及审阅身份，生成预检回执 | 对应真实Git预检回归；实际结果见统一报告 | 只表达可预检范围，未执行合并；完整合并授权、冲突恢复、CI身份和签名证明仍待实现 |
 | 原生智能体 | [agent-runtime](../../packages/agent-runtime/src)：有限轮次、模型接口与受控工具协议 | 本地协议、错误、工具边界测试；见[运行说明](../agents/runtime.md) | 真实模型账户、成本质量评估、生产工具权限待验收 |
 | 外部 Agent CLI | [catalog.ts](../../packages/agent-runtime/src/catalog.ts)：Codex/OpenCode/Hermes/DeepSeek 相关命令存在性、版本/help 探测 | 本地模拟进程与协议探测 | 探测不是完整登录、执行、工具授权和会话恢复集成 |
-| Workflow 编辑与观察 | [Workflow.tsx](../../apps/web/src/Workflow.tsx)：ReactFlow/ELK、编辑/执行/诊断、真实依赖和动态子节点、候选来源选择、当前尝试输出与来源证据 | 对应前端模型与浏览器旅程；本轮结论见统一报告 | 事件采用轮询；高级JSON仍需服务端校验，未实现可靠WS/SSE回放 |
+| Workflow 编辑与观察 | [Workflow.tsx](../../apps/web/src/Workflow.tsx)：ReactFlow/ELK、编辑/执行/诊断、真实依赖和动态子节点、候选来源、当前尝试与证据；SSE通知加正式快照读取，持久历史分页 | [事件回归及实际浏览器](../quality/automation-verification.md)：终态、20秒轮换、重启保持与有界数据 | 高级JSON仍需服务端校验；完整编辑器/窄屏列表、万节点定位及全浏览器矩阵仍待验收 |
 | 本地代码工作区 | [IDE.tsx](../../apps/web/src/IDE.tsx)、[workspace.go](../../internal/platform/workspace.go)：Monaco、允许目录文本树、摘要并发保护、持久保存日志 | [工作区回归](../../internal/platform/workspace_test.go)；见[一致性说明](../data/file-and-query-consistency.md) | 编辑工作区与Runner隔离执行范围分别管理；真实终端、LSP/DAP、完整调试预览仍未实现 |
 
 ## P3–P5：研发闭环与运维
@@ -59,7 +59,7 @@
 | 实际部署、健康与回退 | [独立Deployer](../../internal/deployer)、[观测恢复](../../internal/platform/release_deploy_observations.go)、[工作台](../../apps/web/src/ReleaseWorkspace.tsx)；本机静态字节、HTTP内容校验、单调代数、原operation核对及新计划回退 | 浏览器真实5次操作A/B/A/B/A，B两次健康404；提供方进程崩溃/丢ACK/迟到与A/B/A测试 | 仅本机回环静态提供方；Docker/K8s/S3/生产/灰度及跨机器验收未完成 |
 | 发布问题统一与来源导航 | [统一投影](../../internal/platform/release_failure_projection.go)、[来源导航](../../apps/web/src/RecordLineage.tsx)；DAG与provider关联同一operation问题，保留来源 | 最终实际操作只有1个问题，刷新重复回流只有1个需求；保留修复前重复作为历史缺陷证据 | 回退不自动关闭问题；告警诊断、授权智能修复及独立复测仍待实现 |
 | 多进程恢复 | SQL 锁、租约、事务回执、持久队列 | 本地多 Engine 竞争和重启回归 | 未进行生产故障注入、长期运行和跨集群恢复验收 |
-| 自动触发 | 只有已有手动 API/CLI 入口与节点定时等待 | 未验证计划中的触发服务 | Cron/Webhook/Git/CI/监控触发、签名去重、错过/重叠策略未实现 |
+| 自动触发 | [automation.go](../../internal/platform/automation.go)、[调度](../../internal/platform/automation_scheduler.go)、[工作台](../../apps/web/src/AutomationWorkspace.tsx)：持久人工/cron、不可变修订、固定流程、预演、启停、授权与运行原子绑定 | [本机验收](../quality/automation-verification.md)：真实双触发、错过/重叠、数据库重启、竞争、撤权、测试证明与修订历史 | Webhook/Git/CI/监控来源、签名重放防护、受限事件输入、全节点与分布式规模待完成 |
 | 组织、邀请、团队与项目授权 | [governance.go](../../internal/platform/governance.go)、[邀请](../../internal/platform/governance_invitations.go)、[团队与授权](../../internal/platform/governance_teams.go)、[治理界面](../../apps/web/src/Governance.tsx)：多组织、所有者保护、一次性邀请、团队归属和独立项目授权 | [治理回归](../../internal/platform/governance_test.go)与浏览器旅程；最终结果见统一报告 | 邀请由用户手工交付，不发送邮件；未包含企业身份联合、席位或目录治理 |
 | 人类资源与团队身份 | [资源绑定界面](../../apps/web/src/ResourceIdentityFields.tsx)：人类项目资源绑定真实组织user_id，任务owner使用项目资源ID；团队human使用组织用户、Agent/tool使用项目资源 | 对应组织权限、资源绑定和前端身份回归 | 团队归属不授予项目访问；Agent/tool登记不代表连接可用，实际接入分别验收 |
 | 迭代、里程碑与原子排期 | [planning.go](../../internal/platform/planning.go)、[计划界面](../../apps/web/src/Planning.tsx)：计划独立版本、任务版本双校验、完整字段批次原子保存、关联任务验收完成门禁 | [计划回归](../../internal/platform/planning_test.go)、[前端表单消费者模型](../../apps/web/src/planning-governance.test.ts)；本轮浏览器结果见统一报告 | 不推断任务已验收；完整产品设计编辑、风险管理和组合规划仍待完成 |

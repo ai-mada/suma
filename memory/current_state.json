@@ -6,9 +6,9 @@
   "status": "in_progress",
   "plan": "docs/delivery/implementation-plan.md",
   "workstreams": {
-    "control_dag": "immutable_artifacts_candidate_release_gates_managed_recovery_and_canonical_issue_verified_distributed_scale_pending",
+    "control_dag": "durable_cron_manual_atomic_fixed_revision_dispatch_and_authorized_sse_verified_full_distributed_fairness_pending",
     "runtime": "real_build_package_test_local_static_provider_health_rollback_restart_and_cross_compile_verified_vendor_cloud_pending",
-    "workbench": "actual_browser_release_health_failure_issue_intake_independent_rollback_lineage_and_escape_focus_verified_full_product_pending",
+    "workbench": "automation_rules_preview_revision_history_real_trigger_run_evidence_and_chrome_restart_verified_full_design_and_collaboration_pending",
     "architecture_documents": "architecture_and_scope_matrix_delivered"
   },
   "verified": [
@@ -23,11 +23,16 @@
     "Actual browser A/B unhealthy/A rollback/B unhealthy/A rollback; 5 monotonic generations, two real artifact blobs and 7 runs; original checkout remains clean admin base",
     "Post-fix provider and managed execution failure share one issue; refresh and repeated intake preserve one requirement",
     "Final six-target four-program build source b8d6a3075cf29836c11ab8033bd5aab229eb6f9e5fb80c3402ede458e6a76365; Windows delivered control/Runner/Provider restarted and persisted generation 5",
-    "Partial release detail verified at actual 390/768/1366/1920 widths, light/dark themes and Escape modal focus return"
+    "Partial release detail verified at actual 390/768/1366/1920 widths, light/dark themes and Escape modal focus return",
+    "T-P4-002: final Go serial suite 329 pass events, one directory-link scenario skipped because Windows creation was denied; vet passed, 9 tested packages and 4 compiled command packages",
+    "T-P4-002: JS packages 138 tests (web129 plus 9 runtime/knowledge/desktop), workspace typecheck and production web build passed; 120 models/103 paths generated",
+    "Actual UI cron/manual triggers -> 2 successful isolated development/build/package-test runs, 4 derived proofs and 2 actual blobs; r1 history preserved after paused r2 edit",
+    "Actual ordinary Chrome SSE terminal event replay, 20-second clean rotation, control restart without duplicate 15 events or changed selected build node/viewport; history cursor153..167 plus empty next page",
+    "Final runtime cut 20261024T023250966Z-97012787 source cb40b728b0b540da3647df82aee986e2883e445738d0fed86a5f961e6f5d9f5a; 24 cross-compiled files, actual Windows control byte hash verified"
   ],
   "production_integration_complete": false,
-  "current_evidence": "docs/quality/evidence/release-browser-execution.json",
-  "stage": "T-P5-001_validated",
+  "current_evidence": "docs/quality/evidence/automation-browser-execution.json",
+  "stage": "T-P4-002_validated",
   "commit_policy": "User explicitly requests a commit after each validated functional stage; do not push without separate authorization",
-  "next_step": "Continue remaining implementation-plan tasks after the verified stage commit: complete distributed DAG fairness, external tool and production integrations, design/risk/planning, collaboration and SaaS"
+  "next_step": "Continue signed Webhook/Git/CI/monitor input, fleet governance and full distributed DAG fairness; complete remaining design/planning, collaboration, production and SaaS scope. T-P4-002 is validated and included in a local stage commit under the explicit user commit policy."
 }

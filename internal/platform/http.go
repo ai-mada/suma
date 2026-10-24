@@ -386,6 +386,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.planning(w, r, p, project, path, m) {
 		return
 	}
+	if s.automationHTTP(w, r, p, scope, path, parts, project, m) {
+		return
+	}
 	switch {
 	case parts[0] == "workspace":
 		s.workspace(w, r, p, project, path, m)
@@ -526,7 +529,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			bindingKey := str(m, "task_id") + ":" + stringify(m)
-			item, e := s.Engine.CreateRunBound(ctx, p.TenantID, project, str(m, "workflow_id"), number(m, "workflow_version"), p.ID+":"+str(m, "idempotency_key"), bindingKey, func(tx *sql.Tx, runID string) error {
+			item, e := s.Engine.CreateRunBoundAuthorized(ctx, p.TenantID, project, str(m, "workflow_id"), number(m, "workflow_version"), p.ID+":"+str(m, "idempotency_key"), bindingKey, func(tx *sql.Tx) error {
+				return s.Service.authorizeProjectTx(ctx, tx, p, project, true, false)
+			}, func(tx *sql.Tx, runID string) error {
 				return s.Service.BindRunTx(ctx, tx, p, project, str(m, "task_id"), runID, expected)
 			})
 			respond(w, 201, item, e)
@@ -537,9 +542,17 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			respond(w, 200, item, e)
 			return
 		}
+		if len(parts) == 4 && parts[2] == "events" && parts[3] == "stream" && r.Method == "GET" {
+			s.runEventStream(w, r, p, scope, project, parts[1])
+			return
+		}
 		if len(parts) == 3 && parts[2] == "events" && r.Method == "GET" {
-			after, _ := strconv.ParseInt(r.URL.Query().Get("after"), 10, 64)
-			items, e := s.Engine.Events(ctx, p.TenantID, project, parts[1], after)
+			after, e := runStreamCursor(r)
+			if e != nil {
+				writeError(w, e)
+				return
+			}
+			items, e := s.runStreamRead(ctx, tokenOf(r), p, scope, project, parts[1], after, true)
 			if e != nil {
 				writeError(w, e)
 				return

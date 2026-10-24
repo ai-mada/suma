@@ -43,6 +43,9 @@ Go导出域模型直接反射，包括PlanningPeriod、TaskPlan、PlannedTask、
 | issues/{id}/intake | 唯一来源问题回流需求 |
 | workflows、workflows/validate | 不可变版本发布与编译 |
 | runs、runs/{id}、events、commands | 运行/事件/控制/审批/核对/补偿 |
+| automations、automations/preview、automations/{id}/commands | 人工/cron规则、固定版本预演与CAS启停，限真实组织会话 |
+| automations/{id}/occurrences、revisions | 触发与真实运行关联、不可变规格修订的范围绑定分页 |
+| runs/{id}/events/stream | 持久SSE回放、当前权限重验、断线游标续传；GET events 为每页128条历史 |
 | runner/claim、heartbeat、results、progress | 真实领取、取消意图、当前尝试的真实进展与持久ACK |
 | planning、iterations、milestones | 全项目计划指标、任务窗口、迭代及里程碑完成门禁 |
 | planning/schedule、planning/capacity | 双版本原子排期与周一开始的nullable资源工时 |

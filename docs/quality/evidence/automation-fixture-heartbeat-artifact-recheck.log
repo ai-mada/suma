@@ -1,0 +1,4 @@
+=== RUN   TestArtifactsRealBytesDerivedProofAndAcceptedCandidate
+--- PASS: TestArtifactsRealBytesDerivedProofAndAcceptedCandidate (8.01s)
+PASS
+ok  	github.com/ai-mada/suma/internal/platform	8.790s

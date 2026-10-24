@@ -1,0 +1,5 @@
+{
+	"GOHOSTARCH": "amd64",
+	"GOHOSTOS": "windows",
+	"GOVERSION": "go1.24.5"
+}

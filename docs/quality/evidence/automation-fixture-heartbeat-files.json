@@ -1,0 +1,32 @@
+[
+  {
+    "path": "automation-fixture-heartbeat-baseline.log",
+    "source_path": "D:/codes/ai-dev-os/suma/.cache/e2e/automation-stage/fixture-heartbeat-baseline.log",
+    "sha256": "d191b79a5e95d1c67dc7f731eb4ccb9569de71e6cbea70b323c5c5f181acd033"
+  },
+  {
+    "path": "automation-fixture-heartbeat-red.log",
+    "source_path": "D:/codes/ai-dev-os/suma/.cache/e2e/automation-stage/fixture-heartbeat-red.log",
+    "sha256": "640f81a051dca9aa83e77d1b8000f282d538ebd1b1d090bdbef14dfe012cc499"
+  },
+  {
+    "path": "automation-fixture-heartbeat-green.log",
+    "source_path": "D:/codes/ai-dev-os/suma/.cache/e2e/automation-stage/fixture-heartbeat-green.log",
+    "sha256": "f84d9f8629c8e17c02674532fbec29d28fc8e21edbe50e3e2d5a480f8fe1af9d"
+  },
+  {
+    "path": "automation-fixture-heartbeat-targeted.log",
+    "source_path": "D:/codes/ai-dev-os/suma/.cache/e2e/automation-stage/fixture-heartbeat-targeted.log",
+    "sha256": "b0cda7d773fce573c7bc70d61cfc5a32d9fd7b6501d153929489c46ddd93f0ac"
+  },
+  {
+    "path": "automation-fixture-heartbeat-artifact-recheck.log",
+    "source_path": "D:/codes/ai-dev-os/suma/.cache/e2e/automation-stage/fixture-heartbeat-artifact-recheck.log",
+    "sha256": "57581b7ec50c3c6e112ef3f3ea31fe46c1fbf033082a7eafb36cd5d907af8604"
+  },
+  {
+    "path": "automation-fixture-heartbeat-final.log",
+    "source_path": "D:/codes/ai-dev-os/suma/.cache/e2e/automation-stage/fixture-heartbeat-final.log",
+    "sha256": "c0ed1e7b5e94e7e4e0e38dfea4128e2d73a2ef09709249bdd1b3e70aaaff4eb3"
+  }
+]

@@ -127,25 +127,7 @@ func releaseVariantCandidate(t *testing.T, f *fixture) ReleaseCandidate {
 	}
 	defer journal.Close()
 	config := runner.ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: base, Commands: map[string]runner.CommandSpec{"variant-develop": develop, "variant-build": build, "variant-test": test}, Artifacts: client, Journal: journal}
-	for _, node := range []string{"develop", "build", "package-test"} {
-		a, e := client.Claim(ctx, "variant-builder", []string{"command", "test"})
-		if e != nil || a == nil || a.NodeID != node {
-			t.Fatal("actual B claim", node, e)
-		}
-		if e = journal.Accept(*a); e != nil {
-			t.Fatal(e)
-		}
-		r := runner.Execute(ctx, *a, config)
-		if r.ExitCode != 0 || r.Error != "" || r.OutcomeUnknown {
-			t.Fatal("actual B process failed", node, r.Error)
-		}
-		if e = journal.Finish(r); e != nil {
-			t.Fatal(e)
-		}
-		if e = runner.Replay(ctx, client, journal); e != nil {
-			t.Fatal(e)
-		}
-	}
+	runReleaseFixtureWorker(t, ctx, f, client, journal, "variant-builder", run["id"].(string), config, 0)
 	current := f.call("GET", "/tasks/"+task["id"].(string)+"?project_id="+f.project, nil, 200)
 	accepted := f.call("POST", "/tasks/"+task["id"].(string)+"/review", f.body(map[string]any{"expected_version": current["version"], "run_id": run["id"], "decision": "accepted", "reason": "第二候选B已实际构建、收包、HTTP包测试"}), 200)
 	artifacts, _, _, err := f.s.ReleaseArtifacts(ctx, f.user, f.project, 100, "")

@@ -1,0 +1,5 @@
+{
+  "source_path": "docs/deployment/automation-runtime-bundles.md",
+  "snapshot_sha256": "2a70d5f7b42f4fac5eaffa6910d7ed91af78d7d650b3965eef1582c095da3634",
+  "purpose": "Resolve the immutable original relative links in their source directory, without changing historical document bytes. The current source document may have advanced to a later cut."
+}

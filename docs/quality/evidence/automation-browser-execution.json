@@ -1,0 +1,459 @@
+{
+  "stage": "T-P4-002",
+  "captured_at": "2026-10-24T02:44:07.831212+00:00",
+  "scope": "Real local fixture. UI created/previewed/enabled/triggered/paused/revised rule; read-only SQL and actual sealed bytes verified here. No production model/vendor/account acceptance.",
+  "rule": {
+    "id": "0dacc52a1059bb65775b6375826fcd20",
+    "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d",
+    "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+    "version": 5,
+    "revision": 2,
+    "state": "paused",
+    "activated_by": "18d16027415f5b5c845a2f04210969d9",
+    "next_at": "",
+    "created_at": "2026-10-24T02:16:38Z",
+    "updated_at": "2026-10-24T02:19:26Z",
+    "spec": {
+      "name": "制品构建与测试 · 手动复核",
+      "workflow_id": "b6f46366db875b3aa2c49cfc181f2c99",
+      "workflow_version": 1,
+      "trigger": "manual",
+      "cron": "",
+      "timezone": "Asia/Shanghai",
+      "misfire": "latest",
+      "catch_up_limit": 5,
+      "overlap": "queue"
+    }
+  },
+  "revisions": [
+    {
+      "revision": 1,
+      "spec": {
+        "name": "每分钟制品验证 · 自动化验收",
+        "workflow_id": "b6f46366db875b3aa2c49cfc181f2c99",
+        "workflow_version": 1,
+        "trigger": "cron",
+        "cron": "* * * * *",
+        "timezone": "Asia/Shanghai",
+        "misfire": "latest",
+        "catch_up_limit": 5,
+        "overlap": "queue"
+      },
+      "created_at": "2026-10-24T02:16:38Z"
+    },
+    {
+      "revision": 2,
+      "spec": {
+        "name": "制品构建与测试 · 手动复核",
+        "workflow_id": "b6f46366db875b3aa2c49cfc181f2c99",
+        "workflow_version": 1,
+        "trigger": "manual",
+        "cron": "",
+        "timezone": "Asia/Shanghai",
+        "misfire": "latest",
+        "catch_up_limit": 5,
+        "overlap": "queue"
+      },
+      "created_at": "2026-10-24T02:19:26Z"
+    }
+  ],
+  "occurrences": [
+    {
+      "id": "e61da59cb3df688fc3df05bdfea3900d",
+      "revision": 1,
+      "source": "manual",
+      "scheduled_at": "2026-10-24T02:18:47Z",
+      "state": "started",
+      "reason": "",
+      "run_id": "ff8fcddfcf77ad3afdbd94e8a7d0518e",
+      "created_at": "2026-10-24T02:18:47Z",
+      "updated_at": "2026-10-24T02:18:48Z"
+    },
+    {
+      "id": "9bd56a2f10f5b5cb4b0ad4f5372d2608",
+      "revision": 1,
+      "source": "cron",
+      "scheduled_at": "2026-10-24T02:19:00Z",
+      "state": "started",
+      "reason": "",
+      "run_id": "87b3aa1c2280eaab95295d63d5d7e215",
+      "created_at": "2026-10-24T02:19:00Z",
+      "updated_at": "2026-10-24T02:19:00Z"
+    }
+  ],
+  "runs": [
+    {
+      "id": "ff8fcddfcf77ad3afdbd94e8a7d0518e",
+      "workflow_id": "b6f46366db875b3aa2c49cfc181f2c99",
+      "workflow_version": 1,
+      "version": 7,
+      "state": "succeeded",
+      "created_at": "2026-10-24T02:18:48Z",
+      "updated_at": "2026-10-24T02:18:53Z",
+      "nodes": [
+        {
+          "id": "build",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T02:18:50Z",
+          "completed_at": "2026-10-24T02:18:51Z"
+        },
+        {
+          "id": "develop",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T02:18:48Z",
+          "completed_at": "2026-10-24T02:18:50Z"
+        },
+        {
+          "id": "package-test",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T02:18:51Z",
+          "completed_at": "2026-10-24T02:18:53Z"
+        }
+      ],
+      "events": [
+        {
+          "sequence": 138,
+          "node_id": "",
+          "type": "run_created",
+          "at": "2026-10-24T02:18:48Z",
+          "persisted_data_sha256": "326b66381db9767fecc9505307434d558e340f0e0a2f0503232d822b5412d82f"
+        },
+        {
+          "sequence": 139,
+          "node_id": "develop",
+          "type": "node_ready",
+          "at": "2026-10-24T02:18:48Z",
+          "persisted_data_sha256": "ed090784cedc627716bd128f2662427174071e44f135e98d0d7239614e73ccba"
+        },
+        {
+          "sequence": 140,
+          "node_id": "develop",
+          "type": "node_running",
+          "at": "2026-10-24T02:18:48Z",
+          "persisted_data_sha256": "9043b9373467b4eb29d526696f44971fd54fc2b1c9dafb4086a02bd65727d786"
+        },
+        {
+          "sequence": 141,
+          "node_id": "develop",
+          "type": "node_progress",
+          "at": "2026-10-24T02:18:49Z",
+          "persisted_data_sha256": "c47e383ab5120182cd0946711acd219503290124ca68143c5e1212c41eb0e4c0"
+        },
+        {
+          "sequence": 142,
+          "node_id": "develop",
+          "type": "node_succeeded",
+          "at": "2026-10-24T02:18:50Z",
+          "persisted_data_sha256": "916d3d614683aeefa15faa6452977c8cf1b182063066ad8abd7cbe4f1c92b650"
+        },
+        {
+          "sequence": 143,
+          "node_id": "build",
+          "type": "node_ready",
+          "at": "2026-10-24T02:18:50Z",
+          "persisted_data_sha256": "ed090784cedc627716bd128f2662427174071e44f135e98d0d7239614e73ccba"
+        },
+        {
+          "sequence": 144,
+          "node_id": "build",
+          "type": "candidate_pinned",
+          "at": "2026-10-24T02:18:50Z",
+          "persisted_data_sha256": "9ce473915f3265e241aeb95eb76311146bea44ca0ab83a0f52c14e25a0e0f7a1"
+        },
+        {
+          "sequence": 145,
+          "node_id": "build",
+          "type": "node_running",
+          "at": "2026-10-24T02:18:50Z",
+          "persisted_data_sha256": "9043b9373467b4eb29d526696f44971fd54fc2b1c9dafb4086a02bd65727d786"
+        },
+        {
+          "sequence": 146,
+          "node_id": "build",
+          "type": "node_progress",
+          "at": "2026-10-24T02:18:51Z",
+          "persisted_data_sha256": "91f374d5dbd17401ccd701cc299e9e7ec9bfe4e32d1b4acfcca11d4aea252f12"
+        },
+        {
+          "sequence": 147,
+          "node_id": "build",
+          "type": "node_succeeded",
+          "at": "2026-10-24T02:18:51Z",
+          "persisted_data_sha256": "916d3d614683aeefa15faa6452977c8cf1b182063066ad8abd7cbe4f1c92b650"
+        },
+        {
+          "sequence": 148,
+          "node_id": "package-test",
+          "type": "node_ready",
+          "at": "2026-10-24T02:18:51Z",
+          "persisted_data_sha256": "ed090784cedc627716bd128f2662427174071e44f135e98d0d7239614e73ccba"
+        },
+        {
+          "sequence": 149,
+          "node_id": "package-test",
+          "type": "node_running",
+          "at": "2026-10-24T02:18:51Z",
+          "persisted_data_sha256": "9043b9373467b4eb29d526696f44971fd54fc2b1c9dafb4086a02bd65727d786"
+        },
+        {
+          "sequence": 150,
+          "node_id": "package-test",
+          "type": "node_progress",
+          "at": "2026-10-24T02:18:52Z",
+          "persisted_data_sha256": "88406cc2866615e1fba01905cd2f2a1e35635266e3a824e1b6180303adee5498"
+        },
+        {
+          "sequence": 151,
+          "node_id": "package-test",
+          "type": "node_succeeded",
+          "at": "2026-10-24T02:18:53Z",
+          "persisted_data_sha256": "916d3d614683aeefa15faa6452977c8cf1b182063066ad8abd7cbe4f1c92b650"
+        },
+        {
+          "sequence": 152,
+          "node_id": "",
+          "type": "run_succeeded",
+          "at": "2026-10-24T02:18:53Z",
+          "persisted_data_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+        }
+      ],
+      "terminal_persisted_metadata_is_null": true
+    },
+    {
+      "id": "87b3aa1c2280eaab95295d63d5d7e215",
+      "workflow_id": "b6f46366db875b3aa2c49cfc181f2c99",
+      "workflow_version": 1,
+      "version": 7,
+      "state": "succeeded",
+      "created_at": "2026-10-24T02:19:00Z",
+      "updated_at": "2026-10-24T02:19:05Z",
+      "nodes": [
+        {
+          "id": "build",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T02:19:02Z",
+          "completed_at": "2026-10-24T02:19:03Z"
+        },
+        {
+          "id": "develop",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T02:19:01Z",
+          "completed_at": "2026-10-24T02:19:02Z"
+        },
+        {
+          "id": "package-test",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T02:19:03Z",
+          "completed_at": "2026-10-24T02:19:05Z"
+        }
+      ],
+      "events": [
+        {
+          "sequence": 153,
+          "node_id": "",
+          "type": "run_created",
+          "at": "2026-10-24T02:19:00Z",
+          "persisted_data_sha256": "326b66381db9767fecc9505307434d558e340f0e0a2f0503232d822b5412d82f"
+        },
+        {
+          "sequence": 154,
+          "node_id": "develop",
+          "type": "node_ready",
+          "at": "2026-10-24T02:19:00Z",
+          "persisted_data_sha256": "ed090784cedc627716bd128f2662427174071e44f135e98d0d7239614e73ccba"
+        },
+        {
+          "sequence": 155,
+          "node_id": "develop",
+          "type": "node_running",
+          "at": "2026-10-24T02:19:01Z",
+          "persisted_data_sha256": "9043b9373467b4eb29d526696f44971fd54fc2b1c9dafb4086a02bd65727d786"
+        },
+        {
+          "sequence": 156,
+          "node_id": "develop",
+          "type": "node_progress",
+          "at": "2026-10-24T02:19:01Z",
+          "persisted_data_sha256": "af0ecdc71d1784c0af5922aca95a2e7fdec631eaf1ab0ee914b0b1e6debafc4c"
+        },
+        {
+          "sequence": 157,
+          "node_id": "develop",
+          "type": "node_succeeded",
+          "at": "2026-10-24T02:19:02Z",
+          "persisted_data_sha256": "916d3d614683aeefa15faa6452977c8cf1b182063066ad8abd7cbe4f1c92b650"
+        },
+        {
+          "sequence": 158,
+          "node_id": "build",
+          "type": "node_ready",
+          "at": "2026-10-24T02:19:02Z",
+          "persisted_data_sha256": "ed090784cedc627716bd128f2662427174071e44f135e98d0d7239614e73ccba"
+        },
+        {
+          "sequence": 159,
+          "node_id": "build",
+          "type": "candidate_pinned",
+          "at": "2026-10-24T02:19:02Z",
+          "persisted_data_sha256": "116835919f2ec37b2132bed31212b308646719de89a2910f95a7b4edd716d9bd"
+        },
+        {
+          "sequence": 160,
+          "node_id": "build",
+          "type": "node_running",
+          "at": "2026-10-24T02:19:02Z",
+          "persisted_data_sha256": "9043b9373467b4eb29d526696f44971fd54fc2b1c9dafb4086a02bd65727d786"
+        },
+        {
+          "sequence": 161,
+          "node_id": "build",
+          "type": "node_progress",
+          "at": "2026-10-24T02:19:03Z",
+          "persisted_data_sha256": "726d06e4692b184b629bbfce1997bb0c611c2930896f121e46cdc894aeb20dc4"
+        },
+        {
+          "sequence": 162,
+          "node_id": "build",
+          "type": "node_succeeded",
+          "at": "2026-10-24T02:19:03Z",
+          "persisted_data_sha256": "916d3d614683aeefa15faa6452977c8cf1b182063066ad8abd7cbe4f1c92b650"
+        },
+        {
+          "sequence": 163,
+          "node_id": "package-test",
+          "type": "node_ready",
+          "at": "2026-10-24T02:19:03Z",
+          "persisted_data_sha256": "ed090784cedc627716bd128f2662427174071e44f135e98d0d7239614e73ccba"
+        },
+        {
+          "sequence": 164,
+          "node_id": "package-test",
+          "type": "node_running",
+          "at": "2026-10-24T02:19:03Z",
+          "persisted_data_sha256": "9043b9373467b4eb29d526696f44971fd54fc2b1c9dafb4086a02bd65727d786"
+        },
+        {
+          "sequence": 165,
+          "node_id": "package-test",
+          "type": "node_progress",
+          "at": "2026-10-24T02:19:04Z",
+          "persisted_data_sha256": "67227f5fe9a7faa189c6c5f5625f5a1389b492518ba878bf5f79ef4243ea4e6c"
+        },
+        {
+          "sequence": 166,
+          "node_id": "package-test",
+          "type": "node_succeeded",
+          "at": "2026-10-24T02:19:05Z",
+          "persisted_data_sha256": "916d3d614683aeefa15faa6452977c8cf1b182063066ad8abd7cbe4f1c92b650"
+        },
+        {
+          "sequence": 167,
+          "node_id": "",
+          "type": "run_succeeded",
+          "at": "2026-10-24T02:19:05Z",
+          "persisted_data_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+        }
+      ],
+      "terminal_persisted_metadata_is_null": true
+    }
+  ],
+  "proofs": [
+    {
+      "id": "863a4c210468c4b6b45aa933c6fcf12b",
+      "run_id": "ff8fcddfcf77ad3afdbd94e8a7d0518e",
+      "node_id": "build",
+      "kind": "build",
+      "artifact_id": "cf9e720d236431cc2ee91b950af10d97",
+      "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+      "profile_id": "release-build",
+      "profile_sha256": "c936c372da030895d69b2715d91c2e396a7905442e58aad96ab219831bf885e6"
+    },
+    {
+      "id": "5f562240a20eb78ada5ec1135c8c6870",
+      "run_id": "ff8fcddfcf77ad3afdbd94e8a7d0518e",
+      "node_id": "package-test",
+      "kind": "package_test",
+      "artifact_id": "cf9e720d236431cc2ee91b950af10d97",
+      "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+      "profile_id": "release-package-test",
+      "profile_sha256": "5b617c14d902da8024333dbeb61253bd107e4d4a2d047796dad3d8101fb748d3"
+    },
+    {
+      "id": "b1b6e3806b17c28aa6369d62166890d1",
+      "run_id": "87b3aa1c2280eaab95295d63d5d7e215",
+      "node_id": "build",
+      "kind": "build",
+      "artifact_id": "719f6c8d3d489906c05b02243ea09b09",
+      "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+      "profile_id": "release-build",
+      "profile_sha256": "c936c372da030895d69b2715d91c2e396a7905442e58aad96ab219831bf885e6"
+    },
+    {
+      "id": "4302eb144770ed2fddda7d1e7fac1174",
+      "run_id": "87b3aa1c2280eaab95295d63d5d7e215",
+      "node_id": "package-test",
+      "kind": "package_test",
+      "artifact_id": "719f6c8d3d489906c05b02243ea09b09",
+      "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+      "profile_id": "release-package-test",
+      "profile_sha256": "5b617c14d902da8024333dbeb61253bd107e4d4a2d047796dad3d8101fb748d3"
+    }
+  ],
+  "actual_blobs": [
+    {
+      "artifact_id": "cf9e720d236431cc2ee91b950af10d97",
+      "run_id": "ff8fcddfcf77ad3afdbd94e8a7d0518e",
+      "path": "index.html",
+      "bytes": 1198,
+      "sha256": "893919d3c154399cb901cceca47bfc477ac94974a16423d2c7feede70105b741",
+      "matches_sealed_manifest": true
+    },
+    {
+      "artifact_id": "719f6c8d3d489906c05b02243ea09b09",
+      "run_id": "87b3aa1c2280eaab95295d63d5d7e215",
+      "path": "index.html",
+      "bytes": 1198,
+      "sha256": "893919d3c154399cb901cceca47bfc477ac94974a16423d2c7feede70105b741",
+      "matches_sealed_manifest": true
+    }
+  ],
+  "current_control": {
+    "binary_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T023250966Z-97012787\\suma-control.exe",
+    "binary_sha256": "5b18d6f0868bb3901ecd40c9ae4da444be92a7cc4e0fe34108accabe8bd91f8f",
+    "launcher_pid": 105448,
+    "browser_restart_at": "2026-10-24T02:39:44.4104253Z"
+  },
+  "health": {
+    "database": "connected",
+    "status": "ok",
+    "version": "0.1.0"
+  },
+  "boundaries": [
+    "Both triggers bind revision 1 and public workflow v1; no business task acceptance or deployment is implied by run success.",
+    "Rule is now manual-only revision 2 and paused; historic cron/manual triggers retain revision 1.",
+    "Raw terminal event metadata remains null in the database; public reads normalize it to the documented empty object.",
+    "Evidence contains no session/worker/provider credentials."
+  ]
+}

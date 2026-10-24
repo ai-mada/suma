@@ -16,6 +16,7 @@
 | 真实制品、发布授权与恢复 | [制品存储](data/release-artifacts.md)、[发布证据架构](architecture/release-evidence.md)、[发布工作台](design/release-workspace.md) |
 | 本机发布与执行提供方 | [发布控制面](deployment/release-control.md)、[提供方协议](integrations/release-provider.md)、[四程序运行包](deployment/release-runtime-bundles.md) |
 | 原生智能体与开发工具 | [智能体运行时](agents/runtime.md)、[工具接入](integrations/tools.md) |
+| 定时自动化与事件续传 | [自动化与事件架构](architecture/automation-events.md)、[自动化工作台](design/automation-workspace.md)、[本机验收](quality/automation-verification.md)、[当前四程序交付](deployment/automation-runtime-bundles.md) |
 | 产品交互与流程图 | [工作台](design/workbench.md)、[DAG 三视图](design/dag-interactions.md) |
 | 组织治理、项目计划与候选测试 | [组织、团队与权限](product/governance.md)、[规划与治理工作台](design/planning-governance.md) |
 | HTTP 合同 | [API 说明](api/README.md)、[OpenAPI](api/openapi.json) |
@@ -35,5 +36,7 @@
 本轮在组织治理、规划和固定候选测试基础上，进一步实现真实字节制品、构建与包测试证明、不可变发布候选、环境与独立部署审批、受保护执行、实际本机 HTTP 健康检查、未知核对及独立新代数回退。浏览器完成 A→B健康异常→A回退，修复后再次复验问题及需求去重。容量仍是计划估算；完整设计编辑、工作制日历、风险与组合规划、生产CI、S3及分布式数据库验收继续列为待办，不能据此签收完整P0–P7。具体边界以能力矩阵、实施台账和统一验证报告为准。
 
 ## 维护方式
+
+本阶段继续加入持久人工/cron规则、固定修订派发、时区预演和授权SSE续传。实际双触发均完成开发/制品/包测试；普通Chrome验证终态、正常轮换及服务重启，规则改版后保留原运行。范围与跳过项见专项报告，完整平台仍按实施台账推进。
 
 接口修改先更新共享合同和对应验证；业务门禁变更同步状态机、用户旅程、错误恢复文案和测试。运行截图、HTTP 记录和大规模性能报告统一进入项目交付证据目录；日常临时文件使用 `.cache/`。

@@ -1,0 +1,15 @@
+{
+  "previous_stamp": "20261024T022519852Z-2a1cdc66",
+  "current_stamp": "20261024T023250966Z-97012787",
+  "previous_source_sha256": "bce32d56befd2866de29bccf3b321a942df28eb4f9bbd12b39264fbe12aee4cc",
+  "current_source_sha256": "cb40b728b0b540da3647df82aee986e2883e445738d0fed86a5f961e6f5d9f5a",
+  "added": [],
+  "changed": [
+    {
+      "path": "internal/platform/run_stream.go",
+      "previous_sha256": "965856321337cfa404ccb69153e35edf6db757a66cb273a5b9fa6c747fc99e4a",
+      "current_sha256": "75146e75ede722aa31ff1cd39bf6bab76bb0cb4949128f7e60962826d35a95f8"
+    }
+  ],
+  "removed": []
+}

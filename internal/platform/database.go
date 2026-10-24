@@ -77,7 +77,10 @@ func (s *Service) Migrate(ctx context.Context) error {
 	if err := s.MigrateArtifacts(ctx); err != nil {
 		return err
 	}
-	return s.MigrateReleaseDeployment(ctx)
+	if err := s.MigrateReleaseDeployment(ctx); err != nil {
+		return err
+	}
+	return s.MigrateAutomations(ctx)
 }
 
 func (s *Service) Authorize(ctx context.Context, p Principal, projectID string, write bool, approve bool) error {

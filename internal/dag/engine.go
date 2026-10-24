@@ -56,6 +56,9 @@ func New(db *sql.DB, dialect string) (*Engine, error) {
 			return nil, fmt.Errorf("dag migration: %w", err)
 		}
 	}
+	if err := migrateEventIndexes(db, dialect); err != nil {
+		return nil, fmt.Errorf("dag event index migration: %w", err)
+	}
 	insert := "INSERT INTO dag_lock (id,seq) VALUES (1,0) ON CONFLICT (id) DO NOTHING"
 	if dialect == "oceanbase" {
 		insert = "INSERT IGNORE INTO dag_lock (id,seq) VALUES (1,0)"
@@ -294,7 +297,7 @@ func (e *Engine) Workflows(ctx context.Context, tenant, project string) ([]Workf
 	if err := scopeValid(tenant, project); err != nil {
 		return nil, err
 	}
-	rows, err := e.db.QueryContext(ctx, e.q("SELECT w.spec FROM dag_workflows w WHERE w.tenant_id=? AND w.project_id=? AND NOT EXISTS (SELECT 1 FROM dag_compensations c JOIN dag_runs r ON r.id=c.compensation_run_id WHERE r.tenant_id=w.tenant_id AND r.project_id=w.project_id AND r.workflow_id=w.id) ORDER BY w.id,w.version"), tenant, project)
+	rows, err := e.db.QueryContext(ctx, e.q("SELECT w.spec FROM dag_workflows w WHERE w.tenant_id=? AND w.project_id=? AND NOT EXISTS (SELECT 1 FROM dag_managed_workflows m WHERE m.tenant_id=w.tenant_id AND m.project_id=w.project_id AND m.workflow_id=w.id) AND NOT EXISTS (SELECT 1 FROM dag_compensations c JOIN dag_runs r ON r.id=c.compensation_run_id WHERE r.tenant_id=w.tenant_id AND r.project_id=w.project_id AND r.workflow_id=w.id) ORDER BY w.id,w.version"), tenant, project)
 	if err != nil {
 		return nil, err
 	}
@@ -459,11 +462,17 @@ func (e *Engine) Runs(ctx context.Context, tenant, project string) ([]Run, error
 	})
 	return out, err
 }
+
+// Events returns at most 1000 durable events; callers resume after the last
+// returned sequence. HTTP clients use the smaller authorized 128-event window.
 func (e *Engine) Events(ctx context.Context, tenant, project, id string, after int64) ([]Event, error) {
+	if after < 0 {
+		return nil, fmt.Errorf("%w: negative event cursor", ErrInvalid)
+	}
 	if _, err := e.GetRun(ctx, tenant, project, id); err != nil {
 		return nil, err
 	}
-	rows, err := e.db.QueryContext(ctx, e.q("SELECT sequence,run_id,node_id,event_type,at_time,data FROM dag_events WHERE tenant_id=? AND project_id=? AND run_id=? AND sequence>? ORDER BY sequence"), tenant, project, id, after)
+	rows, err := e.db.QueryContext(ctx, e.q("SELECT sequence,run_id,node_id,event_type,at_time,data FROM dag_events WHERE tenant_id=? AND project_id=? AND run_id=? AND sequence>? ORDER BY sequence LIMIT 1000"), tenant, project, id, after)
 	if err != nil {
 		return nil, err
 	}
@@ -477,6 +486,9 @@ func (e *Engine) Events(ctx context.Context, tenant, project, id string, after i
 		}
 		if err = json.Unmarshal([]byte(raw), &event.Data); err != nil {
 			return nil, err
+		}
+		if event.Data == nil {
+			event.Data = map[string]any{}
 		}
 		out = append(out, event)
 	}
@@ -517,6 +529,12 @@ func (e *Engine) CreateRunVersion(ctx context.Context, tenant, project, workflow
 // CreateRunBound admits service-owned bindings inside the scheduler transaction.
 // The callback must use tx exclusively, never call Engine or perform external IO.
 func (e *Engine) CreateRunBound(ctx context.Context, tenant, project, workflowID string, version int, operationID, bindingKey string, bind func(*sql.Tx, string) error) (Run, error) {
+	return e.CreateRunBoundAuthorized(ctx, tenant, project, workflowID, version, operationID, bindingKey, nil, bind)
+}
+
+// CreateRunBoundAuthorized checks live authority before acquiring the scheduler
+// lock or replaying a receipt. Both callbacks must use only the supplied tx.
+func (e *Engine) CreateRunBoundAuthorized(ctx context.Context, tenant, project, workflowID string, version int, operationID, bindingKey string, before func(*sql.Tx) error, bind func(*sql.Tx, string) error) (Run, error) {
 	var out Run
 	if version < 0 || bind != nil && bindingKey == "" {
 		return out, fmt.Errorf("%w: version and binding key", ErrInvalid)
@@ -524,7 +542,7 @@ func (e *Engine) CreateRunBound(ctx context.Context, tenant, project, workflowID
 	if err := scopeValid(tenant, project); err != nil {
 		return out, err
 	}
-	err := e.write(ctx, func(t *transaction) error {
+	err := e.writeBefore(ctx, before, func(t *transaction) error {
 		hash := fingerprint(map[string]any{"workflow_id": workflowID, "version": version, "binding_key": bindingKey})
 		id, err := t.operation(tenant, project, "create_run", operationID, hash)
 		if err != nil {

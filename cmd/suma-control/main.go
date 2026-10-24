@@ -80,6 +80,9 @@ func main() {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
+				if e := service.TickAutomations(ctx, engine); e != nil && ctx.Err() == nil {
+					slog.Error("automation tick", "error", e)
+				}
 				if e := engine.Tick(ctx); e != nil && ctx.Err() == nil {
 					slog.Error("scheduler tick", "error", e)
 				}

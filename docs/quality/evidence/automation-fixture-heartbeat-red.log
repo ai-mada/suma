@@ -1,0 +1,6 @@
+=== RUN   TestReleaseFixtureWorkerRenewsActualHTTPLease
+    release_fixture_worker_test.go:84: runner results rejected: HTTP 409
+--- FAIL: TestReleaseFixtureWorkerRenewsActualHTTPLease (2.47s)
+FAIL
+FAIL	github.com/ai-mada/suma/internal/platform	3.262s
+FAIL

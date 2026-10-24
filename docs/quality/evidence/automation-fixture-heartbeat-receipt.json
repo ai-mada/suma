@@ -1,0 +1,82 @@
+{
+  "task": "release-fixture-http-heartbeat",
+  "completed_at": "2026-10-24T02:47:15.9525307Z",
+  "production_source_changed": false,
+  "committed": false,
+  "scope": [
+    "internal/platform/artifact_integration_test.go",
+    "internal/platform/release_deploy_integration_test.go",
+    "internal/platform/release_fixture_worker_test.go"
+  ],
+  "fix": "Candidate fixtures now run the actual runner.Worker.Run lifecycle with its production default 5-second heartbeat and unchanged 30-second lease, await successful run plus durable result/progress ACK, cancel and join Worker.",
+  "red": {
+    "command": "go test ./internal/platform -run '^TestReleaseFixtureWorkerRenewsActualHTTPLease$' -count=1 -v",
+    "exit": 1,
+    "result": "Old direct Claim/Execute/Finish/Replay fixture path with 2-second lease and actual 2200ms subprocess failed with runner results rejected: HTTP 409 in 2.47s."
+  },
+  "green": {
+    "command": "go test ./internal/platform -run '^(TestArtifactsRealBytesDerivedProofAndAcceptedCandidate|TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback|TestReleaseFixtureWorkerRenewsActualHTTPLease)$' -count=1 -parallel=1 -v",
+    "exit": 0,
+    "seconds": 26.134,
+    "tests": {
+      "TestReleaseFixtureWorkerRenewsActualHTTPLease": 2.48,
+      "TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback": 14.55,
+      "TestArtifactsRealBytesDerivedProofAndAcceptedCandidate": 8.03
+    }
+  },
+  "baseline": "Original two tests passed serially before edits: 8.45s and 16.00s, total 25.449s; production regression not reproduced without concurrent runtime build load.",
+  "limitation": "Worker.Run stops assignment heartbeats at Execute/Finish and immediately performs Replay in its outer loop, as production does. This fixture adds no gap or custom heartbeat/result race; it waits for result and progress ACK before stopping Worker.",
+  "intermediate_failure": "First post-fix combined run artifact test failed only on Windows TempDir cleanup because suma.db was held by another process; provider and short-lease regression passed. No sleeps or retries were added. Subsequent artifact recheck passed 8.01s and final 3-test combined run passed.",
+  "environment": {
+    "TEMP": "D:/codes/ai-dev-os/suma/.cache/test-tmp",
+    "TMP": "D:/codes/ai-dev-os/suma/.cache/test-tmp",
+    "GOCACHE": "D:/codes/ai-dev-os/suma/.cache/go-build",
+    "GOPROXY": "off",
+    "GOTMPDIR": "D:/codes/ai-dev-os/suma/.cache"
+  },
+  "source_hashes": [
+    {
+      "path": "D:\\codes\\ai-dev-os\\suma\\internal\\platform\\artifact_integration_test.go",
+      "sha256": "6eb3bcc6ec2906a3e8c9e026f5f812d286cafe688b6151433b7cc99bc7bd3993"
+    },
+    {
+      "path": "D:\\codes\\ai-dev-os\\suma\\internal\\platform\\release_deploy_integration_test.go",
+      "sha256": "1b3692775aa3b6fd638d263c1083970fe33aa13209e85c192ad34c0decf0ec6a"
+    },
+    {
+      "path": "D:\\codes\\ai-dev-os\\suma\\internal\\platform\\release_fixture_worker_test.go",
+      "sha256": "4e99ea0fff9ee63766535d59e389c6fb74477b22e0be0aea9fc2ce8b2d326645"
+    }
+  ],
+  "evidence_hashes": [
+    {
+      "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\automation-stage\\fixture-heartbeat-baseline.log",
+      "sha256": "d191b79a5e95d1c67dc7f731eb4ccb9569de71e6cbea70b323c5c5f181acd033"
+    },
+    {
+      "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\automation-stage\\fixture-heartbeat-red.log",
+      "sha256": "640f81a051dca9aa83e77d1b8000f282d538ebd1b1d090bdbef14dfe012cc499"
+    },
+    {
+      "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\automation-stage\\fixture-heartbeat-green.log",
+      "sha256": "f84d9f8629c8e17c02674532fbec29d28fc8e21edbe50e3e2d5a480f8fe1af9d"
+    },
+    {
+      "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\automation-stage\\fixture-heartbeat-targeted.log",
+      "sha256": "b0cda7d773fce573c7bc70d61cfc5a32d9fd7b6501d153929489c46ddd93f0ac"
+    },
+    {
+      "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\automation-stage\\fixture-heartbeat-artifact-recheck.log",
+      "sha256": "57581b7ec50c3c6e112ef3f3ea31fe46c1fbf033082a7eafb36cd5d907af8604"
+    },
+    {
+      "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\automation-stage\\fixture-heartbeat-final.log",
+      "sha256": "c0ed1e7b5e94e7e4e0e38dfea4128e2d73a2ef09709249bdd1b3e70aaaff4eb3"
+    }
+  ],
+  "prior_full_suite_failure": {
+    "path": "docs/quality/evidence/automation-go-tests.jsonl",
+    "sha256_before_root_final_run": "98d354337dbc29a38a9c05e965f1360bb1b14a48ee3be63efdbae40d32457b17",
+    "note": "Hash confirmed before final source-freeze notice; file was busy when root began final verification, so the active file was not read or modified."
+  }
+}

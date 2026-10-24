@@ -1,0 +1,18 @@
+{
+  "stage": "T-P4-002",
+  "command": "go test -json ./... -count=1",
+  "result": "failed; retained as diagnostic evidence, not final acceptance",
+  "concurrent_activity": "offline six-target runtime build",
+  "first_event": "2026-10-24T10:32:41.450703+08:00",
+  "last_event": "2026-10-24T10:38:02.0978581+08:00",
+  "pass_events": 325,
+  "failed_cases": [
+    "TestArtifactsRealBytesDerivedProofAndAcceptedCandidate",
+    "TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback"
+  ],
+  "skipped_cases": [
+    "TestWorktreeCacheCannotTraverseDirectoryLinks"
+  ],
+  "diagnosis": "Two real-process integration fixtures execute and replay directly without Worker.Run heartbeats; observed 65/71-second operations lost a 30-second lease. Production stale-write protection correctly rejected HTTP 409. A serial baseline and test-only heartbeat lifecycle correction are being verified.",
+  "raw_sha256": "98d354337dbc29a38a9c05e965f1360bb1b14a48ee3be63efdbae40d32457b17"
+}

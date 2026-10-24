@@ -100,6 +100,99 @@ export interface AssignmentRef {
   fence: number;
   worker_id: string;
 }
+export interface AutomationCommandRequest {
+  project_id: string;
+  action: string;
+  expected_version: number;
+  idempotency_key: string;
+  spec?: AutomationSpec | null;
+}
+export interface AutomationCommandResult {
+  rule: AutomationRule;
+  occurrence?: AutomationOccurrence | null;
+}
+export interface AutomationCreateRequest {
+  project_id: string;
+  idempotency_key: string;
+  spec: AutomationSpec;
+}
+export interface AutomationList {
+  items: (AutomationRule)[];
+  total: number;
+  next_cursor: string;
+}
+export interface AutomationOccurrence {
+  id: string;
+  rule_id: string;
+  revision: number;
+  source: string;
+  scheduled_at: string;
+  state: string;
+  reason: string;
+  run_id: string;
+  run_state?: string;
+  created_at: string;
+  updated_at: string;
+}
+export interface AutomationOccurrences {
+  items: (AutomationOccurrence)[];
+  total: number;
+  next_cursor: string;
+}
+export interface AutomationPreview {
+  items: (AutomationPreviewTime)[];
+}
+export interface AutomationPreviewRequest {
+  project_id: string;
+  spec: AutomationSpec;
+}
+export interface AutomationPreviewTime {
+  utc: string;
+  local: string;
+}
+export interface AutomationRevision {
+  revision: number;
+  spec: AutomationSpec;
+  created_at: string;
+}
+export interface AutomationRevisions {
+  items: (AutomationRevision)[];
+  total: number;
+  next_cursor: string;
+}
+export interface AutomationRule {
+  name: string;
+  workflow_id: string;
+  workflow_version: number;
+  trigger: string;
+  cron: string;
+  timezone: string;
+  misfire: string;
+  catch_up_limit: number;
+  overlap: string;
+  id: string;
+  project_id: string;
+  version: number;
+  revision: number;
+  state: string;
+  activated_by: string;
+  next_at: string;
+  created_at: string;
+  updated_at: string;
+  last_error: string;
+  revisions?: (AutomationRevision)[];
+}
+export interface AutomationSpec {
+  name: string;
+  workflow_id: string;
+  workflow_version: number;
+  trigger: string;
+  cron: string;
+  timezone: string;
+  misfire: string;
+  catch_up_limit: number;
+  overlap: string;
+}
 export interface BaselineCaptureRequest {
   project_id: string;
   title: string;

@@ -1,0 +1,10 @@
+=== RUN   TestArtifactsRealBytesDerivedProofAndAcceptedCandidate
+    testing.go:1267: TempDir RemoveAll cleanup: remove D:\codes\ai-dev-os\suma\.cache\test-tmp\TestArtifactsRealBytesDerivedProofAndAcceptedCandidate1328332909\001\suma.db: The process cannot access the file because it is being used by another process.
+--- FAIL: TestArtifactsRealBytesDerivedProofAndAcceptedCandidate (10.05s)
+=== RUN   TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback
+--- PASS: TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback (17.51s)
+=== RUN   TestReleaseFixtureWorkerRenewsActualHTTPLease
+--- PASS: TestReleaseFixtureWorkerRenewsActualHTTPLease (2.49s)
+FAIL
+FAIL	github.com/ai-mada/suma/internal/platform	30.844s
+FAIL

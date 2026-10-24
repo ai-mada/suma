@@ -1,0 +1,4 @@
+=== RUN   TestReleaseFixtureWorkerRenewsActualHTTPLease
+--- PASS: TestReleaseFixtureWorkerRenewsActualHTTPLease (2.49s)
+PASS
+ok  	github.com/ai-mada/suma/internal/platform	3.503s

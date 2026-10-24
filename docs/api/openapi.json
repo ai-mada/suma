@@ -413,6 +413,466 @@
         ],
         "type": "object"
       },
+      "AutomationCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "description": "Only revise accepts/requires a non-null spec. Enable requires current project approval permission.",
+            "enum": [
+              "revise",
+              "enable",
+              "pause",
+              "archive",
+              "trigger"
+            ],
+            "type": "string"
+          },
+          "expected_version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "spec": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AutomationSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "project_id",
+          "action",
+          "expected_version",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "AutomationCommandResult": {
+        "properties": {
+          "occurrence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AutomationOccurrence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rule": {
+            "$ref": "#/components/schemas/AutomationRule"
+          }
+        },
+        "required": [
+          "rule"
+        ],
+        "type": "object"
+      },
+      "AutomationCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "idempotency_key": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/AutomationSpec"
+          }
+        },
+        "required": [
+          "project_id",
+          "idempotency_key",
+          "spec"
+        ],
+        "type": "object"
+      },
+      "AutomationList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AutomationRule"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "AutomationOccurrence": {
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "rule_id": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "run_state": {
+            "type": "string"
+          },
+          "scheduled_at": {
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "cron",
+              "manual"
+            ],
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "queued",
+              "started",
+              "skipped",
+              "blocked"
+            ],
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "rule_id",
+          "revision",
+          "source",
+          "scheduled_at",
+          "state",
+          "reason",
+          "run_id",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "AutomationOccurrences": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AutomationOccurrence"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "AutomationPreview": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AutomationPreviewTime"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "AutomationPreviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "type": "string"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/AutomationSpec"
+          }
+        },
+        "required": [
+          "project_id",
+          "spec"
+        ],
+        "type": "object"
+      },
+      "AutomationPreviewTime": {
+        "properties": {
+          "local": {
+            "type": "string"
+          },
+          "utc": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "utc",
+          "local"
+        ],
+        "type": "object"
+      },
+      "AutomationRevision": {
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/AutomationSpec"
+          }
+        },
+        "required": [
+          "revision",
+          "spec",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "AutomationRevisions": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AutomationRevision"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "AutomationRule": {
+        "properties": {
+          "activated_by": {
+            "type": "string"
+          },
+          "catch_up_limit": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "cron": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "last_error": {
+            "type": "string"
+          },
+          "misfire": {
+            "enum": [
+              "skip",
+              "latest",
+              "catch_up"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          },
+          "next_at": {
+            "type": "string"
+          },
+          "overlap": {
+            "enum": [
+              "allow",
+              "forbid",
+              "queue"
+            ],
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "revision": {
+            "description": "Immutable specification revision, incremented only by revise.",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/AutomationRevision"
+            },
+            "type": "array"
+          },
+          "state": {
+            "enum": [
+              "draft",
+              "enabled",
+              "paused",
+              "archived"
+            ],
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "trigger": {
+            "enum": [
+              "cron",
+              "manual"
+            ],
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "version": {
+            "description": "User-command CAS version; scheduler cursor movement does not consume this version.",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "workflow_id": {
+            "type": "string"
+          },
+          "workflow_version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "workflow_id",
+          "workflow_version",
+          "trigger",
+          "cron",
+          "timezone",
+          "misfire",
+          "catch_up_limit",
+          "overlap",
+          "id",
+          "project_id",
+          "version",
+          "revision",
+          "state",
+          "activated_by",
+          "next_at",
+          "created_at",
+          "updated_at",
+          "last_error"
+        ],
+        "type": "object"
+      },
+      "AutomationSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "catch_up_limit": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "cron": {
+            "type": "string"
+          },
+          "misfire": {
+            "enum": [
+              "skip",
+              "latest",
+              "catch_up"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          },
+          "overlap": {
+            "enum": [
+              "allow",
+              "forbid",
+              "queue"
+            ],
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "trigger": {
+            "enum": [
+              "cron",
+              "manual"
+            ],
+            "type": "string"
+          },
+          "workflow_id": {
+            "type": "string"
+          },
+          "workflow_version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "workflow_id",
+          "workflow_version",
+          "trigger",
+          "cron",
+          "timezone",
+          "misfire",
+          "catch_up_limit",
+          "overlap"
+        ],
+        "type": "object"
+      },
       "BaselineCaptureRequest": {
         "properties": {
           "idempotency_key": {
@@ -4937,6 +5397,476 @@
               }
             },
             "description": "Created"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/automations": {
+      "get": {
+        "operationId": "get_automations",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Default 50; maximum 200.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor scoped to this organization, project, rule and collection.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationList"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      },
+      "post": {
+        "description": "Creates a draft with an immutable initial revision. Requires a real fixed public workflow version in the same project; cannot automate protected release workflows.",
+        "operationId": "post_automations",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutomationCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationRule"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/automations/preview": {
+      "post": {
+        "description": "Read-only calendar preview using database time and bounded IANA timezone evaluation. Manual rules return an empty items list; cron returns five UTC/local pairs.",
+        "operationId": "post_automations_preview",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutomationPreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationPreview"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/automations/{id}": {
+      "get": {
+        "operationId": "get_automations_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationRule"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/automations/{id}/commands": {
+      "post": {
+        "description": "Versioned revise/enable/pause/archive/trigger. Enable requires current approval authority; edits pause the rule. Trigger stores one deduplicated occurrence, not a successful run. Dispatch rechecks current activator authority and atomically binds the fixed workflow run.",
+        "operationId": "post_automations_id_commands",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutomationCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationCommandResult"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/automations/{id}/occurrences": {
+      "get": {
+        "operationId": "get_automations_id_occurrences",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Default 50; maximum 200.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor scoped to this organization, project, rule and collection.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationOccurrences"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/automations/{id}/revisions": {
+      "get": {
+        "operationId": "get_automations_id_revisions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Default 50; maximum 200.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor scoped to this organization, project, rule and collection.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationRevisions"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
           },
           "400": {
             "description": "Invalid request"
@@ -11615,12 +12545,14 @@
     },
     "/runs/{id}/events": {
       "get": {
+        "description": "Authorized durable history window, at most 128 events. Resume using next_cursor; zero or an existing sequence from this exact run. Same current authority checks as streaming.",
         "operationId": "get_runs_id_events",
         "parameters": [
           {
             "in": "query",
             "name": "after",
             "schema": {
+              "maximum": 9007199254740991,
               "minimum": 0,
               "type": "integer"
             }
@@ -11715,6 +12647,94 @@
           }
         ],
         "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/runs/{id}/events/stream": {
+      "get": {
+        "description": "Bounded 20-second connection with 5-second heartbeat, 2-second write deadlines, 128-event pages and repeated current session/project authorization. Browser cookie or bound API credential; no query-string secrets. Reconnect with last fully parsed sequence, preserving run identity.",
+        "operationId": "get_runs_id_events_stream",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Zero or an existing durable event sequence from this exact run; must match Last-Event-ID when both supplied.",
+            "in": "query",
+            "name": "after",
+            "schema": {
+              "default": 0,
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Last-Event-ID",
+            "required": false,
+            "schema": {
+              "pattern": "^[0-9]+$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "description": "UTF-8 SSE. id=durable Event.sequence, event=run_event, data=Event JSON. Comments are heartbeats; stream_error reports revocation or availability. Partial frames never advance the cursor.",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          },
+          "429": {
+            "description": "Process or actor connection budget exhausted; Retry-After provided."
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-event-schema": {
+          "$ref": "#/components/schemas/Event"
+        },
+        "x-request-schema-coverage": "strict project/after query and Last-Event-ID validation; run-bound cursor and live authorization"
       }
     },
     "/search": {

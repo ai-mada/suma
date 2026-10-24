@@ -1,0 +1,6 @@
+{
+  "command": "& ./scripts/build-runtime.ps1 -All",
+  "started_at": "2026-10-24T02:14:51.2576779Z",
+  "completed_at": "2026-10-24T02:15:39.7055194Z",
+  "exit_code": 0
+}

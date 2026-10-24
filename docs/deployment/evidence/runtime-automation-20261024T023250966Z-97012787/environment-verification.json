@@ -1,0 +1,12 @@
+{
+  "User": {
+    "before_sha256": "45d424a80ea30502799194e2beea3176352324e4890e52ea7b261aff20f2a122",
+    "after_sha256": "45d424a80ea30502799194e2beea3176352324e4890e52ea7b261aff20f2a122",
+    "unchanged": true
+  },
+  "Machine": {
+    "before_sha256": "571ced310ce4bd2313b7cdd3cc564a4176dbde2c794e68f9927038cd64e17390",
+    "after_sha256": "571ced310ce4bd2313b7cdd3cc564a4176dbde2c794e68f9927038cd64e17390",
+    "unchanged": true
+  }
+}
