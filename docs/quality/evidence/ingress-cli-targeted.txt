@@ -1,0 +1,18 @@
+=== RUN   TestWebhookDeliversExactSignedBodyWithoutSessionCredentials
+--- PASS: TestWebhookDeliversExactSignedBodyWithoutSessionCredentials (0.00s)
+=== RUN   TestWebhookRejectsUnsafeFlagsBodyAndSecretBeforeNetwork
+--- PASS: TestWebhookRejectsUnsafeFlagsBodyAndSecretBeforeNetwork (0.01s)
+=== RUN   TestWebhookRejectsRemotePlainHTTPAndDoesNotEchoResponse
+=== RUN   TestWebhookRejectsRemotePlainHTTPAndDoesNotEchoResponse/403
+=== RUN   TestWebhookRejectsRemotePlainHTTPAndDoesNotEchoResponse/202
+--- PASS: TestWebhookRejectsRemotePlainHTTPAndDoesNotEchoResponse (0.00s)
+    --- PASS: TestWebhookRejectsRemotePlainHTTPAndDoesNotEchoResponse/403 (0.00s)
+    --- PASS: TestWebhookRejectsRemotePlainHTTPAndDoesNotEchoResponse/202 (0.00s)
+=== RUN   TestWebhookRedirectNeverForwardsSignatureAndUnknownOutcomeIsExplicit
+--- PASS: TestWebhookRedirectNeverForwardsSignatureAndUnknownOutcomeIsExplicit (0.00s)
+=== RUN   TestWebhookFileRetryKeepsBytesAndRecoversDuplicateReceipt
+--- PASS: TestWebhookFileRetryKeepsBytesAndRecoversDuplicateReceipt (0.00s)
+=== RUN   TestWebhookTimeoutLeavesDeliveryIdentityForRecovery
+--- PASS: TestWebhookTimeoutLeavesDeliveryIdentityForRecovery (0.05s)
+PASS
+ok  	github.com/ai-mada/suma/internal/cli	0.594s

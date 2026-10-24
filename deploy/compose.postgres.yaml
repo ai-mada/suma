@@ -1,0 +1,12 @@
+services:
+  control:
+    environment:
+      SUMA_DB_DRIVER: postgres
+      SUMA_DB_DSN_FILE: /run/secrets/database_dsn
+      SUMA_INGRESS_MASTER_KEY_FILE: /run/secrets/ingress_master_key
+    secrets: [database_dsn, ingress_master_key]
+secrets:
+  database_dsn:
+    file: ${SUMA_DB_DSN_FILE:-./secrets/database-dsn}
+  ingress_master_key:
+    file: ${SUMA_INGRESS_MASTER_KEY_FILE:-./secrets/ingress-master-key}

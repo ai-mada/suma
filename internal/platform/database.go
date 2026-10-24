@@ -8,10 +8,11 @@ import (
 )
 
 type Service struct {
-	DB               *sql.DB
-	Dialect          string
-	DataDir          string
-	ReleaseProviders []ReleaseProviderConfig
+	DB                   *sql.DB
+	Dialect              string
+	DataDir              string
+	ReleaseProviders     []ReleaseProviderConfig
+	AutomationIngressKey []byte
 }
 
 func (s *Service) q(query string) string {
@@ -80,7 +81,10 @@ func (s *Service) Migrate(ctx context.Context) error {
 	if err := s.MigrateReleaseDeployment(ctx); err != nil {
 		return err
 	}
-	return s.MigrateAutomations(ctx)
+	if err := s.MigrateAutomations(ctx); err != nil {
+		return err
+	}
+	return s.MigrateAutomationIngresses(ctx)
 }
 
 func (s *Service) Authorize(ctx context.Context, p Principal, projectID string, write bool, approve bool) error {

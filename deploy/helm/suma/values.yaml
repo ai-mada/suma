@@ -14,9 +14,16 @@ setupSecret:
 
 database:
   driver: sqlite
-  # For oceanbase, the Secret key holds a complete MySQL DSN.
+  # For oceanbase/postgres, the Secret key holds the complete driver DSN.
   existingSecret: suma-control-secrets
   dsnKey: database-dsn
+
+# Reference only: never put the base64 master key in values.
+# SQLite with an empty existingSecret persists its own key on the data volume.
+# Shared databases default to database.existingSecret when existingSecret is empty.
+ingressMasterKey:
+  existingSecret: ""
+  key: ingress-master-key
 
 persistence:
   existingClaim: ""

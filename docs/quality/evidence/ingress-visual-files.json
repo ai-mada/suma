@@ -1,0 +1,79 @@
+{
+  "stage": "T-P4-003",
+  "captured_at": "2026-10-24T04:00:51.911470+00:00",
+  "scope": "Unedited native screenshot bytes. Actual image dimensions may exclude scrollbar; DOM viewport recorded separately. Includes pre-polish and transition captures named in browser-visual notes.",
+  "files": [
+    {
+      "file": "ingress-context-1920.jpg",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 45993,
+      "sha256": "6ed42f92e4fecb11dc26550db5addffa3f27e37b9ed9cb59423d1dc580f09660"
+    },
+    {
+      "file": "ingress-dark-1366.jpg",
+      "format": "JPEG",
+      "width": 1351,
+      "height": 890,
+      "bytes": 84841,
+      "sha256": "53e0451a8543c2f55d2f9150f899dd3bbfbecc9fd4dd24b48441677bead19d30"
+    },
+    {
+      "file": "ingress-deliveries-1920.jpg",
+      "format": "JPEG",
+      "width": 1905,
+      "height": 1072,
+      "bytes": 105128,
+      "sha256": "06dc88f90d63ee9a0bf95823c57e29c8c4e7170009b02009afd7c72a47069380"
+    },
+    {
+      "file": "ingress-desktop-1366.jpg",
+      "format": "JPEG",
+      "width": 1351,
+      "height": 890,
+      "bytes": 67766,
+      "sha256": "8fb20caad2d0615e1863a63f623e20137554db00f56876143bfbcb0daa1974b2"
+    },
+    {
+      "file": "ingress-desktop-final-1366.jpg",
+      "format": "JPEG",
+      "width": 1351,
+      "height": 890,
+      "bytes": 76873,
+      "sha256": "a0eae6e5e5b13481fe88a549ac5b2a60e7500c284ef22c0315480cea912674b0"
+    },
+    {
+      "file": "ingress-entry-390.jpg",
+      "format": "JPEG",
+      "width": 390,
+      "height": 844,
+      "bytes": 32038,
+      "sha256": "873d833c4e80a3481d026cb5eac4c04f6c118125ac11a282d5c5e53a449635f9"
+    },
+    {
+      "file": "ingress-initial-key-390.jpg",
+      "format": "JPEG",
+      "width": 390,
+      "height": 844,
+      "bytes": 29108,
+      "sha256": "a8474bdf7669ee050ed81140849044752f78857f1bbb5f7844d891d677c770f0"
+    },
+    {
+      "file": "ingress-run-1366.jpg",
+      "format": "JPEG",
+      "width": 1350,
+      "height": 900,
+      "bytes": 68654,
+      "sha256": "5d7456d846cef5b84075eaa43d4f675b81d60466b3133558d3f747417aa964ba"
+    },
+    {
+      "file": "ingress-tablet-768.jpg",
+      "format": "JPEG",
+      "width": 753,
+      "height": 1004,
+      "bytes": 73937,
+      "sha256": "2fff3fe96117f009e53b5840e4f530dd8540950aed51e0fa7808658b4b4640f4"
+    }
+  ]
+}

@@ -1,0 +1,946 @@
+{
+  "stage": "T-P4-003",
+  "captured_at": "2026-10-24T03:52:32.315140+00:00",
+  "scope": "Real local UI-created sources and CLI/native protocol HTTP, synthetic external metadata with actual isolated development/build/package HTTP tests. No vendor account/public delivery or production acceptance.",
+  "rule": {
+    "id": "cb5b87b3d11a85e291eac8ff33912e2c",
+    "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d",
+    "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+    "version": 3,
+    "revision": 1,
+    "state": "paused",
+    "next_at": "",
+    "spec": {
+      "name": "Git 与 CI 签名来源验证",
+      "workflow_id": "b6f46366db875b3aa2c49cfc181f2c99",
+      "workflow_version": 1,
+      "trigger": "manual",
+      "cron": "",
+      "timezone": "Asia/Shanghai",
+      "misfire": "latest",
+      "catch_up_limit": 5,
+      "overlap": "queue"
+    }
+  },
+  "sources": [
+    {
+      "id": "635e491a624d467a5a732e18b1748ed7",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "rule_id": "cb5b87b3d11a85e291eac8ff33912e2c",
+      "rule_revision": 1,
+      "version": 4,
+      "revision": 1,
+      "state": "paused",
+      "key_generation": 1,
+      "key_fingerprint": "104aa4600268572d96b12871c5d9718370a3c7d2c655a3eab3d8b65f3524de3c",
+      "key_configured": true,
+      "created_at": "2026-10-24T03:21:39Z",
+      "updated_at": "2026-10-24T03:38:48Z",
+      "last_error": "",
+      "spec": {
+        "name": "GitHub 仓库与标签",
+        "provider": "github",
+        "events": [
+          "push",
+          "ping"
+        ],
+        "repository": "example/suma",
+        "repository_id": "123456789",
+        "ref": "refs/tags/v1.0.0",
+        "conclusions": []
+      },
+      "revisions": [
+        {
+          "revision": 1,
+          "rule_revision": 1,
+          "spec": {
+            "name": "GitHub 仓库与标签",
+            "provider": "github",
+            "events": [
+              "push",
+              "ping"
+            ],
+            "repository": "example/suma",
+            "repository_id": "123456789",
+            "ref": "refs/tags/v1.0.0",
+            "conclusions": []
+          },
+          "created_at": "2026-10-24T03:21:39Z"
+        }
+      ]
+    },
+    {
+      "id": "7c13636f074186d3412676ce045d9213",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "rule_id": "cb5b87b3d11a85e291eac8ff33912e2c",
+      "rule_revision": 1,
+      "version": 1,
+      "revision": 1,
+      "state": "paused",
+      "key_generation": 0,
+      "key_fingerprint": "",
+      "key_configured": false,
+      "created_at": "2026-10-24T03:39:57Z",
+      "updated_at": "2026-10-24T03:39:57Z",
+      "last_error": "",
+      "spec": {
+        "name": "首次配置指引验证",
+        "provider": "suma",
+        "events": [
+          "git.push"
+        ],
+        "repository": "",
+        "repository_id": "",
+        "ref": "",
+        "conclusions": []
+      },
+      "revisions": [
+        {
+          "revision": 1,
+          "rule_revision": 1,
+          "spec": {
+            "name": "首次配置指引验证",
+            "provider": "suma",
+            "events": [
+              "git.push"
+            ],
+            "repository": "",
+            "repository_id": "",
+            "ref": "",
+            "conclusions": []
+          },
+          "created_at": "2026-10-24T03:39:57Z"
+        }
+      ]
+    },
+    {
+      "id": "99f0d1c2f32fa04a881a337f97603c80",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "rule_id": "cb5b87b3d11a85e291eac8ff33912e2c",
+      "rule_revision": 1,
+      "version": 5,
+      "revision": 2,
+      "state": "paused",
+      "key_generation": 1,
+      "key_fingerprint": "83daa6cfd83f42a4da669cbbf8d02c20f6a000538a39ff2245f9b6023632b09a",
+      "key_configured": true,
+      "created_at": "2026-10-24T03:24:54Z",
+      "updated_at": "2026-10-24T03:28:06Z",
+      "last_error": "ingress_inactive",
+      "spec": {
+        "name": "CI 与监控来源 · 已复核",
+        "provider": "suma",
+        "events": [
+          "ci.completed",
+          "monitor.firing"
+        ],
+        "repository": "example/suma",
+        "repository_id": "",
+        "ref": "",
+        "conclusions": []
+      },
+      "revisions": [
+        {
+          "revision": 1,
+          "rule_revision": 1,
+          "spec": {
+            "name": "CI 与监控来源",
+            "provider": "suma",
+            "events": [
+              "ci.completed",
+              "monitor.firing"
+            ],
+            "repository": "",
+            "repository_id": "",
+            "ref": "",
+            "conclusions": []
+          },
+          "created_at": "2026-10-24T03:24:54Z"
+        },
+        {
+          "revision": 2,
+          "rule_revision": 1,
+          "spec": {
+            "name": "CI 与监控来源 · 已复核",
+            "provider": "suma",
+            "events": [
+              "ci.completed",
+              "monitor.firing"
+            ],
+            "repository": "example/suma",
+            "repository_id": "",
+            "ref": "",
+            "conclusions": []
+          },
+          "created_at": "2026-10-24T03:28:06Z"
+        }
+      ]
+    }
+  ],
+  "deliveries": [
+    {
+      "id": "07dd4dc4bc9ff0f74bfafff47b9aef7a",
+      "ingress_id": "99f0d1c2f32fa04a881a337f97603c80",
+      "ingress_revision": 1,
+      "rule_id": "cb5b87b3d11a85e291eac8ff33912e2c",
+      "rule_revision": 1,
+      "delivery_id": "suma-ci-fixture-1",
+      "provider": "suma",
+      "body_sha256": "3f4a1c3c60139e74c8d9fdc71e70124abfe9d12764addc51deaa4dcf9c7635dc",
+      "key_generation": 1,
+      "received_at": "2026-10-24T03:26:08Z",
+      "last_received_at": "2026-10-24T03:43:55Z",
+      "duplicate_count": 3,
+      "state": "accepted",
+      "reason": "",
+      "occurrence_id": "c45a34e46634aaba47dcd4a4610fff8c",
+      "event": {
+        "schema_version": 1,
+        "event": "ci.completed",
+        "repository": "example/suma",
+        "repository_id": "123456789",
+        "ref": "refs/heads/main",
+        "commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+        "conclusion": "success",
+        "external_id": "local-ci-fixture-1"
+      }
+    },
+    {
+      "id": "5d97bfbd6831a72164fb299cca5504d9",
+      "ingress_id": "99f0d1c2f32fa04a881a337f97603c80",
+      "ingress_revision": 1,
+      "rule_id": "cb5b87b3d11a85e291eac8ff33912e2c",
+      "rule_revision": 1,
+      "delivery_id": "suma-monitor-fixture-1",
+      "provider": "suma",
+      "body_sha256": "dac05fa298380dc5e97c025a15cc628225fb1d3816c18769d2b82635c28d7235",
+      "key_generation": 1,
+      "received_at": "2026-10-24T03:26:56Z",
+      "last_received_at": "2026-10-24T03:26:56Z",
+      "duplicate_count": 0,
+      "state": "accepted",
+      "reason": "",
+      "occurrence_id": "9020021092fe7bba1b8667b2fe65662e",
+      "event": {
+        "schema_version": 1,
+        "event": "monitor.firing",
+        "repository": "",
+        "repository_id": "",
+        "ref": "",
+        "commit": "",
+        "conclusion": "",
+        "external_id": "local-monitor-fixture-1"
+      }
+    },
+    {
+      "id": "7257b55536c283bd1bb00012e765abd0",
+      "ingress_id": "635e491a624d467a5a732e18b1748ed7",
+      "ingress_revision": 1,
+      "rule_id": "cb5b87b3d11a85e291eac8ff33912e2c",
+      "rule_revision": 1,
+      "delivery_id": "github-tag-fixture-1",
+      "provider": "github",
+      "body_sha256": "9956301120b4a4b1c09c57cb75e900a5adf0ec81779153b9b253ee6da6d09660",
+      "key_generation": 1,
+      "received_at": "2026-10-24T03:26:56Z",
+      "last_received_at": "2026-10-24T03:43:56Z",
+      "duplicate_count": 3,
+      "state": "accepted",
+      "reason": "",
+      "occurrence_id": "e64e8c757a00cc21d887fab25897b5cf",
+      "event": {
+        "schema_version": 1,
+        "event": "push",
+        "repository": "example/suma",
+        "repository_id": "123456789",
+        "ref": "refs/tags/v1.0.0",
+        "commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+        "conclusion": "",
+        "external_id": ""
+      }
+    },
+    {
+      "id": "d866d14b25b0a75abd764161b13142b9",
+      "ingress_id": "99f0d1c2f32fa04a881a337f97603c80",
+      "ingress_revision": 1,
+      "rule_id": "cb5b87b3d11a85e291eac8ff33912e2c",
+      "rule_revision": 1,
+      "delivery_id": "suma-monitor-resolved-1",
+      "provider": "suma",
+      "body_sha256": "516488eb3954dc4b63aabf85385ba817aa9af03ba042bebefd7596dd2889b3d4",
+      "key_generation": 1,
+      "received_at": "2026-10-24T03:26:56Z",
+      "last_received_at": "2026-10-24T03:26:56Z",
+      "duplicate_count": 0,
+      "state": "ignored",
+      "reason": "filter_mismatch",
+      "occurrence_id": "",
+      "event": {
+        "schema_version": 1,
+        "event": "monitor.resolved",
+        "repository": "",
+        "repository_id": "",
+        "ref": "",
+        "commit": "",
+        "conclusion": "",
+        "external_id": "local-monitor-fixture-1"
+      }
+    },
+    {
+      "id": "ece5456d0c5f398625da40800a9253c8",
+      "ingress_id": "635e491a624d467a5a732e18b1748ed7",
+      "ingress_revision": 1,
+      "rule_id": "cb5b87b3d11a85e291eac8ff33912e2c",
+      "rule_revision": 1,
+      "delivery_id": "github-ping-fixture-1",
+      "provider": "github",
+      "body_sha256": "6af28e314d3499567dc010a51cf98ee104b8161f80145e8783cf60ad3d2c686d",
+      "key_generation": 1,
+      "received_at": "2026-10-24T03:26:56Z",
+      "last_received_at": "2026-10-24T03:26:56Z",
+      "duplicate_count": 0,
+      "state": "ignored",
+      "reason": "connection_check",
+      "occurrence_id": "",
+      "event": {
+        "schema_version": 1,
+        "event": "ping",
+        "repository": "example/suma",
+        "repository_id": "123456789",
+        "ref": "",
+        "commit": "",
+        "conclusion": "",
+        "external_id": ""
+      }
+    },
+    {
+      "id": "fdb73844231068c65dcaf814a0c54961",
+      "ingress_id": "635e491a624d467a5a732e18b1748ed7",
+      "ingress_revision": 1,
+      "rule_id": "cb5b87b3d11a85e291eac8ff33912e2c",
+      "rule_revision": 1,
+      "delivery_id": "github-head-fixture-1",
+      "provider": "github",
+      "body_sha256": "2ab90ec13f8ba5b6f54b37047cee05132fc896bc5ba14f9d52d5fdd26855bf4a",
+      "key_generation": 1,
+      "received_at": "2026-10-24T03:26:56Z",
+      "last_received_at": "2026-10-24T03:26:56Z",
+      "duplicate_count": 0,
+      "state": "ignored",
+      "reason": "filter_mismatch",
+      "occurrence_id": "",
+      "event": {
+        "schema_version": 1,
+        "event": "push",
+        "repository": "example/suma",
+        "repository_id": "123456789",
+        "ref": "refs/heads/main",
+        "commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+        "conclusion": "",
+        "external_id": ""
+      }
+    },
+    {
+      "id": "68cf00360f3574bd9c0e21622486150c",
+      "ingress_id": "99f0d1c2f32fa04a881a337f97603c80",
+      "ingress_revision": 2,
+      "rule_id": "cb5b87b3d11a85e291eac8ff33912e2c",
+      "rule_revision": 1,
+      "delivery_id": "suma-ci-paused-fixture-2",
+      "provider": "suma",
+      "body_sha256": "947957280f03dd82da2a54e69e41c602d6feb3377b04b7b38c973a113033112b",
+      "key_generation": 1,
+      "received_at": "2026-10-24T03:28:27Z",
+      "last_received_at": "2026-10-24T03:28:27Z",
+      "duplicate_count": 0,
+      "state": "blocked",
+      "reason": "ingress_inactive",
+      "occurrence_id": "",
+      "event": {
+        "schema_version": 1,
+        "event": "ci.completed",
+        "repository": "example/suma",
+        "repository_id": "123456789",
+        "ref": "refs/heads/main",
+        "commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+        "conclusion": "success",
+        "external_id": "local-ci-fixture-2"
+      }
+    }
+  ],
+  "delivery_id_tombstones": [
+    {
+      "ingress_id": "635e491a624d467a5a732e18b1748ed7",
+      "delivery_id": "github-head-fixture-1",
+      "body_sha256": "2ab90ec13f8ba5b6f54b37047cee05132fc896bc5ba14f9d52d5fdd26855bf4a",
+      "receipt_id": "fdb73844231068c65dcaf814a0c54961"
+    },
+    {
+      "ingress_id": "635e491a624d467a5a732e18b1748ed7",
+      "delivery_id": "github-ping-fixture-1",
+      "body_sha256": "6af28e314d3499567dc010a51cf98ee104b8161f80145e8783cf60ad3d2c686d",
+      "receipt_id": "ece5456d0c5f398625da40800a9253c8"
+    },
+    {
+      "ingress_id": "635e491a624d467a5a732e18b1748ed7",
+      "delivery_id": "github-tag-alias-fixture-1",
+      "body_sha256": "9956301120b4a4b1c09c57cb75e900a5adf0ec81779153b9b253ee6da6d09660",
+      "receipt_id": "7257b55536c283bd1bb00012e765abd0"
+    },
+    {
+      "ingress_id": "635e491a624d467a5a732e18b1748ed7",
+      "delivery_id": "github-tag-fixture-1",
+      "body_sha256": "9956301120b4a4b1c09c57cb75e900a5adf0ec81779153b9b253ee6da6d09660",
+      "receipt_id": "7257b55536c283bd1bb00012e765abd0"
+    },
+    {
+      "ingress_id": "99f0d1c2f32fa04a881a337f97603c80",
+      "delivery_id": "suma-ci-fixture-1",
+      "body_sha256": "3f4a1c3c60139e74c8d9fdc71e70124abfe9d12764addc51deaa4dcf9c7635dc",
+      "receipt_id": "07dd4dc4bc9ff0f74bfafff47b9aef7a"
+    },
+    {
+      "ingress_id": "99f0d1c2f32fa04a881a337f97603c80",
+      "delivery_id": "suma-ci-paused-fixture-2",
+      "body_sha256": "947957280f03dd82da2a54e69e41c602d6feb3377b04b7b38c973a113033112b",
+      "receipt_id": "68cf00360f3574bd9c0e21622486150c"
+    },
+    {
+      "ingress_id": "99f0d1c2f32fa04a881a337f97603c80",
+      "delivery_id": "suma-monitor-fixture-1",
+      "body_sha256": "dac05fa298380dc5e97c025a15cc628225fb1d3816c18769d2b82635c28d7235",
+      "receipt_id": "5d97bfbd6831a72164fb299cca5504d9"
+    },
+    {
+      "ingress_id": "99f0d1c2f32fa04a881a337f97603c80",
+      "delivery_id": "suma-monitor-resolved-1",
+      "body_sha256": "516488eb3954dc4b63aabf85385ba817aa9af03ba042bebefd7596dd2889b3d4",
+      "receipt_id": "d866d14b25b0a75abd764161b13142b9"
+    }
+  ],
+  "occurrences": [
+    {
+      "id": "c45a34e46634aaba47dcd4a4610fff8c",
+      "revision": 1,
+      "source": "webhook",
+      "scheduled_at": "2026-10-24T03:26:08Z",
+      "state": "started",
+      "reason": "",
+      "run_id": "242b298381a8d2bc65237c52e443a644"
+    },
+    {
+      "id": "9020021092fe7bba1b8667b2fe65662e",
+      "revision": 1,
+      "source": "webhook",
+      "scheduled_at": "2026-10-24T03:26:56Z",
+      "state": "started",
+      "reason": "",
+      "run_id": "7bd88c964771b8a24f69c3091cfe5054"
+    },
+    {
+      "id": "e64e8c757a00cc21d887fab25897b5cf",
+      "revision": 1,
+      "source": "webhook",
+      "scheduled_at": "2026-10-24T03:26:56Z",
+      "state": "started",
+      "reason": "",
+      "run_id": "8beee23f3d0cd305eb8e8f6884c6c17f"
+    }
+  ],
+  "runs": [
+    {
+      "id": "242b298381a8d2bc65237c52e443a644",
+      "workflow_id": "b6f46366db875b3aa2c49cfc181f2c99",
+      "workflow_version": 1,
+      "version": 7,
+      "state": "succeeded",
+      "created_at": "2026-10-24T03:26:08Z",
+      "updated_at": "2026-10-24T03:26:16Z",
+      "nodes": [
+        {
+          "id": "build",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T03:26:12Z",
+          "completed_at": "2026-10-24T03:26:14Z"
+        },
+        {
+          "id": "develop",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T03:26:09Z",
+          "completed_at": "2026-10-24T03:26:12Z"
+        },
+        {
+          "id": "package-test",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T03:26:14Z",
+          "completed_at": "2026-10-24T03:26:16Z"
+        }
+      ],
+      "durable_events": [
+        {
+          "sequence": 168,
+          "event_type": "run_created",
+          "node_id": ""
+        },
+        {
+          "sequence": 169,
+          "event_type": "node_ready",
+          "node_id": "develop"
+        },
+        {
+          "sequence": 170,
+          "event_type": "node_running",
+          "node_id": "develop"
+        },
+        {
+          "sequence": 171,
+          "event_type": "node_progress",
+          "node_id": "develop"
+        },
+        {
+          "sequence": 172,
+          "event_type": "node_succeeded",
+          "node_id": "develop"
+        },
+        {
+          "sequence": 173,
+          "event_type": "node_ready",
+          "node_id": "build"
+        },
+        {
+          "sequence": 174,
+          "event_type": "candidate_pinned",
+          "node_id": "build"
+        },
+        {
+          "sequence": 175,
+          "event_type": "node_running",
+          "node_id": "build"
+        },
+        {
+          "sequence": 176,
+          "event_type": "node_progress",
+          "node_id": "build"
+        },
+        {
+          "sequence": 177,
+          "event_type": "node_succeeded",
+          "node_id": "build"
+        },
+        {
+          "sequence": 178,
+          "event_type": "node_ready",
+          "node_id": "package-test"
+        },
+        {
+          "sequence": 179,
+          "event_type": "node_running",
+          "node_id": "package-test"
+        },
+        {
+          "sequence": 180,
+          "event_type": "node_progress",
+          "node_id": "package-test"
+        },
+        {
+          "sequence": 181,
+          "event_type": "node_succeeded",
+          "node_id": "package-test"
+        },
+        {
+          "sequence": 182,
+          "event_type": "run_succeeded",
+          "node_id": ""
+        }
+      ]
+    },
+    {
+      "id": "7bd88c964771b8a24f69c3091cfe5054",
+      "workflow_id": "b6f46366db875b3aa2c49cfc181f2c99",
+      "workflow_version": 1,
+      "version": 7,
+      "state": "succeeded",
+      "created_at": "2026-10-24T03:26:57Z",
+      "updated_at": "2026-10-24T03:27:02Z",
+      "nodes": [
+        {
+          "id": "build",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T03:26:59Z",
+          "completed_at": "2026-10-24T03:27:01Z"
+        },
+        {
+          "id": "develop",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T03:26:58Z",
+          "completed_at": "2026-10-24T03:26:59Z"
+        },
+        {
+          "id": "package-test",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T03:27:01Z",
+          "completed_at": "2026-10-24T03:27:02Z"
+        }
+      ],
+      "durable_events": [
+        {
+          "sequence": 183,
+          "event_type": "run_created",
+          "node_id": ""
+        },
+        {
+          "sequence": 184,
+          "event_type": "node_ready",
+          "node_id": "develop"
+        },
+        {
+          "sequence": 185,
+          "event_type": "node_running",
+          "node_id": "develop"
+        },
+        {
+          "sequence": 186,
+          "event_type": "node_progress",
+          "node_id": "develop"
+        },
+        {
+          "sequence": 187,
+          "event_type": "node_succeeded",
+          "node_id": "develop"
+        },
+        {
+          "sequence": 188,
+          "event_type": "node_ready",
+          "node_id": "build"
+        },
+        {
+          "sequence": 189,
+          "event_type": "candidate_pinned",
+          "node_id": "build"
+        },
+        {
+          "sequence": 190,
+          "event_type": "node_running",
+          "node_id": "build"
+        },
+        {
+          "sequence": 191,
+          "event_type": "node_progress",
+          "node_id": "build"
+        },
+        {
+          "sequence": 192,
+          "event_type": "node_succeeded",
+          "node_id": "build"
+        },
+        {
+          "sequence": 193,
+          "event_type": "node_ready",
+          "node_id": "package-test"
+        },
+        {
+          "sequence": 194,
+          "event_type": "node_running",
+          "node_id": "package-test"
+        },
+        {
+          "sequence": 195,
+          "event_type": "node_progress",
+          "node_id": "package-test"
+        },
+        {
+          "sequence": 196,
+          "event_type": "node_succeeded",
+          "node_id": "package-test"
+        },
+        {
+          "sequence": 197,
+          "event_type": "run_succeeded",
+          "node_id": ""
+        }
+      ]
+    },
+    {
+      "id": "8beee23f3d0cd305eb8e8f6884c6c17f",
+      "workflow_id": "b6f46366db875b3aa2c49cfc181f2c99",
+      "workflow_version": 1,
+      "version": 7,
+      "state": "succeeded",
+      "created_at": "2026-10-24T03:27:03Z",
+      "updated_at": "2026-10-24T03:27:09Z",
+      "nodes": [
+        {
+          "id": "build",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T03:27:06Z",
+          "completed_at": "2026-10-24T03:27:07Z"
+        },
+        {
+          "id": "develop",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T03:27:04Z",
+          "completed_at": "2026-10-24T03:27:06Z"
+        },
+        {
+          "id": "package-test",
+          "state": "succeeded",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "started_at": "2026-10-24T03:27:07Z",
+          "completed_at": "2026-10-24T03:27:09Z"
+        }
+      ],
+      "durable_events": [
+        {
+          "sequence": 198,
+          "event_type": "run_created",
+          "node_id": ""
+        },
+        {
+          "sequence": 199,
+          "event_type": "node_ready",
+          "node_id": "develop"
+        },
+        {
+          "sequence": 200,
+          "event_type": "node_running",
+          "node_id": "develop"
+        },
+        {
+          "sequence": 201,
+          "event_type": "node_progress",
+          "node_id": "develop"
+        },
+        {
+          "sequence": 202,
+          "event_type": "node_succeeded",
+          "node_id": "develop"
+        },
+        {
+          "sequence": 203,
+          "event_type": "node_ready",
+          "node_id": "build"
+        },
+        {
+          "sequence": 204,
+          "event_type": "candidate_pinned",
+          "node_id": "build"
+        },
+        {
+          "sequence": 205,
+          "event_type": "node_running",
+          "node_id": "build"
+        },
+        {
+          "sequence": 206,
+          "event_type": "node_progress",
+          "node_id": "build"
+        },
+        {
+          "sequence": 207,
+          "event_type": "node_succeeded",
+          "node_id": "build"
+        },
+        {
+          "sequence": 208,
+          "event_type": "node_ready",
+          "node_id": "package-test"
+        },
+        {
+          "sequence": 209,
+          "event_type": "node_running",
+          "node_id": "package-test"
+        },
+        {
+          "sequence": 210,
+          "event_type": "node_progress",
+          "node_id": "package-test"
+        },
+        {
+          "sequence": 211,
+          "event_type": "node_succeeded",
+          "node_id": "package-test"
+        },
+        {
+          "sequence": 212,
+          "event_type": "run_succeeded",
+          "node_id": ""
+        }
+      ]
+    }
+  ],
+  "proofs": [
+    {
+      "id": "39ab85b4342f5a9b98f90062a6d6e468",
+      "run_id": "242b298381a8d2bc65237c52e443a644",
+      "node_id": "build",
+      "kind": "build",
+      "artifact_id": "6feb2190abc5ebab3b470363e769d93d",
+      "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+      "profile_id": "release-build",
+      "profile_sha256": "c936c372da030895d69b2715d91c2e396a7905442e58aad96ab219831bf885e6"
+    },
+    {
+      "id": "991f6577b573e0263d312f98ee254cdd",
+      "run_id": "242b298381a8d2bc65237c52e443a644",
+      "node_id": "package-test",
+      "kind": "package_test",
+      "artifact_id": "6feb2190abc5ebab3b470363e769d93d",
+      "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+      "profile_id": "release-package-test",
+      "profile_sha256": "5b617c14d902da8024333dbeb61253bd107e4d4a2d047796dad3d8101fb748d3"
+    },
+    {
+      "id": "75859a1cab76aeda9bb56f14c83820d4",
+      "run_id": "7bd88c964771b8a24f69c3091cfe5054",
+      "node_id": "build",
+      "kind": "build",
+      "artifact_id": "7e163bb0c7aaa35a2168dcb0a7b53f4b",
+      "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+      "profile_id": "release-build",
+      "profile_sha256": "c936c372da030895d69b2715d91c2e396a7905442e58aad96ab219831bf885e6"
+    },
+    {
+      "id": "09e114fb3549bce67a4a6cd76ef8246b",
+      "run_id": "7bd88c964771b8a24f69c3091cfe5054",
+      "node_id": "package-test",
+      "kind": "package_test",
+      "artifact_id": "7e163bb0c7aaa35a2168dcb0a7b53f4b",
+      "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+      "profile_id": "release-package-test",
+      "profile_sha256": "5b617c14d902da8024333dbeb61253bd107e4d4a2d047796dad3d8101fb748d3"
+    },
+    {
+      "id": "e5ba7f729b2b1c23c38242833c17e552",
+      "run_id": "8beee23f3d0cd305eb8e8f6884c6c17f",
+      "node_id": "build",
+      "kind": "build",
+      "artifact_id": "325b7a92217ff2ff84de557bc9901a77",
+      "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+      "profile_id": "release-build",
+      "profile_sha256": "c936c372da030895d69b2715d91c2e396a7905442e58aad96ab219831bf885e6"
+    },
+    {
+      "id": "838f558e159bcec5f522f55180c53602",
+      "run_id": "8beee23f3d0cd305eb8e8f6884c6c17f",
+      "node_id": "package-test",
+      "kind": "package_test",
+      "artifact_id": "325b7a92217ff2ff84de557bc9901a77",
+      "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+      "profile_id": "release-package-test",
+      "profile_sha256": "5b617c14d902da8024333dbeb61253bd107e4d4a2d047796dad3d8101fb748d3"
+    }
+  ],
+  "actual_blobs": [
+    {
+      "artifact_id": "6feb2190abc5ebab3b470363e769d93d",
+      "run_id": "242b298381a8d2bc65237c52e443a644",
+      "path": "index.html",
+      "bytes": 1198,
+      "sha256": "893919d3c154399cb901cceca47bfc477ac94974a16423d2c7feede70105b741",
+      "matches_sealed_manifest": true
+    },
+    {
+      "artifact_id": "7e163bb0c7aaa35a2168dcb0a7b53f4b",
+      "run_id": "7bd88c964771b8a24f69c3091cfe5054",
+      "path": "index.html",
+      "bytes": 1198,
+      "sha256": "893919d3c154399cb901cceca47bfc477ac94974a16423d2c7feede70105b741",
+      "matches_sealed_manifest": true
+    },
+    {
+      "artifact_id": "325b7a92217ff2ff84de557bc9901a77",
+      "run_id": "8beee23f3d0cd305eb8e8f6884c6c17f",
+      "path": "index.html",
+      "bytes": 1198,
+      "sha256": "893919d3c154399cb901cceca47bfc477ac94974a16423d2c7feede70105b741",
+      "matches_sealed_manifest": true
+    }
+  ],
+  "current_runtime": {
+    "port": 4321,
+    "started_at": "2026-10-24T03:35:04.344898Z",
+    "runtime_source_sha256": "3c971b45a835621efb1cc8e9f7d16c638df02e6d6cd3d67b2d81bf6198178727",
+    "launcher_pid": 127012,
+    "control_sha256": "bfdf0eacb72baf1d7b4c0633ac6e7f066b222f8f7ad5e171291c95c4a70f95c6",
+    "control_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T033010763Z-94b39f3b\\suma-control.exe",
+    "fixture_data": ".cache/e2e/data",
+    "actual_process_id": 121756,
+    "actual_process_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T033010763Z-94b39f3b\\suma-control.exe",
+    "actual_start_utc": "2026-10-24T03:35:04.8443709Z",
+    "cli_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T033010763Z-94b39f3b\\suma.exe",
+    "cli_sha256": "3d989122ded5345c071e5ef57c1d3a89eda8d582f16e9f6b819fb13a164d82ca"
+  },
+  "health": {
+    "database": "connected",
+    "status": "ok",
+    "version": "0.1.0"
+  },
+  "restart": {
+    "cli_receipt": {
+      "duplicate": true,
+      "id": "07dd4dc4bc9ff0f74bfafff47b9aef7a",
+      "occurrence_id": "c45a34e46634aaba47dcd4a4610fff8c",
+      "state": "accepted"
+    },
+    "native_receipt": {
+      "status": 200,
+      "receipt": {
+        "id": "7257b55536c283bd1bb00012e765abd0",
+        "state": "accepted",
+        "duplicate": true,
+        "occurrence_id": "e64e8c757a00cc21d887fab25897b5cf"
+      }
+    },
+    "preserved_source_keys": true,
+    "new_runs_after_replay": 0
+  },
+  "data_minimization": {
+    "raw_signing_secrets_in_ingress_rows": false,
+    "unselected_author_or_commit_message_retained": false,
+    "local_masterkey_bytes": 32
+  },
+  "original_workspace": {
+    "repository": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\release-wave3\\repository",
+    "head": "285e78f217245baea199b448d83a9035de15ced1",
+    "status": "",
+    "repository_root_explicitly_verified": true
+  },
+  "boundaries": [
+    "Source commit/ref and CI success are metadata, never substituted into commands or used as test proof.",
+    "Three successful runs do not imply task acceptance or deployment.",
+    "Two configured sources and one unconfigured UI sample plus their manual carrier rule are now paused.",
+    "Source r2 retained r1 accepted/ignored receipts; paused new event is blocked and original IDs still deduplicate after restart."
+  ]
+}

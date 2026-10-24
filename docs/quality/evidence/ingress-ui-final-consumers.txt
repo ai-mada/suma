@@ -1,0 +1,11 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ✓ src/AutomationIngress-consumers.test.tsx (5 tests) 63ms
+ ✓ src/automation-consumers.test.tsx (7 tests) 69ms
+
+ Test Files  2 passed (2)
+      Tests  12 passed (12)
+   Start at  11:49:02
+   Duration  1.37s (transform 355ms, setup 0ms, collect 986ms, tests 132ms, environment 0ms, prepare 379ms)
+

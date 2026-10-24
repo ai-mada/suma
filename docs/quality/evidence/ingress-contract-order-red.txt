@@ -1,0 +1,9 @@
+--- FAIL: TestModelClosureAndDeterministicGeneration (0.01s)
+    main_test.go:154: contract generation is not deterministic
+--- FAIL: TestModelClosureAndDeterministicGeneration (0.01s)
+    main_test.go:154: contract generation is not deterministic
+--- FAIL: TestModelClosureAndDeterministicGeneration (0.01s)
+    main_test.go:154: contract generation is not deterministic
+FAIL
+FAIL	github.com/ai-mada/suma/cmd/suma-contracts	0.641s
+FAIL

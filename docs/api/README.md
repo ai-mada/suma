@@ -12,6 +12,8 @@ Go导出域模型直接反射，包括PlanningPeriod、TaskPlan、PlannedTask、
 
 ## 请求规则
 
+签名事件接收器是独立边界：`POST /hooks/{id}` 使用入口签名，拒绝浏览器Cookie/Bearer和任何query，不由调用者提供project_id。本轮新增的7个路径、131个导出模型与110个API路径详见生成合同；跨字段、原文字节签名、受限来源和事务规则见[事件入口合同](../../contracts/automation-ingress.md)。这些计数描述合同覆盖，不表示真实厂商或完整平台已经验收。
+
 - 项目请求必须给出project_id；租户由身份取得，客户端不能指定其他tenant。
 - 创建/写入携带稳定idempotency_key。相同标识与内容恢复同一操作；不同内容返回409。
 - 更新携带expected_version。文件保存携带expected_hash与固定操作标识。

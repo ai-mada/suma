@@ -6,9 +6,9 @@
   "status": "in_progress",
   "plan": "docs/delivery/implementation-plan.md",
   "workstreams": {
-    "control_dag": "durable_cron_manual_atomic_fixed_revision_dispatch_and_authorized_sse_verified_full_distributed_fairness_pending",
-    "runtime": "real_build_package_test_local_static_provider_health_rollback_restart_and_cross_compile_verified_vendor_cloud_pending",
-    "workbench": "automation_rules_preview_revision_history_real_trigger_run_evidence_and_chrome_restart_verified_full_design_and_collaboration_pending",
+    "control_dag": "durable_signed_github_suma_event_ingress_atomic_receipts_current_authority_dispatch_and_sse_verified_full_distributed_fairness_pending",
+    "runtime": "actual_signed_events_to_isolated_development_build_package_test_and_delivered_windows_restart_verified_vendor_cloud_pending",
+    "workbench": "automation_and_ingress_sources_revision_delivery_real_run_traceability_verified_full_design_collaboration_and_visual_matrix_pending",
     "architecture_documents": "architecture_and_scope_matrix_delivered"
   },
   "verified": [
@@ -28,11 +28,17 @@
     "T-P4-002: JS packages 138 tests (web129 plus 9 runtime/knowledge/desktop), workspace typecheck and production web build passed; 120 models/103 paths generated",
     "Actual UI cron/manual triggers -> 2 successful isolated development/build/package-test runs, 4 derived proofs and 2 actual blobs; r1 history preserved after paused r2 edit",
     "Actual ordinary Chrome SSE terminal event replay, 20-second clean rotation, control restart without duplicate 15 events or changed selected build node/viewport; history cursor153..167 plus empty next page",
-    "Final runtime cut 20261024T023250966Z-97012787 source cb40b728b0b540da3647df82aee986e2883e445738d0fed86a5f961e6f5d9f5a; 24 cross-compiled files, actual Windows control byte hash verified"
+    "Final runtime cut 20261024T023250966Z-97012787 source cb40b728b0b540da3647df82aee986e2883e445738d0fed86a5f961e6f5d9f5a; 24 cross-compiled files, actual Windows control byte hash verified",
+    "T-P4-003: final Go serial suite 385 pass events, 0 failures and 0 skips; vet passed, 9 tested packages and 4 compiled command packages",
+    "T-P4-003: JS/TS packages 173 tests (web164 plus desktop3, agent3 and knowledge3), independent deployment tests 8, workspace typecheck and production build passed; final copy-only change rechecked 12 frontend consumer tests and production build",
+    "T-P4-003: generated contract includes 131 models, 110 API paths and 315 Schema references",
+    "T-P4-003: 18 actual local signed/protocol requests produced 7 durable deliveries (3 accepted, 3 ignored and 1 blocked), 3 successful isolated development/build/package-test runs, 9 nodes, 6 derived proofs and 3 actual blobs; source event metadata was synthetic, original execution repository remained clean",
+    "T-P4-003: actual delivered Windows control and CLI restart replay recovered original receipts without extra runs; sources and parent rule left paused after validation",
+    "T-P4-003: six-target four-program cut 20261024T033010763Z-94b39f3b source 3c971b45a835621efb1cc8e9f7d16c638df02e6d6cd3d67b2d81bf6198178727; 24 cross-compiled files verified, target OS installation remains separate acceptance"
   ],
   "production_integration_complete": false,
-  "current_evidence": "docs/quality/evidence/automation-browser-execution.json",
-  "stage": "T-P4-002_validated",
+  "current_evidence": "docs/quality/evidence/ingress-browser-execution.json",
+  "stage": "T-P4-003_validated",
   "commit_policy": "User explicitly requests a commit after each validated functional stage; do not push without separate authorization",
-  "next_step": "Continue signed Webhook/Git/CI/monitor input, fleet governance and full distributed DAG fairness; complete remaining design/planning, collaboration, production and SaaS scope. T-P4-002 is validated and included in a local stage commit under the explicit user commit policy."
+  "next_step": "Commit the validated T-P4-003 signed event ingress stage, then continue external tool task dispatch, execution progress/receipt recovery, test acceptance and issue feedback; complete all remaining P0-P7 scope. Real vendor accounts/public delivery, OceanBase/PostgreSQL clusters, Helm and the full visual matrix remain independently unverified."
 }

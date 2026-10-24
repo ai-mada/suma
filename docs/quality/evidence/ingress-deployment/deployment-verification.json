@@ -1,0 +1,126 @@
+{
+  "task": "T-P4-003",
+  "scope": "Ingress master-key deployment configuration",
+  "recorded_at_utc": "2026-10-24T03:38:50.1333173Z",
+  "status": "deployment_configuration_verified_real_targets_pending",
+  "new_test_count": 4,
+  "deployment_test_count": 8,
+  "red": {
+    "command": "node --test --test-name-pattern='ingress master key' deploy/tests/entrypoint.test.mjs",
+    "passed": 1,
+    "failed": 3,
+    "skipped": 0,
+    "exit_code": 1,
+    "log": "deployment-secret-red.log"
+  },
+  "green": {
+    "command": "node --test deploy/tests/entrypoint.test.mjs",
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "log": "deployment-secret-green.log"
+  },
+  "suite": {
+    "command": "node --test deploy/tests/entrypoint.test.mjs deploy/tests/knowledge-host.test.mjs",
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0,
+    "exit_code": 0,
+    "log": "deployment-tests.log"
+  },
+  "static": {
+    "compose_combinations": 6,
+    "compose_tool": "Docker Compose v5.5.1",
+    "values_schema_validation": "js-yaml 4.3.2 / Ajv 8.20.0: sqlite/oceanbase/postgres accepted; inline master key, empty Secret key, unsupported driver, empty database Secret rejected",
+    "script_syntax": "Git for Windows sh -n deploy/entrypoint.sh: exit 0",
+    "docs": "node scripts/check-docs.mjs: exit 0, 58 Markdown documents / 110 API paths / 315 references",
+    "diff_check": "git diff --check scoped deployment files: exit 0",
+    "config_log": "deployment-config.log",
+    "config_script": "deployment-config-check.mjs",
+    "docs_log": "deployment-docs.log"
+  },
+  "environment": {
+    "os": "Windows",
+    "node": "v22.16.0",
+    "shell": "C:/Program Files/Git/usr/bin/sh.exe",
+    "shell_path_prefix": "C:/Program Files/Git/usr/bin",
+    "temporary_directory": ".cache/e2e/ingress-stage/deployment-tmp",
+    "tool_installs": 0,
+    "non_go_changes_only": true
+  },
+  "initial_failed_validation_attempts": [
+    {
+      "log": "deployment-secret-green-attempt1-environment.log",
+      "reason": "Git sh launched without Git usr/bin on PATH; cat unavailable; corrected process-local PATH then reran successfully"
+    },
+    {
+      "log": "deployment-config-attempt1-ajv-meta.log",
+      "reason": "Existing schema has https draft-07 identifier while Ajv default meta id uses http; added local official meta-schema alias in scratch validator, no production schema change needed"
+    }
+  ],
+  "limitations": [
+    "Helm not installed; no Helm lint or template rendering performed",
+    "No Docker engine access, image build, container start, cluster operation, external database connection, or real shared-database decryption validation",
+    "Knowledge tests start only their existing local test processes and clean them up",
+    "No Go/frontend/generated/runtime package archive changes; no commit made"
+  ],
+  "review": "Independent read-only deployment diff review found no blocking issue",
+  "files": [
+    {
+      "path": "deploy/entrypoint.sh",
+      "bytes": 1081,
+      "sha256": "067eb5236d0de6cbe5f0eebd6a346334b32e4aaf1f5e4f7d25a1e68456b315c1"
+    },
+    {
+      "path": "deploy/compose.oceanbase.yaml",
+      "bytes": 409,
+      "sha256": "8a552d497532931721e3fa6cb2550b91a9492c0fe105cb9f823afc85ff84d47e"
+    },
+    {
+      "path": "deploy/compose.postgres.yaml",
+      "bytes": 408,
+      "sha256": "82b3f485c91b26f75f9ca41c9efff1749a186aca9b6470b82d0a74be7cc3ef4b"
+    },
+    {
+      "path": "deploy/compose.env.example",
+      "bytes": 779,
+      "sha256": "c8bc8ecedd12e87c82233dc7cf13f6c1e845e2f700d0a35194f3484bfcdf204c"
+    },
+    {
+      "path": "deploy/control.env.example",
+      "bytes": 400,
+      "sha256": "e960eb79cf1e09d607b10f71f6602e2ab902c8abe5873cc5a3c38284ec972941"
+    },
+    {
+      "path": "deploy/helm/suma/values.yaml",
+      "bytes": 986,
+      "sha256": "11fd1452009d4a07fecf165e6a644fb560a53ab849942ad4abfd6ef05136827d"
+    },
+    {
+      "path": "deploy/helm/suma/values.schema.json",
+      "bytes": 1095,
+      "sha256": "0b7e9da931bef60cc1fb16f5277c7ffef0492b0e5f1980f6730276c744006909"
+    },
+    {
+      "path": "deploy/helm/suma/templates/deployment.yaml",
+      "bytes": 4456,
+      "sha256": "1903d9bf8e60a98a996526148c47aaedcc71b2017d9859cc29fdcaaf016c879c"
+    },
+    {
+      "path": "deploy/tests/entrypoint.test.mjs",
+      "bytes": 4657,
+      "sha256": "4d1d90de56e89f2b05dd84c6cc51627077f4d0e0a150c0d6838a2d3130da00ff"
+    },
+    {
+      "path": "docs/deployment/server.md",
+      "bytes": 3751,
+      "sha256": "f9ef098788aa2af3cbe58a70c4ce795cbed0832d9c5cfae8968a19609ed8c992"
+    },
+    {
+      "path": "docs/deployment/containers.md",
+      "bytes": 13707,
+      "sha256": "7f7efdb8c554b9811f093cca2a71cee8d62c7d1fca19bb9acb6990b05fecc7aa"
+    }
+  ]
+}

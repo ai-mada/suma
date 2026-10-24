@@ -116,6 +116,114 @@ export interface AutomationCreateRequest {
   idempotency_key: string;
   spec: AutomationSpec;
 }
+export interface AutomationIngress {
+  name: string;
+  provider: string;
+  events: (string)[];
+  repository: string;
+  repository_id: string;
+  ref: string;
+  conclusions: (string)[];
+  id: string;
+  project_id: string;
+  rule_id: string;
+  rule_revision: number;
+  version: number;
+  revision: number;
+  state: string;
+  activated_by: string;
+  key_configured: boolean;
+  key_generation: number;
+  key_fingerprint: string;
+  endpoint_path: string;
+  created_at: string;
+  updated_at: string;
+  last_error: string;
+}
+export interface AutomationIngressCommandRequest {
+  project_id: string;
+  action: string;
+  expected_version: number;
+  idempotency_key: string;
+  expected_rule_version?: number;
+  expected_rule_revision?: number;
+  spec?: AutomationIngressSpec | null;
+  secret?: string;
+}
+export interface AutomationIngressCreateRequest {
+  project_id: string;
+  expected_rule_version: number;
+  expected_rule_revision: number;
+  idempotency_key: string;
+  spec: AutomationIngressSpec;
+}
+export interface AutomationIngressDeliveries {
+  items: (AutomationIngressDelivery)[];
+  total: number;
+  next_cursor: string;
+}
+export interface AutomationIngressDelivery {
+  id: string;
+  ingress_id: string;
+  ingress_revision: number;
+  rule_id: string;
+  rule_revision: number;
+  delivery_id: string;
+  provider: string;
+  body_sha256: string;
+  key_generation: number;
+  received_at: string;
+  last_received_at: string;
+  duplicate_count: number;
+  state: string;
+  reason: string;
+  occurrence_id: string;
+  occurrence_state?: string;
+  run_id?: string;
+  run_state?: string;
+  event: AutomationIngressEvent;
+}
+export interface AutomationIngressEvent {
+  schema_version: number;
+  event: string;
+  repository: string;
+  repository_id: string;
+  ref: string;
+  commit: string;
+  conclusion: string;
+  external_id: string;
+}
+export interface AutomationIngressList {
+  items: (AutomationIngress)[];
+  total: number;
+  next_cursor: string;
+}
+export interface AutomationIngressReceipt {
+  id: string;
+  state: string;
+  duplicate: boolean;
+  occurrence_id: string;
+}
+export interface AutomationIngressRevision {
+  revision: number;
+  rule_revision: number;
+  spec: AutomationIngressSpec;
+  created_at: string;
+}
+export interface AutomationIngressRevisions {
+  items: (AutomationIngressRevision)[];
+  total: number;
+  next_cursor: string;
+}
+export interface AutomationIngressSpec {
+  name: string;
+  provider: string;
+  events: (string)[];
+  repository: string;
+  repository_id: string;
+  ref: string;
+  conclusions: (string)[];
+}
 export interface AutomationList {
   items: (AutomationRule)[];
   total: number;

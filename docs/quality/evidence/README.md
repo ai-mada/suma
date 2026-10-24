@@ -2,6 +2,21 @@
 
 状态：本机证据，2026-10-24；负责人：平台集成。证据只适用于[验证报告](../verification.md)明确的范围，完整目标见[实施台账](../../delivery/implementation-plan.md)。
 
+## 当前 T-P4-003 签名来源与交付
+
+| 证据 | 内容 |
+|---|---|
+| [最终 Go](ingress-go-tests.jsonl)、[汇总与源码](ingress-go-verification.json)、[入口子集](ingress-platform-subset.jsonl) | 全套385个通过事件、0失败、0测试跳过，9个受测包及4个命令编译，vet通过；子集46事件含23顶层 |
+| [JS173项](ingress-js-tests.txt)、[类型](ingress-typecheck.txt)、[最终消费者12项](ingress-ui-final-consumers.txt)、[构建](ingress-web-build.txt) | web164及另三包各3，最终暂停提示文案后再执行消费者及构建；浏览器加载index-DqUuHkug |
+| [真实本机旅程](ingress-browser-execution.json)、[协议检查](ingress-protocol-execution.json) | 18请求、7交付、3成功运行9节点、6证明3原件；暂停r2保留r1，最终交付控制与CLI重启恢复原回执 |
+| [部署映射](ingress-deployment/archive-map.json)、[测试档案](ingress-test-archive.json) | 部署8项、6种Compose、values与脚本验证；原日志和失败记录原字节归档，未运行Helm或真实集群 |
+| [390首次配置](ingress-initial-key-390.jpg)、[390入口](ingress-entry-390.jpg)、[768交付](ingress-tablet-768.jpg)、[1366最终定位](ingress-desktop-final-1366.jpg) | 实际DOM宽度检查，首次设置只打开提示未生成密钥，手机Escape回焦点 |
+| [1366深色](ingress-dark-1366.jpg)、[1920交付](ingress-deliveries-1920.jpg)、[1920受限上下文](ingress-context-1920.jpg)、[真实运行](ingress-run-1366.jpg) | 深浅主题、旧修订交付和实际构建下钻；[视觉范围](ingress-browser-visual.json)、[原图摘要](ingress-visual-files.json) |
+| [原失败](ingress-go-pretag-access-denied.jsonl)、[说明](ingress-go-pretag-access-denied-summary.json)、[独立审查](ingress-final-review.json) | 旧store.test.exe权限失败未作为验收；最终宿主串行全套通过，独立只读审查无阶段阻断项 |
+| [当前四程序](../../deployment/ingress-runtime-bundles.md)、[历史后续复核](ingress-historical-integration-check.json) | 033010批次24文件绑定101源码；实际Windows控制运行，跨编译与目标OS实跑分开；两份当前部署文档预期变化与历史原件分开 |
+
+截图均为未编辑原始JPEG；`ingress-desktop-1366.jpg`为完善粘滞定位前原图，手机入口图为弹窗过渡前页面；实际格式和尺寸见原图摘要。真实厂商／公网投递、生产验收和完整矩阵仍未完成，范围以[签名入口验收](../ingress-verification.md)为准。秘密、数据库和缓存不进入提交。
+
 ## T-P4-002 持久自动化与事件
 
 | 证据 | 内容 |

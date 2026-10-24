@@ -1,0 +1,287 @@
+{
+  "task": "T-P4-003",
+  "recorded_at_utc": "2026-10-24T03:59:18.417553+00:00",
+  "scope": "Archived existing non-sensitive stage test output and deployment fixture configuration only; no tests rerun, no credentials/databases/control logs copied. Source bytes preserved.",
+  "archived_source_file_count": 31,
+  "additional_manifest_files": 2,
+  "security_review": {
+    "blocking_patterns": [
+      "private_key",
+      "bearer_value",
+      "github_token",
+      "api_key",
+      "signature_value",
+      "inline_master_key_value"
+    ],
+    "matches": [],
+    "compose_sensitive_environment_values": 0,
+    "notes": "Reviewed logs and script values are fixture references/test labels. Compose secrets are file paths only. Did not read credential files, master-key files, databases, control logs, or startup scripts."
+  },
+  "verified_counts": {
+    "workspace_js_tests": 173,
+    "consumer_tests_after_copy_only_change": 12,
+    "platform_ingress_subset_test_pass_events": 46,
+    "platform_ingress_subset_top_level": 23,
+    "platform_ingress_subset_fail_events": 0,
+    "deployment_suite": {
+      "pass": 8,
+      "fail": 0,
+      "skip": 0
+    },
+    "deployment_new_tests": 4,
+    "compose_configurations": 6,
+    "helm_render_or_lint": false,
+    "real_database_or_container_validation": false
+  },
+  "deployment_archive_map": "docs/quality/evidence/ingress-deployment/archive-map.json",
+  "files": [
+    {
+      "source": ".cache/e2e/ingress-stage/js-tests-final.txt",
+      "archive": "docs/quality/evidence/ingress-js-tests.txt",
+      "bytes": 6060,
+      "source_sha256": "b0b3a342171a82d5051b7ae7d4032462a9909f03f4d40c1d32d27e6019e17a68",
+      "archive_sha256": "b0b3a342171a82d5051b7ae7d4032462a9909f03f4d40c1d32d27e6019e17a68",
+      "scope": "Final workspace JS/TS package tests: web164 + three packages3 each =173"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/typecheck-final.txt",
+      "archive": "docs/quality/evidence/ingress-typecheck.txt",
+      "bytes": 409,
+      "source_sha256": "c2daacf8dc892fdf35471a4f9171d533a2eecf02fdf9e430eb0adf15d6b58ff6",
+      "archive_sha256": "c2daacf8dc892fdf35471a4f9171d533a2eecf02fdf9e430eb0adf15d6b58ff6",
+      "scope": "Final workspace typecheck"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/ui-final-consumers.txt",
+      "archive": "docs/quality/evidence/ingress-ui-final-consumers.txt",
+      "bytes": 360,
+      "source_sha256": "215b45d232cd0789f7f6c0f731710de08ae98841d47bbc9ccf58cb52f486d68f",
+      "archive_sha256": "215b45d232cd0789f7f6c0f731710de08ae98841d47bbc9ccf58cb52f486d68f",
+      "scope": "Twelve consumer tests after final UI copy-only adjustment"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/web-build-final.txt",
+      "archive": "docs/quality/evidence/ingress-web-build.txt",
+      "bytes": 8532,
+      "source_sha256": "a1ee8e132ea651d04ddcb09703b7a109ec2e45f9a52096a299890298f61c1573",
+      "archive_sha256": "a1ee8e132ea651d04ddcb09703b7a109ec2e45f9a52096a299890298f61c1573",
+      "scope": "Final production web build; large chunk warning retained"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/protocol-execution.json",
+      "archive": "docs/quality/evidence/ingress-protocol-execution.json",
+      "bytes": 4591,
+      "source_sha256": "44b9e696d78bd1fdbcc80f95bbf609c7bc2a4b37e31a89960c9a171dc61295b2",
+      "archive_sha256": "44b9e696d78bd1fdbcc80f95bbf609c7bc2a4b37e31a89960c9a171dc61295b2",
+      "scope": "Twelve local signed protocol requests; fixture metadata, not vendor delivery"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/cli-red.txt",
+      "archive": "docs/quality/evidence/ingress-cli-red.txt",
+      "bytes": 335,
+      "source_sha256": "b4dc5bb2df3f6ba4956f7dc94b8458174928fe96f64c9ff626ff64856cf80f7e",
+      "archive_sha256": "b4dc5bb2df3f6ba4956f7dc94b8458174928fe96f64c9ff626ff64856cf80f7e",
+      "scope": "Original missing-feature failing CLI test"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/cli-targeted.txt",
+      "archive": "docs/quality/evidence/ingress-cli-targeted.txt",
+      "bytes": 1246,
+      "source_sha256": "b04231a511fa8a4c30ae3ff7fdc9c66d635eda69df7f0976adb301acb0122188",
+      "archive_sha256": "b04231a511fa8a4c30ae3ff7fdc9c66d635eda69df7f0976adb301acb0122188",
+      "scope": "Targeted final CLI tests"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/contract-order-red.txt",
+      "archive": "docs/quality/evidence/ingress-contract-order-red.txt",
+      "bytes": 446,
+      "source_sha256": "dff8886fbf0d2976421b7fa44726d97401ca2c36dea52078ae7682f1f978e218",
+      "archive_sha256": "dff8886fbf0d2976421b7fa44726d97401ca2c36dea52078ae7682f1f978e218",
+      "scope": "Original nondeterministic generator failures"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/contract-tests.txt",
+      "archive": "docs/quality/evidence/ingress-contract-tests.txt",
+      "bytes": 56,
+      "source_sha256": "fa266f82c2b483b7834a6303f1a5835dcd10be47c81ffd0aff76c3e9c6fc8d26",
+      "archive_sha256": "fa266f82c2b483b7834a6303f1a5835dcd10be47c81ffd0aff76c3e9c6fc8d26",
+      "scope": "Targeted final generator tests"
+    },
+    {
+      "source": ".cache/automation-ingress-tests.jsonl",
+      "archive": "docs/quality/evidence/ingress-platform-subset.jsonl",
+      "bytes": 45528,
+      "source_sha256": "30365254ac1e732f6e00990cb5767de46d00da90f059f207ab686a5bdace3a62",
+      "archive_sha256": "30365254ac1e732f6e00990cb5767de46d00da90f059f207ab686a5bdace3a62",
+      "scope": "Final ingress platform subset; pass events include top-level and subtests"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-verification.json",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-verification.json",
+      "bytes": 4850,
+      "source_sha256": "cf73c69d652d82ff05fcccf896ed436d8d701040435e26ff9a53ea24925813c3",
+      "archive_sha256": "cf73c69d652d82ff05fcccf896ed436d8d701040435e26ff9a53ea24925813c3",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-config-check.mjs",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-config-check.mjs",
+      "bytes": 5166,
+      "source_sha256": "a5b57df0c08629cb3d046b10dbaca15a663590996b5a69e7058414c9564c8b82",
+      "archive_sha256": "a5b57df0c08629cb3d046b10dbaca15a663590996b5a69e7058414c9564c8b82",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-config.log",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-config.txt",
+      "bytes": 980,
+      "source_sha256": "df29f1ec06caf255c66f16da6adb9b600f4896801eb3451cf587c0a42faa9e5b",
+      "archive_sha256": "df29f1ec06caf255c66f16da6adb9b600f4896801eb3451cf587c0a42faa9e5b",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-docs.log",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-docs.txt",
+      "bytes": 103,
+      "source_sha256": "5ff6a7c948cdf3c23140050ae1a10d1885d56b6485bea195f4f2676bea9bd2ed",
+      "archive_sha256": "5ff6a7c948cdf3c23140050ae1a10d1885d56b6485bea195f4f2676bea9bd2ed",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-secret-red.log",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-secret-red.txt",
+      "bytes": 2969,
+      "source_sha256": "cf35eed6632f73a9ff608785a57eadb4ba5b0e8363374c52cbc74fd08a536cc8",
+      "archive_sha256": "cf35eed6632f73a9ff608785a57eadb4ba5b0e8363374c52cbc74fd08a536cc8",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-secret-green.log",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-secret-green.txt",
+      "bytes": 1490,
+      "source_sha256": "80d969c43abdff53129a40aeb22235e50d16c9d8e0d30eb71350e7a9e8ba365e",
+      "archive_sha256": "80d969c43abdff53129a40aeb22235e50d16c9d8e0d30eb71350e7a9e8ba365e",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-tests.log",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-tests.txt",
+      "bytes": 1839,
+      "source_sha256": "3a2d037337a1c3cbfe5b5b387c5d0d6b5058b129d7e26960b457169df872d83d",
+      "archive_sha256": "3a2d037337a1c3cbfe5b5b387c5d0d6b5058b129d7e26960b457169df872d83d",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-secret-green-attempt1-environment.log",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-secret-green-attempt1-environment.txt",
+      "bytes": 3278,
+      "source_sha256": "3084ffff105f7948097a923404c2c2a8efd1aee76369ab6c976c27ce69b75f66",
+      "archive_sha256": "3084ffff105f7948097a923404c2c2a8efd1aee76369ab6c976c27ce69b75f66",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-config-attempt1-ajv-meta.log",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-config-attempt1-ajv-meta.txt",
+      "bytes": 1560,
+      "source_sha256": "21fc541b0aa5e6ebf7d772c06ee606243c2202ec5ca186bd7acc49f8bd96c3b7",
+      "archive_sha256": "21fc541b0aa5e6ebf7d772c06ee606243c2202ec5ca186bd7acc49f8bd96c3b7",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-compose-sqlite.json",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-compose-sqlite.json",
+      "bytes": 1733,
+      "source_sha256": "f90c2db28237fae069e2f5eba5067c78fd80f23df9ead75cf51b8d041e8a7694",
+      "archive_sha256": "f90c2db28237fae069e2f5eba5067c78fd80f23df9ead75cf51b8d041e8a7694",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-compose-sqlite.stderr.log",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-compose-sqlite.stderr.txt",
+      "bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-compose-sqlite-optional.json",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-compose-sqlite-optional.json",
+      "bytes": 5979,
+      "source_sha256": "ea699e6d5807986307e34676215c1d98cb4fec41fade19d2f64a6f8e5fc3ff0d",
+      "archive_sha256": "ea699e6d5807986307e34676215c1d98cb4fec41fade19d2f64a6f8e5fc3ff0d",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-compose-sqlite-optional.stderr.log",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-compose-sqlite-optional.stderr.txt",
+      "bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-compose-oceanbase.json",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-compose-oceanbase.json",
+      "bytes": 2444,
+      "source_sha256": "44c3516418086f1b070680bfffd94b22062c854a72341fda8c4719b75ae9f3c0",
+      "archive_sha256": "44c3516418086f1b070680bfffd94b22062c854a72341fda8c4719b75ae9f3c0",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-compose-oceanbase.stderr.log",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-compose-oceanbase.stderr.txt",
+      "bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-compose-oceanbase-optional.json",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-compose-oceanbase-optional.json",
+      "bytes": 6690,
+      "source_sha256": "2a2359282836f1440194f02e58a2c7d6756b241dcc9e5dc503b0f95603c4beff",
+      "archive_sha256": "2a2359282836f1440194f02e58a2c7d6756b241dcc9e5dc503b0f95603c4beff",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-compose-oceanbase-optional.stderr.log",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-compose-oceanbase-optional.stderr.txt",
+      "bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-compose-postgres.json",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-compose-postgres.json",
+      "bytes": 2443,
+      "source_sha256": "51448eadad247b0b5f230116c28d9436e9b738ba69ed6772d27926062c0c9348",
+      "archive_sha256": "51448eadad247b0b5f230116c28d9436e9b738ba69ed6772d27926062c0c9348",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-compose-postgres.stderr.log",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-compose-postgres.stderr.txt",
+      "bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-compose-postgres-optional.json",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-compose-postgres-optional.json",
+      "bytes": 6689,
+      "source_sha256": "34dcfce3d192a790c86ac4a2ff94eee31bfa0e3c7c4688a04be67f427e701020",
+      "archive_sha256": "34dcfce3d192a790c86ac4a2ff94eee31bfa0e3c7c4688a04be67f427e701020",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    },
+    {
+      "source": ".cache/e2e/ingress-stage/deployment-compose-postgres-optional.stderr.log",
+      "archive": "docs/quality/evidence/ingress-deployment/deployment-compose-postgres-optional.stderr.txt",
+      "bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "scope": "Deployment configuration evidence; no actual database/container/Helm execution"
+    }
+  ]
+}

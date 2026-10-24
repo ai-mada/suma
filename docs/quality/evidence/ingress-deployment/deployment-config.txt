@@ -1,0 +1,15 @@
+Compose sqlite: parsed and checked secret references; no engine used.
+Compose sqlite-optional: parsed and checked secret references; no engine used.
+Compose oceanbase: parsed and checked secret references; no engine used.
+Compose oceanbase-optional: parsed and checked secret references; no engine used.
+Compose postgres: parsed and checked secret references; no engine used.
+Compose postgres-optional: parsed and checked secret references; no engine used.
+Helm values schema: sqlite accepted.
+Helm values schema: oceanbase accepted.
+Helm values schema: postgres accepted.
+Helm values schema: inline master key rejected.
+Helm values schema: empty Secret key rejected.
+Helm values schema: unsupported database rejected.
+Helm values schema: missing shared database Secret rejected.
+Helm executable unavailable: no Helm lint/render or Kubernetes validation performed.
+This validates configuration and schema only; no database, image, container, or cluster acceptance.

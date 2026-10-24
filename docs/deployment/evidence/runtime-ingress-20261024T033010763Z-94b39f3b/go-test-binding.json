@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-24T03:34:32.8201403Z",
+  "runtime_source_sha256": "3c971b45a835621efb1cc8e9f7d16c638df02e6d6cd3d67b2d81bf6198178727",
+  "runtime_manifest_files": 101,
+  "runtime_go_source_files": 99,
+  "runtime_go_files_match_final_test_snapshot": true,
+  "test_snapshot_source_files": 159,
+  "source_receipt": "docs/quality/evidence/ingress-go-verification.json",
+  "source_receipt_sha256": "aa41a5145e2d116a5e17dad24cc24d792798e9dc58aab204da8a43bcdbe870a5",
+  "raw_file": "docs/quality/evidence/ingress-go-tests.jsonl",
+  "raw_sha256": "195b1f4632375c88b1f80d233bdd654e80517225a9c8d31558603928274c4f72",
+  "actual_pass_events": 385,
+  "actual_failed_events": 0,
+  "actual_skipped_test_cases": 0,
+  "test_exit": 0,
+  "vet_exit": 0,
+  "test_source_unchanged": true,
+  "not_in_test_source_manifest": [
+    "go.mod",
+    "go.sum"
+  ],
+  "scope": "Read-only binding of the 99 runtime non-test Go files to the previously completed final Go test snapshot and raw result. Module-file hashes are covered by this runtime build receipt; final Go test receipt does not separately list those two files. No test rerun."
+}

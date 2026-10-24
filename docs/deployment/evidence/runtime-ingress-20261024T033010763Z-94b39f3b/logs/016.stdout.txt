@@ -1,0 +1,20 @@
+D:\codes\ai-dev-os\suma\.cache\runtime-build\20261024T033010763Z-94b39f3b\targets\windows-arm64\suma-deployer.exe: go1.24.5
+	path	github.com/ai-mada/suma/cmd/suma-deployer
+	mod	github.com/ai-mada/suma	(devel)	
+	dep	github.com/dustin/go-humanize	v1.0.1	h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=
+	dep	github.com/mattn/go-isatty	v0.0.20	h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
+	dep	github.com/ncruces/go-strftime	v0.1.9	h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=
+	dep	github.com/remyoudompheng/bigfft	v0.0.0-20230129092748-24d4a6f8daec	h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
+	dep	golang.org/x/exp	v0.0.0-20230315142452-642cacee5cc0	h1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=
+	dep	golang.org/x/sys	v0.36.0	h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=
+	dep	modernc.org/libc	v1.61.13	h1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=
+	dep	modernc.org/mathutil	v1.7.1	h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=
+	dep	modernc.org/memory	v1.8.2	h1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=
+	dep	modernc.org/sqlite	v1.36.3	h1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=
+	build	-buildmode=exe
+	build	-compiler=gc
+	build	-trimpath=true
+	build	CGO_ENABLED=0
+	build	GOARCH=arm64
+	build	GOOS=windows
+	build	GOARM64=v8.0

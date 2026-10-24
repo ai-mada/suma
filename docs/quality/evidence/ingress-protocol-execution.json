@@ -1,0 +1,147 @@
+{
+  "scope": "Actual local native GitHub/Suma protocol HTTP against UI-created sources; fixture metadata, no vendor account or public delivery. Downstream execution verified separately.",
+  "captured_at": "2026-10-24T03:26:56Z",
+  "results": [
+    {
+      "name": "native_tag",
+      "status": 202,
+      "expected_status": 202,
+      "passed": true,
+      "body_sha256": "9956301120b4a4b1c09c57cb75e900a5adf0ec81779153b9b253ee6da6d09660",
+      "receipt": {
+        "id": "7257b55536c283bd1bb00012e765abd0",
+        "state": "accepted",
+        "duplicate": false,
+        "occurrence_id": "e64e8c757a00cc21d887fab25897b5cf"
+      }
+    },
+    {
+      "name": "native_tag_repeat",
+      "status": 200,
+      "expected_status": 200,
+      "passed": true,
+      "body_sha256": "9956301120b4a4b1c09c57cb75e900a5adf0ec81779153b9b253ee6da6d09660",
+      "receipt": {
+        "id": "7257b55536c283bd1bb00012e765abd0",
+        "state": "accepted",
+        "duplicate": true,
+        "occurrence_id": "e64e8c757a00cc21d887fab25897b5cf"
+      }
+    },
+    {
+      "name": "native_unsigned_delivery_alias",
+      "status": 200,
+      "expected_status": 200,
+      "passed": true,
+      "body_sha256": "9956301120b4a4b1c09c57cb75e900a5adf0ec81779153b9b253ee6da6d09660",
+      "receipt": {
+        "id": "7257b55536c283bd1bb00012e765abd0",
+        "state": "accepted",
+        "duplicate": true,
+        "occurrence_id": "e64e8c757a00cc21d887fab25897b5cf"
+      }
+    },
+    {
+      "name": "native_same_id_changed_body",
+      "status": 409,
+      "expected_status": 409,
+      "passed": true,
+      "body_sha256": "2ab90ec13f8ba5b6f54b37047cee05132fc896bc5ba14f9d52d5fdd26855bf4a",
+      "receipt": {
+        "error_code": "delivery_conflict"
+      }
+    },
+    {
+      "name": "native_head_filter_mismatch",
+      "status": 202,
+      "expected_status": 202,
+      "passed": true,
+      "body_sha256": "2ab90ec13f8ba5b6f54b37047cee05132fc896bc5ba14f9d52d5fdd26855bf4a",
+      "receipt": {
+        "id": "fdb73844231068c65dcaf814a0c54961",
+        "state": "ignored",
+        "duplicate": false,
+        "occurrence_id": ""
+      }
+    },
+    {
+      "name": "native_ping_connection_check",
+      "status": 202,
+      "expected_status": 202,
+      "passed": true,
+      "body_sha256": "6af28e314d3499567dc010a51cf98ee104b8161f80145e8783cf60ad3d2c686d",
+      "receipt": {
+        "id": "ece5456d0c5f398625da40800a9253c8",
+        "state": "ignored",
+        "duplicate": false,
+        "occurrence_id": ""
+      }
+    },
+    {
+      "name": "native_unsigned_event_poison_rejected",
+      "status": 400,
+      "expected_status": 400,
+      "passed": true,
+      "body_sha256": "9956301120b4a4b1c09c57cb75e900a5adf0ec81779153b9b253ee6da6d09660",
+      "receipt": {
+        "error_code": "invalid_input"
+      }
+    },
+    {
+      "name": "monitor_firing",
+      "status": 202,
+      "expected_status": 202,
+      "passed": true,
+      "body_sha256": "dac05fa298380dc5e97c025a15cc628225fb1d3816c18769d2b82635c28d7235",
+      "receipt": {
+        "id": "5d97bfbd6831a72164fb299cca5504d9",
+        "state": "accepted",
+        "duplicate": false,
+        "occurrence_id": "9020021092fe7bba1b8667b2fe65662e"
+      }
+    },
+    {
+      "name": "unsubscribed_monitor_resolved",
+      "status": 202,
+      "expected_status": 202,
+      "passed": true,
+      "body_sha256": "516488eb3954dc4b63aabf85385ba817aa9af03ba042bebefd7596dd2889b3d4",
+      "receipt": {
+        "id": "d866d14b25b0a75abd764161b13142b9",
+        "state": "ignored",
+        "duplicate": false,
+        "occurrence_id": ""
+      }
+    },
+    {
+      "name": "suma_same_id_changed_body",
+      "status": 409,
+      "expected_status": 409,
+      "passed": true,
+      "body_sha256": "dac05fa298380dc5e97c025a15cc628225fb1d3816c18769d2b82635c28d7235",
+      "receipt": {
+        "error_code": "delivery_conflict"
+      }
+    },
+    {
+      "name": "suma_stale_signature",
+      "status": 401,
+      "expected_status": 401,
+      "passed": true,
+      "body_sha256": "3f4a1c3c60139e74c8d9fdc71e70124abfe9d12764addc51deaa4dcf9c7635dc",
+      "receipt": {
+        "error_code": "invalid_signature"
+      }
+    },
+    {
+      "name": "missing_signature",
+      "status": 401,
+      "expected_status": 401,
+      "passed": true,
+      "body_sha256": "3f4a1c3c60139e74c8d9fdc71e70124abfe9d12764addc51deaa4dcf9c7635dc",
+      "receipt": {
+        "error_code": "invalid_signature"
+      }
+    }
+  ]
+}

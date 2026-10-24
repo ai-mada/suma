@@ -1,0 +1,102 @@
+{
+  "stage": "T-P4-003",
+  "captured_at": "2026-10-24T03:58:55.761Z",
+  "scope": "Partial local event-ingress and run detail checks in ordinary Chrome. Not all journeys, browsers, accessibility or load targets.",
+  "samples": [
+    {
+      "screen": "desktop_rule_list",
+      "clientWidth": 1351,
+      "height": 900,
+      "ruleList": {
+        "height": 365.3333435058594,
+        "position": "sticky",
+        "top": 77
+      },
+      "scripts": [
+        "http://127.0.0.1:4321/assets/index-DqUuHkug.js"
+      ],
+      "scrollWidth": 1351,
+      "theme": "light",
+      "url": "http://127.0.0.1:4321/?project=4cf0271555ed5013df9bb38f7cb79311&view=development&sub=automations&record=cb5b87b3d11a85e291eac8ff33912e2c&status=all&layout=list&week=2026-10-19&panel=ingress%3A99f0d1c2f32fa04a881a337f97603c80",
+      "width": 1366
+    },
+    {
+      "screen": "tablet_delivery_list",
+      "clientWidth": 753,
+      "height": 1024,
+      "scrollWidth": 753,
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "screen": "mobile_initial_setup",
+      "clientWidth": 390,
+      "dialog": {
+        "bottom": 683.2760925292969,
+        "height": 522.5521240234375,
+        "left": 13,
+        "right": 377,
+        "top": 160.72396850585938,
+        "width": 364,
+        "x": 13,
+        "y": 160.72396850585938
+      },
+      "height": 844,
+      "scrollWidth": 390,
+      "theme": "light",
+      "url": "http://127.0.0.1:4321/?project=4cf0271555ed5013df9bb38f7cb79311&view=development&sub=automations&record=cb5b87b3d11a85e291eac8ff33912e2c&status=all&layout=list&week=2026-10-19&panel=ingress%3A7c13636f074186d3412676ce045d9213",
+      "width": 390
+    },
+    {
+      "screen": "dark_deliveries",
+      "clientWidth": 1351,
+      "height": 900,
+      "scrollWidth": 1351,
+      "theme": "dark",
+      "url": "http://127.0.0.1:4321/?project=4cf0271555ed5013df9bb38f7cb79311&view=development&sub=automations&record=cb5b87b3d11a85e291eac8ff33912e2c&status=all&layout=list&week=2026-10-19&panel=ingress%3A99f0d1c2f32fa04a881a337f97603c80",
+      "width": 1366
+    },
+    {
+      "screen": "real_build_run",
+      "clientWidth": 1351,
+      "height": 900,
+      "scripts": [
+        "http://127.0.0.1:4321/assets/index-DqUuHkug.js"
+      ],
+      "scrollWidth": 1351,
+      "selectedNode": null,
+      "theme": "light",
+      "url": "http://127.0.0.1:4321/?project=4cf0271555ed5013df9bb38f7cb79311&view=development&sub=runs&run=242b298381a8d2bc65237c52e443a644&node=build&status=all&layout=list&week=2026-10-19",
+      "width": 1366
+    }
+  ],
+  "wide_context": {
+    "width": 1920,
+    "height": 1080,
+    "clientWidth": 1920,
+    "scrollWidth": 1920,
+    "dialog": "ci.completed r1 receipt retained under current r2 source",
+    "escape_closed": true,
+    "focus_return": "查看受限上下文"
+  },
+  "mobile_escape": {
+    "closed": true,
+    "focus": "设置签名密钥",
+    "focusTag": "BUTTON",
+    "url": "http://127.0.0.1:4321/?project=4cf0271555ed5013df9bb38f7cb79311&view=development&sub=automations&record=cb5b87b3d11a85e291eac8ff33912e2c&status=all&layout=list&week=2026-10-19&panel=ingress%3A7c13636f074186d3412676ce045d9213"
+  },
+  "console_errors": [],
+  "initial_key_action": "Opened configuration guidance only; did not generate, enter or submit a secret.",
+  "capture_notes": [
+    "A 1920-wide delivery screenshot was initially named tablet before DOM metrics exposed the wrong browser capability; it was renamed ingress-deliveries-1920.jpg. Correct Chrome capability then produced actual 768 and 390 DOM widths.",
+    "First mobile screenshot captured the underlying entry during modal transition; retained as ingress-entry-390.jpg. Stable dialog recorded separately.",
+    "Two native Page.captureScreenshot calls timed out; subsequent stable-state captures succeeded. No product state was changed to bypass them.",
+    "ingress-desktop-1366.jpg predates sticky rule-list polish; ingress-desktop-final-1366.jpg is final desktop list snapshot."
+  ],
+  "cleanup": {
+    "temporary_viewport_overrides_reset": true,
+    "theme_restored": "light",
+    "temporary_chrome_tab_closed": true,
+    "iab_result_marked_deliverable": true
+  }
+}

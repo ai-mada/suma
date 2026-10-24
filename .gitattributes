@@ -1,0 +1,3 @@
+# Evidence receipts bind exact bytes, including original line endings.
+# Keep these bytes stable when cloning with a different core.autocrlf setting.
+docs/**/evidence/** -text

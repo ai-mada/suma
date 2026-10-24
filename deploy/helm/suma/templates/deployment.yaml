@@ -59,12 +59,19 @@ spec:
                   key: {{ .Values.setupSecret.key | quote }}
             - name: SUMA_SECURE_COOKIES
               value: {{ .Values.secureCookies | quote }}
-            {{- if eq .Values.database.driver "oceanbase" }}
+            {{- if ne .Values.database.driver "sqlite" }}
             - name: SUMA_DB_DSN
               valueFrom:
                 secretKeyRef:
-                  name: {{ required "database.existingSecret is required for OceanBase" .Values.database.existingSecret | quote }}
+                  name: {{ required "database.existingSecret is required for shared databases" .Values.database.existingSecret | quote }}
                   key: {{ .Values.database.dsnKey | quote }}
+            {{- end }}
+            {{- if or (ne .Values.database.driver "sqlite") .Values.ingressMasterKey.existingSecret }}
+            - name: SUMA_INGRESS_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "ingressMasterKey.existingSecret or database.existingSecret is required for shared databases" (default .Values.database.existingSecret .Values.ingressMasterKey.existingSecret) | quote }}
+                  key: {{ required "ingressMasterKey.key is required" .Values.ingressMasterKey.key | quote }}
             {{- end }}
             {{- if .Values.allowedOrigins }}
             - name: SUMA_ALLOWED_ORIGINS

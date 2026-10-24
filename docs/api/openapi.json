@@ -498,6 +498,522 @@
         ],
         "type": "object"
       },
+      "AutomationIngress": {
+        "properties": {
+          "activated_by": {
+            "type": "string"
+          },
+          "conclusions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "endpoint_path": {
+            "type": "string"
+          },
+          "events": {
+            "description": "Provider-specific allowlist: github push/workflow_run.completed/ping; suma git.push/ci.completed/monitor.firing/monitor.resolved.",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "id": {
+            "type": "string"
+          },
+          "key_configured": {
+            "type": "boolean"
+          },
+          "key_fingerprint": {
+            "description": "SHA256 of signing secret bytes for configuration recovery; never the secret or encryption key.",
+            "type": "string"
+          },
+          "key_generation": {
+            "type": "integer"
+          },
+          "last_error": {
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "provider": {
+            "enum": [
+              "github",
+              "suma"
+            ],
+            "type": "string"
+          },
+          "ref": {
+            "description": "Empty allows all branches and tags; otherwise exact refs/heads/... or refs/tags/...; configured filters require a present matching event field.",
+            "maxLength": 250,
+            "type": "string"
+          },
+          "repository": {
+            "maxLength": 201,
+            "type": "string"
+          },
+          "repository_id": {
+            "pattern": "^([1-9][0-9]{0,29})?$",
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "rule_id": {
+            "type": "string"
+          },
+          "rule_revision": {
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "paused",
+              "enabled",
+              "revoked"
+            ],
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "provider",
+          "events",
+          "repository",
+          "repository_id",
+          "ref",
+          "conclusions",
+          "id",
+          "project_id",
+          "rule_id",
+          "rule_revision",
+          "version",
+          "revision",
+          "state",
+          "activated_by",
+          "key_configured",
+          "key_generation",
+          "key_fingerprint",
+          "endpoint_path",
+          "created_at",
+          "updated_at",
+          "last_error"
+        ],
+        "type": "object"
+      },
+      "AutomationIngressCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "revise",
+              "enable",
+              "pause",
+              "revoke",
+              "rotate_key"
+            ],
+            "type": "string"
+          },
+          "expected_rule_revision": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_rule_version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "secret": {
+            "description": "Only rotate_key. Literal 64-character UTF-8 key, not hex-decoded; encrypted at rest, never repeated in public receipts.",
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string",
+            "writeOnly": true
+          },
+          "spec": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AutomationIngressSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "project_id",
+          "action",
+          "expected_version",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "AutomationIngressCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_rule_revision": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_rule_version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/AutomationIngressSpec"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_rule_version",
+          "expected_rule_revision",
+          "idempotency_key",
+          "spec"
+        ],
+        "type": "object"
+      },
+      "AutomationIngressDeliveries": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AutomationIngressDelivery"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "AutomationIngressDelivery": {
+        "properties": {
+          "body_sha256": {
+            "type": "string"
+          },
+          "delivery_id": {
+            "type": "string"
+          },
+          "duplicate_count": {
+            "type": "integer"
+          },
+          "event": {
+            "$ref": "#/components/schemas/AutomationIngressEvent"
+          },
+          "id": {
+            "type": "string"
+          },
+          "ingress_id": {
+            "type": "string"
+          },
+          "ingress_revision": {
+            "type": "integer"
+          },
+          "key_generation": {
+            "type": "integer"
+          },
+          "last_received_at": {
+            "type": "string"
+          },
+          "occurrence_id": {
+            "type": "string"
+          },
+          "occurrence_state": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "received_at": {
+            "type": "string"
+          },
+          "rule_id": {
+            "type": "string"
+          },
+          "rule_revision": {
+            "type": "integer"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "run_state": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "accepted",
+              "ignored",
+              "blocked"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ingress_id",
+          "ingress_revision",
+          "rule_id",
+          "rule_revision",
+          "delivery_id",
+          "provider",
+          "body_sha256",
+          "key_generation",
+          "received_at",
+          "last_received_at",
+          "duplicate_count",
+          "state",
+          "reason",
+          "occurrence_id",
+          "event"
+        ],
+        "type": "object"
+      },
+      "AutomationIngressEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "commit": {
+            "pattern": "^([a-f0-9]{40}|[a-f0-9]{64})?$",
+            "type": "string"
+          },
+          "conclusion": {
+            "type": "string"
+          },
+          "event": {
+            "maxLength": 80,
+            "minLength": 1,
+            "type": "string"
+          },
+          "external_id": {
+            "maxLength": 128,
+            "type": "string"
+          },
+          "ref": {
+            "type": "string"
+          },
+          "repository": {
+            "type": "string"
+          },
+          "repository_id": {
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "event",
+          "external_id"
+        ],
+        "type": "object"
+      },
+      "AutomationIngressList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AutomationIngress"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "AutomationIngressReceipt": {
+        "properties": {
+          "duplicate": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "occurrence_id": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "accepted",
+              "ignored",
+              "blocked"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "duplicate",
+          "occurrence_id"
+        ],
+        "type": "object"
+      },
+      "AutomationIngressRevision": {
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "rule_revision": {
+            "type": "integer"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/AutomationIngressSpec"
+          }
+        },
+        "required": [
+          "revision",
+          "rule_revision",
+          "spec",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "AutomationIngressRevisions": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AutomationIngressRevision"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "AutomationIngressSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "conclusions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "events": {
+            "description": "Provider-specific allowlist: github push/workflow_run.completed/ping; suma git.push/ci.completed/monitor.firing/monitor.resolved.",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          },
+          "provider": {
+            "enum": [
+              "github",
+              "suma"
+            ],
+            "type": "string"
+          },
+          "ref": {
+            "description": "Empty allows all branches and tags; otherwise exact refs/heads/... or refs/tags/...; configured filters require a present matching event field.",
+            "maxLength": 250,
+            "type": "string"
+          },
+          "repository": {
+            "maxLength": 201,
+            "type": "string"
+          },
+          "repository_id": {
+            "pattern": "^([1-9][0-9]{0,29})?$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "provider",
+          "events",
+          "repository",
+          "repository_id",
+          "ref",
+          "conclusions"
+        ],
+        "type": "object"
+      },
       "AutomationList": {
         "properties": {
           "items": {
@@ -549,7 +1065,8 @@
           "source": {
             "enum": [
               "cron",
-              "manual"
+              "manual",
+              "webhook"
             ],
             "type": "string"
           },
@@ -4617,6 +5134,12 @@
         "name": "suma_session",
         "type": "apiKey"
       },
+      "githubSignature": {
+        "description": "Computed HMAC-SHA256, not the signing secret. Requires native delivery/event headers; raw body is verified with the encrypted ingress key.",
+        "in": "header",
+        "name": "X-Hub-Signature-256",
+        "type": "apiKey"
+      },
       "providerAuth": {
         "description": "Independent provider credential configured by the administrator. Not a browser, project API, Agent or Runner token; binds provider identity and authorized operation.",
         "scheme": "bearer",
@@ -4626,6 +5149,12 @@
         "description": "Runner-scoped credential bound to this project; browser sessions, Agent and API tokens are rejected.",
         "scheme": "bearer",
         "type": "http"
+      },
+      "sumaSignature": {
+        "description": "Computed HMAC-SHA256, not a session token. Requires X-Suma-Delivery and X-Suma-Timestamp signed with the ingress and raw body.",
+        "in": "header",
+        "name": "X-Suma-Signature-256",
+        "type": "apiKey"
       }
     }
   },
@@ -5424,6 +5953,353 @@
         "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
       }
     },
+    "/automation-ingresses/{id}": {
+      "get": {
+        "operationId": "get_automation-ingresses_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationIngress"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/automation-ingresses/{id}/commands": {
+      "post": {
+        "description": "Versioned revise/enable/pause/revoke/rotate_key. Changes and key rotation pause the ingress. Enable/revise require current rule version and revision. Rotation accepts a caller-provided 64-character secret, stores only AES-GCM ciphertext and a global non-reuse fingerprint tombstone, and never echoes the secret in a receipt.",
+        "operationId": "post_automation-ingresses_id_commands",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutomationIngressCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationIngress"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/automation-ingresses/{id}/deliveries": {
+      "get": {
+        "operationId": "get_automation-ingresses_id_deliveries",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Default 50, maximum 200.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor scoped to organization, project, rule/ingress and collection.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationIngressDeliveries"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/automation-ingresses/{id}/deliveries/{delivery}": {
+      "get": {
+        "operationId": "get_automation-ingresses_id_deliveries_delivery",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "delivery",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationIngressDelivery"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/automation-ingresses/{id}/revisions": {
+      "get": {
+        "operationId": "get_automation-ingresses_id_revisions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Default 50, maximum 200.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor scoped to organization, project, rule/ingress and collection.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationIngressRevisions"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
     "/automations": {
       "get": {
         "operationId": "get_automations",
@@ -5713,6 +6589,150 @@
               }
             },
             "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/automations/{id}/ingresses": {
+      "get": {
+        "operationId": "get_automations_id_ingresses",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Default 50, maximum 200.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor scoped to organization, project, rule/ingress and collection.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationIngressList"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      },
+      "post": {
+        "description": "Creates paused metadata bound to the current immutable automation revision. Requires a real organization session with current write and approval authority. No signing secret is created or exposed.",
+        "operationId": "post_automations_id_ingresses",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutomationIngressCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationIngress"
+                }
+              }
+            },
+            "description": "Created"
           },
           "400": {
             "description": "Invalid request"
@@ -7116,6 +8136,143 @@
           }
         ],
         "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/hooks/{id}": {
+      "post": {
+        "description": "Signature-only receiver: rejects browser cookies, Authorization, Origin, query strings, encodings and duplicate protocol headers. GitHub stores body and delivery-ID tombstones across revisions; it cannot prove unseen old payload freshness. Suma binds ingress, timestamp, delivery ID and exact body. Only normalized source facts are retained; no payload-to-command mapping. Receipt and occurrence are committed atomically; dispatch rechecks current ingress/rule authority and fixed workflow.",
+        "operationId": "post_hooks_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Native GitHub delivery identity; not protected by the body signature.",
+            "in": "header",
+            "name": "X-GitHub-Delivery",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Native event header; verified against the corresponding body structure.",
+            "in": "header",
+            "name": "X-GitHub-Event",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "GitHub sha256=\u003c64 hex\u003e HMAC of exact raw body.",
+            "in": "header",
+            "name": "X-Hub-Signature-256",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Stable safe-ASCII delivery identity signed with body, ingress and timestamp.",
+            "in": "header",
+            "name": "X-Suma-Delivery",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "sha256=\u003c64 hex\u003e; suma-v1 LF ingress_id LF timestamp LF delivery_id LF raw_body.",
+            "in": "header",
+            "name": "X-Suma-Signature-256",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Canonical Unix seconds within database time +/-300 seconds.",
+            "in": "header",
+            "name": "X-Suma-Timestamp",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/AutomationIngressEvent"
+                  },
+                  {
+                    "description": "GitHub native JSON. Raw bytes are verified before bounded parsing; repository numeric identity and the selected event structure are required. Unknown native fields are discarded.",
+                    "type": "object"
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationIngressReceipt"
+                }
+              }
+            },
+            "description": "Original persisted receipt recovered without another occurrence."
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationIngressReceipt"
+                }
+              }
+            },
+            "description": "Signed delivery and any occurrence durably committed; not run success or test acceptance."
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          },
+          "413": {
+            "description": "Raw body exceeds 2 MiB; never silently truncated."
+          },
+          "429": {
+            "description": "Process concurrency or durable per-ingress admission limit reached."
+          }
+        },
+        "security": [
+          {
+            "githubSignature": []
+          },
+          {
+            "sumaSignature": []
+          }
+        ],
+        "x-request-schema-coverage": "Exact raw-body signature, provider-specific parser, bounded normalized event, current authority and transactional deduplication are handler-enforced. Header requirements depend on the stored provider."
       }
     },
     "/issues": {

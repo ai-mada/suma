@@ -1,0 +1,31 @@
+{
+  "recorded_at": "2026-10-24T03:30:10.2001083Z",
+  "repository": "D:/codes/ai-dev-os/suma",
+  "audit_directory": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-ingress-delivery\\20261024T033003962Z-b809f415",
+  "source_sha256": "3c971b45a835621efb1cc8e9f7d16c638df02e6d6cd3d67b2d81bf6198178727",
+  "source_file_count": 101,
+  "historical_file_count": 855,
+  "existing_build_stamps": [
+    "20261023T163214029Z-3ff7853e",
+    "20261023T163404032Z-d9c423bf",
+    "20261023T163759813Z-4b7523bf",
+    "20261023T163936756Z-790199e9",
+    "20261023T163937857Z-a1eb64aa",
+    "20261024T013101080Z-8d76ad7a",
+    "20261024T013901937Z-e63107ea",
+    "20261024T014255637Z-2381ecce",
+    "20261024T021451853Z-f8fe5e7d",
+    "20261024T022519852Z-2a1cdc66",
+    "20261024T023250966Z-97012787"
+  ],
+  "environment_sha256": {
+    "User": "b4a1dd634f3a63bec884899fa60f9c7f5491c519a143003ca6e6d3a02d67fd68",
+    "Machine": "571ced310ce4bd2313b7cdd3cc564a4176dbde2c794e68f9927038cd64e17390"
+  },
+  "build_script_sha256": "66256a8d1454045f6db0e68641e1f6a7b1d1ad23341d9485fe45e5e8221859d2",
+  "process_environment_overrides": {
+    "GOMAXPROCS": "2",
+    "TEMP": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-ingress-delivery\\20261024T033003962Z-b809f415\\tmp",
+    "TMP": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-ingress-delivery\\20261024T033003962Z-b809f415\\tmp"
+  }
+}

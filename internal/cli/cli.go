@@ -27,12 +27,15 @@ Read commands:
   tui                         Read-only Bubble Tea browser (default on a terminal)
 
 Explicit writes:
+  webhook deliver --ingress ID --delivery ID --file event.json [--secret-env SUMA_WEBHOOK_SECRET]
   run command ID --file command.json
   workflow publish --file workflow.json
   run start --workflow ID --version N --operation KEY [--task ID] [--expected-version N]
   api /RESOURCE [--method GET|POST|PATCH|DELETE] [--file request.json]
 
-JSON files retain their idempotency_key or receive a deterministic content key.
+Webhook keys are read only from the named process environment; --file - reads stdin.
+Webhook delivery preserves exact body bytes and delivery ID; it never sends a session token.
+JSON API files retain their idempotency_key or receive a deterministic content key.
 Non-terminal default/tui prints doctor JSON and exits. Exit: 0 success, 1 API/transport, 2 usage.
 `
 
@@ -71,6 +74,9 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 }
 
 func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
+	if len(args) > 0 && args[0] == "webhook" {
+		return webhookCommand(ctx, c, args[1:], in, out)
+	}
 	if len(args) == 0 || (len(args) == 1 && args[0] == "tui") {
 		if input, ok := in.(*os.File); ok {
 			if output, ok := out.(*os.File); ok && isatty.IsTerminal(input.Fd()) && isatty.IsTerminal(output.Fd()) {

@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-003",
+  "check_started_at": "2026-10-24T03:48:02.6883240Z",
+  "check_completed_at": "2026-10-24T03:48:07.6615931Z",
+  "runtime_cut": "20261024T033010763Z-94b39f3b",
+  "check_method": "Read all original 855 inventory paths, compare actual file sizes and SHA-256, verify old receipt/evidence directory file sets, verify all 172 cataloged runtime evidence files plus unchanged catalog, and rehash 101 frozen source files and 24 current binaries. No programs or tests executed.",
+  "historical_inventory": "docs/deployment/evidence/runtime-ingress-20261024T033010763Z-94b39f3b/historical-files.json",
+  "historical_inventory_sha256": "b839f092a1a84e2946e47be2e3a5ce5073d75c4b954fdac9322e70dd445dd28f",
+  "original_build_time_check": {
+    "receipt": "docs/deployment/evidence/runtime-ingress-20261024T033010763Z-94b39f3b/final-verification.json",
+    "receipt_sha256": "6477b9fd4d2f5a4a33adc12d00c9313ec1d66d69bb3b1fa134a29edff12afe56",
+    "recorded_at": "2026-10-24T03:34:59.2762289Z",
+    "files_rechecked": 855,
+    "all_sizes_and_sha256_unchanged_at_that_time": true,
+    "documentation_sha256": "bb90b4305c5fb2c313ec923d61cd06cd35d4fd2327e5b686097d97d930986b8d"
+  },
+  "integration_recheck": {
+    "files_rechecked": 855,
+    "expected_current_guide_changes": 2,
+    "unchanged_files": 853,
+    "unexpected_changes": [],
+    "missing_files": [],
+    "changes": [
+      {
+        "path": "docs/deployment/containers.md",
+        "previous_size_bytes": 10025,
+        "current_size_bytes": 13707,
+        "previous_sha256": "623558364f15d44c2772ce8824b73fdc904802c5a849e923d31fd559d63915fe",
+        "current_sha256": "7f7efdb8c554b9811f093cca2a71cee8d62c7d1fca19bb9acb6990b05fecc7aa",
+        "classification": "Authorized current deployment guide update after build-delivery check"
+      },
+      {
+        "path": "docs/deployment/server.md",
+        "previous_size_bytes": 2108,
+        "current_size_bytes": 3751,
+        "previous_sha256": "e59dbcec73cba0ab7def488931d6d27c0703af71ea66cb802e64f7a5732070b9",
+        "current_sha256": "f9ef098788aa2af3cbe58a70c4ce795cbed0832d9c5cfae8968a19609ed8c992",
+        "classification": "Authorized current deployment guide update after build-delivery check"
+      }
+    ],
+    "authorization_context": "Parent integration task confirms these two current guides were updated by the deployment agent after the runtime delivery check under the current stage authorization."
+  },
+  "historical_build_receipt_directory_count": 11,
+  "historical_build_receipts_and_evidence_directory_checks": [
+    {
+      "directory": "dist/runtime/builds/20261023T163214029Z-3ff7853e",
+      "file_count": 1,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "dist/runtime/builds/20261023T163404032Z-d9c423bf",
+      "file_count": 3,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "dist/runtime/builds/20261023T163759813Z-4b7523bf",
+      "file_count": 3,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "dist/runtime/builds/20261023T163936756Z-790199e9",
+      "file_count": 2,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "dist/runtime/builds/20261023T163937857Z-a1eb64aa",
+      "file_count": 3,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "dist/runtime/builds/20261024T013101080Z-8d76ad7a",
+      "file_count": 3,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "dist/runtime/builds/20261024T013901937Z-e63107ea",
+      "file_count": 3,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "dist/runtime/builds/20261024T014255637Z-2381ecce",
+      "file_count": 3,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "dist/runtime/builds/20261024T021451853Z-f8fe5e7d",
+      "file_count": 3,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "dist/runtime/builds/20261024T022519852Z-2a1cdc66",
+      "file_count": 3,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "dist/runtime/builds/20261024T023250966Z-97012787",
+      "file_count": 3,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "docs/deployment/evidence/runtime-automation-20261024T021451853Z-f8fe5e7d",
+      "file_count": 117,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "docs/deployment/evidence/runtime-automation-20261024T022519852Z-2a1cdc66",
+      "file_count": 119,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "docs/deployment/evidence/runtime-automation-20261024T023250966Z-97012787",
+      "file_count": 119,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "docs/deployment/evidence/runtime-release-20261024T013101080Z-8d76ad7a",
+      "file_count": 12,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "docs/deployment/evidence/runtime-release-20261024T013901937Z-e63107ea",
+      "file_count": 13,
+      "file_set_sizes_and_sha256_unchanged": true
+    },
+    {
+      "directory": "docs/deployment/evidence/runtime-release-20261024T014255637Z-2381ecce",
+      "file_count": 13,
+      "file_set_sizes_and_sha256_unchanged": true
+    }
+  ],
+  "all_original_runtime_artifacts_and_historical_evidence_unchanged": true,
+  "immutable_current_runtime_evidence": {
+    "catalog": "docs/deployment/evidence/runtime-ingress-20261024T033010763Z-94b39f3b/sha256-final.json",
+    "catalog_sha256": "6dc1d09c9ec70489e51754a90afadbfa020b2070eaa3b668d5e9d04d206237cc",
+    "cataloged_files_rechecked": 172,
+    "total_files_including_catalog": 173,
+    "file_set_sizes_and_sha256_unchanged": true,
+    "original_receipts_or_catalogs_rewritten": false
+  },
+  "frozen_runtime_recheck": {
+    "source_files": 101,
+    "source_sha256": "3c971b45a835621efb1cc8e9f7d16c638df02e6d6cd3d67b2d81bf6198178727",
+    "all_source_sizes_and_sha256_unchanged": true,
+    "artifact_count": 24,
+    "all_artifact_sizes_and_sha256_unchanged": true
+  },
+  "documentation_integration": {
+    "path": "docs/deployment/ingress-runtime-bundles.md",
+    "previous_sha256": "bb90b4305c5fb2c313ec923d61cd06cd35d4fd2327e5b686097d97d930986b8d",
+    "current_sha256": "3aaf6738dab7bbd1b37f08392e1e04ae43f4d8aa3e56fb98c26a4f5102ef035f",
+    "change": "Only the new stage runtime document clarifies build-time preservation versus subsequent authorized current-guide updates and links this supplement. Original runtime receipts continue to bind the previous document bytes.",
+    "relative_link_count": 22,
+    "relative_links_valid": true
+  },
+  "scope_boundary": "Supplement is a new quality receipt. Original runtime packages, runtime receipts, hash catalogs, Go sources, deployment templates and UI are untouched. No process control, compilation, tests, commit or upload."
+}

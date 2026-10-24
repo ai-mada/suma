@@ -1,0 +1,2 @@
+Checked 58 Markdown documents: local links resolve.
+Checked 110 API paths and 315 schema references.

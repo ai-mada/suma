@@ -1,0 +1,78 @@
+{
+  "previous_stamp": "20261024T023250966Z-97012787",
+  "current_stamp": "20261024T033010763Z-94b39f3b",
+  "previous_source_file_count": 93,
+  "current_source_file_count": 101,
+  "previous_source_sha256": "cb40b728b0b540da3647df82aee986e2883e445738d0fed86a5f961e6f5d9f5a",
+  "current_source_sha256": "3c971b45a835621efb1cc8e9f7d16c638df02e6d6cd3d67b2d81bf6198178727",
+  "added": [
+    {
+      "path": "internal/cli/webhook.go",
+      "size_bytes": 4983,
+      "sha256": "609c11d4d39c22bfae9ad28347604fbf1a2d738ecf3a2af6149cf3f1f8de90fb"
+    },
+    {
+      "path": "internal/platform/automation_ingress_history.go",
+      "size_bytes": 6626,
+      "sha256": "3b39ebc4f4d8d21756b5a7bb03b3ff24fa5f4308ed77ca14f8cc16480d286c67"
+    },
+    {
+      "path": "internal/platform/automation_ingress_http.go",
+      "size_bytes": 4356,
+      "sha256": "7d0e3bd563dec1c66f1d467a7674c625c463c010a404b2179a143ea8755f54bb"
+    },
+    {
+      "path": "internal/platform/automation_ingress_json.go",
+      "size_bytes": 1452,
+      "sha256": "f8d393f30c40b9f2e43b9b1c8f2d2521e8075087e71c01842d4f112c9bae573f"
+    },
+    {
+      "path": "internal/platform/automation_ingress_key.go",
+      "size_bytes": 2423,
+      "sha256": "a4cdad3541daed2b3b161608bc5fd661b9720d86e175c9cc929c01f797e4ef31"
+    },
+    {
+      "path": "internal/platform/automation_ingress_receive.go",
+      "size_bytes": 15752,
+      "sha256": "77671a2e7185322db3ba0e492fb21a3290a815cd5156ea12aafbd11ebb8fc587"
+    },
+    {
+      "path": "internal/platform/automation_ingress_types.go",
+      "size_bytes": 4713,
+      "sha256": "724e2b34dbdb455478e3b762cdcbb7a6092a152750aa09fbd3407c7b2cb737a2"
+    },
+    {
+      "path": "internal/platform/automation_ingress.go",
+      "size_bytes": 19772,
+      "sha256": "c1a1761dfdfb7eba152e329c526ea2057efcc23bef83f1fb50ad531afbbfea4c"
+    }
+  ],
+  "changed": [
+    {
+      "path": "cmd/suma-control/main.go",
+      "previous_sha256": "08f85e64aa07ed33ae656b10d28f90273efa9a23f32da0f80b16522866c6fb0c",
+      "current_sha256": "dda5b8146b816e5e82ee058730f2b622aaa473326b02c629b396f898115fd8de"
+    },
+    {
+      "path": "internal/cli/cli.go",
+      "previous_sha256": "3f208faa9dc3736c196af1586a4e4649f25f42f9a133f57a4e70844f4f43eec5",
+      "current_sha256": "929af204007e52ba064c78d7d719cfd8455982aaa6c08f5eb7ebc4a4ed69fda1"
+    },
+    {
+      "path": "internal/platform/automation_scheduler.go",
+      "previous_sha256": "7a939070b796b09d64c1dd93d385e092d3e0fece6be0055d8bd83f636eaa2fe4",
+      "current_sha256": "48908d778c3835771bbb82840116e05dabfc3737ab1af5ee3beb8ebfd6599ad5"
+    },
+    {
+      "path": "internal/platform/database.go",
+      "previous_sha256": "04e50b74260fbaa60d07dce90eb32f84ea47fd31e9f97c8b7e992035bc83c899",
+      "current_sha256": "f0e1e0fc990729e9619c7ce8dd2b0415481fa9b9920f8f0e4182d8235b00b76b"
+    },
+    {
+      "path": "internal/platform/http.go",
+      "previous_sha256": "a03c606209dc69edf2117926778c58a0a5008a6be8d265f60a5b9ffc45a1a519",
+      "current_sha256": "82332f1c0ac8693e90aef1e5d81d174406f558043e71437b7321292404944833"
+    }
+  ],
+  "removed": []
+}

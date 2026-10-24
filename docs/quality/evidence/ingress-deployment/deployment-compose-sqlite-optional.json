@@ -1,0 +1,238 @@
+{
+  "name": "suma",
+  "networks": {
+    "default": {
+      "name": "suma_default",
+      "ipam": {}
+    }
+  },
+  "secrets": {
+    "knowledge_token": {
+      "name": "suma_knowledge_token",
+      "file": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\ingress-stage\\deployment-fixture-knowledge-token"
+    },
+    "runner_token": {
+      "name": "suma_runner_token",
+      "file": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\ingress-stage\\deployment-fixture-runner-token"
+    },
+    "setup_token": {
+      "name": "suma_setup_token",
+      "file": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\ingress-stage\\deployment-fixture-setup-token"
+    }
+  },
+  "services": {
+    "control": {
+      "build": {
+        "context": "D:\\codes\\ai-dev-os\\suma",
+        "dockerfile": "Dockerfile",
+        "target": "control"
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "command": null,
+      "depends_on": {
+        "knowledge": {
+          "condition": "service_healthy",
+          "required": true
+        }
+      },
+      "entrypoint": null,
+      "environment": {
+        "SUMA_ADDR": "0.0.0.0:4310",
+        "SUMA_DATA_DIR": "/var/lib/suma",
+        "SUMA_DB_DRIVER": "sqlite",
+        "SUMA_KNOWLEDGE_TOKEN_FILE": "/run/secrets/knowledge_token",
+        "SUMA_KNOWLEDGE_URL": "http://knowledge:4312",
+        "SUMA_SETUP_TOKEN_FILE": "/run/secrets/setup_token",
+        "SUMA_WEB_DIR": "/opt/suma/web"
+      },
+      "image": "suma-control:local",
+      "init": true,
+      "networks": {
+        "default": null
+      },
+      "ports": [
+        {
+          "mode": "ingress",
+          "host_ip": "127.0.0.1",
+          "target": 4310,
+          "published": "4310",
+          "protocol": "tcp"
+        }
+      ],
+      "read_only": true,
+      "restart": "unless-stopped",
+      "secrets": [
+        {
+          "source": "setup_token",
+          "target": "/run/secrets/setup_token"
+        },
+        {
+          "source": "knowledge_token",
+          "target": "/run/secrets/knowledge_token"
+        }
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "stop_grace_period": "30s",
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,size=64m"
+      ],
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "control_data",
+          "target": "/var/lib/suma",
+          "volume": {}
+        }
+      ]
+    },
+    "knowledge": {
+      "build": {
+        "context": "D:\\codes\\ai-dev-os\\suma",
+        "dockerfile": "Dockerfile",
+        "target": "knowledge"
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "command": null,
+      "entrypoint": null,
+      "environment": {
+        "SUMA_KNOWLEDGE_DIR": "/var/lib/suma/knowledge",
+        "SUMA_KNOWLEDGE_HOST": "0.0.0.0",
+        "SUMA_KNOWLEDGE_PORT": "4312",
+        "SUMA_KNOWLEDGE_TOKEN_FILE": "/run/secrets/knowledge_token"
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4312/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+        ],
+        "timeout": "5s",
+        "interval": "30s",
+        "retries": 3,
+        "start_period": "30s"
+      },
+      "image": "suma-knowledge:local",
+      "init": true,
+      "networks": {
+        "default": null
+      },
+      "read_only": true,
+      "restart": "unless-stopped",
+      "secrets": [
+        {
+          "source": "knowledge_token",
+          "target": "/run/secrets/knowledge_token"
+        }
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "stop_grace_period": "30s",
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,size=128m"
+      ],
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "knowledge_data",
+          "target": "/var/lib/suma",
+          "volume": {}
+        }
+      ]
+    },
+    "runner": {
+      "build": {
+        "context": "D:\\codes\\ai-dev-os\\suma",
+        "dockerfile": "Dockerfile",
+        "target": "runner"
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "command": [
+        "/usr/local/bin/suma-runner",
+        "--control=http://control:4310",
+        "--project=validation-project",
+        "--worker=validation-worker",
+        "--workspace=/workspace",
+        "--state=/var/lib/suma/runner",
+        "--commands=/etc/suma/commands.json",
+        "--allow-exec"
+      ],
+      "depends_on": {
+        "control": {
+          "condition": "service_healthy",
+          "required": true
+        }
+      },
+      "entrypoint": null,
+      "environment": {
+        "SUMA_RUNNER_TOKEN_FILE": "/run/secrets/runner_token"
+      },
+      "image": "suma-runner:local",
+      "init": true,
+      "networks": {
+        "default": null
+      },
+      "read_only": true,
+      "restart": "unless-stopped",
+      "secrets": [
+        {
+          "source": "runner_token",
+          "target": "/run/secrets/runner_token"
+        }
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "stop_grace_period": "40s",
+      "stop_signal": "SIGINT",
+      "tmpfs": [
+        "/tmp:rw,nosuid,size=256m"
+      ],
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "runner_state",
+          "target": "/var/lib/suma",
+          "volume": {}
+        },
+        {
+          "type": "bind",
+          "source": "D:\\codes\\ai-dev-os\\suma",
+          "target": "/workspace",
+          "bind": {
+            "create_host_path": false
+          }
+        },
+        {
+          "type": "bind",
+          "source": "D:\\codes\\ai-dev-os\\suma\\deploy\\runner\\commands.example.json",
+          "target": "/etc/suma/commands.json",
+          "read_only": true,
+          "bind": {
+            "create_host_path": false
+          }
+        }
+      ]
+    }
+  },
+  "volumes": {
+    "control_data": {
+      "name": "suma_control_data"
+    },
+    "knowledge_data": {
+      "name": "suma_knowledge_data"
+    },
+    "runner_state": {
+      "name": "suma_runner_state"
+    }
+  }
+}

@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: secret entrypoint exports literal file content without evaluating or printing it
+ok 1 - secret entrypoint exports literal file content without evaluating or printing it
+  ---
+  duration_ms: 219.9836
+  type: 'test'
+  ...
+# Subtest: unreadable secret prevents the requested executable from starting
+ok 2 - unreadable secret prevents the requested executable from starting
+  ---
+  duration_ms: 66.0908
+  type: 'test'
+  ...
+# Subtest: ingress master key secret file is exported without output
+ok 3 - ingress master key secret file is exported without output
+  ---
+  duration_ms: 202.3596
+  type: 'test'
+  ...
+# Subtest: unreadable ingress master key file prevents execution without leaking its path
+ok 4 - unreadable ingress master key file prevents execution without leaking its path
+  ---
+  duration_ms: 61.3807
+  type: 'test'
+  ...
+# Subtest: empty ingress master key file fails closed even if a direct key is present
+ok 5 - empty ingress master key file fails closed even if a direct key is present
+  ---
+  duration_ms: 102.3596
+  type: 'test'
+  ...
+# Subtest: ingress master key without a secret file preserves direct environment or SQLite auto provisioning
+ok 6 - ingress master key without a secret file preserves direct environment or SQLite auto provisioning
+  ---
+  duration_ms: 328.7203
+  type: 'test'
+  ...
+# Subtest: knowledge server starts with default loopback binding
+ok 7 - knowledge server starts with default loopback binding
+  ---
+  duration_ms: 1026.1583
+  type: 'test'
+  ...
+# Subtest: knowledge server starts with 0.0.0.0 binding
+ok 8 - knowledge server starts with 0.0.0.0 binding
+  ---
+  duration_ms: 510.8293
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1708.1319

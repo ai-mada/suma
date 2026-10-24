@@ -21,6 +21,12 @@ describe('automation rendered facts',()=>{
   const html=renderToStaticMarkup(createElement(AutomationOccurrenceRow,{occurrence:{id:'occ',rule_id:'rule-real',revision:1,source:'manual',scheduled_at:'2026-10-24T00:00:00Z',state:'started',reason:'',run_id:'run-real',run_state:'failed',created_at:'2026-10-24T00:00:00Z',updated_at:'2026-10-24T00:00:00Z'} as any,project:'p'}));
   expect(html).toContain('已绑定运行');expect(html).toContain('运行：失败');expect(html).not.toContain('已成功');
  });
+ it('uses ingress authority explanations only for webhook occurrences and preserves unknown raw reasons',()=>{
+  const occurrence={id:'occ',rule_id:'rule-real',revision:1,source:'webhook',scheduled_at:'2026-10-24T00:00:00Z',state:'blocked',reason:'activation_authority_revoked',run_id:'',created_at:'2026-10-24T00:00:00Z',updated_at:'2026-10-24T00:00:00Z'};
+  const webhook=renderToStaticMarkup(createElement(AutomationOccurrenceRow,{occurrence,project:'p'}));expect(webhook).toContain('入口或规则启用人');
+  for(const source of ['manual','cron']){const html=renderToStaticMarkup(createElement(AutomationOccurrenceRow,{occurrence:{...occurrence,source},project:'p'}));expect(html).toContain('启用人的项目写入或审批权限已撤销');expect(html).not.toContain('入口或规则启用人');}
+  const unknown=renderToStaticMarkup(createElement(AutomationOccurrenceRow,{occurrence:{...occurrence,reason:'future_webhook_reason'},project:'p'}));expect(unknown).toContain('服务端原因');expect(unknown).toContain('future_webhook_reason');
+ });
  it('explains server blockers and keeps raw reason codes collapsed for audit',()=>{
   const html=renderToStaticMarkup(createElement(AutomationRuleFacts,{rule:{...rule,last_error:'activation_authority_revoked',state:'enabled',next_at:'2026-10-24T00:00:00Z'}}));
   expect(html).toContain('启用人的项目写入或审批权限已撤销');expect(html).toContain('<summary>原始原因</summary>');expect(html).toContain('activation_authority_revoked');expect(html).toContain('2026/10/24 08:00:00');expect(html).toContain('Asia/Shanghai');expect(html).toContain('UTC 2026-10-24T00:00:00Z');expect(html).toContain('恢复窗口最多 4 次，超出跳过');

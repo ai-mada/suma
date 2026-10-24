@@ -1,0 +1,21 @@
+Compose sqlite: parsed and checked secret references; no engine used.
+Compose sqlite-optional: parsed and checked secret references; no engine used.
+Compose oceanbase: parsed and checked secret references; no engine used.
+Compose oceanbase-optional: parsed and checked secret references; no engine used.
+Compose postgres: parsed and checked secret references; no engine used.
+Compose postgres-optional: parsed and checked secret references; no engine used.
+D:\codes\ai-dev-os\suma\node_modules\.pnpm\ajv@8.20.0\node_modules\ajv\dist\core.js:148
+                throw new Error(`no schema with key or ref "${schemaKeyRef}"`);
+                      ^
+
+Error: no schema with key or ref "https://json-schema.org/draft-07/schema#"
+    at Ajv.validate (D:\codes\ai-dev-os\suma\node_modules\.pnpm\ajv@8.20.0\node_modules\ajv\dist\core.js:148:23)
+    at Ajv.validateSchema (D:\codes\ai-dev-os\suma\node_modules\.pnpm\ajv@8.20.0\node_modules\ajv\dist\core.js:261:28)
+    at Ajv._addSchema (D:\codes\ai-dev-os\suma\node_modules\.pnpm\ajv@8.20.0\node_modules\ajv\dist\core.js:461:18)
+    at Ajv.compile (D:\codes\ai-dev-os\suma\node_modules\.pnpm\ajv@8.20.0\node_modules\ajv\dist\core.js:159:26)
+    at file:///D:/codes/ai-dev-os/suma/.cache/e2e/ingress-stage/deployment-config-check.mjs:60:56
+    at ModuleJob.run (node:internal/modules/esm/module_job:274:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.16.0

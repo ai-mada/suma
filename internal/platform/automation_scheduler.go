@@ -232,6 +232,9 @@ func (s *Service) automationAdmission(ctx context.Context, tx *sql.Tx, ref autom
 		}
 		return a, o, err
 	}
+	if err = s.automationIngressDispatchAdmission(ctx, tx, ref, a, o); err != nil {
+		return a, o, err
+	}
 	if a.Overlap != "allow" {
 		var active int
 		// Paused, reconciling and approval/waiting runs remain active. The DAG

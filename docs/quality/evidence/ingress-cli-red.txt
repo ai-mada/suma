@@ -1,0 +1,10 @@
+--- FAIL: TestWebhookDeliversExactSignedBodyWithoutSessionCredentials (0.01s)
+    webhook_test.go:45: code=2 calls=0 out= err={
+          "error": {
+            "code": "usage",
+            "message": "unknown command or arguments; use --help"
+          }
+        }
+FAIL
+FAIL	github.com/ai-mada/suma/internal/cli	0.806s
+FAIL

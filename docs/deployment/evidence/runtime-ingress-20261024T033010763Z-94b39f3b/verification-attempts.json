@@ -1,0 +1,18 @@
+{
+  "first_independent_attempt": {
+    "exit_code": 1,
+    "error": "Missing Mach-O64 signature.",
+    "cause": "Audit PowerShell interpreted 0xfeedfacf as signed Int32 while the actual header was UInt32 4277009103. Runtime binaries and builder were not changed.",
+    "retained_partial_audit_directories": [
+      "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-ingress-delivery\\20261024T033003962Z-b809f415\\verification-stage-ae384530"
+    ]
+  },
+  "corrective_action": "The independent audit script compares the explicit UInt32 value 4277009103. Actual Mach-O header bytes are CFFAEDFE.",
+  "final_independent_attempt": {
+    "exit_code": 0,
+    "artifacts": 24,
+    "source_unchanged": true,
+    "receipts": "verification.json and independent-go-inspection.json"
+  },
+  "scope": "Audit-script check correction only; the original 50-call cross-compilation succeeded once with unchanged runtime source."
+}

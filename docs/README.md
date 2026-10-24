@@ -17,6 +17,7 @@
 | 本机发布与执行提供方 | [发布控制面](deployment/release-control.md)、[提供方协议](integrations/release-provider.md)、[四程序运行包](deployment/release-runtime-bundles.md) |
 | 原生智能体与开发工具 | [智能体运行时](agents/runtime.md)、[工具接入](integrations/tools.md) |
 | 定时自动化与事件续传 | [自动化与事件架构](architecture/automation-events.md)、[自动化工作台](design/automation-workspace.md)、[本机验收](quality/automation-verification.md)、[当前四程序交付](deployment/automation-runtime-bundles.md) |
+| 签名来源与交付 | [信任与事务](architecture/automation-ingress.md)、[入口工作台](design/event-ingress-workspace.md)、[GitHub/CI/监控接入](integrations/automation-ingress.md)、[精确合同](../contracts/automation-ingress.md)、[本机验收](quality/ingress-verification.md)、[当前运行包](deployment/ingress-runtime-bundles.md) |
 | 产品交互与流程图 | [工作台](design/workbench.md)、[DAG 三视图](design/dag-interactions.md) |
 | 组织治理、项目计划与候选测试 | [组织、团队与权限](product/governance.md)、[规划与治理工作台](design/planning-governance.md) |
 | HTTP 合同 | [API 说明](api/README.md)、[OpenAPI](api/openapi.json) |
@@ -37,6 +38,6 @@
 
 ## 维护方式
 
-本阶段继续加入持久人工/cron规则、固定修订派发、时区预演和授权SSE续传。实际双触发均完成开发/制品/包测试；普通Chrome验证终态、正常轮换及服务重启，规则改版后保留原运行。范围与跳过项见专项报告，完整平台仍按实施台账推进。
+本阶段在持久人工/cron、固定修订派发与授权SSE基础上，继续加入GitHub及Suma签名事件、交付去重、CLI发送和事件工作台。实际3次事件运行完成开发/制品/包测试，暂停及修订保留历史，最终交付控制服务重启后恢复原回执。范围与原始证据见专项报告，完整平台仍按实施台账推进。
 
 接口修改先更新共享合同和对应验证；业务门禁变更同步状态机、用户旅程、错误恢复文案和测试。运行截图、HTTP 记录和大规模性能报告统一进入项目交付证据目录；日常临时文件使用 `.cache/`。

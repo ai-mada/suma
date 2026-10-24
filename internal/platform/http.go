@@ -141,6 +141,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	path := strings.Trim(strings.TrimPrefix(r.URL.Path, "/api/v1/"), "/")
 	parts := strings.Split(path, "/")
+	if s.automationIngressPublicHTTP(w, r, path, parts) {
+		return
+	}
 	if s.releaseProviderHTTP(w, r, path) {
 		return
 	}
@@ -384,6 +387,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.planning(w, r, p, project, path, m) {
+		return
+	}
+	if s.automationIngressHTTP(w, r, p, scope, path, parts, project, m) {
 		return
 	}
 	if s.automationHTTP(w, r, p, scope, path, parts, project, m) {

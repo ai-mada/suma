@@ -22,6 +22,8 @@ docker build --target knowledge -t suma-knowledge:local .
 
 基础文件为 [compose.yaml](../../deploy/compose.yaml)，只启动控制面。镜像内监听 `0.0.0.0:4310`，主机只发布 `127.0.0.1:4310`；SQLite 与文件数据保存在 `control_data` 卷的 `/var/lib/suma`。
 
+SQLite 默认在该卷生成并复用 `automation-ingress.key`（私有原始 32 字节），不需要另设主密钥秘密文件。保留此文件并与数据库配套备份；不要只保留数据库后重建卷。
+
 先创建独立的初始化秘密文件，再启动：
 
 ```sh
@@ -47,6 +49,8 @@ docker compose --env-file deploy/.env -f deploy/compose.yaml up --build -d
 `deploy/.env` 用于 Compose 参数替换；`.env.control` 只注入控制面。配置中相对路径按第一个 Compose 文件所在目录 `deploy/` 解析。控制面固定端口、目录、数据库类型及秘密路径由 Compose 明确设置；外部数据库应使用下面的专用覆盖文件。
 
 Compose 将获准的秘密文件挂入 `/run/secrets`；镜像的 [入口脚本](../../deploy/entrypoint.sh) 将对应 `*_FILE` 读取到应用需要的环境变量中，不打印秘密内容。`*_FILE` 是镜像启动脚本提供的能力，Go 程序本身仍读取原有环境变量。环境文件、秘密和数据库不进入构建上下文或 Git。参见 [Docker Compose secrets 官方说明](https://docs.docker.com/compose/how-tos/use-secrets/)。
+
+`SUMA_INGRESS_MASTER_KEY_FILE` 同样由入口脚本读取，文件缺失、不可读或为空会阻止启动；指定文件时文件值覆盖同名直接环境变量。文件内容应为规范 base64 编码的 32 字节主密钥，最终格式由控制面校验。若为 SQLite 显式挂载它，需要自行添加只读秘密挂载和对应环境路径；默认基础模板继续使用卷内持久密钥。
 
 停止服务使用 `docker compose -f deploy/compose.yaml down`，保留数据卷。备份与恢复应遵循[服务器部署与恢复](server.md)，不要把运行中的 SQLite 文件复制当成一致性备份。
 
@@ -80,7 +84,7 @@ docker compose -f deploy/compose.yaml -f deploy/compose.knowledge.yaml up --buil
 
 知识服务的 `SUMA_KNOWLEDGE_HOST` 默认 `127.0.0.1`，容器设为 `0.0.0.0`。额外秘密如嵌入密钥或 OceanBase 检索连接串，需要自行显式挂载并设置 `SUMA_EMBEDDING_API_KEY_FILE`、`SUMA_KNOWLEDGE_OB_URL_FILE`，或由目标环境的秘密管理直接注入；基础覆盖文件不自动获取任何账户。
 
-## 外部 OceanBase
+## 外部 OceanBase / PostgreSQL
 
 [OceanBase 覆盖文件](../../deploy/compose.oceanbase.yaml) 仅替换控制面数据库驱动和秘密引用，不创建数据库集群：
 
@@ -90,11 +94,31 @@ docker compose -f deploy/compose.yaml -f deploy/compose.oceanbase.yaml up --buil
 
 将完整 MySQL DSN 安全写入 `deploy/secrets/database-dsn`，例如驱动所需的 `user:password@tcp(host:2881)/suma?parseTime=true&tls=true` 形式；密码和真实主机由管理员提供，文件权限与其他秘密一致。使用真实租户/账户、最低权限、已配置的 TLS 与备份。DSN 内容不要出现在 Compose 参数、镜像层、日志或提交中。
 
+两个共享数据库覆盖文件均要求 `deploy/secrets/ingress-master-key`。仅在全新数据库初始化、且该秘密尚不存在时生成一次；下面写出的文本没有换行，以便也用于 Kubernetes Secret：
+
+```sh
+mkdir -p deploy/secrets
+if [ ! -e deploy/secrets/ingress-master-key ]; then
+  (umask 077; openssl rand 32 | openssl base64 -A > deploy/secrets/ingress-master-key)
+fi
+sudo chgrp 10001 deploy/secrets/ingress-master-key
+chmod 0640 deploy/secrets/ingress-master-key
+```
+
+所有连接同一业务库的实例必须挂载同一内容；备份时单独安全保管。不要在每次启动、升级或恢复时生成新值，也不要打印或提交内容。此文件存 base64 文本；已有 SQLite 的原始 `automation-ingress.key` 迁移时须保留原字节并安全转换编码，不能生成替代值，详见[恢复说明](server.md)。单个入口的签名密钥轮换不更换加密主密钥。
+
+[PostgreSQL 覆盖文件](../../deploy/compose.postgres.yaml) 使用相同秘密文件名，`database-dsn` 改为 PostgreSQL 驱动的完整连接串，并选择对应覆盖文件；两种数据库覆盖文件只能选一种：
+
+```sh
+docker compose -f deploy/compose.yaml -f deploy/compose.postgres.yaml config --quiet
+docker compose -f deploy/compose.yaml -f deploy/compose.postgres.yaml up --build -d
+```
+
 知识服务的 OceanBase 后端是另一项独立配置，不会随控制面的数据库驱动自动切换。实际版本的 DDL、锁、迁移、索引和恢复均需单独实跑；当前模板没有提供这些验证证明。
 
 ## Helm：单控制面与持久卷
 
-[Helm chart](../../deploy/helm/suma/Chart.yaml) 创建一个控制面 Pod、ClusterIP Service 和 PVC；更新策略为 Recreate，避免 SQLite 在升级时出现两个写入控制面。即使连接外部 OceanBase，也保持一个控制面实例。没有 HPA、多副本或分布式成熟度声明。
+[Helm chart](../../deploy/helm/suma/Chart.yaml) 创建一个控制面 Pod、ClusterIP Service 和 PVC；更新策略为 Recreate，避免 SQLite 在升级时出现两个写入控制面。即使连接外部 OceanBase/Postgres，也保持一个控制面实例。没有 HPA、多副本或分布式成熟度声明。
 
 先将已构建并验收的镜像加载到目标节点或推入你授权的镜像仓库，再配置实际镜像标签。已有秘密通过引用注入，不在 values 中填写值：
 
@@ -107,7 +131,11 @@ helm upgrade --install suma deploy/helm/suma \
   --set image.tag=YOUR_VERIFIED_TAG
 ```
 
-OceanBase 模式额外在已有秘密中准备 `database-dsn`，并设置 `database.driver=oceanbase`、`database.existingSecret` 和 `database.dsnKey`。可以通过 `persistence.existingClaim` 复用已有卷；默认 PVC 为 10Gi、ReadWriteOnce，卸载时保留。存储权限、卷扩容和恢复以实际 CSI/集群为准。
+OceanBase/Postgres 模式额外在已有秘密中准备 `database-dsn` 和 `ingress-master-key`，并设置 `database.driver=oceanbase` 或 `postgres`、`database.existingSecret` 和 `database.dsnKey`。可在管理员授权的目标环境以 `kubectl create secret generic suma-control-secrets --from-file=setup-token=deploy/secrets/setup-token --from-file=database-dsn=deploy/secrets/database-dsn --from-file=ingress-master-key=deploy/secrets/ingress-master-key` 创建初始 Secret；已有 Secret 应由秘密管理系统安全维护，不重新生成主密钥。
+
+主密钥通过 `SUMA_INGRESS_MASTER_KEY` 的必需 `secretKeyRef` 注入，`ingressMasterKey.key` 默认 `ingress-master-key`。`ingressMasterKey.existingSecret` 为空时，共享数据库使用 `database.existingSecret`；若主密钥位于独立 Secret，显式填写该引用。只设置名称和键，禁止在 values、`--set` 或日志中提供密钥值。该 Secret 字段必须是无换行/空白的规范 base64 文本；Kubernetes Secret 自身的 `data` 编码是外层存储编码，`--from-file` 会处理外层编码。SQLite 默认不注入该变量，继续使用 PVC 内持久密钥；显式设置引用时须沿用原密钥。
+
+可以通过 `persistence.existingClaim` 复用已有卷；默认 PVC 为 10Gi、ReadWriteOnce，卸载时保留。存储权限、卷扩容和恢复以实际 CSI/集群为准。
 
 就绪探针访问 `/healthz` 检查数据库连接；存活探针检查 HTTP 监听端口，启动探针为迁移预留时间。这些探针不代表完整业务旅程通过。TLS Ingress/反向代理由目标环境提供，生产默认 `secureCookies=true`。只在本机端口转发临时验收时，才显式选择 `secureCookies=false` 以使用 HTTP 浏览器会话。
 
@@ -115,4 +143,6 @@ OceanBase 模式额外在已有秘密中准备 `database-dsn`，并设置 `datab
 
 [CI 工作流](../../.github/workflows/ci.yaml) 定义 Windows/Linux Go 全量测试、静态检查与命令构建，Linux TypeScript 检查、包测试、浏览器构建和文档检查；部署检查包括 Compose 组合校验、Helm lint/render、入口脚本测试、三个镜像的构建及控制面页面/健康响应检查。镜像不会自动发布，不使用部署凭证。
 
-本次本机已实际执行 Compose 基础与覆盖组合校验、秘密合并与知识端口检查、入口脚本两个测试、知识服务 TypeScript 检查，以及真实知识进程默认回环和 `0.0.0.0` 两种监听配置的健康检查。当前 Docker 客户端存在，但会话访问 Docker 引擎被拒绝，因此**没有实际构建镜像或启动容器**。Helm 未安装，官方校验工具下载遇到 TLS 失败，因此**没有本机 Helm lint/render 或 Kubernetes 安装结果**。CI 文件只定义未来检查，尚不构成 CI 已运行的证据。
+T-P4-003 本机已实际执行 8 项部署测试：入口脚本 6 项（新增主密钥文件静默载入、缺失/为空拒绝启动、未指定文件时保留直接环境或 SQLite 默认流程 4 项），以及既有真实知识进程两种监听配置的健康检查。新增文件加载回归先在旧脚本上验证 3 项预期失败，再全部通过。Compose 的 SQLite、OceanBase、Postgres 各自基础/可选 Runner+知识服务组合共 6 种，已解析并校验秘密引用和持久卷；入口脚本语法与文档链接检查通过。
+
+现有 YAML/Ajv 工具验证了 Helm values/schema：接受三种数据库、拒绝内联主密钥字段、空 Secret key、不支持的驱动和空数据库 Secret 引用。Helm 未安装，本次未下载或安装工具，因此**没有 Helm lint/render 或 Kubernetes 验证结果**。本次没有访问 Docker 引擎、构建镜像、启动容器/集群或连接外部数据库。配置解析、schema 校验与本机知识进程测试不证明真实数据库解密、容器秘密权限或生产恢复已验收；CI 文件也不构成 CI 已运行的证据。详细日志保存在本机忽略目录 `.cache/e2e/ingress-stage/deployment-*`。

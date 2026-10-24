@@ -54,6 +54,11 @@ func main() {
 	}
 	defer db.Close()
 	service := &platform.Service{DB: db, Dialect: store.Dialect(driver), DataDir: data}
+	service.AutomationIngressKey, err = platform.LoadAutomationIngressKey(data, store.Dialect(driver), os.Getenv)
+	if err != nil {
+		slog.Error("automation ingress key configuration", "error", err)
+		os.Exit(1)
+	}
 	service.ReleaseProviders, err = platform.LoadReleaseProviders(os.Getenv("SUMA_RELEASE_PROVIDERS_JSON"), os.Getenv)
 	if err != nil {
 		slog.Error("release provider configuration", "error", err)
