@@ -7,7 +7,7 @@ import { ToolWriteRecovery } from "./tool-write";
 export function toolError(error: unknown) {
   if (typeof error === "string") return renderDiagnostic(error);
   return error instanceof ApiError
-    ? `${renderDiagnostic(error)}（${error.code}）`
+    ? tr("development.errors.with_code",{message:renderDiagnostic(error),code:error.code})
     : error instanceof Error
       ? renderDiagnostic(error)
       : tr("common.readIncomplete");
@@ -151,7 +151,7 @@ export function useToolAction(
   return {
     busy,
     error:
-      recovery.error ||
+      renderDiagnostic(recovery.error) ||
       (error && typeof error === "object" && "source" in error
         ? toolError(error.source) +
           ("originalRefusal" in error && error.originalRefusal

@@ -32,6 +32,10 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 describe("shared frontend locale foundation", () => {
+  it("uses saved account preferences ahead of organization and browser defaults", () => {
+    expect(resolveLocale({account:'en-US',organization:'zh-CN',accept:['zh-CN']})).toMatchObject({locale:'en-US',source:'account'});
+    expect(resolveLocale({explicit:'zh-CN',account:'en-US',organization:'en-US'})).toMatchObject({locale:'zh-CN',source:'explicit'});
+  });
   it("matches BCP47 regional aliases across browser, desktop and Go without accepting controls or Hant", () => {
     for (const value of ["en-GB", "en_AU", "en-Latn-CA"])
       expect(normalizeLocale(value)).toBe("en-US");

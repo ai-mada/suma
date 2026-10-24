@@ -214,6 +214,7 @@ func generate() (map[string]any, string) {
 	add("/agent/tools", "get", "", true, false)
 	add("/agent/tools/invoke", "post", "", false, true)
 	extendContracts(add, paths)
+	localePreferenceRoutes(add)
 	automationContracts(add, paths)
 	automationIngressContracts(add)
 	toolExecutionContracts(add, paths)

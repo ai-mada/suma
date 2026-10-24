@@ -18,9 +18,16 @@ const sourceRoot = path.join(base, "src"),
   );
 const errors = [];
 function catalog(locale) {
-  const file = path.join(catalogDir, locale + ".json"),
-    raw = fs.readFileSync(file, "utf8"),
-    seen = new Set();
+  const domains=path.join(catalogDir,'domains'),domainFiles=fs.existsSync(domains)?fs.readdirSync(domains).filter(name=>name.endsWith('.json')).sort():[];
+  for(const name of domainFiles){
+    const parsed=name.match(/^([a-z][a-z0-9-]*)\.(zh-CN|en-US)\.json$/);
+    if(!parsed)throw Error('invalid domain catalog '+name);
+    const other=parsed[2]==='zh-CN'?'en-US':'zh-CN';
+    if(!domainFiles.includes(parsed[1]+'.'+other+'.json'))throw Error('missing domain catalog pair '+name);
+  }
+  const inputs=[path.join(catalogDir,locale+'.json'),...domainFiles.filter(name=>name.endsWith('.'+locale+'.json')).map(name=>path.join(domains,name))],seen=new Set(),result=Object.create(null);
+  for(const file of inputs){
+    const raw=fs.readFileSync(file,'utf8');
   for (const match of raw.matchAll(/"(?:[^"\\]|\\.)*"/g)) {
     if (!/^\s*:/.test(raw.slice(match.index + match[0].length))) continue;
     const key = JSON.parse(match[0]);
@@ -33,7 +40,13 @@ function catalog(locale) {
   for (const [key, text] of Object.entries(value))
     if (typeof text !== "string" || !text.trim() || text.includes("\uFFFD"))
       errors.push("empty or invalid value " + key);
-  return value;
+  if(path.dirname(file)===domains){
+    const prefix=path.basename(file).split('.')[0]+'.';
+    for(const key of Object.keys(value))if(!key.startsWith(prefix))errors.push('domain namespace mismatch '+key);
+  }
+  Object.assign(result,value);
+  }
+  return result;
 }
 function files(root) {
   return fs
@@ -164,6 +177,16 @@ function covered(file, node) {
       "tool-hooks.ts",
       "RecordLineage.tsx",
       "record-options.ts",
+      "Governance.tsx", "Planning.tsx", "ResourceIdentityFields.tsx",
+      "governance-model.ts", "planning-model.ts", "write-action.tsx",
+      "LanguagePreferences.tsx", "Workflow.tsx", "ToolWorkspace.tsx",
+      "TaskDispatch.tsx", "ToolActions.tsx", "ToolFacts.tsx",
+      "ToolBindingStatus.tsx", "ToolNodeFields.tsx", "tool-model.ts",
+      "tool-write.ts", "run-events.ts", "workflow-model.ts",
+      "ResponsiveWorkflow.tsx", "CandidateSource.tsx", "WorkspaceEvidence.tsx",
+      "NodeSchedulingFacts.tsx", "SchedulingFacts.tsx", "scheduling-model.ts",
+      "SchedulingWorkspace.tsx", "scheduling-hooks.ts", "scheduling-write.ts",
+      "release-hooks.ts",
     ].includes(file)
   )
     return true;
@@ -221,6 +244,17 @@ for (const file of sourceFiles) {
       if (relative === "i18n/LanguageSelector.tsx" && node.text === "简体中文")
         return;
       const hash = crypto.createHash("sha256").update(node.text).digest("hex");
+      // Three immutable server policy-note identities are used only to filter
+      // duplicate snapshot notes. Changing display language must not alter them.
+      // No other source literal may inherit this narrowly reviewed exclusion.
+      if (relative === 'SchedulingFacts.tsx' && [
+        '1aa3c519a7d9b95a71f974980f4c617507d18f6ec0500fd23be3ff8bda1e84dc',
+        '1aa27277262e2e7bb5c3b522e7d466c10d1e49869a6e3030a4f20ef19333d285',
+        '5577ef68d320c1092d7fc163bffede3598eda654e7dfaff5c50538aa719d1ea7',
+      ].includes(hash)) {
+        for(let current=node;current;current=current.parent)
+          if(ts.isVariableDeclaration(current)&&ts.isIdentifier(current.name)&&current.name.text==='standardPolicyNotes')return;
+      }
       if (covered(relative, node))
         errors.push(
           "new hardcoded UI text " +

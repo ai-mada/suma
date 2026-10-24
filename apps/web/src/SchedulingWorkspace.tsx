@@ -1,3 +1,4 @@
+import { tr as t, useLocale, formatNumber, renderDiagnostic } from "./i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { RefreshCw, Plus, Trash2 } from "lucide-react";
 import { api, query, type Session } from "./api";
@@ -29,7 +30,7 @@ export function SchedulingWorkspace({
   selected: string;
   onSelect: (id: string) => void;
   refresh: number;
-}) {
+}) { useLocale();
   const workspaceRoot = useRef<HTMLElement>(null),
     editorFocus = useRef(false),
     inflightCommit = useRef<string | undefined>(undefined),
@@ -155,34 +156,32 @@ export function SchedulingWorkspace({
     <section
       ref={workspaceRoot}
       className="panel scheduling-workspace"
-      aria-label="当前项目执行调度"
+      aria-label={t("development.policy.current_project_execution_scheduling")}
     >
       <div className="panel-heading">
         <div>
-          <h2>执行调度</h2>
-          <p>设置并行执行上限与累计额度，审阅后生效。</p>
+          <h2>{t("development.policy.execution_scheduling")}</h2>
+          <p>{t("development.policy.set_concurrency_limits_and_cumulative_budgets_changes")}</p>
         </div>
         <button disabled={read.loading} onClick={() => void read.read()}>
           <RefreshCw size={15} />
-          读取当前策略
-        </button>
+          {t("development.policy.read_current_policy")}</button>
       </div>
       {read.error && (
         <>
           <ErrorNotice error={read.error} onRetry={() => void read.read()} />
           <p className="warning">
-            当前策略读取未确认；不允许依据旧数据发起新调整。
-          </p>
+            {t("development.policy.current_policy_read_unconfirmed_new_changes_cannot")}</p>
         </>
       )}
       {action.error && <ErrorNotice error={action.error} />}{" "}
       {action.pending && (
         <section
           className="scheduling-facts scheduling-recovery"
-          aria-label="策略原操作待核对"
+          aria-label={t("development.policy.original_policy_operation_needs_reconciliation")}
         >
-          <h3>原策略操作结果尚未确认</h3>
-          <p>保留原路径、版本、完整非秘密策略和操作标识；只能恢复同一请求。</p>
+          <h3>{t("development.policy.original_policy_operation_result_unconfirmed")}</h3>
+          <p>{t("development.policy.the_original_path_version_complete_non_secret")}</p>
           <code>{action.pending.idempotency_key}</code>
           <div className="scheduling-actions">
             <button
@@ -195,11 +194,9 @@ export function SchedulingWorkspace({
                 if (value) resolved(original.path, value);
               }}
             >
-              恢复原策略操作回执
-            </button>
+              {t("development.policy.recover_original_policy_operation_receipt")}</button>
             <button disabled={action.busy} onClick={action.defer}>
-              保留标识，稍后核对
-            </button>
+              {t("development.recovery.keep_id_reconcile_later")}</button>
           </div>
         </section>
       )}
@@ -211,8 +208,7 @@ export function SchedulingWorkspace({
         <>
           <PolicyFacts policy={policy} />
           <p className="scheduling-policy-note">
-            降低上限只影响新派发，已有执行继续；累计已用额度不退还。
-          </p>
+            {t("development.policy.reducing_limits_affects_new_dispatch_only_existing")}</p>
           <div
             className={
               "scheduling-policy-grid" + (selected ? " has-preview" : "")
@@ -235,7 +231,7 @@ export function SchedulingWorkspace({
               <section
                 ref={previewRoot}
                 tabIndex={-1}
-                aria-label="固定策略预览"
+                aria-label={t("development.policy.fixed_policy_preview")}
               >
                 {previewRead.error && (
                   <ErrorNotice
@@ -251,8 +247,7 @@ export function SchedulingWorkspace({
                       !previewCommitted &&
                       preview.policy_version !== policy.version && (
                         <p className="warning">
-                          当前策略版本已变化，请返回草稿重新生成预览。旧预览不能无感重基。
-                        </p>
+                          {t("development.policy.the_current_policy_version_changed_return_to")}</p>
                       )}
                     <div className="scheduling-actions">
                       <button
@@ -272,31 +267,24 @@ export function SchedulingWorkspace({
                         }}
                       >
                         {previewCommitted
-                          ? "继续调整策略"
+                          ? t("development.policy.continue_adjusting_policy")
                           : submittingCurrent
-                            ? "正在确认…"
-                            : "确认应用此固定策略"}
+                            ? t("development.policy.confirming")
+                            : t("development.policy.confirm_applying_this_fixed_policy")}
                       </button>
                       <button
                         disabled={writeBlocked}
                         onClick={() => void previewRead.read()}
                       >
-                        重新核对预览
-                      </button>
+                        {t("development.policy.recheck_preview")}</button>
                       {!previewCommitted && (
                         <button disabled={writeBlocked} onClick={returnToDraft}>
-                          返回草稿重新预览
-                        </button>
+                          {t("development.policy.return_to_draft_and_preview_again")}</button>
                       )}
                     </div>
                     {previewCommitted && (
                       <p role="status" aria-live="polite">
-                        该预览已经提交，生效策略版本{" "}
-                        {appliedPreview?.id === selected
-                          ? appliedPreview.policyVersion
-                          : (preview.applied_policy_version ?? "尚未提供")}
-                        ；不能再次提交。
-                      </p>
+                        {t("development.policy.committed_version",{version:appliedPreview?.id===selected?appliedPreview.policyVersion:(preview.applied_policy_version??t("development.scheduling.not_provided_yet"))})}</p>
                     )}
                   </>
                 )}
@@ -320,7 +308,7 @@ function PolicyEditor({
   action: Action;
   disabled: boolean;
   onCreated: (value: PolicyPreview) => void;
-}) {
+}) { useLocale();
   const [concurrency, setConcurrency] = useState(
       String(policy.concurrency_limit),
     ),
@@ -335,7 +323,7 @@ function PolicyEditor({
     ),
     [version, setVersion] = useState(policy.version),
     [dirty, setDirty] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState<unknown>("");
   useLeaveGuard(dirty && !disabled, setError);
   async function submit(form: HTMLFormElement) {
     try {
@@ -358,7 +346,7 @@ function PolicyEditor({
         onCreated(result);
       }
     } catch (error) {
-      setError((error as Error).message);
+      setError(error);
     }
   }
   return (
@@ -370,17 +358,15 @@ function PolicyEditor({
       }}
       onChange={() => setDirty(true)}
     >
-      <h3>准备策略调整</h3>
+      <h3>{t("development.policy.prepare_policy_change")}</h3>
       <p className="muted">
-        草稿所据版本 v{version}
-        。读取当前策略不会覆盖草稿。预览后审阅差异，再显式确认。
-      </p>
-      {error && <ErrorNotice error={error} />}
+        {t("development.policy.draft_version",{version})}</p>
+      {!!error && <ErrorNotice error={renderDiagnostic(error)} />}
       <fieldset disabled={disabled}>
         <div className="scheduling-primary-fields">
           <Field
-            label="并发执行槽位上限"
-            hint="最多同时执行的尝试数。0 暂停新派发。"
+            label={t("development.policy.concurrent_execution_slot_limit")}
+            hint={t("development.policy.maximum_simultaneous_attempts_0_pauses_new_dispatch")}
           >
             <input
               name="concurrency"
@@ -391,8 +377,8 @@ function PolicyEditor({
             />
           </Field>
           <Field
-            label="累计执行额度"
-            hint="每次尝试默认使用 1 准入单位。空白不限制，0 暂停新执行。"
+            label={t("development.scheduling.cumulative_execution_budget")}
+            hint={t("development.policy.each_attempt_uses_1_admission_unit_by")}
           >
             <input
               name="budget"
@@ -404,15 +390,14 @@ function PolicyEditor({
         </div>
         <details className="scheduling-extra-resources">
           <summary>
-            其他资源约束{rows.length ? "（" + rows.length + "）" : ""}
+            {rows.length?t("development.policy.resources_count",{count:formatNumber(rows.length)}):t("development.policy.other_resource_constraints")}
           </summary>
           <p className="muted">
-            资源名称须与工作流一致；空白不限制，0 表示无可用额度。
-          </p>
+            {t("development.policy.resource_names_must_match_the_workflow_blank")}</p>
           {rows.map((row, index) => (
             <div key={index} className="scheduling-resource-row">
               <Field
-                label={"资源名称 " + (index + 1)}
+                label={t("development.policy.resource_name_number",{number:formatNumber(index+1)})}
                 hint={
                   schedulingResourceLabel(row.name) !== row.name
                     ? schedulingResourceLabel(row.name)
@@ -431,7 +416,7 @@ function PolicyEditor({
                   }
                 />
               </Field>
-              <Field label={"资源额度 " + (index + 1)}>
+              <Field label={t("development.policy.resource_quota_number",{number:formatNumber(index+1)})}>
                 <input
                   name={"resource-value-" + index}
                   inputMode="numeric"
@@ -447,7 +432,7 @@ function PolicyEditor({
               </Field>
               <button
                 type="button"
-                aria-label={"移除资源 " + (row.name || index + 1)}
+                aria-label={t("development.policy.remove_resource_name",{name:row.name||formatNumber(index+1)})}
                 onClick={() => {
                   setRows((items) => items.filter((_, i) => i !== index));
                   setDirty(true);
@@ -465,13 +450,11 @@ function PolicyEditor({
             }}
           >
             <Plus size={14} />
-            添加资源约束
-          </button>
+            {t("development.policy.add_resource_constraint")}</button>
         </details>
         <div className="scheduling-actions">
           <button className="primary" type="submit">
-            生成固定预览
-          </button>
+            {t("development.policy.generate_fixed_preview")}</button>
           <button
             type="button"
             onClick={() => {
@@ -490,14 +473,12 @@ function PolicyEditor({
               setError("");
             }}
           >
-            放弃草稿，使用已读策略
-          </button>
+            {t("development.policy.discard_draft_use_the_read_policy")}</button>
         </div>
       </fieldset>
       {!policy.allowed_actions.includes("preview") && (
         <p className="warning">
-          当前账号不具备预览和批准策略的权限，配置事实仍可读取。
-        </p>
+          {t("development.policy.this_account_cannot_preview_or_approve_policies")}</p>
       )}
       {action.conflict && (
         <button
@@ -511,15 +492,14 @@ function PolicyEditor({
               setVersion(latest.version);
               action.clearError();
               setError(
-                "已更新草稿所据版本，字段仍保留。请重新生成并审阅预览。",
+                t("development.policy.the_draft_s_base_version_was_updated"),
               );
             } catch (error) {
-              setError((error as Error).message);
+              setError(error);
             }
           }}
         >
-          核对当前版本，保留草稿重做预览
-        </button>
+          {t("development.policy.check_current_version_keep_draft_and_preview")}</button>
       )}
     </form>
   );

@@ -13,7 +13,8 @@
   color: var(--muted);
 }
 .language-selector select {
-  width: 105px;
+  /* Reserve enough space for "Follow defaults" as well as native names. */
+  width: 150px;
   max-width: 100%;
   min-width: 0;
 }
@@ -35,7 +36,7 @@
     gap: 3px;
   }
   .topbar-right .language-selector select {
-    width: 88px;
+    width: 128px;
     font-size: 11px;
   }
   .topbar-right .version-label {

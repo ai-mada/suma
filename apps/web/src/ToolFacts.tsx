@@ -1,3 +1,5 @@
+import { Trans } from "./i18n/Trans";
+import { tr as t, useLocale, formatDateTime, formatNumber } from "./i18n";
 import { DispatchRouteFacts } from "./execution-pools/DispatchRouteFacts";
 import { stateLabel } from "./api";
 import type { ToolEvidence as ContractToolEvidence } from "../../../packages/contracts/src";
@@ -20,41 +22,38 @@ export function TaskDispatchRunFacts({
 }: {
   plan: Pick<TaskDispatchPlan, "state" | "run_id">;
   onRun: (id: string) => void;
-}) {
+}) { useLocale();
   if (!taskPlanStarted(plan))
     return (
       <p className="muted">
         {plan.run_id && (
           <>
-            预留运行编号：<code>{plan.run_id}</code>。
+            <Trans i18nKey="development.facts.reserved_run" values={{id:plan.run_id}} components={{run:<code/>}}/>
           </>
         )}
-        计划尚未创建正式运行，请审阅后显式启动。
-      </p>
+        {t("development.facts.the_plan_has_not_created_an_official")}</p>
     );
   if (!plan.run_id)
     return (
       <p className="warning">
-        计划已记录启动，但运行标识未读取。请重新读取并核对原操作，不要创建第二次执行。
-      </p>
+        {t("development.facts.the_plan_records_a_start_but_its")}</p>
     );
   return (
     <div className="success">
-      <p>本计划已关联正式运行，运行结果与任务验收分别处理。</p>
+      <p>{t("development.facts.this_plan_is_linked_to_an_official")}</p>
       <button type="button" onClick={() => onRun(plan.run_id)}>
-        查看本计划真实运行
-      </button>
+        {t("development.facts.view_this_plan_s_actual_run")}</button>
     </div>
   );
 }
 function stamp(value?: string) {
   return value
-    ? new Date(value).toLocaleString("zh-CN", { hour12: false }) + " · " + value
-    : "尚无正式观察";
+    ? formatDateTime(value, { dateStyle: "short", timeStyle: "medium", hour12: false }) + " · " + value
+    : t("development.facts.no_official_observation_yet");
 }
-export function ToolProfileFacts({ profile }: { profile: ToolProfile }) {
+export function ToolProfileFacts({ profile }: { profile: ToolProfile }) { useLocale();
   return (
-    <section className="tool-facts" aria-label="固定工具配置">
+    <section className="tool-facts" aria-label={t("development.tools.fixed_tool_configuration")}>
       <div className="tool-section-heading">
         <h3>{profile.name}</h3>
         <span className="badge">
@@ -62,68 +61,67 @@ export function ToolProfileFacts({ profile }: { profile: ToolProfile }) {
         </span>
       </div>
       <dl>
-        <dt>执行节点身份</dt>
+        <dt>{t("development.tools.execution_worker_identity")}</dt>
         <dd>
           <code>{profile.worker_id}</code>
         </dd>
-        <dt>命令与协议</dt>
+        <dt>{t("development.facts.command_and_protocol")}</dt>
         <dd>
           {profile.profile.command_id} · {profile.profile.adapter} /{" "}
           {profile.profile.protocol}
         </dd>
-        <dt>固定版本</dt>
+        <dt>{t("development.facts.fixed_version")}</dt>
         <dd>{profile.profile.tool_version}</dd>
-        <dt>操作版本</dt>
+        <dt>{t("development.facts.operation_version")}</dt>
         <dd>v{profile.version}</dd>
-        <dt>执行许可</dt>
+        <dt>{t("development.facts.execution_permission")}</dt>
         <dd>
           {profile.profile.read_only
-            ? "只读命令"
-            : "许可写入，按尝试隔离工作树"}
+            ? t("development.facts.read_only_command")
+            : t("development.facts.write_permitted_worktree_isolated_per_attempt")}
         </dd>
-        <dt>配置指纹</dt>
+        <dt>{t("development.facts.configuration_fingerprint")}</dt>
         <dd>
           <code>{profile.profile.profile_sha256}</code>
         </dd>
-        <dt>程序指纹</dt>
+        <dt>{t("development.facts.executable_fingerprint")}</dt>
         <dd>
           <code>{profile.profile.executable_sha256}</code>
         </dd>
-        <dt>最近上报</dt>
+        <dt>{t("development.facts.last_report")}</dt>
         <dd>{stamp(profile.last_seen_at)}</dd>
-        <dt>当前派发条件</dt>
+        <dt>{t("development.facts.current_dispatch_conditions")}</dt>
         <dd>
           {profile.available
-            ? "上次读取可派发，启动时再次核验"
-            : "未确认可派发"}
+            ? t("development.facts.dispatchable_at_last_read_verified_again_at")
+            : t("development.facts.dispatch_eligibility_unconfirmed")}
         </dd>
       </dl>
       <p className="muted">
-        版本与探测不代表模型登录或任务完成，外部执行、平台测试和人工验收分别留存。
-      </p>
+        {t("development.facts.version_and_probing_do_not_prove_model")}</p>
       {profile.reason && (
         <div className="warning">
           <p>{toolReason(profile.reason)}</p>
           <details>
-            <summary>原始原因</summary>
+            <summary>{t("development.facts.original_reason")}</summary>
             <code>{profile.reason}</code>
           </details>
         </div>
       )}
       {profile.observation && (
         <details>
-          <summary>最近一次非秘密观察</summary>
+          <summary>{t("development.facts.latest_non_secret_observation")}</summary>
           <dl>
-            <dt>当时命令可用</dt>
+            <dt>{t("development.facts.command_available_at_that_time")}</dt>
             <dd>
-              {profile.observation.available ? "是，仅限该次本机探测" : "否"}
+              {profile.observation.available ? t("development.facts.yes_for_that_local_probe_only") : t("development.facts.no")}
             </dd>
-            <dt>当时版本</dt>
-            <dd>{profile.observation.profile.tool_version || "未提供"}</dd>
-            <dt>当时配置指纹</dt>
+            <dt>{t("development.facts.version_at_that_time")}</dt>
+            <dd>{profile.observation.profile.tool_version || t("development.workflow.not_provided")}</dd>
+            <dt>{t("development.facts.configuration_fingerprint_at_that_time")}</dt>
             <dd>
               <code>
-                {profile.observation.profile.profile_sha256 || "未提供"}
+                {profile.observation.profile.profile_sha256 || t("development.workflow.not_provided")}
               </code>
             </dd>
           </dl>
@@ -138,16 +136,16 @@ export function toolReason(reason: string) {
     (
       {
         inventory_stale:
-          "执行节点上报已过期。请启动匹配配置的 Runner，等待新观察后重新读取。",
-        worker_revoked: "执行节点凭证已撤销，不能再派发。",
-        profile_paused: "配置已暂停。核对固定内容后需显式启用。",
-        profile_revoked: "配置已永久撤销，历史证据保留。",
-        profile_mismatch: "本机观察与固定配置指纹不匹配，请登记新的配置。",
+          t("development.facts.the_worker_report_expired_start_a_runner"),
+        worker_revoked: t("development.facts.the_worker_credential_was_revoked_dispatch_is"),
+        profile_paused: t("development.facts.this_configuration_is_paused_review_its_fixed"),
+        profile_revoked: t("development.facts.this_configuration_was_permanently_revoked_historical_evidence"),
+        profile_mismatch: t("development.facts.the_local_observation_does_not_match_the"),
         activation_authority_revoked:
-          "原启用人的当前权限已失效，需要有权人员重新核对。",
+          t("development.facts.the_original_enabling_user_s_current_permissions"),
       } as Record<string, string>
     )[reason] ||
-    "当前条件未满足，请核对原始原因与最近观察；保存配置不代表可执行。"
+    t("development.facts.current_conditions_are_unmet_check_the_original")
   );
 }
 function ContextFacts({
@@ -156,7 +154,7 @@ function ContextFacts({
 }: {
   value: TaskContextRecord;
   title: string;
-}) {
+}) { useLocale();
   return (
     <section className="tool-context">
       <h4>
@@ -164,8 +162,8 @@ function ContextFacts({
       </h4>
       <strong>{value.title}</strong>
       <code className="muted">{value.id}</code>
-      <p className="preserve">{value.description || "未填写说明"}</p>
-      <h5>固定验收条目</h5>
+      <p className="preserve">{value.description || t("development.facts.no_description_provided")}</p>
+      <h5>{t("development.facts.fixed_acceptance_criteria")}</h5>
       {value.acceptance_criteria.length ? (
         <ul>
           {value.acceptance_criteria.map((text, index) => (
@@ -173,54 +171,54 @@ function ContextFacts({
           ))}
         </ul>
       ) : (
-        <p className="muted">未填写验收条目</p>
+        <p className="muted">{t("development.facts.no_acceptance_criteria_provided")}</p>
       )}
     </section>
   );
 }
-export function TaskDispatchFacts({ plan }: { plan: TaskDispatchPlan }) {
+export function TaskDispatchFacts({ plan }: { plan: TaskDispatchPlan }) { useLocale();
   const agent = plan.workflow.nodes.find(
       (node) => node.id === plan.agent_node_id,
     ),
     tests = plan.workflow.nodes.filter((node) => node.type === "test");
   return (
-    <section className="tool-plan-facts" aria-label="不可变任务执行计划">
+    <section className="tool-plan-facts" aria-label={t("development.facts.immutable_task_execution_plan")}>
       <div className="tool-section-heading">
-        <h3>固定执行依据</h3>
+        <h3>{t("development.facts.fixed_execution_context")}</h3>
         <span className="badge">
-          {plan.valid ? "当前依据有效" : "当前依据受阻"}
+          {plan.valid ? t("development.facts.current_context_valid") : t("development.facts.current_context_blocked")}
         </span>
       </div>
       <dl>
-        <dt>计划</dt>
+        <dt>{t("development.facts.plan")}</dt>
         <dd>
           <code>{plan.id}</code> · v{plan.version}
         </dd>
-        <dt>原流程版本</dt>
+        <dt>{t("development.facts.original_workflow_version")}</dt>
         <dd>
           {plan.workflow_id} · v{plan.workflow_version}
         </dd>
-        <dt>智能体节点</dt>
+        <dt>{t("development.facts.agent_node")}</dt>
         <dd>{agent?.name || plan.agent_node_id}</dd>
-        <dt>工具配置</dt>
+        <dt>{t("development.facts.tool_configuration")}</dt>
         <dd>
           {plan.tool_profile_id} · v{plan.tool_profile_version}
         </dd>
-        <dt>工具配置指纹</dt>
+        <dt>{t("development.facts.tool_configuration_fingerprint")}</dt>
         <dd>
           <code>{plan.tool_profile_sha256}</code>
         </dd>
-        <dt>失效时间</dt>
+        <dt>{t("development.facts.expires_at")}</dt>
         <dd>{stamp(plan.expires_at)}</dd>
       </dl>
       {plan.reason && <p className="warning">{plan.reason}</p>}
       <DispatchRouteFacts route={plan.execution_route} />
-      <ContextFacts title="任务" value={plan.context.task} />
+      <ContextFacts title={t("development.facts.task")} value={plan.context.task} />
       {plan.context.requirement && (
-        <ContextFacts title="需求" value={plan.context.requirement} />
+        <ContextFacts title={t("development.facts.requirement")} value={plan.context.requirement} />
       )}
       <section className="tool-context">
-        <h4>独立测试与人工验收</h4>
+        <h4>{t("development.facts.independent_testing_and_human_acceptance")}</h4>
         {tests.length ? (
           <ul>
             {tests.map((node) => (
@@ -231,16 +229,14 @@ export function TaskDispatchFacts({ plan }: { plan: TaskDispatchPlan }) {
           </ul>
         ) : (
           <p className="warning">
-            本流程没有独立测试节点，不构成完整验收依据。
-          </p>
+            {t("development.facts.this_workflow_has_no_independent_test_node")}</p>
         )}
         <p>
-          工具完成只形成执行事实；独立测试与人工验收继续使用平台门禁。启动时再次核对任务、需求、权限、工具与实时观察。
-        </p>
+          {t("development.facts.tool_completion_establishes_execution_facts_only_independent")}</p>
       </section>
       {typeof agent?.config?.goal === "string" && agent.config.goal !== "" && (
         <details>
-          <summary>将交给工具的完整固定输入</summary>
+          <summary>{t("development.facts.complete_fixed_input_for_the_tool")}</summary>
           <pre className="output">{String(agent.config.goal)}</pre>
         </details>
       )}
@@ -255,26 +251,26 @@ export function UsageFacts({
   usage?: ToolUsage;
   usageState?: UsageState;
   step?: boolean;
-}) {
+}) { useLocale();
   const entries: [keyof ToolUsage, string][] = [
-    ["input_tokens", "输入 Token"],
-    ["cached_input_tokens", "其中缓存输入"],
-    ["cache_write_input_tokens", "缓存写入输入"],
-    ["output_tokens", "输出 Token"],
-    ["reasoning_output_tokens", "其中推理输出"],
+    ["input_tokens", t("development.facts.input_tokens")],
+    ["cached_input_tokens", t("development.facts.of_which_cached_input")],
+    ["cache_write_input_tokens", t("development.facts.cache_write_input")],
+    ["output_tokens", t("development.facts.output_tokens")],
+    ["reasoning_output_tokens", t("development.facts.of_which_reasoning_output")],
   ];
   return (
-    <section aria-label="报告用量与完整度">
+    <section aria-label={t("development.facts.reported_usage_and_completeness")}>
       <p>
         {usageState === "complete"
           ? step
-            ? "本步骤已报告用量；不代表整轮总量"
-            : "本轮完整已报告用量"
+            ? t("development.facts.usage_reported_for_this_step_not_a")
+            : t("development.facts.complete_reported_usage_for_this_turn")
           : usageState === "partial"
-            ? "部分已报告小计，不代表整轮完整总量"
+            ? t("development.facts.partial_reported_subtotal_not_a_complete_whole")
             : usageState === "unreported"
-              ? "未报告用量"
-              : "用量完整度未报告"}
+              ? t("development.facts.usage_unreported")
+              : t("development.facts.usage_completeness_unreported")}
       </p>
       {usageState !== "unreported" && usage && (
         <dl>
@@ -285,8 +281,8 @@ export function UsageFacts({
                 {typeof usage[key] === "number" &&
                 Number.isSafeInteger(usage[key]) &&
                 usage[key]! >= 0
-                  ? usage[key]
-                  : "未报告"}
+                  ? formatNumber(usage[key]!)
+                  : t("development.facts.unreported")}
               </dd>
             </div>
           ))}
@@ -303,7 +299,7 @@ export function ToolExecutionFacts({
   state: string;
   evidence?: ToolEvidence | ContractToolEvidence;
   events?: ToolEvent[];
-}) {
+}) { useLocale();
   if (!evidence && !events.length) return null;
   const recent = events.slice(-40),
     last = events.at(-1),
@@ -324,34 +320,34 @@ export function ToolExecutionFacts({
         ? reportedState
         : undefined;
   return (
-    <section className="tool-execution-facts" aria-label="外部工具执行事实">
-      <h4>外部工具执行事实</h4>
+    <section className="tool-execution-facts" aria-label={t("development.facts.external_tool_execution_facts")}>
+      <h4>{t("development.facts.external_tool_execution_facts")}</h4>
       <dl>
-        <dt>平台执行状态</dt>
+        <dt>{t("development.facts.platform_execution_state")}</dt>
         <dd>{stateLabel(state)}</dd>
         {evidence && (
           <>
-            <dt>固定工具</dt>
+            <dt>{t("development.facts.fixed_tool")}</dt>
             <dd>
               {evidence.profile.command_id} · {evidence.profile.tool_version}
             </dd>
-            <dt>工具报告</dt>
+            <dt>{t("development.facts.tool_report")}</dt>
             <dd>
               {(
                 {
-                  completed: "工具报告本轮结束",
-                  failed: "工具报告本轮失败",
-                  unknown: "工具结果未知",
+                  completed: t("development.facts.tool_reported_turn_completion"),
+                  failed: t("development.facts.tool_reported_turn_failure"),
+                  unknown: t("development.facts.tool_result_unknown"),
                 } as Record<string, string>
-              )[evidence.terminal] || "工具未提供可识别终态"}
+              )[evidence.terminal] || t("development.facts.tool_provided_no_recognized_terminal_result")}
             </dd>
-            <dt>已记录事件数</dt>
-            <dd>{evidence.event_count}</dd>
+            <dt>{t("development.facts.recorded_events")}</dt>
+            <dd>{formatNumber(evidence.event_count)}</dd>
           </>
         )}
         {session && (
           <>
-            <dt>外部会话标识</dt>
+            <dt>{t("development.facts.external_session_id")}</dt>
             <dd>
               <code>{session}</code>
             </dd>
@@ -360,8 +356,7 @@ export function ToolExecutionFacts({
       </dl>
       {session && (
         <p className="muted">
-          会话标识仅供追溯与核对，不会自动续跑，不代表平台具备远程会话恢复权限。
-        </p>
+          {t("development.facts.the_session_id_is_for_traceability_and")}</p>
       )}
       <UsageFacts
         usage={usage ?? undefined}
@@ -370,26 +365,23 @@ export function ToolExecutionFacts({
       />
       {state === "running" && last?.kind === "waiting_input" && (
         <p className="warning">
-          等待外部输入，进程仍占用执行槽位。当前协议不支持在此答复或自动恢复，请核对本机工具。
-        </p>
+          {t("development.facts.waiting_for_external_input_the_process_still")}</p>
       )}
       {events.length > 40 && (
         <p className="muted">
-          只显示当前窗口最近 40 项，完整事实请查看持久历史。
-        </p>
+          {t("development.facts.only_the_latest_40_items_in_this")}</p>
       )}
       <div className="tool-event-list">
         {recent.map((event, index) => (
           <article key={index}>
-            <strong>{toolEventNames[event.kind] || "工具事实"}</strong>
+            <strong>{toolEventNames[event.kind] || t("development.facts.tool_fact")}</strong>
             {event.status && <small>{event.status}</small>}
             {event.message && <p className="preserve">{event.message}</p>}
           </article>
         ))}
       </div>
       <p className="muted">
-        工具消息和用量是外部报告，不替代平台实际停止、测试证据或业务验收。
-      </p>
+        {t("development.facts.tool_messages_and_usage_are_external_reports")}</p>
     </section>
   );
 }

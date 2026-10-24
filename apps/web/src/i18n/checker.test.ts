@@ -10,12 +10,17 @@ const repository = resolve(
   base = resolve(repository, ".cache/e2e/localization-stage/checker-fixtures"),
   script = resolve(repository, "apps/web/scripts/check-i18n.mjs");
 const created: string[] = [];
-function check(zh: string, en: string) {
+function check(zh: string, en: string, domains: Record<string,string> = {}) {
   mkdirSync(base, { recursive: true });
   const folder = mkdtempSync(resolve(base, "case-"));
   created.push(folder);
   writeFileSync(resolve(folder, "zh-CN.json"), zh);
   writeFileSync(resolve(folder, "en-US.json"), en);
+  if (Object.keys(domains).length) {
+    mkdirSync(resolve(folder, "domains"));
+    for (const [name, value] of Object.entries(domains))
+      writeFileSync(resolve(folder, "domains", name), value);
+  }
   return spawnSync(
     process.execPath,
     [script, "--catalog-dir", folder, "--skip-audit"],
@@ -37,6 +42,33 @@ afterEach(() => {
   }
 });
 describe("internationalization CI catalog contract", () => {
+  it("checks domain languages and does not silently ignore an unpaired domain", () => {
+    const result=check('{}','{}',{'sample.zh-CN.json':'{"sample.title":"示例"}'});
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('domain');
+  });
+  it("rejects a domain overriding a foundation key and mismatched domain parameters", () => {
+    const duplicate=check('{"sample.title":"旧"}','{"sample.title":"Old"}',{
+      'sample.zh-CN.json':'{"sample.title":"新"}',
+      'sample.en-US.json':'{"sample.title":"New"}',
+    });
+    expect(duplicate.status).toBe(1);
+    expect(duplicate.stderr).toContain('duplicate');
+    const mismatch=check('{}','{}',{
+      'sample.zh-CN.json':'{"sample.title":"{{name}}"}',
+      'sample.en-US.json':'{"sample.title":"{{other}}"}',
+    });
+    expect(mismatch.status).toBe(1);
+    expect(mismatch.stderr).toContain('placeholder');
+  });
+  it("accepts independent domain catalogs without changing foundation coverage", () => {
+    const result=check('{"base":"基础"}','{"base":"Base"}',{
+      'sample.zh-CN.json':'{"sample.title":"{{name}}的示例"}',
+      'sample.en-US.json':'{"sample.title":"Example for {{name}}"}',
+    });
+    expect(result.status,result.stderr).toBe(0);
+    expect(result.stdout).toContain('Catalog keys 2:');
+  });
   it("rejects missing language keys instead of silently falling back", () => {
     const result = check('{"sample":"示例"}', "{}");
     expect(result.status).toBe(1);

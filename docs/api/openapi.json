@@ -1,6 +1,35 @@
 {
   "components": {
     "schemas": {
+      "AccountPreferences": {
+        "properties": {
+          "locale": {
+            "enum": [
+              "",
+              "zh-CN",
+              "en-US"
+            ],
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "version": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "user_id",
+          "locale",
+          "version",
+          "updated_at"
+        ],
+        "type": "object"
+      },
       "Acknowledgement": {
         "properties": {
           "acknowledged": {
@@ -3557,6 +3586,35 @@
         ],
         "type": "object"
       },
+      "LocalePreferenceUpdateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "description": "Required JSON integer lexeme; missing/null/fractional/exponent forms are rejected.",
+            "maximum": 2147483646,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "description": "Stable operation identity; no control characters. Do not regenerate after an unconfirmed response.",
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "locale": {
+            "description": "Empty string explicitly inherits defaults. Supported BCP47 aliases are canonicalized to zh-CN/en-US; the original submitted lexeme remains part of operation identity.",
+            "maxLength": 128,
+            "type": "string"
+          }
+        },
+        "required": [
+          "locale",
+          "expected_version",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
       "LocalizationCatalog": {
         "properties": {
           "default_locale": {
@@ -4090,6 +4148,35 @@
         "required": [
           "expected_version",
           "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "OrganizationPreferences": {
+        "properties": {
+          "locale": {
+            "enum": [
+              "",
+              "zh-CN",
+              "en-US"
+            ],
+            "type": "string"
+          },
+          "organization_id": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "version": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "organization_id",
+          "locale",
+          "version",
+          "updated_at"
         ],
         "type": "object"
       },
@@ -8470,6 +8557,335 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/account/preferences": {
+      "get": {
+        "operationId": "get_account_preferences",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountPreferences"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      },
+      "patch": {
+        "operationId": "patch_account_preferences",
+        "parameters": [
+          {
+            "description": "Exactly one original-view user ID header. Required on new writes and exact replays; checked against current browser identity inside the write transaction. Not authorization. Account writes forbid an expected-organization header.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/LocalePreferenceUpdateRequest"
+                  },
+                  {
+                    "required": [
+                      "locale",
+                      "expected_version",
+                      "idempotency_key"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountPreferences"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-concurrency": "Explicit version CAS and original-view identity binding; zero means no stored preference. Replays recheck current browser identity and organization authority. A historical receipt confirms that operation, not the current preference.",
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
     "/agent/tools": {
       "get": {
         "operationId": "get_agent_tools",
@@ -8492,7 +8908,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -8700,7 +9116,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -8913,7 +9329,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -9093,7 +9509,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -9264,7 +9680,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -9412,7 +9828,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -9566,7 +9982,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -9749,7 +10165,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -9935,7 +10351,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -10105,7 +10521,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -10289,7 +10705,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -10447,7 +10863,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -10651,7 +11067,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -10816,7 +11232,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -11009,7 +11425,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -11181,7 +11597,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -11364,7 +11780,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -11539,7 +11955,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -11694,7 +12110,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -11861,7 +12277,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -12035,7 +12451,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -12200,7 +12616,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -12393,7 +12809,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -12556,7 +12972,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -12749,7 +13165,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -12932,7 +13348,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -13088,7 +13504,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -13261,7 +13677,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -13438,7 +13854,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -13601,7 +14017,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -13776,7 +14192,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -13959,7 +14375,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -14169,7 +14585,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -14375,7 +14791,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -14557,7 +14973,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -14755,7 +15171,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -14908,7 +15324,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -15082,7 +15498,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -15243,7 +15659,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -15426,7 +15842,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -15636,7 +16052,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -15842,7 +16258,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -16024,7 +16440,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -16233,7 +16649,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -16380,7 +16796,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -16547,7 +16963,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -16704,7 +17120,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -16890,7 +17306,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -17055,7 +17471,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -17222,7 +17638,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -17397,7 +17813,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -17562,7 +17978,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -17748,7 +18164,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -17903,7 +18319,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -18078,7 +18494,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -18253,7 +18669,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -18475,7 +18891,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -18716,7 +19132,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -18926,7 +19342,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -19132,7 +19548,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -19314,7 +19730,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -19520,7 +19936,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -19718,7 +20134,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -19885,7 +20301,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -20070,7 +20486,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -20237,7 +20653,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -20401,7 +20817,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -20611,7 +21027,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -20817,7 +21233,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -20999,7 +21415,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -21197,7 +21613,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -21364,7 +21780,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -21548,7 +21964,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -21715,7 +22131,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -21877,7 +22293,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -22043,7 +22459,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -22201,7 +22617,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -22373,7 +22789,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -22517,6 +22933,351 @@
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },
+    "/organization/preferences": {
+      "get": {
+        "operationId": "get_organization_preferences",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationPreferences"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      },
+      "patch": {
+        "operationId": "patch_organization_preferences",
+        "parameters": [
+          {
+            "description": "Exactly one original-view user ID header. Required on new writes and exact replays; checked against current browser identity inside the write transaction. Not authorization. Account writes forbid an expected-organization header.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exactly one original-view organization ID header. Shared-cookie organization drift must fail before reading a receipt or modifying any preference.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/LocalePreferenceUpdateRequest"
+                  },
+                  {
+                    "required": [
+                      "locale",
+                      "expected_version",
+                      "idempotency_key"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationPreferences"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-concurrency": "Explicit version CAS and original-view identity binding; zero means no stored preference. Replays recheck current browser identity and organization authority. A historical receipt confirms that operation, not the current preference.",
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-required-organization-roles": [
+          "owner",
+          "admin"
+        ]
+      }
+    },
     "/organizations": {
       "get": {
         "operationId": "get_organizations",
@@ -22531,7 +23292,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -22693,7 +23454,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -22859,7 +23620,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -23068,7 +23829,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -23223,7 +23984,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -23391,7 +24152,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -23583,7 +24344,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -23746,7 +24507,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -23914,7 +24675,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -24079,7 +24840,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -24250,7 +25011,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -24404,7 +25165,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -24556,7 +25317,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -24708,7 +25469,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -24868,7 +25629,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -25012,7 +25773,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -25175,7 +25936,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -25345,7 +26106,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -25530,7 +26291,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -25685,7 +26446,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -25860,7 +26621,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -26027,7 +26788,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -26184,7 +26945,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -26359,7 +27120,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -26524,7 +27285,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -26691,7 +27452,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -26840,7 +27601,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -27042,7 +27803,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -27250,7 +28011,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -27420,7 +28181,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -27566,7 +28327,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -27721,7 +28482,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -27876,7 +28637,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -28031,7 +28792,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -28212,7 +28973,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -28383,7 +29144,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -28555,7 +29316,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -28710,7 +29471,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -28878,7 +29639,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -29056,7 +29817,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -29230,7 +29991,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -29393,7 +30154,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -29568,7 +30329,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -29735,7 +30496,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -29905,7 +30666,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -30073,7 +30834,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -30248,7 +31009,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -30431,7 +31192,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -30641,7 +31402,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -30847,7 +31608,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -31029,7 +31790,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -31244,7 +32005,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -31454,7 +32215,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -31660,7 +32421,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -31842,7 +32603,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -32048,7 +32809,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -32283,7 +33044,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -32454,7 +33215,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -32632,7 +33393,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -32805,7 +33566,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -32968,7 +33729,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -33156,7 +33917,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -33310,7 +34071,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -33472,7 +34233,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -33665,7 +34426,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -33828,7 +34589,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -33990,7 +34751,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -34183,7 +34944,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -34362,7 +35123,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -34572,7 +35333,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -34778,7 +35539,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -34962,7 +35723,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -35178,7 +35939,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -35413,7 +36174,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -35625,7 +36386,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -35807,7 +36568,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -35981,7 +36742,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -36139,7 +36900,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -36298,7 +37059,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -36472,7 +37233,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -36639,7 +37400,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -36824,7 +37585,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -36982,7 +37743,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -37177,7 +37938,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -37354,7 +38115,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -37521,7 +38282,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -37706,7 +38467,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -37916,7 +38677,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -38122,7 +38883,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -38304,7 +39065,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -38510,7 +39271,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -38700,7 +39461,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -38861,7 +39622,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -39037,7 +39798,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -39214,7 +39975,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -39384,7 +40145,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -39567,7 +40328,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -39777,7 +40538,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -39983,7 +40744,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -40165,7 +40926,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -40383,7 +41144,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -40538,7 +41299,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -40713,7 +41474,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -40878,7 +41639,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -41044,7 +41805,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -41254,7 +42015,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -41452,7 +42213,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -41654,7 +42415,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -41830,7 +42591,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -42002,7 +42763,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -42196,7 +42957,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {
@@ -42366,7 +43127,7 @@
             }
           },
           {
-            "description": "Optional explicit display choice overriding Accept-Language. Unknown choices fall through negotiation; account/organization preferences are not yet persisted.",
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
             "in": "header",
             "name": "X-Suma-Language",
             "schema": {

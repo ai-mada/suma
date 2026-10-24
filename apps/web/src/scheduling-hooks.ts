@@ -1,3 +1,4 @@
+import { UiError, renderDiagnostic, useLocale } from "./i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import type { SchedulingPage } from "./scheduling-model";
@@ -7,6 +8,7 @@ export function useSchedulingPage<T>(
   refresh: number | string = 0,
   preserveOnRefresh = false,
 ) {
+  useLocale();
   const epoch = useRef(0),
     identity = useRef(key);
   identity.current = key;
@@ -17,6 +19,7 @@ export function useSchedulingPage<T>(
     next: string;
     loading: boolean;
     error: string;
+    failure?: unknown;
   }>({ path, items: [], total: 0, next: "", loading: !!path, error: "" });
   const read = useCallback(
     async (cursor = "", preserve = false) => {
@@ -29,6 +32,7 @@ export function useSchedulingPage<T>(
         next: before.path === path ? before.next : "",
         loading: true,
         error: "",
+        failure: undefined,
       }));
       try {
         const page = await api<SchedulingPage<T>>(
@@ -41,7 +45,7 @@ export function useSchedulingPage<T>(
           !Number.isSafeInteger(page.total) ||
           page.total < 0
         )
-          throw Error("分页响应缺少有效范围。");
+          throw new UiError("development.errors.page_scope_invalid");
         if (epoch.current !== generation) return;
         setState((before) => {
           const map = new Map<string, T>();
@@ -71,6 +75,7 @@ export function useSchedulingPage<T>(
             path,
             loading: false,
             error: (error as Error).message,
+            failure: error,
           }));
       }
     },
@@ -86,6 +91,7 @@ export function useSchedulingPage<T>(
     ...(state.path === path
       ? state
       : { path, items: [], total: 0, next: "", loading: !!path, error: "" }),
+    error:state.path===path?state.failure?renderDiagnostic(state.failure):renderDiagnostic(state.error):"",
     read,
   };
 }

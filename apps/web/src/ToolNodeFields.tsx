@@ -1,3 +1,5 @@
+import { Trans } from "./i18n/Trans";
+import { tr as t, useLocale } from "./i18n";
 import type { WNode } from "./api";
 import { ErrorNotice, Field } from "./ui";
 import { toolBinding, type ToolProfile } from "./tool-model";
@@ -10,7 +12,7 @@ export function ToolNodeFields({
   project: string;
   node: WNode;
   onChange: (patch: Partial<WNode>) => void;
-}) {
+}) { useLocale();
   const profiles = useToolList<ToolProfile>(project, "tool-profiles"),
     id =
       typeof node.config?.tool_profile_id === "string"
@@ -20,8 +22,8 @@ export function ToolNodeFields({
   return (
     <section className="tool-binding">
       <Field
-        label="固定外部工具配置"
-        hint="命令与配置指纹一起固定。保存流程不会启用工具，实际派发仍核对执行节点身份、权限及新鲜观察。"
+        label={t("development.node.fixed_external_tool_configuration")}
+        hint={t("development.node.the_command_and_configuration_fingerprint_are_fixed")}
       >
         <select
           value={id}
@@ -38,9 +40,9 @@ export function ToolNodeFields({
             )
           }
         >
-          <option value="">不绑定；保留手工命令配置</option>
+          <option value="">{t("development.node.no_binding_keep_manual_command_configuration")}</option>
           {id && !current && (
-            <option value={id}>{id} · 当前绑定，未在已加载窗口内</option>
+            <option value={id}>{t("development.node.binding_option",{id})}</option>
           )}
           {profiles.items?.map((item) => (
             <option
@@ -48,8 +50,7 @@ export function ToolNodeFields({
               key={item.id}
               disabled={item.state === "revoked"}
             >
-              {item.name} · {item.profile.command_id}
-              {item.available ? "" : " · 当前不可派发"}
+              {t(item.available?"development.node.tool_option":"development.node.tool_option_unavailable",{name:item.name,command:item.profile.command_id})}
             </option>
           ))}
         </select>
@@ -66,21 +67,16 @@ export function ToolNodeFields({
           disabled={profiles.loading}
           onClick={() => void profiles.read(true)}
         >
-          加载更多真实工具配置
-        </button>
+          {t("development.node.load_more_actual_tool_configurations")}</button>
       )}
       {id && (
         <small>
-          固定配置 <code>{id}</code> ·{" "}
-          <code>
-            {String(node.config?.tool_profile_sha256 || "缺少指纹，不能发布")}
-          </code>
+          <Trans i18nKey="development.node.fixed_binding" values={{id,fingerprint:String(node.config?.tool_profile_sha256||t("development.node.missing_fingerprint_cannot_publish"))}} components={{id:<code/>,fingerprint:<code/>}}/>
         </small>
       )}
       {current && !current.available && (
         <p className="warning">
-          该配置当前未满足派发条件。可保留编排草稿，启用与实时观察匹配后才会领取；不会消耗尝试来探测。
-        </p>
+          {t("development.node.this_configuration_does_not_currently_meet_dispatch")}</p>
       )}
       <a
         href={
@@ -93,8 +89,7 @@ export function ToolNodeFields({
           })
         }
       >
-        查看执行工具与当前原因
-      </a>
+        {t("development.node.view_execution_tools_and_current_reason")}</a>
     </section>
   );
 }

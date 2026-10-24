@@ -1,3 +1,4 @@
+import { tr as t, useLocale, formatNumber, renderDiagnostic } from "./i18n";
 import { useEffect, useMemo, useState } from "react";
 import { Play, RefreshCw } from "lucide-react";
 import {
@@ -20,7 +21,6 @@ import {
   type ToolProfile,
 } from "./tool-model";
 import {
-  toolError,
   toolSessionStorage,
   useToolAction,
   useToolList,
@@ -45,7 +45,7 @@ export function TaskDispatchDialog({
   onPlan,
   onClose,
   onRun,
-}: Props) {
+}: Props) { useLocale();
   const [currentTask, setCurrentTask] = useState(task),
     [flowKey, setFlowKey] = useState(
       initialWorkflow ? initialWorkflow.id + "@" + initialWorkflow.version : "",
@@ -58,7 +58,7 @@ export function TaskDispatchDialog({
     ),
     [profileID, setProfileID] = useState(""),
     [created, setCreated] = useState<TaskDispatchPlan>(),
-    [error, setError] = useState(""),
+    [error, setError] = useState<unknown>(""),
     [confirmed, setConfirmed] = useState(false);
   const recovery = useMemo(
       () =>
@@ -110,7 +110,7 @@ export function TaskDispatchDialog({
   async function refreshTask() {
     try {
       const id = currentTask?.id || plan?.task_id;
-      if (!id) throw Error("缺少当前任务，请从任务详情重新打开。");
+      if (!id) throw Error(t("development.dispatch.the_current_task_is_missing_reopen_from"));
       setCurrentTask(
         await api<RecordItem>(
           "/tasks/" + encodeURIComponent(id) + query(project),
@@ -119,23 +119,23 @@ export function TaskDispatchDialog({
       await profiles.read();
       await workflows.read();
       action.clearError();
-      setError("已读取当前任务和可选配置；请重新核对后生成新计划。");
+      setError(t("development.dispatch.the_current_task_and_available_configurations_were"));
     } catch (error) {
-      setError(toolError(error));
+      setError(error);
     }
   }
   async function prepare() {
     setError("");
     try {
       if (!currentTask || !flow || !profile)
-        throw new Error("请选择当前任务、已发布流程与实际可派发工具。");
+        throw new Error(t("development.dispatch.choose_a_current_task_a_published_workflow"));
       const result = await action.run<TaskDispatchPlan>(
         "/task-dispatch-plans",
         dispatchRequest(project, currentTask, flow, agentID, profile),
       );
       if (result) saved("/task-dispatch-plans", result);
     } catch (error) {
-      setError(toolError(error));
+      setError(error);
     }
   }
   return (
@@ -144,19 +144,19 @@ export function TaskDispatchDialog({
       onClose={() => {
         if (!action.busy && !action.pending) onClose();
       }}
-      title="安排任务执行"
-      description="先固定任务与需求依据，审阅工具、流程和独立测试，再显式启动同一计划。"
+      title={t("development.dispatch.arrange_task_execution")}
+      description={t("development.dispatch.fix_task_and_requirement_context_first_review")}
     >
       <div className="tool-dispatch">
         <ToolRecoveryNotice action={action} onRestored={saved} />
-        {error && <ErrorNotice error={error} />}
+        {!!error && <ErrorNotice error={renderDiagnostic(error)} />}
         {planRead.error && (
           <ErrorNotice
             error={planRead.error}
             onRetry={() => void planRead.read()}
           />
         )}{" "}
-        {planRead.loading && <p role="status">正在读取不可变执行计划…</p>}
+        {planRead.loading && <p role="status">{t("development.dispatch.reading_immutable_execution_plan")}</p>}
         {!planID || planID === "new" ? (
           <form
             className="tool-form"
@@ -166,8 +166,7 @@ export function TaskDispatchDialog({
             }}
           >
             <p>
-              本次只准备固定计划，不调用模型或启动进程。任务负责人和机器执行身份分别保留。
-            </p>
+              {t("development.dispatch.this_prepares_a_fixed_plan_without_calling")}</p>
             <button
               type="button"
               disabled={blocked}
@@ -177,21 +176,19 @@ export function TaskDispatchDialog({
               }}
             >
               <RefreshCw size={14} />
-              重新读取流程与工具条件
-            </button>
+              {t("development.dispatch.reload_workflow_and_tool_conditions")}</button>
             {currentTask ? (
               <div className="tool-context">
                 <strong>
                   {currentTask.title || currentTask.id} · v{currentTask.version}
                 </strong>
                 <p>
-                  服务端会在同一事务中读取任务说明、验收条目及关联需求；它们会作为明确标记的外部上下文交给工具。
-                </p>
+                  {t("development.dispatch.the_server_reads_task_description_acceptance_criteria")}</p>
               </div>
             ) : (
               <Empty
-                title="缺少派发任务"
-                description="请从当前项目任务详情打开安排执行。"
+                title={t("development.dispatch.missing_dispatch_task")}
+                description={t("development.dispatch.open_execution_planning_from_task_details_in")}
               />
             )}
             <fieldset className="form-fields" disabled={blocked}>
@@ -201,7 +198,7 @@ export function TaskDispatchDialog({
                   onRetry={() => void workflows.read()}
                 />
               )}
-              <Field label="已发布流程版本">
+              <Field label={t("development.dispatch.published_workflow_version")}>
                 <select
                   required
                   value={flowKey}
@@ -217,7 +214,7 @@ export function TaskDispatchDialog({
                     setAgentID(agents.length === 1 ? agents[0].id : "");
                   }}
                 >
-                  <option value="">选择包含智能体节点的固定流程</option>
+                  <option value="">{t("development.dispatch.choose_a_fixed_workflow_with_an_agent")}</option>
                   {workflows.data?.items
                     .filter((item) =>
                       item.nodes.some((node) => node.type === "agent"),
@@ -232,13 +229,13 @@ export function TaskDispatchDialog({
                     ))}
                 </select>
               </Field>
-              <Field label="接收固定任务上下文的节点">
+              <Field label={t("development.dispatch.node_receiving_the_fixed_task_context")}>
                 <select
                   required
                   value={agentID}
                   onChange={(event) => setAgentID(event.target.value)}
                 >
-                  <option value="">选择本次智能体节点</option>
+                  <option value="">{t("development.dispatch.choose_this_execution_s_agent_node")}</option>
                   {flow?.nodes
                     .filter((node) => node.type === "agent")
                     .map((node) => (
@@ -257,15 +254,15 @@ export function TaskDispatchDialog({
                 />
               )}
               <Field
-                label="真实工具配置"
-                hint="开发派发当前使用已核实任务输入与终态的 Suma／Codex 结构化工具，并须启用且具有匹配新鲜观察；其他工具可用于独立命令流程。服务端在预览和启动时再次核验。"
+                label={t("development.dispatch.actual_tool_configuration")}
+                hint={t("development.dispatch.development_dispatch_currently_uses_suma_codex_structured")}
               >
                 <select
                   required
                   value={profileID}
                   onChange={(event) => setProfileID(event.target.value)}
                 >
-                  <option value="">选择可派发工具</option>
+                  <option value="">{t("development.dispatch.choose_a_dispatchable_tool")}</option>
                   {profiles.items?.map((item) => (
                     <option
                       key={item.id}
@@ -277,14 +274,7 @@ export function TaskDispatchDialog({
                         !taskToolProtocol(item.profile)
                       }
                     >
-                      {item.name} · {item.worker_id} · v{item.version}
-                      {!taskToolProtocol(item.profile)
-                        ? " · 暂不用于任务派发，可用于独立命令流程"
-                        : item.profile.read_only
-                          ? " · 只读配置，不用于任务开发"
-                          : item.state !== "enabled" || !item.available
-                            ? " · 当前受阻"
-                            : ""}
+                      {t("development.dispatch.tool_option",{name:item.name,worker:item.worker_id,version:item.version,status:!taskToolProtocol(item.profile)?t("development.dispatch.unsupported"):item.profile.read_only?t("development.dispatch.read_only"):item.state!=="enabled"||!item.available?t("development.dispatch.blocked"):t("development.dispatch.eligible")})}
                     </option>
                   ))}
                 </select>
@@ -295,12 +285,10 @@ export function TaskDispatchDialog({
                   disabled={profiles.loading}
                   onClick={() => void profiles.read(true)}
                 >
-                  加载更多工具配置
-                </button>
+                  {t("development.dispatch.load_more_tool_configurations")}</button>
               )}
               <small>
-                已加载 {profiles.items?.length || 0} / {profiles.total} 项。
-                <a
+                {t("development.tools.loaded_count",{loaded:formatNumber(profiles.items?.length||0),total:formatNumber(profiles.total)})}{" "}<a
                   href={
                     "?" +
                     new URLSearchParams({
@@ -310,15 +298,13 @@ export function TaskDispatchDialog({
                     })
                   }
                 >
-                  查看工具配置和不可用原因
-                </a>
+                  {t("development.dispatch.view_tool_configurations_and_unavailable_reasons")}</a>
               </small>
               {profile && (
                 <div className="tool-context">
                   <strong>{profile.name}</strong>
                   <p>
-                    执行节点 {profile.worker_id} · {profile.profile.adapter} /{" "}
-                    {profile.profile.protocol} · {profile.profile.tool_version}
+                    {t("development.dispatch.worker_summary",{worker:profile.worker_id,adapter:profile.profile.adapter,protocol:profile.profile.protocol,version:profile.profile.tool_version})}
                   </p>
                   <code>{profile.profile.profile_sha256}</code>
                 </div>
@@ -327,17 +313,14 @@ export function TaskDispatchDialog({
             {action.conflict && (
               <div className="conflict-banner">
                 <p>
-                  任务或配置依据已变化，选择仍保留。先读取最新版本，再明确创建新预览。
-                </p>
+                  {t("development.dispatch.task_or_configuration_context_changed_your_selections")}</p>
                 <button type="button" onClick={() => void refreshTask()}>
-                  读取当前依据，保留选择
-                </button>
+                  {t("development.dispatch.read_current_context_keep_selections")}</button>
               </div>
             )}
             <div className="dialog-actions">
               <button type="button" disabled={blocked} onClick={onClose}>
-                取消
-              </button>
+                {t("development.workflow.cancel")}</button>
               <button
                 className="primary"
                 disabled={
@@ -353,8 +336,7 @@ export function TaskDispatchDialog({
                   !!workflows.error
                 }
               >
-                固定并预览执行计划
-              </button>
+                {t("development.dispatch.fix_and_preview_execution_plan")}</button>
             </div>
           </form>
         ) : plan ? (
@@ -370,12 +352,10 @@ export function TaskDispatchDialog({
                     disabled={blocked || !plan.valid}
                     onChange={(event) => setConfirmed(event.target.checked)}
                   />
-                  我已核对固定任务、需求、工具及测试范围。启动只创建运行，不代表测试或人工验收完成。
-                </label>
+                  {t("development.dispatch.i_reviewed_the_fixed_task_requirement_tool")}</label>
                 {action.conflict && (
                   <p className="warning">
-                    原计划或当前依据已变化。不能只替换版本重试启动；读取当前任务后重新准备新计划，原计划继续保留。
-                  </p>
+                    {t("development.dispatch.the_original_plan_or_current_context_changed")}</p>
                 )}
                 <div className="dialog-actions">
                   <button
@@ -390,8 +370,7 @@ export function TaskDispatchDialog({
                     }}
                   >
                     <RefreshCw size={14} />
-                    重新准备新计划
-                  </button>
+                    {t("development.dispatch.prepare_a_new_plan")}</button>
                   <button
                     className="primary"
                     disabled={
@@ -415,8 +394,7 @@ export function TaskDispatchDialog({
                     }}
                   >
                     <Play size={14} />
-                    确认启动固定计划
-                  </button>
+                    {t("development.dispatch.confirm_starting_the_fixed_plan")}</button>
                 </div>
               </>
             )}

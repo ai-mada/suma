@@ -5,11 +5,11 @@ import type {
   LocalizationCatalog,
   LocalizationMessage,
 } from "../../../../packages/contracts/src";
-import zh from "./locales/zh-CN.json";
-import en from "./locales/en-US.json";
+import {zh,en} from "./locales/resources";
 export type Locale = "zh-CN" | "en-US";
 type Sources = {
   explicit?: unknown;
+  account?: unknown;
   organization?: unknown;
   accept?: readonly string[];
 };
@@ -33,6 +33,8 @@ export function normalizeLocale(value: unknown): Locale | undefined {
 export function resolveLocale(sources: Sources) {
   const explicit = normalizeLocale(sources.explicit);
   if (explicit) return { locale: explicit, source: "explicit" as const };
+  const account = normalizeLocale(sources.account);
+  if (account) return { locale: account, source: "account" as const };
   const organization = normalizeLocale(sources.organization);
   if (organization)
     return { locale: organization, source: "organization" as const };
@@ -56,7 +58,34 @@ void i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
   react: { useSuspense: false, bindI18n: "languageChanged loaded" },
 });
-let source: "explicit" | "organization" | "accept" | "default" = "default";
+type LocaleSource = "explicit" | "account" | "organization" | "accept" | "default";
+let source: LocaleSource = "default";
+let manualLocale: Locale | undefined;
+let savedAccount: unknown;
+let savedOrganization: unknown;
+export const getLocaleSource = () => source;
+function resolveCurrentDefaults() {
+  const resolved=resolveLocale({explicit:manualLocale,account:savedAccount,organization:savedOrganization,accept:typeof navigator==='undefined'?[]:navigator.languages});
+  source=resolved.source;
+  if(typeof document!=='undefined'){
+    document.documentElement.lang=resolved.locale;
+    document.documentElement.dir='ltr';
+  }
+  void i18n.changeLanguage(resolved.locale);
+  i18n.emit('loaded',{});
+  return resolved;
+}
+/** Saved defaults are presentation data bound to the currently verified UI
+ * identity. Call with empty values before an account/org scope changes. */
+export function applySavedLocaleDefaults(account?:unknown,organization?:unknown){
+  savedAccount=account;savedOrganization=organization;
+  return resolveCurrentDefaults();
+}
+export function followLocaleDefaults(){
+  manualLocale=undefined;let saved=true;
+  try{localStorage.removeItem('suma-locale-v1');}catch{saved=false;}
+  resolveCurrentDefaults();return saved;
+}
 export const getLocale = (): Locale => {
   const locale = i18n.resolvedLanguage || i18n.language;
   return locale === "zh-CN" || locale === "en-US"
@@ -76,6 +105,7 @@ export async function setLocale(
   const locale = normalizeLocale(value);
   if (!locale) throw Error("Unsupported locale");
   let saved = true;
+  manualLocale=locale;
   source = "explicit";
   if (options.persist !== false) {
     try {
@@ -91,7 +121,8 @@ export async function setLocale(
   await i18n.changeLanguage(locale);
   return saved;
 }
-/** Browser preference is deliberately local. No account/org persistence is claimed. */
+/** The quick selector remains local; verified account/org defaults are loaded
+ * separately after authentication and never substituted for failed reads. */
 export function initializeBrowserLocale(organization?: unknown) {
   let explicit: unknown;
   try {
@@ -99,6 +130,8 @@ export function initializeBrowserLocale(organization?: unknown) {
   } catch {
     /* Browser storage may be unavailable; continue negotiation. */
   }
+  manualLocale=normalizeLocale(explicit);
+  savedAccount=undefined;savedOrganization=organization;
   const resolved = resolveLocale({
     explicit,
     organization,

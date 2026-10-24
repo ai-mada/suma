@@ -1,3 +1,4 @@
+import { tr as t, UiError, renderDiagnostic } from "./i18n";
 import { api, ApiError, operation } from "./api";
 import { policyInput } from "./scheduling-model";
 import type { ToolPendingRequest } from "./tool-write";
@@ -12,7 +13,7 @@ function validate(
     commit = /^\/scheduling\/policy-previews\/[A-Za-z0-9_.-]+\/commit$/.test(
       path,
     );
-  if (!preview && !commit) throw Error("不属于执行调度策略写入范围。");
+  if (!preview && !commit) throw new UiError("development.errors.policy_scope");
   const fields = preview
     ? ["project_id", "expected_version", "policy"]
     : ["project_id", "expected_version"];
@@ -24,7 +25,7 @@ function validate(
     !Number.isSafeInteger(body.expected_version) ||
     Number(body.expected_version) < (commit ? 1 : 0)
   )
-    throw Error("策略恢复范围或预期版本无效。");
+    throw new UiError("development.errors.policy_scope_version");
   if (preview) {
     const policy = body.policy as Record<string, unknown>;
     if (
@@ -39,7 +40,7 @@ function validate(
       typeof policy.resource_limits !== "object" ||
       Array.isArray(policy.resource_limits)
     )
-      throw Error("策略输入无效。");
+      throw new UiError("development.errors.policy_invalid");
     const input = policyInput(
       String(policy.concurrency_limit),
       policy.budget_limit === null ? "" : String(policy.budget_limit),
@@ -57,7 +58,7 @@ function validate(
             v !== (policy.resource_limits as Record<string, unknown>)[key],
         )
       )
-        throw Error("策略输入必须使用正式安全整数或明确 null。");
+        throw new UiError("development.errors.policy_safe_integer");
     }
   }
 }
@@ -87,17 +88,17 @@ export class SchedulingWriteRecovery {
       }
     } catch {
       this.initialError =
-        "调度恢复记录无法读取，未发送新请求。请保留原标识核对。";
+        t("development.errors.policy_recovery_unreadable");
     }
   }
   get pending() {
     return this.value ? copy(this.value) : undefined;
   }
   get error() {
-    return this.initialError;
+    return renderDiagnostic(this.initialError);
   }
   async restore<T = unknown>(): Promise<T> {
-    if (!this.value) throw Error("没有待恢复的策略操作。");
+    if (!this.value) throw new UiError("development.errors.no_policy_pending");
     return this.run<T>(this.value.path, this.value.body);
   }
   async run<T = unknown>(
@@ -106,8 +107,8 @@ export class SchedulingWriteRecovery {
     method: "POST" | "PATCH" = "POST",
   ): Promise<T> {
     if (this.initialError) throw Error(this.initialError);
-    if (this.busy) throw Error("原操作仍在等待回执。");
-    if (method !== "POST") throw Error("策略只允许正式 POST 命令。");
+    if (this.busy) throw new UiError("development.errors.receipt_pending");
+    if (method !== "POST") throw new UiError("development.errors.policy_post_only");
     const restoring = !!this.value;
     if (!this.value) {
       validate(path, body, this.project);
@@ -121,7 +122,7 @@ export class SchedulingWriteRecovery {
         if (!this.storage) throw Error("unavailable");
         this.storage.setItem(this.key, JSON.stringify(request));
       } catch {
-        throw Error("无法保存原操作，未发送请求。请启用会话存储。");
+        throw new UiError("development.errors.policy_storage_unavailable");
       }
       this.value = request;
     }

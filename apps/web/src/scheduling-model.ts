@@ -1,4 +1,4 @@
-import { tr, UiError, formatNumber } from "./i18n";
+import { tr as t, UiError, formatNumber } from "./i18n";
 export type {
   SchedulingPolicyInput as PolicyInput,
   SchedulingPolicyView as SchedulingPolicy,
@@ -86,14 +86,14 @@ export function admissionCurrent(
   );
 }
 export const admissionNames: Record<string, string> = {
-  blocked: "当前条件受阻",
-  unknown: "执行资格尚未确认",
-  eligible: "当前准入检查通过",
-  not_pending: "当前不等待派发",
+  get blocked() { return t("development.admission.current_conditions_blocked"); },
+  get unknown() { return t("development.admission.execution_eligibility_unconfirmed"); },
+  get eligible() { return t("development.admission.current_admission_checks_passed"); },
+  get not_pending() { return t("development.admission.not_currently_awaiting_dispatch"); },
 };
 export const capacityLabel = (value: number | null | undefined) =>
   value === null
-    ? tr("common.unlimited")
+    ? t("common.unlimited")
     : value === undefined
-      ? tr("common.notProvided")
+      ? t("common.notProvided")
       : formatNumber(value);

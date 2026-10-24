@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactFlowProps } from "@xyflow/react";
 import { WorkflowView } from "./Workflow";
 import { App } from "./App";
+import { setLocale } from "./i18n";
 const layout = vi.hoisted(() => ({
   current: undefined as ReactFlowProps | undefined,
 }));
@@ -106,7 +107,8 @@ const response = (value: unknown) =>
   new Response(JSON.stringify(value), {
     headers: { "Content-Type": "application/json" },
   });
-beforeEach(() => {
+beforeEach(async () => {
+  await setLocale("zh-CN", { persist: false });
   vi.useFakeTimers({
     toFake: [
       "setTimeout",

@@ -1,3 +1,4 @@
+import { tr as t, useLocale, formatDateTime, renderDiagnostic } from "./i18n";
 import { useEffect } from "react";
 import { query, stateLabel } from "./api";
 import { ErrorNotice } from "./ui";
@@ -25,7 +26,7 @@ export function ToolBindingFacts({
   loading,
   error,
   onRetry,
-}: Props) {
+}: Props) { useLocale();
   const matches =
     profile?.project_id === project &&
     profile.id === binding.profile_id &&
@@ -44,70 +45,67 @@ export function ToolBindingFacts({
   return (
     <section
       className="tool-execution-facts tool-binding-status"
-      aria-label="固定工具与当前新派发资格"
+      aria-label={t("development.binding.fixed_tool_and_current_eligibility_for_new")}
     >
-      <h4>固定工具依据</h4>
+      <h4>{t("development.binding.fixed_tool_context")}</h4>
       <dl>
-        <dt>本次平台执行</dt>
+        <dt>{t("development.binding.this_platform_execution")}</dt>
         <dd>
-          {state === "ready" ? "待派发（依赖已就绪）" : stateLabel(state)}
+          {state === "ready" ? t("development.binding.awaiting_dispatch_dependencies_ready") : stateLabel(state)}
         </dd>
-        <dt>固定命令</dt>
+        <dt>{t("development.binding.fixed_command")}</dt>
         <dd>
-          <code>{binding.command || "未提供唯一许可命令"}</code>
+          <code>{binding.command || t("development.binding.no_unique_permitted_command_provided")}</code>
         </dd>
-        <dt>固定配置</dt>
+        <dt>{t("development.binding.fixed_configuration")}</dt>
         <dd>
           <code>{binding.profile_id}</code>
         </dd>
-        <dt>本次固定指纹</dt>
+        <dt>{t("development.binding.fingerprint_fixed_for_this_run")}</dt>
         <dd>
-          <code>{binding.profile_sha256 || "尚未读取到固定指纹"}</code>
+          <code>{binding.profile_sha256 || t("development.binding.fixed_fingerprint_not_read_yet")}</code>
         </dd>
       </dl>
-      <h5>当前新派发资格</h5>
+      <h5>{t("development.binding.current_eligibility_for_new_dispatch")}</h5>
       {error ? (
         <>
-          <ErrorNotice error={error} onRetry={onRetry} />
+          <ErrorNotice error={renderDiagnostic(error)} onRetry={onRetry} />
           <p className="warning">
-            当前资格未确认，不根据上次读取结果声称可派发。
-          </p>
+            {t("development.binding.current_eligibility_is_unconfirmed_the_last_read")}</p>
         </>
       ) : !profile ? (
         <p role="status">
-          {loading ? "正在读取当前工具资格…" : "尚未读取到当前工具资格。"}
+          {loading ? t("development.binding.reading_current_tool_eligibility") : t("development.binding.current_tool_eligibility_not_read_yet")}
         </p>
       ) : (
         <>
           <p className={eligible ? "success" : "warning"}>
             {!matches
-              ? "本次固定指纹不匹配当前配置，不能据此新派发。"
+              ? t("development.binding.the_run_s_fixed_fingerprint_does_not")
               : eligible
-                ? "本次读取满足新派发条件；实际领取时仍由服务端重新核验。"
-                : "当前未满足新派发条件。"}
+                ? t("development.binding.this_read_meets_new_dispatch_conditions_the")
+                : t("development.binding.current_conditions_do_not_permit_new_dispatch")}
           </p>
           {!eligible && matches && (
             <p>{toolReason(profile.reason || "profile_" + profile.state)}</p>
           )}
           <dl>
-            <dt>当前节点身份</dt>
+            <dt>{t("development.binding.current_worker_identity")}</dt>
             <dd>
               <code>{profile.worker_id}</code>
             </dd>
-            <dt>最近上报</dt>
-            <dd>{profile.last_seen_at || "尚无正式观察"}</dd>
+            <dt>{t("development.facts.last_report")}</dt>
+            <dd>{profile.last_seen_at ? formatDateTime(profile.last_seen_at,{dateStyle:"short",timeStyle:"medium"}) : t("development.facts.no_official_observation_yet")}</dd>
           </dl>
           {loading && (
             <small className="muted">
-              正在更新当前资格；以上保留上次读取事实。
-            </small>
+              {t("development.binding.updating_eligibility_the_previous_read_is_retained")}</small>
           )}
         </>
       )}
       <p className="muted">
-        当前资格只描述新的派发，不会改变本次运行已发生的状态、尝试、测试或人工验收。
-      </p>
-      <a href={href}>查看工具配置与当前原因</a>
+        {t("development.binding.current_eligibility_describes_new_dispatch_only_it")}</p>
+      <a href={href}>{t("development.binding.view_tool_configuration_and_current_reason")}</a>
     </section>
   );
 }
@@ -126,7 +124,7 @@ export function ToolBindingStatus({
     tool_profile_id?: string;
     tool_profile_sha256?: string;
   };
-}) {
+}) { useLocale();
   const id = node.tool_profile_id || "",
     read = useToolRead<ToolProfile>(
       id ? "/tool-profiles/" + encodeURIComponent(id) + query(project) : "",

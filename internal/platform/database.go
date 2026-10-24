@@ -75,6 +75,9 @@ func (s *Service) Migrate(ctx context.Context) error {
 	if err := s.MigrateGovernance(ctx); err != nil {
 		return err
 	}
+	if err := s.MigrateLocalePreferences(ctx); err != nil {
+		return err
+	}
 	if err := s.MigrateArtifacts(ctx); err != nil {
 		return err
 	}

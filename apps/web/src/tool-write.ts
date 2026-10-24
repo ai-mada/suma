@@ -1,3 +1,4 @@
+import { tr as t, UiError, renderDiagnostic } from "./i18n";
 import { api, ApiError, operation } from "./api";
 export type ToolPendingRequest = {
   path: string;
@@ -11,7 +12,7 @@ const allowedPath =
 const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 function validate(path: string, body: unknown) {
   if (!allowedPath.test(path))
-    throw new Error("此操作不属于工具工作台可恢复写入范围。");
+    throw new UiError("development.errors.operation_scope");
   const inspect = (value: unknown) => {
     if (!value || typeof value !== "object") return;
     for (const [key, item] of Object.entries(value)) {
@@ -20,13 +21,13 @@ function validate(path: string, body: unknown) {
           key,
         )
       )
-        throw new Error("工具恢复记录不能包含秘密、凭证或本地执行配置。");
+        throw new UiError("development.errors.recovery_secrets");
       inspect(item);
     }
   };
   inspect(body);
   if (!body || typeof body !== "object" || Array.isArray(body))
-    throw new Error("恢复请求格式无效。");
+    throw new UiError("development.errors.request_invalid");
 }
 export class ToolWriteRecovery {
   private value?: ToolPendingRequest;
@@ -49,17 +50,17 @@ export class ToolWriteRecovery {
       }
     } catch {
       this.initialError =
-        "工具恢复记录无法读取。请保留当前页面核对，未发送新请求。";
+        t("development.errors.tool_recovery_unreadable");
     }
   }
   get pending() {
     return this.value ? copy(this.value) : undefined;
   }
   get error() {
-    return this.initialError;
+    return renderDiagnostic(this.initialError);
   }
   async restore<T = unknown>(): Promise<T> {
-    if (!this.value) throw new Error("没有需要恢复的工具操作。");
+    if (!this.value) throw new UiError("development.errors.no_tool_pending");
     return this.run<T>(this.value.path, this.value.body, this.value.method);
   }
   async run<T = unknown>(
@@ -68,7 +69,7 @@ export class ToolWriteRecovery {
     method: "POST" | "PATCH" = "POST",
   ): Promise<T> {
     if (this.initialError) throw new Error(this.initialError);
-    if (this.busy) throw new Error("原工具操作仍在等待回执，请勿重复提交。");
+    if (this.busy) throw new UiError("development.errors.tool_receipt_pending");
     const restoring = !!this.value;
     if (!this.value) {
       validate(path, body);
@@ -82,9 +83,7 @@ export class ToolWriteRecovery {
         if (!this.storage) throw Error("unavailable");
         this.storage.setItem(this.key, JSON.stringify(request));
       } catch {
-        throw new Error(
-          "无法保存本页恢复记录，未发送请求。请启用会话存储后重试。",
-        );
+        throw new UiError("development.errors.tool_storage_unavailable");
       }
       this.value = request;
     }

@@ -178,6 +178,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		cookie(w, r, token)
+		s.applyLocalePreferences(w, r, p, token, "")
 		s.session(w, r, p)
 		return
 	}
@@ -193,6 +194,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		cookie(w, r, token)
+		s.applyLocalePreferences(w, r, p, token, "")
 		s.session(w, r, p)
 		return
 	}
@@ -212,6 +214,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		cookie(w, r, token)
+		s.applyLocalePreferences(w, r, p, token, "")
 		s.session(w, r, p)
 		return
 	}
@@ -221,6 +224,10 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	scope, boundProject := s.Service.TokenScope(ctx, tokenOf(r))
+	s.applyLocalePreferences(w, r, p, tokenOf(r), scope)
+	if s.localePreferencesHTTP(w, r, p, scope, path) {
+		return
+	}
 	if scope != "" && strings.HasPrefix(path, "auth/") && path != "auth/logout" {
 		writeError(w, forbidden())
 		return
@@ -267,6 +274,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		cookie(w, r, token)
+		s.applyLocalePreferences(w, r, next, token, "")
 		s.session(w, r, next)
 		return
 	}

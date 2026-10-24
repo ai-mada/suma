@@ -7,8 +7,8 @@ import (
 )
 
 // Request language is a presentation preference, never a permission, tenant
-// switch or input to persisted business/receipt hashes. Account and organization
-// defaults are intentionally not synthesized before those settings exist.
+// switch or input to persisted business/receipt hashes. This initial request
+// selection is overlaid with saved defaults only after a verified human session.
 func setResponseLanguage(w http.ResponseWriter, r *http.Request) {
 	selection := localization.Resolve(localization.Preferences{Explicit: r.Header.Get("X-Suma-Language"), AcceptLanguage: r.Header.Get("Accept-Language")})
 	w.Header().Set("Content-Language", string(selection.Locale))

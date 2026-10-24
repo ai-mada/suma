@@ -2,7 +2,11 @@
 
 状态：本机证据，2026-10-24；负责人：平台集成。证据只适用于[验证报告](../verification.md)明确的范围，完整目标见[实施台账](../../delivery/implementation-plan.md)。
 
-## 当前 T-P4-004 固定工具派发与实际质量闭环
+## 当前 T-P4-007 领域国际化与持久语言偏好
+
+[精简验收摘要](../locale-preferences-summary.json)绑定最终787Go、399Web、30非Web、当前24程序、迁移、实际双标签页与四宽度的本地收据摘要。[专项报告](../locale-preferences-verification.md)区分实现、测试、浏览器和待办范围。原始日志、截图、数据库与二进制留在忽略的`.cache/e2e/preferences-stage/`及`dist/runtime/`，不重复提交原始档案。
+
+## 历史 T-P4-004 固定工具派发与实际质量闭环
 
 | 证据 | 内容 |
 |---|---|

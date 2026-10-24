@@ -1,3 +1,4 @@
+import { tr as t, UiError } from "./i18n";
 import type { RecordItem, Workflow } from "./api";
 export type ToolProfileDefinition = {
   command_id: string;
@@ -148,23 +149,21 @@ const protocols: Record<string, string> = {
 };
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value))
-    throw new Error("清单必须使用正式 JSON 对象。");
+    throw new UiError("development.model.the_inventory_must_use_a_json_object");
   return value as Record<string, unknown>;
 }
 function fields(value: Record<string, unknown>, allowed: string[]) {
   if (Object.keys(value).some((key) => !allowed.includes(key)))
-    throw new Error(
-      "清单包含非公开字段或秘密信息，请使用 --describe-tools 的非秘密输出。",
-    );
+    throw new UiError("development.model.the_inventory_contains_private_fields_or_secret");
 }
 export function parseToolManifest(text: string): ToolObservation[] {
   if (encoder.encode(text).byteLength > 256 * 1024)
-    throw new Error("工具清单超过 256 KiB，请缩小配置范围。");
+    throw new UiError("development.model.the_tool_inventory_exceeds_256_kib_reduce");
   let raw: unknown;
   try {
     raw = JSON.parse(text);
   } catch {
-    throw new Error("工具清单不是有效 JSON。");
+    throw new UiError("development.model.the_tool_inventory_is_not_valid_json");
   }
   if (!Array.isArray(raw)) {
     const envelope = record(raw);
@@ -172,7 +171,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
     raw = envelope.items;
   }
   if (!Array.isArray(raw) || raw.length > 128)
-    throw new Error("工具清单须包含最多 128 项真实观察。");
+    throw new UiError("development.model.the_tool_inventory_must_contain_at_most");
   const seen = new Set<string>();
   return raw.map((item) => {
     const observation = record(item);
@@ -192,22 +191,20 @@ export function parseToolManifest(text: string): ToolObservation[] {
       !id.test(profile.command_id) ||
       seen.has(profile.command_id)
     )
-      throw new Error("清单的命令标识无效或重复。");
+      throw new UiError("development.model.the_inventory_command_id_is_invalid_or");
     seen.add(profile.command_id);
     if (
       typeof profile.adapter !== "string" ||
       protocols[profile.adapter] !== profile.protocol
     )
-      throw new Error("适配器与协议不匹配，不能猜测厂商协议。");
+      throw new UiError("development.model.the_adapter_and_protocol_do_not_match");
     if (
       typeof observation.available !== "boolean" ||
       typeof observation.reason !== "string" ||
       encoder.encode(observation.reason).byteLength > 1000 ||
       (!observation.available && !observation.reason.trim())
     )
-      throw new Error(
-        "清单须声明可用状态，原因最多 1000 个 UTF-8 字节；不可用时须填写明确原因。",
-      );
+      throw new UiError("development.model.the_inventory_must_declare_availability_reasons_are");
     for (const name of ["profile_sha256", "executable_sha256"])
       if (
         profile[name] !== undefined &&
@@ -215,18 +212,18 @@ export function parseToolManifest(text: string): ToolObservation[] {
         (typeof profile[name] !== "string" ||
           !digest.test(profile[name] as string))
       )
-        throw new Error("工具指纹须为小写 SHA-256。");
+        throw new UiError("development.model.tool_fingerprints_must_be_lowercase_sha_256");
     if (
       profile.tool_version !== undefined &&
       (typeof profile.tool_version !== "string" ||
         encoder.encode(profile.tool_version).byteLength > 256)
     )
-      throw new Error("工具版本格式无效。");
+      throw new UiError("development.model.the_tool_version_format_is_invalid");
     if (
       profile.read_only !== undefined &&
       typeof profile.read_only !== "boolean"
     )
-      throw new Error("工具只读声明格式无效。");
+      throw new UiError("development.model.the_tool_read_only_declaration_format_is");
     if (
       observation.available &&
       (!digest.test(String(profile.profile_sha256 || "")) ||
@@ -235,7 +232,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
         !profile.tool_version ||
         typeof profile.read_only !== "boolean")
     )
-      throw new Error("可用工具必须具有完整配置、程序指纹、版本与读写声明。");
+      throw new UiError("development.model.an_available_tool_requires_complete_configuration_and");
     return observation as ToolObservation;
   });
 }
@@ -254,7 +251,7 @@ export function toolBinding(
   delete config.tool_profile_sha256;
   if (!profile) return { config };
   if (!profile.id || !digest.test(profile.profile.profile_sha256))
-    throw new Error("请选择具有固定配置指纹的正式工具。");
+    throw new UiError("development.model.choose_an_official_tool_with_a_fixed");
   return {
     command: [profile.profile.command_id],
     config: {
@@ -283,28 +280,24 @@ export function dispatchRequest(
     task.version < 1 ||
     (task.project_id && task.project_id !== project)
   )
-    throw new Error("请读取当前项目的正式任务版本。");
+    throw new UiError("development.model.read_the_current_project_s_official_task");
   if (
     profile.project_id !== project ||
     profile.state !== "enabled" ||
     !profile.available
   )
-    throw new Error("工具配置当前尚未确认可派发，请核对当前项目与实时观察。");
+    throw new UiError("development.model.tool_dispatch_eligibility_is_unconfirmed_check_the");
   if (profile.profile.read_only)
-    throw new Error(
-      "任务开发需要许可写入的隔离工具；只读配置请通过独立流程使用。",
-    );
+    throw new UiError("development.model.task_development_requires_a_write_permitted_isolated");
   if (!taskToolProtocol(profile.profile))
-    throw new Error(
-      "任务派发仅支持已核实任务输入与终态的 Suma／Codex 结构化协议；其他配置请通过独立命令流程使用。",
-    );
+    throw new UiError("development.model.task_dispatch_supports_only_suma_codex_structured");
   if (
     !workflow.id ||
     !Number.isInteger(workflow.version) ||
     workflow.version < 1 ||
     workflow.nodes.find((item) => item.id === node)?.type !== "agent"
   )
-    throw new Error("请选择已发布流程内真实的智能体节点。");
+    throw new UiError("development.model.choose_an_actual_agent_node_in_a");
   if (
     !workflow.nodes.some(
       (item) =>
@@ -313,9 +306,7 @@ export function dispatchRequest(
         item.command?.length === 1,
     )
   )
-    throw new Error(
-      "流程缺少取得所选开发节点固定候选的独立测试，请先完善工作流。",
-    );
+    throw new UiError("development.model.the_workflow_lacks_an_independent_test_that");
   return {
     project_id: project,
     task_id: task.id,
@@ -377,20 +368,20 @@ export function toolFactsForAttempt(
   });
 }
 export const toolStateNames: Record<string, string> = {
-  paused: "已暂停",
-  enabled: "已启用",
-  revoked: "已撤销",
+  get paused() { return t("development.model.paused"); },
+  get enabled() { return t("development.model.enabled"); },
+  get revoked() { return t("development.model.revoked"); },
 };
 export const toolEventNames: Record<string, string> = {
-  session_started: "外部会话已记录",
-  turn_started: "工具开始处理",
-  activity_started: "活动开始",
-  activity_updated: "活动进展",
-  activity_completed: "活动结束",
-  message: "工具消息",
-  usage: "工具用量报告",
-  error: "工具错误",
-  turn_completed: "工具报告本轮结束",
-  turn_failed: "工具报告本轮失败",
-  waiting_input: "等待外部输入",
+  get session_started() { return t("development.model.external_session_recorded"); },
+  get turn_started() { return t("development.model.tool_started_processing"); },
+  get activity_started() { return t("development.model.activity_started"); },
+  get activity_updated() { return t("development.model.activity_progress"); },
+  get activity_completed() { return t("development.model.activity_completed"); },
+  get message() { return t("development.model.tool_message"); },
+  get usage() { return t("development.model.tool_usage_report"); },
+  get error() { return t("development.model.tool_error"); },
+  get turn_completed() { return t("development.facts.tool_reported_turn_completion"); },
+  get turn_failed() { return t("development.facts.tool_reported_turn_failure"); },
+  get waiting_input() { return t("development.model.waiting_for_external_input"); },
 };

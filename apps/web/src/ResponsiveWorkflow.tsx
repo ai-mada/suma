@@ -1,3 +1,5 @@
+import { Trans } from "./i18n/Trans";
+import { tr as t, useLocale, formatNumber } from "./i18n";
 import { useState, useSyncExternalStore } from "react";
 import { ChevronRight, Search } from "lucide-react";
 import { stateLabel } from "./api";
@@ -39,15 +41,15 @@ export function workflowNodeButtonID(id: string) {
 }
 function nodeState(state?: string) {
   return state === "ready"
-    ? "等待派发"
+    ? t("development.responsive.awaiting_dispatch")
     : state === "pending"
-      ? "等待依赖"
+      ? t("development.responsive.awaiting_dependencies")
       : stateLabel(state);
 }
 function attemptLabel(node: WorkflowListNode) {
   return node.attempt && node.attempt > 0
-    ? "当前尝试 " + node.attempt
-    : "尚未领取";
+    ? t("development.responsive.attempt_number",{attempt:formatNumber(node.attempt)})
+    : t("development.responsive.not_yet_claimed");
 }
 export function filterWorkflowNodes(nodes: WorkflowListNode[], query: string) {
   const text = query.trim().toLocaleLowerCase();
@@ -67,29 +69,28 @@ export function WorkflowNodeList({
   nodes: WorkflowListNode[];
   selected?: string;
   onSelect: (id: string) => void;
-}) {
+}) { useLocale();
   const [search, setSearch] = useState(""),
     visible = filterWorkflowNodes(nodes, search);
   return (
-    <section className="workflow-node-list" aria-label="完整执行节点列表">
+    <section className="workflow-node-list" aria-label={t("development.responsive.complete_execution_node_list")}>
       <div className="workflow-list-heading">
-        <h3>执行节点</h3>
-        <small>完整范围 {nodes.length} 个节点</small>
+        <h3>{t("development.responsive.execution_nodes")}</h3>
+        <small>{t("development.responsive.full_count",{count:nodes.length,value:formatNumber(nodes.length)})}</small>
       </div>
       <label className="workflow-node-search">
         <Search size={15} />
         <input
           type="search"
-          aria-label="查找执行节点"
-          placeholder="按节点名称、标识或状态查找…"
+          aria-label={t("development.responsive.find_execution_node")}
+          placeholder={t("development.responsive.search_by_node_name_id_or_state")}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
       </label>
       {search && (
         <p className="muted" role="status">
-          匹配 {visible.length} / {nodes.length} 个正式节点；未截断原始范围。
-        </p>
+          {t("development.responsive.matches_count",{count:formatNumber(visible.length),total:formatNumber(nodes.length)})}</p>
       )}
       <ul>
         {visible.map((node) => (
@@ -103,8 +104,7 @@ export function WorkflowNodeList({
               <span className="workflow-node-choice-text">
                 <strong>{node.name}</strong>
                 <small>
-                  {attemptLabel(node)}
-                  {node.fence && node.fence > 0 ? " · 租约 " + node.fence : ""}
+                  {node.fence && node.fence > 0?t("development.responsive.attempt_fence",{attempt:attemptLabel(node),fence:node.fence}):attemptLabel(node)}
                 </small>
                 <code>{node.id}</code>
                 {node.reason && (
@@ -124,8 +124,8 @@ export function WorkflowNodeList({
       {!visible.length && (
         <p className="workflow-node-empty">
           {search
-            ? "完整范围内没有匹配节点，请调整查找内容。"
-            : "正在等待当前运行的正式节点。"}
+            ? t("development.responsive.no_matching_nodes_in_the_full_scope")
+            : t("development.responsive.waiting_for_this_run_s_official_nodes")}
         </p>
       )}
     </section>
@@ -137,9 +137,9 @@ export function WorkflowRunSummary({
 }: {
   run: WorkflowRunSummaryData;
   node?: WorkflowListNode;
-}) {
+}) { useLocale();
   return (
-    <section className="workflow-run-summary" aria-label="当前运行与节点">
+    <section className="workflow-run-summary" aria-label={t("development.responsive.current_run_and_node")}>
       <div className="workflow-run-summary-heading">
         <h2>{run.workflow_name}</h2>
         <span className={"badge state-" + run.state}>
@@ -147,11 +147,11 @@ export function WorkflowRunSummary({
         </span>
       </div>
       <p className="workflow-run-id">
-        运行 <code>{run.id}</code>
+        <Trans i18nKey="development.responsive.run_id" values={{id:run.id}} components={{id:<code/>}}/>
       </p>
       {node ? (
         <div className="workflow-selected-context">
-          <strong>当前节点：{node.name}</strong>
+          <strong>{t("development.responsive.current_node_name",{name:node.name})}</strong>
           <p>
             {nodeState(node.state)} · {attemptLabel(node)}
           </p>
@@ -159,8 +159,7 @@ export function WorkflowRunSummary({
         </div>
       ) : (
         <p className="muted">
-          尚未选择节点。可从完整列表进入详情、查看证据和核对操作。
-        </p>
+          {t("development.responsive.no_node_selected_open_details_from_the")}</p>
       )}
     </section>
   );

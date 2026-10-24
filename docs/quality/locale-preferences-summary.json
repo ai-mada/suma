@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-007",
+  "status": "locally_verified_full_platform_in_progress",
+  "recorded_at": "2026-10-24T11:41:29.119Z",
+  "localization": {
+    "supported": [
+      "zh-CN",
+      "en-US"
+    ],
+    "frontend_keys_per_language": 1819,
+    "backend_messages": 107,
+    "remaining_legacy_modules": 18,
+    "remaining_han_literal_candidates": 1011,
+    "covered_module_hardcodes": 0,
+    "preserved_policy_filter_identifiers": 3
+  },
+  "verification": {
+    "go_pass_events": 787,
+    "go_failed_events": 0,
+    "go_skips": 0,
+    "go_vet_exit": 0,
+    "go_inputs": 299,
+    "web_tests": 399,
+    "web_failed": 0,
+    "web_inputs": 173,
+    "non_web_tests": {
+      "desktop": 7,
+      "agent_runtime": 20,
+      "knowledge": 3
+    },
+    "typecheck_exit": 0,
+    "build_exit": 0,
+    "generated_models": 212,
+    "api_paths": 152,
+    "schema_references": 1232
+  },
+  "runtime": {
+    "stamp": "20261024T111804636Z-085c7f72",
+    "targets": 6,
+    "programs": 4,
+    "artifacts": 24,
+    "source_inputs": 178,
+    "source_sha256": "922c776e004dccddf63ac7a2525826e6bd5738a3236052dd443f78baa02ae1a7",
+    "windows_sha256": {
+      "windows-amd64/suma-control": "48f503682b94ed868a537cf6e3ce19f3c4c8f5f8eb82aaa9bf545f01386d071a",
+      "windows-amd64/suma-runner": "5e920312e5a5edbf1efadf5c4e753ad0bb49cf1c5981fa89bcb9fa040195bf33",
+      "windows-arm64/suma-control": "19d79fea8f1afeb1d57b0d47f9d3c845212e2b06fa545c37c4a1fd79eadd7d47",
+      "windows-arm64/suma-runner": "9fa7320a4f11661a0f002b0c8be913bbca5d7bcdb1619b3fc7416785e2bc276e"
+    },
+    "actual_control_activated": true,
+    "runner_restarted": false
+  },
+  "web_entry_assets": [
+    {
+      "url": "/assets/index-bk0D8MXm.js",
+      "sha256": "89168522242e4f1f775cf0f4df0d8a8b49cb45e6c2065dd25ee670bc51c628ac"
+    },
+    {
+      "url": "/assets/index-C2f-nmoE.css",
+      "sha256": "01930f0c73160c322d28b93c9f5f631e025fcc112e2f48f22e14e04e404ab2b4"
+    }
+  ],
+  "actual_data": {
+    "migration": {
+      "before": 125,
+      "after": 129,
+      "changed_old_tables": [],
+      "added_tables": [
+        "suma_account_preference_locks",
+        "suma_account_preferences",
+        "suma_locale_preference_operations",
+        "suma_organization_preferences"
+      ],
+      "unchanged_old_tables": 125,
+      "integrity": [
+        "ok"
+      ]
+    },
+    "scope_conflict": {
+      "stage": "T-P4-007",
+      "scenario": "actual_two_tab_same_version_cookie_drift",
+      "changed_tables": [],
+      "all_129_tables_unchanged": true,
+      "preferences_and_receipts_unchanged": true
+    },
+    "business_preservation": {
+      "stage": "T-P4-007",
+      "changed_old_tables": [
+        "suma_activity",
+        "suma_governance_locks",
+        "suma_operations",
+        "suma_sessions"
+      ],
+      "protected_table_count": 62,
+      "changed_protected_tables": [],
+      "old_execution_delivery_unchanged": true,
+      "integrity": [
+        "ok"
+      ]
+    },
+    "preferences": {
+      "accounts": [
+        {
+          "locale": "",
+          "version": 2
+        }
+      ],
+      "organizations": [
+        {
+          "organization_id": "1d8deb5bd6202c8ddb0d3038e3a2112e",
+          "locale": "en-US",
+          "version": 1
+        },
+        {
+          "organization_id": "44ac2c78c3415bb70a36aa1fad164dfb",
+          "locale": "zh-CN",
+          "version": 1
+        }
+      ],
+      "operation_count": 4
+    }
+  },
+  "browser": {
+    "status": "partial_journeys_verified",
+    "app_entry": "/assets/index-bk0D8MXm.js",
+    "observations": [
+      "Actual isolated browser account: organization A English default v1; organization B Chinese default v1; account Chinese v1 followed across organizations, then clear/inherit retained version2.",
+      "Two actual tabs at equal organization preference version1: second tab changed shared organization cookie; stale first-tab save was refused, draft retained; separate consistent snapshots proved all129 tables unchanged.",
+      "Manual browser override wins; following defaults restores organization language. Language changes retained dirty preference and literal team-name input; Escape returned focus to Create team.",
+      "Actual final run deep link retained node-ed7db9 and fixed candidate; live and persistent history both translated known titles, preserved protocol codes, raw tool output and evidence. History Escape returned focus to persistent-history action.",
+      "Final asset verified from rendered script element. Four widths and two selected themes are partial responsive checks, not a complete accessibility or performance matrix.",
+      "Scope collision happened before final CSS/event-title followups; preference/write and backend scope-binding sources remained unchanged."
+    ],
+    "visuals": [
+      {
+        "file": "final-preferences-en-dark-768.jpg",
+        "client_width": 753,
+        "effective": "Display language: English (US). Source: Current organization default.",
+        "entry": [
+          "http://pool.localhost:4324/assets/index-bk0D8MXm.js"
+        ],
+        "language": "en-US",
+        "scroll_width": 753,
+        "viewport_height": 1024,
+        "viewport_width": 768,
+        "sha256": "21616725bf31740ab7c2d2c91a6e82b88980c5f938a3117f001ae9920524fc13"
+      },
+      {
+        "file": "final-preferences-en-dark-390.jpg",
+        "client_width": 375,
+        "effective": "Display language: English (US). Source: Current organization default.",
+        "entry": [
+          "http://pool.localhost:4324/assets/index-bk0D8MXm.js"
+        ],
+        "language": "en-US",
+        "scroll_width": 375,
+        "viewport_height": 844,
+        "viewport_width": 390,
+        "sha256": "abab0e917bd2965b3ff4827ca8a913c55f1dc384086a87fd8cd6489db22ca08c"
+      },
+      {
+        "file": "final-preferences-en-light-1366.jpg",
+        "client_width": 1366,
+        "effective": "Display language: English (US). Source: Current organization default.",
+        "entry": [
+          "http://pool.localhost:4324/assets/index-bk0D8MXm.js"
+        ],
+        "language": "en-US",
+        "scroll_width": 1366,
+        "viewport_height": 900,
+        "viewport_width": 1366,
+        "sha256": "9a9305d6d24e9e4bf299b45ffed45b4d8fa1c5d2b501ee95d3b86a5798bbda67"
+      },
+      {
+        "file": "final-preferences-zh-light-1920.jpg",
+        "client_width": 1920,
+        "effective": "当前展示语言：简体中文；来源：本浏览器覆盖。",
+        "entry": [
+          "http://pool.localhost:4324/assets/index-bk0D8MXm.js"
+        ],
+        "language": "zh-CN",
+        "scroll_width": 1920,
+        "viewport_height": 1080,
+        "viewport_width": 1920,
+        "sha256": "083148af613e8841adc9baebec408f63ebd4c3f48a331c05ae8d170f992fe5c0"
+      }
+    ]
+  },
+  "local_receipts": [
+    {
+      "path": ".cache/e2e/preferences-stage/go-verification.json",
+      "sha256": "5ea4ce9d4b1195037e64b96f5b9087c3d590a000cc7db1b25d80dea049c302eb"
+    },
+    {
+      "path": ".cache/e2e/preferences-stage/web-verification.json",
+      "sha256": "163fea6d209c0b263f6164f0c9f0b62a0d787303a718af8e035a2f236d278302"
+    },
+    {
+      "path": ".cache/e2e/preferences-stage/web-tests.json",
+      "sha256": "72612a66735afd4fa4f4374816693fb8c1abca203f1efbdd42f2730c5062f5d6"
+    },
+    {
+      "path": ".cache/e2e/preferences-stage/web-build-verification.json",
+      "sha256": "e630a1fb252d6b6c005414c7b14eac0e4f94371ac35ba6e313dd6796be488dd5"
+    },
+    {
+      "path": ".cache/e2e/preferences-stage/runtime-final-audit.json",
+      "sha256": "eab4a60373c486686b69174c9ab9b9a8c9c55d5f0f101bba4872a86ab5e737db"
+    },
+    {
+      "path": ".cache/e2e/preferences-stage/preview-migration-verification.json",
+      "sha256": "4528d3f686e5289ca0e95aea96ea662d04330f203f11d7c5a7ce99a0a006ad42"
+    },
+    {
+      "path": ".cache/e2e/preferences-stage/actual-scope-conflict.json",
+      "sha256": "af925f7a9d08634d5198bb4dd44ae3a98e9eeb9877277febbff99d8192b7e084"
+    },
+    {
+      "path": ".cache/e2e/preferences-stage/actual-business-preservation.json",
+      "sha256": "4fd261a0a2c455664274ee0243d7c8e6acf36a0c1128ff55b8ae0ca4b0cbfe9e"
+    },
+    {
+      "path": ".cache/e2e/preferences-stage/actual-preference-state.json",
+      "sha256": "e4061894c4d0b2ab6c9ec666e57f5f9b742c88b02967f7c8f9cb9c4880b06e02"
+    },
+    {
+      "path": ".cache/e2e/preferences-stage/actual-browser-report.json",
+      "sha256": "553a8b7305064b058247e65f88412f46298dd9c9d2b148e467571c55e50a25cb"
+    },
+    {
+      "path": ".cache/e2e/preferences-stage/review2.json",
+      "sha256": "99e4116a4635547f240aebdab4fde7ac6138597c77f60dac0341ad05264b6e10"
+    },
+    {
+      "path": ".cache/e2e/preferences-stage/actual-preference-cut-verification.json",
+      "sha256": "f5608e8aa0184eecb7bcf86014773b44b068621e8825186a1a918202c7631380"
+    },
+    {
+      "path": ".cache/e2e/preferences-stage/actual-catalog-summary.json",
+      "sha256": "f2e2050b301b09e4c3b00bd1a4f794fbc8b53e6b01cfa964a3ec5b28cb3f4d4c"
+    },
+    {
+      "path": ".cache/e2e/preferences-stage/development/event-localization-report.json",
+      "sha256": "e097f2d68b376972fe424efeee3626e7451b99b2faefbb169f0f5f290b73b357"
+    }
+  ],
+  "limitations": [
+    "18 legacy frontend modules and unmigrated backend diagnostics remain; notifications, installers, channels and all documents are not fully translated.",
+    "ReactFlow 12.4.4 internal zoom/fit controls, keyboard instructions and native date-picker labels may follow the library or browser/OS language; public graph labels are localized.",
+    "Other APIs do not gain this preference-specific original-view identity guard or global cross-tab session synchronization.",
+    "Cross-compilation is not target installation; actual OceanBase/PostgreSQL, production scale, paid vendor models and full P0–P7 remain separate.",
+    "Production build retains earlier ignored assets under emptyOutDir:false; current entry assets are identified explicitly."
+  ]
+}

@@ -1,4 +1,5 @@
-import { tr } from "./i18n";
+import { Trans } from "./i18n/Trans";
+import { tr as t, useLocale, formatDateTime, formatNumber, renderDiagnostic } from "./i18n";
 import { useEffect, useMemo, useState } from "react";
 import {
   ChevronRight,
@@ -12,7 +13,6 @@ import { api, query, type Session } from "./api";
 import { Empty, ErrorNotice, Field, Loading, Modal } from "./ui";
 import { ToolWriteRecovery } from "./tool-write";
 import {
-  toolError,
   toolSessionStorage,
   useToolAction,
   useToolList,
@@ -64,7 +64,7 @@ export function ToolWorkspace({
   onSelect,
   refresh,
   panel,
-}: Props) {
+}: Props) { useLocale();
   const [revision, setRevision] = useState(0),
     [search, setSearch] = useState(""),
     [dialog, setDialog] = useState<Dialog>(),
@@ -153,8 +153,8 @@ export function ToolWorkspace({
     <div className="tool-workspace">
       <div className="tool-intro">
         <div>
-          <h2>执行工具</h2>
-          <p>把本机许可配置、实时观察和正式派发条件放在同一处核对。</p>
+          <h2>{t("development.tools.execution_tools")}</h2>
+          <p>{t("development.tools.review_local_permitted_configurations_live_observations_and")}</p>
         </div>
         <a
           href={
@@ -162,8 +162,7 @@ export function ToolWorkspace({
             new URLSearchParams({ project, view: "development", sub: "tasks" })
           }
         >
-          返回任务派发
-        </a>
+          {t("development.tools.return_to_task_dispatch")}</a>
       </div>
       {returnRun && (
         <a
@@ -181,26 +180,24 @@ export function ToolWorkspace({
             })
           }
         >
-          返回原运行与选中节点
-        </a>
+          {t("development.tools.return_to_the_original_run_and_selected")}</a>
       )}
       <div className="info-strip">
         <ShieldCheck size={18} />
         <p>
-          配置、探测、实际执行和验收分别记录。清单不包含程序路径、参数、环境值或第三方登录文件；模型登录健康需另行验证。
-        </p>
+          {t("development.tools.configuration_probing_actual_execution_and_acceptance_are")}</p>
       </div>
       <ToolRecoveryNotice action={action} onRestored={saved} />
       <div className={"tool-columns " + (selected ? "with-detail" : "")}>
         <section className="panel tool-list">
           <div className="list-toolbar">
             <span>
-              固定工具配置 <b>{profiles.items ? profiles.total : "—"}</b>
+              {t("development.tools.fixed_tool_configuration")}<b>{profiles.items ? formatNumber(profiles.total) : "—"}</b>
             </span>
             <div className="inline">
               <button
                 className="icon-button"
-                aria-label="刷新工具配置"
+                aria-label={t("development.tools.refresh_tool_configurations")}
                 disabled={profiles.loading}
                 onClick={() => {
                   setLive(true);
@@ -219,19 +216,18 @@ export function ToolWorkspace({
                 }}
               >
                 <Plus size={14} />
-                登记配置
-              </button>
+                {t("development.tools.register_configuration")}</button>
             </div>
           </div>
           <div className="filter-toolbar">
             <input
-              aria-label="搜索已加载工具配置"
-              placeholder="按名称、节点或命令筛选…"
+              aria-label={t("development.tools.search_loaded_tool_configurations")}
+              placeholder={t("development.tools.filter_by_name_worker_or_command")}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
             <small>
-              已加载 {profiles.items?.length || 0} / {profiles.total}
+              {t("development.tools.loaded_count",{loaded:formatNumber(profiles.items?.length||0),total:formatNumber(profiles.total)})}
             </small>
           </div>
           {profiles.error && (
@@ -247,8 +243,8 @@ export function ToolWorkspace({
               <Loading />
             ) : (
               <Empty
-                title="尚未读取到正式配置"
-                description="请先恢复连接，无法根据旧声明派发。"
+                title={t("development.tools.no_official_configurations_read_yet")}
+                description={t("development.tools.restore_the_connection_first_historical_declarations_cannot")}
               />
             )
           ) : filtered?.length ? (
@@ -271,7 +267,7 @@ export function ToolWorkspace({
                     </small>
                     <small>
                       {toolStateNames[profile.state]} ·{" "}
-                      {profile.available ? "上次读取可派发" : "当前条件未确认"}
+                      {profile.available ? t("development.tools.dispatchable_at_last_read") : t("development.tools.current_conditions_unconfirmed")}
                     </small>
                   </span>
                   <ChevronRight size={15} />
@@ -280,19 +276,17 @@ export function ToolWorkspace({
             </div>
           ) : (
             <Empty
-              title={search ? "当前窗口没有匹配配置" : "尚未登记执行工具"}
+              title={search ? t("development.tools.no_matching_configurations_in_this_window") : t("development.tools.no_execution_tools_registered")}
               description={
                 search
-                  ? "可调整筛选或加载更多。"
-                  : "先登记执行节点身份，再从本机 --describe-tools 非秘密清单选择固定配置。登记后保持暂停。"
+                  ? t("development.tools.adjust_the_filter_or_load_more")
+                  : t("development.tools.register_an_execution_worker_identity_then_choose")
               }
             />
           )}
           <div className="list-footer">
             <small>
-              {live ? "每 10 秒更新当前窗口" : "自动更新已暂停，保留加载范围"}
-              ；配置变化需重新登记。
-            </small>
+              {live ? t("development.tools.auto_refresh") : t("development.tools.auto_refresh_paused")}</small>
             {profiles.next_cursor && (
               <button
                 disabled={profiles.loading}
@@ -301,8 +295,7 @@ export function ToolWorkspace({
                   void profiles.read(true);
                 }}
               >
-                加载更多配置
-              </button>
+                {t("development.tools.load_more_configurations")}</button>
             )}
           </div>
         </section>
@@ -315,11 +308,10 @@ export function ToolWorkspace({
                   if (canLeave()) onSelect("");
                 }}
               >
-                返回配置列表
-              </button>
+                {t("development.tools.return_to_configuration_list")}</button>
               <button
                 className="icon-button"
-                aria-label="关闭工具详情"
+                aria-label={t("development.tools.close_tool_details")}
                 onClick={() => {
                   if (canLeave()) onSelect("");
                 }}
@@ -334,14 +326,13 @@ export function ToolWorkspace({
                   onRetry={() => void detail.read()}
                 />
               )}{" "}
-              {detail.loading && <p role="status">正在读取当前派发条件…</p>}
+              {detail.loading && <p role="status">{t("development.tools.reading_current_dispatch_conditions")}</p>}
               {current && (
                 <>
                   <ToolProfileFacts profile={current} />
                   {stale && (
                     <p className="warning">
-                      保留上次读取结果；当前连接或权限未确认，管理操作暂不可用。
-                    </p>
+                      {t("development.tools.the_last_read_is_retained_current_connection")}</p>
                   )}
                   <div className="tool-action-bar">
                     {current.state !== "revoked" && (
@@ -359,8 +350,7 @@ export function ToolWorkspace({
                               });
                             }}
                           >
-                            核对并启用
-                          </button>
+                            {t("development.tools.review_and_enable")}</button>
                         ) : (
                           <button
                             disabled={stale || pending || action.busy}
@@ -373,8 +363,7 @@ export function ToolWorkspace({
                               });
                             }}
                           >
-                            暂停配置
-                          </button>
+                            {t("development.tools.pause_configuration")}</button>
                         )}
                         <button
                           disabled={stale || pending || action.busy}
@@ -387,8 +376,7 @@ export function ToolWorkspace({
                             });
                           }}
                         >
-                          撤销配置
-                        </button>
+                          {t("development.tools.revoke_configuration")}</button>
                       </>
                     )}
                   </div>
@@ -401,11 +389,9 @@ export function ToolWorkspace({
       <section className="panel tool-workers">
         <div className="tool-section-heading">
           <div>
-            <h3>执行节点身份</h3>
+            <h3>{t("development.tools.execution_worker_identity")}</h3>
             <p className="muted">
-              复用平台已绑定的 Runner
-              凭证。凭证有效不等于节点在线；工具上报仅在数据库时间 60 秒内有效。
-            </p>
+              {t("development.tools.reuse_a_runner_credential_bound_by_the")}</p>
           </div>
           <button
             disabled={pending || action.busy}
@@ -415,8 +401,7 @@ export function ToolWorkspace({
             }}
           >
             <Plus size={14} />
-            登记执行节点
-          </button>
+            {t("development.tools.register_execution_worker")}</button>
         </div>
         {workers.error && (
           <ErrorNotice
@@ -436,13 +421,10 @@ export function ToolWorkspace({
                   <Terminal size={14} /> {worker.worker_id}
                 </strong>
                 <small>
-                  {worker.status === "active"
-                    ? "凭证已登记，在线状态需看工具观察"
-                    : "凭证已撤销"}{" "}
-                  · 到期 {new Date(worker.expires_at).toLocaleString("zh-CN")}
+                  {t("development.tools.expires_at",{status:worker.status === "active"?t("development.tools.credential_registered_consult_tool_observations_for_online"):t("development.tools.credential_revoked"),at:formatDateTime(worker.expires_at,{dateStyle:"short",timeStyle:"medium"})})}
                 </small>
                 <small>
-                  {worker.deployment ? "另具发布许可" : "未授予部署许可"}
+                  {worker.deployment ? t("development.tools.also_permitted_to_release") : t("development.tools.no_deployment_permission")}
                 </small>
               </div>
               {worker.status === "active" && (
@@ -453,15 +435,14 @@ export function ToolWorkspace({
                     setDialog({ kind: "revoke-worker", worker });
                   }}
                 >
-                  撤销节点凭证
-                </button>
+                  {t("development.tools.revoke_worker_credential")}</button>
               )}
             </article>
           ))
         ) : (
           <Empty
-            title="尚无绑定执行身份"
-            description="登记后将获得一次性项目范围 Runner 凭证，请保存到本机进程环境。"
+            title={t("development.tools.no_bound_execution_identity")}
+            description={t("development.tools.registration_issues_a_one_time_project_scoped")}
           />
         )}
       </section>
@@ -472,20 +453,20 @@ export function ToolWorkspace({
         }}
         title={
           dialog?.kind === "create"
-            ? "登记固定工具配置"
+            ? t("development.tools.register_fixed_tool_configuration")
             : dialog?.kind === "worker"
-              ? "登记执行节点身份"
+              ? t("development.tools.register_execution_worker_identity")
               : dialog?.kind === "revoke-worker"
-                ? "撤销执行节点凭证"
+                ? t("development.tools.revoke_execution_worker_credential")
                 : dialog?.kind === "decision"
                   ? {
-                      enable: "核对并启用配置",
-                      pause: "暂停工具配置",
-                      revoke: "撤销固定配置",
+                      enable: t("development.tools.review_and_enable_configuration"),
+                      pause: t("development.tools.pause_tool_configuration"),
+                      revoke: t("development.tools.revoke_fixed_configuration"),
                     }[dialog.action]
-                  : "执行工具"
+                  : t("development.tools.execution_tools")
         }
-        description="使用当前项目的真实身份与固定配置；结果未知时恢复同一操作。"
+        description={t("development.tools.use_the_current_project_s_actual_identity")}
       >
         {action.pending ? (
           <ToolRecoveryNotice action={action} onRestored={saved} />
@@ -541,23 +522,19 @@ export function ToolWorkspace({
             }}
           >
             <p className="warning">
-              撤销 {dialog.worker.worker_id}{" "}
-              的凭证会阻止其后续派发与写回。已经发生的副作用与未知结果仍需核对，不会自动停止远端进程。
-            </p>
+              <Trans i18nKey="development.tools.revoke_worker_warning" values={{worker:dialog.worker.worker_id}} components={{worker:<strong/>}}/></p>
             <div className="dialog-actions">
               <button
                 type="button"
                 disabled={action.busy || pending}
                 onClick={() => setDialog(undefined)}
               >
-                取消
-              </button>
+                {t("development.workflow.cancel")}</button>
               <button
                 className="primary"
                 disabled={action.busy || pending || action.conflict}
               >
-                确认撤销节点凭证
-              </button>
+                {t("development.tools.confirm_worker_credential_revocation")}</button>
             </div>
           </form>
         )}
@@ -568,8 +545,8 @@ export function ToolWorkspace({
           setCredential(undefined);
           setRevealed(false);
         }}
-        title="本次执行节点凭证"
-        description="原文只保留在当前弹窗内存，不进入浏览器恢复存储或读取接口。"
+        title={t("development.tools.execution_worker_credential_for_this_registration")}
+        description={t("development.tools.the_original_value_remains_only_in_this")}
       >
         {credential && (
           <div className="tool-token">
@@ -577,11 +554,8 @@ export function ToolWorkspace({
             {credential.token ? (
               <>
                 <p className="warning">
-                  请将本次凭证保存到受控 Runner
-                  的进程环境。关闭或刷新后无法再次读取；不要发送给模型或填写为原生
-                  Agent 凭证。
-                </p>
-                <Field label="一次性 Runner 凭证">
+                  {t("development.tools.save_this_credential_in_the_controlled_runner")}</p>
+                <Field label={t("development.tools.one_time_runner_credential")}>
                   <input
                     type={revealed ? "text" : "password"}
                     readOnly
@@ -595,14 +569,11 @@ export function ToolWorkspace({
                     checked={revealed}
                     onChange={(event) => setRevealed(event.target.checked)}
                   />
-                  在当前弹窗显示本次原文
-                </label>
+                  {t("development.tools.show_the_original_value_in_this_dialog")}</label>
               </>
             ) : (
               <p className="warning">
-                已恢复原身份登记回执，但一次性凭证没有随历史回执返回。不能声称原文可找回；请核对已有
-                Runner，必要时撤销该身份后用新标识登记。
-              </p>
+                {t("development.tools.the_original_registration_receipt_was_recovered_but")}</p>
             )}
             <button
               onClick={() => {
@@ -610,8 +581,7 @@ export function ToolWorkspace({
                 setRevealed(false);
               }}
             >
-              关闭并清除本次原文
-            </button>
+              {t("development.tools.close_and_clear_the_original_value")}</button>
           </div>
         )}
       </Modal>
@@ -632,11 +602,11 @@ function ToolProfileForm({
   action: ToolAction;
   onSaved: (value: ToolProfile) => void;
   onCancel: () => void;
-}) {
+}) { useLocale();
   const [manifest, setManifest] = useState(""),
     [observations, setObservations] = useState<ToolObservation[]>([]),
     [command, setCommand] = useState(""),
-    [error, setError] = useState(""),
+    [error, setError] = useState<unknown>(""),
     [name, setName] = useState(""),
     [worker, setWorker] = useState("");
   const selected = observations.find(
@@ -650,11 +620,11 @@ function ToolProfileForm({
         event.preventDefault();
         setError("");
         if (!currentToolIdentity(worker, workers, sharedWorkers)) {
-          setError(tr("tools.identity.authorization_unconfirmed"));
+          setError(t("tools.identity.authorization_unconfirmed"));
           return;
         }
         if (!selected?.available) {
-          setError("请选择清单中有完整指纹且探测可用的配置。");
+          setError(t("development.tools.choose_an_available_probed_configuration_with_complete"));
           return;
         }
         const result = await action.run<ToolProfile>("/tool-profiles", {
@@ -666,14 +636,11 @@ function ToolProfileForm({
         if (result) onSaved(result);
       }}
     >
-      {error && <ErrorNotice error={error} />}
+      {!!error && <ErrorNotice error={renderDiagnostic(error)} />}
       <p>
-        在目标 Runner 本机沿用相同许可命令文件与执行开关，运行{" "}
-        <code>suma-runner --describe-tools</code>
-        ，仅粘贴非秘密清单。此步骤不会传入执行地址、命令参数或第三方登录资料；保存后仍为暂停。
-      </p>
+        <Trans i18nKey="development.tools.inventory_instructions" components={{command:<code/>}}/></p>
       <fieldset className="form-fields" disabled={blocked}>
-        <Field label="配置名称">
+        <Field label={t("development.tools.configuration_name")}>
           <input
             required
             maxLength={200}
@@ -690,7 +657,7 @@ function ToolProfileForm({
             if (action.conflict) action.clearError();
           }}
         />
-        <Field label="本机非秘密工具清单">
+        <Field label={t("development.tools.local_non_secret_tool_inventory")}>
           <textarea
             rows={7}
             value={manifest}
@@ -713,30 +680,27 @@ function ToolProfileForm({
               setCommand("");
               setError("");
             } catch (error) {
-              setError(toolError(error));
+              setError(error);
             }
           }}
         >
-          核对清单字段
-        </button>
+          {t("development.tools.validate_inventory_fields")}</button>
         {observations.length > 0 && (
           <>
-            <Field label="选择清单内配置">
+            <Field label={t("development.tools.choose_an_inventory_configuration")}>
               <select
                 required
                 value={command}
                 onChange={(event) => setCommand(event.target.value)}
               >
-                <option value="">选择已探测的固定配置</option>
+                <option value="">{t("development.tools.choose_a_probed_fixed_configuration")}</option>
                 {observations.map((item) => (
                   <option
                     key={item.profile.command_id}
                     value={item.profile.command_id}
                     disabled={!item.available}
                   >
-                    {item.profile.command_id} ·{" "}
-                    {item.profile.tool_version || "版本未确认"}
-                    {item.available ? "" : " · 不可用"}
+                    {t("development.tools.observed_configuration_option",{command:item.profile.command_id,version:item.profile.tool_version||t("development.tools.version_unconfirmed"),status:item.available?t("development.tools.dispatchable_at_last_read"):t("development.tools.unavailable")})}
                   </option>
                 ))}
               </select>
@@ -746,7 +710,7 @@ function ToolProfileForm({
                 .filter((item) => !item.available)
                 .map((item) => (
                   <article key={item.profile.command_id}>
-                    <strong>{item.profile.command_id} · 未确认可用</strong>
+                    <strong>{t("development.tools.observation_unconfirmed",{command:item.profile.command_id})}</strong>
                     <p>{item.reason}</p>
                   </article>
                 ))}
@@ -760,7 +724,7 @@ function ToolProfileForm({
             </strong>
             <p>
               {selected.profile.tool_version} ·{" "}
-              {selected.profile.read_only ? "只读" : "许可写入，独立工作树"}
+              {selected.profile.read_only ? t("development.tools.read_only") : t("development.tools.write_permitted_separate_worktree")}
             </p>
             <code>{selected.profile.profile_sha256}</code>
           </div>
@@ -768,8 +732,7 @@ function ToolProfileForm({
       </fieldset>
       <div className="dialog-actions">
         <button type="button" disabled={blocked} onClick={onCancel}>
-          取消
-        </button>
+          {t("development.workflow.cancel")}</button>
         <button
           className="primary"
           disabled={
@@ -781,8 +744,7 @@ function ToolProfileForm({
             !name.trim()
           }
         >
-          保存为暂停配置
-        </button>
+          {t("development.tools.save_as_paused_configuration")}</button>
       </div>
     </form>
   );
@@ -797,7 +759,7 @@ function WorkerForm({
   action: ToolAction;
   onSaved: (value: unknown) => void;
   onCancel: () => void;
-}) {
+}) { useLocale();
   const [worker, setWorker] = useState("");
   return (
     <form
@@ -814,13 +776,12 @@ function WorkerForm({
       }}
     >
       <p>
-        复用平台执行节点凭证，登记纯工具执行身份。不会授予制品证明签发或部署权限；本次凭证由服务端生成，只显示一次。
-      </p>
+        {t("development.tools.register_a_tool_only_execution_identity_using")}</p>
       <fieldset
         className="form-fields"
         disabled={action.busy || !!action.pending}
       >
-        <Field label="唯一执行节点标识">
+        <Field label={t("development.tools.unique_execution_worker_id")}>
           <input
             required
             pattern="[A-Za-z0-9][A-Za-z0-9_.\-]{0,99}"
@@ -830,14 +791,13 @@ function WorkerForm({
               setWorker(event.target.value);
               if (action.conflict) action.clearError();
             }}
-            placeholder="例如 team-code-runner"
+            placeholder={t("development.tools.e_g_team_code_runner")}
           />
         </Field>
       </fieldset>
       {action.conflict && (
         <p className="warning">
-          该节点标识已有历史登记，不能覆盖；请核对原身份并使用新的唯一标识。
-        </p>
+          {t("development.tools.this_worker_id_has_a_previous_registration")}</p>
       )}
       <div className="dialog-actions">
         <button
@@ -845,14 +805,12 @@ function WorkerForm({
           disabled={action.busy || !!action.pending}
           onClick={onCancel}
         >
-          取消
-        </button>
+          {t("development.workflow.cancel")}</button>
         <button
           className="primary"
           disabled={action.busy || !!action.pending || action.conflict}
         >
-          登记并获取本次凭证
-        </button>
+          {t("development.tools.register_and_get_this_credential")}</button>
       </div>
     </form>
   );
@@ -871,10 +829,10 @@ function ProfileDecisionForm({
   action: ToolAction;
   onSaved: (value: ToolProfile) => void;
   onCancel: () => void;
-}) {
+}) { useLocale();
   const [current, setCurrent] = useState(value),
     [confirmed, setConfirmed] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState<unknown>("");
   return (
     <form
       className="tool-form"
@@ -892,13 +850,13 @@ function ProfileDecisionForm({
       }}
     >
       <ToolProfileFacts profile={current} />
-      {error && <ErrorNotice error={error} />}
+      {!!error && <ErrorNotice error={renderDiagnostic(error)} />}
       <p className={decision === "enable" ? "muted" : "warning"}>
         {decision === "enable"
-          ? "启用后仍须当前执行身份、实时观察与固定指纹匹配。启动时还会核对启用者当前权限。"
+          ? t("development.tools.enabling_still_requires_matching_current_identity_live")
           : decision === "pause"
-            ? "暂停只阻止后续派发，已经开始的操作继续独立核对。"
-            : "撤销不可恢复；原配置、运行和证据继续保留。已发生的操作不会自动撤销。"}
+            ? t("development.tools.pausing_blocks_subsequent_dispatch_only_operations_already")
+            : t("development.tools.revocation_is_irreversible_original_configurations_runs_and")}
       </p>
       <label className="check">
         <input
@@ -907,17 +865,11 @@ function ProfileDecisionForm({
           disabled={action.busy || !!action.pending}
           onChange={(event) => setConfirmed(event.target.checked)}
         />
-        我已核对本配置 v{current.version}，确认
-        {decision === "enable"
-          ? "启用"
-          : decision === "pause"
-            ? "暂停"
-            : "撤销"}
-        。
+        {t("development.tools.confirm_"+decision,{version:current.version})}
       </label>
       {action.conflict && (
         <div className="conflict-banner">
-          <p>状态已经变化，原决定保留。读取最新版本后需重新确认。</p>
+          <p>{t("development.tools.the_state_changed_your_decision_is_retained")}</p>
           <button
             type="button"
             onClick={async () => {
@@ -932,12 +884,11 @@ function ProfileDecisionForm({
                 setConfirmed(false);
                 action.clearError();
               } catch (error) {
-                setError(toolError(error));
+                setError(error);
               }
             }}
           >
-            读取当前配置，保留决定
-          </button>
+            {t("development.tools.read_current_configuration_keep_decision")}</button>
         </div>
       )}
       <div className="dialog-actions">
@@ -946,8 +897,7 @@ function ProfileDecisionForm({
           disabled={action.busy || !!action.pending}
           onClick={onCancel}
         >
-          取消
-        </button>
+          {t("development.workflow.cancel")}</button>
         <button
           className="primary"
           disabled={
@@ -955,10 +905,10 @@ function ProfileDecisionForm({
           }
         >
           {decision === "enable"
-            ? "确认启用本配置"
+            ? t("development.tools.confirm_enabling_this_configuration")
             : decision === "pause"
-              ? "确认暂停本配置"
-              : "确认撤销本配置"}
+              ? t("development.tools.confirm_pausing_this_configuration")
+              : t("development.tools.confirm_revoking_this_configuration")}
         </button>
       </div>
     </form>

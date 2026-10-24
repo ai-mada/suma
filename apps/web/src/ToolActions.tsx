@@ -1,3 +1,4 @@
+import { tr as t, useLocale } from "./i18n";
 import { ErrorNotice } from "./ui";
 import type { ToolAction } from "./tool-hooks";
 export function ToolRecoveryNotice({
@@ -6,16 +7,15 @@ export function ToolRecoveryNotice({
 }: {
   action: ToolAction;
   onRestored: (path: string, value: unknown) => void;
-}) {
+}) { useLocale();
   return (
     <>
       {action.error && <ErrorNotice error={action.error} />}{" "}
       {action.pending && (
         <section className="panel tool-notice tool-recovery">
-          <strong>原工具操作的结果尚未确认</strong>
+          <strong>{t("development.recovery.the_original_tool_operation_s_result_is")}</strong>
           <p>
-            本页已保存完整非秘密请求、原版本及操作标识。恢复会重复同一请求，不会根据后台新版本重写它。
-          </p>
+            {t("development.recovery.the_complete_non_secret_request_original_version")}</p>
           <code>{action.pending.idempotency_key}</code>
           <div className="inline wrap">
             <button
@@ -28,11 +28,10 @@ export function ToolRecoveryNotice({
                 if (value) onRestored(original.path, value);
               }}
             >
-              {action.busy ? "正在核对…" : "恢复原操作回执"}
+              {action.busy ? t("development.recovery.reconciling") : t("development.recovery.recover_original_operation_receipt")}
             </button>
             <button disabled={action.busy} onClick={action.defer}>
-              保留标识，稍后核对
-            </button>
+              {t("development.recovery.keep_id_reconcile_later")}</button>
           </div>
         </section>
       )}

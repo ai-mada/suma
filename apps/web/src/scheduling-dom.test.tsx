@@ -6,6 +6,7 @@ import { SchedulingWorkspace } from "./SchedulingWorkspace";
 import { SchedulingQueue } from "./SchedulingQueue";
 import { NodeSchedulingFacts } from "./NodeSchedulingFacts";
 import { App } from "./App";
+import { setLocale } from "./i18n";
 import { parseWorkbenchRoute } from "./navigation";
 import { switchedRoute } from "./governance-model";
 import type {
@@ -99,7 +100,8 @@ const entry = {
   requests: [],
 };
 let root: Root | undefined, container: HTMLDivElement;
-beforeEach(() => {
+beforeEach(async () => {
+  await setLocale("zh-CN", { persist: false });
   container = document.createElement("div");
   document.body.appendChild(container);
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);

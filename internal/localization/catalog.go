@@ -2,7 +2,7 @@ package localization
 
 // 键表示稳定的显示语义。相同 HTTP code 可以对应多个具体消息；翻译不
 // 改变机器状态、代码、用户内容或任何持久化业务字段。
-var catalog = append(commonCatalog, poolCatalog...)
+var catalog = append(append(commonCatalog, poolCatalog...), preferencesCatalog...)
 
 var commonCatalog = []Definition{
 	{Key: "common.forbidden", Texts: map[Locale]string{ZhCN: "当前身份没有此操作权限", EnUS: "Your current identity does not have permission for this operation."}},
