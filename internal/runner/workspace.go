@@ -38,6 +38,9 @@ type attemptWorkspace struct {
 
 func digest(b []byte) string { h := sha256.Sum256(b); return hex.EncodeToString(h[:]) }
 func attemptKey(a Assignment) string {
+	if a.PoolID != "" {
+		return digest([]byte(key(a)))[:32]
+	}
 	b, _ := json.Marshal([]any{a.RunID, a.NodeID, a.Attempt, a.Fence, a.WorkerID})
 	return digest(b)[:32]
 }

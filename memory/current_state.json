@@ -6,10 +6,11 @@
   "status": "in_progress",
   "plan": "docs/delivery/implementation-plan.md",
   "workstreams": {
-    "control_dag": "incremental_frontier_ready_wake_indexes_project_resource_cas_current_credentials_claim_receipts_and_history_migration_locally_verified_shared_pools_weighted_fairness_pending",
-    "runtime": "durable_claim_recovery_usage_presence_lossless_numeric_validation_and_conservative_model_allowance_locally_verified_real_vendors_pending",
-    "workbench": "reviewable_scheduling_policy_ready_queue_exact_attempt_provenance_narrow_node_list_and_keyboard_selection_locally_verified_full_experience_matrix_pending",
-    "architecture_documents": "architecture_and_scope_matrix_delivered"
+    "control_dag": "shared_pools_bilateral_grants_immutable_task_run_routes_hierarchical_weighted_admission_and_atomic_pool_project_resources_locally_verified_distributed_capacity_pending",
+    "runtime": "independent_pool_machine_per_scope_worktrees_per_slot_durable_journals_actual_two_project_parallel_candidate_tests_and_drain_verified_real_vendor_models_pending",
+    "workbench": "shared_pool_governance_fixed_route_tool_identity_generic_record_forms_details_decomposition_bilingual_and_responsive_header_locally_verified_full_matrix_pending",
+    "architecture_documents": "architecture_and_scope_matrix_delivered_shared_pool_domain_and_full_internationalization_contract_added",
+    "internationalization": "frontend671_backend93_request_scoped_catalog_CLI33_desktop7_and_common_record_pool_UI_verified_remaining45legacy_modules2171_candidates_account_org_preferences_notifications_installers_pending"
   },
   "verified": [
     "Go 281 pass events including subtests and process helpers; 8 tested packages plus 4 compiled command packages; vet passed",
@@ -45,11 +46,26 @@
     "T-P4-005: actual GUI slots0 to2 with two real Runners, 1497ms independently verified command overlap, explicit human approval, refresh preserves5nodes/3attempts/22events/budget3; fixture concurrency only, no vendor model claim",
     "T-P4-005: new24 runtime cut20261024T064658380Z-b9221a5f with133 current inputs; actual Windows control/Runner activation; two migrations preserve78 original tables and4runs/8nodes/5attempts/46events",
     "T-P4-005: partial390/768/1366/1920 settings, light/dark, narrow node/attempt keyboard and desktop graph Enter/Space actual checks; raw stage archives excluded from Git",
-    "T-P4-005: final web244/24, native20, desktop3, knowledge3 aggregate270; earlier workspace268 replaced web242 with final244 after only two web input changes, all other119 unchanged; type/build passed; finalindex-jI-XtZ8U actual graph Enter/Space and exactattempt verified"
+    "T-P4-005: final web244/24, native20, desktop3, knowledge3 aggregate270; earlier workspace268 replaced web242 with final244 after only two web input changes, all other119 unchanged; type/build passed; finalindex-jI-XtZ8U actual graph Enter/Space and exactattempt verified",
+    "T-P4-006: complete Go714/0fail/0skip/vet0 with294 unchanged inputs; only3 CLI files then changed for localized:false presence, CLI33/vet0 and other291 inputs unchanged; suites recorded separately",
+    "T-P4-006: full web289/30 files, then only English count copy and its consumer changed, targeted2/build0 with other125 of127 inputs unchanged; non-web Node30 and workspace typecheck0; frontend671/backend93 bilingual keys with2171 remaining candidates across45 legacy modules",
+    "T-P4-006: actual two organizations/projects with independent shared Runner, fixed plans and routev1/grantsv2; two development processes overlap33668.3456ms,4 fixed tests pass in independent worktrees,2 test-account reviews make tasksv3 accepted; not real stakeholder or vendor model acceptance",
+    "T-P4-006: actual expected failure creates1 issue; refreshed repeated GUI intake remains1 requirement draft; final SQLite snapshot3runs/5nodes/5attempts/38events/5admissions,30 integrity checks pass and0 active holds/slots; own Runner stopped after drain",
+    "T-P4-006: final24 programs/source175 cut20261024T101540951Z-e9d5b0f7 sourcebdafacdab242d3a991581492f63ecd5478a1cc86492378881bb995d302f7f462, independent headers/buildinfo36modules and actual Windows c82be9 control/byte-identical5e920 Runner; closed SQLite106tables324rows to125tables and independent restore verified on explicitly older cut",
+    "T-P4-006: partial actual390/768/1366/1920 pool/record UI, Chinese/English and light/dark; narrow breadcrumb overlap fixed, keyboard details/Escape focus and language-switch draft/user-text preservation checked; finalDuu entry285b127de5d0bfbc3ff07b9e26f768f618261a574d2ab58e2d82ca7d844feaea"
   ],
   "production_integration_complete": false,
-  "current_evidence": "docs/quality/scheduling-summary.json",
-  "stage": "T-P4-005_locally_verified",
+  "current_evidence": "docs/quality/execution-pool-summary.json",
+  "stage": "T-P4-006_shared_execution_pools_and_localization_locally_verified",
   "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
-  "next_step": "Continue full P0-P7 after locally verified T-P4-005. Next address shared pools with explicit multi-project identity, hierarchical fairness and model gateway permits; real vendors/storage clusters, full IDE/collaboration/deployment and scale acceptance remain open. Verified stage commits belong in local Git history; no push."
+  "next_step": "Continue full P0-P7: migrate the remaining45 legacy language modules and native/notification/installer surfaces; implement account/organization language preferences; design safe claim receipt compaction with durable reject watermarks plus idle backoff/rate limits; verify real vendor tools and OceanBase/PostgreSQL distribution, SSO/custom RBAC, plugin/skill/MCP/A2A, production transport and installation/scale. Keep completed local fixture evidence distinct from models, stakeholder sign-off and production. Commit validated functional stages only; no push.",
+  "additional_requirements": [
+    "FND-I18N-001: internationalization in every implemented surface; initially zh-CN/en-US, unified catalogs, preference/negotiation, formatting, API errors, CLI/desktop/extensions/notifications and docs; preserve user content and immutable evidence; coverage must be honestly verified",
+    "Idea lifecycle, reusable function/menu governance, visual configuration, alerts and WeChat/DingTalk/WeCom channels remain full platform scope",
+    "Prefer mature maintained libraries and official SDKs with explicit compatibility validation",
+    "Reusable identity, roles, authorization and third-party enterprise SSO",
+    "Domain/module layering with configuration, diagnostic logs and meaningful code/API comments",
+    "Versioned plugins, skills, MCP and A2A with unified current authorization",
+    "Detailed PRD, architecture, development/flow design and AI SOP, all with implementation and real verification boundaries"
+  ]
 }

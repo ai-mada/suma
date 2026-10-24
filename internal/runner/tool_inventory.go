@@ -120,7 +120,11 @@ func (c *Client) ToolInventory(ctx context.Context, report InventoryReport) (str
 		Acknowledged bool   `json:"acknowledged"`
 		ObservedAt   string `json:"observed_at"`
 	}
-	err := c.post(ctx, "tool-inventory", map[string]any{"project_id": c.ProjectID, "worker_id": report.WorkerID, "operation_id": report.OperationID, "items": report.Items}, &reply)
+	payload := map[string]any{"project_id": c.ProjectID, "worker_id": report.WorkerID, "operation_id": report.OperationID, "items": report.Items}
+	if c.Pool != nil {
+		delete(payload, "worker_id")
+	}
+	err := c.post(ctx, "tool-inventory", payload, &reply)
 	if err != nil {
 		return "", err
 	}

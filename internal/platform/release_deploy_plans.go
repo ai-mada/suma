@@ -38,6 +38,9 @@ func (s *Service) releasePreviewTx(ctx context.Context, tx *sql.Tx, p Principal,
 	if in.ProjectID != project || in.CandidateID == "" || in.EnvironmentID == "" || in.Action != "deploy" && in.Action != "rollback" || in.ExpectedEnvironmentGeneration < 0 {
 		return view, content, invalid("候选、环境和发布动作无效")
 	}
+	if err := s.checkNewReleaseRouteTx(ctx, tx, p.TenantID, project); err != nil {
+		return view, content, err
+	}
 	env, err := s.releaseEnvironmentTx(ctx, tx, p.TenantID, project, in.EnvironmentID, true)
 	if err != nil {
 		return view, content, err
@@ -368,7 +371,7 @@ func (s *Service) ExecuteReleasePlan(ctx context.Context, p Principal, project, 
 		if e := s.releaseBrowserTx(ctx, tx, p, project, token, true); e != nil {
 			return e
 		}
-		if e := s.releaseSchedulerLock(ctx, tx, p.TenantID, project); e != nil {
+		if e := s.guardReleaseExecutionRouteTx(ctx, tx, p.TenantID, project, plan.Content.ReservedExecution.RunID); e != nil {
 			return e
 		}
 		var e error

@@ -89,6 +89,10 @@ func (t *transaction) createRun(tenant, project string, w Workflow, bind func(*s
 	return t.createRunID(tenant, project, uid(), w, bind)
 }
 func (t *transaction) createRunID(tenant, project, runID string, w Workflow, bind func(*sql.Tx, string) error) (*runState, error) {
+	route, routeErr := t.newRunRoute(tenant, project)
+	if routeErr != nil {
+		return nil, routeErr
+	}
 	if err := t.guardProject(tenant, project); err != nil {
 		return nil, err
 	}
@@ -106,7 +110,11 @@ func (t *transaction) createRunID(tenant, project, runID string, w Workflow, bin
 		return nil, err
 	}
 	r := &runState{Run: Run{ID: runID, TenantID: tenant, ProjectID: project, WorkflowID: w.ID, WorkflowName: w.Name, WorkflowVersion: w.Version, State: "running", CreatedAt: stamp(t.now), UpdatedAt: stamp(t.now)}, workflow: w}
+	applyExecutionRoute(r, route)
 	if err := t.exec("INSERT INTO dag_runs (id,tenant_id,project_id,workflow_id,workflow_version,workflow_name,version,state,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)", r.ID, tenant, project, w.ID, w.Version, w.Name, 0, r.State, r.CreatedAt, r.UpdatedAt); err != nil {
+		return nil, err
+	}
+	if err := t.exec(`INSERT INTO dag_run_execution_routes(run_id,tenant_id,project_id,route_version,pool_id,grant_id,grant_version)VALUES(?,?,?,?,?,?,?)`, runID, tenant, project, route.Version, route.PoolID, route.GrantID, route.GrantVersion); err != nil {
 		return nil, err
 	}
 	for _, spec := range w.Nodes {

@@ -144,6 +144,14 @@ describe("tool execution facts are separate from acceptance", () => {
       state: "ready",
       task_id: "task",
       task_version: 7,
+      execution_route: {
+        tenant_id: "tenant-fixed",
+        project_id: "p",
+        version: 8,
+        pool_id: "pool-fixed",
+        grant_id: "grant-fixed",
+        grant_version: 4,
+      },
       requirement_id: "req",
       requirement_version: 2,
       workflow_id: "flow",
@@ -187,6 +195,17 @@ describe("tool execution facts are separate from acceptance", () => {
     const html = renderToStaticMarkup(
       createElement(TaskDispatchFacts, { plan }),
     );
+    expect(html).toContain("pool-fixed");
+    expect(html).toContain("grant-fixed");
+    expect(html).toContain("路由v8");
+    expect(html).toContain("授权v4");
+    const missing = renderToStaticMarkup(
+      createElement(TaskDispatchFacts, {
+        plan: { ...plan, execution_route: undefined },
+      }),
+    );
+    expect(missing).toContain("未记录执行路由");
+
     for (const value of [
       "固定任务",
       "完整任务说明",

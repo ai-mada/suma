@@ -10,7 +10,7 @@
 
 | 项目 | 锁定提交 / 基线 | 本项目用途与集成状态 |
 | --- | --- | --- |
-| Multica | `dbdbb299164347586e2650bb67684a490726a798`（fetch）；原工作区 HEAD `18fa9f728a9e25f2465df2789631edb2a75442ad` 保留 | 架构与交互参考；记录明确未复制源码，原工作区未覆盖 |
+| Multica | `3de79cbeaf181283765f850327e9d82a3b2af6b0`（2026-10-24再次fetch）；原工作区 HEAD `18fa9f728a9e25f2465df2789631edb2a75442ad` 保留 | 架构与交互参考；未复制源码，原工作区HEAD、status及本地修改摘要保持；此前fetch记录在references.json保留 |
 | Hermes Agent | `cb757fac59c92b49e9b8f2910e5cd7ab75efffdd` | README 与外部 CLI 能力参考；当前探测适配不等于引入 Hermes 源码或完成账户执行集成 |
 | OpenCode | `02671e66454260d77fe04d63cf5eb94e76921dee` | README 与 CLI 协议参考；未复制源码；真实外部账户未验收 |
 | Zed | `e96ffb0fd3cc43ec56dcff421146f5e823b13841` | GPL 相关编辑器参考；仅参考，未复制 Zed 源码。当前编辑器实际使用 Monaco。未对 Zed 整个仓库各子目录许可作统一结论 |
@@ -29,6 +29,8 @@ Go 范围来自六平台 18 个实际二进制的 `go version -m` 去重信息�
 
 这不是完整的安装包 SBOM。跨平台构建、原生二进制静态链接、Node/Electron 内嵌组件以及未来安装变化，需要从最终产物重新生成清单。绝对路径只记录本次采集位置，不能作为分发时仍存在的文件引用。
 
+上面的JSON及18程序采集说明保留2026-10-23历史来源，不冒充本轮安装包清单。T-P4-006新增的i18next／react-i18next已在下表单列，版本及完整性以当前锁文件为准；当前24程序的实际链接模块并集仍为36，另见[本阶段程序核对](../deployment/execution-pool-runtime-bundles.md)。完整分发SBOM需在正式打包时重新生成。
+
 ## Go 直接依赖
 
 | 模块 | 实际版本 | 本地许可证观察 | 用途 |
@@ -38,6 +40,7 @@ Go 范围来自六平台 18 个实际二进制的 `go version -m` 去重信息�
 | github.com/go-sql-driver/mysql | v1.9.3 | MPL-2.0 | OceanBase/MySQL 驱动 |
 | github.com/jackc/pgx/v5 | v5.7.4 | MIT | PostgreSQL 驱动 |
 | github.com/mattn/go-isatty | v0.0.20 | MIT | 终端识别 |
+| golang.org/x/text | v0.21.0 | BSD-3-Clause | 已锁定依赖现作为直接依赖，用于BCP47语言标签与协商；没有升级版本 |
 | modernc.org/sqlite | v1.36.3 | BSD-3-Clause | 本机 SQLite 驱动 |
 
 mysql 的许可证正文含其他许可兼容性说明，不能据此推断依赖采用额外 GNU 许可。modernc 模块的根许可证标签也不能替代其生成代码、上游 SQLite 与所有嵌入组件的文件级复核。
@@ -49,6 +52,8 @@ mysql 的许可证正文含其他许可兼容性说明，不能据此推断依�
 | @lancedb/lancedb | 0.23.0 | Apache-2.0 | 知识服务原生数据库绑定 |
 | mysql2 | 3.24.6 | MIT | 知识服务 OceanBase 适配 |
 | react / react-dom | 19.0.0 | MIT | Web 运行时 |
+| i18next | 26.4.2 | MIT | Web统一消息目录；固定正式版本，满足发布龄窗口，无豁免 |
+| react-i18next | 17.0.15 | MIT | React语言订阅与组件；固定正式版本并验证React19/TypeScript5接入 |
 | @monaco-editor/react | 4.7.0 | MIT | 编辑器 React 接口 |
 | monaco-editor | 0.52.2 | MIT | 实际编辑器与 workers |
 | @radix-ui/react-dialog | 1.1.6 | MIT | 对话框基础组件 |

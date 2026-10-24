@@ -32,6 +32,10 @@ type Journal struct {
 }
 
 func key(a Assignment) string {
+	if a.PoolID != "" {
+		b, _ := json.Marshal([]any{a.TenantID, a.ProjectID, a.PoolID, a.PoolRunnerID, a.PoolSlotID, a.PoolCredentialID, a.PoolCredentialVersion, a.DispatchID, a.RunID, a.NodeID, a.Attempt, a.Fence})
+		return "pool/" + digest(b)
+	}
 	return fmt.Sprintf("%s/%s/%d/%d", a.RunID, a.NodeID, a.Attempt, a.Fence)
 }
 func operationID() string {
@@ -72,6 +76,20 @@ func OpenJournal(dir string) (*Journal, error) {
 		return nil, err
 	}
 	for k, e := range j.entries {
+		if e.Assignment.PoolID != "" {
+			if err := validPoolAssignment(e.Assignment); err != nil || k != key(e.Assignment) {
+				return nil, fmt.Errorf("pool inbox has invalid frozen scope")
+			}
+			if e.Result != nil {
+				if e.Result.RunID != e.Assignment.RunID || e.Result.NodeID != e.Assignment.NodeID || e.Result.Attempt != e.Assignment.Attempt || e.Result.Fence != e.Assignment.Fence || e.Result.WorkerID != e.Assignment.WorkerID {
+					return nil, fmt.Errorf("pool outbox differs from its durable inbox")
+				}
+				// Result's public serializer intentionally omits the full execution
+				// envelope. Restore only from this validated immutable inbox.
+				e.Result.Assignment = e.Assignment
+				j.entries[k] = e
+			}
+		}
 		if e.Result == nil && e.ArtifactPending == nil && e.Assignment.ReleaseExecution == nil {
 			e.Result = &Result{Assignment: e.Assignment, ExitCode: -1, OutcomeUnknown: true, Error: "runner restart: execution outcome unknown; reconcile required", OperationID: operationID()}
 			j.entries[k] = e

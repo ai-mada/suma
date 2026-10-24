@@ -8,8 +8,8 @@ import (
 
 type claimCandidate struct{ run, node string }
 type claimScan struct {
-	turn, head, nodeSequence int64
-	run, node                string
+	turn, head, nodeSequence, nodeRank int64
+	run, node                          string
 }
 type claimTurn struct {
 	run        string
@@ -40,10 +40,10 @@ func (t *transaction) refreshRunTurn(r *runState) error {
 }
 
 func (t *transaction) storeClaimScan(tenant, project, worker, hash string, c claimScan) error {
-	if err := t.insertIgnore(`INSERT INTO dag_claim_run_scans(tenant_id,project_id,worker_id,capability_sha256,last_turn,last_head,last_run_id,last_node_sequence,last_node_id)VALUES(?,?,?,?,0,0,'',0,'')`, "tenant_id,project_id,worker_id,capability_sha256", tenant, project, worker, hash); err != nil {
+	if err := t.insertIgnore(`INSERT INTO dag_claim_ready_scans(tenant_id,project_id,worker_id,capability_sha256,last_turn,last_head,last_run_id,last_node_rank,last_node_sequence,last_node_id)VALUES(?,?,?,?,0,0,'',0,0,'')`, "tenant_id,project_id,worker_id,capability_sha256", tenant, project, worker, hash); err != nil {
 		return err
 	}
-	return t.exec(`UPDATE dag_claim_run_scans SET last_turn=?,last_head=?,last_run_id=?,last_node_sequence=?,last_node_id=? WHERE tenant_id=? AND project_id=? AND worker_id=? AND capability_sha256=?`, c.turn, c.head, c.run, c.nodeSequence, c.node, tenant, project, worker, hash)
+	return t.exec(`UPDATE dag_claim_ready_scans SET last_turn=?,last_head=?,last_run_id=?,last_node_rank=?,last_node_sequence=?,last_node_id=? WHERE tenant_id=? AND project_id=? AND worker_id=? AND capability_sha256=?`, c.turn, c.head, c.run, c.nodeRank, c.nodeSequence, c.node, tenant, project, worker, hash)
 }
 func (t *transaction) resetClaimScan(tenant, project, worker string, caps []string) error {
 	return t.storeClaimScan(tenant, project, worker, fingerprint(caps), claimScan{})
@@ -84,24 +84,35 @@ func capabilityFilter(caps []string) (string, []any) {
 // Unsuccessful scans persist their position; successful admissions reset it so
 // every new turn again considers the least-served runnable run.
 func (t *transaction) claimCandidateBatch(tenant, project, worker string, caps []string) ([]claimCandidate, error) {
+	return t.claimCandidateBatchPool(tenant, project, worker, caps, "", 64)
+}
+func (t *transaction) claimCandidateBatchPool(tenant, project, worker string, caps []string, pool string, limit int) ([]claimCandidate, error) {
 	out := []claimCandidate{}
 	if len(caps) == 0 {
 		return out, nil
 	}
 	hash := fingerprint(caps)
 	scan := claimScan{}
-	err := t.row(`SELECT last_turn,last_head,last_run_id,last_node_sequence,last_node_id FROM dag_claim_run_scans WHERE tenant_id=? AND project_id=? AND worker_id=? AND capability_sha256=?`, tenant, project, worker, hash).Scan(&scan.turn, &scan.head, &scan.run, &scan.nodeSequence, &scan.node)
+	err := t.row(`SELECT last_turn,last_head,last_run_id,last_node_rank,last_node_sequence,last_node_id FROM dag_claim_ready_scans WHERE tenant_id=? AND project_id=? AND worker_id=? AND capability_sha256=?`, tenant, project, worker, hash).Scan(&scan.turn, &scan.head, &scan.run, &scan.nodeRank, &scan.nodeSequence, &scan.node)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}
 	filter, filterParams := capabilityFilter(caps)
 	visited := map[string]bool{}
 	wrapped := false
-	for turns := 0; turns < 16 && len(out) < 64; turns++ {
+	poolFilter := ` AND NOT EXISTS(SELECT 1 FROM dag_run_execution_routes rr WHERE rr.run_id=dag_scheduler_run_turns.run_id AND rr.pool_id<>'')`
+	if pool != "" {
+		poolFilter = ` AND EXISTS(SELECT 1 FROM dag_run_execution_routes rr WHERE rr.run_id=dag_scheduler_run_turns.run_id AND rr.pool_id=?)`
+	}
+	for turns := 0; turns < 16 && len(out) < limit; turns++ {
 		var turn claimTurn
 		resume := false
 		if scan.run != "" && scan.nodeSequence < maxSchedulingInteger {
-			err = t.row(`SELECT run_id,last_sequence,first_ready_sequence FROM dag_scheduler_run_turns WHERE tenant_id=? AND project_id=? AND enabled=1 AND run_id=? AND last_sequence=? AND first_ready_sequence=?`, tenant, project, scan.run, scan.turn, scan.head).Scan(&turn.run, &turn.turn, &turn.head)
+			args := []any{tenant, project, scan.run, scan.turn, scan.head}
+			if pool != "" {
+				args = append(args, pool)
+			}
+			err = t.row(`SELECT run_id,last_sequence,first_ready_sequence FROM dag_scheduler_run_turns WHERE tenant_id=? AND project_id=? AND enabled=1 AND run_id=? AND last_sequence=? AND first_ready_sequence=?`+poolFilter, args...).Scan(&turn.run, &turn.turn, &turn.head)
 			if err == nil {
 				resume = true
 			} else if err != sql.ErrNoRows {
@@ -111,6 +122,10 @@ func (t *transaction) claimCandidateBatch(tenant, project, worker string, caps [
 		if !resume {
 			query := `SELECT run_id,last_sequence,first_ready_sequence FROM dag_scheduler_run_turns WHERE tenant_id=? AND project_id=? AND enabled=1`
 			args := []any{tenant, project}
+			query += poolFilter
+			if pool != "" {
+				args = append(args, pool)
+			}
 			if scan.run != "" {
 				query += ` AND (last_sequence>? OR (last_sequence=? AND (first_ready_sequence>? OR (first_ready_sequence=? AND run_id>?))))`
 				args = append(args, scan.turn, scan.turn, scan.head, scan.head, scan.run)
@@ -135,15 +150,8 @@ func (t *transaction) claimCandidateBatch(tenant, project, worker string, caps [
 			break
 		}
 		visited[turn.run] = true
-		query := `SELECT q.node_id,q.sequence FROM dag_ready_v2 q WHERE q.run_id=? AND ` + filter
-		args := []any{turn.run}
-		args = append(args, filterParams...)
-		if resume {
-			query += ` AND (q.sequence>? OR (q.sequence=? AND q.node_id>?))`
-			args = append(args, scan.nodeSequence, scan.nodeSequence, scan.node)
-		}
-		query += ` ORDER BY q.sequence,q.node_id LIMIT ?`
-		args = append(args, 64-len(out))
+		remaining := limit - len(out)
+		query, args := readyCandidateStatement(turn.run, filter, filterParams, scan, resume, remaining)
 		rows, err := t.rows(query, args...)
 		if err != nil {
 			return nil, err
@@ -151,13 +159,13 @@ func (t *transaction) claimCandidateBatch(tenant, project, worker string, caps [
 		count := 0
 		for rows.Next() {
 			var node string
-			var seq int64
-			if err = rows.Scan(&node, &seq); err != nil {
+			var seq, nodeRank int64
+			if err = rows.Scan(&node, &seq, &nodeRank); err != nil {
 				rows.Close()
 				return nil, err
 			}
 			out = append(out, claimCandidate{run: turn.run, node: node})
-			scan = claimScan{turn: turn.turn, head: turn.head, run: turn.run, nodeSequence: seq, node: node}
+			scan = claimScan{turn: turn.turn, head: turn.head, run: turn.run, nodeSequence: seq, nodeRank: nodeRank, node: node}
 			count++
 		}
 		err = rows.Err()
@@ -165,11 +173,11 @@ func (t *transaction) claimCandidateBatch(tenant, project, worker string, caps [
 		if err != nil {
 			return nil, err
 		}
-		if count < 64-len(out)+count {
+		if count < remaining {
 			scan.nodeSequence = maxSchedulingInteger
 			scan.node = ""
 		}
-		if len(out) > 64 {
+		if len(out) > limit {
 			return nil, fmt.Errorf("%w: claim scan bound exceeded", ErrInvalid)
 		}
 	}
@@ -177,4 +185,15 @@ func (t *transaction) claimCandidateBatch(tenant, project, worker string, caps [
 		return nil, err
 	}
 	return out, nil
+}
+
+func readyCandidateStatement(run, filter string, filterParams []any, scan claimScan, resume bool, remaining int) (string, []any) {
+	query := `SELECT k.node_id,k.ready_sequence,k.rank_at FROM dag_ready_admission_order k JOIN dag_ready_v2 q ON q.run_id=k.run_id AND q.node_id=k.node_id WHERE k.run_id=? AND ` + filter
+	args := append([]any{run}, filterParams...)
+	if resume {
+		query += ` AND (k.rank_at,k.ready_sequence,k.node_id)>(?,?,?)`
+		args = append(args, scan.nodeRank, scan.nodeSequence, scan.node)
+	}
+	query += ` ORDER BY k.rank_at,k.ready_sequence,k.node_id LIMIT ?`
+	return query, append(args, remaining)
 }

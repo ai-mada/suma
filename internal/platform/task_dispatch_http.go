@@ -17,10 +17,10 @@ func (s *Server) taskDispatchHTTP(w http.ResponseWriter, r *http.Request, p Prin
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.CreateTaskDispatchPlan(r.Context(), p, project, request)
+		out, err := s.Service.CreateTaskDispatchPlan(r.Context(), s.Engine, p, project, request)
 		respond(w, 201, out, err)
 	case len(parts) == 2 && r.Method == "GET":
-		out, err := s.Service.GetTaskDispatchPlan(r.Context(), p, project, parts[1])
+		out, err := s.Service.GetTaskDispatchPlan(r.Context(), s.Engine, p, project, parts[1])
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[2] == "start" && r.Method == "POST":
 		var request TaskDispatchStartRequest

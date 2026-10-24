@@ -144,7 +144,7 @@ func (t *transaction) releasePolicyResources(r *runState, n *nodeState, processO
 			return err
 		}
 	}
-	return nil
+	return t.releasePoolResources(r, n, processOnly)
 }
 
 func (t *transaction) mergeResourceLimits(tenant, project string, limits map[string]int64) error {

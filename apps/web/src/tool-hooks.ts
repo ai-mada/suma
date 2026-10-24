@@ -1,14 +1,16 @@
+import { tr, useLocale, renderDiagnostic } from "./i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, api } from "./api";
 import { EntityPager } from "./pagination";
 import { useLeaveGuard } from "./write-action";
 import { ToolWriteRecovery } from "./tool-write";
 export function toolError(error: unknown) {
+  if (typeof error === "string") return renderDiagnostic(error);
   return error instanceof ApiError
-    ? `${error.message}（${error.code}）`
+    ? `${renderDiagnostic(error)}（${error.code}）`
     : error instanceof Error
-      ? error.message
-      : "读取未完成，请重新核对。";
+      ? renderDiagnostic(error)
+      : tr("common.readIncomplete");
 }
 export function toolSessionStorage() {
   try {
@@ -18,11 +20,13 @@ export function toolSessionStorage() {
   }
 }
 export function useToolRead<T>(path: string, refresh: number | string = 0) {
+  useLocale();
   const [state, setState] = useState<{
       path: string;
       data?: T;
       loading: boolean;
       error: string;
+      failure?: unknown;
     }>({ path, loading: !!path, error: "" }),
     epoch = useRef(0);
   const read = useCallback(async () => {
@@ -36,6 +40,7 @@ export function useToolRead<T>(path: string, refresh: number | string = 0) {
       data: before.path === path ? before.data : undefined,
       loading: true,
       error: "",
+      failure: undefined,
     }));
     try {
       const data = await api<T>(path);
@@ -47,6 +52,7 @@ export function useToolRead<T>(path: string, refresh: number | string = 0) {
           ...before,
           loading: false,
           error: toolError(error),
+          failure: error,
         }));
     }
   }, [path]);
@@ -60,6 +66,12 @@ export function useToolRead<T>(path: string, refresh: number | string = 0) {
     ...(state.path === path
       ? state
       : { path, data: undefined, loading: !!path, error: "" }),
+    error:
+      state.path === path
+        ? state.failure
+          ? toolError(state.failure)
+          : state.error
+        : "",
     read,
   };
 }
@@ -89,6 +101,7 @@ export function useToolAction(
   recovery: Pick<ToolWriteRecovery, "pending" | "error" | "run" | "restore">,
   onDefer?: () => void,
 ) {
+  useLocale();
   const epoch = useRef(0);
   useEffect(() => {
     const generation = ++epoch.current;
@@ -97,7 +110,7 @@ export function useToolAction(
     };
   }, [recovery]);
   const [busy, setBusy] = useState(false),
-    [error, setError] = useState(""),
+    [error, setError] = useState<unknown>(""),
     [conflict, setConflict] = useState(false),
     [deferred, setDeferred] = useState(false),
     [, render] = useState(0);
@@ -116,15 +129,14 @@ export function useToolAction(
       if (generation === epoch.current) return value;
     } catch (error) {
       if (generation !== epoch.current) return undefined;
-      setError(
-        toolError(error) +
-          (recovery.pending &&
+      setError({
+        source: error,
+        originalRefusal:
+          !!recovery.pending &&
           error instanceof ApiError &&
           error.status > 0 &&
-          error.status < 500
-            ? " 当前拒绝不能证明原未知操作没有生效，请保留原标识核对。"
-            : ""),
-      );
+          error.status < 500,
+      });
       setConflict(
         error instanceof ApiError && error.status === 409 && !recovery.pending,
       );
@@ -138,7 +150,16 @@ export function useToolAction(
   }
   return {
     busy,
-    error: recovery.error || error,
+    error:
+      recovery.error ||
+      (error && typeof error === "object" && "source" in error
+        ? toolError(error.source) +
+          ("originalRefusal" in error && error.originalRefusal
+            ? tr("common.originalRefusal")
+            : "")
+        : error
+          ? toolError(error)
+          : ""),
     conflict,
     pending,
     deferred,

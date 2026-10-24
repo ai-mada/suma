@@ -37,6 +37,7 @@ type Node struct {
 	Idempotent     bool              `json:"idempotent"`
 	Resources      map[string]int64  `json:"resources,omitempty"`
 	Config         map[string]any    `json:"config,omitempty"`
+	Priority       int               `json:"priority,omitempty"`
 }
 type Edge struct {
 	From      string `json:"from"`
@@ -44,19 +45,23 @@ type Edge struct {
 	Condition string `json:"condition,omitempty"`
 }
 type Run struct {
-	ID                string    `json:"id"`
-	TenantID          string    `json:"tenant_id"`
-	ProjectID         string    `json:"project_id"`
-	WorkflowID        string    `json:"workflow_id"`
-	WorkflowName      string    `json:"workflow_name"`
-	WorkflowVersion   int       `json:"workflow_version"`
-	Version           int       `json:"version"`
-	State             string    `json:"state"`
-	CreatedAt         string    `json:"created_at"`
-	UpdatedAt         string    `json:"updated_at"`
-	Nodes             []NodeRun `json:"nodes"`
-	CompensationRunID string    `json:"compensation_run_id,omitempty"`
-	CompensationState string    `json:"compensation_state,omitempty"`
+	ID                        string    `json:"id"`
+	TenantID                  string    `json:"tenant_id"`
+	ProjectID                 string    `json:"project_id"`
+	WorkflowID                string    `json:"workflow_id"`
+	WorkflowName              string    `json:"workflow_name"`
+	WorkflowVersion           int       `json:"workflow_version"`
+	Version                   int       `json:"version"`
+	State                     string    `json:"state"`
+	CreatedAt                 string    `json:"created_at"`
+	UpdatedAt                 string    `json:"updated_at"`
+	Nodes                     []NodeRun `json:"nodes"`
+	CompensationRunID         string    `json:"compensation_run_id,omitempty"`
+	CompensationState         string    `json:"compensation_state,omitempty"`
+	ExecutionPoolID           string    `json:"execution_pool_id,omitempty"`
+	ExecutionRouteVersion     int       `json:"execution_route_version,omitempty"`
+	ExecutionPoolGrantID      string    `json:"execution_pool_grant_id,omitempty"`
+	ExecutionPoolGrantVersion int       `json:"execution_pool_grant_version,omitempty"`
 }
 type NodeRun struct {
 	ID                     string                            `json:"id"`
@@ -85,6 +90,15 @@ type NodeRun struct {
 	AdmissionPolicyVersion int                               `json:"admission_policy_version,omitempty"`
 }
 type Assignment struct {
+	TenantID                string                            `json:"tenant_id,omitempty"`
+	ProjectID               string                            `json:"project_id,omitempty"`
+	PoolID                  string                            `json:"pool_id,omitempty"`
+	PoolRunnerID            string                            `json:"pool_runner_id,omitempty"`
+	PoolSlotID              string                            `json:"pool_slot_id,omitempty"`
+	PoolGrantID             string                            `json:"pool_grant_id,omitempty"`
+	PoolGrantVersion        int                               `json:"pool_grant_version,omitempty"`
+	PoolCredentialID        string                            `json:"pool_credential_id,omitempty"`
+	PoolCredentialVersion   int                               `json:"pool_credential_version,omitempty"`
 	RunID                   string                            `json:"run_id"`
 	NodeID                  string                            `json:"node_id"`
 	Attempt                 int                               `json:"attempt"`

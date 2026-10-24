@@ -19,6 +19,7 @@ const help = `suma — 速码 control client
 
 Global flags (before command): --control http://127.0.0.1:4310 --project ID
   --token TOKEN (prefer SUMA_TOKEN) --timeout 15s
+  Language: --language > SUMA_LANGUAGE > LC_ALL/LC_MESSAGES/LANG > zh-CN
 
 Read commands:
   doctor | projects | requirements | tasks | runs | workflows
@@ -47,16 +48,30 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 	project := fs.String("project", "", "project ID")
 	token := fs.String("token", os.Getenv("SUMA_TOKEN"), "Bearer token")
 	timeout := fs.Duration("timeout", 15*time.Second, "per-request timeout")
-	if err := fs.Parse(args); err != nil {
+	language := fs.String("language", "", "display language: zh-CN or en-US")
+	parseErr := fs.Parse(args)
+	languageSet := false
+	fs.Visit(func(f *flag.Flag) {
+		if f.Name == "language" {
+			languageSet = true
+		}
+	})
+	locale, languageErr := cliLocale(*language, languageSet)
+	if languageErr != nil {
+		writeJSON(stderr, map[string]any{"error": localizeFailure(locale, &failure{Code: "usage", Message: "--language must be zh-CN or en-US (supported aliases are accepted)"})}, "")
+		return 2
+	}
+	if err := parseErr; err != nil {
 		if errors.Is(err, flag.ErrHelp) {
-			io.WriteString(out, help)
+			io.WriteString(out, helpForLocale(locale))
 			return 0
 		}
-		writeJSON(stderr, map[string]any{"error": failure{Code: "usage", Message: "invalid global flags; use --help"}}, "")
+		writeJSON(stderr, map[string]any{"error": localizeFailure(locale, &failure{Code: "usage", Message: "invalid global flags; use --help"})}, "")
 		return 2
 	}
 	c, err := newClient(*control, *project, *token, *timeout)
 	if err == nil {
+		c.locale = locale
 		err = dispatch(ctx, c, fs.Args(), in, out)
 	}
 	if err == nil {
@@ -66,7 +81,7 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 	if !errors.As(err, &f) {
 		f = &failure{Code: "client", Message: "client operation failed"}
 	}
-	writeJSON(stderr, map[string]any{"error": f}, *token)
+	writeJSON(stderr, map[string]any{"error": localizeFailure(locale, f)}, *token)
 	if f.Code == "usage" {
 		return 2
 	}
@@ -86,7 +101,7 @@ func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out i
 		return doctor(ctx, c, out)
 	}
 	if args[0] == "help" {
-		_, err := io.WriteString(out, help)
+		_, err := io.WriteString(out, helpForLocale(c.locale))
 		return err
 	}
 	if args[0] == "doctor" && len(args) == 1 {
@@ -257,7 +272,7 @@ func doctor(ctx context.Context, c *client, out io.Writer) error {
 		scope      bool
 	}{{"health", "/healthz", false}, {"session", "/api/v1/auth/session", false}, {"capabilities", "/api/v1/capabilities", true}} {
 		if check.scope && c.project == "" {
-			report[check.name] = map[string]string{"status": "not_checked", "reason": "provide --project"}
+			report[check.name] = map[string]string{"status": "not_checked", "reason": c.text("请提供 --project", "provide --project")}
 			continue
 		}
 		raw, err := c.request(ctx, "GET", check.path, nil, check.scope)
@@ -267,7 +282,7 @@ func doctor(ctx context.Context, c *client, out io.Writer) error {
 			}
 			var f *failure
 			errors.As(err, &f)
-			report[check.name] = map[string]any{"error": f}
+			report[check.name] = map[string]any{"error": localizeFailure(c.locale, f)}
 		} else {
 			report[check.name] = raw
 		}

@@ -1,5 +1,15 @@
 # HTTP、事件与客户端合同
 
+## 多语言显示合同（实施中）
+
+客户端通过 `Accept-Language` 协商显示语言，可用 `X-Suma-Language` 显式选择覆盖；首次支持 `zh-CN` / `en-US`，默认简体中文。账户及组织偏好尚未持久化，不能把请求头称为跨设备设置。响应 `Content-Language` 表示采用语言；不影响授权、版本、操作标识、签名原文或持久业务记录。
+
+错误保留 `code`、`message`、`details`，增加 `message_key`、`locale`、`localized` 和可选 `message_params` / `fallback`。只有精确文案或明确消息键的翻译才标记 `localized:true`；旧具体诊断缺少目录时保留原文并明确回退，不能用通用 `invalid_input` 英文掩盖细节。日志、文件和用户内容不自动翻译。完整范围见[国际化规范](../design/internationalization.md)。
+
+T-P4-006 新增资源池治理、策略/路由预览、机器协议、公共消息目录及任务原审阅路由快照后，当前生成切面为209模型、150路径（加统一Error共210组件）；这是正在集成的合同范围。下方169/125为T-P4-005历史已验收切面，不能混称同一次验证。
+
+`GET /localization/catalog` 是无需登录的只读编译目录，包含 `version`、`template_format:named-dot-v1`、默认与支持语言及消息声明。`version` 的SHA256同时绑定格式、回退语言和消息；目录无租户数据、配置路径、用户原文或秘密。占位符仅 `{{.name}}`，参数按 `text` / `identifier` / `integer` 声明校验，以纯文本显示；客户端不得执行Go模板或HTML。此目录用于即时重译已有错误和明确展示原因，不能用于替换用户内容和历史证据。
+
 状态：当前v1实现；线协议Schema和TypeScript类型由`suma-contracts`生成。基础路径 `/api/v1`。浏览器同源HttpOnly Cookie；Runner/Agent/API使用分别绑定项目的短期Bearer凭证。
 
 ## 生成与校验范围

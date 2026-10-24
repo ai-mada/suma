@@ -74,6 +74,9 @@ func (s *Server) schedulingHTTP(w http.ResponseWriter, r *http.Request, p Princi
 		defer tx.Rollback()
 		out, err := s.Engine.AdmissionSnapshotTx(r.Context(), tx, p.TenantID, project, parts[1], parts[3])
 		if err == nil {
+			err = s.Service.decoratePoolAdmissionTx(r.Context(), tx, p.TenantID, project, &out)
+		}
+		if err == nil {
 			err = tx.Commit()
 		}
 		respond(w, 200, out, err)

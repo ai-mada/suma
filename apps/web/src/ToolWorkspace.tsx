@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useEffect, useMemo, useState } from "react";
 import {
   ChevronRight,
@@ -29,6 +30,13 @@ import {
 import { ToolProfileFacts } from "./ToolFacts";
 import "./tool.css";
 import { ToolRecoveryNotice } from "./ToolActions";
+import type { ProjectPoolRunnerPage } from "../../../packages/contracts/src";
+import {
+  ToolIdentity,
+  currentToolIdentity,
+  type SharedIdentityRead,
+  type IdentityRead,
+} from "./execution-pools/ToolIdentity";
 type Props = {
   project: string;
   session: Session;
@@ -87,6 +95,10 @@ export function ToolWorkspace({
     ),
     workers = useToolRead<{ items: ExecutionWorker[] }>(
       "/release-workers" + query(project),
+      refresh + revision,
+    ),
+    sharedWorkers = useToolRead<ProjectPoolRunnerPage>(
+      "/project-execution/runners" + query(project),
       refresh + revision,
     ),
     detail = useToolRead<ToolProfile>(
@@ -202,6 +214,7 @@ export function ToolWorkspace({
                 disabled={pending || action.busy}
                 onClick={() => {
                   action.clearError();
+                  void sharedWorkers.read();
                   setDialog({ kind: "create" });
                 }}
               >
@@ -482,7 +495,8 @@ export function ToolWorkspace({
         {dialog?.kind === "create" && (
           <ToolProfileForm
             project={project}
-            workers={workers.data?.items || []}
+            workers={workers}
+            sharedWorkers={sharedWorkers}
             action={action}
             onSaved={(value) => saved("/tool-profiles", value)}
             onCancel={() => setDialog(undefined)}
@@ -607,12 +621,14 @@ export function ToolWorkspace({
 function ToolProfileForm({
   project,
   workers,
+  sharedWorkers,
   action,
   onSaved,
   onCancel,
 }: {
   project: string;
-  workers: ExecutionWorker[];
+  workers: IdentityRead;
+  sharedWorkers: SharedIdentityRead;
   action: ToolAction;
   onSaved: (value: ToolProfile) => void;
   onCancel: () => void;
@@ -633,6 +649,10 @@ function ToolProfileForm({
       onSubmit={async (event) => {
         event.preventDefault();
         setError("");
+        if (!currentToolIdentity(worker, workers, sharedWorkers)) {
+          setError(tr("tools.identity.authorization_unconfirmed"));
+          return;
+        }
         if (!selected?.available) {
           setError("请选择清单中有完整指纹且探测可用的配置。");
           return;
@@ -661,25 +681,15 @@ function ToolProfileForm({
             onChange={(event) => setName(event.target.value)}
           />
         </Field>
-        <Field label="绑定已登记执行节点">
-          <select
-            required
-            value={worker}
-            onChange={(event) => {
-              setWorker(event.target.value);
-              if (action.conflict) action.clearError();
-            }}
-          >
-            <option value="">选择执行身份</option>
-            {workers
-              .filter((item) => item.status === "active")
-              .map((item) => (
-                <option value={item.worker_id} key={item.id}>
-                  {item.worker_id}
-                </option>
-              ))}
-          </select>
-        </Field>
+        <ToolIdentity
+          legacy={workers}
+          shared={sharedWorkers}
+          value={worker}
+          onChange={(value) => {
+            setWorker(value);
+            if (action.conflict) action.clearError();
+          }}
+        />
         <Field label="本机非秘密工具清单">
           <textarea
             rows={7}
@@ -767,6 +777,7 @@ function ToolProfileForm({
             action.conflict ||
             !selected?.available ||
             !worker ||
+            !currentToolIdentity(worker, workers, sharedWorkers) ||
             !name.trim()
           }
         >

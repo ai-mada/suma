@@ -1,0 +1,92 @@
+.language-control {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 5px;
+  max-width: 100%;
+  min-width: 0;
+}
+.language-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  color: var(--muted);
+}
+.language-selector select {
+  width: 105px;
+  max-width: 100%;
+  min-width: 0;
+}
+.language-control > small {
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--muted);
+  max-width: 280px;
+}
+.auth-form > .language-control {
+  align-self: flex-end;
+  margin-bottom: 18px;
+}
+.topbar-right .language-control {
+  flex: 0 1 auto;
+}
+@media (max-width: 650px) {
+  .topbar-right .language-selector {
+    gap: 3px;
+  }
+  .topbar-right .language-selector select {
+    width: 88px;
+    font-size: 11px;
+  }
+  .topbar-right .version-label {
+    display: none;
+  }
+}
+
+.dialog-language {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 12px;
+}
+
+/* Keep the active project and language control usable as translated labels grow.
+ * Only auxiliary counts collapse; the breadcrumb labels may ellipsize. */
+.topbar .breadcrumbs {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.topbar .breadcrumbs > svg {
+  flex-shrink: 0;
+}
+.topbar .breadcrumbs > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar .breadcrumbs select {
+  flex: 0 1 180px;
+  min-width: 70px;
+}
+.topbar .topbar-right {
+  flex: 0 0 auto;
+}
+.topbar .topbar-right .language-control {
+  flex-shrink: 0;
+}
+@media (max-width: 1100px) {
+  .topbar .topbar-counts {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .topbar .breadcrumbs > span:last-child:not(.organization-context),
+  .topbar .breadcrumbs > svg:last-of-type {
+    display: none;
+  }
+}
+@media (max-width: 600px) {
+  .topbar .breadcrumbs .breadcrumb-scope-prefix {
+    display: none;
+  }
+}

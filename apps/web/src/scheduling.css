@@ -346,3 +346,9 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.scheduling-pool-scope {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}

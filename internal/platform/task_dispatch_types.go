@@ -35,8 +35,11 @@ type TaskDispatchPlan struct {
 	ExpiresAt          string       `json:"expires_at"`
 	Context            TaskContext  `json:"context"`
 	Workflow           dag.Workflow `json:"workflow"`
-	Valid              bool         `json:"valid"`
-	Reason             string       `json:"reason"`
+	// ExecutionRoute is the original reviewed display snapshot, never input
+	// authority. Nil means older history did not record a public route view.
+	ExecutionRoute *dag.ProjectExecutionRoute `json:"execution_route,omitempty"`
+	Valid          bool                       `json:"valid"`
+	Reason         string                     `json:"reason"`
 }
 
 type TaskDispatchPreviewRequest struct {

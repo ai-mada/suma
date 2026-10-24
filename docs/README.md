@@ -5,6 +5,7 @@
 | 主题 | 入口 |
 |---|---|
 | 产品范围、角色和原则 | [产品需求](product/prd.md) |
+| 可复用平台与专业工程 | [基础PRD](product/platform-foundation-prd.md)、[领域／SDK／扩展架构](architecture/platform-engineering.md)、[AI与人员开发SOP](delivery/ai-engineering-sop.md) |
 | 完整能力与验收范围 | [能力矩阵](product/capability-matrix.md) |
 | 可操作的完整旅程 | [用户旅程](product/user-journeys.md) |
 | 实现与待办 | [实施计划](delivery/implementation-plan.md)、[交付状态](delivery/status.md) |
@@ -13,6 +14,7 @@
 | 领域归属与数据结构 | [领域模型](architecture/domain-model.md)、[事务存储](data/transactional-store.md) |
 | 调度、恢复、资源和回执 | [DAG 内核](scheduler/engine.md)、[可靠性](scheduler/reliability.md)、[候选代码交接](scheduler/candidate-handoff.md) |
 | 增量调度与项目准入 | [增量内核与迁移](scheduler/incremental-kernel.md)、[交互规范](design/scheduling-workspace.md)、[用量与领取](agents/scheduling-usage.md)、[阶段验收](quality/scheduling-verification.md)、[平台门禁验证](quality/scheduling-platform-guards.md)、[当前运行包与旧数据复核](deployment/scheduling-runtime-bundles.md) |
+| 共享资源与跨项目执行 | [领域架构](architecture/execution-pools.md)、[治理与路由交互](design/execution-pools.md)、[独立Runner](agents/execution-pool-runner.md)、[阶段验收](quality/execution-pool-verification.md)、[当前运行程序](deployment/execution-pool-runtime-bundles.md) |
 | 原件、多模态、索引与同步 | [数据平面](data/multimodal.md)、[同步协议](data/synchronization.md) |
 | 真实制品、发布授权与恢复 | [制品存储](data/release-artifacts.md)、[发布证据架构](architecture/release-evidence.md)、[发布工作台](design/release-workspace.md) |
 | 本机发布与执行提供方 | [发布控制面](deployment/release-control.md)、[提供方协议](integrations/release-provider.md)、[四程序运行包](deployment/release-runtime-bundles.md) |
@@ -21,6 +23,8 @@
 | 定时自动化与事件续传 | [自动化与事件架构](architecture/automation-events.md)、[自动化工作台](design/automation-workspace.md)、[本机验收](quality/automation-verification.md)、[当前四程序交付](deployment/automation-runtime-bundles.md) |
 | 签名来源与交付 | [信任与事务](architecture/automation-ingress.md)、[入口工作台](design/event-ingress-workspace.md)、[GitHub/CI/监控接入](integrations/automation-ingress.md)、[精确合同](../contracts/automation-ingress.md)、[本机验收](quality/ingress-verification.md)、[当前运行包](deployment/ingress-runtime-bundles.md) |
 | 产品交互与流程图 | [工作台](design/workbench.md)、[DAG 三视图](design/dag-interactions.md) |
+| 全平台多语言与本地化 | [国际化规范与迁移验收](design/internationalization.md) |
+| English documentation | [English entry and translation status](en/README.md) |
 | 组织治理、项目计划与候选测试 | [组织、团队与权限](product/governance.md)、[规划与治理工作台](design/planning-governance.md) |
 | HTTP 合同 | [API 说明](api/README.md)、[OpenAPI](api/openapi.json) |
 | 桌面、服务器与安装 | [桌面](deployment/desktop.md)、[服务器](deployment/server.md)、[容器与集群模板](deployment/containers.md) |

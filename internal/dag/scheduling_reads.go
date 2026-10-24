@@ -84,6 +84,9 @@ func (e *Engine) AdmissionSnapshotTx(ctx context.Context, tx *sql.Tx, tenant, pr
 	if err != nil {
 		return out, err
 	}
+	if err = e.addPoolAdmissionFacts(ctx, tx, &out, tenant, project); err != nil {
+		return out, err
+	}
 	if terminal(out.NodeState) || out.NodeState == "running" {
 		out.Status = "not_pending"
 		return out, nil

@@ -7,6 +7,15 @@ import (
 )
 
 type Assignment struct {
+	TenantID                string                            `json:"tenant_id,omitempty"`
+	ProjectID               string                            `json:"project_id,omitempty"`
+	PoolID                  string                            `json:"pool_id,omitempty"`
+	PoolRunnerID            string                            `json:"pool_runner_id,omitempty"`
+	PoolSlotID              string                            `json:"pool_slot_id,omitempty"`
+	PoolGrantID             string                            `json:"pool_grant_id,omitempty"`
+	PoolGrantVersion        int                               `json:"pool_grant_version,omitempty"`
+	PoolCredentialID        string                            `json:"pool_credential_id,omitempty"`
+	PoolCredentialVersion   int                               `json:"pool_credential_version,omitempty"`
 	RunID                   string                            `json:"run_id"`
 	NodeID                  string                            `json:"node_id"`
 	Attempt                 int                               `json:"attempt"`

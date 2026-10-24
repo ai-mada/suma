@@ -1,3 +1,4 @@
+import { tr, useLocale, renderDiagnostic } from "./i18n";
 import { stateLabel, time } from "./api";
 import { ToolExecutionFacts } from "./ToolFacts";
 import {
@@ -50,26 +51,72 @@ export function RunAdmissionReview({
   );
 }
 const resourceNames: Record<string, string> = {
-  execution_slots: "并发槽位",
-  budget: "累计执行额度",
-  cpu_millis: "CPU 额度",
-  memory_bytes: "内存额度",
-  gpu_slots: "GPU 槽位",
-  model_concurrency: "模型并发请求",
+  get execution_slots() {
+    return tr("common.resource.executionSlots");
+  },
+  get budget() {
+    return tr("common.resource.budget");
+  },
+  get cpu_millis() {
+    return tr("common.resource.cpuMillis");
+  },
+  get memory_bytes() {
+    return tr("common.resource.memoryBytes");
+  },
+  get gpu_slots() {
+    return tr("common.resource.gpuSlots");
+  },
+  get model_concurrency() {
+    return tr("common.resource.modelConcurrency");
+  },
 };
 const unitNames: Record<string, string> = {
-  admission_units: "准入单位",
-  slots: "个",
-  millicores: "毫核",
-  bytes: "字节",
-  requests: "个请求",
-  units: "单位",
+  get admission_units() {
+    return tr("common.unit.admission");
+  },
+  get slots() {
+    return tr("common.unit.slots");
+  },
+  get millicores() {
+    return tr("common.unit.millicores");
+  },
+  get bytes() {
+    return tr("common.unit.bytes");
+  },
+  get requests() {
+    return tr("common.unit.requests");
+  },
+  get units() {
+    return tr("common.unit.units");
+  },
 };
 export const schedulingResourceLabel = (name: string) =>
   resourceNames[name] || name;
 export const schedulingUnitLabel = (unit?: string) =>
-  unit ? unitNames[unit] || unit : "单位未提供";
+  unit ? unitNames[unit] || unit : tr("common.unit.unknown");
 function blockerTitle(blocker: SchedulingBlocker) {
+  if (blocker.source === "pool") {
+    const names: Record<string, string> = {
+      pool_scope_inactive: "共享池项目授权未启用",
+      pool_scope_version_mismatch: "共享池授权版本已变化",
+      pool_budget_exhausted: "共享池累计执行额度不足",
+      pool_paused: "共享池已暂停新派发",
+      pool_metadata_missing: "共享池资料待核对",
+      pool_grant_not_current: "共享池当前项目授权待核对",
+    };
+    if (blocker.code === "pool_resource_capacity")
+      return (
+        "共享池" +
+        (blocker.resource === "execution_slots"
+          ? "执行槽位不足"
+          : (blocker.resource
+              ? schedulingResourceLabel(blocker.resource)
+              : "执行资源") + "不足")
+      );
+    return (
+      names[blocker.code] || "共享池：" + (blocker.message || blocker.code)
+    );
+  }
   const names: Record<string, string> = {
     run_paused: "运行已暂停",
     run_cancelling: "正在取消，等待实际停止或结果核对",
@@ -80,11 +127,11 @@ function blockerTitle(blocker: SchedulingBlocker) {
     expansion_waiting: "等待动态任务完成",
     child_waiting: "等待子流程完成",
     node_waiting: "节点等待中",
-    budget_exhausted: "累计执行额度不足",
+    budget_exhausted: "项目累计执行额度不足",
     worker_capability_unknown: "执行节点匹配待确认",
   };
   if (blocker.code === "resource_capacity") {
-    if (blocker.resource === "execution_slots") return "执行槽位不足";
+    if (blocker.resource === "execution_slots") return "项目执行槽位不足";
     const name = blocker.resource
       ? schedulingResourceLabel(blocker.resource)
       : "执行资源";
@@ -268,6 +315,12 @@ export function AdmissionFacts({
         判断于 {time(snapshot.evaluated_at)} · 运行 v{snapshot.run_version} ·
         策略 v{snapshot.policy_version}
       </small>
+      {snapshot.execution_pool_id && (
+        <p className="scheduling-pool-scope">
+          共享池 <code>{snapshot.execution_pool_id}</code> · 共享池策略v
+          {snapshot.pool_policy_version ?? "未提供"}
+        </p>
+      )}
       <ul className="scheduling-blockers">
         {snapshot.blockers.map((blocker, index) => (
           <li key={index}>
@@ -317,6 +370,43 @@ export function AdmissionFacts({
             ? "本次读取满足已检查的准入条件；实际领取时仍需重新核验。"
             : "本次没有额外阻塞明细，不据此推断执行器可用。"}
         </p>
+      )}
+      {snapshot.execution_pool_id && (
+        <details>
+          <summary>本节点请求范围内的共享池资源</summary>
+          <p>
+            仅显示本节点所请求资源的汇总；这是配置准入账本，不是机器硬件测量。
+          </p>
+          {snapshot.pool_resources?.length ? (
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>资源</th>
+                    <th>配置上限</th>
+                    <th>当前预留</th>
+                    <th>累计消费</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {snapshot.pool_resources.map((item) => (
+                    <tr key={item.name}>
+                      <td>
+                        {schedulingResourceLabel(item.name)} ·{" "}
+                        {schedulingUnitLabel(item.unit)}
+                      </td>
+                      <td>{capacityLabel(item.capacity)}</td>
+                      <td>{item.used}</td>
+                      <td>{item.consumed}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p>本次未提供请求范围内的共享池资源明细。</p>
+          )}
+        </details>
       )}
       <details>
         <summary>固定资源请求与当前预留</summary>

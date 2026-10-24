@@ -1,0 +1,236 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-006",
+  "recorded_at": "2026-10-24T10:44:49.571Z",
+  "status": "defined_local_scope_verified",
+  "full_platform_complete": false,
+  "production_acceptance_complete": false,
+  "implementation": {
+    "shared_pool_governance": true,
+    "bilateral_project_grants": true,
+    "independent_machine_identity": true,
+    "immutable_task_and_run_routes": true,
+    "transactional_pool_and_project_reservations": true,
+    "hierarchical_weighted_admission_fairness": true,
+    "per_scope_workspaces_and_per_slot_journals": true,
+    "exact_claim_replay_and_fencing": true,
+    "public_localization_catalog": true,
+    "cli_and_desktop_localization_foundation": true
+  },
+  "verification": {
+    "go_complete": {
+      "passed_events": 714,
+      "failed_events": 0,
+      "skipped_tests": 0,
+      "vet_exit": 0,
+      "inputs": 294,
+      "unchanged_during_test": true
+    },
+    "cli_follow_up": {
+      "passed_events": 33,
+      "vet_exit": 0,
+      "changed_inputs": [
+        "internal/cli/client.go",
+        "internal/cli/localization.go",
+        "internal/cli/localization_test.go"
+      ],
+      "other_full_go_inputs_unchanged": 291
+    },
+    "web_complete": {
+      "passed": 289,
+      "files": 30,
+      "failed": 0,
+      "rerun_after_count_copy_change": false
+    },
+    "web_follow_up": {
+      "passed": 2,
+      "failed": 0,
+      "changed_inputs": [
+        "apps/web/src/i18n/locales/en-US.json",
+        "apps/web/src/i18n/records-consumers.test.tsx"
+      ],
+      "other_inputs_unchanged": 125
+    },
+    "non_web_node": {
+      "passed": 30,
+      "desktop": 7,
+      "agent_runtime": 20,
+      "knowledge": 3,
+      "failures": 0
+    },
+    "workspace_typecheck_exit": 0,
+    "web_build_exit": 0,
+    "web_build_seconds": 42.75,
+    "contract": {
+      "models": 209,
+      "paths": 150,
+      "components": 210,
+      "schema_references": 1210
+    },
+    "count_semantics": "Complete suites and narrowly scoped follow-up runs are recorded separately, not added as one complete run."
+  },
+  "localization": {
+    "frontend_keys_per_locale": 671,
+    "backend_keys": 93,
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "legacy_han_candidates": 2171,
+    "legacy_modules": 45,
+    "full_platform_coverage": false,
+    "user_and_execution_evidence_originals_preserved": true,
+    "coverage": "Auth/shell/common components, generic records/forms/details/decomposition, shared pool domain, new shared tool identity and fixed dispatch-route facts; remaining legacy modules explicitly tracked."
+  },
+  "runtime": {
+    "stamp": "20261024T101540951Z-e9d5b0f7",
+    "source_sha256": "bdafacdab242d3a991581492f63ecd5478a1cc86492378881bb995d302f7f462",
+    "source_files": 175,
+    "targets": 6,
+    "programs": 24,
+    "independent_header_and_buildinfo_mismatches": 0,
+    "linked_module_union": 36,
+    "windows": [
+      {
+        "name": "suma-control.exe",
+        "sha256": "c82be9d57c15162dc19fb6eff0b5ce926a096135617152980e803f436a41b481",
+        "path": "dist/runtime/windows-amd64/20261024T101540951Z-e9d5b0f7/suma-control.exe"
+      },
+      {
+        "name": "suma-runner.exe",
+        "sha256": "5e920312e5a5edbf1efadf5c4e753ad0bb49cf1c5981fa89bcb9fa040195bf33",
+        "path": "dist/runtime/windows-amd64/20261024T101540951Z-e9d5b0f7/suma-runner.exe"
+      },
+      {
+        "name": "suma-deployer.exe",
+        "sha256": "f8f6a32145d7679bbd6d04f7496c806e7e5c4f3afc8d84ee9ce8ce5098e8a433",
+        "path": "dist/runtime/windows-amd64/20261024T101540951Z-e9d5b0f7/suma-deployer.exe"
+      },
+      {
+        "name": "suma.exe",
+        "sha256": "3b45097f1497a43dd21c73f0af9a9e56f3606ad807594ef3f45be5073ed8b1ed",
+        "path": "dist/runtime/windows-amd64/20261024T101540951Z-e9d5b0f7/suma.exe"
+      }
+    ],
+    "limits": "Cross compilation and Windows loopback activation; target OS installers/signing/production remain separate."
+  },
+  "actual_local_journey": {
+    "fixture_only": true,
+    "vendor_model_invoked": false,
+    "organizations": 2,
+    "projects": 2,
+    "pool_runner_identities": 1,
+    "configured_slots": 2,
+    "runs": 3,
+    "nodes": 5,
+    "attempts": 5,
+    "persisted_events": 38,
+    "actual_admissions": 5,
+    "claim_receipts": 7273,
+    "active_holds": 0,
+    "active_slots": 0,
+    "positive_process_overlap": true,
+    "distinct_processes": true,
+    "same_host_overlap_ms": 33668.3456,
+    "fixed_test_cases_passed": 4,
+    "accepted_tasks": 2,
+    "review_actor": "Codex-operated disposable test account; not real stakeholder sign-off",
+    "failed_runs": 1,
+    "issues": 1,
+    "intake_requirements_for_failure": 1,
+    "repeated_browser_intake_actions": 2,
+    "platform_checks_passed": 30,
+    "all_runs_terminal": true,
+    "own_runner_stopped_after_drain": true,
+    "preview_control_left_running": true
+  },
+  "browser": {
+    "business_bundle": "index-whJBkqSZ.js",
+    "final_entry": "apps/web/dist/assets/index-Duu9maSY.js",
+    "final_entry_sha256": "285b127de5d0bfbc3ff07b9e26f768f618261a574d2ab58e2d82ca7d844feaea",
+    "viewport_css_widths": [
+      390,
+      768,
+      1366,
+      1920
+    ],
+    "languages_checked": [
+      "zh-CN",
+      "en-US"
+    ],
+    "themes_checked": [
+      "light",
+      "dark"
+    ],
+    "coverage": "Partial pool/records/attempt UI journeys; not the full Cartesian matrix or WCAG/large graph acceptance",
+    "breadcrumb_overlap_found_and_corrected": [
+      390,
+      768
+    ],
+    "modal_draft_focus_and_escape_observed": true,
+    "final_count_copy_observed": true,
+    "source_and_css_unchanged_except_two_declared_followup_files": true
+  },
+  "history": {
+    "source_tables": 106,
+    "final_tables": 125,
+    "source_rows": 324,
+    "preserved_runs": 4,
+    "preserved_nodes": 8,
+    "preserved_attempts": 5,
+    "preserved_events": 46,
+    "second_migration_unchanged": true,
+    "independent_backup_restore_verified": true,
+    "source_cut": "20261024T094718972Z-d2914aa4",
+    "limits": "Closed SQLite copy with empty ready queue; not online backup, nonempty ready backfill, OceanBase or PostgreSQL."
+  },
+  "outstanding": [
+    "Full P0-P7 delivery",
+    "Remaining legacy language catalogs and account/organization language preferences",
+    "Real external vendor model/accounts and complete tool support",
+    "Claim receipt retention protocol, idle backoff/rate limiting and long-term capacity",
+    "OceanBase/PostgreSQL distributed and sustained scale acceptance",
+    "SSO/custom RBAC, full plugin/skill/MCP/A2A, office/collaboration/notifications",
+    "Pool artifact transport and production release protocol",
+    "Target OS install/upgrade/signing and clean final desktop/SaaS packaging"
+  ],
+  "evidence_policy": "Raw logs, screenshots, databases, nested fixture repositories, credentials, source snapshots and binaries remain ignored local artifacts; Git contains only necessary code, contracts, professional documents and this compact summary.",
+  "local_evidence": [
+    {
+      "path": ".cache/e2e/pool-stage/go-final-verification.json",
+      "sha256": "6759a30299556556d83f4c5c226def33b7aaf599d4e44b2eedb122529b7e21e5"
+    },
+    {
+      "path": ".cache/e2e/localization-stage/cli-presence-verification.json",
+      "sha256": "aaedb0e74a9714f71fcd30239bbf508d0891a3d8cd017da1ba814abf0f37810b"
+    },
+    {
+      "path": ".cache/e2e/localization-stage/ui-records-singular-freeze-verification.json",
+      "sha256": "bcbbfada69f2ae482bc8e94006ba68c08f2619c643e648409338f2a03f7d3aa6"
+    },
+    {
+      "path": ".cache/e2e/pool-stage/runtime-final-verification.json",
+      "sha256": "15ad67438669ecf39b6e159199e78c65d294ba22268ac4a7945c2aac6a16e039"
+    },
+    {
+      "path": ".cache/e2e/pool-stage/actual/out/platform-execution-20261024T102828773379Z.json",
+      "sha256": "cd00f2e6ac5fd43adc1d2cffb247c7c9fb1f1e4ca6df03aa27ad14b08a6134dd"
+    },
+    {
+      "path": ".cache/e2e/pool-stage/actual/out/actual-observations-20261024T102404461Z.json",
+      "sha256": "21be734e63bed557daf4ec65398515ba979c0b1f9dd1b63d8e99cb21ad7c885c"
+    },
+    {
+      "path": ".cache/e2e/pool-stage/actual/visual-final-public.json",
+      "sha256": "1b7a8dd26c8da19c559a9bfaf9bb9219f97209ac07e5dd7776741425c12ad2d8"
+    },
+    {
+      "path": ".cache/e2e/pool-stage/runtime-final-independent-20261024T101540951Z-e9d5b0f7/verification.json",
+      "sha256": "2e6442ced04ab6eb855ea6a0f0c5c7bb80a30a9348a9d565abda6ef8c59d07e4"
+    },
+    {
+      "path": ".cache/e2e/pool-stage/history/20261024T095923139686Z/verification.json",
+      "sha256": "1f48246c1ed2665aba69cdb950a776a0895f2910b8ed4777388a3c00f8d669a1"
+    }
+  ]
+}

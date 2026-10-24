@@ -87,8 +87,14 @@ func New(db *sql.DB, dialect string) (*Engine, error) {
 	if err := e.migrateSchedulingSchema(context.Background()); err != nil {
 		return nil, fmt.Errorf("scheduling migration: %w", err)
 	}
+	if err := e.migratePoolSchema(context.Background()); err != nil {
+		return nil, err
+	}
 	if err := e.migrateSchedulingData(context.Background()); err != nil {
 		return nil, fmt.Errorf("scheduling data migration: %w", err)
+	}
+	if err := e.backfillReadyRanks(context.Background()); err != nil {
+		return nil, fmt.Errorf("ready rank migration: %w", err)
 	}
 	return e, nil
 }
@@ -223,6 +229,26 @@ func scopeValid(t, p string) error {
 	return nil
 }
 func (t *transaction) operation(tenant, project, scope, key, hash string) (string, error) {
+	var routeRun string
+	for _, prefix := range []string{"command:", "result:", "progress:"} {
+		if strings.HasPrefix(scope, prefix) {
+			routeRun = strings.TrimPrefix(scope, prefix)
+		}
+	}
+	if routeRun != "" {
+		if err := t.guardExecution(tenant, project, routeRun); err != nil {
+			return "", err
+		}
+	} else if scope == "create_run" || scope == "managed_run" {
+		var prior string
+		err := t.row(`SELECT result_id FROM dag_operations WHERE tenant_id=? AND project_id=? AND scope=? AND operation_id=?`, tenant, project, scope, key).Scan(&prior)
+		if err != nil && err != sql.ErrNoRows {
+			return "", err
+		}
+		if err = t.guardExecution(tenant, project, prior); err != nil {
+			return "", err
+		}
+	}
 	if err := t.guardProject(tenant, project); err != nil {
 		return "", err
 	}
@@ -403,6 +429,9 @@ func load(ctx context.Context, q queryer, e *Engine, tenant, project, id string)
 		return nil, ErrNotFound
 	}
 	if err != nil {
+		return nil, err
+	}
+	if err = e.loadExecutionRoute(ctx, q, r); err != nil {
 		return nil, err
 	}
 	var raw string

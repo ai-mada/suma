@@ -14,13 +14,22 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/ai-mada/suma/internal/localization"
 )
 
 type failure struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-	Status  int    `json:"status,omitempty"`
-	Details any    `json:"details,omitempty"`
+	Code          string              `json:"code"`
+	Message       string              `json:"message"`
+	Status        int                 `json:"status,omitempty"`
+	Details       any                 `json:"details,omitempty"`
+	MessageKey    string              `json:"message_key,omitempty"`
+	MessageParams localization.Params `json:"message_params,omitempty"`
+	Locale        localization.Locale `json:"locale,omitempty"`
+	// nil means unreported; an explicit false must survive the CLI round trip.
+	Localized *bool  `json:"localized,omitempty"`
+	Fallback  string `json:"fallback,omitempty"`
+	remote    bool
 }
 
 func (e *failure) Error() string { return e.Message }
@@ -30,6 +39,7 @@ type client struct {
 	base, project, token string
 	timeout              time.Duration
 	http                 *http.Client
+	locale               localization.Locale
 }
 
 func newClient(control, project, token string, timeout time.Duration) (*client, error) {
@@ -87,6 +97,11 @@ func (c *client) request(ctx context.Context, method, path string, body map[stri
 		return nil, usage("invalid request")
 	}
 	req.Header.Set("Accept", "application/json")
+	locale := c.locale
+	if locale == "" {
+		locale = localization.DefaultLocale
+	}
+	req.Header.Set("Accept-Language", string(locale))
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
@@ -110,12 +125,13 @@ func (c *client) request(ctx context.Context, method, path string, body map[stri
 		return nil, &failure{Code: "response", Message: "unable to read bounded response", Status: resp.StatusCode}
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		f := &failure{Code: "http_error", Message: http.StatusText(resp.StatusCode), Status: resp.StatusCode}
+		f := &failure{Code: "http_error", Message: http.StatusText(resp.StatusCode), Status: resp.StatusCode, remote: true}
 		var envelope struct {
 			Error failure `json:"error"`
 		}
 		if json.Unmarshal(raw, &envelope) == nil && envelope.Error.Code != "" {
-			f.Code, f.Message, f.Details = envelope.Error.Code, envelope.Error.Message, envelope.Error.Details
+			*f = envelope.Error
+			f.Status, f.remote = resp.StatusCode, true
 		}
 		return nil, f
 	}

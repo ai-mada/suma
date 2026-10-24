@@ -10,6 +10,9 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 
 ## P0 产品与架构
 
+- [ ] FND-I18N-001 全平台多语言：中英文目录、语言协商/偏好、界面/错误/通知/CLI/桌面/扩展/文档入口、格式化、缺项门禁和真实旅程验收；正在统一基础及迁移，详见[规范](../design/internationalization.md)。
+- [x] 本阶段国际化基础：671网页双语键、93后端键、请求级协商、CLI／桌面基础、通用记录／表单／详情／拆解、共享池全域、用户原文保真及目录门禁；真实语言切换、焦点和窄屏部分验证见[报告](../quality/frontend-localization-verification.md)。旧45模块、账户／组织偏好、通知和安装器继续迁移。
+
 - [x] 品牌、核心用户旅程、域模型、模块边界、部署拓扑和状态分层。
 - [x] 参考Multica最新代码获取并锁定，保留原工作区。
 - [x] 其余指定开源参考的最新默认分支提交锁定及选取文档源码读取。
@@ -42,7 +45,8 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 - [x] 测试节点可选择本流程静态command/agent祖先作为单个候选来源；调度器固定成功来源尝试的干净提交与来源证据，Runner在本地隔离工作树中测试。
 - [ ] 实际合并执行及授权/冲突恢复、真实终端、LSP/DAP、完整调试预览；候选不自动聚合多分支，也未实现跨map/子流程交接和分布式Git制品传送。
 - [x] T-P4-005：持久增量前沿、边结算/就绪/唤醒索引、短事件提交尾锁、稳定领取回执、项目资源账本、分块展开与持久重试窗口；Core123通过事件及真实历史78表保真迁移，范围见[内核规范](../scheduler/incremental-kernel.md)。
-- [ ] 跨组织共享池与明确多项目执行身份、租户/项目分层加权公平、模型请求许可/速率与真实成本结算、分布式数据库和目标吞吐验收。项目内运行轮转不能替代这些能力。
+- [x] 跨组织共享池、明确多项目独立机器身份、双边授权、固定任务/运行路由、持久租户/项目加权准入份额与共享账本；SQLite本机双项目真实并行、独立测试及故障回流见[阶段验收](../quality/execution-pool-verification.md)。
+- [ ] 模型请求许可/速率与真实成本结算、分布式数据库及目标吞吐验收；持久回执安全压缩、空闲退避/抖动、领取限流及长期增长验证。空回执不能在未定义幂等失效窗口时直接删除。
 
 ## P3 项目、需求、设计与团队
 
@@ -59,6 +63,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 
 ## P4 分布式与自动化
 
+- [x] T-P4-006：双边项目授权、独立池Runner、固定执行路由、共享账本与持久租户／项目加权准入；组织／项目配置界面及本机实际多项目并行、独立测试、测试账号验收和故障回流闭环。合同见[共享执行池](../../contracts/execution-pools.md)，限定范围见[本阶段验收](../quality/execution-pool-verification.md)；不代表分布式数据库或规模目标通过。
 - [x] 多进程SQL调度互斥、租约与故障恢复测试。
 - [x] 外部流程HTTP桥接合同与可配置执行器。
 - [x] 不可变工具档案、项目绑定执行身份、受限本机探测及60秒观察；精确命令能力、配置/程序摘要与当前授权核验后再占用attempt和资源。
@@ -92,6 +97,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 
 ## P7 商业化与正式交付
 
+- [ ] 可复用身份／自定义角色与资源动作、企业OIDC SSO及真实提供方验收；版本化插件／技能、官方SDK的MCP／A2A接入、配置管理和去敏可观测性，需求编号与验收见[平台基础PRD](../product/platform-foundation-prd.md)。
 - [x] 浏览器生产构建与Windows未签名桌面目录产物。
 - [x] 控制面/Runner/CLI/本机Deployer四程序在Windows/Linux/macOS×amd64/arm64的24文件交叉编译与摘要核对。
 - [ ] Windows正式安装/升级验证，macOS/Linux构建、签名和实机矩阵。

@@ -12,7 +12,10 @@ import (
 
 func (s *Service) MigrateTaskDispatch(ctx context.Context) error {
 	_, err := s.DB.ExecContext(ctx, s.ddl(`CREATE TABLE IF NOT EXISTS suma_task_dispatch_plans(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,run_id VARCHAR(64) NOT NULL UNIQUE,version INTEGER NOT NULL,state VARCHAR(20) NOT NULL,created_by VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,expires_at VARCHAR(40) NOT NULL,payload TEXT NOT NULL)`))
-	return err
+	if err != nil {
+		return err
+	}
+	return s.migrateTaskDispatchRoutes(ctx)
 }
 
 func taskContextRecord(r Record) TaskContextRecord {
@@ -67,7 +70,7 @@ func (s *Service) taskDispatchPlanTx(ctx context.Context, tx governanceQuery, p 
 	return out, nil
 }
 
-func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, p Principal, project string, plan TaskDispatchPlan) error {
+func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, engine *dag.Engine, p Principal, project string, plan TaskDispatchPlan) error {
 	if plan.State != "ready" {
 		return conflict("计划已派发，不能创建另一运行；请打开原运行或恢复原操作")
 	}
@@ -92,12 +95,18 @@ func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, p 
 	} else if current.Requirement != nil {
 		return conflict("任务的需求关联已变化，请重新派发预览")
 	}
-	_, err = s.validateToolDispatchTx(ctx, tx, p, project, plan.ToolProfileID, plan.ToolProfileVersion, plan.ToolProfileSHA256)
-	return err
+	profile, err := s.validateToolDispatchTx(ctx, tx, p, project, plan.ToolProfileID, plan.ToolProfileVersion, plan.ToolProfileSHA256)
+	if err != nil {
+		return err
+	}
+	return s.checkTaskDispatchCurrentRouteTx(ctx, tx, engine, p, project, plan, profile)
 }
 
-func (s *Service) CreateTaskDispatchPlan(ctx context.Context, p Principal, project string, request TaskDispatchPreviewRequest) (TaskDispatchPlan, error) {
+func (s *Service) CreateTaskDispatchPlan(ctx context.Context, engine *dag.Engine, p Principal, project string, request TaskDispatchPreviewRequest) (TaskDispatchPlan, error) {
 	var out TaskDispatchPlan
+	if engine == nil {
+		return out, invalid("任务调度器未配置")
+	}
 	if request.ProjectID != project || request.ExpectedTaskVersion < 1 || request.WorkflowVersion < 1 || request.ExpectedToolVersion < 1 || request.TaskID == "" || request.WorkflowID == "" || request.AgentNodeID == "" || request.ToolProfileID == "" {
 		return out, invalid("派发预览需要项目、任务版本、固定流程、开发节点及工具版本")
 	}
@@ -126,7 +135,7 @@ func (s *Service) CreateTaskDispatchPlan(ctx context.Context, p Principal, proje
 			return out, err
 		}
 		out.Valid, out.Reason = true, ""
-		if check := s.validateTaskDispatchPlanTx(ctx, tx, p, project, out); check != nil {
+		if check := s.validateTaskDispatchPlanTx(ctx, tx, engine, p, project, out); check != nil {
 			out.Valid, out.Reason = false, check.Error()
 		}
 		return out, tx.Commit()
@@ -143,6 +152,13 @@ func (s *Service) CreateTaskDispatchPlan(ctx context.Context, p Principal, proje
 		return out, err
 	}
 	if _, err = s.validateToolDispatchTx(ctx, tx, p, project, profile.ID, request.ExpectedToolVersion, profile.Profile.ProfileSHA256); err != nil {
+		return out, err
+	}
+	route, err := engine.ReadProjectExecutionRouteTx(ctx, tx, p.TenantID, project)
+	if err != nil {
+		return out, err
+	}
+	if err = s.checkDispatchProfileRouteTx(ctx, tx, p.TenantID, project, profile, route); err != nil {
 		return out, err
 	}
 	var raw string
@@ -165,12 +181,15 @@ func (s *Service) CreateTaskDispatchPlan(ctx context.Context, p Principal, proje
 	if err != nil {
 		return out, err
 	}
-	out = TaskDispatchPlan{ID: newID(), ProjectID: project, Version: 1, State: "ready", TaskID: context.Task.ID, TaskVersion: context.Task.Version, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, RunID: newID(), CreatedAt: automationStamp(clock), ExpiresAt: automationStamp(clock.Add(30 * time.Minute)), Context: context, Workflow: derived, Valid: true}
+	out = TaskDispatchPlan{ID: newID(), ProjectID: project, Version: 1, State: "ready", TaskID: context.Task.ID, TaskVersion: context.Task.Version, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, RunID: newID(), CreatedAt: automationStamp(clock), ExpiresAt: automationStamp(clock.Add(30 * time.Minute)), Context: context, Workflow: derived, ExecutionRoute: &route, Valid: true}
 	if context.Requirement != nil {
 		out.RequirementID, out.RequirementVersion = context.Requirement.ID, context.Requirement.Version
 	}
 	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_task_dispatch_plans(id,tenant_id,project_id,run_id,version,state,created_by,created_at,expires_at,payload)VALUES(?,?,?,?,1,'ready',?,?,?,?)`), out.ID, p.TenantID, project, out.RunID, p.ID, out.CreatedAt, out.ExpiresAt, stringify(out))
 	if err != nil {
+		return out, err
+	}
+	if err = s.saveTaskDispatchRouteBasisTx(ctx, tx, out.ID, route); err != nil {
 		return out, err
 	}
 	if err = s.saveReceipt(ctx, tx, p, project, request.IdempotencyKey, hash, out); err != nil {
@@ -182,7 +201,7 @@ func (s *Service) CreateTaskDispatchPlan(ctx context.Context, p Principal, proje
 	return out, tx.Commit()
 }
 
-func (s *Service) GetTaskDispatchPlan(ctx context.Context, p Principal, project, id string) (TaskDispatchPlan, error) {
+func (s *Service) GetTaskDispatchPlan(ctx context.Context, engine *dag.Engine, p Principal, project, id string) (TaskDispatchPlan, error) {
 	var out TaskDispatchPlan
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
@@ -197,7 +216,7 @@ func (s *Service) GetTaskDispatchPlan(ctx context.Context, p Principal, project,
 		return out, err
 	}
 	out.Valid, out.Reason = true, ""
-	if check := s.validateTaskDispatchPlanTx(ctx, tx, p, project, out); check != nil {
+	if check := s.validateTaskDispatchPlanTx(ctx, tx, engine, p, project, out); check != nil {
 		out.Valid, out.Reason = false, check.Error()
 	}
 	return out, tx.Commit()
@@ -234,8 +253,11 @@ func (s *Service) StartTaskDispatchPlan(ctx context.Context, engine *dag.Engine,
 		if current.Version != request.ExpectedVersion {
 			return conflict("派发计划已变化，请刷新并核对")
 		}
-		return s.validateTaskDispatchPlanTx(ctx, tx, p, project, current)
+		return s.validateTaskDispatchPlanTx(ctx, tx, engine, p, project, current)
 	}, func(tx *sql.Tx, runID string) error {
+		if e := s.checkTaskDispatchBoundRouteTx(ctx, tx, p, project, plan, runID); e != nil {
+			return e
+		}
 		if e := s.BindRunTx(ctx, tx, p, project, plan.TaskID, runID, plan.TaskVersion); e != nil {
 			return e
 		}

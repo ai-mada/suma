@@ -1,3 +1,4 @@
+import { DispatchRouteFacts } from "./execution-pools/DispatchRouteFacts";
 import { stateLabel } from "./api";
 import type { ToolEvidence as ContractToolEvidence } from "../../../packages/contracts/src";
 import {
@@ -213,6 +214,7 @@ export function TaskDispatchFacts({ plan }: { plan: TaskDispatchPlan }) {
         <dd>{stamp(plan.expires_at)}</dd>
       </dl>
       {plan.reason && <p className="warning">{plan.reason}</p>}
+      <DispatchRouteFacts route={plan.execution_route} />
       <ContextFacts title="任务" value={plan.context.task} />
       {plan.context.requirement && (
         <ContextFacts title="需求" value={plan.context.requirement} />

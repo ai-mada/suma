@@ -15,6 +15,7 @@ import (
 type Client struct {
 	BaseURL, Token, ProjectID string
 	HTTP                      *http.Client
+	Pool                      *PoolContext
 }
 type runnerHTTPStatusError struct {
 	Path   string
@@ -40,7 +41,14 @@ func (c *Client) post(ctx context.Context, path string, payload, reply any) erro
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(c.BaseURL, "/")+"/api/v1/runner/"+path, bytes.NewReader(b))
+	namespace := "runner"
+	if c.Pool != nil {
+		namespace = "pool-runner"
+		if b, err = c.poolPayload(b); err != nil {
+			return err
+		}
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(c.BaseURL, "/")+"/api/v1/"+namespace+"/"+path, bytes.NewReader(b))
 	if err != nil {
 		return err
 	}

@@ -49,7 +49,7 @@ func (s *Service) toolWorkerReasonTx(ctx context.Context, tx *sql.Tx, p Principa
 	var state, expires, creator string
 	err := tx.QueryRowContext(ctx, s.q(`SELECT w.status,x.expires_at,w.created_by FROM suma_release_workers w JOIN suma_sessions x ON x.token_hash=w.token_hash AND x.tenant_id=w.tenant_id JOIN suma_token_scopes t ON t.token_hash=w.token_hash AND t.kind='runner' AND t.project_id=w.project_id WHERE w.tenant_id=? AND w.project_id=? AND w.worker_id=?`), p.TenantID, project, worker).Scan(&state, &expires, &creator)
 	if errors.Is(err, sql.ErrNoRows) {
-		return "执行节点未登记或凭证已撤销", nil
+		return s.poolToolWorkerReasonTx(ctx, tx, p.TenantID, project, worker, clock)
 	}
 	if err != nil {
 		return "", err

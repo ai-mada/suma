@@ -105,6 +105,7 @@ func TestWebhookRejectsRemotePlainHTTPAndDoesNotEchoResponse(t *testing.T) {
 }
 
 func TestWebhookRedirectNeverForwardsSignatureAndUnknownOutcomeIsExplicit(t *testing.T) {
+	t.Setenv("SUMA_LANGUAGE", "en-US")
 	t.Setenv("SUMA_WEBHOOK_SECRET", strings.Repeat("ef", 32))
 	forwarded := 0
 	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { forwarded++ }))
@@ -150,6 +151,7 @@ func TestWebhookFileRetryKeepsBytesAndRecoversDuplicateReceipt(t *testing.T) {
 }
 
 func TestWebhookTimeoutLeavesDeliveryIdentityForRecovery(t *testing.T) {
+	t.Setenv("SUMA_LANGUAGE", "en-US")
 	t.Setenv("SUMA_WEBHOOK_SECRET", strings.Repeat("45", 32))
 	finished := make(chan struct{})
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

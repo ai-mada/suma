@@ -82,6 +82,7 @@ func webhookCommand(ctx context.Context, c *client, args []string, in io.Reader,
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Accept-Language", string(c.locale))
 	req.Header.Set("X-Suma-Delivery", *delivery)
 	req.Header.Set("X-Suma-Timestamp", timestamp)
 	req.Header.Set("X-Suma-Signature-256", "sha256="+hex.EncodeToString(mac.Sum(nil)))

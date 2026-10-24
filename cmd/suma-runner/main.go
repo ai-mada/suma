@@ -25,7 +25,17 @@ func main() {
 	externalConfig := flag.String("external-config", "", "administrator JSON map of external workflow plugin endpoints and token environment names")
 	allow := flag.Bool("allow-exec", false, "enable execution of local allowlisted commands")
 	describe := flag.Bool("describe-tools", false, "read-only local executable/version/protocol observations; no platform token or model request")
+	poolConfig := flag.String("pool-config", "", "private JSON configuration of an independent pool machine and per-project execution scopes")
 	flag.Parse()
+	if *poolConfig != "" {
+		if *project != "" || *id != "" || *commands != "" || *repository != "" || *baseCommit != "" || *worktrees != "" || *externalConfig != "" || *preflight != "" || (!*describe && os.Getenv("SUMA_RUNNER_TOKEN") != "") {
+			log.Fatal("pool mode is independent of --project/--worker and project-runner configuration or credentials")
+		}
+		if err := runPool(*base, *poolConfig, *state, *allow, *describe); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 	if *preflight != "" {
 		b, e := os.ReadFile(*preflight)
 		if e != nil {

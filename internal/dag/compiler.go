@@ -31,6 +31,9 @@ func normalize(w Workflow) (Workflow, error) {
 	}
 	seen := map[string]int{}
 	for i, n := range w.Nodes {
+		if n.Priority < 0 || n.Priority > 9 {
+			return w, fmt.Errorf("%w: priority must be 0..9", ErrInvalid)
+		}
 		if !identifier.MatchString(n.ID) || !types[n.Type] {
 			return w, fmt.Errorf("%w: node ID/type %q/%q", ErrInvalid, n.ID, n.Type)
 		}

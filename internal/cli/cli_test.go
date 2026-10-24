@@ -70,6 +70,7 @@ func TestCommandFileHasStableOperationAndScope(t *testing.T) {
 	}))
 	defer server.Close()
 	for i := 0; i < 2; i++ {
+		t.Setenv("SUMA_LANGUAGE", []string{"zh-CN", "en-US"}[i])
 		if code, _, stderr := invoke(t, server.URL, "run", "command", "run-1", "--file", file); code != 0 {
 			t.Fatal(stderr)
 		}
@@ -163,6 +164,7 @@ func TestRunEventsPreservesCursor(t *testing.T) {
 }
 
 func TestMutationTimeoutDoesNotRetry(t *testing.T) {
+	t.Setenv("SUMA_LANGUAGE", "en-US") // Recovery wording is asserted in English.
 	file := filepath.Join(t.TempDir(), "command.json")
 	if err := os.WriteFile(file, []byte(`{"action":"cancel","expected_version":2}`), 0600); err != nil {
 		t.Fatal(err)
@@ -198,6 +200,7 @@ func TestRedirectDoesNotForwardToken(t *testing.T) {
 }
 
 func TestCancelledContextExits(t *testing.T) {
+	t.Setenv("SUMA_LANGUAGE", "en-US")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
 	defer cancel()
 	<-ctx.Done()

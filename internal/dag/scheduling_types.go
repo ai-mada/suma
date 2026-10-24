@@ -64,18 +64,21 @@ type ResourceReservationSnapshot struct {
 }
 
 type NodeAdmissionSnapshot struct {
-	RunID         string                        `json:"run_id"`
-	NodeID        string                        `json:"node_id"`
-	RunVersion    int                           `json:"run_version"`
-	NodeState     string                        `json:"node_state"`
-	Attempt       int                           `json:"attempt"`
-	Fence         int64                         `json:"fence"`
-	PolicyVersion int                           `json:"policy_version"`
-	EvaluatedAt   string                        `json:"evaluated_at"`
-	Status        string                        `json:"status"`
-	Blockers      []SchedulingBlocker           `json:"blockers"`
-	Requests      []ResourceRequest             `json:"requests"`
-	Reservations  []ResourceReservationSnapshot `json:"reservations"`
+	ExecutionPoolID   string                        `json:"execution_pool_id,omitempty"`
+	PoolPolicyVersion int                           `json:"pool_policy_version,omitempty"`
+	PoolResources     []ResourceSnapshot            `json:"pool_resources,omitempty"`
+	RunID             string                        `json:"run_id"`
+	NodeID            string                        `json:"node_id"`
+	RunVersion        int                           `json:"run_version"`
+	NodeState         string                        `json:"node_state"`
+	Attempt           int                           `json:"attempt"`
+	Fence             int64                         `json:"fence"`
+	PolicyVersion     int                           `json:"policy_version"`
+	EvaluatedAt       string                        `json:"evaluated_at"`
+	Status            string                        `json:"status"`
+	Blockers          []SchedulingBlocker           `json:"blockers"`
+	Requests          []ResourceRequest             `json:"requests"`
+	Reservations      []ResourceReservationSnapshot `json:"reservations"`
 }
 
 type ReadyEntry struct {

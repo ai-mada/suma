@@ -1,3 +1,4 @@
+import { tr, UiError, formatNumber } from "./i18n";
 export type {
   SchedulingPolicyInput as PolicyInput,
   SchedulingPolicyView as SchedulingPolicy,
@@ -22,9 +23,9 @@ export type SchedulingPage<T> = {
 export function amountInput(value: string, nullable = false): number | null {
   if (nullable && !value.trim()) return null;
   if (!/^(0|[1-9][0-9]*)$/.test(value.trim()))
-    throw Error("额度必须是非负整数；空白仅用于明确不限制。");
+    throw new UiError("common.form.quotaInteger");
   const amount = Number(value);
-  if (!Number.isSafeInteger(amount)) throw Error("额度超过安全整数范围。");
+  if (!Number.isSafeInteger(amount)) throw new UiError("common.form.quotaSafe");
   return amount;
 }
 export function policyInput(
@@ -40,7 +41,7 @@ export function policyInput(
       ["budget", "execution_slots"].includes(name) ||
       Object.hasOwn(resource_limits, name)
     )
-      throw Error("资源名称无效、重复或与执行槽位／预算保留字段冲突。");
+      throw new UiError("common.form.resourceName");
     resource_limits[name] = amountInput(row.value, true);
   }
   return {
@@ -91,4 +92,8 @@ export const admissionNames: Record<string, string> = {
   not_pending: "当前不等待派发",
 };
 export const capacityLabel = (value: number | null | undefined) =>
-  value === null ? "不限制" : value === undefined ? "未提供" : String(value);
+  value === null
+    ? tr("common.unlimited")
+    : value === undefined
+      ? tr("common.notProvided")
+      : formatNumber(value);

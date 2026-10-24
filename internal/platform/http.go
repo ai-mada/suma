@@ -42,6 +42,7 @@ func (s *Server) Handler() http.Handler {
 	s.mux.HandleFunc("/api/v1/", s.api)
 	s.mux.HandleFunc("/", s.web)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		setResponseLanguage(w, r)
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Referrer-Policy", "same-origin")
 		w.Header().Set("X-Frame-Options", "DENY")
@@ -76,7 +77,7 @@ func (s *Server) Handler() http.Handler {
 func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(v)
+	json.NewEncoder(w).Encode(localizePresentation(w, v))
 }
 func writeError(w http.ResponseWriter, err error) {
 	e := &APIError{500, "internal_error", "服务暂时无法完成操作", nil}
@@ -97,7 +98,7 @@ func writeError(w http.ResponseWriter, err error) {
 			slog.Error("request failed", "error", err)
 		}
 	}
-	writeJSON(w, e.Status, map[string]any{"error": map[string]any{"code": e.Code, "message": e.Message, "details": e.Details}, "setup_required": e.Code == "unauthenticated" && e.Details != nil})
+	writeJSON(w, e.Status, map[string]any{"error": localizedAPIError(w, e), "setup_required": e.Code == "unauthenticated" && e.Details != nil})
 }
 func decode(r *http.Request) (map[string]any, error) {
 	raw, err := io.ReadAll(r.Body)
@@ -113,7 +114,7 @@ func decode(r *http.Request) (map[string]any, error) {
 	// Preserve numeric lexemes so a fractional counter near 2^53 cannot round
 	// into a valid integer before that validation. Legacy map-backed routes
 	// retain their existing number representation until their DTO migration.
-	if strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") {
+	if strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
 		d.UseNumber()
 	}
 	if err := d.Decode(&m); err != nil {
@@ -153,6 +154,12 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.releaseProviderHTTP(w, r, path) {
+		return
+	}
+	if s.poolRunnerHTTP(w, r, path) {
+		return
+	}
+	if localizationCatalogHTTP(w, r, path) {
 		return
 	}
 	if path == "auth/setup" && r.Method == "POST" {
@@ -243,6 +250,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	}
 	if path == "auth/session" && r.Method == "GET" {
 		s.session(w, r, p)
+		return
+	}
+	if s.executionPoolsHTTP(w, r, p, scope, path, parts) {
 		return
 	}
 	if path == "auth/switch" && r.Method == "POST" {
@@ -699,6 +709,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, pro
 			}
 		}
 		e := s.Engine.ProgressWithAuthority(r.Context(), p.TenantID, project, assignment, str(m, "operation_id"), str(m, "message"), event, func(tx *sql.Tx) error {
+			if err := s.Service.projectRunnerExecutionAuthorityTx(r.Context(), tx, p, project, tokenOf(r), assignment.WorkerID, assignment.RunID); err != nil {
+				return err
+			}
 			return s.Service.validateToolProgressTx(r.Context(), tx, p, project, tokenOf(r), assignment, event)
 		})
 		respond(w, 200, map[string]bool{"acknowledged": e == nil}, e)
@@ -736,7 +749,7 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, pro
 			return
 		}
 		e := s.Engine.HeartbeatWithAuthority(r.Context(), p.TenantID, project, a, func(tx *sql.Tx) error {
-			return s.Service.runnerIdentityTx(r.Context(), tx, p, project, tokenOf(r), a.WorkerID)
+			return s.Service.projectRunnerExecutionAuthorityTx(r.Context(), tx, p, project, tokenOf(r), a.WorkerID, a.RunID)
 		})
 		if errors.Is(e, dag.ErrCancelled) {
 			writeJSON(w, 200, map[string]any{"cancel_requested": true})
@@ -750,7 +763,7 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, pro
 			return
 		}
 		e := s.Engine.CompleteBound(r.Context(), p.TenantID, project, result, func(tx *sql.Tx) error {
-			return s.Service.runnerIdentityTx(r.Context(), tx, p, project, tokenOf(r), result.WorkerID)
+			return s.Service.projectRunnerExecutionAuthorityTx(r.Context(), tx, p, project, tokenOf(r), result.WorkerID, result.RunID)
 		}, func(tx *sql.Tx, state string) error {
 			if err := s.Service.validateToolResultTx(r.Context(), tx, p, project, tokenOf(r), result); err != nil {
 				return err

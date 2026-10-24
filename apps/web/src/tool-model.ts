@@ -66,6 +66,7 @@ export type TaskContextRecord = {
   acceptance_criteria: string[];
 };
 export type TaskDispatchPlan = {
+  execution_route?: import("../../../packages/contracts/src").TaskDispatchPlan["execution_route"];
   id: string;
   project_id: string;
   version: number;

@@ -207,9 +207,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	var lines []string
-	lines = append(lines, "速码 suma · project: "+display(m.client.project)+" · read-only")
+	project := m.client.project
+	if project == "" {
+		project = m.client.text("（请选择项目）", "(select a project)")
+	}
+	lines = append(lines, m.client.text("速码 suma · 项目：", "Suma · project: ")+project+m.client.text(" · 只读", " · read-only"))
 	var tabs []string
 	for i, name := range sections {
+		name = m.client.text([]string{"项目", "需求", "任务", "运行", "流程"}[i], name)
 		if i == m.section {
 			name = "[" + name + "]"
 		}
@@ -217,17 +222,21 @@ func (m model) View() string {
 	}
 	lines = append(lines, strings.Join(tabs, "  "), "")
 	if m.loading {
-		lines = append(lines, "Loading…")
+		lines = append(lines, m.client.text("正在加载…", "Loading…"))
 	} else if m.err != nil {
-		lines = append(lines, "Request failed: "+m.err.Error(), "Press r to retry; check project and SUMA_TOKEN permissions.")
+		diagnostic := m.err.Error()
+		if f, ok := m.err.(*failure); ok {
+			diagnostic = localizeFailure(m.client.locale, f).Message
+		}
+		lines = append(lines, m.client.text("请求失败：", "Request failed: ")+diagnostic, m.client.text("按 r 重试；请检查项目和 SUMA_TOKEN 权限。", "Press r to retry; check project and SUMA_TOKEN permissions."))
 	} else if m.detailPath != "" {
 		body := strings.Split(m.detail, "\n")
 		start := min(m.scroll, len(body))
 		lines = append(lines, body[start:]...)
 	} else if len(m.items) == 0 {
-		lines = append(lines, "No items. Select a project from the projects tab if needed.")
+		lines = append(lines, m.client.text("暂无条目；可先从项目页选择项目。", "No items. Select a project from the projects tab if needed."))
 	} else {
-		lines = append(lines, fmt.Sprintf("Items %d–%d of %d", m.offset+1, m.offset+len(m.items), m.total))
+		lines = append(lines, fmt.Sprintf(m.client.text("第 %d–%d 项，共 %d 项", "Items %d–%d of %d"), m.offset+1, m.offset+len(m.items), m.total))
 		visible := max(1, m.height-8)
 		start := max(0, m.cursor-visible+1)
 		for i := start; i < min(len(m.items), start+visible); i++ {
@@ -254,19 +263,13 @@ func (m model) View() string {
 	if len(lines) > contentHeight {
 		lines = lines[:contentHeight]
 	}
-	lines = append(lines, "", "tab section · ↑↓ select/scroll · enter open/project · esc back · r refresh · n/p page · e run events · q quit")
+	lines = append(lines, "", m.client.text("tab 切换 · ↑↓ 选择/滚动 · enter 打开/选项目 · esc 返回 · r 刷新 · n/p 翻页 · e 运行事件 · q 退出", "tab section · ↑↓ select/scroll · enter open/project · esc back · r refresh · n/p page · e run events · q quit"))
 	for i, line := range lines {
 		lines[i] = ansi.Truncate(cleanText(line, m.client.token), max(1, m.width), "…")
 	}
 	return strings.Join(lines, "\n") + "\n"
 }
 
-func display(value string) string {
-	if value == "" {
-		return "(select a project)"
-	}
-	return value
-}
 func stringField(item map[string]any, key string) string {
 	value, _ := item[key].(string)
 	return value

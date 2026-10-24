@@ -76,6 +76,15 @@ export interface ArtifactUploadState {
   missing_blobs: (string)[];
 }
 export interface Assignment {
+  tenant_id?: string;
+  project_id?: string;
+  pool_id?: string;
+  pool_runner_id?: string;
+  pool_slot_id?: string;
+  pool_grant_id?: string;
+  pool_grant_version?: number;
+  pool_credential_id?: string;
+  pool_credential_version?: number;
   run_id: string;
   node_id: string;
   attempt: number;
@@ -471,6 +480,223 @@ export interface ExecutionAttempt {
   reconciliation?: AttemptReconciliation | null;
   child_run_id?: string;
 }
+export interface ExecutionPool {
+  id: string;
+  owner_tenant_id: string;
+  name: string;
+  description: string;
+  version: number;
+  status: string;
+  policy: ExecutionPoolPolicy;
+  allowed_actions: (string)[];
+  created_at: string;
+  updated_at: string;
+}
+export interface ExecutionPoolCommandRequest {
+  action: string;
+  expected_version: number;
+  idempotency_key: string;
+}
+export interface ExecutionPoolCreateRequest {
+  name: string;
+  description: string;
+  policy: ExecutionPoolPolicyInput;
+  idempotency_key: string;
+}
+export interface ExecutionPoolCredentialRequest {
+  expected_version: number;
+  ttl_seconds: number;
+  idempotency_key: string;
+}
+export interface ExecutionPoolCredentialResponse {
+  runner: ExecutionPoolRunner;
+  token?: string;
+  replayed: boolean;
+  recovery_action?: string;
+}
+export interface ExecutionPoolGrant {
+  id: string;
+  pool_id: string;
+  pool_name: string;
+  owner_tenant_id: string;
+  tenant_id: string;
+  project_id: string;
+  shared_project_name: string;
+  version: number;
+  status: string;
+  project_weight: number;
+  request_sha256: string;
+  requested_by: string;
+  decided_by?: string;
+  allowed_actions: (string)[];
+  can_open_project: boolean;
+  created_at: string;
+  updated_at: string;
+}
+export interface ExecutionPoolGrantCommand {
+  project_id?: string;
+  action: string;
+  expected_version: number;
+  idempotency_key: string;
+}
+export interface ExecutionPoolGrantPage {
+  items: (ExecutionPoolGrant)[];
+  total: number;
+  next_cursor?: string;
+  allowed_actions: (string)[];
+}
+export interface ExecutionPoolGrantRequest {
+  project_id: string;
+  pool_id: string;
+  project_weight: number;
+  idempotency_key: string;
+}
+export interface ExecutionPoolPage {
+  items: (ExecutionPool)[];
+  total: number;
+  next_cursor?: string;
+  allowed_actions: (string)[];
+}
+export interface ExecutionPoolPolicy {
+  concurrency_limit: number;
+  resource_limits: { [key: string]: number | null };
+  budget_limit: number | null;
+  tenant_weights: { [key: string]: number };
+  version: number;
+  budget_spent: number;
+  resources: (ResourceSnapshot)[];
+  fairness: SchedulingFairness;
+  as_of: string;
+}
+export interface ExecutionPoolPolicyInput {
+  concurrency_limit: number;
+  resource_limits: { [key: string]: number | null };
+  budget_limit: number | null;
+  tenant_weights: { [key: string]: number };
+}
+export interface ExecutionPoolPolicyPreview {
+  id: string;
+  pool_id: string;
+  version: number;
+  state: string;
+  policy_version: number;
+  pool_version: number;
+  payload_sha256: string;
+  before: ExecutionPoolPolicy;
+  policy: ExecutionPoolPolicyInput;
+  changes: (SchedulingPolicyChange)[];
+  weight_changes: (ExecutionPoolWeightChange)[];
+  impact: ExecutionPoolPreviewImpact;
+  created_by: string;
+  created_at: string;
+  expires_at: string;
+  applied_policy_version: number;
+  allowed_actions: (string)[];
+  valid: boolean;
+  reason?: string;
+}
+export interface ExecutionPoolPolicyPreviewRequest {
+  expected_version: number;
+  policy: ExecutionPoolPolicyInput;
+  idempotency_key: string;
+}
+export interface ExecutionPoolPreviewImpact {
+  ready_nodes: number;
+  active_attempts: number;
+  as_of: string;
+}
+export interface ExecutionPoolRunner {
+  id: string;
+  pool_id: string;
+  worker_id: string;
+  name: string;
+  version: number;
+  status: string;
+  max_slots: number;
+  credential_version: number;
+  credential_expires_at: string;
+  last_seen_at?: string;
+  allowed_actions: (string)[];
+  created_at: string;
+}
+export interface ExecutionPoolRunnerCreateRequest {
+  name: string;
+  max_slots: number;
+  ttl_seconds: number;
+  idempotency_key: string;
+}
+export interface ExecutionPoolRunnerPage {
+  items: (ExecutionPoolRunner)[];
+  total: number;
+  next_cursor?: string;
+  allowed_actions: (string)[];
+}
+export interface ExecutionPoolRunnerSession {
+  runner: ExecutionPoolRunner;
+  pool_active: boolean;
+  scopes: (PoolScope)[];
+}
+export interface ExecutionPoolWeightChange {
+  tenant_id: string;
+  before: number;
+  after: number;
+}
+export interface ExecutionPreviewCommitRequest {
+  project_id?: string;
+  expected_version: number;
+  idempotency_key: string;
+}
+export interface ExecutionRouteInput {
+  mode: string;
+  pool_id?: string;
+  grant_id?: string;
+  grant_version?: number;
+}
+export interface ExecutionRoutePreview {
+  id: string;
+  project_id: string;
+  version: number;
+  state: string;
+  route_version: number;
+  payload_sha256: string;
+  before: ExecutionRouteView;
+  route: ExecutionRouteInput;
+  pool_name?: string;
+  pool_status?: string;
+  pool_version: number;
+  pool_policy_version: number;
+  impact: ExecutionRoutePreviewImpact;
+  created_by: string;
+  created_at: string;
+  expires_at: string;
+  applied_route_version: number;
+  allowed_actions: (string)[];
+  valid: boolean;
+  reason?: string;
+}
+export interface ExecutionRoutePreviewImpact {
+  existing_runs: number;
+  as_of: string;
+}
+export interface ExecutionRoutePreviewRequest {
+  project_id: string;
+  expected_version: number;
+  route: ExecutionRouteInput;
+  idempotency_key: string;
+}
+export interface ExecutionRouteView {
+  tenant_id: string;
+  project_id: string;
+  version: number;
+  pool_id: string;
+  grant_id: string;
+  grant_version: number;
+  mode: string;
+  pool_name?: string;
+  grant_state?: string;
+  allowed_actions: (string)[];
+  as_of: string;
+}
 export interface HealthCheck {
   path: string;
   expected_status: number;
@@ -547,6 +773,22 @@ export interface InvitationMetadata {
   accepted_by?: string;
   accepted_at?: string;
 }
+export interface LocalizationCatalog {
+  version: string;
+  template_format: string;
+  default_locale: string;
+  supported_locales: (string)[];
+  messages: (LocalizationMessage)[];
+}
+export interface LocalizationMessage {
+  key: string;
+  parameters: (LocalizationParameter)[];
+  texts: { [key: string]: string };
+}
+export interface LocalizationParameter {
+  name: string;
+  kind: string;
+}
 export interface Node {
   id: string;
   name: string;
@@ -562,8 +804,12 @@ export interface Node {
   idempotent: boolean;
   resources?: { [key: string]: number };
   config?: { [key: string]: unknown };
+  priority?: number;
 }
 export interface NodeAdmissionSnapshot {
+  execution_pool_id?: string;
+  pool_policy_version?: number;
+  pool_resources?: (ResourceSnapshot)[];
   run_id: string;
   node_id: string;
   run_version: number;
@@ -726,6 +972,60 @@ export interface PlanningResponse {
   metrics: PlanningMetrics;
   as_of: string;
 }
+export interface PoolCapabilityScope {
+  tenant_id: string;
+  project_id: string;
+  capabilities: (string)[];
+}
+export interface PoolClaimRequest {
+  pool_id: string;
+  runner_id: string;
+  worker_id: string;
+  slot_id: string;
+  operation_id: string;
+  scopes: (PoolCapabilityScope)[];
+}
+export interface PoolRunnerAssignmentRequest {
+  runner_id: string;
+  tenant_id: string;
+  project_id: string;
+  assignment: Assignment;
+}
+export interface PoolRunnerClaimResponse {
+  assignment: Assignment | null;
+}
+export interface PoolRunnerProgressRequest {
+  runner_id: string;
+  tenant_id: string;
+  project_id: string;
+  assignment: Assignment;
+  operation_id: string;
+  message: string;
+  tool_event?: ToolEvent | null;
+}
+export interface PoolRunnerResultRequest {
+  runner_id: string;
+  tenant_id: string;
+  project_id: string;
+  assignment: Assignment;
+  result: Result;
+}
+export interface PoolScope {
+  pool_id: string;
+  tenant_id: string;
+  project_id: string;
+  grant_id: string;
+  grant_version: number;
+  project_weight: number;
+  status: string;
+}
+export interface PoolToolInventoryRequest {
+  runner_id: string;
+  tenant_id: string;
+  project_id: string;
+  operation_id: string;
+  items: (ToolObservation)[];
+}
 export interface Principal {
   id: string;
   name: string;
@@ -741,6 +1041,14 @@ export interface ProjectAccessWriteRequest {
   expected_version: number;
   idempotency_key: string;
 }
+export interface ProjectExecutionRoute {
+  tenant_id: string;
+  project_id: string;
+  version: number;
+  pool_id: string;
+  grant_id: string;
+  grant_version: number;
+}
 export interface ProjectGrant {
   project_id: string;
   user_id: string;
@@ -749,6 +1057,19 @@ export interface ProjectGrant {
   role: string;
   version: number;
   status: string;
+}
+export interface ProjectPoolRunner {
+  id: string;
+  worker_id: string;
+  pool_id: string;
+  name: string;
+  status: string;
+  credential_expires_at: string;
+  last_seen_at?: string;
+}
+export interface ProjectPoolRunnerPage {
+  items: (ProjectPoolRunner)[];
+  as_of: string;
 }
 export interface ProjectVersionedOperation {
   project_id: string;
@@ -1142,6 +1463,10 @@ export interface Run {
   nodes: (NodeRun)[];
   compensation_run_id?: string;
   compensation_state?: string;
+  execution_pool_id?: string;
+  execution_route_version?: number;
+  execution_pool_grant_id?: string;
+  execution_pool_grant_version?: number;
 }
 export interface RunnerClaimRequest {
   project_id: string;
@@ -1300,6 +1625,7 @@ export interface TaskDispatchPlan {
   expires_at: string;
   context: TaskContext;
   workflow: Workflow;
+  execution_route?: ProjectExecutionRoute | null;
   valid: boolean;
   reason: string;
 }

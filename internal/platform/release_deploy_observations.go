@@ -469,7 +469,7 @@ func (s *Service) resolveObservedRelease(ctx context.Context, p Principal, proje
 		if e := s.releaseBrowserTx(ctx, tx, p, project, token, true); e != nil {
 			return e
 		}
-		if e := s.releaseSchedulerLock(ctx, tx, p.TenantID, project); e != nil {
+		if e := dag.GuardExecutionScopeTx(ctx, tx, s.Dialect, p.TenantID, project, a.RunID); e != nil {
 			return e
 		}
 		var e error

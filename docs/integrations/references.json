@@ -4,7 +4,9 @@
     "url": "https://github.com/multica-ai/multica.git",
     "local_path": "D:/codes/github/multica",
     "local_head_preserved": "18fa9f728a9e25f2465df2789631edb2a75442ad",
-    "fetched_origin_main": "dbdbb299164347586e2650bb67684a490726a798",
+    "fetched_origin_main": "3de79cbeaf181283765f850327e9d82a3b2af6b0",
+    "previous_fetched_origin_main": "dbdbb299164347586e2650bb67684a490726a798",
+    "last_fetch_at": "2026-10-24T09:09:25.1098694Z",
     "method": "git fetch origin main; worktree unchanged",
     "use": "architecture and interaction reference; no source copied"
   },

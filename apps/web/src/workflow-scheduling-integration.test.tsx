@@ -42,6 +42,10 @@ let root: Root | undefined,
   admissionReads: number,
   runReads: number,
   includeAttempts: boolean,
+  pooledRoute: boolean,
+  validatedDefinition:
+    | { nodes: { id: string; priority?: number }[] }
+    | undefined,
   streams: Set<ReadableStreamDefaultController<Uint8Array>>,
   errors: string[];
 const definition = {
@@ -49,7 +53,13 @@ const definition = {
   name: "持久调度刷新",
   version: 1,
   nodes: [
-    { id: "api", name: "API 执行", type: "command", command: ["api-command"] },
+    {
+      id: "api",
+      name: "API 执行",
+      type: "command",
+      command: ["api-command"],
+      priority: 3,
+    },
     { id: "ui", name: "UI 执行", type: "command", command: ["ui-command"] },
   ],
   edges: [],
@@ -73,6 +83,14 @@ const node = (id: string) => ({
 });
 const run = () => ({
   id: "run",
+  ...(pooledRoute
+    ? {
+        execution_pool_id: "a".repeat(32),
+        execution_route_version: 2,
+        execution_pool_grant_id: "e".repeat(32),
+        execution_pool_grant_version: 4,
+      }
+    : {}),
   workflow_id: "workflow",
   workflow_name: "持久调度刷新",
   workflow_version: 1,
@@ -103,6 +121,8 @@ beforeEach(() => {
   admissionReads = 0;
   runReads = 0;
   includeAttempts = false;
+  pooledRoute = false;
+  validatedDefinition = undefined;
   layout.current = undefined;
   history.replaceState(null, "", "/");
   localStorage.clear();
@@ -119,6 +139,10 @@ beforeEach(() => {
     vi.fn(async (input: unknown, options?: RequestInit) => {
       const url = new URL(String(input), "http://local"),
         path = url.pathname.replace("/api/v1", "");
+      if (path === "/workflows/validate") {
+        validatedDefinition = JSON.parse(String(options?.body));
+        return response({ valid: true, errors: [] });
+      }
       if (path === "/auth/session")
         return response({
           user: {
@@ -245,6 +269,72 @@ function graphSelection(ids: string[]) {
   });
 }
 describe("real WorkflowView graph selection and actual App routes", () => {
+  it("shows the exact saved run route and grant without claiming access to the owning pool", async () => {
+    pooledRoute = true;
+    await render();
+    await advance(250);
+    const facts = container.querySelector(
+      '[aria-label="本次运行固定执行路由"]',
+    );
+    expect(facts).not.toBeNull();
+    expect(facts?.textContent).toContain("a".repeat(32));
+    expect(facts?.textContent).toContain("路由v2");
+    expect(facts?.textContent).toContain("授权v4");
+    expect(facts?.querySelector("a")).toBeNull();
+  });
+  it("edits a real workflow node priority within the frozen0..9 contract and sends it to server validation", async () => {
+    await act(async () => {
+      root = createRoot(container);
+      root.render(
+        <WorkflowView
+          project="project"
+          refresh={0}
+          onNode={() => {}}
+          onRun={() => {}}
+          onRefresh={() => {}}
+        />,
+      );
+    });
+    await advance(250);
+    const workflow = container.querySelector<HTMLSelectElement>(
+      '[aria-label="工作流版本"]',
+    )!;
+    await act(async () => {
+      workflow.value = "workflow@1";
+      workflow.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await advance(250);
+    const nodeChoice = [...container.querySelectorAll("label.field")]
+      .find((label) => label.firstElementChild?.textContent === "选择节点")
+      ?.querySelector("select")!;
+    await act(async () => {
+      nodeChoice.value = "api";
+      nodeChoice.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    const priority = container.querySelector<HTMLInputElement>(
+      '[name="node_priority"]',
+    );
+    expect(priority).not.toBeNull();
+    expect(priority!.value).toBe("3");
+    expect(priority!.min).toBe("0");
+    expect(priority!.max).toBe("9");
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        "value",
+      )!.set!.call(priority, "8");
+      priority!.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    const validate = [...container.querySelectorAll("button")].find(
+      (button) => button.textContent === "校验",
+    )!;
+    await act(async () => validate.click());
+    await advance(1);
+    expect(
+      validatedDefinition?.nodes.find((node) => node.id === "api")?.priority,
+    ).toBe(8);
+    expect(container.textContent).toContain("仅影响同一运行内");
+  });
   it("connects the official single-node keyboard selection callback and deduplicates the mouse notification", async () => {
     const onNode = vi.fn();
     await act(async () => {

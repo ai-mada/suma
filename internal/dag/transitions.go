@@ -35,6 +35,13 @@ func (t *transaction) transition(r *runState, n *nodeState, state, reason string
 	before := n.State
 	n.State = state
 	n.Reason = reason
+	// This index contains current ready work only. Retaining historical ranks
+	// would make ordered claims walk completed attempts before finding work.
+	if before == "ready" && state != "ready" {
+		if err := t.exec(`DELETE FROM dag_ready_admission_order WHERE run_id=? AND node_id=?`, r.ID, n.ID); err != nil {
+			return err
+		}
+	}
 	if r.indexed && terminal(before) && (state == "pending" || state == "waiting") {
 		if err := t.resetDependencies(r, n); err != nil {
 			return err
@@ -200,6 +207,12 @@ func (t *transaction) ready(r *runState, n *nodeState) error {
 		required = "external_workflow:" + plugin
 	}
 	if err = t.exec(`INSERT INTO dag_ready_v2(run_id,node_id,tenant_id,project_id,generation,sequence,ready_at,node_type,command_id,required_capability)VALUES(?,?,?,?,?,?,?,?,?,?)`, r.ID, n.ID, r.TenantID, r.ProjectID, generation, seq, n.ReadyAt, n.Type, command, required); err != nil {
+		return err
+	}
+	if err = t.exec(`DELETE FROM dag_ready_admission_order WHERE run_id=? AND node_id=?`, r.ID, n.ID); err != nil {
+		return err
+	}
+	if err = t.exec(`INSERT INTO dag_ready_admission_order(run_id,node_id,rank_at,ready_sequence,priority)VALUES(?,?,?,?,?)`, r.ID, n.ID, t.now-int64(n.spec.Priority)*60, seq, n.spec.Priority); err != nil {
 		return err
 	}
 	return t.refreshRunTurn(r)

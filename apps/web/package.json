@@ -7,17 +7,20 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:i18n": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "4.7.0",
     "@radix-ui/react-dialog": "1.1.6",
     "@xyflow/react": "12.4.4",
     "elkjs": "0.10.0",
+    "i18next": "26.4.2",
     "lucide-react": "0.468.0",
     "monaco-editor": "0.52.2",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "react-i18next": "17.0.15"
   },
   "devDependencies": {
     "@types/react": "19.0.3",

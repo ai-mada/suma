@@ -119,7 +119,7 @@ func (t *transaction) initializeGraph(r *runState, legacy bool) error {
 }
 
 func (t *transaction) loadHot(tenant, project, id string) (*runState, error) {
-	if err := t.guardProject(tenant, project); err != nil {
+	if err := t.guardExecution(tenant, project, id); err != nil {
 		return nil, err
 	}
 	if err := t.guardFamily(tenant, project, id); err != nil {
@@ -131,6 +131,9 @@ func (t *transaction) loadHot(tenant, project, id string) (*runState, error) {
 		return nil, ErrNotFound
 	}
 	if err != nil {
+		return nil, err
+	}
+	if err = t.e.loadExecutionRoute(t.ctx, t.tx, r); err != nil {
 		return nil, err
 	}
 	err = t.row(`SELECT c.total,c.terminal_count,c.failed_count,c.cancelled_count,g.kernel_generation FROM dag_run_counters c JOIN dag_run_generations g ON g.run_id=c.run_id WHERE c.run_id=?`, id).Scan(&r.totalNodes, &r.terminalNodes, &r.failedNodes, &r.cancelledNodes, &r.kernelGeneration)
@@ -208,7 +211,7 @@ func (t *transaction) insertGraphNode(r *runState, n *nodeState) error {
 }
 
 func (t *transaction) loadFull(tenant, project, id string) (*runState, error) {
-	if err := t.guardProject(tenant, project); err != nil {
+	if err := t.guardExecution(tenant, project, id); err != nil {
 		return nil, err
 	}
 	if err := t.guardFamily(tenant, project, id); err != nil {

@@ -49,6 +49,44 @@ const snapshot = {
   reservations: [],
 };
 describe("scheduling facts remain separate from attempts and planning", () => {
+  it("distinguishes a shared pool blocker and its requested-resource aggregate from project capacity", () => {
+    const html = renderToStaticMarkup(
+      createElement(AdmissionFacts, {
+        snapshot: {
+          ...snapshot,
+          execution_pool_id: "a".repeat(32),
+          pool_policy_version: 4,
+          pool_resources: [
+            {
+              name: "execution_slots",
+              unit: "slots",
+              capacity: 2,
+              used: 2,
+              consumed: 3,
+              mode: "concurrent",
+              release_class: "process",
+            },
+          ],
+          blockers: [
+            {
+              code: "pool_resource_capacity",
+              source: "pool",
+              resource: "execution_slots",
+              message: "原始池容量诊断",
+              required: 1,
+              capacity: 2,
+              used: 2,
+              available: 0,
+            },
+          ],
+        },
+      }),
+    );
+    expect(html).toContain("共享池执行槽位不足");
+    expect(html).toContain("本节点请求范围内的共享池资源");
+    expect(html).toContain("原始池容量诊断");
+    expect(html).toContain("共享池策略v4");
+  });
   const attemptBase = {
     run_id: "r",
     node_id: "n",

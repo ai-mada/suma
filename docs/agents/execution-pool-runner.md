@@ -1,0 +1,91 @@
+# 独立资源池 Runner 与多项目执行
+
+状态：T-P4-006 实现与本机专项验证；最终集成、交付与实际平台旅程以阶段验收为准。负责人：Runtime／主集成。合同：[共享资源池](../../contracts/execution-pools.md)、[Core 接口](../../contracts/execution-pool-core.md)。实现：`internal/runner/pool_*.go`、`internal/platform/pool_runner_*.go`、`cmd/suma-runner/pool.go`。
+
+## 身份与范围
+
+资源池节点使用独立 `SUMA_POOL_RUNNER_TOKEN`，只绑定登记的 pool／runner。服务端生成 `pool-<runner_id>` 作为 worker 标识；每个项目仍需请求与池拥有方批准的双边 grant。旧 `SUMA_RUNNER_TOKEN`、项目 Agent／API token 和浏览器 cookie 都不能代替资源池机器凭证。
+
+机器 session 返回登记槽位上限和已批准范围，只是配置提示。每次领取仍在当前组织、凭证和 grant 校验后由控制面选择项目，并原子提交份额、资源、attempt 与回执。客户端不轮询修改一个全局 ProjectID，也不提交权重或权限来扩大范围。
+
+派发固定 tenant／project、pool／runner／slot、grant 及版本、credential 及版本、dispatch、run／node、attempt／fence。心跳、进展、结果与停止事实均带同一范围；外层范围、回执核心身份和数据库中的原派发必须一致。进程启动前再对原派发发送一次心跳，授权或取消状态变化时不创建子进程，不把“未启动”伪称实际停止成功。
+
+## 本地配置与运行
+
+配置是本地私有 JSON，不能加入 Git。以下仅演示结构；ID、命令可执行文件和目录需要替换为实际登记与安装内容。
+
+```json
+{
+  "schema_version": 1,
+  "pool_id": "registered-pool-id",
+  "runner_id": "registered-runner-id",
+  "slots": 2,
+  "poll_interval_ms": 2000,
+  "heartbeat_interval_ms": 5000,
+  "scopes": [
+    {
+      "tenant_id": "approved-tenant-a",
+      "project_id": "approved-project-a",
+      "workspace": "./workspace-a",
+      "commands": {
+        "inspect": { "executable": "python", "args": ["--version"], "read_only": true }
+      }
+    },
+    {
+      "tenant_id": "approved-tenant-b",
+      "project_id": "approved-project-b",
+      "workspace": "./workspace-b",
+      "commands": {
+        "inspect": { "executable": "python", "args": ["--version"], "read_only": true }
+      }
+    }
+  ]
+}
+```
+
+```text
+suma-runner --control https://control.example --pool-config local.pool.json --state .cache/runner --allow-exec
+suma-runner --pool-config local.pool.json --describe-tools --allow-exec
+```
+
+运行模式需要独立机器环境凭证；第二条仅作本机工具探测，不需要凭证、不领取任务或调用模型。探测输出 `scopes[].tenant_id/project_id/items`，与执行使用相同配置，不输出目录、环境值或命令参数。它描述程序与协议观察，不代表模型认证、测试或生产验收。
+
+配置支持 1–128 个真实本地槽位，不能超过服务端当前登记上限；最多 256 个本地范围。poll 可设 100–60000 毫秒，heartbeat 可设 100–10000 毫秒，缺失或零使用 2000／5000 毫秒默认值。库存按 30 秒刷新；单次网络失败关闭新领取资格，不凭库存失败取消已在执行的任务。
+
+每个 scope 固定 workspace、repository、base_commit、worktrees 和 commands；目录解析为真实绝对路径后参与恢复摘要。不同项目不能共用进程工作目录。写命令沿用已有的固定 Git 基准与独立 worktree 协议，并把完整资源池范围加入 attempt 目录摘要。
+
+原生 Suma 命令自动固定 `SUMA_PROJECT_ID` 为该 scope；明确不同的值或从可变父环境导入项目号会被拒绝。机器凭证不会自动继承到子进程，也不能在 pool 命令的 Env／EnvFrom 中转发；原生 Agent 如需业务只读工具，必须另有该项目的 Agent 凭证，不能把 pool token 改名当作 Agent token。
+
+`read_only` 是管理员登记的执行约定，现阶段不是操作系统强制沙箱。获准接入资源池的节点运营者仍是受信任执行方；不把裸机进程称为不可信代码或多租户操作系统隔离方案。
+
+## 持久化与并发
+
+状态位于指定目录的 `pool/` 子目录，进程持独占状态锁。顶层 identity 保存控制地址摘要、pool／runner、凭证代际和解析后本地配置摘要，不保存 token。身份、凭证代际或执行配置变化需要明确的新状态目录，不能猜测如何处理旧目录中的未完成操作。
+
+每个槽位有独立 journal 和 pool-claim checkpoint；每个 scope 有独立工具库存操作记录。槽位可以并行运行真实子进程，各自保存原派发，不共享一个可变当前项目。journal key 与工作目录 key 包含完整 pool／scope／dispatch 身份。
+
+| 中断边界 | 恢复方式 |
+|---|---|
+| 请求已落盘、ACK 丢失 | 相同 slot／operation／逐项目能力集合重新请求，不新建 attempt |
+| 响应已保存、inbox 未保存 | 刷新原操作当前派发状态，不按本地缓存直接启动 |
+| inbox 已保存、开始前或执行中重启 | 保存 unknown，先核对原执行；不盲重启进程 |
+| 结果已保存、ACK 丢失 | 恢复 inbox 中的固定范围后重放原结果；不能从结果的公共序列化字段猜 scope |
+| closed／reconciling 响应 | 记录观察并结束该次领取，不执行 |
+
+未完成领取遇到 grant 撤回或范围变化仍保留原 operation 和请求，不换范围掩盖可能已发生的派发；该槽位等待核对，其它槽位可以继续。机器撤销／过期被当前心跳或回写拒绝时，执行停止并保留原 outbox；不自动用新凭证接管旧派发。取消依赖真实进程停止后的 `stopped`／`outcome_unknown` 结果，不用删除登记伪造停止事实。
+
+## 机器接口与工具资格
+
+独立 `/api/v1/pool-runner/*` 在人类会话认证之前路由，仅接受 Bearer 机器凭证。session 为 GET；claim、tool-inventory、heartbeat、progress、results 为 POST，严格拒绝重复／未知字段、额外 JSON 内容和超过 2 MiB 的请求。
+
+工具库存按实际 tenant／project／worker 保存，稳定 operation 先授权再重放。固定 profile 仍要求人类启用人的当前审批权限、可用清单、60 秒观察有效期和精确配置／程序／协议摘要；pool 登记不会代替这些事实。池暂停会明确显示“资源池已暂停，停止新派发”，不会伪称工具未安装或凭证撤销。
+
+本阶段支持普通 command、test 和已按项目授权的 agent；托管运行仅放行明确的 TaskDispatch 开发范围。生产部署、外部工作流以及制品导入／发布需要独立 pool 能力协议，目前明确拒绝，不借用旧项目 Runner 的发布资格。进展和最终工具证据只写入原派发项目；失败经既有持久投影回流同项目问题池，重复回执不创建重复问题。
+
+诊断只输出代码、槽位及必要范围标识，不记录 token、prompt、命令秘密、私有环境或请求体。控制服务、当前授权和 CLI 错误分别可定位，不把网络失联猜测成未执行。
+
+## 验证边界
+
+专项验证分别覆盖：真实本机 HTTP 范围回写与 journal 冲突 RED→GREEN；结果重启丢 scope RED→GREEN；两个实际子进程互等启动以证明双槽并行及独立 cwd；实际心跳取消后停止 OS 子进程；真实 SQLite／平台 HTTP 的双组织授权、派发与稳定回执、伪造范围拒绝、TTL 和审批撤销、原项目失败去重；实际构建 CLI 的无凭证逐范围探测与模式混用拒绝。
+
+协议用例中的进程和回执夹具分别标识，不把人工构造的成功回执写成模型或业务测试验收。本阶段没有厂商付费模型、OceanBase／PostgreSQL 实例、生产多机规模、安装升级或不可信进程沙箱验收。原始过程材料仅保留在忽略的 `.cache/e2e/pool-stage/`，Git 只提交实现、必要测试和精简文档。

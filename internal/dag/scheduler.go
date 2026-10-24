@@ -21,7 +21,7 @@ func mapItems(n Node) ([]any, error) {
 	return items, nil
 }
 func mapTemplate(n Node) (Node, error) {
-	template := Node{Type: "task", Command: n.Command, Idempotent: n.Idempotent, Resources: n.Resources, TimeoutSeconds: n.TimeoutSeconds, MaxRetries: n.MaxRetries, Join: "all_success"}
+	template := Node{Type: "task", Command: n.Command, Idempotent: n.Idempotent, Resources: n.Resources, TimeoutSeconds: n.TimeoutSeconds, MaxRetries: n.MaxRetries, Join: "all_success", Priority: n.Priority}
 	if raw, ok := n.Config["template"]; ok {
 		if err := decode(raw, &template); err != nil {
 			return template, fmt.Errorf("%w: invalid map template", ErrInvalid)
@@ -256,7 +256,7 @@ func (e *Engine) ClaimWithOperation(ctx context.Context, tenant, project, worker
 	return out, err
 }
 func (t *transaction) assigned(tenant, project string, a Assignment) (*runState, *nodeState, error) {
-	if err := t.guardProject(tenant, project); err != nil {
+	if err := t.guardExecution(tenant, project, a.RunID); err != nil {
 		return nil, nil, err
 	}
 	r, err := t.loadHot(tenant, project, a.RunID)
