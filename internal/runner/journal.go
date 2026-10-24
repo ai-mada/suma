@@ -304,6 +304,16 @@ func cloneToolEvent(v *tc.Event) *tc.Event {
 	}
 	copy := *v
 	copy.Usage = cloneUsage(v.Usage)
+	if v.Diagnostic != nil {
+		diagnostic := *v.Diagnostic
+		if v.Diagnostic.MessageParams != nil {
+			diagnostic.MessageParams = make(map[string]any, len(v.Diagnostic.MessageParams))
+			for key, value := range v.Diagnostic.MessageParams {
+				diagnostic.MessageParams[key] = value
+			}
+		}
+		copy.Diagnostic = &diagnostic
+	}
 	return &copy
 }
 func (j *Journal) PendingProgress() []Progress {

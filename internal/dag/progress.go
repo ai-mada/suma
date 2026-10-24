@@ -3,6 +3,7 @@ package dag
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/ai-mada/suma/internal/toolcontract"
 	"regexp"
@@ -12,6 +13,17 @@ import (
 
 var progressANSI = regexp.MustCompile(`\x1b\[[0-?]*[ -/]*[@-~]`)
 var progressCredential = regexp.MustCompile(`(?i)(authorization\s*[:=]\s*bearer\s+|api[_-]?key\s*[:=]\s*|token\s*[:=]\s*)[^\s]+`)
+
+func sanitizeProgressText(message string) string {
+	message = progressANSI.ReplaceAllString(message, "")
+	message = progressCredential.ReplaceAllString(message, "[REDACTED]")
+	return strings.Map(func(r rune) rune {
+		if r < 32 && r != '\n' && r != '\r' && r != '\t' {
+			return -1
+		}
+		return r
+	}, message)
+}
 
 // Progress records actual execution output without changing the final output or
 // state. Its receipt and event commit under the same scheduler transaction.
@@ -35,6 +47,9 @@ func (e *Engine) ProgressWithAuthority(ctx context.Context, tenant, project stri
 	}
 	if toolEvent != nil {
 		if err := toolcontract.ValidateEvent(*toolEvent); err != nil {
+			if errors.Is(err, toolcontract.ErrInvalidDiagnostic) {
+				return dagDiagnostic(fmt.Errorf("%w: %v", ErrInvalid, err), "dag.tool.diagnostic", nil)
+			}
 			return fmt.Errorf("%w: %v", ErrInvalid, err)
 		}
 	}
@@ -47,14 +62,7 @@ func (e *Engine) ProgressWithAuthority(ctx context.Context, tenant, project stri
 		Message                 string
 		ToolEvent               *toolcontract.Event
 	}{a.RunID, a.NodeID, a.WorkerID, a.Attempt, a.Fence, message, toolEvent})
-	message = progressANSI.ReplaceAllString(message, "")
-	message = progressCredential.ReplaceAllString(message, "[REDACTED]")
-	message = strings.Map(func(r rune) rune {
-		if r < 32 && r != '\n' && r != '\r' && r != '\t' {
-			return -1
-		}
-		return r
-	}, message)
+	message = sanitizeProgressText(message)
 	return e.writeBefore(ctx, before, func(t *transaction) error {
 		scope := "progress:" + a.RunID
 		previous, err := t.operation(tenant, project, scope, operationID, hash)
@@ -73,7 +81,8 @@ func (e *Engine) ProgressWithAuthority(ctx context.Context, tenant, project stri
 				return err
 			}
 			clean := *toolEvent
-			clean.Message = progressCredential.ReplaceAllString(progressANSI.ReplaceAllString(clean.Message, ""), "[REDACTED]")
+			clean.Message = sanitizeProgressText(clean.Message)
+			clean.Diagnostic = toolcontract.SanitizeDiagnostic(clean.Message, clean.Diagnostic, sanitizeProgressText)
 			if err = t.event(r, a.NodeID, "tool_progress", map[string]any{"operation_id": operationID, "attempt": a.Attempt, "fence": a.Fence, "worker_id": a.WorkerID, "tool_event": clean}); err != nil {
 				return err
 			}

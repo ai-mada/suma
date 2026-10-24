@@ -5,6 +5,7 @@ import {
   parseToolManifest,
   toolBinding,
   toolFactsForAttempt,
+  toolEventRows,
   toolReturnPanel,
   toolReturnRun,
   taskPlanStarted,
@@ -282,6 +283,33 @@ describe("tool manifest and fixed task choices", () => {
         worker_id: "worker",
       }),
     ).toEqual([event]);
+  });
+  it("carries durable presentation provenance without adding fields to the persisted event or its JSON projection", () => {
+    const fact = Object.freeze({ schema_version: 1, command_id: "native", profile_sha256: "a".repeat(64), protocol: "suma-jsonl-v1", kind: "message", message: "Raw original evidence" });
+    const record = Object.freeze({ sequence: 17, run_id: "original-run", node_id: "code", type: "tool_progress",
+      data: Object.freeze({ attempt: 2, fence: 3, worker_id: "worker", tool_event: fact }) });
+    const before = JSON.stringify(record);
+    const projected = toolFactsForAttempt([record], { id: "code", attempt: 2, fence: 3, worker_id: "worker" });
+    expect(projected).toEqual([fact]); expect(projected[0]).not.toBe(fact);
+    expect(JSON.stringify(projected)).toBe(JSON.stringify([fact]));
+    expect(Object.keys(projected[0]).sort()).toEqual(Object.keys(fact).sort());
+    expect(JSON.stringify(record)).toBe(before);
+  });
+  it.each([
+    { sequence: undefined, run_id: "run" },
+    { sequence: 0, run_id: "run" },
+    { sequence: -1, run_id: "run" },
+    { sequence: 1.5, run_id: "run" },
+    { sequence: Number.MAX_SAFE_INTEGER + 1, run_id: "run" },
+    { sequence: "7", run_id: "run" },
+    { sequence: 7, run_id: undefined },
+    { sequence: 7, run_id: "" },
+  ])("uses raw-content fallback when parent provenance is unproven: $sequence / $run_id", ({ sequence, run_id }) => {
+    const fact = { schema_version: 1 as const, command_id: "native", profile_sha256: "a".repeat(64), protocol: "suma-jsonl-v1", kind: "message", message: "Raw original" };
+    const record = { sequence, run_id, type: "tool_progress", node_id: "code", data: { attempt: 2, fence: 3, worker_id: "worker", tool_event: fact } };
+    const projected = toolFactsForAttempt([record], { id: "code", attempt: 2, fence: 3, worker_id: "worker" });
+    expect(toolEventRows(projected)[0].key).toBe(toolEventRows([fact])[0].key);
+    expect(JSON.stringify(projected)).toBe(JSON.stringify([fact]));
   });
 });
 describe("tool write recovery", () => {

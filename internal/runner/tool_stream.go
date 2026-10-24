@@ -170,7 +170,15 @@ func (s *toolStream) id(value string) string {
 	return value
 }
 func (s *toolStream) event(kind, item, message, status string, usage *tc.Usage, state ...string) {
+	s.eventDisplay(kind, item, message, status, usage, nil, state...)
+}
+func (s *toolStream) eventDisplay(kind, item, message, status string, usage *tc.Usage, display map[string]any, state ...string) {
 	e := tc.Event{SchemaVersion: 1, CommandID: s.profile.CommandID, ProfileSHA256: s.profile.ProfileSHA256, Protocol: s.profile.Protocol, Kind: kind, SessionID: s.session, ItemID: s.id(item), Message: progressText(message, s.secrets), Status: status, Usage: usage}
+	if s.profile.Protocol == "suma-jsonl-v1" && kind == "error" {
+		// Only proven identity from native errors crosses the display boundary.
+		// Bind it after redaction so metadata cannot retain a hidden credential.
+		e.Diagnostic = tc.SanitizeDiagnostic(e.Message, tc.ProjectNativeDiagnostic(message, display), func(value string) string { return progressText(value, s.secrets) })
+	}
 	if len(state) > 0 {
 		e.UsageState = state[0]
 	} else if usage != nil {
@@ -302,10 +310,37 @@ func (s *toolStream) line(raw []byte) {
 	case "codex-jsonl-v1":
 		s.codex(m)
 	case "suma-jsonl-v1":
+		if !nativeDisplayUnicode(raw) {
+			// Preserve the existing selected raw facts and terminal behavior, but
+			// never certify a replacement created by JSON's Unicode recovery.
+			delete(m, "display")
+		}
 		s.suma(m)
 	default:
 		s.invalid("unsupported structured protocol")
 	}
+}
+
+func nativeDisplayUnicode(raw []byte) bool {
+	var fields map[string]json.RawMessage
+	if json.Unmarshal(raw, &fields) != nil {
+		return false
+	}
+	for _, key := range []string{"message", "code"} {
+		if value, present := fields[key]; present && !tc.ValidJSONUnicode(value) {
+			return false
+		}
+	}
+	var display map[string]json.RawMessage
+	if value, present := fields["display"]; !present || json.Unmarshal(value, &display) != nil {
+		return true
+	}
+	for _, key := range []string{"message_key", "message_params"} {
+		if value, present := display[key]; present && !tc.ValidJSONUnicode(value) {
+			return false
+		}
+	}
+	return true
 }
 func (s *toolStream) codex(m map[string]any) {
 	switch textAt(m, "type") {
@@ -475,7 +510,7 @@ func (s *toolStream) suma(m map[string]any) {
 		if ok && status == 429 && textAt(m, "source") == "model" && textAt(m, "code") == "upstream_rejected" && textAt(m, "failure_class") == "transient" && s.lastUsageState == tc.UsageUnreported && s.usageSteps > 0 && !s.requestPending {
 			s.failureClass = "transient"
 		}
-		s.event("error", "", textAt(m, "message"), textAt(m, "code"), nil)
+		s.eventDisplay("error", "", textAt(m, "message"), textAt(m, "code"), nil, objectAt(m, "display"))
 	case "waiting_input":
 		s.event("waiting_input", "", textAt(m, "message"), "", nil)
 	}

@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/releasecontract"
-	"github.com/ai-mada/suma/internal/toolcontract"
 	"io"
 	"log/slog"
 	"net/http"
@@ -373,7 +372,11 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	project := r.URL.Query().Get("project_id")
 	var m map[string]any
 	if r.Method == "POST" || r.Method == "PATCH" {
-		m, err = decode(r)
+		if path == "runner/progress" {
+			m, err = decodeRunnerProgressEnvelope(r)
+		} else {
+			m, err = decode(r)
+		}
 		if err != nil {
 			writeError(w, err)
 			return
@@ -699,18 +702,10 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, pro
 			writeError(w, invalid("执行进度身份无效"))
 			return
 		}
-		var event *toolcontract.Event
-		if m["tool_event"] != nil {
-			raw, ok := m["tool_event"].(map[string]any)
-			if !ok {
-				writeError(w, invalid("工具进度必须是受限事件对象"))
-				return
-			}
-			event = &toolcontract.Event{}
-			if err := strictAutomation(raw, event); err != nil {
-				writeError(w, err)
-				return
-			}
+		event, err := decodeRunnerProgressEvent(m["tool_event"])
+		if err != nil {
+			writeError(w, err)
+			return
 		}
 		e := s.Engine.ProgressWithAuthority(r.Context(), p.TenantID, project, assignment, str(m, "operation_id"), str(m, "message"), event, func(tx *sql.Tx) error {
 			if err := s.Service.projectRunnerExecutionAuthorityTx(r.Context(), tx, p, project, tokenOf(r), assignment.WorkerID, assignment.RunID); err != nil {

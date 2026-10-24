@@ -1,0 +1,333 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-011",
+  "base_commit": "7ff1b1453a4beaf8893855296b39683c907bf048",
+  "status": "locally_verified_stage_only",
+  "full_platform_complete": false,
+  "production_accepted": false,
+  "verified_at": "2026-10-24T15:50:48.793877+00:00",
+  "localization": {
+    "frontend_keys_per_locale": 2804,
+    "backend_keys_including_native": 778,
+    "native_keys": 46,
+    "native_catalog_authority": "internal/localization/catalog_native.go",
+    "native_metadata_forwarded_by_runner": true,
+    "platform_diagnostic_schema_version": 1,
+    "raw_message_and_execution_facts_preserved": true,
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "all_surfaces_complete": false
+  },
+  "verification": {
+    "go": {
+      "pass_events": 1131,
+      "failed_events": 0,
+      "test_skips": 0,
+      "vet_exit": 0,
+      "input_count": 342,
+      "unchanged": true
+    },
+    "web": {
+      "passed": 544,
+      "failed": 0,
+      "pending": 0,
+      "test_files": 46,
+      "input_count": 206,
+      "unchanged": true,
+      "typecheck_exit": 0,
+      "build_exit": 0
+    },
+    "non_web": {
+      "agent": 37,
+      "desktop": 7,
+      "knowledge": 3,
+      "total": 47,
+      "exit": 0
+    },
+    "contracts": {
+      "generated_models": 215,
+      "total_schemas_including_error": 216,
+      "api_paths": 152,
+      "schema_references": 1235,
+      "check_exit": 0
+    },
+    "independent_review": {
+      "fixed_P2_findings": 5,
+      "pipeline_findings": 4,
+      "ui_row_identity_findings": 1,
+      "all_rereviewed": "ADDRESSED"
+    },
+    "dependencies_changed": false,
+    "superseded_cuts": [
+      "Go1082/Web521 and old24 runtime artifacts were pre-review, retained separately",
+      "long TEMP runner Git128 reproduced as GIT_DIR too big; shortened process-local TEMP same-source tests passed",
+      "test-only Element type failure corrected to HTMLDetailsElement, no assertion weakening",
+      "capture physical CRLF and logical LF hashes separately receipted without replacing originals"
+    ]
+  },
+  "runtime": {
+    "cut": "20261024T142006974Z-9eb10cda",
+    "production_source_inputs": 194,
+    "source_sha256": "65d8438345ab04d328eccb7a684bd119487001b869da77ce232f5742cf4d774e",
+    "artifacts": 24,
+    "targets": 6,
+    "programs": 4,
+    "linked_modules": 36,
+    "windows_control_sha256": "bed651b07f5eab6b9117af8ba85c1dcd9d4263c8e1ec1be0c8feb55d0577c616",
+    "windows_runner_sha256": "a21f59c1a1e161daa710139e13761fa2471fbe208c15a9f316bd84f423b89ee9",
+    "actual_control_activated": true,
+    "actual_isolated_runner_started": true,
+    "original_project_runner_restarted": false,
+    "limit": "Cross compilation and local fixture execution only; no signing or other OS installation acceptance"
+  },
+  "browser": {
+    "execution_viewports": [
+      {
+        "width": 1366,
+        "height": 900,
+        "locale": "zh-CN"
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "locale": "en-US"
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "locale": "zh-CN",
+        "refreshed_attempt": 1
+      }
+    ],
+    "editor_viewport": {
+      "width": 1366,
+      "height": 900,
+      "locale": "en-US"
+    },
+    "same_run_node_attempt_after_refresh": true,
+    "same_raw_run_events_after_language_refresh_and_feedback": true,
+    "source_disclosure_preserved": true,
+    "console_warnings_errors": 0,
+    "theme": "light only",
+    "entry_assets": [
+      {
+        "url": "/assets/index-C4eMAnzp.js",
+        "sha256": "1b1e4cb976ed13bee5b78805531cb105821613a6fb219f297e88085eacba75dc"
+      },
+      {
+        "url": "/assets/index-DUAGU50N.css",
+        "sha256": "b13cc5714628648f00aff39083b3625a41deca5b01d28a48945e80e31d2322ed"
+      }
+    ],
+    "entry_readback": "/assets/index-C4eMAnzp.js",
+    "limit": "Partial execution/editor and feedback journey only; requirements table has its own horizontal scrolling; no complete responsive/theme/keyboard/WCAG/graph capacity acceptance"
+  },
+  "actual_fixture": {
+    "model": "local loopback HTTP429 fixture, no vendor or paid model",
+    "requests": 1,
+    "rejections": 1,
+    "invalid_requests": 0,
+    "runs": 1,
+    "failed_nodes": 1,
+    "attempts": 1,
+    "fence": 1,
+    "run_events": 10,
+    "tool_events": 5,
+    "process_exit": 1,
+    "retry_count": 0,
+    "usage": "unreported",
+    "diagnostic_key": "native.endpoint.rejected",
+    "diagnostic_params": {
+      "status": 429
+    },
+    "raw_message": "Endpoint rejected request (HTTP 429)",
+    "run_semantic_sha256": "17adfeaa7d3111d1bd75e72fbf8485cc0098157bf14d9eaa7873c80192df454f",
+    "events_semantic_sha256": "0a3b24606f5c50e90f6d121be66b9fbc4c4d25d9dbc67f0d13ec5537d6500eea",
+    "issues": 1,
+    "requirements": 1,
+    "requirement_status": "draft",
+    "task_status": "todo",
+    "task_accepted": false,
+    "ui_intake_actions": 2,
+    "refresh_between_intake_actions": true,
+    "intake_action_count_source": "actual Root browser actions; DB confirms final unique records only",
+    "profile_final_state": "paused",
+    "profile_final_version": 3,
+    "journal_result_ACK": 1,
+    "journal_progress_ACK": 5,
+    "active_model_requests_before_stop": 0,
+    "own_idle_services_stopped": 3,
+    "stop_method": "Force stop after full ACK and identity checks; not graceful or cancellation acceptance",
+    "closed_snapshot_tables": 129,
+    "closed_snapshot_rows": 611,
+    "closed_snapshot_integrity": [
+      "ok"
+    ],
+    "closed_snapshot_sha256": "3df706f12cfee9db071f702740293551c97faed52781b848c283c07ddbbdbdaf",
+    "active_reservations_pool_slots_ready_admissions": 0,
+    "candidate_tests_or_human_acceptance": false
+  },
+  "data_preservation": {
+    "stage": "T-P4-011",
+    "before_tables": 129,
+    "after_tables": 129,
+    "before_rows": 7690,
+    "after_rows": 7690,
+    "changed_tables": [],
+    "integrity": [
+      "ok"
+    ]
+  },
+  "evidence": [
+    {
+      "path": ".cache/e2e/localization-stage-011/go-verification.json",
+      "sha256": "06b6c881f3dd4330ea7774efd5bdab21f16ea6f6c2a9db53c51accfaa2c518d6"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/go-tests.jsonl",
+      "sha256": "0332f6304aab91dde5dcc19ff454c9abf8b417b30b8f5b4e528436d417db5709"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/go-vet.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/web-verification.json",
+      "sha256": "fab9ef84706c09ceb73bd9ecc8edd0622e4152c8fac14ab7930b7858e70d2369"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/web-tests.json",
+      "sha256": "543c4657617f53475856bfb58857515d4aeda2de9ab230954ef849579e866019"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/non-web-tests.log",
+      "sha256": "e2a07979f194a4335ff667c3c9334d63ec36cb57bcd193519bfd9bd17ee23fc1"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/workspace-typecheck.log",
+      "sha256": "3ef84be4b5c41dfd92aeacd4f27b284a50f1cfc06cd14e3ce632c1acf1d89865"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/web-build-verification.json",
+      "sha256": "2261c3751f1a78fdfe37eb62789145cced715e5a6f1cea92e124a74400f7697d"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/contracts-check.log",
+      "sha256": "ac69a6f7407ff08361925635129dd135bcd6cff58ca52d63fd86de41f9bd9840"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/catalog-final.log",
+      "sha256": "336449c11502274916c8ccf13b7c7d069ca88b872412d94e44ba0ad63f9a7e17"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/review/native-pipeline-rereview.md",
+      "sha256": "002d3691574c315674608ce80397efc9fdcbb478c86a83d21331e2e4925503d2"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/review/ui-native-editor-rereview.md",
+      "sha256": "f5fdd9a816da14fb633dbf689f2c2d5baf50af408da080aea796c7fd3237bb54"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/review/delivery-runtime-audit.json",
+      "sha256": "e4fb38b440f6442302729f2112bfcfa11c2c3024c0b49e3ce7981f15d355517e"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/review/delivery-actual-inputs.json",
+      "sha256": "5631a43d80a3d7190157863c752319851cfab20a297fc537d5958c3500d1a7c3"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/actual/capture-summary.json",
+      "sha256": "3b6845fbcf207a1fbf0955e366852ae990f060a9b2ee0a9c0763e19ba1fa1d13"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/actual/capture-physical-receipt.json",
+      "sha256": "f5c063065f754b092dab2d92695ff0b18ea865d361db7a629e1dd36ef171be8b"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/actual/after-intake-summary.json",
+      "sha256": "c4c5bfc15b4c64743ba0709d950f1fd3c32ef93154e17e00a55affe3c284126a"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/actual/feedback-summary.json",
+      "sha256": "d3a7d11a0187c6b5368aae4e251df0da88fe09fc91f6f2626c1284feb64c2775"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/actual/model-counts.json",
+      "sha256": "2ce4e7871ad06eed2e5d6a31220c10f6230368a0d149ef4735e1805164d8cde1"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/actual/stop-receipt.local.json",
+      "sha256": "0a17a23a88243753a1e0ba606260af7b67e056224b947f6175a3a119e4c2cdc0"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/actual/closed-database-hashes.json",
+      "sha256": "c771b5b668506424f2d42ed75a40419803800d9e9e61270a896bad087d9f7639"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/database-comparison.json",
+      "sha256": "fce9966afa0f4691b24b05b84d318bd5168f0af2a04ea38aa2f3544715daf7d4"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/preview-readback.json",
+      "sha256": "e0cb0ff96a81316b728b7876bd0a7f968daf48bbdc2357240eada376e36eb2d3"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/control-process-readback.local.json",
+      "sha256": "6e5b41f480391aac08132648bfddf6629e0bd4ba7a380b2d15e424340b966afd"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/editor-ui-facts.json",
+      "sha256": "962be00749a065e12e183de9e3c00420330939c398abb4d5d7d98fa86ef81ae2"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/native-ui-facts.local.json",
+      "sha256": "53d8e7df097f5afdd1575684ca74caece393fe48ea77665b5ae048c980861a3d"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/feedback-ui-facts.local.json",
+      "sha256": "1b33991195f111bc300da09b415c160b5b870b119b996c6652a4a379aecf0aab"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/browser-console-final.local.json",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/preview-ui-readback.local.json",
+      "sha256": "67241081c23fe54cb1ab823e30e85c6abcb3beed214e95a241f9ceb15fb6b700"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/preview-console-final.local.json",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/screenshots/native-error-zh-1366.jpg",
+      "sha256": "21e75207bd5bbba09c9142f9d849424c40ddf8b870aed899de43af4628e44b53"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/screenshots/native-error-en-390.jpg",
+      "sha256": "782bef44db124ca769d96663b9a397c02beced6dc905ce1114a4bfe567251814"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/screenshots/command-editor-en-1366.jpg",
+      "sha256": "647c01c00e1e18ed74431206777a7a249a2f6a69b9f334670f4e7a047a9bac5f"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/screenshots/feedback-requirement-zh-390.jpg",
+      "sha256": "5faa163a864d6755c01c78a7201d531d72d0d9c813d0c4c385550a2205ef0d4c"
+    },
+    {
+      "path": ".cache/e2e/localization-stage-011/screenshots/profile-paused-zh-390.jpg",
+      "sha256": "cf437fb028568b5a79c092ba9ebb8d8cd80c528c1da966618e0ac22d650c2ca7"
+    }
+  ],
+  "remaining": [
+    "Full P0-P7 remains active, including all-surface internationalization",
+    "Historical attempt-specific tool fact filtering, other runtime/config reasons, unclassified controlled error producers and library NLS",
+    "Official vendor SDK/model authenticated execution and safe receipt retention/backoff/rate limits",
+    "Real OceanBase/PostgreSQL distributed faults and scale, SSO/custom RBAC",
+    "Plugins/skills/MCP/A2A, model gateway, collaboration/offline/media/office/channels",
+    "Production deployment/payment/signing/install and complete five-journey acceptance"
+  ]
+}

@@ -7881,6 +7881,1072 @@
         ],
         "type": "object"
       },
+      "ToolDiagnostic": {
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.catalog.not_found"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.catalog.probe_exited"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "status": {
+                      "description": "Valid UTF-8 without control characters.",
+                      "maxLength": 512,
+                      "minLength": 1,
+                      "type": "string",
+                      "x-max-utf8-bytes": 512
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "message_params"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.catalog.probe_failed"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.catalog.probe_output_limit"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.catalog.probe_timeout"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.catalog.requirements_mismatch"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.catalog.shell_wrapper"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.cli.busy"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.cli.invalid_arguments"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.cli.invalid_json"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.cli.invalid_language"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.cli.request_limit"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.config.invalid_locale"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.config.missing_control_auth"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.config.missing_model"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.config.missing_provider"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.endpoint.rejected"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "status": {
+                      "description": "Exact nonnegative safe integer lexeme; fractional/exponent encodings rejected server-side.",
+                      "maximum": 9007199254740991,
+                      "minimum": 0,
+                      "type": "integer",
+                      "x-integer-lexeme": true
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "message_params"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.endpoint.unsafe"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.limit.output_allowance"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.limit.output_truncated"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.limit.steps"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.limit.tool_calls"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.request.invalid_goal"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.request.invalid_limits"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.response.empty"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.response.invalid_json"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.response.no_choices"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.response.no_text"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.response.object_required"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.response.too_large"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.run.aborted"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.run.failed"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.tools.alias_collision"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.tools.catalog_missing"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.tools.duplicate_names"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.tools.invalid_arguments"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.tools.invalid_name"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.tools.malformed_call"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.tools.output_too_large"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.tools.too_many"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.tools.unknown_tool"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.usage.allowance_exceeded"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.usage.conflicting_counters"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.usage.integer_literal_required"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.usage.invalid_counter"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.usage.lossless_unavailable"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          }
+        ],
+        "description": "Versioned native diagnostic identity only. No locale or rendered prose. Requires full canonical-source equality with ToolEvent.message; never grants authority or changes terminal/usage/test evidence.",
+        "properties": {
+          "message_key": {
+            "enum": [
+              "native.catalog.not_found",
+              "native.catalog.probe_exited",
+              "native.catalog.probe_failed",
+              "native.catalog.probe_output_limit",
+              "native.catalog.probe_timeout",
+              "native.catalog.requirements_mismatch",
+              "native.catalog.shell_wrapper",
+              "native.cli.busy",
+              "native.cli.invalid_arguments",
+              "native.cli.invalid_json",
+              "native.cli.invalid_language",
+              "native.cli.request_limit",
+              "native.config.invalid_locale",
+              "native.config.missing_control_auth",
+              "native.config.missing_model",
+              "native.config.missing_provider",
+              "native.endpoint.rejected",
+              "native.endpoint.unsafe",
+              "native.limit.output_allowance",
+              "native.limit.output_truncated",
+              "native.limit.steps",
+              "native.limit.tool_calls",
+              "native.request.invalid_goal",
+              "native.request.invalid_limits",
+              "native.response.empty",
+              "native.response.invalid_json",
+              "native.response.no_choices",
+              "native.response.no_text",
+              "native.response.object_required",
+              "native.response.too_large",
+              "native.run.aborted",
+              "native.run.failed",
+              "native.tools.alias_collision",
+              "native.tools.catalog_missing",
+              "native.tools.duplicate_names",
+              "native.tools.invalid_arguments",
+              "native.tools.invalid_name",
+              "native.tools.malformed_call",
+              "native.tools.output_too_large",
+              "native.tools.too_many",
+              "native.tools.unknown_tool",
+              "native.usage.allowance_exceeded",
+              "native.usage.conflicting_counters",
+              "native.usage.integer_literal_required",
+              "native.usage.invalid_counter",
+              "native.usage.lossless_unavailable"
+            ],
+            "type": "string"
+          },
+          "message_params": {
+            "additionalProperties": {},
+            "type": "object"
+          },
+          "schema_version": {
+            "const": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "message_key"
+        ],
+        "type": "object"
+      },
       "ToolEvent": {
         "additionalProperties": false,
         "allOf": [
@@ -7995,6 +9061,16 @@
         "properties": {
           "command_id": {
             "type": "string"
+          },
+          "diagnostic": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ToolDiagnostic"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "item_id": {
             "maxLength": 128,

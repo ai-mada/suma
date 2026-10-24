@@ -1,5 +1,6 @@
 import { tr as t, UiError } from "./i18n";
 import type { RecordItem, Workflow } from "./api";
+import type { ToolDiagnostic } from "../../../packages/contracts/src";
 export type ToolProfileDefinition = {
   command_id: string;
   adapter: string;
@@ -39,6 +40,8 @@ export type ToolUsage = {
 };
 export type UsageState = "complete" | "partial" | "unreported";
 export type ToolEvent = {
+	/** Verified display identity; original message remains the source evidence. */
+	diagnostic?: ToolDiagnostic | null;
   schema_version: 1;
   command_id: string;
   profile_sha256: string;
@@ -51,6 +54,29 @@ export type ToolEvent = {
   usage?: ToolUsage;
   usage_state?: UsageState;
 };
+// Presentation provenance lives only on a cloned view. The non-enumerable
+// symbol is never part of persisted/wire ToolEvent JSON or the original fact.
+const toolEventSource = Symbol("tool-event-source");
+export type ToolEventView = ToolEvent & { readonly [toolEventSource]?: string };
+
+export function toolEventRows(events: readonly ToolEvent[]) {
+  const occurrences = new Map<string, number>();
+  return events.map(event => {
+    // Canonical raw content also guards against a changed payload being shown
+    // inside an already-open disclosure, even if a parent identity is reused.
+    const content = JSON.stringify(event, (_key, value: unknown) =>
+      value && typeof value === "object" && !Array.isArray(value)
+        ? Object.fromEntries(Object.keys(value).sort().map(key => [key, (value as Record<string, unknown>)[key]]))
+        : value);
+    const source = (event as ToolEventView)[toolEventSource] || null;
+    const base = JSON.stringify([source, content]);
+    const occurrence = occurrences.get(base) || 0;
+    occurrences.set(base, occurrence + 1);
+    // Without durable provenance, equal-content occurrences are only sibling
+    // keys; indistinguishable duplicates do not establish independent identity.
+    return { event, key: JSON.stringify([source, content, occurrence]) };
+  });
+}
 export type ToolEvidence = {
   profile: ToolProfileDefinition;
   session_id?: string;
@@ -334,7 +360,7 @@ const eventKinds = new Set([
 export function toolFactsForAttempt(
   events: unknown[],
   node: unknown,
-): ToolEvent[] {
+): ToolEventView[] {
   const target = node as
     | { id?: string; attempt?: number; fence?: number; worker_id?: string }
     | undefined;
@@ -342,6 +368,8 @@ export function toolFactsForAttempt(
     return [];
   return events.flatMap((raw) => {
     const event = raw as {
+      sequence?: number;
+      run_id?: string;
       type?: string;
       node_id?: string;
       data?: Record<string, unknown>;
@@ -364,7 +392,17 @@ export function toolFactsForAttempt(
       !Object.values(protocols).includes(fact.protocol)
     )
       return [];
-    return [fact];
+    const view: ToolEventView = { ...fact };
+    if (typeof event.run_id === "string" && event.run_id !== ""
+      && Number.isSafeInteger(event.sequence) && event.sequence! > 0
+      && typeof target.id === "string" && typeof target.worker_id === "string"
+      && Number.isSafeInteger(target.attempt) && target.attempt! > 0
+      && Number.isSafeInteger(target.fence) && target.fence! > 0) {
+      Object.defineProperty(view, toolEventSource, { value: JSON.stringify([
+        event.run_id, event.sequence, target.id, target.attempt, target.fence, target.worker_id,
+      ]) });
+    }
+    return [view];
   });
 }
 export const toolStateNames: Record<string, string> = {

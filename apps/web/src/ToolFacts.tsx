@@ -1,4 +1,5 @@
 import { Trans } from "./i18n/Trans";
+import { NativeToolMessage } from "./NativeToolMessage";
 import { tr as t, useLocale, formatDateTime, formatNumber } from "./i18n";
 import { DispatchRouteFacts } from "./execution-pools/DispatchRouteFacts";
 import { stateLabel } from "./api";
@@ -7,6 +8,7 @@ import {
   taskPlanStarted,
   toolEventNames,
   toolStateNames,
+  toolEventRows,
   type ToolEvidence,
   type ToolProfile,
   type TaskDispatchPlan,
@@ -301,7 +303,7 @@ export function ToolExecutionFacts({
   events?: ToolEvent[];
 }) { useLocale();
   if (!evidence && !events.length) return null;
-  const recent = events.slice(-40),
+  const recent = toolEventRows(events).slice(-40),
     last = events.at(-1),
     session =
       evidence?.session_id ||
@@ -372,11 +374,11 @@ export function ToolExecutionFacts({
           {t("development.facts.only_the_latest_40_items_in_this")}</p>
       )}
       <div className="tool-event-list">
-        {recent.map((event, index) => (
-          <article key={index}>
+        {recent.map(({ event, key }) => (
+          <article key={key}>
             <strong>{toolEventNames[event.kind] || t("development.facts.tool_fact")}</strong>
             {event.status && <small>{event.status}</small>}
-            {event.message && <p className="preserve">{event.message}</p>}
+            <NativeToolMessage event={event}/>
           </article>
         ))}
       </div>

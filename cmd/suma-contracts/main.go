@@ -297,6 +297,13 @@ func main() {
 	if err == nil {
 		err = emit("packages/contracts/src/index.ts", []byte(types), *check)
 	}
+	if err == nil {
+		var native []byte
+		native, err = nativeLocalizationSource()
+		if err == nil {
+			err = emit("packages/agent-runtime/src/native-catalog.ts", native, *check)
+		}
+	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

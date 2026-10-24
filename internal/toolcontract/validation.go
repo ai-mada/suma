@@ -140,6 +140,9 @@ func validateCoverage(state string, u *Usage) error {
 	return nil
 }
 func ValidateEvent(e Event) error {
+	if err := validateEventDiagnostic(e); err != nil {
+		return err
+	}
 	if e.SchemaVersion != 1 || !ValidCommandID(e.CommandID) || !ValidDigest(e.ProfileSHA256) || !ValidProtocol(e.Protocol) {
 		return fmt.Errorf("invalid tool event identity/schema")
 	}

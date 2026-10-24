@@ -4,7 +4,8 @@
 
 | 主题 | 入口 |
 |---|---|
-| 执行诊断与运行命令国际化 | [架构与边界](architecture/runtime-localization.md)、[专项验收](quality/runtime-localization-verification.md)、[精简摘要](quality/runtime-localization-summary.json) |
+| 当前原生诊断与命令编辑 | [链路设计与SOP](agents/native-diagnostics.md)、[专项验收](quality/native-diagnostics-verification.md)、[精简摘要](quality/native-diagnostics-summary.json) |
+| 执行诊断与运行命令国际化（T-P4-010历史） | [架构与边界](architecture/runtime-localization.md)、[专项验收](quality/runtime-localization-verification.md)、[精简摘要](quality/runtime-localization-summary.json) |
 | 产品范围、角色和原则 | [产品需求](product/prd.md) |
 | 可复用平台与专业工程 | [基础PRD](product/platform-foundation-prd.md)、[领域／SDK／扩展架构](architecture/platform-engineering.md)、[AI与人员开发SOP](delivery/ai-engineering-sop.md) |
 | 完整能力与验收范围 | [能力矩阵](product/capability-matrix.md) |
@@ -24,7 +25,7 @@
 | 定时自动化与事件续传 | [自动化与事件架构](architecture/automation-events.md)、[自动化工作台](design/automation-workspace.md)、[本机验收](quality/automation-verification.md)、[当前四程序交付](deployment/automation-runtime-bundles.md) |
 | 签名来源与交付 | [信任与事务](architecture/automation-ingress.md)、[入口工作台](design/event-ingress-workspace.md)、[GitHub/CI/监控接入](integrations/automation-ingress.md)、[精确合同](../contracts/automation-ingress.md)、[本机验收](quality/ingress-verification.md)、[当前运行包](deployment/ingress-runtime-bundles.md) |
 | 产品交互与流程图 | [工作台](design/workbench.md)、[DAG 三视图](design/dag-interactions.md) |
-| 全平台多语言与本地化 | [国际化规范](design/internationalization.md)、[账户与组织偏好](design/locale-preferences.md)、[偏好接口合同](../contracts/locale-preferences.md)、[偏好验收](quality/locale-preferences-verification.md)、[自有工作台迁移验收](quality/remaining-localization-verification.md)、[自有工作台摘要](quality/remaining-localization-summary.json)、[受控诊断架构](architecture/localized-diagnostics.md)、[后端诊断验收](quality/backend-diagnostics-verification.md)、[当前精简摘要](quality/backend-diagnostics-summary.json) |
+| 全平台多语言与本地化 | [国际化规范](design/internationalization.md)、[账户与组织偏好](design/locale-preferences.md)、[偏好接口合同](../contracts/locale-preferences.md)、[偏好验收](quality/locale-preferences-verification.md)、[自有工作台迁移验收](quality/remaining-localization-verification.md)、[自有工作台摘要](quality/remaining-localization-summary.json)、[受控诊断架构](architecture/localized-diagnostics.md)、[后端诊断验收](quality/backend-diagnostics-verification.md)、[当前精简摘要](quality/native-diagnostics-summary.json) |
 | English documentation | [English entry and translation status](en/README.md) |
 | 组织治理、项目计划与候选测试 | [组织、团队与权限](product/governance.md)、[规划与治理工作台](design/planning-governance.md) |
 | HTTP 合同 | [API 说明](api/README.md)、[OpenAPI](api/openapi.json) |
@@ -45,6 +46,6 @@
 
 ## 维护方式
 
-本阶段在持久人工/cron、固定修订派发与授权SSE基础上，继续加入GitHub及Suma签名事件、交付去重、CLI发送和事件工作台。实际3次事件运行完成开发/制品/包测试，暂停及修订保留历史，最终交付控制服务重启后恢复原回执。范围与原始证据见专项报告，完整平台仍按实施台账推进。
+当前T-P4-011将原生诊断从权威目录贯通至实际Runner、持久事件与界面；中英文展示、独立原文、刷新和单许可命令ID编辑已验证。实际本地HTTP429仅证明这条诊断链路，任务仍为todo，一个问题回流为一个需求草稿；它不代表真实厂商模型或研发验收。之前的自动化、制品与发布验证保留各自历史切面。范围与证据见对应专项报告，完整平台仍按实施台账推进。
 
 接口修改先更新共享合同和对应验证；业务门禁变更同步状态机、用户旅程、错误恢复文案和测试。运行截图、HTTP 记录和大规模性能报告统一进入项目交付证据目录；日常临时文件使用 `.cache/`。

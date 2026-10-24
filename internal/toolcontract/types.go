@@ -36,17 +36,26 @@ const (
 )
 
 type ToolEvent struct {
-	SchemaVersion int    `json:"schema_version"`
-	CommandID     string `json:"command_id"`
-	ProfileSHA256 string `json:"profile_sha256"`
-	Protocol      string `json:"protocol"`
-	Kind          string `json:"kind"`
-	SessionID     string `json:"session_id,omitempty"`
-	ItemID        string `json:"item_id,omitempty"`
-	Message       string `json:"message,omitempty"`
-	Status        string `json:"status,omitempty"`
-	Usage         *Usage `json:"usage,omitempty"`
-	UsageState    string `json:"usage_state,omitempty"`
+	SchemaVersion int             `json:"schema_version"`
+	CommandID     string          `json:"command_id"`
+	ProfileSHA256 string          `json:"profile_sha256"`
+	Protocol      string          `json:"protocol"`
+	Kind          string          `json:"kind"`
+	SessionID     string          `json:"session_id,omitempty"`
+	ItemID        string          `json:"item_id,omitempty"`
+	Message       string          `json:"message,omitempty"`
+	Status        string          `json:"status,omitempty"`
+	Usage         *Usage          `json:"usage,omitempty"`
+	UsageState    string          `json:"usage_state,omitempty"`
+	Diagnostic    *ToolDiagnostic `json:"diagnostic,omitempty"`
+}
+
+// ToolDiagnostic is display identity, not authority, terminal evidence or the
+// native process's rendered prose. Its source is always ToolEvent.Message.
+type ToolDiagnostic struct {
+	SchemaVersion int            `json:"schema_version"`
+	MessageKey    string         `json:"message_key"`
+	MessageParams map[string]any `json:"message_params,omitempty"`
 }
 
 type ToolEvidence struct {

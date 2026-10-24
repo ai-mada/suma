@@ -1726,6 +1726,11 @@ export interface TickReport {
   failed: number;
   failures: (TickFailure)[];
 }
+export interface ToolDiagnostic {
+  schema_version: number;
+  message_key: string;
+  message_params?: { [key: string]: unknown };
+}
 export interface ToolEvent {
   schema_version: number;
   command_id: string;
@@ -1738,6 +1743,7 @@ export interface ToolEvent {
   status?: string;
   usage?: ToolUsage | null;
   usage_state?: string;
+  diagnostic?: ToolDiagnostic | null;
 }
 export interface ToolEvidence {
   profile: ToolExecutionProfile;

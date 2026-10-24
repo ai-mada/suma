@@ -231,6 +231,16 @@ export function renderDiagnostic(value: unknown): string {
     );
   return match ? tr(match[0]) : raw;
 }
+/** Native execution messages are evidence. Accept a display identity only when
+ * its known canonical English template reproduces that complete raw message. */
+export function renderNativeDiagnostic(source: string, key: unknown, params: unknown): {text:string;localized:boolean} {
+  const fallback={text:source,localized:false};
+  if(typeof key!=="string" || !key.startsWith("native."))return fallback;
+  const definition=catalog?.messages.find(message=>message.key===key);
+  if(!definition || formatCatalogMessage(definition,params,"en-US")!==source)return fallback;
+  const text=formatCatalogMessage(definition,params,getLocale());
+  return text===undefined ? fallback : {text,localized:true};
+}
 export class UiError extends Error {
   constructor(
     public ui_key: string,

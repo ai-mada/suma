@@ -1,12 +1,22 @@
 # 语言与消息合同
 
+## T-P4-011 原生诊断端到端投影
+
+原生46条定义统一维护在 `internal/localization/catalog_native.go`，确定性生成SDK目录，使用相同的 `named-dot-v1` 和类型参数。后端当前778键已包含这46条，前端两语言各2804键；这些计数只表示当前受控目录，不表示所有展示面已完成。
+
+Go Runner从原生 `display` 中选择已证明的键／参数，形成可选 `ToolEvent.diagnostic:{schema_version:1,message_key,message_params?}`。该合同只允许 `suma-jsonl-v1` 的error事件；不转发上游语言和译文。先证明完整未经清洗的选中原文，再脱敏并重新绑定清洗后的原文；不匹配时丢弃显示元数据，保留原协议消息与终态。正式HTTP事件严格检查大小写、重复／未知字段、选中字段的Unicode和整数原始字面量，当前鉴权、fence、原请求幂等摘要及持久ACK语义保持。
+
+界面按当前目录显示同一事件，可展开原始原因。目录延迟或未知／不合法身份回退原文，不再次执行业务。事实窗口交互状态绑定持久事件来源及完整内容，滚动移除的事件不能把展开／聚焦状态移交给下一条。命令编辑器区分单个允许的Runner命令标识与自定义worker执行引用，语言切换不改写草稿。
+
+实现见[原生诊断设计](../docs/agents/native-diagnostics.md)、[工具合同](tool-execution.md)，本地真实Node／Runner／HTTP429及双语界面证据见[阶段验收](../docs/quality/native-diagnostics-verification.md)。SDK `display` 仍是独立投影；以下T-P4-010部分记录其当时边界。
+
 ## T-P4-010 执行诊断扩展
 
 `Definition.SourceTemplate` 是服务端私有的完整规范原文，使用既有 `named-dot-v1` 及声明参数，不进入公开目录、不注册为英语模糊匹配来源。`AnnotateError` 保持原 `Error/Unwrap`；`FormatError` 要求完整cause／边界原文及规范模板一致。未知或不合法元数据保留原始公开诊断，不能影响错误分类、状态和权限。
 
 `POST /workflows/validate` 的 HTTP200 类型为 `WorkflowValidation { valid:boolean, errors:string[], diagnostics:Rendered[] }`。errors保留原始编译证据，diagnostics按位置对应；有效时两数组为空。Rendered包含 `message_key/message_params?/locale/message/localized/fallback?`。网页以当前目录重显，无法解释时使用对应errors原文；切语言不再次校验或发布。
 
-原生智能体事件可含 `display:{message_key,message_params?,locale,localized_message}`，原 `message/code/request_id/usage/output` 保持，未出现的原字段也不补造。此字段目前不由Go Runner转发。原生SDK、CLI、目录探测的显式非法语言必须在任何I/O前拒绝；省略语言才继承默认。
+原生智能体事件可含 `display:{message_key,message_params?,locale,localized_message}`，原 `message/code/request_id/usage/output` 保持，未出现的原字段也不补造。T-P4-010时此字段不由Go Runner转发；T-P4-011以上述受控合同选择键／参数。原生SDK、CLI、目录探测的显式非法语言必须在任何I/O前拒绝；省略语言才继承默认。
 
 控制面、Runner、Deployer 的 `--language` 先于 `SUMA_LANGUAGE`、进程语言及默认中文。帮助、版本、非法显式语言都是只读入口；机器ID／JSON／外部错误保持。实现及精确边界见[执行国际化架构](../docs/architecture/runtime-localization.md)。
 

@@ -2,6 +2,22 @@
 
 Status: frozen implementation contract, 2026-10-24. Full product scope remains in docs/delivery/implementation-plan.md. This stage must have real local HTTP/process evidence and a local commit. Production vendor accounts, remote session resume, full terminal/input mediation and external bridge restart-query support are separate pending requirements.
 
+## T-P4-011 — Native diagnostic projection
+
+`ToolEvent` adds optional `diagnostic:ToolDiagnostic`. The closed version1 object contains `schema_version:1`, one known native `message_key`, and an optional closed, exactly typed `message_params` object. It has no locale or rendered prose. The authority is the 46 definitions in `internal/localization/catalog_native.go`; generation emits the SDK directory, OpenAPI and TypeScript wire types from that contract. Only a `suma-jsonl-v1` error may carry a diagnostic object. Top-level `diagnostic:null` means absent metadata; inner `message_params:null` is invalid. Existing size/depth limits apply to the whole event.
+
+Runner first proves the complete selected original message against its canonical template, then sanitizes the message and metadata and proves the cleaned pair again. Sanitization cannot create provenance for an originally mismatched message. Unknown keys, wrong/extra parameters, credential-bearing metadata or invalid selected Unicode drop native display metadata without manufacturing a different process/terminal/usage fact. The `display.locale` and `display.localized_message` supplied by the SDK are never trusted or persisted as platform evidence.
+
+Formal tool events are stricter: duplicate, aliased/case-varied and unknown field names, invalid selected UTF-16 escapes and invalid integer lexemes are rejected. Project Runner HTTP retains raw `tool_event` JSON through current credential checks before strict decoding; pool Runner retains its existing raw path. This prevents an intermediate map remarshal from making lossy Unicode appear valid. Diagnostic rejection uses the controlled `dag.tool.diagnostic` message identity, preserving its raw error and error category.
+
+Journal enqueues and pending readers deep-copy validated primitive parameters. All metadata is sanitized before journal/network and again before durable DAG event/outbox writes; the original typed request still determines operation idempotency. Current tenant/project, worker, attempt, dispatch, fence and pinned tool authority continue to apply. Diagnostic display cannot create a test, candidate, acceptance, budget debit or successful run.
+
+Web display uses the current language only after exact canonical source proof; unavailable catalogs or unproven metadata show the original message. An independent disclosure retains the raw reason. Tool-list row identity binds the durable parent event identity and complete raw content; the scrolling40-row window must not transfer an open/focused raw reason to another event. This provenance is private UI state and is not serialized back into `ToolEvent` evidence.
+
+The workflow editor requires a single allowlisted identifier for command/agent/test. Program arguments remain Runner configuration. Generic task/script nodes accept an optional custom-worker execution reference; the stock Runner does not gain support by editing that field. Imported malformed arrays remain intact until a human edits them. Compiler/capability matching is unchanged.
+
+See [native diagnostic design](../docs/agents/native-diagnostics.md) and [local verification](../docs/quality/native-diagnostics-verification.md). Actual loopback429 transport validation is separate from authenticated vendor/model integration and software acceptance. Historical sections below retain their original scope.
+
 ## Ownership
 
 - Platform agent: internal/toolcontract; internal/platform/tool_*.go; DAG tool validation/telemetry and capability matching; relevant tests. Root integrates HTTP/database wiring when requested. Do not edit runner/web or task_dispatch*.go.

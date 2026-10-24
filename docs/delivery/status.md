@@ -1,8 +1,14 @@
 # 当前交付状态
 
-## 当前 T-P4-010：DAG、运行命令与原生智能体国际化
+## 当前 T-P4-011：原生诊断贯通与命令编辑交互
 
-新增DAG151键／150注解，后端731键；原Error及sentinel身份保持。流程校验保留原始证据并返回强类型诊断，可即时切语言且保留草稿。三个运行命令中英入口、原生46键及SDK非法语言访问前拒绝已实现；独立审查两个P2修复并复核。最终Go1038／328输入、Web469／42文件／198输入、非Web45、类型／构建／合同检查通过；24程序与实际双语校验、12只读命令、1280／390局部UI及129表7690行保持已验。见[架构](../architecture/runtime-localization.md)、[验收](../quality/runtime-localization-verification.md)、[精简摘要](../quality/runtime-localization-summary.json)。原生display尚未由Go Runner转发、命令提示合同差异、库内NLS及完整P0–P7继续实施，生产未验收。
+46条原生诊断现由Go权威目录生成SDK目录，纳入后端778键；网页两语言各2804键。版本1的`ToolDiagnostic`将已证明的键／类型参数从实际原生进程，经Runner、持久Journal、当前授权HTTP、DAG及Outbox传至界面；上游译文不作为证据，原始消息及执行／用量事实保持。命令／智能体／测试节点明确填写单个许可命令ID，自定义task／script保留独立worker语义；滚动工具事实的展开与焦点绑定原事件，避免窗口更新后显示另一条原文。
+
+最终Go1131通过事件／342输入、Web544项／46文件／206输入、非Web47项，失败／测试跳过均为0，vet／类型／构建／合同检查通过。实际独立本地HTTP429夹具完成1次原生失败执行、1个attempt、10条事件（5条工具事实）；中英文、原文、刷新与精确attempt保持，已上报和未上报用量不混淆。一个问题两次界面回流仍为一个需求草稿，任务保持todo，未进行研发验收。5项P2独立审查问题已修复并复核。见[设计与SOP](../agents/native-diagnostics.md)、[验收](../quality/native-diagnostics-verification.md)、[精简摘要](../quality/native-diagnostics-summary.json)。新24程序为六目标交叉编译；正式厂商模型、其他语言表面、分布式及完整P0–P7继续实施，生产未验收。
+
+## 历史 T-P4-010：DAG、运行命令与原生智能体国际化
+
+新增DAG151键／150注解，后端731键；原Error及sentinel身份保持。流程校验保留原始证据并返回强类型诊断，可即时切语言且保留草稿。三个运行命令中英入口、原生46键及SDK非法语言访问前拒绝已实现；独立审查两个P2修复并复核。最终Go1038／328输入、Web469／42文件／198输入、非Web45、类型／构建／合同检查通过；24程序与实际双语校验、12只读命令、1280／390局部UI及129表7690行保持已验。见[架构](../architecture/runtime-localization.md)、[验收](../quality/runtime-localization-verification.md)、[精简摘要](../quality/runtime-localization-summary.json)。该阶段未含Go Runner的原生诊断传播及命令提示合同修正，后续实现见T-P4-011；库内NLS及完整P0–P7仍分别验收。
 
 ## 历史 T-P4-009：受控平台诊断国际化
 
@@ -54,7 +60,7 @@
 | 原生智能体 | packages/agent-runtime | 有界循环/工具协议；未连接生产模型 |
 | 外部工具 | 工具目录与许可命令、HTTP桥接 | 实机只读探测/本地协议测试；未调用收费模型 |
 | 知识服务 | packages/knowledge | 真实本地Lance全文/向量、版本隔离、墓碑 |
-| 界面与编辑 | apps/web | 最终完整web461项／41文件、类型及生产构建通过（详见当前阶段）；真实治理/计划/候选/发布、自动化与共享池闭环；局部四宽度/主题、语言切换、精确attempt与图键盘选择见当前验收；完整体验矩阵继续实施 |
+| 界面与编辑 | apps/web | 当前完整Web544项／46文件、类型及生产构建通过；原生诊断与命令编辑的部分1366／390、中英文、原文／焦点与刷新保持见当前验收；历史治理/计划/候选/发布、自动化与共享池闭环分别保留原切面，完整体验矩阵继续实施 |
 | Windows桌面 | apps/desktop、dist/desktop | 未签名NSIS/portable及目录构建；安装/GUI/升级仍分别验收 |
 | CLI与部署配置 | cmd/suma、deploy、Dockerfile | Bubble Tea/游标分页与签名交付测试；部署8项测试及Compose组合/配置校验，镜像/Helm未实跑 |
 | Go四程序交付 | scripts/build-runtime.ps1、dist/runtime/builds | 六目标×控制面/Runner/CLI/Deployer，真实编译、构建信息与逐文件摘要；目标系统运行分别验收 |

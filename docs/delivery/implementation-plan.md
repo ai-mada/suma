@@ -11,7 +11,8 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 ## P0 产品与架构
 
 - [ ] FND-I18N-001 全平台多语言：中英文目录、语言协商/偏好、界面/错误/通知/CLI/桌面/扩展/文档入口、格式化、缺项门禁和真实旅程验收；正在统一基础及迁移，详见[规范](../design/internationalization.md)。
-- [x] T-P4-010：DAG151键、三个运行命令及原生46键，结构化校验与原始错误绑定；Go1038／Web469／非Web45、实际中英文流程草稿及129表保持已验，两个P2独立复核通过。见[验收](../quality/runtime-localization-verification.md)。原生display传播、命令提示合同差异及其他语言表面继续实施，完整范围保持。
+- [x] T-P4-011：46条原生权威目录生成SDK目录；版本1诊断贯通Runner／Journal／授权HTTP／DAG／界面，完整原文、净化、类型／Unicode边界及滚动证据身份已验证；单许可命令ID与自定义worker引用的交互分开。Go1131／Web544／非Web47、类型／构建／合同检查和实际原生HTTP429、双语原文／刷新／问题回流通过，5项P2复核完成。网页2804／后端778键（包含原生46）；见[设计与SOP](../agents/native-diagnostics.md)、[验收](../quality/native-diagnostics-verification.md)。只读夹具任务未验收，其他语言表面与完整P0–P7保持未完成。
+- [x] T-P4-010历史：DAG151键、三个运行命令及原生46键，结构化校验与原始错误绑定；Go1038／Web469／非Web45、实际中英文流程草稿及129表保持已验，两个P2独立复核通过。见[验收](../quality/runtime-localization-verification.md)。该阶段未含原生display传播和命令提示修正，后续见T-P4-011；其他语言表面及完整范围保持。
 - [x] T-P4-006历史国际化基础：671网页双语键、93后端键、请求级协商、CLI／桌面基础、通用记录及共享池；原45模块待迁移切面见[历史报告](../quality/frontend-localization-verification.md)。
 - [x] T-P4-007：持久账户／组织语言、身份与版本绑定、未知结果恢复、领域目录及开发／工具／调度事实／团队／计划展示；1819网页键、107后端消息、787Go／399Web及真实偏好／双标签页／四宽度部分验证见[历史验收](../quality/locale-preferences-verification.md)。其余18模块1011字面量候选、第三方内部标签、通知、安装器和全部平台翻译继续实施，不勾选整个FND-I18N-001。
 - [x] T-P4-008：完成旧清单剩余18个自有前端模块、六项内置能力精确投影、项目只读视图模块化、结构化错误保真与工作区／搜索16诊断；2798网页键／123后端消息、Go811／Web461／非Web30和真实四宽度部分页面、Monaco worker／保存／刷新已验证，129表保持。见[阶段验收](../quality/remaining-localization-verification.md)。含汉字候选0不等于全平台覆盖；409后端静态候选、库内控件／原生／通知／安装器／渠道及完整双语文档继续实施。
