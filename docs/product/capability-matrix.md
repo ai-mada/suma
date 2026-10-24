@@ -2,7 +2,7 @@
 
 状态：源码与本地证据审查，平台整体尚未完成。日期：2026-10-24。Owner：产品、架构与集成负责人。
 
-计划：[P0–P7 实施台账](../delivery/implementation-plan.md)。验收依据：[验证报告](../quality/verification.md)、[验收要求](../quality/acceptance.md)、[浏览器旅程记录](../quality/evidence/browser-journey.json)。本页反映当前实现边界；最终测试日志和外部验收签字以交付报告为准。
+计划：[P0–P7 实施台账](../delivery/implementation-plan.md)。验收依据：[验证报告](../quality/verification.md)、[调度阶段摘要](../quality/scheduling-verification.md)、[验收要求](../quality/acceptance.md)、[浏览器旅程记录](../quality/evidence/browser-journey.json)。本页反映当前实现边界；最终测试日志和外部验收签字以交付报告为准。
 
 “实现”只表示所列代码路径存在；“本地验证”限定到列出的环境和测试。协议模拟、驱动可加载、打包配置存在，都不能替代真实外部系统、安装环境或生产容量验收。以下各项均未获得生产环境验收结论。
 
@@ -33,7 +33,7 @@
 | 显式补偿 | [compensation.go](../../internal/dag/compensation.go)：成功 Worker 显式模板、固定 effect 引用、逆依赖独立运行；内部生成图禁止公开启动/覆盖 | [补偿测试](../../internal/dag/compensation_test.go)：重放、来源限制、嵌套引用与内部图隔离 | 不提供通用撤销保证；需为每种外部副作用配置和验收补偿动作 |
 | 租约、fence 与未知结果 | [scheduler.go](../../internal/dag/scheduler.go)、[commands.go](../../internal/dag/commands.go)：节点租约、重复/迟到结果拒绝、幂等动作重试、未知结果核对 | SQLite 竞争、重启、晚回执、未知停止证据测试 | 外部副作用无法由数据库提供 exactly-once 保证 |
 | 暂停、取消和停止证据 | 实际停止事实与请求分开；未知状态保留资源，等待核对 | 核心与 Runner 停止回归 | 外部系统必须提供可靠终态；取消 HTTP 确认不等于已经停止 |
-| 资源、预算与调度 | 事务预留、项目资源限制、候选运行轮转 | 核心资源竞争测试 | 全局 SQL 锁串行化变更；未实现分片增量调度、租户加权公平、模型结算；未证明 1000 槽位 |
+| 增量调度、资源与预算 | [增量内核](../scheduler/incremental-kernel.md)：持久邻接/边结算/就绪与唤醒索引、脏记录、稳定领取回执、资源CAS账本、分块map和持久重试窗口；[项目准入](../../internal/platform/scheduling.go)固定预览与独立确认 | [调度阶段摘要](../quality/scheduling-verification.md)：123通过事件、真实SQLite最后额度竞争、停止未知保留效果资源；[17条平台锁接线](../quality/scheduling-platform-guards.md)；[迁移与运行包](../deployment/scheduling-runtime-bundles.md) | 组织授权仍串行；项目内运行轮转不是跨组织共享池公平。OceanBase/PG未实跑，完整共享池/分层加权公平/模型结算与1000槽位目标继续待验收 |
 | Runner 命令执行 | 许可命令、进程生命周期、Windows 进程树、持久回执/恢复 | [Runner 源码与测试目录](../../internal/runner)、[产物摘要](../agents/evidence/runner-sha256.json) | 容器/远端设备隔离和跨平台实机矩阵待验收 |
 | Runner 进展与恢复依据 | [progress.go](../../internal/dag/progress.go)：当前attempt/worker/fence校验、稳定操作回执、持久node_progress；界面展示真实有界输出快照，恢复按钮读取运行固定标记 | 对应DAG/Runner回归及[授权SSE与真实重启](../quality/automation-verification.md) | 输出快照不是完成百分比或任务验收；分布式吞吐与大规模日志性能待验收 |
 | 许可写命令隔离与证据 | [workspace.go](../../internal/runner/workspace.go)：逐attempt Git工作树、管理员固定repository/base、真实提交/差异/状态/路径清单摘要、持久操作元数据 | [真实Git工作树回归](../../internal/runner/workspace_test.go)；本轮环境和结果由验证报告记录 | 隔离依赖管理员仓库配置和本地Git；未知结果需核对，不自动切换/重置用户检出或合并 |
@@ -42,7 +42,7 @@
 | 原生智能体 | [agent-runtime](../../packages/agent-runtime/src)：有限轮次、模型接口与受控工具协议 | 本地协议、错误、工具边界测试；见[运行说明](../agents/runtime.md) | 真实模型账户、成本质量评估、生产工具权限待验收 |
 | 外部工具档案与现场资格 | [工具配置](../../internal/platform/tool_profiles.go)、[库存](../../internal/platform/tool_inventory.go)、[Runner探测](../../internal/runner/tools.go)：固定命令/版本/程序及配置摘要、60秒现场观察、项目绑定worker与精确command能力 | 本机工具登记/暂停/启用、实际进程、过期/撤权/重放与摘要漂移回归；见[工具阶段验收](../quality/tool-execution-verification.md) | 探测不证明模型登录或任务质量；跨节点设备治理和厂商账户验收仍待完成 |
 | 固定任务派发 | [计划](../../internal/platform/task_dispatch.go)、[构造](../../internal/platform/task_dispatch_build.go)、[工作台](../../apps/web/src/TaskDispatch.tsx)：固定任务/需求/流程/工具版本、预览与显式启动、同操作原子恢复 | 确定性协议夹具实际接收任务上下文、隔离代码候选、独立测试、人工验收、失败回流及真实停止；无真实模型 | 多分支聚合/跨节点Git、真实厂商模型质量与费用、远程会话恢复和生产验收继续待完成 |
-| 结构化工具与原生内核 | [Runtime](../../internal/runner/tool_stream.go)、[Agent](../../packages/agent-runtime/src/index.ts)：Suma/Codex全运行终态、受限typed事件、独立Agent授权、安全模型工具别名 | Runner协议/错误/停止回归，原生8项及真实控制面三授权用例；[运行时专项](../quality/tool-runtime-verification.md) | OpenCode整轮终态未核实，明确不可派发；Hermes/WorkBuddy/Zed/harness/dsh等未登记为完整执行集成。未报告usage不能用于零账单或预算结算 |
+| 结构化工具与原生内核 | [Runtime](../../internal/runner/tool_stream.go)、[Agent](../../packages/agent-runtime/src/index.ts)：Suma/Codex整轮终态、typed事件、用量presence/完整度、原文整数校验、每请求保守allowance、持久claim ACK恢复 | 当前Native20项、本机CLI五条显式HTTP夹具及GoRuntime159通过事件，见[用量与领取专项](../agents/scheduling-usage.md)；历史T-P4-004真实控制面授权三用例仍保留在旧报告 | 本机夹具不是付费模型或厂商任务验收。OpenCode整轮终态未核实，明确不可派发；Hermes/WorkBuddy/Zed/harness/dsh等未登记为完整执行集成。未报告usage不能用于零账单或真实结算 |
 | Workflow 编辑与观察 | [Workflow.tsx](../../apps/web/src/Workflow.tsx)：ReactFlow/ELK、编辑/执行/诊断、真实依赖和动态子节点、候选来源、当前尝试与证据；SSE通知加正式快照读取，持久历史分页 | [事件回归及实际浏览器](../quality/automation-verification.md)：终态、20秒轮换、重启保持与有界数据 | 高级JSON仍需服务端校验；完整编辑器/窄屏列表、万节点定位及全浏览器矩阵仍待验收 |
 | 本地代码工作区 | [IDE.tsx](../../apps/web/src/IDE.tsx)、[workspace.go](../../internal/platform/workspace.go)：Monaco、允许目录文本树、摘要并发保护、持久保存日志 | [工作区回归](../../internal/platform/workspace_test.go)；见[一致性说明](../data/file-and-query-consistency.md) | 编辑工作区与Runner隔离执行范围分别管理；真实终端、LSP/DAP、完整调试预览仍未实现 |
 

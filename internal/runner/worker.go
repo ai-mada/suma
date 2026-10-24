@@ -91,17 +91,33 @@ func (w *Worker) Run(ctx context.Context) error {
 		}
 		capabilities := ToolCapabilities(w.currentInventory())
 		capabilities = append(capabilities, ExternalCapabilities(w.Exec.External)...)
-		a, err := w.Client.Claim(ctx, w.ID, capabilities)
-		if err != nil || a == nil {
+		request, err := w.Journal.BeginClaim(w.Client.BaseURL, w.Client.ProjectID, w.ID, capabilities)
+		if err != nil {
+			return err
+		}
+		a, err := w.Client.ClaimWithOperation(ctx, request.WorkerID, request.Capabilities, request.OperationID)
+		if err != nil {
 			if !wait(ctx, poll) {
 				break
 			}
 			continue
 		}
-		if a.WorkerID != w.ID || a.RunID == "" || a.NodeID == "" || a.Attempt < 1 || a.Fence < 1 {
-			return fmt.Errorf("invalid assignment identity")
+		if err = w.Journal.RecordClaimResponse(request.OperationID, a); err != nil {
+			return err
+		}
+		if a == nil || a.DispatchState != "active" {
+			if err = w.Journal.CompleteClaim(request.OperationID); err != nil {
+				return err
+			}
+			if !wait(ctx, poll) {
+				break
+			}
+			continue
 		}
 		if err = w.Journal.Accept(*a); err != nil {
+			return err
+		}
+		if err = w.Journal.CompleteClaim(request.OperationID); err != nil {
 			return err
 		}
 		if err = w.runAssignment(ctx, *a, beat); err != nil {

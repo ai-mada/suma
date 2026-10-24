@@ -88,6 +88,9 @@ func TestCompensationFailurePreservesSourceAndBlocksEarlierInverse(t *testing.T)
 func TestCompensationPreservesParallelMapInverseOrderAfterRestart(t *testing.T) {
 	template := map[string]any{"type": "command", "command": []any{"apply"}, "config": map[string]any{"item_id": "{{item}}", "compensation": map[string]any{"type": "command", "command": []any{"undo"}, "idempotent": true, "config": map[string]any{"effect_id": "{{source.node_id}}"}}}}
 	e, r := fixture(t, Workflow{Nodes: []Node{compensable("before"), {ID: "map", Type: "map", DependsOn: []string{"before"}, Config: map[string]any{"items": []any{"x", "y"}, "template": template}}, compensable("after", "map")}})
+	if err := e.SetResourceLimits(ctx, "t", "p", map[string]int64{"execution_slots": 2}); err != nil {
+		t.Fatal(err)
+	}
 	done(t, e, claim(t, e), 0)
 	a, b := claim(t, e), claim(t, e)
 	done(t, e, a, 0)

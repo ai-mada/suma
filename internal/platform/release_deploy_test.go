@@ -243,6 +243,12 @@ func releaseExecuteBody(f *fixture, p ReleasePlan) map[string]any {
 func TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier(t *testing.T) {
 	f, _, env, plan, builderToken, providerToken := verifiedReleaseDeploymentPlan(t)
 	ctx := context.Background()
+	// This security scenario intentionally holds the protected attempt while
+	// claiming a second ordinary run to test that copied config grants nothing.
+	// Reserve both slots explicitly; the production default remains one.
+	if err := f.e.SetResourceLimits(ctx, f.user.TenantID, f.project, map[string]int64{"execution_slots": 2}); err != nil {
+		t.Fatal(err)
+	}
 	body := releaseExecuteBody(f, plan)
 	// Both handles use the actual persisted candidate and reserved run, never a seeded proof.
 	var path string
@@ -406,6 +412,9 @@ func TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier(t *
 		t.Fatal("lost consume ACK could not recover non-secret historical grant", err)
 	}
 	if _, err = f.s.DB.Exec(`UPDATE dag_nodes SET lease_until=0 WHERE run_id=?`, deployment.RunID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = f.s.DB.Exec(`UPDATE dag_wakeups SET due_at=0 WHERE run_id=? AND kind='lease'`, deployment.RunID); err != nil {
 		t.Fatal(err)
 	}
 	if err = f.e.Tick(ctx); err != nil {

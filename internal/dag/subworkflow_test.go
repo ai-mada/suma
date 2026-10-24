@@ -240,7 +240,7 @@ func TestPublicationBoundsMaterializedSubworkflowFanout(t *testing.T) {
 	}
 }
 
-func TestSubworkflowAutomaticRetryIsDurableAndDoesNotSpinInOneTransaction(t *testing.T) {
+func TestSubworkflowDoesNotGuessTransientFailureOrAutoRetry(t *testing.T) {
 	e := openEngine(t, filepath.Join(t.TempDir(), "subretry.db"))
 	if _, err := e.Publish(ctx, "t", "p", Workflow{ID: "child", Name: "child", Nodes: []Node{{ID: "map", Type: "map", Config: map[string]any{"items": []any{1}, "template": map[string]any{"type": "task", "condition": "false"}}}}}); err != nil {
 		t.Fatal(err)
@@ -256,17 +256,9 @@ func TestSubworkflowAutomaticRetryIsDurableAndDoesNotSpinInOneTransaction(t *tes
 	if err = e.db.QueryRow("SELECT COUNT(*) FROM dag_subruns WHERE parent_run_id=?", r.ID).Scan(&count); err != nil || count != 1 {
 		t.Fatalf("internal retry spun %d %v", count, err)
 	}
-	for i := 0; i < 2; i++ {
-		if _, err = e.db.Exec("UPDATE dag_nodes SET wake_at=1 WHERE run_id=? AND id='sub'", r.ID); err != nil {
-			t.Fatal(err)
-		}
-		if err = e.Tick(ctx); err != nil {
-			t.Fatal(err)
-		}
-	}
 	r, _ = e.GetRun(ctx, "t", "p", r.ID)
-	if r.State != "failed" || r.Nodes[0].Attempt != 3 {
-		t.Fatalf("retry budget %+v", r)
+	if r.State != "failed" || r.Nodes[0].Attempt != 1 {
+		t.Fatalf("unclassified child failure must remain failed %+v", r)
 	}
 }
 
@@ -284,6 +276,9 @@ func TestSubworkflowDeadlineWaitsForChildStopBeforeFailure(t *testing.T) {
 	}
 	a := claim(t, e)
 	if _, err = e.db.Exec("UPDATE dag_nodes SET wake_at=1 WHERE run_id=? AND id='sub'", r.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = e.db.Exec("UPDATE dag_wakeups SET due_at=1 WHERE run_id=? AND node_id='sub' AND kind='child_deadline'", r.ID); err != nil {
 		t.Fatal(err)
 	}
 	if err = e.Tick(ctx); err != nil {

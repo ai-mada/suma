@@ -84,6 +84,11 @@ func TestFailureProjectionIncludesTickTriggeredSubworkflowDeadline(t *testing.T)
 	if _, err = f.s.DB.Exec("UPDATE dag_nodes SET wake_at=1 WHERE run_id=? AND id='sub'", run.ID); err != nil {
 		t.Fatal(err)
 	}
+	// Shift the persisted deadline and its wake record together. Tick now uses
+	// the due index instead of finding test-only raw row edits by a full scan.
+	if _, err = f.s.DB.Exec(`UPDATE dag_wakeups SET due_at=1 WHERE run_id=? AND node_id='sub' AND kind='child_deadline'`, run.ID); err != nil {
+		t.Fatal(err)
+	}
 	if err = f.e.Tick(ctx); err != nil {
 		t.Fatal(err)
 	}

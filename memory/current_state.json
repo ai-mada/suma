@@ -6,9 +6,9 @@
   "status": "in_progress",
   "plan": "docs/delivery/implementation-plan.md",
   "workstreams": {
-    "control_dag": "fixed_tool_profiles_inventory_current_authority_atomic_task_context_dispatch_and_strict_stop_classification_locally_verified_full_distributed_fairness_pending",
-    "runtime": "typed_suma_codex_protocols_exact_config_and_executable_digests_isolated_candidate_test_actual_stop_and_native_agent_scope_verified_real_vendor_models_pending",
-    "workbench": "tool_settings_fixed_task_preview_typed_run_facts_responsive_full_node_list_and_precise_requirement_navigation_locally_verified_full_experience_matrix_pending",
+    "control_dag": "incremental_frontier_ready_wake_indexes_project_resource_cas_current_credentials_claim_receipts_and_history_migration_locally_verified_shared_pools_weighted_fairness_pending",
+    "runtime": "durable_claim_recovery_usage_presence_lossless_numeric_validation_and_conservative_model_allowance_locally_verified_real_vendors_pending",
+    "workbench": "reviewable_scheduling_policy_ready_queue_exact_attempt_provenance_narrow_node_list_and_keyboard_selection_locally_verified_full_experience_matrix_pending",
     "architecture_documents": "architecture_and_scope_matrix_delivered"
   },
   "verified": [
@@ -40,11 +40,16 @@
     "T-P4-004: actual GUI fixed requirement/task context, isolated candidate c31c01956f3098f3b5c07b2c94ceaaac3b388dfe, independent2 unittest cases, accepted taskv3; real failure generated one issue and duplicate intake stayed one requirement",
     "T-P4-004: final24 program cut20261024T051829203Z-df0ca9b5, actual Windows d357 control/644a Runner activation and fourth real stop; 4runs/8nodes/5attempts, original3runs/35events/acceptance/feedback unchanged; toolpausedv5",
     "T-P4-004: partial actual390/768/1366/1920 CSS widths, narrow full node list and desktop graph, keyboard Enter/details/return, Escape focus, exact links and themes; no complete WCAG or graph scale claim",
-    "T-P4-004: actual installed Codex0.164.0-alpha.11.1 help/version only; no vendor model task. Native AgentScope success vs RunnerToken/foreignproject403 used an explicit loopback model fixture, not paid providers"
+    "T-P4-004: actual installed Codex0.164.0-alpha.11.1 help/version only; no vendor model task. Native AgentScope success vs RunnerToken/foreignproject403 used an explicit loopback model fixture, not paid providers",
+    "T-P4-005: Go606 pass events, 0fail/0testskip and vet0, all221 inputs unchanged; generated169models/125paths/375refs and16 actual usage-schema cases passed",
+    "T-P4-005: actual GUI slots0 to2 with two real Runners, 1497ms independently verified command overlap, explicit human approval, refresh preserves5nodes/3attempts/22events/budget3; fixture concurrency only, no vendor model claim",
+    "T-P4-005: new24 runtime cut20261024T064658380Z-b9221a5f with133 current inputs; actual Windows control/Runner activation; two migrations preserve78 original tables and4runs/8nodes/5attempts/46events",
+    "T-P4-005: partial390/768/1366/1920 settings, light/dark, narrow node/attempt keyboard and desktop graph Enter/Space actual checks; raw stage archives excluded from Git",
+    "T-P4-005: final web244/24, native20, desktop3, knowledge3 aggregate270; earlier workspace268 replaced web242 with final244 after only two web input changes, all other119 unchanged; type/build passed; finalindex-jI-XtZ8U actual graph Enter/Space and exactattempt verified"
   ],
   "production_integration_complete": false,
-  "current_evidence": "docs/quality/evidence/tool-post-review-database.json",
-  "stage": "T-P4-004_locally_verified",
-  "commit_policy": "User explicitly requests a commit after each validated functional stage; do not push without separate authorization",
-  "next_step": "After the verified T-P4-004 local stage commit, continue the full P0-P7 objective with incremental DAG readiness and fair resource scheduling, genuine vendor authorization/execution, development progress/risk and complete collaboration/deployment acceptance. Never treat this local stage as full-platform completion; do not push without authorization."
+  "current_evidence": "docs/quality/scheduling-summary.json",
+  "stage": "T-P4-005_locally_verified",
+  "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
+  "next_step": "Continue full P0-P7 after locally verified T-P4-005. Next address shared pools with explicit multi-project identity, hierarchical fairness and model gateway permits; real vendors/storage clusters, full IDE/collaboration/deployment and scale acceptance remain open. Verified stage commits belong in local Git history; no push."
 }

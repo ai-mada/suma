@@ -141,14 +141,14 @@ func (s *Service) ensureReleaseIssueTx(ctx context.Context, tx *sql.Tx, tenant, 
 	return nil
 }
 func (s *Service) applyReleaseObservationTx(ctx context.Context, tx *sql.Tx, cfg ReleaseProviderConfig, o rc.DeploymentObservation) (ReleaseDeployment, error) {
-	d, err := s.releaseDeploymentTx(ctx, tx, cfg.TenantID, cfg.ProjectID, o.OperationID)
+	d, err := s.currentReleaseDeploymentTx(ctx, tx, cfg.TenantID, cfg.ProjectID, o.OperationID)
 	if err != nil {
 		return d, err
 	}
 	if d.ProviderID != cfg.ID {
 		return d, forbidden()
 	}
-	plan, err := s.releasePlanTx(ctx, tx, cfg.TenantID, cfg.ProjectID, d.PlanID)
+	plan, err := s.currentReleasePlanTx(ctx, tx, cfg.TenantID, cfg.ProjectID, d.PlanID)
 	if err != nil {
 		return d, err
 	}
@@ -249,7 +249,7 @@ func (s *Service) ObserveReleaseDeployment(ctx context.Context, token string, o 
 	if err != nil {
 		return ReleaseDeployment{}, err
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return ReleaseDeployment{}, err
 	}
@@ -257,7 +257,7 @@ func (s *Service) ObserveReleaseDeployment(ctx context.Context, token string, o 
 	if err = s.lockOrganization(ctx, tx, cfg.TenantID); err != nil {
 		return ReleaseDeployment{}, err
 	}
-	if err = s.releaseSchedulerLock(ctx, tx); err != nil {
+	if err = s.releaseSchedulerLock(ctx, tx, cfg.TenantID, cfg.ProjectID); err != nil {
 		return ReleaseDeployment{}, err
 	}
 	d, err := s.applyReleaseObservationTx(ctx, tx, cfg, o)
@@ -300,14 +300,15 @@ func (s *Service) ReleaseDeployment(ctx context.Context, p Principal, project, i
 	if err := s.Authorize(ctx, p, project, false, false); err != nil {
 		return ReleaseDeployment{}, err
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.evidenceSnapshotOptions())
 	if err != nil {
 		return ReleaseDeployment{}, err
 	}
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, false, false); err != nil {
+	if err = s.authorizeProjectSnapshotTx(ctx, tx, p, project); err != nil {
 		return ReleaseDeployment{}, err
 	}
+
 	d, err := s.releaseDeploymentTx(ctx, tx, p.TenantID, project, id)
 	if err != nil {
 		return d, err
@@ -335,7 +336,7 @@ func (s *Service) ReleaseDeployment(ctx context.Context, p Principal, project, i
 	}
 	d.AllowedActions = []string{}
 	d.Blockers = []ReleaseBlocker{}
-	if s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil {
+	if s.releaseActorSnapshotAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil {
 		d.AllowedActions = append(d.AllowedActions, "reconcile")
 		if d.State == "deployed_healthy" {
 			d.AllowedActions = append(d.AllowedActions, "rollback_preview")
@@ -358,7 +359,7 @@ func (s *Service) ReconcileReleaseDeployment(ctx context.Context, p Principal, p
 	if err := exactVersion(m, "expected_version", 1); err != nil {
 		return ReleaseDeployment{}, err
 	}
-	read, err := s.DB.BeginTx(ctx, nil)
+	read, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return ReleaseDeployment{}, err
 	}
@@ -394,7 +395,7 @@ func (s *Service) ReconcileReleaseDeployment(ctx context.Context, p Principal, p
 		return d, err
 	}
 	if releaseObservationKnownTerminal(o) && d.Assignment != nil {
-		probe, e := s.DB.BeginTx(ctx, nil)
+		probe, e := s.DB.BeginTx(ctx, s.executionWriteOptions())
 		if e != nil {
 			return d, e
 		}
@@ -416,7 +417,7 @@ func (s *Service) ReconcileReleaseDeployment(ctx context.Context, p Principal, p
 			return s.resolveObservedRelease(ctx, p, project, id, token, m, req.ExpectedVersion, req.IdempotencyKey, cfg, o, d, engine)
 		}
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return d, err
 	}
@@ -424,7 +425,7 @@ func (s *Service) ReconcileReleaseDeployment(ctx context.Context, p Principal, p
 	if err = s.releaseBrowserTx(ctx, tx, p, project, token, true); err != nil {
 		return d, err
 	}
-	if err = s.releaseSchedulerLock(ctx, tx); err != nil {
+	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return d, err
 	}
 	hash, replay, err = s.receipt(ctx, tx, p, project, req.IdempotencyKey, map[string]any{"release_reconcile": id, "body": m})
@@ -435,7 +436,7 @@ func (s *Service) ReconcileReleaseDeployment(ctx context.Context, p Principal, p
 		err = json.Unmarshal([]byte(hash), &d)
 		return d, err
 	}
-	current, err := s.releaseDeploymentTx(ctx, tx, p.TenantID, project, id)
+	current, err := s.currentReleaseDeploymentTx(ctx, tx, p.TenantID, project, id)
 	if err != nil {
 		return d, err
 	}
@@ -468,6 +469,9 @@ func (s *Service) resolveObservedRelease(ctx context.Context, p Principal, proje
 		if e := s.releaseBrowserTx(ctx, tx, p, project, token, true); e != nil {
 			return e
 		}
+		if e := s.releaseSchedulerLock(ctx, tx, p.TenantID, project); e != nil {
+			return e
+		}
 		var e error
 		receiptHash, replay, e = s.receipt(ctx, tx, p, project, key, map[string]any{"release_reconcile": id, "body": m})
 		if e != nil {
@@ -476,7 +480,7 @@ func (s *Service) resolveObservedRelease(ctx context.Context, p Principal, proje
 		if replay {
 			return json.Unmarshal([]byte(receiptHash), &out)
 		}
-		current, e := s.releaseDeploymentTx(ctx, tx, p.TenantID, project, id)
+		current, e := s.currentReleaseDeploymentTx(ctx, tx, p.TenantID, project, id)
 		if e != nil {
 			return e
 		}
@@ -550,7 +554,7 @@ func (s *Service) RollbackReleasePreview(ctx context.Context, p Principal, proje
 	if err := releaseGeneration(m, "expected_environment_generation"); err != nil {
 		return nil, err
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return nil, err
 	}
@@ -558,14 +562,14 @@ func (s *Service) RollbackReleasePreview(ctx context.Context, p Principal, proje
 	if err = s.releaseBrowserTx(ctx, tx, p, project, token, true); err != nil {
 		return nil, err
 	}
-	if err = s.releaseSchedulerLock(ctx, tx); err != nil {
+	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return nil, err
 	}
-	d, err := s.releaseDeploymentTx(ctx, tx, p.TenantID, project, id)
+	d, err := s.currentReleaseDeploymentTx(ctx, tx, p.TenantID, project, id)
 	if err != nil {
 		return nil, err
 	}
-	plan, err := s.releasePlanTx(ctx, tx, p.TenantID, project, d.PlanID)
+	plan, err := s.currentReleasePlanTx(ctx, tx, p.TenantID, project, d.PlanID)
 	if err != nil {
 		return nil, err
 	}
@@ -608,7 +612,7 @@ func (s *Service) ValidateObservedManagedResultTx(ctx context.Context, tx *sql.T
 	if err := tx.QueryRowContext(ctx, s.q(`SELECT operation_id FROM suma_release_deployments WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=?`), p.TenantID, project, r.RunID, r.NodeID).Scan(&operation); err != nil {
 		return missing()
 	}
-	d, err := s.releaseDeploymentTx(ctx, tx, p.TenantID, project, operation)
+	d, err := s.currentReleaseDeploymentTx(ctx, tx, p.TenantID, project, operation)
 	if err != nil {
 		return err
 	}
@@ -619,7 +623,7 @@ func (s *Service) ValidateObservedManagedResultTx(ctx context.Context, tx *sql.T
 	if d.Observation == nil || proof.OperationID != operation || proof.RequestSHA256 != d.RequestSHA256 || proof.EvidenceSHA256 != d.Observation.EvidenceSHA256 || proof.Version != d.Observation.Version {
 		return releaseConflict("deployment_success_unproven", "发布结果不能代替当前持久提供方观测")
 	}
-	plan, err := s.releasePlanTx(ctx, tx, p.TenantID, project, d.PlanID)
+	plan, err := s.currentReleasePlanTx(ctx, tx, p.TenantID, project, d.PlanID)
 	if err != nil {
 		return err
 	}

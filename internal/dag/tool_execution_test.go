@@ -46,7 +46,7 @@ func TestToolPublicBindingUsesCurrentSpecAndRetryClearsEvidence(t *testing.T) {
 	if err != nil || a == nil {
 		t.Fatal(a, err)
 	}
-	proof := &toolcontract.Evidence{Profile: toolcontract.Profile{CommandID: "native-agent", Adapter: "suma", Protocol: "suma-jsonl-v1", ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "fixture"}, Terminal: "failed", EventCount: 1}
+	proof := &toolcontract.Evidence{UsageState: "unreported", Profile: toolcontract.Profile{CommandID: "native-agent", Adapter: "suma", Protocol: "suma-jsonl-v1", ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "fixture"}, Terminal: "failed", EventCount: 1}
 	if err = e.Complete(ctx, "t", "p", Result{RunID: r.ID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, OperationID: "failed-proof", ExitCode: 1, ToolEvidence: proof}); err != nil {
 		t.Fatal(err)
 	}
@@ -92,7 +92,7 @@ func TestToolPublicBindingForDynamicMapAndCompensation(t *testing.T) {
 	if err != nil || a == nil {
 		t.Fatal(a, err)
 	}
-	proof := &toolcontract.Evidence{Profile: toolcontract.Profile{CommandID: "native-agent", Adapter: "suma", Protocol: "suma-jsonl-v1", ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "fixture"}, Terminal: "completed", EventCount: 1}
+	proof := &toolcontract.Evidence{UsageState: "unreported", Profile: toolcontract.Profile{CommandID: "native-agent", Adapter: "suma", Protocol: "suma-jsonl-v1", ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "fixture"}, Terminal: "completed", EventCount: 1}
 	if err = e.Complete(ctx, "t", "p", Result{RunID: r.ID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, OperationID: "source-completed", ToolEvidence: proof}); err != nil {
 		t.Fatal(err)
 	}
@@ -128,7 +128,7 @@ func TestToolProgressEvidenceAndReplay(t *testing.T) {
 	if err = e.Complete(ctx, "t", "p", result); !errors.Is(err, ErrInvalid) {
 		t.Fatal("success without proof accepted", err)
 	}
-	result.ToolEvidence = &toolcontract.Evidence{Profile: toolcontract.Profile{CommandID: "native-agent", Adapter: "suma", Protocol: "suma-jsonl-v1", ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "fixture"}, Terminal: "failed", EventCount: 1}
+	result.ToolEvidence = &toolcontract.Evidence{UsageState: "unreported", Profile: toolcontract.Profile{CommandID: "native-agent", Adapter: "suma", Protocol: "suma-jsonl-v1", ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "fixture"}, Terminal: "failed", EventCount: 1}
 	if err = e.Complete(ctx, "t", "p", result); !errors.Is(err, ErrInvalid) {
 		t.Fatal("failed protocol labelled success", err)
 	}
@@ -210,7 +210,7 @@ func TestToolConfirmedStopAcceptsUnknownProtocolWithoutSuccess(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			proof := &toolcontract.Evidence{Profile: toolcontract.Profile{CommandID: "native-agent", Adapter: "suma", Protocol: "suma-jsonl-v1", ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "fixture"}, Terminal: "unknown", EventCount: 2}
+			proof := &toolcontract.Evidence{UsageState: "unreported", Profile: toolcontract.Profile{CommandID: "native-agent", Adapter: "suma", Protocol: "suma-jsonl-v1", ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "fixture"}, Terminal: "unknown", EventCount: 2}
 			// The process stop was confirmed. Its absent protocol terminal must not
 			// block the stop receipt, or turn a zero OS exit into tool success.
 			result := Result{RunID: r.ID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, OperationID: "confirmed-process-stop", Stopped: true, ToolEvidence: proof}

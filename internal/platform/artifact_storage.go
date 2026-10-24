@@ -57,13 +57,13 @@ func (s *Service) currentArtifactAssignmentTx(ctx context.Context, tx *sql.Tx, p
 	if !a.Valid() {
 		return spec, invalid("执行身份不完整")
 	}
-	if _, err := tx.ExecContext(ctx, `UPDATE dag_lock SET seq=seq WHERE id=1`); err != nil {
+	if err := dag.GuardProjectTx(ctx, tx, s.Dialect, p.TenantID, project); err != nil {
 		return spec, err
 	}
 	var state, runState, worker, raw string
 	var attempt int
 	var fence, lease int64
-	err := tx.QueryRowContext(ctx, s.q(`SELECT n.state,r.state,n.worker_id,n.attempt,n.fence,n.lease_until,n.spec FROM dag_nodes n JOIN dag_runs r ON r.id=n.run_id WHERE r.tenant_id=? AND r.project_id=? AND n.run_id=? AND n.id=?`), p.TenantID, project, a.RunID, a.NodeID).Scan(&state, &runState, &worker, &attempt, &fence, &lease, &raw)
+	err := tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT n.state,r.state,n.worker_id,n.attempt,n.fence,n.lease_until,n.spec FROM dag_nodes n JOIN dag_runs r ON r.id=n.run_id WHERE r.tenant_id=? AND r.project_id=? AND n.run_id=? AND n.id=?`, true)), p.TenantID, project, a.RunID, a.NodeID).Scan(&state, &runState, &worker, &attempt, &fence, &lease, &raw)
 	if err != nil {
 		return spec, missing()
 	}
@@ -85,7 +85,7 @@ func (s *Service) StartArtifactUpload(ctx context.Context, p Principal, project,
 		return out, invalid(err.Error())
 	}
 	r.Manifest = m
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return out, err
 	}
@@ -231,7 +231,7 @@ func (s *Service) PutArtifactBlob(ctx context.Context, p Principal, project, tok
 	if n != size || n > releasecontract.MaxFileBytes || hex.EncodeToString(hash.Sum(nil)) != blobHash {
 		return conflict("收到的实际文件长度或 SHA-256 不匹配")
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return err
 	}
@@ -320,7 +320,7 @@ func (s *Service) artifactUploadStateTx(ctx context.Context, tx *sql.Tx, u artif
 }
 func (s *Service) InspectArtifactUpload(ctx context.Context, p Principal, project, token, id string) (releasecontract.ArtifactUploadState, error) {
 	var out releasecontract.ArtifactUploadState
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return out, err
 	}
@@ -340,7 +340,7 @@ func (s *Service) InspectArtifactUpload(ctx context.Context, p Principal, projec
 
 func (s *Service) SealArtifactUpload(ctx context.Context, p Principal, project, token, id string, r releasecontract.ArtifactSealRequest) (releasecontract.ArtifactSealReceipt, error) {
 	var out releasecontract.ArtifactSealReceipt
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return out, err
 	}

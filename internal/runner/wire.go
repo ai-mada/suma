@@ -16,6 +16,9 @@ type Assignment struct {
 	Type                    string                            `json:"type,omitempty"`
 	TimeoutSeconds          int                               `json:"timeout_seconds,omitempty"`
 	Idempotent              bool                              `json:"idempotent,omitempty"`
+	DispatchID              string                            `json:"dispatch_id,omitempty"`
+	DispatchState           string                            `json:"dispatch_state,omitempty"`
+	LeaseUntil              string                            `json:"lease_until,omitempty"`
 	Config                  map[string]any                    `json:"config,omitempty"`
 	CandidateCommit         string                            `json:"candidate_commit,omitempty"`
 	CandidateFrom           string                            `json:"candidate_from,omitempty"`
@@ -29,6 +32,7 @@ type Result struct {
 	ExitCode          int                               `json:"exit_code"`
 	Output            string                            `json:"output"`
 	Error             string                            `json:"error"`
+	FailureClass      string                            `json:"failure_class,omitempty"`
 	OperationID       string                            `json:"operation_id"`
 	Stopped           bool                              `json:"stopped"`
 	OutcomeUnknown    bool                              `json:"outcome_unknown,omitempty"`
@@ -58,6 +62,7 @@ func (r Result) MarshalJSON() ([]byte, error) {
 		ExitCode          int                               `json:"exit_code"`
 		Output            string                            `json:"output"`
 		Error             string                            `json:"error"`
+		FailureClass      string                            `json:"failure_class,omitempty"`
 		OperationID       string                            `json:"operation_id"`
 		Stopped           bool                              `json:"stopped"`
 		OutcomeUnknown    bool                              `json:"outcome_unknown"`
@@ -65,5 +70,5 @@ func (r Result) MarshalJSON() ([]byte, error) {
 		ArtifactEvidence  *releasecontract.ArtifactEvidence `json:"artifact_evidence,omitempty"`
 		ReleaseEvidence   *releasecontract.ReleaseResult    `json:"release_evidence,omitempty"`
 		ToolEvidence      *tc.Evidence                      `json:"tool_evidence,omitempty"`
-	}{r.RunID, r.NodeID, r.Attempt, r.Fence, r.WorkerID, r.ExitCode, r.Output, r.Error, r.OperationID, r.Stopped, r.OutcomeUnknown, r.WorkspaceEvidence, r.ArtifactEvidence, r.ReleaseEvidence, r.ToolEvidence})
+	}{r.RunID, r.NodeID, r.Attempt, r.Fence, r.WorkerID, r.ExitCode, r.Output, r.Error, r.FailureClass, r.OperationID, r.Stopped, r.OutcomeUnknown, r.WorkspaceEvidence, r.ArtifactEvidence, r.ReleaseEvidence, r.ToolEvidence})
 }

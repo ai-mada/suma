@@ -92,6 +92,9 @@ export interface Assignment {
   candidate_fence?: number;
   candidate_evidence_sha256?: string;
   release_execution?: ReleaseExecution | null;
+  dispatch_id?: string;
+  dispatch_state?: string;
+  lease_until?: string;
 }
 export interface AssignmentRef {
   run_id: string;
@@ -99,6 +102,15 @@ export interface AssignmentRef {
   attempt: number;
   fence: number;
   worker_id: string;
+}
+export interface AttemptPage {
+  items: (ExecutionAttempt)[];
+  total: number;
+  next_cursor?: string;
+}
+export interface AttemptReconciliation {
+  outcome: string;
+  reason: string;
 }
 export interface AutomationCommandRequest {
   project_id: string;
@@ -445,6 +457,20 @@ export interface Event {
   at: string;
   data: { [key: string]: unknown };
 }
+export interface ExecutionAttempt {
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  state: string;
+  started_at: string;
+  completed_at: string;
+  result?: Result | null;
+  result_source: string;
+  reconciliation?: AttemptReconciliation | null;
+  child_run_id?: string;
+}
 export interface HealthCheck {
   path: string;
   expected_status: number;
@@ -537,6 +563,20 @@ export interface Node {
   resources?: { [key: string]: number };
   config?: { [key: string]: unknown };
 }
+export interface NodeAdmissionSnapshot {
+  run_id: string;
+  node_id: string;
+  run_version: number;
+  node_state: string;
+  attempt: number;
+  fence: number;
+  policy_version: number;
+  evaluated_at: string;
+  status: string;
+  blockers: (SchedulingBlocker)[];
+  requests: (ResourceRequest)[];
+  reservations: (ResourceReservationSnapshot)[];
+}
 export interface NodeProgressData {
   operation_id: string;
   message: string;
@@ -566,6 +606,9 @@ export interface NodeRun {
   tool_evidence?: ToolEvidence | null;
   tool_profile_id?: string;
   tool_profile_sha256?: string;
+  winner_node_ids?: (string)[];
+  ready_at?: string;
+  admission_policy_version?: number;
 }
 export interface NonSecretDeploymentRequest {
   protocol: string;
@@ -711,6 +754,27 @@ export interface ProjectVersionedOperation {
   project_id: string;
   expected_version: number;
   idempotency_key: string;
+}
+export interface ReadyEntry {
+  run_id: string;
+  node_id: string;
+  node_name: string;
+  workflow_name: string;
+  run_version: number;
+  node_state: string;
+  attempt: number;
+  fence: number;
+  ready_at: string;
+  sequence: number;
+  command_id?: string;
+  type: string;
+  requests: (ResourceRequest)[];
+  admission?: NodeAdmissionSnapshot | null;
+}
+export interface ReadyPage {
+  items: (ReadyEntry)[];
+  total: number;
+  next_cursor?: string;
 }
 export interface Record {
   id: string;
@@ -1023,6 +1087,29 @@ export interface ReservedExecution {
   run_id: string;
   node_id: string;
 }
+export interface ResourceRequest {
+  name: string;
+  unit: string;
+  amount: number;
+  release_class: string;
+}
+export interface ResourceReservationSnapshot {
+  name: string;
+  unit: string;
+  amount: number;
+  release_class: string;
+  attempt: number;
+  fence: number;
+}
+export interface ResourceSnapshot {
+  name: string;
+  unit: string;
+  capacity: number | null;
+  used: number;
+  consumed: number;
+  mode: string;
+  release_class: string;
+}
 export interface Result {
   run_id: string;
   node_id: string;
@@ -1035,6 +1122,7 @@ export interface Result {
   operation_id: string;
   stopped: boolean;
   outcome_unknown: boolean;
+  failure_class?: string;
   workspace_evidence?: { [key: string]: unknown };
   artifact_evidence?: ArtifactEvidence | null;
   release_evidence?: ReleaseResult | null;
@@ -1054,6 +1142,15 @@ export interface Run {
   nodes: (NodeRun)[];
   compensation_run_id?: string;
   compensation_state?: string;
+}
+export interface RunnerClaimRequest {
+  project_id: string;
+  worker_id: string;
+  capabilities: (string)[];
+  idempotency_key: string;
+}
+export interface RunnerClaimResponse {
+  assignment: Assignment | null;
 }
 export interface RunnerProgressRequest {
   project_id: string;
@@ -1076,6 +1173,87 @@ export interface ScheduleRequest {
   project_id: string;
   changes: (ScheduleChange)[];
   idempotency_key: string;
+}
+export interface SchedulingBlocker {
+  code: string;
+  message: string;
+  source: string;
+  resource?: string;
+  unit?: string;
+  required?: number | null;
+  capacity?: number | null;
+  used?: number | null;
+  available?: number | null;
+  retry_at?: string;
+  run_id?: string;
+  node_id?: string;
+}
+export interface SchedulingFairness {
+  mode: string;
+  scope: string;
+}
+export interface SchedulingPolicyChange {
+  resource: string;
+  unit: string;
+  before: number | null;
+  after: number | null;
+}
+export interface SchedulingPolicyCommitRequest {
+  project_id: string;
+  expected_version: number;
+  idempotency_key: string;
+}
+export interface SchedulingPolicyImpact {
+  observed_at: string;
+  ready_total: number;
+  reserved_execution_slots: number;
+  budget_spent: number;
+  budget_history: string;
+  resources: (ResourceSnapshot)[];
+  notes: (string)[];
+}
+export interface SchedulingPolicyInput {
+  concurrency_limit: number;
+  resource_limits: { [key: string]: number | null };
+  budget_limit: number | null;
+}
+export interface SchedulingPolicyPreview {
+  id: string;
+  project_id: string;
+  version: number;
+  state: string;
+  policy_version: number;
+  applied_policy_version?: number;
+  policy: SchedulingPolicyInput;
+  previous_policy: SchedulingPolicyInput;
+  changes: (SchedulingPolicyChange)[];
+  impact: SchedulingPolicyImpact;
+  policy_sha256: string;
+  created_at: string;
+  expires_at: string;
+  valid: boolean;
+  reason?: string;
+}
+export interface SchedulingPolicyPreviewRequest {
+  project_id: string;
+  expected_version: number;
+  policy: SchedulingPolicyInput;
+  idempotency_key: string;
+}
+export interface SchedulingPolicyView {
+  project_id: string;
+  version: number;
+  default: boolean;
+  concurrency_limit: number;
+  resource_limits: { [key: string]: number | null };
+  budget_limit: number | null;
+  budget_spent: number;
+  unit: string;
+  budget_history: string;
+  as_of: string;
+  resources: (ResourceSnapshot)[];
+  allowed_actions: (string)[];
+  fairness: SchedulingFairness;
 }
 export interface SessionOrganization {
   id: string;
@@ -1185,6 +1363,18 @@ export interface TeamWriteRequest {
   expected_version?: number;
   idempotency_key: string;
 }
+export interface TickFailure {
+  tenant_id: string;
+  project_id: string;
+  run_id: string;
+  message: string;
+}
+export interface TickReport {
+  examined: number;
+  advanced: number;
+  failed: number;
+  failures: (TickFailure)[];
+}
 export interface ToolEvent {
   schema_version: number;
   command_id: string;
@@ -1196,6 +1386,7 @@ export interface ToolEvent {
   message?: string;
   status?: string;
   usage?: ToolUsage | null;
+  usage_state?: string;
 }
 export interface ToolEvidence {
   profile: ToolExecutionProfile;
@@ -1203,6 +1394,7 @@ export interface ToolEvidence {
   terminal: string;
   event_count: number;
   usage?: ToolUsage | null;
+  usage_state: string;
 }
 export interface ToolExecutionProfile {
   command_id: string;

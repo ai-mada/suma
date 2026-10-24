@@ -57,7 +57,7 @@ func (s *Service) releasePreviewTx(ctx context.Context, tx *sql.Tx, p Principal,
 	if _, err = s.releaseProviderSite(p.TenantID, project, env.ProviderID, env.SiteID); err != nil {
 		return view, content, err
 	}
-	candidate, err := s.validateReleaseCandidateTx(ctx, tx, p, project, in.CandidateID)
+	candidate, err := s.validateCurrentReleaseCandidateTx(ctx, tx, p, project, in.CandidateID)
 	if err != nil {
 		return view, content, err
 	}
@@ -65,11 +65,11 @@ func (s *Service) releasePreviewTx(ctx context.Context, tx *sql.Tx, p Principal,
 		if !rc.ValidOperationID(in.RollbackSourceOperationID) {
 			return view, content, invalid("回退必须选择历史成功操作")
 		}
-		prior, e := s.releaseDeploymentTx(ctx, tx, p.TenantID, project, in.RollbackSourceOperationID)
+		prior, e := s.currentReleaseDeploymentTx(ctx, tx, p.TenantID, project, in.RollbackSourceOperationID)
 		if e != nil {
 			return view, content, e
 		}
-		priorPlan, e := s.releasePlanTx(ctx, tx, p.TenantID, project, prior.PlanID)
+		priorPlan, e := s.currentReleasePlanTx(ctx, tx, p.TenantID, project, prior.PlanID)
 		if e != nil {
 			return view, content, e
 		}
@@ -113,7 +113,7 @@ func (s *Service) PreviewReleasePlan(ctx context.Context, p Principal, project, 
 	if err := releaseGeneration(m, "expected_environment_generation"); err != nil {
 		return ReleasePlanPreview{}, err
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return ReleasePlanPreview{}, err
 	}
@@ -121,7 +121,7 @@ func (s *Service) PreviewReleasePlan(ctx context.Context, p Principal, project, 
 	if err = s.releaseBrowserTx(ctx, tx, p, project, token, false); err != nil {
 		return ReleasePlanPreview{}, err
 	}
-	if err = s.releaseSchedulerLock(ctx, tx); err != nil {
+	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return ReleasePlanPreview{}, err
 	}
 	view, _, err := s.releasePreviewTx(ctx, tx, p, project, in)
@@ -138,7 +138,7 @@ func (s *Service) CreateReleasePlan(ctx context.Context, p Principal, project, t
 	if !rc.ValidDigest(in.PreviewSHA256) {
 		return ReleasePlan{}, invalid("必须确认最新计划预览摘要")
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return ReleasePlan{}, err
 	}
@@ -146,7 +146,7 @@ func (s *Service) CreateReleasePlan(ctx context.Context, p Principal, project, t
 	if err = s.releaseBrowserTx(ctx, tx, p, project, token, false); err != nil {
 		return ReleasePlan{}, err
 	}
-	if err = s.releaseSchedulerLock(ctx, tx); err != nil {
+	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return ReleasePlan{}, err
 	}
 	hash, replay, err := s.receipt(ctx, tx, p, project, in.IdempotencyKey, map[string]any{"release_plan_create": m})
@@ -180,13 +180,19 @@ func (s *Service) CreateReleasePlan(ctx context.Context, p Principal, project, t
 	return out, tx.Commit()
 }
 
-// All current authority, candidate and environment checks use this transaction.
-// After execute, the generation/barrier must name this operation exactly.
 func (s *Service) releasePlanBasisTx(ctx context.Context, tx *sql.Tx, p Principal, project string, plan ReleasePlan, operation string) error {
+	return s.releasePlanBasisReadTx(ctx, tx, p, project, plan, operation, false)
+}
+
+// Execution gates call this only after the organization and project guards.
+func (s *Service) currentReleasePlanBasisTx(ctx context.Context, tx *sql.Tx, p Principal, project string, plan ReleasePlan, operation string) error {
+	return s.releasePlanBasisReadTx(ctx, tx, p, project, plan, operation, true)
+}
+func (s *Service) releasePlanBasisReadTx(ctx context.Context, tx *sql.Tx, p Principal, project string, plan ReleasePlan, operation string, current bool) error {
 	if plan.SHA256 != releasePlanHash(plan.Content) {
 		return releaseConflict("release_basis_changed", "计划摘要损坏")
 	}
-	env, err := s.releaseEnvironmentTx(ctx, tx, p.TenantID, project, plan.Content.EnvironmentID, true)
+	env, err := s.releaseEnvironmentTx(ctx, tx, p.TenantID, project, plan.Content.EnvironmentID, current)
 	if err != nil {
 		return err
 	}
@@ -205,7 +211,7 @@ func (s *Service) releasePlanBasisTx(ctx context.Context, tx *sql.Tx, p Principa
 	if _, err = s.releaseProviderSite(p.TenantID, project, plan.Content.ProviderID, plan.Content.SiteID); err != nil {
 		return err
 	}
-	candidate, err := s.validateReleaseCandidateTx(ctx, tx, p, project, plan.Content.CandidateID)
+	candidate, err := s.validateReleaseCandidateReadTx(ctx, tx, p, project, plan.Content.CandidateID, current)
 	if err != nil {
 		return err
 	}
@@ -215,19 +221,28 @@ func (s *Service) releasePlanBasisTx(ctx context.Context, tx *sql.Tx, p Principa
 	return nil
 }
 func (s *Service) releaseActorAdminTx(ctx context.Context, tx *sql.Tx, tenant, project, actor string) error {
-	p := Principal{ID: actor, TenantID: tenant}
-	if err := s.authorizeProjectTx(ctx, tx, p, project, false, false); err != nil {
+	return s.releaseActorAdminReadTx(ctx, tx, tenant, project, actor, true)
+}
+func (s *Service) releaseActorSnapshotAdminTx(ctx context.Context, tx *sql.Tx, tenant, project, actor string) error {
+	return s.releaseActorAdminReadTx(ctx, tx, tenant, project, actor, false)
+}
+func (s *Service) releaseActorAdminReadTx(ctx context.Context, tx *sql.Tx, tenant, project, actor string, current bool) error {
+	var owner string
+	if err := tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT tenant_id FROM suma_projects WHERE id=?`, current)), project).Scan(&owner); err != nil || owner != tenant {
+		return missing()
+	}
+	var organizationRole string
+	if err := tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT m.role FROM suma_users u JOIN suma_org_members m ON m.user_id=u.id WHERE m.tenant_id=? AND m.user_id=?`, current)), tenant, actor).Scan(&organizationRole); err != nil {
+		if err == sql.ErrNoRows {
+			return forbidden()
+		}
 		return err
 	}
-	live, err := s.liveOrganization(ctx, tx, p)
-	if err != nil {
-		return err
-	}
-	if orgAdmin(live) {
+	if organizationRole == "owner" || organizationRole == "admin" {
 		return nil
 	}
 	var role string
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT role FROM suma_project_members WHERE project_id=? AND user_id=?`), project, actor).Scan(&role); err != nil || role != "admin" {
+	if err := tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT role FROM suma_project_members WHERE project_id=? AND user_id=?`, current)), project, actor).Scan(&role); err != nil || role != "admin" {
 		return forbidden()
 	}
 	return nil
@@ -249,7 +264,7 @@ func (s *Service) ApproveReleasePlan(ctx context.Context, p Principal, project, 
 	if req.Reason == "" || len(req.Reason) > 2000 || req.Decision != "approved" && req.Decision != "rejected" && req.Decision != "revoked" {
 		return ReleasePlan{}, invalid("审批结论或理由无效")
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return ReleasePlan{}, err
 	}
@@ -257,7 +272,7 @@ func (s *Service) ApproveReleasePlan(ctx context.Context, p Principal, project, 
 	if err = s.releaseBrowserTx(ctx, tx, p, project, token, true); err != nil {
 		return ReleasePlan{}, err
 	}
-	if err = s.releaseSchedulerLock(ctx, tx); err != nil {
+	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return ReleasePlan{}, err
 	}
 	hash, replay, err := s.receipt(ctx, tx, p, project, req.IdempotencyKey, map[string]any{"release_approve": id, "body": m})
@@ -269,7 +284,7 @@ func (s *Service) ApproveReleasePlan(ctx context.Context, p Principal, project, 
 		err = json.Unmarshal([]byte(hash), &out)
 		return out, err
 	}
-	out, err = s.releasePlanTx(ctx, tx, p.TenantID, project, id)
+	out, err = s.currentReleasePlanTx(ctx, tx, p.TenantID, project, id)
 	if err != nil {
 		return out, err
 	}
@@ -280,7 +295,7 @@ func (s *Service) ApproveReleasePlan(ctx context.Context, p Principal, project, 
 		return out, conflict("已派发计划仅能撤销后续授权，不能覆盖历史审批")
 	}
 	if req.Decision == "approved" {
-		if err = s.releasePlanBasisTx(ctx, tx, p, project, out, ""); err != nil {
+		if err = s.currentReleasePlanBasisTx(ctx, tx, p, project, out, ""); err != nil {
 			return out, err
 		}
 	}
@@ -353,6 +368,9 @@ func (s *Service) ExecuteReleasePlan(ctx context.Context, p Principal, project, 
 		if e := s.releaseBrowserTx(ctx, tx, p, project, token, true); e != nil {
 			return e
 		}
+		if e := s.releaseSchedulerLock(ctx, tx, p.TenantID, project); e != nil {
+			return e
+		}
 		var e error
 		receiptHash, replay, e = s.receipt(ctx, tx, p, project, req.IdempotencyKey, map[string]any{"release_execute": id, "body": m})
 		if e != nil {
@@ -367,7 +385,7 @@ func (s *Service) ExecuteReleasePlan(ctx context.Context, p Principal, project, 
 			}
 			return nil
 		}
-		current, e := s.releasePlanTx(ctx, tx, p.TenantID, project, id)
+		current, e := s.currentReleasePlanTx(ctx, tx, p.TenantID, project, id)
 		if e != nil {
 			return e
 		}
@@ -379,7 +397,7 @@ func (s *Service) ExecuteReleasePlan(ctx context.Context, p Principal, project, 
 		if replay {
 			return conflict("回执与管理执行状态不一致")
 		}
-		current, e := s.releasePlanTx(ctx, tx, p.TenantID, project, id)
+		current, e := s.currentReleasePlanTx(ctx, tx, p.TenantID, project, id)
 		if e != nil {
 			return e
 		}
@@ -389,7 +407,7 @@ func (s *Service) ExecuteReleasePlan(ctx context.Context, p Principal, project, 
 		if e = s.releaseActorAdminTx(ctx, tx, p.TenantID, project, current.Approval.ActorID); e != nil {
 			return e
 		}
-		if e = s.releasePlanBasisTx(ctx, tx, p, project, current, ""); e != nil {
+		if e = s.currentReleasePlanBasisTx(ctx, tx, p, project, current, ""); e != nil {
 			return e
 		}
 		env, e := s.releaseEnvironmentTx(ctx, tx, p.TenantID, project, current.Content.EnvironmentID, true)
@@ -455,15 +473,12 @@ func (s *Service) ReleasePlan(ctx context.Context, p Principal, project, id stri
 	if err := s.Authorize(ctx, p, project, false, false); err != nil {
 		return ReleasePlan{}, err
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.evidenceSnapshotOptions())
 	if err != nil {
 		return ReleasePlan{}, err
 	}
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, false, false); err != nil {
-		return ReleasePlan{}, err
-	}
-	if err = s.releaseSchedulerLock(ctx, tx); err != nil {
+	if err = s.authorizeProjectSnapshotTx(ctx, tx, p, project); err != nil {
 		return ReleasePlan{}, err
 	}
 	plan, err := s.releasePlanTx(ctx, tx, p.TenantID, project, id)
@@ -504,7 +519,7 @@ func (s *Service) ReleasePlan(ctx context.Context, p Principal, project, id stri
 			if _, e = s.validateReleaseCandidateTx(ctx, tx, p, project, plan.Content.CandidateID); e != nil {
 				plan.Blockers = append(plan.Blockers, ReleaseBlocker{"release_basis_changed", e.Error()})
 			}
-			if plan.Approval != nil && plan.Approval.Decision == "approved" && s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil {
+			if plan.Approval != nil && plan.Approval.Decision == "approved" && s.releaseActorSnapshotAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil {
 				plan.AllowedActions = append(plan.AllowedActions, "revoke")
 			}
 			return plan, nil
@@ -519,7 +534,7 @@ func (s *Service) ReleasePlan(ctx context.Context, p Principal, project, id stri
 		plan.Blockers = append(plan.Blockers, ReleaseBlocker{code, basis.Error()})
 	}
 	plan.Eligibility = basis == nil
-	admin := s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil
+	admin := s.releaseActorSnapshotAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil
 	if admin && plan.ExecutionOperationID == "" && basis == nil {
 		if plan.State == "approved" {
 			plan.AllowedActions = append(plan.AllowedActions, "execute", "revoke")

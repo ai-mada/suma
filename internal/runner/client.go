@@ -64,10 +64,16 @@ func (c *Client) post(ctx context.Context, path string, payload, reply any) erro
 	return nil
 }
 func (c *Client) Claim(ctx context.Context, worker string, capabilities []string) (*Assignment, error) {
+	return c.ClaimWithOperation(ctx, worker, capabilities, operationID())
+}
+func (c *Client) ClaimWithOperation(ctx context.Context, worker string, capabilities []string, operation string) (*Assignment, error) {
+	if strings.TrimSpace(operation) == "" {
+		return nil, fmt.Errorf("claim operation is required")
+	}
 	var r struct {
 		Assignment *Assignment `json:"assignment"`
 	}
-	err := c.post(ctx, "claim", map[string]any{"project_id": c.ProjectID, "worker_id": worker, "capabilities": capabilities}, &r)
+	err := c.post(ctx, "claim", map[string]any{"project_id": c.ProjectID, "worker_id": worker, "capabilities": capabilities, "idempotency_key": operation}, &r)
 	return r.Assignment, err
 }
 func (c *Client) Heartbeat(ctx context.Context, a Assignment) (bool, error) {

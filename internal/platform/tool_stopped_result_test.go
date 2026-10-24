@@ -25,7 +25,7 @@ func TestToolHTTPStoppedZeroExitCannotSucceed(t *testing.T) {
 			}
 			w := f.call("POST", "/workflows", f.body(map[string]any{"name": "Stopped zero exit", "nodes": []dag.Node{{ID: "agent", Type: "agent", Command: []string{profile.Profile.CommandID}, Config: map[string]any{"goal": "fixture", "tool_profile_id": profile.ID, "tool_profile_sha256": profile.Profile.ProfileSHA256}}, {ID: "quality", Type: "test", Command: []string{"quality"}, DependsOn: []string{"agent"}}}}), 201)
 			r := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": w["id"]}), 201)
-			claim := f.bearer("POST", "/runner/claim", token, map[string]any{"project_id": f.project, "worker_id": profile.WorkerID, "capabilities": []string{"command:" + profile.Profile.CommandID}}, 200)
+			claim := f.bearer("POST", "/runner/claim", token, map[string]any{"project_id": f.project, "worker_id": profile.WorkerID, "capabilities": []string{"command:" + profile.Profile.CommandID}, "idempotency_key": newID()}, 200)
 			var a dag.Assignment
 			raw, _ := json.Marshal(claim["assignment"])
 			if json.Unmarshal(raw, &a) != nil || a.WorkerID != profile.WorkerID {
@@ -33,7 +33,7 @@ func TestToolHTTPStoppedZeroExitCannotSucceed(t *testing.T) {
 			}
 			result := dag.Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, OperationID: newID(), Stopped: true, ExitCode: 0}
 			if terminal != "none" {
-				result.ToolEvidence = &toolcontract.Evidence{Profile: profile.Profile, Terminal: terminal, EventCount: 1}
+				result.ToolEvidence = &toolcontract.Evidence{Profile: profile.Profile, Terminal: terminal, EventCount: 1, UsageState: toolcontract.UsageUnreported}
 			}
 			f.bearer("POST", "/runner/results", token, map[string]any{"project_id": f.project, "result": result}, 200)
 			current := f.call("GET", "/runs/"+r["id"].(string)+"?project_id="+f.project, nil, 200)

@@ -12,7 +12,7 @@ Go导出域模型直接反射，包括PlanningPeriod、TaskPlan、PlannedTask、
 
 ## 请求规则
 
-签名事件接收器是独立边界：`POST /hooks/{id}` 使用入口签名，拒绝浏览器Cookie/Bearer和任何query，不由调用者提供project_id。T-P4-003新增7个签名入口路径；本阶段再加入7个工具及任务派发路径，当前生成合同为147个模型、117个API路径；另加统一`Error`，OpenAPI实际共有148个Schema组件。跨字段、原文字节签名和事务规则见[事件入口合同](../../contracts/automation-ingress.md)；工具资格、固定任务输入和结构化进度见[工具执行合同](../../contracts/tool-execution.md)。这些计数描述合同覆盖，不表示真实厂商或完整平台已经验收。
+签名事件接收器是独立边界：`POST /hooks/{id}` 使用入口签名，拒绝浏览器Cookie/Bearer和任何query，不由调用者提供project_id。T-P4-003新增7个签名入口路径；T-P4-004加入7个工具及任务派发路径；T-P4-005增加8个调度策略、就绪队列与真实尝试路径，当前生成合同为169个模型、125个API路径；另加统一`Error`，OpenAPI实际共有170个Schema组件。跨字段、原文字节签名和事务规则见[事件入口合同](../../contracts/automation-ingress.md)；工具资格、固定任务输入和结构化进度见[工具执行合同](../../contracts/tool-execution.md)及[调度内核合同](../../contracts/scheduling-kernel.md)。这些计数描述合同覆盖，不表示真实厂商或完整平台已经验收。
 
 - 项目请求必须给出project_id；租户由身份取得，客户端不能指定其他tenant。
 - 创建/写入携带稳定idempotency_key。相同标识与内容恢复同一操作；不同内容返回409。
@@ -48,6 +48,9 @@ Go导出域模型直接反射，包括PlanningPeriod、TaskPlan、PlannedTask、
 | issues/{id}/intake | 唯一来源问题回流需求 |
 | workflows、workflows/validate | 不可变版本发布与编译 |
 | runs、runs/{id}、events、commands | 运行/事件/控制/审批/核对/补偿 |
+| scheduling/policy、scheduling/policy-previews、policy-previews/{id}/commit | 当前项目准入额度、不可变影响预览与人工确认；人类write+approve、版本及稳定回执同事务 |
+| scheduling/queue、runs/{id}/nodes/{node}/scheduling | 持久就绪队列、当前真实阻塞及资源预留；不是硬件负载或跨租户派发顺序 |
+| runs/{id}/nodes/{node}/attempts、attempts/{attempt} | 持久尝试元数据分页、精确读取原始结果；不从最近事件推测历史 |
 | automations、automations/preview、automations/{id}/commands | 人工/cron规则、固定版本预演与CAS启停，限真实组织会话 |
 | automations/{id}/occurrences、revisions | 触发与真实运行关联、不可变规格修订的范围绑定分页 |
 | runs/{id}/events/stream | 持久SSE回放、当前权限重验、断线游标续传；GET events 为每页128条历史 |
@@ -63,7 +66,7 @@ Go导出域模型直接反射，包括PlanningPeriod、TaskPlan、PlannedTask、
 
 节点状态：pending/ready/running/waiting/reconciling/succeeded/failed/skipped/cancelled；运行另有paused/cancelling。waiting原因和节点类型决定可用操作，不能对所有等待统一显示审批。
 
-事件sequence为持久化顺序，分页使用after游标。当前浏览器通过增量读取事件更新；持久WebSocket/SSE与完整日志流属于后续阶段。新增事件必须记录run/node/attempt及固定因果关系，ACK不早于事务提交。
+事件sequence为持久化顺序，分页使用after游标。浏览器使用持久SSE回放与历史分页兜底，连接正常轮换及重连保留当前运行、节点和attempt。完整无限日志归档仍需后续实现。新增事件必须记录run/node/attempt及固定因果关系，ACK不早于事务提交；调度事务只在所有领域写入和锁完成后的最终尾部为已缓冲事件分配全局序号，之后直接提交，避免跨提交的小号事件被游标漏读。
 
 `runner/progress`请求包含`project_id,assignment,operation_id,message`；必须匹配当前worker、attempt与fence。1–8192 UTF-8字节的真实输出经过控制符清理和凭证形态脱敏，事务提交后返回`{acknowledged:true}`。`node_progress`的`data`遵循生成的NodeProgressData；message是累计输出尾部快照，不能拼接为不重复的日志，也不是完成百分比。
 
@@ -78,3 +81,15 @@ NodeRun现返回固定运行定义的`idempotent,compensatable`和可选`workspa
 `GET planning`的limit默认200、最多200，cursor限定当前组织/项目；可用`task_id`单独读取一项最新计划。total与metrics保持全项目范围，coverage标明loaded_tasks、whole_project指标及loaded_tasks时间线。任务计划有独立version；排期changes要求完整字段、`expected_task_version`与计划`expected_version`（初次为0），一批1–200项原子保存。估算和容量的null为未知，0为明确零；容量member_id引用项目资源，week_start必须为周一，人工工时独立于机器配额。迭代/里程碑完成要求所有关联任务accepted；成功执行不代替交付验收。
 
 基线列表和创建响应只有BaselineSummary。捕获在事务中复制全部任务范围；详情snapshot.tasks按cursor/limit分页，snapshot.total是完整快照数量，comparison则覆盖当前完整项目范围，as_of标明比较读取时间。范围变化、定义变化、排期变化与当前验收状态分别表达，快照不会随计划修改。
+
+## 执行策略、领取与用量
+
+`GET scheduling/policy`是只读事实，未落库的明确默认策略为并发1、version0/default=true。`concurrency_limit`不可为null；`resource_limits`的单项和`budget_limit`以null明确表示不限制，0确实阻止新准入。数值为0–9007199254740991的严格整数。`budget`是累计admission_units，每次worker attempt默认至少1，与token/金额及人员周工时分开；既有消费不退款，旧阶段未跟踪历史标为partial。
+
+预览请求完整提供project_id、expected_version、policy和idempotency_key，30分钟数据库期限内固定原策略、差异、SHA256及as_of影响快照。确认再次检查当前人类write+approve和两层版本，策略、预览状态、审计与操作回执原子提交。降低容量不停止已有工作。API项目token可读其范围但allowed_actions为空，不能预览/确认；Runner/Agent token不访问这些工作台路径。队列和attempt分页默认50/上限100，游标绑定组织、项目和节点集合；精确attempt读取不依赖第一页是否包含该项。
+
+`runner/claim`完整提交project_id、worker_id、实际capabilities与稳定idempotency_key。Runner先把原请求持久化，再调用；丢ACK重复同请求恢复同dispatch/attempt/fence，空结果也有原操作回执。active恢复重验当前worker及工具/发布资格；closed/reconciling仅是历史/核对观察，绝不启动进程。节点租约未知时先核对，不猜测未执行。收到响应后先存回执、再存执行inbox、最后确认本地claim完成；崩溃恢复保守处理可能效果。
+
+`ToolUsage`各计数字段可省略但不可为null；省略为未知，0是明确报告的零。`usage_state=complete`要求input/output均已知，partial保留至少一个真实小计，unreported不含usage对象（允许外层null等价缺失）。普通非usage事件可以没有usage/state；usage事件或携带usage对象时必须有state。生成Schema使用条件约束表达这些关系，服务端仍检查事件身份、字节上限、当前授权和原始JSON。新scheduling/runner严格DTO请求保留原数字词法，防止接近2^53的小数先经float64舍入后被误接纳；其它历史map路由尚未统一迁移，不能据此宣称所有接口具备同等数值合同。
+
+Attempt列表只查询元数据，`result_source=not_loaded`；精确详情才读取原Result，并区分runner_result、manual_reconciliation、child_workflow、managed_observation和unreported。人工核对不伪造机器Result；提供方观察的合成状态码不称进程退出码，原未知回执仍保留在managed resolution链。新generation2 worker仅对明确transient且幂等的失败自动重试，最多2次、1/2秒持久退避；自动序列总截止显式使用TimeoutSeconds，未配默认300秒，人工retry新开持久窗口并保留旧窗口。TimeoutSeconds算术上限9223372036秒，避免纳秒时长溢出；旧generation1运行保留其固定解释。

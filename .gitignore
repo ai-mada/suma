@@ -18,3 +18,13 @@ test-results/
 *.log
 *.exe
 *.tsbuildinfo
+
+# T-P4-005 raw acceptance archives stay local; keep compact reports in docs/quality.
+docs/quality/evidence/scheduling-actual/
+docs/quality/evidence/scheduling-core/
+docs/quality/evidence/scheduling-integration/
+docs/quality/evidence/scheduling-platform-guards/
+docs/quality/evidence/scheduling-runtime-protocol/
+docs/quality/evidence/scheduling-runtime/
+docs/quality/evidence/scheduling-ui-final/
+docs/quality/evidence/scheduling-ui/

@@ -98,8 +98,8 @@ func TestArtifactUploadAuthenticatesBytesAndSealNeverMeansBuildPassed(t *testing
 	other := f.call("POST", "/projects", map[string]any{"title": "其他范围", "idempotency_key": newID()}, 201)
 	f.call("GET", "/artifacts/"+artifact+"?project_id="+other["id"].(string), nil, 404)
 	// A scoped credential cannot impersonate a different worker or be impersonated.
-	f.bearer("POST", "/runner/claim", token, map[string]any{"project_id": f.project, "worker_id": "other-worker", "capabilities": []string{"command"}}, 403)
-	f.bearer("POST", "/runner/claim", shared, map[string]any{"project_id": f.project, "worker_id": ref.WorkerID, "capabilities": []string{"command"}}, 403)
+	f.bearer("POST", "/runner/claim", token, map[string]any{"project_id": f.project, "worker_id": "other-worker", "capabilities": []string{"command"}, "idempotency_key": newID()}, 403)
+	f.bearer("POST", "/runner/claim", shared, map[string]any{"project_id": f.project, "worker_id": ref.WorkerID, "capabilities": []string{"command"}, "idempotency_key": newID()}, 403)
 }
 
 func TestArtifactRawUploadOverJSONLimitAndInvalidatedLease(t *testing.T) {

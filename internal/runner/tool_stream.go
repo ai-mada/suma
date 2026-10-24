@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math"
+	"strconv"
 	"strings"
 	"sync"
 	"unicode/utf8"
@@ -30,6 +30,14 @@ type toolStream struct {
 	expectedRequestID string
 	sessionStarted    bool
 	turnStarted       bool
+	requestPending    bool
+	requestStep       int64
+	usageSteps        int
+	usageMissing      bool
+	usagePartial      bool
+	usagePresence     [5]int
+	failureClass      string
+	lastUsageState    string
 }
 
 func newToolStream(p tc.Profile, secrets []string, emit func(tc.Event) error, expectedID ...string) *toolStream {
@@ -161,8 +169,13 @@ func (s *toolStream) id(value string) string {
 	}
 	return value
 }
-func (s *toolStream) event(kind, item, message, status string, usage *tc.Usage) {
+func (s *toolStream) event(kind, item, message, status string, usage *tc.Usage, state ...string) {
 	e := tc.Event{SchemaVersion: 1, CommandID: s.profile.CommandID, ProfileSHA256: s.profile.ProfileSHA256, Protocol: s.profile.Protocol, Kind: kind, SessionID: s.session, ItemID: s.id(item), Message: progressText(message, s.secrets), Status: status, Usage: usage}
+	if len(state) > 0 {
+		e.UsageState = state[0]
+	} else if usage != nil {
+		e.UsageState = tc.UsageComplete
+	}
 	if err := tc.ValidateEvent(e); err != nil {
 		s.invalid("selected event fields are invalid")
 		return
@@ -195,20 +208,82 @@ func parseUsage(m map[string]any) (*tc.Usage, error) {
 		return nil, nil
 	}
 	u := &tc.Usage{}
-	for name, destination := range map[string]*int64{"input_tokens": &u.InputTokens, "cached_input_tokens": &u.CachedInputTokens, "cache_write_input_tokens": &u.CacheWriteInputTokens, "output_tokens": &u.OutputTokens, "reasoning_output_tokens": &u.ReasoningOutputTokens} {
+	hasCounters := false
+	for name, destination := range map[string]**int64{"input_tokens": &u.InputTokens, "cached_input_tokens": &u.CachedInputTokens, "cache_write_input_tokens": &u.CacheWriteInputTokens, "output_tokens": &u.OutputTokens, "reasoning_output_tokens": &u.ReasoningOutputTokens} {
 		if v, present := m[name]; present {
 			n, ok := v.(json.Number)
 			if !ok {
 				return nil, fmt.Errorf("invalid usage")
 			}
 			i, err := n.Int64()
-			if err != nil || i < 0 {
+			if err != nil || i < 0 || i > tc.MaxSafeUsage {
 				return nil, fmt.Errorf("invalid usage")
 			}
-			*destination = i
+			*destination = &i
+			hasCounters = true
 		}
 	}
+	if !hasCounters {
+		return nil, nil
+	}
 	return u, nil
+}
+
+func usageCounts(u *tc.Usage) []*int64 {
+	return []*int64{u.InputTokens, u.CachedInputTokens, u.CacheWriteInputTokens, u.OutputTokens, u.ReasoningOutputTokens}
+}
+
+func (s *toolStream) accumulateUsage(u *tc.Usage) error {
+	if u == nil {
+		s.usageMissing = true
+		return nil
+	}
+	if s.usage == nil {
+		s.usage = &tc.Usage{}
+	}
+	sources := usageCounts(u)
+	targets := []**int64{&s.usage.InputTokens, &s.usage.CachedInputTokens, &s.usage.CacheWriteInputTokens, &s.usage.OutputTokens, &s.usage.ReasoningOutputTokens}
+	// Validate the whole addition before changing any subtotal.
+	for i, source := range sources {
+		if source != nil && *targets[i] != nil && **targets[i] > tc.MaxSafeUsage-*source {
+			return fmt.Errorf("aggregate token usage exceeds safe integer range")
+		}
+	}
+	for i, source := range sources {
+		if source != nil {
+			if *targets[i] == nil {
+				zero := int64(0)
+				*targets[i] = &zero
+			}
+			**targets[i] += *source
+			s.usagePresence[i]++
+		}
+	}
+	return nil
+}
+
+func (s *toolStream) coverage() string {
+	if s.usage == nil {
+		return tc.UsageUnreported
+	}
+	if s.bad != nil || s.requestPending || s.usageMissing || s.usagePartial {
+		return tc.UsagePartial
+	}
+	for _, count := range s.usagePresence {
+		if count > 0 && count < s.usageSteps {
+			return tc.UsagePartial
+		}
+	}
+	return tc.UsageComplete
+}
+
+func nativeInteger(m map[string]any, key string) (int64, bool) {
+	n, ok := m[key].(json.Number)
+	if !ok {
+		return 0, false
+	}
+	i, err := n.Int64()
+	return i, err == nil && i >= 0 && i <= tc.MaxSafeUsage
 }
 func (s *toolStream) line(raw []byte) {
 	if len(bytes.TrimSpace(raw)) == 0 {
@@ -339,36 +414,55 @@ func (s *toolStream) suma(m map[string]any) {
 		s.event("session_started", "", "", "", nil)
 		s.event("turn_started", "", "", "", nil)
 	case "tool_started":
-		s.event("activity_started", textAt(m, "call_id"), "project_tool", "", nil)
-	case "tool_completed":
-		s.event("activity_completed", textAt(m, "call_id"), "project_tool", "", nil)
-	case "usage":
-		if reported, ok := m["usage_reported"].(bool); !ok || !reported {
+		if s.requestPending {
+			s.invalid("native tool activity before model request usage settled")
 			return
 		}
-		for _, name := range []string{"input_tokens", "output_tokens"} {
-			if _, ok := m[name].(json.Number); !ok {
-				s.invalid("reported native usage counter is missing")
-				return
-			}
+		s.event("activity_started", textAt(m, "call_id"), "project_tool", "", nil)
+	case "tool_completed":
+		if s.requestPending {
+			s.invalid("native tool activity before model request usage settled")
+			return
+		}
+		s.event("activity_completed", textAt(m, "call_id"), "project_tool", "", nil)
+	case "request_started":
+		step, ok := nativeInteger(m, "step")
+		allowance, valid := nativeInteger(m, "output_allowance")
+		if !ok || !valid || step != s.requestStep || step >= 16 || allowance < 1 || allowance > 4096 || s.requestPending {
+			s.invalid("invalid or out-of-order native model request")
+			return
+		}
+		s.requestPending = true
+		s.event("activity_started", "model-step-"+strconv.FormatInt(step, 10), "model_request", "model_request", nil)
+	case "usage":
+		step, ok := nativeInteger(m, "step")
+		if !ok || !s.requestPending || step != s.requestStep {
+			s.invalid("native usage does not match a pending model request")
+			return
 		}
 		u, err := parseUsage(m)
 		if err != nil {
 			s.invalid("invalid token usage")
 			return
 		}
-		if s.usage == nil {
-			s.usage = &tc.Usage{}
-		}
-		if s.usage.InputTokens > math.MaxInt64-u.InputTokens || s.usage.OutputTokens > math.MaxInt64-u.OutputTokens {
-			s.invalid("aggregate token usage overflow")
+		state := textAt(m, "usage_state")
+		reported, valid := m["usage_reported"].(bool)
+		if !valid || reported != (state == tc.UsageComplete) || state == tc.UsageComplete && (u == nil || u.InputTokens == nil || u.OutputTokens == nil) || state == tc.UsagePartial && u == nil || state == tc.UsageUnreported && u != nil || state != tc.UsageComplete && state != tc.UsagePartial && state != tc.UsageUnreported {
+			s.invalid("native usage coverage contradicts its source counters")
 			return
 		}
-		s.usage.InputTokens += u.InputTokens
-		s.usage.OutputTokens += u.OutputTokens
-		s.event("usage", "", "", "", u)
+		if err = s.accumulateUsage(u); err != nil {
+			s.invalid(err.Error())
+			return
+		}
+		s.requestPending = false
+		s.requestStep++
+		s.usageSteps++
+		s.usagePartial = s.usagePartial || state == tc.UsagePartial
+		s.lastUsageState = state
+		s.event("usage", "model-step-"+strconv.FormatInt(step, 10), "", "", u, state)
 	case "completed":
-		if strings.TrimSpace(textAt(m, "output")) == "" {
+		if strings.TrimSpace(textAt(m, "output")) == "" || s.requestPending {
 			s.invalid("missing completed output")
 			return
 		}
@@ -377,6 +471,10 @@ func (s *toolStream) suma(m map[string]any) {
 		s.event("turn_completed", "", "", "", nil)
 	case "error":
 		s.setTerminal("failed")
+		status, ok := nativeInteger(m, "http_status")
+		if ok && status == 429 && textAt(m, "source") == "model" && textAt(m, "code") == "upstream_rejected" && textAt(m, "failure_class") == "transient" && s.lastUsageState == tc.UsageUnreported && s.usageSteps > 0 && !s.requestPending {
+			s.failureClass = "transient"
+		}
 		s.event("error", "", textAt(m, "message"), textAt(m, "code"), nil)
 	case "waiting_input":
 		s.event("waiting_input", "", textAt(m, "message"), "", nil)
@@ -396,6 +494,6 @@ func (s *toolStream) finish() (*tc.Evidence, error) {
 	if s.bad != nil || terminal == "" {
 		terminal = "unknown"
 	}
-	e := &tc.Evidence{Profile: s.profile, SessionID: s.session, Terminal: terminal, EventCount: s.count, Usage: s.usage}
+	e := &tc.Evidence{Profile: s.profile, SessionID: s.session, Terminal: terminal, EventCount: s.count, Usage: s.usage, UsageState: s.coverage()}
 	return e, s.bad
 }

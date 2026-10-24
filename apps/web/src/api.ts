@@ -28,6 +28,6 @@ export const operation=()=>crypto.randomUUID();
 export const query=(project:string)=>'?project_id='+encodeURIComponent(project);
 export const list=<T=RecordItem>(path:string,project:string)=>api<{items:T[];total:number;next_cursor?:string}>(path+query(project));
 export const label=(r:RecordItem)=>r.title||r.name||r.id;
-export const statusNames:Record<string,string>={draft:'草稿',open:'待处理',pending:'待执行',ready:'可执行',running:'进行中',paused:'已暂停',cancelling:'取消中',waiting:'等待审批',reconciling:'结果未知',succeeded:'已成功',failed:'失败',skipped:'已跳过',cancelled:'已取消',todo:'待开始',in_progress:'进行中',in_review:'待验收',accepted:'已验收',done:'已完成',active:'已启用',resolved:'已解决',published:'已发布',blocked:'受阻',planned:'计划中',completed:'已完成',archived:'已归档',removed:'已移除',revoked:'已撤销',expired:'已过期'};
+export const statusNames:Record<string,string>={draft:'草稿',open:'待处理',pending:'待执行',ready:'待派发',running:'进行中',paused:'已暂停',cancelling:'取消中',waiting:'等待审批',reconciling:'结果未知',succeeded:'已成功',failed:'失败',skipped:'已跳过',cancelled:'已取消',todo:'待开始',in_progress:'进行中',in_review:'待验收',accepted:'已验收',done:'已完成',active:'已启用',resolved:'已解决',published:'已发布',blocked:'受阻',planned:'计划中',completed:'已完成',archived:'已归档',removed:'已移除',revoked:'已撤销',expired:'已过期'};
 export const stateLabel=(s?:string)=>statusNames[s??'']||s||'未设置';
 export const time=(s?:string)=>s?new Date(s).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';

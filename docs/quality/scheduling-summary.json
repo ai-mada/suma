@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-005",
+  "date": "2026-10-24",
+  "status": "local_functional_stage_verified_full_platform_in_progress",
+  "base_commit": "1e9d77b9ffc314c1c55df48a402ffd0bf7e0e8de",
+  "environment": {
+    "os": "Windows amd64",
+    "go": "1.24.5",
+    "node": "22.16.0",
+    "pnpm": "11.25.0",
+    "database": "real SQLite",
+    "external_models": "loopback fixtures only"
+  },
+  "go": {
+    "command": "go test -p 1 -json ./... -count=1 -timeout=6m",
+    "pass_events": 606,
+    "fail_events": 0,
+    "test_skips": 0,
+    "tested_packages": 10,
+    "compiled_command_packages": 4,
+    "vet_exit": 0,
+    "source_files": 221,
+    "source_manifest_sha256": "379a1de436eca1648ef798354823ed0fe893158db2fe51f001ddab6e5eaf793d",
+    "source_matches_current": true,
+    "raw_output_sha256": "f7e68a75dbaf2721b0c489feb2e5cbb8903c6a965b9e633e650856280e2db8f3"
+  },
+  "javascript": {
+    "total_tests": 270,
+    "web_tests": 244,
+    "web_files": 24,
+    "native_tests": 20,
+    "desktop_tests": 3,
+    "knowledge_tests": 3,
+    "failures": 0,
+    "workspace_typecheck_exit": 0,
+    "final_web_typecheck_exit": 0,
+    "final_web_build_exit": 0,
+    "source_inputs": 121,
+    "source_manifest_sha256": "7fc2d18a5fdf4cc8c08571218f3a24c97175b57a4442dfc6b98904c0a2e1692c",
+    "final_ui_input_files": 23,
+    "source_matches_current": true,
+    "verification_scope": "Workspace268 passed before final two-file graph keyboard change; all other119 inputs unchanged. Final complete web244, typecheck and build replace earlier web242. Aggregate270 is these verified package totals, not one new workspace run.",
+    "final_ui_receipt_sha256": "71340d539dfb5a70734d4020bb4c4d2e2a1ee9c94e7bc0d660669cae581aab42",
+    "assets": [
+      {
+        "file": "index-jI-XtZ8U.js",
+        "sha256": "e17eecffa464e24cbee20c68dadd7f0c6b55167d0b29d076b17c56a5e1a5ffb6"
+      },
+      {
+        "file": "index-CNpu4DxB.css",
+        "sha256": "cb15ba3b9909e341af2e264fb3eee90ed21dc44f93743b70668035b3008cd705"
+      },
+      {
+        "file": "Workflow-DzzzFIDL.js",
+        "sha256": "16f2429903a1c52ad4a9d95da4f6cc73635d8b12b2103878869bcb7ce49a50bc"
+      }
+    ]
+  },
+  "contracts": {
+    "models": 169,
+    "components": 170,
+    "paths": 125,
+    "references": 375,
+    "generated_schema_sha256": "a4f5d8aab3a7e6abedf8c37b380ddede6cd900881aa9715ddab80da9298612bb",
+    "usage_schema_cases": 16,
+    "usage_schema_validator": "Ajv2020 8.20.0"
+  },
+  "runtime": {
+    "cut": "20261024T064658380Z-b9221a5f",
+    "files": 24,
+    "targets": 6,
+    "programs_per_target": 4,
+    "production_inputs": 133,
+    "source_manifest_sha256": "adb87de3ebbd6d716b25fd4232b8bd34b8eadbaa182b2a30f80d1c319665bc9b",
+    "windows_control_sha256": "706ee2bdb0170dad2fba3c1ddb895126637336150e4c28e144017a5997e880ef",
+    "windows_runner_sha256": "9b6251f64f82a5700e99cb94223eec941076cc0f1a0b7d15d1150874de12d181",
+    "activated": "Windows control and two Runner processes",
+    "other_os_execution": false,
+    "installation_or_signing_verified": false
+  },
+  "historical_migration": {
+    "source_stage": "T-P4-004 independent backup",
+    "passes": 2,
+    "unchanged_original_tables": 78,
+    "new_tables": 28,
+    "runs": 4,
+    "nodes": 8,
+    "attempts": 5,
+    "events": 46,
+    "baseline_database_sha256": "0f09fd3b935f084497842567ec372b7f701691b14fef0b76ce0bf216195c9849",
+    "scope": "canonical full-row hash for every original table; active original database untouched"
+  },
+  "actual_gui": {
+    "run_id": "a987e720d2d1397aa248547ee74d1648",
+    "workflow_revision": 1,
+    "policy_versions": [
+      1,
+      2
+    ],
+    "slot_change": [
+      0,
+      2
+    ],
+    "zero_slot_attempts": 0,
+    "zero_slot_budget_spent": 0,
+    "terminal_state": "succeeded",
+    "nodes": 5,
+    "attempts": 3,
+    "events": 22,
+    "budget_spent": 3,
+    "ready": 0,
+    "distinct_runner_processes": 2,
+    "work_overlap_ms": 1497,
+    "human_approval": true,
+    "refresh_persisted": true,
+    "terminal_snapshot_sha256": "6845f92346375d082e19d123cf8ae9134b99f459393bfb872cec036872732d17",
+    "inspector_observed_ms": 177272,
+    "inspector_facts": 1,
+    "inspector_histories": 1,
+    "partial_css_widths": [
+      390,
+      768,
+      1366,
+      1920
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "scope": "local command admission/concurrency fixture, precise attempt and partial page walkthrough; not business functionality, vendor model, WCAG or scale acceptance",
+    "final_keyboard_observed_ms": 101669,
+    "final_keyboard_attempt_retained": true,
+    "final_keyboard_facts": 1,
+    "final_keyboard_histories": 1,
+    "final_exact_attempt_refresh": true,
+    "final_browser_warnings_and_errors": 0
+  },
+  "benchmark": {
+    "database": "SQLite",
+    "iterations": 1,
+    "complete_one_of_1000": {
+      "before": {
+        "sql": 1019,
+        "rows": 1005,
+        "node_updates": 1000,
+        "ms": 24.95
+      },
+      "after": {
+        "sql": 40,
+        "rows": 11,
+        "node_updates": 1,
+        "ms": 1.99
+      }
+    },
+    "future_1000_timers": {
+      "before_sql": 9,
+      "after_sql": 2,
+      "after_writes": 0
+    },
+    "mismatch_300_then_match": {
+      "before_sql": 2113,
+      "after_sql": 60
+    },
+    "cold_100_ms": {
+      "before": 14.24,
+      "after": 67.38
+    },
+    "cold_300_ms": {
+      "before": 146.47,
+      "after": 140.43
+    },
+    "scope": "single local samples and actual driver calls; no P95 or distributed throughput claim"
+  },
+  "git_delivery": {
+    "includes": "source, meaningful tests, config, generated contracts, professional design and compact validation reports",
+    "excludes": "raw logs, screenshots, repeated source snapshots, databases, credentials, caches and binaries",
+    "raw_archive_directories": 8,
+    "push_authorized": false
+  },
+  "remaining": [
+    "shared pools and hierarchical weighted fairness",
+    "explicit multi-project Runner identity",
+    "model gateway rate authorization and real settlement",
+    "OceanBase/PostgreSQL/S3 actual matrix",
+    "real vendor accounts",
+    "full IDE, office, offline, voice and payment workflows",
+    "signed installers and OS installation matrix",
+    "target scale and complete P0-P7 acceptance",
+    "legacy AttachRun transaction contract unification"
+  ]
+}

@@ -9,7 +9,7 @@ import (
 // Managed execution and provider failures share one durable operation issue.
 // The same organization/scheduler lock order serializes both projections.
 func (s *Service) projectManagedReleaseFailure(ctx context.Context, tenant, project, runID string) (bool, error) {
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return false, err
 	}
@@ -18,7 +18,7 @@ func (s *Service) projectManagedReleaseFailure(ctx context.Context, tenant, proj
 	if err = s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
 		return false, err
 	}
-	if err = s.releaseSchedulerLock(ctx, tx); err != nil {
+	if err = s.releaseSchedulerLock(ctx, tx, tenant, project); err != nil {
 		return false, err
 	}
 	var operation string
@@ -29,7 +29,7 @@ func (s *Service) projectManagedReleaseFailure(ctx context.Context, tenant, proj
 	if err != nil {
 		return false, err
 	}
-	d, err := s.releaseDeploymentTx(ctx, tx, tenant, project, operation)
+	d, err := s.currentReleaseDeploymentTx(ctx, tx, tenant, project, operation)
 	if err != nil {
 		return true, err
 	}

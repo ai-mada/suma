@@ -14,23 +14,54 @@ func terminal(s string) bool {
 	return false
 }
 func (r *runState) find(id string) *nodeState {
+	if r.nodeMap == nil {
+		r.nodeMap = map[string]*nodeState{}
+		for _, n := range r.nodes {
+			r.nodeMap[n.ID] = n
+		}
+	}
+	if n := r.nodeMap[id]; n != nil {
+		return n
+	}
 	for _, n := range r.nodes {
 		if n.ID == id {
+			r.nodeMap[id] = n
 			return n
 		}
 	}
-	return nil
+	return r.lazyNode(id)
 }
 func (t *transaction) transition(r *runState, n *nodeState, state, reason string) error {
 	before := n.State
 	n.State = state
 	n.Reason = reason
+	if r.indexed && terminal(before) && (state == "pending" || state == "waiting") {
+		if err := t.resetDependencies(r, n); err != nil {
+			return err
+		}
+		// Retracting an old terminal outcome must reach counters before any
+		// reopened parent/descendant can inspect them in this transaction.
+		if err := t.resolveOutgoing(r, n, true); err != nil {
+			return err
+		}
+	}
 	if terminal(state) {
 		n.CompletedAt = stamp(t.now)
 		n.lease = 0
 		if err := t.exec("DELETE FROM dag_ready WHERE run_id=? AND node_id=?", r.ID, n.ID); err != nil {
 			return err
 		}
+		if err := t.exec(`DELETE FROM dag_ready_v2 WHERE run_id=? AND node_id=?`, r.ID, n.ID); err != nil {
+			return err
+		}
+	}
+	if r.indexed && (terminal(state) || state == "pending") {
+		if err := t.enqueueNode(r, n.ID); err != nil {
+			return err
+		}
+	}
+	if err := t.syncWake(r, n); err != nil {
+		return err
 	}
 	return t.event(r, n.ID, "node_"+state, map[string]any{"previous_state": before, "reason": reason, "attempt": n.Attempt, "fence": n.Fence})
 }
@@ -142,11 +173,36 @@ func (t *transaction) ready(r *runState, n *nodeState) error {
 	if err := t.transition(r, n, "ready", ""); err != nil {
 		return err
 	}
-	var seq int64
-	if err := t.row("SELECT seq FROM dag_lock WHERE id=1").Scan(&seq); err != nil {
+	seq, err := t.nextQueueSequence(r.TenantID, r.ProjectID)
+	if err != nil {
 		return err
 	}
-	return t.exec("INSERT INTO dag_ready (run_id,node_id,sequence) VALUES (?,?,?)", r.ID, n.ID, seq)
+	if err = t.exec("INSERT INTO dag_ready (run_id,node_id,sequence) VALUES (?,?,?)", r.ID, n.ID, seq); err != nil {
+		return err
+	}
+	command := ""
+	if len(n.spec.Command) == 1 {
+		command = n.spec.Command[0]
+	}
+	required, _ := n.spec.Config["capability"].(string)
+	n.ReadyAt = stamp(t.now)
+	generation := 1
+	if r.indexed {
+		if err = t.row(`SELECT generation FROM dag_node_dependencies WHERE run_id=? AND node_id=?`, r.ID, n.ID).Scan(&generation); err != nil {
+			return err
+		}
+		if err = t.exec(`UPDATE dag_node_dependencies SET ready_at=?,version=version+1 WHERE run_id=? AND node_id=?`, n.ReadyAt, r.ID, n.ID); err != nil {
+			return err
+		}
+	}
+	if n.Type == "external_workflow" {
+		plugin, _ := n.spec.Config["plugin"].(string)
+		required = "external_workflow:" + plugin
+	}
+	if err = t.exec(`INSERT INTO dag_ready_v2(run_id,node_id,tenant_id,project_id,generation,sequence,ready_at,node_type,command_id,required_capability)VALUES(?,?,?,?,?,?,?,?,?,?)`, r.ID, n.ID, r.TenantID, r.ProjectID, generation, seq, n.ReadyAt, n.Type, command, required); err != nil {
+		return err
+	}
+	return t.refreshRunTurn(r)
 }
 func numeric(m map[string]any, key string) int64 {
 	switch v := m[key].(type) {
@@ -160,193 +216,188 @@ func numeric(m map[string]any, key string) int64 {
 	return 0
 }
 func (t *transaction) expand(r *runState, n *nodeState) error {
-	raw, err := mapItems(n.spec)
-	if err != nil {
-		return err
-	}
-	if len(raw) > 1000 {
-		return fmt.Errorf("%w: map expansion exceeds 1000", ErrInvalid)
-	}
-	template, err := mapTemplate(n.spec)
-	if err != nil {
-		return err
-	}
-	if template.Type == "map" {
-		return fmt.Errorf("%w: nested map unsupported", ErrUnsupported)
-	}
-	for i, item := range raw {
-		spec := template
-		spec.ID = fmt.Sprintf("%s[%d]", n.ID, i)
-		spec.Name = spec.ID
-		spec.DependsOn = nil
-		spec.Command = append([]string{}, template.Command...)
-		value, ok := item.(string)
-		if !ok {
-			value = encoded(item)
-		}
-		for j := range spec.Command {
-			spec.Command[j] = strings.ReplaceAll(spec.Command[j], "{{item}}", value)
-			spec.Command[j] = strings.ReplaceAll(spec.Command[j], "{{index}}", fmt.Sprint(i))
-		}
-		spec.Config = map[string]any{}
-		for key, value := range template.Config {
-			spec.Config[key] = value
-		}
-		spec.Config["item"] = item
-		spec.Config["index"] = i
-		child := &nodeState{NodeRun: NodeRun{ID: spec.ID, Name: spec.Name, Type: spec.Type, State: "pending", Command: spec.Command}, spec: spec, parent: n.ID}
-		r.nodes = append(r.nodes, child)
-		if err := t.insertNode(r, child); err != nil {
-			return err
-		}
-	}
-	if len(raw) == 0 {
-		return t.transition(r, n, "succeeded", "empty map")
-	}
-	return t.transition(r, n, "waiting", "map_children")
+	return t.beginMapExpansion(r, n)
 }
 
 // advance reaches a fixed point before committing: joining, branch skips,
 // approval waits, timer waits and expansion never hold a worker lease.
 func (t *transaction) advance(r *runState) error {
-	if _, err := t.resolveSubruns(r); err != nil {
-		return err
+	if !r.indexed {
+		if err := t.initializeGraph(r, true); err != nil {
+			return err
+		}
 	}
-	if r.State == "paused" || r.State == "cancelling" || terminal(r.State) {
+	if r.loadErr != nil {
+		return r.loadErr
+	}
+	if r.State == "cancelling" {
+		if _, err := t.resolveSubruns(r); err != nil {
+			return err
+		}
 		return t.finishRun(r)
 	}
-	for {
-		changed, resolveErr := t.resolveSubruns(r)
-		if resolveErr != nil {
-			return resolveErr
+	if r.State == "paused" || terminal(r.State) {
+		return t.finishRun(r)
+	}
+	for processed := 0; processed < 2048; processed++ {
+		id, err := t.nextNodeWork(r)
+		if err != nil {
+			return err
 		}
-		for _, n := range r.nodes {
-			if n.State == "waiting" && n.Type == "map" {
-				all, failed := true, false
-				for _, child := range r.nodes {
-					if child.parent == n.ID {
-						all = all && terminal(child.State)
-						failed = failed || child.State != "succeeded"
-					}
-				}
-				if all {
-					state := "succeeded"
-					if failed {
-						state = "failed"
-					}
-					if err := t.transition(r, n, state, "map children finished"); err != nil {
-						return err
-					}
-					changed = true
-				}
-				continue
+		if id == "" {
+			return t.finishRun(r)
+		}
+		n := r.find(id)
+		if n == nil {
+			if r.loadErr != nil {
+				return r.loadErr
 			}
-			if n.State == "waiting" && n.Type == "timer" && n.wake <= t.now {
-				if err := t.transition(r, n, "succeeded", "timer elapsed"); err != nil {
-					return err
-				}
-				changed = true
-				continue
-			}
-			if n.State != "pending" {
-				continue
-			}
-			if n.wake > t.now {
-				continue
-			}
-			ok, impossible := r.eligible(n)
-			if impossible {
-				if err := t.transition(r, n, "skipped", "join cannot be satisfied"); err != nil {
-					return err
-				}
-				changed = true
-				continue
-			}
-			if !ok {
-				continue
-			}
-			if !predicatesReady(n, r) {
-				continue
-			}
-			enabled, err := condition(n.spec.Condition, r)
-			if err != nil {
+			return fmt.Errorf("%w: queued node missing", ErrInvalid)
+		}
+		if err = t.resolveOutgoing(r, n, true); err != nil {
+			return err
+		}
+		if n.State == "waiting" && n.Type == "map" {
+			var total, done, failed, closed int
+			if err = t.row(`SELECT total,terminal_count,failed_count,closed FROM dag_map_progress WHERE run_id=? AND node_id=?`, r.ID, n.ID).Scan(&total, &done, &failed, &closed); err != nil {
 				return err
 			}
-			if !enabled {
-				if err = t.transition(r, n, "skipped", "condition false"); err != nil {
+			if closed == 1 && done == total {
+				state := "succeeded"
+				if failed > 0 {
+					state = "failed"
+				}
+				if err = t.transition(r, n, state, "map children finished"); err != nil {
 					return err
 				}
-				changed = true
-				continue
 			}
-			switch n.Type {
-			case "approval":
-				err = t.transition(r, n, "waiting", "approval_required")
-			case "timer":
-				duration := numeric(n.spec.Config, "duration_seconds")
-				n.wake = t.now + duration
-				err = t.transition(r, n, "waiting", "timer")
-			case "condition":
-				var value bool
-				expr, _ := n.spec.Config["expression"].(string)
-				value, err = condition(expr, r)
-				if err == nil {
-					n.Output = fmt.Sprint(value)
-					if len(n.spec.Branches) > 0 {
-						keys := []string{}
-						for key := range n.spec.Branches {
-							keys = append(keys, key)
-						}
-						sort.Strings(keys)
-						n.Output = ""
-						fallback := ""
-						for _, key := range keys {
-							expr := n.spec.Branches[key]
-							if expr == "default" {
-								fallback = key
-								continue
-							}
-							matched, e := condition(expr, r)
-							if e != nil {
-								return e
-							}
-							if matched {
-								n.Output = key
-								break
-							}
-						}
-						if n.Output == "" {
-							n.Output = fallback
-						}
-					}
-					err = t.transition(r, n, "succeeded", "condition evaluated")
-				}
-			case "join", "noop":
-				err = t.transition(r, n, "succeeded", "")
-			case "map":
-				err = t.expand(r, n)
-			case "subworkflow":
-				err = t.spawnSubrun(r, n)
-			default:
-				err = t.ready(r, n)
-			}
-			if err != nil {
+			continue
+		}
+		if n.State == "waiting" && n.Type == "timer" && n.wake <= t.now {
+			if err = t.transition(r, n, "succeeded", "timer elapsed"); err != nil {
 				return err
 			}
-			changed = true
+			continue
 		}
-		if !changed {
-			break
+		if n.State == "waiting" && n.Type == "subworkflow" {
+			if _, err = t.resolveSubruns(r); err != nil {
+				return err
+			}
+			continue
 		}
+		if n.State != "pending" {
+			continue
+		}
+		if n.wake > t.now {
+			if err = t.syncWake(r, n); err != nil {
+				return err
+			}
+			continue
+		}
+		ok, impossible, err := t.incrementalEligible(r, n)
+		if err != nil {
+			return err
+		}
+		if impossible {
+			reason := "join cannot be satisfied"
+			var selected int
+			if err = t.row(`SELECT selected FROM dag_node_dependencies WHERE run_id=? AND node_id=?`, r.ID, n.ID).Scan(&selected); err != nil {
+				return err
+			}
+			if selected == 0 && r.kernelGeneration >= 2 {
+				reason = "unselected branch"
+			}
+			if err = t.transition(r, n, "skipped", reason); err != nil {
+				return err
+			}
+			continue
+		}
+		if !ok || !predicatesReady(n, r) {
+			continue
+		}
+		enabled, err := condition(n.spec.Condition, r)
+		if err != nil {
+			return err
+		}
+		if !enabled {
+			if err = t.transition(r, n, "skipped", "condition false"); err != nil {
+				return err
+			}
+			continue
+		}
+		switch n.Type {
+		case "approval":
+			err = t.transition(r, n, "waiting", "approval_required")
+		case "timer":
+			duration := numeric(n.spec.Config, "duration_seconds")
+			n.wake = t.now + duration
+			err = t.transition(r, n, "waiting", "timer")
+		case "condition":
+			var value bool
+			expr, _ := n.spec.Config["expression"].(string)
+			value, err = condition(expr, r)
+			if err == nil {
+				n.Output = fmt.Sprint(value)
+				if len(n.spec.Branches) > 0 {
+					keys := []string{}
+					for key := range n.spec.Branches {
+						keys = append(keys, key)
+					}
+					sort.Strings(keys)
+					n.Output = ""
+					fallback := ""
+					for _, key := range keys {
+						expr := n.spec.Branches[key]
+						if expr == "default" {
+							fallback = key
+							continue
+						}
+						matched, e := condition(expr, r)
+						if e != nil {
+							return e
+						}
+						if matched {
+							n.Output = key
+							break
+						}
+					}
+					if n.Output == "" {
+						n.Output = fallback
+					}
+				}
+				err = t.transition(r, n, "succeeded", "condition evaluated")
+			}
+		case "join", "noop":
+			err = t.transition(r, n, "succeeded", "")
+		case "map":
+			err = t.expand(r, n)
+		case "subworkflow":
+			err = t.spawnSubrun(r, n)
+		default:
+			err = t.ready(r, n)
+		}
+		if err != nil {
+			return err
+		}
+	}
+	if err := t.putPropagationWake(r); err != nil {
+		return err
 	}
 	return t.finishRun(r)
 }
 func (t *transaction) finishRun(r *runState) error {
 	all, failed, cancelled := true, false, false
-	for _, n := range r.nodes {
-		all = all && terminal(n.State)
-		failed = failed || n.State == "failed"
-		cancelled = cancelled || n.State == "cancelled"
+	if r.indexed {
+		total, done, bad, stopped := r.counts()
+		all = done == total
+		failed = bad > 0
+		cancelled = stopped > 0
+	} else {
+		for _, n := range r.nodes {
+			all = all && terminal(n.State)
+			failed = failed || n.State == "failed"
+			cancelled = cancelled || n.State == "cancelled"
+		}
 	}
 	if !all {
 		return nil

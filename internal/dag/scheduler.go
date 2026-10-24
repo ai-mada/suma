@@ -33,65 +33,13 @@ func mapTemplate(n Node) (Node, error) {
 // SetResourceLimits configures per-project concurrent resources. The reserved
 // name budget is a cumulative admission budget, charged once per attempt.
 func (e *Engine) SetResourceLimits(ctx context.Context, tenant, project string, limits map[string]int64) error {
-	if err := scopeValid(tenant, project); err != nil {
-		return err
-	}
-	return e.write(ctx, func(t *transaction) error {
-		for name, capacity := range limits {
-			if !identifier.MatchString(name) || capacity < 0 {
-				return fmt.Errorf("%w: resource limit", ErrInvalid)
-			}
-			var old int64
-			err := t.row("SELECT capacity FROM dag_resource_limits WHERE tenant_id=? AND project_id=? AND name=?", tenant, project, name).Scan(&old)
-			if err == sql.ErrNoRows {
-				err = t.exec("INSERT INTO dag_resource_limits (tenant_id,project_id,name,capacity,consumed) VALUES (?,?,?,?,0)", tenant, project, name, capacity)
-			} else if err == nil {
-				err = t.exec("UPDATE dag_resource_limits SET capacity=? WHERE tenant_id=? AND project_id=? AND name=?", capacity, tenant, project, name)
-			}
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	return e.write(ctx, func(t *transaction) error { return t.mergeResourceLimits(tenant, project, limits) })
 }
 func (t *transaction) reserve(r *runState, n *nodeState) (bool, error) {
-	for name, amount := range n.spec.Resources {
-		var cap, consumed int64
-		err := t.row("SELECT capacity,consumed FROM dag_resource_limits WHERE tenant_id=? AND project_id=? AND name=?", r.TenantID, r.ProjectID, name).Scan(&cap, &consumed)
-		if err == sql.ErrNoRows {
-			continue
-		}
-		if err != nil {
-			return false, err
-		}
-		var used int64
-		if name == "budget" {
-			used = consumed
-		} else {
-			if err = t.row("SELECT COALESCE(SUM(x.amount),0) FROM dag_reservations x JOIN dag_runs r ON r.id=x.run_id WHERE r.tenant_id=? AND r.project_id=? AND x.name=?", r.TenantID, r.ProjectID, name).Scan(&used); err != nil {
-				return false, err
-			}
-		}
-		if amount > cap-used {
-			return false, nil
-		}
-	}
-	for name, amount := range n.spec.Resources {
-		if name == "budget" {
-			if err := t.exec("UPDATE dag_resource_limits SET consumed=consumed+? WHERE tenant_id=? AND project_id=? AND name=?", amount, r.TenantID, r.ProjectID, name); err != nil {
-				return false, err
-			}
-		} else {
-			if err := t.exec("INSERT INTO dag_reservations (run_id,node_id,name,amount) VALUES (?,?,?,?)", r.ID, n.ID, name, amount); err != nil {
-				return false, err
-			}
-		}
-	}
-	return true, nil
+	return t.reservePolicyResources(r, n)
 }
 func (t *transaction) release(r *runState, n *nodeState) error {
-	return t.exec("DELETE FROM dag_reservations WHERE run_id=? AND node_id=?", r.ID, n.ID)
+	return t.releasePolicyResources(r, n, false)
 }
 func capable(node *nodeState, capabilities []string) bool {
 	if len(capabilities) == 0 {
@@ -135,30 +83,47 @@ func (e *Engine) ClaimBound(ctx context.Context, tenant, project, worker string,
 // Service-owned eligibility is evaluated before acquiring an attempt/resource.
 // Self-reported worker capabilities never grant managed deployment authority.
 func (e *Engine) ClaimEligible(ctx context.Context, tenant, project, worker string, capabilities []string, before func(*sql.Tx) error, eligible func(*sql.Tx, string, string) (bool, error)) (*Assignment, error) {
+	return e.ClaimWithOperation(ctx, tenant, project, worker, uid(), capabilities, before, eligible)
+}
+
+func (e *Engine) ClaimWithOperation(ctx context.Context, tenant, project, worker, operationID string, capabilities []string, before func(*sql.Tx) error, eligible func(*sql.Tx, string, string) (bool, error)) (*Assignment, error) {
 	if err := scopeValid(tenant, project); err != nil {
 		return nil, err
 	}
 	if worker == "" || len(worker) > 100 {
 		return nil, fmt.Errorf("%w: worker_id required", ErrInvalid)
 	}
+	if len(operationID) < 8 || len(operationID) > 128 {
+		return nil, fmt.Errorf("%w: claim operation requires 8..128 characters", ErrInvalid)
+	}
+	capabilities, err := normalizedCapabilities(capabilities)
+	if err != nil {
+		return nil, err
+	}
+	requestHash := fingerprint(map[string]any{"worker_id": worker, "capabilities": capabilities})
 	var out *Assignment
-	err := e.writeBefore(ctx, before, func(t *transaction) error {
-		rows, err := t.rows("SELECT q.run_id,q.node_id FROM dag_ready q JOIN dag_runs r ON r.id=q.run_id LEFT JOIN dag_run_fairness f ON f.run_id=q.run_id WHERE r.tenant_id=? AND r.project_id=? AND r.state='running' ORDER BY COALESCE(f.last_claim_sequence,0),q.sequence,q.run_id,q.node_id", tenant, project)
+	err = e.writeBefore(ctx, before, func(t *transaction) error {
+		if err := t.guardProject(tenant, project); err != nil {
+			return err
+		}
+		previous, found, err := t.recoverDispatch(tenant, project, worker, operationID, requestHash)
 		if err != nil {
 			return err
 		}
-		type candidate struct{ run, node string }
-		candidates := []candidate{}
-		for rows.Next() {
-			var c candidate
-			if err = rows.Scan(&c.run, &c.node); err != nil {
-				rows.Close()
-				return err
+		if found {
+			if previous != nil && previous.DispatchState == "active" && eligible != nil {
+				allowed, err := eligible(t.tx, previous.RunID, previous.NodeID)
+				if err != nil {
+					return err
+				}
+				if !allowed {
+					return fmt.Errorf("%w: original dispatch is currently blocked; inspect its existing attempt", ErrConflict)
+				}
 			}
-			candidates = append(candidates, c)
+			out = previous
+			return nil
 		}
-		err = rows.Err()
-		rows.Close()
+		candidates, err := t.claimCandidateBatch(tenant, project, worker, capabilities)
 		if err != nil {
 			return err
 		}
@@ -172,7 +137,7 @@ func (e *Engine) ClaimEligible(ctx context.Context, tenant, project, worker stri
 					continue
 				}
 			}
-			r, err := load(ctx, t.tx, e, tenant, project, c.run)
+			r, err := t.loadHot(tenant, project, c.run)
 			if err != nil {
 				return err
 			}
@@ -208,6 +173,22 @@ func (e *Engine) ClaimEligible(ctx context.Context, tenant, project, worker stri
 				}
 				continue
 			}
+			seconds, err := t.attemptWindow(r, n, false)
+			if err != nil {
+				return err
+			}
+			if r.kernelGeneration >= 2 && seconds <= 0 {
+				if err = t.transition(r, n, "failed", "automatic retry deadline exhausted before dispatch"); err != nil {
+					return err
+				}
+				if err = t.advance(r); err != nil {
+					return err
+				}
+				if err = t.save(r); err != nil {
+					return err
+				}
+				continue
+			}
 			reserved, err := t.reserve(r, n)
 			if err != nil {
 				return err
@@ -215,20 +196,28 @@ func (e *Engine) ClaimEligible(ctx context.Context, tenant, project, worker stri
 			if !reserved {
 				continue
 			}
+			if seconds, err = t.attemptWindow(r, n, true); err != nil {
+				return err
+			}
 			n.Attempt++
 			n.Fence++
 			n.WorkerID = worker
+			n.Output, n.Error = "", ""
+			n.WorkspaceEvidence, n.ArtifactEvidence, n.ToolEvidence = nil, nil, nil
 			n.StartedAt = stamp(t.now)
 			n.CompletedAt = ""
 			n.lease = t.now + e.LeaseSeconds
+			if seconds > 0 && n.lease > t.now+int64(seconds) {
+				n.lease = t.now + int64(seconds)
+			}
 			if err = t.freezeCandidate(r, n, pin); err != nil {
 				return err
 			}
 			if err = t.transition(r, n, "running", ""); err != nil {
 				return err
 			}
-			var claimSequence int64
-			if err = t.row("SELECT seq FROM dag_lock WHERE id=1").Scan(&claimSequence); err != nil {
+			claimSequence, err := t.nextQueueSequence(tenant, project)
+			if err != nil {
 				return err
 			}
 			if err = t.exec("DELETE FROM dag_run_fairness WHERE run_id=?", r.ID); err != nil {
@@ -240,13 +229,19 @@ func (e *Engine) ClaimEligible(ctx context.Context, tenant, project, worker stri
 			if err = t.exec("DELETE FROM dag_ready WHERE run_id=? AND node_id=?", r.ID, n.ID); err != nil {
 				return err
 			}
+			if err = t.exec(`DELETE FROM dag_ready_v2 WHERE run_id=? AND node_id=?`, r.ID, n.ID); err != nil {
+				return err
+			}
 			if err = t.exec("INSERT INTO dag_attempts (run_id,node_id,attempt,fence,worker_id,state,started_at,completed_at,result) VALUES (?,?,?,?,?,?,?,?,?)", r.ID, n.ID, n.Attempt, n.Fence, worker, "running", n.StartedAt, "", ""); err != nil {
 				return err
 			}
 			if err = t.save(r); err != nil {
 				return err
 			}
-			out = &Assignment{RunID: r.ID, NodeID: n.ID, Attempt: n.Attempt, Fence: n.Fence, WorkerID: worker, Command: n.spec.Command, Type: n.Type, TimeoutSeconds: n.spec.TimeoutSeconds, Idempotent: n.spec.Idempotent, Config: n.spec.Config}
+			if err = t.resetClaimScan(tenant, project, worker, capabilities); err != nil {
+				return err
+			}
+			out = &Assignment{RunID: r.ID, NodeID: n.ID, Attempt: n.Attempt, Fence: n.Fence, WorkerID: worker, Command: n.spec.Command, Type: n.Type, TimeoutSeconds: seconds, Idempotent: n.spec.Idempotent, Config: n.spec.Config}
 			if pin != nil {
 				out.CandidateCommit = pin.CandidateCommit
 				out.CandidateFrom = pin.CandidateFrom
@@ -254,14 +249,17 @@ func (e *Engine) ClaimEligible(ctx context.Context, tenant, project, worker stri
 				out.CandidateFence = pin.CandidateFence
 				out.CandidateEvidenceSHA256 = pin.CandidateEvidenceSHA256
 			}
-			return nil
+			return t.recordDispatch(tenant, project, worker, operationID, requestHash, out, n.lease)
 		}
-		return nil
+		return t.recordDispatch(tenant, project, worker, operationID, requestHash, nil, 0)
 	})
 	return out, err
 }
 func (t *transaction) assigned(tenant, project string, a Assignment) (*runState, *nodeState, error) {
-	r, err := load(t.ctx, t.tx, t.e, tenant, project, a.RunID)
+	if err := t.guardProject(tenant, project); err != nil {
+		return nil, nil, err
+	}
+	r, err := t.loadHot(tenant, project, a.RunID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -287,6 +285,21 @@ func (e *Engine) HeartbeatWithAuthority(ctx context.Context, tenant, project str
 			return ErrCancelled
 		}
 		n.lease = t.now + e.LeaseSeconds
+		if r.kernelGeneration >= 2 {
+			remaining, err := t.attemptWindow(r, n, false)
+			if err != nil {
+				return err
+			}
+			if remaining <= 0 {
+				return ErrStale
+			}
+			if n.lease > t.now+int64(remaining) {
+				n.lease = t.now + int64(remaining)
+			}
+		}
+		if err = t.syncWake(r, n); err != nil {
+			return err
+		}
 		return t.exec("UPDATE dag_nodes SET lease_until=? WHERE run_id=? AND id=?", n.lease, r.ID, n.ID)
 	})
 }
@@ -314,6 +327,9 @@ func (e *Engine) CompleteManagedObservedBound(ctx context.Context, tenant, proje
 }
 
 func (e *Engine) completeBound(ctx context.Context, tenant, project string, result Result, before func(*sql.Tx) error, commit func(*sql.Tx, string) error, managedResolution bool) error {
+	if err := validateFailureClass(result.FailureClass); err != nil {
+		return err
+	}
 	if len(result.Output) > 4*1024*1024 || len(result.Error) > 64*1024 {
 		return fmt.Errorf("%w: result too large", ErrInvalid)
 	}
@@ -336,7 +352,7 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 		if previous != "" {
 			return nil
 		}
-		r, err := load(ctx, t.tx, e, tenant, project, result.RunID)
+		r, err := t.loadHot(tenant, project, result.RunID)
 		if err != nil {
 			return err
 		}
@@ -401,7 +417,7 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 			return err
 		}
 		if terminal(state) || result.Stopped {
-			if err = t.release(r, n); err != nil {
+			if err = t.releasePolicyResources(r, n, result.Stopped && result.OutcomeUnknown); err != nil {
 				return err
 			}
 		}
@@ -413,11 +429,8 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 				return err
 			}
 		}
-		if state == "failed" && r.State != "cancelling" && n.spec.Idempotent && n.Attempt <= n.spec.MaxRetries {
-			n.State = "pending"
-			n.CompletedAt = ""
-			n.WorkerID = ""
-			if err = t.event(r, n.ID, "retry_scheduled", map[string]any{"attempt": n.Attempt + 1}); err != nil {
+		if state == "failed" && r.State != "cancelling" {
+			if _, err = t.scheduleTransientRetry(r, n, result); err != nil {
 				return err
 			}
 		}
@@ -431,65 +444,12 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 	})
 }
 func (e *Engine) Tick(ctx context.Context) error {
-	return e.write(ctx, func(t *transaction) error {
-		rows, err := t.rows("SELECT tenant_id,project_id,id FROM dag_runs WHERE state IN ('running','paused','cancelling')")
-		if err != nil {
-			return err
-		}
-		type key struct{ tenant, project, id string }
-		keys := []key{}
-		for rows.Next() {
-			var k key
-			if err = rows.Scan(&k.tenant, &k.project, &k.id); err != nil {
-				rows.Close()
-				return err
-			}
-			keys = append(keys, k)
-		}
-		err = rows.Err()
-		rows.Close()
-		if err != nil {
-			return err
-		}
-		for _, k := range keys {
-			r, err := load(ctx, t.tx, e, k.tenant, k.project, k.id)
-			if err != nil {
-				return err
-			}
-			changed := false
-			for _, n := range r.nodes {
-				if n.State == "running" && n.lease <= t.now {
-					if err = t.transition(r, n, "reconciling", "lease expired; external outcome unknown"); err != nil {
-						return err
-					}
-					if err = t.exec("UPDATE dag_attempts SET state='reconciling' WHERE run_id=? AND node_id=? AND attempt=?", r.ID, n.ID, n.Attempt); err != nil {
-						return err
-					}
-					changed = true
-				}
-				if n.State == "waiting" && n.Type == "timer" && n.wake <= t.now {
-					changed = true
-				}
-				if n.State == "pending" && n.wake > 0 && n.wake <= t.now {
-					changed = true
-				}
-				if n.State == "waiting" && n.Type == "subworkflow" && n.ChildRunID != "" {
-					var childState string
-					if err = t.row("SELECT state FROM dag_runs WHERE id=?", n.ChildRunID).Scan(&childState); err != nil {
-						return err
-					}
-					changed = changed || terminal(childState) || n.wake > 0 && n.wake <= t.now
-				}
-			}
-			if changed {
-				if err = t.advance(r); err != nil {
-					return err
-				}
-				if err = t.save(r); err != nil {
-					return err
-				}
-			}
-		}
-		return nil
-	})
+	report, err := e.TickBatch(ctx, 100)
+	if err != nil {
+		return err
+	}
+	if report.Failed > 0 {
+		return fmt.Errorf("scheduler wake processing failed for %d isolated runs", report.Failed)
+	}
+	return nil
 }

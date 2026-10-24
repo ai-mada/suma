@@ -90,7 +90,7 @@ func (s *Service) verifyArtifactResultTx(ctx context.Context, tx *sql.Tx, p Prin
 		if err = tx.QueryRowContext(ctx, s.q(`SELECT id FROM suma_artifact_proofs WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND kind='build' AND artifact_id=?`), p.TenantID, project, b.BuildRunID, b.BuildNodeID, b.BuildAttempt, b.BuildFence, b.ArtifactID).Scan(&buildID); err != nil {
 			return conflict("原构建证明不存在")
 		}
-		if _, err = s.artifactProofTx(ctx, tx, p, project, buildID); err != nil {
+		if _, err = s.currentArtifactProofTx(ctx, tx, p, project, buildID); err != nil {
 			return err
 		}
 	default:
@@ -104,6 +104,14 @@ func (s *Service) verifyArtifactResultTx(ctx context.Context, tx *sql.Tx, p Prin
 // successful attempt and its immutable final result. Generic reconcile has no
 // result/receipt from the trusted attester and cannot manufacture this fact.
 func (s *Service) artifactProofTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (ArtifactProof, error) {
+	return s.artifactProofReadTx(ctx, tx, p, project, id, false)
+}
+
+func (s *Service) currentArtifactProofTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (ArtifactProof, error) {
+	return s.artifactProofReadTx(ctx, tx, p, project, id, true)
+}
+
+func (s *Service) artifactProofReadTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string, current bool) (ArtifactProof, error) {
 	proof, err := scanArtifactProof(tx.QueryRowContext(ctx, s.q(`SELECT `+artifactProofColumns+` FROM suma_artifact_proofs WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id))
 	if err != nil {
 		return proof, missing()
@@ -111,7 +119,7 @@ func (s *Service) artifactProofTx(ctx context.Context, tx *sql.Tx, p Principal, 
 	var state, currentState, raw string
 	var attempt int
 	var fence int64
-	err = tx.QueryRowContext(ctx, s.q(`SELECT a.state,n.state,n.attempt,n.fence,a.result FROM dag_attempts a JOIN dag_nodes n ON n.run_id=a.run_id AND n.id=a.node_id WHERE a.run_id=? AND a.node_id=? AND a.attempt=? AND a.fence=? AND a.worker_id=?`), proof.Assignment.RunID, proof.Assignment.NodeID, proof.Assignment.Attempt, proof.Assignment.Fence, proof.Assignment.WorkerID).Scan(&state, &currentState, &attempt, &fence, &raw)
+	err = tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT a.state,n.state,n.attempt,n.fence,a.result FROM dag_attempts a JOIN dag_nodes n ON n.run_id=a.run_id AND n.id=a.node_id JOIN dag_runs r ON r.id=a.run_id WHERE r.tenant_id=? AND r.project_id=? AND a.run_id=? AND a.node_id=? AND a.attempt=? AND a.fence=? AND a.worker_id=?`, current)), p.TenantID, project, proof.Assignment.RunID, proof.Assignment.NodeID, proof.Assignment.Attempt, proof.Assignment.Fence, proof.Assignment.WorkerID).Scan(&state, &currentState, &attempt, &fence, &raw)
 	if err != nil || state != "succeeded" || currentState != "succeeded" || attempt != proof.Assignment.Attempt || fence != proof.Assignment.Fence {
 		return proof, conflict("构建或包测试当前尝试已变化")
 	}
@@ -128,7 +136,7 @@ func (s *Service) artifactProofTx(ctx context.Context, tx *sql.Tx, p Principal, 
 
 func (s *Service) ResolveArtifactInput(ctx context.Context, p Principal, project, token string, r rc.ArtifactResolveRequest) (rc.ArtifactBinding, error) {
 	var out rc.ArtifactBinding
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return out, err
 	}
@@ -205,7 +213,7 @@ func (s *Service) ResolveArtifactInput(ctx context.Context, p Principal, project
 	if err = tx.QueryRowContext(ctx, s.q(`SELECT a.id FROM suma_artifact_proofs a JOIN dag_nodes n ON n.run_id=a.run_id AND n.id=a.node_id AND n.attempt=a.attempt AND n.fence=a.fence WHERE a.tenant_id=? AND a.project_id=? AND a.run_id=? AND a.node_id=? AND a.kind='build'`), p.TenantID, project, r.Assignment.RunID, r.SourceNodeID).Scan(&proofID); err != nil {
 		return out, conflict("上游尚无可用构建证明")
 	}
-	proof, err := s.artifactProofTx(ctx, tx, p, project, proofID)
+	proof, err := s.currentArtifactProofTx(ctx, tx, p, project, proofID)
 	if err != nil {
 		return out, err
 	}
@@ -232,7 +240,7 @@ func (s *Service) ResolveArtifactInput(ctx context.Context, p Principal, project
 }
 
 func (s *Service) RunnerArtifactBlob(ctx context.Context, p Principal, project, token, id, hash string, a rc.AssignmentRef) ([]byte, error) {
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return nil, err
 	}

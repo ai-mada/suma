@@ -12,6 +12,7 @@
 | C4 与关键流程时序 | [可维护 Mermaid 源图](architecture/diagrams.md) |
 | 领域归属与数据结构 | [领域模型](architecture/domain-model.md)、[事务存储](data/transactional-store.md) |
 | 调度、恢复、资源和回执 | [DAG 内核](scheduler/engine.md)、[可靠性](scheduler/reliability.md)、[候选代码交接](scheduler/candidate-handoff.md) |
+| 增量调度与项目准入 | [增量内核与迁移](scheduler/incremental-kernel.md)、[交互规范](design/scheduling-workspace.md)、[用量与领取](agents/scheduling-usage.md)、[阶段验收](quality/scheduling-verification.md)、[平台门禁验证](quality/scheduling-platform-guards.md)、[当前运行包与旧数据复核](deployment/scheduling-runtime-bundles.md) |
 | 原件、多模态、索引与同步 | [数据平面](data/multimodal.md)、[同步协议](data/synchronization.md) |
 | 真实制品、发布授权与恢复 | [制品存储](data/release-artifacts.md)、[发布证据架构](architecture/release-evidence.md)、[发布工作台](design/release-workspace.md) |
 | 本机发布与执行提供方 | [发布控制面](deployment/release-control.md)、[提供方协议](integrations/release-provider.md)、[四程序运行包](deployment/release-runtime-bundles.md) |

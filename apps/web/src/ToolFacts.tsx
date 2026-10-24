@@ -1,4 +1,5 @@
 import { stateLabel } from "./api";
+import type { ToolEvidence as ContractToolEvidence } from "../../../packages/contracts/src";
 import {
   taskPlanStarted,
   toolEventNames,
@@ -8,6 +9,7 @@ import {
   type TaskDispatchPlan,
   type ToolEvent,
   type ToolUsage,
+  type UsageState,
   type TaskContextRecord,
 } from "./tool-model";
 import "./tool.css";
@@ -243,7 +245,15 @@ export function TaskDispatchFacts({ plan }: { plan: TaskDispatchPlan }) {
     </section>
   );
 }
-function UsageFacts({ usage }: { usage?: ToolUsage }) {
+export function UsageFacts({
+  usage,
+  usageState,
+  step = false,
+}: {
+  usage?: ToolUsage;
+  usageState?: UsageState;
+  step?: boolean;
+}) {
   const entries: [keyof ToolUsage, string][] = [
     ["input_tokens", "输入 Token"],
     ["cached_input_tokens", "其中缓存输入"],
@@ -251,18 +261,37 @@ function UsageFacts({ usage }: { usage?: ToolUsage }) {
     ["output_tokens", "输出 Token"],
     ["reasoning_output_tokens", "其中推理输出"],
   ];
-  return usage ? (
-    <dl>
-      {entries
-        .filter(([key]) => usage[key] !== undefined)
-        .map(([key, title]) => (
-          <div className="tool-usage-row" key={key}>
-            <dt>{title}</dt>
-            <dd>{usage[key]}</dd>
-          </div>
-        ))}
-    </dl>
-  ) : null;
+  return (
+    <section aria-label="报告用量与完整度">
+      <p>
+        {usageState === "complete"
+          ? step
+            ? "本步骤已报告用量；不代表整轮总量"
+            : "本轮完整已报告用量"
+          : usageState === "partial"
+            ? "部分已报告小计，不代表整轮完整总量"
+            : usageState === "unreported"
+              ? "未报告用量"
+              : "用量完整度未报告"}
+      </p>
+      {usageState !== "unreported" && usage && (
+        <dl>
+          {entries.map(([key, title]) => (
+            <div className="tool-usage-row" key={key}>
+              <dt>{title}</dt>
+              <dd>
+                {typeof usage[key] === "number" &&
+                Number.isSafeInteger(usage[key]) &&
+                usage[key]! >= 0
+                  ? usage[key]
+                  : "未报告"}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </section>
+  );
 }
 export function ToolExecutionFacts({
   state,
@@ -270,7 +299,7 @@ export function ToolExecutionFacts({
   events = [],
 }: {
   state: string;
-  evidence?: ToolEvidence;
+  evidence?: ToolEvidence | ContractToolEvidence;
   events?: ToolEvent[];
 }) {
   if (!evidence && !events.length) return null;
@@ -279,9 +308,19 @@ export function ToolExecutionFacts({
     session =
       evidence?.session_id ||
       [...events].reverse().find((event) => event.session_id)?.session_id,
-    usage =
-      evidence?.usage ||
-      [...events].reverse().find((event) => event.usage)?.usage;
+    usageEvent = [...events]
+      .reverse()
+      .find(
+        (event) => event.kind === "usage" || event.usage_state || event.usage,
+      ),
+    usage = evidence ? evidence.usage : usageEvent?.usage,
+    reportedState = evidence ? evidence.usage_state : usageEvent?.usage_state,
+    usageState =
+      reportedState === "complete" ||
+      reportedState === "partial" ||
+      reportedState === "unreported"
+        ? reportedState
+        : undefined;
   return (
     <section className="tool-execution-facts" aria-label="外部工具执行事实">
       <h4>外部工具执行事实</h4>
@@ -296,13 +335,13 @@ export function ToolExecutionFacts({
             </dd>
             <dt>工具报告</dt>
             <dd>
-              {
+              {(
                 {
                   completed: "工具报告本轮结束",
                   failed: "工具报告本轮失败",
                   unknown: "工具结果未知",
-                }[evidence.terminal]
-              }
+                } as Record<string, string>
+              )[evidence.terminal] || "工具未提供可识别终态"}
             </dd>
             <dt>已记录事件数</dt>
             <dd>{evidence.event_count}</dd>
@@ -322,7 +361,11 @@ export function ToolExecutionFacts({
           会话标识仅供追溯与核对，不会自动续跑，不代表平台具备远程会话恢复权限。
         </p>
       )}
-      <UsageFacts usage={usage} />
+      <UsageFacts
+        usage={usage ?? undefined}
+        usageState={usageState}
+        step={!evidence}
+      />
       {state === "running" && last?.kind === "waiting_input" && (
         <p className="warning">
           等待外部输入，进程仍占用执行槽位。当前协议不支持在此答复或自动恢复，请核对本机工具。

@@ -36,6 +36,7 @@ export type ToolUsage = {
   output_tokens?: number;
   reasoning_output_tokens?: number;
 };
+export type UsageState = "complete" | "partial" | "unreported";
 export type ToolEvent = {
   schema_version: 1;
   command_id: string;
@@ -47,6 +48,7 @@ export type ToolEvent = {
   message?: string;
   status?: string;
   usage?: ToolUsage;
+  usage_state?: UsageState;
 };
 export type ToolEvidence = {
   profile: ToolProfileDefinition;
@@ -54,6 +56,7 @@ export type ToolEvidence = {
   terminal: "completed" | "failed" | "unknown";
   event_count: number;
   usage?: ToolUsage;
+  usage_state?: UsageState;
 };
 export type TaskContextRecord = {
   id: string;

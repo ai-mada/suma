@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ai-mada/suma/internal/dag"
+
 	rc "github.com/ai-mada/suma/internal/releasecontract"
 )
 
@@ -219,9 +221,8 @@ func (s *Service) releaseBrowserTx(ctx context.Context, tx *sql.Tx, p Principal,
 	}
 	return nil
 }
-func (s *Service) releaseSchedulerLock(ctx context.Context, tx *sql.Tx) error {
-	_, err := tx.ExecContext(ctx, `UPDATE dag_lock SET seq=seq+1 WHERE id=1`)
-	return err
+func (s *Service) releaseSchedulerLock(ctx context.Context, tx *sql.Tx, tenant, project string) error {
+	return dag.GuardProjectTx(ctx, tx, s.Dialect, tenant, project)
 }
 func (s *Service) releaseEnvironmentTx(ctx context.Context, tx *sql.Tx, tenant, project, id string, lock bool) (ReleaseEnvironment, error) {
 	var out ReleaseEnvironment
@@ -241,9 +242,15 @@ func (s *Service) releaseEnvironmentTx(ctx context.Context, tx *sql.Tx, tenant, 
 	return out, err
 }
 func (s *Service) releasePlanTx(ctx context.Context, tx *sql.Tx, tenant, project, id string) (ReleasePlan, error) {
+	return s.releasePlanReadTx(ctx, tx, tenant, project, id, false)
+}
+func (s *Service) currentReleasePlanTx(ctx context.Context, tx *sql.Tx, tenant, project, id string) (ReleasePlan, error) {
+	return s.releasePlanReadTx(ctx, tx, tenant, project, id, true)
+}
+func (s *Service) releasePlanReadTx(ctx context.Context, tx *sql.Tx, tenant, project, id string, current bool) (ReleasePlan, error) {
 	var out ReleasePlan
 	var raw string
-	if err := tx.QueryRowContext(ctx, s.q(`SELECT data FROM suma_release_plans WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, id).Scan(&raw); err != nil {
+	if err := tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT data FROM suma_release_plans WHERE tenant_id=? AND project_id=? AND id=?`, current)), tenant, project, id).Scan(&raw); err != nil {
 		if err == sql.ErrNoRows {
 			return out, missing()
 		}
@@ -253,9 +260,15 @@ func (s *Service) releasePlanTx(ctx context.Context, tx *sql.Tx, tenant, project
 	return out, err
 }
 func (s *Service) releaseDeploymentTx(ctx context.Context, tx *sql.Tx, tenant, project, id string) (ReleaseDeployment, error) {
+	return s.releaseDeploymentReadTx(ctx, tx, tenant, project, id, false)
+}
+func (s *Service) currentReleaseDeploymentTx(ctx context.Context, tx *sql.Tx, tenant, project, id string) (ReleaseDeployment, error) {
+	return s.releaseDeploymentReadTx(ctx, tx, tenant, project, id, true)
+}
+func (s *Service) releaseDeploymentReadTx(ctx context.Context, tx *sql.Tx, tenant, project, id string, current bool) (ReleaseDeployment, error) {
 	var out ReleaseDeployment
 	var raw string
-	if err := tx.QueryRowContext(ctx, s.q(`SELECT data,approved_by,executed_by FROM suma_release_deployments WHERE tenant_id=? AND project_id=? AND operation_id=?`), tenant, project, id).Scan(&raw, &out.ApprovedBy, &out.ExecutedBy); err != nil {
+	if err := tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT data,approved_by,executed_by FROM suma_release_deployments WHERE tenant_id=? AND project_id=? AND operation_id=?`, current)), tenant, project, id).Scan(&raw, &out.ApprovedBy, &out.ExecutedBy); err != nil {
 		if err == sql.ErrNoRows {
 			return out, missing()
 		}
@@ -288,15 +301,16 @@ func (s *Service) ReleaseEnvironments(ctx context.Context, p Principal, project 
 	if err := s.Authorize(ctx, p, project, false, false); err != nil {
 		return nil, err
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.evidenceSnapshotOptions())
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, false, false); err != nil {
+	if err = s.authorizeProjectSnapshotTx(ctx, tx, p, project); err != nil {
 		return nil, err
 	}
-	admin := s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil
+
+	admin := s.releaseActorSnapshotAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil
 	rows, err := tx.QueryContext(ctx, s.q(`SELECT data FROM suma_release_environments WHERE tenant_id=? AND project_id=? ORDER BY id`), p.TenantID, project)
 	if err != nil {
 		return nil, err
@@ -327,15 +341,16 @@ func (s *Service) ReleaseEnvironment(ctx context.Context, p Principal, project, 
 	if err := s.Authorize(ctx, p, project, false, false); err != nil {
 		return ReleaseEnvironment{}, err
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.evidenceSnapshotOptions())
 	if err != nil {
 		return ReleaseEnvironment{}, err
 	}
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, false, false); err != nil {
+	if err = s.authorizeProjectSnapshotTx(ctx, tx, p, project); err != nil {
 		return ReleaseEnvironment{}, err
 	}
-	admin := s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil
+
+	admin := s.releaseActorSnapshotAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil
 	out, err := s.releaseEnvironmentTx(ctx, tx, p.TenantID, project, id, false)
 	out.AllowedActions = []string{}
 	if admin && out.BarrierOperationID == "" {
@@ -350,16 +365,17 @@ func (s *Service) ReleaseEnvironmentActions(ctx context.Context, p Principal, pr
 	if err := s.Authorize(ctx, p, project, false, false); err != nil {
 		return nil, err
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.evidenceSnapshotOptions())
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, false, false); err != nil {
+	if err = s.authorizeProjectSnapshotTx(ctx, tx, p, project); err != nil {
 		return nil, err
 	}
+
 	out := []string{}
-	if s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil {
+	if s.releaseActorSnapshotAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil {
 		out = append(out, "create")
 	}
 	return out, nil
@@ -383,7 +399,7 @@ func (s *Service) SaveReleaseEnvironment(ctx context.Context, p Principal, proje
 			return ReleaseEnvironment{}, err
 		}
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return ReleaseEnvironment{}, err
 	}
@@ -391,7 +407,7 @@ func (s *Service) SaveReleaseEnvironment(ctx context.Context, p Principal, proje
 	if err = s.releaseBrowserTx(ctx, tx, p, project, token, true); err != nil {
 		return ReleaseEnvironment{}, err
 	}
-	if err = s.releaseSchedulerLock(ctx, tx); err != nil {
+	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return ReleaseEnvironment{}, err
 	}
 	hash, replay, err := s.receipt(ctx, tx, p, project, req.IdempotencyKey, map[string]any{"release_environment": id, "body": m})

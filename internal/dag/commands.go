@@ -28,7 +28,7 @@ func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runI
 		if err != nil {
 			return err
 		}
-		r, err := load(ctx, t.tx, e, tenant, project, runID)
+		r, err := t.loadFull(tenant, project, runID)
 		if err != nil {
 			return err
 		}
@@ -56,6 +56,9 @@ func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runI
 				return fmt.Errorf("%w: run is not paused", ErrConflict)
 			}
 			r.State = "running"
+			if err = t.resumeRunWakes(r); err != nil {
+				return err
+			}
 		case "cancel":
 			if terminal(r.State) {
 				return fmt.Errorf("%w: run already terminal", ErrConflict)

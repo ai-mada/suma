@@ -63,8 +63,79 @@ func ValidateObservation(o Observation) error {
 	return nil
 }
 func validateUsage(u *Usage) error {
-	if u != nil && (u.InputTokens < 0 || u.CachedInputTokens < 0 || u.CacheWriteInputTokens < 0 || u.OutputTokens < 0 || u.ReasoningOutputTokens < 0) {
-		return fmt.Errorf("negative usage")
+	if u == nil {
+		return nil
+	}
+	present := false
+	for _, n := range []*int64{u.InputTokens, u.CachedInputTokens, u.CacheWriteInputTokens, u.OutputTokens, u.ReasoningOutputTokens} {
+		if n != nil {
+			present = true
+			if *n < 0 || *n > MaxSafeUsage {
+				return fmt.Errorf("usage counter must be a nonnegative safe integer")
+			}
+		}
+	}
+	if !present {
+		return fmt.Errorf("empty usage is not measured zero")
+	}
+	return nil
+}
+
+// UnmarshalJSON distinguishes missing counters from explicit null. Plain pointer
+// decoding would incorrectly accept null as an absent source fact.
+func (u *ToolUsage) UnmarshalJSON(raw []byte) error {
+	if bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {
+		return fmt.Errorf("usage must be a nonempty object")
+	}
+	scan := json.NewDecoder(bytes.NewReader(raw))
+	if err := scanValue(scan, 0); err != nil {
+		return err
+	}
+	if _, err := scan.Token(); err != io.EOF {
+		return fmt.Errorf("trailing usage content")
+	}
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &fields); err != nil {
+		return err
+	}
+	for _, value := range fields {
+		if bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+			return fmt.Errorf("reported usage counter cannot be null")
+		}
+	}
+	type wire ToolUsage
+	var decoded wire
+	d := json.NewDecoder(bytes.NewReader(raw))
+	d.DisallowUnknownFields()
+	if err := d.Decode(&decoded); err != nil {
+		return err
+	}
+	if err := validateUsage((*Usage)(&decoded)); err != nil {
+		return err
+	}
+	*u = ToolUsage(decoded)
+	return nil
+}
+
+func validateCoverage(state string, u *Usage) error {
+	if err := validateUsage(u); err != nil {
+		return err
+	}
+	switch state {
+	case UsageComplete:
+		if u == nil || u.InputTokens == nil || u.OutputTokens == nil {
+			return fmt.Errorf("complete usage requires measured input and output")
+		}
+	case UsagePartial:
+		if u == nil {
+			return fmt.Errorf("partial usage requires a reported subtotal")
+		}
+	case UsageUnreported:
+		if u != nil {
+			return fmt.Errorf("unreported usage cannot contain measured counters")
+		}
+	default:
+		return fmt.Errorf("usage coverage is required")
 	}
 	return nil
 }
@@ -80,8 +151,10 @@ func ValidateEvent(e Event) error {
 	if e.SessionID != "" && !safeID.MatchString(e.SessionID) || e.ItemID != "" && !safeID.MatchString(e.ItemID) || !validText(e.Message, 8192, true) || !validText(e.Status, 64, false) {
 		return fmt.Errorf("invalid tool event text/identifier")
 	}
-	if err := validateUsage(e.Usage); err != nil {
-		return err
+	if e.UsageState != "" || e.Usage != nil || e.Kind == "usage" {
+		if err := validateCoverage(e.UsageState, e.Usage); err != nil {
+			return err
+		}
 	}
 	b, err := json.Marshal(e)
 	if err != nil || len(b) > 16384 {
@@ -102,7 +175,7 @@ func ValidateEvidence(e Evidence) error {
 	if e.EventCount < 0 || e.EventCount > 1000000 {
 		return fmt.Errorf("invalid event count")
 	}
-	return validateUsage(e.Usage)
+	return validateCoverage(e.UsageState, e.Usage)
 }
 
 // ProfileDigest binds the canonical administrator configuration and executable

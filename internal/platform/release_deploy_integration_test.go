@@ -270,6 +270,9 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 			if _, e = f.s.DB.Exec(`UPDATE dag_nodes SET lease_until=0 WHERE run_id=? AND id=?`, a.RunID, a.NodeID); e != nil {
 				t.Fatal(e)
 			}
+			if _, e = f.s.DB.Exec(`UPDATE dag_wakeups SET due_at=0 WHERE run_id=? AND node_id=? AND kind='lease'`, a.RunID, a.NodeID); e != nil {
+				t.Fatal(e)
+			}
 			if e = f.e.Tick(ctx); e != nil {
 				t.Fatal(e)
 			}

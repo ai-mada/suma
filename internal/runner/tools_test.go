@@ -87,7 +87,7 @@ func TestCodexStreamHandlesFragmentedSafeFactsAndDoesNotRetainToolArguments(t *t
 		}
 	}
 	evidence, err := stream.finish()
-	if err != nil || evidence.Terminal != "completed" || evidence.SessionID != "thread-1" || evidence.Usage.InputTokens != 4 {
+	if err != nil || evidence.Terminal != "completed" || evidence.SessionID != "thread-1" || *evidence.Usage.InputTokens != 4 {
 		t.Fatalf("terminal %+v %v", evidence, err)
 	}
 	raw, _ := json.Marshal(events)
@@ -236,7 +236,7 @@ func TestCodexUsageSupportsOfficialThreeCounterAndExtendedShapes(t *testing.T) {
 			s := newToolStream(structuredProfile("codex-jsonl-v1"), nil, nil)
 			_, _ = s.Write([]byte(prefix + `{"type":"turn.completed","usage":{"input_tokens":5,"cached_input_tokens":2,"output_tokens":7` + extra + "}}\n"))
 			e, err := s.finish()
-			if err != nil || e.Terminal != "completed" || e.Usage == nil || e.Usage.InputTokens != 5 || e.Usage.CachedInputTokens != 2 || e.Usage.OutputTokens != 7 {
+			if err != nil || e.Terminal != "completed" || e.Usage == nil || *e.Usage.InputTokens != 5 || *e.Usage.CachedInputTokens != 2 || *e.Usage.OutputTokens != 7 {
 				t.Fatalf("valid official usage shape rejected: %+v %v", e, err)
 			}
 			wire, err := json.Marshal(e)
@@ -248,10 +248,10 @@ func TestCodexUsageSupportsOfficialThreeCounterAndExtendedShapes(t *testing.T) {
 					t.Fatalf("unreported split counter fabricated on wire: %s", wire)
 				}
 			}
-			if strings.Contains(extra, "reasoning_output_tokens") && e.Usage.ReasoningOutputTokens != 3 {
+			if strings.Contains(extra, "reasoning_output_tokens") && *e.Usage.ReasoningOutputTokens != 3 {
 				t.Fatal("reported reasoning usage lost")
 			}
-			if strings.Contains(extra, "cache_write_input_tokens") && e.Usage.CacheWriteInputTokens != 4 {
+			if strings.Contains(extra, "cache_write_input_tokens") && *e.Usage.CacheWriteInputTokens != 4 {
 				t.Fatal("reported cache-write usage lost")
 			}
 		})
@@ -280,9 +280,9 @@ func TestCodexUsageRejectsInvalidPresentCounters(t *testing.T) {
 
 func TestSumaMissingUsageIsUnknownRatherThanReportedZero(t *testing.T) {
 	prefix := `{"type":"started","request_id":"expected"}` + "\n"
-	for _, body := range []string{`{"type":"usage","request_id":"expected","usage_reported":false}`, `{"type":"usage","request_id":"expected"}`} {
+	for _, body := range []string{`{"type":"usage","request_id":"expected","step":0,"usage_reported":false,"usage_state":"unreported"}`} {
 		s := newToolStream(structuredProfile("suma-jsonl-v1"), nil, nil, "expected")
-		_, _ = s.Write([]byte(prefix + body + "\n" + `{"type":"completed","request_id":"expected","output":"fixture"}` + "\n"))
+		_, _ = s.Write([]byte(prefix + `{"type":"request_started","request_id":"expected","step":0,"output_allowance":5}` + "\n" + body + "\n" + `{"type":"completed","request_id":"expected","output":"fixture"}` + "\n"))
 		e, err := s.finish()
 		if err != nil || e.Terminal != "completed" || e.Usage != nil {
 			t.Fatalf("unknown native usage fabricated %+v %v", e, err)

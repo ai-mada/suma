@@ -1,6 +1,10 @@
 # 当前交付状态
 
-## 当前 T-P4-004：固定工具派发与完整任务依据
+## 当前 T-P4-005：增量调度与可解释执行准入
+
+在`1e9d77b`基线上完成持久增量推进、就绪/唤醒索引、丢ACK领取恢复、项目准入策略预览与确认、队列阻塞和持久attempt历史，以及用量已报告零/未知的区分。最终Go606通过事件、0失败/跳过、vet通过；前端、合同和当前交付资产见[阶段验收](../quality/scheduling-verification.md)及[机器摘要](../quality/scheduling-summary.json)。实际界面槽位0→2、双Runner真实并行、独立测试、人工批准后5节点/3尝试/22事件，累计额度3；旧78表逻辑摘要保持，新24程序当前源码一致。Git只交付必要源码/设计及精简验证，原始档案留本地。跨组织共享池、多项目执行身份、分层加权公平、模型网关及完整P0–P7继续实施。
+
+## T-P4-004 历史：固定工具派发与完整任务依据
 
 工具档案、实时观察、精确命令资格、固定任务/需求/流程/工具预览和原子启动、typed执行事实、独立Agent授权已交付。实际协议夹具完成隔离开发、独立2项测试、人工验收、失败去重回流和两次真实停止；它不代表厂商模型效果。最终Go512个通过事件、0失败/跳过，vet通过；JS212项、类型和生产构建通过，合同147模型/117路径/344引用。新24程序批次`20261024T051829203Z-df0ca9b5`已构建与独立核对，Windows实际激活复验；4runs/8nodes/5attempts，原三次运行/35事件及验收回流保持。工具最终paused v5。响应式完整节点列表、桌面依赖图、精确需求导航与焦点/主题部分验证完成。[阶段验收](../quality/tool-execution-verification.md)、[当前运行包](../deployment/tool-stop-runtime-bundles.md)。完整P0–P7、厂商真实账户、集群、安装和规模目标继续实施。
 
@@ -15,7 +19,7 @@
 | 组织/团队/真实账号治理 | internal/platform/governance*.go | 单次邀请、最后所有者保护、授权墓碑、真实双连接竞争、浏览器组织切换与隔离 |
 | 迭代/里程碑/计划/容量 | internal/platform/planning*.go、baselines.go | 双版本原子排期、全项目不可变快照、自然周估算分摊、撤权排除；浏览器真实创建/比较/完成 |
 | 需求/任务/问题闭环 | internal/platform/records.go、delivery.go | 幂等、批次回滚、依赖、验收失效、回流 |
-| 持久DAG | internal/dag | SQLite编译/并行/条件/等待/恢复/子流程/补偿测试 |
+| 持久DAG | internal/dag | SQLite编译/条件/等待/恢复/子流程/补偿，以及增量前沿/索引/资源CAS/重试窗口/真实历史迁移；见当前阶段摘要 |
 | 持久自动化与事件续传 | internal/automation、internal/platform/automation*.go、run_stream.go、AutomationWorkspace.tsx | 真实人工/cron双触发、固定修订与流程、时区/错过/重叠、撤权与事务竞争；Chrome完整终态、正常轮换与重启上下文保持 |
 | 签名事件入口与交付追踪 | internal/platform/automation_ingress*.go、AutomationIngress.tsx、internal/cli/webhook.go | GitHub原生/Suma v1协议、本机真实Git标签/CI/监控事件触发、固定来源修订、当前授权、回执去重；重启不重复执行，来源元数据不注入执行命令 |
 | Runner与候选交接 | internal/runner、cmd/suma-runner、internal/dag/candidate.go | Windows实际独立Git工作树、进展持久ACK、固定候选交接、原失败保留及真实测试 |
@@ -24,7 +28,7 @@
 | 原生智能体 | packages/agent-runtime | 有界循环/工具协议；未连接生产模型 |
 | 外部工具 | 工具目录与许可命令、HTTP桥接 | 实机只读探测/本地协议测试；未调用收费模型 |
 | 知识服务 | packages/knowledge | 真实本地Lance全文/向量、版本隔离、墓碑 |
-| 界面与编辑 | apps/web | 类型/构建/164项回归；最终文案调整后12项消费者复验及生产构建通过；真实治理/计划/候选/发布与自动化闭环，历史阶段部分详情已验证四种宽度、深浅主题与弹层回焦点；本轮事件入口视觉范围见专项报告 |
+| 界面与编辑 | apps/web | 最终web244项、类型及生产构建通过；真实治理/计划/候选/发布、自动化与本阶段准入闭环；局部四宽度/主题、精确attempt和图键盘选择见当前验收；完整体验矩阵继续实施 |
 | Windows桌面 | apps/desktop、dist/desktop | 未签名NSIS/portable及目录构建；安装/GUI/升级仍分别验收 |
 | CLI与部署配置 | cmd/suma、deploy、Dockerfile | Bubble Tea/游标分页与签名交付测试；部署8项测试及Compose组合/配置校验，镜像/Helm未实跑 |
 | Go四程序交付 | scripts/build-runtime.ps1、dist/runtime/builds | 六目标×控制面/Runner/CLI/Deployer，真实编译、构建信息与逐文件摘要；目标系统运行分别验收 |

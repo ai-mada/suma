@@ -207,7 +207,7 @@ func (s *Server) releaseProviderHTTP(w http.ResponseWriter, r *http.Request, pat
 			writeError(w, err)
 			return true
 		}
-		tx, err := s.Service.DB.BeginTx(ctx, nil)
+		tx, err := s.Service.DB.BeginTx(ctx, s.Service.executionWriteOptions())
 		if err != nil {
 			writeError(w, err)
 			return true
@@ -217,11 +217,11 @@ func (s *Server) releaseProviderHTTP(w http.ResponseWriter, r *http.Request, pat
 			writeError(w, err)
 			return true
 		}
-		if err = s.Service.releaseSchedulerLock(ctx, tx); err != nil {
+		if err = s.Service.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 			writeError(w, err)
 			return true
 		}
-		d, err := s.Service.releaseDeploymentTx(ctx, tx, p.TenantID, project, operation)
+		d, err := s.Service.currentReleaseDeploymentTx(ctx, tx, p.TenantID, project, operation)
 		if err == nil {
 			_, err = s.Service.releaseDeploymentBasisTx(ctx, tx, p.TenantID, project, d)
 		}

@@ -207,13 +207,18 @@ func (s *Service) Review(ctx context.Context, p Principal, project, id string, m
 			return Record{}, invalid("缺少明确测试节点的执行证据")
 		}
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return Record{}, err
 	}
 	defer tx.Rollback()
 	if err = s.authorizeProjectTx(ctx, tx, p, project, true, true); err != nil {
 		return Record{}, err
+	}
+	if decision == "accepted" {
+		if err = dag.GuardProjectTx(ctx, tx, s.Dialect, p.TenantID, project); err != nil {
+			return Record{}, err
+		}
 	}
 	hash, replay, err := s.receipt(ctx, tx, p, project, key, request)
 	if err != nil {
@@ -225,25 +230,22 @@ func (s *Service) Review(ctx context.Context, p Principal, project, id string, m
 		return result, err
 	}
 	if decision == "accepted" {
-		if _, err = tx.ExecContext(ctx, `UPDATE dag_lock SET seq=seq WHERE id=1`); err != nil {
-			return Record{}, err
-		}
 		for runID, version := range evidenceVersions {
 			var current int
 			var state string
-			if err = tx.QueryRowContext(ctx, s.q(`SELECT version,state FROM dag_runs WHERE id=? AND tenant_id=? AND project_id=?`), runID, p.TenantID, project).Scan(&current, &state); err != nil || current != version || state != "succeeded" {
+			if err = tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT version,state FROM dag_runs WHERE id=? AND tenant_id=? AND project_id=?`, true)), runID, p.TenantID, project).Scan(&current, &state); err != nil || current != version || state != "succeeded" {
 				return Record{}, conflict("执行证据已变化，请重新审查")
 			}
-			var count int
-			if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM dag_compensations WHERE original_run_id=?`), runID).Scan(&count); err != nil {
-				return Record{}, err
+			compensated, checkErr := s.evidenceCompensatedTx(ctx, tx, runID, true)
+			if checkErr != nil {
+				return Record{}, checkErr
 			}
-			if count != 0 {
+			if compensated {
 				return Record{}, conflict("执行已进入补偿，不能通过验收")
 			}
 		}
 	}
-	r, err := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id))
+	r, err := scanRecord(tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`, true)), p.TenantID, project, id))
 	if err != nil {
 		return r, missing()
 	}
@@ -256,10 +258,10 @@ func (s *Service) Review(ctx context.Context, p Principal, project, id string, m
 	if decision == "accepted" {
 		basis, _ := r.Data["dependency_basis"].(map[string]any)
 		for _, dep := range r.DependsOn {
-			if e := s.checkTaskEvidenceTx(ctx, tx, p, project, dep, map[string]bool{}, map[string]bool{}); e != nil {
+			if e := s.checkCurrentTaskEvidenceTx(ctx, tx, p, project, dep, map[string]bool{}, map[string]bool{}); e != nil {
 				return r, e
 			}
-			upstream, e := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, dep))
+			upstream, e := scanRecord(tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`, true)), p.TenantID, project, dep))
 			if e != nil || upstream.Status != "accepted" || basis[dep] != digest(stringify(map[string]any{"version": upstream.Version, "verified_run_id": upstream.Data["verified_run_id"]})) {
 				return r, conflict("前置任务的验收依据已变化，需要重新派发")
 			}
@@ -267,7 +269,7 @@ func (s *Service) Review(ctx context.Context, p Principal, project, id string, m
 	}
 	if r.RequirementID != "" {
 		var v int
-		if err = tx.QueryRowContext(ctx, s.q(`SELECT version FROM suma_requirements WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, r.RequirementID).Scan(&v); err != nil {
+		if err = tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT version FROM suma_requirements WHERE tenant_id=? AND project_id=? AND id=?`, true)), p.TenantID, project, r.RequirementID).Scan(&v); err != nil {
 			return r, err
 		}
 		stored, _ := r.Data["requirement_version"].(float64)

@@ -5,6 +5,7 @@ import (
 	"crypto/subtle"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/ai-mada/suma/internal/releasecontract"
@@ -205,9 +206,12 @@ func (s *Service) releaseWorkerTx(ctx context.Context, tx *sql.Tx, p Principal, 
 	if err := s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
 		return err
 	}
-	var actual, state, raw, expires string
+	if err := s.currentRunnerCredentialTx(ctx, tx, p, project, token); err != nil {
+		return err
+	}
+	var actual, state, raw string
 	var deploy bool
-	if err := tx.QueryRowContext(ctx, s.q(`SELECT w.worker_id,w.status,w.profiles,w.deployment,x.expires_at FROM suma_release_workers w JOIN suma_sessions x ON x.token_hash=w.token_hash JOIN suma_token_scopes t ON t.token_hash=x.token_hash WHERE w.token_hash=? AND w.tenant_id=? AND w.project_id=? AND x.user_id=? AND x.tenant_id=w.tenant_id AND t.kind='runner' AND t.project_id=w.project_id`), digest(token), p.TenantID, project, p.ID).Scan(&actual, &state, &raw, &deploy, &expires); err != nil || state != "active" || expires <= now() || subtle.ConstantTimeCompare([]byte(actual), []byte(worker)) != 1 {
+	if err := tx.QueryRowContext(ctx, s.q(`SELECT w.worker_id,w.status,w.profiles,w.deployment FROM suma_release_workers w JOIN suma_sessions x ON x.token_hash=w.token_hash JOIN suma_token_scopes t ON t.token_hash=x.token_hash WHERE w.token_hash=? AND w.tenant_id=? AND w.project_id=? AND x.user_id=? AND x.tenant_id=w.tenant_id AND t.kind='runner' AND t.project_id=w.project_id`), digest(token), p.TenantID, project, p.ID).Scan(&actual, &state, &raw, &deploy); err != nil || state != "active" || subtle.ConstantTimeCompare([]byte(actual), []byte(worker)) != 1 {
 		return forbidden()
 	}
 	if kind == "deployment" {
@@ -244,6 +248,9 @@ func (s *Service) runnerIdentityTx(ctx context.Context, tx *sql.Tx, p Principal,
 	if err := s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
 		return err
 	}
+	if err := s.currentRunnerCredentialTx(ctx, tx, p, project, token); err != nil {
+		return err
+	}
 	var bound string
 	err := tx.QueryRowContext(ctx, s.q(`SELECT worker_id FROM suma_release_workers WHERE token_hash=?`), digest(token)).Scan(&bound)
 	if err != nil && err != sql.ErrNoRows {
@@ -262,6 +269,42 @@ func (s *Service) runnerIdentityTx(ctx context.Context, tx *sql.Tx, p Principal,
 			return forbidden()
 		}
 		return s.releaseWorkerTx(ctx, tx, p, project, token, worker, "", "", "identity")
+	}
+	return nil
+}
+
+// Caller holds the organization authority lock first. A locking current read
+// prevents a stale outer Authenticate (or an OceanBase RR snapshot) from
+// restoring a dispatch after credential revocation. Logout's row deletion waits
+// for this transaction; no token is stored in scheduler receipts or events.
+func (s *Service) currentRunnerCredentialTx(ctx context.Context, tx *sql.Tx, p Principal, project, token string) error {
+	query := `SELECT x.user_id,x.tenant_id,x.expires_at,t.kind,t.project_id FROM suma_sessions x JOIN suma_token_scopes t ON t.token_hash=x.token_hash WHERE x.token_hash=?`
+	if s.Dialect == "oceanbase" || s.Dialect == "postgres" {
+		query += ` FOR UPDATE`
+	}
+	var user, tenant, expires, scope, boundProject string
+	err := tx.QueryRowContext(ctx, s.q(query), digest(token)).Scan(&user, &tenant, &expires, &scope, &boundProject)
+	if errors.Is(err, sql.ErrNoRows) {
+		return forbidden()
+	}
+	if err != nil {
+		return err
+	}
+	if user != p.ID || tenant != p.TenantID || scope != "runner" || boundProject != project {
+		return forbidden()
+	}
+	expiry, err := time.Parse(time.RFC3339Nano, expires)
+	if err != nil {
+		return forbidden()
+	}
+	clock, err := s.automationClock(ctx, tx)
+	if err != nil {
+		return err
+	}
+	// Database clock granularity is seconds; expire conservatively within its
+	// final second rather than treating a rounded-down clock as extra lifetime.
+	if expiry.Unix() <= clock.Unix() {
+		return forbidden()
 	}
 	return nil
 }

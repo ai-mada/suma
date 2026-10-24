@@ -19,12 +19,21 @@ type ToolObservation struct {
 }
 
 type ToolUsage struct {
-	InputTokens           int64 `json:"input_tokens,omitempty"`
-	CachedInputTokens     int64 `json:"cached_input_tokens,omitempty"`
-	CacheWriteInputTokens int64 `json:"cache_write_input_tokens,omitempty"`
-	OutputTokens          int64 `json:"output_tokens,omitempty"`
-	ReasoningOutputTokens int64 `json:"reasoning_output_tokens,omitempty"`
+	InputTokens           *int64 `json:"input_tokens,omitempty"`
+	CachedInputTokens     *int64 `json:"cached_input_tokens,omitempty"`
+	CacheWriteInputTokens *int64 `json:"cache_write_input_tokens,omitempty"`
+	OutputTokens          *int64 `json:"output_tokens,omitempty"`
+	ReasoningOutputTokens *int64 `json:"reasoning_output_tokens,omitempty"`
 }
+
+// MaxSafeUsage is the largest exact integer shared by the Go and browser wire.
+const MaxSafeUsage int64 = 9007199254740991
+
+const (
+	UsageComplete   = "complete"
+	UsagePartial    = "partial"
+	UsageUnreported = "unreported"
+)
 
 type ToolEvent struct {
 	SchemaVersion int    `json:"schema_version"`
@@ -37,6 +46,7 @@ type ToolEvent struct {
 	Message       string `json:"message,omitempty"`
 	Status        string `json:"status,omitempty"`
 	Usage         *Usage `json:"usage,omitempty"`
+	UsageState    string `json:"usage_state,omitempty"`
 }
 
 type ToolEvidence struct {
@@ -45,6 +55,7 @@ type ToolEvidence struct {
 	Terminal   string  `json:"terminal"`
 	EventCount int     `json:"event_count"`
 	Usage      *Usage  `json:"usage,omitempty"`
+	UsageState string  `json:"usage_state"`
 }
 
 type Profile = ToolExecutionProfile

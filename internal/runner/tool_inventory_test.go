@@ -92,7 +92,7 @@ func TestStructuredToolProgressAndEvidenceRoundTrip(t *testing.T) {
 	if len(j.PendingProgress()) != 1 || j.PendingProgress()[0].ToolEvent == nil {
 		t.Fatal("typed progress not durable")
 	}
-	evidence := &tc.Evidence{Profile: structuredProfile("suma-jsonl-v1"), Terminal: "completed", SessionID: "session-1", EventCount: 1}
+	evidence := &tc.Evidence{Profile: structuredProfile("suma-jsonl-v1"), Terminal: "completed", SessionID: "session-1", EventCount: 1, UsageState: tc.UsageUnreported}
 	if err = j.Finish(Result{Assignment: a, ExitCode: 0, ToolEvidence: evidence}); err != nil {
 		t.Fatal(err)
 	}
@@ -181,7 +181,7 @@ func TestInventoryOutageKeepsCurrentProcessAndHeartbeatThenRecovers(t *testing.T
 		case "/api/v1/runner/claim":
 			n := claims.Add(1)
 			if n == 1 {
-				_ = json.NewEncoder(w).Encode(map[string]any{"assignment": Assignment{RunID: "r", NodeID: "n", Attempt: 1, Fence: 1, WorkerID: "w", Type: "command", Command: []string{"local"}}})
+				_ = json.NewEncoder(w).Encode(map[string]any{"assignment": Assignment{RunID: "r", NodeID: "n", Attempt: 1, Fence: 1, WorkerID: "w", Type: "command", Command: []string{"local"}, DispatchID: strings.Repeat("d", 32), DispatchState: "active", LeaseUntil: time.Now().Add(time.Minute).UTC().Format(time.RFC3339)}})
 			} else {
 				if !received.Load() {
 					t.Error("new attempt claimed during inventory outage")

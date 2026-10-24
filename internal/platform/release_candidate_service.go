@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"sort"
 	"strings"
+
+	"github.com/ai-mada/suma/internal/dag"
 )
 
 type ReleaseCandidateView struct {
@@ -16,11 +18,17 @@ type ReleaseCandidateView struct {
 }
 
 func (s *Service) releaseTaskBasisTx(ctx context.Context, tx *sql.Tx, p Principal, project, id, requiredRun string) (ReleaseTaskBasis, error) {
+	return s.releaseTaskBasisReadTx(ctx, tx, p, project, id, requiredRun, false)
+}
+func (s *Service) currentReleaseTaskBasisTx(ctx context.Context, tx *sql.Tx, p Principal, project, id, requiredRun string) (ReleaseTaskBasis, error) {
+	return s.releaseTaskBasisReadTx(ctx, tx, p, project, id, requiredRun, true)
+}
+func (s *Service) releaseTaskBasisReadTx(ctx context.Context, tx *sql.Tx, p Principal, project, id, requiredRun string, current bool) (ReleaseTaskBasis, error) {
 	var out ReleaseTaskBasis
-	if err := s.checkTaskEvidenceTx(ctx, tx, p, project, id, map[string]bool{}, map[string]bool{}); err != nil {
+	if err := s.checkTaskEvidenceReadTx(ctx, tx, p, project, id, map[string]bool{}, map[string]bool{}, current); err != nil {
 		return out, err
 	}
-	task, err := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id))
+	task, err := scanRecord(tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`, current)), p.TenantID, project, id))
 	if err != nil {
 		return out, missing()
 	}
@@ -29,7 +37,7 @@ func (s *Service) releaseTaskBasisTx(ctx context.Context, tx *sql.Tx, p Principa
 	}
 	var reviewID string
 	var reviewVersion int
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT id,task_version FROM suma_reviews WHERE tenant_id=? AND project_id=? AND task_id=? AND run_id=? AND decision='accepted' ORDER BY created_at DESC,id DESC LIMIT 1`), p.TenantID, project, id, task.RunID).Scan(&reviewID, &reviewVersion); err != nil || reviewVersion+1 != task.Version {
+	if err = tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT id,task_version FROM suma_reviews WHERE tenant_id=? AND project_id=? AND task_id=? AND run_id=? AND decision='accepted' ORDER BY created_at DESC,id DESC LIMIT 1`, current)), p.TenantID, project, id, task.RunID).Scan(&reviewID, &reviewVersion); err != nil || reviewVersion+1 != task.Version {
 		return out, conflict("缺少对应版本的正式人工验收")
 	}
 	out = ReleaseTaskBasis{ID: id, Version: task.Version, RunID: task.RunID, ReviewID: reviewID, SHA256: digest(stringify(map[string]any{"task_id": id, "task_version": task.Version, "run_id": task.RunID, "review_id": reviewID, "definition": taskBasis(task), "requirement_version": task.Data["requirement_version"], "dependency_basis": task.Data["dependency_basis"]}))}
@@ -37,6 +45,12 @@ func (s *Service) releaseTaskBasisTx(ctx context.Context, tx *sql.Tx, p Principa
 }
 
 func (s *Service) validateReleaseCandidateTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (ReleaseCandidate, error) {
+	return s.validateReleaseCandidateReadTx(ctx, tx, p, project, id, false)
+}
+func (s *Service) validateCurrentReleaseCandidateTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (ReleaseCandidate, error) {
+	return s.validateReleaseCandidateReadTx(ctx, tx, p, project, id, true)
+}
+func (s *Service) validateReleaseCandidateReadTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string, current bool) (ReleaseCandidate, error) {
 	var out ReleaseCandidate
 	var raw string
 	if err := tx.QueryRowContext(ctx, s.q(`SELECT payload FROM suma_release_candidates WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id).Scan(&raw); err != nil {
@@ -45,11 +59,11 @@ func (s *Service) validateReleaseCandidateTx(ctx context.Context, tx *sql.Tx, p 
 	if err := json.Unmarshal([]byte(raw), &out); err != nil {
 		return out, err
 	}
-	build, err := s.artifactProofTx(ctx, tx, p, project, out.BuildAttestationID)
+	build, err := s.artifactProofReadTx(ctx, tx, p, project, out.BuildAttestationID, current)
 	if err != nil {
 		return out, err
 	}
-	test, err := s.artifactProofTx(ctx, tx, p, project, out.PackageTestAttestationID)
+	test, err := s.artifactProofReadTx(ctx, tx, p, project, out.PackageTestAttestationID, current)
 	if err != nil {
 		return out, err
 	}
@@ -63,11 +77,11 @@ func (s *Service) validateReleaseCandidateTx(ctx context.Context, tx *sql.Tx, p 
 		return out, conflict("候选缺少已验收交付范围")
 	}
 	for _, basis := range out.Tasks {
-		current, err := s.releaseTaskBasisTx(ctx, tx, p, project, basis.ID, build.Assignment.RunID)
+		actual, err := s.releaseTaskBasisReadTx(ctx, tx, p, project, basis.ID, build.Assignment.RunID, current)
 		if err != nil {
 			return out, err
 		}
-		if current != basis {
+		if actual != basis {
 			return out, conflict("需求、任务、执行或人工验收依据已变化，需要重新建立候选")
 		}
 	}
@@ -102,12 +116,15 @@ func (s *Service) CreateReleaseCandidate(ctx context.Context, p Principal, proje
 	if !ok || len(drafts) == 0 || len(drafts) > 100 {
 		return out, invalid("请选择 1–100 个已验收任务作为交付范围")
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return out, err
 	}
 	defer tx.Rollback()
 	if err = s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
+		return out, err
+	}
+	if err = dag.GuardProjectTx(ctx, tx, s.Dialect, p.TenantID, project); err != nil {
 		return out, err
 	}
 	hash, replay, err := s.receipt(ctx, tx, p, project, str(m, "idempotency_key"), map[string]any{"release_candidate": m})
@@ -118,16 +135,13 @@ func (s *Service) CreateReleaseCandidate(ctx context.Context, p Principal, proje
 		if err = json.Unmarshal([]byte(hash), &out); err != nil {
 			return out, err
 		}
-		return s.candidateViewTx(ctx, tx, p, project, out.Candidate.ID)
+		return s.currentCandidateViewTx(ctx, tx, p, project, out.Candidate.ID)
 	}
-	if _, err = tx.ExecContext(ctx, `UPDATE dag_lock SET seq=seq WHERE id=1`); err != nil {
-		return out, err
-	}
-	build, err := s.artifactProofTx(ctx, tx, p, project, str(m, "build_attestation_id"))
+	build, err := s.currentArtifactProofTx(ctx, tx, p, project, str(m, "build_attestation_id"))
 	if err != nil {
 		return out, err
 	}
-	test, err := s.artifactProofTx(ctx, tx, p, project, str(m, "package_test_attestation_id"))
+	test, err := s.currentArtifactProofTx(ctx, tx, p, project, str(m, "package_test_attestation_id"))
 	if err != nil {
 		return out, err
 	}
@@ -153,7 +167,7 @@ func (s *Service) CreateReleaseCandidate(ctx context.Context, p Principal, proje
 			return out, invalid("交付范围有重复任务")
 		}
 		seen[id] = true
-		basis, err := s.releaseTaskBasisTx(ctx, tx, p, project, id, build.Assignment.RunID)
+		basis, err := s.currentReleaseTaskBasisTx(ctx, tx, p, project, id, build.Assignment.RunID)
 		if err != nil {
 			return out, err
 		}
@@ -178,6 +192,12 @@ func (s *Service) CreateReleaseCandidate(ctx context.Context, p Principal, proje
 }
 
 func (s *Service) candidateViewTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (ReleaseCandidateView, error) {
+	return s.candidateViewReadTx(ctx, tx, p, project, id, false)
+}
+func (s *Service) currentCandidateViewTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (ReleaseCandidateView, error) {
+	return s.candidateViewReadTx(ctx, tx, p, project, id, true)
+}
+func (s *Service) candidateViewReadTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string, current bool) (ReleaseCandidateView, error) {
 	var out ReleaseCandidateView
 	var raw string
 	if err := tx.QueryRowContext(ctx, s.q(`SELECT payload FROM suma_release_candidates WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id).Scan(&raw); err != nil {
@@ -187,7 +207,7 @@ func (s *Service) candidateViewTx(ctx context.Context, tx *sql.Tx, p Principal, 
 		return out, err
 	}
 	out.Blockers = []ReleaseBlocker{}
-	_, err := s.validateReleaseCandidateTx(ctx, tx, p, project, id)
+	_, err := s.validateReleaseCandidateReadTx(ctx, tx, p, project, id, current)
 	out.Eligibility = err == nil
 	if err != nil {
 		if api, ok := err.(*APIError); ok {
@@ -199,15 +219,15 @@ func (s *Service) candidateViewTx(ctx context.Context, tx *sql.Tx, p Principal, 
 	return out, nil
 }
 func (s *Service) ReleaseCandidate(ctx context.Context, p Principal, project, id string) (ReleaseCandidateView, error) {
-	tx, err := s.DB.BeginTx(ctx, nil)
+	if err := s.Authorize(ctx, p, project, false, false); err != nil {
+		return ReleaseCandidateView{}, err
+	}
+	tx, err := s.DB.BeginTx(ctx, s.evidenceSnapshotOptions())
 	if err != nil {
 		return ReleaseCandidateView{}, err
 	}
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, false, false); err != nil {
-		return ReleaseCandidateView{}, err
-	}
-	if _, err = tx.ExecContext(ctx, `UPDATE dag_lock SET seq=seq WHERE id=1`); err != nil {
+	if err = s.authorizeProjectSnapshotTx(ctx, tx, p, project); err != nil {
 		return ReleaseCandidateView{}, err
 	}
 	return s.candidateViewTx(ctx, tx, p, project, id)
@@ -273,15 +293,15 @@ func (s *Service) releasePageIDs(ctx context.Context, tx *sql.Tx, p Principal, p
 	return ids, total, next, nil
 }
 func (s *Service) ReleaseCandidates(ctx context.Context, p Principal, project string, limit int, cursor string) ([]ReleaseCandidateView, int, string, error) {
-	tx, err := s.DB.BeginTx(ctx, nil)
+	if err := s.Authorize(ctx, p, project, false, false); err != nil {
+		return nil, 0, "", err
+	}
+	tx, err := s.DB.BeginTx(ctx, s.evidenceSnapshotOptions())
 	if err != nil {
 		return nil, 0, "", err
 	}
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, false, false); err != nil {
-		return nil, 0, "", err
-	}
-	if _, err = tx.ExecContext(ctx, `UPDATE dag_lock SET seq=seq WHERE id=1`); err != nil {
+	if err = s.authorizeProjectSnapshotTx(ctx, tx, p, project); err != nil {
 		return nil, 0, "", err
 	}
 	ids, total, next, err := s.releasePageIDs(ctx, tx, p, project, "release-candidates", limit, cursor)

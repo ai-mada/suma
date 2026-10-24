@@ -66,6 +66,9 @@ func TestCompilerRejectsCycleAndUnsafeRetry(t *testing.T) {
 }
 func TestDiamondRunsBranchesInParallel(t *testing.T) {
 	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "a", Type: "task"}, {ID: "b", Type: "task", DependsOn: []string{"a"}}, {ID: "c", Type: "task", DependsOn: []string{"a"}}, {ID: "d", Type: "task", DependsOn: []string{"b", "c"}}}})
+	if err := e.SetResourceLimits(ctx, "t", "p", map[string]int64{"execution_slots": 2}); err != nil {
+		t.Fatal(err)
+	}
 	done(t, e, claim(t, e), 0)
 	b, c := claim(t, e), claim(t, e)
 	if b == nil || c == nil || b.NodeID == c.NodeID {
@@ -139,7 +142,7 @@ func TestDuplicateResultAndRestart(t *testing.T) {
 	}
 }
 func TestConditionSkipAndApprovalVersion(t *testing.T) {
-	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "a", Type: "task", Condition: "false"}, {ID: "approval", Type: "approval", DependsOn: []string{"a"}, Join: "all_done"}, {ID: "end", Type: "task", DependsOn: []string{"approval"}}}})
+	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "a", Type: "task", Condition: "false"}, {ID: "approval", Type: "approval", DependsOn: []string{"a"}, Join: "all_done"}, {ID: "end", Type: "task", DependsOn: []string{"approval"}}}, Edges: []Edge{{From: "a", To: "approval", Condition: "all_done"}}})
 	r, _ = e.GetRun(ctx, "t", "p", r.ID)
 	if r.Nodes[0].State != "skipped" {
 		t.Fatal(r.Nodes)
@@ -155,6 +158,9 @@ func TestConditionSkipAndApprovalVersion(t *testing.T) {
 
 func TestDynamicMapPersistsExpansionAndJoin(t *testing.T) {
 	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "map", Type: "map", Command: []string{"echo", "{{item}}"}, Config: map[string]any{"items": []any{"first", "second"}}}, {ID: "end", Type: "task", DependsOn: []string{"map"}}}})
+	if err := e.SetResourceLimits(ctx, "t", "p", map[string]int64{"execution_slots": 2}); err != nil {
+		t.Fatal(err)
+	}
 	a, b := claim(t, e), claim(t, e)
 	if a == nil || b == nil || a.NodeID == b.NodeID || a.Command[1] == b.Command[1] {
 		t.Fatalf("bad map children %+v %+v", a, b)
@@ -184,6 +190,9 @@ func TestLeaseLossRetainsResourceUntilReconciled(t *testing.T) {
 		t.Fatal("resource oversubscribed")
 	}
 	if _, err := e.db.Exec("UPDATE dag_nodes SET lease_until=0 WHERE run_id=? AND id=?", r.ID, a.NodeID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.db.Exec("UPDATE dag_wakeups SET due_at=0 WHERE run_id=? AND node_id=? AND kind='lease'", r.ID, a.NodeID); err != nil {
 		t.Fatal(err)
 	}
 	if err := e.Tick(ctx); err != nil {
@@ -309,6 +318,9 @@ func TestManualRetryOfMapChildReopensParentAndSkippedDescendants(t *testing.T) {
 }
 func TestAutomaticRetryAndAnySuccessJoin(t *testing.T) {
 	e, _ := fixture(t, Workflow{Nodes: []Node{{ID: "retry", Type: "task", Idempotent: true, MaxRetries: 1}, {ID: "fail", Type: "task"}, {ID: "join", Type: "task", DependsOn: []string{"retry", "fail"}, Join: "any_success"}}})
+	if err := e.SetResourceLimits(ctx, "t", "p", map[string]int64{"execution_slots": 2}); err != nil {
+		t.Fatal(err)
+	}
 	a, b := claim(t, e), claim(t, e)
 	var retry, fail *Assignment
 	if a.NodeID == "retry" {
@@ -317,7 +329,21 @@ func TestAutomaticRetryAndAnySuccessJoin(t *testing.T) {
 		retry, fail = b, a
 	}
 	done(t, e, fail, 1)
-	done(t, e, retry, 1)
+	if err := e.Complete(ctx, "t", "p", Result{RunID: retry.RunID, NodeID: retry.NodeID, Attempt: retry.Attempt, Fence: retry.Fence, WorkerID: retry.WorkerID, ExitCode: 1, FailureClass: "transient", OperationID: "transient-fail"}); err != nil {
+		t.Fatal(err)
+	}
+	if claim(t, e) != nil {
+		t.Fatal("retry bypassed persisted backoff")
+	}
+	if _, err := e.db.Exec("UPDATE dag_nodes SET wake_at=1 WHERE run_id=? AND id=?", retry.RunID, retry.NodeID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.db.Exec("UPDATE dag_wakeups SET due_at=1 WHERE run_id=? AND node_id=? AND kind='retry'", retry.RunID, retry.NodeID); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.Tick(ctx); err != nil {
+		t.Fatal(err)
+	}
 	next := claim(t, e)
 	if next == nil || next.NodeID != "retry" || next.Attempt != 2 || next.Fence <= retry.Fence {
 		t.Fatalf("retry fence %+v", next)
@@ -341,6 +367,9 @@ func TestPauseDoesNotConsumeReadyAndTimerDoesNotClaim(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err = e.db.Exec("UPDATE dag_nodes SET wake_at=0 WHERE run_id=? AND id='timer'", r.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.db.Exec("UPDATE dag_wakeups SET due_at=0 WHERE run_id=? AND node_id='timer' AND kind='timer'", r.ID); err != nil {
 		t.Fatal(err)
 	}
 	if err = e.Tick(ctx); err != nil {
@@ -402,6 +431,9 @@ func TestIndependentEnginesClaimSameDatabaseOnce(t *testing.T) {
 }
 func TestQuorumWaitsForThreshold(t *testing.T) {
 	e, _ := fixture(t, Workflow{Nodes: []Node{{ID: "a", Type: "task"}, {ID: "b", Type: "task"}, {ID: "c", Type: "task"}, {ID: "join", Type: "task", Join: "quorum", Quorum: 2, DependsOn: []string{"a", "b", "c"}}}})
+	if err := e.SetResourceLimits(ctx, "t", "p", map[string]int64{"execution_slots": 3}); err != nil {
+		t.Fatal(err)
+	}
 	a, b, c := claim(t, e), claim(t, e), claim(t, e)
 	done(t, e, a, 0)
 	if claim(t, e) != nil {
@@ -452,6 +484,9 @@ func TestUnknownResultRetainsReservationUntilStopped(t *testing.T) {
 
 func TestSchedulingRotatesAcrossEligibleRuns(t *testing.T) {
 	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "a", Type: "task"}, {ID: "b", Type: "task"}, {ID: "c", Type: "task"}}})
+	if err := e.SetResourceLimits(ctx, "t", "p", map[string]int64{"execution_slots": 2}); err != nil {
+		t.Fatal(err)
+	}
 	r2, err := e.CreateRun(ctx, "t", "p", "wf", "second")
 	if err != nil {
 		t.Fatal(err)
@@ -610,6 +645,9 @@ func TestRunBindingRollsBackAdmissionAndReplaysOnce(t *testing.T) {
 
 func TestEarlyJoinWaitsForReferencedConditionAncestor(t *testing.T) {
 	e, _ := fixture(t, Workflow{Nodes: []Node{{ID: "a", Type: "task"}, {ID: "b", Type: "task"}, {ID: "conditional", Type: "task", Join: "any_success", DependsOn: []string{"a", "b"}, Condition: "b.state == succeeded"}}})
+	if err := e.SetResourceLimits(ctx, "t", "p", map[string]int64{"execution_slots": 2}); err != nil {
+		t.Fatal(err)
+	}
 	a, b := claim(t, e), claim(t, e)
 	if a.NodeID != "a" {
 		a, b = b, a

@@ -89,6 +89,22 @@ func (t *transaction) createRun(tenant, project string, w Workflow, bind func(*s
 	return t.createRunID(tenant, project, uid(), w, bind)
 }
 func (t *transaction) createRunID(tenant, project, runID string, w Workflow, bind func(*sql.Tx, string) error) (*runState, error) {
+	if err := t.guardProject(tenant, project); err != nil {
+		return nil, err
+	}
+	if _, err := t.ensureDefaultPolicy(tenant, project); err != nil {
+		return nil, err
+	}
+	root := t.familyRoot
+	if root == "" {
+		root = runID
+	}
+	if err := t.insertIgnore(`INSERT INTO dag_run_families(run_id,root_run_id)VALUES(?,?)`, "run_id", runID, root); err != nil {
+		return nil, err
+	}
+	if err := t.guardFamily(tenant, project, runID); err != nil {
+		return nil, err
+	}
 	r := &runState{Run: Run{ID: runID, TenantID: tenant, ProjectID: project, WorkflowID: w.ID, WorkflowName: w.Name, WorkflowVersion: w.Version, State: "running", CreatedAt: stamp(t.now), UpdatedAt: stamp(t.now)}, workflow: w}
 	if err := t.exec("INSERT INTO dag_runs (id,tenant_id,project_id,workflow_id,workflow_version,workflow_name,version,state,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)", r.ID, tenant, project, w.ID, w.Version, w.Name, 0, r.State, r.CreatedAt, r.UpdatedAt); err != nil {
 		return nil, err
@@ -104,6 +120,9 @@ func (t *transaction) createRunID(tenant, project, runID string, w Workflow, bin
 		if err := bind(t.tx, r.ID); err != nil {
 			return nil, err
 		}
+	}
+	if err := t.initializeGraph(r, false); err != nil {
+		return nil, err
 	}
 	if err := t.event(r, "", "run_created", map[string]any{"workflow_version": w.Version}); err != nil {
 		return nil, err
@@ -149,7 +168,15 @@ func (t *transaction) spawnSubrun(r *runState, n *nodeState) error {
 	if err = t.event(r, n.ID, "child_run_created", map[string]any{"child_run_id": child.ID, "workflow_id": w.ID, "workflow_version": w.Version, "attempt": n.Attempt}); err != nil {
 		return err
 	}
-	return t.transition(r, n, "waiting", "subworkflow")
+	if err = t.transition(r, n, "waiting", "subworkflow"); err != nil {
+		return err
+	}
+	// An entirely internal child can finish before its parent link exists.
+	// Queue the newly linked parent so that completion is observed in this tx.
+	if terminal(child.State) {
+		return t.enqueueNode(r, n.ID)
+	}
+	return nil
 }
 func (t *transaction) resolveSubruns(r *runState) (bool, error) {
 	changed := false
@@ -162,7 +189,7 @@ func (t *transaction) resolveSubruns(r *runState) (bool, error) {
 			return false, err
 		}
 		if !terminal(state) && n.wake > 0 && n.wake <= t.now {
-			child, err := load(t.ctx, t.tx, t.e, r.TenantID, r.ProjectID, n.ChildRunID)
+			child, err := t.loadFull(r.TenantID, r.ProjectID, n.ChildRunID)
 			if err != nil {
 				return false, err
 			}
@@ -211,7 +238,7 @@ func (t *transaction) resolveSubruns(r *runState) (bool, error) {
 		if err := t.exec("UPDATE dag_attempts SET state=?,completed_at=?,result=? WHERE run_id=? AND node_id=? AND attempt=?", next, stamp(t.now), n.Output, r.ID, n.ID, n.Attempt); err != nil {
 			return false, err
 		}
-		if next == "failed" && r.State != "cancelling" && n.spec.Idempotent && n.Attempt <= n.spec.MaxRetries {
+		if r.kernelGeneration == 1 && next == "failed" && r.State != "cancelling" && n.spec.Idempotent && n.Attempt <= n.spec.MaxRetries {
 			n.State = "pending"
 			n.CompletedAt = ""
 			n.wake = t.now + 1
@@ -236,7 +263,7 @@ func (t *transaction) propagateParent(child *runState) error {
 	if err != nil {
 		return err
 	}
-	parent, err := load(t.ctx, t.tx, t.e, child.TenantID, child.ProjectID, parentID)
+	parent, err := t.loadHot(child.TenantID, child.ProjectID, parentID)
 	if err != nil {
 		return err
 	}
@@ -245,6 +272,13 @@ func (t *transaction) propagateParent(child *runState) error {
 		return nil
 	}
 	if err = t.event(parent, nodeID, "child_run_completed", map[string]any{"child_run_id": child.ID, "state": child.State, "attempt": attempt}); err != nil {
+		return err
+	}
+	if parent.State == "cancelling" {
+		if _, err = t.resolveSubruns(parent); err != nil {
+			return err
+		}
+	} else if err = t.enqueueNode(parent, nodeID); err != nil {
 		return err
 	}
 	if err = t.advance(parent); err != nil {
@@ -257,7 +291,7 @@ func (t *transaction) controlSubruns(r *runState, action string) error {
 		if n.Type != "subworkflow" || n.ChildRunID == "" {
 			continue
 		}
-		child, err := load(t.ctx, t.tx, t.e, r.TenantID, r.ProjectID, n.ChildRunID)
+		child, err := t.loadFull(r.TenantID, r.ProjectID, n.ChildRunID)
 		if err != nil {
 			return err
 		}
@@ -281,6 +315,9 @@ func (t *transaction) controlSubruns(r *runState, action string) error {
 			}
 			child.State = "running"
 			flag = 0
+			if err = t.resumeRunWakes(child); err != nil {
+				return err
+			}
 		case "cancel":
 			if err = t.cancelRun(child, "parent cancellation"); err != nil {
 				return err
@@ -342,7 +379,7 @@ func (t *transaction) checkParentCommand(r *runState, action string) error {
 		if err != nil {
 			return err
 		}
-		parent, err := load(t.ctx, t.tx, t.e, r.TenantID, r.ProjectID, parentID)
+		parent, err := t.loadFull(r.TenantID, r.ProjectID, parentID)
 		if err != nil {
 			return err
 		}

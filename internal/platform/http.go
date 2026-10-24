@@ -109,6 +109,13 @@ func decode(r *http.Request) (map[string]any, error) {
 	}
 	var m map[string]any
 	d := json.NewDecoder(bytes.NewReader(raw))
+	// These routes decode into strict integer DTOs after the public envelope.
+	// Preserve numeric lexemes so a fractional counter near 2^53 cannot round
+	// into a valid integer before that validation. Legacy map-backed routes
+	// retain their existing number representation until their DTO migration.
+	if strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") {
+		d.UseNumber()
+	}
 	if err := d.Decode(&m); err != nil {
 		return nil, invalid("请求必须是 JSON 对象")
 	}
@@ -388,6 +395,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.taskDispatchHTTP(w, r, p, scope, path, parts, project, m) {
+		return
+	}
+	if s.schedulingHTTP(w, r, p, scope, path, parts, project, m) {
 		return
 	}
 	if s.releaseDeploymentHTTP(w, r, p, project, path, m) {
@@ -693,19 +703,32 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, pro
 		})
 		respond(w, 200, map[string]bool{"acknowledged": e == nil}, e)
 	case "runner/claim":
-		a, e := s.Engine.ClaimEligible(r.Context(), p.TenantID, project, str(m, "worker_id"), stringsAt(m, "capabilities"), func(tx *sql.Tx) error {
-			return s.Service.runnerIdentityTx(r.Context(), tx, p, project, tokenOf(r), str(m, "worker_id"))
+		var claim RunnerClaimRequest
+		if err := strictAutomation(m, &claim); err != nil {
+			writeError(w, err)
+			return
+		}
+		if len(claim.IdempotencyKey) < 8 || len(claim.IdempotencyKey) > 128 {
+			writeError(w, invalid("领取任务必须提供 8–128 字符的稳定 idempotency_key"))
+			return
+		}
+		if claim.ProjectID != project || claim.ProjectID == "" || m["capabilities"] == nil {
+			writeError(w, invalid("领取任务必须提供精确项目及实际能力列表"))
+			return
+		}
+		a, e := s.Engine.ClaimWithOperation(r.Context(), p.TenantID, project, claim.WorkerID, claim.IdempotencyKey, claim.Capabilities, func(tx *sql.Tx) error {
+			return s.Service.runnerIdentityTx(r.Context(), tx, p, project, tokenOf(r), claim.WorkerID)
 		}, func(tx *sql.Tx, run, node string) (bool, error) {
-			allowed, err := s.Service.releaseClaimEligibleTx(r.Context(), tx, p, project, tokenOf(r), str(m, "worker_id"), run)
+			allowed, err := s.Service.releaseClaimEligibleTx(r.Context(), tx, p, project, tokenOf(r), claim.WorkerID, run)
 			if err != nil || !allowed {
 				return allowed, err
 			}
-			return s.Service.toolClaimEligibleTx(r.Context(), tx, p, project, tokenOf(r), str(m, "worker_id"), run, node)
+			return s.Service.toolClaimEligibleTx(r.Context(), tx, p, project, tokenOf(r), claim.WorkerID, run, node)
 		})
-		if e == nil && a != nil {
+		if e == nil && a != nil && a.DispatchState == "active" {
 			a.ReleaseExecution, e = s.Service.ReleaseExecutionForAssignment(r.Context(), p, project, *a)
 		}
-		respond(w, 200, map[string]any{"assignment": a}, e)
+		respond(w, 200, RunnerClaimResponse{Assignment: a}, e)
 	case "runner/heartbeat":
 		var a dag.Assignment
 		if json.Unmarshal([]byte(stringify(m["assignment"])), &a) != nil {

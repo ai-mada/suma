@@ -27,11 +27,11 @@
 {"goal":"检查当前项目的阻塞任务","max_steps":8,"max_tokens":8192,"request_id":"inspection-1"}
 ```
 
-stdout 为 JSONL 事件：`started`、`usage`、`tool_started`、`tool_completed`、`completed`、`error`。`{"cancel":true}` 中止正在执行的请求；SIGINT/SIGTERM 也触发 AbortSignal。单进程同一时间只运行一个请求，第二个请求返回 `busy`。发生错误时 CLI 退出状态为非零。
+stdout 为 JSONL 事件：`started`、`request_started`、`usage`、`tool_started`、`tool_completed`、`completed`、`error`。`{"cancel":true}` 中止正在执行的请求；SIGINT/SIGTERM 也触发 AbortSignal。单进程同一时间只运行一个请求，第二个请求返回 `busy`。发生错误时 CLI 退出状态为非零。
 
 `node packages/agent-runtime/dist/src/cli.js --version` 与 `--help` 只输出版本／协议说明，不创建模型请求或读取项目工具。Runner 的本地 Suma 协议探测使用这两个入口。
 
-默认最多 8 次模型调用，最大 16 次；每轮最多 8 个工具调用。输出 token 默认预算 8192，上限 32768；服务商未返回 usage 时事件会标明 `usage_reported:false`，此时无法核实实际 token 消耗，仍受轮数、单次 completion token 和总时间限制。默认总超时 120 秒。单个上游响应限制 2 MiB，工具结果限制 64 KiB。所有远程地址要求 HTTPS，loopback 允许 HTTP；不跟随重定向。
+默认最多 8 次模型调用，最大 16 次；每轮最多 8 个工具调用。输出过程额度默认 8192，上限 32768；显式非法参数在任何HTTP前拒绝。每次请求先预留输出allowance，缺用量时保留整次allowance，合法实际输出已知时释放未用部分；超额报告先保留事实再拒绝工具动作。`usage_state`区分完整、部分小计与未报告，明确0与缺失分别保存。[完整用量与领取恢复合同](scheduling-usage.md)说明分步覆盖、未知额度和持久领取标识；这不承诺厂商账单硬限制。默认总超时 120 秒。单个上游响应限制 2 MiB，工具结果限制 64 KiB。所有远程地址要求 HTTPS，loopback 允许 HTTP；不跟随重定向。
 
 工具列表从 `GET /api/v1/agent/tools?project_id=...` 取得；调用通过 `POST /api/v1/agent/tools/invoke`，携带项目、工具名、JSON 参数和幂等键。模型请求的工具必须出现在当前授权目录中。服务端仍负责参数校验和 RBAC；模型不能新增工具或指定命令执行器。
 

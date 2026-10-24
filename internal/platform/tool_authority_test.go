@@ -107,7 +107,7 @@ func TestToolHTTPResultRequiresTerminalProofAndBoundLeaseIdentity(t *testing.T) 
 	}
 	w := f.call("POST", "/workflows", f.body(map[string]any{"name": "Typed facts HTTP", "nodes": []dag.Node{{ID: "agent", Type: "agent", Command: []string{p.Profile.CommandID}, Config: map[string]any{"goal": "fixture", "tool_profile_id": p.ID, "tool_profile_sha256": p.Profile.ProfileSHA256}}}}), 201)
 	r := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": w["id"]}), 201)
-	claimed := f.bearer("POST", "/runner/claim", token, map[string]any{"project_id": f.project, "worker_id": p.WorkerID, "capabilities": []string{"command:" + p.Profile.CommandID}}, 200)
+	claimed := f.bearer("POST", "/runner/claim", token, map[string]any{"project_id": f.project, "worker_id": p.WorkerID, "capabilities": []string{"command:" + p.Profile.CommandID}, "idempotency_key": newID()}, 200)
 	var a dag.Assignment
 	b, marshalErr := json.Marshal(claimed["assignment"])
 	if marshalErr != nil || json.Unmarshal(b, &a) != nil || a.WorkerID != p.WorkerID {
@@ -131,7 +131,7 @@ func TestToolHTTPResultRequiresTerminalProofAndBoundLeaseIdentity(t *testing.T) 
 	}
 	send(400)
 	result.OperationID = newID()
-	result.ToolEvidence = &toolcontract.Evidence{Profile: p.Profile, Terminal: "failed", EventCount: 1}
+	result.ToolEvidence = &toolcontract.Evidence{Profile: p.Profile, Terminal: "failed", EventCount: 1, UsageState: toolcontract.UsageUnreported}
 	send(400)
 	result.OperationID = newID()
 	result.ToolEvidence.Terminal = "unknown"
@@ -162,7 +162,7 @@ func TestToolHTTPConfirmedStopReceiptCancelsWithoutProtocolSuccess(t *testing.T)
 	}
 	w := f.call("POST", "/workflows", f.body(map[string]any{"name": "Confirmed process stop", "nodes": []dag.Node{{ID: "agent", Type: "agent", Command: []string{p.Profile.CommandID}, Config: map[string]any{"goal": "fixture", "tool_profile_id": p.ID, "tool_profile_sha256": p.Profile.ProfileSHA256}}}}), 201)
 	r := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": w["id"]}), 201)
-	claimed := f.bearer("POST", "/runner/claim", token, map[string]any{"project_id": f.project, "worker_id": p.WorkerID, "capabilities": []string{"command:" + p.Profile.CommandID}}, 200)
+	claimed := f.bearer("POST", "/runner/claim", token, map[string]any{"project_id": f.project, "worker_id": p.WorkerID, "capabilities": []string{"command:" + p.Profile.CommandID}, "idempotency_key": newID()}, 200)
 	var a dag.Assignment
 	b, _ := json.Marshal(claimed["assignment"])
 	if json.Unmarshal(b, &a) != nil || a.WorkerID != p.WorkerID {
@@ -170,7 +170,7 @@ func TestToolHTTPConfirmedStopReceiptCancelsWithoutProtocolSuccess(t *testing.T)
 	}
 	current := f.call("GET", "/runs/"+r["id"].(string)+"?project_id="+f.project, nil, 200)
 	f.call("POST", "/runs/"+r["id"].(string)+"/commands", f.body(map[string]any{"action": "cancel", "expected_version": current["version"], "payload": map[string]any{"reason": "verified stop test"}}), 200)
-	result := dag.Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, OperationID: newID(), Stopped: true, ToolEvidence: &toolcontract.Evidence{Profile: p.Profile, Terminal: "unknown", EventCount: 2}}
+	result := dag.Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, OperationID: newID(), Stopped: true, ToolEvidence: &toolcontract.Evidence{Profile: p.Profile, Terminal: "unknown", EventCount: 2, UsageState: toolcontract.UsageUnreported}}
 	f.bearer("POST", "/runner/results", token, map[string]any{"project_id": f.project, "result": result}, 200)
 	current = f.call("GET", "/runs/"+r["id"].(string)+"?project_id="+f.project, nil, 200)
 	if current["state"] != "cancelled" {

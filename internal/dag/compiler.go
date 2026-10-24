@@ -9,6 +9,8 @@ import (
 var identifier = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$`)
 var types = map[string]bool{"task": true, "command": true, "agent": true, "script": true, "test": true, "approval": true, "timer": true, "condition": true, "map": true, "join": true, "noop": true, "subworkflow": true, "external_workflow": true}
 
+const maxExecutionTimeoutSeconds = 9223372036
+
 func Compile(w Workflow) error { _, err := normalize(w); return err }
 func predicates(n Node) []string {
 	out := []string{n.Condition}
@@ -44,11 +46,11 @@ func normalize(w Workflow) (Workflow, error) {
 		if _, _, _, err := ToolBinding(n); err != nil {
 			return w, err
 		}
-		if n.MaxRetries < 0 || n.TimeoutSeconds < 0 || n.MaxRetries > 0 && !n.Idempotent {
-			return w, fmt.Errorf("%w: retries require idempotency", ErrInvalid)
+		if n.MaxRetries < 0 || n.MaxRetries > 2 || n.TimeoutSeconds < 0 || n.TimeoutSeconds > maxExecutionTimeoutSeconds || n.MaxRetries > 0 && !n.Idempotent {
+			return w, fmt.Errorf("%w: retries require idempotency and 0..2 retries; timeout must be 0..9223372036 whole seconds", ErrInvalid)
 		}
 		for resource, v := range n.Resources {
-			if v < 0 || !identifier.MatchString(resource) {
+			if !safeSchedulingInteger(v) || !identifier.MatchString(resource) || (resource == "budget" || resource == "execution_slots") && v == 0 {
 				return w, fmt.Errorf("%w: negative resource", ErrInvalid)
 			}
 		}

@@ -32,6 +32,65 @@ const profile: ToolProfile = {
   last_seen_at: "2026-10-24T00:00:00Z",
 };
 describe("tool execution facts are separate from acceptance", () => {
+  it("marks partial subtotals and known zero without filling missing optional counters", () => {
+    const html = renderToStaticMarkup(
+      createElement(ToolExecutionFacts, {
+        state: "succeeded",
+        evidence: {
+          profile: profile.profile,
+          terminal: "completed",
+          event_count: 3,
+          usage_state: "partial",
+          usage: { input_tokens: 0, output_tokens: 5 },
+        },
+        events: [
+          {
+            schema_version: 1,
+            command_id: "code",
+            profile_sha256: "a".repeat(64),
+            protocol: "codex-jsonl-v1",
+            kind: "usage",
+            usage_state: "complete",
+            usage: {
+              input_tokens: 99,
+              output_tokens: 99,
+              cached_input_tokens: 88,
+            },
+          },
+        ],
+      }),
+    );
+    expect(html).toContain("部分已报告小计");
+    expect(html).toContain("未报告");
+    expect(html).not.toContain("88");
+    expect(html).not.toContain("99");
+  });
+  it("does not backfill final unreported evidence from an earlier step usage", () => {
+    const html = renderToStaticMarkup(
+      createElement(ToolExecutionFacts, {
+        state: "failed",
+        evidence: {
+          profile: profile.profile,
+          terminal: "failed",
+          event_count: 2,
+          usage_state: "unreported",
+        },
+        events: [
+          {
+            schema_version: 1,
+            command_id: "code",
+            profile_sha256: "a".repeat(64),
+            protocol: "codex-jsonl-v1",
+            kind: "usage",
+            usage_state: "complete",
+            usage: { input_tokens: 777, output_tokens: 5 },
+          },
+        ],
+      }),
+    );
+    expect(html).toContain("未报告用量");
+    expect(html).not.toContain("777");
+  });
   it("never links a ready plan reserved run ID as if a real run already existed", () => {
     const pending = renderToStaticMarkup(
       createElement(TaskDispatchRunFacts, {

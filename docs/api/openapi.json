@@ -340,11 +340,25 @@
             "additionalProperties": {},
             "type": "object"
           },
+          "dispatch_id": {
+            "type": "string"
+          },
+          "dispatch_state": {
+            "enum": [
+              "active",
+              "closed",
+              "reconciling"
+            ],
+            "type": "string"
+          },
           "fence": {
             "type": "integer"
           },
           "idempotent": {
             "type": "boolean"
+          },
+          "lease_until": {
+            "type": "string"
           },
           "node_id": {
             "type": "string"
@@ -363,6 +377,8 @@
             "type": "string"
           },
           "timeout_seconds": {
+            "maximum": 9223372036,
+            "minimum": 0,
             "type": "integer"
           },
           "type": {
@@ -410,6 +426,42 @@
           "attempt",
           "fence",
           "worker_id"
+        ],
+        "type": "object"
+      },
+      "AttemptPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutionAttempt"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "type": "object"
+      },
+      "AttemptReconciliation": {
+        "properties": {
+          "outcome": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "outcome",
+          "reason"
         ],
         "type": "object"
       },
@@ -2016,6 +2068,81 @@
         ],
         "type": "object"
       },
+      "ExecutionAttempt": {
+        "properties": {
+          "attempt": {
+            "type": "integer"
+          },
+          "child_run_id": {
+            "type": "string"
+          },
+          "completed_at": {
+            "type": "string"
+          },
+          "fence": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "reconciliation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AttemptReconciliation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Result"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result_source": {
+            "description": "List is metadata-only and returns not_loaded. Exact detail distinguishes a real runner receipt, manual reconciliation, child workflow and independently observed managed provider result; these are not interchangeable process evidence.",
+            "enum": [
+              "not_loaded",
+              "unreported",
+              "runner_result",
+              "manual_reconciliation",
+              "child_workflow",
+              "managed_observation"
+            ],
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "started_at": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "node_id",
+          "attempt",
+          "fence",
+          "worker_id",
+          "state",
+          "started_at",
+          "completed_at",
+          "result_source"
+        ],
+        "type": "object"
+      },
       "HealthCheck": {
         "properties": {
           "expected_file": {
@@ -2416,6 +2543,9 @@
             "type": "string"
           },
           "max_retries": {
+            "description": "Only explicitly transient failures of idempotent nodes may automatically retry; each retry creates a new attempt with durable backoff and a fixed total deadline.",
+            "maximum": 2,
+            "minimum": 0,
             "type": "integer"
           },
           "name": {
@@ -2431,6 +2561,9 @@
             "type": "object"
           },
           "timeout_seconds": {
+            "description": "Worker automatic-retry sequence total deadline; zero/omitted uses300 seconds for new kernel generation. Manual retry explicitly opens a new persisted window. Non-worker timeout semantics depend on node type. Bound prevents Go duration overflow.",
+            "maximum": 9223372036,
+            "minimum": 0,
             "type": "integer"
           },
           "type": {
@@ -2448,6 +2581,76 @@
           "timeout_seconds",
           "max_retries",
           "idempotent"
+        ],
+        "type": "object"
+      },
+      "NodeAdmissionSnapshot": {
+        "properties": {
+          "attempt": {
+            "type": "integer"
+          },
+          "blockers": {
+            "items": {
+              "$ref": "#/components/schemas/SchedulingBlocker"
+            },
+            "type": "array"
+          },
+          "evaluated_at": {
+            "type": "string"
+          },
+          "fence": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "node_state": {
+            "type": "string"
+          },
+          "policy_version": {
+            "type": "integer"
+          },
+          "requests": {
+            "items": {
+              "$ref": "#/components/schemas/ResourceRequest"
+            },
+            "type": "array"
+          },
+          "reservations": {
+            "items": {
+              "$ref": "#/components/schemas/ResourceReservationSnapshot"
+            },
+            "type": "array"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "run_version": {
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "eligible",
+              "blocked",
+              "unknown",
+              "not_pending"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "node_id",
+          "run_version",
+          "node_state",
+          "attempt",
+          "fence",
+          "policy_version",
+          "evaluated_at",
+          "status",
+          "blockers",
+          "requests",
+          "reservations"
         ],
         "type": "object"
       },
@@ -2480,6 +2683,9 @@
       },
       "NodeRun": {
         "properties": {
+          "admission_policy_version": {
+            "type": "integer"
+          },
           "artifact_evidence": {
             "anyOf": [
               {
@@ -2526,6 +2732,9 @@
           "output": {
             "type": "string"
           },
+          "ready_at": {
+            "type": "string"
+          },
           "reason": {
             "type": "string"
           },
@@ -2553,6 +2762,12 @@
           },
           "type": {
             "type": "string"
+          },
+          "winner_node_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           },
           "worker_id": {
             "type": "string"
@@ -3204,6 +3419,98 @@
           "project_id",
           "expected_version",
           "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "ReadyEntry": {
+        "properties": {
+          "admission": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NodeAdmissionSnapshot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "attempt": {
+            "type": "integer"
+          },
+          "command_id": {
+            "type": "string"
+          },
+          "fence": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "node_name": {
+            "type": "string"
+          },
+          "node_state": {
+            "type": "string"
+          },
+          "ready_at": {
+            "type": "string"
+          },
+          "requests": {
+            "items": {
+              "$ref": "#/components/schemas/ResourceRequest"
+            },
+            "type": "array"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "run_version": {
+            "type": "integer"
+          },
+          "sequence": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "workflow_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "node_id",
+          "node_name",
+          "workflow_name",
+          "run_version",
+          "node_state",
+          "attempt",
+          "fence",
+          "ready_at",
+          "sequence",
+          "type",
+          "requests"
+        ],
+        "type": "object"
+      },
+      "ReadyPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReadyEntry"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
         ],
         "type": "object"
       },
@@ -4590,6 +4897,102 @@
         ],
         "type": "object"
       },
+      "ResourceRequest": {
+        "properties": {
+          "amount": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "release_class": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "unit",
+          "amount",
+          "release_class"
+        ],
+        "type": "object"
+      },
+      "ResourceReservationSnapshot": {
+        "properties": {
+          "amount": {
+            "type": "integer"
+          },
+          "attempt": {
+            "type": "integer"
+          },
+          "fence": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "release_class": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "unit",
+          "amount",
+          "release_class",
+          "attempt",
+          "fence"
+        ],
+        "type": "object"
+      },
+      "ResourceSnapshot": {
+        "properties": {
+          "capacity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "consumed": {
+            "type": "integer"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "release_class": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "used": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "unit",
+          "capacity",
+          "used",
+          "consumed",
+          "mode",
+          "release_class"
+        ],
+        "type": "object"
+      },
       "Result": {
         "properties": {
           "artifact_evidence": {
@@ -4610,6 +5013,16 @@
           },
           "exit_code": {
             "type": "integer"
+          },
+          "failure_class": {
+            "description": "Only an explicitly known transient failure of an idempotent operation is eligible for bounded automatic retry; unknown outcomes require reconciliation.",
+            "enum": [
+              "",
+              "transient",
+              "permanent",
+              "protocol"
+            ],
+            "type": "string"
           },
           "fence": {
             "type": "integer"
@@ -4732,6 +5145,53 @@
           "created_at",
           "updated_at",
           "nodes"
+        ],
+        "type": "object"
+      },
+      "RunnerClaimRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "worker_id",
+          "capabilities",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "RunnerClaimResponse": {
+        "properties": {
+          "assignment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Assignment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "assignment"
         ],
         "type": "object"
       },
@@ -4860,6 +5320,432 @@
           "project_id",
           "changes",
           "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "SchedulingBlocker": {
+        "properties": {
+          "available": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "required": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resource": {
+            "type": "string"
+          },
+          "retry_at": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "used": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "source"
+        ],
+        "type": "object"
+      },
+      "SchedulingFairness": {
+        "properties": {
+          "mode": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "scope"
+        ],
+        "type": "object"
+      },
+      "SchedulingPolicyChange": {
+        "properties": {
+          "after": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "before": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resource": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "resource",
+          "unit",
+          "before",
+          "after"
+        ],
+        "type": "object"
+      },
+      "SchedulingPolicyCommitRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "SchedulingPolicyImpact": {
+        "properties": {
+          "budget_history": {
+            "type": "string"
+          },
+          "budget_spent": {
+            "type": "integer"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "observed_at": {
+            "type": "string"
+          },
+          "ready_total": {
+            "type": "integer"
+          },
+          "reserved_execution_slots": {
+            "type": "integer"
+          },
+          "resources": {
+            "items": {
+              "$ref": "#/components/schemas/ResourceSnapshot"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "observed_at",
+          "ready_total",
+          "reserved_execution_slots",
+          "budget_spent",
+          "budget_history",
+          "resources",
+          "notes"
+        ],
+        "type": "object"
+      },
+      "SchedulingPolicyInput": {
+        "additionalProperties": false,
+        "properties": {
+          "budget_limit": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cumulative admission units; null explicitly unlimited, zero prevents new worker attempts. Not tokens, monetary settlement or refundable capacity."
+          },
+          "concurrency_limit": {
+            "description": "Configured project admission slots, not measured hardware or an OS hard limit. Zero prevents new worker attempts.",
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "resource_limits": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "maxProperties": 64,
+            "type": "object"
+          }
+        },
+        "required": [
+          "concurrency_limit",
+          "resource_limits",
+          "budget_limit"
+        ],
+        "type": "object"
+      },
+      "SchedulingPolicyPreview": {
+        "properties": {
+          "applied_policy_version": {
+            "type": "integer"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/SchedulingPolicyChange"
+            },
+            "type": "array"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "impact": {
+            "$ref": "#/components/schemas/SchedulingPolicyImpact"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/SchedulingPolicyInput"
+          },
+          "policy_sha256": {
+            "type": "string"
+          },
+          "policy_version": {
+            "type": "integer"
+          },
+          "previous_policy": {
+            "$ref": "#/components/schemas/SchedulingPolicyInput"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "ready",
+              "committed"
+            ],
+            "type": "string"
+          },
+          "valid": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "version",
+          "state",
+          "policy_version",
+          "policy",
+          "previous_policy",
+          "changes",
+          "impact",
+          "policy_sha256",
+          "created_at",
+          "expires_at",
+          "valid"
+        ],
+        "type": "object"
+      },
+      "SchedulingPolicyPreviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/SchedulingPolicyInput"
+          },
+          "project_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "policy",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "SchedulingPolicyView": {
+        "properties": {
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "as_of": {
+            "type": "string"
+          },
+          "budget_history": {
+            "type": "string"
+          },
+          "budget_limit": {
+            "anyOf": [
+              {
+                "maximum": 9007199254740991,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cumulative admission units; null explicitly unlimited, zero prevents new worker attempts. Not tokens, monetary settlement or refundable capacity."
+          },
+          "budget_spent": {
+            "type": "integer"
+          },
+          "concurrency_limit": {
+            "description": "Configured project admission slots, not measured hardware or an OS hard limit. Zero prevents new worker attempts.",
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "default": {
+            "type": "boolean"
+          },
+          "fairness": {
+            "$ref": "#/components/schemas/SchedulingFairness"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "resource_limits": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "maxProperties": 64,
+            "type": "object"
+          },
+          "resources": {
+            "items": {
+              "$ref": "#/components/schemas/ResourceSnapshot"
+            },
+            "type": "array"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "version",
+          "default",
+          "concurrency_limit",
+          "resource_limits",
+          "budget_limit",
+          "budget_spent",
+          "unit",
+          "budget_history",
+          "as_of",
+          "resources",
+          "allowed_actions",
+          "fairness"
         ],
         "type": "object"
       },
@@ -5339,8 +6225,166 @@
         ],
         "type": "object"
       },
+      "TickFailure": {
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "project_id",
+          "run_id",
+          "message"
+        ],
+        "type": "object"
+      },
+      "TickReport": {
+        "properties": {
+          "advanced": {
+            "type": "integer"
+          },
+          "examined": {
+            "type": "integer"
+          },
+          "failed": {
+            "type": "integer"
+          },
+          "failures": {
+            "items": {
+              "$ref": "#/components/schemas/TickFailure"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "examined",
+          "advanced",
+          "failed",
+          "failures"
+        ],
+        "type": "object"
+      },
       "ToolEvent": {
         "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "usage_state": {
+                  "const": "complete"
+                }
+              },
+              "required": [
+                "usage_state"
+              ]
+            },
+            "then": {
+              "properties": {
+                "usage": {
+                  "required": [
+                    "input_tokens",
+                    "output_tokens"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "usage"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "usage_state": {
+                  "const": "partial"
+                }
+              },
+              "required": [
+                "usage_state"
+              ]
+            },
+            "then": {
+              "properties": {
+                "usage": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "usage"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "usage_state": {
+                  "const": "unreported"
+                }
+              },
+              "required": [
+                "usage_state"
+              ]
+            },
+            "then": {
+              "properties": {
+                "usage": {
+                  "type": "null"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "anyOf": [
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "usage"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                {
+                  "properties": {
+                    "usage": {
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "usage"
+                  ]
+                }
+              ]
+            },
+            "then": {
+              "properties": {
+                "usage_state": {
+                  "enum": [
+                    "complete",
+                    "partial",
+                    "unreported"
+                  ]
+                }
+              },
+              "required": [
+                "usage_state"
+              ]
+            }
+          }
+        ],
         "properties": {
           "command_id": {
             "type": "string"
@@ -5397,6 +6441,16 @@
                 "type": "null"
               }
             ]
+          },
+          "usage_state": {
+            "description": "complete requires known input/output; partial preserves reported subtotals and unknown steps; unreported has no usage object. Outer null is absence; ordinary non-usage events may omit state as well. Event state is required when kind=usage or a usage object is present.",
+            "enum": [
+              "",
+              "complete",
+              "partial",
+              "unreported"
+            ],
+            "type": "string"
           }
         },
         "required": [
@@ -5409,6 +6463,75 @@
         "type": "object"
       },
       "ToolEvidence": {
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "usage_state": {
+                  "const": "complete"
+                }
+              },
+              "required": [
+                "usage_state"
+              ]
+            },
+            "then": {
+              "properties": {
+                "usage": {
+                  "required": [
+                    "input_tokens",
+                    "output_tokens"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "usage"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "usage_state": {
+                  "const": "partial"
+                }
+              },
+              "required": [
+                "usage_state"
+              ]
+            },
+            "then": {
+              "properties": {
+                "usage": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "usage"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "usage_state": {
+                  "const": "unreported"
+                }
+              },
+              "required": [
+                "usage_state"
+              ]
+            },
+            "then": {
+              "properties": {
+                "usage": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ],
         "properties": {
           "event_count": {
             "minimum": 0,
@@ -5438,12 +6561,22 @@
                 "type": "null"
               }
             ]
+          },
+          "usage_state": {
+            "description": "complete requires known input/output; partial preserves reported subtotals and unknown steps; unreported has no usage object. Outer null is absence; ordinary non-usage events may omit state as well. Event state is required when kind=usage or a usage object is present.",
+            "enum": [
+              "complete",
+              "partial",
+              "unreported"
+            ],
+            "type": "string"
           }
         },
         "required": [
           "profile",
           "terminal",
-          "event_count"
+          "event_count",
+          "usage_state"
         ],
         "type": "object"
       },
@@ -5714,24 +6847,35 @@
       },
       "ToolUsage": {
         "additionalProperties": false,
+        "minProperties": 1,
         "properties": {
           "cache_write_input_tokens": {
+            "description": "Present zero is a reported zero; omitted is unreported. Null, fractions and overflow are invalid.",
+            "maximum": 9007199254740991,
             "minimum": 0,
             "type": "integer"
           },
           "cached_input_tokens": {
+            "description": "Present zero is a reported zero; omitted is unreported. Null, fractions and overflow are invalid.",
+            "maximum": 9007199254740991,
             "minimum": 0,
             "type": "integer"
           },
           "input_tokens": {
+            "description": "Present zero is a reported zero; omitted is unreported. Null, fractions and overflow are invalid.",
+            "maximum": 9007199254740991,
             "minimum": 0,
             "type": "integer"
           },
           "output_tokens": {
+            "description": "Present zero is a reported zero; omitted is unreported. Null, fractions and overflow are invalid.",
+            "maximum": 9007199254740991,
             "minimum": 0,
             "type": "integer"
           },
           "reasoning_output_tokens": {
+            "description": "Present zero is a reported zero; omitted is unreported. Null, fractions and overflow are invalid.",
+            "maximum": 9007199254740991,
             "minimum": 0,
             "type": "integer"
           }
@@ -13689,7 +14833,7 @@
     },
     "/runner/claim": {
       "post": {
-        "description": "Claims only nodes matching actual command:\u003cid\u003e capabilities and all explicit constraints. Tool-bound nodes additionally require the exact enabled profile, current enabling authority, bound worker and matching fresh inventory before any attempt/resource is consumed.",
+        "description": "Durable stable operation required. Current exact worker authority is checked before restoring the same scoped capability fingerprint and dispatch. Retransmission never creates another attempt. Null assignment is a persisted empty receipt; closed/reconciling must never start. Matching tool/candidate/resource policy is enforced before consuming a new attempt. This is project run rotation, not cross-tenant pool fairness.",
         "operationId": "post_runner_claim",
         "parameters": [
           {
@@ -13705,19 +14849,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "additionalProperties": true,
-                "properties": {
-                  "expected_version": {
-                    "type": "integer"
-                  },
-                  "idempotency_key": {
-                    "type": "string"
-                  },
-                  "project_id": {
-                    "type": "string"
-                  }
-                },
-                "type": "object"
+                "$ref": "#/components/schemas/RunnerClaimRequest"
               }
             }
           },
@@ -13727,18 +14859,12 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/RunnerClaimResponse"
+                }
               }
             },
             "description": "Successful response; creates may return 201"
-          },
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Created"
           },
           "400": {
             "description": "Invalid request"
@@ -13758,7 +14884,7 @@
             "runnerAuth": []
           }
         ],
-        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide",
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
         "x-required-token-scope": "runner"
       }
     },
@@ -14616,6 +15742,550 @@
           "$ref": "#/components/schemas/Event"
         },
         "x-request-schema-coverage": "strict project/after query and Last-Event-ID validation; run-bound cursor and live authorization"
+      }
+    },
+    "/runs/{id}/nodes/{node}/attempts": {
+      "get": {
+        "operationId": "get_runs_id_nodes_node_attempts",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "node",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Default50; maximum100. No invented queue rank or ETA.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque keyset cursor bound to tenant, project and collection (including run/node for attempts).",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/runs/{id}/nodes/{node}/attempts/{attempt}": {
+      "get": {
+        "operationId": "get_runs_id_nodes_node_attempts_attempt",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "node",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "attempt",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionAttempt"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/runs/{id}/nodes/{node}/scheduling": {
+      "get": {
+        "operationId": "get_runs_id_nodes_node_scheduling",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "node",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NodeAdmissionSnapshot"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/scheduling/policy": {
+      "get": {
+        "operationId": "get_scheduling_policy",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchedulingPolicyView"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/scheduling/policy-previews": {
+      "post": {
+        "description": "Immutable30-minute review of complete project admission policy, current policy version, digest, changes and observed impact. Does not dispatch, reserve, charge or apply a policy. Current write+approval authority is checked before operation receipt replay.",
+        "operationId": "post_scheduling_policy-previews",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchedulingPolicyPreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchedulingPolicyPreview"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/scheduling/policy-previews/{id}": {
+      "get": {
+        "operationId": "get_scheduling_policy-previews_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchedulingPolicyPreview"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/scheduling/policy-previews/{id}/commit": {
+      "post": {
+        "description": "Current human write+approval, original policy version and preview version are checked in the transaction that applies the policy, audit and receipt. Reduced capacity blocks new attempts without terminating active work or refunding cumulative admission units. Same operation recovers the original applied policy; a new operation cannot recommit the preview.",
+        "operationId": "post_scheduling_policy-previews_id_commit",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchedulingPolicyCommitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchedulingPolicyView"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/scheduling/queue": {
+      "get": {
+        "operationId": "get_scheduling_queue",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Default50; maximum100. No invented queue rank or ETA.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque keyset cursor bound to tenant, project and collection (including run/node for attempts).",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Version or operation conflict"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
       }
     },
     "/search": {

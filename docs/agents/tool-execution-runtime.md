@@ -41,11 +41,11 @@ stdout 按 64 KiB 单行、32 层／32768 token 的 JSON 结构上限解析，�
 | Codex agent_message | 完成后的公开消息文本 |
 | Codex turn.completed | 一致整体终态与官方 usage 数值；不估算费用 |
 | Codex turn.failed／顶层 error | 整体失败；item.error 和 command failed 不擅自推断整个 turn 失败 |
-| Suma started／tool_started／tool_completed／usage／completed／error | 同一受限事件合同；未返回 usage 的模型不伪造用量 |
+| Suma started／request_started／tool_started／tool_completed／usage／completed／error | 同一受限事件合同；未返回 usage 的模型不伪造用量 |
 
-成功要求进程退出 0 且只有一个受支持的一致成功终态。Codex必须按thread.started→turn.started→terminal顺序；Suma started及后续事实必须匹配本次stdin request_id（assignment的稳定SHA256），缺失／外来ID、重复开始和终态后活动均拒绝。Codex归一化要求input_tokens、cached_input_tokens、output_tokens三个基础计数显式存在；reasoning_output_tokens、cache_write_input_tokens作为可选拆分，缺失时wire不输出，不当作已报告零。所有存在计数必须为非负int64，空usage、缺基础字段、错误类型与溢出均拒绝。Native usage_reported=false或缺失保持未知，不填伪零。模型声称成功不替代进程、固定候选、测试证据和人工验收。缺终态、格式错误、冲突或进程／控制结果不确定保留 unknown；取消仍以实际进程树停止回执为准。`waiting_input` 只表示进程仍在等待的观察，保留执行槽位，不提供未经协议支持的回复或恢复按钮。
+成功要求进程退出 0 且只有一个受支持的一致成功终态。Codex必须按thread.started→turn.started→terminal顺序；Suma started及后续事实必须匹配本次stdin request_id（assignment的稳定SHA256），缺失／外来ID、重复开始和终态后活动均拒绝。Codex归一化要求input_tokens、cached_input_tokens、output_tokens三个基础计数显式存在；reasoning_output_tokens、cache_write_input_tokens作为可选拆分，缺失时wire不输出，不当作已报告零。所有存在计数必须为0..9007199254740991的安全整数，明确0与缺失分开保存，空usage、缺基础字段、错误类型与溢出均拒绝。Native逐请求记录usage_state，部分小计不称整轮完整用量；详见[本阶段用量与领取恢复](scheduling-usage.md)。模型声称成功不替代进程、固定候选、测试证据和人工验收。缺终态、格式错误、冲突或进程／控制结果不确定保留 unknown；取消仍以实际进程树停止回执为准。`waiting_input` 只表示进程仍在等待的观察，保留执行槽位，不提供未经协议支持的回复或恢复按钮。
 
-这是针对已核实官方协议形状的兼容边界：[rust-v0.100.0的Usage Serialize定义](https://github.com/openai/codex/blob/rust-v0.100.0/codex-rs/exec/src/exec_events.rs#L54-L63)只含三个基础计数；[锁定970111f6定义](https://github.com/openai/codex/blob/970111f6cb62cc02fe36a82ea7d71b37a2889c97/codex-rs/exec/src/exec_events.rs#L54-L68)含五个计数，且其reasoning字段为必需、cache_write带反序列化默认。平台接受上述两种形状，不从缺失拆分推断失败或生成默认用量。当前wire的omitempty也省略显式零拆分，因此不把未显示拆分解释成“已知零”。本机0.164.0-alpha.11.1只做version/help探测，没有观察其真实模型任务输出，不能声称该安装版本只输出三个计数。
+这是针对已核实官方协议形状的兼容边界：[rust-v0.100.0的Usage Serialize定义](https://github.com/openai/codex/blob/rust-v0.100.0/codex-rs/exec/src/exec_events.rs#L54-L63)只含三个基础计数；[锁定970111f6定义](https://github.com/openai/codex/blob/970111f6cb62cc02fe36a82ea7d71b37a2889c97/codex-rs/exec/src/exec_events.rs#L54-L68)含五个计数，且其reasoning字段为必需、cache_write带反序列化默认。平台接受上述两种形状，不从缺失拆分推断失败或生成默认用量。T-P4-004历史wire的omitempty曾省略显式零拆分；T-P4-005已改指针保留明确零，不覆盖历史证据或推断旧缺失字段。本机0.164.0-alpha.11.1只做version/help探测，没有观察其真实模型任务输出，不能声称该安装版本只输出三个计数。
 
 typed progress 与原文本 progress 共用 Journal、稳定 ordinal operation ID 和 ACK 重放，绑定 run/node/attempt/fence/worker，最终结果另保存 ToolEvidence。会话 ID 仅供人工定位，不读取外部登录文件、不自动重放／恢复不确定副作用。远端会话恢复、外部桥接重启查询、完整终端／输入中介仍在后续范围。
 

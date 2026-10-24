@@ -109,6 +109,9 @@ func generate() (map[string]any, string) {
 	for _, v := range toolExecutionModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range schedulingModels() {
+		schema(reflect.TypeOf(v))
+	}
 	schemas := map[string]any{}
 	for len(schemas) < len(models) {
 		for _, name := range modelNames() {
@@ -122,6 +125,7 @@ func generate() (map[string]any, string) {
 	enhanceAutomationSchemas(schemas)
 	enhanceAutomationIngressSchemas(schemas)
 	enhanceToolExecutionSchemas(schemas)
+	enhanceSchedulingSchemas(schemas)
 	schemas["Error"] = map[string]any{"type": "object", "required": []string{"error"}, "properties": map[string]any{"error": map[string]any{"type": "object", "required": []string{"code", "message"}, "properties": map[string]any{"code": map[string]string{"type": "string"}, "message": map[string]string{"type": "string"}, "details": map[string]any{}}}}}
 	paths := map[string]any{}
 	add := func(path, method, model string, list, body bool) map[string]any {
@@ -206,6 +210,7 @@ func generate() (map[string]any, string) {
 	automationContracts(add, paths)
 	automationIngressContracts(add)
 	toolExecutionContracts(add, paths)
+	schedulingContracts(add, paths)
 	releaseContracts(add)
 	api := map[string]any{"openapi": "3.1.0", "info": map[string]string{"title": "速码 suma API", "version": "0.1.0", "description": "Domain response fields are reflected from Go types; map-backed envelopes and new request fields are audited DTOs. Legacy requests retain partial generic envelopes. Cross-field validation, authorization, idempotency and invitation secrecy remain server-enforced; see docs/api/README.md."}, "servers": []any{map[string]string{"url": "/api/v1"}}, "paths": paths, "components": map[string]any{"schemas": schemas, "securitySchemes": map[string]any{"cookieAuth": map[string]string{"type": "apiKey", "in": "cookie", "name": "suma_session", "description": "Browser session. Organization governance rejects every scoped API, Runner and Agent project token."}, "bearerAuth": map[string]string{"type": "http", "scheme": "bearer", "description": "Project-scoped API credential; applicable routes enforce the bound project and scope."}, "runnerAuth": map[string]string{"type": "http", "scheme": "bearer", "description": "Runner-scoped credential bound to this project; browser sessions, Agent and API tokens are rejected."}}}}
 	var out strings.Builder
@@ -228,7 +233,11 @@ func generate() (map[string]any, string) {
 			if strings.Contains(tag, "omitempty") {
 				optional = "?"
 			}
-			fmt.Fprintf(&out, "  %s%s: %s;\n", key, optional, ts(f.Type))
+			wireType := ts(f.Type)
+			if t.Name() == "ToolUsage" && f.Type.Kind() == reflect.Pointer {
+				wireType = ts(f.Type.Elem()) // Omitted means unreported; reported null is invalid.
+			}
+			fmt.Fprintf(&out, "  %s%s: %s;\n", key, optional, wireType)
 		}
 		out.WriteString("}\n")
 	}

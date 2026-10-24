@@ -28,6 +28,7 @@ type Journal struct {
 	entries   map[string]entry
 	unlock    func() error
 	inventory *InventoryReport
+	claim     *ClaimCheckpoint
 }
 
 func key(a Assignment) string {
@@ -65,6 +66,9 @@ func OpenJournal(dir string) (*Journal, error) {
 		}
 	}
 	if err = j.loadInventory(); err != nil {
+		return nil, err
+	}
+	if err = j.loadClaim(); err != nil {
 		return nil, err
 	}
 	for k, e := range j.entries {
@@ -157,6 +161,11 @@ func (j *Journal) Finish(r Result) error {
 		r.OperationID = operationID()
 	}
 	previous := e
+	if r.ToolEvidence != nil {
+		copied := *r.ToolEvidence
+		copied.Usage = cloneUsage(r.ToolEvidence.Usage)
+		r.ToolEvidence = &copied
+	}
 	e.Result = &r
 	e.ArtifactPending = nil
 	j.entries[k] = e
@@ -247,12 +256,7 @@ func (j *Journal) recordProgress(a Assignment, message string, event *tc.Event) 
 	e.Progress = append([]Progress(nil), e.Progress...)
 	h := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/progress/%d", k, a.WorkerID, len(e.Progress)+1)))
 	if event != nil {
-		copied := *event
-		if event.Usage != nil {
-			usage := *event.Usage
-			copied.Usage = &usage
-		}
-		event = &copied
+		event = cloneToolEvent(event)
 	}
 	e.Progress = append(e.Progress, Progress{Assignment: a, OperationID: hex.EncodeToString(h[:]), Message: message, ToolEvent: event})
 	j.entries[k] = e
@@ -261,6 +265,28 @@ func (j *Journal) recordProgress(a Assignment, message string, event *tc.Event) 
 		return err
 	}
 	return nil
+}
+
+func cloneUsageCount(v *int64) *int64 {
+	if v == nil {
+		return nil
+	}
+	copy := *v
+	return &copy
+}
+func cloneUsage(v *tc.Usage) *tc.Usage {
+	if v == nil {
+		return nil
+	}
+	return &tc.Usage{InputTokens: cloneUsageCount(v.InputTokens), CachedInputTokens: cloneUsageCount(v.CachedInputTokens), CacheWriteInputTokens: cloneUsageCount(v.CacheWriteInputTokens), OutputTokens: cloneUsageCount(v.OutputTokens), ReasoningOutputTokens: cloneUsageCount(v.ReasoningOutputTokens)}
+}
+func cloneToolEvent(v *tc.Event) *tc.Event {
+	if v == nil {
+		return nil
+	}
+	copy := *v
+	copy.Usage = cloneUsage(v.Usage)
+	return &copy
 }
 func (j *Journal) PendingProgress() []Progress {
 	j.mu.Lock()
@@ -274,6 +300,7 @@ func (j *Journal) PendingProgress() []Progress {
 	for _, k := range keys {
 		for _, p := range j.entries[k].Progress {
 			if !p.Acked {
+				p.ToolEvent = cloneToolEvent(p.ToolEvent)
 				result = append(result, p)
 			}
 		}
@@ -306,7 +333,13 @@ func (j *Journal) Pending() []Result {
 	results := []Result{}
 	for _, e := range j.entries {
 		if !e.Acked && e.Result != nil {
-			results = append(results, *e.Result)
+			copy := *e.Result
+			if copy.ToolEvidence != nil {
+				evidence := *copy.ToolEvidence
+				evidence.Usage = cloneUsage(evidence.Usage)
+				copy.ToolEvidence = &evidence
+			}
+			results = append(results, copy)
 		}
 	}
 	return results

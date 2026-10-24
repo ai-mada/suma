@@ -1,5 +1,5 @@
 // Package dag implements a durable DAG state machine. All transitions and their
-// evidence commit together under a database scheduler lock, across processes.
+// evidence commit together under project and run-family locks, across processes.
 package dag
 
 import (
@@ -21,22 +21,40 @@ type Engine struct {
 	LeaseSeconds int64
 }
 type transaction struct {
-	e   *Engine
-	tx  *sql.Tx
-	ctx context.Context
-	now int64
+	e          *Engine
+	tx         *sql.Tx
+	ctx        context.Context
+	now        int64
+	events     []pendingEvent
+	projects   map[string]bool
+	familyRoot string
+}
+type pendingEvent struct {
+	runID, tenant, project, node, kind, at string
+	data                                   map[string]any
 }
 type nodeState struct {
 	NodeRun
-	spec   Node
-	lease  int64
-	wake   int64
-	parent string
+	spec          Node
+	lease         int64
+	wake          int64
+	parent        string
+	original      string
+	originalState string
 }
 type runState struct {
 	Run
-	nodes    []*nodeState
-	workflow Workflow
+	nodes                                                  []*nodeState
+	workflow                                               Workflow
+	eventDirty                                             bool
+	nodeMap                                                map[string]*nodeState
+	tx                                                     *transaction
+	partial                                                bool
+	indexed                                                bool
+	kernelGeneration                                       int
+	loadErr                                                error
+	totalNodes, terminalNodes, failedNodes, cancelledNodes int
+	resolved                                               map[string]string
 }
 type queryer interface {
 	QueryContext(context.Context, string, ...any) (*sql.Rows, error)
@@ -65,6 +83,12 @@ func New(db *sql.DB, dialect string) (*Engine, error) {
 	}
 	if _, err := db.Exec(insert); err != nil {
 		return nil, err
+	}
+	if err := e.migrateSchedulingSchema(context.Background()); err != nil {
+		return nil, fmt.Errorf("scheduling migration: %w", err)
+	}
+	if err := e.migrateSchedulingData(context.Background()); err != nil {
+		return nil, fmt.Errorf("scheduling data migration: %w", err)
 	}
 	return e, nil
 }
@@ -141,7 +165,11 @@ func (e *Engine) write(ctx context.Context, fn func(*transaction) error) error {
 	return e.writeBefore(ctx, nil, fn)
 }
 func (e *Engine) writeBefore(ctx context.Context, before func(*sql.Tx) error, fn func(*transaction) error) error {
-	tx, err := e.db.BeginTx(ctx, nil)
+	var options *sql.TxOptions
+	if e.dialect != "sqlite" {
+		options = &sql.TxOptions{Isolation: sql.LevelReadCommitted}
+	}
+	tx, err := e.db.BeginTx(ctx, options)
 	if err != nil {
 		return err
 	}
@@ -151,10 +179,7 @@ func (e *Engine) writeBefore(ctx context.Context, before func(*sql.Tx) error, fn
 			return err
 		}
 	}
-	t := &transaction{e: e, tx: tx, ctx: ctx}
-	if err = t.exec("UPDATE dag_lock SET seq=seq WHERE id=1"); err != nil {
-		return err
-	}
+	t := &transaction{e: e, tx: tx, ctx: ctx, projects: map[string]bool{}}
 	clock := "SELECT unixepoch('now')"
 	if e.dialect == "postgres" {
 		clock = "SELECT CAST(EXTRACT(EPOCH FROM clock_timestamp()) AS BIGINT)"
@@ -166,6 +191,11 @@ func (e *Engine) writeBefore(ctx context.Context, before func(*sql.Tx) error, fn
 		return err
 	}
 	if err = fn(t); err != nil {
+		return err
+	}
+	// This is the final SQL phase. No domain/project/family locks may be
+	// acquired after the global event sequence has been allocated.
+	if err = t.flushEvents(); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -193,6 +223,9 @@ func scopeValid(t, p string) error {
 	return nil
 }
 func (t *transaction) operation(tenant, project, scope, key, hash string) (string, error) {
+	if err := t.guardProject(tenant, project); err != nil {
+		return "", err
+	}
 	if key == "" || len(key) > 150 {
 		return "", fmt.Errorf("%w: operation_id required (max 150)", ErrInvalid)
 	}
@@ -213,14 +246,61 @@ func (t *transaction) remember(tenant, project, scope, key, hash, id string) err
 	return t.exec("INSERT INTO dag_operations (tenant_id,project_id,scope,operation_id,fingerprint,result_id) VALUES (?,?,?,?,?,?)", tenant, project, scope, key, hash, id)
 }
 func (t *transaction) event(r *runState, node, kind string, data map[string]any) error {
-	if err := t.exec("UPDATE dag_lock SET seq=seq+1 WHERE id=1"); err != nil {
+	// Copy now: callers may mutate their maps later in this transaction.
+	var snapshot map[string]any
+	if data != nil {
+		if err := json.Unmarshal([]byte(encoded(data)), &snapshot); err != nil {
+			return err
+		}
+	}
+	t.events = append(t.events, pendingEvent{runID: r.ID, tenant: r.TenantID, project: r.ProjectID, node: node, kind: kind, at: stamp(t.now), data: snapshot})
+	r.eventDirty = true
+	return nil
+}
+
+func (t *transaction) flushEvents() error {
+	if len(t.events) == 0 {
+		return nil
+	}
+	if err := t.exec("UPDATE dag_lock SET seq=seq+? WHERE id=1", len(t.events)); err != nil {
 		return err
+	}
+	var end int64
+	if err := t.row("SELECT seq FROM dag_lock WHERE id=1").Scan(&end); err != nil {
+		return err
+	}
+	start := end - int64(len(t.events)) + 1
+	for i, event := range t.events {
+		if err := t.exec("INSERT INTO dag_events(sequence,tenant_id,project_id,run_id,node_id,event_type,at_time,data)VALUES(?,?,?,?,?,?,?,?)", start+int64(i), event.tenant, event.project, event.runID, event.node, event.kind, event.at, encoded(event.data)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (t *transaction) guardProject(tenant, project string) error {
+	key := tenant + "\x00" + project
+	if t.projects == nil {
+		t.projects = map[string]bool{}
+	}
+	if t.projects[key] {
+		return nil
+	}
+	if err := t.e.projectGuardTx(t.ctx, t.tx, tenant, project); err != nil {
+		return err
+	}
+	t.projects[key] = true
+	return nil
+}
+func (t *transaction) nextQueueSequence(tenant, project string) (int64, error) {
+	if err := t.guardProject(tenant, project); err != nil {
+		return 0, err
+	}
+	if err := t.exec(`UPDATE dag_scheduler_projects SET queue_sequence=queue_sequence+1 WHERE tenant_id=? AND project_id=?`, tenant, project); err != nil {
+		return 0, err
 	}
 	var seq int64
-	if err := t.row("SELECT seq FROM dag_lock WHERE id=1").Scan(&seq); err != nil {
-		return err
-	}
-	return t.exec("INSERT INTO dag_events (sequence,tenant_id,project_id,run_id,node_id,event_type,at_time,data) VALUES (?,?,?,?,?,?,?,?)", seq, r.TenantID, r.ProjectID, r.ID, node, kind, stamp(t.now), encoded(data))
+	err := t.row(`SELECT queue_sequence FROM dag_scheduler_projects WHERE tenant_id=? AND project_id=?`, tenant, project).Scan(&seq)
+	return seq, err
 }
 
 func (e *Engine) Publish(ctx context.Context, tenant, project string, w Workflow) (Workflow, error) {
@@ -348,6 +428,8 @@ func load(ctx context.Context, q queryer, e *Engine, tenant, project, id string)
 		n.Name = n.spec.Name
 		n.Type = n.spec.Type
 		n.Command = n.spec.Command
+		n.original = nodePersistence(n)
+		n.originalState = n.State
 		r.nodes = append(r.nodes, n)
 	}
 	if err = rows.Err(); err != nil {
@@ -402,6 +484,29 @@ func load(ctx context.Context, q queryer, e *Engine, tenant, project, id string)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}
+	metadata, err := q.QueryContext(ctx, e.q(`SELECT node_id,winners,ready_at FROM dag_node_dependencies WHERE run_id=?`), r.ID)
+	if err != nil {
+		return nil, err
+	}
+	for metadata.Next() {
+		var id, winners, ready string
+		if err = metadata.Scan(&id, &winners, &ready); err != nil {
+			metadata.Close()
+			return nil, err
+		}
+		if n := r.find(id); n != nil {
+			if err = json.Unmarshal([]byte(winners), &n.WinnerNodeIDs); err != nil {
+				metadata.Close()
+				return nil, err
+			}
+			n.ReadyAt = ready
+		}
+	}
+	err = metadata.Err()
+	metadata.Close()
+	if err != nil {
+		return nil, err
+	}
 	return r, nil
 }
 func (r *runState) public() Run {
@@ -427,15 +532,17 @@ func (r *runState) public() Run {
 }
 func (e *Engine) GetRun(ctx context.Context, tenant, project, id string) (Run, error) {
 	var out Run
-	err := e.write(ctx, func(t *transaction) error {
-		r, err := load(ctx, t.tx, e, tenant, project, id)
-		if err != nil {
-			return err
-		}
-		out = r.public()
-		return nil
-	})
-	return out, err
+	tx, err := e.db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	if err != nil {
+		return out, err
+	}
+	defer tx.Rollback()
+	r, err := load(ctx, tx, e, tenant, project, id)
+	if err != nil {
+		return out, err
+	}
+	out = r.public()
+	return out, tx.Commit()
 }
 func (e *Engine) Runs(ctx context.Context, tenant, project string) ([]Run, error) {
 	if err := scopeValid(tenant, project); err != nil {
@@ -479,7 +586,11 @@ func (e *Engine) Events(ctx context.Context, tenant, project, id string, after i
 	if after < 0 {
 		return nil, fmt.Errorf("%w: negative event cursor", ErrInvalid)
 	}
-	if _, err := e.GetRun(ctx, tenant, project, id); err != nil {
+	var exists int
+	if err := e.db.QueryRowContext(ctx, e.q(`SELECT 1 FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, id).Scan(&exists); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	rows, err := e.db.QueryContext(ctx, e.q("SELECT sequence,run_id,node_id,event_type,at_time,data FROM dag_events WHERE tenant_id=? AND project_id=? AND run_id=? AND sequence>? ORDER BY sequence LIMIT 1000"), tenant, project, id, after)
@@ -505,7 +616,15 @@ func (e *Engine) Events(ctx context.Context, tenant, project, id string, after i
 	return out, rows.Err()
 }
 func (t *transaction) insertNode(r *runState, n *nodeState) error {
-	return t.exec("INSERT INTO dag_nodes (run_id,id,state,reason,attempt,fence,worker_id,output,error_text,started_at,completed_at,lease_until,wake_at,parent_id,spec) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", r.ID, n.ID, n.State, n.Reason, n.Attempt, n.Fence, n.WorkerID, n.Output, n.Error, n.StartedAt, n.CompletedAt, n.lease, n.wake, n.parent, encoded(n.spec))
+	err := t.exec("INSERT INTO dag_nodes (run_id,id,state,reason,attempt,fence,worker_id,output,error_text,started_at,completed_at,lease_until,wake_at,parent_id,spec) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", r.ID, n.ID, n.State, n.Reason, n.Attempt, n.Fence, n.WorkerID, n.Output, n.Error, n.StartedAt, n.CompletedAt, n.lease, n.wake, n.parent, encoded(n.spec))
+	if err == nil {
+		n.original = nodePersistence(n)
+		n.originalState = n.State
+		if r.indexed {
+			err = t.insertGraphNode(r, n)
+		}
+	}
+	return err
 }
 func (t *transaction) save(r *runState) error {
 	if err := t.saveQuiet(r); err != nil {
@@ -517,17 +636,43 @@ func (t *transaction) save(r *runState) error {
 	return t.propagateCompensation(r)
 }
 func (t *transaction) saveQuiet(r *runState) error {
+	changed := r.eventDirty
+	for _, n := range r.nodes {
+		changed = changed || n.original != nodePersistence(n)
+	}
+	if !changed {
+		return nil
+	}
+	var total, done, failed, cancelled int
+	if r.indexed {
+		total, done, failed, cancelled = r.counts()
+		if err := t.exec(`UPDATE dag_run_counters SET total=?,terminal_count=?,failed_count=?,cancelled_count=? WHERE run_id=?`, total, done, failed, cancelled, r.ID); err != nil {
+			return err
+		}
+	}
 	r.Version++
 	r.UpdatedAt = stamp(t.now)
 	if err := t.exec("UPDATE dag_runs SET version=?,state=?,updated_at=? WHERE id=?", r.Version, r.State, r.UpdatedAt, r.ID); err != nil {
 		return err
 	}
 	for _, n := range r.nodes {
+		if n.original == nodePersistence(n) {
+			continue
+		}
 		if err := t.exec("UPDATE dag_nodes SET state=?,reason=?,attempt=?,fence=?,worker_id=?,output=?,error_text=?,started_at=?,completed_at=?,lease_until=?,wake_at=? WHERE run_id=? AND id=?", n.State, n.Reason, n.Attempt, n.Fence, n.WorkerID, n.Output, n.Error, n.StartedAt, n.CompletedAt, n.lease, n.wake, r.ID, n.ID); err != nil {
 			return err
 		}
+		n.original = nodePersistence(n)
+		n.originalState = n.State
 	}
-	return nil
+	r.eventDirty = false
+	if r.indexed {
+		r.totalNodes, r.terminalNodes, r.failedNodes, r.cancelledNodes = total, done, failed, cancelled
+	}
+	return t.refreshRunTurn(r)
+}
+func nodePersistence(n *nodeState) string {
+	return encoded([]any{n.State, n.Reason, n.Attempt, n.Fence, n.WorkerID, n.Output, n.Error, n.StartedAt, n.CompletedAt, n.lease, n.wake})
 }
 func (e *Engine) CreateRun(ctx context.Context, tenant, project, workflowID, operationID string) (Run, error) {
 	return e.CreateRunVersion(ctx, tenant, project, workflowID, 0, operationID)

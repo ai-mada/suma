@@ -5,9 +5,69 @@ import (
 	"database/sql"
 )
 
+// Strong gates call this only after organization/credential authorization and
+// the shared scheduler project guard. Display readers use snapshot queries.
+func (s *Service) executionReadSQL(query string, current bool) string {
+	if current && (s.Dialect == "oceanbase" || s.Dialect == "postgres") {
+		return query + " FOR UPDATE"
+	}
+	return query
+}
+
+func (s *Service) evidenceSnapshotOptions() *sql.TxOptions {
+	options := &sql.TxOptions{ReadOnly: true}
+	if s.Dialect == "oceanbase" || s.Dialect == "postgres" {
+		options.Isolation = sql.LevelRepeatableRead
+	}
+	return options
+}
+
+// Recheck read authority inside the same display snapshot without upgrading it
+// to a writer. A grant revoked before this transaction begins cannot leak data
+// through an earlier preflight authorization; action handlers still reauthorize.
+func (s *Service) authorizeProjectSnapshotTx(ctx context.Context, tx *sql.Tx, p Principal, project string) error {
+	var tenant string
+	if err := tx.QueryRowContext(ctx, s.q(`SELECT tenant_id FROM suma_projects WHERE id=?`), project).Scan(&tenant); err != nil || tenant != p.TenantID {
+		return missing()
+	}
+	if p.internal && p.ID == "system" {
+		return nil
+	}
+	live, err := s.liveOrganization(ctx, tx, p)
+	if err != nil {
+		return err
+	}
+	if orgAdmin(live) {
+		return nil
+	}
+	var role string
+	if err = tx.QueryRowContext(ctx, s.q(`SELECT role FROM suma_project_members WHERE project_id=? AND user_id=?`), project, p.ID).Scan(&role); err != nil || !validProjectRole(role) {
+		return forbidden()
+	}
+	return nil
+}
+
+// Mutation gates may perform authorization reads before taking the project
+// guard. Read committed prevents a pre-guard repeatable-read snapshot from
+// hiding evidence committed while the gate was waiting for that guard.
+func (s *Service) executionWriteOptions() *sql.TxOptions {
+	if s.Dialect == "oceanbase" || s.Dialect == "postgres" {
+		return &sql.TxOptions{Isolation: sql.LevelReadCommitted}
+	}
+	return nil
+}
+
 // checkTaskEvidenceTx validates the complete business dependency chain against
 // canonical versions, independently of the latest displayed acceptance status.
 func (s *Service) checkTaskEvidenceTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string, visiting, valid map[string]bool) error {
+	return s.checkTaskEvidenceReadTx(ctx, tx, p, project, id, visiting, valid, false)
+}
+
+func (s *Service) checkCurrentTaskEvidenceTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string, visiting, valid map[string]bool) error {
+	return s.checkTaskEvidenceReadTx(ctx, tx, p, project, id, visiting, valid, true)
+}
+
+func (s *Service) checkTaskEvidenceReadTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string, visiting, valid map[string]bool, current bool) error {
 	if valid[id] {
 		return nil
 	}
@@ -16,7 +76,7 @@ func (s *Service) checkTaskEvidenceTx(ctx context.Context, tx *sql.Tx, p Princip
 	}
 	visiting[id] = true
 	defer delete(visiting, id)
-	task, err := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id))
+	task, err := scanRecord(tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`, current)), p.TenantID, project, id))
 	if err != nil || task.Status != "accepted" {
 		return conflict("前置任务验收已失效")
 	}
@@ -24,12 +84,12 @@ func (s *Service) checkTaskEvidenceTx(ctx context.Context, tx *sql.Tx, p Princip
 	if runID != task.RunID || task.Data["run_task_basis"] != taskBasis(task) {
 		return conflict("前置任务内容与验收依据不一致")
 	}
-	if err = s.checkEvidenceTx(ctx, tx, p.TenantID, project, runID, 0, map[string]bool{}); err != nil {
+	if err = s.checkEvidenceReadTx(ctx, tx, p.TenantID, project, runID, 0, map[string]bool{}, current); err != nil {
 		return err
 	}
 	if task.RequirementID != "" {
 		var v int
-		if err = tx.QueryRowContext(ctx, s.q(`SELECT version FROM suma_requirements WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, task.RequirementID).Scan(&v); err != nil {
+		if err = tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT version FROM suma_requirements WHERE tenant_id=? AND project_id=? AND id=?`, current)), p.TenantID, project, task.RequirementID).Scan(&v); err != nil {
 			return err
 		}
 		stored, _ := task.Data["requirement_version"].(float64)
@@ -39,10 +99,10 @@ func (s *Service) checkTaskEvidenceTx(ctx context.Context, tx *sql.Tx, p Princip
 	}
 	basis, _ := task.Data["dependency_basis"].(map[string]any)
 	for _, dep := range task.DependsOn {
-		if err = s.checkTaskEvidenceTx(ctx, tx, p, project, dep, visiting, valid); err != nil {
+		if err = s.checkTaskEvidenceReadTx(ctx, tx, p, project, dep, visiting, valid, current); err != nil {
 			return err
 		}
-		upstream, e := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, dep))
+		upstream, e := scanRecord(tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`, current)), p.TenantID, project, dep))
 		if e != nil {
 			return e
 		}
@@ -114,22 +174,44 @@ func (s *Service) InvalidateDependentsTx(ctx context.Context, tx *sql.Tx, p Prin
 }
 
 func (s *Service) checkEvidenceTx(ctx context.Context, tx *sql.Tx, tenant, project, runID string, depth int, seen map[string]bool) error {
+	return s.checkEvidenceReadTx(ctx, tx, tenant, project, runID, depth, seen, false)
+}
+
+func (s *Service) checkCurrentEvidenceTx(ctx context.Context, tx *sql.Tx, tenant, project, runID string, depth int, seen map[string]bool) error {
+	return s.checkEvidenceReadTx(ctx, tx, tenant, project, runID, depth, seen, true)
+}
+
+func (s *Service) evidenceCompensatedTx(ctx context.Context, tx *sql.Tx, runID string, current bool) (bool, error) {
+	if current {
+		var id string
+		err := tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT compensation_run_id FROM dag_compensations WHERE original_run_id=?`, true)), runID).Scan(&id)
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return err == nil, err
+	}
+	var count int
+	err := tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM dag_compensations WHERE original_run_id=?`), runID).Scan(&count)
+	return count != 0, err
+}
+
+func (s *Service) checkEvidenceReadTx(ctx context.Context, tx *sql.Tx, tenant, project, runID string, depth int, seen map[string]bool, current bool) error {
 	if runID == "" || depth > 32 || seen[runID] {
 		return conflict("前置验收缺少有效执行依据")
 	}
 	seen[runID] = true
 	var state string
-	if err := tx.QueryRowContext(ctx, s.q(`SELECT state FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, runID).Scan(&state); err != nil || state != "succeeded" {
+	if err := tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT state FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`, current)), tenant, project, runID).Scan(&state); err != nil || state != "succeeded" {
 		return conflict("执行证据不再有效")
 	}
-	var count int
-	if err := tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM dag_compensations WHERE original_run_id=?`), runID).Scan(&count); err != nil {
+	compensated, err := s.evidenceCompensatedTx(ctx, tx, runID, current)
+	if err != nil {
 		return err
 	}
-	if count != 0 {
+	if compensated {
 		return conflict("原执行已进入补偿，需要重新交付")
 	}
-	rows, err := tx.QueryContext(ctx, s.q(`SELECT x.child_run_id FROM dag_subruns x JOIN dag_nodes n ON n.run_id=x.parent_run_id AND n.id=x.node_id AND n.attempt=x.attempt WHERE x.parent_run_id=?`), runID)
+	rows, err := tx.QueryContext(ctx, s.q(s.executionReadSQL(`SELECT x.child_run_id FROM dag_subruns x JOIN dag_nodes n ON n.run_id=x.parent_run_id AND n.id=x.node_id AND n.attempt=x.attempt WHERE x.parent_run_id=? ORDER BY x.child_run_id`, current)), runID)
 	if err != nil {
 		return err
 	}
@@ -148,7 +230,7 @@ func (s *Service) checkEvidenceTx(ctx context.Context, tx *sql.Tx, tenant, proje
 		return err
 	}
 	for _, child := range children {
-		if err = s.checkEvidenceTx(ctx, tx, tenant, project, child, depth+1, seen); err != nil {
+		if err = s.checkEvidenceReadTx(ctx, tx, tenant, project, child, depth+1, seen, current); err != nil {
 			return err
 		}
 	}

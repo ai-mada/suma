@@ -9,6 +9,7 @@ import (
 func fixtureProfile() Profile {
 	return Profile{CommandID: "codex-read", Adapter: "codex", Protocol: "codex-jsonl-v1", ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "codex-cli 0.164.0", ReadOnly: true}
 }
+func usageCount(v int64) *int64 { return &v }
 func TestToolContractBounds(t *testing.T) {
 	p := fixtureProfile()
 	if err := ValidateProfile(p, true); err != nil {
@@ -21,7 +22,7 @@ func TestToolContractBounds(t *testing.T) {
 			t.Fatalf("accepted %+v", q)
 		}
 	}
-	e := Event{SchemaVersion: 1, CommandID: p.CommandID, ProfileSHA256: p.ProfileSHA256, Protocol: p.Protocol, Kind: "turn_completed", SessionID: "thread-1", Usage: &Usage{InputTokens: 3, CacheWriteInputTokens: 2}}
+	e := Event{SchemaVersion: 1, CommandID: p.CommandID, ProfileSHA256: p.ProfileSHA256, Protocol: p.Protocol, Kind: "turn_completed", SessionID: "thread-1", UsageState: UsagePartial, Usage: &Usage{InputTokens: usageCount(3), CacheWriteInputTokens: usageCount(2)}}
 	if err := ValidateEvent(e); err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +35,7 @@ func TestToolContractBounds(t *testing.T) {
 			t.Fatal("accepted invalid event")
 		}
 	}
-	for _, change := range []func(*Event){func(e *Event) { e.SchemaVersion = 0 }, func(e *Event) { e.Kind = "grant_permissions" }, func(e *Event) { e.Message = strings.Repeat("x", 8193) }, func(e *Event) { e.SessionID = "bad\nidentity" }, func(e *Event) { e.Usage = &Usage{InputTokens: -1} }} {
+	for _, change := range []func(*Event){func(e *Event) { e.SchemaVersion = 0 }, func(e *Event) { e.Kind = "grant_permissions" }, func(e *Event) { e.Message = strings.Repeat("x", 8193) }, func(e *Event) { e.SessionID = "bad\nidentity" }, func(e *Event) { e.Usage = &Usage{InputTokens: usageCount(-1)} }} {
 		q := e
 		change(&q)
 		if ValidateEvent(q) == nil {

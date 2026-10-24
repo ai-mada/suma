@@ -90,7 +90,10 @@ func (s *Service) Migrate(ctx context.Context) error {
 	if err := s.MigrateToolProfiles(ctx); err != nil {
 		return err
 	}
-	return s.MigrateTaskDispatch(ctx)
+	if err := s.MigrateTaskDispatch(ctx); err != nil {
+		return err
+	}
+	return s.MigrateScheduling(ctx)
 }
 
 func (s *Service) Authorize(ctx context.Context, p Principal, projectID string, write bool, approve bool) error {

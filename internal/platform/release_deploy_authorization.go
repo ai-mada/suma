@@ -14,7 +14,7 @@ func executionFromDeployment(d ReleaseDeployment, p ReleasePlan) rc.ReleaseExecu
 	return rc.ReleaseExecution{Protocol: rc.ReleaseProtocol, OperationID: d.OperationID, PlanID: p.ID, PlanRevision: p.Revision, PlanSHA256: p.SHA256, EnvironmentID: d.EnvironmentID, ProviderID: d.ProviderID, ExpectedGeneration: p.Content.ExpectedGeneration, Generation: d.Generation, ArtifactID: d.ArtifactID, ArtifactSHA256: d.ArtifactSHA256}
 }
 func (s *Service) ReleaseExecutionForAssignment(ctx context.Context, p Principal, project string, a dag.Assignment) (*rc.ReleaseExecution, error) {
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +22,7 @@ func (s *Service) ReleaseExecutionForAssignment(ctx context.Context, p Principal
 	if err = s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
 		return nil, err
 	}
-	if err = s.releaseSchedulerLock(ctx, tx); err != nil {
+	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return nil, err
 	}
 	var operation string
@@ -33,11 +33,11 @@ func (s *Service) ReleaseExecutionForAssignment(ctx context.Context, p Principal
 	if err != nil {
 		return nil, err
 	}
-	d, err := s.releaseDeploymentTx(ctx, tx, p.TenantID, project, operation)
+	d, err := s.currentReleaseDeploymentTx(ctx, tx, p.TenantID, project, operation)
 	if err != nil {
 		return nil, err
 	}
-	plan, err := s.releasePlanTx(ctx, tx, p.TenantID, project, d.PlanID)
+	plan, err := s.currentReleasePlanTx(ctx, tx, p.TenantID, project, d.PlanID)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (s *Service) ReleaseExecutionForAssignment(ctx context.Context, p Principal
 }
 func (s *Service) releaseDeploymentBasisTx(ctx context.Context, tx *sql.Tx, tenant, project string, d ReleaseDeployment) (ReleasePlan, error) {
 	p := Principal{ID: d.ExecutedBy, TenantID: tenant}
-	plan, err := s.releasePlanTx(ctx, tx, tenant, project, d.PlanID)
+	plan, err := s.currentReleasePlanTx(ctx, tx, tenant, project, d.PlanID)
 	if err != nil {
 		return plan, err
 	}
@@ -58,7 +58,7 @@ func (s *Service) releaseDeploymentBasisTx(ctx context.Context, tx *sql.Tx, tena
 			return plan, err
 		}
 	}
-	if err = s.releasePlanBasisTx(ctx, tx, p, project, plan, d.OperationID); err != nil {
+	if err = s.currentReleasePlanBasisTx(ctx, tx, p, project, plan, d.OperationID); err != nil {
 		return plan, err
 	}
 	return plan, nil
@@ -68,7 +68,7 @@ func (s *Service) IssueReleaseAuthorization(ctx context.Context, p Principal, to
 	if !rc.ValidOperationID(r.OperationID) || !r.Assignment.Valid() {
 		return out, invalid("部署操作或执行身份无效")
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return out, err
 	}
@@ -79,7 +79,7 @@ func (s *Service) IssueReleaseAuthorization(ctx context.Context, p Principal, to
 	if _, err = s.currentArtifactAssignmentTx(ctx, tx, p, r.ProjectID, r.Assignment); err != nil {
 		return out, err
 	}
-	d, err := s.releaseDeploymentTx(ctx, tx, p.TenantID, r.ProjectID, r.OperationID)
+	d, err := s.currentReleaseDeploymentTx(ctx, tx, p.TenantID, r.ProjectID, r.OperationID)
 	if err != nil {
 		return out, err
 	}
@@ -160,7 +160,7 @@ func (s *Service) releaseAuthorizationCurrentTx(ctx context.Context, tx *sql.Tx,
 	if _, err = s.currentArtifactAssignmentTx(ctx, tx, p, cfg.ProjectID, a.Assignment); err != nil {
 		return d, plan, err
 	}
-	d, err = s.releaseDeploymentTx(ctx, tx, cfg.TenantID, cfg.ProjectID, a.OperationID)
+	d, err = s.currentReleaseDeploymentTx(ctx, tx, cfg.TenantID, cfg.ProjectID, a.OperationID)
 	if err != nil {
 		return d, plan, err
 	}
@@ -179,7 +179,7 @@ func (s *Service) ConsumeReleaseAuthorization(ctx context.Context, token string,
 	if !releaseID(r.ProviderID) || !rc.ValidOperationID(r.OperationID) || !rc.ValidDigest(r.RequestSHA256) || r.AuthorizationTicket == "" || r.CallerWorkerID != r.Assignment.WorkerID || !r.Assignment.Valid() {
 		return out, forbidden()
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return out, err
 	}
@@ -220,7 +220,7 @@ func (s *Service) BeginReleaseEffect(ctx context.Context, token string, r rc.Beg
 	if err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return out, err
 	}
@@ -288,7 +288,7 @@ func (s *Service) ProviderArtifactAccess(ctx context.Context, token, operationID
 	if err != nil {
 		return Principal{}, "", err
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
 	if err != nil {
 		return Principal{}, "", err
 	}
@@ -296,10 +296,10 @@ func (s *Service) ProviderArtifactAccess(ctx context.Context, token, operationID
 	if err = s.lockOrganization(ctx, tx, cfg.TenantID); err != nil {
 		return Principal{}, "", err
 	}
-	if err = s.releaseSchedulerLock(ctx, tx); err != nil {
+	if err = s.releaseSchedulerLock(ctx, tx, cfg.TenantID, cfg.ProjectID); err != nil {
 		return Principal{}, "", err
 	}
-	d, err := s.releaseDeploymentTx(ctx, tx, cfg.TenantID, cfg.ProjectID, operationID)
+	d, err := s.currentReleaseDeploymentTx(ctx, tx, cfg.TenantID, cfg.ProjectID, operationID)
 	if err != nil {
 		return Principal{}, "", err
 	}

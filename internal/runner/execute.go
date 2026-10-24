@@ -412,6 +412,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		if r.ExitCode != 0 && !r.Stopped && !r.OutcomeUnknown && evidence.Terminal == "completed" {
 			evidence.Terminal = "failed"
 		}
+		if evidence.Terminal == "failed" && !r.Stopped && !r.OutcomeUnknown {
+			r.FailureClass = stream.failureClass
+		}
 		if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" {
 			r.ToolEvidence = evidence
 		}
@@ -424,7 +427,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		if r.OutcomeUnknown || r.Stopped {
 			terminal = "unknown"
 		}
-		r.ToolEvidence = &tc.Evidence{Profile: profile, Terminal: terminal}
+		r.ToolEvidence = &tc.Evidence{Profile: profile, Terminal: terminal, UsageState: tc.UsageUnreported}
 	}
 	if err = out.flushProgress(); err != nil {
 		r.ExitCode = -1

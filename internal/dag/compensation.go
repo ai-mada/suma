@@ -19,6 +19,9 @@ func workerNode(kind string) bool {
 // The durable compensation relationship marks the whole workflow identity,
 // including any attempted new versions, without relying on a name prefix.
 func (t *transaction) publicWorkflow(tenant, project, id string) error {
+	if err := t.guardProject(tenant, project); err != nil {
+		return err
+	}
 	var count int
 	if err := t.row("SELECT COUNT(*) FROM dag_managed_workflows WHERE tenant_id=? AND project_id=? AND workflow_id=?", tenant, project, id).Scan(&count); err != nil {
 		return err
@@ -260,7 +263,7 @@ func (t *transaction) propagateCompensation(child *runState) error {
 	if previous == child.State {
 		return nil
 	}
-	original, err := load(t.ctx, t.tx, t.e, child.TenantID, child.ProjectID, originalID)
+	original, err := t.loadHot(child.TenantID, child.ProjectID, originalID)
 	if err != nil {
 		return err
 	}

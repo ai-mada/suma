@@ -17,7 +17,7 @@ export function toolSessionStorage() {
     return undefined;
   }
 }
-export function useToolRead<T>(path: string, refresh = 0) {
+export function useToolRead<T>(path: string, refresh: number | string = 0) {
   const [state, setState] = useState<{
       path: string;
       data?: T;
@@ -86,7 +86,7 @@ export function useToolList<T extends { id: string }>(
   return { ...page, read };
 }
 export function useToolAction(
-  recovery: ToolWriteRecovery,
+  recovery: Pick<ToolWriteRecovery, "pending" | "error" | "run" | "restore">,
   onDefer?: () => void,
 ) {
   const epoch = useRef(0);

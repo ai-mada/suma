@@ -44,7 +44,7 @@ func TestConfirmedStoppedZeroExitNeverSucceeds(t *testing.T) {
 				}
 				result := Result{RunID: r.ID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, OperationID: "zero-exit-confirmed-stop", ExitCode: 0, Stopped: true, OutcomeUnknown: scenario.unknown}
 				if evidenceKind != "none" && evidenceKind != "generic" {
-					result.ToolEvidence = &toolcontract.Evidence{Profile: toolcontract.Profile{CommandID: "native-agent", Adapter: "suma", Protocol: "suma-jsonl-v1", ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "fixture"}, Terminal: evidenceKind, EventCount: 1}
+					result.ToolEvidence = &toolcontract.Evidence{UsageState: "unreported", Profile: toolcontract.Profile{CommandID: "native-agent", Adapter: "suma", Protocol: "suma-jsonl-v1", ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "fixture"}, Terminal: evidenceKind, EventCount: 1}
 				}
 				if err = e.Complete(ctx, "t", "p", result); err != nil {
 					t.Fatal("legitimate process stop rejected", err)

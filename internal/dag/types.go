@@ -59,27 +59,30 @@ type Run struct {
 	CompensationState string    `json:"compensation_state,omitempty"`
 }
 type NodeRun struct {
-	ID                string                            `json:"id"`
-	Name              string                            `json:"name"`
-	Type              string                            `json:"type"`
-	State             string                            `json:"state"`
-	Reason            string                            `json:"reason"`
-	Attempt           int                               `json:"attempt"`
-	Fence             int64                             `json:"fence"`
-	WorkerID          string                            `json:"worker_id"`
-	Command           []string                          `json:"command"`
-	Output            string                            `json:"output"`
-	Error             string                            `json:"error"`
-	StartedAt         string                            `json:"started_at"`
-	CompletedAt       string                            `json:"completed_at"`
-	ChildRunID        string                            `json:"child_run_id,omitempty"`
-	Idempotent        bool                              `json:"idempotent"`
-	Compensatable     bool                              `json:"compensatable"`
-	WorkspaceEvidence map[string]any                    `json:"workspace_evidence,omitempty"`
-	ArtifactEvidence  *releasecontract.ArtifactEvidence `json:"artifact_evidence,omitempty"`
-	ToolEvidence      *toolcontract.Evidence            `json:"tool_evidence,omitempty"`
-	ToolProfileID     string                            `json:"tool_profile_id,omitempty"`
-	ToolProfileSHA256 string                            `json:"tool_profile_sha256,omitempty"`
+	ID                     string                            `json:"id"`
+	Name                   string                            `json:"name"`
+	Type                   string                            `json:"type"`
+	State                  string                            `json:"state"`
+	Reason                 string                            `json:"reason"`
+	Attempt                int                               `json:"attempt"`
+	Fence                  int64                             `json:"fence"`
+	WorkerID               string                            `json:"worker_id"`
+	Command                []string                          `json:"command"`
+	Output                 string                            `json:"output"`
+	Error                  string                            `json:"error"`
+	StartedAt              string                            `json:"started_at"`
+	CompletedAt            string                            `json:"completed_at"`
+	ChildRunID             string                            `json:"child_run_id,omitempty"`
+	Idempotent             bool                              `json:"idempotent"`
+	Compensatable          bool                              `json:"compensatable"`
+	WorkspaceEvidence      map[string]any                    `json:"workspace_evidence,omitempty"`
+	ArtifactEvidence       *releasecontract.ArtifactEvidence `json:"artifact_evidence,omitempty"`
+	ToolEvidence           *toolcontract.Evidence            `json:"tool_evidence,omitempty"`
+	ToolProfileID          string                            `json:"tool_profile_id,omitempty"`
+	ToolProfileSHA256      string                            `json:"tool_profile_sha256,omitempty"`
+	WinnerNodeIDs          []string                          `json:"winner_node_ids,omitempty"`
+	ReadyAt                string                            `json:"ready_at,omitempty"`
+	AdmissionPolicyVersion int                               `json:"admission_policy_version,omitempty"`
 }
 type Assignment struct {
 	RunID                   string                            `json:"run_id"`
@@ -98,6 +101,9 @@ type Assignment struct {
 	CandidateFence          int64                             `json:"candidate_fence,omitempty"`
 	CandidateEvidenceSHA256 string                            `json:"candidate_evidence_sha256,omitempty"`
 	ReleaseExecution        *releasecontract.ReleaseExecution `json:"release_execution,omitempty"`
+	DispatchID              string                            `json:"dispatch_id,omitempty"`
+	DispatchState           string                            `json:"dispatch_state,omitempty"`
+	LeaseUntil              string                            `json:"lease_until,omitempty"`
 }
 type Result struct {
 	RunID             string                            `json:"run_id"`
@@ -111,6 +117,7 @@ type Result struct {
 	OperationID       string                            `json:"operation_id"`
 	Stopped           bool                              `json:"stopped"`
 	OutcomeUnknown    bool                              `json:"outcome_unknown"`
+	FailureClass      string                            `json:"failure_class,omitempty"`
 	WorkspaceEvidence map[string]any                    `json:"workspace_evidence,omitempty"`
 	ArtifactEvidence  *releasecontract.ArtifactEvidence `json:"artifact_evidence,omitempty"`
 	ReleaseEvidence   *releasecontract.ReleaseResult    `json:"release_evidence,omitempty"`
