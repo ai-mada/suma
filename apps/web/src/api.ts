@@ -1,4 +1,4 @@
-import {getLocale,languageHeaders,tr,formatDateTime} from "./i18n";
+import {getLocale,languageHeaders,tr,formatDateTime,UiError} from "./i18n";
 import type {ToolEvidence} from './tool-model';
 export type RecordItem = {id:string;project_id?:string;version:number;title?:string;name?:string;description?:string;status?:string;priority?:string;owner_id?:string;requirement_id?:string;depends_on?:string[];acceptance_criteria?:string;created_at?:string;updated_at?:string;[key:string]:any};
 export type Session={user:{id:string;name:string;email:string;role?:string};organization:{id:string;name:string};projects:RecordItem[]};
@@ -6,20 +6,32 @@ export type WNode={id:string;name:string;type:string;command?:string[];depends_o
 export type Workflow={id:string;name:string;version:number;nodes:WNode[];edges:{from:string;to:string;condition?:string}[]};
 export type WorkspaceEvidence={candidate_from?:string;candidate_attempt?:number;candidate_fence?:number;candidate_evidence_sha256?:string;admin_base_commit?:string;base_commit?:string;head_commit?:string;diff_sha256?:string;evidence_sha256?:string;changed_paths?:string[];changed_paths_total?:number;changed_paths_truncated?:boolean;[key:string]:unknown};
 export type Run={id:string;workflow_id:string;workflow_name:string;workflow_version:number;version:number;state:string;nodes:(WNode & {state:string;attempt:number;fence?:number;compensatable?:boolean;workspace_evidence?:WorkspaceEvidence;child_run_id?:string;reason?:string;output?:string;error?:string;worker_id?:string;tool_profile_id?:string;tool_profile_sha256?:string;tool_evidence?:ToolEvidence})[];created_at:string;updated_at:string;[key:string]:any};
-export class ApiError extends Error{constructor(public status:number,public code:string,message:string,public details?:unknown,public presentation?:Record<string,unknown>){super(message);Object.assign(this,presentation);}}
+export class ApiError extends Error{
+ constructor(public status:number,public code:string,message:string,public details?:unknown,public presentation?:Record<string,unknown>,public localDiagnostic?:UiError){
+  super(message);
+  // Presentation metadata cannot replace transport status, error identity or
+  // a locally-created diagnostic. In particular, do not assign __proto__.
+  for(const key of ['message_key','message_params','locale','localized','fallback'])if(presentation&&Object.hasOwn(presentation,key))Object.defineProperty(this,key,{value:presentation[key],enumerable:true,configurable:true});
+ }
+}
+function localApiError(status:number,code:string,key:string,params?:Record<string,unknown>){const diagnostic=new UiError(key,params);return new ApiError(status,code,diagnostic.message,undefined,undefined,diagnostic);}
 export async function api<T=any>(path:string,body?:unknown,method?:string,headers?:Record<string,string>):Promise<T>{
  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),30000);
  try{
   let response:Response;
   try{response=await fetch('/api/v1'+path,{credentials:'same-origin',signal:controller.signal,headers:{'Content-Type':'application/json',...languageHeaders(),...headers},method:method??(body?'POST':'GET'),...(body?{body:JSON.stringify(body)}:{})});}
-  catch{throw new ApiError(0,controller.signal.aborted?'request_timeout':'network_error',tr(controller.signal.aborted?'common.timeout':'common.network'));}
+  catch{throw localApiError(0,controller.signal.aborted?'request_timeout':'network_error',controller.signal.aborted?'common.timeout':'common.network');}
   let data:any;
   try{data=await response.json();}catch{
    if(response.status===204)return {} as T;
-   if(response.ok)throw new ApiError(0,'response_unknown',tr('common.responseUnknown'));
-   throw new ApiError(response.status,'request_failed',tr('common.httpFailure',{status:response.status}));
+   if(response.ok)throw localApiError(0,'response_unknown','common.responseUnknown');
+   throw localApiError(response.status,'request_failed','common.httpFailure',{status:response.status});
   }
-  if(!response.ok)throw new ApiError(response.status,data.error?.code??'request_failed',data.error?.message??tr('common.httpFailed',{status:response.status}),data.error?.details,data.error);
+  if(!response.ok){
+   const error=data?.error,code=typeof error?.code==='string'?error.code:'request_failed';
+   const diagnostic=typeof error?.message==='string'?undefined:new UiError('common.httpFailed',{status:response.status});
+   throw new ApiError(response.status,code,diagnostic?.message??error.message,error?.details,error,diagnostic);
+  }
   return normalizeResponse(data) as T;
  }finally{clearTimeout(timeout);}
 }

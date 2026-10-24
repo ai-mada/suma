@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-008",
+  "status": "locally_verified_stage_only",
+  "full_platform_complete": false,
+  "production_accepted": false,
+  "base_commit": "afa162fc508ae66a5a6e740fb1a1c8f95e49cdca",
+  "verified_at": "2026-10-24T12:39:18.349Z",
+  "scope": {
+    "migrated_legacy_frontend_modules": 18,
+    "frontend_keys_per_locale": 2798,
+    "backend_message_keys": 123,
+    "new_backend_keys": 16,
+    "legacy_han_candidates": 0,
+    "legacy_modules": 0,
+    "backend_unmapped_unique_static_candidates": 409,
+    "backend_inventory_is_bounded": true,
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "new_dependencies": false
+  },
+  "checks": {
+    "go": {
+      "passed_events": 811,
+      "failed_events": 0,
+      "skipped_test_cases": 0,
+      "vet_exit": 0,
+      "input_count": 302,
+      "input_manifest_sha256": "a2734097e201d92381445f9bf7013304e08affbc459a1062ec61fafdb2ae62d3",
+      "inputs_unchanged": true
+    },
+    "web": {
+      "passed": 461,
+      "failed": 0,
+      "pending": 0,
+      "files": 41,
+      "input_count": 193,
+      "input_manifest_sha256": "79f87d1f36c82a6da9a8d713a819a3470998f4cbd3539cf15ce9dd83e4726036",
+      "inputs_unchanged": true,
+      "typecheck_exit": 0,
+      "non_web_passed": 30,
+      "non_web": [
+        {
+          "package": "apps/desktop",
+          "passed": 7
+        },
+        {
+          "package": "packages/agent-runtime",
+          "passed": 20
+        },
+        {
+          "package": "packages/knowledge",
+          "passed": 3
+        }
+      ]
+    },
+    "contract": {
+      "models": 212,
+      "api_paths": 152,
+      "schema_refs": 1232,
+      "check_exit": 0
+    },
+    "build": {
+      "exit": 0,
+      "source_unchanged": true,
+      "entry_assets": [
+        {
+          "url": "/assets/index-B8N-EOXC.js",
+          "sha256": "34d53413b5400dd0de80fe9642612330560632c5d27efe01c31e1ba847fb6b80"
+        },
+        {
+          "url": "/assets/index-C2f-nmoE.css",
+          "sha256": "01930f0c73160c322d28b93c9f5f631e025fcc112e2f48f22e14e04e404ab2b4"
+        }
+      ],
+      "index_sha256": "9d16388ace0b39ae84aae988210a6388e9ec007175cda10df5464162035d8187",
+      "limitations": [
+        "Existing emptyOutDir:false retains prior ignored assets. This receipt identifies current HTML entry assets, not a clean deployment archive.",
+        "Large Monaco/workflow chunk warnings are not performance acceptance."
+      ]
+    }
+  },
+  "runtime": {
+    "cut": "20261024T115841382Z-9d767094",
+    "artifacts": 24,
+    "targets": 6,
+    "programs": 4,
+    "source_inputs": 179,
+    "source_sha256": "dc0c0712279a2f2f46636dc703c0d0f07e0cb3830a6395f300c342c3689a8262",
+    "linked_modules": 36,
+    "windows_control_sha256": "8c2fde6f0e12b56bb2ebd4f69c6049b916667e7d85d100b8a636682d6b71fbd2",
+    "control_activated": true,
+    "runner_restarted": false,
+    "platform_installs_verified": false
+  },
+  "actual_ui": {
+    "entry": "/assets/index-B8N-EOXC.js",
+    "viewports": [
+      390,
+      768,
+      1366,
+      1920
+    ],
+    "extra_default_width": 1280,
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "scope": "partial page checks, not full WCAG or capacity acceptance",
+    "drafts": [
+      "automation rule name/cron/time zone",
+      "candidate name/accepted task v3",
+      "Monaco file content"
+    ],
+    "keyboard": [
+      "dirty draft Escape refused",
+      "discard then Escape returns focus to New rule",
+      "editor Ctrl+S"
+    ],
+    "search": "original query retained; keyword search and missing watermark shown accurately",
+    "typescript_worker": "actual type-error diagnostic 2322 observed; corrected file saved and reopened after refresh",
+    "editor_save": {
+      "count": 1,
+      "bytes": 142,
+      "sha256": "1e27a05e43be10291f667d816e24f957e3a1cec3e8eef0e42761abf08a9d196f",
+      "fixture_only": true
+    },
+    "console_warning_or_error_count": 0
+  },
+  "state_preservation": {
+    "tables": 129,
+    "changed_tables": [],
+    "protected_execution_artifact_tables": 62,
+    "before_manifest_sha256": "d12b0c0a67b6ecc812c9385b8c01d6df356b8e0872ef419da860abe4d7a0eafc",
+    "after_manifest_sha256": "d12b0c0a67b6ecc812c9385b8c01d6df356b8e0872ef419da860abe4d7a0eafc",
+    "integrity": [
+      "ok"
+    ],
+    "new_pool_executions": 0,
+    "new_pool_business_writes": 0,
+    "editor_fixture_separate": true
+  },
+  "initial_failure": {
+    "go_pass_events": 810,
+    "go_fail_events": 2,
+    "cause": "Windows TempDir database sharing violation during one test cleanup; lock owner and root cause unproven",
+    "targeted_repetitions_passed": 50,
+    "source_changed_to_hide_failure": false
+  },
+  "evidence": {
+    "local_ignored_root": ".cache/e2e/localization-stage-008",
+    "files": [
+      {
+        "path": "go-verification.json",
+        "sha256": "e340a4d14cfe17370567b5fdcc070ac5277162216d490b3abd2164ad31b10115"
+      },
+      {
+        "path": "go-tests.jsonl",
+        "sha256": "883f4549f70e9c7b46715806a0588af01c3628a1832b525b97f2db5b4ec13946"
+      },
+      {
+        "path": "go-vet.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "initial-go-verification.json",
+        "sha256": "cf685b6802ab5b6201c7d22dc3d519a576e2ddfd49664a788a091497e3d91b78"
+      },
+      {
+        "path": "server/cleanup-diagnostic/analysis.json",
+        "sha256": "2a7a87a01890eb9289e7c076616630b3b03568c01c3841ef9cd0954b0e69faee"
+      },
+      {
+        "path": "web-verification.json",
+        "sha256": "23822b05de1ef77efb1b55f804739c4072dcbd0b2de5cb50a452c61b038c6bdc"
+      },
+      {
+        "path": "web-tests.json",
+        "sha256": "d8ec345bae5b184483edfd1cf5f572a79dd3b7f6c0a81cdd8dea65d9845e6ba7"
+      },
+      {
+        "path": "non-web-tests.log",
+        "sha256": "085583534af88193e3203736164cf65879a13bbcdffee3990ad5ddd072a2f735"
+      },
+      {
+        "path": "web-build-verification.json",
+        "sha256": "f2255df07317693da9f390de76e93840b5c1525849eaa83205177a4999ad6d1c"
+      },
+      {
+        "path": "runtime-audit.json",
+        "sha256": "3d578e94d4eee7e36511760c61b6285a6046fc594742ef48ad07991b36622bbd"
+      },
+      {
+        "path": "review-project-views.json",
+        "sha256": "d651711608fe0ce4d855912094c87fdddc8990a2d476163bb356dcb6b0342cbb"
+      },
+      {
+        "path": "review-domains.json",
+        "sha256": "5e400cad4aa6e6e156c95d68c72843918e1a036b174e8c86612047cb5ea06a1a"
+      },
+      {
+        "path": "ui-facts.json",
+        "sha256": "89654b2b8dabdea76f984fb9934c7c026338d94f9057d26faccfb233274ea696"
+      },
+      {
+        "path": "ide-verification.json",
+        "sha256": "1e3079d60cc2d45c8bb9e675565bb7ba8d05845fb35a0f9bb85b69a9165d6ee4"
+      },
+      {
+        "path": "preview-before-ui-hashes.json",
+        "sha256": "6b8cbc10979698ac7b3c23ceb9cc39c191b877d3750b8d79ca932ebfc4ed178e"
+      },
+      {
+        "path": "preview-after-ui-hashes.json",
+        "sha256": "cd58e5109924d23f76b22d990d2b07519dc3ce78c875dc257b6a212f2fb7608a"
+      },
+      {
+        "path": "ide-final-verification.json",
+        "sha256": "e3014afedd946fef2d7955c37f86bf027f837bcd21eabfa32831e9892615221a"
+      },
+      {
+        "path": "preview-after-final-ui-hashes.json",
+        "sha256": "da4f1efc41f334a7790259643c4b96ad15458ce80080b5c954f56ca62c11854d"
+      },
+      {
+        "path": "ide-diagnostic-full.ax.txt",
+        "sha256": "df72f59ce4546c32e6909abd5e1e4bec7fdcdf8f8ce32a14bfe69ea4c27db413"
+      },
+      {
+        "path": "candidate-before-en-full.ax.txt",
+        "sha256": "a33e19d75bdb99f68d19a2a725bf0629903dafade2b256d981c6558c18cb6163"
+      },
+      {
+        "path": "candidate-after-zh-full.ax.txt",
+        "sha256": "1968d5969b35d3fce39abfabe76e8b45e00d39ec22cf9568ce7630d064cee96f"
+      },
+      {
+        "path": "final-evidence-audit.json",
+        "sha256": "e6de3afa81c9ce069de41edfbbc47bb5d0bdda1436da440d283aa22ae6159e43"
+      }
+    ],
+    "screenshots": [
+      {
+        "path": "screenshots/automation-draft-en-390.jpg",
+        "sha256": "491282f509a5767c6e1c82d34414053e88e08bcf31aca2706768c8226b45d32c"
+      },
+      {
+        "path": "screenshots/candidate-draft-zh-768.jpg",
+        "sha256": "3acfd9362b63093e4ef711b166f07dcbf5d6b114e289165ce1d48ab88fa27030"
+      },
+      {
+        "path": "screenshots/capabilities-en-1280.jpg",
+        "sha256": "f01a0add611ad68a5cb09166f6dde883065a13fd8f1a2cfb43e9f8dd8cdfdc36"
+      },
+      {
+        "path": "screenshots/capabilities-en-1366.jpg",
+        "sha256": "f8c1627ce651f19036770a1a245cf41eb5079f9a88e379294c030712fee91620"
+      },
+      {
+        "path": "screenshots/ide-diagnostic-en-1366.jpg",
+        "sha256": "07ae85dfb96bfbfbe77a7d8f4e47726d680a661f09ef7833c9c9ea70c03aeda6"
+      },
+      {
+        "path": "screenshots/ide-zh-dark-1920.jpg",
+        "sha256": "fd2c7b96d6c8762fee6bce8f0425e69eaab73a3df97df22ac86367636f27b0c5"
+      }
+    ]
+  },
+  "remaining": [
+    "409 bounded backend static message candidates and other dynamic diagnostics",
+    "Monaco internal NLS, ReactFlow/native controls, notifications, installers, channels and full bilingual docs",
+    "P0–P7 full platform scope; real vendor models/tools, database clusters, SSO/RBAC, versioned plugins/skills/MCP/A2A, collaboration/offline/media/office, production deployment/billing/installers and scale acceptance"
+  ],
+  "git_policy": "necessary source/design/compact summary only; no raw logs, screenshots, private fixtures, databases, caches or binaries; local commit only, no push"
+}

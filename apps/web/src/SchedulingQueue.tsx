@@ -1,6 +1,8 @@
 import { RefreshCw } from "lucide-react";
 import { query, time } from "./api";
-import { ErrorNotice, Loading } from "./ui";
+import { ErrorNotice, Loading, Empty } from "./ui";
+import {tr as t,useLocale,formatNumber} from './i18n';
+import {Trans} from './i18n/Trans';
 import { AdmissionFacts } from "./SchedulingFacts";
 import { executionHref, type ReadyEntry } from "./scheduling-model";
 import { useSchedulingPage } from "./scheduling-hooks";
@@ -14,28 +16,30 @@ export function SchedulingQueue({
   refresh: number;
   onRun: (run: string, node: string) => void;
 }) {
+  useLocale();
   const page = useSchedulingPage<ReadyEntry>(
-    "/scheduling/queue" + query(project),
+    project?"/scheduling/queue" + query(project):'',
     (item) => item.run_id + "\0" + item.node_id,
     refresh,
   );
+  if(!project)return <Empty title={t('workspace.select_project')}/>;
   return (
-    <section className="panel scheduling-workspace" aria-label="真实就绪队列">
+    <section className="panel scheduling-workspace" aria-label={t('workspace.queue.label')}>
       <div className="panel-heading">
         <div>
-          <h2>就绪队列</h2>
-          <p>查看等待派发的节点、阻塞原因和运行详情。</p>
+          <h2>{t('workspace.queue.title')}</h2>
+          <p>{t('workspace.queue.description')}</p>
         </div>
         <button disabled={page.loading} onClick={() => void page.read()}>
           <RefreshCw size={15} />
-          重新读取队列
+          {t('workspace.queue.reload')}
         </button>
       </div>
       {page.error && (
         <>
-          <ErrorNotice error={page.error} onRetry={() => void page.read()} />
+          <ErrorNotice error={page.failure||page.error} onRetry={() => void page.read()} />
           <p className="warning">
-            当前队列未确认；以下如有记录，仅为上次成功读取。
+            {t('workspace.queue.unconfirmed')}
           </p>
         </>
       )}
@@ -53,10 +57,10 @@ export function SchedulingQueue({
                       {item.workflow_name || item.run_id} · {item.type}
                     </p>
                   </div>
-                  <span className="badge">等待派发</span>
+                  <span className="badge">{t('workspace.queue.waiting')}</span>
                 </header>
                 <p className="muted">
-                  就绪于 {time(item.ready_at)} · 已发生尝试 {item.attempt}
+                  {t('workspace.queue.ready_at',{at:time(item.ready_at),attempts:formatNumber(item.attempt)})}
                 </p>
                 <a
                   className="scheduling-open-link"
@@ -75,34 +79,34 @@ export function SchedulingQueue({
                     onRun(item.run_id, item.node_id);
                   }}
                 >
-                  查看真实运行与节点 <code>{item.node_id}</code>
+                  <Trans i18nKey="workspace.queue.open_run" values={{node:item.node_id}} components={{code:<code/>}}/>
                 </a>
                 {item.admission && !page.error ? (
                   <AdmissionFacts snapshot={item.admission} project={project} />
                 ) : (
                   <p className="muted">
-                    当前调度条件尚未确认，请进入节点读取。记录在读取后可能已被领取。
+                    {t('workspace.queue.conditions_unknown')}
                   </p>
                 )}
                 <p className="scheduling-queue-note">
-                  当前判断用于下一次派发，历史尝试见运行详情。
+                  {t('workspace.queue.next_dispatch')}
                 </p>
               </article>
             </li>
           ))}
         </ul>
       ) : !page.error && !page.loading ? (
-        <p>本次读取没有就绪节点。等待依赖、审批或计时的节点不在此队列中。</p>
+        <p>{t('workspace.queue.empty')}</p>
       ) : null}
       <p className="loaded-scope">
-        已显示 {page.items.length} / {page.total} 个待派发节点。
+        {t('workspace.queue.loaded',{loaded:formatNumber(page.items.length),total:formatNumber(page.total)})}
       </p>
       {page.next && (
         <button
           disabled={page.loading}
           onClick={() => void page.read(page.next)}
         >
-          加载更多就绪节点
+          {t('workspace.queue.more')}
         </button>
       )}
     </section>

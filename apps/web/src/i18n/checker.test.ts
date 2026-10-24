@@ -10,7 +10,7 @@ const repository = resolve(
   base = resolve(repository, ".cache/e2e/localization-stage/checker-fixtures"),
   script = resolve(repository, "apps/web/scripts/check-i18n.mjs");
 const created: string[] = [];
-function check(zh: string, en: string, domains: Record<string,string> = {}) {
+function check(zh: string, en: string, domains: Record<string,string> = {}, sources?:Record<string,string>) {
   mkdirSync(base, { recursive: true });
   const folder = mkdtempSync(resolve(base, "case-"));
   created.push(folder);
@@ -21,9 +21,15 @@ function check(zh: string, en: string, domains: Record<string,string> = {}) {
     for (const [name, value] of Object.entries(domains))
       writeFileSync(resolve(folder, "domains", name), value);
   }
+  const auditArguments:string[]=[];
+  if(sources){
+    const source=resolve(folder,'src'),baseline=resolve(folder,'baseline.json');mkdirSync(source);
+    for(const [file,value]of Object.entries(sources)){const target=resolve(source,file);mkdirSync(dirname(target),{recursive:true});writeFileSync(target,value);}
+    writeFileSync(baseline,JSON.stringify({remaining:[]}));auditArguments.push('--source-dir',source,'--baseline',baseline);
+  }else auditArguments.push('--skip-audit');
   return spawnSync(
     process.execPath,
-    [script, "--catalog-dir", folder, "--skip-audit"],
+    [script, "--catalog-dir", folder, ...auditArguments],
     { encoding: "utf8" },
   );
 }
@@ -42,6 +48,20 @@ afterEach(() => {
   }
 });
 describe("internationalization CI catalog contract", () => {
+  it('rejects interpolated template fragments and hardcoded copy in any newly added production module',()=>{
+    for(const source of ['export const text="未翻译";','export const text=`原始错误 ${id}`;','export const text=`${id}错误${value}状态`;','export const text=<span>新增硬编码</span>;']){
+      const result=check('{}','{}',{}, {'future/Feature.tsx':source});expect(result.status,result.stdout).toBe(1);expect(result.stderr).toContain('new hardcoded UI text future/Feature.tsx');
+    }
+  });
+  it('keeps the native language-name exception specific to its selector',()=>{
+    expect(check('{}','{}',{}, {'i18n/LanguageSelector.tsx':'export const native="简体中文";'}).status).toBe(0);
+    const other=check('{}','{}',{}, {'future/Feature.tsx':'export const native="简体中文";'});expect(other.status).toBe(1);
+  });
+  it('excludes immutable policy filter identities only in their reviewed owner variable',()=>{
+    const source='export const standardPolicyNotes=new Set(["容量为项目执行准入额度，并非实测硬件或操作系统硬限制"]);';
+    expect(check('{}','{}',{}, {'SchedulingFacts.tsx':source}).status).toBe(0);
+    const other=check('{}','{}',{}, {'SchedulingFacts.tsx':source.replace('standardPolicyNotes','arbitraryNotes')});expect(other.status).toBe(1);expect(other.stderr).toContain('new hardcoded UI text SchedulingFacts.tsx');
+  });
   it("checks domain languages and does not silently ignore an unpaired domain", () => {
     const result=check('{}','{}',{'sample.zh-CN.json':'{"sample.title":"示例"}'});
     expect(result.status).toBe(1);

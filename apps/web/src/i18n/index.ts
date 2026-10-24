@@ -200,6 +200,10 @@ export function renderDiagnostic(value: unknown): string {
           }
         : value.ui_params,
     );
+  // Only an actual local UiError instance carries a trusted client identity.
+  // JSON/server presentation fields cannot manufacture this provenance.
+  if (item?.localDiagnostic instanceof UiError)
+    return renderDiagnostic(item.localDiagnostic);
   if (typeof item?.message_key === "string") {
     const message = catalog?.messages.find(
       (message) => message.key === item.message_key,

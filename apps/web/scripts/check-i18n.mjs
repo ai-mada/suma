@@ -9,7 +9,7 @@ const args = process.argv.slice(2),
     const index = args.indexOf(name);
     return index < 0 ? undefined : args[index + 1];
   };
-const sourceRoot = path.join(base, "src"),
+const sourceRoot = path.resolve(option('--source-dir')||path.join(base, "src")),
   catalogDir = path.resolve(
     option("--catalog-dir") || path.join(sourceRoot, "i18n/locales"),
   ),
@@ -166,66 +166,10 @@ try {
   errors.push(error.message);
 }
 let legacy = [];
-function covered(file, node) {
-  if (
-    file.startsWith("execution-pools/") ||
-    file.startsWith("i18n/") ||
-    [
-      "ui.tsx",
-      "main.tsx",
-      "api.ts",
-      "tool-hooks.ts",
-      "RecordLineage.tsx",
-      "record-options.ts",
-      "Governance.tsx", "Planning.tsx", "ResourceIdentityFields.tsx",
-      "governance-model.ts", "planning-model.ts", "write-action.tsx",
-      "LanguagePreferences.tsx", "Workflow.tsx", "ToolWorkspace.tsx",
-      "TaskDispatch.tsx", "ToolActions.tsx", "ToolFacts.tsx",
-      "ToolBindingStatus.tsx", "ToolNodeFields.tsx", "tool-model.ts",
-      "tool-write.ts", "run-events.ts", "workflow-model.ts",
-      "ResponsiveWorkflow.tsx", "CandidateSource.tsx", "WorkspaceEvidence.tsx",
-      "NodeSchedulingFacts.tsx", "SchedulingFacts.tsx", "scheduling-model.ts",
-      "SchedulingWorkspace.tsx", "scheduling-hooks.ts", "scheduling-write.ts",
-      "release-hooks.ts",
-    ].includes(file)
-  )
-    return true;
-  if (file === "Governance.tsx") {
-    for (let current = node; current; current = current.parent)
-      if (
-        ts.isFunctionDeclaration(current) &&
-        current.name &&
-        ["OrganizationSwitch", "OrganizationCreate"].includes(current.name.text)
-      )
-        return true;
-    return false;
-  }
-  if (file !== "App.tsx") return false;
-  for (let current = node; current; current = current.parent) {
-    if (
-      ts.isFunctionDeclaration(current) &&
-      current.name &&
-      [
-        "Auth",
-        "App",
-        "ProjectCounts",
-        "useOperationGuard",
-        "Records",
-        "RecordForm",
-        "Detail",
-        "CreateProject",
-      ].includes(current.name.text)
-    )
-      return true;
-    if (
-      ts.isVariableDeclaration(current) &&
-      ts.isIdentifier(current.name) &&
-      ["nav", "tabs", "names", "priorityNames"].includes(current.name.text)
-    )
-      return true;
-  }
-  return false;
-}
+// Every product-owned production module now participates. The three exact
+// immutable server filter identities and native language name are checked below.
+function covered() { return true; }
+
 for (const file of sourceFiles) {
   const relative = path.relative(sourceRoot, file).replaceAll("\\", "/"),
     sf = ts.createSourceFile(
@@ -238,7 +182,7 @@ for (const file of sourceFiles) {
     found = new Map();
   function visit(node) {
     if (
-      (ts.isStringLiteralLike(node) || ts.isJsxText(node)) &&
+      (ts.isStringLiteralLike(node) || ts.isJsxText(node) || ts.isTemplateHead(node) || ts.isTemplateMiddle(node) || ts.isTemplateTail(node)) &&
       /[\u3400-\u9fff]/.test(node.text)
     ) {
       if (relative === "i18n/LanguageSelector.tsx" && node.text === "简体中文")

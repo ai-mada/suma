@@ -1,4 +1,5 @@
 import {api,ApiError,operation} from './api';
+import {tr} from './i18n';
 export type TokenScope='runner'|'agent'|'api';
 export type ScopedToken={token:string;expires_at:string;label:string;scope:TokenScope;project_id:string};
 export class TokenCreation{
@@ -7,8 +8,9 @@ export class TokenCreation{
  unknown=false;
  get operationID(){return this.envelope?.idempotency_key;}
  async create(project:string,label:string,scope:TokenScope):Promise<ScopedToken>{
-  if(this.unknown)throw new ApiError(0,'token_outcome_unknown','凭证创建结果尚未确认，已停止重复提交。请由管理员核实原操作。');
-  if(this.running)throw new ApiError(409,'token_request_pending','凭证创建请求正在处理中。');
+  if(this.unknown)throw new ApiError(0,'token_outcome_unknown',tr('workspace.token.outcome_unknown'));
+  if(this.running)throw new ApiError(409,'token_request_pending',tr('workspace.token.request_pending'));
+  if(!project)throw new ApiError(422,'project_required',tr('workspace.select_project'));
   this.envelope??={project_id:project,label,scope,idempotency_key:operation()};
   this.running=true;
   try{const result=await api<ScopedToken>('/auth/tokens',this.envelope);this.envelope=undefined;return result;}

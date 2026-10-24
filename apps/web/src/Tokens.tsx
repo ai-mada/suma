@@ -1,13 +1,43 @@
 import {useRef,useState,type FormEvent} from 'react';
 import {Copy,KeyRound,Plus} from 'lucide-react';
 import {time} from './api';
-import {Field,ErrorNotice} from './ui';
+import {Field,ErrorNotice,Empty} from './ui';
+import {tr as t,useLocale,UiError,formatNumber} from './i18n';
 import {TokenCreation,type TokenScope,type ScopedToken} from './token-requests';
-const scopeInfo:Record<TokenScope,{title:string;description:string}>={runner:{title:'Runner 执行节点',description:'仅可访问当前项目的 /runner 路由，用于领取任务、发送心跳与回传结果。'},agent:{title:'Agent 工具调用',description:'仅可访问当前项目的 Agent 工具接口，用于工具发现与调用。'},api:{title:'项目 API',description:'用于当前项目的 API 访问，具体权限仍由服务端核实。'}};
+const scopes:TokenScope[]=['runner','agent','api'];
+const scopeTitle=(scope:TokenScope)=>t('workspace.token.scope_'+scope);
 type UnknownReceipt={operation_id:string;scope:TokenScope;label:string};
-export function Tokens({project,projectName,admin}:{project:string;projectName:string;admin:boolean}){
+type Props={project:string;projectName:string;admin:boolean};
+export function Tokens(props:Props){
+ useLocale();
+ return props.project?<ProjectTokens key={props.project} {...props}/>:<Empty title={t('workspace.select_project')}/>;
+}
+function ProjectTokens({project,projectName,admin}:Props){
+ useLocale();
  const creation=useRef(new TokenCreation()),storageKey='suma-token-unknown:'+project;
- const [scope,setScope]=useState<TokenScope>('runner'),[result,setResult]=useState<ScopedToken>(),[error,setError]=useState(''),[busy,setBusy]=useState(false),[copied,setCopied]=useState(false),[unknown,setUnknown]=useState<UnknownReceipt|undefined>(()=>{try{const saved=sessionStorage.getItem(storageKey);return saved?JSON.parse(saved):undefined;}catch{return undefined;}});
- async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();if(busy||unknown||!admin)return;const label=String(new FormData(e.currentTarget).get('label')||'');setBusy(true);setError('');try{const r=await creation.current.create(project,label,scope);setResult(r);setCopied(false);sessionStorage.removeItem(storageKey);}catch(err){if(creation.current.unknown){const receipt={operation_id:creation.current.operationID||'',scope,label};setUnknown(receipt);sessionStorage.setItem(storageKey,JSON.stringify(receipt));setError('创建回执未知，凭证可能已经产生。已停止重复提交，请由管理员核实原操作；令牌值无法从该页面恢复。');}else setError((err as Error).message);}finally{setBusy(false);}}
- return <section className="panel settings-panel"><div className="panel-heading"><div><h2>创建项目接入令牌</h2><p>令牌绑定当前项目，有效期为 24 小时，仅在创建时显示一次。</p></div><KeyRound size={22}/></div>{!admin&&<div className="warning">只有组织所有者或管理员可以创建接入令牌。</div>}{error&&<ErrorNotice error={error}/>}<form onSubmit={e=>void submit(e)}><Field label="绑定项目"><input readOnly value={projectName}/><small><code>{project}</code></small></Field><Field label="令牌备注"><input name="label" placeholder="例如：本地开发 Runner" required maxLength={100} disabled={busy||!!unknown||!admin}/></Field><Field label="用途范围" hint={scopeInfo[scope].description}><select value={scope} onChange={e=>setScope(e.target.value as TokenScope)} disabled={busy||!!unknown||!admin}>{Object.entries(scopeInfo).map(([value,info])=><option key={value} value={value}>{info.title}</option>)}</select></Field><button className="primary" disabled={busy||!!unknown||!admin}><Plus size={15}/>{busy?'创建中…':unknown?'等待管理员核实':'创建接入令牌'}</button></form>{unknown&&<div className="warning"><strong>原操作标识</strong><p><code>{unknown.operation_id}</code></p><p>{unknown.label} · {scopeInfo[unknown.scope].title}</p><p>此提示在当前浏览器会话中保留，不会自动重新发出创建请求。</p></div>}{result&&<div className="token-result"><p>令牌已创建 · 到期时间 {time(result.expires_at)}</p><p>范围：{scopeInfo[result.scope]?.title||result.scope} · 项目：{result.project_id}</p><code>{result.token}</code><button onClick={async()=>{try{await navigator.clipboard.writeText(result.token);setCopied(true);}catch{setError('无法访问剪贴板，请手动复制令牌。');}}}><Copy size={15}/>{copied?'已复制':'复制令牌'}</button></div>}<div className="detail-section"><h3>接入说明</h3><p className="muted">{scope==='runner'?'按项目运行文档设置 API 地址、项目 ID 与 Runner 令牌，启动 suma-runner。实际 Agent 与工具适配器仍需分别配置。':scope==='agent'?'使用 Agent 范围令牌调用当前项目的工具发现与调用接口。此凭证不能领取 Runner 任务。':'按 API 文档携带当前项目 ID 与 Bearer 凭证，服务端仍会核实每项操作权限。'}</p></div></section>
+ const [unknown,setUnknown]=useState<UnknownReceipt|undefined>(()=>{
+  try{const saved=sessionStorage.getItem(storageKey);if(!saved)return;const receipt=JSON.parse(saved);return typeof receipt.operation_id==='string'&&typeof receipt.label==='string'&&scopes.includes(receipt.scope)?receipt:undefined;}catch{return undefined;}
+ });
+ const [scope,setScope]=useState<TokenScope>(unknown?.scope||'runner'),[result,setResult]=useState<ScopedToken>(),[error,setError]=useState<unknown>(),[busy,setBusy]=useState(false),[copied,setCopied]=useState(false),[receiptPersisted,setReceiptPersisted]=useState(!!unknown);
+ async function submit(e:FormEvent<HTMLFormElement>){
+  e.preventDefault();if(busy||unknown||!admin)return;
+  const label=String(new FormData(e.currentTarget).get('label')||'');setBusy(true);setError(undefined);setResult(undefined);setCopied(false);
+  try{
+   const r=await creation.current.create(project,label,scope);setResult(r);setCopied(false);
+   try{sessionStorage.removeItem(storageKey);}catch{/* The one-time secret stays only in this mounted view. */}
+  }catch(err){
+   if(creation.current.unknown){
+    const receipt={operation_id:creation.current.operationID||'',scope,label};setUnknown(receipt);
+    try{sessionStorage.setItem(storageKey,JSON.stringify(receipt));setReceiptPersisted(true);}catch{setReceiptPersisted(false);}
+    setError(new UiError('workspace.token.unknown'));
+   }else setError(err);
+  }finally{setBusy(false);}
+ }
+ return <section className="panel settings-panel"><div className="panel-heading"><div><h2>{t('workspace.token.title')}</h2><p>{t('workspace.token.description',{hours:formatNumber(24)})}</p></div><KeyRound size={22}/></div>
+  {!admin&&<div className="warning">{t('workspace.token.admin_only')}</div>}{Boolean(error)&&<ErrorNotice error={error}/>}
+  <form onSubmit={e=>void submit(e)}><Field label={t('workspace.token.bound_project')}><input readOnly value={projectName}/><small><code>{project}</code></small></Field><Field label={t('workspace.token.label')}><input name="label" placeholder={t('workspace.token.label_placeholder')} required maxLength={100} disabled={busy||!!unknown||!admin}/></Field><Field label={t('workspace.token.scope')} hint={t('workspace.token.scope_'+scope+'_help')}><select value={scope} onChange={e=>setScope(e.target.value as TokenScope)} disabled={busy||!!unknown||!admin}>{scopes.map(value=><option key={value} value={value}>{scopeTitle(value)}</option>)}</select></Field><button className="primary" disabled={busy||!!unknown||!admin}><Plus size={15}/>{t(busy?'workspace.token.creating':unknown?'workspace.token.waiting':'workspace.token.create')}</button></form>
+  {unknown&&<div className="warning"><strong>{t('workspace.token.operation')}</strong><p><code>{unknown.operation_id}</code></p><p>{unknown.label} · {scopeTitle(unknown.scope)}</p><p>{t(receiptPersisted?'workspace.token.receipt_preserved':'workspace.token.receipt_not_persisted')}</p></div>}
+  {result&&<div className="token-result"><p>{t('workspace.token.created',{at:time(result.expires_at)})}</p><p>{t('workspace.token.result_scope',{scope:scopes.includes(result.scope)?scopeTitle(result.scope):result.scope,project:result.project_id})}</p><code>{result.token}</code><button onClick={async()=>{try{await navigator.clipboard.writeText(result.token);setCopied(true);}catch{setError(new UiError('workspace.token.clipboard_failed'));}}}><Copy size={15}/>{t(copied?'workspace.token.copied':'workspace.token.copy')}</button></div>}
+  <div className="detail-section"><h3>{t('workspace.token.connection_title')}</h3><p className="muted">{t('workspace.token.'+scope+'_instructions')}</p></div>
+ </section>;
 }
