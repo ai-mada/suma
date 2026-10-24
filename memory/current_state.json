@@ -1,0 +1,33 @@
+{
+  "project": "suma",
+  "name": "速码一栈式智能研发平台",
+  "phase": "implementation",
+  "updated_at": "2026-10-24",
+  "status": "in_progress",
+  "plan": "docs/delivery/implementation-plan.md",
+  "workstreams": {
+    "control_dag": "immutable_artifacts_candidate_release_gates_managed_recovery_and_canonical_issue_verified_distributed_scale_pending",
+    "runtime": "real_build_package_test_local_static_provider_health_rollback_restart_and_cross_compile_verified_vendor_cloud_pending",
+    "workbench": "actual_browser_release_health_failure_issue_intake_independent_rollback_lineage_and_escape_focus_verified_full_product_pending",
+    "architecture_documents": "architecture_and_scope_matrix_delivered"
+  },
+  "verified": [
+    "Go 281 pass events including subtests and process helpers; 8 tested packages plus 4 compiled command packages; vet passed",
+    "JS/TS packages 98 tests including web 89 plus independent deployment tests 4",
+    "TypeScript, final browser build, 107 model schemas and 96 API paths drift check",
+    "Actual organization switch and isolated project context, canonical human resource and team",
+    "Actual iteration, schedule, immutable baseline comparison, capacity and completion gate",
+    "Actual isolated candidate development attempt 2, fixed candidate test/vet on two Runners, human acceptance task v3",
+    "Actual 390/768/1366/1920 partial page walk-through, keyboard modal focus return, capacity week deep link",
+    "Windows unsigned NSIS and portable historical build; installation and native GUI still unverified; historical desktop does not include P5",
+    "Actual browser A/B unhealthy/A rollback/B unhealthy/A rollback; 5 monotonic generations, two real artifact blobs and 7 runs; original checkout remains clean admin base",
+    "Post-fix provider and managed execution failure share one issue; refresh and repeated intake preserve one requirement",
+    "Final six-target four-program build source b8d6a3075cf29836c11ab8033bd5aab229eb6f9e5fb80c3402ede458e6a76365; Windows delivered control/Runner/Provider restarted and persisted generation 5",
+    "Partial release detail verified at actual 390/768/1366/1920 widths, light/dark themes and Escape modal focus return"
+  ],
+  "production_integration_complete": false,
+  "current_evidence": "docs/quality/evidence/release-browser-execution.json",
+  "stage": "T-P5-001_validated",
+  "commit_policy": "User explicitly requests a commit after each validated functional stage; do not push without separate authorization",
+  "next_step": "Continue remaining implementation-plan tasks after the verified stage commit: complete distributed DAG fairness, external tool and production integrations, design/risk/planning, collaboration and SaaS"
+}

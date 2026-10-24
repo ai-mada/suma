@@ -1,0 +1,118 @@
+{
+  "files": [
+    {
+      "saved_under": ".cache/e2e/release-wave3/visual-capture-diagnostics",
+      "bytes": 46840,
+      "status": "superseded_capture",
+      "sha256": "6a8d5c4569c8aa49a9193afccd256f0cc8f4fb29c3cf40c0f597d7393ad686cc",
+      "file": "release-before-paint-390.png",
+      "reason": "Host viewport, transition paint or IAB compositor capture; not final visual acceptance"
+    },
+    {
+      "saved_under": ".cache/e2e/release-wave3/visual-capture-diagnostics",
+      "bytes": 26016,
+      "status": "superseded_capture",
+      "sha256": "f03b429b84d5ea2ad6dda384af2a512bbe3270b573c025f7fee5093e647fe39c",
+      "file": "release-chrome-before-paint-390.png",
+      "reason": "Host viewport, transition paint or IAB compositor capture; not final visual acceptance"
+    },
+    {
+      "saved_under": ".cache/e2e/release-wave3/visual-capture-diagnostics",
+      "bytes": 70978,
+      "status": "superseded_capture",
+      "sha256": "943eb40ddc52cead76ae5cefe0fbefafc8fd598a692f65cf6638d30f3b81863f",
+      "file": "release-host-capture-1366.png",
+      "reason": "Host viewport, transition paint or IAB compositor capture; not final visual acceptance"
+    },
+    {
+      "saved_under": ".cache/e2e/release-wave3/visual-capture-diagnostics",
+      "bytes": 87770,
+      "status": "superseded_capture",
+      "sha256": "589bcd2f1f23467ee13f79457f4b2e010a3ce77724610c84e68b063deb2edf98",
+      "file": "release-host-capture-1920.png",
+      "reason": "Host viewport, transition paint or IAB compositor capture; not final visual acceptance"
+    },
+    {
+      "saved_under": ".cache/e2e/release-wave3/visual-capture-diagnostics",
+      "bytes": 4521,
+      "status": "superseded_capture",
+      "sha256": "4553c66fc3e97cf34f1445d6dedb59c9f93d31f0a49f394c60e6a5a20832873b",
+      "file": "release-host-capture-390.png",
+      "reason": "Host viewport, transition paint or IAB compositor capture; not final visual acceptance"
+    },
+    {
+      "saved_under": ".cache/e2e/release-wave3/visual-capture-diagnostics",
+      "bytes": 23586,
+      "status": "superseded_capture",
+      "sha256": "e215d3bd5b623d38362c48ec8fa05dd57907c0adcc6c5910c6a36b1646d12687",
+      "file": "release-host-capture-768.png",
+      "reason": "Host viewport, transition paint or IAB compositor capture; not final visual acceptance"
+    },
+    {
+      "saved_under": ".cache/e2e/release-wave3/visual-capture-diagnostics",
+      "bytes": 89663,
+      "status": "superseded_capture",
+      "sha256": "ad4c5c87e87f9e304b9833abfb57e7e1783079b43203748c898e742e8a42f66b",
+      "file": "release-host-capture-light-1920.png",
+      "reason": "Host viewport, transition paint or IAB compositor capture; not final visual acceptance"
+    },
+    {
+      "saved_under": ".cache/e2e/release-wave3/visual-capture-diagnostics",
+      "bytes": 16607,
+      "status": "superseded_capture",
+      "sha256": "e262d2b2f4ed42217239e76fcd1c2b53da9fe6cd8a5745f9e17c4f7acdb97196",
+      "file": "release-host-capture-modal-390.png",
+      "reason": "Host viewport, transition paint or IAB compositor capture; not final visual acceptance"
+    },
+    {
+      "saved_under": ".cache/e2e/release-wave3/visual-capture-diagnostics",
+      "bytes": 43613,
+      "status": "superseded_capture",
+      "sha256": "13052b51617f9040f92a36732c1ac28646ac5fb33c41a0fb2aa5e43b5369b0b0",
+      "file": "release-viewport-host-655.png",
+      "reason": "Host viewport, transition paint or IAB compositor capture; not final visual acceptance"
+    },
+    {
+      "saved_under": ".cache/e2e/release-wave3/visual-capture-diagnostics",
+      "bytes": 132079,
+      "status": "superseded_capture",
+      "sha256": "d8c3df59f4ffaca93839a5581ab8948e8c66e9a1be15271ec97c32eabcde47d8",
+      "file": "release-final-light-1920.png",
+      "reason": "Host viewport, transition paint or IAB compositor capture; not final visual acceptance"
+    },
+    {
+      "saved_under": ".cache/e2e/release-wave3/visual-capture-diagnostics",
+      "bytes": 132531,
+      "status": "superseded_capture",
+      "sha256": "9bc9af3243100a13fe31a0d3f94bb6aed14dd1f774ecb70347699954bc41deab",
+      "file": "release-final-1920.png",
+      "reason": "Host viewport, transition paint or IAB compositor capture; not final visual acceptance"
+    },
+    {
+      "saved_under": ".cache/e2e/release-wave3/visual-capture-diagnostics",
+      "bytes": 129678,
+      "status": "superseded_capture",
+      "sha256": "795bf5f84202a67306740d37a81aff101acc62bd5816f80ec709eba865c025e0",
+      "file": "release-final-1366.png",
+      "reason": "Host viewport, transition paint or IAB compositor capture; not final visual acceptance"
+    },
+    {
+      "saved_under": ".cache/e2e/release-wave3/visual-capture-diagnostics",
+      "bytes": 60506,
+      "status": "superseded_capture",
+      "sha256": "a155ebcc69ecdc6b410045fa2a92dfa36c8a659f83fa3abc4e2e4e77c2a011e1",
+      "file": "release-final-390.png",
+      "reason": "Host viewport, transition paint or IAB compositor capture; not final visual acceptance"
+    },
+    {
+      "saved_under": ".cache/e2e/release-wave3/visual-capture-diagnostics",
+      "bytes": 105846,
+      "status": "superseded_capture",
+      "sha256": "3b2e53381a6bd15535e5796116204d5ffa1b7631249550658cf41ab792c4d9c2",
+      "file": "release-final-768.png",
+      "reason": "Host viewport, transition paint or IAB compositor capture; not final visual acceptance"
+    }
+  ],
+  "schema_version": 1,
+  "scope": "Capture diagnostics archived without deleting unique screenshots; final viewport images use stable Chrome tab screenshots"
+}

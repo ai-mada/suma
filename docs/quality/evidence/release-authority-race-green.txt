@@ -1,0 +1,12 @@
+=== RUN   TestReleaseEnvironmentWorkerCredentialsCannotReadBusinessRoutes
+--- PASS: TestReleaseEnvironmentWorkerCredentialsCannotReadBusinessRoutes (0.13s)
+=== RUN   TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval
+=== RUN   TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/detail
+=== RUN   TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/actions
+=== RUN   TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/list
+--- PASS: TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval (0.54s)
+    --- PASS: TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/detail (0.18s)
+    --- PASS: TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/actions (0.18s)
+    --- PASS: TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/list (0.18s)
+PASS
+ok  	github.com/ai-mada/suma/internal/platform	0.815s

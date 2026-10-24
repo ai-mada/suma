@@ -1,0 +1,40 @@
+image:
+  repository: suma-control
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+service:
+  port: 4310
+
+# Create this Secret independently; chart values never contain secret values.
+setupSecret:
+  name: suma-control-secrets
+  key: setup-token
+
+database:
+  driver: sqlite
+  # For oceanbase, the Secret key holds a complete MySQL DSN.
+  existingSecret: suma-control-secrets
+  dsnKey: database-dsn
+
+persistence:
+  existingClaim: ""
+  size: 10Gi
+  storageClass: ""
+
+allowedOrigins: ""
+secureCookies: true
+
+knowledge:
+  url: ""
+  existingSecret: ""
+  tokenKey: knowledge-token
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: "2"
+    memory: 1Gi

@@ -1,0 +1,11 @@
+{
+  "name": "@suma/agent-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/src/index.js",
+  "exports": "./dist/src/index.js",
+  "bin": {"suma-agent": "dist/src/cli.js"},
+  "scripts": {"build": "tsc", "typecheck": "tsc --noEmit", "test": "tsc && node --test dist/tests/*.test.js", "catalog": "node dist/src/catalog-cli.js"},
+  "devDependencies": {"@types/node": "^22.10.0", "typescript": "^5.7.2"}
+}

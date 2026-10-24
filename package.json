@@ -1,0 +1,16 @@
+{
+  "name": "suma",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.25.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "pnpm --filter @suma/web dev",
+    "build": "pnpm --filter @suma/web build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "desktop": "pnpm --filter @suma/desktop start",
+    "desktop:package": "pnpm --filter @suma/desktop package",
+    "check:docs": "node scripts/check-docs.mjs"
+  }
+}

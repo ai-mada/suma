@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "image": {
+      "type": "object",
+      "required": ["repository", "tag"],
+      "properties": {
+        "repository": {"type": "string", "minLength": 1},
+        "tag": {"type": "string", "minLength": 1}
+      }
+    },
+    "database": {
+      "type": "object",
+      "properties": {
+        "driver": {"type": "string", "enum": ["sqlite", "oceanbase"]},
+        "existingSecret": {"type": "string", "minLength": 1},
+        "dsnKey": {"type": "string", "minLength": 1}
+      }
+    },
+    "setupSecret": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "key": {"type": "string", "minLength": 1}
+      }
+    },
+    "secureCookies": {"type": "boolean"}
+  }
+}

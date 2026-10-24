@@ -1,0 +1,106 @@
+{
+  "at": "2026-10-23T16:29:09.019Z",
+  "platform": "win32",
+  "arch": "x64",
+  "checks": {
+    "directory_package_exit": 0,
+    "web_files_compared": 306,
+    "web_exact_match": true,
+    "control_prepared_match": true,
+    "asar_source_exact_match": true,
+    "control_executable_help_exit": 0,
+    "gui_launched": false,
+    "installed": false
+  },
+  "artifacts": [
+    {
+      "path": "Suma Setup 0.1.0.exe",
+      "bytes": 111358656,
+      "sha256": "bc856dde2b53cfdd4afbe05a71aeeff4d8e2275dbb697227fd24ef852171b4b7"
+    },
+    {
+      "path": "Suma 0.1.0.exe",
+      "bytes": 111128909,
+      "sha256": "258d5cfbd995606780c41fc655d6d1ffac87384b26226ce13686d7f451780506"
+    },
+    {
+      "path": "Suma Setup 0.1.0.exe.blockmap",
+      "bytes": 117677,
+      "sha256": "5fcb757b1fe07271ea0987d38373ece8cdf70ca83aae9a916813e215c0ac56d7"
+    },
+    {
+      "path": "win-unpacked/Suma.exe",
+      "bytes": 201233920,
+      "sha256": "61560d695d28eb4a6aaea502b07ee120835479dbeb313aab61480e5520c01bfc"
+    },
+    {
+      "path": "win-unpacked/resources/app.asar",
+      "bytes": 6270,
+      "sha256": "9b05b398a9470e27a41175e6e440081fe39b9769d0ec96cf90a8b147f2c4f5fc"
+    },
+    {
+      "path": "win-unpacked/resources/control/suma-control.exe",
+      "bytes": 23752192,
+      "sha256": "96e21842abb1cfb34f9932981095bc18bcc65907724d67ed50ffee748fdf5035"
+    },
+    {
+      "path": "win-unpacked/resources/web/index.html",
+      "bytes": 415,
+      "sha256": "c23203c6b8f861b46e34aaf672a2bf95b8cca91ed1c02270594314127d6f3904"
+    }
+  ],
+  "logs": [
+    {
+      "path": ".cache/desktop/packaging-recovery/contracts-check.log",
+      "bytes": 68,
+      "sha256": "0b312cdf4517629642cb307077020e0014d45aa3c98ac15587f7f72a0d17322d"
+    },
+    {
+      "path": ".cache/desktop/packaging-recovery/docs-check.log",
+      "bytes": 133,
+      "sha256": "bd113b86caa81b3cc6cd800218c7e8d8fc8b7c72394abac5e9fe8057f9433b72"
+    },
+    {
+      "path": ".cache/desktop/packaging-recovery/package-dir.log",
+      "bytes": 1751,
+      "sha256": "4c31ac071350b1d4a5781e4434117fad23847cf249ab50cc0f8e105e3c6fe292"
+    },
+    {
+      "path": ".cache/desktop/packaging-recovery/package-win-network-retry.log",
+      "bytes": 2659,
+      "sha256": "119cff5253441e2f55a6ef31d11f9c4096e10dc684f1778faa72aca281225595"
+    },
+    {
+      "path": ".cache/desktop/packaging-recovery/package-win.log",
+      "bytes": 3126,
+      "sha256": "61b4f1a3289916b851ee85a6bf7b481168f923a06b0a68c5080a6f6862d422e4"
+    },
+    {
+      "path": ".cache/desktop/packaging-recovery/pnpm-list-check.log",
+      "bytes": 96,
+      "sha256": "7a78943d80936527835fd0a8feb93bff14cfd93c6b835a479a495ffbde75854c"
+    }
+  ],
+  "signatures": [
+    {
+      "Path": "D:\\codes\\ai-dev-os\\suma\\dist\\desktop\\Suma Setup 0.1.0.exe",
+      "Status": "NotSigned",
+      "Signer": null
+    },
+    {
+      "Path": "D:\\codes\\ai-dev-os\\suma\\dist\\desktop\\Suma 0.1.0.exe",
+      "Status": "NotSigned",
+      "Signer": null
+    },
+    {
+      "Path": "D:\\codes\\ai-dev-os\\suma\\dist\\desktop\\win-unpacked\\Suma.exe",
+      "Status": "NotSigned",
+      "Signer": null
+    },
+    {
+      "Path": "D:\\codes\\ai-dev-os\\suma\\dist\\desktop\\win-unpacked\\resources\\control\\suma-control.exe",
+      "Status": "NotSigned",
+      "Signer": null
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "scope": "P5 targeted independent authority and managed-resolution boundary review",
+  "reviewer": "release_audit_final",
+  "observed_at": "2026-10-24T01:32:57.8358221Z",
+  "environment": {
+    "host": "windows/amd64",
+    "go": "go version go1.24.5 windows/amd64",
+    "sqlite": "real modernc SQLite",
+    "GOCACHE": "D:/codes/ai-dev-os/suma/.cache/go-build",
+    "GOTMPDIR": "D:/codes/ai-dev-os/suma/.cache",
+    "TEMP": "D:/codes/ai-dev-os/suma/.cache/test-tmp",
+    "TMP": "D:/codes/ai-dev-os/suma/.cache/test-tmp",
+    "GOPROXY": "off"
+  },
+  "finding": {
+    "id": "release-read-authority-race",
+    "status": "fixed_by_root_and_focused_regression_passed",
+    "red": "detail/actions/list returned nil after concurrent owner-authorized project grant removal",
+    "red_exit_code": 1,
+    "green": "same revocation window denied with HTTP 403",
+    "historical_red_source_snapshot": false,
+    "historical_red_note": "The old list used a second preflight; final root implementation removes that preflight and final regression uses the shared first-read gate."
+  },
+  "verification": [
+    {
+      "command": "go test ./internal/platform -run '^TestReleaseEnvironment(ReadsRecheckAuthorityAfterConcurrentGrantRemoval|WorkerCredentialsCannotReadBusinessRoutes)$' -count=1 -v",
+      "exit_code": 0,
+      "package_elapsed_seconds": 0.815,
+      "test_cases": [
+        "TestReleaseEnvironmentWorkerCredentialsCannotReadBusinessRoutes",
+        "TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/detail",
+        "TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/actions",
+        "TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/list"
+      ]
+    },
+    {
+      "command": "go test ./internal/dag -run '^TestManagedObservationResolution' -count=1 -v",
+      "exit_code": 0,
+      "package_elapsed_seconds": 0.277,
+      "test_cases": [
+        "TestManagedObservationResolutionRejectsOrdinaryReceiptReplay",
+        "TestManagedObservationResolutionRejectsCurrentWorkerLease",
+        "TestManagedObservationResolutionReplayRechecksAuthority"
+      ],
+      "boundary": "Trusted service hooks and evidence references only; no real Provider attestation or remote deployment claim."
+    }
+  ],
+  "raw_logs": [
+    {
+      "path": "docs/quality/evidence/release-authority-race-red.txt",
+      "bytes": 1005,
+      "sha256": "0bc7a041917f3e14839304ef4e00aadb45a8b818fb9db92369d7d2d2177750ff"
+    },
+    {
+      "path": "docs/quality/evidence/release-authority-race-green.txt",
+      "bytes": 959,
+      "sha256": "674e4465a27c93bb142841d15b3a3e5a03ae9dd3a5a6aa3ce586d3a02825a6e8"
+    },
+    {
+      "path": "docs/quality/evidence/release-managed-boundary-tests.txt",
+      "bytes": 496,
+      "sha256": "a7a944aa75372301d75e3a94b0e99f0cff99be2becca3a844d9ff3464da81028"
+    }
+  ],
+  "current_source_hashes": [
+    {
+      "path": "internal/platform/release_authority_race_test.go",
+      "bytes": 4078,
+      "sha256": "8922ad8e70e488464ba8e6c65dd49a141904c9e80ae0133f7b861b392517a424"
+    },
+    {
+      "path": "internal/dag/managed_test.go",
+      "bytes": 11391,
+      "sha256": "dd5cbbda02e893ed7ff9f2f113dc07b2c222db7aa3db5a6366df20ce1fb16565"
+    },
+    {
+      "path": "internal/dag/scheduler.go",
+      "bytes": 16477,
+      "sha256": "487d54053e7096aa1b79352d3c817f3b200ef76fafc0a05c3b92c9e4483053e2"
+    },
+    {
+      "path": "internal/platform/records.go",
+      "bytes": 18496,
+      "sha256": "e250da2d09f8db82e1c82d3afe4050af6665a1fcb39f3c0e9dbdf711d46c1446"
+    },
+    {
+      "path": "internal/platform/transaction_authority.go",
+      "bytes": 1672,
+      "sha256": "2278fde988ef219b71c262171af27d2fb864713c3775b624a3827d2129a2b127"
+    },
+    {
+      "path": "internal/platform/release_provider_config.go",
+      "bytes": 3417,
+      "sha256": "bd41ada35dff0d89a4ead1ef5ce62a1490503d173fe2d0c85742ee5f2d8a2683"
+    },
+    {
+      "path": "internal/platform/release_deploy.go",
+      "bytes": 22270,
+      "sha256": "ccd184f494204d69bda07f1115de6460a086838d4e4b92fce629eeeae5350a73"
+    },
+    {
+      "path": "internal/platform/release_deploy_plans.go",
+      "bytes": 22050,
+      "sha256": "3e8bdad67db550a843d93f1c33ea30720154dd758c96dc7594abb08a388aeab2"
+    },
+    {
+      "path": "internal/platform/release_deploy_authorization.go",
+      "bytes": 14432,
+      "sha256": "460f89a1791ad7943fb0b22502fae3dba2cbeb5170ec5c7b400d4c39dfba35f5"
+    },
+    {
+      "path": "internal/platform/release_deploy_observations.go",
+      "bytes": 25746,
+      "sha256": "da20f60ec0b6739af167529c9b0e36e9381153c9b7aba8a8a1decbadd2079b39"
+    },
+    {
+      "path": "internal/platform/release_failure_projection.go",
+      "bytes": 1661,
+      "sha256": "390082c912e8d20e3b771acf603e0e4e55c091c601ee11dd147d675b35d4a1e6"
+    },
+    {
+      "path": "internal/platform/release_deploy_test.go",
+      "bytes": 27647,
+      "sha256": "7994c9e31a90e3c20667a2b3ea2d0100c1090cc94fffaa693fc40ecdcda877c2"
+    }
+  ],
+  "not_executed": [
+    "full Go suite",
+    "browser journey",
+    "provider/projector simultaneous two-connection race",
+    "OceanBase/PostgreSQL",
+    "cross-machine deployment",
+    "production readiness or exhaustive security scan"
+  ]
+}

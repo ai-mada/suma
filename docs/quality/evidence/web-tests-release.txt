@@ -1,0 +1,17 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ✓ src/contracts.test.ts (29 tests) 33ms
+ ✓ src/planning-governance.test.ts (20 tests) 28ms
+ ✓ src/workflow-candidates.test.ts (12 tests) 19ms
+ ✓ src/release-consumers.test.tsx (6 tests) 31ms
+ ✓ src/release-write.test.ts (7 tests) 12ms
+ ✓ src/release-model.test.ts (6 tests) 6ms
+ ✓ src/capacity-week.test.ts (6 tests) 23ms
+ ✓ src/record-lineage.test.tsx (3 tests) 12ms
+
+ Test Files  8 passed (8)
+      Tests  89 passed (89)
+   Start at  09:49:19
+   Duration  4.43s (transform 346ms, setup 0ms, collect 1.64s, tests 164ms, environment 1ms, prepare 889ms)
+

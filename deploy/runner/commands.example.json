@@ -1,0 +1,7 @@
+{
+  "workspace-status": {
+    "executable": "/usr/bin/git",
+    "read_only": true,
+    "args": ["-c", "safe.directory=/workspace", "status", "--short"]
+  }
+}

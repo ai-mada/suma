@@ -1,0 +1,62 @@
+[
+  {
+    "name": "cut-difference.json",
+    "size_bytes": 801,
+    "sha256": "69fa954de59b60237eb8eda90608a92fc420e1d7081f1fd42998a821034b3db2"
+  },
+  {
+    "name": "go-tool-output.json",
+    "size_bytes": 50777,
+    "sha256": "87fad1406e8a237a1340821a725ceca6409a0170b22b3ae4d10a0955ee679d25"
+  },
+  {
+    "name": "historical-files.json",
+    "size_bytes": 8449,
+    "sha256": "9095b9c7693be0870673644217913667f2f91b3304d0987c9a8a78d7a6e8a05e"
+  },
+  {
+    "name": "inventory-probe.json",
+    "size_bytes": 277,
+    "sha256": "9871a7804e7a85305fcb6f6fba07ce4f59acb829ed093eb2a5f408903741ac7a"
+  },
+  {
+    "name": "inventory-probe.ps1",
+    "size_bytes": 2335,
+    "sha256": "7bc347f4fac86f26339242667a19a475e9edd925d7c3cf021cd33193d56e0d55"
+  },
+  {
+    "name": "linked-modules.json",
+    "size_bytes": 23406,
+    "sha256": "fad3767e17e31cc27eb586d1f9ed293a57acd43cece37677147b7b0af29f554d"
+  },
+  {
+    "name": "manifest.json",
+    "size_bytes": 176724,
+    "sha256": "d74c8cd6bdae9bfbd43b18b0a4c4b33984dfe0bcfe4cebd74f7e9120518f6210"
+  },
+  {
+    "name": "module-verify.txt",
+    "size_bytes": 21,
+    "sha256": "b4537ed75f533f993f371954de47e42a793b8e5b0587577de7e27fb3e50696bd"
+  },
+  {
+    "name": "regression-probe.json",
+    "size_bytes": 121,
+    "sha256": "62ab8f74285310dcc01398829b50b85dccbf00d8c466fb26699d3eaa35220c4c"
+  },
+  {
+    "name": "source-manifest.json",
+    "size_bytes": 14387,
+    "sha256": "d63289fedfe508768cb2df098cb6393c62176ba3bc2c5f29589d154e3118019f"
+  },
+  {
+    "name": "toolchain-environment.json",
+    "size_bytes": 77,
+    "sha256": "ddfeac7f349e5c3731d158ea0c6f6f95dd2115ef4d560c982f532bd3258c1410"
+  },
+  {
+    "name": "verification.json",
+    "size_bytes": 5376,
+    "sha256": "a8e30f17bb980db8b6bc39fdbc3dbe5fe6f209d0eb227718618ec52a5c1f01fc"
+  }
+]

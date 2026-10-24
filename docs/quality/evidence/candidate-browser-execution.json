@@ -1,0 +1,1912 @@
+{
+  "captured_at": "2026-10-23T16:20:06.8680219Z",
+  "collection": {
+    "database_snapshot": {
+      "bytes": 36232,
+      "path": ".cache/e2e/candidate-runner/browser-db-snapshot.json",
+      "sha256": "4efec0304f7d496cf5e648a78c3cc42876d9220373fe85fe71aa10aac5d404db"
+    },
+    "http_note": "The persisted database rows are the collection source. The coordinating agent observed the live authenticated UI and saved screenshots. No login, API mutation, new execution or database copy was performed by this collection.",
+    "http_payloads_collected": false,
+    "method": "Read-only SQLite mode=ro transaction with SELECT queries scoped to the named run, workflow version and task; read-only local file and Git metadata verification",
+    "path_normalization": "Absolute suma workspace prefixes in exported metadata and output are replaced by \u003csuma\u003e; artifact hashes refer to original local bytes before normalization",
+    "secrets": "No tokens, passwords, cookies, authentication rows or complete database contents are included"
+  },
+  "overlap_observation": {
+    "clock_timezone": "UTC",
+    "event_order_proof": "vet node_running sequence45, test node_running sequence47, vet node_succeeded sequence48, test node_succeeded sequence51",
+    "interval_semantics": "Scheduler-assigned running lifecycle, including worktree preparation, subprocess execution and evidence capture; these are not exact subprocess start/end timestamps",
+    "limitation": "Journals and attempt.json do not record exact process-start times. captured_at is evidence capture time after process completion. Positive scheduler lifecycle overlap is proven; an exact subprocess overlap duration is not available and is not inferred.",
+    "nominal_running_overlap_end": "2026-10-23T16:11:38Z",
+    "nominal_running_overlap_seconds": 5,
+    "nominal_running_overlap_start": "2026-10-23T16:11:33Z",
+    "started_completed_source": "dag_attempts.started_at/completed_at and corresponding dag_events; persisted at whole-second resolution",
+    "subprocess_overlap_duration": null,
+    "test_interval": {
+      "end": "2026-10-23T16:11:39Z",
+      "evidence_captured_at": "2026-10-23T16:11:39.2809043Z",
+      "start": "2026-10-23T16:11:33Z",
+      "worker": "candidate-browser-runner-2"
+    },
+    "vet_interval": {
+      "end": "2026-10-23T16:11:38Z",
+      "evidence_captured_at": "2026-10-23T16:11:38.248087Z",
+      "start": "2026-10-23T16:11:32Z",
+      "worker": "candidate-browser-runner"
+    },
+    "whole_second_uncertainty_lower_bound_seconds": 4
+  },
+  "persisted_control_state": {
+    "attempts": [
+      {
+        "attempt": 1,
+        "completed_at": "2026-10-23T16:11:38Z",
+        "fence": 1,
+        "node_id": "node-2f7d99",
+        "result": {
+          "attempt": 1,
+          "error": "",
+          "exit_code": 0,
+          "fence": 1,
+          "node_id": "node-2f7d99",
+          "operation_id": "d39386f07ef8d0f084b8e75b99a24dde",
+          "outcome_unknown": false,
+          "output": "",
+          "run_id": "b3aed192e84f83fdee6537fada20516a",
+          "stopped": false,
+          "worker_id": "candidate-browser-runner",
+          "workspace_evidence": {
+            "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "attempt_key": "73652618d820669ddf729052defd782d",
+            "base_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "candidate_attempt": 2,
+            "candidate_evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+            "candidate_fence": 2,
+            "candidate_from": "node-5d54c2",
+            "captured_at": "2026-10-23T16:11:38.248087Z",
+            "changed_paths": [],
+            "changed_paths_total": 0,
+            "changed_paths_truncated": false,
+            "clean": true,
+            "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "evidence_sha256": "633f1a96d78eae63f46a837de3eae0883e76925539200f08a24eae3fb3c825ce",
+            "exit_code": 0,
+            "head_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "outcome_unknown": false,
+            "state": "completed",
+            "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "test_command": true,
+            "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          }
+        },
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "started_at": "2026-10-23T16:11:32Z",
+        "state": "succeeded",
+        "worker_id": "candidate-browser-runner"
+      },
+      {
+        "attempt": 1,
+        "completed_at": "2026-10-23T15:59:49Z",
+        "fence": 1,
+        "node_id": "node-5d54c2",
+        "result": {
+          "attempt": 1,
+          "error": "process exited unsuccessfully",
+          "exit_code": 1,
+          "fence": 1,
+          "node_id": "node-5d54c2",
+          "operation_id": "cfcd6f4b03f928b44871fb8dfa7d6a8a",
+          "outcome_unknown": false,
+          "output": "Fixture Git command failed with exit \r\nAt \u003csuma\u003e\\.cache\\e2e\\candidate-runner\\edit-candidate.ps1:13 char:32\r\n+ ... DE -ne 0) { throw ('Fixture Git command failed with exit ' + $LASTEXI ...\r\n+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : OperationStopped: (Fixture Git command failed with exit :String) [], RuntimeException\r\n    + FullyQualifiedErrorId : Fixture Git command failed with exit \r\n \r\n",
+          "run_id": "b3aed192e84f83fdee6537fada20516a",
+          "stopped": false,
+          "worker_id": "candidate-browser-runner",
+          "workspace_evidence": {
+            "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "attempt_key": "1629c657970964b8a2bc512b7a7018f7",
+            "base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "captured_at": "2026-10-23T15:59:49.058234Z",
+            "changed_paths": [
+              "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/cversions.2.db",
+              "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{6AF0698E-D558-4F6E-9B3C-3716689AF493}.2.ver0x0000000000000001.db",
+              "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{A50428E3-5872-45E1-864E-A2CCC67339C6}.2.ver0x0000000000000001.db",
+              "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{DDF571F2-BE98-426D-8288-1A9A39C3FDA2}.2.ver0x0000000000000001.db"
+            ],
+            "changed_paths_total": 4,
+            "changed_paths_truncated": false,
+            "clean": false,
+            "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "evidence_sha256": "bc3def2be2756c8fd0ea2bcba60ca2007bcc28e2bf2fbf3933aa8e5f2630e6c9",
+            "exit_code": 1,
+            "head_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "outcome_unknown": false,
+            "state": "completed",
+            "status_sha256": "b43a91568639133f7cb791cde97a7f2a972235fe8153f8b1ec1217b5d39a4281",
+            "test_command": false,
+            "untracked_sha256": "789c7d9129bb92e27af18d1001dadb25f59d2cda695abd89bba62ee2e855d8c5"
+          }
+        },
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "started_at": "2026-10-23T15:59:47Z",
+        "state": "failed",
+        "worker_id": "candidate-browser-runner"
+      },
+      {
+        "attempt": 2,
+        "completed_at": "2026-10-23T16:11:32Z",
+        "fence": 2,
+        "node_id": "node-5d54c2",
+        "result": {
+          "attempt": 2,
+          "error": "",
+          "exit_code": 0,
+          "fence": 2,
+          "node_id": "node-5d54c2",
+          "operation_id": "d18699c7effb3149d76969cf3fc3b140",
+          "outcome_unknown": false,
+          "output": "edit: verified fixed administrator base 27f4c5bf61c67b33537fbd35a9a37f97f747a76d\r\nedit: wrote the 10 percent discount candidate and matching explicit assertions\r\nedit: committed clean candidate a90d4b5a3ae388b200a6d9807198b0a87269d35e\r\n",
+          "run_id": "b3aed192e84f83fdee6537fada20516a",
+          "stopped": false,
+          "worker_id": "candidate-browser-runner",
+          "workspace_evidence": {
+            "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "attempt_key": "324fc1a89eb37058699576bdf378afeb",
+            "base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "captured_at": "2026-10-23T16:11:32.5540149Z",
+            "changed_paths": [
+              "price.go",
+              "price_test.go"
+            ],
+            "changed_paths_total": 2,
+            "changed_paths_truncated": false,
+            "clean": true,
+            "diff_sha256": "bfda9e19b660c4830cd87c14ab55316f06bc7c31fb7a72d03819f51c067e8b8c",
+            "evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+            "exit_code": 0,
+            "head_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "outcome_unknown": false,
+            "state": "completed",
+            "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "test_command": false,
+            "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          }
+        },
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "started_at": "2026-10-23T16:11:26Z",
+        "state": "succeeded",
+        "worker_id": "candidate-browser-runner"
+      },
+      {
+        "attempt": 1,
+        "completed_at": "2026-10-23T16:11:39Z",
+        "fence": 1,
+        "node_id": "node-6440cb",
+        "result": {
+          "attempt": 1,
+          "error": "",
+          "exit_code": 0,
+          "fence": 1,
+          "node_id": "node-6440cb",
+          "operation_id": "77aea66d06ed05a1e18ff1ec61465e3b",
+          "outcome_unknown": false,
+          "output": "=== RUN   TestPriceAfterDiscount\n    price_test.go:11: candidate contract: price=1000 actual=900 expected=900\n    price_test.go:11: candidate contract: price=100 actual=90 expected=90\n    price_test.go:11: candidate contract: price=0 actual=0 expected=0\n    price_test.go:11: candidate contract: price=-100 actual=0 expected=0\n--- PASS: TestPriceAfterDiscount (0.00s)\nPASS\nok  \tfixture.local/suma-candidate\t0.192s\n",
+          "run_id": "b3aed192e84f83fdee6537fada20516a",
+          "stopped": false,
+          "worker_id": "candidate-browser-runner-2",
+          "workspace_evidence": {
+            "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "attempt_key": "a41c210dfeba64ea5da0f7bb2b2c1b4b",
+            "base_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "candidate_attempt": 2,
+            "candidate_evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+            "candidate_fence": 2,
+            "candidate_from": "node-5d54c2",
+            "captured_at": "2026-10-23T16:11:39.2809043Z",
+            "changed_paths": [],
+            "changed_paths_total": 0,
+            "changed_paths_truncated": false,
+            "clean": true,
+            "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "evidence_sha256": "9937e67c216f88cf2773cb65048d9e6a58463433679fb24dcb32a03552990d17",
+            "exit_code": 0,
+            "head_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "outcome_unknown": false,
+            "state": "completed",
+            "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "test_command": true,
+            "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          }
+        },
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "started_at": "2026-10-23T16:11:33Z",
+        "state": "succeeded",
+        "worker_id": "candidate-browser-runner-2"
+      }
+    ],
+    "candidate_revisions": [
+      {
+        "attempt": 1,
+        "commit_id": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+        "evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+        "node_id": "node-2f7d99",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "source_attempt": 2,
+        "source_fence": 2,
+        "source_node": "node-5d54c2"
+      },
+      {
+        "attempt": 1,
+        "commit_id": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+        "evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+        "node_id": "node-6440cb",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "source_attempt": 2,
+        "source_fence": 2,
+        "source_node": "node-5d54c2"
+      }
+    ],
+    "captured_at": "2026-10-23T16:18:03.3986471Z",
+    "events": [
+      {
+        "at_time": "2026-10-23T15:59:33Z",
+        "data": {
+          "workflow_version": 1
+        },
+        "event_type": "run_created",
+        "node_id": "",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 23,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T15:59:33Z",
+        "data": {
+          "attempt": 0,
+          "fence": 0,
+          "previous_state": "pending",
+          "reason": ""
+        },
+        "event_type": "node_ready",
+        "node_id": "node-5d54c2",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 24,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T15:59:47Z",
+        "data": {
+          "attempt": 1,
+          "fence": 1,
+          "previous_state": "ready",
+          "reason": ""
+        },
+        "event_type": "node_running",
+        "node_id": "node-5d54c2",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 25,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T15:59:48Z",
+        "data": {
+          "attempt": 1,
+          "fence": 1,
+          "message": "Fixture Git command failed with exit \r\n",
+          "operation_id": "8c09ab3743298531137fcd566605a4ff0e1ebcca1b79195ad95347f118c718ff",
+          "worker_id": "candidate-browser-runner"
+        },
+        "event_type": "node_progress",
+        "node_id": "node-5d54c2",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 26,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T15:59:48Z",
+        "data": {
+          "attempt": 1,
+          "fence": 1,
+          "message": "Fixture Git command failed with exit \r\nAt \u003csuma\u003e\\.cache\\e2e\\candidate-runner\\edit-candidate.ps1:13 char:32\r\n+ ... DE -ne 0) { throw ('Fixture Git command failed with exit ' + $LASTEXI ...\r\n+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : OperationStopped: (Fixture Git command failed with exit :String) [], RuntimeException\r\n    + FullyQualifiedErrorId : Fixture Git command failed with exit \r\n \r\n",
+          "operation_id": "2ec8704ea87960631bc8060c8506bfd336cf2163c0667a2c2298688d599fdc0f",
+          "worker_id": "candidate-browser-runner"
+        },
+        "event_type": "node_progress",
+        "node_id": "node-5d54c2",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 27,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T15:59:49Z",
+        "data": {
+          "attempt": 1,
+          "fence": 1,
+          "previous_state": "running",
+          "reason": "process exited unsuccessfully"
+        },
+        "event_type": "node_failed",
+        "node_id": "node-5d54c2",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 28,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T15:59:49Z",
+        "data": {
+          "attempt": 0,
+          "fence": 0,
+          "previous_state": "pending",
+          "reason": "join cannot be satisfied"
+        },
+        "event_type": "node_skipped",
+        "node_id": "node-2f7d99",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 29,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T15:59:49Z",
+        "data": {
+          "attempt": 0,
+          "fence": 0,
+          "previous_state": "pending",
+          "reason": "join cannot be satisfied"
+        },
+        "event_type": "node_skipped",
+        "node_id": "node-6440cb",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 30,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T15:59:49Z",
+        "data": "null",
+        "event_type": "run_failed",
+        "node_id": "",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 31,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:10:55Z",
+        "data": {
+          "attempt": 0,
+          "fence": 0,
+          "previous_state": "skipped",
+          "reason": "已修复并真实复测Runner的Windows必要环境；保留第一次失败证据，以新attempt独立工作树重试。"
+        },
+        "event_type": "node_pending",
+        "node_id": "node-2f7d99",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 32,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:10:55Z",
+        "data": {
+          "attempt": 1,
+          "fence": 1,
+          "previous_state": "failed",
+          "reason": "已修复并真实复测Runner的Windows必要环境；保留第一次失败证据，以新attempt独立工作树重试。"
+        },
+        "event_type": "node_pending",
+        "node_id": "node-5d54c2",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 33,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:10:55Z",
+        "data": {
+          "attempt": 0,
+          "fence": 0,
+          "previous_state": "skipped",
+          "reason": "已修复并真实复测Runner的Windows必要环境；保留第一次失败证据，以新attempt独立工作树重试。"
+        },
+        "event_type": "node_pending",
+        "node_id": "node-6440cb",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 34,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:10:55Z",
+        "data": {
+          "node_id": "node-5d54c2",
+          "reason": "已修复并真实复测Runner的Windows必要环境；保留第一次失败证据，以新attempt独立工作树重试。"
+        },
+        "event_type": "command_retry",
+        "node_id": "node-5d54c2",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 35,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:10:55Z",
+        "data": {
+          "attempt": 1,
+          "fence": 1,
+          "previous_state": "pending",
+          "reason": ""
+        },
+        "event_type": "node_ready",
+        "node_id": "node-5d54c2",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 36,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:26Z",
+        "data": {
+          "attempt": 2,
+          "fence": 2,
+          "previous_state": "ready",
+          "reason": ""
+        },
+        "event_type": "node_running",
+        "node_id": "node-5d54c2",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 37,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:30Z",
+        "data": {
+          "attempt": 2,
+          "fence": 2,
+          "message": "edit: verified fixed administrator base 27f4c5bf61c67b33537fbd35a9a37f97f747a76d\r\n",
+          "operation_id": "05a36240926c22518142d78d39d9aeeb9b1c4981bcfedd347bc972f13244d097",
+          "worker_id": "candidate-browser-runner"
+        },
+        "event_type": "node_progress",
+        "node_id": "node-5d54c2",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 38,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:30Z",
+        "data": {
+          "attempt": 2,
+          "fence": 2,
+          "message": "edit: verified fixed administrator base 27f4c5bf61c67b33537fbd35a9a37f97f747a76d\r\nedit: wrote the 10 percent discount candidate and matching explicit assertions\r\n",
+          "operation_id": "57ac4e3c097f18f2e43f76cf6c433d81777ee167ac385ae1435965ef95c72cb0",
+          "worker_id": "candidate-browser-runner"
+        },
+        "event_type": "node_progress",
+        "node_id": "node-5d54c2",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 39,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:31Z",
+        "data": {
+          "attempt": 2,
+          "fence": 2,
+          "message": "edit: verified fixed administrator base 27f4c5bf61c67b33537fbd35a9a37f97f747a76d\r\nedit: wrote the 10 percent discount candidate and matching explicit assertions\r\nedit: committed clean candidate a90d4b5a3ae388b200a6d9807198b0a87269d35e\r\n",
+          "operation_id": "d1af1a33def1b4bacaf716576643fe04ae4d3f737279b63cc01ffd1f0e43c992",
+          "worker_id": "candidate-browser-runner"
+        },
+        "event_type": "node_progress",
+        "node_id": "node-5d54c2",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 40,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:32Z",
+        "data": {
+          "attempt": 2,
+          "fence": 2,
+          "previous_state": "running",
+          "reason": ""
+        },
+        "event_type": "node_succeeded",
+        "node_id": "node-5d54c2",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 41,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:32Z",
+        "data": {
+          "attempt": 0,
+          "fence": 0,
+          "previous_state": "pending",
+          "reason": ""
+        },
+        "event_type": "node_ready",
+        "node_id": "node-2f7d99",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 42,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:32Z",
+        "data": {
+          "attempt": 0,
+          "fence": 0,
+          "previous_state": "pending",
+          "reason": ""
+        },
+        "event_type": "node_ready",
+        "node_id": "node-6440cb",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 43,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:32Z",
+        "data": {
+          "attempt": 1,
+          "commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+          "evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+          "source_attempt": 2,
+          "source_fence": 2,
+          "source_node": "node-5d54c2"
+        },
+        "event_type": "candidate_pinned",
+        "node_id": "node-2f7d99",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 44,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:32Z",
+        "data": {
+          "attempt": 1,
+          "fence": 1,
+          "previous_state": "ready",
+          "reason": ""
+        },
+        "event_type": "node_running",
+        "node_id": "node-2f7d99",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 45,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:33Z",
+        "data": {
+          "attempt": 1,
+          "commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+          "evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+          "source_attempt": 2,
+          "source_fence": 2,
+          "source_node": "node-5d54c2"
+        },
+        "event_type": "candidate_pinned",
+        "node_id": "node-6440cb",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 46,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:33Z",
+        "data": {
+          "attempt": 1,
+          "fence": 1,
+          "previous_state": "ready",
+          "reason": ""
+        },
+        "event_type": "node_running",
+        "node_id": "node-6440cb",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 47,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:38Z",
+        "data": {
+          "attempt": 1,
+          "fence": 1,
+          "previous_state": "running",
+          "reason": ""
+        },
+        "event_type": "node_succeeded",
+        "node_id": "node-2f7d99",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 48,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:38Z",
+        "data": {
+          "attempt": 1,
+          "fence": 1,
+          "message": "=== RUN   TestPriceAfterDiscount\n",
+          "operation_id": "bc8d6658e58b205907eb282c9b9dc4294037205f9e1b330c0cbf41045f5e9894",
+          "worker_id": "candidate-browser-runner-2"
+        },
+        "event_type": "node_progress",
+        "node_id": "node-6440cb",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 49,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:38Z",
+        "data": {
+          "attempt": 1,
+          "fence": 1,
+          "message": "=== RUN   TestPriceAfterDiscount\n    price_test.go:11: candidate contract: price=1000 actual=900 expected=900\n    price_test.go:11: candidate contract: price=100 actual=90 expected=90\n    price_test.go:11: candidate contract: price=0 actual=0 expected=0\n    price_test.go:11: candidate contract: price=-100 actual=0 expected=0\n--- PASS: TestPriceAfterDiscount (0.00s)\nPASS\nok  \tfixture.local/suma-candidate\t0.192s\n",
+          "operation_id": "db67ac88f5857046fd9db34f1b9dbe4d6beb0c586665110676ea874342f9d7e7",
+          "worker_id": "candidate-browser-runner-2"
+        },
+        "event_type": "node_progress",
+        "node_id": "node-6440cb",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 50,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:39Z",
+        "data": {
+          "attempt": 1,
+          "fence": 1,
+          "previous_state": "running",
+          "reason": ""
+        },
+        "event_type": "node_succeeded",
+        "node_id": "node-6440cb",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 51,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "at_time": "2026-10-23T16:11:39Z",
+        "data": "null",
+        "event_type": "run_succeeded",
+        "node_id": "",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "sequence": 52,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      }
+    ],
+    "nodes": [
+      {
+        "attempt": 1,
+        "completed_at": "2026-10-23T16:11:38Z",
+        "error_text": "",
+        "fence": 1,
+        "id": "node-2f7d99",
+        "lease_until": 0,
+        "output": "",
+        "parent_id": "",
+        "reason": "",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "spec": {
+          "command": [
+            "vet-candidate"
+          ],
+          "config": {
+            "candidate_from": "node-5d54c2"
+          },
+          "depends_on": [
+            "node-5d54c2"
+          ],
+          "id": "node-2f7d99",
+          "idempotent": true,
+          "join": "all_success",
+          "max_retries": 0,
+          "name": "同候选静态检查",
+          "quorum": 0,
+          "timeout_seconds": 300,
+          "type": "test"
+        },
+        "started_at": "2026-10-23T16:11:32Z",
+        "state": "succeeded",
+        "wake_at": 0,
+        "worker_id": "candidate-browser-runner"
+      },
+      {
+        "attempt": 2,
+        "completed_at": "2026-10-23T16:11:32Z",
+        "error_text": "",
+        "fence": 2,
+        "id": "node-5d54c2",
+        "lease_until": 0,
+        "output": "edit: verified fixed administrator base 27f4c5bf61c67b33537fbd35a9a37f97f747a76d\r\nedit: wrote the 10 percent discount candidate and matching explicit assertions\r\nedit: committed clean candidate a90d4b5a3ae388b200a6d9807198b0a87269d35e\r\n",
+        "parent_id": "",
+        "reason": "",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "spec": {
+          "command": [
+            "edit-candidate"
+          ],
+          "depends_on": null,
+          "id": "node-5d54c2",
+          "idempotent": true,
+          "join": "all_success",
+          "max_retries": 0,
+          "name": "开发并提交候选",
+          "quorum": 0,
+          "timeout_seconds": 300,
+          "type": "command"
+        },
+        "started_at": "2026-10-23T16:11:26Z",
+        "state": "succeeded",
+        "wake_at": 0,
+        "worker_id": "candidate-browser-runner"
+      },
+      {
+        "attempt": 1,
+        "completed_at": "2026-10-23T16:11:39Z",
+        "error_text": "",
+        "fence": 1,
+        "id": "node-6440cb",
+        "lease_until": 0,
+        "output": "=== RUN   TestPriceAfterDiscount\n    price_test.go:11: candidate contract: price=1000 actual=900 expected=900\n    price_test.go:11: candidate contract: price=100 actual=90 expected=90\n    price_test.go:11: candidate contract: price=0 actual=0 expected=0\n    price_test.go:11: candidate contract: price=-100 actual=0 expected=0\n--- PASS: TestPriceAfterDiscount (0.00s)\nPASS\nok  \tfixture.local/suma-candidate\t0.192s\n",
+        "parent_id": "",
+        "reason": "",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "spec": {
+          "command": [
+            "test-candidate"
+          ],
+          "config": {
+            "candidate_from": "node-5d54c2"
+          },
+          "depends_on": [
+            "node-5d54c2"
+          ],
+          "id": "node-6440cb",
+          "idempotent": true,
+          "join": "all_success",
+          "max_retries": 0,
+          "name": "固定候选单元测试",
+          "quorum": 0,
+          "timeout_seconds": 300,
+          "type": "test"
+        },
+        "started_at": "2026-10-23T16:11:33Z",
+        "state": "succeeded",
+        "wake_at": 0,
+        "worker_id": "candidate-browser-runner-2"
+      }
+    ],
+    "progress_receipts": [
+      {
+        "fingerprint": "5511d366fe2bf6f5b72e720866952234025effa2d0820df39753cdaf68132d3b",
+        "operation_id": "05a36240926c22518142d78d39d9aeeb9b1c4981bcfedd347bc972f13244d097",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "result_id": "b3aed192e84f83fdee6537fada20516a",
+        "scope": "progress:b3aed192e84f83fdee6537fada20516a",
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "fingerprint": "89f36c774ff65c19dd32e6002cc6e1245ad16fd0d5776416b740dee8942dc6a4",
+        "operation_id": "2ec8704ea87960631bc8060c8506bfd336cf2163c0667a2c2298688d599fdc0f",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "result_id": "b3aed192e84f83fdee6537fada20516a",
+        "scope": "progress:b3aed192e84f83fdee6537fada20516a",
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "fingerprint": "d90d39ed62c994589979e193855959beeb650e15f366414bf36bb952e4f66ea0",
+        "operation_id": "57ac4e3c097f18f2e43f76cf6c433d81777ee167ac385ae1435965ef95c72cb0",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "result_id": "b3aed192e84f83fdee6537fada20516a",
+        "scope": "progress:b3aed192e84f83fdee6537fada20516a",
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "fingerprint": "e527e0a904f6eb17fc5b8b81845c36db90d8ec851702e616f9e7861494ff96c6",
+        "operation_id": "8c09ab3743298531137fcd566605a4ff0e1ebcca1b79195ad95347f118c718ff",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "result_id": "b3aed192e84f83fdee6537fada20516a",
+        "scope": "progress:b3aed192e84f83fdee6537fada20516a",
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "fingerprint": "ce9f393c729e234abe1c170808e617130f842d464a9c4820bf070fc5c9c6b0a1",
+        "operation_id": "bc8d6658e58b205907eb282c9b9dc4294037205f9e1b330c0cbf41045f5e9894",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "result_id": "b3aed192e84f83fdee6537fada20516a",
+        "scope": "progress:b3aed192e84f83fdee6537fada20516a",
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "fingerprint": "1f0c4423a0e95205a09fa037a83f889dbd7a4260df5c58524ad6370f956fa05e",
+        "operation_id": "d1af1a33def1b4bacaf716576643fe04ae4d3f737279b63cc01ffd1f0e43c992",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "result_id": "b3aed192e84f83fdee6537fada20516a",
+        "scope": "progress:b3aed192e84f83fdee6537fada20516a",
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      },
+      {
+        "fingerprint": "7cb752e5b3b9b10e50cac6901a9299753699495ea973107996cbae676881d624",
+        "operation_id": "db67ac88f5857046fd9db34f1b9dbe4d6beb0c586665110676ea874342f9d7e7",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "result_id": "b3aed192e84f83fdee6537fada20516a",
+        "scope": "progress:b3aed192e84f83fdee6537fada20516a",
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      }
+    ],
+    "purpose": "Read-only SELECT snapshot of the explicitly scoped disposable candidate-browser fixture; no authentication tables or database copy",
+    "reviews": [
+      {
+        "created_at": "2026-10-23T16:13:43.7917359Z",
+        "decision": "accepted",
+        "id": "f4a818805b18cc68aa98fc3b3dd1788e",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "reason": "已核对运行b3aed192：开发attempt2在独立工作树从27f4c5bf提交a90d4b5a；两个Runner的test/vet固定同一a90d4b5a，测试四项折扣断言通过，来源attempt/fence与证据摘要一致。首轮Windows环境失败已保留，无合并或发布。",
+        "reviewer_id": "18d16027415f5b5c845a2f04210969d9",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "task_id": "8ace9276787acfcb4356e5c156abf81a",
+        "task_version": 2,
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d"
+      }
+    ],
+    "run": [
+      {
+        "created_at": "2026-10-23T15:59:33Z",
+        "id": "b3aed192e84f83fdee6537fada20516a",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "state": "succeeded",
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d",
+        "updated_at": "2026-10-23T16:11:39Z",
+        "version": 10,
+        "workflow_id": "fdaf9a4bb00b41d79503f93f0518cc5d",
+        "workflow_name": "固定候选与并行质量验收",
+        "workflow_version": 1
+      }
+    ],
+    "sqlite_connection_mode": "ro",
+    "task": [
+      {
+        "acceptance_criteria": [
+          "开发在独立工作树提交候选；测试和vet并行使用同一候选提交；人工核验来源与代码摘要。"
+        ],
+        "created_at": "2026-10-23T15:55:41.1376209Z",
+        "data": {
+          "dependency_basis": {},
+          "run_task_basis": "d855c26a150a3236c8cc18edb21c5dbf34679c2b4af895e50acc199fe7858963",
+          "verified_run_id": "b3aed192e84f83fdee6537fada20516a"
+        },
+        "depends_on": [],
+        "description": "",
+        "id": "8ace9276787acfcb4356e5c156abf81a",
+        "kind": "",
+        "owner_id": "f768ccb20d5bc2d7467bfda10b262af8",
+        "priority": "medium",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "requirement_id": "",
+        "run_id": "b3aed192e84f83fdee6537fada20516a",
+        "status": "accepted",
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d",
+        "title": "验证候选代码交接与固定版本验收",
+        "updated_at": "2026-10-23T16:13:43.7917359Z",
+        "version": 3
+      }
+    ],
+    "transaction_read_only": true,
+    "workflow": [
+      {
+        "id": "fdaf9a4bb00b41d79503f93f0518cc5d",
+        "name": "固定候选与并行质量验收",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "spec": {
+          "edges": [
+            {
+              "from": "node-5d54c2",
+              "to": "node-6440cb"
+            },
+            {
+              "from": "node-5d54c2",
+              "to": "node-2f7d99"
+            }
+          ],
+          "id": "fdaf9a4bb00b41d79503f93f0518cc5d",
+          "name": "固定候选与并行质量验收",
+          "nodes": [
+            {
+              "command": [
+                "edit-candidate"
+              ],
+              "depends_on": null,
+              "id": "node-5d54c2",
+              "idempotent": true,
+              "join": "all_success",
+              "max_retries": 0,
+              "name": "开发并提交候选",
+              "quorum": 0,
+              "timeout_seconds": 300,
+              "type": "command"
+            },
+            {
+              "command": [
+                "test-candidate"
+              ],
+              "config": {
+                "candidate_from": "node-5d54c2"
+              },
+              "depends_on": [
+                "node-5d54c2"
+              ],
+              "id": "node-6440cb",
+              "idempotent": true,
+              "join": "all_success",
+              "max_retries": 0,
+              "name": "固定候选单元测试",
+              "quorum": 0,
+              "timeout_seconds": 300,
+              "type": "test"
+            },
+            {
+              "command": [
+                "vet-candidate"
+              ],
+              "config": {
+                "candidate_from": "node-5d54c2"
+              },
+              "depends_on": [
+                "node-5d54c2"
+              ],
+              "id": "node-2f7d99",
+              "idempotent": true,
+              "join": "all_success",
+              "max_retries": 0,
+              "name": "同候选静态检查",
+              "quorum": 0,
+              "timeout_seconds": 300,
+              "type": "test"
+            }
+          ],
+          "version": 1
+        },
+        "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d",
+        "version": 1
+      }
+    ]
+  },
+  "preserved_first_failure": {
+    "all_original_files_still_present_and_hashes_match": true,
+    "attempt": 1,
+    "fence": 1,
+    "files": [
+      {
+        "bytes": 989,
+        "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/attempt.json",
+        "sha256": "4ac7e595be3b5832a5ebfff4e584096e8b1e25db4f0a5813f6ee12ef366a3f7f"
+      },
+      {
+        "bytes": 0,
+        "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/changes.patch",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "bytes": 1201,
+        "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/evidence.json",
+        "sha256": "bc3def2be2756c8fd0ea2bcba60ca2007bcc28e2bf2fbf3933aa8e5f2630e6c9"
+      },
+      {
+        "bytes": 429,
+        "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/status.txt",
+        "sha256": "b43a91568639133f7cb791cde97a7f2a972235fe8153f8b1ec1217b5d39a4281"
+      },
+      {
+        "bytes": 711,
+        "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/untracked.json",
+        "sha256": "789c7d9129bb92e27af18d1001dadb25f59d2cda695abd89bba62ee2e855d8c5"
+      },
+      {
+        "bytes": 14,
+        "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/src/.gitattributes",
+        "sha256": "a79691a93b46e49ce460c26ef22afcc03d6eca1e63bf2edbc20e96159510f6c9"
+      },
+      {
+        "bytes": 8,
+        "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/src/.gitignore",
+        "sha256": "70a213afeabe5ac38ae4c88b2c7002ce5068b91a3e57a032245ab809dc6fa460"
+      },
+      {
+        "bytes": 47,
+        "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/src/go.mod",
+        "sha256": "627dc6f9957af3cf7d91077d9c6e33b3c85883f561329dc6932cf246109d308d"
+      },
+      {
+        "bytes": 379,
+        "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/src/price_test.go",
+        "sha256": "e0f3f3037da658afdb157e682d21c8d092bc446c80aae0ccd67d2b956881a6d6"
+      },
+      {
+        "bytes": 113,
+        "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/src/price.go",
+        "sha256": "5fefbb14925612d685bcb4ad6fd6d0e23988ecd46e957de92fa10e1a8d0884b8"
+      },
+      {
+        "bytes": 305472,
+        "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/src/%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{6AF0698E-D558-4F6E-9B3C-3716689AF493}.2.ver0x0000000000000001.db",
+        "sha256": "1d724ab5fd11c1d841b5045a50d1ad0da5ef1acea05c23261ff04bc1990f359d"
+      },
+      {
+        "bytes": 1240,
+        "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/src/%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{A50428E3-5872-45E1-864E-A2CCC67339C6}.2.ver0x0000000000000001.db",
+        "sha256": "f143c0545f78f0b0372d9e90f3ee6807776292d73aee8ce08db1d1d84233121c"
+      },
+      {
+        "bytes": 655320,
+        "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/src/%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{DDF571F2-BE98-426D-8288-1A9A39C3FDA2}.2.ver0x0000000000000001.db",
+        "sha256": "b4b28ffcf0ba2be7148eb29fffe5c796a2e6f8017e0ae1f24f099578e8623127"
+      },
+      {
+        "bytes": 16384,
+        "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/src/%SystemDrive%/ProgramData/Microsoft/Windows/Caches/cversions.2.db",
+        "sha256": "e8d3c67a8119adb8dd1f677af7d62facaa0b1a8d5818be61346b0a6186349af6"
+      }
+    ],
+    "node_id": "node-5d54c2",
+    "note": "The Windows environment failure and literal %SystemDrive% paths remain preserved. Cache database contents are not exported.",
+    "original_inventory": {
+      "bytes": 4488,
+      "path": ".cache/e2e/candidate-runner/first-runner-failure-inventory.json",
+      "sha256": "16d4c689aff2412471fde34bb474b8d1ee596dc034cd3c017695d19f7cf261f7"
+    },
+    "state": "failed"
+  },
+  "purpose": "Actual local browser-created workflow, two real Runner processes, same-commit candidate handoff and human acceptance of the disposable fixture",
+  "schema_version": 1,
+  "scope": {
+    "control_origin": "http://127.0.0.1:4321",
+    "deployment_performed": false,
+    "fixture_only": true,
+    "merge_performed": false,
+    "paid_model_invoked": false,
+    "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+    "run_id": "b3aed192e84f83fdee6537fada20516a",
+    "run_version": 10,
+    "task_id": "8ace9276787acfcb4356e5c156abf81a",
+    "task_version": 3,
+    "vendor_cli_invoked": false,
+    "workflow_version": 1
+  },
+  "screenshots": [
+    {
+      "bytes": 101453,
+      "path": "docs/quality/evidence/candidate-runner-first-failure.png",
+      "sha256": "b23f79bb470c5a9d9d5f544b6ed3fc4cb26c3a20576d8872696c521aa01d1138"
+    },
+    {
+      "bytes": 111169,
+      "path": "docs/quality/evidence/candidate-test-1920.png",
+      "sha256": "96de5bb0718e30b72150165bcb92f1a6fa1de64575a5a4c098f562624b9eeb9d"
+    },
+    {
+      "bytes": 91487,
+      "path": "docs/quality/evidence/candidate-human-acceptance.png",
+      "sha256": "cfc762284c21fdec936a1a0b138cf5483ee28ec6dee679a1281212d32ac5434a"
+    }
+  ],
+  "source_repository_recheck": {
+    "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+    "base_commit_metadata": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d\n\nSuma Candidate Fixture\nsuma-candidate@example.invalid\n2026-10-23T00:00:00Z\n2026-10-23T00:00:00Z\nfixture: pin original price behavior and tests",
+    "candidate_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+    "candidate_commit_metadata": "a90d4b5a3ae388b200a6d9807198b0a87269d35e\n27f4c5bf61c67b33537fbd35a9a37f97f747a76d\nSuma Candidate Fixture\nsuma-candidate@example.invalid\n2026-10-23T00:00:00Z\n2026-10-23T00:00:00Z\nfixture: implement fixed ten percent discount",
+    "candidate_is_descendant_of_base": true,
+    "clean": true,
+    "current_worktrees": "worktree \u003csuma\u003e/.cache/e2e/candidate-repo\nHEAD 27f4c5bf61c67b33537fbd35a9a37f97f747a76d\nbranch refs/heads/master\n\nworktree \u003csuma\u003e/.cache/e2e/candidate-repo/.cache/runner/worktrees/0cedb17eaa8a5022a562f05ff7b38351/src\nHEAD a90d4b5a3ae388b200a6d9807198b0a87269d35e\ndetached\n\nworktree \u003csuma\u003e/.cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/src\nHEAD 27f4c5bf61c67b33537fbd35a9a37f97f747a76d\ndetached\n\nworktree \u003csuma\u003e/.cache/e2e/candidate-repo/.cache/runner/worktrees/324fc1a89eb37058699576bdf378afeb/src\nHEAD a90d4b5a3ae388b200a6d9807198b0a87269d35e\ndetached\n\nworktree \u003csuma\u003e/.cache/e2e/candidate-repo/.cache/runner/worktrees/6c39ac0b5fb261f6574c6ecdbfecf801/src\nHEAD a90d4b5a3ae388b200a6d9807198b0a87269d35e\ndetached\n\nworktree \u003csuma\u003e/.cache/e2e/candidate-repo/.cache/runner/worktrees/73652618d820669ddf729052defd782d/src\nHEAD a90d4b5a3ae388b200a6d9807198b0a87269d35e\ndetached\n\nworktree \u003csuma\u003e/.cache/e2e/candidate-repo/.cache/runner/worktrees/758b5bc4cdcdaafbe66589a305d2c172/src\nHEAD a90d4b5a3ae388b200a6d9807198b0a87269d35e\ndetached\n\nworktree \u003csuma\u003e/.cache/e2e/candidate-repo/.cache/runner/worktrees/a41c210dfeba64ea5da0f7bb2b2c1b4b/src\nHEAD a90d4b5a3ae388b200a6d9807198b0a87269d35e\ndetached\n\nworktree \u003csuma\u003e/.cache/e2e/candidate-repo/.cache/runner/worktrees/feed0000feed0000feed0000feed0001/src\nHEAD a90d4b5a3ae388b200a6d9807198b0a87269d35e\ndetached",
+    "head": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+    "repository": ".cache/e2e/candidate-repo",
+    "status_porcelain": ""
+  },
+  "verified_checks": {
+    "all_results_acked": true,
+    "attempts": 4,
+    "candidate_provenance": "Both test nodes pin source node-5d54c2 attempt2/fence2 and source evidence396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511; both base/head equal candidate C",
+    "db_journal_results_equal": true,
+    "distinct_attempt_worktrees": 4,
+    "first_failure_files_preserved": 14,
+    "local_evidence_diff_status_untracked_hashes_match": true,
+    "local_workspace_evidence_equals_persisted_metadata": true,
+    "original_checkout_clean_at_admin_base": true,
+    "preserved_failed_attempts": 1,
+    "progress_messages_acked_and_matching_persisted_events_and_receipts": 7,
+    "successful_attempts": 3,
+    "worker_journals": 2
+  },
+  "worker_journals": [
+    {
+      "bytes": 10853,
+      "entries": {
+        "b3aed192e84f83fdee6537fada20516a/node-2f7d99/1/1": {
+          "acked": true,
+          "assignment": {
+            "attempt": 1,
+            "candidate_attempt": 2,
+            "candidate_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "candidate_evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+            "candidate_fence": 2,
+            "candidate_from": "node-5d54c2",
+            "command": [
+              "vet-candidate"
+            ],
+            "config": {
+              "candidate_from": "node-5d54c2"
+            },
+            "fence": 1,
+            "idempotent": true,
+            "node_id": "node-2f7d99",
+            "run_id": "b3aed192e84f83fdee6537fada20516a",
+            "timeout_seconds": 300,
+            "type": "test",
+            "worker_id": "candidate-browser-runner"
+          },
+          "result": {
+            "attempt": 1,
+            "error": "",
+            "exit_code": 0,
+            "fence": 1,
+            "node_id": "node-2f7d99",
+            "operation_id": "d39386f07ef8d0f084b8e75b99a24dde",
+            "outcome_unknown": false,
+            "output": "",
+            "run_id": "b3aed192e84f83fdee6537fada20516a",
+            "stopped": false,
+            "worker_id": "candidate-browser-runner",
+            "workspace_evidence": {
+              "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+              "attempt_key": "73652618d820669ddf729052defd782d",
+              "base_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+              "candidate_attempt": 2,
+              "candidate_evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+              "candidate_fence": 2,
+              "candidate_from": "node-5d54c2",
+              "captured_at": "2026-10-23T16:11:38.248087Z",
+              "changed_paths": [],
+              "changed_paths_total": 0,
+              "changed_paths_truncated": false,
+              "clean": true,
+              "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "evidence_sha256": "633f1a96d78eae63f46a837de3eae0883e76925539200f08a24eae3fb3c825ce",
+              "exit_code": 0,
+              "head_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+              "outcome_unknown": false,
+              "state": "completed",
+              "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "test_command": true,
+              "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+            }
+          }
+        },
+        "b3aed192e84f83fdee6537fada20516a/node-5d54c2/1/1": {
+          "acked": true,
+          "assignment": {
+            "attempt": 1,
+            "command": [
+              "edit-candidate"
+            ],
+            "fence": 1,
+            "idempotent": true,
+            "node_id": "node-5d54c2",
+            "run_id": "b3aed192e84f83fdee6537fada20516a",
+            "timeout_seconds": 300,
+            "type": "command",
+            "worker_id": "candidate-browser-runner"
+          },
+          "progress": [
+            {
+              "acked": true,
+              "assignment": {
+                "attempt": 1,
+                "command": [
+                  "edit-candidate"
+                ],
+                "fence": 1,
+                "idempotent": true,
+                "node_id": "node-5d54c2",
+                "run_id": "b3aed192e84f83fdee6537fada20516a",
+                "timeout_seconds": 300,
+                "type": "command",
+                "worker_id": "candidate-browser-runner"
+              },
+              "message": "Fixture Git command failed with exit \r\n",
+              "operation_id": "8c09ab3743298531137fcd566605a4ff0e1ebcca1b79195ad95347f118c718ff"
+            },
+            {
+              "acked": true,
+              "assignment": {
+                "attempt": 1,
+                "command": [
+                  "edit-candidate"
+                ],
+                "fence": 1,
+                "idempotent": true,
+                "node_id": "node-5d54c2",
+                "run_id": "b3aed192e84f83fdee6537fada20516a",
+                "timeout_seconds": 300,
+                "type": "command",
+                "worker_id": "candidate-browser-runner"
+              },
+              "message": "Fixture Git command failed with exit \r\nAt \u003csuma\u003e\\.cache\\e2e\\candidate-runner\\edit-candidate.ps1:13 char:32\r\n+ ... DE -ne 0) { throw ('Fixture Git command failed with exit ' + $LASTEXI ...\r\n+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : OperationStopped: (Fixture Git command failed with exit :String) [], RuntimeException\r\n    + FullyQualifiedErrorId : Fixture Git command failed with exit \r\n \r\n",
+              "operation_id": "2ec8704ea87960631bc8060c8506bfd336cf2163c0667a2c2298688d599fdc0f"
+            }
+          ],
+          "result": {
+            "attempt": 1,
+            "error": "process exited unsuccessfully",
+            "exit_code": 1,
+            "fence": 1,
+            "node_id": "node-5d54c2",
+            "operation_id": "cfcd6f4b03f928b44871fb8dfa7d6a8a",
+            "outcome_unknown": false,
+            "output": "Fixture Git command failed with exit \r\nAt \u003csuma\u003e\\.cache\\e2e\\candidate-runner\\edit-candidate.ps1:13 char:32\r\n+ ... DE -ne 0) { throw ('Fixture Git command failed with exit ' + $LASTEXI ...\r\n+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : OperationStopped: (Fixture Git command failed with exit :String) [], RuntimeException\r\n    + FullyQualifiedErrorId : Fixture Git command failed with exit \r\n \r\n",
+            "run_id": "b3aed192e84f83fdee6537fada20516a",
+            "stopped": false,
+            "worker_id": "candidate-browser-runner",
+            "workspace_evidence": {
+              "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+              "attempt_key": "1629c657970964b8a2bc512b7a7018f7",
+              "base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+              "captured_at": "2026-10-23T15:59:49.058234Z",
+              "changed_paths": [
+                "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/cversions.2.db",
+                "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{6AF0698E-D558-4F6E-9B3C-3716689AF493}.2.ver0x0000000000000001.db",
+                "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{A50428E3-5872-45E1-864E-A2CCC67339C6}.2.ver0x0000000000000001.db",
+                "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{DDF571F2-BE98-426D-8288-1A9A39C3FDA2}.2.ver0x0000000000000001.db"
+              ],
+              "changed_paths_total": 4,
+              "changed_paths_truncated": false,
+              "clean": false,
+              "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "evidence_sha256": "bc3def2be2756c8fd0ea2bcba60ca2007bcc28e2bf2fbf3933aa8e5f2630e6c9",
+              "exit_code": 1,
+              "head_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+              "outcome_unknown": false,
+              "state": "completed",
+              "status_sha256": "b43a91568639133f7cb791cde97a7f2a972235fe8153f8b1ec1217b5d39a4281",
+              "test_command": false,
+              "untracked_sha256": "789c7d9129bb92e27af18d1001dadb25f59d2cda695abd89bba62ee2e855d8c5"
+            }
+          }
+        },
+        "b3aed192e84f83fdee6537fada20516a/node-5d54c2/2/2": {
+          "acked": true,
+          "assignment": {
+            "attempt": 2,
+            "command": [
+              "edit-candidate"
+            ],
+            "fence": 2,
+            "idempotent": true,
+            "node_id": "node-5d54c2",
+            "run_id": "b3aed192e84f83fdee6537fada20516a",
+            "timeout_seconds": 300,
+            "type": "command",
+            "worker_id": "candidate-browser-runner"
+          },
+          "progress": [
+            {
+              "acked": true,
+              "assignment": {
+                "attempt": 2,
+                "command": [
+                  "edit-candidate"
+                ],
+                "fence": 2,
+                "idempotent": true,
+                "node_id": "node-5d54c2",
+                "run_id": "b3aed192e84f83fdee6537fada20516a",
+                "timeout_seconds": 300,
+                "type": "command",
+                "worker_id": "candidate-browser-runner"
+              },
+              "message": "edit: verified fixed administrator base 27f4c5bf61c67b33537fbd35a9a37f97f747a76d\r\n",
+              "operation_id": "05a36240926c22518142d78d39d9aeeb9b1c4981bcfedd347bc972f13244d097"
+            },
+            {
+              "acked": true,
+              "assignment": {
+                "attempt": 2,
+                "command": [
+                  "edit-candidate"
+                ],
+                "fence": 2,
+                "idempotent": true,
+                "node_id": "node-5d54c2",
+                "run_id": "b3aed192e84f83fdee6537fada20516a",
+                "timeout_seconds": 300,
+                "type": "command",
+                "worker_id": "candidate-browser-runner"
+              },
+              "message": "edit: verified fixed administrator base 27f4c5bf61c67b33537fbd35a9a37f97f747a76d\r\nedit: wrote the 10 percent discount candidate and matching explicit assertions\r\n",
+              "operation_id": "57ac4e3c097f18f2e43f76cf6c433d81777ee167ac385ae1435965ef95c72cb0"
+            },
+            {
+              "acked": true,
+              "assignment": {
+                "attempt": 2,
+                "command": [
+                  "edit-candidate"
+                ],
+                "fence": 2,
+                "idempotent": true,
+                "node_id": "node-5d54c2",
+                "run_id": "b3aed192e84f83fdee6537fada20516a",
+                "timeout_seconds": 300,
+                "type": "command",
+                "worker_id": "candidate-browser-runner"
+              },
+              "message": "edit: verified fixed administrator base 27f4c5bf61c67b33537fbd35a9a37f97f747a76d\r\nedit: wrote the 10 percent discount candidate and matching explicit assertions\r\nedit: committed clean candidate a90d4b5a3ae388b200a6d9807198b0a87269d35e\r\n",
+              "operation_id": "d1af1a33def1b4bacaf716576643fe04ae4d3f737279b63cc01ffd1f0e43c992"
+            }
+          ],
+          "result": {
+            "attempt": 2,
+            "error": "",
+            "exit_code": 0,
+            "fence": 2,
+            "node_id": "node-5d54c2",
+            "operation_id": "d18699c7effb3149d76969cf3fc3b140",
+            "outcome_unknown": false,
+            "output": "edit: verified fixed administrator base 27f4c5bf61c67b33537fbd35a9a37f97f747a76d\r\nedit: wrote the 10 percent discount candidate and matching explicit assertions\r\nedit: committed clean candidate a90d4b5a3ae388b200a6d9807198b0a87269d35e\r\n",
+            "run_id": "b3aed192e84f83fdee6537fada20516a",
+            "stopped": false,
+            "worker_id": "candidate-browser-runner",
+            "workspace_evidence": {
+              "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+              "attempt_key": "324fc1a89eb37058699576bdf378afeb",
+              "base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+              "captured_at": "2026-10-23T16:11:32.5540149Z",
+              "changed_paths": [
+                "price.go",
+                "price_test.go"
+              ],
+              "changed_paths_total": 2,
+              "changed_paths_truncated": false,
+              "clean": true,
+              "diff_sha256": "bfda9e19b660c4830cd87c14ab55316f06bc7c31fb7a72d03819f51c067e8b8c",
+              "evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+              "exit_code": 0,
+              "head_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+              "outcome_unknown": false,
+              "state": "completed",
+              "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "test_command": false,
+              "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+            }
+          }
+        }
+      },
+      "path": ".cache/e2e/candidate-runner/state/journal.json",
+      "sha256": "80ae411704e26b576aa8a5c04e51a5d7943394cf14736d4895053bacaf3d6911",
+      "source_scope": "Only the named run entries; source-file hash is over the full original local journal bytes"
+    },
+    {
+      "bytes": 5014,
+      "entries": {
+        "b3aed192e84f83fdee6537fada20516a/node-6440cb/1/1": {
+          "acked": true,
+          "assignment": {
+            "attempt": 1,
+            "candidate_attempt": 2,
+            "candidate_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "candidate_evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+            "candidate_fence": 2,
+            "candidate_from": "node-5d54c2",
+            "command": [
+              "test-candidate"
+            ],
+            "config": {
+              "candidate_from": "node-5d54c2"
+            },
+            "fence": 1,
+            "idempotent": true,
+            "node_id": "node-6440cb",
+            "run_id": "b3aed192e84f83fdee6537fada20516a",
+            "timeout_seconds": 300,
+            "type": "test",
+            "worker_id": "candidate-browser-runner-2"
+          },
+          "progress": [
+            {
+              "acked": true,
+              "assignment": {
+                "attempt": 1,
+                "candidate_attempt": 2,
+                "candidate_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+                "candidate_evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+                "candidate_fence": 2,
+                "candidate_from": "node-5d54c2",
+                "command": [
+                  "test-candidate"
+                ],
+                "config": {
+                  "candidate_from": "node-5d54c2"
+                },
+                "fence": 1,
+                "idempotent": true,
+                "node_id": "node-6440cb",
+                "run_id": "b3aed192e84f83fdee6537fada20516a",
+                "timeout_seconds": 300,
+                "type": "test",
+                "worker_id": "candidate-browser-runner-2"
+              },
+              "message": "=== RUN   TestPriceAfterDiscount\n",
+              "operation_id": "bc8d6658e58b205907eb282c9b9dc4294037205f9e1b330c0cbf41045f5e9894"
+            },
+            {
+              "acked": true,
+              "assignment": {
+                "attempt": 1,
+                "candidate_attempt": 2,
+                "candidate_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+                "candidate_evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+                "candidate_fence": 2,
+                "candidate_from": "node-5d54c2",
+                "command": [
+                  "test-candidate"
+                ],
+                "config": {
+                  "candidate_from": "node-5d54c2"
+                },
+                "fence": 1,
+                "idempotent": true,
+                "node_id": "node-6440cb",
+                "run_id": "b3aed192e84f83fdee6537fada20516a",
+                "timeout_seconds": 300,
+                "type": "test",
+                "worker_id": "candidate-browser-runner-2"
+              },
+              "message": "=== RUN   TestPriceAfterDiscount\n    price_test.go:11: candidate contract: price=1000 actual=900 expected=900\n    price_test.go:11: candidate contract: price=100 actual=90 expected=90\n    price_test.go:11: candidate contract: price=0 actual=0 expected=0\n    price_test.go:11: candidate contract: price=-100 actual=0 expected=0\n--- PASS: TestPriceAfterDiscount (0.00s)\nPASS\nok  \tfixture.local/suma-candidate\t0.192s\n",
+              "operation_id": "db67ac88f5857046fd9db34f1b9dbe4d6beb0c586665110676ea874342f9d7e7"
+            }
+          ],
+          "result": {
+            "attempt": 1,
+            "error": "",
+            "exit_code": 0,
+            "fence": 1,
+            "node_id": "node-6440cb",
+            "operation_id": "77aea66d06ed05a1e18ff1ec61465e3b",
+            "outcome_unknown": false,
+            "output": "=== RUN   TestPriceAfterDiscount\n    price_test.go:11: candidate contract: price=1000 actual=900 expected=900\n    price_test.go:11: candidate contract: price=100 actual=90 expected=90\n    price_test.go:11: candidate contract: price=0 actual=0 expected=0\n    price_test.go:11: candidate contract: price=-100 actual=0 expected=0\n--- PASS: TestPriceAfterDiscount (0.00s)\nPASS\nok  \tfixture.local/suma-candidate\t0.192s\n",
+            "run_id": "b3aed192e84f83fdee6537fada20516a",
+            "stopped": false,
+            "worker_id": "candidate-browser-runner-2",
+            "workspace_evidence": {
+              "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+              "attempt_key": "a41c210dfeba64ea5da0f7bb2b2c1b4b",
+              "base_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+              "candidate_attempt": 2,
+              "candidate_evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+              "candidate_fence": 2,
+              "candidate_from": "node-5d54c2",
+              "captured_at": "2026-10-23T16:11:39.2809043Z",
+              "changed_paths": [],
+              "changed_paths_total": 0,
+              "changed_paths_truncated": false,
+              "clean": true,
+              "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "evidence_sha256": "9937e67c216f88cf2773cb65048d9e6a58463433679fb24dcb32a03552990d17",
+              "exit_code": 0,
+              "head_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+              "outcome_unknown": false,
+              "state": "completed",
+              "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "test_command": true,
+              "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+            }
+          }
+        }
+      },
+      "path": ".cache/e2e/candidate-runner/state-2/journal.json",
+      "sha256": "cb6539d99608237675e20ca08213bc664548bf259ea00e5bf3728140fdc25bb2",
+      "source_scope": "Only the named run entries; source-file hash is over the full original local journal bytes"
+    }
+  ],
+  "workspace_attempts": [
+    {
+      "artifacts": [
+        {
+          "bytes": 1305,
+          "content": {
+            "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "assignment": {
+              "attempt": 1,
+              "candidate_attempt": 2,
+              "candidate_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+              "candidate_evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+              "candidate_fence": 2,
+              "candidate_from": "node-5d54c2",
+              "command": [
+                "vet-candidate"
+              ],
+              "config": {
+                "candidate_from": "node-5d54c2"
+              },
+              "fence": 1,
+              "idempotent": true,
+              "node_id": "node-2f7d99",
+              "run_id": "b3aed192e84f83fdee6537fada20516a",
+              "timeout_seconds": 300,
+              "type": "test",
+              "worker_id": "candidate-browser-runner"
+            },
+            "attempt_key": "73652618d820669ddf729052defd782d",
+            "base_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "directory": "\u003csuma\u003e\\.cache\\e2e\\candidate-repo\\.cache\\runner\\worktrees\\73652618d820669ddf729052defd782d",
+            "exit_code": 0,
+            "head_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "outcome_unknown": false,
+            "repository": "\u003csuma\u003e\\.cache\\e2e\\candidate-repo",
+            "source": "\u003csuma\u003e\\.cache\\e2e\\candidate-repo\\.cache\\runner\\worktrees\\73652618d820669ddf729052defd782d\\src",
+            "state": "completed",
+            "test_command": true
+          },
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/73652618d820669ddf729052defd782d/attempt.json",
+          "sha256": "f22ca8af8055a604465aeee35896c11f5983d229c4404b4b1c46d04440dc5d90"
+        },
+        {
+          "bytes": 936,
+          "content": {
+            "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "attempt_key": "73652618d820669ddf729052defd782d",
+            "base_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "candidate_attempt": 2,
+            "candidate_evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+            "candidate_fence": 2,
+            "candidate_from": "node-5d54c2",
+            "captured_at": "2026-10-23T16:11:38.248087Z",
+            "changed_paths": [],
+            "changed_paths_total": 0,
+            "changed_paths_truncated": false,
+            "clean": true,
+            "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "exit_code": 0,
+            "head_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "outcome_unknown": false,
+            "state": "completed",
+            "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "test_command": true,
+            "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/73652618d820669ddf729052defd782d/evidence.json",
+          "sha256": "633f1a96d78eae63f46a837de3eae0883e76925539200f08a24eae3fb3c825ce"
+        },
+        {
+          "bytes": 0,
+          "content": "",
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/73652618d820669ddf729052defd782d/changes.patch",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 0,
+          "content": "",
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/73652618d820669ddf729052defd782d/status.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 2,
+          "content": {},
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/73652618d820669ddf729052defd782d/untracked.json",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        }
+      ],
+      "attempt": 1,
+      "attempt_key": "73652618d820669ddf729052defd782d",
+      "current_clean": true,
+      "current_head": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+      "current_status": "",
+      "evidence_sha256": "633f1a96d78eae63f46a837de3eae0883e76925539200f08a24eae3fb3c825ce",
+      "fence": 1,
+      "node_id": "node-2f7d99",
+      "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/73652618d820669ddf729052defd782d/src",
+      "worker_id": "candidate-browser-runner"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 989,
+          "content": {
+            "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "assignment": {
+              "attempt": 1,
+              "command": [
+                "edit-candidate"
+              ],
+              "fence": 1,
+              "idempotent": true,
+              "node_id": "node-5d54c2",
+              "run_id": "b3aed192e84f83fdee6537fada20516a",
+              "timeout_seconds": 300,
+              "type": "command",
+              "worker_id": "candidate-browser-runner"
+            },
+            "attempt_key": "1629c657970964b8a2bc512b7a7018f7",
+            "base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "directory": "\u003csuma\u003e\\.cache\\e2e\\candidate-repo\\.cache\\runner\\worktrees\\1629c657970964b8a2bc512b7a7018f7",
+            "exit_code": 1,
+            "head_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "outcome_unknown": false,
+            "repository": "\u003csuma\u003e\\.cache\\e2e\\candidate-repo",
+            "source": "\u003csuma\u003e\\.cache\\e2e\\candidate-repo\\.cache\\runner\\worktrees\\1629c657970964b8a2bc512b7a7018f7\\src",
+            "state": "completed",
+            "test_command": false
+          },
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/attempt.json",
+          "sha256": "4ac7e595be3b5832a5ebfff4e584096e8b1e25db4f0a5813f6ee12ef366a3f7f"
+        },
+        {
+          "bytes": 1201,
+          "content": {
+            "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "attempt_key": "1629c657970964b8a2bc512b7a7018f7",
+            "base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "captured_at": "2026-10-23T15:59:49.058234Z",
+            "changed_paths": [
+              "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/cversions.2.db",
+              "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{6AF0698E-D558-4F6E-9B3C-3716689AF493}.2.ver0x0000000000000001.db",
+              "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{A50428E3-5872-45E1-864E-A2CCC67339C6}.2.ver0x0000000000000001.db",
+              "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{DDF571F2-BE98-426D-8288-1A9A39C3FDA2}.2.ver0x0000000000000001.db"
+            ],
+            "changed_paths_total": 4,
+            "changed_paths_truncated": false,
+            "clean": false,
+            "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "exit_code": 1,
+            "head_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "outcome_unknown": false,
+            "state": "completed",
+            "status_sha256": "b43a91568639133f7cb791cde97a7f2a972235fe8153f8b1ec1217b5d39a4281",
+            "test_command": false,
+            "untracked_sha256": "789c7d9129bb92e27af18d1001dadb25f59d2cda695abd89bba62ee2e855d8c5"
+          },
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/evidence.json",
+          "sha256": "bc3def2be2756c8fd0ea2bcba60ca2007bcc28e2bf2fbf3933aa8e5f2630e6c9"
+        },
+        {
+          "bytes": 0,
+          "content": "",
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/changes.patch",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 429,
+          "content": "?? %SystemDrive%/ProgramData/Microsoft/Windows/Caches/cversions.2.db\u0000?? %SystemDrive%/ProgramData/Microsoft/Windows/Caches/{6AF0698E-D558-4F6E-9B3C-3716689AF493}.2.ver0x0000000000000001.db\u0000?? %SystemDrive%/ProgramData/Microsoft/Windows/Caches/{A50428E3-5872-45E1-864E-A2CCC67339C6}.2.ver0x0000000000000001.db\u0000?? %SystemDrive%/ProgramData/Microsoft/Windows/Caches/{DDF571F2-BE98-426D-8288-1A9A39C3FDA2}.2.ver0x0000000000000001.db\u0000",
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/status.txt",
+          "sha256": "b43a91568639133f7cb791cde97a7f2a972235fe8153f8b1ec1217b5d39a4281"
+        },
+        {
+          "bytes": 711,
+          "content": {
+            "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/cversions.2.db": "e8d3c67a8119adb8dd1f677af7d62facaa0b1a8d5818be61346b0a6186349af6",
+            "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{6AF0698E-D558-4F6E-9B3C-3716689AF493}.2.ver0x0000000000000001.db": "1d724ab5fd11c1d841b5045a50d1ad0da5ef1acea05c23261ff04bc1990f359d",
+            "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{A50428E3-5872-45E1-864E-A2CCC67339C6}.2.ver0x0000000000000001.db": "f143c0545f78f0b0372d9e90f3ee6807776292d73aee8ce08db1d1d84233121c",
+            "%SystemDrive%/ProgramData/Microsoft/Windows/Caches/{DDF571F2-BE98-426D-8288-1A9A39C3FDA2}.2.ver0x0000000000000001.db": "b4b28ffcf0ba2be7148eb29fffe5c796a2e6f8017e0ae1f24f099578e8623127"
+          },
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/untracked.json",
+          "sha256": "789c7d9129bb92e27af18d1001dadb25f59d2cda695abd89bba62ee2e855d8c5"
+        }
+      ],
+      "attempt": 1,
+      "attempt_key": "1629c657970964b8a2bc512b7a7018f7",
+      "current_clean": false,
+      "current_head": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+      "current_status": "?? %SystemDrive%/ProgramData/Microsoft/Windows/Caches/cversions.2.db\n?? %SystemDrive%/ProgramData/Microsoft/Windows/Caches/{6AF0698E-D558-4F6E-9B3C-3716689AF493}.2.ver0x0000000000000001.db\n?? %SystemDrive%/ProgramData/Microsoft/Windows/Caches/{A50428E3-5872-45E1-864E-A2CCC67339C6}.2.ver0x0000000000000001.db\n?? %SystemDrive%/ProgramData/Microsoft/Windows/Caches/{DDF571F2-BE98-426D-8288-1A9A39C3FDA2}.2.ver0x0000000000000001.db",
+      "evidence_sha256": "bc3def2be2756c8fd0ea2bcba60ca2007bcc28e2bf2fbf3933aa8e5f2630e6c9",
+      "fence": 1,
+      "node_id": "node-5d54c2",
+      "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/1629c657970964b8a2bc512b7a7018f7/src",
+      "worker_id": "candidate-browser-runner"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 989,
+          "content": {
+            "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "assignment": {
+              "attempt": 2,
+              "command": [
+                "edit-candidate"
+              ],
+              "fence": 2,
+              "idempotent": true,
+              "node_id": "node-5d54c2",
+              "run_id": "b3aed192e84f83fdee6537fada20516a",
+              "timeout_seconds": 300,
+              "type": "command",
+              "worker_id": "candidate-browser-runner"
+            },
+            "attempt_key": "324fc1a89eb37058699576bdf378afeb",
+            "base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "directory": "\u003csuma\u003e\\.cache\\e2e\\candidate-repo\\.cache\\runner\\worktrees\\324fc1a89eb37058699576bdf378afeb",
+            "exit_code": 0,
+            "head_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "outcome_unknown": false,
+            "repository": "\u003csuma\u003e\\.cache\\e2e\\candidate-repo",
+            "source": "\u003csuma\u003e\\.cache\\e2e\\candidate-repo\\.cache\\runner\\worktrees\\324fc1a89eb37058699576bdf378afeb\\src",
+            "state": "completed",
+            "test_command": false
+          },
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/324fc1a89eb37058699576bdf378afeb/attempt.json",
+          "sha256": "de7e29dd39000f5e1fa5d1824d3f3451e516febed8d7349b757cb2370b97bae9"
+        },
+        {
+          "bytes": 793,
+          "content": {
+            "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "attempt_key": "324fc1a89eb37058699576bdf378afeb",
+            "base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "captured_at": "2026-10-23T16:11:32.5540149Z",
+            "changed_paths": [
+              "price.go",
+              "price_test.go"
+            ],
+            "changed_paths_total": 2,
+            "changed_paths_truncated": false,
+            "clean": true,
+            "diff_sha256": "bfda9e19b660c4830cd87c14ab55316f06bc7c31fb7a72d03819f51c067e8b8c",
+            "exit_code": 0,
+            "head_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "outcome_unknown": false,
+            "state": "completed",
+            "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "test_command": false,
+            "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/324fc1a89eb37058699576bdf378afeb/evidence.json",
+          "sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511"
+        },
+        {
+          "bytes": 1001,
+          "content": "diff --git a/price.go b/price.go\nindex b112917..dfaab2e 100644\n--- a/price.go\n+++ b/price.go\n@@ -4,5 +4,5 @@ func PriceAfterDiscount(cents int) int {\n \tif cents \u003c 0 {\n \t\treturn 0\n \t}\n-\treturn cents\n+\treturn cents * 90 / 100\n }\ndiff --git a/price_test.go b/price_test.go\nindex 9ec3810..b6c7406 100644\n--- a/price_test.go\n+++ b/price_test.go\n@@ -3,11 +3,11 @@ package candidatefixture\n import \"testing\"\n \n func TestPriceAfterDiscount(t *testing.T) {\n-\tfor _, tc := range []struct{ input, want int }{{1000, 1000}, {100, 100}, {0, 0}, {-100, 0}} {\n+\tfor _, tc := range []struct{ input, want int }{{1000, 900}, {100, 90}, {0, 0}, {-100, 0}} {\n \t\tgot := PriceAfterDiscount(tc.input)\n \t\tif got != tc.want {\n-\t\t\tt.Fatalf(\"base price(%d)=%d, want %d\", tc.input, got, tc.want)\n+\t\t\tt.Fatalf(\"candidate price(%d)=%d, want %d\", tc.input, got, tc.want)\n \t\t}\n-\t\tt.Logf(\"base contract: price=%d actual=%d\", tc.input, got)\n+\t\tt.Logf(\"candidate contract: price=%d actual=%d expected=%d\", tc.input, got, tc.want)\n \t}\n }\n",
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/324fc1a89eb37058699576bdf378afeb/changes.patch",
+          "sha256": "bfda9e19b660c4830cd87c14ab55316f06bc7c31fb7a72d03819f51c067e8b8c"
+        },
+        {
+          "bytes": 0,
+          "content": "",
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/324fc1a89eb37058699576bdf378afeb/status.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 2,
+          "content": {},
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/324fc1a89eb37058699576bdf378afeb/untracked.json",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        }
+      ],
+      "attempt": 2,
+      "attempt_key": "324fc1a89eb37058699576bdf378afeb",
+      "current_clean": true,
+      "current_head": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+      "current_status": "",
+      "evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+      "fence": 2,
+      "node_id": "node-5d54c2",
+      "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/324fc1a89eb37058699576bdf378afeb/src",
+      "worker_id": "candidate-browser-runner"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 1308,
+          "content": {
+            "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "assignment": {
+              "attempt": 1,
+              "candidate_attempt": 2,
+              "candidate_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+              "candidate_evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+              "candidate_fence": 2,
+              "candidate_from": "node-5d54c2",
+              "command": [
+                "test-candidate"
+              ],
+              "config": {
+                "candidate_from": "node-5d54c2"
+              },
+              "fence": 1,
+              "idempotent": true,
+              "node_id": "node-6440cb",
+              "run_id": "b3aed192e84f83fdee6537fada20516a",
+              "timeout_seconds": 300,
+              "type": "test",
+              "worker_id": "candidate-browser-runner-2"
+            },
+            "attempt_key": "a41c210dfeba64ea5da0f7bb2b2c1b4b",
+            "base_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "directory": "\u003csuma\u003e\\.cache\\e2e\\candidate-repo\\.cache\\runner\\worktrees\\a41c210dfeba64ea5da0f7bb2b2c1b4b",
+            "exit_code": 0,
+            "head_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "outcome_unknown": false,
+            "repository": "\u003csuma\u003e\\.cache\\e2e\\candidate-repo",
+            "source": "\u003csuma\u003e\\.cache\\e2e\\candidate-repo\\.cache\\runner\\worktrees\\a41c210dfeba64ea5da0f7bb2b2c1b4b\\src",
+            "state": "completed",
+            "test_command": true
+          },
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/a41c210dfeba64ea5da0f7bb2b2c1b4b/attempt.json",
+          "sha256": "387a6d7ddb06eef96d56c2bfce4398a0dd246d7b5cc68d48f3cafdbaf6ae414d"
+        },
+        {
+          "bytes": 937,
+          "content": {
+            "admin_base_commit": "27f4c5bf61c67b33537fbd35a9a37f97f747a76d",
+            "attempt_key": "a41c210dfeba64ea5da0f7bb2b2c1b4b",
+            "base_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "candidate_attempt": 2,
+            "candidate_evidence_sha256": "396b704acd71f237477b01bf91ebc257ef9a6c971c6624f46088e45d7798a511",
+            "candidate_fence": 2,
+            "candidate_from": "node-5d54c2",
+            "captured_at": "2026-10-23T16:11:39.2809043Z",
+            "changed_paths": [],
+            "changed_paths_total": 0,
+            "changed_paths_truncated": false,
+            "clean": true,
+            "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "exit_code": 0,
+            "head_commit": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+            "outcome_unknown": false,
+            "state": "completed",
+            "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "test_command": true,
+            "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+          },
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/a41c210dfeba64ea5da0f7bb2b2c1b4b/evidence.json",
+          "sha256": "9937e67c216f88cf2773cb65048d9e6a58463433679fb24dcb32a03552990d17"
+        },
+        {
+          "bytes": 0,
+          "content": "",
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/a41c210dfeba64ea5da0f7bb2b2c1b4b/changes.patch",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 0,
+          "content": "",
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/a41c210dfeba64ea5da0f7bb2b2c1b4b/status.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "bytes": 2,
+          "content": {},
+          "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/a41c210dfeba64ea5da0f7bb2b2c1b4b/untracked.json",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        }
+      ],
+      "attempt": 1,
+      "attempt_key": "a41c210dfeba64ea5da0f7bb2b2c1b4b",
+      "current_clean": true,
+      "current_head": "a90d4b5a3ae388b200a6d9807198b0a87269d35e",
+      "current_status": "",
+      "evidence_sha256": "9937e67c216f88cf2773cb65048d9e6a58463433679fb24dcb32a03552990d17",
+      "fence": 1,
+      "node_id": "node-6440cb",
+      "path": ".cache/e2e/candidate-repo/.cache/runner/worktrees/a41c210dfeba64ea5da0f7bb2b2c1b4b/src",
+      "worker_id": "candidate-browser-runner-2"
+    }
+  ]
+}

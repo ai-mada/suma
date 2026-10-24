@@ -1,0 +1,36 @@
+{
+  "raw_sha256": "50b3dc8ba74a0daf033ce72d08370011570dd99d886adfc8490437e372251d5c",
+  "pass": 205,
+  "scope": "Current full Go suite after governance, planning, fixed candidates and Windows environment changes",
+  "vet": "passed",
+  "date": "2026-10-24",
+  "skip": 0,
+  "command": "go test -json ./... -count=1",
+  "fail": 0,
+  "packages": [
+    {
+      "passed": 5,
+      "package": "github.com/ai-mada/suma/cmd/suma-contracts"
+    },
+    {
+      "passed": 15,
+      "package": "github.com/ai-mada/suma/internal/cli"
+    },
+    {
+      "passed": 61,
+      "package": "github.com/ai-mada/suma/internal/dag"
+    },
+    {
+      "passed": 82,
+      "package": "github.com/ai-mada/suma/internal/platform"
+    },
+    {
+      "passed": 40,
+      "package": "github.com/ai-mada/suma/internal/runner"
+    },
+    {
+      "passed": 2,
+      "package": "github.com/ai-mada/suma/internal/store"
+    }
+  ]
+}

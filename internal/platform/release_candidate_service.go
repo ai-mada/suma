@@ -1,0 +1,363 @@
+package platform
+
+import (
+	"context"
+	"database/sql"
+	"encoding/base64"
+	"encoding/json"
+	"sort"
+	"strings"
+)
+
+type ReleaseCandidateView struct {
+	Candidate   ReleaseCandidate `json:"candidate"`
+	Eligibility bool             `json:"eligibility"`
+	Blockers    []ReleaseBlocker `json:"blockers"`
+}
+
+func (s *Service) releaseTaskBasisTx(ctx context.Context, tx *sql.Tx, p Principal, project, id, requiredRun string) (ReleaseTaskBasis, error) {
+	var out ReleaseTaskBasis
+	if err := s.checkTaskEvidenceTx(ctx, tx, p, project, id, map[string]bool{}, map[string]bool{}); err != nil {
+		return out, err
+	}
+	task, err := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id))
+	if err != nil {
+		return out, missing()
+	}
+	if task.RunID != requiredRun {
+		return out, invalid("候选范围必须由本次构建和包测试所在运行实际交付并验收")
+	}
+	var reviewID string
+	var reviewVersion int
+	if err = tx.QueryRowContext(ctx, s.q(`SELECT id,task_version FROM suma_reviews WHERE tenant_id=? AND project_id=? AND task_id=? AND run_id=? AND decision='accepted' ORDER BY created_at DESC,id DESC LIMIT 1`), p.TenantID, project, id, task.RunID).Scan(&reviewID, &reviewVersion); err != nil || reviewVersion+1 != task.Version {
+		return out, conflict("缺少对应版本的正式人工验收")
+	}
+	out = ReleaseTaskBasis{ID: id, Version: task.Version, RunID: task.RunID, ReviewID: reviewID, SHA256: digest(stringify(map[string]any{"task_id": id, "task_version": task.Version, "run_id": task.RunID, "review_id": reviewID, "definition": taskBasis(task), "requirement_version": task.Data["requirement_version"], "dependency_basis": task.Data["dependency_basis"]}))}
+	return out, nil
+}
+
+func (s *Service) validateReleaseCandidateTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (ReleaseCandidate, error) {
+	var out ReleaseCandidate
+	var raw string
+	if err := tx.QueryRowContext(ctx, s.q(`SELECT payload FROM suma_release_candidates WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id).Scan(&raw); err != nil {
+		return out, missing()
+	}
+	if err := json.Unmarshal([]byte(raw), &out); err != nil {
+		return out, err
+	}
+	build, err := s.artifactProofTx(ctx, tx, p, project, out.BuildAttestationID)
+	if err != nil {
+		return out, err
+	}
+	test, err := s.artifactProofTx(ctx, tx, p, project, out.PackageTestAttestationID)
+	if err != nil {
+		return out, err
+	}
+	if build.Kind != "build" || test.Kind != "package_test" || build.ArtifactID != out.ArtifactID || test.ArtifactID != out.ArtifactID || build.ManifestSHA256 != out.ArtifactSHA256 || test.ManifestSHA256 != out.ArtifactSHA256 || build.SourceCommit != out.SourceCommit || test.SourceCommit != out.SourceCommit || build.Assignment.RunID != test.Assignment.RunID {
+		return out, conflict("候选构建和包测试依据不一致")
+	}
+	if _, err = s.releaseArtifactManifestTx(ctx, tx, p, project, out.ArtifactID); err != nil {
+		return out, err
+	}
+	if len(out.Tasks) == 0 {
+		return out, conflict("候选缺少已验收交付范围")
+	}
+	for _, basis := range out.Tasks {
+		current, err := s.releaseTaskBasisTx(ctx, tx, p, project, basis.ID, build.Assignment.RunID)
+		if err != nil {
+			return out, err
+		}
+		if current != basis {
+			return out, conflict("需求、任务、执行或人工验收依据已变化，需要重新建立候选")
+		}
+	}
+	if digest(stringify(out.Tasks)) != out.AcceptedTaskBasisSHA256 {
+		return out, conflict("候选范围摘要不一致")
+	}
+	return out, nil
+}
+
+func (s *Service) CreateReleaseCandidate(ctx context.Context, p Principal, project string, m map[string]any) (ReleaseCandidateView, error) {
+	var out ReleaseCandidateView
+	var request struct {
+		ProjectID                string `json:"project_id"`
+		Name                     string `json:"name"`
+		ArtifactID               string `json:"artifact_id"`
+		BuildAttestationID       string `json:"build_attestation_id"`
+		PackageTestAttestationID string `json:"package_test_attestation_id"`
+		Tasks                    []struct {
+			ID              string `json:"id"`
+			ExpectedVersion int    `json:"expected_version"`
+		} `json:"tasks"`
+		IdempotencyKey string `json:"idempotency_key"`
+	}
+	if err := releaseDecode(m, &request); err != nil {
+		return out, err
+	}
+	name := strings.TrimSpace(str(m, "name"))
+	if name == "" || len(name) > 200 {
+		return out, invalid("请填写 1–200 字节的候选名称")
+	}
+	drafts, ok := m["tasks"].([]any)
+	if !ok || len(drafts) == 0 || len(drafts) > 100 {
+		return out, invalid("请选择 1–100 个已验收任务作为交付范围")
+	}
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return out, err
+	}
+	defer tx.Rollback()
+	if err = s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
+		return out, err
+	}
+	hash, replay, err := s.receipt(ctx, tx, p, project, str(m, "idempotency_key"), map[string]any{"release_candidate": m})
+	if err != nil {
+		return out, err
+	}
+	if replay {
+		if err = json.Unmarshal([]byte(hash), &out); err != nil {
+			return out, err
+		}
+		return s.candidateViewTx(ctx, tx, p, project, out.Candidate.ID)
+	}
+	if _, err = tx.ExecContext(ctx, `UPDATE dag_lock SET seq=seq WHERE id=1`); err != nil {
+		return out, err
+	}
+	build, err := s.artifactProofTx(ctx, tx, p, project, str(m, "build_attestation_id"))
+	if err != nil {
+		return out, err
+	}
+	test, err := s.artifactProofTx(ctx, tx, p, project, str(m, "package_test_attestation_id"))
+	if err != nil {
+		return out, err
+	}
+	artifact := str(m, "artifact_id")
+	if build.Kind != "build" || test.Kind != "package_test" || build.ArtifactID != artifact || test.ArtifactID != artifact || build.ManifestSHA256 != test.ManifestSHA256 || build.SourceCommit != test.SourceCommit || build.Assignment.RunID != test.Assignment.RunID {
+		return out, invalid("请选择同一已封存制品及其真实构建、包测试证明")
+	}
+	if _, err = s.releaseArtifactManifestTx(ctx, tx, p, project, artifact); err != nil {
+		return out, err
+	}
+	bases := []ReleaseTaskBasis{}
+	seen := map[string]bool{}
+	for _, raw := range drafts {
+		d, ok := raw.(map[string]any)
+		if !ok {
+			return out, invalid("任务版本格式无效")
+		}
+		if err = exactVersion(d, "expected_version", 1); err != nil {
+			return out, err
+		}
+		id := str(d, "id")
+		if seen[id] {
+			return out, invalid("交付范围有重复任务")
+		}
+		seen[id] = true
+		basis, err := s.releaseTaskBasisTx(ctx, tx, p, project, id, build.Assignment.RunID)
+		if err != nil {
+			return out, err
+		}
+		if basis.Version != number(d, "expected_version") {
+			return out, conflict("任务版本已变化，请刷新候选范围")
+		}
+		bases = append(bases, basis)
+	}
+	sort.Slice(bases, func(i, j int) bool { return bases[i].ID < bases[j].ID })
+	candidate := ReleaseCandidate{ID: newID(), ProjectID: project, Name: name, ArtifactID: artifact, ArtifactSHA256: build.ManifestSHA256, SourceCommit: build.SourceCommit, BuildAttestationID: build.ID, PackageTestAttestationID: test.ID, AcceptedTaskBasisSHA256: digest(stringify(bases)), BuildProof: build, PackageTestProof: test, Tasks: bases, CreatedAt: now()}
+	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_release_candidates(id,tenant_id,project_id,name,payload,created_at)VALUES(?,?,?,?,?,?)`), candidate.ID, p.TenantID, project, name, stringify(candidate), candidate.CreatedAt); err != nil {
+		return out, err
+	}
+	out = ReleaseCandidateView{Candidate: candidate, Eligibility: true, Blockers: []ReleaseBlocker{}}
+	if err = s.saveReceipt(ctx, tx, p, project, str(m, "idempotency_key"), hash, out); err != nil {
+		return out, err
+	}
+	if err = s.activity(ctx, tx, p, project, "release_candidate.created", candidate.ID, name); err != nil {
+		return out, err
+	}
+	return out, tx.Commit()
+}
+
+func (s *Service) candidateViewTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (ReleaseCandidateView, error) {
+	var out ReleaseCandidateView
+	var raw string
+	if err := tx.QueryRowContext(ctx, s.q(`SELECT payload FROM suma_release_candidates WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id).Scan(&raw); err != nil {
+		return out, missing()
+	}
+	if err := json.Unmarshal([]byte(raw), &out.Candidate); err != nil {
+		return out, err
+	}
+	out.Blockers = []ReleaseBlocker{}
+	_, err := s.validateReleaseCandidateTx(ctx, tx, p, project, id)
+	out.Eligibility = err == nil
+	if err != nil {
+		if api, ok := err.(*APIError); ok {
+			out.Blockers = append(out.Blockers, ReleaseBlocker{Code: api.Code, Message: api.Message})
+		} else {
+			return out, err
+		}
+	}
+	return out, nil
+}
+func (s *Service) ReleaseCandidate(ctx context.Context, p Principal, project, id string) (ReleaseCandidateView, error) {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return ReleaseCandidateView{}, err
+	}
+	defer tx.Rollback()
+	if err = s.authorizeProjectTx(ctx, tx, p, project, false, false); err != nil {
+		return ReleaseCandidateView{}, err
+	}
+	if _, err = tx.ExecContext(ctx, `UPDATE dag_lock SET seq=seq WHERE id=1`); err != nil {
+		return ReleaseCandidateView{}, err
+	}
+	return s.candidateViewTx(ctx, tx, p, project, id)
+}
+
+// Keyset pages are project scoped. DTOs never return storage paths or tokens.
+func (s *Service) releasePageIDs(ctx context.Context, tx *sql.Tx, p Principal, project, kind string, limit int, cursor string) ([]string, int, string, error) {
+	if limit == 0 {
+		limit = 20
+	}
+	if limit < 1 || limit > 100 {
+		return nil, 0, "", invalid("limit 应为 1–100")
+	}
+	table := "suma_release_artifacts"
+	if kind == "release-candidates" {
+		table = "suma_release_candidates"
+	} else if kind != "artifacts" {
+		return nil, 0, "", invalid("分页对象无效")
+	}
+	var c recordCursor
+	if cursor != "" {
+		b, err := base64.RawURLEncoding.DecodeString(cursor)
+		if len(cursor) > 4096 || err != nil || json.Unmarshal(b, &c) != nil || c.Tenant != p.TenantID || c.Project != project || c.Kind != kind || c.ID == "" || c.Updated == "" {
+			return nil, 0, "", invalid("分页游标无效或不属于当前项目")
+		}
+	}
+	var total int
+	if err := tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM `+table+` WHERE tenant_id=? AND project_id=?`), p.TenantID, project).Scan(&total); err != nil {
+		return nil, 0, "", err
+	}
+	query := `SELECT id,created_at FROM ` + table + ` WHERE tenant_id=? AND project_id=?`
+	args := []any{p.TenantID, project}
+	if cursor != "" {
+		query += ` AND (created_at<? OR (created_at=? AND id>?))`
+		args = append(args, c.Updated, c.Updated, c.ID)
+	}
+	query += ` ORDER BY created_at DESC,id ASC LIMIT ?`
+	args = append(args, limit+1)
+	rows, err := tx.QueryContext(ctx, s.q(query), args...)
+	if err != nil {
+		return nil, 0, "", err
+	}
+	var ids, dates []string
+	for rows.Next() {
+		var id, date string
+		if err = rows.Scan(&id, &date); err != nil {
+			rows.Close()
+			return nil, 0, "", err
+		}
+		ids = append(ids, id)
+		dates = append(dates, date)
+	}
+	err = rows.Err()
+	rows.Close()
+	if err != nil {
+		return nil, 0, "", err
+	}
+	next := ""
+	if len(ids) > limit {
+		ids = ids[:limit]
+		next = base64.RawURLEncoding.EncodeToString([]byte(stringify(recordCursor{p.TenantID, project, kind, dates[limit-1], ids[limit-1]})))
+	}
+	return ids, total, next, nil
+}
+func (s *Service) ReleaseCandidates(ctx context.Context, p Principal, project string, limit int, cursor string) ([]ReleaseCandidateView, int, string, error) {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, 0, "", err
+	}
+	defer tx.Rollback()
+	if err = s.authorizeProjectTx(ctx, tx, p, project, false, false); err != nil {
+		return nil, 0, "", err
+	}
+	if _, err = tx.ExecContext(ctx, `UPDATE dag_lock SET seq=seq WHERE id=1`); err != nil {
+		return nil, 0, "", err
+	}
+	ids, total, next, err := s.releasePageIDs(ctx, tx, p, project, "release-candidates", limit, cursor)
+	if err != nil {
+		return nil, 0, "", err
+	}
+	out := []ReleaseCandidateView{}
+	for _, id := range ids {
+		v, err := s.candidateViewTx(ctx, tx, p, project, id)
+		if err != nil {
+			return nil, 0, "", err
+		}
+		out = append(out, v)
+	}
+	return out, total, next, nil
+}
+
+func (s *Service) releaseArtifactTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (ReleaseArtifact, error) {
+	var out ReleaseArtifact
+	var raw string
+	err := tx.QueryRowContext(ctx, s.q(`SELECT id,project_id,manifest_sha256,manifest,size_bytes,created_at FROM suma_release_artifacts WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id).Scan(&out.ID, &out.ProjectID, &out.ManifestSHA256, &raw, &out.SizeBytes, &out.CreatedAt)
+	if err != nil {
+		return out, missing()
+	}
+	if err = json.Unmarshal([]byte(raw), &out.Manifest); err != nil {
+		return out, err
+	}
+	out.State = "sealed"
+	out.Proofs = []ArtifactProof{}
+	rows, err := tx.QueryContext(ctx, s.q(`SELECT `+artifactProofColumns+` FROM suma_artifact_proofs WHERE tenant_id=? AND project_id=? AND artifact_id=? ORDER BY created_at DESC,id`), p.TenantID, project, id)
+	if err != nil {
+		return out, err
+	}
+	for rows.Next() {
+		proof, err := scanArtifactProof(rows)
+		if err != nil {
+			rows.Close()
+			return out, err
+		}
+		out.Proofs = append(out.Proofs, proof)
+	}
+	err = rows.Err()
+	rows.Close()
+	return out, err
+}
+func (s *Service) ReleaseArtifact(ctx context.Context, p Principal, project, id string) (ReleaseArtifact, error) {
+	if err := s.Authorize(ctx, p, project, false, false); err != nil {
+		return ReleaseArtifact{}, err
+	}
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return ReleaseArtifact{}, err
+	}
+	defer tx.Rollback()
+	return s.releaseArtifactTx(ctx, tx, p, project, id)
+}
+func (s *Service) ReleaseArtifacts(ctx context.Context, p Principal, project string, limit int, cursor string) ([]ReleaseArtifact, int, string, error) {
+	if err := s.Authorize(ctx, p, project, false, false); err != nil {
+		return nil, 0, "", err
+	}
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, 0, "", err
+	}
+	defer tx.Rollback()
+	ids, total, next, err := s.releasePageIDs(ctx, tx, p, project, "artifacts", limit, cursor)
+	if err != nil {
+		return nil, 0, "", err
+	}
+	out := []ReleaseArtifact{}
+	for _, id := range ids {
+		a, err := s.releaseArtifactTx(ctx, tx, p, project, id)
+		if err != nil {
+			return nil, 0, "", err
+		}
+		out = append(out, a)
+	}
+	return out, total, next, nil
+}

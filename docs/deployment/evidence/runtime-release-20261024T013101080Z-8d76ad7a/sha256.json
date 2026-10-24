@@ -1,0 +1,57 @@
+[
+  {
+    "name": "go-tool-output.json",
+    "size_bytes": 50777,
+    "sha256": "1b4d678304e95e83858c676ad5c54381aa1ffad202aa909c1b15701c867f7ee3"
+  },
+  {
+    "name": "historical-files.json",
+    "size_bytes": 3690,
+    "sha256": "9bdf5442ad9fdfe30798a081dbaae6afe9861cc73a393a0ecf9b54acbe9d017b"
+  },
+  {
+    "name": "inventory-probe.json",
+    "size_bytes": 277,
+    "sha256": "9871a7804e7a85305fcb6f6fba07ce4f59acb829ed093eb2a5f408903741ac7a"
+  },
+  {
+    "name": "inventory-probe.ps1",
+    "size_bytes": 2335,
+    "sha256": "7bc347f4fac86f26339242667a19a475e9edd925d7c3cf021cd33193d56e0d55"
+  },
+  {
+    "name": "linked-modules.json",
+    "size_bytes": 23406,
+    "sha256": "fad3767e17e31cc27eb586d1f9ed293a57acd43cece37677147b7b0af29f554d"
+  },
+  {
+    "name": "manifest.json",
+    "size_bytes": 176726,
+    "sha256": "691e83cbd114b5a398886f871213b03fd5789df2e350b887a63b672bc3c34320"
+  },
+  {
+    "name": "module-verify.txt",
+    "size_bytes": 21,
+    "sha256": "b4537ed75f533f993f371954de47e42a793b8e5b0587577de7e27fb3e50696bd"
+  },
+  {
+    "name": "regression-probe.json",
+    "size_bytes": 121,
+    "sha256": "62ab8f74285310dcc01398829b50b85dccbf00d8c466fb26699d3eaa35220c4c"
+  },
+  {
+    "name": "source-manifest.json",
+    "size_bytes": 14387,
+    "sha256": "9327307dee2eeace134009b96f2ae42fd032b8c985cfe2ff1ab9ae9630a0488f"
+  },
+  {
+    "name": "toolchain-environment.json",
+    "size_bytes": 77,
+    "sha256": "ddfeac7f349e5c3731d158ea0c6f6f95dd2115ef4d560c982f532bd3258c1410"
+  },
+  {
+    "name": "verification.json",
+    "size_bytes": 5376,
+    "sha256": "29383181646a6ba6848cd726b69466891694be4527c0d7a9202e34c3bc424452"
+  }
+]

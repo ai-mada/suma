@@ -1,0 +1,166 @@
+[
+  {
+    "path": "cmd/suma-deployer/main.go",
+    "sha256": "167f5e17da67469256e5ba01c629d6d69ce1095201efca874a0f85e1f4104aa1"
+  },
+  {
+    "path": "cmd/suma-runner/main.go",
+    "sha256": "fccbb510f36075880b444555cccb62eb457c7f2630b8d09bb7b720aaf7540fda"
+  },
+  {
+    "path": "internal/deployer/control.go",
+    "sha256": "42a804726c3494e01544789512bfa0071bd2a6faa789ab955c5ff27e29924f2c"
+  },
+  {
+    "path": "internal/deployer/execution.go",
+    "sha256": "2eac6f4ed72f3fe375a4876ca63ac292911470023a589e268f451cc03f18d291"
+  },
+  {
+    "path": "internal/deployer/files.go",
+    "sha256": "73cba0f024a6fcc0d73579693b7f4c92ece44e5cae9f9133bfccfb287a5062a4"
+  },
+  {
+    "path": "internal/deployer/health.go",
+    "sha256": "c36d164e9e92434b453edd53fdb45d210c1f2b97f5214b8db37c4fe5434ea8ef"
+  },
+  {
+    "path": "internal/deployer/http.go",
+    "sha256": "1ed46dcc63bd64ea44f1439089cfa14434693b97005ce1ba8d17803efc2347a3"
+  },
+  {
+    "path": "internal/deployer/lock_unix.go",
+    "sha256": "aa6d55969cdac1711b0b9203713aa8497c6abefbe5fa1dbf14db599b84a4a39b"
+  },
+  {
+    "path": "internal/deployer/lock_windows.go",
+    "sha256": "e36de6eb2f8df285f3cde0240fde0bae030147c8961c0098933f5fa60623d50a"
+  },
+  {
+    "path": "internal/deployer/server_test.go",
+    "sha256": "9a6a9fe792757091378a2dfbec355d23926467ad9fd9c53816d64e3e495c7889"
+  },
+  {
+    "path": "internal/deployer/server.go",
+    "sha256": "d25d414dc905e744cce71f93b9689aae56073e03f4c9b43255b1110d812e2f33"
+  },
+  {
+    "path": "internal/releasecontract/artifact_test.go",
+    "sha256": "f4c42064e39f88751b7c139da737b68a007ce8f30cb10bdbd41aed3256826dc9"
+  },
+  {
+    "path": "internal/releasecontract/artifact.go",
+    "sha256": "286e08eb29c9b4e418a462956fe4113df6f9c668f6be40ef0d323f8e73b9019b"
+  },
+  {
+    "path": "internal/releasecontract/deployment_test.go",
+    "sha256": "06e11f8c5bacdaad4d1fdb1c8791b9ea92eadfc3345a2adbff5b38a90b149efd"
+  },
+  {
+    "path": "internal/releasecontract/deployment.go",
+    "sha256": "b794978210ff046f8f12f6d10c1a5dc4fab0d09583bb957e27d22a998c702f41"
+  },
+  {
+    "path": "internal/runner/artifact_file_unix.go",
+    "sha256": "bdd1b3af8e7e11e98ce8caeb48d6fa51beea627eedb5abe95e992a6064d41903"
+  },
+  {
+    "path": "internal/runner/artifact_file_windows.go",
+    "sha256": "cf9934cf0ee2a54599852fd025f7fdb5b44393c06cc3a12cfc8cf00f4e102879"
+  },
+  {
+    "path": "internal/runner/artifact_test.go",
+    "sha256": "75066c1083ebe95b5079b12c68b293699984741dc11ab3725225c32ffa9cc8a6"
+  },
+  {
+    "path": "internal/runner/artifact.go",
+    "sha256": "5cb8e44543a8741e4701ec48eca172acb7398f22b03351554a548101a675b9c6"
+  },
+  {
+    "path": "internal/runner/candidate_test.go",
+    "sha256": "5fb74d6b28c034a12da0189eb38852471f4916c070c096e07195a6fff125ca77"
+  },
+  {
+    "path": "internal/runner/client.go",
+    "sha256": "8a5d4ed605865cd2dc64ab583234f29bd9ab2467f1ecdcd915210dcd94a96d7e"
+  },
+  {
+    "path": "internal/runner/environment_windows_test.go",
+    "sha256": "05ab6ccc5d01fd0683feb3fae6e8be145f5fcd2462167bb6f1a31f3373c68d85"
+  },
+  {
+    "path": "internal/runner/environment.go",
+    "sha256": "44e61d095b80ce2be38814c23a6d2832a68a2027974cfe6cbc6579bd9f27a339"
+  },
+  {
+    "path": "internal/runner/execute.go",
+    "sha256": "628349dae41af3b9f12e1c995640313de190ceb4e83a5e5a73a481e814ee686d"
+  },
+  {
+    "path": "internal/runner/external_test.go",
+    "sha256": "565d9e2c73e893254b8e26e31db972ffca7121a9b76ba42a1f93cbfb7a51b4f9"
+  },
+  {
+    "path": "internal/runner/external.go",
+    "sha256": "ff76179914ef71caf6303da43853268cf2a5df1b72eedd7f3d411c4c64d9d08b"
+  },
+  {
+    "path": "internal/runner/journal.go",
+    "sha256": "6c213f828bff86ac7fac4edfab5b5fab85d3fe440f5090e6402cefeaffbbc227"
+  },
+  {
+    "path": "internal/runner/lock_unix.go",
+    "sha256": "adc9e492e033d4607404a3e05cacd6a5baa74ef38e8d6eb65c2ec7bb6cd7e3f5"
+  },
+  {
+    "path": "internal/runner/lock_windows.go",
+    "sha256": "9b15882dcf47fe8fc784ff386622a165584fc6d9c5ab933f572a1d655961ceed"
+  },
+  {
+    "path": "internal/runner/process_unix.go",
+    "sha256": "1650dc48d5e80ca37a75b766d6f7820860394c415446b3c27f6f01022223b725"
+  },
+  {
+    "path": "internal/runner/process_windows.go",
+    "sha256": "a35d8c0a60390b803fdfef51d6f24bce71702613ed72027cbf54e8eb00b7cb0a"
+  },
+  {
+    "path": "internal/runner/progress_test.go",
+    "sha256": "c93e8e23b74372e0186f545511db2754ee4dbee0ae0f33948b63b790631458a2"
+  },
+  {
+    "path": "internal/runner/release_test.go",
+    "sha256": "27000b7517d3e4f06095b5176cd6172af06252e4f505ac1cbc62be4e8916250c"
+  },
+  {
+    "path": "internal/runner/release.go",
+    "sha256": "2b22a3dcba0404aea7a0c5d03d5baeb68aa4d30703c2509d6f801d6006490d3d"
+  },
+  {
+    "path": "internal/runner/replace_unix.go",
+    "sha256": "f48aee93dbc3f5a5712916a6757447d391f642e1dc1fc9d6943a76d708211b84"
+  },
+  {
+    "path": "internal/runner/replace_windows.go",
+    "sha256": "0dee659a2ae26ee271870c69fe59c3e33c446f463da6969cc68f0e000f2448d3"
+  },
+  {
+    "path": "internal/runner/runner_test.go",
+    "sha256": "718af81826b6907026d265d4fa7f0aa52f3f804d6856ab71fb2dcf53eb47e70e"
+  },
+  {
+    "path": "internal/runner/wire.go",
+    "sha256": "6e29dca25ceec8ab9c6fec3c377085190106201f1f6d53edb23d64f49e76ddd7"
+  },
+  {
+    "path": "internal/runner/worker.go",
+    "sha256": "b129278e4fed35b0c7d74a23e2ab380bd6abad2222415bf4788c56b05864c10f"
+  },
+  {
+    "path": "internal/runner/workspace_test.go",
+    "sha256": "616650fce38c2115cadabfcb24e57b8429dfb7bbbcd4e877ea44cff80fa8b990"
+  },
+  {
+    "path": "internal/runner/workspace.go",
+    "sha256": "117d2d01ecc23ce4e4f44377a1218244504b155d5df42cf3bd37f6863572d0b1"
+  }
+]

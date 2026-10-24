@@ -1,0 +1,45 @@
+services:
+  control:
+    environment:
+      SUMA_KNOWLEDGE_URL: http://knowledge:4312
+      SUMA_KNOWLEDGE_TOKEN_FILE: /run/secrets/knowledge_token
+    secrets: [knowledge_token]
+    depends_on:
+      knowledge:
+        condition: service_healthy
+  knowledge:
+    image: suma-knowledge:local
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: knowledge
+    init: true
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    env_file:
+      - path: ${SUMA_KNOWLEDGE_ENV_FILE:-.env.knowledge}
+        required: false
+    environment:
+      SUMA_KNOWLEDGE_HOST: 0.0.0.0
+      SUMA_KNOWLEDGE_PORT: 4312
+      SUMA_KNOWLEDGE_DIR: /var/lib/suma/knowledge
+      SUMA_KNOWLEDGE_TOKEN_FILE: /run/secrets/knowledge_token
+    secrets: [knowledge_token]
+    volumes:
+      - knowledge_data:/var/lib/suma
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:4312/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    stop_grace_period: 30s
+secrets:
+  knowledge_token:
+    file: ${SUMA_KNOWLEDGE_TOKEN_FILE:-./secrets/knowledge-token}
+volumes:
+  knowledge_data:

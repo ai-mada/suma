@@ -1,0 +1,22 @@
+{
+  "name": "@suma/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Suma secure desktop workbench",
+  "author": "Suma contributors",
+  "main": "src/main.cjs",
+  "scripts": {"start": "electron .", "typecheck": "node --check src/main.cjs && node --check src/preload.cjs", "test": "node --test tests/*.test.cjs", "package": "node scripts/prepare.cjs && electron-builder", "package:dir": "node scripts/prepare.cjs && electron-builder --dir"},
+  "devDependencies": {"electron": "^35.7.5", "electron-builder": "^26.0.12"},
+  "build": {
+    "electronDist": "node_modules/electron/dist",
+    "appId": "dev.suma.workbench",
+    "productName": "Suma",
+    "directories": {"output": "../../dist/desktop"},
+    "files": ["src/**/*", "package.json"],
+    "extraResources": [{"from":"../../.cache/desktop/control","to":"control"},{"from":"../web/dist","to":"web"}],
+    "win": {"target":["nsis","portable"]},
+    "mac": {"target":["dmg","zip"],"category":"public.app-category.developer-tools","hardenedRuntime":true},
+    "linux": {"target":["AppImage","deb"],"category":"Development"},
+    "nsis": {"oneClick":false,"allowToChangeInstallationDirectory":true}
+  }
+}

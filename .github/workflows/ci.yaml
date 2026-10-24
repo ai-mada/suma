@@ -1,0 +1,119 @@
+name: Suma checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  go:
+    env:
+      GOCACHE: ${{ github.workspace }}/.cache/go-build
+      GOTMPDIR: ${{ github.workspace }}/.cache/go-tmp
+      TEMP: ${{ github.workspace }}/.cache/test-tmp
+      TMP: ${{ github.workspace }}/.cache/test-tmp
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Prepare process-local build and test directories
+        shell: bash
+        run: |
+          mkdir -p .cache/go-build .cache/go-tmp .cache/test-tmp dist/bin
+      - run: go test ./... -count=1 -timeout 5m
+      - run: go vet ./...
+      - run: go build -trimpath -o dist/bin/ ./cmd/...
+  typescript:
+    runs-on: ubuntu-latest
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+      TMPDIR: ${{ github.workspace }}/.cache/test-tmp
+      TEMP: ${{ github.workspace }}/.cache/test-tmp
+      TMP: ${{ github.workspace }}/.cache/test-tmp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: mkdir -p .cache/test-tmp
+      - run: npm install --global pnpm@11.25.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: node --test deploy/tests/knowledge-host.test.mjs
+      - run: pnpm build
+      - run: pnpm check:docs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: browser-build
+          path: apps/web/dist
+          if-no-files-found: error
+  deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4.3.0
+        with:
+          version: v3.19.0
+      - run: helm lint deploy/helm/suma
+      - run: helm template suma deploy/helm/suma > /dev/null
+      - run: helm template suma deploy/helm/suma --set database.driver=oceanbase > /dev/null
+      - name: Validate Compose overlays
+        env:
+          SUMA_RUNNER_PROJECT: validation-project
+          SUMA_RUNNER_ID: validation-worker
+          SUMA_RUNNER_WORKSPACE: ${{ github.workspace }}
+          SUMA_RUNNER_ALLOWLIST: ${{ github.workspace }}/deploy/runner/commands.example.json
+        run: |
+          docker compose -f deploy/compose.yaml config --quiet
+          docker compose -f deploy/compose.yaml -f deploy/compose.runner.yaml -f deploy/compose.knowledge.yaml -f deploy/compose.oceanbase.yaml config --quiet
+          sh -n deploy/entrypoint.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: node --test deploy/tests/entrypoint.test.mjs
+      - name: Build images without publishing
+        run: |
+          docker build --target control --tag suma-control:ci .
+          docker build --target runner --tag suma-runner:ci .
+          docker build --target knowledge --tag suma-knowledge:ci .
+      - name: Check control health and built web response
+        shell: bash
+        run: |
+          mkdir -p .cache/ci/secrets
+          openssl rand -hex 32 > .cache/ci/secrets/setup-token
+          docker run --detach --name suma-ci-control -p 127.0.0.1:4310:4310 \
+            --mount type=bind,src="$PWD/.cache/ci/secrets/setup-token",dst=/run/secrets/setup-token,readonly \
+            -e SUMA_SETUP_TOKEN_FILE=/run/secrets/setup-token suma-control:ci
+          trap 'docker rm -f suma-ci-control >/dev/null' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4310/healthz > /dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail http://127.0.0.1:4310/healthz
+          curl --fail http://127.0.0.1:4310/ > .cache/ci/index.html
+          grep -q '<html' .cache/ci/index.html
+      - name: Check knowledge runtime and runner executable
+        shell: bash
+        run: |
+          openssl rand -hex 32 > .cache/ci/secrets/knowledge-token
+          docker run --detach --name suma-ci-knowledge -p 127.0.0.1:4312:4312 \
+            --mount type=bind,src="$PWD/.cache/ci/secrets/knowledge-token",dst=/run/secrets/knowledge-token,readonly \
+            -e SUMA_KNOWLEDGE_TOKEN_FILE=/run/secrets/knowledge-token suma-knowledge:ci
+          trap 'docker rm -f suma-ci-knowledge >/dev/null' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4312/health > /dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail http://127.0.0.1:4312/health
+          docker run --rm suma-runner:ci /usr/local/bin/suma-runner --help

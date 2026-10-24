@@ -1,0 +1,14 @@
+=== RUN   TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval
+=== RUN   TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/detail
+    release_authority_race_test.go:116: got <nil>, want HTTP 403
+=== RUN   TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/actions
+    release_authority_race_test.go:116: got <nil>, want HTTP 403
+=== RUN   TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/list
+    release_authority_race_test.go:116: got <nil>, want HTTP 403
+--- FAIL: TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval (0.56s)
+    --- FAIL: TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/detail (0.20s)
+    --- FAIL: TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/actions (0.21s)
+    --- FAIL: TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval/list (0.15s)
+FAIL
+FAIL	github.com/ai-mada/suma/internal/platform	0.738s
+FAIL

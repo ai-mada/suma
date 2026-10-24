@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "purpose": "P5 Runner artifact and local static provider owned-package verification; not production acceptance",
+  "verified_at_utc": "2026-10-23T17:34:10.5358951Z",
+  "source": {
+    "snapshot": "release-execution-source-sha256.json",
+    "sha256": "f9b1f240c4a62eedebc1ec2665e40580f6f0abb7a04f575afdc66dd2a91f4546",
+    "files": 41,
+    "before_after_match": true,
+    "scope": [
+      "internal/runner/*.go",
+      "internal/deployer/*.go",
+      "internal/releasecontract/*.go",
+      "cmd/suma-runner/*.go",
+      "cmd/suma-deployer/*.go"
+    ]
+  },
+  "environment": {
+    "toolchain": "go1.24.5",
+    "os": "windows",
+    "arch": "amd64",
+    "cgo_enabled": "0",
+    "gocache": ".cache/go-build",
+    "gotmpdir": ".cache/go-tmp",
+    "temp": ".cache/go-tmp",
+    "tmp": ".cache/go-tmp",
+    "goproxy": "off",
+    "gosumdb": "off",
+    "machine_or_user_environment_changed": false
+  },
+  "commands": [
+    "go test -json ./internal/runner ./internal/deployer ./cmd/suma-runner ./cmd/suma-deployer -count=1",
+    "go vet ./internal/runner ./internal/deployer ./cmd/suma-runner ./cmd/suma-deployer",
+    "go build -o .cache/bin/suma-runner-release-final.exe ./cmd/suma-runner",
+    "go build -o .cache/bin/suma-deployer-release-final.exe ./cmd/suma-deployer"
+  ],
+  "tests": {
+    "exit_code": 0,
+    "test_pass_events": 65,
+    "failed_events": 0,
+    "skipped_test_events": 0,
+    "counting": "Includes parent tests, subtests and subprocess helper entry points; not 65 independent product scenarios",
+    "raw_log": "release-execution-tests.jsonl",
+    "raw_log_sha256": "d997b012188fbbf5987c368e2107e3b253f51c90b33149b4c93049c3a1739dff",
+    "first_event": "2026-10-24T01:27:23.8272143+08:00",
+    "last_event": "2026-10-24T01:29:01.9454965+08:00",
+    "commands_packages": "cmd/suma-runner and cmd/suma-deployer compile; no separate test cases"
+  },
+  "vet": {
+    "exit_code": 0,
+    "diagnostics": []
+  },
+  "binaries": [
+    {
+      "path": ".cache/bin/suma-runner-release-final.exe",
+      "sha256": "8fc8ed5a87bb43b24ef312e9eaab983a849ec7288c4c108069e977efcd2dffa6"
+    },
+    {
+      "path": ".cache/bin/suma-deployer-release-final.exe",
+      "sha256": "008ad24693c35a088f011bce536db1e49678da7701c0b659fccac440448379aa"
+    }
+  ],
+  "observations": [
+    "Actual isolated Git fixture command and package test at pinned source C; original dirty checkout preserved",
+    "Actual subprocess output, static file bytes, local HTTP upload/download/seal and immutable manifest checks",
+    "Lost seal ACK with durable journal restart resumes transfer without rerunning successful build",
+    "Unsafe paths, hardlinks, corrupt blobs, missing source object and changed package bytes fail",
+    "Deployment POST ACK loss inspects same operation; opaque authorization ticket absent from durable journal",
+    "Actual local HTTP A/B/A with new generations, SQLite reopen and stale/concurrent dispatch rejection",
+    "Wrong content HTTP 200 preserves applied effect but fails health",
+    "Actual child process termination after active transaction commit recovers health without second activation",
+    "Consume committed but ACK lost followed by actual child process termination recovers historical authorization",
+    "Cancellation requires durable observed fence; explicit Bearer and exclusive provider-root owner required"
+  ],
+  "limits": [
+    "Local task-owned Git/HTTP/SQLite fixtures only; owned provider tests use local control-protocol fixture grants",
+    "Full control-plane authorization and real browser release workflow are separate root/governance evidence",
+    "No external deployment target, vendor CLI, paid model, Docker or production environment exercised",
+    "No cross-machine Git object transfer, supply-chain signature, OS sandbox, power-loss durability or race detector claim",
+    "Windows amd64 binaries only for this receipt; earlier six-platform/desktop artifacts untouched",
+    "Unknown provider effects retain environment barrier; automatic rollback and arbitrary manual fence API not implemented"
+  ],
+  "running_binaries_untouched": true,
+  "credentials_included": false
+}

@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "suma.name" . }}
+  labels:
+    {{- include "suma.selector" . | nindent 4 }}
+spec:
+  # One scheduler/control process. Recreate also prevents two SQLite writers on upgrade.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "suma.selector" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "suma.selector" . | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: control
+          image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          ports:
+            - name: http
+              containerPort: 4310
+          env:
+            - name: SUMA_ADDR
+              value: "0.0.0.0:4310"
+            - name: SUMA_DATA_DIR
+              value: /var/lib/suma
+            - name: SUMA_WEB_DIR
+              value: /opt/suma/web
+            - name: SUMA_DB_DRIVER
+              value: {{ .Values.database.driver | quote }}
+            - name: SUMA_SETUP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "setupSecret.name is required" .Values.setupSecret.name | quote }}
+                  key: {{ .Values.setupSecret.key | quote }}
+            - name: SUMA_SECURE_COOKIES
+              value: {{ .Values.secureCookies | quote }}
+            {{- if eq .Values.database.driver "oceanbase" }}
+            - name: SUMA_DB_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "database.existingSecret is required for OceanBase" .Values.database.existingSecret | quote }}
+                  key: {{ .Values.database.dsnKey | quote }}
+            {{- end }}
+            {{- if .Values.allowedOrigins }}
+            - name: SUMA_ALLOWED_ORIGINS
+              value: {{ .Values.allowedOrigins | quote }}
+            {{- end }}
+            {{- if .Values.knowledge.url }}
+            - name: SUMA_KNOWLEDGE_URL
+              value: {{ .Values.knowledge.url | quote }}
+            - name: SUMA_KNOWLEDGE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "knowledge.existingSecret is required when a knowledge URL is set" .Values.knowledge.existingSecret | quote }}
+                  key: {{ .Values.knowledge.tokenKey | quote }}
+            {{- end }}
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/suma
+            - name: temp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ default (include "suma.name" .) .Values.persistence.existingClaim }}
+        - name: temp
+          emptyDir:
+            sizeLimit: 128Mi

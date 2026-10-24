@@ -1,0 +1,9 @@
+{
+  "name":"@suma/knowledge",
+  "version":"0.1.0",
+  "private":true,
+  "type":"module",
+  "scripts":{"build":"tsc","typecheck":"tsc --noEmit","test":"tsc && node --test dist/tests/*.test.js","start":"node dist/src/server.js"},
+  "dependencies":{"@lancedb/lancedb":"^0.23.0","mysql2":"^3.14.0"},
+  "devDependencies":{"@types/node":"^22.10.0","typescript":"^5.7.2"}
+}

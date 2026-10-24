@@ -1,0 +1,8 @@
+=== RUN   TestManagedObservationResolutionRejectsOrdinaryReceiptReplay
+--- PASS: TestManagedObservationResolutionRejectsOrdinaryReceiptReplay (0.04s)
+=== RUN   TestManagedObservationResolutionRejectsCurrentWorkerLease
+--- PASS: TestManagedObservationResolutionRejectsCurrentWorkerLease (0.05s)
+=== RUN   TestManagedObservationResolutionReplayRechecksAuthority
+--- PASS: TestManagedObservationResolutionReplayRechecksAuthority (0.05s)
+PASS
+ok  	github.com/ai-mada/suma/internal/dag	0.277s

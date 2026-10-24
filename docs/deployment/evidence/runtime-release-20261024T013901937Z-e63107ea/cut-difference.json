@@ -1,0 +1,16 @@
+{
+  "previous_stamp": "20261024T013101080Z-8d76ad7a",
+  "previous_source_sha256": "1880ef47cf9e28aab5e00686fdd063e482e8a26f0bd709ed6856342e19cace5e",
+  "final_stamp": "20261024T013901937Z-e63107ea",
+  "final_source_sha256": "b200a2fb11c33bc52621902443c1cb8602917b5f45a8f0235945618e00167d05",
+  "source_file_count_previous": 87,
+  "source_file_count_final": 87,
+  "changed_sources": [
+    {
+      "path": "internal/platform/release_failure_projection.go",
+      "previous_sha256": "390082c912e8d20e3b771acf603e0e4e55c091c601ee11dd147d675b35d4a1e6",
+      "final_sha256": "cf146f2195570b1a2304fb37879e6ac1af142992306a3d62216966cc9314ca4a"
+    }
+  ],
+  "scope": "Runtime source inventories only; test files are intentionally excluded. Previous binary and receipt files remain unchanged."
+}

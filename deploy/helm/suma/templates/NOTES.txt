@@ -1,0 +1,4 @@
+One Suma control process has been configured.
+The chart references existing secrets and retains its PVC on uninstall.
+Configure a TLS ingress/reverse proxy and verify the target database before production use.
+This chart does not establish distributed scheduling, database failover, or recovery acceptance.

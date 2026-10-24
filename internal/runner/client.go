@@ -1,0 +1,105 @@
+package runner
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+)
+
+type Client struct {
+	BaseURL, Token, ProjectID string
+	HTTP                      *http.Client
+}
+
+func (c *Client) post(ctx context.Context, path string, payload, reply any) error {
+	u, err := url.Parse(c.BaseURL)
+	if err != nil || u.Host == "" || (u.Scheme != "https" && u.Scheme != "http") {
+		return fmt.Errorf("invalid control URL")
+	}
+	if u.Scheme == "http" && u.Hostname() != "localhost" && u.Hostname() != "127.0.0.1" && u.Hostname() != "::1" {
+		return fmt.Errorf("remote runner requires HTTPS")
+	}
+	if strings.TrimSpace(c.Token) == "" {
+		return fmt.Errorf("runner bearer token required")
+	}
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(c.BaseURL, "/")+"/api/v1/runner/"+path, bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+	hc := c.HTTP
+	if hc == nil {
+		hc = &http.Client{Timeout: 15 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	}
+	resp, err := hc.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("runner %s rejected: HTTP %d", path, resp.StatusCode)
+	}
+	if reply != nil {
+		return json.NewDecoder(io.LimitReader(resp.Body, 2<<20)).Decode(reply)
+	}
+	return nil
+}
+func (c *Client) Claim(ctx context.Context, worker string, capabilities []string) (*Assignment, error) {
+	var r struct {
+		Assignment *Assignment `json:"assignment"`
+	}
+	err := c.post(ctx, "claim", map[string]any{"project_id": c.ProjectID, "worker_id": worker, "capabilities": capabilities}, &r)
+	return r.Assignment, err
+}
+func (c *Client) Heartbeat(ctx context.Context, a Assignment) (bool, error) {
+	var r struct {
+		CancelRequested bool `json:"cancel_requested"`
+	}
+	err := c.post(ctx, "heartbeat", map[string]any{"project_id": c.ProjectID, "assignment": a}, &r)
+	return r.CancelRequested, err
+}
+func (c *Client) Complete(ctx context.Context, r Result) error {
+	return c.post(ctx, "results", map[string]any{"project_id": c.ProjectID, "result": r}, nil)
+}
+func (c *Client) Progress(ctx context.Context, p Progress) error {
+	return c.post(ctx, "progress", map[string]any{"project_id": c.ProjectID, "assignment": p.Assignment, "operation_id": p.OperationID, "message": p.Message}, nil)
+}
+func ReplayProgress(ctx context.Context, c *Client, j *Journal) error {
+	for _, p := range j.PendingProgress() {
+		if err := c.Progress(ctx, p); err != nil {
+			return err
+		}
+		if err := j.AckProgress(p.OperationID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func Replay(ctx context.Context, c *Client, j *Journal) error {
+	if err := ReplayArtifacts(ctx, c, j); err != nil {
+		return err
+	}
+	if err := ReplayProgress(ctx, c, j); err != nil {
+		return err
+	}
+	for _, r := range j.Pending() {
+		if err := c.Complete(ctx, r); err != nil {
+			return err
+		}
+		if err := j.Ack(r.OperationID); err != nil {
+			return err
+		}
+	}
+	return nil
+}

@@ -1,0 +1,9 @@
+services:
+  control:
+    environment:
+      SUMA_DB_DRIVER: oceanbase
+      SUMA_DB_DSN_FILE: /run/secrets/database_dsn
+    secrets: [database_dsn]
+secrets:
+  database_dsn:
+    file: ${SUMA_DB_DSN_FILE:-./secrets/database-dsn}

@@ -1,0 +1,35 @@
+name: suma
+services:
+  control:
+    image: suma-control:local
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: control
+    init: true
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    ports:
+      - "127.0.0.1:${SUMA_PORT:-4310}:4310"
+    env_file:
+      - path: ${SUMA_CONTROL_ENV_FILE:-.env.control}
+        required: false
+    environment:
+      SUMA_ADDR: 0.0.0.0:4310
+      SUMA_DATA_DIR: /var/lib/suma
+      SUMA_WEB_DIR: /opt/suma/web
+      SUMA_DB_DRIVER: sqlite
+      SUMA_SETUP_TOKEN_FILE: /run/secrets/setup_token
+    secrets: [setup_token]
+    volumes:
+      - control_data:/var/lib/suma
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    stop_grace_period: 30s
+secrets:
+  setup_token:
+    file: ${SUMA_SETUP_TOKEN_FILE:-./secrets/setup-token}
+volumes:
+  control_data:

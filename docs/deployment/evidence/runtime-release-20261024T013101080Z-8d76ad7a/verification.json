@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-24T01:32:37.5884429Z",
+  "stamp": "20261024T013101080Z-8d76ad7a",
+  "command": "& ./scripts/build-runtime.ps1 -All",
+  "exit_code": 0,
+  "artifact_count": 24,
+  "target_count": 6,
+  "tool_invocations": 50,
+  "source_sha256": "1880ef47cf9e28aab5e00686fdd063e482e8a26f0bd709ed6856342e19cace5e",
+  "source_file_count": 87,
+  "current_sources_match": true,
+  "history_files_unchanged": 21,
+  "linked_module_count": 36,
+  "binaries": [
+    {
+      "target": "windows-amd64",
+      "name": "suma-control.exe",
+      "size_bytes": 24480256,
+      "sha256": "cd10f1bc2cb8fb8632ff53dc8a7207216acd80846744b5c1a8ef522604c32d01"
+    },
+    {
+      "target": "windows-amd64",
+      "name": "suma-runner.exe",
+      "size_bytes": 9798144,
+      "sha256": "9cfd758211fee9d03514d63044ee4d9e9faaf70758d76b1586a984425110b288"
+    },
+    {
+      "target": "windows-amd64",
+      "name": "suma-deployer.exe",
+      "size_bytes": 16125952,
+      "sha256": "f8f6a32145d7679bbd6d04f7496c806e7e5c4f3afc8d84ee9ce8ce5098e8a433"
+    },
+    {
+      "target": "windows-amd64",
+      "name": "suma.exe",
+      "size_bytes": 10377728,
+      "sha256": "6cbf0ea044a156394dcef5115471e276b48b4439e16f60a636d10fee846b459d"
+    },
+    {
+      "target": "windows-arm64",
+      "name": "suma-control.exe",
+      "size_bytes": 23158272,
+      "sha256": "8e8f3a0951b64bd11a7e6318bad3df416a195c15847c18dbe49203cd2cf7d8f2"
+    },
+    {
+      "target": "windows-arm64",
+      "name": "suma-runner.exe",
+      "size_bytes": 9108480,
+      "sha256": "c15a0aa255258b2d141507f79ea6bc8025883137f421ba2966f201863e2cbb0b"
+    },
+    {
+      "target": "windows-arm64",
+      "name": "suma-deployer.exe",
+      "size_bytes": 15244800,
+      "sha256": "bf9ca2838b1138359dafe408e6a7999bca70542f4b44dc920bb60a2978827b1e"
+    },
+    {
+      "target": "windows-arm64",
+      "name": "suma.exe",
+      "size_bytes": 9717248,
+      "sha256": "693cbb98fcfffaa3127d6e940e3045828c32f724d6e4942a4504ebee13f226aa"
+    },
+    {
+      "target": "linux-amd64",
+      "name": "suma-control",
+      "size_bytes": 23870943,
+      "sha256": "169c2c53c1b9b6edbedddfcd34af2e0e466bf13379b78d1360984bae40804265"
+    },
+    {
+      "target": "linux-amd64",
+      "name": "suma-runner",
+      "size_bytes": 9620068,
+      "sha256": "5ee77546da427190f9dea6ec294e170f41d22f00abca96b37c621a80f8471545"
+    },
+    {
+      "target": "linux-amd64",
+      "name": "suma-deployer",
+      "size_bytes": 15642303,
+      "sha256": "1990587613eba8ffd7a0ee6308bd3ffb2400d9f33aa2b3d362366d8965dc830e"
+    },
+    {
+      "target": "linux-amd64",
+      "name": "suma",
+      "size_bytes": 10095733,
+      "sha256": "8c55dc184d3815ea59da2b79346f7a37ee2d6dc815e96ec51f15c6f2e9d19628"
+    },
+    {
+      "target": "linux-arm64",
+      "name": "suma-control",
+      "size_bytes": 22887622,
+      "sha256": "c64fd1b3be56c39b06fb7633c0374d6129138755eed8907e0e6c778ff52d9479"
+    },
+    {
+      "target": "linux-arm64",
+      "name": "suma-runner",
+      "size_bytes": 9088434,
+      "sha256": "5fe568d9f37c8b6df0de6654f7314d292a7a6cfefbba9655f9189c5e3a624eb8"
+    },
+    {
+      "target": "linux-arm64",
+      "name": "suma-deployer",
+      "size_bytes": 15009821,
+      "sha256": "1f42dfa24cbad317d2613d762580f2a3fcd9cc815b479526a4fa8cc6c042bb9c"
+    },
+    {
+      "target": "linux-arm64",
+      "name": "suma",
+      "size_bytes": 9605869,
+      "sha256": "7a13c2946064fd88414192d19ccf0e8ed5958a0b29ddabe06080a395c0b283f7"
+    },
+    {
+      "target": "darwin-amd64",
+      "name": "suma-control",
+      "size_bytes": 23958816,
+      "sha256": "d18b858a6cd52488c8aa87a8cf3d13f2be7a7dba9fe0aaee85e494873a856735"
+    },
+    {
+      "target": "darwin-amd64",
+      "name": "suma-runner",
+      "size_bytes": 9642640,
+      "sha256": "2ebbed5a24248a35d4f8b3e0ef7e9fced44561e6e24cb9a3cfcb92cc0fd09f37"
+    },
+    {
+      "target": "darwin-amd64",
+      "name": "suma-deployer",
+      "size_bytes": 15619232,
+      "sha256": "fac0ee0ded7917ef4c90e160918c56c6f07b8be15380b94b925474d7d0f606f1"
+    },
+    {
+      "target": "darwin-amd64",
+      "name": "suma",
+      "size_bytes": 10054096,
+      "sha256": "3ebbb3c3ee5561b653720ca318f2b9140dc5c6291f28c9093c948f86a293ef0e"
+    },
+    {
+      "target": "darwin-arm64",
+      "name": "suma-control",
+      "size_bytes": 23109090,
+      "sha256": "94fec6bdc74bc68efdf8a57e41cd9ef02885f58027c26a57349f341aa48f0099"
+    },
+    {
+      "target": "darwin-arm64",
+      "name": "suma-runner",
+      "size_bytes": 9152466,
+      "sha256": "d5bcad779e24f020f3cf4737ca0ba985d2d993cfaf402c45a360a0739511bb2e"
+    },
+    {
+      "target": "darwin-arm64",
+      "name": "suma-deployer",
+      "size_bytes": 15063506,
+      "sha256": "e8466ce31d17b4820c515edf3bc3e8033efda4463219abf018dadc4356cfb2ef"
+    },
+    {
+      "target": "darwin-arm64",
+      "name": "suma",
+      "size_bytes": 9579426,
+      "sha256": "571dc57f3cf1ff5e20e07a03d0966f46d78e425cde1cf80301609e365a3c54b2"
+    }
+  ],
+  "verification": "Actual cross-compilation, host build-info inspection, delivered file hashes and unchanged historical file hashes only; no target execution, native installer, signing, foreign-platform deployment or production acceptance."
+}

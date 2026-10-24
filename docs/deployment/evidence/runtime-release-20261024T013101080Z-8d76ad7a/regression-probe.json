@@ -1,0 +1,5 @@
+{
+  "omitted_deployer_exit": 1,
+  "actual_contract_result": "passed",
+  "regression": "missing deployer rejected"
+}

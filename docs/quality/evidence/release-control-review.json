@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "scope": "P5 release control and shared deployment contract; real SQLite, Git, isolated command processes, sealed artifact bytes and local static Provider HTTP",
+  "observed_at": "2026-10-23T17:28:10.4471139Z",
+  "command": "go test ./internal/platform ./internal/releasecontract -run 'TestReleaseDeployment|TestDeploymentContract' -count=1 -timeout=180s -json",
+  "exit_code": 0,
+  "environment": {
+    "host": "windows/amd64",
+    "go": "go1.24.5",
+    "GOCACHE": "D:/codes/ai-dev-os/suma/.cache/go-build",
+    "GOMODCACHE": "D:/codes/ai-dev-os/suma/.cache/go-mod-runtime",
+    "GOTMPDIR": "D:/codes/ai-dev-os/suma/.cache/go-tmp",
+    "TEMP": "D:/codes/ai-dev-os/suma/.cache/test-tmp",
+    "TMP": "D:/codes/ai-dev-os/suma/.cache/test-tmp",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off"
+  },
+  "packages": [
+    {
+      "name": "github.com/ai-mada/suma/internal/releasecontract",
+      "elapsed_seconds": 0.306,
+      "status": "passed"
+    },
+    {
+      "name": "github.com/ai-mada/suma/internal/platform",
+      "elapsed_seconds": 50.244,
+      "status": "passed"
+    }
+  ],
+  "cases": [
+    {
+      "package": "github.com/ai-mada/suma/internal/releasecontract",
+      "name": "TestDeploymentContractDigestExcludesOnlyTicket",
+      "elapsed_seconds": 0,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/releasecontract",
+      "name": "TestDeploymentContractHealthPolicyFixedSiteOnly",
+      "elapsed_seconds": 0,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentProcess",
+      "elapsed_seconds": 0,
+      "status": "passed",
+      "fixture_entry": true
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback",
+      "elapsed_seconds": 18.64,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentEnvironmentAuthorityAndHistory",
+      "elapsed_seconds": 0.53,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentEnvironmentTwoConnectionCAS",
+      "elapsed_seconds": 0.2,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentObservationRequiresActualBoundFacts/unknown",
+      "elapsed_seconds": 0,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentObservationRequiresActualBoundFacts/wrong-content",
+      "elapsed_seconds": 0,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentObservationRequiresActualBoundFacts/wrong-generation",
+      "elapsed_seconds": 0,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentObservationRequiresActualBoundFacts/missing-fence",
+      "elapsed_seconds": 0,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentObservationRequiresActualBoundFacts/no-real-http-time",
+      "elapsed_seconds": 0,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentObservationRequiresActualBoundFacts/tampered-digest",
+      "elapsed_seconds": 0,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentObservationRequiresActualBoundFacts",
+      "elapsed_seconds": 0,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentProviderIndependentIdentityAndStrictJSON",
+      "elapsed_seconds": 0.21,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier",
+      "elapsed_seconds": 13.2,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentActualCandidateBasisChangedBlocksDispatch",
+      "elapsed_seconds": 10.14,
+      "status": "passed",
+      "fixture_entry": false
+    },
+    {
+      "package": "github.com/ai-mada/suma/internal/platform",
+      "name": "TestReleaseDeploymentCandidateRejectsUnknownFields",
+      "elapsed_seconds": 6.98,
+      "status": "passed",
+      "fixture_entry": false
+    }
+  ],
+  "source_hash_scope": "The nine owned implementation/shared/test files below; root-owned artifact, DAG and provider sources are separate workstreams",
+  "sources": [
+    {
+      "path": "internal/platform/release_deploy.go",
+      "size_bytes": 21447,
+      "sha256": "a7a130028e9037502054be747a993d2c0da58c5a5fb4f883b3f6f583890eff16"
+    },
+    {
+      "path": "internal/platform/release_deploy_plans.go",
+      "size_bytes": 22011,
+      "sha256": "f4f7b82915b65170afec638c0db32aa94bad8954d92732ac160ebe6ca87b3f0a"
+    },
+    {
+      "path": "internal/platform/release_deploy_authorization.go",
+      "size_bytes": 14432,
+      "sha256": "460f89a1791ad7943fb0b22502fae3dba2cbeb5170ec5c7b400d4c39dfba35f5"
+    },
+    {
+      "path": "internal/platform/release_deploy_observations.go",
+      "size_bytes": 25094,
+      "sha256": "fee6ba7438ffeec30fb3fbf4184b353ee6b4f5318cb4c74d883855645ad04a89"
+    },
+    {
+      "path": "internal/platform/release_deploy_http.go",
+      "size_bytes": 8394,
+      "sha256": "b53ade8750789a70632cf40b9a82beb137d6945a3cf1cd36505c69b449b7ef16"
+    },
+    {
+      "path": "internal/platform/release_deploy_test.go",
+      "size_bytes": 23432,
+      "sha256": "abdb60c3506f6f3435ca3198efab07caa7d79b86251fc156f81ae22247372b4a"
+    },
+    {
+      "path": "internal/platform/release_deploy_integration_test.go",
+      "size_bytes": 20086,
+      "sha256": "470543340909d9670c2ac5f0fdfd8bfe17ff210e28df99cfe754c25316c6036b"
+    },
+    {
+      "path": "internal/releasecontract/deployment.go",
+      "size_bytes": 9255,
+      "sha256": "b794978210ff046f8f12f6d10c1a5dc4fab0d09583bb957e27d22a998c702f41"
+    },
+    {
+      "path": "internal/releasecontract/deployment_test.go",
+      "size_bytes": 2365,
+      "sha256": "06e11f8c5bacdaad4d1fdb1c8791b9ea92eadfc3345a2adbff5b38a90b149efd"
+    }
+  ],
+  "raw_log": {
+    "path": ".cache/release-control-final-tests.jsonl",
+    "sha256": "e238461ca5af98ddd3c33a92a3e2f808fef709c093cbbc455d27248e4a403538"
+  },
+  "verified": [
+    "Real candidate A and different-content candidate B each used isolated Git development, actual build, byte upload/seal, actual downloaded package HTTP test and human acceptance",
+    "Actual static Provider activated and served A then B then A with three separately approved plans and generations 1,2,3",
+    "Provider consume and begin-effect checked online; successful completion references persisted structured observation and actual health file SHA",
+    "Real two-connection same-key execute produced one protected run and operation; two-connection environment CAS produced one winner",
+    "Ordinary worker self-reported deployment capabilities could not claim the protected run",
+    "Ticket renewal invalidated unused old secret; wrong provider/worker rejected; secret-free durable receipts and public reads",
+    "Unknown effect retained barrier and one issue through repeated and late historical observation and lease loss",
+    "After legal effect, later approval revocation and task basis changes did not erase actual terminal fact; original unknown Runner result preserved while managed DAG recovered from real Provider inspect",
+    "Stale task basis prevented execute with no generation reservation or claimable run",
+    "Cross-project candidate/artifact/environment access rejected; strict unknown and duplicate JSON fields rejected"
+  ],
+  "known_limits": [
+    "SQLite and local Windows actual execution only; PostgreSQL/OceanBase, cloud providers and target operating-system installation unverified",
+    "No browser journey performed by this subagent; root owns browser acceptance",
+    "Provider unreachable does not permit manually forcing barrier release; no automatic rollback",
+    "Historical runtime bundles from 20261023T163759813Z-4b7523bf remain unchanged and predate these Go additions"
+  ]
+}

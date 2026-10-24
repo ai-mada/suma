@@ -1,0 +1,12 @@
+packages:
+  - apps/*
+  - packages/*
+enableGlobalVirtualStore: false
+storeDir: .cache/pnpm-store
+cacheDir: .cache/pnpm-cache
+verifyDepsBeforeRun: error
+allowBuilds:
+  electron: true
+  esbuild: true
+  '@lancedb/lancedb': true
+  electron-winstaller: false

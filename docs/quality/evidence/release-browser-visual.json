@@ -1,0 +1,72 @@
+{
+  "captured_at": "2026-10-24T01:41:41.121Z",
+  "scope": "Partial release detail responsive inspection; not all journeys or WCAG certification",
+  "viewport_control": "CDP metrics and stable Page.captureScreenshot; browser viewport capability did not change observed dimensions",
+  "checks": [
+    {
+      "clientWidth": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "sidebarTransform": "matrix(1, 0, 0, 1, -235, 0)",
+      "width": 390
+    },
+    {
+      "clientWidth": 753,
+      "height": 1080,
+      "scrollWidth": 753,
+      "width": 768
+    },
+    {
+      "clientWidth": 1351,
+      "height": 1080,
+      "scrollWidth": 1351,
+      "width": 1366
+    },
+    {
+      "clientWidth": 1905,
+      "height": 1080,
+      "scrollWidth": 1905,
+      "width": 1920
+    }
+  ],
+  "modal_escape": {
+    "dialogs": 0,
+    "focus": "审阅 / 管理本计划批准",
+    "overflow": false,
+    "record": "660458bcff6b2e4c4012b544b186be78",
+    "width": 390
+  },
+  "console_errors": [],
+  "desktop_capture": {
+    "browser": "Chrome extension",
+    "checks": [
+      {
+        "clientWidth": 375,
+        "height": 844,
+        "scrollWidth": 375,
+        "width": 390
+      },
+      {
+        "clientWidth": 753,
+        "height": 1080,
+        "scrollWidth": 753,
+        "width": 768
+      },
+      {
+        "clientWidth": 1351,
+        "height": 1080,
+        "scrollWidth": 1351,
+        "width": 1366
+      },
+      {
+        "clientWidth": 1905,
+        "height": 1080,
+        "scrollWidth": 1905,
+        "width": 1920
+      }
+    ],
+    "method": "native tab screenshot after viewport layout settles",
+    "console_errors": []
+  },
+  "capture_limitation": "IAB host and CDP surface captures may include stale or tiled compositing; rejected images archived under ignored task diagnostics with hashes. Final viewport images use Chrome screenshots."
+}

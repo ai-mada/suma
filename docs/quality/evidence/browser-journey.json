@@ -1,0 +1,71 @@
+{
+  "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+  "journeys": {
+    "scope": "small authorized fixture; not production capacity",
+    "real_execution": {
+      "id": "52cf864262e75a3cd79da16eca27ee3f",
+      "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "workflow_id": "ff7a33af46965e98ba863da399e7a0e5",
+      "workflow_name": "并行测试与人工交付",
+      "workflow_version": 2,
+      "version": 5,
+      "state": "succeeded",
+      "created_at": "2026-10-23T13:00:41Z",
+      "updated_at": "2026-10-23T13:00:44Z",
+      "nodes": [
+        {
+          "id": "node-074253",
+          "name": "静态质量检查",
+          "type": "test",
+          "state": "succeeded",
+          "reason": "",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "evidence-worker-1",
+          "command": [
+            "go-vet"
+          ],
+          "output": "",
+          "error": "",
+          "started_at": "2026-10-23T13:00:42Z",
+          "completed_at": "2026-10-23T13:00:44Z"
+        },
+        {
+          "id": "node-c25901",
+          "name": "单元测试",
+          "type": "test",
+          "state": "succeeded",
+          "reason": "",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "evidence-worker-2",
+          "command": [
+            "go-test"
+          ],
+          "output": "ok  \tsuma-evidence\t0.289s\n",
+          "error": "",
+          "started_at": "2026-10-23T13:00:41Z",
+          "completed_at": "2026-10-23T13:00:43Z"
+        }
+      ]
+    },
+    "workflow_publish": "browser v1 then v2 immutable publication",
+    "human_acceptance": {
+      "version": 4,
+      "run_id": "52cf864262e75a3cd79da16eca27ee3f",
+      "task_id": "fc291d6abc0cb9e43e658c2e5f8a85bb",
+      "status": "accepted"
+    },
+    "issue_intake": {
+      "repeat_after_reload": "same idempotent requirement",
+      "requirements_total": 2,
+      "issues_total": 1,
+      "original_failed_run": "0a17a8fa1ee68c8b87096c5a542bb403",
+      "source_issue_id": "231e06b4104b7fb957a1230a315c205c"
+    },
+    "requirement_decompose": "browser verified"
+  },
+  "captured_at": "2026-10-23T13:15:10.3108544Z",
+  "environment": "Windows local SQLite; browser + two real Go Runner processes"
+}

@@ -1,0 +1,2286 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-10-24T01:46:14.552757+00:00",
+  "scope": "Actual local browser, Windows processes, SQLite state, immutable bytes and loopback HTTP. No vendor model, cloud or production deployment.",
+  "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+  "context": {
+    "tenant_id": "033a78df60e3c3d0b5705e56bd2aac6d",
+    "site_url": "http://127.0.0.1:4426",
+    "base_commit": "285e78f217245baea199b448d83a9035de15ced1",
+    "repository": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\release-wave3\\repository",
+    "provider_id": "local-static-release",
+    "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+    "worker_id": "release-browser-worker"
+  },
+  "artifacts": [
+    {
+      "id": "5274973540c428c6f0ce04e1fd994765",
+      "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "size_bytes": 1198,
+      "created_at": "2026-10-23T17:25:19.3594983Z",
+      "manifest": {
+        "schema_version": 1,
+        "kind": "static_site_v1",
+        "files": [
+          {
+            "path": "index.html",
+            "size_bytes": 1198,
+            "sha256": "893919d3c154399cb901cceca47bfc477ac94974a16423d2c7feede70105b741"
+          }
+        ]
+      }
+    },
+    {
+      "id": "f68a904cb273cf855499e0035faa0fb5",
+      "manifest_sha256": "3164d23393fb4c5922edce938e39dc17cd4c9c14941ddc25f8cbaed93f550809",
+      "size_bytes": 1198,
+      "created_at": "2026-10-24T01:23:00.6153942Z",
+      "manifest": {
+        "schema_version": 1,
+        "kind": "static_site_v1",
+        "files": [
+          {
+            "path": "index.html",
+            "size_bytes": 1198,
+            "sha256": "60e684b4f12c0604ce9354e17648dffe96998fafbc8020fc705fb0f5933badb7"
+          }
+        ]
+      }
+    }
+  ],
+  "actual_blob_checks": [
+    {
+      "artifact_id": "5274973540c428c6f0ce04e1fd994765",
+      "path": "index.html",
+      "size_bytes": 1198,
+      "sha256": "893919d3c154399cb901cceca47bfc477ac94974a16423d2c7feede70105b741",
+      "matches_manifest": true
+    },
+    {
+      "artifact_id": "f68a904cb273cf855499e0035faa0fb5",
+      "path": "index.html",
+      "size_bytes": 1198,
+      "sha256": "60e684b4f12c0604ce9354e17648dffe96998fafbc8020fc705fb0f5933badb7",
+      "matches_manifest": true
+    }
+  ],
+  "candidates": [
+    {
+      "id": "2dc5cc85193c53cc4423eaa4f50a589b",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "name": "版本 A · 固定制品与验收范围",
+      "artifact_id": "5274973540c428c6f0ce04e1fd994765",
+      "artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+      "build_attestation_id": "9e5160ec67b4f3758d30ef2ac419ad38",
+      "package_test_attestation_id": "58c3b8fa6e9c84a62d92bc7b14677a43",
+      "accepted_task_basis_sha256": "4fb9ba3375abe29e3a2d87b1557082d8b866a13a25cf0d44dda2cba0e8a3a0e2",
+      "build_proof": {
+        "id": "9e5160ec67b4f3758d30ef2ac419ad38",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "assignment": {
+          "run_id": "db18f1c5bb9c49c5733e2eb76d5575a2",
+          "node_id": "build",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker"
+        },
+        "kind": "build",
+        "artifact_id": "5274973540c428c6f0ce04e1fd994765",
+        "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+        "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+        "profile_id": "release-build",
+        "profile_sha256": "c936c372da030895d69b2715d91c2e396a7905442e58aad96ab219831bf885e6",
+        "workspace_sha256": "563fbb7f1126b8318fcb1e7df95c9909bcfe2068c67da96f6ed96c8acc9e8e8f",
+        "created_at": "2026-10-23T17:25:19.3653595Z"
+      },
+      "package_test_proof": {
+        "id": "58c3b8fa6e9c84a62d92bc7b14677a43",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "assignment": {
+          "run_id": "db18f1c5bb9c49c5733e2eb76d5575a2",
+          "node_id": "package-test",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker"
+        },
+        "kind": "package_test",
+        "artifact_id": "5274973540c428c6f0ce04e1fd994765",
+        "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+        "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+        "profile_id": "release-package-test",
+        "profile_sha256": "5b617c14d902da8024333dbeb61253bd107e4d4a2d047796dad3d8101fb748d3",
+        "workspace_sha256": "76f36c00041a750b762ab9d08ba53634c191f2b72d0b366fb0d324ae32321119",
+        "created_at": "2026-10-23T17:25:20.9986154Z"
+      },
+      "tasks": [
+        {
+          "id": "3c7e6176dae0da5555460d1bbdfe987e",
+          "version": 3,
+          "run_id": "db18f1c5bb9c49c5733e2eb76d5575a2",
+          "review_id": "103bb500e6cd586c8e62eb398b88d030",
+          "sha256": "25b04f784a48e85a8a97e3afe635bd70f1212a9aff66187e5053d54745f909ae"
+        }
+      ],
+      "created_at": "2026-10-23T17:27:11.4128815Z"
+    },
+    {
+      "id": "ecb7337c03380a420b40552055ad5f5d",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "name": "版本 B · 健康异常与回退验证",
+      "artifact_id": "f68a904cb273cf855499e0035faa0fb5",
+      "artifact_sha256": "3164d23393fb4c5922edce938e39dc17cd4c9c14941ddc25f8cbaed93f550809",
+      "source_commit": "cc57a02c164c4ca05000080f04be80fb4ca59b25",
+      "build_attestation_id": "2aad30ad23e3778844eedbdb5a9b881e",
+      "package_test_attestation_id": "7d244406629f6375160cbc14bbb7ab41",
+      "accepted_task_basis_sha256": "ee2208bf3d7337af580234a43d6f44ed2e3f10e80ddedb8f617ad0a055ca61c6",
+      "build_proof": {
+        "id": "2aad30ad23e3778844eedbdb5a9b881e",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "assignment": {
+          "run_id": "66ac6654215dd6a8f50f29e704c67f6c",
+          "node_id": "build",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker"
+        },
+        "kind": "build",
+        "artifact_id": "f68a904cb273cf855499e0035faa0fb5",
+        "manifest_sha256": "3164d23393fb4c5922edce938e39dc17cd4c9c14941ddc25f8cbaed93f550809",
+        "source_commit": "cc57a02c164c4ca05000080f04be80fb4ca59b25",
+        "profile_id": "release-build",
+        "profile_sha256": "c936c372da030895d69b2715d91c2e396a7905442e58aad96ab219831bf885e6",
+        "workspace_sha256": "21c6a03058c2a83043a1c11a7405f06ab9454e2e3f279910d158b5efec1e0c88",
+        "created_at": "2026-10-24T01:23:00.6208045Z"
+      },
+      "package_test_proof": {
+        "id": "7d244406629f6375160cbc14bbb7ab41",
+        "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+        "assignment": {
+          "run_id": "66ac6654215dd6a8f50f29e704c67f6c",
+          "node_id": "package-test",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker"
+        },
+        "kind": "package_test",
+        "artifact_id": "f68a904cb273cf855499e0035faa0fb5",
+        "manifest_sha256": "3164d23393fb4c5922edce938e39dc17cd4c9c14941ddc25f8cbaed93f550809",
+        "source_commit": "cc57a02c164c4ca05000080f04be80fb4ca59b25",
+        "profile_id": "release-package-test",
+        "profile_sha256": "5b617c14d902da8024333dbeb61253bd107e4d4a2d047796dad3d8101fb748d3",
+        "workspace_sha256": "329bd868522ce5027bff8481ceb59d1f5e07f381644987e86363a51d87832e34",
+        "created_at": "2026-10-24T01:23:01.9746684Z"
+      },
+      "tasks": [
+        {
+          "id": "f2035738cc479e0d85fc409fdbaa5f7c",
+          "version": 3,
+          "run_id": "66ac6654215dd6a8f50f29e704c67f6c",
+          "review_id": "a8c295c5600bcf7b8eabc412f34b4ddd",
+          "sha256": "a4e823dfbe523fbe49160ccdfa0e25528ee5f7580d07f59bf611c3457edecfea"
+        }
+      ],
+      "created_at": "2026-10-24T01:24:00.2334496Z"
+    }
+  ],
+  "environments": [
+    {
+      "id": "ae5025fdc38602ca6a25a873d6fc6518",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "version": 15,
+      "name": "本机预览 · 发布与回退验证",
+      "status": "active",
+      "provider_id": "local-static-release",
+      "site_id": "preview",
+      "policy_version": 5,
+      "health": {
+        "checks": [
+          {
+            "path": "/",
+            "expected_status": 200,
+            "expected_file": "index.html"
+          }
+        ],
+        "timeout_ms": 2000,
+        "attempts": 3
+      },
+      "generation": 5,
+      "active_generation": 5,
+      "active_artifact_id": "5274973540c428c6f0ce04e1fd994765",
+      "active_artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "barrier_operation_id": "",
+      "capability_state": "verified",
+      "created_at": "2026-10-23T17:27:53.6129429Z",
+      "updated_at": "2026-10-24T01:33:30.0885119Z",
+      "allowed_actions": []
+    }
+  ],
+  "plans": [
+    {
+      "id": "0c8d15ec8f4df944748286816107f944",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "version": 4,
+      "state": "completed",
+      "revision": 1,
+      "sha256": "a6ec5bce23362ac3009626c432530298094f1fbaf4bf754f5fb3b2d7f2cfdc0c",
+      "content": {
+        "candidate_id": "2dc5cc85193c53cc4423eaa4f50a589b",
+        "action": "deploy",
+        "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+        "provider_id": "local-static-release",
+        "site_id": "preview",
+        "environment_policy_version": 1,
+        "expected_generation": 0,
+        "generation": 1,
+        "artifact_id": "5274973540c428c6f0ce04e1fd994765",
+        "artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+        "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+        "build_attestation_id": "9e5160ec67b4f3758d30ef2ac419ad38",
+        "package_test_attestation_id": "58c3b8fa6e9c84a62d92bc7b14677a43",
+        "accepted_task_basis_sha256": "4fb9ba3375abe29e3a2d87b1557082d8b866a13a25cf0d44dda2cba0e8a3a0e2",
+        "reserved_execution": {
+          "run_id": "2e78379d841b95258df1867f64442f18",
+          "node_id": "deploy"
+        },
+        "health": {
+          "checks": [
+            {
+              "path": "/",
+              "expected_status": 200,
+              "expected_file": "index.html",
+              "expected_sha256": "893919d3c154399cb901cceca47bfc477ac94974a16423d2c7feede70105b741"
+            }
+          ],
+          "timeout_ms": 2000,
+          "attempts": 3
+        }
+      },
+      "created_by": "18d16027415f5b5c845a2f04210969d9",
+      "created_at": "2026-10-23T17:28:24.1613539Z",
+      "approval": {
+        "actor_id": "18d16027415f5b5c845a2f04210969d9",
+        "decision": "approved",
+        "reason": "本机验证站点，仅授权此固定候选和环境代数 0→1。已核对真实制品、独立包测试、正式任务验收及 / 的实际内容健康策略。",
+        "at": "2026-10-23T17:28:44.3103272Z",
+        "plan_sha256": "a6ec5bce23362ac3009626c432530298094f1fbaf4bf754f5fb3b2d7f2cfdc0c"
+      },
+      "execution_operation_id": "deploy-f94d1c861a89415d7b774edf73a228c4",
+      "eligibility": true,
+      "blockers": [],
+      "allowed_actions": []
+    },
+    {
+      "id": "45130731abd5e48d06b2460fa9ff41ed",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "version": 4,
+      "state": "completed",
+      "revision": 1,
+      "sha256": "e8636f5db956f95b19622b12d6d11c112a513950cc29dbd11ff28ee2e2f55edd",
+      "content": {
+        "candidate_id": "ecb7337c03380a420b40552055ad5f5d",
+        "action": "deploy",
+        "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+        "provider_id": "local-static-release",
+        "site_id": "preview",
+        "environment_policy_version": 2,
+        "expected_generation": 1,
+        "generation": 2,
+        "artifact_id": "f68a904cb273cf855499e0035faa0fb5",
+        "artifact_sha256": "3164d23393fb4c5922edce938e39dc17cd4c9c14941ddc25f8cbaed93f550809",
+        "source_commit": "cc57a02c164c4ca05000080f04be80fb4ca59b25",
+        "build_attestation_id": "2aad30ad23e3778844eedbdb5a9b881e",
+        "package_test_attestation_id": "7d244406629f6375160cbc14bbb7ab41",
+        "accepted_task_basis_sha256": "ee2208bf3d7337af580234a43d6f44ed2e3f10e80ddedb8f617ad0a055ca61c6",
+        "reserved_execution": {
+          "run_id": "530735003c4769cd3a2cb0c284fe96b4",
+          "node_id": "deploy"
+        },
+        "health": {
+          "checks": [
+            {
+              "path": "/required-health",
+              "expected_status": 200,
+              "expected_file": "index.html",
+              "expected_sha256": "60e684b4f12c0604ce9354e17648dffe96998fafbc8020fc705fb0f5933badb7"
+            }
+          ],
+          "timeout_ms": 2000,
+          "attempts": 3
+        }
+      },
+      "created_by": "18d16027415f5b5c845a2f04210969d9",
+      "created_at": "2026-10-24T01:24:27.9914078Z",
+      "approval": {
+        "actor_id": "18d16027415f5b5c845a2f04210969d9",
+        "decision": "approved",
+        "reason": "批准本机隔离 fixture B 的健康失败验证。候选、制品与任务已固定，代数 1→2，策略 v2 的 /required-health 预期触发真实 404；仅验证异常事实与后续独立回退，不接触生产环境。",
+        "at": "2026-10-24T01:24:33.8663149Z",
+        "plan_sha256": "e8636f5db956f95b19622b12d6d11c112a513950cc29dbd11ff28ee2e2f55edd"
+      },
+      "execution_operation_id": "deploy-4e2f6338752e76ef9f1b09e4f8894c4a",
+      "eligibility": true,
+      "blockers": [],
+      "allowed_actions": []
+    },
+    {
+      "id": "dbcc9046ff07a918b48145dcec2230d7",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "version": 4,
+      "state": "completed",
+      "revision": 1,
+      "sha256": "7ae9533819658040c64d1cafbba70ec67d383f5918d1522f64473da8cbceab90",
+      "content": {
+        "candidate_id": "2dc5cc85193c53cc4423eaa4f50a589b",
+        "action": "rollback",
+        "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+        "provider_id": "local-static-release",
+        "site_id": "preview",
+        "environment_policy_version": 3,
+        "expected_generation": 2,
+        "generation": 3,
+        "artifact_id": "5274973540c428c6f0ce04e1fd994765",
+        "artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+        "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+        "build_attestation_id": "9e5160ec67b4f3758d30ef2ac419ad38",
+        "package_test_attestation_id": "58c3b8fa6e9c84a62d92bc7b14677a43",
+        "accepted_task_basis_sha256": "4fb9ba3375abe29e3a2d87b1557082d8b866a13a25cf0d44dda2cba0e8a3a0e2",
+        "reserved_execution": {
+          "run_id": "de3df5b023af446f105f51396a5c2ffe",
+          "node_id": "deploy"
+        },
+        "health": {
+          "checks": [
+            {
+              "path": "/",
+              "expected_status": 200,
+              "expected_file": "index.html",
+              "expected_sha256": "893919d3c154399cb901cceca47bfc477ac94974a16423d2c7feede70105b741"
+            }
+          ],
+          "timeout_ms": 2000,
+          "attempts": 3
+        },
+        "rollback_source_operation_id": "deploy-f94d1c861a89415d7b774edf73a228c4"
+      },
+      "created_by": "18d16027415f5b5c845a2f04210969d9",
+      "created_at": "2026-10-24T01:27:57.5786453Z",
+      "approval": {
+        "actor_id": "18d16027415f5b5c845a2f04210969d9",
+        "decision": "approved",
+        "reason": "确认本机 B 已实际切换但健康 404。批准独立回退到历史验证 A 制品，使用当前策略 v3 与新代数 2→3；保留 B 的失败、问题和需求，不自动关闭。",
+        "at": "2026-10-24T01:27:58.0422445Z",
+        "plan_sha256": "7ae9533819658040c64d1cafbba70ec67d383f5918d1522f64473da8cbceab90"
+      },
+      "execution_operation_id": "deploy-eb477b1a7d9b7179d382f7b1f0a918f6",
+      "eligibility": true,
+      "blockers": [],
+      "allowed_actions": []
+    },
+    {
+      "id": "d405d06c26ae86c1de12be38b4a640a0",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "version": 4,
+      "state": "completed",
+      "revision": 1,
+      "sha256": "a00e9b35ebf496788a69d7cea65ae059678fbf99358c7c1b369781a91f7730eb",
+      "content": {
+        "candidate_id": "ecb7337c03380a420b40552055ad5f5d",
+        "action": "deploy",
+        "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+        "provider_id": "local-static-release",
+        "site_id": "preview",
+        "environment_policy_version": 4,
+        "expected_generation": 3,
+        "generation": 4,
+        "artifact_id": "f68a904cb273cf855499e0035faa0fb5",
+        "artifact_sha256": "3164d23393fb4c5922edce938e39dc17cd4c9c14941ddc25f8cbaed93f550809",
+        "source_commit": "cc57a02c164c4ca05000080f04be80fb4ca59b25",
+        "build_attestation_id": "2aad30ad23e3778844eedbdb5a9b881e",
+        "package_test_attestation_id": "7d244406629f6375160cbc14bbb7ab41",
+        "accepted_task_basis_sha256": "ee2208bf3d7337af580234a43d6f44ed2e3f10e80ddedb8f617ad0a055ca61c6",
+        "reserved_execution": {
+          "run_id": "8b003d1583f6608390601a76dbebb43e",
+          "node_id": "deploy"
+        },
+        "health": {
+          "checks": [
+            {
+              "path": "/required-health",
+              "expected_status": 200,
+              "expected_file": "index.html",
+              "expected_sha256": "60e684b4f12c0604ce9354e17648dffe96998fafbc8020fc705fb0f5933badb7"
+            }
+          ],
+          "timeout_ms": 2000,
+          "attempts": 3
+        }
+      },
+      "created_by": "18d16027415f5b5c845a2f04210969d9",
+      "created_at": "2026-10-24T01:31:48.2688856Z",
+      "approval": {
+        "actor_id": "18d16027415f5b5c845a2f04210969d9",
+        "decision": "approved",
+        "reason": "最终控制面修复后的本机回归：同一 B 包、真实健康 404、新代数 3→4。核验 provider 与 DAG 失败投影只关联一个操作问题；随后独立回退 A。",
+        "at": "2026-10-24T01:31:52.3837715Z",
+        "plan_sha256": "a00e9b35ebf496788a69d7cea65ae059678fbf99358c7c1b369781a91f7730eb"
+      },
+      "execution_operation_id": "deploy-04214408183a45d6ff4551aed9761aed",
+      "eligibility": true,
+      "blockers": [],
+      "allowed_actions": []
+    },
+    {
+      "id": "660458bcff6b2e4c4012b544b186be78",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "version": 4,
+      "state": "completed",
+      "revision": 1,
+      "sha256": "827424d9b7895f38a7761193c37e0ac78c14141b41796d37390ec3e87335dd0d",
+      "content": {
+        "candidate_id": "2dc5cc85193c53cc4423eaa4f50a589b",
+        "action": "rollback",
+        "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+        "provider_id": "local-static-release",
+        "site_id": "preview",
+        "environment_policy_version": 5,
+        "expected_generation": 4,
+        "generation": 5,
+        "artifact_id": "5274973540c428c6f0ce04e1fd994765",
+        "artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+        "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+        "build_attestation_id": "9e5160ec67b4f3758d30ef2ac419ad38",
+        "package_test_attestation_id": "58c3b8fa6e9c84a62d92bc7b14677a43",
+        "accepted_task_basis_sha256": "4fb9ba3375abe29e3a2d87b1557082d8b866a13a25cf0d44dda2cba0e8a3a0e2",
+        "reserved_execution": {
+          "run_id": "8003862ae41f469603478735c89c4bc0",
+          "node_id": "deploy"
+        },
+        "health": {
+          "checks": [
+            {
+              "path": "/",
+              "expected_status": 200,
+              "expected_file": "index.html",
+              "expected_sha256": "893919d3c154399cb901cceca47bfc477ac94974a16423d2c7feede70105b741"
+            }
+          ],
+          "timeout_ms": 2000,
+          "attempts": 3
+        },
+        "rollback_source_operation_id": "deploy-eb477b1a7d9b7179d382f7b1f0a918f6"
+      },
+      "created_by": "18d16027415f5b5c845a2f04210969d9",
+      "created_at": "2026-10-24T01:33:04.9568057Z",
+      "approval": {
+        "actor_id": "18d16027415f5b5c845a2f04210969d9",
+        "decision": "approved",
+        "reason": "最终修复版本复验：B 代数4已切换且健康失败，同operation只有一个问题，重复回流仍只有一个需求。批准独立回退A，代数4→5，当前策略v5，保留原故障。",
+        "at": "2026-10-24T01:33:19.4585862Z",
+        "plan_sha256": "827424d9b7895f38a7761193c37e0ac78c14141b41796d37390ec3e87335dd0d"
+      },
+      "execution_operation_id": "deploy-7cd43eff827d4dbaaea45e14cf272702",
+      "eligibility": true,
+      "blockers": [],
+      "allowed_actions": []
+    }
+  ],
+  "provider_environments": [
+    {
+      "id": "ae5025fdc38602ca6a25a873d6fc6518",
+      "site_id": "preview",
+      "fence_generation": 5,
+      "active_generation": 5,
+      "artifact_id": "5274973540c428c6f0ce04e1fd994765",
+      "artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "operation_id": "deploy-7cd43eff827d4dbaaea45e14cf272702"
+    }
+  ],
+  "deployments": [
+    {
+      "operation_id": "deploy-f94d1c861a89415d7b774edf73a228c4",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "version": 3,
+      "plan_id": "0c8d15ec8f4df944748286816107f944",
+      "plan_revision": 1,
+      "plan_sha256": "a6ec5bce23362ac3009626c432530298094f1fbaf4bf754f5fb3b2d7f2cfdc0c",
+      "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+      "provider_id": "local-static-release",
+      "generation": 1,
+      "artifact_id": "5274973540c428c6f0ce04e1fd994765",
+      "artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "run_id": "2e78379d841b95258df1867f64442f18",
+      "node_id": "deploy",
+      "state": "deployed_healthy",
+      "effect_state": "applied",
+      "health_state": "passed",
+      "assignment": {
+        "run_id": "2e78379d841b95258df1867f64442f18",
+        "node_id": "deploy",
+        "attempt": 1,
+        "fence": 1,
+        "worker_id": "release-browser-worker"
+      },
+      "request_sha256": "bca20d2587762069831ffc2f98ef29e2438ddcbf4b49cc26850fc63be74baf50",
+      "observation": {
+        "protocol": "suma.release.v1",
+        "operation_id": "deploy-f94d1c861a89415d7b774edf73a228c4",
+        "request_sha256": "bca20d2587762069831ffc2f98ef29e2438ddcbf4b49cc26850fc63be74baf50",
+        "provider_id": "local-static-release",
+        "plan_id": "0c8d15ec8f4df944748286816107f944",
+        "plan_revision": 1,
+        "plan_sha256": "a6ec5bce23362ac3009626c432530298094f1fbaf4bf754f5fb3b2d7f2cfdc0c",
+        "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+        "generation": 1,
+        "fence_generation": 1,
+        "state": "succeeded",
+        "effect": {
+          "state": "applied",
+          "previous_active_generation": 0,
+          "active_generation": 1,
+          "active_artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+          "observed_at": "2026-10-23T17:29:06.2898068Z"
+        },
+        "health": {
+          "state": "passed",
+          "generation": 1,
+          "artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+          "checks": [
+            {
+              "path": "/",
+              "status_code": 200,
+              "body_sha256": "893919d3c154399cb901cceca47bfc477ac94974a16423d2c7feede70105b741",
+              "observed_at": "2026-10-23T17:29:06.3972768Z"
+            }
+          ]
+        },
+        "evidence_sha256": "ec9075c36e66b5e3ba066668bbe0a1174bbb9ba517a2e8cfad44ba4058d117c2",
+        "error": null,
+        "version": 6
+      },
+      "issue_id": "",
+      "created_at": "2026-10-23T17:29:05.8185329Z",
+      "updated_at": "2026-10-23T17:29:06.4006841Z",
+      "allowed_actions": [
+        "reconcile"
+      ],
+      "blockers": []
+    },
+    {
+      "operation_id": "deploy-4e2f6338752e76ef9f1b09e4f8894c4a",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "version": 3,
+      "plan_id": "45130731abd5e48d06b2460fa9ff41ed",
+      "plan_revision": 1,
+      "plan_sha256": "e8636f5db956f95b19622b12d6d11c112a513950cc29dbd11ff28ee2e2f55edd",
+      "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+      "provider_id": "local-static-release",
+      "generation": 2,
+      "artifact_id": "f68a904cb273cf855499e0035faa0fb5",
+      "artifact_sha256": "3164d23393fb4c5922edce938e39dc17cd4c9c14941ddc25f8cbaed93f550809",
+      "run_id": "530735003c4769cd3a2cb0c284fe96b4",
+      "node_id": "deploy",
+      "state": "deployed_unhealthy",
+      "effect_state": "applied",
+      "health_state": "failed",
+      "assignment": {
+        "run_id": "530735003c4769cd3a2cb0c284fe96b4",
+        "node_id": "deploy",
+        "attempt": 1,
+        "fence": 1,
+        "worker_id": "release-browser-worker"
+      },
+      "request_sha256": "6e1d095f88a93fa337f756e9c6c6189ab4770a8b91241403efcfb3bed1b65e2b",
+      "observation": {
+        "protocol": "suma.release.v1",
+        "operation_id": "deploy-4e2f6338752e76ef9f1b09e4f8894c4a",
+        "request_sha256": "6e1d095f88a93fa337f756e9c6c6189ab4770a8b91241403efcfb3bed1b65e2b",
+        "provider_id": "local-static-release",
+        "plan_id": "45130731abd5e48d06b2460fa9ff41ed",
+        "plan_revision": 1,
+        "plan_sha256": "e8636f5db956f95b19622b12d6d11c112a513950cc29dbd11ff28ee2e2f55edd",
+        "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+        "generation": 2,
+        "fence_generation": 2,
+        "state": "failed",
+        "effect": {
+          "state": "applied",
+          "previous_active_generation": 1,
+          "active_generation": 2,
+          "active_artifact_sha256": "3164d23393fb4c5922edce938e39dc17cd4c9c14941ddc25f8cbaed93f550809",
+          "observed_at": "2026-10-24T01:24:46.3402473Z"
+        },
+        "health": {
+          "state": "failed",
+          "generation": 2,
+          "artifact_sha256": "3164d23393fb4c5922edce938e39dc17cd4c9c14941ddc25f8cbaed93f550809",
+          "checks": [
+            {
+              "path": "/required-health",
+              "status_code": 404,
+              "body_sha256": "b16e15764b8bc06c5c3f9f19bc8b99fa48e7894aa5a6ccdad65da49bbf564793",
+              "observed_at": "2026-10-24T01:24:46.3402473Z"
+            }
+          ]
+        },
+        "evidence_sha256": "3b176bec6f1774a5a0a1671acc8e6543ea322553186018a7f8296053ac2eb0fc",
+        "error": {
+          "code": "http_health_failed",
+          "message": "http_health_failed"
+        },
+        "version": 6
+      },
+      "issue_id": "549b1f6d66f5721d81ebcb4d88e2c6c0",
+      "created_at": "2026-10-24T01:24:45.0692638Z",
+      "updated_at": "2026-10-24T01:24:46.3423654Z",
+      "allowed_actions": [
+        "reconcile"
+      ],
+      "blockers": []
+    },
+    {
+      "operation_id": "deploy-eb477b1a7d9b7179d382f7b1f0a918f6",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "version": 3,
+      "plan_id": "dbcc9046ff07a918b48145dcec2230d7",
+      "plan_revision": 1,
+      "plan_sha256": "7ae9533819658040c64d1cafbba70ec67d383f5918d1522f64473da8cbceab90",
+      "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+      "provider_id": "local-static-release",
+      "generation": 3,
+      "artifact_id": "5274973540c428c6f0ce04e1fd994765",
+      "artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "run_id": "de3df5b023af446f105f51396a5c2ffe",
+      "node_id": "deploy",
+      "state": "deployed_healthy",
+      "effect_state": "applied",
+      "health_state": "passed",
+      "assignment": {
+        "run_id": "de3df5b023af446f105f51396a5c2ffe",
+        "node_id": "deploy",
+        "attempt": 1,
+        "fence": 1,
+        "worker_id": "release-browser-worker"
+      },
+      "request_sha256": "f7694755d52925f90e14a93aa9af475f8808543221028ebd4da7ccc4ac08ed3e",
+      "observation": {
+        "protocol": "suma.release.v1",
+        "operation_id": "deploy-eb477b1a7d9b7179d382f7b1f0a918f6",
+        "request_sha256": "f7694755d52925f90e14a93aa9af475f8808543221028ebd4da7ccc4ac08ed3e",
+        "provider_id": "local-static-release",
+        "plan_id": "dbcc9046ff07a918b48145dcec2230d7",
+        "plan_revision": 1,
+        "plan_sha256": "7ae9533819658040c64d1cafbba70ec67d383f5918d1522f64473da8cbceab90",
+        "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+        "generation": 3,
+        "fence_generation": 3,
+        "state": "succeeded",
+        "effect": {
+          "state": "applied",
+          "previous_active_generation": 2,
+          "active_generation": 3,
+          "active_artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+          "observed_at": "2026-10-24T01:28:05.0637325Z"
+        },
+        "health": {
+          "state": "passed",
+          "generation": 3,
+          "artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+          "checks": [
+            {
+              "path": "/",
+              "status_code": 200,
+              "body_sha256": "893919d3c154399cb901cceca47bfc477ac94974a16423d2c7feede70105b741",
+              "observed_at": "2026-10-24T01:28:05.0715293Z"
+            }
+          ]
+        },
+        "evidence_sha256": "b98eb469d5e370eaa2ec5a0a287f9bf92d879ba55bd0566144f9d7025ae25f5e",
+        "error": null,
+        "version": 6
+      },
+      "issue_id": "",
+      "created_at": "2026-10-24T01:28:03.9520623Z",
+      "updated_at": "2026-10-24T01:28:05.0731211Z",
+      "allowed_actions": [
+        "reconcile"
+      ],
+      "blockers": []
+    },
+    {
+      "operation_id": "deploy-04214408183a45d6ff4551aed9761aed",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "version": 3,
+      "plan_id": "d405d06c26ae86c1de12be38b4a640a0",
+      "plan_revision": 1,
+      "plan_sha256": "a00e9b35ebf496788a69d7cea65ae059678fbf99358c7c1b369781a91f7730eb",
+      "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+      "provider_id": "local-static-release",
+      "generation": 4,
+      "artifact_id": "f68a904cb273cf855499e0035faa0fb5",
+      "artifact_sha256": "3164d23393fb4c5922edce938e39dc17cd4c9c14941ddc25f8cbaed93f550809",
+      "run_id": "8b003d1583f6608390601a76dbebb43e",
+      "node_id": "deploy",
+      "state": "deployed_unhealthy",
+      "effect_state": "applied",
+      "health_state": "failed",
+      "assignment": {
+        "run_id": "8b003d1583f6608390601a76dbebb43e",
+        "node_id": "deploy",
+        "attempt": 1,
+        "fence": 1,
+        "worker_id": "release-browser-worker"
+      },
+      "request_sha256": "047f2d7a89bc67d6eb3f52987dd054befc9622b03e936be1a2de5dd066bcf0ed",
+      "observation": {
+        "protocol": "suma.release.v1",
+        "operation_id": "deploy-04214408183a45d6ff4551aed9761aed",
+        "request_sha256": "047f2d7a89bc67d6eb3f52987dd054befc9622b03e936be1a2de5dd066bcf0ed",
+        "provider_id": "local-static-release",
+        "plan_id": "d405d06c26ae86c1de12be38b4a640a0",
+        "plan_revision": 1,
+        "plan_sha256": "a00e9b35ebf496788a69d7cea65ae059678fbf99358c7c1b369781a91f7730eb",
+        "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+        "generation": 4,
+        "fence_generation": 4,
+        "state": "failed",
+        "effect": {
+          "state": "applied",
+          "previous_active_generation": 3,
+          "active_generation": 4,
+          "active_artifact_sha256": "3164d23393fb4c5922edce938e39dc17cd4c9c14941ddc25f8cbaed93f550809",
+          "observed_at": "2026-10-24T01:31:53.7328148Z"
+        },
+        "health": {
+          "state": "failed",
+          "generation": 4,
+          "artifact_sha256": "3164d23393fb4c5922edce938e39dc17cd4c9c14941ddc25f8cbaed93f550809",
+          "checks": [
+            {
+              "path": "/required-health",
+              "status_code": 404,
+              "body_sha256": "b16e15764b8bc06c5c3f9f19bc8b99fa48e7894aa5a6ccdad65da49bbf564793",
+              "observed_at": "2026-10-24T01:31:53.732293Z"
+            }
+          ]
+        },
+        "evidence_sha256": "865e0275c3ac72e86fdb4681952c6151f0fd38a548774400a1944bddd30a2000",
+        "error": {
+          "code": "http_health_failed",
+          "message": "http_health_failed"
+        },
+        "version": 6
+      },
+      "issue_id": "b68201780e5ab41d6bed0718a2b9e3ee",
+      "created_at": "2026-10-24T01:31:52.979526Z",
+      "updated_at": "2026-10-24T01:31:53.7338607Z",
+      "allowed_actions": [
+        "reconcile"
+      ],
+      "blockers": []
+    },
+    {
+      "operation_id": "deploy-7cd43eff827d4dbaaea45e14cf272702",
+      "project_id": "4cf0271555ed5013df9bb38f7cb79311",
+      "version": 3,
+      "plan_id": "660458bcff6b2e4c4012b544b186be78",
+      "plan_revision": 1,
+      "plan_sha256": "827424d9b7895f38a7761193c37e0ac78c14141b41796d37390ec3e87335dd0d",
+      "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+      "provider_id": "local-static-release",
+      "generation": 5,
+      "artifact_id": "5274973540c428c6f0ce04e1fd994765",
+      "artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+      "run_id": "8003862ae41f469603478735c89c4bc0",
+      "node_id": "deploy",
+      "state": "deployed_healthy",
+      "effect_state": "applied",
+      "health_state": "passed",
+      "assignment": {
+        "run_id": "8003862ae41f469603478735c89c4bc0",
+        "node_id": "deploy",
+        "attempt": 1,
+        "fence": 1,
+        "worker_id": "release-browser-worker"
+      },
+      "request_sha256": "f7865f48ed16e69e35e00d510347f4208c813f9047331877becbab49811eab08",
+      "observation": {
+        "protocol": "suma.release.v1",
+        "operation_id": "deploy-7cd43eff827d4dbaaea45e14cf272702",
+        "request_sha256": "f7865f48ed16e69e35e00d510347f4208c813f9047331877becbab49811eab08",
+        "provider_id": "local-static-release",
+        "plan_id": "660458bcff6b2e4c4012b544b186be78",
+        "plan_revision": 1,
+        "plan_sha256": "827424d9b7895f38a7761193c37e0ac78c14141b41796d37390ec3e87335dd0d",
+        "environment_id": "ae5025fdc38602ca6a25a873d6fc6518",
+        "generation": 5,
+        "fence_generation": 5,
+        "state": "succeeded",
+        "effect": {
+          "state": "applied",
+          "previous_active_generation": 4,
+          "active_generation": 5,
+          "active_artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+          "observed_at": "2026-10-24T01:33:30.0834712Z"
+        },
+        "health": {
+          "state": "passed",
+          "generation": 5,
+          "artifact_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+          "checks": [
+            {
+              "path": "/",
+              "status_code": 200,
+              "body_sha256": "893919d3c154399cb901cceca47bfc477ac94974a16423d2c7feede70105b741",
+              "observed_at": "2026-10-24T01:33:30.0863653Z"
+            }
+          ]
+        },
+        "evidence_sha256": "49bdaf8a398dcb4e41f552f7aebb581af8544f65521a1206804ef1c7bd77a1c6",
+        "error": null,
+        "version": 6
+      },
+      "issue_id": "",
+      "created_at": "2026-10-24T01:33:29.7531805Z",
+      "updated_at": "2026-10-24T01:33:30.0885119Z",
+      "allowed_actions": [
+        "reconcile"
+      ],
+      "blockers": []
+    }
+  ],
+  "runs": [
+    {
+      "id": "2e78379d841b95258df1867f64442f18",
+      "workflow_id": "managed-2e78379d841b95258df1867f64442f18",
+      "workflow_version": 1,
+      "workflow_name": "受控发布 0c8d15ec8f4df944748286816107f944",
+      "version": 3,
+      "state": "succeeded",
+      "created_at": "2026-10-23T17:29:05Z",
+      "updated_at": "2026-10-23T17:29:06Z",
+      "attempts": [
+        {
+          "node_id": "deploy",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "state": "succeeded",
+          "started_at": "2026-10-23T17:29:06Z",
+          "completed_at": "2026-10-23T17:29:06Z",
+          "result": {
+            "run_id": "2e78379d841b95258df1867f64442f18",
+            "node_id": "deploy",
+            "attempt": 1,
+            "fence": 1,
+            "worker_id": "release-browser-worker",
+            "exit_code": 0,
+            "output": "release operation deploy-f94d1c861a89415d7b774edf73a228c4: succeeded; effect=applied health=passed generation=1",
+            "error": "",
+            "operation_id": "db796d40772e8fb1357b863ec70df2b3",
+            "stopped": false,
+            "outcome_unknown": false,
+            "release_evidence": {
+              "operation_id": "deploy-f94d1c861a89415d7b774edf73a228c4",
+              "request_sha256": "bca20d2587762069831ffc2f98ef29e2438ddcbf4b49cc26850fc63be74baf50",
+              "evidence_sha256": "ec9075c36e66b5e3ba066668bbe0a1174bbb9ba517a2e8cfad44ba4058d117c2",
+              "version": 6
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "sequence": 71,
+          "node_id": "",
+          "event_type": "run_created",
+          "at_time": "2026-10-23T17:29:05Z",
+          "data": {
+            "workflow_version": 1
+          }
+        },
+        {
+          "sequence": 72,
+          "node_id": "deploy",
+          "event_type": "node_ready",
+          "at_time": "2026-10-23T17:29:05Z",
+          "data": {
+            "attempt": 0,
+            "fence": 0,
+            "previous_state": "pending",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 73,
+          "node_id": "deploy",
+          "event_type": "node_running",
+          "at_time": "2026-10-23T17:29:06Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "ready",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 74,
+          "node_id": "deploy",
+          "event_type": "node_progress",
+          "at_time": "2026-10-23T17:29:06Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "release deploy-f94d1c861a89415d7b774edf73a228c4: state=received effect=not_started health=not_checked generation=1",
+            "operation_id": "8b6cfe740b81e453c295b453c8a593490ee6d5406049caad077ce42f2fc6a9c1",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 76,
+          "node_id": "deploy",
+          "event_type": "node_progress",
+          "at_time": "2026-10-23T17:29:06Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "release deploy-f94d1c861a89415d7b774edf73a228c4: state=succeeded effect=applied health=passed generation=1",
+            "operation_id": "ee6b82c1d3f85ca7cfaee9a1b32fe028c4ad404cfa0e101f7a260d3a152bcb77",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 77,
+          "node_id": "deploy",
+          "event_type": "node_succeeded",
+          "at_time": "2026-10-23T17:29:06Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "running",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 78,
+          "node_id": "",
+          "event_type": "run_succeeded",
+          "at_time": "2026-10-23T17:29:06Z",
+          "data": null
+        }
+      ]
+    },
+    {
+      "id": "530735003c4769cd3a2cb0c284fe96b4",
+      "workflow_id": "managed-530735003c4769cd3a2cb0c284fe96b4",
+      "workflow_version": 1,
+      "workflow_name": "受控发布 45130731abd5e48d06b2460fa9ff41ed",
+      "version": 3,
+      "state": "failed",
+      "created_at": "2026-10-24T01:24:45Z",
+      "updated_at": "2026-10-24T01:24:46Z",
+      "attempts": [
+        {
+          "node_id": "deploy",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "state": "failed",
+          "started_at": "2026-10-24T01:24:46Z",
+          "completed_at": "2026-10-24T01:24:46Z",
+          "result": {
+            "run_id": "530735003c4769cd3a2cb0c284fe96b4",
+            "node_id": "deploy",
+            "attempt": 1,
+            "fence": 1,
+            "worker_id": "release-browser-worker",
+            "exit_code": 1,
+            "output": "release operation deploy-4e2f6338752e76ef9f1b09e4f8894c4a: failed; effect=applied health=failed generation=2",
+            "error": "release provider operation failed",
+            "operation_id": "93b69f12dc20f8ed6d0d0a52b783ab26",
+            "stopped": false,
+            "outcome_unknown": false,
+            "release_evidence": {
+              "operation_id": "deploy-4e2f6338752e76ef9f1b09e4f8894c4a",
+              "request_sha256": "6e1d095f88a93fa337f756e9c6c6189ab4770a8b91241403efcfb3bed1b65e2b",
+              "evidence_sha256": "3b176bec6f1774a5a0a1671acc8e6543ea322553186018a7f8296053ac2eb0fc",
+              "version": 6
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "sequence": 97,
+          "node_id": "",
+          "event_type": "run_created",
+          "at_time": "2026-10-24T01:24:45Z",
+          "data": {
+            "workflow_version": 1
+          }
+        },
+        {
+          "sequence": 98,
+          "node_id": "deploy",
+          "event_type": "node_ready",
+          "at_time": "2026-10-24T01:24:45Z",
+          "data": {
+            "attempt": 0,
+            "fence": 0,
+            "previous_state": "pending",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 99,
+          "node_id": "deploy",
+          "event_type": "node_running",
+          "at_time": "2026-10-24T01:24:46Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "ready",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 100,
+          "node_id": "deploy",
+          "event_type": "node_progress",
+          "at_time": "2026-10-24T01:24:46Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "release deploy-4e2f6338752e76ef9f1b09e4f8894c4a: state=received effect=not_started health=not_checked generation=2",
+            "operation_id": "76070cb644287d1c928ee83a953f0375aba51d6df602d94aa68e91d2a053a368",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 102,
+          "node_id": "deploy",
+          "event_type": "node_progress",
+          "at_time": "2026-10-24T01:24:46Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "release deploy-4e2f6338752e76ef9f1b09e4f8894c4a: state=failed effect=applied health=failed generation=2",
+            "operation_id": "f3880e6371c0b4c6c805951ab0a85c983c7489b6c6e521954b401a07bf6794fc",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 103,
+          "node_id": "deploy",
+          "event_type": "node_failed",
+          "at_time": "2026-10-24T01:24:46Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "running",
+            "reason": "release provider operation failed"
+          }
+        },
+        {
+          "sequence": 104,
+          "node_id": "",
+          "event_type": "run_failed",
+          "at_time": "2026-10-24T01:24:46Z",
+          "data": null
+        }
+      ]
+    },
+    {
+      "id": "66ac6654215dd6a8f50f29e704c67f6c",
+      "workflow_id": "32e1d4153a911e0566eed8b636a9a16c",
+      "workflow_version": 1,
+      "workflow_name": "真实制品发布 B",
+      "version": 7,
+      "state": "succeeded",
+      "created_at": "2026-10-24T01:22:57Z",
+      "updated_at": "2026-10-24T01:23:01Z",
+      "attempts": [
+        {
+          "node_id": "build",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "state": "succeeded",
+          "started_at": "2026-10-24T01:22:59Z",
+          "completed_at": "2026-10-24T01:23:00Z",
+          "result": {
+            "run_id": "66ac6654215dd6a8f50f29e704c67f6c",
+            "node_id": "build",
+            "attempt": 1,
+            "fence": 1,
+            "worker_id": "release-browser-worker",
+            "exit_code": 0,
+            "output": "built immutable site bytes 1198\n",
+            "error": "",
+            "operation_id": "1e807162db52766052523c836f05aa81",
+            "stopped": false,
+            "outcome_unknown": false,
+            "workspace_evidence": {
+              "admin_base_commit": "285e78f217245baea199b448d83a9035de15ced1",
+              "attempt_key": "ed631aa9a526968584a687f837dfbb31",
+              "base_commit": "cc57a02c164c4ca05000080f04be80fb4ca59b25",
+              "candidate_attempt": 1,
+              "candidate_evidence_sha256": "20df3f29c52ec0e120f1f0c912af63844ee5c606885de8f25da429eb2d1291ea",
+              "candidate_fence": 1,
+              "candidate_from": "develop",
+              "captured_at": "2026-10-24T01:23:00.5947502Z",
+              "changed_paths": [],
+              "changed_paths_total": 0,
+              "changed_paths_truncated": false,
+              "clean": true,
+              "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "evidence_sha256": "21c6a03058c2a83043a1c11a7405f06ab9454e2e3f279910d158b5efec1e0c88",
+              "exit_code": 0,
+              "head_commit": "cc57a02c164c4ca05000080f04be80fb4ca59b25",
+              "outcome_unknown": false,
+              "state": "completed",
+              "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "test_command": false,
+              "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+            },
+            "artifact_evidence": {
+              "kind": "build",
+              "artifact_id": "f68a904cb273cf855499e0035faa0fb5",
+              "manifest_sha256": "3164d23393fb4c5922edce938e39dc17cd4c9c14941ddc25f8cbaed93f550809",
+              "source_commit": "cc57a02c164c4ca05000080f04be80fb4ca59b25",
+              "profile_id": "release-build",
+              "profile_sha256": "c936c372da030895d69b2715d91c2e396a7905442e58aad96ab219831bf885e6"
+            }
+          }
+        },
+        {
+          "node_id": "develop",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "state": "succeeded",
+          "started_at": "2026-10-24T01:22:57Z",
+          "completed_at": "2026-10-24T01:22:59Z",
+          "result": {
+            "run_id": "66ac6654215dd6a8f50f29e704c67f6c",
+            "node_id": "develop",
+            "attempt": 1,
+            "fence": 1,
+            "worker_id": "release-browser-worker",
+            "exit_code": 0,
+            "output": "committed fixture source B\n",
+            "error": "",
+            "operation_id": "5288bb56b9be6056c7c9a21f2fca7cd4",
+            "stopped": false,
+            "outcome_unknown": false,
+            "workspace_evidence": {
+              "admin_base_commit": "285e78f217245baea199b448d83a9035de15ced1",
+              "attempt_key": "ead7a1a4aae2718f12f236fa2e03fc35",
+              "base_commit": "285e78f217245baea199b448d83a9035de15ced1",
+              "captured_at": "2026-10-24T01:22:59.3177812Z",
+              "changed_paths": [
+                "site.html"
+              ],
+              "changed_paths_total": 1,
+              "changed_paths_truncated": false,
+              "clean": true,
+              "diff_sha256": "b07cd432cdbc5e7c628a933fe711458dc61112c73bdd4d51eb1e730ab611e544",
+              "evidence_sha256": "20df3f29c52ec0e120f1f0c912af63844ee5c606885de8f25da429eb2d1291ea",
+              "exit_code": 0,
+              "head_commit": "cc57a02c164c4ca05000080f04be80fb4ca59b25",
+              "outcome_unknown": false,
+              "state": "completed",
+              "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "test_command": false,
+              "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+            }
+          }
+        },
+        {
+          "node_id": "package-test",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "state": "succeeded",
+          "started_at": "2026-10-24T01:23:00Z",
+          "completed_at": "2026-10-24T01:23:01Z",
+          "result": {
+            "run_id": "66ac6654215dd6a8f50f29e704c67f6c",
+            "node_id": "package-test",
+            "attempt": 1,
+            "fence": 1,
+            "worker_id": "release-browser-worker",
+            "exit_code": 0,
+            "output": "PASS actual package GET /index.html = pinned source; bytes 1198\n",
+            "error": "",
+            "operation_id": "9540d931d7b13897dfeb5c8ff12cf27b",
+            "stopped": false,
+            "outcome_unknown": false,
+            "workspace_evidence": {
+              "admin_base_commit": "285e78f217245baea199b448d83a9035de15ced1",
+              "attempt_key": "3d52f9f7169de1c64c71c8e3b2594b6d",
+              "base_commit": "cc57a02c164c4ca05000080f04be80fb4ca59b25",
+              "captured_at": "2026-10-24T01:23:01.9657294Z",
+              "changed_paths": [],
+              "changed_paths_total": 0,
+              "changed_paths_truncated": false,
+              "clean": true,
+              "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "evidence_sha256": "329bd868522ce5027bff8481ceb59d1f5e07f381644987e86363a51d87832e34",
+              "exit_code": 0,
+              "head_commit": "cc57a02c164c4ca05000080f04be80fb4ca59b25",
+              "outcome_unknown": false,
+              "state": "completed",
+              "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "test_command": true,
+              "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+            },
+            "artifact_evidence": {
+              "kind": "package_test",
+              "artifact_id": "f68a904cb273cf855499e0035faa0fb5",
+              "manifest_sha256": "3164d23393fb4c5922edce938e39dc17cd4c9c14941ddc25f8cbaed93f550809",
+              "source_commit": "cc57a02c164c4ca05000080f04be80fb4ca59b25",
+              "profile_id": "release-package-test",
+              "profile_sha256": "5b617c14d902da8024333dbeb61253bd107e4d4a2d047796dad3d8101fb748d3"
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "sequence": 79,
+          "node_id": "",
+          "event_type": "run_created",
+          "at_time": "2026-10-24T01:22:57Z",
+          "data": {
+            "workflow_version": 1
+          }
+        },
+        {
+          "sequence": 80,
+          "node_id": "develop",
+          "event_type": "node_ready",
+          "at_time": "2026-10-24T01:22:57Z",
+          "data": {
+            "attempt": 0,
+            "fence": 0,
+            "previous_state": "pending",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 81,
+          "node_id": "develop",
+          "event_type": "node_running",
+          "at_time": "2026-10-24T01:22:57Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "ready",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 82,
+          "node_id": "develop",
+          "event_type": "node_progress",
+          "at_time": "2026-10-24T01:22:58Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "committed fixture source B\n",
+            "operation_id": "770c288acf68f891a564985d821f450a643b7d78a8dd05c6172c74913e212c2e",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 83,
+          "node_id": "develop",
+          "event_type": "node_succeeded",
+          "at_time": "2026-10-24T01:22:59Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "running",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 84,
+          "node_id": "build",
+          "event_type": "node_ready",
+          "at_time": "2026-10-24T01:22:59Z",
+          "data": {
+            "attempt": 0,
+            "fence": 0,
+            "previous_state": "pending",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 85,
+          "node_id": "build",
+          "event_type": "candidate_pinned",
+          "at_time": "2026-10-24T01:22:59Z",
+          "data": {
+            "attempt": 1,
+            "commit": "cc57a02c164c4ca05000080f04be80fb4ca59b25",
+            "evidence_sha256": "20df3f29c52ec0e120f1f0c912af63844ee5c606885de8f25da429eb2d1291ea",
+            "source_attempt": 1,
+            "source_fence": 1,
+            "source_node": "develop"
+          }
+        },
+        {
+          "sequence": 86,
+          "node_id": "build",
+          "event_type": "node_running",
+          "at_time": "2026-10-24T01:22:59Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "ready",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 87,
+          "node_id": "build",
+          "event_type": "node_progress",
+          "at_time": "2026-10-24T01:23:00Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "built immutable site bytes 1198\n",
+            "operation_id": "06fc70d40aabfe2bdcae30d9de62304adeafb8f0a9fa004f0a3092c48ae01490",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 88,
+          "node_id": "build",
+          "event_type": "node_succeeded",
+          "at_time": "2026-10-24T01:23:00Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "running",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 89,
+          "node_id": "package-test",
+          "event_type": "node_ready",
+          "at_time": "2026-10-24T01:23:00Z",
+          "data": {
+            "attempt": 0,
+            "fence": 0,
+            "previous_state": "pending",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 90,
+          "node_id": "package-test",
+          "event_type": "node_running",
+          "at_time": "2026-10-24T01:23:00Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "ready",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 91,
+          "node_id": "package-test",
+          "event_type": "node_progress",
+          "at_time": "2026-10-24T01:23:01Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "PASS actual package GET /index.html = pinned source; bytes 1198\n",
+            "operation_id": "9e15345f5ae2c29cca46c495b424ee66c823b0ef1a79f6b3299e317346cb4803",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 92,
+          "node_id": "package-test",
+          "event_type": "node_succeeded",
+          "at_time": "2026-10-24T01:23:01Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "running",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 93,
+          "node_id": "",
+          "event_type": "run_succeeded",
+          "at_time": "2026-10-24T01:23:01Z",
+          "data": null
+        }
+      ]
+    },
+    {
+      "id": "8003862ae41f469603478735c89c4bc0",
+      "workflow_id": "managed-8003862ae41f469603478735c89c4bc0",
+      "workflow_version": 1,
+      "workflow_name": "受控发布 660458bcff6b2e4c4012b544b186be78",
+      "version": 3,
+      "state": "succeeded",
+      "created_at": "2026-10-24T01:33:29Z",
+      "updated_at": "2026-10-24T01:33:30Z",
+      "attempts": [
+        {
+          "node_id": "deploy",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "state": "succeeded",
+          "started_at": "2026-10-24T01:33:30Z",
+          "completed_at": "2026-10-24T01:33:30Z",
+          "result": {
+            "run_id": "8003862ae41f469603478735c89c4bc0",
+            "node_id": "deploy",
+            "attempt": 1,
+            "fence": 1,
+            "worker_id": "release-browser-worker",
+            "exit_code": 0,
+            "output": "release operation deploy-7cd43eff827d4dbaaea45e14cf272702: succeeded; effect=applied health=passed generation=5",
+            "error": "",
+            "operation_id": "d6d23463f449555e40e583c5c02899f8",
+            "stopped": false,
+            "outcome_unknown": false,
+            "release_evidence": {
+              "operation_id": "deploy-7cd43eff827d4dbaaea45e14cf272702",
+              "request_sha256": "f7865f48ed16e69e35e00d510347f4208c813f9047331877becbab49811eab08",
+              "evidence_sha256": "49bdaf8a398dcb4e41f552f7aebb581af8544f65521a1206804ef1c7bd77a1c6",
+              "version": 6
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "sequence": 130,
+          "node_id": "",
+          "event_type": "run_created",
+          "at_time": "2026-10-24T01:33:29Z",
+          "data": {
+            "workflow_version": 1
+          }
+        },
+        {
+          "sequence": 131,
+          "node_id": "deploy",
+          "event_type": "node_ready",
+          "at_time": "2026-10-24T01:33:29Z",
+          "data": {
+            "attempt": 0,
+            "fence": 0,
+            "previous_state": "pending",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 132,
+          "node_id": "deploy",
+          "event_type": "node_running",
+          "at_time": "2026-10-24T01:33:30Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "ready",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 133,
+          "node_id": "deploy",
+          "event_type": "node_progress",
+          "at_time": "2026-10-24T01:33:30Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "release deploy-7cd43eff827d4dbaaea45e14cf272702: state=received effect=not_started health=not_checked generation=5",
+            "operation_id": "9727621c4721fed314cd7dc5c40efeeabfd5f853a24fad583614ef28849a44b5",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 135,
+          "node_id": "deploy",
+          "event_type": "node_progress",
+          "at_time": "2026-10-24T01:33:30Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "release deploy-7cd43eff827d4dbaaea45e14cf272702: state=succeeded effect=applied health=passed generation=5",
+            "operation_id": "53e5efa8ed36b80d7fcdec3a4895ed2901d774cd4add0c53d7500ff31bf9a0bf",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 136,
+          "node_id": "deploy",
+          "event_type": "node_succeeded",
+          "at_time": "2026-10-24T01:33:30Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "running",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 137,
+          "node_id": "",
+          "event_type": "run_succeeded",
+          "at_time": "2026-10-24T01:33:30Z",
+          "data": null
+        }
+      ]
+    },
+    {
+      "id": "8b003d1583f6608390601a76dbebb43e",
+      "workflow_id": "managed-8b003d1583f6608390601a76dbebb43e",
+      "workflow_version": 1,
+      "workflow_name": "受控发布 d405d06c26ae86c1de12be38b4a640a0",
+      "version": 3,
+      "state": "failed",
+      "created_at": "2026-10-24T01:31:52Z",
+      "updated_at": "2026-10-24T01:31:53Z",
+      "attempts": [
+        {
+          "node_id": "deploy",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "state": "failed",
+          "started_at": "2026-10-24T01:31:53Z",
+          "completed_at": "2026-10-24T01:31:53Z",
+          "result": {
+            "run_id": "8b003d1583f6608390601a76dbebb43e",
+            "node_id": "deploy",
+            "attempt": 1,
+            "fence": 1,
+            "worker_id": "release-browser-worker",
+            "exit_code": 1,
+            "output": "release operation deploy-04214408183a45d6ff4551aed9761aed: failed; effect=applied health=failed generation=4",
+            "error": "release provider operation failed",
+            "operation_id": "18a3543c99fa6c5fdc1871e87f9f9138",
+            "stopped": false,
+            "outcome_unknown": false,
+            "release_evidence": {
+              "operation_id": "deploy-04214408183a45d6ff4551aed9761aed",
+              "request_sha256": "047f2d7a89bc67d6eb3f52987dd054befc9622b03e936be1a2de5dd066bcf0ed",
+              "evidence_sha256": "865e0275c3ac72e86fdb4681952c6151f0fd38a548774400a1944bddd30a2000",
+              "version": 6
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "sequence": 119,
+          "node_id": "",
+          "event_type": "run_created",
+          "at_time": "2026-10-24T01:31:52Z",
+          "data": {
+            "workflow_version": 1
+          }
+        },
+        {
+          "sequence": 120,
+          "node_id": "deploy",
+          "event_type": "node_ready",
+          "at_time": "2026-10-24T01:31:52Z",
+          "data": {
+            "attempt": 0,
+            "fence": 0,
+            "previous_state": "pending",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 121,
+          "node_id": "deploy",
+          "event_type": "node_running",
+          "at_time": "2026-10-24T01:31:53Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "ready",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 122,
+          "node_id": "deploy",
+          "event_type": "node_progress",
+          "at_time": "2026-10-24T01:31:53Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "release deploy-04214408183a45d6ff4551aed9761aed: state=received effect=not_started health=not_checked generation=4",
+            "operation_id": "becb2aedf797e6ff409d7751fd09c85edb88075a3bdbe4d6bb7e5377b6bb0b09",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 124,
+          "node_id": "deploy",
+          "event_type": "node_progress",
+          "at_time": "2026-10-24T01:31:53Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "release deploy-04214408183a45d6ff4551aed9761aed: state=failed effect=applied health=failed generation=4",
+            "operation_id": "0b2cc3e799723e6c49f43679b726cde7c9d98acf0bf6dc421d1fe9c3a4d96b0e",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 125,
+          "node_id": "deploy",
+          "event_type": "node_failed",
+          "at_time": "2026-10-24T01:31:53Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "running",
+            "reason": "release provider operation failed"
+          }
+        },
+        {
+          "sequence": 126,
+          "node_id": "",
+          "event_type": "run_failed",
+          "at_time": "2026-10-24T01:31:53Z",
+          "data": null
+        }
+      ]
+    },
+    {
+      "id": "db18f1c5bb9c49c5733e2eb76d5575a2",
+      "workflow_id": "b6f46366db875b3aa2c49cfc181f2c99",
+      "workflow_version": 1,
+      "workflow_name": "真实制品发布 A",
+      "version": 7,
+      "state": "succeeded",
+      "created_at": "2026-10-23T17:25:14Z",
+      "updated_at": "2026-10-23T17:25:20Z",
+      "attempts": [
+        {
+          "node_id": "build",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "state": "succeeded",
+          "started_at": "2026-10-23T17:25:17Z",
+          "completed_at": "2026-10-23T17:25:19Z",
+          "result": {
+            "run_id": "db18f1c5bb9c49c5733e2eb76d5575a2",
+            "node_id": "build",
+            "attempt": 1,
+            "fence": 1,
+            "worker_id": "release-browser-worker",
+            "exit_code": 0,
+            "output": "built immutable site bytes 1198\n",
+            "error": "",
+            "operation_id": "02ca94f1c443e272893167ef47929154",
+            "stopped": false,
+            "outcome_unknown": false,
+            "workspace_evidence": {
+              "admin_base_commit": "285e78f217245baea199b448d83a9035de15ced1",
+              "attempt_key": "edf2b84ba80fac151b6a9693da895365",
+              "base_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+              "candidate_attempt": 1,
+              "candidate_evidence_sha256": "1053665ac842a89ad394fc38defeb56a4d955d6cb8c77108dae107c164a738f4",
+              "candidate_fence": 1,
+              "candidate_from": "develop",
+              "captured_at": "2026-10-23T17:25:19.3252831Z",
+              "changed_paths": [],
+              "changed_paths_total": 0,
+              "changed_paths_truncated": false,
+              "clean": true,
+              "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "evidence_sha256": "563fbb7f1126b8318fcb1e7df95c9909bcfe2068c67da96f6ed96c8acc9e8e8f",
+              "exit_code": 0,
+              "head_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+              "outcome_unknown": false,
+              "state": "completed",
+              "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "test_command": false,
+              "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+            },
+            "artifact_evidence": {
+              "kind": "build",
+              "artifact_id": "5274973540c428c6f0ce04e1fd994765",
+              "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+              "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+              "profile_id": "release-build",
+              "profile_sha256": "c936c372da030895d69b2715d91c2e396a7905442e58aad96ab219831bf885e6"
+            }
+          }
+        },
+        {
+          "node_id": "develop",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "state": "succeeded",
+          "started_at": "2026-10-23T17:25:16Z",
+          "completed_at": "2026-10-23T17:25:17Z",
+          "result": {
+            "run_id": "db18f1c5bb9c49c5733e2eb76d5575a2",
+            "node_id": "develop",
+            "attempt": 1,
+            "fence": 1,
+            "worker_id": "release-browser-worker",
+            "exit_code": 0,
+            "output": "committed fixture source A\n",
+            "error": "",
+            "operation_id": "f2a62acf45e91fffbe77adff10f74c0f",
+            "stopped": false,
+            "outcome_unknown": false,
+            "workspace_evidence": {
+              "admin_base_commit": "285e78f217245baea199b448d83a9035de15ced1",
+              "attempt_key": "bcf907b69aac7dafb963c9a247e9d3df",
+              "base_commit": "285e78f217245baea199b448d83a9035de15ced1",
+              "captured_at": "2026-10-23T17:25:17.9047493Z",
+              "changed_paths": [
+                "site.html"
+              ],
+              "changed_paths_total": 1,
+              "changed_paths_truncated": false,
+              "clean": true,
+              "diff_sha256": "3907917785a58a33add7d253a661a493c091bc57a6a54440bb4a037f30c492b3",
+              "evidence_sha256": "1053665ac842a89ad394fc38defeb56a4d955d6cb8c77108dae107c164a738f4",
+              "exit_code": 0,
+              "head_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+              "outcome_unknown": false,
+              "state": "completed",
+              "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "test_command": false,
+              "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+            }
+          }
+        },
+        {
+          "node_id": "package-test",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "state": "succeeded",
+          "started_at": "2026-10-23T17:25:19Z",
+          "completed_at": "2026-10-23T17:25:20Z",
+          "result": {
+            "run_id": "db18f1c5bb9c49c5733e2eb76d5575a2",
+            "node_id": "package-test",
+            "attempt": 1,
+            "fence": 1,
+            "worker_id": "release-browser-worker",
+            "exit_code": 0,
+            "output": "PASS actual package GET /index.html = pinned source; bytes 1198\n",
+            "error": "",
+            "operation_id": "4085e539f57745b198db9a5f978fb7dc",
+            "stopped": false,
+            "outcome_unknown": false,
+            "workspace_evidence": {
+              "admin_base_commit": "285e78f217245baea199b448d83a9035de15ced1",
+              "attempt_key": "a8979cb7ee680a561c6140a3ec9b2e69",
+              "base_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+              "captured_at": "2026-10-23T17:25:20.9849879Z",
+              "changed_paths": [],
+              "changed_paths_total": 0,
+              "changed_paths_truncated": false,
+              "clean": true,
+              "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "evidence_sha256": "76f36c00041a750b762ab9d08ba53634c191f2b72d0b366fb0d324ae32321119",
+              "exit_code": 0,
+              "head_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+              "outcome_unknown": false,
+              "state": "completed",
+              "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "test_command": true,
+              "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+            },
+            "artifact_evidence": {
+              "kind": "package_test",
+              "artifact_id": "5274973540c428c6f0ce04e1fd994765",
+              "manifest_sha256": "51f9b748643326bb781ed67c711a6343b9e5ec1aa26c6315d46a0120e86dc7d4",
+              "source_commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+              "profile_id": "release-package-test",
+              "profile_sha256": "5b617c14d902da8024333dbeb61253bd107e4d4a2d047796dad3d8101fb748d3"
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "sequence": 53,
+          "node_id": "",
+          "event_type": "run_created",
+          "at_time": "2026-10-23T17:25:14Z",
+          "data": {
+            "workflow_version": 1
+          }
+        },
+        {
+          "sequence": 54,
+          "node_id": "develop",
+          "event_type": "node_ready",
+          "at_time": "2026-10-23T17:25:14Z",
+          "data": {
+            "attempt": 0,
+            "fence": 0,
+            "previous_state": "pending",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 55,
+          "node_id": "develop",
+          "event_type": "node_running",
+          "at_time": "2026-10-23T17:25:16Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "ready",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 56,
+          "node_id": "develop",
+          "event_type": "node_progress",
+          "at_time": "2026-10-23T17:25:17Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "committed fixture source A\n",
+            "operation_id": "0b8ad9c6062b0842e974c1743b11613c56d8e054fd894acba81f171ea0a0cbbb",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 57,
+          "node_id": "develop",
+          "event_type": "node_succeeded",
+          "at_time": "2026-10-23T17:25:17Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "running",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 58,
+          "node_id": "build",
+          "event_type": "node_ready",
+          "at_time": "2026-10-23T17:25:17Z",
+          "data": {
+            "attempt": 0,
+            "fence": 0,
+            "previous_state": "pending",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 59,
+          "node_id": "build",
+          "event_type": "candidate_pinned",
+          "at_time": "2026-10-23T17:25:17Z",
+          "data": {
+            "attempt": 1,
+            "commit": "0ab994b556bba6b329c56ef897602f308769b24c",
+            "evidence_sha256": "1053665ac842a89ad394fc38defeb56a4d955d6cb8c77108dae107c164a738f4",
+            "source_attempt": 1,
+            "source_fence": 1,
+            "source_node": "develop"
+          }
+        },
+        {
+          "sequence": 60,
+          "node_id": "build",
+          "event_type": "node_running",
+          "at_time": "2026-10-23T17:25:17Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "ready",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 61,
+          "node_id": "build",
+          "event_type": "node_progress",
+          "at_time": "2026-10-23T17:25:18Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "built immutable site bytes 1198\n",
+            "operation_id": "5a180c3ec7d4e6197ac9a2ca173c57275f37297977762a4085c76a3119a2116d",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 62,
+          "node_id": "build",
+          "event_type": "node_succeeded",
+          "at_time": "2026-10-23T17:25:19Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "running",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 63,
+          "node_id": "package-test",
+          "event_type": "node_ready",
+          "at_time": "2026-10-23T17:25:19Z",
+          "data": {
+            "attempt": 0,
+            "fence": 0,
+            "previous_state": "pending",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 64,
+          "node_id": "package-test",
+          "event_type": "node_running",
+          "at_time": "2026-10-23T17:25:19Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "ready",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 65,
+          "node_id": "package-test",
+          "event_type": "node_progress",
+          "at_time": "2026-10-23T17:25:20Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "PASS actual package GET /index.html = pinned source; bytes 1198\n",
+            "operation_id": "3e2c4432062b723c5dec1c316414b2db77e6e6391689d23ac7bc799813208225",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 66,
+          "node_id": "package-test",
+          "event_type": "node_succeeded",
+          "at_time": "2026-10-23T17:25:20Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "running",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 67,
+          "node_id": "",
+          "event_type": "run_succeeded",
+          "at_time": "2026-10-23T17:25:20Z",
+          "data": null
+        }
+      ]
+    },
+    {
+      "id": "de3df5b023af446f105f51396a5c2ffe",
+      "workflow_id": "managed-de3df5b023af446f105f51396a5c2ffe",
+      "workflow_version": 1,
+      "workflow_name": "受控发布 dbcc9046ff07a918b48145dcec2230d7",
+      "version": 3,
+      "state": "succeeded",
+      "created_at": "2026-10-24T01:28:03Z",
+      "updated_at": "2026-10-24T01:28:05Z",
+      "attempts": [
+        {
+          "node_id": "deploy",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "release-browser-worker",
+          "state": "succeeded",
+          "started_at": "2026-10-24T01:28:05Z",
+          "completed_at": "2026-10-24T01:28:05Z",
+          "result": {
+            "run_id": "de3df5b023af446f105f51396a5c2ffe",
+            "node_id": "deploy",
+            "attempt": 1,
+            "fence": 1,
+            "worker_id": "release-browser-worker",
+            "exit_code": 0,
+            "output": "release operation deploy-eb477b1a7d9b7179d382f7b1f0a918f6: succeeded; effect=applied health=passed generation=3",
+            "error": "",
+            "operation_id": "aca70fadeace27a55751563a0a42ef9d",
+            "stopped": false,
+            "outcome_unknown": false,
+            "release_evidence": {
+              "operation_id": "deploy-eb477b1a7d9b7179d382f7b1f0a918f6",
+              "request_sha256": "f7694755d52925f90e14a93aa9af475f8808543221028ebd4da7ccc4ac08ed3e",
+              "evidence_sha256": "b98eb469d5e370eaa2ec5a0a287f9bf92d879ba55bd0566144f9d7025ae25f5e",
+              "version": 6
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "sequence": 108,
+          "node_id": "",
+          "event_type": "run_created",
+          "at_time": "2026-10-24T01:28:03Z",
+          "data": {
+            "workflow_version": 1
+          }
+        },
+        {
+          "sequence": 109,
+          "node_id": "deploy",
+          "event_type": "node_ready",
+          "at_time": "2026-10-24T01:28:03Z",
+          "data": {
+            "attempt": 0,
+            "fence": 0,
+            "previous_state": "pending",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 110,
+          "node_id": "deploy",
+          "event_type": "node_running",
+          "at_time": "2026-10-24T01:28:05Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "ready",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 111,
+          "node_id": "deploy",
+          "event_type": "node_progress",
+          "at_time": "2026-10-24T01:28:05Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "release deploy-eb477b1a7d9b7179d382f7b1f0a918f6: state=received effect=not_started health=not_checked generation=3",
+            "operation_id": "366afeed1b303aef730391210bd269483f7242016d97b79471b6e692cde3535a",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 113,
+          "node_id": "deploy",
+          "event_type": "node_progress",
+          "at_time": "2026-10-24T01:28:05Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "message": "release deploy-eb477b1a7d9b7179d382f7b1f0a918f6: state=succeeded effect=applied health=passed generation=3",
+            "operation_id": "3e05520fe02e339af5bca404e04b7e8d645d4684add6d0d4c3efcabb2119f1ac",
+            "worker_id": "release-browser-worker"
+          }
+        },
+        {
+          "sequence": 114,
+          "node_id": "deploy",
+          "event_type": "node_succeeded",
+          "at_time": "2026-10-24T01:28:05Z",
+          "data": {
+            "attempt": 1,
+            "fence": 1,
+            "previous_state": "running",
+            "reason": ""
+          }
+        },
+        {
+          "sequence": 115,
+          "node_id": "",
+          "event_type": "run_succeeded",
+          "at_time": "2026-10-24T01:28:05Z",
+          "data": null
+        }
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "id": "231e06b4104b7fb957a1230a315c205c",
+      "version": 1,
+      "title": "执行失败：并行测试与人工交付",
+      "status": "open",
+      "run_id": "",
+      "data": {
+        "origin": "execution",
+        "run_id": "0a17a8fa1ee68c8b87096c5a542bb403"
+      }
+    },
+    {
+      "id": "4f8e891c487d4a98169e940987d59736",
+      "version": 1,
+      "title": "执行失败：固定候选与并行质量验收",
+      "status": "open",
+      "run_id": "",
+      "data": {
+        "origin": "execution",
+        "run_id": "b3aed192e84f83fdee6537fada20516a"
+      }
+    },
+    {
+      "id": "549b1f6d66f5721d81ebcb4d88e2c6c0",
+      "version": 1,
+      "title": "发布操作需要处理 deploy-4e2f6338752e76ef9f1b09e4f8894c4a",
+      "status": "open",
+      "run_id": "530735003c4769cd3a2cb0c284fe96b4",
+      "data": {
+        "effect_state": "applied",
+        "health_state": "failed",
+        "provider_evidence_sha256": "3b176bec6f1774a5a0a1671acc8e6543ea322553186018a7f8296053ac2eb0fc",
+        "release_operation_id": "deploy-4e2f6338752e76ef9f1b09e4f8894c4a",
+        "release_plan_id": "45130731abd5e48d06b2460fa9ff41ed"
+      }
+    },
+    {
+      "id": "712de91d2b51f7e8b42305fac04fcc98",
+      "version": 1,
+      "title": "执行失败：受控发布 45130731abd5e48d06b2460fa9ff41ed",
+      "status": "open",
+      "run_id": "",
+      "data": {
+        "origin": "execution",
+        "run_id": "530735003c4769cd3a2cb0c284fe96b4"
+      }
+    },
+    {
+      "id": "b68201780e5ab41d6bed0718a2b9e3ee",
+      "version": 1,
+      "title": "发布操作需要处理 deploy-04214408183a45d6ff4551aed9761aed",
+      "status": "open",
+      "run_id": "8b003d1583f6608390601a76dbebb43e",
+      "data": {
+        "effect_state": "applied",
+        "failure_source": "provider",
+        "health_state": "failed",
+        "origin": "release",
+        "provider_evidence_sha256": "865e0275c3ac72e86fdb4681952c6151f0fd38a548774400a1944bddd30a2000",
+        "release_operation_id": "deploy-04214408183a45d6ff4551aed9761aed",
+        "release_plan_id": "d405d06c26ae86c1de12be38b4a640a0"
+      }
+    }
+  ],
+  "requirements": [
+    {
+      "id": "e8514e0a9d8cac811c0ee67da9d682f1",
+      "version": 1,
+      "title": "实现可追溯的并行研发交付",
+      "status": "todo",
+      "data": {}
+    },
+    {
+      "id": "5ccd68dafff112d75b942780b9a68fb1",
+      "version": 1,
+      "title": "执行失败：并行测试与人工交付",
+      "status": "draft",
+      "data": {
+        "source": {
+          "origin": "execution",
+          "run_id": "0a17a8fa1ee68c8b87096c5a542bb403"
+        },
+        "source_issue_id": "231e06b4104b7fb957a1230a315c205c"
+      }
+    },
+    {
+      "id": "1fe813f7d76a885d1d978f674cb1da86",
+      "version": 1,
+      "title": "发布操作需要处理 deploy-4e2f6338752e76ef9f1b09e4f8894c4a",
+      "status": "draft",
+      "data": {
+        "source": {
+          "effect_state": "applied",
+          "health_state": "failed",
+          "provider_evidence_sha256": "3b176bec6f1774a5a0a1671acc8e6543ea322553186018a7f8296053ac2eb0fc",
+          "release_operation_id": "deploy-4e2f6338752e76ef9f1b09e4f8894c4a",
+          "release_plan_id": "45130731abd5e48d06b2460fa9ff41ed"
+        },
+        "source_issue_id": "549b1f6d66f5721d81ebcb4d88e2c6c0"
+      }
+    },
+    {
+      "id": "931b4e83fceb8fd6fa9a43f93461eeea",
+      "version": 1,
+      "title": "发布操作需要处理 deploy-04214408183a45d6ff4551aed9761aed",
+      "status": "draft",
+      "data": {
+        "source": {
+          "effect_state": "applied",
+          "failure_source": "provider",
+          "health_state": "failed",
+          "origin": "release",
+          "provider_evidence_sha256": "865e0275c3ac72e86fdb4681952c6151f0fd38a548774400a1944bddd30a2000",
+          "release_operation_id": "deploy-04214408183a45d6ff4551aed9761aed",
+          "release_plan_id": "d405d06c26ae86c1de12be38b4a640a0"
+        },
+        "source_issue_id": "b68201780e5ab41d6bed0718a2b9e3ee"
+      }
+    }
+  ],
+  "regression": {
+    "postfix_operation_id": "deploy-04214408183a45d6ff4551aed9761aed",
+    "canonical_issue_id": "b68201780e5ab41d6bed0718a2b9e3ee",
+    "issue_count": 1,
+    "intake_requirement_id": "931b4e83fceb8fd6fa9a43f93461eeea",
+    "intake_count_after_browser_refresh_and_replay": 1,
+    "pre_fix_duplicate_preserved": true
+  },
+  "site": {
+    "url": "http://127.0.0.1:4426/",
+    "status_code": 200,
+    "bytes": 1198,
+    "sha256": "893919d3c154399cb901cceca47bfc477ac94974a16423d2c7feede70105b741",
+    "active_generation": 5
+  },
+  "original_checkout": {
+    "head": "285e78f217245baea199b448d83a9035de15ced1",
+    "matches_admin_base": true,
+    "clean": true
+  },
+  "runtime_binaries": [
+    {
+      "file": ".cache/bin/suma-control-p5-formatted.exe",
+      "bytes": 24480256,
+      "sha256": "bcfbbf2b8ab7e39d8cf8bfd9d0ac3c2a36ab62f71cd76465fbf7737d7806b4f9"
+    },
+    {
+      "file": ".cache/bin/suma-runner-p5-final.exe",
+      "bytes": 9798144,
+      "sha256": "9cfd758211fee9d03514d63044ee4d9e9faaf70758d76b1586a984425110b288"
+    },
+    {
+      "file": ".cache/bin/suma-deployer-p5-final.exe",
+      "bytes": 16125952,
+      "sha256": "f8f6a32145d7679bbd6d04f7496c806e7e5c4f3afc8d84ee9ce8ce5098e8a433"
+    }
+  ],
+  "runtime_batch": "20261024T014255637Z-2381ecce",
+  "runtime_matches_manifest": true
+}

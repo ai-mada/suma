@@ -1,0 +1,8 @@
+{
+  "verified_with": "docs/quality/evidence/candidate-browser-execution.json",
+  "scope": "Windows Runner with isolated attempts, progress replay, candidate handoff and explicit Windows execution environment",
+  "at": "2026-10-23T16:32:03.7964464Z",
+  "sha256": "9838ac7a22ab7a7390a4686ee61768e7bf7203664bd3d8c71bbe84429c34a698",
+  "path": "dist/runner/suma-runner.exe",
+  "bytes": 9651712
+}

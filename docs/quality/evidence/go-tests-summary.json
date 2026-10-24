@@ -1,0 +1,31 @@
+{
+  "captured_at": "2026-10-23T13:37:08.1649179Z",
+  "top_level_tests": 103,
+  "vet": "passed",
+  "packages": [
+    {
+      "Package": "github.com/ai-mada/suma/internal/cli",
+      "Elapsed": 0.365
+    },
+    {
+      "Package": "github.com/ai-mada/suma/internal/store",
+      "Elapsed": 0.286
+    },
+    {
+      "Package": "github.com/ai-mada/suma/internal/dag",
+      "Elapsed": 2.178
+    },
+    {
+      "Package": "github.com/ai-mada/suma/internal/platform",
+      "Elapsed": 3.561
+    },
+    {
+      "Package": "github.com/ai-mada/suma/internal/runner",
+      "Elapsed": 4.035
+    }
+  ],
+  "result": "passed",
+  "command": "go test ./... -count=1 -json; go vet ./...",
+  "test_cases": 108,
+  "environment": "Windows amd64 Go1.24.5; process-local cache/temp"
+}

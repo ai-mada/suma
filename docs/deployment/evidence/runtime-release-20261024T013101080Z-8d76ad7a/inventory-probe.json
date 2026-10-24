@@ -1,0 +1,13 @@
+{
+  "syntax": "passed",
+  "programs": [
+    "suma-control",
+    "suma-runner",
+    "suma-deployer",
+    "suma"
+  ],
+  "source_file_count": 87,
+  "deployer_entry": "cmd/suma-deployer/main.go",
+  "shared_contract": "internal/releasecontract",
+  "result": "passed"
+}

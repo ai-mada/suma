@@ -1,0 +1,246 @@
+{
+  "review": "governance_planning_candidate_authority",
+  "recorded_at_utc": "2026-10-23T15:57:58.1551954Z",
+  "review_status": "completed_at_parent_requested_scope_boundary",
+  "scope": {
+    "real_backend": "SQLite",
+    "browser_owned_by": "root",
+    "external_model_calls": false,
+    "source_hashes": "observed after final existing-probe rerun; final suite and packaging owned by root",
+    "synthetic_candidate_results": "state-machine probes only; not proof of code execution, merge, or production acceptance",
+    "unverified_backends": [
+      "PostgreSQL real cluster",
+      "OceanBase real cluster"
+    ]
+  },
+  "environment": {
+    "GOCACHE": "D:/codes/ai-dev-os/suma/.cache/go-build",
+    "GOTMPDIR": "D:/codes/ai-dev-os/suma/.cache",
+    "TEMP": "D:/codes/ai-dev-os/suma/.cache/test-tmp",
+    "TMP": "D:/codes/ai-dev-os/suma/.cache/test-tmp"
+  },
+  "reviewed_source_hashes": [
+    {
+      "path": "internal/platform/governance.go",
+      "sha256": "b241d2d969c32610d20016d6c25ef49c45c011ad2d2db96862fac481952bdfd1"
+    },
+    {
+      "path": "internal/platform/governance_invitations.go",
+      "sha256": "b52de6c3a82ba6a49a119ece78b864e212382b17eab303ca01a371cd3f7134f6"
+    },
+    {
+      "path": "internal/platform/governance_teams.go",
+      "sha256": "344b4d454cfc584c62747543f5a1643ae7aaa59900b95535acacca01ba004a56"
+    },
+    {
+      "path": "internal/platform/governance_test.go",
+      "sha256": "5173b4e67c9114e426c5fe85e5a5a0752402948f5ac48a2501a5f847a1c9fb5c"
+    },
+    {
+      "path": "internal/platform/planning.go",
+      "sha256": "edba75033274b45cc37df47b2cbe604192859d7e682a5e2e839a97374e40766f"
+    },
+    {
+      "path": "internal/platform/planning_read.go",
+      "sha256": "86ee2578c607ef7dcf1ead4fb330a8984b39f0d4a58cbfbb7834a4fe70e2e1f7"
+    },
+    {
+      "path": "internal/platform/planning_invalidation.go",
+      "sha256": "9975c413b123b283b14696cd75652e7aba4b1f05dc59096d569f0c738a0de8ed"
+    },
+    {
+      "path": "internal/platform/planning_test.go",
+      "sha256": "b764b442c6be93df33e610ef3c1a15a422c1f6b604abc6cae35d6bf877dab495"
+    },
+    {
+      "path": "internal/platform/baselines.go",
+      "sha256": "360450cb07d9e821e25e6d929ebf1a26b59fb979c1a8e7c7648f9691ef0081a6"
+    },
+    {
+      "path": "internal/platform/transaction_authority.go",
+      "sha256": "e946bff1079130488f666af9cca98966a09824a78d33676fb32f1f8e40898c4d"
+    },
+    {
+      "path": "internal/platform/transaction_authority_test.go",
+      "sha256": "6c9217fa75faf3ff567e24963c90120ec2a74c507acb5296ea9047f20ecccefb"
+    },
+    {
+      "path": "internal/platform/workspace_evidence.go",
+      "sha256": "de2d62b53c0a212e682df17b8564ee0d3ae604a5f8e20ed78c31bd5dec4c7124"
+    },
+    {
+      "path": "internal/platform/delivery.go",
+      "sha256": "df0dba017121f0e745de745c3762ab2e7fe03c9e14ea21e3c7700a0137a32688"
+    },
+    {
+      "path": "internal/dag/candidate.go",
+      "sha256": "323b9a59f58b18186c7656486ebc71f8ebb11700a529bb7cde310643fcc3b7a5"
+    },
+    {
+      "path": "internal/dag/candidate_test.go",
+      "sha256": "c0bafb026a71293e14bff6e50ea0b73d78428c9a71a1bfd3081a44b1fa2caefa"
+    },
+    {
+      "path": "internal/dag/compiler.go",
+      "sha256": "5e75c135e5c9a90ba0412282d464c35b96c277adfa570fa6afbbcc865bf7e6f2"
+    },
+    {
+      "path": "internal/dag/scheduler.go",
+      "sha256": "950125cc0ae84e4669f8630abde5f96b5878e17c9d662b818bfe8496998430e3"
+    },
+    {
+      "path": "internal/dag/types.go",
+      "sha256": "3e5d76ebb5b38833afeff82369c405662d510ac67f0ed058afa5dd4b158cc4ea"
+    }
+  ],
+  "planning_fixes": {
+    "status": "verified",
+    "findings": [
+      "exclude dated work outside selected capacity week",
+      "missing available_hours rejected while explicit null allowed",
+      "wrong planning string types rejected without metadata loss",
+      "revoked human resources excluded from current capacity and new capacity writes; history preserved"
+    ],
+    "tests": [
+      {
+        "command": "go test ./internal/platform -run 'TestCapacityCountsOnlyWorkInSelectedCalendarWeek|TestCapacityRequiresExplicitHours|TestPlanningPeriodRejectsWrongStringTypes|TestCapacityExcludesRevokedHumans' -count=1",
+        "result": "passed",
+        "elapsed_seconds": 1.283
+      },
+      {
+        "command": "go test ./internal/platform -run 'TestPlanning|TestBaseline|TestCapacity|TestCompletedPlanning|TestProjectHumanIdentity|TestGovernance' -count=1",
+        "result": "passed",
+        "elapsed_seconds": 4.79
+      }
+    ],
+    "probe": {
+      "capacity_after_omission": 40,
+      "cross_tenant_baseline_status": 404,
+      "cross_tenant_capacity_status": 404,
+      "cross_tenant_capture_status": 404,
+      "description_after_wrong_type": "preserve this description",
+      "fixture_path": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\planning-round2-3322232985\\review.sqlite",
+      "fixture_sha256": "a433590acbaa8a96c0aad9ebaadd603aa73d76949141cdd864ccb716cbea10f3",
+      "missing_capacity_hours_api_status": 400,
+      "removed_organization_member_still_has_40h_capacity": false,
+      "scope": "standalone disposable SQLite review fixture; no source edits; no browser",
+      "unestimated_inside_task_week": 1,
+      "unestimated_outside_task_week": 0,
+      "wrong_description_type_api_status": 400
+    }
+  },
+  "candidate_fixes": {
+    "status": "verified_by_same_independent_probe",
+    "findings": [
+      "Stopped cannot bypass successful candidate validation",
+      "candidate_from source remains pending until terminal even after any_success readiness",
+      "successful test evidence must match frozen source node/attempt/fence/hash",
+      "cancelling with unknown effects remains unresolved"
+    ],
+    "tests": [
+      {
+        "command": "go test ./internal/dag -run 'TestCandidate|TestCompensation|TestSubworkflow' -count=1",
+        "result": "passed",
+        "elapsed_seconds": 0.933
+      }
+    ],
+    "probe": {
+      "any_success_early_test_assignment": false,
+      "any_success_source_state": "running",
+      "any_success_test_state": "ready",
+      "cancelled_unknown_effect_node_state": "reconciling",
+      "cancelled_unknown_effect_run_state": "cancelling",
+      "fixture_path": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\candidate-review-3663291752\\review.sqlite",
+      "fixture_sha256": "1649a6dc4c61b6efa69a0425e81b64a16d0dbeb93af0ba4a3354164153589ca7",
+      "frozen_lineage_commit": "cccccccccccccccccccccccccccccccccccccccc",
+      "scope": "synthetic scheduler results in isolated SQLite fixture; does not certify code execution",
+      "stopped_wrong_commit_result": "invalid",
+      "stopped_wrong_commit_run_state": "running",
+      "wrong_lineage_result": "invalid",
+      "wrong_lineage_run_state": "running"
+    }
+  },
+  "authority_fixes": {
+    "status": "verified",
+    "findings": [
+      "recheck live reviewer authority under organization lock before successful receipt replay and formal mutation",
+      "real concurrent role demotion returns 403 and leaves task unchanged",
+      "role demotion after short receipt transaction is rechecked before final write transaction",
+      "successful review receipt cannot replay after concurrent revocation"
+    ],
+    "lock_order_review": "formal mutation acquires organization authority before scheduler lock; short receipt transaction ends before GetRun",
+    "tests": [
+      {
+        "command": "go test ./internal/platform -run 'TestReviewRechecksAuthorityAfterConcurrentProjectRoleRevocation|TestReviewSuccessReceiptCannotReplayAfterConcurrentRoleRevocation' -count=1",
+        "result": "passed",
+        "elapsed_seconds": 0.724
+      },
+      {
+        "command": "go test ./internal/platform -run 'TestReviewRechecksAuthority|TestReviewSuccessReceiptCannotReplay|TestReviewRejectsWorkspaceCandidate|TestRunnerToReview|TestRunStartReplays' -count=1",
+        "result": "passed",
+        "elapsed_seconds": 1.275
+      }
+    ],
+    "probe": {
+      "fixture_path": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\review-permission-1712699274\\review.sqlite",
+      "fixture_sha256": "a644c164adb9ba368766098b9339b459dd32519c4d6dc73b4a64880c9b1bfd37",
+      "live_project_role_before_review_transaction": "viewer",
+      "review_api_status": 403,
+      "scope": "real invited reviewer demoted by owner via SaveProjectAccess after its authorization read; synthetic non-code test fixture, no code acceptance claim",
+      "task_status_after_review": "in_progress"
+    }
+  },
+  "open_findings_within_reviewed_scope": [],
+  "document": "docs/quality/candidate-authority-review.md",
+  "disposable_fixture_cleanup": [
+    {
+      "directory": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\candidate-review-1530157578",
+      "file": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\candidate-review-1530157578\\review.sqlite",
+      "size_bytes": 147456,
+      "sha256": "5d70d01a5873b0afcdebeef39034d89d7b77ae25693b9c0ce54e5d7b2128607c",
+      "removed": true
+    },
+    {
+      "directory": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\candidate-review-1910048260",
+      "file": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\candidate-review-1910048260\\review.sqlite",
+      "size_bytes": 139264,
+      "sha256": "babb1a397214e810986be1dd7b0ff4c16023e37fcc053c01895085b474b7a4d8",
+      "removed": true
+    },
+    {
+      "directory": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\candidate-review-2092048130",
+      "file": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\candidate-review-2092048130\\review.sqlite",
+      "size_bytes": 147456,
+      "sha256": "6562428de6d6b603361afdf4759325e306501e00f69c3aad639cb1a3929eba13",
+      "removed": true
+    },
+    {
+      "directory": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\candidate-review-3663291752",
+      "file": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\candidate-review-3663291752\\review.sqlite",
+      "size_bytes": 147456,
+      "sha256": "1649a6dc4c61b6efa69a0425e81b64a16d0dbeb93af0ba4a3354164153589ca7",
+      "removed": true
+    },
+    {
+      "directory": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\review-permission-1012747179",
+      "file": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\review-permission-1012747179\\review.sqlite",
+      "size_bytes": 466944,
+      "sha256": "7f8daa576ee3593ec43af48a91ef41f15c6afb7558070d6dee3bd6ec7487bf47",
+      "removed": true
+    },
+    {
+      "directory": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\review-permission-759986997",
+      "file": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\review-permission-759986997\\review.sqlite",
+      "size_bytes": 466944,
+      "sha256": "96926077e6d23bac5ad7087135a00876dac1ce692491735a41103b9bc533dd59",
+      "removed": true
+    },
+    {
+      "directory": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\review-permission-1712699274",
+      "file": "D:\\codes\\ai-dev-os\\suma\\.cache\\test-tmp\\review-permission-1712699274\\review.sqlite",
+      "size_bytes": 466944,
+      "sha256": "a644c164adb9ba368766098b9339b459dd32519c4d6dc73b4a64880c9b1bfd37",
+      "removed": true
+    }
+  ]
+}

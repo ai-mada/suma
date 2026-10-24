@@ -1,0 +1,52 @@
+services:
+  runner:
+    image: suma-runner:local
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: runner
+    init: true
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      control:
+        condition: service_healthy
+    env_file:
+      - path: ${SUMA_RUNNER_ENV_FILE:-.env.runner}
+        required: false
+    environment:
+      SUMA_RUNNER_TOKEN_FILE: /run/secrets/runner_token
+    secrets: [runner_token]
+    command:
+      - /usr/local/bin/suma-runner
+      - --control=http://control:4310
+      - --project=${SUMA_RUNNER_PROJECT:?set the authorized runner project ID}
+      - --worker=${SUMA_RUNNER_ID:?set a stable and unique runner worker ID}
+      - --workspace=/workspace
+      - --state=/var/lib/suma/runner
+      - --commands=/etc/suma/commands.json
+      - --allow-exec
+    volumes:
+      - runner_state:/var/lib/suma
+      - type: bind
+        source: ${SUMA_RUNNER_WORKSPACE:?set an existing absolute host workspace path}
+        target: /workspace
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${SUMA_RUNNER_ALLOWLIST:?set an existing absolute host allowlist JSON path}
+        target: /etc/suma/commands.json
+        read_only: true
+        bind:
+          create_host_path: false
+    tmpfs:
+      - /tmp:rw,nosuid,size=256m
+    stop_signal: SIGINT
+    stop_grace_period: 40s
+secrets:
+  runner_token:
+    file: ${SUMA_RUNNER_TOKEN_FILE:-./secrets/runner-token}
+volumes:
+  runner_state:

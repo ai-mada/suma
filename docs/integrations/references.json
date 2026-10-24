@@ -1,0 +1,83 @@
+{
+  "captured_at": "2026-10-23",
+  "multica": {
+    "url": "https://github.com/multica-ai/multica.git",
+    "local_path": "D:/codes/github/multica",
+    "local_head_preserved": "18fa9f728a9e25f2465df2789631edb2a75442ad",
+    "fetched_origin_main": "dbdbb299164347586e2650bb67684a490726a798",
+    "method": "git fetch origin main; worktree unchanged",
+    "use": "architecture and interaction reference; no source copied"
+  },
+  "oceanbase": {"baseline":"v4.4.2_CE_BP3","commit":"010580d","native_cluster_verified":false},
+  "other_references": [
+    "https://github.com/NousResearch/hermes-agent",
+    "https://github.com/anomalyco/opencode",
+    "https://github.com/zed-industries/zed",
+    "https://github.com/github/spec-kit",
+    "https://github.com/charmbracelet/bubbletea",
+    "https://github.com/deepseek-ai/deepseek-harness"
+  ],
+  "other_reference_status": "latest default-branch commits pinned through official GitHub API, selected README source fetched at each commit; full checkout and complete product integration remain pending",
+  "pinned_references": [
+  {
+    "repo": "NousResearch/hermes-agent",
+    "sha": "cb757fac59c92b49e9b8f2910e5cd7ab75efffdd",
+    "committed_at": "2026-10-23T12:22:26Z",
+    "url": "https://github.com/NousResearch/hermes-agent/commit/cb757fac59c92b49e9b8f2910e5cd7ab75efffdd",
+    "readme_blob": "1f5cfb9b49f78a09f94c04e12b38fec478dcc722",
+    "method": "GitHub API: pinned latest default-branch commit; README lines 1-120 fetched",
+    "full_checkout": false,
+    "code_integrated": false
+  },
+  {
+    "repo": "anomalyco/opencode",
+    "sha": "02671e66454260d77fe04d63cf5eb94e76921dee",
+    "committed_at": "2026-10-23T12:37:34Z",
+    "url": "https://github.com/anomalyco/opencode/commit/02671e66454260d77fe04d63cf5eb94e76921dee",
+    "readme_blob": "a8551f97c57f9140c4c2ce9f7c004dc4bc21954b",
+    "method": "GitHub API: pinned latest default-branch commit; README lines 1-120 fetched",
+    "full_checkout": false,
+    "code_integrated": false
+  },
+  {
+    "repo": "zed-industries/zed",
+    "sha": "e96ffb0fd3cc43ec56dcff421146f5e823b13841",
+    "committed_at": "2026-10-23T12:43:26Z",
+    "url": "https://github.com/zed-industries/zed/commit/e96ffb0fd3cc43ec56dcff421146f5e823b13841",
+    "readme_blob": "9f641fb3841909e9e1f6dbfb947f953c0a0c5ebf",
+    "method": "GitHub API: pinned latest default-branch commit; README lines 1-120 fetched",
+    "full_checkout": false,
+    "code_integrated": false
+  },
+  {
+    "repo": "github/spec-kit",
+    "sha": "27d14e20c187c1f2916540ea201ecbdc9f8ed588",
+    "committed_at": "2026-10-22T14:12:35Z",
+    "url": "https://github.com/github/spec-kit/commit/27d14e20c187c1f2916540ea201ecbdc9f8ed588",
+    "readme_blob": "0d6d47f276feeda1afc2fe98b3ae653cd4b40fb4",
+    "method": "GitHub API: pinned latest default-branch commit; README lines 1-120 fetched",
+    "full_checkout": false,
+    "code_integrated": false
+  },
+  {
+    "repo": "charmbracelet/bubbletea",
+    "sha": "f9df43c4f2c021d8740a2628d59cd810a862eb98",
+    "committed_at": "2026-10-08T17:38:55Z",
+    "url": "https://github.com/charmbracelet/bubbletea/commit/f9df43c4f2c021d8740a2628d59cd810a862eb98",
+    "readme_blob": "4d08d355bf1076e36b4f3843ed59a8a37e8d332c",
+    "method": "GitHub API: pinned latest default-branch commit; README lines 1-120 fetched",
+    "full_checkout": false,
+    "code_integrated": false
+  },
+  {
+    "repo": "deepseek-ai/deepseek-harness",
+    "sha": "687f282e8625c6b8d11ff58211a90524be2e4317",
+    "committed_at": "2026-10-17T07:22:43Z",
+    "url": "https://github.com/deepseek-ai/deepseek-harness/commit/687f282e8625c6b8d11ff58211a90524be2e4317",
+    "readme_blob": "7941e30f7bdca9391befe39b9115d211157fa42d",
+    "method": "GitHub API: pinned latest default-branch commit; README lines 1-120 fetched",
+    "full_checkout": false,
+    "code_integrated": false
+  }
+]
+}
