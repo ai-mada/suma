@@ -1,6 +1,10 @@
 # 当前交付证据索引
 
-## 当前 T-P4-008 自有工作台与诊断国际化
+## 当前 T-P4-009 受控平台诊断
+
+[专项报告](../backend-diagnostics-verification.md)及[精简摘要](../backend-diagnostics-summary.json)记录447＋10消息、AST合成负例／实际源覆盖、最终Go904／Web461／非Web30、24运行文件独立审计、真实6项双语拒绝检查、登录错误及44px入口和129表保持。原901检查因gate测试源变化未作为最终切面；原始日志、截图和数据库只留忽略目录`.cache/e2e/localization-stage-009/`。完整目标继续实施。
+
+## 历史 T-P4-008 自有工作台与诊断国际化
 
 [专项报告](../remaining-localization-verification.md)与[精简摘要](../remaining-localization-summary.json)记录最终Go811、Web461、非Web30、193／302输入及当前入口摘要，24运行程序审计、实际草稿／门禁／检索／Monaco和129表保持。原始日志／截图／私有快照只保存在忽略的`.cache/e2e/localization-stage-008/`，未随源码提交；首轮Windows清理失败与50次定向／全量复验分开保留。完整平台与其余国际化范围仍待实施。
 

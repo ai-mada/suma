@@ -8,9 +8,9 @@
   "workstreams": {
     "control_dag": "shared_pools_bilateral_grants_immutable_task_run_routes_hierarchical_weighted_admission_and_atomic_pool_project_resources_locally_verified_distributed_capacity_pending",
     "runtime": "independent_pool_machine_per_scope_worktrees_per_slot_durable_journals_actual_two_project_parallel_candidate_tests_and_drain_verified_real_vendor_models_pending",
-    "workbench": "modular_project_read_views_accurate_loaded_unknown_zero_facts_bilingual_automation_release_workspace_queue_tokens_and_error_recovery_partial_actual_four_width_drafts_and_monaco_worker_save_refresh_verified",
-    "architecture_documents": "domain_catalog_scoped_preferences_and_owned_workbench_diagnostics_design_current_compact_evidence_and_English_entry_updated_full_platform_docs_continue",
-    "internationalization": "frontend2798_backend123_remaining18_owned_legacy_modules_migrated_han_candidates0_structured_errors_and_actual_editor_verified_backend409_bounded_static_candidates_library_native_notification_installer_channel_docs_pending"
+    "workbench": "existing_professional_bilingual_workbench_plus_actual_login_failure_relocalization_and_separate44px_secondary_actions_in1280_and390_verified",
+    "architecture_documents": "controlled_diagnostic_architecture_contract_AST_scope_runtime_and_real_UI_acceptance_added_English_entry_updated_full_platform_docs_continue",
+    "internationalization": "frontend2798_backend580_exact447_static_plus10_parameterized_keys_same_cause_canonical_source_binding_bounded_AST546_sources12_producers_verified_other_packages_nonHan_rawDynamic_library_native_notification_installer_channel_docs_pending"
   },
   "verified": [
     "Go 281 pass events including subtests and process helpers; 8 tested packages plus 4 compiled command packages; vet passed",
@@ -64,13 +64,19 @@
     "T-P4-008: initial Go cleanup sharing violation remains unexplained; same-source targeted50pass and fresh full811pass recorded separately; no source weakening, skip or cleanup of original evidence",
     "T-P4-008: actual current B8N-EOXC entry34d53413b5400dd0de80fe9642612330560632c5d27efe01c31e1ba847fb6b80; partial390/768/1366/1920 drafts, loaded-scope overview, capability facts, candidate gate, query and focus checked; raw taskv3 preserved;129 SQLite tables and62 execution/artifact tables unchanged",
     "T-P4-008: actual separate generated hello.ts Monaco TypeScript error2322, language-preserved draft, corrected Ctrl+S save and refresh/reopen,142bytes SHA256 1e27a05e43be10291f667d816e24f957e3a1cec3e8eef0e42761abf08a9d196f;1 durable file operation/0runs;0 editor console warnings/errors; internal NLS remains English; fixture service stopped",
-    "T-P4-008: final24 runtime cut20261024T115841382Z-9d767094 source179 sha dc0c0712279a2f2f46636dc703c0d0f07e0cb3830a6395f300c342c3689a8262 independently audited36modules/8441cachefiles; current Windows8c2fde control activated, Runner not restarted"
+    "T-P4-008: final24 runtime cut20261024T115841382Z-9d767094 source179 sha dc0c0712279a2f2f46636dc703c0d0f07e0cb3830a6395f300c342c3689a8262 independently audited36modules/8441cachefiles; current Windows8c2fde control activated, Runner not restarted",
+    "T-P4-009: final Go904 pass events/0fail/0testskip/vet0 with315 unchanged inputs; Web461/41files/0fail/0pending, non-Web30, types/build0 with193 unchanged inputs; generated212models/152paths/1232refs check passed",
+    "T-P4-009: backend580 keys=123prior+447 exact static(control143/execution158/release146)+10 parameterized;12 dynamic producers preserve raw APIError/code/details and require same cause plus exact canonical source; mismatched-key RED fixed; caller params snapshot and invalid/extra/joined-cause boundaries independently verified",
+    "T-P4-009: AST gate83files658positions589Hanoccurrences546unique and12annotations/10keys,39 parserfixtures/41pass events; ambiguous constants and selector names fixed through RED;18nonHanstatic39rawdynamic outside scope; independent46/14/41 event cuts separate",
+    "T-P4-009: initial full Go901 tests/vet0 had changed gate test input and is not final; fresh904/315 stable cut recorded; actual Accept-only request correctly followed saved account/org preference, explicit-language final6 rejected HTTP checks passed without changing preferences",
+    "T-P4-009: current24 runtime cut20261024T125200490Z-8392a126 source184 sha01aed16b911f629330b2812b77b5a814d7c5bd845291e911d886384df7fe4eb5 independently verified36modules/8441cachefiles; Windowsa6cd75 control activated, Runner not restarted",
+    "T-P4-009: actual BY49gZhR entry8035c3e60993c448149d49f480380cd1cd4cc68abbb34503c43258d6a94f6a31,580public catalog, same login failure en/zh with input retained; final1280/390 secondary actions measured44px separate rows, Tab invitation, no horizontal overflow;129table and62execution/artifact hashes unchanged,0new business writes or executions"
   ],
   "production_integration_complete": false,
-  "current_evidence": "docs/quality/remaining-localization-summary.json",
-  "stage": "T-P4-008_owned_workbench_localization_and_workspace_diagnostics_locally_verified",
+  "current_evidence": "docs/quality/backend-diagnostics-summary.json",
+  "stage": "T-P4-009_controlled_backend_diagnostics_and_auth_interaction_locally_verified",
   "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
-  "next_step": "Continue full P0-P7 without reducing scope: migrate remaining backend diagnostics (409 unique source candidates in bounded45-file inventory), library/native controls, notification/installer/channel and complete bilingual documentation. Then safe claim receipt compaction/backoff/rate limits; real vendor tools, OceanBase/PostgreSQL distribution, enterprise SSO/custom RBAC, versioned plugins/skills/MCP/A2A, model gateway, collaboration/offline/media/office, production transport/installers/billing/scale and complete journey acceptance. Local stages do not constitute full platform or production acceptance.",
+  "next_step": "Continue full P0-P7 without reducing scope: classify18 non-Han static and39 raw dynamic diagnostics excluded by bounded platform AST gate, then other packages/display producers and Runner/native/config/library/control/notification/installer/channel/full bilingual documentation surfaces. Advance safe receipt compaction/backoff/rate limits; real vendor tool SDKs/models, OceanBase/PostgreSQL distribution, SSO/custom RBAC, versioned plugins/skills/MCP/A2A, model gateway, collaboration/offline/media/office, deployment/billing/installers/scale and complete journey acceptance. Full platform and production remain unaccepted.",
   "additional_requirements": [
     "FND-I18N-001: internationalization in every implemented surface; initially zh-CN/en-US, unified catalogs, preference/negotiation, formatting, API errors, CLI/desktop/extensions/notifications and docs; preserve user content and immutable evidence; coverage must be honestly verified",
     "Idea lifecycle, reusable function/menu governance, visual configuration, alerts and WeChat/DingTalk/WeCom channels remain full platform scope",

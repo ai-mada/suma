@@ -102,7 +102,7 @@ func (s *Service) planningLock(ctx context.Context, tx *sql.Tx, p Principal, pro
 func exactVersion(m map[string]any, key string, minimum int) error {
 	raw, exists := m[key]
 	if !exists {
-		return invalid("缺少" + key)
+		return invalidDiagnostic("validation.field_required", "缺少"+key, map[string]any{"field": key})
 	}
 	var v float64
 	switch value := raw.(type) {
@@ -113,10 +113,10 @@ func exactVersion(m map[string]any, key string, minimum int) error {
 	case int64:
 		v = float64(value)
 	default:
-		return invalid(key + "必须为整数")
+		return invalidDiagnostic("validation.field_integer", key+"必须为整数", map[string]any{"field": key})
 	}
 	if math.IsNaN(v) || math.IsInf(v, 0) || math.Trunc(v) != v || v < float64(minimum) || v > math.MaxInt32 {
-		return invalid(key + "必须为有效版本整数")
+		return invalidDiagnostic("validation.field_version_integer", key+"必须为有效版本整数", map[string]any{"field": key})
 	}
 	return nil
 }
@@ -193,7 +193,7 @@ func (s *Service) SavePlanningPeriod(ctx context.Context, p Principal, project, 
 	for _, field := range []string{"title", "description", "status", "start_date", "end_date", "target_date", "goal"} {
 		if value, exists := m[field]; exists {
 			if _, ok := value.(string); !ok {
-				return item, invalid(field + "必须为字符串")
+				return item, invalidDiagnostic("validation.field_string", field+"必须为字符串", map[string]any{"field": field})
 			}
 		}
 	}
@@ -333,7 +333,7 @@ func (s *Service) ScheduleTasks(ctx context.Context, p Principal, project string
 		}
 		for _, field := range []string{"iteration_id", "milestone_id", "start_date", "due_date"} {
 			if _, ok := change[field].(string); !ok {
-				return nil, invalid("排期必须包含完整字段：" + field)
+				return nil, invalidDiagnostic("validation.schedule_field_required", "排期必须包含完整字段："+field, map[string]any{"field": field})
 			}
 		}
 		if _, ok := change["estimated_hours"]; !ok {

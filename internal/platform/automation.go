@@ -139,7 +139,7 @@ func strictAutomation(m map[string]any, out any) error {
 	d := json.NewDecoder(bytes.NewReader(raw))
 	d.DisallowUnknownFields()
 	if err = d.Decode(out); err != nil {
-		return invalid("自动化字段或类型无效: " + err.Error())
+		return invalidDiagnostic("validation.automation_detail", "自动化字段或类型无效: "+err.Error(), map[string]any{"detail": err.Error()})
 	}
 	return nil
 }

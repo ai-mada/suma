@@ -1,0 +1,296 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-009",
+  "base_commit": "ebba5868118576934ddec9101b1ec93ffb7e6ce5",
+  "status": "locally_verified_stage_only",
+  "full_platform_complete": false,
+  "production_accepted": false,
+  "verified_at": "2026-10-24T13:16:19.804Z",
+  "localization": {
+    "frontend_keys_per_locale": 2798,
+    "backend_keys": 580,
+    "new_static_keys": 447,
+    "new_parameterized_keys": 10,
+    "domains": {
+      "control": 143,
+      "execution": 158,
+      "release": 146
+    },
+    "dynamic_producer_occurrences": 12,
+    "canonical_source_and_same_cause_required": true,
+    "raw_error_code_details_and_receipts_preserved": true
+  },
+  "gate": {
+    "scope": "internal/platform non-test diagnostic constructors and explicit release wrappers; not all backend surfaces",
+    "files": 83,
+    "positions": 658,
+    "static_han_occurrences": 589,
+    "static_han_unique": 546,
+    "annotated_dynamic_occurrences": 12,
+    "annotated_keys": 10,
+    "non_han_static_excluded": 18,
+    "raw_dynamic_excluded": 39,
+    "fixtures": 39,
+    "targeted_pass_events": 41,
+    "sha256": "f83191f80dba6c3f5bb8202a4120395313d88756ff2a66ccb9c005a5f62943d2"
+  },
+  "verification": {
+    "go": {
+      "pass_events": 904,
+      "failed_events": 0,
+      "test_skips": 0,
+      "vet_exit": 0,
+      "input_count": 315,
+      "input_manifest_sha256": "08ea9b6b6a190c47372e023bb88fdc3a93eab83d1924d5109f8816e031c12fbd",
+      "unchanged": true
+    },
+    "web": {
+      "passed": 461,
+      "failed": 0,
+      "pending": 0,
+      "files": 41,
+      "input_count": 193,
+      "input_manifest_sha256": "8a4fc68120535567a929a7849899b0460b759385b2f085c17370758e168ce5b8",
+      "unchanged": true,
+      "typecheck_exit": 0,
+      "non_web_passed": 30
+    },
+    "contract": {
+      "models": 212,
+      "paths": 152,
+      "refs": 1232,
+      "check_exit": 0
+    },
+    "build": {
+      "exit": 0,
+      "source_unchanged": true,
+      "assets": [
+        {
+          "url": "/assets/index-BY49gZhR.js",
+          "sha256": "8035c3e60993c448149d49f480380cd1cd4cc68abbb34503c43258d6a94f6a31"
+        },
+        {
+          "url": "/assets/index-DUAGU50N.css",
+          "sha256": "b13cc5714628648f00aff39083b3625a41deca5b01d28a48945e80e31d2322ed"
+        }
+      ],
+      "index_sha256": "6dc5c7e9d78d7c4216d2d09e93a86170829648e52ae012870e026af45a7b5360",
+      "limitations": [
+        "Existing emptyOutDir:false retains prior ignored assets. This receipt identifies current HTML entry assets, not a clean deployment archive.",
+        "Large Monaco/workflow chunk warnings are not performance acceptance."
+      ]
+    }
+  },
+  "runtime": {
+    "cut": "20261024T125200490Z-8392a126",
+    "files": 24,
+    "targets": 6,
+    "programs": 4,
+    "source_inputs": 184,
+    "source_sha256": "01aed16b911f629330b2812b77b5a814d7c5bd845291e911d886384df7fe4eb5",
+    "modules": 36,
+    "module_cache_files": 8441,
+    "windows_control_sha256": "a6cd75fe375e4891e0f8b0522ee48bfeffd251326a4699222d2edf54543f540d",
+    "windows_runner_sha256": "5e920312e5a5edbf1efadf5c4e753ad0bb49cf1c5981fa89bcb9fa040195bf33",
+    "actual_control_activated": true,
+    "runner_restarted": false,
+    "cross_platform_installs_verified": false
+  },
+  "actual": {
+    "http_checks": 6,
+    "requests": [
+      {
+        "path": "/auth/login",
+        "language": "zh-CN",
+        "status": 401,
+        "code": "invalid_credentials",
+        "key": "control.auth.credentials_invalid",
+        "localized": true
+      },
+      {
+        "path": "/automations/preview",
+        "language": "zh-CN",
+        "status": 400,
+        "code": "invalid_input",
+        "key": "validation.automation_detail",
+        "localized": true
+      },
+      {
+        "path": "/release-plans/preview",
+        "language": "zh-CN",
+        "status": 400,
+        "code": "invalid_input",
+        "key": "validation.release_detail",
+        "localized": true
+      },
+      {
+        "path": "/auth/login",
+        "language": "en-US",
+        "status": 401,
+        "code": "invalid_credentials",
+        "key": "control.auth.credentials_invalid",
+        "localized": true
+      },
+      {
+        "path": "/automations/preview",
+        "language": "en-US",
+        "status": 400,
+        "code": "invalid_input",
+        "key": "validation.automation_detail",
+        "localized": true
+      },
+      {
+        "path": "/release-plans/preview",
+        "language": "en-US",
+        "status": 400,
+        "code": "invalid_input",
+        "key": "validation.release_detail",
+        "localized": true
+      }
+    ],
+    "catalog_version": "2f9f004046903ef34534423b6426e505f4bc2d4b7cbb120a2825d1b1ecfd0881",
+    "login_ui": {
+      "viewports": [
+        1280,
+        390
+      ],
+      "languages": [
+        "zh-CN",
+        "en-US"
+      ],
+      "existing_failure_relocalized": true,
+      "email_retention": {
+        "original_dom_assertion": false,
+        "dom_sampling": "value is redacted before and after language change; equality assertion invalid",
+        "independent_visual_probe": true,
+        "probe_form_submitted": false
+      },
+      "before": "adjacent actions on the same row; 28px height",
+      "after": "separate rows; measured44px height",
+      "keyboard": "Tab reaches invitation after create-space action",
+      "page_horizontal_overflow": false,
+      "console_records": 0
+    },
+    "tables_unchanged": 129,
+    "protected_execution_artifact_tables": 62,
+    "table_manifest_sha256": "d12b0c0a67b6ecc812c9385b8c01d6df356b8e0872ef419da860abe4d7a0eafc",
+    "integrity": [
+      "ok"
+    ],
+    "successful_business_mutations": 0,
+    "vendor_executions": 0
+  },
+  "superseded_checks": {
+    "go": {
+      "passed": 901,
+      "failed": 0,
+      "vet_exit": 0,
+      "inputs_unchanged": false,
+      "reason": "new AST test source changed after independent review; not the final cut",
+      "saved_raw_file": "pre-gate-review-go-tests.jsonl",
+      "raw_sha256": "8af43e6264b151d8ea471a8cf58b4069bdc3cac6d2544657d9a0c111adb4498d"
+    },
+    "live": "Initial script used Accept-Language and incorrectly expected it to override saved human preferences. Product behavior was correct; explicit X-Suma-Language verified both languages."
+  },
+  "evidence": {
+    "ignored_local_root": ".cache/e2e/localization-stage-009/",
+    "files": [
+      {
+        "path": "go-verification.json",
+        "sha256": "ab8cc71114f642efe63de52e40c9a58bbcd814a701bf1c5c216cd9b43b9095e8"
+      },
+      {
+        "path": "go-tests.jsonl",
+        "sha256": "0c3099cec4e051d120936125c19e07d515a71e65b3de401e39492c3d9cdf1635"
+      },
+      {
+        "path": "web-verification.json",
+        "sha256": "bc546a15a958681d33da7d6cad2bb000c93ee05ca46206490679f9aeb3ba7994"
+      },
+      {
+        "path": "web-tests.json",
+        "sha256": "aaf578ec0e887f6bd0d659bed07fbbfa23e0d6aa1661e5d05613ba9487f19e40"
+      },
+      {
+        "path": "web-build-verification.json",
+        "sha256": "c08ee3e5d6c3d4546bacc74da2d5cca316caf6a9c68236ab079f33d6b6cfa8aa"
+      },
+      {
+        "path": "runtime-audit.json",
+        "sha256": "311651290dff8ffbb84d1628c8d28ee18f32235473a2dead064380ca2a6c7a6c"
+      },
+      {
+        "path": "gate/verification.json",
+        "sha256": "7dd18a2abecd2255cb212bf7c4628a8d941be9394a8939c7dc214b38f13b8cdc"
+      },
+      {
+        "path": "gate/review-summary.json",
+        "sha256": "7db6605f74384fb32640ada455101873de656eafa80d18c082cce06c0d380cef"
+      },
+      {
+        "path": "review-backend.json",
+        "sha256": "e12c3745d4ecc0239c736c307dcfedad5f7990415bf6a9fcb7daf4cc3d51d117"
+      },
+      {
+        "path": "live-readback.json",
+        "sha256": "d4843c5c10e6177df51849b0c8965f27a898faa5818199a76b2c8a230c525b07"
+      },
+      {
+        "path": "live-readback-initial-mismatch.json",
+        "sha256": "8c4a99749db53cf93af0e5b1fc81761e2e5cd6c3e39f54704ee82f854bd67f1f"
+      },
+      {
+        "path": "ui-facts.json",
+        "sha256": "213c8d14cdda08b9754302d4573885d20d693b21dad6ba2428f69242aa79f822"
+      },
+      {
+        "path": "preview-before-ui-hashes.json",
+        "sha256": "159d8aa2d0d287d6d43f24f84b6eb06ca46fc30b1b835366fa2f6ab112a12994"
+      },
+      {
+        "path": "preview-after-ui-hashes.json",
+        "sha256": "0adc2811176da7be809adc6a8017dac5875516719ec798e3d5419b5cc40e29ab"
+      },
+      {
+        "path": "email-probe.json",
+        "sha256": "4d2c55acb2bbf5aa15fad171808e1d3182d10e0cfa4a9319c8ab2e957e3bf719"
+      },
+      {
+        "path": "email-probe-after-full.ax.txt",
+        "sha256": "ef97691cf24e34aa4e333d4c7471b10117247d3ba923b948d41a2de5020be53c"
+      },
+      {
+        "path": "final-evidence-audit.json",
+        "sha256": "1123769be7280e7c0ef4ea4f258a8ead94842b8b53a678355bc49aba04f22b23"
+      }
+    ],
+    "screenshots": [
+      {
+        "path": "screenshots/email-probe-after-zh.jpg",
+        "sha256": "d3737774146ba454f03e5d8e44e011a7880927522ffbded8f2a827eb57c6e294"
+      },
+      {
+        "path": "screenshots/email-probe-before-en.jpg",
+        "sha256": "ab7e23055f788bf889b8f1aa437b035f686339d2a479982deda7ac3a3ecefe06"
+      },
+      {
+        "path": "screenshots/login-denial-en-default.jpg",
+        "sha256": "8d31e4cbafdc8d8863842b4dedec19cf65953517fba4715049b5a70e9d9d89f4"
+      },
+      {
+        "path": "screenshots/login-final-en-1280.jpg",
+        "sha256": "d9e1e10a8f4017ce20583a819c18fdeb0c8a943ab9944912b5f7a9dc0c089968"
+      },
+      {
+        "path": "screenshots/login-final-zh-390.jpg",
+        "sha256": "821d9db1687f3b135ea2442cfc1c738ad79e8a1364b13af04f4a3cbdcea2bbcd"
+      }
+    ]
+  },
+  "remaining": [
+    "18 non-Han static and39 raw dynamic entries in bounded platform gate need classification; other producers/packages/display fields are not certified",
+    "Runner/native agent/configuration, library/native controls, notification/installer/channel and full bilingual documentation surfaces",
+    "Full P0–P7: real vendor tools/models, database clusters, SSO/custom RBAC, plugins/skills/MCP/A2A, model gateway, collaboration/offline/media/office, production deployment/billing/installers, scale/fault and all journeys"
+  ],
+  "git_policy": "necessary source/contracts/design/compact acceptance only; preserve original tracked CSS CRLF bytes, new Go/docs UTF8 LF; no raw logs, screenshots, credentials, databases, cache or binaries; no push"
+}

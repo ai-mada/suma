@@ -18,7 +18,7 @@ func (s *Service) ReportToolInventory(ctx context.Context, p Principal, project,
 	seen := map[string]bool{}
 	for _, observation := range req.Items {
 		if err := toolcontract.ValidateObservation(observation); err != nil {
-			return out, invalid("工具探测数据无效：" + err.Error())
+			return out, invalidDiagnostic("validation.tool_inventory_detail", "工具探测数据无效："+err.Error(), map[string]any{"detail": err.Error()})
 		}
 		if seen[observation.Profile.CommandID] {
 			return out, invalid("工具命令标识不能重复")

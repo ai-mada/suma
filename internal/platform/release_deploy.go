@@ -150,7 +150,7 @@ func releaseDecode(m map[string]any, out any) error {
 	d := json.NewDecoder(strings.NewReader(string(b)))
 	d.DisallowUnknownFields()
 	if err = d.Decode(out); err != nil {
-		return invalid("发布请求存在未知字段或错误类型: " + err.Error())
+		return invalidDiagnostic("validation.release_detail", "发布请求存在未知字段或错误类型: "+err.Error(), map[string]any{"detail": err.Error()})
 	}
 	return nil
 }

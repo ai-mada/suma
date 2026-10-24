@@ -14,7 +14,7 @@ import (
 func releaseGeneration(m map[string]any, key string) error {
 	v, ok := m[key]
 	if !ok || v == nil {
-		return invalid("缺少" + key)
+		return invalidDiagnostic("validation.field_required", "缺少"+key, map[string]any{"field": key})
 	}
 	var n float64
 	switch x := v.(type) {
@@ -25,10 +25,10 @@ func releaseGeneration(m map[string]any, key string) error {
 	case int64:
 		n = float64(x)
 	default:
-		return invalid(key + "必须为整数")
+		return invalidDiagnostic("validation.field_integer", key+"必须为整数", map[string]any{"field": key})
 	}
 	if math.IsNaN(n) || math.IsInf(n, 0) || n < 0 || n > 9007199254740990 || math.Trunc(n) != n {
-		return invalid(key + "必须为安全非负整数")
+		return invalidDiagnostic("validation.field_safe_integer", key+"必须为安全非负整数", map[string]any{"field": key})
 	}
 	return nil
 }

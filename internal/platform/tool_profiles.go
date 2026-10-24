@@ -213,7 +213,7 @@ func (s *Service) CreateToolProfile(ctx context.Context, p Principal, project st
 		return out, invalid("工具名称、执行节点或项目无效")
 	}
 	if err := toolcontract.ValidateProfile(req.Profile, true); err != nil {
-		return out, invalid("固定工具档案无效：" + err.Error())
+		return out, invalidDiagnostic("validation.tool_profile_detail", "固定工具档案无效："+err.Error(), map[string]any{"detail": err.Error()})
 	}
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {

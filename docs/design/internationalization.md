@@ -41,3 +41,7 @@
 实现、有效RED→GREEN回归、最终输入切面和真实页面范围见[本阶段验收](../quality/remaining-localization-verification.md)。后端目前123个消息键；工作区与搜索新增16个，其他静态候选仍按领域持续迁移。
 
 参考：[i18next 配置](https://www.i18next.com/overview/configuration-options)、[React 绑定](https://react.i18next.com/latest/usetranslation-hook)。
+
+## T-P4-009 受控平台诊断
+
+后端按控制、执行、发布分域增加447个完整静态原文和10个参数键，目录合计580键。动态提示须绑定同一原APIError、合法参数及可完整还原的规范原句；错误码／details及持久证据不改，缺项保持原文。新增AST门禁识别错误工厂、位置／具名字段、发布wrapper、常量和动态片段；门禁范围之外继续登记未覆盖项，不能用全局字符串替换处理用户内容。实际登录拒绝切语言即时更新，并将两辅助入口分行、实测44px以支持英文和窄屏。设计见[诊断架构](../architecture/localized-diagnostics.md)，证据与限制见[本阶段验收](../quality/backend-diagnostics-verification.md)。

@@ -32,3 +32,15 @@ body{color:var(--text);background:var(--bg)}.editor-panel{display:flex;height:62
 @media(max-width:1100px){.release-columns.with-detail{grid-template-columns:minmax(0,1fr)}.release-columns.with-detail>.release-list-panel{display:none}.release-state-axes{grid-template-columns:minmax(0,1fr)}.release-state-axes>div{flex-direction:row;align-items:center;justify-content:space-between;gap:14px}.release-detail-content{padding:20px}}
 @media(max-width:600px){.release-intro{gap:9px}.release-intro h2{font-size:16px}.release-list-panel .list-toolbar,.release-detail-content{padding:16px}.release-list-panel .list-toolbar>.inline{flex-wrap:wrap}.release-resource{padding:15px 13px;min-height:88px}.release-resource>.row-icon{display:none}.release-resource-text{gap:7px}.release-facts{grid-template-columns:minmax(0,1fr);gap:13px}.release-fingerprint{gap:5px}.release-fingerprint>span{width:100%;padding:0}.release-recovery{flex-direction:column;padding:15px}.release-actions>button{min-height:44px}.release-workspace button,.release-dialog-form button{min-height:44px}.release-workspace .icon-button{min-width:44px;width:44px}.release-state-axes>div{align-items:flex-start;flex-direction:column;gap:5px}.release-proof{padding:12px}.release-target-summary,.release-preview{padding:12px}.release-task-options>.check{padding:13px 10px;min-height:58px}.release-dialog-form .form-grid{grid-template-columns:minmax(0,1fr)}.release-dialog-form .dialog-actions{display:flex;gap:10px;position:static}.release-dialog-form .dialog-actions>button{flex:1}.dialog:has(.release-dialog-form){width:calc(100vw - 20px);max-height:calc(100dvh - 24px);padding:17px}.release-legacy-note{flex-direction:column;align-items:flex-start}.release-intro .row-icon{width:28px;height:28px}.release-detail-top{padding:8px 13px}}
 .release-named-reference{display:grid;gap:5px;padding:9px 0;min-width:0}.release-named-reference>.text-button{width:fit-content;text-align:left;overflow-wrap:anywhere}.release-named-reference details{font-size:12px;font-weight:400}.release-named-reference>strong{overflow-wrap:anywhere}
+/* Keep translated sign-in alternatives distinct, with a usable touch target. */
+.auth-card>.text-button{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  min-height:44px;
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  text-align:left;
+  line-height:1.5;
+}

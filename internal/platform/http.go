@@ -98,7 +98,7 @@ func writeError(w http.ResponseWriter, err error) {
 			slog.Error("request failed", "error", err)
 		}
 	}
-	writeJSON(w, e.Status, map[string]any{"error": localizedAPIError(w, e), "setup_required": e.Code == "unauthenticated" && e.Details != nil})
+	writeJSON(w, e.Status, map[string]any{"error": localizedAPIError(w, e, err), "setup_required": e.Code == "unauthenticated" && e.Details != nil})
 }
 func decode(r *http.Request) (map[string]any, error) {
 	raw, err := io.ReadAll(r.Body)
