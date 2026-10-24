@@ -1,0 +1,262 @@
+package platform
+
+import (
+	"context"
+	"database/sql"
+	"encoding/json"
+	"errors"
+	"time"
+
+	"github.com/ai-mada/suma/internal/dag"
+)
+
+func (s *Service) MigrateTaskDispatch(ctx context.Context) error {
+	_, err := s.DB.ExecContext(ctx, s.ddl(`CREATE TABLE IF NOT EXISTS suma_task_dispatch_plans(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,run_id VARCHAR(64) NOT NULL UNIQUE,version INTEGER NOT NULL,state VARCHAR(20) NOT NULL,created_by VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,expires_at VARCHAR(40) NOT NULL,payload TEXT NOT NULL)`))
+	return err
+}
+
+func taskContextRecord(r Record) TaskContextRecord {
+	criteria := append([]string{}, r.AcceptanceCriteria...)
+	return TaskContextRecord{ID: r.ID, Version: r.Version, Title: r.Title, Description: r.Description, AcceptanceCriteria: criteria}
+}
+
+func (s *Service) taskContextTx(ctx context.Context, tx *sql.Tx, p Principal, project, taskID string) (TaskContext, error) {
+	var out TaskContext
+	task, err := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, taskID))
+	if errors.Is(err, sql.ErrNoRows) {
+		return out, missing()
+	}
+	if err != nil {
+		return out, err
+	}
+	out.Task = taskContextRecord(task)
+	if task.Status == "accepted" {
+		return out, invalid("任务已经验收；请通过变更需求创建明确的新开发范围")
+	}
+	if task.RequirementID != "" {
+		r, e := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_requirements WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, task.RequirementID))
+		if errors.Is(e, sql.ErrNoRows) {
+			return out, missing()
+		}
+		if e != nil {
+			return out, e
+		}
+		c := taskContextRecord(r)
+		out.Requirement = &c
+	}
+	return out, nil
+}
+
+func (s *Service) taskDispatchPlanTx(ctx context.Context, tx governanceQuery, p Principal, project, id string) (TaskDispatchPlan, error) {
+	var out TaskDispatchPlan
+	var raw string
+	var version int
+	var state string
+	var expires string
+	err := tx.QueryRowContext(ctx, s.q(`SELECT version,state,expires_at,payload FROM suma_task_dispatch_plans WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id).Scan(&version, &state, &expires, &raw)
+	if errors.Is(err, sql.ErrNoRows) {
+		return out, missing()
+	}
+	if err != nil {
+		return out, err
+	}
+	if err = json.Unmarshal([]byte(raw), &out); err != nil {
+		return out, err
+	}
+	out.Version, out.State, out.ExpiresAt = version, state, expires
+	return out, nil
+}
+
+func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, p Principal, project string, plan TaskDispatchPlan) error {
+	if plan.State != "ready" {
+		return conflict("计划已派发，不能创建另一运行；请打开原运行或恢复原操作")
+	}
+	clock, err := s.automationClock(ctx, tx)
+	if err != nil {
+		return err
+	}
+	if automationStamp(clock) >= plan.ExpiresAt {
+		return conflict("派发预览已过期，请根据当前任务重新预览")
+	}
+	current, err := s.taskContextTx(ctx, tx, p, project, plan.TaskID)
+	if err != nil {
+		return err
+	}
+	if current.Task.Version != plan.TaskVersion {
+		return conflict("任务内容或排期已变化，请重新派发预览")
+	}
+	if plan.RequirementID != "" {
+		if current.Requirement == nil || current.Requirement.ID != plan.RequirementID || current.Requirement.Version != plan.RequirementVersion {
+			return conflict("关联需求依据已变化，请重新派发预览")
+		}
+	} else if current.Requirement != nil {
+		return conflict("任务的需求关联已变化，请重新派发预览")
+	}
+	_, err = s.validateToolDispatchTx(ctx, tx, p, project, plan.ToolProfileID, plan.ToolProfileVersion, plan.ToolProfileSHA256)
+	return err
+}
+
+func (s *Service) CreateTaskDispatchPlan(ctx context.Context, p Principal, project string, request TaskDispatchPreviewRequest) (TaskDispatchPlan, error) {
+	var out TaskDispatchPlan
+	if request.ProjectID != project || request.ExpectedTaskVersion < 1 || request.WorkflowVersion < 1 || request.ExpectedToolVersion < 1 || request.TaskID == "" || request.WorkflowID == "" || request.AgentNodeID == "" || request.ToolProfileID == "" {
+		return out, invalid("派发预览需要项目、任务版本、固定流程、开发节点及工具版本")
+	}
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return out, err
+	}
+	defer tx.Rollback()
+	if err = s.lockOrganization(ctx, tx, p.TenantID); err != nil {
+		return out, err
+	}
+	if err = s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
+		return out, err
+	}
+	hash, replay, err := s.receipt(ctx, tx, p, project, request.IdempotencyKey, map[string]any{"task_dispatch_preview": request})
+	if err != nil {
+		return out, err
+	}
+	if replay {
+		var receipt TaskDispatchPlan
+		if err = json.Unmarshal([]byte(hash), &receipt); err != nil {
+			return out, err
+		}
+		out, err = s.taskDispatchPlanTx(ctx, tx, p, project, receipt.ID)
+		if err != nil {
+			return out, err
+		}
+		out.Valid, out.Reason = true, ""
+		if check := s.validateTaskDispatchPlanTx(ctx, tx, p, project, out); check != nil {
+			out.Valid, out.Reason = false, check.Error()
+		}
+		return out, tx.Commit()
+	}
+	context, err := s.taskContextTx(ctx, tx, p, project, request.TaskID)
+	if err != nil {
+		return out, err
+	}
+	if context.Task.Version != request.ExpectedTaskVersion {
+		return out, conflict("任务已经变更，请刷新后重新预览")
+	}
+	profile, err := s.toolProfileTx(ctx, tx, p, project, request.ToolProfileID)
+	if err != nil {
+		return out, err
+	}
+	if _, err = s.validateToolDispatchTx(ctx, tx, p, project, profile.ID, request.ExpectedToolVersion, profile.Profile.ProfileSHA256); err != nil {
+		return out, err
+	}
+	var raw string
+	err = tx.QueryRowContext(ctx, s.q(`SELECT w.spec FROM dag_workflows w WHERE w.tenant_id=? AND w.project_id=? AND w.id=? AND w.version=? AND NOT EXISTS(SELECT 1 FROM dag_managed_workflows m WHERE m.tenant_id=w.tenant_id AND m.project_id=w.project_id AND m.workflow_id=w.id)`), p.TenantID, project, request.WorkflowID, request.WorkflowVersion).Scan(&raw)
+	if errors.Is(err, sql.ErrNoRows) {
+		return out, missing()
+	}
+	if err != nil {
+		return out, err
+	}
+	var workflow dag.Workflow
+	if err = json.Unmarshal([]byte(raw), &workflow); err != nil {
+		return out, err
+	}
+	derived, err := buildTaskDispatchWorkflow(workflow, request.AgentNodeID, profile.ID, profile.Profile, context)
+	if err != nil {
+		return out, err
+	}
+	clock, err := s.automationClock(ctx, tx)
+	if err != nil {
+		return out, err
+	}
+	out = TaskDispatchPlan{ID: newID(), ProjectID: project, Version: 1, State: "ready", TaskID: context.Task.ID, TaskVersion: context.Task.Version, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, RunID: newID(), CreatedAt: automationStamp(clock), ExpiresAt: automationStamp(clock.Add(30 * time.Minute)), Context: context, Workflow: derived, Valid: true}
+	if context.Requirement != nil {
+		out.RequirementID, out.RequirementVersion = context.Requirement.ID, context.Requirement.Version
+	}
+	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_task_dispatch_plans(id,tenant_id,project_id,run_id,version,state,created_by,created_at,expires_at,payload)VALUES(?,?,?,?,1,'ready',?,?,?,?)`), out.ID, p.TenantID, project, out.RunID, p.ID, out.CreatedAt, out.ExpiresAt, stringify(out))
+	if err != nil {
+		return out, err
+	}
+	if err = s.saveReceipt(ctx, tx, p, project, request.IdempotencyKey, hash, out); err != nil {
+		return out, err
+	}
+	if err = s.activity(ctx, tx, p, project, "task.dispatch_preview", out.ID, context.Task.Title); err != nil {
+		return out, err
+	}
+	return out, tx.Commit()
+}
+
+func (s *Service) GetTaskDispatchPlan(ctx context.Context, p Principal, project, id string) (TaskDispatchPlan, error) {
+	var out TaskDispatchPlan
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return out, err
+	}
+	defer tx.Rollback()
+	if err = s.authorizeProjectTx(ctx, tx, p, project, false, false); err != nil {
+		return out, err
+	}
+	out, err = s.taskDispatchPlanTx(ctx, tx, p, project, id)
+	if err != nil {
+		return out, err
+	}
+	out.Valid, out.Reason = true, ""
+	if check := s.validateTaskDispatchPlanTx(ctx, tx, p, project, out); check != nil {
+		out.Valid, out.Reason = false, check.Error()
+	}
+	return out, tx.Commit()
+}
+
+func (s *Service) StartTaskDispatchPlan(ctx context.Context, engine *dag.Engine, p Principal, project, id string, request TaskDispatchStartRequest) (dag.Run, error) {
+	var out dag.Run
+	if request.ProjectID != project || request.ExpectedVersion < 1 {
+		return out, invalid("请提供当前派发计划版本")
+	}
+	// Read immutable data only; every mutation/replay is authorized under the
+	// organization lock inside CreateManagedRunBound before scheduler access.
+	if err := s.Authorize(ctx, p, project, true, false); err != nil {
+		return out, err
+	}
+	plan, err := s.taskDispatchPlanTx(ctx, s.DB, p, project, id)
+	if err != nil {
+		return out, err
+	}
+	var hash string
+	return engine.CreateManagedRunBound(ctx, p.TenantID, project, plan.RunID, "task-"+digest(p.ID+":"+request.IdempotencyKey), plan.Workflow, func(tx *sql.Tx) error {
+		if e := s.authorizeProjectTx(ctx, tx, p, project, true, false); e != nil {
+			return e
+		}
+		var replay bool
+		hash, replay, err = s.receipt(ctx, tx, p, project, request.IdempotencyKey, map[string]any{"task_dispatch_start": id, "request": request})
+		if err != nil || replay {
+			return err
+		}
+		current, e := s.taskDispatchPlanTx(ctx, tx, p, project, id)
+		if e != nil {
+			return e
+		}
+		if current.Version != request.ExpectedVersion {
+			return conflict("派发计划已变化，请刷新并核对")
+		}
+		return s.validateTaskDispatchPlanTx(ctx, tx, p, project, current)
+	}, func(tx *sql.Tx, runID string) error {
+		if e := s.BindRunTx(ctx, tx, p, project, plan.TaskID, runID, plan.TaskVersion); e != nil {
+			return e
+		}
+		res, e := tx.ExecContext(ctx, s.q(`UPDATE suma_task_dispatch_plans SET version=version+1,state='started' WHERE id=? AND tenant_id=? AND project_id=? AND version=? AND state='ready'`), id, p.TenantID, project, request.ExpectedVersion)
+		if e != nil {
+			return e
+		}
+		if count, e := res.RowsAffected(); e != nil || count != 1 {
+			return conflict("派发计划已被处理")
+		}
+		if e = s.saveReceipt(ctx, tx, p, project, request.IdempotencyKey, hash, map[string]string{"plan_id": id, "run_id": runID}); e != nil {
+			return e
+		}
+		return s.activity(ctx, tx, p, project, "task.dispatched", plan.TaskID, plan.Context.Task.Title)
+	})
+}
+
+// Managed task workflows cannot be started as public reusable templates, but
+// their run lifecycle is separate from privileged managed deployments.
+func (s *Service) TaskDispatchRunTx(ctx context.Context, tx governanceQuery, tenant, project, runID string) (bool, error) {
+	var count int
+	err := tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_task_dispatch_plans WHERE tenant_id=? AND project_id=? AND run_id=? AND state='started'`), tenant, project, runID).Scan(&count)
+	return count == 1, err
+}

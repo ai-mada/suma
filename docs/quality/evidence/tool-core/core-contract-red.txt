@@ -1,0 +1,10 @@
+# github.com/ai-mada/suma/internal/toolcontract [github.com/ai-mada/suma/internal/toolcontract.test]
+internal\toolcontract\validation_test.go:13:30: undefined: ValidateProfile
+internal\toolcontract\validation_test.go:14:233: undefined: ValidateProfile
+internal\toolcontract\validation_test.go:16:10: undefined: ValidateEvent
+internal\toolcontract\validation_test.go:17:33: undefined: DecodeEvent
+internal\toolcontract\validation_test.go:18:209: undefined: DecodeEvent
+internal\toolcontract\validation_test.go:19: undefined: ValidateEvent
+internal\toolcontract\validation_test.go:21:67: undefined: ProfileDigest
+FAIL	github.com/ai-mada/suma/internal/toolcontract [build failed]
+FAIL

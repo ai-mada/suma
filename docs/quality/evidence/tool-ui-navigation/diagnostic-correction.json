@@ -1,0 +1,12 @@
+{
+  "recorded_at": "2026-10-24T05:28:26.126756+00:00",
+  "source": "Primary integrator clarified actual screenshot backing/capture behavior during browser validation",
+  "old_report": "docs/quality/tool-ui-responsive-supplement.md",
+  "old_sha256": "565c6fc7ade0ba6a4d825f2acef739b9bdb6217eaf9c33a6e25069486693b009",
+  "old_snapshot": "docs/quality/evidence/tool-ui-navigation/tool-ui-responsive-supplement.original.md",
+  "current_report_sha256": "951824194b37b23d286123e55c6854790cb9b6fb71c665727ea3991ec0a486c9",
+  "correction": "The before390 PNG is a backing-scale/capture diagnostic input;it cannot independently prove DOM toolbar clipping. Confirmed functional gap is default large canvas and missing complete narrow node list.",
+  "old_image_unchanged": true,
+  "old_responsive_archive_receipt": "docs/quality/evidence/tool-ui-responsive/archive-verification.json",
+  "old_responsive_archive_receipt_sha256": "423ccb1d7033a9421387a0ed76ede121d6d6cec140352c35f65e23cf0e29c28b"
+}

@@ -1,0 +1,113 @@
+{
+  "stage": "T-P4-004-navigation-dom-supplement",
+  "archived_at": "2026-10-24T05:29:12.769084+00:00",
+  "scope": "14 exact UI test/install/source receipts plus independently preserved responsive diagnostic history. No live browser credentials,keys,databases or control logs.",
+  "raw_file_count": 14,
+  "files": [
+    {
+      "source": ".cache/e2e/tool-stage/ui-requirement-dom-red.txt",
+      "archive": "docs/quality/evidence/tool-ui-navigation/ui-requirement-dom-red.txt",
+      "bytes": 3253,
+      "source_sha256": "1cb106bf5cd5dcf29bb202200c261258c826729ae300009902dc6a781e4864ce",
+      "archive_sha256": "1cb106bf5cd5dcf29bb202200c261258c826729ae300009902dc6a781e4864ce"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-requirement-dom-green.txt",
+      "archive": "docs/quality/evidence/tool-ui-navigation/ui-requirement-dom-green.txt",
+      "bytes": 300,
+      "source_sha256": "6f50a66a1bbb613dbb9115554eb6b4124bb12c1b72ba07b9f1f45dae34a12f99",
+      "archive_sha256": "6f50a66a1bbb613dbb9115554eb6b4124bb12c1b72ba07b9f1f45dae34a12f99"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-web-navigation-dom-final.txt",
+      "archive": "docs/quality/evidence/tool-ui-navigation/ui-web-navigation-dom-final.txt",
+      "bytes": 1371,
+      "source_sha256": "e604a32e57726d896bc768cdd925e1e7b6bcd8726ee50da5a4938720a3323056",
+      "archive_sha256": "e604a32e57726d896bc768cdd925e1e7b6bcd8726ee50da5a4938720a3323056"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-navigation-dom-typecheck-final.txt",
+      "archive": "docs/quality/evidence/tool-ui-navigation/ui-navigation-dom-typecheck-final.txt",
+      "bytes": 538,
+      "source_sha256": "ed315c2da4af33921c762a785758b9901b1f67376d48b6efd10b4374aefd50c3",
+      "archive_sha256": "ed315c2da4af33921c762a785758b9901b1f67376d48b6efd10b4374aefd50c3"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-navigation-dom-typecheck-green.txt",
+      "archive": "docs/quality/evidence/tool-ui-navigation/ui-navigation-dom-typecheck-green.txt",
+      "bytes": 16,
+      "source_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9",
+      "archive_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-web-navigation-lf-final.txt",
+      "archive": "docs/quality/evidence/tool-ui-navigation/ui-web-navigation-lf-final.txt",
+      "bytes": 1370,
+      "source_sha256": "a6b8bba18626815ff60150a523dd6782ab1a3955d4778d940ed36284aa18f498",
+      "archive_sha256": "a6b8bba18626815ff60150a523dd6782ab1a3955d4778d940ed36284aa18f498"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-navigation-lf-typecheck-final.txt",
+      "archive": "docs/quality/evidence/tool-ui-navigation/ui-navigation-lf-typecheck-final.txt",
+      "bytes": 16,
+      "source_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9",
+      "archive_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-navigation-lf-format-check.txt",
+      "archive": "docs/quality/evidence/tool-ui-navigation/ui-navigation-lf-format-check.txt",
+      "bytes": 68,
+      "source_sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283",
+      "archive_sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-navigation-lf-whitespace-check.txt",
+      "archive": "docs/quality/evidence/tool-ui-navigation/ui-navigation-lf-whitespace-check.txt",
+      "bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-navigation-dom-install.txt",
+      "archive": "docs/quality/evidence/tool-ui-navigation/ui-navigation-dom-install.txt",
+      "bytes": 1707,
+      "source_sha256": "0bad420089817e8a3d28083c7532f6570d8a1a687a4571cca7ba3ec5e630d73e",
+      "archive_sha256": "0bad420089817e8a3d28083c7532f6570d8a1a687a4571cca7ba3ec5e630d73e"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-navigation-lf-normalization.json",
+      "archive": "docs/quality/evidence/tool-ui-navigation/ui-navigation-lf-normalization.json",
+      "bytes": 1753,
+      "source_sha256": "955608707c526963482bcc17f8236a3b7e529266fea2236ac3fbdc43af1c9225",
+      "archive_sha256": "955608707c526963482bcc17f8236a3b7e529266fea2236ac3fbdc43af1c9225"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-navigation-dom-source-before.json",
+      "archive": "docs/quality/evidence/tool-ui-navigation/ui-navigation-dom-source-before.json",
+      "bytes": 4164,
+      "source_sha256": "de149ce3b53eaa874655124f20ae30e25d1bf4fd0796f916feb56dc387884306",
+      "archive_sha256": "de149ce3b53eaa874655124f20ae30e25d1bf4fd0796f916feb56dc387884306"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-navigation-source-final-before.json",
+      "archive": "docs/quality/evidence/tool-ui-navigation/ui-navigation-source-final-before.json",
+      "bytes": 4164,
+      "source_sha256": "66392839eabd03d6809711734c4c254034d2559c28e5bb223549adbb1e49c1b3",
+      "archive_sha256": "66392839eabd03d6809711734c4c254034d2559c28e5bb223549adbb1e49c1b3"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-navigation-dom-verification.json",
+      "archive": "docs/quality/evidence/tool-ui-navigation/ui-navigation-dom-verification.json",
+      "bytes": 7634,
+      "source_sha256": "57877b6077f213256d59afdd0b3deeb1287263eb8fb08706389e6f9cc36f1a14",
+      "archive_sha256": "57877b6077f213256d59afdd0b3deeb1287263eb8fb08706389e6f9cc36f1a14"
+    }
+  ],
+  "historical_materials": [
+    "tool-ui-responsive-supplement.original.md",
+    "tool-ui-responsive-supplement.original.md.provenance.json",
+    "diagnostic-correction.json"
+  ],
+  "prior_ui_archives_untouched": true,
+  "security_review": "Public package installation metadata and synthetic component fixtures only; known secret patterns absent. No runtime secret files read."
+}

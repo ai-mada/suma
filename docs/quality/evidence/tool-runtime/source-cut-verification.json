@@ -1,0 +1,45 @@
+{
+  "stage": "T-P4-004",
+  "recorded_at": "2026-10-24T05:04:22.262458+00:00",
+  "original_runtime_cut": {
+    "receipt": "runtime-verification.json",
+    "pass_events": 111,
+    "source_files": 39,
+    "native_tests_at_cut": 5
+  },
+  "current_go_source_files_unchanged": 33,
+  "native_alias_supplement": {
+    "receipt": "native-alias-verification.json",
+    "tests": 8,
+    "source_files": 8,
+    "changed_since_original_cut": [
+      {
+        "path": "packages/agent-runtime/src/index.ts",
+        "previous_sha256": "b74b246f177c7138edcc3f4983f2e56a5e11ef5b4ad6328c9de3d296ff48e3f4",
+        "current_sha256": "88f6f9dbdb22418a55a529afdd14ea50fabe03dc3f834845b2fd4c70e1323845"
+      },
+      {
+        "path": "packages/agent-runtime/tests/runtime.test.ts",
+        "previous_sha256": "2155dae79e3af54b920e0d07cb5bd6b1a3f8da04976fd90561dc4b9104d75408",
+        "current_sha256": "aeb2768d6b01215fca7f5d6a26c33cd2825a2a94eee1c6fae831a94ccd46eb9c"
+      }
+    ],
+    "current_native_source_and_two_compiled_files_match": true
+  },
+  "original_ts_cut_git_provenance": [
+    {
+      "commit": "0fe174f668f6e9d111404f72459f34bf3bccde8e",
+      "path": "packages/agent-runtime/src/index.ts",
+      "git_blob_bytes_match_original_runtime_cut": true,
+      "git_blob_sha256": "b74b246f177c7138edcc3f4983f2e56a5e11ef5b4ad6328c9de3d296ff48e3f4"
+    },
+    {
+      "commit": "0fe174f668f6e9d111404f72459f34bf3bccde8e",
+      "path": "packages/agent-runtime/tests/runtime.test.ts",
+      "git_blob_bytes_match_original_runtime_cut": true,
+      "git_blob_sha256": "2155dae79e3af54b920e0d07cb5bd6b1a3f8da04976fd90561dc4b9104d75408"
+    }
+  ],
+  "native_live_compiled_files_match_alias_cut": true,
+  "scope_note": "The original 39-file receipt remains a point-in-time record. Two later TS changes are explained by the separate alias cut; no old receipt was rewritten as a claim about later source."
+}

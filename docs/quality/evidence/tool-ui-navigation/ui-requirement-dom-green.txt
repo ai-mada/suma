@@ -1,0 +1,10 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ✓ src/record-navigation-dom.test.tsx (3 tests) 229ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  13:24:27
+   Duration  2.48s (transform 336ms, setup 0ms, collect 664ms, tests 229ms, environment 867ms, prepare 129ms)
+

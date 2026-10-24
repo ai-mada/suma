@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-24T04:55:30.354271+00:00",
+  "runtime_source_sha256": "498300c9adffa8327982faa25da7d745d1a9ecb08f62265691d5673deacb318e",
+  "runtime_manifest_files": 116,
+  "runtime_go_source_files": 114,
+  "runtime_files_match_final_test_snapshot": true,
+  "module_files_in_test_snapshot": true,
+  "test_snapshot_source_files": 187,
+  "source_receipt": ".cache/e2e/tool-stage/go-verification-final-attempt1.json",
+  "source_receipt_sha256": "5d25777a44b9ad925fc2f0c87e91459f8408b03a366cceb8ed612ebf6bb2195b",
+  "archived_original_receipt": "go-test-receipt.original.json",
+  "archived_original_receipt_sha256": "5d25777a44b9ad925fc2f0c87e91459f8408b03a366cceb8ed612ebf6bb2195b",
+  "raw_source": ".cache/e2e/tool-stage/go-tests-final-attempt1.jsonl",
+  "raw_sha256": "db5a89e2792d2d4dec579ac30e208aee27d6e520c4323c6ca4f1de05b8cdf828",
+  "expected_formal_quality_files": [
+    "docs/quality/evidence/tool-go-tests.jsonl",
+    "docs/quality/evidence/tool-go-verification.json"
+  ],
+  "actual_pass_events": 479,
+  "actual_failed_events": 0,
+  "actual_skipped_test_cases": 0,
+  "test_exit": 0,
+  "vet_exit": 0,
+  "test_source_unchanged": true,
+  "scope": "Read-only binding of all 116 runtime inputs, including go.mod/go.sum, to the completed final 187-file Go test snapshot and the exact raw log. No tests rerun; formal quality log is archived separately by root."
+}

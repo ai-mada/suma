@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	tc "github.com/ai-mada/suma/internal/toolcontract"
 	"os"
 	"path/filepath"
 	"sort"
@@ -22,10 +23,11 @@ type entry struct {
 	ArtifactPending   *artifactTransfer `json:"artifact_pending,omitempty"`
 }
 type Journal struct {
-	mu      sync.Mutex
-	path    string
-	entries map[string]entry
-	unlock  func() error
+	mu        sync.Mutex
+	path      string
+	entries   map[string]entry
+	unlock    func() error
+	inventory *InventoryReport
 }
 
 func key(a Assignment) string {
@@ -61,6 +63,9 @@ func OpenJournal(dir string) (*Journal, error) {
 		if err = json.Unmarshal(b, &j.entries); err != nil || j.entries == nil {
 			return nil, fmt.Errorf("journal corrupt; refusing claims: %w", err)
 		}
+	}
+	if err = j.loadInventory(); err != nil {
+		return nil, err
 	}
 	for k, e := range j.entries {
 		if e.Result == nil && e.ArtifactPending == nil && e.Assignment.ReleaseExecution == nil {
@@ -203,6 +208,15 @@ func (j *Journal) pendingArtifacts() []artifactTransfer {
 // RecordProgress makes a chunk durable before any network request. Its ordinal
 // is part of a deterministic operation ID, retained through process restarts.
 func (j *Journal) RecordProgress(a Assignment, message string) error {
+	return j.recordProgress(a, message, nil)
+}
+func (j *Journal) RecordToolProgress(a Assignment, event tc.Event) error {
+	if err := tc.ValidateEvent(event); err != nil {
+		return err
+	}
+	return j.recordProgress(a, "", &event)
+}
+func (j *Journal) recordProgress(a Assignment, message string, event *tc.Event) error {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	k := key(a)
@@ -214,7 +228,7 @@ func (j *Journal) RecordProgress(a Assignment, message string) error {
 		return fmt.Errorf("final result already recorded")
 	}
 	message = progressText(message, nil)
-	if strings.TrimSpace(message) == "" {
+	if strings.TrimSpace(message) == "" && event == nil {
 		return nil
 	}
 	if len(e.Progress) >= 1024 {
@@ -232,7 +246,15 @@ func (j *Journal) RecordProgress(a Assignment, message string) error {
 	previous := e
 	e.Progress = append([]Progress(nil), e.Progress...)
 	h := sha256.Sum256([]byte(fmt.Sprintf("%s/%s/progress/%d", k, a.WorkerID, len(e.Progress)+1)))
-	e.Progress = append(e.Progress, Progress{Assignment: a, OperationID: hex.EncodeToString(h[:]), Message: message})
+	if event != nil {
+		copied := *event
+		if event.Usage != nil {
+			usage := *event.Usage
+			copied.Usage = &usage
+		}
+		event = &copied
+	}
+	e.Progress = append(e.Progress, Progress{Assignment: a, OperationID: hex.EncodeToString(h[:]), Message: message, ToolEvent: event})
 	j.entries[k] = e
 	if err := j.save(); err != nil {
 		j.entries[k] = previous

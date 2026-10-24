@@ -1,0 +1,74 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ❯ src/tool-model.test.ts (14 tests | 1 failed) 21ms
+   × tool manifest and fixed task choices > uses persisted started state rather than a reserved run identifier as the execution fact 7ms
+     → expected true to be false // Object.is equality
+   ✓ tool manifest and fixed task choices > keeps the exact run and node in a bounded tool-workspace return route
+   ✓ tool manifest and fixed task choices > accepts only nonsecret describe-tools observations and retains unavailable explanations
+   ✓ tool manifest and fixed task choices > bounds observation reasons at 1000 UTF-8 bytes rather than characters
+   ✓ tool manifest and fixed task choices > requires a meaningful reason when a configured tool is unavailable
+   ✓ tool manifest and fixed task choices > rejects secrets, raw execution paths, malformed pair/hash and duplicate command identities
+   ✓ tool manifest and fixed task choices > binds the command to the selected immutable profile without changing unrelated node config
+   ✓ tool manifest and fixed task choices > creates a versioned preview request with no mutable task text or executable parameters
+   ✓ tool manifest and fixed task choices > refuses read-only task development or a workflow without the chosen candidate test
+   ✓ tool manifest and fixed task choices > limits task dispatch to verified structured protocols while retaining generic workflow tools
+   ✓ tool manifest and fixed task choices > never shows another attempt, worker or fence as current tool progress
+   ✓ tool write recovery > persists the exact operation before sending and replays it after reload without rebasing
+   ✓ tool write recovery > retains an unknown operation when a later replay is forbidden and isolates users/projects
+   ✓ tool write recovery > rejects credential fields or unrelated paths before any network request
+ ❯ src/ToolFacts-consumers.test.tsx (6 tests | 1 failed) 32ms
+   × tool execution facts are separate from acceptance > never links a ready plan reserved run ID as if a real run already existed 11ms
+     → expected '<div class="success"><p>本计划已关联正式运行，运行…' to contain '预留'
+   ✓ tool execution facts are separate from acceptance > shows enabled/configured/observed/dispatch state separately with stale inventory explanation
+   ✓ tool execution facts are separate from acceptance > shows complete fixed task and requirement context with expiry and explicit acceptance boundary
+   ✓ tool execution facts are separate from acceptance > keeps provider terminal success distinct from failed DAG state and does not invent resume actions
+   ✓ tool execution facts are separate from acceptance > displays waiting-input as an occupied-process fact without fake reply or recovered state
+   ✓ tool execution facts are separate from acceptance > never describes a finished run as still occupying a slot because an older event waited for input
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/tool-model.test.ts > tool manifest and fixed task choices > uses persisted started state rather than a reserved run identifier as the execution fact
+
+AssertionError: expected true to be false // Object.is equality
+ Test Files  2 failed (2)
+      Tests  2 failed | 18 passed (20)
+   Start at  12:51:13
+   Duration  940ms (transform 140ms, setup 0ms, collect 260ms, tests 54ms, environment 1ms, prepare 272ms)
+
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/tool-model.test.ts:76:71
+     74| describe("tool manifest and fixed task choices", () => {
+     75|   it('uses persisted started state rather than a reserved run identifi…
+     76|     expect(taskPlanStarted({state:'ready',run_id:'reserved-run-id'})).…
+       |                                                                       ^
+     77|     expect(taskPlanStarted({state:'started',run_id:'actual-run-id'})).…
+     78|     expect(taskPlanStarted({state:'started',run_id:''})).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/ToolFacts-consumers.test.tsx > tool execution facts are separate from acceptance > never links a ready plan reserved run ID as if a real run already existed
+AssertionError: expected '<div class="success"><p>本计划已关联正式运行，运行…' to contain '预留'
+
+Expected: "预留"
+Received: "<div class="success"><p>本计划已关联正式运行，运行结果与任务验收分别处理。</p><button type="button">查看本计划真实运行</button></div>"
+
+ ❯ src/ToolFacts-consumers.test.tsx:37:21
+     35|   it('never links a ready plan reserved run ID as if a real run alread…
+     36|     const pending=renderToStaticMarkup(createElement(TaskDispatchRunFa…
+     37|     expect(pending).toContain('预留');expect(pending).toContain('尚未创建正式运…
+       |                     ^
+     38|     const started=renderToStaticMarkup(createElement(TaskDispatchRunFa…
+     39|     expect(started).toContain('查看本计划真实运行');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+undefined
+D:\codes\ai-dev-os\suma\apps\web:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/tool-model.test.ts src/ToolFacts-consumers.test.tsx

@@ -1,0 +1,32 @@
+{
+  "stage": "T-P4-004",
+  "recorded_at": "2026-10-24T05:15:14.552923+00:00",
+  "scope": "Initial045219 Runner installed-Codex readonly probe supplement, self-excluded",
+  "files": [
+    {
+      "file": "installed-codex-describe.json",
+      "bytes": 479,
+      "sha256": "95ba6d2f33dc9f226718b54b9d00c2c2ff7f62f65fda6f9ce15169f6f8677bde"
+    },
+    {
+      "file": "installed-codex-probe.json",
+      "bytes": 3361,
+      "sha256": "4aa94c92ead84d9314ffbff724c2d14ec58924565cd96c126aff816402233ff7"
+    },
+    {
+      "file": "installed-codex-probe.py",
+      "bytes": 6825,
+      "sha256": "804ab4c0c9a190018c01612e829c1d9e76d56137afe1ebbc1a16b6698c3dbe67"
+    },
+    {
+      "file": "installed-codex-verification.original.json",
+      "bytes": 3080,
+      "sha256": "a4be0309107759fcb40cefb660cb1ed61eea93c58ed1c10581feee88e7dbfc53"
+    },
+    {
+      "file": "README.md",
+      "bytes": 1596,
+      "sha256": "4a4a2f251a545e46b2cf5a6666994a4ebb74166cee7b4d3b49500d4ea522afd7"
+    }
+  ]
+}

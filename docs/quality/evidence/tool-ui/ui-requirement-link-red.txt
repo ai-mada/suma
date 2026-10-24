@@ -1,0 +1,39 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ❯ src/record-lineage.test.tsx (4 tests | 1 failed) 15ms
+   × record evidence navigation > opens an exact linked requirement independently of loaded rows in the current project route 8ms
+     → expected '' to contain '查看关联需求'
+   ✓ record evidence navigation > keeps the current project and exact persisted issue, operation and run
+   ✓ record evidence navigation > does not turn unrelated project or arbitrary URLs into navigation
+   ✓ record evidence navigation > reads normalized records without inventing object names
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/record-lineage.test.tsx > record evidence navigation > opens an exact linked requirement independently of loaded rows in the current project route
+AssertionError: expected '' to contain '查看关联需求'
+
+- Expected
++ Received
+
+- 查看关联需求
+
+ ❯ src/record-lineage.test.tsx:10:16
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  12:49:39
+   Duration  939ms (transform 70ms, setup 0ms, collect 189ms, tests 15ms, environment 0ms, prepare 135ms)
+
+      8|   const item={id:'task-1',project_id:'project-a',version:7,requirement…
+      9|   const html=renderToStaticMarkup(<RecordRequirementReference project=…
+     10|   expect(html).toContain('查看关联需求');expect(html).toContain(item.require…
+       |                ^
+     11|   const href=html.match(/href="([^"]+)"/)?.[1].replaceAll('&amp;','&')…
+     12|   expect(parseWorkbenchRoute(href!)).toMatchObject({project:'project-a…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+undefined
+D:\codes\ai-dev-os\suma\apps\web:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/record-lineage.test.tsx

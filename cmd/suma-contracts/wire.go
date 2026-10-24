@@ -6,6 +6,7 @@ package main
 import (
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/platform"
+	"github.com/ai-mada/suma/internal/toolcontract"
 )
 
 type SessionOrganization struct {
@@ -242,10 +243,11 @@ type BaselineCaptureRequest struct {
 	IdempotencyKey string `json:"idempotency_key"`
 }
 type RunnerProgressRequest struct {
-	ProjectID   string         `json:"project_id"`
-	Assignment  dag.Assignment `json:"assignment"`
-	OperationID string         `json:"operation_id"`
-	Message     string         `json:"message"`
+	ProjectID   string              `json:"project_id"`
+	Assignment  dag.Assignment      `json:"assignment"`
+	OperationID string              `json:"operation_id"`
+	Message     string              `json:"message,omitempty"`
+	ToolEvent   *toolcontract.Event `json:"tool_event,omitempty"`
 }
 
 func extraModels() []any {

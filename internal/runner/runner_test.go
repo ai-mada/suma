@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -197,6 +198,10 @@ func TestAgentInputHelper(t *testing.T) {
 		var input map[string]any
 		if json.NewDecoder(os.Stdin).Decode(&input) != nil || input["goal"] != "inspect project" {
 			os.Exit(4)
+		}
+		requestID, _ := input["request_id"].(string)
+		if len(requestID) != 64 || strings.Contains(requestID, "/") {
+			os.Exit(5)
 		}
 		_, _ = os.Stdout.WriteString(input["goal"].(string))
 		os.Exit(0)

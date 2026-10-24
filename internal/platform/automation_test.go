@@ -654,11 +654,11 @@ func TestAutomationGeneratedCompensationCannotBeTemplate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assignment, err := f.e.Claim(ctx, f.user.TenantID, f.project, "compensation-test", []string{"command"})
+	assignment, err := f.e.Claim(ctx, f.user.TenantID, f.project, "compensation-test", toolFixtureCapabilities(t, f))
 	if err != nil || assignment == nil {
 		t.Fatal(assignment, err)
 	}
-	if err = f.e.Complete(ctx, f.user.TenantID, f.project, dag.Result{RunID: assignment.RunID, NodeID: assignment.NodeID, Attempt: assignment.Attempt, Fence: assignment.Fence, WorkerID: assignment.WorkerID, ExitCode: 0, OperationID: newID(), Stopped: true}); err != nil {
+	if err = f.e.Complete(ctx, f.user.TenantID, f.project, dag.Result{RunID: assignment.RunID, NodeID: assignment.NodeID, Attempt: assignment.Attempt, Fence: assignment.Fence, WorkerID: assignment.WorkerID, ExitCode: 0, OperationID: newID()}); err != nil {
 		t.Fatal(err)
 	}
 	source, err = f.e.GetRun(ctx, f.user.TenantID, f.project, source.ID)

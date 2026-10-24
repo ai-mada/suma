@@ -1,0 +1,1 @@
+ok  	github.com/ai-mada/suma/internal/toolcontract	0.124s

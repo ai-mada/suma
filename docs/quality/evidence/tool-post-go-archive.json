@@ -1,0 +1,72 @@
+{
+  "recorded_at": "2026-10-24T05:23:36.629554+00:00",
+  "scope": "Final Go512/vet and stop defect RED/GREEN. Earlier Go479 and first runtime delivery retained verbatim. Runtime official Codex usage supplement has its own source and test evidence.",
+  "files": [
+    {
+      "source": ".cache/e2e/tool-stage/go-tests-post-review.jsonl",
+      "target": "tool-go-post-review-tests.jsonl",
+      "bytes": 474195,
+      "sha256": "003b24c1e8a83799e89d7c1a4aee4d493e03d6fbaff1c7a052099611d0942f82"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/go-verification-post-review.json",
+      "target": "tool-core/go-verification-post-review-original.json",
+      "bytes": 59793,
+      "sha256": "2394b1d16eb88ff0007d66a1d49de9c0ad94c04b9ef130cd6edaf076f30ac6ed"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/stopped-zero-exit-red.jsonl",
+      "target": "tool-core/stopped-zero-exit-red.jsonl",
+      "bytes": 31536,
+      "sha256": "f5f8cbe8d8ccf23740d182aa24ed244ba676bd1b5881eddb597973f3e5a5f440"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/stopped-zero-exit-red-attempt2.jsonl",
+      "target": "tool-core/stopped-zero-exit-red-attempt2.jsonl",
+      "bytes": 31239,
+      "sha256": "c236f67ed572dcb4bd2f86a7d1d42b2382cb1a0fd8fe66c86500899ea169145e"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/stopped-zero-exit-red-attempt3.jsonl",
+      "target": "tool-core/stopped-zero-exit-red-attempt3.jsonl",
+      "bytes": 33614,
+      "sha256": "a290fc6b986fed13a14d969298cd9b880b4829399b072f2967bc6842efa395ce"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/stopped-zero-exit-green.jsonl",
+      "target": "tool-core/stopped-zero-exit-green.jsonl",
+      "bytes": 36712,
+      "sha256": "618f57b307a77329fb2e31e20212625d6ee0122f3c3b0aee79cb182116e00d38"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/stopped-zero-exit-verification.json",
+      "target": "tool-core/stopped-zero-exit-verification.json",
+      "bytes": 4161,
+      "sha256": "1e4409a5da0395d7072387ebd85286d25f44c2b8f29f0fb5c996b572a31f51c8"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/go-tests-post-review.stderr.txt",
+      "target": "tool-core/go-tests-post-review.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/go-vet-post-review.txt",
+      "target": "tool-core/go-vet-post-review.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/contracts-post-review-check.txt",
+      "target": "tool-core/contracts-post-review-check.txt",
+      "bytes": 70,
+      "sha256": "4eef3786ed21d8e6aa1b5a18038359e0876e690a9c6ce7bfea08ac051fb47aba"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/docs-post-review-check.txt",
+      "target": "tool-core/docs-post-review-check.txt",
+      "bytes": 134,
+      "sha256": "39b5d809ee0b9a040638ba8510b4c11cfe7d3882774e632fc8790a78859411cd"
+    }
+  ]
+}

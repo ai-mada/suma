@@ -1,0 +1,316 @@
+contracts/tool-execution.md:1: trailing whitespace.
++# T-P4-004 — Tool profiles, task dispatch and structured execution
+contracts/tool-execution.md:2: trailing whitespace.
++
+contracts/tool-execution.md:3: trailing whitespace.
++Status: frozen implementation contract, 2026-10-24. Full product scope remains in docs/delivery/implementation-plan.md. This stage must have real local HTTP/process evidence and a local commit. Production vendor accounts, remote session resume, full terminal/input mediation and external bridge restart-query support are separate pending requirements.
+contracts/tool-execution.md:4: trailing whitespace.
++
+contracts/tool-execution.md:5: trailing whitespace.
++## Ownership
+contracts/tool-execution.md:6: trailing whitespace.
++
+contracts/tool-execution.md:7: trailing whitespace.
++- Platform agent: internal/toolcontract; internal/platform/tool_*.go; DAG tool validation/telemetry and capability matching; relevant tests. Root integrates HTTP/database wiring when requested. Do not edit runner/web or task_dispatch*.go.
+contracts/tool-execution.md:8: trailing whitespace.
++- Runtime agent: internal/runner, cmd/suma-runner, packages/agent-runtime; runtime tests/docs. Do not edit DAG/platform/shared types.
+contracts/tool-execution.md:9: trailing whitespace.
++- UI agent: apps/web; task dispatch and tool workspace, structured execution facts. Do not edit Go/generated contracts/root manifests.
+contracts/tool-execution.md:10: trailing whitespace.
++- Root: task_dispatch*.go, shared contract, API generator, integration wiring, final docs, actual validation and commit. Freeze shared toolcontract types first and communicate paths before parallel source integration.
+contracts/tool-execution.md:11: trailing whitespace.
++
+contracts/tool-execution.md:12: trailing whitespace.
++## Shared types (internal/toolcontract)
+contracts/tool-execution.md:13: trailing whitespace.
++
+contracts/tool-execution.md:14: trailing whitespace.
++All JSON snake_case. No secrets, executable paths, raw args/environment values or external login files in inventory/read DTOs.
+contracts/tool-execution.md:15: trailing whitespace.
++
+contracts/tool-execution.md:16: trailing whitespace.
++`Profile {command_id:string,adapter:string,protocol:string,profile_sha256:string,executable_sha256:string,tool_version:string,read_only:bool}`. IDs match `[A-Za-z0-9][A-Za-z0-9_.-]{0,99}`; both hashes canonical lower64 hex; version 1..256 UTF-8 bytes. Adapters command/suma/codex/opencode; protocols text-v1/suma-jsonl-v1/codex-jsonl-v1/opencode-jsonl-v1 with exact matching pairs. command/text supports generic allowlisted processes. No guessed vendor protocol.
+contracts/tool-execution.md:17: trailing whitespace.
++
+contracts/tool-execution.md:18: trailing whitespace.
++`Observation {profile:Profile,available:bool,reason:string}`. reason is at most1000 UTF-8 bytes and nonempty when unavailable. An unavailable entry still names its configured command, but may lack unavailable executable/version hashes. Display declared/probed/available/execution/accepted distinctly. An installed binary/version/help is not authenticated model health or successful execution.
+contracts/tool-execution.md:19: trailing whitespace.
++
+contracts/tool-execution.md:20: trailing whitespace.
++`Usage {input_tokens:int64,cached_input_tokens:int64,cache_write_input_tokens:int64,output_tokens:int64,reasoning_output_tokens:int64}` nonnegative optional fields. No money estimates.
+contracts/tool-execution.md:21: trailing whitespace.
++
+contracts/tool-execution.md:22: trailing whitespace.
++`Event {schema_version:1,command_id:string,profile_sha256:string,protocol:string,kind:string,session_id?:string,item_id?:string,message?:string,status?:string,usage?:Usage}`. Kinds session_started/turn_started/activity_started/activity_updated/activity_completed/message/usage/error/turn_completed/turn_failed/waiting_input. IDs max128 safe printable characters; message max8192 sanitized UTF-8 bytes, status max64, overall event max16KiB. Validate bounded depth/unknown fields, reject invalid identities/schema. External facts never change DAG state, grant permissions, satisfy tests, approve or consume budget automatically. Waiting-input is an observation while the process/slot remains occupied; no unsupported reply/resume UI.
+contracts/tool-execution.md:23: trailing whitespace.
++
+contracts/tool-execution.md:24: trailing whitespace.
++Progress request adds optional `tool_event:Event` alongside existing assignment/operation_id/message. At least message or tool_event required. Receipt binds the entire original payload before sanitization; current assignment/worker/attempt/fence validation and durable event/outbox semantics remain. Store event type `tool_progress`, data `{operation_id,attempt,fence,worker_id,tool_event}`. Result adds optional `tool_evidence:Evidence {profile:Profile,session_id?:string,terminal:string,event_count:int,usage?:Usage}`; terminal completed/failed/unknown. Persist current-attempt evidence in NodeRun; validate profile matches pinned node before accepting. Never inherit previous attempts' evidence. All known-secret and generic credential redaction occurs before journal/network.
+contracts/tool-execution.md:25: trailing whitespace.
++
+contracts/tool-execution.md:26: trailing whitespace.
++## Administrator profiles and live observations
+contracts/tool-execution.md:27: trailing whitespace.
++
+contracts/tool-execution.md:28: trailing whitespace.
++Use existing bound release-worker registration/credential for stable execution identity (profiles may be empty, deployment=false). Do not create a second generic credential authority. Human management uses current project write+approve permissions under organization lock; read current project authorization. Reject runner/agent/API scopes on human profile management.
+contracts/tool-execution.md:29: trailing whitespace.
++
+contracts/tool-execution.md:30: trailing whitespace.
++`ToolProfile {id,project_id,worker_id,name,version,state,profile:Profile,enabled_by,created_at,updated_at,observation?:Observation,last_seen_at?,available:bool,reason:string}`. State paused/enabled/revoked. Immutable Profile definition; changed configuration needs a new registration. Create paused. enable/pause/revoke use CAS and stable operation receipts; revoke is permanent. Current enabling actor's live write+approve permissions are rechecked before dispatch.
+contracts/tool-execution.md:31: trailing whitespace.
++
+contracts/tool-execution.md:32: trailing whitespace.
++- GET/POST `/tool-profiles?project_id` -> `{items,total,next_cursor}` / ToolProfile. Create `{project_id,worker_id,name,profile,idempotency_key}`.
+contracts/tool-execution.md:33: trailing whitespace.
++- GET `/tool-profiles/{id}?project_id` -> ToolProfile.
+contracts/tool-execution.md:34: trailing whitespace.
++- POST `/tool-profiles/{id}/commands` `{project_id,action:enable|pause|revoke,expected_version,idempotency_key}` -> ToolProfile.
+contracts/tool-execution.md:35: trailing whitespace.
++- POST `/runner/tool-inventory` `{project_id,worker_id,operation_id,items:Observation[]}` -> `{acknowledged:true,observed_at}`. Runner bearer must match registered worker and current project authority; max128 items, strict validation. Repeated exact operations recover original receipt, changed body conflicts. Database time, report expiry60sec. Replayed old report must not refresh expiry. No historical reports asserted as currently online.
+contracts/tool-execution.md:36: trailing whitespace.
++
+contracts/tool-execution.md:37: trailing whitespace.
++Each fresh Runner report is computed from locally allowlisted installed commands with execution enabled, known protocol and read-only version/help probe (timeout5sec/output32KiB). Local `--describe-tools` mode requires no platform token and emits these nonsecret observations. It must not invoke models or modify system config. Profile SHA binds canonical administrator command config (including private configured values only via digest), adapter/protocol and resolved executable SHA; does not claim complete transitive script/module supply-chain attestation. Revalidate executable/config hash immediately before launch; changed/missing/disabled configurations refuse execution. Inventory marks missing/unsupported entries unavailable. Probe once startup then refresh on bounded interval/config or executable drift, not every2sec model launch.
+contracts/tool-execution.md:38: trailing whitespace.
++
+contracts/tool-execution.md:39: trailing whitespace.
++Worker claims command-scoped capabilities `command:<command_id>` only for available local allowlist entries; no unsupported node should consume an attempt. DAG command/agent/test nodes require exactly one command and a matching command capability (plus any explicitly declared capability), including dynamic maps and compensation. Empty capabilities never mean unrestricted. Existing internal tests must declare actual matching capabilities; do not add a permissive production bypass to preserve tests.
+contracts/tool-execution.md:40: trailing whitespace.
++
+contracts/tool-execution.md:41: trailing whitespace.
++Tool-bound agent node config contains `tool_profile_id` and `tool_profile_sha256`. Platform eligibility checks registered worker identity, enabled immutable profile/current enabling authority, exact command/adapter/protocol/hash and matching fresh observation before acquiring attempt/resources. Nonmatching candidates remain ready and do not consume attempts; independent eligible candidates can continue. Compiler rejects partial/malformed tool binding and non-agent bindings. Assignment retains the fixed config. Current read models must explain unavailable reasons without reporting configured as healthy.
+contracts/tool-execution.md:42: trailing whitespace.
++
+contracts/tool-execution.md:43: trailing whitespace.
++## Immutable task dispatch plans (root)
+contracts/tool-execution.md:44: trailing whitespace.
++
+contracts/tool-execution.md:45: trailing whitespace.
++- POST `/task-dispatch-plans` `{project_id,task_id,expected_task_version,workflow_id,workflow_version,agent_node_id,tool_profile_id,expected_tool_version,idempotency_key}`.
+contracts/tool-execution.md:46: trailing whitespace.
++- GET `/task-dispatch-plans/{id}?project_id`.
+contracts/tool-execution.md:47: trailing whitespace.
++- POST `/task-dispatch-plans/{id}/start` `{project_id,expected_version,idempotency_key}` -> Run.
+contracts/tool-execution.md:48: trailing whitespace.
++
+contracts/tool-execution.md:49: trailing whitespace.
++`TaskDispatchPlan {id,project_id,version,state,task_id,task_version,requirement_id?,requirement_version?,workflow_id,workflow_version,agent_node_id,tool_profile_id,tool_profile_version,tool_profile_sha256,run_id,created_at,expires_at,context:TaskContext,workflow:Workflow,valid:bool,reason:string}`.
+contracts/tool-execution.md:50: trailing whitespace.
++
+contracts/tool-execution.md:51: trailing whitespace.
++TaskContext freezes task title/description/acceptance and current linked requirement title/description/acceptance/version in the same authorized transaction. Plan expires after30min database time, readable history remains. Copy exact published workflow and replace only chosen agent's command/profile binding and goal. Goal combines original node instructions with explicitly delimited untrusted task/requirement context; bounded32000UTF8 bytes, no truncation. No code/branch interpolation. Reject wrong node, invalid workflow, unsafe/missing test candidate prerequisites or oversized context explicitly. Preview shows full fixed context, agent/profile/worker, tests and human acceptance boundary. All other node definitions stay frozen.
+contracts/tool-execution.md:52: trailing whitespace.
++
+contracts/tool-execution.md:53: trailing whitespace.
++Start uses existing CreateManagedRunBound atomically for frozen derived workflow, reserved run ID, current auth/profile/observation check, current task+requirement versions, BindRunTx and plan started fact. Old preview cannot start after task/requirement/profile/auth changes or expiry. Same operation replays same run without rebinding changed task; authorization precedes replay. Production policies, test evidence and human acceptance remain existing gates. Failed real attempts continue through FailureIssue and existing deduplicated requirement intake. Task resource owner remains separate from machine execution identity.
+contracts/tool-execution.md:54: trailing whitespace.
++
+contracts/tool-execution.md:55: trailing whitespace.
++## Protocol/runtime requirements
+contracts/tool-execution.md:56: trailing whitespace.
++
+contracts/tool-execution.md:57: trailing whitespace.
++Separate stdout JSONL parser from bounded/redacted stderr. Reject oversize line/depth; fragmented UTF-8 and multiple events supported; unknown vendor event variants are bounded and do not become invented facts. Only allowlisted metadata/text/status/token counts; never persist chain-of-thought, raw tool arguments, URLs for follow-up, arbitrary payload objects or native credential output. No evaluation of external text.
+contracts/tool-execution.md:58: trailing whitespace.
++
+contracts/tool-execution.md:59: trailing whitespace.
++For structured protocols success requires process exit0 AND one consistent supported terminal success; a vendor terminal failure cannot be overridden by exit0. Missing/conflicting/malformed terminal or process/control uncertainty must retain explicit failure/unknown evidence, never fabricate success. Actual process tree stop acknowledgment remains authoritative for cancellation; existing independent worktree/candidate capture/test evidence rules remain. Session ID is read-only provenance, never an automatic resume command. Automatic session recovery/retry after uncertain side effects is forbidden.
+contracts/tool-execution.md:60: trailing whitespace.
++
+contracts/tool-execution.md:61: trailing whitespace.
++A confirmed process-tree stop (`stopped:true,outcome_unknown:false`) may carry `tool_evidence.terminal:"unknown"` when cancellation prevented a protocol terminal. Accept that exact fixed-profile receipt: a cancelling run can become cancelled, and a run without a cancellation request records failure rather than success, including a zero OS exit during a stop race. Preserve the unknown protocol fact; do not manufacture a completed tool terminal. Without a confirmed stop, unknown tool evidence still requires `outcome_unknown:true` and reconciliation.
+contracts/tool-execution.md:62: trailing whitespace.
++
+contracts/tool-execution.md:63: trailing whitespace.
++Confirmed stop classification applies to generic commands and bound tools alike, including zero OS exit with absent, failed, completed or unknown protocol evidence. Outside cancellation a confirmed stop records failure; during cancellation it records cancellation. Startup may stop before protocol evidence exists, so missing evidence is accepted only as a non-success stop fact. Supplied evidence must still match the exact pinned profile. `outcome_unknown:true` always retains reconciliation, even when the process has stopped; no stopped receipt activates success-dependent nodes or satisfies a test. Normal completion must leave `stopped:false` and satisfy the usual terminal/candidate evidence checks.
+contracts/tool-execution.md:64: trailing whitespace.
++
+contracts/tool-execution.md:65: trailing whitespace.
++Native agent CLI uses SUMA_AGENT_TOKEN for `/agent/tools`; Runner token remains runner-only and must not be forwarded as agent authorization. Fix docs and add actual platform HTTP scope tests. Native tool reads are authorized by separate agent scope/current project membership; model output cannot widen tool catalog. CLI probe/structured fixture verification and authenticated vendor execution are separately recorded.
+contracts/tool-execution.md:66: trailing whitespace.
++
+contracts/tool-execution.md:67: trailing whitespace.
++## UI and verification
+contracts/tool-execution.md:68: trailing whitespace.
++
+contracts/tool-execution.md:69: trailing whitespace.
++Use existing compact local workbench. Settings show execution workers/profile configuration, observed version/protocol, online expiry and actual availability reasons; no false percent/uptime. Task details -> preview fixed plan -> explicit start -> real run. Preserve unknown operation identity and CAS drafts, current project/user isolation and URL state. Workflow editor selects actual profiles, retains keyboard/JSON equivalent. Run panel shows typed facts/session and terminal status separately from DAG/business/test/acceptance. Partial narrow/wide/light/dark and Escape/focus must be tested in browser.
+contracts/tool-execution.md:70: trailing whitespace.
++
+contracts/tool-execution.md:71: trailing whitespace.
++Tests include missing tool/disabled exec/wrong capability keeping ready without attempt, pinned digest drift, stale/replayed inventory, another worker/token/project, revocation, plan version/content changes, duplicate start/lost ACK, structured malformed/oversize/split output, success/failure conflicts, cancellation/unknown, credential redaction and actual agent-vs-runner scope. Actual journey must send task context into a real process, execute isolated candidate and independent test, human acceptance, plus a failed process and deduplicated issue/requirement. Deterministic fixture must be labelled as fixture; real CLI probe and any model execution separately disclosed.
+docs/deployment/tool-runtime-bundles.md:1: trailing whitespace.
++# T-P4-004 工具执行与任务派发四程序运行包
+docs/deployment/tool-runtime-bundles.md:2: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:3: trailing whitespace.
++日期：2026-10-24（Asia/Shanghai）。交付批次：`20261024T045219750Z-715ba2c8`。六目标各四程序已实际离线交叉编译，共24个程序；随后逐文件独立读取构建信息，核对实际架构、大小及摘要。该结果证明构建与字节，不替代目标操作系统运行、安装、签名或生产验收。
+docs/deployment/tool-runtime-bundles.md:4: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:5: trailing whitespace.
++## 冻结源码与范围
+docs/deployment/tool-runtime-bundles.md:6: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:7: trailing whitespace.
++本切面基于 `0fe174f668f6e9d111404f72459f34bf3bccde8e` 加T-P4-004工作区，精确绑定 **116个输入文件**：114份非测试Go源码及go.mod、go.sum。源码清单摘要为 `498300c9adffa8327982faa25da7d745d1a9ecb08f62265691d5673deacb318e`，来自有序紧凑逐文件JSON；它与格式化source-manifest.json的文件摘要不同。构建前后及独立复核均一致，`source_unchanged=true`。
+docs/deployment/tool-runtime-bundles.md:8: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:9: trailing whitespace.
++范围为四个入口 `cmd/suma-control`、`cmd/suma-runner`、`cmd/suma-deployer`、`cmd/suma` 及 `internal` 下非测试Go文件，没有go:embed资源。网页资源、Electron、TS原生智能体与知识服务、合同生成器、测试文件和外部CLI安装均不在运行包内；本批次不宣称这些TS资产已整体冻结或随包交付。
+docs/deployment/tool-runtime-bundles.md:10: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:11: trailing whitespace.
++相对签名入口批次 `20261024T033010763Z-94b39f3b`，新增15个运行文件、修改16个、删除0个，见[逐项差异](evidence/runtime-tools-20261024T045219750Z-715ba2c8/cut-difference.json)。新增工具档案、实时库存与固定工具绑定、任务上下文预览和原子派发、typed进度/终态证据、当前执行身份及命令能力筛选，具体语义见[工具执行合同](../../contracts/tool-execution.md)。原程序包、构建收据和历史安装包保留；历史Electron安装包不能被描述为包含本阶段功能。
+docs/deployment/tool-runtime-bundles.md:12: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:13: trailing whitespace.
++## 实际构建与独立复核
+docs/deployment/tool-runtime-bundles.md:14: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:15: trailing whitespace.
++Windows amd64宿主、PowerShell 7、Go `go1.24.5`。实际UTC构建区间 `2026-10-24T04:52:19.7694102Z` 至 `2026-10-24T04:53:06.4852888Z`，原脚本退出0：
+docs/deployment/tool-runtime-bundles.md:16: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:17: trailing whitespace.
++```powershell
+docs/deployment/tool-runtime-bundles.md:18: trailing whitespace.
++# GOMAXPROCS=2仅由包装器传给此次子进程。
+docs/deployment/tool-runtime-bundles.md:19: trailing whitespace.
++& ./scripts/build-runtime.ps1 -All
+docs/deployment/tool-runtime-bundles.md:20: trailing whitespace.
++```
+docs/deployment/tool-runtime-bundles.md:21: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:22: trailing whitespace.
++共50次原始Go调用：工具链检查1次、离线模块校验1次、构建24次、构建信息读取24次，全部退出0。独立验证又对24个实际交付文件执行宿主 `go version -m`，比较原始构建信息、实际文件大小和SHA-256，再读取PE/ELF/Mach-O头确认目标架构。`CGO_ENABLED=0`、`GOOS/GOARCH` 和trimpath由实际元数据核验；buildvcs=false、mod=readonly及各参数由原始命令回执绑定。
+docs/deployment/tool-runtime-bundles.md:23: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:24: trailing whitespace.
++| 目标 | 实际格式 | 程序数 | 四程序总字节 | 链接第三方模块并集 |
+docs/deployment/tool-runtime-bundles.md:25: trailing whitespace.
++|---|---|---:|---:|---:|
+docs/deployment/tool-runtime-bundles.md:26: trailing whitespace.
++| windows-amd64 | PE32+ | 4 | 61,955,072 | 35 |
+docs/deployment/tool-runtime-bundles.md:27: trailing whitespace.
++| windows-arm64 | PE32+ | 4 | 58,293,760 | 35 |
+docs/deployment/tool-runtime-bundles.md:28: trailing whitespace.
++| linux-amd64 | ELF64 | 4 | 60,398,140 | 33 |
+docs/deployment/tool-runtime-bundles.md:29: trailing whitespace.
++| linux-arm64 | ELF64 | 4 | 57,669,999 | 33 |
+docs/deployment/tool-runtime-bundles.md:30: trailing whitespace.
++| darwin-amd64 | Mach-O64 | 4 | 60,418,000 | 34 |
+docs/deployment/tool-runtime-bundles.md:31: trailing whitespace.
++| darwin-arm64 | Mach-O64 | 4 | 57,978,216 | 34 |
+docs/deployment/tool-runtime-bundles.md:32: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:33: trailing whitespace.
++跨目标第三方模块并集为36个，标识、版本、校验和及replace信息与上一签名入口批次一致；完整linked-modules.json字节也一致，见[依赖比较](evidence/runtime-tools-20261024T045219750Z-715ba2c8/linked-module-comparison.json)。这不是标准库、Node、Electron、CLI插件或完整供应链的许可／安全证明。
+docs/deployment/tool-runtime-bundles.md:34: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:35: trailing whitespace.
++GOMAXPROCS=2、构建/模块缓存、临时目录和telemetry设置仅对构建子进程生效；缓存位于仓库.cache，依赖网络、工具链自动下载和VCS获取关闭。构建包装与独立复核未修改用户级或机器级环境，摘要核对见[环境证据](evidence/runtime-tools-20261024T045219750Z-715ba2c8/environment-verification.json)。原构建脚本摘要为 `66256a8d1454045f6db0e68641e1f6a7b1d1ad23341d9485fe45e5e8221859d2`。
+docs/deployment/tool-runtime-bundles.md:36: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:37: trailing whitespace.
++## 实际交付位置
+docs/deployment/tool-runtime-bundles.md:38: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:39: trailing whitespace.
++```text
+docs/deployment/tool-runtime-bundles.md:40: trailing whitespace.
++dist/runtime/<target>/20261024T045219750Z-715ba2c8/
+docs/deployment/tool-runtime-bundles.md:41: trailing whitespace.
++  suma-control[.exe]
+docs/deployment/tool-runtime-bundles.md:42: trailing whitespace.
++  suma-runner[.exe]
+docs/deployment/tool-runtime-bundles.md:43: trailing whitespace.
++  suma-deployer[.exe]
+docs/deployment/tool-runtime-bundles.md:44: trailing whitespace.
++  suma[.exe]
+docs/deployment/tool-runtime-bundles.md:45: trailing whitespace.
++  *.buildinfo.txt
+docs/deployment/tool-runtime-bundles.md:46: trailing whitespace.
++  manifest.json
+docs/deployment/tool-runtime-bundles.md:47: trailing whitespace.
++dist/runtime/builds/20261024T045219750Z-715ba2c8/
+docs/deployment/tool-runtime-bundles.md:48: trailing whitespace.
++  manifest.json
+docs/deployment/tool-runtime-bundles.md:49: trailing whitespace.
++  source-manifest.json
+docs/deployment/tool-runtime-bundles.md:50: trailing whitespace.
++  linked-modules.json
+docs/deployment/tool-runtime-bundles.md:51: trailing whitespace.
++```
+docs/deployment/tool-runtime-bundles.md:52: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:53: trailing whitespace.
++实际绝对根目录为 `D:\codes\ai-dev-os\suma\dist\runtime`。Windows amd64目录为 `D:\codes\ai-dev-os\suma\dist\runtime\windows-amd64\20261024T045219750Z-715ba2c8`，arm64相应替换目标名。24份程序的绝对路径、大小、摘要及格式均在[独立验证](evidence/runtime-tools-20261024T045219750Z-715ba2c8/verification.json)的binaries中。
+docs/deployment/tool-runtime-bundles.md:54: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:55: trailing whitespace.
++| Windows目标 | 程序名 | 字节 | SHA-256 |
+docs/deployment/tool-runtime-bundles.md:56: trailing whitespace.
++|---|---|---:|---|
+docs/deployment/tool-runtime-bundles.md:57: trailing whitespace.
++| windows-amd64 | suma-control.exe | 25,483,264 | `c06d3553c46278704dd976f5ab1dcef52d3b25a96f48d76e3bed4d08092b4eb8` |
+docs/deployment/tool-runtime-bundles.md:58: trailing whitespace.
++| windows-amd64 | suma-runner.exe | 9,952,768 | `12c8681ec9d7e1ba325252e264e5d7aaa7d73d9c053cc3d6c3466292b44f56cb` |
+docs/deployment/tool-runtime-bundles.md:59: trailing whitespace.
++| windows-amd64 | suma-deployer.exe | 16,125,952 | `f8f6a32145d7679bbd6d04f7496c806e7e5c4f3afc8d84ee9ce8ce5098e8a433` |
+docs/deployment/tool-runtime-bundles.md:60: trailing whitespace.
++| windows-amd64 | suma.exe | 10,393,088 | `3d989122ded5345c071e5ef57c1d3a89eda8d582f16e9f6b819fb13a164d82ca` |
+docs/deployment/tool-runtime-bundles.md:61: trailing whitespace.
++| windows-arm64 | suma-control.exe | 24,070,656 | `262e06cc580454cfb7136b3c8207e7f3d27981ea856c11cf0002ce0ffac57600` |
+docs/deployment/tool-runtime-bundles.md:62: trailing whitespace.
++| windows-arm64 | suma-runner.exe | 9,246,208 | `9dc44bf36912de751e4e45729b0027d71464597fdcf1366e46e20fa2b072a98c` |
+docs/deployment/tool-runtime-bundles.md:63: trailing whitespace.
++| windows-arm64 | suma-deployer.exe | 15,244,800 | `bf9ca2838b1138359dafe408e6a7999bca70542f4b44dc920bb60a2978827b1e` |
+docs/deployment/tool-runtime-bundles.md:64: trailing whitespace.
++| windows-arm64 | suma.exe | 9,732,096 | `d4f3f1ca57181d17a344ce8f33cd4687a7d2c9de67c9ce1d11b1df1d38ea1c36` |
+docs/deployment/tool-runtime-bundles.md:65: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:66: trailing whitespace.
++根代理后续实际切换应核对本表的control和Runner字节；此前localhost4322候选服务不是这批最终交付字节。构建及文档交付代理没有启动、停止或替换任何运行服务，本页不记录目标程序已经启动的结论。
+docs/deployment/tool-runtime-bundles.md:67: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:68: trailing whitespace.
++## 原件、测试绑定与历史保护
+docs/deployment/tool-runtime-bundles.md:69: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:70: trailing whitespace.
++| 归档文件 | 文件SHA-256 |
+docs/deployment/tool-runtime-bundles.md:71: trailing whitespace.
++|---|---|
+docs/deployment/tool-runtime-bundles.md:72: trailing whitespace.
++| [原始构建清单](evidence/runtime-tools-20261024T045219750Z-715ba2c8/manifest.json) | `02677f502364e61e2bae0078145d343686a9f4f80e5995f883ace2e025b9d3f1` |
+docs/deployment/tool-runtime-bundles.md:73: trailing whitespace.
++| [运行源码清单](evidence/runtime-tools-20261024T045219750Z-715ba2c8/source-manifest.json) | `f20a4ac64cec9757bbe617e6eea0afa59351d6268fb7abd919f1a3a6d8af2c37` |
+docs/deployment/tool-runtime-bundles.md:74: trailing whitespace.
++| [链接模块清单](evidence/runtime-tools-20261024T045219750Z-715ba2c8/linked-modules.json) | `fad3767e17e31cc27eb586d1f9ed293a57acd43cece37677147b7b0af29f554d` |
+docs/deployment/tool-runtime-bundles.md:75: trailing whitespace.
++| [独立验证](evidence/runtime-tools-20261024T045219750Z-715ba2c8/verification.json) | `45c0a6c6589a5c46fba98bb9908bd59dceb39602273f4407d232b4627ff75a5b` |
+docs/deployment/tool-runtime-bundles.md:76: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:77: trailing whitespace.
++[证据目录](evidence/runtime-tools-20261024T045219750Z-715ba2c8/verification.json)包含从dist原件逐字节复制的三份构建清单、50对原始stdout/stderr、24对独立metadata输出、原构建脚本、包装器及独立校验脚本。二进制只保留在忽略的dist中，不复制到文档目录。
+docs/deployment/tool-runtime-bundles.md:78: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:79: trailing whitespace.
++最终Go全套已在根代理记录中实际通过：**479个通过测试事件、0失败、0测试跳过**，含父/子测试和helper；10个受测包、4个命令包仅编译，test及vet均退出0。运行包116份输入全部与该次187文件源码快照匹配，原始日志摘要重新核对为 `db5a89e2792d2d4dec579ac30e208aee27d6e520c4323c6ca4f1de05b8cdf828`。见[测试快照绑定](evidence/runtime-tools-20261024T045219750Z-715ba2c8/go-test-binding.json)和[原始测试回执副本](evidence/runtime-tools-20261024T045219750Z-715ba2c8/go-test-receipt.original.json)。本交付步骤没有重跑测试；原始JSONL由质量档案单独保存，避免把改写raw_file后的质量摘要与此原始副本混同。
+docs/deployment/tool-runtime-bundles.md:80: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:81: trailing whitespace.
++构建前先记录1086份历史文件，其中1075份旧dist运行文件及部署evidence为不可变保护对象；12个既有构建收据目录保留。首次独立验证时1086份全部相同，见[原始历史清单](evidence/runtime-tools-20261024T045219750Z-715ba2c8/historical-files.json)与[分层保护检查](evidence/runtime-tools-20261024T045219750Z-715ba2c8/historical-preservation.json)。根代理集成期间对现行Markdown部署指南的更新与旧不可变产物分开记录，不重写初始快照；最后状态见[最终历史复核](evidence/runtime-tools-20261024T045219750Z-715ba2c8/historical-preservation-final.json)。
+docs/deployment/tool-runtime-bundles.md:82: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:83: trailing whitespace.
++[最终交付复核](evidence/runtime-tools-20261024T045219750Z-715ba2c8/final-verification.json)绑定本页、所有运行源码、24份程序、原始收据及测试快照；[最终证据摘要清单](evidence/runtime-tools-20261024T045219750Z-715ba2c8/sha256-final.json)覆盖该证据目录除清单自身之外的原字节。
+docs/deployment/tool-runtime-bundles.md:84: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:85: trailing whitespace.
++## 验收边界
+docs/deployment/tool-runtime-bundles.md:86: trailing whitespace.
++
+docs/deployment/tool-runtime-bundles.md:87: trailing whitespace.
++本页仅证明当前Go运行时的离线构建、元数据、文件格式与摘要、源码/依赖/测试切面绑定及旧原件保留。Windows程序未签名；macOS/Linux和Windows arm64均未由交付代理运行，目标执行权限、原生安装升级、正式签名、外部工具账户与模型执行、真实集群、生产及规模验收由对应证据单独证明。浏览器、原生TS runtime及Electron仍需各自构建与验证，不以24个Go程序推断完整P0–P7交付完成。

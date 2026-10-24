@@ -1,0 +1,163 @@
+{
+  "stage": "T-P4-004",
+  "captured_at": "2026-10-24T04:34:05.161016+00:00",
+  "scope": "Final UI after matching task-preview structured protocol guard. Suma/suma-jsonl-v1 and Codex/codex-jsonl-v1 only for immutable task development plans; generic tool inventory and manual workflow binding unchanged. Browser/vendor/production acceptance remains separate.",
+  "files": [
+    {
+      "path": "apps/web/src/App.tsx",
+      "bytes": 63335,
+      "sha256": "e8199c5ada528a91b886b462bcac5aeb1844600e17a676c0e4d1326465670454"
+    },
+    {
+      "path": "apps/web/src/Workflow.tsx",
+      "bytes": 39183,
+      "sha256": "53279448bb23e41dc2fa3f4fbd151f65bcc03443f4ba1a325feb0a3cb4ac8e63"
+    },
+    {
+      "path": "apps/web/src/api.ts",
+      "bytes": 5637,
+      "sha256": "372be848a9914d409c46fc8a8b1544c6e2fc29b6561526f50645eec7f9986b81"
+    },
+    {
+      "path": "apps/web/src/TaskDispatch.tsx",
+      "bytes": 15742,
+      "sha256": "0bb913266a6bc1916ddd268647d55e165937ec996159547f4e782874281be9b9"
+    },
+    {
+      "path": "apps/web/src/ToolActions.tsx",
+      "bytes": 1390,
+      "sha256": "34eafd734cb9a98d5b3d6f21cfcbd96230101b140a126bc4f38980d2235c632e"
+    },
+    {
+      "path": "apps/web/src/ToolFacts-consumers.test.tsx",
+      "bytes": 5522,
+      "sha256": "b017a34738dcfd0af56160ba0f112a95413361f50e63ed204abb32465d963d27"
+    },
+    {
+      "path": "apps/web/src/ToolFacts.tsx",
+      "bytes": 10233,
+      "sha256": "fad3f646383a85f52e3b936064fe450bb83f427bb25dd13a47b2b60254ed7730"
+    },
+    {
+      "path": "apps/web/src/ToolNodeFields.tsx",
+      "bytes": 2991,
+      "sha256": "5b8c6cbdaf948a9ea73d5aa187cfb5247260d14640ea6883c4a3427b4f560fa1"
+    },
+    {
+      "path": "apps/web/src/ToolWorkspace.tsx",
+      "bytes": 30910,
+      "sha256": "06631e13023802deffbeccb26a928ffaa1c044504099d175344e6a8ba97d0b17"
+    },
+    {
+      "path": "apps/web/src/tool-hooks.ts",
+      "bytes": 4652,
+      "sha256": "23ac62807761fb7185f24375ca1c779c41efd4671f46405e20d8a19e4f98659b"
+    },
+    {
+      "path": "apps/web/src/tool-model.test.ts",
+      "bytes": 10708,
+      "sha256": "b9ef1c689c56c84f644835b9df41992b8c9f1fadb16419375f2ae6256e6864dc"
+    },
+    {
+      "path": "apps/web/src/tool-model.ts",
+      "bytes": 11619,
+      "sha256": "4fb4461e30d74e5b7e17993be54c0a0c00de6fae83daef0727c0a4e04ea7052d"
+    },
+    {
+      "path": "apps/web/src/tool-write.ts",
+      "bytes": 3832,
+      "sha256": "b874bc1dca31055768d81d4e74d3d337d0b96532486694f40ec5559c7ff6f252"
+    },
+    {
+      "path": "apps/web/src/tool.css",
+      "bytes": 5764,
+      "sha256": "1a08940f23879457de3b75aa4f9ce3582adff6b43e7a29e8a995ba09140748a9"
+    },
+    {
+      "path": "apps/web/src/ToolBindingStatus.tsx",
+      "bytes": 4531,
+      "sha256": "9c1b493fd42000e4f8fe4454243f1214f6ea9e6b00f46447026a09b48c0018cc"
+    },
+    {
+      "path": "apps/web/src/ToolBindingStatus-consumers.test.tsx",
+      "bytes": 3206,
+      "sha256": "024c783449afc5c2795679ffb44480315bf3719e35ead59087e320f0138b9aa9"
+    }
+  ],
+  "web_tests": {
+    "passed": 186,
+    "files": 17,
+    "new_tool_tests": 22,
+    "log": ".cache/e2e/tool-stage/ui-web-task-protocol-final.txt"
+  },
+  "typecheck": {
+    "exit_code": 0,
+    "log": ".cache/e2e/tool-stage/ui-typecheck-task-protocol-final.txt"
+  },
+  "red_logs": [
+    "ui-red.txt",
+    "ui-waiting-terminal-red.txt",
+    "ui-task-prerequisite-red.txt",
+    "ui-binding-status-red.txt"
+  ],
+  "green_logs": [
+    "ui-model-green.txt",
+    "ui-current-green.txt",
+    "ui-prerequisite-green.txt",
+    "ui-web-final.txt",
+    "ui-binding-status-green.txt"
+  ],
+  "dependency_manifests_changed": false,
+  "git_commit_performed": false,
+  "final_review_notes": [
+    "New components formatted separately; existing App/Workflow line endings preserved",
+    "Shared context/Profile DTOs checked against current Go types",
+    "Read-only task tools and missing fixed-candidate tests rejected before preview",
+    "Finished DAG never claims occupied slot due to old waiting-input event",
+    "Late actor/project mutation callbacks are ignored",
+    "Final 178 web tests and typecheck passed; browser validation remains integration responsibility",
+    "Run binding metadata uses fixed NodeRun fields, never editable workflow draft",
+    "Current eligibility polls one exact profile every10sec with generation/scope protection; historical run state unchanged",
+    "Tool-settings link round-trips exact project/run/node through bounded return panel"
+  ],
+  "predecessor": {
+    "file": ".cache/e2e/tool-stage/ui-reason-boundary-verification.json",
+    "sha256": "39f98fd2d8e1927cbc2628b5b6dd67630225826b2d949fe0edef4a300efae6f1",
+    "retained_unchanged": true
+  },
+  "changed_since_predecessor": [
+    "apps/web/src/TaskDispatch.tsx",
+    "apps/web/src/tool-model.test.ts",
+    "apps/web/src/tool-model.ts"
+  ],
+  "contract_change": {
+    "reason_max_utf8_bytes": 1000,
+    "unavailable_reason_trimmed_nonempty": true
+  },
+  "raw_logs": [
+    {
+      "file": ".cache/e2e/tool-stage/ui-task-protocol-boundary-red.txt",
+      "bytes": 2972,
+      "sha256": "b19a10d79463c24ef65a3766e64447e917ff2db70084eb3649664929197cd72d"
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-task-protocol-boundary-green.txt",
+      "bytes": 285,
+      "sha256": "3fb7428364f0a8654c85292cbe4d4c7eac2afcd37408207324774f82bbbfc628"
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-web-task-protocol-final.txt",
+      "bytes": 1259,
+      "sha256": "07dcad88b5d44918129593947e9a5fa74aec5b77dd7581ba70e1fe76eac3a519"
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-typecheck-task-protocol-final.txt",
+      "bytes": 16,
+      "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    }
+  ],
+  "task_protocol_guard": {
+    "suma": "suma-jsonl-v1",
+    "codex": "codex-jsonl-v1"
+  }
+}

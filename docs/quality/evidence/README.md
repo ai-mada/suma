@@ -2,7 +2,22 @@
 
 状态：本机证据，2026-10-24；负责人：平台集成。证据只适用于[验证报告](../verification.md)明确的范围，完整目标见[实施台账](../../delivery/implementation-plan.md)。
 
-## 当前 T-P4-003 签名来源与交付
+## 当前 T-P4-004 固定工具派发与实际质量闭环
+
+| 证据 | 内容 |
+|---|---|
+| [最终Go512](tool-go-post-review-tests.jsonl)、[源码/环境](tool-go-post-review-verification.json) | 0失败/0测试跳过、vet通过、189输入前后相同；初轮479与原始RED分别保留 |
+| [最终工作区](tool-workspace-final.json)、[212项测试](tool-workspace-final-tests.txt)、[类型](tool-workspace-final-types.txt)、[构建](tool-web-final-build.txt) | web198、native8、desktop3、knowledge3，105输入前后相同；旧203/208/211切面原字节保存 |
+| [初组三旅程](tool-browser-execution.json)、[最终第4次停止](tool-post-review-database.json)、[交付程序](tool-post-review-runtime.json) | 固定需求任务、隔离候选、独立2测试、人工验收、真实失败/重复回流、实际停止；4runs/8nodes/5attempts，原35事件及验收回流未改写，工具paused v5 |
+| [运行时专项](../tool-runtime-verification.md)、[CLI只读探测](tool-codex-probe/README.md)、[官方usage形状](tool-codex-usage/README.md) | 111域内/原生8/真实控制面三授权用例分别取证；本机Codex0.164仅help/version，无真实厂商模型执行 |
+| [工具UI](../tool-ui-verification.md)、[窄屏节点列表](../tool-ui-responsive-supplement.md)、[真实React导航](../tool-ui-navigation-verification.md)、[完整点击盒](../tool-ui-hitbox-verification.md) | 组件切面与实际浏览器分开，保留原失败、源码和锁文件范围 |
+| [浏览器观察](tool-browser-visual.json)、[原图摘要](tool-visual-files.json)、[390](tool-final-390.png)、[768](tool-final-768.png)、[1366](tool-final-1366.png)、[1920](tool-final-1920.png)、[深色](tool-final-dark-1366.png) | 最终M_630Zj3资产、实际CSS宽度、键盘和默认鼠标点击、返回、主题；原生PNG的1.5 backing像素与CSS宽度分别记录，无图片编辑 |
+| [根归档](tool-root-archive.json)、[最终Go归档](tool-post-go-archive.json)、[实际停止归档](tool-post-live-archive.json)、[最终JS/视觉归档](tool-final-archive.json) | 原始日志和历史失败不覆盖；不归档账号、token、配置、数据库、外部登录文件或运行二进制 |
+| [当前24程序](../../deployment/tool-stop-runtime-bundles.md)、[首批历史24程序](../../deployment/tool-runtime-bundles.md) | 最终051829绑定512测试/116运行输入，Windows实际激活复验；旧045219和更早批次保持独立切面，跨编译不等于目标OS安装 |
+
+完整阶段范围及未完成能力见[工具验收](../tool-execution-verification.md)。测试模型端仅使用明确标注的loopback fixture；实际Git、进程、SQL、独立测试和浏览器操作有各自证据，不作为真实模型编码、生产或整个P0–P7完成结论。
+
+## T-P4-003历史：签名来源与交付
 
 | 证据 | 内容 |
 |---|---|

@@ -1,0 +1,60 @@
+{
+  "recorded_at": "2026-10-24T05:24:42.289898+00:00",
+  "scope": "Fourth real process-stop run on final051829 Windows binaries. Collector first failure was a helper projection error, not a platform failure; original helper preserved. Read-only formal facts and process/disk metadata, not browser asset proof.",
+  "files": [
+    {
+      "source": ".cache/e2e/tool-stage/tool-post-review-database.json",
+      "target": "tool-post-review-database.json",
+      "bytes": 27786,
+      "sha256": "b796d802fafd9c46d533297d75f9a01eb1d52d63532514c52aad567742f5f28e"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/tool-post-review-runtime.json",
+      "target": "tool-post-review-runtime.json",
+      "bytes": 3295,
+      "sha256": "7e0661a152e9cab9a75e95bc286f2a2242b864e0b59c30a1790b88f6865295eb"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/collect-post-review-evidence.py",
+      "target": "tool-core/collect-post-review-evidence.py",
+      "bytes": 27524,
+      "sha256": "b446538587ee7b9247ef9dd696f2150d7c76077f2b115e83234cb5b79770ceba"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/collect-post-review-evidence.attempt1.py",
+      "target": "tool-core/collect-post-review-evidence.attempt1.py",
+      "bytes": 27490,
+      "sha256": "1477fdfda41a4b8f80b2f6d3788b2e6c13b56ae0eafc39da1264a9c9fb0ff597"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/post-review-collector-failure.json",
+      "target": "tool-core/post-review-collector-failure.json",
+      "bytes": 1138,
+      "sha256": "7330741fb69f04b61730ecae85f0af0950a9173532bb412bb4d5b36a8f4c4835"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/post-review-collector-verification.json",
+      "target": "tool-core/post-review-collector-verification.json",
+      "bytes": 3734,
+      "sha256": "2edc46cd4c0b035a348057182f32ae5cfd43d725f4de87dcbd4d0055c33863b4"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/post-review-collector-green.stdout.txt",
+      "target": "tool-core/post-review-collector-green.stdout.txt",
+      "bytes": 1333,
+      "sha256": "08f3ddce75fd63986c479f3523746a287c80e6073ea5f7491f05d6b22a9cd351"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/post-review-collector-green.stderr.txt",
+      "target": "tool-core/post-review-collector-green.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/post-review-collector-green.exit.txt",
+      "target": "tool-core/post-review-collector-green.exit.txt",
+      "bytes": 3,
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    }
+  ]
+}

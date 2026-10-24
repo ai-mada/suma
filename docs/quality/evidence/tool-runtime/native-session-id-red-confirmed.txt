@@ -1,0 +1,5 @@
+--- FAIL: TestNativeAgentReceivesGoalWithoutRemoteExecutableArguments (0.13s)
+    runner_test.go:186: agent input missing: {Assignment:{RunID: NodeID: Attempt:0 Fence:0 WorkerID: Command:[agent] Type:agent TimeoutSeconds:0 Idempotent:false Config:map[goal:inspect project] CandidateCommit: CandidateFrom: CandidateAttempt:0 CandidateFence:0 CandidateEvidenceSHA256: ReleaseExecution:<nil>} ExitCode:5 Output: Error:process exited unsuccessfully OperationID: Stopped:false OutcomeUnknown:false WorkspaceEvidence:map[] ArtifactEvidence:<nil> ReleaseEvidence:<nil> ToolEvidence:<nil> artifactPending:false}
+FAIL
+FAIL	github.com/ai-mada/suma/internal/runner	0.277s
+FAIL

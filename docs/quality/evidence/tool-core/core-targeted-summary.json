@@ -1,0 +1,10 @@
+{
+  "recorded_at": "2026-10-24T04:20:16.682294+00:00",
+  "command": "go test -json ./internal/toolcontract ./internal/dag ./internal/platform -run TestTool|TestProfileDigest|TestCommandAuthority|TestHeartbeatAuthority|TestTaskDispatch|TestReleaseFixtureWorkerRenewsActualHTTPLease -count=1 -timeout 90s",
+  "pass_test_events": 29,
+  "failed_events": 0,
+  "skipped_test_cases": 0,
+  "raw_sha256": "61608f962909e11d71ad9264aa8b254f24fdd9a5197bb9b5ee38cc1b3c4f8e2c",
+  "raw_file": "core-final-targeted.jsonl",
+  "scope": "Targeted actual Go/SQLite/API tests. Prior all-platform 89s slice failed only old unregistered heartbeat fixture, subsequently changed to existing registered worker identity. Not a final all-package acceptance."
+}

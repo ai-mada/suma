@@ -1,0 +1,7 @@
+$ tsc --noEmit
+src/record-navigation-dom.test.tsx(188,9): error TS2322: Type '{ id: string; project_id: string; version: number; title: string; description: string; status: string; requirement_id: string; data: {}; acceptance_criteria: string[]; }' is not assignable to type 'RecordItem'.
+  Types of property 'acceptance_criteria' are incompatible.
+    Type 'string[]' is not assignable to type 'string'.
+D:\codes\ai-dev-os\suma\apps\web:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @suma/web@0.1.0 typecheck: `tsc --noEmit`
+Exit status 2

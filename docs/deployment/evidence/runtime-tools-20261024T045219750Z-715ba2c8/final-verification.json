@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-24T04:56:38.923890+00:00",
+  "stage": "T-P4-004",
+  "stamp": "20261024T045219750Z-715ba2c8",
+  "source_sha256": "498300c9adffa8327982faa25da7d745d1a9ecb08f62265691d5673deacb318e",
+  "runtime_source_files_rechecked": 116,
+  "runtime_go_files_rechecked": 114,
+  "current_runtime_sources_match": true,
+  "historical_files_rechecked": 1086,
+  "historical_files_unchanged": 1086,
+  "immutable_historical_files_unchanged": 1075,
+  "current_document_updates": [],
+  "historical_build_receipt_directories": 12,
+  "artifacts_rechecked": 24,
+  "independent_go_metadata_checks": 24,
+  "original_receipt_copies_identical": 3,
+  "original_stdout_stderr_pairs_identical": 50,
+  "initial_evidence_files_rechecked": 167,
+  "documentation": "docs/deployment/tool-runtime-bundles.md",
+  "documentation_sha256": "149ddaa61aaa808b45b43d0c010cf3f93ac2ea9c1d9a4ecc71324e583e3e3615",
+  "documentation_links_valid_except_pending_final_files": true,
+  "documentation_link_count": 17,
+  "go_test_runtime_source_binding": true,
+  "passed_test_events": 479,
+  "failed_test_events": 0,
+  "skipped_test_cases": 0,
+  "test_snapshot_files": 187,
+  "windows_binaries": [
+    {
+      "target": "windows-amd64",
+      "name": "suma-control.exe",
+      "path": "dist/runtime/windows-amd64/20261024T045219750Z-715ba2c8/suma-control.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T045219750Z-715ba2c8\\suma-control.exe",
+      "size_bytes": 25483264,
+      "sha256": "c06d3553c46278704dd976f5ab1dcef52d3b25a96f48d76e3bed4d08092b4eb8",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "amd64",
+        "machine": "0x8664",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "windows-amd64",
+      "name": "suma-runner.exe",
+      "path": "dist/runtime/windows-amd64/20261024T045219750Z-715ba2c8/suma-runner.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T045219750Z-715ba2c8\\suma-runner.exe",
+      "size_bytes": 9952768,
+      "sha256": "12c8681ec9d7e1ba325252e264e5d7aaa7d73d9c053cc3d6c3466292b44f56cb",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "amd64",
+        "machine": "0x8664",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "windows-amd64",
+      "name": "suma-deployer.exe",
+      "path": "dist/runtime/windows-amd64/20261024T045219750Z-715ba2c8/suma-deployer.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T045219750Z-715ba2c8\\suma-deployer.exe",
+      "size_bytes": 16125952,
+      "sha256": "f8f6a32145d7679bbd6d04f7496c806e7e5c4f3afc8d84ee9ce8ce5098e8a433",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "amd64",
+        "machine": "0x8664",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "windows-amd64",
+      "name": "suma.exe",
+      "path": "dist/runtime/windows-amd64/20261024T045219750Z-715ba2c8/suma.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T045219750Z-715ba2c8\\suma.exe",
+      "size_bytes": 10393088,
+      "sha256": "3d989122ded5345c071e5ef57c1d3a89eda8d582f16e9f6b819fb13a164d82ca",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "amd64",
+        "machine": "0x8664",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    }
+  ],
+  "no_target_program_started_or_stopped_by_delivery_agent": true,
+  "no_binary_copied_to_documentation": true,
+  "scope": "Offline cross-compilation, independent host metadata/header/size/SHA reads, original outputs and receipts, source/test binding and history preservation only. No tests rerun or target programs launched; TS assets and full platform acceptance are separate."
+}

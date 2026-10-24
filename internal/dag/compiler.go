@@ -36,6 +36,14 @@ func normalize(w Workflow) (Workflow, error) {
 			return w, fmt.Errorf("%w: duplicate node %s", ErrInvalid, n.ID)
 		}
 		seen[n.ID] = i
+		if n.Type == "command" || n.Type == "agent" || n.Type == "test" {
+			if len(n.Command) != 1 || !identifier.MatchString(n.Command[0]) {
+				return w, fmt.Errorf("%w: command/agent/test require one allowlisted command identifier", ErrInvalid)
+			}
+		}
+		if _, _, _, err := ToolBinding(n); err != nil {
+			return w, err
+		}
 		if n.MaxRetries < 0 || n.TimeoutSeconds < 0 || n.MaxRetries > 0 && !n.Idempotent {
 			return w, fmt.Errorf("%w: retries require idempotency", ErrInvalid)
 		}

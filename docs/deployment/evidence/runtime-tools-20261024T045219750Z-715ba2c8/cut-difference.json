@@ -1,0 +1,168 @@
+{
+  "previous_stamp": "20261024T033010763Z-94b39f3b",
+  "current_stamp": "20261024T045219750Z-715ba2c8",
+  "previous_source_file_count": 101,
+  "current_source_file_count": 116,
+  "previous_source_sha256": "3c971b45a835621efb1cc8e9f7d16c638df02e6d6cd3d67b2d81bf6198178727",
+  "current_source_sha256": "498300c9adffa8327982faa25da7d745d1a9ecb08f62265691d5673deacb318e",
+  "added": [
+    {
+      "path": "internal/dag/tool_execution.go",
+      "size_bytes": 2237,
+      "sha256": "c5839ea264ba587c47d3a2b11926b3bd543fca19c484fb7226252b2819811ed9"
+    },
+    {
+      "path": "internal/platform/task_dispatch_build.go",
+      "size_bytes": 3008,
+      "sha256": "abddaf2a8486a17c1365a9ddc52233f46d6a6b3d62794f5806ce031c1a02f04f"
+    },
+    {
+      "path": "internal/platform/task_dispatch_direct.go",
+      "size_bytes": 2698,
+      "sha256": "23c1ba662c3444b6d4546fc470f788e897ee4b49ad04e803e1b215c39db89d3a"
+    },
+    {
+      "path": "internal/platform/task_dispatch_http.go",
+      "size_bytes": 1181,
+      "sha256": "0a27a620c142823b52eeb7d4f834c9d43a839a39ce8f317d8ba7cd5209095aa9"
+    },
+    {
+      "path": "internal/platform/task_dispatch_types.go",
+      "size_bytes": 2355,
+      "sha256": "44e4c5a93e5f35fa729580e53a2de54e8537e9d78cb778f4125f05dd5023f176"
+    },
+    {
+      "path": "internal/platform/task_dispatch.go",
+      "size_bytes": 11117,
+      "sha256": "324be627ea66ec6c50f05407352b5f1c55faf8160876cd49e630bc51678c6afa"
+    },
+    {
+      "path": "internal/platform/tool_http.go",
+      "size_bytes": 1421,
+      "sha256": "546007cd9c1e1ec2ceb11dc8b174f7ddd65bed678f19666f03738fcb2e88f9aa"
+    },
+    {
+      "path": "internal/platform/tool_inventory.go",
+      "size_bytes": 6060,
+      "sha256": "34df10281974da196d4636f44fc1704c7545a02ad4466b1361134ecd4a263cfa"
+    },
+    {
+      "path": "internal/platform/tool_profiles.go",
+      "size_bytes": 13118,
+      "sha256": "c75cbe5b5cc605974bbabb382b19684bab557279c538eafbcbfdd3162a185ac9"
+    },
+    {
+      "path": "internal/platform/tool_types.go",
+      "size_bytes": 2032,
+      "sha256": "31c189d4671b36ad8813342a1a9691b8549f23111e626bd76cb2fcdef1e3ecd4"
+    },
+    {
+      "path": "internal/runner/tool_inventory.go",
+      "size_bytes": 5730,
+      "sha256": "4c6eba498f08f9c6afb34d177753e590387b0152aef3fe4f767e0d40a383ab4f"
+    },
+    {
+      "path": "internal/runner/tool_stream.go",
+      "size_bytes": 11028,
+      "sha256": "98aea86219f0fb38b751d90b9859f14f880386da424c910e2731af5721452696"
+    },
+    {
+      "path": "internal/runner/tools.go",
+      "size_bytes": 14736,
+      "sha256": "36d93785061261bfeafb2ee5da80a2e5e94344668b0a5aa28d560e2ac14f9cce"
+    },
+    {
+      "path": "internal/toolcontract/types.go",
+      "size_bytes": 1889,
+      "sha256": "05156644137c2f470d44e61a1456c7dde9309d3acf4c619772ed5b14eadcf901"
+    },
+    {
+      "path": "internal/toolcontract/validation.go",
+      "size_bytes": 5747,
+      "sha256": "f6e566362d2f874559847bfa05460c6051dfb09bd8c937319571a05fc234571c"
+    }
+  ],
+  "changed": [
+    {
+      "path": "cmd/suma-runner/main.go",
+      "previous_sha256": "fccbb510f36075880b444555cccb62eb457c7f2630b8d09bb7b720aaf7540fda",
+      "current_sha256": "5eea32dc382420a5edad658f9bfdab97a96e48934d68876aa01fe9a2b3f1ce90"
+    },
+    {
+      "path": "internal/dag/commands.go",
+      "previous_sha256": "0f52f83c4b1751d1945fdc7b237e6b3016b98e7af445c8100fab119c94f961de",
+      "current_sha256": "18dcfb24000a15ed48c89987b47a393de26165f597a1b6c43392e77eaaac8f8d"
+    },
+    {
+      "path": "internal/dag/compiler.go",
+      "previous_sha256": "911fe8542712a1b27ae7c425e8711f8627d26eff61f417b44d9007635fe0ef2b",
+      "current_sha256": "cd5f71fc55b1369dbfa7c0a24e63b3724c63b9d8485d6ee502e6e85e80818d8e"
+    },
+    {
+      "path": "internal/dag/engine.go",
+      "previous_sha256": "b516de5fadfe61536821fd4f44e6067933b369c7113c290408c6b4522b8f8dac",
+      "current_sha256": "d8f2b91aa689e2534fb7d4a2c4c3cc07c52345f4c332d8f2387459cf46a70183"
+    },
+    {
+      "path": "internal/dag/progress.go",
+      "previous_sha256": "9da55b100393b8fe08ae66734c58f98181dea9ed3120ea83acd07217c844ecbf",
+      "current_sha256": "b1f85d2a8e6a29199d93489722f6bdcdeebb6b880e5d4e338c03cd3f73d8d6a4"
+    },
+    {
+      "path": "internal/dag/scheduler.go",
+      "previous_sha256": "487d54053e7096aa1b79352d3c817f3b200ef76fafc0a05c3b92c9e4483053e2",
+      "current_sha256": "840356180da930d610d288775797e49e5360fd1f7295f68bbc084e053e568802"
+    },
+    {
+      "path": "internal/dag/types.go",
+      "previous_sha256": "8b0c825f2b06af81ea4e5223792b7cd227232c43aee6729912368cc39c67a265",
+      "current_sha256": "c9309d10caef3cdcf3a45c01344b3f771f3e3dbc9d9f262d3c7a1436178f416e"
+    },
+    {
+      "path": "internal/platform/artifact_workers.go",
+      "previous_sha256": "113afb4956a3b0afe7b86e444b6f304945f943e081beedf27914cee60374f71f",
+      "current_sha256": "47f07906d91120a805163539e966c69185b90464c9ed78158d20045bfd82b334"
+    },
+    {
+      "path": "internal/platform/database.go",
+      "previous_sha256": "f0e1e0fc990729e9619c7ce8dd2b0415481fa9b9920f8f0e4182d8235b00b76b",
+      "current_sha256": "64362090a743bf6b63b9b1988d22efe273033368010173e608ed2d9d9c3e9afa"
+    },
+    {
+      "path": "internal/platform/http.go",
+      "previous_sha256": "82332f1c0ac8693e90aef1e5d81d174406f558043e71437b7321292404944833",
+      "current_sha256": "2f68781e05411b75e7f3dd8a9f889f5c3cc944b9c3cb08665b62792a80f8f508"
+    },
+    {
+      "path": "internal/runner/client.go",
+      "previous_sha256": "8a5d4ed605865cd2dc64ab583234f29bd9ab2467f1ecdcd915210dcd94a96d7e",
+      "current_sha256": "85e1d94a2a36b669ebfbba541061d64581768145d34d079dee89e5dc1a6c5f5b"
+    },
+    {
+      "path": "internal/runner/environment.go",
+      "previous_sha256": "44e61d095b80ce2be38814c23a6d2832a68a2027974cfe6cbc6579bd9f27a339",
+      "current_sha256": "b8fa7a6c3e4f28547bb79bd7dd6147b09f2efff9fac46cad5fa8ea6eb7ad9d49"
+    },
+    {
+      "path": "internal/runner/execute.go",
+      "previous_sha256": "628349dae41af3b9f12e1c995640313de190ceb4e83a5e5a73a481e814ee686d",
+      "current_sha256": "e4c6dca933e26b97daf81be05aef29ab03b3daa0838cd8ddcc58216ab24aa432"
+    },
+    {
+      "path": "internal/runner/journal.go",
+      "previous_sha256": "6c213f828bff86ac7fac4edfab5b5fab85d3fe440f5090e6402cefeaffbbc227",
+      "current_sha256": "63d25234aa1f4cad4a575c0be685881e1caca7cba88412933398f3e59b62e6ab"
+    },
+    {
+      "path": "internal/runner/wire.go",
+      "previous_sha256": "6e29dca25ceec8ab9c6fec3c377085190106201f1f6d53edb23d64f49e76ddd7",
+      "current_sha256": "7d2287baddb3b32f64db30ae3e28835197362ea6f2f8208053c2e0ceb3f2537a"
+    },
+    {
+      "path": "internal/runner/worker.go",
+      "previous_sha256": "b129278e4fed35b0c7d74a23e2ab380bd6abad2222415bf4788c56b05864c10f",
+      "current_sha256": "5e0ed7787274672fd3d8033e9eb5ca80cc2ce49e17c260db23dc65032c13b163"
+    }
+  ],
+  "removed": []
+}

@@ -1,0 +1,44 @@
+// Deterministic transport fixture. It never invokes a model.
+const fs=require('node:fs');
+const path=require('node:path');
+const {spawnSync}=require('node:child_process');
+if(process.argv.length===3&&process.argv[2]==='--version'){console.log('suma-agent-runtime fixture-transport-only');process.exit(0);}
+if(process.argv.length===3&&process.argv[2]==='--help'){console.log('Fixture transport only; JSONL stdin/stdout; SUMA_AGENT_TOKEN is not used; no model requests.');process.exit(0);}
+if(process.argv.length!==2){process.stderr.write('Unsupported fixture arguments\n');process.exit(2);}
+let raw='';process.stdin.setEncoding('utf8');
+process.stdin.on('data',chunk=>{raw+=chunk;if(Buffer.byteLength(raw)>65536){process.stderr.write('Fixture input exceeded limit\n');process.exit(2);}});
+process.stdin.on('end',async()=>{
+ let request;let requestID;
+ const emit=e=>process.stdout.write(JSON.stringify({...e,request_id:requestID})+'\n');
+ try{
+  const lines=raw.trim().split(/\r?\n/);if(lines.length!==1)throw Error('fixture_one_request_required');request=JSON.parse(lines[0]);
+  requestID=request.request_id;if(typeof requestID!=='string'||!/^[a-f0-9]{64}$/.test(requestID))throw Error('fixture_request_identity_required');
+  emit({type:'started',model:'fixture-transport-only',tools:[]});
+  if(typeof request.goal!=='string')throw Error('fixture_goal_required');
+  const matches=[...request.goal.matchAll(/<task_context_json>\s*([\s\S]*?)\s*<\/task_context_json>/g)];
+  if(matches.length!==1)throw Error('fixture_fixed_task_context_required');
+  const context=JSON.parse(matches[0][1]);const task=context.task;
+  if(!task||typeof task.id!=='string'||!Number.isInteger(task.version)||task.version<1||typeof task.title!=='string'||!task.title.trim()||typeof task.description!=='string'||!Array.isArray(task.acceptance_criteria)||!task.acceptance_criteria.length||task.acceptance_criteria.some(x=>typeof x!=='string'||!x.trim()))throw Error('fixture_complete_task_basis_required');
+  if(context.requirement&&(!context.requirement.id||!Number.isInteger(context.requirement.version)||context.requirement.version<1))throw Error('fixture_requirement_basis_invalid');
+  const success=task.description.includes('[fixture-success]');const failure=task.description.includes('[fixture-fail]');
+  if(success===failure)throw Error('fixture_explicit_task_marker_required');
+  if(failure){emit({type:'error',code:'fixture_selected_failure',message:'Deterministic fixture failure selected by the frozen task description; no model was invoked.'});process.exitCode=7;return;}
+  const repo=fs.realpathSync(path.join(__dirname,'repository'));
+  const cwd=fs.realpathSync(process.cwd());
+  const rel=path.relative(repo,cwd).split(path.sep).join('/');
+  if(!/^\.cache\/runner\/worktrees\/[a-f0-9]{32}\/src$/.test(rel))throw Error('fixture_isolated_attempt_workspace_required');
+  const env=Object.fromEntries(Object.entries(process.env).filter(([key])=>!key.toUpperCase().startsWith('GIT_')));
+  env.GIT_TERMINAL_PROMPT='0';env.GIT_CONFIG_NOSYSTEM='1';env.GIT_CONFIG_GLOBAL=process.platform==='win32'?'NUL':'/dev/null';
+  const git=(args)=>{const p=spawnSync('git',['-c','core.hooksPath='+path.join(__dirname,'disabled-hooks'),'-c','commit.gpgsign=false',...args],{cwd,env,shell:false,windowsHide:true,encoding:'utf8',maxBuffer:65536});if(p.status!==0)throw Error('fixture_git_operation_failed');return p.stdout.trim();};
+  if(fs.realpathSync(git(['rev-parse','--show-toplevel']))!==cwd)throw Error('fixture_git_top_mismatch');
+  if(fs.realpathSync(git(['rev-parse','--git-common-dir']))!==fs.realpathSync(path.join(repo,'.git')))throw Error('fixture_git_common_dir_mismatch');
+  if(git(['status','--porcelain=v1','--untracked-files=all']))throw Error('fixture_workspace_must_start_clean');
+  if(task.description.includes('[fixture-stop]')){emit({type:'tool_started',name:'fixture.wait_for_stop',call_id:'fixture-stop-window'});await new Promise(resolve=>setTimeout(resolve,20000));emit({type:'error',code:'fixture_stop_not_received',message:'Controlled stop fixture deadline reached without an OS stop; no code was written.'});process.exitCode=8;return;}
+  fs.writeFileSync(path.join(cwd,'app.py'),'def can_view_order(actor_project, order_project, is_member):\n    return is_member is True and actor_project == order_project\n',{encoding:'utf8'});
+  git(['add','--','app.py']);
+  git(['-c','user.name=Suma Fixture','-c','user.email=suma-fixture@example.invalid','commit','--no-gpg-sign','-m','feat(fixture): implement fixed task project membership check','--','app.py']);
+  const candidate=git(['rev-parse','HEAD']);
+  if(git(['status','--porcelain=v1','--untracked-files=all']))throw Error('fixture_candidate_must_be_clean');
+  emit({type:'completed',output:'Deterministic fixture implemented project/member authorization and committed candidate '+candidate+' from frozen task '+task.id+' v'+task.version+'. This is a fixture process, not a model execution.'});
+ }catch(error){emit({type:'error',code:'fixture_validation_failed',message:error instanceof Error?error.message:'fixture_failed'});process.exitCode=9;}
+});

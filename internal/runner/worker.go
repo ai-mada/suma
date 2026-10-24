@@ -3,6 +3,8 @@ package runner
 import (
 	"context"
 	"fmt"
+	tc "github.com/ai-mada/suma/internal/toolcontract"
+	"sync"
 	"time"
 )
 
@@ -12,9 +14,46 @@ type Worker struct {
 	ID                              string
 	Exec                            ExecConfig
 	PollInterval, HeartbeatInterval time.Duration
+	inventoryMu                     sync.Mutex
+	inventory                       []tc.Observation
+	inventoryReady                  bool
+	inventoryInterval               time.Duration
 }
 
 func (w *Worker) Run(ctx context.Context) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	if w.Client == nil || w.Journal == nil {
+		return fmt.Errorf("Runner client and durable journal are required")
+	}
+	if err := ValidateToolConfiguration(w.Exec); err != nil {
+		return err
+	}
+	initialErr := w.refreshInventory(ctx)
+	if initialErr != nil && permanentInventoryError(initialErr) {
+		return initialErr
+	}
+	interval := w.inventoryInterval
+	if interval <= 0 {
+		interval = 30 * time.Second
+	}
+	inventoryDone := make(chan struct{})
+	go func() {
+		defer close(inventoryDone)
+		delay := interval
+		if initialErr != nil {
+			delay = min(interval, 5*time.Second)
+		}
+		for wait(ctx, delay) {
+			if err := w.refreshInventory(ctx); err != nil {
+				w.setInventoryUnavailable()
+				delay = min(interval, 5*time.Second)
+			} else {
+				delay = interval
+			}
+		}
+	}()
+	defer func() { cancel(); <-inventoryDone }()
 	poll := w.PollInterval
 	if poll <= 0 {
 		poll = 2 * time.Second
@@ -44,7 +83,13 @@ func (w *Worker) Run(ctx context.Context) error {
 			}
 			continue
 		}
-		capabilities := []string{"command", "test", "agent"}
+		if !w.canClaimInventory() {
+			if !wait(ctx, poll) {
+				break
+			}
+			continue
+		}
+		capabilities := ToolCapabilities(w.currentInventory())
 		capabilities = append(capabilities, ExternalCapabilities(w.Exec.External)...)
 		a, err := w.Client.Claim(ctx, w.ID, capabilities)
 		if err != nil || a == nil {
@@ -72,12 +117,23 @@ func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Dura
 	results := make(chan Result, 1)
 	progress := make(chan struct{}, 1)
 	cfg := w.Exec
+	cfg.ToolInventory = w.currentInventory()
 	if cfg.Artifacts == nil {
 		cfg.Artifacts = w.Client
 	}
 	cfg.Journal = w.Journal
 	cfg.Progress = func(message string) error {
 		if err := w.Journal.RecordProgress(a, message); err != nil {
+			return err
+		}
+		select {
+		case progress <- struct{}{}:
+		default:
+		}
+		return nil
+	}
+	cfg.ToolProgress = func(event tc.Event) error {
+		if err := w.Journal.RecordToolProgress(a, event); err != nil {
 			return err
 		}
 		select {

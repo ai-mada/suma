@@ -1,0 +1,5 @@
+--- FAIL: TestTaskDispatchManagedRunHasNormalLifecycleButNoDeploymentAuthority (0.13s)
+    task_dispatch_test.go:92: POST /runs/226d8e5d85a4625974b704767a2701eb/commands => 400, want 200: {"error":{"code":"invalid_input","details":null,"message":"发布执行必须从发布计划核对或恢复，不能使用通用运行命令"},"setup_required":false}
+FAIL
+FAIL	github.com/ai-mada/suma/internal/platform	1.025s
+FAIL

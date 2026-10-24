@@ -1,0 +1,1 @@
+Initial go test ./cmd/suma-contracts passed, but go run ./cmd/suma-contracts exited1: production file referenced mapAt defined only in main_test.go. Generated files were not rewritten. Fixed by a production-owned toolContractMap helper, then go run and --check verified separately. This record is not an acceptance result.

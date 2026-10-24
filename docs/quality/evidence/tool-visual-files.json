@@ -1,0 +1,72 @@
+{
+  "recorded_at": "2026-10-24T05:39:32.560157+00:00",
+  "scope": "Final index-M_630Zj3 responsive/light/dark and default1280 screenshots. CSS sizes from actual DOM; pixels from decoded raw files. Earlier clipped captures excluded.",
+  "files": [
+    {
+      "path": "tool-final-390.png",
+      "format": "PNG",
+      "image_pixels": [
+        585,
+        1266
+      ],
+      "css_viewport_width": 390,
+      "sha256": "523d03b7aa4589cec82b9f713b3f5e06a4902145fc4084b0b2f8ccaa47770933",
+      "capture": "Native CDP viewport screenshot at1.5 backing scale; unedited."
+    },
+    {
+      "path": "tool-final-768.png",
+      "format": "PNG",
+      "image_pixels": [
+        1152,
+        1536
+      ],
+      "css_viewport_width": 768,
+      "sha256": "5f9cbc175bf7417da5b86edff709bcae44897d073cfdcea5ef566390a692d7d4",
+      "capture": "Native CDP viewport screenshot at1.5 backing scale; unedited."
+    },
+    {
+      "path": "tool-final-1366.png",
+      "format": "PNG",
+      "image_pixels": [
+        2049,
+        1350
+      ],
+      "css_viewport_width": 1366,
+      "sha256": "50c42f1f017e697144acd427c2d23327d6f2b31de8031b2f971cd8cf6ad38972",
+      "capture": "Native CDP viewport screenshot at1.5 backing scale; unedited."
+    },
+    {
+      "path": "tool-final-1920.png",
+      "format": "PNG",
+      "image_pixels": [
+        2880,
+        1620
+      ],
+      "css_viewport_width": 1920,
+      "sha256": "812dd4d38c254760ea31c6a1846640116acf1c11d16262bc8d5320ee107e9ce1",
+      "capture": "Native CDP viewport screenshot at1.5 backing scale; unedited."
+    },
+    {
+      "path": "tool-final-dark-1366.png",
+      "format": "PNG",
+      "image_pixels": [
+        2049,
+        1350
+      ],
+      "css_viewport_width": 1366,
+      "sha256": "2dde0e53e79e4d0ced645d83451176e1f44ed1e5a277af9620a7f9084e4c5b7c",
+      "capture": "Raw browser screenshot; no image edits."
+    },
+    {
+      "path": "tool-final-desktop.jpg",
+      "format": "JPEG",
+      "image_pixels": [
+        1265,
+        712
+      ],
+      "css_viewport_width": 1280,
+      "sha256": "df08bbbe5977136c4be252eea4529ab4f2d087dfd82983a7556d68076ad95921",
+      "capture": "Raw browser screenshot; no image edits."
+    }
+  ]
+}

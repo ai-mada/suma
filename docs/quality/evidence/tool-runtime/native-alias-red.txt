@@ -1,0 +1,118 @@
+$ tsc && node --test dist/tests/*.test.js
+TAP version 13
+# Subtest: CLI version and help probes never enter the model loop
+ok 1 - CLI version and help probes never enter the model loop
+  ---
+  duration_ms: 276.1755
+  type: 'test'
+  ...
+# Subtest: CLI uses a separate agent credential and never the Runner bearer
+ok 2 - CLI uses a separate agent credential and never the Runner bearer
+  ---
+  duration_ms: 194.1908
+  type: 'test'
+  ...
+# Subtest: missing model is explicit and never simulates success
+ok 3 - missing model is explicit and never simulates success
+  ---
+  duration_ms: 1.2271
+  type: 'test'
+  ...
+# Subtest: unknown model tool calls are rejected before authenticated dispatch
+ok 4 - unknown model tool calls are rejected before authenticated dispatch
+  ---
+  duration_ms: 56.472
+  type: 'test'
+  ...
+# Subtest: bounded loop records usage and never invents a completion
+ok 5 - bounded loop records usage and never invents a completion
+  ---
+  duration_ms: 19.8695
+  type: 'test'
+  ...
+# Subtest: provider-safe aliases reverse to canonical tools without normalization collisions
+not ok 6 - provider-safe aliases reverse to canonical tools without normalization collisions
+  ---
+  duration_ms: 12.5216
+  type: 'test'
+  location: 'D:\\codes\\ai-dev-os\\suma\\packages\\agent-runtime\\dist\\tests\\runtime.test.js:59:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'error'
+    - 'completed'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'completed'
+  actual: 'error'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///D:/codes/ai-dev-os/suma/packages/agent-runtime/dist/tests/runtime.test.js:90:16)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: model cannot bypass the provider map by returning a canonical catalog name
+not ok 7 - model cannot bypass the provider map by returning a canonical catalog name
+  ---
+  duration_ms: 11.8723
+  type: 'test'
+  location: 'D:\\codes\\ai-dev-os\\suma\\packages\\agent-runtime\\dist\\tests\\runtime.test.js:108:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'step_limit'
+    - 'unknown_tool'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown_tool'
+  actual: 'step_limit'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///D:/codes/ai-dev-os/suma/packages/agent-runtime/dist/tests/runtime.test.js:121:16)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: duplicate canonical catalog entries fail before a provider request
+not ok 8 - duplicate canonical catalog entries fail before a provider request
+  ---
+  duration_ms: 8.4813
+  type: 'test'
+  location: 'D:\\codes\\ai-dev-os\\suma\\packages\\agent-runtime\\dist\\tests\\runtime.test.js:128:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 'invalid_tools'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'invalid_tools'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///D:/codes/ai-dev-os/suma/packages/agent-runtime/dist/tests/runtime.test.js:137:16)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 5
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 624.639
+D:\codes\ai-dev-os\suma\packages\agent-runtime:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @suma/agent-runtime@0.1.0 test: `tsc && node --test dist/tests/*.test.js`
+Exit status 1

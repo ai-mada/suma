@@ -1,0 +1,215 @@
+{
+  "stage": "T-P4-004-navigation-dom-supplement",
+  "captured_at": "2026-10-24T05:29:12.756721+00:00",
+  "scope": "Real ReactDOM/JSDOM mounted App consumer, mocked HTTP fixtures, actual synthetic click/default decision and history.back/popstate. Not real browser/backend acceptance. No Go/contract changes.",
+  "source_before": {
+    "file": ".cache/e2e/tool-stage/ui-navigation-source-final-before.json",
+    "sha256": "66392839eabd03d6809711734c4c254034d2559c28e5bb223549adbb1e49c1b3"
+  },
+  "source_unchanged_during_final_checks": true,
+  "files": [
+    {
+      "path": "apps/web/src/App.tsx",
+      "sha256": "6d879d7bd2e2c856dcd1239ef7cfdacc7e521a277c518109f93fad2a4552f5cc",
+      "bytes": 63713
+    },
+    {
+      "path": "apps/web/src/Workflow.tsx",
+      "sha256": "d4af9d61c0bb3b2eba032a57228a20738eb756a15cd4d8da93a5bed0e56e378e",
+      "bytes": 41090
+    },
+    {
+      "path": "apps/web/src/api.ts",
+      "sha256": "8a0761ac270f001053a3216cff91475ad5b9180f9a72996bfec05dd03b0e74d8",
+      "bytes": 5604
+    },
+    {
+      "path": "apps/web/src/TaskDispatch.tsx",
+      "sha256": "73e9818c74e0d51ce095595628c94e4c8d3b1d7e78c361d7b7c74b2650d67e32",
+      "bytes": 15461
+    },
+    {
+      "path": "apps/web/src/ToolActions.tsx",
+      "sha256": "34eafd734cb9a98d5b3d6f21cfcbd96230101b140a126bc4f38980d2235c632e",
+      "bytes": 1390
+    },
+    {
+      "path": "apps/web/src/ToolFacts-consumers.test.tsx",
+      "sha256": "5b5164942d314bc1aabbfde36b9ff12f996feddd4d48b871e9e76cae414d0536",
+      "bytes": 6623
+    },
+    {
+      "path": "apps/web/src/ToolFacts.tsx",
+      "sha256": "457493331e971bee0048ec50865855f7ea3d7ae49a6e3df39afb7de2a125b5e0",
+      "bytes": 11157
+    },
+    {
+      "path": "apps/web/src/ToolNodeFields.tsx",
+      "sha256": "5b8c6cbdaf948a9ea73d5aa187cfb5247260d14640ea6883c4a3427b4f560fa1",
+      "bytes": 2991
+    },
+    {
+      "path": "apps/web/src/ToolWorkspace.tsx",
+      "sha256": "06631e13023802deffbeccb26a928ffaa1c044504099d175344e6a8ba97d0b17",
+      "bytes": 30910
+    },
+    {
+      "path": "apps/web/src/tool-hooks.ts",
+      "sha256": "23ac62807761fb7185f24375ca1c779c41efd4671f46405e20d8a19e4f98659b",
+      "bytes": 4652
+    },
+    {
+      "path": "apps/web/src/tool-model.test.ts",
+      "sha256": "c13358a729e96dd0916f71abf1373b832ad629996317567ea2ca7c5392a2050a",
+      "bytes": 11113
+    },
+    {
+      "path": "apps/web/src/tool-model.ts",
+      "sha256": "845eaffda6470ed9dc28c7ac7dc74a5f040a8045b7c9cf1d365cb4611077eae2",
+      "bytes": 11745
+    },
+    {
+      "path": "apps/web/src/tool-write.ts",
+      "sha256": "b874bc1dca31055768d81d4e74d3d337d0b96532486694f40ec5559c7ff6f252",
+      "bytes": 3832
+    },
+    {
+      "path": "apps/web/src/tool.css",
+      "sha256": "1a08940f23879457de3b75aa4f9ce3582adff6b43e7a29e8a995ba09140748a9",
+      "bytes": 5764
+    },
+    {
+      "path": "apps/web/src/ToolBindingStatus.tsx",
+      "sha256": "9c1b493fd42000e4f8fe4454243f1214f6ea9e6b00f46447026a09b48c0018cc",
+      "bytes": 4531
+    },
+    {
+      "path": "apps/web/src/ToolBindingStatus-consumers.test.tsx",
+      "sha256": "024c783449afc5c2795679ffb44480315bf3719e35ead59087e320f0138b9aa9",
+      "bytes": 3206
+    },
+    {
+      "path": "apps/web/src/RecordLineage.tsx",
+      "sha256": "2422c00af122c751d64355237d05a5cc7420f5b9c85dbbef4c48c696ca2b69be",
+      "bytes": 2256
+    },
+    {
+      "path": "apps/web/src/record-lineage.test.tsx",
+      "sha256": "ac394160cb3196be827d74102946d8c229a8bf5c71910e0ec8b29f66aa68e4c5",
+      "bytes": 2480
+    },
+    {
+      "path": "apps/web/src/ResponsiveWorkflow.tsx",
+      "sha256": "8505cf58706ca8602807639e8a101f65cadca1d6d93c7863f9a2cb27b0db25a8",
+      "bytes": 5127
+    },
+    {
+      "path": "apps/web/src/responsive-workflow.test.tsx",
+      "sha256": "ab974381d5e6a872bd03215bf608c133f17e38c4a6aef894a4e03c01c27dccc3",
+      "bytes": 3249
+    },
+    {
+      "path": "apps/web/src/responsive-workflow.css",
+      "sha256": "bb0f580d6310f696aa379c4bddf6873097e4fee519f73e8d25067d67ca09a3b8",
+      "bytes": 6545
+    },
+    {
+      "path": "apps/web/src/record-navigation-dom.test.tsx",
+      "sha256": "84cf22e54dc9f3cc957771181ffe012ec945b91648e45396837053956b5eea21",
+      "bytes": 6681
+    },
+    {
+      "path": "apps/web/package.json",
+      "sha256": "9a5969aaf28957de0053d3d334dc9c2fb183a370d69f699107b9948437aa3c69",
+      "bytes": 726
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "839ef279a2b2ee3a3c02aeb88c1e50d22ba5cc8c16d848f268cf41e6b8c2f429",
+      "bytes": 159559
+    }
+  ],
+  "ui_source_count": 22,
+  "dependency_input_count": 2,
+  "web_tests": {
+    "command": "pnpm --filter @suma/web test",
+    "passed": 197,
+    "test_files": 19,
+    "new_dom_cases": 3,
+    "new_stage_cases_from164_baseline": 33,
+    "exit_code": 0,
+    "log": ".cache/e2e/tool-stage/ui-web-navigation-lf-final.txt"
+  },
+  "typecheck": {
+    "exit_code": 0,
+    "log": ".cache/e2e/tool-stage/ui-navigation-lf-typecheck-final.txt"
+  },
+  "format": {
+    "prettier_version": "3.6.2",
+    "dom_test_check_exit": 0,
+    "standard_git_diff_check_exit": 0,
+    "cr_at_eol_exception_used": false
+  },
+  "dependency_change": {
+    "jsdom": "26.1.0",
+    "scope": "web devDependency only",
+    "production_dependencies_unchanged": true
+  },
+  "red_to_green": {
+    "red_failed": 3,
+    "green_passed": 3
+  },
+  "lf_normalization": "App/Workflow/api CRLF normalized bytewise to LF. RecordLineage and DOM test already LF. Original compact formatting preserved. See ui-navigation-lf-normalization.json",
+  "raw_logs": [
+    {
+      "file": ".cache/e2e/tool-stage/ui-requirement-dom-red.txt",
+      "sha256": "1cb106bf5cd5dcf29bb202200c261258c826729ae300009902dc6a781e4864ce",
+      "bytes": 3253
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-requirement-dom-green.txt",
+      "sha256": "6f50a66a1bbb613dbb9115554eb6b4124bb12c1b72ba07b9f1f45dae34a12f99",
+      "bytes": 300
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-web-navigation-dom-final.txt",
+      "sha256": "e604a32e57726d896bc768cdd925e1e7b6bcd8726ee50da5a4938720a3323056",
+      "bytes": 1371
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-navigation-dom-typecheck-final.txt",
+      "sha256": "ed315c2da4af33921c762a785758b9901b1f67376d48b6efd10b4374aefd50c3",
+      "bytes": 538
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-navigation-dom-typecheck-green.txt",
+      "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9",
+      "bytes": 16
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-web-navigation-lf-final.txt",
+      "sha256": "a6b8bba18626815ff60150a523dd6782ab1a3955d4778d940ed36284aa18f498",
+      "bytes": 1370
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-navigation-lf-typecheck-final.txt",
+      "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9",
+      "bytes": 16
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-navigation-lf-format-check.txt",
+      "sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283",
+      "bytes": 68
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-navigation-lf-whitespace-check.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-navigation-dom-install.txt",
+      "sha256": "0bad420089817e8a3d28083c7532f6570d8a1a687a4571cca7ba3ec5e630d73e",
+      "bytes": 1707
+    }
+  ]
+}

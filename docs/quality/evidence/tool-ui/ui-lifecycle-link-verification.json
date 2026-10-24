@@ -1,0 +1,194 @@
+{
+  "stage": "T-P4-004",
+  "captured_at": "2026-10-24T04:52:56.040250+00:00",
+  "scope": "Final UI after real ready-plan reserved run ID regression and exact task-to-requirement link. Tests/types only; root conducts real browser and final build.",
+  "files": [
+    {
+      "path": "apps/web/src/App.tsx",
+      "bytes": 63400,
+      "sha256": "1b572375f9249b4911ea831e2c8a69e7d3abd2d2a1f6e725691931a68b0aed45"
+    },
+    {
+      "path": "apps/web/src/Workflow.tsx",
+      "bytes": 39183,
+      "sha256": "53279448bb23e41dc2fa3f4fbd151f65bcc03443f4ba1a325feb0a3cb4ac8e63"
+    },
+    {
+      "path": "apps/web/src/api.ts",
+      "bytes": 5637,
+      "sha256": "372be848a9914d409c46fc8a8b1544c6e2fc29b6561526f50645eec7f9986b81"
+    },
+    {
+      "path": "apps/web/src/TaskDispatch.tsx",
+      "bytes": 15461,
+      "sha256": "73e9818c74e0d51ce095595628c94e4c8d3b1d7e78c361d7b7c74b2650d67e32"
+    },
+    {
+      "path": "apps/web/src/ToolActions.tsx",
+      "bytes": 1390,
+      "sha256": "34eafd734cb9a98d5b3d6f21cfcbd96230101b140a126bc4f38980d2235c632e"
+    },
+    {
+      "path": "apps/web/src/ToolFacts-consumers.test.tsx",
+      "bytes": 6623,
+      "sha256": "5b5164942d314bc1aabbfde36b9ff12f996feddd4d48b871e9e76cae414d0536"
+    },
+    {
+      "path": "apps/web/src/ToolFacts.tsx",
+      "bytes": 11157,
+      "sha256": "457493331e971bee0048ec50865855f7ea3d7ae49a6e3df39afb7de2a125b5e0"
+    },
+    {
+      "path": "apps/web/src/ToolNodeFields.tsx",
+      "bytes": 2991,
+      "sha256": "5b8c6cbdaf948a9ea73d5aa187cfb5247260d14640ea6883c4a3427b4f560fa1"
+    },
+    {
+      "path": "apps/web/src/ToolWorkspace.tsx",
+      "bytes": 30910,
+      "sha256": "06631e13023802deffbeccb26a928ffaa1c044504099d175344e6a8ba97d0b17"
+    },
+    {
+      "path": "apps/web/src/tool-hooks.ts",
+      "bytes": 4652,
+      "sha256": "23ac62807761fb7185f24375ca1c779c41efd4671f46405e20d8a19e4f98659b"
+    },
+    {
+      "path": "apps/web/src/tool-model.test.ts",
+      "bytes": 11113,
+      "sha256": "c13358a729e96dd0916f71abf1373b832ad629996317567ea2ca7c5392a2050a"
+    },
+    {
+      "path": "apps/web/src/tool-model.ts",
+      "bytes": 11745,
+      "sha256": "845eaffda6470ed9dc28c7ac7dc74a5f040a8045b7c9cf1d365cb4611077eae2"
+    },
+    {
+      "path": "apps/web/src/tool-write.ts",
+      "bytes": 3832,
+      "sha256": "b874bc1dca31055768d81d4e74d3d337d0b96532486694f40ec5559c7ff6f252"
+    },
+    {
+      "path": "apps/web/src/tool.css",
+      "bytes": 5764,
+      "sha256": "1a08940f23879457de3b75aa4f9ce3582adff6b43e7a29e8a995ba09140748a9"
+    },
+    {
+      "path": "apps/web/src/ToolBindingStatus.tsx",
+      "bytes": 4531,
+      "sha256": "9c1b493fd42000e4f8fe4454243f1214f6ea9e6b00f46447026a09b48c0018cc"
+    },
+    {
+      "path": "apps/web/src/ToolBindingStatus-consumers.test.tsx",
+      "bytes": 3206,
+      "sha256": "024c783449afc5c2795679ffb44480315bf3719e35ead59087e320f0138b9aa9"
+    },
+    {
+      "path": "apps/web/src/RecordLineage.tsx",
+      "bytes": 2040,
+      "sha256": "0e2c979d0f31ba6e213ea470ca4245e2b67ea18dbdadf083db6f728de1f8a61d"
+    },
+    {
+      "path": "apps/web/src/record-lineage.test.tsx",
+      "bytes": 2480,
+      "sha256": "ac394160cb3196be827d74102946d8c229a8bf5c71910e0ec8b29f66aa68e4c5"
+    }
+  ],
+  "web_tests": {
+    "passed": 189,
+    "files": 17,
+    "log": ".cache/e2e/tool-stage/ui-web-lifecycle-link-final.txt",
+    "new_tool_and_lineage_tests": 25
+  },
+  "typecheck": {
+    "exit_code": 0,
+    "log": ".cache/e2e/tool-stage/ui-typecheck-lifecycle-link-final.txt"
+  },
+  "red_logs": [
+    "ui-red.txt",
+    "ui-waiting-terminal-red.txt",
+    "ui-task-prerequisite-red.txt",
+    "ui-binding-status-red.txt"
+  ],
+  "green_logs": [
+    "ui-model-green.txt",
+    "ui-current-green.txt",
+    "ui-prerequisite-green.txt",
+    "ui-web-final.txt",
+    "ui-binding-status-green.txt"
+  ],
+  "dependency_manifests_changed": false,
+  "git_commit_performed": false,
+  "final_review_notes": [
+    "New components formatted separately; existing App/Workflow line endings preserved",
+    "Shared context/Profile DTOs checked against current Go types",
+    "Read-only task tools and missing fixed-candidate tests rejected before preview",
+    "Finished DAG never claims occupied slot due to old waiting-input event",
+    "Late actor/project mutation callbacks are ignored",
+    "Final 178 web tests and typecheck passed; browser validation remains integration responsibility",
+    "Run binding metadata uses fixed NodeRun fields, never editable workflow draft",
+    "Current eligibility polls one exact profile every10sec with generation/scope protection; historical run state unchanged",
+    "Tool-settings link round-trips exact project/run/node through bounded return panel"
+  ],
+  "predecessor": {
+    "file": ".cache/e2e/tool-stage/ui-task-protocol-verification.json",
+    "sha256": "8229028d553f1ba7d323922a4caad12f6f1c68bc5a1da1caf1d4b7a0b1a59f34",
+    "retained_unchanged": true
+  },
+  "changed_since_predecessor": [
+    "apps/web/src/App.tsx",
+    "apps/web/src/TaskDispatch.tsx",
+    "apps/web/src/ToolFacts-consumers.test.tsx",
+    "apps/web/src/ToolFacts.tsx",
+    "apps/web/src/tool-model.test.ts",
+    "apps/web/src/tool-model.ts",
+    "apps/web/src/RecordLineage.tsx",
+    "apps/web/src/record-lineage.test.tsx"
+  ],
+  "contract_change": {
+    "reason_max_utf8_bytes": 1000,
+    "unavailable_reason_trimmed_nonempty": true
+  },
+  "raw_logs": [
+    {
+      "file": ".cache/e2e/tool-stage/ui-requirement-link-red.txt",
+      "bytes": 1877,
+      "sha256": "b44eeabe0c9c8d3771ce5504f3388679637369afedd819026d10dcdb4d90ba54"
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-requirement-link-green.txt",
+      "bytes": 288,
+      "sha256": "72d4bd08ebdda2e696236bd31878d39c8fd1dc28096b6afc99186b1d7dc82dc9"
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-reserved-plan-red.txt",
+      "bytes": 5410,
+      "sha256": "e5856487d695dab59d06c8d9816f2cc48221603f68bdc37385b1564771596f71"
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-reserved-plan-and-link-green.txt",
+      "bytes": 390,
+      "sha256": "2e500437e3c6772d89eb94734a7182fbb2ced47d9c12d861d040a1426629c923"
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-web-lifecycle-link-final.txt",
+      "bytes": 1258,
+      "sha256": "7a776a01d1c08d24b688f1b6573e584cb4e7af4591182d837b6b4d0d9fd19215"
+    },
+    {
+      "file": ".cache/e2e/tool-stage/ui-typecheck-lifecycle-link-final.txt",
+      "bytes": 16,
+      "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    }
+  ],
+  "task_protocol_guard": {
+    "suma": "suma-jsonl-v1",
+    "codex": "codex-jsonl-v1"
+  },
+  "regression_facts": {
+    "ready_reserved_run_id": "reservation_only_no_live_run_button_explicit_start_required",
+    "started_with_actual_run_id": "live_run_navigation",
+    "started_without_run_id": "reconcile_do_not_start_again",
+    "requirement_link": "current_project_exact_ID_no_loaded_row_dependency"
+  }
+}

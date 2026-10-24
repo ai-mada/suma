@@ -1,0 +1,10 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ✓ src/record-lineage.test.tsx (4 tests) 15ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  12:49:58
+   Duration  928ms (transform 64ms, setup 0ms, collect 178ms, tests 15ms, environment 0ms, prepare 121ms)
+

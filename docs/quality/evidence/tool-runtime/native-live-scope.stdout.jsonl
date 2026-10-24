@@ -1,0 +1,8 @@
+{"case": "agent_success", "event": {"type": "started", "model": "fixture-transport-only", "tools": ["project.overview", "project.tasks", "project.search"], "request_id": "native-live-agent_success"}}
+{"case": "agent_success", "event": {"type": "usage", "step": 0, "input_tokens": 0, "output_tokens": 0, "usage_reported": false, "request_id": "native-live-agent_success"}}
+{"case": "agent_success", "event": {"type": "tool_started", "name": "project.tasks", "call_id": "fixture_read_tasks", "request_id": "native-live-agent_success"}}
+{"case": "agent_success", "event": {"type": "tool_completed", "name": "project.tasks", "call_id": "fixture_read_tasks", "request_id": "native-live-agent_success"}}
+{"case": "agent_success", "event": {"type": "usage", "step": 1, "input_tokens": 0, "output_tokens": 0, "usage_reported": false, "request_id": "native-live-agent_success"}}
+{"case": "agent_success", "event": {"type": "completed", "output": "Local transport fixture verified real authorized task IDs: 01a78009746b83f105cd28d63a286800, 3418219185fe4c3311eceff6b853bed2, a5af1760060fb7b491e213cfb9bd96dd. No model was invoked.", "output_tokens": 0, "request_id": "native-live-agent_success"}}
+{"case": "runner_credential_rejected", "event": {"type": "error", "code": "upstream_rejected", "message": "Endpoint rejected request (HTTP 403)", "request_id": "native-live-runner_credential_rejected"}}
+{"case": "foreign_project_scope_rejected", "event": {"type": "error", "code": "upstream_rejected", "message": "Endpoint rejected request (HTTP 403)", "request_id": "native-live-foreign_project_scope_rejected"}}

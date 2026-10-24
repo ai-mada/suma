@@ -1,0 +1,58 @@
+package platform
+
+import "github.com/ai-mada/suma/internal/dag"
+
+type TaskContextRecord struct {
+	ID                 string   `json:"id"`
+	Version            int      `json:"version"`
+	Title              string   `json:"title"`
+	Description        string   `json:"description"`
+	AcceptanceCriteria []string `json:"acceptance_criteria"`
+}
+
+type TaskContext struct {
+	Task        TaskContextRecord  `json:"task"`
+	Requirement *TaskContextRecord `json:"requirement,omitempty"`
+}
+
+type TaskDispatchPlan struct {
+	ID                 string       `json:"id"`
+	ProjectID          string       `json:"project_id"`
+	Version            int          `json:"version"`
+	State              string       `json:"state"`
+	TaskID             string       `json:"task_id"`
+	TaskVersion        int          `json:"task_version"`
+	RequirementID      string       `json:"requirement_id,omitempty"`
+	RequirementVersion int          `json:"requirement_version,omitempty"`
+	WorkflowID         string       `json:"workflow_id"`
+	WorkflowVersion    int          `json:"workflow_version"`
+	AgentNodeID        string       `json:"agent_node_id"`
+	ToolProfileID      string       `json:"tool_profile_id"`
+	ToolProfileVersion int          `json:"tool_profile_version"`
+	ToolProfileSHA256  string       `json:"tool_profile_sha256"`
+	RunID              string       `json:"run_id"`
+	CreatedAt          string       `json:"created_at"`
+	ExpiresAt          string       `json:"expires_at"`
+	Context            TaskContext  `json:"context"`
+	Workflow           dag.Workflow `json:"workflow"`
+	Valid              bool         `json:"valid"`
+	Reason             string       `json:"reason"`
+}
+
+type TaskDispatchPreviewRequest struct {
+	ProjectID           string `json:"project_id"`
+	TaskID              string `json:"task_id"`
+	ExpectedTaskVersion int    `json:"expected_task_version"`
+	WorkflowID          string `json:"workflow_id"`
+	WorkflowVersion     int    `json:"workflow_version"`
+	AgentNodeID         string `json:"agent_node_id"`
+	ToolProfileID       string `json:"tool_profile_id"`
+	ExpectedToolVersion int    `json:"expected_tool_version"`
+	IdempotencyKey      string `json:"idempotency_key"`
+}
+
+type TaskDispatchStartRequest struct {
+	ProjectID       string `json:"project_id"`
+	ExpectedVersion int    `json:"expected_version"`
+	IdempotencyKey  string `json:"idempotency_key"`
+}

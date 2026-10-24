@@ -14,8 +14,14 @@ func (e *Engine) Command(ctx context.Context, tenant, project, runID, action, op
 // The hook uses tx exclusively; it must not call Engine or external services.
 // Receipt replay returns before invoking the hook.
 func (e *Engine) CommandWithHook(ctx context.Context, tenant, project, runID, action, operationID string, expectedVersion int, payload map[string]any, after func(*sql.Tx, Run) error) (Run, error) {
+	return e.CommandWithAuthority(ctx, tenant, project, runID, action, operationID, expectedVersion, payload, nil, after)
+}
+
+// CommandWithAuthority verifies current service authority before the scheduler
+// lock and before recovering a cached receipt. Hooks use the same tx only.
+func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runID, action, operationID string, expectedVersion int, payload map[string]any, before func(*sql.Tx) error, after func(*sql.Tx, Run) error) (Run, error) {
 	var out Run
-	err := e.write(ctx, func(t *transaction) error {
+	err := e.writeBefore(ctx, before, func(t *transaction) error {
 		scope := "command:" + runID
 		hash := fingerprint(map[string]any{"action": action, "payload": payload})
 		previous, err := t.operation(tenant, project, scope, operationID, hash)

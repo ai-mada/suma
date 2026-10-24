@@ -81,7 +81,7 @@ func TestReleaseFixtureWorkerRenewsActualHTTPLease(t *testing.T) {
 	f.e.LeaseSeconds = 2
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	credential := f.call("POST", "/auth/tokens", f.body(map[string]any{"label": "release fixture lease", "scope": "runner"}), 201)
+	credential := f.call("POST", "/release-workers", f.body(map[string]any{"worker_id": "slow-release-fixture", "profiles": []any{}, "deployment": false}), 201)
 	var heartbeats atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(r.URL.Path, "/runner/heartbeat") {

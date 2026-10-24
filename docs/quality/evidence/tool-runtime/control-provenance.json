@@ -1,0 +1,27 @@
+{
+  "stage": "T-P4-004",
+  "native_live_original_receipt": "native-live-scope.json",
+  "native_live_original_receipt_sha256": "0b302646436f65672072a34dc54e51ce4e6c7512ecae68ef4d08fed5c43b0e3b",
+  "native_live_control_role": "candidate control, before final runtime swap",
+  "candidate_control_sha256": "1e61a39a31554065a1486dc1ab40486296672d605d982b9169895c739e477021",
+  "candidate_hash_attribution": "Primary integrator actual-runtime record; the original native-live receipt records endpoint and compiled native files, not control process bytes.",
+  "final_delivered_control_sha256": "c06d3553c46278704dd976f5ab1dcef52d3b25a96f48d76e3bed4d08092b4eb8",
+  "native_live_cases_ran_against_final_delivered_control": false,
+  "same_runtime_source_inputs_reported_by_primary_integrator": true,
+  "runtime_inputs": {
+    "receipt": "docs/deployment/evidence/runtime-tools-20261024T045219750Z-715ba2c8/source-manifest.json",
+    "source_sha256": "498300c9adffa8327982faa25da7d745d1a9ecb08f62265691d5673deacb318e",
+    "files": 116,
+    "go_files": 114,
+    "module_files": [
+      "go.mod",
+      "go.sum"
+    ],
+    "current_input_bytes_match_public_delivery_manifest": true
+  },
+  "public_delivery_verification": {
+    "path": "docs/deployment/evidence/runtime-tools-20261024T045219750Z-715ba2c8/final-verification.json",
+    "sha256": "fe4e049a7c6cb5719b05dc58ef93293adba384cffa1e5fbac093598b87b10923"
+  },
+  "scope_limit": "Source-input equality is not proof that these three native authorization cases ran on c06d. Final delivered-byte GUI/Runner and overall 479 Go verification are owned by the integration report."
+}

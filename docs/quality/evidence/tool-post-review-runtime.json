@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-004-post-review",
+  "observed_at_utc": "2026-10-24T05:23:48.468203+00:00",
+  "read_only": true,
+  "runtime_cut": "20261024T051829203Z-df0ca9b5",
+  "source_sha256": "3cdf6ee27eee0ffc6ec731a62c435c474708eeae8db0b48fbb6023bb28fd8b76",
+  "current_runtime_source_files_verified": 116,
+  "binaries": [
+    {
+      "program": "suma-control.exe",
+      "pid": 142316,
+      "executable_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T051829203Z-df0ca9b5\\suma-control.exe",
+      "sha256": "d357669448f9ccee63752b7177dcea18b56eeb9efaff01052332da43439a4c0f",
+      "size_bytes": 25483264,
+      "process_image_path_matches": true,
+      "delivery_manifest_matches": true
+    },
+    {
+      "program": "suma-runner.exe",
+      "pid": 144352,
+      "executable_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T051829203Z-df0ca9b5\\suma-runner.exe",
+      "sha256": "644adbf34d68fce6e65779819118751a64c2eb2872110915d0acdd6e4399d8ab",
+      "size_bytes": 9952768,
+      "process_image_path_matches": true,
+      "delivery_manifest_matches": true
+    }
+  ],
+  "listeners": [
+    {
+      "LocalAddress": "127.0.0.1",
+      "LocalPort": 4322,
+      "OwningProcess": 142316
+    }
+  ],
+  "runner_port": null,
+  "runner_port_note": "Outbound Runner; no listener claim.",
+  "source_manifest": {
+    "path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\builds\\20261024T051829203Z-df0ca9b5\\source-manifest.json",
+    "sha256": "d6a7151151d373718353280164dbdc64c843b4a261df55d663ff86a8fdac7cf3",
+    "size_bytes": 19323
+  },
+  "delivery_manifest": {
+    "path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\builds\\20261024T051829203Z-df0ca9b5\\manifest.json",
+    "sha256": "5a8b9447306aa631479cba0e50c4bdbabf8a9b7fe87aed4145c47d4c05a9dc64",
+    "size_bytes": 181954
+  },
+  "web": {
+    "entry": {
+      "path": "D:\\codes\\ai-dev-os\\suma\\apps\\web\\dist\\index.html",
+      "sha256": "cb4041d40a2c384094d5dd4be01c5cae1a5cc10b1b6c0720541c85a8ebb87100",
+      "size_bytes": 415
+    },
+    "entry_assets": [
+      {
+        "reference": "/assets/index-kHFrEk2r.js",
+        "path": "D:\\codes\\ai-dev-os\\suma\\apps\\web\\dist\\assets\\index-kHFrEk2r.js",
+        "sha256": "11a218247cca965c2bee1e53306b50921e12f70b8034620d71e3b1d8f8e4ceb6",
+        "size_bytes": 380629
+      },
+      {
+        "reference": "/assets/index-RbvAOW9x.css",
+        "path": "D:\\codes\\ai-dev-os\\suma\\apps\\web\\dist\\assets\\index-RbvAOW9x.css",
+        "sha256": "75ffed87c01f04ba37a46dcd1d0c43ecca0cf1a504e083930cc14ae3cf02f84a",
+        "size_bytes": 86346
+      }
+    ],
+    "scope": "Current on-disk web bytes only; browser responses captured separately by root."
+  },
+  "database_snapshot": {
+    "path": ".cache/e2e/tool-stage/tool-post-review-database.json",
+    "new_run_id": "a64dfd23ac07b393626d7f397f12d06c",
+    "observed_at_database_utc": "2026-10-24T05:23:44.403Z"
+  },
+  "collector_sha256": "b446538587ee7b9247ef9dd696f2150d7c76077f2b115e83234cb5b79770ceba",
+  "scope": "Actual running executable paths and their on-disk delivery hashes plus loopback listener ownership. No service changed or model/task invoked; no process arguments or environment read. File hashes do not independently measure in-memory image pages."
+}

@@ -24,6 +24,7 @@ func main() {
 	commands := flag.String("commands", "", "local JSON command allowlist")
 	externalConfig := flag.String("external-config", "", "administrator JSON map of external workflow plugin endpoints and token environment names")
 	allow := flag.Bool("allow-exec", false, "enable execution of local allowlisted commands")
+	describe := flag.Bool("describe-tools", false, "read-only local executable/version/protocol observations; no platform token or model request")
 	flag.Parse()
 	if *preflight != "" {
 		b, e := os.ReadFile(*preflight)
@@ -43,9 +44,6 @@ func main() {
 		}
 		return
 	}
-	if *project == "" || *id == "" || os.Getenv("SUMA_RUNNER_TOKEN") == "" {
-		log.Fatal("--project, --worker and SUMA_RUNNER_TOKEN are required")
-	}
 	root, err := filepath.Abs(*workspace)
 	if err != nil {
 		log.Fatal(err)
@@ -56,9 +54,25 @@ func main() {
 		if e != nil {
 			log.Fatal(e)
 		}
-		if e = json.Unmarshal(b, &specs); e != nil {
+		if specs, e = runner.DecodeCommands(b); e != nil {
 			log.Fatal(e)
 		}
+	}
+	if err = runner.ValidateToolConfiguration(runner.ExecConfig{Commands: specs}); err != nil {
+		log.Fatal(err)
+	}
+	if *describe {
+		items, describeErr := runner.DescribeTools(context.Background(), runner.ExecConfig{AllowExec: *allow, Commands: specs, Workspace: root, Repository: *repository, BaseCommit: *baseCommit, WorktreeRoot: *worktrees})
+		if describeErr != nil {
+			log.Fatal(describeErr)
+		}
+		if err = json.NewEncoder(os.Stdout).Encode(map[string]any{"items": items, "execution_enabled": *allow}); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+	if *project == "" || *id == "" || os.Getenv("SUMA_RUNNER_TOKEN") == "" {
+		log.Fatal("--project, --worker and SUMA_RUNNER_TOKEN are required; worker must have a registered execution credential")
 	}
 	journal, err := runner.OpenJournal(*state)
 	if err != nil {

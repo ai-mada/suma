@@ -1,0 +1,154 @@
+{
+  "stage": "T-P4-004-hitbox-supplement",
+  "captured_at": "2026-10-24T05:33:53.573647+00:00",
+  "files": [
+    {
+      "path": "apps/web/src/App.tsx",
+      "sha256": "6d879d7bd2e2c856dcd1239ef7cfdacc7e521a277c518109f93fad2a4552f5cc",
+      "bytes": 63713,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/Workflow.tsx",
+      "sha256": "d4af9d61c0bb3b2eba032a57228a20738eb756a15cd4d8da93a5bed0e56e378e",
+      "bytes": 41090,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/api.ts",
+      "sha256": "8a0761ac270f001053a3216cff91475ad5b9180f9a72996bfec05dd03b0e74d8",
+      "bytes": 5604,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/TaskDispatch.tsx",
+      "sha256": "73e9818c74e0d51ce095595628c94e4c8d3b1d7e78c361d7b7c74b2650d67e32",
+      "bytes": 15461,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/ToolActions.tsx",
+      "sha256": "34eafd734cb9a98d5b3d6f21cfcbd96230101b140a126bc4f38980d2235c632e",
+      "bytes": 1390,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/ToolFacts-consumers.test.tsx",
+      "sha256": "5b5164942d314bc1aabbfde36b9ff12f996feddd4d48b871e9e76cae414d0536",
+      "bytes": 6623,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/ToolFacts.tsx",
+      "sha256": "457493331e971bee0048ec50865855f7ea3d7ae49a6e3df39afb7de2a125b5e0",
+      "bytes": 11157,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/ToolNodeFields.tsx",
+      "sha256": "5b8c6cbdaf948a9ea73d5aa187cfb5247260d14640ea6883c4a3427b4f560fa1",
+      "bytes": 2991,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/ToolWorkspace.tsx",
+      "sha256": "06631e13023802deffbeccb26a928ffaa1c044504099d175344e6a8ba97d0b17",
+      "bytes": 30910,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/tool-hooks.ts",
+      "sha256": "23ac62807761fb7185f24375ca1c779c41efd4671f46405e20d8a19e4f98659b",
+      "bytes": 4652,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/tool-model.test.ts",
+      "sha256": "c13358a729e96dd0916f71abf1373b832ad629996317567ea2ca7c5392a2050a",
+      "bytes": 11113,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/tool-model.ts",
+      "sha256": "845eaffda6470ed9dc28c7ac7dc74a5f040a8045b7c9cf1d365cb4611077eae2",
+      "bytes": 11745,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/tool-write.ts",
+      "sha256": "b874bc1dca31055768d81d4e74d3d337d0b96532486694f40ec5559c7ff6f252",
+      "bytes": 3832,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/tool.css",
+      "sha256": "1a08940f23879457de3b75aa4f9ce3582adff6b43e7a29e8a995ba09140748a9",
+      "bytes": 5764,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/ToolBindingStatus.tsx",
+      "sha256": "9c1b493fd42000e4f8fe4454243f1214f6ea9e6b00f46447026a09b48c0018cc",
+      "bytes": 4531,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/ToolBindingStatus-consumers.test.tsx",
+      "sha256": "024c783449afc5c2795679ffb44480315bf3719e35ead59087e320f0138b9aa9",
+      "bytes": 3206,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/RecordLineage.tsx",
+      "sha256": "a5eef53365401125bc90e002cc828732d17ac0bfc36eb616e7aec54cabfeed19",
+      "bytes": 2581,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/record-lineage.test.tsx",
+      "sha256": "ac394160cb3196be827d74102946d8c229a8bf5c71910e0ec8b29f66aa68e4c5",
+      "bytes": 2480,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/ResponsiveWorkflow.tsx",
+      "sha256": "8505cf58706ca8602807639e8a101f65cadca1d6d93c7863f9a2cb27b0db25a8",
+      "bytes": 5127,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/responsive-workflow.test.tsx",
+      "sha256": "ab974381d5e6a872bd03215bf608c133f17e38c4a6aef894a4e03c01c27dccc3",
+      "bytes": 3249,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/responsive-workflow.css",
+      "sha256": "bb0f580d6310f696aa379c4bddf6873097e4fee519f73e8d25067d67ca09a3b8",
+      "bytes": 6545,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/src/record-navigation-dom.test.tsx",
+      "sha256": "1ef1c8a100c50bc83d1da8bf33772cf1a4d21dd61d4fec4222b818fb07bb2fce",
+      "bytes": 7667,
+      "crlf": 0
+    },
+    {
+      "path": "apps/web/package.json",
+      "sha256": "9a5969aaf28957de0053d3d334dc9c2fb183a370d69f699107b9948437aa3c69",
+      "bytes": 726,
+      "crlf": 0
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "839ef279a2b2ee3a3c02aeb88c1e50d22ba5cc8c16d848f268cf41e6b8c2f429",
+      "bytes": 159559,
+      "crlf": 0
+    }
+  ],
+  "prior_navigation_changed_files": [
+    "apps/web/src/RecordLineage.tsx",
+    "apps/web/src/record-navigation-dom.test.tsx"
+  ]
+}

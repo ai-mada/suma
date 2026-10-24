@@ -14,7 +14,7 @@ func TestRunnerProgressHTTPAuthorizationAndDurableReceipt(t *testing.T) {
 	wf := f.call("POST", "/workflows", f.body(map[string]any{"name": "Progress integration", "nodes": []any{map[string]any{"id": "work", "type": "command", "command": []string{"inspect"}}}}), 201)
 	run := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": wf["id"]}), 201)
 	token := f.call("POST", "/auth/tokens", f.body(map[string]any{"scope": "runner"}), 201)["token"].(string)
-	claimed := f.bearer("POST", "/runner/claim", token, f.body(map[string]any{"worker_id": "integration-worker", "capabilities": []string{"command"}}), 200)
+	claimed := f.bearer("POST", "/runner/claim", token, f.body(map[string]any{"worker_id": "integration-worker", "capabilities": []string{"command:inspect"}}), 200)
 	var a dag.Assignment
 	b, _ := json.Marshal(claimed["assignment"])
 	if err := json.Unmarshal(b, &a); err != nil || a.WorkerID != "integration-worker" {
@@ -75,7 +75,7 @@ func TestDynamicMapRunReturnsPinnedCapabilitiesAndCurrentAttemptEvidence(t *test
 	if err != nil {
 		t.Fatal(err)
 	}
-	a, err := f.e.Claim(ctx, f.user.TenantID, f.project, "dynamic-worker", nil)
+	a, err := f.e.Claim(ctx, f.user.TenantID, f.project, "dynamic-worker", toolFixtureCapabilities(t, f))
 	if err != nil || a == nil {
 		t.Fatalf("claim: %v", err)
 	}
@@ -112,7 +112,7 @@ func TestDynamicMapRunReturnsPinnedCapabilitiesAndCurrentAttemptEvidence(t *test
 	f.call("POST", "/runs/"+run.ID+"/commands", f.body(map[string]any{"expected_version": current["version"], "action": "retry", "payload": map[string]any{"node_id": a.NodeID}}), 200)
 	current = f.call("GET", "/runs/"+run.ID+"?project_id="+f.project, nil, 200)
 	assertDynamic(current, false)
-	a, err = f.e.Claim(ctx, f.user.TenantID, f.project, "dynamic-worker", nil)
+	a, err = f.e.Claim(ctx, f.user.TenantID, f.project, "dynamic-worker", toolFixtureCapabilities(t, f))
 	if err != nil || a == nil || a.Attempt != 2 {
 		t.Fatalf("retry claim: %+v %v", a, err)
 	}
@@ -129,7 +129,7 @@ func TestWorkspaceMetadataCannotReplaceExplicitTestNode(t *testing.T) {
 	task := f.call("POST", "/tasks", f.body(map[string]any{"title": "Command is not a test"}), 201)
 	wf := f.call("POST", "/workflows", f.body(map[string]any{"name": "Command only", "nodes": []any{map[string]any{"id": "code", "type": "command", "command": []string{"edit"}}}}), 201)
 	run := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": wf["id"], "task_id": task["id"]}), 201)
-	a, err := f.e.Claim(context.Background(), f.user.TenantID, f.project, "worker", nil)
+	a, err := f.e.Claim(context.Background(), f.user.TenantID, f.project, "worker", toolFixtureCapabilities(t, f))
 	if err != nil || a == nil {
 		t.Fatal(err)
 	}
@@ -150,7 +150,7 @@ func TestReviewRejectsWorkspaceCandidateNotCoveredByTests(t *testing.T) {
 			wf := f.call("POST", "/workflows", f.body(map[string]any{"name": "Candidate then tests", "nodes": []any{map[string]any{"id": "code", "type": "command", "command": []string{"edit"}}, map[string]any{"id": "test", "type": "test", "command": []string{"verify"}, "depends_on": []string{"code"}}}}), 201)
 			run := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": wf["id"], "task_id": task["id"]}), 201)
 			for i := 0; i < 2; i++ {
-				a, err := f.e.Claim(context.Background(), f.user.TenantID, f.project, "worker", nil)
+				a, err := f.e.Claim(context.Background(), f.user.TenantID, f.project, "worker", toolFixtureCapabilities(t, f))
 				if err != nil || a == nil {
 					t.Fatal(err)
 				}

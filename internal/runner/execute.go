@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ai-mada/suma/internal/releasecontract"
+	tc "github.com/ai-mada/suma/internal/toolcontract"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,6 +18,8 @@ import (
 )
 
 type CommandSpec struct {
+	Adapter        string            `json:"adapter,omitempty"`
+	Protocol       string            `json:"protocol,omitempty"`
 	Executable     string            `json:"executable"`
 	Args           []string          `json:"args"`
 	Env            map[string]string `json:"env,omitempty"`
@@ -36,6 +39,8 @@ type ExecConfig struct {
 	External                             map[string]ExternalSpec
 	Repository, BaseCommit, WorktreeRoot string
 	Progress                             func(string) error
+	ToolProgress                         func(tc.Event) error
+	ToolInventory                        []tc.Observation
 	Artifacts                            *Client
 	Journal                              *Journal
 	resolvedArtifact                     *releasecontract.ArtifactBinding
@@ -82,7 +87,7 @@ func (b *output) Write(p []byte) (int, error) {
 }
 
 var ansi = regexp.MustCompile(`\x1b\[[0-?]*[ -/]*[@-~]`)
-var credential = regexp.MustCompile(`(?i)(authorization\s*[:=]\s*bearer\s+|api[_-]?key\s*[:=]\s*|token\s*[:=]\s*)[^\s]+`)
+var credential = regexp.MustCompile(`(?i)(authorization["']?\s*[:=]\s*["']?(?:bearer\s+)?|(?:api[_-]?key|private[_-]?key|master[_-]?key|access[_-]?key|password|secret|token|credential)["']?\s*[:=]\s*["']?)[^\s"',}]+`)
 
 func (b *output) String() string {
 	b.mu.Lock()
@@ -201,6 +206,11 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if ctx.Err() != nil {
 		return fail(ctx.Err().Error())
 	}
+	spec = normalizedCommand(spec)
+	profile, executable, profileErr := launchProfile(ctx, a, cfg, spec)
+	if profileErr != nil {
+		return fail(profileErr.Error())
+	}
 	if spec.ArtifactInput {
 		binding, resolveErr := resolveArtifact(ctx, a, cfg)
 		if resolveErr != nil {
@@ -235,10 +245,6 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			return fail("artifact input: " + err.Error())
 		}
 	}
-	exe, err := exec.LookPath(spec.Executable)
-	if err != nil {
-		return fail("allowlisted executable is not installed")
-	}
 	duration := time.Duration(a.TimeoutSeconds) * time.Second
 	if duration <= 0 {
 		duration = 10 * time.Minute
@@ -248,7 +254,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	}
 	ctx, cancel := context.WithTimeout(ctx, duration)
 	defer cancel()
-	cmd := exec.Command(exe, spec.Args...)
+	cmd := exec.Command(executable, spec.Args...)
 	cmd.Dir = root
 	if a.Type == "agent" {
 		goal, _ := a.Config["goal"].(string)
@@ -257,7 +263,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 		switch spec.Input {
 		case "agent-jsonl":
-			b, _ := json.Marshal(map[string]any{"goal": goal, "request_id": key(a)})
+			b, _ := json.Marshal(map[string]any{"goal": goal, "request_id": digest([]byte(key(a)))})
 			cmd.Stdin = bytes.NewReader(append(b, '\n'))
 		case "goal":
 			cmd.Stdin = strings.NewReader(goal + "\n")
@@ -320,10 +326,29 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			return err
 		}
 	}
-	cmd.Stdout = out
+	var stream *toolStream
+	if profile.Protocol != "text-v1" {
+		var emit func(tc.Event) error
+		if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" {
+			emit = cfg.ToolProgress
+		}
+		stream = newToolStream(profile, cfg.Secrets, emit, digest([]byte(key(a))))
+		stream.abort = cancel
+		cmd.Stdout = stream
+	} else {
+		cmd.Stdout = out
+	}
 	cmd.Stderr = out
 	if ctx.Err() != nil {
 		return fail(ctx.Err().Error())
+	}
+	latestExecutable, latestSHA, digestErr := commandExecutable(spec)
+	if digestErr != nil {
+		return fail("tool profile executable became unavailable before launch")
+	}
+	latestDigest, digestErr := commandProfileDigest(spec, latestSHA)
+	if digestErr != nil || latestDigest != profile.ProfileSHA256 || latestExecutable != executable {
+		return fail("tool profile changed before process launch")
 	}
 	if workspace != nil {
 		workspace.State = "running"
@@ -366,6 +391,41 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		r.Error = "process tree final state unverified"
 	}
 	r.Output = out.String()
+	if stream != nil {
+		invalidBeforeFinish := stream.bad != nil
+		evidence, streamErr := stream.finish()
+		if r.Stopped || r.OutcomeUnknown {
+			evidence.Terminal = "unknown"
+		}
+		if streamErr != nil && !(r.Stopped && !r.OutcomeUnknown && !invalidBeforeFinish) {
+			r.ExitCode = -1
+			r.OutcomeUnknown = true
+			r.Error = streamErr.Error()
+		} else if evidence.Terminal == "failed" {
+			r.ExitCode = 1
+			r.Error = "external tool reported whole-run failure"
+		} else if evidence.Terminal != "completed" && !r.Stopped {
+			r.ExitCode = -1
+			r.OutcomeUnknown = true
+			r.Error = "external tool completion is unverified"
+		}
+		if r.ExitCode != 0 && !r.Stopped && !r.OutcomeUnknown && evidence.Terminal == "completed" {
+			evidence.Terminal = "failed"
+		}
+		if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" {
+			r.ToolEvidence = evidence
+		}
+		r.Output = stream.output.String() + r.Output
+	} else if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" {
+		terminal := "failed"
+		if r.ExitCode == 0 && !r.Stopped && !r.OutcomeUnknown {
+			terminal = "completed"
+		}
+		if r.OutcomeUnknown || r.Stopped {
+			terminal = "unknown"
+		}
+		r.ToolEvidence = &tc.Evidence{Profile: profile, Terminal: terminal}
+	}
 	if err = out.flushProgress(); err != nil {
 		r.ExitCode = -1
 		r.Error = "durable progress unavailable: " + err.Error()
@@ -383,6 +443,13 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		if err = finishArtifact(ctx, a, cfg, spec, workspace, artifactDir, &r); err != nil {
 			r.ExitCode = -1
 			r.Error = "artifact evidence: " + err.Error()
+		}
+	}
+	if r.ToolEvidence != nil {
+		if r.OutcomeUnknown || r.Stopped {
+			r.ToolEvidence.Terminal = "unknown"
+		} else if r.ExitCode != 0 || r.Error != "" {
+			r.ToolEvidence.Terminal = "failed"
 		}
 	}
 	return r

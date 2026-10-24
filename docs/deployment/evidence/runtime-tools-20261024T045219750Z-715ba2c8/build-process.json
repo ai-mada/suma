@@ -1,0 +1,12 @@
+{
+  "command": "pwsh -NoLogo -NoProfile -File ./scripts/build-runtime.ps1 -All",
+  "started_at": "2026-10-24T04:52:19.2556254Z",
+  "completed_at": "2026-10-24T04:53:06.5324664Z",
+  "exit_code": 0,
+  "process_local_GOMAXPROCS": "2",
+  "new_stamps": [
+    "20261024T045219750Z-715ba2c8"
+  ],
+  "stdout_file": "build-process.stdout.txt",
+  "stderr_file": "build-process.stderr.txt"
+}

@@ -31,7 +31,7 @@ func artifactProtocolFixture(t *testing.T) (*fixture, string, rc.AssignmentRef, 
 	if _, err = f.e.CreateRun(ctx, f.user.TenantID, f.project, w.ID, newID()); err != nil {
 		t.Fatal(err)
 	}
-	a, err := f.e.Claim(ctx, f.user.TenantID, f.project, "bounded-builder", []string{"command"})
+	a, err := f.e.Claim(ctx, f.user.TenantID, f.project, "bounded-builder", toolFixtureCapabilities(t, f))
 	if err != nil || a == nil {
 		t.Fatal(err)
 	}

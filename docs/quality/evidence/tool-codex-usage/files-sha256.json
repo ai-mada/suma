@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "files": [
+    {
+      "path": "codex-three-counter-green.jsonl",
+      "bytes": 16170,
+      "sha256": "11a974c1282ee5520fa2edab3d3265b22befcf6210e9ba845d4dd1318a2b6db0"
+    },
+    {
+      "path": "codex-three-counter-red.jsonl",
+      "bytes": 18247,
+      "sha256": "ab809070c8b206b3710e4f7ac65493cbd67f6125f2b3256388b423c538caefc7"
+    },
+    {
+      "path": "codex-usage-verification.json",
+      "bytes": 3804,
+      "sha256": "0f6bbcd8ce7e10b788c7f3ef3d83a61815c297debc8a03d6ca3176da94297424"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1198,
+      "sha256": "48ed8623af4fb08a31163c781cfdb45d5fcf636d96583822f2d024bdf064a12d"
+    }
+  ]
+}

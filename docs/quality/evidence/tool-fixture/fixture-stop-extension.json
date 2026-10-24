@@ -1,0 +1,7 @@
+{
+  "recorded_at": "2026-10-24T04:39:10.192463+00:00",
+  "scope": "Local deterministic fixture only; adds a real20second process stop window, never writes app.py in the stop branch. No platform/prod source changed.",
+  "old_sha256": "12067fb55126f97e3a3e3569bc0ef098ece4f2a959448f50b302911b924a5557",
+  "new_sha256": "20504675b873f7d3fb525c2ae9698f139fc382b28d1f33beffd474497674d502",
+  "original": "agent-fixture-pre-stop.original.txt"
+}

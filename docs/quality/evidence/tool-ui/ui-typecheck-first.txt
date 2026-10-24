@@ -1,0 +1,6 @@
+$ tsc --noEmit
+src/tool-model.ts(57,14): error TS18048: 'event.data' is possibly 'undefined'.
+src/ToolFacts.tsx(12,1035): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+D:\codes\ai-dev-os\suma\apps\web:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @suma/web@0.1.0 typecheck: `tsc --noEmit`
+Exit status 2

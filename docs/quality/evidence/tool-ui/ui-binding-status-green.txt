@@ -1,0 +1,11 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ✓ src/tool-model.test.ts (10 tests) 16ms
+ ✓ src/ToolBindingStatus-consumers.test.tsx (4 tests) 12ms
+
+ Test Files  2 passed (2)
+      Tests  14 passed (14)
+   Start at  12:23:55
+   Duration  1.78s (transform 249ms, setup 0ms, collect 785ms, tests 28ms, environment 0ms, prepare 626ms)
+

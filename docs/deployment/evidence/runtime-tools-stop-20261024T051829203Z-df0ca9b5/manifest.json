@@ -1,0 +1,4161 @@
+{
+  "schema_version": 1,
+  "stamp": "20261024T051829203Z-df0ca9b5",
+  "started_at": "2026-10-24T05:18:29.2257188Z",
+  "completed_at": "2026-10-24T05:19:20.3250160Z",
+  "status": "succeeded",
+  "repository": "D:\\codes\\ai-dev-os\\suma",
+  "toolchain": {
+    "executable": "D:\\Program Files\\Go\\bin\\go.exe",
+    "version": "go1.24.5",
+    "automatic_download": false
+  },
+  "host": {
+    "os": "windows",
+    "arch": "amd64"
+  },
+  "programs": [
+    {
+      "name": "suma-control",
+      "package": "./cmd/suma-control"
+    },
+    {
+      "name": "suma-runner",
+      "package": "./cmd/suma-runner"
+    },
+    {
+      "name": "suma-deployer",
+      "package": "./cmd/suma-deployer"
+    },
+    {
+      "name": "suma",
+      "package": "./cmd/suma"
+    }
+  ],
+  "source_scope": "go.mod, go.sum, and non-test *.go files under cmd/suma-control, cmd/suma-runner, cmd/suma-deployer, cmd/suma, internal; no go:embed assets are currently used",
+  "source_sha256": "3cdf6ee27eee0ffc6ec731a62c435c474708eeae8db0b48fbb6023bb28fd8b76",
+  "source_unchanged": true,
+  "targets": [
+    {
+      "target": "windows-amd64",
+      "status": "succeeded",
+      "directory": "dist/runtime/windows-amd64/20261024T051829203Z-df0ca9b5",
+      "artifacts": [
+        {
+          "name": "suma-control.exe",
+          "package": "./cmd/suma-control",
+          "size_bytes": 25483264,
+          "sha256": "d357669448f9ccee63752b7177dcea18b56eeb9efaff01052332da43439a4c0f",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-control.exe.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-amd64\\suma-control.exe: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-control\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tfilippo.io/edwards25519\tv1.1.0\th1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=\n\tdep\tgithub.com/dustin/go-humanize\tv1.0.1\th1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=\n\tdep\tgithub.com/go-sql-driver/mysql\tv1.9.3\th1:U/N249h2WzJ3Ukj8SowVFjdtZKfu9vlLZxjPXV1aweo=\n\tdep\tgithub.com/jackc/pgpassfile\tv1.0.0\th1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=\n\tdep\tgithub.com/jackc/pgservicefile\tv0.0.0-20240606120523-5a60cdf6a761\th1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=\n\tdep\tgithub.com/jackc/pgx/v5\tv5.7.4\th1:9wKznZrhWa2QiHL+NjTSPP6yjl3451BX3imWDnokYlg=\n\tdep\tgithub.com/jackc/puddle/v2\tv2.2.2\th1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=\n\tdep\tgithub.com/mattn/go-isatty\tv0.0.20\th1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=\n\tdep\tgithub.com/ncruces/go-strftime\tv0.1.9\th1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=\n\tdep\tgithub.com/remyoudompheng/bigfft\tv0.0.0-20230129092748-24d4a6f8daec\th1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=\n\tdep\tgolang.org/x/crypto\tv0.31.0\th1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=\n\tdep\tgolang.org/x/exp\tv0.0.0-20230315142452-642cacee5cc0\th1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=\n\tdep\tgolang.org/x/sync\tv0.10.0\th1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tdep\tgolang.org/x/text\tv0.21.0\th1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=\n\tdep\tmodernc.org/libc\tv1.61.13\th1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=\n\tdep\tmodernc.org/mathutil\tv1.7.1\th1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=\n\tdep\tmodernc.org/memory\tv1.8.2\th1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=\n\tdep\tmodernc.org/sqlite\tv1.36.3\th1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=windows\n\tbuild\tGOAMD64=v1\n",
+          "linked_modules": [
+            {
+              "path": "filippo.io/edwards25519",
+              "version": "v1.1.0",
+              "sum": "h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=",
+              "replace": null
+            },
+            {
+              "path": "github.com/dustin/go-humanize",
+              "version": "v1.0.1",
+              "sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/go-sql-driver/mysql",
+              "version": "v1.9.3",
+              "sum": "h1:U/N249h2WzJ3Ukj8SowVFjdtZKfu9vlLZxjPXV1aweo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgpassfile",
+              "version": "v1.0.0",
+              "sum": "h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgservicefile",
+              "version": "v0.0.0-20240606120523-5a60cdf6a761",
+              "sum": "h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgx/v5",
+              "version": "v5.7.4",
+              "sum": "h1:9wKznZrhWa2QiHL+NjTSPP6yjl3451BX3imWDnokYlg=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/puddle/v2",
+              "version": "v2.2.2",
+              "sum": "h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-isatty",
+              "version": "v0.0.20",
+              "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/ncruces/go-strftime",
+              "version": "v0.1.9",
+              "sum": "h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=",
+              "replace": null
+            },
+            {
+              "path": "github.com/remyoudompheng/bigfft",
+              "version": "v0.0.0-20230129092748-24d4a6f8daec",
+              "sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/crypto",
+              "version": "v0.31.0",
+              "sum": "h1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/exp",
+              "version": "v0.0.0-20230315142452-642cacee5cc0",
+              "sum": "h1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sync",
+              "version": "v0.10.0",
+              "sum": "h1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/text",
+              "version": "v0.21.0",
+              "sum": "h1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/libc",
+              "version": "v1.61.13",
+              "sum": "h1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/mathutil",
+              "version": "v1.7.1",
+              "sum": "h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/memory",
+              "version": "v1.8.2",
+              "sum": "h1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/sqlite",
+              "version": "v1.36.3",
+              "sum": "h1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=",
+              "replace": null
+            }
+          ]
+        },
+        {
+          "name": "suma-runner.exe",
+          "package": "./cmd/suma-runner",
+          "size_bytes": 9952768,
+          "sha256": "644adbf34d68fce6e65779819118751a64c2eb2872110915d0acdd6e4399d8ab",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-runner.exe.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-amd64\\suma-runner.exe: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-runner\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=windows\n\tbuild\tGOAMD64=v1\n",
+          "linked_modules": []
+        },
+        {
+          "name": "suma-deployer.exe",
+          "package": "./cmd/suma-deployer",
+          "size_bytes": 16125952,
+          "sha256": "f8f6a32145d7679bbd6d04f7496c806e7e5c4f3afc8d84ee9ce8ce5098e8a433",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-deployer.exe.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-amd64\\suma-deployer.exe: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-deployer\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tgithub.com/dustin/go-humanize\tv1.0.1\th1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=\n\tdep\tgithub.com/mattn/go-isatty\tv0.0.20\th1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=\n\tdep\tgithub.com/ncruces/go-strftime\tv0.1.9\th1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=\n\tdep\tgithub.com/remyoudompheng/bigfft\tv0.0.0-20230129092748-24d4a6f8daec\th1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=\n\tdep\tgolang.org/x/exp\tv0.0.0-20230315142452-642cacee5cc0\th1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tdep\tmodernc.org/libc\tv1.61.13\th1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=\n\tdep\tmodernc.org/mathutil\tv1.7.1\th1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=\n\tdep\tmodernc.org/memory\tv1.8.2\th1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=\n\tdep\tmodernc.org/sqlite\tv1.36.3\th1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=windows\n\tbuild\tGOAMD64=v1\n",
+          "linked_modules": [
+            {
+              "path": "github.com/dustin/go-humanize",
+              "version": "v1.0.1",
+              "sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-isatty",
+              "version": "v0.0.20",
+              "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/ncruces/go-strftime",
+              "version": "v0.1.9",
+              "sum": "h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=",
+              "replace": null
+            },
+            {
+              "path": "github.com/remyoudompheng/bigfft",
+              "version": "v0.0.0-20230129092748-24d4a6f8daec",
+              "sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/exp",
+              "version": "v0.0.0-20230315142452-642cacee5cc0",
+              "sum": "h1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/libc",
+              "version": "v1.61.13",
+              "sum": "h1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/mathutil",
+              "version": "v1.7.1",
+              "sum": "h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/memory",
+              "version": "v1.8.2",
+              "sum": "h1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/sqlite",
+              "version": "v1.36.3",
+              "sum": "h1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=",
+              "replace": null
+            }
+          ]
+        },
+        {
+          "name": "suma.exe",
+          "package": "./cmd/suma",
+          "size_bytes": 10393088,
+          "sha256": "3d989122ded5345c071e5ef57c1d3a89eda8d582f16e9f6b819fb13a164d82ca",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma.exe.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-amd64\\suma.exe: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tgithub.com/aymanbagabas/go-osc52/v2\tv2.0.1\th1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=\n\tdep\tgithub.com/charmbracelet/bubbletea\tv1.3.10\th1:otUDHWMMzQSB0Pkc87rm691KZ3SWa4KUlvF9nRvCICw=\n\tdep\tgithub.com/charmbracelet/colorprofile\tv0.2.3-0.20250311203215-f60798e515dc\th1:4pZI35227imm7yK2bGPcfpFEmuY1gc2YSTShr4iJBfs=\n\tdep\tgithub.com/charmbracelet/lipgloss\tv1.1.0\th1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=\n\tdep\tgithub.com/charmbracelet/x/ansi\tv0.10.1\th1:rL3Koar5XvX0pHGfovN03f5cxLbCF2YvLeyz7D2jVDQ=\n\tdep\tgithub.com/charmbracelet/x/cellbuf\tv0.0.13-0.20250311204145-2c3ea96c31dd\th1:vy0GVL4jeHEwG5YOXDmi86oYw2yuYUGqz6a8sLwg0X8=\n\tdep\tgithub.com/charmbracelet/x/term\tv0.2.1\th1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=\n\tdep\tgithub.com/erikgeiser/coninput\tv0.0.0-20211004153227-1c3628e74d0f\th1:Y/CXytFA4m6baUTXGLOoWe4PQhGxaX0KpnayAqC48p4=\n\tdep\tgithub.com/lucasb-eyer/go-colorful\tv1.2.0\th1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=\n\tdep\tgithub.com/mattn/go-isatty\tv0.0.20\th1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=\n\tdep\tgithub.com/mattn/go-localereader\tv0.0.1\th1:ygSAOl7ZXTx4RdPYinUpg6W99U8jWvWi9Ye2JC/oIi4=\n\tdep\tgithub.com/mattn/go-runewidth\tv0.0.16\th1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=\n\tdep\tgithub.com/muesli/ansi\tv0.0.0-20230316100256-276c6243b2f6\th1:ZK8zHtRHOkbHy6Mmr5D264iyp3TiX5OmNcI5cIARiQI=\n\tdep\tgithub.com/muesli/cancelreader\tv0.2.2\th1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=\n\tdep\tgithub.com/muesli/termenv\tv0.16.0\th1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc=\n\tdep\tgithub.com/rivo/uniseg\tv0.4.7\th1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=\n\tdep\tgithub.com/xo/terminfo\tv0.0.0-20220910002029-abceb7e1c41e\th1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tdep\tgolang.org/x/text\tv0.21.0\th1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=windows\n\tbuild\tGOAMD64=v1\n",
+          "linked_modules": [
+            {
+              "path": "github.com/aymanbagabas/go-osc52/v2",
+              "version": "v2.0.1",
+              "sum": "h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/bubbletea",
+              "version": "v1.3.10",
+              "sum": "h1:otUDHWMMzQSB0Pkc87rm691KZ3SWa4KUlvF9nRvCICw=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/colorprofile",
+              "version": "v0.2.3-0.20250311203215-f60798e515dc",
+              "sum": "h1:4pZI35227imm7yK2bGPcfpFEmuY1gc2YSTShr4iJBfs=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/lipgloss",
+              "version": "v1.1.0",
+              "sum": "h1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/ansi",
+              "version": "v0.10.1",
+              "sum": "h1:rL3Koar5XvX0pHGfovN03f5cxLbCF2YvLeyz7D2jVDQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/cellbuf",
+              "version": "v0.0.13-0.20250311204145-2c3ea96c31dd",
+              "sum": "h1:vy0GVL4jeHEwG5YOXDmi86oYw2yuYUGqz6a8sLwg0X8=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/term",
+              "version": "v0.2.1",
+              "sum": "h1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/erikgeiser/coninput",
+              "version": "v0.0.0-20211004153227-1c3628e74d0f",
+              "sum": "h1:Y/CXytFA4m6baUTXGLOoWe4PQhGxaX0KpnayAqC48p4=",
+              "replace": null
+            },
+            {
+              "path": "github.com/lucasb-eyer/go-colorful",
+              "version": "v1.2.0",
+              "sum": "h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-isatty",
+              "version": "v0.0.20",
+              "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-localereader",
+              "version": "v0.0.1",
+              "sum": "h1:ygSAOl7ZXTx4RdPYinUpg6W99U8jWvWi9Ye2JC/oIi4=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-runewidth",
+              "version": "v0.0.16",
+              "sum": "h1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/ansi",
+              "version": "v0.0.0-20230316100256-276c6243b2f6",
+              "sum": "h1:ZK8zHtRHOkbHy6Mmr5D264iyp3TiX5OmNcI5cIARiQI=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/cancelreader",
+              "version": "v0.2.2",
+              "sum": "h1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/termenv",
+              "version": "v0.16.0",
+              "sum": "h1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc=",
+              "replace": null
+            },
+            {
+              "path": "github.com/rivo/uniseg",
+              "version": "v0.4.7",
+              "sum": "h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/xo/terminfo",
+              "version": "v0.0.0-20220910002029-abceb7e1c41e",
+              "sum": "h1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/text",
+              "version": "v0.21.0",
+              "sum": "h1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=",
+              "replace": null
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "target": "windows-arm64",
+      "status": "succeeded",
+      "directory": "dist/runtime/windows-arm64/20261024T051829203Z-df0ca9b5",
+      "artifacts": [
+        {
+          "name": "suma-control.exe",
+          "package": "./cmd/suma-control",
+          "size_bytes": 24070656,
+          "sha256": "6d40bf56106c7cb341636e5d56223b50dc30dbe3a9b36125456107d2fd1ceaa9",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-control.exe.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-arm64\\suma-control.exe: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-control\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tfilippo.io/edwards25519\tv1.1.0\th1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=\n\tdep\tgithub.com/dustin/go-humanize\tv1.0.1\th1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=\n\tdep\tgithub.com/go-sql-driver/mysql\tv1.9.3\th1:U/N249h2WzJ3Ukj8SowVFjdtZKfu9vlLZxjPXV1aweo=\n\tdep\tgithub.com/jackc/pgpassfile\tv1.0.0\th1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=\n\tdep\tgithub.com/jackc/pgservicefile\tv0.0.0-20240606120523-5a60cdf6a761\th1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=\n\tdep\tgithub.com/jackc/pgx/v5\tv5.7.4\th1:9wKznZrhWa2QiHL+NjTSPP6yjl3451BX3imWDnokYlg=\n\tdep\tgithub.com/jackc/puddle/v2\tv2.2.2\th1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=\n\tdep\tgithub.com/mattn/go-isatty\tv0.0.20\th1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=\n\tdep\tgithub.com/ncruces/go-strftime\tv0.1.9\th1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=\n\tdep\tgithub.com/remyoudompheng/bigfft\tv0.0.0-20230129092748-24d4a6f8daec\th1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=\n\tdep\tgolang.org/x/crypto\tv0.31.0\th1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=\n\tdep\tgolang.org/x/exp\tv0.0.0-20230315142452-642cacee5cc0\th1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=\n\tdep\tgolang.org/x/sync\tv0.10.0\th1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tdep\tgolang.org/x/text\tv0.21.0\th1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=\n\tdep\tmodernc.org/libc\tv1.61.13\th1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=\n\tdep\tmodernc.org/mathutil\tv1.7.1\th1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=\n\tdep\tmodernc.org/memory\tv1.8.2\th1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=\n\tdep\tmodernc.org/sqlite\tv1.36.3\th1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=windows\n\tbuild\tGOARM64=v8.0\n",
+          "linked_modules": [
+            {
+              "path": "filippo.io/edwards25519",
+              "version": "v1.1.0",
+              "sum": "h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=",
+              "replace": null
+            },
+            {
+              "path": "github.com/dustin/go-humanize",
+              "version": "v1.0.1",
+              "sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/go-sql-driver/mysql",
+              "version": "v1.9.3",
+              "sum": "h1:U/N249h2WzJ3Ukj8SowVFjdtZKfu9vlLZxjPXV1aweo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgpassfile",
+              "version": "v1.0.0",
+              "sum": "h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgservicefile",
+              "version": "v0.0.0-20240606120523-5a60cdf6a761",
+              "sum": "h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgx/v5",
+              "version": "v5.7.4",
+              "sum": "h1:9wKznZrhWa2QiHL+NjTSPP6yjl3451BX3imWDnokYlg=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/puddle/v2",
+              "version": "v2.2.2",
+              "sum": "h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-isatty",
+              "version": "v0.0.20",
+              "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/ncruces/go-strftime",
+              "version": "v0.1.9",
+              "sum": "h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=",
+              "replace": null
+            },
+            {
+              "path": "github.com/remyoudompheng/bigfft",
+              "version": "v0.0.0-20230129092748-24d4a6f8daec",
+              "sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/crypto",
+              "version": "v0.31.0",
+              "sum": "h1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/exp",
+              "version": "v0.0.0-20230315142452-642cacee5cc0",
+              "sum": "h1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sync",
+              "version": "v0.10.0",
+              "sum": "h1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/text",
+              "version": "v0.21.0",
+              "sum": "h1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/libc",
+              "version": "v1.61.13",
+              "sum": "h1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/mathutil",
+              "version": "v1.7.1",
+              "sum": "h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/memory",
+              "version": "v1.8.2",
+              "sum": "h1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/sqlite",
+              "version": "v1.36.3",
+              "sum": "h1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=",
+              "replace": null
+            }
+          ]
+        },
+        {
+          "name": "suma-runner.exe",
+          "package": "./cmd/suma-runner",
+          "size_bytes": 9246208,
+          "sha256": "b2d39789b65ed03b42946f08b2a4cb9afa71b7b344449237c31c5a4991732fc0",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-runner.exe.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-arm64\\suma-runner.exe: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-runner\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=windows\n\tbuild\tGOARM64=v8.0\n",
+          "linked_modules": []
+        },
+        {
+          "name": "suma-deployer.exe",
+          "package": "./cmd/suma-deployer",
+          "size_bytes": 15244800,
+          "sha256": "bf9ca2838b1138359dafe408e6a7999bca70542f4b44dc920bb60a2978827b1e",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-deployer.exe.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-arm64\\suma-deployer.exe: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-deployer\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tgithub.com/dustin/go-humanize\tv1.0.1\th1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=\n\tdep\tgithub.com/mattn/go-isatty\tv0.0.20\th1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=\n\tdep\tgithub.com/ncruces/go-strftime\tv0.1.9\th1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=\n\tdep\tgithub.com/remyoudompheng/bigfft\tv0.0.0-20230129092748-24d4a6f8daec\th1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=\n\tdep\tgolang.org/x/exp\tv0.0.0-20230315142452-642cacee5cc0\th1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tdep\tmodernc.org/libc\tv1.61.13\th1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=\n\tdep\tmodernc.org/mathutil\tv1.7.1\th1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=\n\tdep\tmodernc.org/memory\tv1.8.2\th1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=\n\tdep\tmodernc.org/sqlite\tv1.36.3\th1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=windows\n\tbuild\tGOARM64=v8.0\n",
+          "linked_modules": [
+            {
+              "path": "github.com/dustin/go-humanize",
+              "version": "v1.0.1",
+              "sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-isatty",
+              "version": "v0.0.20",
+              "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/ncruces/go-strftime",
+              "version": "v0.1.9",
+              "sum": "h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=",
+              "replace": null
+            },
+            {
+              "path": "github.com/remyoudompheng/bigfft",
+              "version": "v0.0.0-20230129092748-24d4a6f8daec",
+              "sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/exp",
+              "version": "v0.0.0-20230315142452-642cacee5cc0",
+              "sum": "h1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/libc",
+              "version": "v1.61.13",
+              "sum": "h1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/mathutil",
+              "version": "v1.7.1",
+              "sum": "h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/memory",
+              "version": "v1.8.2",
+              "sum": "h1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/sqlite",
+              "version": "v1.36.3",
+              "sum": "h1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=",
+              "replace": null
+            }
+          ]
+        },
+        {
+          "name": "suma.exe",
+          "package": "./cmd/suma",
+          "size_bytes": 9732096,
+          "sha256": "d4f3f1ca57181d17a344ce8f33cd4687a7d2c9de67c9ce1d11b1df1d38ea1c36",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma.exe.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-arm64\\suma.exe: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tgithub.com/aymanbagabas/go-osc52/v2\tv2.0.1\th1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=\n\tdep\tgithub.com/charmbracelet/bubbletea\tv1.3.10\th1:otUDHWMMzQSB0Pkc87rm691KZ3SWa4KUlvF9nRvCICw=\n\tdep\tgithub.com/charmbracelet/colorprofile\tv0.2.3-0.20250311203215-f60798e515dc\th1:4pZI35227imm7yK2bGPcfpFEmuY1gc2YSTShr4iJBfs=\n\tdep\tgithub.com/charmbracelet/lipgloss\tv1.1.0\th1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=\n\tdep\tgithub.com/charmbracelet/x/ansi\tv0.10.1\th1:rL3Koar5XvX0pHGfovN03f5cxLbCF2YvLeyz7D2jVDQ=\n\tdep\tgithub.com/charmbracelet/x/cellbuf\tv0.0.13-0.20250311204145-2c3ea96c31dd\th1:vy0GVL4jeHEwG5YOXDmi86oYw2yuYUGqz6a8sLwg0X8=\n\tdep\tgithub.com/charmbracelet/x/term\tv0.2.1\th1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=\n\tdep\tgithub.com/erikgeiser/coninput\tv0.0.0-20211004153227-1c3628e74d0f\th1:Y/CXytFA4m6baUTXGLOoWe4PQhGxaX0KpnayAqC48p4=\n\tdep\tgithub.com/lucasb-eyer/go-colorful\tv1.2.0\th1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=\n\tdep\tgithub.com/mattn/go-isatty\tv0.0.20\th1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=\n\tdep\tgithub.com/mattn/go-localereader\tv0.0.1\th1:ygSAOl7ZXTx4RdPYinUpg6W99U8jWvWi9Ye2JC/oIi4=\n\tdep\tgithub.com/mattn/go-runewidth\tv0.0.16\th1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=\n\tdep\tgithub.com/muesli/ansi\tv0.0.0-20230316100256-276c6243b2f6\th1:ZK8zHtRHOkbHy6Mmr5D264iyp3TiX5OmNcI5cIARiQI=\n\tdep\tgithub.com/muesli/cancelreader\tv0.2.2\th1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=\n\tdep\tgithub.com/muesli/termenv\tv0.16.0\th1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc=\n\tdep\tgithub.com/rivo/uniseg\tv0.4.7\th1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=\n\tdep\tgithub.com/xo/terminfo\tv0.0.0-20220910002029-abceb7e1c41e\th1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tdep\tgolang.org/x/text\tv0.21.0\th1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=windows\n\tbuild\tGOARM64=v8.0\n",
+          "linked_modules": [
+            {
+              "path": "github.com/aymanbagabas/go-osc52/v2",
+              "version": "v2.0.1",
+              "sum": "h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/bubbletea",
+              "version": "v1.3.10",
+              "sum": "h1:otUDHWMMzQSB0Pkc87rm691KZ3SWa4KUlvF9nRvCICw=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/colorprofile",
+              "version": "v0.2.3-0.20250311203215-f60798e515dc",
+              "sum": "h1:4pZI35227imm7yK2bGPcfpFEmuY1gc2YSTShr4iJBfs=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/lipgloss",
+              "version": "v1.1.0",
+              "sum": "h1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/ansi",
+              "version": "v0.10.1",
+              "sum": "h1:rL3Koar5XvX0pHGfovN03f5cxLbCF2YvLeyz7D2jVDQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/cellbuf",
+              "version": "v0.0.13-0.20250311204145-2c3ea96c31dd",
+              "sum": "h1:vy0GVL4jeHEwG5YOXDmi86oYw2yuYUGqz6a8sLwg0X8=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/term",
+              "version": "v0.2.1",
+              "sum": "h1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/erikgeiser/coninput",
+              "version": "v0.0.0-20211004153227-1c3628e74d0f",
+              "sum": "h1:Y/CXytFA4m6baUTXGLOoWe4PQhGxaX0KpnayAqC48p4=",
+              "replace": null
+            },
+            {
+              "path": "github.com/lucasb-eyer/go-colorful",
+              "version": "v1.2.0",
+              "sum": "h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-isatty",
+              "version": "v0.0.20",
+              "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-localereader",
+              "version": "v0.0.1",
+              "sum": "h1:ygSAOl7ZXTx4RdPYinUpg6W99U8jWvWi9Ye2JC/oIi4=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-runewidth",
+              "version": "v0.0.16",
+              "sum": "h1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/ansi",
+              "version": "v0.0.0-20230316100256-276c6243b2f6",
+              "sum": "h1:ZK8zHtRHOkbHy6Mmr5D264iyp3TiX5OmNcI5cIARiQI=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/cancelreader",
+              "version": "v0.2.2",
+              "sum": "h1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/termenv",
+              "version": "v0.16.0",
+              "sum": "h1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc=",
+              "replace": null
+            },
+            {
+              "path": "github.com/rivo/uniseg",
+              "version": "v0.4.7",
+              "sum": "h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/xo/terminfo",
+              "version": "v0.0.0-20220910002029-abceb7e1c41e",
+              "sum": "h1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/text",
+              "version": "v0.21.0",
+              "sum": "h1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=",
+              "replace": null
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "target": "linux-amd64",
+      "status": "succeeded",
+      "directory": "dist/runtime/linux-amd64/20261024T051829203Z-df0ca9b5",
+      "artifacts": [
+        {
+          "name": "suma-control",
+          "package": "./cmd/suma-control",
+          "size_bytes": 24879770,
+          "sha256": "27f81621e966e829a04c16c1a4aa13b74fe7d8b9618f5badfdf15a1cb4c85d02",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-control.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-amd64\\suma-control: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-control\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tfilippo.io/edwards25519\tv1.1.0\th1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=\n\tdep\tgithub.com/dustin/go-humanize\tv1.0.1\th1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=\n\tdep\tgithub.com/go-sql-driver/mysql\tv1.9.3\th1:U/N249h2WzJ3Ukj8SowVFjdtZKfu9vlLZxjPXV1aweo=\n\tdep\tgithub.com/google/uuid\tv1.6.0\th1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=\n\tdep\tgithub.com/jackc/pgpassfile\tv1.0.0\th1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=\n\tdep\tgithub.com/jackc/pgservicefile\tv0.0.0-20240606120523-5a60cdf6a761\th1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=\n\tdep\tgithub.com/jackc/pgx/v5\tv5.7.4\th1:9wKznZrhWa2QiHL+NjTSPP6yjl3451BX3imWDnokYlg=\n\tdep\tgithub.com/jackc/puddle/v2\tv2.2.2\th1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=\n\tdep\tgithub.com/remyoudompheng/bigfft\tv0.0.0-20230129092748-24d4a6f8daec\th1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=\n\tdep\tgolang.org/x/crypto\tv0.31.0\th1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=\n\tdep\tgolang.org/x/exp\tv0.0.0-20230315142452-642cacee5cc0\th1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=\n\tdep\tgolang.org/x/sync\tv0.10.0\th1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tdep\tgolang.org/x/text\tv0.21.0\th1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=\n\tdep\tmodernc.org/libc\tv1.61.13\th1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=\n\tdep\tmodernc.org/mathutil\tv1.7.1\th1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=\n\tdep\tmodernc.org/memory\tv1.8.2\th1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=\n\tdep\tmodernc.org/sqlite\tv1.36.3\th1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n",
+          "linked_modules": [
+            {
+              "path": "filippo.io/edwards25519",
+              "version": "v1.1.0",
+              "sum": "h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=",
+              "replace": null
+            },
+            {
+              "path": "github.com/dustin/go-humanize",
+              "version": "v1.0.1",
+              "sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/go-sql-driver/mysql",
+              "version": "v1.9.3",
+              "sum": "h1:U/N249h2WzJ3Ukj8SowVFjdtZKfu9vlLZxjPXV1aweo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/google/uuid",
+              "version": "v1.6.0",
+              "sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgpassfile",
+              "version": "v1.0.0",
+              "sum": "h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgservicefile",
+              "version": "v0.0.0-20240606120523-5a60cdf6a761",
+              "sum": "h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgx/v5",
+              "version": "v5.7.4",
+              "sum": "h1:9wKznZrhWa2QiHL+NjTSPP6yjl3451BX3imWDnokYlg=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/puddle/v2",
+              "version": "v2.2.2",
+              "sum": "h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/remyoudompheng/bigfft",
+              "version": "v0.0.0-20230129092748-24d4a6f8daec",
+              "sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/crypto",
+              "version": "v0.31.0",
+              "sum": "h1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/exp",
+              "version": "v0.0.0-20230315142452-642cacee5cc0",
+              "sum": "h1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sync",
+              "version": "v0.10.0",
+              "sum": "h1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/text",
+              "version": "v0.21.0",
+              "sum": "h1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/libc",
+              "version": "v1.61.13",
+              "sum": "h1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/mathutil",
+              "version": "v1.7.1",
+              "sum": "h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/memory",
+              "version": "v1.8.2",
+              "sum": "h1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/sqlite",
+              "version": "v1.36.3",
+              "sum": "h1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=",
+              "replace": null
+            }
+          ]
+        },
+        {
+          "name": "suma-runner",
+          "package": "./cmd/suma-runner",
+          "size_bytes": 9766116,
+          "sha256": "83ad12a0ddc4188a9cfb806c2f8e8fcc8f2884e5e49de66facf90a6c6490efda",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-runner.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-amd64\\suma-runner: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-runner\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n",
+          "linked_modules": []
+        },
+        {
+          "name": "suma-deployer",
+          "package": "./cmd/suma-deployer",
+          "size_bytes": 15642303,
+          "sha256": "1990587613eba8ffd7a0ee6308bd3ffb2400d9f33aa2b3d362366d8965dc830e",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-deployer.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-amd64\\suma-deployer: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-deployer\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tgithub.com/dustin/go-humanize\tv1.0.1\th1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=\n\tdep\tgithub.com/google/uuid\tv1.6.0\th1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=\n\tdep\tgithub.com/remyoudompheng/bigfft\tv0.0.0-20230129092748-24d4a6f8daec\th1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=\n\tdep\tgolang.org/x/exp\tv0.0.0-20230315142452-642cacee5cc0\th1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tdep\tmodernc.org/libc\tv1.61.13\th1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=\n\tdep\tmodernc.org/mathutil\tv1.7.1\th1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=\n\tdep\tmodernc.org/memory\tv1.8.2\th1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=\n\tdep\tmodernc.org/sqlite\tv1.36.3\th1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n",
+          "linked_modules": [
+            {
+              "path": "github.com/dustin/go-humanize",
+              "version": "v1.0.1",
+              "sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/google/uuid",
+              "version": "v1.6.0",
+              "sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+              "replace": null
+            },
+            {
+              "path": "github.com/remyoudompheng/bigfft",
+              "version": "v0.0.0-20230129092748-24d4a6f8daec",
+              "sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/exp",
+              "version": "v0.0.0-20230315142452-642cacee5cc0",
+              "sum": "h1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/libc",
+              "version": "v1.61.13",
+              "sum": "h1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/mathutil",
+              "version": "v1.7.1",
+              "sum": "h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/memory",
+              "version": "v1.8.2",
+              "sum": "h1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/sqlite",
+              "version": "v1.36.3",
+              "sum": "h1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=",
+              "replace": null
+            }
+          ]
+        },
+        {
+          "name": "suma",
+          "package": "./cmd/suma",
+          "size_bytes": 10109799,
+          "sha256": "51a1c602b23abdf6915ce8244665f04f1f299e5255016d4f73819cf917bb5ddd",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-amd64\\suma: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tgithub.com/aymanbagabas/go-osc52/v2\tv2.0.1\th1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=\n\tdep\tgithub.com/charmbracelet/bubbletea\tv1.3.10\th1:otUDHWMMzQSB0Pkc87rm691KZ3SWa4KUlvF9nRvCICw=\n\tdep\tgithub.com/charmbracelet/colorprofile\tv0.2.3-0.20250311203215-f60798e515dc\th1:4pZI35227imm7yK2bGPcfpFEmuY1gc2YSTShr4iJBfs=\n\tdep\tgithub.com/charmbracelet/lipgloss\tv1.1.0\th1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=\n\tdep\tgithub.com/charmbracelet/x/ansi\tv0.10.1\th1:rL3Koar5XvX0pHGfovN03f5cxLbCF2YvLeyz7D2jVDQ=\n\tdep\tgithub.com/charmbracelet/x/cellbuf\tv0.0.13-0.20250311204145-2c3ea96c31dd\th1:vy0GVL4jeHEwG5YOXDmi86oYw2yuYUGqz6a8sLwg0X8=\n\tdep\tgithub.com/charmbracelet/x/term\tv0.2.1\th1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=\n\tdep\tgithub.com/lucasb-eyer/go-colorful\tv1.2.0\th1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=\n\tdep\tgithub.com/mattn/go-isatty\tv0.0.20\th1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=\n\tdep\tgithub.com/mattn/go-runewidth\tv0.0.16\th1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=\n\tdep\tgithub.com/muesli/ansi\tv0.0.0-20230316100256-276c6243b2f6\th1:ZK8zHtRHOkbHy6Mmr5D264iyp3TiX5OmNcI5cIARiQI=\n\tdep\tgithub.com/muesli/cancelreader\tv0.2.2\th1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=\n\tdep\tgithub.com/muesli/termenv\tv0.16.0\th1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc=\n\tdep\tgithub.com/rivo/uniseg\tv0.4.7\th1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=\n\tdep\tgithub.com/xo/terminfo\tv0.0.0-20220910002029-abceb7e1c41e\th1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=linux\n\tbuild\tGOAMD64=v1\n",
+          "linked_modules": [
+            {
+              "path": "github.com/aymanbagabas/go-osc52/v2",
+              "version": "v2.0.1",
+              "sum": "h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/bubbletea",
+              "version": "v1.3.10",
+              "sum": "h1:otUDHWMMzQSB0Pkc87rm691KZ3SWa4KUlvF9nRvCICw=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/colorprofile",
+              "version": "v0.2.3-0.20250311203215-f60798e515dc",
+              "sum": "h1:4pZI35227imm7yK2bGPcfpFEmuY1gc2YSTShr4iJBfs=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/lipgloss",
+              "version": "v1.1.0",
+              "sum": "h1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/ansi",
+              "version": "v0.10.1",
+              "sum": "h1:rL3Koar5XvX0pHGfovN03f5cxLbCF2YvLeyz7D2jVDQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/cellbuf",
+              "version": "v0.0.13-0.20250311204145-2c3ea96c31dd",
+              "sum": "h1:vy0GVL4jeHEwG5YOXDmi86oYw2yuYUGqz6a8sLwg0X8=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/term",
+              "version": "v0.2.1",
+              "sum": "h1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/lucasb-eyer/go-colorful",
+              "version": "v1.2.0",
+              "sum": "h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-isatty",
+              "version": "v0.0.20",
+              "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-runewidth",
+              "version": "v0.0.16",
+              "sum": "h1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/ansi",
+              "version": "v0.0.0-20230316100256-276c6243b2f6",
+              "sum": "h1:ZK8zHtRHOkbHy6Mmr5D264iyp3TiX5OmNcI5cIARiQI=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/cancelreader",
+              "version": "v0.2.2",
+              "sum": "h1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/termenv",
+              "version": "v0.16.0",
+              "sum": "h1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc=",
+              "replace": null
+            },
+            {
+              "path": "github.com/rivo/uniseg",
+              "version": "v0.4.7",
+              "sum": "h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/xo/terminfo",
+              "version": "v0.0.0-20220910002029-abceb7e1c41e",
+              "sum": "h1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "target": "linux-arm64",
+      "status": "succeeded",
+      "directory": "dist/runtime/linux-arm64/20261024T051829203Z-df0ca9b5",
+      "artifacts": [
+        {
+          "name": "suma-control",
+          "package": "./cmd/suma-control",
+          "size_bytes": 23795177,
+          "sha256": "156718d380d586ff8c674e3ce2f1e19e5f04ddbbd68918bc542d510c8e1584a5",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-control.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-arm64\\suma-control: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-control\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tfilippo.io/edwards25519\tv1.1.0\th1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=\n\tdep\tgithub.com/dustin/go-humanize\tv1.0.1\th1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=\n\tdep\tgithub.com/go-sql-driver/mysql\tv1.9.3\th1:U/N249h2WzJ3Ukj8SowVFjdtZKfu9vlLZxjPXV1aweo=\n\tdep\tgithub.com/google/uuid\tv1.6.0\th1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=\n\tdep\tgithub.com/jackc/pgpassfile\tv1.0.0\th1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=\n\tdep\tgithub.com/jackc/pgservicefile\tv0.0.0-20240606120523-5a60cdf6a761\th1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=\n\tdep\tgithub.com/jackc/pgx/v5\tv5.7.4\th1:9wKznZrhWa2QiHL+NjTSPP6yjl3451BX3imWDnokYlg=\n\tdep\tgithub.com/jackc/puddle/v2\tv2.2.2\th1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=\n\tdep\tgithub.com/remyoudompheng/bigfft\tv0.0.0-20230129092748-24d4a6f8daec\th1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=\n\tdep\tgolang.org/x/crypto\tv0.31.0\th1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=\n\tdep\tgolang.org/x/exp\tv0.0.0-20230315142452-642cacee5cc0\th1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=\n\tdep\tgolang.org/x/sync\tv0.10.0\th1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tdep\tgolang.org/x/text\tv0.21.0\th1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=\n\tdep\tmodernc.org/libc\tv1.61.13\th1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=\n\tdep\tmodernc.org/mathutil\tv1.7.1\th1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=\n\tdep\tmodernc.org/memory\tv1.8.2\th1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=\n\tdep\tmodernc.org/sqlite\tv1.36.3\th1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=linux\n\tbuild\tGOARM64=v8.0\n",
+          "linked_modules": [
+            {
+              "path": "filippo.io/edwards25519",
+              "version": "v1.1.0",
+              "sum": "h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=",
+              "replace": null
+            },
+            {
+              "path": "github.com/dustin/go-humanize",
+              "version": "v1.0.1",
+              "sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/go-sql-driver/mysql",
+              "version": "v1.9.3",
+              "sum": "h1:U/N249h2WzJ3Ukj8SowVFjdtZKfu9vlLZxjPXV1aweo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/google/uuid",
+              "version": "v1.6.0",
+              "sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgpassfile",
+              "version": "v1.0.0",
+              "sum": "h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgservicefile",
+              "version": "v0.0.0-20240606120523-5a60cdf6a761",
+              "sum": "h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgx/v5",
+              "version": "v5.7.4",
+              "sum": "h1:9wKznZrhWa2QiHL+NjTSPP6yjl3451BX3imWDnokYlg=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/puddle/v2",
+              "version": "v2.2.2",
+              "sum": "h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/remyoudompheng/bigfft",
+              "version": "v0.0.0-20230129092748-24d4a6f8daec",
+              "sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/crypto",
+              "version": "v0.31.0",
+              "sum": "h1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/exp",
+              "version": "v0.0.0-20230315142452-642cacee5cc0",
+              "sum": "h1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sync",
+              "version": "v0.10.0",
+              "sum": "h1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/text",
+              "version": "v0.21.0",
+              "sum": "h1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/libc",
+              "version": "v1.61.13",
+              "sum": "h1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/mathutil",
+              "version": "v1.7.1",
+              "sum": "h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/memory",
+              "version": "v1.8.2",
+              "sum": "h1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/sqlite",
+              "version": "v1.36.3",
+              "sum": "h1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=",
+              "replace": null
+            }
+          ]
+        },
+        {
+          "name": "suma-runner",
+          "package": "./cmd/suma-runner",
+          "size_bytes": 9252802,
+          "sha256": "f60c5f6a78be2aee531b9a6b78792cfa5620d7fba8a657fabbb060fd495f649b",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-runner.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-arm64\\suma-runner: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-runner\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=linux\n\tbuild\tGOARM64=v8.0\n",
+          "linked_modules": []
+        },
+        {
+          "name": "suma-deployer",
+          "package": "./cmd/suma-deployer",
+          "size_bytes": 15009821,
+          "sha256": "1f42dfa24cbad317d2613d762580f2a3fcd9cc815b479526a4fa8cc6c042bb9c",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-deployer.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-arm64\\suma-deployer: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-deployer\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tgithub.com/dustin/go-humanize\tv1.0.1\th1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=\n\tdep\tgithub.com/google/uuid\tv1.6.0\th1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=\n\tdep\tgithub.com/remyoudompheng/bigfft\tv0.0.0-20230129092748-24d4a6f8daec\th1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=\n\tdep\tgolang.org/x/exp\tv0.0.0-20230315142452-642cacee5cc0\th1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tdep\tmodernc.org/libc\tv1.61.13\th1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=\n\tdep\tmodernc.org/mathutil\tv1.7.1\th1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=\n\tdep\tmodernc.org/memory\tv1.8.2\th1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=\n\tdep\tmodernc.org/sqlite\tv1.36.3\th1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=linux\n\tbuild\tGOARM64=v8.0\n",
+          "linked_modules": [
+            {
+              "path": "github.com/dustin/go-humanize",
+              "version": "v1.0.1",
+              "sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/google/uuid",
+              "version": "v1.6.0",
+              "sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+              "replace": null
+            },
+            {
+              "path": "github.com/remyoudompheng/bigfft",
+              "version": "v0.0.0-20230129092748-24d4a6f8daec",
+              "sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/exp",
+              "version": "v0.0.0-20230315142452-642cacee5cc0",
+              "sum": "h1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/libc",
+              "version": "v1.61.13",
+              "sum": "h1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/mathutil",
+              "version": "v1.7.1",
+              "sum": "h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/memory",
+              "version": "v1.8.2",
+              "sum": "h1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/sqlite",
+              "version": "v1.36.3",
+              "sum": "h1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=",
+              "replace": null
+            }
+          ]
+        },
+        {
+          "name": "suma",
+          "package": "./cmd/suma",
+          "size_bytes": 9612023,
+          "sha256": "e8c16689777aa4f2897d999e5a239bffbceda11f408080959ba1b75d51bbd644",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-arm64\\suma: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tgithub.com/aymanbagabas/go-osc52/v2\tv2.0.1\th1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=\n\tdep\tgithub.com/charmbracelet/bubbletea\tv1.3.10\th1:otUDHWMMzQSB0Pkc87rm691KZ3SWa4KUlvF9nRvCICw=\n\tdep\tgithub.com/charmbracelet/colorprofile\tv0.2.3-0.20250311203215-f60798e515dc\th1:4pZI35227imm7yK2bGPcfpFEmuY1gc2YSTShr4iJBfs=\n\tdep\tgithub.com/charmbracelet/lipgloss\tv1.1.0\th1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=\n\tdep\tgithub.com/charmbracelet/x/ansi\tv0.10.1\th1:rL3Koar5XvX0pHGfovN03f5cxLbCF2YvLeyz7D2jVDQ=\n\tdep\tgithub.com/charmbracelet/x/cellbuf\tv0.0.13-0.20250311204145-2c3ea96c31dd\th1:vy0GVL4jeHEwG5YOXDmi86oYw2yuYUGqz6a8sLwg0X8=\n\tdep\tgithub.com/charmbracelet/x/term\tv0.2.1\th1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=\n\tdep\tgithub.com/lucasb-eyer/go-colorful\tv1.2.0\th1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=\n\tdep\tgithub.com/mattn/go-isatty\tv0.0.20\th1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=\n\tdep\tgithub.com/mattn/go-runewidth\tv0.0.16\th1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=\n\tdep\tgithub.com/muesli/ansi\tv0.0.0-20230316100256-276c6243b2f6\th1:ZK8zHtRHOkbHy6Mmr5D264iyp3TiX5OmNcI5cIARiQI=\n\tdep\tgithub.com/muesli/cancelreader\tv0.2.2\th1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=\n\tdep\tgithub.com/muesli/termenv\tv0.16.0\th1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc=\n\tdep\tgithub.com/rivo/uniseg\tv0.4.7\th1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=\n\tdep\tgithub.com/xo/terminfo\tv0.0.0-20220910002029-abceb7e1c41e\th1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=linux\n\tbuild\tGOARM64=v8.0\n",
+          "linked_modules": [
+            {
+              "path": "github.com/aymanbagabas/go-osc52/v2",
+              "version": "v2.0.1",
+              "sum": "h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/bubbletea",
+              "version": "v1.3.10",
+              "sum": "h1:otUDHWMMzQSB0Pkc87rm691KZ3SWa4KUlvF9nRvCICw=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/colorprofile",
+              "version": "v0.2.3-0.20250311203215-f60798e515dc",
+              "sum": "h1:4pZI35227imm7yK2bGPcfpFEmuY1gc2YSTShr4iJBfs=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/lipgloss",
+              "version": "v1.1.0",
+              "sum": "h1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/ansi",
+              "version": "v0.10.1",
+              "sum": "h1:rL3Koar5XvX0pHGfovN03f5cxLbCF2YvLeyz7D2jVDQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/cellbuf",
+              "version": "v0.0.13-0.20250311204145-2c3ea96c31dd",
+              "sum": "h1:vy0GVL4jeHEwG5YOXDmi86oYw2yuYUGqz6a8sLwg0X8=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/term",
+              "version": "v0.2.1",
+              "sum": "h1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/lucasb-eyer/go-colorful",
+              "version": "v1.2.0",
+              "sum": "h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-isatty",
+              "version": "v0.0.20",
+              "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-runewidth",
+              "version": "v0.0.16",
+              "sum": "h1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/ansi",
+              "version": "v0.0.0-20230316100256-276c6243b2f6",
+              "sum": "h1:ZK8zHtRHOkbHy6Mmr5D264iyp3TiX5OmNcI5cIARiQI=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/cancelreader",
+              "version": "v0.2.2",
+              "sum": "h1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/termenv",
+              "version": "v0.16.0",
+              "sum": "h1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc=",
+              "replace": null
+            },
+            {
+              "path": "github.com/rivo/uniseg",
+              "version": "v0.4.7",
+              "sum": "h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/xo/terminfo",
+              "version": "v0.0.0-20220910002029-abceb7e1c41e",
+              "sum": "h1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "target": "darwin-amd64",
+      "status": "succeeded",
+      "directory": "dist/runtime/darwin-amd64/20261024T051829203Z-df0ca9b5",
+      "artifacts": [
+        {
+          "name": "suma-control",
+          "package": "./cmd/suma-control",
+          "size_bytes": 24937440,
+          "sha256": "bfb2e6a67b61b239341f3942d7d20cda6f4f0c8ed423d71b9506b915623d9aa4",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-control.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-amd64\\suma-control: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-control\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tfilippo.io/edwards25519\tv1.1.0\th1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=\n\tdep\tgithub.com/dustin/go-humanize\tv1.0.1\th1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=\n\tdep\tgithub.com/go-sql-driver/mysql\tv1.9.3\th1:U/N249h2WzJ3Ukj8SowVFjdtZKfu9vlLZxjPXV1aweo=\n\tdep\tgithub.com/google/uuid\tv1.6.0\th1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=\n\tdep\tgithub.com/jackc/pgpassfile\tv1.0.0\th1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=\n\tdep\tgithub.com/jackc/pgservicefile\tv0.0.0-20240606120523-5a60cdf6a761\th1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=\n\tdep\tgithub.com/jackc/pgx/v5\tv5.7.4\th1:9wKznZrhWa2QiHL+NjTSPP6yjl3451BX3imWDnokYlg=\n\tdep\tgithub.com/jackc/puddle/v2\tv2.2.2\th1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=\n\tdep\tgithub.com/mattn/go-isatty\tv0.0.20\th1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=\n\tdep\tgithub.com/ncruces/go-strftime\tv0.1.9\th1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=\n\tdep\tgithub.com/remyoudompheng/bigfft\tv0.0.0-20230129092748-24d4a6f8daec\th1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=\n\tdep\tgolang.org/x/crypto\tv0.31.0\th1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=\n\tdep\tgolang.org/x/exp\tv0.0.0-20230315142452-642cacee5cc0\th1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=\n\tdep\tgolang.org/x/sync\tv0.10.0\th1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tdep\tgolang.org/x/text\tv0.21.0\th1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=\n\tdep\tmodernc.org/libc\tv1.61.13\th1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=\n\tdep\tmodernc.org/mathutil\tv1.7.1\th1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=\n\tdep\tmodernc.org/memory\tv1.8.2\th1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=\n\tdep\tmodernc.org/sqlite\tv1.36.3\th1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=darwin\n\tbuild\tGOAMD64=v1\n",
+          "linked_modules": [
+            {
+              "path": "filippo.io/edwards25519",
+              "version": "v1.1.0",
+              "sum": "h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=",
+              "replace": null
+            },
+            {
+              "path": "github.com/dustin/go-humanize",
+              "version": "v1.0.1",
+              "sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/go-sql-driver/mysql",
+              "version": "v1.9.3",
+              "sum": "h1:U/N249h2WzJ3Ukj8SowVFjdtZKfu9vlLZxjPXV1aweo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/google/uuid",
+              "version": "v1.6.0",
+              "sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgpassfile",
+              "version": "v1.0.0",
+              "sum": "h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgservicefile",
+              "version": "v0.0.0-20240606120523-5a60cdf6a761",
+              "sum": "h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgx/v5",
+              "version": "v5.7.4",
+              "sum": "h1:9wKznZrhWa2QiHL+NjTSPP6yjl3451BX3imWDnokYlg=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/puddle/v2",
+              "version": "v2.2.2",
+              "sum": "h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-isatty",
+              "version": "v0.0.20",
+              "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/ncruces/go-strftime",
+              "version": "v0.1.9",
+              "sum": "h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=",
+              "replace": null
+            },
+            {
+              "path": "github.com/remyoudompheng/bigfft",
+              "version": "v0.0.0-20230129092748-24d4a6f8daec",
+              "sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/crypto",
+              "version": "v0.31.0",
+              "sum": "h1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/exp",
+              "version": "v0.0.0-20230315142452-642cacee5cc0",
+              "sum": "h1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sync",
+              "version": "v0.10.0",
+              "sum": "h1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/text",
+              "version": "v0.21.0",
+              "sum": "h1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/libc",
+              "version": "v1.61.13",
+              "sum": "h1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/mathutil",
+              "version": "v1.7.1",
+              "sum": "h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/memory",
+              "version": "v1.8.2",
+              "sum": "h1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/sqlite",
+              "version": "v1.36.3",
+              "sum": "h1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=",
+              "replace": null
+            }
+          ]
+        },
+        {
+          "name": "suma-runner",
+          "package": "./cmd/suma-runner",
+          "size_bytes": 9785888,
+          "sha256": "b11e5c5986633c461be719882beb83f97d728d000576884c1d335cadc488b0b6",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-runner.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-amd64\\suma-runner: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-runner\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=darwin\n\tbuild\tGOAMD64=v1\n",
+          "linked_modules": []
+        },
+        {
+          "name": "suma-deployer",
+          "package": "./cmd/suma-deployer",
+          "size_bytes": 15619232,
+          "sha256": "fac0ee0ded7917ef4c90e160918c56c6f07b8be15380b94b925474d7d0f606f1",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-deployer.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-amd64\\suma-deployer: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-deployer\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tgithub.com/dustin/go-humanize\tv1.0.1\th1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=\n\tdep\tgithub.com/google/uuid\tv1.6.0\th1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=\n\tdep\tgithub.com/mattn/go-isatty\tv0.0.20\th1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=\n\tdep\tgithub.com/ncruces/go-strftime\tv0.1.9\th1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=\n\tdep\tgithub.com/remyoudompheng/bigfft\tv0.0.0-20230129092748-24d4a6f8daec\th1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=\n\tdep\tgolang.org/x/exp\tv0.0.0-20230315142452-642cacee5cc0\th1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tdep\tmodernc.org/libc\tv1.61.13\th1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=\n\tdep\tmodernc.org/mathutil\tv1.7.1\th1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=\n\tdep\tmodernc.org/memory\tv1.8.2\th1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=\n\tdep\tmodernc.org/sqlite\tv1.36.3\th1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=darwin\n\tbuild\tGOAMD64=v1\n",
+          "linked_modules": [
+            {
+              "path": "github.com/dustin/go-humanize",
+              "version": "v1.0.1",
+              "sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/google/uuid",
+              "version": "v1.6.0",
+              "sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-isatty",
+              "version": "v0.0.20",
+              "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/ncruces/go-strftime",
+              "version": "v0.1.9",
+              "sum": "h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=",
+              "replace": null
+            },
+            {
+              "path": "github.com/remyoudompheng/bigfft",
+              "version": "v0.0.0-20230129092748-24d4a6f8daec",
+              "sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/exp",
+              "version": "v0.0.0-20230315142452-642cacee5cc0",
+              "sum": "h1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/libc",
+              "version": "v1.61.13",
+              "sum": "h1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/mathutil",
+              "version": "v1.7.1",
+              "sum": "h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/memory",
+              "version": "v1.8.2",
+              "sum": "h1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/sqlite",
+              "version": "v1.36.3",
+              "sum": "h1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=",
+              "replace": null
+            }
+          ]
+        },
+        {
+          "name": "suma",
+          "package": "./cmd/suma",
+          "size_bytes": 10075440,
+          "sha256": "461eb946961549a6c7e170a0b5a714fd9e7f8161e4ca1867b2d326ffaee6025a",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-amd64\\suma: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tgithub.com/aymanbagabas/go-osc52/v2\tv2.0.1\th1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=\n\tdep\tgithub.com/charmbracelet/bubbletea\tv1.3.10\th1:otUDHWMMzQSB0Pkc87rm691KZ3SWa4KUlvF9nRvCICw=\n\tdep\tgithub.com/charmbracelet/colorprofile\tv0.2.3-0.20250311203215-f60798e515dc\th1:4pZI35227imm7yK2bGPcfpFEmuY1gc2YSTShr4iJBfs=\n\tdep\tgithub.com/charmbracelet/lipgloss\tv1.1.0\th1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=\n\tdep\tgithub.com/charmbracelet/x/ansi\tv0.10.1\th1:rL3Koar5XvX0pHGfovN03f5cxLbCF2YvLeyz7D2jVDQ=\n\tdep\tgithub.com/charmbracelet/x/cellbuf\tv0.0.13-0.20250311204145-2c3ea96c31dd\th1:vy0GVL4jeHEwG5YOXDmi86oYw2yuYUGqz6a8sLwg0X8=\n\tdep\tgithub.com/charmbracelet/x/term\tv0.2.1\th1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=\n\tdep\tgithub.com/lucasb-eyer/go-colorful\tv1.2.0\th1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=\n\tdep\tgithub.com/mattn/go-isatty\tv0.0.20\th1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=\n\tdep\tgithub.com/mattn/go-runewidth\tv0.0.16\th1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=\n\tdep\tgithub.com/muesli/ansi\tv0.0.0-20230316100256-276c6243b2f6\th1:ZK8zHtRHOkbHy6Mmr5D264iyp3TiX5OmNcI5cIARiQI=\n\tdep\tgithub.com/muesli/cancelreader\tv0.2.2\th1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=\n\tdep\tgithub.com/muesli/termenv\tv0.16.0\th1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc=\n\tdep\tgithub.com/rivo/uniseg\tv0.4.7\th1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=\n\tdep\tgithub.com/xo/terminfo\tv0.0.0-20220910002029-abceb7e1c41e\th1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=amd64\n\tbuild\tGOOS=darwin\n\tbuild\tGOAMD64=v1\n",
+          "linked_modules": [
+            {
+              "path": "github.com/aymanbagabas/go-osc52/v2",
+              "version": "v2.0.1",
+              "sum": "h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/bubbletea",
+              "version": "v1.3.10",
+              "sum": "h1:otUDHWMMzQSB0Pkc87rm691KZ3SWa4KUlvF9nRvCICw=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/colorprofile",
+              "version": "v0.2.3-0.20250311203215-f60798e515dc",
+              "sum": "h1:4pZI35227imm7yK2bGPcfpFEmuY1gc2YSTShr4iJBfs=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/lipgloss",
+              "version": "v1.1.0",
+              "sum": "h1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/ansi",
+              "version": "v0.10.1",
+              "sum": "h1:rL3Koar5XvX0pHGfovN03f5cxLbCF2YvLeyz7D2jVDQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/cellbuf",
+              "version": "v0.0.13-0.20250311204145-2c3ea96c31dd",
+              "sum": "h1:vy0GVL4jeHEwG5YOXDmi86oYw2yuYUGqz6a8sLwg0X8=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/term",
+              "version": "v0.2.1",
+              "sum": "h1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/lucasb-eyer/go-colorful",
+              "version": "v1.2.0",
+              "sum": "h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-isatty",
+              "version": "v0.0.20",
+              "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-runewidth",
+              "version": "v0.0.16",
+              "sum": "h1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/ansi",
+              "version": "v0.0.0-20230316100256-276c6243b2f6",
+              "sum": "h1:ZK8zHtRHOkbHy6Mmr5D264iyp3TiX5OmNcI5cIARiQI=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/cancelreader",
+              "version": "v0.2.2",
+              "sum": "h1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/termenv",
+              "version": "v0.16.0",
+              "sum": "h1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc=",
+              "replace": null
+            },
+            {
+              "path": "github.com/rivo/uniseg",
+              "version": "v0.4.7",
+              "sum": "h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/xo/terminfo",
+              "version": "v0.0.0-20220910002029-abceb7e1c41e",
+              "sum": "h1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            }
+          ]
+        }
+      ],
+      "error": null
+    },
+    {
+      "target": "darwin-arm64",
+      "status": "succeeded",
+      "directory": "dist/runtime/darwin-arm64/20261024T051829203Z-df0ca9b5",
+      "artifacts": [
+        {
+          "name": "suma-control",
+          "package": "./cmd/suma-control",
+          "size_bytes": 24025202,
+          "sha256": "9d8b52b888173bad997d7b207039b0711a5e8db3b3aae05e47d4dbed94638c59",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-control.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-arm64\\suma-control: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-control\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tfilippo.io/edwards25519\tv1.1.0\th1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=\n\tdep\tgithub.com/dustin/go-humanize\tv1.0.1\th1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=\n\tdep\tgithub.com/go-sql-driver/mysql\tv1.9.3\th1:U/N249h2WzJ3Ukj8SowVFjdtZKfu9vlLZxjPXV1aweo=\n\tdep\tgithub.com/google/uuid\tv1.6.0\th1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=\n\tdep\tgithub.com/jackc/pgpassfile\tv1.0.0\th1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=\n\tdep\tgithub.com/jackc/pgservicefile\tv0.0.0-20240606120523-5a60cdf6a761\th1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=\n\tdep\tgithub.com/jackc/pgx/v5\tv5.7.4\th1:9wKznZrhWa2QiHL+NjTSPP6yjl3451BX3imWDnokYlg=\n\tdep\tgithub.com/jackc/puddle/v2\tv2.2.2\th1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=\n\tdep\tgithub.com/mattn/go-isatty\tv0.0.20\th1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=\n\tdep\tgithub.com/ncruces/go-strftime\tv0.1.9\th1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=\n\tdep\tgithub.com/remyoudompheng/bigfft\tv0.0.0-20230129092748-24d4a6f8daec\th1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=\n\tdep\tgolang.org/x/crypto\tv0.31.0\th1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=\n\tdep\tgolang.org/x/exp\tv0.0.0-20230315142452-642cacee5cc0\th1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=\n\tdep\tgolang.org/x/sync\tv0.10.0\th1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tdep\tgolang.org/x/text\tv0.21.0\th1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=\n\tdep\tmodernc.org/libc\tv1.61.13\th1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=\n\tdep\tmodernc.org/mathutil\tv1.7.1\th1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=\n\tdep\tmodernc.org/memory\tv1.8.2\th1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=\n\tdep\tmodernc.org/sqlite\tv1.36.3\th1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=darwin\n\tbuild\tGOARM64=v8.0\n",
+          "linked_modules": [
+            {
+              "path": "filippo.io/edwards25519",
+              "version": "v1.1.0",
+              "sum": "h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=",
+              "replace": null
+            },
+            {
+              "path": "github.com/dustin/go-humanize",
+              "version": "v1.0.1",
+              "sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/go-sql-driver/mysql",
+              "version": "v1.9.3",
+              "sum": "h1:U/N249h2WzJ3Ukj8SowVFjdtZKfu9vlLZxjPXV1aweo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/google/uuid",
+              "version": "v1.6.0",
+              "sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgpassfile",
+              "version": "v1.0.0",
+              "sum": "h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgservicefile",
+              "version": "v0.0.0-20240606120523-5a60cdf6a761",
+              "sum": "h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/pgx/v5",
+              "version": "v5.7.4",
+              "sum": "h1:9wKznZrhWa2QiHL+NjTSPP6yjl3451BX3imWDnokYlg=",
+              "replace": null
+            },
+            {
+              "path": "github.com/jackc/puddle/v2",
+              "version": "v2.2.2",
+              "sum": "h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-isatty",
+              "version": "v0.0.20",
+              "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/ncruces/go-strftime",
+              "version": "v0.1.9",
+              "sum": "h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=",
+              "replace": null
+            },
+            {
+              "path": "github.com/remyoudompheng/bigfft",
+              "version": "v0.0.0-20230129092748-24d4a6f8daec",
+              "sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/crypto",
+              "version": "v0.31.0",
+              "sum": "h1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/exp",
+              "version": "v0.0.0-20230315142452-642cacee5cc0",
+              "sum": "h1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sync",
+              "version": "v0.10.0",
+              "sum": "h1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/text",
+              "version": "v0.21.0",
+              "sum": "h1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/libc",
+              "version": "v1.61.13",
+              "sum": "h1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/mathutil",
+              "version": "v1.7.1",
+              "sum": "h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/memory",
+              "version": "v1.8.2",
+              "sum": "h1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/sqlite",
+              "version": "v1.36.3",
+              "sum": "h1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=",
+              "replace": null
+            }
+          ]
+        },
+        {
+          "name": "suma-runner",
+          "package": "./cmd/suma-runner",
+          "size_bytes": 9292706,
+          "sha256": "6110922b1ce0ad38e8fccdaf024fa3fd96f28f4c5ebb3421865f42639aa8976e",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-runner.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-arm64\\suma-runner: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-runner\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=darwin\n\tbuild\tGOARM64=v8.0\n",
+          "linked_modules": []
+        },
+        {
+          "name": "suma-deployer",
+          "package": "./cmd/suma-deployer",
+          "size_bytes": 15063506,
+          "sha256": "e8466ce31d17b4820c515edf3bc3e8033efda4463219abf018dadc4356cfb2ef",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma-deployer.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-arm64\\suma-deployer: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma-deployer\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tgithub.com/dustin/go-humanize\tv1.0.1\th1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=\n\tdep\tgithub.com/google/uuid\tv1.6.0\th1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=\n\tdep\tgithub.com/mattn/go-isatty\tv0.0.20\th1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=\n\tdep\tgithub.com/ncruces/go-strftime\tv0.1.9\th1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=\n\tdep\tgithub.com/remyoudompheng/bigfft\tv0.0.0-20230129092748-24d4a6f8daec\th1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=\n\tdep\tgolang.org/x/exp\tv0.0.0-20230315142452-642cacee5cc0\th1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tdep\tmodernc.org/libc\tv1.61.13\th1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=\n\tdep\tmodernc.org/mathutil\tv1.7.1\th1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=\n\tdep\tmodernc.org/memory\tv1.8.2\th1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=\n\tdep\tmodernc.org/sqlite\tv1.36.3\th1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=darwin\n\tbuild\tGOARM64=v8.0\n",
+          "linked_modules": [
+            {
+              "path": "github.com/dustin/go-humanize",
+              "version": "v1.0.1",
+              "sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/google/uuid",
+              "version": "v1.6.0",
+              "sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-isatty",
+              "version": "v0.0.20",
+              "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/ncruces/go-strftime",
+              "version": "v0.1.9",
+              "sum": "h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=",
+              "replace": null
+            },
+            {
+              "path": "github.com/remyoudompheng/bigfft",
+              "version": "v0.0.0-20230129092748-24d4a6f8daec",
+              "sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/exp",
+              "version": "v0.0.0-20230315142452-642cacee5cc0",
+              "sum": "h1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/libc",
+              "version": "v1.61.13",
+              "sum": "h1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/mathutil",
+              "version": "v1.7.1",
+              "sum": "h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/memory",
+              "version": "v1.8.2",
+              "sum": "h1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=",
+              "replace": null
+            },
+            {
+              "path": "modernc.org/sqlite",
+              "version": "v1.36.3",
+              "sum": "h1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=",
+              "replace": null
+            }
+          ]
+        },
+        {
+          "name": "suma",
+          "package": "./cmd/suma",
+          "size_bytes": 9596802,
+          "sha256": "cb178b7cce37a9d5ce7e573724a7ce4a256d21bde0d2961c666013b6dda86e5d",
+          "toolchain": "go1.24.5",
+          "build_info_file": "suma.buildinfo.txt",
+          "build_info": "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-arm64\\suma: go1.24.5\n\tpath\tgithub.com/ai-mada/suma/cmd/suma\n\tmod\tgithub.com/ai-mada/suma\t(devel)\t\n\tdep\tgithub.com/aymanbagabas/go-osc52/v2\tv2.0.1\th1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=\n\tdep\tgithub.com/charmbracelet/bubbletea\tv1.3.10\th1:otUDHWMMzQSB0Pkc87rm691KZ3SWa4KUlvF9nRvCICw=\n\tdep\tgithub.com/charmbracelet/colorprofile\tv0.2.3-0.20250311203215-f60798e515dc\th1:4pZI35227imm7yK2bGPcfpFEmuY1gc2YSTShr4iJBfs=\n\tdep\tgithub.com/charmbracelet/lipgloss\tv1.1.0\th1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=\n\tdep\tgithub.com/charmbracelet/x/ansi\tv0.10.1\th1:rL3Koar5XvX0pHGfovN03f5cxLbCF2YvLeyz7D2jVDQ=\n\tdep\tgithub.com/charmbracelet/x/cellbuf\tv0.0.13-0.20250311204145-2c3ea96c31dd\th1:vy0GVL4jeHEwG5YOXDmi86oYw2yuYUGqz6a8sLwg0X8=\n\tdep\tgithub.com/charmbracelet/x/term\tv0.2.1\th1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=\n\tdep\tgithub.com/lucasb-eyer/go-colorful\tv1.2.0\th1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=\n\tdep\tgithub.com/mattn/go-isatty\tv0.0.20\th1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=\n\tdep\tgithub.com/mattn/go-runewidth\tv0.0.16\th1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=\n\tdep\tgithub.com/muesli/ansi\tv0.0.0-20230316100256-276c6243b2f6\th1:ZK8zHtRHOkbHy6Mmr5D264iyp3TiX5OmNcI5cIARiQI=\n\tdep\tgithub.com/muesli/cancelreader\tv0.2.2\th1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=\n\tdep\tgithub.com/muesli/termenv\tv0.16.0\th1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc=\n\tdep\tgithub.com/rivo/uniseg\tv0.4.7\th1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=\n\tdep\tgithub.com/xo/terminfo\tv0.0.0-20220910002029-abceb7e1c41e\th1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=\n\tdep\tgolang.org/x/sys\tv0.36.0\th1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\t-trimpath=true\n\tbuild\tCGO_ENABLED=0\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=darwin\n\tbuild\tGOARM64=v8.0\n",
+          "linked_modules": [
+            {
+              "path": "github.com/aymanbagabas/go-osc52/v2",
+              "version": "v2.0.1",
+              "sum": "h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/bubbletea",
+              "version": "v1.3.10",
+              "sum": "h1:otUDHWMMzQSB0Pkc87rm691KZ3SWa4KUlvF9nRvCICw=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/colorprofile",
+              "version": "v0.2.3-0.20250311203215-f60798e515dc",
+              "sum": "h1:4pZI35227imm7yK2bGPcfpFEmuY1gc2YSTShr4iJBfs=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/lipgloss",
+              "version": "v1.1.0",
+              "sum": "h1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/ansi",
+              "version": "v0.10.1",
+              "sum": "h1:rL3Koar5XvX0pHGfovN03f5cxLbCF2YvLeyz7D2jVDQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/cellbuf",
+              "version": "v0.0.13-0.20250311204145-2c3ea96c31dd",
+              "sum": "h1:vy0GVL4jeHEwG5YOXDmi86oYw2yuYUGqz6a8sLwg0X8=",
+              "replace": null
+            },
+            {
+              "path": "github.com/charmbracelet/x/term",
+              "version": "v0.2.1",
+              "sum": "h1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/lucasb-eyer/go-colorful",
+              "version": "v1.2.0",
+              "sum": "h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-isatty",
+              "version": "v0.0.20",
+              "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+              "replace": null
+            },
+            {
+              "path": "github.com/mattn/go-runewidth",
+              "version": "v0.0.16",
+              "sum": "h1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/ansi",
+              "version": "v0.0.0-20230316100256-276c6243b2f6",
+              "sum": "h1:ZK8zHtRHOkbHy6Mmr5D264iyp3TiX5OmNcI5cIARiQI=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/cancelreader",
+              "version": "v0.2.2",
+              "sum": "h1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=",
+              "replace": null
+            },
+            {
+              "path": "github.com/muesli/termenv",
+              "version": "v0.16.0",
+              "sum": "h1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc=",
+              "replace": null
+            },
+            {
+              "path": "github.com/rivo/uniseg",
+              "version": "v0.4.7",
+              "sum": "h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=",
+              "replace": null
+            },
+            {
+              "path": "github.com/xo/terminfo",
+              "version": "v0.0.0-20220910002029-abceb7e1c41e",
+              "sum": "h1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=",
+              "replace": null
+            },
+            {
+              "path": "golang.org/x/sys",
+              "version": "v0.36.0",
+              "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+              "replace": null
+            }
+          ]
+        }
+      ],
+      "error": null
+    }
+  ],
+  "commands": [
+    {
+      "arguments": [
+        "env",
+        "-json",
+        "GOHOSTOS",
+        "GOHOSTARCH",
+        "GOVERSION"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.127,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/001.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/001.stderr.txt"
+    },
+    {
+      "arguments": [
+        "mod",
+        "verify"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.978,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/002.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/002.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-amd64\\suma-control.exe",
+        "./cmd/suma-control"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 3.294,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/003.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/003.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-amd64\\suma-control.exe"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.229,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/004.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/004.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-amd64\\suma-runner.exe",
+        "./cmd/suma-runner"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.275,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/005.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/005.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-amd64\\suma-runner.exe"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.166,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/006.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/006.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-amd64\\suma-deployer.exe",
+        "./cmd/suma-deployer"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.028,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/007.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/007.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-amd64\\suma-deployer.exe"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.191,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/008.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/008.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-amd64\\suma.exe",
+        "./cmd/suma"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.963,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/009.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/009.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-amd64\\suma.exe"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.14,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/010.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/010.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-arm64\\suma-control.exe",
+        "./cmd/suma-control"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 3.323,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/011.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/011.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-arm64\\suma-control.exe"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.207,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/012.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/012.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-arm64\\suma-runner.exe",
+        "./cmd/suma-runner"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.391,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/013.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/013.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-arm64\\suma-runner.exe"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.161,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/014.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/014.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-arm64\\suma-deployer.exe",
+        "./cmd/suma-deployer"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.075,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/015.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/015.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-arm64\\suma-deployer.exe"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.202,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/016.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/016.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-arm64\\suma.exe",
+        "./cmd/suma"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.953,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/017.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/017.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\windows-arm64\\suma.exe"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.142,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/018.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/018.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-amd64\\suma-control",
+        "./cmd/suma-control"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 3.367,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/019.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/019.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-amd64\\suma-control"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.102,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/020.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/020.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-amd64\\suma-runner",
+        "./cmd/suma-runner"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.225,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/021.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/021.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-amd64\\suma-runner"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.125,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/022.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/022.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-amd64\\suma-deployer",
+        "./cmd/suma-deployer"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.083,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/023.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/023.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-amd64\\suma-deployer"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.115,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/024.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/024.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-amd64\\suma",
+        "./cmd/suma"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.985,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/025.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/025.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-amd64\\suma"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.127,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/026.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/026.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-arm64\\suma-control",
+        "./cmd/suma-control"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 3.937,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/027.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/027.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-arm64\\suma-control"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.15,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/028.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/028.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-arm64\\suma-runner",
+        "./cmd/suma-runner"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.415,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/029.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/029.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-arm64\\suma-runner"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.111,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/030.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/030.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-arm64\\suma-deployer",
+        "./cmd/suma-deployer"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.22,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/031.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/031.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-arm64\\suma-deployer"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.155,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/032.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/032.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-arm64\\suma",
+        "./cmd/suma"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.345,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/033.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/033.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\linux-arm64\\suma"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.138,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/034.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/034.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-amd64\\suma-control",
+        "./cmd/suma-control"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 3.573,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/035.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/035.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-amd64\\suma-control"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.12,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/036.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/036.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-amd64\\suma-runner",
+        "./cmd/suma-runner"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.374,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/037.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/037.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-amd64\\suma-runner"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.206,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/038.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/038.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-amd64\\suma-deployer",
+        "./cmd/suma-deployer"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.387,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/039.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/039.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-amd64\\suma-deployer"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.135,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/040.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/040.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-amd64\\suma",
+        "./cmd/suma"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.387,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/041.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/041.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-amd64\\suma"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.163,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/042.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/042.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-arm64\\suma-control",
+        "./cmd/suma-control"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 3.664,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/043.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/043.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-arm64\\suma-control"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.191,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/044.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/044.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-arm64\\suma-runner",
+        "./cmd/suma-runner"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.789,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/045.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/045.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-arm64\\suma-runner"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.138,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/046.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/046.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-arm64\\suma-deployer",
+        "./cmd/suma-deployer"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.194,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/047.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/047.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-arm64\\suma-deployer"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.14,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/048.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/048.stderr.txt"
+    },
+    {
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-buildvcs=false",
+        "-mod=readonly",
+        "-o",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-arm64\\suma",
+        "./cmd/suma"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.053,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/049.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/049.stderr.txt"
+    },
+    {
+      "arguments": [
+        "version",
+        "-m",
+        "D:\\codes\\ai-dev-os\\suma\\.cache\\runtime-build\\20261024T051829203Z-df0ca9b5\\targets\\darwin-arm64\\suma"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.136,
+      "stdout_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/050.stdout.txt",
+      "stderr_log": ".cache/runtime-build/20261024T051829203Z-df0ca9b5/logs/050.stderr.txt"
+    }
+  ],
+  "module_cache_seed": null,
+  "source_files": [
+    {
+      "path": "cmd/suma-control/main.go",
+      "size_bytes": 4131,
+      "sha256": "dda5b8146b816e5e82ee058730f2b622aaa473326b02c629b396f898115fd8de"
+    },
+    {
+      "path": "cmd/suma-deployer/main.go",
+      "size_bytes": 1822,
+      "sha256": "167f5e17da67469256e5ba01c629d6d69ce1095201efca874a0f85e1f4104aa1"
+    },
+    {
+      "path": "cmd/suma-runner/main.go",
+      "size_bytes": 3814,
+      "sha256": "5eea32dc382420a5edad658f9bfdab97a96e48934d68876aa01fe9a2b3f1ce90"
+    },
+    {
+      "path": "cmd/suma/main.go",
+      "size_bytes": 270,
+      "sha256": "42c56adb25bcb06ba18773d1115eb7978ab173d600561d742d976317dbf7457b"
+    },
+    {
+      "path": "go.mod",
+      "size_bytes": 1929,
+      "sha256": "7e6710238e390926ea38cd98cb61b3feb4f8ef3a63bda4aa3454b2275e2d0b96"
+    },
+    {
+      "path": "go.sum",
+      "size_bytes": 10082,
+      "sha256": "c9a9bb366a0c4b84c84851e640ee85310fbf33ebbe6c8739e62e54194ec2be9d"
+    },
+    {
+      "path": "internal/automation/cron.go",
+      "size_bytes": 6474,
+      "sha256": "174c2b0a9032b50699c02e7570e02b45fb03b2e34a5c1e5e0de03bc05d88e0fc"
+    },
+    {
+      "path": "internal/cli/cli.go",
+      "size_bytes": 9093,
+      "sha256": "929af204007e52ba064c78d7d719cfd8455982aaa6c08f5eb7ebc4a4ed69fda1"
+    },
+    {
+      "path": "internal/cli/client.go",
+      "size_bytes": 6526,
+      "sha256": "ae75cca6fa485f456a2b0112eb187fd70657ff71447d1ab970af2c638694d8de"
+    },
+    {
+      "path": "internal/cli/tui.go",
+      "size_bytes": 7850,
+      "sha256": "02d4e8e8ce9c2ce477952ff263e43f5bea9398b8a97a439f9075be5a40d1fb09"
+    },
+    {
+      "path": "internal/cli/webhook.go",
+      "size_bytes": 4983,
+      "sha256": "609c11d4d39c22bfae9ad28347604fbf1a2d738ecf3a2af6149cf3f1f8de90fb"
+    },
+    {
+      "path": "internal/dag/candidate.go",
+      "size_bytes": 6941,
+      "sha256": "6232f7b04bea34a1137fb81c632764bcb8274e390b059488a0a682c2f6f7d5e9"
+    },
+    {
+      "path": "internal/dag/commands.go",
+      "size_bytes": 6416,
+      "sha256": "18dcfb24000a15ed48c89987b47a393de26165f597a1b6c43392e77eaaac8f8d"
+    },
+    {
+      "path": "internal/dag/compensation.go",
+      "size_bytes": 9658,
+      "sha256": "5ed2533aa3121e00470028955b93b955da6962f282fd107c1340eed7545845ce"
+    },
+    {
+      "path": "internal/dag/compiler.go",
+      "size_bytes": 7699,
+      "sha256": "cd5f71fc55b1369dbfa7c0a24e63b3724c63b9d8485d6ee502e6e85e80818d8e"
+    },
+    {
+      "path": "internal/dag/engine.go",
+      "size_bytes": 24170,
+      "sha256": "d8f2b91aa689e2534fb7d4a2c4c3cc07c52345f4c332d8f2387459cf46a70183"
+    },
+    {
+      "path": "internal/dag/indexes.go",
+      "size_bytes": 309,
+      "sha256": "bbad4786e4c3ea4748be0e988c8224ee16967198845abdfcedfc3841dedc80c7"
+    },
+    {
+      "path": "internal/dag/managed.go",
+      "size_bytes": 2279,
+      "sha256": "ababc3eacc4f8c1b185d78f4487d566142276585ea338e83f2f6bd98104c8c3b"
+    },
+    {
+      "path": "internal/dag/progress.go",
+      "size_bytes": 3455,
+      "sha256": "b1f85d2a8e6a29199d93489722f6bdcdeebb6b880e5d4e338c03cd3f73d8d6a4"
+    },
+    {
+      "path": "internal/dag/run_pages.go",
+      "size_bytes": 2773,
+      "sha256": "06bb2c93e85d23dbfeb54eea0721b2c8a9440608b45e4e263ccdc82a27adbc4d"
+    },
+    {
+      "path": "internal/dag/scheduler.go",
+      "size_bytes": 17721,
+      "sha256": "3b9c534a6572c15c8885a54f59121b16df982affaf2bd5ed87bd58ca25847968"
+    },
+    {
+      "path": "internal/dag/subworkflows.go",
+      "size_bytes": 11410,
+      "sha256": "abb891141f6ccaf90b7d8b473b7138bc9c4d8794f4e84a25f329df660fa46824"
+    },
+    {
+      "path": "internal/dag/tool_execution.go",
+      "size_bytes": 2237,
+      "sha256": "c5839ea264ba587c47d3a2b11926b3bd543fca19c484fb7226252b2819811ed9"
+    },
+    {
+      "path": "internal/dag/transitions.go",
+      "size_bytes": 8981,
+      "sha256": "4cf11acf0432c0ef1ca18466f6348ed14a5a9ea73d2a32397ad8b587620f53c8"
+    },
+    {
+      "path": "internal/dag/types.go",
+      "size_bytes": 6588,
+      "sha256": "c9309d10caef3cdcf3a45c01344b3f771f3e3dbc9d9f262d3c7a1436178f416e"
+    },
+    {
+      "path": "internal/deployer/control.go",
+      "size_bytes": 4338,
+      "sha256": "42a804726c3494e01544789512bfa0071bd2a6faa789ab955c5ff27e29924f2c"
+    },
+    {
+      "path": "internal/deployer/execution.go",
+      "size_bytes": 12615,
+      "sha256": "2eac6f4ed72f3fe375a4876ca63ac292911470023a589e268f451cc03f18d291"
+    },
+    {
+      "path": "internal/deployer/files.go",
+      "size_bytes": 3761,
+      "sha256": "73cba0f024a6fcc0d73579693b7f4c92ece44e5cae9f9133bfccfb287a5062a4"
+    },
+    {
+      "path": "internal/deployer/health.go",
+      "size_bytes": 5303,
+      "sha256": "c36d164e9e92434b453edd53fdb45d210c1f2b97f5214b8db37c4fe5434ea8ef"
+    },
+    {
+      "path": "internal/deployer/http.go",
+      "size_bytes": 6230,
+      "sha256": "1ed46dcc63bd64ea44f1439089cfa14434693b97005ce1ba8d17803efc2347a3"
+    },
+    {
+      "path": "internal/deployer/lock_unix.go",
+      "size_bytes": 733,
+      "sha256": "aa6d55969cdac1711b0b9203713aa8497c6abefbe5fa1dbf14db599b84a4a39b"
+    },
+    {
+      "path": "internal/deployer/lock_windows.go",
+      "size_bytes": 1327,
+      "sha256": "e36de6eb2f8df285f3cde0240fde0bae030147c8961c0098933f5fa60623d50a"
+    },
+    {
+      "path": "internal/deployer/server.go",
+      "size_bytes": 8516,
+      "sha256": "d25d414dc905e744cce71f93b9689aae56073e03f4c9b43255b1110d812e2f33"
+    },
+    {
+      "path": "internal/platform/artifact_http.go",
+      "size_bytes": 5188,
+      "sha256": "27dec62f03bad69422a90d2001f152c95d84791462a980a517e1d0cbf9b9648e"
+    },
+    {
+      "path": "internal/platform/artifact_proofs.go",
+      "size_bytes": 12541,
+      "sha256": "4c72a2876c790ed412966e0d7de95884415d79fb956d170a010957b8e60e41ca"
+    },
+    {
+      "path": "internal/platform/artifact_schema.go",
+      "size_bytes": 2980,
+      "sha256": "e23c605334964dded1b3a8b5eadad5c7c8c086558b00e3d530948b1f87724929"
+    },
+    {
+      "path": "internal/platform/artifact_storage.go",
+      "size_bytes": 17331,
+      "sha256": "317f2d4f08642b796975120295e308fc93dc090824efe7517021963e81c0180a"
+    },
+    {
+      "path": "internal/platform/artifact_workers.go",
+      "size_bytes": 12458,
+      "sha256": "47f07906d91120a805163539e966c69185b90464c9ed78158d20045bfd82b334"
+    },
+    {
+      "path": "internal/platform/auth.go",
+      "size_bytes": 5627,
+      "sha256": "f65a3ed99ca4bfde304bc6ebb32888f444c3943de6c91d37a5255fa95cfecbb7"
+    },
+    {
+      "path": "internal/platform/automation_ingress_history.go",
+      "size_bytes": 6626,
+      "sha256": "3b39ebc4f4d8d21756b5a7bb03b3ff24fa5f4308ed77ca14f8cc16480d286c67"
+    },
+    {
+      "path": "internal/platform/automation_ingress_http.go",
+      "size_bytes": 4356,
+      "sha256": "7d0e3bd563dec1c66f1d467a7674c625c463c010a404b2179a143ea8755f54bb"
+    },
+    {
+      "path": "internal/platform/automation_ingress_json.go",
+      "size_bytes": 1452,
+      "sha256": "f8d393f30c40b9f2e43b9b1c8f2d2521e8075087e71c01842d4f112c9bae573f"
+    },
+    {
+      "path": "internal/platform/automation_ingress_key.go",
+      "size_bytes": 2423,
+      "sha256": "a4cdad3541daed2b3b161608bc5fd661b9720d86e175c9cc929c01f797e4ef31"
+    },
+    {
+      "path": "internal/platform/automation_ingress_receive.go",
+      "size_bytes": 15752,
+      "sha256": "77671a2e7185322db3ba0e492fb21a3290a815cd5156ea12aafbd11ebb8fc587"
+    },
+    {
+      "path": "internal/platform/automation_ingress_types.go",
+      "size_bytes": 4713,
+      "sha256": "724e2b34dbdb455478e3b762cdcbb7a6092a152750aa09fbd3407c7b2cb737a2"
+    },
+    {
+      "path": "internal/platform/automation_ingress.go",
+      "size_bytes": 19772,
+      "sha256": "c1a1761dfdfb7eba152e329c526ea2057efcc23bef83f1fb50ad531afbbfea4c"
+    },
+    {
+      "path": "internal/platform/automation_scheduler.go",
+      "size_bytes": 12247,
+      "sha256": "48908d778c3835771bbb82840116e05dabfc3737ab1af5ee3beb8ebfd6599ad5"
+    },
+    {
+      "path": "internal/platform/automation.go",
+      "size_bytes": 27512,
+      "sha256": "bfaa50e29d6a5a29c53fe2b8d29d9ee00f3a6db813afe185f2db268cddd87e7f"
+    },
+    {
+      "path": "internal/platform/baselines.go",
+      "size_bytes": 9010,
+      "sha256": "360450cb07d9e821e25e6d929ebf1a26b59fb979c1a8e7c7648f9691ef0081a6"
+    },
+    {
+      "path": "internal/platform/database.go",
+      "size_bytes": 6860,
+      "sha256": "64362090a743bf6b63b9b1988d22efe273033368010173e608ed2d9d9c3e9afa"
+    },
+    {
+      "path": "internal/platform/delivery.go",
+      "size_bytes": 14849,
+      "sha256": "f728183bbbbdf6b04fd2f562ac234967b53a33c2fc2d0e0f5468aa6ce497f11f"
+    },
+    {
+      "path": "internal/platform/evidence.go",
+      "size_bytes": 7555,
+      "sha256": "f73dd3422646b971a04f866379095fbe1ffe3acd0db8bec5cf2ac2b12b38ecf0"
+    },
+    {
+      "path": "internal/platform/failure_projection.go",
+      "size_bytes": 2134,
+      "sha256": "b5909bb8a0d2945014f4ff87cab5a423e15844b793b41c41b14e6f5e3aa7521c"
+    },
+    {
+      "path": "internal/platform/governance_invitations.go",
+      "size_bytes": 15049,
+      "sha256": "b52de6c3a82ba6a49a119ece78b864e212382b17eab303ca01a371cd3f7134f6"
+    },
+    {
+      "path": "internal/platform/governance_teams.go",
+      "size_bytes": 19119,
+      "sha256": "344b4d454cfc584c62747543f5a1643ae7aaa59900b95535acacca01ba004a56"
+    },
+    {
+      "path": "internal/platform/governance.go",
+      "size_bytes": 15448,
+      "sha256": "b241d2d969c32610d20016d6c25ef49c45c011ad2d2db96862fac481952bdfd1"
+    },
+    {
+      "path": "internal/platform/http.go",
+      "size_bytes": 27530,
+      "sha256": "2f68781e05411b75e7f3dd8a9f889f5c3cc944b9c3cb08665b62792a80f8f508"
+    },
+    {
+      "path": "internal/platform/pagination.go",
+      "size_bytes": 2531,
+      "sha256": "c57968174439c9b4618dbc26eadd58516f4b15188ce616766e678bc879875158"
+    },
+    {
+      "path": "internal/platform/planning_http.go",
+      "size_bytes": 2151,
+      "sha256": "7239323e4e23fd4cb7416832aabae683ecd1a9894d03898c62d7fde8e40913be"
+    },
+    {
+      "path": "internal/platform/planning_invalidation.go",
+      "size_bytes": 1758,
+      "sha256": "9975c413b123b283b14696cd75652e7aba4b1f05dc59096d569f0c738a0de8ed"
+    },
+    {
+      "path": "internal/platform/planning_read.go",
+      "size_bytes": 11465,
+      "sha256": "86ee2578c607ef7dcf1ead4fb330a8984b39f0d4a58cbfbb7834a4fe70e2e1f7"
+    },
+    {
+      "path": "internal/platform/planning.go",
+      "size_bytes": 16684,
+      "sha256": "edba75033274b45cc37df47b2cbe604192859d7e682a5e2e839a97374e40766f"
+    },
+    {
+      "path": "internal/platform/projection_schema.go",
+      "size_bytes": 959,
+      "sha256": "5afeae258a6f8a588dc5987f8bac8a848a05f996b346181daffff7926e7c44bb"
+    },
+    {
+      "path": "internal/platform/projector.go",
+      "size_bytes": 7139,
+      "sha256": "04ae12b3cdd0b4f45d4256aed8ebdc372b9bfebd0d8a0bf0d85e3bf96ca36804"
+    },
+    {
+      "path": "internal/platform/records.go",
+      "size_bytes": 18496,
+      "sha256": "e250da2d09f8db82e1c82d3afe4050af6665a1fcb39f3c0e9dbdf711d46c1446"
+    },
+    {
+      "path": "internal/platform/release_candidate_service.go",
+      "size_bytes": 14220,
+      "sha256": "7f67cdbaf176e8f928724c9a205ebe31617ae1ae4803f59e0148a9c3887d7c8e"
+    },
+    {
+      "path": "internal/platform/release_candidates.go",
+      "size_bytes": 2538,
+      "sha256": "98e3652b62e13122911f49d121f3752b5b5ecdf694a8cbfcabf81439b1408838"
+    },
+    {
+      "path": "internal/platform/release_deploy_authorization.go",
+      "size_bytes": 14432,
+      "sha256": "460f89a1791ad7943fb0b22502fae3dba2cbeb5170ec5c7b400d4c39dfba35f5"
+    },
+    {
+      "path": "internal/platform/release_deploy_http.go",
+      "size_bytes": 8394,
+      "sha256": "b53ade8750789a70632cf40b9a82beb137d6945a3cf1cd36505c69b449b7ef16"
+    },
+    {
+      "path": "internal/platform/release_deploy_observations.go",
+      "size_bytes": 25746,
+      "sha256": "da20f60ec0b6739af167529c9b0e36e9381153c9b7aba8a8a1decbadd2079b39"
+    },
+    {
+      "path": "internal/platform/release_deploy_plans.go",
+      "size_bytes": 22052,
+      "sha256": "0c6853ef60254cabbda989a7059cfe144cc82cf1d4b87bcb5bc9d40fe99ca403"
+    },
+    {
+      "path": "internal/platform/release_deploy.go",
+      "size_bytes": 22270,
+      "sha256": "ccd184f494204d69bda07f1115de6460a086838d4e4b92fce629eeeae5350a73"
+    },
+    {
+      "path": "internal/platform/release_failure_projection.go",
+      "size_bytes": 1803,
+      "sha256": "cf146f2195570b1a2304fb37879e6ac1af142992306a3d62216966cc9314ca4a"
+    },
+    {
+      "path": "internal/platform/release_provider_config.go",
+      "size_bytes": 3417,
+      "sha256": "bd41ada35dff0d89a4ead1ef5ce62a1490503d173fe2d0c85742ee5f2d8a2683"
+    },
+    {
+      "path": "internal/platform/run_stream.go",
+      "size_bytes": 9943,
+      "sha256": "75146e75ede722aa31ff1cd39bf6bab76bb0cb4949128f7e60962826d35a95f8"
+    },
+    {
+      "path": "internal/platform/search.go",
+      "size_bytes": 2860,
+      "sha256": "17675cf252329611ee8471eb36dcf0973682ffe74171de65f9b751ce13ed7eeb"
+    },
+    {
+      "path": "internal/platform/task_dispatch_build.go",
+      "size_bytes": 3008,
+      "sha256": "abddaf2a8486a17c1365a9ddc52233f46d6a6b3d62794f5806ce031c1a02f04f"
+    },
+    {
+      "path": "internal/platform/task_dispatch_direct.go",
+      "size_bytes": 2698,
+      "sha256": "23c1ba662c3444b6d4546fc470f788e897ee4b49ad04e803e1b215c39db89d3a"
+    },
+    {
+      "path": "internal/platform/task_dispatch_http.go",
+      "size_bytes": 1181,
+      "sha256": "0a27a620c142823b52eeb7d4f834c9d43a839a39ce8f317d8ba7cd5209095aa9"
+    },
+    {
+      "path": "internal/platform/task_dispatch_types.go",
+      "size_bytes": 2355,
+      "sha256": "44e4c5a93e5f35fa729580e53a2de54e8537e9d78cb778f4125f05dd5023f176"
+    },
+    {
+      "path": "internal/platform/task_dispatch.go",
+      "size_bytes": 11117,
+      "sha256": "324be627ea66ec6c50f05407352b5f1c55faf8160876cd49e630bc51678c6afa"
+    },
+    {
+      "path": "internal/platform/tool_http.go",
+      "size_bytes": 1421,
+      "sha256": "546007cd9c1e1ec2ceb11dc8b174f7ddd65bed678f19666f03738fcb2e88f9aa"
+    },
+    {
+      "path": "internal/platform/tool_inventory.go",
+      "size_bytes": 6060,
+      "sha256": "34df10281974da196d4636f44fc1704c7545a02ad4466b1361134ecd4a263cfa"
+    },
+    {
+      "path": "internal/platform/tool_profiles.go",
+      "size_bytes": 13118,
+      "sha256": "c75cbe5b5cc605974bbabb382b19684bab557279c538eafbcbfdd3162a185ac9"
+    },
+    {
+      "path": "internal/platform/tool_types.go",
+      "size_bytes": 2032,
+      "sha256": "31c189d4671b36ad8813342a1a9691b8549f23111e626bd76cb2fcdef1e3ecd4"
+    },
+    {
+      "path": "internal/platform/transaction_authority.go",
+      "size_bytes": 1672,
+      "sha256": "2278fde988ef219b71c262171af27d2fb864713c3775b624a3827d2129a2b127"
+    },
+    {
+      "path": "internal/platform/types.go",
+      "size_bytes": 2900,
+      "sha256": "cc7750b1b808ec695d2b31283ae688ec5be691f6502b54ec417512cdfaed8c58"
+    },
+    {
+      "path": "internal/platform/workspace_evidence.go",
+      "size_bytes": 2588,
+      "sha256": "de2d62b53c0a212e682df17b8564ee0d3ae604a5f8e20ed78c31bd5dec4c7124"
+    },
+    {
+      "path": "internal/platform/workspace.go",
+      "size_bytes": 15450,
+      "sha256": "3bb22cbd1ae1cda11928880c602b158670813621eade0e57d37c99373d62e221"
+    },
+    {
+      "path": "internal/releasecontract/artifact.go",
+      "size_bytes": 7910,
+      "sha256": "286e08eb29c9b4e418a462956fe4113df6f9c668f6be40ef0d323f8e73b9019b"
+    },
+    {
+      "path": "internal/releasecontract/deployment.go",
+      "size_bytes": 9255,
+      "sha256": "b794978210ff046f8f12f6d10c1a5dc4fab0d09583bb957e27d22a998c702f41"
+    },
+    {
+      "path": "internal/runner/artifact_file_unix.go",
+      "size_bytes": 241,
+      "sha256": "bdd1b3af8e7e11e98ce8caeb48d6fa51beea627eedb5abe95e992a6064d41903"
+    },
+    {
+      "path": "internal/runner/artifact_file_windows.go",
+      "size_bytes": 325,
+      "sha256": "cf9934cf0ee2a54599852fd025f7fdb5b44393c06cc3a12cfc8cf00f4e102879"
+    },
+    {
+      "path": "internal/runner/artifact.go",
+      "size_bytes": 15855,
+      "sha256": "5cb8e44543a8741e4701ec48eca172acb7398f22b03351554a548101a675b9c6"
+    },
+    {
+      "path": "internal/runner/client.go",
+      "size_bytes": 3401,
+      "sha256": "85e1d94a2a36b669ebfbba541061d64581768145d34d079dee89e5dc1a6c5f5b"
+    },
+    {
+      "path": "internal/runner/environment.go",
+      "size_bytes": 2550,
+      "sha256": "b8fa7a6c3e4f28547bb79bd7dd6147b09f2efff9fac46cad5fa8ea6eb7ad9d49"
+    },
+    {
+      "path": "internal/runner/execute.go",
+      "size_bytes": 14487,
+      "sha256": "e4c6dca933e26b97daf81be05aef29ab03b3daa0838cd8ddcc58216ab24aa432"
+    },
+    {
+      "path": "internal/runner/external.go",
+      "size_bytes": 6734,
+      "sha256": "ff76179914ef71caf6303da43853268cf2a5df1b72eedd7f3d411c4c64d9d08b"
+    },
+    {
+      "path": "internal/runner/journal.go",
+      "size_bytes": 7859,
+      "sha256": "63d25234aa1f4cad4a575c0be685881e1caca7cba88412933398f3e59b62e6ab"
+    },
+    {
+      "path": "internal/runner/lock_unix.go",
+      "size_bytes": 370,
+      "sha256": "adc9e492e033d4607404a3e05cacd6a5baa74ef38e8d6eb65c2ec7bb6cd7e3f5"
+    },
+    {
+      "path": "internal/runner/lock_windows.go",
+      "size_bytes": 418,
+      "sha256": "9b15882dcf47fe8fc784ff386622a165584fc6d9c5ab933f572a1d655961ceed"
+    },
+    {
+      "path": "internal/runner/process_unix.go",
+      "size_bytes": 762,
+      "sha256": "1650dc48d5e80ca37a75b766d6f7820860394c415446b3c27f6f01022223b725"
+    },
+    {
+      "path": "internal/runner/process_windows.go",
+      "size_bytes": 3664,
+      "sha256": "a35d8c0a60390b803fdfef51d6f24bce71702613ed72027cbf54e8eb00b7cb0a"
+    },
+    {
+      "path": "internal/runner/release.go",
+      "size_bytes": 8910,
+      "sha256": "2b22a3dcba0404aea7a0c5d03d5baeb68aa4d30703c2509d6f801d6006490d3d"
+    },
+    {
+      "path": "internal/runner/replace_unix.go",
+      "size_bytes": 282,
+      "sha256": "f48aee93dbc3f5a5712916a6757447d391f642e1dc1fc9d6943a76d708211b84"
+    },
+    {
+      "path": "internal/runner/replace_windows.go",
+      "size_bytes": 444,
+      "sha256": "0dee659a2ae26ee271870c69fe59c3e33c446f463da6969cc68f0e000f2448d3"
+    },
+    {
+      "path": "internal/runner/tool_inventory.go",
+      "size_bytes": 5730,
+      "sha256": "4c6eba498f08f9c6afb34d177753e590387b0152aef3fe4f767e0d40a383ab4f"
+    },
+    {
+      "path": "internal/runner/tool_stream.go",
+      "size_bytes": 11149,
+      "sha256": "28b2bd53ae2d32355ca5154dfb3dadbab6960bccf39d6475ccab8281d3105103"
+    },
+    {
+      "path": "internal/runner/tools.go",
+      "size_bytes": 14736,
+      "sha256": "36d93785061261bfeafb2ee5da80a2e5e94344668b0a5aa28d560e2ac14f9cce"
+    },
+    {
+      "path": "internal/runner/wire.go",
+      "size_bytes": 4226,
+      "sha256": "7d2287baddb3b32f64db30ae3e28835197362ea6f2f8208053c2e0ceb3f2537a"
+    },
+    {
+      "path": "internal/runner/worker.go",
+      "size_bytes": 5129,
+      "sha256": "5e0ed7787274672fd3d8033e9eb5ca80cc2ce49e17c260db23dc65032c13b163"
+    },
+    {
+      "path": "internal/runner/workspace.go",
+      "size_bytes": 22185,
+      "sha256": "117d2d01ecc23ce4e4f44377a1218244504b155d5df42cf3bd37f6863572d0b1"
+    },
+    {
+      "path": "internal/store/index.go",
+      "size_bytes": 3249,
+      "sha256": "3ccfbf34b63db4ba7245900c2505268115c1cda28eed7811a541b879dcc39f60"
+    },
+    {
+      "path": "internal/store/store.go",
+      "size_bytes": 1178,
+      "sha256": "e0b78a071c6409afaf3e8746a664aadbc7fbfbbbb530811e7c699ac86f3a730d"
+    },
+    {
+      "path": "internal/toolcontract/types.go",
+      "size_bytes": 1889,
+      "sha256": "05156644137c2f470d44e61a1456c7dde9309d3acf4c619772ed5b14eadcf901"
+    },
+    {
+      "path": "internal/toolcontract/validation.go",
+      "size_bytes": 5747,
+      "sha256": "f6e566362d2f874559847bfa05460c6051dfb09bd8c937319571a05fc234571c"
+    }
+  ],
+  "linked_modules": [
+    {
+      "module": {
+        "path": "filippo.io/edwards25519",
+        "version": "v1.1.0",
+        "sum": "h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-arm64/suma-control.exe",
+        "linux-amd64/suma-control",
+        "linux-arm64/suma-control",
+        "darwin-amd64/suma-control",
+        "darwin-arm64/suma-control"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/aymanbagabas/go-osc52/v2",
+        "version": "v2.0.1",
+        "sum": "h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/charmbracelet/bubbletea",
+        "version": "v1.3.10",
+        "sum": "h1:otUDHWMMzQSB0Pkc87rm691KZ3SWa4KUlvF9nRvCICw=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/charmbracelet/colorprofile",
+        "version": "v0.2.3-0.20250311203215-f60798e515dc",
+        "sum": "h1:4pZI35227imm7yK2bGPcfpFEmuY1gc2YSTShr4iJBfs=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/charmbracelet/lipgloss",
+        "version": "v1.1.0",
+        "sum": "h1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/charmbracelet/x/ansi",
+        "version": "v0.10.1",
+        "sum": "h1:rL3Koar5XvX0pHGfovN03f5cxLbCF2YvLeyz7D2jVDQ=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/charmbracelet/x/cellbuf",
+        "version": "v0.0.13-0.20250311204145-2c3ea96c31dd",
+        "sum": "h1:vy0GVL4jeHEwG5YOXDmi86oYw2yuYUGqz6a8sLwg0X8=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/charmbracelet/x/term",
+        "version": "v0.2.1",
+        "sum": "h1:AQeHeLZ1OqSXhrAWpYUtZyX1T3zVxfpZuEQMIQaGIAQ=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/dustin/go-humanize",
+        "version": "v1.0.1",
+        "sum": "h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-amd64/suma-deployer.exe",
+        "windows-arm64/suma-control.exe",
+        "windows-arm64/suma-deployer.exe",
+        "linux-amd64/suma-control",
+        "linux-amd64/suma-deployer",
+        "linux-arm64/suma-control",
+        "linux-arm64/suma-deployer",
+        "darwin-amd64/suma-control",
+        "darwin-amd64/suma-deployer",
+        "darwin-arm64/suma-control",
+        "darwin-arm64/suma-deployer"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/erikgeiser/coninput",
+        "version": "v0.0.0-20211004153227-1c3628e74d0f",
+        "sum": "h1:Y/CXytFA4m6baUTXGLOoWe4PQhGxaX0KpnayAqC48p4=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/go-sql-driver/mysql",
+        "version": "v1.9.3",
+        "sum": "h1:U/N249h2WzJ3Ukj8SowVFjdtZKfu9vlLZxjPXV1aweo=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-arm64/suma-control.exe",
+        "linux-amd64/suma-control",
+        "linux-arm64/suma-control",
+        "darwin-amd64/suma-control",
+        "darwin-arm64/suma-control"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/google/uuid",
+        "version": "v1.6.0",
+        "sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+        "replace": null
+      },
+      "targets": [
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "linux-amd64/suma-control",
+        "linux-amd64/suma-deployer",
+        "linux-arm64/suma-control",
+        "linux-arm64/suma-deployer",
+        "darwin-amd64/suma-control",
+        "darwin-amd64/suma-deployer",
+        "darwin-arm64/suma-control",
+        "darwin-arm64/suma-deployer"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/jackc/pgpassfile",
+        "version": "v1.0.0",
+        "sum": "h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-arm64/suma-control.exe",
+        "linux-amd64/suma-control",
+        "linux-arm64/suma-control",
+        "darwin-amd64/suma-control",
+        "darwin-arm64/suma-control"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/jackc/pgservicefile",
+        "version": "v0.0.0-20240606120523-5a60cdf6a761",
+        "sum": "h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-arm64/suma-control.exe",
+        "linux-amd64/suma-control",
+        "linux-arm64/suma-control",
+        "darwin-amd64/suma-control",
+        "darwin-arm64/suma-control"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/jackc/pgx/v5",
+        "version": "v5.7.4",
+        "sum": "h1:9wKznZrhWa2QiHL+NjTSPP6yjl3451BX3imWDnokYlg=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-arm64/suma-control.exe",
+        "linux-amd64/suma-control",
+        "linux-arm64/suma-control",
+        "darwin-amd64/suma-control",
+        "darwin-arm64/suma-control"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/jackc/puddle/v2",
+        "version": "v2.2.2",
+        "sum": "h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-arm64/suma-control.exe",
+        "linux-amd64/suma-control",
+        "linux-arm64/suma-control",
+        "darwin-amd64/suma-control",
+        "darwin-arm64/suma-control"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/lucasb-eyer/go-colorful",
+        "version": "v1.2.0",
+        "sum": "h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/mattn/go-isatty",
+        "version": "v0.0.20",
+        "sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-amd64/suma-deployer.exe",
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma-control.exe",
+        "windows-arm64/suma-deployer.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma-control",
+        "darwin-amd64/suma-deployer",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma-control",
+        "darwin-arm64/suma-deployer",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/mattn/go-localereader",
+        "version": "v0.0.1",
+        "sum": "h1:ygSAOl7ZXTx4RdPYinUpg6W99U8jWvWi9Ye2JC/oIi4=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/mattn/go-runewidth",
+        "version": "v0.0.16",
+        "sum": "h1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/muesli/ansi",
+        "version": "v0.0.0-20230316100256-276c6243b2f6",
+        "sum": "h1:ZK8zHtRHOkbHy6Mmr5D264iyp3TiX5OmNcI5cIARiQI=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/muesli/cancelreader",
+        "version": "v0.2.2",
+        "sum": "h1:3I4Kt4BQjOR54NavqnDogx/MIoWBFa0StPA8ELUXHmA=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/muesli/termenv",
+        "version": "v0.16.0",
+        "sum": "h1:S5AlUN9dENB57rsbnkPyfdGuWIlkmzJjbFf0Tf5FWUc=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/ncruces/go-strftime",
+        "version": "v0.1.9",
+        "sum": "h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-amd64/suma-deployer.exe",
+        "windows-arm64/suma-control.exe",
+        "windows-arm64/suma-deployer.exe",
+        "darwin-amd64/suma-control",
+        "darwin-amd64/suma-deployer",
+        "darwin-arm64/suma-control",
+        "darwin-arm64/suma-deployer"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/remyoudompheng/bigfft",
+        "version": "v0.0.0-20230129092748-24d4a6f8daec",
+        "sum": "h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-amd64/suma-deployer.exe",
+        "windows-arm64/suma-control.exe",
+        "windows-arm64/suma-deployer.exe",
+        "linux-amd64/suma-control",
+        "linux-amd64/suma-deployer",
+        "linux-arm64/suma-control",
+        "linux-arm64/suma-deployer",
+        "darwin-amd64/suma-control",
+        "darwin-amd64/suma-deployer",
+        "darwin-arm64/suma-control",
+        "darwin-arm64/suma-deployer"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/rivo/uniseg",
+        "version": "v0.4.7",
+        "sum": "h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "github.com/xo/terminfo",
+        "version": "v0.0.0-20220910002029-abceb7e1c41e",
+        "sum": "h1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma",
+        "linux-arm64/suma",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "golang.org/x/crypto",
+        "version": "v0.31.0",
+        "sum": "h1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-arm64/suma-control.exe",
+        "linux-amd64/suma-control",
+        "linux-arm64/suma-control",
+        "darwin-amd64/suma-control",
+        "darwin-arm64/suma-control"
+      ]
+    },
+    {
+      "module": {
+        "path": "golang.org/x/exp",
+        "version": "v0.0.0-20230315142452-642cacee5cc0",
+        "sum": "h1:pVgRXcIictcr+lBQIFeiwuwtDIs4eL21OuM9nyAADmo=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-amd64/suma-deployer.exe",
+        "windows-arm64/suma-control.exe",
+        "windows-arm64/suma-deployer.exe",
+        "linux-amd64/suma-control",
+        "linux-amd64/suma-deployer",
+        "linux-arm64/suma-control",
+        "linux-arm64/suma-deployer",
+        "darwin-amd64/suma-control",
+        "darwin-amd64/suma-deployer",
+        "darwin-arm64/suma-control",
+        "darwin-arm64/suma-deployer"
+      ]
+    },
+    {
+      "module": {
+        "path": "golang.org/x/sync",
+        "version": "v0.10.0",
+        "sum": "h1:3NQrjDixjgGwUOCaF8w2+VYHv0Ve/vGYSbdkTa98gmQ=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-arm64/suma-control.exe",
+        "linux-amd64/suma-control",
+        "linux-arm64/suma-control",
+        "darwin-amd64/suma-control",
+        "darwin-arm64/suma-control"
+      ]
+    },
+    {
+      "module": {
+        "path": "golang.org/x/sys",
+        "version": "v0.36.0",
+        "sum": "h1:KVRy2GtZBrk1cBYA7MKu5bEZFxQk4NIDV6RLVcC8o0k=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-amd64/suma-deployer.exe",
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma-control.exe",
+        "windows-arm64/suma-deployer.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma-control",
+        "linux-amd64/suma-deployer",
+        "linux-amd64/suma",
+        "linux-arm64/suma-control",
+        "linux-arm64/suma-deployer",
+        "linux-arm64/suma",
+        "darwin-amd64/suma-control",
+        "darwin-amd64/suma-deployer",
+        "darwin-amd64/suma",
+        "darwin-arm64/suma-control",
+        "darwin-arm64/suma-deployer",
+        "darwin-arm64/suma"
+      ]
+    },
+    {
+      "module": {
+        "path": "golang.org/x/text",
+        "version": "v0.21.0",
+        "sum": "h1:zyQAAkrwaneQ066sspRyJaG9VNi/YJ1NfzcGB3hZ/qo=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-amd64/suma.exe",
+        "windows-arm64/suma-control.exe",
+        "windows-arm64/suma.exe",
+        "linux-amd64/suma-control",
+        "linux-arm64/suma-control",
+        "darwin-amd64/suma-control",
+        "darwin-arm64/suma-control"
+      ]
+    },
+    {
+      "module": {
+        "path": "modernc.org/libc",
+        "version": "v1.61.13",
+        "sum": "h1:3LRd6ZO1ezsFiX1y+bHd1ipyEHIJKvuprv0sLTBwLW8=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-amd64/suma-deployer.exe",
+        "windows-arm64/suma-control.exe",
+        "windows-arm64/suma-deployer.exe",
+        "linux-amd64/suma-control",
+        "linux-amd64/suma-deployer",
+        "linux-arm64/suma-control",
+        "linux-arm64/suma-deployer",
+        "darwin-amd64/suma-control",
+        "darwin-amd64/suma-deployer",
+        "darwin-arm64/suma-control",
+        "darwin-arm64/suma-deployer"
+      ]
+    },
+    {
+      "module": {
+        "path": "modernc.org/mathutil",
+        "version": "v1.7.1",
+        "sum": "h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-amd64/suma-deployer.exe",
+        "windows-arm64/suma-control.exe",
+        "windows-arm64/suma-deployer.exe",
+        "linux-amd64/suma-control",
+        "linux-amd64/suma-deployer",
+        "linux-arm64/suma-control",
+        "linux-arm64/suma-deployer",
+        "darwin-amd64/suma-control",
+        "darwin-amd64/suma-deployer",
+        "darwin-arm64/suma-control",
+        "darwin-arm64/suma-deployer"
+      ]
+    },
+    {
+      "module": {
+        "path": "modernc.org/memory",
+        "version": "v1.8.2",
+        "sum": "h1:cL9L4bcoAObu4NkxOlKWBWtNHIsnnACGF/TbqQ6sbcI=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-amd64/suma-deployer.exe",
+        "windows-arm64/suma-control.exe",
+        "windows-arm64/suma-deployer.exe",
+        "linux-amd64/suma-control",
+        "linux-amd64/suma-deployer",
+        "linux-arm64/suma-control",
+        "linux-arm64/suma-deployer",
+        "darwin-amd64/suma-control",
+        "darwin-amd64/suma-deployer",
+        "darwin-arm64/suma-control",
+        "darwin-arm64/suma-deployer"
+      ]
+    },
+    {
+      "module": {
+        "path": "modernc.org/sqlite",
+        "version": "v1.36.3",
+        "sum": "h1:qYMYlFR+rtLDUzuXoST1SDIdEPbX8xzuhdF90WsX1ss=",
+        "replace": null
+      },
+      "targets": [
+        "windows-amd64",
+        "windows-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "darwin-amd64",
+        "darwin-arm64"
+      ],
+      "binaries": [
+        "windows-amd64/suma-control.exe",
+        "windows-amd64/suma-deployer.exe",
+        "windows-arm64/suma-control.exe",
+        "windows-arm64/suma-deployer.exe",
+        "linux-amd64/suma-control",
+        "linux-amd64/suma-deployer",
+        "linux-arm64/suma-control",
+        "linux-arm64/suma-deployer",
+        "darwin-amd64/suma-control",
+        "darwin-amd64/suma-deployer",
+        "darwin-arm64/suma-control",
+        "darwin-arm64/suma-deployer"
+      ]
+    }
+  ],
+  "error": null,
+  "build_script_sha256": "66256a8d1454045f6db0e68641e1f6a7b1d1ad23341d9485fe45e5e8221859d2",
+  "build_settings": {
+    "cgo_enabled": "0",
+    "goamd64": "v1",
+    "goarm64": "v8.0",
+    "trimpath": true,
+    "buildvcs": false,
+    "module_mode": "readonly",
+    "dependency_network": "off",
+    "telemetry": "off, repository-local directory"
+  },
+  "verification": "Cross-compilation and host Go build-info inspection only; not installation, launch, signing, deployment, or platform acceptance."
+}

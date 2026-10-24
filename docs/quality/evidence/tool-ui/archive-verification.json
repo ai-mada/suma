@@ -1,0 +1,273 @@
+{
+  "stage": "T-P4-004",
+  "verified_at": "2026-10-24T05:02:22.878906+00:00",
+  "scope": "Byte/hash/format/source binding of the explicitly archived UI material. No test rerun, no application source mutation, no browser or runtime acceptance by archiver.",
+  "raw_files_rechecked": 34,
+  "raw_originals_and_archive_identical": true,
+  "current_ui_sources_rechecked": 18,
+  "current_ui_sources_match_189_snapshot": true,
+  "public_evidence_files_excluding_this_receipt": 36,
+  "source_snapshot_classification": "183/185/186 historical source cuts retained unchanged;189 current18-file source cut",
+  "documentation": {
+    "path": "docs/quality/tool-ui-verification.md",
+    "bytes": 11016,
+    "sha256": "f1ca8d14e897973390e082561b60b8a109b5bb57caf85afca5f59aaddc0327b4"
+  },
+  "files": [
+    {
+      "path": "docs/quality/evidence/tool-ui/archive-map.json",
+      "bytes": 15475,
+      "sha256": "c3a7ec60c9a4b327ea964b5a589bdd8e23ab73ae3a0d4d9912ac49ff12d2b93c"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/README.md",
+      "bytes": 2741,
+      "sha256": "c30cafaedaa38cf1ced7ecab06fe891f7c6e7d2ed5603072e16d57463e54fb06"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-binding-status-green.txt",
+      "bytes": 349,
+      "sha256": "5518b19eec29832ab3fbe653ea5be45dc8c3dfe83a00a99f92692cd01e1fce25"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-binding-status-red.txt",
+      "bytes": 6638,
+      "sha256": "647c8b902ea9d986c02397a67af322f0a029712bab4634e2ea1adf5060c3fb6c"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-current-green.txt",
+      "bytes": 340,
+      "sha256": "f107aa8c07a0ee7a1bbf6dcfe06ac717688066708f9991da010383f5b2e89398"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-final-format-check.txt",
+      "bytes": 68,
+      "sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-final-format-verification.json",
+      "bytes": 976,
+      "sha256": "3e56b2c2796747ffc20e4d318440feb82213df0873c1ccbc9709389b77d29ee2"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-final-format-version.txt",
+      "bytes": 7,
+      "sha256": "fd978ad539de785561bf67ee948896f8588b79a59d86e0656c6b00b4281a57de"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-final-whitespace-check.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-inventory-reason-boundary-green.txt",
+      "bytes": 287,
+      "sha256": "8a07321346f5681dc1c4e3bf7e9af919e1ed767eb60f1df4b5c0baa7544823c0"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-inventory-reason-boundary-red.txt",
+      "bytes": 3717,
+      "sha256": "278a3da6f5cf57f66ab1009202c9e909b6db252a7e5cd95bc9ae1b1b823d532b"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-lifecycle-link-verification.json",
+      "bytes": 7108,
+      "sha256": "57987ee82d7d2db9341fcd4a7d6a64078fc9bbddb49eb4cda825e1d1cb8f563b"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-model-green.txt",
+      "bytes": 340,
+      "sha256": "7eee971d149f48c7e55b046ee6c51598b4cb0fcd80c23be64ecc2a3ee0d31317"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-prerequisite-green.txt",
+      "bytes": 340,
+      "sha256": "dd4a84741d56cb3a50941eed9357197933ecde5426c0c259113abc889fddb2be"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-reason-boundary-verification.json",
+      "bytes": 5752,
+      "sha256": "39f98fd2d8e1927cbc2628b5b6dd67630225826b2d949fe0edef4a300efae6f1"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-red.txt",
+      "bytes": 11125,
+      "sha256": "7304d72cb7ec92c513bc7d43ec4297fa85f8a0b16a4f11c5280a3c9ba3fcea12"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-requirement-link-green.txt",
+      "bytes": 288,
+      "sha256": "72d4bd08ebdda2e696236bd31878d39c8fd1dc28096b6afc99186b1d7dc82dc9"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-requirement-link-red.txt",
+      "bytes": 1877,
+      "sha256": "b44eeabe0c9c8d3771ce5504f3388679637369afedd819026d10dcdb4d90ba54"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-reserved-plan-and-link-green.txt",
+      "bytes": 390,
+      "sha256": "2e500437e3c6772d89eb94734a7182fbb2ced47d9c12d861d040a1426629c923"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-reserved-plan-red.txt",
+      "bytes": 5410,
+      "sha256": "e5856487d695dab59d06c8d9816f2cc48221603f68bdc37385b1564771596f71"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-source-verification.json",
+      "bytes": 4467,
+      "sha256": "b0ad4d6e3ce5edb21a89bf92b86f853443c02738df1ed5bdcc078960296d3960"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-task-prerequisite-red.txt",
+      "bytes": 2526,
+      "sha256": "f44c8a3c524b5a31424dd9c7323087fcf2860b4b9ee7ee71f246a0ffba189bf4"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-task-protocol-boundary-green.txt",
+      "bytes": 285,
+      "sha256": "3fb7428364f0a8654c85292cbe4d4c7eac2afcd37408207324774f82bbbfc628"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-task-protocol-boundary-red.txt",
+      "bytes": 2972,
+      "sha256": "b19a10d79463c24ef65a3766e64447e917ff2db70084eb3649664929197cd72d"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-task-protocol-verification.json",
+      "bytes": 5970,
+      "sha256": "8229028d553f1ba7d323922a4caad12f6f1c68bc5a1da1caf1d4b7a0b1a59f34"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-typecheck-final.txt",
+      "bytes": 16,
+      "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-typecheck-first.txt",
+      "bytes": 322,
+      "sha256": "3ced05f6cebe8c933e09240bd025efdfc12516f16b2952a7d1ff36d11268d422"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-typecheck-green.txt",
+      "bytes": 16,
+      "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-typecheck-lifecycle-link-final.txt",
+      "bytes": 16,
+      "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-typecheck-reason-boundary-final.txt",
+      "bytes": 16,
+      "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-typecheck-task-protocol-final.txt",
+      "bytes": 16,
+      "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-waiting-terminal-red.txt",
+      "bytes": 2576,
+      "sha256": "afe55b0943d9f6d65148baf87f1b95302407533ac82d650f01f55292826c8aa0"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-web-final.txt",
+      "bytes": 1259,
+      "sha256": "bc27d1fd68dd1ad7239ba9f507d9cfc63b6e49d6221fcd9f09aa430c701b111b"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-web-lifecycle-link-final.txt",
+      "bytes": 1258,
+      "sha256": "7a776a01d1c08d24b688f1b6573e584cb4e7af4591182d837b6b4d0d9fd19215"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-web-reason-boundary-final.txt",
+      "bytes": 1259,
+      "sha256": "426db6b5170817a584e9defbf256d67d8333d6013aa6c70941376f79f469323c"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui/ui-web-task-protocol-final.txt",
+      "bytes": 1259,
+      "sha256": "07dcad88b5d44918129593947e9a5fa74aec5b77dd7581ba70e1fe76eac3a519"
+    }
+  ],
+  "current_ui_sources": [
+    {
+      "path": "apps/web/src/App.tsx",
+      "sha256": "1b572375f9249b4911ea831e2c8a69e7d3abd2d2a1f6e725691931a68b0aed45"
+    },
+    {
+      "path": "apps/web/src/Workflow.tsx",
+      "sha256": "53279448bb23e41dc2fa3f4fbd151f65bcc03443f4ba1a325feb0a3cb4ac8e63"
+    },
+    {
+      "path": "apps/web/src/api.ts",
+      "sha256": "372be848a9914d409c46fc8a8b1544c6e2fc29b6561526f50645eec7f9986b81"
+    },
+    {
+      "path": "apps/web/src/TaskDispatch.tsx",
+      "sha256": "73e9818c74e0d51ce095595628c94e4c8d3b1d7e78c361d7b7c74b2650d67e32"
+    },
+    {
+      "path": "apps/web/src/ToolActions.tsx",
+      "sha256": "34eafd734cb9a98d5b3d6f21cfcbd96230101b140a126bc4f38980d2235c632e"
+    },
+    {
+      "path": "apps/web/src/ToolFacts-consumers.test.tsx",
+      "sha256": "5b5164942d314bc1aabbfde36b9ff12f996feddd4d48b871e9e76cae414d0536"
+    },
+    {
+      "path": "apps/web/src/ToolFacts.tsx",
+      "sha256": "457493331e971bee0048ec50865855f7ea3d7ae49a6e3df39afb7de2a125b5e0"
+    },
+    {
+      "path": "apps/web/src/ToolNodeFields.tsx",
+      "sha256": "5b8c6cbdaf948a9ea73d5aa187cfb5247260d14640ea6883c4a3427b4f560fa1"
+    },
+    {
+      "path": "apps/web/src/ToolWorkspace.tsx",
+      "sha256": "06631e13023802deffbeccb26a928ffaa1c044504099d175344e6a8ba97d0b17"
+    },
+    {
+      "path": "apps/web/src/tool-hooks.ts",
+      "sha256": "23ac62807761fb7185f24375ca1c779c41efd4671f46405e20d8a19e4f98659b"
+    },
+    {
+      "path": "apps/web/src/tool-model.test.ts",
+      "sha256": "c13358a729e96dd0916f71abf1373b832ad629996317567ea2ca7c5392a2050a"
+    },
+    {
+      "path": "apps/web/src/tool-model.ts",
+      "sha256": "845eaffda6470ed9dc28c7ac7dc74a5f040a8045b7c9cf1d365cb4611077eae2"
+    },
+    {
+      "path": "apps/web/src/tool-write.ts",
+      "sha256": "b874bc1dca31055768d81d4e74d3d337d0b96532486694f40ec5559c7ff6f252"
+    },
+    {
+      "path": "apps/web/src/tool.css",
+      "sha256": "1a08940f23879457de3b75aa4f9ce3582adff6b43e7a29e8a995ba09140748a9"
+    },
+    {
+      "path": "apps/web/src/ToolBindingStatus.tsx",
+      "sha256": "9c1b493fd42000e4f8fe4454243f1214f6ea9e6b00f46447026a09b48c0018cc"
+    },
+    {
+      "path": "apps/web/src/ToolBindingStatus-consumers.test.tsx",
+      "sha256": "024c783449afc5c2795679ffb44480315bf3719e35ead59087e320f0138b9aa9"
+    },
+    {
+      "path": "apps/web/src/RecordLineage.tsx",
+      "sha256": "0e2c979d0f31ba6e213ea470ca4245e2b67ea18dbdadf083db6f728de1f8a61d"
+    },
+    {
+      "path": "apps/web/src/record-lineage.test.tsx",
+      "sha256": "ac394160cb3196be827d74102946d8c229a8bf5c71910e0ec8b29f66aa68e4c5"
+    }
+  ],
+  "self_excluded": true
+}

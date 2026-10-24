@@ -38,7 +38,9 @@ Runner 的本机命令目录可以显式加入外部工具。以下 Codex 规范
 
 agent 节点填写 `command:["codex-inspect"]` 与 `config.goal`，Runner 从 stdin 传入目标，不通过 shell 拼接目标。CLI 自己使用本机已有认证；Suma 不读取、迁移或记录外部 CLI 的登录文件。请为生产 Runner 建立独立用户与工作区，确定其已有认证和插件权限。
 
-JSONL 输出目前作为有界、脱敏的节点输出保存，没有将外部 CLI 的事件假定为 Suma 的执行状态。进程退出码决定 Runner 成功/失败；真实任务的业务验收仍需测试证据和评审。Codex worktree、会话恢复、OpenCode/Hermes/dsh 远程会话和第三方 MCP 工具属于后续适配范围，不宣称已经互通。
+T-P4-004增加显式adapter/protocol与本机 `--describe-tools`、固定配置／可执行摘要、worker绑定库存及command级能力匹配。上述Codex规范需要增加 `"adapter":"codex","protocol":"codex-jsonl-v1"` 才进入结构化模式；默认command/text-v1保留普通文本语义。Suma原生内核使用 `suma/suma-jsonl-v1` 和独立 `SUMA_AGENT_TOKEN`，Runner token不能用于项目工具。
+
+已实现Codex与Suma stdout JSONL的受限事件选择、会话来源、usage与整体终态证据，stderr独立有界脱敏；成功同时要求进程退出0及一致成功终态，模型文本不决定DAG／业务／测试／验收状态。非只读命令使用逐attempt独立工作树，后继测试仍使用调度器固定候选。会话ID只读，不自动resume；远端会话恢复、OpenCode/Hermes/dsh完整执行协议及第三方MCP工具仍待后续适配与真实验收。OpenCode当前profile明确不可用，研究版本CLI的step_finish不能证明整体运行结束。详细边界见[运行时合同与探测](../agents/tool-execution-runtime.md)。
 
 ## 外部工作流 HTTP 桥接
 

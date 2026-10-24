@@ -1,0 +1,2310 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-004",
+  "observed_at_database_utc": "2026-10-24T05:04:58.583Z",
+  "collection": {
+    "read_only": true,
+    "sqlite_open_mode": "ro",
+    "query_only": true,
+    "consistent_read_transaction": true,
+    "database_archived": false,
+    "scope": "Only this independent fixture project; persisted facts do not prove browser clicks or vendor/model execution.",
+    "collector_path": ".cache/e2e/tool-stage/collect-final-tool-evidence.py",
+    "collector_sha256": "5176d546f1973f46795a64d37665f385e6dc9c8773085ee41a3b5b30249a3337",
+    "excluded": [
+      "all auth/session/user/password/token/key tables and columns",
+      "runner command/env config",
+      "process command lines",
+      "goal/prompt raw bytes",
+      "raw stdout/stderr",
+      "unknown arbitrary JSON fields"
+    ],
+    "retained_text": "Bounded redacted business text and schema-allowlisted public fixture messages; original selected JSON only via SHA/size.",
+    "redaction_counts": {}
+  },
+  "project": {
+    "id": "00b793dfdfd9accf98481438992d8ce3",
+    "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+    "version": 1,
+    "title": "工具派发实测",
+    "status": "active",
+    "created_at": "2026-10-24T04:34:40.5073481Z",
+    "updated_at": "2026-10-24T04:34:40.5073481Z"
+  },
+  "tool_profiles": [
+    {
+      "id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "worker_id": "tool-stage-worker",
+      "name": "订单开发执行器（协议夹具）",
+      "version": 3,
+      "state": "paused",
+      "enabled_by": "eceba36551846e21245d343b07a0f62c",
+      "created_at": "2026-10-24T04:40:31Z",
+      "updated_at": "2026-10-24T05:02:36Z",
+      "profile": {
+        "command_id": "task-agent",
+        "adapter": "suma",
+        "protocol": "suma-jsonl-v1",
+        "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+        "executable_sha256": "c5ff4c736112dd483c750fd4149d30c8a116db1a49b8b3ec88be4b65e6c86c19",
+        "tool_version": "suma-agent-runtime fixture-transport-only",
+        "read_only": false
+      },
+      "stored_profile_receipt": {
+        "sha256": "1e7d1146039d99351e02b1493885e8493e74aca63fb2d821549ab585c95af28c",
+        "size_bytes": 319
+      }
+    }
+  ],
+  "tool_inventories": [
+    {
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "worker_id": "tool-stage-worker",
+      "observed_at": "2026-10-24T05:04:41Z",
+      "items": [
+        {
+          "profile": {
+            "command_id": "task-agent",
+            "adapter": "suma",
+            "protocol": "suma-jsonl-v1",
+            "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+            "executable_sha256": "c5ff4c736112dd483c750fd4149d30c8a116db1a49b8b3ec88be4b65e6c86c19",
+            "tool_version": "suma-agent-runtime fixture-transport-only",
+            "read_only": false
+          },
+          "available": true,
+          "reason": "installed executable and protocol probe; model authentication and task success unverified"
+        },
+        {
+          "profile": {
+            "command_id": "task-quality",
+            "adapter": "command",
+            "protocol": "text-v1",
+            "profile_sha256": "ce2919631e0be1348fae9c3a12c89a17fcbf5f0aec939c14f93904473eaf10e6",
+            "executable_sha256": "d87063e5597f257004c731b66c59c56c91038861c6877b1a3dca6b8c4e919125",
+            "tool_version": "local-command",
+            "read_only": false
+          },
+          "available": true,
+          "reason": "installed executable and protocol probe; model authentication and task success unverified"
+        }
+      ],
+      "stored_items_receipt": {
+        "sha256": "41010e69f1991a1410a3b7a1f5a80942318997c9709e8bc1088bdfaedd50ee2e",
+        "size_bytes": 872
+      }
+    }
+  ],
+  "registered_workers_without_credentials": [
+    {
+      "id": "0a2a506b82f5d97a0b150f957e6e5744",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "worker_id": "tool-stage-worker",
+      "version": 1,
+      "status": "active",
+      "deployment": 0,
+      "created_by": "eceba36551846e21245d343b07a0f62c",
+      "created_at": "2026-10-24T04:34:40.5400964Z",
+      "expires_at": "2026-10-25T04:34:40.5400964Z",
+      "profiles": []
+    }
+  ],
+  "task_dispatch_plans": [
+    {
+      "id": "b99862a20a5adeac36882a8eb723487d",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "version": 1,
+      "state": "ready",
+      "task_id": "3418219185fe4c3311eceff6b853bed2",
+      "task_version": 1,
+      "requirement_id": "3eea0043bb9560a1fb915011668f827f",
+      "requirement_version": 1,
+      "workflow_id": "tool-task-candidate",
+      "workflow_version": 1,
+      "agent_node_id": "develop",
+      "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+      "tool_profile_version": 2,
+      "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "created_at": "2026-10-24T04:49:24Z",
+      "expires_at": "2026-10-24T05:19:24Z",
+      "valid": true,
+      "reason": "",
+      "context": {
+        "task": {
+          "id": "3418219185fe4c3311eceff6b853bed2",
+          "version": 1,
+          "title": "实现订单访问权限（本机协议夹具）",
+          "description": "[fixture-success] 在独立测试仓库实现 can_view_order：只有 actor_project 与 order_project 相同且 is_member 为 True 时允许访问。工具必须读取本次固定任务与需求依据，在隔离工作树提交实际 app.py 变更。该执行器是确定性协议夹具，不代表模型编码能力。",
+          "acceptance_criteria": [
+            "同项目成员可以查看订单",
+            "跨项目或非成员访问被拒绝",
+            "固定候选独立测试通过并由人员验收"
+          ]
+        },
+        "requirement": {
+          "id": "3eea0043bb9560a1fb915011668f827f",
+          "version": 1,
+          "title": "订单访问权限与固定任务执行",
+          "description": "在本机独立测试仓库中落实订单权限：只有同项目且具备成员身份的访问者可查看订单。保留固定任务输入、隔离开发、独立测试和人工验收证据。本需求使用明确标注的协议夹具，不代表真实模型编码效果。",
+          "acceptance_criteria": [
+            "同项目成员可以查看订单",
+            "跨项目或非成员访问被拒绝",
+            "固定候选独立测试通过并由人员验收"
+          ]
+        }
+      },
+      "workflow": {
+        "id": "tool-task-candidate",
+        "version": 1,
+        "name": "任务派发 · 实现订单访问权限（本机协议夹具）",
+        "nodes": [
+          {
+            "id": "develop",
+            "name": "固定任务开发",
+            "type": "agent",
+            "command": [
+              "task-agent"
+            ],
+            "depends_on": null,
+            "idempotent": false,
+            "join": "all_success",
+            "max_retries": 0,
+            "quorum": 0,
+            "timeout_seconds": 90,
+            "config": {
+              "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+              "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+              "goal_receipt": {
+                "sha256": "f8c792238ef3e05a764be2a10e738ebe7666c633ad0ea157721a2fe298f6d367",
+                "size_bytes": 1758
+              }
+            }
+          },
+          {
+            "id": "quality",
+            "name": "独立候选权限测试",
+            "type": "test",
+            "command": [
+              "task-quality"
+            ],
+            "depends_on": [
+              "develop"
+            ],
+            "idempotent": true,
+            "join": "all_success",
+            "max_retries": 0,
+            "quorum": 0,
+            "timeout_seconds": 60,
+            "config": {
+              "candidate_from": "develop"
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "develop",
+            "to": "quality"
+          }
+        ]
+      },
+      "stored_row": {
+        "id": "b99862a20a5adeac36882a8eb723487d",
+        "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+        "project_id": "00b793dfdfd9accf98481438992d8ce3",
+        "run_id": "10158abedf0d680f439ca0f2fac2d434",
+        "version": 2,
+        "state": "started",
+        "created_by": "eceba36551846e21245d343b07a0f62c",
+        "created_at": "2026-10-24T04:49:24Z",
+        "expires_at": "2026-10-24T05:19:24Z"
+      },
+      "stored_payload_receipt": {
+        "sha256": "2a506656464690ec293d88bb568c46fa4d395ef5db3dfc6e60f1ad4676ce6d92",
+        "size_bytes": 4453
+      }
+    },
+    {
+      "id": "ac3f1d55f02a436382587025e698fd87",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "version": 1,
+      "state": "ready",
+      "task_id": "a5af1760060fb7b491e213cfb9bd96dd",
+      "task_version": 1,
+      "requirement_id": "3eea0043bb9560a1fb915011668f827f",
+      "requirement_version": 1,
+      "workflow_id": "tool-task-candidate",
+      "workflow_version": 1,
+      "agent_node_id": "develop",
+      "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+      "tool_profile_version": 2,
+      "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+      "run_id": "68c1e6179992238819c5bf4aaef19183",
+      "created_at": "2026-10-24T05:00:38Z",
+      "expires_at": "2026-10-24T05:30:38Z",
+      "valid": true,
+      "reason": "",
+      "context": {
+        "task": {
+          "id": "a5af1760060fb7b491e213cfb9bd96dd",
+          "version": 1,
+          "title": "失败执行与问题回流（本机协议夹具）",
+          "description": "[fixture-fail] 使用固定任务上下文选择真实失败分支，不修改实现、不调用模型。验证失败事实、正式问题及去重需求回流，不能把进程失败标成开发完成。",
+          "acceptance_criteria": [
+            "实际进程失败且正式运行保持失败",
+            "同一失败只生成一个正式问题",
+            "重复回流只产生一个关联需求"
+          ]
+        },
+        "requirement": {
+          "id": "3eea0043bb9560a1fb915011668f827f",
+          "version": 1,
+          "title": "订单访问权限与固定任务执行",
+          "description": "在本机独立测试仓库中落实订单权限：只有同项目且具备成员身份的访问者可查看订单。保留固定任务输入、隔离开发、独立测试和人工验收证据。本需求使用明确标注的协议夹具，不代表真实模型编码效果。",
+          "acceptance_criteria": [
+            "同项目成员可以查看订单",
+            "跨项目或非成员访问被拒绝",
+            "固定候选独立测试通过并由人员验收"
+          ]
+        }
+      },
+      "workflow": {
+        "id": "tool-task-candidate",
+        "version": 1,
+        "name": "任务派发 · 失败执行与问题回流（本机协议夹具）",
+        "nodes": [
+          {
+            "id": "develop",
+            "name": "固定任务开发",
+            "type": "agent",
+            "command": [
+              "task-agent"
+            ],
+            "depends_on": null,
+            "idempotent": false,
+            "join": "all_success",
+            "max_retries": 0,
+            "quorum": 0,
+            "timeout_seconds": 90,
+            "config": {
+              "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+              "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+              "goal_receipt": {
+                "sha256": "edf017494b204f0d2106ee957c061b278b7746e5e73e1c93e5c30544e73f7b09",
+                "size_bytes": 1652
+              }
+            }
+          },
+          {
+            "id": "quality",
+            "name": "独立候选权限测试",
+            "type": "test",
+            "command": [
+              "task-quality"
+            ],
+            "depends_on": [
+              "develop"
+            ],
+            "idempotent": true,
+            "join": "all_success",
+            "max_retries": 0,
+            "quorum": 0,
+            "timeout_seconds": 60,
+            "config": {
+              "candidate_from": "develop"
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "develop",
+            "to": "quality"
+          }
+        ]
+      },
+      "stored_row": {
+        "id": "ac3f1d55f02a436382587025e698fd87",
+        "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+        "project_id": "00b793dfdfd9accf98481438992d8ce3",
+        "run_id": "68c1e6179992238819c5bf4aaef19183",
+        "version": 2,
+        "state": "started",
+        "created_by": "eceba36551846e21245d343b07a0f62c",
+        "created_at": "2026-10-24T05:00:38Z",
+        "expires_at": "2026-10-24T05:30:38Z"
+      },
+      "stored_payload_receipt": {
+        "sha256": "4076b55cffe8d0150fd6f53dd9f4bd51664f33db3a322c0b6cd60bc2443d7a6f",
+        "size_bytes": 4244
+      }
+    },
+    {
+      "id": "b2617b9dad1102043b5b31435ae91ca7",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "version": 1,
+      "state": "ready",
+      "task_id": "01a78009746b83f105cd28d63a286800",
+      "task_version": 1,
+      "requirement_id": "3eea0043bb9560a1fb915011668f827f",
+      "requirement_version": 1,
+      "workflow_id": "tool-task-candidate",
+      "workflow_version": 1,
+      "agent_node_id": "develop",
+      "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+      "tool_profile_version": 2,
+      "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "created_at": "2026-10-24T05:01:46Z",
+      "expires_at": "2026-10-24T05:31:46Z",
+      "valid": true,
+      "reason": "",
+      "context": {
+        "task": {
+          "id": "01a78009746b83f105cd28d63a286800",
+          "version": 1,
+          "title": "确认停止与回执核对（本机协议夹具）",
+          "description": "[fixture-success] [fixture-stop] 使用实际受控进程等待，由人员取消后核对进程树已停止。此场景只验证取消回执，不写入实现、不调用模型，也不能表示任务已验收。",
+          "acceptance_criteria": [
+            "取消请求与实际停止分别记录",
+            "实际进程停止后运行终结为取消",
+            "协议未知不得冒充成功"
+          ]
+        },
+        "requirement": {
+          "id": "3eea0043bb9560a1fb915011668f827f",
+          "version": 1,
+          "title": "订单访问权限与固定任务执行",
+          "description": "在本机独立测试仓库中落实订单权限：只有同项目且具备成员身份的访问者可查看订单。保留固定任务输入、隔离开发、独立测试和人工验收证据。本需求使用明确标注的协议夹具，不代表真实模型编码效果。",
+          "acceptance_criteria": [
+            "同项目成员可以查看订单",
+            "跨项目或非成员访问被拒绝",
+            "固定候选独立测试通过并由人员验收"
+          ]
+        }
+      },
+      "workflow": {
+        "id": "tool-task-candidate",
+        "version": 1,
+        "name": "任务派发 · 确认停止与回执核对（本机协议夹具）",
+        "nodes": [
+          {
+            "id": "develop",
+            "name": "固定任务开发",
+            "type": "agent",
+            "command": [
+              "task-agent"
+            ],
+            "depends_on": null,
+            "idempotent": false,
+            "join": "all_success",
+            "max_retries": 0,
+            "quorum": 0,
+            "timeout_seconds": 90,
+            "config": {
+              "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+              "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+              "goal_receipt": {
+                "sha256": "653c9046eb27a2d67e8ea95aff40a7f1a89c49b581aed2b3a45bf5334a9fcd17",
+                "size_bytes": 1649
+              }
+            }
+          },
+          {
+            "id": "quality",
+            "name": "独立候选权限测试",
+            "type": "test",
+            "command": [
+              "task-quality"
+            ],
+            "depends_on": [
+              "develop"
+            ],
+            "idempotent": true,
+            "join": "all_success",
+            "max_retries": 0,
+            "quorum": 0,
+            "timeout_seconds": 60,
+            "config": {
+              "candidate_from": "develop"
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "develop",
+            "to": "quality"
+          }
+        ]
+      },
+      "stored_row": {
+        "id": "b2617b9dad1102043b5b31435ae91ca7",
+        "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+        "project_id": "00b793dfdfd9accf98481438992d8ce3",
+        "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+        "version": 2,
+        "state": "started",
+        "created_by": "eceba36551846e21245d343b07a0f62c",
+        "created_at": "2026-10-24T05:01:46Z",
+        "expires_at": "2026-10-24T05:31:46Z"
+      },
+      "stored_payload_receipt": {
+        "sha256": "5b5a3c65da1d2f5d6926b34ef3f9f16380fd7a63669a2b46320427cfe1ddba5d",
+        "size_bytes": 4238
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "id": "01a78009746b83f105cd28d63a286800",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "version": 2,
+      "title": "确认停止与回执核对（本机协议夹具）",
+      "description": "[fixture-success] [fixture-stop] 使用实际受控进程等待，由人员取消后核对进程树已停止。此场景只验证取消回执，不写入实现、不调用模型，也不能表示任务已验收。",
+      "status": "in_progress",
+      "priority": "medium",
+      "owner_id": "",
+      "requirement_id": "3eea0043bb9560a1fb915011668f827f",
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "kind": "",
+      "created_at": "2026-10-24T04:38:45.3981811Z",
+      "updated_at": "2026-10-24T05:01:48.8924862Z",
+      "depends_on": [],
+      "acceptance_criteria": [
+        "取消请求与实际停止分别记录",
+        "实际进程停止后运行终结为取消",
+        "协议未知不得冒充成功"
+      ],
+      "data": {
+        "requirement_version": 1,
+        "run_task_basis": "22b0f59095528883c41f0eab3c5eba514c477d43463e5007b97d2e241ced4936",
+        "dependency_basis": {}
+      },
+      "stored_data_receipt": {
+        "sha256": "13fe8ac9734e9a941e908b4b4e49bf764a76b7df7d882f4f5ec8c0c188fa351b",
+        "size_bytes": 131
+      }
+    },
+    {
+      "id": "3418219185fe4c3311eceff6b853bed2",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "version": 3,
+      "title": "实现订单访问权限（本机协议夹具）",
+      "description": "[fixture-success] 在独立测试仓库实现 can_view_order：只有 actor_project 与 order_project 相同且 is_member 为 True 时允许访问。工具必须读取本次固定任务与需求依据，在隔离工作树提交实际 app.py 变更。该执行器是确定性协议夹具，不代表模型编码能力。",
+      "status": "accepted",
+      "priority": "medium",
+      "owner_id": "",
+      "requirement_id": "3eea0043bb9560a1fb915011668f827f",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "kind": "",
+      "created_at": "2026-10-24T04:38:45.3981811Z",
+      "updated_at": "2026-10-24T05:00:25.7155379Z",
+      "depends_on": [],
+      "acceptance_criteria": [
+        "同项目成员可以查看订单",
+        "跨项目或非成员访问被拒绝",
+        "固定候选独立测试通过并由人员验收"
+      ],
+      "data": {
+        "requirement_version": 1,
+        "run_task_basis": "0c9508d7f479096c24037a6adc2a27753a9b2311dbf5a1a12676a1db01f7fb31",
+        "verified_run_id": "10158abedf0d680f439ca0f2fac2d434",
+        "dependency_basis": {}
+      },
+      "stored_data_receipt": {
+        "sha256": "b34b7f3d9cb1257d58bee15149b5f7bec62e4fe1082c3570c46b26ced94a5c16",
+        "size_bytes": 184
+      }
+    },
+    {
+      "id": "a5af1760060fb7b491e213cfb9bd96dd",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "version": 2,
+      "title": "失败执行与问题回流（本机协议夹具）",
+      "description": "[fixture-fail] 使用固定任务上下文选择真实失败分支，不修改实现、不调用模型。验证失败事实、正式问题及去重需求回流，不能把进程失败标成开发完成。",
+      "status": "in_progress",
+      "priority": "medium",
+      "owner_id": "",
+      "requirement_id": "3eea0043bb9560a1fb915011668f827f",
+      "run_id": "68c1e6179992238819c5bf4aaef19183",
+      "kind": "",
+      "created_at": "2026-10-24T04:38:45.3981811Z",
+      "updated_at": "2026-10-24T05:00:44.2275084Z",
+      "depends_on": [],
+      "acceptance_criteria": [
+        "实际进程失败且正式运行保持失败",
+        "同一失败只生成一个正式问题",
+        "重复回流只产生一个关联需求"
+      ],
+      "data": {
+        "requirement_version": 1,
+        "run_task_basis": "ce4f8b6c138f595c6715bebbbd32ad827a199fe20432ea5ce7cd059e8b754829",
+        "dependency_basis": {}
+      },
+      "stored_data_receipt": {
+        "sha256": "05a5cbef8d0b30db56f98a3575b381ec0d3297a5e04ff0b60237fd9911b9c3bb",
+        "size_bytes": 131
+      }
+    }
+  ],
+  "requirements": [
+    {
+      "id": "3eea0043bb9560a1fb915011668f827f",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "version": 1,
+      "title": "订单访问权限与固定任务执行",
+      "description": "在本机独立测试仓库中落实订单权限：只有同项目且具备成员身份的访问者可查看订单。保留固定任务输入、隔离开发、独立测试和人工验收证据。本需求使用明确标注的协议夹具，不代表真实模型编码效果。",
+      "status": "draft",
+      "priority": "medium",
+      "owner_id": "",
+      "requirement_id": "",
+      "run_id": "",
+      "kind": "",
+      "created_at": "2026-10-24T04:37:19.1039405Z",
+      "updated_at": "2026-10-24T04:37:19.1039405Z",
+      "depends_on": [],
+      "acceptance_criteria": [
+        "同项目成员可以查看订单",
+        "跨项目或非成员访问被拒绝",
+        "固定候选独立测试通过并由人员验收"
+      ],
+      "data": {},
+      "stored_data_receipt": {
+        "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "size_bytes": 2
+      }
+    },
+    {
+      "id": "f5fefa67395e77f71d6f1941795e76d2",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "version": 1,
+      "title": "执行失败：任务派发 · 失败执行与问题回流（本机协议夹具）",
+      "description": "运行 68c1e6179992238819c5bf4aaef19183 失败，请查看节点证据并分诊。",
+      "status": "draft",
+      "priority": "high",
+      "owner_id": "",
+      "requirement_id": "",
+      "run_id": "",
+      "kind": "",
+      "created_at": "2026-10-24T05:01:18.9235747Z",
+      "updated_at": "2026-10-24T05:01:18.9235747Z",
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "data": {
+        "source_issue_id": "76e136e48e633dbf4d8ad2581bba7b9b",
+        "source": {
+          "origin": "execution",
+          "run_id": "68c1e6179992238819c5bf4aaef19183"
+        }
+      },
+      "stored_data_receipt": {
+        "sha256": "563fb8d7073f3bc4f437e22db03d99d1bcec6bd7b345da2ab4cf31ab255f16c4",
+        "size_bytes": 130
+      }
+    }
+  ],
+  "issues": [
+    {
+      "id": "76e136e48e633dbf4d8ad2581bba7b9b",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "version": 1,
+      "title": "执行失败：任务派发 · 失败执行与问题回流（本机协议夹具）",
+      "description": "运行 68c1e6179992238819c5bf4aaef19183 失败，请查看节点证据并分诊。",
+      "status": "open",
+      "priority": "high",
+      "owner_id": "",
+      "requirement_id": "",
+      "run_id": "",
+      "kind": "",
+      "created_at": "2026-10-24T05:00:47.5897687Z",
+      "updated_at": "2026-10-24T05:00:47.5897687Z",
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "data": {
+        "run_id": "68c1e6179992238819c5bf4aaef19183",
+        "origin": "execution"
+      },
+      "stored_data_receipt": {
+        "sha256": "c22984aa95df9a1be455d6d68545d9009f39f65d38654b8df95f8071176234f8",
+        "size_bytes": 66
+      }
+    }
+  ],
+  "reviews": [
+    {
+      "id": "235d3ca08f6f8136dead4db7c3f1b329",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "task_id": "3418219185fe4c3311eceff6b853bed2",
+      "task_version": 2,
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "reviewer_id": "eceba36551846e21245d343b07a0f62c",
+      "decision": "accepted",
+      "reason": "仅验收本机协议夹具范围：固定任务与需求 v1 已交给独立工作树；候选 c31c01956f3098f3b5c07b2c94ceaaac3b388dfe 的 app.py 实际实现项目/成员判断，独立 quality 节点真实运行 2 个 unittest 均通过。原始检出仍为基准，未合并；不代表真实模型或生产验收。",
+      "created_at": "2026-10-24T05:00:25.7155379Z"
+    }
+  ],
+  "runs": [
+    {
+      "id": "10158abedf0d680f439ca0f2fac2d434",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "workflow_id": "managed-10158abedf0d680f439ca0f2fac2d434",
+      "workflow_version": 1,
+      "workflow_name": "任务派发 · 实现订单访问权限（本机协议夹具）",
+      "version": 5,
+      "state": "succeeded",
+      "created_at": "2026-10-24T04:59:20Z",
+      "updated_at": "2026-10-24T04:59:26Z",
+      "workflow_definition": {
+        "id": "managed-10158abedf0d680f439ca0f2fac2d434",
+        "version": 1,
+        "name": "任务派发 · 实现订单访问权限（本机协议夹具）",
+        "nodes": [
+          {
+            "id": "develop",
+            "name": "固定任务开发",
+            "type": "agent",
+            "command": [
+              "task-agent"
+            ],
+            "depends_on": null,
+            "idempotent": false,
+            "join": "all_success",
+            "max_retries": 0,
+            "quorum": 0,
+            "timeout_seconds": 90,
+            "config": {
+              "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+              "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+              "goal_receipt": {
+                "sha256": "f8c792238ef3e05a764be2a10e738ebe7666c633ad0ea157721a2fe298f6d367",
+                "size_bytes": 1758
+              }
+            }
+          },
+          {
+            "id": "quality",
+            "name": "独立候选权限测试",
+            "type": "test",
+            "command": [
+              "task-quality"
+            ],
+            "depends_on": [
+              "develop"
+            ],
+            "idempotent": true,
+            "join": "all_success",
+            "max_retries": 0,
+            "quorum": 0,
+            "timeout_seconds": 60,
+            "config": {
+              "candidate_from": "develop"
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "develop",
+            "to": "quality"
+          }
+        ]
+      },
+      "stored_workflow_receipt": {
+        "sha256": "4adb3b33bbdec558e507187e5ddd63840816a21cae5c1d2ccaa19834b15e32aa",
+        "size_bytes": 2637
+      }
+    },
+    {
+      "id": "68c1e6179992238819c5bf4aaef19183",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "workflow_id": "managed-68c1e6179992238819c5bf4aaef19183",
+      "workflow_version": 1,
+      "workflow_name": "任务派发 · 失败执行与问题回流（本机协议夹具）",
+      "version": 3,
+      "state": "failed",
+      "created_at": "2026-10-24T05:00:44Z",
+      "updated_at": "2026-10-24T05:00:47Z",
+      "workflow_definition": {
+        "id": "managed-68c1e6179992238819c5bf4aaef19183",
+        "version": 1,
+        "name": "任务派发 · 失败执行与问题回流（本机协议夹具）",
+        "nodes": [
+          {
+            "id": "develop",
+            "name": "固定任务开发",
+            "type": "agent",
+            "command": [
+              "task-agent"
+            ],
+            "depends_on": null,
+            "idempotent": false,
+            "join": "all_success",
+            "max_retries": 0,
+            "quorum": 0,
+            "timeout_seconds": 90,
+            "config": {
+              "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+              "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+              "goal_receipt": {
+                "sha256": "edf017494b204f0d2106ee957c061b278b7746e5e73e1c93e5c30544e73f7b09",
+                "size_bytes": 1652
+              }
+            }
+          },
+          {
+            "id": "quality",
+            "name": "独立候选权限测试",
+            "type": "test",
+            "command": [
+              "task-quality"
+            ],
+            "depends_on": [
+              "develop"
+            ],
+            "idempotent": true,
+            "join": "all_success",
+            "max_retries": 0,
+            "quorum": 0,
+            "timeout_seconds": 60,
+            "config": {
+              "candidate_from": "develop"
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "develop",
+            "to": "quality"
+          }
+        ]
+      },
+      "stored_workflow_receipt": {
+        "sha256": "5c0fd63ec345f996e60d8bfbc8796cf2e172a852d31f05bcfc6a47f477b13e0f",
+        "size_bytes": 2534
+      }
+    },
+    {
+      "id": "230cfddc70b539f9b5b212ad675b9d05",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "workflow_id": "managed-230cfddc70b539f9b5b212ad675b9d05",
+      "workflow_version": 1,
+      "workflow_name": "任务派发 · 确认停止与回执核对（本机协议夹具）",
+      "version": 4,
+      "state": "cancelled",
+      "created_at": "2026-10-24T05:01:48Z",
+      "updated_at": "2026-10-24T05:02:00Z",
+      "workflow_definition": {
+        "id": "managed-230cfddc70b539f9b5b212ad675b9d05",
+        "version": 1,
+        "name": "任务派发 · 确认停止与回执核对（本机协议夹具）",
+        "nodes": [
+          {
+            "id": "develop",
+            "name": "固定任务开发",
+            "type": "agent",
+            "command": [
+              "task-agent"
+            ],
+            "depends_on": null,
+            "idempotent": false,
+            "join": "all_success",
+            "max_retries": 0,
+            "quorum": 0,
+            "timeout_seconds": 90,
+            "config": {
+              "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+              "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+              "goal_receipt": {
+                "sha256": "653c9046eb27a2d67e8ea95aff40a7f1a89c49b581aed2b3a45bf5334a9fcd17",
+                "size_bytes": 1649
+              }
+            }
+          },
+          {
+            "id": "quality",
+            "name": "独立候选权限测试",
+            "type": "test",
+            "command": [
+              "task-quality"
+            ],
+            "depends_on": [
+              "develop"
+            ],
+            "idempotent": true,
+            "join": "all_success",
+            "max_retries": 0,
+            "quorum": 0,
+            "timeout_seconds": 60,
+            "config": {
+              "candidate_from": "develop"
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "develop",
+            "to": "quality"
+          }
+        ]
+      },
+      "stored_workflow_receipt": {
+        "sha256": "38b3d6fb9baea2d12fd0b387cda2c69b29cec1f3c04bbe0a3fe412d6e1fc5b86",
+        "size_bytes": 2531
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "id": "develop",
+      "state": "succeeded",
+      "reason": "",
+      "attempt": 1,
+      "fence": 1,
+      "worker_id": "tool-stage-worker",
+      "error_text": "",
+      "started_at": "2026-10-24T04:59:22Z",
+      "completed_at": "2026-10-24T04:59:24Z",
+      "lease_until": 0,
+      "wake_at": 0,
+      "parent_id": "",
+      "spec": {
+        "id": "develop",
+        "name": "固定任务开发",
+        "type": "agent",
+        "command": [
+          "task-agent"
+        ],
+        "depends_on": null,
+        "idempotent": false,
+        "join": "all_success",
+        "max_retries": 0,
+        "quorum": 0,
+        "timeout_seconds": 90,
+        "config": {
+          "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+          "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "goal_receipt": {
+            "sha256": "f8c792238ef3e05a764be2a10e738ebe7666c633ad0ea157721a2fe298f6d367",
+            "size_bytes": 1758
+          }
+        }
+      },
+      "stored_spec_receipt": {
+        "sha256": "397998da09a010d87aa25c73c341431d2bc00ce784059b374b4387229c578a24",
+        "size_bytes": 2205
+      },
+      "stored_output_receipt": {
+        "sha256": "76c9b739ed7787efb1289413f04d69576356a841d1d9ac5f6d3bb8b79ceea134",
+        "size_bytes": 232
+      }
+    },
+    {
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "id": "quality",
+      "state": "succeeded",
+      "reason": "",
+      "attempt": 1,
+      "fence": 1,
+      "worker_id": "tool-stage-worker",
+      "error_text": "",
+      "started_at": "2026-10-24T04:59:24Z",
+      "completed_at": "2026-10-24T04:59:26Z",
+      "lease_until": 0,
+      "wake_at": 0,
+      "parent_id": "",
+      "spec": {
+        "id": "quality",
+        "name": "独立候选权限测试",
+        "type": "test",
+        "command": [
+          "task-quality"
+        ],
+        "depends_on": [
+          "develop"
+        ],
+        "idempotent": true,
+        "join": "all_success",
+        "max_retries": 0,
+        "quorum": 0,
+        "timeout_seconds": 60,
+        "config": {
+          "candidate_from": "develop"
+        }
+      },
+      "stored_spec_receipt": {
+        "sha256": "28012665c30aa377253e1f6077bcde6a95856c9cd6f6f58639eb46c394d70e42",
+        "size_bytes": 241
+      },
+      "stored_output_receipt": {
+        "sha256": "a4ca7fdb558038cc308b1fd6de2fe627fd62e102d98eec88dab94abaea5b29b0",
+        "size_bytes": 101
+      }
+    },
+    {
+      "run_id": "68c1e6179992238819c5bf4aaef19183",
+      "id": "develop",
+      "state": "failed",
+      "reason": "external tool reported whole-run failure",
+      "attempt": 1,
+      "fence": 1,
+      "worker_id": "tool-stage-worker",
+      "error_text": "external tool reported whole-run failure",
+      "started_at": "2026-10-24T05:00:46Z",
+      "completed_at": "2026-10-24T05:00:47Z",
+      "lease_until": 0,
+      "wake_at": 0,
+      "parent_id": "",
+      "spec": {
+        "id": "develop",
+        "name": "固定任务开发",
+        "type": "agent",
+        "command": [
+          "task-agent"
+        ],
+        "depends_on": null,
+        "idempotent": false,
+        "join": "all_success",
+        "max_retries": 0,
+        "quorum": 0,
+        "timeout_seconds": 90,
+        "config": {
+          "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+          "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "goal_receipt": {
+            "sha256": "edf017494b204f0d2106ee957c061b278b7746e5e73e1c93e5c30544e73f7b09",
+            "size_bytes": 1652
+          }
+        }
+      },
+      "stored_spec_receipt": {
+        "sha256": "be8a9c68b9ac78d15667eb1ef2ae139ee0b5628096c486fe11419061f2b68c2e",
+        "size_bytes": 2099
+      },
+      "stored_output_receipt": {
+        "sha256": "00deaee253c93a9313b18fb4cd3376fd7286d5bcec4f36f50170dd7f75606f81",
+        "size_bytes": 93
+      }
+    },
+    {
+      "run_id": "68c1e6179992238819c5bf4aaef19183",
+      "id": "quality",
+      "state": "skipped",
+      "reason": "join cannot be satisfied",
+      "attempt": 0,
+      "fence": 0,
+      "worker_id": "",
+      "error_text": "",
+      "started_at": "",
+      "completed_at": "2026-10-24T05:00:47Z",
+      "lease_until": 0,
+      "wake_at": 0,
+      "parent_id": "",
+      "spec": {
+        "id": "quality",
+        "name": "独立候选权限测试",
+        "type": "test",
+        "command": [
+          "task-quality"
+        ],
+        "depends_on": [
+          "develop"
+        ],
+        "idempotent": true,
+        "join": "all_success",
+        "max_retries": 0,
+        "quorum": 0,
+        "timeout_seconds": 60,
+        "config": {
+          "candidate_from": "develop"
+        }
+      },
+      "stored_spec_receipt": {
+        "sha256": "28012665c30aa377253e1f6077bcde6a95856c9cd6f6f58639eb46c394d70e42",
+        "size_bytes": 241
+      },
+      "stored_output_receipt": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      }
+    },
+    {
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "id": "develop",
+      "state": "cancelled",
+      "reason": "context canceled",
+      "attempt": 1,
+      "fence": 1,
+      "worker_id": "tool-stage-worker",
+      "error_text": "context canceled",
+      "started_at": "2026-10-24T05:01:49Z",
+      "completed_at": "2026-10-24T05:02:00Z",
+      "lease_until": 0,
+      "wake_at": 0,
+      "parent_id": "",
+      "spec": {
+        "id": "develop",
+        "name": "固定任务开发",
+        "type": "agent",
+        "command": [
+          "task-agent"
+        ],
+        "depends_on": null,
+        "idempotent": false,
+        "join": "all_success",
+        "max_retries": 0,
+        "quorum": 0,
+        "timeout_seconds": 90,
+        "config": {
+          "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+          "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "goal_receipt": {
+            "sha256": "653c9046eb27a2d67e8ea95aff40a7f1a89c49b581aed2b3a45bf5334a9fcd17",
+            "size_bytes": 1649
+          }
+        }
+      },
+      "stored_spec_receipt": {
+        "sha256": "a7f018f7cdd7d09de231945ca73ac0291d9bdaf603d9f5fa45c9c1dd56cf941e",
+        "size_bytes": 2096
+      },
+      "stored_output_receipt": {
+        "sha256": "e0b7714adeabbcb78290369a1328351c101c8988f3cdbb946b1aff134f2f3e30",
+        "size_bytes": 13
+      }
+    },
+    {
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "id": "quality",
+      "state": "cancelled",
+      "reason": "本机实际停止验证：仅取消本次协议夹具进程，等待Runner确认进程树停止；不得将未知协议终态标记为成功。",
+      "attempt": 0,
+      "fence": 0,
+      "worker_id": "",
+      "error_text": "",
+      "started_at": "",
+      "completed_at": "2026-10-24T05:01:55Z",
+      "lease_until": 0,
+      "wake_at": 0,
+      "parent_id": "",
+      "spec": {
+        "id": "quality",
+        "name": "独立候选权限测试",
+        "type": "test",
+        "command": [
+          "task-quality"
+        ],
+        "depends_on": [
+          "develop"
+        ],
+        "idempotent": true,
+        "join": "all_success",
+        "max_retries": 0,
+        "quorum": 0,
+        "timeout_seconds": 60,
+        "config": {
+          "candidate_from": "develop"
+        }
+      },
+      "stored_spec_receipt": {
+        "sha256": "28012665c30aa377253e1f6077bcde6a95856c9cd6f6f58639eb46c394d70e42",
+        "size_bytes": 241
+      },
+      "stored_output_receipt": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      }
+    }
+  ],
+  "attempts": [
+    {
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "develop",
+      "attempt": 1,
+      "fence": 1,
+      "worker_id": "tool-stage-worker",
+      "state": "succeeded",
+      "started_at": "2026-10-24T04:59:22Z",
+      "completed_at": "2026-10-24T04:59:24Z",
+      "result": {
+        "run_id": "10158abedf0d680f439ca0f2fac2d434",
+        "node_id": "develop",
+        "attempt": 1,
+        "fence": 1,
+        "worker_id": "tool-stage-worker",
+        "operation_id": "f8d8ee71e4f8ebc9d6aea5cf2cc810ea",
+        "exit_code": 0,
+        "error": "",
+        "outcome_unknown": false,
+        "stopped": false,
+        "workspace_evidence": {
+          "admin_base_commit": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+          "attempt_key": "f47d27f96b79ea0dfd42110c796ed24b",
+          "base_commit": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+          "captured_at": "2026-10-24T04:59:24.7362969Z",
+          "changed_paths": [
+            "app.py"
+          ],
+          "changed_paths_total": 1,
+          "changed_paths_truncated": false,
+          "clean": true,
+          "diff_sha256": "25b69e36aece108d32ddcf32b61c940d8fd8f5ce98649080748bad37c24a083c",
+          "evidence_sha256": "489926efd199a070f39cb5a015d45b4b6590a96e715e7ee7e40347585c126c94",
+          "exit_code": 0,
+          "head_commit": "c31c01956f3098f3b5c07b2c94ceaaac3b388dfe",
+          "outcome_unknown": false,
+          "state": "completed",
+          "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "test_command": false,
+          "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        },
+        "tool_evidence": {
+          "session_id": "0449b1e0d07f9dcd6a1aacdc04ea05f07a30cf86869c5293e6db56f7c0dc5d41",
+          "terminal": "completed",
+          "event_count": 4,
+          "profile": {
+            "command_id": "task-agent",
+            "adapter": "suma",
+            "protocol": "suma-jsonl-v1",
+            "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+            "executable_sha256": "c5ff4c736112dd483c750fd4149d30c8a116db1a49b8b3ec88be4b65e6c86c19",
+            "tool_version": "suma-agent-runtime fixture-transport-only",
+            "read_only": false
+          }
+        }
+      },
+      "stored_result_receipt": {
+        "sha256": "760a70717ea9540932c9c30834be118268a5bcc2e1952c9a501161450fe09269",
+        "size_bytes": 1750
+      },
+      "stored_output_receipt": {
+        "sha256": "76c9b739ed7787efb1289413f04d69576356a841d1d9ac5f6d3bb8b79ceea134",
+        "size_bytes": 232
+      }
+    },
+    {
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "quality",
+      "attempt": 1,
+      "fence": 1,
+      "worker_id": "tool-stage-worker",
+      "state": "succeeded",
+      "started_at": "2026-10-24T04:59:24Z",
+      "completed_at": "2026-10-24T04:59:26Z",
+      "result": {
+        "run_id": "10158abedf0d680f439ca0f2fac2d434",
+        "node_id": "quality",
+        "attempt": 1,
+        "fence": 1,
+        "worker_id": "tool-stage-worker",
+        "operation_id": "6c66cc630bda9efdaa3527abcb55d92a",
+        "exit_code": 0,
+        "error": "",
+        "outcome_unknown": false,
+        "stopped": false,
+        "workspace_evidence": {
+          "admin_base_commit": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+          "attempt_key": "16a81281200f44019b5ec5f1de423164",
+          "base_commit": "c31c01956f3098f3b5c07b2c94ceaaac3b388dfe",
+          "captured_at": "2026-10-24T04:59:26.0503648Z",
+          "changed_paths": [],
+          "changed_paths_total": 0,
+          "changed_paths_truncated": false,
+          "clean": true,
+          "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "evidence_sha256": "1d26889dca9d5fd73c677590759c44cf7a1bbbfed95193290956de06b92b4ba5",
+          "exit_code": 0,
+          "head_commit": "c31c01956f3098f3b5c07b2c94ceaaac3b388dfe",
+          "outcome_unknown": false,
+          "state": "completed",
+          "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "test_command": true,
+          "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "candidate_attempt": 1,
+          "candidate_evidence_sha256": "489926efd199a070f39cb5a015d45b4b6590a96e715e7ee7e40347585c126c94",
+          "candidate_fence": 1,
+          "candidate_from": "develop"
+        }
+      },
+      "stored_result_receipt": {
+        "sha256": "cd76ebb2fbcc6a4d235c81a91f3703ab46537f4e413f94c42f411a410d946f98",
+        "size_bytes": 1314
+      },
+      "stored_output_receipt": {
+        "sha256": "a4ca7fdb558038cc308b1fd6de2fe627fd62e102d98eec88dab94abaea5b29b0",
+        "size_bytes": 101
+      }
+    },
+    {
+      "run_id": "68c1e6179992238819c5bf4aaef19183",
+      "node_id": "develop",
+      "attempt": 1,
+      "fence": 1,
+      "worker_id": "tool-stage-worker",
+      "state": "failed",
+      "started_at": "2026-10-24T05:00:46Z",
+      "completed_at": "2026-10-24T05:00:47Z",
+      "result": {
+        "run_id": "68c1e6179992238819c5bf4aaef19183",
+        "node_id": "develop",
+        "attempt": 1,
+        "fence": 1,
+        "worker_id": "tool-stage-worker",
+        "operation_id": "d366c7e0929b5dcf4651ec93af0aaaf7",
+        "exit_code": 1,
+        "error": "external tool reported whole-run failure",
+        "outcome_unknown": false,
+        "stopped": false,
+        "workspace_evidence": {
+          "admin_base_commit": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+          "attempt_key": "088e863e5a7c8ed36523cc0fe5eff488",
+          "base_commit": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+          "captured_at": "2026-10-24T05:00:47.5794997Z",
+          "changed_paths": [],
+          "changed_paths_total": 0,
+          "changed_paths_truncated": false,
+          "clean": true,
+          "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "evidence_sha256": "6298030ebcfe7a2610bc7dc42574ff3f3b1073c1c32c93d83093d31ef8523ccf",
+          "exit_code": 1,
+          "head_commit": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+          "outcome_unknown": false,
+          "state": "completed",
+          "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "test_command": false,
+          "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        },
+        "tool_evidence": {
+          "session_id": "79dd7a4e25a9318b5d94de08d4b176892ed1b6e2499043d922a9c9a38a39b11b",
+          "terminal": "failed",
+          "event_count": 3,
+          "profile": {
+            "command_id": "task-agent",
+            "adapter": "suma",
+            "protocol": "suma-jsonl-v1",
+            "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+            "executable_sha256": "c5ff4c736112dd483c750fd4149d30c8a116db1a49b8b3ec88be4b65e6c86c19",
+            "tool_version": "suma-agent-runtime fixture-transport-only",
+            "read_only": false
+          }
+        }
+      },
+      "stored_result_receipt": {
+        "sha256": "7885a210a0e071deeb9da70f8bff16b851f821c12ca47ec7b0395f4e261cc290",
+        "size_bytes": 1640
+      },
+      "stored_output_receipt": {
+        "sha256": "00deaee253c93a9313b18fb4cd3376fd7286d5bcec4f36f50170dd7f75606f81",
+        "size_bytes": 93
+      }
+    },
+    {
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "node_id": "develop",
+      "attempt": 1,
+      "fence": 1,
+      "worker_id": "tool-stage-worker",
+      "state": "cancelled",
+      "started_at": "2026-10-24T05:01:49Z",
+      "completed_at": "2026-10-24T05:02:00Z",
+      "result": {
+        "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+        "node_id": "develop",
+        "attempt": 1,
+        "fence": 1,
+        "worker_id": "tool-stage-worker",
+        "operation_id": "2ca48ae749d4ca0ec0d38f28f28cd3bc",
+        "exit_code": -1,
+        "error": "context canceled",
+        "outcome_unknown": false,
+        "stopped": true,
+        "workspace_evidence": {
+          "admin_base_commit": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+          "attempt_key": "7cf2e1764b010615b4ddedf501394d7c",
+          "base_commit": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+          "captured_at": "2026-10-24T05:02:00.1871434Z",
+          "changed_paths": [],
+          "changed_paths_total": 0,
+          "changed_paths_truncated": false,
+          "clean": true,
+          "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "evidence_sha256": "6bd7eeee922b38caa11d493ee9acdb8fd86ed30f7ccb2418a585b2a7dfcd7548",
+          "exit_code": -1,
+          "head_commit": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+          "outcome_unknown": false,
+          "state": "completed",
+          "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "test_command": false,
+          "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        },
+        "tool_evidence": {
+          "session_id": "c7f24bef2c7b8443132cd72114167c4519efba1f7d75c91e3a5a9d8fc122e5c5",
+          "terminal": "unknown",
+          "event_count": 3,
+          "profile": {
+            "command_id": "task-agent",
+            "adapter": "suma",
+            "protocol": "suma-jsonl-v1",
+            "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+            "executable_sha256": "c5ff4c736112dd483c750fd4149d30c8a116db1a49b8b3ec88be4b65e6c86c19",
+            "tool_version": "suma-agent-runtime fixture-transport-only",
+            "read_only": false
+          }
+        }
+      },
+      "stored_result_receipt": {
+        "sha256": "38a48d7d17954bd1896872a7a6a08498c9d05bcadd8fad7f60266780bceff649",
+        "size_bytes": 1538
+      },
+      "stored_output_receipt": {
+        "sha256": "e0b7714adeabbcb78290369a1328351c101c8988f3cdbb946b1aff134f2f3e30",
+        "size_bytes": 13
+      }
+    }
+  ],
+  "candidate_revisions": [
+    {
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "quality",
+      "attempt": 1,
+      "commit_id": "c31c01956f3098f3b5c07b2c94ceaaac3b388dfe",
+      "source_node": "develop",
+      "source_attempt": 1,
+      "source_fence": 1,
+      "evidence_sha256": "489926efd199a070f39cb5a015d45b4b6590a96e715e7ee7e40347585c126c94"
+    }
+  ],
+  "events": [
+    {
+      "sequence": 1,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "",
+      "event_type": "run_created",
+      "at_time": "2026-10-24T04:59:20Z",
+      "data": {
+        "workflow_version": 1
+      },
+      "stored_data_receipt": {
+        "sha256": "326b66381db9767fecc9505307434d558e340f0e0a2f0503232d822b5412d82f",
+        "size_bytes": 22
+      }
+    },
+    {
+      "sequence": 2,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "develop",
+      "event_type": "node_ready",
+      "at_time": "2026-10-24T04:59:20Z",
+      "data": {
+        "attempt": 0,
+        "fence": 0,
+        "previous_state": "pending",
+        "reason": ""
+      },
+      "stored_data_receipt": {
+        "sha256": "ed090784cedc627716bd128f2662427174071e44f135e98d0d7239614e73ccba",
+        "size_bytes": 62
+      }
+    },
+    {
+      "sequence": 3,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "develop",
+      "event_type": "node_running",
+      "at_time": "2026-10-24T04:59:22Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "previous_state": "ready",
+        "reason": ""
+      },
+      "stored_data_receipt": {
+        "sha256": "9043b9373467b4eb29d526696f44971fd54fc2b1c9dafb4086a02bd65727d786",
+        "size_bytes": 60
+      }
+    },
+    {
+      "sequence": 4,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "develop",
+      "event_type": "tool_progress",
+      "at_time": "2026-10-24T04:59:23Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "39ad6715d649789893f26d2867da0c7fceb0f5652d487028add8e917d11a4012",
+        "worker_id": "tool-stage-worker",
+        "tool_event": {
+          "schema_version": 1,
+          "command_id": "task-agent",
+          "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "protocol": "suma-jsonl-v1",
+          "kind": "session_started",
+          "session_id": "0449b1e0d07f9dcd6a1aacdc04ea05f07a30cf86869c5293e6db56f7c0dc5d41"
+        }
+      },
+      "stored_data_receipt": {
+        "sha256": "8cd63384a34f606cfe87b820ec9f6a15d67871f089ff6eda447d7bdee3d29359",
+        "size_bytes": 413
+      }
+    },
+    {
+      "sequence": 5,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "develop",
+      "event_type": "tool_progress",
+      "at_time": "2026-10-24T04:59:23Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "16e3f0d34d29c446ea1887248cd363a37bd203fc4d67972cb982525bec34c873",
+        "worker_id": "tool-stage-worker",
+        "tool_event": {
+          "schema_version": 1,
+          "command_id": "task-agent",
+          "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "protocol": "suma-jsonl-v1",
+          "kind": "turn_started",
+          "session_id": "0449b1e0d07f9dcd6a1aacdc04ea05f07a30cf86869c5293e6db56f7c0dc5d41"
+        }
+      },
+      "stored_data_receipt": {
+        "sha256": "908d780bd0a310b97663446b5014730b3e1c130b30862b8112fed64ac052fd7d",
+        "size_bytes": 410
+      }
+    },
+    {
+      "sequence": 6,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "develop",
+      "event_type": "tool_progress",
+      "at_time": "2026-10-24T04:59:24Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "85b06b0bb6cdc49b12114e871cd08d56fb52b51fda8a8812ff6207cdc2442860",
+        "worker_id": "tool-stage-worker",
+        "tool_event": {
+          "schema_version": 1,
+          "command_id": "task-agent",
+          "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "protocol": "suma-jsonl-v1",
+          "kind": "message",
+          "session_id": "0449b1e0d07f9dcd6a1aacdc04ea05f07a30cf86869c5293e6db56f7c0dc5d41",
+          "message": "Deterministic fixture implemented project/member authorization and committed candidate c31c01956f3098f3b5c07b2c94ceaaac3b388dfe from frozen task 3418219185fe4c3311eceff6b853bed2 v1. This is a fixture process, not a model execution."
+        }
+      },
+      "stored_data_receipt": {
+        "sha256": "8256a16432f7d2ff312c41e865cfc298eb23604a8067587540213238a3ee4bdd",
+        "size_bytes": 649
+      }
+    },
+    {
+      "sequence": 7,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "develop",
+      "event_type": "tool_progress",
+      "at_time": "2026-10-24T04:59:24Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "0ddd3e0c8611445dfc880460ae83604446f406d417e8d833127b8592fcf89b8c",
+        "worker_id": "tool-stage-worker",
+        "tool_event": {
+          "schema_version": 1,
+          "command_id": "task-agent",
+          "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "protocol": "suma-jsonl-v1",
+          "kind": "turn_completed",
+          "session_id": "0449b1e0d07f9dcd6a1aacdc04ea05f07a30cf86869c5293e6db56f7c0dc5d41"
+        }
+      },
+      "stored_data_receipt": {
+        "sha256": "3397c0f6c850f37f8c157e468b24b7818e6de7167cd0316cbeb977297dd5c0aa",
+        "size_bytes": 412
+      }
+    },
+    {
+      "sequence": 8,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "develop",
+      "event_type": "node_succeeded",
+      "at_time": "2026-10-24T04:59:24Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "previous_state": "running",
+        "reason": ""
+      },
+      "stored_data_receipt": {
+        "sha256": "916d3d614683aeefa15faa6452977c8cf1b182063066ad8abd7cbe4f1c92b650",
+        "size_bytes": 62
+      }
+    },
+    {
+      "sequence": 9,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "quality",
+      "event_type": "node_ready",
+      "at_time": "2026-10-24T04:59:24Z",
+      "data": {
+        "attempt": 0,
+        "fence": 0,
+        "previous_state": "pending",
+        "reason": ""
+      },
+      "stored_data_receipt": {
+        "sha256": "ed090784cedc627716bd128f2662427174071e44f135e98d0d7239614e73ccba",
+        "size_bytes": 62
+      }
+    },
+    {
+      "sequence": 10,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "quality",
+      "event_type": "candidate_pinned",
+      "at_time": "2026-10-24T04:59:24Z",
+      "data": {
+        "attempt": 1,
+        "commit": "c31c01956f3098f3b5c07b2c94ceaaac3b388dfe",
+        "evidence_sha256": "489926efd199a070f39cb5a015d45b4b6590a96e715e7ee7e40347585c126c94",
+        "source_attempt": 1,
+        "source_fence": 1,
+        "source_node": "develop"
+      },
+      "stored_data_receipt": {
+        "sha256": "259858f5aaaa3249937cb13ee9c9dac8e4812c26838d41858deed02ff914683f",
+        "size_bytes": 210
+      }
+    },
+    {
+      "sequence": 11,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "quality",
+      "event_type": "node_running",
+      "at_time": "2026-10-24T04:59:24Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "previous_state": "ready",
+        "reason": ""
+      },
+      "stored_data_receipt": {
+        "sha256": "9043b9373467b4eb29d526696f44971fd54fc2b1c9dafb4086a02bd65727d786",
+        "size_bytes": 60
+      }
+    },
+    {
+      "sequence": 12,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "quality",
+      "event_type": "node_progress",
+      "at_time": "2026-10-24T04:59:25Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "6268033102378d04e0d1015ae83d9a54a309c01f99968e19a5bff296953a6579",
+        "worker_id": "tool-stage-worker",
+        "message": "----------------------------------------------------------------------\r\n"
+      },
+      "stored_data_receipt": {
+        "sha256": "612fd640da4eb8a8fb736900fcc382f4b787b0eb2a05d205a5355f8544180b42",
+        "size_bytes": 224
+      }
+    },
+    {
+      "sequence": 13,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "quality",
+      "event_type": "node_progress",
+      "at_time": "2026-10-24T04:59:25Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "7dfe01e58a4751d10ab07ce3d7aae6681aa542c0a7ae0f113f7ed9b9ae511604",
+        "worker_id": "tool-stage-worker",
+        "message": "----------------------------------------------------------------------\r\nRan 2 tests in 0.000s\r\n\r\nOK\r\n"
+      },
+      "stored_data_receipt": {
+        "sha256": "934a54b1a5091fc28828105b9f3bf3206a277900a253a0a2a2e866a63ee4a9d2",
+        "size_bytes": 259
+      }
+    },
+    {
+      "sequence": 14,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "quality",
+      "event_type": "node_succeeded",
+      "at_time": "2026-10-24T04:59:26Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "previous_state": "running",
+        "reason": ""
+      },
+      "stored_data_receipt": {
+        "sha256": "916d3d614683aeefa15faa6452977c8cf1b182063066ad8abd7cbe4f1c92b650",
+        "size_bytes": 62
+      }
+    },
+    {
+      "sequence": 15,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "10158abedf0d680f439ca0f2fac2d434",
+      "node_id": "",
+      "event_type": "run_succeeded",
+      "at_time": "2026-10-24T04:59:26Z",
+      "data": null,
+      "stored_data_receipt": {
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "size_bytes": 4
+      }
+    },
+    {
+      "sequence": 16,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "68c1e6179992238819c5bf4aaef19183",
+      "node_id": "",
+      "event_type": "run_created",
+      "at_time": "2026-10-24T05:00:44Z",
+      "data": {
+        "workflow_version": 1
+      },
+      "stored_data_receipt": {
+        "sha256": "326b66381db9767fecc9505307434d558e340f0e0a2f0503232d822b5412d82f",
+        "size_bytes": 22
+      }
+    },
+    {
+      "sequence": 17,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "68c1e6179992238819c5bf4aaef19183",
+      "node_id": "develop",
+      "event_type": "node_ready",
+      "at_time": "2026-10-24T05:00:44Z",
+      "data": {
+        "attempt": 0,
+        "fence": 0,
+        "previous_state": "pending",
+        "reason": ""
+      },
+      "stored_data_receipt": {
+        "sha256": "ed090784cedc627716bd128f2662427174071e44f135e98d0d7239614e73ccba",
+        "size_bytes": 62
+      }
+    },
+    {
+      "sequence": 18,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "68c1e6179992238819c5bf4aaef19183",
+      "node_id": "develop",
+      "event_type": "node_running",
+      "at_time": "2026-10-24T05:00:46Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "previous_state": "ready",
+        "reason": ""
+      },
+      "stored_data_receipt": {
+        "sha256": "9043b9373467b4eb29d526696f44971fd54fc2b1c9dafb4086a02bd65727d786",
+        "size_bytes": 60
+      }
+    },
+    {
+      "sequence": 19,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "68c1e6179992238819c5bf4aaef19183",
+      "node_id": "develop",
+      "event_type": "tool_progress",
+      "at_time": "2026-10-24T05:00:46Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "57380fd8702d47051bca52743075a2266dc6feb87b9721b446d48d489ddb0a67",
+        "worker_id": "tool-stage-worker",
+        "tool_event": {
+          "schema_version": 1,
+          "command_id": "task-agent",
+          "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "protocol": "suma-jsonl-v1",
+          "kind": "session_started",
+          "session_id": "79dd7a4e25a9318b5d94de08d4b176892ed1b6e2499043d922a9c9a38a39b11b"
+        }
+      },
+      "stored_data_receipt": {
+        "sha256": "a762b9f2b899f7d61128d96b47741e18866058b2846006172bd6ba278bdf7e96",
+        "size_bytes": 413
+      }
+    },
+    {
+      "sequence": 20,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "68c1e6179992238819c5bf4aaef19183",
+      "node_id": "develop",
+      "event_type": "tool_progress",
+      "at_time": "2026-10-24T05:00:46Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "b0405bb1e28554be46e5dfc4a8ee2442682ec70620b57fb6a3e7273572e89a8a",
+        "worker_id": "tool-stage-worker",
+        "tool_event": {
+          "schema_version": 1,
+          "command_id": "task-agent",
+          "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "protocol": "suma-jsonl-v1",
+          "kind": "turn_started",
+          "session_id": "79dd7a4e25a9318b5d94de08d4b176892ed1b6e2499043d922a9c9a38a39b11b"
+        }
+      },
+      "stored_data_receipt": {
+        "sha256": "3e28cba21662274856335011ab6e98a3856a4955d8a51318e020adaf6c09d029",
+        "size_bytes": 410
+      }
+    },
+    {
+      "sequence": 21,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "68c1e6179992238819c5bf4aaef19183",
+      "node_id": "develop",
+      "event_type": "tool_progress",
+      "at_time": "2026-10-24T05:00:47Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "488bcf555b54ee24537140c003e58506341bc82de8c2b73d3166c9215fdac6a5",
+        "worker_id": "tool-stage-worker",
+        "tool_event": {
+          "schema_version": 1,
+          "command_id": "task-agent",
+          "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "protocol": "suma-jsonl-v1",
+          "kind": "error",
+          "session_id": "79dd7a4e25a9318b5d94de08d4b176892ed1b6e2499043d922a9c9a38a39b11b",
+          "message": "Deterministic fixture failure selected by the frozen task description; no model was invoked.",
+          "status": "fixture_selected_failure"
+        }
+      },
+      "stored_data_receipt": {
+        "sha256": "e2319e4faecc719dac23582796035d0f6a85396a9b5881475e4adb3c1a663306",
+        "size_bytes": 544
+      }
+    },
+    {
+      "sequence": 22,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "68c1e6179992238819c5bf4aaef19183",
+      "node_id": "develop",
+      "event_type": "node_failed",
+      "at_time": "2026-10-24T05:00:47Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "previous_state": "running",
+        "reason": "external tool reported whole-run failure"
+      },
+      "stored_data_receipt": {
+        "sha256": "a63c2fd2c0729a1b01a73b161a134e9ad3e1e5a4d204e7a9839c2e0ebe2c66b7",
+        "size_bytes": 102
+      }
+    },
+    {
+      "sequence": 23,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "68c1e6179992238819c5bf4aaef19183",
+      "node_id": "quality",
+      "event_type": "node_skipped",
+      "at_time": "2026-10-24T05:00:47Z",
+      "data": {
+        "attempt": 0,
+        "fence": 0,
+        "previous_state": "pending",
+        "reason": "join cannot be satisfied"
+      },
+      "stored_data_receipt": {
+        "sha256": "5edbf05dce2a9f47bccd990b457d8e7597e02da5049e87c7e304fb6848d71c5a",
+        "size_bytes": 86
+      }
+    },
+    {
+      "sequence": 24,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "68c1e6179992238819c5bf4aaef19183",
+      "node_id": "",
+      "event_type": "run_failed",
+      "at_time": "2026-10-24T05:00:47Z",
+      "data": null,
+      "stored_data_receipt": {
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "size_bytes": 4
+      }
+    },
+    {
+      "sequence": 25,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "node_id": "",
+      "event_type": "run_created",
+      "at_time": "2026-10-24T05:01:48Z",
+      "data": {
+        "workflow_version": 1
+      },
+      "stored_data_receipt": {
+        "sha256": "326b66381db9767fecc9505307434d558e340f0e0a2f0503232d822b5412d82f",
+        "size_bytes": 22
+      }
+    },
+    {
+      "sequence": 26,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "node_id": "develop",
+      "event_type": "node_ready",
+      "at_time": "2026-10-24T05:01:48Z",
+      "data": {
+        "attempt": 0,
+        "fence": 0,
+        "previous_state": "pending",
+        "reason": ""
+      },
+      "stored_data_receipt": {
+        "sha256": "ed090784cedc627716bd128f2662427174071e44f135e98d0d7239614e73ccba",
+        "size_bytes": 62
+      }
+    },
+    {
+      "sequence": 27,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "node_id": "develop",
+      "event_type": "node_running",
+      "at_time": "2026-10-24T05:01:49Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "previous_state": "ready",
+        "reason": ""
+      },
+      "stored_data_receipt": {
+        "sha256": "9043b9373467b4eb29d526696f44971fd54fc2b1c9dafb4086a02bd65727d786",
+        "size_bytes": 60
+      }
+    },
+    {
+      "sequence": 28,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "node_id": "develop",
+      "event_type": "tool_progress",
+      "at_time": "2026-10-24T05:01:50Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "ab81f372a028c287c57fbee75888beba1dbd7c8ee693426b903b5eebc3a35bca",
+        "worker_id": "tool-stage-worker",
+        "tool_event": {
+          "schema_version": 1,
+          "command_id": "task-agent",
+          "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "protocol": "suma-jsonl-v1",
+          "kind": "session_started",
+          "session_id": "c7f24bef2c7b8443132cd72114167c4519efba1f7d75c91e3a5a9d8fc122e5c5"
+        }
+      },
+      "stored_data_receipt": {
+        "sha256": "4275e46980cdb8e032027450d9992a11af3a1dd8cbc81a04eae2e285d52d0bdd",
+        "size_bytes": 413
+      }
+    },
+    {
+      "sequence": 29,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "node_id": "develop",
+      "event_type": "tool_progress",
+      "at_time": "2026-10-24T05:01:50Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "53ff725b233def53ad789ca4ad6d92650c18959edfed00a4ecdc505b21c48bbd",
+        "worker_id": "tool-stage-worker",
+        "tool_event": {
+          "schema_version": 1,
+          "command_id": "task-agent",
+          "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "protocol": "suma-jsonl-v1",
+          "kind": "turn_started",
+          "session_id": "c7f24bef2c7b8443132cd72114167c4519efba1f7d75c91e3a5a9d8fc122e5c5"
+        }
+      },
+      "stored_data_receipt": {
+        "sha256": "300cd0d5d10a8e357ef73bcc4513f790527720156c3be78eba0445ce93b85840",
+        "size_bytes": 410
+      }
+    },
+    {
+      "sequence": 30,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "node_id": "develop",
+      "event_type": "tool_progress",
+      "at_time": "2026-10-24T05:01:50Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "587107a69a5d9fbceccc0f8ce67740c0a196f1fd807ba3a15a4e574bfc1b70c1",
+        "worker_id": "tool-stage-worker",
+        "tool_event": {
+          "schema_version": 1,
+          "command_id": "task-agent",
+          "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "protocol": "suma-jsonl-v1",
+          "kind": "activity_started",
+          "session_id": "c7f24bef2c7b8443132cd72114167c4519efba1f7d75c91e3a5a9d8fc122e5c5",
+          "item_id": "fixture-stop-window",
+          "message": "project_tool"
+        }
+      },
+      "stored_data_receipt": {
+        "sha256": "9b80cf7f5fa2487d943db8074f16330e8f3c20979a95b695596035b81ddf9b26",
+        "size_bytes": 471
+      }
+    },
+    {
+      "sequence": 31,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "node_id": "develop",
+      "event_type": "stop_requested",
+      "at_time": "2026-10-24T05:01:55Z",
+      "data": {
+        "fence": 1,
+        "worker_id": "tool-stage-worker"
+      },
+      "stored_data_receipt": {
+        "sha256": "a6582816406ee6794434cb0dd46ffd1717a3f9f85a99427d21a8243b8bdc2d10",
+        "size_bytes": 43
+      }
+    },
+    {
+      "sequence": 32,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "node_id": "quality",
+      "event_type": "node_cancelled",
+      "at_time": "2026-10-24T05:01:55Z",
+      "data": {
+        "attempt": 0,
+        "fence": 0,
+        "previous_state": "pending",
+        "reason": "本机实际停止验证：仅取消本次协议夹具进程，等待Runner确认进程树停止；不得将未知协议终态标记为成功。"
+      },
+      "stored_data_receipt": {
+        "sha256": "c7cb7c9110ca59477e9b9713b298772429cf500b1b1e46666c6fe56cb0070cd3",
+        "size_bytes": 206
+      }
+    },
+    {
+      "sequence": 33,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "node_id": "",
+      "event_type": "command_cancel",
+      "at_time": "2026-10-24T05:01:55Z",
+      "data": {
+        "reason": "本机实际停止验证：仅取消本次协议夹具进程，等待Runner确认进程树停止；不得将未知协议终态标记为成功。"
+      },
+      "stored_data_receipt": {
+        "sha256": "e8cdbef4f4a88cc6f0969eee6a806afd8afa6f915995bff8bff76521427351f2",
+        "size_bytes": 157
+      }
+    },
+    {
+      "sequence": 34,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "node_id": "develop",
+      "event_type": "node_cancelled",
+      "at_time": "2026-10-24T05:02:00Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "previous_state": "running",
+        "reason": "context canceled"
+      },
+      "stored_data_receipt": {
+        "sha256": "6ba86cc73c344841219a552bdcd16baf30956172e65b16c556d22a4679d7a3da",
+        "size_bytes": 78
+      }
+    },
+    {
+      "sequence": 35,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "230cfddc70b539f9b5b212ad675b9d05",
+      "node_id": "",
+      "event_type": "run_cancelled",
+      "at_time": "2026-10-24T05:02:00Z",
+      "data": null,
+      "stored_data_receipt": {
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "size_bytes": 4
+      }
+    }
+  ],
+  "activity": [
+    {
+      "id": "def17beb53a64cf6bd73ecbe88acaf23",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "eceba36551846e21245d343b07a0f62c",
+      "kind": "release_worker.registered",
+      "object_id": "0a2a506b82f5d97a0b150f957e6e5744",
+      "title": "tool-stage-worker",
+      "created_at": "2026-10-24T04:34:40.5400964Z"
+    },
+    {
+      "id": "74dfcba82993f525eb014d3e5a8483b2",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "eceba36551846e21245d343b07a0f62c",
+      "kind": "requirements.created",
+      "object_id": "3eea0043bb9560a1fb915011668f827f",
+      "title": "订单访问权限与固定任务执行",
+      "created_at": "2026-10-24T04:37:19.1039405Z"
+    },
+    {
+      "id": "e6a98f5415cdd41dd2af1604313fd59d",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "eceba36551846e21245d343b07a0f62c",
+      "kind": "requirement.decomposed",
+      "object_id": "3eea0043bb9560a1fb915011668f827f",
+      "title": "订单访问权限与固定任务执行",
+      "created_at": "2026-10-24T04:38:45.3988454Z"
+    },
+    {
+      "id": "57ac0c3b6e48ef238af325baf3bcc12f",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "eceba36551846e21245d343b07a0f62c",
+      "kind": "tool_profile.created",
+      "object_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+      "title": "订单开发执行器（协议夹具）",
+      "created_at": "2026-10-24T04:40:31.1966847Z"
+    },
+    {
+      "id": "6cd2f29d8e77b68152bffaa4426f1407",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "eceba36551846e21245d343b07a0f62c",
+      "kind": "tool_profile.enable",
+      "object_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+      "title": "订单开发执行器（协议夹具）",
+      "created_at": "2026-10-24T04:44:03.4071233Z"
+    },
+    {
+      "id": "073e53cf27791ffb2deee5b7254802d8",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "eceba36551846e21245d343b07a0f62c",
+      "kind": "task.dispatch_preview",
+      "object_id": "b99862a20a5adeac36882a8eb723487d",
+      "title": "实现订单访问权限（本机协议夹具）",
+      "created_at": "2026-10-24T04:49:24.529582Z"
+    },
+    {
+      "id": "5267d8f3446a4980bdd0ae1589318557",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "eceba36551846e21245d343b07a0f62c",
+      "kind": "task.dispatched",
+      "object_id": "3418219185fe4c3311eceff6b853bed2",
+      "title": "实现订单访问权限（本机协议夹具）",
+      "created_at": "2026-10-24T04:59:20.8552317Z"
+    },
+    {
+      "id": "e2132877573ce19c0afa320ebb18b180",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "eceba36551846e21245d343b07a0f62c",
+      "kind": "task.reviewed",
+      "object_id": "3418219185fe4c3311eceff6b853bed2",
+      "title": "实现订单访问权限（本机协议夹具）",
+      "created_at": "2026-10-24T05:00:25.7155379Z"
+    },
+    {
+      "id": "98510d249e58cb4b4c259ad6dffe41d5",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "eceba36551846e21245d343b07a0f62c",
+      "kind": "task.dispatch_preview",
+      "object_id": "ac3f1d55f02a436382587025e698fd87",
+      "title": "失败执行与问题回流（本机协议夹具）",
+      "created_at": "2026-10-24T05:00:38.5892542Z"
+    },
+    {
+      "id": "a49c94d3b11cbeccb057c9ea28331a3b",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "eceba36551846e21245d343b07a0f62c",
+      "kind": "task.dispatched",
+      "object_id": "a5af1760060fb7b491e213cfb9bd96dd",
+      "title": "失败执行与问题回流（本机协议夹具）",
+      "created_at": "2026-10-24T05:00:44.2280396Z"
+    },
+    {
+      "id": "a3c5088f038d0dc69d066ba960cbc9f1",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "system",
+      "kind": "issues.created",
+      "object_id": "76e136e48e633dbf4d8ad2581bba7b9b",
+      "title": "执行失败：任务派发 · 失败执行与问题回流（本机协议夹具）",
+      "created_at": "2026-10-24T05:00:47.5902971Z"
+    },
+    {
+      "id": "5836d49547ed2e401c128b1bf28d5fc5",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "eceba36551846e21245d343b07a0f62c",
+      "kind": "requirements.created",
+      "object_id": "f5fefa67395e77f71d6f1941795e76d2",
+      "title": "执行失败：任务派发 · 失败执行与问题回流（本机协议夹具）",
+      "created_at": "2026-10-24T05:01:18.9235747Z"
+    },
+    {
+      "id": "9fabb20e104d783d20de9aae0ba88260",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "eceba36551846e21245d343b07a0f62c",
+      "kind": "task.dispatch_preview",
+      "object_id": "b2617b9dad1102043b5b31435ae91ca7",
+      "title": "确认停止与回执核对（本机协议夹具）",
+      "created_at": "2026-10-24T05:01:46.184434Z"
+    },
+    {
+      "id": "929d88cbbc642a7dcfc833f073d956c8",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "eceba36551846e21245d343b07a0f62c",
+      "kind": "task.dispatched",
+      "object_id": "01a78009746b83f105cd28d63a286800",
+      "title": "确认停止与回执核对（本机协议夹具）",
+      "created_at": "2026-10-24T05:01:48.8924862Z"
+    },
+    {
+      "id": "1c9c39cbdb5f000e102057d4d274eb92",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "actor_id": "eceba36551846e21245d343b07a0f62c",
+      "kind": "tool_profile.pause",
+      "object_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+      "title": "订单开发执行器（协议夹具）",
+      "created_at": "2026-10-24T05:02:36.2169747Z"
+    }
+  ],
+  "counts": {
+    "tool_profiles": 1,
+    "tool_inventories": 1,
+    "registered_workers_without_credentials": 1,
+    "task_dispatch_plans": 3,
+    "tasks": 3,
+    "requirements": 2,
+    "issues": 1,
+    "reviews": 1,
+    "runs": 3,
+    "nodes": 6,
+    "attempts": 4,
+    "candidate_revisions": 1,
+    "events": 35,
+    "activity": 15
+  },
+  "event_counts": {
+    "run_created": 3,
+    "node_ready": 4,
+    "node_running": 4,
+    "tool_progress": 10,
+    "node_succeeded": 2,
+    "candidate_pinned": 1,
+    "node_progress": 2,
+    "run_succeeded": 1,
+    "node_failed": 1,
+    "node_skipped": 1,
+    "run_failed": 1,
+    "stop_requested": 1,
+    "node_cancelled": 2,
+    "command_cancel": 1,
+    "run_cancelled": 1
+  },
+  "journey_assertions": {
+    "three_terminal_runs_and_exact_plan_task_profile_binding": true,
+    "success_fixed_candidate_independent_test_and_current_human_acceptance_v3": true,
+    "failure_one_issue_one_intake_requirement_two_total_requirements": true,
+    "confirmed_process_stop_unknown_protocol_cancelled_without_test_or_acceptance": true,
+    "profile_now_paused_v3_historical_plans_retain_v2_and_original_digest": true,
+    "typed_events_match_pinned_profile_worker_attempt_fence": true,
+    "repeated_intake_gui_clicks": "Not established by DB alone; root browser evidence separately records both actions."
+  }
+}

@@ -10,7 +10,7 @@ import (
 
 func TestManagedWorkflowAtomicBindingAndNoPublicReuse(t *testing.T) {
 	e, _ := fixture(t, Workflow{Nodes: []Node{{ID: "initial", Type: "noop"}}})
-	w := Workflow{Name: "protected release", Nodes: []Node{{ID: "deploy", Type: "command"}}}
+	w := Workflow{Name: "protected release", Nodes: []Node{{ID: "deploy", Type: "command", Command: []string{"test-command"}}}}
 	beforeCalls, bindCalls := 0, 0
 	before := func(tx *sql.Tx) error { beforeCalls++; return nil }
 	fail := errors.New("binding refused")
@@ -48,7 +48,7 @@ func TestManagedWorkflowAtomicBindingAndNoPublicReuse(t *testing.T) {
 	if _, err = e.Publish(ctx, "t", "p", Workflow{Name: "embed", Nodes: []Node{{ID: "child", Type: "subworkflow", Config: map[string]any{"workflow_id": r.WorkflowID, "workflow_version": 1}}}}); !errors.Is(err, ErrInvalid) {
 		t.Fatal("managed workflow embedded", err)
 	}
-	a, err := e.ClaimEligible(ctx, "t", "p", "worker", []string{"command"}, nil, func(*sql.Tx, string, string) (bool, error) { return false, nil })
+	a, err := e.ClaimEligible(ctx, "t", "p", "worker", testCapabilities(t, e), nil, func(*sql.Tx, string, string) (bool, error) { return false, nil })
 	if err != nil || a != nil {
 		t.Fatal("ineligible worker acquired attempt", a, err)
 	}
@@ -56,7 +56,7 @@ func TestManagedWorkflowAtomicBindingAndNoPublicReuse(t *testing.T) {
 	if err != nil || current.Nodes[0].Attempt != 0 {
 		t.Fatal("denial consumed attempt", err)
 	}
-	if a, err = e.ClaimEligible(ctx, "t", "p", "worker", []string{"command"}, nil, func(*sql.Tx, string, string) (bool, error) { return true, nil }); err != nil || a == nil || a.RunID != r.ID {
+	if a, err = e.ClaimEligible(ctx, "t", "p", "worker", testCapabilities(t, e), nil, func(*sql.Tx, string, string) (bool, error) { return true, nil }); err != nil || a == nil || a.RunID != r.ID {
 		t.Fatal("eligible worker lost assignment", a, err)
 	}
 }
@@ -65,7 +65,7 @@ func managedObservationFixture(t *testing.T) (*Engine, Run, *Assignment, Result)
 	t.Helper()
 	e, _ := fixture(t, Workflow{Nodes: []Node{{ID: "initial", Type: "noop"}}})
 	e.LeaseSeconds = 3600
-	run, err := e.CreateManagedRunBound(ctx, "t", "p", "observed-managed-run", "observed-managed-create", Workflow{Name: "observed managed fixture", Nodes: []Node{{ID: "deploy", Type: "command"}, {ID: "after", Type: "command", DependsOn: []string{"deploy"}}}}, func(*sql.Tx) error { return nil }, func(*sql.Tx, string) error { return nil })
+	run, err := e.CreateManagedRunBound(ctx, "t", "p", "observed-managed-run", "observed-managed-create", Workflow{Name: "observed managed fixture", Nodes: []Node{{ID: "deploy", Type: "command", Command: []string{"test-command"}}, {ID: "after", Type: "command", Command: []string{"test-command"}, DependsOn: []string{"deploy"}}}}, func(*sql.Tx) error { return nil }, func(*sql.Tx, string) error { return nil })
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +80,7 @@ func managedObservationFixture(t *testing.T) (*Engine, Run, *Assignment, Result)
 }
 
 func TestManagedObservationResolutionRejectsOrdinaryReceiptReplay(t *testing.T) {
-	e, run := fixture(t, Workflow{Nodes: []Node{{ID: "ordinary", Type: "command"}}})
+	e, run := fixture(t, Workflow{Nodes: []Node{{ID: "ordinary", Type: "command", Command: []string{"test-command"}}}})
 	a := claim(t, e)
 	if a == nil {
 		t.Fatal("ordinary assignment missing")
@@ -196,7 +196,7 @@ func TestManagedObservationResolutionReplayRechecksAuthority(t *testing.T) {
 }
 
 func TestCompleteBoundProofFailureRollsBackResultAndDownstream(t *testing.T) {
-	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "build", Type: "command"}, {ID: "test", Type: "test", DependsOn: []string{"build"}}}})
+	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "build", Type: "command", Command: []string{"test-command"}}, {ID: "test", Type: "test", Command: []string{"test-command"}, DependsOn: []string{"build"}}}})
 	if _, err := e.db.Exec(`CREATE TABLE test_bound_proofs(id INTEGER PRIMARY KEY)`); err != nil {
 		t.Fatal(err)
 	}

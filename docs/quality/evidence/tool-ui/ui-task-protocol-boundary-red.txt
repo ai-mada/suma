@@ -1,0 +1,49 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ❯ src/tool-model.test.ts (13 tests | 1 failed) 21ms
+   ✓ tool manifest and fixed task choices > keeps the exact run and node in a bounded tool-workspace return route
+   ✓ tool manifest and fixed task choices > accepts only nonsecret describe-tools observations and retains unavailable explanations
+   ✓ tool manifest and fixed task choices > bounds observation reasons at 1000 UTF-8 bytes rather than characters
+   ✓ tool manifest and fixed task choices > requires a meaningful reason when a configured tool is unavailable
+   ✓ tool manifest and fixed task choices > rejects secrets, raw execution paths, malformed pair/hash and duplicate command identities
+   ✓ tool manifest and fixed task choices > binds the command to the selected immutable profile without changing unrelated node config
+   ✓ tool manifest and fixed task choices > creates a versioned preview request with no mutable task text or executable parameters
+   ✓ tool manifest and fixed task choices > refuses read-only task development or a workflow without the chosen candidate test
+   × tool manifest and fixed task choices > limits task dispatch to verified structured protocols while retaining generic workflow tools 7ms
+     → expected [Function] to throw an error
+   ✓ tool manifest and fixed task choices > never shows another attempt, worker or fence as current tool progress
+   ✓ tool write recovery > persists the exact operation before sending and replays it after reload without rebasing
+   ✓ tool write recovery > retains an unknown operation when a later replay is forbidden and isolates users/projects
+   ✓ tool write recovery > rejects credential fields or unrelated paths before any network request
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/tool-model.test.ts > tool manifest and fixed task choices > limits task dispatch to verified structured protocols while retaining generic workflow tools
+AssertionError: expected [Function] to throw an error
+
+- Expected: 
+null
+
++ Received: 
+undefined
+
+ ❯ src/tool-model.test.ts:223:90
+
+    221|     ]) {
+    222|       const candidate={...profile,profile:{...definition,...variant}};
+    223|       expect(() => dispatchRequest("p",{id:"task",version:7},workflow,…
+       |                                                                                          ^
+    224|       expect(toolBinding(workflow.nodes[0],candidate).command).toEqual…
+    225|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 12 passed (13)
+   Start at  12:32:58
+   Duration  959ms (transform 79ms, setup 0ms, collect 87ms, tests 21ms, environment 0ms, prepare 153ms)
+
+undefined
+D:\codes\ai-dev-os\suma\apps\web:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/tool-model.test.ts

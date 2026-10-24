@@ -1,0 +1,14 @@
+# github.com/ai-mada/suma/internal/runner [github.com/ai-mada/suma/internal/runner.test]
+internal\runner\tools_test.go:17:18: undefined: DescribeTools
+internal\runner\tools_test.go:18:33: undefined: ToolCapabilities
+internal\runner\tools_test.go:20:15: undefined: DescribeTools
+internal\runner\tools_test.go:21:9: undefined: ToolCapabilities
+internal\runner\tools_test.go:28:6: cfg.ToolInventory undefined (type ExecConfig has no field or method ToolInventory)
+internal\runner\tools_test.go:28:20: undefined: DescribeTools
+internal\runner\tools_test.go:38:10: undefined: newToolStream
+internal\runner\tools_test.go:49:36: undefined: newToolStream
+internal\runner\tools_test.go:51:5: undefined: newToolStream
+internal\runner\tools_test.go:52:4: undefined: newToolStream
+internal\runner\tools_test.go:52:4: too many errors
+FAIL	github.com/ai-mada/suma/internal/runner [build failed]
+FAIL

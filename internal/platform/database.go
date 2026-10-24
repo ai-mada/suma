@@ -84,7 +84,13 @@ func (s *Service) Migrate(ctx context.Context) error {
 	if err := s.MigrateAutomations(ctx); err != nil {
 		return err
 	}
-	return s.MigrateAutomationIngresses(ctx)
+	if err := s.MigrateAutomationIngresses(ctx); err != nil {
+		return err
+	}
+	if err := s.MigrateToolProfiles(ctx); err != nil {
+		return err
+	}
+	return s.MigrateTaskDispatch(ctx)
 }
 
 func (s *Service) Authorize(ctx context.Context, p Principal, projectID string, write bool, approve bool) error {

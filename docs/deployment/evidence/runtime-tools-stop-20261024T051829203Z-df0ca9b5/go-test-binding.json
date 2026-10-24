@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-004",
+  "source_receipt": ".cache/e2e/tool-stage/go-verification-post-review.json",
+  "source_receipt_sha256": "2394b1d16eb88ff0007d66a1d49de9c0ad94c04b9ef130cd6edaf076f30ac6ed",
+  "archived_original_receipt": "go-test-receipt.original.json",
+  "raw_source": ".cache/e2e/tool-stage/go-tests-post-review.jsonl",
+  "raw_sha256": "003b24c1e8a83799e89d7c1a4aee4d493e03d6fbaff1c7a052099611d0942f82",
+  "runtime_source_sha256": "3cdf6ee27eee0ffc6ec731a62c435c474708eeae8db0b48fbb6023bb28fd8b76",
+  "runtime_files": 116,
+  "test_snapshot_files": 189,
+  "runtime_files_match_final_test_snapshot": true,
+  "actual_pass_events": 512,
+  "actual_failed_events": 0,
+  "actual_skipped_test_cases": 0,
+  "test_exit": 0,
+  "vet_exit": 0,
+  "started_at": "2026-10-24T05:18:18.2726485Z",
+  "completed_at": "2026-10-24T05:21:09.2170555Z",
+  "scope": "Full root Go test/vet snapshot and actual raw JSONL digest rechecked, not rerun by this delivery agent. Quality archive retains the full raw log separately."
+}

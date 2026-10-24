@@ -119,13 +119,13 @@ func TestRunnerToReviewAndIssueIntake(t *testing.T) {
 	f := newFixture(t)
 	ctx := context.Background()
 	task := f.call("POST", "/tasks", f.body(map[string]any{"title": "经过测试的功能"}), 201)
-	workflow := f.call("POST", "/workflows", f.body(map[string]any{"name": "验证流程", "nodes": []any{map[string]any{"id": "test", "name": "运行测试", "type": "test", "command": []string{"go", "test", "./..."}, "idempotent": true}}, "edges": []any{}}), 201)
+	workflow := f.call("POST", "/workflows", f.body(map[string]any{"name": "验证流程", "nodes": []any{map[string]any{"id": "test", "name": "运行测试", "type": "test", "command": []string{"fixture-go-test"}, "idempotent": true}}, "edges": []any{}}), 201)
 	run := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": workflow["id"], "task_id": task["id"]}), 201)
-	a, err := f.e.Claim(ctx, f.user.TenantID, f.project, "test-worker", []string{"command", "test"})
+	a, err := f.e.Claim(ctx, f.user.TenantID, f.project, "test-worker", toolFixtureCapabilities(t, f))
 	if err != nil || a == nil {
 		t.Fatalf("claim: %v %v", a, err)
 	}
-	if err = f.e.Complete(ctx, f.user.TenantID, f.project, dag.Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, ExitCode: 0, Output: "test evidence", OperationID: newID(), Stopped: true}); err != nil {
+	if err = f.e.Complete(ctx, f.user.TenantID, f.project, dag.Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, ExitCode: 0, Output: "test evidence", OperationID: newID()}); err != nil {
 		t.Fatal(err)
 	}
 	current := f.call("GET", "/tasks/"+task["id"].(string)+"?project_id="+f.project, nil, 200)
@@ -178,13 +178,13 @@ func TestRunStartReplaysOriginalVersionAndChecksDependencies(t *testing.T) {
 	f := newFixture(t)
 	ctx := context.Background()
 	a := f.call("POST", "/tasks", f.body(map[string]any{"title": "前置"}), 201)
-	wf := f.call("POST", "/workflows", f.body(map[string]any{"name": "依赖验证", "nodes": []any{map[string]any{"id": "test", "name": "测试", "type": "test", "command": []string{"go", "version"}}}}), 201)
+	wf := f.call("POST", "/workflows", f.body(map[string]any{"name": "依赖验证", "nodes": []any{map[string]any{"id": "test", "name": "测试", "type": "test", "command": []string{"fixture-go-version"}}}}), 201)
 	preRun := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": wf["id"], "task_id": a["id"]}), 201)
-	preAssignment, err := f.e.Claim(ctx, f.user.TenantID, f.project, "pre-worker", []string{"test"})
+	preAssignment, err := f.e.Claim(ctx, f.user.TenantID, f.project, "pre-worker", toolFixtureCapabilities(t, f))
 	if err != nil || preAssignment == nil {
 		t.Fatalf("pre claim %v", err)
 	}
-	if err = f.e.Complete(ctx, f.user.TenantID, f.project, dag.Result{RunID: preAssignment.RunID, NodeID: preAssignment.NodeID, WorkerID: preAssignment.WorkerID, Attempt: preAssignment.Attempt, Fence: preAssignment.Fence, OperationID: newID(), Stopped: true}); err != nil {
+	if err = f.e.Complete(ctx, f.user.TenantID, f.project, dag.Result{RunID: preAssignment.RunID, NodeID: preAssignment.NodeID, WorkerID: preAssignment.WorkerID, Attempt: preAssignment.Attempt, Fence: preAssignment.Fence, OperationID: newID()}); err != nil {
 		t.Fatal(err)
 	}
 	a = f.call("GET", "/tasks/"+a["id"].(string)+"?project_id="+f.project, nil, 200)
@@ -197,11 +197,11 @@ func TestRunStartReplaysOriginalVersionAndChecksDependencies(t *testing.T) {
 		t.Fatal("run start replay duplicated")
 	}
 	f.call("PATCH", "/tasks/"+a["id"].(string), f.body(map[string]any{"expected_version": a["version"], "title": "前置已变更"}), 200)
-	assignment, err := f.e.Claim(ctx, f.user.TenantID, f.project, "fixture-worker", []string{"test"})
+	assignment, err := f.e.Claim(ctx, f.user.TenantID, f.project, "fixture-worker", toolFixtureCapabilities(t, f))
 	if err != nil || assignment == nil {
 		t.Fatalf("claim %v", err)
 	}
-	err = f.e.Complete(ctx, f.user.TenantID, f.project, dag.Result{RunID: assignment.RunID, NodeID: assignment.NodeID, WorkerID: assignment.WorkerID, Attempt: assignment.Attempt, Fence: assignment.Fence, OperationID: newID(), ExitCode: 0, Stopped: true})
+	err = f.e.Complete(ctx, f.user.TenantID, f.project, dag.Result{RunID: assignment.RunID, NodeID: assignment.NodeID, WorkerID: assignment.WorkerID, Attempt: assignment.Attempt, Fence: assignment.Fence, OperationID: newID(), ExitCode: 0})
 	if err != nil {
 		t.Fatal(err)
 	}

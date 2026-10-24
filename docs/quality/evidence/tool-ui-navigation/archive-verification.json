@@ -1,0 +1,123 @@
+{
+  "stage": "T-P4-004-navigation-dom-supplement",
+  "verified_at": "2026-10-24T05:30:37.236920+00:00",
+  "scope": "Source/archive byte binding of the197-test UI cut;not real browser/backend or final production-build acceptance.",
+  "raw_files_checked": 14,
+  "ui_and_dependency_inputs_checked": 24,
+  "ui_source_count": 22,
+  "dependency_input_count": 2,
+  "current_inputs_match_final_checks": true,
+  "old_ui_archive_files_checked": 48,
+  "old_archive_bytes_unchanged": true,
+  "responsive_diagnostic_old_report_snapshot_matches_old_sha256": true,
+  "responsive_corrected_report_matches_correction_receipt": true,
+  "reports": [
+    {
+      "path": "docs/quality/tool-ui-navigation-verification.md",
+      "sha256": "dc1596d2d698d3628c6564fe9531d4b09dfc29f5ad28d5b803f02910878e529c"
+    },
+    {
+      "path": "docs/quality/tool-ui-responsive-supplement.md",
+      "sha256": "951824194b37b23d286123e55c6854790cb9b6fb71c665727ea3991ec0a486c9"
+    }
+  ],
+  "files_excluding_this_receipt": 19,
+  "files": [
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/archive-map.json",
+      "bytes": 6218,
+      "sha256": "b4bfc6483c7bcdc6ced9e13a2000ded003c67d6fc8dbfc654172d9db658e23a0"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/diagnostic-correction.json",
+      "bytes": 998,
+      "sha256": "e8a36de1ffc7779d843c0ebc2af77a576ee9f07a7b7e93ea8ab9a87447b36ba8"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/README.md",
+      "bytes": 1561,
+      "sha256": "09e7f7a869018765eff1a794f093966a7f8bedeb5f37fcd29ee992509a36a246"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/tool-ui-responsive-supplement.original.md",
+      "bytes": 5181,
+      "sha256": "565c6fc7ade0ba6a4d825f2acef739b9bdb6217eaf9c33a6e25069486693b009"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/tool-ui-responsive-supplement.original.md.provenance.json",
+      "bytes": 327,
+      "sha256": "2c95a4e70107e28a6caf2997d7ad06db68bb507c98c9ce71cfce9f4ef11b8327"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/ui-navigation-dom-install.txt",
+      "bytes": 1707,
+      "sha256": "0bad420089817e8a3d28083c7532f6570d8a1a687a4571cca7ba3ec5e630d73e"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/ui-navigation-dom-source-before.json",
+      "bytes": 4164,
+      "sha256": "de149ce3b53eaa874655124f20ae30e25d1bf4fd0796f916feb56dc387884306"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/ui-navigation-dom-typecheck-final.txt",
+      "bytes": 538,
+      "sha256": "ed315c2da4af33921c762a785758b9901b1f67376d48b6efd10b4374aefd50c3"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/ui-navigation-dom-typecheck-green.txt",
+      "bytes": 16,
+      "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/ui-navigation-dom-verification.json",
+      "bytes": 7634,
+      "sha256": "57877b6077f213256d59afdd0b3deeb1287263eb8fb08706389e6f9cc36f1a14"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/ui-navigation-lf-format-check.txt",
+      "bytes": 68,
+      "sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/ui-navigation-lf-normalization.json",
+      "bytes": 1753,
+      "sha256": "955608707c526963482bcc17f8236a3b7e529266fea2236ac3fbdc43af1c9225"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/ui-navigation-lf-typecheck-final.txt",
+      "bytes": 16,
+      "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/ui-navigation-lf-whitespace-check.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/ui-navigation-source-final-before.json",
+      "bytes": 4164,
+      "sha256": "66392839eabd03d6809711734c4c254034d2559c28e5bb223549adbb1e49c1b3"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/ui-requirement-dom-green.txt",
+      "bytes": 300,
+      "sha256": "6f50a66a1bbb613dbb9115554eb6b4124bb12c1b72ba07b9f1f45dae34a12f99"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/ui-requirement-dom-red.txt",
+      "bytes": 3253,
+      "sha256": "1cb106bf5cd5dcf29bb202200c261258c826729ae300009902dc6a781e4864ce"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/ui-web-navigation-dom-final.txt",
+      "bytes": 1371,
+      "sha256": "e604a32e57726d896bc768cdd925e1e7b6bcd8726ee50da5a4938720a3323056"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-navigation/ui-web-navigation-lf-final.txt",
+      "bytes": 1370,
+      "sha256": "a6b8bba18626815ff60150a523dd6782ab1a3955d4778d940ed36284aa18f498"
+    }
+  ],
+  "self_excluded": true
+}

@@ -1,0 +1,86 @@
+{
+  "recorded_at": "2026-10-24T05:24:10.369033+00:00",
+  "scope": "Read-only fourth-run database and actual process image/on-disk binary verification; not browser-click or real-model proof",
+  "collection_exit_code": 0,
+  "files": [
+    {
+      "path": ".cache/e2e/tool-stage/collect-post-review-evidence.py",
+      "bytes": 27524,
+      "sha256": "b446538587ee7b9247ef9dd696f2150d7c76077f2b115e83234cb5b79770ceba"
+    },
+    {
+      "path": ".cache/e2e/tool-stage/collect-post-review-evidence.attempt1.py",
+      "bytes": 27490,
+      "sha256": "1477fdfda41a4b8f80b2f6d3788b2e6c13b56ae0eafc39da1264a9c9fb0ff597"
+    },
+    {
+      "path": ".cache/e2e/tool-stage/post-review-collector-failure.json",
+      "bytes": 1138,
+      "sha256": "7330741fb69f04b61730ecae85f0af0950a9173532bb412bb4d5b36a8f4c4835"
+    },
+    {
+      "path": ".cache/e2e/tool-stage/tool-post-review-database.json",
+      "bytes": 27786,
+      "sha256": "b796d802fafd9c46d533297d75f9a01eb1d52d63532514c52aad567742f5f28e"
+    },
+    {
+      "path": ".cache/e2e/tool-stage/tool-post-review-runtime.json",
+      "bytes": 3295,
+      "sha256": "7e0661a152e9cab9a75e95bc286f2a2242b864e0b59c30a1790b88f6865295eb"
+    },
+    {
+      "path": ".cache/e2e/tool-stage/post-review-collector-green.stdout.txt",
+      "bytes": 1333,
+      "sha256": "08f3ddce75fd63986c479f3523746a287c80e6073ea5f7491f05d6b22a9cd351"
+    },
+    {
+      "path": ".cache/e2e/tool-stage/post-review-collector-green.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".cache/e2e/tool-stage/post-review-collector-green.exit.txt",
+      "bytes": 3,
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    }
+  ],
+  "checks": {
+    "expected_four_runs_eight_nodes_five_attempts": true,
+    "old_three_runs_and_35_event_payloads_unchanged": true,
+    "profile_final_paused_v5_new_plan_v4": true,
+    "new_attempt_cancelled_stopped_true_unknown_protocol": true,
+    "old_accepted_v3_one_issue_one_intake_unchanged": true,
+    "actual_current_process_paths_and_expected_delivered_sha_match": true,
+    "all_116_runtime_sources_match_delivery_manifest": true,
+    "original_collector_and_historical_receipt_bytes_unchanged": true,
+    "forbidden_secret_or_raw_context_keys_absent": true,
+    "credential_pattern_scan_passed": true
+  },
+  "scan_limits": "Schema allowlists and common credential patterns only; private context/auth/config/environment were not read for comparison. Disk web asset hashes do not assert browser-loaded asset bytes.",
+  "new_run_events": 11,
+  "runtime_web_entry": {
+    "path": "D:\\codes\\ai-dev-os\\suma\\apps\\web\\dist\\index.html",
+    "sha256": "cb4041d40a2c384094d5dd4be01c5cae1a5cc10b1b6c0720541c85a8ebb87100",
+    "size_bytes": 415
+  },
+  "runtime_binaries": [
+    {
+      "program": "suma-control.exe",
+      "pid": 142316,
+      "executable_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T051829203Z-df0ca9b5\\suma-control.exe",
+      "sha256": "d357669448f9ccee63752b7177dcea18b56eeb9efaff01052332da43439a4c0f",
+      "size_bytes": 25483264,
+      "process_image_path_matches": true,
+      "delivery_manifest_matches": true
+    },
+    {
+      "program": "suma-runner.exe",
+      "pid": 144352,
+      "executable_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T051829203Z-df0ca9b5\\suma-runner.exe",
+      "sha256": "644adbf34d68fce6e65779819118751a64c2eb2872110915d0acdd6e4399d8ab",
+      "size_bytes": 9952768,
+      "process_image_path_matches": true,
+      "delivery_manifest_matches": true
+    }
+  ]
+}

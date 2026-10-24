@@ -1,0 +1,132 @@
+{
+  "stage": "T-P4-004",
+  "recorded_at": "2026-10-24T04:51:45.351904+00:00",
+  "scope": "Native TS provider-safe tool aliases only. Actual loopback HTTP fixtures; no real model/provider account/key used. No Go source edits or Go tests rerun for this supplement.",
+  "prior_runtime_receipt": {
+    "file": "runtime-verification.json",
+    "sha256": "795aaa2c8d329495913a5a5ba58d90fbb36fa0577f72998296133d126b5b98d8",
+    "go_pass_events": 111,
+    "native_tests_at_that_cut": 5
+  },
+  "go_source_files_unchanged": 33,
+  "changes_since_prior_cut": [
+    {
+      "path": "packages/agent-runtime/src/index.ts",
+      "previous_sha256": "b74b246f177c7138edcc3f4983f2e56a5e11ef5b4ad6328c9de3d296ff48e3f4",
+      "current_sha256": "88f6f9dbdb22418a55a529afdd14ea50fabe03dc3f834845b2fd4c70e1323845"
+    },
+    {
+      "path": "packages/agent-runtime/tests/runtime.test.ts",
+      "previous_sha256": "2155dae79e3af54b920e0d07cb5bd6b1a3f8da04976fd90561dc4b9104d75408",
+      "current_sha256": "aeb2768d6b01215fca7f5d6a26c33cd2825a2a94eee1c6fae831a94ccd46eb9c"
+    }
+  ],
+  "alias_algorithm": "tool_ + first32 lowercase hex characters of SHA256(canonical UTF-8 name)",
+  "routing": "Provider alias names only accepted on model responses; canonical names used in control invoke and events; assistant tool-call history retains aliases. Duplicate canonical names and alias collision fail before model call.",
+  "red": {
+    "total_tests": 8,
+    "pass": 5,
+    "fail": 3,
+    "exit": 1
+  },
+  "green": {
+    "total_tests": 8,
+    "pass": 8,
+    "fail": 0,
+    "skip": 0,
+    "exit": 0
+  },
+  "typecheck_exit": 0,
+  "build_exit": 0,
+  "cli_version": "suma-agent-runtime 0.1.0",
+  "cli_help_exit": 0,
+  "native_source_files": [
+    {
+      "path": "packages/agent-runtime/package.json",
+      "bytes": 436,
+      "sha256": "be6616afce96c2a3a7c54ebbd7a4b7eb0803582749537e1abd30e40c17853daa"
+    },
+    {
+      "path": "packages/agent-runtime/src/catalog-cli.ts",
+      "bytes": 173,
+      "sha256": "b83aab3277ddfd047a72e6b9c3c1dc2388c767d5c75b2bfcd0eb1463157da458"
+    },
+    {
+      "path": "packages/agent-runtime/src/catalog.ts",
+      "bytes": 2552,
+      "sha256": "a8f537007d7adc7edcff4d39e3f1b10634f1f3841223c9fd85a55863d14c1cc6"
+    },
+    {
+      "path": "packages/agent-runtime/src/cli.ts",
+      "bytes": 1987,
+      "sha256": "cef9324c3dbf8030b8d43c1c6902eab39b3abc432a91a53377d2f14561f53ba7"
+    },
+    {
+      "path": "packages/agent-runtime/src/index.ts",
+      "bytes": 9166,
+      "sha256": "88f6f9dbdb22418a55a529afdd14ea50fabe03dc3f834845b2fd4c70e1323845"
+    },
+    {
+      "path": "packages/agent-runtime/tests/cli.test.ts",
+      "bytes": 2302,
+      "sha256": "1bcb35f4049b4d387da2520feb8adb327e9f3cfbc1af19b10b0339b558de8138"
+    },
+    {
+      "path": "packages/agent-runtime/tests/runtime.test.ts",
+      "bytes": 7603,
+      "sha256": "aeb2768d6b01215fca7f5d6a26c33cd2825a2a94eee1c6fae831a94ccd46eb9c"
+    },
+    {
+      "path": "packages/agent-runtime/tsconfig.json",
+      "bytes": 215,
+      "sha256": "9c218a0f23c0072666b8430eb7b9d8f74abd72b33d3d4bcbf747e619ba78ba9a"
+    }
+  ],
+  "compiled_runtime": [
+    {
+      "path": "packages/agent-runtime/dist/src/index.js",
+      "sha256": "64b6c19a82ef7c447504fabd39c7a822bce710a9d37227a9d6d8e73e33abb601"
+    },
+    {
+      "path": "packages/agent-runtime/dist/src/cli.js",
+      "sha256": "453e148f0bbd660f34766866946ae6640a717a63d3cc6cad3b16d992f747cf91"
+    }
+  ],
+  "evidence": [
+    {
+      "file": "native-alias-red.txt",
+      "bytes": 4214,
+      "sha256": "a1df31747298b242a8ec4f19b4e6163f22e680469a3dce2fb4e7366d70d5f2a5"
+    },
+    {
+      "file": "native-alias-green.txt",
+      "bytes": 1809,
+      "sha256": "67ed06ee7b664d6e2ce5d537e554fdde3dbd3e4023a0e0693ac5caec057a9dd4"
+    },
+    {
+      "file": "native-alias-typecheck.txt",
+      "bytes": 16,
+      "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "file": "native-alias-build.txt",
+      "bytes": 7,
+      "sha256": "f56b4be4dcac692bd8a6bc76a64478abe3d3d071238ceec629c933dce080712f"
+    },
+    {
+      "file": "native-alias-cli-version.txt",
+      "bytes": 25,
+      "sha256": "0923641364dc8bc25135cf88fa60be97698ce745882fb522e82d81ed8eaa48af"
+    },
+    {
+      "file": "native-alias-cli-help.txt",
+      "bytes": 394,
+      "sha256": "b2c9ddf6bd959e8b2b1deb8becb2e5abecb060a5825e1db494505a07a5034926"
+    }
+  ],
+  "limits": [
+    "No real model execution or provider account verification",
+    "Existing Go profile binds configured JS entry; full imported-module attestation remains separate",
+    "Actual platform/UI integration is reported by root independently"
+  ]
+}

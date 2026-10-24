@@ -1,0 +1,4 @@
+Suma agent runtime: newline-delimited JSONL requests on stdin and bounded JSONL events on stdout.
+Configure SUMA_MODEL, SUMA_MODEL_BASE_URL and optional SUMA_MODEL_API_KEY.
+Project tools require SUMA_CONTROL_URL, SUMA_PROJECT_ID and a separate agent-scope SUMA_AGENT_TOKEN. Runner credentials are never used for agent tools.
+--version / --help perform read-only probes without a model request.

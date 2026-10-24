@@ -1,0 +1,22 @@
+{
+  "previous_stamp": "20261024T045219750Z-715ba2c8",
+  "current_stamp": "20261024T051829203Z-df0ca9b5",
+  "previous_source_file_count": 116,
+  "current_source_file_count": 116,
+  "previous_source_sha256": "498300c9adffa8327982faa25da7d745d1a9ecb08f62265691d5673deacb318e",
+  "current_source_sha256": "3cdf6ee27eee0ffc6ec731a62c435c474708eeae8db0b48fbb6023bb28fd8b76",
+  "added": [],
+  "changed": [
+    {
+      "path": "internal/dag/scheduler.go",
+      "previous_sha256": "840356180da930d610d288775797e49e5360fd1f7295f68bbc084e053e568802",
+      "current_sha256": "3b9c534a6572c15c8885a54f59121b16df982affaf2bd5ed87bd58ca25847968"
+    },
+    {
+      "path": "internal/runner/tool_stream.go",
+      "previous_sha256": "98aea86219f0fb38b751d90b9859f14f880386da424c910e2731af5721452696",
+      "current_sha256": "28b2bd53ae2d32355ca5154dfb3dadbab6960bccf39d6475ccab8281d3105103"
+    }
+  ],
+  "removed": []
+}

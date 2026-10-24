@@ -1,0 +1,3 @@
+$ node scripts/check-docs.mjs
+Checked 75 Markdown documents: local links resolve.
+Checked 117 API paths and 344 schema references.

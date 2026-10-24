@@ -94,20 +94,36 @@ func (t *transaction) release(r *runState, n *nodeState) error {
 	return t.exec("DELETE FROM dag_reservations WHERE run_id=? AND node_id=?", r.ID, n.ID)
 }
 func capable(node *nodeState, capabilities []string) bool {
+	if len(capabilities) == 0 {
+		return false
+	}
 	required, _ := node.spec.Config["capability"].(string)
+	commandRequired := ""
+	if node.Type == "command" || node.Type == "agent" || node.Type == "test" {
+		if len(node.spec.Command) != 1 {
+			return false
+		}
+		commandRequired = "command:" + node.spec.Command[0]
+	}
 	if node.Type == "external_workflow" {
 		plugin, _ := node.spec.Config["plugin"].(string)
 		required = "external_workflow:" + plugin
 	}
-	if required == "" {
-		return true
+	if required == "" && commandRequired == "" {
+		required = node.Type
 	}
-	for _, s := range capabilities {
-		if s == required {
+	has := func(value string) bool {
+		if value == "" {
 			return true
 		}
+		for _, s := range capabilities {
+			if s == value {
+				return true
+			}
+		}
+		return false
 	}
-	return false
+	return has(required) && has(commandRequired)
 }
 func (e *Engine) Claim(ctx context.Context, tenant, project, worker string, capabilities []string) (*Assignment, error) {
 	return e.ClaimBound(ctx, tenant, project, worker, capabilities, nil)
@@ -256,7 +272,13 @@ func (t *transaction) assigned(tenant, project string, a Assignment) (*runState,
 	return r, n, nil
 }
 func (e *Engine) Heartbeat(ctx context.Context, tenant, project string, a Assignment) error {
-	return e.write(ctx, func(t *transaction) error {
+	return e.HeartbeatWithAuthority(ctx, tenant, project, a, nil)
+}
+
+// HeartbeatWithAuthority binds a lease extension to current service identity
+// under the same transaction and organization-before-scheduler lock order.
+func (e *Engine) HeartbeatWithAuthority(ctx context.Context, tenant, project string, a Assignment, before func(*sql.Tx) error) error {
+	return e.writeBefore(ctx, before, func(t *transaction) error {
 		r, n, err := t.assigned(tenant, project, a)
 		if err != nil {
 			return err
@@ -339,6 +361,9 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 		if err = t.validateCandidateResult(r, n, result); err != nil {
 			return err
 		}
+		if err = validateToolResult(n.spec, result); err != nil {
+			return err
+		}
 		if managedResolution {
 			var original string
 			if err = t.row("SELECT result FROM dag_attempts WHERE run_id=? AND node_id=? AND attempt=?", r.ID, n.ID, n.Attempt).Scan(&original); err != nil {
@@ -357,13 +382,22 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 		if result.ExitCode != 0 || result.Error != "" {
 			state = "failed"
 		}
+		if result.Stopped && !result.OutcomeUnknown && r.State != "cancelling" {
+			// A confirmed stop cannot prove successful execution, regardless
+			// of OS exit or absent/failed/completed protocol evidence. A
+			// pending cancellation is resolved separately below.
+			state = "failed"
+			if n.Error == "" {
+				n.Error = "execution process stopped before verified completion"
+			}
+		}
 		if result.OutcomeUnknown {
 			state = "reconciling"
 		}
 		if r.State == "cancelling" && result.Stopped && !result.OutcomeUnknown {
 			state = "cancelled"
 		}
-		if err = t.transition(r, n, state, result.Error); err != nil {
+		if err = t.transition(r, n, state, n.Error); err != nil {
 			return err
 		}
 		if terminal(state) || result.Stopped {

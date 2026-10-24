@@ -1,0 +1,135 @@
+{
+  "stage": "T-P4-004",
+  "scope": "Partial real IAB checks. This is a pre-link-fix UI cut; screenshot physical pixels use native1.5 backing scale, CSS viewport measured separately. No complete WCAG or load claim.",
+  "checks": [
+    {
+      "case": "390-node-list-return",
+      "observed_at": "2026-10-24T05:18:09.188Z",
+      "active": "执行节点选择",
+      "assets": [
+        "http://localhost:4322/assets/index-kHFrEk2r.js"
+      ],
+      "client": 375,
+      "graph_present": false,
+      "height": 844,
+      "href": "http://localhost:4322/?project=00b793dfdfd9accf98481438992d8ce3&view=development&sub=runs&run=230cfddc70b539f9b5b212ad675b9d05&node=develop&status=all&layout=list&week=2026-10-19",
+      "list": "执行节点完整范围 2 个节点固定任务开发当前尝试 1 · 租约 1developcontext canceled已取消独立候选权限测试尚未领取quality本机实际停止验证：仅取消本次协议夹具进程，等待Runner确认进程树停止；不得将未知协议终态标记为成功。已取消",
+      "scroll": 375,
+      "width": 390,
+      "screenshot": "nodes-final-390-full.png",
+      "capture_note": "Native CDP screenshot at 1.5 backing scale; no image edits. Earlier clipped capture is excluded from final visual evidence."
+    },
+    {
+      "case": "768-node-detail",
+      "observed_at": "2026-10-24T05:18:47.857Z",
+      "client": 753,
+      "graph_present": false,
+      "height": 1024,
+      "href": "http://localhost:4322/?project=00b793dfdfd9accf98481438992d8ce3&view=development&sub=runs&run=230cfddc70b539f9b5b212ad675b9d05&node=develop&status=all&layout=list&week=2026-10-19",
+      "qualification": "固定工具依据本次平台执行已取消固定命令task-agent固定配置63fce9b8a2cb783e3344e7e0ebdc6494本次固定指纹9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b当前新派发资格当前未满足新派发条件。工具档案已暂停，尚未授权派发当前节点身份tool-stage-worker最近上报2026-10-24T05:18:28Z当前资格只描述新的派发，不会改变本次运行已发生的状态、尝试、测试或人工验收。查看工具配置与当前原因",
+      "scroll": 753,
+      "summary": "任务派发 · 确认停止与回执核对（本机协议夹具）已取消运行 230cfddc70b539f9b5b212ad675b9d05当前节点：固定任务开发已取消 · 当前尝试 1develop",
+      "width": 768,
+      "screenshot": "node-final-768.png",
+      "layout_metrics": {
+        "contentSize": {
+          "height": 5210,
+          "width": 1129,
+          "x": 0,
+          "y": 0
+        },
+        "cssContentSize": {
+          "height": 3473,
+          "width": 752,
+          "x": 0,
+          "y": 0
+        },
+        "cssLayoutViewport": {
+          "clientHeight": 1024,
+          "clientWidth": 752,
+          "pageX": 0,
+          "pageY": 900
+        },
+        "cssVisualViewport": {
+          "clientHeight": 1024,
+          "clientWidth": 752.6666870117188,
+          "offsetX": 0,
+          "offsetY": 0,
+          "pageX": 0,
+          "pageY": 900,
+          "scale": 1,
+          "zoom": 1
+        },
+        "layoutViewport": {
+          "clientHeight": 1536,
+          "clientWidth": 1129,
+          "pageX": 0,
+          "pageY": 1350
+        },
+        "visualViewport": {
+          "clientHeight": 1536,
+          "clientWidth": 1129,
+          "offsetX": 0,
+          "offsetY": 0,
+          "pageX": 0,
+          "pageY": 900,
+          "scale": 1,
+          "zoom": 1
+        }
+      }
+    },
+    {
+      "case": "768-enable-modal-Escape",
+      "observed_at": "2026-10-24T05:18:53.148Z",
+      "active_text": "核对并启用",
+      "dialog_count": 0,
+      "href": "http://localhost:4322/?project=00b793dfdfd9accf98481438992d8ce3&view=settings&sub=tools&record=63fce9b8a2cb783e3344e7e0ebdc6494&status=all&layout=list&week=2026-10-19&panel=return-run%3A230cfddc70b539f9b5b212ad675b9d05%2Fdevelop",
+      "action": "Opened existing paused v3 enable review only; Escape dismissed it. No confirmation checkbox or enabled write submitted."
+    },
+    {
+      "case": "1366-return-same-run-node",
+      "observed_at": "2026-10-24T05:19:01.648Z",
+      "client": 1351,
+      "graph_present": true,
+      "height": 900,
+      "href": "http://localhost:4322/?project=00b793dfdfd9accf98481438992d8ce3&view=development&sub=runs&run=230cfddc70b539f9b5b212ad675b9d05&node=develop&status=all&layout=list&week=2026-10-19",
+      "qualification": "固定工具依据本次平台执行已取消固定命令task-agent固定配置63fce9b8a2cb783e3344e7e0ebdc6494本次固定指纹9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b当前新派发资格当前未满足新派发条件。工具档案已暂停，尚未授权派发当前节点身份tool-stage-worker最近上报2026-10-24T05:18:28Z当前资格只描述新的派发，不会改变本次运行已发生的状态、尝试、测试或人工验收。查看工具配置与当前原因",
+      "scroll": 1351,
+      "width": 1366,
+      "screenshot": "run-final-1366.png"
+    },
+    {
+      "case": "1366-dark",
+      "observed_at": "2026-10-24T05:19:11.904Z",
+      "client": 1351,
+      "height": 900,
+      "href": "http://localhost:4322/?project=00b793dfdfd9accf98481438992d8ce3&view=development&sub=runs&run=230cfddc70b539f9b5b212ad675b9d05&node=develop&status=all&layout=list&week=2026-10-19",
+      "scroll": 1351,
+      "theme": "dark",
+      "width": 1366,
+      "screenshot": "run-dark-final-1366.png"
+    },
+    {
+      "case": "1920-light",
+      "observed_at": "2026-10-24T05:19:22.029Z",
+      "client": 1905,
+      "graph_present": true,
+      "height": 1080,
+      "href": "http://localhost:4322/?project=00b793dfdfd9accf98481438992d8ce3&view=development&sub=runs&run=230cfddc70b539f9b5b212ad675b9d05&node=develop&status=all&layout=list&week=2026-10-19",
+      "scroll": 1905,
+      "theme": "light",
+      "width": 1920,
+      "screenshot": "run-final-1920.png"
+    },
+    {
+      "case": "task-requirement-link-before-fix",
+      "observed_at": "2026-10-24T05:19:51.236Z",
+      "result": "failed: href points to the exact requirement, but click left the original task URL and heading in place; no requirement data was reached",
+      "heading": [
+        "实现订单访问权限（本机协议夹具）"
+      ],
+      "href": "http://localhost:4322/?project=00b793dfdfd9accf98481438992d8ce3&view=development&sub=tasks&record=3418219185fe4c3311eceff6b853bed2&status=all&layout=list&week=2026-10-19"
+    }
+  ],
+  "restored": "Temporary CDP device metrics cleared; light theme restored."
+}

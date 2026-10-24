@@ -1,0 +1,57 @@
+{
+  "stage": "T-P4-004",
+  "recorded_at": "2026-10-24T05:42:10.779314+00:00",
+  "scope": "Final precommit byte and source check. Prior passing tests are bound to their exact inputs, not rerun for unchanged Go. Not a general security/production audit. Model count excludes common Error schema.",
+  "go_test_events": 512,
+  "go_inputs_match": 189,
+  "workspace_tests": 212,
+  "workspace_inputs_match": 105,
+  "runtime_archives": [
+    {
+      "directory": "runtime-tools-20261024T045219750Z-715ba2c8",
+      "verified_files": 176,
+      "manifest_sha256": "c796b6e0b6d3f2ed3402a09f0e014d1a18908dc9c8bb535ffd95f7b988bb3f51"
+    },
+    {
+      "directory": "runtime-tools-stop-20261024T051829203Z-df0ca9b5",
+      "verified_files": 178,
+      "manifest_sha256": "22a95aa59443d933d987b8bdbee57db33e40b898bbdbe9d08f37e89a376e36a0"
+    }
+  ],
+  "actual_journey_assertions": {
+    "four_runs_eight_nodes_five_attempts": true,
+    "original_three_run_states_and_payloads_unchanged": true,
+    "current_stop_result_is_not_success": true,
+    "confirmed_stopped_unknown_protocol_cancelled_no_test_candidate_or_acceptance": true,
+    "original_accepted_task_v3_review_unchanged": true,
+    "original_single_failure_issue_and_single_intake_requirement_unchanged": true,
+    "profile_paused_v5_new_plan_pinned_v4_old_plans_v2": true,
+    "browser_actions": "DB facts alone do not prove GUI actions; root records browser evidence separately",
+    "real_vendor_model_execution": false
+  },
+  "visual_css_widths": [
+    390,
+    768,
+    1366,
+    1920
+  ],
+  "final_browser_asset": "/assets/index-M_630Zj3.js",
+  "web_asset_sha256": "0372517e1ed2ee77c0f4b9b30d406594b798e6d18f51a50e70571450116404ec",
+  "image_files_verified": 6,
+  "api_models": 147,
+  "openapi_schema_components": 148,
+  "api_paths": 117,
+  "git_whitespace_exit": 0,
+  "known_fixture_secret_patterns": 6,
+  "known_fixture_secret_hits": 0,
+  "forbidden_delivery_paths": [],
+  "complete_platform": false,
+  "staged_whitespace_check": {
+    "default_exit": 2,
+    "cause": "CRLF only in frozen contracts/tool-execution.md and docs/deployment/tool-runtime-bundles.md; no real trailing whitespace",
+    "windows_eol_policy": "blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol",
+    "policy_exit": 0,
+    "repository_configuration_changed": false,
+    "frozen_bytes_preserved": true
+  }
+}

@@ -1,0 +1,5 @@
+--- FAIL: TestToolInventoryDoesNotAdvertiseMissingIsolationOrUnsupportedTerminal (0.07s)
+    tools_test.go:57: configured executable is not installed
+FAIL
+FAIL	github.com/ai-mada/suma/internal/runner	0.270s
+FAIL

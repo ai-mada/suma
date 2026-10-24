@@ -1,0 +1,24 @@
+{
+  "recorded_at": "2026-10-24T05:23:34.818854+00:00",
+  "scope": "Evidence collector-only failure, no production fault or business-task rerun",
+  "original_collector_sha256": "1477fdfda41a4b8f80b2f6d3788b2e6c13b56ae0eafc39da1264a9c9fb0ff597",
+  "original_copy": ".cache/e2e/tool-stage/collect-post-review-evidence.attempt1.py",
+  "root_reported_actual_collection_failure": {
+    "line": 228,
+    "exception_type": "ValueError",
+    "exception_message": "Nested object requires an explicit schema allowlist",
+    "provenance": "Direct main integrator report; not a fabricated copy of a missing raw process log"
+  },
+  "observed_local_helper_only_reproduction": {
+    "exception_type": "ValueError",
+    "exception_message": "Nested object requires an explicit schema allowlist"
+  },
+  "helper_sha256": "5176d546f1973f46795a64d37665f385e6dc9c8773085ee41a3b5b30249a3337",
+  "collector_not_rerun_before_fix": true,
+  "model_or_control_api_invoked": false,
+  "product_write_performed": false,
+  "output_files_before_fix": {
+    "tool-post-review-database.json": false,
+    "tool-post-review-runtime.json": false
+  }
+}

@@ -1,0 +1,13 @@
+# github.com/ai-mada/suma/internal/runner [github.com/ai-mada/suma/internal/runner.test]
+internal\runner\tools.go:75:63: too many arguments in call to tc.ValidProtocol
+	have (string, string)
+	want (string)
+internal\runner\tool_inventory_test.go:18:16: j.NewInventory undefined (type *Journal has no field or method NewInventory)
+internal\runner\tool_inventory_test.go:20:13: j.NewInventory undefined (type *Journal has no field or method NewInventory)
+internal\runner\tool_inventory_test.go:22:10: j.PendingInventory undefined (type *Journal has no field or method PendingInventory)
+internal\runner\tool_inventory_test.go:24:83: c.ToolInventory undefined (type Client has no field or method ToolInventory)
+internal\runner\tool_inventory_test.go:24:121: j.PendingInventory undefined (type *Journal has no field or method PendingInventory)
+internal\runner\tool_inventory_test.go:25:11: j.AckInventory undefined (type *Journal has no field or method AckInventory)
+internal\runner\tool_inventory_test.go:26:15: j.NewInventory undefined (type *Journal has no field or method NewInventory)
+FAIL	github.com/ai-mada/suma/internal/runner [build failed]
+FAIL

@@ -1,0 +1,125 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ❯ src/tool-model.test.ts (10 tests | 1 failed) 43ms
+   × tool manifest and fixed task choices > keeps the exact run and node in a bounded tool-workspace return route 20ms
+     → expected undefined to deeply equal { run: 'run-1', …(1) }
+   ✓ tool manifest and fixed task choices > accepts only nonsecret describe-tools observations and retains unavailable explanations
+   ✓ tool manifest and fixed task choices > rejects secrets, raw execution paths, malformed pair/hash and duplicate command identities
+   ✓ tool manifest and fixed task choices > binds the command to the selected immutable profile without changing unrelated node config
+   ✓ tool manifest and fixed task choices > creates a versioned preview request with no mutable task text or executable parameters
+   ✓ tool manifest and fixed task choices > refuses read-only task development or a workflow without the chosen candidate test
+   ✓ tool manifest and fixed task choices > never shows another attempt, worker or fence as current tool progress
+   ✓ tool write recovery > persists the exact operation before sending and replays it after reload without rebasing
+   ✓ tool write recovery > retains an unknown operation when a later replay is forbidden and isolates users/projects
+   ✓ tool write recovery > rejects credential fields or unrelated paths before any network request
+ ❯ src/ToolBindingStatus-consumers.test.tsx (4 tests | 4 failed) 24ms
+   × pinned run tool and current eligibility > shows pinned command and profile before any process event or evidence exists 18ms
+     → expected '' to contain '固定工具依据'
+   × pinned run tool and current eligibility > keeps current stale eligibility separate from the already successful run and preserves run/node return context 2ms
+     → expected '' to contain '本次平台执行'
+   × pinned run tool and current eligibility > does not accept a fresh but mismatched profile as eligible for the pinned node 1ms
+     → expected '' to contain '指纹不匹配'
+   × pinned run tool and current eligibility > retains immutable binding metadata while a current read fails 1ms
+     → expected '' to contain 'coder'
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/tool-model.test.ts > tool manifest and fixed task choices > keeps the exact run and node in a bounded tool-workspace return route
+AssertionError: expected undefined to deeply equal { run: 'run-1', …(1) }
+
+- Expected: 
+{
+  "node": "map:entry/child",
+  "run": "run-1",
+}
+
++ Received: 
+undefined
+
+ ❯ src/tool-model.test.ts:76:34
+     74|   it('keeps the exact run and node in a bounded tool-workspace return …
+     75|     const panel=toolReturnPanel('run-1','map:entry/child');
+     76|     expect(toolReturnRun(panel)).toEqual({run:'run-1',node:'map:entry/…
+       |                                  ^
+     77|     expect(toolReturnRun('other:run-1/node')).toBeUndefined();
+     78|     expect(toolReturnRun('return-run:bad/too/many')).toBeUndefined();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/ToolBindingStatus-consumers.test.tsx > pinned run tool and current eligibility > shows pinned command and profile before any process event or evidence exists
+AssertionError: expected '' to contain '固定工具依据'
+
+- Expected
++ Received
+
+- 固定工具依据
+
+ ❯ src/ToolBindingStatus-consumers.test.tsx:11:95
+      9|  it('shows pinned command and profile before any process event or evid…
+     10|   const html=renderToStaticMarkup(createElement(ToolBindingFacts,{proj…
+     11|   for(const text of ['固定工具依据','coder','profile','a'.repeat(64),'当前新派发资…
+       |                                                                                               ^
+     12|   expect(html).not.toContain('已验证');expect(html).not.toContain('已创建会话'…
+     13|  });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/ToolBindingStatus-consumers.test.tsx > pinned run tool and current eligibility > keeps current stale eligibility separate from the already successful run and preserves run/node return context
+AssertionError: expected '' to contain '本次平台执行'
+
+- Expected
++ Received
+
+- 本次平台执行
+
+ ❯ src/ToolBindingStatus-consumers.test.tsx:16:134
+     14|  it('keeps current stale eligibility separate from the already success…
+     15|   const html=renderToStaticMarkup(createElement(ToolBindingFacts,{proj…
+     16|   for(const text of ['本次平台执行','已成功','当前新派发资格','未满足','上报已过期','不会改变本次运行'…
+       |                                                                                                                                      ^
+     17|  });
+     18|  it('does not accept a fresh but mismatched profile as eligible for th…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/ToolBindingStatus-consumers.test.tsx > pinned run tool and current eligibility > does not accept a fresh but mismatched profile as eligible for the pinned node
+AssertionError: expected '' to contain '指纹不匹配'
+
+- Expected
++ Received
+
+- 指纹不匹配
+
+ ❯ src/ToolBindingStatus-consumers.test.tsx:20:16
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/ToolBindingStatus-consumers.test.tsx > pinned run tool and current eligibility > retains immutable binding metadata while a current read fails
+AssertionError: expected '' to contain 'coder'
+
+- Expected
++ Received
+
+- coder
+
+ ❯ src/ToolBindingStatus-consumers.test.tsx:24:16
+     22|  it('retains immutable binding metadata while a current read fails',()…
+     23|   const html=renderToStaticMarkup(createElement(ToolBindingFacts,{proj…
+     24|   expect(html).toContain('coder');expect(html).toContain('当前资格未确认');ex…
+       |                ^
+     25|  });
+     26| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  5 failed | 9 passed (14)
+   Start at  12:23:07
+   Duration  1.77s (transform 245ms, setup 0ms, collect 419ms, tests 67ms, environment 1ms, prepare 989ms)
+
+undefined
+D:\codes\ai-dev-os\suma\apps\web:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/tool-model.test.ts src/ToolBindingStatus-consumers.test.tsx

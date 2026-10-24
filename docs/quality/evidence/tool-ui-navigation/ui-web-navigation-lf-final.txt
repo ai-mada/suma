@@ -1,0 +1,30 @@
+$ vitest run
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ✓ src/release-model.test.ts (6 tests) 12ms
+ ✓ src/release-write.test.ts (7 tests) 24ms
+ ✓ src/ingress-model.test.ts (29 tests) 39ms
+ ✓ src/tool-model.test.ts (14 tests) 22ms
+ ✓ src/automation-model.test.ts (11 tests) 45ms
+ ✓ src/ToolFacts-consumers.test.tsx (6 tests) 92ms
+ ✓ src/responsive-workflow.test.tsx (5 tests) 50ms
+ ✓ src/contracts.test.ts (29 tests) 74ms
+ ✓ src/run-events.test.ts (21 tests) 996ms
+   ✓ durable run event frames > accepts a near-2-MiB command after Go JSON HTML escaping expands its persisted event sixfold 384ms
+ ✓ src/operations.test.ts (2 tests) 16ms
+ ✓ src/record-lineage.test.tsx (4 tests) 25ms
+ ✓ src/workflow-candidates.test.ts (12 tests) 33ms
+ ✓ src/AutomationIngress-consumers.test.tsx (5 tests) 49ms
+ ✓ src/capacity-week.test.ts (6 tests) 32ms
+ ✓ src/automation-consumers.test.tsx (7 tests) 52ms
+ ✓ src/planning-governance.test.ts (20 tests) 37ms
+ ✓ src/ToolBindingStatus-consumers.test.tsx (4 tests) 21ms
+ ✓ src/release-consumers.test.tsx (6 tests) 52ms
+ ✓ src/record-navigation-dom.test.tsx (3 tests) 270ms
+
+ Test Files  19 passed (19)
+      Tests  197 passed (197)
+   Start at  13:27:20
+   Duration  4.46s (transform 3.36s, setup 0ms, collect 14.88s, tests 1.94s, environment 1.05s, prepare 7.43s)
+

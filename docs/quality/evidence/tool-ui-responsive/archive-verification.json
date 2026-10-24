@@ -1,0 +1,70 @@
+{
+  "stage": "T-P4-004-responsive-supplement",
+  "verified_at": "2026-10-24T05:17:46.426424+00:00",
+  "scope": "Raw archive and current UI source hashes only. Not final browser geometry/focus/runtime acceptance.",
+  "raw_archived_files_rechecked": 8,
+  "raw_bytes_match_original_copy_receipts": true,
+  "current_ui_sources_checked": 21,
+  "current_ui_sources_match": true,
+  "prior_tool_ui_archive_files_checked": 37,
+  "prior_tool_ui_archive_unchanged": true,
+  "prior_source_cut_semantics": "Historical189 cut retained;Workflow.tsx intentionally changed and3 responsive files added in new194 cut.",
+  "new_evidence_files_excluding_this_receipt": 10,
+  "documentation": {
+    "path": "docs/quality/tool-ui-responsive-supplement.md",
+    "sha256": "565c6fc7ade0ba6a4d825f2acef739b9bdb6217eaf9c33a6e25069486693b009"
+  },
+  "files": [
+    {
+      "path": "docs/quality/evidence/tool-ui-responsive/archive-map.json",
+      "bytes": 3824,
+      "sha256": "122a0ecaea08e560151d0394f93afedcf2913faa2b04fbb1ecce155b241b2897"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-responsive/before-stop-cdp-390.png",
+      "bytes": 36905,
+      "sha256": "eccec6a3a54312e3c42f248b7eca55e76bec1548f35a3c758ed71c2b600e073a"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-responsive/README.md",
+      "bytes": 1199,
+      "sha256": "bcb03e69a550938c7761daddb0db1014dedf07ae52f3ebb46937e9a62758aca0"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-responsive/ui-responsive-format-check.txt",
+      "bytes": 68,
+      "sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-responsive/ui-responsive-typecheck-final.txt",
+      "bytes": 16,
+      "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-responsive/ui-responsive-verification.json",
+      "bytes": 6898,
+      "sha256": "6bb032fe2b5edfb4271277f296c9d52affef3f2f417c563a20de5a6026d20cfb"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-responsive/ui-responsive-whitespace-check.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-responsive/ui-responsive-workflow-green.txt",
+      "bytes": 293,
+      "sha256": "ab2cf4e5d60ff38e41f31ef6ae3153d069a75aec9478daeabe36072dd95667c4"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-responsive/ui-responsive-workflow-red.txt",
+      "bytes": 32052,
+      "sha256": "5198fbdc46204616742cdbbbd4bded16bed03af5441427d4210c8aa513d64e76"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-responsive/ui-web-responsive-final.txt",
+      "bytes": 1312,
+      "sha256": "c7964558f46a63f0ece5469e95245493e08bcf27ee14e75ac22c032883596fa9"
+    }
+  ],
+  "self_excluded": true
+}

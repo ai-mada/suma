@@ -1,0 +1,9 @@
+{
+  "recorded_at": "2026-10-24T04:53:59.4696253Z",
+  "prebuild_snapshot_files": 1086,
+  "immutable_artifact_and_receipt_files_checked": 1075,
+  "immutable_files_unchanged": true,
+  "all_snapshot_files_unchanged": 1086,
+  "current_document_updates": [],
+  "scope": "Preserve the original prebuild snapshot. Only current Markdown deployment guides may differ during root integration; prior artifacts/evidence must remain byte-identical."
+}

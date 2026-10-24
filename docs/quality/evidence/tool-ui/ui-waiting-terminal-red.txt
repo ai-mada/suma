@@ -1,0 +1,33 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ❯ src/ToolFacts-consumers.test.tsx (5 tests | 1 failed) 34ms
+   ✓ tool execution facts are separate from acceptance > shows enabled/configured/observed/dispatch state separately with stale inventory explanation
+   ✓ tool execution facts are separate from acceptance > shows complete fixed task and requirement context with expiry and explicit acceptance boundary
+   ✓ tool execution facts are separate from acceptance > keeps provider terminal success distinct from failed DAG state and does not invent resume actions
+   ✓ tool execution facts are separate from acceptance > displays waiting-input as an occupied-process fact without fake reply or recovered state
+   × tool execution facts are separate from acceptance > never describes a finished run as still occupying a slot because an older event waited for input 8ms
+     → expected '<section class="tool-execution-facts"…' not to contain '仍占用执行槽位'
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/ToolFacts-consumers.test.tsx > tool execution facts are separate from acceptance > never describes a finished run as still occupying a slot because an older event waited for input
+AssertionError: expected '<section class="tool-execution-facts"…' not to contain '仍占用执行槽位'
+
+Expected: "仍占用执行槽位"
+Received: "<section class="tool-execution-facts" aria-label="外部工具执行事实"><h4>外部工具执行事实</h4><dl><dt>平台执行状态</dt><dd>已成功</dd><dt>固定工具</dt><dd>code · vendor-version</dd><dt>工具报告</dt><dd>工具报告本轮结束</dd><dt>已记录事件数</dt><dd>2</dd></dl><p class="warning">等待外部输入，进程仍占用执行槽位。当前协议不支持在此答复或自动恢复，请核对本机工具。</p><div class="tool-event-list"><article><strong>等待外部输入</strong></article></div><p class="muted">工具消息和用量是外部报告，不替代平台实际停止、测试证据或业务验收。</p></section>"
+
+ ❯ src/ToolFacts-consumers.test.tsx:28:20
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  12:14:59
+   Duration  976ms (transform 88ms, setup 0ms, collect 137ms, tests 34ms, environment 0ms, prepare 151ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+undefined
+D:\codes\ai-dev-os\suma\apps\web:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/ToolFacts-consumers.test.tsx

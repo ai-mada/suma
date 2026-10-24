@@ -1,0 +1,138 @@
+{
+  "recorded_at": "2026-10-24T05:39:32.560516+00:00",
+  "scope": "Final workspace212/web198 and105 unchanged inputs; exact raw outputs and partial actual browser observations. Historical208/211 cuts retained separately.",
+  "files": [
+    {
+      "source": ".cache/e2e/tool-stage/workspace-tests-delivery-final.txt",
+      "target": "tool-workspace-final-tests.txt",
+      "bytes": 8341,
+      "sha256": "b5f06409e75d990ffe086cc7ab792fd67ce7d17e5f28600e4d8d26476fe6eed1"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/workspace-types-delivery-final.txt",
+      "target": "tool-workspace-final-types.txt",
+      "bytes": 409,
+      "sha256": "c2daacf8dc892fdf35471a4f9171d533a2eecf02fdf9e430eb0adf15d6b58ff6"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/web-build-delivery-final.txt",
+      "target": "tool-web-final-build.txt",
+      "bytes": 8881,
+      "sha256": "f0730fdacf55c089c95d77f99691b40c402c36109dc5fc56307ed71efba0b252"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/workspace-delivery-final.json",
+      "target": "tool-workspace-final.json",
+      "bytes": 31609,
+      "sha256": "1f502bb54288f89fcef98e06165e08fc9f835c087a6a53896350848e5b3fa1a8"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/tool-browser-visual.json",
+      "target": "tool-browser-visual.json",
+      "bytes": 17635,
+      "sha256": "d1124daf7b47edfb9bb3746ac863058b64ae697b24805e71bff29b0654593e3b"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/workspace-tests-before-hitfix.txt",
+      "target": "tool-root-cuts/workspace-tests-before-hitfix.txt",
+      "bytes": 8338,
+      "sha256": "3901c0e26be63b500aa7977511b0f47caafaa67f2fbe5d4832e96f0830c38dea"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/workspace-types-before-hitfix.txt",
+      "target": "tool-root-cuts/workspace-types-before-hitfix.txt",
+      "bytes": 409,
+      "sha256": "18c742bd08718bc35e37845a8d621592a8efaece1442930cf74050e2b2e30815"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/web-build-before-hitfix.txt",
+      "target": "tool-root-cuts/web-build-before-hitfix.txt",
+      "bytes": 8881,
+      "sha256": "f1d0d61891a8799c2d60425ffdf97241513faad208d428236693c70861f778cc"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/workspace-before-hitfix.json",
+      "target": "tool-root-cuts/workspace-before-hitfix.json",
+      "bytes": 31609,
+      "sha256": "21e67a2d1fd9698d8456d51dfb066691ad5411dfff957cceb57cbed310fe686a"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/workspace-tests-responsive-final.txt",
+      "target": "tool-root-cuts/workspace-tests-responsive-final.txt",
+      "bytes": 8267,
+      "sha256": "8ff82bb9c1bbd03bf38b1ab5af6958f22f168267aa3e8b1bac3a7bdb10a47208"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/workspace-types-responsive-final.txt",
+      "target": "tool-root-cuts/workspace-types-responsive-final.txt",
+      "bytes": 409,
+      "sha256": "c2daacf8dc892fdf35471a4f9171d533a2eecf02fdf9e430eb0adf15d6b58ff6"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/web-build-responsive-final.txt",
+      "target": "tool-root-cuts/web-build-responsive-final.txt",
+      "bytes": 8881,
+      "sha256": "b938491d0c3833a67659d950407e9c10b493661a04b3162042b65c59c632b51c"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/workspace-responsive-final.json",
+      "target": "tool-root-cuts/workspace-responsive-final.json",
+      "bytes": 117,
+      "sha256": "478995ea80e5bf3a00fcdeed7ec9e5ae0ad449f4f1c8a6c7a33719a60c80c64a"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/tool-link-hit-before.json",
+      "target": "tool-root-cuts/tool-link-hit-before.json",
+      "bytes": 923,
+      "sha256": "7567617529ae3e64233c46a5038ff34a4667f231ae60c47233089e5e2ac4d0df"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/tool-browser-visual-before-link-fix.json",
+      "target": "tool-root-cuts/tool-browser-visual-before-link-fix.json",
+      "bytes": 6601,
+      "sha256": "80a4794e17ece7d91b33091cd7d6f02fa9717381e4925a496f8e0ac2335ccfc8"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/tool-viewport-pointer-observation.json",
+      "target": "tool-root-cuts/tool-viewport-pointer-observation.json",
+      "bytes": 1727,
+      "sha256": "eb2279ac8b612b4657baf23c2350ff65cee7a7ed2f8d45d611ac6893803d137d"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/screenshots/verified-final-keyboard-390.png",
+      "target": "tool-final-390.png",
+      "bytes": 85495,
+      "sha256": "523d03b7aa4589cec82b9f713b3f5e06a4902145fc4084b0b2f8ccaa47770933"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/screenshots/verified-final-keyboard-768.png",
+      "target": "tool-final-768.png",
+      "bytes": 150491,
+      "sha256": "5f9cbc175bf7417da5b86edff709bcae44897d073cfdcea5ef566390a692d7d4"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/screenshots/verified-final-keyboard-1366.png",
+      "target": "tool-final-1366.png",
+      "bytes": 207938,
+      "sha256": "50c42f1f017e697144acd427c2d23327d6f2b31de8031b2f971cd8cf6ad38972"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/screenshots/verified-final-keyboard-1920.png",
+      "target": "tool-final-1920.png",
+      "bytes": 245128,
+      "sha256": "812dd4d38c254760ea31c6a1846640116acf1c11d16262bc8d5320ee107e9ce1"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/screenshots/verified-final-dark-1366.png",
+      "target": "tool-final-dark-1366.png",
+      "bytes": 202967,
+      "sha256": "2dde0e53e79e4d0ced645d83451176e1f44ed1e5a277af9620a7f9084e4c5b7c"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/screenshots/verified-final-delivery.jpg",
+      "target": "tool-final-desktop.jpg",
+      "bytes": 57262,
+      "sha256": "df08bbbe5977136c4be252eea4529ab4f2d087dfd82983a7556d68076ad95921"
+    }
+  ]
+}

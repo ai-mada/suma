@@ -1,0 +1,64 @@
+{
+  "scope": "Test transport observation, not a platform state failure. A locator mouse click after raw CDP device resize navigated to an unrelated local view; no data mutation. Responsive controls are rechecked by keyboard to avoid coordinate mapping mismatch.",
+  "observation": {
+    "case": "final-responsive-390",
+    "observed_at": "2026-10-24T05:37:06.990Z",
+    "assets": [
+      "http://localhost:4322/assets/index-M_630Zj3.js"
+    ],
+    "client": 375,
+    "graph_present": false,
+    "height": 844,
+    "href": "http://localhost:4322/?project=00b793dfdfd9accf98481438992d8ce3&view=operations&sub=releases&status=all&layout=list&week=2026-10-19",
+    "scroll": 375,
+    "theme": "light",
+    "width": 390,
+    "screenshot": "verified-final-390.png",
+    "layout_metrics": {
+      "contentSize": {
+        "height": 1338,
+        "width": 562,
+        "x": 0,
+        "y": 0
+      },
+      "cssContentSize": {
+        "height": 892,
+        "width": 374,
+        "x": 0,
+        "y": 0
+      },
+      "cssLayoutViewport": {
+        "clientHeight": 844,
+        "clientWidth": 374,
+        "pageX": 0,
+        "pageY": 0
+      },
+      "cssVisualViewport": {
+        "clientHeight": 844,
+        "clientWidth": 374.6666870117187,
+        "offsetX": 0,
+        "offsetY": 0,
+        "pageX": 0,
+        "pageY": 0,
+        "scale": 1,
+        "zoom": 1
+      },
+      "layoutViewport": {
+        "clientHeight": 1266,
+        "clientWidth": 562,
+        "pageX": 0,
+        "pageY": 0
+      },
+      "visualViewport": {
+        "clientHeight": 1266,
+        "clientWidth": 562,
+        "offsetX": 0,
+        "offsetY": 0,
+        "pageX": 0,
+        "pageY": 0,
+        "scale": 1,
+        "zoom": 1
+      }
+    }
+  }
+}

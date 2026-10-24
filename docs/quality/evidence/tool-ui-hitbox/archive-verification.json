@@ -1,0 +1,82 @@
+{
+  "stage": "T-P4-004-requirement-hitbox-supplement",
+  "verified_at": "2026-10-24T05:35:36.111518+00:00",
+  "scope": "Byte binding and web198 test cut only; real browser mouse/keyboard/layout owned by main integrator.",
+  "raw_files_checked": 9,
+  "current_ui_and_dependency_inputs_checked": 24,
+  "current_inputs_match_final_checks": true,
+  "old_archive_files_checked": 68,
+  "old_archive_bytes_unchanged": true,
+  "shared_document_checker": {
+    "path": "scripts/check-docs.mjs",
+    "bytes": 1927,
+    "sha256": "2be8cc2ee18bed2777d513f30883db01962dda23f0065618c65465a994033f0e"
+  },
+  "docs_check_exit_code": 0,
+  "reports": [
+    {
+      "path": "docs/quality/tool-ui-hitbox-verification.md",
+      "bytes": 4659,
+      "sha256": "c4545c47b44096bf5c772083185ded0fd0f1d81aabedda7464f5288bca35956f"
+    }
+  ],
+  "files_excluding_this_receipt": 11,
+  "files": [
+    {
+      "path": "docs/quality/evidence/tool-ui-hitbox/archive-map.json",
+      "bytes": 4178,
+      "sha256": "6e7c0ee42d34e1e27a828d7c3ab63d39b5d46bdc0d0cfccdc741eb8fafcf8d57"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-hitbox/README.md",
+      "bytes": 1203,
+      "sha256": "804218c1bcd73448011e3297c324a704daac8b591ba1d6537bcfa78959a49e35"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-hitbox/ui-hitbox-docs-check.txt",
+      "bytes": 134,
+      "sha256": "d000087bb5682e0f8ab3f7556fe277823b05b0dc40ab8f8f0f1578ddfa72c4b8"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-hitbox/ui-hitbox-format-check.txt",
+      "bytes": 68,
+      "sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-hitbox/ui-hitbox-source-before.json",
+      "bytes": 4619,
+      "sha256": "7a85dd22724bd06ec45ccfa76db68bc185789f78ed41a63a9070520e5cbe162c"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-hitbox/ui-hitbox-typecheck-final.txt",
+      "bytes": 16,
+      "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-hitbox/ui-hitbox-verification.json",
+      "bytes": 7149,
+      "sha256": "7444d245d5fd6e2437208d7b38e319efa7124acf2b9c4804a9511647fafb45a6"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-hitbox/ui-hitbox-whitespace-check.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-hitbox/ui-requirement-hitbox-green.txt",
+      "bytes": 300,
+      "sha256": "a987321263e2df57725c56b4e5b0375f7674be0b7ca5d58db3d8c6061ad79f20"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-hitbox/ui-requirement-hitbox-red.txt",
+      "bytes": 2014,
+      "sha256": "3ac4fa17d6d079614c01654786c58a24a38f49c117ede3c4e92df54ef37d5caa"
+    },
+    {
+      "path": "docs/quality/evidence/tool-ui-hitbox/ui-web-hitbox-final.txt",
+      "bytes": 1370,
+      "sha256": "8135886f6b339093814beabebb6a98e169d0803bb741edd4f130f68cddf9717b"
+    }
+  ],
+  "self_excluded": true
+}

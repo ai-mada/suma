@@ -4,6 +4,13 @@ import type {RecordItem} from './api';
 const identifier=(value:unknown)=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,150}$/.test(value)?value:'';
 const object=(value:unknown):Record<string,unknown>=>value&&typeof value==='object'&&!Array.isArray(value)?value as Record<string,unknown>:{};
 
+export function RecordRequirementReference({item,project,onOpen}:{item:RecordItem;project:string;onOpen?:(id:string)=>void}){
+ if(item.project_id&&item.project_id!==project)return null;
+ const requirement=identifier(item.requirement_id);
+ if(!requirement)return null;
+ return <a style={{display:'inline-flex',flexWrap:'wrap',alignItems:'center',gap:'4px 6px',maxWidth:'100%',minWidth:0,minHeight:'36px',padding:'2px 0',verticalAlign:'top',overflowWrap:'anywhere'}} href={'?'+new URLSearchParams({project,view:'requirements',record:requirement})} onClick={event=>{if(!onOpen||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();onOpen(requirement);}}><span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}>查看关联需求<ArrowUpRight size={13}/></span><code style={{flex:'1 1 100%',minWidth:0,maxWidth:'100%',overflowWrap:'anywhere',wordBreak:'break-all'}}>{requirement}</code></a>;
+}
+
 export function RecordLineage({item,project}:{item:RecordItem;project:string}){
  if(item.project_id&&item.project_id!==project)return null;
  const data=object(item.data),source=object(item.source??data.source);

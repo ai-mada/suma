@@ -1,0 +1,5 @@
+--- FAIL: TestNativeEntryBytesChangeProfileEvenWithSamePathVersionAndInterpreter (1.16s)
+    tools_test.go:151: same-path JavaScript entry drift was not bound to profile
+FAIL
+FAIL	github.com/ai-mada/suma/internal/runner	1.417s
+FAIL

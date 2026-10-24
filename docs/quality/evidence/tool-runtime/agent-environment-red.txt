@@ -1,0 +1,5 @@
+--- FAIL: TestNativeAgentEnvironmentNeverForwardsRunnerBearer (0.00s)
+    tool_process_test.go:126: Runner bearer forwarded to native agent
+FAIL
+FAIL	github.com/ai-mada/suma/internal/runner	0.137s
+FAIL

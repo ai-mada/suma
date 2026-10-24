@@ -3,6 +3,7 @@ package runner
 import (
 	"encoding/json"
 	"github.com/ai-mada/suma/internal/releasecontract"
+	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
 type Assignment struct {
@@ -34,6 +35,7 @@ type Result struct {
 	WorkspaceEvidence map[string]any                    `json:"workspace_evidence,omitempty"`
 	ArtifactEvidence  *releasecontract.ArtifactEvidence `json:"artifact_evidence,omitempty"`
 	ReleaseEvidence   *releasecontract.ReleaseResult    `json:"release_evidence,omitempty"`
+	ToolEvidence      *tc.Evidence                      `json:"tool_evidence,omitempty"`
 	artifactPending   bool
 }
 
@@ -41,6 +43,7 @@ type Progress struct {
 	Assignment  Assignment `json:"assignment"`
 	OperationID string     `json:"operation_id"`
 	Message     string     `json:"message"`
+	ToolEvent   *tc.Event  `json:"tool_event,omitempty"`
 	Acked       bool       `json:"acked,omitempty"`
 }
 
@@ -61,5 +64,6 @@ func (r Result) MarshalJSON() ([]byte, error) {
 		WorkspaceEvidence map[string]any                    `json:"workspace_evidence,omitempty"`
 		ArtifactEvidence  *releasecontract.ArtifactEvidence `json:"artifact_evidence,omitempty"`
 		ReleaseEvidence   *releasecontract.ReleaseResult    `json:"release_evidence,omitempty"`
-	}{r.RunID, r.NodeID, r.Attempt, r.Fence, r.WorkerID, r.ExitCode, r.Output, r.Error, r.OperationID, r.Stopped, r.OutcomeUnknown, r.WorkspaceEvidence, r.ArtifactEvidence, r.ReleaseEvidence})
+		ToolEvidence      *tc.Evidence                      `json:"tool_evidence,omitempty"`
+	}{r.RunID, r.NodeID, r.Attempt, r.Fence, r.WorkerID, r.ExitCode, r.Output, r.Error, r.OperationID, r.Stopped, r.OutcomeUnknown, r.WorkspaceEvidence, r.ArtifactEvidence, r.ReleaseEvidence, r.ToolEvidence})
 }

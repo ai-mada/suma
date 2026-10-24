@@ -1,0 +1,73 @@
+{
+  "stage": "T-P4-004",
+  "recorded_at": "2026-10-24T05:15:08.564842+00:00",
+  "scope": "Installed native Codex version/exec-help through this stage initial 045219 delivery Runner12c, not a claim about the later post-review final runtime. No model, login, task, control API, token or provider key was used.",
+  "delivery_cut": "20261024T045219750Z-715ba2c8",
+  "delivery_role": "initial delivery before subsequent DAG confirmed-stop review fix",
+  "observed_at": "2026-10-24T05:12:12.457100+00:00",
+  "runner": {
+    "path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T045219750Z-715ba2c8\\suma-runner.exe",
+    "sha256": "12c8681ec9d7e1ba325252e264e5d7aaa7d73d9c053cc3d6c3466292b44f56cb",
+    "matches_public_delivery_manifest": true
+  },
+  "native_codex_path": "C:\\Users\\Administrator\\AppData\\Local\\OpenAI\\Codex\\bin\\8925276705115dea\\codex.exe",
+  "profile": {
+    "command_id": "codex-readonly",
+    "adapter": "codex",
+    "protocol": "codex-jsonl-v1",
+    "profile_sha256": "d2e4575891eabff50e33d1ae48453b2a488bcb28f0888f3b93259bd75a2f3afe",
+    "executable_sha256": "c6144bc19b2705f25a40d8488b3d57d17a223c5df3c5f65e3c58d72601956c1e",
+    "tool_version": "codex-cli 0.164.0-alpha.11.1",
+    "read_only": true
+  },
+  "available": true,
+  "reason": "installed executable and protocol probe; model authentication and task success unverified",
+  "native_executable_unchanged": true,
+  "allowed_internal_cli_probes": [
+    [
+      "--version"
+    ],
+    [
+      "exec",
+      "--help"
+    ]
+  ],
+  "model_authentication_verified": false,
+  "model_health_verified": false,
+  "model_task_execution_verified": false,
+  "platform_worker_or_profile_registered": false,
+  "local_execution_opt_in_only": true,
+  "network_capture_performed": false,
+  "raw_stderr_archived": false,
+  "credential_or_command_configuration_archived": false,
+  "raw_receipt_label_note": "The original receipt says delivered Runner as observed at that time. This supplemental cut label explicitly identifies the initial 045219 byte cut and does not rewrite the original receipt.",
+  "archive_mapping": [
+    {
+      "source": ".cache/e2e/tool-stage/installed-codex-describe.json",
+      "archive": "docs/quality/evidence/tool-codex-probe/installed-codex-describe.json",
+      "bytes": 479,
+      "sha256": "95ba6d2f33dc9f226718b54b9d00c2c2ff7f62f65fda6f9ce15169f6f8677bde",
+      "original_bytes_preserved": true
+    },
+    {
+      "source": ".cache/e2e/tool-stage/installed-codex-verification.json",
+      "archive": "docs/quality/evidence/tool-codex-probe/installed-codex-verification.original.json",
+      "bytes": 3080,
+      "sha256": "a4be0309107759fcb40cefb660cb1ed61eea93c58ed1c10581feee88e7dbfc53",
+      "original_bytes_preserved": true
+    },
+    {
+      "source": ".cache/e2e/tool-stage/installed-codex-probe.py",
+      "archive": "docs/quality/evidence/tool-codex-probe/installed-codex-probe.py",
+      "bytes": 6825,
+      "sha256": "804ab4c0c9a190018c01612e829c1d9e76d56137afe1ebbc1a16b6698c3dbe67",
+      "original_bytes_preserved": true
+    }
+  ],
+  "previous_runtime_archive": {
+    "files_preserved": 41,
+    "manifest_sha256": "03acac32c45c8efdb8c0a1fc2b6b76b98fb653f46a5082b2d215b60100d9a33a",
+    "unchanged": true
+  },
+  "post_review_reprobe_performed": false
+}

@@ -1,0 +1,313 @@
+{
+  "stage": "T-P4-004",
+  "archived_at": "2026-10-24T05:00:48.501169+00:00",
+  "scope": "Existing UI model/SSR tests, typecheck, read-only format checks and source snapshots only. No application/runtime source modification, model/vendor execution or browser acceptance by archiver.",
+  "source_file_count": 34,
+  "source_files_copied_byte_for_byte": true,
+  "security_review": {
+    "patterns_checked": [
+      "private_key",
+      "openai_key",
+      "github_token",
+      "bearer_secret",
+      "credential_url"
+    ],
+    "matches": [],
+    "source_material": "Allowlisted UI tests and metadata; synthetic strings in unit tests are fixtures. Did not read runtime tokens, keys, databases or live control logs."
+  },
+  "snapshot_semantics": [
+    {
+      "archive": "docs/quality/evidence/tool-ui/ui-source-verification.json",
+      "test_pass_count": 183,
+      "source_file_count": 16,
+      "classification": "historical_UI_source_cut",
+      "current_source_differences": [
+        "apps/web/src/App.tsx",
+        "apps/web/src/TaskDispatch.tsx",
+        "apps/web/src/ToolFacts-consumers.test.tsx",
+        "apps/web/src/ToolFacts.tsx",
+        "apps/web/src/tool-model.test.ts",
+        "apps/web/src/tool-model.ts"
+      ],
+      "does_not_prove_browser_or_vendor_execution": true
+    },
+    {
+      "archive": "docs/quality/evidence/tool-ui/ui-reason-boundary-verification.json",
+      "test_pass_count": 185,
+      "source_file_count": 16,
+      "classification": "historical_UI_source_cut",
+      "current_source_differences": [
+        "apps/web/src/App.tsx",
+        "apps/web/src/TaskDispatch.tsx",
+        "apps/web/src/ToolFacts-consumers.test.tsx",
+        "apps/web/src/ToolFacts.tsx",
+        "apps/web/src/tool-model.test.ts",
+        "apps/web/src/tool-model.ts"
+      ],
+      "does_not_prove_browser_or_vendor_execution": true
+    },
+    {
+      "archive": "docs/quality/evidence/tool-ui/ui-task-protocol-verification.json",
+      "test_pass_count": 186,
+      "source_file_count": 16,
+      "classification": "historical_UI_source_cut",
+      "current_source_differences": [
+        "apps/web/src/App.tsx",
+        "apps/web/src/TaskDispatch.tsx",
+        "apps/web/src/ToolFacts-consumers.test.tsx",
+        "apps/web/src/ToolFacts.tsx",
+        "apps/web/src/tool-model.test.ts",
+        "apps/web/src/tool-model.ts"
+      ],
+      "does_not_prove_browser_or_vendor_execution": true
+    },
+    {
+      "archive": "docs/quality/evidence/tool-ui/ui-lifecycle-link-verification.json",
+      "test_pass_count": 189,
+      "source_file_count": 18,
+      "classification": "current_UI_source_cut",
+      "current_source_differences": [],
+      "does_not_prove_browser_or_vendor_execution": true
+    }
+  ],
+  "files": [
+    {
+      "source": ".cache/e2e/tool-stage/ui-red.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-red.txt",
+      "bytes": 11125,
+      "source_sha256": "7304d72cb7ec92c513bc7d43ec4297fa85f8a0b16a4f11c5280a3c9ba3fcea12",
+      "archive_sha256": "7304d72cb7ec92c513bc7d43ec4297fa85f8a0b16a4f11c5280a3c9ba3fcea12"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-model-green.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-model-green.txt",
+      "bytes": 340,
+      "source_sha256": "7eee971d149f48c7e55b046ee6c51598b4cb0fcd80c23be64ecc2a3ee0d31317",
+      "archive_sha256": "7eee971d149f48c7e55b046ee6c51598b4cb0fcd80c23be64ecc2a3ee0d31317"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-waiting-terminal-red.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-waiting-terminal-red.txt",
+      "bytes": 2576,
+      "source_sha256": "afe55b0943d9f6d65148baf87f1b95302407533ac82d650f01f55292826c8aa0",
+      "archive_sha256": "afe55b0943d9f6d65148baf87f1b95302407533ac82d650f01f55292826c8aa0"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-current-green.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-current-green.txt",
+      "bytes": 340,
+      "source_sha256": "f107aa8c07a0ee7a1bbf6dcfe06ac717688066708f9991da010383f5b2e89398",
+      "archive_sha256": "f107aa8c07a0ee7a1bbf6dcfe06ac717688066708f9991da010383f5b2e89398"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-task-prerequisite-red.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-task-prerequisite-red.txt",
+      "bytes": 2526,
+      "source_sha256": "f44c8a3c524b5a31424dd9c7323087fcf2860b4b9ee7ee71f246a0ffba189bf4",
+      "archive_sha256": "f44c8a3c524b5a31424dd9c7323087fcf2860b4b9ee7ee71f246a0ffba189bf4"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-prerequisite-green.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-prerequisite-green.txt",
+      "bytes": 340,
+      "source_sha256": "dd4a84741d56cb3a50941eed9357197933ecde5426c0c259113abc889fddb2be",
+      "archive_sha256": "dd4a84741d56cb3a50941eed9357197933ecde5426c0c259113abc889fddb2be"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-binding-status-red.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-binding-status-red.txt",
+      "bytes": 6638,
+      "source_sha256": "647c8b902ea9d986c02397a67af322f0a029712bab4634e2ea1adf5060c3fb6c",
+      "archive_sha256": "647c8b902ea9d986c02397a67af322f0a029712bab4634e2ea1adf5060c3fb6c"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-binding-status-green.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-binding-status-green.txt",
+      "bytes": 349,
+      "source_sha256": "5518b19eec29832ab3fbe653ea5be45dc8c3dfe83a00a99f92692cd01e1fce25",
+      "archive_sha256": "5518b19eec29832ab3fbe653ea5be45dc8c3dfe83a00a99f92692cd01e1fce25"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-inventory-reason-boundary-red.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-inventory-reason-boundary-red.txt",
+      "bytes": 3717,
+      "source_sha256": "278a3da6f5cf57f66ab1009202c9e909b6db252a7e5cd95bc9ae1b1b823d532b",
+      "archive_sha256": "278a3da6f5cf57f66ab1009202c9e909b6db252a7e5cd95bc9ae1b1b823d532b"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-inventory-reason-boundary-green.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-inventory-reason-boundary-green.txt",
+      "bytes": 287,
+      "source_sha256": "8a07321346f5681dc1c4e3bf7e9af919e1ed767eb60f1df4b5c0baa7544823c0",
+      "archive_sha256": "8a07321346f5681dc1c4e3bf7e9af919e1ed767eb60f1df4b5c0baa7544823c0"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-task-protocol-boundary-red.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-task-protocol-boundary-red.txt",
+      "bytes": 2972,
+      "source_sha256": "b19a10d79463c24ef65a3766e64447e917ff2db70084eb3649664929197cd72d",
+      "archive_sha256": "b19a10d79463c24ef65a3766e64447e917ff2db70084eb3649664929197cd72d"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-task-protocol-boundary-green.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-task-protocol-boundary-green.txt",
+      "bytes": 285,
+      "source_sha256": "3fb7428364f0a8654c85292cbe4d4c7eac2afcd37408207324774f82bbbfc628",
+      "archive_sha256": "3fb7428364f0a8654c85292cbe4d4c7eac2afcd37408207324774f82bbbfc628"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-requirement-link-red.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-requirement-link-red.txt",
+      "bytes": 1877,
+      "source_sha256": "b44eeabe0c9c8d3771ce5504f3388679637369afedd819026d10dcdb4d90ba54",
+      "archive_sha256": "b44eeabe0c9c8d3771ce5504f3388679637369afedd819026d10dcdb4d90ba54"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-requirement-link-green.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-requirement-link-green.txt",
+      "bytes": 288,
+      "source_sha256": "72d4bd08ebdda2e696236bd31878d39c8fd1dc28096b6afc99186b1d7dc82dc9",
+      "archive_sha256": "72d4bd08ebdda2e696236bd31878d39c8fd1dc28096b6afc99186b1d7dc82dc9"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-reserved-plan-red.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-reserved-plan-red.txt",
+      "bytes": 5410,
+      "source_sha256": "e5856487d695dab59d06c8d9816f2cc48221603f68bdc37385b1564771596f71",
+      "archive_sha256": "e5856487d695dab59d06c8d9816f2cc48221603f68bdc37385b1564771596f71"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-reserved-plan-and-link-green.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-reserved-plan-and-link-green.txt",
+      "bytes": 390,
+      "source_sha256": "2e500437e3c6772d89eb94734a7182fbb2ced47d9c12d861d040a1426629c923",
+      "archive_sha256": "2e500437e3c6772d89eb94734a7182fbb2ced47d9c12d861d040a1426629c923"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-web-final.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-web-final.txt",
+      "bytes": 1259,
+      "source_sha256": "bc27d1fd68dd1ad7239ba9f507d9cfc63b6e49d6221fcd9f09aa430c701b111b",
+      "archive_sha256": "bc27d1fd68dd1ad7239ba9f507d9cfc63b6e49d6221fcd9f09aa430c701b111b"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-typecheck-final.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-typecheck-final.txt",
+      "bytes": 16,
+      "source_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9",
+      "archive_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-web-reason-boundary-final.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-web-reason-boundary-final.txt",
+      "bytes": 1259,
+      "source_sha256": "426db6b5170817a584e9defbf256d67d8333d6013aa6c70941376f79f469323c",
+      "archive_sha256": "426db6b5170817a584e9defbf256d67d8333d6013aa6c70941376f79f469323c"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-typecheck-reason-boundary-final.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-typecheck-reason-boundary-final.txt",
+      "bytes": 16,
+      "source_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9",
+      "archive_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-web-task-protocol-final.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-web-task-protocol-final.txt",
+      "bytes": 1259,
+      "source_sha256": "07dcad88b5d44918129593947e9a5fa74aec5b77dd7581ba70e1fe76eac3a519",
+      "archive_sha256": "07dcad88b5d44918129593947e9a5fa74aec5b77dd7581ba70e1fe76eac3a519"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-typecheck-task-protocol-final.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-typecheck-task-protocol-final.txt",
+      "bytes": 16,
+      "source_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9",
+      "archive_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-web-lifecycle-link-final.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-web-lifecycle-link-final.txt",
+      "bytes": 1258,
+      "source_sha256": "7a776a01d1c08d24b688f1b6573e584cb4e7af4591182d837b6b4d0d9fd19215",
+      "archive_sha256": "7a776a01d1c08d24b688f1b6573e584cb4e7af4591182d837b6b4d0d9fd19215"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-typecheck-lifecycle-link-final.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-typecheck-lifecycle-link-final.txt",
+      "bytes": 16,
+      "source_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9",
+      "archive_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-typecheck-first.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-typecheck-first.txt",
+      "bytes": 322,
+      "source_sha256": "3ced05f6cebe8c933e09240bd025efdfc12516f16b2952a7d1ff36d11268d422",
+      "archive_sha256": "3ced05f6cebe8c933e09240bd025efdfc12516f16b2952a7d1ff36d11268d422"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-typecheck-green.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-typecheck-green.txt",
+      "bytes": 16,
+      "source_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9",
+      "archive_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-source-verification.json",
+      "archive": "docs/quality/evidence/tool-ui/ui-source-verification.json",
+      "bytes": 4467,
+      "source_sha256": "b0ad4d6e3ce5edb21a89bf92b86f853443c02738df1ed5bdcc078960296d3960",
+      "archive_sha256": "b0ad4d6e3ce5edb21a89bf92b86f853443c02738df1ed5bdcc078960296d3960"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-reason-boundary-verification.json",
+      "archive": "docs/quality/evidence/tool-ui/ui-reason-boundary-verification.json",
+      "bytes": 5752,
+      "source_sha256": "39f98fd2d8e1927cbc2628b5b6dd67630225826b2d949fe0edef4a300efae6f1",
+      "archive_sha256": "39f98fd2d8e1927cbc2628b5b6dd67630225826b2d949fe0edef4a300efae6f1"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-task-protocol-verification.json",
+      "archive": "docs/quality/evidence/tool-ui/ui-task-protocol-verification.json",
+      "bytes": 5970,
+      "source_sha256": "8229028d553f1ba7d323922a4caad12f6f1c68bc5a1da1caf1d4b7a0b1a59f34",
+      "archive_sha256": "8229028d553f1ba7d323922a4caad12f6f1c68bc5a1da1caf1d4b7a0b1a59f34"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-lifecycle-link-verification.json",
+      "archive": "docs/quality/evidence/tool-ui/ui-lifecycle-link-verification.json",
+      "bytes": 7108,
+      "source_sha256": "57987ee82d7d2db9341fcd4a7d6a64078fc9bbddb49eb4cda825e1d1cb8f563b",
+      "archive_sha256": "57987ee82d7d2db9341fcd4a7d6a64078fc9bbddb49eb4cda825e1d1cb8f563b"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-final-format-version.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-final-format-version.txt",
+      "bytes": 7,
+      "source_sha256": "fd978ad539de785561bf67ee948896f8588b79a59d86e0656c6b00b4281a57de",
+      "archive_sha256": "fd978ad539de785561bf67ee948896f8588b79a59d86e0656c6b00b4281a57de"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-final-format-check.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-final-format-check.txt",
+      "bytes": 68,
+      "source_sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283",
+      "archive_sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-final-whitespace-check.txt",
+      "archive": "docs/quality/evidence/tool-ui/ui-final-whitespace-check.txt",
+      "bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-final-format-verification.json",
+      "archive": "docs/quality/evidence/tool-ui/ui-final-format-verification.json",
+      "bytes": 976,
+      "source_sha256": "3e56b2c2796747ffc20e4d318440feb82213df0873c1ccbc9709389b77d29ee2",
+      "archive_sha256": "3e56b2c2796747ffc20e4d318440feb82213df0873c1ccbc9709389b77d29ee2"
+    }
+  ]
+}

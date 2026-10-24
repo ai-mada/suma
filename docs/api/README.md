@@ -12,7 +12,7 @@ Go导出域模型直接反射，包括PlanningPeriod、TaskPlan、PlannedTask、
 
 ## 请求规则
 
-签名事件接收器是独立边界：`POST /hooks/{id}` 使用入口签名，拒绝浏览器Cookie/Bearer和任何query，不由调用者提供project_id。本轮新增的7个路径、131个导出模型与110个API路径详见生成合同；跨字段、原文字节签名、受限来源和事务规则见[事件入口合同](../../contracts/automation-ingress.md)。这些计数描述合同覆盖，不表示真实厂商或完整平台已经验收。
+签名事件接收器是独立边界：`POST /hooks/{id}` 使用入口签名，拒绝浏览器Cookie/Bearer和任何query，不由调用者提供project_id。T-P4-003新增7个签名入口路径；本阶段再加入7个工具及任务派发路径，当前生成合同为147个模型、117个API路径；另加统一`Error`，OpenAPI实际共有148个Schema组件。跨字段、原文字节签名和事务规则见[事件入口合同](../../contracts/automation-ingress.md)；工具资格、固定任务输入和结构化进度见[工具执行合同](../../contracts/tool-execution.md)。这些计数描述合同覆盖，不表示真实厂商或完整平台已经验收。
 
 - 项目请求必须给出project_id；租户由身份取得，客户端不能指定其他tenant。
 - 创建/写入携带稳定idempotency_key。相同标识与内容恢复同一操作；不同内容返回409。
@@ -42,6 +42,9 @@ Go导出域模型直接反射，包括PlanningPeriod、TaskPlan、PlannedTask、
 | requirements、tasks、members、issues、documents、releases、tests、evidence | 授权业务记录 |
 | requirements/{id}/decompose | 编辑后的所选任务原子创建 |
 | tasks/{id}/review | 绑定需求/任务/依赖/测试依据的人工验收 |
+| tool-profiles、tool-profiles/{id}/commands | 既有执行身份下不可变工具配置、现场清单、CAS启停及永久撤销；当前只供项目浏览器会话管理 |
+| task-dispatch-plans、task-dispatch-plans/{id}/start | 固定任务/需求/流程/工具版本预览、期限、当前依据复核、原子派发及相同操作恢复 |
+| runner/tool-inventory | 已登记且绑定凭证的执行节点上报非秘密本机探测；旧操作恢复不刷新60秒有效期 |
 | issues/{id}/intake | 唯一来源问题回流需求 |
 | workflows、workflows/validate | 不可变版本发布与编译 |
 | runs、runs/{id}、events、commands | 运行/事件/控制/审批/核对/补偿 |

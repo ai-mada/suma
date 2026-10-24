@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-004",
+  "recorded_at_utc": "2026-10-24T05:16:02.365855+00:00",
+  "scope": "Targeted real SQLite/DAG and authenticated HTTP regression. Full post-review suite and vet are independently recorded by the root agent.",
+  "production_change": "Confirmed process stop cannot become success based on zero OS exit or absent/failed/completed protocol evidence; cancellation and unknown effects keep their separate states.",
+  "targeted_test_exit": 0,
+  "records": [
+    {
+      "file": "stopped-zero-exit-red.jsonl",
+      "sha256": "f5f8cbe8d8ccf23740d182aa24ed244ba676bd1b5881eddb597973f3e5a5f440",
+      "size_bytes": 31536,
+      "passed_test_events": 16,
+      "failed_test_events": 10,
+      "failed_package_events": 2,
+      "skipped_test_cases": 0
+    },
+    {
+      "file": "stopped-zero-exit-red-attempt2.jsonl",
+      "sha256": "c236f67ed572dcb4bd2f86a7d1d42b2382cb1a0fd8fe66c86500899ea169145e",
+      "size_bytes": 31239,
+      "passed_test_events": 17,
+      "failed_test_events": 9,
+      "failed_package_events": 2,
+      "skipped_test_cases": 0
+    },
+    {
+      "file": "stopped-zero-exit-red-attempt3.jsonl",
+      "sha256": "a290fc6b986fed13a14d969298cd9b880b4829399b072f2967bc6842efa395ce",
+      "size_bytes": 33614,
+      "passed_test_events": 17,
+      "failed_test_events": 10,
+      "failed_package_events": 2,
+      "skipped_test_cases": 0
+    },
+    {
+      "file": "stopped-zero-exit-green.jsonl",
+      "sha256": "618f57b307a77329fb2e31e20212625d6ee0122f3c3b0aee79cb182116e00d38",
+      "size_bytes": 36712,
+      "passed_test_events": 38,
+      "failed_test_events": 0,
+      "failed_package_events": 0,
+      "skipped_test_cases": 0
+    }
+  ],
+  "red_final_failed_leaf_cases": 8,
+  "red_final_failure_reasons": [
+    "generic confirmed stop activated dependent node",
+    "bound absent/failed/completed evidence confirmed stop activated dependent node",
+    "pinned candidate test stop became successful",
+    "authenticated HTTP absent/failed/completed evidence stop activated quality node"
+  ],
+  "first_red_test_correction": "Initial HTTP issue assertion queried legacy empty run_id column; corrected to verify data.run_id and deduplicated issue count. Attempt2/3 RED failures are only the actual stopped-success defect.",
+  "fixtures": "Five existing normal-completion receipts in three platform test files incorrectly set Stopped=true. Removed that false fact; real cancellation/unknown tests retain Stopped.",
+  "candidate_policy": "Existing rejection of malformed candidate proof remains; a fully valid pinned proof plus Stopped zero-exit is now recorded failed, never passed.",
+  "files_recorded_after_targeted_green": [
+    {
+      "path": "internal/dag/scheduler.go",
+      "sha256": "3b9c534a6572c15c8885a54f59121b16df982affaf2bd5ed87bd58ca25847968",
+      "size_bytes": 17721
+    },
+    {
+      "path": "internal/dag/stopped_result_test.go",
+      "sha256": "effc454a06e93546e2cc59d8b4610583f0507636c7440debddc94dc48cfa30b8",
+      "size_bytes": 5364
+    },
+    {
+      "path": "internal/platform/tool_stopped_result_test.go",
+      "sha256": "f2f281e30da690d94d387c6cf8934f5026ab3de63e39b9fb10d0d55f8982be18",
+      "size_bytes": 3874
+    },
+    {
+      "path": "internal/platform/http_test.go",
+      "sha256": "ef19eafce2fb5fef292d93bbda55df9a080b3f8ffac8563c63950379c6302839",
+      "size_bytes": 10570
+    },
+    {
+      "path": "internal/platform/automation_test.go",
+      "sha256": "1b2610d45ab45be3708169f40a524c05fa72c782577503e7c277f4e404e1d507",
+      "size_bytes": 27231
+    },
+    {
+      "path": "internal/platform/security_evidence_test.go",
+      "sha256": "1ac4a4e767fd8e50578e595bcf61ab14f68e72abe28a70e15392a4a314913e42",
+      "size_bytes": 6956
+    },
+    {
+      "path": "contracts/tool-execution.md",
+      "sha256": "7202591f7c50df5c97dc16c1f31baa7ea476e379f5c823e7a850fc07d969dd77",
+      "size_bytes": 13670
+    }
+  ],
+  "source_frozen_by_this_agent": true,
+  "full_suite": "Root run-go-post-review.ps1 pending at this observation; no full-suite pass claimed."
+}

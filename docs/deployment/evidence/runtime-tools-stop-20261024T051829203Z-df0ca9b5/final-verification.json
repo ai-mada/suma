@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-24T05:21:48.869273+00:00",
+  "stage": "T-P4-004",
+  "stamp": "20261024T051829203Z-df0ca9b5",
+  "source_sha256": "3cdf6ee27eee0ffc6ec731a62c435c474708eeae8db0b48fbb6023bb28fd8b76",
+  "runtime_source_files_rechecked": 116,
+  "current_runtime_sources_match": true,
+  "artifacts_rechecked": 24,
+  "independent_go_metadata_checks": 24,
+  "original_receipt_copies_identical": 3,
+  "original_stdout_stderr_pairs_identical": 50,
+  "go_test_runtime_source_binding": true,
+  "passed_test_events": 512,
+  "failed_test_events": 0,
+  "skipped_test_cases": 0,
+  "test_snapshot_files": 189,
+  "documentation": "docs/deployment/tool-stop-runtime-bundles.md",
+  "documentation_sha256": "8b9cf517f00ebeac04a52e039a91c90231caec5ace49bb1378ed43df75719775",
+  "historical_files_rechecked": 1321,
+  "historical_files_unchanged": 1321,
+  "immutable_historical_files_unchanged": 1309,
+  "current_document_updates": [],
+  "historical_build_receipt_directories": 13,
+  "prior_tool_document_unchanged": true,
+  "prior_479_raw_unchanged": true,
+  "windows_binaries": [
+    {
+      "target": "windows-amd64",
+      "name": "suma-control.exe",
+      "path": "dist/runtime/windows-amd64/20261024T051829203Z-df0ca9b5/suma-control.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T051829203Z-df0ca9b5\\suma-control.exe",
+      "size_bytes": 25483264,
+      "sha256": "d357669448f9ccee63752b7177dcea18b56eeb9efaff01052332da43439a4c0f",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "amd64",
+        "machine": "0x8664",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "windows-amd64",
+      "name": "suma-runner.exe",
+      "path": "dist/runtime/windows-amd64/20261024T051829203Z-df0ca9b5/suma-runner.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T051829203Z-df0ca9b5\\suma-runner.exe",
+      "size_bytes": 9952768,
+      "sha256": "644adbf34d68fce6e65779819118751a64c2eb2872110915d0acdd6e4399d8ab",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "amd64",
+        "machine": "0x8664",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "windows-amd64",
+      "name": "suma-deployer.exe",
+      "path": "dist/runtime/windows-amd64/20261024T051829203Z-df0ca9b5/suma-deployer.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T051829203Z-df0ca9b5\\suma-deployer.exe",
+      "size_bytes": 16125952,
+      "sha256": "f8f6a32145d7679bbd6d04f7496c806e7e5c4f3afc8d84ee9ce8ce5098e8a433",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "amd64",
+        "machine": "0x8664",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "windows-amd64",
+      "name": "suma.exe",
+      "path": "dist/runtime/windows-amd64/20261024T051829203Z-df0ca9b5/suma.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T051829203Z-df0ca9b5\\suma.exe",
+      "size_bytes": 10393088,
+      "sha256": "3d989122ded5345c071e5ef57c1d3a89eda8d582f16e9f6b819fb13a164d82ca",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "amd64",
+        "machine": "0x8664",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    }
+  ],
+  "no_target_program_started_or_stopped_by_delivery_agent": true,
+  "no_binary_copied_to_documentation": true,
+  "scope": "Offline build/independent metadata/headers/bytes, new full Go snapshot binding and history preservation. Root activation/browser evidence, target systems, signing, TS and production are separate."
+}

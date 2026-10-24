@@ -1,0 +1,18 @@
+{
+  "exit": 9,
+  "events": [
+    {
+      "type": "started",
+      "model": "fixture-transport-only",
+      "tools": [],
+      "request_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "type": "error",
+      "code": "fixture_validation_failed",
+      "message": "fixture_fixed_task_context_required",
+      "request_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
+  "scope": "Only missing-context rejection; no code edits or model invocation"
+}

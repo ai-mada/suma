@@ -16,6 +16,14 @@ type Client struct {
 	BaseURL, Token, ProjectID string
 	HTTP                      *http.Client
 }
+type runnerHTTPStatusError struct {
+	Path   string
+	Status int
+}
+
+func (e *runnerHTTPStatusError) Error() string {
+	return fmt.Sprintf("runner %s rejected: HTTP %d", e.Path, e.Status)
+}
 
 func (c *Client) post(ctx context.Context, path string, payload, reply any) error {
 	u, err := url.Parse(c.BaseURL)
@@ -48,7 +56,7 @@ func (c *Client) post(ctx context.Context, path string, payload, reply any) erro
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("runner %s rejected: HTTP %d", path, resp.StatusCode)
+		return &runnerHTTPStatusError{Path: path, Status: resp.StatusCode}
 	}
 	if reply != nil {
 		return json.NewDecoder(io.LimitReader(resp.Body, 2<<20)).Decode(reply)
@@ -73,7 +81,7 @@ func (c *Client) Complete(ctx context.Context, r Result) error {
 	return c.post(ctx, "results", map[string]any{"project_id": c.ProjectID, "result": r}, nil)
 }
 func (c *Client) Progress(ctx context.Context, p Progress) error {
-	return c.post(ctx, "progress", map[string]any{"project_id": c.ProjectID, "assignment": p.Assignment, "operation_id": p.OperationID, "message": p.Message}, nil)
+	return c.post(ctx, "progress", map[string]any{"project_id": c.ProjectID, "assignment": p.Assignment, "operation_id": p.OperationID, "message": p.Message, "tool_event": p.ToolEvent}, nil)
 }
 func ReplayProgress(ctx context.Context, c *Client, j *Journal) error {
 	for _, p := range j.PendingProgress() {

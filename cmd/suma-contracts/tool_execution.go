@@ -1,0 +1,104 @@
+package main
+
+import (
+	"github.com/ai-mada/suma/internal/platform"
+	"github.com/ai-mada/suma/internal/toolcontract"
+)
+
+func toolExecutionModels() []any {
+	return []any{platform.ToolProfile{}, platform.ToolProfileCreateRequest{}, platform.ToolProfileCommandRequest{}, platform.ToolProfileList{}, platform.ToolInventoryRequest{}, platform.ToolInventoryReceipt{}, platform.TaskContextRecord{}, platform.TaskContext{}, platform.TaskDispatchPlan{}, platform.TaskDispatchPreviewRequest{}, platform.TaskDispatchStartRequest{}, toolcontract.Profile{}, toolcontract.Observation{}, toolcontract.Event{}, toolcontract.Evidence{}, toolcontract.Usage{}}
+}
+
+func toolExecutionContracts(add operationAdder, paths map[string]any) {
+	for _, route := range []struct{ path, model string }{{"/tool-profiles", "ToolProfileList"}, {"/tool-profiles/{id}", "ToolProfile"}} {
+		op := add(route.path, "get", route.model, false, false)
+		browserOnly(op)
+		successStatus(op, "200")
+		if route.path == "/tool-profiles" {
+			appendQuery(op, queryParameter("limit", "Default50, maximum200.", map[string]any{"type": "integer", "minimum": 1, "maximum": 200, "default": 50}))
+			appendQuery(op, queryParameter("cursor", "Opaque cursor scoped to tenant and project.", map[string]any{"type": "string"}))
+		}
+		op["description"] = "Immutable administrator configuration plus separately observed local availability. Freshness uses database time and expires after60 seconds. Neither installation nor available=true proves model authentication or successful task execution."
+	}
+	op := add("/tool-profiles", "post", "ToolProfile", false, true)
+	browserOnly(op)
+	successStatus(op, "201")
+	request(op, "ToolProfileCreateRequest")
+	op["description"] = "Registers paused metadata for an existing bound execution worker. Requires live project write and approval authority. No executable, raw args, environment values or secrets are accepted in this public DTO."
+	op = add("/tool-profiles/{id}/commands", "post", "ToolProfile", false, true)
+	browserOnly(op)
+	successStatus(op, "200")
+	request(op, "ToolProfileCommandRequest")
+	op["description"] = "CAS enable/pause/permanent revoke with current authority checked before receipt replay. Immutable configuration cannot be edited; changed configuration requires a new registration."
+	op = add("/runner/tool-inventory", "post", "ToolInventoryReceipt", false, true)
+	request(op, "ToolInventoryRequest")
+	successStatus(op, "200")
+	op["security"] = []any{map[string]any{"runnerAuth": []string{}}}
+	op["x-required-token-scope"] = "runner"
+	op["description"] = "Bound registered worker identity reports at most128 nonsecret local command observations. Exact operation replay recovers the original database timestamp and does not renew expiry. Reports cannot grant profile approval or deployment authority."
+	for _, route := range []struct{ path, method, request, response string }{{"/task-dispatch-plans", "post", "TaskDispatchPreviewRequest", "TaskDispatchPlan"}, {"/task-dispatch-plans/{id}", "get", "", "TaskDispatchPlan"}, {"/task-dispatch-plans/{id}/start", "post", "TaskDispatchStartRequest", "Run"}} {
+		op = add(route.path, route.method, route.response, false, route.request != "")
+		if route.request != "" {
+			request(op, route.request)
+			successStatus(op, "201")
+		} else {
+			successStatus(op, "200")
+		}
+		op["description"] = "Current project authority required. Preview freezes actual task/requirement versions, full task context, selected tool hash and an exact workflow copy with independent candidate tests. Start atomically creates the reserved managed task run and task binding, revalidating current versions, authority, profile and observations. Preview expires after30 database minutes. Same start operation recovers the original run without another task mutation."
+		op["x-disallowed-token-scopes"] = []string{"runner", "agent"}
+	}
+	progress := toolContractMap(paths, "/runner/progress", "post")
+	progress["description"] = "Durable current-attempt output or bounded typed tool fact. Current worker identity and scope are checked before both new events and receipt replay. Emits node_progress or tool_progress; external completion, tokens and waiting-input observations never imply DAG success, business acceptance or release approval."
+	toolContractMap(paths, "/runner/claim", "post")["description"] = "Claims only nodes matching actual command:<id> capabilities and all explicit constraints. Tool-bound nodes additionally require the exact enabled profile, current enabling authority, bound worker and matching fresh inventory before any attempt/resource is consumed."
+}
+
+func enhanceToolExecutionSchemas(schemas map[string]any) {
+	field := func(model, name string, attrs map[string]any) {
+		value := toolContractMap(schemas, model, "properties", name)
+		for k, v := range attrs {
+			value[k] = v
+		}
+	}
+	for _, model := range []string{"ToolProfileCreateRequest", "ToolProfileCommandRequest", "ToolInventoryRequest", "TaskDispatchPreviewRequest", "TaskDispatchStartRequest", "ToolEvent", "ToolUsage"} {
+		toolContractMap(schemas, model)["additionalProperties"] = false
+	}
+	for _, model := range []string{"ToolProfileCreateRequest", "ToolProfileCommandRequest", "TaskDispatchPreviewRequest", "TaskDispatchStartRequest"} {
+		field(model, "idempotency_key", map[string]any{"minLength": 8, "maxLength": 128})
+	}
+	field("ToolInventoryRequest", "operation_id", map[string]any{"minLength": 8, "maxLength": 128})
+	field("ToolInventoryRequest", "items", map[string]any{"maxItems": 128})
+	field("ToolProfileCommandRequest", "action", map[string]any{"enum": []string{"enable", "pause", "revoke"}})
+	field("ToolProfile", "state", map[string]any{"enum": []string{"paused", "enabled", "revoked"}})
+	field("ToolProfileCreateRequest", "name", map[string]any{"minLength": 1, "maxLength": 200, "x-max-utf8-bytes": 200})
+	field("ToolExecutionProfile", "command_id", map[string]any{"pattern": `^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$`})
+	field("ToolExecutionProfile", "profile_sha256", map[string]any{"description": "Canonical SHA256 when available/registered; may be empty only in unavailable observations."})
+	field("ToolExecutionProfile", "executable_sha256", map[string]any{"description": "Resolved executable byte digest, not complete transitive dependency attestation; may be empty only in unavailable observations."})
+	field("ToolExecutionProfile", "tool_version", map[string]any{"maxLength": 256, "x-max-utf8-bytes": 256})
+	field("ToolExecutionProfile", "read_only", map[string]any{"description": "Administrator policy declaration; not a generic operating-system sandbox attestation."})
+	field("ToolObservation", "reason", map[string]any{"maxLength": 1000, "x-max-utf8-bytes": 1000})
+	field("ToolEvent", "schema_version", map[string]any{"const": 1})
+	field("ToolEvent", "kind", map[string]any{"enum": []string{"session_started", "turn_started", "activity_started", "activity_updated", "activity_completed", "message", "usage", "error", "turn_completed", "turn_failed", "waiting_input"}})
+	field("ToolEvent", "message", map[string]any{"maxLength": 8192, "x-max-utf8-bytes": 8192})
+	for _, name := range []string{"session_id", "item_id"} {
+		field("ToolEvent", name, map[string]any{"maxLength": 128})
+	}
+	field("ToolEvent", "status", map[string]any{"maxLength": 64})
+	for name := range toolContractMap(schemas, "ToolUsage", "properties") {
+		field("ToolUsage", name, map[string]any{"minimum": 0})
+	}
+	field("ToolEvidence", "terminal", map[string]any{"enum": []string{"completed", "failed", "unknown"}, "description": "Must agree with the process result; bound success requires completed evidence. Not a platform test or human acceptance verdict."})
+	field("ToolEvidence", "event_count", map[string]any{"minimum": 0})
+	field("TaskDispatchPlan", "state", map[string]any{"enum": []string{"ready", "started"}})
+	for _, name := range []string{"created_at", "expires_at"} {
+		field("TaskDispatchPlan", name, map[string]any{"format": "date-time"})
+	}
+	toolContractMap(schemas, "RunnerProgressRequest")["anyOf"] = []any{map[string]any{"required": []string{"message"}}, map[string]any{"required": []string{"tool_event"}, "properties": map[string]any{"tool_event": map[string]any{"type": "object"}}}}
+}
+
+func toolContractMap(root map[string]any, path ...string) map[string]any {
+	current := root
+	for _, key := range path {
+		current = current[key].(map[string]any)
+	}
+	return current
+}

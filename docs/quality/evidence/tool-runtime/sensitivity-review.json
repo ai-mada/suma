@@ -1,0 +1,30 @@
+{
+  "stage": "T-P4-004",
+  "recorded_at": "2026-10-24T05:04:22.263969+00:00",
+  "actual_private_values_checked": 3,
+  "actual_private_value_matches": [],
+  "high_risk_pattern_matches": [],
+  "reviewed_static_test_fixture_literals": [
+    {
+      "file": "native-cli-red.txt",
+      "kind": "static_public_test_fixture_bearer_literal"
+    },
+    {
+      "file": "native-cli-red.txt",
+      "kind": "static_public_test_fixture_bearer_literal"
+    },
+    {
+      "file": "native-cli-red.txt",
+      "kind": "static_public_test_fixture_bearer_literal"
+    },
+    {
+      "file": "native-cli-red.txt",
+      "kind": "static_public_test_fixture_bearer_literal"
+    }
+  ],
+  "source_files_checked": 35,
+  "copied_private_context": false,
+  "copied_tokens_or_command_config": false,
+  "copied_database_or_process_logs": false,
+  "review_scope": "Compared selected public bytes against current private-context credential values and private-key/provider-key/GitHub-token/bearer patterns. Static unit-test placeholder bearer literals remain original and are identified separately."
+}

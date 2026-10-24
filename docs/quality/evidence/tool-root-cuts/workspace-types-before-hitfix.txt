@@ -1,0 +1,10 @@
+$ pnpm -r --if-present typecheck
+Scope: 5 of 6 workspace projects
+apps/desktop typecheck$ node --check src/main.cjs && node --check src/preload.cjs
+packages/agent-runtime typecheck$ tsc --noEmit
+apps/web typecheck$ tsc --noEmit
+packages/knowledge typecheck$ tsc --noEmit
+apps/desktop typecheck: Done
+packages/agent-runtime typecheck: Done
+packages/knowledge typecheck: Done
+apps/web typecheck: Done

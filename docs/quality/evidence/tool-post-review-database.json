@@ -1,0 +1,813 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-004-post-review",
+  "observed_at_database_utc": "2026-10-24T05:23:44.403Z",
+  "collection": {
+    "read_only": true,
+    "sqlite_open_mode": "ro",
+    "query_only": true,
+    "consistent_read_transaction": true,
+    "database_archived": false,
+    "baseline_sha256": "cc690d964ee0228f0bd17c2db1a91a467daf628e63a4c5518cd718efbb1e6af7",
+    "historical_helper_sha256": "5176d546f1973f46795a64d37665f385e6dc9c8773085ee41a3b5b30249a3337",
+    "collector_sha256": "b446538587ee7b9247ef9dd696f2150d7c76077f2b115e83234cb5b79770ceba",
+    "excluded": [
+      "auth/session/user/password/token/key tables and columns",
+      "private context",
+      "process arguments and environment",
+      "runner command config",
+      "raw goal/stdout/stderr",
+      "unknown JSON fields"
+    ],
+    "redaction_counts": {}
+  },
+  "project": {
+    "id": "00b793dfdfd9accf98481438992d8ce3",
+    "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+    "version": 1,
+    "title": "工具派发实测",
+    "status": "active"
+  },
+  "counts": {
+    "runs": 4,
+    "nodes": 8,
+    "attempts": 5,
+    "task_dispatch_plans": 4,
+    "new_run_nodes": 2,
+    "new_run_attempts": 1,
+    "new_run_events": 11,
+    "tasks": 3,
+    "issues": 1,
+    "requirements": 2,
+    "reviews": 1
+  },
+  "historical_runs": {
+    "all_unchanged": true,
+    "baseline_sha256": "cc690d964ee0228f0bd17c2db1a91a467daf628e63a4c5518cd718efbb1e6af7",
+    "runs": [
+      {
+        "label": "success",
+        "id": "10158abedf0d680f439ca0f2fac2d434",
+        "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+        "project_id": "00b793dfdfd9accf98481438992d8ce3",
+        "workflow_id": "managed-10158abedf0d680f439ca0f2fac2d434",
+        "workflow_version": 1,
+        "workflow_name": "任务派发 · 实现订单访问权限（本机协议夹具）",
+        "version": 5,
+        "state": "succeeded",
+        "created_at": "2026-10-24T04:59:20Z",
+        "updated_at": "2026-10-24T04:59:26Z",
+        "stored_plan_payload_receipt": {
+          "sha256": "2a506656464690ec293d88bb568c46fa4d395ef5db3dfc6e60f1ad4676ce6d92",
+          "size_bytes": 4453
+        },
+        "stored_workflow_receipt": {
+          "sha256": "4adb3b33bbdec558e507187e5ddd63840816a21cae5c1d2ccaa19834b15e32aa",
+          "size_bytes": 2637
+        },
+        "nodes_unchanged": 2,
+        "attempt_results_unchanged": 2,
+        "event_payloads_unchanged": 15
+      },
+      {
+        "label": "failure",
+        "id": "68c1e6179992238819c5bf4aaef19183",
+        "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+        "project_id": "00b793dfdfd9accf98481438992d8ce3",
+        "workflow_id": "managed-68c1e6179992238819c5bf4aaef19183",
+        "workflow_version": 1,
+        "workflow_name": "任务派发 · 失败执行与问题回流（本机协议夹具）",
+        "version": 3,
+        "state": "failed",
+        "created_at": "2026-10-24T05:00:44Z",
+        "updated_at": "2026-10-24T05:00:47Z",
+        "stored_plan_payload_receipt": {
+          "sha256": "4076b55cffe8d0150fd6f53dd9f4bd51664f33db3a322c0b6cd60bc2443d7a6f",
+          "size_bytes": 4244
+        },
+        "stored_workflow_receipt": {
+          "sha256": "5c0fd63ec345f996e60d8bfbc8796cf2e172a852d31f05bcfc6a47f477b13e0f",
+          "size_bytes": 2534
+        },
+        "nodes_unchanged": 2,
+        "attempt_results_unchanged": 1,
+        "event_payloads_unchanged": 9
+      },
+      {
+        "label": "confirmed_stop",
+        "id": "230cfddc70b539f9b5b212ad675b9d05",
+        "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+        "project_id": "00b793dfdfd9accf98481438992d8ce3",
+        "workflow_id": "managed-230cfddc70b539f9b5b212ad675b9d05",
+        "workflow_version": 1,
+        "workflow_name": "任务派发 · 确认停止与回执核对（本机协议夹具）",
+        "version": 4,
+        "state": "cancelled",
+        "created_at": "2026-10-24T05:01:48Z",
+        "updated_at": "2026-10-24T05:02:00Z",
+        "stored_plan_payload_receipt": {
+          "sha256": "5b5a3c65da1d2f5d6926b34ef3f9f16380fd7a63669a2b46320427cfe1ddba5d",
+          "size_bytes": 4238
+        },
+        "stored_workflow_receipt": {
+          "sha256": "38b3d6fb9baea2d12fd0b387cda2c69b29cec1f3c04bbe0a3fe412d6e1fc5b86",
+          "size_bytes": 2531
+        },
+        "nodes_unchanged": 2,
+        "attempt_results_unchanged": 1,
+        "event_payloads_unchanged": 11
+      }
+    ],
+    "total_old_event_payloads_unchanged": 35
+  },
+  "new_run": {
+    "id": "a64dfd23ac07b393626d7f397f12d06c",
+    "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+    "project_id": "00b793dfdfd9accf98481438992d8ce3",
+    "workflow_id": "managed-a64dfd23ac07b393626d7f397f12d06c",
+    "workflow_version": 1,
+    "workflow_name": "任务派发 · 确认停止与回执核对（本机协议夹具）",
+    "version": 4,
+    "state": "cancelled",
+    "created_at": "2026-10-24T05:22:03Z",
+    "updated_at": "2026-10-24T05:22:10Z",
+    "workflow_definition": {
+      "id": "managed-a64dfd23ac07b393626d7f397f12d06c",
+      "version": 1,
+      "name": "任务派发 · 确认停止与回执核对（本机协议夹具）",
+      "nodes": [
+        {
+          "id": "develop",
+          "name": "固定任务开发",
+          "type": "agent",
+          "command": [
+            "task-agent"
+          ],
+          "depends_on": null,
+          "idempotent": false,
+          "join": "all_success",
+          "max_retries": 0,
+          "quorum": 0,
+          "timeout_seconds": 90,
+          "config": {
+            "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+            "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+            "goal_receipt": {
+              "sha256": "0b78e87630d4c840426f604ea65f3d36ff31f9e03d12562ec8b5ec711230d9fc",
+              "size_bytes": 1649
+            }
+          }
+        },
+        {
+          "id": "quality",
+          "name": "独立候选权限测试",
+          "type": "test",
+          "command": [
+            "task-quality"
+          ],
+          "depends_on": [
+            "develop"
+          ],
+          "idempotent": true,
+          "join": "all_success",
+          "max_retries": 0,
+          "quorum": 0,
+          "timeout_seconds": 60,
+          "config": {
+            "candidate_from": "develop"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "develop",
+          "to": "quality"
+        }
+      ]
+    },
+    "stored_workflow_receipt": {
+      "sha256": "8bdd050a2f44c1fdc12d16e8d15f0654af4867a2734357e91d18fa77e248d301",
+      "size_bytes": 2531
+    }
+  },
+  "new_plan": {
+    "id": "10e881907be8782183ac296ddaa01cdf",
+    "project_id": "00b793dfdfd9accf98481438992d8ce3",
+    "version": 1,
+    "state": "ready",
+    "task_id": "01a78009746b83f105cd28d63a286800",
+    "task_version": 2,
+    "requirement_id": "3eea0043bb9560a1fb915011668f827f",
+    "requirement_version": 1,
+    "workflow_id": "tool-task-candidate",
+    "workflow_version": 1,
+    "agent_node_id": "develop",
+    "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+    "tool_profile_version": 4,
+    "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+    "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+    "created_at": "2026-10-24T05:21:54Z",
+    "expires_at": "2026-10-24T05:51:54Z",
+    "valid": true,
+    "reason": "",
+    "stored_row": {
+      "id": "10e881907be8782183ac296ddaa01cdf",
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "version": 2,
+      "state": "started",
+      "created_by": "eceba36551846e21245d343b07a0f62c",
+      "created_at": "2026-10-24T05:21:54Z",
+      "expires_at": "2026-10-24T05:51:54Z"
+    },
+    "stored_payload_receipt": {
+      "sha256": "f04fc507c9e2eae92c933cf9e048d2920ad15af55dde98cbfa2c410043e80d27",
+      "size_bytes": 4238
+    },
+    "workflow": {
+      "id": "tool-task-candidate",
+      "version": 1,
+      "name": "任务派发 · 确认停止与回执核对（本机协议夹具）",
+      "nodes": [
+        {
+          "id": "develop",
+          "name": "固定任务开发",
+          "type": "agent",
+          "command": [
+            "task-agent"
+          ],
+          "depends_on": null,
+          "idempotent": false,
+          "join": "all_success",
+          "max_retries": 0,
+          "quorum": 0,
+          "timeout_seconds": 90,
+          "config": {
+            "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+            "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+            "goal_receipt": {
+              "sha256": "0b78e87630d4c840426f604ea65f3d36ff31f9e03d12562ec8b5ec711230d9fc",
+              "size_bytes": 1649
+            }
+          }
+        },
+        {
+          "id": "quality",
+          "name": "独立候选权限测试",
+          "type": "test",
+          "command": [
+            "task-quality"
+          ],
+          "depends_on": [
+            "develop"
+          ],
+          "idempotent": true,
+          "join": "all_success",
+          "max_retries": 0,
+          "quorum": 0,
+          "timeout_seconds": 60,
+          "config": {
+            "candidate_from": "develop"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "develop",
+          "to": "quality"
+        }
+      ]
+    },
+    "context_basis": {
+      "task_id": "01a78009746b83f105cd28d63a286800",
+      "task_version": 2
+    }
+  },
+  "nodes": [
+    {
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "id": "develop",
+      "state": "cancelled",
+      "reason": "context canceled",
+      "attempt": 1,
+      "fence": 1,
+      "worker_id": "tool-stage-worker",
+      "error_text": "context canceled",
+      "started_at": "2026-10-24T05:22:05Z",
+      "completed_at": "2026-10-24T05:22:10Z",
+      "lease_until": 0,
+      "wake_at": 0,
+      "parent_id": "",
+      "spec": {
+        "id": "develop",
+        "name": "固定任务开发",
+        "type": "agent",
+        "command": [
+          "task-agent"
+        ],
+        "depends_on": null,
+        "idempotent": false,
+        "join": "all_success",
+        "max_retries": 0,
+        "quorum": 0,
+        "timeout_seconds": 90,
+        "config": {
+          "tool_profile_id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+          "tool_profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "goal_receipt": {
+            "sha256": "0b78e87630d4c840426f604ea65f3d36ff31f9e03d12562ec8b5ec711230d9fc",
+            "size_bytes": 1649
+          }
+        }
+      },
+      "stored_spec_receipt": {
+        "sha256": "2736c06d1af827ded016cfe8e2a872d9e3b0c213dbe6cc302a4b4a03e6eaf810",
+        "size_bytes": 2096
+      },
+      "stored_output_receipt": {
+        "sha256": "e0b7714adeabbcb78290369a1328351c101c8988f3cdbb946b1aff134f2f3e30",
+        "size_bytes": 13
+      }
+    },
+    {
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "id": "quality",
+      "state": "cancelled",
+      "reason": "最终df0ca9b5交付实测：停止实际协议夹具进程，等待Runner进程树停止回执；保留unknown协议事实，不得冒充成功。",
+      "attempt": 0,
+      "fence": 0,
+      "worker_id": "",
+      "error_text": "",
+      "started_at": "",
+      "completed_at": "2026-10-24T05:22:05Z",
+      "lease_until": 0,
+      "wake_at": 0,
+      "parent_id": "",
+      "spec": {
+        "id": "quality",
+        "name": "独立候选权限测试",
+        "type": "test",
+        "command": [
+          "task-quality"
+        ],
+        "depends_on": [
+          "develop"
+        ],
+        "idempotent": true,
+        "join": "all_success",
+        "max_retries": 0,
+        "quorum": 0,
+        "timeout_seconds": 60,
+        "config": {
+          "candidate_from": "develop"
+        }
+      },
+      "stored_spec_receipt": {
+        "sha256": "28012665c30aa377253e1f6077bcde6a95856c9cd6f6f58639eb46c394d70e42",
+        "size_bytes": 241
+      },
+      "stored_output_receipt": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      }
+    }
+  ],
+  "attempts": [
+    {
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "node_id": "develop",
+      "attempt": 1,
+      "fence": 1,
+      "worker_id": "tool-stage-worker",
+      "state": "cancelled",
+      "started_at": "2026-10-24T05:22:05Z",
+      "completed_at": "2026-10-24T05:22:10Z",
+      "result": {
+        "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+        "node_id": "develop",
+        "attempt": 1,
+        "fence": 1,
+        "worker_id": "tool-stage-worker",
+        "operation_id": "c993f07b3cbf6b502277c2bf150ef169",
+        "exit_code": -1,
+        "error": "context canceled",
+        "outcome_unknown": false,
+        "stopped": true,
+        "tool_evidence": {
+          "session_id": "0a686be5dfc658ab9ea641d6cc9ef6f7e9adb2d032f26a0bcb1d0cbc4c629490",
+          "terminal": "unknown",
+          "event_count": 3,
+          "profile": {
+            "command_id": "task-agent",
+            "adapter": "suma",
+            "protocol": "suma-jsonl-v1",
+            "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+            "executable_sha256": "c5ff4c736112dd483c750fd4149d30c8a116db1a49b8b3ec88be4b65e6c86c19",
+            "tool_version": "suma-agent-runtime fixture-transport-only",
+            "read_only": false
+          }
+        },
+        "workspace_evidence": {
+          "admin_base_commit": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+          "attempt_key": "1787f1d759d165bde8381761da6c2f00",
+          "base_commit": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+          "captured_at": "2026-10-24T05:22:10.7185219Z",
+          "changed_paths": [],
+          "changed_paths_total": 0,
+          "changed_paths_truncated": false,
+          "clean": true,
+          "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "evidence_sha256": "df35470b1bb1af60bbd977acfbdae25bafebb1fc1cbdab470cd17540f484fdca",
+          "exit_code": -1,
+          "head_commit": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+          "outcome_unknown": false,
+          "state": "completed",
+          "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "test_command": false,
+          "untracked_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        }
+      },
+      "stored_result_receipt": {
+        "sha256": "34b2d18d141c4aef850fa468551c530a9047e3b73067e4b3edb4bad4268e9f69",
+        "size_bytes": 1538
+      },
+      "stored_output_receipt": {
+        "sha256": "e0b7714adeabbcb78290369a1328351c101c8988f3cdbb946b1aff134f2f3e30",
+        "size_bytes": 13
+      }
+    }
+  ],
+  "events": [
+    {
+      "sequence": 36,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "node_id": "",
+      "event_type": "run_created",
+      "at_time": "2026-10-24T05:22:03Z",
+      "data": {
+        "workflow_version": 1
+      },
+      "stored_data_receipt": {
+        "sha256": "326b66381db9767fecc9505307434d558e340f0e0a2f0503232d822b5412d82f",
+        "size_bytes": 22
+      }
+    },
+    {
+      "sequence": 37,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "node_id": "develop",
+      "event_type": "node_ready",
+      "at_time": "2026-10-24T05:22:03Z",
+      "data": {
+        "attempt": 0,
+        "fence": 0,
+        "previous_state": "pending",
+        "reason": ""
+      },
+      "stored_data_receipt": {
+        "sha256": "ed090784cedc627716bd128f2662427174071e44f135e98d0d7239614e73ccba",
+        "size_bytes": 62
+      }
+    },
+    {
+      "sequence": 38,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "node_id": "develop",
+      "event_type": "node_running",
+      "at_time": "2026-10-24T05:22:05Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "previous_state": "ready",
+        "reason": ""
+      },
+      "stored_data_receipt": {
+        "sha256": "9043b9373467b4eb29d526696f44971fd54fc2b1c9dafb4086a02bd65727d786",
+        "size_bytes": 60
+      }
+    },
+    {
+      "sequence": 39,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "node_id": "develop",
+      "event_type": "stop_requested",
+      "at_time": "2026-10-24T05:22:05Z",
+      "data": {
+        "fence": 1,
+        "worker_id": "tool-stage-worker"
+      },
+      "stored_data_receipt": {
+        "sha256": "a6582816406ee6794434cb0dd46ffd1717a3f9f85a99427d21a8243b8bdc2d10",
+        "size_bytes": 43
+      }
+    },
+    {
+      "sequence": 40,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "node_id": "quality",
+      "event_type": "node_cancelled",
+      "at_time": "2026-10-24T05:22:05Z",
+      "data": {
+        "attempt": 0,
+        "fence": 0,
+        "previous_state": "pending",
+        "reason": "最终df0ca9b5交付实测：停止实际协议夹具进程，等待Runner进程树停止回执；保留unknown协议事实，不得冒充成功。"
+      },
+      "stored_data_receipt": {
+        "sha256": "7017e5a26608d16c27c146ccf77d2ac06799aa80c557d44fb81e8a45b2f5491c",
+        "size_bytes": 209
+      }
+    },
+    {
+      "sequence": 41,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "node_id": "",
+      "event_type": "command_cancel",
+      "at_time": "2026-10-24T05:22:05Z",
+      "data": {
+        "reason": "最终df0ca9b5交付实测：停止实际协议夹具进程，等待Runner进程树停止回执；保留unknown协议事实，不得冒充成功。"
+      },
+      "stored_data_receipt": {
+        "sha256": "3864380f808f6138b256af207f7a38bc5bd335a959343ee33917cec22e5a1d18",
+        "size_bytes": 160
+      }
+    },
+    {
+      "sequence": 42,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "node_id": "develop",
+      "event_type": "tool_progress",
+      "at_time": "2026-10-24T05:22:05Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "e4293607e8c93a29556d0af830a52f9c35d2b9775b56de0ef49fa02706f36c32",
+        "worker_id": "tool-stage-worker",
+        "tool_event": {
+          "schema_version": 1,
+          "command_id": "task-agent",
+          "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "protocol": "suma-jsonl-v1",
+          "kind": "session_started",
+          "session_id": "0a686be5dfc658ab9ea641d6cc9ef6f7e9adb2d032f26a0bcb1d0cbc4c629490"
+        }
+      },
+      "stored_data_receipt": {
+        "sha256": "5e7b0fdc5d50783b924124acdf03f70a6fd6a516b7f18cc82626a12dea70dd31",
+        "size_bytes": 413
+      }
+    },
+    {
+      "sequence": 43,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "node_id": "develop",
+      "event_type": "tool_progress",
+      "at_time": "2026-10-24T05:22:05Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "ff18f4385c332c7a469e2b67950a4426731e121fc939029214cbcb7748dc4ae0",
+        "worker_id": "tool-stage-worker",
+        "tool_event": {
+          "schema_version": 1,
+          "command_id": "task-agent",
+          "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "protocol": "suma-jsonl-v1",
+          "kind": "turn_started",
+          "session_id": "0a686be5dfc658ab9ea641d6cc9ef6f7e9adb2d032f26a0bcb1d0cbc4c629490"
+        }
+      },
+      "stored_data_receipt": {
+        "sha256": "3337d173f20e53ef1a63de2dd95da836e1521006800efb40cf9e2b69ed8fec41",
+        "size_bytes": 410
+      }
+    },
+    {
+      "sequence": 44,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "node_id": "develop",
+      "event_type": "tool_progress",
+      "at_time": "2026-10-24T05:22:06Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "operation_id": "2023ce6ad8534fcb05ec51934ff38d1620b736bf3f99b8e87d2b211372faa936",
+        "worker_id": "tool-stage-worker",
+        "tool_event": {
+          "schema_version": 1,
+          "command_id": "task-agent",
+          "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+          "protocol": "suma-jsonl-v1",
+          "kind": "activity_started",
+          "session_id": "0a686be5dfc658ab9ea641d6cc9ef6f7e9adb2d032f26a0bcb1d0cbc4c629490",
+          "item_id": "fixture-stop-window",
+          "message": "project_tool"
+        }
+      },
+      "stored_data_receipt": {
+        "sha256": "015982c7c477cafa71dbb558f0c12cfda63c3f32d56d9f018bc6fbd23f09d38e",
+        "size_bytes": 471
+      }
+    },
+    {
+      "sequence": 45,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "node_id": "develop",
+      "event_type": "node_cancelled",
+      "at_time": "2026-10-24T05:22:10Z",
+      "data": {
+        "attempt": 1,
+        "fence": 1,
+        "previous_state": "running",
+        "reason": "context canceled"
+      },
+      "stored_data_receipt": {
+        "sha256": "6ba86cc73c344841219a552bdcd16baf30956172e65b16c556d22a4679d7a3da",
+        "size_bytes": 78
+      }
+    },
+    {
+      "sequence": 46,
+      "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+      "project_id": "00b793dfdfd9accf98481438992d8ce3",
+      "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+      "node_id": "",
+      "event_type": "run_cancelled",
+      "at_time": "2026-10-24T05:22:10Z",
+      "data": null,
+      "stored_data_receipt": {
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "size_bytes": 4
+      }
+    }
+  ],
+  "event_counts": {
+    "run_created": 1,
+    "node_ready": 1,
+    "node_running": 1,
+    "stop_requested": 1,
+    "node_cancelled": 2,
+    "command_cancel": 1,
+    "tool_progress": 3,
+    "run_cancelled": 1
+  },
+  "profile_now": {
+    "id": "63fce9b8a2cb783e3344e7e0ebdc6494",
+    "tenant_id": "63c33736f513c874b0ddbb1759fd87ac",
+    "project_id": "00b793dfdfd9accf98481438992d8ce3",
+    "worker_id": "tool-stage-worker",
+    "name": "订单开发执行器（协议夹具）",
+    "version": 5,
+    "state": "paused",
+    "enabled_by": "eceba36551846e21245d343b07a0f62c",
+    "created_at": "2026-10-24T04:40:31Z",
+    "updated_at": "2026-10-24T05:22:58Z",
+    "profile": {
+      "command_id": "task-agent",
+      "adapter": "suma",
+      "protocol": "suma-jsonl-v1",
+      "profile_sha256": "9e617a8fe67e3c1bb1c873c034ad7adf5dee38fe5f30d0df6948ecc8ff22f40b",
+      "executable_sha256": "c5ff4c736112dd483c750fd4149d30c8a116db1a49b8b3ec88be4b65e6c86c19",
+      "tool_version": "suma-agent-runtime fixture-transport-only",
+      "read_only": false
+    },
+    "stored_profile_receipt": {
+      "sha256": "1e7d1146039d99351e02b1493885e8493e74aca63fb2d821549ab585c95af28c",
+      "size_bytes": 319
+    }
+  },
+  "business": {
+    "tasks": [
+      {
+        "id": "01a78009746b83f105cd28d63a286800",
+        "version": 3,
+        "status": "in_progress",
+        "run_id": "a64dfd23ac07b393626d7f397f12d06c",
+        "requirement_id": "3eea0043bb9560a1fb915011668f827f",
+        "data": {
+          "requirement_version": 1,
+          "run_task_basis": "22b0f59095528883c41f0eab3c5eba514c477d43463e5007b97d2e241ced4936",
+          "dependency_basis": {}
+        },
+        "stored_data_receipt": {
+          "sha256": "13fe8ac9734e9a941e908b4b4e49bf764a76b7df7d882f4f5ec8c0c188fa351b",
+          "size_bytes": 131
+        }
+      },
+      {
+        "id": "3418219185fe4c3311eceff6b853bed2",
+        "version": 3,
+        "status": "accepted",
+        "run_id": "10158abedf0d680f439ca0f2fac2d434",
+        "requirement_id": "3eea0043bb9560a1fb915011668f827f",
+        "data": {
+          "requirement_version": 1,
+          "run_task_basis": "0c9508d7f479096c24037a6adc2a27753a9b2311dbf5a1a12676a1db01f7fb31",
+          "verified_run_id": "10158abedf0d680f439ca0f2fac2d434",
+          "dependency_basis": {}
+        },
+        "stored_data_receipt": {
+          "sha256": "b34b7f3d9cb1257d58bee15149b5f7bec62e4fe1082c3570c46b26ced94a5c16",
+          "size_bytes": 184
+        }
+      },
+      {
+        "id": "a5af1760060fb7b491e213cfb9bd96dd",
+        "version": 2,
+        "status": "in_progress",
+        "run_id": "68c1e6179992238819c5bf4aaef19183",
+        "requirement_id": "3eea0043bb9560a1fb915011668f827f",
+        "data": {
+          "requirement_version": 1,
+          "run_task_basis": "ce4f8b6c138f595c6715bebbbd32ad827a199fe20432ea5ce7cd059e8b754829",
+          "dependency_basis": {}
+        },
+        "stored_data_receipt": {
+          "sha256": "05a5cbef8d0b30db56f98a3575b381ec0d3297a5e04ff0b60237fd9911b9c3bb",
+          "size_bytes": 131
+        }
+      }
+    ],
+    "issues": [
+      {
+        "id": "76e136e48e633dbf4d8ad2581bba7b9b",
+        "version": 1,
+        "status": "open",
+        "run_id": "",
+        "requirement_id": "",
+        "data": {
+          "run_id": "68c1e6179992238819c5bf4aaef19183",
+          "origin": "execution"
+        },
+        "stored_data_receipt": {
+          "sha256": "c22984aa95df9a1be455d6d68545d9009f39f65d38654b8df95f8071176234f8",
+          "size_bytes": 66
+        }
+      }
+    ],
+    "requirements": [
+      {
+        "id": "3eea0043bb9560a1fb915011668f827f",
+        "version": 1,
+        "status": "draft",
+        "run_id": "",
+        "requirement_id": "",
+        "data": {},
+        "stored_data_receipt": {
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "size_bytes": 2
+        }
+      },
+      {
+        "id": "f5fefa67395e77f71d6f1941795e76d2",
+        "version": 1,
+        "status": "draft",
+        "run_id": "",
+        "requirement_id": "",
+        "data": {
+          "source_issue_id": "76e136e48e633dbf4d8ad2581bba7b9b",
+          "source": {
+            "origin": "execution",
+            "run_id": "68c1e6179992238819c5bf4aaef19183"
+          }
+        },
+        "stored_data_receipt": {
+          "sha256": "563fb8d7073f3bc4f437e22db03d99d1bcec6bd7b345da2ab4cf31ab255f16c4",
+          "size_bytes": 130
+        }
+      }
+    ]
+  },
+  "journey_assertions": {
+    "four_runs_eight_nodes_five_attempts": true,
+    "original_three_run_states_and_payloads_unchanged": true,
+    "current_stop_result_is_not_success": true,
+    "confirmed_stopped_unknown_protocol_cancelled_no_test_candidate_or_acceptance": true,
+    "original_accepted_task_v3_review_unchanged": true,
+    "original_single_failure_issue_and_single_intake_requirement_unchanged": true,
+    "profile_paused_v5_new_plan_pinned_v4_old_plans_v2": true,
+    "browser_actions": "DB facts alone do not prove GUI actions; root records browser evidence separately",
+    "real_vendor_model_execution": false
+  }
+}

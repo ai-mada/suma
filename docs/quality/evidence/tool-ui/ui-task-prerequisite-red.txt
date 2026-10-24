@@ -1,0 +1,45 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ❯ src/tool-model.test.ts (9 tests | 1 failed) 22ms
+   ✓ tool manifest and fixed task choices > accepts only nonsecret describe-tools observations and retains unavailable explanations
+   ✓ tool manifest and fixed task choices > rejects secrets, raw execution paths, malformed pair/hash and duplicate command identities
+   ✓ tool manifest and fixed task choices > binds the command to the selected immutable profile without changing unrelated node config
+   ✓ tool manifest and fixed task choices > creates a versioned preview request with no mutable task text or executable parameters
+   × tool manifest and fixed task choices > refuses read-only task development or a workflow without the chosen candidate test 9ms
+     → expected [Function] to throw an error
+   ✓ tool manifest and fixed task choices > never shows another attempt, worker or fence as current tool progress
+   ✓ tool write recovery > persists the exact operation before sending and replays it after reload without rebasing
+   ✓ tool write recovery > retains an unknown operation when a later replay is forbidden and isolates users/projects
+   ✓ tool write recovery > rejects credential fields or unrelated paths before any network request
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/tool-model.test.ts > tool manifest and fixed task choices > refuses read-only task development or a workflow without the chosen candidate test
+AssertionError: expected [Function] to throw an error
+
+- Expected: 
+null
+
++ Received: 
+undefined
+
+ ❯ src/tool-model.test.ts:152:143
+
+    150|   });
+    151|   it("refuses read-only task development or a workflow without the cho…
+    152|     expect(() => dispatchRequest("p", { id: "task", version: 7 }, work…
+       |                                                                                                                                               ^
+    153|     expect(() => dispatchRequest("p", { id: "task", version: 7 }, {...…
+    154|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 passed (9)
+   Start at  12:18:02
+   Duration  1.16s (transform 85ms, setup 0ms, collect 118ms, tests 22ms, environment 0ms, prepare 275ms)
+
+undefined
+D:\codes\ai-dev-os\suma\apps\web:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/tool-model.test.ts

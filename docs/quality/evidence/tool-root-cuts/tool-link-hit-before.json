@@ -1,0 +1,33 @@
+{
+  "observed_at": "2026-10-24T05:30:53.499Z",
+  "scope": "Read-only actual DOM geometry, no injected event listeners or application state reads.",
+  "asset": "index-CGLjC2wJ.js",
+  "keyboard": "Enter succeeded and browser back restored task.",
+  "mouse": "Normal locator center click left task unchanged.",
+  "geometry": {
+    "center_hits_link": false,
+    "client_rects": [
+      {
+        "height": 14,
+        "width": 60,
+        "x": 1009.3333740234376,
+        "y": 587.28125
+      },
+      {
+        "height": 14,
+        "width": 183.6666717529297,
+        "x": 1009.3333740234376,
+        "y": 604.28125
+      }
+    ],
+    "display": "inline",
+    "hit_tag": "DD",
+    "href": "?project=00b793dfdfd9accf98481438992d8ce3&view=requirements&record=3eea0043bb9560a1fb915011668f827f",
+    "rect": {
+      "height": 31,
+      "width": 183.6666717529297,
+      "x": 1009.3333740234376,
+      "y": 587.28125
+    }
+  }
+}

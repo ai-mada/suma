@@ -1,0 +1,1 @@
+ok  	github.com/ai-mada/suma/internal/platform	0.142s

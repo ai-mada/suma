@@ -1,0 +1,241 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ❯ src/ToolFacts-consumers.test.tsx (4 tests | 4 failed) 15ms
+   × tool execution facts are separate from acceptance > shows enabled/configured/observed/dispatch state separately with stale inventory explanation 11ms
+     → expected '' to contain '编码工具'
+   × tool execution facts are separate from acceptance > shows complete fixed task and requirement context with expiry and explicit acceptance boundary 1ms
+     → expected '' to contain '固定任务'
+   × tool execution facts are separate from acceptance > keeps provider terminal success distinct from failed DAG state and does not invent resume actions 1ms
+     → expected '' to contain '平台执行状态'
+   × tool execution facts are separate from acceptance > displays waiting-input as an occupied-process fact without fake reply or recovered state 1ms
+     → expected '' to contain '等待外部输入'
+ ❯ src/tool-model.test.ts (8 tests | 8 failed) 23ms
+   × tool manifest and fixed task choices > accepts only nonsecret describe-tools observations and retains unavailable explanations 10ms
+     → expected [] to deeply equal [ { profile: { …(7) }, …(2) } ]
+   × tool manifest and fixed task choices > rejects secrets, raw execution paths, malformed pair/hash and duplicate command identities 3ms
+     → expected [Function] to throw an error
+   × tool manifest and fixed task choices > binds the command to the selected immutable profile without changing unrelated node config 2ms
+     → expected {} to deeply equal { command: [ 'coder' ], …(1) }
+   × tool manifest and fixed task choices > creates a versioned preview request with no mutable task text or executable parameters 1ms
+     → expected {} to deeply equal { project_id: 'p', …(7) }
+   × tool manifest and fixed task choices > never shows another attempt, worker or fence as current tool progress 1ms
+     → expected [] to deeply equal [ { schema_version: 1, …(5) } ]
+   × tool write recovery > persists the exact operation before sending and replays it after reload without rebasing 2ms
+     → expected Error: Tool recovery not implemented to be an instance of ApiError
+   × tool write recovery > retains an unknown operation when a later replay is forbidden and isolates users/projects 1ms
+     → expected undefined to be defined
+   × tool write recovery > rejects credential fields or unrelated paths before any network request 1ms
+     → expected [Function] to throw error including '秘密' but got 'Tool recovery not implemented'
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 12 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/tool-model.test.ts > tool manifest and fixed task choices > accepts only nonsecret describe-tools observations and retains unavailable explanations
+AssertionError: expected [] to deeply equal [ { profile: { …(7) }, …(2) } ]
+
+- Expected
++ Received
+
+- [
+-   {
+-     "available": true,
+-     "profile": {
+-       "adapter": "suma",
+-       "command_id": "coder",
+-       "executable_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+-       "profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+-       "protocol": "suma-jsonl-v1",
+-       "read_only": false,
+-       "tool_version": "1.0",
+-     },
+-     "reason": "",
+-   },
+- ]
++ []
+
+ ❯ src/tool-model.test.ts:12:94
+     10| describe('tool manifest and fixed task choices',()=>{
+     11|  it('accepts only nonsecret describe-tools observations and retains un…
+     12|   expect(parseToolManifest(JSON.stringify([{profile:definition,availab…
+       |                                                                                              ^
+     13|   const unavailable={profile:{command_id:'missing',adapter:'command',p…
+     14|   expect(parseToolManifest(JSON.stringify({items:[unavailable]}))[0]).…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯
+
+ FAIL  src/tool-model.test.ts > tool manifest and fixed task choices > rejects secrets, raw execution paths, malformed pair/hash and duplicate command identities
+AssertionError: expected [Function] to throw an error
+ ❯ src/tool-model.test.ts:18:305
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯
+
+ FAIL  src/tool-model.test.ts > tool manifest and fixed task choices > binds the command to the selected immutable profile without changing unrelated node config
+AssertionError: expected {} to deeply equal { command: [ 'coder' ], …(1) }
+
+- Expected
++ Received
+
+- {
+-   "command": [
+-     "coder",
+-   ],
+-   "config": {
+-     "goal": "原始约束",
+-     "tool_profile_id": "profile",
+-     "tool_profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+-   },
+- }
++ {}
+
+ ❯ src/tool-model.test.ts:21:50
+     19|  });
+     20|  it('binds the command to the selected immutable profile without chang…
+     21|   expect(toolBinding(workflow.nodes[0],profile)).toEqual({command:['co…
+       |                                                  ^
+     22|  });
+     23|  it('creates a versioned preview request with no mutable task text or …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯
+
+ FAIL  src/tool-model.test.ts > tool manifest and fixed task choices > creates a versioned preview request with no mutable task text or executable parameters
+AssertionError: expected {} to deeply equal { project_id: 'p', …(7) }
+
+- Expected
++ Received
+
+- {
+-   "agent_node_id": "code",
+-   "expected_task_version": 7,
+-   "expected_tool_version": 4,
+-   "project_id": "p",
+-   "task_id": "task",
+-   "tool_profile_id": "profile",
+-   "workflow_id": "flow",
+-   "workflow_version": 2,
+- }
++ {}
+
+ ❯ src/tool-model.test.ts:24:91
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/12]⎯
+
+ FAIL  src/tool-model.test.ts > tool manifest and fixed task choices > never shows another attempt, worker or fence as current tool progress
+AssertionError: expected [] to deeply equal [ { schema_version: 1, …(5) } ]
+
+- Expected
++ Received
+
+- [
+-   {
+-     "command_id": "coder",
+-     "kind": "message",
+-     "message": "当前输出",
+-     "profile_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+-     "protocol": "suma-jsonl-v1",
+-     "schema_version": 1,
+-   },
+- ]
++ []
+
+ ❯ src/tool-model.test.ts:32:99
+     30|   const record={type:'tool_progress',node_id:'code',data:{attempt:2,fe…
+     31|   const other=[{...record,data:{...record.data,attempt:1}},{...record,…
+     32|   expect(toolFactsForAttempt([...other,record],{id:'code',attempt:2,fe…
+       |                                                                                                   ^
+     33|  });
+     34| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/12]⎯
+
+ FAIL  src/tool-model.test.ts > tool write recovery > persists the exact operation before sending and replays it after reload without rebasing
+AssertionError: expected Error: Tool recovery not implemented to be an instance of ApiError
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/12]⎯
+
+ FAIL  src/tool-model.test.ts > tool write recovery > retains an unknown operation when a later replay is forbidden and isolates users/projects
+AssertionError: expected undefined to be defined
+ ❯ src/tool-model.test.ts:48:133
+     46|   expect(new ToolWriteRecovery('org:other:p',store).pending).toBeUndef…
+     47|   vi.stubGlobal('fetch',vi.fn(async()=>new Response(JSON.stringify({er…
+     48|   const restored=new ToolWriteRecovery('org:u:p',store);await expect(r…
+       |                                                                                                                                     ^
+     49|  });
+     50|  it('rejects credential fields or unrelated paths before any network r…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/12]⎯
+
+ FAIL  src/tool-model.test.ts > tool write recovery > rejects credential fields or unrelated paths before any network request
+AssertionError: expected [Function] to throw error including '秘密' but got 'Tool recovery not implemented'
+
+Expected: "秘密"
+Received: "Tool recovery not implemented"
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/12]⎯
+
+ FAIL  src/ToolFacts-consumers.test.tsx > tool execution facts are separate from acceptance > shows enabled/configured/observed/dispatch state separately with stale inventory explanation
+AssertionError: expected '' to contain '编码工具'
+
+- Expected
++ Received
+
+- 编码工具
+
+ ❯ src/ToolFacts-consumers.test.tsx:10:125
+      8|  it('shows enabled/configured/observed/dispatch state separately with …
+      9|   const html=renderToStaticMarkup(createElement(ToolProfileFacts,{prof…
+     10|   for(const value of ['编码工具','runner','vendor-version','已暂停','最近上报','i…
+       |                                                                                                                             ^
+     11|   expect(html).not.toContain('接入成功');expect(html).not.toContain('测试通过'…
+     12|  });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/12]⎯
+
+ FAIL  src/ToolFacts-consumers.test.tsx > tool execution facts are separate from acceptance > shows complete fixed task and requirement context with expiry and explicit acceptance boundary
+AssertionError: expected '' to contain '固定任务'
+
+- Expected
++ Received
+
+- 固定任务
+
+ ❯ src/ToolFacts-consumers.test.tsx:15:177
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/12]⎯
+
+ FAIL  src/ToolFacts-consumers.test.tsx > tool execution facts are separate from acceptance > keeps provider terminal success distinct from failed DAG state and does not invent resume actions
+AssertionError: expected '' to contain '平台执行状态'
+
+- Expected
++ Received
+
+- 平台执行状态
+
+ ❯ src/ToolFacts-consumers.test.tsx:20:108
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/12]⎯
+
+ FAIL  src/ToolFacts-consumers.test.tsx > tool execution facts are separate from acceptance > displays waiting-input as an occupied-process fact without fake reply or recovered state
+AssertionError: expected '' to contain '等待外部输入'
+
+- Expected
++ Received
+
+- 等待外部输入
+
+ ❯ src/ToolFacts-consumers.test.tsx:24:16
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/12]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  12 failed (12)
+   Start at  12:08:28
+   Duration  974ms (transform 110ms, setup 0ms, collect 198ms, tests 39ms, environment 0ms, prepare 344ms)
+
+undefined
+D:\codes\ai-dev-os\suma\apps\web:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/tool-model.test.ts src/ToolFacts-consumers.test.tsx

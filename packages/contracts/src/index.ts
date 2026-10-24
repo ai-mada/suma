@@ -563,6 +563,9 @@ export interface NodeRun {
   compensatable: boolean;
   workspace_evidence?: { [key: string]: unknown };
   artifact_evidence?: ArtifactEvidence | null;
+  tool_evidence?: ToolEvidence | null;
+  tool_profile_id?: string;
+  tool_profile_sha256?: string;
 }
 export interface NonSecretDeploymentRequest {
   protocol: string;
@@ -1035,6 +1038,7 @@ export interface Result {
   workspace_evidence?: { [key: string]: unknown };
   artifact_evidence?: ArtifactEvidence | null;
   release_evidence?: ReleaseResult | null;
+  tool_evidence?: ToolEvidence | null;
 }
 export interface Run {
   id: string;
@@ -1055,7 +1059,8 @@ export interface RunnerProgressRequest {
   project_id: string;
   assignment: Assignment;
   operation_id: string;
-  message: string;
+  message?: string;
+  tool_event?: ToolEvent | null;
 }
 export interface ScheduleChange {
   task_id: string;
@@ -1084,6 +1089,56 @@ export interface SessionResponse {
 }
 export interface SwitchOrganizationRequest {
   organization_id: string;
+  idempotency_key: string;
+}
+export interface TaskContext {
+  task: TaskContextRecord;
+  requirement?: TaskContextRecord | null;
+}
+export interface TaskContextRecord {
+  id: string;
+  version: number;
+  title: string;
+  description: string;
+  acceptance_criteria: (string)[];
+}
+export interface TaskDispatchPlan {
+  id: string;
+  project_id: string;
+  version: number;
+  state: string;
+  task_id: string;
+  task_version: number;
+  requirement_id?: string;
+  requirement_version?: number;
+  workflow_id: string;
+  workflow_version: number;
+  agent_node_id: string;
+  tool_profile_id: string;
+  tool_profile_version: number;
+  tool_profile_sha256: string;
+  run_id: string;
+  created_at: string;
+  expires_at: string;
+  context: TaskContext;
+  workflow: Workflow;
+  valid: boolean;
+  reason: string;
+}
+export interface TaskDispatchPreviewRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  workflow_id: string;
+  workflow_version: number;
+  agent_node_id: string;
+  tool_profile_id: string;
+  expected_tool_version: number;
+  idempotency_key: string;
+}
+export interface TaskDispatchStartRequest {
+  project_id: string;
+  expected_version: number;
   idempotency_key: string;
 }
 export interface TaskPlan {
@@ -1129,6 +1184,90 @@ export interface TeamWriteRequest {
   status?: string;
   expected_version?: number;
   idempotency_key: string;
+}
+export interface ToolEvent {
+  schema_version: number;
+  command_id: string;
+  profile_sha256: string;
+  protocol: string;
+  kind: string;
+  session_id?: string;
+  item_id?: string;
+  message?: string;
+  status?: string;
+  usage?: ToolUsage | null;
+}
+export interface ToolEvidence {
+  profile: ToolExecutionProfile;
+  session_id?: string;
+  terminal: string;
+  event_count: number;
+  usage?: ToolUsage | null;
+}
+export interface ToolExecutionProfile {
+  command_id: string;
+  adapter: string;
+  protocol: string;
+  profile_sha256: string;
+  executable_sha256: string;
+  tool_version: string;
+  read_only: boolean;
+}
+export interface ToolInventoryReceipt {
+  acknowledged: boolean;
+  observed_at: string;
+}
+export interface ToolInventoryRequest {
+  project_id: string;
+  worker_id: string;
+  operation_id: string;
+  items: (ToolObservation)[];
+}
+export interface ToolObservation {
+  profile: ToolExecutionProfile;
+  available: boolean;
+  reason: string;
+}
+export interface ToolProfile {
+  id: string;
+  project_id: string;
+  worker_id: string;
+  name: string;
+  version: number;
+  state: string;
+  profile: ToolExecutionProfile;
+  enabled_by: string;
+  created_at: string;
+  updated_at: string;
+  observation?: ToolObservation | null;
+  last_seen_at?: string;
+  available: boolean;
+  reason: string;
+}
+export interface ToolProfileCommandRequest {
+  project_id: string;
+  action: string;
+  expected_version: number;
+  idempotency_key: string;
+}
+export interface ToolProfileCreateRequest {
+  project_id: string;
+  worker_id: string;
+  name: string;
+  profile: ToolExecutionProfile;
+  idempotency_key: string;
+}
+export interface ToolProfileList {
+  items: (ToolProfile)[];
+  total: number;
+  next_cursor?: string;
+}
+export interface ToolUsage {
+  input_tokens?: number;
+  cached_input_tokens?: number;
+  cache_write_input_tokens?: number;
+  output_tokens?: number;
+  reasoning_output_tokens?: number;
 }
 export interface VersionedOperation {
   expected_version: number;

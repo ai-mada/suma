@@ -23,7 +23,7 @@
 
 ## 快照范围与生成方法
 
-本次离线扫描得到 **36 个六平台 Go 运行时链接模块**、**443 个已安装 JS 包版本**。机器清单逐项保存包名、实际版本、直接依赖归属、包 manifest 和可见许可证文件的 SHA-256；输入锁文件与各 workspace manifest 也有哈希。JS 同名不同版本分项；直接依赖按 workspace 实际解析版本匹配，不能把传递的旧版本误标为直接依赖。
+原离线扫描得到 **36 个六平台 Go 运行时链接模块**、**443 个已安装 JS 包版本**，属于该次历史切面。机器清单逐项保存包名、实际版本、直接依赖归属、包 manifest 和可见许可证文件的 SHA-256；输入锁文件与各 workspace manifest 也有哈希。JS 同名不同版本分项；直接依赖按 workspace 实际解析版本匹配，不能把传递的旧版本误标为直接依赖。T-P4-004后来为真实React DOM导航回归新增固定`jsdom@26.1.0`开发依赖，当前锁文件已更新，旧443包清单不覆盖这次增加及其传递依赖；完整最终分发SBOM仍单独验收。
 
 Go 范围来自六平台 18 个实际二进制的 `go version -m` 去重信息；见[跨平台链接清单](../deployment/evidence/runtime-linked-modules.json)。Windows 链接 35 个模块，Linux/macOS 额外链接 `github.com/google/uuid v1.6.0`，合计 36；排除标准库、未链接模块和仅测试图中的额外模块。Go 标签来自模块根目录许可证文本特征，属于待人工复核的观察值。JS 范围来自本机 pnpm virtual store 的实际 package.json，包括构建工具、可选平台包；`license` 为包作者声明，不等同于逐文件结论。中央 frozen-lockfile 安装完成后重新采集；采集未新增或修改依赖。
 
@@ -61,6 +61,7 @@ mysql 的许可证正文含其他许可兼容性说明，不能据此推断依�
 | vite | 6.1.0 | MIT | Web 构建 |
 | @vitejs/plugin-react | 4.3.4 | MIT | Web 构建插件 |
 | vitest | 3.0.5 | MIT | Web 测试 |
+| jsdom | 26.1.0 | MIT（本机package.json声明） | T-P4-004新增Web开发测试依赖，用于真实React DOM点击、路由和返回回归；不在生产依赖中 |
 | @types/node | 22.20.5 | MIT | 类型声明 |
 | @types/react | 19.0.3 | MIT | 类型声明 |
 | @types/react-dom | 19.0.2 | MIT | 类型声明 |

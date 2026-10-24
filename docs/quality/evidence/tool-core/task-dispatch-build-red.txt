@@ -1,0 +1,9 @@
+# github.com/ai-mada/suma/internal/platform [github.com/ai-mada/suma/internal/platform.test]
+internal\platform\task_dispatch_build_test.go:12:60: undefined: TaskContext
+internal\platform\task_dispatch_build_test.go:18:7: undefined: TaskContext
+internal\platform\task_dispatch_build_test.go:18:25: undefined: TaskContextRecord
+internal\platform\task_dispatch_build_test.go:25:14: undefined: buildTaskDispatchWorkflow
+internal\platform\task_dispatch_build_test.go:52:17: undefined: buildTaskDispatchWorkflow
+internal\platform\task_dispatch_build_test.go:60:14: undefined: buildTaskDispatchWorkflow
+FAIL	github.com/ai-mada/suma/internal/platform [build failed]
+FAIL

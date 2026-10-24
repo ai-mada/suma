@@ -147,10 +147,10 @@ func unreviewedTestTask(t *testing.T, f *fixture) (map[string]any, map[string]an
 	t.Helper()
 	// This is an explicit non-code test fixture. It makes no workspace/merge
 	// claim and isolates the authority guard from candidate execution semantics.
-	workflow := f.call("POST", "/workflows", f.body(map[string]any{"name": "权限回归的非代码测试", "nodes": []any{map[string]any{"id": "test", "type": "test"}}, "edges": []any{}}), 201)
+	workflow := f.call("POST", "/workflows", f.body(map[string]any{"name": "权限回归的非代码测试", "nodes": []any{map[string]any{"id": "test", "type": "test", "command": []string{"test"}}}, "edges": []any{}}), 201)
 	task := f.call("POST", "/tasks", f.body(map[string]any{"title": "审核权限事务回归"}), 201)
 	run := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": workflow["id"], "task_id": task["id"]}), 201)
-	a, err := f.e.Claim(context.Background(), f.user.TenantID, f.project, "authority-evidence-worker", nil)
+	a, err := f.e.Claim(context.Background(), f.user.TenantID, f.project, "authority-evidence-worker", toolFixtureCapabilities(t, f))
 	if err != nil || a == nil {
 		t.Fatalf("claim: %v %v", a, err)
 	}

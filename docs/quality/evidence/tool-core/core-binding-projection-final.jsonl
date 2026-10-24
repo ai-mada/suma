@@ -1,0 +1,20 @@
+{"Time":"2026-10-24T12:27:45.2783565+08:00","Action":"start","Package":"github.com/ai-mada/suma/internal/dag"}
+{"Time":"2026-10-24T12:27:45.4322761+08:00","Action":"run","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolCompileAndCapabilitiesPreventAttempt"}
+{"Time":"2026-10-24T12:27:45.4328218+08:00","Action":"output","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolCompileAndCapabilitiesPreventAttempt","Output":"=== RUN   TestToolCompileAndCapabilitiesPreventAttempt\n"}
+{"Time":"2026-10-24T12:27:45.464597+08:00","Action":"output","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolCompileAndCapabilitiesPreventAttempt","Output":"--- PASS: TestToolCompileAndCapabilitiesPreventAttempt (0.03s)\n"}
+{"Time":"2026-10-24T12:27:45.464597+08:00","Action":"pass","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolCompileAndCapabilitiesPreventAttempt","Elapsed":0.03}
+{"Time":"2026-10-24T12:27:45.464597+08:00","Action":"run","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolPublicBindingUsesCurrentSpecAndRetryClearsEvidence"}
+{"Time":"2026-10-24T12:27:45.464597+08:00","Action":"output","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolPublicBindingUsesCurrentSpecAndRetryClearsEvidence","Output":"=== RUN   TestToolPublicBindingUsesCurrentSpecAndRetryClearsEvidence\n"}
+{"Time":"2026-10-24T12:27:45.4943404+08:00","Action":"output","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolPublicBindingUsesCurrentSpecAndRetryClearsEvidence","Output":"--- PASS: TestToolPublicBindingUsesCurrentSpecAndRetryClearsEvidence (0.03s)\n"}
+{"Time":"2026-10-24T12:27:45.4948765+08:00","Action":"pass","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolPublicBindingUsesCurrentSpecAndRetryClearsEvidence","Elapsed":0.03}
+{"Time":"2026-10-24T12:27:45.4948765+08:00","Action":"run","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolPublicBindingForDynamicMapAndCompensation"}
+{"Time":"2026-10-24T12:27:45.4948765+08:00","Action":"output","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolPublicBindingForDynamicMapAndCompensation","Output":"=== RUN   TestToolPublicBindingForDynamicMapAndCompensation\n"}
+{"Time":"2026-10-24T12:27:45.5640545+08:00","Action":"output","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolPublicBindingForDynamicMapAndCompensation","Output":"--- PASS: TestToolPublicBindingForDynamicMapAndCompensation (0.07s)\n"}
+{"Time":"2026-10-24T12:27:45.5640545+08:00","Action":"pass","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolPublicBindingForDynamicMapAndCompensation","Elapsed":0.07}
+{"Time":"2026-10-24T12:27:45.5640545+08:00","Action":"run","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolProgressEvidenceAndReplay"}
+{"Time":"2026-10-24T12:27:45.5640545+08:00","Action":"output","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolProgressEvidenceAndReplay","Output":"=== RUN   TestToolProgressEvidenceAndReplay\n"}
+{"Time":"2026-10-24T12:27:45.5960449+08:00","Action":"output","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolProgressEvidenceAndReplay","Output":"--- PASS: TestToolProgressEvidenceAndReplay (0.03s)\n"}
+{"Time":"2026-10-24T12:27:45.5966889+08:00","Action":"pass","Package":"github.com/ai-mada/suma/internal/dag","Test":"TestToolProgressEvidenceAndReplay","Elapsed":0.03}
+{"Time":"2026-10-24T12:27:45.5966889+08:00","Action":"output","Package":"github.com/ai-mada/suma/internal/dag","Output":"PASS\n"}
+{"Time":"2026-10-24T12:27:45.6055115+08:00","Action":"output","Package":"github.com/ai-mada/suma/internal/dag","Output":"ok  \tgithub.com/ai-mada/suma/internal/dag\t0.327s\n"}
+{"Time":"2026-10-24T12:27:45.6055115+08:00","Action":"pass","Package":"github.com/ai-mada/suma/internal/dag","Elapsed":0.327}

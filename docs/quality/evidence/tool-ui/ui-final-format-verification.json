@@ -1,0 +1,18 @@
+{
+  "stage": "T-P4-004",
+  "recorded_at": "2026-10-24T05:00:12.980656+00:00",
+  "scope": "Read-only formatting of13 newly introduced UI files and whitespace check of tracked apps/web diff. Existing App/Workflow/API/RecordLineage style not rewritten. No application source changed.",
+  "formatter_version": "3.6.2",
+  "formatter_command": "node <project-cache>/prettier/bin/prettier.cjs --check <13 new UI files>",
+  "formatter_exit": 0,
+  "tracked_whitespace_command": "git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol diff --check -- apps/web",
+  "tracked_whitespace_exit": 0,
+  "source_snapshot": ".cache/e2e/tool-stage/ui-lifecycle-link-verification.json",
+  "source_snapshot_sha256": "57987ee82d7d2db9341fcd4a7d6a64078fc9bbddb49eb4cda825e1d1cb8f563b",
+  "current_18_ui_sources_match_snapshot": true,
+  "raw_files": [
+    "ui-final-format-version.txt",
+    "ui-final-format-check.txt",
+    "ui-final-whitespace-check.txt"
+  ]
+}

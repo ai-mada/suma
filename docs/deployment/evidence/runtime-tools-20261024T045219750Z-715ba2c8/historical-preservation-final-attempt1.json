@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-24T04:56:11.178225+00:00",
+  "prebuild_snapshot_files": 1086,
+  "all_snapshot_files_unchanged": 1086,
+  "immutable_artifact_and_evidence_files_checked": 1075,
+  "immutable_files_unchanged": true,
+  "current_document_updates": [],
+  "scope": "Final integration-aware read of the original immutable prebuild inventory. Current deployment guide updates are separately listed; no original manifest was rewritten."
+}

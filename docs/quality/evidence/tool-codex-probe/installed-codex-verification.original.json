@@ -1,0 +1,71 @@
+{
+  "stage": "T-P4-004",
+  "recorded_at": "2026-10-24T05:12:12.457100+00:00",
+  "scope": "Actual installed native Codex read-only version and exec --help probes through final delivered Runner --describe-tools. No model/authentication/task execution, login or network API invocation requested.",
+  "runner": {
+    "path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T045219750Z-715ba2c8\\suma-runner.exe",
+    "sha256": "12c8681ec9d7e1ba325252e264e5d7aaa7d73d9c053cc3d6c3466292b44f56cb",
+    "matches_public_delivery_manifest": true
+  },
+  "source": "Get-Command codex.exe; existing installed OpenAI Codex app native executable, not npm shell wrappers",
+  "native_codex_path": "C:\\Users\\Administrator\\AppData\\Local\\OpenAI\\Codex\\bin\\8925276705115dea\\codex.exe",
+  "private_context_loaded": false,
+  "platform_tokens_used": false,
+  "model_api_key_used": false,
+  "platform_api_or_worker_started": false,
+  "allowed_internal_cli_probes": [
+    [
+      "--version"
+    ],
+    [
+      "exec",
+      "--help"
+    ]
+  ],
+  "network_traffic_capture_performed": false,
+  "scope_limits": [
+    "Installed/protocol-probed does not mean model authentication or health",
+    "No billed model request or coding task was run",
+    "No login/session resume was attempted",
+    "No OS-level network capture was performed"
+  ],
+  "runner_describe_exit": 0,
+  "native_executable_sha256_before": "c6144bc19b2705f25a40d8488b3d57d17a223c5df3c5f65e3c58d72601956c1e",
+  "native_executable_sha256_after": "c6144bc19b2705f25a40d8488b3d57d17a223c5df3c5f65e3c58d72601956c1e",
+  "native_executable_unchanged": true,
+  "runner_arguments": [
+    "--describe-tools",
+    "--commands",
+    "[local command config; not archived]",
+    "--allow-exec",
+    "--workspace",
+    "[repository]"
+  ],
+  "local_config_archived": false,
+  "stderr_bytes": 0,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "raw_process_stderr_archived": false,
+  "available": true,
+  "profile": {
+    "command_id": "codex-readonly",
+    "adapter": "codex",
+    "protocol": "codex-jsonl-v1",
+    "profile_sha256": "d2e4575891eabff50e33d1ae48453b2a488bcb28f0888f3b93259bd75a2f3afe",
+    "executable_sha256": "c6144bc19b2705f25a40d8488b3d57d17a223c5df3c5f65e3c58d72601956c1e",
+    "tool_version": "codex-cli 0.164.0-alpha.11.1",
+    "read_only": true
+  },
+  "reason": "installed executable and protocol probe; model authentication and task success unverified",
+  "local_execution_opt_in_only": true,
+  "model_authentication_verified": false,
+  "model_health_verified": false,
+  "model_task_execution_verified": false,
+  "original_runtime_archive_preserved_files": 41,
+  "original_runtime_archive_unchanged": true,
+  "original_runtime_archive_manifest_sha256": "03acac32c45c8efdb8c0a1fc2b6b76b98fb653f46a5082b2d215b60100d9a33a",
+  "describe_file": {
+    "file": "installed-codex-describe.json",
+    "bytes": 479,
+    "sha256": "95ba6d2f33dc9f226718b54b9d00c2c2ff7f62f65fda6f9ce15169f6f8677bde"
+  }
+}

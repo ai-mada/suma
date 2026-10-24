@@ -1,0 +1,74 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ❯ src/record-navigation-dom.test.tsx (3 tests | 3 failed) 158ms
+   × actual React consumer requirement navigation > clicks from task into the exact unloaded requirement and browser-back restores task detail 113ms
+     → expected false to be true // Object.is equality
+   × actual React consumer requirement navigation > uses the App leave guard so an unknown operation cannot be bypassed through the requirement link 38ms
+     → expected false to be true // Object.is equality
+   × actual React consumer requirement navigation > handles ordinary clicks through the real component callback while preserving modifier-key native links 6ms
+     → expected false to be true // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/record-navigation-dom.test.tsx > actual React consumer requirement navigation > clicks from task into the exact unloaded requirement and browser-back restores task detail
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/record-navigation-dom.test.tsx:48:51
+
+     46|   await renderConsumer(<App/>);await settle(()=>!!requirementLink());
+     47|   expect(currentDetail(task.title)).toBe(true);
+     48|   expect(await clickConsumer(requirementLink()!)).toBe(true);
+       |                                                   ^
+     49|   await settle(()=>new URLSearchParams(location.search).get('view')===…
+     50|   expect(new URLSearchParams(location.search).get('record')).toBe(requ…
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  13:23:56
+   Duration  2.42s (transform 354ms, setup 0ms, collect 682ms, tests 158ms, environment 800ms, prepare 131ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/record-navigation-dom.test.tsx > actual React consumer requirement navigation > uses the App leave guard so an unknown operation cannot be bypassed through the requirement link
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/record-navigation-dom.test.tsx:59:55
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/record-navigation-dom.test.tsx > actual React consumer requirement navigation > handles ordinary clicks through the real component callback while preserving modifier-key native links
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/record-navigation-dom.test.tsx:67:37
+     65|   expect(await clickConsumer(link,{ctrlKey:true})).toBe(false);expect(…
+     66|   expect(await clickConsumer(link,{metaKey:true})).toBe(false);expect(…
+     67|   expect(await clickConsumer(link)).toBe(true);expect(open).toHaveBeen…
+       |                                     ^
+     68|  });
+     69| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+undefined
+D:\codes\ai-dev-os\suma\apps\web:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/record-navigation-dom.test.tsx

@@ -1,0 +1,155 @@
+{
+  "stage": "T-P4-004",
+  "recorded_at": "2026-10-24T04:55:27.516996+00:00",
+  "scope": "Actual compiled native CLI + actual control service authentication and readonly project.tasks. Model endpoint is a loopback deterministic HTTP fixture; no model/provider account/key/billed request.",
+  "control_base": "http://127.0.0.1:4322",
+  "project_id": "00b793dfdfd9accf98481438992d8ce3",
+  "expected_real_task_ids": [
+    "01a78009746b83f105cd28d63a286800",
+    "3418219185fe4c3311eceff6b853bed2",
+    "a5af1760060fb7b491e213cfb9bd96dd"
+  ],
+  "readonly_catalog_names": [
+    "project.overview",
+    "project.search",
+    "project.tasks"
+  ],
+  "model_fixture": {
+    "base": "http://127.0.0.1:60398",
+    "label": "fixture-transport-only",
+    "provider_api_key_used": false
+  },
+  "cases": [
+    {
+      "case": "agent_success",
+      "node_exit": 0,
+      "model_fixture_calls": 2,
+      "events_count": 6,
+      "event_types": [
+        "started",
+        "usage",
+        "tool_started",
+        "tool_completed",
+        "usage",
+        "completed"
+      ],
+      "provider_request_shape": [
+        {
+          "path": "/chat/completions",
+          "case": "agent_success",
+          "model_label": "fixture-transport-only",
+          "provider_authorization_present": false,
+          "function_names": [
+            "tool_e084ac751ef651f75a8784bd2063427b",
+            "tool_ee1cdb5c434bf68edeafa8d8782df943",
+            "tool_d148841d3e8f4b32a9ddbe30fd12fa28"
+          ],
+          "function_name_contract_valid": true,
+          "selected_canonical": "project.tasks",
+          "selected_alias": "tool_ee1cdb5c434bf68edeafa8d8782df943",
+          "message_roles": [
+            "system",
+            "user"
+          ]
+        },
+        {
+          "path": "/chat/completions",
+          "case": "agent_success",
+          "model_label": "fixture-transport-only",
+          "provider_authorization_present": false,
+          "function_names": [
+            "tool_e084ac751ef651f75a8784bd2063427b",
+            "tool_ee1cdb5c434bf68edeafa8d8782df943",
+            "tool_d148841d3e8f4b32a9ddbe30fd12fa28"
+          ],
+          "function_name_contract_valid": true,
+          "selected_canonical": "project.tasks",
+          "selected_alias": "tool_ee1cdb5c434bf68edeafa8d8782df943",
+          "message_roles": [
+            "system",
+            "user",
+            "assistant",
+            "tool"
+          ],
+          "actual_task_ids": [
+            "01a78009746b83f105cd28d63a286800",
+            "3418219185fe4c3311eceff6b853bed2",
+            "a5af1760060fb7b491e213cfb9bd96dd"
+          ],
+          "assistant_history_alias_valid": true
+        }
+      ],
+      "fixture_errors": [],
+      "cli_stderr_empty": true,
+      "runner_env_decoy_ignored": true,
+      "task_ids_after": [
+        "01a78009746b83f105cd28d63a286800",
+        "3418219185fe4c3311eceff6b853bed2",
+        "a5af1760060fb7b491e213cfb9bd96dd"
+      ],
+      "actual_task_ids_verified": [
+        "01a78009746b83f105cd28d63a286800",
+        "3418219185fe4c3311eceff6b853bed2",
+        "a5af1760060fb7b491e213cfb9bd96dd"
+      ],
+      "passed": true
+    },
+    {
+      "case": "runner_credential_rejected",
+      "node_exit": 1,
+      "model_fixture_calls": 0,
+      "events_count": 1,
+      "event_types": [
+        "error"
+      ],
+      "provider_request_shape": [],
+      "fixture_errors": [],
+      "cli_stderr_empty": true,
+      "runner_env_decoy_ignored": true,
+      "task_ids_after": [
+        "01a78009746b83f105cd28d63a286800",
+        "3418219185fe4c3311eceff6b853bed2",
+        "a5af1760060fb7b491e213cfb9bd96dd"
+      ],
+      "actual_control_rejection": 403,
+      "passed": true
+    },
+    {
+      "case": "foreign_project_scope_rejected",
+      "node_exit": 1,
+      "model_fixture_calls": 0,
+      "events_count": 1,
+      "event_types": [
+        "error"
+      ],
+      "provider_request_shape": [],
+      "fixture_errors": [],
+      "cli_stderr_empty": true,
+      "runner_env_decoy_ignored": true,
+      "task_ids_after": [
+        "01a78009746b83f105cd28d63a286800",
+        "3418219185fe4c3311eceff6b853bed2",
+        "a5af1760060fb7b491e213cfb9bd96dd"
+      ],
+      "actual_control_rejection": 403,
+      "different_project_parameter_only_no_foreign_project_created": true,
+      "passed": true
+    }
+  ],
+  "source_build": [
+    {
+      "path": "packages/agent-runtime/dist/src/cli.js",
+      "sha256": "453e148f0bbd660f34766866946ae6640a717a63d3cc6cad3b16d992f747cf91"
+    },
+    {
+      "path": "packages/agent-runtime/dist/src/index.js",
+      "sha256": "64b6c19a82ef7c447504fabd39c7a822bce710a9d37227a9d6d8e73e33abb601"
+    }
+  ],
+  "passed": true,
+  "fixture_server_closed": true,
+  "control_or_runner_processes_modified": false,
+  "credentials_recorded": false,
+  "versions_or_statuses_asserted": false,
+  "model_usage": "Not reported by the local fixture; raw usage_reported:false is not measured token usage."
+}

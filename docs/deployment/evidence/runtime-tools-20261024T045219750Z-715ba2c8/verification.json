@@ -1,0 +1,447 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-24T04:53:59.6107497Z",
+  "stamp": "20261024T045219750Z-715ba2c8",
+  "command": "pwsh -NoLogo -NoProfile -File ./scripts/build-runtime.ps1 -All",
+  "exit_code": 0,
+  "source_scope": "go.mod, go.sum, and non-test *.go files under cmd/suma-control, cmd/suma-runner, cmd/suma-deployer, cmd/suma, internal; no go:embed assets are currently used",
+  "source_sha256": "498300c9adffa8327982faa25da7d745d1a9ecb08f62265691d5673deacb318e",
+  "source_file_count": 116,
+  "source_unchanged": true,
+  "current_sources_match": true,
+  "prebuild_sources_match": true,
+  "artifact_count": 24,
+  "target_count": 6,
+  "original_go_tool_calls": 50,
+  "original_raw_stdout_stderr_pairs": 50,
+  "independent_go_tool_calls": 24,
+  "historical_files_checked": 1086,
+  "historical_files_unchanged": 1086,
+  "immutable_historical_files_unchanged": 1075,
+  "current_document_updates": [],
+  "historical_build_stamps_preserved": [
+    "20261023T163214029Z-3ff7853e",
+    "20261023T163404032Z-d9c423bf",
+    "20261023T163759813Z-4b7523bf",
+    "20261023T163936756Z-790199e9",
+    "20261023T163937857Z-a1eb64aa",
+    "20261024T013101080Z-8d76ad7a",
+    "20261024T013901937Z-e63107ea",
+    "20261024T014255637Z-2381ecce",
+    "20261024T021451853Z-f8fe5e7d",
+    "20261024T022519852Z-2a1cdc66",
+    "20261024T023250966Z-97012787",
+    "20261024T033010763Z-94b39f3b"
+  ],
+  "linked_module_count": 36,
+  "linked_module_identities_unchanged_from_previous_ingress": true,
+  "user_machine_environment_unchanged": true,
+  "target_summary": [
+    {
+      "target": "windows-amd64",
+      "artifacts": 4,
+      "size_bytes": 61955072,
+      "linked_modules": 35,
+      "format": "PE32+"
+    },
+    {
+      "target": "windows-arm64",
+      "artifacts": 4,
+      "size_bytes": 58293760,
+      "linked_modules": 35,
+      "format": "PE32+"
+    },
+    {
+      "target": "linux-amd64",
+      "artifacts": 4,
+      "size_bytes": 60398140,
+      "linked_modules": 33,
+      "format": "ELF64"
+    },
+    {
+      "target": "linux-arm64",
+      "artifacts": 4,
+      "size_bytes": 57669999,
+      "linked_modules": 33,
+      "format": "ELF64"
+    },
+    {
+      "target": "darwin-amd64",
+      "artifacts": 4,
+      "size_bytes": 60418000,
+      "linked_modules": 34,
+      "format": "Mach-O64"
+    },
+    {
+      "target": "darwin-arm64",
+      "artifacts": 4,
+      "size_bytes": 57978216,
+      "linked_modules": 34,
+      "format": "Mach-O64"
+    }
+  ],
+  "binaries": [
+    {
+      "target": "windows-amd64",
+      "name": "suma-control.exe",
+      "path": "dist/runtime/windows-amd64/20261024T045219750Z-715ba2c8/suma-control.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T045219750Z-715ba2c8\\suma-control.exe",
+      "size_bytes": 25483264,
+      "sha256": "c06d3553c46278704dd976f5ab1dcef52d3b25a96f48d76e3bed4d08092b4eb8",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "amd64",
+        "machine": "0x8664",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "windows-amd64",
+      "name": "suma-runner.exe",
+      "path": "dist/runtime/windows-amd64/20261024T045219750Z-715ba2c8/suma-runner.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T045219750Z-715ba2c8\\suma-runner.exe",
+      "size_bytes": 9952768,
+      "sha256": "12c8681ec9d7e1ba325252e264e5d7aaa7d73d9c053cc3d6c3466292b44f56cb",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "amd64",
+        "machine": "0x8664",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "windows-amd64",
+      "name": "suma-deployer.exe",
+      "path": "dist/runtime/windows-amd64/20261024T045219750Z-715ba2c8/suma-deployer.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T045219750Z-715ba2c8\\suma-deployer.exe",
+      "size_bytes": 16125952,
+      "sha256": "f8f6a32145d7679bbd6d04f7496c806e7e5c4f3afc8d84ee9ce8ce5098e8a433",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "amd64",
+        "machine": "0x8664",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "windows-amd64",
+      "name": "suma.exe",
+      "path": "dist/runtime/windows-amd64/20261024T045219750Z-715ba2c8/suma.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T045219750Z-715ba2c8\\suma.exe",
+      "size_bytes": 10393088,
+      "sha256": "3d989122ded5345c071e5ef57c1d3a89eda8d582f16e9f6b819fb13a164d82ca",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "amd64",
+        "machine": "0x8664",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "windows-arm64",
+      "name": "suma-control.exe",
+      "path": "dist/runtime/windows-arm64/20261024T045219750Z-715ba2c8/suma-control.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-arm64\\20261024T045219750Z-715ba2c8\\suma-control.exe",
+      "size_bytes": 24070656,
+      "sha256": "262e06cc580454cfb7136b3c8207e7f3d27981ea856c11cf0002ce0ffac57600",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "arm64",
+        "machine": "0xaa64",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "windows-arm64",
+      "name": "suma-runner.exe",
+      "path": "dist/runtime/windows-arm64/20261024T045219750Z-715ba2c8/suma-runner.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-arm64\\20261024T045219750Z-715ba2c8\\suma-runner.exe",
+      "size_bytes": 9246208,
+      "sha256": "9dc44bf36912de751e4e45729b0027d71464597fdcf1366e46e20fa2b072a98c",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "arm64",
+        "machine": "0xaa64",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "windows-arm64",
+      "name": "suma-deployer.exe",
+      "path": "dist/runtime/windows-arm64/20261024T045219750Z-715ba2c8/suma-deployer.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-arm64\\20261024T045219750Z-715ba2c8\\suma-deployer.exe",
+      "size_bytes": 15244800,
+      "sha256": "bf9ca2838b1138359dafe408e6a7999bca70542f4b44dc920bb60a2978827b1e",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "arm64",
+        "machine": "0xaa64",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "windows-arm64",
+      "name": "suma.exe",
+      "path": "dist/runtime/windows-arm64/20261024T045219750Z-715ba2c8/suma.exe",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-arm64\\20261024T045219750Z-715ba2c8\\suma.exe",
+      "size_bytes": 9732096,
+      "sha256": "d4f3f1ca57181d17a344ce8f33cd4687a7d2c9de67c9ce1d11b1df1d38ea1c36",
+      "binary_format": {
+        "format": "PE32+",
+        "architecture": "arm64",
+        "machine": "0xaa64",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "linux-amd64",
+      "name": "suma-control",
+      "path": "dist/runtime/linux-amd64/20261024T045219750Z-715ba2c8/suma-control",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-amd64\\20261024T045219750Z-715ba2c8\\suma-control",
+      "size_bytes": 24879842,
+      "sha256": "fba4178662c1e99c91c62bea33235f560489165355f9805d78929087d1077833",
+      "binary_format": {
+        "format": "ELF64",
+        "architecture": "amd64",
+        "machine": 62,
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "linux-amd64",
+      "name": "suma-runner",
+      "path": "dist/runtime/linux-amd64/20261024T045219750Z-715ba2c8/suma-runner",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-amd64\\20261024T045219750Z-715ba2c8\\suma-runner",
+      "size_bytes": 9766196,
+      "sha256": "754608e86401039a78803c4430d83efba4234b32da4f97b3694576f626ce13d5",
+      "binary_format": {
+        "format": "ELF64",
+        "architecture": "amd64",
+        "machine": 62,
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "linux-amd64",
+      "name": "suma-deployer",
+      "path": "dist/runtime/linux-amd64/20261024T045219750Z-715ba2c8/suma-deployer",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-amd64\\20261024T045219750Z-715ba2c8\\suma-deployer",
+      "size_bytes": 15642303,
+      "sha256": "1990587613eba8ffd7a0ee6308bd3ffb2400d9f33aa2b3d362366d8965dc830e",
+      "binary_format": {
+        "format": "ELF64",
+        "architecture": "amd64",
+        "machine": 62,
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "linux-amd64",
+      "name": "suma",
+      "path": "dist/runtime/linux-amd64/20261024T045219750Z-715ba2c8/suma",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-amd64\\20261024T045219750Z-715ba2c8\\suma",
+      "size_bytes": 10109799,
+      "sha256": "51a1c602b23abdf6915ce8244665f04f1f299e5255016d4f73819cf917bb5ddd",
+      "binary_format": {
+        "format": "ELF64",
+        "architecture": "amd64",
+        "machine": 62,
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "linux-arm64",
+      "name": "suma-control",
+      "path": "dist/runtime/linux-arm64/20261024T045219750Z-715ba2c8/suma-control",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-arm64\\20261024T045219750Z-715ba2c8\\suma-control",
+      "size_bytes": 23795249,
+      "sha256": "c7a05eb0e9a92a31d2aa17cc5d2180b58f2f30ea06c32dbc936f72d041df343e",
+      "binary_format": {
+        "format": "ELF64",
+        "architecture": "arm64",
+        "machine": 183,
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "linux-arm64",
+      "name": "suma-runner",
+      "path": "dist/runtime/linux-arm64/20261024T045219750Z-715ba2c8/suma-runner",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-arm64\\20261024T045219750Z-715ba2c8\\suma-runner",
+      "size_bytes": 9252906,
+      "sha256": "025ed8f2415e50ed876d4d49156d5381d6fa7f7c939046cb9d62cebd12a2c4f5",
+      "binary_format": {
+        "format": "ELF64",
+        "architecture": "arm64",
+        "machine": 183,
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "linux-arm64",
+      "name": "suma-deployer",
+      "path": "dist/runtime/linux-arm64/20261024T045219750Z-715ba2c8/suma-deployer",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-arm64\\20261024T045219750Z-715ba2c8\\suma-deployer",
+      "size_bytes": 15009821,
+      "sha256": "1f42dfa24cbad317d2613d762580f2a3fcd9cc815b479526a4fa8cc6c042bb9c",
+      "binary_format": {
+        "format": "ELF64",
+        "architecture": "arm64",
+        "machine": 183,
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "linux-arm64",
+      "name": "suma",
+      "path": "dist/runtime/linux-arm64/20261024T045219750Z-715ba2c8/suma",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-arm64\\20261024T045219750Z-715ba2c8\\suma",
+      "size_bytes": 9612023,
+      "sha256": "e8c16689777aa4f2897d999e5a239bffbceda11f408080959ba1b75d51bbd644",
+      "binary_format": {
+        "format": "ELF64",
+        "architecture": "arm64",
+        "machine": 183,
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "darwin-amd64",
+      "name": "suma-control",
+      "path": "dist/runtime/darwin-amd64/20261024T045219750Z-715ba2c8/suma-control",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-amd64\\20261024T045219750Z-715ba2c8\\suma-control",
+      "size_bytes": 24937440,
+      "sha256": "24a7284e371c8a2fd46a5b6c8644b9cb022816919d53c68871b84b699c21283e",
+      "binary_format": {
+        "format": "Mach-O64",
+        "architecture": "amd64",
+        "machine": "0x01000007",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "darwin-amd64",
+      "name": "suma-runner",
+      "path": "dist/runtime/darwin-amd64/20261024T045219750Z-715ba2c8/suma-runner",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-amd64\\20261024T045219750Z-715ba2c8\\suma-runner",
+      "size_bytes": 9785888,
+      "sha256": "0d5ac61445fe97581463d330df6b9d1b52a137c759bf485a475806a7dc020477",
+      "binary_format": {
+        "format": "Mach-O64",
+        "architecture": "amd64",
+        "machine": "0x01000007",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "darwin-amd64",
+      "name": "suma-deployer",
+      "path": "dist/runtime/darwin-amd64/20261024T045219750Z-715ba2c8/suma-deployer",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-amd64\\20261024T045219750Z-715ba2c8\\suma-deployer",
+      "size_bytes": 15619232,
+      "sha256": "fac0ee0ded7917ef4c90e160918c56c6f07b8be15380b94b925474d7d0f606f1",
+      "binary_format": {
+        "format": "Mach-O64",
+        "architecture": "amd64",
+        "machine": "0x01000007",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "darwin-amd64",
+      "name": "suma",
+      "path": "dist/runtime/darwin-amd64/20261024T045219750Z-715ba2c8/suma",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-amd64\\20261024T045219750Z-715ba2c8\\suma",
+      "size_bytes": 10075440,
+      "sha256": "461eb946961549a6c7e170a0b5a714fd9e7f8161e4ca1867b2d326ffaee6025a",
+      "binary_format": {
+        "format": "Mach-O64",
+        "architecture": "amd64",
+        "machine": "0x01000007",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "darwin-arm64",
+      "name": "suma-control",
+      "path": "dist/runtime/darwin-arm64/20261024T045219750Z-715ba2c8/suma-control",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-arm64\\20261024T045219750Z-715ba2c8\\suma-control",
+      "size_bytes": 24025202,
+      "sha256": "d52c1b33ebeef93612f742ba4621099738bf97bd0ca0a5407feaa279fca8bcbf",
+      "binary_format": {
+        "format": "Mach-O64",
+        "architecture": "arm64",
+        "machine": "0x0100000c",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "darwin-arm64",
+      "name": "suma-runner",
+      "path": "dist/runtime/darwin-arm64/20261024T045219750Z-715ba2c8/suma-runner",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-arm64\\20261024T045219750Z-715ba2c8\\suma-runner",
+      "size_bytes": 9292706,
+      "sha256": "3a5647c2378306fb239e3b520f589489d8a50b31c41114b9c7f613f804e2086f",
+      "binary_format": {
+        "format": "Mach-O64",
+        "architecture": "arm64",
+        "machine": "0x0100000c",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "darwin-arm64",
+      "name": "suma-deployer",
+      "path": "dist/runtime/darwin-arm64/20261024T045219750Z-715ba2c8/suma-deployer",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-arm64\\20261024T045219750Z-715ba2c8\\suma-deployer",
+      "size_bytes": 15063506,
+      "sha256": "e8466ce31d17b4820c515edf3bc3e8033efda4463219abf018dadc4356cfb2ef",
+      "binary_format": {
+        "format": "Mach-O64",
+        "architecture": "arm64",
+        "machine": "0x0100000c",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    },
+    {
+      "target": "darwin-arm64",
+      "name": "suma",
+      "path": "dist/runtime/darwin-arm64/20261024T045219750Z-715ba2c8/suma",
+      "absolute_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-arm64\\20261024T045219750Z-715ba2c8\\suma",
+      "size_bytes": 9596802,
+      "sha256": "cb178b7cce37a9d5ce7e573724a7ce4a256d21bde0d2961c666013b6dda86e5d",
+      "binary_format": {
+        "format": "Mach-O64",
+        "architecture": "arm64",
+        "machine": "0x0100000c",
+        "target_matches": true
+      },
+      "independent_go_build_info_matches": true
+    }
+  ],
+  "no_target_program_executed_by_delivery": true,
+  "verification": "Actual offline cross-compilation, independent host Go build-info inspection, executable headers, size/SHA-256, frozen runtime source, dependency identities, historical file hashes and user/machine environment hashes. No target program execution, installation, signing, foreign-system or production acceptance."
+}

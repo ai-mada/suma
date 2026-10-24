@@ -1,0 +1,4 @@
+# github.com/ai-mada/suma/internal/runner [github.com/ai-mada/suma/internal/runner.test]
+internal\runner\tools_test.go:246:16: undefined: DecodeCommands
+FAIL	github.com/ai-mada/suma/internal/runner [build failed]
+FAIL

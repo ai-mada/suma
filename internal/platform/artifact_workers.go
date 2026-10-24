@@ -83,9 +83,9 @@ func (s *Service) RegisterReleaseWorker(ctx context.Context, p Principal, projec
 		seen[pr.ID] = true
 	}
 	deployment, _ := m["deployment"].(bool)
-	if len(profiles) == 0 && !deployment {
-		return nil, invalid("请选择构建、包测试或部署能力")
-	}
+	// A stable execution identity may be registered without release capabilities.
+	// Tool inventories reuse this identity, while release authorization below
+	// still requires its exact build/package/deployment grant.
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -272,6 +272,11 @@ func (s *Service) releaseClaimEligibleTx(ctx context.Context, tx *sql.Tx, p Prin
 		return false, err
 	}
 	if n == 0 {
+		return true, nil
+	}
+	if task, err := s.TaskDispatchRunTx(ctx, tx, p.TenantID, project, run); err != nil {
+		return false, err
+	} else if task {
 		return true, nil
 	}
 	if err := tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_release_workers WHERE tenant_id=? AND project_id=? AND worker_id=? AND token_hash=? AND deployment=1 AND status='active'`), p.TenantID, project, worker, digest(token)).Scan(&n); err != nil {

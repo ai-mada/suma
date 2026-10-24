@@ -40,7 +40,7 @@ func TestFailureProjectionRecoversAfterIssueCommitBeforeLedger(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	a, err := f.e.Claim(ctx, f.user.TenantID, f.project, "worker", nil)
+	a, err := f.e.Claim(ctx, f.user.TenantID, f.project, "worker", toolFixtureCapabilities(t, f))
 	if err != nil || a == nil {
 		t.Fatal(err)
 	}

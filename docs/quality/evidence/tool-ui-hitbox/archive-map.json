@@ -1,0 +1,84 @@
+{
+  "stage": "T-P4-004-requirement-hitbox-supplement",
+  "archived_at": "2026-10-24T05:35:36.102499+00:00",
+  "scope": "9 exact raw checks/source receipts; DOM style declarations separate from physical browser geometry. Previous197 and earlier archives preserved.",
+  "raw_file_count": 9,
+  "files": [
+    {
+      "source": ".cache/e2e/tool-stage/ui-requirement-hitbox-red.txt",
+      "archive": "docs/quality/evidence/tool-ui-hitbox/ui-requirement-hitbox-red.txt",
+      "bytes": 2014,
+      "source_sha256": "3ac4fa17d6d079614c01654786c58a24a38f49c117ede3c4e92df54ef37d5caa",
+      "archive_sha256": "3ac4fa17d6d079614c01654786c58a24a38f49c117ede3c4e92df54ef37d5caa"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-requirement-hitbox-green.txt",
+      "archive": "docs/quality/evidence/tool-ui-hitbox/ui-requirement-hitbox-green.txt",
+      "bytes": 300,
+      "source_sha256": "a987321263e2df57725c56b4e5b0375f7674be0b7ca5d58db3d8c6061ad79f20",
+      "archive_sha256": "a987321263e2df57725c56b4e5b0375f7674be0b7ca5d58db3d8c6061ad79f20"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-web-hitbox-final.txt",
+      "archive": "docs/quality/evidence/tool-ui-hitbox/ui-web-hitbox-final.txt",
+      "bytes": 1370,
+      "source_sha256": "8135886f6b339093814beabebb6a98e169d0803bb741edd4f130f68cddf9717b",
+      "archive_sha256": "8135886f6b339093814beabebb6a98e169d0803bb741edd4f130f68cddf9717b"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-hitbox-typecheck-final.txt",
+      "archive": "docs/quality/evidence/tool-ui-hitbox/ui-hitbox-typecheck-final.txt",
+      "bytes": 16,
+      "source_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9",
+      "archive_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-hitbox-format-check.txt",
+      "archive": "docs/quality/evidence/tool-ui-hitbox/ui-hitbox-format-check.txt",
+      "bytes": 68,
+      "source_sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283",
+      "archive_sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-hitbox-whitespace-check.txt",
+      "archive": "docs/quality/evidence/tool-ui-hitbox/ui-hitbox-whitespace-check.txt",
+      "bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-hitbox-source-before.json",
+      "archive": "docs/quality/evidence/tool-ui-hitbox/ui-hitbox-source-before.json",
+      "bytes": 4619,
+      "source_sha256": "7a85dd22724bd06ec45ccfa76db68bc185789f78ed41a63a9070520e5cbe162c",
+      "archive_sha256": "7a85dd22724bd06ec45ccfa76db68bc185789f78ed41a63a9070520e5cbe162c"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-hitbox-verification.json",
+      "archive": "docs/quality/evidence/tool-ui-hitbox/ui-hitbox-verification.json",
+      "bytes": 7149,
+      "source_sha256": "7444d245d5fd6e2437208d7b38e319efa7124acf2b9c4804a9511647fafb45a6",
+      "archive_sha256": "7444d245d5fd6e2437208d7b38e319efa7124acf2b9c4804a9511647fafb45a6"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-hitbox-docs-check.txt",
+      "archive": "docs/quality/evidence/tool-ui-hitbox/ui-hitbox-docs-check.txt",
+      "bytes": 134,
+      "source_sha256": "d000087bb5682e0f8ab3f7556fe277823b05b0dc40ab8f8f0f1578ddfa72c4b8",
+      "archive_sha256": "d000087bb5682e0f8ab3f7556fe277823b05b0dc40ab8f8f0f1578ddfa72c4b8"
+    }
+  ],
+  "shared_document_checker": {
+    "path": "scripts/check-docs.mjs",
+    "bytes": 1927,
+    "sha256": "2be8cc2ee18bed2777d513f30883db01962dda23f0065618c65465a994033f0e"
+  },
+  "shared_script_change_scope": "Earlier navigation document snapshot support; not changed by the hitbox patch. Relative source_path, snapshot_sha256, in-repository path and source existence remain verified.",
+  "docs_check": {
+    "command": "pnpm check:docs",
+    "exit_code": 0,
+    "markdown_documents": 80,
+    "api_paths": 117,
+    "schema_references": 344
+  }
+}

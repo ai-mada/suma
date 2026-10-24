@@ -1,0 +1,43 @@
+{
+  "created_at": "2026-10-24T04:28:42.638822+00:00",
+  "scope": "Independent failing repository and deterministic task-context transport fixture. No platform account, service, Runner or model started.",
+  "repository": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\tool-stage\\task-fixture\\repository",
+  "head": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+  "repository_top_verified_exact": true,
+  "original_checkout_clean": true,
+  "baseline_test_exit": 1,
+  "agent_path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\tool-stage\\task-fixture\\agent-fixture.js",
+  "commands_path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\tool-stage\\task-fixture\\commands.local.json",
+  "files": [
+    {
+      "path": "repository\\app.py",
+      "bytes": 137,
+      "sha256": "84f394a98ac3193475a142c91bb53df40d500661e875330a1f13bbda65619bc1"
+    },
+    {
+      "path": "repository\\tests.py",
+      "bytes": 485,
+      "sha256": "5489f02836174cad63efe3119458f036ec4f1ffa8e8373223d113a29c44da2a5"
+    },
+    {
+      "path": "repository\\.gitignore",
+      "bytes": 30,
+      "sha256": "505496230ac9dbcea15db4064384800de752112a3afce1555f377cddb8412ecd"
+    },
+    {
+      "path": "agent-fixture.js",
+      "bytes": 4772,
+      "sha256": "12067fb55126f97e3a3e3569bc0ef098ece4f2a959448f50b302911b924a5557"
+    },
+    {
+      "path": "commands.local.json",
+      "bytes": 525,
+      "sha256": "cc72a15557700fb61d20163e2f1bef4880d65d478bd2f431c97afad6d985b637"
+    },
+    {
+      "path": "baseline-tests.txt",
+      "bytes": 1770,
+      "sha256": "3e38c73e7633e833e0d5822956a20f4e3715b1a225c745b0674f3cca6bbb2fd0"
+    }
+  ]
+}

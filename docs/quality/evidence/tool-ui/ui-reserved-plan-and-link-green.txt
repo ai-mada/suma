@@ -1,0 +1,12 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ✓ src/tool-model.test.ts (14 tests) 18ms
+ ✓ src/ToolFacts-consumers.test.tsx (6 tests) 29ms
+ ✓ src/record-lineage.test.tsx (4 tests) 15ms
+
+ Test Files  3 passed (3)
+      Tests  24 passed (24)
+   Start at  12:51:44
+   Duration  1.14s (transform 278ms, setup 0ms, collect 603ms, tests 62ms, environment 1ms, prepare 556ms)
+

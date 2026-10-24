@@ -1,0 +1,253 @@
+{
+  "stage": "T-P4-004",
+  "recorded_at": "2026-10-24T05:04:22.261796+00:00",
+  "scope": "Explicitly reviewed public test/source/protocol evidence. Original bytes preserved, no new tests run during archival.",
+  "source_file_count": 35,
+  "files": [
+    {
+      "source": ".cache/e2e/tool-stage/runtime-suite-final.jsonl",
+      "archive": "docs/quality/evidence/tool-runtime/runtime-suite-final.jsonl",
+      "bytes": 104971,
+      "source_sha256": "c50c019f8cad4546e17dbeca663885acf080b6fe6c76b14e6e9a5fbef1006732",
+      "archive_sha256": "c50c019f8cad4546e17dbeca663885acf080b6fe6c76b14e6e9a5fbef1006732"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/runtime-verification.json",
+      "archive": "docs/quality/evidence/tool-runtime/runtime-verification.json",
+      "bytes": 7023,
+      "source_sha256": "795aaa2c8d329495913a5a5ba58d90fbb36fa0577f72998296133d126b5b98d8",
+      "archive_sha256": "795aaa2c8d329495913a5a5ba58d90fbb36fa0577f72998296133d126b5b98d8"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/runtime-source-start.json",
+      "archive": "docs/quality/evidence/tool-runtime/runtime-source-start.json",
+      "bytes": 5533,
+      "source_sha256": "99045d89de24f51a8a60b4f3980f674a2d8f91286e12ee3e9ed3400601569dc6",
+      "archive_sha256": "99045d89de24f51a8a60b4f3980f674a2d8f91286e12ee3e9ed3400601569dc6"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/runtime-exit.json",
+      "archive": "docs/quality/evidence/tool-runtime/runtime-exit.json",
+      "bytes": 42,
+      "source_sha256": "3b46ab5dd63568d2351577ccea4fb82afe7282fe65020d3d5931a95d4116effe",
+      "archive_sha256": "3b46ab5dd63568d2351577ccea4fb82afe7282fe65020d3d5931a95d4116effe"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/runtime-vet-final.txt",
+      "archive": "docs/quality/evidence/tool-runtime/runtime-vet-final.txt",
+      "bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-cli-final.txt",
+      "archive": "docs/quality/evidence/tool-runtime/native-cli-final.txt",
+      "bytes": 1141,
+      "source_sha256": "da7bc163716f6d257a717b9e7df469321f2ee7e4536bc2a600b9a485dd05ade8",
+      "archive_sha256": "da7bc163716f6d257a717b9e7df469321f2ee7e4536bc2a600b9a485dd05ade8"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-typecheck-final.txt",
+      "archive": "docs/quality/evidence/tool-runtime/native-typecheck-final.txt",
+      "bytes": 16,
+      "source_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9",
+      "archive_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-cli-red.txt",
+      "archive": "docs/quality/evidence/tool-runtime/native-cli-red.txt",
+      "bytes": 2819,
+      "source_sha256": "3ebec4fab7767f9272e66593c619f9265f83d674f17d8c1e1f63a8e08fec0a15",
+      "archive_sha256": "3ebec4fab7767f9272e66593c619f9265f83d674f17d8c1e1f63a8e08fec0a15"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-alias-red.txt",
+      "archive": "docs/quality/evidence/tool-runtime/native-alias-red.txt",
+      "bytes": 4214,
+      "source_sha256": "a1df31747298b242a8ec4f19b4e6163f22e680469a3dce2fb4e7366d70d5f2a5",
+      "archive_sha256": "a1df31747298b242a8ec4f19b4e6163f22e680469a3dce2fb4e7366d70d5f2a5"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-alias-green.txt",
+      "archive": "docs/quality/evidence/tool-runtime/native-alias-green.txt",
+      "bytes": 1809,
+      "source_sha256": "67ed06ee7b664d6e2ce5d537e554fdde3dbd3e4023a0e0693ac5caec057a9dd4",
+      "archive_sha256": "67ed06ee7b664d6e2ce5d537e554fdde3dbd3e4023a0e0693ac5caec057a9dd4"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-alias-verification.json",
+      "archive": "docs/quality/evidence/tool-runtime/native-alias-verification.json",
+      "bytes": 4785,
+      "source_sha256": "f7c8278beee94db505aa73d6433a09a233aeb828d0679e96739de78eaaae5708",
+      "archive_sha256": "f7c8278beee94db505aa73d6433a09a233aeb828d0679e96739de78eaaae5708"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-alias-typecheck.txt",
+      "archive": "docs/quality/evidence/tool-runtime/native-alias-typecheck.txt",
+      "bytes": 16,
+      "source_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9",
+      "archive_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-alias-build.txt",
+      "archive": "docs/quality/evidence/tool-runtime/native-alias-build.txt",
+      "bytes": 7,
+      "source_sha256": "f56b4be4dcac692bd8a6bc76a64478abe3d3d071238ceec629c933dce080712f",
+      "archive_sha256": "f56b4be4dcac692bd8a6bc76a64478abe3d3d071238ceec629c933dce080712f"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-alias-cli-version.txt",
+      "archive": "docs/quality/evidence/tool-runtime/native-alias-cli-version.txt",
+      "bytes": 25,
+      "source_sha256": "0923641364dc8bc25135cf88fa60be97698ce745882fb522e82d81ed8eaa48af",
+      "archive_sha256": "0923641364dc8bc25135cf88fa60be97698ce745882fb522e82d81ed8eaa48af"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-alias-cli-help.txt",
+      "archive": "docs/quality/evidence/tool-runtime/native-alias-cli-help.txt",
+      "bytes": 394,
+      "source_sha256": "b2c9ddf6bd959e8b2b1deb8becb2e5abecb060a5825e1db494505a07a5034926",
+      "archive_sha256": "b2c9ddf6bd959e8b2b1deb8becb2e5abecb060a5825e1db494505a07a5034926"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-live-scope.py",
+      "archive": "docs/quality/evidence/tool-runtime/native-live-scope.py",
+      "bytes": 12072,
+      "source_sha256": "8c78303f4b78b3e4c3b1cfe1064c2f041bb4e297a439caff377b606326b25ceb",
+      "archive_sha256": "8c78303f4b78b3e4c3b1cfe1064c2f041bb4e297a439caff377b606326b25ceb"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-live-scope.json",
+      "archive": "docs/quality/evidence/tool-runtime/native-live-scope.json",
+      "bytes": 5092,
+      "source_sha256": "0b302646436f65672072a34dc54e51ce4e6c7512ecae68ef4d08fed5c43b0e3b",
+      "archive_sha256": "0b302646436f65672072a34dc54e51ce4e6c7512ecae68ef4d08fed5c43b0e3b"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-live-scope.stdout.jsonl",
+      "archive": "docs/quality/evidence/tool-runtime/native-live-scope.stdout.jsonl",
+      "bytes": 1609,
+      "source_sha256": "5d2e906d4ac50f30873551af4918afeab51aa9a6c25c6ad0db2410c29c1b386b",
+      "archive_sha256": "5d2e906d4ac50f30873551af4918afeab51aa9a6c25c6ad0db2410c29c1b386b"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/agent-environment-red.txt",
+      "archive": "docs/quality/evidence/tool-runtime/agent-environment-red.txt",
+      "bytes": 207,
+      "source_sha256": "6f48a3085371eee95ac44c3f97065ef9996990c6888f86060dc04db8331dbbe3",
+      "archive_sha256": "6f48a3085371eee95ac44c3f97065ef9996990c6888f86060dc04db8331dbbe3"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-session-id-red-confirmed.txt",
+      "archive": "docs/quality/evidence/tool-runtime/native-session-id-red-confirmed.txt",
+      "bytes": 671,
+      "source_sha256": "08ddb0c508ced271177edd169c44dceaba1144fcfa9b010f56062dbe6073eb16",
+      "archive_sha256": "08ddb0c508ced271177edd169c44dceaba1144fcfa9b010f56062dbe6073eb16"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-entry-drift-red.txt",
+      "archive": "docs/quality/evidence/tool-runtime/native-entry-drift-red.txt",
+      "bytes": 237,
+      "source_sha256": "38648b5f6b8b105b55052ee3975e616a558c994f5050a7320df1e04d1891e1d6",
+      "archive_sha256": "38648b5f6b8b105b55052ee3975e616a558c994f5050a7320df1e04d1891e1d6"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/native-entry-drift-green.txt",
+      "archive": "docs/quality/evidence/tool-runtime/native-entry-drift-green.txt",
+      "bytes": 53,
+      "source_sha256": "19dbd807aeae519d33d7aa3fc38b5d22468e7289e2366dcf28ec26cb50741343",
+      "archive_sha256": "19dbd807aeae519d33d7aa3fc38b5d22468e7289e2366dcf28ec26cb50741343"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/protocol-order-and-preset-red.jsonl",
+      "archive": "docs/quality/evidence/tool-runtime/protocol-order-and-preset-red.jsonl",
+      "bytes": 23763,
+      "source_sha256": "824ff07b0565df2ce78eac5a2b3c85e3e705a237f6266594d2ac553069575e81",
+      "archive_sha256": "824ff07b0565df2ce78eac5a2b3c85e3e705a237f6266594d2ac553069575e81"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/protocol-order-and-preset-green.jsonl",
+      "archive": "docs/quality/evidence/tool-runtime/protocol-order-and-preset-green.jsonl",
+      "bytes": 44406,
+      "source_sha256": "694b24a078fb29affa85ea2deaa8e738150d8cf54b7fbf0c59c96c8300a37850",
+      "archive_sha256": "694b24a078fb29affa85ea2deaa8e738150d8cf54b7fbf0c59c96c8300a37850"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/codex-required-usage-red.jsonl",
+      "archive": "docs/quality/evidence/tool-runtime/codex-required-usage-red.jsonl",
+      "bytes": 2069,
+      "source_sha256": "27ea55e09787cffb567b05170d05450d9e1e499cf5b7ac47671671b09ca5de9e",
+      "archive_sha256": "27ea55e09787cffb567b05170d05450d9e1e499cf5b7ac47671671b09ca5de9e"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/codex-required-usage-green.txt",
+      "archive": "docs/quality/evidence/tool-runtime/codex-required-usage-green.txt",
+      "bytes": 53,
+      "source_sha256": "c02745e7c8e76a505f942c9323ff8f01374658cd972dda18ccb4795388244d62",
+      "archive_sha256": "c02745e7c8e76a505f942c9323ff8f01374658cd972dda18ccb4795388244d62"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/inventory-outage-green.jsonl",
+      "archive": "docs/quality/evidence/tool-runtime/inventory-outage-green.jsonl",
+      "bytes": 7095,
+      "source_sha256": "3f80daeab5c448aaec27e376bf8bba3cddc3d88711ef2209397addd82aca63d9",
+      "archive_sha256": "3f80daeab5c448aaec27e376bf8bba3cddc3d88711ef2209397addd82aca63d9"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/isolation-inventory-red.txt",
+      "archive": "docs/quality/evidence/tool-runtime/isolation-inventory-red.txt",
+      "bytes": 217,
+      "source_sha256": "2dd8fbb5c6b7ae19cb54e8fa77123adb972f36547e7b4855cd68e7c3433da318",
+      "archive_sha256": "2dd8fbb5c6b7ae19cb54e8fa77123adb972f36547e7b4855cd68e7c3433da318"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/strict-command-config-red.txt",
+      "archive": "docs/quality/evidence/tool-runtime/strict-command-config-red.txt",
+      "bytes": 222,
+      "source_sha256": "5f343a2c65092a7c24ea389c52d2e2a9f49ce8ca2860c2d643d3822311331d8a",
+      "archive_sha256": "5f343a2c65092a7c24ea389c52d2e2a9f49ce8ca2860c2d643d3822311331d8a"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/quoted-credential-red.txt",
+      "archive": "docs/quality/evidence/tool-runtime/quoted-credential-red.txt",
+      "bytes": 276,
+      "source_sha256": "7dee23a5de9a17bbd7639b73e3acdc3eb1d2753cbc7203a5b4355ac09e451e5c",
+      "archive_sha256": "7dee23a5de9a17bbd7639b73e3acdc3eb1d2753cbc7203a5b4355ac09e451e5c"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/runtime-suite-attempt1.jsonl",
+      "archive": "docs/quality/evidence/tool-runtime/runtime-suite-attempt1.jsonl",
+      "bytes": 71618,
+      "source_sha256": "a3787d494e98d9ba610d7d33c6775aba57e1a507ec0bc8abd365e1ed34a14c0a",
+      "archive_sha256": "a3787d494e98d9ba610d7d33c6775aba57e1a507ec0bc8abd365e1ed34a14c0a"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/runtime-describe-tools.json",
+      "archive": "docs/quality/evidence/tool-runtime/runtime-describe-tools.json",
+      "bytes": 1182,
+      "source_sha256": "8ce69a9feeb3898c350c60e9fb083113397fa5a3c32fe1fd8645f51e38d4c8bc",
+      "archive_sha256": "8ce69a9feeb3898c350c60e9fb083113397fa5a3c32fe1fd8645f51e38d4c8bc"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/runtime-describe-disabled.json",
+      "archive": "docs/quality/evidence/tool-runtime/runtime-describe-disabled.json",
+      "bytes": 771,
+      "source_sha256": "52b421384c2b711df1bc61defe51ac0bd738875b9a1815f467fd03152a405567",
+      "archive_sha256": "52b421384c2b711df1bc61defe51ac0bd738875b9a1815f467fd03152a405567"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/runtime-red.txt",
+      "archive": "docs/quality/evidence/tool-runtime/runtime-red.txt",
+      "bytes": 900,
+      "source_sha256": "6be19ef346f522b6db4aa6c788286df504d9f9353b270660717ca6f54cf0f07e",
+      "archive_sha256": "6be19ef346f522b6db4aa6c788286df504d9f9353b270660717ca6f54cf0f07e"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/inventory-red.txt",
+      "archive": "docs/quality/evidence/tool-runtime/inventory-red.txt",
+      "bytes": 1162,
+      "source_sha256": "64375ca41327541d96eea2d3efa2956f1f8533b792f4fc07efac7640aceaca7b",
+      "archive_sha256": "64375ca41327541d96eea2d3efa2956f1f8533b792f4fc07efac7640aceaca7b"
+    }
+  ]
+}

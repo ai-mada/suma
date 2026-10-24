@@ -3,6 +3,7 @@ package dag
 import (
 	"errors"
 	"github.com/ai-mada/suma/internal/releasecontract"
+	"github.com/ai-mada/suma/internal/toolcontract"
 )
 
 var (
@@ -76,6 +77,9 @@ type NodeRun struct {
 	Compensatable     bool                              `json:"compensatable"`
 	WorkspaceEvidence map[string]any                    `json:"workspace_evidence,omitempty"`
 	ArtifactEvidence  *releasecontract.ArtifactEvidence `json:"artifact_evidence,omitempty"`
+	ToolEvidence      *toolcontract.Evidence            `json:"tool_evidence,omitempty"`
+	ToolProfileID     string                            `json:"tool_profile_id,omitempty"`
+	ToolProfileSHA256 string                            `json:"tool_profile_sha256,omitempty"`
 }
 type Assignment struct {
 	RunID                   string                            `json:"run_id"`
@@ -110,6 +114,7 @@ type Result struct {
 	WorkspaceEvidence map[string]any                    `json:"workspace_evidence,omitempty"`
 	ArtifactEvidence  *releasecontract.ArtifactEvidence `json:"artifact_evidence,omitempty"`
 	ReleaseEvidence   *releasecontract.ReleaseResult    `json:"release_evidence,omitempty"`
+	ToolEvidence      *toolcontract.Evidence            `json:"tool_evidence,omitempty"`
 }
 type Event struct {
 	Sequence int64          `json:"sequence"`

@@ -7,7 +7,7 @@ import (
 )
 
 func compensable(id string, deps ...string) Node {
-	return Node{ID: id, Type: "command", Command: []string{"apply", id}, DependsOn: deps, Idempotent: true, Config: map[string]any{"compensation": map[string]any{"type": "command", "command": []any{"undo", id, "{{source.attempt}}"}, "idempotent": true}}}
+	return Node{ID: id, Type: "command", Command: []string{"apply"}, DependsOn: deps, Idempotent: true, Config: map[string]any{"effect_id": id, "compensation": map[string]any{"type": "command", "command": []any{"undo"}, "idempotent": true, "config": map[string]any{"effect_id": id, "source_attempt": "{{source.attempt}}"}}}}
 }
 func TestExplicitCompensationRunsReverseDependenciesWithPinnedEvidence(t *testing.T) {
 	e, r := fixture(t, Workflow{Nodes: []Node{compensable("a"), compensable("b", "a"), compensable("c", "b")}})
@@ -24,7 +24,7 @@ func TestExplicitCompensationRunsReverseDependenciesWithPinnedEvidence(t *testin
 	}
 	for _, want := range []string{"c", "b", "a"} {
 		a := claim(t, e)
-		if a == nil || a.RunID != r.CompensationRunID || a.Command[1] != want || a.Command[2] != "1" {
+		if a == nil || a.RunID != r.CompensationRunID || a.Command[0] != "undo" || a.Config["effect_id"] != want || a.Config["source_attempt"] != "1" {
 			t.Fatalf("inverse order want=%s got=%+v", want, a)
 		}
 		source, ok := a.Config["source_execution"].(map[string]any)
@@ -86,7 +86,7 @@ func TestCompensationFailurePreservesSourceAndBlocksEarlierInverse(t *testing.T)
 }
 
 func TestCompensationPreservesParallelMapInverseOrderAfterRestart(t *testing.T) {
-	template := map[string]any{"type": "command", "command": []any{"apply", "{{item}}"}, "config": map[string]any{"compensation": map[string]any{"type": "command", "command": []any{"undo", "{{source.node_id}}"}, "idempotent": true}}}
+	template := map[string]any{"type": "command", "command": []any{"apply"}, "config": map[string]any{"item_id": "{{item}}", "compensation": map[string]any{"type": "command", "command": []any{"undo"}, "idempotent": true, "config": map[string]any{"effect_id": "{{source.node_id}}"}}}}
 	e, r := fixture(t, Workflow{Nodes: []Node{compensable("before"), {ID: "map", Type: "map", DependsOn: []string{"before"}, Config: map[string]any{"items": []any{"x", "y"}, "template": template}}, compensable("after", "map")}})
 	done(t, e, claim(t, e), 0)
 	a, b := claim(t, e), claim(t, e)
@@ -103,12 +103,12 @@ func TestCompensationPreservesParallelMapInverseOrderAfterRestart(t *testing.T) 
 		t.Fatal(err)
 	}
 	a = claim(t, restarted)
-	if a == nil || a.Command[1] != "after" {
+	if a == nil || a.Config["effect_id"] != "after" {
 		t.Fatal(a)
 	}
 	done(t, restarted, a, 0)
 	a, b = claim(t, restarted), claim(t, restarted)
-	if a == nil || b == nil || a.Command[1] == b.Command[1] || a.Command[1] == "before" || b.Command[1] == "before" {
+	if a == nil || b == nil || a.Config["effect_id"] == b.Config["effect_id"] || a.Config["effect_id"] == "before" || b.Config["effect_id"] == "before" {
 		t.Fatalf("parallel inverse %+v %+v", a, b)
 	}
 	done(t, restarted, a, 0)
@@ -117,7 +117,7 @@ func TestCompensationPreservesParallelMapInverseOrderAfterRestart(t *testing.T) 
 	}
 	done(t, restarted, b, 0)
 	a = claim(t, restarted)
-	if a == nil || a.Command[1] != "before" {
+	if a == nil || a.Config["effect_id"] != "before" {
 		t.Fatal(a)
 	}
 	done(t, restarted, a, 0)

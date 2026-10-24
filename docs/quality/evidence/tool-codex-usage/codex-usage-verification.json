@@ -1,0 +1,92 @@
+{
+  "stage": "T-P4-004",
+  "recorded_at": "2026-10-24T05:19:28.055629+00:00",
+  "scope": "Codex JSONL three required base counters plus optional split counters; targeted parser and real local fixture subprocess regression only.",
+  "source_role": "post-review source supplement after initial 111-test / initial 045219 delivery; never rebadges the earlier test or binary cuts",
+  "required_counters": [
+    "input_tokens",
+    "cached_input_tokens",
+    "output_tokens"
+  ],
+  "optional_counters": [
+    "reasoning_output_tokens",
+    "cache_write_input_tokens"
+  ],
+  "all_present_counters": "explicit nonnegative int64; null, string, bool, negative, fraction and overflow rejected",
+  "missing_optional_counters": "omitted on public wire; no measured zero inferred. Existing omitempty also drops explicit zero splits, so full presence fidelity is not claimed.",
+  "official_sources": [
+    {
+      "ref": "rust-v0.100.0",
+      "url": "https://github.com/openai/codex/blob/rust-v0.100.0/codex-rs/exec/src/exec_events.rs#L54-L63",
+      "finding": "Usage derives Serialize and contains only three base fields"
+    },
+    {
+      "ref": "970111f6cb62cc02fe36a82ea7d71b37a2889c97",
+      "url": "https://github.com/openai/codex/blob/970111f6cb62cc02fe36a82ea7d71b37a2889c97/codex-rs/exec/src/exec_events.rs#L54-L68",
+      "finding": "Usage derives Serialize and contains five fields; reasoning has no default, cache_write has serde default for deserialization"
+    },
+    {
+      "url": "https://developers.openai.com/codex/noninteractive",
+      "finding": "current official example includes reasoning counter"
+    }
+  ],
+  "local_installed_codex": "0.164.0-alpha.11.1 was version/help probed only; its actual model-run output shape was not measured",
+  "test_command": "go test ./internal/runner -run TestCodexUsage|TestActualStructuredProcessNeedsExitAndWholeRunTerminal -json -count=1",
+  "result": {
+    "red": {
+      "exit_code": 1,
+      "pass_test_events": 12,
+      "fail_test_events": 4,
+      "skip_test_events": 0,
+      "package_elapsed_seconds": 3.605
+    },
+    "green": {
+      "exit_code": 0,
+      "pass_test_events": 16,
+      "fail_test_events": 0,
+      "skip_test_events": 0,
+      "package_elapsed_seconds": 3.2720000000000002
+    }
+  },
+  "source_snapshot": [
+    {
+      "path": "internal/runner/tool_stream.go",
+      "bytes": 11149,
+      "sha256": "28b2bd53ae2d32355ca5154dfb3dadbab6960bccf39d6475ccab8281d3105103"
+    },
+    {
+      "path": "internal/runner/tools_test.go",
+      "bytes": 15832,
+      "sha256": "daaf6351ec4bbb3d1d8ce05bae14af3f7d249b466f0560bd9c12810533c9dc1c"
+    },
+    {
+      "path": "internal/runner/tool_process_test.go",
+      "bytes": 8136,
+      "sha256": "a5a708e070e2d2cf772f7f6c6e87cc44b0cd6690d70000275fc6c589c9b1e05e"
+    }
+  ],
+  "raw_files": [
+    {
+      "path": "codex-three-counter-red.jsonl",
+      "bytes": 18247,
+      "sha256": "ab809070c8b206b3710e4f7ac65493cbd67f6125f2b3256388b423c538caefc7",
+      "original_bytes_preserved": true
+    },
+    {
+      "path": "codex-three-counter-green.jsonl",
+      "bytes": 16170,
+      "sha256": "11a974c1282ee5520fa2edab3d3265b22befcf6210e9ba845d4dd1318a2b6db0",
+      "original_bytes_preserved": true
+    }
+  ],
+  "model_invoked": false,
+  "vendor_cli_task_invoked": false,
+  "network_api_invoked": false,
+  "credentials_or_private_config_read_by_archiver": false,
+  "sensitivity_scan": "private-key, provider-key, GitHub-token and bearer patterns absent; raw output only local generated fixture test facts",
+  "previous_archives_preserved": {
+    "files": 47,
+    "unchanged": true
+  },
+  "full_go_suite_and_delivery_build": "separate root-owned post-review evidence; not rerun by this supplement"
+}

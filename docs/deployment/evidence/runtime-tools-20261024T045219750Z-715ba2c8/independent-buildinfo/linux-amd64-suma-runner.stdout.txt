@@ -1,0 +1,10 @@
+D:\codes\ai-dev-os\suma\dist\runtime\linux-amd64\20261024T045219750Z-715ba2c8\suma-runner: go1.24.5
+	path	github.com/ai-mada/suma/cmd/suma-runner
+	mod	github.com/ai-mada/suma	(devel)	
+	build	-buildmode=exe
+	build	-compiler=gc
+	build	-trimpath=true
+	build	CGO_ENABLED=0
+	build	GOARCH=amd64
+	build	GOOS=linux
+	build	GOAMD64=v1

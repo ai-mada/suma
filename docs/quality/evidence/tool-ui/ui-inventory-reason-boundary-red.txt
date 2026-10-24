@@ -1,0 +1,54 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ❯ src/tool-model.test.ts (12 tests | 2 failed) 21ms
+   ✓ tool manifest and fixed task choices > keeps the exact run and node in a bounded tool-workspace return route
+   ✓ tool manifest and fixed task choices > accepts only nonsecret describe-tools observations and retains unavailable explanations
+   × tool manifest and fixed task choices > bounds observation reasons at 1000 UTF-8 bytes rather than characters 6ms
+     → expected [Function] to throw an error
+   × tool manifest and fixed task choices > requires a meaningful reason when a configured tool is unavailable 1ms
+     → expected [Function] to throw an error
+   ✓ tool manifest and fixed task choices > rejects secrets, raw execution paths, malformed pair/hash and duplicate command identities
+   ✓ tool manifest and fixed task choices > binds the command to the selected immutable profile without changing unrelated node config
+   ✓ tool manifest and fixed task choices > creates a versioned preview request with no mutable task text or executable parameters
+   ✓ tool manifest and fixed task choices > refuses read-only task development or a workflow without the chosen candidate test
+   ✓ tool manifest and fixed task choices > never shows another attempt, worker or fence as current tool progress
+   ✓ tool write recovery > persists the exact operation before sending and replays it after reload without rebasing
+   ✓ tool write recovery > retains an unknown operation when a later replay is forbidden and isolates users/projects
+   ✓ tool write recovery > rejects credential fields or unrelated paths before any network request
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/tool-model.test.ts > tool manifest and fixed task choices > bounds observation reasons at 1000 UTF-8 bytes rather than characters
+AssertionError: expected [Function] to throw an error
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 10 passed (12)
+   Start at  12:27:13
+   Duration  1.05s (transform 73ms, setup 0ms, collect 91ms, tests 21ms, environment 0ms, prepare 261ms)
+
+ ❯ src/tool-model.test.ts:108:111
+    106|     expect(parseToolManifest(JSON.stringify([{profile:definition,avail…
+    107|     for (const oversized of [reason + "a", "中".repeat(334), "a".repeat…
+    108|       expect(() => parseToolManifest(JSON.stringify([{profile:definiti…
+       |                                                                                                               ^
+    109|   });
+    110|   it("requires a meaningful reason when a configured tool is unavailab…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/tool-model.test.ts > tool manifest and fixed task choices > requires a meaningful reason when a configured tool is unavailable
+AssertionError: expected [Function] to throw an error
+ ❯ src/tool-model.test.ts:112:102
+    110|   it("requires a meaningful reason when a configured tool is unavailab…
+    111|     for (const reason of ["", " \n\t"])
+    112|       expect(() => parseToolManifest(JSON.stringify([{profile:definiti…
+       |                                                                                                      ^
+    113|     expect(parseToolManifest(JSON.stringify([{profile:definition,avail…
+    114|     expect(parseToolManifest(JSON.stringify([{profile:definition,avail…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+undefined
+D:\codes\ai-dev-os\suma\apps\web:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/tool-model.test.ts

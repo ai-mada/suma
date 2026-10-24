@@ -1,0 +1,70 @@
+{
+  "stage": "T-P4-004-responsive-supplement",
+  "archived_at": "2026-10-24T05:16:38.957257+00:00",
+  "scope": "8 exact raw files: before-fix screenshot supplied by root,6 test/check outputs,1 current UI source receipt. No final browser screenshot or actual operation acceptance claimed.",
+  "files": [
+    {
+      "source": ".cache/e2e/tool-stage/ui-responsive-workflow-red.txt",
+      "archive": "docs/quality/evidence/tool-ui-responsive/ui-responsive-workflow-red.txt",
+      "bytes": 32052,
+      "source_sha256": "5198fbdc46204616742cdbbbd4bded16bed03af5441427d4210c8aa513d64e76",
+      "archive_sha256": "5198fbdc46204616742cdbbbd4bded16bed03af5441427d4210c8aa513d64e76"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-responsive-workflow-green.txt",
+      "archive": "docs/quality/evidence/tool-ui-responsive/ui-responsive-workflow-green.txt",
+      "bytes": 293,
+      "source_sha256": "ab2cf4e5d60ff38e41f31ef6ae3153d069a75aec9478daeabe36072dd95667c4",
+      "archive_sha256": "ab2cf4e5d60ff38e41f31ef6ae3153d069a75aec9478daeabe36072dd95667c4"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-web-responsive-final.txt",
+      "archive": "docs/quality/evidence/tool-ui-responsive/ui-web-responsive-final.txt",
+      "bytes": 1312,
+      "source_sha256": "c7964558f46a63f0ece5469e95245493e08bcf27ee14e75ac22c032883596fa9",
+      "archive_sha256": "c7964558f46a63f0ece5469e95245493e08bcf27ee14e75ac22c032883596fa9"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-responsive-typecheck-final.txt",
+      "archive": "docs/quality/evidence/tool-ui-responsive/ui-responsive-typecheck-final.txt",
+      "bytes": 16,
+      "source_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9",
+      "archive_sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-responsive-format-check.txt",
+      "archive": "docs/quality/evidence/tool-ui-responsive/ui-responsive-format-check.txt",
+      "bytes": 68,
+      "source_sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283",
+      "archive_sha256": "f20510a9da4717c51c4cffee6d0dd88d6c9a723d0a83711d01216f5b48961283"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-responsive-whitespace-check.txt",
+      "archive": "docs/quality/evidence/tool-ui-responsive/ui-responsive-whitespace-check.txt",
+      "bytes": 0,
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/ui-responsive-verification.json",
+      "archive": "docs/quality/evidence/tool-ui-responsive/ui-responsive-verification.json",
+      "bytes": 6898,
+      "source_sha256": "6bb032fe2b5edfb4271277f296c9d52affef3f2f417c563a20de5a6026d20cfb",
+      "archive_sha256": "6bb032fe2b5edfb4271277f296c9d52affef3f2f417c563a20de5a6026d20cfb"
+    },
+    {
+      "source": ".cache/e2e/tool-stage/screenshots/stop-cdp-390.png",
+      "archive": "docs/quality/evidence/tool-ui-responsive/before-stop-cdp-390.png",
+      "bytes": 36905,
+      "source_sha256": "eccec6a3a54312e3c42f248b7eca55e76bec1548f35a3c758ed71c2b600e073a",
+      "archive_sha256": "eccec6a3a54312e3c42f248b7eca55e76bec1548f35a3c758ed71c2b600e073a",
+      "classification": "before_fix_diagnostic_input_not_final_acceptance",
+      "format": "PNG",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "current_ui_source_count": 21,
+  "previous_formal_tool_ui_archive_unchanged": true,
+  "security_review": "Only allowlisted UI output and source hashes copied; diagnostic image manually inspected. No runtime credentials,keys,databases or control logs read/copied."
+}

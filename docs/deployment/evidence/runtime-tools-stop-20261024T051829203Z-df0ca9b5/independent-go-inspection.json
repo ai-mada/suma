@@ -1,0 +1,266 @@
+[
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T051829203Z-df0ca9b5\\suma-control.exe"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/windows-amd64-suma-control.exe.stdout.txt",
+    "stderr_file": "independent-buildinfo/windows-amd64-suma-control.exe.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T051829203Z-df0ca9b5\\suma-runner.exe"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/windows-amd64-suma-runner.exe.stdout.txt",
+    "stderr_file": "independent-buildinfo/windows-amd64-suma-runner.exe.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T051829203Z-df0ca9b5\\suma-deployer.exe"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/windows-amd64-suma-deployer.exe.stdout.txt",
+    "stderr_file": "independent-buildinfo/windows-amd64-suma-deployer.exe.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T051829203Z-df0ca9b5\\suma.exe"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/windows-amd64-suma.exe.stdout.txt",
+    "stderr_file": "independent-buildinfo/windows-amd64-suma.exe.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-arm64\\20261024T051829203Z-df0ca9b5\\suma-control.exe"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/windows-arm64-suma-control.exe.stdout.txt",
+    "stderr_file": "independent-buildinfo/windows-arm64-suma-control.exe.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-arm64\\20261024T051829203Z-df0ca9b5\\suma-runner.exe"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/windows-arm64-suma-runner.exe.stdout.txt",
+    "stderr_file": "independent-buildinfo/windows-arm64-suma-runner.exe.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-arm64\\20261024T051829203Z-df0ca9b5\\suma-deployer.exe"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/windows-arm64-suma-deployer.exe.stdout.txt",
+    "stderr_file": "independent-buildinfo/windows-arm64-suma-deployer.exe.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-arm64\\20261024T051829203Z-df0ca9b5\\suma.exe"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/windows-arm64-suma.exe.stdout.txt",
+    "stderr_file": "independent-buildinfo/windows-arm64-suma.exe.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-amd64\\20261024T051829203Z-df0ca9b5\\suma-control"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/linux-amd64-suma-control.stdout.txt",
+    "stderr_file": "independent-buildinfo/linux-amd64-suma-control.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-amd64\\20261024T051829203Z-df0ca9b5\\suma-runner"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/linux-amd64-suma-runner.stdout.txt",
+    "stderr_file": "independent-buildinfo/linux-amd64-suma-runner.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-amd64\\20261024T051829203Z-df0ca9b5\\suma-deployer"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/linux-amd64-suma-deployer.stdout.txt",
+    "stderr_file": "independent-buildinfo/linux-amd64-suma-deployer.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-amd64\\20261024T051829203Z-df0ca9b5\\suma"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/linux-amd64-suma.stdout.txt",
+    "stderr_file": "independent-buildinfo/linux-amd64-suma.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-arm64\\20261024T051829203Z-df0ca9b5\\suma-control"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/linux-arm64-suma-control.stdout.txt",
+    "stderr_file": "independent-buildinfo/linux-arm64-suma-control.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-arm64\\20261024T051829203Z-df0ca9b5\\suma-runner"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/linux-arm64-suma-runner.stdout.txt",
+    "stderr_file": "independent-buildinfo/linux-arm64-suma-runner.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-arm64\\20261024T051829203Z-df0ca9b5\\suma-deployer"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/linux-arm64-suma-deployer.stdout.txt",
+    "stderr_file": "independent-buildinfo/linux-arm64-suma-deployer.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\linux-arm64\\20261024T051829203Z-df0ca9b5\\suma"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/linux-arm64-suma.stdout.txt",
+    "stderr_file": "independent-buildinfo/linux-arm64-suma.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-amd64\\20261024T051829203Z-df0ca9b5\\suma-control"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/darwin-amd64-suma-control.stdout.txt",
+    "stderr_file": "independent-buildinfo/darwin-amd64-suma-control.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-amd64\\20261024T051829203Z-df0ca9b5\\suma-runner"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/darwin-amd64-suma-runner.stdout.txt",
+    "stderr_file": "independent-buildinfo/darwin-amd64-suma-runner.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-amd64\\20261024T051829203Z-df0ca9b5\\suma-deployer"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/darwin-amd64-suma-deployer.stdout.txt",
+    "stderr_file": "independent-buildinfo/darwin-amd64-suma-deployer.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-amd64\\20261024T051829203Z-df0ca9b5\\suma"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/darwin-amd64-suma.stdout.txt",
+    "stderr_file": "independent-buildinfo/darwin-amd64-suma.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-arm64\\20261024T051829203Z-df0ca9b5\\suma-control"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/darwin-arm64-suma-control.stdout.txt",
+    "stderr_file": "independent-buildinfo/darwin-arm64-suma-control.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-arm64\\20261024T051829203Z-df0ca9b5\\suma-runner"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/darwin-arm64-suma-runner.stdout.txt",
+    "stderr_file": "independent-buildinfo/darwin-arm64-suma-runner.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-arm64\\20261024T051829203Z-df0ca9b5\\suma-deployer"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/darwin-arm64-suma-deployer.stdout.txt",
+    "stderr_file": "independent-buildinfo/darwin-arm64-suma-deployer.stderr.txt",
+    "build_metadata_matches_original": true
+  },
+  {
+    "arguments": [
+      "version",
+      "-m",
+      "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\darwin-arm64\\20261024T051829203Z-df0ca9b5\\suma"
+    ],
+    "exit_code": 0,
+    "stdout_file": "independent-buildinfo/darwin-arm64-suma.stdout.txt",
+    "stderr_file": "independent-buildinfo/darwin-arm64-suma.stderr.txt",
+    "build_metadata_matches_original": true
+  }
+]

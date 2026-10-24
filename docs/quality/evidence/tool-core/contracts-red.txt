@@ -1,0 +1,5 @@
+--- FAIL: TestToolExecutionContractsKeepProfilesAndRunFactsSeparate (0.00s)
+    tool_execution_test.go:10: missing concrete execution route /tool-profiles
+FAIL
+FAIL	github.com/ai-mada/suma/cmd/suma-contracts	0.198s
+FAIL

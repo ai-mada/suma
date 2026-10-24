@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/releasecontract"
+	"github.com/ai-mada/suma/internal/toolcontract"
 	"io"
 	"log/slog"
 	"net/http"
@@ -383,6 +384,12 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.artifactHTTP(w, r, p, project, path, m) {
 		return
 	}
+	if s.toolProfilesHTTP(w, r, p, scope, path, parts, project, m) {
+		return
+	}
+	if s.taskDispatchHTTP(w, r, p, scope, path, parts, project, m) {
+		return
+	}
 	if s.releaseDeploymentHTTP(w, r, p, project, path, m) {
 		return
 	}
@@ -538,7 +545,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			item, e := s.Engine.CreateRunBoundAuthorized(ctx, p.TenantID, project, str(m, "workflow_id"), number(m, "workflow_version"), p.ID+":"+str(m, "idempotency_key"), bindingKey, func(tx *sql.Tx) error {
 				return s.Service.authorizeProjectTx(ctx, tx, p, project, true, false)
 			}, func(tx *sql.Tx, runID string) error {
-				return s.Service.BindRunTx(ctx, tx, p, project, str(m, "task_id"), runID, expected)
+				return s.Service.BindDirectRunTx(ctx, tx, p, project, str(m, "task_id"), runID, expected)
 			})
 			respond(w, 201, item, e)
 			return
@@ -576,12 +583,22 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 				writeError(w, e)
 				return
 			}
-			if managed {
-				writeError(w, invalid("发布执行必须从发布计划核对或恢复，不能使用通用运行命令"))
-				return
-			}
 			payload, _ := m["payload"].(map[string]any)
-			out, e := s.Engine.CommandWithHook(ctx, p.TenantID, project, parts[1], str(m, "action"), str(m, "idempotency_key"), number(m, "expected_version"), payload, func(tx *sql.Tx, run dag.Run) error {
+			out, e := s.Engine.CommandWithAuthority(ctx, p.TenantID, project, parts[1], str(m, "action"), str(m, "idempotency_key"), number(m, "expected_version"), payload, func(tx *sql.Tx) error {
+				if err := s.Service.authorizeProjectTx(ctx, tx, p, project, true, approve); err != nil {
+					return err
+				}
+				if managed {
+					task, err := s.Service.TaskDispatchRunTx(ctx, tx, p.TenantID, project, parts[1])
+					if err != nil {
+						return err
+					}
+					if !task {
+						return invalid("发布执行必须从发布计划核对或恢复，不能使用通用运行命令")
+					}
+				}
+				return nil
+			}, func(tx *sql.Tx, run dag.Run) error {
 				if str(m, "action") == "compensate" {
 					return s.Service.InvalidateCompensationTx(ctx, tx, p, project, run.ID)
 				}
@@ -644,19 +661,46 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, pro
 		return
 	}
 	switch path {
+	case "runner/tool-inventory":
+		var request ToolInventoryRequest
+		if err := strictAutomation(m, &request); err != nil {
+			writeError(w, err)
+			return
+		}
+		out, err := s.Service.ReportToolInventory(r.Context(), p, project, tokenOf(r), request)
+		respond(w, 200, out, err)
 	case "runner/progress":
 		var assignment dag.Assignment
 		if e := json.Unmarshal([]byte(stringify(m["assignment"])), &assignment); e != nil {
 			writeError(w, invalid("执行进度身份无效"))
 			return
 		}
-		e := s.Engine.Progress(r.Context(), p.TenantID, project, assignment, str(m, "operation_id"), str(m, "message"))
+		var event *toolcontract.Event
+		if m["tool_event"] != nil {
+			raw, ok := m["tool_event"].(map[string]any)
+			if !ok {
+				writeError(w, invalid("工具进度必须是受限事件对象"))
+				return
+			}
+			event = &toolcontract.Event{}
+			if err := strictAutomation(raw, event); err != nil {
+				writeError(w, err)
+				return
+			}
+		}
+		e := s.Engine.ProgressWithAuthority(r.Context(), p.TenantID, project, assignment, str(m, "operation_id"), str(m, "message"), event, func(tx *sql.Tx) error {
+			return s.Service.validateToolProgressTx(r.Context(), tx, p, project, tokenOf(r), assignment, event)
+		})
 		respond(w, 200, map[string]bool{"acknowledged": e == nil}, e)
 	case "runner/claim":
 		a, e := s.Engine.ClaimEligible(r.Context(), p.TenantID, project, str(m, "worker_id"), stringsAt(m, "capabilities"), func(tx *sql.Tx) error {
 			return s.Service.runnerIdentityTx(r.Context(), tx, p, project, tokenOf(r), str(m, "worker_id"))
 		}, func(tx *sql.Tx, run, node string) (bool, error) {
-			return s.Service.releaseClaimEligibleTx(r.Context(), tx, p, project, tokenOf(r), str(m, "worker_id"), run)
+			allowed, err := s.Service.releaseClaimEligibleTx(r.Context(), tx, p, project, tokenOf(r), str(m, "worker_id"), run)
+			if err != nil || !allowed {
+				return allowed, err
+			}
+			return s.Service.toolClaimEligibleTx(r.Context(), tx, p, project, tokenOf(r), str(m, "worker_id"), run, node)
 		})
 		if e == nil && a != nil {
 			a.ReleaseExecution, e = s.Service.ReleaseExecutionForAssignment(r.Context(), p, project, *a)
@@ -668,7 +712,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, pro
 			writeError(w, invalid("无效执行信封"))
 			return
 		}
-		e := s.Engine.Heartbeat(r.Context(), p.TenantID, project, a)
+		e := s.Engine.HeartbeatWithAuthority(r.Context(), p.TenantID, project, a, func(tx *sql.Tx) error {
+			return s.Service.runnerIdentityTx(r.Context(), tx, p, project, tokenOf(r), a.WorkerID)
+		})
 		if errors.Is(e, dag.ErrCancelled) {
 			writeJSON(w, 200, map[string]any{"cancel_requested": true})
 			return
@@ -683,6 +729,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, pro
 		e := s.Engine.CompleteBound(r.Context(), p.TenantID, project, result, func(tx *sql.Tx) error {
 			return s.Service.runnerIdentityTx(r.Context(), tx, p, project, tokenOf(r), result.WorkerID)
 		}, func(tx *sql.Tx, state string) error {
+			if err := s.Service.validateToolResultTx(r.Context(), tx, p, project, tokenOf(r), result); err != nil {
+				return err
+			}
 			if err := s.Service.verifyArtifactResultTx(r.Context(), tx, p, project, tokenOf(r), result, state); err != nil {
 				return err
 			}

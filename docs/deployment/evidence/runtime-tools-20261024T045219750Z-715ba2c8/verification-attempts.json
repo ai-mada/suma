@@ -1,0 +1,12 @@
+{
+  "recorded_at": "2026-10-24T04:56:36.014464+00:00",
+  "first_final_audit": {
+    "exit_code": 1,
+    "exception": "UnicodeDecodeError: 'gbk' codec can't decode byte 0xa1 in position 21: illegal multibyte sequence",
+    "cause": "Python read_text used Windows default GBK for the UTF-8 Chinese Markdown document; binaries, Go source, build and independent Go inspection were unaffected.",
+    "preserved_script": "final-verify-attempt1.original.py",
+    "preserved_partial_historical_check": "historical-preservation-final-attempt1.json"
+  },
+  "correction": "Use explicit UTF-8 only for documentation read; then rerun the final read-only audit.",
+  "scope": "Audit encoding correction only; this does not replace a failed build or product test."
+}

@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-004",
+  "observed_at_utc": "2026-10-24T05:05:02.608993+00:00",
+  "read_only": true,
+  "runtime_cut": "20261024T045219750Z-715ba2c8",
+  "source_sha256": "498300c9adffa8327982faa25da7d745d1a9ecb08f62265691d5673deacb318e",
+  "current_runtime_source_files_verified": 116,
+  "binaries": [
+    {
+      "program": "suma-control.exe",
+      "pid": 131196,
+      "executable_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T045219750Z-715ba2c8\\suma-control.exe",
+      "size_bytes": 25483264,
+      "sha256": "c06d3553c46278704dd976f5ab1dcef52d3b25a96f48d76e3bed4d08092b4eb8",
+      "process_image_path_matches": true
+    },
+    {
+      "program": "suma-runner.exe",
+      "pid": 144792,
+      "executable_path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\windows-amd64\\20261024T045219750Z-715ba2c8\\suma-runner.exe",
+      "size_bytes": 9952768,
+      "sha256": "12c8681ec9d7e1ba325252e264e5d7aaa7d73d9c053cc3d6c3466292b44f56cb",
+      "process_image_path_matches": true
+    }
+  ],
+  "listeners": [
+    {
+      "LocalAddress": "127.0.0.1",
+      "LocalPort": 4322,
+      "OwningProcess": 131196
+    }
+  ],
+  "runner_port": null,
+  "runner_port_note": "Runner uses outbound requests; no listening port is asserted.",
+  "source_manifest": {
+    "path": "D:\\codes\\ai-dev-os\\suma\\dist\\runtime\\builds\\20261024T045219750Z-715ba2c8\\source-manifest.json",
+    "sha256": "f20a4ac64cec9757bbe617e6eea0afa59351d6268fb7abd919f1a3a6d8af2c37",
+    "size_bytes": 19323
+  },
+  "web": {
+    "dist": "D:\\codes\\ai-dev-os\\suma\\apps\\web\\dist",
+    "entry": {
+      "path": "D:\\codes\\ai-dev-os\\suma\\apps\\web\\dist\\index.html",
+      "sha256": "1d879556d8f12269ef5a66e174f2ca5419c23f15e0d180abe373db430bb238ea",
+      "size_bytes": 415
+    },
+    "entry_assets": [
+      {
+        "reference": "/assets/index-DAnYygV0.js",
+        "path": "D:\\codes\\ai-dev-os\\suma\\apps\\web\\dist\\assets\\index-DAnYygV0.js",
+        "sha256": "48538406e3515ddc86da167c965224d4cdb4c72c71f5d5defde383536ff8e070",
+        "size_bytes": 380620
+      },
+      {
+        "reference": "/assets/index-RbvAOW9x.css",
+        "path": "D:\\codes\\ai-dev-os\\suma\\apps\\web\\dist\\assets\\index-RbvAOW9x.css",
+        "sha256": "75ffed87c01f04ba37a46dcd1d0c43ecca0cf1a504e083930cc14ae3cf02f84a",
+        "size_bytes": 86346
+      }
+    ],
+    "scope": "Bytes currently on disk only; root records the browser-observed request/response assets separately."
+  },
+  "fixture_repository": {
+    "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\tool-stage\\task-fixture\\repository",
+    "git_top": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\tool-stage\\task-fixture\\repository",
+    "top_matches_exact": true,
+    "head": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+    "baseline_head_from_original_receipt": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+    "baseline_tests_exit": 1,
+    "status_porcelain_v1": "",
+    "clean": true,
+    "candidate": "c31c01956f3098f3b5c07b2c94ceaaac3b388dfe",
+    "candidate_parent": "58a26b8bb6d71eda9346b2b846355c242f72d446",
+    "candidate_changed_paths": [
+      "app.py"
+    ],
+    "candidate_is_original_checkout_head": false
+  },
+  "database_snapshot": {
+    "path": ".cache/e2e/tool-stage/tool-browser-execution.json",
+    "observed_at_database_utc": "2026-10-24T05:04:58.583Z"
+  },
+  "collector_sha256": "5176d546f1973f46795a64d37665f385e6dc9c8773085ee41a3b5b30249a3337",
+  "scope": "Process image, actual on-disk binary hashes, listener owner, runtime source cut, disk web hashes and original fixture Git state. No service was started/stopped; no model or target executable was invoked by this collector."
+}

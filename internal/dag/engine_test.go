@@ -51,7 +51,7 @@ func done(t *testing.T, e *Engine, a *Assignment, code int) {
 }
 func claim(t *testing.T, e *Engine) *Assignment {
 	t.Helper()
-	a, err := e.Claim(ctx, "t", "p", "worker", nil)
+	a, err := e.Claim(ctx, "t", "p", "worker", testCapabilities(t, e))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +91,7 @@ func TestClaimOnceAndTenantIsolation(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			a, err := e.Claim(ctx, "t", "p", "worker", nil)
+			a, err := e.Claim(ctx, "t", "p", "worker", testCapabilities(t, e))
 			if err != nil {
 				t.Error(err)
 			}
@@ -377,7 +377,7 @@ func TestIndependentEnginesClaimSameDatabaseOnce(t *testing.T) {
 		wg.Add(1)
 		go func(engine *Engine) {
 			defer wg.Done()
-			a, err := engine.Claim(ctx, "t", "p", "worker", nil)
+			a, err := engine.Claim(ctx, "t", "p", "worker", []string{"task"})
 			claims <- a
 			errs <- err
 		}(engine)
@@ -507,7 +507,7 @@ func TestStoppedUnknownEffectStillRequiresReconciliation(t *testing.T) {
 }
 
 func TestCancellingStoppedUnknownEffectRemainsUnresolved(t *testing.T) {
-	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "effect", Type: "command"}}})
+	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "effect", Type: "command", Command: []string{"test-command"}}}})
 	a := claim(t, e)
 	current, err := e.GetRun(ctx, "t", "p", r.ID)
 	if err != nil {
@@ -525,11 +525,11 @@ func TestCancellingStoppedUnknownEffectRemainsUnresolved(t *testing.T) {
 	}
 }
 func TestMapTemplatePreservesCapabilityConfiguration(t *testing.T) {
-	e, _ := fixture(t, Workflow{Nodes: []Node{{ID: "map", Type: "map", Config: map[string]any{"items": []any{1}, "template": map[string]any{"type": "agent", "config": map[string]any{"capability": "model", "goal": "inspect"}}}}}})
+	e, _ := fixture(t, Workflow{Nodes: []Node{{ID: "map", Type: "map", Config: map[string]any{"items": []any{1}, "template": map[string]any{"type": "agent", "command": []string{"test-command"}, "config": map[string]any{"capability": "model", "goal": "inspect"}}}}}})
 	if a := claim(t, e); a != nil {
 		t.Fatalf("map child lost capability %+v", a)
 	}
-	a, err := e.Claim(ctx, "t", "p", "worker", []string{"model"})
+	a, err := e.Claim(ctx, "t", "p", "worker", []string{"command:test-command", "model"})
 	if err != nil || a == nil || a.Config["goal"] != "inspect" {
 		t.Fatalf("map template config %+v %v", a, err)
 	}

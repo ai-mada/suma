@@ -389,6 +389,7 @@ func load(ctx context.Context, q queryer, e *Engine, tenant, project, id string)
 			if n := r.find(nodeID); n != nil && n.State != "pending" && n.State != "ready" && n.State != "waiting" {
 				n.WorkspaceEvidence = result.WorkspaceEvidence
 				n.ArtifactEvidence = result.ArtifactEvidence
+				n.ToolEvidence = result.ToolEvidence
 			}
 		}
 	}
@@ -409,6 +410,15 @@ func (r *runState) public() Run {
 	for _, n := range r.nodes {
 		public := n.NodeRun
 		public.Idempotent = n.spec.Idempotent
+		public.ToolProfileID, public.ToolProfileSHA256 = "", ""
+		if id, sha, bound, err := ToolBinding(n.spec); err == nil && bound {
+			public.ToolProfileID, public.ToolProfileSHA256 = id, sha
+		}
+		// Pending/ready nodes may have a previous failed attempt on the in-memory
+		// command path. Its evidence remains in history, never the new attempt.
+		if n.State == "pending" || n.State == "ready" || n.State == "waiting" {
+			public.ToolEvidence = nil
+		}
 		_, configured, err := compensationTemplate(n.spec)
 		public.Compensatable = configured && err == nil
 		out.Nodes = append(out.Nodes, public)

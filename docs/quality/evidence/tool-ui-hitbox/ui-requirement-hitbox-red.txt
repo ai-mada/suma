@@ -1,0 +1,39 @@
+
+ RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+
+ ❯ src/record-navigation-dom.test.tsx (4 tests | 1 failed) 269ms
+   × actual React consumer requirement navigation > uses one wrapping clickable box for the label, icon and long requirement identifier 31ms
+     → expected '' to be 'inline-flex' // Object.is equality
+   ✓ actual React consumer requirement navigation > clicks from task into the exact unloaded requirement and browser-back restores task detail
+   ✓ actual React consumer requirement navigation > uses the App leave guard so an unknown operation cannot be bypassed through the requirement link
+   ✓ actual React consumer requirement navigation > handles ordinary clicks through the real component callback while preserving modifier-key native links
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/record-navigation-dom.test.tsx > actual React consumer requirement navigation > uses one wrapping clickable box for the label, icon and long requirement identifier
+AssertionError: expected '' to be 'inline-flex' // Object.is equality
+
+- Expected
++ Received
+
+- inline-flex
+
+ ❯ src/record-navigation-dom.test.tsx:149:32
+
+    147|     await renderConsumer(<RecordRequirementReference project={project}…
+    148|     const link=container.querySelector<HTMLAnchorElement>('a')!;
+    149|     expect(link.style.display).toBe('inline-flex');
+       |                                ^
+    150|     expect(link.style.flexWrap).toBe('wrap');
+    151|     expect(link.style.maxWidth).toBe('100%');
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  13:31:39
+   Duration  2.49s (transform 328ms, setup 0ms, collect 626ms, tests 269ms, environment 822ms, prepare 133ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+undefined
+D:\codes\ai-dev-os\suma\apps\web:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/record-navigation-dom.test.tsx

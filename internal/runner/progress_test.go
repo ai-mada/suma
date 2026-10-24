@@ -184,7 +184,7 @@ func TestProgressLostAckReplaysThroughRealDurableScheduler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assignment, err := engine.Claim(ctx, "t", "p", "w", nil)
+	assignment, err := engine.Claim(ctx, "t", "p", "w", []string{"command:local"})
 	if err != nil || assignment == nil {
 		t.Fatalf("claim: %v", err)
 	}

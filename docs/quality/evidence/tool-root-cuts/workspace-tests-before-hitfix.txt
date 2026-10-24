@@ -1,0 +1,149 @@
+$ pnpm -r --if-present test
+Scope: 5 of 6 workspace projects
+apps/desktop test$ node --test tests/*.test.cjs
+apps/web test$ vitest run
+packages/agent-runtime test$ tsc && node --test dist/tests/*.test.js
+packages/knowledge test$ tsc && node --test dist/tests/*.test.js
+apps/desktop test: TAP version 13
+apps/desktop test: # Subtest: waits for health and rejects an exited control service
+apps/desktop test: ok 1 - waits for health and rejects an exited control service
+apps/desktop test:   ---
+apps/desktop test:   duration_ms: 59.7174
+apps/desktop test:   type: 'test'
+apps/desktop test:   ...
+apps/desktop test: # Subtest: service termination resolves only after the owned process exits
+apps/desktop test: ok 2 - service termination resolves only after the owned process exits
+apps/desktop test:   ---
+apps/desktop test:   duration_ms: 42.8624
+apps/desktop test:   type: 'test'
+apps/desktop test:   ...
+apps/desktop test: # Subtest: navigation stays within the owned control origin
+apps/desktop test: ok 3 - navigation stays within the owned control origin
+apps/desktop test:   ---
+apps/desktop test:   duration_ms: 0.6649
+apps/desktop test:   type: 'test'
+apps/desktop test:   ...
+apps/desktop test: 1..3
+apps/desktop test: # tests 3
+apps/desktop test: # suites 0
+apps/desktop test: # pass 3
+apps/desktop test: # fail 0
+apps/desktop test: # cancelled 0
+apps/desktop test: # skipped 0
+apps/desktop test: # todo 0
+apps/desktop test: # duration_ms 250.4012
+apps/desktop test: Done
+apps/web test:  RUN  v3.0.5 D:/codes/ai-dev-os/suma/apps/web
+packages/agent-runtime test: TAP version 13
+packages/knowledge test: TAP version 13
+apps/web test:  ✓ src/release-write.test.ts (7 tests) 19ms
+apps/web test:  ✓ src/ingress-model.test.ts (29 tests) 34ms
+apps/web test:  ✓ src/release-model.test.ts (6 tests) 10ms
+packages/agent-runtime test: # Subtest: CLI version and help probes never enter the model loop
+packages/agent-runtime test: ok 1 - CLI version and help probes never enter the model loop
+packages/agent-runtime test:   ---
+packages/agent-runtime test:   duration_ms: 442.444
+packages/agent-runtime test:   type: 'test'
+packages/agent-runtime test:   ...
+apps/web test:  ✓ src/tool-model.test.ts (14 tests) 16ms
+packages/agent-runtime test: # Subtest: CLI uses a separate agent credential and never the Runner bearer
+packages/agent-runtime test: ok 2 - CLI uses a separate agent credential and never the Runner bearer
+packages/agent-runtime test:   ---
+packages/agent-runtime test:   duration_ms: 249.7016
+packages/agent-runtime test:   type: 'test'
+packages/agent-runtime test:   ...
+packages/agent-runtime test: # Subtest: missing model is explicit and never simulates success
+packages/agent-runtime test: ok 3 - missing model is explicit and never simulates success
+packages/agent-runtime test:   ---
+packages/agent-runtime test:   duration_ms: 3.8287
+packages/agent-runtime test:   type: 'test'
+packages/agent-runtime test:   ...
+packages/agent-runtime test: # Subtest: unknown model tool calls are rejected before authenticated dispatch
+packages/agent-runtime test: ok 4 - unknown model tool calls are rejected before authenticated dispatch
+packages/agent-runtime test:   ---
+packages/agent-runtime test:   duration_ms: 94.0955
+packages/agent-runtime test:   type: 'test'
+packages/agent-runtime test:   ...
+packages/agent-runtime test: # Subtest: bounded loop records usage and never invents a completion
+packages/agent-runtime test: ok 5 - bounded loop records usage and never invents a completion
+packages/agent-runtime test:   ---
+packages/agent-runtime test:   duration_ms: 31.4364
+packages/agent-runtime test:   type: 'test'
+packages/agent-runtime test:   ...
+packages/agent-runtime test: # Subtest: provider-safe aliases reverse to canonical tools without normalization collisions
+packages/agent-runtime test: ok 6 - provider-safe aliases reverse to canonical tools without normalization collisions
+packages/agent-runtime test:   ---
+packages/agent-runtime test:   duration_ms: 29.1062
+packages/agent-runtime test:   type: 'test'
+packages/agent-runtime test:   ...
+packages/agent-runtime test: # Subtest: model cannot bypass the provider map by returning a canonical catalog name
+packages/agent-runtime test: ok 7 - model cannot bypass the provider map by returning a canonical catalog name
+packages/agent-runtime test:   ---
+packages/agent-runtime test:   duration_ms: 11.4479
+packages/agent-runtime test:   type: 'test'
+packages/agent-runtime test:   ...
+packages/agent-runtime test: # Subtest: duplicate canonical catalog entries fail before a provider request
+packages/agent-runtime test: ok 8 - duplicate canonical catalog entries fail before a provider request
+packages/agent-runtime test:   ---
+packages/agent-runtime test:   duration_ms: 8.2998
+packages/agent-runtime test:   type: 'test'
+packages/agent-runtime test:   ...
+packages/agent-runtime test: 1..8
+packages/agent-runtime test: # tests 8
+packages/agent-runtime test: # suites 0
+packages/agent-runtime test: # pass 8
+packages/agent-runtime test: # fail 0
+packages/agent-runtime test: # cancelled 0
+packages/agent-runtime test: # skipped 0
+packages/agent-runtime test: # todo 0
+packages/agent-runtime test: # duration_ms 974.8472
+packages/agent-runtime test: Done
+apps/web test:  ✓ src/ToolFacts-consumers.test.tsx (6 tests) 50ms
+apps/web test:  ✓ src/automation-model.test.ts (11 tests) 55ms
+apps/web test:  ✓ src/responsive-workflow.test.tsx (5 tests) 49ms
+apps/web test:  ✓ src/contracts.test.ts (29 tests) 67ms
+apps/web test:  ✓ src/run-events.test.ts (21 tests) 998ms
+apps/web test:    ✓ durable run event frames > accepts a near-2-MiB command after Go JSON HTML escaping expands its persisted event sixfold 395ms
+apps/web test:  ✓ src/workflow-candidates.test.ts (12 tests) 41ms
+apps/web test:  ✓ src/capacity-week.test.ts (6 tests) 33ms
+apps/web test:  ✓ src/operations.test.ts (2 tests) 17ms
+apps/web test:  ✓ src/automation-consumers.test.tsx (7 tests) 56ms
+apps/web test:  ✓ src/AutomationIngress-consumers.test.tsx (5 tests) 50ms
+apps/web test:  ✓ src/record-lineage.test.tsx (4 tests) 25ms
+apps/web test:  ✓ src/release-consumers.test.tsx (6 tests) 55ms
+apps/web test:  ✓ src/planning-governance.test.ts (20 tests) 45ms
+apps/web test:  ✓ src/ToolBindingStatus-consumers.test.tsx (4 tests) 19ms
+packages/knowledge test: # Subtest: internal indexing requires bearer auth and invalid search cannot query another tenant
+packages/knowledge test: ok 1 - internal indexing requires bearer auth and invalid search cannot query another tenant
+packages/knowledge test:   ---
+packages/knowledge test:   duration_ms: 493.7222
+packages/knowledge test:   type: 'test'
+packages/knowledge test:   ...
+packages/knowledge test: # Subtest: native FTS isolates tenants, replaces shorter sources, and tombstones reject replay
+packages/knowledge test: ok 2 - native FTS isolates tenants, replaces shorter sources, and tombstones reject replay
+packages/knowledge test:   ---
+packages/knowledge test:   duration_ms: 1122.037
+packages/knowledge test:   type: 'test'
+packages/knowledge test:   ...
+apps/web test:  ✓ src/record-navigation-dom.test.tsx (3 tests) 287ms
+apps/web test:  Test Files  19 passed (19)
+apps/web test:       Tests  197 passed (197)
+apps/web test:    Start at  13:28:00
+apps/web test:    Duration  4.73s (transform 3.06s, setup 0ms, collect 15.13s, tests 1.93s, environment 1.19s, prepare 7.91s)
+apps/web test: Done
+packages/knowledge test: # Subtest: native vectors use profile-specific dimensions and tombstones survive model switches
+packages/knowledge test: ok 3 - native vectors use profile-specific dimensions and tombstones survive model switches
+packages/knowledge test:   ---
+packages/knowledge test:   duration_ms: 1209.3286
+packages/knowledge test:   type: 'test'
+packages/knowledge test:   ...
+packages/knowledge test: 1..3
+packages/knowledge test: # tests 3
+packages/knowledge test: # suites 0
+packages/knowledge test: # pass 3
+packages/knowledge test: # fail 0
+packages/knowledge test: # cancelled 0
+packages/knowledge test: # skipped 0
+packages/knowledge test: # todo 0
+packages/knowledge test: # duration_ms 3724.3883
+packages/knowledge test: Done

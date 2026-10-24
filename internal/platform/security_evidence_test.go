@@ -71,11 +71,11 @@ func (f *fixture) testedTask(wf map[string]any, title string, deps []string) (ma
 	f.t.Helper()
 	task := f.call("POST", "/tasks", f.body(map[string]any{"title": title, "depends_on": deps}), 201)
 	run := f.call("POST", "/runs", f.body(map[string]any{"workflow_id": wf["id"], "task_id": task["id"]}), 201)
-	a, e := f.e.Claim(context.Background(), f.user.TenantID, f.project, "evidence-worker", []string{"test"})
+	a, e := f.e.Claim(context.Background(), f.user.TenantID, f.project, "evidence-worker", toolFixtureCapabilities(f.t, f))
 	if e != nil || a == nil {
 		f.t.Fatalf("claim %v", e)
 	}
-	if e = f.e.Complete(context.Background(), f.user.TenantID, f.project, dag.Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, Stopped: true, OperationID: newID()}); e != nil {
+	if e = f.e.Complete(context.Background(), f.user.TenantID, f.project, dag.Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, OperationID: newID()}); e != nil {
 		f.t.Fatal(e)
 	}
 	task = f.call("GET", "/tasks/"+task["id"].(string)+"?project_id="+f.project, nil, 200)

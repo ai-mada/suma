@@ -12,7 +12,7 @@ func candidateEvidence(commit string, test bool) map[string]any {
 func TestCandidateReferenceRequiresExplicitStaticAncestor(t *testing.T) {
 	for _, scenario := range []string{"missing", "not-ancestor", "wrong-type", "spoof"} {
 		t.Run(scenario, func(t *testing.T) {
-			w := Workflow{Nodes: []Node{{ID: "code", Type: "command"}, {ID: "test", Type: "test", DependsOn: []string{"code"}, Config: map[string]any{"candidate_from": "code"}}}}
+			w := Workflow{Nodes: []Node{{ID: "code", Type: "command", Command: []string{"test-command"}}, {ID: "test", Type: "test", Command: []string{"test-command"}, DependsOn: []string{"code"}, Config: map[string]any{"candidate_from": "code"}}}}
 			switch scenario {
 			case "missing":
 				w.Nodes[1].Config["candidate_from"] = "missing"
@@ -30,7 +30,7 @@ func TestCandidateReferenceRequiresExplicitStaticAncestor(t *testing.T) {
 	}
 }
 func TestCandidateClaimFreezesProofAndRejectsDifferentTestRevision(t *testing.T) {
-	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "code", Type: "command"}, {ID: "test", Type: "test", DependsOn: []string{"code"}, Config: map[string]any{"candidate_from": "code"}}}})
+	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "code", Type: "command", Command: []string{"test-command"}}, {ID: "test", Type: "test", Command: []string{"test-command"}, DependsOn: []string{"code"}, Config: map[string]any{"candidate_from": "code"}}}})
 	a := claim(t, e)
 	if err := e.Complete(ctx, "t", "p", Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, OperationID: "candidate", WorkspaceEvidence: candidateEvidence("c", false)}); err != nil {
 		t.Fatal(err)
@@ -68,7 +68,7 @@ func TestCandidateClaimFreezesProofAndRejectsDifferentTestRevision(t *testing.T)
 func TestCandidateCannotSkipProofUsingStoppedOrWrongProvenance(t *testing.T) {
 	for _, scenario := range []string{"stopped", "provenance"} {
 		t.Run(scenario, func(t *testing.T) {
-			e, _ := fixture(t, Workflow{Nodes: []Node{{ID: "code", Type: "command"}, {ID: "test", Type: "test", DependsOn: []string{"code"}, Config: map[string]any{"candidate_from": "code"}}}})
+			e, _ := fixture(t, Workflow{Nodes: []Node{{ID: "code", Type: "command", Command: []string{"test-command"}}, {ID: "test", Type: "test", Command: []string{"test-command"}, DependsOn: []string{"code"}, Config: map[string]any{"candidate_from": "code"}}}})
 			a := claim(t, e)
 			if err := e.Complete(ctx, "t", "p", Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, OperationID: "code", WorkspaceEvidence: candidateEvidence("c", false)}); err != nil {
 				t.Fatal(err)
@@ -94,7 +94,7 @@ func TestCandidateCannotSkipProofUsingStoppedOrWrongProvenance(t *testing.T) {
 }
 
 func TestCandidateWaitsForSourceDespiteEarlyAnySuccessJoin(t *testing.T) {
-	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "code", Type: "command"}, {ID: "early", Type: "noop"}, {ID: "test", Type: "test", Join: "any_success", DependsOn: []string{"code", "early"}, Config: map[string]any{"candidate_from": "code"}}}})
+	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "code", Type: "command", Command: []string{"test-command"}}, {ID: "early", Type: "noop"}, {ID: "test", Type: "test", Command: []string{"test-command"}, Join: "any_success", DependsOn: []string{"code", "early"}, Config: map[string]any{"candidate_from": "code"}}}})
 	a := claim(t, e)
 	if a == nil || a.NodeID != "code" {
 		t.Fatalf("%+v", a)
@@ -114,7 +114,7 @@ func TestCandidateWaitsForSourceDespiteEarlyAnySuccessJoin(t *testing.T) {
 	}
 }
 func TestCandidateMissingCleanProofFailsWithoutDispatch(t *testing.T) {
-	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "code", Type: "command"}, {ID: "test", Type: "test", DependsOn: []string{"code"}, Config: map[string]any{"candidate_from": "code"}}}})
+	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "code", Type: "command", Command: []string{"test-command"}}, {ID: "test", Type: "test", Command: []string{"test-command"}, DependsOn: []string{"code"}, Config: map[string]any{"candidate_from": "code"}}}})
 	done(t, e, claim(t, e), 0)
 	if a := claim(t, e); a != nil {
 		t.Fatal("dispatched unproved source")

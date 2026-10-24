@@ -1,0 +1,26 @@
+======================================================================
+ERROR: test_member_same_project_can_view (tests.OrderAuthorizationTests.test_member_same_project_can_view)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\codes\ai-dev-os\suma\.cache\e2e\tool-stage\task-fixture\repository\tests.py", line 6, in test_member_same_project_can_view
+    self.assertTrue(can_view_order("project-a", "project-a", True))
+                    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\codes\ai-dev-os\suma\.cache\e2e\tool-stage\task-fixture\repository\app.py", line 2, in can_view_order
+    raise NotImplementedError("fixture baseline requires implementation")
+NotImplementedError: fixture baseline requires implementation
+
+======================================================================
+ERROR: test_other_project_or_non_member_rejected (tests.OrderAuthorizationTests.test_other_project_or_non_member_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\codes\ai-dev-os\suma\.cache\e2e\tool-stage\task-fixture\repository\tests.py", line 9, in test_other_project_or_non_member_rejected
+    self.assertFalse(can_view_order("project-a", "project-b", True))
+                     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\codes\ai-dev-os\suma\.cache\e2e\tool-stage\task-fixture\repository\app.py", line 2, in can_view_order
+    raise NotImplementedError("fixture baseline requires implementation")
+NotImplementedError: fixture baseline requires implementation
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.003s
+
+FAILED (errors=2)
