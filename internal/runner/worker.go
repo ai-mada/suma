@@ -180,7 +180,7 @@ func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Dura
 	for {
 		select {
 		case r := <-results:
-			if r.artifactPending {
+			if r.artifactPending || r.candidatePending {
 				return nil
 			}
 			return w.Journal.Finish(r)

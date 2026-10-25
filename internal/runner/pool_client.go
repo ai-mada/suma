@@ -106,6 +106,9 @@ func (c *Client) forPoolAssignment(a Assignment) (*Client, error) {
 }
 
 func replayPool(ctx context.Context, c *Client, j *Journal) error {
+	if err := ReplayCandidates(ctx, c, j); err != nil {
+		return err
+	}
 	if len(j.pendingArtifacts()) != 0 || len(j.pendingReleases()) != 0 {
 		return fmt.Errorf("pool artifact/deployment recovery requires an explicit independent capability")
 	}

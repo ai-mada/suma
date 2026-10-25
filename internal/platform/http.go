@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	"io"
@@ -75,6 +76,9 @@ func (s *Server) Handler() http.Handler {
 		bodyLimit := int64(2 << 20)
 		if r.Method == "PUT" && strings.HasPrefix(r.URL.Path, "/api/v1/runner/artifact-uploads/") && strings.Contains(r.URL.Path, "/blobs/") {
 			bodyLimit = releasecontract.MaxFileBytes + 1
+		}
+		if r.Method == http.MethodPut && (strings.HasPrefix(r.URL.Path, "/api/v1/runner/candidate-transfers/") || strings.HasPrefix(r.URL.Path, "/api/v1/pool-runner/candidate-transfers/")) && strings.HasSuffix(r.URL.Path, "/bundle") {
+			bodyLimit = cc.MaxBundleBytes + 1
 		}
 		r.Body = http.MaxBytesReader(w, r.Body, bodyLimit)
 		s.mux.ServeHTTP(w, r)
@@ -160,6 +164,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.releaseProviderHTTP(w, r, path) {
+		return
+	}
+	if s.poolCandidateTransferHTTP(w, r, path) {
 		return
 	}
 	if s.poolRunnerHTTP(w, r, path) {
@@ -413,6 +420,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.projectKnowledgeHTTP(w, r, actor, project, path, parts, m) {
+		return
+	}
+	if s.candidateTransferHTTP(w, r, actor, project, path, m) {
 		return
 	}
 	if s.artifactHTTP(w, r, actor, project, path, m) {

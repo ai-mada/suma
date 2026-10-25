@@ -2,7 +2,7 @@ package localization
 
 // 键表示稳定的显示语义。相同 HTTP code 可以对应多个具体消息；翻译不
 // 改变机器状态、代码、用户内容或任何持久化业务字段。
-var catalog = combineCatalogs(commonCatalog, poolCatalog, preferencesCatalog, workspaceCatalog, controlCatalog, executionCatalog, releaseCatalog, validationCatalog, dagCatalog, nativeCatalog, toolDiagnosticCatalog, attemptHistoryCatalog, displayCatalog, authorityCatalog, knowledgeCatalog, requirementDesignCatalog)
+var catalog = combineCatalogs(commonCatalog, poolCatalog, preferencesCatalog, workspaceCatalog, controlCatalog, executionCatalog, releaseCatalog, validationCatalog, dagCatalog, nativeCatalog, toolDiagnosticCatalog, attemptHistoryCatalog, displayCatalog, authorityCatalog, knowledgeCatalog, requirementDesignCatalog, candidateTransferCatalog)
 
 // Build a separate immutable catalog so adding a domain cannot reuse and mutate
 // another domain's backing array. Lookup and formatting remain request-scoped.
@@ -34,7 +34,16 @@ var commonCatalog = []Definition{
 	{Key: "pool.paused", Texts: map[Locale]string{ZhCN: "资源池已暂停，停止新派发", EnUS: "The execution pool is paused. New dispatches are stopped."}},
 	{Key: "validation.max_length", Parameters: []Parameter{{Name: "field", Kind: Identifier}, {Name: "limit", Kind: Integer}}, Texts: map[Locale]string{ZhCN: "{{.field}} 的长度不能超过 {{.limit}}", EnUS: "{{.field}} must not exceed {{.limit}} characters."}},
 }
-var sourceAliases = map[string]string{"登录已过期": "auth.session_expired"}
+
+// Candidate transfer has explicitly owned English API producers. Register only
+// that reviewed domain; SourceTemplate elsewhere never becomes a global alias.
+var sourceAliases = func() map[string]string {
+	out := map[string]string{"登录已过期": "auth.session_expired"}
+	for _, definition := range candidateTransferCatalog {
+		out[definition.SourceTemplate] = definition.Key
+	}
+	return out
+}()
 var codes = map[string]string{
 	"forbidden": "common.forbidden", "not_found": "common.not_found", "internal_error": "common.service_unavailable",
 	"unauthenticated": "auth.sign_in_required", "invalid_input": "common.invalid_input", "version_conflict": "common.version_conflict",

@@ -389,6 +389,61 @@ export interface BeginDeploymentEffect {
   request_sha256: string;
   generation: number;
 }
+export interface CandidateAssignmentRef {
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  tenant_id?: string;
+  project_id?: string;
+  pool_id?: string;
+  pool_runner_id?: string;
+  pool_slot_id?: string;
+  pool_grant_id?: string;
+  pool_grant_version?: number;
+  pool_credential_id?: string;
+  pool_credential_version?: number;
+  dispatch_id?: string;
+  dispatch_state?: string;
+  lease_until?: string;
+}
+export interface CandidateBinding {
+  schema_version: number;
+  transfer_id: string;
+  project_id: string;
+  state: string;
+  source: CandidateAssignmentRef;
+  base_commit: string;
+  head_commit: string;
+  evidence_sha256: string;
+  bundle_sha256: string;
+  size_bytes: number;
+}
+export interface CandidateImportReceipt {
+  binding: CandidateBinding;
+  imported: boolean;
+  target_worker_id: string;
+}
+export interface CandidateTransferCommandRequest {
+  project_id: string;
+  tenant_id?: string;
+  runner_id?: string;
+  assignment: CandidateAssignmentRef;
+  operation_id: string;
+}
+export interface CandidateTransferStartRequest {
+  project_id: string;
+  tenant_id?: string;
+  runner_id?: string;
+  assignment: CandidateAssignmentRef;
+  operation_id: string;
+  base_commit: string;
+  head_commit: string;
+  evidence_sha256: string;
+  bundle_sha256: string;
+  size_bytes: number;
+}
 export interface CapacityEntry {
   member_id: string;
   name: string;

@@ -4,6 +4,7 @@
 
 | 主题 | 入口 |
 |---|---|
+| 跨节点候选代码交接（T-P4-018，限定本地验证） | [PRD](product/candidate-transfer.md)、[领域架构与SOP](architecture/candidate-transfer.md)、[正式合同](../contracts/candidate-transfer.md)、[实际验收](quality/candidate-transfer-verification.md) |
 | 任务设计依据、项目CLI与安全升级（T-P4-017） | [PRD](product/task-design-provenance.md)、[架构与SOP](architecture/task-design-provenance.md)、[读取合同](../contracts/task-design-context.md)、[CLI](api/cli-project-context.md)、[升级手册](deployment/preview-upgrade.md)、[验证](quality/task-design-context-verification.md) |
 | 需求设计与任务采用（T-P4-016，限定本地验证） | [PRD](product/requirement-design.md)、[架构与SOP](architecture/requirement-design.md)、[正式合同](../contracts/requirement-design.md)、[阶段验证](quality/requirement-design-verification.md) |
 | 项目知识／记忆／规范／技能（T-P4-015，限定本地验证） | [产品需求](product/project-knowledge.md)、[领域架构](architecture/project-knowledge.md)、[固定上下文合同](../contracts/project-knowledge.md)、[阶段验证](quality/project-knowledge-verification.md) |

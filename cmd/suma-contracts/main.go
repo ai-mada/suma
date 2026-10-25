@@ -115,6 +115,9 @@ func generate() (map[string]any, string) {
 	for _, v := range executionPoolModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range candidateTransferModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range taskDesignViewModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -241,6 +244,7 @@ func generate() (map[string]any, string) {
 	projectKnowledgeContracts(add, api)
 	requirementDesignContracts(add, api)
 	taskDesignViewContracts(add, api)
+	candidateTransferContracts(add, api)
 	currentAuthorityContracts(api)
 	localizationContracts(api)
 	displayDiagnosticContracts(api)

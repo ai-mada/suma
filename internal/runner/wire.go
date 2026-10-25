@@ -50,6 +50,7 @@ type Result struct {
 	ReleaseEvidence   *releasecontract.ReleaseResult    `json:"release_evidence,omitempty"`
 	ToolEvidence      *tc.Evidence                      `json:"tool_evidence,omitempty"`
 	artifactPending   bool
+	candidatePending  bool
 }
 
 type Progress struct {

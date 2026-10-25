@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	cc "github.com/ai-mada/suma/internal/candidatecontract"
 )
 
 var commitID = regexp.MustCompile(`^[0-9a-f]{40}([0-9a-f]{24})?$`)
@@ -34,6 +36,7 @@ type attemptWorkspace struct {
 	HeadCommit      string     `json:"head_commit,omitempty"`
 	ExitCode        int        `json:"exit_code"`
 	OutcomeUnknown  bool       `json:"outcome_unknown"`
+	candidateImport *cc.ImportReceipt
 }
 
 func digest(b []byte) string { h := sha256.Sum256(b); return hex.EncodeToString(h[:]) }
@@ -68,7 +71,13 @@ func candidateBase(ctx context.Context, repo string, a Assignment, cfg ExecConfi
 	}
 	resolved, err := gitText(ctx, repo, "rev-parse", "--verify", a.CandidateCommit+"^{commit}")
 	if err != nil || resolved != a.CandidateCommit {
-		return "", fmt.Errorf("candidate commit is not available locally; no fetch was attempted")
+		receipt, transferErr := importCandidate(ctx, repo, a, cfg)
+		if transferErr != nil {
+			return "", transferErr
+		}
+		if cfg.candidateImport != nil {
+			*cfg.candidateImport = *receipt
+		}
 	}
 	if _, err = gitRun(ctx, repo, "merge-base", "--is-ancestor", cfg.BaseCommit, a.CandidateCommit); err != nil {
 		return "", fmt.Errorf("candidate commit is outside the administrator base lineage")
@@ -232,6 +241,8 @@ func prepareWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, spec Co
 	if err != nil {
 		return nil, err
 	}
+	var imported cc.ImportReceipt
+	cfg.candidateImport = &imported
 	base, err := candidateBase(ctx, repo, a, cfg)
 	if err != nil {
 		return nil, err
@@ -258,6 +269,9 @@ func prepareWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, spec Co
 		return nil, fmt.Errorf("attempt workspace already exists or is unavailable; reconcile instead of rerunning")
 	}
 	state := &attemptWorkspace{AttemptKey: id, Assignment: a, Repository: repo, BaseCommit: base, AdminBaseCommit: cfg.BaseCommit, Directory: dir, Source: filepath.Join(dir, "src"), State: "preparing", TestCommand: spec.TestEvidence, ExitCode: -1}
+	if imported.Imported {
+		state.candidateImport = &imported
+	}
 	if err = state.save(); err != nil {
 		return nil, err
 	}
@@ -436,6 +450,9 @@ func (a *attemptWorkspace) capture(ctx context.Context, result Result) (map[stri
 		return nil, err
 	}
 	evidence["evidence_sha256"] = digest(b)
+	if a.candidateImport != nil {
+		evidence["candidate_import"] = *a.candidateImport
+	}
 	return evidence, nil
 }
 

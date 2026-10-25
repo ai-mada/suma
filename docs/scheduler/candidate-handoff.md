@@ -1,6 +1,6 @@
 # 固定候选代码交接与验收
 
-状态：已实现并完成本机 SQLite、真实 Runner 与浏览器纵向验证。负责人：调度与平台集成。关联：P2 独立工作树、P3 任务验收。接口：`Workflow.Node.config.candidate_from`、`Assignment.candidate_*`、`POST /runner/result`。实现：`internal/dag/candidate.go`、`internal/runner/workspace.go`、`internal/platform/workspace_evidence.go`。
+状态：已实现并完成本机 SQLite、真实 Runner 与浏览器纵向验证。负责人：调度与平台集成。关联：P2 独立工作树、P3 任务验收。接口：`Workflow.Node.config.candidate_from`、`Assignment.candidate_*`、`POST /runner/results`。实现：`internal/dag/candidate.go`、`internal/runner/workspace.go`、`internal/platform/workspace_evidence.go`。
 
 ## 明确的代码输入
 
@@ -26,9 +26,9 @@ Runner 收到的五个顶层字段为 `candidate_commit`、`candidate_from`、`c
 
 ## 执行边界
 
-Runner 只在管理员配置的仓库内解析候选对象，验证管理员基准是候选的祖先，再创建新的 detached 工作树。候选交接只用于管理员标记 `test_evidence:true` 的测试许可命令，拒绝共享只读工作区。没有自动 fetch、合并或重置用户工作区。
+Runner 只在管理员配置的仓库内解析候选对象，验证管理员基准是候选的祖先，再创建新的 detached 工作树。候选测试使用管理员标记 `test_evidence:true` 的许可命令；不可变构建消费需管理员明确的制品构建能力。执行仍使用独立工作树，拒绝共享只读工作区。没有自动 fetch、合并或重置用户工作区。
 
-本地缺少对象时报告真实失败；调度器允许没有工作树证据的准备失败、停止及效果未知回执持久化。不同执行节点之间的 Git 对象传输、多分支合并、跨 map 或子流程的自动交接仍待实现。
+T-P4-018已加入[跨节点候选传递](../architecture/candidate-transfer.md)：在控制面与Runner同版且已配置当前权限时，本地缺少固定候选可读取对应封存Git bundle，经摘要、前置对象与strict对象校验后导入。已有对象不重复下载；没有合法包、共同基线或当前权限时明确失败，保持准备失败、停止及效果未知回执。多分支合并、跨map或子流程的自动交接继续待实现。
 
 Windows 执行环境只传递明确的普通运行变量及管理员许可的额外变量，不复制整份环境。名称按 Windows 规则处理大小写；冲突别名被拒绝。TEMP/TMP 仅指向本次尝试目录，未知父进程秘密不自动进入子进程。真实 PowerShell→Git 验证曾暴露缺少 SystemDrive/PATHEXT 的错误，修复后同一许可配置通过，失败证据仍保留。
 

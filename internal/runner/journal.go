@@ -15,12 +15,13 @@ import (
 )
 
 type entry struct {
-	Assignment        Assignment        `json:"assignment"`
-	Result            *Result           `json:"result,omitempty"`
-	Acked             bool              `json:"acked"`
-	Progress          []Progress        `json:"progress,omitempty"`
-	ProgressTruncated bool              `json:"progress_truncated,omitempty"`
-	ArtifactPending   *artifactTransfer `json:"artifact_pending,omitempty"`
+	Assignment        Assignment         `json:"assignment"`
+	Result            *Result            `json:"result,omitempty"`
+	Acked             bool               `json:"acked"`
+	Progress          []Progress         `json:"progress,omitempty"`
+	ProgressTruncated bool               `json:"progress_truncated,omitempty"`
+	ArtifactPending   *artifactTransfer  `json:"artifact_pending,omitempty"`
+	CandidatePending  *candidateTransfer `json:"candidate_pending,omitempty"`
 }
 type Journal struct {
 	mu        sync.Mutex
@@ -76,6 +77,13 @@ func OpenJournal(dir string) (*Journal, error) {
 		return nil, err
 	}
 	for k, e := range j.entries {
+		if e.CandidatePending != nil {
+			p := *e.CandidatePending
+			p.Result.Assignment = p.Assignment
+			if e.Result != nil || e.ArtifactPending != nil || key(p.Assignment) != k || candidateRef(p.Assignment) != candidateRef(e.Assignment) || validCandidateCheckpoint(p) != nil {
+				return nil, fmt.Errorf("candidate checkpoint differs from durable inbox or original result")
+			}
+		}
 		if e.Assignment.PoolID != "" {
 			if err := validPoolAssignment(e.Assignment); err != nil || k != key(e.Assignment) {
 				return nil, fmt.Errorf("pool inbox has invalid frozen scope")
@@ -90,7 +98,7 @@ func OpenJournal(dir string) (*Journal, error) {
 				j.entries[k] = e
 			}
 		}
-		if e.Result == nil && e.ArtifactPending == nil && e.Assignment.ReleaseExecution == nil {
+		if e.Result == nil && e.ArtifactPending == nil && e.CandidatePending == nil && e.Assignment.ReleaseExecution == nil {
 			e.Result = &Result{Assignment: e.Assignment, ExitCode: -1, OutcomeUnknown: true, Error: "runner restart: execution outcome unknown; reconcile required", OperationID: operationID()}
 			j.entries[k] = e
 		}
@@ -186,6 +194,7 @@ func (j *Journal) Finish(r Result) error {
 	}
 	e.Result = &r
 	e.ArtifactPending = nil
+	e.CandidatePending = nil
 	j.entries[k] = e
 	if err := j.save(); err != nil {
 		j.entries[k] = previous

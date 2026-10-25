@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	"os"
@@ -44,6 +45,7 @@ type ExecConfig struct {
 	Artifacts                            *Client
 	Journal                              *Journal
 	resolvedArtifact                     *releasecontract.ArtifactBinding
+	candidateImport                      *cc.ImportReceipt
 }
 type output struct {
 	mu           sync.Mutex
@@ -446,6 +448,12 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		if err = finishArtifact(ctx, a, cfg, spec, workspace, artifactDir, &r); err != nil {
 			r.ExitCode = -1
 			r.Error = "artifact evidence: " + err.Error()
+		}
+	}
+	if workspace != nil && cfg.Artifacts != nil && (a.Type == "command" || a.Type == "agent") && workspace.HeadCommit != workspace.BaseCommit && r.ExitCode == 0 && !r.Stopped && !r.OutcomeUnknown && r.Error == "" && r.WorkspaceEvidence["clean"] == true {
+		if err = finishCandidate(ctx, a, cfg, workspace, &r); err != nil {
+			r.ExitCode = -1
+			r.Error = "candidate transfer: " + err.Error()
 		}
 	}
 	if r.ToolEvidence != nil {

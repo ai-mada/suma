@@ -109,6 +109,9 @@ func ReplayProgress(ctx context.Context, c *Client, j *Journal) error {
 	return nil
 }
 func Replay(ctx context.Context, c *Client, j *Journal) error {
+	if err := ReplayCandidates(ctx, c, j); err != nil {
+		return err
+	}
 	if err := ReplayArtifacts(ctx, c, j); err != nil {
 		return err
 	}
