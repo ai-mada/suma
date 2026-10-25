@@ -474,6 +474,11 @@ export interface DeploymentRequest {
   assignment: AssignmentRef;
   authorization_ticket: string;
 }
+export interface DisplayDiagnostic {
+  schema_version: 1;
+  message_key: string;
+  message_params?: { [key: string]: string | number };
+}
 export interface Edge {
   from: string;
   to: string;
@@ -1808,6 +1813,7 @@ export interface ToolProfile {
   last_seen_at?: string;
   available: boolean;
   reason: string;
+  reason_diagnostic?: DisplayDiagnostic | null;
 }
 export interface ToolProfileCommandRequest {
   project_id: string;

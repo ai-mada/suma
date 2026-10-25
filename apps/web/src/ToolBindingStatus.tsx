@@ -86,8 +86,14 @@ export function ToolBindingFacts({
                 ? t("development.binding.this_read_meets_new_dispatch_conditions_the")
                 : t("development.binding.current_conditions_do_not_permit_new_dispatch")}
           </p>
-          {!eligible && matches && (
-            <p>{toolReason(profile.reason || "profile_" + profile.state)}</p>
+          {matches && profile.reason && (
+            <div>
+              <p>{toolReason(profile.reason, profile.reason_diagnostic)}</p>
+              <details>
+                <summary>{t("development.facts.original_reason")}</summary>
+                <code>{profile.reason}</code>
+              </details>
+            </div>
           )}
           <dl>
             <dt>{t("development.binding.current_worker_identity")}</dt>

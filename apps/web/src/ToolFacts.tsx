@@ -1,5 +1,6 @@
 import { Trans } from "./i18n/Trans";
 import { NativeToolMessage } from "./NativeToolMessage";
+import { renderDisplayDiagnostic } from "./display-diagnostic";
 import { tr as t, useLocale, formatDateTime, formatNumber } from "./i18n";
 import { DispatchRouteFacts } from "./execution-pools/DispatchRouteFacts";
 import { stateLabel } from "./api";
@@ -103,7 +104,7 @@ export function ToolProfileFacts({ profile }: { profile: ToolProfile }) { useLoc
         {t("development.facts.version_and_probing_do_not_prove_model")}</p>
       {profile.reason && (
         <div className="warning">
-          <p>{toolReason(profile.reason)}</p>
+          <p>{toolReason(profile.reason, profile.reason_diagnostic)}</p>
           <details>
             <summary>{t("development.facts.original_reason")}</summary>
             <code>{profile.reason}</code>
@@ -132,11 +133,10 @@ export function ToolProfileFacts({ profile }: { profile: ToolProfile }) { useLoc
     </section>
   );
 }
-export function toolReason(reason: string) {
-  if (/[\u3400-\u9fff]/.test(reason)) return reason;
-  return (
-    (
-      {
+export function toolReason(reason: string, diagnostic?: unknown) {
+  if (diagnostic !== undefined && diagnostic !== null)
+    return renderDisplayDiagnostic(reason, diagnostic).text;
+  const reasons: Record<string, string> = {
         inventory_stale:
           t("development.facts.the_worker_report_expired_start_a_runner"),
         worker_revoked: t("development.facts.the_worker_credential_was_revoked_dispatch_is"),
@@ -145,10 +145,8 @@ export function toolReason(reason: string) {
         profile_mismatch: t("development.facts.the_local_observation_does_not_match_the"),
         activation_authority_revoked:
           t("development.facts.the_original_enabling_user_s_current_permissions"),
-      } as Record<string, string>
-    )[reason] ||
-    t("development.facts.current_conditions_are_unmet_check_the_original")
-  );
+      };
+  return Object.hasOwn(reasons, reason) ? reasons[reason] : reason;
 }
 function ContextFacts({
   value,

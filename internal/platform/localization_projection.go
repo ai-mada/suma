@@ -61,15 +61,6 @@ func localizePresentation(w http.ResponseWriter, value any) any {
 			}
 		}
 		return in
-	case ToolProfile:
-		in.Reason = presentationSource(w, in.Reason)
-		return in
-	case ToolProfileList:
-		in.Items = append([]ToolProfile{}, in.Items...)
-		for i := range in.Items {
-			in.Items[i].Reason = presentationSource(w, in.Items[i].Reason)
-		}
-		return in
 	default:
 		return value
 	}

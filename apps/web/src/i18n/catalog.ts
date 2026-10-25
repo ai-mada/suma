@@ -24,7 +24,7 @@ const plain = (value: unknown): value is Record<string, unknown> =>
     Object.getPrototypeOf(value) === null);
 /** Match the Go contract byte-for-byte; never coerce text, identifiers or counts. */
 export function catalogParameters(
-  message: LocalizationMessage,
+  message: Pick<LocalizationMessage, 'parameters'>,
   params: unknown,
 ) {
   if (params !== undefined && !plain(params)) return;

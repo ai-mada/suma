@@ -6,6 +6,12 @@ import type {
   LocalizationMessage,
 } from "../../../../packages/contracts/src";
 import {zh,en} from "./locales/resources";
+import {displaySourceDefinitions} from "../../../../packages/contracts/src/display-sources";
+// These approved keys require complete source proof in renderDisplayDiagnostic.
+// Publishing their text in the server catalog does not create generic aliases.
+const sourceBoundDisplayKeys = new Set<string>(displaySourceDefinitions.map(definition => definition.key));
+// Older clients must also refuse a newer catalog's unknown reserved-domain key.
+const isSourceBoundDisplayKey = (key: string) => sourceBoundDisplayKeys.has(key) || key.startsWith('display.tool.');
 export type Locale = "zh-CN" | "en-US";
 type Sources = {
   explicit?: unknown;
@@ -177,6 +183,14 @@ export function setServerCatalog(value: LocalizationCatalog) {
   catalog = structuredClone(value);
   i18n.emit("loaded", {});
 }
+/** A source-bound renderer supplies its generated parameter contract. A stale
+ * or incompatible catalog cannot widen that contract. */
+export function formatServerCatalogMessage(key: string, parameters: LocalizationMessage['parameters'], params: unknown) {
+  const message = catalog?.messages.find(message => message.key === key);
+  if (!message || message.parameters.length !== parameters.length
+    || parameters.some(spec => !message.parameters.some(item => item.name === spec.name && item.kind === spec.kind))) return;
+  return formatCatalogMessage(message, params, getLocale());
+}
 /** Only stable keys + validated params, or complete parameter-free source matches,
  * are translated. User content, identifiers, tool output and unknown errors stay raw. */
 export function renderDiagnostic(value: unknown): string {
@@ -205,6 +219,7 @@ export function renderDiagnostic(value: unknown): string {
   if (item?.localDiagnostic instanceof UiError)
     return renderDiagnostic(item.localDiagnostic);
   if (typeof item?.message_key === "string") {
+    if (isSourceBoundDisplayKey(item.message_key)) return raw;
     const message = catalog?.messages.find(
       (message) => message.key === item.message_key,
     );
@@ -220,7 +235,7 @@ export function renderDiagnostic(value: unknown): string {
   }
   const exact = catalog?.messages.find(
     (message) =>
-      !message.parameters.length && Object.values(message.texts).includes(raw),
+      !isSourceBoundDisplayKey(message.key) && !message.parameters.length && Object.values(message.texts).includes(raw),
   );
   if (exact) return exact.texts[getLocale()] || raw;
   const entries = Object.entries(zh),

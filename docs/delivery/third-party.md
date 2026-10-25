@@ -31,6 +31,14 @@ Go 范围来自六平台 18 个实际二进制的 `go version -m` 去重信息�
 
 上面的JSON及18程序采集说明保留2026-10-23历史来源，不冒充本轮安装包清单。T-P4-006新增的i18next／react-i18next已在下表单列，版本及完整性以当前锁文件为准；当前24程序的实际链接模块并集仍为36，另见[本阶段程序核对](../deployment/execution-pool-runtime-bundles.md)。完整分发SBOM需在正式打包时重新生成。
 
+## T-P4-013 React Flow受控升级
+
+本轮将`@xyflow/react`固定12.12.0、其`@xyflow/system`固定0.0.83，均为官方registry的MIT包。React与类型的四项`>=17`peer约束包含当前React19。安装禁用生命周期脚本，仅通过子进程继承已有代理配置，没有修改用户／机器设置，没有把file或本地镜像地址写进锁文件。依赖版本变化限这两个包；system新增的d3-interpolate及类型是原锁中已有版本。
+
+两份官方tarball的SHA512分别与registry元数据和新锁一致；安装后逐文件核对React516个／system186个文件与tarball字节及文件集合相同，MIT正文保留在安装包及ignored审计证据中。React tarball SHA256为`b61b1486935902dc9c2002395004591873733ba48276a63622ce62cb13833fac`，system为`fc5d6ec987f33c14a83295d3deaaed2e36309ca3271d56f04c8442fba17e0d23`。这只证明该固定切面的来源／完整性与元数据，不表示所有依赖或最终安装包SBOM完成。上方443包历史JSON继续保留，不重写为当前完整清单。
+
+接口与产品使用见[显示及图交互设计](../design/platform-display.md)。正式程序和浏览器、全部目标系统及最终分发仍按交付质量合同验证。
+
 ## Go 直接依赖
 
 | 模块 | 实际版本 | 本地许可证观察 | 用途 |
@@ -57,7 +65,7 @@ mysql 的许可证正文含其他许可兼容性说明，不能据此推断依�
 | @monaco-editor/react | 4.7.0 | MIT | 编辑器 React 接口 |
 | monaco-editor | 0.52.2 | MIT | 实际编辑器与 workers |
 | @radix-ui/react-dialog | 1.1.6 | MIT | 对话框基础组件 |
-| @xyflow/react | 12.4.4 | MIT | DAG 画布 |
+| @xyflow/react | 12.12.0 | MIT | DAG画布与官方内部文案／ARIA配置；T-P4-013受控升级 |
 | elkjs | 0.10.0 | EPL-2.0 | DAG 布局 |
 | lucide-react | 0.468.0 | ISC | 图标 |
 | electron | 35.7.5 | MIT（包声明） | 桌面运行时；另有 Chromium 等组件 notices |

@@ -4,7 +4,8 @@
 
 | 主题 | 入口 |
 |---|---|
-| 当前精确尝试工具历史（T-P4-012，本地已验证） | [架构与操作SOP](architecture/attempt-tool-history.md)、[读取合同](../contracts/attempt-tool-history.md)、[专项验证](quality/attempt-tool-history-verification.md)、[精简摘要](quality/attempt-tool-history-summary.json) |
+| 当前工具资格显示与图控件（T-P4-013，限定范围本地已验证） | [显示合同](../contracts/platform-display.md)、[交互设计](design/platform-display.md)、[专项计划](delivery/platform-display-plan.md)、[验证边界](quality/platform-display-verification.md)、[精简摘要](quality/platform-display-summary.json) |
+| 精确尝试工具历史（T-P4-012，历史本地已验证） | [架构与操作SOP](architecture/attempt-tool-history.md)、[读取合同](../contracts/attempt-tool-history.md)、[专项验证](quality/attempt-tool-history-verification.md)、[精简摘要](quality/attempt-tool-history-summary.json) |
 | 原生诊断与命令编辑（T-P4-011历史） | [链路设计与SOP](agents/native-diagnostics.md)、[专项验收](quality/native-diagnostics-verification.md)、[精简摘要](quality/native-diagnostics-summary.json) |
 | 执行诊断与运行命令国际化（T-P4-010历史） | [架构与边界](architecture/runtime-localization.md)、[专项验收](quality/runtime-localization-verification.md)、[精简摘要](quality/runtime-localization-summary.json) |
 | 产品范围、角色和原则 | [产品需求](product/prd.md) |
@@ -47,7 +48,7 @@
 
 ## 维护方式
 
-当前 T-P4-012 增加精确 attempt 的持久工具事实分页，保留原始 SQL 正文、固定读取窗口和当前权限边界；界面切语言只重显，未知内层内容保留原文。实际原生进程的两次本地 HTTP 429 尝试各有 5 条工具事实；另一个明确标注的合成协议运行产生 334 条事实，浏览器按 7 页读取并返回旧页。两类证据不混作厂商模型或研发验收。只读数据库保持、停止与主预览终验仍在收尾，本阶段尚未验收或提交。
+T-P4-012 已完成限定范围本地验证并提交：精确 attempt 的持久工具事实分页保留原始 SQL 正文、固定读取窗口和当前权限边界；实际原生 HTTP429 与334条合成协议事实分别记录，数据库保持和停止已验证。T-P4-013 已在此基础上完成当前工具资格的来源绑定显示、官方图控件本地化及确认的原始名称入口修正：最终代码检查、独立复核、实际工具生命周期和最终图四宽度／主题已记录限定本地验证。精确切面及剩余范围见[专项验证](quality/platform-display-verification.md)。两轮均不代表厂商模型效果、全表面国际化、分布式规模或完整平台完成。
 
 T-P4-011 原生诊断贯通、此前自动化、制品与发布验证保留各自历史源码和证据切面。目录键数、一次成功构建或局部响应式检查都不代表所有语言、平台、规模与完整 P0–P7 已完成，范围以各专项报告和实施台账为准。
 

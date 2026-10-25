@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ai-mada/suma/internal/displaycontract"
 	"github.com/ai-mada/suma/internal/store"
 	"github.com/ai-mada/suma/internal/toolcontract"
 )
@@ -43,28 +44,66 @@ func (s *Service) toolProfileTx(ctx context.Context, tx *sql.Tx, p Principal, pr
 	return scanToolProfile(tx.QueryRowContext(ctx, s.q(`SELECT `+toolProfileColumns+` FROM suma_tool_profiles WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id))
 }
 
+// toolReason carries producer identity through project and shared-pool checks.
+// It never derives authority or display identity from arbitrary stored prose.
+type toolReason struct {
+	source     string
+	diagnostic *displaycontract.DisplayDiagnostic
+}
+
+func newToolReason(source, suffix string, params map[string]any) toolReason {
+	return toolReason{source: source, diagnostic: displaycontract.BindToolReason(source, "display.tool."+suffix, params)}
+}
+func withToolReason(out ToolProfile, source, suffix string, params map[string]any) ToolProfile {
+	reason := newToolReason(source, suffix, params)
+	out.Reason, out.ReasonDiagnostic = reason.source, reason.diagnostic
+	return out
+}
+
+// decodeToolProfileReceipt isolates optional presentation from the authoritative
+// saved response. Unsupported hints cannot poison replay, while business JSON
+// errors still propagate. Nothing is recomputed or written back to persistence.
+func decodeToolProfileReceipt(raw string) (ToolProfile, error) {
+	type response ToolProfile
+	var saved struct {
+		response
+		ReasonDiagnostic json.RawMessage `json:"reason_diagnostic"`
+	}
+	if err := json.Unmarshal([]byte(raw), &saved); err != nil {
+		return ToolProfile{}, err
+	}
+	out := ToolProfile(saved.response)
+	if len(saved.ReasonDiagnostic) != 0 {
+		var hint displaycontract.DisplayDiagnostic
+		if json.Unmarshal(saved.ReasonDiagnostic, &hint) == nil {
+			out.ReasonDiagnostic = displaycontract.ValidateToolReason(out.Reason, &hint)
+		}
+	}
+	return out, nil
+}
+
 // toolWorkerReasonTx checks the same registered execution identity used by
 // release operations, without granting a tool-only worker release capabilities.
-func (s *Service) toolWorkerReasonTx(ctx context.Context, tx *sql.Tx, p Principal, project, worker string, clock time.Time) (string, error) {
+func (s *Service) toolWorkerReasonTx(ctx context.Context, tx *sql.Tx, p Principal, project, worker string, clock time.Time) (toolReason, error) {
 	var state, expires, creator string
 	err := tx.QueryRowContext(ctx, s.q(`SELECT w.status,x.expires_at,w.created_by FROM suma_release_workers w JOIN suma_sessions x ON x.token_hash=w.token_hash AND x.tenant_id=w.tenant_id JOIN suma_token_scopes t ON t.token_hash=w.token_hash AND t.kind='runner' AND t.project_id=w.project_id WHERE w.tenant_id=? AND w.project_id=? AND w.worker_id=?`), p.TenantID, project, worker).Scan(&state, &expires, &creator)
 	if errors.Is(err, sql.ErrNoRows) {
 		return s.poolToolWorkerReasonTx(ctx, tx, p.TenantID, project, worker, clock)
 	}
 	if err != nil {
-		return "", err
+		return toolReason{}, err
 	}
 	until, err := time.Parse(time.RFC3339Nano, expires)
 	if state != "active" || err != nil || !until.After(clock) {
-		return "执行节点凭证已过期或撤销", nil
+		return newToolReason("执行节点凭证已过期或撤销", "worker_expired", nil), nil
 	}
 	if err = s.authorizeProjectTx(ctx, tx, Principal{ID: creator, TenantID: p.TenantID}, project, true, false); err != nil {
 		if automationAuthorityFailure(err) {
-			return "执行节点登记人的当前项目权限已失效", nil
+			return newToolReason("执行节点登记人的当前项目权限已失效", "worker_creator_revoked", nil), nil
 		}
-		return "", err
+		return toolReason{}, err
 	}
-	return "", nil
+	return toolReason{}, nil
 }
 
 func (s *Service) toolProfileObservationTx(ctx context.Context, tx *sql.Tx, p Principal, project string, out ToolProfile) (ToolProfile, error) {
@@ -73,6 +112,7 @@ func (s *Service) toolProfileObservationTx(ctx context.Context, tx *sql.Tx, p Pr
 		return out, err
 	}
 	out.Available = false
+	out.ReasonDiagnostic = nil
 	var raw string
 	err = tx.QueryRowContext(ctx, s.q(`SELECT observed_at,items FROM suma_tool_inventories WHERE tenant_id=? AND project_id=? AND worker_id=?`), p.TenantID, project, out.WorkerID).Scan(&out.LastSeenAt, &raw)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -93,10 +133,10 @@ func (s *Service) toolProfileObservationTx(ctx context.Context, tx *sql.Tx, p Pr
 	}
 	switch out.State {
 	case "revoked":
-		out.Reason = "工具档案已永久撤销"
+		out = withToolReason(out, "工具档案已永久撤销", "profile_revoked", nil)
 		return out, nil
 	case "paused":
-		out.Reason = "工具档案已暂停，尚未授权派发"
+		out = withToolReason(out, "工具档案已暂停，尚未授权派发", "profile_paused", nil)
 		return out, nil
 	case "enabled":
 	default:
@@ -104,7 +144,7 @@ func (s *Service) toolProfileObservationTx(ctx context.Context, tx *sql.Tx, p Pr
 	}
 	if err = s.authorizeProjectTx(ctx, tx, Principal{ID: out.EnabledBy, TenantID: p.TenantID}, project, true, true); err != nil {
 		if automationAuthorityFailure(err) {
-			out.Reason = "工具档案启用人的当前审批权限已失效"
+			out = withToolReason(out, "工具档案启用人的当前审批权限已失效", "activation_revoked", nil)
 			return out, nil
 		}
 		return out, err
@@ -113,37 +153,37 @@ func (s *Service) toolProfileObservationTx(ctx context.Context, tx *sql.Tx, p Pr
 	if err != nil {
 		return out, err
 	}
-	if reason != "" {
-		out.Reason = reason
+	if reason.source != "" {
+		out.Reason, out.ReasonDiagnostic = reason.source, reason.diagnostic
 		return out, nil
 	}
 	observed, parseErr := time.Parse(time.RFC3339, out.LastSeenAt)
 	if out.LastSeenAt == "" {
-		out.Reason = "执行节点尚未上报工具清单"
+		out = withToolReason(out, "执行节点尚未上报工具清单", "inventory_missing", nil)
 		return out, nil
 	}
 	if parseErr != nil || observed.After(clock) || !clock.Before(observed.Add(60*time.Second)) {
-		out.Reason = "工具清单已过期，等待执行节点重新探测"
+		out = withToolReason(out, "工具清单已过期，等待执行节点重新探测", "inventory_stale", nil)
 		return out, nil
 	}
 	if out.Observation == nil {
-		out.Reason = "当前执行节点未声明此命令"
+		out = withToolReason(out, "当前执行节点未声明此命令", "command_missing", nil)
 		return out, nil
 	}
 	if out.Observation.Profile != out.Profile {
-		out.Reason = "当前工具配置、版本或程序摘要与固定档案不匹配"
+		out = withToolReason(out, "当前工具配置、版本或程序摘要与固定档案不匹配", "profile_mismatch", nil)
 		return out, nil
 	}
 	if !out.Observation.Available {
-		out.Reason = "执行节点报告工具不可用：" + out.Observation.Reason
+		out = withToolReason(out, "执行节点报告工具不可用："+out.Observation.Reason, "reported_unavailable", map[string]any{"reason": out.Observation.Reason})
 		return out, nil
 	}
 	if out.Profile.Protocol == "opencode-jsonl-v1" {
-		out.Reason = "OpenCode 当前版本尚未通过平台执行协议验收"
+		out = withToolReason(out, "OpenCode 当前版本尚未通过平台执行协议验收", "protocol_unverified", nil)
 		return out, nil
 	}
 	out.Available = true
-	out.Reason = "执行节点已报告可领取；模型认证、执行与验收结果需分别核验"
+	out = withToolReason(out, "执行节点已报告可领取；模型认证、执行与验收结果需分别核验", "dispatchable", nil)
 	return out, nil
 }
 
@@ -228,8 +268,7 @@ func (s *Service) CreateToolProfile(ctx context.Context, p Principal, project st
 		return out, err
 	}
 	if replay {
-		err = json.Unmarshal([]byte(hash), &out)
-		return out, err
+		return decodeToolProfileReceipt(hash)
 	}
 	clock, err := s.automationClock(ctx, tx)
 	if err != nil {
@@ -239,8 +278,8 @@ func (s *Service) CreateToolProfile(ctx context.Context, p Principal, project st
 	if err != nil {
 		return out, err
 	}
-	if reason != "" {
-		return out, conflict(reason)
+	if reason.source != "" {
+		return out, conflict(reason.source)
 	}
 	var count int
 	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_tool_profiles WHERE tenant_id=? AND project_id=?`), p.TenantID, project).Scan(&count); err != nil {
@@ -251,6 +290,7 @@ func (s *Service) CreateToolProfile(ctx context.Context, p Principal, project st
 	}
 	at := automationStamp(clock)
 	out = ToolProfile{ID: newID(), ProjectID: project, WorkerID: req.WorkerID, Name: req.Name, Version: 1, State: "paused", Profile: req.Profile, CreatedAt: at, UpdatedAt: at, Reason: "工具档案已暂停，尚未授权派发"}
+	out = withToolReason(out, out.Reason, "profile_paused", nil)
 	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_tool_profiles(id,tenant_id,project_id,worker_id,name,version,state,profile,enabled_by,created_at,updated_at)VALUES(?,?,?,?,?,?,?,?,?,?,?)`), out.ID, p.TenantID, project, out.WorkerID, out.Name, 1, out.State, stringify(out.Profile), "", at, at)
 	if err != nil {
 		return out, err
@@ -282,8 +322,7 @@ func (s *Service) CommandToolProfile(ctx context.Context, p Principal, project, 
 		return out, err
 	}
 	if replay {
-		err = json.Unmarshal([]byte(hash), &out)
-		return out, err
+		return decodeToolProfileReceipt(hash)
 	}
 	out, err = s.toolProfileTx(ctx, tx, p, project, id)
 	if err != nil {

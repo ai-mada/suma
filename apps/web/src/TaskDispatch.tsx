@@ -1,3 +1,4 @@
+import {literalText} from './i18n/literal';
 import { tr as t, useLocale, formatNumber, renderDiagnostic } from "./i18n";
 import { useEffect, useMemo, useState } from "react";
 import { Play, RefreshCw } from "lucide-react";
@@ -274,7 +275,7 @@ export function TaskDispatchDialog({
                         !taskToolProtocol(item.profile)
                       }
                     >
-                      {t("development.dispatch.tool_option",{name:item.name,worker:item.worker_id,version:item.version,status:!taskToolProtocol(item.profile)?t("development.dispatch.unsupported"):item.profile.read_only?t("development.dispatch.read_only"):item.state!=="enabled"||!item.available?t("development.dispatch.blocked"):t("development.dispatch.eligible")})}
+                      {literalText("development.dispatch.tool_option",{name:item.name,worker:item.worker_id,version:formatNumber(item.version),status:!taskToolProtocol(item.profile)?t("development.dispatch.unsupported"):item.profile.read_only?t("development.dispatch.read_only"):item.state!=="enabled"||!item.available?t("development.dispatch.blocked"):t("development.dispatch.eligible")})}
                     </option>
                   ))}
                 </select>

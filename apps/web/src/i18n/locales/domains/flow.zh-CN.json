@@ -1,0 +1,23 @@
+{
+  "flow.node.role":"节点",
+  "flow.edge.role":"连线",
+  "flow.node.edit":"按 Enter 或空格键选择节点，用方向键移动，按 Delete 删除，按 Escape 取消选择。",
+  "flow.node.read":"按 Enter 或空格键选择节点，按 Escape 取消选择。",
+  "flow.edge.edit":"按 Enter 或空格键选择连线，按 Delete 删除，按 Escape 取消选择。",
+  "flow.edge.read":"按 Enter 或空格键选择连线，按 Escape 取消选择。",
+  "flow.node.moved":"节点 {{id}} 向{{direction}}移动。移动前坐标：x: {{x}}，y: {{y}}",
+  "flow.node.unidentified":"（身份未确认）",
+  "flow.direction.up":"上",
+  "flow.direction.down":"下",
+  "flow.direction.left":"左",
+  "flow.direction.right":"右",
+  "flow.controls":"图控件",
+  "flow.zoom_in":"放大",
+  "flow.zoom_out":"缩小",
+  "flow.fit_view":"缩放以显示完整图",
+  "flow.interactive":"切换图交互",
+  "flow.minimap":"图缩略图",
+  "flow.handle":"连线端点",
+  "flow.handle.input":"节点 {{name}}（{{id}}）的输入连接点（目标）",
+  "flow.handle.output":"节点 {{name}}（{{id}}）的输出连接点（来源）"
+}

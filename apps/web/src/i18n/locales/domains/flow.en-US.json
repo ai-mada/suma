@@ -1,0 +1,23 @@
+{
+  "flow.node.role":"node",
+  "flow.edge.role":"edge",
+  "flow.node.edit":"Press Enter or Space to select a node, arrow keys to move it, Delete to remove it, and Escape to cancel selection.",
+  "flow.node.read":"Press Enter or Space to select a node and Escape to cancel selection.",
+  "flow.edge.edit":"Press Enter or Space to select an edge, Delete to remove it, and Escape to cancel selection.",
+  "flow.edge.read":"Press Enter or Space to select an edge and Escape to cancel selection.",
+  "flow.node.moved":"Moved node {{id}} {{direction}}. Starting coordinates: x: {{x}}, y: {{y}}",
+  "flow.node.unidentified":"(identity unavailable)",
+  "flow.direction.up":"up",
+  "flow.direction.down":"down",
+  "flow.direction.left":"left",
+  "flow.direction.right":"right",
+  "flow.controls":"Graph controls",
+  "flow.zoom_in":"Zoom in",
+  "flow.zoom_out":"Zoom out",
+  "flow.fit_view":"Fit graph to view",
+  "flow.interactive":"Toggle graph interaction",
+  "flow.minimap":"Graph minimap",
+  "flow.handle":"Connection handle",
+  "flow.handle.input":"Input connection (target) for node {{name}} ({{id}})",
+  "flow.handle.output":"Output connection (source) for node {{name}} ({{id}})"
+}

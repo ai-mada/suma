@@ -14,26 +14,26 @@ import (
 // Pool registry fallback is independent of the registering person's account.
 // Project consent, active machine credential and the human profile approver
 // remain separate facts; a pool owner is never made a project member.
-func (s *Service) poolToolWorkerReasonTx(ctx context.Context, tx *sql.Tx, tenant, project, worker string, clock time.Time) (string, error) {
+func (s *Service) poolToolWorkerReasonTx(ctx context.Context, tx *sql.Tx, tenant, project, worker string, clock time.Time) (toolReason, error) {
 	var expires, poolStatus string
 	err := tx.QueryRowContext(ctx, s.q(`SELECT c.expires_at,p.status FROM suma_execution_pool_runners r JOIN suma_execution_pool_credentials c ON c.runner_id=r.id AND c.version=r.credential_version JOIN suma_execution_pools p ON p.id=r.pool_id JOIN suma_execution_pool_grants g ON g.pool_id=p.id WHERE r.worker_id=? AND r.status='active' AND c.status='active' AND g.tenant_id=? AND g.project_id=? AND g.status='approved'`), worker, tenant, project).Scan(&expires, &poolStatus)
 	if errors.Is(err, sql.ErrNoRows) {
-		return "执行节点未登记、未获项目授权或机器凭证已撤销", nil
+		return newToolReason("执行节点未登记、未获项目授权或机器凭证已撤销", "worker_unregistered", nil), nil
 	}
 	if err != nil {
-		return "", err
+		return toolReason{}, err
 	}
 	if poolStatus == "paused" {
-		return "资源池已暂停，停止新派发", nil
+		return newToolReason("资源池已暂停，停止新派发", "pool_paused", nil), nil
 	}
 	if poolStatus != "active" {
-		return "资源池当前状态不允许新派发", nil
+		return newToolReason("资源池当前状态不允许新派发", "pool_unavailable", nil), nil
 	}
 	until, err := time.Parse(time.RFC3339Nano, expires)
 	if err != nil || until.Unix() <= clock.Unix() {
-		return "资源池执行节点凭证已过期", nil
+		return newToolReason("资源池执行节点凭证已过期", "pool_expired", nil), nil
 	}
-	return "", nil
+	return toolReason{}, nil
 }
 
 func (s *Service) ReportPoolToolInventory(ctx context.Context, token string, req PoolToolInventoryRequest) (ToolInventoryReceipt, error) {

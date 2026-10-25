@@ -1,6 +1,6 @@
 import { tr as t, UiError } from "./i18n";
 import type { RecordItem, Workflow } from "./api";
-import type { ToolDiagnostic } from "../../../packages/contracts/src";
+import type { ToolDiagnostic, DisplayDiagnostic } from "../../../packages/contracts/src";
 export type ToolProfileDefinition = {
   command_id: string;
   adapter: string;
@@ -16,6 +16,7 @@ export type ToolObservation = {
   reason: string;
 };
 export type ToolProfile = {
+  reason_diagnostic?: DisplayDiagnostic | null;
   id: string;
   project_id: string;
   worker_id: string;

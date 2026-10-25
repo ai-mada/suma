@@ -1,0 +1,537 @@
+{
+  "schema_version": 2,
+  "stage": "T-P4-013",
+  "base_commit": "caead3ed6bc08f5dc120290d4c87281d5076fcaa",
+  "status": "bounded_local_verification_recorded",
+  "stage_local_verification_complete": true,
+  "full_platform_complete": false,
+  "production_accepted": false,
+  "scope": "Source-bound read-only tool eligibility, official React Flow localization and ten approved static UI literal-value templates. Bounded local verification records final entry bytes, real browser observations, closed clone and expected-only main coordination counters. Root separately owns the independent whole-delivery audit; Git commit status is not recorded here.",
+  "contracts": [
+    "contracts/platform-display.md",
+    "contracts/ui-literal-values.md"
+  ],
+  "verification": {
+    "basis": "Retained raw producer outputs, exact source hashes and independent read-only evidence audits; this document task did not rerun tests, builds, services or browsers.",
+    "go": {
+      "pass_events": 1250,
+      "failed_events": 0,
+      "test_skips": 0,
+      "passed_packages": 16,
+      "no_test_packages": 1,
+      "test_exit": 0,
+      "vet_exit": 0,
+      "input_count": 359,
+      "unchanged": true,
+      "fresh_run_after_ui_fixes": false
+    },
+    "web": {
+      "passed": 784,
+      "failed": 0,
+      "pending": 0,
+      "test_files": 55,
+      "nested_suites": 107,
+      "input_count": 225,
+      "unchanged": true,
+      "test_exit": 0,
+      "typecheck_exit": 0,
+      "build_exit": 0,
+      "prior730_delta": {
+        "existing_changed": 7,
+        "added": 3,
+        "unchanged": 215
+      }
+    },
+    "non_web": {
+      "agent": 37,
+      "desktop": 7,
+      "knowledge": 3,
+      "total": 47,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "fresh_run": false,
+      "inherited_input_count": 38,
+      "inherited_inputs_unchanged": true,
+      "raw_log": "pre-actual-ui-fix/non-web-tests.log"
+    },
+    "historical_web_cuts": [
+      {
+        "passed": 721,
+        "files": 53,
+        "inputs": 222,
+        "frontend_keys": 2848,
+        "scope": "Original platform-display code and actual tool journey, before actual graph fixes"
+      },
+      {
+        "passed": 723,
+        "files": 53,
+        "inputs": 222,
+        "frontend_keys": 2850,
+        "scope": "First actual-UI direction/starting-coordinate fixes, before raw Handle correction"
+      },
+      {
+        "passed": 730,
+        "files": 53,
+        "inputs": 222,
+        "frontend_keys": 2850,
+        "scope": "Raw Handle safe cut, before eight literal-value variants"
+      }
+    ],
+    "counts_not_aggregated": [
+      "Historical Web695/697/721/723/730",
+      "Focused87/119/186",
+      "Independent17/3 and88/5",
+      "Legacy16RED",
+      "Pre-integrationGo1217pass/2fail"
+    ],
+    "contracts": {
+      "generated_models": 217,
+      "schemas_including_error": 218,
+      "api_paths": 153,
+      "schema_references": 1242,
+      "generated_bytes_unchanged": true,
+      "separate_generator_check": {
+        "command": "go run ./cmd/suma-contracts -check",
+        "exit": 0,
+        "input_count": 362,
+        "unchanged": true
+      }
+    },
+    "review": {
+      "initial_P2_addressed": 3,
+      "raw_handle_P2": "ADDRESSED; independent17tests/3files",
+      "literal_review": "PASS_BOUNDED_REVIEW; independent88tests/5files, zero findings",
+      "literal_frozen_packet_files": 12,
+      "hash_chain_checked": true,
+      "service_browser_acceptance_not_inferred_from_component_tests": true
+    },
+    "dependencies": {
+      "react_flow": "12.12.0",
+      "xyflow_system": "0.0.83",
+      "i18next": "26.4.2",
+      "license": "MIT",
+      "public_aria_config_entries": 11,
+      "installed_files_equal_saved_tarballs": {
+        "react_flow": 516,
+        "system": 186,
+        "total": 702
+      },
+      "online_authenticity_claimed": false,
+      "private_vendor_store_or_DOM_mutation": false
+    }
+  },
+  "localization": {
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "frontend_keys_per_locale": 2850,
+    "backend_unique_explicit_source_definitions": 801,
+    "backend_current_live_catalog_read_claimed": false,
+    "native_keys": 46,
+    "approved_display_sources": 16,
+    "raw_evidence_preserved": true,
+    "all_surfaces_complete": false,
+    "generic_diagnostic_display_domain_bypass_blocked": true,
+    "literal_values": {
+      "approved_static_keys": 10,
+      "confirmed_raw_name_families": 8,
+      "handle_directions": 2,
+      "approved_AST_calls": 8,
+      "same_scenario_new_API_GREEN": 16,
+      "global_tr_unchanged": true,
+      "legacy_guard_RED": 16,
+      "legacy_guard_sha256": "8ffacb5d2adee7fd34ae0e1d2d38fdcbdbb57113a5a2284f863cc5222ff9428c",
+      "five_original_DOM_confirmed_keys_component_verified": true,
+      "remaining_three": "Exact API fixtures, reviewed call expressions and AST linkage; no new adversarial real-service/browser proof",
+      "global_translation_behavior_or_all_strings_guaranteed": false
+    }
+  },
+  "runtime": {
+    "cut": "20261024T184316196Z-b44afa9c",
+    "source_inputs": 200,
+    "source_sha256": "54f29f1f23e23815d3a11a7be054a8cc046fd31e5e4965f69d3319f0cf68c0b1",
+    "artifacts": 24,
+    "targets": 6,
+    "programs": 4,
+    "linked_modules": 36,
+    "extracted_module_files_audited": 8441,
+    "optional_cache_info_missing_versions": 8,
+    "windows_control_sha256": "cbda383d1b9fc45f5163dae0b3cb2e804fa2a638fdb88f315d8253b1dae78501",
+    "windows_runner_sha256": "43fc5a2be1a31e18dfb55d65665065971916c3a561c021a8b32695122016c460",
+    "artifact_audit": "PASS, bytes/source unchanged; offline consistency, no fresh rebuild, online authenticity or target installation acceptance"
+  },
+  "web_build": {
+    "entry": "/assets/index-bVwTmtOy.js",
+    "entry_sha256": "aaed6f254b9f96e7e3b60d551d03564b2bac518166ed8ad22f8e0989d09594a2",
+    "css_sha256": "9b48ac0ca5c3fa955b494f204c9f4fb04e9917f796e353d9acdd4affc55284a5",
+    "html_sha256": "decef68c36b7115899ce35a112f3bc491b97d2ddf3b38da3c82b5d901c3c6a9d",
+    "clean_deployment_archive": false,
+    "performance_accepted": false
+  },
+  "actual": {
+    "historical_tools": {
+      "web_cut": 721,
+      "web_inputs": 222,
+      "original_process_exit_cause": "unknown; original absence evidence retained and explicit existing-database recovery used",
+      "node_probe": "Nodev22.16.0 fixed --version only, exit0; describe is configuration/inventory evidence",
+      "four_real_UI_POSTs": {
+        "actions": [
+          "enable",
+          "pause",
+          "enable",
+          "pause"
+        ],
+        "expected_versions": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "historical_response_versions": [
+          2,
+          3,
+          4,
+          5
+        ],
+        "http_status": 200,
+        "SQL_response_preserved": true,
+        "HTTP_encoder_extra_LF": 1
+      },
+      "bilingual_read_windows": {
+        "created_and_resumed": {
+          "version": 1,
+          "reason": "profile_paused",
+          "empty_claims": 0
+        },
+        "enabled_missing": {
+          "version": 2,
+          "reason": "inventory_missing",
+          "empty_claims": 0
+        },
+        "enabled_fresh": {
+          "version": 2,
+          "reason": "dispatchable",
+          "empty_claims": 460
+        },
+        "prestop_fresh": {
+          "version": 4,
+          "reason": "dispatchable",
+          "empty_claims": 1236
+        },
+        "stopped_stale": {
+          "version": 4,
+          "reason": "inventory_stale",
+          "empty_claims": 1240
+        },
+        "final_paused": {
+          "version": 5,
+          "reason": "profile_paused",
+          "empty_claims": 1240
+        },
+        "GETs_per_window": 4,
+        "all_129_tables_equal_each_read_window": true,
+        "raw_reason_and_canonical_identity_equal_across_languages": true
+      },
+      "invalid_old_zero_dispatch_oracle_failure_retained": true,
+      "empty_claim_SQL_TEXT": "Exactly null, four UTF-8 bytes; scope/IDs/typed zero attempt/fence/policy checked per row",
+      "actual_assignments": 0,
+      "closed_fixture": {
+        "tables": 129,
+        "rows": 1352,
+        "integrity": "ok",
+        "profile_state": "paused",
+        "profile_version": 5,
+        "empty_claim_receipts": 1240,
+        "actual_assignments": 0,
+        "execution_workflow_reservation_pool_counts_zero": true
+      },
+      "independent_backup_audit": {
+        "backups": 27,
+        "checks": 267,
+        "repeated_table_instances": 3483,
+        "repeated_row_instances": 39142,
+        "TEXT_cells": 334735,
+        "active_database_used": false,
+        "result": "PASS_WITH_SCOPE_LIMITS"
+      },
+      "stale_scope": "Real-clock stale branch observed; later server Date proves178seconds age. Helper GET capture timestamps absent; no independently timestamped exact60second crossing.",
+      "old_stops": {
+        "forced_idle": true,
+        "atomic": false,
+        "graceful_proven": false,
+        "runner_proof_to_completed_seconds": 3.312145,
+        "control_proof_to_completed_seconds": 3.330943,
+        "runner_changes": "3 appended strict empty claims and existing monotonic governance sequence; old rows unchanged",
+        "control_changed_tables": []
+      },
+      "aligned_tool_matrix": {
+        "cells": 16,
+        "widths": [
+          390,
+          768,
+          1366,
+          1920
+        ],
+        "languages": [
+          "zh-CN",
+          "en-US"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "reduced_motion": true,
+        "no_document_horizontal_overflow": true,
+        "raw_reason_open": true,
+        "earlier_raw_CDP_transition_images_excluded": true,
+        "JPEG_physical_dimensions": [
+          [
+            375,
+            865
+          ],
+          [
+            753,
+            882
+          ],
+          [
+            1351,
+            890
+          ],
+          [
+            1905,
+            893
+          ]
+        ],
+        "current_784_bundle_acceptance": false
+      }
+    },
+    "final_graph": {
+      "source_web_passed": 784,
+      "source_web_inputs": 225,
+      "isolated_database_clone": true,
+      "runner_or_model_started": false,
+      "unpublished_draft": true,
+      "nodes": 2,
+      "dependencies": 1,
+      "matrix_cells": 16,
+      "requested_widths": [
+        390,
+        768,
+        1366,
+        1920
+      ],
+      "document_client_widths": [
+        375,
+        753,
+        1351,
+        1905
+      ],
+      "languages": [
+        "zh-CN",
+        "en-US"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "no_document_horizontal_overflow": true,
+      "node_edge_controls_titles_ARIA_and_handle_directions_observed": true,
+      "raw_braces_nesting_and_dollars_preserved": true,
+      "viewport_and_raw_draft_preserved": true,
+      "focus_scope": "Alpha node in light matrix; theme button after dark-mode operation, not node focus in all16cells",
+      "Ctrl_Enter_multiselect": {
+        "focused_node": "Alpha",
+        "inspector_node": "Beta",
+        "both_selected": true
+      },
+      "movement": {
+        "zh_down": {
+          "starting": [
+            12,
+            12
+          ],
+          "after": [
+            12,
+            17
+          ]
+        },
+        "en_right": {
+          "starting": [
+            12,
+            17
+          ],
+          "after": [
+            17,
+            17
+          ]
+        }
+      },
+      "Space_and_Escape_DOM_records_retained": true,
+      "full_accessibility_or_scale_accepted": false
+    },
+    "existing_main_history": {
+      "new_execution": false,
+      "new_engineering_acceptance": false,
+      "attempt": 1,
+      "saved_facts": 6,
+      "sequences": [
+        10,
+        11,
+        12,
+        23,
+        24,
+        25
+      ],
+      "watermark": 25,
+      "locale_switch_raw_bytes_equal": true,
+      "locale_switch_viewport_equal": true,
+      "same_raw_summary_focus": true,
+      "refresh_exact_URL_and_attempt_preserved": true,
+      "narrow_complete_node_list": 2,
+      "observed_widths": [
+        1366,
+        390
+      ],
+      "no_document_horizontal_overflow": true,
+      "console_issues": 0,
+      "narrow_stable_visual_evidence": {
+        "stem": "ui-final/main-aligned-narrow-zh",
+        "official_viewport_width": 390,
+        "reduced_motion": true,
+        "sidebar_x": -235,
+        "document_scroll_width": 375,
+        "document_client_width": 375,
+        "complete_execution_node_list": 2
+      },
+      "earlier_narrow_transition": {
+        "JPEG": "ui-final/main-narrow-en.jpg",
+        "sidebar_x_approximately": -135,
+        "excluded_from_final_stable_visual_claim": true,
+        "original_evidence_retained": true,
+        "DOM_exact_URL_and_scroll_facts_remain_valid": true
+      }
+    },
+    "final_served_readonly": {
+      "observed": true,
+      "ports": [
+        4330,
+        4324
+      ],
+      "GETs": 8,
+      "all_status_200": true,
+      "matching_final_HTML_JS_CSS_responses": 6,
+      "dynamic_chunks_or_clean_deployment_proven": false,
+      "first_clone": {
+        "tables": 129,
+        "rows": 1353,
+        "changed_tables": [
+          "suma_sessions"
+        ],
+        "sessions_added": 1,
+        "profile_state": "paused",
+        "profile_version": 5,
+        "empty_claims": 1240,
+        "actual_assignments": 0
+      },
+      "first_main": {
+        "tables": 129,
+        "rows": 7690,
+        "changed_tables": [
+          "suma_governance_locks"
+        ],
+        "original_report_status": "DEVIATION_OBSERVED",
+        "all129_unchanged": false
+      },
+      "clone_terminal002_all129_equal_to001": true,
+      "cross_database_HTTP_stop_atomic": false,
+      "closed003": {
+        "status": "PASS_CLOSED_OBSERVATION",
+        "tables": 129,
+        "rows": 1353,
+        "integrity": "ok",
+        "all129_equal_to_terminal002": true,
+        "profile_state": "paused",
+        "profile_version": 5,
+        "empty_claims": 1240,
+        "actual_assignments": 0,
+        "execution_workflow_pool_reservation_counts_zero": true,
+        "stop_identity_receipt_checks": "all true",
+        "observed_utc_start": "2026-10-25T09:32:31.485127+00:00",
+        "observed_utc_end": "2026-10-25T09:32:31.600105+00:00"
+      },
+      "main_final004": {
+        "status": "PASS_EXPECTED_COUNTER_ONLY_OBSERVATION",
+        "tables": 129,
+        "rows": 7690,
+        "integrity": "ok",
+        "changed_tables": [
+          "suma_governance_locks"
+        ],
+        "other128_schema_typed_rows_hashes_unchanged": true,
+        "governance_sequences": [
+          {
+            "baseline": 7529,
+            "earlier001": 7529,
+            "final004": 7529,
+            "delta": 0,
+            "delta_after001": 0
+          },
+          {
+            "baseline": 8069,
+            "earlier001": 8181,
+            "final004": 8571,
+            "delta": 502,
+            "delta_after001": 390
+          }
+        ],
+        "each_increment_independently_attributed_to_request": false,
+        "observed_utc_start": "2026-10-25T09:32:31.635168+00:00",
+        "observed_utc_end": "2026-10-25T09:32:32.082794+00:00",
+        "main_remains_running": true
+      }
+    },
+    "clone_stop": {
+      "host_session_exit": 0,
+      "child_pid": 188884,
+      "child_exit": 1,
+      "exit_confirmed": true,
+      "retained_native_handle_force_stop_requested": true,
+      "kill_error": "<nil>",
+      "wait_error": "exit status 1",
+      "graceful_shutdown_proven": false,
+      "closed_database_verification": "PASS_CLOSED_OBSERVATION; all129table hashes equal terminal002"
+    },
+    "vendor_model_or_engineering_acceptance": false,
+    "full_accessibility_accepted": false
+  },
+  "evidence_location": ".cache/e2e/platform-display-stage-013 (ignored; all raw screenshots/databases/HTTP/logs/credentials excluded from Git)",
+  "evidence_sha256": {
+    "review/literal-final-validation-audit.json": "4515c2aebec543c5cd9bbfeea093db9864fe574b2cbc5a52d676754fac973409",
+    "review/literal-values-review.json": "a78bcffad789816ef9f5712efa854cfbdf4873fd464b70a4d36b9ca76458cfa2",
+    "review/actual-tools-evidence-audit.json": "75bc994d59b3a67e4878c155f7e0a2aeb71578f3449ed1fa037874364361d4f6",
+    "review/actual-ui-fix-rereview.json": "9898f3a549b52af46d07150f26ed73c896e71c5cfb97de7e35889491ba8e1e0b",
+    "review/runtime-audit.json": "1afb82d8d0f2e607a7f337994168f6787d42807c76d669eda5ef1a9d162967ee",
+    "literal-complete-ui/web-verification.json": "ac836311249b686290901498eb0ba5cb12e54f48dfc11662ac6eb9b1ffa07e9d",
+    "literal-complete-ui/web-build-verification.json": "78a725a187c284fbd2ba6d29c98a8f2fcfb6dbbdb5f97680f3ce0d7fa95f8b36",
+    "ui-final/graph-matrix.json": "2772dcd67b8b4b371c9b37fb9c195eccaf1a74e82784d3fdc440bf1ccea085be",
+    "ui-final/final-source-cut.local.json": "13bef18361fbe0f618fb52af75b8f24f1ad9eae2514cacfd496b6e233aec4431",
+    "ui-final/final-readonly-001-report.json": "691bc1f51b3dd6c319e5034480cc66f2cd7691e2caae024045f87a7a6617d9e2",
+    "ui-final/final-readonly-002-clone-terminal-report.json": "087876612d09d5c2f026facaf75978f2a347dd39bc5ef7684c9ccf673e97b720",
+    "ui-final/final-readonly-003-closed-report.json": "9c4564f0ef66128a1c1e6228abd34b07d170e20e38deebd79f26fd16012bde20",
+    "ui-final/final-readonly-004-main-final-report.json": "4eeec1a68c4c7befb2a32e8e8c157eb1dd68f76b76dac54770194ac967d9f588",
+    "ui-final/host-stopped.local.json": "8514bbfd1624a70829700fad021e8539f4bc9f936e5620e042778d55a3b8e838",
+    "ui-final/main-before-locale.json": "2125dcb58de84bcbaf7ccd826ce4b7735d4c00c58444e427790fe3af39b4bbbc",
+    "ui-final/main-after-locale.json": "b0a216e32d5238fb08321d4eab2c81eb62ddea874b1c314e95bcd19be2317df3",
+    "ui-final/main-final-wide-zh.json": "5123c03053bac2db1e6bf156fb5a6ab757e13ea3ec4c65e56f72193bd59533c3",
+    "ui-final/main-aligned-narrow-zh.json": "a434768dfb9ac66dee7204a42c08c38b865cce3ea889a2294f7ccace0da54e4f",
+    "ui-final/main-aligned-narrow-zh.jpg": "038d71fa50607f19a2815cd976fd6866d773198b31cb702798a64d773a974eb0",
+    "ui-final/main-aligned-narrow-zh.txt": "09c8b7156aa57ec153abf8b3d78d9c842849222dfc12b174397e5388712eaa4b"
+  },
+  "remaining_scope": "Full P0-P7 continues: persistent execution reason provenance, protected generated records, Monaco official NLS/language services and all language surfaces including all CLI platforms/desktop/installers/notifications/exports/channels, current credential authority/identity/SSO/RBAC, real providers/tools, distributed databases, MCP/A2A, collaboration/offline/media/office, deployment/signing/billing and scale. The current-credential-authority proposal is unimplemented.",
+  "documented_at": "2026-10-25",
+  "previous_complete_stage_evidence": "docs/quality/attempt-tool-history-summary.json",
+  "current_evidence_update": "Root-owned delivery state"
+}

@@ -2153,6 +2153,399 @@
         ],
         "type": "object"
       },
+      "DisplayDiagnostic": {
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.activation_revoked"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.command_missing"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.dispatchable"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.inventory_missing"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.inventory_stale"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.pool_expired"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.pool_paused"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.pool_unavailable"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.profile_mismatch"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.profile_paused"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.profile_revoked"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.protocol_unverified"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.reported_unavailable"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "reason": {
+                      "description": "Well-formed UTF-8 without control characters. Literal data, not a nested display key.",
+                      "maxLength": 512,
+                      "minLength": 1,
+                      "type": "string",
+                      "x-max-utf8-bytes": 512
+                    }
+                  },
+                  "required": [
+                    "reason"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "message_params"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.worker_creator_revoked"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.worker_expired"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "display.tool.worker_unregistered"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          }
+        ],
+        "description": "Optional source-bound current tool reason display identity. Full canonical equality with the same ToolProfile.reason is required. Never permission, model health, execution, test or acceptance evidence.",
+        "properties": {
+          "message_key": {
+            "enum": [
+              "display.tool.activation_revoked",
+              "display.tool.command_missing",
+              "display.tool.dispatchable",
+              "display.tool.inventory_missing",
+              "display.tool.inventory_stale",
+              "display.tool.pool_expired",
+              "display.tool.pool_paused",
+              "display.tool.pool_unavailable",
+              "display.tool.profile_mismatch",
+              "display.tool.profile_paused",
+              "display.tool.profile_revoked",
+              "display.tool.protocol_unverified",
+              "display.tool.reported_unavailable",
+              "display.tool.worker_creator_revoked",
+              "display.tool.worker_expired",
+              "display.tool.worker_unregistered"
+            ],
+            "type": "string"
+          },
+          "message_params": {
+            "additionalProperties": {},
+            "type": "object"
+          },
+          "schema_version": {
+            "const": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "message_key"
+        ],
+        "type": "object",
+        "x-max-utf8-bytes": 4096
+      },
       "Edge": {
         "properties": {
           "condition": {
@@ -9521,6 +9914,17 @@
           },
           "reason": {
             "type": "string"
+          },
+          "reason_diagnostic": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DisplayDiagnostic"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
           },
           "state": {
             "enum": [

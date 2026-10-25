@@ -177,7 +177,7 @@ func init() {
 			// text/template，也不允许目录逐渐引入函数、条件或任意模板操作。
 			templates[d.Key][locale] = compileTemplate(d, d.Texts[locale])
 		}
-		if len(d.Parameters) == 0 {
+		if len(d.Parameters) == 0 && !strings.HasPrefix(d.Key, "display.tool.") {
 			if prior, exists := sources[d.Texts[ZhCN]]; exists && prior != d.Key {
 				panic("ambiguous source localization")
 			}
