@@ -77,28 +77,6 @@ func finiteHours(value any, max float64) (*float64, error) {
 	}
 	return &n, nil
 }
-func (s *Service) planningLock(ctx context.Context, tx *sql.Tx, p Principal, project string) error {
-	if e := s.lockOrganization(ctx, tx, p.TenantID); e != nil {
-		return e
-	}
-	live, e := s.liveOrganization(ctx, tx, p)
-	if e != nil {
-		return e
-	}
-	var tenant string
-	if e = tx.QueryRowContext(ctx, s.q(`SELECT tenant_id FROM suma_projects WHERE id=?`), project).Scan(&tenant); e != nil || tenant != p.TenantID {
-		return missing()
-	}
-	if orgAdmin(live) {
-		return nil
-	}
-	var role string
-	if e = tx.QueryRowContext(ctx, s.q(`SELECT role FROM suma_project_members WHERE project_id=? AND user_id=?`), project, p.ID).Scan(&role); e != nil || role != "admin" && role != "reviewer" && role != "developer" {
-		return forbidden()
-	}
-	return nil
-}
-
 func exactVersion(m map[string]any, key string, minimum int) error {
 	raw, exists := m[key]
 	if !exists {
@@ -129,11 +107,12 @@ func scanPeriod(row interface{ Scan(...any) error }) (PlanningPeriod, error) {
 
 const periodColumns = `id,project_id,version,title,description,status,start_date,end_date,target_date,goal,updated_at`
 
-func (s *Service) PlanningPeriods(ctx context.Context, p Principal, project, kind string) ([]PlanningPeriod, error) {
-	if e := s.Authorize(ctx, p, project, false, false); e != nil {
-		return nil, e
+func (s *Service) planningPeriodsTx(ctx context.Context, auth *authorizedCommand, project, kind string) ([]PlanningPeriod, error) {
+	if err := assertProjectRead(auth, project); err != nil {
+		return nil, err
 	}
-	rows, e := s.DB.QueryContext(ctx, s.q(`SELECT `+periodColumns+` FROM suma_planning_periods WHERE tenant_id=? AND project_id=? AND kind=? ORDER BY created_at DESC,id`), p.TenantID, project, kind)
+	p := auth.currentPrincipal
+	rows, e := auth.tx.QueryContext(ctx, s.q(`SELECT `+periodColumns+` FROM suma_planning_periods WHERE tenant_id=? AND project_id=? AND kind=? ORDER BY created_at DESC,id`), p.TenantID, project, kind)
 	if e != nil {
 		return nil, e
 	}
@@ -148,23 +127,23 @@ func (s *Service) PlanningPeriods(ctx context.Context, p Principal, project, kin
 	}
 	return items, rows.Err()
 }
-func (s *Service) SavePlanningPeriod(ctx context.Context, p Principal, project, kind, id string, m map[string]any) (PlanningPeriod, error) {
+func (s *Service) SavePlanningPeriod(ctx context.Context, actor Actor, project, kind, id string, m map[string]any) (PlanningPeriod, error) {
 	if kind != "iterations" && kind != "milestones" {
 		return PlanningPeriod{}, missing()
 	}
-	if e := s.Authorize(ctx, p, project, true, false); e != nil {
-		return PlanningPeriod{}, e
-	}
-	tx, e := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, e := s.beginAuthorityTx(ctx)
 	if e != nil {
 		return PlanningPeriod{}, e
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if e = s.planningLock(ctx, tx, p, project); e != nil {
+	auth, e := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: id}, purposeProjectWrite)
+	if e != nil {
 		return PlanningPeriod{}, e
 	}
+	p := auth.currentPrincipal
 	key := str(m, "idempotency_key")
-	hash, replay, e := s.receipt(ctx, tx, p, project, key, map[string]any{"period_kind": kind, "id": id, "body": m})
+	hash, replay, e := s.commandReceipt(ctx, auth, key, map[string]any{"period_kind": kind, "id": id, "body": m})
 	if e != nil {
 		return PlanningPeriod{}, e
 	}
@@ -283,33 +262,33 @@ func (s *Service) SavePlanningPeriod(ctx context.Context, p Principal, project, 
 	if e != nil {
 		return item, e
 	}
-	if e = s.activity(ctx, tx, p, project, kind+".saved", item.ID, item.Title); e != nil {
+	if e = s.commandActivity(ctx, auth, kind+".saved", item.ID, item.Title); e != nil {
 		return item, e
 	}
-	if e = s.saveReceipt(ctx, tx, p, project, key, hash, item); e != nil {
+	if e = s.saveCommandReceipt(ctx, auth, key, hash, item); e != nil {
 		return item, e
 	}
 	return item, tx.Commit()
 }
 
-func (s *Service) ScheduleTasks(ctx context.Context, p Principal, project string, m map[string]any) ([]PlannedTask, error) {
-	if e := s.Authorize(ctx, p, project, true, false); e != nil {
-		return nil, e
-	}
+func (s *Service) ScheduleTasks(ctx context.Context, actor Actor, project string, m map[string]any) ([]PlannedTask, error) {
 	changes, ok := m["changes"].([]any)
 	if !ok || len(changes) == 0 || len(changes) > 200 {
 		return nil, invalid("请选择1–200条排期变更")
 	}
-	tx, e := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, e := s.beginAuthorityTx(ctx)
 	if e != nil {
 		return nil, e
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if e = s.planningLock(ctx, tx, p, project); e != nil {
+	auth, e := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: ""}, purposeProjectWrite)
+	if e != nil {
 		return nil, e
 	}
+	p := auth.currentPrincipal
 	key := str(m, "idempotency_key")
-	hash, replay, e := s.receipt(ctx, tx, p, project, key, map[string]any{"schedule": m})
+	hash, replay, e := s.commandReceipt(ctx, auth, key, map[string]any{"schedule": m})
 	if e != nil {
 		return nil, e
 	}
@@ -411,11 +390,11 @@ func (s *Service) ScheduleTasks(ctx context.Context, p Principal, project string
 			return nil, e
 		}
 		items = append(items, PlannedTask{Record: task, Plan: plan})
-		if e = s.activity(ctx, tx, p, project, "task.scheduled", id, task.Title); e != nil {
+		if e = s.commandActivity(ctx, auth, "task.scheduled", id, task.Title); e != nil {
 			return nil, e
 		}
 	}
-	if e = s.saveReceipt(ctx, tx, p, project, key, hash, items); e != nil {
+	if e = s.saveCommandReceipt(ctx, auth, key, hash, items); e != nil {
 		return nil, e
 	}
 	return items, tx.Commit()

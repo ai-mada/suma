@@ -19,6 +19,9 @@ func TestProjectWorkerCannotRegisterReservedPoolIdentity(t *testing.T) {
 		raw, _ := json.Marshal(f.body(map[string]any{"worker_id": identity, "profiles": []any{}, "deployment": false}))
 		request := httptest.NewRequest("POST", "/api/v1/release-workers", bytes.NewReader(raw))
 		request.AddCookie(f.cookie)
+		request.Header.Set("Content-Type", "application/json")
+		request.Header.Set("X-Suma-Expected-User", f.view.ID)
+		request.Header.Set("X-Suma-Expected-Organization", f.view.TenantID)
 		response := httptest.NewRecorder()
 		f.handler.ServeHTTP(response, request)
 		// A regressed registration can return a one-time secret. Never include

@@ -110,66 +110,49 @@ func httpQuery(r *http.Request) (map[string][]string, error) {
 	return q, nil
 }
 
-// authorizePersistentRunReadTx preserves the governance/session/scope guard used by SSE.
-func (s *Server) authorizePersistentRunReadTx(ctx context.Context, tx *sql.Tx, token string, expected Principal, scope, project, run string) error {
-	if err := s.Service.authorizeProjectTx(ctx, tx, expected, project, false, false); err != nil {
-		return err
-	}
-	var user, tenant, expiry string
-	err := tx.QueryRowContext(ctx, s.Service.q(`SELECT user_id,tenant_id,expires_at FROM suma_sessions WHERE token_hash=?`), digest(token)).Scan(&user, &tenant, &expiry)
-	if errors.Is(err, sql.ErrNoRows) {
-		return &APIError{401, "session_expired", "登录已失效", nil}
-	}
+// authorizePersistentRunReadTx binds each persisted batch to the actual current
+// credential in the same SQL transaction as the selected run and events. No
+// cached principal, cookie label or caller-supplied scope can supply authority.
+func (s *Server) authorizePersistentRunReadTx(ctx context.Context, tx *sql.Tx, actor Actor, project, run string) (*authorizedCommand, error) {
+	auth, err := s.Service.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.Projection().TenantID, projectID: project, resourceID: run}, purposeProjectRead)
 	if err != nil {
-		return err
-	}
-	expires, parseErr := time.Parse(time.RFC3339Nano, expiry)
-	if parseErr != nil || !time.Now().Before(expires) || user != expected.ID || tenant != expected.TenantID {
-		return &APIError{401, "session_expired", "登录已失效", nil}
-	}
-	var kind, bound string
-	err = tx.QueryRowContext(ctx, s.Service.q(`SELECT kind,project_id FROM suma_token_scopes WHERE token_hash=?`), digest(token)).Scan(&kind, &bound)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return err
-	}
-	if kind != scope || kind != "" && (kind != "api" || bound != project) {
-		return forbidden()
+		return nil, err
 	}
 	var exists string
-	if err = tx.QueryRowContext(ctx, s.Service.q(`SELECT id FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), expected.TenantID, project, run).Scan(&exists); errors.Is(err, sql.ErrNoRows) {
-		return missing()
+	err = tx.QueryRowContext(auth.ctx, s.Service.q(`SELECT id FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), auth.currentPrincipal.TenantID, project, run).Scan(&exists)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, missing()
 	}
-	if err != nil {
-		return err
-	}
-	return nil
+	return auth, err
 }
 
 // runStreamRead gives authorization and persisted-event selection one SQL
 // linearization point under the same organization lock as governance writes.
 // It never holds a transaction while waiting on the network. A second guard
 // immediately before each write prevents a replay batch bypassing revocation.
-func (s *Server) runStreamRead(ctx context.Context, token string, expected Principal, scope, project, run string, after int64, events bool) ([]dag.Event, error) {
-	tx, err := s.Service.DB.BeginTx(ctx, nil)
+func (s *Server) runStreamRead(ctx context.Context, actor Actor, project, run string, after int64, events bool) ([]dag.Event, error) {
+	bounded, tx, cleanup, err := s.Service.beginAuthorityTx(ctx)
 	if err != nil {
 		return nil, err
 	}
+	defer cleanup()
 	defer tx.Rollback()
-	if err = s.authorizePersistentRunReadTx(ctx, tx, token, expected, scope, project, run); err != nil {
+	auth, err := s.authorizePersistentRunReadTx(bounded, tx, actor, project, run)
+	if err != nil {
 		return nil, err
 	}
 	out := []dag.Event{}
 	if events {
 		if after > 0 {
 			var cursor int64
-			if err = tx.QueryRowContext(ctx, s.Service.q(`SELECT sequence FROM dag_events WHERE tenant_id=? AND project_id=? AND run_id=? AND sequence=?`), expected.TenantID, project, run, after).Scan(&cursor); errors.Is(err, sql.ErrNoRows) {
+			if err = tx.QueryRowContext(auth.ctx, s.Service.q(`SELECT sequence FROM dag_events WHERE tenant_id=? AND project_id=? AND run_id=? AND sequence=?`), auth.currentPrincipal.TenantID, project, run, after).Scan(&cursor); errors.Is(err, sql.ErrNoRows) {
 				return nil, &APIError{400, "cursor_scope_mismatch", "事件游标不属于当前运行", nil}
 			}
 			if err != nil {
 				return nil, err
 			}
 		}
-		rows, e := tx.QueryContext(ctx, s.Service.q(`SELECT sequence,run_id,node_id,event_type,at_time,data FROM dag_events WHERE tenant_id=? AND project_id=? AND run_id=? AND sequence>? ORDER BY sequence LIMIT 128`), expected.TenantID, project, run, after)
+		rows, e := tx.QueryContext(auth.ctx, s.Service.q(`SELECT sequence,run_id,node_id,event_type,at_time,data FROM dag_events WHERE tenant_id=? AND project_id=? AND run_id=? AND sequence>? ORDER BY sequence LIMIT 128`), auth.currentPrincipal.TenantID, project, run, after)
 		if e != nil {
 			return nil, e
 		}
@@ -205,7 +188,7 @@ func (s *Server) runStreamRead(ctx context.Context, token string, expected Princ
 	return out, nil
 }
 
-func (s *Server) runEventStream(w http.ResponseWriter, r *http.Request, p Principal, scope, project, runID string) {
+func (s *Server) runEventStream(w http.ResponseWriter, r *http.Request, actor Actor, project, runID string) {
 	after, err := runStreamCursor(r)
 	if err != nil {
 		writeError(w, err)
@@ -213,7 +196,7 @@ func (s *Server) runEventStream(w http.ResponseWriter, r *http.Request, p Princi
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
 	defer cancel()
-	token := tokenOf(r)
+	p := actor.Projection()
 	release, ok := acquireRunStream(p.TenantID + ":" + p.ID)
 	if !ok {
 		w.Header().Set("Retry-After", "3")
@@ -221,7 +204,7 @@ func (s *Server) runEventStream(w http.ResponseWriter, r *http.Request, p Princi
 		return
 	}
 	defer release()
-	events, err := s.runStreamRead(ctx, token, p, scope, project, runID, after, true)
+	events, err := s.runStreamRead(ctx, actor, project, runID, after, true)
 	if err != nil {
 		writeError(w, err)
 		return
@@ -300,7 +283,7 @@ func (s *Server) runEventStream(w http.ResponseWriter, r *http.Request, p Princi
 	heartbeat := time.Now()
 	for {
 		for _, event := range events {
-			if _, err = s.runStreamRead(ctx, token, p, scope, project, runID, after, false); err != nil {
+			if _, err = s.runStreamRead(ctx, actor, project, runID, after, false); err != nil {
 				streamError(err)
 				return
 			}
@@ -316,7 +299,7 @@ func (s *Server) runEventStream(w http.ResponseWriter, r *http.Request, p Princi
 		// Drain another bounded persisted page immediately, including terminal runs.
 		// A terminal snapshot does not imply that all final events have arrived.
 		if len(events) == 128 {
-			events, err = s.runStreamRead(ctx, token, p, scope, project, runID, after, true)
+			events, err = s.runStreamRead(ctx, actor, project, runID, after, true)
 			if err != nil {
 				streamError(err)
 				return
@@ -328,7 +311,7 @@ func (s *Server) runEventStream(w http.ResponseWriter, r *http.Request, p Princi
 			return
 		case <-ticker.C:
 		}
-		events, err = s.runStreamRead(ctx, token, p, scope, project, runID, after, true)
+		events, err = s.runStreamRead(ctx, actor, project, runID, after, true)
 		if err != nil {
 			streamError(err)
 			return

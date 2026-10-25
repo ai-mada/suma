@@ -19,7 +19,7 @@ func artifactProtocolFixture(t *testing.T) (*fixture, string, rc.AssignmentRef, 
 	f := newFixture(t)
 	ctx := context.Background()
 	hash := strings.Repeat("a", 64)
-	worker, err := f.s.RegisterReleaseWorker(ctx, f.user, f.project, f.cookie.Value, map[string]any{"worker_id": "bounded-builder", "profiles": []ReleaseProfileRegistration{{ID: "site-build", Kind: "build", SHA256: hash}}, "idempotency_key": newID()})
+	worker, err := f.s.RegisterReleaseWorker(ctx, f.actor, f.project, map[string]any{"worker_id": "bounded-builder", "profiles": []ReleaseProfileRegistration{{ID: "site-build", Kind: "build", SHA256: hash}}, "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,11 +81,11 @@ func TestArtifactUploadAuthenticatesBytesAndSealNeverMeansBuildPassed(t *testing
 	if again["artifact_id"] != artifact {
 		t.Fatal("seal replay created another artifact")
 	}
-	stored, err := f.s.ReleaseArtifact(ctx, f.user, f.project, artifact)
+	stored, err := f.s.ReleaseArtifact(ctx, f.actor, f.project, artifact)
 	if err != nil || stored.State != "sealed" || len(stored.Proofs) != 0 {
 		t.Fatalf("seal fabricated proof: %+v %v", stored, err)
 	}
-	_, err = f.s.CreateReleaseCandidate(ctx, f.user, f.project, map[string]any{"name": "不能以封存冒充验收", "artifact_id": artifact, "build_attestation_id": "missing", "package_test_attestation_id": "missing", "tasks": []any{map[string]any{"id": "missing", "expected_version": 1}}, "idempotency_key": newID()})
+	_, err = f.s.CreateReleaseCandidate(ctx, f.actor, f.project, map[string]any{"name": "不能以封存冒充验收", "artifact_id": artifact, "build_attestation_id": "missing", "package_test_attestation_id": "missing", "tasks": []any{map[string]any{"id": "missing", "expected_version": 1}}, "idempotency_key": newID()})
 	if err == nil {
 		t.Fatal("candidate created without actual process proof")
 	}
@@ -93,7 +93,7 @@ func TestArtifactUploadAuthenticatesBytesAndSealNeverMeansBuildPassed(t *testing
 	wrong.OperationID = request.OperationID
 	wrong.Manifest.Files = append([]rc.ArtifactFile(nil), request.Manifest.Files...)
 	wrong.Manifest.Files[0].Path = "other.html"
-	_, err = f.s.StartArtifactUpload(ctx, f.user, f.project, token, wrong)
+	_, err = f.s.StartArtifactUpload(ctx, domainCActor(t, f.s, token), f.project, wrong)
 	releaseWantStatus(t, err, 409)
 	other := f.call("POST", "/projects", map[string]any{"title": "其他范围", "idempotency_key": newID()}, 201)
 	f.call("GET", "/artifacts/"+artifact+"?project_id="+other["id"].(string), nil, 404)
@@ -108,7 +108,7 @@ func TestArtifactRawUploadOverJSONLimitAndInvalidatedLease(t *testing.T) {
 	b := bytes.Repeat([]byte("z"), (2<<20)+17)
 	r.Manifest.Files[0].SizeBytes = int64(len(b))
 	r.Manifest.Files[0].SHA256 = digest(string(b))
-	start, err := f.s.StartArtifactUpload(ctx, f.user, f.project, token, r)
+	start, err := f.s.StartArtifactUpload(ctx, domainCActor(t, f.s, token), f.project, r)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +116,7 @@ func TestArtifactRawUploadOverJSONLimitAndInvalidatedLease(t *testing.T) {
 	if _, err = f.s.DB.Exec(`UPDATE dag_nodes SET lease_until=0 WHERE run_id=? AND id=?`, ref.RunID, ref.NodeID); err != nil {
 		t.Fatal(err)
 	}
-	_, err = f.s.SealArtifactUpload(ctx, f.user, f.project, token, start.UploadID, rc.ArtifactSealRequest{ProjectID: f.project, Assignment: ref, OperationID: newID()})
+	_, err = f.s.SealArtifactUpload(ctx, domainCActor(t, f.s, token), f.project, start.UploadID, rc.ArtifactSealRequest{ProjectID: f.project, Assignment: ref, OperationID: newID()})
 	releaseWantStatus(t, err, 409)
 	var count int
 	if err = f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_release_artifacts`).Scan(&count); err != nil || count != 0 {
@@ -132,12 +132,12 @@ func TestReleaseWorkerCredentialOnceOnlyAndRevocation(t *testing.T) {
 	f := newFixture(t)
 	ctx := context.Background()
 	body := map[string]any{"worker_id": "revocable-worker", "profiles": []any{}, "deployment": true, "idempotency_key": newID()}
-	created, err := f.s.RegisterReleaseWorker(ctx, f.user, f.project, f.cookie.Value, body)
+	created, err := f.s.RegisterReleaseWorker(ctx, f.actor, f.project, body)
 	if err != nil {
 		t.Fatal(err)
 	}
 	secret := created["token"].(string)
-	replay, err := f.s.RegisterReleaseWorker(ctx, f.user, f.project, f.cookie.Value, body)
+	replay, err := f.s.RegisterReleaseWorker(ctx, f.actor, f.project, body)
 	if err != nil || replay["token"] != nil {
 		t.Fatal("secret repeated in receipt", err)
 	}
@@ -145,19 +145,19 @@ func TestReleaseWorkerCredentialOnceOnlyAndRevocation(t *testing.T) {
 		t.Fatal(err)
 	}
 	revoke := map[string]any{"status": "revoked", "expected_version": 1, "idempotency_key": newID()}
-	_, err = f.s.RevokeReleaseWorker(ctx, f.user, f.project, created["id"].(string), f.cookie.Value, revoke)
+	_, err = f.s.RevokeReleaseWorker(ctx, f.actor, f.project, created["id"].(string), revoke)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if _, err = f.s.Authenticate(ctx, secret); err == nil {
 		t.Fatal("revoked worker still authenticated")
 	}
-	_, err = f.s.RevokeReleaseWorker(ctx, f.user, f.project, created["id"].(string), f.cookie.Value, revoke)
+	_, err = f.s.RevokeReleaseWorker(ctx, f.actor, f.project, created["id"].(string), revoke)
 	if err != nil {
 		t.Fatal("lost revoke ACK not recoverable", err)
 	}
 	body["idempotency_key"] = newID()
-	_, err = f.s.RegisterReleaseWorker(ctx, f.user, f.project, f.cookie.Value, body)
+	_, err = f.s.RegisterReleaseWorker(ctx, f.actor, f.project, body)
 	releaseWantStatus(t, err, 409)
 }
 

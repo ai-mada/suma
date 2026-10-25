@@ -28,6 +28,21 @@ func (s *Service) executionPreviewRecordTx(ctx context.Context, tx *sql.Tx, tena
 	return row, err
 }
 
+func (s *Service) currentExecutionPreviewRecordTx(ctx context.Context, tx *sql.Tx, tenant, project, pool, kind, id string) (executionPreviewRecord, error) {
+	var row executionPreviewRecord
+	query := `SELECT id,tenant_id,project_id,pool_id,kind,version,state,applied_version,created_by,created_at,expires_at,payload FROM suma_execution_pool_previews WHERE id=? AND tenant_id=? AND project_id=? AND kind=?`
+	args := []any{id, tenant, project, kind}
+	if kind != "route" {
+		query += ` AND pool_id=?`
+		args = append(args, pool)
+	}
+	err := tx.QueryRowContext(ctx, s.q(s.currentSQL(query)), args...).Scan(&row.id, &row.tenant, &row.project, &row.pool, &row.kind, &row.version, &row.state, &row.applied, &row.createdBy, &row.createdAt, &row.expiresAt, &row.payload)
+	if errors.Is(err, sql.ErrNoRows) {
+		return row, missing()
+	}
+	return row, err
+}
+
 // Preview payloads retain immutable inputs; only lifecycle columns change.
 // Expiry is evaluated from database time without a background status rewrite.
 func (s *Service) saveExecutionPreviewTx(ctx context.Context, tx *sql.Tx, row executionPreviewRecord) error {

@@ -14,6 +14,8 @@ func TestSchedulingRawFractionCannotRoundIntoSafeInteger(t *testing.T) {
 	req := httptest.NewRequest("POST", "http://suma.test/api/v1/scheduling/policy-previews", bytes.NewBufferString(raw))
 	req.AddCookie(f.cookie)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Suma-Expected-User", f.view.ID)
+	req.Header.Set("X-Suma-Expected-Organization", f.view.TenantID)
 	w := httptest.NewRecorder()
 	f.handler.ServeHTTP(w, req)
 	if w.Code != 400 {
@@ -123,8 +125,10 @@ func TestSchedulingCurrentApprovalAuthorityPrecedesReceipt(t *testing.T) {
 	path := "/scheduling/policy-previews/" + preview["id"].(string) + "/commit"
 	f.call("POST", path, body, 200)
 	f.cookie = owner
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("POST", "/project-access", map[string]any{"project_id": f.project, "user_id": memberID, "role": "developer", "expected_version": 1, "idempotency_key": newID()}, 200)
 	f.cookie = reviewer
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("POST", path, body, 403)
 	policy := f.call("GET", "/scheduling/policy?project_id="+f.project, nil, 200)
 	if len(policy["allowed_actions"].([]any)) != 0 {

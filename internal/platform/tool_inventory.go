@@ -10,7 +10,7 @@ import (
 	"github.com/ai-mada/suma/internal/toolcontract"
 )
 
-func (s *Service) ReportToolInventory(ctx context.Context, p Principal, project, token string, req ToolInventoryRequest) (ToolInventoryReceipt, error) {
+func (s *Service) ReportToolInventory(ctx context.Context, actor Actor, project string, req ToolInventoryRequest) (ToolInventoryReceipt, error) {
 	var out ToolInventoryReceipt
 	if req.ProjectID != project || !toolcontract.ValidCommandID(req.WorkerID) || len(req.Items) > 128 {
 		return out, invalid("项目、执行节点或工具清单大小无效")
@@ -25,18 +25,18 @@ func (s *Service) ReportToolInventory(ctx context.Context, p Principal, project,
 		}
 		seen[observation.Profile.CommandID] = true
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
+	auth, err := s.releaseWorkerTx(ctx, tx, actor, project, req.WorkerID, "", "", "identity")
+	if err != nil {
 		return out, err
 	}
-	if err = s.releaseWorkerTx(ctx, tx, p, project, token, req.WorkerID, "", "", "identity"); err != nil {
-		return out, err
-	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, req.OperationID, map[string]any{"tool_inventory": req})
+	p := auth.currentPrincipal
+	hash, replay, err := s.commandReceipt(ctx, auth, req.OperationID, map[string]any{"tool_inventory": req})
 	if err != nil {
 		return out, err
 	}
@@ -59,7 +59,7 @@ func (s *Service) ReportToolInventory(ctx context.Context, p Principal, project,
 	if err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, req.OperationID, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, req.OperationID, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
@@ -68,7 +68,11 @@ func (s *Service) ReportToolInventory(ctx context.Context, p Principal, project,
 // toolClaimEligibleTx only examines bound candidates. It runs before any
 // attempt/resource acquisition, and cannot turn a self-declared capability into
 // an approved execution profile or revive expired observations.
-func (s *Service) toolClaimEligibleTx(ctx context.Context, tx *sql.Tx, p Principal, project, token, worker, run, node string) (bool, error) {
+func (s *Service) toolClaimEligibleTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, worker, run, node string) (bool, error) {
+	if err := assertRunnerCommand(tx, auth); err != nil {
+		return false, err
+	}
+	p, project := auth.currentPrincipal, auth.target.projectID
 	var raw string
 	err := tx.QueryRowContext(ctx, s.q(`SELECT n.spec FROM dag_nodes n JOIN dag_runs r ON r.id=n.run_id WHERE r.tenant_id=? AND r.project_id=? AND r.id=? AND n.id=?`), p.TenantID, project, run, node).Scan(&raw)
 	if err != nil {
@@ -85,7 +89,7 @@ func (s *Service) toolClaimEligibleTx(ctx context.Context, tx *sql.Tx, p Princip
 	if !bound {
 		return true, nil
 	}
-	if err = s.releaseWorkerTx(ctx, tx, p, project, token, worker, "", "", "identity"); err != nil {
+	if err = s.releaseWorkerBindingTx(ctx, tx, auth, worker, "", "", "identity"); err != nil {
 		if automationAuthorityFailure(err) {
 			return false, nil
 		}
@@ -127,10 +131,11 @@ func (s *Service) toolBoundNodeTx(ctx context.Context, tx *sql.Tx, p Principal, 
 	return n, pr, err
 }
 
-func (s *Service) validateToolProgressTx(ctx context.Context, tx *sql.Tx, p Principal, project, token string, a dag.Assignment, event *toolcontract.Event) error {
-	if err := s.runnerIdentityTx(ctx, tx, p, project, token, a.WorkerID); err != nil {
+func (s *Service) validateToolProgressTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, a dag.Assignment, event *toolcontract.Event) error {
+	if err := assertRunnerCommand(tx, auth); err != nil {
 		return err
 	}
+	p, project := auth.currentPrincipal, auth.target.projectID
 	if event == nil {
 		return nil
 	}
@@ -148,12 +153,13 @@ func (s *Service) validateToolProgressTx(ctx context.Context, tx *sql.Tx, p Prin
 	return nil
 }
 
-func (s *Service) validateToolResultTx(ctx context.Context, tx *sql.Tx, p Principal, project, token string, result dag.Result) error {
+func (s *Service) validateToolResultTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, result dag.Result) error {
+	if err := assertRunnerCommand(tx, auth); err != nil {
+		return err
+	}
+	p, project := auth.currentPrincipal, auth.target.projectID
 	if result.ToolEvidence == nil {
 		return nil
-	}
-	if err := s.runnerIdentityTx(ctx, tx, p, project, token, result.WorkerID); err != nil {
-		return err
 	}
 	n, pr, err := s.toolBoundNodeTx(ctx, tx, p, project, result.RunID, result.NodeID)
 	if err != nil {
@@ -167,4 +173,13 @@ func (s *Service) validateToolResultTx(ctx context.Context, tx *sql.Tx, p Princi
 		return invalid("工具执行证据与固定档案不匹配")
 	}
 	return nil
+}
+
+// Machine callbacks only consume the proof accepted before scheduler/attempt
+// locks. Identity, fence, lease and ACK remain the engine's current protocol.
+func assertRunnerCommand(tx *sql.Tx, auth *authorizedCommand) error {
+	if auth == nil || auth.actor.kind != actorProjectRunner || auth.purpose != purposeRunnerWrite {
+		return forbidden()
+	}
+	return auth.assertTx(tx, auth.target, purposeRunnerWrite)
 }

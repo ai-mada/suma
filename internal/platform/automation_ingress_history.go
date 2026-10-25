@@ -34,7 +34,18 @@ func readIngressHistoryCursor(p Principal, project, collection, value string) (a
 	}
 	return out, nil
 }
-func (s *Service) AutomationIngressRevisions(ctx context.Context, p Principal, project, id string, limit int, cursor string) (AutomationIngressRevisions, error) {
+func (s *Service) automationIngressRevisionsCurrentTx(ctx context.Context, auth *authorizedCommand, project, id string, limit int, cursor string) (AutomationIngressRevisions, error) {
+	if auth == nil {
+		return AutomationIngressRevisions{}, forbidden()
+	}
+	expected := commandTarget{tenantID: auth.target.tenantID, projectID: project, resourceID: id}
+	if e := auth.assertTx(auth.tx, expected, purposeBrowserProjectRead); e != nil {
+		return AutomationIngressRevisions{}, e
+	}
+	ctx = auth.ctx
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
 	out := AutomationIngressRevisions{Items: []AutomationIngressRevision{}}
 	if limit < 1 || limit > 200 {
 		return out, invalid("limit 必须为 1..200")
@@ -50,11 +61,6 @@ func (s *Service) AutomationIngressRevisions(ctx context.Context, p Principal, p
 			return out, invalid("无效修订分页游标")
 		}
 	}
-	tx, err := s.automationReadTx(ctx, p, project)
-	if err != nil {
-		return out, err
-	}
-	defer tx.Rollback()
 	if _, err = s.ingressTx(ctx, tx, p, project, id); err != nil {
 		return out, err
 	}
@@ -100,7 +106,18 @@ func scanIngressDelivery(row automationScanner) (AutomationIngressDelivery, erro
 	err = json.Unmarshal([]byte(raw), &out.Event)
 	return out, err
 }
-func (s *Service) AutomationIngressDeliveries(ctx context.Context, p Principal, project, id string, limit int, cursor string) (AutomationIngressDeliveries, error) {
+func (s *Service) automationIngressDeliveriesCurrentTx(ctx context.Context, auth *authorizedCommand, project, id string, limit int, cursor string) (AutomationIngressDeliveries, error) {
+	if auth == nil {
+		return AutomationIngressDeliveries{}, forbidden()
+	}
+	expected := commandTarget{tenantID: auth.target.tenantID, projectID: project, resourceID: id}
+	if e := auth.assertTx(auth.tx, expected, purposeBrowserProjectRead); e != nil {
+		return AutomationIngressDeliveries{}, e
+	}
+	ctx = auth.ctx
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
 	out := AutomationIngressDeliveries{Items: []AutomationIngressDelivery{}}
 	if limit < 1 || limit > 200 {
 		return out, invalid("limit 必须为 1..200")
@@ -115,11 +132,6 @@ func (s *Service) AutomationIngressDeliveries(ctx context.Context, p Principal, 
 			return out, invalid("无效交付分页游标")
 		}
 	}
-	tx, err := s.automationReadTx(ctx, p, project)
-	if err != nil {
-		return out, err
-	}
-	defer tx.Rollback()
 	if _, err = s.ingressTx(ctx, tx, p, project, id); err != nil {
 		return out, err
 	}
@@ -153,12 +165,18 @@ func (s *Service) AutomationIngressDeliveries(ctx context.Context, p Principal, 
 	}
 	return out, rows.Err()
 }
-func (s *Service) GetAutomationIngressDelivery(ctx context.Context, p Principal, project, id, delivery string) (AutomationIngressDelivery, error) {
-	tx, err := s.automationReadTx(ctx, p, project)
-	if err != nil {
-		return AutomationIngressDelivery{}, err
+func (s *Service) getAutomationIngressDeliveryCurrentTx(ctx context.Context, auth *authorizedCommand, project, id, delivery string) (AutomationIngressDelivery, error) {
+	if auth == nil {
+		return AutomationIngressDelivery{}, forbidden()
 	}
-	defer tx.Rollback()
+	expected := commandTarget{tenantID: auth.target.tenantID, projectID: project, resourceID: id}
+	if e := auth.assertTx(auth.tx, expected, purposeBrowserProjectRead); e != nil {
+		return AutomationIngressDelivery{}, e
+	}
+	ctx = auth.ctx
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
 	if _, err = s.ingressTx(ctx, tx, p, project, id); err != nil {
 		return AutomationIngressDelivery{}, err
 	}

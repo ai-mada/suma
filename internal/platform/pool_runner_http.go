@@ -59,17 +59,17 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			writeError(w, err)
 			break
 		}
-		var identity ExecutionPoolRunner
+		var proof *poolMachineProof
 		a, err := s.Engine.ClaimPoolWithOperation(r.Context(), req, func(tx *sql.Tx) (dag.PoolClaimAuthority, error) {
 			var auth dag.PoolClaimAuthority
 			var err error
-			identity, auth, err = s.Service.PoolRunnerAuthorityTx(r.Context(), tx, token, req.RunnerID, req.Scopes)
-			if err == nil && (identity.PoolID != req.PoolID || identity.WorkerID != req.WorkerID) {
+			proof, auth, err = s.Service.authorizePoolRunnerTx(r.Context(), tx, token, req.RunnerID, req.Scopes)
+			if err == nil && (proof.runner.PoolID != req.PoolID || proof.runner.WorkerID != req.WorkerID) {
 				return auth, forbidden()
 			}
 			return auth, err
 		}, func(tx *sql.Tx, scope dag.PoolScope, run, node string) (bool, error) {
-			return s.Service.PoolToolClaimEligibleTx(r.Context(), tx, token, identity, scope, run, node)
+			return s.Service.PoolToolClaimEligibleTx(r.Context(), tx, proof, scope, run, node)
 		})
 		respond(w, 200, PoolRunnerClaimResponse{Assignment: a}, err)
 	case "pool-runner/tool-inventory":
@@ -91,7 +91,8 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			break
 		}
 		err := s.Engine.HeartbeatWithAuthority(r.Context(), req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment, func(tx *sql.Tx) error {
-			return s.Service.PoolRunnerAssignmentAuthorityTx(r.Context(), tx, token, req.Assignment)
+			_, err := s.Service.PoolRunnerAssignmentAuthorityTx(r.Context(), tx, token, req.Assignment)
+			return err
 		})
 		if errors.Is(err, dag.ErrCancelled) {
 			writeJSON(w, 200, map[string]bool{"cancel_requested": true})
@@ -109,10 +110,11 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			break
 		}
 		err := s.Engine.ProgressWithAuthority(r.Context(), req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment, req.OperationID, req.Message, req.ToolEvent, func(tx *sql.Tx) error {
-			if err := s.Service.PoolRunnerAssignmentAuthorityTx(r.Context(), tx, token, req.Assignment); err != nil {
+			proof, err := s.Service.PoolRunnerAssignmentAuthorityTx(r.Context(), tx, token, req.Assignment)
+			if err != nil {
 				return err
 			}
-			return s.Service.ValidatePoolToolProgressTx(r.Context(), tx, token, req.Assignment, req.ToolEvent)
+			return s.Service.ValidatePoolToolProgressTx(r.Context(), tx, proof, req.Assignment, req.ToolEvent)
 		})
 		respond(w, 200, map[string]bool{"acknowledged": err == nil}, err)
 	case "pool-runner/results":
@@ -130,11 +132,16 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			writeError(w, invalid("结果与固定派发身份不一致"))
 			break
 		}
-		err := s.Engine.CompleteBound(r.Context(), a.TenantID, a.ProjectID, result, func(tx *sql.Tx) error { return s.Service.PoolRunnerAssignmentAuthorityTx(r.Context(), tx, token, a) }, func(tx *sql.Tx, state string) error {
+		var proof *poolMachineProof
+		err := s.Engine.CompleteBound(r.Context(), a.TenantID, a.ProjectID, result, func(tx *sql.Tx) error {
+			var e error
+			proof, e = s.Service.PoolRunnerAssignmentAuthorityTx(r.Context(), tx, token, a)
+			return e
+		}, func(tx *sql.Tx, state string) error {
 			if result.ArtifactEvidence != nil || result.ReleaseEvidence != nil {
 				return &APIError{422, "pool_capability_unsupported", "资源池制品与生产部署需独立授权协议", nil}
 			}
-			return s.Service.ValidatePoolToolResultTx(r.Context(), tx, token, a, result)
+			return s.Service.ValidatePoolToolResultTx(r.Context(), tx, proof, a, result)
 		})
 		if err == nil {
 			// Completion remains committed if projection is temporarily unavailable;

@@ -91,7 +91,9 @@ func (s *Service) validateReleaseCandidateReadTx(ctx context.Context, tx *sql.Tx
 	return out, nil
 }
 
-func (s *Service) CreateReleaseCandidate(ctx context.Context, p Principal, project string, m map[string]any) (ReleaseCandidateView, error) {
+func (s *Service) CreateReleaseCandidate(ctx context.Context, actor Actor, project string, m map[string]any) (ReleaseCandidateView, error) {
+	p := actor.Projection()
+
 	var out ReleaseCandidateView
 	var request struct {
 		ProjectID                string `json:"project_id"`
@@ -116,18 +118,21 @@ func (s *Service) CreateReleaseCandidate(ctx context.Context, p Principal, proje
 	if !ok || len(drafts) == 0 || len(drafts) > 100 {
 		return out, invalid("请选择 1–100 个已验收任务作为交付范围")
 	}
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: project}, purposeProjectWrite)
+	if err != nil {
 		return out, err
 	}
+	p = auth.currentPrincipal
 	if err = dag.GuardProjectTx(ctx, tx, s.Dialect, p.TenantID, project); err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, str(m, "idempotency_key"), map[string]any{"release_candidate": m})
+	hash, replay, err := s.commandReceipt(ctx, auth, str(m, "idempotency_key"), map[string]any{"release_candidate": m})
 	if err != nil {
 		return out, err
 	}
@@ -182,10 +187,10 @@ func (s *Service) CreateReleaseCandidate(ctx context.Context, p Principal, proje
 		return out, err
 	}
 	out = ReleaseCandidateView{Candidate: candidate, Eligibility: true, Blockers: []ReleaseBlocker{}}
-	if err = s.saveReceipt(ctx, tx, p, project, str(m, "idempotency_key"), hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, str(m, "idempotency_key"), hash, out); err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, project, "release_candidate.created", candidate.ID, name); err != nil {
+	if err = s.commandActivity(ctx, auth, "release_candidate.created", candidate.ID, name); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
@@ -218,22 +223,34 @@ func (s *Service) candidateViewReadTx(ctx context.Context, tx *sql.Tx, p Princip
 	}
 	return out, nil
 }
-func (s *Service) ReleaseCandidate(ctx context.Context, p Principal, project, id string) (ReleaseCandidateView, error) {
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return ReleaseCandidateView{}, err
+func (s *Service) ReleaseCandidate(ctx context.Context, actor Actor, project, id string) (ReleaseCandidateView, error) {
+	var result0 ReleaseCandidateView
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readReleaseCandidateTx(bounded, auth, project, id)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readReleaseCandidateTx(ctx context.Context, auth *authorizedCommand, project, id string) (ReleaseCandidateView, error) {
+	if auth == nil {
+		return ReleaseCandidateView{}, unauthenticated()
 	}
-	tx, err := s.DB.BeginTx(ctx, s.evidenceSnapshotOptions())
-	if err != nil {
-		return ReleaseCandidateView{}, err
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return ReleaseCandidateView{}, e
 	}
-	defer tx.Rollback()
-	if err = s.authorizeProjectSnapshotTx(ctx, tx, p, project); err != nil {
-		return ReleaseCandidateView{}, err
+	if auth.target.projectID != project {
+		return ReleaseCandidateView{}, forbidden()
 	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+
 	return s.candidateViewTx(ctx, tx, p, project, id)
+
 }
 
-// Keyset pages are project scoped. DTOs never return storage paths or tokens.
 func (s *Service) releasePageIDs(ctx context.Context, tx *sql.Tx, p Principal, project, kind string, limit int, cursor string) ([]string, int, string, error) {
 	if limit == 0 {
 		limit = 20
@@ -292,18 +309,33 @@ func (s *Service) releasePageIDs(ctx context.Context, tx *sql.Tx, p Principal, p
 	}
 	return ids, total, next, nil
 }
-func (s *Service) ReleaseCandidates(ctx context.Context, p Principal, project string, limit int, cursor string) ([]ReleaseCandidateView, int, string, error) {
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return nil, 0, "", err
+func (s *Service) ReleaseCandidates(ctx context.Context, actor Actor, project string, limit int, cursor string) ([]ReleaseCandidateView, int, string, error) {
+	var result0 []ReleaseCandidateView
+	var result1 int
+	var result2 string
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, result1, result2, e = s.readReleaseCandidatesTx(bounded, auth, project, limit, cursor)
+		return e
+	})
+	return result0, result1, result2, err
+}
+func (s *Service) readReleaseCandidatesTx(ctx context.Context, auth *authorizedCommand, project string, limit int, cursor string) ([]ReleaseCandidateView, int, string, error) {
+	if auth == nil {
+		return nil, 0, "", unauthenticated()
 	}
-	tx, err := s.DB.BeginTx(ctx, s.evidenceSnapshotOptions())
-	if err != nil {
-		return nil, 0, "", err
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return nil, 0, "", e
 	}
-	defer tx.Rollback()
-	if err = s.authorizeProjectSnapshotTx(ctx, tx, p, project); err != nil {
-		return nil, 0, "", err
+	if auth.target.projectID != project {
+		return nil, 0, "", forbidden()
 	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
 	ids, total, next, err := s.releasePageIDs(ctx, tx, p, project, "release-candidates", limit, cursor)
 	if err != nil {
 		return nil, 0, "", err
@@ -317,6 +349,7 @@ func (s *Service) ReleaseCandidates(ctx context.Context, p Principal, project st
 		out = append(out, v)
 	}
 	return out, total, next, nil
+
 }
 
 func (s *Service) releaseArtifactTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (ReleaseArtifact, error) {
@@ -347,26 +380,61 @@ func (s *Service) releaseArtifactTx(ctx context.Context, tx *sql.Tx, p Principal
 	rows.Close()
 	return out, err
 }
-func (s *Service) ReleaseArtifact(ctx context.Context, p Principal, project, id string) (ReleaseArtifact, error) {
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return ReleaseArtifact{}, err
-	}
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return ReleaseArtifact{}, err
-	}
-	defer tx.Rollback()
-	return s.releaseArtifactTx(ctx, tx, p, project, id)
+func (s *Service) ReleaseArtifact(ctx context.Context, actor Actor, project, id string) (ReleaseArtifact, error) {
+	var result0 ReleaseArtifact
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readReleaseArtifactTx(bounded, auth, project, id)
+		return e
+	})
+	return result0, err
 }
-func (s *Service) ReleaseArtifacts(ctx context.Context, p Principal, project string, limit int, cursor string) ([]ReleaseArtifact, int, string, error) {
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return nil, 0, "", err
+func (s *Service) readReleaseArtifactTx(ctx context.Context, auth *authorizedCommand, project, id string) (ReleaseArtifact, error) {
+	if auth == nil {
+		return ReleaseArtifact{}, unauthenticated()
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, 0, "", err
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return ReleaseArtifact{}, e
 	}
-	defer tx.Rollback()
+	if auth.target.projectID != project {
+		return ReleaseArtifact{}, forbidden()
+	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+
+	return s.releaseArtifactTx(ctx, tx, p, project, id)
+
+}
+
+func (s *Service) ReleaseArtifacts(ctx context.Context, actor Actor, project string, limit int, cursor string) ([]ReleaseArtifact, int, string, error) {
+	var result0 []ReleaseArtifact
+	var result1 int
+	var result2 string
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, result1, result2, e = s.readReleaseArtifactsTx(bounded, auth, project, limit, cursor)
+		return e
+	})
+	return result0, result1, result2, err
+}
+func (s *Service) readReleaseArtifactsTx(ctx context.Context, auth *authorizedCommand, project string, limit int, cursor string) ([]ReleaseArtifact, int, string, error) {
+	if auth == nil {
+		return nil, 0, "", unauthenticated()
+	}
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return nil, 0, "", e
+	}
+	if auth.target.projectID != project {
+		return nil, 0, "", forbidden()
+	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
 	ids, total, next, err := s.releasePageIDs(ctx, tx, p, project, "artifacts", limit, cursor)
 	if err != nil {
 		return nil, 0, "", err
@@ -380,4 +448,5 @@ func (s *Service) ReleaseArtifacts(ctx context.Context, p Principal, project str
 		out = append(out, a)
 	}
 	return out, total, next, nil
+
 }

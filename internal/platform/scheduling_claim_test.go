@@ -61,10 +61,10 @@ func TestRunnerClaimHTTPRestoresOriginalDispatchAndClosedAttempt(t *testing.T) {
 func TestRunnerClaimActiveReplayRechecksPausedToolProfile(t *testing.T) {
 	f, token, profile := toolFixture(t)
 	ctx := context.Background()
-	if _, err := f.s.ReportToolInventory(ctx, f.user, f.project, token, ToolInventoryRequest{ProjectID: f.project, WorkerID: profile.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: profile.Profile, Available: true}}}); err != nil {
+	if _, err := f.s.ReportToolInventory(ctx, toolActorForTest(t, f, token), f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: profile.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: profile.Profile, Available: true}}}); err != nil {
 		t.Fatal(err)
 	}
-	profile, err := f.s.CommandToolProfile(ctx, f.user, f.project, profile.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: profile.Version, IdempotencyKey: newID()})
+	profile, err := f.s.CommandToolProfile(ctx, f.actor, f.project, profile.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: profile.Version, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,12 +74,12 @@ func TestRunnerClaimActiveReplayRechecksPausedToolProfile(t *testing.T) {
 	original := f.bearer("POST", "/runner/claim", token, request, 200)["assignment"].(map[string]any)
 	// The first response may have been lost before a process starts. Pausing the
 	// immutable profile must block recovering an executable active assignment.
-	profile, err = f.s.CommandToolProfile(ctx, f.user, f.project, profile.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "pause", ExpectedVersion: profile.Version, IdempotencyKey: newID()})
+	profile, err = f.s.CommandToolProfile(ctx, f.actor, f.project, profile.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "pause", ExpectedVersion: profile.Version, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
 	f.bearer("POST", "/runner/claim", token, request, 409)
-	profile, err = f.s.CommandToolProfile(ctx, f.user, f.project, profile.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: profile.Version, IdempotencyKey: newID()})
+	profile, err = f.s.CommandToolProfile(ctx, f.actor, f.project, profile.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: profile.Version, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,10 +92,10 @@ func TestRunnerClaimActiveReplayRechecksPausedToolProfile(t *testing.T) {
 func TestRunnerUsageRawFractionIsRejectedBeforeItCanBeStored(t *testing.T) {
 	f, token, profile := toolFixture(t)
 	ctx := context.Background()
-	if _, err := f.s.ReportToolInventory(ctx, f.user, f.project, token, ToolInventoryRequest{ProjectID: f.project, WorkerID: profile.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: profile.Profile, Available: true}}}); err != nil {
+	if _, err := f.s.ReportToolInventory(ctx, toolActorForTest(t, f, token), f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: profile.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: profile.Profile, Available: true}}}); err != nil {
 		t.Fatal(err)
 	}
-	profile, err := f.s.CommandToolProfile(ctx, f.user, f.project, profile.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: profile.Version, IdempotencyKey: newID()})
+	profile, err := f.s.CommandToolProfile(ctx, f.actor, f.project, profile.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: profile.Version, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}

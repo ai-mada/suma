@@ -2,49 +2,47 @@ package platform
 
 import (
 	"context"
-	"database/sql"
 )
 
 // ListOwnedPoolGrants exposes the project-approved shared metadata, never
 // project records or logs. Per-row navigation is decided from actual access.
-func (s *Service) ListOwnedPoolGrants(ctx context.Context, p Principal, token, pool string, limit int, cursor string) (ExecutionPoolGrantPage, error) {
-	return s.listPoolGrants(ctx, p, token, pool, "", limit, cursor, true)
+func (s *Service) ListOwnedPoolGrants(ctx context.Context, actor Actor, pool string, limit int, cursor string) (ExecutionPoolGrantPage, error) {
+	return s.listPoolGrants(ctx, actor, pool, "", limit, cursor, true)
 }
 
-func (s *Service) ListProjectPoolGrants(ctx context.Context, p Principal, token, project string, limit int, cursor string) (ExecutionPoolGrantPage, error) {
-	return s.listPoolGrants(ctx, p, token, "", project, limit, cursor, false)
-}
-
-func (s *Service) poolProjectReadTx(ctx context.Context, p Principal, token, project string) (*sql.Tx, error) {
-	if !executionPoolID.MatchString(project) {
-		return nil, invalid("请提供明确的项目标识")
-	}
-	tx, err := s.poolBrowserReadTx(ctx, p, token, false)
-	if err != nil {
-		return nil, err
-	}
-	allowed, err := s.poolProjectAccessTx(ctx, tx, p.TenantID, project, p.ID, false)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	if !allowed {
-		tx.Rollback()
-		return nil, forbidden()
-	}
-	return tx, nil
+func (s *Service) ListProjectPoolGrants(ctx context.Context, actor Actor, project string, limit int, cursor string) (ExecutionPoolGrantPage, error) {
+	return s.listPoolGrants(ctx, actor, "", project, limit, cursor, false)
 }
 
 // ListProjectPoolRunners returns only identities delegated by the project's
 // exact current route/grant. It exposes no owner registry, token, config or
 // another project's inventory. Active means registered, never online.
-func (s *Service) ListProjectPoolRunners(ctx context.Context, p Principal, token, project string) (ProjectPoolRunnerPage, error) {
-	out := ProjectPoolRunnerPage{Items: []ProjectPoolRunner{}}
-	tx, err := s.poolProjectReadTx(ctx, p, token, project)
-	if err != nil {
-		return out, err
+func (s *Service) ListProjectPoolRunners(ctx context.Context, actor Actor, project string) (ProjectPoolRunnerPage, error) {
+	var result0 ProjectPoolRunnerPage
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeBrowserProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readListProjectPoolRunnersTx(bounded, auth, project)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readListProjectPoolRunnersTx(ctx context.Context, auth *authorizedCommand, project string) (ProjectPoolRunnerPage, error) {
+	if auth == nil {
+		return ProjectPoolRunnerPage{}, unauthenticated()
 	}
-	defer tx.Rollback()
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return ProjectPoolRunnerPage{}, e
+	}
+	if auth.target.projectID != project {
+		return ProjectPoolRunnerPage{}, forbidden()
+	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
+	out := ProjectPoolRunnerPage{Items: []ProjectPoolRunner{}}
 	clock, err := s.automationClock(ctx, tx)
 	if err != nil {
 		return out, err
@@ -69,9 +67,46 @@ func (s *Service) ListProjectPoolRunners(ctx context.Context, p Principal, token
 		return out, conflict("资源池执行身份超过可配置范围，请联系管理员拆分资源池")
 	}
 	return out, nil
+
 }
 
-func (s *Service) listPoolGrants(ctx context.Context, p Principal, token, pool, project string, limit int, cursor string, owner bool) (ExecutionPoolGrantPage, error) {
+func (s *Service) listPoolGrants(ctx context.Context, actor Actor, pool, project string, limit int, cursor string, owner bool) (ExecutionPoolGrantPage, error) {
+	targetProject, purpose := project, purposeBrowserProjectRead
+	if owner {
+		targetProject = organizationScope
+		purpose = purposeOrganizationRead
+	}
+	var result0 ExecutionPoolGrantPage
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: targetProject}, purpose, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readListPoolGrantsTx(bounded, auth, pool, project, limit, cursor, owner)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readListPoolGrantsTx(ctx context.Context, auth *authorizedCommand, pool, project string, limit int, cursor string, owner bool) (ExecutionPoolGrantPage, error) {
+	expectedProject := project
+	if owner {
+		expectedProject = organizationScope
+	}
+	if auth == nil {
+		return ExecutionPoolGrantPage{}, unauthenticated()
+	}
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return ExecutionPoolGrantPage{}, e
+	}
+	if auth.target.projectID != expectedProject {
+		return ExecutionPoolGrantPage{}, forbidden()
+	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+	if owner && !orgAdmin(p) {
+		return ExecutionPoolGrantPage{}, forbidden()
+	}
+
 	out := ExecutionPoolGrantPage{Items: []ExecutionPoolGrant{}, AllowedActions: []string{}}
 	if limit < 1 || limit > 100 {
 		return out, invalid("limit必须为1–100")
@@ -86,16 +121,6 @@ func (s *Service) listPoolGrants(ctx context.Context, p Principal, token, pool, 
 	if err != nil {
 		return out, err
 	}
-	var tx *sql.Tx
-	if owner {
-		tx, err = s.poolReadTx(ctx, p, token)
-	} else {
-		tx, err = s.poolProjectReadTx(ctx, p, token, project)
-	}
-	if err != nil {
-		return out, err
-	}
-	defer tx.Rollback()
 	where := `g.tenant_id=? AND g.project_id=?`
 	args := []any{p.TenantID, project}
 	if owner {
@@ -109,7 +134,7 @@ func (s *Service) listPoolGrants(ctx context.Context, p Principal, token, pool, 
 		where = `g.owner_tenant_id=? AND g.pool_id=?`
 		args = []any{p.TenantID, pool}
 	} else {
-		allowed, e := s.poolProjectAccessTx(ctx, tx, p.TenantID, project, p.ID, true)
+		allowed, e := s.currentPoolProjectAccessTx(ctx, tx, p.TenantID, project, p.ID, true)
 		if e != nil {
 			return out, e
 		}
@@ -153,7 +178,34 @@ func (s *Service) listPoolGrants(ctx context.Context, p Principal, token, pool, 
 
 // Registration state and last contact are observations, not a declaration of
 // available hardware or tool health. Secret hashes never enter these DTOs.
-func (s *Service) ListExecutionPoolRunners(ctx context.Context, p Principal, token, pool string, limit int, cursor string) (ExecutionPoolRunnerPage, error) {
+func (s *Service) ListExecutionPoolRunners(ctx context.Context, actor Actor, pool string, limit int, cursor string) (ExecutionPoolRunnerPage, error) {
+	var result0 ExecutionPoolRunnerPage
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: organizationScope}, purposeOrganizationRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readListExecutionPoolRunnersTx(bounded, auth, pool, limit, cursor)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readListExecutionPoolRunnersTx(ctx context.Context, auth *authorizedCommand, pool string, limit int, cursor string) (ExecutionPoolRunnerPage, error) {
+	if auth == nil {
+		return ExecutionPoolRunnerPage{}, unauthenticated()
+	}
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return ExecutionPoolRunnerPage{}, e
+	}
+	if auth.target.projectID != organizationScope {
+		return ExecutionPoolRunnerPage{}, forbidden()
+	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+	if !orgAdmin(p) {
+		return ExecutionPoolRunnerPage{}, forbidden()
+	}
+
 	out := ExecutionPoolRunnerPage{Items: []ExecutionPoolRunner{}, AllowedActions: []string{}}
 	if limit < 1 || limit > 100 {
 		return out, invalid("limit必须为1–100")
@@ -163,11 +215,6 @@ func (s *Service) ListExecutionPoolRunners(ctx context.Context, p Principal, tok
 	if err != nil {
 		return out, err
 	}
-	tx, err := s.poolReadTx(ctx, p, token)
-	if err != nil {
-		return out, err
-	}
-	defer tx.Rollback()
 	meta, err := s.executionPoolMetadataTx(ctx, tx, pool)
 	if err != nil {
 		return out, err
@@ -201,4 +248,5 @@ func (s *Service) ListExecutionPoolRunners(ctx context.Context, p Principal, tok
 	}
 	out.AllowedActions = []string{"register"}
 	return out, nil
+
 }

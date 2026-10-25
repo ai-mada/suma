@@ -1,3 +1,4 @@
+import {useApi} from '../api-context';
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {Search} from 'lucide-react';
 import {api} from '../api';
@@ -5,7 +6,7 @@ import {Empty,ErrorNotice} from '../ui';
 import {formatNumber,tr,useLocale} from '../i18n';
 type SearchResult={items:{id:string;type?:string;title?:string;snippet?:string;source_ref?:string;revision?:number;locator?:unknown}[];mode?:string;index_watermark?:number|null};
 type Snapshot={project:string;query:string;results?:SearchResult;error?:unknown;busy:boolean};
-export function KnowledgeSearch({project}:{project:string}){
+export function KnowledgeSearch({project}:{project:string}){ const api=useApi();
  useLocale();const [q,setQ]=useState(''),[snapshot,setSnapshot]=useState<Snapshot>({project,query:'',busy:false});
  const current=useRef(project),generation=useRef(0);current.current=project;
  useEffect(()=>()=>{generation.current++;},[project]);

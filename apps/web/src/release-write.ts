@@ -18,7 +18,7 @@ export class ReleaseWriteRecovery{
  private initialError=false;
  private busy=false;
  private key:string;
- constructor(scope:string,private storage:RecoveryStorage|undefined){
+ constructor(scope:string,private storage:RecoveryStorage|undefined,private send:typeof api=api){
   this.key='suma-release-recovery-v1:'+scope;
   try{const raw=storage?.getItem(this.key);if(raw){const parsed=JSON.parse(raw) as ReleasePendingRequest;validate(parsed.path,parsed.body);if(!parsed.idempotency_key||!['POST','PATCH'].includes(parsed.method)||!parsed.body||typeof parsed.body!=='object')throw new Error('invalid recovery');this.value=parsed;}}
   catch{this.initialError=true;}
@@ -38,7 +38,7 @@ export class ReleaseWriteRecovery{
   }
   const request=this.value;this.busy=true;
   try{
-   const result=await api<T>(request.path,{...request.body,idempotency_key:request.idempotency_key},request.method);
+   const result=await this.send<T>(request.path,{...request.body,idempotency_key:request.idempotency_key},request.method);
    this.clear();return result;
   }catch(error){
    // A later denial cannot prove that the original unknown request had no effect.

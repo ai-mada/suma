@@ -32,11 +32,11 @@ func TestPoolMachineToolInventoryKeepsProjectApprovalAndTTL(t *testing.T) {
 	wrong.ProjectID = p.scopes[1].ProjectID
 	wrong.OperationID = newID()
 	f.bearer("POST", "/pool-runner/tool-inventory", token, wrong, 403)
-	pr, err := f.s.CreateToolProfile(ctx, f.user, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: runner.WorkerID, Name: "已授权机器的项目工具", Profile: profile, IdempotencyKey: newID()})
+	pr, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: runner.WorkerID, Name: "已授权机器的项目工具", Profile: profile, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
-	pr, err = f.s.CommandToolProfile(ctx, f.user, f.project, pr.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: pr.Version, IdempotencyKey: newID()})
+	pr, err = f.s.CommandToolProfile(ctx, f.actor, f.project, pr.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: pr.Version, IdempotencyKey: newID()})
 	if err != nil || !pr.Available {
 		t.Fatal("pool registration replaced or lost project tool approval", err)
 	}
@@ -93,7 +93,7 @@ func newPoolMachineFixture(t *testing.T) *poolMachineFixture {
 	t.Helper()
 	f := newFixture(t)
 	ctx := context.Background()
-	pool, err := f.s.CreateExecutionPool(ctx, f.e, f.user, f.cookie.Value, ExecutionPoolCreateRequest{Name: "独立共享机器协议", Policy: ExecutionPoolPolicyInput{ConcurrencyLimit: 2, ResourceLimits: map[string]*int64{}, TenantWeights: map[string]int{}}, IdempotencyKey: newID()})
+	pool, err := f.s.CreateExecutionPool(ctx, f.e, f.actor, ExecutionPoolCreateRequest{Name: "独立共享机器协议", Policy: ExecutionPoolPolicyInput{ConcurrencyLimit: 2, ResourceLimits: map[string]*int64{}, TenantWeights: map[string]int{}}, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,15 +101,23 @@ func newPoolMachineFixture(t *testing.T) *poolMachineFixture {
 	actors := []Principal{f.user}
 	tokens := []string{f.cookie.Value}
 	projects := []string{f.project}
-	org, err := f.s.CreateOrganization(ctx, f.user, map[string]any{"name": "机器协议第二组织", "idempotency_key": newID()})
+	org, err := f.s.CreateOrganization(ctx, f.actor, map[string]any{"name": "机器协议第二组织", "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
-	actor, token, err := f.s.SwitchOrganization(ctx, f.user, map[string]any{"organization_id": org["id"], "idempotency_key": newID()})
+	browser, err := f.s.AuthenticateActor(ctx, f.cookie.Value)
 	if err != nil {
 		t.Fatal(err)
 	}
-	project, err := f.s.CreateProject(ctx, actor, map[string]any{"title": "机器协议第二项目", "idempotency_key": newID()})
+	actor, token, err := f.s.SwitchOrganization(ctx, browser, map[string]any{"organization_id": org["id"], "idempotency_key": newID()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	chosen, e := f.s.AuthenticateActor(ctx, token)
+	if e != nil {
+		t.Fatal(e)
+	}
+	project, err := f.s.CreateProject(ctx, chosen, map[string]any{"title": "机器协议第二项目", "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,11 +125,12 @@ func newPoolMachineFixture(t *testing.T) *poolMachineFixture {
 	tokens = append(tokens, token)
 	projects = append(projects, project.ID)
 	for i, p := range actors {
-		grant, err := f.s.RequestExecutionPoolGrant(ctx, p, tokens[i], ExecutionPoolGrantRequest{ProjectID: projects[i], PoolID: pool.ID, ProjectWeight: 1, IdempotencyKey: newID()})
+		actual := domainCActor(t, f.s, tokens[i])
+		grant, err := f.s.RequestExecutionPoolGrant(ctx, actual, ExecutionPoolGrantRequest{ProjectID: projects[i], PoolID: pool.ID, ProjectWeight: 1, IdempotencyKey: newID()})
 		if err != nil {
 			t.Fatal(err)
 		}
-		grant, err = f.s.CommandOwnedPoolGrant(ctx, f.e, f.user, f.cookie.Value, pool.ID, grant.ID, ExecutionPoolGrantCommand{Action: "approve", ExpectedVersion: grant.Version, IdempotencyKey: newID()})
+		grant, err = f.s.CommandOwnedPoolGrant(ctx, f.e, f.actor, pool.ID, grant.ID, ExecutionPoolGrantCommand{Action: "approve", ExpectedVersion: grant.Version, IdempotencyKey: newID()})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -130,7 +139,7 @@ func newPoolMachineFixture(t *testing.T) *poolMachineFixture {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if err = f.s.authorizeProjectTx(ctx, tx, p, projects[i], true, true); err != nil {
+		if _, err = f.s.authorizeTx(ctx, tx, actual, commandTarget{tenantID: p.TenantID, projectID: projects[i]}, purposeBrowserProjectApprove); err != nil {
 			tx.Rollback()
 			t.Fatal(err)
 		}
@@ -150,7 +159,7 @@ func newPoolMachineFixture(t *testing.T) *poolMachineFixture {
 		}
 		out.scopes = append(out.scopes, dag.PoolCapabilityScope{TenantID: p.TenantID, ProjectID: projects[i], Capabilities: []string{"command:inspect"}})
 	}
-	out.credential, err = f.s.RegisterExecutionPoolRunner(ctx, f.user, f.cookie.Value, pool.ID, ExecutionPoolRunnerCreateRequest{Name: "机器HTTP协议", MaxSlots: 2, TTLSeconds: 3600, IdempotencyKey: newID()})
+	out.credential, err = f.s.RegisterExecutionPoolRunner(ctx, f.actor, pool.ID, ExecutionPoolRunnerCreateRequest{Name: "机器HTTP协议", MaxSlots: 2, TTLSeconds: 3600, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}

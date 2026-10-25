@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"sync"
 )
 
 type Service struct {
@@ -13,6 +14,8 @@ type Service struct {
 	DataDir              string
 	ReleaseProviders     []ReleaseProviderConfig
 	AutomationIngressKey []byte
+	authorityBudgets     sync.Map // *sql.Tx -> *authorityTxBudget; never persisted authority
+	authorityBudgetMu    sync.Mutex
 }
 
 func (s *Service) q(query string) string {
@@ -75,6 +78,9 @@ func (s *Service) Migrate(ctx context.Context) error {
 	if err := s.MigrateGovernance(ctx); err != nil {
 		return err
 	}
+	if err := s.MigrateCredentialAuthority(ctx); err != nil {
+		return err
+	}
 	if err := s.MigrateLocalePreferences(ctx); err != nil {
 		return err
 	}
@@ -100,40 +106,4 @@ func (s *Service) Migrate(ctx context.Context) error {
 		return err
 	}
 	return s.MigrateExecutionPools(ctx)
-}
-
-func (s *Service) Authorize(ctx context.Context, p Principal, projectID string, write bool, approve bool) error {
-	if projectID == "" {
-		return invalid("请选择项目")
-	}
-	var tenant string
-	if err := s.DB.QueryRowContext(ctx, s.q(`SELECT tenant_id FROM suma_projects WHERE id=?`), projectID).Scan(&tenant); err != nil || tenant != p.TenantID {
-		return missing()
-	}
-	if p.internal && p.ID == "system" {
-		return nil
-	}
-	var organizationRole string
-	if err := s.DB.QueryRowContext(ctx, s.q(`SELECT role FROM suma_org_members WHERE tenant_id=? AND user_id=?`), p.TenantID, p.ID).Scan(&organizationRole); err != nil {
-		return forbidden()
-	}
-	if organizationRole == "owner" || organizationRole == "admin" {
-		return nil
-	}
-	var role string
-	if err := s.DB.QueryRowContext(ctx, s.q(`SELECT role FROM suma_project_members WHERE project_id=? AND user_id=?`), projectID, p.ID).Scan(&role); err != nil {
-		return forbidden()
-	}
-	if approve && role != "reviewer" && role != "admin" {
-		return forbidden()
-	}
-	if write && role == "viewer" {
-		return forbidden()
-	}
-	return nil
-}
-
-func (s *Service) activity(ctx context.Context, tx *sql.Tx, p Principal, project, kind, id, title string) error {
-	_, err := tx.ExecContext(ctx, s.q(`INSERT INTO suma_activity (id,tenant_id,project_id,actor_id,kind,object_id,title,created_at) VALUES (?,?,?,?,?,?,?,?)`), newID(), p.TenantID, project, p.ID, kind, id, title, now())
-	return err
 }

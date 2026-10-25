@@ -9,15 +9,22 @@ import (
 // Managed execution and provider failures share one durable operation issue.
 // The same organization/scheduler lock order serializes both projections.
 func (s *Service) projectManagedReleaseFailure(ctx context.Context, tenant, project, runID string) (bool, error) {
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return false, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	p := Principal{ID: "system", TenantID: tenant, internal: true}
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
+	// Scope hints become authority only after matching a real persisted failed
+	// execution in this transaction. There is no general system Principal.
+	proof, err := s.failureSourceTx(ctx, tx, tenant, project, runID)
+	if err != nil {
 		return false, err
 	}
+	if err = proof.assertTx(tx); err != nil {
+		return false, err
+	}
+	tenant, project, runID = proof.tenant, proof.project, proof.run
 	if err = s.releaseSchedulerLock(ctx, tx, tenant, project); err != nil {
 		return false, err
 	}
@@ -50,7 +57,10 @@ func (s *Service) projectManagedReleaseFailure(ctx context.Context, tenant, proj
 	if err = s.saveReleaseJSON(ctx, tx, "deployments", tenant, project, operation, old, d); err != nil {
 		return true, err
 	}
-	if err = s.activity(ctx, tx, p, project, "release.issue_projected", d.IssueID, "发布执行失败关联原操作问题"); err != nil {
+	if err = proof.assertTx(tx); err != nil {
+		return true, err
+	}
+	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_activity(id,tenant_id,project_id,actor_id,kind,object_id,title,created_at) VALUES(?,?,?,?,?,?,?,?)`), newID(), tenant, project, "system", "release.issue_projected", d.IssueID, "发布执行失败关联原操作问题", now()); err != nil {
 		return true, err
 	}
 	return true, tx.Commit()

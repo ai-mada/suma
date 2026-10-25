@@ -1,3 +1,4 @@
+import {useApi} from './api-context';
 import {literalText} from './i18n/literal';
 import {tr,useLocale,UiError,formatNumber} from './i18n';
 import {useEffect,useRef,useState} from 'react';
@@ -14,7 +15,7 @@ type FormBase={project:string;action:ReleaseAction;onCancel:()=>void};
 function FormActions({action,onCancel,children}:{action:ReleaseAction;onCancel:()=>void;children:React.ReactNode}){useLocale();return <div className="dialog-actions"><button type="button" disabled={action.busy||!!action.pending} onClick={onCancel}>{tr('release.form.cancel')}</button>{children}</div>;}
 function useTaskOptions(project:string){const pager=useRef(new EntityPager<RecordItem>(project,'tasks',100)),[state,setState]=useState(()=>pager.current.snapshot());const read=async(more=false)=>{pager.current.setScope(project,'tasks');const request=more?pager.current.more():pager.current.first();setState(pager.current.snapshot());await request;setState(pager.current.snapshot());};useEffect(()=>{void read();},[project]);return {...state,read};}
 
-export function CandidateForm({project,action,onCancel,onSaved,initialArtifact=''}:FormBase&{initialArtifact?:string;onSaved:(candidate:CandidateDetail)=>void}){useLocale();
+export function CandidateForm({project,action,onCancel,onSaved,initialArtifact=''}:FormBase&{initialArtifact?:string;onSaved:(candidate:CandidateDetail)=>void}){ const api=useApi();useLocale();
  const artifacts=useReleaseCollection(project,'artifacts',0),tasks=useTaskOptions(project),[artifactID,setArtifactID]=useState(initialArtifact),[buildID,setBuildID]=useState(''),[testID,setTestID]=useState(''),[selectedTasks,setSelectedTasks]=useState<RecordItem[]>([]),[dirty,setDirty]=useState(false),[error,setError]=useState<unknown>('');
  const artifactRead=useReleaseRead<ReleaseArtifact>(artifactID?'/artifacts/'+encodeURIComponent(artifactID)+query(project):''),artifact=artifactRead.data;
  useLeaveGuard(dirty,action.setError);const blocked=action.busy||!!action.pending;
@@ -33,7 +34,7 @@ export function CandidateForm({project,action,onCancel,onSaved,initialArtifact='
  </form>;
 }
 
-export function EnvironmentForm({project,action,onCancel,onSaved,environment}:FormBase&{environment?:ReleaseEnvironment;onSaved:(environment:ReleaseEnvironment)=>void}){useLocale();
+export function EnvironmentForm({project,action,onCancel,onSaved,environment}:FormBase&{environment?:ReleaseEnvironment;onSaved:(environment:ReleaseEnvironment)=>void}){ const api=useApi();useLocale();
  const providers=useReleaseRead<ReleasePage<ReleaseProvider>>('/release-providers'+query(project)),[providerID,setProviderID]=useState(environment?.provider_id||''),[siteID,setSiteID]=useState(environment?.site_id||''),[health,setHealth]=useState<HealthPolicy>(()=>structuredClone(environment?.health||defaultHealth)),[version,setVersion]=useState(environment?.version),[dirty,setDirty]=useState(false),[error,setError]=useState<unknown>('');
  useLeaveGuard(dirty,action.setError);const blocked=action.busy||!!action.pending,provider=providers.data?.items.find(item=>item.id===providerID);
  return <form className="release-dialog-form" onChange={()=>setDirty(true)} onSubmit={async event=>{event.preventDefault();setError('');const values=Object.fromEntries(new FormData(event.currentTarget));const body={project_id:project,name:String(values.name||''),health,...(environment?{expected_version:version,status:String(values.status||environment.status)}:{provider_id:providerID,site_id:siteID})};const result=await action.run<ReleaseEnvironment>('/environments'+(environment?'/'+encodeURIComponent(environment.id):''),body,environment?'PATCH':'POST');if(result){setDirty(false);onSaved(result);}}}>
@@ -48,7 +49,7 @@ export function EnvironmentForm({project,action,onCancel,onSaved,environment}:Fo
  </form>;
 }
 
-export function PlanPreparationForm({project,action,onCancel,onSaved,initialCandidate='',rollback}:FormBase&{initialCandidate?:string;rollback?:PlanInput;onSaved:(plan:ReleasePlan)=>void}){useLocale();
+export function PlanPreparationForm({project,action,onCancel,onSaved,initialCandidate='',rollback}:FormBase&{initialCandidate?:string;rollback?:PlanInput;onSaved:(plan:ReleasePlan)=>void}){ const api=useApi();useLocale();
  const candidates=useReleaseCollection(project,'release-candidates',0),environments=useReleaseRead<ReleasePage<ReleaseEnvironment>>('/environments'+query(project)),[candidateID,setCandidateID]=useState(rollback?.candidate_id||initialCandidate),[environmentID,setEnvironmentID]=useState(rollback?.environment_id||''),[preview,setPreview]=useState<{input:PlanInput;data:PlanPreview}>(),[previewBusy,setPreviewBusy]=useState(false),[error,setError]=useState<unknown>(''),[dirty,setDirty]=useState(false),epoch=useRef(0);
  const candidateRead=useReleaseRead<CandidateDetail>(candidateID?'/release-candidates/'+encodeURIComponent(candidateID)+query(project):''),environment=environments.data?.items.find(item=>item.id===environmentID);
  useLeaveGuard(dirty,action.setError);const blocked=action.busy||!!action.pending,rows=(candidates.items||[]) as CandidateDetail[],candidateOptions=candidateRead.data&&!rows.some(item=>item.candidate.id===candidateID)?[candidateRead.data,...rows]:rows;

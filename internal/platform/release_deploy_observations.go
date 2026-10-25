@@ -266,11 +266,32 @@ func (s *Service) ObserveReleaseDeployment(ctx context.Context, token string, o 
 	}
 	return d, tx.Commit()
 }
-func (s *Service) ReleaseDeployments(ctx context.Context, p Principal, project string) ([]ReleaseDeployment, error) {
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return nil, err
+func (s *Service) ReleaseDeployments(ctx context.Context, actor Actor, project string) ([]ReleaseDeployment, error) {
+	var result0 []ReleaseDeployment
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readReleaseDeploymentsTx(bounded, auth, project)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readReleaseDeploymentsTx(ctx context.Context, auth *authorizedCommand, project string) ([]ReleaseDeployment, error) {
+	if auth == nil {
+		return nil, unauthenticated()
 	}
-	rows, err := s.DB.QueryContext(ctx, s.q(`SELECT operation_id FROM suma_release_deployments WHERE tenant_id=? AND project_id=? ORDER BY operation_id`), p.TenantID, project)
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return nil, e
+	}
+	if auth.target.projectID != project {
+		return nil, forbidden()
+	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
+	rows, err := tx.QueryContext(ctx, s.q(`SELECT operation_id FROM suma_release_deployments WHERE tenant_id=? AND project_id=? ORDER BY operation_id`), p.TenantID, project)
 	if err != nil {
 		return nil, err
 	}
@@ -288,26 +309,40 @@ func (s *Service) ReleaseDeployments(ctx context.Context, p Principal, project s
 	}
 	out := []ReleaseDeployment{}
 	for _, id := range ids {
-		d, e := s.ReleaseDeployment(ctx, p, project, id)
+		d, e := s.readReleaseDeploymentTx(ctx, auth, project, id)
 		if e != nil {
 			return nil, e
 		}
 		out = append(out, d)
 	}
 	return out, nil
+
 }
-func (s *Service) ReleaseDeployment(ctx context.Context, p Principal, project, id string) (ReleaseDeployment, error) {
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return ReleaseDeployment{}, err
+
+func (s *Service) ReleaseDeployment(ctx context.Context, actor Actor, project, id string) (ReleaseDeployment, error) {
+	var result0 ReleaseDeployment
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readReleaseDeploymentTx(bounded, auth, project, id)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readReleaseDeploymentTx(ctx context.Context, auth *authorizedCommand, project, id string) (ReleaseDeployment, error) {
+	if auth == nil {
+		return ReleaseDeployment{}, unauthenticated()
 	}
-	tx, err := s.DB.BeginTx(ctx, s.evidenceSnapshotOptions())
-	if err != nil {
-		return ReleaseDeployment{}, err
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return ReleaseDeployment{}, e
 	}
-	defer tx.Rollback()
-	if err = s.authorizeProjectSnapshotTx(ctx, tx, p, project); err != nil {
-		return ReleaseDeployment{}, err
+	if auth.target.projectID != project {
+		return ReleaseDeployment{}, forbidden()
 	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
 
 	d, err := s.releaseDeploymentTx(ctx, tx, p.TenantID, project, id)
 	if err != nil {
@@ -336,7 +371,7 @@ func (s *Service) ReleaseDeployment(ctx context.Context, p Principal, project, i
 	}
 	d.AllowedActions = []string{}
 	d.Blockers = []ReleaseBlocker{}
-	if s.releaseActorSnapshotAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil {
+	if auth.actor.IsBrowser() && s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil {
 		d.AllowedActions = append(d.AllowedActions, "reconcile")
 		if d.State == "deployed_healthy" {
 			d.AllowedActions = append(d.AllowedActions, "rollback_preview")
@@ -346,8 +381,12 @@ func (s *Service) ReleaseDeployment(ctx context.Context, p Principal, project, i
 		d.Blockers = append(d.Blockers, ReleaseBlocker{"environment_reconciling", "原操作结果尚未核清，环境屏障保持占用"})
 	}
 	return d, nil
+
 }
-func (s *Service) ReconcileReleaseDeployment(ctx context.Context, p Principal, project, id, token string, m map[string]any, engine *dag.Engine) (ReleaseDeployment, error) {
+
+func (s *Service) ReconcileReleaseDeployment(ctx context.Context, actor Actor, project, id string, m map[string]any, engine *dag.Engine) (ReleaseDeployment, error) {
+	p := actor.Projection()
+
 	var req struct {
 		ProjectID       string `json:"project_id"`
 		ExpectedVersion int    `json:"expected_version"`
@@ -359,27 +398,34 @@ func (s *Service) ReconcileReleaseDeployment(ctx context.Context, p Principal, p
 	if err := exactVersion(m, "expected_version", 1); err != nil {
 		return ReleaseDeployment{}, err
 	}
-	read, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	readCtx, read, readCancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return ReleaseDeployment{}, err
 	}
-	if err = s.releaseBrowserTx(ctx, read, p, project, token, true); err != nil {
-		read.Rollback()
-		return ReleaseDeployment{}, err
-	}
-	hash, replay, err := s.receipt(ctx, read, p, project, req.IdempotencyKey, map[string]any{"release_reconcile": id, "body": m})
+	defer readCancel()
+	auth, err := s.releaseBrowserTx(readCtx, read, actor, project, true)
 	if err != nil {
 		read.Rollback()
+		readCancel()
+		return ReleaseDeployment{}, err
+	}
+	p = auth.currentPrincipal
+	hash, replay, err := s.commandReceipt(readCtx, auth, req.IdempotencyKey, map[string]any{"release_reconcile": id, "body": m})
+	if err != nil {
+		read.Rollback()
+		readCancel()
 		return ReleaseDeployment{}, err
 	}
 	if replay {
 		var saved ReleaseDeployment
 		err = json.Unmarshal([]byte(hash), &saved)
 		read.Rollback()
+		readCancel()
 		return saved, err
 	}
-	d, err := s.releaseDeploymentTx(ctx, read, p.TenantID, project, id)
+	d, err := s.releaseDeploymentTx(readCtx, read, p.TenantID, project, id)
 	read.Rollback()
+	readCancel()
 	if err != nil {
 		return d, err
 	}
@@ -414,21 +460,24 @@ func (s *Service) ReconcileReleaseDeployment(ctx context.Context, p Principal, p
 			if engine == nil {
 				return d, invalid("核对管理执行需要发布调度器")
 			}
-			return s.resolveObservedRelease(ctx, p, project, id, token, m, req.ExpectedVersion, req.IdempotencyKey, cfg, o, d, engine)
+			return s.resolveObservedRelease(ctx, actor, project, id, m, req.ExpectedVersion, req.IdempotencyKey, cfg, o, d, engine)
 		}
 	}
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return d, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.releaseBrowserTx(ctx, tx, p, project, token, true); err != nil {
+	auth, err = s.releaseBrowserTx(ctx, tx, actor, project, true)
+	if err != nil {
 		return d, err
 	}
+	p = auth.currentPrincipal
 	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return d, err
 	}
-	hash, replay, err = s.receipt(ctx, tx, p, project, req.IdempotencyKey, map[string]any{"release_reconcile": id, "body": m})
+	hash, replay, err = s.commandReceipt(ctx, auth, req.IdempotencyKey, map[string]any{"release_reconcile": id, "body": m})
 	if err != nil {
 		return d, err
 	}
@@ -447,12 +496,14 @@ func (s *Service) ReconcileReleaseDeployment(ctx context.Context, p Principal, p
 	if err != nil {
 		return d, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, req.IdempotencyKey, hash, d); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, d); err != nil {
 		return d, err
 	}
 	return d, tx.Commit()
 }
-func (s *Service) resolveObservedRelease(ctx context.Context, p Principal, project, id, token string, m map[string]any, expected int, key string, cfg ReleaseProviderConfig, o rc.DeploymentObservation, snapshot ReleaseDeployment, engine *dag.Engine) (ReleaseDeployment, error) {
+func (s *Service) resolveObservedRelease(ctx context.Context, actor Actor, project, id string, m map[string]any, expected int, key string, cfg ReleaseProviderConfig, o rc.DeploymentObservation, snapshot ReleaseDeployment, engine *dag.Engine) (ReleaseDeployment, error) {
+	p := actor.Projection()
+
 	if snapshot.Assignment == nil {
 		return snapshot, releaseConflict("observation_binding_invalid", "缺少原执行身份")
 	}
@@ -465,15 +516,18 @@ func (s *Service) resolveObservedRelease(ctx context.Context, p Principal, proje
 	var out ReleaseDeployment
 	var receiptHash string
 	var replay bool
+	var auth *authorizedCommand
 	err := engine.CompleteManagedObservedBound(ctx, p.TenantID, project, result, func(tx *sql.Tx) error {
-		if e := s.releaseBrowserTx(ctx, tx, p, project, token, true); e != nil {
+		var e error
+		auth, e = s.releaseBrowserTx(ctx, tx, actor, project, true)
+		if e != nil {
 			return e
 		}
+		p = auth.currentPrincipal
 		if e := dag.GuardExecutionScopeTx(ctx, tx, s.Dialect, p.TenantID, project, a.RunID); e != nil {
 			return e
 		}
-		var e error
-		receiptHash, replay, e = s.receipt(ctx, tx, p, project, key, map[string]any{"release_reconcile": id, "body": m})
+		receiptHash, replay, e = s.commandReceipt(ctx, auth, key, map[string]any{"release_reconcile": id, "body": m})
 		if e != nil {
 			return e
 		}
@@ -500,10 +554,10 @@ func (s *Service) resolveObservedRelease(ctx context.Context, p Principal, proje
 		if e != nil {
 			return e
 		}
-		if e = s.ValidateObservedManagedResultTx(ctx, tx, p, project, result, state); e != nil {
+		if e = s.ValidateObservedManagedResultTx(ctx, tx, auth, result, state); e != nil {
 			return e
 		}
-		return s.saveReceipt(ctx, tx, p, project, key, receiptHash, out)
+		return s.saveCommandReceipt(ctx, auth, key, receiptHash, out)
 	})
 	return out, err
 }
@@ -543,7 +597,9 @@ func inspectReleaseProvider(ctx context.Context, cfg ReleaseProviderConfig, oper
 	}
 	return out, nil
 }
-func (s *Service) RollbackReleasePreview(ctx context.Context, p Principal, project, id, token string, m map[string]any) (map[string]any, error) {
+func (s *Service) RollbackReleasePreview(ctx context.Context, actor Actor, project, id string, m map[string]any) (map[string]any, error) {
+	p := actor.Projection()
+
 	var req struct {
 		ProjectID                     string `json:"project_id"`
 		ExpectedEnvironmentGeneration int64  `json:"expected_environment_generation"`
@@ -554,14 +610,17 @@ func (s *Service) RollbackReleasePreview(ctx context.Context, p Principal, proje
 	if err := releaseGeneration(m, "expected_environment_generation"); err != nil {
 		return nil, err
 	}
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return nil, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.releaseBrowserTx(ctx, tx, p, project, token, true); err != nil {
+	auth, err := s.releaseBrowserTx(ctx, tx, actor, project, true)
+	if err != nil {
 		return nil, err
 	}
+	p = auth.currentPrincipal
 	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return nil, err
 	}
@@ -584,7 +643,14 @@ func (s *Service) RollbackReleasePreview(ctx context.Context, p Principal, proje
 // Invoked inside CompleteBound after its current attempt write, before advance.
 // The scheduler's state is not evidence; only a stored authenticated observation
 // can substantiate a successful managed deployment result.
-func (s *Service) ValidateReleaseResultTx(ctx context.Context, tx *sql.Tx, p Principal, project string, r dag.Result, state string) error {
+func (s *Service) ValidateReleaseResultTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, r dag.Result, state string) error {
+	if auth == nil {
+		return unauthenticated()
+	}
+	if err := auth.assertTx(tx, auth.target, purposeRunnerWrite); err != nil {
+		return err
+	}
+	p, project := auth.currentPrincipal, auth.target.projectID
 	var operation string
 	err := tx.QueryRowContext(ctx, s.q(`SELECT operation_id FROM suma_release_deployments WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=?`), p.TenantID, project, r.RunID, r.NodeID).Scan(&operation)
 	if err == sql.ErrNoRows {
@@ -602,12 +668,22 @@ func (s *Service) ValidateReleaseResultTx(ctx context.Context, tx *sql.Tx, p Pri
 	if r.ExitCode != 0 || r.Stopped || r.OutcomeUnknown {
 		return releaseConflict("deployment_success_unproven", "发布结果缺少真实提供方成功证据")
 	}
-	return s.ValidateObservedManagedResultTx(ctx, tx, p, project, r, state)
+	return s.ValidateObservedManagedResultTx(ctx, tx, auth, r, state)
 }
 
 // An already granted effect is a historical external fact. Later revocation or
 // task edits block new authorization, but cannot erase that authenticated fact.
-func (s *Service) ValidateObservedManagedResultTx(ctx context.Context, tx *sql.Tx, p Principal, project string, r dag.Result, state string) error {
+func (s *Service) ValidateObservedManagedResultTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, r dag.Result, state string) error {
+	if auth == nil {
+		return unauthenticated()
+	}
+	if err := auth.assertTx(tx, auth.target, auth.purpose); err != nil {
+		return err
+	}
+	if auth.purpose != purposeRunnerWrite && auth.purpose != purposeBrowserProjectWrite {
+		return forbidden()
+	}
+	p, project := auth.currentPrincipal, auth.target.projectID
 	var operation string
 	if err := tx.QueryRowContext(ctx, s.q(`SELECT operation_id FROM suma_release_deployments WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=?`), p.TenantID, project, r.RunID, r.NodeID).Scan(&operation); err != nil {
 		return missing()

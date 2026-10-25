@@ -13,15 +13,30 @@ import (
 func executionFromDeployment(d ReleaseDeployment, p ReleasePlan) rc.ReleaseExecution {
 	return rc.ReleaseExecution{Protocol: rc.ReleaseProtocol, OperationID: d.OperationID, PlanID: p.ID, PlanRevision: p.Revision, PlanSHA256: p.SHA256, EnvironmentID: d.EnvironmentID, ProviderID: d.ProviderID, ExpectedGeneration: p.Content.ExpectedGeneration, Generation: d.Generation, ArtifactID: d.ArtifactID, ArtifactSHA256: d.ArtifactSHA256}
 }
-func (s *Service) ReleaseExecutionForAssignment(ctx context.Context, p Principal, project string, a dag.Assignment) (*rc.ReleaseExecution, error) {
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
-	if err != nil {
-		return nil, err
+func (s *Service) ReleaseExecutionForAssignment(ctx context.Context, actor Actor, project string, a dag.Assignment) (out *rc.ReleaseExecution, err error) {
+	err = s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeRunnerRead, func(auth *authorizedCommand) error {
+		if e := s.runnerIdentityBindingTx(ctx, auth.tx, auth, a.WorkerID); e != nil {
+			return e
+		}
+		var e error
+		out, e = s.readReleaseExecutionForAssignmentTx(ctx, auth, project, a)
+		return e
+	})
+	return out, err
+}
+func (s *Service) readReleaseExecutionForAssignmentTx(ctx context.Context, auth *authorizedCommand, project string, a dag.Assignment) (*rc.ReleaseExecution, error) {
+	if auth == nil {
+		return nil, unauthenticated()
 	}
-	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
-		return nil, err
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return nil, e
 	}
+	if auth.target.projectID != project {
+		return nil, forbidden()
+	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
 	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return nil, err
 	}
@@ -43,7 +58,9 @@ func (s *Service) ReleaseExecutionForAssignment(ctx context.Context, p Principal
 	}
 	out := executionFromDeployment(d, plan)
 	return &out, nil
+
 }
+
 func (s *Service) releaseDeploymentBasisTx(ctx context.Context, tx *sql.Tx, tenant, project string, d ReleaseDeployment) (ReleasePlan, error) {
 	p := Principal{ID: d.ExecutedBy, TenantID: tenant}
 	plan, err := s.currentReleasePlanTx(ctx, tx, tenant, project, d.PlanID)
@@ -63,17 +80,21 @@ func (s *Service) releaseDeploymentBasisTx(ctx context.Context, tx *sql.Tx, tena
 	}
 	return plan, nil
 }
-func (s *Service) IssueReleaseAuthorization(ctx context.Context, p Principal, token string, r rc.ReleaseAuthorizationRequest) (rc.ReleaseAuthorization, error) {
+func (s *Service) IssueReleaseAuthorization(ctx context.Context, actor Actor, r rc.ReleaseAuthorizationRequest) (rc.ReleaseAuthorization, error) {
+	p := actor.Projection()
+
 	var out rc.ReleaseAuthorization
 	if !rc.ValidOperationID(r.OperationID) || !r.Assignment.Valid() {
 		return out, invalid("部署操作或执行身份无效")
 	}
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.releaseWorkerTx(ctx, tx, p, r.ProjectID, token, r.Assignment.WorkerID, "", "", "deployment"); err != nil {
+	_, err = s.releaseWorkerTx(ctx, tx, actor, r.ProjectID, r.Assignment.WorkerID, "", "", "deployment")
+	if err != nil {
 		return out, err
 	}
 	if _, err = s.currentArtifactAssignmentTx(ctx, tx, p, r.ProjectID, r.Assignment); err != nil {
@@ -107,9 +128,13 @@ func (s *Service) IssueReleaseAuthorization(ctx context.Context, p Principal, to
 	if _, err = tx.ExecContext(ctx, s.q(`UPDATE suma_release_authorizations SET state='revoked' WHERE tenant_id=? AND project_id=? AND operation_id=? AND state='issued'`), p.TenantID, r.ProjectID, r.OperationID); err != nil {
 		return out, err
 	}
+	clock, err := s.automationClock(ctx, tx)
+	if err != nil {
+		return out, err
+	}
 	secret := newID() + newID()
-	out = rc.ReleaseAuthorization{AuthorizationID: newID(), AuthorizationTicket: secret, ExpiresAt: time.Now().UTC().Add(120 * time.Second).Format(time.RFC3339Nano), OperationID: r.OperationID, RequestSHA256: requestHash}
-	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_release_authorizations(id,tenant_id,project_id,operation_id,ticket_hash,expires_at,state,assignment,request_sha256,effect_grant_id,grant_data,actor_id,worker_token_hash)VALUES(?,?,?,?,?,?,'issued',?,?,'','',?,?)`), out.AuthorizationID, p.TenantID, r.ProjectID, r.OperationID, digest(secret), out.ExpiresAt, stringify(r.Assignment), requestHash, p.ID, digest(token)); err != nil {
+	out = rc.ReleaseAuthorization{AuthorizationID: newID(), AuthorizationTicket: secret, ExpiresAt: clock.Add(120 * time.Second).Format(time.RFC3339Nano), OperationID: r.OperationID, RequestSHA256: requestHash}
+	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_release_authorizations(id,tenant_id,project_id,operation_id,ticket_hash,expires_at,state,assignment,request_sha256,effect_grant_id,grant_data,actor_id,worker_token_hash)VALUES(?,?,?,?,?,?,'issued',?,?,'','',?,?)`), out.AuthorizationID, p.TenantID, r.ProjectID, r.OperationID, digest(secret), out.ExpiresAt, stringify(r.Assignment), requestHash, p.ID, actor.credential.digest); err != nil {
 		return rc.ReleaseAuthorization{}, err
 	}
 	old := d.Version
@@ -143,19 +168,43 @@ func (s *Service) releaseAuthorizationTx(ctx context.Context, tx *sql.Tx, cfg Re
 	}
 	return a, nil
 }
+
+func (s *Service) currentReleaseAuthorizationTx(ctx context.Context, tx *sql.Tx, cfg ReleaseProviderConfig, where string, arg any) (releaseAuthorizationRow, error) {
+	var a releaseAuthorizationRow
+	var raw string
+	err := tx.QueryRowContext(ctx, s.q(s.currentSQL(`SELECT id,operation_id,expires_at,state,assignment,request_sha256,effect_grant_id,grant_data,actor_id,worker_token_hash FROM suma_release_authorizations WHERE tenant_id=? AND project_id=? AND `+where)), cfg.TenantID, cfg.ProjectID, arg).Scan(&a.ID, &a.OperationID, &a.ExpiresAt, &a.State, &raw, &a.RequestSHA256, &a.EffectGrantID, &a.GrantData, &a.ActorID, &a.WorkerTokenHash)
+	if err != nil {
+		return a, forbidden()
+	}
+	if err = json.Unmarshal([]byte(raw), &a.Assignment); err != nil {
+		return a, err
+	}
+	return a, nil
+}
 func (s *Service) releaseAuthorizationCurrentTx(ctx context.Context, tx *sql.Tx, cfg ReleaseProviderConfig, a releaseAuthorizationRow) (ReleaseDeployment, ReleasePlan, error) {
 	var d ReleaseDeployment
 	var plan ReleasePlan
-	p := Principal{ID: a.ActorID, TenantID: cfg.TenantID}
-	if err := s.authorizeProjectTx(ctx, tx, p, cfg.ProjectID, true, false); err != nil {
+	// The digest comes exclusively from a persisted provider ticket. Constructing
+	// this candidate grants nothing: current Grant/source/slot authority is proven
+	// in this transaction before the ticket or scheduler can be consumed.
+	actor, err := s.runnerActorByHashTx(ctx, tx, a.WorkerTokenHash)
+	if err != nil {
 		return d, plan, err
 	}
-	var worker, status, expiry, user string
-	var deploy bool
-	err := tx.QueryRowContext(ctx, s.q(`SELECT w.worker_id,w.status,w.deployment,x.user_id,x.expires_at FROM suma_release_workers w JOIN suma_sessions x ON x.token_hash=w.token_hash JOIN suma_token_scopes t ON t.token_hash=w.token_hash WHERE w.token_hash=? AND w.tenant_id=? AND w.project_id=? AND t.kind='runner' AND t.project_id=w.project_id`), a.WorkerTokenHash, cfg.TenantID, cfg.ProjectID).Scan(&worker, &status, &deploy, &user, &expiry)
-	expires, parseErr := time.Parse(time.RFC3339Nano, expiry)
-	if err != nil || parseErr != nil || !time.Now().Before(expires) || worker != a.Assignment.WorkerID || user != a.ActorID || status != "active" || !deploy {
+	auth, err := s.releaseWorkerTx(ctx, tx, actor, cfg.ProjectID, a.Assignment.WorkerID, "", "", "deployment")
+	if err != nil {
+		return d, plan, err
+	}
+	p := auth.currentPrincipal
+	if p.ID != a.ActorID || p.TenantID != cfg.TenantID {
 		return d, plan, forbidden()
+	}
+	locked, err := s.currentReleaseAuthorizationTx(ctx, tx, cfg, "id=?", a.ID)
+	if err != nil {
+		return d, plan, err
+	}
+	if locked.WorkerTokenHash != a.WorkerTokenHash || locked.ActorID != a.ActorID || locked.RequestSHA256 != a.RequestSHA256 || locked.State != a.State || !releaseSame(locked.Assignment, a.Assignment) {
+		return d, plan, conflict("发布授权已变化，请重试")
 	}
 	if _, err = s.currentArtifactAssignmentTx(ctx, tx, p, cfg.ProjectID, a.Assignment); err != nil {
 		return d, plan, err
@@ -179,14 +228,12 @@ func (s *Service) ConsumeReleaseAuthorization(ctx context.Context, token string,
 	if !releaseID(r.ProviderID) || !rc.ValidOperationID(r.OperationID) || !rc.ValidDigest(r.RequestSHA256) || r.AuthorizationTicket == "" || r.CallerWorkerID != r.Assignment.WorkerID || !r.Assignment.Valid() {
 		return out, forbidden()
 	}
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.lockOrganization(ctx, tx, cfg.TenantID); err != nil {
-		return out, err
-	}
 	a, err := s.releaseAuthorizationTx(ctx, tx, cfg, "ticket_hash=?", digest(r.AuthorizationTicket))
 	if err != nil {
 		return out, err
@@ -194,8 +241,12 @@ func (s *Service) ConsumeReleaseAuthorization(ctx context.Context, token string,
 	if a.OperationID != r.OperationID || a.RequestSHA256 != r.RequestSHA256 || !releaseSame(a.Assignment, r.Assignment) || a.State != "issued" && a.State != "consumed" {
 		return out, forbidden()
 	}
+	clock, err := s.automationClock(ctx, tx)
+	if err != nil {
+		return out, err
+	}
 	expiry, err := time.Parse(time.RFC3339Nano, a.ExpiresAt)
-	if err != nil || !time.Now().Before(expiry) {
+	if err != nil || !clock.Before(expiry) {
 		return out, releaseError(403, "authorization_expired", "发布票据已过期")
 	}
 	_, plan, err := s.releaseAuthorizationCurrentTx(ctx, tx, cfg, a)
@@ -220,14 +271,12 @@ func (s *Service) BeginReleaseEffect(ctx context.Context, token string, r rc.Beg
 	if err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.lockOrganization(ctx, tx, cfg.TenantID); err != nil {
-		return out, err
-	}
 	a, err := s.releaseAuthorizationTx(ctx, tx, cfg, "id=?", r.AuthorizationID)
 	if err != nil {
 		return out, err
@@ -288,10 +337,11 @@ func (s *Service) ProviderArtifactAccess(ctx context.Context, token, operationID
 	if err != nil {
 		return Principal{}, "", err
 	}
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return Principal{}, "", err
 	}
+	defer cancel()
 	defer tx.Rollback()
 	if err = s.lockOrganization(ctx, tx, cfg.TenantID); err != nil {
 		return Principal{}, "", err

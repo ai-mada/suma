@@ -1,3 +1,4 @@
+import {useApi} from './api-context';
 import {tr,useLocale,formatNumber} from './i18n';
 import {useEffect,useMemo,useState} from 'react';
 import {ArrowRight,ArrowUpRight,Box,CheckCircle2,ChevronRight,FileCheck2,GitBranch,Plus,RefreshCw,RotateCcw,ShieldCheck,X} from 'lucide-react';
@@ -16,9 +17,9 @@ function canLeave(){return window.dispatchEvent(new Event('suma:navigate',{cance
 const short=(value:string)=>value.length>20?value.slice(0,16)+'…':value;
 function reference(project:string,view:string,sub:string,record:string){return '?'+new URLSearchParams({project,view,sub,record});}
 
-export function ReleaseWorkspace({project,session,tab,selected,panel,search,onSearch,refresh,onSelect,onTab}:Props){useLocale();
+export function ReleaseWorkspace({project,session,tab,selected,panel,search,onSearch,refresh,onSelect,onTab}:Props){ const api=useApi();useLocale();
  const[revision,setRevision]=useState(0),[dialog,setDialog]=useState<Dialog>(),[localError,setLocalError]=useState<unknown>('');
- const recovery=useMemo(()=>new ReleaseWriteRecovery(session.organization.id+':'+session.user.id+':'+project,sessionStore()),[session.organization.id,session.user.id,project]),action=useReleaseAction(recovery,()=>setDialog(undefined)),tick=refresh+revision;
+ const recovery=useMemo(()=>new ReleaseWriteRecovery(session.organization.id+':'+session.user.id+':'+project, sessionStore(), api),[session.organization.id, session.user.id, project, api]),action=useReleaseAction(recovery,()=>setDialog(undefined)),tick=refresh+revision;
  const collection=useReleaseCollection(project,tab,tick),detail=useReleaseRead<ReleaseListItem>(selected?'/'+tab+'/'+encodeURIComponent(selected)+query(project):'',tick);
  const current=detail.data,stale=detail.loading||!!detail.error,unknown=!!action.pending;
  useEffect(()=>{if(tab!=='deployments'||!selected)return;const timer=setInterval(()=>void detail.read(),5000);return()=>clearInterval(timer);},[tab,selected,detail.read]);

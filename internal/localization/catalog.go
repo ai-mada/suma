@@ -2,7 +2,7 @@ package localization
 
 // 键表示稳定的显示语义。相同 HTTP code 可以对应多个具体消息；翻译不
 // 改变机器状态、代码、用户内容或任何持久化业务字段。
-var catalog = combineCatalogs(commonCatalog, poolCatalog, preferencesCatalog, workspaceCatalog, controlCatalog, executionCatalog, releaseCatalog, validationCatalog, dagCatalog, nativeCatalog, toolDiagnosticCatalog, attemptHistoryCatalog, displayCatalog)
+var catalog = combineCatalogs(commonCatalog, poolCatalog, preferencesCatalog, workspaceCatalog, controlCatalog, executionCatalog, releaseCatalog, validationCatalog, dagCatalog, nativeCatalog, toolDiagnosticCatalog, attemptHistoryCatalog, displayCatalog, authorityCatalog)
 
 // Build a separate immutable catalog so adding a domain cannot reuse and mutate
 // another domain's backing array. Lookup and formatting remain request-scoped.
@@ -19,6 +19,8 @@ func combineCatalogs(groups ...[]Definition) []Definition {
 }
 
 var commonCatalog = []Definition{
+	{Key: "auth.view_context_required", Texts: map[Locale]string{ZhCN: "需要原始账户与组织上下文，请刷新页面后重试", EnUS: "The original account and organization context is required. Refresh the page and try again."}},
+	{Key: "auth.view_context_changed", Texts: map[Locale]string{ZhCN: "账户或组织已变化，请核对原请求后重试", EnUS: "The account or organization has changed. Review the original request before retrying."}},
 	{Key: "common.forbidden", Texts: map[Locale]string{ZhCN: "当前身份没有此操作权限", EnUS: "Your current identity does not have permission for this operation."}},
 	{Key: "common.not_found", Texts: map[Locale]string{ZhCN: "记录不存在或不可访问", EnUS: "The record does not exist or is not accessible."}},
 	{Key: "common.service_unavailable", Texts: map[Locale]string{ZhCN: "服务暂时无法完成操作", EnUS: "The service cannot complete this operation right now."}},

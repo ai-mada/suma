@@ -18,6 +18,8 @@
 
 `--timeout` 为单次请求时限，默认 `15s`，例如 `--timeout 30s`。Ctrl+C 取消请求。CLI 不自动重试，不跟随 HTTP 重定向，避免将凭证发送到其他地址。
 
+浏览器 Bearer 会话命令需要显式保存原页面身份：`--expected-user USER_ID` 与 `--expected-organization ORGANIZATION_ID`（也可由当前进程 `SUMA_EXPECTED_USER`／`SUMA_EXPECTED_ORGANIZATION` 指定）。仅账户全局偏好使用 user 参数，不能带组织参数。CLI 每次调用只捕获一次这些标识，不自动查询最新 session 替换；未知结果重试应保留标识、操作 key 与正文。标识必须是 32 位小写十六进制。普通项目 `api` 凭证不需要浏览器上下文；这些参数不授予权限。
+
 ## 只读命令
 
 ```powershell

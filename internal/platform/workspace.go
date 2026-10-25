@@ -85,17 +85,38 @@ func workspaceFile(root, rel string) (string, error) {
 	}
 	return target, nil
 }
-func (s *Service) workspaceRoot(ctx context.Context, p Principal, project string) (string, error) {
+func (s *Service) workspaceReadGuard(ctx context.Context, actor Actor, project, expected string) (root string, err error) {
+	err = s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(auth *authorizedCommand) error {
+		e := auth.tx.QueryRowContext(ctx, s.q(`SELECT root_path FROM suma_workspace_bindings WHERE tenant_id=? AND project_id=?`), auth.currentPrincipal.TenantID, project).Scan(&root)
+		if errors.Is(e, sql.ErrNoRows) {
+			return &APIError{422, "workspace_not_configured", "请先配置当前项目的工作区", nil}
+		}
+		if e != nil {
+			return e
+		}
+		if expected != "" && root != expected {
+			return conflict("工作区绑定已变化，请重新加载")
+		}
+		return nil
+	})
+	return root, err
+}
+
+var errWorkspaceDisabled = forbidden()
+
+func (s *Service) workspaceRoot(ctx context.Context, actor Actor, project string) (string, error) {
 	if strings.TrimSpace(os.Getenv("SUMA_WORKSPACE_ROOT")) == "" {
-		return "", forbidden()
+		if err := s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(*authorizedCommand) error { return nil }); err != nil {
+			return "", err
+		}
+		return "", errWorkspaceDisabled
 	}
-	var root string
-	e := s.DB.QueryRowContext(ctx, s.q(`SELECT root_path FROM suma_workspace_bindings WHERE tenant_id=? AND project_id=?`), p.TenantID, project).Scan(&root)
-	if errors.Is(e, sql.ErrNoRows) {
-		return "", &APIError{422, "workspace_not_configured", "请先配置当前项目的工作区", nil}
-	}
+	root, e := s.workspaceReadGuard(ctx, actor, project, "")
 	if e != nil {
 		return "", e
+	}
+	if strings.TrimSpace(os.Getenv("SUMA_WORKSPACE_ROOT")) == "" {
+		return "", forbidden()
 	}
 	resolved, e := filepath.EvalSymlinks(root)
 	if e != nil {
@@ -110,13 +131,19 @@ func (s *Service) workspaceRoot(ctx context.Context, p Principal, project string
 		return "", invalid("工作区目录不可用")
 	}
 	return resolved, nil
+
 }
+
 func (s *Service) MigrateWorkspace(ctx context.Context) error {
 	payloadType := "TEXT"
 	if s.Dialect == "oceanbase" {
 		payloadType = "MEDIUMTEXT"
 	}
 	_, e := s.DB.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS suma_workspace_file_operations (tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,operation_id VARCHAR(128) NOT NULL,request_hash VARCHAR(64) NOT NULL,root_path TEXT NOT NULL,path TEXT NOT NULL,expected_hash VARCHAR(64) NOT NULL,new_hash VARCHAR(64) NOT NULL,content `+payloadType+` NOT NULL,response `+payloadType+` NOT NULL,state VARCHAR(20) NOT NULL,created_at VARCHAR(40) NOT NULL,PRIMARY KEY(tenant_id,project_id,operation_id))`)
+	if e != nil {
+		return e
+	}
+	_, e = s.DB.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS suma_workspace_accepted_operations(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,operation_id VARCHAR(128) NOT NULL,request_hash VARCHAR(64) NOT NULL,accepted_by VARCHAR(64) NOT NULL,accepted_at VARCHAR(40) NOT NULL,PRIMARY KEY(tenant_id,project_id,operation_id))`)
 	return e
 }
 
@@ -234,6 +261,10 @@ func (s *Service) recoverWorkspace(ctx context.Context, tx *sql.Tx, p Principal,
 		return e
 	}
 	for _, op := range pending {
+		var accepted string
+		if e = tx.QueryRowContext(ctx, s.q(`SELECT a.request_hash FROM suma_workspace_accepted_operations a JOIN suma_workspace_file_operations o ON o.tenant_id=a.tenant_id AND o.project_id=a.project_id AND o.operation_id=a.operation_id AND o.request_hash=a.request_hash WHERE a.tenant_id=? AND a.project_id=? AND a.operation_id=?`), p.TenantID, project, op.key).Scan(&accepted); e != nil {
+			return &APIError{409, "workspace_reconciliation_required", "先前保存缺少可信受理记录，需要核对", nil}
+		}
 		allowed, e := allowedWorkspaceRoot()
 		if e != nil || !under(allowed, op.root) {
 			return forbidden()
@@ -260,10 +291,26 @@ func (s *Service) recoverWorkspace(ctx context.Context, tx *sql.Tx, p Principal,
 	}
 	return nil
 }
-func (s *Service) saveWorkspace(ctx context.Context, p Principal, project string, m map[string]any) (map[string]any, error) {
-	if e := s.Authorize(ctx, p, project, true, false); e != nil {
-		return nil, e
+
+// Only a current transaction-bound interactive command can accept a durable file
+// operation. Recovery consumes this exact persisted scope/hash, never a Principal.
+func (s *Service) prepareWorkspaceOperationTx(ctx context.Context, auth *authorizedCommand, key, hash, root, rel, current, content string, out map[string]any) error {
+	if auth == nil {
+		return unauthenticated()
 	}
+	if err := auth.assertTx(auth.tx, auth.target, purposeProjectWrite); err != nil {
+		return err
+	}
+	p, project := auth.currentPrincipal, auth.target.projectID
+	if _, err := auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_workspace_file_operations(tenant_id,project_id,operation_id,request_hash,root_path,path,expected_hash,new_hash,content,response,state,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`), p.TenantID, project, key, hash, root, rel, digest(current), digest(content), content, stringify(out), "prepared", automationStamp(auth.checkedAt)); err != nil {
+		return err
+	}
+	_, err := auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_workspace_accepted_operations(tenant_id,project_id,operation_id,request_hash,accepted_by,accepted_at)VALUES(?,?,?,?,?,?)`), p.TenantID, project, key, hash, p.ID, automationStamp(auth.checkedAt))
+	return err
+}
+func (s *Service) saveWorkspace(ctx context.Context, actor Actor, project string, m map[string]any) (map[string]any, error) {
+	p := actor.Projection()
+	parentCtx := ctx
 	key, rel, content := str(m, "idempotency_key"), str(m, "path"), str(m, "content")
 	if len(key) < 8 || len(key) > 128 {
 		return nil, invalid("请提供 8–128 字符的 idempotency_key")
@@ -272,11 +319,17 @@ func (s *Service) saveWorkspace(ctx context.Context, p Principal, project string
 		return nil, invalid("仅支持 1 MiB 以内的文本内容")
 	}
 	hash := digest(p.ID + stringify(map[string]any{"kind": "workspace.file", "body": m}))
-	tx, e := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, e := s.beginAuthorityTx(parentCtx)
 	if e != nil {
 		return nil, e
 	}
+	defer cancel()
 	defer tx.Rollback()
+	auth, e := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: project}, purposeProjectWrite)
+	if e != nil {
+		return nil, e
+	}
+	p = auth.currentPrincipal
 	if e = s.workspaceLock(ctx, tx, p, project); e != nil {
 		return nil, e
 	}
@@ -327,24 +380,30 @@ func (s *Service) saveWorkspace(ctx context.Context, p Principal, project string
 		return nil, conflict("文件已被其他操作修改，请比较后保存")
 	}
 	out := fileResponse(rel, content)
-	_, e = tx.ExecContext(ctx, s.q(`INSERT INTO suma_workspace_file_operations(tenant_id,project_id,operation_id,request_hash,root_path,path,expected_hash,new_hash,content,response,state,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`), p.TenantID, project, key, hash, root, rel, digest(current), digest(content), content, stringify(out), "prepared", now())
-	if e != nil {
+	if e = s.prepareWorkspaceOperationTx(ctx, auth, key, hash, root, rel, current, content, out); e != nil {
 		return nil, e
 	}
 	if e = tx.Commit(); e != nil {
 		return nil, e
 	}
+	cancel()
 	// Durable preparation survives crashes on either side of rename. Other
 	// requests can safely finish it before this request reacquires the lock.
-	finish, e := s.DB.BeginTx(ctx, nil)
+	finishCtx, finish, finishCancel, e := s.beginAuthorityTx(parentCtx)
 	if e != nil {
 		return nil, e
 	}
+	defer finishCancel()
 	defer finish.Rollback()
-	if e = s.workspaceLock(ctx, finish, p, project); e != nil {
+	finishAuth, e := s.authorizeTx(finishCtx, finish, actor, commandTarget{tenantID: p.TenantID, projectID: project}, purposeProjectWrite)
+	if e != nil {
 		return nil, e
 	}
-	if e = s.recoverWorkspace(ctx, finish, p, project); e != nil {
+	p = finishAuth.currentPrincipal
+	if e = s.workspaceLock(finishCtx, finish, p, project); e != nil {
+		return nil, e
+	}
+	if e = s.recoverWorkspace(finishCtx, finish, p, project); e != nil {
 		return nil, e
 	}
 	if e = finish.Commit(); e != nil {
@@ -352,13 +411,10 @@ func (s *Service) saveWorkspace(ctx context.Context, p Principal, project string
 	}
 	return out, nil
 }
-func (s *Server) workspace(w http.ResponseWriter, r *http.Request, p Principal, project, path string, m map[string]any) {
+func (s *Server) workspace(w http.ResponseWriter, r *http.Request, actor Actor, project, path string, m map[string]any) {
 	ctx := r.Context()
+	p := actor.Projection()
 	if path == "workspace/binding" && r.Method == "POST" {
-		if p.Role != "owner" && p.Role != "admin" {
-			writeError(w, forbidden())
-			return
-		}
 		allowed := os.Getenv("SUMA_WORKSPACE_ROOT")
 		if allowed == "" {
 			writeError(w, invalid("服务端尚未配置 SUMA_WORKSPACE_ROOT"))
@@ -389,12 +445,23 @@ func (s *Server) workspace(w http.ResponseWriter, r *http.Request, p Principal, 
 			writeError(w, invalid("工作区必须是目录"))
 			return
 		}
-		tx, e := s.Service.DB.BeginTx(ctx, nil)
+		ctx, tx, cancel, e := s.Service.beginAuthorityTx(ctx)
 		if e != nil {
 			writeError(w, e)
 			return
 		}
+		defer cancel()
 		defer tx.Rollback()
+		auth, e := s.Service.authorizeTx(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: project}, purposeProjectApprove)
+		if e != nil {
+			writeError(w, e)
+			return
+		}
+		p = auth.currentPrincipal
+		if !orgAdmin(p) {
+			writeError(w, forbidden())
+			return
+		}
 		if e = s.Service.workspaceLock(ctx, tx, p, project); e == nil {
 			e = s.Service.recoverWorkspace(ctx, tx, p, project)
 		}
@@ -415,7 +482,7 @@ func (s *Server) workspace(w http.ResponseWriter, r *http.Request, p Principal, 
 		return
 	}
 	if path == "workspace/file" && r.Method == "POST" {
-		out, e := s.Service.saveWorkspace(ctx, p, project, m)
+		out, e := s.Service.saveWorkspace(ctx, actor, project, m)
 		respond(w, 200, out, e)
 		return
 	}
@@ -423,8 +490,12 @@ func (s *Server) workspace(w http.ResponseWriter, r *http.Request, p Principal, 
 		writeError(w, &APIError{405, "method_not_allowed", "不支持此请求方法", nil})
 		return
 	}
-	root, e := s.Service.workspaceRoot(ctx, p, project)
+	root, e := s.Service.workspaceRoot(ctx, actor, project)
 	if e != nil {
+		if automationAuthorityFailure(e) && !errors.Is(e, errWorkspaceDisabled) {
+			writeError(w, e)
+			return
+		}
 		if path == "workspace" {
 			writeJSON(w, 200, map[string]any{"configured": false, "files": []any{}, "reason": e.Error(), "binding_available": os.Getenv("SUMA_WORKSPACE_ROOT") != ""})
 			return
@@ -459,6 +530,10 @@ func (s *Server) workspace(w http.ResponseWriter, r *http.Request, p Principal, 
 			return nil
 		})
 		sort.Slice(files, func(i, j int) bool { return files[i]["path"].(string) < files[j]["path"].(string) })
+		if _, e = s.Service.workspaceReadGuard(ctx, actor, project, root); e != nil {
+			writeError(w, e)
+			return
+		}
 		writeJSON(w, 200, map[string]any{"configured": true, "root": root, "name": filepath.Base(root), "files": files, "limit": 1000, "truncated": truncated})
 		return
 	}
@@ -469,5 +544,8 @@ func (s *Server) workspace(w http.ResponseWriter, r *http.Request, p Principal, 
 		return
 	}
 	content, e := readWorkspaceFile(target)
+	if e == nil {
+		_, e = s.Service.workspaceReadGuard(ctx, actor, project, root)
+	}
 	respond(w, 200, fileResponse(rel, content), e)
 }

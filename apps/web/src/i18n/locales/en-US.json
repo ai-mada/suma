@@ -14,6 +14,7 @@
   "common.responseUnknown": "The service returned success, but its receipt was incomplete. Recover the same operation to confirm its result.",
   "common.httpFailure": "Request failed ({{status}}); its error receipt was incomplete.",
   "common.httpFailed": "Request failed ({{status}})",
+  "common.viewContextConflict": "The original view identity conflicts with this request. Reload the view before starting a new operation.",
   "nav.overview": "Overview",
   "nav.requirements": "Requirements",
   "nav.development": "Development",

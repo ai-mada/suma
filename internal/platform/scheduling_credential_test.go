@@ -23,7 +23,7 @@ func TestRunnerClaimRechecksCredentialAfterOuterAuthentication(t *testing.T) {
 			}
 			// Reproduce authentication having finished before another connection
 			// revokes/expires the credential, without forging a Principal.
-			principal, err := f.s.Authenticate(ctx, token)
+			actor, err := f.s.AuthenticateActor(ctx, token)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -38,15 +38,16 @@ func TestRunnerClaimRechecksCredentialAfterOuterAuthentication(t *testing.T) {
 			}
 			defer other.Close()
 			if change == "logout" {
-				err = (&Service{DB: other, Dialect: "sqlite"}).Logout(ctx, token)
+				err = logoutCredentialForTest(ctx, &Service{DB: other, Dialect: "sqlite"}, token)
 			} else {
 				_, err = other.ExecContext(ctx, `UPDATE suma_sessions SET expires_at='2000-01-01T00:00:00Z' WHERE token_hash=?`, digest(token))
 			}
 			if err != nil {
 				t.Fatal(err)
 			}
-			_, err = f.e.ClaimWithOperation(ctx, principal.TenantID, f.project, "generic-worker", operation, []string{"command:inspect"}, func(tx *sql.Tx) error {
-				return f.s.runnerIdentityTx(ctx, tx, principal, f.project, token, "generic-worker")
+			_, err = f.e.ClaimWithOperation(ctx, actor.Projection().TenantID, f.project, "generic-worker", operation, []string{"command:inspect"}, func(tx *sql.Tx) error {
+				_, err := f.s.runnerIdentityTx(ctx, tx, actor, f.project, "generic-worker")
+				return err
 			}, nil)
 			if err == nil {
 				t.Fatal("revoked/expired credential recovered an executable receipt using cached outer authentication")
@@ -66,7 +67,7 @@ func TestSchedulingCommitRechecksSessionBeforeSuccessfulReceipt(t *testing.T) {
 	request := SchedulingPolicyCommitRequest{ProjectID: f.project, ExpectedVersion: 1, IdempotencyKey: newID()}
 	f.call("POST", "/scheduling/policy-previews/"+preview["id"].(string)+"/commit", request, 200)
 	token := f.cookie.Value
-	principal, err := f.s.Authenticate(ctx, token)
+	actor, err := f.s.AuthenticateActor(ctx, token)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,10 +81,10 @@ func TestSchedulingCommitRechecksSessionBeforeSuccessfulReceipt(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer other.Close()
-	if err = (&Service{DB: other, Dialect: "sqlite"}).Logout(ctx, token); err != nil {
+	if err = logoutCredentialForTest(ctx, &Service{DB: other, Dialect: "sqlite"}, token); err != nil {
 		t.Fatal(err)
 	}
-	_, err = f.s.CommitSchedulingPreview(ctx, f.e, principal, f.project, preview["id"].(string), request, token)
+	_, err = f.s.CommitSchedulingPreview(ctx, f.e, actor, f.project, preview["id"].(string), request)
 	if err == nil {
 		t.Fatal("logged-out browser session recovered privileged policy receipt using cached outer authentication")
 	}

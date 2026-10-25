@@ -23,14 +23,16 @@ pnpm check:docs
 测试和构建缓存使用仓库忽略的 .cache，环境变量仅对当前进程生效：
 
 ```powershell
-New-Item -ItemType Directory -Force .cache/go-build,.cache/go-tmp,.cache/test-tmp | Out-Null
+New-Item -ItemType Directory -Force .cache/go-build,.cache/ct | Out-Null
 $env:GOCACHE=(Resolve-Path .cache/go-build).Path
-$env:GOTMPDIR=(Resolve-Path .cache/go-tmp).Path
-$env:TEMP=(Resolve-Path .cache/test-tmp).Path
+$env:GOTMPDIR=(Resolve-Path .cache/ct).Path
+$env:TEMP=$env:GOTMPDIR
 $env:TMP=$env:TEMP
 go test ./... -count=1
 go vet ./...
 ```
+
+Windows 的真实 Git worktree 测试会在 Go 临时目录内继续创建 `.cache/runner/worktrees/...`。014 本机复现到 Git for Windows 内部 `'$GIT_DIR' too big`；同失败项在较短的仓库忽略目录 `.cache/ct` 下通过。上方仅缩短当前测试进程的临时路径，不改用户／机器环境，也不在盘符根散落目录；更长工作区仍需按项目目录策略选择足够短的受控任务目录。该结果不代表所有平台安装与 Git 长路径场景已验收。
 
 容器入口脚本测试需要 POSIX sh；Windows 可通过 SUMA_TEST_SH 指定已有 Git for Windows 的 sh.exe。该设置仅用于测试，不为 Runner 开启 shell。实际执行子进程采用明确命令许可、参数数组和显式环境；Go 测试命令还需要在许可环境中给出 GOCACHE/TEMP 等目录，不能依赖宿主机凭证或完整环境隐式继承。
 

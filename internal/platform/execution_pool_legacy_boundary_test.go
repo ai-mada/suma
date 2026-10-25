@@ -10,7 +10,7 @@ import (
 func TestProjectRunnerCannotWritePoolAttemptByStrippingScope(t *testing.T) {
 	f := newFixture(t)
 	ctx := context.Background()
-	pool, err := f.s.CreateExecutionPool(ctx, f.e, f.user, f.cookie.Value, ExecutionPoolCreateRequest{Name: "隔离池", Policy: ExecutionPoolPolicyInput{ConcurrencyLimit: 2, ResourceLimits: map[string]*int64{}, TenantWeights: map[string]int{}}, IdempotencyKey: newID()})
+	pool, err := f.s.CreateExecutionPool(ctx, f.e, f.actor, ExecutionPoolCreateRequest{Name: "隔离池", Policy: ExecutionPoolPolicyInput{ConcurrencyLimit: 2, ResourceLimits: map[string]*int64{}, TenantWeights: map[string]int{}}, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}

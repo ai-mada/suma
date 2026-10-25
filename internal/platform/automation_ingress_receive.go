@@ -221,7 +221,7 @@ func (s *Service) ingressAdmission(ctx context.Context, tx *sql.Tx, in automatio
 		return "rule_inactive_or_revised", nil
 	}
 	for _, actor := range []string{in.ActivatedBy, a.ActivatedBy} {
-		if err := s.authorizeProjectTx(ctx, tx, Principal{ID: actor, TenantID: in.tenant}, in.ProjectID, true, true); err != nil {
+		if _, err := s.currentProjectMembershipLockedTx(ctx, tx, in.tenant, actor, in.ProjectID, true, true); err != nil {
 			if automationAuthorityFailure(err) {
 				return "activation_authority_revoked", nil
 			}
@@ -242,6 +242,17 @@ func ingressReceipt(delivery AutomationIngressDelivery, duplicate bool) Automati
 }
 func (s *Service) ReceiveAutomationIngress(ctx context.Context, id string, headers http.Header, raw []byte) (AutomationIngressReceipt, error) {
 	var out AutomationIngressReceipt
+	var err error
+	for attempt := 0; attempt < 3; attempt++ {
+		out, err = s.receiveAutomationIngress(ctx, id, headers, raw)
+		if !authoritySetRetry(err) {
+			return out, err
+		}
+	}
+	return out, err
+}
+func (s *Service) receiveAutomationIngress(ctx context.Context, id string, headers http.Header, raw []byte) (AutomationIngressReceipt, error) {
+	var out AutomationIngressReceipt
 	snapshot, err := scanIngress(s.DB.QueryRowContext(ctx, s.q(`SELECT `+ingressColumns+` FROM suma_automation_ingresses WHERE id=?`), id))
 	if err != nil {
 		var api *APIError
@@ -259,15 +270,22 @@ func (s *Service) ReceiveAutomationIngress(ctx context.Context, id string, heade
 		return out, err
 	}
 	bodyHash := digest(string(raw))
-	tx, err := s.DB.BeginTx(ctx, nil)
+	parent, parentErr := s.automationRuleTx(ctx, s.DB, Principal{TenantID: snapshot.tenant}, snapshot.ProjectID, snapshot.RuleID)
+	if parentErr != nil && !automationAuthorityFailure(parentErr) {
+		return out, parentErr
+	}
+	candidate := signedIngressActor(snapshot, parent, deliveryID, bodyHash)
+	ctx, tx, cleanup, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cleanup()
 	defer tx.Rollback()
-	if err = s.lockOrganization(ctx, tx, snapshot.tenant); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, candidate, commandTarget{tenantID: snapshot.tenant, projectID: snapshot.ProjectID, resourceID: snapshot.ID}, purposeIngressDelivery)
+	if err != nil {
 		return out, err
 	}
-	p := Principal{TenantID: snapshot.tenant}
+	p := auth.currentPrincipal
 	in, err := s.ingressTx(ctx, tx, p, snapshot.ProjectID, id)
 	if err != nil {
 		return out, err
@@ -346,7 +364,7 @@ func (s *Service) ReceiveAutomationIngress(ctx context.Context, id string, heade
 	}
 	delivery := AutomationIngressDelivery{ID: newID(), IngressID: id, IngressRevision: in.Revision, RuleID: in.RuleID, RuleRevision: in.RuleRevision, DeliveryID: deliveryID, Provider: in.Provider, BodySHA256: bodyHash, KeyGeneration: in.KeyGeneration, ReceivedAt: at, LastReceivedAt: at, State: state, Reason: reason, Event: event}
 	if state == "accepted" {
-		o, e := s.insertAutomationOccurrence(ctx, tx, p, a, "webhook", at, "queued", "", "ingress:"+id+":"+deliveryID)
+		o, e := s.insertAutomationOccurrence(ctx, auth, a, "webhook", at, "queued", "", "ingress:"+id+":"+deliveryID)
 		if e != nil {
 			return out, e
 		}

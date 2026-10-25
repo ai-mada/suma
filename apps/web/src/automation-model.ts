@@ -84,7 +84,7 @@ function validateRequest(path:string,body:unknown){
 export class AutomationRecovery{
  private value?:AutomationPending;private busy=false;private key:string;private unreadable=false;
  get error(){return this.unreadable?tr("automation.the_automation_recovery_record_is_unreadable_no_new"):'';}
- constructor(scope:string,private storage:RecoveryStorage|undefined){this.key='suma-automation-recovery-v1:'+scope;try{const raw=storage?.getItem(this.key);if(raw){const saved=JSON.parse(raw) as AutomationPending;validateRequest(saved.path,saved.body);if(typeof saved.idempotency_key!=='string'||!saved.idempotency_key)throw new Error('invalid');this.value=saved;}}catch{this.unreadable=true;}}
+ constructor(scope:string,private storage:RecoveryStorage|undefined,private send:typeof api=api){this.key='suma-automation-recovery-v1:'+scope;try{const raw=storage?.getItem(this.key);if(raw){const saved=JSON.parse(raw) as AutomationPending;validateRequest(saved.path,saved.body);if(typeof saved.idempotency_key!=='string'||!saved.idempotency_key)throw new Error('invalid');this.value=saved;}}catch{this.unreadable=true;}}
  get pending(){return this.value?clone(this.value):undefined;}
  async restore<T=unknown>():Promise<T>{if(!this.value)throw new UiError("automation.there_is_no_automation_operation_to_recover");return this.run<T>(this.value.path,this.value.body);}
  async run<T=unknown>(path:string,body:Record<string,unknown>):Promise<T>{
@@ -92,7 +92,7 @@ export class AutomationRecovery{
   const restoring=!!this.value;
   if(!this.value){validateRequest(path,body);const saved={path,body:clone(body),idempotency_key:operation()};try{if(!this.storage)throw new Error('unavailable');this.storage.setItem(this.key,JSON.stringify(saved));}catch{throw new UiError("automation.the_automation_recovery_record_could_not_be_saved");}this.value=saved;}
   this.busy=true;const saved=this.value;
-  try{const result=await mutate<T>(saved.path,{...saved.body,idempotency_key:saved.idempotency_key},'POST','automation:'+this.key+':'+saved.idempotency_key);this.clear();return result;}
+  try{const result=await mutate<T>(saved.path,{...saved.body,idempotency_key:saved.idempotency_key},'POST','automation:'+this.key+':'+saved.idempotency_key,this.send);this.clear();return result;}
   catch(error){if(!restoring&&error instanceof ApiError&&error.status>0&&error.status<500)this.clear();throw error;}finally{this.busy=false;}
  }
  private clear(){this.value=undefined;try{this.storage?.removeItem(this.key);}catch{/* Same saved operation remains safe to replay. */}}

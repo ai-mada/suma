@@ -4,7 +4,8 @@ import "net/http"
 
 // This adapter owns only parsing and dispatch. All current authority, receipt,
 // version and transaction decisions stay in the application services.
-func (s *Server) executionPoolsHTTP(w http.ResponseWriter, r *http.Request, p Principal, scope, path string, parts []string) bool {
+func (s *Server) executionPoolsHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, path string, parts []string) bool {
+
 	if len(parts) == 0 || parts[0] != "execution-pools" && parts[0] != "project-execution" {
 		return false
 	}
@@ -36,14 +37,14 @@ func (s *Server) executionPoolsHTTP(w http.ResponseWriter, r *http.Request, p Pr
 		}
 		return limit, true
 	}
-	ctx, token := r.Context(), tokenOf(r)
+	ctx := r.Context()
 	switch {
 	case path == "execution-pools" && r.Method == http.MethodGet:
 		limit, ok := page()
 		if !ok {
 			return true
 		}
-		out, err := s.Service.ListExecutionPools(ctx, s.Engine, p, token, limit, r.URL.Query().Get("cursor"))
+		out, err := s.Service.ListExecutionPools(ctx, s.Engine, actor, limit, r.URL.Query().Get("cursor"))
 		respond(w, 200, out, err)
 	case path == "execution-pools" && r.Method == http.MethodPost:
 		var request ExecutionPoolCreateRequest
@@ -54,17 +55,17 @@ func (s *Server) executionPoolsHTTP(w http.ResponseWriter, r *http.Request, p Pr
 		if !decodeAs(&request) {
 			return true
 		}
-		out, err := s.Service.CreateExecutionPool(ctx, s.Engine, p, token, request)
+		out, err := s.Service.CreateExecutionPool(ctx, s.Engine, actor, request)
 		respond(w, 201, out, err)
 	case len(parts) == 2 && parts[0] == "execution-pools" && r.Method == http.MethodGet:
-		out, err := s.Service.GetExecutionPool(ctx, s.Engine, p, token, parts[1])
+		out, err := s.Service.GetExecutionPool(ctx, s.Engine, actor, parts[1])
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[0] == "execution-pools" && parts[2] == "commands" && r.Method == http.MethodPost:
 		var request ExecutionPoolCommandRequest
 		if !decodeAs(&request) {
 			return true
 		}
-		out, err := s.Service.CommandExecutionPool(ctx, s.Engine, p, token, parts[1], request)
+		out, err := s.Service.CommandExecutionPool(ctx, s.Engine, actor, parts[1], request)
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[0] == "execution-pools" && parts[2] == "policy-previews" && r.Method == http.MethodPost:
 		var request ExecutionPoolPolicyPreviewRequest
@@ -75,24 +76,24 @@ func (s *Server) executionPoolsHTTP(w http.ResponseWriter, r *http.Request, p Pr
 		if !decodeAs(&request) {
 			return true
 		}
-		out, err := s.Service.CreateExecutionPoolPolicyPreview(ctx, s.Engine, p, token, parts[1], request)
+		out, err := s.Service.CreateExecutionPoolPolicyPreview(ctx, s.Engine, actor, parts[1], request)
 		respond(w, 201, out, err)
 	case len(parts) == 4 && parts[0] == "execution-pools" && parts[2] == "policy-previews" && r.Method == http.MethodGet:
-		out, err := s.Service.GetExecutionPoolPolicyPreview(ctx, s.Engine, p, token, parts[1], parts[3])
+		out, err := s.Service.GetExecutionPoolPolicyPreview(ctx, s.Engine, actor, parts[1], parts[3])
 		respond(w, 200, out, err)
 	case len(parts) == 5 && parts[0] == "execution-pools" && parts[2] == "policy-previews" && parts[4] == "commit" && r.Method == http.MethodPost:
 		var request ExecutionPreviewCommitRequest
 		if !decodeAs(&request) {
 			return true
 		}
-		out, err := s.Service.CommitExecutionPoolPolicyPreview(ctx, s.Engine, p, token, parts[1], parts[3], request)
+		out, err := s.Service.CommitExecutionPoolPolicyPreview(ctx, s.Engine, actor, parts[1], parts[3], request)
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[0] == "execution-pools" && parts[2] == "grants" && r.Method == http.MethodGet:
 		limit, ok := page()
 		if !ok {
 			return true
 		}
-		out, err := s.Service.ListOwnedPoolGrants(ctx, p, token, parts[1], limit, r.URL.Query().Get("cursor"))
+		out, err := s.Service.ListOwnedPoolGrants(ctx, actor, parts[1], limit, r.URL.Query().Get("cursor"))
 		respond(w, 200, out, err)
 	case len(parts) == 5 && parts[0] == "execution-pools" && parts[2] == "grants" && parts[4] == "commands" && r.Method == http.MethodPost:
 		var request ExecutionPoolGrantCommand
@@ -103,62 +104,62 @@ func (s *Server) executionPoolsHTTP(w http.ResponseWriter, r *http.Request, p Pr
 			writeError(w, invalid("拥有方操作不接受项目上下文"))
 			return true
 		}
-		out, err := s.Service.CommandOwnedPoolGrant(ctx, s.Engine, p, token, parts[1], parts[3], request)
+		out, err := s.Service.CommandOwnedPoolGrant(ctx, s.Engine, actor, parts[1], parts[3], request)
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[0] == "execution-pools" && parts[2] == "runners" && r.Method == http.MethodGet:
 		limit, ok := page()
 		if !ok {
 			return true
 		}
-		out, err := s.Service.ListExecutionPoolRunners(ctx, p, token, parts[1], limit, r.URL.Query().Get("cursor"))
+		out, err := s.Service.ListExecutionPoolRunners(ctx, actor, parts[1], limit, r.URL.Query().Get("cursor"))
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[0] == "execution-pools" && parts[2] == "runners" && r.Method == http.MethodPost:
 		var request ExecutionPoolRunnerCreateRequest
 		if !decodeAs(&request) {
 			return true
 		}
-		out, err := s.Service.RegisterExecutionPoolRunner(ctx, p, token, parts[1], request)
+		out, err := s.Service.RegisterExecutionPoolRunner(ctx, actor, parts[1], request)
 		respond(w, 201, out, err)
 	case len(parts) == 5 && parts[0] == "execution-pools" && parts[2] == "runners" && parts[4] == "credentials" && r.Method == http.MethodPost:
 		var request ExecutionPoolCredentialRequest
 		if !decodeAs(&request) {
 			return true
 		}
-		out, err := s.Service.RotateExecutionPoolCredential(ctx, p, token, parts[1], parts[3], request)
+		out, err := s.Service.RotateExecutionPoolCredential(ctx, actor, parts[1], parts[3], request)
 		respond(w, 201, out, err)
 	case len(parts) == 5 && parts[0] == "execution-pools" && parts[2] == "runners" && parts[4] == "commands" && r.Method == http.MethodPost:
 		var request ExecutionPoolCommandRequest
 		if !decodeAs(&request) {
 			return true
 		}
-		out, err := s.Service.RevokeExecutionPoolRunner(ctx, p, token, parts[1], parts[3], request)
+		out, err := s.Service.RevokeExecutionPoolRunner(ctx, actor, parts[1], parts[3], request)
 		respond(w, 200, out, err)
 	case path == "project-execution/grants" && r.Method == http.MethodGet:
 		limit, ok := page()
 		if !ok {
 			return true
 		}
-		out, err := s.Service.ListProjectPoolGrants(ctx, p, token, r.URL.Query().Get("project_id"), limit, r.URL.Query().Get("cursor"))
+		out, err := s.Service.ListProjectPoolGrants(ctx, actor, r.URL.Query().Get("project_id"), limit, r.URL.Query().Get("cursor"))
 		respond(w, 200, out, err)
 	case path == "project-execution/grants" && r.Method == http.MethodPost:
 		var request ExecutionPoolGrantRequest
 		if !decodeAs(&request) {
 			return true
 		}
-		out, err := s.Service.RequestExecutionPoolGrant(ctx, p, token, request)
+		out, err := s.Service.RequestExecutionPoolGrant(ctx, actor, request)
 		respond(w, 201, out, err)
 	case len(parts) == 4 && parts[0] == "project-execution" && parts[1] == "grants" && parts[3] == "commands" && r.Method == http.MethodPost:
 		var request ExecutionPoolGrantCommand
 		if !decodeAs(&request) {
 			return true
 		}
-		out, err := s.Service.WithdrawProjectPoolGrant(ctx, s.Engine, p, token, parts[2], request)
+		out, err := s.Service.WithdrawProjectPoolGrant(ctx, s.Engine, actor, parts[2], request)
 		respond(w, 200, out, err)
 	case path == "project-execution/route" && r.Method == http.MethodGet:
-		out, err := s.Service.GetProjectExecutionRoute(ctx, s.Engine, p, token, r.URL.Query().Get("project_id"))
+		out, err := s.Service.GetProjectExecutionRoute(ctx, s.Engine, actor, r.URL.Query().Get("project_id"))
 		respond(w, 200, out, err)
 	case path == "project-execution/runners" && r.Method == http.MethodGet:
-		out, err := s.Service.ListProjectPoolRunners(ctx, p, token, r.URL.Query().Get("project_id"))
+		out, err := s.Service.ListProjectPoolRunners(ctx, actor, r.URL.Query().Get("project_id"))
 		respond(w, 200, out, err)
 	case path == "project-execution/route-previews" && r.Method == http.MethodPost:
 		var request ExecutionRoutePreviewRequest
@@ -171,17 +172,17 @@ func (s *Server) executionPoolsHTTP(w http.ResponseWriter, r *http.Request, p Pr
 		if !decodeAs(&request) {
 			return true
 		}
-		out, err := s.Service.CreateExecutionRoutePreview(ctx, s.Engine, p, token, request)
+		out, err := s.Service.CreateExecutionRoutePreview(ctx, s.Engine, actor, request)
 		respond(w, 201, out, err)
 	case len(parts) == 3 && parts[0] == "project-execution" && parts[1] == "route-previews" && r.Method == http.MethodGet:
-		out, err := s.Service.GetExecutionRoutePreview(ctx, s.Engine, p, token, r.URL.Query().Get("project_id"), parts[2])
+		out, err := s.Service.GetExecutionRoutePreview(ctx, s.Engine, actor, r.URL.Query().Get("project_id"), parts[2])
 		respond(w, 200, out, err)
 	case len(parts) == 4 && parts[0] == "project-execution" && parts[1] == "route-previews" && parts[3] == "commit" && r.Method == http.MethodPost:
 		var request ExecutionPreviewCommitRequest
 		if !decodeAs(&request) {
 			return true
 		}
-		out, err := s.Service.CommitExecutionRoutePreview(ctx, s.Engine, p, token, parts[2], request)
+		out, err := s.Service.CommitExecutionRoutePreview(ctx, s.Engine, actor, parts[2], request)
 		respond(w, 200, out, err)
 	default:
 		writeError(w, missing())

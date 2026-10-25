@@ -85,8 +85,8 @@ func decodeToolProfileReceipt(raw string) (ToolProfile, error) {
 // toolWorkerReasonTx checks the same registered execution identity used by
 // release operations, without granting a tool-only worker release capabilities.
 func (s *Service) toolWorkerReasonTx(ctx context.Context, tx *sql.Tx, p Principal, project, worker string, clock time.Time) (toolReason, error) {
-	var state, expires, creator string
-	err := tx.QueryRowContext(ctx, s.q(`SELECT w.status,x.expires_at,w.created_by FROM suma_release_workers w JOIN suma_sessions x ON x.token_hash=w.token_hash AND x.tenant_id=w.tenant_id JOIN suma_token_scopes t ON t.token_hash=w.token_hash AND t.kind='runner' AND t.project_id=w.project_id WHERE w.tenant_id=? AND w.project_id=? AND w.worker_id=?`), p.TenantID, project, worker).Scan(&state, &expires, &creator)
+	var state, expires, creator, tokenHash string
+	err := tx.QueryRowContext(ctx, s.q(`SELECT w.status,x.expires_at,w.created_by,w.token_hash FROM suma_release_workers w JOIN suma_sessions x ON x.token_hash=w.token_hash AND x.tenant_id=w.tenant_id JOIN suma_token_scopes t ON t.token_hash=w.token_hash AND t.kind='runner' AND t.project_id=w.project_id WHERE w.tenant_id=? AND w.project_id=? AND w.worker_id=?`), p.TenantID, project, worker).Scan(&state, &expires, &creator, &tokenHash)
 	if errors.Is(err, sql.ErrNoRows) {
 		return s.poolToolWorkerReasonTx(ctx, tx, p.TenantID, project, worker, clock)
 	}
@@ -97,16 +97,33 @@ func (s *Service) toolWorkerReasonTx(ctx context.Context, tx *sql.Tx, p Principa
 	if state != "active" || err != nil || !until.After(clock) {
 		return newToolReason("执行节点凭证已过期或撤销", "worker_expired", nil), nil
 	}
-	if err = s.authorizeProjectTx(ctx, tx, Principal{ID: creator, TenantID: p.TenantID}, project, true, false); err != nil {
+	if _, err = s.currentProjectMembershipLockedTx(ctx, tx, p.TenantID, creator, project, true, false); err != nil {
 		if automationAuthorityFailure(err) {
 			return newToolReason("执行节点登记人的当前项目权限已失效", "worker_creator_revoked", nil), nil
 		}
 		return toolReason{}, err
 	}
+	credential, credentialErr := s.readCredential(ctx, tx, tokenHash, true)
+	if credentialErr != nil {
+		var api *APIError
+		if errors.As(credentialErr, &api) && (api.Status == 401 || api.Status == 403 || api.Status == 404) {
+			return newToolReason("执行节点凭证已过期或撤销", "worker_expired", nil), nil
+		}
+		return toolReason{}, credentialErr
+	}
+	if credential.kind != actorProjectRunner || credential.ref.subjectID != creator || credential.ref.tenantID != p.TenantID || credential.ref.projectID != project || credential.expires.Unix() <= clock.Unix() {
+		return newToolReason("执行节点凭证已过期或撤销", "worker_expired", nil), nil
+	}
+
 	return toolReason{}, nil
 }
 
 func (s *Service) toolProfileObservationTx(ctx context.Context, tx *sql.Tx, p Principal, project string, out ToolProfile) (ToolProfile, error) {
+	return s.toolProfileObservationLockedTx(ctx, tx, p.TenantID, project, out)
+}
+
+func (s *Service) toolProfileObservationLockedTx(ctx context.Context, tx *sql.Tx, tenant, project string, out ToolProfile) (ToolProfile, error) {
+	p := Principal{TenantID: tenant} // projection/scope only; never an authority source
 	clock, err := s.automationClock(ctx, tx)
 	if err != nil {
 		return out, err
@@ -142,7 +159,7 @@ func (s *Service) toolProfileObservationTx(ctx context.Context, tx *sql.Tx, p Pr
 	default:
 		return out, invalid("工具档案状态无效")
 	}
-	if err = s.authorizeProjectTx(ctx, tx, Principal{ID: out.EnabledBy, TenantID: p.TenantID}, project, true, true); err != nil {
+	if err = s.toolActivationLockedTx(ctx, tx, tenant, project, out); err != nil {
 		if automationAuthorityFailure(err) {
 			out = withToolReason(out, "工具档案启用人的当前审批权限已失效", "activation_revoked", nil)
 			return out, nil
@@ -187,20 +204,37 @@ func (s *Service) toolProfileObservationTx(ctx context.Context, tx *sql.Tx, p Pr
 	return out, nil
 }
 
-func (s *Service) GetToolProfile(ctx context.Context, p Principal, project, id string) (ToolProfile, error) {
-	var out ToolProfile
-	tx, err := s.automationReadTx(ctx, p, project)
-	if err != nil {
-		return out, err
+func (s *Service) getToolProfileCurrentTx(ctx context.Context, auth *authorizedCommand, project, id string) (ToolProfile, error) {
+	if auth == nil {
+		return ToolProfile{}, forbidden()
 	}
-	defer tx.Rollback()
+	expected := commandTarget{tenantID: auth.target.tenantID, projectID: project, resourceID: id}
+	if e := auth.assertTx(auth.tx, expected, purposeBrowserProjectRead); e != nil {
+		return ToolProfile{}, e
+	}
+	ctx = auth.ctx
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
+	var out ToolProfile
 	out, err = s.toolProfileTx(ctx, tx, p, project, id)
 	if err != nil {
 		return out, err
 	}
 	return s.toolProfileObservationTx(ctx, tx, p, project, out)
 }
-func (s *Service) ListToolProfiles(ctx context.Context, p Principal, project string, limit int, cursor string) (ToolProfileList, error) {
+func (s *Service) listToolProfilesCurrentTx(ctx context.Context, auth *authorizedCommand, project string, limit int, cursor string) (ToolProfileList, error) {
+	if auth == nil {
+		return ToolProfileList{}, forbidden()
+	}
+	expected := commandTarget{tenantID: auth.target.tenantID, projectID: project, resourceID: ""}
+	if e := auth.assertTx(auth.tx, expected, purposeBrowserProjectRead); e != nil {
+		return ToolProfileList{}, e
+	}
+	ctx = auth.ctx
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
 	out := ToolProfileList{Items: []ToolProfile{}}
 	if limit < 1 || limit > 200 {
 		return out, invalid("limit 必须为 1..200")
@@ -209,11 +243,6 @@ func (s *Service) ListToolProfiles(ctx context.Context, p Principal, project str
 	if err != nil {
 		return out, err
 	}
-	tx, err := s.automationReadTx(ctx, p, project)
-	if err != nil {
-		return out, err
-	}
-	defer tx.Rollback()
 	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_tool_profiles WHERE tenant_id=? AND project_id=?`), p.TenantID, project).Scan(&out.Total); err != nil {
 		return out, err
 	}
@@ -247,7 +276,7 @@ func (s *Service) ListToolProfiles(ctx context.Context, p Principal, project str
 	return out, nil
 }
 
-func (s *Service) CreateToolProfile(ctx context.Context, p Principal, project string, req ToolProfileCreateRequest) (ToolProfile, error) {
+func (s *Service) CreateToolProfile(ctx context.Context, actor Actor, project string, req ToolProfileCreateRequest) (ToolProfile, error) {
 	var out ToolProfile
 	if req.ProjectID != project || !toolcontract.ValidCommandID(req.WorkerID) || req.Name == "" || strings.TrimSpace(req.Name) != req.Name || !ingressText(req.Name, 200) {
 		return out, invalid("工具名称、执行节点或项目无效")
@@ -255,15 +284,18 @@ func (s *Service) CreateToolProfile(ctx context.Context, p Principal, project st
 	if err := toolcontract.ValidateProfile(req.Profile, true); err != nil {
 		return out, invalidDiagnostic("validation.tool_profile_detail", "固定工具档案无效："+err.Error(), map[string]any{"detail": err.Error()})
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, true); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: ""}, purposeBrowserProjectApprove)
+	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, req.IdempotencyKey, map[string]any{"tool_create": req})
+	p := auth.currentPrincipal
+	hash, replay, err := s.commandReceipt(ctx, auth, req.IdempotencyKey, map[string]any{"tool_create": req})
 	if err != nil {
 		return out, err
 	}
@@ -295,29 +327,32 @@ func (s *Service) CreateToolProfile(ctx context.Context, p Principal, project st
 	if err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, project, "tool_profile.created", out.ID, out.Name); err != nil {
+	if err = s.commandActivity(ctx, auth, "tool_profile.created", out.ID, out.Name); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, req.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
 }
 
-func (s *Service) CommandToolProfile(ctx context.Context, p Principal, project, id string, req ToolProfileCommandRequest) (ToolProfile, error) {
+func (s *Service) CommandToolProfile(ctx context.Context, actor Actor, project, id string, req ToolProfileCommandRequest) (ToolProfile, error) {
 	var out ToolProfile
 	if req.ProjectID != project || !ingressVersion(req.ExpectedVersion) || (req.Action != "enable" && req.Action != "pause" && req.Action != "revoke") {
 		return out, invalid("工具操作、项目或版本无效")
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, true); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: id}, purposeBrowserProjectApprove)
+	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, req.IdempotencyKey, map[string]any{"tool_command": id, "request": req})
+	p := auth.currentPrincipal
+	hash, replay, err := s.commandReceipt(ctx, auth, req.IdempotencyKey, map[string]any{"tool_command": id, "request": req})
 	if err != nil {
 		return out, err
 	}
@@ -361,10 +396,10 @@ func (s *Service) CommandToolProfile(ctx context.Context, p Principal, project, 
 	if err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, project, "tool_profile."+req.Action, id, out.Name); err != nil {
+	if err = s.commandActivity(ctx, auth, "tool_profile."+req.Action, id, out.Name); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, req.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
@@ -372,9 +407,19 @@ func (s *Service) CommandToolProfile(ctx context.Context, p Principal, project, 
 
 // validateToolDispatchTx is also used by immutable task preview/start. The user
 // needs write authority; approval belongs to the current profile enabling actor.
-func (s *Service) validateToolDispatchTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string, version int, sha string) (ToolProfile, error) {
+func (s *Service) validateToolDispatchTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, project, id string, version int, sha string) (ToolProfile, error) {
 	var out ToolProfile
-	if err := s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
+	if auth == nil {
+		return out, forbidden()
+	}
+	if err := auth.assertTx(tx, auth.target, auth.purpose); err != nil {
+		return out, err
+	}
+	if auth.target.projectID != project {
+		return out, forbidden()
+	}
+	p := auth.currentPrincipal
+	if _, err := s.currentProjectMembershipLockedTx(ctx, tx, p.TenantID, p.ID, project, true, false); err != nil {
 		return out, err
 	}
 	out, err := s.toolProfileTx(ctx, tx, p, project, id)

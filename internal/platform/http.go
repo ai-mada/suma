@@ -17,7 +17,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Server struct {
@@ -171,14 +170,13 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			writeError(w, err)
 			return
 		}
-		p, token, err := s.Service.Setup(ctx, m)
+		_, token, err := s.Service.Setup(ctx, m)
 		if err != nil {
 			writeError(w, err)
 			return
 		}
 		cookie(w, r, token)
-		s.applyLocalePreferences(w, r, p, token, "")
-		s.session(w, r, p)
+		s.sessionForToken(w, r, token)
 		return
 	}
 	if path == "auth/login" && r.Method == "POST" {
@@ -187,14 +185,13 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			writeError(w, err)
 			return
 		}
-		p, token, err := s.Service.Login(ctx, str(m, "email"), str(m, "password"))
+		_, token, err := s.Service.Login(ctx, str(m, "email"), str(m, "password"))
 		if err != nil {
 			writeError(w, err)
 			return
 		}
 		cookie(w, r, token)
-		s.applyLocalePreferences(w, r, p, token, "")
-		s.session(w, r, p)
+		s.sessionForToken(w, r, token)
 		return
 	}
 	if path == "auth/invitations/accept" && r.Method == "POST" {
@@ -207,24 +204,54 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			writeError(w, e)
 			return
 		}
-		p, token, e := s.Service.AcceptInvitation(ctx, m)
+		_, token, e := s.Service.AcceptInvitation(ctx, m)
 		if e != nil {
 			writeError(w, e)
 			return
 		}
 		cookie(w, r, token)
-		s.applyLocalePreferences(w, r, p, token, "")
-		s.session(w, r, p)
+		s.sessionForToken(w, r, token)
 		return
 	}
-	p, err := s.Service.Authenticate(ctx, tokenOf(r))
+	// Logout only withdraws the credential selected by the real request secret.
+	// It stays idempotent for expired/unknown credentials and never grants read
+	// or command authority through a successful empty response.
+	if path == "auth/logout" && r.Method == http.MethodPost {
+		target, err := s.Service.ResolveLogoutTarget(ctx, tokenOf(r))
+		if err == nil {
+			err = s.Service.Logout(ctx, target)
+		}
+		if err != nil {
+			writeError(w, err)
+			return
+		}
+		cookie(w, r, "")
+		writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
+		return
+	}
+	actor, err := s.Service.AuthenticateActor(ctx, tokenOf(r))
 	if err != nil {
 		writeError(w, err)
 		return
 	}
-	scope, boundProject := s.Service.TokenScope(ctx, tokenOf(r))
-	s.applyLocalePreferences(w, r, p, tokenOf(r), scope)
-	if s.localePreferencesHTTP(w, r, p, scope, path) {
+	p := actor.Projection()
+	scope, boundProject := "", actor.credential.projectID
+	switch actor.kind {
+	case actorProjectAPI:
+		scope = "api"
+	case actorProjectRunner:
+		scope = "runner"
+	case actorAgentRead:
+		scope = "agent"
+	}
+	if actor.IsBrowser() && BrowserCommandRequiresView(r.Method, path) {
+		if err := validateOriginalView(r, p, path == "account/preferences"); err != nil {
+			writeError(w, err)
+			return
+		}
+	}
+	s.applyLocalePreferences(w, r, actor)
+	if s.localePreferencesHTTP(w, r, actor, path) {
 		return
 	}
 	if scope != "" && strings.HasPrefix(path, "auth/") && path != "auth/logout" {
@@ -236,11 +263,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			writeError(w, forbidden())
 			return
 		}
-		if err = s.Service.Authorize(ctx, p, boundProject, false, false); err != nil {
-			writeError(w, err)
-			return
-		}
-		items, e := s.Service.Projects(ctx, p)
+		items, e := s.Service.Projects(ctx, actor)
 		if e != nil {
 			writeError(w, e)
 			return
@@ -255,10 +278,10 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if path == "auth/session" && r.Method == "GET" {
-		s.session(w, r, p)
+		s.session(w, r, actor)
 		return
 	}
-	if s.executionPoolsHTTP(w, r, p, scope, path, parts) {
+	if s.executionPoolsHTTP(w, r, actor, scope, path, parts) {
 		return
 	}
 	if path == "auth/switch" && r.Method == "POST" {
@@ -267,14 +290,13 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			writeError(w, e)
 			return
 		}
-		next, token, e := s.Service.SwitchOrganization(ctx, p, m)
+		_, token, e := s.Service.SwitchOrganization(ctx, actor, m)
 		if e != nil {
 			writeError(w, e)
 			return
 		}
 		cookie(w, r, token)
-		s.applyLocalePreferences(w, r, next, token, "")
-		s.session(w, r, next)
+		s.sessionForToken(w, r, token)
 		return
 	}
 	if path == "organizations" || parts[0] == "organization" || parts[0] == "teams" || parts[0] == "project-access" {
@@ -290,71 +312,36 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		if !s.governance(w, r, p, path, m) {
+		if !s.governance(w, r, actor, path, m) {
 			writeError(w, missing())
 		}
 		return
 	}
-	if path == "auth/logout" && r.Method == "POST" {
-		if err = s.Service.Logout(ctx, tokenOf(r)); err != nil {
-			writeError(w, err)
-			return
-		}
-		cookie(w, r, "")
-		writeJSON(w, 200, map[string]bool{"ok": true})
-		return
-	}
-	if path == "auth/tokens" && r.Method == "POST" {
-		if p.Role != "owner" && p.Role != "admin" {
-			writeError(w, forbidden())
-			return
-		}
-		if kind, _ := s.Service.TokenScope(ctx, tokenOf(r)); kind != "" {
-			writeError(w, forbidden())
-			return
-		}
+	if path == "auth/tokens" && r.Method == http.MethodPost {
 		m, e := decode(r)
 		if e != nil {
 			writeError(w, e)
 			return
 		}
-		label := str(m, "label")
-		if label == "" {
-			label = "Runner"
+		for key := range m {
+			if key != "project_id" && key != "scope" && key != "label" && key != "idempotency_key" {
+				writeError(w, invalid("无效凭证范围"))
+				return
+			}
 		}
-		if len(label) > 200 {
-			writeError(w, invalid("凭证名称过长"))
-			return
+		scope := str(m, "scope")
+		if scope == "" {
+			scope = "runner"
 		}
-		kind := str(m, "scope")
-		if kind == "" {
-			kind = "runner"
-		}
-		if kind != "runner" && kind != "agent" && kind != "api" {
-			writeError(w, invalid("无效凭证范围"))
-			return
-		}
-		tokenProject := str(m, "project_id")
-		if e = s.Service.Authorize(ctx, p, tokenProject, true, false); e != nil {
-			writeError(w, e)
-			return
-		}
-		token, e := s.Service.CreateToken(ctx, p, label, 24*time.Hour)
-		if e != nil {
-			writeError(w, e)
-			return
-		}
-		if _, e = s.Service.DB.ExecContext(ctx, s.Service.q(`INSERT INTO suma_token_scopes(token_hash,kind,project_id)VALUES(?,?,?)`), digest(token), kind, tokenProject); e != nil {
-			s.Service.Logout(ctx, token)
-			writeError(w, e)
-			return
-		}
-		writeJSON(w, 201, map[string]any{"token": token, "expires_at": time.Now().UTC().Add(24 * time.Hour), "label": label, "scope": kind, "project_id": tokenProject})
+		out, e := s.Service.IssueProjectCredential(ctx, actor, ProjectCredentialIssueRequest{
+			ProjectID: str(m, "project_id"), Scope: scope, Label: str(m, "label"), IdempotencyKey: str(m, "idempotency_key"),
+		})
+		respond(w, http.StatusCreated, out, e)
 		return
 	}
 	if path == "projects" {
 		if r.Method == "GET" {
-			items, e := s.Service.Projects(ctx, p)
+			items, e := s.Service.Projects(ctx, actor)
 			respondList(w, items, e)
 			return
 		}
@@ -364,7 +351,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 				writeError(w, e)
 				return
 			}
-			item, e := s.Service.CreateProject(ctx, p, m)
+			item, e := s.Service.CreateProject(ctx, actor, m)
 			respond(w, 201, item, e)
 			return
 		}
@@ -411,69 +398,67 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	write := r.Method != "GET"
-	approve := strings.Contains(path, "/review") || (strings.Contains(path, "/commands") && (str(m, "action") == "approve" || str(m, "action") == "approval" || str(m, "action") == "reconcile" || str(m, "action") == "compensate"))
-	if err = s.Service.Authorize(ctx, p, project, write, approve); err != nil {
-		writeError(w, err)
+	if s.artifactHTTP(w, r, actor, project, path, m) {
 		return
 	}
-	if s.artifactHTTP(w, r, p, project, path, m) {
+	if s.toolProfilesHTTP(w, r, actor, scope, path, parts, project, m) {
 		return
 	}
-	if s.toolProfilesHTTP(w, r, p, scope, path, parts, project, m) {
+	if s.taskDispatchHTTP(w, r, actor, scope, path, parts, project, m) {
 		return
 	}
-	if s.taskDispatchHTTP(w, r, p, scope, path, parts, project, m) {
+	if s.schedulingHTTP(w, r, actor, scope, path, parts, project, m) {
 		return
 	}
-	if s.schedulingHTTP(w, r, p, scope, path, parts, project, m) {
+	if s.releaseDeploymentHTTP(w, r, actor, project, path, m) {
 		return
 	}
-	if s.releaseDeploymentHTTP(w, r, p, project, path, m) {
+	if s.planning(w, r, actor, project, path, m) {
 		return
 	}
-	if s.planning(w, r, p, project, path, m) {
+	if s.automationIngressHTTP(w, r, actor, scope, path, parts, project, m) {
 		return
 	}
-	if s.automationIngressHTTP(w, r, p, scope, path, parts, project, m) {
-		return
-	}
-	if s.automationHTTP(w, r, p, scope, path, parts, project, m) {
+	if s.automationHTTP(w, r, actor, scope, path, parts, project, m) {
 		return
 	}
 	switch {
 	case parts[0] == "workspace":
-		s.workspace(w, r, p, project, path, m)
+		s.workspace(w, r, actor, project, path, m)
 	case path == "overview" && r.Method == "GET":
-		out, e := s.Service.Overview(ctx, p, project)
-		if e == nil {
-			runs, total, _, re := s.Engine.ListRunsPage(ctx, p.TenantID, project, 10, "")
-			if re != nil {
-				writeError(w, re)
-				return
+		// Filesystem/health probes finish before taking the bounded SQL proof.
+		capabilities := s.capabilities(ctx)
+		s.projectReadJSON(w, r, actor, project, func(ctx context.Context, auth *authorizedCommand) (any, error) {
+			out, err := s.Service.overviewTx(ctx, auth, project)
+			if err != nil {
+				return nil, err
+			}
+			runs, total, _, err := s.Engine.ListRunsPageTx(ctx, auth.tx, auth.currentPrincipal.TenantID, project, 10, "")
+			if err != nil {
+				return nil, err
 			}
 			out["runs"] = runs
 			out["counts"].(map[string]int)["runs"] = total
 			out["run_history_limit"] = 10
-			out["capabilities"] = s.capabilities(ctx)
-			indexStatus, ie := s.Service.IndexStatus(ctx, p, project)
-			if ie != nil {
-				writeError(w, ie)
-				return
+			out["capabilities"] = capabilities
+			status, err := s.Service.indexStatusTx(ctx, auth, project)
+			if err != nil {
+				return nil, err
 			}
-			out["index_status"] = indexStatus
-		}
-		respond(w, 200, out, e)
+			out["index_status"] = status
+			return out, nil
+		})
 	case path == "capabilities" && r.Method == "GET":
-		writeJSON(w, 200, s.capabilities(ctx))
+		capabilities := s.capabilities(ctx)
+		s.projectReadJSON(w, r, actor, project, func(context.Context, *authorizedCommand) (any, error) { return capabilities, nil })
 	case path == "search" && r.Method == "POST":
-		out, e := s.Service.SearchIndex(ctx, p, project, str(m, "query"))
+		out, e := s.Service.SearchIndex(ctx, actor, project, str(m, "query"))
 		respond(w, 200, out, e)
 	case len(parts) > 0 && tables[parts[0]]:
 		kind := parts[0]
 		if len(parts) == 1 && r.Method == "GET" {
 			limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-			items, total, next, e := s.Service.ListPage(ctx, p, project, kind, limit, r.URL.Query().Get("cursor"))
+			items, total, next, e := s.Service.ListPage(ctx, actor, project, kind, limit, r.URL.Query().Get("cursor"))
 			if e != nil {
 				writeError(w, e)
 				return
@@ -482,40 +467,42 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if len(parts) == 1 && r.Method == "POST" {
-			item, e := s.Service.Create(ctx, p, project, kind, m)
+			item, e := s.Service.Create(ctx, actor, project, kind, m)
 			respond(w, 201, item, e)
 			return
 		}
 		if len(parts) == 2 && r.Method == "GET" {
-			item, e := s.Service.Get(ctx, p, project, kind, parts[1])
+			item, e := s.Service.Get(ctx, actor, project, kind, parts[1])
 			respond(w, 200, item, e)
 			return
 		}
 		if len(parts) == 2 && r.Method == "PATCH" {
-			item, e := s.Service.Update(ctx, p, project, kind, parts[1], m)
+			item, e := s.Service.Update(ctx, actor, project, kind, parts[1], m)
 			respond(w, 200, item, e)
 			return
 		}
 		if len(parts) == 3 && parts[0] == "requirements" && parts[2] == "decompose" && r.Method == "POST" {
-			out, e := s.Service.Decompose(ctx, p, project, parts[1], m)
+			out, e := s.Service.Decompose(ctx, actor, project, parts[1], m)
 			respondList(w, out, e)
 			return
 		}
 		if len(parts) == 3 && parts[0] == "tasks" && parts[2] == "review" && r.Method == "POST" {
-			out, e := s.Service.Review(ctx, p, project, parts[1], m, s.Engine)
+			out, e := s.Service.Review(ctx, actor, project, parts[1], m, s.Engine)
 			respond(w, 200, out, e)
 			return
 		}
 		if len(parts) == 3 && parts[0] == "issues" && parts[2] == "intake" && r.Method == "POST" {
-			out, e := s.Service.IssueToRequirement(ctx, p, project, parts[1], m)
+			out, e := s.Service.IssueToRequirement(ctx, actor, project, parts[1], m)
 			respond(w, 201, out, e)
 			return
 		}
 		writeError(w, missing())
 	case parts[0] == "workflows":
 		if len(parts) == 1 && r.Method == "GET" {
-			items, e := s.Engine.Workflows(ctx, p.TenantID, project)
-			respondList(w, items, e)
+			s.projectReadJSON(w, r, actor, project, func(ctx context.Context, auth *authorizedCommand) (any, error) {
+				items, e := s.Engine.WorkflowsTx(ctx, auth.tx, auth.target.tenantID, project)
+				return readListEnvelope(items), e
+			})
 			return
 		}
 		if r.Method == "POST" {
@@ -529,7 +516,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			if len(parts) == 2 && parts[1] == "validate" {
-				writeJSON(w, 200, workflowValidation(w, workflow))
+				validation := workflowValidation(w, workflow)
+				s.projectReadJSON(w, r, actor, project, func(context.Context, *authorizedCommand) (any, error) { return validation, nil })
 				return
 			}
 			if len(parts) == 1 {
@@ -537,33 +525,34 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 					writeError(w, invalid("缺少有效操作标识"))
 					return
 				}
-				item, e := s.Engine.PublishWithOperation(ctx, p.TenantID, project, workflow, p.ID+":"+str(m, "idempotency_key"))
+				authority := s.Service.engineAuthority(ctx, actor, commandTarget{tenantID: p.TenantID, projectID: project, resourceID: workflow.ID}, purposeProjectWrite)
+				defer authority.close()
+				item, e := s.Engine.PublishWithAuthority(authority.ctx, p.TenantID, project, workflow, p.ID+":"+str(m, "idempotency_key"), authority.before)
 				respond(w, 201, item, e)
 				return
 			}
 		}
 		if len(parts) == 2 && r.Method == "GET" {
 			version, _ := strconv.Atoi(r.URL.Query().Get("version"))
-			item, e := s.Engine.GetWorkflow(ctx, p.TenantID, project, parts[1], version)
-			respond(w, 200, item, e)
+			s.projectReadJSON(w, r, actor, project, func(ctx context.Context, auth *authorizedCommand) (any, error) {
+				return s.Engine.GetWorkflowTx(ctx, auth.tx, auth.target.tenantID, project, parts[1], version)
+			})
 			return
 		}
 		writeError(w, missing())
 	case parts[0] == "runs":
 		if len(parts) == 1 && r.Method == "GET" {
 			limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-			items, total, next, e := s.Engine.ListRunsPage(ctx, p.TenantID, project, limit, r.URL.Query().Get("cursor"))
-			if e != nil {
-				writeError(w, e)
-				return
-			}
-			writeJSON(w, 200, map[string]any{"items": items, "total": total, "next_cursor": next})
+			s.projectReadJSON(w, r, actor, project, func(ctx context.Context, auth *authorizedCommand) (any, error) {
+				items, total, next, e := s.Engine.ListRunsPageTx(ctx, auth.tx, auth.target.tenantID, project, limit, r.URL.Query().Get("cursor"))
+				return map[string]any{"items": items, "total": total, "next_cursor": next}, e
+			})
 			return
 		}
 		if len(parts) == 1 && r.Method == "POST" {
 			expected := number(m, "expected_version")
 			if str(m, "task_id") != "" {
-				task, e := s.Service.Get(ctx, p, project, "tasks", str(m, "task_id"))
+				task, e := s.Service.Get(ctx, actor, project, "tasks", str(m, "task_id"))
 				if e != nil {
 					writeError(w, e)
 					return
@@ -577,21 +566,22 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			bindingKey := str(m, "task_id") + ":" + stringify(m)
-			item, e := s.Engine.CreateRunBoundAuthorized(ctx, p.TenantID, project, str(m, "workflow_id"), number(m, "workflow_version"), p.ID+":"+str(m, "idempotency_key"), bindingKey, func(tx *sql.Tx) error {
-				return s.Service.authorizeProjectTx(ctx, tx, p, project, true, false)
-			}, func(tx *sql.Tx, runID string) error {
-				return s.Service.BindDirectRunTx(ctx, tx, p, project, str(m, "task_id"), runID, expected)
+			authority := s.Service.engineAuthority(ctx, actor, commandTarget{tenantID: p.TenantID, projectID: project, resourceID: str(m, "task_id")}, purposeProjectWrite)
+			defer authority.close()
+			item, e := s.Engine.CreateRunBoundAuthorized(authority.ctx, p.TenantID, project, str(m, "workflow_id"), number(m, "workflow_version"), p.ID+":"+str(m, "idempotency_key"), bindingKey, authority.before, func(tx *sql.Tx, runID string) error {
+				return s.Service.BindDirectRunTx(authority.ctx, tx, authority.proof, project, str(m, "task_id"), runID, expected)
 			})
 			respond(w, 201, item, e)
 			return
 		}
 		if len(parts) == 2 && r.Method == "GET" {
-			item, e := s.Engine.GetRun(ctx, p.TenantID, project, parts[1])
-			respond(w, 200, item, e)
+			s.projectReadJSON(w, r, actor, project, func(ctx context.Context, auth *authorizedCommand) (any, error) {
+				return s.Engine.GetRunTx(ctx, auth.tx, auth.target.tenantID, project, parts[1])
+			})
 			return
 		}
 		if len(parts) == 4 && parts[2] == "events" && parts[3] == "stream" && r.Method == "GET" {
-			s.runEventStream(w, r, p, scope, project, parts[1])
+			s.runEventStream(w, r, actor, project, parts[1])
 			return
 		}
 		if len(parts) == 3 && parts[2] == "events" && r.Method == "GET" {
@@ -600,7 +590,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 				writeError(w, e)
 				return
 			}
-			items, e := s.runStreamRead(ctx, tokenOf(r), p, scope, project, parts[1], after, true)
+			items, e := s.runStreamRead(ctx, actor, project, parts[1], after, true)
 			if e != nil {
 				writeError(w, e)
 				return
@@ -619,8 +609,14 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			payload, _ := m["payload"].(map[string]any)
-			out, e := s.Engine.CommandWithAuthority(ctx, p.TenantID, project, parts[1], str(m, "action"), str(m, "idempotency_key"), number(m, "expected_version"), payload, func(tx *sql.Tx) error {
-				if err := s.Service.authorizeProjectTx(ctx, tx, p, project, true, approve); err != nil {
+			purpose := purposeProjectWrite
+			if strings.Contains(path, "/commands") && (str(m, "action") == "approve" || str(m, "action") == "approval" || str(m, "action") == "reconcile" || str(m, "action") == "compensate") {
+				purpose = purposeProjectApprove
+			}
+			authority := s.Service.engineAuthority(ctx, actor, commandTarget{tenantID: p.TenantID, projectID: project, resourceID: parts[1]}, purpose)
+			defer authority.close()
+			out, e := s.Engine.CommandWithAuthority(authority.ctx, p.TenantID, project, parts[1], str(m, "action"), str(m, "idempotency_key"), number(m, "expected_version"), payload, func(tx *sql.Tx) error {
+				if err := authority.before(tx); err != nil {
 					return err
 				}
 				if managed {
@@ -635,7 +631,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 				return nil
 			}, func(tx *sql.Tx, run dag.Run) error {
 				if str(m, "action") == "compensate" {
-					return s.Service.InvalidateCompensationTx(ctx, tx, p, project, run.ID)
+					return s.Service.InvalidateCompensationTx(authority.ctx, tx, authority.proof, project, run.ID)
 				}
 				return nil
 			})
@@ -644,25 +640,40 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		}
 		writeError(w, missing())
 	case parts[0] == "runner":
-		s.runner(w, r, p, project, path, m)
+		s.runner(w, r, actor, project, path, m)
 	case parts[0] == "agent":
-		s.agent(w, r, p, project, path, m)
+		s.agent(w, r, actor, project, path, m)
 	default:
 		writeError(w, missing())
 	}
 }
-func (s *Server) session(w http.ResponseWriter, r *http.Request, p Principal) {
-	projects, err := s.Service.Projects(r.Context(), p)
+func (s *Server) sessionForToken(w http.ResponseWriter, r *http.Request, token string) {
+	actor, err := s.Service.AuthenticateActor(r.Context(), token)
 	if err != nil {
 		writeError(w, err)
 		return
 	}
-	var name string
-	if err = s.Service.DB.QueryRowContext(r.Context(), s.Service.q(`SELECT name FROM suma_organizations WHERE id=?`), p.TenantID).Scan(&name); err != nil {
-		writeError(w, err)
-		return
-	}
-	writeJSON(w, 200, map[string]any{"user": p, "organization": map[string]any{"id": p.TenantID, "name": name}, "projects": projects, "setup_required": false})
+	s.applyLocalePreferences(w, r, actor)
+	s.session(w, r, actor)
+}
+
+func (s *Server) session(w http.ResponseWriter, r *http.Request, actor Actor) {
+	var envelope map[string]any
+	err := s.Service.withCurrentRead(r.Context(), actor, commandTarget{tenantID: actor.credential.tenantID, projectID: organizationScope}, purposeOrganizationRead, func(auth *authorizedCommand) error {
+		ctx, cancel := context.WithDeadline(r.Context(), auth.deadline)
+		defer cancel()
+		projects, err := s.Service.identityProjectsTx(ctx, auth)
+		if err != nil {
+			return err
+		}
+		var name string
+		if err = auth.tx.QueryRowContext(ctx, s.Service.q(`SELECT name FROM suma_organizations WHERE id=?`), auth.target.tenantID).Scan(&name); err != nil {
+			return err
+		}
+		envelope = map[string]any{"user": auth.currentPrincipal, "organization": map[string]any{"id": auth.target.tenantID, "name": name}, "projects": projects, "setup_required": false}
+		return nil
+	})
+	respond(w, http.StatusOK, envelope, err)
 }
 func respond(w http.ResponseWriter, status int, out any, err error) {
 	if err != nil {
@@ -681,7 +692,8 @@ func respondList[T any](w http.ResponseWriter, items []T, err error) {
 	}
 	writeJSON(w, 200, map[string]any{"items": items, "total": len(items)})
 }
-func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, project, path string, m map[string]any) {
+func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, project, path string, m map[string]any) {
+	p := actor.Projection()
 	if r.Method != "POST" {
 		w.Header().Set("Allow", "POST")
 		writeError(w, &APIError{405, "method_not_allowed", "执行节点请求必须使用 POST", nil})
@@ -691,7 +703,7 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, pro
 		writeError(w, &APIError{401, "runner_token_required", "执行节点需要独立 Bearer 凭证", nil})
 		return
 	}
-	if kind, boundProject := s.Service.TokenScope(r.Context(), tokenOf(r)); kind != "runner" || boundProject != project {
+	if actor.kind != actorProjectRunner || actor.credential.projectID != project {
 		writeError(w, forbidden())
 		return
 	}
@@ -702,7 +714,7 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, pro
 			writeError(w, err)
 			return
 		}
-		out, err := s.Service.ReportToolInventory(r.Context(), p, project, tokenOf(r), request)
+		out, err := s.Service.ReportToolInventory(r.Context(), actor, project, request)
 		respond(w, 200, out, err)
 	case "runner/progress":
 		var assignment dag.Assignment
@@ -715,11 +727,16 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, pro
 			writeError(w, err)
 			return
 		}
-		e := s.Engine.ProgressWithAuthority(r.Context(), p.TenantID, project, assignment, str(m, "operation_id"), str(m, "message"), event, func(tx *sql.Tx) error {
-			if err := s.Service.projectRunnerExecutionAuthorityTx(r.Context(), tx, p, project, tokenOf(r), assignment.WorkerID, assignment.RunID); err != nil {
+		authority := s.Service.engineAuthority(r.Context(), actor, commandTarget{tenantID: p.TenantID, projectID: project, resourceID: assignment.WorkerID}, purposeRunnerWrite)
+		defer authority.close()
+		e := s.Engine.ProgressWithAuthority(authority.ctx, p.TenantID, project, assignment, str(m, "operation_id"), str(m, "message"), event, func(tx *sql.Tx) error {
+			if err := authority.beforeRunner(tx, assignment.WorkerID); err != nil {
 				return err
 			}
-			return s.Service.validateToolProgressTx(r.Context(), tx, p, project, tokenOf(r), assignment, event)
+			if err := s.Service.projectRunnerExecutionAuthorityTx(authority.ctx, tx, authority.proof, assignment.WorkerID, assignment.RunID); err != nil {
+				return err
+			}
+			return s.Service.validateToolProgressTx(authority.ctx, tx, authority.proof, assignment, event)
 		})
 		respond(w, 200, map[string]bool{"acknowledged": e == nil}, e)
 	case "runner/claim":
@@ -736,17 +753,19 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, pro
 			writeError(w, invalid("领取任务必须提供精确项目及实际能力列表"))
 			return
 		}
-		a, e := s.Engine.ClaimWithOperation(r.Context(), p.TenantID, project, claim.WorkerID, claim.IdempotencyKey, claim.Capabilities, func(tx *sql.Tx) error {
-			return s.Service.runnerIdentityTx(r.Context(), tx, p, project, tokenOf(r), claim.WorkerID)
+		authority := s.Service.engineAuthority(r.Context(), actor, commandTarget{tenantID: p.TenantID, projectID: project, resourceID: claim.WorkerID}, purposeRunnerWrite)
+		defer authority.close()
+		a, e := s.Engine.ClaimWithOperation(authority.ctx, p.TenantID, project, claim.WorkerID, claim.IdempotencyKey, claim.Capabilities, func(tx *sql.Tx) error {
+			return authority.beforeRunner(tx, claim.WorkerID)
 		}, func(tx *sql.Tx, run, node string) (bool, error) {
-			allowed, err := s.Service.releaseClaimEligibleTx(r.Context(), tx, p, project, tokenOf(r), claim.WorkerID, run)
+			allowed, err := s.Service.releaseClaimEligibleTx(authority.ctx, tx, authority.proof, claim.WorkerID, run)
 			if err != nil || !allowed {
 				return allowed, err
 			}
-			return s.Service.toolClaimEligibleTx(r.Context(), tx, p, project, tokenOf(r), claim.WorkerID, run, node)
+			return s.Service.toolClaimEligibleTx(authority.ctx, tx, authority.proof, claim.WorkerID, run, node)
 		})
 		if e == nil && a != nil && a.DispatchState == "active" {
-			a.ReleaseExecution, e = s.Service.ReleaseExecutionForAssignment(r.Context(), p, project, *a)
+			a.ReleaseExecution, e = s.Service.ReleaseExecutionForAssignment(r.Context(), actor, project, *a)
 		}
 		respond(w, 200, RunnerClaimResponse{Assignment: a}, e)
 	case "runner/heartbeat":
@@ -755,8 +774,13 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, pro
 			writeError(w, invalid("无效执行信封"))
 			return
 		}
-		e := s.Engine.HeartbeatWithAuthority(r.Context(), p.TenantID, project, a, func(tx *sql.Tx) error {
-			return s.Service.projectRunnerExecutionAuthorityTx(r.Context(), tx, p, project, tokenOf(r), a.WorkerID, a.RunID)
+		authority := s.Service.engineAuthority(r.Context(), actor, commandTarget{tenantID: p.TenantID, projectID: project, resourceID: a.WorkerID}, purposeRunnerWrite)
+		defer authority.close()
+		e := s.Engine.HeartbeatWithAuthority(authority.ctx, p.TenantID, project, a, func(tx *sql.Tx) error {
+			if err := authority.beforeRunner(tx, a.WorkerID); err != nil {
+				return err
+			}
+			return s.Service.projectRunnerExecutionAuthorityTx(authority.ctx, tx, authority.proof, a.WorkerID, a.RunID)
 		})
 		if errors.Is(e, dag.ErrCancelled) {
 			writeJSON(w, 200, map[string]any{"cancel_requested": true})
@@ -769,16 +793,21 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, p Principal, pro
 			writeError(w, invalid("无效执行回执"))
 			return
 		}
-		e := s.Engine.CompleteBound(r.Context(), p.TenantID, project, result, func(tx *sql.Tx) error {
-			return s.Service.projectRunnerExecutionAuthorityTx(r.Context(), tx, p, project, tokenOf(r), result.WorkerID, result.RunID)
+		authority := s.Service.engineAuthority(r.Context(), actor, commandTarget{tenantID: p.TenantID, projectID: project, resourceID: result.WorkerID}, purposeRunnerWrite)
+		defer authority.close()
+		e := s.Engine.CompleteBound(authority.ctx, p.TenantID, project, result, func(tx *sql.Tx) error {
+			if err := authority.beforeRunner(tx, result.WorkerID); err != nil {
+				return err
+			}
+			return s.Service.projectRunnerExecutionAuthorityTx(authority.ctx, tx, authority.proof, result.WorkerID, result.RunID)
 		}, func(tx *sql.Tx, state string) error {
-			if err := s.Service.validateToolResultTx(r.Context(), tx, p, project, tokenOf(r), result); err != nil {
+			if err := s.Service.validateToolResultTx(authority.ctx, tx, authority.proof, result); err != nil {
 				return err
 			}
-			if err := s.Service.verifyArtifactResultTx(r.Context(), tx, p, project, tokenOf(r), result, state); err != nil {
+			if err := s.Service.verifyArtifactResultTx(authority.ctx, tx, authority.proof, result, state); err != nil {
 				return err
 			}
-			return s.Service.ValidateReleaseResultTx(r.Context(), tx, p, project, result, state)
+			return s.Service.ValidateReleaseResultTx(authority.ctx, tx, authority.proof, result, state)
 		})
 		if e == nil {
 			run, re := s.Engine.GetRun(r.Context(), p.TenantID, project, result.RunID)
@@ -802,30 +831,28 @@ func (s *Server) capabilities(ctx context.Context) map[string]any {
 	items := []map[string]any{{"id": "transactional_store", "name": "业务事务库", "configured": true, "available": connected, "verified": false, "backend": s.Service.Dialect, "checks": map[string]any{"connection": connected, "transaction": "not_run", "backup_restore": "not_run"}, "reason": "仅实时探测连接；事务、迁移和恢复验收见交付报告"}, {"id": "dag", "name": "持久化 DAG", "configured": true, "available": dagAvailable, "verified": false, "reason": "已探测调度表；完整运行验收见交付证据"}, {"id": "files", "name": "本地文件", "configured": true, "available": filesAvailable, "verified": false, "reason": "目录存在性探测，不代表写入、备份或恢复已验证"}, {"id": "semantic_search", "name": "多模态语义检索", "configured": os.Getenv("SUMA_KNOWLEDGE_URL") != "", "available": false, "verified": false, "reason": "需要连接检索服务并执行读写与检索验证"}, {"id": "payments", "name": "支付结算", "configured": false, "available": false, "verified": false, "reason": "尚未配置商户与支付适配器"}, {"id": "collaboration", "name": "多人实时协作", "configured": false, "available": false, "verified": false, "reason": "协作服务尚未部署"}}
 	return map[string]any{"items": items, "as_of": now()}
 }
-func (s *Server) agent(w http.ResponseWriter, r *http.Request, p Principal, project, path string, m map[string]any) {
-	if path == "agent/tools" && r.Method == "GET" {
-		writeJSON(w, 200, map[string]any{"items": []map[string]any{{"name": "project.overview", "description": "读取当前授权项目的真实状态与活动", "parameters": map[string]any{"type": "object", "properties": map[string]any{}, "additionalProperties": false}}, {"name": "project.tasks", "description": "读取当前项目任务", "parameters": map[string]any{"type": "object", "properties": map[string]any{}, "additionalProperties": false}}, {"name": "project.search", "description": "检索当前项目资料并返回来源", "parameters": map[string]any{"type": "object", "properties": map[string]any{"query": map[string]any{"type": "string"}}, "required": []string{"query"}, "additionalProperties": false}}}})
+func (s *Server) agent(w http.ResponseWriter, r *http.Request, actor Actor, project, path string, m map[string]any) {
+	if path == "agent/tools" && r.Method == http.MethodGet {
+		s.projectReadJSON(w, r, actor, project, func(context.Context, *authorizedCommand) (any, error) {
+			return map[string]any{"items": []map[string]any{{"name": "project.overview", "description": presentationSource(w, "读取当前授权项目的真实状态与活动"), "parameters": map[string]any{"type": "object", "properties": map[string]any{}, "additionalProperties": false}}, {"name": "project.tasks", "description": presentationSource(w, "读取当前项目任务"), "parameters": map[string]any{"type": "object", "properties": map[string]any{"limit": map[string]any{"type": "integer"}, "cursor": map[string]any{"type": "string"}}, "additionalProperties": false}}, {"name": "project.search", "description": presentationSource(w, "检索当前项目资料并返回来源"), "parameters": map[string]any{"type": "object", "properties": map[string]any{"query": map[string]any{"type": "string"}}, "required": []string{"query"}, "additionalProperties": false}}}}, nil
+		})
 		return
 	}
-	if path == "agent/tools/invoke" && r.Method == "POST" {
+	if path == "agent/tools/invoke" && r.Method == http.MethodPost {
 		args, _ := m["arguments"].(map[string]any)
-		switch str(m, "tool") {
-		case "project.overview":
-			out, e := s.Service.Overview(r.Context(), p, project)
-			respond(w, 200, out, e)
-		case "project.tasks":
-			out, total, next, e := s.Service.ListPage(r.Context(), p, project, "tasks", number(args, "limit"), str(args, "cursor"))
-			if e != nil {
-				writeError(w, e)
-				return
+		s.projectReadJSON(w, r, actor, project, func(ctx context.Context, auth *authorizedCommand) (any, error) {
+			switch str(m, "tool") {
+			case "project.overview":
+				return s.Service.overviewTx(ctx, auth, project)
+			case "project.tasks":
+				items, total, next, err := s.Service.listPageTx(ctx, auth, project, "tasks", number(args, "limit"), str(args, "cursor"))
+				return map[string]any{"items": items, "total": total, "next_cursor": next}, err
+			case "project.search":
+				return s.Service.searchKeywordsTx(ctx, auth, project, str(args, "query"))
+			default:
+				return nil, &APIError{422, "tool_not_allowed", "该工具尚未授权或未实现", nil}
 			}
-			writeJSON(w, 200, map[string]any{"items": out, "total": total, "next_cursor": next})
-		case "project.search":
-			out, e := s.Service.Search(r.Context(), p, project, str(args, "query"))
-			respond(w, 200, out, e)
-		default:
-			writeError(w, &APIError{422, "tool_not_allowed", "该工具尚未授权或未实现", nil})
-		}
+		})
 		return
 	}
 	writeError(w, missing())

@@ -19,6 +19,9 @@ const help = `suma — 速码 control client
 
 Global flags (before command): --control http://127.0.0.1:4310 --project ID
   --token TOKEN (prefer SUMA_TOKEN) --timeout 15s
+  Browser commands: --expected-user ID [--expected-organization ID]
+  Capture the original session view; no automatic identity refresh on retries.
+  Project-scoped API credentials do not need browser view flags.
   Language: --language > SUMA_LANGUAGE > LC_ALL/LC_MESSAGES/LANG > zh-CN
 
 Read commands:
@@ -47,6 +50,8 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 	control := fs.String("control", "http://127.0.0.1:4310", "control origin")
 	project := fs.String("project", "", "project ID")
 	token := fs.String("token", os.Getenv("SUMA_TOKEN"), "Bearer token")
+	expectedUser := fs.String("expected-user", os.Getenv("SUMA_EXPECTED_USER"), "original-view account ID for browser commands")
+	expectedOrganization := fs.String("expected-organization", os.Getenv("SUMA_EXPECTED_ORGANIZATION"), "original-view organization ID for browser commands")
 	timeout := fs.Duration("timeout", 15*time.Second, "per-request timeout")
 	language := fs.String("language", "", "display language: zh-CN or en-US")
 	parseErr := fs.Parse(args)
@@ -72,7 +77,10 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 	c, err := newClient(*control, *project, *token, *timeout)
 	if err == nil {
 		c.locale = locale
-		err = dispatch(ctx, c, fs.Args(), in, out)
+		err = c.setOriginalView(*expectedUser, *expectedOrganization)
+		if err == nil {
+			err = dispatch(ctx, c, fs.Args(), in, out)
+		}
 	}
 	if err == nil {
 		return 0

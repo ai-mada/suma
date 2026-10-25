@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -22,6 +23,8 @@ type fixture struct {
 	cookie  *http.Cookie
 	project string
 	user    Principal
+	actor   Actor     // Actual original browser credential, retained for late-authority tests.
+	view    Principal // Last session actually loaded by this browser fixture.
 }
 
 func newFixture(t *testing.T) *fixture {
@@ -44,6 +47,10 @@ func newFixture(t *testing.T) *fixture {
 	setup := f.call("POST", "/auth/setup", map[string]any{"name": "开发负责人", "email": "owner@example.test", "password": "test-password-strong-42", "organization": "验证团队", "project": "验证项目"}, 200)
 	raw, _ := json.Marshal(setup["user"])
 	json.Unmarshal(raw, &f.user)
+	f.actor, err = s.AuthenticateActor(context.Background(), f.cookie.Value)
+	if err != nil {
+		t.Fatal(err)
+	}
 	projects := setup["projects"].([]any)
 	f.project = projects[0].(map[string]any)["id"].(string)
 	return f
@@ -56,6 +63,12 @@ func (f *fixture) call(method, path string, body any, want int) map[string]any {
 		req.AddCookie(f.cookie)
 	}
 	req.Header.Set("Content-Type", "application/json")
+	if f.view.ID != "" && BrowserCommandRequiresView(method, strings.TrimPrefix(path, "/")) && !strings.HasPrefix(path, "/auth/setup") && !strings.HasPrefix(path, "/auth/login") && !strings.HasPrefix(path, "/auth/invitations/accept") {
+		req.Header.Set("X-Suma-Expected-User", f.view.ID)
+		if path != "/account/preferences" {
+			req.Header.Set("X-Suma-Expected-Organization", f.view.TenantID)
+		}
+	}
 	w := httptest.NewRecorder()
 	f.handler.ServeHTTP(w, req)
 	if w.Code != want {
@@ -69,6 +82,12 @@ func (f *fixture) call(method, path string, body any, want int) map[string]any {
 	var result map[string]any
 	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
 		f.t.Fatalf("invalid JSON: %s", w.Body.String())
+	}
+	if user, ok := result["user"].(map[string]any); ok {
+		encoded, _ := json.Marshal(user)
+		if err := json.Unmarshal(encoded, &f.view); err != nil {
+			f.t.Fatal(err)
+		}
 	}
 	return result
 }

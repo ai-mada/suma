@@ -25,6 +25,13 @@ func executionDiagnosticHTTP(server *httptest.Server, f *fixture, method, path, 
 	req.Header.Set("Accept-Language", locale)
 	if f != nil && f.cookie != nil {
 		req.AddCookie(f.cookie)
+		route := strings.TrimPrefix(req.URL.Path, "/api/v1/")
+		if f.view.ID != "" && BrowserCommandRequiresView(method, route) {
+			req.Header.Set("X-Suma-Expected-User", f.view.ID)
+			if route != "account/preferences" {
+				req.Header.Set("X-Suma-Expected-Organization", f.view.TenantID)
+			}
+		}
 	}
 	res, err := server.Client().Do(req)
 	if err != nil {

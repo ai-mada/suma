@@ -26,6 +26,7 @@ func TestControlDiagnosticsConcurrentHTTPRejectionsPreserveBusinessState(t *test
 		return stringify(map[string]any{"counts": counts, "task": f.call("GET", "/tasks/"+task["id"].(string)+"?project_id="+f.project, nil, 200)})
 	}
 	before := snapshot()
+	originalView := f.view
 	server := httptest.NewServer(f.handler)
 	defer server.Close()
 
@@ -60,6 +61,8 @@ func TestControlDiagnosticsConcurrentHTTPRejectionsPreserveBusinessState(t *test
 				req.AddCookie(f.cookie)
 				req.Header.Set("Content-Type", "application/json")
 				req.Header.Set("Accept-Language", locale)
+				req.Header.Set("X-Suma-Expected-User", originalView.ID)
+				req.Header.Set("X-Suma-Expected-Organization", originalView.TenantID)
 				resp, err := server.Client().Do(req)
 				if err != nil {
 					t.Error(err)

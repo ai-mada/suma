@@ -11,7 +11,6 @@ import (
 	"sort"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/store"
@@ -53,7 +52,7 @@ func TestAttemptToolHistoryHTTPStrictQueryAndScope(t *testing.T) {
 	f.call("GET", strings.Replace(base, "/nodes/one/", "/nodes/missing/", 1), nil, 404)
 	other := f.call("POST", "/projects", map[string]any{"title": "other", "idempotency_key": newID()}, 201)["id"].(string)
 	for _, scope := range []string{"api", "runner", "agent"} {
-		token := f.call("POST", "/auth/tokens", map[string]any{"project_id": f.project, "scope": scope}, 201)["token"].(string)
+		token := f.call("POST", "/auth/tokens", map[string]any{"project_id": f.project, "scope": scope, "idempotency_key": newID()}, 201)["token"].(string)
 		want := 403
 		if scope == "api" {
 			want = 200
@@ -80,7 +79,7 @@ func TestAttemptToolHistoryHTTPProjectQueryByteBoundaryBeforeProjectLookup(t *te
 		})
 	}
 	// Syntax validation follows authentication and credential boundaries.
-	token := f.call("POST", "/auth/tokens", map[string]any{"project_id": f.project, "scope": "runner"}, 201)["token"].(string)
+	token := f.call("POST", "/auth/tokens", map[string]any{"project_id": f.project, "scope": "runner", "idempotency_key": newID()}, 201)["token"].(string)
 	f.bearer("GET", strings.Replace(base, f.project, strings.Repeat("x", 513), 1), token, nil, 403)
 	f.call("POST", "/auth/logout", map[string]any{}, 200)
 	f.call("GET", strings.Replace(base, f.project, strings.Repeat("x", 513), 1), nil, 401)
@@ -89,7 +88,7 @@ func TestAttemptToolHistoryHTTPProjectQueryByteBoundaryBeforeProjectLookup(t *te
 // Snapshot every real table except the explicitly allowed coordination counter.
 func historyDatabaseHash(t *testing.T, db *sql.DB) string {
 	t.Helper()
-	rows, err := db.Query(`SELECT name FROM sqlite_master WHERE type='table' AND name<>'suma_governance_locks' ORDER BY name`)
+	rows, err := db.Query(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT IN ('suma_governance_locks','suma_authority_sqlite_guard','suma_identity_authority_locks','suma_authority_credential_locks') ORDER BY name`)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +162,7 @@ func TestAttemptToolHistoryHTTPAuthorizationAndSelectionShareGuardedTransaction(
 	f.call("GET", base, nil, 200)
 	after := historyDatabaseHash(t, db)
 	if before != after {
-		t.Fatal("GET changed persisted tables")
+		t.Fatal("GET changed business, credential, execution or receipt tables")
 	}
 	trace.mu.Lock()
 	defer trace.mu.Unlock()
@@ -205,22 +204,22 @@ func TestAttemptToolHistoryHTTPRechecksCurrentAuthorityAfterSecondConnectionChan
 			f := newFixture(t)
 			run, base := historyHTTPAttempt(t, f)
 			member := invitedReviewer(t, f)
-			token, err := f.s.CreateToken(context.Background(), member, "history", time.Hour)
+			_, token, err := f.s.Login(context.Background(), "authority-reviewer@example.test", "invited-password-strong-42")
 			if err != nil {
 				t.Fatal(err)
 			}
-			scope := ""
 			if change == "token_scope" {
-				scope = "api"
-				if _, err = f.s.DB.Exec(`INSERT INTO suma_token_scopes(token_hash,kind,project_id)VALUES(?,'api',?)`, digest(token), f.project); err != nil {
-					t.Fatal(err)
+				issued, e := f.s.IssueProjectCredential(context.Background(), f.actor, ProjectCredentialIssueRequest{ProjectID: f.project, Scope: "api", Label: "history", IdempotencyKey: newID()})
+				if e != nil {
+					t.Fatal(e)
 				}
+				token = issued.Token
 			}
-			expected, err := f.s.Authenticate(context.Background(), token)
+			expected, err := f.s.AuthenticateActor(context.Background(), token)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if err = f.s.Authorize(context.Background(), expected, f.project, false, false); err != nil {
+			if err = f.s.withCurrentRead(context.Background(), expected, commandTarget{tenantID: expected.Projection().TenantID, projectID: f.project}, purposeProjectRead, func(*authorizedCommand) error { return nil }); err != nil {
 				t.Fatal(err)
 			}
 			var path string
@@ -235,17 +234,18 @@ func TestAttemptToolHistoryHTTPRechecksCurrentAuthorityAfterSecondConnectionChan
 			want := 403
 			switch change {
 			case "session_revoked":
-				err = (&Service{DB: other, Dialect: "sqlite"}).Logout(context.Background(), token)
+				err = logoutCredentialForTest(context.Background(), &Service{DB: other, Dialect: "sqlite"}, token)
 				want = 401
 			case "session_expired":
 				_, err = other.Exec(`UPDATE suma_sessions SET expires_at='2000-01-01T00:00:00Z' WHERE token_hash=?`, digest(token))
 				want = 401
 			case "project_grant":
-				_, err = (&Service{DB: other, Dialect: "sqlite"}).SaveProjectAccess(context.Background(), f.user, map[string]any{"project_id": f.project, "user_id": member.ID, "action": "remove", "expected_version": float64(1), "idempotency_key": newID()})
+				_, err = (&Service{DB: other, Dialect: "sqlite"}).SaveProjectAccess(context.Background(), f.actor, map[string]any{"project_id": f.project, "user_id": member.Projection().ID, "action": "remove", "expected_version": float64(1), "idempotency_key": newID()})
 			case "organization_member":
-				_, err = other.Exec(`DELETE FROM suma_org_members WHERE tenant_id=? AND user_id=?`, member.TenantID, member.ID)
+				_, err = other.Exec(`DELETE FROM suma_org_members WHERE tenant_id=? AND user_id=?`, member.Projection().TenantID, member.Projection().ID)
 			case "token_scope":
 				_, err = other.Exec(`UPDATE suma_token_scopes SET project_id='foreign' WHERE token_hash=?`, digest(token))
+				want = 401
 			}
 			if err != nil {
 				t.Fatal(err)
@@ -255,7 +255,7 @@ func TestAttemptToolHistoryHTTPRechecksCurrentAuthorityAfterSecondConnectionChan
 			req.Header.Set("Authorization", "Bearer "+token)
 			w := httptest.NewRecorder()
 			server := &Server{Service: f.s, Engine: f.e}
-			server.attemptToolHistoryHTTP(w, req, expected, scope, []string{"runs", run.ID, "nodes", "one", "attempts", "1", "tool-events"}, f.project)
+			server.attemptToolHistoryHTTP(w, req, expected, []string{"runs", run.ID, "nodes", "one", "attempts", "1", "tool-events"}, f.project)
 			if w.Code != want || strings.Contains(w.Body.String(), `"items"`) {
 				t.Fatalf("stale authority leaked history: %d %s", w.Code, w.Body.String())
 			}

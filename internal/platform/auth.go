@@ -10,7 +10,6 @@ import (
 	"errors"
 	"net/mail"
 	"strings"
-	"time"
 )
 
 func digest(s string) string { b := sha256.Sum256([]byte(s)); return hex.EncodeToString(b[:]) }
@@ -35,10 +34,11 @@ func (s *Service) Setup(ctx context.Context, m map[string]any) (Principal, strin
 	if name == "" {
 		return Principal{}, "", invalid("请填写姓名")
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return Principal{}, "", err
 	}
+	defer cancel()
 	defer tx.Rollback()
 	var count int
 	if err = tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM suma_users`).Scan(&count); err != nil {
@@ -71,13 +71,36 @@ func (s *Service) Setup(ctx context.Context, m map[string]any) (Principal, strin
 			return Principal{}, "", err
 		}
 	}
+	orgs, err := s.authorityOrganizations(ctx, tx, user.ID, user.TenantID)
+	if err != nil {
+		return Principal{}, "", err
+	}
+	if err = s.lockHumanAuthority(ctx, tx, user.ID, orgs, nil); err != nil {
+		return Principal{}, "", err
+	}
+	token, err := s.newBrowserSessionTx(ctx, tx, user, "setup")
+	if err != nil {
+		return Principal{}, "", err
+	}
 	if err = tx.Commit(); err != nil {
 		return Principal{}, "", err
 	}
-	token, err := s.CreateToken(ctx, user, "browser", 7*24*time.Hour)
-	return user, token, err
+	return user, token, nil
 }
 func (s *Service) Login(ctx context.Context, email, password string) (Principal, string, error) {
+	var p Principal
+	var token string
+	var err error
+	for attempt := 0; attempt < 3; attempt++ {
+		p, token, err = s.login(ctx, email, password)
+		if !authoritySetRetry(err) {
+			return p, token, err
+		}
+	}
+	return p, token, err
+}
+
+func (s *Service) login(ctx context.Context, email, password string) (Principal, string, error) {
 	if len(email) > 254 || len(password) > 1024 {
 		return Principal{}, "", invalid("登录内容超出限制")
 	}
@@ -92,8 +115,37 @@ func (s *Service) Login(ctx context.Context, email, password string) (Principal,
 	if len(parts) != 2 || subtle.ConstantTimeCompare([]byte(passwordHash(password, parts[0])), []byte(hash)) != 1 {
 		return p, "", &APIError{401, "invalid_credentials", "邮箱或密码不正确", nil}
 	}
-	token, err := s.CreateToken(ctx, p, "browser", 7*24*time.Hour)
-	return p, token, err
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
+	if err != nil {
+		return Principal{}, "", err
+	}
+	defer cancel()
+	defer tx.Rollback()
+	if err = s.authorityWriter(ctx, tx); err != nil {
+		return Principal{}, "", err
+	}
+	orgs, err := s.authorityOrganizations(ctx, tx, p.ID, p.TenantID)
+	if err != nil {
+		return Principal{}, "", err
+	}
+	if err = s.lockHumanAuthority(ctx, tx, p.ID, orgs, nil); err != nil {
+		return Principal{}, "", err
+	}
+	token, err := s.newBrowserSessionTx(ctx, tx, p, "password")
+	if err != nil {
+		return Principal{}, "", err
+	}
+	var currentHash string
+	if err = tx.QueryRowContext(ctx, s.q(s.currentSQL(`SELECT password_hash FROM suma_users WHERE id=?`)), p.ID).Scan(&currentHash); err != nil {
+		return Principal{}, "", err
+	}
+	if currentHash != hash {
+		return Principal{}, "", unauthenticated()
+	}
+	if err = tx.Commit(); err != nil {
+		return Principal{}, "", err
+	}
+	return p, token, nil
 }
 
 func (s *Service) TokenScope(ctx context.Context, token string) (string, string) {
@@ -106,31 +158,8 @@ func (s *Service) TokenScope(ctx context.Context, token string) (string, string)
 	}
 	return kind, project
 }
-func (s *Service) CreateToken(ctx context.Context, p Principal, label string, ttl time.Duration) (string, error) {
-	token := newID() + newID()
-	_, err := s.DB.ExecContext(ctx, s.q(`INSERT INTO suma_sessions(token_hash,user_id,tenant_id,expires_at,label) VALUES(?,?,?,?,?)`), digest(token), p.ID, p.TenantID, time.Now().UTC().Add(ttl).Format(time.RFC3339Nano), label)
-	return token, err
-}
+
 func (s *Service) Authenticate(ctx context.Context, token string) (Principal, error) {
-	var p Principal
-	var expires string
-	if token == "" {
-		return p, &APIError{401, "unauthenticated", "请登录", map[string]any{"setup_required": s.SetupRequired(ctx)}}
-	}
-	err := s.DB.QueryRowContext(ctx, s.q(`SELECT u.id,u.name,u.email,m.tenant_id,m.role,t.expires_at FROM suma_sessions t JOIN suma_users u ON u.id=t.user_id JOIN suma_org_members m ON m.user_id=t.user_id AND m.tenant_id=t.tenant_id WHERE t.token_hash=?`), digest(token)).Scan(&p.ID, &p.Name, &p.Email, &p.TenantID, &p.Role, &expires)
-	if errors.Is(err, sql.ErrNoRows) {
-		return p, &APIError{401, "unauthenticated", "登录已失效", nil}
-	}
-	if err != nil {
-		return p, err
-	}
-	expiry, err := time.Parse(time.RFC3339Nano, expires)
-	if err != nil || !time.Now().Before(expiry) {
-		return p, &APIError{401, "session_expired", "登录已过期", nil}
-	}
-	return p, nil
-}
-func (s *Service) Logout(ctx context.Context, token string) error {
-	_, err := s.DB.ExecContext(ctx, s.q(`DELETE FROM suma_sessions WHERE token_hash=?`), digest(token))
-	return err
+	actor, err := s.AuthenticateActor(ctx, token)
+	return actor.Projection(), err
 }

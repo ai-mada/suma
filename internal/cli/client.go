@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -36,10 +37,11 @@ func (e *failure) Error() string { return e.Message }
 func usage(message string) error { return &failure{Code: "usage", Message: message} }
 
 type client struct {
-	base, project, token string
-	timeout              time.Duration
-	http                 *http.Client
-	locale               localization.Locale
+	base, project, token               string
+	expectedUser, expectedOrganization string
+	timeout                            time.Duration
+	http                               *http.Client
+	locale                             localization.Locale
 }
 
 func newClient(control, project, token string, timeout time.Duration) (*client, error) {
@@ -52,6 +54,18 @@ func newClient(control, project, token string, timeout time.Duration) (*client, 
 	}
 	return &client{base: strings.TrimSuffix(control, "/"), project: project, token: token, timeout: timeout,
 		http: &http.Client{CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return errors.New("redirect refused") }}}, nil
+}
+
+var originalViewID = regexp.MustCompile(`^[a-f0-9]{32}$`)
+
+// Explicit IDs are captured once for this CLI invocation. Retries never fetch a
+// newer session to replace the operator's original account/organization view.
+func (c *client) setOriginalView(user, organization string) error {
+	if user != "" && !originalViewID.MatchString(user) || organization != "" && (!originalViewID.MatchString(organization) || user == "") {
+		return usage("original-view IDs must be 32 lowercase hexadecimal characters; organization requires user")
+	}
+	c.expectedUser, c.expectedOrganization = user, organization
+	return nil
 }
 
 func (c *client) request(ctx context.Context, method, path string, body map[string]any, scoped bool) (json.RawMessage, error) {
@@ -107,6 +121,14 @@ func (c *client) request(ctx context.Context, method, path string, body map[stri
 	}
 	if c.token != "" {
 		req.Header.Set("Authorization", "Bearer "+c.token)
+	}
+	if method != http.MethodGet && method != http.MethodHead && method != http.MethodOptions {
+		if c.expectedUser != "" {
+			req.Header.Set("X-Suma-Expected-User", c.expectedUser)
+		}
+		if c.expectedOrganization != "" {
+			req.Header.Set("X-Suma-Expected-Organization", c.expectedOrganization)
+		}
 	}
 	resp, err := c.http.Do(req)
 	if err != nil {

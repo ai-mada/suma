@@ -21,7 +21,7 @@ func TestExecutionPoolCredentialIsOneTimeAndNeverAUserSession(t *testing.T) {
 	f := newFixture(t)
 	pool := seedCredentialPool(t, f)
 	request := ExecutionPoolRunnerCreateRequest{Name: "共享开发节点", MaxSlots: 2, TTLSeconds: 86400, IdempotencyKey: newID()}
-	out, err := f.s.RegisterExecutionPoolRunner(context.Background(), f.user, f.cookie.Value, pool, request)
+	out, err := f.s.RegisterExecutionPoolRunner(context.Background(), f.actor, pool, request)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,7 +31,7 @@ func TestExecutionPoolCredentialIsOneTimeAndNeverAUserSession(t *testing.T) {
 	if _, err = f.s.Authenticate(context.Background(), out.Token); err == nil {
 		t.Fatal("machine credential became a human browser session")
 	}
-	replayed, err := f.s.RegisterExecutionPoolRunner(context.Background(), f.user, f.cookie.Value, pool, request)
+	replayed, err := f.s.RegisterExecutionPoolRunner(context.Background(), f.actor, pool, request)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,12 +64,12 @@ func TestExecutionPoolCredentialCommandsRecheckCurrentHumanAndVersion(t *testing
 	f := newFixture(t)
 	ctx := context.Background()
 	pool := seedCredentialPool(t, f)
-	r, err := f.s.RegisterExecutionPoolRunner(ctx, f.user, f.cookie.Value, pool, ExecutionPoolRunnerCreateRequest{Name: "凭证轮换", MaxSlots: 1, TTLSeconds: 3600, IdempotencyKey: newID()})
+	r, err := f.s.RegisterExecutionPoolRunner(ctx, f.actor, pool, ExecutionPoolRunnerCreateRequest{Name: "凭证轮换", MaxSlots: 1, TTLSeconds: 3600, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
 	rotation := ExecutionPoolCredentialRequest{ExpectedVersion: 1, TTLSeconds: 86400, IdempotencyKey: newID()}
-	rotated, err := f.s.RotateExecutionPoolCredential(ctx, f.user, f.cookie.Value, pool, r.Runner.ID, rotation)
+	rotated, err := f.s.RotateExecutionPoolCredential(ctx, f.actor, pool, r.Runner.ID, rotation)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,16 +80,16 @@ func TestExecutionPoolCredentialCommandsRecheckCurrentHumanAndVersion(t *testing
 	if err = f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_execution_pool_credentials WHERE token_hash=? AND status='active'`, digest(r.Token)).Scan(&old); err != nil || old != 0 {
 		t.Fatal("old secret remained active", err)
 	}
-	if _, err = f.s.RotateExecutionPoolCredential(ctx, f.user, f.cookie.Value, pool, r.Runner.ID, ExecutionPoolCredentialRequest{ExpectedVersion: 1, TTLSeconds: 86400, IdempotencyKey: newID()}); err == nil {
+	if _, err = f.s.RotateExecutionPoolCredential(ctx, f.actor, pool, r.Runner.ID, ExecutionPoolCredentialRequest{ExpectedVersion: 1, TTLSeconds: 86400, IdempotencyKey: newID()}); err == nil {
 		t.Fatal("stale registration version rotated secret")
 	}
-	if _, err = f.s.RotateExecutionPoolCredential(ctx, f.user, f.cookie.Value, pool, r.Runner.ID, rotation); err != nil {
+	if _, err = f.s.RotateExecutionPoolCredential(ctx, f.actor, pool, r.Runner.ID, rotation); err != nil {
 		t.Fatal("same rotation operation did not recover metadata", err)
 	}
-	if err = f.s.Logout(ctx, f.cookie.Value); err != nil {
+	if err = logoutCredentialForTest(ctx, f.s, f.cookie.Value); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = f.s.RotateExecutionPoolCredential(ctx, f.user, f.cookie.Value, pool, r.Runner.ID, rotation); err == nil {
+	if _, err = f.s.RotateExecutionPoolCredential(ctx, f.actor, pool, r.Runner.ID, rotation); err == nil {
 		t.Fatal("logged out human replayed privileged operation")
 	}
 }

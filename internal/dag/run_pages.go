@@ -2,6 +2,7 @@ package dag
 
 import (
 	"context"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -17,6 +18,10 @@ type runCursor struct {
 // ListRunsPage returns bounded run metadata without loading node graphs or
 // taking the scheduler mutation lock. Open one run for its complete snapshot.
 func (e *Engine) ListRunsPage(ctx context.Context, tenant, project string, limit int, cursor string) ([]Run, int, string, error) {
+	return e.listRunsPage(ctx, nil, tenant, project, limit, cursor)
+}
+
+func (e *Engine) listRunsPage(ctx context.Context, tx *sql.Tx, tenant, project string, limit int, cursor string) ([]Run, int, string, error) {
 	if err := scopeValid(tenant, project); err != nil {
 		return nil, 0, "", err
 	}
@@ -33,11 +38,15 @@ func (e *Engine) ListRunsPage(ctx context.Context, tenant, project string, limit
 			return nil, 0, "", dagDiagnostic(fmt.Errorf("%w: invalid run cursor", ErrInvalid), "dag.runs.cursor", nil)
 		}
 	}
-	tx, err := e.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, 0, "", err
+	owned := tx == nil
+	var err error
+	if owned {
+		tx, err = e.db.BeginTx(ctx, nil)
+		if err != nil {
+			return nil, 0, "", err
+		}
+		defer tx.Rollback()
 	}
-	defer tx.Rollback()
 	var total int
 	if err = tx.QueryRowContext(ctx, e.q(`SELECT COUNT(*) FROM dag_runs WHERE tenant_id=? AND project_id=?`), tenant, project).Scan(&total); err != nil {
 		return nil, 0, "", err
@@ -76,8 +85,10 @@ func (e *Engine) ListRunsPage(ctx context.Context, tenant, project string, limit
 		raw, _ := json.Marshal(runCursor{Tenant: tenant, Project: project, At: last.CreatedAt, ID: last.ID})
 		next = base64.RawURLEncoding.EncodeToString(raw)
 	}
-	if err = tx.Commit(); err != nil {
-		return nil, 0, "", err
+	if owned {
+		if err = tx.Commit(); err != nil {
+			return nil, 0, "", err
+		}
 	}
 	return items, total, next, nil
 }

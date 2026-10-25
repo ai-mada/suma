@@ -78,22 +78,26 @@ func (s *Service) currentArtifactAssignmentTx(ctx context.Context, tx *sql.Tx, p
 	return spec, err
 }
 
-func (s *Service) StartArtifactUpload(ctx context.Context, p Principal, project, token string, r releasecontract.ArtifactUploadRequest) (releasecontract.ArtifactUploadState, error) {
+func (s *Service) StartArtifactUpload(ctx context.Context, actor Actor, project string, r releasecontract.ArtifactUploadRequest) (releasecontract.ArtifactUploadState, error) {
+	p := actor.Projection()
+
 	var out releasecontract.ArtifactUploadState
 	m, hash, err := releasecontract.CanonicalManifest(r.Manifest)
 	if err != nil {
 		return out, invalid(err.Error())
 	}
 	r.Manifest = m
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.releaseWorkerTx(ctx, tx, p, project, token, r.Assignment.WorkerID, r.ProfileID, r.ProfileSHA256, "build"); err != nil {
+	auth, err := s.releaseWorkerTx(ctx, tx, actor, project, r.Assignment.WorkerID, r.ProfileID, r.ProfileSHA256, "build")
+	if err != nil {
 		return out, err
 	}
-	fingerprint, replay, err := s.receipt(ctx, tx, p, project, r.OperationID, map[string]any{"artifact_upload": r})
+	fingerprint, replay, err := s.commandReceipt(ctx, auth, r.OperationID, map[string]any{"artifact_upload": r})
 	if err != nil {
 		return out, err
 	}
@@ -127,7 +131,7 @@ func (s *Service) StartArtifactUpload(ctx context.Context, p Principal, project,
 		return out, conflict("本次构建已有上传会话，请恢复原操作")
 	}
 	id := newID()
-	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_artifact_uploads(id,tenant_id,project_id,worker_id,token_hash,run_id,node_id,attempt,fence,profile_id,profile_sha256,manifest_sha256,manifest,size_bytes,state,artifact_id,created_at)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,'receiving','',?)`), id, p.TenantID, project, r.Assignment.WorkerID, digest(token), r.Assignment.RunID, r.Assignment.NodeID, r.Assignment.Attempt, r.Assignment.Fence, r.ProfileID, r.ProfileSHA256, hash, stringify(m), total, now())
+	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_artifact_uploads(id,tenant_id,project_id,worker_id,token_hash,run_id,node_id,attempt,fence,profile_id,profile_sha256,manifest_sha256,manifest,size_bytes,state,artifact_id,created_at)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,'receiving','',?)`), id, p.TenantID, project, r.Assignment.WorkerID, actor.credential.digest, r.Assignment.RunID, r.Assignment.NodeID, r.Assignment.Attempt, r.Assignment.Fence, r.ProfileID, r.ProfileSHA256, hash, stringify(m), total, now())
 	if err != nil {
 		return out, err
 	}
@@ -140,7 +144,7 @@ func (s *Service) StartArtifactUpload(ctx context.Context, p Principal, project,
 		}
 	}
 	out = releasecontract.ArtifactUploadState{UploadID: id, State: "receiving", ManifestSHA256: hash, MissingBlobs: missing}
-	if err = s.saveReceipt(ctx, tx, p, project, r.OperationID, fingerprint, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, r.OperationID, fingerprint, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
@@ -193,7 +197,9 @@ func (s *Service) readArtifactBlob(path, digest string, size int64) ([]byte, err
 	return b, nil
 }
 
-func (s *Service) PutArtifactBlob(ctx context.Context, p Principal, project, token, uploadID, blobHash, operation string, size int64, body io.Reader) error {
+func (s *Service) PutArtifactBlob(ctx context.Context, actor Actor, project, uploadID, blobHash, operation string, size int64, body io.Reader) error {
+	p := actor.Projection()
+
 	if !releasecontract.ValidDigest(blobHash) || len(operation) < 8 || len(operation) > 128 || size < 0 || size > releasecontract.MaxFileBytes {
 		return invalid("制品摘要、长度或操作标识无效")
 	}
@@ -231,22 +237,21 @@ func (s *Service) PutArtifactBlob(ctx context.Context, p Principal, project, tok
 	if n != size || n > releasecontract.MaxFileBytes || hex.EncodeToString(hash.Sum(nil)) != blobHash {
 		return conflict("收到的实际文件长度或 SHA-256 不匹配")
 	}
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
-		return err
-	}
 	u, err := s.loadArtifactUpload(ctx, tx, p, project, uploadID)
 	if err != nil {
 		return err
 	}
-	if u.TokenHash != digest(token) {
+	if u.TokenHash != actor.credential.digest {
 		return forbidden()
 	}
-	if err = s.releaseWorkerTx(ctx, tx, p, project, token, u.Assignment.WorkerID, u.ProfileID, u.ProfileSHA256, "build"); err != nil {
+	auth, err := s.releaseWorkerTx(ctx, tx, actor, project, u.Assignment.WorkerID, u.ProfileID, u.ProfileSHA256, "build")
+	if err != nil {
 		return err
 	}
 	allowed := false
@@ -258,7 +263,7 @@ func (s *Service) PutArtifactBlob(ctx context.Context, p Principal, project, tok
 	if !allowed {
 		return invalid("文件不属于已固定的制品清单")
 	}
-	fingerprint, replay, err := s.receipt(ctx, tx, p, project, operation, map[string]any{"artifact_blob": uploadID, "sha256": blobHash, "size_bytes": size})
+	fingerprint, replay, err := s.commandReceipt(ctx, auth, operation, map[string]any{"artifact_blob": uploadID, "sha256": blobHash, "size_bytes": size})
 	if err != nil {
 		return err
 	}
@@ -273,7 +278,7 @@ func (s *Service) PutArtifactBlob(ctx context.Context, p Principal, project, tok
 		if err != nil {
 			return err
 		}
-		if err = s.saveReceipt(ctx, tx, p, project, operation, fingerprint, map[string]bool{"acknowledged": true}); err != nil {
+		if err = s.saveCommandReceipt(ctx, auth, operation, fingerprint, map[string]bool{"acknowledged": true}); err != nil {
 			return err
 		}
 		return tx.Commit()
@@ -290,7 +295,7 @@ func (s *Service) PutArtifactBlob(ctx context.Context, p Principal, project, tok
 	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_artifact_blobs(upload_id,digest,size_bytes,storage_path)VALUES(?,?,?,?)`), uploadID, blobHash, size, path); err != nil {
 		return err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, operation, fingerprint, map[string]bool{"acknowledged": true}); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, operation, fingerprint, map[string]bool{"acknowledged": true}); err != nil {
 		return err
 	}
 	if err = tx.Commit(); err != nil {
@@ -318,37 +323,39 @@ func (s *Service) artifactUploadStateTx(ctx context.Context, tx *sql.Tx, u artif
 	}
 	return out, nil
 }
-func (s *Service) InspectArtifactUpload(ctx context.Context, p Principal, project, token, id string) (releasecontract.ArtifactUploadState, error) {
-	var out releasecontract.ArtifactUploadState
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
-	if err != nil {
-		return out, err
-	}
-	defer tx.Rollback()
-	u, err := s.loadArtifactUpload(ctx, tx, p, project, id)
-	if err != nil {
-		return out, err
-	}
-	if u.TokenHash != digest(token) {
-		return out, forbidden()
-	}
-	if err = s.releaseWorkerTx(ctx, tx, p, project, token, u.Assignment.WorkerID, u.ProfileID, u.ProfileSHA256, "build"); err != nil {
-		return out, err
-	}
-	return s.artifactUploadStateTx(ctx, tx, u)
+func (s *Service) InspectArtifactUpload(ctx context.Context, actor Actor, project, id string) (out releasecontract.ArtifactUploadState, err error) {
+	err = s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeRunnerRead, func(auth *authorizedCommand) error {
+		u, e := s.loadArtifactUpload(ctx, auth.tx, auth.currentPrincipal, project, id)
+		if e != nil {
+			return e
+		}
+		if u.TokenHash != actor.credential.digest {
+			return forbidden()
+		}
+		if e = s.releaseWorkerBindingTx(ctx, auth.tx, auth, u.Assignment.WorkerID, u.ProfileID, u.ProfileSHA256, "build"); e != nil {
+			return e
+		}
+		out, e = s.artifactUploadStateTx(ctx, auth.tx, u)
+		return e
+	})
+	return out, err
 }
 
-func (s *Service) SealArtifactUpload(ctx context.Context, p Principal, project, token, id string, r releasecontract.ArtifactSealRequest) (releasecontract.ArtifactSealReceipt, error) {
+func (s *Service) SealArtifactUpload(ctx context.Context, actor Actor, project, id string, r releasecontract.ArtifactSealRequest) (releasecontract.ArtifactSealReceipt, error) {
+	p := actor.Projection()
+
 	var out releasecontract.ArtifactSealReceipt
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.releaseWorkerTx(ctx, tx, p, project, token, r.Assignment.WorkerID, "", "", "identity"); err != nil {
+	auth, err := s.releaseWorkerTx(ctx, tx, actor, project, r.Assignment.WorkerID, "", "", "identity")
+	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, r.OperationID, map[string]any{"seal": id, "body": r})
+	hash, replay, err := s.commandReceipt(ctx, auth, r.OperationID, map[string]any{"seal": id, "body": r})
 	if err != nil {
 		return out, err
 	}
@@ -360,7 +367,7 @@ func (s *Service) SealArtifactUpload(ctx context.Context, p Principal, project, 
 	if err != nil {
 		return out, err
 	}
-	if u.TokenHash != digest(token) || u.Assignment != r.Assignment {
+	if u.TokenHash != actor.credential.digest || u.Assignment != r.Assignment {
 		return out, forbidden()
 	}
 	if u.State != "receiving" {
@@ -390,7 +397,7 @@ func (s *Service) SealArtifactUpload(ctx context.Context, p Principal, project, 
 		return out, err
 	}
 	out = releasecontract.ArtifactSealReceipt{ArtifactID: artifactID, ManifestSHA256: u.ManifestSHA256, State: "sealed", SizeBytes: u.SizeBytes, FileCount: len(u.Manifest.Files)}
-	if err = s.saveReceipt(ctx, tx, p, project, r.OperationID, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, r.OperationID, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
@@ -410,30 +417,40 @@ func (s *Service) releaseArtifactManifestTx(ctx context.Context, tx *sql.Tx, p P
 	if err != nil || digest != hash {
 		return m, conflict("封存清单已变化")
 	}
+	refs := []artifactReadRef{}
 	for _, f := range canonical.Files {
 		var path string
 		var size int64
 		if err = tx.QueryRowContext(ctx, s.q(`SELECT storage_path,size_bytes FROM suma_artifact_blobs WHERE upload_id=? AND digest=?`), upload, f.SHA256).Scan(&path, &size); err != nil || size != f.SizeBytes {
 			return m, conflict("制品不完整")
 		}
-		if _, err = s.readArtifactBlob(path, f.SHA256, size); err != nil {
+		refs = append(refs, artifactReadRef{path: path, hash: f.SHA256, size: size})
+	}
+	if batch, ok := ctx.Value(artifactReadKey{}).(*artifactReadBatch); ok {
+		if err = batch.record(refs); err != nil {
 			return m, err
+		}
+	} else {
+		for _, r := range refs {
+			if _, err = s.readArtifactBlob(r.path, r.hash, r.size); err != nil {
+				return m, err
+			}
 		}
 	}
 	return canonical, nil
 }
-func (s *Service) releaseArtifactBlobTx(ctx context.Context, tx *sql.Tx, p Principal, project, id, blobHash string) ([]byte, error) {
+func (s *Service) artifactBlobReferenceTx(ctx context.Context, tx *sql.Tx, p Principal, project, id, blobHash string) (artifactReadRef, error) {
 	if !releasecontract.ValidDigest(blobHash) {
-		return nil, invalid("文件摘要无效")
+		return artifactReadRef{}, invalid("文件摘要无效")
 	}
 	var raw, upload string
 	err := tx.QueryRowContext(ctx, s.q(`SELECT manifest,upload_id FROM suma_release_artifacts WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id).Scan(&raw, &upload)
 	if err != nil {
-		return nil, missing()
+		return artifactReadRef{}, missing()
 	}
 	var manifest releasecontract.ArtifactManifest
 	if err = json.Unmarshal([]byte(raw), &manifest); err != nil {
-		return nil, err
+		return artifactReadRef{}, err
 	}
 	allowed := false
 	for _, f := range manifest.Files {
@@ -442,14 +459,14 @@ func (s *Service) releaseArtifactBlobTx(ctx context.Context, tx *sql.Tx, p Princ
 		}
 	}
 	if !allowed {
-		return nil, missing()
+		return artifactReadRef{}, missing()
 	}
 	var path string
 	var size int64
 	if err = tx.QueryRowContext(ctx, s.q(`SELECT storage_path,size_bytes FROM suma_artifact_blobs WHERE upload_id=? AND digest=?`), upload, blobHash).Scan(&path, &size); err != nil {
-		return nil, missing()
+		return artifactReadRef{}, missing()
 	}
-	return s.readArtifactBlob(path, blobHash, size)
+	return artifactReadRef{path: path, hash: blobHash, size: size}, nil
 }
 
 func artifactRef(r dag.Result) releasecontract.AssignmentRef {
@@ -457,4 +474,39 @@ func artifactRef(r dag.Result) releasecontract.AssignmentRef {
 }
 func artifactBindingKey(a releasecontract.AssignmentRef) string {
 	return fmt.Sprintf("%s/%s/%d/%d/%s", a.RunID, a.NodeID, a.Attempt, a.Fence, a.WorkerID)
+
+}
+func (s *Service) releaseArtifactBlobTx(ctx context.Context, tx *sql.Tx, p Principal, project, id, blobHash string) ([]byte, error) {
+	ref, err := s.artifactBlobReferenceTx(ctx, tx, p, project, id, blobHash)
+	if err != nil {
+		return nil, err
+	}
+	return s.readArtifactBlob(ref.path, ref.hash, ref.size)
+}
+
+// Blob transport snapshots its exact storage reference under current authority,
+// reads bounded immutable bytes without locks, then rechecks scope and reference.
+func (s *Service) ReadArtifactBlob(ctx context.Context, actor Actor, project, id, hash string) ([]byte, error) {
+	var ref artifactReadRef
+	read := func(auth *authorizedCommand) error {
+		var err error
+		ref, err = s.artifactBlobReferenceTx(ctx, auth.tx, auth.currentPrincipal, project, id, hash)
+		return err
+	}
+	target := commandTarget{tenantID: actor.credential.tenantID, projectID: project}
+	if err := s.withCurrentRead(ctx, actor, target, purposeProjectRead, read); err != nil {
+		return nil, err
+	}
+	initial := ref
+	b, err := s.readArtifactBlob(ref.path, ref.hash, ref.size)
+	if err != nil {
+		return nil, err
+	}
+	if err = s.withCurrentRead(ctx, actor, target, purposeProjectRead, read); err != nil {
+		return nil, err
+	}
+	if ref != initial {
+		return nil, conflict("制品读取依据已变化，请重试")
+	}
+	return b, nil
 }

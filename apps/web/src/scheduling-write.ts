@@ -71,6 +71,7 @@ export class SchedulingWriteRecovery {
     scope: string,
     private storage: StorageLike | undefined,
     private project?: string,
+    private send: typeof api = api,
   ) {
     this.key = "suma-scheduling-recovery-v1:" + scope;
     try {
@@ -129,7 +130,7 @@ export class SchedulingWriteRecovery {
     const request = this.value;
     this.busy = true;
     try {
-      const value = await api<T>(
+      const value = await this.send<T>(
         request.path,
         { ...request.body, idempotency_key: request.idempotency_key },
         "POST",

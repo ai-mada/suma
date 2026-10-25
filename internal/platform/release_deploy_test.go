@@ -39,7 +39,7 @@ func releaseWantStatus(t *testing.T, err error, want int) {
 }
 func releaseTestEnvironment(t *testing.T, f *fixture) ReleaseEnvironment {
 	t.Helper()
-	out, err := f.s.SaveReleaseEnvironment(context.Background(), f.user, f.project, "", f.cookie.Value, map[string]any{"project_id": f.project, "name": "实际本地环境", "provider_id": "local-static-test", "site_id": "fixture-site", "idempotency_key": newID()})
+	out, err := f.s.SaveReleaseEnvironment(context.Background(), f.actor, f.project, "", map[string]any{"project_id": f.project, "name": "实际本地环境", "provider_id": "local-static-test", "site_id": "fixture-site", "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +51,7 @@ func TestReleaseDeploymentEnvironmentAuthorityAndHistory(t *testing.T) {
 	ownerToken := f.cookie.Value
 	ownerCookie := f.cookie
 	env := releaseTestEnvironment(t, f)
-	options, err := f.s.ReleaseProviderOptions(ctx, f.user, f.project)
+	options, err := f.s.ReleaseProviderOptions(ctx, f.actor, f.project)
 	if err != nil || len(options) != 1 {
 		t.Fatal("registered options missing", err)
 	}
@@ -59,25 +59,26 @@ func TestReleaseDeploymentEnvironmentAuthorityAndHistory(t *testing.T) {
 	if strings.Contains(string(raw), secret) || strings.Contains(string(raw), digest(secret)) {
 		t.Fatal("provider options leaked credential material")
 	}
-	_, err = f.s.SaveReleaseEnvironment(ctx, f.user, f.project, "", ownerToken, map[string]any{"project_id": f.project, "name": "冒用", "provider_id": "local-static-test", "site_id": "fixture-site", "idempotency_key": newID()})
+	_, err = f.s.SaveReleaseEnvironment(ctx, domainCActor(t, f.s, ownerToken), f.project, "", map[string]any{"project_id": f.project, "name": "冒用", "provider_id": "local-static-test", "site_id": "fixture-site", "idempotency_key": newID()})
 	releaseWantStatus(t, err, 409)
-	_, err = f.s.SaveReleaseEnvironment(ctx, f.user, f.project, env.ID, ownerToken, map[string]any{"project_id": f.project, "name": "错误版本", "expected_version": 1.5, "idempotency_key": newID()})
+	_, err = f.s.SaveReleaseEnvironment(ctx, domainCActor(t, f.s, ownerToken), f.project, env.ID, map[string]any{"project_id": f.project, "name": "错误版本", "expected_version": 1.5, "idempotency_key": newID()})
 	releaseWantStatus(t, err, 400)
-	worker, err := f.s.RegisterReleaseWorker(ctx, f.user, f.project, ownerToken, map[string]any{"worker_id": "deployer-test", "profiles": []any{}, "deployment": true, "idempotency_key": newID()})
+	worker, err := f.s.RegisterReleaseWorker(ctx, domainCActor(t, f.s, ownerToken), f.project, map[string]any{"worker_id": "deployer-test", "profiles": []any{}, "deployment": true, "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = f.s.SaveReleaseEnvironment(ctx, f.user, f.project, env.ID, worker["token"].(string), map[string]any{"project_id": f.project, "name": "Runner不能配置环境", "expected_version": 1, "idempotency_key": newID()})
+	_, err = f.s.SaveReleaseEnvironment(ctx, domainCActor(t, f.s, worker["token"].(string)), f.project, env.ID, map[string]any{"project_id": f.project, "name": "Runner不能配置环境", "expected_version": 1, "idempotency_key": newID()})
 	releaseWantStatus(t, err, 403)
 	inv := governanceInvite(f, "release-reviewer@example.test", "member", []any{map[string]any{"project_id": f.project, "role": "reviewer"}})
 	accepted := governanceAccept(f, inv, "release-reviewer@example.test")
 	var reviewer Principal
 	raw, _ = json.Marshal(accepted["user"])
 	json.Unmarshal(raw, &reviewer)
-	_, err = f.s.SaveReleaseEnvironment(ctx, reviewer, f.project, env.ID, f.cookie.Value, map[string]any{"project_id": f.project, "name": "reviewer不能配置", "expected_version": 1, "idempotency_key": newID()})
+	_, err = f.s.SaveReleaseEnvironment(ctx, domainCActor(t, f.s, f.cookie.Value), f.project, env.ID, map[string]any{"project_id": f.project, "name": "reviewer不能配置", "expected_version": 1, "idempotency_key": newID()})
 	releaseWantStatus(t, err, 403)
 	f.cookie = ownerCookie
-	_, err = f.s.SaveProjectAccess(ctx, f.user, map[string]any{"project_id": f.project, "user_id": reviewer.ID, "role": "admin", "expected_version": float64(1), "idempotency_key": newID()})
+	f.call("GET", "/auth/session", nil, 200)
+	_, err = f.s.SaveProjectAccess(ctx, f.actor, map[string]any{"project_id": f.project, "user_id": reviewer.ID, "role": "admin", "expected_version": float64(1), "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,25 +88,25 @@ func TestReleaseDeploymentEnvironmentAuthorityAndHistory(t *testing.T) {
 		t.Fatal(err)
 	}
 	body := map[string]any{"project_id": f.project, "name": "项目管理员配置", "expected_version": 1, "idempotency_key": newID()}
-	changed, err := f.s.SaveReleaseEnvironment(ctx, reviewer, f.project, env.ID, reviewerToken, body)
+	changed, err := f.s.SaveReleaseEnvironment(ctx, domainCActor(t, f.s, reviewerToken), f.project, env.ID, body)
 	if err != nil || changed.Version != 2 {
 		t.Fatal("project admin rejected", err)
 	}
-	_, err = f.s.SaveProjectAccess(ctx, f.user, map[string]any{"project_id": f.project, "user_id": reviewer.ID, "role": "viewer", "expected_version": float64(2), "idempotency_key": newID()})
+	_, err = f.s.SaveProjectAccess(ctx, f.actor, map[string]any{"project_id": f.project, "user_id": reviewer.ID, "role": "viewer", "expected_version": float64(2), "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = f.s.SaveReleaseEnvironment(ctx, reviewer, f.project, env.ID, reviewerToken, body)
+	_, err = f.s.SaveReleaseEnvironment(ctx, domainCActor(t, f.s, reviewerToken), f.project, env.ID, body)
 	releaseWantStatus(t, err, 403)
 	f.s.ReleaseProviders[0].SiteIDs = []string{"another-site"}
-	_, err = f.s.PreviewReleasePlan(ctx, f.user, f.project, ownerToken, map[string]any{"project_id": f.project, "candidate_id": "not-a-real-candidate", "environment_id": env.ID, "action": "deploy", "expected_environment_generation": 0})
+	_, err = f.s.PreviewReleasePlan(ctx, domainCActor(t, f.s, ownerToken), f.project, map[string]any{"project_id": f.project, "candidate_id": "not-a-real-candidate", "environment_id": env.ID, "action": "deploy", "expected_environment_generation": 0})
 	releaseWantStatus(t, err, 503)
 	f.s.ReleaseProviders[0].SiteIDs = []string{"fixture-site"}
-	archived, err := f.s.SaveReleaseEnvironment(ctx, f.user, f.project, env.ID, ownerToken, map[string]any{"project_id": f.project, "status": "archived", "expected_version": 2, "idempotency_key": newID()})
+	archived, err := f.s.SaveReleaseEnvironment(ctx, domainCActor(t, f.s, ownerToken), f.project, env.ID, map[string]any{"project_id": f.project, "status": "archived", "expected_version": 2, "idempotency_key": newID()})
 	if err != nil || archived.Generation != 0 || archived.PolicyVersion != 3 {
 		t.Fatal("archive reset historical identity", err)
 	}
-	_, err = f.s.SaveReleaseEnvironment(ctx, f.user, f.project, "", ownerToken, map[string]any{"project_id": f.project, "name": "不能重建重置代数", "provider_id": "local-static-test", "site_id": "fixture-site", "idempotency_key": newID()})
+	_, err = f.s.SaveReleaseEnvironment(ctx, domainCActor(t, f.s, ownerToken), f.project, "", map[string]any{"project_id": f.project, "name": "不能重建重置代数", "provider_id": "local-static-test", "site_id": "fixture-site", "idempotency_key": newID()})
 	releaseWantStatus(t, err, 409)
 }
 func TestReleaseDeploymentEnvironmentTwoConnectionCAS(t *testing.T) {
@@ -129,7 +130,7 @@ func TestReleaseDeploymentEnvironmentTwoConnectionCAS(t *testing.T) {
 		go func(i int, s *Service) {
 			defer wg.Done()
 			<-start
-			_, e := s.SaveReleaseEnvironment(context.Background(), f.user, f.project, env.ID, f.cookie.Value, map[string]any{"project_id": f.project, "name": "并发更新", "expected_version": 1, "idempotency_key": newID()})
+			_, e := s.SaveReleaseEnvironment(context.Background(), f.actor, f.project, env.ID, map[string]any{"project_id": f.project, "name": "并发更新", "expected_version": 1, "idempotency_key": newID()})
 			errs <- e
 		}(i, service)
 	}
@@ -220,17 +221,17 @@ func verifiedReleaseDeploymentPlan(t *testing.T) (*fixture, ReleaseCandidate, Re
 	f.s.ReleaseProviders = []ReleaseProviderConfig{{ID: "local-static-test", TenantID: f.user.TenantID, ProjectID: f.project, TokenHash: digest(secret), SiteIDs: []string{"fixture-site"}}}
 	env := releaseTestEnvironment(t, f)
 	input := map[string]any{"project_id": f.project, "candidate_id": candidate.ID, "environment_id": env.ID, "action": "deploy", "expected_environment_generation": 0}
-	preview, err := f.s.PreviewReleasePlan(context.Background(), f.user, f.project, f.cookie.Value, input)
+	preview, err := f.s.PreviewReleasePlan(context.Background(), f.actor, f.project, input)
 	if err != nil {
 		t.Fatal(err)
 	}
 	input["preview_sha256"] = preview.PreviewSHA256
 	input["idempotency_key"] = newID()
-	plan, err := f.s.CreateReleasePlan(context.Background(), f.user, f.project, f.cookie.Value, input)
+	plan, err := f.s.CreateReleasePlan(context.Background(), f.actor, f.project, input)
 	if err != nil {
 		t.Fatal(err)
 	}
-	plan, err = f.s.ApproveReleasePlan(context.Background(), f.user, f.project, plan.ID, f.cookie.Value, map[string]any{"project_id": f.project, "expected_version": plan.Version, "plan_revision": plan.Revision, "plan_sha256": plan.SHA256, "decision": "approved", "reason": "实际构建、封存、包HTTP测试和人工验收均已核对", "idempotency_key": newID()})
+	plan, err = f.s.ApproveReleasePlan(context.Background(), f.actor, f.project, plan.ID, map[string]any{"project_id": f.project, "expected_version": plan.Version, "plan_revision": plan.Revision, "plan_sha256": plan.SHA256, "decision": "approved", "reason": "实际构建、封存、包HTTP测试和人工验收均已核对", "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -281,7 +282,7 @@ func TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier(t *
 			if i == 1 {
 				e = engine
 			}
-			out, err := s.ExecuteReleasePlan(ctx, f.user, f.project, plan.ID, f.cookie.Value, body, e)
+			out, err := s.ExecuteReleasePlan(ctx, f.actor, f.project, plan.ID, body, e)
 			results <- result{out, err}
 		}(i, s)
 	}
@@ -309,12 +310,12 @@ func TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier(t *
 	if err != nil || a != nil {
 		t.Fatal("non-deployment worker consumed protected run", err)
 	}
-	registration, err := f.s.RegisterReleaseWorker(ctx, f.user, f.project, f.cookie.Value, map[string]any{"worker_id": "protected-deployer", "profiles": []any{}, "deployment": true, "idempotency_key": newID()})
+	registration, err := f.s.RegisterReleaseWorker(ctx, f.actor, f.project, map[string]any{"worker_id": "protected-deployer", "profiles": []any{}, "deployment": true, "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
 	workerToken := registration["token"].(string)
-	workerPrincipal, err := f.s.Authenticate(ctx, workerToken)
+	_, err = f.s.AuthenticateActor(ctx, workerToken)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -332,13 +333,13 @@ func TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier(t *
 		t.Fatal("copied Config acquired protected top-level release binding", err)
 	}
 	copiedRef := rc.AssignmentRef{RunID: copied.RunID, NodeID: copied.NodeID, Attempt: copied.Attempt, Fence: copied.Fence, WorkerID: copied.WorkerID}
-	_, err = f.s.IssueReleaseAuthorization(ctx, workerPrincipal, workerToken, rc.ReleaseAuthorizationRequest{ProjectID: f.project, Assignment: copiedRef, OperationID: deployment.OperationID})
+	_, err = f.s.IssueReleaseAuthorization(ctx, domainCActor(t, f.s, workerToken), rc.ReleaseAuthorizationRequest{ProjectID: f.project, Assignment: copiedRef, OperationID: deployment.OperationID})
 	releaseWantStatus(t, err, 403)
-	first, err := f.s.IssueReleaseAuthorization(ctx, workerPrincipal, workerToken, request)
+	first, err := f.s.IssueReleaseAuthorization(ctx, domainCActor(t, f.s, workerToken), request)
 	if err != nil {
 		t.Fatal(err)
 	}
-	renewed, err := f.s.IssueReleaseAuthorization(ctx, workerPrincipal, workerToken, request)
+	renewed, err := f.s.IssueReleaseAuthorization(ctx, domainCActor(t, f.s, workerToken), request)
 	if err != nil || first.AuthorizationTicket == renewed.AuthorizationTicket || first.OperationID != renewed.OperationID {
 		t.Fatal("ticket renewal changed operation or reused secret", err)
 	}
@@ -387,17 +388,17 @@ func TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier(t *
 	if err = f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_release_observations WHERE operation_id=?`, deployment.OperationID).Scan(&historicalCount); err != nil || historicalCount != 2 {
 		t.Fatal("late history was not retained", err)
 	}
-	currentEnv, err := f.s.ReleaseEnvironment(ctx, f.user, f.project, env.ID)
+	currentEnv, err := f.s.ReleaseEnvironment(ctx, f.actor, f.project, env.ID)
 	if err != nil || currentEnv.Generation != 1 || currentEnv.ActiveGeneration != 0 || currentEnv.BarrierOperationID != deployment.OperationID {
 		t.Fatal("unknown released or advanced actual active", err)
 	}
-	_, err = f.s.SaveReleaseEnvironment(ctx, f.user, f.project, env.ID, f.cookie.Value, map[string]any{"project_id": f.project, "status": "archived", "expected_version": currentEnv.Version, "idempotency_key": newID()})
+	_, err = f.s.SaveReleaseEnvironment(ctx, f.actor, f.project, env.ID, map[string]any{"project_id": f.project, "status": "archived", "expected_version": currentEnv.Version, "idempotency_key": newID()})
 	releaseWantStatus(t, err, 409)
-	currentPlan, err := f.s.ReleasePlan(ctx, f.user, f.project, plan.ID)
+	currentPlan, err := f.s.ReleasePlan(ctx, f.actor, f.project, plan.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = f.s.ApproveReleasePlan(ctx, f.user, f.project, plan.ID, f.cookie.Value, map[string]any{"project_id": f.project, "expected_version": currentPlan.Version, "plan_revision": plan.Revision, "plan_sha256": plan.SHA256, "decision": "revoked", "reason": "未知副作用继续占用，撤销后续激活授权", "idempotency_key": newID()})
+	_, err = f.s.ApproveReleasePlan(ctx, f.actor, f.project, plan.ID, map[string]any{"project_id": f.project, "expected_version": currentPlan.Version, "plan_revision": plan.Revision, "plan_sha256": plan.SHA256, "decision": "revoked", "reason": "未知副作用继续占用，撤销后续激活授权", "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -420,7 +421,7 @@ func TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier(t *
 	if err = f.e.Tick(ctx); err != nil {
 		t.Fatal(err)
 	}
-	currentEnv, err = f.s.ReleaseEnvironment(ctx, f.user, f.project, env.ID)
+	currentEnv, err = f.s.ReleaseEnvironment(ctx, f.actor, f.project, env.ID)
 	if err != nil || currentEnv.BarrierOperationID != deployment.OperationID {
 		t.Fatal("lease expiry released effect barrier", err)
 	}
@@ -435,7 +436,7 @@ func TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier(t *
 	defer inspector.Close()
 	f.s.ReleaseProviders[0].Origin = inspector.URL
 	f.s.ReleaseProviders[0].ReconcileToken = "negative-unknown-inspection-token"
-	unknownResult, err := f.s.ReconcileReleaseDeployment(ctx, f.user, f.project, deployment.OperationID, f.cookie.Value, map[string]any{"project_id": f.project, "expected_version": observed.Version, "idempotency_key": newID()}, f.e)
+	unknownResult, err := f.s.ReconcileReleaseDeployment(ctx, f.actor, f.project, deployment.OperationID, map[string]any{"project_id": f.project, "expected_version": observed.Version, "idempotency_key": newID()}, f.e)
 	if err != nil || unknownResult.State != "reconciling" {
 		t.Fatal("failed request erased unknown effect", err)
 	}
@@ -454,7 +455,7 @@ func TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier(t *
 		rowsRaw += row
 	}
 	rows.Close()
-	listed, err := f.s.ReleaseDeployment(ctx, f.user, f.project, deployment.OperationID)
+	listed, err := f.s.ReleaseDeployment(ctx, f.actor, f.project, deployment.OperationID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -470,19 +471,19 @@ func TestReleaseDeploymentActualCandidateBasisChangedBlocksDispatch(t *testing.T
 	f, candidate, env, plan, _, _ := verifiedReleaseDeploymentPlan(t)
 	other := f.call("POST", "/projects", map[string]any{"name": "独立发布项目", "idempotency_key": newID()}, 201)
 	otherID := other["id"].(string)
-	_, scopeErr := f.s.ReleaseCandidate(context.Background(), f.user, otherID, candidate.ID)
+	_, scopeErr := f.s.ReleaseCandidate(context.Background(), f.actor, otherID, candidate.ID)
 	releaseWantStatus(t, scopeErr, 404)
-	_, scopeErr = f.s.ReleaseArtifact(context.Background(), f.user, otherID, candidate.ArtifactID)
+	_, scopeErr = f.s.ReleaseArtifact(context.Background(), f.actor, otherID, candidate.ArtifactID)
 	releaseWantStatus(t, scopeErr, 404)
-	_, scopeErr = f.s.PreviewReleasePlan(context.Background(), f.user, otherID, f.cookie.Value, map[string]any{"project_id": otherID, "candidate_id": candidate.ID, "environment_id": env.ID, "action": "deploy", "expected_environment_generation": 0})
+	_, scopeErr = f.s.PreviewReleasePlan(context.Background(), f.actor, otherID, map[string]any{"project_id": otherID, "candidate_id": candidate.ID, "environment_id": env.ID, "action": "deploy", "expected_environment_generation": 0})
 	releaseWantStatus(t, scopeErr, 404)
 	task := f.call("GET", "/tasks/"+candidate.Tasks[0].ID+"?project_id="+f.project, nil, 200)
 	f.call("PATCH", "/tasks/"+candidate.Tasks[0].ID, f.body(map[string]any{"title": "审批后交付定义已变化", "expected_version": task["version"]}), 200)
-	_, err := f.s.ExecuteReleasePlan(context.Background(), f.user, f.project, plan.ID, f.cookie.Value, releaseExecuteBody(f, plan), f.e)
+	_, err := f.s.ExecuteReleasePlan(context.Background(), f.actor, f.project, plan.ID, releaseExecuteBody(f, plan), f.e)
 	if err == nil {
 		t.Fatal("stale accepted task basis dispatched")
 	}
-	current, err := f.s.ReleaseEnvironment(context.Background(), f.user, f.project, env.ID)
+	current, err := f.s.ReleaseEnvironment(context.Background(), f.actor, f.project, env.ID)
 	if err != nil || current.Generation != 0 || current.BarrierOperationID != "" {
 		t.Fatal("failed execute left generation reservation", err)
 	}
@@ -495,7 +496,7 @@ func TestReleaseDeploymentActualCandidateBasisChangedBlocksDispatch(t *testing.T
 func TestReleaseDeploymentCandidateRejectsUnknownFields(t *testing.T) {
 	f, candidate, _ := newVerifiedReleaseCandidate(t)
 	body := map[string]any{"name": "不接受未定义通过标记", "artifact_id": candidate.ArtifactID, "build_attestation_id": candidate.BuildAttestationID, "package_test_attestation_id": candidate.PackageTestAttestationID, "tasks": []any{map[string]any{"id": candidate.Tasks[0].ID, "expected_version": candidate.Tasks[0].Version}}, "passed": true, "idempotency_key": newID()}
-	_, err := f.s.CreateReleaseCandidate(context.Background(), f.user, f.project, body)
+	_, err := f.s.CreateReleaseCandidate(context.Background(), f.actor, f.project, body)
 	releaseWantStatus(t, err, 400)
 }
 
@@ -507,14 +508,19 @@ func TestReleaseDeploymentTaskBasisMutationRechecksLiveAuthority(t *testing.T) {
 	var developer Principal
 	b, _ := json.Marshal(accepted["user"])
 	json.Unmarshal(b, &developer)
+	developerActor, err := f.s.AuthenticateActor(context.Background(), f.cookie.Value)
+	if err != nil {
+		t.Fatal(err)
+	}
 	f.cookie = ownerCookie
+	f.call("GET", "/auth/session", nil, 200)
 	task := f.call("POST", "/tasks", f.body(map[string]any{"title": "发布依据并发更新权限回归"}), 201)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	service, gate := reviewAuthorityConnection(t, f, ctx, "authorization_read")
+	service, gate := reviewAuthorityConnection(t, f, ctx, "before_authority_tx")
 	done := make(chan error, 1)
 	go func() {
-		_, err := service.Update(ctx, developer, f.project, "tasks", task["id"].(string), map[string]any{"title": "撤权后不应写入", "expected_version": task["version"], "idempotency_key": newID()})
+		_, err := service.Update(ctx, developerActor, f.project, "tasks", task["id"].(string), map[string]any{"title": "撤权后不应写入", "expected_version": task["version"], "idempotency_key": newID()})
 		done <- err
 	}()
 	select {
@@ -522,7 +528,7 @@ func TestReleaseDeploymentTaskBasisMutationRechecksLiveAuthority(t *testing.T) {
 	case <-ctx.Done():
 		t.Fatal("did not reach real pre-transaction authorization read")
 	}
-	_, err := f.s.SaveProjectAccess(ctx, f.user, map[string]any{"project_id": f.project, "user_id": developer.ID, "role": "viewer", "expected_version": float64(1), "idempotency_key": newID()})
+	_, err = f.s.SaveProjectAccess(ctx, f.actor, map[string]any{"project_id": f.project, "user_id": developer.ID, "role": "viewer", "expected_version": float64(1), "idempotency_key": newID()})
 	if err != nil {
 		gate.release()
 		t.Fatal(err)

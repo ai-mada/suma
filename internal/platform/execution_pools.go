@@ -40,7 +40,9 @@ func (s *Service) poolViewTx(ctx context.Context, tx *sql.Tx, engine *dag.Engine
 // CreateExecutionPool commits ownership, the complete initial admission policy,
 // human audit and idempotent response as one operation. No default or partial
 // policy is substituted for an invalid administrator input.
-func (s *Service) CreateExecutionPool(ctx context.Context, engine *dag.Engine, p Principal, token string, request ExecutionPoolCreateRequest) (ExecutionPool, error) {
+func (s *Service) CreateExecutionPool(ctx context.Context, engine *dag.Engine, actor Actor, request ExecutionPoolCreateRequest) (ExecutionPool, error) {
+	p := actor.Projection()
+
 	var out ExecutionPool
 	if err := validatePoolName(request.Name); err != nil {
 		return out, err
@@ -54,15 +56,21 @@ func (s *Service) CreateExecutionPool(ctx context.Context, engine *dag.Engine, p
 	if err := validatePoolOperation(request.IdempotencyKey); err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.poolHumanWriteTx(ctx, tx, p, token); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: organizationScope}, purposeOrganizationWrite)
+	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, organizationScope, request.IdempotencyKey, map[string]any{"create_execution_pool": request})
+	p = auth.currentPrincipal
+	if err = s.poolHumanWriteTx(ctx, tx, auth); err != nil {
+		return out, err
+	}
+	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"create_execution_pool": request})
 	if err != nil {
 		return out, err
 	}
@@ -94,10 +102,10 @@ func (s *Service) CreateExecutionPool(ctx context.Context, engine *dag.Engine, p
 	}
 	out.Policy = poolPolicyView(policy)
 	out.AllowedActions = []string{"preview_policy", "register_runner", "pause"}
-	if err = s.activity(ctx, tx, p, organizationScope, "execution_pool.created", out.ID, out.Name); err != nil {
+	if err = s.commandActivity(ctx, auth, "execution_pool.created", out.ID, out.Name); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, organizationScope, request.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
@@ -105,13 +113,35 @@ func (s *Service) CreateExecutionPool(ctx context.Context, engine *dag.Engine, p
 
 // GetExecutionPool is an owner-organization snapshot. Project consumption is
 // exposed through its separate grant view, which does not disclose other work.
-func (s *Service) GetExecutionPool(ctx context.Context, engine *dag.Engine, p Principal, token, poolID string) (ExecutionPool, error) {
-	var out ExecutionPool
-	tx, err := s.poolReadTx(ctx, p, token)
-	if err != nil {
-		return out, err
+func (s *Service) GetExecutionPool(ctx context.Context, engine *dag.Engine, actor Actor, poolID string) (ExecutionPool, error) {
+	var result0 ExecutionPool
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: organizationScope}, purposeOrganizationRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readGetExecutionPoolTx(bounded, auth, engine, poolID)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readGetExecutionPoolTx(ctx context.Context, auth *authorizedCommand, engine *dag.Engine, poolID string) (ExecutionPool, error) {
+	if auth == nil {
+		return ExecutionPool{}, unauthenticated()
 	}
-	defer tx.Rollback()
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return ExecutionPool{}, e
+	}
+	if auth.target.projectID != organizationScope {
+		return ExecutionPool{}, forbidden()
+	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+	if !orgAdmin(p) {
+		return ExecutionPool{}, forbidden()
+	}
+
+	var out ExecutionPool
 	out, err = s.executionPoolMetadataTx(ctx, tx, poolID)
 	if err != nil {
 		return out, err
@@ -120,11 +150,37 @@ func (s *Service) GetExecutionPool(ctx context.Context, engine *dag.Engine, p Pr
 		return ExecutionPool{}, missing()
 	}
 	return s.poolViewTx(ctx, tx, engine, out)
+
 }
 
-// ListExecutionPools uses scope-bound keyset pagination and returns collection
-// actions even for an empty organization, so clients need not infer permission.
-func (s *Service) ListExecutionPools(ctx context.Context, engine *dag.Engine, p Principal, token string, limit int, cursor string) (ExecutionPoolPage, error) {
+func (s *Service) ListExecutionPools(ctx context.Context, engine *dag.Engine, actor Actor, limit int, cursor string) (ExecutionPoolPage, error) {
+	var result0 ExecutionPoolPage
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: organizationScope}, purposeOrganizationRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readListExecutionPoolsTx(bounded, auth, engine, limit, cursor)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readListExecutionPoolsTx(ctx context.Context, auth *authorizedCommand, engine *dag.Engine, limit int, cursor string) (ExecutionPoolPage, error) {
+	if auth == nil {
+		return ExecutionPoolPage{}, unauthenticated()
+	}
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return ExecutionPoolPage{}, e
+	}
+	if auth.target.projectID != organizationScope {
+		return ExecutionPoolPage{}, forbidden()
+	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+	if !orgAdmin(p) {
+		return ExecutionPoolPage{}, forbidden()
+	}
+
 	out := ExecutionPoolPage{Items: []ExecutionPool{}, AllowedActions: []string{}}
 	if limit < 1 || limit > 100 {
 		return out, invalid("limit必须为1–100")
@@ -133,11 +189,6 @@ func (s *Service) ListExecutionPools(ctx context.Context, engine *dag.Engine, p 
 	if err != nil {
 		return out, err
 	}
-	tx, err := s.poolReadTx(ctx, p, token)
-	if err != nil {
-		return out, err
-	}
-	defer tx.Rollback()
 	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_execution_pools WHERE owner_tenant_id=?`), p.TenantID).Scan(&out.Total); err != nil {
 		return out, err
 	}
@@ -170,11 +221,12 @@ func (s *Service) ListExecutionPools(ctx context.Context, engine *dag.Engine, p 
 	}
 	out.AllowedActions = []string{"create"}
 	return out, nil
+
 }
 
-// Pool state is an admission switch. It does not fabricate a stop receipt,
-// refund accumulated budget or change an immutable run's pool/grant routing.
-func (s *Service) CommandExecutionPool(ctx context.Context, engine *dag.Engine, p Principal, token, poolID string, request ExecutionPoolCommandRequest) (ExecutionPool, error) {
+func (s *Service) CommandExecutionPool(ctx context.Context, engine *dag.Engine, actor Actor, poolID string, request ExecutionPoolCommandRequest) (ExecutionPool, error) {
+	p := actor.Projection()
+
 	var out ExecutionPool
 	if request.ExpectedVersion < 1 || request.Action != "pause" && request.Action != "resume" {
 		return out, invalid("资源池操作或版本无效")
@@ -182,16 +234,22 @@ func (s *Service) CommandExecutionPool(ctx context.Context, engine *dag.Engine, 
 	if err := validatePoolOperation(request.IdempotencyKey); err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	out, err = s.poolAdminTx(ctx, tx, p, token, poolID)
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: organizationScope}, purposeOrganizationWrite)
 	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, organizationScope, request.IdempotencyKey, map[string]any{"command_execution_pool": poolID, "request": request})
+	p = auth.currentPrincipal
+	out, err = s.poolAdminTx(ctx, tx, auth, poolID)
+	if err != nil {
+		return out, err
+	}
+	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"command_execution_pool": poolID, "request": request})
 	if err != nil {
 		return out, err
 	}
@@ -223,10 +281,10 @@ func (s *Service) CommandExecutionPool(ctx context.Context, engine *dag.Engine, 
 	if err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, organizationScope, "execution_pool."+request.Action, out.ID, out.Name); err != nil {
+	if err = s.commandActivity(ctx, auth, "execution_pool."+request.Action, out.ID, out.Name); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, organizationScope, request.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()

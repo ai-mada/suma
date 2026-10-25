@@ -34,7 +34,7 @@ func automationFixture(t *testing.T, overlap, trigger, misfire string) (*fixture
 	if trigger == "cron" {
 		spec.Cron = "* * * * *"
 	}
-	a, err := f.s.CreateAutomation(context.Background(), f.user, f.project, AutomationCreateRequest{ProjectID: f.project, IdempotencyKey: newID(), Spec: spec})
+	a, err := f.s.CreateAutomation(context.Background(), f.actor, f.project, AutomationCreateRequest{ProjectID: f.project, IdempotencyKey: newID(), Spec: spec})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +42,7 @@ func automationFixture(t *testing.T, overlap, trigger, misfire string) (*fixture
 }
 func autoCommand(t *testing.T, f *fixture, a AutomationRule, action string) AutomationCommandResult {
 	t.Helper()
-	out, err := f.s.CommandAutomation(context.Background(), f.user, f.project, a.ID, AutomationCommandRequest{ProjectID: f.project, Action: action, ExpectedVersion: a.Version, IdempotencyKey: newID()})
+	out, err := f.s.CommandAutomation(context.Background(), f.actor, f.project, a.ID, AutomationCommandRequest{ProjectID: f.project, Action: action, ExpectedVersion: a.Version, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(action, err)
 	}
@@ -50,7 +50,7 @@ func autoCommand(t *testing.T, f *fixture, a AutomationRule, action string) Auto
 }
 func autoRead(t *testing.T, f *fixture, a AutomationRule) AutomationOccurrences {
 	t.Helper()
-	out, err := f.s.AutomationOccurrences(context.Background(), f.user, f.project, a.ID, 200, "")
+	out, err := f.s.AutomationOccurrences(context.Background(), f.actor, f.project, a.ID, 200, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,11 +75,11 @@ func TestAutomationReceiptImmutableRevisionAndFixedWorkflow(t *testing.T) {
 	f, a := automationFixture(t, "allow", "manual", "skip")
 	ctx := context.Background()
 	enable := AutomationCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: a.Version, IdempotencyKey: newID()}
-	first, err := f.s.CommandAutomation(ctx, f.user, f.project, a.ID, enable)
+	first, err := f.s.CommandAutomation(ctx, f.actor, f.project, a.ID, enable)
 	if err != nil {
 		t.Fatal(err)
 	}
-	again, err := f.s.CommandAutomation(ctx, f.user, f.project, a.ID, enable)
+	again, err := f.s.CommandAutomation(ctx, f.actor, f.project, a.ID, enable)
 	if err != nil || again.Rule.Version != first.Rule.Version {
 		t.Fatal("enable duplicated", again, err)
 	}
@@ -89,11 +89,11 @@ func TestAutomationReceiptImmutableRevisionAndFixedWorkflow(t *testing.T) {
 		t.Fatal(err)
 	}
 	trigger := AutomationCommandRequest{ProjectID: f.project, Action: "trigger", ExpectedVersion: a.Version, IdempotencyKey: newID()}
-	one, err := f.s.CommandAutomation(ctx, f.user, f.project, a.ID, trigger)
+	one, err := f.s.CommandAutomation(ctx, f.actor, f.project, a.ID, trigger)
 	if err != nil {
 		t.Fatal(err)
 	}
-	two, err := f.s.CommandAutomation(ctx, f.user, f.project, a.ID, trigger)
+	two, err := f.s.CommandAutomation(ctx, f.actor, f.project, a.ID, trigger)
 	if err != nil || two.Occurrence.ID != one.Occurrence.ID {
 		t.Fatal("trigger receipt duplicated", err)
 	}
@@ -113,25 +113,25 @@ func TestAutomationReceiptImmutableRevisionAndFixedWorkflow(t *testing.T) {
 	spec := a.AutomationSpec
 	spec.Name = "Revised"
 	spec.WorkflowVersion = 2
-	revised, err := f.s.CommandAutomation(ctx, f.user, f.project, a.ID, AutomationCommandRequest{ProjectID: f.project, Action: "revise", ExpectedVersion: a.Version, IdempotencyKey: newID(), Spec: &spec})
+	revised, err := f.s.CommandAutomation(ctx, f.actor, f.project, a.ID, AutomationCommandRequest{ProjectID: f.project, Action: "revise", ExpectedVersion: a.Version, IdempotencyKey: newID(), Spec: &spec})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if revised.Rule.State != "paused" || revised.Rule.Revision != 2 {
 		t.Fatal("edit did not require reactivation", revised)
 	}
-	if _, err = f.s.CommandAutomation(ctx, f.user, f.project, a.ID, AutomationCommandRequest{Action: "trigger", ExpectedVersion: revised.Rule.Version, IdempotencyKey: newID()}); err == nil {
+	if _, err = f.s.CommandAutomation(ctx, f.actor, f.project, a.ID, AutomationCommandRequest{Action: "trigger", ExpectedVersion: revised.Rule.Version, IdempotencyKey: newID()}); err == nil {
 		t.Fatal("revised rule triggered before human enable")
 	}
-	detail, err := f.s.GetAutomation(ctx, f.user, f.project, a.ID)
+	detail, err := f.s.GetAutomation(ctx, f.actor, f.project, a.ID)
 	if err != nil || len(detail.Revisions) != 2 || detail.Revisions[1].Spec.WorkflowVersion != 1 || detail.Revisions[1].Spec.Name != "Scheduled gate" {
 		t.Fatal("history mutated", detail, err)
 	}
-	page, err := f.s.AutomationRevisions(ctx, f.user, f.project, a.ID, 1, "")
+	page, err := f.s.AutomationRevisions(ctx, f.actor, f.project, a.ID, 1, "")
 	if err != nil || page.NextCursor == "" || page.Items[0].Revision != 2 {
 		t.Fatal(page, err)
 	}
-	page, err = f.s.AutomationRevisions(ctx, f.user, f.project, a.ID, 1, page.NextCursor)
+	page, err = f.s.AutomationRevisions(ctx, f.actor, f.project, a.ID, 1, page.NextCursor)
 	if err != nil || len(page.Items) != 1 || page.Items[0].Revision != 1 {
 		t.Fatal(page, err)
 	}
@@ -238,7 +238,7 @@ func TestAutomationCronMisfireDatabaseClockCursorAndRestart(t *testing.T) {
 			if policy != "latest" && states["skipped"] != 1 {
 				t.Fatal("skip window missing", occ)
 			}
-			after, err := f.s.GetAutomation(context.Background(), f.user, f.project, a.ID)
+			after, err := f.s.GetAutomation(context.Background(), f.actor, f.project, a.ID)
 			if err != nil || after.Version != a.Version || after.Revision != a.Revision || after.NextAt <= automationStamp(clock) {
 				t.Fatal("scheduler consumed user version or lost cursor", after, err)
 			}
@@ -253,7 +253,7 @@ func TestAutomationTwoConnectionsCompeteAndRevocation(t *testing.T) {
 	f, a := automationFixture(t, "allow", "manual", "skip")
 	ctx := context.Background()
 	enable := AutomationCommandRequest{Action: "enable", ExpectedVersion: a.Version, IdempotencyKey: newID()}
-	enabled, err := f.s.CommandAutomation(ctx, f.user, f.project, a.ID, enable)
+	enabled, err := f.s.CommandAutomation(ctx, f.actor, f.project, a.ID, enable)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -312,7 +312,7 @@ func TestAutomationTwoConnectionsCompeteAndRevocation(t *testing.T) {
 	if !blocked {
 		t.Fatal("revocation reason lost", occ)
 	}
-	if _, err = f.s.CommandAutomation(ctx, f.user, f.project, a.ID, enable); !automationAuthorityFailure(err) {
+	if _, err = f.s.CommandAutomation(ctx, f.actor, f.project, a.ID, enable); !automationAuthorityFailure(err) {
 		t.Fatal("revoked approval receipt replayed", err)
 	}
 }
@@ -343,7 +343,7 @@ func TestAutomationBindingRollbackAndWaitingQueueFairness(t *testing.T) {
 	for i := 0; i < 105; i++ {
 		a = autoCommand(t, f, a, "trigger").Rule
 	}
-	b, err := f.s.CreateAutomation(ctx, f.user, f.project, AutomationCreateRequest{ProjectID: f.project, IdempotencyKey: newID(), Spec: a.AutomationSpec})
+	b, err := f.s.CreateAutomation(ctx, f.actor, f.project, AutomationCreateRequest{ProjectID: f.project, IdempotencyKey: newID(), Spec: a.AutomationSpec})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -400,13 +400,11 @@ func TestAutomationHTTPStrictFieldsPaginationAndScope(t *testing.T) {
 	}
 	f.call("POST", "/automations", f.body(map[string]any{"spec": spec}), 400)
 	// A real project-scoped Runner credential cannot read business rules.
-	token, err := f.s.CreateToken(context.Background(), f.user, "automation test runner", time.Hour)
+	issued, err := f.s.IssueProjectCredential(context.Background(), f.actor, ProjectCredentialIssueRequest{ProjectID: f.project, Scope: "runner", Label: "automation test runner", IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = f.s.DB.Exec(`INSERT INTO suma_token_scopes(token_hash,kind,project_id)VALUES(?,'runner',?)`, digest(token), f.project); err != nil {
-		t.Fatal(err)
-	}
+	token := issued.Token
 	request := httptest.NewRequest("GET", "http://suma.test/api/v1/automations?project_id="+f.project, nil)
 	request.Header.Set("Authorization", "Bearer "+token)
 	response := httptest.NewRecorder()
@@ -487,7 +485,7 @@ func TestAutomationPauseArchiveAndDurableDatabaseReopen(t *testing.T) {
 	}
 	a = autoCommand(t, f, a, "archive").Rule
 	for _, action := range []string{"enable", "pause", "trigger"} {
-		if _, err = f.s.CommandAutomation(ctx, f.user, f.project, a.ID, AutomationCommandRequest{Action: action, ExpectedVersion: a.Version, IdempotencyKey: newID()}); err == nil {
+		if _, err = f.s.CommandAutomation(ctx, f.actor, f.project, a.ID, AutomationCommandRequest{Action: action, ExpectedVersion: a.Version, IdempotencyKey: newID()}); err == nil {
 			t.Fatal("archived rule accepted ", action)
 		}
 	}
@@ -550,7 +548,7 @@ func TestAutomationOccurrenceCompositePaginationAndLateManagedGuard(t *testing.T
 	seen := map[string]bool{}
 	cursor := ""
 	for {
-		page, err := f.s.AutomationOccurrences(ctx, f.user, f.project, a.ID, 2, cursor)
+		page, err := f.s.AutomationOccurrences(ctx, f.actor, f.project, a.ID, 2, cursor)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -568,15 +566,15 @@ func TestAutomationOccurrenceCompositePaginationAndLateManagedGuard(t *testing.T
 	if len(seen) != 7 {
 		t.Fatal("composite pagination omitted same-second occurrences", seen)
 	}
-	page, err := f.s.AutomationOccurrences(ctx, f.user, f.project, a.ID, 2, "")
+	page, err := f.s.AutomationOccurrences(ctx, f.actor, f.project, a.ID, 2, "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	b, err := f.s.CreateAutomation(ctx, f.user, f.project, AutomationCreateRequest{IdempotencyKey: newID(), Spec: a.AutomationSpec})
+	b, err := f.s.CreateAutomation(ctx, f.actor, f.project, AutomationCreateRequest{IdempotencyKey: newID(), Spec: a.AutomationSpec})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = f.s.AutomationOccurrences(ctx, f.user, f.project, b.ID, 2, page.NextCursor); err == nil {
+	if _, err = f.s.AutomationOccurrences(ctx, f.actor, f.project, b.ID, 2, page.NextCursor); err == nil {
 		t.Fatal("occurrence cursor crossed rules")
 	}
 	if _, err = f.s.DB.Exec(`INSERT INTO dag_managed_workflows(tenant_id,project_id,workflow_id,run_id)VALUES(?,?,?,?)`, f.user.TenantID, f.project, a.WorkflowID, "late-protected-run"); err != nil {
@@ -603,13 +601,11 @@ func TestAutomationAPIProjectTokenCannotAccessHumanRules(t *testing.T) {
 			if action == "trigger" {
 				a = autoCommand(t, f, a, "enable").Rule
 			}
-			token, err := f.s.CreateToken(context.Background(), f.user, "scoped API", time.Hour)
+			issued, err := f.s.IssueProjectCredential(context.Background(), f.actor, ProjectCredentialIssueRequest{ProjectID: f.project, Scope: "api", Label: "scoped API", IdempotencyKey: newID()})
 			if err != nil {
 				t.Fatal(err)
 			}
-			if _, err = f.s.DB.Exec(`INSERT INTO suma_token_scopes(token_hash,kind,project_id)VALUES(?,'api',?)`, digest(token), f.project); err != nil {
-				t.Fatal(err)
-			}
+			token := issued.Token
 			method, path, body := "POST", "/automations", map[string]any{"project_id": f.project, "idempotency_key": newID(), "spec": a.AutomationSpec}
 			switch action {
 			case "read":
@@ -676,18 +672,18 @@ func TestAutomationGeneratedCompensationCannotBeTemplate(t *testing.T) {
 	spec := a.AutomationSpec
 	spec.WorkflowID = inverse.WorkflowID
 	spec.WorkflowVersion = inverse.WorkflowVersion
-	if _, err = f.s.CreateAutomation(ctx, f.user, f.project, AutomationCreateRequest{IdempotencyKey: newID(), Spec: spec}); err == nil {
+	if _, err = f.s.CreateAutomation(ctx, f.actor, f.project, AutomationCreateRequest{IdempotencyKey: newID(), Spec: spec}); err == nil {
 		t.Error("generated inverse accepted as a new automation template")
 	}
-	if _, err = f.s.PreviewAutomation(ctx, f.user, f.project, spec); err == nil {
+	if _, err = f.s.PreviewAutomation(ctx, f.actor, f.project, spec); err == nil {
 		t.Error("generated inverse accepted for automation preview")
 	}
-	if _, err = f.s.CommandAutomation(ctx, f.user, f.project, a.ID, AutomationCommandRequest{Action: "revise", ExpectedVersion: a.Version, IdempotencyKey: newID(), Spec: &spec}); err == nil {
+	if _, err = f.s.CommandAutomation(ctx, f.actor, f.project, a.ID, AutomationCommandRequest{Action: "revise", ExpectedVersion: a.Version, IdempotencyKey: newID(), Spec: &spec}); err == nil {
 		t.Error("generated inverse accepted as a revision")
 	}
 	// Model an already-persisted rule from the former permissive admission path.
 	// The scheduler must retain a blocked occurrence rather than repeatedly fail.
-	a, err = f.s.GetAutomation(ctx, f.user, f.project, a.ID)
+	a, err = f.s.GetAutomation(ctx, f.actor, f.project, a.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -698,7 +694,8 @@ func TestAutomationGeneratedCompensationCannotBeTemplate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = f.s.insertAutomationOccurrence(ctx, tx, f.user, a, "manual", automationStamp(time.Now()), "queued", "legacy pre-fix admission", newID())
+	legacyAt := automationStamp(time.Now())
+	_, err = tx.ExecContext(ctx, `INSERT INTO suma_automation_occurrences(id,tenant_id,project_id,rule_id,revision,source,scheduled_at,state,reason,run_id,dedupe_key,created_at,updated_at) VALUES(?,?,?,?,?,'manual',?,'queued','legacy pre-fix admission','',?,?,?)`, newID(), f.user.TenantID, f.project, a.ID, a.Revision, legacyAt, digest(newID()), legacyAt, legacyAt)
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)

@@ -33,7 +33,7 @@ func ingressTestEntry(t *testing.T, f *fixture, a AutomationRule, provider, secr
 	if provider == "suma" {
 		spec.Events = []string{"git.push", "ci.completed", "monitor.firing", "monitor.resolved"}
 	}
-	in, err := f.s.CreateAutomationIngress(context.Background(), f.user, f.project, a.ID, AutomationIngressCreateRequest{ProjectID: f.project, ExpectedRuleVersion: a.Version, ExpectedRuleRevision: a.Revision, IdempotencyKey: newID(), Spec: spec})
+	in, err := f.s.CreateAutomationIngress(context.Background(), f.actor, f.project, a.ID, AutomationIngressCreateRequest{ProjectID: f.project, ExpectedRuleVersion: a.Version, ExpectedRuleRevision: a.Revision, IdempotencyKey: newID(), Spec: spec})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +47,7 @@ func ingressTestCommand(t *testing.T, f *fixture, in AutomationIngress, req Auto
 	if req.IdempotencyKey == "" {
 		req.IdempotencyKey = newID()
 	}
-	out, err := f.s.CommandAutomationIngress(context.Background(), f.user, f.project, in.ID, req)
+	out, err := f.s.CommandAutomationIngress(context.Background(), f.actor, f.project, in.ID, req)
 	if err != nil {
 		t.Fatal(req.Action, err)
 	}
@@ -135,7 +135,7 @@ func TestAutomationIngressQueuesFixedWorkflowAndStoresOnlyRestrictedFacts(t *tes
 		t.Fatal("retry duplicated occurrence")
 	}
 	autoTick(t, f)
-	delivery, err := f.s.GetAutomationIngressDelivery(context.Background(), f.user, f.project, in.ID, receipt.ID)
+	delivery, err := f.s.GetAutomationIngressDelivery(context.Background(), f.actor, f.project, in.ID, receipt.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -410,7 +410,7 @@ func TestAutomationIngressNativeTagPushAndExactRefFilters(t *testing.T) {
 			}
 			if tc.want == "accepted" {
 				autoTick(t, f)
-				delivery, err := f.s.GetAutomationIngressDelivery(context.Background(), f.user, f.project, in.ID, receipt.ID)
+				delivery, err := f.s.GetAutomationIngressDelivery(context.Background(), f.actor, f.project, in.ID, receipt.ID)
 				if err != nil {
 					t.Fatal(err)
 				}

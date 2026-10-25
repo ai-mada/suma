@@ -2,7 +2,7 @@ package platform
 
 import "net/http"
 
-func (s *Server) taskDispatchHTTP(w http.ResponseWriter, r *http.Request, p Principal, scope, path string, parts []string, project string, m map[string]any) bool {
+func (s *Server) taskDispatchHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, path string, parts []string, project string, m map[string]any) bool {
 	if parts[0] != "task-dispatch-plans" {
 		return false
 	}
@@ -17,10 +17,10 @@ func (s *Server) taskDispatchHTTP(w http.ResponseWriter, r *http.Request, p Prin
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.CreateTaskDispatchPlan(r.Context(), s.Engine, p, project, request)
+		out, err := s.Service.CreateTaskDispatchPlan(r.Context(), s.Engine, actor, project, request)
 		respond(w, 201, out, err)
 	case len(parts) == 2 && r.Method == "GET":
-		out, err := s.Service.GetTaskDispatchPlan(r.Context(), s.Engine, p, project, parts[1])
+		out, err := s.Service.GetTaskDispatchPlan(r.Context(), s.Engine, actor, project, parts[1])
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[2] == "start" && r.Method == "POST":
 		var request TaskDispatchStartRequest
@@ -28,7 +28,7 @@ func (s *Server) taskDispatchHTTP(w http.ResponseWriter, r *http.Request, p Prin
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.StartTaskDispatchPlan(r.Context(), s.Engine, p, project, parts[1], request)
+		out, err := s.Service.StartTaskDispatchPlan(r.Context(), s.Engine, actor, project, parts[1], request)
 		respond(w, 201, out, err)
 	default:
 		writeError(w, missing())

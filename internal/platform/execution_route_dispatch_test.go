@@ -29,15 +29,15 @@ func TestProjectCommandClaimRemainsLocalAfterPoolMigration(t *testing.T) {
 func dispatchAuthorizedPool(t *testing.T, f *fixture) (ExecutionPool, ExecutionPoolGrant) {
 	t.Helper()
 	ctx := context.Background()
-	pool, err := f.s.CreateExecutionPool(ctx, f.e, f.user, f.cookie.Value, ExecutionPoolCreateRequest{Name: "路由校验池", Policy: ExecutionPoolPolicyInput{ConcurrencyLimit: 2, ResourceLimits: map[string]*int64{}, TenantWeights: map[string]int{}}, IdempotencyKey: newID()})
+	pool, err := f.s.CreateExecutionPool(ctx, f.e, f.actor, ExecutionPoolCreateRequest{Name: "路由校验池", Policy: ExecutionPoolPolicyInput{ConcurrencyLimit: 2, ResourceLimits: map[string]*int64{}, TenantWeights: map[string]int{}}, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
-	grant, err := f.s.RequestExecutionPoolGrant(ctx, f.user, f.cookie.Value, ExecutionPoolGrantRequest{ProjectID: f.project, PoolID: pool.ID, ProjectWeight: 1, IdempotencyKey: newID()})
+	grant, err := f.s.RequestExecutionPoolGrant(ctx, f.actor, ExecutionPoolGrantRequest{ProjectID: f.project, PoolID: pool.ID, ProjectWeight: 1, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
-	grant, err = f.s.CommandOwnedPoolGrant(ctx, f.e, f.user, f.cookie.Value, pool.ID, grant.ID, ExecutionPoolGrantCommand{Action: "approve", ExpectedVersion: grant.Version, IdempotencyKey: newID()})
+	grant, err = f.s.CommandOwnedPoolGrant(ctx, f.e, f.actor, pool.ID, grant.ID, ExecutionPoolGrantCommand{Action: "approve", ExpectedVersion: grant.Version, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +52,7 @@ func dispatchSetRoute(t *testing.T, f *fixture, expected int, grant *ExecutionPo
 		t.Fatal(err)
 	}
 	defer tx.Rollback()
-	if err = f.s.authorizeProjectTx(ctx, tx, f.user, f.project, true, true); err != nil {
+	if _, err = f.s.authorizeTx(ctx, tx, f.actor, commandTarget{tenantID: f.user.TenantID, projectID: f.project}, purposeBrowserProjectApprove); err != nil {
 		t.Fatal(err)
 	}
 	in := dag.ProjectExecutionRouteInput{}
@@ -70,7 +70,7 @@ func dispatchSetRoute(t *testing.T, f *fixture, expected int, grant *ExecutionPo
 func dispatchPoolTool(t *testing.T, f *fixture, pool ExecutionPool) ToolProfile {
 	t.Helper()
 	ctx := context.Background()
-	credential, err := f.s.RegisterExecutionPoolRunner(ctx, f.user, f.cookie.Value, pool.ID, ExecutionPoolRunnerCreateRequest{Name: "路由匹配工具", MaxSlots: 1, TTLSeconds: 3600, IdempotencyKey: newID()})
+	credential, err := f.s.RegisterExecutionPoolRunner(ctx, f.actor, pool.ID, ExecutionPoolRunnerCreateRequest{Name: "路由匹配工具", MaxSlots: 1, TTLSeconds: 3600, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,11 +78,11 @@ func dispatchPoolTool(t *testing.T, f *fixture, pool ExecutionPool) ToolProfile 
 	if _, err = f.s.ReportPoolToolInventory(ctx, credential.Token, PoolToolInventoryRequest{RunnerID: credential.Runner.ID, TenantID: f.user.TenantID, ProjectID: f.project, OperationID: newID(), Items: []tc.Observation{{Profile: profile, Available: true}}}); err != nil {
 		t.Fatal(err)
 	}
-	p, err := f.s.CreateToolProfile(ctx, f.user, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: credential.Runner.WorkerID, Name: "路由固定工具", Profile: profile, IdempotencyKey: newID()})
+	p, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: credential.Runner.WorkerID, Name: "路由固定工具", Profile: profile, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
-	p, err = f.s.CommandToolProfile(ctx, f.user, f.project, p.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: p.Version, IdempotencyKey: newID()})
+	p, err = f.s.CommandToolProfile(ctx, f.actor, f.project, p.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: p.Version, IdempotencyKey: newID()})
 	if err != nil || !p.Available {
 		t.Fatal(p, err)
 	}
@@ -204,7 +204,7 @@ func TestTaskDispatchPoolGrantRevokedAfterPreviewDoesNotCreateRun(t *testing.T) 
 	dispatchSetRoute(t, f, 0, &grant)
 	request["tool_profile_id"], request["expected_tool_version"] = p.ID, p.Version
 	plan := f.call("POST", "/task-dispatch-plans", request, 201)
-	if _, err := f.s.CommandOwnedPoolGrant(context.Background(), f.e, f.user, f.cookie.Value, pool.ID, grant.ID, ExecutionPoolGrantCommand{Action: "revoke", ExpectedVersion: grant.Version, IdempotencyKey: newID()}); err != nil {
+	if _, err := f.s.CommandOwnedPoolGrant(context.Background(), f.e, f.actor, pool.ID, grant.ID, ExecutionPoolGrantCommand{Action: "revoke", ExpectedVersion: grant.Version, IdempotencyKey: newID()}); err != nil {
 		t.Fatal(err)
 	}
 	f.call("POST", "/task-dispatch-plans/"+plan["id"].(string)+"/start", f.body(map[string]any{"expected_version": plan["version"]}), 409)
@@ -219,9 +219,9 @@ func TestReleasePoolRouteRejectsPreviewAndExecuteWithoutStrandedRun(t *testing.T
 	f, candidate, env, plan, _, _ := verifiedReleaseDeploymentPlan(t)
 	_, grant := dispatchAuthorizedPool(t, f)
 	dispatchSetRoute(t, f, 0, &grant)
-	_, err := f.s.PreviewReleasePlan(context.Background(), f.user, f.project, f.cookie.Value, map[string]any{"project_id": f.project, "candidate_id": candidate.ID, "environment_id": env.ID, "action": "deploy", "expected_environment_generation": 0})
+	_, err := f.s.PreviewReleasePlan(context.Background(), f.actor, f.project, map[string]any{"project_id": f.project, "candidate_id": candidate.ID, "environment_id": env.ID, "action": "deploy", "expected_environment_generation": 0})
 	releaseWantStatus(t, err, 422)
-	_, err = f.s.ExecuteReleasePlan(context.Background(), f.user, f.project, plan.ID, f.cookie.Value, releaseExecuteBody(f, plan), f.e)
+	_, err = f.s.ExecuteReleasePlan(context.Background(), f.actor, f.project, plan.ID, releaseExecuteBody(f, plan), f.e)
 	releaseWantStatus(t, err, 422)
 	var runs int
 	f.s.DB.QueryRow(`SELECT COUNT(*) FROM dag_runs WHERE id=?`, plan.Content.ReservedExecution.RunID).Scan(&runs)
@@ -238,7 +238,7 @@ func TestReleasePoolUnsupportedRouteGateBeforePlanBasis(t *testing.T) {
 	_, grant := dispatchAuthorizedPool(t, f)
 	dispatchSetRoute(t, f, 0, &grant)
 	t.Run("preview", func(t *testing.T) {
-		_, err := f.s.PreviewReleasePlan(context.Background(), f.user, f.project, f.cookie.Value, map[string]any{"project_id": f.project, "candidate_id": newID(), "environment_id": newID(), "action": "deploy", "expected_environment_generation": 0})
+		_, err := f.s.PreviewReleasePlan(context.Background(), f.actor, f.project, map[string]any{"project_id": f.project, "candidate_id": newID(), "environment_id": newID(), "action": "deploy", "expected_environment_generation": 0})
 		releaseWantStatus(t, err, 422)
 	})
 	plan := ReleasePlan{ID: newID(), ProjectID: f.project, Version: 1, Revision: 1, State: "pending_approval", SHA256: strings.Repeat("0", 64), Content: rc.ReleasePlanContent{ProviderID: "local-static-test", ReservedExecution: rc.ReservedExecution{RunID: newID(), NodeID: "deploy"}}}
@@ -247,7 +247,7 @@ func TestReleasePoolUnsupportedRouteGateBeforePlanBasis(t *testing.T) {
 	}
 	trace := dispatchRouteSQLTrace(t, f)
 	t.Run("execute", func(t *testing.T) {
-		_, err := f.s.ExecuteReleasePlan(context.Background(), f.user, f.project, plan.ID, f.cookie.Value, releaseExecuteBody(f, plan), f.e)
+		_, err := f.s.ExecuteReleasePlan(context.Background(), f.actor, f.project, plan.ID, releaseExecuteBody(f, plan), f.e)
 		releaseWantStatus(t, err, 422)
 	})
 	trace.mu.Lock()
@@ -331,7 +331,7 @@ func TestReleaseFixedLocalGuardDoesNotFollowNewDefaultPool(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = f.s.authorizeProjectTx(ctx, tx, f.user, f.project, true, true); err != nil {
+	if _, err = f.s.authorizeTx(ctx, tx, f.actor, commandTarget{tenantID: f.user.TenantID, projectID: f.project}, purposeBrowserProjectApprove); err != nil {
 		tx.Rollback()
 		t.Fatal(err)
 	}
@@ -357,11 +357,11 @@ func TestReleaseFixedLocalActualAssignmentDrainsAfterDefaultPoolChange(t *testin
 	f, _, _, plan, _, _ := verifiedReleaseDeploymentPlan(t)
 	ctx := context.Background()
 	request := releaseExecuteBody(f, plan)
-	deployment, err := f.s.ExecuteReleasePlan(ctx, f.user, f.project, plan.ID, f.cookie.Value, request, f.e)
+	deployment, err := f.s.ExecuteReleasePlan(ctx, f.actor, f.project, plan.ID, request, f.e)
 	if err != nil {
 		t.Fatal(err)
 	}
-	registration, err := f.s.RegisterReleaseWorker(ctx, f.user, f.project, f.cookie.Value, map[string]any{"worker_id": "route-local-deployer", "profiles": []any{}, "deployment": true, "idempotency_key": newID()})
+	registration, err := f.s.RegisterReleaseWorker(ctx, f.actor, f.project, map[string]any{"worker_id": "route-local-deployer", "profiles": []any{}, "deployment": true, "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -374,7 +374,7 @@ func TestReleaseFixedLocalActualAssignmentDrainsAfterDefaultPoolChange(t *testin
 	}
 	_, grant := dispatchAuthorizedPool(t, f)
 	dispatchSetRoute(t, f, 0, &grant)
-	replayed, err := f.s.ExecuteReleasePlan(ctx, f.user, f.project, plan.ID, f.cookie.Value, request, f.e)
+	replayed, err := f.s.ExecuteReleasePlan(ctx, f.actor, f.project, plan.ID, request, f.e)
 	if err != nil || replayed.OperationID != deployment.OperationID || replayed.RunID != deployment.RunID {
 		t.Fatal("existing local deployment receipt adopted new pool", err)
 	}

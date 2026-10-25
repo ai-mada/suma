@@ -1,3 +1,4 @@
+import {useApi} from './api-context';
 import { Trans } from "./i18n/Trans";
 import { tr as t, useLocale, formatDateTime, formatNumber, renderDiagnostic } from "./i18n";
 import { useEffect, useMemo, useState } from "react";
@@ -64,7 +65,7 @@ export function ToolWorkspace({
   onSelect,
   refresh,
   panel,
-}: Props) { useLocale();
+}: Props) { const api=useApi(); useLocale();
   const [revision, setRevision] = useState(0),
     [search, setSearch] = useState(""),
     [dialog, setDialog] = useState<Dialog>(),
@@ -76,16 +77,13 @@ export function ToolWorkspace({
     [live, setLive] = useState(true);
   const recovery = useMemo(
     () =>
-      new ToolWriteRecovery(
-        session.organization.id +
+      new ToolWriteRecovery(session.organization.id +
           ":" +
           session.user.id +
           ":" +
           project +
-          ":profiles",
-        toolSessionStorage(),
-      ),
-    [session.organization.id, session.user.id, project],
+          ":profiles", toolSessionStorage(), api),
+    [session.organization.id, session.user.id, project, api],
   );
   const action = useToolAction(recovery, () => setDialog(undefined)),
     profiles = useToolList<ToolProfile>(
@@ -829,7 +827,7 @@ function ProfileDecisionForm({
   action: ToolAction;
   onSaved: (value: ToolProfile) => void;
   onCancel: () => void;
-}) { useLocale();
+}) { const api=useApi(); useLocale();
   const [current, setCurrent] = useState(value),
     [confirmed, setConfirmed] = useState(false),
     [error, setError] = useState<unknown>("");

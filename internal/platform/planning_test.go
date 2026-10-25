@@ -131,6 +131,10 @@ func TestCapacityUnknownZeroAndProRatedCalendarWeeks(t *testing.T) {
 
 func TestPlanningChecksLivePermissionInsteadOfStalePrincipalRole(t *testing.T) {
 	f := newFixture(t)
+	actor, err := f.s.AuthenticateActor(context.Background(), f.cookie.Value)
+	if err != nil {
+		t.Fatal(err)
+	}
 	_, e := f.s.DB.Exec(`UPDATE suma_org_members SET role='member' WHERE tenant_id=? AND user_id=?`, f.user.TenantID, f.user.ID)
 	if e != nil {
 		t.Fatal(e)
@@ -139,7 +143,7 @@ func TestPlanningChecksLivePermissionInsteadOfStalePrincipalRole(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	if _, e = f.s.SavePlanningPeriod(context.Background(), f.user, f.project, "milestones", "", map[string]any{"title": "越权", "target_date": "2026-10-25", "idempotency_key": newID()}); e == nil {
+	if _, e = f.s.SavePlanningPeriod(context.Background(), actor, f.project, "milestones", "", map[string]any{"title": "越权", "target_date": "2026-10-25", "idempotency_key": newID()}); e == nil {
 		t.Fatal("stale owner authorized a write")
 	}
 	f.call("GET", "/planning?project_id="+f.project, nil, 200)
@@ -246,6 +250,7 @@ func TestCapacityExcludesRevokedHumansAndPreservesHistoricalRows(t *testing.T) {
 			session := governanceAccept(f, inv, "capacity-revoke@example.test")
 			userID := session["user"].(map[string]any)["id"].(string)
 			f.cookie = ownerCookie
+			f.call("GET", "/auth/session", nil, 200)
 			resource := f.call("POST", "/members", f.body(map[string]any{"title": "已撤权资源", "kind": "human", "data": map[string]any{"user_id": userID}}), 201)
 			known := f.call("POST", "/planning/capacity", f.body(map[string]any{"member_id": resource["id"], "week_start": "2026-10-19", "available_hours": 40, "expected_version": 0}), 200)
 			if removal == "project" {

@@ -10,6 +10,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/ai-mada/suma/internal/store"
+	"log/slog"
 	"strconv"
 	"strings"
 	"time"
@@ -101,46 +103,8 @@ func New(db *sql.DB, dialect string) (*Engine, error) {
 
 // GetWorkflow reads a published immutable version; version zero selects latest.
 func (e *Engine) GetWorkflow(ctx context.Context, tenant, project, id string, version int) (Workflow, error) {
-	var w Workflow
-	var raw string
-	q := "SELECT spec FROM dag_workflows WHERE tenant_id=? AND project_id=? AND id=?"
-	args := []any{tenant, project, id}
-	if version > 0 {
-		q += " AND version=?"
-		args = append(args, version)
-	}
-	q += " ORDER BY version DESC LIMIT 1"
-	err := e.db.QueryRowContext(ctx, e.q(q), args...).Scan(&raw)
-	if err == sql.ErrNoRows {
-		return w, ErrNotFound
-	}
-	if err != nil {
-		return w, err
-	}
-	err = json.Unmarshal([]byte(raw), &w)
-	return w, err
+	return e.getWorkflow(ctx, e.db, tenant, project, id, version)
 }
-
-var schema = []string{
-	`CREATE TABLE IF NOT EXISTS dag_lock (id INTEGER PRIMARY KEY, seq BIGINT NOT NULL)`,
-	`CREATE TABLE IF NOT EXISTS dag_workflows (tenant_id VARCHAR(100) NOT NULL,project_id VARCHAR(100) NOT NULL,id VARCHAR(100) NOT NULL,version INTEGER NOT NULL,name VARCHAR(255) NOT NULL,spec TEXT NOT NULL,PRIMARY KEY(tenant_id,project_id,id,version))`,
-	`CREATE TABLE IF NOT EXISTS dag_managed_workflows (tenant_id VARCHAR(100) NOT NULL,project_id VARCHAR(100) NOT NULL,workflow_id VARCHAR(100) NOT NULL,run_id VARCHAR(100) NOT NULL UNIQUE,PRIMARY KEY(tenant_id,project_id,workflow_id))`,
-	`CREATE TABLE IF NOT EXISTS dag_managed_resolutions (run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,attempt INTEGER NOT NULL,operation_id VARCHAR(150) NOT NULL,original_result TEXT NOT NULL,resolution_result TEXT NOT NULL,resolved_at VARCHAR(40) NOT NULL,PRIMARY KEY(run_id,node_id,attempt))`,
-	`CREATE TABLE IF NOT EXISTS dag_runs (id VARCHAR(100) PRIMARY KEY,tenant_id VARCHAR(100) NOT NULL,project_id VARCHAR(100) NOT NULL,workflow_id VARCHAR(100) NOT NULL,workflow_version INTEGER NOT NULL,workflow_name VARCHAR(255) NOT NULL,version INTEGER NOT NULL,state VARCHAR(32) NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL)`,
-	`CREATE TABLE IF NOT EXISTS dag_nodes (run_id VARCHAR(100) NOT NULL,id VARCHAR(150) NOT NULL,state VARCHAR(32) NOT NULL,reason TEXT NOT NULL,attempt INTEGER NOT NULL,fence BIGINT NOT NULL,worker_id VARCHAR(100) NOT NULL,output TEXT NOT NULL,error_text TEXT NOT NULL,started_at VARCHAR(40) NOT NULL,completed_at VARCHAR(40) NOT NULL,lease_until BIGINT NOT NULL,wake_at BIGINT NOT NULL,parent_id VARCHAR(150) NOT NULL,spec TEXT NOT NULL,PRIMARY KEY(run_id,id))`,
-	`CREATE TABLE IF NOT EXISTS dag_attempts (run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,attempt INTEGER NOT NULL,fence BIGINT NOT NULL,worker_id VARCHAR(100) NOT NULL,state VARCHAR(32) NOT NULL,started_at VARCHAR(40) NOT NULL,completed_at VARCHAR(40) NOT NULL,result TEXT NOT NULL,PRIMARY KEY(run_id,node_id,attempt))`,
-	`CREATE TABLE IF NOT EXISTS dag_candidate_revisions (run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,attempt INTEGER NOT NULL,commit_id VARCHAR(64) NOT NULL,source_node VARCHAR(150) NOT NULL,source_attempt INTEGER NOT NULL,source_fence BIGINT NOT NULL,evidence_sha256 VARCHAR(64) NOT NULL,PRIMARY KEY(run_id,node_id,attempt))`,
-	`CREATE TABLE IF NOT EXISTS dag_events (sequence BIGINT PRIMARY KEY,tenant_id VARCHAR(100) NOT NULL,project_id VARCHAR(100) NOT NULL,run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,event_type VARCHAR(64) NOT NULL,at_time VARCHAR(40) NOT NULL,data TEXT NOT NULL)`,
-	`CREATE TABLE IF NOT EXISTS dag_ready (run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,sequence BIGINT NOT NULL,PRIMARY KEY(run_id,node_id))`,
-	`CREATE TABLE IF NOT EXISTS dag_run_fairness (run_id VARCHAR(100) PRIMARY KEY,last_claim_sequence BIGINT NOT NULL)`,
-	`CREATE TABLE IF NOT EXISTS dag_operations (tenant_id VARCHAR(100) NOT NULL,project_id VARCHAR(100) NOT NULL,scope VARCHAR(150) NOT NULL,operation_id VARCHAR(150) NOT NULL,fingerprint VARCHAR(64) NOT NULL,result_id VARCHAR(150) NOT NULL,PRIMARY KEY(tenant_id,project_id,scope,operation_id))`,
-	`CREATE TABLE IF NOT EXISTS dag_resource_limits (tenant_id VARCHAR(100) NOT NULL,project_id VARCHAR(100) NOT NULL,name VARCHAR(100) NOT NULL,capacity BIGINT NOT NULL,consumed BIGINT NOT NULL,PRIMARY KEY(tenant_id,project_id,name))`,
-	`CREATE TABLE IF NOT EXISTS dag_reservations (run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,name VARCHAR(100) NOT NULL,amount BIGINT NOT NULL,PRIMARY KEY(run_id,node_id,name))`,
-	`CREATE TABLE IF NOT EXISTS dag_subruns (parent_run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,attempt INTEGER NOT NULL,child_run_id VARCHAR(100) NOT NULL UNIQUE,paused_by_parent INTEGER NOT NULL,PRIMARY KEY(parent_run_id,node_id,attempt))`,
-	`CREATE TABLE IF NOT EXISTS dag_compensations (original_run_id VARCHAR(100) PRIMARY KEY,compensation_run_id VARCHAR(100) NOT NULL UNIQUE,original_version INTEGER NOT NULL,original_state VARCHAR(32) NOT NULL,reason TEXT NOT NULL,last_state VARCHAR(32) NOT NULL)`,
-	`CREATE TABLE IF NOT EXISTS dag_compensation_effects (original_run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,attempt INTEGER NOT NULL,fence BIGINT NOT NULL,compensation_node_id VARCHAR(100) NOT NULL,source_ref TEXT NOT NULL,PRIMARY KEY(original_run_id,node_id,attempt))`,
-}
-
 func (e *Engine) q(q string) string {
 	if e.dialect != "postgres" {
 		return q
@@ -175,11 +139,28 @@ func (e *Engine) writeBefore(ctx context.Context, before func(*sql.Tx) error, fn
 	if e.dialect != "sqlite" {
 		options = &sql.TxOptions{Isolation: sql.LevelReadCommitted}
 	}
-	tx, err := e.db.BeginTx(ctx, options)
-	if err != nil {
-		return err
+	var tx *sql.Tx
+	var err error
+	if before != nil {
+		// Authority may temporarily tune SQLite's connection-local wait budget.
+		// Retain that connection until it is restored after commit or rollback.
+		scope, beginErr := store.BeginScopedTx(ctx, e.db, e.dialect, options)
+		if beginErr != nil {
+			return beginErr
+		}
+		tx = scope.Tx
+		defer func() {
+			if closeErr := scope.Close(); closeErr != nil {
+				slog.Warn("transaction connection cleanup failed", "driver", e.dialect, "error", closeErr)
+			}
+		}()
+	} else {
+		tx, err = e.db.BeginTx(ctx, options)
+		if err != nil {
+			return err
+		}
+		defer tx.Rollback()
 	}
-	defer tx.Rollback()
 	if before != nil {
 		if err = before(tx); err != nil {
 			return err
@@ -329,15 +310,30 @@ func (t *transaction) nextQueueSequence(tenant, project string) (int64, error) {
 	return seq, err
 }
 
+// Publish is an internal kernel entry; interactive callers must supply current
+// authorization through PublishWithAuthority.
 func (e *Engine) Publish(ctx context.Context, tenant, project string, w Workflow) (Workflow, error) {
-	return e.publish(ctx, tenant, project, w, "", false)
+	return e.publish(ctx, tenant, project, w, "", false, nil)
 }
 
 // PublishWithOperation commits the immutable version and request receipt together.
+// It is an internal kernel entry; interactive callers use PublishWithAuthority.
 func (e *Engine) PublishWithOperation(ctx context.Context, tenant, project string, w Workflow, operationID string) (Workflow, error) {
-	return e.publish(ctx, tenant, project, w, operationID, true)
+	return e.publish(ctx, tenant, project, w, operationID, true, nil)
 }
-func (e *Engine) publish(ctx context.Context, tenant, project string, w Workflow, operationID string, receipt bool) (Workflow, error) {
+
+// PublishWithAuthority checks current authority in the publication transaction,
+// before acquiring the scheduler lock or reading a receipt. The callback must
+// use only the supplied tx and must not call Engine or perform external IO.
+func (e *Engine) PublishWithAuthority(ctx context.Context, tenant, project string, w Workflow, operationID string, before func(*sql.Tx) error) (Workflow, error) {
+	w, err := e.publish(ctx, tenant, project, w, operationID, true, before)
+	if err != nil {
+		return Workflow{}, err
+	}
+	return w, nil
+}
+
+func (e *Engine) publish(ctx context.Context, tenant, project string, w Workflow, operationID string, receipt bool, before func(*sql.Tx) error) (Workflow, error) {
 	if err := scopeValid(tenant, project); err != nil {
 		return w, err
 	}
@@ -353,7 +349,7 @@ func (e *Engine) publish(ctx context.Context, tenant, project string, w Workflow
 	if !identifier.MatchString(w.ID) || w.Name == "" || len(w.Name) > 255 {
 		return w, dagDiagnostic(fmt.Errorf("%w: workflow ID and name required", ErrInvalid), "dag.workflow.identity", nil)
 	}
-	err = e.write(ctx, func(t *transaction) error {
+	err = e.writeBefore(ctx, before, func(t *transaction) error {
 		if receipt {
 			previous, err := t.operation(tenant, project, "publish_workflow", operationID, hash)
 			if err != nil {
@@ -400,27 +396,7 @@ func (e *Engine) publish(ctx context.Context, tenant, project string, w Workflow
 	return w, err
 }
 func (e *Engine) Workflows(ctx context.Context, tenant, project string) ([]Workflow, error) {
-	if err := scopeValid(tenant, project); err != nil {
-		return nil, err
-	}
-	rows, err := e.db.QueryContext(ctx, e.q("SELECT w.spec FROM dag_workflows w WHERE w.tenant_id=? AND w.project_id=? AND NOT EXISTS (SELECT 1 FROM dag_managed_workflows m WHERE m.tenant_id=w.tenant_id AND m.project_id=w.project_id AND m.workflow_id=w.id) AND NOT EXISTS (SELECT 1 FROM dag_compensations c JOIN dag_runs r ON r.id=c.compensation_run_id WHERE r.tenant_id=w.tenant_id AND r.project_id=w.project_id AND r.workflow_id=w.id) ORDER BY w.id,w.version"), tenant, project)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	out := []Workflow{}
-	for rows.Next() {
-		var raw string
-		var w Workflow
-		if err = rows.Scan(&raw); err != nil {
-			return nil, err
-		}
-		if err = json.Unmarshal([]byte(raw), &w); err != nil {
-			return nil, err
-		}
-		out = append(out, w)
-	}
-	return out, rows.Err()
+	return e.workflows(ctx, e.db, tenant, project)
 }
 func load(ctx context.Context, q queryer, e *Engine, tenant, project, id string) (*runState, error) {
 	r := &runState{}
@@ -566,11 +542,10 @@ func (e *Engine) GetRun(ctx context.Context, tenant, project, id string) (Run, e
 		return out, err
 	}
 	defer tx.Rollback()
-	r, err := load(ctx, tx, e, tenant, project, id)
+	out, err = e.GetRunTx(ctx, tx, tenant, project, id)
 	if err != nil {
 		return out, err
 	}
-	out = r.public()
 	return out, tx.Commit()
 }
 func (e *Engine) Runs(ctx context.Context, tenant, project string) ([]Run, error) {
@@ -612,37 +587,7 @@ func (e *Engine) Runs(ctx context.Context, tenant, project string) ([]Run, error
 // Events returns at most 1000 durable events; callers resume after the last
 // returned sequence. HTTP clients use the smaller authorized 128-event window.
 func (e *Engine) Events(ctx context.Context, tenant, project, id string, after int64) ([]Event, error) {
-	if after < 0 {
-		return nil, dagDiagnostic(fmt.Errorf("%w: negative event cursor", ErrInvalid), "dag.events.cursor", nil)
-	}
-	var exists int
-	if err := e.db.QueryRowContext(ctx, e.q(`SELECT 1 FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, id).Scan(&exists); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, ErrNotFound
-		}
-		return nil, err
-	}
-	rows, err := e.db.QueryContext(ctx, e.q("SELECT sequence,run_id,node_id,event_type,at_time,data FROM dag_events WHERE tenant_id=? AND project_id=? AND run_id=? AND sequence>? ORDER BY sequence LIMIT 1000"), tenant, project, id, after)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	out := []Event{}
-	for rows.Next() {
-		var event Event
-		var raw string
-		if err = rows.Scan(&event.Sequence, &event.RunID, &event.NodeID, &event.Type, &event.At, &raw); err != nil {
-			return nil, err
-		}
-		if err = json.Unmarshal([]byte(raw), &event.Data); err != nil {
-			return nil, err
-		}
-		if event.Data == nil {
-			event.Data = map[string]any{}
-		}
-		out = append(out, event)
-	}
-	return out, rows.Err()
+	return e.events(ctx, e.db, tenant, project, id, after)
 }
 func (t *transaction) insertNode(r *runState, n *nodeState) error {
 	err := t.exec("INSERT INTO dag_nodes (run_id,id,state,reason,attempt,fence,worker_id,output,error_text,started_at,completed_at,lease_until,wake_at,parent_id,spec) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", r.ID, n.ID, n.State, n.Reason, n.Attempt, n.Fence, n.WorkerID, n.Output, n.Error, n.StartedAt, n.CompletedAt, n.lease, n.wake, n.parent, encoded(n.spec))

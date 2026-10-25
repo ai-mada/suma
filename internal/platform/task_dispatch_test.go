@@ -15,11 +15,11 @@ func taskDispatchFixture(t *testing.T) (*fixture, string, map[string]any, map[st
 	t.Helper()
 	f, token, profile := toolFixture(t)
 	ctx := context.Background()
-	_, err := f.s.ReportToolInventory(ctx, f.user, f.project, token, ToolInventoryRequest{ProjectID: f.project, WorkerID: profile.WorkerID, OperationID: newID(), Items: []tc.Observation{{Profile: profile.Profile, Available: true}}})
+	_, err := f.s.ReportToolInventory(ctx, toolActorForTest(t, f, token), f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: profile.WorkerID, OperationID: newID(), Items: []tc.Observation{{Profile: profile.Profile, Available: true}}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile, err = f.s.CommandToolProfile(ctx, f.user, f.project, profile.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: profile.Version, IdempotencyKey: newID()})
+	profile, err = f.s.CommandToolProfile(ctx, f.actor, f.project, profile.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: profile.Version, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func TestTaskDispatchMaximumOperationRecoversOneRunAcrossConnections(t *testing.
 			if index == 1 {
 				service, engine = s2, e2
 			}
-			run, e := service.StartTaskDispatchPlan(context.Background(), engine, f.user, f.project, plan["id"].(string), start)
+			run, e := service.StartTaskDispatchPlan(context.Background(), engine, f.actor, f.project, plan["id"].(string), start)
 			if e != nil {
 				failures <- e
 				return
@@ -147,11 +147,11 @@ func TestTaskDispatchPreviewStartAtomicBindingAndReceiptRecovery(t *testing.T) {
 	if bound["run_id"] != run["id"] || bound["version"].(float64) != task["version"].(float64)+1 {
 		t.Fatal("task not atomically bound", bound)
 	}
-	pr, err := f.s.GetToolProfile(context.Background(), f.user, f.project, request["tool_profile_id"].(string))
+	pr, err := f.s.GetToolProfile(context.Background(), f.actor, f.project, request["tool_profile_id"].(string))
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = f.s.CommandToolProfile(context.Background(), f.user, f.project, pr.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "pause", ExpectedVersion: pr.Version, IdempotencyKey: newID()})
+	_, err = f.s.CommandToolProfile(context.Background(), f.actor, f.project, pr.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "pause", ExpectedVersion: pr.Version, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}

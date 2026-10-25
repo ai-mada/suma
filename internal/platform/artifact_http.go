@@ -17,13 +17,13 @@ func artifactBytes(w http.ResponseWriter, b []byte) {
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(b)
 }
-func (s *Server) artifactHTTP(w http.ResponseWriter, r *http.Request, p Principal, project, path string, m map[string]any) bool {
+func (s *Server) artifactHTTP(w http.ResponseWriter, r *http.Request, actor Actor, project, path string, m map[string]any) bool {
+
 	parts := strings.Split(path, "/")
 	ctx := r.Context()
-	token := tokenOf(r)
 	if len(parts) >= 2 && parts[0] == "runner" && (parts[1] == "artifact-uploads" || parts[1] == "artifacts") {
-		kind, bound := s.Service.TokenScope(ctx, token)
-		if kind != "runner" || bound != project || !strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
+		kind, bound := actor.kind, actor.credential.projectID
+		if kind != actorProjectRunner || bound != project || !strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
 			writeError(w, forbidden())
 			return true
 		}
@@ -32,18 +32,18 @@ func (s *Server) artifactHTTP(w http.ResponseWriter, r *http.Request, p Principa
 			if e := releaseDecode(m, &req); e != nil {
 				writeError(w, e)
 			} else {
-				out, e := s.Service.StartArtifactUpload(ctx, p, project, token, req)
+				out, e := s.Service.StartArtifactUpload(ctx, actor, project, req)
 				respond(w, 201, out, e)
 			}
 			return true
 		}
 		if len(parts) == 3 && parts[1] == "artifact-uploads" && r.Method == "GET" {
-			out, e := s.Service.InspectArtifactUpload(ctx, p, project, token, parts[2])
+			out, e := s.Service.InspectArtifactUpload(ctx, actor, project, parts[2])
 			respond(w, 200, out, e)
 			return true
 		}
 		if len(parts) == 5 && parts[1] == "artifact-uploads" && parts[3] == "blobs" && r.Method == "PUT" {
-			e := s.Service.PutArtifactBlob(ctx, p, project, token, parts[2], parts[4], r.Header.Get("X-Suma-Operation-ID"), r.ContentLength, r.Body)
+			e := s.Service.PutArtifactBlob(ctx, actor, project, parts[2], parts[4], r.Header.Get("X-Suma-Operation-ID"), r.ContentLength, r.Body)
 			respond(w, 200, map[string]bool{"acknowledged": e == nil}, e)
 			return true
 		}
@@ -52,7 +52,7 @@ func (s *Server) artifactHTTP(w http.ResponseWriter, r *http.Request, p Principa
 			if e := releaseDecode(m, &req); e != nil {
 				writeError(w, e)
 			} else {
-				out, e := s.Service.SealArtifactUpload(ctx, p, project, token, parts[2], req)
+				out, e := s.Service.SealArtifactUpload(ctx, actor, project, parts[2], req)
 				respond(w, 200, out, e)
 			}
 			return true
@@ -62,7 +62,7 @@ func (s *Server) artifactHTTP(w http.ResponseWriter, r *http.Request, p Principa
 			if e := releaseDecode(m, &req); e != nil {
 				writeError(w, e)
 			} else {
-				out, e := s.Service.ResolveArtifactInput(ctx, p, project, token, req)
+				out, e := s.Service.ResolveArtifactInput(ctx, actor, project, req)
 				respond(w, 200, out, e)
 			}
 			return true
@@ -74,7 +74,7 @@ func (s *Server) artifactHTTP(w http.ResponseWriter, r *http.Request, p Principa
 				writeError(w, invalid("下载需携带当前测试执行身份"))
 				return true
 			}
-			b, e := s.Service.RunnerArtifactBlob(ctx, p, project, token, parts[2], parts[4], a)
+			b, e := s.Service.RunnerArtifactBlob(ctx, actor, project, parts[2], parts[4], a)
 			if e != nil {
 				writeError(w, e)
 			} else {
@@ -87,17 +87,17 @@ func (s *Server) artifactHTTP(w http.ResponseWriter, r *http.Request, p Principa
 	}
 	if parts[0] == "release-workers" {
 		if len(parts) == 1 && r.Method == "GET" {
-			out, e := s.Service.ReleaseWorkers(ctx, p, project)
+			out, e := s.Service.ReleaseWorkers(ctx, actor, project)
 			respondList(w, out, e)
 			return true
 		}
 		if len(parts) == 1 && r.Method == "POST" {
-			out, e := s.Service.RegisterReleaseWorker(ctx, p, project, token, m)
+			out, e := s.Service.RegisterReleaseWorker(ctx, actor, project, m)
 			respond(w, 201, out, e)
 			return true
 		}
 		if len(parts) == 2 && r.Method == "PATCH" {
-			out, e := s.Service.RevokeReleaseWorker(ctx, p, project, parts[1], token, m)
+			out, e := s.Service.RevokeReleaseWorker(ctx, actor, project, parts[1], m)
 			respond(w, 200, out, e)
 			return true
 		}
@@ -108,23 +108,17 @@ func (s *Server) artifactHTTP(w http.ResponseWriter, r *http.Request, p Principa
 	cursor := r.URL.Query().Get("cursor")
 	if parts[0] == "artifacts" {
 		if len(parts) == 1 && r.Method == "GET" {
-			out, total, next, e := s.Service.ReleaseArtifacts(ctx, p, project, limit, cursor)
+			out, total, next, e := s.Service.ReleaseArtifacts(ctx, actor, project, limit, cursor)
 			respond(w, 200, map[string]any{"items": out, "total": total, "next_cursor": next}, e)
 			return true
 		}
 		if len(parts) == 2 && r.Method == "GET" {
-			out, e := s.Service.ReleaseArtifact(ctx, p, project, parts[1])
+			out, e := s.Service.ReleaseArtifact(ctx, actor, project, parts[1])
 			respond(w, 200, out, e)
 			return true
 		}
 		if len(parts) == 4 && parts[2] == "blobs" && r.Method == "GET" {
-			tx, e := s.Service.DB.BeginTx(ctx, nil)
-			if e != nil {
-				writeError(w, e)
-				return true
-			}
-			defer tx.Rollback()
-			b, e := s.Service.releaseArtifactBlobTx(ctx, tx, p, project, parts[1], parts[3])
+			b, e := s.Service.ReadArtifactBlob(ctx, actor, project, parts[1], parts[3])
 			if e != nil {
 				writeError(w, e)
 			} else {
@@ -137,17 +131,17 @@ func (s *Server) artifactHTTP(w http.ResponseWriter, r *http.Request, p Principa
 	}
 	if parts[0] == "release-candidates" {
 		if len(parts) == 1 && r.Method == "GET" {
-			out, total, next, e := s.Service.ReleaseCandidates(ctx, p, project, limit, cursor)
+			out, total, next, e := s.Service.ReleaseCandidates(ctx, actor, project, limit, cursor)
 			respond(w, 200, map[string]any{"items": out, "total": total, "next_cursor": next}, e)
 			return true
 		}
 		if len(parts) == 1 && r.Method == "POST" {
-			out, e := s.Service.CreateReleaseCandidate(ctx, p, project, m)
+			out, e := s.Service.CreateReleaseCandidate(ctx, actor, project, m)
 			respond(w, 201, out, e)
 			return true
 		}
 		if len(parts) == 2 && r.Method == "GET" {
-			out, e := s.Service.ReleaseCandidate(ctx, p, project, parts[1])
+			out, e := s.Service.ReleaseCandidate(ctx, actor, project, parts[1])
 			respond(w, 200, out, e)
 			return true
 		}

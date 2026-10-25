@@ -1,3 +1,4 @@
+import {useApi} from './api-context';
 import {literalText} from './i18n/literal';
 import { tr as t, useLocale, formatNumber, renderDiagnostic } from "./i18n";
 import { useEffect, useMemo, useState } from "react";
@@ -46,7 +47,7 @@ export function TaskDispatchDialog({
   onPlan,
   onClose,
   onRun,
-}: Props) { useLocale();
+}: Props) { const api=useApi(); useLocale();
   const [currentTask, setCurrentTask] = useState(task),
     [flowKey, setFlowKey] = useState(
       initialWorkflow ? initialWorkflow.id + "@" + initialWorkflow.version : "",
@@ -63,16 +64,13 @@ export function TaskDispatchDialog({
     [confirmed, setConfirmed] = useState(false);
   const recovery = useMemo(
       () =>
-        new ToolWriteRecovery(
-          session.organization.id +
+        new ToolWriteRecovery(session.organization.id +
             ":" +
             session.user.id +
             ":" +
             project +
-            ":dispatch",
-          toolSessionStorage(),
-        ),
-      [session.organization.id, session.user.id, project],
+            ":dispatch", toolSessionStorage(), api),
+      [session.organization.id, session.user.id, project, api],
     ),
     action = useToolAction(recovery, onClose);
   const workflows = useToolRead<{ items: Workflow[] }>(

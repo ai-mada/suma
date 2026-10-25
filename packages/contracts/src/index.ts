@@ -1079,6 +1079,19 @@ export interface ProjectAccessWriteRequest {
   expected_version: number;
   idempotency_key: string;
 }
+export interface ProjectCredentialIssueRequest {
+  project_id: string;
+  scope?: string;
+  label?: string;
+  idempotency_key: string;
+}
+export interface ProjectCredentialIssueResult {
+  token: string;
+  expires_at: string;
+  label: string;
+  scope: string;
+  project_id: string;
+}
 export interface ProjectExecutionRoute {
   tenant_id: string;
   project_id: string;

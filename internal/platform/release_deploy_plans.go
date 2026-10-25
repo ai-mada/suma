@@ -108,7 +108,9 @@ func (s *Service) releasePreviewTx(ctx context.Context, tx *sql.Tx, p Principal,
 	view = ReleasePlanPreview{PreviewSHA256: releasePlanHash(content), Environment: env, CandidateID: candidate.ID, Action: in.Action, Health: health, Eligibility: true, Blockers: []ReleaseBlocker{}, AllowedActions: []string{"create"}}
 	return view, content, nil
 }
-func (s *Service) PreviewReleasePlan(ctx context.Context, p Principal, project, token string, m map[string]any) (ReleasePlanPreview, error) {
+func (s *Service) PreviewReleasePlan(ctx context.Context, actor Actor, project string, m map[string]any) (ReleasePlanPreview, error) {
+	p := actor.Projection()
+
 	var in ReleasePlanInput
 	if err := releaseDecode(m, &in); err != nil {
 		return ReleasePlanPreview{}, err
@@ -116,21 +118,26 @@ func (s *Service) PreviewReleasePlan(ctx context.Context, p Principal, project, 
 	if err := releaseGeneration(m, "expected_environment_generation"); err != nil {
 		return ReleasePlanPreview{}, err
 	}
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return ReleasePlanPreview{}, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.releaseBrowserTx(ctx, tx, p, project, token, false); err != nil {
+	auth, err := s.releaseBrowserTx(ctx, tx, actor, project, false)
+	if err != nil {
 		return ReleasePlanPreview{}, err
 	}
+	p = auth.currentPrincipal
 	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return ReleasePlanPreview{}, err
 	}
 	view, _, err := s.releasePreviewTx(ctx, tx, p, project, in)
 	return view, err
 }
-func (s *Service) CreateReleasePlan(ctx context.Context, p Principal, project, token string, m map[string]any) (ReleasePlan, error) {
+func (s *Service) CreateReleasePlan(ctx context.Context, actor Actor, project string, m map[string]any) (ReleasePlan, error) {
+	p := actor.Projection()
+
 	var in ReleasePlanInput
 	if err := releaseDecode(m, &in); err != nil {
 		return ReleasePlan{}, err
@@ -141,18 +148,21 @@ func (s *Service) CreateReleasePlan(ctx context.Context, p Principal, project, t
 	if !rc.ValidDigest(in.PreviewSHA256) {
 		return ReleasePlan{}, invalid("必须确认最新计划预览摘要")
 	}
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return ReleasePlan{}, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.releaseBrowserTx(ctx, tx, p, project, token, false); err != nil {
+	auth, err := s.releaseBrowserTx(ctx, tx, actor, project, false)
+	if err != nil {
 		return ReleasePlan{}, err
 	}
+	p = auth.currentPrincipal
 	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return ReleasePlan{}, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, in.IdempotencyKey, map[string]any{"release_plan_create": m})
+	hash, replay, err := s.commandReceipt(ctx, auth, in.IdempotencyKey, map[string]any{"release_plan_create": m})
 	if err != nil {
 		return ReleasePlan{}, err
 	}
@@ -177,7 +187,7 @@ func (s *Service) CreateReleasePlan(ctx context.Context, p Principal, project, t
 	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_release_plans(id,tenant_id,project_id,version,data)VALUES(?,?,?,?,?)`), out.ID, p.TenantID, project, 1, stringify(out)); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, in.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, in.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
@@ -250,7 +260,9 @@ func (s *Service) releaseActorAdminReadTx(ctx context.Context, tx *sql.Tx, tenan
 	}
 	return nil
 }
-func (s *Service) ApproveReleasePlan(ctx context.Context, p Principal, project, id, token string, m map[string]any) (ReleasePlan, error) {
+func (s *Service) ApproveReleasePlan(ctx context.Context, actor Actor, project, id string, m map[string]any) (ReleasePlan, error) {
+	p := actor.Projection()
+
 	var req struct {
 		ProjectID       string `json:"project_id"`
 		ExpectedVersion int    `json:"expected_version"`
@@ -267,18 +279,21 @@ func (s *Service) ApproveReleasePlan(ctx context.Context, p Principal, project, 
 	if req.Reason == "" || len(req.Reason) > 2000 || req.Decision != "approved" && req.Decision != "rejected" && req.Decision != "revoked" {
 		return ReleasePlan{}, invalid("审批结论或理由无效")
 	}
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return ReleasePlan{}, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.releaseBrowserTx(ctx, tx, p, project, token, true); err != nil {
+	auth, err := s.releaseBrowserTx(ctx, tx, actor, project, true)
+	if err != nil {
 		return ReleasePlan{}, err
 	}
+	p = auth.currentPrincipal
 	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return ReleasePlan{}, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, req.IdempotencyKey, map[string]any{"release_approve": id, "body": m})
+	hash, replay, err := s.commandReceipt(ctx, auth, req.IdempotencyKey, map[string]any{"release_approve": id, "body": m})
 	if err != nil {
 		return ReleasePlan{}, err
 	}
@@ -328,12 +343,14 @@ func (s *Service) ApproveReleasePlan(ctx context.Context, p Principal, project, 
 			return out, err
 		}
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, req.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
 }
-func (s *Service) ExecuteReleasePlan(ctx context.Context, p Principal, project, id, token string, m map[string]any, engine *dag.Engine) (ReleaseDeployment, error) {
+func (s *Service) ExecuteReleasePlan(ctx context.Context, actor Actor, project, id string, m map[string]any, engine *dag.Engine) (ReleaseDeployment, error) {
+	p := actor.Projection()
+
 	var req struct {
 		ProjectID       string `json:"project_id"`
 		ExpectedVersion int    `json:"expected_version"`
@@ -366,16 +383,19 @@ func (s *Service) ExecuteReleasePlan(ctx context.Context, p Principal, project, 
 	var out ReleaseDeployment
 	var receiptHash string
 	var replay bool
+	var auth *authorizedCommand
 	workflow := dag.Workflow{Name: "受控发布 " + id, Nodes: []dag.Node{{ID: plan.Content.ReservedExecution.NodeID, Name: "发布与健康检查", Type: "external_workflow", Idempotent: false, TimeoutSeconds: 300, MaxRetries: 0, Config: map[string]any{"plugin": plan.Content.ProviderID, "workflow": rc.ReleaseProtocol, "input": map[string]any{}}}}}
 	_, err = engine.CreateManagedRunBound(ctx, p.TenantID, project, plan.Content.ReservedExecution.RunID, "release-"+id, workflow, func(tx *sql.Tx) error {
-		if e := s.releaseBrowserTx(ctx, tx, p, project, token, true); e != nil {
+		var e error
+		auth, e = s.releaseBrowserTx(ctx, tx, actor, project, true)
+		if e != nil {
 			return e
 		}
+		p = auth.currentPrincipal
 		if e := s.guardReleaseExecutionRouteTx(ctx, tx, p.TenantID, project, plan.Content.ReservedExecution.RunID); e != nil {
 			return e
 		}
-		var e error
-		receiptHash, replay, e = s.receipt(ctx, tx, p, project, req.IdempotencyKey, map[string]any{"release_execute": id, "body": m})
+		receiptHash, replay, e = s.commandReceipt(ctx, auth, req.IdempotencyKey, map[string]any{"release_execute": id, "body": m})
 		if e != nil {
 			return e
 		}
@@ -438,15 +458,36 @@ func (s *Service) ExecuteReleasePlan(ctx context.Context, p Principal, project, 
 		if e = s.saveReleaseJSON(ctx, tx, "plans", p.TenantID, project, id, oldPlan, current); e != nil {
 			return e
 		}
-		return s.saveReceipt(ctx, tx, p, project, req.IdempotencyKey, receiptHash, out)
+		return s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, receiptHash, out)
 	})
 	return out, err
 }
-func (s *Service) ReleasePlans(ctx context.Context, p Principal, project string) ([]ReleasePlan, error) {
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return nil, err
+func (s *Service) ReleasePlans(ctx context.Context, actor Actor, project string) ([]ReleasePlan, error) {
+	var result0 []ReleasePlan
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readReleasePlansTx(bounded, auth, project)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readReleasePlansTx(ctx context.Context, auth *authorizedCommand, project string) ([]ReleasePlan, error) {
+	if auth == nil {
+		return nil, unauthenticated()
 	}
-	rows, err := s.DB.QueryContext(ctx, s.q(`SELECT id FROM suma_release_plans WHERE tenant_id=? AND project_id=? ORDER BY id`), p.TenantID, project)
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return nil, e
+	}
+	if auth.target.projectID != project {
+		return nil, forbidden()
+	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
+	rows, err := tx.QueryContext(ctx, s.q(`SELECT id FROM suma_release_plans WHERE tenant_id=? AND project_id=? ORDER BY id`), p.TenantID, project)
 	if err != nil {
 		return nil, err
 	}
@@ -464,26 +505,41 @@ func (s *Service) ReleasePlans(ctx context.Context, p Principal, project string)
 	}
 	out := []ReleasePlan{}
 	for _, id := range ids {
-		plan, e := s.ReleasePlan(ctx, p, project, id)
+		plan, e := s.readReleasePlanTx(ctx, auth, project, id)
 		if e != nil {
 			return nil, e
 		}
 		out = append(out, plan)
 	}
 	return out, nil
+
 }
-func (s *Service) ReleasePlan(ctx context.Context, p Principal, project, id string) (ReleasePlan, error) {
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return ReleasePlan{}, err
+
+func (s *Service) ReleasePlan(ctx context.Context, actor Actor, project, id string) (ReleasePlan, error) {
+	var result0 ReleasePlan
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readReleasePlanTx(bounded, auth, project, id)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readReleasePlanTx(ctx context.Context, auth *authorizedCommand, project, id string) (ReleasePlan, error) {
+	if auth == nil {
+		return ReleasePlan{}, unauthenticated()
 	}
-	tx, err := s.DB.BeginTx(ctx, s.evidenceSnapshotOptions())
-	if err != nil {
-		return ReleasePlan{}, err
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return ReleasePlan{}, e
 	}
-	defer tx.Rollback()
-	if err = s.authorizeProjectSnapshotTx(ctx, tx, p, project); err != nil {
-		return ReleasePlan{}, err
+	if auth.target.projectID != project {
+		return ReleasePlan{}, forbidden()
 	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
 	plan, err := s.releasePlanTx(ctx, tx, p.TenantID, project, id)
 	if err != nil {
 		return plan, err
@@ -522,7 +578,7 @@ func (s *Service) ReleasePlan(ctx context.Context, p Principal, project, id stri
 			if _, e = s.validateReleaseCandidateTx(ctx, tx, p, project, plan.Content.CandidateID); e != nil {
 				plan.Blockers = append(plan.Blockers, ReleaseBlocker{"release_basis_changed", e.Error()})
 			}
-			if plan.Approval != nil && plan.Approval.Decision == "approved" && s.releaseActorSnapshotAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil {
+			if plan.Approval != nil && plan.Approval.Decision == "approved" && auth.actor.IsBrowser() && s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil {
 				plan.AllowedActions = append(plan.AllowedActions, "revoke")
 			}
 			return plan, nil
@@ -537,7 +593,7 @@ func (s *Service) ReleasePlan(ctx context.Context, p Principal, project, id stri
 		plan.Blockers = append(plan.Blockers, ReleaseBlocker{code, basis.Error()})
 	}
 	plan.Eligibility = basis == nil
-	admin := s.releaseActorSnapshotAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil
+	admin := auth.actor.IsBrowser() && s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil
 	if admin && plan.ExecutionOperationID == "" && basis == nil {
 		if plan.State == "approved" {
 			plan.AllowedActions = append(plan.AllowedActions, "execute", "revoke")
@@ -549,4 +605,5 @@ func (s *Service) ReleasePlan(ctx context.Context, p Principal, project, id stri
 		plan.AllowedActions = append(plan.AllowedActions, "revoke")
 	}
 	return plan, nil
+
 }

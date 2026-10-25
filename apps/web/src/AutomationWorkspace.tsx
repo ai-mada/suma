@@ -1,3 +1,4 @@
+import {useApi} from './api-context';
 import {tr,useLocale,UiError,renderDiagnostic,formatNumber,formatDateTime,getLocale} from './i18n';
 import {useCallback,useEffect,useMemo,useRef,useState,type FormEvent} from 'react';
 import {Archive,ArrowUpRight,CalendarClock,ChevronRight,Clock3,Pause,Play,Plus,RefreshCw,Settings2,X} from 'lucide-react';
@@ -19,7 +20,7 @@ function useAutomationPage<T extends {id:string}>(project:string,kind:string,ref
  const read=useCallback(async(more=false)=>{pager.current.setScope(project,kind);const request=more?pager.current.more():pager.current.first();setState(pager.current.snapshot());await request;setState(pager.current.snapshot());},[project,kind]);
  useEffect(()=>{void read();},[read,refresh]);return {...state,read};
 }
-function useAutomationDetail(project:string,id:string,refresh:number){
+function useAutomationDetail(project:string,id:string,refresh:number){ const api=useApi();
  const path=id?automationDetailPath(project,id):'',epoch=useRef(0),[state,setState]=useState<{path:string;data?:AutomationRule;loading:boolean;error:string|Error}>({path,loading:!!id,error:''});
  const read=useCallback(async()=>{const request=++epoch.current;if(!path){setState({path,loading:false,error:''});return undefined;}setState(before=>({path,data:before.path===path?before.data:undefined,loading:true,error:''}));try{const data=await api<AutomationRule>(path);if(request!==epoch.current)return undefined;setState({path,data,loading:false,error:''});return data;}catch(error){if(request===epoch.current)setState(before=>({...before,loading:false,error:automationError(error)}));return undefined;}},[path]);
  useEffect(()=>{void read();return()=>{epoch.current++;};},[read,refresh]);return {...(state.path===path?state:{path,data:undefined,loading:!!id,error:''}),read};
@@ -32,9 +33,9 @@ function useAutomationWrite(recovery:AutomationRecovery){
 }
 type WriteAction=ReturnType<typeof useAutomationWrite>;
 
-export function AutomationWorkspace({project,session,selected,search,onSearch,refresh,onSelect,panel,onIngressSelect}:Props){useLocale();
+export function AutomationWorkspace({project,session,selected,search,onSearch,refresh,onSelect,panel,onIngressSelect}:Props){ const api=useApi();useLocale();
  const[revision,setRevision]=useState(0),[dialog,setDialog]=useState<Dialog>(),[notice,setNotice]=useState<string|Error>(''),[editFresh,setEditFresh]=useState<AutomationRule>();
- const recovery=useMemo(()=>new AutomationRecovery(session.organization.id+':'+session.user.id+':'+project,sessionStore()),[session.organization.id,session.user.id,project]),action=useAutomationWrite(recovery),tick=refresh+revision;
+ const recovery=useMemo(()=>new AutomationRecovery(session.organization.id+':'+session.user.id+':'+project, sessionStore(), api),[session.organization.id, session.user.id, project, api]),action=useAutomationWrite(recovery),tick=refresh+revision;
  const page=useAutomationPage<AutomationRule>(project,'automations',tick),detail=useAutomationDetail(project,selected,tick),permissions=automationPermissions(session,project),rule=detail.data;
  const disabled=action.busy||!!action.pending||!!recovery.error,stale=detail.loading||!!detail.error;
  const filtered=(page.items||[]).filter(item=>(item.name+' '+item.workflow_id+' '+item.id).toLowerCase().includes(search.toLowerCase()));
@@ -93,7 +94,7 @@ function AutomationRevisions({project,rule,refresh}:{project:string;rule:string;
 }
 export function AutomationRevisionFacts({revision}:{revision:AutomationRevision}){useLocale();return <article className="automation-history-item automation-facts"><div className="automation-history-title"><strong>r{formatNumber(revision.revision)} · {revision.spec.name}</strong><time dateTime={revision.created_at}><AutomationTime value={revision.created_at} timezone="UTC"/></time></div><AutomationSpecification spec={revision.spec}/></article>;}
 
-function AutomationSchedulePreview({project,spec,disabled=false}:{project:string;spec:AutomationSpec;disabled?:boolean}){useLocale();
+function AutomationSchedulePreview({project,spec,disabled=false}:{project:string;spec:AutomationSpec;disabled?:boolean}){ const api=useApi();useLocale();
  const[preview,setPreview]=useState<AutomationPreview>(),[error,setError]=useState<string|Error>(''),[busy,setBusy]=useState(false),epoch=useRef(0);const signature=JSON.stringify(spec);
  useEffect(()=>{epoch.current++;setPreview(undefined);setError('');setBusy(false);},[signature,project]);
  async function load(){const generation=++epoch.current;setBusy(true);setError('');try{const body=automationSpec(spec),result=await api<AutomationPreview>('/automations/preview',{project_id:project,spec:body});if(generation===epoch.current)setPreview(result);}catch(error){if(generation===epoch.current)setError(automationError(error));}finally{if(generation===epoch.current)setBusy(false);}}
@@ -101,7 +102,7 @@ function AutomationSchedulePreview({project,spec,disabled=false}:{project:string
 }
 
 function FormNotice({action,onReload,onRecovered}:{action:WriteAction;onReload:()=>Promise<void>;onRecovered:(result:AutomationRule|AutomationResult)=>void}){useLocale();return <>{action.error&&<><ErrorNotice error={action.error}/>{action.pending&&<p className="automation-hint">{tr("automation.the_original_operation_still_needs_reconciliation_this_refusal")}</p>}</>} {action.pending&&<div className="automation-message warning"><span>{action.deferred?tr("automation.the_original_operation_is_retained_close_this_dialog"):tr("automation.the_request_result_is_unconfirmed_the_complete_draft")}</span><button type="button" disabled={action.busy} onClick={async()=>{const result=await action.restore();if(result)onRecovered(result);}}>{action.busy?tr("automation.recovering"):tr("automation.recover_original_receipt")}</button>{!action.deferred&&<button type="button" disabled={action.busy} onClick={action.defer}>{tr("automation.keep_and_recover_later")}</button>}</div>}{action.conflict&&<div className="automation-message warning"><div><strong>{tr("automation.the_server_rule_changed_your_draft_is_retained")}</strong><p>{tr("automation.load_and_review_the_latest_rule_then_save")}</p></div><button type="button" disabled={action.busy} onClick={()=>void onReload()}>{tr("automation.load_latest_rule_and_keep_draft")}</button></div>}</>;}
-function AutomationForm({project,rule,fresh,action,onReload,onSaved}:{project:string;rule?:AutomationRule;fresh?:AutomationRule;action:WriteAction;onReload:()=>Promise<void>;onSaved:(result:AutomationRule|AutomationResult)=>void}){useLocale();
+function AutomationForm({project,rule,fresh,action,onReload,onSaved}:{project:string;rule?:AutomationRule;fresh?:AutomationRule;action:WriteAction;onReload:()=>Promise<void>;onSaved:(result:AutomationRule|AutomationResult)=>void}){ const api=useApi();useLocale();
  const[spec,setSpec]=useState<AutomationSpec>(()=>rule?automationSpec(rule):newAutomationSpec()),[version,setVersion]=useState(rule?.version||0),[workflows,setWorkflows]=useState<Workflow[]>(),[workflowError,setWorkflowError]=useState<string|Error>(''),[lookupBusy,setLookupBusy]=useState(false),[formError,setFormError]=useState<string|Error>(''),[dirty,setDirty]=useState(false);useLeaveGuard(dirty&&!action.pending&&!action.busy,action.setError);
  const locked=action.busy||!!action.pending,archived=fresh?.state==='archived';
  const loadWorkflows=useCallback(async()=>{setLookupBusy(true);try{const result=await api<{items:Workflow[]}>('/workflows'+query(project));if(!Array.isArray(result.items))throw new UiError("automation.the_workflow_list_has_not_returned_a_confirmed");setWorkflows(automationWorkflowOptions(result.items));setWorkflowError('');}catch(error){setWorkflowError(automationError(error));}finally{setLookupBusy(false);}},[project]);

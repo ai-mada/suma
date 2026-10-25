@@ -1,3 +1,4 @@
+import {useApi} from './api-context';
 import {literalText} from './i18n/literal';
 import {tr,useLocale,UiError,renderDiagnostic,formatNumber,formatDateTime,getLocale} from './i18n';
 import {useCallback,useEffect,useMemo,useRef,useState,type FormEvent} from 'react';
@@ -16,7 +17,7 @@ function useIngressPage<T>(path:string,project:string,refresh:number,identity:'i
  const read=useCallback(async(more=false)=>{const request=more?pager.more():pager.first();setState(pager.snapshot());await request;setState(pager.snapshot());},[pager]);
  useEffect(()=>{setState(pager.snapshot());if(active)void read();return()=>pager.invalidate();},[pager,read,refresh,active]);return {...state,read};
 }
-function useIngressDetail<T>(path:string,refresh:number){
+function useIngressDetail<T>(path:string,refresh:number){ const api=useApi();
  const epoch=useRef(0),[state,setState]=useState<{path:string;data?:T;loading:boolean;error:string|Error}>({path,loading:!!path,error:''});
  const read=useCallback(async()=>{const generation=++epoch.current;if(!path){setState({path,loading:false,error:''});return;}setState(previous=>({path,data:previous.path===path?previous.data:undefined,loading:true,error:''}));try{const data=await api<T>(path);if(generation!==epoch.current)return;setState({path,data,loading:false,error:''});return data;}catch(error){if(generation===epoch.current)setState(previous=>({...previous,loading:false,error:automationError(error)}));}},[path]);
  useEffect(()=>{void read();return()=>{epoch.current++;};},[read,refresh]);return {...(state.path===path?state:{path,data:undefined,loading:!!path,error:''}),read};
@@ -32,10 +33,10 @@ type Dialog={kind:'create'}|{kind:'edit'|'enable'|'revoke'|'rotate';entry:Automa
 const isInitialKey=(entry:AutomationIngress)=>!entry.key_configured&&entry.key_generation===0;
 type Props={project:string;session:Session;rule:AutomationRule;refresh:number;disabled?:boolean;panel?:string;onSelect?:(id:string)=>void;onRefreshRule?:()=>Promise<AutomationRule|undefined>};
 
-export function AutomationIngressWorkspace({project,session,rule,refresh,disabled=false,panel,onSelect,onRefreshRule}:Props){useLocale();
+export function AutomationIngressWorkspace({project,session,rule,refresh,disabled=false,panel,onSelect,onRefreshRule}:Props){ const api=useApi();useLocale();
  const[local,setLocal]=useState(''),[revision,setRevision]=useState(0),[dialog,setDialog]=useState<Dialog>(),[notice,setNotice]=useState<string|Error>(''),[fresh,setFresh]=useState<AutomationIngress>(),[rotated,setRotated]=useState<AutomationIngress>(),[reconciliation,setReconciliation]=useState<AutomationIngress>(),[delivery,setDelivery]=useState('');
  const selected=panel===undefined?local:selectedIngress(panel),tick=refresh+revision;
- const recovery=useMemo(()=>new IngressRecovery(session.organization.id+':'+session.user.id+':'+project+':'+rule.id,project,rule.id,tabStorage()),[session.organization.id,session.user.id,project,rule.id]),action=useIngressWrite(recovery);
+ const recovery=useMemo(()=>new IngressRecovery(session.organization.id+':'+session.user.id+':'+project+':'+rule.id, project, rule.id, tabStorage(), api),[session.organization.id, session.user.id, project, rule.id, api]),action=useIngressWrite(recovery);
  const permissions=automationPermissions(session,project),manage=permissions.write&&permissions.approve;
  const page=useIngressPage<AutomationIngress>('/automations/'+encodeURIComponent(rule.id)+'/ingresses',project,tick),detail=useIngressDetail<AutomationIngress>(selected?ingressPath(selected)+query(project):'',tick),entry=detail.data;
  const scoped=entry?.rule_id===rule.id&&entry.project_id===project,stale=disabled||detail.loading||!!detail.error,locked=action.busy||!!action.pending||!!recovery.error||!manage||disabled;

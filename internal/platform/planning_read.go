@@ -8,7 +8,11 @@ import (
 	"time"
 )
 
-func (s *Service) plansFor(ctx context.Context, p Principal, project string, tasks []Record) ([]PlannedTask, error) {
+func (s *Service) plansForTx(ctx context.Context, auth *authorizedCommand, project string, tasks []Record) ([]PlannedTask, error) {
+	if err := assertProjectRead(auth, project); err != nil {
+		return nil, err
+	}
+	p := auth.currentPrincipal
 	out := make([]PlannedTask, len(tasks))
 	if len(tasks) == 0 {
 		return out, nil
@@ -22,7 +26,7 @@ func (s *Service) plansFor(ctx context.Context, p Principal, project string, tas
 		marks = append(marks, "?")
 		args = append(args, task.ID)
 	}
-	rows, e := s.DB.QueryContext(ctx, s.q(`SELECT task_id,version,iteration_id,milestone_id,start_date,due_date,estimated_hours FROM suma_task_plans WHERE tenant_id=? AND project_id=? AND task_id IN (`+strings.Join(marks, ",")+`)`), args...)
+	rows, e := auth.tx.QueryContext(ctx, s.q(`SELECT task_id,version,iteration_id,milestone_id,start_date,due_date,estimated_hours FROM suma_task_plans WHERE tenant_id=? AND project_id=? AND task_id IN (`+strings.Join(marks, ",")+`)`), args...)
 	if e != nil {
 		return nil, e
 	}
@@ -44,49 +48,50 @@ func (s *Service) plansFor(ctx context.Context, p Principal, project string, tas
 	return out, rows.Err()
 }
 
-func (s *Service) Planning(ctx context.Context, p Principal, project string, limit int, cursor, week, taskID string) (map[string]any, error) {
-	if e := s.Authorize(ctx, p, project, false, false); e != nil {
-		return nil, e
+func (s *Service) planningTx(ctx context.Context, auth *authorizedCommand, project string, limit int, cursor, week, taskID string) (map[string]any, error) {
+	if err := assertProjectRead(auth, project); err != nil {
+		return nil, err
 	}
+	p := auth.currentPrincipal
 	if limit <= 0 {
 		limit = 200
 	}
-	tasks, total, next, e := s.ListPage(ctx, p, project, "tasks", limit, cursor)
+	tasks, total, next, e := s.listPageTx(ctx, auth, project, "tasks", limit, cursor)
 	if e != nil {
 		return nil, e
 	}
 	if taskID != "" {
-		task, err := s.Get(ctx, p, project, "tasks", taskID)
+		task, err := s.getRecordTx(ctx, auth, project, "tasks", taskID)
 		if err != nil {
 			return nil, err
 		}
 		tasks = []Record{task}
 		next = ""
 	}
-	planned, e := s.plansFor(ctx, p, project, tasks)
+	planned, e := s.plansForTx(ctx, auth, project, tasks)
 	if e != nil {
 		return nil, e
 	}
-	iterations, e := s.PlanningPeriods(ctx, p, project, "iterations")
+	iterations, e := s.planningPeriodsTx(ctx, auth, project, "iterations")
 	if e != nil {
 		return nil, e
 	}
-	milestones, e := s.PlanningPeriods(ctx, p, project, "milestones")
+	milestones, e := s.planningPeriodsTx(ctx, auth, project, "milestones")
 	if e != nil {
 		return nil, e
 	}
-	baselines, e := s.Baselines(ctx, p, project)
+	baselines, e := s.baselinesTx(ctx, auth, project)
 	if e != nil {
 		return nil, e
 	}
-	capacity, e := s.PlanningCapacity(ctx, p, project, week)
+	capacity, e := s.planningCapacityTx(ctx, auth, project, week)
 	if e != nil {
 		return nil, e
 	}
 	var taskCount, accepted, blocked, scheduled, estimated, overdue int
 	var hours float64
 	today := time.Now().UTC().Format("2006-01-02")
-	e = s.DB.QueryRowContext(ctx, s.q(`SELECT COUNT(*),COALESCE(SUM(CASE WHEN t.status='accepted' THEN 1 ELSE 0 END),0),COALESCE(SUM(CASE WHEN t.status='blocked' THEN 1 ELSE 0 END),0),COALESCE(SUM(CASE WHEN p.start_date<>'' OR p.due_date<>'' THEN 1 ELSE 0 END),0),COALESCE(SUM(CASE WHEN p.estimated_hours IS NOT NULL THEN 1 ELSE 0 END),0),COALESCE(SUM(p.estimated_hours),0),COALESCE(SUM(CASE WHEN p.due_date<>'' AND p.due_date<? AND t.status<>'accepted' THEN 1 ELSE 0 END),0) FROM suma_tasks t LEFT JOIN suma_task_plans p ON p.task_id=t.id AND p.tenant_id=t.tenant_id AND p.project_id=t.project_id WHERE t.tenant_id=? AND t.project_id=?`), today, p.TenantID, project).Scan(&taskCount, &accepted, &blocked, &scheduled, &estimated, &hours, &overdue)
+	e = auth.tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*),COALESCE(SUM(CASE WHEN t.status='accepted' THEN 1 ELSE 0 END),0),COALESCE(SUM(CASE WHEN t.status='blocked' THEN 1 ELSE 0 END),0),COALESCE(SUM(CASE WHEN p.start_date<>'' OR p.due_date<>'' THEN 1 ELSE 0 END),0),COALESCE(SUM(CASE WHEN p.estimated_hours IS NOT NULL THEN 1 ELSE 0 END),0),COALESCE(SUM(p.estimated_hours),0),COALESCE(SUM(CASE WHEN p.due_date<>'' AND p.due_date<? AND t.status<>'accepted' THEN 1 ELSE 0 END),0) FROM suma_tasks t LEFT JOIN suma_task_plans p ON p.task_id=t.id AND p.tenant_id=t.tenant_id AND p.project_id=t.project_id WHERE t.tenant_id=? AND t.project_id=?`), today, p.TenantID, project).Scan(&taskCount, &accepted, &blocked, &scheduled, &estimated, &hours, &overdue)
 	if e != nil {
 		return nil, e
 	}
@@ -143,16 +148,17 @@ func plannedWeekShare(start, due string, week time.Time) (float64, bool) {
 	}
 	return float64(int(last.Sub(first).Hours()/24)+1) / float64(days), true
 }
-func (s *Service) PlanningCapacity(ctx context.Context, p Principal, project, weekValue string) ([]CapacityEntry, error) {
-	if e := s.Authorize(ctx, p, project, false, false); e != nil {
-		return nil, e
+func (s *Service) planningCapacityTx(ctx context.Context, auth *authorizedCommand, project, weekValue string) ([]CapacityEntry, error) {
+	if err := assertProjectRead(auth, project); err != nil {
+		return nil, err
 	}
+	p := auth.currentPrincipal
 	week, e := weekMonday(weekValue)
 	if e != nil {
 		return nil, e
 	}
 	value := week.Format("2006-01-02")
-	rows, e := s.DB.QueryContext(ctx, s.q(`SELECT m.id,m.title,m.kind,m.data,COALESCE(c.version,0),c.available_hours FROM suma_members m LEFT JOIN suma_capacity c ON c.member_id=m.id AND c.tenant_id=m.tenant_id AND c.project_id=m.project_id AND c.week_start=? WHERE m.tenant_id=? AND m.project_id=? AND m.status<>'archived' ORDER BY m.title,m.id`), value, p.TenantID, project)
+	rows, e := auth.tx.QueryContext(ctx, s.q(`SELECT m.id,m.title,m.kind,m.data,COALESCE(c.version,0),c.available_hours FROM suma_members m LEFT JOIN suma_capacity c ON c.member_id=m.id AND c.tenant_id=m.tenant_id AND c.project_id=m.project_id AND c.week_start=? WHERE m.tenant_id=? AND m.project_id=? AND m.status<>'archived' ORDER BY m.title,m.id`), value, p.TenantID, project)
 	if e != nil {
 		return nil, e
 	}
@@ -200,7 +206,7 @@ func (s *Service) PlanningCapacity(ctx context.Context, p Principal, project, we
 	// still have their real organization membership and current project access.
 	allowedHumans := map[string]bool{}
 	if hasHumans {
-		rows, e = s.DB.QueryContext(ctx, s.q(`SELECT om.user_id FROM suma_org_members om JOIN suma_users u ON u.id=om.user_id JOIN suma_projects p ON p.tenant_id=om.tenant_id AND p.id=? LEFT JOIN suma_project_members pm ON pm.project_id=p.id AND pm.user_id=om.user_id WHERE om.tenant_id=? AND (om.role IN ('owner','admin') OR pm.role IN ('admin','reviewer','developer','viewer'))`), project, p.TenantID)
+		rows, e = auth.tx.QueryContext(ctx, s.q(`SELECT om.user_id FROM suma_org_members om JOIN suma_users u ON u.id=om.user_id JOIN suma_projects p ON p.tenant_id=om.tenant_id AND p.id=? LEFT JOIN suma_project_members pm ON pm.project_id=p.id AND pm.user_id=om.user_id WHERE om.tenant_id=? AND (om.role IN ('owner','admin') OR pm.role IN ('admin','reviewer','developer','viewer'))`), project, p.TenantID)
 		if e != nil {
 			return nil, e
 		}
@@ -225,7 +231,7 @@ func (s *Service) PlanningCapacity(ctx context.Context, p Principal, project, we
 		positions[row.entry.MemberID] = len(items)
 		items = append(items, row.entry)
 	}
-	rows, e = s.DB.QueryContext(ctx, s.q(`SELECT t.owner_id,COALESCE(p.start_date,''),COALESCE(p.due_date,''),p.estimated_hours FROM suma_tasks t LEFT JOIN suma_task_plans p ON p.tenant_id=t.tenant_id AND p.project_id=t.project_id AND p.task_id=t.id WHERE t.tenant_id=? AND t.project_id=? AND t.owner_id<>''`), p.TenantID, project)
+	rows, e = auth.tx.QueryContext(ctx, s.q(`SELECT t.owner_id,COALESCE(p.start_date,''),COALESCE(p.due_date,''),p.estimated_hours FROM suma_tasks t LEFT JOIN suma_task_plans p ON p.tenant_id=t.tenant_id AND p.project_id=t.project_id AND p.task_id=t.id WHERE t.tenant_id=? AND t.project_id=? AND t.owner_id<>''`), p.TenantID, project)
 	if e != nil {
 		return nil, e
 	}
@@ -252,10 +258,7 @@ func (s *Service) PlanningCapacity(ctx context.Context, p Principal, project, we
 	}
 	return items, rows.Err()
 }
-func (s *Service) SaveCapacity(ctx context.Context, p Principal, project string, m map[string]any) (CapacityEntry, error) {
-	if e := s.Authorize(ctx, p, project, true, false); e != nil {
-		return CapacityEntry{}, e
-	}
+func (s *Service) SaveCapacity(ctx context.Context, actor Actor, project string, m map[string]any) (CapacityEntry, error) {
 	if e := exactVersion(m, "expected_version", 0); e != nil {
 		return CapacityEntry{}, e
 	}
@@ -273,16 +276,19 @@ func (s *Service) SaveCapacity(ctx context.Context, p Principal, project string,
 	if e != nil {
 		return CapacityEntry{}, e
 	}
-	tx, e := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, e := s.beginAuthorityTx(ctx)
 	if e != nil {
 		return CapacityEntry{}, e
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if e = s.planningLock(ctx, tx, p, project); e != nil {
+	auth, e := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: str(m, "member_id")}, purposeProjectWrite)
+	if e != nil {
 		return CapacityEntry{}, e
 	}
+	p := auth.currentPrincipal
 	key := str(m, "idempotency_key")
-	hash, replay, e := s.receipt(ctx, tx, p, project, key, map[string]any{"capacity": m})
+	hash, replay, e := s.commandReceipt(ctx, auth, key, map[string]any{"capacity": m})
 	if e != nil {
 		return CapacityEntry{}, e
 	}
@@ -302,7 +308,7 @@ func (s *Service) SaveCapacity(ctx context.Context, p Principal, project string,
 			return item, e
 		}
 		user, _ := data["user_id"].(string)
-		if e = s.BindHumanResourceTx(ctx, tx, p, project, user); e != nil {
+		if e = s.BindHumanResourceTx(ctx, tx, auth, project, user); e != nil {
 			return item, e
 		}
 	}
@@ -323,10 +329,10 @@ func (s *Service) SaveCapacity(ctx context.Context, p Principal, project string,
 	if e != nil {
 		return item, e
 	}
-	if e = s.activity(ctx, tx, p, project, "capacity.updated", item.MemberID, item.Name); e != nil {
+	if e = s.commandActivity(ctx, auth, "capacity.updated", item.MemberID, item.Name); e != nil {
 		return item, e
 	}
-	if e = s.saveReceipt(ctx, tx, p, project, key, hash, item); e != nil {
+	if e = s.saveCommandReceipt(ctx, auth, key, hash, item); e != nil {
 		return item, e
 	}
 	return item, tx.Commit()

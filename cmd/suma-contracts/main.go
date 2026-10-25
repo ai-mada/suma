@@ -103,7 +103,7 @@ func ts(t reflect.Type) string {
 }
 func generate() (map[string]any, string) {
 	models = map[string]reflect.Type{}
-	for _, v := range append(append(append([]any{dag.Workflow{}, dag.Node{}, dag.Edge{}, dag.Run{}, dag.NodeRun{}, dag.Assignment{}, dag.Result{}, dag.Event{}, platform.Record{}, platform.Principal{}}, extraModels()...), releaseModels()...), append(automationModels(), automationIngressModels()...)...) {
+	for _, v := range append(append(append([]any{dag.Workflow{}, dag.Node{}, dag.Edge{}, dag.Run{}, dag.NodeRun{}, dag.Assignment{}, dag.Result{}, dag.Event{}, platform.Record{}, platform.Principal{}, platform.ProjectCredentialIssueRequest{}, platform.ProjectCredentialIssueResult{}}, extraModels()...), releaseModels()...), append(automationModels(), automationIngressModels()...)...) {
 		schema(reflect.TypeOf(v))
 	}
 	for _, v := range toolExecutionModels() {
@@ -229,6 +229,7 @@ func generate() (map[string]any, string) {
 	api := map[string]any{"openapi": "3.1.0", "info": map[string]string{"title": "速码 suma API", "version": "0.1.0", "description": "Domain response fields are reflected from Go types; map-backed envelopes and new request fields are audited DTOs. Legacy requests retain partial generic envelopes. Cross-field validation, authorization, idempotency and invitation secrecy remain server-enforced; see docs/api/README.md."}, "servers": []any{map[string]string{"url": "/api/v1"}}, "paths": paths, "components": map[string]any{"schemas": schemas, "securitySchemes": map[string]any{"cookieAuth": map[string]string{"type": "apiKey", "in": "cookie", "name": "suma_session", "description": "Browser session. Organization governance rejects every scoped API, Runner and Agent project token."}, "bearerAuth": map[string]string{"type": "http", "scheme": "bearer", "description": "Project-scoped API credential; applicable routes enforce the bound project and scope."}, "runnerAuth": map[string]string{"type": "http", "scheme": "bearer", "description": "Runner-scoped credential bound to this project; browser sessions, Agent and API tokens are rejected."}}}}
 	var out strings.Builder
 	automationIngressSecurity(api)
+	currentAuthorityContracts(api)
 	localizationContracts(api)
 	displayDiagnosticContracts(api)
 	api["components"].(map[string]any)["securitySchemes"].(map[string]any)["poolRunnerAuth"] = map[string]string{"type": "http", "scheme": "bearer", "description": "Independent current pool machine credential. Not a browser or project token; exact dispatched scope, grant, credential generation, slot and fence are checked server-side."}

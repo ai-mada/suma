@@ -144,16 +144,7 @@ func strictAutomation(m map[string]any, out any) error {
 	return nil
 }
 func (s *Service) automationClock(ctx context.Context, q governanceQuery) (time.Time, error) {
-	query := `SELECT unixepoch('now')`
-	if s.Dialect == "postgres" {
-		query = `SELECT CAST(EXTRACT(EPOCH FROM clock_timestamp()) AS BIGINT)`
-	}
-	if s.Dialect == "oceanbase" {
-		query = `SELECT UNIX_TIMESTAMP()`
-	}
-	var n int64
-	err := q.QueryRowContext(ctx, query).Scan(&n)
-	return time.Unix(n, 0).UTC(), err
+	return s.authorityNow(ctx, q)
 }
 func automationStamp(t time.Time) string { return t.UTC().Format(time.RFC3339) }
 func validateAutomationSpec(a AutomationSpec) (*cronengine.Schedule, error) {
@@ -227,24 +218,40 @@ func scanAutomation(row automationScanner) (AutomationRule, error) {
 func (s *Service) automationRuleTx(ctx context.Context, tx governanceQuery, p Principal, project, id string) (AutomationRule, error) {
 	return scanAutomation(tx.QueryRowContext(ctx, s.q(`SELECT `+automationColumns+` FROM suma_automations WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id))
 }
-func (s *Service) saveAutomation(ctx context.Context, tx *sql.Tx, p Principal, a AutomationRule) error {
+func (s *Service) saveAutomation(ctx context.Context, auth *authorizedCommand, a AutomationRule) error {
+	if auth == nil {
+		return forbidden()
+	}
+	if err := auth.assertTx(auth.tx, auth.target, auth.purpose); err != nil {
+		return err
+	}
+	if auth.actor.kind != actorBrowser || (auth.purpose != purposeBrowserProjectWrite && auth.purpose != purposeBrowserProjectApprove) {
+		return forbidden()
+	}
+	if auth.target.projectID != a.ProjectID || auth.target.resourceID != a.ID {
+		return forbidden()
+	}
+	tx, p := auth.tx, auth.currentPrincipal
 	_, err := tx.ExecContext(ctx, s.q(`UPDATE suma_automations SET version=?,revision=?,state=?,activated_by=?,next_at=?,updated_at=?,last_error=?,spec=? WHERE tenant_id=? AND project_id=? AND id=?`), a.Version, a.Revision, a.State, a.ActivatedBy, a.NextAt, a.UpdatedAt, a.LastError, stringify(a.AutomationSpec), p.TenantID, a.ProjectID, a.ID)
 	return err
 }
-func (s *Service) CreateAutomation(ctx context.Context, p Principal, project string, req AutomationCreateRequest) (AutomationRule, error) {
+func (s *Service) CreateAutomation(ctx context.Context, actor Actor, project string, req AutomationCreateRequest) (AutomationRule, error) {
 	var out AutomationRule
 	if _, err := validateAutomationSpec(req.Spec); err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: ""}, purposeBrowserProjectWrite)
+	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, req.IdempotencyKey, map[string]any{"automation_create": req})
+	p := auth.currentPrincipal
+	hash, replay, err := s.commandReceipt(ctx, auth, req.IdempotencyKey, map[string]any{"automation_create": req})
 	if err != nil {
 		return out, err
 	}
@@ -268,26 +275,29 @@ func (s *Service) CreateAutomation(ctx context.Context, p Principal, project str
 	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_automation_revisions(rule_id,revision,spec,created_at)VALUES(?,?,?,?)`), out.ID, 1, stringify(req.Spec), at); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, req.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, project, "automation.created", out.ID, out.Name); err != nil {
+	if err = s.commandActivity(ctx, auth, "automation.created", out.ID, out.Name); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
 }
-func (s *Service) PreviewAutomation(ctx context.Context, p Principal, project string, a AutomationSpec) (AutomationPreview, error) {
+func (s *Service) previewAutomationCurrentTx(ctx context.Context, auth *authorizedCommand, project string, a AutomationSpec) (AutomationPreview, error) {
+	if auth == nil {
+		return AutomationPreview{}, forbidden()
+	}
+	expected := commandTarget{tenantID: auth.target.tenantID, projectID: project, resourceID: ""}
+	if e := auth.assertTx(auth.tx, expected, purposeBrowserProjectRead); e != nil {
+		return AutomationPreview{}, e
+	}
+	ctx = auth.ctx
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
 	out := AutomationPreview{Items: []AutomationPreviewTime{}}
 	c, err := validateAutomationSpec(a)
 	if err != nil {
-		return out, err
-	}
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return out, err
-	}
-	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, false, false); err != nil {
 		return out, err
 	}
 	if err = s.automationWorkflow(ctx, tx, p, project, a); err != nil {
@@ -309,13 +319,19 @@ func (s *Service) PreviewAutomation(ctx context.Context, p Principal, project st
 	}
 	return out, nil
 }
-func (s *Service) GetAutomation(ctx context.Context, p Principal, project, id string) (AutomationRule, error) {
-	var a AutomationRule
-	tx, err := s.automationReadTx(ctx, p, project)
-	if err != nil {
-		return a, err
+func (s *Service) getAutomationCurrentTx(ctx context.Context, auth *authorizedCommand, project, id string) (AutomationRule, error) {
+	if auth == nil {
+		return AutomationRule{}, forbidden()
 	}
-	defer tx.Rollback()
+	expected := commandTarget{tenantID: auth.target.tenantID, projectID: project, resourceID: id}
+	if e := auth.assertTx(auth.tx, expected, purposeBrowserProjectRead); e != nil {
+		return AutomationRule{}, e
+	}
+	ctx = auth.ctx
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
+	var a AutomationRule
 	a, err = s.automationRuleTx(ctx, tx, p, project, id)
 	if err != nil {
 		return a, err
@@ -391,18 +407,19 @@ func automationDecodeCursor(p Principal, project, collection, encoded string) (s
 	}
 	return c.Last, nil
 }
-func (s *Service) automationReadTx(ctx context.Context, p Principal, project string) (*sql.Tx, error) {
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
+
+func (s *Service) listAutomationsCurrentTx(ctx context.Context, auth *authorizedCommand, project string, limit int, cursor string) (AutomationList, error) {
+	if auth == nil {
+		return AutomationList{}, forbidden()
 	}
-	if err = s.authorizeProjectTx(ctx, tx, p, project, false, false); err != nil {
-		tx.Rollback()
-		return nil, err
+	expected := commandTarget{tenantID: auth.target.tenantID, projectID: project, resourceID: ""}
+	if e := auth.assertTx(auth.tx, expected, purposeBrowserProjectRead); e != nil {
+		return AutomationList{}, e
 	}
-	return tx, nil
-}
-func (s *Service) ListAutomations(ctx context.Context, p Principal, project string, limit int, cursor string) (AutomationList, error) {
+	ctx = auth.ctx
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
 	out := AutomationList{Items: []AutomationRule{}}
 	if limit < 1 || limit > 200 {
 		return out, invalid("limit 必须为 1..200")
@@ -411,11 +428,6 @@ func (s *Service) ListAutomations(ctx context.Context, p Principal, project stri
 	if err != nil {
 		return out, err
 	}
-	tx, err := s.automationReadTx(ctx, p, project)
-	if err != nil {
-		return out, err
-	}
-	defer tx.Rollback()
 	if err := tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_automations WHERE tenant_id=? AND project_id=?`), p.TenantID, project).Scan(&out.Total); err != nil {
 		return out, err
 	}
@@ -437,7 +449,51 @@ func (s *Service) ListAutomations(ctx context.Context, p Principal, project stri
 	}
 	return out, rows.Err()
 }
-func (s *Service) insertAutomationOccurrence(ctx context.Context, tx *sql.Tx, p Principal, a AutomationRule, source, scheduled, state, reason, key string) (AutomationOccurrence, error) {
+func (s *Service) insertAutomationOccurrence(ctx context.Context, auth *authorizedCommand, a AutomationRule, source, scheduled, state, reason, key string) (AutomationOccurrence, error) {
+	if auth == nil {
+		return AutomationOccurrence{}, forbidden()
+	}
+	if err := auth.assertTx(auth.tx, auth.target, auth.purpose); err != nil {
+		return AutomationOccurrence{}, err
+	}
+	if auth.target.projectID != a.ProjectID {
+		return AutomationOccurrence{}, forbidden()
+	}
+	switch auth.purpose {
+	case purposeBrowserProjectWrite:
+		if source != "manual" || auth.target.resourceID != a.ID {
+			return AutomationOccurrence{}, forbidden()
+		}
+	case purposeAutomationMaterialize:
+		if source != "cron" || auth.actor.delegation.recordID != a.ID || auth.actor.delegation.revision != a.Revision {
+			return AutomationOccurrence{}, forbidden()
+		}
+	case purposeAutomationEvaluate:
+		if source != "cron" || state != "blocked" || auth.target.resourceID != a.ID {
+			return AutomationOccurrence{}, forbidden()
+		}
+	case purposeIngressDelivery:
+		if source != "webhook" || auth.actor.kind != actorSignedIngress {
+			return AutomationOccurrence{}, forbidden()
+		}
+		in, e := s.ingressTx(ctx, auth.tx, auth.currentPrincipal, a.ProjectID, auth.actor.delegation.recordID)
+		if e != nil {
+			return AutomationOccurrence{}, e
+		}
+		if in.RuleID != a.ID || in.RuleRevision != a.Revision {
+			return AutomationOccurrence{}, forbidden()
+		}
+		reason, e := s.ingressAdmission(ctx, auth.tx, in, a)
+		if e != nil {
+			return AutomationOccurrence{}, e
+		}
+		if reason != "" {
+			return AutomationOccurrence{}, forbidden()
+		}
+	default:
+		return AutomationOccurrence{}, forbidden()
+	}
+	tx, p := auth.tx, auth.currentPrincipal
 	clock, err := s.automationClock(ctx, tx)
 	if err != nil {
 		return AutomationOccurrence{}, err
@@ -447,7 +503,7 @@ func (s *Service) insertAutomationOccurrence(ctx context.Context, tx *sql.Tx, p 
 	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_automation_occurrences(id,tenant_id,project_id,rule_id,revision,source,scheduled_at,state,reason,run_id,dedupe_key,created_at,updated_at)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`), o.ID, p.TenantID, a.ProjectID, a.ID, a.Revision, source, scheduled, state, reason, "", digest(key), at, at)
 	return o, err
 }
-func (s *Service) CommandAutomation(ctx context.Context, p Principal, project, id string, req AutomationCommandRequest) (AutomationCommandResult, error) {
+func (s *Service) CommandAutomation(ctx context.Context, actor Actor, project, id string, req AutomationCommandRequest) (AutomationCommandResult, error) {
 	var out AutomationCommandResult
 	if req.ExpectedVersion < 1 || req.ExpectedVersion > math.MaxInt32 {
 		return out, invalid("expected_version 必须为正整数")
@@ -463,15 +519,22 @@ func (s *Service) CommandAutomation(ctx context.Context, p Principal, project, i
 			return out, err
 		}
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, req.Action == "enable"); err != nil {
+	purpose := purposeBrowserProjectWrite
+	if req.Action == "enable" {
+		purpose = purposeBrowserProjectApprove
+	}
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: id}, purpose)
+	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, req.IdempotencyKey, map[string]any{"automation_command": id, "request": req})
+	p := auth.currentPrincipal
+	hash, replay, err := s.commandReceipt(ctx, auth, req.IdempotencyKey, map[string]any{"automation_command": id, "request": req})
 	if err != nil {
 		return out, err
 	}
@@ -539,7 +602,7 @@ func (s *Service) CommandAutomation(ctx context.Context, p Principal, project, i
 		if a.State != "enabled" {
 			return out, conflict("仅已启用规则可人工触发")
 		}
-		o, e := s.insertAutomationOccurrence(ctx, tx, p, a, "manual", at, "queued", "", p.ID+":"+req.IdempotencyKey)
+		o, e := s.insertAutomationOccurrence(ctx, auth, a, "manual", at, "queued", "", p.ID+":"+req.IdempotencyKey)
 		if e != nil {
 			return out, e
 		}
@@ -553,18 +616,29 @@ func (s *Service) CommandAutomation(ctx context.Context, p Principal, project, i
 	a.Version++
 	a.UpdatedAt = at
 	out.Rule = a
-	if err = s.saveAutomation(ctx, tx, p, a); err != nil {
+	if err = s.saveAutomation(ctx, auth, a); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, req.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, project, "automation."+req.Action, id, a.Name); err != nil {
+	if err = s.commandActivity(ctx, auth, "automation."+req.Action, id, a.Name); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
 }
-func (s *Service) AutomationOccurrences(ctx context.Context, p Principal, project, id string, limit int, cursor string) (AutomationOccurrences, error) {
+func (s *Service) automationOccurrencesCurrentTx(ctx context.Context, auth *authorizedCommand, project, id string, limit int, cursor string) (AutomationOccurrences, error) {
+	if auth == nil {
+		return AutomationOccurrences{}, forbidden()
+	}
+	expected := commandTarget{tenantID: auth.target.tenantID, projectID: project, resourceID: id}
+	if e := auth.assertTx(auth.tx, expected, purposeBrowserProjectRead); e != nil {
+		return AutomationOccurrences{}, e
+	}
+	ctx = auth.ctx
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
 	out := AutomationOccurrences{Items: []AutomationOccurrence{}}
 	if limit < 1 || limit > 200 {
 		return out, invalid("limit 必须为 1..200")
@@ -584,11 +658,6 @@ func (s *Service) AutomationOccurrences(ctx context.Context, p Principal, projec
 		}
 		at = c.At
 	}
-	tx, err := s.automationReadTx(ctx, p, project)
-	if err != nil {
-		return out, err
-	}
-	defer tx.Rollback()
 	if _, err := s.automationRuleTx(ctx, tx, p, project, id); err != nil {
 		return out, err
 	}
@@ -615,7 +684,18 @@ func (s *Service) AutomationOccurrences(ctx context.Context, p Principal, projec
 	}
 	return out, rows.Err()
 }
-func (s *Service) AutomationRevisions(ctx context.Context, p Principal, project, id string, limit int, cursor string) (AutomationRevisions, error) {
+func (s *Service) automationRevisionsCurrentTx(ctx context.Context, auth *authorizedCommand, project, id string, limit int, cursor string) (AutomationRevisions, error) {
+	if auth == nil {
+		return AutomationRevisions{}, forbidden()
+	}
+	expected := commandTarget{tenantID: auth.target.tenantID, projectID: project, resourceID: id}
+	if e := auth.assertTx(auth.tx, expected, purposeBrowserProjectRead); e != nil {
+		return AutomationRevisions{}, e
+	}
+	ctx = auth.ctx
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
 	out := AutomationRevisions{Items: []AutomationRevision{}}
 	if limit < 1 || limit > 200 {
 		return out, invalid("limit 必须为 1..200")
@@ -631,11 +711,6 @@ func (s *Service) AutomationRevisions(ctx context.Context, p Principal, project,
 			return out, invalid("无效修订游标")
 		}
 	}
-	tx, err := s.automationReadTx(ctx, p, project)
-	if err != nil {
-		return out, err
-	}
-	defer tx.Rollback()
 	a, err := s.automationRuleTx(ctx, tx, p, project, id)
 	if err != nil {
 		return out, err
@@ -663,7 +738,7 @@ func (s *Service) AutomationRevisions(ctx context.Context, p Principal, project,
 	}
 	return out, rows.Err()
 }
-func (s *Server) automationHTTP(w http.ResponseWriter, r *http.Request, p Principal, scope, path string, parts []string, project string, m map[string]any) bool {
+func (s *Server) automationHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, path string, parts []string, project string, m map[string]any) bool {
 	if parts[0] != "automations" {
 		return false
 	}
@@ -679,7 +754,7 @@ func (s *Server) automationHTTP(w http.ResponseWriter, r *http.Request, p Princi
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.CreateAutomation(ctx, p, project, req)
+		out, err := s.Service.CreateAutomation(ctx, actor, project, req)
 		respond(w, 201, out, err)
 	case path == "automations/preview" && r.Method == "POST":
 		var req AutomationPreviewRequest
@@ -687,7 +762,7 @@ func (s *Server) automationHTTP(w http.ResponseWriter, r *http.Request, p Princi
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.PreviewAutomation(ctx, p, project, req.Spec)
+		out, err := s.Service.PreviewAutomation(ctx, actor, project, req.Spec)
 		respond(w, 200, out, err)
 	case path == "automations" && r.Method == "GET":
 		limit, cursor, err := automationPage(r)
@@ -695,10 +770,10 @@ func (s *Server) automationHTTP(w http.ResponseWriter, r *http.Request, p Princi
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.ListAutomations(ctx, p, project, limit, cursor)
+		out, err := s.Service.ListAutomations(ctx, actor, project, limit, cursor)
 		respond(w, 200, out, err)
 	case len(parts) == 2 && r.Method == "GET":
-		out, err := s.Service.GetAutomation(ctx, p, project, parts[1])
+		out, err := s.Service.GetAutomation(ctx, actor, project, parts[1])
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[2] == "commands" && r.Method == "POST":
 		var req AutomationCommandRequest
@@ -706,7 +781,7 @@ func (s *Server) automationHTTP(w http.ResponseWriter, r *http.Request, p Princi
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.CommandAutomation(ctx, p, project, parts[1], req)
+		out, err := s.Service.CommandAutomation(ctx, actor, project, parts[1], req)
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[2] == "occurrences" && r.Method == "GET":
 		limit, cursor, err := automationPage(r)
@@ -714,7 +789,7 @@ func (s *Server) automationHTTP(w http.ResponseWriter, r *http.Request, p Princi
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.AutomationOccurrences(ctx, p, project, parts[1], limit, cursor)
+		out, err := s.Service.AutomationOccurrences(ctx, actor, project, parts[1], limit, cursor)
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[2] == "revisions" && r.Method == "GET":
 		limit, cursor, err := automationPage(r)
@@ -722,7 +797,7 @@ func (s *Server) automationHTTP(w http.ResponseWriter, r *http.Request, p Princi
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.AutomationRevisions(ctx, p, project, parts[1], limit, cursor)
+		out, err := s.Service.AutomationRevisions(ctx, actor, project, parts[1], limit, cursor)
 		respond(w, 200, out, err)
 	default:
 		writeError(w, missing())

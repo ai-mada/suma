@@ -9,7 +9,6 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/ai-mada/suma/internal/store"
 )
@@ -22,39 +21,39 @@ func TestAutomationIngressCASRotationReceiptsAndGlobalSecretTombstones(t *testin
 	ctx := context.Background()
 	newSecret := strings.Repeat("b", 64)
 	req := AutomationIngressCommandRequest{ProjectID: f.project, Action: "rotate_key", ExpectedVersion: in.Version, IdempotencyKey: newID(), Secret: newSecret}
-	rotated, err := f.s.CommandAutomationIngress(ctx, f.user, f.project, in.ID, req)
+	rotated, err := f.s.CommandAutomationIngress(ctx, f.actor, f.project, in.ID, req)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if rotated.State != "paused" || rotated.KeyGeneration != 2 || rotated.Revision != 1 {
 		t.Fatal("rotation did not require explicit re-enable", rotated)
 	}
-	again, err := f.s.CommandAutomationIngress(ctx, f.user, f.project, in.ID, req)
+	again, err := f.s.CommandAutomationIngress(ctx, f.actor, f.project, in.ID, req)
 	if err != nil || again.Version != rotated.Version {
 		t.Fatal("rotation receipt failed to recover", err)
 	}
 	altered := req
 	altered.Secret = strings.Repeat("c", 64)
-	if _, err = f.s.CommandAutomationIngress(ctx, f.user, f.project, in.ID, altered); err == nil {
+	if _, err = f.s.CommandAutomationIngress(ctx, f.actor, f.project, in.ID, altered); err == nil {
 		t.Fatal("operation key accepted different secret")
 	}
 	public, _ := json.Marshal(again)
 	if strings.Contains(string(public), newSecret) {
 		t.Fatal("rotation returned secret")
 	}
-	if _, err = f.s.CommandAutomationIngress(ctx, f.user, f.project, in.ID, AutomationIngressCommandRequest{Action: "enable", ExpectedVersion: rotated.Version, ExpectedRuleVersion: a.Version + 1, ExpectedRuleRevision: a.Revision, IdempotencyKey: newID()}); err == nil {
+	if _, err = f.s.CommandAutomationIngress(ctx, f.actor, f.project, in.ID, AutomationIngressCommandRequest{Action: "enable", ExpectedVersion: rotated.Version, ExpectedRuleVersion: a.Version + 1, ExpectedRuleRevision: a.Revision, IdempotencyKey: newID()}); err == nil {
 		t.Fatal("stale rule CAS accepted")
 	}
 	in = ingressTestCommand(t, f, rotated, AutomationIngressCommandRequest{Action: "enable", ExpectedRuleVersion: a.Version, ExpectedRuleRevision: a.Revision})
 	raw := ingressPush(strings.Repeat("a", 40))
 	ingressTestPost(t, f, in, raw, ingressTestHeaders(in, oldSecret, raw, "push", "delivery-old-key", 0), 401)
 	ingressTestPost(t, f, in, raw, ingressTestHeaders(in, newSecret, raw, "push", "delivery-new-key", 0), 202)
-	second, err := f.s.CreateAutomationIngress(ctx, f.user, f.project, a.ID, AutomationIngressCreateRequest{ProjectID: f.project, ExpectedRuleVersion: a.Version, ExpectedRuleRevision: a.Revision, IdempotencyKey: newID(), Spec: in.AutomationIngressSpec})
+	second, err := f.s.CreateAutomationIngress(ctx, f.actor, f.project, a.ID, AutomationIngressCreateRequest{ProjectID: f.project, ExpectedRuleVersion: a.Version, ExpectedRuleRevision: a.Revision, IdempotencyKey: newID(), Spec: in.AutomationIngressSpec})
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, used := range []string{oldSecret, newSecret} {
-		if _, err = f.s.CommandAutomationIngress(ctx, f.user, f.project, second.ID, AutomationIngressCommandRequest{Action: "rotate_key", ExpectedVersion: second.Version, IdempotencyKey: newID(), Secret: used}); err == nil {
+		if _, err = f.s.CommandAutomationIngress(ctx, f.actor, f.project, second.ID, AutomationIngressCommandRequest{Action: "rotate_key", ExpectedVersion: second.Version, IdempotencyKey: newID(), Secret: used}); err == nil {
 			t.Fatal("used secret moved to another ingress")
 		}
 	}
@@ -62,7 +61,7 @@ func TestAutomationIngressCASRotationReceiptsAndGlobalSecretTombstones(t *testin
 	if in.KeyConfigured {
 		t.Fatal("revocation did not erase ciphertext")
 	}
-	if _, err = f.s.CommandAutomationIngress(ctx, f.user, f.project, second.ID, AutomationIngressCommandRequest{Action: "rotate_key", ExpectedVersion: second.Version, IdempotencyKey: newID(), Secret: newSecret}); err == nil {
+	if _, err = f.s.CommandAutomationIngress(ctx, f.actor, f.project, second.ID, AutomationIngressCommandRequest{Action: "rotate_key", ExpectedVersion: second.Version, IdempotencyKey: newID(), Secret: newSecret}); err == nil {
 		t.Fatal("revocation released secret tombstone")
 	}
 	ingressTestPost(t, f, in, raw, ingressTestHeaders(in, newSecret, raw, "push", "delivery-revoked-key", 0), 401)
@@ -84,7 +83,7 @@ func TestAutomationIngressPauseBlocksOnlyOwnQueuedAndRetryNeverRevives(t *testin
 	if autoCount(t, f, "dag_runs") != 2 {
 		t.Fatal("pause blocked unrelated source or dispatched paused input")
 	}
-	d, err := f.s.GetAutomationIngressDelivery(context.Background(), f.user, f.project, one.ID, receipt.ID)
+	d, err := f.s.GetAutomationIngressDelivery(context.Background(), f.actor, f.project, one.ID, receipt.ID)
 	if err != nil || d.OccurrenceState != "blocked" || d.RunID != "" {
 		t.Fatal("paused queued occurrence escaped", err, d)
 	}
@@ -108,12 +107,12 @@ func TestAutomationIngressRevisionDoesNotReevaluateOldDeliveryAndRuleCASMustRebi
 	r := ingressTestPost(t, f, in, raw, ingressTestHeaders(in, secret, raw, "push", "delivery-old-revision", 0), 202)
 	spec := a.AutomationSpec
 	spec.Name = "New rule revision"
-	out, err := f.s.CommandAutomation(context.Background(), f.user, f.project, a.ID, AutomationCommandRequest{Action: "revise", ExpectedVersion: a.Version, IdempotencyKey: newID(), Spec: &spec})
+	out, err := f.s.CommandAutomation(context.Background(), f.actor, f.project, a.ID, AutomationCommandRequest{Action: "revise", ExpectedVersion: a.Version, IdempotencyKey: newID(), Spec: &spec})
 	if err != nil {
 		t.Fatal(err)
 	}
 	a = autoCommand(t, f, out.Rule, "enable").Rule
-	if _, err = f.s.CommandAutomationIngress(context.Background(), f.user, f.project, in.ID, AutomationIngressCommandRequest{Action: "enable", ExpectedVersion: in.Version, ExpectedRuleVersion: a.Version, ExpectedRuleRevision: a.Revision, IdempotencyKey: newID()}); err == nil {
+	if _, err = f.s.CommandAutomationIngress(context.Background(), f.actor, f.project, in.ID, AutomationIngressCommandRequest{Action: "enable", ExpectedVersion: in.Version, ExpectedRuleVersion: a.Version, ExpectedRuleRevision: a.Revision, IdempotencyKey: newID()}); err == nil {
 		t.Fatal("entry silently rebound to rule revision")
 	}
 	entrySpec := in.AutomationIngressSpec
@@ -131,36 +130,38 @@ func TestAutomationIngressRevisionDoesNotReevaluateOldDeliveryAndRuleCASMustRebi
 	if autoCount(t, f, "dag_runs") != 0 {
 		t.Fatal("old revision delivery was re-evaluated")
 	}
-	history, err := f.s.AutomationIngressRevisions(context.Background(), f.user, f.project, in.ID, 1, "")
+	history, err := f.s.AutomationIngressRevisions(context.Background(), f.actor, f.project, in.ID, 1, "")
 	if err != nil || history.Total != 2 || history.Items[0].Revision != 2 || history.NextCursor == "" {
 		t.Fatal("revision page unavailable", err)
 	}
-	older, err := f.s.AutomationIngressRevisions(context.Background(), f.user, f.project, in.ID, 1, history.NextCursor)
+	older, err := f.s.AutomationIngressRevisions(context.Background(), f.actor, f.project, in.ID, 1, history.NextCursor)
 	if err != nil || older.Items[0].Spec.Name != "Signed input" || older.Items[0].RuleRevision != 1 {
 		t.Fatal("immutable history mutated", err)
 	}
-	if _, err = f.s.AutomationIngressDeliveries(context.Background(), f.user, f.project, in.ID, 1, history.NextCursor); err == nil {
+	if _, err = f.s.AutomationIngressDeliveries(context.Background(), f.actor, f.project, in.ID, 1, history.NextCursor); err == nil {
 		t.Fatal("history cursor crossed collections")
 	}
 }
 
-func ingressReviewer(t *testing.T, f *fixture) Principal {
+func ingressReviewer(t *testing.T, f *fixture) Actor {
 	t.Helper()
-	p := Principal{ID: newID(), TenantID: f.user.TenantID, Name: "Reviewer", Email: newID() + "@example.test", Role: "member"}
-	for _, q := range []struct {
-		sql  string
-		args []any
-	}{
-		{`INSERT INTO suma_users(id,name,email,password_hash,created_at)VALUES(?,?,?,?,?)`, []any{p.ID, p.Name, p.Email, "unusable", now()}},
-		{`INSERT INTO suma_org_members(tenant_id,user_id,role)VALUES(?,?,'member')`, []any{p.TenantID, p.ID}},
-		{`INSERT INTO suma_project_members(project_id,user_id,role)VALUES(?,?,'reviewer')`, []any{f.project, p.ID}},
-	} {
-		if _, err := f.s.DB.Exec(q.sql, q.args...); err != nil {
-			t.Fatal(err)
-		}
+	ctx := context.Background()
+	email := newID() + "@example.test"
+	in, err := f.s.CreateInvitation(ctx, f.actor, map[string]any{"email": email, "role": "member", "grants": []any{map[string]any{"project_id": f.project, "role": "reviewer"}}, "idempotency_key": newID()})
+	if err != nil {
+		t.Fatal(err)
 	}
-	return p
+	_, token, err := f.s.AcceptInvitation(ctx, map[string]any{"email": email, "name": "Reviewer", "password": "real-ingress-reviewer-password-42", "token": in["token"], "idempotency_key": newID()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	actor, err := f.s.AuthenticateActor(ctx, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return actor
 }
+
 func TestAutomationIngressDispatchRechecksDistinctEntryActivatorAndRevokedReplay(t *testing.T) {
 	f, a := automationFixture(t, "allow", "manual", "skip")
 	a = autoCommand(t, f, a, "enable").Rule
@@ -176,11 +177,11 @@ func TestAutomationIngressDispatchRechecksDistinctEntryActivatorAndRevokedReplay
 	}
 	raw := ingressPush(strings.Repeat("a", 40))
 	r := ingressTestPost(t, f, in, raw, ingressTestHeaders(in, secret, raw, "push", "delivery-authorized-before-revoke", 0), 202)
-	if _, err = f.s.DB.Exec(`DELETE FROM suma_project_members WHERE project_id=? AND user_id=?`, f.project, reviewer.ID); err != nil {
+	if _, err = f.s.DB.Exec(`DELETE FROM suma_project_members WHERE project_id=? AND user_id=?`, f.project, reviewer.Projection().ID); err != nil {
 		t.Fatal(err)
 	}
 	autoTick(t, f)
-	d, err := f.s.GetAutomationIngressDelivery(context.Background(), f.user, f.project, in.ID, r.ID)
+	d, err := f.s.GetAutomationIngressDelivery(context.Background(), f.actor, f.project, in.ID, r.ID)
 	if err != nil || d.OccurrenceState != "blocked" || autoCount(t, f, "dag_runs") != 0 {
 		t.Fatal("entry activator revocation bypassed dispatch", err, d)
 	}
@@ -286,13 +287,11 @@ func TestAutomationIngressHTTPStrictFieldsScopesAndProjectIsolation(t *testing.T
 	a = autoCommand(t, f, a, "enable").Rule
 	in := ingressTestEntry(t, f, a, "github", strings.Repeat("c", 64))
 	for _, scope := range []string{"api", "runner", "agent"} {
-		token, err := f.s.CreateToken(context.Background(), f.user, "scope test", time.Hour)
+		issued, err := f.s.IssueProjectCredential(context.Background(), f.actor, ProjectCredentialIssueRequest{ProjectID: f.project, Scope: scope, Label: "scope test", IdempotencyKey: newID()})
 		if err != nil {
 			t.Fatal(err)
 		}
-		if _, err = f.s.DB.Exec(`INSERT INTO suma_token_scopes(token_hash,kind,project_id)VALUES(?,?,?)`, digest(token), scope, f.project); err != nil {
-			t.Fatal(err)
-		}
+		token := issued.Token
 		r := httptest.NewRequest("GET", "http://suma.test/api/v1/automation-ingresses/"+in.ID+"?project_id="+f.project, nil)
 		r.Header.Set("Authorization", "Bearer "+token)
 		w := httptest.NewRecorder()
@@ -306,6 +305,8 @@ func TestAutomationIngressHTTPStrictFieldsScopesAndProjectIsolation(t *testing.T
 	raw := []byte(`{"project_id":"` + f.project + `","action":"pause","action":"revoke","expected_version":` + strconv.Itoa(in.Version) + `,"idempotency_key":"duplicate-field-operation"}`)
 	r := httptest.NewRequest("POST", "http://suma.test/api/v1/automation-ingresses/"+in.ID+"/commands", bytes.NewReader(raw))
 	r.AddCookie(f.cookie)
+	r.Header.Set("X-Suma-Expected-User", f.view.ID)
+	r.Header.Set("X-Suma-Expected-Organization", f.view.TenantID)
 	w := httptest.NewRecorder()
 	f.handler.ServeHTTP(w, r)
 	if w.Code != 400 {

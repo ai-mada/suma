@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"time"
 
 	"github.com/ai-mada/suma/internal/store"
 )
@@ -57,89 +56,36 @@ func (s *Service) executionPoolMetadataTx(ctx context.Context, tx *sql.Tx, poolI
 	return scanExecutionPool(tx.QueryRowContext(ctx, s.q(`SELECT `+executionPoolColumns+` FROM suma_execution_pools WHERE id=?`), poolID))
 }
 
+func (s *Service) currentExecutionPoolMetadataTx(ctx context.Context, tx *sql.Tx, poolID string) (ExecutionPool, error) {
+	return scanExecutionPool(tx.QueryRowContext(ctx, s.q(s.currentSQL(`SELECT `+executionPoolColumns+` FROM suma_execution_pools WHERE id=?`)), poolID))
+}
+
 // poolHumanWriteTx rechecks current organization membership and exact browser
 // credential before even recovering an operation receipt. It must run before
 // taking any pool/project scheduler locks.
-func (s *Service) poolHumanWriteTx(ctx context.Context, tx *sql.Tx, p Principal, token string) error {
-	if err := s.lockOrganization(ctx, tx, p.TenantID); err != nil {
+func (s *Service) poolHumanWriteTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand) error {
+	if auth == nil {
+		return unauthenticated()
+	}
+	if err := auth.assertTx(tx, auth.target, auth.purpose); err != nil {
 		return err
 	}
-	live, err := s.liveOrganization(ctx, tx, p)
-	if err != nil {
-		return err
-	}
-	if !orgAdmin(live) {
-		return forbidden()
-	}
-	if err = s.currentSchedulingSessionTx(ctx, tx, live, token); err != nil {
-		return err
-	}
-	var label string
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT label FROM suma_sessions WHERE token_hash=?`), digest(token)).Scan(&label); err != nil || label != "browser" {
+	if !auth.actor.IsBrowser() || !orgAdmin(auth.currentPrincipal) {
 		return forbidden()
 	}
 	return nil
 }
-
-func (s *Service) poolAdminTx(ctx context.Context, tx *sql.Tx, p Principal, token, poolID string) (ExecutionPool, error) {
+func (s *Service) poolAdminTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, poolID string) (ExecutionPool, error) {
 	var out ExecutionPool
-	if err := s.poolHumanWriteTx(ctx, tx, p, token); err != nil {
+	if err := s.poolHumanWriteTx(ctx, tx, auth); err != nil {
 		return out, err
 	}
-	out, err := s.executionPoolMetadataTx(ctx, tx, poolID)
+	out, err := s.currentExecutionPoolMetadataTx(ctx, tx, poolID)
 	if err != nil {
 		return out, err
 	}
-	if out.OwnerTenantID != p.TenantID {
+	if out.OwnerTenantID != auth.currentPrincipal.TenantID {
 		return ExecutionPool{}, missing()
 	}
 	return out, nil
-}
-
-// A read transaction verifies its own credential and role snapshot; it never
-// acquires the writer locks used by admission or authorizes a later mutation.
-func (s *Service) poolReadTx(ctx context.Context, p Principal, token string) (*sql.Tx, error) {
-	return s.poolBrowserReadTx(ctx, p, token, true)
-}
-
-func (s *Service) poolBrowserReadTx(ctx context.Context, p Principal, token string, organizationAdmin bool) (*sql.Tx, error) {
-	options := &sql.TxOptions{ReadOnly: true}
-	if s.Dialect != "sqlite" {
-		options.Isolation = sql.LevelRepeatableRead
-	}
-	tx, err := s.DB.BeginTx(ctx, options)
-	if err != nil {
-		return nil, err
-	}
-	valid := false
-	defer func() {
-		if !valid {
-			_ = tx.Rollback()
-		}
-	}()
-	live, err := s.liveOrganization(ctx, tx, p)
-	if err != nil {
-		return nil, err
-	}
-	if organizationAdmin && !orgAdmin(live) {
-		return nil, forbidden()
-	}
-	var user, tenant, label, expires string
-	var scoped int
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT user_id,tenant_id,label,expires_at FROM suma_sessions WHERE token_hash=?`), digest(token)).Scan(&user, &tenant, &label, &expires); err != nil {
-		return nil, forbidden()
-	}
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_token_scopes WHERE token_hash=?`), digest(token)).Scan(&scoped); err != nil {
-		return nil, err
-	}
-	clock, err := s.automationClock(ctx, tx)
-	if err != nil {
-		return nil, err
-	}
-	expiry, parseErr := time.Parse(time.RFC3339Nano, expires)
-	if user != p.ID || tenant != p.TenantID || label != "browser" || scoped != 0 || parseErr != nil || expiry.Unix() <= clock.Unix() {
-		return nil, forbidden()
-	}
-	valid = true
-	return tx, nil
 }

@@ -10,60 +10,60 @@ import (
 	rc "github.com/ai-mada/suma/internal/releasecontract"
 )
 
-func (s *Server) releaseDeploymentHTTP(w http.ResponseWriter, r *http.Request, p Principal, project, path string, m map[string]any) bool {
+func (s *Server) releaseDeploymentHTTP(w http.ResponseWriter, r *http.Request, actor Actor, project, path string, m map[string]any) bool {
+
 	parts := strings.Split(path, "/")
 	ctx := r.Context()
-	token := tokenOf(r)
 	switch {
 	case path == "release-providers" && r.Method == "GET":
-		items, err := s.Service.ReleaseProviderOptions(ctx, p, project)
+		items, err := s.Service.ReleaseProviderOptions(ctx, actor, project)
 		respondList(w, items, err)
 	case path == "environments" && r.Method == "GET":
-		items, err := s.Service.ReleaseEnvironments(ctx, p, project)
+		items, err := s.Service.ReleaseEnvironments(ctx, actor, project)
 		if err != nil {
 			writeError(w, err)
 			return true
 		}
-		actions, err := s.Service.ReleaseEnvironmentActions(ctx, p, project)
+		actions, err := s.Service.ReleaseEnvironmentActions(ctx, actor, project)
 		respond(w, 200, map[string]any{"items": items, "total": len(items), "allowed_actions": actions}, err)
 	case path == "environments" && r.Method == "POST":
-		out, err := s.Service.SaveReleaseEnvironment(ctx, p, project, "", token, m)
+		out, err := s.Service.SaveReleaseEnvironment(ctx, actor, project, "", m)
 		respond(w, 201, out, err)
 	case len(parts) == 2 && parts[0] == "environments" && r.Method == "GET":
-		out, err := s.Service.ReleaseEnvironment(ctx, p, project, parts[1])
+		out, err := s.Service.ReleaseEnvironment(ctx, actor, project, parts[1])
 		respond(w, 200, out, err)
 	case len(parts) == 2 && parts[0] == "environments" && r.Method == "PATCH":
-		out, err := s.Service.SaveReleaseEnvironment(ctx, p, project, parts[1], token, m)
+		out, err := s.Service.SaveReleaseEnvironment(ctx, actor, project, parts[1], m)
 		respond(w, 200, out, err)
 	case path == "release-plans/preview" && r.Method == "POST":
-		out, err := s.Service.PreviewReleasePlan(ctx, p, project, token, m)
+		out, err := s.Service.PreviewReleasePlan(ctx, actor, project, m)
 		respond(w, 200, out, err)
 	case path == "release-plans" && r.Method == "POST":
-		out, err := s.Service.CreateReleasePlan(ctx, p, project, token, m)
+		out, err := s.Service.CreateReleasePlan(ctx, actor, project, m)
 		respond(w, 201, out, err)
 	case path == "release-plans" && r.Method == "GET":
-		items, err := s.Service.ReleasePlans(ctx, p, project)
+		items, err := s.Service.ReleasePlans(ctx, actor, project)
 		respondList(w, items, err)
 	case len(parts) == 2 && parts[0] == "release-plans" && r.Method == "GET":
-		out, err := s.Service.ReleasePlan(ctx, p, project, parts[1])
+		out, err := s.Service.ReleasePlan(ctx, actor, project, parts[1])
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[0] == "release-plans" && parts[2] == "approve" && r.Method == "POST":
-		out, err := s.Service.ApproveReleasePlan(ctx, p, project, parts[1], token, m)
+		out, err := s.Service.ApproveReleasePlan(ctx, actor, project, parts[1], m)
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[0] == "release-plans" && parts[2] == "execute" && r.Method == "POST":
-		out, err := s.Service.ExecuteReleasePlan(ctx, p, project, parts[1], token, m, s.Engine)
+		out, err := s.Service.ExecuteReleasePlan(ctx, actor, project, parts[1], m, s.Engine)
 		respond(w, 201, out, err)
 	case path == "deployments" && r.Method == "GET":
-		items, err := s.Service.ReleaseDeployments(ctx, p, project)
+		items, err := s.Service.ReleaseDeployments(ctx, actor, project)
 		respondList(w, items, err)
 	case len(parts) == 2 && parts[0] == "deployments" && r.Method == "GET":
-		out, err := s.Service.ReleaseDeployment(ctx, p, project, parts[1])
+		out, err := s.Service.ReleaseDeployment(ctx, actor, project, parts[1])
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[0] == "deployments" && parts[2] == "reconcile" && r.Method == "POST":
-		out, err := s.Service.ReconcileReleaseDeployment(ctx, p, project, parts[1], token, m, s.Engine)
+		out, err := s.Service.ReconcileReleaseDeployment(ctx, actor, project, parts[1], m, s.Engine)
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[0] == "deployments" && parts[2] == "rollback-preview" && r.Method == "POST":
-		out, err := s.Service.RollbackReleasePreview(ctx, p, project, parts[1], token, m)
+		out, err := s.Service.RollbackReleasePreview(ctx, actor, project, parts[1], m)
 		respond(w, 200, out, err)
 	case path == "runner/release-authorizations" && r.Method == "POST":
 		var req rc.ReleaseAuthorizationRequest
@@ -71,7 +71,7 @@ func (s *Server) releaseDeploymentHTTP(w http.ResponseWriter, r *http.Request, p
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.IssueReleaseAuthorization(ctx, p, token, req)
+		out, err := s.Service.IssueReleaseAuthorization(ctx, actor, req)
 		respond(w, 200, out, err)
 	default:
 		return false

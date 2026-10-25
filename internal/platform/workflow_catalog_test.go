@@ -15,9 +15,9 @@ func TestWorkflowCatalogUsesManagedRegistryAndPreservesExactRunDefinition(t *tes
 	if _, err := f.e.Publish(ctx, f.user.TenantID, f.project, w); err != nil {
 		t.Fatal(err)
 	}
-	run, err := f.e.CreateManagedRunBound(ctx, f.user.TenantID, f.project, newID(), newID(), w, func(tx *sql.Tx) error {
-		return f.s.authorizeProjectTx(ctx, tx, f.user, f.project, true, true)
-	}, func(*sql.Tx, string) error { return nil })
+	authority := f.s.engineAuthority(ctx, f.actor, commandTarget{tenantID: f.user.TenantID, projectID: f.project}, purposeProjectApprove)
+	defer authority.close()
+	run, err := f.e.CreateManagedRunBound(authority.ctx, f.user.TenantID, f.project, newID(), newID(), w, authority.before, func(*sql.Tx, string) error { return nil })
 	if err != nil {
 		t.Fatal(err)
 	}

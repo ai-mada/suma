@@ -13,17 +13,18 @@ import (
 
 func TestToolOnlyWorkerDoesNotGainReleaseAuthority(t *testing.T) {
 	f, token, p := toolFixture(t)
+	runnerActor := toolActorForTest(t, f, token)
 	ctx := context.Background()
 	tx, err := f.s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer tx.Rollback()
-	if err = f.s.releaseWorkerTx(ctx, tx, f.user, f.project, token, p.WorkerID, "", "", "identity"); err != nil {
+	if _, err = f.s.releaseWorkerTx(ctx, tx, runnerActor, f.project, p.WorkerID, "", "", "identity"); err != nil {
 		t.Fatal(err)
 	}
 	for _, kind := range []string{"deployment", "build", "package_test"} {
-		if err = f.s.releaseWorkerTx(ctx, tx, f.user, f.project, token, p.WorkerID, "not-granted", strings.Repeat("a", 64), kind); err == nil {
+		if _, err = f.s.releaseWorkerTx(ctx, tx, runnerActor, f.project, p.WorkerID, "not-granted", strings.Repeat("a", 64), kind); err == nil {
 			t.Fatal("tool worker gained release", kind)
 		}
 	}
@@ -33,11 +34,11 @@ func TestToolEligibilityFiltersBeforeAttemptsAndRevokedEnabler(t *testing.T) {
 	f, token, p := toolFixture(t)
 	ctx := context.Background()
 	req := ToolInventoryRequest{ProjectID: f.project, WorkerID: p.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: p.Profile, Available: true}}}
-	if _, err := f.s.ReportToolInventory(ctx, f.user, f.project, token, req); err != nil {
+	if _, err := f.s.ReportToolInventory(ctx, toolActorForTest(t, f, token), f.project, req); err != nil {
 		t.Fatal(err)
 	}
 	enable := ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: p.Version, IdempotencyKey: newID()}
-	p, err := f.s.CommandToolProfile(ctx, f.user, f.project, p.ID, enable)
+	p, err := f.s.CommandToolProfile(ctx, f.actor, f.project, p.ID, enable)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,11 +57,17 @@ func TestToolEligibilityFiltersBeforeAttemptsAndRevokedEnabler(t *testing.T) {
 	if _, err = f.s.DB.Exec(`INSERT INTO suma_project_members(project_id,user_id,role) VALUES(?,?,'developer')`, f.project, f.user.ID); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = f.s.CommandToolProfile(ctx, f.user, f.project, p.ID, enable); err == nil {
+	if _, err = f.s.CommandToolProfile(ctx, f.actor, f.project, p.ID, enable); err == nil {
 		t.Fatal("revoked approval actor replayed cached management response")
 	}
-	claim, err := f.e.ClaimEligible(ctx, f.user.TenantID, f.project, p.WorkerID, []string{"command:" + p.Profile.CommandID, "command:independent"}, func(tx *sql.Tx) error { return f.s.runnerIdentityTx(ctx, tx, f.user, f.project, token, p.WorkerID) }, func(tx *sql.Tx, run, node string) (bool, error) {
-		return f.s.toolClaimEligibleTx(ctx, tx, f.user, f.project, token, p.WorkerID, run, node)
+	runnerActor := toolActorForTest(t, f, token)
+	var runnerProof *authorizedCommand
+	claim, err := f.e.ClaimEligible(ctx, f.user.TenantID, f.project, p.WorkerID, []string{"command:" + p.Profile.CommandID, "command:independent"}, func(tx *sql.Tx) error {
+		var e error
+		runnerProof, e = f.s.runnerIdentityTx(ctx, tx, runnerActor, f.project, p.WorkerID)
+		return e
+	}, func(tx *sql.Tx, run, node string) (bool, error) {
+		return f.s.toolClaimEligibleTx(ctx, tx, runnerProof, p.WorkerID, run, node)
 	})
 	if err != nil || claim == nil || claim.NodeID != "independent" {
 		t.Fatal("blocked profile prevented independent candidate", claim, err)
@@ -74,7 +81,7 @@ func TestToolEligibilityFiltersBeforeAttemptsAndRevokedEnabler(t *testing.T) {
 			t.Fatal("ineligible tool consumed attempt", n)
 		}
 	}
-	p, err = f.s.GetToolProfile(ctx, f.user, f.project, p.ID)
+	p, err = f.s.GetToolProfile(ctx, f.actor, f.project, p.ID)
 	if err != nil || p.Available || !strings.Contains(p.Reason, "审批权限") {
 		t.Fatal("stale enabling authority", p, err)
 	}
@@ -97,11 +104,11 @@ func TestToolHTTPScopesBoundWorkerAndUnknownFields(t *testing.T) {
 func TestToolHTTPResultRequiresTerminalProofAndBoundLeaseIdentity(t *testing.T) {
 	f, token, p := toolFixture(t)
 	ctx := context.Background()
-	if _, err := f.s.ReportToolInventory(ctx, f.user, f.project, token, ToolInventoryRequest{ProjectID: f.project, WorkerID: p.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: p.Profile, Available: true}}}); err != nil {
+	if _, err := f.s.ReportToolInventory(ctx, toolActorForTest(t, f, token), f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: p.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: p.Profile, Available: true}}}); err != nil {
 		t.Fatal(err)
 	}
 	var err error
-	p, err = f.s.CommandToolProfile(ctx, f.user, f.project, p.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: p.Version, IdempotencyKey: newID()})
+	p, err = f.s.CommandToolProfile(ctx, f.actor, f.project, p.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: p.Version, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -152,11 +159,11 @@ func TestToolHTTPResultRequiresTerminalProofAndBoundLeaseIdentity(t *testing.T) 
 func TestToolHTTPConfirmedStopReceiptCancelsWithoutProtocolSuccess(t *testing.T) {
 	f, token, p := toolFixture(t)
 	ctx := context.Background()
-	if _, err := f.s.ReportToolInventory(ctx, f.user, f.project, token, ToolInventoryRequest{ProjectID: f.project, WorkerID: p.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: p.Profile, Available: true}}}); err != nil {
+	if _, err := f.s.ReportToolInventory(ctx, toolActorForTest(t, f, token), f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: p.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: p.Profile, Available: true}}}); err != nil {
 		t.Fatal(err)
 	}
 	var err error
-	p, err = f.s.CommandToolProfile(ctx, f.user, f.project, p.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: p.Version, IdempotencyKey: newID()})
+	p, err = f.s.CommandToolProfile(ctx, f.actor, f.project, p.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: p.Version, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}

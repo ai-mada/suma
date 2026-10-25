@@ -70,7 +70,17 @@ func (s *Service) taskDispatchPlanTx(ctx context.Context, tx governanceQuery, p 
 	return out, nil
 }
 
-func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, engine *dag.Engine, p Principal, project string, plan TaskDispatchPlan) error {
+func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, engine *dag.Engine, auth *authorizedCommand, project string, plan TaskDispatchPlan) error {
+	if auth == nil {
+		return forbidden()
+	}
+	if err := auth.assertTx(tx, auth.target, auth.purpose); err != nil {
+		return err
+	}
+	if auth.target.projectID != project {
+		return forbidden()
+	}
+	p := auth.currentPrincipal
 	if plan.State != "ready" {
 		return conflict("计划已派发，不能创建另一运行；请打开原运行或恢复原操作")
 	}
@@ -95,14 +105,14 @@ func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, en
 	} else if current.Requirement != nil {
 		return conflict("任务的需求关联已变化，请重新派发预览")
 	}
-	profile, err := s.validateToolDispatchTx(ctx, tx, p, project, plan.ToolProfileID, plan.ToolProfileVersion, plan.ToolProfileSHA256)
+	profile, err := s.validateToolDispatchTx(ctx, tx, auth, project, plan.ToolProfileID, plan.ToolProfileVersion, plan.ToolProfileSHA256)
 	if err != nil {
 		return err
 	}
 	return s.checkTaskDispatchCurrentRouteTx(ctx, tx, engine, p, project, plan, profile)
 }
 
-func (s *Service) CreateTaskDispatchPlan(ctx context.Context, engine *dag.Engine, p Principal, project string, request TaskDispatchPreviewRequest) (TaskDispatchPlan, error) {
+func (s *Service) CreateTaskDispatchPlan(ctx context.Context, engine *dag.Engine, actor Actor, project string, request TaskDispatchPreviewRequest) (TaskDispatchPlan, error) {
 	var out TaskDispatchPlan
 	if engine == nil {
 		return out, invalid("任务调度器未配置")
@@ -110,18 +120,18 @@ func (s *Service) CreateTaskDispatchPlan(ctx context.Context, engine *dag.Engine
 	if request.ProjectID != project || request.ExpectedTaskVersion < 1 || request.WorkflowVersion < 1 || request.ExpectedToolVersion < 1 || request.TaskID == "" || request.WorkflowID == "" || request.AgentNodeID == "" || request.ToolProfileID == "" {
 		return out, invalid("派发预览需要项目、任务版本、固定流程、开发节点及工具版本")
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.lockOrganization(ctx, tx, p.TenantID); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: request.TaskID}, purposeProjectWrite)
+	if err != nil {
 		return out, err
 	}
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
-		return out, err
-	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, request.IdempotencyKey, map[string]any{"task_dispatch_preview": request})
+	p := auth.currentPrincipal
+	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"task_dispatch_preview": request})
 	if err != nil {
 		return out, err
 	}
@@ -135,7 +145,7 @@ func (s *Service) CreateTaskDispatchPlan(ctx context.Context, engine *dag.Engine
 			return out, err
 		}
 		out.Valid, out.Reason = true, ""
-		if check := s.validateTaskDispatchPlanTx(ctx, tx, engine, p, project, out); check != nil {
+		if check := s.validateTaskDispatchPlanTx(ctx, tx, engine, auth, project, out); check != nil {
 			out.Valid, out.Reason = false, check.Error()
 		}
 		return out, tx.Commit()
@@ -151,7 +161,7 @@ func (s *Service) CreateTaskDispatchPlan(ctx context.Context, engine *dag.Engine
 	if err != nil {
 		return out, err
 	}
-	if _, err = s.validateToolDispatchTx(ctx, tx, p, project, profile.ID, request.ExpectedToolVersion, profile.Profile.ProfileSHA256); err != nil {
+	if _, err = s.validateToolDispatchTx(ctx, tx, auth, project, profile.ID, request.ExpectedToolVersion, profile.Profile.ProfileSHA256); err != nil {
 		return out, err
 	}
 	route, err := engine.ReadProjectExecutionRouteTx(ctx, tx, p.TenantID, project)
@@ -192,57 +202,62 @@ func (s *Service) CreateTaskDispatchPlan(ctx context.Context, engine *dag.Engine
 	if err = s.saveTaskDispatchRouteBasisTx(ctx, tx, out.ID, route); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, request.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, project, "task.dispatch_preview", out.ID, context.Task.Title); err != nil {
+	if err = s.commandActivity(ctx, auth, "task.dispatch_preview", out.ID, context.Task.Title); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
 }
 
-func (s *Service) GetTaskDispatchPlan(ctx context.Context, engine *dag.Engine, p Principal, project, id string) (TaskDispatchPlan, error) {
+func (s *Service) GetTaskDispatchPlan(ctx context.Context, engine *dag.Engine, actor Actor, project, id string) (TaskDispatchPlan, error) {
 	var out TaskDispatchPlan
-	tx, err := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, false, false); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: id}, purposeProjectRead)
+	if err != nil {
 		return out, err
 	}
+	p := auth.currentPrincipal
 	out, err = s.taskDispatchPlanTx(ctx, tx, p, project, id)
 	if err != nil {
 		return out, err
 	}
 	out.Valid, out.Reason = true, ""
-	if check := s.validateTaskDispatchPlanTx(ctx, tx, engine, p, project, out); check != nil {
+	if check := s.validateTaskDispatchPlanTx(ctx, tx, engine, auth, project, out); check != nil {
 		out.Valid, out.Reason = false, check.Error()
 	}
 	return out, tx.Commit()
 }
 
-func (s *Service) StartTaskDispatchPlan(ctx context.Context, engine *dag.Engine, p Principal, project, id string, request TaskDispatchStartRequest) (dag.Run, error) {
+func (s *Service) StartTaskDispatchPlan(ctx context.Context, engine *dag.Engine, actor Actor, project, id string, request TaskDispatchStartRequest) (dag.Run, error) {
 	var out dag.Run
 	if request.ProjectID != project || request.ExpectedVersion < 1 {
 		return out, invalid("请提供当前派发计划版本")
 	}
-	// Read immutable data only; every mutation/replay is authorized under the
-	// organization lock inside CreateManagedRunBound before scheduler access.
-	if err := s.Authorize(ctx, p, project, true, false); err != nil {
-		return out, err
-	}
-	plan, err := s.taskDispatchPlanTx(ctx, s.DB, p, project, id)
+	// The preview is a current-authorized read; admission and every replay
+	// independently recheck the same credential in the Engine transaction.
+	plan, err := s.GetTaskDispatchPlan(ctx, engine, actor, project, id)
 	if err != nil {
 		return out, err
 	}
+	p := actor.Projection()
+	authority := s.engineAuthority(ctx, actor, commandTarget{tenantID: p.TenantID, projectID: project, resourceID: id}, purposeProjectWrite)
+	defer authority.close()
+	ctx = authority.ctx
 	var hash string
 	return engine.CreateManagedRunBound(ctx, p.TenantID, project, plan.RunID, "task-"+digest(p.ID+":"+request.IdempotencyKey), plan.Workflow, func(tx *sql.Tx) error {
-		if e := s.authorizeProjectTx(ctx, tx, p, project, true, false); e != nil {
+		if e := authority.before(tx); e != nil {
 			return e
 		}
+		p = authority.proof.currentPrincipal
 		var replay bool
-		hash, replay, err = s.receipt(ctx, tx, p, project, request.IdempotencyKey, map[string]any{"task_dispatch_start": id, "request": request})
+		hash, replay, err = s.commandReceipt(ctx, authority.proof, request.IdempotencyKey, map[string]any{"task_dispatch_start": id, "request": request})
 		if err != nil || replay {
 			return err
 		}
@@ -253,12 +268,12 @@ func (s *Service) StartTaskDispatchPlan(ctx context.Context, engine *dag.Engine,
 		if current.Version != request.ExpectedVersion {
 			return conflict("派发计划已变化，请刷新并核对")
 		}
-		return s.validateTaskDispatchPlanTx(ctx, tx, engine, p, project, current)
+		return s.validateTaskDispatchPlanTx(ctx, tx, engine, authority.proof, project, current)
 	}, func(tx *sql.Tx, runID string) error {
 		if e := s.checkTaskDispatchBoundRouteTx(ctx, tx, p, project, plan, runID); e != nil {
 			return e
 		}
-		if e := s.BindRunTx(ctx, tx, p, project, plan.TaskID, runID, plan.TaskVersion); e != nil {
+		if e := s.BindRunTx(ctx, tx, authority.proof, project, plan.TaskID, runID, plan.TaskVersion); e != nil {
 			return e
 		}
 		res, e := tx.ExecContext(ctx, s.q(`UPDATE suma_task_dispatch_plans SET version=version+1,state='started' WHERE id=? AND tenant_id=? AND project_id=? AND version=? AND state='ready'`), id, p.TenantID, project, request.ExpectedVersion)
@@ -268,10 +283,10 @@ func (s *Service) StartTaskDispatchPlan(ctx context.Context, engine *dag.Engine,
 		if count, e := res.RowsAffected(); e != nil || count != 1 {
 			return conflict("派发计划已被处理")
 		}
-		if e = s.saveReceipt(ctx, tx, p, project, request.IdempotencyKey, hash, map[string]string{"plan_id": id, "run_id": runID}); e != nil {
+		if e = s.saveCommandReceipt(ctx, authority.proof, request.IdempotencyKey, hash, map[string]string{"plan_id": id, "run_id": runID}); e != nil {
 			return e
 		}
-		return s.activity(ctx, tx, p, project, "task.dispatched", plan.TaskID, plan.Context.Task.Title)
+		return s.commandActivity(ctx, authority.proof, "task.dispatched", plan.TaskID, plan.Context.Task.Title)
 	})
 }
 

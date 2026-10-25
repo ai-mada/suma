@@ -7,7 +7,11 @@ import (
 
 // ReopenPlanningTx keeps a completed period from displaying completion after
 // any of its formal task evidence becomes invalid. It shares the source commit.
-func (s *Service) ReopenPlanningTx(ctx context.Context, tx *sql.Tx, p Principal, project string) error {
+func (s *Service) ReopenPlanningTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, project string) error {
+	if err := assertProjectCommand(tx, auth, project); err != nil {
+		return err
+	}
+	p := auth.currentPrincipal
 	rows, e := tx.QueryContext(ctx, s.q(`SELECT p.id,p.version,p.title FROM suma_planning_periods p WHERE p.tenant_id=? AND p.project_id=? AND p.status='completed' AND EXISTS(SELECT 1 FROM suma_task_plans tp JOIN suma_tasks t ON t.id=tp.task_id AND t.tenant_id=tp.tenant_id AND t.project_id=tp.project_id WHERE tp.tenant_id=p.tenant_id AND tp.project_id=p.project_id AND ((p.kind='iterations' AND tp.iteration_id=p.id) OR (p.kind='milestones' AND tp.milestone_id=p.id)) AND t.status<>'accepted')`), p.TenantID, project)
 	if e != nil {
 		return e
@@ -39,7 +43,7 @@ func (s *Service) ReopenPlanningTx(ctx context.Context, tx *sql.Tx, p Principal,
 		if n != 1 {
 			return conflict("计划完成依据已变化，请重新核对")
 		}
-		if er = s.activity(ctx, tx, p, project, "planning.completion_invalidated", item.id, item.title); er != nil {
+		if er = s.commandActivity(ctx, auth, "planning.completion_invalidated", item.id, item.title); er != nil {
 			return er
 		}
 	}

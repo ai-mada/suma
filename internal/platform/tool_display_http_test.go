@@ -22,6 +22,10 @@ func displayHTTP(t *testing.T, f *fixture, method, path, locale string, body any
 	r.AddCookie(f.cookie)
 	r.Header.Set("Content-Type", "application/json")
 	r.Header.Set("Accept-Language", locale)
+	if BrowserCommandRequiresView(method, strings.TrimPrefix(path, "/")) {
+		r.Header.Set("X-Suma-Expected-User", f.view.ID)
+		r.Header.Set("X-Suma-Expected-Organization", f.view.TenantID)
+	}
 	w := httptest.NewRecorder()
 	f.handler.ServeHTTP(w, r)
 	if w.Code != want {
@@ -153,7 +157,7 @@ func TestToolDisplayHTTPConcurrentReadsAndOperationReceipts(t *testing.T) {
 	if _, err := f.s.DB.Exec(`UPDATE suma_org_members SET role='member' WHERE tenant_id=? AND user_id=?`, f.user.TenantID, f.user.ID); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := f.s.CreateToolProfile(ctx, f.user, f.project, create); err == nil {
+	if _, err := f.s.CreateToolProfile(ctx, f.actor, f.project, create); err == nil {
 		t.Fatal("old receipt bypassed current authority")
 	}
 }
@@ -170,7 +174,7 @@ func TestToolDisplayHTTPRejectsInjectedHintsAndPreservesLongObservation(t *testi
 		t.Run(strconv.Itoa(n), func(t *testing.T) {
 			reason := strings.Repeat("x", n)
 			req := ToolInventoryRequest{ProjectID: f.project, WorkerID: p.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: p.Profile, Available: false, Reason: reason}}}
-			if _, err := f.s.ReportToolInventory(context.Background(), f.user, f.project, token, req); err != nil {
+			if _, err := f.s.ReportToolInventory(context.Background(), toolActorForTest(t, f, token), f.project, req); err != nil {
 				t.Fatal(err)
 			}
 			if _, err := f.s.DB.Exec(`UPDATE suma_tool_profiles SET state='enabled',enabled_by=? WHERE id=?`, f.user.ID, p.ID); err != nil {

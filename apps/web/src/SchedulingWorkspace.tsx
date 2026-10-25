@@ -1,3 +1,4 @@
+import {useApi} from './api-context';
 import { tr as t, useLocale, formatNumber, renderDiagnostic } from "./i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { RefreshCw, Plus, Trash2 } from "lucide-react";
@@ -30,7 +31,7 @@ export function SchedulingWorkspace({
   selected: string;
   onSelect: (id: string) => void;
   refresh: number;
-}) { useLocale();
+}) { const api=useApi(); useLocale();
   const workspaceRoot = useRef<HTMLElement>(null),
     editorFocus = useRef(false),
     inflightCommit = useRef<string | undefined>(undefined),
@@ -42,8 +43,8 @@ export function SchedulingWorkspace({
       project,
     ]),
     recovery = useMemo(
-      () => new SchedulingWriteRecovery(scope, toolSessionStorage(), project),
-      [scope, project],
+      () => new SchedulingWriteRecovery(scope, toolSessionStorage(), project, api),
+      [scope, project, api],
     ),
     action = useToolAction(recovery),
     read = useToolRead<SchedulingPolicy>(
@@ -308,7 +309,7 @@ function PolicyEditor({
   action: Action;
   disabled: boolean;
   onCreated: (value: PolicyPreview) => void;
-}) { useLocale();
+}) { const api=useApi(); useLocale();
   const [concurrency, setConcurrency] = useState(
       String(policy.concurrency_limit),
     ),

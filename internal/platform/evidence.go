@@ -22,31 +22,6 @@ func (s *Service) evidenceSnapshotOptions() *sql.TxOptions {
 	return options
 }
 
-// Recheck read authority inside the same display snapshot without upgrading it
-// to a writer. A grant revoked before this transaction begins cannot leak data
-// through an earlier preflight authorization; action handlers still reauthorize.
-func (s *Service) authorizeProjectSnapshotTx(ctx context.Context, tx *sql.Tx, p Principal, project string) error {
-	var tenant string
-	if err := tx.QueryRowContext(ctx, s.q(`SELECT tenant_id FROM suma_projects WHERE id=?`), project).Scan(&tenant); err != nil || tenant != p.TenantID {
-		return missing()
-	}
-	if p.internal && p.ID == "system" {
-		return nil
-	}
-	live, err := s.liveOrganization(ctx, tx, p)
-	if err != nil {
-		return err
-	}
-	if orgAdmin(live) {
-		return nil
-	}
-	var role string
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT role FROM suma_project_members WHERE project_id=? AND user_id=?`), project, p.ID).Scan(&role); err != nil || !validProjectRole(role) {
-		return forbidden()
-	}
-	return nil
-}
-
 // Mutation gates may perform authorization reads before taking the project
 // guard. Read committed prevents a pre-guard repeatable-read snapshot from
 // hiding evidence committed while the gate was waiting for that guard.
@@ -116,7 +91,11 @@ func (s *Service) checkTaskEvidenceReadTx(ctx context.Context, tx *sql.Tx, p Pri
 
 // InvalidateDependentsTx propagates invalidation through the business task graph.
 // It runs in the transaction that changed the original evidence.
-func (s *Service) InvalidateDependentsTx(ctx context.Context, tx *sql.Tx, p Principal, project string, roots []string, includeRoots bool) error {
+func (s *Service) InvalidateDependentsTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, project string, roots []string, includeRoots bool) error {
+	if err := assertProjectCommand(tx, auth, project); err != nil {
+		return err
+	}
+	p := auth.currentPrincipal
 	rows, err := tx.QueryContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=?`), p.TenantID, project)
 	if err != nil {
 		return err
@@ -166,11 +145,11 @@ func (s *Service) InvalidateDependentsTx(ctx context.Context, tx *sql.Tx, p Prin
 		if n != 1 {
 			return conflict("任务验收并发变化")
 		}
-		if e = s.activity(ctx, tx, p, project, "task.acceptance_invalidated", id, task.Title); e != nil {
+		if e = s.commandActivity(ctx, auth, "task.acceptance_invalidated", id, task.Title); e != nil {
 			return e
 		}
 	}
-	return s.ReopenPlanningTx(ctx, tx, p, project)
+	return s.ReopenPlanningTx(ctx, tx, auth, project)
 }
 
 func (s *Service) checkEvidenceTx(ctx context.Context, tx *sql.Tx, tenant, project, runID string, depth int, seen map[string]bool) error {
@@ -237,7 +216,11 @@ func (s *Service) checkEvidenceReadTx(ctx context.Context, tx *sql.Tx, tenant, p
 	return nil
 }
 
-func (s *Service) InvalidateCompensationTx(ctx context.Context, tx *sql.Tx, p Principal, project, runID string) error {
+func (s *Service) InvalidateCompensationTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, project, runID string) error {
+	if err := assertProjectCommand(tx, auth, project); err != nil {
+		return err
+	}
+	p := auth.currentPrincipal
 	ids := []string{runID}
 	seen := map[string]bool{runID: true}
 	for pos := 0; pos < len(ids); pos++ {
@@ -295,10 +278,10 @@ func (s *Service) InvalidateCompensationTx(ctx context.Context, tx *sql.Tx, p Pr
 			if n != 1 {
 				return conflict("任务验收并发变化")
 			}
-			if e = s.activity(ctx, tx, p, project, "task.acceptance_invalidated", task.ID, task.Title); e != nil {
+			if e = s.commandActivity(ctx, auth, "task.acceptance_invalidated", task.ID, task.Title); e != nil {
 				return e
 			}
-			if e = s.InvalidateDependentsTx(ctx, tx, p, project, []string{task.ID}, false); e != nil {
+			if e = s.InvalidateDependentsTx(ctx, tx, auth, project, []string{task.ID}, false); e != nil {
 				return e
 			}
 		}

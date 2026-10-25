@@ -59,7 +59,7 @@ function rejectSecrets(value:unknown){if(!value||typeof value!=='object')return;
 export class IngressRecovery{
  private value?:IngressPending;private secret?:string;private busy=false;private key:string;private unreadable=false;
  get error(){return this.unreadable?tr("automation.the_event_ingress_recovery_record_is_unreadable_no"):'';}
- constructor(scope:string,private project:string,private rule:string,private storage:StorageLike|undefined){
+ constructor(scope:string,private project:string,private rule:string,private storage:StorageLike|undefined,private transport:typeof api=api){
   this.key='suma-ingress-recovery-v1:'+scope;
   try{const raw=storage?.getItem(this.key);if(raw){const saved=JSON.parse(raw) as IngressPending;this.validate(saved.path,saved.body,true);if(!saved.idempotency_key||typeof saved.idempotency_key!=='string'||saved.body.action==='rotate_key'&&!/^[a-f0-9]{64}$/.test(saved.fingerprint||''))throw new Error('invalid');this.value=saved;}}
   catch{this.unreadable=true;}
@@ -80,7 +80,7 @@ export class IngressRecovery{
   }finally{this.busy=false;}
  }
  async restore<T=AutomationIngress>():Promise<T>{if(this.busy)throw new UiError("automation.the_original_operation_is_still_awaiting_a_receipt_433");if(!this.value)throw new UiError("automation.there_is_no_event_ingress_operation_to_recover");if(this.pending?.secret_lost)throw new UiError("automation.the_current_key_has_left_memory_load_the");this.busy=true;try{return await this.send<T>(true);}finally{this.busy=false;}}
- private async send<T>(restoring:boolean):Promise<T>{const saved=this.value!;try{const result=await api<T>(saved.path,{...saved.body,...(this.secret?{secret:this.secret}:{}),idempotency_key:saved.idempotency_key});this.clear();return result;}catch(error){if(!restoring&&error instanceof ApiError&&error.status>0&&error.status<500)this.clear();throw error;}}
+ private async send<T>(restoring:boolean):Promise<T>{const saved=this.value!;try{const result=await this.transport<T>(saved.path,{...saved.body,...(this.secret?{secret:this.secret}:{}),idempotency_key:saved.idempotency_key});this.clear();return result;}catch(error){if(!restoring&&error instanceof ApiError&&error.status>0&&error.status<500)this.clear();throw error;}}
  forgetSecret(){this.secret=undefined;}
  reconcile(entry:AutomationIngress){if(!this.pending?.secret_lost||this.value?.path!==ingressPath(entry.id)+'/commands')return false;if(entry.key_fingerprint===this.value.fingerprint&&entry.version>Number(this.value.body.expected_version)){this.clear();return true;}return false;}
  acknowledgeMetadata(entry:AutomationIngress){if(!this.pending?.secret_lost||this.value?.path!==ingressPath(entry.id)+'/commands'||entry.version<Number(this.value.body.expected_version))throw new UiError("automation.load_the_latest_metadata_for_the_original_ingress");this.clear();}

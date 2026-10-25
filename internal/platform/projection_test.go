@@ -76,7 +76,7 @@ func TestIndexPoisonEventIsDeadLetteredWithoutBlockingOtherSources(t *testing.T)
 	if seen.get(bad["id"].(string)) != 1 {
 		t.Fatal("permanent failure replayed endlessly")
 	}
-	status, err := f.s.IndexStatus(context.Background(), f.user, f.project)
+	status, err := f.s.IndexStatus(context.Background(), f.actor, f.project)
 	if err != nil || status["failed"] != 1 || status["indexed"] != 1 {
 		t.Fatalf("index status %+v %v", status, err)
 	}
@@ -141,7 +141,7 @@ func TestArchivedDeletedDocumentsAreExcludedFromKeywordSources(t *testing.T) {
 	for _, status := range []string{"active", "archived", "deleted"} {
 		f.call("POST", "/documents", f.body(map[string]any{"title": "scope-keyword " + status, "status": status, "data": map[string]any{"content": "scope-keyword body"}}), 201)
 	}
-	result, err := f.s.SearchKeywords(context.Background(), f.user, f.project, "scope-keyword")
+	result, err := f.s.SearchKeywords(context.Background(), f.actor, f.project, "scope-keyword")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -211,7 +211,7 @@ func TestDeletedSourceRejectsLateIndexHitAndProjectionSchemaIsInstalled(t *testi
 	defer provider.Close()
 	t.Setenv("SUMA_KNOWLEDGE_URL", provider.URL)
 	t.Setenv("SUMA_KNOWLEDGE_TOKEN", "fake-provider-token")
-	result, err := f.s.SearchIndex(context.Background(), f.user, f.project, "content")
+	result, err := f.s.SearchIndex(context.Background(), f.actor, f.project, "content")
 	if err != nil || len(result["items"].([]any)) != 0 {
 		t.Fatalf("late upsert revealed %+v %v", result, err)
 	}

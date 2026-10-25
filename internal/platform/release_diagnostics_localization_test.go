@@ -15,7 +15,7 @@ import (
 
 // The client uses a real loopback HTTP server, including the production language
 // middleware, authorization and error projection. No process-wide locale exists.
-func releaseDiagnosticRequest(client *http.Client, base string, cookie *http.Cookie, method, path, locale string, body any) (int, map[string]any, error) {
+func releaseDiagnosticRequest(client *http.Client, base string, cookie *http.Cookie, view Principal, method, path, locale string, body any) (int, map[string]any, error) {
 	raw, err := json.Marshal(body)
 	if err != nil {
 		return 0, nil, err
@@ -26,6 +26,10 @@ func releaseDiagnosticRequest(client *http.Client, base string, cookie *http.Coo
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept-Language", locale)
+	if cookie != nil && BrowserCommandRequiresView(method, strings.TrimPrefix(path, "/")) {
+		req.Header.Set("X-Suma-Expected-User", view.ID)
+		req.Header.Set("X-Suma-Expected-Organization", view.TenantID)
+	}
 	if cookie != nil {
 		req.AddCookie(cookie)
 	}
@@ -71,7 +75,7 @@ func TestReleaseDiagnosticsHTTPRejectionsAreLocalizedAndSideEffectFree(t *testin
 		{"/release-plans", "release.plan.preview_digest_required", "必须确认最新计划预览摘要", "Confirm the digest of the latest plan preview.", f.body(map[string]any{"expected_environment_generation": 0})},
 	} {
 		for locale, want := range map[string]string{"zh-CN": example.chinese, "en-US": example.english} {
-			status, out, err := releaseDiagnosticRequest(server.Client(), server.URL, f.cookie, "POST", example.path, locale, example.body)
+			status, out, err := releaseDiagnosticRequest(server.Client(), server.URL, f.cookie, f.view, "POST", example.path, locale, example.body)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -102,7 +106,7 @@ func TestReleaseDiagnosticsHTTPConcurrentLanguagesStayIsolated(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			status, out, err := releaseDiagnosticRequest(server.Client(), server.URL, f.cookie, "POST", "/release-workers", locale, body)
+			status, out, err := releaseDiagnosticRequest(server.Client(), server.URL, f.cookie, f.view, "POST", "/release-workers", locale, body)
 			if err != nil {
 				failures <- err
 				return
@@ -131,7 +135,7 @@ func TestReleaseDiagnosticsHTTPStalePlanPreservesHistoryAndReceipts(t *testing.T
 	// this historical reason and every fixed plan digest byte-for-byte intact.
 	const userReason = "计划版本或内容已变化，请刷新后重新审核"
 	var err error
-	plan, err = f.s.ApproveReleasePlan(ctx, f.user, f.project, plan.ID, f.cookie.Value, f.body(map[string]any{"expected_version": plan.Version, "plan_revision": plan.Revision, "plan_sha256": plan.SHA256, "decision": "approved", "reason": userReason}))
+	plan, err = f.s.ApproveReleasePlan(ctx, f.actor, f.project, plan.ID, f.body(map[string]any{"expected_version": plan.Version, "plan_revision": plan.Revision, "plan_sha256": plan.SHA256, "decision": "approved", "reason": userReason}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +167,7 @@ func TestReleaseDiagnosticsHTTPStalePlanPreservesHistoryAndReceipts(t *testing.T
 	defer server.Close()
 	body := f.body(map[string]any{"expected_version": plan.Version + 1, "plan_revision": plan.Revision, "plan_sha256": plan.SHA256, "decision": "approved", "reason": "retry must not overwrite evidence"})
 	for locale, want := range map[string]string{"zh-CN": userReason, "en-US": "The plan version or content has changed. Refresh and review it again."} {
-		status, out, err := releaseDiagnosticRequest(server.Client(), server.URL, f.cookie, "POST", "/release-plans/"+plan.ID+"/approve", locale, body)
+		status, out, err := releaseDiagnosticRequest(server.Client(), server.URL, f.cookie, f.view, "POST", "/release-plans/"+plan.ID+"/approve", locale, body)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -171,7 +175,7 @@ func TestReleaseDiagnosticsHTTPStalePlanPreservesHistoryAndReceipts(t *testing.T
 		if status != 409 || detail["code"] != "version_conflict" || detail["message_key"] != "release.plan.version_changed" || detail["message"] != want || detail["localized"] != true || detail["locale"] != locale {
 			t.Errorf("stale plan diagnostic changed its conflict contract: status=%d locale=%s body=%v", status, locale, out)
 		}
-		status, out, err = releaseDiagnosticRequest(server.Client(), server.URL, f.cookie, "GET", "/release-plans/"+plan.ID+"?project_id="+f.project, locale, nil)
+		status, out, err = releaseDiagnosticRequest(server.Client(), server.URL, f.cookie, f.view, "GET", "/release-plans/"+plan.ID+"?project_id="+f.project, locale, nil)
 		if err != nil || status != 200 || out["sha256"] != plan.SHA256 || out["approval"].(map[string]any)["reason"] != userReason || len(out["approval_history"].([]any)) != 2 {
 			t.Fatalf("localized read changed fixed plan or human approval: status=%d body=%v err=%v", status, out, err)
 		}
@@ -210,7 +214,7 @@ func TestReleaseDiagnosticsHTTPPublicCatalogCanRedisplayFixedReason(t *testing.T
 	f := newFixture(t)
 	server := httptest.NewServer(f.handler)
 	defer server.Close()
-	status, out, err := releaseDiagnosticRequest(server.Client(), server.URL, nil, "GET", "/localization/catalog", "en-US", nil)
+	status, out, err := releaseDiagnosticRequest(server.Client(), server.URL, nil, Principal{}, "GET", "/localization/catalog", "en-US", nil)
 	if err != nil || status != 200 {
 		t.Fatalf("public catalog unavailable: status=%d err=%v", status, err)
 	}

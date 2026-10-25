@@ -14,6 +14,7 @@
   "common.responseUnknown": "服务已返回成功状态，但回执未完整读取。操作结果尚未确认，请恢复同一操作。",
   "common.httpFailure": "请求失败（{{status}}），错误回执未完整读取。",
   "common.httpFailed": "请求失败（{{status}}）",
+  "common.viewContextConflict": "原视图身份与本请求不一致。请重新读取视图后再发起新操作。",
   "nav.overview": "项目概览",
   "nav.requirements": "需求规划",
   "nav.development": "开发协作",

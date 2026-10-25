@@ -20,6 +20,10 @@ func workspaceLocalizedCall(f *fixture, method, path, locale string, body any) (
 	r := httptest.NewRequest(method, "http://suma.test/api/v1"+path, bytes.NewReader(raw))
 	r.Header.Set("Content-Type", "application/json")
 	r.Header.Set("Accept-Language", locale)
+	if BrowserCommandRequiresView(method, strings.TrimPrefix(path, "/")) {
+		r.Header.Set("X-Suma-Expected-User", f.view.ID)
+		r.Header.Set("X-Suma-Expected-Organization", f.view.TenantID)
+	}
 	if f.cookie != nil {
 		r.AddCookie(f.cookie)
 	}

@@ -50,6 +50,7 @@ func TestGovernanceInvitationCreatesRealAccountAndProjectGrant(t *testing.T) {
 	f.call("POST", "/auth/logout", map[string]any{}, 200)
 	f.call("POST", "/auth/login", map[string]any{"email": "new@example.test", "password": "invited-password-strong-42"}, 200)
 	f.cookie = ownerCookie
+	f.call("GET", "/auth/session", nil, 200)
 	members := f.call("GET", "/organization/members", nil, 200)
 	if members["total"] != float64(2) {
 		t.Fatalf("real membership missing: %v", members)
@@ -113,6 +114,7 @@ func TestGovernanceOrganizationSwitchExistingPasswordAndForeignProject(t *testin
 	f.call("POST", "/auth/invitations/accept", map[string]any{"token": inv["token"], "email": "owner@example.test", "name": "replace owner", "password": "test-password-strong-42", "idempotency_key": newID()}, 409)
 	// Existing membership is preserved; it cannot be downgraded by invitation.
 	f.cookie = ownerCookie
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("POST", "/auth/switch", map[string]any{"organization_id": "foreign-org", "idempotency_key": newID()}, 403)
 	orgs := f.call("GET", "/organizations", nil, 200)
 	if orgs["total"] != float64(2) {
@@ -134,6 +136,7 @@ func TestGovernanceOwnerProtectionRemovalRevokesSessionAndGrants(t *testing.T) {
 	f.call("PATCH", "/organization/members/"+f.user.ID, map[string]any{"role": "member", "expected_version": 1, "idempotency_key": newID()}, 403)
 	f.call("PATCH", "/organization/members/"+adminID, map[string]any{"role": "owner", "expected_version": 1, "idempotency_key": newID()}, 403)
 	f.cookie = ownerCookie
+	f.call("GET", "/auth/session", nil, 200)
 	removed := f.call("PATCH", "/organization/members/"+adminID, map[string]any{"action": "remove", "expected_version": 1, "idempotency_key": newID()}, 200)
 	if removed["status"] != "removed" {
 		t.Fatalf("membership not removed: %v", removed)
@@ -155,6 +158,7 @@ func TestGovernanceTeamsUseRealIdentitiesAndDoNotGrantAccess(t *testing.T) {
 	memberCookie := f.cookie
 	memberID := accepted["user"].(map[string]any)["id"]
 	f.cookie = ownerCookie
+	f.call("GET", "/auth/session", nil, 200)
 	team := f.call("POST", "/teams", map[string]any{"name": "研发组", "description": "真实身份", "idempotency_key": newID()}, 201)
 	path := "/teams/" + team["id"].(string) + "/members"
 	f.call("POST", path, map[string]any{"resource_kind": "human", "resource_id": "fake", "role": "member", "expected_version": 0, "idempotency_key": newID()}, 400)
@@ -167,6 +171,7 @@ func TestGovernanceTeamsUseRealIdentitiesAndDoNotGrantAccess(t *testing.T) {
 	f.call("POST", path, map[string]any{"resource_kind": "agent", "resource_id": agent["id"], "project_id": f.project, "role": "member", "expected_version": 0, "idempotency_key": newID()}, 200)
 	f.call("PATCH", "/teams/"+team["id"].(string), map[string]any{"name": "陈旧写入", "expected_version": 99, "idempotency_key": newID()}, 409)
 	f.cookie = memberCookie
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("GET", "/tasks?project_id="+f.project, nil, 403)
 	f.call("POST", path, map[string]any{"resource_kind": "human", "resource_id": memberID, "role": "lead", "expected_version": 1, "idempotency_key": newID()}, 403)
 }
@@ -179,6 +184,7 @@ func TestGovernanceProjectGrantAuthorityCASAndRealAccess(t *testing.T) {
 	memberCookie := f.cookie
 	memberID := accepted["user"].(map[string]any)["id"]
 	f.cookie = ownerCookie
+	f.call("GET", "/auth/session", nil, 200)
 	body := map[string]any{"project_id": f.project, "user_id": memberID, "role": "viewer", "expected_version": 0, "idempotency_key": newID()}
 	grant := f.call("POST", "/project-access", body, 200)
 	if grant["version"] != float64(1) {
@@ -187,16 +193,21 @@ func TestGovernanceProjectGrantAuthorityCASAndRealAccess(t *testing.T) {
 	f.call("POST", "/project-access", body, 200)
 	f.call("POST", "/project-access", map[string]any{"project_id": f.project, "user_id": memberID, "role": "admin", "expected_version": 0, "idempotency_key": newID()}, 409)
 	f.cookie = memberCookie
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("GET", "/tasks?project_id="+f.project, nil, 200)
 	f.call("POST", "/tasks", f.body(map[string]any{"title": "viewer write"}), 403)
 	f.call("POST", "/project-access", map[string]any{"project_id": f.project, "user_id": memberID, "role": "admin", "expected_version": 1, "idempotency_key": newID()}, 403)
 	f.cookie = ownerCookie
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("POST", "/project-access", map[string]any{"project_id": f.project, "user_id": memberID, "role": "developer", "expected_version": 1, "idempotency_key": newID()}, 200)
 	f.cookie = memberCookie
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("POST", "/tasks", f.body(map[string]any{"title": "developer write"}), 201)
 	f.cookie = ownerCookie
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("POST", "/project-access", map[string]any{"project_id": f.project, "user_id": memberID, "action": "remove", "expected_version": 2, "idempotency_key": newID()}, 200)
 	f.cookie = memberCookie
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("GET", "/tasks?project_id="+f.project, nil, 403)
 }
 
@@ -263,6 +274,7 @@ func TestGovernanceExistingAccountCanJoinAnotherOrganizationWithoutPasswordOverw
 	memberCookie := f.cookie
 	memberID := joined["user"].(map[string]any)["id"]
 	f.cookie = ownerCookie
+	f.call("GET", "/auth/session", nil, 200)
 	org := f.call("POST", "/organizations", map[string]any{"name": "受邀第二组织", "idempotency_key": newID()}, 201)
 	f.call("POST", "/auth/switch", map[string]any{"organization_id": org["id"], "idempotency_key": newID()}, 200)
 	project := f.call("POST", "/projects", map[string]any{"name": "权限隔离项目", "idempotency_key": newID()}, 201)
@@ -278,6 +290,7 @@ func TestGovernanceExistingAccountCanJoinAnotherOrganizationWithoutPasswordOverw
 	}
 	f.call("GET", "/tasks?project_id="+f.project, nil, 404)
 	f.cookie = memberCookie
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("GET", "/tasks?project_id="+project["id"].(string), nil, 404)
 	f.call("POST", "/auth/switch", map[string]any{"organization_id": org["id"], "idempotency_key": newID()}, 200)
 	f.call("GET", "/tasks?project_id="+project["id"].(string), nil, 200)
@@ -296,10 +309,12 @@ func TestGovernanceProjectAdminCanManageOnlyOwnProjects(t *testing.T) {
 	adminCookie := f.cookie
 	adminID := admin["user"].(map[string]any)["id"]
 	f.cookie = ownerCookie
+	f.call("GET", "/auth/session", nil, 200)
 	memberInvite := governanceInvite(f, "project-target@example.test", "member", nil)
 	member := governanceAccept(f, memberInvite, "project-target@example.test")
 	memberID := member["user"].(map[string]any)["id"]
 	f.cookie = adminCookie
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("POST", "/project-access", map[string]any{"project_id": f.project, "user_id": memberID, "role": "developer", "expected_version": 0, "idempotency_key": newID()}, 200)
 	f.call("GET", "/project-access?project_id="+f.project, nil, 200)
 	f.call("POST", "/project-access", map[string]any{"project_id": other["id"], "user_id": adminID, "role": "admin", "expected_version": 0, "idempotency_key": newID()}, 403)
@@ -314,6 +329,7 @@ func TestGovernanceGrantTombstonePreventsStaleRegrantAndFractionalCAS(t *testing
 	member := governanceAccept(f, inv, "tombstone@example.test")
 	memberID := member["user"].(map[string]any)["id"]
 	f.cookie = ownerCookie
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("POST", "/project-access", map[string]any{"project_id": f.project, "user_id": memberID, "role": "admin", "expected_version": 1.25, "idempotency_key": newID()}, 400)
 	f.call("POST", "/project-access", map[string]any{"project_id": f.project, "user_id": memberID, "action": "remove", "expected_version": 1, "idempotency_key": newID()}, 200)
 	f.call("POST", "/project-access", map[string]any{"project_id": f.project, "user_id": memberID, "role": "developer", "expected_version": 0, "idempotency_key": newID()}, 409)
@@ -341,6 +357,7 @@ func TestGovernanceOwnerTransferAndConcurrentDemotionRetainsOneOwner(t *testing.
 	member := governanceAccept(f, inv, "co-owner@example.test")
 	id := member["user"].(map[string]any)["id"].(string)
 	f.cookie = ownerCookie
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("PATCH", "/organization/members/"+id, map[string]any{"action": "transfer_owner", "role": "owner", "expected_version": 1, "idempotency_key": newID()}, 200)
 	var sequence int
 	var schema, path string
@@ -353,7 +370,19 @@ func TestGovernanceOwnerTransferAndConcurrentDemotionRetainsOneOwner(t *testing.
 	}
 	t.Cleanup(func() { other.Close() })
 	services := []*Service{f.s, {DB: other, Dialect: "sqlite"}}
-	principals := []Principal{f.user, {ID: id, TenantID: f.user.TenantID, Role: "owner"}}
+	ownerActor, err := f.s.AuthenticateActor(context.Background(), ownerCookie.Value)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, memberToken, err := services[1].Login(context.Background(), "co-owner@example.test", "invited-password-strong-42")
+	if err != nil {
+		t.Fatal(err)
+	}
+	memberActor, err := services[1].AuthenticateActor(context.Background(), memberToken)
+	if err != nil {
+		t.Fatal(err)
+	}
+	principals := []Actor{ownerActor, memberActor}
 	versions := []float64{1, 2}
 	errs := make(chan error, 2)
 	var wg sync.WaitGroup
@@ -361,7 +390,7 @@ func TestGovernanceOwnerTransferAndConcurrentDemotionRetainsOneOwner(t *testing.
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			_, err := services[i].UpdateOrganizationMember(context.Background(), principals[i], principals[i].ID, map[string]any{"role": "member", "expected_version": versions[i], "idempotency_key": newID()})
+			_, err := services[i].UpdateOrganizationMember(context.Background(), principals[i], principals[i].Projection().ID, map[string]any{"role": "member", "expected_version": versions[i], "idempotency_key": newID()})
 			errs <- err
 		}(i)
 	}
@@ -392,28 +421,37 @@ func TestGovernanceHumanResourceBindingRequiresRealProjectIdentity(t *testing.T)
 	ownerCookie := f.cookie
 	inv := governanceInvite(f, "human-binding@example.test", "member", nil)
 	member := governanceAccept(f, inv, "human-binding@example.test")
+	memberCookie := f.cookie
 	id := member["user"].(map[string]any)["id"].(string)
 	f.cookie = ownerCookie
-	check := func(actor Principal, user, project string, want bool) {
+	f.call("GET", "/auth/session", nil, 200)
+	ownerActor, err := f.s.AuthenticateActor(context.Background(), ownerCookie.Value)
+	if err != nil {
+		t.Fatal(err)
+	}
+	check := func(actor Actor, user, project string, want bool) {
 		t.Helper()
 		tx, err := f.s.DB.BeginTx(context.Background(), nil)
 		if err != nil {
 			t.Fatal(err)
 		}
-		err = f.s.BindHumanResourceTx(context.Background(), tx, actor, project, user)
+		auth, err := f.s.authorizeTx(context.Background(), tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectWrite)
+		if err == nil {
+			err = f.s.BindHumanResourceTx(context.Background(), tx, auth, project, user)
+		}
 		tx.Rollback()
 		if (err == nil) != want {
 			t.Fatalf("binding user=%s project=%s success=%v want=%v error=%v", user, project, err == nil, want, err)
 		}
 	}
-	check(f.user, f.user.ID, f.project, true)
-	check(f.user, "", f.project, false)
-	check(f.user, "nonexistent-user", f.project, false)
-	check(f.user, id, f.project, false)
-	check(f.user, f.user.ID, "foreign-project", false)
+	check(ownerActor, f.user.ID, f.project, true)
+	check(ownerActor, "", f.project, false)
+	check(ownerActor, "nonexistent-user", f.project, false)
+	check(ownerActor, id, f.project, false)
+	check(ownerActor, f.user.ID, "foreign-project", false)
 	f.call("POST", "/project-access", map[string]any{"project_id": f.project, "user_id": id, "role": "viewer", "expected_version": 0, "idempotency_key": newID()}, 200)
-	check(f.user, id, f.project, true)
-	check(Principal{ID: id, TenantID: f.user.TenantID, Role: "owner"}, f.user.ID, f.project, false)
+	check(ownerActor, id, f.project, true)
+	check(domainAActor(t, f.s, memberCookie.Value), f.user.ID, f.project, false)
 }
 
 func TestGovernanceRemovedMembershipInvalidatesEarlierGrantTombstone(t *testing.T) {
@@ -423,11 +461,13 @@ func TestGovernanceRemovedMembershipInvalidatesEarlierGrantTombstone(t *testing.
 	member := governanceAccept(f, inv, "rejoin@example.test")
 	id := member["user"].(map[string]any)["id"].(string)
 	f.cookie = ownerCookie
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("POST", "/project-access", map[string]any{"project_id": f.project, "user_id": id, "action": "remove", "expected_version": 1, "idempotency_key": newID()}, 200)
 	f.call("PATCH", "/organization/members/"+id, map[string]any{"action": "remove", "expected_version": 1, "idempotency_key": newID()}, 200)
 	rejoin := governanceInvite(f, "rejoin@example.test", "member", nil)
 	governanceAccept(f, rejoin, "rejoin@example.test")
 	f.cookie = ownerCookie
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("POST", "/project-access", map[string]any{"project_id": f.project, "user_id": id, "role": "developer", "expected_version": 2, "idempotency_key": newID()}, 409)
 }
 

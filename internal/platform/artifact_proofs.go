@@ -17,12 +17,21 @@ func scanArtifactProof(row interface{ Scan(...any) error }) (ArtifactProof, erro
 	return p, err
 }
 
-func (s *Service) verifyArtifactResultTx(ctx context.Context, tx *sql.Tx, p Principal, project, token string, result dag.Result, state string) error {
+func (s *Service) verifyArtifactResultTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, result dag.Result, state string) error {
+	if auth == nil {
+		return unauthenticated()
+	}
+	if err := auth.assertTx(tx, auth.target, purposeRunnerWrite); err != nil {
+		return err
+	}
+	p, project := auth.currentPrincipal, auth.target.projectID
+
 	e := result.ArtifactEvidence
 	if e == nil {
 		return nil
 	}
-	if err := s.releaseWorkerTx(ctx, tx, p, project, token, result.WorkerID, e.ProfileID, e.ProfileSHA256, e.Kind); err != nil {
+	err := s.releaseWorkerBindingTx(ctx, tx, auth, result.WorkerID, e.ProfileID, e.ProfileSHA256, e.Kind)
+	if err != nil {
 		return err
 	}
 	// Failed or uncertain attempts retain observations, never publication proof.
@@ -71,7 +80,7 @@ func (s *Service) verifyArtifactResultTx(ctx context.Context, tx *sql.Tx, p Prin
 		if err != nil {
 			return err
 		}
-		if u.State != "sealed" || u.Assignment != artifactRef(result) || u.TokenHash != digest(token) || u.ProfileID != e.ProfileID || u.ProfileSHA256 != e.ProfileSHA256 {
+		if u.State != "sealed" || u.Assignment != artifactRef(result) || u.TokenHash != auth.actor.credential.digest || u.ProfileID != e.ProfileID || u.ProfileSHA256 != e.ProfileSHA256 {
 			return conflict("制品不属于本次构建身份或固定配置")
 		}
 	case "package_test":
@@ -134,17 +143,21 @@ func (s *Service) artifactProofReadTx(ctx context.Context, tx *sql.Tx, p Princip
 	return proof, nil
 }
 
-func (s *Service) ResolveArtifactInput(ctx context.Context, p Principal, project, token string, r rc.ArtifactResolveRequest) (rc.ArtifactBinding, error) {
+func (s *Service) ResolveArtifactInput(ctx context.Context, actor Actor, project string, r rc.ArtifactResolveRequest) (rc.ArtifactBinding, error) {
+	p := actor.Projection()
+
 	var out rc.ArtifactBinding
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.releaseWorkerTx(ctx, tx, p, project, token, r.Assignment.WorkerID, "", "", "identity"); err != nil {
+	auth, err := s.releaseWorkerTx(ctx, tx, actor, project, r.Assignment.WorkerID, "", "", "identity")
+	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, r.OperationID, map[string]any{"resolve_artifact": r})
+	hash, replay, err := s.commandReceipt(ctx, auth, r.OperationID, map[string]any{"resolve_artifact": r})
 	if err != nil {
 		return out, err
 	}
@@ -163,7 +176,7 @@ func (s *Service) ResolveArtifactInput(ctx context.Context, p Principal, project
 		return out, invalid("包测试需要唯一的管理员测试配置")
 	}
 	var registered string
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT profiles FROM suma_release_workers WHERE token_hash=? AND tenant_id=? AND project_id=?`), digest(token), p.TenantID, project).Scan(&registered); err != nil {
+	if err = tx.QueryRowContext(ctx, s.q(`SELECT profiles FROM suma_release_workers WHERE token_hash=? AND tenant_id=? AND project_id=?`), actor.credential.digest, p.TenantID, project).Scan(&registered); err != nil {
 		return out, forbidden()
 	}
 	var profiles []ReleaseProfileRegistration
@@ -233,31 +246,49 @@ func (s *Service) ResolveArtifactInput(ctx context.Context, p Principal, project
 	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_artifact_bindings(tenant_id,project_id,run_id,node_id,attempt,fence,worker_id,source_node_id,binding)VALUES(?,?,?,?,?,?,?,?,?)`), p.TenantID, project, r.Assignment.RunID, r.Assignment.NodeID, r.Assignment.Attempt, r.Assignment.Fence, r.Assignment.WorkerID, r.SourceNodeID, stringify(out)); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, r.OperationID, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, r.OperationID, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
 }
 
-func (s *Service) RunnerArtifactBlob(ctx context.Context, p Principal, project, token, id, hash string, a rc.AssignmentRef) ([]byte, error) {
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+func (s *Service) RunnerArtifactBlob(ctx context.Context, actor Actor, project, id, hash string, a rc.AssignmentRef) ([]byte, error) {
+	var ref artifactReadRef
+	target := commandTarget{tenantID: actor.credential.tenantID, projectID: project}
+	read := func(auth *authorizedCommand) error {
+		tx, p := auth.tx, auth.currentPrincipal
+		if err := s.releaseWorkerBindingTx(ctx, tx, auth, a.WorkerID, "", "", "identity"); err != nil {
+			return err
+		}
+		var err error
+		if _, err = s.currentArtifactAssignmentTx(ctx, tx, p, project, a); err != nil {
+			return err
+		}
+		var binding string
+		if err = tx.QueryRowContext(ctx, s.q(`SELECT binding FROM suma_artifact_bindings WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND worker_id=?`), p.TenantID, project, a.RunID, a.NodeID, a.Attempt, a.Fence, a.WorkerID).Scan(&binding); err != nil {
+			return forbidden()
+		}
+		var b rc.ArtifactBinding
+		if json.Unmarshal([]byte(binding), &b) != nil || b.ArtifactID != id {
+			return forbidden()
+		}
+		ref, err = s.artifactBlobReferenceTx(ctx, tx, p, project, id, hash)
+		return err
+
+	}
+	if err := s.withCurrentRead(ctx, actor, target, purposeRunnerRead, read); err != nil {
+		return nil, err
+	}
+	initial := ref
+	b, err := s.readArtifactBlob(ref.path, ref.hash, ref.size)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
-	if err = s.releaseWorkerTx(ctx, tx, p, project, token, a.WorkerID, "", "", "identity"); err != nil {
+	if err = s.withCurrentRead(ctx, actor, target, purposeRunnerRead, read); err != nil {
 		return nil, err
 	}
-	if _, err = s.currentArtifactAssignmentTx(ctx, tx, p, project, a); err != nil {
-		return nil, err
+	if ref != initial {
+		return nil, conflict("制品读取依据已变化，请重试")
 	}
-	var binding string
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT binding FROM suma_artifact_bindings WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND worker_id=?`), p.TenantID, project, a.RunID, a.NodeID, a.Attempt, a.Fence, a.WorkerID).Scan(&binding); err != nil {
-		return nil, forbidden()
-	}
-	var b rc.ArtifactBinding
-	if json.Unmarshal([]byte(binding), &b) != nil || b.ArtifactID != id {
-		return nil, forbidden()
-	}
-	return s.releaseArtifactBlobTx(ctx, tx, p, project, id, hash)
+	return b, nil
 }

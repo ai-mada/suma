@@ -56,7 +56,7 @@ func attemptHistoryQuery(r *http.Request, attemptRaw string) (string, int, int, 
 	return project, int(attempt), int(limit), cursor, nil
 }
 
-func (s *Server) attemptToolHistoryHTTP(w http.ResponseWriter, r *http.Request, p Principal, scope string, parts []string, project string) {
+func (s *Server) attemptToolHistoryHTTP(w http.ResponseWriter, r *http.Request, actor Actor, parts []string, project string) {
 	queryProject, attempt, limit, cursor, err := attemptHistoryQuery(r, parts[5])
 	if err != nil {
 		writeError(w, err)
@@ -66,17 +66,19 @@ func (s *Server) attemptToolHistoryHTTP(w http.ResponseWriter, r *http.Request, 
 		writeError(w, forbidden())
 		return
 	}
-	tx, err := s.Service.DB.BeginTx(r.Context(), nil)
+	ctx, tx, cleanup, err := s.Service.beginAuthorityTx(r.Context())
 	if err != nil {
 		writeError(w, err)
 		return
 	}
+	defer cleanup()
 	defer tx.Rollback()
-	if err = s.authorizePersistentRunReadTx(r.Context(), tx, tokenOf(r), p, scope, project, parts[1]); err != nil {
+	auth, err := s.authorizePersistentRunReadTx(ctx, tx, actor, project, parts[1])
+	if err != nil {
 		writeError(w, err)
 		return
 	}
-	out, err := s.Engine.AttemptToolEventsPageTx(r.Context(), tx, p.TenantID, project, parts[1], parts[3], attempt, limit, cursor)
+	out, err := s.Engine.AttemptToolEventsPageTx(auth.ctx, tx, auth.currentPrincipal.TenantID, project, parts[1], parts[3], attempt, limit, cursor)
 	if err == nil {
 		err = tx.Commit()
 	}

@@ -203,6 +203,19 @@ func encodeSchedulingCursor(c schedulingCursor) string {
 }
 
 func (e *Engine) QueuePage(ctx context.Context, tenant, project string, limit int, cursor string) (ReadyPage, error) {
+	return e.queuePage(ctx, nil, tenant, project, limit, cursor)
+}
+
+// QueuePageTx shares the caller's current-authority transaction and does not
+// commit, roll back, or advance persisted execution state.
+func (e *Engine) QueuePageTx(ctx context.Context, tx *sql.Tx, tenant, project string, limit int, cursor string) (ReadyPage, error) {
+	if tx == nil {
+		return ReadyPage{}, ErrInvalid
+	}
+	return e.queuePage(ctx, tx, tenant, project, limit, cursor)
+}
+
+func (e *Engine) queuePage(ctx context.Context, tx *sql.Tx, tenant, project string, limit int, cursor string) (ReadyPage, error) {
 	out := ReadyPage{Items: []ReadyEntry{}}
 	if err := scopeValid(tenant, project); err != nil {
 		return out, err
@@ -217,11 +230,14 @@ func (e *Engine) QueuePage(ctx context.Context, tenant, project string, limit in
 	if err != nil {
 		return out, err
 	}
-	tx, err := e.db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
-	if err != nil {
-		return out, err
+	owned := tx == nil
+	if owned {
+		tx, err = e.db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+		if err != nil {
+			return out, err
+		}
+		defer tx.Rollback()
 	}
-	defer tx.Rollback()
 	if err = tx.QueryRowContext(ctx, e.q(`SELECT COUNT(*) FROM dag_ready_v2 q JOIN dag_nodes n ON n.run_id=q.run_id AND n.id=q.node_id WHERE q.tenant_id=? AND q.project_id=? AND n.state='ready'`), tenant, project).Scan(&out.Total); err != nil {
 		return out, err
 	}
@@ -273,19 +289,39 @@ func (e *Engine) QueuePage(ctx context.Context, tenant, project string, limit in
 		}
 		out.Items[i].Admission = &snapshot
 	}
-	return out, tx.Commit()
+	if owned {
+		return out, tx.Commit()
+	}
+	return out, nil
 }
 
 func (e *Engine) GetAttempt(ctx context.Context, tenant, project, runID, nodeID string, attempt int) (ExecutionAttempt, error) {
+	return e.getAttempt(ctx, nil, tenant, project, runID, nodeID, attempt)
+}
+
+// GetAttemptTx shares the caller's current-authority transaction and does not
+// commit, roll back, or advance persisted execution state.
+func (e *Engine) GetAttemptTx(ctx context.Context, tx *sql.Tx, tenant, project, runID, nodeID string, attempt int) (ExecutionAttempt, error) {
+	if tx == nil {
+		return ExecutionAttempt{}, ErrInvalid
+	}
+	return e.getAttempt(ctx, tx, tenant, project, runID, nodeID, attempt)
+}
+
+func (e *Engine) getAttempt(ctx context.Context, tx *sql.Tx, tenant, project, runID, nodeID string, attempt int) (ExecutionAttempt, error) {
 	var out ExecutionAttempt
 	if attempt < 1 {
 		return out, dagDiagnostic(fmt.Errorf("%w: attempt must be positive", ErrInvalid), "dag.attempt.positive", nil)
 	}
-	tx, err := e.db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
-	if err != nil {
-		return out, err
+	owned := tx == nil
+	var err error
+	if owned {
+		tx, err = e.db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+		if err != nil {
+			return out, err
+		}
+		defer tx.Rollback()
 	}
-	defer tx.Rollback()
 	var raw string
 	err = tx.QueryRowContext(ctx, e.q(`SELECT a.run_id,a.node_id,a.attempt,a.fence,a.worker_id,a.state,a.started_at,a.completed_at,a.result FROM dag_attempts a JOIN dag_runs r ON r.id=a.run_id WHERE r.tenant_id=? AND r.project_id=? AND a.run_id=? AND a.node_id=? AND a.attempt=?`), tenant, project, runID, nodeID, attempt).Scan(&out.RunID, &out.NodeID, &out.Attempt, &out.Fence, &out.WorkerID, &out.State, &out.StartedAt, &out.CompletedAt, &raw)
 	if err == sql.ErrNoRows {
@@ -304,7 +340,10 @@ func (e *Engine) GetAttempt(ctx context.Context, tenant, project, runID, nodeID 
 	if observations > 0 {
 		out.ResultSource = "managed_observation"
 	}
-	return out, tx.Commit()
+	if owned {
+		return out, tx.Commit()
+	}
+	return out, nil
 }
 
 func attemptResultSource(out *ExecutionAttempt, raw string) error {
@@ -374,6 +413,19 @@ func attemptResultSource(out *ExecutionAttempt, raw string) error {
 }
 
 func (e *Engine) AttemptsPage(ctx context.Context, tenant, project, runID, nodeID string, limit int, cursor string) (AttemptPage, error) {
+	return e.attemptsPage(ctx, nil, tenant, project, runID, nodeID, limit, cursor)
+}
+
+// AttemptsPageTx shares the caller's current-authority transaction and does not
+// commit, roll back, or advance persisted execution state.
+func (e *Engine) AttemptsPageTx(ctx context.Context, tx *sql.Tx, tenant, project, runID, nodeID string, limit int, cursor string) (AttemptPage, error) {
+	if tx == nil {
+		return AttemptPage{}, ErrInvalid
+	}
+	return e.attemptsPage(ctx, tx, tenant, project, runID, nodeID, limit, cursor)
+}
+
+func (e *Engine) attemptsPage(ctx context.Context, tx *sql.Tx, tenant, project, runID, nodeID string, limit int, cursor string) (AttemptPage, error) {
 	out := AttemptPage{Items: []ExecutionAttempt{}}
 	if limit <= 0 {
 		limit = 50
@@ -385,11 +437,14 @@ func (e *Engine) AttemptsPage(ctx context.Context, tenant, project, runID, nodeI
 	if err != nil {
 		return out, err
 	}
-	tx, err := e.db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
-	if err != nil {
-		return out, err
+	owned := tx == nil
+	if owned {
+		tx, err = e.db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+		if err != nil {
+			return out, err
+		}
+		defer tx.Rollback()
 	}
-	defer tx.Rollback()
 	var exists int
 	if err = tx.QueryRowContext(ctx, e.q(`SELECT COUNT(*) FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, runID).Scan(&exists); err != nil {
 		return out, err
@@ -444,5 +499,8 @@ func (e *Engine) AttemptsPage(ctx context.Context, tenant, project, runID, nodeI
 		last := out.Items[len(out.Items)-1]
 		out.NextCursor = encodeSchedulingCursor(schedulingCursor{Tenant: tenant, Project: project, Kind: "attempts:" + runID + ":" + nodeID, Node: last.NodeID, Attempt: last.Attempt})
 	}
-	return out, tx.Commit()
+	if owned {
+		return out, tx.Commit()
+	}
+	return out, nil
 }

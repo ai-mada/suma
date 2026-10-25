@@ -78,23 +78,39 @@ func (s *Service) TickAutomations(ctx context.Context, e *dag.Engine) error {
 	}
 	return errors.Join(failures...)
 }
-func automationActor(ref automationRef, id string) Principal {
-	return Principal{ID: id, TenantID: ref.tenant}
-}
 func automationAuthorityFailure(err error) bool {
 	var ae *APIError
 	return errors.As(err, &ae) && (ae.Status == 403 || ae.Status == 404)
 }
 func (s *Service) materializeAutomation(ctx context.Context, ref automationRef) error {
-	tx, err := s.DB.BeginTx(ctx, nil)
+	actor, err := s.durableAutomationActor(ctx, s.DB, ref)
+	if err != nil {
+		if automationAuthorityFailure(err) {
+			return nil
+		}
+		return err
+	}
+	ctx, tx, cleanup, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return err
 	}
+	defer cleanup()
 	defer tx.Rollback()
-	if err = s.lockOrganization(ctx, tx, ref.tenant); err != nil {
-		return err
+	target := commandTarget{tenantID: ref.tenant, projectID: ref.project, resourceID: ref.id}
+	auth, err := s.authorizeTx(ctx, tx, actor, target, purposeAutomationMaterialize)
+	if err != nil {
+		if !automationAuthorityFailure(err) {
+			return err
+		}
+		auth, err = s.authorizeTx(ctx, tx, actor, target, purposeAutomationEvaluate)
+		if err != nil {
+			if automationAuthorityFailure(err) {
+				return nil
+			}
+			return err
+		}
 	}
-	p := automationActor(ref, "")
+	p := auth.currentPrincipal
 	a, err := s.automationRuleTx(ctx, tx, p, ref.project, ref.id)
 	if err != nil {
 		return err
@@ -130,9 +146,10 @@ func (s *Service) materializeAutomation(ctx context.Context, ref automationRef) 
 	}
 	a.NextAt = automationStamp(future)
 	a.LastError = ""
-	actor := automationActor(ref, a.ActivatedBy)
-	if err = s.authorizeProjectTx(ctx, tx, actor, ref.project, true, true); err == nil {
-		err = s.automationWorkflow(ctx, tx, actor, ref.project, a.AutomationSpec)
+	if auth.activationDenied {
+		err = forbidden()
+	} else {
+		err = s.automationWorkflow(ctx, tx, auth.currentPrincipal, ref.project, a.AutomationSpec)
 	}
 	if err != nil {
 		var ae *APIError
@@ -140,7 +157,7 @@ func (s *Service) materializeAutomation(ctx context.Context, ref automationRef) 
 			return err
 		}
 		a.LastError = "activation_authority_or_workflow_unavailable"
-		if _, err = s.insertAutomationOccurrence(ctx, tx, p, a, "cron", automationStamp(next), "blocked", a.LastError+";window_end="+automationStamp(latest), automationStamp(next)); err != nil {
+		if _, err = s.insertAutomationOccurrence(ctx, auth, a, "cron", automationStamp(next), "blocked", a.LastError+";window_end="+automationStamp(latest), automationStamp(next)); err != nil {
 			return err
 		}
 		if _, err = tx.ExecContext(ctx, s.q(`UPDATE suma_automation_occurrences SET state='blocked',reason=?,updated_at=? WHERE tenant_id=? AND project_id=? AND rule_id=? AND state='queued'`), a.LastError, automationStamp(clock), ref.tenant, ref.project, ref.id); err != nil {
@@ -149,7 +166,7 @@ func (s *Service) materializeAutomation(ctx context.Context, ref automationRef) 
 	} else {
 		missed := next.Before(clock.Truncate(time.Minute))
 		insert := func(at time.Time, state, reason string) error {
-			_, e := s.insertAutomationOccurrence(ctx, tx, p, a, "cron", automationStamp(at), state, reason, automationStamp(at))
+			_, e := s.insertAutomationOccurrence(ctx, auth, a, "cron", automationStamp(at), state, reason, automationStamp(at))
 			return e
 		}
 		switch {
@@ -192,6 +209,9 @@ func (s *Service) materializeAutomation(ctx context.Context, ref automationRef) 
 	if _, err = tx.ExecContext(ctx, s.q(`UPDATE suma_automations SET next_at=?,last_error=? WHERE tenant_id=? AND project_id=? AND id=?`), a.NextAt, a.LastError, ref.tenant, ref.project, ref.id); err != nil {
 		return err
 	}
+	if err = auth.assertTx(tx, target, auth.purpose); err != nil {
+		return err
+	}
 	return tx.Commit()
 }
 
@@ -199,12 +219,21 @@ type automationDeferred struct{ state, reason string }
 
 func (e *automationDeferred) Error() string { return e.reason }
 
-func (s *Service) automationAdmission(ctx context.Context, tx *sql.Tx, ref automationRef, id string) (AutomationRule, AutomationOccurrence, error) {
+func (s *Service) automationAdmission(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, ref automationRef, id string) (AutomationRule, AutomationOccurrence, error) {
 	var o AutomationOccurrence
-	if err := s.lockOrganization(ctx, tx, ref.tenant); err != nil {
+	if auth == nil {
+		return AutomationRule{}, o, forbidden()
+	}
+	if err := auth.assertTx(tx, auth.target, auth.purpose); err != nil {
 		return AutomationRule{}, o, err
 	}
-	a, err := s.automationRuleTx(ctx, tx, automationActor(ref, ""), ref.project, ref.id)
+	if auth.target.tenantID != ref.tenant || auth.target.projectID != ref.project || auth.actor.kind != actorDurableAutomation || auth.actor.delegation.recordID != ref.id {
+		return AutomationRule{}, o, forbidden()
+	}
+	if auth.purpose != purposeAutomationAdmit && auth.purpose != purposeAutomationEvaluate {
+		return AutomationRule{}, o, forbidden()
+	}
+	a, err := s.automationRuleTx(ctx, tx, auth.currentPrincipal, ref.project, ref.id)
 	if err != nil {
 		return a, o, err
 	}
@@ -218,12 +247,9 @@ func (s *Service) automationAdmission(ctx context.Context, tx *sql.Tx, ref autom
 	if a.State != "enabled" || a.Revision != o.Revision {
 		return a, o, &automationDeferred{"blocked", "rule_inactive_or_revised"}
 	}
-	p := automationActor(ref, a.ActivatedBy)
-	if err = s.authorizeProjectTx(ctx, tx, p, ref.project, true, true); err != nil {
-		if automationAuthorityFailure(err) {
-			return a, o, &automationDeferred{"blocked", "activation_authority_revoked"}
-		}
-		return a, o, err
+	p := auth.currentPrincipal
+	if auth.activationDenied {
+		return a, o, &automationDeferred{"blocked", "activation_authority_revoked"}
 	}
 	if err = s.automationWorkflow(ctx, tx, p, ref.project, a.AutomationSpec); err != nil {
 		var ae *APIError
@@ -261,15 +287,38 @@ func (s *Service) automationAdmission(ctx context.Context, tx *sql.Tx, ref autom
 	return a, o, nil
 }
 func (s *Service) dispatchAutomation(ctx context.Context, e *dag.Engine, ref automationRef, id string) error {
-	a, err := s.automationRuleTx(ctx, s.DB, automationActor(ref, ""), ref.project, ref.id)
+	actor, err := s.durableAutomationOccurrenceActor(ctx, s.DB, ref, id)
+	if err != nil {
+		if automationAuthorityFailure(err) {
+			return nil
+		}
+		return err
+	}
+	a, err := s.automationRuleTx(ctx, s.DB, Principal{TenantID: ref.tenant}, ref.project, ref.id)
 	if err != nil {
 		return err
 	}
-	_, err = e.CreateRunBoundAuthorized(ctx, ref.tenant, ref.project, a.WorkflowID, a.WorkflowVersion, "automation:"+id, "automation:"+id,
+	bounded, cancel := context.WithTimeout(ctx, authorityTransactionBudget)
+	defer cancel()
+	var proof *authorizedCommand
+	var guardedTx *sql.Tx
+	defer func() {
+		if guardedTx != nil {
+			s.endAuthorityTx(guardedTx)
+		}
+	}()
+	target := commandTarget{tenantID: ref.tenant, projectID: ref.project, resourceID: id}
+	_, err = e.CreateRunBoundAuthorized(bounded, ref.tenant, ref.project, a.WorkflowID, a.WorkflowVersion, "automation:"+id, "automation:"+id,
 		func(tx *sql.Tx) error {
-			current, _, err := s.automationAdmission(ctx, tx, ref, id)
-			if err != nil {
-				return err
+			guardedTx = tx
+			var e error
+			proof, e = s.authorizeTx(bounded, tx, actor, target, purposeAutomationAdmit)
+			if e != nil {
+				return e
+			}
+			current, _, e := s.automationAdmission(bounded, tx, proof, ref, id)
+			if e != nil {
+				return e
 			}
 			if current.Revision != a.Revision || current.WorkflowID != a.WorkflowID || current.WorkflowVersion != a.WorkflowVersion {
 				return &automationDeferred{"blocked", "rule_revised"}
@@ -277,48 +326,62 @@ func (s *Service) dispatchAutomation(ctx context.Context, e *dag.Engine, ref aut
 			return nil
 		},
 		func(tx *sql.Tx, run string) error {
-			clock, err := s.automationClock(ctx, tx)
-			if err != nil {
-				return err
+			if e := proof.assertTx(tx, target, purposeAutomationAdmit); e != nil {
+				return e
 			}
-			result, err := tx.ExecContext(ctx, s.q(`UPDATE suma_automation_occurrences SET state='started',run_id=?,reason='',updated_at=? WHERE tenant_id=? AND project_id=? AND rule_id=? AND id=? AND state='queued'`), run, automationStamp(clock), ref.tenant, ref.project, ref.id, id)
-			if err != nil {
-				return err
+			result, e := tx.ExecContext(bounded, s.q(`UPDATE suma_automation_occurrences SET state='started',run_id=?,reason='',updated_at=? WHERE tenant_id=? AND project_id=? AND rule_id=? AND id=? AND state='queued'`), run, automationStamp(proof.checkedAt), ref.tenant, ref.project, ref.id, id)
+			if e != nil {
+				return e
 			}
-			n, err := result.RowsAffected()
-			if err != nil {
-				return err
+			n, e := result.RowsAffected()
+			if e != nil {
+				return e
 			}
 			if n != 1 {
 				return conflict("自动化触发已被处理")
 			}
-			_, err = tx.ExecContext(ctx, s.q(`UPDATE suma_automations SET last_error='' WHERE tenant_id=? AND project_id=? AND id=?`), ref.tenant, ref.project, ref.id)
-			return err
+			_, e = tx.ExecContext(bounded, s.q(`UPDATE suma_automations SET last_error='' WHERE tenant_id=? AND project_id=? AND id=?`), ref.tenant, ref.project, ref.id)
+			return e
 		})
 	var deferred *automationDeferred
-	if !errors.As(err, &deferred) {
+	if !errors.As(err, &deferred) && !automationAuthorityFailure(err) {
 		return err
 	}
-	// A declined admission rolls back the DAG transaction. Re-evaluate under the
-	// same organization lock before persisting a skip/block/wait, so no stale
-	// permission or overlap decision is written after another dispatcher wins.
-	tx, err := s.DB.BeginTx(ctx, nil)
+	// A rejected execution cannot borrow its failed Admit proof. Rebuild a
+	// distinct evaluation-only proof from current persisted activation, then
+	// record bounded blocked/skip/cursor evidence without any execution power.
+	actor, err = s.durableAutomationOccurrenceActor(ctx, s.DB, ref, id)
+	if err != nil {
+		if automationAuthorityFailure(err) {
+			return nil
+		}
+		return err
+	}
+	ctx, tx, cleanup, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return err
 	}
+	defer cleanup()
 	defer tx.Rollback()
-	_, _, err = s.automationAdmission(ctx, tx, ref, id)
+	evalTarget := commandTarget{tenantID: ref.tenant, projectID: ref.project, resourceID: ref.id}
+	evaluation, err := s.authorizeTx(ctx, tx, actor, evalTarget, purposeAutomationEvaluate)
+	if err != nil {
+		if automationAuthorityFailure(err) {
+			return nil
+		}
+		return err
+	}
+	_, _, err = s.automationAdmission(ctx, tx, evaluation, ref, id)
 	if !errors.As(err, &deferred) {
 		return err
 	}
 	if deferred.state == "" {
 		return nil
 	}
-	clock, err := s.automationClock(ctx, tx)
-	if err != nil {
+	if err = evaluation.assertTx(tx, evalTarget, purposeAutomationEvaluate); err != nil {
 		return err
 	}
-	if _, err = tx.ExecContext(ctx, s.q(`UPDATE suma_automation_occurrences SET state=?,reason=?,updated_at=? WHERE tenant_id=? AND project_id=? AND rule_id=? AND id=? AND state='queued'`), deferred.state, deferred.reason, automationStamp(clock), ref.tenant, ref.project, ref.id, id); err != nil {
+	if _, err = tx.ExecContext(ctx, s.q(`UPDATE suma_automation_occurrences SET state=?,reason=?,updated_at=? WHERE tenant_id=? AND project_id=? AND rule_id=? AND id=? AND state='queued'`), deferred.state, deferred.reason, automationStamp(evaluation.checkedAt), ref.tenant, ref.project, ref.id, id); err != nil {
 		return err
 	}
 	if deferred.state == "blocked" {

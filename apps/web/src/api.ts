@@ -18,6 +18,7 @@ function localApiError(status:number,code:string,key:string,params?:Record<strin
 /** Raw evidence reads share transport/errors but bypass business-record normalization. */
 export async function rawApi<T=unknown>(path:string,signal?:AbortSignal):Promise<T>{return request<T>(path,undefined,undefined,undefined,signal,false);}
 export async function api<T=any>(path:string,body?:unknown,method?:string,headers?:Record<string,string>,signal?:AbortSignal):Promise<T>{return request<T>(path,body,method,headers,signal,true);}
+export type ApiCaller=typeof api;
 async function request<T>(path:string,body:unknown,method:string|undefined,headers:Record<string,string>|undefined,signal:AbortSignal|undefined,normalize:boolean):Promise<T>{
  const cancelled=()=>new DOMException('Aborted','AbortError');
  if(signal?.aborted)throw cancelled();

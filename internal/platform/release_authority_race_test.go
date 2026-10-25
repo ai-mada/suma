@@ -14,8 +14,8 @@ func TestReleaseEnvironmentWorkerCredentialsCannotReadBusinessRoutes(t *testing.
 	environment := releaseTestEnvironment(t, f)
 	// Omitting scope at the public credential endpoint is a real supported
 	// request. It must still issue a runner scope rather than an unscoped key.
-	ordinary := f.call("POST", "/auth/tokens", map[string]any{"project_id": f.project, "label": "scope omitted worker"}, 201)["token"].(string)
-	registered, err := f.s.RegisterReleaseWorker(context.Background(), f.user, f.project, f.cookie.Value, map[string]any{"worker_id": "read-isolation-worker", "profiles": []any{}, "deployment": true, "idempotency_key": newID()})
+	ordinary := f.call("POST", "/auth/tokens", map[string]any{"project_id": f.project, "label": "scope omitted worker", "idempotency_key": newID()}, 201)["token"].(string)
+	registered, err := f.s.RegisterReleaseWorker(context.Background(), f.actor, f.project, map[string]any{"worker_id": "read-isolation-worker", "profiles": []any{}, "deployment": true, "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +47,9 @@ func TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval(t *t
 			ownerCookie := f.cookie
 			invitation := governanceInvite(f, "release-read-race@example.test", "member", []any{map[string]any{"project_id": f.project, "role": "developer"}})
 			session := governanceAccept(f, invitation, "release-read-race@example.test")
+			readerActor := domainCActor(t, f.s, f.cookie.Value)
 			f.cookie = ownerCookie
+			f.call("GET", "/auth/session", nil, 200)
 			var reader Principal
 			raw, err := json.Marshal(session["user"])
 			if err != nil {
@@ -58,26 +60,26 @@ func TestReleaseEnvironmentReadsRecheckAuthorityAfterConcurrentGrantRemoval(t *t
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
-			service, gate := reviewAuthorityConnection(t, f, ctx, "authorization_read")
+			service, gate := reviewAuthorityConnection(t, f, ctx, "before_authority_tx")
 			finished := make(chan error, 1)
 			go func() {
 				var readErr error
 				switch target {
 				case "detail":
-					_, readErr = service.ReleaseEnvironment(ctx, reader, f.project, environment.ID)
+					_, readErr = service.ReleaseEnvironment(ctx, readerActor, f.project, environment.ID)
 				case "actions":
-					_, readErr = service.ReleaseEnvironmentActions(ctx, reader, f.project)
+					_, readErr = service.ReleaseEnvironmentActions(ctx, readerActor, f.project)
 				case "list":
-					_, readErr = service.ReleaseEnvironments(ctx, reader, f.project)
+					_, readErr = service.ReleaseEnvironments(ctx, readerActor, f.project)
 				}
 				finished <- readErr
 			}()
 			select {
 			case <-gate.observed:
 			case <-ctx.Done():
-				t.Fatal("release read did not reach its real pre-transaction authorization read")
+				t.Fatal("release read did not reach its real before-authority transaction barrier")
 			}
-			_, err = f.s.SaveProjectAccess(ctx, f.user, map[string]any{"project_id": f.project, "user_id": reader.ID, "action": "remove", "expected_version": float64(1), "idempotency_key": newID()})
+			_, err = f.s.SaveProjectAccess(ctx, f.actor, map[string]any{"project_id": f.project, "user_id": reader.ID, "action": "remove", "expected_version": float64(1), "idempotency_key": newID()})
 			gate.release()
 			if err != nil {
 				t.Fatal("owner could not commit concurrent project grant removal:", err)

@@ -1,4 +1,5 @@
-import {useRef,useState,type FormEvent} from 'react';
+import {useApi} from './api-context';
+import {useMemo,useState,type FormEvent} from 'react';
 import {Copy,KeyRound,Plus} from 'lucide-react';
 import {time} from './api';
 import {Field,ErrorNotice,Empty} from './ui';
@@ -12,9 +13,9 @@ export function Tokens(props:Props){
  useLocale();
  return props.project?<ProjectTokens key={props.project} {...props}/>:<Empty title={t('workspace.select_project')}/>;
 }
-function ProjectTokens({project,projectName,admin}:Props){
+function ProjectTokens({project,projectName,admin}:Props){ const api=useApi();
  useLocale();
- const creation=useRef(new TokenCreation()),storageKey='suma-token-unknown:'+project;
+ const creation=useMemo(()=>new TokenCreation(api),[api]),storageKey='suma-token-unknown:'+project;
  const [unknown,setUnknown]=useState<UnknownReceipt|undefined>(()=>{
   try{const saved=sessionStorage.getItem(storageKey);if(!saved)return;const receipt=JSON.parse(saved);return typeof receipt.operation_id==='string'&&typeof receipt.label==='string'&&scopes.includes(receipt.scope)?receipt:undefined;}catch{return undefined;}
  });
@@ -23,11 +24,11 @@ function ProjectTokens({project,projectName,admin}:Props){
   e.preventDefault();if(busy||unknown||!admin)return;
   const label=String(new FormData(e.currentTarget).get('label')||'');setBusy(true);setError(undefined);setResult(undefined);setCopied(false);
   try{
-   const r=await creation.current.create(project,label,scope);setResult(r);setCopied(false);
+   const r=await creation.create(project,label,scope);setResult(r);setCopied(false);
    try{sessionStorage.removeItem(storageKey);}catch{/* The one-time secret stays only in this mounted view. */}
   }catch(err){
-   if(creation.current.unknown){
-    const receipt={operation_id:creation.current.operationID||'',scope,label};setUnknown(receipt);
+   if(creation.unknown){
+    const receipt={operation_id:creation.operationID||'',scope,label};setUnknown(receipt);
     try{sessionStorage.setItem(storageKey,JSON.stringify(receipt));setReceiptPersisted(true);}catch{setReceiptPersisted(false);}
     setError(new UiError('workspace.token.unknown'));
    }else setError(err);

@@ -126,11 +126,25 @@ func (s *Service) failIndexEvent(ctx context.Context, id, tenant, project, sourc
 
 // IndexStatus reads canonical delivery state; provider presence alone never
 // makes an index verified. It performs no schema or activity mutations.
-func (s *Service) IndexStatus(ctx context.Context, p Principal, project string) (map[string]any, error) {
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
+func (s *Service) IndexStatus(ctx context.Context, actor Actor, project string) (out map[string]any, err error) {
+	err = s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		out, err = s.indexStatusTx(bounded, auth, project)
+		return err
+	})
+	if err != nil {
 		return nil, err
 	}
-	rows, err := s.DB.QueryContext(ctx, s.q(`SELECT state,COUNT(*) FROM suma_index_outbox WHERE tenant_id=? AND project_id=? GROUP BY state`), p.TenantID, project)
+	return out, nil
+}
+
+func (s *Service) indexStatusTx(ctx context.Context, auth *authorizedCommand, project string) (map[string]any, error) {
+	if err := assertProjectRead(auth, project); err != nil {
+		return nil, err
+	}
+	p := auth.currentPrincipal
+	rows, err := auth.tx.QueryContext(ctx, s.q(`SELECT state,COUNT(*) FROM suma_index_outbox WHERE tenant_id=? AND project_id=? GROUP BY state`), p.TenantID, project)
 	if err != nil {
 		return nil, err
 	}
@@ -150,18 +164,23 @@ func (s *Service) IndexStatus(ctx context.Context, p Principal, project string) 
 	return out, rows.Err()
 }
 
-func (s *Service) SearchIndex(ctx context.Context, p Principal, project, query string) (map[string]any, error) {
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return nil, err
-	}
+func (s *Service) SearchIndex(ctx context.Context, actor Actor, project, query string) (map[string]any, error) {
 	endpoint := strings.TrimRight(os.Getenv("SUMA_KNOWLEDGE_URL"), "/")
 	if endpoint == "" {
-		return s.SearchKeywords(ctx, p, project, query)
+		return s.SearchKeywords(ctx, actor, project, query)
+	}
+	// Resolve current scope before the external effect, then release all SQL
+	// locks. The provider reply never carries authority across this IO boundary.
+	var tenant string
+	target := commandTarget{tenantID: actor.credential.tenantID, projectID: project}
+	purpose := knowledgeReadPurpose(actor)
+	if err := s.withCurrentRead(ctx, actor, target, purpose, func(auth *authorizedCommand) error { tenant = auth.target.tenantID; return nil }); err != nil {
+		return nil, err
 	}
 	if len(query) < 1 || len(query) > 500 {
 		return nil, invalid("查询长度超出限制")
 	}
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint+"/search", bytes.NewBufferString(stringify(map[string]any{"tenant_id": p.TenantID, "project_id": project, "query": query, "limit": 50})))
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint+"/search", bytes.NewBufferString(stringify(map[string]any{"tenant_id": tenant, "project_id": project, "query": query, "limit": 50})))
 	if err != nil {
 		return nil, err
 	}
@@ -176,28 +195,59 @@ func (s *Service) SearchIndex(ctx context.Context, p Principal, project, query s
 		return nil, &APIError{503, "index_unavailable", "检索服务尚未通过查询验证", nil}
 	}
 	var result map[string]any
-	if err = json.NewDecoder(io.LimitReader(response.Body, 2<<20)).Decode(&result); err != nil {
+	decoder := json.NewDecoder(io.LimitReader(response.Body, 2<<20))
+	decoder.UseNumber()
+	if err = decoder.Decode(&result); err != nil {
 		return nil, err
 	}
-	// Recheck canonical source revision before revealing titles/snippets to the caller.
+	if result == nil {
+		return nil, &APIError{503, "index_unavailable", "检索服务尚未通过查询验证", nil}
+	}
+	// Even an empty provider response is reauthorized. All source/version checks
+	// share this current SQL snapshot, not one stale Principal per provider hit.
 	filtered := []any{}
-	hits, _ := result["items"].([]any)
-	for _, v := range hits {
-		hit, ok := v.(map[string]any)
-		if !ok {
-			continue
+	err = s.withCurrentRead(ctx, actor, target, purpose, func(auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		hits, _ := result["items"].([]any)
+		for _, value := range hits {
+			hit, ok := value.(map[string]any)
+			if !ok {
+				continue
+			}
+			if hitTenant := str(hit, "tenant_id"); hitTenant != "" && hitTenant != tenant {
+				continue
+			}
+			if hitProject := str(hit, "project_id"); hitProject != "" && hitProject != project {
+				continue
+			}
+			source := str(hit, "source_ref")
+			record, readErr := s.getRecordTx(bounded, auth, project, "documents", source)
+			if readErr != nil {
+				var apiErr *APIError
+				if errors.As(readErr, &apiErr) && apiErr.Status == http.StatusNotFound {
+					continue
+				}
+				return readErr
+			}
+			if record.Status == "archived" || record.Status == "deleted" {
+				continue
+			}
+			revision, ok := hit["revision"].(json.Number)
+			if !ok {
+				continue
+			}
+			version, parseErr := revision.Int64()
+			if parseErr != nil || version != int64(record.Version) {
+				continue
+			}
+			hit["locator"] = map[string]any{"project_id": project, "type": "documents", "id": source}
+			filtered = append(filtered, hit)
 		}
-		source := str(hit, "source_ref")
-		record, e := s.Get(ctx, p, project, "documents", source)
-		if e != nil || record.Status == "archived" || record.Status == "deleted" {
-			continue
-		}
-		revision := number(hit, "revision")
-		if revision != record.Version {
-			continue
-		}
-		hit["locator"] = map[string]any{"project_id": project, "type": "documents", "id": source}
-		filtered = append(filtered, hit)
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 	result["items"] = filtered
 	return result, nil

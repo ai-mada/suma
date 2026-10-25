@@ -30,7 +30,6 @@ type Record struct {
 }
 
 type Principal struct {
-	internal bool   `json:"-"`
 	ID       string `json:"id"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`

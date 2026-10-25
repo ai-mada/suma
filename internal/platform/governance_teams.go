@@ -7,11 +7,12 @@ import (
 	"strings"
 )
 
-func (s *Service) Teams(ctx context.Context, p Principal) ([]map[string]any, error) {
-	if _, err := s.liveOrganization(ctx, s.DB, p); err != nil {
+func (s *Service) teamsTx(ctx context.Context, auth *authorizedCommand) ([]map[string]any, error) {
+	if err := assertOrganizationRead(auth); err != nil {
 		return nil, err
 	}
-	rows, err := s.DB.QueryContext(ctx, s.q(`SELECT id,version,name,description,status,created_at,updated_at FROM suma_teams WHERE tenant_id=? ORDER BY name,id`), p.TenantID)
+	p := auth.currentPrincipal
+	rows, err := auth.tx.QueryContext(ctx, s.q(`SELECT id,version,name,description,status,created_at,updated_at FROM suma_teams WHERE tenant_id=? ORDER BY name,id`), p.TenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -34,8 +35,9 @@ func scanTeam(row scanner) (map[string]any, error) {
 	return map[string]any{"id": id, "version": version, "name": name, "description": description, "status": status, "created_at": created, "updated_at": updated}, err
 }
 
-func (s *Service) SaveTeam(ctx context.Context, p Principal, id string, m map[string]any) (map[string]any, error) {
-	return s.governanceWrite(ctx, p, "organization.team.save", id, m, requireOrgAdmin, func(tx *sql.Tx, p Principal) (map[string]any, error) {
+func (s *Service) SaveTeam(ctx context.Context, actor Actor, id string, m map[string]any) (map[string]any, error) {
+	return s.governanceWrite(ctx, actor, "organization.team.save", id, m, requireOrgAdmin, func(auth *authorizedCommand) (map[string]any, error) {
+		tx, p := auth.tx, auth.currentPrincipal
 		name, description, status := strings.TrimSpace(str(m, "name")), str(m, "description"), str(m, "status")
 		version, created := 0, now()
 		if id != "" {
@@ -118,24 +120,15 @@ func (s *Service) teamIdentity(ctx context.Context, q governanceQuery, p Princip
 
 // BindHumanResourceTx validates the canonical account behind a project human
 // resource. Resource registration never creates an account or a project grant.
-func (s *Service) BindHumanResourceTx(ctx context.Context, tx *sql.Tx, p Principal, project, user string) error {
+func (s *Service) BindHumanResourceTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, project, user string) error {
+	if err := assertProjectCommand(tx, auth, project); err != nil {
+		return err
+	}
+	p := auth.currentPrincipal
 	if user == "" || len(user) > 64 {
 		return invalid("人类资源必须绑定真实 user_id")
 	}
-	if err := s.lockOrganization(ctx, tx, p.TenantID); err != nil {
-		return err
-	}
 	var err error
-	p, err = s.liveOrganization(ctx, tx, p)
-	if err != nil {
-		return err
-	}
-	if !orgAdmin(p) {
-		var actorRole string
-		if err = tx.QueryRowContext(ctx, s.q(`SELECT role FROM suma_project_members WHERE project_id=? AND user_id=?`), project, p.ID).Scan(&actorRole); err != nil || actorRole == "viewer" || !validProjectRole(actorRole) {
-			return forbidden()
-		}
-	}
 	var organizationRole string
 	var projectRole sql.NullString
 	err = tx.QueryRowContext(ctx, s.q(`SELECT om.role,pm.role FROM suma_org_members om JOIN suma_users u ON u.id=om.user_id JOIN suma_projects p ON p.tenant_id=om.tenant_id AND p.id=? LEFT JOIN suma_project_members pm ON pm.project_id=p.id AND pm.user_id=om.user_id WHERE om.tenant_id=? AND om.user_id=?`), project, p.TenantID, user).Scan(&organizationRole, &projectRole)
@@ -151,17 +144,18 @@ func (s *Service) BindHumanResourceTx(ctx context.Context, tx *sql.Tx, p Princip
 	return invalid("人类资源用户尚未获得当前项目权限")
 }
 
-func (s *Service) TeamMembers(ctx context.Context, p Principal, team string) ([]map[string]any, error) {
-	if _, err := s.liveOrganization(ctx, s.DB, p); err != nil {
+func (s *Service) teamMembersTx(ctx context.Context, auth *authorizedCommand, team string) ([]map[string]any, error) {
+	if err := assertOrganizationRead(auth); err != nil {
 		return nil, err
 	}
+	p := auth.currentPrincipal
 	var id string
-	if err := s.DB.QueryRowContext(ctx, s.q(`SELECT id FROM suma_teams WHERE tenant_id=? AND id=?`), p.TenantID, team).Scan(&id); errors.Is(err, sql.ErrNoRows) {
+	if err := auth.tx.QueryRowContext(ctx, s.q(`SELECT id FROM suma_teams WHERE tenant_id=? AND id=?`), p.TenantID, team).Scan(&id); errors.Is(err, sql.ErrNoRows) {
 		return nil, missing()
 	} else if err != nil {
 		return nil, err
 	}
-	rows, err := s.DB.QueryContext(ctx, s.q(`SELECT tm.id,tm.resource_kind,tm.resource_id,tm.project_id,tm.role,tm.version,tm.status,COALESCE(u.name,m.title,'') FROM suma_team_members tm LEFT JOIN suma_users u ON tm.resource_kind='human' AND u.id=tm.resource_id LEFT JOIN suma_members m ON tm.resource_kind<>'human' AND m.tenant_id=tm.tenant_id AND m.project_id=tm.project_id AND m.id=tm.resource_id AND m.kind=tm.resource_kind WHERE tm.tenant_id=? AND tm.team_id=? ORDER BY tm.resource_kind,tm.resource_id,tm.project_id`), p.TenantID, team)
+	rows, err := auth.tx.QueryContext(ctx, s.q(`SELECT tm.id,tm.resource_kind,tm.resource_id,tm.project_id,tm.role,tm.version,tm.status,COALESCE(u.name,m.title,'') FROM suma_team_members tm LEFT JOIN suma_users u ON tm.resource_kind='human' AND u.id=tm.resource_id LEFT JOIN suma_members m ON tm.resource_kind<>'human' AND m.tenant_id=tm.tenant_id AND m.project_id=tm.project_id AND m.id=tm.resource_id AND m.kind=tm.resource_kind WHERE tm.tenant_id=? AND tm.team_id=? ORDER BY tm.resource_kind,tm.resource_id,tm.project_id`), p.TenantID, team)
 	if err != nil {
 		return nil, err
 	}
@@ -178,11 +172,12 @@ func (s *Service) TeamMembers(ctx context.Context, p Principal, team string) ([]
 	return out, rows.Err()
 }
 
-func (s *Service) SaveTeamMember(ctx context.Context, p Principal, team string, m map[string]any) (map[string]any, error) {
+func (s *Service) SaveTeamMember(ctx context.Context, actor Actor, team string, m map[string]any) (map[string]any, error) {
 	if _, ok := m["expected_version"]; !ok {
 		return nil, invalid("请提供 expected_version；首次添加使用 0")
 	}
-	return s.governanceWrite(ctx, p, "organization.team.member.save", team, m, requireOrgAdmin, func(tx *sql.Tx, p Principal) (map[string]any, error) {
+	return s.governanceWrite(ctx, actor, "organization.team.member.save", team, m, requireOrgAdmin, func(auth *authorizedCommand) (map[string]any, error) {
+		tx, p := auth.tx, auth.currentPrincipal
 		kind, resource, project, role, action := str(m, "resource_kind"), str(m, "resource_id"), str(m, "project_id"), str(m, "role"), str(m, "action")
 		if action != "" && action != "remove" {
 			return nil, invalid("无效团队成员操作")
@@ -272,15 +267,15 @@ func (s *Service) projectGovernance(ctx context.Context, q governanceQuery, p Pr
 	return nil
 }
 
-func (s *Service) ProjectAccess(ctx context.Context, p Principal, project string) ([]map[string]any, error) {
-	p, err := s.liveOrganization(ctx, s.DB, p)
-	if err != nil {
+func (s *Service) projectAccessTx(ctx context.Context, auth *authorizedCommand, project string) ([]map[string]any, error) {
+	if err := assertOrganizationRead(auth); err != nil {
 		return nil, err
 	}
-	if err = s.projectGovernance(ctx, s.DB, p, project); err != nil {
+	p := auth.currentPrincipal
+	if err := s.projectGovernance(ctx, auth.tx, p, project); err != nil {
 		return nil, err
 	}
-	rows, err := s.DB.QueryContext(ctx, s.q(`SELECT u.id,u.name,u.email,pm.role,COALESCE(v.version,1),'active' FROM suma_project_members pm JOIN suma_users u ON u.id=pm.user_id JOIN suma_org_members om ON om.user_id=pm.user_id AND om.tenant_id=? LEFT JOIN suma_project_grant_versions v ON v.tenant_id=om.tenant_id AND v.project_id=pm.project_id AND v.user_id=pm.user_id WHERE pm.project_id=? UNION ALL SELECT u.id,u.name,u.email,'',v.version,'removed' FROM suma_project_grant_versions v JOIN suma_users u ON u.id=v.user_id JOIN suma_org_members om ON om.tenant_id=v.tenant_id AND om.user_id=v.user_id WHERE v.tenant_id=? AND v.project_id=? AND NOT EXISTS(SELECT 1 FROM suma_project_members pm WHERE pm.project_id=v.project_id AND pm.user_id=v.user_id) ORDER BY 2,1`), p.TenantID, project, p.TenantID, project)
+	rows, err := auth.tx.QueryContext(ctx, s.q(`SELECT u.id,u.name,u.email,pm.role,COALESCE(v.version,1),'active' FROM suma_project_members pm JOIN suma_users u ON u.id=pm.user_id JOIN suma_org_members om ON om.user_id=pm.user_id AND om.tenant_id=? LEFT JOIN suma_project_grant_versions v ON v.tenant_id=om.tenant_id AND v.project_id=pm.project_id AND v.user_id=pm.user_id WHERE pm.project_id=? UNION ALL SELECT u.id,u.name,u.email,'',v.version,'removed' FROM suma_project_grant_versions v JOIN suma_users u ON u.id=v.user_id JOIN suma_org_members om ON om.tenant_id=v.tenant_id AND om.user_id=v.user_id WHERE v.tenant_id=? AND v.project_id=? AND NOT EXISTS(SELECT 1 FROM suma_project_members pm WHERE pm.project_id=v.project_id AND pm.user_id=v.user_id) ORDER BY 2,1`), p.TenantID, project, p.TenantID, project)
 	if err != nil {
 		return nil, err
 	}
@@ -323,12 +318,13 @@ func (s *Service) setProjectGrantVersion(ctx context.Context, tx *sql.Tx, tenant
 	return err
 }
 
-func (s *Service) SaveProjectAccess(ctx context.Context, p Principal, m map[string]any) (map[string]any, error) {
+func (s *Service) SaveProjectAccess(ctx context.Context, actor Actor, m map[string]any) (map[string]any, error) {
 	if _, ok := m["expected_version"]; !ok {
 		return nil, invalid("请提供 expected_version；首次授权使用 0")
 	}
 	project, user := str(m, "project_id"), str(m, "user_id")
-	return s.governanceWrite(ctx, p, "organization.project.grant", project+":"+user, m, func(tx *sql.Tx, p Principal) error { return s.projectGovernance(ctx, tx, p, project) }, func(tx *sql.Tx, p Principal) (map[string]any, error) {
+	return s.governanceWrite(ctx, actor, "organization.project.grant", project+":"+user, m, func(tx *sql.Tx, p Principal) error { return s.projectGovernance(ctx, tx, p, project) }, func(auth *authorizedCommand) (map[string]any, error) {
+		tx, p := auth.tx, auth.currentPrincipal
 		role, action := str(m, "role"), str(m, "action")
 		if action != "" && action != "remove" {
 			return nil, invalid("无效项目授权操作")
@@ -369,7 +365,7 @@ func (s *Service) SaveProjectAccess(ctx context.Context, p Principal, m map[stri
 				return nil, conflict("项目授权已移除或不存在")
 			}
 			status = "removed"
-			if err = s.revokeProjectCredentials(ctx, tx, p.TenantID, project, user); err != nil {
+			if err = s.revokeProjectCredentials(ctx, auth, project, user); err != nil {
 				return nil, err
 			}
 			_, err = tx.ExecContext(ctx, s.q(`DELETE FROM suma_project_members WHERE project_id=? AND user_id=?`), project, user)
@@ -388,37 +384,15 @@ func (s *Service) SaveProjectAccess(ctx context.Context, p Principal, m map[stri
 	})
 }
 
-func (s *Service) revokeProjectCredentials(ctx context.Context, tx *sql.Tx, tenant, project, user string) error {
-	rows, err := tx.QueryContext(ctx, s.q(`SELECT t.token_hash FROM suma_sessions t JOIN suma_token_scopes ts ON ts.token_hash=t.token_hash WHERE t.tenant_id=? AND t.user_id=? AND ts.project_id=?`), tenant, user, project)
-	if err != nil {
-		return err
-	}
-	hashes := []string{}
-	for rows.Next() {
-		var hash string
-		if err = rows.Scan(&hash); err != nil {
-			rows.Close()
-			return err
-		}
-		hashes = append(hashes, hash)
-	}
-	err = rows.Err()
-	rows.Close()
-	if err != nil {
-		return err
-	}
-	for _, hash := range hashes {
-		if _, err = tx.ExecContext(ctx, s.q(`DELETE FROM suma_token_scopes WHERE token_hash=?`), hash); err != nil {
-			return err
-		}
-		if _, err = tx.ExecContext(ctx, s.q(`DELETE FROM suma_sessions WHERE token_hash=?`), hash); err != nil {
-			return err
-		}
-	}
-	return nil
+func (s *Service) revokeProjectCredentials(ctx context.Context, auth *authorizedCommand, project, user string) error {
+	return s.withdrawSubjectCredentialsTx(ctx, auth, user, project)
 }
 
-func (s *Service) revokeOrganizationProjectGrants(ctx context.Context, tx *sql.Tx, tenant, user string) error {
+func (s *Service) revokeOrganizationProjectGrants(ctx context.Context, auth *authorizedCommand, user string) error {
+	if err := s.withdrawSubjectCredentialsTx(ctx, auth, user, ""); err != nil {
+		return err
+	}
+	tx, tenant := auth.tx, auth.target.tenantID
 	rows, err := tx.QueryContext(ctx, s.q(`SELECT pm.project_id FROM suma_project_members pm JOIN suma_projects p ON p.id=pm.project_id WHERE p.tenant_id=? AND pm.user_id=? UNION SELECT project_id FROM suma_project_grant_versions WHERE tenant_id=? AND user_id=?`), tenant, user, tenant, user)
 	if err != nil {
 		return err

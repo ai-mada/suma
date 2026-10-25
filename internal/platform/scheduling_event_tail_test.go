@@ -120,13 +120,13 @@ func TestReleaseAndArtifactGateNeverAcquireEventSequenceBeforeDomainWork(t *test
 	trace.transactions = nil
 	trace.mu.Unlock()
 	// Display-only candidate reads must not take a global execution write lock.
-	if _, err = f.s.ReleaseCandidate(ctx, f.user, f.project, candidate.ID); err != nil {
+	if _, err = f.s.ReleaseCandidate(ctx, f.actor, f.project, candidate.ID); err != nil {
 		t.Fatal(err)
 	}
-	if _, _, _, err = f.s.ReleaseCandidates(ctx, f.user, f.project, 50, ""); err != nil {
+	if _, _, _, err = f.s.ReleaseCandidates(ctx, f.actor, f.project, 50, ""); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = f.s.ExecuteReleasePlan(ctx, f.user, f.project, plan.ID, f.cookie.Value, releaseExecuteBody(f, plan), engine); err != nil {
+	if _, err = f.s.ExecuteReleasePlan(ctx, f.actor, f.project, plan.ID, releaseExecuteBody(f, plan), engine); err != nil {
 		t.Fatal(err)
 	}
 	worker := f.call("POST", "/release-workers", f.body(map[string]any{"worker_id": "tail-deployer", "profiles": []any{}, "deployment": true}), 201)

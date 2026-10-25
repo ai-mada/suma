@@ -24,11 +24,12 @@ func scanBaseline(row interface{ Scan(...any) error }) (BaselineSummary, error) 
 	e := row.Scan(&b.ID, &b.Title, &b.CreatedAt, &b.TaskCount, &b.AcceptedTasks, &b.EstimatedTasks, &b.EstimatedHours)
 	return b, e
 }
-func (s *Service) Baselines(ctx context.Context, p Principal, project string) ([]BaselineSummary, error) {
-	if e := s.Authorize(ctx, p, project, false, false); e != nil {
-		return nil, e
+func (s *Service) baselinesTx(ctx context.Context, auth *authorizedCommand, project string) ([]BaselineSummary, error) {
+	if err := assertProjectRead(auth, project); err != nil {
+		return nil, err
 	}
-	rows, e := s.DB.QueryContext(ctx, s.q(`SELECT `+baselineColumns+` FROM suma_baselines WHERE tenant_id=? AND project_id=? ORDER BY created_at DESC,id`), p.TenantID, project)
+	p := auth.currentPrincipal
+	rows, e := auth.tx.QueryContext(ctx, s.q(`SELECT `+baselineColumns+` FROM suma_baselines WHERE tenant_id=? AND project_id=? ORDER BY created_at DESC,id`), p.TenantID, project)
 	if e != nil {
 		return nil, e
 	}
@@ -46,24 +47,24 @@ func (s *Service) Baselines(ctx context.Context, p Principal, project string) ([
 
 // CaptureBaseline copies the complete formal task scope in one INSERT SELECT,
 // then derives totals from those immutable rows. It never truncates to UI pages.
-func (s *Service) CaptureBaseline(ctx context.Context, p Principal, project string, m map[string]any) (BaselineSummary, error) {
-	if e := s.Authorize(ctx, p, project, true, false); e != nil {
-		return BaselineSummary{}, e
-	}
+func (s *Service) CaptureBaseline(ctx context.Context, actor Actor, project string, m map[string]any) (BaselineSummary, error) {
 	title := str(m, "title")
 	if e := requireTitle(title); e != nil {
 		return BaselineSummary{}, e
 	}
-	tx, e := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, e := s.beginAuthorityTx(ctx)
 	if e != nil {
 		return BaselineSummary{}, e
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if e = s.planningLock(ctx, tx, p, project); e != nil {
+	auth, e := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: ""}, purposeProjectWrite)
+	if e != nil {
 		return BaselineSummary{}, e
 	}
+	p := auth.currentPrincipal
 	key := str(m, "idempotency_key")
-	hash, replay, e := s.receipt(ctx, tx, p, project, key, map[string]any{"baseline": m})
+	hash, replay, e := s.commandReceipt(ctx, auth, key, map[string]any{"baseline": m})
 	if e != nil {
 		return BaselineSummary{}, e
 	}
@@ -87,10 +88,10 @@ func (s *Service) CaptureBaseline(ctx context.Context, p Principal, project stri
 	if _, e = tx.ExecContext(ctx, s.q(`UPDATE suma_baselines SET task_count=?,accepted_tasks=?,estimated_tasks=?,estimated_hours=? WHERE id=?`), b.TaskCount, b.AcceptedTasks, b.EstimatedTasks, b.EstimatedHours, b.ID); e != nil {
 		return b, e
 	}
-	if e = s.activity(ctx, tx, p, project, "baseline.captured", b.ID, b.Title); e != nil {
+	if e = s.commandActivity(ctx, auth, "baseline.captured", b.ID, b.Title); e != nil {
 		return b, e
 	}
-	if e = s.saveReceipt(ctx, tx, p, project, key, hash, b); e != nil {
+	if e = s.saveCommandReceipt(ctx, auth, key, hash, b); e != nil {
 		return b, e
 	}
 	return b, tx.Commit()
@@ -103,10 +104,12 @@ type baselineCursor struct {
 	ID       string `json:"id"`
 }
 
-func (s *Service) Baseline(ctx context.Context, p Principal, project, id, cursor string, limit int) (map[string]any, error) {
-	if e := s.Authorize(ctx, p, project, false, false); e != nil {
-		return nil, e
+func (s *Service) baselineTx(ctx context.Context, auth *authorizedCommand, project, id, cursor string, limit int) (map[string]any, error) {
+	if err := assertProjectRead(auth, project); err != nil {
+		return nil, err
 	}
+	p := auth.currentPrincipal
+	tx := auth.tx
 	if limit <= 0 {
 		limit = 200
 	}
@@ -120,11 +123,6 @@ func (s *Service) Baseline(ctx context.Context, p Principal, project, id, cursor
 			return nil, invalid("基线分页游标无效")
 		}
 	}
-	tx, e := s.DB.BeginTx(ctx, nil)
-	if e != nil {
-		return nil, e
-	}
-	defer tx.Rollback()
 	b, e := scanBaseline(tx.QueryRowContext(ctx, s.q(`SELECT `+baselineColumns+` FROM suma_baselines WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id))
 	if e != nil {
 		return nil, missing()
@@ -183,9 +181,6 @@ func (s *Service) Baseline(ctx context.Context, p Principal, project, id, cursor
 		return nil, e
 	}
 	if e = tx.QueryRowContext(ctx, s.q(`SELECT COALESCE(SUM(CASE WHEN t.id IS NULL THEN 1 ELSE 0 END),0),COALESCE(SUM(CASE WHEN t.id IS NOT NULL AND (t.title<>b.title OR t.description<>b.description OR t.owner_id<>b.owner_id OR t.requirement_id<>b.requirement_id OR t.depends_on<>b.depends_on OR t.acceptance_criteria<>b.acceptance_criteria) THEN 1 ELSE 0 END),0),COALESCE(SUM(CASE WHEN t.id IS NOT NULL AND (COALESCE(p.iteration_id,'')<>b.iteration_id OR COALESCE(p.milestone_id,'')<>b.milestone_id OR COALESCE(p.start_date,'')<>b.start_date OR COALESCE(p.due_date,'')<>b.due_date OR p.estimated_hours<>b.estimated_hours OR (p.estimated_hours IS NULL AND b.estimated_hours IS NOT NULL) OR (p.estimated_hours IS NOT NULL AND b.estimated_hours IS NULL)) THEN 1 ELSE 0 END),0) FROM suma_baseline_tasks b LEFT JOIN suma_tasks t ON t.id=b.task_id AND t.tenant_id=? AND t.project_id=? LEFT JOIN suma_task_plans p ON p.task_id=t.id AND p.tenant_id=t.tenant_id AND p.project_id=t.project_id WHERE b.baseline_id=?`), p.TenantID, project, id).Scan(&removed, &changed, &planChanged); e != nil {
-		return nil, e
-	}
-	if e = tx.Commit(); e != nil {
 		return nil, e
 	}
 	raw, _ := json.Marshal(b)

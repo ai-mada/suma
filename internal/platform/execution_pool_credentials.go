@@ -31,20 +31,28 @@ func (s *Service) poolRunnerTx(ctx context.Context, tx *sql.Tx, pool, runner str
 // response to the first successful transaction carries the random secret.
 // Persisting the metadata-only receipt makes retries safe without storing a
 // credential in business history or accidentally treating it as a user session.
-func (s *Service) RegisterExecutionPoolRunner(ctx context.Context, p Principal, token, pool string, request ExecutionPoolRunnerCreateRequest) (ExecutionPoolCredentialResponse, error) {
+func (s *Service) RegisterExecutionPoolRunner(ctx context.Context, actor Actor, pool string, request ExecutionPoolRunnerCreateRequest) (ExecutionPoolCredentialResponse, error) {
+	p := actor.Projection()
+
 	var out ExecutionPoolCredentialResponse
 	if err := validateExecutionPoolRunner(request); err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if _, err = s.poolAdminTx(ctx, tx, p, token, pool); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: organizationScope}, purposeOrganizationWrite)
+	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, organizationScope, request.IdempotencyKey, map[string]any{"register_pool_runner": pool, "request": request})
+	p = auth.currentPrincipal
+	if _, err = s.poolAdminTx(ctx, tx, auth, pool); err != nil {
+		return out, err
+	}
+	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"register_pool_runner": pool, "request": request})
 	if err != nil {
 		return out, err
 	}
@@ -74,10 +82,10 @@ func (s *Service) RegisterExecutionPoolRunner(ctx context.Context, p Principal, 
 	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_execution_pool_credentials(id,runner_id,version,token_hash,status,expires_at)VALUES(?,?,?,?,?,?)`), newID(), id, 1, digest(secret), "active", r.CredentialExpiresAt); err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, organizationScope, "execution_pool.runner_registered", id, r.Name); err != nil {
+	if err = s.commandActivity(ctx, auth, "execution_pool.runner_registered", id, r.Name); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, organizationScope, request.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	if err = tx.Commit(); err != nil {
@@ -90,7 +98,9 @@ func (s *Service) RegisterExecutionPoolRunner(ctx context.Context, p Principal, 
 // Rotation requires a drained identity. This avoids invalidating a running
 // dispatch's frozen credential generation and preserves unknown-effect slots
 // until they have been reconciled. Revocation remains available immediately.
-func (s *Service) RotateExecutionPoolCredential(ctx context.Context, p Principal, token, pool, runner string, request ExecutionPoolCredentialRequest) (ExecutionPoolCredentialResponse, error) {
+func (s *Service) RotateExecutionPoolCredential(ctx context.Context, actor Actor, pool, runner string, request ExecutionPoolCredentialRequest) (ExecutionPoolCredentialResponse, error) {
+	p := actor.Projection()
+
 	var out ExecutionPoolCredentialResponse
 	if request.ExpectedVersion < 1 {
 		return out, invalid("请提供当前执行节点版本")
@@ -101,15 +111,21 @@ func (s *Service) RotateExecutionPoolCredential(ctx context.Context, p Principal
 	if err := validatePoolTTL(request.TTLSeconds); err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if _, err = s.poolAdminTx(ctx, tx, p, token, pool); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: organizationScope}, purposeOrganizationWrite)
+	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, organizationScope, request.IdempotencyKey, map[string]any{"rotate_pool_credential": runner, "pool": pool, "request": request})
+	p = auth.currentPrincipal
+	if _, err = s.poolAdminTx(ctx, tx, auth, pool); err != nil {
+		return out, err
+	}
+	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"rotate_pool_credential": runner, "pool": pool, "request": request})
 	if err != nil {
 		return out, err
 	}
@@ -155,10 +171,10 @@ func (s *Service) RotateExecutionPoolCredential(ctx context.Context, p Principal
 		return out, conflict("执行凭证已变化，请刷新")
 	}
 	out.Runner = r
-	if err = s.activity(ctx, tx, p, organizationScope, "execution_pool.credential_rotated", runner, r.Name); err != nil {
+	if err = s.commandActivity(ctx, auth, "execution_pool.credential_rotated", runner, r.Name); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, organizationScope, request.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	if err = tx.Commit(); err != nil {
@@ -168,7 +184,9 @@ func (s *Service) RotateExecutionPoolCredential(ctx context.Context, p Principal
 	return out, nil
 }
 
-func (s *Service) RevokeExecutionPoolRunner(ctx context.Context, p Principal, token, pool, runner string, request ExecutionPoolCommandRequest) (ExecutionPoolRunner, error) {
+func (s *Service) RevokeExecutionPoolRunner(ctx context.Context, actor Actor, pool, runner string, request ExecutionPoolCommandRequest) (ExecutionPoolRunner, error) {
+	p := actor.Projection()
+
 	var out ExecutionPoolRunner
 	if request.Action != "revoke" || request.ExpectedVersion < 1 {
 		return out, invalid("执行节点仅支持按明确版本撤销")
@@ -176,15 +194,21 @@ func (s *Service) RevokeExecutionPoolRunner(ctx context.Context, p Principal, to
 	if err := validatePoolOperation(request.IdempotencyKey); err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if _, err = s.poolAdminTx(ctx, tx, p, token, pool); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: organizationScope}, purposeOrganizationWrite)
+	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, organizationScope, request.IdempotencyKey, map[string]any{"revoke_pool_runner": runner, "pool": pool, "request": request})
+	p = auth.currentPrincipal
+	if _, err = s.poolAdminTx(ctx, tx, auth, pool); err != nil {
+		return out, err
+	}
+	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"revoke_pool_runner": runner, "pool": pool, "request": request})
 	if err != nil {
 		return out, err
 	}
@@ -210,10 +234,10 @@ func (s *Service) RevokeExecutionPoolRunner(ctx context.Context, p Principal, to
 		return out, err
 	}
 	out.Status, out.Version, out.AllowedActions = "revoked", out.Version+1, []string{}
-	if err = s.activity(ctx, tx, p, organizationScope, "execution_pool.runner_revoked", runner, out.Name); err != nil {
+	if err = s.commandActivity(ctx, auth, "execution_pool.runner_revoked", runner, out.Name); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, organizationScope, request.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()

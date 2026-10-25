@@ -1,3 +1,4 @@
+import {useApi} from './api-context';
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import Editor,{loader} from '@monaco-editor/react';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
@@ -9,7 +10,7 @@ import JSONWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 import CSSWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
 import HTMLWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 import {Folder,FileCode,Save,RefreshCw,Link,AlertCircle,Check,Code2} from 'lucide-react';
-import {api,query,operation,ApiError} from './api';
+import {api,query,operation,ApiError,type ApiCaller} from './api';
 import {Loading,ErrorNotice,Empty,Field} from './ui';
 import {FileSaveRequest,draftAfterFileSave,type FileDocument} from './file-saves';
 import {tr as t,useLocale,UiError,renderDiagnostic} from './i18n';
@@ -25,9 +26,10 @@ export function IDE({project}:{project:string}){
  useLocale();
  return project?<ProjectIDE key={project} project={project}/>:<Empty title={t('workspace.select_project')}/>;
 }
-function ProjectIDE({project}:{project:string}){
+function ProjectIDE({project}:{project:string}){ const api=useApi();
  useLocale();
  const [workspace,setWorkspace]=useState<Workspace>(),[file,setFile]=useState<FileState>(),[content,setContent]=useState(''),[error,setError]=useState<unknown>(),[busy,setBusy]=useState(false),[fileLoading,setFileLoading]=useState(false),[binding,setBinding]=useState(''),[saved,setSaved]=useState(false),[conflict,setConflict]=useState(false),[remote,setRemote]=useState<FileState>(),[treeFilter,setTreeFilter]=useState(''),[unconfirmed,setUnconfirmed]=useState(false),[reconciliation,setReconciliation]=useState(false);
+ const pendingApi=useRef<ApiCaller|undefined>(undefined);
  const pending=useRef(new FileSaveRequest()),openGeneration=useRef(0),dirty=!!file&&content!==file.content;
  async function loadWorkspace(){try{setWorkspace(await api<Workspace>('/workspace'+query(project)));setError(undefined);}catch(e){setError(e instanceof ApiError&&[404,501].includes(e.status)?new UiError('workspace.ide.interface_unavailable'):e);}}
  useEffect(()=>{void loadWorkspace();},[project]);
@@ -41,9 +43,9 @@ function ProjectIDE({project}:{project:string}){
  }
  async function save(){
   if(!file||busy||(!dirty&&!pending.current.pending)||conflict)return;
-  setBusy(true);const body=pending.current.begin(project,file,content);
-  try{const next=await api<FileState>('/workspace/file',body);setFile(next);setContent(current=>draftAfterFileSave(current,body.content,next.content));setSaved(true);setError(undefined);pending.current.completed();setUnconfirmed(false);setReconciliation(false);}
-  catch(e){pending.current.failed(e);setUnconfirmed(pending.current.unknown);setReconciliation(pending.current.reconciliation);setError(e);if(e instanceof ApiError&&e.status===409&&!pending.current.reconciliation){setConflict(true);try{setRemote(await api<FileState>('/workspace/file'+query(project)+'&path='+encodeURIComponent(body.path)));}catch{/* Keep the current draft if the comparison read also fails. */}}}
+  setBusy(true);if(!pending.current.pending)pendingApi.current=api;const body=pending.current.begin(project,file,content);
+  try{const next=await (pendingApi.current??api)<FileState>('/workspace/file',body);setFile(next);setContent(current=>draftAfterFileSave(current,body.content,next.content));setSaved(true);setError(undefined);pending.current.completed();pendingApi.current=undefined;setUnconfirmed(false);setReconciliation(false);}
+  catch(e){pending.current.failed(e);if(!pending.current.pending)pendingApi.current=undefined;setUnconfirmed(pending.current.unknown);setReconciliation(pending.current.reconciliation);setError(e);if(e instanceof ApiError&&e.status===409&&!pending.current.reconciliation){setConflict(true);try{setRemote(await api<FileState>('/workspace/file'+query(project)+'&path='+encodeURIComponent(body.path)));}catch{/* Keep the current draft if the comparison read also fails. */}}}
   finally{setBusy(false);}
  }
  useEffect(()=>{const key=(e:KeyboardEvent)=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();void save();}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[file,content,busy,conflict]);

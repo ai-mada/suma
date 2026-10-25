@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"errors"
 	"strings"
 	"sync"
@@ -62,12 +61,18 @@ func (c *reviewAuthorityConn) QueryContext(ctx context.Context, query string, ar
 	if err != nil {
 		return nil, err
 	}
+	// Other domain regressions still use the historical preflight read gate.
 	if c.gate.stage == "authorization_read" && strings.HasPrefix(query, `SELECT role FROM suma_project_members WHERE project_id=? AND user_id=?`) && c.gate.armed.CompareAndSwap(true, false) {
 		return &reviewAuthorityRows{Rows: rows, gate: c.gate}, nil
 	}
 	return rows, nil
 }
 func (c *reviewAuthorityConn) BeginTx(ctx context.Context, opts driver.TxOptions) (driver.Tx, error) {
+	if c.gate.stage == "before_authority_tx" && c.gate.armed.CompareAndSwap(true, false) {
+		if err := c.gate.wait(); err != nil {
+			return nil, err
+		}
+	}
 	tx, err := c.Conn.(driver.ConnBeginTx).BeginTx(ctx, opts)
 	if err != nil {
 		return nil, err
@@ -126,21 +131,20 @@ func reviewAuthorityConnection(t *testing.T, f *fixture, ctx context.Context, st
 	return &Service{DB: db, Dialect: "sqlite", DataDir: f.s.DataDir}, gate
 }
 
-func invitedReviewer(t *testing.T, f *fixture) Principal {
+func invitedReviewer(t *testing.T, f *fixture) Actor {
 	t.Helper()
 	ownerCookie := f.cookie
 	inv := governanceInvite(f, "authority-reviewer@example.test", "member", []any{map[string]any{"project_id": f.project, "role": "reviewer"}})
 	session := governanceAccept(f, inv, "authority-reviewer@example.test")
+	reviewerCookie := f.cookie
 	f.cookie = ownerCookie
-	raw, err := json.Marshal(session["user"])
+	f.call("GET", "/auth/session", nil, 200)
+	_ = session
+	actor, err := f.s.AuthenticateActor(context.Background(), reviewerCookie.Value)
 	if err != nil {
 		t.Fatal(err)
 	}
-	var p Principal
-	if err = json.Unmarshal(raw, &p); err != nil {
-		t.Fatal(err)
-	}
-	return p
+	return actor
 }
 
 func unreviewedTestTask(t *testing.T, f *fixture) (map[string]any, map[string]any) {
@@ -162,7 +166,7 @@ func unreviewedTestTask(t *testing.T, f *fixture) (map[string]any, map[string]an
 	return task, request
 }
 
-func expectRevokedReview(t *testing.T, f *fixture, p Principal, task map[string]any, request map[string]any, stage string) {
+func expectRevokedReview(t *testing.T, f *fixture, p Actor, task map[string]any, request map[string]any, stage string) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -177,7 +181,7 @@ func expectRevokedReview(t *testing.T, f *fixture, p Principal, task map[string]
 	case <-ctx.Done():
 		t.Fatal("review never reached the role-change barrier")
 	}
-	_, err := f.s.SaveProjectAccess(ctx, f.user, map[string]any{"project_id": f.project, "user_id": p.ID, "role": "viewer", "expected_version": float64(1), "idempotency_key": newID()})
+	_, err := f.s.SaveProjectAccess(ctx, domainAActor(t, f.s, f.cookie.Value), map[string]any{"project_id": f.project, "user_id": p.Projection().ID, "role": "viewer", "expected_version": float64(1), "idempotency_key": newID()})
 	gate.release()
 	if err != nil {
 		t.Fatal("concurrent owner role update failed:", err)
@@ -192,13 +196,13 @@ func expectRevokedReview(t *testing.T, f *fixture, p Principal, task map[string]
 		t.Fatal("review hung after its organization authority changed")
 	}
 	var live string
-	if err = f.s.DB.QueryRow(`SELECT role FROM suma_project_members WHERE project_id=? AND user_id=?`, f.project, p.ID).Scan(&live); err != nil || live != "viewer" {
+	if err = f.s.DB.QueryRow(`SELECT role FROM suma_project_members WHERE project_id=? AND user_id=?`, f.project, p.Projection().ID).Scan(&live); err != nil || live != "viewer" {
 		t.Fatalf("owner role change was not committed: %s %v", live, err)
 	}
 }
 
 func TestReviewRechecksAuthorityAfterConcurrentProjectRoleRevocation(t *testing.T) {
-	for _, stage := range []string{"authorization_read", "receipt_released"} {
+	for _, stage := range []string{"before_authority_tx", "receipt_released"} {
 		t.Run(stage, func(t *testing.T) {
 			f := newFixture(t)
 			p := invitedReviewer(t, f)
@@ -228,7 +232,7 @@ func TestReviewSuccessReceiptCannotReplayAfterConcurrentRoleRevocation(t *testin
 	if err != nil || again.Version != accepted.Version {
 		t.Fatalf("authorized receipt did not replay: %+v %v", again, err)
 	}
-	expectRevokedReview(t, f, p, task, request, "authorization_read")
+	expectRevokedReview(t, f, p, task, request, "before_authority_tx")
 	var count int
 	if err = f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_reviews WHERE tenant_id=? AND project_id=? AND task_id=?`, f.user.TenantID, f.project, task["id"]).Scan(&count); err != nil || count != 1 {
 		t.Fatalf("receipt replay duplicated/removed review evidence: count=%d %v", count, err)

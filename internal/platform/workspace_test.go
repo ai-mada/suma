@@ -60,6 +60,7 @@ func TestWorkspaceConcurrentSavesRejectStaleWriter(t *testing.T) {
 	defer secondDB.Close()
 	secondHandler := (&Server{Service: &Service{DB: secondDB, Dialect: "sqlite"}, Engine: f.e}).Handler()
 	first := f.call("GET", "/workspace/file?project_id="+f.project+"&path=main.go", nil, 200)
+	view := f.view
 	var wg sync.WaitGroup
 	codes := make(chan int, 2)
 	for index, value := range []string{"writer one", "writer two"} {
@@ -74,6 +75,8 @@ func TestWorkspaceConcurrentSavesRejectStaleWriter(t *testing.T) {
 			raw, _ := json.Marshal(body)
 			r := httptest.NewRequest(http.MethodPost, "http://suma.test/api/v1/workspace/file", bytes.NewReader(raw))
 			r.Header.Set("Content-Type", "application/json")
+			r.Header.Set("X-Suma-Expected-User", view.ID)
+			r.Header.Set("X-Suma-Expected-Organization", view.TenantID)
 			r.AddCookie(f.cookie)
 			w := httptest.NewRecorder()
 			handler.ServeHTTP(w, r)
@@ -95,23 +98,27 @@ func TestWorkspaceConcurrentSavesRejectStaleWriter(t *testing.T) {
 	}
 }
 
-func TestWorkspaceReadNeverMutatesDatabase(t *testing.T) {
-	f, _ := workspaceFixture(t)
+func TestWorkspaceReadNeverMutatesBusinessState(t *testing.T) {
+	f, root := workspaceFixture(t)
 	ctx := context.Background()
 	if _, err := f.s.DB.ExecContext(ctx, `DROP TABLE suma_workspace_file_operations`); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := f.s.DB.ExecContext(ctx, `PRAGMA query_only=ON`); err != nil {
-		t.Fatal(err)
-	}
-	defer f.s.DB.ExecContext(ctx, `PRAGMA query_only=OFF`)
-	var before, after int
-	f.s.DB.QueryRowContext(ctx, `SELECT total_changes()`).Scan(&before)
+	var operations, activity int
+	f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_operations`).Scan(&operations)
+	f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_activity`).Scan(&activity)
 	f.call("GET", "/workspace?project_id="+f.project, nil, 200)
 	f.call("GET", "/workspace/file?project_id="+f.project+"&path=main.go", nil, 200)
-	f.s.DB.QueryRowContext(ctx, `SELECT total_changes()`).Scan(&after)
-	if before != after {
-		t.Fatalf("GET mutated database: %d -> %d", before, after)
+	var afterOperations, afterActivity, journal int
+	f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_operations`).Scan(&afterOperations)
+	f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_activity`).Scan(&afterActivity)
+	f.s.DB.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='suma_workspace_file_operations'`).Scan(&journal)
+	if operations != afterOperations || activity != afterActivity || journal != 0 {
+		t.Fatal("protected GET mutated business state or recreated operation journal")
+	}
+	actual, err := os.ReadFile(filepath.Join(root, "main.go"))
+	if err != nil || string(actual) != "original" {
+		t.Fatal("GET mutated workspace file", err)
 	}
 }
 
@@ -122,7 +129,19 @@ func TestWorkspaceRecoversPreparedBeforeAndAfterFilesystemCommit(t *testing.T) {
 			body := f.body(map[string]any{"path": "main.go", "expected_hash": digest("original"), "content": "prepared content"})
 			response := fileResponse("main.go", "prepared content")
 			hash := digest(f.user.ID + stringify(map[string]any{"kind": "workspace.file", "body": body}))
-			_, err := f.s.DB.Exec(`INSERT INTO suma_workspace_file_operations(tenant_id,project_id,operation_id,request_hash,root_path,path,expected_hash,new_hash,content,response,state,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`, f.user.TenantID, f.project, body["idempotency_key"], hash, root, "main.go", digest("original"), digest("prepared content"), "prepared content", stringify(response), "prepared", now())
+			ctx, tx, cancel, err := f.s.beginAuthorityTx(context.Background())
+			if err != nil {
+				t.Fatal(err)
+			}
+			auth, err := f.s.authorizeTx(ctx, tx, f.actor, commandTarget{tenantID: f.user.TenantID, projectID: f.project}, purposeProjectWrite)
+			if err == nil {
+				err = f.s.prepareWorkspaceOperationTx(ctx, auth, str(body, "idempotency_key"), hash, root, "main.go", "original", "prepared content", response)
+			}
+			if err == nil {
+				err = tx.Commit()
+			}
+			tx.Rollback()
+			cancel()
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -212,7 +231,7 @@ func TestRecordPaginationAndCompleteKeywordSearch(t *testing.T) {
 	seen := map[string]bool{}
 	cursor := ""
 	for {
-		items, total, next, e := f.s.ListPage(ctx, f.user, f.project, "documents", 200, cursor)
+		items, total, next, e := f.s.ListPage(ctx, f.actor, f.project, "documents", 200, cursor)
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -233,10 +252,10 @@ func TestRecordPaginationAndCompleteKeywordSearch(t *testing.T) {
 	if len(seen) != 1005 {
 		t.Fatalf("missing records: %d", len(seen))
 	}
-	if _, _, _, err = f.s.ListPage(ctx, f.user, f.project, "tasks", 200, cursor); err == nil {
+	if _, _, _, err = f.s.ListPage(ctx, f.actor, f.project, "tasks", 200, cursor); err == nil {
 		t.Fatal("cursor crossed record kind")
 	}
-	result, err := f.s.SearchKeywords(ctx, f.user, f.project, "needle 100%_literal")
+	result, err := f.s.SearchKeywords(ctx, f.actor, f.project, "needle 100%_literal")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -244,7 +263,7 @@ func TestRecordPaginationAndCompleteKeywordSearch(t *testing.T) {
 	if result["total"] != 1 || len(hits) != 1 || hits[0]["id"] != "row-1004" {
 		t.Fatalf("old record not searched: %v", result)
 	}
-	result, err = f.s.SearchKeywords(ctx, f.user, f.project, "%")
+	result, err = f.s.SearchKeywords(ctx, f.actor, f.project, "%")
 	if err != nil {
 		t.Fatal(err)
 	}

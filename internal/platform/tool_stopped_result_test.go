@@ -15,11 +15,11 @@ func TestToolHTTPStoppedZeroExitCannotSucceed(t *testing.T) {
 		t.Run(terminal, func(t *testing.T) {
 			f, token, profile := toolFixture(t)
 			ctx := context.Background()
-			if _, err := f.s.ReportToolInventory(ctx, f.user, f.project, token, ToolInventoryRequest{ProjectID: f.project, WorkerID: profile.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: profile.Profile, Available: true}}}); err != nil {
+			if _, err := f.s.ReportToolInventory(ctx, toolActorForTest(t, f, token), f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: profile.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: profile.Profile, Available: true}}}); err != nil {
 				t.Fatal(err)
 			}
 			var err error
-			profile, err = f.s.CommandToolProfile(ctx, f.user, f.project, profile.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: profile.Version, IdempotencyKey: newID()})
+			profile, err = f.s.CommandToolProfile(ctx, f.actor, f.project, profile.ID, ToolProfileCommandRequest{ProjectID: f.project, Action: "enable", ExpectedVersion: profile.Version, IdempotencyKey: newID()})
 			if err != nil {
 				t.Fatal(err)
 			}

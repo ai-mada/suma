@@ -47,6 +47,7 @@ export class PoolWriteRecovery {
     scope: string,
     private storage: StorageLike | undefined,
     private project?: string,
+    private send: typeof api = api,
   ) {
     this.key = "suma-pool-recovery-v1:" + scope;
     try {
@@ -104,7 +105,7 @@ export class PoolWriteRecovery {
     const request = this.value;
     this.busy = true;
     try {
-      const result = await api<T>(
+      const result = await this.send<T>(
         request.path,
         { ...request.body, idempotency_key: request.idempotency_key },
         "POST",

@@ -110,7 +110,7 @@ func releaseVariantCandidate(t *testing.T, f *fixture) ReleaseCandidate {
 		}
 		profiles = append(profiles, ReleaseProfileRegistration{ID: entry.id, Kind: entry.kind, SHA256: hash})
 	}
-	registered, err := f.s.RegisterReleaseWorker(ctx, f.user, f.project, f.cookie.Value, map[string]any{"worker_id": "variant-builder", "profiles": profiles, "idempotency_key": newID()})
+	registered, err := f.s.RegisterReleaseWorker(ctx, f.actor, f.project, map[string]any{"worker_id": "variant-builder", "profiles": profiles, "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,7 +130,7 @@ func releaseVariantCandidate(t *testing.T, f *fixture) ReleaseCandidate {
 	runReleaseFixtureWorker(t, ctx, f, client, journal, "variant-builder", run["id"].(string), config, 0)
 	current := f.call("GET", "/tasks/"+task["id"].(string)+"?project_id="+f.project, nil, 200)
 	accepted := f.call("POST", "/tasks/"+task["id"].(string)+"/review", f.body(map[string]any{"expected_version": current["version"], "run_id": run["id"], "decision": "accepted", "reason": "第二候选B已实际构建、收包、HTTP包测试"}), 200)
-	artifacts, _, _, err := f.s.ReleaseArtifacts(ctx, f.user, f.project, 100, "")
+	artifacts, _, _, err := f.s.ReleaseArtifacts(ctx, f.actor, f.project, 100, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -148,7 +148,7 @@ func releaseVariantCandidate(t *testing.T, f *fixture) ReleaseCandidate {
 		if buildID == "" || testID == "" {
 			continue
 		}
-		view, e := f.s.CreateReleaseCandidate(ctx, f.user, f.project, map[string]any{"name": "实际第二内容B候选", "artifact_id": artifact.ID, "build_attestation_id": buildID, "package_test_attestation_id": testID, "tasks": []any{map[string]any{"id": accepted["id"], "expected_version": accepted["version"]}}, "idempotency_key": newID()})
+		view, e := f.s.CreateReleaseCandidate(ctx, f.actor, f.project, map[string]any{"name": "实际第二内容B候选", "artifact_id": artifact.ID, "build_attestation_id": buildID, "package_test_attestation_id": testID, "tasks": []any{map[string]any{"id": accepted["id"], "expected_version": accepted["version"]}}, "idempotency_key": newID()})
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -164,12 +164,12 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 	defer cancel()
 	control := httptest.NewServer(f.handler)
 	defer control.Close()
-	worker, err := f.s.RegisterReleaseWorker(ctx, f.user, f.project, f.cookie.Value, map[string]any{"worker_id": "actual-provider-worker", "profiles": []any{}, "deployment": true, "idempotency_key": newID()})
+	worker, err := f.s.RegisterReleaseWorker(ctx, f.actor, f.project, map[string]any{"worker_id": "actual-provider-worker", "profiles": []any{}, "deployment": true, "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
 	workerToken := worker["token"].(string)
-	workerPrincipal, err := f.s.Authenticate(ctx, workerToken)
+	_, err = f.s.AuthenticateActor(ctx, workerToken)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -222,7 +222,7 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 	loseRunnerResult := false
 	doDeploy := func(p ReleasePlan) ReleaseDeployment {
 		t.Helper()
-		d, e := f.s.ExecuteReleasePlan(ctx, f.user, f.project, p.ID, f.cookie.Value, releaseExecuteBody(f, p), f.e)
+		d, e := f.s.ExecuteReleasePlan(ctx, f.actor, f.project, p.ID, releaseExecuteBody(f, p), f.e)
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -231,7 +231,7 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 			t.Fatal("claim protected actual deployment", e)
 		}
 		ref := rc.AssignmentRef{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID}
-		authorization, e := f.s.IssueReleaseAuthorization(ctx, workerPrincipal, workerToken, rc.ReleaseAuthorizationRequest{ProjectID: f.project, Assignment: ref, OperationID: d.OperationID})
+		authorization, e := f.s.IssueReleaseAuthorization(ctx, domainCActor(t, f.s, workerToken), rc.ReleaseAuthorizationRequest{ProjectID: f.project, Assignment: ref, OperationID: d.OperationID})
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -248,7 +248,7 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 		if observation.State != "succeeded" || observation.Effect.State != "applied" || observation.Health.State != "passed" {
 			t.Fatalf("actual provider did not pass health: state=%s effect=%s health=%s", observation.State, observation.Effect.State, observation.Health.State)
 		}
-		persisted, e := f.s.ReleaseDeployment(ctx, f.user, f.project, d.OperationID)
+		persisted, e := f.s.ReleaseDeployment(ctx, f.actor, f.project, d.OperationID)
 		if e != nil || persisted.State != "deployed_healthy" || persisted.Observation == nil {
 			t.Fatal("provider observation not projected", e)
 		}
@@ -257,11 +257,11 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 			if e = client.Complete(ctx, original); e != nil {
 				t.Fatal(e)
 			}
-			currentPlan, e := f.s.ReleasePlan(ctx, f.user, f.project, p.ID)
+			currentPlan, e := f.s.ReleasePlan(ctx, f.actor, f.project, p.ID)
 			if e != nil {
 				t.Fatal(e)
 			}
-			_, e = f.s.ApproveReleasePlan(ctx, f.user, f.project, p.ID, f.cookie.Value, map[string]any{"project_id": f.project, "expected_version": currentPlan.Version, "plan_revision": p.Revision, "plan_sha256": p.SHA256, "decision": "revoked", "reason": "实际激活后撤销后续授权，仍须保留已发生事实", "idempotency_key": newID()})
+			_, e = f.s.ApproveReleasePlan(ctx, f.actor, f.project, p.ID, map[string]any{"project_id": f.project, "expected_version": currentPlan.Version, "plan_revision": p.Revision, "plan_sha256": p.SHA256, "decision": "revoked", "reason": "实际激活后撤销后续授权，仍须保留已发生事实", "idempotency_key": newID()})
 			if e != nil {
 				t.Fatal(e)
 			}
@@ -276,7 +276,7 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 			if e = f.e.Tick(ctx); e != nil {
 				t.Fatal(e)
 			}
-			_, e = f.s.ReconcileReleaseDeployment(ctx, f.user, f.project, d.OperationID, f.cookie.Value, map[string]any{"project_id": f.project, "expected_version": persisted.Version, "idempotency_key": newID()}, f.e)
+			_, e = f.s.ReconcileReleaseDeployment(ctx, f.actor, f.project, d.OperationID, map[string]any{"project_id": f.project, "expected_version": persisted.Version, "idempotency_key": newID()}, f.e)
 			if e != nil {
 				t.Fatal(e)
 			}
@@ -292,7 +292,7 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 			if json.Unmarshal([]byte(originalRaw), &preserved) != nil || !preserved.OutcomeUnknown || preserved.Error != original.Error {
 				t.Fatal("original unknown Runner result was erased")
 			}
-			currentPlan, e = f.s.ReleasePlan(ctx, f.user, f.project, p.ID)
+			currentPlan, e = f.s.ReleasePlan(ctx, f.actor, f.project, p.ID)
 			if e != nil || currentPlan.Approval.Decision != "revoked" || len(currentPlan.ApprovalHistory) != 2 || currentPlan.Eligibility {
 				t.Fatal("fact recovery fabricated approval or discarded approval history", e)
 			}
@@ -319,7 +319,7 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 	if err != nil || site.StatusCode != 200 || string(body) != releaseFixtureHTML {
 		t.Fatal("actual active site did not serve sealed candidate bytes", err)
 	}
-	currentEnv, err := f.s.ReleaseEnvironment(ctx, f.user, f.project, env.ID)
+	currentEnv, err := f.s.ReleaseEnvironment(ctx, f.actor, f.project, env.ID)
 	if err != nil || currentEnv.Generation != 1 || currentEnv.ActiveGeneration != 1 || currentEnv.ActiveArtifactID != candidate.ArtifactID || currentEnv.BarrierOperationID != "" {
 		t.Fatal("actual healthy operation did not release reservation", err)
 	}
@@ -328,17 +328,17 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 		t.Fatal("second candidate did not change actual package bytes")
 	}
 	variantInput := map[string]any{"project_id": f.project, "candidate_id": variant.ID, "environment_id": env.ID, "action": "deploy", "expected_environment_generation": currentEnv.Generation}
-	variantPreview, err := f.s.PreviewReleasePlan(ctx, f.user, f.project, f.cookie.Value, variantInput)
+	variantPreview, err := f.s.PreviewReleasePlan(ctx, f.actor, f.project, variantInput)
 	if err != nil {
 		t.Fatal(err)
 	}
 	variantInput["preview_sha256"] = variantPreview.PreviewSHA256
 	variantInput["idempotency_key"] = newID()
-	variantPlan, err := f.s.CreateReleasePlan(ctx, f.user, f.project, f.cookie.Value, variantInput)
+	variantPlan, err := f.s.CreateReleasePlan(ctx, f.actor, f.project, variantInput)
 	if err != nil {
 		t.Fatal(err)
 	}
-	variantPlan, err = f.s.ApproveReleasePlan(ctx, f.user, f.project, variantPlan.ID, f.cookie.Value, map[string]any{"project_id": f.project, "expected_version": variantPlan.Version, "plan_revision": variantPlan.Revision, "plan_sha256": variantPlan.SHA256, "decision": "approved", "reason": "真实第二内容B已构建、包测试与验收", "idempotency_key": newID()})
+	variantPlan, err = f.s.ApproveReleasePlan(ctx, f.actor, f.project, variantPlan.ID, map[string]any{"project_id": f.project, "expected_version": variantPlan.Version, "plan_revision": variantPlan.Revision, "plan_sha256": variantPlan.SHA256, "decision": "approved", "reason": "真实第二内容B已构建、包测试与验收", "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -355,11 +355,11 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 	if err != nil || string(body) != releaseVariantHTML {
 		t.Fatal("actual site did not change to second package B", err)
 	}
-	currentEnv, err = f.s.ReleaseEnvironment(ctx, f.user, f.project, env.ID)
+	currentEnv, err = f.s.ReleaseEnvironment(ctx, f.actor, f.project, env.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	rollback, err := f.s.RollbackReleasePreview(ctx, f.user, f.project, first.OperationID, f.cookie.Value, map[string]any{"project_id": f.project, "expected_environment_generation": currentEnv.Generation})
+	rollback, err := f.s.RollbackReleasePreview(ctx, f.actor, f.project, first.OperationID, map[string]any{"project_id": f.project, "expected_environment_generation": currentEnv.Generation})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -370,11 +370,11 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 	data, _ := json.Marshal(input)
 	var create map[string]any
 	json.Unmarshal(data, &create)
-	next, err := f.s.CreateReleasePlan(ctx, f.user, f.project, f.cookie.Value, create)
+	next, err := f.s.CreateReleasePlan(ctx, f.actor, f.project, create)
 	if err != nil {
 		t.Fatal(err)
 	}
-	next, err = f.s.ApproveReleasePlan(ctx, f.user, f.project, next.ID, f.cookie.Value, map[string]any{"project_id": f.project, "expected_version": next.Version, "plan_revision": next.Revision, "plan_sha256": next.SHA256, "decision": "approved", "reason": "回退到同环境真实历史健康制品，使用新代数重新核验", "idempotency_key": newID()})
+	next, err = f.s.ApproveReleasePlan(ctx, f.actor, f.project, next.ID, map[string]any{"project_id": f.project, "expected_version": next.Version, "plan_revision": next.Revision, "plan_sha256": next.SHA256, "decision": "approved", "reason": "回退到同环境真实历史健康制品，使用新代数重新核验", "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -383,7 +383,7 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 	if second.OperationID == first.OperationID || second.Generation != 3 || second.ArtifactID != first.ArtifactID {
 		t.Fatal("rollback reused old operation/generation or changed historical artifact")
 	}
-	currentEnv, err = f.s.ReleaseEnvironment(ctx, f.user, f.project, env.ID)
+	currentEnv, err = f.s.ReleaseEnvironment(ctx, f.actor, f.project, env.ID)
 	if err != nil || currentEnv.Generation != 3 || currentEnv.ActiveGeneration != 3 || currentEnv.BarrierOperationID != "" {
 		t.Fatal("actual rollback generation not observed", err)
 	}
@@ -400,12 +400,12 @@ func TestReleaseDeploymentActualProviderHealthAndNewGenerationRollback(t *testin
 	if _, err = f.s.ObserveReleaseDeployment(ctx, providerToken, *first.Observation); err != nil {
 		t.Fatal(err)
 	}
-	currentEnv, err = f.s.ReleaseEnvironment(ctx, f.user, f.project, env.ID)
+	currentEnv, err = f.s.ReleaseEnvironment(ctx, f.actor, f.project, env.ID)
 	if err != nil || currentEnv.ActiveGeneration != 3 {
 		t.Fatal("late old success replaced current active generation", err)
 	}
 	before := second.Version
-	reconciled, err := f.s.ReconcileReleaseDeployment(ctx, f.user, f.project, second.OperationID, f.cookie.Value, map[string]any{"project_id": f.project, "expected_version": before, "idempotency_key": newID()}, f.e)
+	reconciled, err := f.s.ReconcileReleaseDeployment(ctx, f.actor, f.project, second.OperationID, map[string]any{"project_id": f.project, "expected_version": before, "idempotency_key": newID()}, f.e)
 	if err != nil || reconciled.Observation == nil || reconciled.Observation.EvidenceSHA256 != second.Observation.EvidenceSHA256 {
 		t.Fatal("real provider read-only reconciliation failed", err)
 	}

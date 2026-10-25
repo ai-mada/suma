@@ -45,7 +45,7 @@ func (h *preferenceHTTP) request(method, path, body string, cookie *http.Cookie,
 	}
 	// Existing fixture calls bind writes to their known cookie identity. Tests of
 	// shared-cookie drift disable this and submit the original view's headers.
-	if h.inferExpectedScope && method == "PATCH" && (path == "/account/preferences" || path == "/organization/preferences") {
+	if h.inferExpectedScope && method != "GET" && (path == "/account/preferences" || path == "/organization/preferences") {
 		_, _, session := h.request("GET", "/auth/session", "", cookie, headers)
 		if user, ok := session["user"].(map[string]any); ok {
 			req.Header.Set("X-Suma-Expected-User", user["id"].(string))
@@ -205,13 +205,14 @@ func TestLocalePreferencesCurrentAuthorityBeforeReplay(t *testing.T) {
 	body := preferenceBody("en", 0, newID())
 	h.expect("PATCH", "/organization/preferences", body, admin, 200)
 	f.cookie = owner
+	f.call("GET", "/auth/session", nil, 200)
 	f.call("PATCH", "/organization/members/"+adminID, map[string]any{"role": "member", "expected_version": 1, "idempotency_key": newID()}, 200)
 	h.expect("GET", "/organization/preferences", "", admin, 200)
 	h.expect("PATCH", "/organization/preferences", body, admin, 403)
 	h.expect("PATCH", "/organization/preferences", preferenceBody("zh", 1, newID()), admin, 403)
 	h.expect("PATCH", "/account/preferences", preferenceBody("zh", 0, newID()), admin, 200)
 	for _, kind := range []string{"api", "runner", "agent"} {
-		key := f.call("POST", "/auth/tokens", map[string]any{"project_id": f.project, "scope": kind, "label": "browser"}, 201)["token"].(string)
+		key := f.call("POST", "/auth/tokens", map[string]any{"project_id": f.project, "scope": kind, "label": "browser", "idempotency_key": newID()}, 201)["token"].(string)
 		for _, path := range []string{"/account/preferences", "/organization/preferences"} {
 			for _, method := range []string{"GET", "PATCH"} {
 				status, _, _ := h.request(method, path, body, owner, map[string]string{"Authorization": "Bearer " + key})
@@ -221,14 +222,16 @@ func TestLocalePreferencesCurrentAuthorityBeforeReplay(t *testing.T) {
 			}
 		}
 	}
-	custom, err := f.s.CreateToken(context.Background(), f.user, "unscoped-cli", time.Hour)
-	if err != nil {
+	// A pre-ledger unclassified credential must be reissued; a label cannot
+	// manufacture trusted browser authority during the additive migration.
+	custom := newID() + newID()
+	if _, err := f.s.DB.Exec(`INSERT INTO suma_sessions(token_hash,user_id,tenant_id,expires_at,label) VALUES(?,?,?,?,?)`, digest(custom), f.user.ID, f.user.TenantID, time.Now().Add(time.Hour).UTC().Format(time.RFC3339Nano), "unscoped-cli"); err != nil {
 		t.Fatal(err)
 	}
 	for _, path := range []string{"/account/preferences", "/organization/preferences"} {
 		status, _, _ := h.request("GET", path, "", nil, map[string]string{"Authorization": "Bearer " + custom})
-		if status != 403 {
-			t.Fatalf("nonbrowser preference read: %d", status)
+		if status != 401 {
+			t.Fatalf("legacy unclassified preference read: %d", status)
 		}
 	}
 	f.call("PATCH", "/organization/members/"+adminID, map[string]any{"action": "remove", "expected_version": 2, "idempotency_key": newID()}, 200)
@@ -341,7 +344,7 @@ func TestLocalePreferencesPublicCatalogExactAndMachineLanguageUnchanged(t *testi
 	f := newFixture(t)
 	h := newPreferenceHTTP(t, f.handler)
 	h.expect("PATCH", "/account/preferences", preferenceBody("en", 0, newID()), f.cookie, 200)
-	key := f.call("POST", "/auth/tokens", map[string]any{"project_id": f.project, "scope": "api"}, 201)["token"].(string)
+	key := f.call("POST", "/auth/tokens", map[string]any{"project_id": f.project, "scope": "api", "idempotency_key": newID()}, 201)["token"].(string)
 	_, head, _ := h.request("GET", "/projects", "", nil, map[string]string{"Authorization": "Bearer " + key, "Accept-Language": "zh-CN"})
 	if head.Get("Content-Language") != "zh-CN" {
 		t.Fatal("machine inherited human account locale")
@@ -364,7 +367,7 @@ func TestLocalePreferencesSessionResponsesUseReturnedHumanAndOrganization(t *tes
 	owner := f.cookie
 	h.expect("PATCH", "/organization/preferences", preferenceBody("en", 0, newID()), owner, 200)
 	created := f.call("POST", "/organizations", map[string]any{"name": "切换后中文默认", "idempotency_key": newID()}, 201)
-	status, headers, _ := h.request("POST", "/auth/switch", stringify(map[string]any{"organization_id": created["id"], "idempotency_key": newID()}), owner, nil)
+	status, headers, _ := h.request("POST", "/auth/switch", stringify(map[string]any{"organization_id": created["id"], "idempotency_key": newID()}), owner, map[string]string{"X-Suma-Expected-User": f.user.ID, "X-Suma-Expected-Organization": f.user.TenantID})
 	if status != 200 || headers.Get("Content-Language") != "zh-CN" {
 		t.Fatalf("switch response used old organization: %d %v", status, headers)
 	}
@@ -374,6 +377,7 @@ func TestLocalePreferencesSessionResponsesUseReturnedHumanAndOrganization(t *tes
 		t.Fatalf("login response lost persisted account preference: %d %v", status, headers)
 	}
 	f.cookie = owner
+	f.call("GET", "/auth/session", nil, 200)
 	inv := governanceInvite(f, "locale-accept@example.test", "member", nil)
 	status, headers, _ = h.request("POST", "/auth/invitations/accept", stringify(map[string]any{"token": inv["token"], "email": "locale-accept@example.test", "name": "新语言成员", "password": "invited-password-strong-42", "idempotency_key": newID()}), nil, map[string]string{"Accept-Language": "zh-CN"})
 	if status != 200 || headers.Get("Content-Language") != "en-US" {
@@ -385,26 +389,26 @@ func TestLocalePreferencesStalePrincipalAndBrowserCredentialRechecked(t *testing
 	f := newFixture(t)
 	ctx := context.Background()
 	request := LocalePreferenceUpdateRequest{Locale: "en", ExpectedVersion: 0, IdempotencyKey: newID()}
-	if _, err := f.s.UpdateOrganizationPreferences(ctx, f.user, f.cookie.Value, request); err != nil {
+	if _, err := f.s.UpdateOrganizationPreferences(ctx, f.actor, request); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := f.s.DB.Exec(`UPDATE suma_org_members SET role='member' WHERE tenant_id=? AND user_id=?`, f.user.TenantID, f.user.ID); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := f.s.UpdateOrganizationPreferences(ctx, f.user, f.cookie.Value, request); err == nil {
+	if _, err := f.s.UpdateOrganizationPreferences(ctx, f.actor, request); err == nil {
 		t.Fatal("stale owner Principal replayed administrator receipt")
 	}
 	if _, err := f.s.DB.Exec(`UPDATE suma_sessions SET expires_at='2000-01-01T00:00:00Z' WHERE token_hash=?`, digest(f.cookie.Value)); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := f.s.AccountPreferences(ctx, f.user, f.cookie.Value); err == nil {
+	if _, err := f.s.AccountPreferences(ctx, f.actor); err == nil {
 		t.Fatal("expired browser read preferences through stale Principal")
 	}
-	if _, err := f.s.UpdateAccountPreferences(ctx, f.user, f.cookie.Value, request); err == nil {
+	if _, err := f.s.UpdateAccountPreferences(ctx, f.actor, request); err == nil {
 		t.Fatal("expired browser wrote preferences through stale Principal")
 	}
-	if _, err := f.s.OrganizationPreferences(ctx, Principal{internal: true, ID: f.user.ID, TenantID: f.user.TenantID}, f.cookie.Value); err == nil {
-		t.Fatal("internal Principal acquired browser preference authority")
+	if _, err := f.s.OrganizationPreferences(ctx, Actor{}); err == nil {
+		t.Fatal("zero Actor acquired browser preference authority")
 	}
 }
 
@@ -543,7 +547,7 @@ func TestLocalePreferencesExpectedScopeRejectsSharedCookieDriftBeforeMutationOrR
 	body := preferenceBody("en-US", 0, "shared-cookie-original-op")
 	oldHeaders := map[string]string{"X-Suma-Expected-User": user, "X-Suma-Expected-Organization": organizationA}
 	status, _, result := h.request("PATCH", "/organization/preferences", body, newCookie, oldHeaders)
-	if status != 409 {
+	if status != 403 {
 		t.Fatalf("stale organization view mutated the shared cookie's new organization: %d %v", status, result)
 	}
 	for _, table := range []string{"suma_organization_preferences", "suma_locale_preference_operations"} {
@@ -557,7 +561,7 @@ func TestLocalePreferencesExpectedScopeRejectsSharedCookieDriftBeforeMutationOrR
 		t.Fatalf("correct original organization rejected: %d", status)
 	}
 	status, _, _ = h.request("PATCH", "/organization/preferences", body, newCookie, oldHeaders)
-	if status != 409 {
+	if status != 403 {
 		t.Fatalf("old receipt was applied/replayed under a different organization: %d", status)
 	}
 	var count int
@@ -575,11 +579,12 @@ func TestLocalePreferencesExpectedScopeRejectsSharedCookieDriftBeforeMutationOrR
 		t.Fatalf("same-account cross-organization recovery rejected: %d", status)
 	}
 	f.cookie = originalCookie
+	f.call("GET", "/auth/session", nil, 200)
 	invite := governanceInvite(f, "scope-drift-other@example.test", "member", nil)
 	accepted := governanceAccept(f, invite, "scope-drift-other@example.test")
 	otherUser := accepted["user"].(map[string]any)["id"].(string)
 	status, _, _ = h.request("PATCH", "/account/preferences", body, f.cookie, accountHeaders)
-	if status != 409 {
+	if status != 403 {
 		t.Fatalf("stale account view wrote the newly signed-in account: %d", status)
 	}
 	if err := f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_account_preferences WHERE user_id=?`, otherUser).Scan(&count); err != nil || count != 0 {
@@ -602,13 +607,13 @@ func TestLocalePreferencesExpectedScopeHeadersAreStrictAndCurrentRoleWins(t *tes
 	} {
 		t.Run(name, func(t *testing.T) {
 			status, _, result := h.request("PATCH", "/organization/preferences", body, f.cookie, headers)
-			if status != 400 {
+			if status != 428 {
 				t.Fatalf("bad scope headers accepted: %d %v", status, result)
 			}
 		})
 	}
 	status, _, _ := h.request("PATCH", "/account/preferences", body, f.cookie, map[string]string{"X-Suma-Expected-User": f.user.ID, "X-Suma-Expected-Organization": f.user.TenantID})
-	if status != 400 {
+	if status != 428 {
 		t.Fatalf("account write accepted organization-scoped header: %d", status)
 	}
 	// Separate duplicate header lines must not be collapsed into a trusted value.
@@ -624,14 +629,14 @@ func TestLocalePreferencesExpectedScopeHeadersAreStrictAndCurrentRoleWins(t *tes
 		t.Fatal(err)
 	}
 	response.Body.Close()
-	if response.StatusCode != 400 {
+	if response.StatusCode != 428 {
 		t.Fatalf("duplicate scope header accepted: %d", response.StatusCode)
 	}
 	if _, err = f.s.DB.Exec(`UPDATE suma_org_members SET role='member' WHERE tenant_id=? AND user_id=?`, f.user.TenantID, f.user.ID); err != nil {
 		t.Fatal(err)
 	}
 	status, _, _ = h.request("PATCH", "/organization/preferences", body, f.cookie, map[string]string{})
-	if status != 403 {
+	if status != 428 {
 		t.Fatalf("scope validation hid the current role rejection: %d", status)
 	}
 }

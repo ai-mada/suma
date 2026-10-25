@@ -2,7 +2,7 @@ package platform
 
 import "net/http"
 
-func (s *Server) toolProfilesHTTP(w http.ResponseWriter, r *http.Request, p Principal, scope, path string, parts []string, project string, m map[string]any) bool {
+func (s *Server) toolProfilesHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, path string, parts []string, project string, m map[string]any) bool {
 	if len(parts) == 0 || parts[0] != "tool-profiles" {
 		return false
 	}
@@ -17,7 +17,7 @@ func (s *Server) toolProfilesHTTP(w http.ResponseWriter, r *http.Request, p Prin
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.CreateToolProfile(r.Context(), p, project, req)
+		out, err := s.Service.CreateToolProfile(r.Context(), actor, project, req)
 		respond(w, 201, out, err)
 	case len(parts) == 1 && r.Method == http.MethodGet:
 		limit, cursor, err := automationPage(r)
@@ -25,10 +25,10 @@ func (s *Server) toolProfilesHTTP(w http.ResponseWriter, r *http.Request, p Prin
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.ListToolProfiles(r.Context(), p, project, limit, cursor)
+		out, err := s.Service.ListToolProfiles(r.Context(), actor, project, limit, cursor)
 		respond(w, 200, out, err)
 	case len(parts) == 2 && r.Method == http.MethodGet:
-		out, err := s.Service.GetToolProfile(r.Context(), p, project, parts[1])
+		out, err := s.Service.GetToolProfile(r.Context(), actor, project, parts[1])
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[2] == "commands" && r.Method == http.MethodPost:
 		var req ToolProfileCommandRequest
@@ -36,7 +36,7 @@ func (s *Server) toolProfilesHTTP(w http.ResponseWriter, r *http.Request, p Prin
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.CommandToolProfile(r.Context(), p, project, parts[1], req)
+		out, err := s.Service.CommandToolProfile(r.Context(), actor, project, parts[1], req)
 		respond(w, 200, out, err)
 	default:
 		writeError(w, missing())

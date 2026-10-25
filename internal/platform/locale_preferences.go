@@ -7,7 +7,6 @@ import (
 	"errors"
 	"regexp"
 	"strings"
-	"time"
 	"unicode"
 	"unicode/utf8"
 
@@ -96,29 +95,6 @@ func validateLocalePreference(request LocalePreferenceUpdateRequest) (string, er
 	return string(locale), nil
 }
 
-// A real, currently valid browser credential is required even when a caller
-// presents a previously authenticated Principal. Scoped credentials never gain
-// account authority by choosing the label "browser".
-func (s *Service) localePreferenceHuman(ctx context.Context, q governanceQuery, p Principal, token string) (Principal, error) {
-	if p.internal {
-		return Principal{}, forbidden()
-	}
-	var live Principal
-	var expires string
-	err := q.QueryRowContext(ctx, s.q(`SELECT u.id,u.name,u.email,m.tenant_id,m.role,t.expires_at FROM suma_sessions t JOIN suma_users u ON u.id=t.user_id JOIN suma_org_members m ON m.user_id=u.id AND m.tenant_id=t.tenant_id WHERE t.token_hash=? AND t.user_id=? AND t.tenant_id=? AND t.label='browser' AND NOT EXISTS(SELECT 1 FROM suma_token_scopes ts WHERE ts.token_hash=t.token_hash)`), digest(token), p.ID, p.TenantID).Scan(&live.ID, &live.Name, &live.Email, &live.TenantID, &live.Role, &expires)
-	if errors.Is(err, sql.ErrNoRows) {
-		return Principal{}, forbidden()
-	}
-	if err != nil {
-		return Principal{}, err
-	}
-	expiry, err := time.Parse(time.RFC3339Nano, expires)
-	if err != nil || !time.Now().Before(expiry) {
-		return Principal{}, forbidden()
-	}
-	return live, nil
-}
-
 func preferenceTable(organization bool) (string, string) {
 	if organization {
 		return "suma_organization_preferences", "tenant_id"
@@ -136,66 +112,73 @@ func (s *Service) readLocalePreference(ctx context.Context, q governanceQuery, o
 	return out, err
 }
 
-func (s *Service) localePreferences(ctx context.Context, p Principal, token string, organization bool) (localePreferenceState, error) {
-	options := &sql.TxOptions{ReadOnly: true}
-	if s.Dialect != "sqlite" {
-		options.Isolation = sql.LevelRepeatableRead
-	}
-	tx, err := s.DB.BeginTx(ctx, options)
-	if err != nil {
-		return localePreferenceState{}, err
-	}
-	defer tx.Rollback()
-	if _, err = s.localePreferenceHuman(ctx, tx, p, token); err != nil {
-		return localePreferenceState{}, err
-	}
-	id := p.ID
+// Preferences use the same current browser credential contract as business
+// commands. The account row remains global across organization switches.
+func (s *Service) localePreferences(ctx context.Context, actor Actor, organization bool) (localePreferenceState, error) {
+	var out localePreferenceState
+	p := actor.Projection()
+	purpose := purposeAccountPreferences
 	if organization {
-		id = p.TenantID
+		purpose = purposeOrganizationPreferences
 	}
-	out, err := s.readLocalePreference(ctx, tx, organization, id)
-	if err != nil {
-		return out, err
-	}
-	return out, tx.Commit()
+	err := s.withCurrentRead(ctx, actor, commandTarget{tenantID: p.TenantID, projectID: organizationScope}, purpose, func(auth *authorizedCommand) error {
+		id := auth.currentPrincipal.ID
+		if organization {
+			id = auth.currentPrincipal.TenantID
+		}
+		var err error
+		out, err = s.readLocalePreference(auth.ctx, auth.tx, organization, id)
+		return err
+	})
+	return out, err
 }
 
-func (s *Service) AccountPreferences(ctx context.Context, p Principal, token string) (AccountPreferences, error) {
-	out, err := s.localePreferences(ctx, p, token, false)
+func (s *Service) AccountPreferences(ctx context.Context, actor Actor) (AccountPreferences, error) {
+	out, err := s.localePreferences(ctx, actor, false)
+	return AccountPreferences{actor.Projection().ID, out.Locale, out.Version, out.UpdatedAt}, err
+}
+
+func (s *Service) OrganizationPreferences(ctx context.Context, actor Actor) (OrganizationPreferences, error) {
+	out, err := s.localePreferences(ctx, actor, true)
+	return OrganizationPreferences{actor.Projection().TenantID, out.Locale, out.Version, out.UpdatedAt}, err
+}
+
+func (s *Service) UpdateAccountPreferences(ctx context.Context, actor Actor, request LocalePreferenceUpdateRequest) (AccountPreferences, error) {
+	p := actor.Projection()
+	out, err := s.updateLocalePreference(ctx, actor, request, false, localePreferenceExpectation{users: []string{p.ID}})
 	return AccountPreferences{p.ID, out.Locale, out.Version, out.UpdatedAt}, err
 }
 
-func (s *Service) OrganizationPreferences(ctx context.Context, p Principal, token string) (OrganizationPreferences, error) {
-	out, err := s.localePreferences(ctx, p, token, true)
+func (s *Service) UpdateOrganizationPreferences(ctx context.Context, actor Actor, request LocalePreferenceUpdateRequest) (OrganizationPreferences, error) {
+	p := actor.Projection()
+	out, err := s.updateLocalePreference(ctx, actor, request, true, localePreferenceExpectation{users: []string{p.ID}, organizations: []string{p.TenantID}})
 	return OrganizationPreferences{p.TenantID, out.Locale, out.Version, out.UpdatedAt}, err
 }
 
-func (s *Service) UpdateAccountPreferences(ctx context.Context, p Principal, token string, request LocalePreferenceUpdateRequest) (AccountPreferences, error) {
-	out, err := s.updateLocalePreference(ctx, p, token, request, false, localePreferenceExpectation{users: []string{p.ID}})
-	return AccountPreferences{p.ID, out.Locale, out.Version, out.UpdatedAt}, err
-}
-
-func (s *Service) UpdateOrganizationPreferences(ctx context.Context, p Principal, token string, request LocalePreferenceUpdateRequest) (OrganizationPreferences, error) {
-	out, err := s.updateLocalePreference(ctx, p, token, request, true, localePreferenceExpectation{users: []string{p.ID}, organizations: []string{p.TenantID}})
-	return OrganizationPreferences{p.TenantID, out.Locale, out.Version, out.UpdatedAt}, err
-}
-
-func (s *Service) updateLocalePreference(ctx context.Context, p Principal, token string, request LocalePreferenceUpdateRequest, organization bool, expected localePreferenceExpectation) (localePreferenceState, error) {
+func (s *Service) updateLocalePreference(ctx context.Context, actor Actor, request LocalePreferenceUpdateRequest, organization bool, expected localePreferenceExpectation) (localePreferenceState, error) {
 	var out localePreferenceState
 	locale, err := validateLocalePreference(request)
 	if err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cleanup, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cleanup()
 	defer tx.Rollback()
-	// Governance lock order is organization then account. The account lock is
-	// global across organization switches and independent database connections.
-	if err = s.lockOrganization(ctx, tx, p.TenantID); err != nil {
+	purpose := purposeAccountPreferences
+	if organization {
+		purpose = purposeOrganizationPreferences
+	}
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.Projection().TenantID, projectID: organizationScope}, purpose)
+	if err != nil {
 		return out, err
 	}
+	ctx = auth.ctx
+	p := auth.currentPrincipal
+	// All organization, participant and source locks are already held by the
+	// proof. The account preference row is additionally serialized globally.
 	if !organization {
 		insert := `INSERT INTO suma_account_preference_locks(user_id,sequence) VALUES(?,0) ON CONFLICT(user_id) DO NOTHING`
 		if s.Dialect == "oceanbase" {
@@ -207,10 +190,6 @@ func (s *Service) updateLocalePreference(ctx context.Context, p Principal, token
 		if _, err = tx.ExecContext(ctx, s.q(`UPDATE suma_account_preference_locks SET sequence=sequence+1 WHERE user_id=?`), p.ID); err != nil {
 			return out, err
 		}
-	}
-	p, err = s.localePreferenceHuman(ctx, tx, p, token)
-	if err != nil {
-		return out, err
 	}
 	if organization && !orgAdmin(p) {
 		return out, forbidden()
@@ -263,7 +242,7 @@ func (s *Service) updateLocalePreference(ctx context.Context, p Principal, token
 	if err != nil {
 		return localePreferenceState{}, err
 	}
-	if err = s.activity(ctx, tx, p, organizationScope, action, id, title); err != nil {
+	if err = s.commandActivity(ctx, auth, action, id, title); err != nil {
 		return localePreferenceState{}, err
 	}
 	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_locale_preference_operations(scope_kind,scope_id,actor_id,operation_id,request_hash,response) VALUES(?,?,?,?,?,?)`), scope, id, p.ID, request.IdempotencyKey, hash, stringify(out)); err != nil {

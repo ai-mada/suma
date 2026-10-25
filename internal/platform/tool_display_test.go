@@ -33,7 +33,7 @@ func TestToolDisplayEligibilityBranches(t *testing.T) {
 				pool = newPoolMachineFixture(t)
 				f = pool.f
 				var err error
-				p, err = f.s.CreateToolProfile(context.Background(), f.user, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: pool.credential.Runner.WorkerID, Name: "pool", Profile: toolTestProfile(), IdempotencyKey: newID()})
+				p, err = f.s.CreateToolProfile(context.Background(), f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: pool.credential.Runner.WorkerID, Name: "pool", Profile: toolTestProfile(), IdempotencyKey: newID()})
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -87,7 +87,7 @@ func TestToolDisplayEligibilityBranches(t *testing.T) {
 				}
 				exec(`INSERT INTO suma_tool_inventories(tenant_id,project_id,worker_id,observed_at,items)VALUES(?,?,?,?,?)`, f.user.TenantID, f.project, p.WorkerID, at, stringify([]toolcontract.Observation{o}))
 			}
-			got, err := f.s.GetToolProfile(context.Background(), f.user, f.project, p.ID)
+			got, err := f.s.GetToolProfile(context.Background(), f.actor, f.project, p.ID)
 			if err != nil {
 				t.Fatal(err)
 			}

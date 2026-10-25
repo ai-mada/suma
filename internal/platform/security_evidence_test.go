@@ -43,7 +43,7 @@ func TestScopedTokensCannotEscapeThroughEarlyRoutes(t *testing.T) {
 	other := f.call("POST", "/projects", map[string]any{"title": "其他项目", "idempotency_key": newID()}, 201)
 	for _, kind := range []string{"runner", "agent", "api"} {
 		t.Run(kind, func(t *testing.T) {
-			key := f.call("POST", "/auth/tokens", map[string]any{"project_id": f.project, "scope": kind}, 201)["token"].(string)
+			key := f.call("POST", "/auth/tokens", map[string]any{"project_id": f.project, "scope": kind, "idempotency_key": newID()}, 201)["token"].(string)
 			f.bearer("GET", "/auth/session", key, nil, 403)
 			f.bearer("POST", "/auth/tokens", key, map[string]any{"project_id": f.project}, 403)
 			f.bearer("POST", "/projects", key, map[string]any{"title": "逃逸项目", "idempotency_key": newID()}, 403)

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/ai-mada/suma/internal/dag"
 
@@ -186,10 +185,30 @@ func (s *Service) authenticateReleaseProvider(token, provider string) (ReleasePr
 	}
 	return ReleaseProviderConfig{}, forbidden()
 }
-func (s *Service) ReleaseProviderOptions(ctx context.Context, p Principal, project string) ([]map[string]any, error) {
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return nil, err
+func (s *Service) ReleaseProviderOptions(ctx context.Context, actor Actor, project string) ([]map[string]any, error) {
+	var result0 []map[string]any
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readReleaseProviderOptionsTx(bounded, auth, project)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readReleaseProviderOptionsTx(ctx context.Context, auth *authorizedCommand, project string) ([]map[string]any, error) {
+	if auth == nil {
+		return nil, unauthenticated()
 	}
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return nil, e
+	}
+	if auth.target.projectID != project {
+		return nil, forbidden()
+	}
+
+	p := auth.currentPrincipal
+
 	out := []map[string]any{}
 	for _, v := range s.ReleaseProviders {
 		if v.TenantID == p.TenantID && v.ProjectID == project {
@@ -197,29 +216,14 @@ func (s *Service) ReleaseProviderOptions(ctx context.Context, p Principal, proje
 		}
 	}
 	return out, nil
+
 }
 
-// Call before scheduler/domain locks. Never accept a role supplied in Principal.
-func (s *Service) releaseBrowserTx(ctx context.Context, tx *sql.Tx, p Principal, project, token string, admin bool) error {
+func (s *Service) releaseBrowserTx(ctx context.Context, tx *sql.Tx, actor Actor, project string, admin bool) (*authorizedCommand, error) {
 	if admin {
-		return s.artifactAdminTx(ctx, tx, p, project, token)
+		return s.artifactAdminTx(ctx, tx, actor, project)
 	}
-	if err := s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
-		return err
-	}
-	var user, tenant, label, expiry string
-	var scopes int
-	if err := tx.QueryRowContext(ctx, s.q(`SELECT user_id,tenant_id,label,expires_at FROM suma_sessions WHERE token_hash=?`), digest(token)).Scan(&user, &tenant, &label, &expiry); err != nil || user != p.ID || tenant != p.TenantID || label != "browser" {
-		return forbidden()
-	}
-	if err := tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_token_scopes WHERE token_hash=?`), digest(token)).Scan(&scopes); err != nil {
-		return err
-	}
-	expires, err := time.Parse(time.RFC3339Nano, expiry)
-	if err != nil || !time.Now().Before(expires) || scopes != 0 {
-		return forbidden()
-	}
-	return nil
+	return s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeBrowserProjectWrite)
 }
 func (s *Service) releaseSchedulerLock(ctx context.Context, tx *sql.Tx, tenant, project string) error {
 	return dag.GuardProjectTx(ctx, tx, s.Dialect, tenant, project)
@@ -297,20 +301,32 @@ func (s *Service) saveReleaseJSON(ctx context.Context, tx *sql.Tx, table, tenant
 	}
 	return nil
 }
-func (s *Service) ReleaseEnvironments(ctx context.Context, p Principal, project string) ([]ReleaseEnvironment, error) {
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return nil, err
+func (s *Service) ReleaseEnvironments(ctx context.Context, actor Actor, project string) ([]ReleaseEnvironment, error) {
+	var result0 []ReleaseEnvironment
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readReleaseEnvironmentsTx(bounded, auth, project)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readReleaseEnvironmentsTx(ctx context.Context, auth *authorizedCommand, project string) ([]ReleaseEnvironment, error) {
+	if auth == nil {
+		return nil, unauthenticated()
 	}
-	tx, err := s.DB.BeginTx(ctx, s.evidenceSnapshotOptions())
-	if err != nil {
-		return nil, err
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return nil, e
 	}
-	defer tx.Rollback()
-	if err = s.authorizeProjectSnapshotTx(ctx, tx, p, project); err != nil {
-		return nil, err
+	if auth.target.projectID != project {
+		return nil, forbidden()
 	}
 
-	admin := s.releaseActorSnapshotAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
+	admin := auth.actor.IsBrowser() && s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil
 	rows, err := tx.QueryContext(ctx, s.q(`SELECT data FROM suma_release_environments WHERE tenant_id=? AND project_id=? ORDER BY id`), p.TenantID, project)
 	if err != nil {
 		return nil, err
@@ -336,21 +352,35 @@ func (s *Service) ReleaseEnvironments(ctx context.Context, p Principal, project 
 		out = append(out, e)
 	}
 	return out, rows.Err()
+
 }
-func (s *Service) ReleaseEnvironment(ctx context.Context, p Principal, project, id string) (ReleaseEnvironment, error) {
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return ReleaseEnvironment{}, err
+
+func (s *Service) ReleaseEnvironment(ctx context.Context, actor Actor, project, id string) (ReleaseEnvironment, error) {
+	var result0 ReleaseEnvironment
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readReleaseEnvironmentTx(bounded, auth, project, id)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readReleaseEnvironmentTx(ctx context.Context, auth *authorizedCommand, project, id string) (ReleaseEnvironment, error) {
+	if auth == nil {
+		return ReleaseEnvironment{}, unauthenticated()
 	}
-	tx, err := s.DB.BeginTx(ctx, s.evidenceSnapshotOptions())
-	if err != nil {
-		return ReleaseEnvironment{}, err
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return ReleaseEnvironment{}, e
 	}
-	defer tx.Rollback()
-	if err = s.authorizeProjectSnapshotTx(ctx, tx, p, project); err != nil {
-		return ReleaseEnvironment{}, err
+	if auth.target.projectID != project {
+		return ReleaseEnvironment{}, forbidden()
 	}
 
-	admin := s.releaseActorSnapshotAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
+	admin := auth.actor.IsBrowser() && s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil
 	out, err := s.releaseEnvironmentTx(ctx, tx, p.TenantID, project, id, false)
 	out.AllowedActions = []string{}
 	if admin && out.BarrierOperationID == "" {
@@ -360,27 +390,44 @@ func (s *Service) ReleaseEnvironment(ctx context.Context, p Principal, project, 
 		}
 	}
 	return out, err
+
 }
-func (s *Service) ReleaseEnvironmentActions(ctx context.Context, p Principal, project string) ([]string, error) {
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return nil, err
+
+func (s *Service) ReleaseEnvironmentActions(ctx context.Context, actor Actor, project string) ([]string, error) {
+	var result0 []string
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readReleaseEnvironmentActionsTx(bounded, auth, project)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readReleaseEnvironmentActionsTx(ctx context.Context, auth *authorizedCommand, project string) ([]string, error) {
+	if auth == nil {
+		return nil, unauthenticated()
 	}
-	tx, err := s.DB.BeginTx(ctx, s.evidenceSnapshotOptions())
-	if err != nil {
-		return nil, err
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return nil, e
 	}
-	defer tx.Rollback()
-	if err = s.authorizeProjectSnapshotTx(ctx, tx, p, project); err != nil {
-		return nil, err
+	if auth.target.projectID != project {
+		return nil, forbidden()
 	}
 
+	tx, p := auth.tx, auth.currentPrincipal
+
 	out := []string{}
-	if s.releaseActorSnapshotAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil {
+	if auth.actor.IsBrowser() && s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil {
 		out = append(out, "create")
 	}
 	return out, nil
+
 }
-func (s *Service) SaveReleaseEnvironment(ctx context.Context, p Principal, project, id, token string, m map[string]any) (ReleaseEnvironment, error) {
+
+func (s *Service) SaveReleaseEnvironment(ctx context.Context, actor Actor, project, id string, m map[string]any) (ReleaseEnvironment, error) {
+	p := actor.Projection()
+
 	var req struct {
 		ProjectID       string           `json:"project_id"`
 		Name            *string          `json:"name"`
@@ -399,18 +446,21 @@ func (s *Service) SaveReleaseEnvironment(ctx context.Context, p Principal, proje
 			return ReleaseEnvironment{}, err
 		}
 	}
-	tx, err := s.DB.BeginTx(ctx, s.executionWriteOptions())
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return ReleaseEnvironment{}, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.releaseBrowserTx(ctx, tx, p, project, token, true); err != nil {
+	auth, err := s.releaseBrowserTx(ctx, tx, actor, project, true)
+	if err != nil {
 		return ReleaseEnvironment{}, err
 	}
+	p = auth.currentPrincipal
 	if err = s.releaseSchedulerLock(ctx, tx, p.TenantID, project); err != nil {
 		return ReleaseEnvironment{}, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, req.IdempotencyKey, map[string]any{"release_environment": id, "body": m})
+	hash, replay, err := s.commandReceipt(ctx, auth, req.IdempotencyKey, map[string]any{"release_environment": id, "body": m})
 	if err != nil {
 		return ReleaseEnvironment{}, err
 	}
@@ -506,7 +556,7 @@ func (s *Service) SaveReleaseEnvironment(ctx context.Context, p Principal, proje
 	if err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, req.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()

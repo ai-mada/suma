@@ -1,3 +1,4 @@
+import {useApi} from '../api-context';
 import { tr, useLocale, UiError, renderDiagnostic } from "../i18n";
 import { Trans } from "../i18n/Trans";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -38,7 +39,7 @@ export function PoolPolicyWorkspace({
   onPreview: (id: string) => void;
   onApplied: (pool: Pool) => void;
   readOnly?: boolean;
-}) {
+}) { const api=useApi();
   useLocale();
   const root = useRef<HTMLElement>(null),
     focusPreview = useRef<string | undefined>(undefined),
@@ -52,16 +53,13 @@ export function PoolPolicyWorkspace({
     applied && applied.policy.version > pool.policy.version ? applied : pool;
   const recovery = useMemo(
     () =>
-      new PoolWriteRecovery(
-        JSON.stringify([
+      new PoolWriteRecovery(JSON.stringify([
           session.organization.id,
           session.user.id,
           "policy",
           pool.id,
-        ]),
-        toolSessionStorage(),
-      ),
-    [session.organization.id, session.user.id, pool.id],
+        ]), toolSessionStorage(), undefined, api),
+    [session.organization.id, session.user.id, pool.id, api],
   );
   const action = useToolAction(recovery),
     read = useToolRead<ExecutionPoolPolicyPreview>(
@@ -311,7 +309,7 @@ export function ProjectRouteWorkspace({
   previewID: string;
   onPreview: (id: string) => void;
   refresh: number;
-}) {
+}) { const api=useApi();
   useLocale();
   const root = useRef<HTMLElement>(null),
     focusPreview = useRef<string | undefined>(undefined),
@@ -323,17 +321,13 @@ export function ProjectRouteWorkspace({
     [submitting, setSubmitting] = useState(false);
   const recovery = useMemo(
     () =>
-      new PoolWriteRecovery(
-        JSON.stringify([
+      new PoolWriteRecovery(JSON.stringify([
           session.organization.id,
           session.user.id,
           "route",
           project,
-        ]),
-        toolSessionStorage(),
-        project,
-      ),
-    [session.organization.id, session.user.id, project],
+        ]), toolSessionStorage(), project, api),
+    [session.organization.id, session.user.id, project, api],
   );
   const action = useToolAction(recovery),
     read = useToolRead<ExecutionRouteView>(

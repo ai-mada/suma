@@ -197,11 +197,21 @@ func scanIngress(row automationScanner) (automationIngressRecord, error) {
 func (s *Service) ingressTx(ctx context.Context, tx governanceQuery, p Principal, project, id string) (automationIngressRecord, error) {
 	return scanIngress(tx.QueryRowContext(ctx, s.q(`SELECT `+ingressColumns+` FROM suma_automation_ingresses WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id))
 }
-func (s *Service) saveIngress(ctx context.Context, tx *sql.Tx, in automationIngressRecord) error {
+func (s *Service) saveIngress(ctx context.Context, auth *authorizedCommand, in automationIngressRecord) error {
+	if auth == nil {
+		return forbidden()
+	}
+	if err := auth.assertTx(auth.tx, auth.target, purposeBrowserProjectApprove); err != nil {
+		return err
+	}
+	if auth.actor.kind != actorBrowser || auth.target.tenantID != in.tenant || auth.target.projectID != in.ProjectID || auth.target.resourceID != in.ID {
+		return forbidden()
+	}
+	tx := auth.tx
 	_, err := tx.ExecContext(ctx, s.q(`UPDATE suma_automation_ingresses SET rule_revision=?,version=?,revision=?,state=?,activated_by=?,key_generation=?,key_fingerprint=?,key_ciphertext=?,updated_at=?,last_error=?,spec=? WHERE tenant_id=? AND project_id=? AND id=?`), in.RuleRevision, in.Version, in.Revision, in.State, in.ActivatedBy, in.KeyGeneration, in.KeyFingerprint, in.ciphertext, in.UpdatedAt, in.LastError, stringify(in.AutomationIngressSpec), in.tenant, in.ProjectID, in.ID)
 	return err
 }
-func (s *Service) CreateAutomationIngress(ctx context.Context, p Principal, project, rule string, req AutomationIngressCreateRequest) (AutomationIngress, error) {
+func (s *Service) CreateAutomationIngress(ctx context.Context, actor Actor, project, rule string, req AutomationIngressCreateRequest) (AutomationIngress, error) {
 	var out AutomationIngress
 	if !ingressVersion(req.ExpectedRuleVersion) || !ingressVersion(req.ExpectedRuleRevision) {
 		return out, invalid("必须确认当前规则版本和修订")
@@ -209,15 +219,18 @@ func (s *Service) CreateAutomationIngress(ctx context.Context, p Principal, proj
 	if err := validateIngressSpec(&req.Spec); err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, true); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: rule}, purposeBrowserProjectApprove)
+	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, req.IdempotencyKey, map[string]any{"ingress_create": rule, "request": req})
+	p := auth.currentPrincipal
+	hash, replay, err := s.commandReceipt(ctx, auth, req.IdempotencyKey, map[string]any{"ingress_create": rule, "request": req})
 	if err != nil {
 		return out, err
 	}
@@ -256,10 +269,10 @@ func (s *Service) CreateAutomationIngress(ctx context.Context, p Principal, proj
 	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_automation_ingress_revisions(ingress_id,revision,rule_revision,spec,created_at)VALUES(?,?,?,?,?)`), out.ID, 1, a.Revision, stringify(req.Spec), at); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, req.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, project, "automation_ingress.created", out.ID, out.Name); err != nil {
+	if err = s.commandActivity(ctx, auth, "automation_ingress.created", out.ID, out.Name); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
@@ -307,7 +320,7 @@ func (s *Service) blockIngressQueued(ctx context.Context, tx *sql.Tx, in automat
 	_, err := tx.ExecContext(ctx, s.q(`UPDATE suma_automation_occurrences SET state='blocked',reason=?,updated_at=? WHERE tenant_id=? AND project_id=? AND state='queued' AND id IN(SELECT occurrence_id FROM suma_automation_ingress_deliveries WHERE ingress_id=?)`), reason, at, in.tenant, in.ProjectID, in.ID)
 	return err
 }
-func (s *Service) CommandAutomationIngress(ctx context.Context, p Principal, project, id string, req AutomationIngressCommandRequest) (AutomationIngress, error) {
+func (s *Service) CommandAutomationIngress(ctx context.Context, actor Actor, project, id string, req AutomationIngressCommandRequest) (AutomationIngress, error) {
 	var out AutomationIngress
 	if !ingressVersion(req.ExpectedVersion) {
 		return out, invalid("expected_version 必须为正整数")
@@ -334,15 +347,18 @@ func (s *Service) CommandAutomationIngress(ctx context.Context, p Principal, pro
 	} else if req.Secret != "" {
 		return out, invalid("仅 rotate_key 接受 secret")
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, true); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: id}, purposeBrowserProjectApprove)
+	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, req.IdempotencyKey, map[string]any{"ingress_command": id, "request": req})
+	p := auth.currentPrincipal
+	hash, replay, err := s.commandReceipt(ctx, auth, req.IdempotencyKey, map[string]any{"ingress_command": id, "request": req})
 	if err != nil {
 		return out, err
 	}
@@ -374,7 +390,7 @@ func (s *Service) CommandAutomationIngress(ctx context.Context, p Principal, pro
 			if in.RuleRevision != a.Revision || a.State != "enabled" || !in.KeyConfigured {
 				return out, conflict("启用需要密钥及当前已启用规则修订")
 			}
-			if err = s.authorizeProjectTx(ctx, tx, Principal{ID: a.ActivatedBy, TenantID: p.TenantID}, project, true, true); err != nil {
+			if _, err = s.currentProjectMembershipLockedTx(ctx, tx, p.TenantID, a.ActivatedBy, project, true, true); err != nil {
 				return out, err
 			}
 			if err = s.automationWorkflow(ctx, tx, p, project, a.AutomationSpec); err != nil {
@@ -431,28 +447,45 @@ func (s *Service) CommandAutomationIngress(ctx context.Context, p Principal, pro
 	in.UpdatedAt = at
 	in.LastError = ""
 	out = in.AutomationIngress
-	if err = s.saveIngress(ctx, tx, in); err != nil {
+	if err = s.saveIngress(ctx, auth, in); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, req.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, project, "automation_ingress."+req.Action, in.ID, in.Name); err != nil {
+	if err = s.commandActivity(ctx, auth, "automation_ingress."+req.Action, in.ID, in.Name); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
 }
 
-func (s *Service) GetAutomationIngress(ctx context.Context, p Principal, project, id string) (AutomationIngress, error) {
-	tx, err := s.automationReadTx(ctx, p, project)
-	if err != nil {
-		return AutomationIngress{}, err
+func (s *Service) getAutomationIngressCurrentTx(ctx context.Context, auth *authorizedCommand, project, id string) (AutomationIngress, error) {
+	if auth == nil {
+		return AutomationIngress{}, forbidden()
 	}
-	defer tx.Rollback()
+	expected := commandTarget{tenantID: auth.target.tenantID, projectID: project, resourceID: id}
+	if e := auth.assertTx(auth.tx, expected, purposeBrowserProjectRead); e != nil {
+		return AutomationIngress{}, e
+	}
+	ctx = auth.ctx
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
 	in, err := s.ingressTx(ctx, tx, p, project, id)
 	return in.AutomationIngress, err
 }
-func (s *Service) ListAutomationIngresses(ctx context.Context, p Principal, project, rule string, limit int, cursor string) (AutomationIngressList, error) {
+func (s *Service) listAutomationIngressesCurrentTx(ctx context.Context, auth *authorizedCommand, project, rule string, limit int, cursor string) (AutomationIngressList, error) {
+	if auth == nil {
+		return AutomationIngressList{}, forbidden()
+	}
+	expected := commandTarget{tenantID: auth.target.tenantID, projectID: project, resourceID: rule}
+	if e := auth.assertTx(auth.tx, expected, purposeBrowserProjectRead); e != nil {
+		return AutomationIngressList{}, e
+	}
+	ctx = auth.ctx
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
 	out := AutomationIngressList{Items: []AutomationIngress{}}
 	if limit < 1 || limit > 200 {
 		return out, invalid("limit 必须为 1..200")
@@ -461,11 +494,6 @@ func (s *Service) ListAutomationIngresses(ctx context.Context, p Principal, proj
 	if err != nil {
 		return out, err
 	}
-	tx, err := s.automationReadTx(ctx, p, project)
-	if err != nil {
-		return out, err
-	}
-	defer tx.Rollback()
 	if _, err = s.automationRuleTx(ctx, tx, p, project, rule); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			err = missing()

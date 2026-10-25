@@ -1,3 +1,4 @@
+import {useApi} from '../api-context';
 import { tr, useLocale, UiError } from "../i18n";
 import { Trans } from "../i18n/Trans";
 import { useMemo, useState } from "react";
@@ -36,23 +37,20 @@ export function PoolWorkspace({
   refresh,
   onSelect,
   onPanel,
-}: PoolProps) {
+}: PoolProps) { const api=useApi();
   useLocale();
   const [revision, setRevision] = useState(0),
     [dialog, setDialog] = useState<Dialog>(),
     [credential, setCredential] = useState<Credential>();
   const recovery = useMemo(
     () =>
-      new PoolWriteRecovery(
-        JSON.stringify([
+      new PoolWriteRecovery(JSON.stringify([
           session.organization.id,
           session.user.id,
           "organization",
           selected,
-        ]),
-        toolSessionStorage(),
-      ),
-    [session.organization.id, session.user.id, selected],
+        ]), toolSessionStorage(), undefined, api),
+    [session.organization.id, session.user.id, selected, api],
   );
   const action = useToolAction(recovery, () => setDialog(undefined)),
     page = usePoolPage<Pool>("/execution-pools", refresh + revision),

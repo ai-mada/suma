@@ -102,7 +102,9 @@ func (s *Service) poolPolicyPreviewReasonTx(ctx context.Context, tx *sql.Tx, eng
 
 // CreateExecutionPoolPolicyPreview observes impact without reserving slots or
 // charging budget. It fixes both policy and owning-pool metadata generations.
-func (s *Service) CreateExecutionPoolPolicyPreview(ctx context.Context, engine *dag.Engine, p Principal, token, poolID string, request ExecutionPoolPolicyPreviewRequest) (ExecutionPoolPolicyPreview, error) {
+func (s *Service) CreateExecutionPoolPolicyPreview(ctx context.Context, engine *dag.Engine, actor Actor, poolID string, request ExecutionPoolPolicyPreviewRequest) (ExecutionPoolPolicyPreview, error) {
+	p := actor.Projection()
+
 	var out ExecutionPoolPolicyPreview
 	if request.ExpectedVersion < 1 {
 		return out, invalid("请提供当前资源池策略版本")
@@ -113,16 +115,22 @@ func (s *Service) CreateExecutionPoolPolicyPreview(ctx context.Context, engine *
 	if err := validateExecutionPoolPolicy(request.Policy); err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	pool, err := s.poolAdminTx(ctx, tx, p, token, poolID)
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: organizationScope}, purposeOrganizationWrite)
 	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, organizationScope, request.IdempotencyKey, map[string]any{"pool_policy_preview": poolID, "request": request})
+	p = auth.currentPrincipal
+	pool, err := s.poolAdminTx(ctx, tx, auth, poolID)
+	if err != nil {
+		return out, err
+	}
+	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"pool_policy_preview": poolID, "request": request})
 	if err != nil {
 		return out, err
 	}
@@ -154,19 +162,41 @@ func (s *Service) CreateExecutionPoolPolicyPreview(ctx context.Context, engine *
 	if err = s.saveExecutionPreviewTx(ctx, tx, executionPreviewRecord{id: out.ID, tenant: p.TenantID, project: organizationScope, pool: poolID, kind: "policy", createdBy: p.ID, createdAt: out.CreatedAt, expiresAt: out.ExpiresAt, payload: stringify(out)}); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, organizationScope, request.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
 }
 
-func (s *Service) GetExecutionPoolPolicyPreview(ctx context.Context, engine *dag.Engine, p Principal, token, pool, id string) (ExecutionPoolPolicyPreview, error) {
-	var out ExecutionPoolPolicyPreview
-	tx, err := s.poolReadTx(ctx, p, token)
-	if err != nil {
-		return out, err
+func (s *Service) GetExecutionPoolPolicyPreview(ctx context.Context, engine *dag.Engine, actor Actor, pool, id string) (ExecutionPoolPolicyPreview, error) {
+	var result0 ExecutionPoolPolicyPreview
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: organizationScope}, purposeOrganizationRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readGetExecutionPoolPolicyPreviewTx(bounded, auth, engine, pool, id)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readGetExecutionPoolPolicyPreviewTx(ctx context.Context, auth *authorizedCommand, engine *dag.Engine, pool, id string) (ExecutionPoolPolicyPreview, error) {
+	if auth == nil {
+		return ExecutionPoolPolicyPreview{}, unauthenticated()
 	}
-	defer tx.Rollback()
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return ExecutionPoolPolicyPreview{}, e
+	}
+	if auth.target.projectID != organizationScope {
+		return ExecutionPoolPolicyPreview{}, forbidden()
+	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+	if !orgAdmin(p) {
+		return ExecutionPoolPolicyPreview{}, forbidden()
+	}
+
+	var out ExecutionPoolPolicyPreview
 	meta, err := s.executionPoolMetadataTx(ctx, tx, pool)
 	if err != nil {
 		return out, err
@@ -191,11 +221,12 @@ func (s *Service) GetExecutionPoolPolicyPreview(ctx context.Context, engine *dag
 		out.AllowedActions = []string{"commit"}
 	}
 	return out, nil
+
 }
 
-// Commit checks current human authority before replay and atomically replaces
-// the policy, marks the reviewed preview and saves its exact applied response.
-func (s *Service) CommitExecutionPoolPolicyPreview(ctx context.Context, engine *dag.Engine, p Principal, token, pool, id string, request ExecutionPreviewCommitRequest) (ExecutionPool, error) {
+func (s *Service) CommitExecutionPoolPolicyPreview(ctx context.Context, engine *dag.Engine, actor Actor, pool, id string, request ExecutionPreviewCommitRequest) (ExecutionPool, error) {
+	p := actor.Projection()
+
 	var out ExecutionPool
 	if request.ProjectID != "" || request.ExpectedVersion < 1 {
 		return out, invalid("请提供拥有方预览版本")
@@ -203,16 +234,22 @@ func (s *Service) CommitExecutionPoolPolicyPreview(ctx context.Context, engine *
 	if err := validatePoolOperation(request.IdempotencyKey); err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	out, err = s.poolAdminTx(ctx, tx, p, token, pool)
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: organizationScope}, purposeOrganizationWrite)
 	if err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, organizationScope, request.IdempotencyKey, map[string]any{"commit_pool_policy": id, "pool": pool, "request": request})
+	p = auth.currentPrincipal
+	out, err = s.poolAdminTx(ctx, tx, auth, pool)
+	if err != nil {
+		return out, err
+	}
+	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"commit_pool_policy": id, "pool": pool, "request": request})
 	if err != nil {
 		return out, err
 	}
@@ -249,10 +286,10 @@ func (s *Service) CommitExecutionPoolPolicyPreview(ctx context.Context, engine *
 	if err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, organizationScope, "execution_pool.policy_applied", pool, out.Name); err != nil {
+	if err = s.commandActivity(ctx, auth, "execution_pool.policy_applied", pool, out.Name); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, organizationScope, request.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()

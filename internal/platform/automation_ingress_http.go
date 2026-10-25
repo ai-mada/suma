@@ -9,7 +9,7 @@ import (
 
 var automationIngressSlots = make(chan struct{}, 32)
 
-func (s *Server) automationIngressHTTP(w http.ResponseWriter, r *http.Request, p Principal, scope, path string, parts []string, project string, m map[string]any) bool {
+func (s *Server) automationIngressHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, path string, parts []string, project string, m map[string]any) bool {
 	collection := len(parts) == 3 && parts[0] == "automations" && parts[2] == "ingresses"
 	if !collection && parts[0] != "automation-ingresses" {
 		return false
@@ -26,7 +26,7 @@ func (s *Server) automationIngressHTTP(w http.ResponseWriter, r *http.Request, p
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.CreateAutomationIngress(ctx, p, project, parts[1], req)
+		out, err := s.Service.CreateAutomationIngress(ctx, actor, project, parts[1], req)
 		respond(w, 201, out, err)
 	case collection && r.Method == "GET":
 		limit, cursor, err := automationPage(r)
@@ -34,10 +34,10 @@ func (s *Server) automationIngressHTTP(w http.ResponseWriter, r *http.Request, p
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.ListAutomationIngresses(ctx, p, project, parts[1], limit, cursor)
+		out, err := s.Service.ListAutomationIngresses(ctx, actor, project, parts[1], limit, cursor)
 		respond(w, 200, out, err)
 	case len(parts) == 2 && r.Method == "GET":
-		out, err := s.Service.GetAutomationIngress(ctx, p, project, parts[1])
+		out, err := s.Service.GetAutomationIngress(ctx, actor, project, parts[1])
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[2] == "commands" && r.Method == "POST":
 		var req AutomationIngressCommandRequest
@@ -45,7 +45,7 @@ func (s *Server) automationIngressHTTP(w http.ResponseWriter, r *http.Request, p
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.CommandAutomationIngress(ctx, p, project, parts[1], req)
+		out, err := s.Service.CommandAutomationIngress(ctx, actor, project, parts[1], req)
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[2] == "revisions" && r.Method == "GET":
 		limit, cursor, err := automationPage(r)
@@ -53,7 +53,7 @@ func (s *Server) automationIngressHTTP(w http.ResponseWriter, r *http.Request, p
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.AutomationIngressRevisions(ctx, p, project, parts[1], limit, cursor)
+		out, err := s.Service.AutomationIngressRevisions(ctx, actor, project, parts[1], limit, cursor)
 		respond(w, 200, out, err)
 	case len(parts) == 3 && parts[2] == "deliveries" && r.Method == "GET":
 		limit, cursor, err := automationPage(r)
@@ -61,10 +61,10 @@ func (s *Server) automationIngressHTTP(w http.ResponseWriter, r *http.Request, p
 			writeError(w, err)
 			return true
 		}
-		out, err := s.Service.AutomationIngressDeliveries(ctx, p, project, parts[1], limit, cursor)
+		out, err := s.Service.AutomationIngressDeliveries(ctx, actor, project, parts[1], limit, cursor)
 		respond(w, 200, out, err)
 	case len(parts) == 4 && parts[2] == "deliveries" && r.Method == "GET":
-		out, err := s.Service.GetAutomationIngressDelivery(ctx, p, project, parts[1], parts[3])
+		out, err := s.Service.GetAutomationIngressDelivery(ctx, actor, project, parts[1], parts[3])
 		respond(w, 200, out, err)
 	default:
 		writeError(w, missing())

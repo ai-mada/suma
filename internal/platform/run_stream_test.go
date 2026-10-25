@@ -132,7 +132,7 @@ func TestRunStreamActualHTTPReplayResumeAndSessionRevocation(t *testing.T) {
 			t.Fatalf("duplicate or gap %d want %d", got.Sequence, want.Sequence)
 		}
 	}
-	if err = f.s.Logout(context.Background(), f.cookie.Value); err != nil {
+	if err = logoutCredentialForTest(context.Background(), f.s, f.cookie.Value); err != nil {
 		t.Fatal(err)
 	}
 	rest, err := io.ReadAll(resumedReader)
@@ -229,13 +229,11 @@ func TestRunStreamRejectsCrossProjectRunnerAndMissingRun(t *testing.T) {
 	} {
 		f.call("GET", tc.path, nil, tc.want)
 	}
-	token, err := f.s.CreateToken(context.Background(), f.user, "runner", time.Hour)
+	issued, err := f.s.IssueProjectCredential(context.Background(), f.actor, ProjectCredentialIssueRequest{ProjectID: f.project, Scope: "runner", Label: "runner", IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = f.s.DB.Exec(`INSERT INTO suma_token_scopes(token_hash,kind,project_id)VALUES(?,?,?)`, digest(token), "runner", f.project); err != nil {
-		t.Fatal(err)
-	}
+	token := issued.Token
 	req := httptest.NewRequest("GET", "/api/v1/runs/"+run.ID+"/events/stream?project_id="+f.project, nil)
 	req.Header.Set("Authorization", "Bearer "+token)
 	w := httptest.NewRecorder()
@@ -442,7 +440,8 @@ func TestRunStreamActualHTTPBackpressureHasDeadlineAndDoesNotHoldDatabase(t *tes
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = f.s.authorizeProjectTx(ctx, tx, f.user, f.project, false, false); err != nil {
+	defer f.s.endAuthorityTx(tx)
+	if _, err = f.s.authorizeTx(ctx, tx, f.actor, commandTarget{tenantID: f.user.TenantID, projectID: f.project}, purposeProjectRead); err != nil {
 		tx.Rollback()
 		t.Fatal(err)
 	}

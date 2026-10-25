@@ -34,14 +34,15 @@ func scanRecord(row scanner) (Record, error) {
 	}
 	return r, err
 }
-func (s *Service) List(ctx context.Context, p Principal, project, kind string) ([]Record, error) {
+func (s *Service) listRecordsTx(ctx context.Context, auth *authorizedCommand, project, kind string) ([]Record, error) {
+	if err := assertProjectRead(auth, project); err != nil {
+		return nil, err
+	}
+	p := auth.currentPrincipal
 	if !tables[kind] {
 		return nil, missing()
 	}
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return nil, err
-	}
-	rows, err := s.DB.QueryContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_`+kind+` WHERE tenant_id=? AND project_id=? ORDER BY updated_at DESC,id LIMIT 1000`), p.TenantID, project)
+	rows, err := auth.tx.QueryContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_`+kind+` WHERE tenant_id=? AND project_id=? ORDER BY updated_at DESC,id LIMIT 1000`), p.TenantID, project)
 	if err != nil {
 		return nil, err
 	}
@@ -56,42 +57,19 @@ func (s *Service) List(ctx context.Context, p Principal, project, kind string) (
 	}
 	return out, rows.Err()
 }
-func (s *Service) Get(ctx context.Context, p Principal, project, kind, id string) (Record, error) {
+func (s *Service) getRecordTx(ctx context.Context, auth *authorizedCommand, project, kind, id string) (Record, error) {
+	if err := assertProjectRead(auth, project); err != nil {
+		return Record{}, err
+	}
+	p := auth.currentPrincipal
 	if !tables[kind] {
 		return Record{}, missing()
 	}
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return Record{}, err
-	}
-	r, err := scanRecord(s.DB.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_`+kind+` WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id))
+	r, err := scanRecord(auth.tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_`+kind+` WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id))
 	if errors.Is(err, sql.ErrNoRows) {
 		return r, missing()
 	}
 	return r, err
-}
-func (s *Service) receipt(ctx context.Context, tx interface {
-	QueryRowContext(context.Context, string, ...any) *sql.Row
-}, p Principal, project, key string, body any) (string, bool, error) {
-	if len(key) < 8 || len(key) > 128 {
-		return "", false, invalid("请提供 8–128 字符的 idempotency_key")
-	}
-	hash := digest(p.ID + stringify(body))
-	var stored, response string
-	err := tx.QueryRowContext(ctx, s.q(`SELECT request_hash,response FROM suma_operations WHERE tenant_id=? AND project_id=? AND operation_id=?`), p.TenantID, project, key).Scan(&stored, &response)
-	if errors.Is(err, sql.ErrNoRows) {
-		return hash, false, nil
-	}
-	if err != nil {
-		return "", false, err
-	}
-	if stored != hash {
-		return "", false, &APIError{409, "idempotency_conflict", "该操作标识已用于其他内容", nil}
-	}
-	return response, true, nil
-}
-func (s *Service) saveReceipt(ctx context.Context, tx *sql.Tx, p Principal, project, key, hash string, response any) error {
-	_, err := tx.ExecContext(ctx, s.q(`INSERT INTO suma_operations(tenant_id,project_id,operation_id,request_hash,response) VALUES(?,?,?,?,?)`), p.TenantID, project, key, hash, stringify(response))
-	return err
 }
 func (s *Service) insertRecord(ctx context.Context, tx *sql.Tx, r Record, kind string) error {
 	_, err := tx.ExecContext(ctx, s.q(`INSERT INTO suma_`+kind+` (`+recordColumns+`) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`), r.ID, r.TenantID, r.ProjectID, r.Version, r.Title, r.Description, r.Status, r.Priority, r.OwnerID, r.RequirementID, r.RunID, stringify(r.DependsOn), stringify(r.AcceptanceCriteria), r.Kind, r.CreatedAt, r.UpdatedAt, stringify(r.Data))
@@ -113,7 +91,10 @@ func recordFrom(p Principal, project string, m map[string]any) Record {
 	}
 	return r
 }
-func (s *Service) validateRecord(ctx context.Context, tx *sql.Tx, p Principal, r Record, kind string) error {
+func (s *Service) validateRecord(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, r Record, kind string) error {
+	if err := assertProjectCommand(tx, auth, r.ProjectID); err != nil {
+		return err
+	}
 	if err := requireTitle(r.Title); err != nil {
 		return err
 	}
@@ -151,7 +132,7 @@ func (s *Service) validateRecord(ctx context.Context, tx *sql.Tx, p Principal, r
 			}
 			if owner.Kind == "human" {
 				user, _ := owner.Data["user_id"].(string)
-				if e = s.BindHumanResourceTx(ctx, tx, p, r.ProjectID, user); e != nil {
+				if e = s.BindHumanResourceTx(ctx, tx, auth, r.ProjectID, user); e != nil {
 					return e
 				}
 			}
@@ -171,7 +152,7 @@ func (s *Service) validateRecord(ctx context.Context, tx *sql.Tx, p Principal, r
 	}
 	if kind == "members" && r.Kind == "human" {
 		user, _ := r.Data["user_id"].(string)
-		if e := s.BindHumanResourceTx(ctx, tx, p, r.ProjectID, user); e != nil {
+		if e := s.BindHumanResourceTx(ctx, tx, auth, r.ProjectID, user); e != nil {
 			return e
 		}
 		var resource string
@@ -242,23 +223,34 @@ func (s *Service) validateRecord(ctx context.Context, tx *sql.Tx, p Principal, r
 	}
 	return nil
 }
-func (s *Service) Create(ctx context.Context, p Principal, project, kind string, m map[string]any) (Record, error) {
+func (s *Service) Create(ctx context.Context, actor Actor, project, kind string, m map[string]any) (Record, error) {
 	if !tables[kind] {
 		return Record{}, missing()
 	}
-	if err := s.Authorize(ctx, p, project, true, false); err != nil {
-		return Record{}, err
-	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return Record{}, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: ""}, purposeProjectWrite)
+	if err != nil {
 		return Record{}, err
 	}
+	r, err := s.createCommandRecordTx(ctx, tx, auth, project, kind, m)
+	if err != nil {
+		return r, err
+	}
+	return r, tx.Commit()
+}
+
+func (s *Service) createCommandRecordTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, project, kind string, m map[string]any) (Record, error) {
+	if err := assertProjectCommand(tx, auth, project); err != nil {
+		return Record{}, err
+	}
+	p := auth.currentPrincipal
 	key := str(m, "idempotency_key")
-	hash, replay, err := s.receipt(ctx, tx, p, project, key, map[string]any{"kind": kind, "body": m})
+	hash, replay, err := s.commandReceipt(ctx, auth, key, map[string]any{"kind": kind, "body": m})
 	if err != nil {
 		return Record{}, err
 	}
@@ -285,13 +277,13 @@ func (s *Service) Create(ctx context.Context, p Principal, project, kind string,
 			r.Status = "unverified"
 		}
 	}
-	if err = s.validateRecord(ctx, tx, p, r, kind); err != nil {
+	if err = s.validateRecord(ctx, tx, auth, r, kind); err != nil {
 		return r, err
 	}
-	if err = s.insertRecord(ctx, tx, r, kind); err != nil {
+	if err = s.insertCommandRecord(ctx, tx, auth, r, kind); err != nil {
 		return r, err
 	}
-	if err = s.activity(ctx, tx, p, project, kind+".created", r.ID, r.Title); err != nil {
+	if err = s.commandActivity(ctx, auth, kind+".created", r.ID, r.Title); err != nil {
 		return r, err
 	}
 	if kind == "documents" {
@@ -299,31 +291,31 @@ func (s *Service) Create(ctx context.Context, p Principal, project, kind string,
 			return r, err
 		}
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, key, hash, r); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, key, hash, r); err != nil {
 		return r, err
 	}
-	return r, tx.Commit()
+	return r, nil
 }
-func (s *Service) Update(ctx context.Context, p Principal, project, kind, id string, m map[string]any) (Record, error) {
+func (s *Service) Update(ctx context.Context, actor Actor, project, kind, id string, m map[string]any) (Record, error) {
 	if err := exactVersion(m, "expected_version", 1); err != nil {
 		return Record{}, err
 	}
 	if !tables[kind] {
 		return Record{}, missing()
 	}
-	if err := s.Authorize(ctx, p, project, true, false); err != nil {
-		return Record{}, err
-	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return Record{}, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, false); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: id}, purposeProjectWrite)
+	if err != nil {
 		return Record{}, err
 	}
+	p := auth.currentPrincipal
 	key := str(m, "idempotency_key")
-	hash, replay, err := s.receipt(ctx, tx, p, project, key, map[string]any{"kind": kind, "id": id, "body": m})
+	hash, replay, err := s.commandReceipt(ctx, auth, key, map[string]any{"kind": kind, "id": id, "body": m})
 	if err != nil {
 		return Record{}, err
 	}
@@ -396,7 +388,7 @@ func (s *Service) Update(ctx context.Context, p Principal, project, kind, id str
 		r.Status = "in_progress"
 		delete(r.Data, "verified_run_id")
 	}
-	if err = s.validateRecord(ctx, tx, p, r, kind); err != nil {
+	if err = s.validateRecord(ctx, tx, auth, r, kind); err != nil {
 		return r, err
 	}
 	r.Version++
@@ -429,12 +421,12 @@ func (s *Service) Update(ctx context.Context, p Principal, project, kind, id str
 		if e != nil {
 			return r, e
 		}
-		if err = s.InvalidateDependentsTx(ctx, tx, p, project, ids, true); err != nil {
+		if err = s.InvalidateDependentsTx(ctx, tx, auth, project, ids, true); err != nil {
 			return r, err
 		}
 	}
 	if kind == "tasks" {
-		if err = s.InvalidateDependentsTx(ctx, tx, p, project, []string{id}, false); err != nil {
+		if err = s.InvalidateDependentsTx(ctx, tx, auth, project, []string{id}, false); err != nil {
 			return r, err
 		}
 	}
@@ -443,10 +435,10 @@ func (s *Service) Update(ctx context.Context, p Principal, project, kind, id str
 			return r, err
 		}
 	}
-	if err = s.activity(ctx, tx, p, project, kind+".updated", id, r.Title); err != nil {
+	if err = s.commandActivity(ctx, auth, kind+".updated", id, r.Title); err != nil {
 		return r, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, key, hash, r); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, key, hash, r); err != nil {
 		return r, err
 	}
 	return r, tx.Commit()
@@ -462,41 +454,7 @@ func (s *Service) indexEvent(ctx context.Context, tx *sql.Tx, r Record, action s
 	return err
 }
 
-func (s *Service) Projects(ctx context.Context, p Principal) ([]Record, error) {
-	var liveRole string
-	if err := s.DB.QueryRowContext(ctx, s.q(`SELECT role FROM suma_org_members WHERE tenant_id=? AND user_id=?`), p.TenantID, p.ID).Scan(&liveRole); err != nil {
-		return nil, forbidden()
-	}
-	p.Role = liveRole
-	query := `SELECT p.id,p.tenant_id,p.version,p.title,p.description,p.status,p.created_at,p.updated_at FROM suma_projects p WHERE p.tenant_id=?`
-	args := []any{p.TenantID}
-	if p.Role != "owner" && p.Role != "admin" {
-		query += ` AND EXISTS(SELECT 1 FROM suma_project_members m WHERE m.project_id=p.id AND m.user_id=?)`
-		args = append(args, p.ID)
-	}
-	query += ` ORDER BY p.created_at,p.id`
-	rows, err := s.DB.QueryContext(ctx, s.q(query), args...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	out := []Record{}
-	for rows.Next() {
-		var r Record
-		if err = rows.Scan(&r.ID, &r.TenantID, &r.Version, &r.Title, &r.Description, &r.Status, &r.CreatedAt, &r.UpdatedAt); err != nil {
-			return nil, err
-		}
-		r.Name = r.Title
-		r.ProjectID = r.ID
-		out = append(out, r)
-	}
-	return out, rows.Err()
-}
-func (s *Service) CreateProject(ctx context.Context, p Principal, m map[string]any) (Record, error) {
-	var liveRole string
-	if err := s.DB.QueryRowContext(ctx, s.q(`SELECT role FROM suma_org_members WHERE tenant_id=? AND user_id=?`), p.TenantID, p.ID).Scan(&liveRole); err != nil || liveRole != "owner" && liveRole != "admin" {
-		return Record{}, forbidden()
-	}
+func (s *Service) CreateProject(ctx context.Context, actor Actor, m map[string]any) (Record, error) {
 	title := str(m, "name")
 	if title == "" {
 		title = str(m, "title")
@@ -504,20 +462,22 @@ func (s *Service) CreateProject(ctx context.Context, p Principal, m map[string]a
 	if err := requireTitle(title); err != nil {
 		return Record{}, err
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return Record{}, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.lockOrganization(ctx, tx, p.TenantID); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID}, purposeOrganizationWrite)
+	if err != nil {
 		return Record{}, err
 	}
-	p, err = s.liveOrganization(ctx, tx, p)
-	if err != nil || !orgAdmin(p) {
+	p := auth.currentPrincipal
+	if !orgAdmin(p) {
 		return Record{}, forbidden()
 	}
 	key := str(m, "idempotency_key")
-	hash, replay, err := s.receipt(ctx, tx, p, "", key, m)
+	hash, replay, err := s.commandReceipt(ctx, auth, key, m)
 	if err != nil {
 		return Record{}, err
 	}
@@ -534,8 +494,31 @@ func (s *Service) CreateProject(ctx context.Context, p Principal, m map[string]a
 	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_project_members(project_id,user_id,role) VALUES(?,?,?)`), r.ID, p.ID, "admin"); err != nil {
 		return r, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, "", key, hash, r); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, key, hash, r); err != nil {
 		return r, err
 	}
 	return r, tx.Commit()
+}
+
+// Shared mutation helpers require the original transaction-bound write proof.
+func assertProjectCommand(tx *sql.Tx, auth *authorizedCommand, project string) error {
+	if auth == nil || auth.target.projectID != project || project == "" {
+		return forbidden()
+	}
+	switch auth.purpose {
+	case purposeProjectWrite, purposeProjectApprove, purposeBrowserProjectWrite, purposeBrowserProjectApprove:
+	default:
+		return forbidden()
+	}
+	return auth.assertTx(tx, auth.target, auth.purpose)
+}
+
+func (s *Service) insertCommandRecord(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, r Record, kind string) error {
+	if err := assertProjectCommand(tx, auth, r.ProjectID); err != nil {
+		return err
+	}
+	if r.TenantID != auth.target.tenantID || !tables[kind] {
+		return forbidden()
+	}
+	return s.insertRecord(ctx, tx, r, kind)
 }

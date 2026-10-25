@@ -3,6 +3,7 @@ import {tr} from './i18n';
 export type TokenScope='runner'|'agent'|'api';
 export type ScopedToken={token:string;expires_at:string;label:string;scope:TokenScope;project_id:string};
 export class TokenCreation{
+ constructor(private send:typeof api=api){}
  private envelope?:{project_id:string;label:string;scope:TokenScope;idempotency_key:string};
  private running=false;
  unknown=false;
@@ -13,7 +14,7 @@ export class TokenCreation{
   if(!project)throw new ApiError(422,'project_required',tr('workspace.select_project'));
   this.envelope??={project_id:project,label,scope,idempotency_key:operation()};
   this.running=true;
-  try{const result=await api<ScopedToken>('/auth/tokens',this.envelope);this.envelope=undefined;return result;}
+  try{const result=await this.send<ScopedToken>('/auth/tokens',this.envelope);this.envelope=undefined;return result;}
   catch(e){if(e instanceof ApiError&&e.status>0&&e.status<500)this.envelope=undefined;else this.unknown=true;throw e;}
   finally{this.running=false;}
  }

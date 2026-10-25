@@ -25,6 +25,10 @@ func (s *Service) poolGrantTx(ctx context.Context, tx *sql.Tx, id string) (Execu
 	return scanPoolGrant(tx.QueryRowContext(ctx, s.q(`SELECT `+poolGrantColumns+` FROM suma_execution_pool_grants g JOIN suma_execution_pools p ON p.id=g.pool_id WHERE g.id=?`), id))
 }
 
+func (s *Service) currentPoolGrantTx(ctx context.Context, tx *sql.Tx, id string) (ExecutionPoolGrant, error) {
+	return scanPoolGrant(tx.QueryRowContext(ctx, s.q(s.currentSQL(`SELECT `+poolGrantColumns+` FROM suma_execution_pool_grants g JOIN suma_execution_pools p ON p.id=g.pool_id WHERE g.id=?`)), id))
+}
+
 // A grant delegates execution on behalf of a project. A reviewer can approve
 // task evidence, but cannot grant a new machine access to the whole project.
 func (s *Service) poolProjectAccessTx(ctx context.Context, tx *sql.Tx, tenant, project, user string, admin bool) (bool, error) {
@@ -62,22 +66,57 @@ func (s *Service) poolProjectAccessTx(ctx context.Context, tx *sql.Tx, tenant, p
 	return validProjectRole(role) && (!admin || role == "admin"), nil
 }
 
-func (s *Service) poolProjectAdminTx(ctx context.Context, tx *sql.Tx, p Principal, token, project string) error {
-	if err := s.authorizeProjectTx(ctx, tx, p, project, true, true); err != nil {
+func (s *Service) currentPoolProjectAccessTx(ctx context.Context, tx *sql.Tx, tenant, project, user string, admin bool) (bool, error) {
+	var owner, role string
+	err := tx.QueryRowContext(ctx, s.q(s.currentSQL(`SELECT tenant_id FROM suma_projects WHERE id=?`)), project).Scan(&owner)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	if owner != tenant {
+		return false, nil
+	}
+	err = tx.QueryRowContext(ctx, s.q(s.currentSQL(`SELECT m.role FROM suma_org_members m JOIN suma_users u ON u.id=m.user_id WHERE m.tenant_id=? AND m.user_id=?`)), tenant, user).Scan(&role)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	if !validOrgRole(role) {
+		return false, nil
+	}
+	if role == "owner" || role == "admin" {
+		return true, nil
+	}
+	err = tx.QueryRowContext(ctx, s.q(s.currentSQL(`SELECT role FROM suma_project_members WHERE project_id=? AND user_id=?`)), project, user).Scan(&role)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return validProjectRole(role) && (!admin || role == "admin"), nil
+}
+
+func (s *Service) poolProjectAdminTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, project string) error {
+	if auth == nil {
+		return unauthenticated()
+	}
+	if err := auth.assertTx(tx, auth.target, auth.purpose); err != nil {
 		return err
 	}
-	allowed, err := s.poolProjectAccessTx(ctx, tx, p.TenantID, project, p.ID, true)
+	if !auth.actor.IsBrowser() || auth.target.projectID != project {
+		return forbidden()
+	}
+	p := auth.currentPrincipal
+	allowed, err := s.currentPoolProjectAccessTx(ctx, tx, p.TenantID, project, p.ID, true)
 	if err != nil {
 		return err
 	}
 	if !allowed {
-		return forbidden()
-	}
-	if err := s.currentSchedulingSessionTx(ctx, tx, p, token); err != nil {
-		return err
-	}
-	var label string
-	if tx.QueryRowContext(ctx, s.q(`SELECT label FROM suma_sessions WHERE token_hash=?`), digest(token)).Scan(&label) != nil || label != "browser" {
 		return forbidden()
 	}
 	return nil
@@ -88,11 +127,11 @@ func (s *Service) poolGrantViewTx(ctx context.Context, tx *sql.Tx, p Principal, 
 	canRead, canAdmin := false, false
 	var err error
 	if g.TenantID == p.TenantID {
-		canRead, err = s.poolProjectAccessTx(ctx, tx, p.TenantID, g.ProjectID, p.ID, false)
+		canRead, err = s.currentPoolProjectAccessTx(ctx, tx, p.TenantID, g.ProjectID, p.ID, false)
 		if err != nil {
 			return g, err
 		}
-		canAdmin, err = s.poolProjectAccessTx(ctx, tx, p.TenantID, g.ProjectID, p.ID, true)
+		canAdmin, err = s.currentPoolProjectAccessTx(ctx, tx, p.TenantID, g.ProjectID, p.ID, true)
 		if err != nil {
 			return g, err
 		}
@@ -113,7 +152,9 @@ func (s *Service) poolGrantViewTx(ctx context.Context, tx *sql.Tx, p Principal, 
 // RequestExecutionPoolGrant freezes the only metadata shared with the owning
 // organization: this project's ID and its current title. It creates no access
 // until the other organization approves that exact request digest/version.
-func (s *Service) RequestExecutionPoolGrant(ctx context.Context, p Principal, token string, request ExecutionPoolGrantRequest) (ExecutionPoolGrant, error) {
+func (s *Service) RequestExecutionPoolGrant(ctx context.Context, actor Actor, request ExecutionPoolGrantRequest) (ExecutionPoolGrant, error) {
+	p := actor.Projection()
+
 	var out ExecutionPoolGrant
 	if !executionPoolID.MatchString(request.PoolID) || !executionPoolID.MatchString(request.ProjectID) || request.ProjectWeight < 1 || request.ProjectWeight > 100 {
 		return out, invalid("项目、资源池或项目权重无效")
@@ -121,22 +162,33 @@ func (s *Service) RequestExecutionPoolGrant(ctx context.Context, p Principal, to
 	if err := validatePoolOperation(request.IdempotencyKey); err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
 	pool, err := s.executionPoolMetadataTx(ctx, tx, request.PoolID)
 	if err != nil {
 		return out, err
 	}
-	if err = s.poolOrderedOrganizationsTx(ctx, tx, []string{p.TenantID, pool.OwnerTenantID}); err != nil {
+	auth, err := s.authorizeTxWithParticipants(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: request.ProjectID}, purposeBrowserProjectApprove, []string{pool.OwnerTenantID})
+	if err != nil {
 		return out, err
 	}
-	if err = s.poolProjectAdminTx(ctx, tx, p, token, request.ProjectID); err != nil {
+	p = auth.currentPrincipal
+	lockedPool, e := s.currentExecutionPoolMetadataTx(ctx, tx, request.PoolID)
+	if e != nil {
+		return out, e
+	}
+	if lockedPool.OwnerTenantID != pool.OwnerTenantID {
+		return out, conflict("资源池归属已变化，请重试")
+	}
+	pool = lockedPool
+	if err = s.poolProjectAdminTx(ctx, tx, auth, request.ProjectID); err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, request.ProjectID, request.IdempotencyKey, map[string]any{"request_pool_grant": request})
+	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"request_pool_grant": request})
 	if err != nil {
 		return out, err
 	}
@@ -174,24 +226,26 @@ func (s *Service) RequestExecutionPoolGrant(ctx context.Context, p Principal, to
 	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_execution_pool_grants(id,pool_id,owner_tenant_id,tenant_id,project_id,shared_project_name,version,status,project_weight,request_sha256,requested_by,decided_by,created_at,updated_at)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`), out.ID, out.PoolID, out.OwnerTenantID, out.TenantID, out.ProjectID, out.SharedProjectName, 1, "pending", out.ProjectWeight, out.RequestSHA256, p.ID, "", at, at); err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, request.ProjectID, "execution_pool.grant_requested", out.ID, out.SharedProjectName); err != nil {
+	if err = s.commandActivity(ctx, auth, "execution_pool.grant_requested", out.ID, out.SharedProjectName); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, request.ProjectID, request.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
 }
 
-func (s *Service) CommandOwnedPoolGrant(ctx context.Context, engine *dag.Engine, p Principal, token, pool, grant string, request ExecutionPoolGrantCommand) (ExecutionPoolGrant, error) {
-	return s.commandPoolGrant(ctx, engine, p, token, pool, grant, request, true)
+func (s *Service) CommandOwnedPoolGrant(ctx context.Context, engine *dag.Engine, actor Actor, pool, grant string, request ExecutionPoolGrantCommand) (ExecutionPoolGrant, error) {
+	return s.commandPoolGrant(ctx, engine, actor, pool, grant, request, true)
 }
 
-func (s *Service) WithdrawProjectPoolGrant(ctx context.Context, engine *dag.Engine, p Principal, token, grant string, request ExecutionPoolGrantCommand) (ExecutionPoolGrant, error) {
-	return s.commandPoolGrant(ctx, engine, p, token, "", grant, request, false)
+func (s *Service) WithdrawProjectPoolGrant(ctx context.Context, engine *dag.Engine, actor Actor, grant string, request ExecutionPoolGrantCommand) (ExecutionPoolGrant, error) {
+	return s.commandPoolGrant(ctx, engine, actor, "", grant, request, false)
 }
 
-func (s *Service) commandPoolGrant(ctx context.Context, engine *dag.Engine, p Principal, token, pool, grant string, request ExecutionPoolGrantCommand, owner bool) (ExecutionPoolGrant, error) {
+func (s *Service) commandPoolGrant(ctx context.Context, engine *dag.Engine, actor Actor, pool, grant string, request ExecutionPoolGrantCommand, owner bool) (ExecutionPoolGrant, error) {
+	p := actor.Projection()
+
 	var out ExecutionPoolGrant
 	if request.ExpectedVersion < 1 {
 		return out, invalid("请提供授权当前版本")
@@ -199,10 +253,11 @@ func (s *Service) commandPoolGrant(ctx context.Context, engine *dag.Engine, p Pr
 	if err := validatePoolOperation(request.IdempotencyKey); err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
 	out, err = s.poolGrantTx(ctx, tx, grant)
 	if err != nil {
@@ -211,19 +266,32 @@ func (s *Service) commandPoolGrant(ctx context.Context, engine *dag.Engine, p Pr
 	if owner && (out.PoolID != pool || out.OwnerTenantID != p.TenantID) || !owner && (out.TenantID != p.TenantID || out.ProjectID != request.ProjectID) {
 		return ExecutionPoolGrant{}, missing()
 	}
-	if err = s.poolOrderedOrganizationsTx(ctx, tx, []string{out.OwnerTenantID, out.TenantID}); err != nil {
+	receiptScope, purpose := out.ProjectID, purposeBrowserProjectApprove
+	if owner {
+		receiptScope = organizationScope
+		purpose = purposeOrganizationWrite
+	}
+	auth, err := s.authorizeTxWithParticipants(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: receiptScope}, purpose, []string{out.OwnerTenantID, out.TenantID})
+	if err != nil {
 		return out, err
 	}
-	receiptScope := out.ProjectID
+	p = auth.currentPrincipal
+	discovered := out
+	out, err = s.currentPoolGrantTx(ctx, tx, grant)
+	if err != nil {
+		return out, err
+	}
+	if out.OwnerTenantID != discovered.OwnerTenantID || out.TenantID != discovered.TenantID || out.ProjectID != discovered.ProjectID || out.PoolID != discovered.PoolID {
+		return out, conflict("授权归属已变化，请重试")
+	}
 	if owner {
-		if _, err = s.poolAdminTx(ctx, tx, p, token, out.PoolID); err != nil {
+		if _, err = s.poolAdminTx(ctx, tx, auth, out.PoolID); err != nil {
 			return out, err
 		}
-		receiptScope = organizationScope
-	} else if err = s.poolProjectAdminTx(ctx, tx, p, token, out.ProjectID); err != nil {
+	} else if err = s.poolProjectAdminTx(ctx, tx, auth, out.ProjectID); err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, receiptScope, request.IdempotencyKey, map[string]any{"pool_grant_command": grant, "owner_context": owner, "request": request})
+	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"pool_grant_command": grant, "owner_context": owner, "request": request})
 	if err != nil {
 		return out, err
 	}
@@ -231,7 +299,7 @@ func (s *Service) commandPoolGrant(ctx context.Context, engine *dag.Engine, p Pr
 		err = json.Unmarshal([]byte(hash), &out)
 		return out, err
 	}
-	out, err = s.poolGrantTx(ctx, tx, grant)
+	out, err = s.currentPoolGrantTx(ctx, tx, grant)
 	if err != nil {
 		return out, err
 	}
@@ -255,7 +323,7 @@ func (s *Service) commandPoolGrant(ctx context.Context, engine *dag.Engine, p Pr
 		return out, conflict("该授权状态不支持所请求操作")
 	}
 	if target == "approved" {
-		allowed, e := s.poolProjectAccessTx(ctx, tx, out.TenantID, out.ProjectID, out.RequestedBy, true)
+		allowed, e := s.currentPoolProjectAccessTx(ctx, tx, out.TenantID, out.ProjectID, out.RequestedBy, true)
 		if e != nil {
 			return out, e
 		}
@@ -293,10 +361,10 @@ func (s *Service) commandPoolGrant(ctx context.Context, engine *dag.Engine, p Pr
 	if err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, receiptScope, "execution_pool.grant_"+request.Action, grant, out.SharedProjectName); err != nil {
+	if err = s.commandActivity(ctx, auth, "execution_pool.grant_"+request.Action, grant, out.SharedProjectName); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, receiptScope, request.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()

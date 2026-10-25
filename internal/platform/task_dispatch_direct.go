@@ -11,7 +11,11 @@ import (
 
 // Plain fixed command/test flows may still attach tasks. Agent flows require
 // the explicit preview which freezes actual business context into their input.
-func (s *Service) BindDirectRunTx(ctx context.Context, tx *sql.Tx, p Principal, project, taskID, runID string, expected int) error {
+func (s *Service) BindDirectRunTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, project, taskID, runID string, expected int) error {
+	if err := assertProjectCommand(tx, auth, project); err != nil {
+		return err
+	}
+	p := auth.currentPrincipal
 	if taskID == "" {
 		return nil
 	}
@@ -31,7 +35,7 @@ func (s *Service) BindDirectRunTx(ctx context.Context, tx *sql.Tx, p Principal, 
 	if agent {
 		return invalid("智能体任务必须先安排工具执行并核对固定任务上下文；直接关联运行不会发送任务内容")
 	}
-	return s.BindRunTx(ctx, tx, p, project, taskID, runID, expected)
+	return s.BindRunTx(ctx, tx, auth, project, taskID, runID, expected)
 }
 
 func (s *Service) taskWorkflowHasAgentTx(ctx context.Context, tx *sql.Tx, p Principal, project string, w dag.Workflow, seen map[string]bool, depth int) (bool, error) {

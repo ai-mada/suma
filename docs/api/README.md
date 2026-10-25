@@ -12,6 +12,16 @@ T-P4-007在共享池合同基础上增加账户／组织偏好，当前生成切
 
 状态：当前v1实现；线协议Schema和TypeScript类型由`suma-contracts`生成。基础路径 `/api/v1`。浏览器同源HttpOnly Cookie；Runner/Agent/API使用分别绑定项目的短期Bearer凭证。
 
+## 当前权限与原始页面上下文（T-P4-014 实施中）
+
+应用服务接收从真实凭证解析的封闭 `Actor`，不接受客户端 Principal、角色、system 或授权标记。写入、成功回执重放、受保护读取和实时事件批次使用同一事务中的当前来源、凭证、组织／项目角色和数据库到期时间。无可信来源的旧会话保留审计记录，要求重新登录；旧 API／Runner／Agent 还需明确重新签发，不自动补造批准。
+
+浏览器命令必须携带操作发生时页面的 `X-Suma-Expected-User` 和 `X-Suma-Expected-Organization`，账户全局偏好仅携带前者。缺失、重复、格式错误返回 `428 view_context_required`，与实际身份不一致返回 `403 view_context_changed`；这些头只比较原页面身份，不选择或授予身份。纯读取、明确的 POST 查询、机器接口和幂等退出不强加浏览器头。合法项目 API 凭证仍按自身范围执行，无需浏览器视图。生成合同通过 `x-browser-original-view` 表达条件要求，分类与处理器共用函数。
+
+`POST /auth/tokens` 必须给稳定 `idempotency_key`，明确签发独立 24 小时 Grant。同键同正文恢复时在同一固定到期 slot 轮换秘密、撤销上一次秘密；响应仍是 token／expiry／label／scope／project。秘密不存入成功回执。普通浏览器退出撤销该 session family，不撤销独立 token 或已批准的持久 activation。网络结果未知时保持原操作标识与正文，不读取新会话后悄悄切换请求身份。
+
+实现进度和验收边界见[当前权威性合同](../../contracts/current-credential-authority.md)。此段描述正在集成的 014 源码，当前已验收运行包仍是 013。
+
 ## 生成与校验范围
 
 从仓库根目录执行 `go run ./cmd/suma-contracts` 生成 `docs/api/openapi.json` 和 `packages/contracts/src/index.ts`；`go run ./cmd/suma-contracts --check` 只检查文件是否与生成器一致，不写入文件。`go test ./cmd/suma-contracts` 覆盖字段展开、nullable工时、模型引用闭包、权限元数据、分页与漂移检查；`node scripts/check-docs.mjs` 检查本地文档链接和OpenAPI引用。

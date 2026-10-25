@@ -51,13 +51,21 @@ func (s *Service) ReportPoolToolInventory(ctx context.Context, token string, req
 		}
 		seen[o.Profile.CommandID] = true
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	runner, _, err := s.PoolRunnerAuthorityTx(ctx, tx, token, req.RunnerID, []dag.PoolCapabilityScope{{TenantID: req.TenantID, ProjectID: req.ProjectID, Capabilities: []string{}}})
+	proof, _, err := s.authorizePoolRunnerTx(ctx, tx, token, req.RunnerID, []dag.PoolCapabilityScope{{TenantID: req.TenantID, ProjectID: req.ProjectID, Capabilities: []string{}}})
 	if err != nil {
+		return out, err
+	}
+	runner := proof.runner
+	if len(proof.scopes) != 1 {
+		return out, forbidden()
+	}
+	if err = proof.assertScope(tx, proof.scopes[0]); err != nil {
 		return out, err
 	}
 	// Machine operations use an explicitly namespaced SQL receipt. No human
@@ -96,6 +104,9 @@ func (s *Service) ReportPoolToolInventory(ctx context.Context, token string, req
 	if _, err = tx.ExecContext(ctx, s.q(`UPDATE suma_execution_pool_runners SET last_seen_at=? WHERE id=?`), out.ObservedAt, runner.ID); err != nil {
 		return out, err
 	}
+	if err = proof.assertScope(tx, proof.scopes[0]); err != nil {
+		return out, err
+	}
 	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_operations(tenant_id,project_id,operation_id,request_hash,response)VALUES(?,?,?,?,?)`), req.TenantID, req.ProjectID, op, hash, stringify(out)); err != nil {
 		return out, err
 	}
@@ -120,7 +131,12 @@ func (s *Service) poolBoundToolNodeTx(ctx context.Context, tx *sql.Tx, scope dag
 	return n, p, err
 }
 
-func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, token string, runner ExecutionPoolRunner, scope dag.PoolScope, run, node string) (bool, error) {
+func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof *poolMachineProof, scope dag.PoolScope, run, node string) (bool, error) {
+	if err := proof.assertScope(tx, scope); err != nil {
+		return false, err
+	}
+	runner := proof.runner
+
 	var managed int
 	if err := tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM dag_managed_workflows WHERE tenant_id=? AND project_id=? AND run_id=?`), scope.TenantID, scope.ProjectID, run).Scan(&managed); err != nil {
 		return false, err
@@ -153,12 +169,15 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, token
 	if p.WorkerID != runner.WorkerID || p.Profile.CommandID != n.Command[0] || p.Profile.ProfileSHA256 != hash {
 		return false, nil
 	}
-	// This actor is the actual persisted approver, not the machine identity.
-	p, err = s.toolProfileObservationTx(ctx, tx, Principal{ID: p.EnabledBy, TenantID: scope.TenantID}, scope.ProjectID, p)
+	p, err = s.toolProfileForPoolTx(ctx, tx, proof, scope, p)
 	return p.Available, err
 }
 
-func (s *Service) ValidatePoolToolProgressTx(ctx context.Context, tx *sql.Tx, token string, a dag.Assignment, event *tc.Event) error {
+func (s *Service) ValidatePoolToolProgressTx(ctx context.Context, tx *sql.Tx, proof *poolMachineProof, a dag.Assignment, event *tc.Event) error {
+	if err := proof.assertAssignment(tx, a); err != nil {
+		return err
+	}
+
 	if event == nil {
 		return nil
 	}
@@ -176,7 +195,11 @@ func (s *Service) ValidatePoolToolProgressTx(ctx context.Context, tx *sql.Tx, to
 	return nil
 }
 
-func (s *Service) ValidatePoolToolResultTx(ctx context.Context, tx *sql.Tx, token string, a dag.Assignment, result dag.Result) error {
+func (s *Service) ValidatePoolToolResultTx(ctx context.Context, tx *sql.Tx, proof *poolMachineProof, a dag.Assignment, result dag.Result) error {
+	if err := proof.assertAssignment(tx, a); err != nil {
+		return err
+	}
+
 	if result.ToolEvidence == nil {
 		return nil
 	}

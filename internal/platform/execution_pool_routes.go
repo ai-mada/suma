@@ -40,6 +40,23 @@ func (s *Service) executionRouteTargetTx(ctx context.Context, tx *sql.Tx, tenant
 	return s.executionPoolMetadataTx(ctx, tx, input.PoolID)
 }
 
+func (s *Service) currentExecutionRouteTargetTx(ctx context.Context, tx *sql.Tx, tenant, project string, input ExecutionRouteInput) (ExecutionPool, error) {
+	if input.Mode == "local" {
+		return ExecutionPool{}, nil
+	}
+	grant, err := s.currentPoolGrantTx(ctx, tx, input.GrantID)
+	if err != nil {
+		return ExecutionPool{}, err
+	}
+	if grant.TenantID != tenant || grant.ProjectID != project || grant.PoolID != input.PoolID {
+		return ExecutionPool{}, missing()
+	}
+	if grant.Status != "approved" || grant.Version != input.GrantVersion {
+		return ExecutionPool{}, conflict("项目资源池授权已变化，请重新选择有效授权")
+	}
+	return s.currentExecutionPoolMetadataTx(ctx, tx, input.PoolID)
+}
+
 func (s *Service) executionRouteViewTx(ctx context.Context, tx *sql.Tx, engine *dag.Engine, p Principal, project string) (ExecutionRouteView, error) {
 	var out ExecutionRouteView
 	route, err := engine.ReadProjectExecutionRouteTx(ctx, tx, p.TenantID, project)
@@ -60,7 +77,7 @@ func (s *Service) executionRouteViewTx(ctx context.Context, tx *sql.Tx, engine *
 		}
 		out.GrantState = grant.Status
 	}
-	admin, err := s.poolProjectAccessTx(ctx, tx, p.TenantID, project, p.ID, true)
+	admin, err := s.currentPoolProjectAccessTx(ctx, tx, p.TenantID, project, p.ID, true)
 	if err != nil {
 		return out, err
 	}
@@ -75,14 +92,32 @@ func (s *Service) executionRouteViewTx(ctx context.Context, tx *sql.Tx, engine *
 	return out, nil
 }
 
-func (s *Service) GetProjectExecutionRoute(ctx context.Context, engine *dag.Engine, p Principal, token, project string) (ExecutionRouteView, error) {
-	var out ExecutionRouteView
-	tx, err := s.poolProjectReadTx(ctx, p, token, project)
-	if err != nil {
-		return out, err
+func (s *Service) GetProjectExecutionRoute(ctx context.Context, engine *dag.Engine, actor Actor, project string) (ExecutionRouteView, error) {
+	var result0 ExecutionRouteView
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeBrowserProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readGetProjectExecutionRouteTx(bounded, auth, engine, project)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readGetProjectExecutionRouteTx(ctx context.Context, auth *authorizedCommand, engine *dag.Engine, project string) (ExecutionRouteView, error) {
+	if auth == nil {
+		return ExecutionRouteView{}, unauthenticated()
 	}
-	defer tx.Rollback()
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return ExecutionRouteView{}, e
+	}
+	if auth.target.projectID != project {
+		return ExecutionRouteView{}, forbidden()
+	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+
 	return s.executionRouteViewTx(ctx, tx, engine, p, project)
+
 }
 
 func executionRoutePreviewHash(p ExecutionRoutePreview) string {
@@ -145,7 +180,9 @@ func (s *Service) executionRoutePreviewReasonTx(ctx context.Context, tx *sql.Tx,
 
 // Route previews change no runs. The selected grant and target pool policy are
 // fixed review inputs; actual resource admission is still checked at dispatch.
-func (s *Service) CreateExecutionRoutePreview(ctx context.Context, engine *dag.Engine, p Principal, token string, request ExecutionRoutePreviewRequest) (ExecutionRoutePreview, error) {
+func (s *Service) CreateExecutionRoutePreview(ctx context.Context, engine *dag.Engine, actor Actor, request ExecutionRoutePreviewRequest) (ExecutionRoutePreview, error) {
+	p := actor.Projection()
+
 	var out ExecutionRoutePreview
 	if !executionPoolID.MatchString(request.ProjectID) || request.ExpectedVersion < 0 {
 		return out, invalid("项目与路由版本无效")
@@ -156,10 +193,11 @@ func (s *Service) CreateExecutionRoutePreview(ctx context.Context, engine *dag.E
 	if err := validatePoolOperation(request.IdempotencyKey); err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
 	pool, err := s.executionRouteTargetTx(ctx, tx, p.TenantID, request.ProjectID, request.Route)
 	if err != nil {
@@ -169,13 +207,22 @@ func (s *Service) CreateExecutionRoutePreview(ctx context.Context, engine *dag.E
 	if pool.ID != "" {
 		tenants = append(tenants, pool.OwnerTenantID)
 	}
-	if err = s.poolOrderedOrganizationsTx(ctx, tx, tenants); err != nil {
+	auth, err := s.authorizeTxWithParticipants(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: request.ProjectID}, purposeBrowserProjectApprove, tenants)
+	if err != nil {
 		return out, err
 	}
-	if err = s.poolProjectAdminTx(ctx, tx, p, token, request.ProjectID); err != nil {
+	p = auth.currentPrincipal
+	if err = s.poolProjectAdminTx(ctx, tx, auth, request.ProjectID); err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, request.ProjectID, request.IdempotencyKey, map[string]any{"execution_route_preview": request})
+	lockedPool, e := s.currentExecutionRouteTargetTx(ctx, tx, p.TenantID, request.ProjectID, request.Route)
+	if e != nil {
+		return out, e
+	}
+	if lockedPool.OwnerTenantID != pool.OwnerTenantID {
+		return out, conflict("资源池归属已变化，请重试")
+	}
+	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"execution_route_preview": request})
 	if err != nil {
 		return out, err
 	}
@@ -183,7 +230,7 @@ func (s *Service) CreateExecutionRoutePreview(ctx context.Context, engine *dag.E
 		err = json.Unmarshal([]byte(hash), &out)
 		return out, err
 	}
-	pool, err = s.executionRouteTargetTx(ctx, tx, p.TenantID, request.ProjectID, request.Route)
+	pool, err = s.currentExecutionRouteTargetTx(ctx, tx, p.TenantID, request.ProjectID, request.Route)
 	if err != nil {
 		return out, err
 	}
@@ -217,19 +264,38 @@ func (s *Service) CreateExecutionRoutePreview(ctx context.Context, engine *dag.E
 	if err = s.saveExecutionPreviewTx(ctx, tx, executionPreviewRecord{id: out.ID, tenant: p.TenantID, project: request.ProjectID, pool: out.Route.PoolID, kind: "route", createdBy: p.ID, createdAt: out.CreatedAt, expiresAt: out.ExpiresAt, payload: stringify(out)}); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, request.ProjectID, request.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
 }
 
-func (s *Service) GetExecutionRoutePreview(ctx context.Context, engine *dag.Engine, p Principal, token, project, id string) (ExecutionRoutePreview, error) {
-	var out ExecutionRoutePreview
-	tx, err := s.poolProjectReadTx(ctx, p, token, project)
-	if err != nil {
-		return out, err
+func (s *Service) GetExecutionRoutePreview(ctx context.Context, engine *dag.Engine, actor Actor, project, id string) (ExecutionRoutePreview, error) {
+	var result0 ExecutionRoutePreview
+	err := s.withCurrentCRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeBrowserProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		var e error
+		result0, e = s.readGetExecutionRoutePreviewTx(bounded, auth, engine, project, id)
+		return e
+	})
+	return result0, err
+}
+func (s *Service) readGetExecutionRoutePreviewTx(ctx context.Context, auth *authorizedCommand, engine *dag.Engine, project, id string) (ExecutionRoutePreview, error) {
+	if auth == nil {
+		return ExecutionRoutePreview{}, unauthenticated()
 	}
-	defer tx.Rollback()
+	if e := auth.assertTx(auth.tx, auth.target, auth.purpose); e != nil {
+		return ExecutionRoutePreview{}, e
+	}
+	if auth.target.projectID != project {
+		return ExecutionRoutePreview{}, forbidden()
+	}
+
+	tx, p := auth.tx, auth.currentPrincipal
+	var err error
+
+	var out ExecutionRoutePreview
 	row, err := s.executionPreviewRecordTx(ctx, tx, p.TenantID, project, "", "route", id)
 	if err != nil {
 		return out, err
@@ -238,7 +304,7 @@ func (s *Service) GetExecutionRoutePreview(ctx context.Context, engine *dag.Engi
 	if err != nil {
 		return out, err
 	}
-	admin, err := s.poolProjectAccessTx(ctx, tx, p.TenantID, project, p.ID, true)
+	admin, err := s.currentPoolProjectAccessTx(ctx, tx, p.TenantID, project, p.ID, true)
 	if err != nil {
 		return out, err
 	}
@@ -255,11 +321,12 @@ func (s *Service) GetExecutionRoutePreview(ctx context.Context, engine *dag.Engi
 		out.AllowedActions = []string{"commit"}
 	}
 	return out, nil
+
 }
 
-// Commit changes the default for future runs only. Old run/child/compensation
-// routing and the resources of their existing attempts remain untouched.
-func (s *Service) CommitExecutionRoutePreview(ctx context.Context, engine *dag.Engine, p Principal, token, id string, request ExecutionPreviewCommitRequest) (ExecutionRouteView, error) {
+func (s *Service) CommitExecutionRoutePreview(ctx context.Context, engine *dag.Engine, actor Actor, id string, request ExecutionPreviewCommitRequest) (ExecutionRouteView, error) {
+	p := actor.Projection()
+
 	var out ExecutionRouteView
 	if !executionPoolID.MatchString(request.ProjectID) || request.ExpectedVersion < 1 {
 		return out, invalid("请提供项目与预览当前版本")
@@ -267,10 +334,11 @@ func (s *Service) CommitExecutionRoutePreview(ctx context.Context, engine *dag.E
 	if err := validatePoolOperation(request.IdempotencyKey); err != nil {
 		return out, err
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
 	row, err := s.executionPreviewRecordTx(ctx, tx, p.TenantID, request.ProjectID, "", "route", id)
 	if err != nil {
@@ -288,13 +356,15 @@ func (s *Service) CommitExecutionRoutePreview(ctx context.Context, engine *dag.E
 		}
 		tenants = append(tenants, pool.OwnerTenantID)
 	}
-	if err = s.poolOrderedOrganizationsTx(ctx, tx, tenants); err != nil {
+	auth, err := s.authorizeTxWithParticipants(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: request.ProjectID}, purposeBrowserProjectApprove, tenants)
+	if err != nil {
 		return out, err
 	}
-	if err = s.poolProjectAdminTx(ctx, tx, p, token, request.ProjectID); err != nil {
+	p = auth.currentPrincipal
+	if err = s.poolProjectAdminTx(ctx, tx, auth, request.ProjectID); err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, request.ProjectID, request.IdempotencyKey, map[string]any{"commit_execution_route": id, "request": request})
+	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"commit_execution_route": id, "request": request})
 	if err != nil {
 		return out, err
 	}
@@ -302,13 +372,27 @@ func (s *Service) CommitExecutionRoutePreview(ctx context.Context, engine *dag.E
 		err = json.Unmarshal([]byte(hash), &out)
 		return out, err
 	}
-	row, err = s.executionPreviewRecordTx(ctx, tx, p.TenantID, request.ProjectID, "", "route", id)
+	row, err = s.currentExecutionPreviewRecordTx(ctx, tx, p.TenantID, request.ProjectID, "", "route", id)
 	if err != nil {
 		return out, err
 	}
 	preview, err = s.decodeExecutionRoutePreview(row)
 	if err != nil {
 		return out, err
+	}
+	lockedPool, e := s.currentExecutionRouteTargetTx(ctx, tx, p.TenantID, request.ProjectID, preview.Route)
+	if e != nil {
+		return out, e
+	}
+	lockedOwner := lockedPool.OwnerTenantID
+	known := lockedOwner == ""
+	for _, org := range tenants {
+		if org == lockedOwner {
+			known = true
+		}
+	}
+	if !known {
+		return out, conflict("资源池归属已变化，请重试")
 	}
 	if preview.Version != request.ExpectedVersion {
 		return out, conflict("路由预览版本已变化，请刷新")
@@ -332,10 +416,10 @@ func (s *Service) CommitExecutionRoutePreview(ctx context.Context, engine *dag.E
 	if err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, request.ProjectID, "execution_pool.route_applied", id, preview.Route.Mode); err != nil {
+	if err = s.commandActivity(ctx, auth, "execution_pool.route_applied", id, preview.Route.Mode); err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, request.ProjectID, request.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()

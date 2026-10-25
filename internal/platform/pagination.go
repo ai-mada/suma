@@ -16,12 +16,15 @@ type recordCursor struct {
 
 // ListPage orders newest updates first, breaking timestamp ties by stable ID.
 // The cursor is scoped to its original tenant/project/record kind.
-func (s *Service) ListPage(ctx context.Context, p Principal, project, kind string, limit int, cursor string) ([]Record, int, string, error) {
+func (s *Service) listPageTx(ctx context.Context, auth *authorizedCommand, project, kind string, limit int, cursor string) ([]Record, int, string, error) {
+	if err := assertProjectRead(auth, project); err != nil {
+		return nil, 0, "", err
+	}
+	p := auth.currentPrincipal
+	tx := auth.tx
+	var err error
 	if !tables[kind] {
 		return nil, 0, "", missing()
-	}
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return nil, 0, "", err
 	}
 	if limit == 0 {
 		limit = 100
@@ -39,11 +42,6 @@ func (s *Service) ListPage(ctx context.Context, p Principal, project, kind strin
 			return nil, 0, "", invalid("分页游标无效或不属于当前列表")
 		}
 	}
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, 0, "", err
-	}
-	defer tx.Rollback()
 	var total int
 	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_`+kind+` WHERE tenant_id=? AND project_id=?`), p.TenantID, project).Scan(&total); err != nil {
 		return nil, 0, "", err
@@ -80,9 +78,6 @@ func (s *Service) ListPage(ctx context.Context, p Principal, project, kind strin
 		last := items[len(items)-1]
 		b, _ := json.Marshal(recordCursor{p.TenantID, project, kind, last.UpdatedAt, last.ID})
 		next = base64.RawURLEncoding.EncodeToString(b)
-	}
-	if err = tx.Commit(); err != nil {
-		return nil, 0, "", err
 	}
 	return items, total, next, nil
 }

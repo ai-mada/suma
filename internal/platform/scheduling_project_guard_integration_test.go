@@ -13,9 +13,11 @@ import (
 	"github.com/ai-mada/suma/internal/store"
 )
 
-// A real WAL writer in a different organization must not turn display-only
-// candidate reads into write transactions. No deadline or auth data is forged.
-func TestCandidateDisplaySnapshotDoesNotWaitForUnrelatedOrganizationWriter(t *testing.T) {
+// R2 current reads serialize with authority coordination. SQLite's one writer
+// can therefore delay a candidate display even when its business row belongs to
+// another organization. No result may escape before current authority is held;
+// release completes the read, while the caller deadline refuses every result.
+func TestCandidateDisplayCurrentReadIsBoundedByConcurrentWriter(t *testing.T) {
 	f := newFixture(t)
 	created := f.call("POST", "/organizations", map[string]any{"name": "独立写入组织", "idempotency_key": newID()}, 201)
 	var file string
@@ -27,44 +29,87 @@ func TestCandidateDisplaySnapshotDoesNotWaitForUnrelatedOrganizationWriter(t *te
 		t.Fatal(err)
 	}
 	defer other.Close()
+	var beforeOperations, beforeActivity int
+	if err = f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_operations`).Scan(&beforeOperations); err != nil {
+		t.Fatal(err)
+	}
+	if err = f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_activity`).Scan(&beforeActivity); err != nil {
+		t.Fatal(err)
+	}
 	for _, kind := range []string{"detail", "list"} {
-		t.Run(kind, func(t *testing.T) {
-			writer, err := other.BeginTx(context.Background(), nil)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if _, err = writer.Exec(`UPDATE suma_organizations SET name=name WHERE id=?`, created["id"]); err != nil {
-				writer.Rollback()
-				t.Fatal(err)
-			}
-			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-			defer cancel()
-			done := make(chan error, 1)
-			go func() {
-				if kind == "detail" {
-					_, e := f.s.ReleaseCandidate(ctx, f.user, f.project, "missing-candidate")
-					var api *APIError
-					if errors.As(e, &api) && api.Status == 404 {
-						e = nil
+		for _, completion := range []string{"release", "deadline"} {
+			t.Run(kind+"/"+completion, func(t *testing.T) {
+				writer, e := other.BeginTx(context.Background(), nil)
+				if e != nil {
+					t.Fatal(e)
+				}
+				defer writer.Rollback()
+				if _, e = writer.Exec(`UPDATE suma_organizations SET name=name WHERE id=?`, created["id"]); e != nil {
+					t.Fatal(e)
+				}
+				budget := 2 * time.Second
+				if completion == "deadline" {
+					budget = 250 * time.Millisecond
+				}
+				ctx, cancel := context.WithTimeout(context.Background(), budget)
+				defer cancel()
+				type result struct {
+					err     error
+					hasData bool
+				}
+				done := make(chan result, 1)
+				go func() {
+					if kind == "detail" {
+						out, e := f.s.ReleaseCandidate(ctx, f.actor, f.project, "missing-candidate")
+						done <- result{e, out.Candidate.ID != "" || out.Eligibility || len(out.Blockers) != 0}
+					} else {
+						items, total, next, e := f.s.ReleaseCandidates(ctx, f.actor, f.project, 20, "")
+						done <- result{e, len(items) != 0 || total != 0 || next != ""}
 					}
-					done <- e
-				} else {
-					_, _, _, e := f.s.ReleaseCandidates(ctx, f.user, f.project, 20, "")
-					done <- e
+				}()
+				select {
+				case out := <-done:
+					t.Fatalf("read escaped before current authority lock: err=%v data=%v", out.err, out.hasData)
+				case <-time.After(100 * time.Millisecond):
 				}
-			}()
-			select {
-			case err = <-done:
-				writer.Rollback()
-				if err != nil {
-					t.Fatal(err)
+				if completion == "deadline" {
+					<-ctx.Done()
 				}
-			case <-time.After(300 * time.Millisecond):
-				writer.Rollback()
-				<-done
-				t.Fatal("display-only candidate read waited for an unrelated SQLite writer")
-			}
-		})
+				if e = writer.Rollback(); e != nil {
+					t.Fatal(e)
+				}
+				select {
+				case out := <-done:
+					if out.hasData {
+						t.Fatal("blocked/expired read exposed candidate data")
+					}
+					if completion == "deadline" {
+						if !errors.Is(out.err, context.DeadlineExceeded) {
+							t.Fatalf("expired current read = %v, want deadline", out.err)
+						}
+					} else if kind == "detail" {
+						var api *APIError
+						if !errors.As(out.err, &api) || api.Status != 404 {
+							t.Fatalf("released detail = %v, want authoritative 404", out.err)
+						}
+					} else if out.err != nil {
+						t.Fatalf("released list failed: %v", out.err)
+					}
+				case <-time.After(1500 * time.Millisecond):
+					t.Fatal("current read exceeded its bounded completion after writer release")
+				}
+			})
+		}
+	}
+	var afterOperations, afterActivity int
+	if err = f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_operations`).Scan(&afterOperations); err != nil {
+		t.Fatal(err)
+	}
+	if err = f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_activity`).Scan(&afterActivity); err != nil {
+		t.Fatal(err)
+	}
+	if afterOperations != beforeOperations || afterActivity != beforeActivity {
+		t.Fatal("candidate GET created business receipts or activity")
 	}
 }
 
@@ -74,6 +119,7 @@ func TestCandidateDisplaySnapshotDoesNotWaitForUnrelatedOrganizationWriter(t *te
 func TestArtifactAdmissionRechecksAssignmentAfterConcurrentSQLiteWriter(t *testing.T) {
 	f, token, ref, _, request := artifactProtocolFixture(t)
 	ctx := context.Background()
+	actor := domainCActor(t, f.s, token)
 	var file string
 	if err := f.s.DB.QueryRow(`SELECT file FROM pragma_database_list WHERE name='main'`).Scan(&file); err != nil {
 		t.Fatal(err)
@@ -95,7 +141,7 @@ func TestArtifactAdmissionRechecksAssignmentAfterConcurrentSQLiteWriter(t *testi
 		t.Fatal(err)
 	}
 	done := make(chan error, 1)
-	go func() { _, e := f.s.StartArtifactUpload(ctx, f.user, f.project, token, request); done <- e }()
+	go func() { _, e := f.s.StartArtifactUpload(ctx, actor, f.project, request); done <- e }()
 	select {
 	case e := <-done:
 		t.Fatalf("admission escaped the concurrent writer before its execution invalidation committed: %v", e)
@@ -122,15 +168,23 @@ func TestArtifactAdmissionRechecksAssignmentAfterConcurrentSQLiteWriter(t *testi
 func TestCrossOrganizationManagedTransactionsKeepGlobalEventCursorContiguous(t *testing.T) {
 	f := newFixture(t)
 	ctx := context.Background()
-	org, err := f.s.CreateOrganization(ctx, f.user, map[string]any{"name": "第二并发组织", "idempotency_key": newID()})
+	org, err := f.s.CreateOrganization(ctx, f.actor, map[string]any{"name": "第二并发组织", "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
-	actor, _, err := f.s.SwitchOrganization(ctx, f.user, map[string]any{"organization_id": org["id"], "idempotency_key": newID()})
+	browser, err := f.s.AuthenticateActor(ctx, f.cookie.Value)
 	if err != nil {
 		t.Fatal(err)
 	}
-	project, err := f.s.CreateProject(ctx, actor, map[string]any{"title": "第二并发项目", "idempotency_key": newID()})
+	actor, switchedToken, err := f.s.SwitchOrganization(ctx, browser, map[string]any{"organization_id": org["id"], "idempotency_key": newID()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	chosen, e := f.s.AuthenticateActor(ctx, switchedToken)
+	if e != nil {
+		t.Fatal(e)
+	}
+	project, err := f.s.CreateProject(ctx, chosen, map[string]any{"title": "第二并发项目", "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,6 +203,7 @@ func TestCrossOrganizationManagedTransactionsKeepGlobalEventCursorContiguous(t *
 	}
 	engines := []*dag.Engine{f.e, second}
 	actors := []Principal{f.user, actor}
+	commandActors := []Actor{f.actor, chosen}
 	projects := []string{f.project, project.ID}
 	workflows := make([]dag.Workflow, 2)
 	for i := range engines {
@@ -170,10 +225,13 @@ func TestCrossOrganizationManagedTransactionsKeepGlobalEventCursorContiguous(t *
 			defer wg.Done()
 			<-start
 			for n := 0; n < 10; n++ {
+				var proof *authorizedCommand
 				_, e := engines[i].CreateRunBoundAuthorized(ctx, actors[i].TenantID, projects[i], workflows[i].ID, workflows[i].Version, newID(), fmt.Sprintf("cross-%d-%d", i, n), func(tx *sql.Tx) error {
-					return f.s.authorizeProjectTx(ctx, tx, actors[i], projects[i], true, false)
+					var e error
+					proof, e = f.s.authorizeTx(ctx, tx, commandActors[i], commandTarget{tenantID: actors[i].TenantID, projectID: projects[i]}, purposeProjectWrite)
+					return e
 				}, func(tx *sql.Tx, run string) error {
-					return f.s.activity(ctx, tx, actors[i], projects[i], "test.bound", run, "真实并发事务")
+					return f.s.commandActivity(ctx, proof, "test.bound", run, "真实并发事务")
 				})
 				if e != nil {
 					errs <- e

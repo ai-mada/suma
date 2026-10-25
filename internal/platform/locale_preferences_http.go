@@ -53,11 +53,11 @@ func decodeLocalePreference(r *http.Request) (LocalePreferenceUpdateRequest, err
 	return out, err
 }
 
-func (s *Server) localePreferencesHTTP(w http.ResponseWriter, r *http.Request, p Principal, scope, path string) bool {
+func (s *Server) localePreferencesHTTP(w http.ResponseWriter, r *http.Request, actor Actor, path string) bool {
 	if path != "account/preferences" && path != "organization/preferences" {
 		return false
 	}
-	if scope != "" {
+	if !actor.IsBrowser() {
 		writeError(w, forbidden())
 		return true
 	}
@@ -66,13 +66,14 @@ func (s *Server) localePreferencesHTTP(w http.ResponseWriter, r *http.Request, p
 		writeError(w, &APIError{405, "method_not_allowed", "语言偏好接口仅支持 GET 和 PATCH", nil})
 		return true
 	}
+	p := actor.Projection()
 	var out any
 	var err error
 	if r.Method == "GET" {
 		if path == "account/preferences" {
-			out, err = s.Service.AccountPreferences(r.Context(), p, tokenOf(r))
+			out, err = s.Service.AccountPreferences(r.Context(), actor)
 		} else {
-			out, err = s.Service.OrganizationPreferences(r.Context(), p, tokenOf(r))
+			out, err = s.Service.OrganizationPreferences(r.Context(), actor)
 		}
 	} else {
 		var request LocalePreferenceUpdateRequest
@@ -81,7 +82,7 @@ func (s *Server) localePreferencesHTTP(w http.ResponseWriter, r *http.Request, p
 			organization := path == "organization/preferences"
 			expected := localePreferenceExpectation{users: r.Header.Values("X-Suma-Expected-User"), organizations: r.Header.Values("X-Suma-Expected-Organization")}
 			var record localePreferenceState
-			record, err = s.Service.updateLocalePreference(r.Context(), p, tokenOf(r), request, organization, expected)
+			record, err = s.Service.updateLocalePreference(r.Context(), actor, request, organization, expected)
 			if organization {
 				out = OrganizationPreferences{p.TenantID, record.Locale, record.Version, record.UpdatedAt}
 			} else {
@@ -100,20 +101,22 @@ func (s *Server) localePreferencesHTTP(w http.ResponseWriter, r *http.Request, p
 // Resolve persisted presentation defaults only for an authenticated browser
 // identity. A valid explicit header avoids all preference reads. Failures leave
 // the already negotiated header in place and cannot change business authority.
-func (s *Server) applyLocalePreferences(w http.ResponseWriter, r *http.Request, p Principal, token, scope string) {
-	if scope != "" || p.internal {
+func (s *Server) applyLocalePreferences(w http.ResponseWriter, r *http.Request, actor Actor) {
+	if !actor.IsBrowser() {
 		return
 	}
 	if _, ok := localization.Normalize(r.Header.Get("X-Suma-Language")); ok {
 		return
 	}
-	var account, organization, expires string
-	err := s.Service.DB.QueryRowContext(r.Context(), s.Service.q(`SELECT COALESCE(a.locale,''),COALESCE(o.locale,''),t.expires_at FROM suma_sessions t JOIN suma_users u ON u.id=t.user_id JOIN suma_org_members m ON m.user_id=u.id AND m.tenant_id=t.tenant_id LEFT JOIN suma_account_preferences a ON a.user_id=u.id LEFT JOIN suma_organization_preferences o ON o.tenant_id=m.tenant_id WHERE t.token_hash=? AND t.user_id=? AND t.tenant_id=? AND t.label='browser' AND NOT EXISTS(SELECT 1 FROM suma_token_scopes ts WHERE ts.token_hash=t.token_hash)`), digest(token), p.ID, p.TenantID).Scan(&account, &organization, &expires)
+	var account, organization string
+	err := s.Service.withCurrentRead(r.Context(), actor, commandTarget{tenantID: actor.Projection().TenantID}, purposeAccountPreferences, func(auth *authorizedCommand) error {
+		return auth.tx.QueryRowContext(auth.ctx, s.Service.q(`SELECT COALESCE(a.locale,''),COALESCE(o.locale,'') FROM suma_users u LEFT JOIN suma_account_preferences a ON a.user_id=u.id LEFT JOIN suma_organization_preferences o ON o.tenant_id=? WHERE u.id=?`), auth.currentPrincipal.TenantID, auth.currentPrincipal.ID).Scan(&account, &organization)
+	})
+	// Presentation defaults are optional. A failed read never supplies business
+	// authority and does not overwrite the already negotiated request language.
 	if err != nil {
 		return
 	}
-	// Authentication has already validated expiry; the session-response hooks
-	// pass a newly created credential for the selected organization.
 	selection := localization.Resolve(localization.Preferences{Explicit: r.Header.Get("X-Suma-Language"), User: account, Organization: organization, AcceptLanguage: r.Header.Get("Accept-Language")})
 	w.Header().Set("Content-Language", string(selection.Locale))
 }

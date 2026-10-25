@@ -124,7 +124,7 @@ func newVerifiedReleaseCandidate(t *testing.T) (*fixture, ReleaseCandidate, stri
 		return ReleaseProfileRegistration{ID: id, Kind: kind, SHA256: h}
 	}
 	profiles := []ReleaseProfileRegistration{profile("site-build", "build", build), profile("site-test", "package_test", test)}
-	registered, err := f.s.RegisterReleaseWorker(ctx, f.user, f.project, f.cookie.Value, map[string]any{"worker_id": "release-fixture-worker", "profiles": profiles, "idempotency_key": newID()})
+	registered, err := f.s.RegisterReleaseWorker(ctx, f.actor, f.project, map[string]any{"worker_id": "release-fixture-worker", "profiles": profiles, "idempotency_key": newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +156,7 @@ func newVerifiedReleaseCandidate(t *testing.T) (*fixture, ReleaseCandidate, stri
 	}
 	bound := f.call("GET", "/tasks/"+task["id"].(string)+"?project_id="+f.project, nil, 200)
 	accepted := f.call("POST", "/tasks/"+task["id"].(string)+"/review", f.body(map[string]any{"expected_version": bound["version"], "run_id": current.ID, "decision": "accepted", "reason": "实际构建及封存包 HTTP 测试已核对"}), 200)
-	artifacts, _, _, err := f.s.ReleaseArtifacts(ctx, f.user, f.project, 20, "")
+	artifacts, _, _, err := f.s.ReleaseArtifacts(ctx, f.actor, f.project, 20, "")
 	if err != nil || len(artifacts) != 1 || len(artifacts[0].Proofs) != 2 {
 		t.Fatalf("derived proofs: %+v %v", artifacts, err)
 	}
@@ -168,7 +168,7 @@ func newVerifiedReleaseCandidate(t *testing.T) (*fixture, ReleaseCandidate, stri
 			testID = p.ID
 		}
 	}
-	view, err := f.s.CreateReleaseCandidate(ctx, f.user, f.project, map[string]any{"name": "真实固定C候选", "artifact_id": artifacts[0].ID, "build_attestation_id": buildID, "package_test_attestation_id": testID, "tasks": []any{map[string]any{"id": accepted["id"], "expected_version": accepted["version"]}}, "idempotency_key": newID()})
+	view, err := f.s.CreateReleaseCandidate(ctx, f.actor, f.project, map[string]any{"name": "真实固定C候选", "artifact_id": artifacts[0].ID, "build_attestation_id": buildID, "package_test_attestation_id": testID, "tasks": []any{map[string]any{"id": accepted["id"], "expected_version": accepted["version"]}}, "idempotency_key": newID()})
 	if err != nil || !view.Eligibility {
 		t.Fatal("candidate from actual pipeline", err)
 	}
@@ -178,7 +178,7 @@ func newVerifiedReleaseCandidate(t *testing.T) (*fixture, ReleaseCandidate, stri
 func TestArtifactsRealBytesDerivedProofAndAcceptedCandidate(t *testing.T) {
 	f, candidate, _ := newVerifiedReleaseCandidate(t)
 	ctx := context.Background()
-	view, err := f.s.ReleaseCandidate(ctx, f.user, f.project, candidate.ID)
+	view, err := f.s.ReleaseCandidate(ctx, f.actor, f.project, candidate.ID)
 	if err != nil || !view.Eligibility {
 		t.Fatal(err)
 	}
@@ -191,7 +191,7 @@ func TestArtifactsRealBytesDerivedProofAndAcceptedCandidate(t *testing.T) {
 	}
 	task := f.call("GET", "/tasks/"+candidate.Tasks[0].ID+"?project_id="+f.project, nil, 200)
 	f.call("PATCH", "/tasks/"+candidate.Tasks[0].ID, f.body(map[string]any{"title": "范围已变化", "expected_version": task["version"]}), 200)
-	view, err = f.s.ReleaseCandidate(ctx, f.user, f.project, candidate.ID)
+	view, err = f.s.ReleaseCandidate(ctx, f.actor, f.project, candidate.ID)
 	if err != nil || view.Eligibility || len(view.Blockers) == 0 {
 		t.Fatalf("stale candidate eligible: %+v %v", view, err)
 	}

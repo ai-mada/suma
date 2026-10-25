@@ -52,22 +52,41 @@ func schedulingView(policy dag.SchedulingPolicy, canChange bool) SchedulingPolic
 	return SchedulingPolicyView{SchedulingPolicy: policy, AllowedActions: actions, Fairness: SchedulingFairness{Mode: "project_run_round_robin", Scope: "project"}}
 }
 
-func (s *Service) SchedulingPolicy(ctx context.Context, engine *dag.Engine, p Principal, project string, human bool) (SchedulingPolicyView, error) {
+func (s *Service) schedulingRead(ctx context.Context, actor Actor, project, resource string, purpose commandPurpose, read func(context.Context, *authorizedCommand) error) error {
+	return s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: resource}, purpose, func(auth *authorizedCommand) error {
+		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
+		defer cancel()
+		return read(bounded, auth)
+	})
+}
+
+func (s *Service) SchedulingPolicy(ctx context.Context, engine *dag.Engine, actor Actor, project string, human bool) (SchedulingPolicyView, error) {
 	var out SchedulingPolicyView
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return out, err
+	purpose := purposeProjectRead
+	if actor.kind == actorProjectRunner {
+		purpose = purposeRunnerRead
 	}
-	canChange := human && s.Authorize(ctx, p, project, true, true) == nil
-	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	err := s.schedulingRead(ctx, actor, project, "scheduling-policy", purpose, func(ctx context.Context, auth *authorizedCommand) error {
+		p := auth.currentPrincipal
+		canChange := human && actor.IsBrowser() && orgAdmin(p)
+		if human && actor.IsBrowser() && !canChange {
+			var role string
+			if err := auth.tx.QueryRowContext(ctx, s.q(s.currentSQL(`SELECT role FROM suma_project_members WHERE project_id=? AND user_id=?`)), project, p.ID).Scan(&role); err != nil {
+				return err
+			}
+			canChange = role == "admin" || role == "reviewer"
+		}
+		policy, err := engine.ReadSchedulingPolicyTx(ctx, auth.tx, p.TenantID, project)
+		if err != nil {
+			return err
+		}
+		out = schedulingView(policy, canChange)
+		return nil
+	})
 	if err != nil {
-		return out, err
+		return SchedulingPolicyView{}, err
 	}
-	defer tx.Rollback()
-	policy, err := engine.ReadSchedulingPolicyTx(ctx, tx, p.TenantID, project)
-	if err != nil {
-		return out, err
-	}
-	return schedulingView(policy, canChange), tx.Commit()
+	return out, nil
 }
 
 func schedulingUnit(name string) string {
@@ -120,11 +139,15 @@ func schedulingChanges(before, after dag.SchedulingPolicyInput) []SchedulingPoli
 	return out
 }
 
-func (s *Service) schedulingPreviewTx(ctx context.Context, q governanceQuery, p Principal, project, id string) (SchedulingPolicyPreview, error) {
+func (s *Service) schedulingPreviewTx(ctx context.Context, auth *authorizedCommand, project, id string) (SchedulingPolicyPreview, error) {
 	var out SchedulingPolicyPreview
+	if err := assertProjectRead(auth, project); err != nil {
+		return out, err
+	}
+	p := auth.currentPrincipal
 	var raw, state string
 	var version, applied int
-	err := q.QueryRowContext(ctx, s.q(`SELECT version,state,applied_policy_version,payload FROM suma_scheduling_previews WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id).Scan(&version, &state, &applied, &raw)
+	err := auth.tx.QueryRowContext(ctx, s.q(`SELECT version,state,applied_policy_version,payload FROM suma_scheduling_previews WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id).Scan(&version, &state, &applied, &raw)
 	if errors.Is(err, sql.ErrNoRows) {
 		return out, missing()
 	}
@@ -138,7 +161,11 @@ func (s *Service) schedulingPreviewTx(ctx context.Context, q governanceQuery, p 
 	return out, nil
 }
 
-func (s *Service) validateSchedulingPreviewTx(ctx context.Context, tx *sql.Tx, engine *dag.Engine, p Principal, project string, preview SchedulingPolicyPreview) error {
+func (s *Service) validateSchedulingPreviewTx(ctx context.Context, auth *authorizedCommand, engine *dag.Engine, project string, preview SchedulingPolicyPreview) error {
+	if err := assertProjectRead(auth, project); err != nil {
+		return err
+	}
+	tx, p := auth.tx, auth.currentPrincipal
 	if preview.State != "ready" {
 		return conflict("该预览已提交，请查看当前调度策略")
 	}
@@ -159,7 +186,7 @@ func (s *Service) validateSchedulingPreviewTx(ctx context.Context, tx *sql.Tx, e
 	return nil
 }
 
-func (s *Service) CreateSchedulingPreview(ctx context.Context, engine *dag.Engine, p Principal, project string, request SchedulingPolicyPreviewRequest, sessionToken string) (SchedulingPolicyPreview, error) {
+func (s *Service) CreateSchedulingPreview(ctx context.Context, engine *dag.Engine, actor Actor, project string, request SchedulingPolicyPreviewRequest) (SchedulingPolicyPreview, error) {
 	var out SchedulingPolicyPreview
 	if request.ProjectID != project || request.ExpectedVersion < 0 {
 		return out, invalid("请提供项目及当前策略版本")
@@ -170,22 +197,22 @@ func (s *Service) CreateSchedulingPreview(ctx context.Context, engine *dag.Engin
 	if request.Policy.ResourceLimits == nil {
 		request.Policy.ResourceLimits = map[string]*int64{}
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
 	// Authority is rechecked before looking up even a successful operation receipt.
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, true); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: ""}, purposeBrowserProjectApprove)
+	if err != nil {
 		return out, err
 	}
-	if err = s.currentSchedulingSessionTx(ctx, tx, p, sessionToken); err != nil {
-		return out, err
-	}
+	p := auth.currentPrincipal
 	if err = dag.GuardProjectTx(ctx, tx, s.Dialect, p.TenantID, project); err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, request.IdempotencyKey, map[string]any{"scheduling_preview": request})
+	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"scheduling_preview": request})
 	if err != nil {
 		return out, err
 	}
@@ -194,12 +221,12 @@ func (s *Service) CreateSchedulingPreview(ctx context.Context, engine *dag.Engin
 		if err = json.Unmarshal([]byte(hash), &receipt); err != nil {
 			return out, err
 		}
-		out, err = s.schedulingPreviewTx(ctx, tx, p, project, receipt.ID)
+		out, err = s.schedulingPreviewTx(ctx, auth, project, receipt.ID)
 		if err != nil {
 			return out, err
 		}
 		out.Valid, out.Reason = true, ""
-		if check := s.validateSchedulingPreviewTx(ctx, tx, engine, p, project, out); check != nil {
+		if check := s.validateSchedulingPreviewTx(ctx, auth, engine, project, out); check != nil {
 			out.Valid, out.Reason = false, check.Error()
 		}
 		return out, tx.Commit()
@@ -229,56 +256,55 @@ func (s *Service) CreateSchedulingPreview(ctx context.Context, engine *dag.Engin
 	if err != nil {
 		return out, err
 	}
-	if err = s.saveReceipt(ctx, tx, p, project, request.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, project, "scheduling.preview", out.ID, "审阅项目执行准入策略"); err != nil {
+	if err = s.commandActivity(ctx, auth, "scheduling.preview", out.ID, "审阅项目执行准入策略"); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
 }
 
-func (s *Service) GetSchedulingPreview(ctx context.Context, engine *dag.Engine, p Principal, project, id string) (SchedulingPolicyPreview, error) {
+func (s *Service) GetSchedulingPreview(ctx context.Context, engine *dag.Engine, actor Actor, project, id string) (SchedulingPolicyPreview, error) {
 	var out SchedulingPolicyPreview
-	if err := s.Authorize(ctx, p, project, false, false); err != nil {
-		return out, err
-	}
-	tx, err := s.DB.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	err := s.schedulingRead(ctx, actor, project, id, purposeProjectRead, func(ctx context.Context, auth *authorizedCommand) error {
+		var err error
+		out, err = s.schedulingPreviewTx(ctx, auth, project, id)
+		if err != nil {
+			return err
+		}
+		out.Valid, out.Reason = true, ""
+		if check := s.validateSchedulingPreviewTx(ctx, auth, engine, project, out); check != nil {
+			out.Valid, out.Reason = false, check.Error()
+		}
+		return nil
+	})
 	if err != nil {
-		return out, err
+		return SchedulingPolicyPreview{}, err
 	}
-	defer tx.Rollback()
-	out, err = s.schedulingPreviewTx(ctx, tx, p, project, id)
-	if err != nil {
-		return out, err
-	}
-	out.Valid, out.Reason = true, ""
-	if check := s.validateSchedulingPreviewTx(ctx, tx, engine, p, project, out); check != nil {
-		out.Valid, out.Reason = false, check.Error()
-	}
-	return out, tx.Commit()
+	return out, nil
 }
 
-func (s *Service) CommitSchedulingPreview(ctx context.Context, engine *dag.Engine, p Principal, project, id string, request SchedulingPolicyCommitRequest, sessionToken string) (SchedulingPolicyView, error) {
+func (s *Service) CommitSchedulingPreview(ctx context.Context, engine *dag.Engine, actor Actor, project, id string, request SchedulingPolicyCommitRequest) (SchedulingPolicyView, error) {
 	var out SchedulingPolicyView
 	if request.ProjectID != project || request.ExpectedVersion < 1 {
 		return out, invalid("请提供项目及当前预览版本")
 	}
-	tx, err := s.DB.BeginTx(ctx, schedulingWriteOptions(s.Dialect))
+	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
 	if err != nil {
 		return out, err
 	}
+	defer cancel()
 	defer tx.Rollback()
-	if err = s.authorizeProjectTx(ctx, tx, p, project, true, true); err != nil {
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: id}, purposeBrowserProjectApprove)
+	if err != nil {
 		return out, err
 	}
-	if err = s.currentSchedulingSessionTx(ctx, tx, p, sessionToken); err != nil {
-		return out, err
-	}
+	p := auth.currentPrincipal
 	if err = dag.GuardProjectTx(ctx, tx, s.Dialect, p.TenantID, project); err != nil {
 		return out, err
 	}
-	hash, replay, err := s.receipt(ctx, tx, p, project, request.IdempotencyKey, map[string]any{"scheduling_commit": id, "request": request})
+	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, map[string]any{"scheduling_commit": id, "request": request})
 	if err != nil {
 		return out, err
 	}
@@ -288,14 +314,14 @@ func (s *Service) CommitSchedulingPreview(ctx context.Context, engine *dag.Engin
 		}
 		return out, tx.Commit()
 	}
-	preview, err := s.schedulingPreviewTx(ctx, tx, p, project, id)
+	preview, err := s.schedulingPreviewTx(ctx, auth, project, id)
 	if err != nil {
 		return out, err
 	}
 	if preview.Version != request.ExpectedVersion {
 		return out, conflict("调度预览版本已经变化，请刷新核对")
 	}
-	if err = s.validateSchedulingPreviewTx(ctx, tx, engine, p, project, preview); err != nil {
+	if err = s.validateSchedulingPreviewTx(ctx, auth, engine, project, preview); err != nil {
 		return out, err
 	}
 	policy, err := engine.WriteSchedulingPolicyTx(ctx, tx, p.TenantID, project, preview.PolicyVersion, preview.Policy)
@@ -314,52 +340,11 @@ func (s *Service) CommitSchedulingPreview(ctx context.Context, engine *dag.Engin
 		return out, conflict("调度预览已由另一操作提交")
 	}
 	out = schedulingView(policy, true)
-	if err = s.saveReceipt(ctx, tx, p, project, request.IdempotencyKey, hash, out); err != nil {
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
 		return out, err
 	}
-	if err = s.activity(ctx, tx, p, project, "scheduling.commit", id, "应用项目执行准入策略"); err != nil {
+	if err = s.commandActivity(ctx, auth, "scheduling.commit", id, "应用项目执行准入策略"); err != nil {
 		return out, err
 	}
 	return out, tx.Commit()
-}
-
-// Current human credential and authority are checked in the mutation transaction,
-// including receipt recovery. Session row locking follows the organization lock
-// and precedes the scheduler project/family locks. Scoped credentials are never
-// upgraded to human policy approval by a cached outer Principal.
-func (s *Service) currentSchedulingSessionTx(ctx context.Context, tx *sql.Tx, p Principal, token string) error {
-	query := `SELECT user_id,tenant_id,expires_at FROM suma_sessions WHERE token_hash=?`
-	if s.Dialect == "oceanbase" || s.Dialect == "postgres" {
-		query += ` FOR UPDATE`
-	}
-	var user, tenant, expires string
-	err := tx.QueryRowContext(ctx, s.q(query), digest(token)).Scan(&user, &tenant, &expires)
-	if errors.Is(err, sql.ErrNoRows) {
-		return forbidden()
-	}
-	if err != nil {
-		return err
-	}
-	if user != p.ID || tenant != p.TenantID {
-		return forbidden()
-	}
-	var scoped int
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_token_scopes WHERE token_hash=?`), digest(token)).Scan(&scoped); err != nil {
-		return err
-	}
-	if scoped != 0 {
-		return forbidden()
-	}
-	expiry, err := time.Parse(time.RFC3339Nano, expires)
-	if err != nil {
-		return forbidden()
-	}
-	clock, err := s.automationClock(ctx, tx)
-	if err != nil {
-		return err
-	}
-	if expiry.Unix() <= clock.Unix() {
-		return forbidden()
-	}
-	return nil
 }
