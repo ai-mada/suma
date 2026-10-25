@@ -57,6 +57,9 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 
 ## P3 项目、需求、设计与团队
 
+- [x] T-P4-016：需求版本化三段设计、完整任务提案、审阅发布及create/update/keep/exclude原子采用，保护绑定固定执行及验收依据；实际迭代复用任务和定向门禁已验，见[报告](../quality/requirement-design-verification.md)。
+- [ ] 模型设计提案与来源证明、完整可运行UED原型、旧手动任务明确导入、跨项目设计及任务详情采用依据展示；不能把当前人工文本设计写成全部AI设计完成。
+
 - [x] T-P4-015：项目记忆／规范／文本技能的版本、来源、审阅发布与固定任务／Agent上下文；定向检查、实际SQLite升级和代表性双语界面流程已验，范围见[阶段报告](../quality/project-knowledge-verification.md)。
 - [ ] 新知识资产语义索引投影、模型提案、外部记忆同步、跨项目共享和可执行插件技能。
 

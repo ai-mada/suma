@@ -2,6 +2,7 @@ import {useApi} from './api-context';
 import {useKnowledgeEntries} from './knowledge-hooks';
 import {publishedKnowledgeReference,pinnedKnowledgeReferences,type KnowledgeSummary} from './knowledge-model';
 import {KnowledgeContextFacts} from './KnowledgeFacts';
+import {RequirementDesignFacts} from './RequirementDesignFacts';
 import {UiError} from './i18n';
 import './knowledge.css';
 import {literalText} from './i18n/literal';
@@ -372,6 +373,7 @@ export function TaskDispatchDialog({
         ) : plan ? (
           <>
             <TaskDispatchFacts plan={plan} />
+            <RequirementDesignFacts project={project} value={plan.context.design}/>
             <KnowledgeContextFacts project={project} items={plan.context.knowledge}/>
             <TaskDispatchRunFacts plan={plan} onRun={onRun} />
             {!taskPlanStarted(plan) && (

@@ -108,5 +108,8 @@ func (s *Service) Migrate(ctx context.Context) error {
 	if err := s.MigrateExecutionPools(ctx); err != nil {
 		return err
 	}
-	return s.MigrateProjectKnowledge(ctx)
+	if err := s.MigrateProjectKnowledge(ctx); err != nil {
+		return err
+	}
+	return s.MigrateRequirementDesign(ctx)
 }

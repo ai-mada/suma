@@ -1587,6 +1587,141 @@ export interface Rendered {
   localized: boolean;
   fallback?: string;
 }
+export interface RequirementDesignAdoptRequest {
+  project_id: string;
+  expected_version: number;
+  revision: number;
+  sha256: string;
+  plan_sha256: string;
+  idempotency_key: string;
+}
+export interface RequirementDesignAdoptedTask {
+  key: string;
+  task_id: string;
+  version: number;
+  action: string;
+}
+export interface RequirementDesignAdoption {
+  id: string;
+  project_id: string;
+  requirement_id: string;
+  version: number;
+  revision: number;
+  sha256: string;
+  requirement_version: number;
+  plan_sha256: string;
+  tasks: (RequirementDesignAdoptedTask)[];
+  created_by: string;
+  created_at: string;
+}
+export interface RequirementDesignAdoptionList {
+  items: (RequirementDesignAdoption)[];
+  total: number;
+  next_cursor: string;
+}
+export interface RequirementDesignChange {
+  key: string;
+  action: string;
+  task_id: string;
+  expected_task_version: number;
+  current?: Record | null;
+  proposed?: RequirementDesignTask | null;
+}
+export interface RequirementDesignCommandRequest {
+  project_id: string;
+  action: string;
+  expected_version: number;
+  expected_requirement_version: number;
+  idempotency_key: string;
+}
+export interface RequirementDesignContent {
+  product: string;
+  experience: string;
+  technical: string;
+}
+export interface RequirementDesignContext {
+  requirement_id: string;
+  requirement_version: number;
+  revision: number;
+  sha256: string;
+  task_key: string;
+  adoption_id: string;
+  content: RequirementDesignContent;
+}
+export interface RequirementDesignDiagnostic {
+  code: string;
+  field: string;
+  task_key?: string;
+  criterion_index?: number;
+}
+export interface RequirementDesignPreview {
+  project_id: string;
+  requirement_id: string;
+  version: number;
+  revision: number;
+  sha256: string;
+  requirement_version: number;
+  plan_sha256: string;
+  changes: (RequirementDesignChange)[];
+  create_count: number;
+  update_count: number;
+  keep_count: number;
+  exclude_count: number;
+  has_changes: boolean;
+}
+export interface RequirementDesignPreviewRequest {
+  project_id: string;
+  expected_version: number;
+  revision: number;
+  sha256: string;
+}
+export interface RequirementDesignRevision {
+  revision: number;
+  state: string;
+  requirement: TaskContextRecord;
+  content: RequirementDesignContent;
+  tasks: (RequirementDesignTask)[];
+  sha256: string;
+  created_by: string;
+  created_at: string;
+}
+export interface RequirementDesignRevisionList {
+  items: (RequirementDesignRevision)[];
+  total: number;
+  next_cursor: string;
+}
+export interface RequirementDesignSaveRequest {
+  project_id: string;
+  expected_version: number;
+  expected_requirement_version: number;
+  content: RequirementDesignContent;
+  tasks: (RequirementDesignTask)[];
+  idempotency_key: string;
+}
+export interface RequirementDesignTask {
+  key: string;
+  title: string;
+  description: string;
+  priority: string;
+  owner_id: string;
+  depends_on: (string)[];
+  acceptance_criteria: (string)[];
+  covers: (number)[];
+}
+export interface RequirementDesignView {
+  project_id: string;
+  requirement_id: string;
+  version: number;
+  requirement: TaskContextRecord;
+  latest_revision: number;
+  published_revision: number;
+  has_draft: boolean;
+  eligibility: string;
+  latest?: RequirementDesignRevision | null;
+  published?: RequirementDesignRevision | null;
+  validation: (RequirementDesignDiagnostic)[];
+  last_adoption?: RequirementDesignAdoption | null;
+}
 export interface ReservedExecution {
   run_id: string;
   node_id: string;
@@ -1781,6 +1916,7 @@ export interface TaskContext {
   task: TaskContextRecord;
   requirement?: TaskContextRecord | null;
   knowledge?: (ProjectKnowledgeContextItem)[];
+  design?: RequirementDesignContext | null;
 }
 export interface TaskContextRecord {
   id: string;

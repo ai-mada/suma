@@ -132,6 +132,9 @@ func (s *Service) BindRunTx(ctx context.Context, tx *sql.Tx, auth *authorizedCom
 	if expected != 0 && r.Version != expected {
 		return conflict("任务已变化，需要重新派发预览")
 	}
+	if err = s.checkTaskRequirementDesignRunTx(ctx, auth, project, taskID, runID, false); err != nil {
+		return err
+	}
 	dependencyBasis := map[string]string{}
 	for _, dep := range r.DependsOn {
 		if e := s.checkTaskEvidenceTx(ctx, tx, p, project, dep, map[string]bool{}, map[string]bool{}); e != nil {
@@ -267,6 +270,11 @@ func (s *Service) Review(ctx context.Context, actor Actor, project, id string, m
 	}
 	if r.RunID != runID || r.Data["run_task_basis"] != taskBasis(r) {
 		return r, conflict("执行依据已失效，需要重新派发")
+	}
+	if decision == "accepted" {
+		if err = s.checkTaskRequirementDesignRunTx(ctx, auth, project, id, runID, true); err != nil {
+			return r, err
+		}
 	}
 	if decision == "accepted" {
 		basis, _ := r.Data["dependency_basis"].(map[string]any)

@@ -255,7 +255,7 @@
   "development.dispatch.task_or_configuration_context_changed_your_selections": "Task or configuration context changed; your selections remain. Read the latest versions before explicitly creating a new preview.",
   "development.dispatch.read_current_context_keep_selections": "Read current context, keep selections",
   "development.dispatch.fix_and_preview_execution_plan": "Fix and preview execution plan",
-  "development.dispatch.i_reviewed_the_fixed_task_requirement_tool": "I reviewed the fixed task, requirement, tool and test scope. Starting creates a run; it does not complete testing or human acceptance.",
+  "development.dispatch.i_reviewed_the_fixed_task_requirement_tool": "I reviewed the fixed task, requirement, selected design and knowledge, tool and test scope. Starting creates a run; it does not complete testing or human acceptance.",
   "development.dispatch.the_original_plan_or_current_context_changed": "The original plan or current context changed. Do not merely substitute a version and retry start. Read the current task and prepare a new plan; the original is retained.",
   "development.dispatch.prepare_a_new_plan": "Prepare a new plan",
   "development.dispatch.confirm_starting_the_fixed_plan": "Confirm starting the fixed plan",

@@ -15,6 +15,8 @@ type TaskContext struct {
 	Requirement *TaskContextRecord `json:"requirement,omitempty"`
 	// Knowledge is resolved server-side from explicitly selected reviewed revisions.
 	Knowledge []ProjectKnowledgeContextItem `json:"knowledge,omitempty"`
+	// Design is resolved from the protected task binding, never editable task data.
+	Design *RequirementDesignContext `json:"design,omitempty"`
 }
 
 type TaskDispatchPlan struct {

@@ -115,6 +115,9 @@ func generate() (map[string]any, string) {
 	for _, v := range executionPoolModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range requirementDesignModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range projectKnowledgeModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -233,6 +236,7 @@ func generate() (map[string]any, string) {
 	var out strings.Builder
 	automationIngressSecurity(api)
 	projectKnowledgeContracts(add, api)
+	requirementDesignContracts(add, api)
 	currentAuthorityContracts(api)
 	localizationContracts(api)
 	displayDiagnosticContracts(api)

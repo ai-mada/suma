@@ -14,6 +14,10 @@ func (s *Service) taskContextForDispatchTx(ctx context.Context, auth *authorized
 	if err != nil {
 		return out, err
 	}
+	out.Design, err = s.resolveTaskRequirementDesignTx(auth.ctx, auth, project, taskID)
+	if err != nil {
+		return out, err
+	}
 	if len(refs) == 0 {
 		return out, nil
 	}

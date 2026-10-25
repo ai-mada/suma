@@ -112,7 +112,7 @@ func decode(r *http.Request) (map[string]any, error) {
 	// Preserve numeric lexemes so a fractional counter near 2^53 cannot round
 	// into a valid integer before that validation. Legacy map-backed routes
 	// retain their existing number representation until their DTO migration.
-	if strings.HasPrefix(r.URL.Path, "/api/v1/task-dispatch-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/project-knowledge") || r.URL.Path == "/api/v1/agent/tools/invoke" || strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
+	if (strings.HasPrefix(r.URL.Path, "/api/v1/requirements/") && strings.Contains(r.URL.Path, "/design")) || strings.HasPrefix(r.URL.Path, "/api/v1/task-dispatch-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/project-knowledge") || r.URL.Path == "/api/v1/agent/tools/invoke" || strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
 		d.UseNumber()
 	}
 	if err := d.Decode(&m); err != nil {
@@ -358,7 +358,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	}
 	project := r.URL.Query().Get("project_id")
 	var m map[string]any
-	if r.Method == "POST" || r.Method == "PATCH" {
+	if r.Method == "POST" || r.Method == "PATCH" || r.Method == http.MethodPut && len(parts) == 3 && parts[0] == "requirements" && parts[2] == "design" {
 		if path == "runner/progress" {
 			m, err = decodeRunnerProgressEnvelope(r)
 		} else {
@@ -397,6 +397,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			writeError(w, queryErr)
 			return
 		}
+	}
+	if s.requirementDesignHTTP(w, r, actor, project, path, parts, m) {
+		return
 	}
 	if s.projectKnowledgeHTTP(w, r, actor, project, path, parts, m) {
 		return

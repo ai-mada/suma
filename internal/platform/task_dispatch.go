@@ -108,6 +108,9 @@ func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, en
 	if digest(stringify(current.Knowledge)) != digest(stringify(plan.Context.Knowledge)) {
 		return conflict("所选项目知识依据已变化，请重新预览派发")
 	}
+	if digest(stringify(current.Design)) != digest(stringify(plan.Context.Design)) {
+		return conflict("需求设计采用依据已变化，请重新预览派发")
+	}
 	profile, err := s.validateToolDispatchTx(ctx, tx, auth, project, plan.ToolProfileID, plan.ToolProfileVersion, plan.ToolProfileSHA256)
 	if err != nil {
 		return err

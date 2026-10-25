@@ -119,3 +119,9 @@ NodeRun现返回固定运行定义的`idempotent,compensatable`和可选`workspa
 `ToolUsage`各计数字段可省略但不可为null；省略为未知，0是明确报告的零。`usage_state=complete`要求input/output均已知，partial保留至少一个真实小计，unreported不含usage对象（允许外层null等价缺失）。普通非usage事件可以没有usage/state；usage事件或携带usage对象时必须有state。生成Schema使用条件约束表达这些关系，服务端仍检查事件身份、字节上限、当前授权和原始JSON。新scheduling/runner严格DTO请求保留原数字词法，防止接近2^53的小数先经float64舍入后被误接纳；其它历史map路由尚未统一迁移，不能据此宣称所有接口具备同等数值合同。
 
 Attempt列表只查询元数据，`result_source=not_loaded`；精确详情才读取原Result，并区分runner_result、manual_reconciliation、child_workflow、managed_observation和unreported。人工核对不伪造机器Result；提供方观察的合成状态码不称进程退出码，原未知回执仍保留在managed resolution链。新generation2 worker仅对明确transient且幂等的失败自动重试，最多2次、1/2秒持久退避；自动序列总截止显式使用TimeoutSeconds，未配默认300秒，人工retry新开持久窗口并保留旧窗口。TimeoutSeconds算术上限9223372036秒，避免纳秒时长溢出；旧generation1运行保留其固定解释。
+
+## T-P4-016 需求设计与正式任务采用
+
+`/requirements/{id}/design` 提供当前设计及严格PUT草稿，子接口为commands／只读preview／adopt／revisions／adoptions。正式类型来自Go，公开SDK类型由同源生成。保存允许不完整提案；发布必须完整设计、闭合依赖与验收覆盖；preview不是预留或批准。采用对全部相关范围重算摘要并原子应用，不重复创建稳定key对应任务。
+
+批准限当前浏览器ProjectApprove；API只编辑提案。TaskContext.design只读，由正式绑定及批准修订解析，进入派发与验收依据。当前249 Schema／164路径；合法输入与跨字段规则见[合同](../../contracts/requirement-design.md)，实际范围见[阶段验证](../quality/requirement-design-verification.md)。
