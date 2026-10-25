@@ -35,7 +35,7 @@ Explicit writes:
   run command ID --file command.json
   workflow publish --file workflow.json
   run start --workflow ID --version N --operation KEY [--task ID] [--expected-version N]
-  api /RESOURCE [--method GET|POST|PATCH|DELETE] [--file request.json]
+  api /RESOURCE [--method GET|POST|PUT|PATCH|DELETE] [--file request.json]
 
 Webhook keys are read only from the named process environment; --file - reads stdin.
 Webhook delivery preserves exact body bytes and delivery ID; it never sends a session token.
@@ -97,6 +97,12 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 }
 
 func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
+	if len(args) > 0 && args[0] == "knowledge" {
+		return knowledgeCommand(ctx, c, args[1:], in, out)
+	}
+	if len(args) > 1 && args[0] == "requirement" && args[1] == "design" {
+		return requirementDesignCommand(ctx, c, args[2:], in, out)
+	}
 	if len(args) > 0 && args[0] == "webhook" {
 		return webhookCommand(ctx, c, args[1:], in, out)
 	}
@@ -126,7 +132,7 @@ func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out i
 		}
 	}
 	if args[0] == "run" && len(args) > 1 {
-		return runCommand(ctx, c, args[1:], out)
+		return runCommand(ctx, c, args[1:], in, out)
 	}
 	if args[0] == "workflow" && len(args) > 1 && args[1] == "publish" {
 		fs := commandFlags("workflow publish")
@@ -134,10 +140,10 @@ func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out i
 		if fs.Parse(args[2:]) != nil || *file == "" || fs.NArg() != 0 {
 			return usage("workflow publish requires --file")
 		}
-		return submitFile(ctx, c, "POST", "/api/v1/workflows", *file, out, false)
+		return submitFile(ctx, c, "POST", "/api/v1/workflows", *file, in, out, false)
 	}
 	if args[0] == "api" {
-		return apiCommand(ctx, c, args[1:], out)
+		return apiCommand(ctx, c, args[1:], in, out)
 	}
 	return usage("unknown command or arguments; use --help")
 }
@@ -148,7 +154,7 @@ func commandFlags(name string) *flag.FlagSet {
 	return fs
 }
 
-func runCommand(ctx context.Context, c *client, args []string, out io.Writer) error {
+func runCommand(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
 	switch args[0] {
 	case "show", "events", "command":
 		if len(args) < 2 || args[1] == "" || strings.ContainsAny(args[1], "/\\?#%") || args[1] == "." || args[1] == ".." {
@@ -165,7 +171,7 @@ func runCommand(ctx context.Context, c *client, args []string, out io.Writer) er
 			if *file == "" {
 				return usage("run command requires --file with action and expected_version")
 			}
-			return submitFile(ctx, c, "POST", path+"/commands", *file, out, true)
+			return submitFile(ctx, c, "POST", path+"/commands", *file, in, out, true)
 		}
 		if *file != "" {
 			return usage("--file is only supported by run command")
@@ -204,8 +210,8 @@ func runCommand(ctx context.Context, c *client, args []string, out io.Writer) er
 	return usage("unknown run command")
 }
 
-func submitFile(ctx context.Context, c *client, method, path, file string, out io.Writer, command bool) error {
-	body, err := readObject(file)
+func submitFile(ctx context.Context, c *client, method, path, file string, in io.Reader, out io.Writer, command bool) error {
+	body, err := readObject(file, in)
 	if err != nil {
 		return err
 	}
@@ -227,7 +233,7 @@ func submitFile(ctx context.Context, c *client, method, path, file string, out i
 	return writeJSON(out, raw, c.token)
 }
 
-func apiCommand(ctx context.Context, c *client, args []string, out io.Writer) error {
+func apiCommand(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
 	if len(args) == 0 {
 		return usage("api requires a resource path")
 	}
@@ -245,7 +251,7 @@ func apiCommand(ctx context.Context, c *client, args []string, out io.Writer) er
 		return usage("invalid api flags")
 	}
 	*method = strings.ToUpper(*method)
-	if *method != "GET" && *method != "POST" && *method != "PATCH" && *method != "DELETE" {
+	if *method != "GET" && *method != "POST" && *method != "PUT" && *method != "PATCH" && *method != "DELETE" {
 		return usage("unsupported API method")
 	}
 	var body map[string]any
@@ -254,12 +260,14 @@ func apiCommand(ctx context.Context, c *client, args []string, out io.Writer) er
 			return usage("API mutations require explicit --method and --file")
 		}
 		var err error
-		body, err = readObject(*file)
+		body, err = readObject(*file, in)
 		if err != nil {
 			return err
 		}
-		if err = c.operation(*method, path, body); err != nil {
-			return err
+		if !requestIsReadOnly(*method, path) {
+			if err = c.operation(*method, path, body); err != nil {
+				return err
+			}
 		}
 	} else if *file != "" {
 		return usage("GET does not accept --file")

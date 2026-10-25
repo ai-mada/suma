@@ -396,6 +396,9 @@ func (s *Service) AdoptRequirementDesign(ctx context.Context, actor Actor, proje
 	if _, e = tx.ExecContext(ctx, s.q(`INSERT INTO suma_requirement_design_adoptions(tenant_id,project_id,requirement_id,id,version,snapshot)VALUES(?,?,?,?,?,?)`), auth.target.tenantID, project, requirement, out.ID, out.Version, stringify(out)); e != nil {
 		return RequirementDesignAdoption{}, e
 	}
+	if e = s.indexRequirementDesignAdoptionTx(ctx, auth, project, requirement, out); e != nil {
+		return RequirementDesignAdoption{}, e
+	}
 	res, e := tx.ExecContext(ctx, s.q(`UPDATE suma_requirement_designs SET version=version+1,last_adoption_id=?,updated_at=? WHERE tenant_id=? AND project_id=? AND requirement_id=? AND version=?`), out.ID, stamp, auth.target.tenantID, project, requirement, plan.Version)
 	if e != nil {
 		return RequirementDesignAdoption{}, e

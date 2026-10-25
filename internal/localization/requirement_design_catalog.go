@@ -3,6 +3,8 @@ package localization
 // Exact controlled design diagnostics. User design text and immutable source
 // evidence retain their original language and bytes.
 var requirementDesignCatalog = []Definition{
+	{Key: "requirement_design.provenance_query", Texts: map[Locale]string{ZhCN: "任务设计依据只接受唯一的当前项目参数", EnUS: "Task design provenance accepts only one current project parameter."}},
+	{Key: "requirement_design.maintenance", Texts: map[Locale]string{ZhCN: "服务正在升级核验，尚未执行本次操作，请稍后重试", EnUS: "The service is verifying an upgrade. This operation has not started; try again later."}},
 	{Key: "requirement_design.preview_changed", Texts: map[Locale]string{ZhCN: "任务变更预览已失效，请核对当前记录", EnUS: "The task change preview is stale. Review the current records."}},
 	{Key: "requirement_design.published_invalid", Texts: map[Locale]string{ZhCN: "已发布设计校验不完整", EnUS: "The published design does not satisfy its validation rules."}},
 	{Key: "requirement_design.linked_task_missing", Texts: map[Locale]string{ZhCN: "已采用任务记录缺失，需要核对绑定", EnUS: "An adopted task is missing. Reconcile its formal binding."}},

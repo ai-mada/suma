@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/ai-mada/suma/internal/localization"
 )
@@ -136,7 +137,7 @@ func (c *client) request(ctx context.Context, method, path string, body map[stri
 		if ctx.Err() != nil {
 			message = "control request cancelled or timed out"
 		}
-		if method != "GET" {
+		if !requestIsReadOnly(method, path) {
 			message += "; outcome may be unknown: retry only with the same operation key and payload"
 		}
 		return nil, &failure{Code: "transport", Message: message}
@@ -151,7 +152,9 @@ func (c *client) request(ctx context.Context, method, path string, body map[stri
 		var envelope struct {
 			Error failure `json:"error"`
 		}
-		if json.Unmarshal(raw, &envelope) == nil && envelope.Error.Code != "" {
+		decoder := json.NewDecoder(bytes.NewReader(raw))
+		decoder.UseNumber()
+		if json.Valid(raw) && decoder.Decode(&envelope) == nil && envelope.Error.Code != "" {
 			*f = envelope.Error
 			f.Status, f.remote = resp.StatusCode, true
 		}
@@ -166,15 +169,25 @@ func (c *client) request(ctx context.Context, method, path string, body map[stri
 	return raw, nil
 }
 
-func readObject(file string) (map[string]any, error) {
-	f, err := os.Open(file)
-	if err != nil {
-		return nil, usage("cannot open JSON file")
+func readObject(file string, in io.Reader) (map[string]any, error) {
+	reader := in
+	if file != "-" {
+		f, err := os.Open(file)
+		if err != nil {
+			return nil, usage("cannot open JSON file")
+		}
+		defer f.Close()
+		reader = f
 	}
-	defer f.Close()
-	raw, err := io.ReadAll(io.LimitReader(f, 4*1024*1024+1))
+	if reader == nil {
+		return nil, usage("cannot read JSON input")
+	}
+	raw, err := io.ReadAll(io.LimitReader(reader, 4*1024*1024+1))
 	if err != nil || len(raw) > 4*1024*1024 {
 		return nil, usage("JSON file exceeds 4 MiB or cannot be read")
+	}
+	if !utf8.Valid(raw) {
+		return nil, usage("JSON input must be valid UTF-8")
 	}
 	var object map[string]any
 	decoder := json.NewDecoder(bytes.NewReader(raw))

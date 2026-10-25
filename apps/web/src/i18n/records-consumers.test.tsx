@@ -147,6 +147,10 @@ it("uses complete professional record actions and detail labels while preserving
 it("opens the scoped requirement design workspace and preserves edited text when switching language", async () => {
   await click("Design and task proposal");
   expect(new URLSearchParams(location.search).get("panel")).toBe("requirement-design");
+  // The workspace is lazy loaded. Wait for its real editable surface rather
+  // than assuming module evaluation completes within the fixed timer ticks.
+  for (let attempt = 0; attempt < 50 && !document.querySelector('[role=dialog] textarea[name=product]'); attempt++)
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
   const product = document.querySelector<HTMLTextAreaElement>('[role=dialog] textarea[name=product]')!;
   expect(product).not.toBeNull();
   await act(async () => {

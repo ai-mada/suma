@@ -26,6 +26,7 @@ func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr, os.LookupEnv)) }
 func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool)) int {
 	app := commandlocale.New("suma-control", "速码控制面服务", "suma control service", out, stderr, lookup)
 	addr := app.String("addr", app.Env("SUMA_ADDR", "127.0.0.1:4310"), "监听地址", "listen address")
+	maintenance := app.Bool("maintenance", false, "升级核验模式：暂停业务命令及后台调度和投影", "upgrade verification: pause business commands and background scheduling/projection")
 	if stop, code := app.Parse(args, version); stop {
 		return code
 	}
@@ -77,7 +78,7 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 		logger.Error(app.Text("执行数据库结构迁移失败", "migrate execution schema"), "event", "control.execution_schema_migrate", "error", err)
 		return 1
 	}
-	server := &platform.Server{Service: service, Engine: engine, WebDir: app.Env("SUMA_WEB_DIR", "apps/web/dist"), AllowedOrigins: strings.FieldsFunc(app.Env("SUMA_ALLOWED_ORIGINS", "http://127.0.0.1:5173,http://localhost:5173"), func(r rune) bool { return r == ',' }), SetupToken: app.Getenv("SUMA_SETUP_TOKEN")}
+	server := &platform.Server{Service: service, Engine: engine, WebDir: app.Env("SUMA_WEB_DIR", "apps/web/dist"), AllowedOrigins: strings.FieldsFunc(app.Env("SUMA_ALLOWED_ORIGINS", "http://127.0.0.1:5173,http://localhost:5173"), func(r rune) bool { return r == ',' }), SetupToken: app.Getenv("SUMA_SETUP_TOKEN"), Maintenance: *maintenance}
 	httpServer := &http.Server{Addr: *addr, Handler: server.Handler(), ReadHeaderTimeout: 10 * time.Second, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -89,6 +90,9 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
+				if *maintenance {
+					continue
+				}
 				if e := service.TickAutomations(ctx, engine); e != nil && ctx.Err() == nil {
 					logger.Error(app.Text("自动化调度失败", "automation tick"), "event", "control.automation_tick", "error", e)
 				}
@@ -106,6 +110,9 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
+				if *maintenance {
+					continue
+				}
 				if e := service.ProjectIndexes(ctx); e != nil && ctx.Err() == nil {
 					logger.Error(app.Text("索引投影待处理", "index projection pending"), "event", "control.index_projection", "error", e)
 				}
@@ -120,6 +127,9 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
+				if *maintenance {
+					continue
+				}
 				if e := service.ProjectFailures(ctx); e != nil && ctx.Err() == nil {
 					logger.Error(app.Text("故障投影待处理", "failure projection pending"), "event", "control.failure_projection", "error", e)
 				}

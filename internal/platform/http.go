@@ -25,7 +25,10 @@ type Server struct {
 	WebDir         string
 	AllowedOrigins []string
 	SetupToken     string
-	mux            *http.ServeMux
+	// Maintenance freezes business commands while operators verify an upgrade.
+	// Authentication remains available; the control process also pauses projectors.
+	Maintenance bool
+	mux         *http.ServeMux
 }
 
 func (s *Server) Handler() http.Handler {
@@ -35,7 +38,7 @@ func (s *Server) Handler() http.Handler {
 			writeError(w, err)
 			return
 		}
-		writeJSON(w, 200, map[string]any{"status": "ok", "database": "connected", "version": "0.1.0"})
+		writeJSON(w, 200, map[string]any{"status": "ok", "database": "connected", "version": "0.1.0", "maintenance": s.Maintenance})
 	})
 	s.mux.HandleFunc("/api/v1/", s.api)
 	s.mux.HandleFunc("/", s.web)
@@ -63,6 +66,11 @@ func (s *Server) Handler() http.Handler {
 				writeError(w, &APIError{403, "origin_rejected", "请求来源不在允许范围", nil})
 				return
 			}
+		}
+		if s.Maintenance && strings.HasPrefix(r.URL.Path, "/api/v1/") && r.Method != http.MethodGet && r.Method != http.MethodHead && r.Method != http.MethodOptions && !(r.Method == http.MethodPost && (r.URL.Path == "/api/v1/auth/login" || r.URL.Path == "/api/v1/auth/logout")) {
+			w.Header().Set("Retry-After", "5")
+			writeError(w, &APIError{http.StatusLocked, "maintenance_mode", "服务正在升级核验，尚未执行本次操作，请稍后重试", nil})
+			return
 		}
 		bodyLimit := int64(2 << 20)
 		if r.Method == "PUT" && strings.HasPrefix(r.URL.Path, "/api/v1/runner/artifact-uploads/") && strings.Contains(r.URL.Path, "/blobs/") {
@@ -397,6 +405,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			writeError(w, queryErr)
 			return
 		}
+	}
+	if s.taskDesignViewHTTP(w, r, actor, project, parts) {
+		return
 	}
 	if s.requirementDesignHTTP(w, r, actor, project, path, parts, m) {
 		return

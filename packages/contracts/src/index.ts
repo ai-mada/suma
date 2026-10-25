@@ -1925,6 +1925,21 @@ export interface TaskContextRecord {
   description: string;
   acceptance_criteria: (string)[];
 }
+export interface TaskDesignContextView {
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  bound: boolean;
+  eligibility: string;
+  context?: RequirementDesignContext | null;
+  requirement?: TaskContextRecord | null;
+  adopted_task?: RequirementDesignTask | null;
+  adopted_by?: string;
+  adopted_at?: string;
+  current_requirement_version: number;
+  current_design_version: number;
+  current_published_revision: number;
+}
 export interface TaskDispatchPlan {
   id: string;
   project_id: string;
