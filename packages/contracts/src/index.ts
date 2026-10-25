@@ -1109,6 +1109,130 @@ export interface ProjectGrant {
   version: number;
   status: string;
 }
+export interface ProjectKnowledgeCommandRequest {
+  project_id: string;
+  action: string;
+  expected_version: number;
+  idempotency_key: string;
+}
+export interface ProjectKnowledgeContextItem {
+  id: string;
+  revision: number;
+  kind: string;
+  title: string;
+  summary: string;
+  content: string;
+  sha256: string;
+  sources: (ProjectKnowledgeContextSource)[];
+}
+export interface ProjectKnowledgeContextSource {
+  kind: string;
+  id: string;
+  version: number;
+  title: string;
+  sha256: string;
+}
+export interface ProjectKnowledgeDetail {
+  id: string;
+  project_id: string;
+  version: number;
+  kind: string;
+  state: string;
+  title: string;
+  summary: string;
+  latest_revision: number;
+  published_revision: number;
+  published_sha256: string;
+  published_title: string;
+  published_summary: string;
+  has_draft: boolean;
+  published_eligible: boolean;
+  eligibility: string;
+  created_at: string;
+  updated_at: string;
+  latest: ProjectKnowledgeRevision;
+  published?: ProjectKnowledgeRevision | null;
+}
+export interface ProjectKnowledgeExtractionRequest {
+  project_id: string;
+  kind: string;
+  title?: string;
+  summary?: string;
+  sources: (ProjectKnowledgeSourceInput)[];
+  idempotency_key: string;
+}
+export interface ProjectKnowledgeList {
+  items: (ProjectKnowledgeSummary)[];
+  total: number;
+  next_cursor: string;
+}
+export interface ProjectKnowledgeReference {
+  id: string;
+  revision: number;
+  sha256: string;
+}
+export interface ProjectKnowledgeRevision {
+  revision: number;
+  based_on_revision: number;
+  state: string;
+  kind: string;
+  title: string;
+  summary: string;
+  content: string;
+  sha256: string;
+  sources: (ProjectKnowledgeSource)[];
+  method: string;
+  created_by: string;
+  created_at: string;
+}
+export interface ProjectKnowledgeRevisionList {
+  items: (ProjectKnowledgeRevision)[];
+  total: number;
+  next_cursor: string;
+}
+export interface ProjectKnowledgeSource {
+  kind: string;
+  id: string;
+  version: number;
+  title: string;
+  quote: string;
+  sha256: string;
+}
+export interface ProjectKnowledgeSourceInput {
+  kind: string;
+  id: string;
+  version: number;
+  quote?: string;
+}
+export interface ProjectKnowledgeSummary {
+  id: string;
+  project_id: string;
+  version: number;
+  kind: string;
+  state: string;
+  title: string;
+  summary: string;
+  latest_revision: number;
+  published_revision: number;
+  published_sha256: string;
+  published_title: string;
+  published_summary: string;
+  has_draft: boolean;
+  published_eligible: boolean;
+  eligibility: string;
+  created_at: string;
+  updated_at: string;
+}
+export interface ProjectKnowledgeWriteRequest {
+  project_id: string;
+  kind: string;
+  title: string;
+  summary: string;
+  content: string;
+  sources: (ProjectKnowledgeSourceInput)[];
+  expected_version: number;
+  idempotency_key: string;
+}
 export interface ProjectPoolRunner {
   id: string;
   worker_id: string;
@@ -1656,6 +1780,7 @@ export interface SwitchOrganizationRequest {
 export interface TaskContext {
   task: TaskContextRecord;
   requirement?: TaskContextRecord | null;
+  knowledge?: (ProjectKnowledgeContextItem)[];
 }
 export interface TaskContextRecord {
   id: string;
@@ -1698,6 +1823,7 @@ export interface TaskDispatchPreviewRequest {
   tool_profile_id: string;
   expected_tool_version: number;
   idempotency_key: string;
+  knowledge?: (ProjectKnowledgeReference)[];
 }
 export interface TaskDispatchStartRequest {
   project_id: string;

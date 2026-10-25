@@ -112,7 +112,7 @@ export type TaskDispatchPlan = {
   run_id: string;
   created_at: string;
   expires_at: string;
-  context: { task: TaskContextRecord; requirement?: TaskContextRecord };
+  context: { task: TaskContextRecord; requirement?: TaskContextRecord; knowledge?: import("../../../packages/contracts/src").ProjectKnowledgeContextItem[] };
   workflow: Workflow;
   valid: boolean;
   reason: string;

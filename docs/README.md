@@ -4,7 +4,8 @@
 
 | 主题 | 入口 |
 |---|---|
-| 当前凭证与原页面身份（T-P4-014，实施中） | [统一合同](../contracts/current-credential-authority.md)、[领域架构](architecture/current-credential-authority.md)、[并行实施计划](delivery/current-authority-plan.md)、[验证边界](quality/current-authority-verification.md) |
+| 项目知识／记忆／规范／技能（T-P4-015，限定本地验证） | [产品需求](product/project-knowledge.md)、[领域架构](architecture/project-knowledge.md)、[固定上下文合同](../contracts/project-knowledge.md)、[阶段验证](quality/project-knowledge-verification.md) |
+| 当前凭证与原页面身份（T-P4-014，限定本地验证） | [统一合同](../contracts/current-credential-authority.md)、[领域架构](architecture/current-credential-authority.md)、[并行实施计划](delivery/current-authority-plan.md)、[验证边界](quality/current-authority-verification.md) |
 | 当前工具资格显示与图控件（T-P4-013，限定范围本地已验证） | [显示合同](../contracts/platform-display.md)、[交互设计](design/platform-display.md)、[专项计划](delivery/platform-display-plan.md)、[验证边界](quality/platform-display-verification.md)、[精简摘要](quality/platform-display-summary.json) |
 | 精确尝试工具历史（T-P4-012，历史本地已验证） | [架构与操作SOP](architecture/attempt-tool-history.md)、[读取合同](../contracts/attempt-tool-history.md)、[专项验证](quality/attempt-tool-history-verification.md)、[精简摘要](quality/attempt-tool-history-summary.json) |
 | 原生诊断与命令编辑（T-P4-011历史） | [链路设计与SOP](agents/native-diagnostics.md)、[专项验收](quality/native-diagnostics-verification.md)、[精简摘要](quality/native-diagnostics-summary.json) |

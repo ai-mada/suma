@@ -91,7 +91,7 @@ func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, en
 	if automationStamp(clock) >= plan.ExpiresAt {
 		return conflict("派发预览已过期，请根据当前任务重新预览")
 	}
-	current, err := s.taskContextTx(ctx, tx, p, project, plan.TaskID)
+	current, err := s.taskContextForDispatchTx(ctx, auth, project, plan.TaskID, knowledgeReferences(plan.Context.Knowledge))
 	if err != nil {
 		return err
 	}
@@ -104,6 +104,9 @@ func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, en
 		}
 	} else if current.Requirement != nil {
 		return conflict("任务的需求关联已变化，请重新派发预览")
+	}
+	if digest(stringify(current.Knowledge)) != digest(stringify(plan.Context.Knowledge)) {
+		return conflict("所选项目知识依据已变化，请重新预览派发")
 	}
 	profile, err := s.validateToolDispatchTx(ctx, tx, auth, project, plan.ToolProfileID, plan.ToolProfileVersion, plan.ToolProfileSHA256)
 	if err != nil {
@@ -150,7 +153,7 @@ func (s *Service) CreateTaskDispatchPlan(ctx context.Context, engine *dag.Engine
 		}
 		return out, tx.Commit()
 	}
-	context, err := s.taskContextTx(ctx, tx, p, project, request.TaskID)
+	context, err := s.taskContextForDispatchTx(ctx, auth, project, request.TaskID, request.Knowledge)
 	if err != nil {
 		return out, err
 	}

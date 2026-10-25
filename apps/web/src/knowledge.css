@@ -1,0 +1,142 @@
+.knowledge-workspace{display:grid;
+  grid-template-columns:minmax(260px,1fr) minmax(300px,1.15fr);
+  gap:16px;
+  align-items:start;
+  min-width:0}
+.knowledge-list,.knowledge-detail{min-width:0}
+.knowledge-toolbar{display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+  padding:14px 16px;
+  border-bottom:1px solid var(--border)}
+.knowledge-toolbar .field{margin:0;
+  flex:1 1 140px}
+.knowledge-toolbar .field>span{font-size:12px}
+.knowledge-filter-search{flex:1 1 180px;
+  display:flex;
+  gap:6px}
+.knowledge-filter-search input{min-width:0;
+  flex:1}
+.knowledge-actions{display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center}
+.knowledge-list-items{list-style:none;
+  margin:0;
+  padding:0}
+.knowledge-list-items>li+li{border-top:1px solid var(--border)}
+.knowledge-entry{width:100%;
+  display:flex;
+  gap:10px;
+  text-align:left;
+  align-items:flex-start;
+  justify-content:space-between;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  padding:16px}
+.knowledge-entry:hover,.knowledge-entry[aria-current=true]{background:var(--accent-soft)}
+.knowledge-entry>span{display:grid;
+  gap:6px;
+  min-width:0}
+.knowledge-entry strong,.knowledge-entry p{overflow-wrap:anywhere}
+.knowledge-entry p{margin:0;
+  color:var(--muted);
+  font-size:13px}
+.knowledge-meta{display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  align-items:center;
+  font-size:12px;
+  color:var(--muted)}
+.knowledge-detail{padding:18px;
+  position:sticky;
+  top:16px}
+.knowledge-detail-header{display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px}
+.knowledge-detail h2{margin:8px 0 12px;
+  overflow-wrap:anywhere}
+.knowledge-detail .knowledge-actions{margin-top:16px}
+.knowledge-source{padding:10px 0;
+  border-bottom:1px solid var(--border);
+  overflow-wrap:anywhere}
+.knowledge-source blockquote{margin:8px 0 0;
+  padding-left:12px;
+  border-left:2px solid var(--border);
+  white-space:pre-wrap;
+  max-height:150px;
+  overflow:auto;
+  font-size:12px}
+.knowledge-content{white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  font:inherit;
+  font-size:13px;
+  line-height:1.7;
+  margin:12px 0;
+  max-height:520px;
+  overflow:auto;
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:var(--surface-soft)}
+.knowledge-hash{display:block;
+  font-size:11px;
+  overflow-wrap:anywhere;
+  color:var(--muted)}
+.knowledge-editor textarea[name=content]{min-height:220px;
+  font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+.knowledge-editor details{margin:10px 0}
+.knowledge-back{display:none}
+.knowledge-dispatch-list{display:grid;
+  gap:8px;
+  max-height:260px;
+  overflow:auto}
+.knowledge-dispatch-choice{display:flex;
+  gap:9px;
+  align-items:flex-start;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:7px}
+.knowledge-dispatch-choice>span{display:grid;
+  gap:4px;
+  min-width:0}
+.knowledge-dispatch-choice small{color:var(--muted);
+  overflow-wrap:anywhere}
+.knowledge-fixed article{padding:10px 0;
+  border-bottom:1px solid var(--border)}
+.knowledge-fixed summary{cursor:pointer}
+.knowledge-fixed summary strong{overflow-wrap:anywhere}
+.knowledge-pager{display:flex;
+  gap:10px;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  padding:12px 16px}
+.knowledge-result-actions{display:flex;
+  gap:8px;
+  margin-top:10px}
+@media(max-width:900px){.knowledge-workspace{grid-template-columns:1fr}
+.knowledge-detail{position:static}
+.knowledge-workspace[data-detail=true] .knowledge-list{display:none}
+.knowledge-back{display:inline-flex}
+.knowledge-toolbar{padding:12px}
+.knowledge-detail{padding:14px}
+.knowledge-detail-header{flex-wrap:wrap}
+.knowledge-content{max-height:none}
+.knowledge-actions>button{min-height:38px}
+}
+@media(prefers-reduced-motion:reduce){.knowledge-workspace *{scroll-behavior:auto}
+}
+
+
+.knowledge-recovery{grid-column:1/-1;
+  padding:14px;
+  border:1px solid var(--border-strong);
+  border-radius:8px;
+  background:var(--surface)}
+
+
+@media(max-width:900px){.knowledge-workspace[data-detail=false] .knowledge-detail{display:none}}

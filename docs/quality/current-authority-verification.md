@@ -37,8 +37,14 @@ Windows／macOS／Linux 的 amd64、arm64 共六目标、control／runner／depl
 
 Windows 实际 worktree 测试确认 Git 内部 `'$GIT_DIR' too big`。短的进程本地 `.cache/ct` 目录使相同失败项通过；不改机器环境或全局 Git 配置。详见[复现说明](../deployment/build-reproducibility.md)。
 
+## 015 实施期间的 014 独立补验
+
+使用已提交014对应的真实打包 control 和已保存014入口，在全新 task-owned 库完成 34 条真实 HTTP 检查：原视图头／双语错误、回执、同 slot 轮换与固定到期、API／Agent 范围、浏览器家族退出及独立凭证存续。另用实际浏览器完成中文登录与任务表单、切换英文保留草稿、保存、刷新后详情与验收条件保留；控制台 errors／warn 为空。任务从2增至3，团队与运行仍0，错误上下文和重放未多写业务。
+
+原 exec holder/control 都已实际正常退出0、停止原因 root_requested_stop、graceful=true，端口已关闭；最终独立SQLite integrity=ok。原始结果、截图和stop收据留在既有014实际目录。该补验只覆盖代表性桌面任务流程，不代表全UI矩阵、外部厂商、用户13库升级或生产验收；现有用户预览／数据仍未改变。
+
 ## 未验收范围与证据
 
-当前实际运行预览仍为 013；014 尚未在用户库执行迁移或真实 UI 联调。PostgreSQL／OceanBase 的并发与迁移、实际 SSO、外部厂商账户、安装升级、生产部署、规模和完整研发五条旅程均保留待办，不能由本地模拟升级为通过。
+当前实际运行预览仍为 013；014 尚未在用户库执行迁移；上方独立补验不替代用户环境升级。PostgreSQL／OceanBase 的并发与迁移、实际 SSO、外部厂商账户、安装升级、生产部署、规模和完整研发五条旅程均保留待办，不能由本地模拟升级为通过。
 
 本地原始日志、报告、Git 路径诊断、构建清单与恢复收据在 `.cache/e2e/current-authority-implementation-014/` 以及 `dist/runtime/builds/`；均不进入 Git。只提交必要源码、生成合同、设计、规约和本精简验证说明。当前目标继续保持完整平台范围。

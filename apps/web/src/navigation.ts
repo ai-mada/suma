@@ -1,11 +1,30 @@
 import {mondayOf} from './planning-model';
 import {parseAttempt} from './scheduling-model';
 export type WorkbenchView='overview'|'requirements'|'development'|'quality'|'operations'|'knowledge'|'settings';
-export type WorkbenchRoute={project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string};
+export type WorkbenchRoute={project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all'};
 const views:WorkbenchView[]=['overview','requirements','development','quality','operations','knowledge','settings'];
 const defaultSub:Partial<Record<WorkbenchView,string>>={development:'tasks',quality:'issues',operations:'releases',knowledge:'documents',settings:'organization'};
 export function parseWorkbenchRoute(search:string):WorkbenchRoute{
  const p=new URLSearchParams(search),view=views.includes(p.get('view') as WorkbenchView)?p.get('view') as WorkbenchView:'overview';
- return {project:p.get('project')||'',view,sub:p.get('sub')||defaultSub[view]||'',record:p.get('record')||'',run:p.get('run')||'',node:p.get('node')||'',attempt:parseAttempt(p.get('attempt')||'')?p.get('attempt')!:'',q:p.get('q')||'',status:p.get('status')||'all',layout:p.get('layout')||'list',week:p.get('week')||mondayOf(),panel:p.get('panel')||''};
+ const knowledgeKind=p.get('knowledge_kind');
+ return {...(['memory','spec','skill','all'].includes(knowledgeKind||'')?{knowledge_kind:knowledgeKind as WorkbenchRoute['knowledge_kind']}:{}),project:p.get('project')||'',view,sub:p.get('sub')||defaultSub[view]||'',record:p.get('record')||'',run:p.get('run')||'',node:p.get('node')||'',attempt:parseAttempt(p.get('attempt')||'')?p.get('attempt')!:'',q:p.get('q')||'',status:p.get('status')||'all',layout:p.get('layout')||'list',week:p.get('week')||mondayOf(),panel:p.get('panel')||''};
 }
 export function initializeSessionRoute(route:WorkbenchRoute,projects:{id:string}[]):WorkbenchRoute{return route.project||!projects.length?route:{...route,project:projects[0].id};}
+
+/** Provider locators are data, never URLs. Only known in-project record kinds
+ * become workbench destinations; foreign/invalid locators have no link. */
+export function sourceDestination(project:string,value:unknown):Pick<WorkbenchRoute,'project'|'view'|'sub'|'record'>|undefined {
+ const object=(item:unknown):Record<string,unknown>=>item!==null&&typeof item==='object'&&!Array.isArray(item)?item as Record<string,unknown>:{};
+ const outer=object(value),locator=object(outer.locator),source=Object.keys(locator).length?locator:outer;
+ for(const item of [outer,source])if(item.project_id!==undefined&&item.project_id!==project)return;
+ const type=typeof source.type==='string'?source.type:source.kind;
+ const destinations:Record<string,{view:WorkbenchView;sub:string}>={requirements:{view:'requirements',sub:''},requirement:{view:'requirements',sub:''},tasks:{view:'development',sub:'tasks'},task:{view:'development',sub:'tasks'},issues:{view:'quality',sub:'issues'},issue:{view:'quality',sub:'issues'},documents:{view:'knowledge',sub:'documents'},document:{view:'knowledge',sub:'documents'},'project-knowledge':{view:'knowledge',sub:'project-knowledge'}};
+ const destination=typeof type==='string'?destinations[type]:undefined;
+ const id=source.id??outer.source_ref??outer.id;
+ if(!project||!destination||typeof id!=='string'||!/^[A-Za-z0-9_-]{1,150}$/.test(id))return;
+ return {project,...destination,record:id};
+}
+export function sourceHref(project:string,source:unknown):string|undefined {
+ const route=sourceDestination(project,source);
+ return route?'?'+new URLSearchParams(route):undefined;
+}

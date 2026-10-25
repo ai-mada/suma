@@ -30,6 +30,12 @@ Go导出域模型直接反射，包括PlanningPeriod、TaskPlan、PlannedTask、
 
 生成器覆盖本轮新增路由的请求字段、基础取值约束和响应结构。旧接口仍使用部分通用请求信封，在OpenAPI的`x-request-schema-coverage`中标明。跨字段条件、UTF-8字节长度、当前权限、CAS版本、操作回执、真实身份关系、完成门禁和邀请秘密语义继续由服务端校验；JSON Schema与TypeScript类型不代表完整请求验证器。路由清单和map响应DTO仍是维护的合同，不是从全部HTTP分支自动推导；`--check`不证明全部处理器与合同自动一致。
 
+## 项目知识与固定上下文（T-P4-015）
+
+`/project-knowledge` 管理 memory／spec／skill 三种已审阅文本，使用当前 Actor、完整草稿替换、CAS 和稳定回执。发布／退役仅真实浏览器当前审批权限；Agent 不访问管理和历史路由，仅通过 `project.knowledge` 工具读取明确发布引用。`skill` 不是可执行插件，`extractive` 是文本提取，不代表模型提炼。
+
+每次编辑／发布／退役追加不可变修订；新草稿保留旧发布，版本历史有独立分页。列表 q 最多 200 UTF-8 字节，单页最多 100，正文最多 16,000、来源最多 8。`TaskDispatchPreviewRequest.knowledge` 最多选 16 个 id／revision／sha256，服务器解析快照并在启动时复核当前发布与来源；完整 goal 仍最多 32,000 UTF-8 字节。来源原文留在历史，消费上下文仅传一次正文和来源摘要，避免重复占模型预算。完整语义见[项目知识合同](../../contracts/project-knowledge.md)。
+
 ## 请求规则
 
 签名事件接收器是独立边界：`POST /hooks/{id}` 使用入口签名，拒绝浏览器Cookie/Bearer和任何query，不由调用者提供project_id。T-P4-003新增7个签名入口路径；T-P4-004加入7个工具及任务派发路径；T-P4-005增加8个调度策略、就绪队列与真实尝试路径，当前生成合同为169个模型、125个API路径；另加统一`Error`，OpenAPI实际共有170个Schema组件。跨字段、原文字节签名和事务规则见[事件入口合同](../../contracts/automation-ingress.md)；工具资格、固定任务输入和结构化进度见[工具执行合同](../../contracts/tool-execution.md)及[调度内核合同](../../contracts/scheduling-kernel.md)。这些计数描述合同覆盖，不表示真实厂商或完整平台已经验收。

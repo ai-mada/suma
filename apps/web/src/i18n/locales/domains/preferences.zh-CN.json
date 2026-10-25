@@ -50,5 +50,8 @@
   "preferences.locale.zh": "简体中文",
   "preferences.locale.en": "英语（美国）",
   "preferences.confirmedRecoveryHelp": "服务端已确认此语言偏好；本地恢复记录暂未清理。原操作仍被保留，在恢复记录清理前不能发出新操作。",
-  "preferences.receiptConfirmed": "原操作已在版本 v{{version}} 确认。当前偏好会独立读取，可能已包含后续修改。"
+  "preferences.receiptConfirmed": "原操作已在版本 v{{version}} 确认。当前偏好会独立读取，可能已包含后续修改。",
+  "preferences.write.storage_unavailable": "无法保存本次操作的恢复记录，尚未发送新的写入。请保留草稿并恢复浏览器存储后重试。",
+  "preferences.write.recovery_invalid": "当前范围的恢复记录格式或来源无效，已停止写入；请先核对原操作。",
+  "preferences.write.cleanup_failed": "结果已经收到，但本地恢复记录暂时无法清除。请恢复原操作以完成本地收尾，不会重新发起已确认的请求。"
 }

@@ -13,6 +13,8 @@ type TaskContextRecord struct {
 type TaskContext struct {
 	Task        TaskContextRecord  `json:"task"`
 	Requirement *TaskContextRecord `json:"requirement,omitempty"`
+	// Knowledge is resolved server-side from explicitly selected reviewed revisions.
+	Knowledge []ProjectKnowledgeContextItem `json:"knowledge,omitempty"`
 }
 
 type TaskDispatchPlan struct {
@@ -43,15 +45,16 @@ type TaskDispatchPlan struct {
 }
 
 type TaskDispatchPreviewRequest struct {
-	ProjectID           string `json:"project_id"`
-	TaskID              string `json:"task_id"`
-	ExpectedTaskVersion int    `json:"expected_task_version"`
-	WorkflowID          string `json:"workflow_id"`
-	WorkflowVersion     int    `json:"workflow_version"`
-	AgentNodeID         string `json:"agent_node_id"`
-	ToolProfileID       string `json:"tool_profile_id"`
-	ExpectedToolVersion int    `json:"expected_tool_version"`
-	IdempotencyKey      string `json:"idempotency_key"`
+	ProjectID           string                      `json:"project_id"`
+	TaskID              string                      `json:"task_id"`
+	ExpectedTaskVersion int                         `json:"expected_task_version"`
+	WorkflowID          string                      `json:"workflow_id"`
+	WorkflowVersion     int                         `json:"workflow_version"`
+	AgentNodeID         string                      `json:"agent_node_id"`
+	ToolProfileID       string                      `json:"tool_profile_id"`
+	ExpectedToolVersion int                         `json:"expected_tool_version"`
+	IdempotencyKey      string                      `json:"idempotency_key"`
+	Knowledge           []ProjectKnowledgeReference `json:"knowledge,omitempty"`
 }
 
 type TaskDispatchStartRequest struct {

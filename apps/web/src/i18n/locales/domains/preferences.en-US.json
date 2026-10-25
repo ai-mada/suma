@@ -50,5 +50,8 @@
   "preferences.locale.zh": "Simplified Chinese",
   "preferences.locale.en": "English (US)",
   "preferences.confirmedRecoveryHelp": "The server confirmed this preference. Its local recovery record could not be cleared. The original operation remains retained, and a new operation is blocked until cleanup succeeds.",
-  "preferences.receiptConfirmed": "The original request is confirmed at version v{{version}}. Current preferences are read separately and may include later changes."
+  "preferences.receiptConfirmed": "The original request is confirmed at version v{{version}}. Current preferences are read separately and may include later changes.",
+  "preferences.write.storage_unavailable": "The recovery record could not be saved. No new write was sent. Keep your draft and restore browser storage before retrying.",
+  "preferences.write.recovery_invalid": "The recovery record for this scope has invalid content or provenance. Writing stopped; review the original operation first.",
+  "preferences.write.cleanup_failed": "The result was received, but the local recovery record could not be cleared. Recover the operation to finish local cleanup; its confirmed request will not be sent again."
 }

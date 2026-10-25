@@ -112,7 +112,7 @@ func decode(r *http.Request) (map[string]any, error) {
 	// Preserve numeric lexemes so a fractional counter near 2^53 cannot round
 	// into a valid integer before that validation. Legacy map-backed routes
 	// retain their existing number representation until their DTO migration.
-	if strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
+	if strings.HasPrefix(r.URL.Path, "/api/v1/task-dispatch-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/project-knowledge") || r.URL.Path == "/api/v1/agent/tools/invoke" || strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
 		d.UseNumber()
 	}
 	if err := d.Decode(&m); err != nil {
@@ -397,6 +397,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			writeError(w, queryErr)
 			return
 		}
+	}
+	if s.projectKnowledgeHTTP(w, r, actor, project, path, parts, m) {
+		return
 	}
 	if s.artifactHTTP(w, r, actor, project, path, m) {
 		return
@@ -834,7 +837,7 @@ func (s *Server) capabilities(ctx context.Context) map[string]any {
 func (s *Server) agent(w http.ResponseWriter, r *http.Request, actor Actor, project, path string, m map[string]any) {
 	if path == "agent/tools" && r.Method == http.MethodGet {
 		s.projectReadJSON(w, r, actor, project, func(context.Context, *authorizedCommand) (any, error) {
-			return map[string]any{"items": []map[string]any{{"name": "project.overview", "description": presentationSource(w, "读取当前授权项目的真实状态与活动"), "parameters": map[string]any{"type": "object", "properties": map[string]any{}, "additionalProperties": false}}, {"name": "project.tasks", "description": presentationSource(w, "读取当前项目任务"), "parameters": map[string]any{"type": "object", "properties": map[string]any{"limit": map[string]any{"type": "integer"}, "cursor": map[string]any{"type": "string"}}, "additionalProperties": false}}, {"name": "project.search", "description": presentationSource(w, "检索当前项目资料并返回来源"), "parameters": map[string]any{"type": "object", "properties": map[string]any{"query": map[string]any{"type": "string"}}, "required": []string{"query"}, "additionalProperties": false}}}}, nil
+			return map[string]any{"items": []map[string]any{{"name": "project.overview", "description": presentationSource(w, "读取当前授权项目的真实状态与活动"), "parameters": map[string]any{"type": "object", "properties": map[string]any{}, "additionalProperties": false}}, {"name": "project.tasks", "description": presentationSource(w, "读取当前项目任务"), "parameters": map[string]any{"type": "object", "properties": map[string]any{"limit": map[string]any{"type": "integer"}, "cursor": map[string]any{"type": "string"}}, "additionalProperties": false}}, {"name": "project.search", "description": presentationSource(w, "检索当前项目资料并返回来源"), "parameters": map[string]any{"type": "object", "properties": map[string]any{"query": map[string]any{"type": "string"}}, "required": []string{"query"}, "additionalProperties": false}}, {"name": "project.knowledge", "description": presentationSource(w, "读取明确发布的项目知识固定修订并核验当前来源"), "parameters": knowledgeReferenceParameters()}}}, nil
 		})
 		return
 	}
@@ -845,8 +848,27 @@ func (s *Server) agent(w http.ResponseWriter, r *http.Request, actor Actor, proj
 			case "project.overview":
 				return s.Service.overviewTx(ctx, auth, project)
 			case "project.tasks":
-				items, total, next, err := s.Service.listPageTx(ctx, auth, project, "tasks", number(args, "limit"), str(args, "cursor"))
+				var input struct {
+					Limit  int    `json:"limit"`
+					Cursor string `json:"cursor"`
+				}
+				if err := strictAutomation(args, &input); err != nil {
+					return nil, err
+				}
+				items, total, next, err := s.Service.listPageTx(ctx, auth, project, "tasks", input.Limit, input.Cursor)
 				return map[string]any{"items": items, "total": total, "next_cursor": next}, err
+			case "project.knowledge":
+				var input struct {
+					References []ProjectKnowledgeReference `json:"references"`
+				}
+				if err := strictAutomation(args, &input); err != nil {
+					return nil, err
+				}
+				if len(input.References) == 0 {
+					return nil, invalid("请选择明确的已发布项目知识修订")
+				}
+				items, err := s.Service.resolvePublishedKnowledgeTx(ctx, auth, project, input.References)
+				return readListEnvelope(items), err
 			case "project.search":
 				return s.Service.searchKeywordsTx(ctx, auth, project, str(args, "query"))
 			default:

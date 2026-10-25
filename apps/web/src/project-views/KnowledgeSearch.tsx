@@ -1,12 +1,15 @@
 import {useApi} from '../api-context';
 import {useEffect,useRef,useState,type FormEvent} from 'react';
-import {Search} from 'lucide-react';
+import {Search,ArrowUpRight} from 'lucide-react';
+import {sourceHref} from '../navigation';
+import {knowledgeSourceLabel} from '../knowledge-model';
 import {api} from '../api';
 import {Empty,ErrorNotice} from '../ui';
 import {formatNumber,tr,useLocale} from '../i18n';
+import '../knowledge.css';
 type SearchResult={items:{id:string;type?:string;title?:string;snippet?:string;source_ref?:string;revision?:number;locator?:unknown}[];mode?:string;index_watermark?:number|null};
 type Snapshot={project:string;query:string;results?:SearchResult;error?:unknown;busy:boolean};
-export function KnowledgeSearch({project}:{project:string}){ const api=useApi();
+export function KnowledgeSearch({project,onOpenSource}:{project:string;onOpenSource?:(source:unknown)=>void}){ const api=useApi();
  useLocale();const [q,setQ]=useState(''),[snapshot,setSnapshot]=useState<Snapshot>({project,query:'',busy:false});
  const current=useRef(project),generation=useRef(0);current.current=project;
  useEffect(()=>()=>{generation.current++;},[project]);
@@ -22,7 +25,7 @@ export function KnowledgeSearch({project}:{project:string}){ const api=useApi();
  return <section className="panel knowledge-search"><div className="panel-heading"><div><h2>{tr('workbench.search.title')}</h2><p>{tr('workbench.search.description')}</p></div><Search size={22}/></div><form className="search-form" onSubmit={event=>void search(event)}><Search size={19}/><input aria-label={tr('workbench.search.query')} value={q} onChange={event=>setQ(event.target.value)} placeholder={tr('workbench.search.placeholder')} required/><button className="primary" disabled={state.busy}>{tr(state.busy?'workbench.search.searching':'workbench.search.submit')}</button></form>
   {Boolean(state.error)&&<ErrorNotice error={state.error}/>}
   {results&&<p className="loaded-scope">{tr('workbench.search.results_query',{query:state.query})}{q!==state.query&&<> · {tr('workbench.search.previous_query')}</>}</p>}
-  <div className="search-results">{results?.items?.map(item=><article key={item.id}><span className="type-chip" title={item.type}>{['requirements','tasks','issues','documents'].includes(item.type||'')?tr('common.entities.'+item.type):item.type}</span><h3>{item.title}</h3><p>{item.snippet}</p><small>{tr('workbench.search.result_reference',{source:item.source_ref||tr('workbench.not_reported'),revision:typeof item.revision==='number'?formatNumber(item.revision):tr('workbench.not_reported'),locator:typeof item.locator==='object'?JSON.stringify(item.locator):String(item.locator??'')})}</small></article>)}</div>
+  <div className="search-results">{results?.items?.map((item,index)=>{const href=sourceHref(project,item);return <article key={item.id+':'+index}><span className="type-chip" title={item.type}>{['requirements','tasks','issues','documents'].includes(item.type||'')?knowledgeSourceLabel(item.type!):item.type}</span><h3>{item.title}</h3><p>{item.snippet}</p><small>{tr('workbench.search.result_reference',{source:item.source_ref||item.id||tr('workbench.not_reported'),revision:typeof item.revision==='number'?formatNumber(item.revision):tr('workbench.not_reported'),locator:typeof item.locator==='object'?JSON.stringify(item.locator):String(item.locator??'')})}</small><div className="knowledge-result-actions">{href?<a href={href} onClick={event=>{if(!onOpenSource||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;event.preventDefault();onOpenSource(item);}}>{tr('knowledge.source_open')}<ArrowUpRight size={13}/></a>:<small className="muted">{tr('knowledge.source_outside')}</small>}</div></article>;})}</div>
   {results&&!results.items?.length&&<Empty title={tr('workbench.search.empty')} description={tr('workbench.search.empty_hint')}/>}
   {results&&<p className="muted">{tr('workbench.search.mode',{mode:results.mode==='keyword'?tr('workbench.search.keyword'):results.mode||tr('workbench.not_reported')})} · {tr('workbench.search.watermark',{value:typeof results.index_watermark==='number'?formatNumber(results.index_watermark):tr('workbench.not_reported')})}</p>}
  </section>;

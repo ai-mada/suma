@@ -1,4 +1,9 @@
 import {useApi} from './api-context';
+import {useKnowledgeEntries} from './knowledge-hooks';
+import {publishedKnowledgeReference,pinnedKnowledgeReferences,type KnowledgeSummary} from './knowledge-model';
+import {KnowledgeContextFacts} from './KnowledgeFacts';
+import {UiError} from './i18n';
+import './knowledge.css';
 import {literalText} from './i18n/literal';
 import { tr as t, useLocale, formatNumber, renderDiagnostic } from "./i18n";
 import { useEffect, useMemo, useState } from "react";
@@ -62,6 +67,20 @@ export function TaskDispatchDialog({
     [created, setCreated] = useState<TaskDispatchPlan>(),
     [error, setError] = useState<unknown>(""),
     [confirmed, setConfirmed] = useState(false);
+  const [knowledgeSelection,setKnowledgeSelection]=useState<KnowledgeSummary[]>([]);
+  const knowledge=useKnowledgeEntries(project,{kind:'all',state:'published',q:''},0,!planID||planID==='new');
+  const selectionCurrent=knowledgeSelection.every(selected=>knowledge.items?.some(current=>current.id===selected.id&&current.published_eligible&&current.eligibility==='current'&&current.published_revision===selected.published_revision&&current.published_sha256===selected.published_sha256));
+  function selectKnowledge(entry:KnowledgeSummary){
+    try{
+      const ref=publishedKnowledgeReference(entry,project);
+      const present=knowledgeSelection.some(item=>item.id===ref.id&&item.published_revision===ref.revision&&item.published_sha256===ref.sha256);
+      const next=knowledgeSelection.filter(item=>item.id!==entry.id);
+      if(present){setKnowledgeSelection(next);return;}
+      if(next.length>=16)throw new UiError('knowledge.errors.selection_limit');
+      setKnowledgeSelection([...next,entry]);
+    }catch(error){setError(error);}
+  }
+  useEffect(()=>{setKnowledgeSelection([]);},[project,task?.id,session.user.id,session.organization.id]);
   const recovery = useMemo(
       () =>
         new ToolWriteRecovery(session.organization.id +
@@ -130,7 +149,7 @@ export function TaskDispatchDialog({
         throw new Error(t("development.dispatch.choose_a_current_task_a_published_workflow"));
       const result = await action.run<TaskDispatchPlan>(
         "/task-dispatch-plans",
-        dispatchRequest(project, currentTask, flow, agentID, profile),
+        {...dispatchRequest(project, currentTask, flow, agentID, profile),knowledge:pinnedKnowledgeReferences(knowledgeSelection,project)},
       );
       if (result) saved("/task-dispatch-plans", result);
     } catch (error) {
@@ -308,6 +327,17 @@ export function TaskDispatchDialog({
                   <code>{profile.profile.profile_sha256}</code>
                 </div>
               )}
+              <section aria-label={t('knowledge.dispatch.title')}>
+                <h3>{t('knowledge.dispatch.title')}</h3><p className="muted">{t('knowledge.dispatch.hint')}</p>
+                <div className="knowledge-actions"><button type="button" disabled={blocked||knowledge.loading} onClick={()=>void knowledge.read()}><RefreshCw size={14}/>{t('knowledge.dispatch.refresh')}</button><a href={'?'+new URLSearchParams({project,view:'knowledge',sub:'project-knowledge'})}>{t('knowledge.dispatch.open')}</a></div>
+                {Boolean(knowledge.error)&&<ErrorNotice error={knowledge.error} onRetry={()=>void knowledge.read(knowledge.more)}/>}
+                {knowledge.loading&&!knowledge.items&&<Loading/>}
+                <div className="knowledge-dispatch-list">{knowledge.items?.map(entry=>{const checked=knowledgeSelection.some(item=>item.id===entry.id&&item.published_revision===entry.published_revision&&item.published_sha256===entry.published_sha256);return <label className="knowledge-dispatch-choice" key={entry.id}><input type="checkbox" checked={checked} disabled={blocked||!entry.published_eligible||entry.eligibility!=='current'} onChange={()=>selectKnowledge(entry)}/><span><strong>{entry.published_title||entry.id}</strong><small>{t('knowledge.kind.'+entry.kind)} · {t('knowledge.revision',{revision:formatNumber(entry.published_revision)})}{entry.has_draft?' · '+t('knowledge.has_draft'):''}</small>{entry.published_summary&&<small>{entry.published_summary}</small>}<small>{t('knowledge.eligible.'+entry.eligibility)}</small></span></label>;})}</div>
+                {knowledge.items?.length===0&&!knowledge.loading&&<p className="muted">{t('knowledge.dispatch.empty')}</p>}
+                {knowledge.cursor&&<button type="button" disabled={blocked||knowledge.loading} onClick={()=>void knowledge.read(true)}>{t('knowledge.more')}</button>}
+                <p>{t('knowledge.dispatch.selected',{count:knowledgeSelection.length})}</p>
+                {knowledgeSelection.length>0&&<><ul>{knowledgeSelection.map(entry=><li key={entry.id}>{entry.published_title||entry.id} · {t('knowledge.revision',{revision:formatNumber(entry.published_revision)})} <button type="button" disabled={blocked} onClick={()=>setKnowledgeSelection(before=>before.filter(item=>item.id!==entry.id))}>{t('knowledge.dispatch.remove')}</button></li>)}</ul>{!selectionCurrent&&<p className="warning">{t('knowledge.errors.ineligible')}</p>}<button type="button" disabled={blocked} onClick={()=>setKnowledgeSelection([])}>{t('knowledge.dispatch.clear')}</button></>}
+              </section>
             </fieldset>
             {action.conflict && (
               <div className="conflict-banner">
@@ -332,7 +362,8 @@ export function TaskDispatchDialog({
                   profiles.loading ||
                   !!profiles.error ||
                   workflows.loading ||
-                  !!workflows.error
+                  !!workflows.error ||
+                  (knowledgeSelection.length>0&&(knowledge.loading||!!knowledge.error||!selectionCurrent))
                 }
               >
                 {t("development.dispatch.fix_and_preview_execution_plan")}</button>
@@ -341,6 +372,7 @@ export function TaskDispatchDialog({
         ) : plan ? (
           <>
             <TaskDispatchFacts plan={plan} />
+            <KnowledgeContextFacts project={project} items={plan.context.knowledge}/>
             <TaskDispatchRunFacts plan={plan} onRun={onRun} />
             {!taskPlanStarted(plan) && (
               <>
@@ -362,6 +394,7 @@ export function TaskDispatchDialog({
                     disabled={blocked}
                     onClick={() => {
                       setCreated(undefined);
+                      setKnowledgeSelection([]);
                       setConfirmed(false);
                       action.clearError();
                       onPlan("new");
