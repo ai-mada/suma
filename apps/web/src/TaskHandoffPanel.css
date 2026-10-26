@@ -1,0 +1,41 @@
+.task-handoff{min-width:0}
+.task-handoff h3{margin-bottom:0}
+.task-handoff-toggle{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:4px 0;text-align:left;border:0;background:transparent;color:inherit;font:inherit;font-weight:600}
+.task-handoff-toggle span{flex:1}
+.task-handoff-toggle>svg:last-child{transition:transform .15s}
+.task-handoff-toggle .is-open{transform:rotate(180deg)}
+.task-handoff-body{display:grid;gap:14px;padding-top:12px;min-width:0}
+.task-handoff-body form{display:grid;gap:12px;min-width:0}
+.task-handoff-body h4{margin:0;font-size:13px}
+.task-handoff-body p{margin:0}
+.task-handoff-hint,.task-handoff-item time,.task-handoff-item>small,.task-handoff-history-head>span{font-size:12px;color:var(--muted,#64748b);line-height:1.55}
+.task-handoff-history{display:grid;gap:10px}
+.task-handoff-history-head,.task-handoff-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.task-handoff-item{display:grid;gap:7px;padding:12px;border:1px solid var(--border,#dbe1e9);border-radius:8px;min-width:0}
+.task-handoff-item-head strong{min-width:0;overflow-wrap:anywhere}
+.task-handoff-state{font-size:11px;white-space:normal;text-align:right;color:var(--muted,#64748b)}
+.task-handoff-state.state-pending{color:var(--accent,#2563eb)}
+.task-handoff-copy,.task-handoff-decision-reason{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-size:13px}
+.task-handoff-decision-reason{padding-top:6px;border-top:1px solid var(--border,#dbe1e9)}
+.task-handoff-actions{display:flex;flex-wrap:wrap;gap:8px}
+.task-handoff-basis{font-size:12px;min-width:0}
+.task-handoff-basis summary{cursor:pointer;color:var(--muted,#64748b)}
+.task-handoff-basis dl{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;margin:10px 0 0}
+.task-handoff-basis dd{margin:0 0 6px;min-width:0;overflow-wrap:anywhere}
+.task-handoff-basis code{white-space:normal;overflow-wrap:anywhere;font-size:11px}
+.task-handoff-basis dt{color:var(--muted,#64748b)}
+.task-handoff-impact,.task-handoff-recovery,.task-handoff-command{padding:12px;border:1px solid var(--border,#dbe1e9);border-radius:8px;background:var(--surface-soft,#f8fafc)}
+.task-handoff-impact{font-size:12px;line-height:1.6}
+.task-handoff-ack{display:flex;align-items:flex-start;gap:8px;font-size:12px;line-height:1.6}
+.task-handoff-ack input{width:auto!important;flex:none;margin-top:4px}
+.task-handoff-blockers{font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.task-handoff-blockers ul{margin:4px 0;padding-left:18px}
+.task-handoff-recovery{display:grid;gap:8px}
+.task-handoff-recovery strong{font-size:12px}
+.task-handoff-empty{display:grid;gap:6px;font-size:12px;line-height:1.6}
+.task-handoff-success{font-size:12px;color:var(--green,#16794a)}
+.task-handoff-more{justify-self:start}
+.task-handoff textarea,.task-handoff select{max-width:100%;min-width:0;box-sizing:border-box}
+.task-handoff fieldset{min-width:0}
+@media(prefers-reduced-motion:reduce){.task-handoff-toggle>svg:last-child{transition:none}
+}

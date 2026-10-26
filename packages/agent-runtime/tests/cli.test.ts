@@ -10,7 +10,7 @@ function detailed(args:string[],env:NodeJS.ProcessEnv,input='',file=cli):Promise
 function run(args:string[],env:NodeJS.ProcessEnv,input=''):Promise<{code:number|null;out:string}>{return new Promise((resolve,reject)=>{const p=spawn(process.execPath,[cli,...args],{env:{...process.env,SUMA_MODEL_API_KEY:undefined,...env},stdio:['pipe','pipe','pipe'],windowsHide:true});let out='';p.stdout.on('data',b=>out+=String(b));p.stderr.on('data',b=>out+=String(b));p.on('error',reject);p.on('close',code=>resolve({code,out}));p.stdin.end(input);});}
 
 test('CLI version and help probes never enter the model loop',async()=>{
- const version=await run(['--version'],{SUMA_MODEL:undefined,SUMA_MODEL_BASE_URL:undefined});assert.equal(version.code,0);assert.match(version.out,/suma-agent-runtime 0\.1\.0/);
+ const version=await run(['--version'],{SUMA_MODEL:undefined,SUMA_MODEL_BASE_URL:undefined});assert.equal(version.code,0);assert.match(version.out,/suma-agent-runtime 1\.0\.0/);
  const help=await run(['--help'],{});assert.equal(help.code,0);assert.match(help.out,/SUMA_AGENT_TOKEN/);assert.match(help.out,/JSONL/);
 });
 

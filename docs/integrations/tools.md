@@ -4,7 +4,7 @@
 
 T-P4-021已本地实现CodeBuddy Code stream-json与DeepSeek Harness Multica v1协议，复用原Runner、DAG、共享执行池、隔离工作树、Journal、候选测试与人工评审。两种CLI支持原生可执行文件或Node直调固定绝对`.js`／`.mjs`／`.cjs`入口；不运行`.cmd`／`.bat`或shell包装器。Node本体SHA、入口内容SHA与完整配置共同固定profile，不证明全部模块依赖。工具向导默认折叠并提供中英文；仅这两种CLI显示原生／Node选择，入口为空或相对路径时不能复制模板。
 
-协议、原生进程与Node入口定向验证已通过，Node实际任务及最终UI／发布验收收尾中；厂商模型、WorkBuddy客户端和完整团队交接仍待实际验收。配置与验证范围见[团队CLI接入](team-cli-runtime.md)、[产品说明](../product/team-cli-runtime.md)及[三个原生profile示例](../../deploy/runner/team-cli.example.json)。注册／探测／真实执行／正式测试／人工验收是分别核验的事实。
+协议、原生进程与Node实际任务验证已通过，最终中英界面及原预览前向更新均已本地验证；厂商模型、WorkBuddy客户端和完整团队交接仍待实际验收。配置与验证范围见[团队CLI接入](team-cli-runtime.md)、[产品说明](../product/team-cli-runtime.md)及[三个原生profile示例](../../deploy/runner/team-cli.example.json)。注册／探测／真实执行／正式测试／人工验收是分别核验的事实。
 
 ## 授权工具目录
 

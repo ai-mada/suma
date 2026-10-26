@@ -84,7 +84,7 @@ func TestReadOnlyFlagsResolveLanguageBeforeAnyStartup(t *testing.T) {
 		{"environment", []string{"-h"}, map[string]string{"SUMA_LANGUAGE": "en-US"}, 0, "Language:"},
 		{"POSIX", []string{"--help"}, map[string]string{"LC_MESSAGES": "en_US.UTF-8"}, 0, "Language:"},
 		{"explicit wins", []string{"--language=zh", "--help"}, map[string]string{"SUMA_LANGUAGE": "en-US"}, 0, "语言优先级"},
-		{"version", []string{"--config=private-secret", "--language=en", "--version"}, nil, 0, "suma-deployer dev\n"},
+		{"version", []string{"--config=private-secret", "--language=en", "--version"}, nil, 0, "suma-deployer 1.0.0\n"},
 		{"empty", []string{"--language=", "--help"}, nil, 2, "--language"},
 		{"unsupported", []string{"--language=zh-TW", "--version"}, nil, 2, "--language"},
 		{"private flag", []string{"--language=en", "--unknown=private-secret"}, nil, 2, "invalid command flags"},

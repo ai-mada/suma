@@ -140,3 +140,7 @@ DAG151键、原错误保留、流程逐项校验投影及三程序命令入口�
 ## 证据与复现
 
 公开可复核的摘要、截图与清单进入docs/quality/evidence和docs/deployment/evidence；原始过程日志、测试数据库及执行节点日志保留在仓库忽略的.cache中。没有删除用户唯一文件，也没有将运行凭证写入交付文档。GitHub参考基线、依赖版本和许可文件单独留有摘要；见[第三方清单](../delivery/third-party.md)。
+
+## T-P4-022 团队交接
+
+本轮仅新增交接域、CLI 请求及代表性中英界面检查；实际命令、失败保留与边界见[交接验证](task-handoff-verification.md)和[精简摘要](task-handoff-summary.json)，未重复全套或厂商模型。

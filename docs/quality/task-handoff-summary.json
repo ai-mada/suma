@@ -1,0 +1,99 @@
+{
+  "stage": "T-P4-022",
+  "status": "locally_verified",
+  "full_platform_status": "in_progress",
+  "scope": "versioned real-human/team task responsibility handoff and CLI; existing scheduler/authority/quality rules reused",
+  "dependencies_added": false,
+  "checks": {
+    "backend_groups": 6,
+    "backend_first_cut": {
+      "pass_events": 9,
+      "fail_events": 3,
+      "skip_events": 0,
+      "receipt": "20261026T060218023Z"
+    },
+    "fixture_fix_affected": {
+      "pass_events": 3,
+      "fail_events": 0,
+      "receipt": "20261026T060254424Z"
+    },
+    "projection_fix_affected": {
+      "pass_events": 2,
+      "fail_events": 0,
+      "receipt": "20261026T060429165Z"
+    },
+    "web_tests": 4,
+    "CLI_test_top_level": 1,
+    "CLI_test_subcases": 8,
+    "CLI_receipt": "20261026T060900573Z",
+    "frontend_locale_pairs": 3279,
+    "generated_schemas": 281,
+    "generated_paths": 176,
+    "generated_refs": 1541,
+    "full_go_rerun": false,
+    "vendor_model_calls": 0,
+    "existing_274_schemas_and_174_paths_semantically_unchanged": true
+  },
+  "runtime": ".cache/e2e/task-handoff-stage-022/runtime/build-facts.local.json",
+  "browser": ".cache/e2e/task-handoff-stage-022/browser/verification.local.json",
+  "limitations": [
+    "SQLite/Windows local fixture only",
+    "same UI fixture account sends and receives; separate identities verified by backend tests",
+    "CLI request contract fixture, not a separate actual database journey",
+    "full platform, production, vendor and distributed acceptance remain in progress"
+  ],
+  "verified_at": "2026-10-26T06:24:00.488887+00:00",
+  "UI_actual": ".cache/e2e/task-handoff-stage-022/ui/actual-summary.local.json",
+  "UI_closed": {
+    "control_exit": 0,
+    "holder_exit": 0,
+    "integrity": "ok",
+    "source_db_unchanged": true
+  },
+  "primary_final": ".cache/e2e/task-handoff-stage-022/primary-upgrade/final-after-browser.local.json",
+  "primary": {
+    "url": "http://pool.localhost:4324/",
+    "stage": "T-P4-022",
+    "revision": "release1.0.0",
+    "control_pid": 247120,
+    "holder_pid": 247472,
+    "tables": 149,
+    "original_schemas_unchanged": 147,
+    "original_full_tables_unchanged": 143,
+    "original_coord_sequence_only_tables": 4,
+    "new_tables_empty": 2,
+    "authority_rows": 18,
+    "grant_rows": 0,
+    "old_tasks_and_DAG_unchanged": true,
+    "new_login": false,
+    "integrity": "ok",
+    "product_version": "1.0.0"
+  },
+  "product_version": "1.0.0",
+  "version_baseline": {
+    "design": "docs/product/v1-baseline.md",
+    "runtime": ".cache/e2e/task-handoff-stage-022/runtime-v1/build-facts.local.json",
+    "primary_final": ".cache/e2e/task-handoff-stage-022/primary-upgrade-v1/final-verification.local.json",
+    "control_pid": 247120,
+    "holder_pid": 247472,
+    "actual_offline_version_outputs": [
+      "suma-control 1.0.0",
+      "suma-runner 1.0.0",
+      "suma-deployer 1.0.0",
+      "suma 1.0.0",
+      "suma-agent-runtime 1.0.0"
+    ],
+    "six_owned_package_versions": "1.0.0",
+    "version_test_receipts": [
+      "20261026T063353371Z",
+      "20261026T063354366Z"
+    ],
+    "native_bundle_sha256": "ea0f87a69a24d0932604d97449a2d8738c11527c475b9441d5392c4d0687ce9b",
+    "MCP_client": "2.4.0",
+    "web_assets_reused": true,
+    "function_journeys_repeated": false,
+    "dependencies_downloaded": false,
+    "pnpm_install_revalidated": false,
+    "installers_images_signing_published": false
+  }
+}

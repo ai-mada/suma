@@ -2,7 +2,7 @@
   "project": "suma",
   "name": "速码一栈式智能研发平台",
   "phase": "implementation",
-  "updated_at": "2026-10-26T05:49:11.724103+00:00",
+  "updated_at": "2026-10-26T06:45:16.749254+00:00",
   "status": "in_progress",
   "plan": "docs/delivery/implementation-plan.md",
   "workstreams": {
@@ -10,23 +10,25 @@
     "runtime": "native_attempt_workspace_actual_coding_host_seal_same_candidate_independent_test_locally_verified_official_SDKs; vendor_models_isolation_install_and_external_resume_pending",
     "workbench": "compact_native_development_facts_original_disclosure_CNEN_26raw_values_keyboard_refresh_390_representative_verified; full_IDE_candidate_review_and_target_merge_pending",
     "architecture_documents": "native_coding_SPEC_PRD_domain_modules_architecture_interaction_AI_SOP_and_compact020_evidence_updated; full_platform_docs_continue",
-    "internationalization": "3229_paired_frontend_keys_and18_team_CLI_host_diagnostics; actual_CNEN_setup_guide_preserves_raw_config; other_surfaces_continue",
+    "internationalization": "3279_paired_frontend_keys; team_CLI18_and_task_handoff16_host_diagnostics; actual_CNEN_preserves_raw_basis/notes/operations; broader_surfaces_continue",
     "identity_authority": "actual_primary013_to017_SQLite_upgrade_preserves129_legacy_table_columns14_credentials_unclassified_original_owner_normal_relogin_verified_API_Runner_Agent_reissue_still_required_cross_database_and_SSO_pending",
     "project_knowledge": "typed_memory_spec_skill_versions_sources_publication_retirement_task_agent_fixed_context_and_scoped_recovery_verified_focused_tests_actual_fixture_upgrade_and_desktop_UI_full_memory_plugin_systems_pending",
     "requirement_design": "versioned_product_experience_technical_design_and_task_proposals_reviewed_publication_delta_adoption_protected_bindings_fixed_run_and_acceptance_basis_verified_focused_and_actual_SQLite_UI_iteration_manual_model_and_full_UED_pending",
     "candidate_transfer": "project_and_independent_pool_machine_sealed64MiB_native_Git_bundle_current_authority_source_proof_pinned_import_durable_pending_retry_and_zh_en_facts_verified_real_two_pool_workers_and_test_owner_review; inherited_nodelta_dynamic_merge_and_distributed_store_scale_pending",
     "external_application_tools": "officialGoSDK1.8.0 inboundMCP13/sharedAgent4/currentAPI_drafts_and_compact_CNEN_connection_locally_verified; OAuth_outbound_A2A_vendors_pending",
     "native_coding": "six_osRoot_official_MCP_tools_CAS_durable_operations_fixed_check_host_Git_seal_and_independent_B_sameSHA_formal_tests_GUI_testowner_review_locally_verified; vendor_production_full_OS_sandbox_target_merge_pending",
-    "team_cli_runtime": "harness_multica_v1_and_CodeBuddy_JSONL_native_and_fixed_Node_entry_real_local_processes_private_Git_and_entry_drift_guard_verified; compact_CNEN_config_UI_and_original_preview_updated; vendor_models_WorkBuddy_teamhandoff_pending"
+    "team_cli_runtime": "harness_multica_v1_and_CodeBuddy_JSONL_native_and_fixed_Node_entry_real_local_processes_private_Git_and_entry_drift_guard_verified; compact_CNEN_config_UI_and_original_preview_updated; vendor_models_WorkBuddy_teamhandoff_pending",
+    "team_handoff": "human/team fixed proposal and atomic owner/CAS/invalidation with scoped current authority, history, CNEN panel and CLI locally verified; expert-squad autonomous handoff/cross-organization/distributed acceptance pending"
   },
   "verified": [
-    "T-P4-021: Harness Multica v1 and CodeBuddy fixed stream-json use original Go DAG/pools/current authority/Journal/private worktrees/independent quality gates; strict decoder and only affected configuration/dispatch checks passed. Real native transport4cases; safe Node entry config/probe10pass and actual execution5cases/6pass, including changed-entry refusal before launch. Web24/catalog11+2/types/3229 locale pairs/isolated revision2 builds and generated274/174/1518/vet passed. Final CNEN conditional Node guide/keyboard/rawJSON/copy-feedback/refresh verified at1366light, no full matrix/clipboard-readback claim. Primary021rev2 control229668/holder223492 normal;147schemas,143fulltables+4samePKsequence-only,18authority0Grant/allDAG/run1failed2succeeded/originalCookie unchanged. Both oldprimary and isolatedUI control/holders closed0. Local process fixtures only; vendor models, WorkBuddy, full team handoff/target merge and complete P0-P7/production remain in progress."
+    "T-P4-022: versioned human/team task handoff pending→accepted/returned/withdrawn, current authority before receipt, fixed task/requirement/owner/run/delivery and recipient/team versions, single-pending slot and atomic owner/CAS/invalidation/receipt/activity. Necessary six backend groups plus HTTP boundaries have GREEN evidence; initial3fixture RED preserved, only affected3 then projection2 groups rerun. UI4, CLI1top/8sub (9pass), types/3279 locale pairs/281schemas176paths1541refs/affectedvet/build passed; no full suite/vendor/model/Runner rebuild. Actual isolated existingOwner sender+receiver newtask v1→v2/in_progress/newowner and acceptedhandoffv2, refresh/CNEN/rawbasis/ack/1366light passed; old acceptedtask and72protected tables unchanged; UI control/holder0/sourceDBsame. Primary022 normal243252/235428, old147schemas and143fulltables+4samePKseq preserved,2newemptytables total149,18authority0Grant/oldtasksDAG/run1failed2succeeded/originalCookie unchanged; oldcontrol/holder0. Full P0-P7, multi-expert automatic teams, WorkBuddy, vendor/production/distributed acceptance remain in progress.",
+    "1.0.0 steering: six owned package versions/desktop/Go defaults/CLI+native banners/Helm metadata aligned; no historical compatibility layers. Only service version6pass +CLI1pass, actual four Go binaries and native bundle all --version1.0.0; native SDK2.4 unchanged. Initial pnpm metadata guard/compiler-directory errors preserved, existing package-local tools built without downloads; pnpm install not revalidated. CSS CRLF/EOF normalization only, web115 assets and prior function evidence reused. Primary version-only149→149 forward normal247120/247472; authority18/Grant0/oldtasksDAG/newemptytables intact, priorcontrolholder0; health/assets verified without replaying business/model journeys. Full platform and signed installers/images/production remain pending."
   ],
   "production_integration_complete": false,
-  "current_evidence": "docs/quality/team-cli-verification.md",
-  "stage": "T-P4-021_team_cli_runtime_locally_verified",
+  "current_evidence": "docs/quality/task-handoff-verification.md",
+  "stage": "T-P4-022_task_handoff_locally_verified",
   "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
-  "next_step": "Continue full P0-P7 after T-P4-021: Multica-style team handoff/expert squads and protected target integration, WorkBuddy service/MCP actual integration, automated knowledge/memory/skills extraction with reviewed publication, SSO/A2A, distributed storage/scale and installers. Reuse unchanged evidence; prioritize functional parallel development with only necessary affected checks.",
+  "next_step": "Continue full P0-P7 on 1.0.0 best-fit design, no historical compatibility layers. Prioritize token/cost metering and atomic budget/quotas, unified authorized versioned skill repository; then autonomous planning/expert squads, protected repository integration, WorkBuddy/other platforms, intelligent CLI/local-SaaS sync, model gateway, SSO/A2A/storage/scale/installers. Parallel functional work with mature tools and only necessary affected checks; no push.",
   "additional_requirements": [
     "FND-I18N-001: internationalization in every implemented surface; initially zh-CN/en-US, unified catalogs, preference/negotiation, formatting, API errors, CLI/desktop/extensions/notifications and docs; preserve user content and immutable evidence; coverage must be honestly verified",
     "Idea lifecycle, reusable function/menu governance, visual configuration, alerts and WeChat/DingTalk/WeCom channels remain full platform scope",
@@ -36,24 +38,31 @@
     "Versioned plugins, skills, MCP and A2A with unified current authorization",
     "Detailed PRD, architecture, development/flow design and AI SOP, all with implementation and real verification boundaries",
     "2026-10-26 steering: prioritize Multica-style distributed teams and real WorkBuddy/harness/CLI service contracts; automatic versioned extraction/refinement of knowledge, memory, skills, tools, code/quality/architecture and expert-team capabilities. Prefer functional parallel delivery with mature tools and only necessary affected checks.",
-    "Explicit item12: multi-team/person/expert-squad/agent/machine/CLI/proxy distributed collaboration with ordered professional development, automated intelligent quality gates, security/reliability/performance and intelligent decisions; unify this with items9-11 rather than treating CLI adapters alone as full completion."
+    "Explicit item12: multi-team/person/expert-squad/agent/machine/CLI/proxy distributed collaboration with ordered professional development, automated intelligent quality gates, security/reliability/performance and intelligent decisions; unify this with items9-11 rather than treating CLI adapters alone as full completion.",
+    "13: autonomous editable planning/decomposition/DAG+pipeline orchestration, durable event reporting, alerts, diagnosis and bounded recovery",
+    "14: comprehensive actual token usage metering/rate-versioned cost ledger/billing, atomic budget reservations and organization/team/project/member/agent/model quotas; unknown usage is not zero",
+    "15: professional repository/branch/version management and protected CAS target integration",
+    "16: unified versioned skill repository with structured metadata/domains/scenarios, authorized vector search, current scope isolation, reviewed extraction/publication and common CLI/Agent/tool consumption",
+    "17: Suma intelligent CLI with local/SaaS modes, dispatch/sync/reporting/recovery and simple secure multi-platform installation",
+    "18: official SDK/API model and agent-platform adapters including OpenAI/Bailian/Coze/Dify/Pi, with current authorization, cost control and honest supported capability/verification boundaries"
   ],
   "verification_history": {
     "path": "memory/verification_history.json",
-    "entries": 83,
+    "entries": 84,
     "load_policy": "on demand; do not load during every startup"
   },
   "validation_policy": "Focused checks per changed behavior; reuse unchanged-input evidence; one full integration gate per milestone; representative UI verification only for changed interactions/layout. Preserve critical authority/transaction/migration/concurrency/idempotency checks. No redundant review, snapshots, logs or full-matrix reruns.",
-  "deployed_evidence": "docs/quality/team-cli-verification.md",
+  "deployed_evidence": "docs/quality/task-handoff-verification.md",
   "primary_preview": {
-    "stage": "T-P4-021",
-    "revision": "runtime-revision2",
+    "stage": "T-P4-022",
+    "revision": "release1.0.0",
     "url": "http://pool.localhost:4324/",
-    "control_pid": 229668,
-    "holder_pid": 223492,
-    "launch_receipt": ".cache/e2e/team-cli-stage-021/primary-upgrade-revision2/control-launch.local.json",
-    "stop_protocol": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\team-cli-stage-021\\primary-upgrade-revision2\\stop.request",
-    "status": "normal_local_preview_not_production"
+    "control_pid": 247120,
+    "holder_pid": 247472,
+    "launch_receipt": ".cache/e2e/task-handoff-stage-022/primary-upgrade-v1/control-launch.local.json",
+    "stop_protocol": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\task-handoff-stage-022\\primary-upgrade-v1\\stop.request",
+    "status": "normal_local_preview_not_production",
+    "product_version": "1.0.0"
   },
   "native020_progress": {
     "status": "locally_verified",
@@ -67,6 +76,7 @@
     "full_platform_status": "in_progress"
   },
   "goal_references": [
+    "C:/Users/Administrator/.codex/attachments/559d11fe-014c-4203-bb2b-b3aa0f3ad594/pasted-text-1.txt",
     "C:/Users/Administrator/.codex/attachments/4ba40bf9-b9f4-49a6-acca-7db39ce7dc20/pasted-text-1.txt",
     "C:/Users/Administrator/.codex/attachments/34ae3618-98af-4c30-9e8e-274cb13dca78/已粘贴的文本.txt",
     "C:/Users/Administrator/.codex/attachments/fe226659-a15d-438e-af35-85dbec8f10ca/已粘贴的文本.txt"
@@ -88,10 +98,37 @@
     "source_status": "runtime-revision2 and web-revision2 built and deployed; final UI and original account/data checks passed",
     "primary_final": ".cache/e2e/team-cli-stage-021/primary-upgrade-revision2/final-after-browser.local.json",
     "Node_entry_checks": ".cache/mcp019-deps/20261026T053832595Z.command.json",
-    "Node_entry_check_result": "2 top-level,10 pass,0 fail/skip; actual Node version/help/probe, entry-content binding; execution fixture pending",
+    "Node_entry_check_result": "2 top-level/10pass config/probe; actual execution separately verified in Node_actual_result",
     "browser": ".cache/e2e/team-cli-stage-021/browser-revision2/verification.local.json",
     "Node_actual_execution": ".cache/mcp019-deps/20261026T053952182Z.command.json",
     "Node_actual_result": "5 cases/6 pass events, 0 fail/skip; 3 actual Node private-worktree candidates and 2 prelaunch entry-drift refusals",
     "summary": "docs/quality/team-cli-summary.json"
-  }
+  },
+  "task_handoff022_progress": {
+    "contract": "contracts/task-handoff.md",
+    "status": "locally_verified",
+    "base_commit": "f6e05595313b705ac205a3abf9940c94118ea245",
+    "ownership": {
+      "backend": "candidate_merge_020 task_handoff types/domain/store/focused tests",
+      "frontend": "native_workspace_020 standalone panel/styles/locales/focused tests",
+      "root": "HTTP/migration wiring/generated contracts/App/NLS/docs/integration/commit"
+    },
+    "primary021_unchanged": false,
+    "validation": "only affected new behavior/authority/transactions and representative changed UI; no full suite or unchanged vendor/model reruns",
+    "runtime_build": ".cache/e2e/task-handoff-stage-022/runtime/build-facts.local.json",
+    "browser": ".cache/e2e/task-handoff-stage-022/browser/verification.local.json",
+    "actual": ".cache/e2e/task-handoff-stage-022/ui/actual-summary.local.json",
+    "primary_final": ".cache/e2e/task-handoff-stage-022/primary-upgrade/final-after-browser.local.json",
+    "summary": "docs/quality/task-handoff-summary.json",
+    "CLI": "docs/api/cli-task-handoff.md",
+    "version_baseline": {
+      "version": "1.0.0",
+      "runtime": ".cache/e2e/task-handoff-stage-022/runtime-v1/build-facts.local.json",
+      "primary_final": ".cache/e2e/task-handoff-stage-022/primary-upgrade-v1/final-verification.local.json",
+      "design": "docs/product/v1-baseline.md",
+      "full_platform_status": "in_progress"
+    }
+  },
+  "current_version": "1.0.0",
+  "design_policy": "Current 1.0.0 best-fit architecture only; no historical compatibility shims or duplicated state. Preserve actual user data, immutable evidence and safe recovery; product SemVer is separate from protocol/SDK/domain revisions."
 }

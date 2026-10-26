@@ -2168,6 +2168,83 @@ export interface TaskDispatchStartRequest {
   expected_version: number;
   idempotency_key: string;
 }
+export interface TaskHandoff {
+  id: string;
+  project_id: string;
+  task_id: string;
+  version: number;
+  state: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  to_resource_id: string;
+  to_resource_version: number;
+  to_user_id: string;
+  to_name: string;
+  to_team_id: string;
+  to_team_name: string;
+  to_team_version: number;
+  to_membership_version: number;
+  note: string;
+  basis: TaskHandoffBasis;
+  decision_by: string;
+  decision_at: string;
+  decision_reason: string;
+  result_task_version: number;
+  basis_current: boolean;
+  blockers: (string)[];
+  allowed_actions: (string)[];
+}
+export interface TaskHandoffBasis {
+  task_version: number;
+  task_basis_sha256: string;
+  requirement_id: string;
+  requirement_version: number;
+  from_owner_id: string;
+  source_run_id: string;
+  source_run_version: number;
+  source_run_state: string;
+  delivery_sha256: string;
+}
+export interface TaskHandoffCommandRequest {
+  project_id: string;
+  expected_version: number;
+  action: string;
+  reason: string;
+  acknowledge_invalidation: boolean;
+  idempotency_key: string;
+}
+export interface TaskHandoffCreateRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  to_resource_id: string;
+  to_team_id?: string;
+  note: string;
+  idempotency_key: string;
+}
+export interface TaskHandoffPage {
+  items: (TaskHandoff)[];
+  total: number;
+  next_cursor: string;
+  recipients: (TaskHandoffRecipient)[];
+  can_create: boolean;
+  create_blockers: (string)[];
+  task_version: number;
+}
+export interface TaskHandoffRecipient {
+  resource_id: string;
+  resource_version: number;
+  user_id: string;
+  name: string;
+  teams: (TaskHandoffTeam)[];
+}
+export interface TaskHandoffTeam {
+  team_id: string;
+  name: string;
+  team_version: number;
+  membership_version: number;
+}
 export interface TaskPlan {
   version: number;
   iteration_id: string;

@@ -18,7 +18,7 @@ export class AttemptWorkspaceClient {
  private pending?:{name:string;operation:string;raw:string;rpcID?:string|number};
  readonly tools:{name:string;description?:string;parameters:Record<string,unknown>}[]=[];
  private constructor(private readonly bridge:WorkspaceBridge,private readonly signal:AbortSignal){
-  this.client=new Client({name:'suma-agent-runtime',version:'0.1.0'},{capabilities:{},defaultCacheTtlMs:0,cachePartition:bridge.request_id,listMaxPages:1,inputRequired:{autoFulfill:false}});
+  this.client=new Client({name:'suma-agent-runtime',version:'1.0.0'},{capabilities:{},defaultCacheTtlMs:0,cachePartition:bridge.request_id,listMaxPages:1,inputRequired:{autoFulfill:false}});
  }
  static async connect(value:unknown,requestID:string,signal:AbortSignal):Promise<AttemptWorkspaceClient>{
   const instance=new AttemptWorkspaceClient(workspaceBridge(value,requestID),signal);

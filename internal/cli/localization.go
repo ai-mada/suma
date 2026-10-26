@@ -91,6 +91,11 @@ var cliMessages = map[string]cliMessage{
 	"invalid delivery receipt; outcome may be unknown; retry the same delivery ID and exact body":                                           {"cli.webhook.receipt_invalid", "投递回执无效，结果可能未知；请使用相同投递标识和原始正文重试"},
 	"invalid list response":                     {"cli.tui.list_invalid", "列表响应无效"},
 	"terminal session ended or could not start": {"cli.tui.failed", "终端会话已结束或无法启动"},
+	"handoffs requires list, create, accept, return, or withdraw; use handoffs --help":                               {"cli.handoff.action_required", "handoffs 需要 list、create、accept、return 或 withdraw，请查看 handoffs --help"},
+	"invalid handoff list options; provide --task and limit 1..100":                                                  {"cli.handoff.list_options", "交接列表参数无效，请提供 --task，limit 须为 1–100"},
+	"handoff create requires --task, positive --version, --to-resource, --note, and --operation (8..128 characters)": {"cli.handoff.create_options", "发起交接需要 --task、正整数 --version、--to-resource、--note 及 8–128 字符的 --operation"},
+	"handoff decision requires ID, positive --version, --reason, and --operation (8..128 characters)":                {"cli.handoff.decision_options", "交接决定需要 ID、正整数 --version、--reason 及 8–128 字符的 --operation"},
+	"handoff accept requires explicit --acknowledge-invalidation":                                                    {"cli.handoff.acknowledgement", "接收交接须显式提供 --acknowledge-invalidation，确认旧执行与验收依据失效"},
 }
 
 func localizeFailure(locale localization.Locale, f *failure) *failure {
@@ -129,9 +134,9 @@ func (c *client) text(zh, en string) string {
 
 func helpForLocale(locale localization.Locale) string {
 	if locale == localization.EnUS {
-		return strings.Replace(help, "--timeout 15s", "--timeout 15s --language en-US|zh-CN", 1) + projectContextHelp(locale)
+		return strings.Replace(help, "--timeout 15s", "--timeout 15s --language en-US|zh-CN", 1) + projectContextHelp(locale) + handoffsHelp(locale)
 	}
-	return helpZH + projectContextHelp(locale)
+	return helpZH + projectContextHelp(locale) + handoffsHelp(locale)
 }
 
 func projectContextHelp(locale localization.Locale) string {
@@ -197,6 +202,7 @@ const helpZH = `suma — 速码控制面客户端
   语言优先级：--language > SUMA_LANGUAGE > LC_ALL/LC_MESSAGES/LANG > zh-CN
 
 只读命令：
+  --version                   输出产品发布版本，不请求 API
   doctor | projects | requirements | tasks | runs | workflows
   run show ID
   run events ID [--after SEQUENCE]

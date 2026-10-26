@@ -17,7 +17,7 @@ import (
 	"github.com/ai-mada/suma/internal/deployer"
 )
 
-var version = "dev"
+var version = "1.0.0"
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr, os.LookupEnv)) }
 

@@ -63,3 +63,9 @@ T-P4-011 原生诊断贯通、此前自动化、制品与发布验证保留各�
 接口修改先更新共享合同和对应验证；业务门禁变更同步状态机、用户旅程、错误恢复文案和测试。运行截图、HTTP 记录和大规模性能报告统一进入项目交付证据目录；日常临时文件使用 `.cache/`。
 
 本轮团队 CLI 的[限定验证](quality/team-cli-verification.md)与[机器摘要](quality/team-cli-summary.json)记录实际覆盖和后续完整范围。
+
+团队任务交接：[PRD](product/task-handoff.md)、[架构与 AI SOP](architecture/task-handoff.md)、[冻结合同](../contracts/task-handoff.md)。
+
+团队交接：[English guide](en/task-handoff.md)、[限定验证](quality/task-handoff-verification.md)、[机器摘要](quality/task-handoff-summary.json)。
+
+当前产品版本与最新完整需求：[1.0.0 设计基线](product/v1-baseline.md)。

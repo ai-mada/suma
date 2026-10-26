@@ -1,6 +1,6 @@
 {
   "name":"@suma/knowledge",
-  "version":"0.1.0",
+  "version":"1.0.0",
   "private":true,
   "type":"module",
   "scripts":{"build":"tsc","typecheck":"tsc --noEmit","test":"tsc && node --test dist/tests/*.test.js","start":"node dist/src/server.js"},

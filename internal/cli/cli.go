@@ -25,6 +25,7 @@ Global flags (before command): --control http://127.0.0.1:4310 --project ID
   Language: --language > SUMA_LANGUAGE > LC_ALL/LC_MESSAGES/LANG > zh-CN
 
 Read commands:
+  --version                   Print product release version without an API request
   doctor | projects | requirements | tasks | runs | workflows
   run show ID
   run events ID [--after SEQUENCE]
@@ -54,6 +55,7 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 	expectedOrganization := fs.String("expected-organization", os.Getenv("SUMA_EXPECTED_ORGANIZATION"), "original-view organization ID for browser commands")
 	timeout := fs.Duration("timeout", 15*time.Second, "per-request timeout")
 	language := fs.String("language", "", "display language: zh-CN or en-US")
+	showVersion := fs.Bool("version", false, "print product release version")
 	parseErr := fs.Parse(args)
 	languageSet := false
 	fs.Visit(func(f *flag.Flag) {
@@ -73,6 +75,13 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 		}
 		writeJSON(stderr, map[string]any{"error": localizeFailure(locale, &failure{Code: "usage", Message: "invalid global flags; use --help"})}, "")
 		return 2
+	}
+	if *showVersion {
+		_, err := io.WriteString(out, "suma 1.0.0\n")
+		if err != nil {
+			return 1
+		}
+		return 0
 	}
 	c, err := newClient(*control, *project, *token, *timeout)
 	if err == nil {
@@ -97,6 +106,9 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 }
 
 func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
+	if len(args) > 0 && args[0] == "handoffs" {
+		return handoffsCommand(ctx, c, args[1:], out)
+	}
 	if len(args) > 0 && args[0] == "knowledge" {
 		return knowledgeCommand(ctx, c, args[1:], in, out)
 	}

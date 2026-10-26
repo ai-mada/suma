@@ -127,6 +127,9 @@ func generate() (map[string]any, string) {
 	for _, v := range taskDesignViewModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range taskHandoffModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range requirementDesignModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -244,12 +247,13 @@ func generate() (map[string]any, string) {
 	localeCatalog["description"] = "Public immutable compiled product messages for both supported display languages. Includes no tenant/user/configuration or tool-output data; version is a SHA256 digest binding template format, fallback locales and messages."
 	successStatus(localeCatalog, "200")
 	releaseContracts(add)
-	api := map[string]any{"openapi": "3.1.0", "info": map[string]string{"title": "速码 suma API", "version": "0.1.0", "description": "Domain response fields are reflected from Go types; map-backed envelopes and new request fields are audited DTOs. Legacy requests retain partial generic envelopes. Cross-field validation, authorization, idempotency and invitation secrecy remain server-enforced; see docs/api/README.md."}, "servers": []any{map[string]string{"url": "/api/v1"}}, "paths": paths, "components": map[string]any{"schemas": schemas, "securitySchemes": map[string]any{"cookieAuth": map[string]string{"type": "apiKey", "in": "cookie", "name": "suma_session", "description": "Browser session. Organization governance rejects every scoped API, Runner and Agent project token."}, "bearerAuth": map[string]string{"type": "http", "scheme": "bearer", "description": "Project-scoped API credential; applicable routes enforce the bound project and scope."}, "runnerAuth": map[string]string{"type": "http", "scheme": "bearer", "description": "Runner-scoped credential bound to this project; browser sessions, Agent and API tokens are rejected."}}}}
+	api := map[string]any{"openapi": "3.1.0", "info": map[string]string{"title": "速码 suma API", "version": "1.0.0", "description": "Domain response fields are reflected from Go types; map-backed envelopes and new request fields are audited DTOs. Legacy requests retain partial generic envelopes. Cross-field validation, authorization, idempotency and invitation secrecy remain server-enforced; see docs/api/README.md."}, "servers": []any{map[string]string{"url": "/api/v1"}}, "paths": paths, "components": map[string]any{"schemas": schemas, "securitySchemes": map[string]any{"cookieAuth": map[string]string{"type": "apiKey", "in": "cookie", "name": "suma_session", "description": "Browser session. Organization governance rejects every scoped API, Runner and Agent project token."}, "bearerAuth": map[string]string{"type": "http", "scheme": "bearer", "description": "Project-scoped API credential; applicable routes enforce the bound project and scope."}, "runnerAuth": map[string]string{"type": "http", "scheme": "bearer", "description": "Runner-scoped credential bound to this project; browser sessions, Agent and API tokens are rejected."}}}}
 	var out strings.Builder
 	automationIngressSecurity(api)
 	projectKnowledgeContracts(add, api)
 	requirementDesignContracts(add, api)
 	taskDesignViewContracts(add, api)
+	taskHandoffContracts(add, api)
 	candidateTransferContracts(add, api)
 	applicationToolContracts(add, api)
 	nativeWorkspaceSchemas(api)
