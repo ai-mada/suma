@@ -4,6 +4,7 @@
 
 | 主题 | 入口 |
 |---|---|
+| Token、费用估算与执行额度（T-P4-024） | [架构／交互与AI SOP](architecture/usage-accounting.md)、[正式合同](../contracts/usage-accounting.md) |
 | 模型规划与站内风险建议（T-P4-023） | [架构／交互与AI SOP](architecture/intelligent-planning.md)、[接口合同](../contracts/intelligent-planning.md) |
 | 跨节点候选代码交接（T-P4-018，限定本地验证） | [PRD](product/candidate-transfer.md)、[领域架构与SOP](architecture/candidate-transfer.md)、[正式合同](../contracts/candidate-transfer.md)、[实际验收](quality/candidate-transfer-verification.md) |
 | 任务设计依据、项目CLI与安全升级（T-P4-017） | [PRD](product/task-design-provenance.md)、[架构与SOP](architecture/task-design-provenance.md)、[读取合同](../contracts/task-design-context.md)、[CLI](api/cli-project-context.md)、[升级手册](deployment/preview-upgrade.md)、[验证](quality/task-design-context-verification.md) |

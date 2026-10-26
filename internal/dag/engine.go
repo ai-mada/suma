@@ -21,6 +21,8 @@ type Engine struct {
 	db           *sql.DB
 	dialect      string
 	LeaseSeconds int64
+	// Configure once before starting concurrent scheduler or HTTP work.
+	AttemptAccounting AttemptAccounting
 }
 type transaction struct {
 	e          *Engine

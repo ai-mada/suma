@@ -1,0 +1,65 @@
+{
+  "stage": "T-P4-024",
+  "version": "1.0.0",
+  "status": "local_scoped_verification_passed_full_platform_in_progress",
+  "delivered": [
+    "Organization/project UTC-month token and currency-separated cost-estimate allowances",
+    "Immutable fixed-model rate revisions, integer/big-integer estimate arithmetic",
+    "Atomic private/pool attempt reservation and once-only final settlement",
+    "Unknown/partial/stopped holds and authorized manual confirmation with immutable source facts",
+    "CNEN compact administration, exact microcurrency and scope-safe rebase/recovery"
+  ],
+  "checks": {
+    "platform": "7 initial groups, affected permission/stopped/month-effective-filter/offline-rate groups; exact numeric HTTP boundary and cross-organization Pool HTTP accounting passed",
+    "dag": "4 focused groups including private/pool rollback, replay and reconciliation; 10 pass events",
+    "frontend": "4 focused interactions; affected priced-portion/offline-rate/conflict-rebase cases rerun only as changed",
+    "contracts": "304 models/186 paths; original294 schemas and181 paths unchanged; final check mode passed",
+    "types_and_locales": "final types/build and3490 paired keys passed",
+    "static": "affected vet passed; full suite not repeated"
+  },
+  "actual": {
+    "model": "one local deterministic HTTP protocol fixture; no vendor/account charge",
+    "reported_usage": "fixture23 input/17 output, recorded40 tokens",
+    "estimate": "operator ratev1 CNY57micros, not vendor measured billing",
+    "holds": "4196token/8292micro reserved then released unused; final0",
+    "quota_denial": "fresh profile and physical capacity, second claim null/attempt0/static reason",
+    "UI": "project policyv3 zero/zero explicit; offline ratev2 from second window; stale v1 conflict, retained2/3 draft rebasedv2 then savedv3; old attempt remainsratev1/CNY57micro; CNEN+refresh",
+    "cross_organization_pool": "real HTTP fixture charges project tenant, pool-owner account remains empty; result replay counts once",
+    "temporary_processes": "all isolated control/holder/Runner/model closed normally, no force; source clones unchanged"
+  },
+  "primary": {
+    "url": "http://pool.localhost:4324/",
+    "control_pid": 244176,
+    "holder_pid": 250660,
+    "keep_exec_session": 29683,
+    "tables": 158,
+    "old_tables": 152,
+    "old_schemas_and_rows_unchanged": true,
+    "new_empty_tables": 6,
+    "new_indexes": 4,
+    "authority_rows": 18,
+    "grant_rows": 0,
+    "old_run_states": {
+      "failed": 1,
+      "succeeded": 2
+    },
+    "no_login_reissue": true,
+    "integrity": "ok"
+  },
+  "artifacts": {
+    "control_sha256": "f8778a778beba06f520f83b66b0c46d2663a97431e4b7811da80aaf8890080e6",
+    "source_sha256": "4df6781954cfde413f65f59148f69ee247cf799e86b53c646a411c4c0b63ce92",
+    "non_test_go_inputs": 315,
+    "web_index_sha256": "6fe476ecba65aeda55196b46bc3571ac62304914d4f5cc7477246913d0fa4067",
+    "web_files": 117,
+    "runner_native": "reused unchanged023 binaries/bundle"
+  },
+  "limits": [
+    "Organization/project scope only; full team/member/expert/Agent/model quota dimensions pending",
+    "Reservations are estimates, not provider hard caps or invoices; gateway per-request enforcement pending",
+    "Unknown-model CLI usage remains unpriced; no historical usage backfill",
+    "No vendor model quality/billing, OceanBase/PostgreSQL, distributed scale, signed installers or full device/theme matrix acceptance"
+  ],
+  "raw_evidence": ".cache/e2e/usage-accounting-stage-024",
+  "git": "Necessary source/contracts/docs only; no raw logs/credentials/DB/screenshots/binaries/cache, no push"
+}

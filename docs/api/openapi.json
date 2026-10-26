@@ -13484,6 +13484,828 @@
         "required": [],
         "type": "object"
       },
+      "UsageAttempt": {
+        "properties": {
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "attempt": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "created_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "currency": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "decision_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "decision_by": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "decision_reason": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "endpoint_origin": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "estimated_cost_micros": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "fence": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "held_cost_micros": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "held_tokens": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "model": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "node_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "overrun": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "profile_sha256": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "rate": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UsageRateRevision"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "reported_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "reserved_cost_micros": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "reserved_tokens": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "run_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "source_ref": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "source_result_sha256": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "reserved",
+              "settled",
+              "partial",
+              "unreported",
+              "reconciling",
+              "confirmed",
+              "unpriced"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "tool_profile_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "updated_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "usage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ToolUsage"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "usage_source": {
+            "enum": [
+              "none",
+              "tool_evidence",
+              "manual_confirmation"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "usage_state": {
+            "enum": [
+              "complete",
+              "partial",
+              "unreported"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "version": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "worker_id": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "version",
+          "run_id",
+          "node_id",
+          "attempt",
+          "fence",
+          "worker_id",
+          "tool_profile_id",
+          "profile_sha256",
+          "model",
+          "endpoint_origin",
+          "currency",
+          "state",
+          "usage_state",
+          "reported_tokens",
+          "estimated_cost_micros",
+          "reserved_tokens",
+          "reserved_cost_micros",
+          "held_tokens",
+          "held_cost_micros",
+          "usage_source",
+          "decision_by",
+          "decision_at",
+          "decision_reason",
+          "source_ref",
+          "overrun",
+          "source_result_sha256",
+          "created_at",
+          "updated_at",
+          "allowed_actions"
+        ],
+        "type": "object"
+      },
+      "UsageAttemptPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UsageAttempt"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "next_cursor": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "UsageBalance": {
+        "properties": {
+          "costs": {
+            "items": {
+              "$ref": "#/components/schemas/UsageMoneyBalance"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "period_start": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "reported_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "reserved_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "scope": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "unresolved_attempts": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "scope",
+          "project_id",
+          "period_start",
+          "reported_tokens",
+          "reserved_tokens",
+          "unresolved_attempts",
+          "costs"
+        ],
+        "type": "object"
+      },
+      "UsageConfirmRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge_usage": {
+            "const": true,
+            "type": "boolean"
+          },
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 4000
+          },
+          "source_ref": {
+            "description": "Human-reviewed evidence reference. Recorded as manual confirmation, not vendor-measured usage.",
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/ToolUsage"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "usage",
+          "source_ref",
+          "reason",
+          "acknowledge_usage",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "UsageDashboard": {
+        "properties": {
+          "as_of": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "balances": {
+            "items": {
+              "$ref": "#/components/schemas/UsageBalance"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "can_manage_organization": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "can_manage_project": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "can_manage_rates": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "organization_enforced": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "organization_policy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UsagePolicy"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "period_start": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_policy": {
+            "$ref": "#/components/schemas/UsagePolicy",
+            "readOnly": true
+          },
+          "rate_total": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "rates": {
+            "items": {
+              "$ref": "#/components/schemas/UsageRateRevision"
+            },
+            "readOnly": true,
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "period_start",
+          "as_of",
+          "project_policy",
+          "organization_enforced",
+          "balances",
+          "rates",
+          "rate_total",
+          "can_manage_project",
+          "can_manage_organization",
+          "can_manage_rates"
+        ],
+        "type": "object"
+      },
+      "UsageMoneyBalance": {
+        "properties": {
+          "currency": {
+            "enum": [
+              "CNY",
+              "USD"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "reserved_micros": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "spent_micros": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          }
+        },
+        "required": [
+          "currency",
+          "spent_micros",
+          "reserved_micros"
+        ],
+        "type": "object"
+      },
+      "UsagePolicy": {
+        "properties": {
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "cost_limit_micros": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "currency": {
+            "enum": [
+              "CNY",
+              "USD"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "observe",
+              "enforce"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "scope": {
+            "enum": [
+              "organization",
+              "project"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "token_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "updated_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "updated_by": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "version": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "scope",
+          "project_id",
+          "version",
+          "mode",
+          "currency",
+          "token_limit",
+          "cost_limit_micros",
+          "updated_by",
+          "updated_at",
+          "allowed_actions"
+        ],
+        "type": "object"
+      },
+      "UsagePolicyWriteRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge_enforcement": {
+            "type": "boolean"
+          },
+          "cost_limit_micros": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency": {
+            "enum": [
+              "CNY",
+              "USD"
+            ],
+            "type": "string"
+          },
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "observe",
+              "enforce"
+            ],
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 4000
+          },
+          "scope": {
+            "enum": [
+              "organization",
+              "project"
+            ],
+            "type": "string"
+          },
+          "token_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "project_id",
+          "scope",
+          "expected_version",
+          "mode",
+          "currency",
+          "token_limit",
+          "cost_limit_micros",
+          "reason",
+          "acknowledge_enforcement",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "UsageRateRevision": {
+        "properties": {
+          "created_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "created_by": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "currency": {
+            "enum": [
+              "CNY",
+              "USD"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "endpoint_origin": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "input_rate_micros_per_million": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "input_token_reservation": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "model": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "output_rate_micros_per_million": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "output_token_reservation": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "profile_sha256": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "reason": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "tool_profile_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "version": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "tool_profile_id",
+          "version",
+          "profile_sha256",
+          "model",
+          "endpoint_origin",
+          "currency",
+          "input_rate_micros_per_million",
+          "output_rate_micros_per_million",
+          "input_token_reservation",
+          "output_token_reservation",
+          "reason",
+          "created_by",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "UsageRateWriteRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "enum": [
+              "CNY",
+              "USD"
+            ],
+            "type": "string"
+          },
+          "expected_tool_version": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "input_rate_micros_per_million": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "input_token_reservation": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "output_rate_micros_per_million": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "output_token_reservation": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 4000
+          },
+          "tool_profile_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "tool_profile_id",
+          "expected_tool_version",
+          "expected_version",
+          "currency",
+          "input_rate_micros_per_million",
+          "output_rate_micros_per_million",
+          "input_token_reservation",
+          "output_token_reservation",
+          "reason",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
       "VersionedOperation": {
         "properties": {
           "expected_version": {
@@ -58030,6 +58852,1059 @@
           "api",
           "agent",
           "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/usage": {
+      "get": {
+        "description": "Current-authorized execution usage and operator-priced estimates. An attempt freezes its profile/model/rate and monthly organization/project allowance in the same transaction as dispatch. Final evidence is counted once; missing values are unknown, cache/reasoning counters are not additive, unknown outcomes retain holds. Currency balances remain separate. Estimates are not vendor invoices or a hard provider spend cap. Manual confirmation preserves the original evidence and cannot lower known usage.",
+        "operationId": "get_usage",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "UTC natural month; omitted means the current database month.",
+            "in": "query",
+            "name": "month",
+            "schema": {
+              "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageDashboard"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/usage/attempts": {
+      "get": {
+        "description": "Current-authorized execution usage and operator-priced estimates. An attempt freezes its profile/model/rate and monthly organization/project allowance in the same transaction as dispatch. Final evidence is counted once; missing values are unknown, cache/reasoning counters are not additive, unknown outcomes retain holds. Currency balances remain separate. Estimates are not vendor invoices or a hard provider spend cap. Manual confirmation preserves the original evidence and cannot lower known usage.",
+        "operationId": "get_usage_attempts",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "UTC natural month; omitted means the current database month.",
+            "in": "query",
+            "name": "month",
+            "schema": {
+              "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Optional accounting state.",
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "enum": [
+                "reserved",
+                "settled",
+                "partial",
+                "unreported",
+                "reconciling",
+                "confirmed",
+                "unpriced"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact decimal integer page size.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Existing ID in this tenant/project/month and state; created_at/id descending keyset.",
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageAttemptPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/usage/attempts/{id}/confirm": {
+      "post": {
+        "description": "Current-authorized execution usage and operator-priced estimates. An attempt freezes its profile/model/rate and monthly organization/project allowance in the same transaction as dispatch. Final evidence is counted once; missing values are unknown, cache/reasoning counters are not additive, unknown outcomes retain holds. Currency balances remain separate. Estimates are not vendor invoices or a hard provider spend cap. Manual confirmation preserves the original evidence and cannot lower known usage.",
+        "operationId": "post_usage_attempts_id_confirm",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsageConfirmRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageAttempt"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/usage/policies": {
+      "post": {
+        "description": "Current-authorized execution usage and operator-priced estimates. An attempt freezes its profile/model/rate and monthly organization/project allowance in the same transaction as dispatch. Final evidence is counted once; missing values are unknown, cache/reasoning counters are not additive, unknown outcomes retain holds. Currency balances remain separate. Estimates are not vendor invoices or a hard provider spend cap. Manual confirmation preserves the original evidence and cannot lower known usage.",
+        "operationId": "post_usage_policies",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsagePolicyWriteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsagePolicy"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/usage/rates": {
+      "post": {
+        "description": "Current-authorized execution usage and operator-priced estimates. An attempt freezes its profile/model/rate and monthly organization/project allowance in the same transaction as dispatch. Final evidence is counted once; missing values are unknown, cache/reasoning counters are not additive, unknown outcomes retain holds. Currency balances remain separate. Estimates are not vendor invoices or a hard provider spend cap. Manual confirmation preserves the original evidence and cannot lower known usage.",
+        "operationId": "post_usage_rates",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsageRateWriteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageRateRevision"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
         ],
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }

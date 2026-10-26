@@ -2,15 +2,15 @@
   "project": "suma",
   "name": "速码一栈式智能研发平台",
   "phase": "implementation",
-  "updated_at": "2026-10-26T07:55:35.135477+00:00",
+  "updated_at": "2026-10-26T09:54:24.750538+00:00",
   "status": "in_progress",
   "plan": "docs/delivery/implementation-plan.md",
   "workstreams": {
     "control_dag": "shared_pools_bilateral_grants_immutable_task_run_routes_hierarchical_weighted_admission_and_atomic_pool_project_resources_locally_verified_distributed_capacity_pending",
     "runtime": "native_attempt_workspace_actual_coding_host_seal_same_candidate_independent_test_locally_verified_official_SDKs; vendor_models_isolation_install_and_external_resume_pending",
     "workbench": "compact_native_development_facts_original_disclosure_CNEN_26raw_values_keyboard_refresh_390_representative_verified; full_IDE_candidate_review_and_target_merge_pending",
-    "architecture_documents": "native_coding_SPEC_PRD_domain_modules_architecture_interaction_AI_SOP_and_compact020_evidence_updated; full_platform_docs_continue",
-    "internationalization": "3279_paired_frontend_keys; team_CLI18_and_task_handoff16_host_diagnostics; actual_CNEN_preserves_raw_basis/notes/operations; broader_surfaces_continue",
+    "architecture_documents": "024 usage accounting architecture/flow/AI SOP/contract and compact evidence updated; complete platform documentation continues",
+    "internationalization": "3490 paired frontend keys, scoped host accounting diagnostics and event titles; actual CNEN exact microcurrency, draft recovery and immutable original evidence; broader surfaces continue",
     "identity_authority": "actual_primary013_to017_SQLite_upgrade_preserves129_legacy_table_columns14_credentials_unclassified_original_owner_normal_relogin_verified_API_Runner_Agent_reissue_still_required_cross_database_and_SSO_pending",
     "project_knowledge": "typed_memory_spec_skill_versions_sources_publication_retirement_task_agent_fixed_context_and_scoped_recovery_verified_focused_tests_actual_fixture_upgrade_and_desktop_UI_full_memory_plugin_systems_pending",
     "requirement_design": "versioned_product_experience_technical_design_and_task_proposals_reviewed_publication_delta_adoption_protected_bindings_fixed_run_and_acceptance_basis_verified_focused_and_actual_SQLite_UI_iteration_manual_model_and_full_UED_pending",
@@ -19,18 +19,18 @@
     "native_coding": "six_osRoot_official_MCP_tools_CAS_durable_operations_fixed_check_host_Git_seal_and_independent_B_sameSHA_formal_tests_GUI_testowner_review_locally_verified; vendor_production_full_OS_sandbox_target_merge_pending",
     "team_cli_runtime": "harness_multica_v1_and_CodeBuddy_JSONL_native_and_fixed_Node_entry_real_local_processes_private_Git_and_entry_drift_guard_verified; compact_CNEN_config_UI_and_original_preview_updated; vendor_models_WorkBuddy_teamhandoff_pending",
     "team_handoff": "human/team fixed proposal and atomic owner/CAS/invalidation with scoped current authority, history, CNEN panel and CLI locally verified; expert-squad autonomous handoff/cross-organization/distributed acceptance pending",
-    "intelligent_planning": "bounded actual native model execution, fixed-source reviewed atomic schedules and durable in-app risks with current-authorized private/pool HTTP callbacks and CNEN folded UI locally verified; vendor/account/long-term autonomous strategy/scale pending"
+    "intelligent_planning": "bounded actual native model execution, fixed-source reviewed atomic schedules and durable in-app risks with current-authorized private/pool HTTP callbacks and CNEN folded UI locally verified; vendor/account/long-term autonomous strategy/scale pending",
+    "usage_accounting": "organization/project month token/currency estimates, immutable fixed-model rates, private/pool atomic holds/final ledger/manual confirmation, effective-state SQL paging and compact CNEN administration locally verified; vendor billing/hard gateway/full subject dimensions/scale pending"
   },
   "verified": [
-    "T-P4-023: model planning and persistent in-app risk suggestions locally verified: 8 backend groups plus affected schedule, native20 focused TS and relevant Go, frontend4 plus affected1, final3383 locale pairs,294schemas181paths/check and affectedvet/build. Real Control/Runner/native and one local deterministic HTTP model call yielded readyv2+one risk; UI reviewed source/original and explicit apply→appliedv3/planv1/2h/tasktodo v1, riskackv2/reason/refresh/CNEN. No vendor model/cost/production or full device matrix.",
-    "Primary023/1.0.0 normal228520/221228; old149schemas+allrows unchanged,3newemptytables+3indexes→152,18authority0Grant/oldtasks/run1failed2succeeded/original login preserved. Final115webassets and linkedbytes match; old022control247120/holder247472 and isolated fixtures closed0; keep current exec18464. FullP0-P7 continues.",
-    "Final health metadata correction: Server.BuildVersion receives control executable version; /healthz now actual1.0.0. Only control rebuilt, no business/model rerun. Same-schema152→152 oldrows/Schemas/18authority0Grant/tasksDAG kept; current250364/227944 exec89312 healthy, predecessor228520/221228 closed0. Initial helper preflight missing obsolete UI proof keys stopped before any primary action; adapted to actual023 proof and forward update passed."
+    "T-P4-024: independent usage/cost-estimate ledger, fixed-model price revisions, org/project UTC-month quota, transactional private/pool reserve/final settlement/unknown holds/manual confirmation; platform7 groups plus affected fixes and exact-number HTTP/cross-org Pool groups, DAG4top/6sub, UI4 plus changed cases, final3490 locale pairs/types/build and304schemas186paths. One real Control/Runner/native local model protocol fixture recorded40token/CNY57micros/holds0; second fresh claim quota-denied attempt0. Actual two-window price409→rebase kept2/3 draft→ratev3, oldledger ratev1 kept57, zeroquota policyv3, CNEN/refresh passed. No vendor cost, hard provider cap, full subjects, DB/scale or full device matrix acceptance.",
+    "Primary024/1.0.0 normal244176/250660 exec29683; old152schemas+allrows unchanged,6newemptytables+4indexes→158,18authority0Grant/oldtasks/run1failed2succeeded/original login kept;117web assets match. All isolated control/holder/Runner/model closed0, source clones unchanged; prior250364/227944 closed0. FullP0-P7 remains in progress."
   ],
   "production_integration_complete": false,
-  "current_evidence": "docs/quality/intelligent-planning-verification.md",
-  "stage": "T-P4-023_intelligent_planning_locally_verified",
+  "current_evidence": "docs/quality/usage-accounting-verification.md",
+  "stage": "T-P4-024_usage_accounting_locally_verified",
   "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
-  "next_step": "Continue complete P0-P7 on 1.0.0 without historical compatibility layers. Prioritize atomic actual usage/cost and quota reservations, authorized skill repository and reviewed reusable capability extraction, then autonomous expert squads/pipeline policies, repository protected integration, WorkBuddy/vendors/model SDKs, SSO/A2A, intelligent CLI/local-SaaS sync, mobile channels and standalone App, distributed databases/scale/installers. Preserve current preview89312 and staged commit policy; only necessary affected checks and no push.",
+  "next_step": "Complete necessary024 local commit; continue fullP0-P7 with authorized versioned skill repository and reviewed knowledge/memory/capability extraction, then expert squads/pipeline policies, richer validated billing subjects/provider gateway and vendor/WorkBuddy SDKs, protected repositories, SSO/A2A, intelligent CLI/local-SaaS sync, mobile channels/App, distributed stores/scale/installers. Keep primary29683, no push, only affected necessary checks.",
   "additional_requirements": [
     "FND-I18N-001: internationalization in every implemented surface; initially zh-CN/en-US, unified catalogs, preference/negotiation, formatting, API errors, CLI/desktop/extensions/notifications and docs; preserve user content and immutable evidence; coverage must be honestly verified",
     "Idea lifecycle, reusable function/menu governance, visual configuration, alerts and WeChat/DingTalk/WeCom channels remain full platform scope",
@@ -53,25 +53,25 @@
   ],
   "verification_history": {
     "path": "memory/verification_history.json",
-    "entries": 85,
+    "entries": 86,
     "load_policy": "on demand; do not load during every startup"
   },
   "validation_policy": "Focused checks per changed behavior; reuse unchanged-input evidence; one full integration gate per milestone; representative UI verification only for changed interactions/layout. Preserve critical authority/transaction/migration/concurrency/idempotency checks. No redundant review, snapshots, logs or full-matrix reruns.",
-  "deployed_evidence": "docs/quality/intelligent-planning-verification.md",
+  "deployed_evidence": "docs/quality/usage-accounting-verification.md",
   "primary_preview": {
-    "stage": "T-P4-023",
-    "revision": "health-build-version",
+    "stage": "T-P4-024",
+    "revision": "usage-accounting-v1",
     "url": "http://pool.localhost:4324/",
-    "control_pid": 250364,
-    "holder_pid": 227944,
-    "launch_receipt": ".cache/e2e/intelligent-planning-stage-023/primary-upgrade-health/control-launch.local.json",
-    "stop_protocol": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\intelligent-planning-stage-023\\primary-upgrade-health\\stop.request",
+    "control_pid": 244176,
+    "holder_pid": 250660,
+    "launch_receipt": ".cache/e2e/usage-accounting-stage-024/primary-upgrade/control-launch.local.json",
+    "stop_protocol": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\usage-accounting-stage-024\\primary-upgrade\\stop.request",
     "status": "normal_local_preview_not_production",
     "product_version": "1.0.0",
-    "source_sha256": "93f73c4ce87b75658bb3a6da5c1fc6153d281e769466b40dbaaf4e4d77689faa",
-    "control_sha256": "335b0fdeb1310d80373b9a370db7947deb774585de3a5ccaeac479fa25f74012",
-    "web_index_sha256": "5dbf60a992f15c6088a49ea944dd5ea007a07def6bb2d835792da72aa6cb493e",
-    "execution_session": 89312
+    "source_sha256": "4df6781954cfde413f65f59148f69ee247cf799e86b53c646a411c4c0b63ce92",
+    "control_sha256": "f8778a778beba06f520f83b66b0c46d2663a97431e4b7811da80aaf8890080e6",
+    "web_index_sha256": "6fe476ecba65aeda55196b46bc3571ac62304914d4f5cc7477246913d0fa4067",
+    "execution_session": 29683
   },
   "native020_progress": {
     "status": "locally_verified",
@@ -139,5 +139,7 @@
     }
   },
   "current_version": "1.0.0",
-  "design_policy": "Current 1.0.0 best-fit architecture only; no historical compatibility shims or duplicated state. Preserve actual user data, immutable evidence and safe recovery; product SemVer is separate from protocol/SDK/domain revisions."
+  "design_policy": "Current 1.0.0 best-fit architecture only; no historical compatibility shims or duplicated state. Preserve actual user data, immutable evidence and safe recovery; product SemVer is separate from protocol/SDK/domain revisions.",
+  "previous_goal_turn": "progress: added and integrated024 authoritative source/ledger/UI/actual evidence and paired158-table preview; prior023 commits retained",
+  "active_goal_source_sha256": "b48689cef76a9db9bd2fe13b51cec7247bca54f9f8a200075f3f0c029313f89c"
 }

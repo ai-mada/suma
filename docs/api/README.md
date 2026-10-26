@@ -133,3 +133,7 @@ Attempt列表只查询元数据，`result_source=not_loaded`；精确详情才�
 ## 模型规划与站内风险（T-P4-023）
 
 新增`/planning/analyses`、单项及commands、`/planning/alerts`和commands；共享Go DTO生成，当前294模型／181路径。使用固定只读规划profile、来源和显式采纳，原件、风险决策及回执保留。详细[合同](../../contracts/intelligent-planning.md)与[当前限定验证](../quality/intelligent-planning-verification.md)。
+
+## 用量、费用估算与额度（T-P4-024）
+
+`GET /usage`、`POST /usage/policies`、`POST /usage/rates`、`GET /usage/attempts`和单项`confirm`复用当前授权／严格DTO；304模型／186路径，旧模型和路径未改。整数micros、空值未知、月度scope、原始事实与人工确认边界详见[合同](../../contracts/usage-accounting.md)和[实际限定验证](../quality/usage-accounting-verification.md)。

@@ -1,3 +1,4 @@
+import {AccountingReasonExplanation} from './AccountingReasonExplanation';
 import { Trans } from "./i18n/Trans";
 import { tr as t, useLocale, formatNumber } from "./i18n";
 import { useState, useSyncExternalStore } from "react";
@@ -108,7 +109,7 @@ export function WorkflowNodeList({
                 </small>
                 <code>{node.id}</code>
                 {node.reason && (
-                  <span className="workflow-node-reason">{node.reason}</span>
+                  <span className="workflow-node-reason">{node.reason}<AccountingReasonExplanation reason={node.reason}/></span>
                 )}
               </span>
               <span className="workflow-node-choice-status">

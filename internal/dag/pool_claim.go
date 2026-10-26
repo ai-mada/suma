@@ -245,6 +245,13 @@ func (e *Engine) ClaimPoolWithOperation(ctx context.Context, request PoolClaimRe
 					}
 					continue
 				}
+				allowed, err := t.checkAttemptAccounting(r, n, request.WorkerID)
+				if err != nil {
+					return err
+				}
+				if !allowed {
+					continue
+				}
 				poolChecks, ok, err := t.checkPoolResources(r, n)
 				if err != nil {
 					return err
@@ -260,6 +267,9 @@ func (e *Engine) ClaimPoolWithOperation(ctx context.Context, request PoolClaimRe
 					continue
 				}
 				if err = t.reservePoolResources(r, n, poolChecks); err != nil {
+					return err
+				}
+				if err = t.reserveAttemptAccounting(r, n, request.WorkerID); err != nil {
 					return err
 				}
 				if seconds, err = t.attemptWindow(r, n, true); err != nil {

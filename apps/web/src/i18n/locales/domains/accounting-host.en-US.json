@@ -1,0 +1,5 @@
+{
+  "accounting-host.blocked_event": "Waiting for token or cost allowance",
+  "accounting-host.unblocked_event": "Token and cost allowance restored",
+  "accounting-host.blocked_hint": "Review pricing, limits and unresolved reservations in Usage & allowances settings. This candidate has not been dispatched."
+}

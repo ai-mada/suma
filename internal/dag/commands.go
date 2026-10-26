@@ -159,6 +159,9 @@ func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runI
 			default:
 				return dagDiagnostic(fmt.Errorf("%w: invalid reconciliation outcome", ErrInvalid), "dag.run.reconciliation_outcome", nil)
 			}
+			if err = t.resolveAttemptAccounting(r, n, outcome); err != nil {
+				return err
+			}
 			if r.State == "cancelling" && state == "pending" {
 				state = "cancelled"
 			}

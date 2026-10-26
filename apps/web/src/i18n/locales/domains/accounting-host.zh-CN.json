@@ -1,0 +1,5 @@
+{
+  "accounting-host.blocked_event": "等待Token或费用额度",
+  "accounting-host.unblocked_event": "Token及费用额度已恢复",
+  "accounting-host.blocked_hint": "请在设置“用量与额度”中核对计价配置、当前限额和待核对预留。该候选暂未派发。"
+}

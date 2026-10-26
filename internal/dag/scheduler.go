@@ -189,12 +189,22 @@ func (e *Engine) ClaimWithOperation(ctx context.Context, tenant, project, worker
 				}
 				continue
 			}
+			allowed, err := t.checkAttemptAccounting(r, n, worker)
+			if err != nil {
+				return err
+			}
+			if !allowed {
+				continue
+			}
 			reserved, err := t.reserve(r, n)
 			if err != nil {
 				return err
 			}
 			if !reserved {
 				continue
+			}
+			if err = t.reserveAttemptAccounting(r, n, worker); err != nil {
+				return err
 			}
 			if seconds, err = t.attemptWindow(r, n, true); err != nil {
 				return err
@@ -428,6 +438,9 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 			if err = commit(t.tx, state); err != nil {
 				return err
 			}
+		}
+		if err = t.recordAttemptAccounting(r, n, result); err != nil {
+			return err
 		}
 		if state == "failed" && r.State != "cancelling" {
 			if _, err = t.scheduleTransientRetry(r, n, result); err != nil {

@@ -2520,6 +2520,138 @@ export interface ToolUsage {
   output_tokens?: number;
   reasoning_output_tokens?: number;
 }
+export interface UsageAttempt {
+  id: string;
+  project_id: string;
+  version: number;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  tool_profile_id: string;
+  profile_sha256: string;
+  model: string;
+  endpoint_origin: string;
+  currency: string;
+  rate?: UsageRateRevision | null;
+  state: string;
+  usage?: ToolUsage | null;
+  usage_state: string;
+  reported_tokens: number | null;
+  estimated_cost_micros: number | null;
+  reserved_tokens: number;
+  reserved_cost_micros: number | null;
+  held_tokens: number;
+  held_cost_micros: number | null;
+  usage_source: string;
+  decision_by: string;
+  decision_at: string;
+  decision_reason: string;
+  source_ref: string;
+  overrun: boolean;
+  source_result_sha256: string;
+  created_at: string;
+  updated_at: string;
+  allowed_actions: (string)[];
+}
+export interface UsageAttemptPage {
+  items: (UsageAttempt)[];
+  total: number;
+  next_cursor: string;
+}
+export interface UsageBalance {
+  scope: string;
+  project_id: string;
+  period_start: string;
+  reported_tokens: number | null;
+  reserved_tokens: number | null;
+  unresolved_attempts: number;
+  costs: (UsageMoneyBalance)[];
+}
+export interface UsageConfirmRequest {
+  project_id: string;
+  expected_version: number;
+  usage: ToolUsage;
+  source_ref: string;
+  reason: string;
+  acknowledge_usage: boolean;
+  idempotency_key: string;
+}
+export interface UsageDashboard {
+  project_id: string;
+  period_start: string;
+  as_of: string;
+  project_policy: UsagePolicy;
+  organization_policy?: UsagePolicy | null;
+  organization_enforced: boolean;
+  balances: (UsageBalance)[];
+  rates: (UsageRateRevision)[];
+  rate_total: number;
+  can_manage_project: boolean;
+  can_manage_organization: boolean;
+  can_manage_rates: boolean;
+}
+export interface UsageMoneyBalance {
+  currency: string;
+  spent_micros: number | null;
+  reserved_micros: number | null;
+}
+export interface UsagePolicy {
+  id: string;
+  scope: string;
+  project_id: string;
+  version: number;
+  mode: string;
+  currency: string;
+  token_limit: number | null;
+  cost_limit_micros: number | null;
+  updated_by: string;
+  updated_at: string;
+  allowed_actions: (string)[];
+}
+export interface UsagePolicyWriteRequest {
+  project_id: string;
+  scope: string;
+  expected_version: number;
+  mode: string;
+  currency: string;
+  token_limit: number | null;
+  cost_limit_micros: number | null;
+  reason: string;
+  acknowledge_enforcement: boolean;
+  idempotency_key: string;
+}
+export interface UsageRateRevision {
+  id: string;
+  project_id: string;
+  tool_profile_id: string;
+  version: number;
+  profile_sha256: string;
+  model: string;
+  endpoint_origin: string;
+  currency: string;
+  input_rate_micros_per_million: number;
+  output_rate_micros_per_million: number;
+  input_token_reservation: number;
+  output_token_reservation: number;
+  reason: string;
+  created_by: string;
+  created_at: string;
+}
+export interface UsageRateWriteRequest {
+  project_id: string;
+  tool_profile_id: string;
+  expected_tool_version: number;
+  expected_version: number;
+  currency: string;
+  input_rate_micros_per_million: number;
+  output_rate_micros_per_million: number;
+  input_token_reservation: number;
+  output_token_reservation: number;
+  reason: string;
+  idempotency_key: string;
+}
 export interface VersionedOperation {
   expected_version: number;
   idempotency_key: string;
