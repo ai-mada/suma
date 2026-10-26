@@ -37,6 +37,7 @@ type attemptWorkspace struct {
 	ExitCode        int        `json:"exit_code"`
 	OutcomeUnknown  bool       `json:"outcome_unknown"`
 	candidateImport *cc.ImportReceipt
+	nativeEvidence  *NativeWorkspaceEvidence
 }
 
 func digest(b []byte) string { h := sha256.Sum256(b); return hex.EncodeToString(h[:]) }
@@ -176,6 +177,9 @@ func gitRun(ctx context.Context, dir string, args ...string) ([]byte, error) {
 	cmd.Dir = dir
 	// Git never prompts or invokes a credential helper for these local operations.
 	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0", "GIT_OPTIONAL_LOCKS=0")
+	if native, _ := ctx.Value(nativeGitScope{}).(bool); native {
+		cmd = nativeGitCommand(ctx, dir, args...)
+	}
 	out := newOutput(4<<20, nil)
 	cmd.Stdout = out
 	cmd.Stderr = out
@@ -246,6 +250,11 @@ func prepareWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, spec Co
 	base, err := candidateBase(ctx, repo, a, cfg)
 	if err != nil {
 		return nil, err
+	}
+	if spec.NativeWorkspace != nil {
+		if err = nativeBaseAttributes(ctx, repo, base); err != nil {
+			return nil, err
+		}
 	}
 	if binding := cfg.resolvedArtifact; binding != nil {
 		if !commitID.MatchString(binding.SourceCommit) {
@@ -445,6 +454,9 @@ func (a *attemptWorkspace) capture(ctx context.Context, result Result) (map[stri
 	evidence["changed_paths"] = changedPaths
 	evidence["changed_paths_total"] = len(allPaths)
 	evidence["changed_paths_truncated"] = pathsTruncated
+	if a.nativeEvidence != nil {
+		evidence["native_workspace"] = a.nativeEvidence
+	}
 	b, _ := json.MarshalIndent(evidence, "", "  ")
 	if err = writeEvidence(filepath.Join(dir, "evidence.json"), b); err != nil {
 		return nil, err

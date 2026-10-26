@@ -4,7 +4,7 @@
 
 `packages/agent-runtime` 是独立 TypeScript 内核；`cmd/suma-runner` 是 Go 执行器。控制服务负责身份、项目授权、DAG 调度和租约；Runner 只通过出站 HTTP 领取任务、续约和回传结果。Runner 不导入 DAG 实现。
 
-内核通过 OpenAI-compatible `chat/completions` 接口调用**用户配置的**模型。没有配置模型时输出 `missing_model`，不会生成演示回答或把任务标成成功。当前原生工具为控制服务授权的项目查询工具；原生内核没有本地文件编辑、终端或任意 HTTP 工具。需要执行代码任务时，使用 Runner 本机允许的 CLI 命令。
+内核通过 OpenAI-compatible `chat/completions` 接口调用**用户配置的**模型。没有配置模型时输出 `missing_model`，不会生成演示回答或把任务标成成功。项目Agent凭据仍只授权四项项目查询。T-P4-020新增由Runner本机明确启用的attempt编码工具，工作树与原项目查询分别授权，进度和实际验证见[原生编码](native-coding.md)；没有任意终端或HTTP网关。
 
 ## 原生内核
 

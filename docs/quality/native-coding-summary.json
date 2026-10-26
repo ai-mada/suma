@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-020",
+  "status": "locally_verified_complete_for_this_vertical_slice",
+  "full_platform_status": "in_progress",
+  "production_accepted": false,
+  "scope": "attempt-local native coding, host Git candidate seal, independent formal test, explicit local test-account review",
+  "spec": "contracts/native-coding.md",
+  "implementation": [
+    "internal/runner/native_workspace*.go",
+    "internal/nativeworkspacecontract/types.go",
+    "internal/platform/native_workspace_evidence.go",
+    "packages/agent-runtime/src/workspace-client.ts",
+    "apps/web/src/NativeWorkspaceFacts.tsx"
+  ],
+  "verification": {
+    "go_milestone": {
+      "pass_events": 1637,
+      "fail_events": 4,
+      "exit_code": 1,
+      "test_skips": 0,
+      "failures": "two stale native catalog count assertions and one protected-attribute fixture child plus parent",
+      "fixes": "targeted affected checks passed; no unrelated full-suite repeat"
+    },
+    "cross_sdk": {
+      "official_go_sdk": "1.8.0",
+      "official_typescript_sdk": "2.4.0",
+      "observed_red": "required:null rejected by official TS schema",
+      "fix": "omit required when empty",
+      "green_top_tests": 2,
+      "green_pass_events": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    "web_affected": {
+      "files": 3,
+      "passed": 44,
+      "paired_locale_keys": 3207,
+      "typecheck": true,
+      "isolated_build": true
+    },
+    "contracts": {
+      "schemas": 274,
+      "paths": 174,
+      "references": 1518,
+      "generated_check": true
+    },
+    "go_vet": true
+  },
+  "actual": {
+    "model_boundary": "local protocol fixture; not a vendor model",
+    "run_id": "f1f312e091ed9a7f6781f1b0eb7e9a73",
+    "candidate_commit": "fd172cf7cbdc6ac18e6b24f3869170f592d5e4db",
+    "model_requests": 5,
+    "workspace_tool_calls": 9,
+    "file_effects": 4,
+    "generation": 4,
+    "development_checks": "four assertions failed, repaired, then four passed",
+    "independent_formal_tests": 4,
+    "task_status": "accepted",
+    "task_version": 4,
+    "reviewer": "Codex-driven local test owner; not business-owner or production acceptance",
+    "progress_ACKs": 34,
+    "result_ACKs": 2,
+    "old_failed_run_preserved": true,
+    "final_readonly_checks": 16,
+    "runner_and_fixture_control_gracefully_stopped": true
+  },
+  "interface": {
+    "representative_languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "native_record_default": "compact summary with original evidence collapsed",
+    "keyboard_disclosure_and_output": true,
+    "raw_values_preserved": 26,
+    "representative_widths": [
+      390,
+      1366
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "fresh_reads_without_alerts": true,
+    "accepted_refresh_preserved": true,
+    "disconnected_intermediate_evidence_retained_and_excluded": true
+  },
+  "runtime": {
+    "go": "1.26.10",
+    "control_sha256": "3d871540e0aae5563a5a0bb968792d2c0cf92c5c1c97dd4c399c3bc5f3893733",
+    "native_bundle_sha256": "d63d596e9bf379e10cec0a9dd9416abfa5478ebec1f15375c021fb962f334b69",
+    "source_inputs": 282
+  },
+  "primary_preview": {
+    "url": "http://pool.localhost:4324/",
+    "status": "normal",
+    "tables": 147,
+    "schema_changes": 0,
+    "identical_full_tables": 143,
+    "sequence_only_changed_tables": [
+      "suma_authority_credential_locks",
+      "suma_authority_sqlite_guard",
+      "suma_governance_locks",
+      "suma_identity_authority_locks"
+    ],
+    "authority_rows": 18,
+    "grant_rows": 0,
+    "original_login_preserved": true,
+    "prior_control_exit": 0,
+    "frozen_operation_holder_exit": 1,
+    "holder_exit_reason": "explicit frozen-operation return1; control stopped gracefully; receipt preserved",
+    "database_restored": false,
+    "alias_validation": "numeric loopback socket with original HTTP Host; machine DNS unchanged"
+  },
+  "remaining": [
+    "real vendor model and external session recovery",
+    "target branch review and authorized merge",
+    "full OS/container isolation",
+    "full P0-P7 platform, SSO/A2A/plugins/memory integrations",
+    "cross-platform installation, distributed databases and scale acceptance"
+  ]
+}

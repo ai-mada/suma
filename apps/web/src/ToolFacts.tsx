@@ -102,6 +102,7 @@ export function ToolProfileFacts({ profile }: { profile: ToolProfile }) { useLoc
       </dl>
       <p className="muted">
         {t("development.facts.version_and_probing_do_not_prove_model")}</p>
+      {'workspace_tools_version' in profile.profile&&profile.profile.workspace_tools_version==='attempt-workspace-v1'&&<p className="muted">{t('native-workspace.capability')}</p>}
       {profile.reason && (
         <div className="warning">
           <p>{toolReason(profile.reason, profile.reason_diagnostic)}</p>

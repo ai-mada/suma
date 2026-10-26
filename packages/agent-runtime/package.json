@@ -5,7 +5,21 @@
   "type": "module",
   "main": "dist/src/index.js",
   "exports": "./dist/src/index.js",
-  "bin": {"suma-agent": "dist/src/cli.js"},
-  "scripts": {"build": "tsc", "typecheck": "tsc --noEmit", "test": "tsc && node --test dist/tests/*.test.js", "catalog": "node dist/src/catalog-cli.js"},
-  "devDependencies": {"@types/node": "^22.10.0", "typescript": "^5.7.2"}
+  "bin": {
+    "suma-agent": "dist/suma-agent.bundle.mjs"
+  },
+  "scripts": {
+    "build": "tsc && node scripts/build-native-runtime.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc && node --test dist/tests/*.test.js",
+    "catalog": "node dist/src/catalog-cli.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "esbuild": "0.24.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.4.0"
+  }
 }

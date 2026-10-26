@@ -19,17 +19,18 @@ import (
 )
 
 type CommandSpec struct {
-	Adapter        string            `json:"adapter,omitempty"`
-	Protocol       string            `json:"protocol,omitempty"`
-	Executable     string            `json:"executable"`
-	Args           []string          `json:"args"`
-	Env            map[string]string `json:"env,omitempty"`
-	EnvFrom        []string          `json:"env_from,omitempty"`
-	Input          string            `json:"input,omitempty"`
-	ReadOnly       bool              `json:"read_only,omitempty"`
-	TestEvidence   bool              `json:"test_evidence,omitempty"`
-	ArtifactOutput string            `json:"artifact_output,omitempty"`
-	ArtifactInput  bool              `json:"artifact_input,omitempty"`
+	Adapter         string                 `json:"adapter,omitempty"`
+	Protocol        string                 `json:"protocol,omitempty"`
+	Executable      string                 `json:"executable"`
+	Args            []string               `json:"args"`
+	Env             map[string]string      `json:"env,omitempty"`
+	EnvFrom         []string               `json:"env_from,omitempty"`
+	Input           string                 `json:"input,omitempty"`
+	ReadOnly        bool                   `json:"read_only,omitempty"`
+	TestEvidence    bool                   `json:"test_evidence,omitempty"`
+	ArtifactOutput  string                 `json:"artifact_output,omitempty"`
+	ArtifactInput   bool                   `json:"artifact_input,omitempty"`
+	NativeWorkspace *NativeWorkspacePolicy `json:"native_workspace,omitempty"`
 }
 type ExecConfig struct {
 	AllowExec                            bool
@@ -185,6 +186,12 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if !ok {
 		return fail("command is not in the local allowlist")
 	}
+	if spec.NativeWorkspace != nil {
+		if a.Type != "agent" {
+			return fail("native workspace requires an isolated agent node")
+		}
+		ctx = context.WithValue(ctx, nativeGitScope{}, true)
+	}
 	if spec.ArtifactOutput != "" || spec.ArtifactInput {
 		if _, _, err := artifactProfile(a.Command[0], spec); err != nil {
 			return fail("artifact profile: " + err.Error())
@@ -279,6 +286,26 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		return fail(err.Error())
 	}
 	cfg.Secrets = append(cfg.Secrets, environmentSecrets...)
+	var native *nativeWorkspace
+	if spec.NativeWorkspace != nil {
+		if err = validateNativeWorkspacePolicy(cfg, a.Command[0], spec); err != nil {
+			return fail(err.Error())
+		}
+		native, err = openNativeWorkspace(ctx, a, cfg, workspace, spec, profile.ProfileSHA256, func(checkCtx context.Context, id string) (NativeWorkspaceCheckResult, error) {
+			return runPinnedNativeCheck(checkCtx, cfg, workspace, spec, profile.ProfileSHA256, id)
+		})
+		if err != nil {
+			return fail("native workspace could not be opened")
+		}
+		defer native.Close()
+		bridge, bridgeErr := native.StartMCP()
+		if bridgeErr != nil {
+			return fail("native workspace connection could not start")
+		}
+		cfg.Secrets = append(cfg.Secrets, bridge.Token)
+		payload, _ := json.Marshal(map[string]any{"goal": a.Config["goal"], "request_id": digest([]byte(key(a))), "workspace_bridge": bridge})
+		cmd.Stdin = bytes.NewReader(append(payload, '\n'))
+	}
 	tempRoot := filepath.Join(root, ".cache", "runner", "tmp", attemptKey(a))
 	if workspace != nil {
 		tempRoot = filepath.Join(workspace.Directory, "tmp")
@@ -348,7 +375,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if digestErr != nil {
 		return fail("tool profile executable became unavailable before launch")
 	}
-	latestDigest, digestErr := commandProfileDigest(spec, latestSHA)
+	latestDigest, digestErr := effectiveCommandProfileDigest(cfg, spec, latestSHA)
 	if digestErr != nil || latestDigest != profile.ProfileSHA256 || latestExecutable != executable {
 		return fail("tool profile changed before process launch")
 	}
@@ -436,8 +463,56 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		r.Error = "durable progress unavailable: " + err.Error()
 	}
 	if workspace != nil {
+		var nativeEvidence *NativeWorkspaceEvidence
+		if native != nil {
+			// A successful child exit does not override a lease cancellation that
+			// arrived at the finalization boundary. Unsealed code is never success.
+			if ctx.Err() != nil {
+				r.ExitCode = -1
+				r.Error = "native workspace execution was cancelled"
+			}
+			if closeErr := native.Close(); closeErr != nil {
+				r.ExitCode = -1
+				r.OutcomeUnknown = true
+				r.Error = "native workspace close requires reconciliation"
+			}
+			evidence := native.Evidence()
+			nativeEvidence = &evidence
+			if evidence.State == "unknown" {
+				r.ExitCode = -1
+				r.OutcomeUnknown = true
+				r.Error = "native workspace effects require reconciliation"
+			}
+			if r.ExitCode == 0 && r.Error == "" && !r.Stopped && !r.OutcomeUnknown && ctx.Err() == nil {
+				if readyErr := native.ReadyToSeal(); readyErr != nil {
+					r.ExitCode = -1
+					r.Error = readyErr.Error()
+				} else {
+					seal, sealErr := sealNativeWorkspace(ctx, workspace, evidence)
+					nativeEvidence.Seal = &seal
+					if sealErr != nil {
+						r.ExitCode = -1
+						r.Error = sealErr.Error()
+						if seal.State == "unknown" || seal.State == "prepared" {
+							r.OutcomeUnknown = true
+							nativeEvidence.State = "unknown"
+						}
+					} else if seal.State != "sealed" && seal.State != "no_change" {
+						r.ExitCode = -1
+						r.OutcomeUnknown = true
+						r.Error = "native workspace sealing requires reconciliation"
+						nativeEvidence.State = "unknown"
+					}
+				}
+			}
+		}
 		var captureErr error
-		r.WorkspaceEvidence, captureErr = workspace.capture(context.Background(), r)
+		workspace.nativeEvidence = nativeEvidence
+		captureCtx := context.Background()
+		if native != nil {
+			captureCtx = context.WithValue(captureCtx, nativeGitScope{}, true)
+		}
+		r.WorkspaceEvidence, captureErr = workspace.capture(captureCtx, r)
 		if captureErr != nil {
 			r.ExitCode = -1
 			r.OutcomeUnknown = true

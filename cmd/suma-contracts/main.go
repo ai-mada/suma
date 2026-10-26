@@ -121,6 +121,9 @@ func generate() (map[string]any, string) {
 	for _, v := range applicationToolModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range nativeWorkspaceModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range taskDesignViewModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -249,6 +252,7 @@ func generate() (map[string]any, string) {
 	taskDesignViewContracts(add, api)
 	candidateTransferContracts(add, api)
 	applicationToolContracts(add, api)
+	nativeWorkspaceSchemas(api)
 	currentAuthorityContracts(api)
 	localizationContracts(api)
 	displayDiagnosticContracts(api)

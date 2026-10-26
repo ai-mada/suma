@@ -1,6 +1,14 @@
 # 当前交付状态
 
-## 当前 T-P4-019：官方SDK项目MCP与共享应用工具（限定本地已验证）
+## 当前 T-P4-020：原生隔离编码与独立候选测试（限定本地已验证）
+
+原生智能体使用官方Go／TS MCP六项attempt工具实际读取、CAS编辑、新建、删除和固定开发检查；宿主在进程停止、当前检查与操作回执核对后封存Git候选，再交另一Runner导入同SHA正式测试。紧凑中英开发事实默认折叠原始依据，保留未知、未封存、自测、正式测试与人工评审的独立语义。SPEC、PRD、架构、交互规范及AI SOP同步交付。
+
+真实本地协议fixture5轮／9工具调用完成4项文件效果，开发检查失败后修复通过；独立Runner正式4项测试通过，Codex测试owner界面明确评审后accepted v4并刷新保持。原SDK schema失败、助手中断、断线截图和修复证据保留。当前预览020正常运行，147表结构／业务和18 authority／0 Grant保持，原登录可用；仅4协调表计数正常递增。
+
+见[验证与限制](../quality/native-coding-verification.md)、[精简摘要](../quality/native-coding-summary.json)、[PRD](../product/native-coding.md)、[架构与AI SOP](../agents/native-coding.md)和[交互规范](../design/native-coding.md)。这不代表目标分支合并、真实厂商模型或生产验收；完整P0–P7继续实施。
+
+## 历史 T-P4-019：官方SDK项目MCP与共享应用工具（限定本地已验证）
 
 统一13项应用工具提供当前授权读取和受控需求／任务／设计草稿，原生Agent保持四项只读；官方Go SDK v1.8.0与Go1.26.10固定，非自写协议。紧凑连接页提供可信地址、无秘密Codex模板和默认折叠中英目录，不把签发或复制当作已连接。
 

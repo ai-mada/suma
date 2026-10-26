@@ -37,6 +37,9 @@ func ValidProtocol(protocol string) bool {
 	return protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == "opencode-jsonl-v1"
 }
 func ValidateProfile(p Profile, complete bool) error {
+	if p.WorkspaceToolsVersion != "" && (p.WorkspaceToolsVersion != "attempt-workspace-v1" || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || p.ReadOnly) {
+		return fmt.Errorf("invalid workspace tool capability")
+	}
 	if !ValidCommandID(p.CommandID) || !protocolPair(p.Adapter, p.Protocol) {
 		return fmt.Errorf("invalid command/adapter/protocol")
 	}

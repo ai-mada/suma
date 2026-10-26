@@ -4792,6 +4792,183 @@
         ],
         "type": "object"
       },
+      "NativeWorkspaceCheckResult": {
+        "additionalProperties": false,
+        "properties": {
+          "check_id": {
+            "type": "string"
+          },
+          "exit_code": {
+            "type": "integer"
+          },
+          "generation": {
+            "type": "integer"
+          },
+          "operation_id": {
+            "type": "string"
+          },
+          "outcome_unknown": {
+            "type": "boolean"
+          },
+          "output": {
+            "type": "string"
+          },
+          "output_truncated": {
+            "type": "boolean"
+          },
+          "profile_sha256": {
+            "type": "string"
+          },
+          "stopped": {
+            "type": "boolean"
+          },
+          "workspace_sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation_id",
+          "check_id",
+          "profile_sha256",
+          "generation",
+          "workspace_sha256",
+          "exit_code",
+          "stopped",
+          "outcome_unknown",
+          "output",
+          "output_truncated"
+        ],
+        "type": "object"
+      },
+      "NativeWorkspaceEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/NativeWorkspaceCheckResult"
+            },
+            "type": "array"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/NativeWorkspaceFileEffect"
+            },
+            "type": "array"
+          },
+          "generation": {
+            "type": "integer"
+          },
+          "policy_sha256": {
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "type": "integer"
+          },
+          "seal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NativeWorkspaceSeal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "state": {
+            "enum": [
+              "open",
+              "closed",
+              "unknown"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "policy_sha256",
+          "generation",
+          "state",
+          "files",
+          "checks"
+        ],
+        "type": "object"
+      },
+      "NativeWorkspaceFileEffect": {
+        "additionalProperties": false,
+        "properties": {
+          "generation": {
+            "type": "integer"
+          },
+          "operation_id": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "previous_sha256": {
+            "type": "string"
+          },
+          "removed": {
+            "type": "boolean"
+          },
+          "sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "operation_id",
+          "removed",
+          "generation"
+        ],
+        "type": "object"
+      },
+      "NativeWorkspaceSeal": {
+        "additionalProperties": false,
+        "properties": {
+          "changed_paths": {
+            "type": "integer"
+          },
+          "commit": {
+            "type": "string"
+          },
+          "operation_id": {
+            "type": "string"
+          },
+          "policy_sha256": {
+            "type": "string"
+          },
+          "previous_commit": {
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "prepared",
+              "unknown",
+              "sealed",
+              "no_change"
+            ],
+            "type": "string"
+          },
+          "tree": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "operation_id",
+          "policy_sha256",
+          "state",
+          "previous_commit",
+          "changed_paths"
+        ],
+        "type": "object"
+      },
       "Node": {
         "properties": {
           "branches": {
@@ -10409,6 +10586,90 @@
             "if": {
               "properties": {
                 "message_key": {
+                  "const": "native.workspace.config"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.workspace.catalog"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.workspace.transport"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.workspace.effects"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
                   "const": "native.catalog.not_found"
                 }
               },
@@ -11404,6 +11665,10 @@
         "properties": {
           "message_key": {
             "enum": [
+              "native.workspace.config",
+              "native.workspace.catalog",
+              "native.workspace.transport",
+              "native.workspace.effects",
               "native.catalog.not_found",
               "native.catalog.probe_exited",
               "native.catalog.probe_failed",
@@ -11812,6 +12077,9 @@
             "maxLength": 256,
             "type": "string",
             "x-max-utf8-bytes": 256
+          },
+          "workspace_tools_version": {
+            "type": "string"
           }
         },
         "required": [

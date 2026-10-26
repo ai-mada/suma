@@ -6,6 +6,10 @@ package localization
 // placeholders use the common named-dot-v1 grammar. SourceTemplate is private
 // provenance and does not register an English source alias.
 var nativeCatalog = []Definition{
+	{Key: "native.workspace.config", SourceTemplate: "Workspace bridge configuration is invalid", Texts: map[Locale]string{ZhCN: "工作区连接配置无效", EnUS: "Workspace bridge configuration is invalid"}},
+	{Key: "native.workspace.catalog", SourceTemplate: "Workspace tool identity or catalogue is invalid", Texts: map[Locale]string{ZhCN: "工作区工具身份或目录无效", EnUS: "Workspace tool identity or catalogue is invalid"}},
+	{Key: "native.workspace.transport", SourceTemplate: "Workspace tool connection failed; inspect the current execution", Texts: map[Locale]string{ZhCN: "工作区工具连接失败，请核对当前执行", EnUS: "Workspace tool connection failed; inspect the current execution"}},
+	{Key: "native.workspace.effects", SourceTemplate: "Workspace effects require reconciliation; do not restart the model", Texts: map[Locale]string{ZhCN: "工作区操作效果需要核对，请勿重新运行模型", EnUS: "Workspace effects require reconciliation; do not restart the model"}},
 	{Key: "native.catalog.not_found", SourceTemplate: "CLI not found on PATH", Texts: map[Locale]string{ZhCN: "在 PATH 中未找到 CLI", EnUS: "CLI not found on PATH"}},
 	{Key: "native.catalog.probe_exited", SourceTemplate: "CLI probe exited {{.status}}", Parameters: []Parameter{{Name: "status", Kind: Text}}, Texts: map[Locale]string{ZhCN: "CLI 探测退出，状态码 {{.status}}", EnUS: "CLI probe exited {{.status}}"}},
 	{Key: "native.catalog.probe_failed", SourceTemplate: "CLI probe failed; inspect the original reason", Texts: map[Locale]string{ZhCN: "CLI 探测失败，请检查原始原因", EnUS: "CLI probe failed; inspect the original reason"}},
@@ -59,6 +63,10 @@ var nativeCatalog = []Definition{
 func IsNativeMessageKey(key string) bool {
 	switch key {
 	case
+		"native.workspace.config",
+		"native.workspace.catalog",
+		"native.workspace.transport",
+		"native.workspace.effects",
 		"native.catalog.not_found",
 		"native.catalog.probe_exited",
 		"native.catalog.probe_failed",

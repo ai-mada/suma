@@ -84,7 +84,7 @@ func commandProfileDigest(spec CommandSpec, executableSHA string) (string, error
 	if spec.Adapter != "suma" {
 		return tc.ProfileDigest(spec, executableSHA)
 	}
-	if len(spec.Args) != 1 || !filepath.IsAbs(spec.Args[0]) || strings.ToLower(filepath.Ext(spec.Args[0])) != ".js" {
+	if len(spec.Args) != 1 || !filepath.IsAbs(spec.Args[0]) || (strings.ToLower(filepath.Ext(spec.Args[0])) != ".js" && strings.ToLower(filepath.Ext(spec.Args[0])) != ".mjs") {
 		return "", fmt.Errorf("Suma profile requires one absolute JavaScript entry")
 	}
 	f, err := os.Open(spec.Args[0])
@@ -163,7 +163,7 @@ func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []st
 		versionArgs = []string{"--version"}
 		helpArgs = []string{"exec", "--help"}
 	case "suma":
-		if spec.Input != "agent-jsonl" || len(spec.Args) != 1 || strings.ToLower(filepath.Ext(spec.Args[0])) != ".js" {
+		if spec.Input != "agent-jsonl" || len(spec.Args) != 1 || (strings.ToLower(filepath.Ext(spec.Args[0])) != ".js" && strings.ToLower(filepath.Ext(spec.Args[0])) != ".mjs") {
 			return "", fmt.Errorf("Suma profile requires one runtime JavaScript entry and agent-jsonl stdin")
 		}
 		versionArgs = append(append([]string{}, spec.Args...), "--version")
@@ -330,6 +330,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 	}
 	for id, spec := range cfg.Commands {
 		spec = normalizedCommand(spec)
+		if err := validateNativeWorkspacePolicy(cfg, id, spec); err != nil {
+			return err
+		}
 		if tc.ValidateProfile(tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol}, false) != nil {
 			return fmt.Errorf("local command identity or adapter/protocol is invalid")
 		}
@@ -365,6 +368,9 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 			defer func() { <-sem; done <- i }()
 			spec := normalizedCommand(cfg.Commands[id])
 			p := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly}
+			if spec.NativeWorkspace != nil {
+				p.WorkspaceToolsVersion = NativeWorkspaceVersion
+			}
 			o := tc.Observation{Profile: p}
 			fail := func(reason string) { o.Reason = reason; results[i] = o }
 			if !tc.ValidCommandID(id) || tc.ValidateProfile(p, false) != nil {
@@ -393,7 +399,7 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 				return
 			}
 			o.Profile.ExecutableSHA256 = sha
-			digest, err := commandProfileDigest(spec, sha)
+			digest, err := effectiveCommandProfileDigest(cfg, spec, sha)
 			if err != nil {
 				fail(err.Error())
 				return
@@ -437,7 +443,7 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 	if err != nil {
 		return tc.Profile{}, "", err
 	}
-	digest, err := commandProfileDigest(spec, sha)
+	digest, err := effectiveCommandProfileDigest(cfg, spec, sha)
 	if err != nil {
 		return tc.Profile{}, "", fmt.Errorf("profile digest unavailable")
 	}
@@ -458,9 +464,19 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 			return p, "", e
 		}
 		p = tc.Profile{CommandID: a.Command[0], Adapter: spec.Adapter, Protocol: spec.Protocol, ProfileSHA256: digest, ExecutableSHA256: sha, ToolVersion: version, ReadOnly: spec.ReadOnly}
+		if spec.NativeWorkspace != nil {
+			p.WorkspaceToolsVersion = NativeWorkspaceVersion
+		}
 	}
 	if err = tc.ValidateProfile(p, true); err != nil {
 		return p, "", fmt.Errorf("invalid tool profile")
+	}
+	expectedWorkspace := ""
+	if spec.NativeWorkspace != nil {
+		expectedWorkspace = NativeWorkspaceVersion
+	}
+	if p.WorkspaceToolsVersion != expectedWorkspace {
+		return p, "", fmt.Errorf("workspace tool declaration does not match local configuration")
 	}
 	if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" && pinned != p.ProfileSHA256 {
 		return p, "", fmt.Errorf("assignment tool profile digest does not match local configuration")

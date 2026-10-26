@@ -3,13 +3,14 @@
 package toolcontract
 
 type ToolExecutionProfile struct {
-	CommandID        string `json:"command_id"`
-	Adapter          string `json:"adapter"`
-	Protocol         string `json:"protocol"`
-	ProfileSHA256    string `json:"profile_sha256"`
-	ExecutableSHA256 string `json:"executable_sha256"`
-	ToolVersion      string `json:"tool_version"`
-	ReadOnly         bool   `json:"read_only"`
+	CommandID             string `json:"command_id"`
+	Adapter               string `json:"adapter"`
+	Protocol              string `json:"protocol"`
+	ProfileSHA256         string `json:"profile_sha256"`
+	ExecutableSHA256      string `json:"executable_sha256"`
+	ToolVersion           string `json:"tool_version"`
+	ReadOnly              bool   `json:"read_only"`
+	WorkspaceToolsVersion string `json:"workspace_tools_version,omitempty"`
 }
 
 type ToolObservation struct {

@@ -969,6 +969,45 @@ export interface LocalizationParameter {
   name: string;
   kind: string;
 }
+export interface NativeWorkspaceCheckResult {
+  operation_id: string;
+  check_id: string;
+  profile_sha256: string;
+  generation: number;
+  workspace_sha256: string;
+  exit_code: number;
+  stopped: boolean;
+  outcome_unknown: boolean;
+  output: string;
+  output_truncated: boolean;
+}
+export interface NativeWorkspaceEvidence {
+  schema_version: number;
+  policy_sha256: string;
+  generation: number;
+  state: string;
+  files: (NativeWorkspaceFileEffect)[];
+  checks: (NativeWorkspaceCheckResult)[];
+  seal?: NativeWorkspaceSeal | null;
+}
+export interface NativeWorkspaceFileEffect {
+  path: string;
+  operation_id: string;
+  previous_sha256?: string;
+  sha256?: string;
+  removed: boolean;
+  generation: number;
+}
+export interface NativeWorkspaceSeal {
+  schema_version: number;
+  operation_id: string;
+  policy_sha256: string;
+  state: string;
+  previous_commit: string;
+  commit?: string;
+  tree?: string;
+  changed_paths: number;
+}
 export interface Node {
   id: string;
   name: string;
@@ -2220,6 +2259,7 @@ export interface ToolExecutionProfile {
   executable_sha256: string;
   tool_version: string;
   read_only: boolean;
+  workspace_tools_version?: string;
 }
 export interface ToolInventoryReceipt {
   acknowledged: boolean;

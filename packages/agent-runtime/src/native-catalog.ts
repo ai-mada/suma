@@ -49,5 +49,9 @@ export const nativeCatalog={
  "native.usage.integer_literal_required":{"en":"Model usage counters must use exact integer literals","zh":"模型用量计数必须使用精确整数字面量"},
  "native.usage.invalid_counter":{"en":"Model usage counters must be nonnegative safe integers","zh":"模型用量计数必须是非负安全整数"},
  "native.usage.lossless_unavailable":{"en":"Runtime cannot verify exact usage counters; Node22 JSON source context is required","zh":"运行时无法验证精确用量计数，需要 Node22 JSON 原文上下文支持"},
+ "native.workspace.catalog":{"en":"Workspace tool identity or catalogue is invalid","zh":"工作区工具身份或目录无效"},
+ "native.workspace.config":{"en":"Workspace bridge configuration is invalid","zh":"工作区连接配置无效"},
+ "native.workspace.effects":{"en":"Workspace effects require reconciliation; do not restart the model","zh":"工作区操作效果需要核对，请勿重新运行模型"},
+ "native.workspace.transport":{"en":"Workspace tool connection failed; inspect the current execution","zh":"工作区工具连接失败，请核对当前执行"},
 } as const satisfies Record<string,NativeCatalogEntry>;
 export type NativeMessageKey=keyof typeof nativeCatalog;

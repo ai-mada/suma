@@ -8,7 +8,7 @@ func TestNativeDiagnosticContractVersionAndEventScope(t *testing.T) {
 	if d["additionalProperties"] != false || mapAt(d, "properties", "schema_version")["const"] != 1 {
 		t.Fatal("unbounded native diagnostic schema")
 	}
-	if len(d["allOf"].([]any)) != 46 {
+	if len(d["allOf"].([]any)) != 50 {
 		t.Fatal("parameter cases drifted from native catalog")
 	}
 	e := mapAt(api, "components", "schemas", "ToolEvent")

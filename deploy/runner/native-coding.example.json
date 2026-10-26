@@ -1,0 +1,23 @@
+{
+  "native-coder": {
+    "executable": "node",
+    "args": ["D:/work/suma/packages/agent-runtime/dist/suma-agent.bundle.mjs"],
+    "adapter": "suma",
+    "protocol": "suma-jsonl-v1",
+    "input": "agent-jsonl",
+    "read_only": false,
+    "native_workspace": {
+      "checks": ["python-tests"],
+      "runtime_manifest": "D:/work/suma/packages/agent-runtime/dist/suma-agent.manifest.json"
+    },
+    "env_from": ["SUMA_MODEL", "SUMA_MODEL_BASE_URL", "SUMA_MODEL_API_KEY", "SUMA_CONTROL_URL", "SUMA_AGENT_TOKEN", "SUMA_PROJECT_ID"]
+  },
+  "python-tests": {
+    "executable": "python",
+    "args": ["-m", "unittest", "discover", "-s", "tests"],
+    "adapter": "command",
+    "protocol": "text-v1",
+    "read_only": false,
+    "test_evidence": true
+  }
+}

@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {nativeCatalog,nativeDisplay,type NativeMessageKey} from '../src/display.js';
 
-test('native catalog preserves all 46 bilingual definitions in named-dot-v1 grammar',()=>{
+test('native catalog preserves all 50 bilingual definitions in named-dot-v1 grammar',()=>{
  const entries=Object.entries(nativeCatalog).map(([key,entry])=>({key,en:entry.en,zh:entry.zh,params:Object.entries('params' in entry?entry.params:{}).map(([name,kind])=>({name,kind}))})).sort((a,b)=>a.key<b.key?-1:a.key>b.key?1:0);
- assert.equal(entries.length,46);
- // Captured from the pre-unification SDK catalog at 7ff1b1453a4beaf8893855296b39683c907bf048,
- // with the two status placeholders normalized to the common grammar.
- assert.equal(createHash('sha256').update(JSON.stringify(entries)).digest('hex'),'f5024b58f1cf720fc052163bc7735cf392dd36eb9994c325009f339bd45805bb');
+ assert.equal(entries.length,50);
+ // T-P4-020 authority-generated baseline: the original 46 definitions plus
+ // four dedicated workspace diagnostics; unknown keys remain unaccepted.
+ assert.equal(createHash('sha256').update(JSON.stringify(entries)).digest('hex'),'5fc7a465774ab720caca5e87a90a8a7c1f2d5924fece17697a97701ae7cd28b3');
  for(const entry of entries){
   const params=entry.key==='native.endpoint.rejected'?{status:0}:entry.key==='native.catalog.probe_exited'?{status:'{{.other}} <tag> 原始'}:{};
   for(const locale of ['zh-CN','en-US'] as const){

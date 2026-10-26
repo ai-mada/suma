@@ -48,6 +48,9 @@ func validateCodeTestEvidence(run dag.Run) error {
 		if len(n.WorkspaceEvidence) == 0 {
 			continue
 		}
+		if err := validateNativeWorkspaceEvidence(n.WorkspaceEvidence, n.ToolEvidence); err != nil {
+			return err
+		}
 		hasWorkspace = true
 		head, e := workspaceRevision(n.WorkspaceEvidence)
 		if e != nil {

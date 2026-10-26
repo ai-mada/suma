@@ -130,4 +130,6 @@ mysql 的许可证正文含其他许可兼容性说明，不能据此推断依�
 
 ## T-P4-019 官方MCP SDK与工具链
 
+T-P4-020原生工作区客户端固定官方`@modelcontextprotocol/client`和`core`2.4.0，包声明Apache-2.0，完整固定许可证原文分别在[client LICENSE](licenses/modelcontextprotocol-client-v2.4.0.LICENSE)、[core LICENSE](licenses/modelcontextprotocol-core-v2.4.0.LICENSE)。复用既有esbuild0.24.2打包，实际依赖版本进入runtime manifest，锁文件有完整性信息。SDK、依赖版本和bundle字节属于本次来源记录，不替代最终安装包SBOM或生产环境验收。
+
 MCP入站服务固定 `github.com/modelcontextprotocol/go-sdk v1.8.0`，新代码按Apache-2.0、未获重新许可同意的历史贡献仍按MIT；完整过渡说明与两份许可原文见[固定SDK LICENSE](licenses/modelcontextprotocol-go-sdk-v1.8.0.LICENSE)，不能简写为全部MIT。该tag根目录无NOTICE；未来上游变化重新检查。协议由官方SDK处理，未复制协议实现源码。Go语言基线升级为1.26，编译器固定1.26.10，私有工具链从Go官方网站下载并校验发布的大小与SHA，保留在忽略缓存，不随源码提交。SDK导致的最小依赖变更以go.mod/go.sum锁定；历史依赖快照保持原验收范围，未冒充新的最终安装包SBOM。
