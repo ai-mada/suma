@@ -175,6 +175,7 @@ export interface ArtifactUploadState {
 }
 export interface Assignment {
   candidate_composition?: CandidateCompositionExecution | null;
+  candidate_conflict_repair?: CandidateConflictRepairExecution | null;
   code_baseline?: CodeBaselineBinding | null;
   repository_integration?: RepositoryExecution | null;
   tenant_id?: string;
@@ -531,6 +532,32 @@ export interface CandidateCompositionCommandRequest {
   reason: string;
   idempotency_key: string;
 }
+export interface CandidateCompositionConflictBasis {
+  composition_id: string;
+  composition_version: number;
+  task_id: string;
+  task_version: number;
+  run_id: string;
+  run_version: number;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  assignment: CandidateAssignmentRef;
+  result_sha256: string;
+  evidence_sha256: string;
+  evidence: CandidateCompositionEvidence;
+  sha256: string;
+}
+export interface CandidateCompositionConflictContext {
+  project_id: string;
+  composition_id: string;
+  composition_version: number;
+  basis?: CandidateCompositionConflictBasis | null;
+  repair_plan_id: string;
+  can_create: boolean;
+  blockers: (string)[];
+}
 export interface CandidateCompositionCreateRequest {
   project_id: string;
   task_id: string;
@@ -556,6 +583,9 @@ export interface CandidateCompositionEvidence {
   merge_commits: (string)[];
   conflicts: (string)[];
   conflict_source_index?: number;
+  conflict_tree?: string;
+  conflict_stages?: (CandidateConflictStage)[];
+  conflict_sha256?: string;
 }
 export interface CandidateCompositionExecution {
   protocol: string;
@@ -582,6 +612,10 @@ export interface CandidateCompositionPage {
   total: number;
 }
 export interface CandidateCompositionPlan {
+  conflict_basis?: CandidateCompositionConflictBasis | null;
+  tool_profile_id?: string;
+  tool_profile_version?: number;
+  tool_profile_sha256?: string;
   id: string;
   project_id: string;
   version: number;
@@ -612,6 +646,25 @@ export interface CandidateCompositionPlan {
   blockers: (string)[];
   allowed_actions: (string)[];
 }
+export interface CandidateCompositionRepairCreateRequest {
+  project_id: string;
+  expected_composition_version: number;
+  expected_conflict_sha256: string;
+  repair: CandidateCompositionRepairDraft;
+  workflow_id: string;
+  workflow_version: number;
+  producer_node_id: string;
+  tool_profile_id: string;
+  expected_tool_version: number;
+  idempotency_key: string;
+}
+export interface CandidateCompositionRepairDraft {
+  title: string;
+  description: string;
+  priority?: string;
+  owner_id?: string;
+  acceptance_criteria: (string)[];
+}
 export interface CandidateCompositionSourceChoice {
   task_id: string;
   task_version: number;
@@ -631,6 +684,54 @@ export interface CandidateCompositionStartRequest {
   expected_version: number;
   acknowledge: boolean;
   idempotency_key: string;
+}
+export interface CandidateConflictRepairEvidence {
+  protocol: string;
+  plan_id: string;
+  plan_version: number;
+  composition_id: string;
+  original_assignment: CandidateAssignmentRef;
+  original_evidence_sha256: string;
+  sources_sha256: string;
+  operation_id: string;
+  state: string;
+  steps: (CandidateConflictRepairStep)[];
+  result_commit?: string;
+  result_tree?: string;
+  parents: (string)[];
+  source_heads: (string)[];
+  merge_commits: (string)[];
+}
+export interface CandidateConflictRepairExecution {
+  protocol: string;
+  plan_id: string;
+  plan_version: number;
+  project_id: string;
+  composition_id: string;
+  composition_version: number;
+  original_assignment: CandidateAssignmentRef;
+  original_evidence_sha256: string;
+  composition: CandidateCompositionExecution;
+  conflict: CandidateCompositionEvidence;
+  instructions: string;
+  fixed_timestamp: string;
+  operation_id: string;
+}
+export interface CandidateConflictRepairStep {
+  source_index: number;
+  left_commit: string;
+  right_commit: string;
+  seed_tree: string;
+  conflict_sha256?: string;
+  result_commit: string;
+  result_tree: string;
+  parents: (string)[];
+}
+export interface CandidateConflictStage {
+  path: string;
+  mode: string;
+  object: string;
+  stage: number;
 }
 export interface CandidateImportReceipt {
   binding: CandidateBinding;
@@ -3454,6 +3555,7 @@ export interface ToolExecutionProfile {
   tool_version: string;
   read_only: boolean;
   workspace_tools_version?: string;
+  conflict_repair_protocol?: string;
   planning?: PlanningCapability | null;
   knowledge_extraction?: KnowledgeExtractionCapability | null;
   failure_diagnosis?: FailureDiagnosisCapability | null;

@@ -1,13 +1,15 @@
 import {createHash} from 'node:crypto';
 import {Client,StreamableHTTPClientTransport,type FetchLike} from '@modelcontextprotocol/client';
 
-export interface WorkspaceBridge {version:1;endpoint:string;token:string;policy_sha256:string;request_id:string}
+export interface WorkspaceBridge {version:1;endpoint:string;token:string;policy_sha256:string;request_id:string;conflict_repair_protocol?:'suma.candidate-conflict-repair.v1'}
 export class WorkspaceBridgeError extends Error {constructor(readonly code:string){super('Agent request failed; inspect provider and control configuration');}}
 const object=(value:unknown):value is Record<string,unknown>=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const fields:Record<string,string[]>={list:['directory','limit','cursor'],read:['path','start_line','max_lines'],write:['path','content','expected_sha256','expected_absent'],remove:['path','expected_sha256'],check:['check_id'],edit:['path','expected_sha256','edits']};
-const ordinaryErrors=new Set(['args','arguments','path','missing','text','output_limit','conflict','operation','check','checks_stale','cursor'].map(code=>'native_workspace_'+code));
+const repairFields:Record<string,string[]>={merge_status:[],merge_continue:['expected_step','expected_generation','expected_state_sha256','resolutions']};
+export function conflictRepairCapability(){return {protocol:'suma.candidate-conflict-repair.v1',source_limit:16,workspace_tools:[...Object.keys(fields),...Object.keys(repairFields)].sort().map(name=>'workspace.'+name),max_steps:128,max_tokens:131072};}
+const ordinaryErrors=new Set(['args','arguments','path','missing','text','output_limit','conflict','operation','check','checks_stale','cursor','merge_unresolved','merge_incomplete'].map(code=>'native_workspace_'+code));
 export function workspaceBridge(value:unknown,requestID:string):WorkspaceBridge {
- if(!object(value)||Object.keys(value).sort().join(',')!=='endpoint,policy_sha256,request_id,token,version'||value.version!==1||typeof value.endpoint!=='string'||typeof value.token!=='string'||!/^[A-Za-z0-9._~-]{16,512}$/.test(value.token)||typeof value.policy_sha256!=='string'||!/^[a-f0-9]{64}$/.test(value.policy_sha256)||typeof value.request_id!=='string'||!value.request_id||value.request_id.length>256||/\p{Cc}/u.test(value.request_id)||value.request_id!==requestID)throw new WorkspaceBridgeError('workspace_config');
+ if(!object(value)||!['endpoint,policy_sha256,request_id,token,version','conflict_repair_protocol,endpoint,policy_sha256,request_id,token,version'].includes(Object.keys(value).sort().join(','))||('conflict_repair_protocol'in value&&value.conflict_repair_protocol!=='suma.candidate-conflict-repair.v1')||value.version!==1||typeof value.endpoint!=='string'||typeof value.token!=='string'||!/^[A-Za-z0-9._~-]{16,512}$/.test(value.token)||typeof value.policy_sha256!=='string'||!/^[a-f0-9]{64}$/.test(value.policy_sha256)||typeof value.request_id!=='string'||!value.request_id||value.request_id.length>256||/\p{Cc}/u.test(value.request_id)||value.request_id!==requestID)throw new WorkspaceBridgeError('workspace_config');
  let endpoint:URL;try{endpoint=new URL(value.endpoint);}catch{throw new WorkspaceBridgeError('workspace_config');}
  if(endpoint.protocol!=='http:'||endpoint.hostname!=='127.0.0.1'||!endpoint.port||endpoint.username||endpoint.password||endpoint.search||endpoint.hash||endpoint.href!==value.endpoint)throw new WorkspaceBridgeError('workspace_config');
  return value as unknown as WorkspaceBridge;
@@ -27,13 +29,14 @@ export class AttemptWorkspaceClient {
    await instance.client.connect(transport,{signal});
    const server=instance.client.getServerVersion();if(server?.name!=='suma-native-workspace'||server.version!=='attempt-workspace-v1')throw new WorkspaceBridgeError('workspace_catalog');
    const result=await instance.client.listTools(undefined,{signal});
+   const expectedFields=instance.bridge.conflict_repair_protocol?{...fields,...repairFields}:fields;
    const seen=new Set<string>();
    for(const tool of result.tools){
     const suffix=tool.name.replace(/^suma_workspace_/,'');const schema=tool.inputSchema;
-    if(!Object.hasOwn(fields,suffix)||tool.name!=='suma_workspace_'+suffix||seen.has(suffix)||schema.type!=='object'||schema.additionalProperties!==false||!object(schema.properties)||Object.keys(schema.properties).sort().join(',')!==[...fields[suffix]].sort().join(','))throw new WorkspaceBridgeError('workspace_catalog');
+    if(!Object.hasOwn(expectedFields,suffix)||tool.name!=='suma_workspace_'+suffix||seen.has(suffix)||schema.type!=='object'||schema.additionalProperties!==false||!object(schema.properties)||Object.keys(schema.properties).sort().join(',')!==[...expectedFields[suffix]].sort().join(','))throw new WorkspaceBridgeError('workspace_catalog');
     seen.add(suffix);instance.tools.push({name:'workspace.'+suffix,description:tool.description,parameters:schema});
    }
-   if(seen.size!==Object.keys(fields).length||result.nextCursor)throw new WorkspaceBridgeError('workspace_catalog');
+   if(seen.size!==Object.keys(expectedFields).length||result.nextCursor)throw new WorkspaceBridgeError('workspace_catalog');
    return instance;
   }catch(error){await instance.close().catch(()=>{});if(signal.aborted)throw signal.reason;throw error instanceof WorkspaceBridgeError?error:new WorkspaceBridgeError('workspace_transport');}
  }

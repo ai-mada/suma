@@ -223,6 +223,11 @@ func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []st
 	if spec.Adapter == "suma" && (!strings.HasPrefix(version, "suma-agent-runtime ") || !strings.Contains(help, "JSONL") || !strings.Contains(help, "SUMA_AGENT_TOKEN")) {
 		return "", fmt.Errorf("installed Suma version/help does not match JSONL agent protocol")
 	}
+	if spec.NativeWorkspace != nil && spec.NativeWorkspace.ConflictRepair {
+		if err = probeNativeConflictRepair(ctx, exe, spec, secrets); err != nil {
+			return "", err
+		}
+	}
 	if spec.Planning {
 		if err = probePlanning(ctx, exe, spec, secrets); err != nil {
 			return "", err
@@ -438,6 +443,9 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 			p := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly}
 			if spec.NativeWorkspace != nil {
 				p.WorkspaceToolsVersion = NativeWorkspaceVersion
+				if spec.NativeWorkspace.ConflictRepair {
+					p.ConflictRepairProtocol = "suma.candidate-conflict-repair.v1"
+				}
 			}
 			o := tc.Observation{Profile: p}
 			fail := func(reason string) { o.Reason = reason; results[i] = o }
@@ -549,6 +557,9 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 		p = tc.Profile{CommandID: a.Command[0], Adapter: spec.Adapter, Protocol: spec.Protocol, ProfileSHA256: digest, ExecutableSHA256: sha, ToolVersion: version, ReadOnly: spec.ReadOnly}
 		if spec.NativeWorkspace != nil {
 			p.WorkspaceToolsVersion = NativeWorkspaceVersion
+			if spec.NativeWorkspace.ConflictRepair {
+				p.ConflictRepairProtocol = "suma.candidate-conflict-repair.v1"
+			}
 		}
 		p.Planning, err = localPlanningCapability(spec)
 		if err != nil {
@@ -572,6 +583,13 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 	}
 	if p.WorkspaceToolsVersion != expectedWorkspace {
 		return p, "", fmt.Errorf("workspace tool declaration does not match local configuration")
+	}
+	expectedRepair := ""
+	if spec.NativeWorkspace != nil && spec.NativeWorkspace.ConflictRepair {
+		expectedRepair = "suma.candidate-conflict-repair.v1"
+	}
+	if p.ConflictRepairProtocol != expectedRepair {
+		return p, "", fmt.Errorf("conflict repair capability does not match local configuration")
 	}
 	expectedPlanning, err := localPlanningCapability(spec)
 	if err != nil || (p.Planning == nil) != (expectedPlanning == nil) || p.Planning != nil && *p.Planning != *expectedPlanning {

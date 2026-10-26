@@ -167,6 +167,9 @@ func (b *output) flushProgress() error {
 }
 func contains(a, b string) bool { return strings.Contains(a, b) }
 func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
+	if a.CandidateConflictRepair != nil && (a.Type != "agent" || a.CandidateComposition != nil || a.CodeBaseline != nil || a.RepositoryIntegration != nil || a.ReleaseExecution != nil || hasCandidate(a)) {
+		return Result{Assignment: a, ExitCode: -1, Error: "conflict repair requires a dedicated native agent input"}
+	}
 	if a.CandidateComposition != nil && a.Type != "command" {
 		return Result{Assignment: a, ExitCode: -1, Error: "candidate composition requires an isolated command node"}
 	}
@@ -230,6 +233,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			return fail("native workspace requires an isolated agent node")
 		}
 		ctx = context.WithValue(ctx, nativeGitScope{}, true)
+	}
+	if a.CandidateConflictRepair != nil && (spec.NativeWorkspace == nil || !spec.NativeWorkspace.ConflictRepair) {
+		return fail("native conflict repair capability is not enabled")
 	}
 	if spec.ArtifactOutput != "" || spec.ArtifactInput {
 		if _, _, err := artifactProfile(a.Command[0], spec); err != nil {

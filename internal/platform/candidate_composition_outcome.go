@@ -20,6 +20,12 @@ func (s *Service) validateCandidateCompositionResultTx(ctx context.Context, tx *
 		return err
 	}
 	fact, hasFact := result.WorkspaceEvidence["candidate_composition"]
+	if found && r.RepairExecution != nil {
+		if hasFact {
+			return forbidden()
+		}
+		return nil
+	}
 	if !found {
 		if hasFact {
 			return forbidden()

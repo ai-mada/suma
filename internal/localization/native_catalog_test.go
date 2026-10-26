@@ -12,7 +12,7 @@ import (
 
 func TestNativeCatalogSnapshotsCannotChangeFormattingOrExpandTheAllowlist(t *testing.T) {
 	before := NativeCatalog()
-	if len(before) != 52 {
+	if len(before) != 55 {
 		t.Fatalf("native snapshot count: %d", len(before))
 	}
 	for _, definition := range before {

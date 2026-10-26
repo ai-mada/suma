@@ -2,6 +2,8 @@ import { tr as t, UiError } from "./i18n";
 import type { RecordItem, Workflow } from "./api";
 import type { ToolDiagnostic, DisplayDiagnostic } from "../../../packages/contracts/src";
 export type ToolProfileDefinition = {
+  workspace_tools_version?: string;
+  conflict_repair_protocol?: string;
   command_id: string;
   adapter: string;
   protocol: string;

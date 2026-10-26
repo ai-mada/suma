@@ -502,6 +502,9 @@ func nativeSealInstallIndex(index, gitDirectory string) error {
 }
 
 func sealNativeWorkspace(ctx context.Context, w *attemptWorkspace, evidence NativeWorkspaceEvidence) (result NativeWorkspaceSeal, sealErr error) {
+	if w != nil && w.ConflictRepair != nil {
+		return sealConflictRepairWorkspace(ctx, w, evidence)
+	}
 	var empty NativeWorkspaceSeal
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()

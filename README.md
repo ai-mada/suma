@@ -4,11 +4,11 @@
 
 当前是可运行的开发版本。功能与验证范围见 [交付状态](docs/delivery/status.md)，完整目标见 [实施计划](docs/delivery/implementation-plan.md)。
 
-## 本轮进展：固定失败证据的智能分诊
+## 阶段进展：冲突修复与受控恢复
 
-T-P4-031／1.0.0 已完成限定本地验证：有序固定两份已验收候选，Runner以Git原生三方合成精确M；另一执行节点对M独立测试后，测试账号明确Review，再将M显式绑定未开始任务C。C从M开发出新提交，另一节点再独立测试并单独Review。实际同机两Runner、2项新运行、8项正式检查；原来源、管理员锚点与protected baseline全链路可追溯。中英界面与冷回读通过，主预览保留180旧表完整结构及全部行，新增3空表和1索引至183。见[限定验证](docs/quality/candidate-composition-verification.md)、[设计与AI SOP](docs/architecture/candidate-composition.md)、[English](docs/en/candidate-composition.md)。仅本地自有协议夹具验证；未调用厂商或模型，未报告用量不推断为零Token。真实远端、多机、生产验收、完整P0–P7及全部扩展需求继续实施。
+T-P4-032／1.0.0 已完成限定本地验证。固定已验收来源发生真实冲突后，明确创建独立修复任务；原生工具完成有序合并与受控编辑，独立节点测试准确候选，再通过显式 Review 交接到未开始任务。已知失败可在原运行中受控重试，保留原尝试并生成新尝试与租约；结果未知、来源变化和非幂等节点保持门禁。
 
-后续继续冲突修复与受控恢复、多机和厂商接入，见[实施待办](docs/delivery/implementation-plan.md)。
+本地实际形成3项新运行（来源X、原冲突、修复）、8项正式检查和2次测试账号明确评审；修复首次在工作区和模型启动前失败，修正连接后由界面重试同一次运行，第二次尝试及独立测试通过。准确提交 `21cc51598692c6121e7324f382757f45cd0a1e9e` 已绑定仍未开始的D。仅使用6次自有loopback模型协议响应与6次真实工具调用，用量未报告，不推断零Token；未调用厂商。 中英文、键盘详情、刷新与冷回读通过；主预览已前向更新并保留原业务、权限与会话。见[设计与AI SOP](docs/architecture/candidate-conflict-repair.md)、[限定验证](docs/quality/candidate-conflict-repair-verification.md)、[English](docs/en/candidate-conflict-repair.md)。真实厂商、多物理机器、生产验收和完整P0–P7继续实施。
 
 ## 历史进展：专家团队依赖编排
 

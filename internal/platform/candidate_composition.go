@@ -64,6 +64,9 @@ func (s *Service) CreateCandidateComposition(ctx context.Context, engine *dag.En
 	return out, auth.tx.Commit()
 }
 func (s *Service) validateCandidateCompositionTx(ctx context.Context, engine *dag.Engine, auth *authorizedCommand, p CandidateCompositionPlan) error {
+	if p.ConflictBasis != nil {
+		return s.validateCandidateCompositionRepairTx(ctx, engine, auth, p)
+	}
 	if p.State != "ready" || p.RunID != "" {
 		return compositionError(409, "changed", compositionChanged)
 	}
@@ -145,14 +148,22 @@ func (s *Service) StartCandidateComposition(ctx context.Context, engine *dag.Eng
 		r.Plan.RunID = actual
 		r.Plan.State = "queued"
 		r.Creator = expertCredentialSnapshot(actor)
-		r.Execution = &ccmp.CandidateCompositionExecution{Protocol: ccmp.CandidateCompositionProtocol, PlanID: id, PlanVersion: r.Plan.Version, ProjectID: project, BaseCommit: r.Plan.AdminBaseCommit, Sources: compositionSources(r.Plan), SourcesSHA256: r.Plan.SourcesSHA256, FixedTimestamp: r.Plan.FixedTimestamp, OperationID: r.Plan.OperationID}
-		if e = ccmp.ValidateCandidateCompositionExecution(*r.Execution); e != nil {
-			return e
+		kind := "composition"
+		if r.Plan.ConflictBasis != nil {
+			kind = "conflict_repair"
+			if e = s.bindCandidateCompositionRepairExecutionTx(a.ctx, tx, a.proof, &r); e != nil {
+				return e
+			}
+		} else {
+			r.Execution = &ccmp.CandidateCompositionExecution{Protocol: ccmp.CandidateCompositionProtocol, PlanID: id, PlanVersion: r.Plan.Version, ProjectID: project, BaseCommit: r.Plan.AdminBaseCommit, Sources: compositionSources(r.Plan), SourcesSHA256: r.Plan.SourcesSHA256, FixedTimestamp: r.Plan.FixedTimestamp, OperationID: r.Plan.OperationID}
+			if e = ccmp.ValidateCandidateCompositionExecution(*r.Execution); e != nil {
+				return e
+			}
 		}
 		if e = s.saveCandidateCompositionTx(a.ctx, a.proof, old, r); e != nil {
 			return e
 		}
-		if _, e = tx.ExecContext(a.ctx, s.q(`INSERT INTO suma_candidate_composition_executions(run_id,tenant_id,project_id,plan_id,node_id,input_kind,payload)VALUES(?,?,?,?,?,'composition',?)`), actual, a.proof.target.tenantID, project, id, r.Plan.ProducerNodeID, stringify(r)); e != nil {
+		if _, e = tx.ExecContext(a.ctx, s.q(`INSERT INTO suma_candidate_composition_executions(run_id,tenant_id,project_id,plan_id,node_id,input_kind,payload)VALUES(?,?,?,?,?,?,?)`), actual, a.proof.target.tenantID, project, id, r.Plan.ProducerNodeID, kind, stringify(r)); e != nil {
 			return e
 		}
 		if e = s.BindRunTx(a.ctx, tx, a.proof, project, r.Plan.TaskID, actual, r.Plan.TaskVersion); e != nil {
@@ -170,7 +181,7 @@ func (s *Service) StartCandidateComposition(ctx context.Context, engine *dag.Eng
 	return s.GetCandidateComposition(ctx, engine, actor, project, id)
 }
 func (s *Service) CommandCandidateComposition(ctx context.Context, engine *dag.Engine, actor Actor, project, id string, req CandidateCompositionCommandRequest) (out CandidateCompositionPlan, err error) {
-	if req.ProjectID != project || req.ExpectedVersion < 1 || req.Action != "dismiss" || !planningText(req.Reason, 2000) || !planningKey(req.IdempotencyKey) {
+	if req.ProjectID != project || req.ExpectedVersion < 1 || req.Action != "dismiss" && req.Action != "refresh" || !planningText(req.Reason, 2000) || !planningKey(req.IdempotencyKey) {
 		return out, compositionError(400, "invalid", compositionInvalid)
 	}
 	ctx, auth, close, err := s.planningAuthority(ctx, actor, project, id, purposeProjectWrite)
@@ -187,19 +198,40 @@ func (s *Service) CommandCandidateComposition(ctx context.Context, engine *dag.E
 		return out, err
 	}
 	if replay {
+		if req.Action == "refresh" {
+			if err = json.Unmarshal([]byte(hash), &out); err != nil {
+				return out, err
+			}
+			return out, nil
+		}
 		return s.candidateCompositionProjectionTx(ctx, auth, r.Plan)
 	}
 	if r.Plan.Version != req.ExpectedVersion || r.Plan.RunID != "" || r.Plan.State != "ready" {
 		return out, compositionError(409, "changed", compositionChanged)
 	}
 	old := r.Plan.Version
+	activity := "candidate.composition_dismissed"
+	if req.Action == "refresh" {
+		r.Plan, err = s.refreshedCandidateCompositionRepairTx(ctx, auth, r.Plan)
+		if err != nil {
+			return out, err
+		}
+		activity = "candidate.composition_repair_refreshed"
+	} else {
+		r.Plan.State = "dismissed"
+	}
 	r.Plan.Version++
-	r.Plan.State = "dismissed"
 	if err = s.saveCandidateCompositionTx(ctx, auth, old, r); err != nil {
 		return out, err
 	}
-	if err = s.commandActivity(ctx, auth, "candidate.composition_dismissed", id, req.Reason); err != nil {
+	if err = s.commandActivity(ctx, auth, activity, id, req.Reason); err != nil {
 		return out, err
+	}
+	if req.Action == "refresh" {
+		r.Plan, err = s.candidateCompositionProjectionTx(ctx, auth, r.Plan)
+		if err != nil {
+			return out, err
+		}
 	}
 	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, r.Plan); err != nil {
 		return out, err

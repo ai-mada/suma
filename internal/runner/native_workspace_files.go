@@ -56,6 +56,9 @@ func nativeWorkspacePath(value string) (string, error) {
 }
 
 func nativeArguments(name string, raw []byte) (map[string]any, error) {
+	if name == "merge_status" || name == "merge_continue" {
+		return nativeMergeArguments(name, raw)
+	}
 	if len(raw) > 2<<20 || !tc.ValidJSONUnicode(raw) {
 		return nil, nativeError("native_workspace_arguments")
 	}

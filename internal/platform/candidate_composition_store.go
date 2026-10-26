@@ -10,17 +10,20 @@ import (
 )
 
 const (
-	compositionInvalid   = "Invalid candidate composition request"
-	compositionChanged   = "Candidate composition changed; refresh the fixed preview"
-	compositionSource    = "Candidate composition source acceptance or candidate changed"
-	compositionTemplate  = "Candidate composition requires one producer and independent candidate tests"
-	compositionBase      = "Candidate composition sources do not share the administrator base"
-	compositionExpired   = "Candidate composition preview expired"
-	compositionAck       = "Explicit candidate composition acknowledgement required"
-	compositionAuthority = "Candidate composition initiating credential is no longer authorized"
-	compositionBaseline  = "Code baseline changed or is no longer accepted"
-	compositionStarted   = "Code baseline requires an unstarted task"
-	compositionUnknown   = "Candidate composition requires recovery of the original run"
+	compositionInvalid       = "Invalid candidate composition request"
+	compositionChanged       = "Candidate composition changed; refresh the fixed preview"
+	compositionSource        = "Candidate composition source acceptance or candidate changed"
+	compositionTemplate      = "Candidate composition requires one producer and independent candidate tests"
+	compositionBase          = "Candidate composition sources do not share the administrator base"
+	compositionExpired       = "Candidate composition preview expired"
+	compositionAck           = "Explicit candidate composition acknowledgement required"
+	compositionAuthority     = "Candidate composition initiating credential is no longer authorized"
+	compositionBaseline      = "Code baseline changed or is no longer accepted"
+	compositionStarted       = "Code baseline requires an unstarted task"
+	compositionUnknown       = "Candidate composition requires recovery of the original run"
+	compositionConflict      = "Candidate composition requires a known exact conflict with complete Git evidence"
+	compositionRepairProfile = "Conflict repair requires an explicitly enabled native workspace tool profile"
+	compositionRepairTask    = "Conflict repair task must start through its fixed repair plan"
 )
 
 func compositionError(status int, code, message string) error {
@@ -28,9 +31,10 @@ func compositionError(status int, code, message string) error {
 }
 
 type candidateCompositionRecord struct {
-	Plan      CandidateCompositionPlan            `json:"plan"`
-	Creator   expertTeamCredentialReference       `json:"creator"`
-	Execution *ccmp.CandidateCompositionExecution `json:"execution,omitempty"`
+	Plan            CandidateCompositionPlan               `json:"plan"`
+	Creator         expertTeamCredentialReference          `json:"creator"`
+	Execution       *ccmp.CandidateCompositionExecution    `json:"execution,omitempty"`
+	RepairExecution *ccmp.CandidateConflictRepairExecution `json:"repair_execution,omitempty"`
 }
 
 func (s *Service) MigrateCandidateCompositions(ctx context.Context) error {
@@ -38,6 +42,7 @@ func (s *Service) MigrateCandidateCompositions(ctx context.Context) error {
 		`CREATE TABLE IF NOT EXISTS suma_candidate_compositions(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,state VARCHAR(24) NOT NULL,created_at VARCHAR(40) NOT NULL,payload TEXT NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_candidate_composition_executions(run_id VARCHAR(100) NOT NULL,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,plan_id VARCHAR(64) NOT NULL,node_id VARCHAR(150) NOT NULL,input_kind VARCHAR(24) NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(run_id,node_id))`,
 		`CREATE TABLE IF NOT EXISTS suma_task_code_baselines(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,binding TEXT NOT NULL,PRIMARY KEY(tenant_id,project_id,task_id))`,
+		`CREATE TABLE IF NOT EXISTS suma_candidate_composition_repair_sources(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,composition_id VARCHAR(64) NOT NULL,conflict_sha256 VARCHAR(64) NOT NULL,repair_plan_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,PRIMARY KEY(tenant_id,project_id,composition_id,conflict_sha256),UNIQUE(tenant_id,project_id,task_id))`,
 	} {
 		if _, err := s.DB.ExecContext(ctx, s.ddl(ddl)); err != nil {
 			return err
@@ -59,7 +64,7 @@ func (s *Service) candidateCompositionTx(ctx context.Context, tx governanceQuery
 }
 func (s *Service) candidateCompositionExecutionRecordTx(ctx context.Context, tx *sql.Tx, tenant, project, run string) (r candidateCompositionRecord, found bool, err error) {
 	var raw string
-	err = tx.QueryRowContext(ctx, s.q(`SELECT payload FROM suma_candidate_composition_executions WHERE tenant_id=? AND project_id=? AND run_id=? AND input_kind='composition'`), tenant, project, run).Scan(&raw)
+	err = tx.QueryRowContext(ctx, s.q(`SELECT payload FROM suma_candidate_composition_executions WHERE tenant_id=? AND project_id=? AND run_id=? AND input_kind IN ('composition','conflict_repair')`), tenant, project, run).Scan(&raw)
 	if errors.Is(err, sql.ErrNoRows) {
 		return r, false, nil
 	}
@@ -78,7 +83,10 @@ func (s *Service) readCandidateCompositionExecutionTx(ctx context.Context, tx *s
 	if r.Plan.ProducerNodeID != node {
 		return nil, nil
 	}
-	if r.Execution == nil || r.Execution.PlanID != r.Plan.ID || r.Execution.PlanVersion != r.Plan.Version || r.Plan.RunID != run || ccmp.ValidateCandidateCompositionExecution(*r.Execution) != nil {
+	if r.RepairExecution != nil {
+		return nil, nil
+	}
+	if r.Plan.RunID != run || !validCandidateCompositionExecutionRecord(r) {
 		return nil, compositionError(409, "changed", compositionChanged)
 	}
 	return r.Execution, nil

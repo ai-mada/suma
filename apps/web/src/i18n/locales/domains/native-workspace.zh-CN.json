@@ -5,6 +5,7 @@
   "native-workspace.state_incomplete": "候选依据不完整",
   "native-workspace.state_sealed": "已在本地封存候选",
   "native-workspace.state_no_change": "源码无净变更",
+  "native-workspace.state_repair_no_change": "合并完成后无额外编辑",
   "native-workspace.state_prepared": "已准备封存 · 结果待确认",
   "native-workspace.state_open": "开发工作区仍开放",
   "native-workspace.state_unsealed": "尚未封存",

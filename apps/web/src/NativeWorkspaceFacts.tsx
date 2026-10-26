@@ -3,6 +3,7 @@ import type {WorkspaceEvidence} from './api';
 import type {NativeWorkspaceEvidence as NativeEvidence,NativeWorkspaceFileEffect as FileEffect,NativeWorkspaceCheckResult as CheckResult,NativeWorkspaceSeal as Seal} from '../../../packages/contracts/src';
 import {formatNumber,tr as t,useLocale} from './i18n';
 import {wellFormed} from './i18n/catalog';
+import {validConflictRepairEvidence} from './candidate-conflict-repair-evidence';
 import './NativeWorkspaceFacts.css';
 
 const object=(value:unknown):value is Record<string,unknown>=>value!==null&&typeof value==='object'&&!Array.isArray(value);
@@ -53,5 +54,6 @@ export function NativeWorkspaceFacts({evidence}:{evidence:WorkspaceEvidence}){
  const basisComplete=value.state==='closed'&&commit(evidence.head_commit)&&value.seal?.commit===evidence.head_commit&&commit(value.seal.tree)&&successful===value.checks.length;
  const sealState=value.seal?.state;
  const state=needsReconciliation?'unknown':sealState==='sealed'?(basisComplete&&value.seal!.changed_paths>0&&value.seal!.commit!==value.seal!.previous_commit?'sealed':'incomplete'):sealState==='no_change'?(basisComplete&&value.seal!.changed_paths===0&&value.seal!.commit===value.seal!.previous_commit?'no_change':'incomplete'):sealState==='prepared'?'prepared':value.state==='open'?'open':'unsealed';
- return <section className="native-workspace-facts"><h4>{t('native-workspace.title')}</h4><p className={'native-workspace-state'+(['unknown','incomplete'].includes(state)?' warning':'')}>{t('native-workspace.state_'+state)}</p><p className="native-workspace-summary"><span>{t('native-workspace.files',{count:formatNumber(value.files.length)})}</span><span>{needsReconciliation?t('native-workspace.checks_unknown'):value.checks.length?t('native-workspace.checks',{passed:formatNumber(successful),count:formatNumber(value.checks.length)}):t('native-workspace.no_checks')}</span></p><p className="muted">{t('native-workspace.boundary')}</p><OriginalFacts key={JSON.stringify(value)+String(evidence.head_commit)} value={value}/></section>;
+ const repair=evidence.candidate_conflict_repair,completedRepair=state==='no_change'&&validConflictRepairEvidence(repair,evidence)&&repair.state==='completed';
+ return <section className="native-workspace-facts"><h4>{t('native-workspace.title')}</h4><p className={'native-workspace-state'+(['unknown','incomplete'].includes(state)?' warning':'')}>{t(completedRepair?'native-workspace.state_repair_no_change':'native-workspace.state_'+state)}</p><p className="native-workspace-summary"><span>{t('native-workspace.files',{count:formatNumber(value.files.length)})}</span><span>{needsReconciliation?t('native-workspace.checks_unknown'):value.checks.length?t('native-workspace.checks',{passed:formatNumber(successful),count:formatNumber(value.checks.length)}):t('native-workspace.no_checks')}</span></p><p className="muted">{t('native-workspace.boundary')}</p><OriginalFacts key={JSON.stringify(value)+String(evidence.head_commit)} value={value}/></section>;
 }

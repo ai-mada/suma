@@ -59,6 +59,8 @@ var nativeCatalog = []Definition{
 	{Key: "native.usage.integer_literal_required", SourceTemplate: "Model usage counters must use exact integer literals", Texts: map[Locale]string{ZhCN: "模型用量计数必须使用精确整数字面量", EnUS: "Model usage counters must use exact integer literals"}},
 	{Key: "native.usage.invalid_counter", SourceTemplate: "Model usage counters must be nonnegative safe integers", Texts: map[Locale]string{ZhCN: "模型用量计数必须是非负安全整数", EnUS: "Model usage counters must be nonnegative safe integers"}},
 	{Key: "native.usage.lossless_unavailable", SourceTemplate: "Runtime cannot verify exact usage counters; Node22 JSON source context is required", Texts: map[Locale]string{ZhCN: "运行时无法验证精确用量计数，需要 Node22 JSON 原文上下文支持", EnUS: "Runtime cannot verify exact usage counters; Node22 JSON source context is required"}},
+	{Key: "native.workspace.merge_unresolved", SourceTemplate: "Resolve every active conflict before continuing the fixed merge.", Texts: map[Locale]string{ZhCN: "请解决全部当前冲突，再继续固定来源的合并。", EnUS: "Resolve every active conflict before continuing the fixed merge."}},
+	{Key: "native.workspace.merge_incomplete", SourceTemplate: "All frozen sources must be processed before sealing.", Texts: map[Locale]string{ZhCN: "全部固定来源处理完成后，才能封存候选。", EnUS: "All frozen sources must be processed before sealing."}},
 }
 
 // IsNativeMessageKey accepts only the fixed native diagnostic vocabulary. A
@@ -70,6 +72,8 @@ func IsNativeMessageKey(key string) bool {
 		"native.workspace.catalog",
 		"native.workspace.transport",
 		"native.workspace.effects",
+		"native.workspace.merge_unresolved",
+		"native.workspace.merge_incomplete",
 		"native.catalog.not_found",
 		"native.catalog.probe_exited",
 		"native.catalog.probe_failed",

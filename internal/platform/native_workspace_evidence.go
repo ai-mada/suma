@@ -3,6 +3,8 @@ package platform
 import (
 	"bytes"
 	"encoding/json"
+	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
+	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	nwc "github.com/ai-mada/suma/internal/nativeworkspacecontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
@@ -31,7 +33,18 @@ func validateNativeWorkspaceEvidence(proof map[string]any, tool *tc.Evidence) er
 		return invalid("原生编码证据尚未闭合或执行策略已变化")
 	}
 	seal := evidence.Seal
-	if seal == nil || seal.SchemaVersion != 1 || seal.PolicySHA256 != evidence.PolicySHA256 || seal.OperationID == "" || seal.Commit != proof["head_commit"] || seal.PreviousCommit != proof["base_commit"] || !gitRevision.MatchString(seal.Tree) || seal.ChangedPaths < 0 || seal.ChangedPaths > 2000 {
+	if seal == nil || seal.SchemaVersion != 1 || seal.PolicySHA256 != evidence.PolicySHA256 || seal.OperationID == "" || seal.Commit != proof["head_commit"] || !gitRevision.MatchString(seal.Tree) || seal.ChangedPaths < 0 || seal.ChangedPaths > 2000 {
+		return invalid("原生候选提交与固定封存依据不一致")
+	}
+	previous := proof["base_commit"]
+	if _, repair := proof["candidate_conflict_repair"]; repair || tool.Profile.ConflictRepairProtocol != "" {
+		prefix, err := nativeConflictRepairSealPrevious(proof, tool.Profile, *seal)
+		if err != nil {
+			return err
+		}
+		previous = prefix
+	}
+	if seal.PreviousCommit != previous {
 		return invalid("原生候选提交与固定封存依据不一致")
 	}
 	if seal.State != "sealed" && seal.State != "no_change" || seal.State == "sealed" && seal.Commit == seal.PreviousCommit || seal.State == "no_change" && (seal.Commit != seal.PreviousCommit || seal.ChangedPaths != 0) {
@@ -52,4 +65,58 @@ func validateNativeWorkspaceEvidence(proof map[string]any, tool *tc.Evidence) er
 		checks[check.CheckID] = true
 	}
 	return nil
+}
+
+// This validates only the structural relation between two received host facts.
+// It grants no repair authority: the result callback must separately validate
+// the exact durable execution, source bindings and candidate transfer in SQL.
+func nativeConflictRepairSealPrevious(proof map[string]any, profile tc.Profile, seal nwc.NativeWorkspaceSeal) (string, error) {
+	invalidSeal := func() (string, error) { return "", invalid("原生候选提交与固定封存依据不一致") }
+	if !candidateConflictRepairProfile(profile) || proof["state"] != "completed" || proof["clean"] != true || proof["outcome_unknown"] != false {
+		return invalidSeal()
+	}
+	raw, err := json.Marshal(proof["candidate_conflict_repair"])
+	if err != nil || len(raw) > 1<<20 {
+		return invalidSeal()
+	}
+	var fact ccmp.CandidateConflictRepairEvidence
+	d := json.NewDecoder(bytes.NewReader(raw))
+	d.DisallowUnknownFields()
+	if d.Decode(&fact) != nil || fact.Protocol != ccmp.CandidateConflictRepairProtocol || !handoffID(fact.PlanID, false) || fact.PlanVersion < 1 || !handoffID(fact.CompositionID, false) || fact.CompositionID == fact.PlanID || !fact.OriginalAssignment.Valid() || !cc.ValidHash(fact.OriginalEvidenceSHA256) || !cc.ValidHash(fact.SourcesSHA256) || !diagnosisID(fact.OperationID, 128) || fact.State != "completed" || !cc.ValidCommit(fact.ResultCommit) || !cc.ValidCommit(fact.ResultTree) || fact.ResultCommit != proof["head_commit"] || fact.ResultTree != seal.Tree || fact.OperationID != seal.OperationID || len(fact.SourceHeads) < 2 || len(fact.SourceHeads) > 16 || len(fact.MergeCommits) != len(fact.SourceHeads)-1 || len(fact.Steps) < 1 || len(fact.Steps) > len(fact.SourceHeads)-1 {
+		return invalidSeal()
+	}
+	base, ok := proof["base_commit"].(string)
+	if !ok || !cc.ValidCommit(base) {
+		return invalidSeal()
+	}
+	for _, commit := range append(append([]string{}, fact.SourceHeads...), fact.MergeCommits...) {
+		if !cc.ValidCommit(commit) || len(commit) != len(base) {
+			return invalidSeal()
+		}
+	}
+	first := fact.Steps[0].SourceIndex
+	if first < 1 || first >= len(fact.SourceHeads) || len(fact.Steps) != len(fact.SourceHeads)-first || !cc.ValidHash(fact.Steps[0].ConflictSHA256) {
+		return invalidSeal()
+	}
+	current := fact.SourceHeads[0]
+	if first > 1 {
+		current = fact.MergeCommits[first-2]
+	}
+	for i, step := range fact.Steps {
+		index := first + i
+		right := fact.SourceHeads[index]
+		if step.SourceIndex != index || step.LeftCommit != current || step.RightCommit != right || !cc.ValidCommit(step.SeedTree) || !cc.ValidCommit(step.ResultTree) || !cc.ValidCommit(step.ResultCommit) || len(step.SeedTree) != len(base) || len(step.ResultTree) != len(base) || len(step.ResultCommit) != len(base) || step.ResultCommit != fact.MergeCommits[index-1] || step.ConflictSHA256 != "" && !cc.ValidHash(step.ConflictSHA256) || len(step.Parents) < 1 || len(step.Parents) > 2 || step.Parents[0] != current || right == current && len(step.Parents) != 1 || right != current && (len(step.Parents) != 2 || step.Parents[1] != right) {
+			return invalidSeal()
+		}
+		current = step.ResultCommit
+	}
+	last := fact.Steps[len(fact.Steps)-1]
+	if fact.ResultCommit == current {
+		if fact.ResultTree != last.ResultTree || stringify(fact.Parents) != stringify(last.Parents) || seal.State != "no_change" || seal.ChangedPaths != 0 {
+			return invalidSeal()
+		}
+	} else if len(fact.Parents) != 1 || fact.Parents[0] != current || fact.ResultTree == last.ResultTree || seal.State != "sealed" || seal.ChangedPaths < 1 {
+		return invalidSeal()
+	}
+	return current, nil
 }

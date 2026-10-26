@@ -1,10 +1,16 @@
 # suma documentation
 
-## Current T-P4-031: candidate composition and development baselines — 1.0.0, locally verified
+## Current T-P4-032: governed conflict repair and recovery — 1.0.0, locally verified
+
+A fixed real source conflict creates a separate protected repair task. Host-owned ordered merges preserve genuine source lineage; an independent Runner tests the exact candidate before explicit review and an unstarted downstream baseline binding. A known pre-model failure was retained, then explicitly retried in the same run with a new attempt and fence. Three new runs, eight formal assertions and two local fixture-owner reviews are recorded. Six owned loopback model requests and six tool calls report no token usage; unknown usage is never inferred zero.
+
+Chinese/English, keyboard details, refresh and Control-only cold readback passed without repeated model or formal execution. The primary forward update adds one empty table to184, preserving business/authority/session facts; normal authorization lock counters are separately verified. See the [guide](candidate-conflict-repair.md), [verification](../quality/candidate-conflict-repair-verification.md) and [summary](../quality/candidate-conflict-repair-summary.json). Vendor inference, physical multi-host deployment, production acceptance and the full P0–P7 objective remain ongoing.
+
+## Historical T-P4-031: candidate composition and development baselines — 1.0.0, locally verified
 
 Two fixed accepted candidates are composed using native Git, then independently tested at the exact combined commit M. An explicit local fixture-owner review permits a protected baseline binding to unstarted task C. C develops from M, creates a new candidate, and receives its own independent tests and explicit review: two new runs and eight formal assertions across two Runners on one Windows host. Chinese/English UI, cold readback, original-operation recovery and the primary forward update are recorded. The original 180 table schemas and full rows remain unchanged, with three empty tables and one index added. See the [English guide](candidate-composition.md), [verification](../quality/candidate-composition-verification.md) and [summary](../quality/candidate-composition-summary.json).
 
-Owned local protocol fixtures do not establish vendor-model, physical multi-host or production acceptance. No model or vendor was called; unreported usage is not inferred zero tokens. Conflict repair, controlled recovery, all remaining requirements and the full P0–P7 scope continue in the [implementation ledger](../delivery/implementation-plan.md).
+Owned local protocol fixtures do not establish vendor-model, physical multi-host or production acceptance. No model or vendor was called; unreported usage is not inferred zero tokens. The031 evidence remains historical; further distributed recovery, all remaining requirements and the full P0–P7 scope continue in the [implementation ledger](../delivery/implementation-plan.md).
 
 ## Historical T-P4-030: failure diagnosis — 1.0.0, locally verified
 

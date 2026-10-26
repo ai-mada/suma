@@ -100,6 +100,13 @@ func (n *nativeWorkspace) loadLedger() error {
 			}
 			continue
 		}
+		if op.State == "prepared" && op.Kind == "merge_continue" {
+			if err = n.recoverRepairOperationLocked(op); err != nil {
+				n.ledger.Unknown = true
+				_ = n.saveLedger()
+			}
+			continue
+		}
 		n.ledger.Unknown = true
 	}
 	if _, _, verifyErr := n.verifySourceLocked(); verifyErr != nil {

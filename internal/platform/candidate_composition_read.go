@@ -11,6 +11,9 @@ import (
 )
 
 func (s *Service) compositionCurrentPreviewTx(ctx context.Context, auth *authorizedCommand, p CandidateCompositionPlan) error {
+	if p.ConflictBasis != nil {
+		return s.validateCandidateCompositionRepairTx(ctx, nil, auth, p)
+	}
 	clock, err := s.automationClock(ctx, auth.tx)
 	if err != nil {
 		return err
@@ -74,8 +77,18 @@ func (s *Service) candidateCompositionProjectionTx(ctx context.Context, auth *au
 				}
 				out.Valid = false
 				out.Blockers = append(out.Blockers, err.Error())
+				if api, ok := err.(*APIError); ok && api.Code == "candidate_composition_expired" && write && out.ConflictBasis != nil {
+					if _, e := s.refreshedCandidateCompositionRepairTx(ctx, auth, out); e == nil {
+						out.AllowedActions = append(out.AllowedActions, "refresh")
+					} else if !repositoryKnownError(e) {
+						return out, e
+					}
+				}
 			} else if write {
 				out.AllowedActions = append(out.AllowedActions, "start")
+				if out.ConflictBasis != nil {
+					out.AllowedActions = append(out.AllowedActions, "refresh")
+				}
 			}
 		}
 		return out, nil
@@ -263,6 +276,13 @@ func (s *Service) CandidateCompositionOptions(ctx context.Context, engine *dag.E
 		return out, err
 	}
 	out.CanCreate = write && run == "" && status != "accepted"
+	if e := s.rejectReservedCandidateRepairTaskTx(ctx, auth.tx, auth.target.tenantID, project, task, ""); e != nil {
+		if !repositoryKnownError(e) {
+			return out, e
+		}
+		out.CanCreate = false
+		out.Blockers = append(out.Blockers, compositionRepairTask)
+	}
 	if !out.CanCreate {
 		out.Blockers = append(out.Blockers, compositionStarted)
 	}

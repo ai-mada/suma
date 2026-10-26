@@ -14,4 +14,9 @@ var candidateCompositionCatalog = []Definition{
 	{Key: "candidate_composition.baseline", SourceTemplate: "Code baseline changed or is no longer accepted", Texts: map[Locale]string{ZhCN: "代码基线已变化或验收依据已失效", EnUS: "Code baseline changed or is no longer accepted"}},
 	{Key: "candidate_composition.started", SourceTemplate: "Code baseline requires an unstarted task", Texts: map[Locale]string{ZhCN: "代码基线只能绑定到尚未开始的任务", EnUS: "Code baseline requires an unstarted task"}},
 	{Key: "candidate_composition.unknown", SourceTemplate: "Candidate composition requires recovery of the original run", Texts: map[Locale]string{ZhCN: "请恢复原代码合成运行并核对结果", EnUS: "Candidate composition requires recovery of the original run"}},
+	{Key: "candidate_composition.conflict", SourceTemplate: "Candidate composition requires a known exact conflict with complete Git evidence", Texts: map[Locale]string{ZhCN: "代码合成需要准确已知的冲突及完整Git证据", EnUS: "Candidate composition requires a known exact conflict with complete Git evidence"}},
+	{Key: "candidate_composition.conflict_changed", Texts: map[Locale]string{ZhCN: "原冲突依据已变化或完整Git证据不足，请重新核对", EnUS: "Candidate composition requires a known exact conflict with complete Git evidence"}},
+	{Key: "candidate_composition.repair_profile", SourceTemplate: "Conflict repair requires an explicitly enabled native workspace tool profile", Texts: map[Locale]string{ZhCN: "冲突修复需要管理员明确启用的原生工作区工具配置", EnUS: "Conflict repair requires an explicitly enabled native workspace tool profile"}},
+	{Key: "candidate_composition.repair_task", SourceTemplate: "Conflict repair task must start through its fixed repair plan", Texts: map[Locale]string{ZhCN: "冲突修复任务必须从其固定修复计划启动", EnUS: "Conflict repair task must start through its fixed repair plan"}},
+	{Key: "candidate_composition.repair_capability", SourceTemplate: "invalid conflict repair capability", Texts: map[Locale]string{ZhCN: "冲突修复能力声明无效", EnUS: "invalid conflict repair capability"}},
 }

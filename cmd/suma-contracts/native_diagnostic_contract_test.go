@@ -1,6 +1,10 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/ai-mada/suma/internal/localization"
+)
 
 func TestNativeDiagnosticContractVersionAndEventScope(t *testing.T) {
 	api, _ := generate()
@@ -8,7 +12,7 @@ func TestNativeDiagnosticContractVersionAndEventScope(t *testing.T) {
 	if d["additionalProperties"] != false || mapAt(d, "properties", "schema_version")["const"] != 1 {
 		t.Fatal("unbounded native diagnostic schema")
 	}
-	if len(d["allOf"].([]any)) != 50 {
+	if len(d["allOf"].([]any)) != len(localization.NativeCatalog()) {
 		t.Fatal("parameter cases drifted from native catalog")
 	}
 	e := mapAt(api, "components", "schemas", "ToolEvent")

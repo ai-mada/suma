@@ -184,7 +184,12 @@ export function useWriteAction(options: WriteActionOptions = {}) {
             render(value => value + 1);
         }
     }
-    return { run, busy, error: renderDiagnostic(failure || state.error), setError, unknown, conflict, pending: state.pending ? structuredClone(state.pending.request) : undefined, persistenceBlocked: !!state.error, clearConflict: () => { if (holder.current?.pending)
+    // Keep authorization status separate from localized prose so a consumer can
+    // immediately hide protected facts after403, including a recovered write.
+    // This does not grant a retry, clear the original operation, or change scope.
+    const terminalFailure = state.pending?.outcome?.ok === false ? state.pending.outcome.error : undefined;
+    const httpFailure = [failure, state.error, terminalFailure].find((value): value is ApiError => value instanceof ApiError);
+    return { run, busy, error: renderDiagnostic(failure || state.error), errorStatus: httpFailure?.status, setError, unknown, conflict, pending: state.pending ? structuredClone(state.pending.request) : undefined, persistenceBlocked: !!state.error, clearConflict: () => { if (holder.current?.pending)
             return; setConflict(false); setError(''); } };
 }
 export type WriteAction = ReturnType<typeof useWriteAction>;

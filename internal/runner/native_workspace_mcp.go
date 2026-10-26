@@ -6,6 +6,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
+	ccc "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	"io"
 	"log/slog"
 	"net"
@@ -41,6 +42,12 @@ func nativeWorkspaceSchemas() map[string]map[string]any {
 	}
 }
 
+func nativeRepairSchemas() map[string]map[string]any {
+	sha := map[string]any{"type": "string", "pattern": "^[0-9a-f]{64}$", "minLength": 64, "maxLength": 64}
+	resolution := map[string]any{"type": "object", "additionalProperties": false, "properties": map[string]any{"path": map[string]any{"type": "string", "minLength": 1, "maxLength": 1024}, "expected_sha256": sha, "expected_absent": map[string]any{"type": "boolean", "const": true}}, "required": []string{"path"}, "oneOf": []any{map[string]any{"required": []string{"expected_sha256"}, "not": map[string]any{"required": []string{"expected_absent"}}}, map[string]any{"required": []string{"expected_absent"}, "not": map[string]any{"required": []string{"expected_sha256"}}}}}
+	return map[string]map[string]any{"merge_status": {"type": "object", "additionalProperties": false, "properties": map[string]any{}}, "merge_continue": {"type": "object", "additionalProperties": false, "properties": map[string]any{"expected_step": map[string]any{"type": "integer", "minimum": 1, "maximum": 15}, "expected_generation": map[string]any{"type": "integer", "minimum": 0, "maximum": 2048}, "expected_state_sha256": sha, "resolutions": map[string]any{"type": "array", "minItems": 1, "maxItems": 2000, "items": resolution}}, "required": []string{"expected_step", "expected_generation", "expected_state_sha256", "resolutions"}}}
+}
+
 type nativeWorkspaceFailure struct {
 	Error *NativeWorkspaceError `json:"error"`
 }
@@ -74,9 +81,17 @@ func (n *nativeWorkspace) StartMCP() (NativeWorkspaceBridge, error) {
 	host := listener.Addr().String()
 	server := mcp.NewServer(&mcp.Implementation{Name: "suma-native-workspace", Version: NativeWorkspaceVersion}, &mcp.ServerOptions{Logger: slog.New(slog.NewTextHandler(io.Discard, nil)), PageSize: 10, SetCacheable: func(_ context.Context, _ mcp.Request, c *mcp.Cacheable) { c.CacheScope = "private"; c.TTLMs = 0 }})
 	descriptions := map[string]string{"list": "List one directory in the current attempt workspace.", "read": "Read bounded UTF-8 source text with its full content hash.", "write": "Create or replace one text file using a content-hash precondition.", "edit": "Apply unique non-overlapping exact text replacements using a content-hash precondition.", "remove": "Remove one regular file using a content-hash precondition.", "check": "Run one administrator-pinned development check."}
-	for name, schema := range nativeWorkspaceSchemas() {
+	schemas := nativeWorkspaceSchemas()
+	if n.workspace.ConflictRepair != nil {
+		for name, schema := range nativeRepairSchemas() {
+			schemas[name] = schema
+		}
+		descriptions["merge_status"] = "Read the host-fixed merge cursor and exact unresolved conflict stages."
+		descriptions["merge_continue"] = "Explicitly resolve every current conflict using file hashes; the host preserves parents and processes remaining fixed sources until the next conflict."
+	}
+	for name, schema := range schemas {
 		name := name
-		readOnly := name == "list" || name == "read"
+		readOnly := name == "list" || name == "read" || name == "merge_status"
 		destructive := !readOnly
 		closed := false
 		mcp.AddTool[map[string]json.RawMessage, any](server, &mcp.Tool{Name: "suma_workspace_" + name, Description: descriptions[name], InputSchema: schema, Annotations: &mcp.ToolAnnotations{ReadOnlyHint: readOnly, IdempotentHint: true, DestructiveHint: &destructive, OpenWorldHint: &closed}}, func(ctx context.Context, req *mcp.CallToolRequest, _ map[string]json.RawMessage) (*mcp.CallToolResult, any, error) {
@@ -146,6 +161,9 @@ func (n *nativeWorkspace) StartMCP() (NativeWorkspaceBridge, error) {
 	})
 	n.server = &http.Server{Handler: handler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 70 * time.Second, WriteTimeout: 70 * time.Second, IdleTimeout: 5 * time.Second, MaxHeaderBytes: 16 << 10}
 	n.bridge = NativeWorkspaceBridge{Version: 1, Endpoint: "http://" + host + "/mcp", Token: token, PolicySHA256: n.policySHA, RequestID: digest([]byte(key(n.assignment)))}
+	if n.workspace.ConflictRepair != nil {
+		n.bridge.ConflictRepairProtocol = ccc.CandidateConflictRepairProtocol
+	}
 	go func() { _ = n.server.Serve(listener) }()
 	return n.bridge, nil
 }

@@ -122,6 +122,9 @@ func (s *Service) BindRunTx(ctx context.Context, tx *sql.Tx, auth *authorizedCom
 	if taskID == "" {
 		return nil
 	}
+	if err := s.checkReservedCandidateRepairRunTx(ctx, tx, p.TenantID, project, taskID, runID); err != nil {
+		return err
+	}
 	r, err := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, taskID))
 	if err != nil {
 		return missing()

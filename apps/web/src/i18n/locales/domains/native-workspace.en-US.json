@@ -5,6 +5,7 @@
   "native-workspace.state_incomplete": "Candidate basis incomplete",
   "native-workspace.state_sealed": "Candidate sealed locally",
   "native-workspace.state_no_change": "No net source change",
+  "native-workspace.state_repair_no_change": "No additional edits after completed merges",
   "native-workspace.state_prepared": "Sealing prepared · result pending",
   "native-workspace.state_open": "Development workspace open",
   "native-workspace.state_unsealed": "Not sealed",

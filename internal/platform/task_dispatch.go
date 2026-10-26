@@ -210,6 +210,9 @@ func (s *Service) buildTaskDispatchSnapshotTx(ctx context.Context, engine *dag.E
 		return out, err
 	}
 	tx, p := auth.tx, auth.currentPrincipal
+	if err = s.rejectReservedCandidateRepairTaskTx(ctx, tx, p.TenantID, project, request.TaskID, ""); err != nil {
+		return out, err
+	}
 	context, err := s.taskContextForDispatchTx(ctx, auth, project, request.TaskID, request.Knowledge)
 	if err != nil {
 		return out, err

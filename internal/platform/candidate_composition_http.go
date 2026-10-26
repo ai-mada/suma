@@ -98,6 +98,36 @@ func (s *Server) candidateCompositionHTTP(w http.ResponseWriter, r *http.Request
 		}
 		out, err := s.Service.CreateCandidateComposition(r.Context(), s.Engine, actor, project, req)
 		respond(w, http.StatusCreated, out, err)
+	case composition && len(parts) == 3 && parts[2] == "conflict" && r.Method == http.MethodGet:
+		// A current conflict projection is read from durable attempt evidence. A
+		// client-supplied path or prose error can never become repair authority.
+		out, err := s.Service.GetCandidateCompositionConflict(r.Context(), actor, project, parts[1])
+		respond(w, http.StatusOK, out, err)
+	case composition && len(parts) == 3 && parts[2] == "repairs" && r.Method == http.MethodPost:
+		var req CandidateCompositionRepairCreateRequest
+		if reject(projectKnowledgeRequired(body, "project_id", "expected_composition_version", "expected_conflict_sha256", "repair", "workflow_id", "workflow_version", "producer_node_id", "tool_profile_id", "expected_tool_version", "idempotency_key")) || reject(compositionBodyIntegers(body, "expected_composition_version", "workflow_version", "expected_tool_version")) || reject(strictAutomation(body, &req)) {
+			return true
+		}
+		repair, ok := body["repair"].(map[string]any)
+		if !ok {
+			writeError(w, invalid(compositionInvalid))
+			return true
+		}
+		// Optional means omitted, not an untyped/null value. Keep the public
+		// string contract intact before Go's decoder can turn null into "".
+		for _, field := range []string{"priority", "owner_id"} {
+			if value, exists := repair[field]; exists {
+				if _, typed := value.(string); !typed {
+					writeError(w, invalid(compositionInvalid))
+					return true
+				}
+			}
+		}
+		if reject(projectKnowledgeRequired(repair, "title", "description", "acceptance_criteria")) {
+			return true
+		}
+		out, err := s.Service.CreateCandidateCompositionRepair(r.Context(), s.Engine, actor, project, parts[1], req)
+		respond(w, http.StatusCreated, out, err)
 	case composition && len(parts) == 2 && r.Method == http.MethodGet:
 		out, err := s.Service.GetCandidateComposition(r.Context(), s.Engine, actor, project, parts[1])
 		respond(w, http.StatusOK, out, err)

@@ -3,6 +3,9 @@ import {createInterface} from 'node:readline';
 import {runAgent,planningCapability,knowledgeExtractionCapability,failureDiagnosisCapability,type AgentRequest,type RuntimeConfig} from './index.js';
 import {nativeOptions,nativeHelp,nativeDisplay} from './display.js';
 import type {WorkspaceBridge} from './workspace-client.js';
+import {conflictRepairCapability} from './workspace-client.js';
+// Fixed offline host capability probe. No model, control token or bridge opens.
+if(process.argv.length===3&&process.argv[2]==='--conflict-repair-probe'){process.stdout.write(JSON.stringify(conflictRepairCapability())+'\n');process.exit(0);}
 const options=nativeOptions(process.argv.slice(2),process.env);
 if(options.error){process.stderr.write(nativeDisplay(options.error,options.locale)!.localized_message+'\n');process.exit(2);}
 if(options.action==='version'){process.stdout.write('suma-agent-runtime 1.0.0\n');process.exit(0);}

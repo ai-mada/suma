@@ -199,7 +199,7 @@ func composeCandidateTrees(ctx context.Context, w *attemptWorkspace, e ccc.Candi
 	current := e.Sources[0].HeadCommit
 	for i := 1; i < len(e.Sources); i++ {
 		next := e.Sources[i].HeadCommit
-		raw, err := compositionGit(ctx, bare, 1<<20, nil, "merge-tree", "--write-tree", "--name-only", "--no-messages", "-z", current, next)
+		raw, err := compositionGit(ctx, bare, 1<<20, nil, "merge-tree", "--write-tree", "--no-messages", "-z", current, next)
 		if err != nil {
 			var exit *exec.ExitError
 			if !errors.As(err, &exit) || exit.ExitCode() != 1 {
@@ -209,22 +209,19 @@ func composeCandidateTrees(ctx context.Context, w *attemptWorkspace, e ccc.Candi
 			if len(parts) < 2 || !commitID.MatchString(string(parts[0])) {
 				return facts, fmt.Errorf("composition conflict evidence is invalid")
 			}
-			total := 0
-			for _, p := range parts[1:] {
-				if len(p) == 0 {
-					continue
-				}
-				total += len(p)
-				if !utf8.Valid(p) || total > 64<<10 {
-					return facts, fmt.Errorf("composition conflict paths exceed the supported report bound")
-				}
-				facts.Conflicts = append(facts.Conflicts, string(p))
-			}
-			if len(facts.Conflicts) == 0 {
-				return facts, fmt.Errorf("composition conflict paths are unavailable")
+			facts.ConflictTree = string(parts[0])
+			facts.ConflictStages, facts.Conflicts, err = parseCompositionConflictStages(parts[1:], len(e.BaseCommit))
+			if err != nil {
+				return facts, err
 			}
 			facts.State = "conflicted"
+			facts.ResultCommit = ""
+			facts.ResultTree = ""
 			facts.ConflictSourceIndex = i
+			facts.ConflictSHA256, err = ccc.CandidateCompositionConflictDigest(facts)
+			if err != nil {
+				return facts, err
+			}
 			intent.Evidence = facts
 			if err = saveCompositionIntent(intentPath, intent); err != nil {
 				return facts, err

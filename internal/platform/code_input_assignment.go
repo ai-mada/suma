@@ -17,12 +17,13 @@ func codeInputAssignmentRef(a dag.Assignment) cc.AssignmentRef {
 	return cc.AssignmentRef{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, TenantID: a.TenantID, ProjectID: a.ProjectID, PoolID: a.PoolID, PoolRunnerID: a.PoolRunnerID, PoolSlotID: a.PoolSlotID, PoolGrantID: a.PoolGrantID, PoolGrantVersion: a.PoolGrantVersion, PoolCredentialID: a.PoolCredentialID, PoolCredentialVersion: a.PoolCredentialVersion, DispatchID: a.DispatchID, DispatchState: a.DispatchState, LeaseUntil: a.LeaseUntil}
 }
 
-// Only platform-bound nodes can advertise either special input mode. An
+// Only platform-bound nodes can advertise a protected input mode. An
 // ordinary published command/config cannot acquire cross-run code access.
 func (s *Service) codeInputNodeEligibleTx(ctx context.Context, tx *sql.Tx, tenant, project, run, node string, spec dag.Node) (bool, error) {
 	declaredComposition := spec.Config["purpose"] == "candidate_composition" || len(spec.Command) == 1 && spec.Command[0] == ccmp.CompositionCommand
 	declaredBaseline := spec.Config["code_baseline"] != nil
-	if !declaredComposition && !declaredBaseline {
+	declaredRepair := spec.Config["purpose"] == "candidate_conflict_repair" || spec.Config["candidate_conflict_repair"] != nil
+	if !declaredComposition && !declaredBaseline && !declaredRepair {
 		return true, nil
 	}
 	composition, err := s.readCandidateCompositionExecutionTx(ctx, tx, tenant, project, run, node)
@@ -33,13 +34,26 @@ func (s *Service) codeInputNodeEligibleTx(ctx context.Context, tx *sql.Tx, tenan
 	if err != nil {
 		return false, err
 	}
-	if declaredComposition != (composition != nil) || declaredBaseline != (baseline != nil) || composition != nil && baseline != nil {
+	repair, err := s.readCandidateCompositionRepairExecutionTx(ctx, tx, tenant, project, run, node)
+	if err != nil {
+		return false, err
+	}
+	modes := 0
+	for _, present := range []bool{composition != nil, baseline != nil, repair != nil} {
+		if present {
+			modes++
+		}
+	}
+	if declaredComposition != (composition != nil) || declaredBaseline != (baseline != nil) || declaredRepair != (repair != nil) || modes > 1 {
 		return false, nil
 	}
 	if composition != nil && (spec.Type != "command" || len(spec.Command) != 1 || spec.Command[0] != ccmp.CompositionCommand || spec.Config["candidate_from"] != nil) {
 		return false, nil
 	}
 	if baseline != nil && (spec.Type != "agent" || spec.Config["candidate_from"] != nil || !sameCodeBaselineValue(spec.Config["code_baseline"], *baseline)) {
+		return false, nil
+	}
+	if repair != nil && (spec.Type != "agent" || spec.Config["purpose"] != "candidate_conflict_repair" || spec.Config["candidate_from"] != nil) {
 		return false, nil
 	}
 	return true, nil
@@ -77,6 +91,13 @@ func (s *Service) validateCandidateInputAnchorTx(ctx context.Context, tx *sql.Tx
 	if composition != nil && (request.BaseCommit != composition.BaseCommit || request.BundleBase() != composition.BaseCommit) {
 		return compositionError(409, "changed", compositionChanged)
 	}
+	repair, err := s.readCandidateCompositionRepairExecutionTx(ctx, tx, tenant, project, request.Assignment.RunID, request.Assignment.NodeID)
+	if err != nil {
+		return err
+	}
+	if repair != nil && (request.BaseCommit != repair.Composition.BaseCommit || request.BundleBase() != repair.Composition.BaseCommit) {
+		return compositionError(409, "changed", compositionChanged)
+	}
 	if request.BundleBase() != request.BaseCommit {
 		return compositionError(409, "baseline_changed", compositionBaseline)
 	}
@@ -86,7 +107,7 @@ func (s *Service) validateCandidateInputAnchorTx(ctx context.Context, tx *sql.Tx
 // Decoration happens after the durable claim; recovery uses the same claim
 // operation. No new run is created when this current-authority check fails.
 func (s *Service) decorateCodeInputAssignment(ctx context.Context, subject candidateSubject, a *dag.Assignment) error {
-	if a == nil || a.Config["purpose"] != "candidate_composition" && a.Config["code_baseline"] == nil {
+	if a == nil || a.Config["purpose"] != "candidate_composition" && a.Config["purpose"] != "candidate_conflict_repair" && a.Config["code_baseline"] == nil {
 		return nil
 	}
 	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
@@ -113,6 +134,10 @@ func (s *Service) decorateCodeInputAssignment(ctx context.Context, subject candi
 		return err
 	}
 	a.CandidateComposition, err = s.readCandidateCompositionExecutionTx(ctx, tx, subject.tenant, subject.project, a.RunID, a.NodeID)
+	if err != nil {
+		return err
+	}
+	a.CandidateConflictRepair, err = s.readCandidateCompositionRepairExecutionTx(ctx, tx, subject.tenant, subject.project, a.RunID, a.NodeID)
 	if err != nil {
 		return err
 	}

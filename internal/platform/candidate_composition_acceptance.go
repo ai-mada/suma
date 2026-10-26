@@ -42,13 +42,18 @@ func (s *Service) checkCandidateCompositionAcceptanceTx(ctx context.Context, tx 
 	if err != nil {
 		return err
 	}
-	if found && (r.Execution == nil || r.Plan.RunID != run || r.Execution.PlanID != r.Plan.ID || r.Execution.PlanVersion != r.Plan.Version || ccmp.ValidateCandidateCompositionExecution(*r.Execution) != nil) {
+	if found && (r.Plan.RunID != run || !validCandidateCompositionExecutionRecord(r)) {
 		return compositionError(409, "source_changed", compositionSource)
 	}
 	walk.visiting[key] = true
 	walk.depth++
 	defer func() { delete(walk.visiting, key); walk.depth-- }()
 	if found {
+		if r.Plan.ConflictBasis != nil {
+			if err = s.checkCompositionConflictBasisTx(ctx, tx, p.TenantID, project, *r.Plan.ConflictBasis); err != nil {
+				return err
+			}
+		}
 		if err = s.checkCompositionSourcesTx(ctx, tx, p, r.Plan); err != nil {
 			return err
 		}
@@ -124,7 +129,7 @@ func (s *Service) checkCodeBaselineAcceptanceTx(ctx context.Context, tx *sql.Tx,
 			if err != nil {
 				return err
 			}
-			if source.Plan.Version != binding.CompositionVersion || source.Plan.RunID == "" || source.Execution == nil {
+			if source.Plan.Version != binding.CompositionVersion || source.Plan.RunID == "" || !validCandidateCompositionExecutionRecord(source) {
 				return compositionError(409, "baseline_changed", compositionBaseline)
 			}
 			if err = s.checkCandidateCompositionAcceptanceTx(ctx, tx, p, project, source.Plan.RunID); err != nil {

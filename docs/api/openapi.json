@@ -718,6 +718,16 @@
               }
             ]
           },
+          "candidate_conflict_repair": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CandidateConflictRepairExecution"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "candidate_evidence_sha256": {
             "type": "string"
           },
@@ -2343,7 +2353,10 @@
         "additionalProperties": false,
         "properties": {
           "action": {
-            "const": "dismiss",
+            "enum": [
+              "dismiss",
+              "refresh"
+            ],
             "type": "string"
           },
           "expected_version": {
@@ -2369,6 +2382,117 @@
           "action",
           "reason",
           "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "CandidateCompositionConflictBasis": {
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/CandidateAssignmentRef"
+          },
+          "attempt": {
+            "type": "integer"
+          },
+          "composition_id": {
+            "type": "string"
+          },
+          "composition_version": {
+            "type": "integer"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/CandidateCompositionEvidence"
+          },
+          "evidence_sha256": {
+            "type": "string"
+          },
+          "fence": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "result_sha256": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "run_version": {
+            "type": "integer"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "task_version": {
+            "type": "integer"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "composition_id",
+          "composition_version",
+          "task_id",
+          "task_version",
+          "run_id",
+          "run_version",
+          "node_id",
+          "attempt",
+          "fence",
+          "worker_id",
+          "assignment",
+          "result_sha256",
+          "evidence_sha256",
+          "evidence",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "CandidateCompositionConflictContext": {
+        "properties": {
+          "basis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CandidateCompositionConflictBasis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "can_create": {
+            "type": "boolean"
+          },
+          "composition_id": {
+            "type": "string"
+          },
+          "composition_version": {
+            "type": "integer"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "repair_plan_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "composition_id",
+          "composition_version",
+          "repair_plan_id",
+          "can_create",
+          "blockers"
         ],
         "type": "object"
       },
@@ -2428,8 +2552,20 @@
           "base_commit": {
             "type": "string"
           },
+          "conflict_sha256": {
+            "type": "string"
+          },
           "conflict_source_index": {
             "type": "integer"
+          },
+          "conflict_stages": {
+            "items": {
+              "$ref": "#/components/schemas/CandidateConflictStage"
+            },
+            "type": "array"
+          },
+          "conflict_tree": {
+            "type": "string"
           },
           "conflicts": {
             "items": {
@@ -2603,6 +2739,39 @@
         "type": "object"
       },
       "CandidateCompositionPlan": {
+        "allOf": [
+          {
+            "else": {
+              "properties": {
+                "strategy": {
+                  "const": "merge_commit"
+                }
+              }
+            },
+            "if": {
+              "properties": {
+                "conflict_basis": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "conflict_basis"
+              ]
+            },
+            "then": {
+              "properties": {
+                "strategy": {
+                  "const": "conflict_repair"
+                }
+              },
+              "required": [
+                "tool_profile_id",
+                "tool_profile_version",
+                "tool_profile_sha256"
+              ]
+            }
+          }
+        ],
         "properties": {
           "admin_base_commit": {
             "type": "string"
@@ -2623,6 +2792,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/CandidateBinding"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "conflict_basis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CandidateCompositionConflictBasis"
               },
               {
                 "type": "null"
@@ -2681,7 +2860,10 @@
             "type": "string"
           },
           "strategy": {
-            "const": "merge_commit",
+            "enum": [
+              "merge_commit",
+              "conflict_repair"
+            ],
             "type": "string"
           },
           "task_basis_sha256": {
@@ -2694,6 +2876,15 @@
             "type": "string"
           },
           "task_version": {
+            "type": "integer"
+          },
+          "tool_profile_id": {
+            "type": "string"
+          },
+          "tool_profile_sha256": {
+            "type": "string"
+          },
+          "tool_profile_version": {
             "type": "integer"
           },
           "valid": {
@@ -2741,6 +2932,106 @@
           "valid",
           "blockers",
           "allowed_actions"
+        ],
+        "type": "object"
+      },
+      "CandidateCompositionRepairCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_composition_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_conflict_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "expected_tool_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "producer_node_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "repair": {
+            "$ref": "#/components/schemas/CandidateCompositionRepairDraft"
+          },
+          "tool_profile_id": {
+            "type": "string"
+          },
+          "workflow_id": {
+            "type": "string"
+          },
+          "workflow_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_composition_version",
+          "expected_conflict_sha256",
+          "repair",
+          "workflow_id",
+          "workflow_version",
+          "producer_node_id",
+          "tool_profile_id",
+          "expected_tool_version",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "CandidateCompositionRepairDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptance_criteria": {
+            "items": {
+              "maxLength": 1000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "description": {
+            "maxLength": 16000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "owner_id": {
+            "type": "string"
+          },
+          "priority": {
+            "default": "medium",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "description",
+          "acceptance_criteria"
         ],
         "type": "object"
       },
@@ -2830,6 +3121,208 @@
           "expected_version",
           "acknowledge",
           "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "CandidateConflictRepairEvidence": {
+        "properties": {
+          "composition_id": {
+            "type": "string"
+          },
+          "merge_commits": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "operation_id": {
+            "type": "string"
+          },
+          "original_assignment": {
+            "$ref": "#/components/schemas/CandidateAssignmentRef"
+          },
+          "original_evidence_sha256": {
+            "type": "string"
+          },
+          "parents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "plan_id": {
+            "type": "string"
+          },
+          "plan_version": {
+            "type": "integer"
+          },
+          "protocol": {
+            "const": "suma.candidate-conflict-repair.v1",
+            "type": "string"
+          },
+          "result_commit": {
+            "type": "string"
+          },
+          "result_tree": {
+            "type": "string"
+          },
+          "source_heads": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sources_sha256": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/CandidateConflictRepairStep"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "protocol",
+          "plan_id",
+          "plan_version",
+          "composition_id",
+          "original_assignment",
+          "original_evidence_sha256",
+          "sources_sha256",
+          "operation_id",
+          "state",
+          "steps",
+          "parents",
+          "source_heads",
+          "merge_commits"
+        ],
+        "type": "object"
+      },
+      "CandidateConflictRepairExecution": {
+        "properties": {
+          "composition": {
+            "$ref": "#/components/schemas/CandidateCompositionExecution"
+          },
+          "composition_id": {
+            "type": "string"
+          },
+          "composition_version": {
+            "type": "integer"
+          },
+          "conflict": {
+            "$ref": "#/components/schemas/CandidateCompositionEvidence"
+          },
+          "fixed_timestamp": {
+            "type": "string"
+          },
+          "instructions": {
+            "type": "string"
+          },
+          "operation_id": {
+            "type": "string"
+          },
+          "original_assignment": {
+            "$ref": "#/components/schemas/CandidateAssignmentRef"
+          },
+          "original_evidence_sha256": {
+            "type": "string"
+          },
+          "plan_id": {
+            "type": "string"
+          },
+          "plan_version": {
+            "type": "integer"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "protocol": {
+            "const": "suma.candidate-conflict-repair.v1",
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol",
+          "plan_id",
+          "plan_version",
+          "project_id",
+          "composition_id",
+          "composition_version",
+          "original_assignment",
+          "original_evidence_sha256",
+          "composition",
+          "conflict",
+          "instructions",
+          "fixed_timestamp",
+          "operation_id"
+        ],
+        "type": "object"
+      },
+      "CandidateConflictRepairStep": {
+        "properties": {
+          "conflict_sha256": {
+            "type": "string"
+          },
+          "left_commit": {
+            "type": "string"
+          },
+          "parents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "result_commit": {
+            "type": "string"
+          },
+          "result_tree": {
+            "type": "string"
+          },
+          "right_commit": {
+            "type": "string"
+          },
+          "seed_tree": {
+            "type": "string"
+          },
+          "source_index": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "source_index",
+          "left_commit",
+          "right_commit",
+          "seed_tree",
+          "result_commit",
+          "result_tree",
+          "parents"
+        ],
+        "type": "object"
+      },
+      "CandidateConflictStage": {
+        "properties": {
+          "mode": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "path",
+          "mode",
+          "object",
+          "stage"
         ],
         "type": "object"
       },
@@ -3083,7 +3576,8 @@
           "input_kind": {
             "enum": [
               "composition",
-              "code_baseline"
+              "code_baseline",
+              "conflict_repair"
             ],
             "type": "string"
           },
@@ -17534,6 +18028,48 @@
                 }
               }
             }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.workspace.merge_unresolved"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.workspace.merge_incomplete"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
           }
         ],
         "description": "Versioned native diagnostic identity only. No locale or rendered prose. Requires full canonical-source equality with ToolEvent.message; never grants authority or changes terminal/usage/test evidence.",
@@ -17592,7 +18128,9 @@
               "native.usage.conflicting_counters",
               "native.usage.integer_literal_required",
               "native.usage.invalid_counter",
-              "native.usage.lossless_unavailable"
+              "native.usage.lossless_unavailable",
+              "native.workspace.merge_unresolved",
+              "native.workspace.merge_incomplete"
             ],
             "type": "string"
           },
@@ -17934,6 +18472,9 @@
           },
           "command_id": {
             "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+            "type": "string"
+          },
+          "conflict_repair_protocol": {
             "type": "string"
           },
           "executable_sha256": {
@@ -25304,6 +25845,397 @@
               }
             },
             "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/candidate-compositions/{id}/conflict": {
+      "get": {
+        "description": "Current-scoped fixed accepted sources -\u003e explicit managed composition task -\u003e independent tests of the exact composed candidate -\u003e original human task review. Protected development baseline binding is explicit and versioned. No automatic acceptance, target mutation, latest-source selection or unknown execution retry.",
+        "operationId": "get_candidate-compositions_id_conflict",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateCompositionConflictContext"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/candidate-compositions/{id}/repairs": {
+      "post": {
+        "description": "Current-scoped fixed accepted sources -\u003e explicit managed composition task -\u003e independent tests of the exact composed candidate -\u003e original human task review. Protected development baseline binding is explicit and versioned. No automatic acceptance, target mutation, latest-source selection or unknown execution retry.",
+        "operationId": "post_candidate-compositions_id_repairs",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CandidateCompositionRepairCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateCompositionPlan"
+                }
+              }
+            },
+            "description": "Created",
             "headers": {
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",

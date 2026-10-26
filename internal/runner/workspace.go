@@ -40,6 +40,7 @@ type attemptWorkspace struct {
 	candidateImport       *cc.ImportReceipt
 	nativeEvidence        *NativeWorkspaceEvidence
 	CompositionEvidence   *ccc.CandidateCompositionEvidence `json:"candidate_composition,omitempty"`
+	ConflictRepair        *candidateRepairState             `json:"candidate_conflict_repair,omitempty"`
 	compositionClient     *Client
 	compositionGitVersion string
 	compositionGitSHA256  string
@@ -250,6 +251,9 @@ func workspaceConfig(ctx context.Context, cfg ExecConfig) (string, string, error
 	return repo, root, nil
 }
 func prepareWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, spec CommandSpec) (*attemptWorkspace, error) {
+	if a.CandidateConflictRepair != nil {
+		return prepareConflictRepairWorkspace(ctx, a, cfg, spec)
+	}
 	if a.RunID == "" || a.NodeID == "" || a.WorkerID == "" || a.Attempt < 1 || a.Fence < 1 {
 		return nil, fmt.Errorf("write command requires complete assignment identity")
 	}
@@ -349,7 +353,17 @@ func (a *attemptWorkspace) capture(ctx context.Context, result Result) (map[stri
 	if err != nil || top != source {
 		return nil, fmt.Errorf("attempt Git identity changed")
 	}
-	expectedCommon, err := gitText(ctx, a.Repository, "rev-parse", "--path-format=absolute", "--git-common-dir")
+	expectedRepository := a.Repository
+	if a.ConflictRepair != nil {
+		if a.Assignment.CandidateConflictRepair == nil || a.ConflictRepair.Repository != filepath.Join(a.Directory, "repair.git") || !within(filepath.Join(a.Repository, ".cache"), a.Directory) {
+			return nil, fmt.Errorf("repair evidence repository identity changed")
+		}
+		expectedRepository = a.ConflictRepair.Repository
+		if resolved, e := realDirectory(expectedRepository); e != nil || resolved != expectedRepository {
+			return nil, fmt.Errorf("repair evidence repository traverses a link")
+		}
+	}
+	expectedCommon, err := gitText(ctx, expectedRepository, "rev-parse", "--path-format=absolute", "--git-common-dir")
 	if err != nil {
 		return nil, err
 	}
@@ -457,6 +471,9 @@ func (a *attemptWorkspace) capture(ctx context.Context, result Result) (map[stri
 	}
 	evidence := map[string]any{"attempt_key": a.AttemptKey, "base_commit": a.BaseCommit, "head_commit": head, "state": a.State, "exit_code": result.ExitCode, "outcome_unknown": result.OutcomeUnknown, "test_command": a.TestCommand, "clean": len(status) == 0, "diff_sha256": digest(diff), "status_sha256": digest(status), "untracked_sha256": digest(inv), "captured_at": time.Now().UTC().Format(time.RFC3339Nano)}
 	evidence["admin_base_commit"] = a.AdminBaseCommit
+	if a.ConflictRepair != nil {
+		evidence["candidate_conflict_repair"] = a.ConflictRepair.Evidence
+	}
 	if a.Assignment.CodeBaseline != nil {
 		evidence["code_baseline"] = a.Assignment.CodeBaseline
 	}

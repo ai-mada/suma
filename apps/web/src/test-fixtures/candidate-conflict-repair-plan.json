@@ -1,0 +1,233 @@
+{
+  "conflict_basis": {
+    "composition_id": "fixture-id-1",
+    "composition_version": 2,
+    "task_id": "fixture-id-2",
+    "task_version": 2,
+    "run_id": "composition-fixture-id-1",
+    "run_version": 3,
+    "node_id": "code",
+    "attempt": 1,
+    "fence": 1,
+    "worker_id": "fixture-worker-1",
+    "assignment": {
+      "run_id": "composition-fixture-id-1",
+      "node_id": "code",
+      "attempt": 1,
+      "fence": 1,
+      "worker_id": "fixture-worker-1"
+    },
+    "result_sha256": "53bda118edf0040c345626fc876ff991ce77ede77b01cf11a15cdc5ff20426cc",
+    "evidence_sha256": "045a06bdafac692eb7f34b26679f9548b2ddd0c8637bfada7d9db3c6de5f5a98",
+    "evidence": {
+      "protocol": "suma.candidate-composition.v1",
+      "plan_id": "fixture-id-1",
+      "plan_version": 2,
+      "sources_sha256": "d9cb1cac9e327ec781a3bf5b7a7c60e9511321b861e3b6eecb3845fe73686d77",
+      "operation_id": "composition-fixture-id-1",
+      "base_commit": "0f6c3ed0a39554a58f8e26c2ab7552d5b58c70dd",
+      "state": "conflicted",
+      "parents": [],
+      "source_heads": [
+        "cd70fc87426657319be9ab1a4fceadc510bd0d52",
+        "0106c0c85fc47d302f72ebd88195df85c7d4c49c"
+      ],
+      "merge_commits": [],
+      "conflicts": [
+        "harness_feature.py"
+      ],
+      "conflict_source_index": 1,
+      "conflict_tree": "c7cfdb04b1b6384200b29d050a9f9bcc0104dae8",
+      "conflict_stages": [
+        {
+          "path": "harness_feature.py",
+          "mode": "100644",
+          "object": "f7a378fa4eefc89810a88e4e0a713c0e69105fff",
+          "stage": 2
+        },
+        {
+          "path": "harness_feature.py",
+          "mode": "100644",
+          "object": "dd9bedcaafe8af09d26a01c80744fe22b6f9b974",
+          "stage": 3
+        }
+      ],
+      "conflict_sha256": "4945ef4afb67e34e6854f235bc0f420d93b614684a0cec1eb8c1ac8a61327d54"
+    },
+    "sha256": "857943c4b9e241d5cca13dbda10bbd631fb990163f43eec616a968b8b2edcee9"
+  },
+  "tool_profile_id": "fixture-id-3",
+  "tool_profile_version": 2,
+  "tool_profile_sha256": "bf651eec8a8290cf5d2a100ced967fc71855347996605f8798000d656c4f44d1",
+  "id": "fixture-id-4",
+  "project_id": "fixture-id-5",
+  "version": 1,
+  "state": "ready",
+  "task_id": "fixture-id-6",
+  "task_version": 1,
+  "task_basis_sha256": "a5684820cb44fa92e2cd519d54c874727d99ae6a19c1e9048739ba81ff1bf6a5",
+  "workflow_id": "fixture-id-7",
+  "workflow_version": 1,
+  "producer_node_id": "code",
+  "strategy": "conflict_repair",
+  "admin_base_commit": "0f6c3ed0a39554a58f8e26c2ab7552d5b58c70dd",
+  "sources_sha256": "d9cb1cac9e327ec781a3bf5b7a7c60e9511321b861e3b6eecb3845fe73686d77",
+  "sources": [
+    {
+      "task_id": "fixture-id-8",
+      "task_version": 3,
+      "run_id": "fixture-id-9",
+      "source_node_id": "code",
+      "source": {
+        "schema_version": 1,
+        "transfer_id": "fixture-id-10",
+        "project_id": "fixture-id-5",
+        "state": "sealed",
+        "source": {
+          "run_id": "fixture-id-9",
+          "node_id": "code",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "fixture-worker-1"
+        },
+        "base_commit": "0f6c3ed0a39554a58f8e26c2ab7552d5b58c70dd",
+        "head_commit": "cd70fc87426657319be9ab1a4fceadc510bd0d52",
+        "evidence_sha256": "9dbe51513ecbc35153f2feffcbf3da5cd4f3312a2b99891fb9d2955d1d59c4da",
+        "bundle_sha256": "eebf07a618479f6aad7aa0807bdef0cce3c8dd866efcbfd2bb63123d7dd99102",
+        "size_bytes": 719
+      },
+      "accepted_task_basis": {
+        "id": "fixture-id-8",
+        "version": 3,
+        "run_id": "fixture-id-9",
+        "review_id": "fixture-id-11",
+        "sha256": "06b21043044a1db8fca3c0a06a712ee37d487efcb8c49f71da46cab354a973f9"
+      },
+      "basis_sha256": "9c501c30cd226a4c1cc3a37fd5e8171919c7d7a659012c97631ab4cd99653205"
+    },
+    {
+      "task_id": "fixture-id-12",
+      "task_version": 3,
+      "run_id": "fixture-id-13",
+      "source_node_id": "code",
+      "source": {
+        "schema_version": 1,
+        "transfer_id": "fixture-id-14",
+        "project_id": "fixture-id-5",
+        "state": "sealed",
+        "source": {
+          "run_id": "fixture-id-13",
+          "node_id": "code",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "fixture-worker-1"
+        },
+        "base_commit": "0f6c3ed0a39554a58f8e26c2ab7552d5b58c70dd",
+        "bundle_base_commit": "0f6c3ed0a39554a58f8e26c2ab7552d5b58c70dd",
+        "head_commit": "0106c0c85fc47d302f72ebd88195df85c7d4c49c",
+        "evidence_sha256": "90ee4890bb4e0baf5eee16eead0f783be7754aa8c4196d5c75adaa11bf834fbb",
+        "bundle_sha256": "66a4a393325ec75964ce36cdef1346b3887b73249df9137558f35541acc75d91",
+        "size_bytes": 749
+      },
+      "accepted_task_basis": {
+        "id": "fixture-id-12",
+        "version": 3,
+        "run_id": "fixture-id-13",
+        "review_id": "fixture-id-15",
+        "sha256": "90bc196a5021e88b1c2372b2bb73882ca68c6ddb512486baed86ef136af248c9"
+      },
+      "basis_sha256": "d4e84366a137c7cf00763f0d00e252ff1af69bd7ec7fe605ec140d930e8344d0"
+    }
+  ],
+  "context": {
+    "task": {
+      "id": "fixture-id-6",
+      "version": 1,
+      "title": "Captured title fixture",
+      "description": "Captured description fixture",
+      "acceptance_criteria": [
+        "Captured acceptance criteria fixture",
+        "Captured acceptance criteria fixture",
+        "Captured acceptance criteria fixture",
+        "Captured acceptance criteria fixture"
+      ]
+    }
+  },
+  "workflow": {
+    "id": "fixture-id-7",
+    "name": "Captured name fixture",
+    "version": 1,
+    "nodes": [
+      {
+        "id": "code",
+        "name": "Captured name fixture",
+        "type": "agent",
+        "command": [
+          "native-repair-032"
+        ],
+        "depends_on": null,
+        "join": "all_success",
+        "quorum": 0,
+        "timeout_seconds": 300,
+        "max_retries": 0,
+        "idempotent": true,
+        "config": {
+          "goal": "Captured goal fixture",
+          "max_output_tokens": 65536,
+          "max_steps": 64,
+          "purpose": "candidate_conflict_repair",
+          "tool_profile_id": "fixture-id-3",
+          "tool_profile_sha256": "bf651eec8a8290cf5d2a100ced967fc71855347996605f8798000d656c4f44d1"
+        }
+      },
+      {
+        "id": "test",
+        "name": "Captured name fixture",
+        "type": "test",
+        "command": [
+          "formal-repair-032"
+        ],
+        "depends_on": [
+          "code"
+        ],
+        "join": "all_success",
+        "quorum": 0,
+        "timeout_seconds": 90,
+        "max_retries": 0,
+        "idempotent": false,
+        "config": {
+          "candidate_from": "code"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "code",
+        "to": "test"
+      }
+    ]
+  },
+  "execution_route": {
+    "tenant_id": "fixture-id-16",
+    "project_id": "fixture-id-5",
+    "version": 0,
+    "pool_id": "",
+    "grant_id": "",
+    "grant_version": 0
+  },
+  "run_id": "",
+  "run_state": "",
+  "task_state": "",
+  "conflicts": [],
+  "created_at": "2026-10-26T20:57:49Z",
+  "expires_at": "2099-10-27T00:00:00Z",
+  "fixed_timestamp": "2026-10-26T20:57:49Z",
+  "operation_id": "composition-repair-fixture-id-4",
+  "valid": true,
+  "blockers": [],
+  "allowed_actions": [
+    "dismiss",
+    "start",
+    "refresh"
+  ]
+}

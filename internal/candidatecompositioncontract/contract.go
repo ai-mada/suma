@@ -56,20 +56,23 @@ type CodeInputRequest struct {
 // CandidateCompositionEvidence describes host Git facts, not formal tests or
 // acceptance. Parents are the final commit's actual ordered parents.
 type CandidateCompositionEvidence struct {
-	Protocol            string   `json:"protocol"`
-	PlanID              string   `json:"plan_id"`
-	PlanVersion         int      `json:"plan_version"`
-	SourcesSHA256       string   `json:"sources_sha256"`
-	OperationID         string   `json:"operation_id"`
-	BaseCommit          string   `json:"base_commit"`
-	State               string   `json:"state"`
-	ResultCommit        string   `json:"result_commit,omitempty"`
-	ResultTree          string   `json:"result_tree,omitempty"`
-	Parents             []string `json:"parents"`
-	SourceHeads         []string `json:"source_heads"`
-	MergeCommits        []string `json:"merge_commits"`
-	Conflicts           []string `json:"conflicts"`
-	ConflictSourceIndex int      `json:"conflict_source_index,omitempty"`
+	Protocol            string                   `json:"protocol"`
+	PlanID              string                   `json:"plan_id"`
+	PlanVersion         int                      `json:"plan_version"`
+	SourcesSHA256       string                   `json:"sources_sha256"`
+	OperationID         string                   `json:"operation_id"`
+	BaseCommit          string                   `json:"base_commit"`
+	State               string                   `json:"state"`
+	ResultCommit        string                   `json:"result_commit,omitempty"`
+	ResultTree          string                   `json:"result_tree,omitempty"`
+	Parents             []string                 `json:"parents"`
+	SourceHeads         []string                 `json:"source_heads"`
+	MergeCommits        []string                 `json:"merge_commits"`
+	Conflicts           []string                 `json:"conflicts"`
+	ConflictSourceIndex int                      `json:"conflict_source_index,omitempty"`
+	ConflictTree        string                   `json:"conflict_tree,omitempty"`
+	ConflictStages      []CandidateConflictStage `json:"conflict_stages,omitempty"`
+	ConflictSHA256      string                   `json:"conflict_sha256,omitempty"`
 }
 
 func validID(value string, maximum int) bool {
@@ -127,7 +130,7 @@ func ValidateCodeBaselineBinding(b CodeBaselineBinding) error {
 	return nil
 }
 func ValidateCodeInputRequest(r CodeInputRequest) error {
-	if !validID(r.ProjectID, 64) || !r.Assignment.Valid() || r.InputKind != "composition" && r.InputKind != "code_baseline" || !validID(r.BindingID, 64) || !validID(r.TransferID, 64) {
+	if !validID(r.ProjectID, 64) || !r.Assignment.Valid() || r.InputKind != "composition" && r.InputKind != "code_baseline" && r.InputKind != "conflict_repair" || !validID(r.BindingID, 64) || !validID(r.TransferID, 64) {
 		return fmt.Errorf("invalid current-assignment code input request")
 	}
 	return nil

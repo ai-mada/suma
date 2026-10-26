@@ -1,0 +1,778 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-032",
+  "product_version": "1.0.0",
+  "prepared_on": "2026-10-27",
+  "status": "bounded_local_functional_stage_verified",
+  "stage_complete": true,
+  "production_integration_complete": false,
+  "full_platform_status": "in_progress",
+  "contract": "contracts/candidate-conflict-repair.md",
+  "counting_policy": "Distinct tops, child cases, overlapping selections and local reruns are separate; no aggregate stage test total is asserted.",
+  "focused_checks": {
+    "domain": {
+      "new_top_level_tests": 8,
+      "passed": true,
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/domain/verification.local.json",
+      "overlapping_affected_selection_tops": 20
+    },
+    "pool_http": {
+      "top_level_tests": 1,
+      "subcases": 2,
+      "passed": true,
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/domain/pool-transport.local.json",
+      "boundary": "Real same-organization bilateral Pool HTTP/Core/SQL/bytes with typed execution fixtures; not physical multi-host execution."
+    },
+    "native_git_sdk": {
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/runtime-verification.local.json",
+      "real_git_sources": 16,
+      "conflicts": 2,
+      "merge_commits": 15,
+      "independent_B_only_candidate_test": true,
+      "sdk_focused_passed": 3,
+      "sdk_fixture_tool_calls": 45,
+      "sdk_fixture_model_requests": 46,
+      "vendor_calls": 0,
+      "boundary": "SDK requests are local protocol fixtures, not vendor inference or billing.",
+      "go_receipts": [
+        "20261026T200427677Z",
+        "20261026T201017039Z",
+        "20261026T201200325Z"
+      ]
+    },
+    "root_ingress_private": {
+      "top_level_tests": 1,
+      "passed": true,
+      "command_receipt": "20261026T202120377Z"
+    },
+    "cli": {
+      "top_level_tests": 2,
+      "new": 1,
+      "affected_old": 1,
+      "passed": true,
+      "command_receipt": "20261026T202120416Z",
+      "latest_source_check": {
+        "scope": "Aligned title/description/criteria bounds; affected existing CLI group, not an additional stage total",
+        "top_level_tests": 1,
+        "passed": true,
+        "command_receipt": "20261026T210727273Z"
+      }
+    },
+    "tool_capability": {
+      "top_level_tests": 1,
+      "passed": true,
+      "command_receipt": "20261026T202120395Z"
+    },
+    "late_native_seal_seam": {
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/domain/native-seal-seam.local.json",
+      "affected_tops": 3,
+      "passed": true,
+      "runtime_go_only_command": "20261026T203316189Z",
+      "ordinary_base_rule_preserved": true,
+      "repair_previous": "final completed merge prefix",
+      "no_post_merge_edit": "no_change; commit equals prefix; changed_paths=0",
+      "post_merge_edit": "sealed child of prefix",
+      "unbound_structural_fact_denial": 403,
+      "counting_note": "Overlaps Pool top and ordinary native top; do not add to earlier counts."
+    },
+    "final_integration": {
+      "latest_cut": "runtime-delivery",
+      "four_builds_exit_code": 0,
+      "latest_build_command_receipts": [
+        "20261026T215228642Z",
+        "20261026T215232520Z",
+        "20261026T215233535Z",
+        "20261026T215234705Z"
+      ],
+      "retained_vet": {
+        "command_receipt": "20261026T203753146Z",
+        "exit_code": 0,
+        "scope": "Earlier affected package cut; later deltas have scoped tests and current builds, not an invented repeated full vet"
+      },
+      "retained_schema_check": {
+        "exit_code": 0,
+        "command_receipt": "20261026T215236199Z",
+        "scope": "Final optional fields/enum/default and strict null ingress generated contract check"
+      }
+    },
+    "stable_conflict_identity": {
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/domain/stable-conflict-identity.local.json",
+      "passed": true,
+      "selected_tops": 2,
+      "new_tops": 1,
+      "affected_old_tops": 1,
+      "identity": "immutable original assignment/result/evidence; whole basis digest remains fresh CAS",
+      "existing_child_recovered_without_row_rewrite": true
+    },
+    "managed_run_commands": {
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/domain/managed-run-commands.local.json",
+      "top_level_tests": 1,
+      "subcases": 5,
+      "passed": true,
+      "semantics": "same-run explicit retry; retain attempt1; attempt2 new fence; exact quality once; reject non-idempotent, unknown, drift and unrelated managed run"
+    },
+    "purpose_dispatch": {
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/runtime-purpose-dispatch-delta.local.json",
+      "top_level_tests": 1,
+      "positive_cases": 1,
+      "negative_cases": 12,
+      "passed": true,
+      "red_command": "20261026T212711567Z",
+      "green_command": "20261026T212730416Z",
+      "delta": "Go-only validated dedicated native repair domain marker emits ordinary model input without document purpose",
+      "SDK_or_sixteen_source_repeat": false
+    },
+    "actual_wire_guard": {
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/verification/web-release-guard-fix.local.json",
+      "selected_UI_checks_passed": 14,
+      "fixture": "sanitized real public repair response",
+      "strategy": "conflict_repair iff immutable conflict_basis and fixed tool identity present",
+      "repeat_actual_create": false
+    },
+    "root_contract_delta": {
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/verification/root-contract-delta.local.json",
+      "task_bounds": {
+        "title": 200,
+        "description": 16000,
+        "criteria": 16,
+        "criterion": 1000
+      },
+      "native_catalog_entries": 55,
+      "diagnostic_red": "20261026T210853780Z",
+      "diagnostic_green": "20261026T210908757Z"
+    },
+    "optional_priority": {
+      "seconds": 0.585,
+      "top_level_tests": 1,
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/domain/optional-priority.local.json",
+      "passed": true,
+      "semantics": "Empty priority normalizes to medium before validation and receipt hashing; unsupported400/atomic no residue; omitted and explicit medium replay one task"
+    },
+    "final_optional_string_http": {
+      "command_receipt": "20261026T215108959Z",
+      "overlaps": "Existing HTTP top; do not add to initial ingress count",
+      "passed": true,
+      "seconds": 0.63,
+      "semantics": "Optional priority/owner strings accept omission; explicit null rejected; exact existing HTTP/private ingress checks retained",
+      "top_level_tests": 1
+    }
+  },
+  "retained_red_green": [
+    {
+      "case": "Reserved repair task AttachRun bypass",
+      "green": "Exact protected repair execution checked by shared BindRunTx gate"
+    },
+    {
+      "case": "Expired fixed repair preview",
+      "green": "Explicit ready-only refresh revalidates exact sources/task/tool/route and only advances version/expiry"
+    },
+    {
+      "case": "Unknown workflow raw SQL error",
+      "green": "Scoped404 and atomic zero-residue rollback"
+    },
+    {
+      "red_command": "20261026T202247108Z",
+      "case": "Two unknown native closed localization keys",
+      "green_command": "20261026T202430273Z",
+      "change": "Explicit merge_unresolved/merge_incomplete allowlist and correct UI foundation namespace"
+    },
+    {
+      "red_command": "20261026T203112886Z",
+      "case": "Stale native snapshot/source count",
+      "green_command": "20261026T203310049Z",
+      "current_native_catalog_entries": 55
+    },
+    {
+      "case": "Actual-shaped repair prefix seal rejected by generic administrator-base condition",
+      "green": "Strict dedicated structural relation plus unchanged durable execution authorization; fixtures retain genuine prefix"
+    },
+    {
+      "case": "Original failed task version changed repair lookup identity",
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/domain/stable-conflict-identity.local.json",
+      "green": "Stable immutable identity finds original child; fresh whole digest still required",
+      "environment_failure": "Disk-full linker did not execute tests; Root compiler-only cleanup audited separately"
+    },
+    {
+      "case": "Real repair response rejected by frontend merge_commit-only guard",
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/verification/web-release-guard-fix.local.json",
+      "green": "Actual sanitized wire and14 affected checks; same child retained"
+    },
+    {
+      "case": "Actual repair attempt1 unsupported agent purpose before workspace/model",
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/runtime-purpose-dispatch-delta.local.json",
+      "green": "Dedicated validated native dispatch13cases; actual same-run attempt2 succeeded after explicit retry; immutable failed1 retained"
+    },
+    {
+      "case": "Managed composition commands mistaken for privileged release workflow",
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/domain/managed-run-commands.local.json",
+      "green": "Narrow exact composition run authorizer; existing DAG retry/unknown/state gates unchanged"
+    },
+    {
+      "case": "Stale generated native diagnostic53-entry expectation",
+      "red": "20261026T210853780Z",
+      "green": "20261026T210908757Z",
+      "current_entries": 55
+    },
+    {
+      "green": "Boundary default before validation/receipt; one focused domain group; explicit unsupported atomic400",
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/domain/optional-priority.local.json",
+      "case": "Optional CLI priority omitted but Create required enum before default"
+    },
+    {
+      "green": "Exact readonly proof isolates34 existing lock rows/sequence+22; original179 nonlock table rows and all183 schemas exact; no DB restore",
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/primary-upgrade/warm-browser-verification.local.json",
+      "case": "Primary warm all-original-row guard included serialization counters"
+    }
+  ],
+  "builds": {
+    "go": {
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/runtime-delivery/build-facts.local.json",
+      "version": "1.26.10",
+      "source_items": 688,
+      "source_sha256": "3114a23dd25d6ba42df20db1b1bb53ac1f3de48b076d037337a187741b04e148",
+      "binaries": {
+        "suma-control.exe": "1e1f735a6a06152f9bf0f18d9484c63bf766c7904d7c903e8dd1499c7afe072a",
+        "suma-runner.exe": "c71ffb11effbea99dc6b7723b2272b1bd6205a0c859dff3e49c0af9e2bff953f",
+        "suma.exe": "b6c90fd31eb78ad9322973aa3f2ebd17b87489d17bffccfca1f1bc0fecaeaf79",
+        "suma-repository-provider.exe": "81b0f0a58f73ca479e7611ebdced86eda15e2fad1d9df4d528e1383b06888c73"
+      },
+      "retained_prior_cuts": [
+        "runtime-final",
+        "runtime-release",
+        "runtime-reviewed",
+        "runtime-verified",
+        "runtime-resolved"
+      ],
+      "actual_execution_cut": {
+        "source_sha256": "b8a0ae196e46b937c23a440b862d959aafda681c2f48d5156b368c729d53d2f1",
+        "source_items": 688,
+        "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/runtime-resolved/build-facts.local.json",
+        "revision": "runtime-resolved"
+      },
+      "final_delta_review": {
+        "runner_native_unchanged": true,
+        "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/verification/root-final-cold-review.local.json",
+        "affected_http_tops": 1,
+        "actual_execution_replayed": false,
+        "new_domain_tops": 1,
+        "reason": "Optional default/DTO/null/schema change only; actual explicit-medium/owner flow unchanged"
+      }
+    },
+    "native": {
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/runtime-native-release/native-build-manifest.local.json",
+      "bundle_sha256": "1145e77d94e0dec12ee146d1565c77d207700699e8f0d7ab17d57492a6f3f4c0",
+      "manifest_sha256": "771aa33b8b63d94f77f05cf80e0ad84cd80d2c082214e682aa229a8d5bda7ae7",
+      "fixed_source_inputs": 11,
+      "actual_closure_inputs": 161,
+      "late_go_delta_reused_identical_inputs": true
+    },
+    "web": {
+      "byte_identical_to_web_reviewed": true,
+      "before_after_identical": true,
+      "typecheck_exit_code": 0,
+      "i18n_exit_code": 0,
+      "files": 135,
+      "browser_receipt": ".cache/e2e/candidate-conflict-repair-stage-032/browser/verification.local.json",
+      "artifact_inventory_sha256": "7b657e81a9ad88749ced573091b5af6f663e986b9f62f96d36aa727cfc24d9d9",
+      "browser_acceptance_complete": true,
+      "source_sha256": "42a406edb8a3e37899bc6d73c1ffc32e58d4b6348408a6181950ffcbce214c50",
+      "i18n_reused_unchanged_catalog": true,
+      "retained_prior_cuts": [
+        "web-final",
+        "web-release",
+        "web-reviewed"
+      ],
+      "canonical_inventory_sha256": "f194075600485204cae2c48c91285bde3c66757454cd8518dab078c4649c91f4",
+      "build_invocations_this_cut": 1,
+      "source_items": 328,
+      "paired_locale_keys": 4269,
+      "revision": "web-delivery",
+      "warning_retained": "Some chunks exceed500kB after minification",
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/verification/web-delivery-build.local.json",
+      "index_sha256": "8a802f340ba22297b6d555acfa42e850c0752c14c6b67fefb541067d759b7a08",
+      "build_exit_code": 0
+    }
+  },
+  "source_preparation": {
+    "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/verification/source-inventory-correction.local.json",
+    "initial_stale_file_assumption": 6,
+    "current_closed031_files": 8,
+    "corrected_before_copy_or_services": true,
+    "closed031_source_db_sha256": "23901dca66434e9112e3c8564a2eb5806d893ebd18631b0a148d18e99abdca8d",
+    "historical_85d_database_is_not_current_source": true
+  },
+  "actual": {
+    "status": "same_run_repair_recovered_exact_test_review_baseline_closed",
+    "complete": true,
+    "closed_receipt": ".cache/e2e/candidate-conflict-repair-stage-032/actual/recovered/closed-final.local.json",
+    "known_source_x": {
+      "run_id": "6b7182020da1991602635e3364e057fc",
+      "task_id": "adb662e24da2f2a41dd6680bd0654a54",
+      "task_version": 3,
+      "state": "succeeded",
+      "accepted": true,
+      "head": "106096d78824765331284508a53472d8085163c0",
+      "formal_assertions": 4,
+      "explicit_local_review": true
+    },
+    "original_conflict": {
+      "run_id": "composition-87c15c2bb9e23a923694972990f6a2d8",
+      "state": "failed",
+      "code_attempt": 1,
+      "sealed_candidate": false
+    },
+    "repair": {
+      "run_id": "composition-fe7f83a76fc1df5e64ee96d7e83c2956",
+      "known_error": "unsupported agent purpose",
+      "task_status": "accepted",
+      "state": "succeeded",
+      "formal_assertions": 4,
+      "failure_before_workspace_and_model": true,
+      "attempt1_preserved": true,
+      "new_child_recreated": false,
+      "attempt1_result_sha256": "ef9e490235815aca278482b305572383ac1aa88306e9988811191993427532f1",
+      "explicit_local_review": true,
+      "failed_fence": 1,
+      "failed_code_attempt": 1,
+      "tree": "9c1660c5225d01f8c642a1ce1344e381a5034267",
+      "plan_id": "fe7f83a76fc1df5e64ee96d7e83c2956",
+      "successful_code_attempt": 2,
+      "successful_fence": 2,
+      "head": "21cc51598692c6121e7324f382757f45cd0a1e9e",
+      "task_version": 3,
+      "same_run_explicit_retry_verified": true,
+      "task_id": "1dcf3f961359e1af1c24e7695757a370",
+      "independent_test_attempts": 1
+    },
+    "model_fixture": {
+      "real_vendor_inference": false,
+      "estimated_cost_micros": null,
+      "closed_receipt": ".cache/e2e/candidate-conflict-repair-stage-032/model-fixture/model-closed.local.json",
+      "tool_calls": 6,
+      "exit_code": 0,
+      "usage_state": "unreported",
+      "restarted": false,
+      "reported_tokens": null,
+      "failures": 0,
+      "vendor_calls": 0,
+      "process_id": 251676,
+      "exec_session": 49659,
+      "boundary": "Owned local protocol fixture; actual6 requests/6 tools distinct from earlier SDK46/45 fixture. Unknown usage is not zero.",
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/model-fixture/model-summary.local.json",
+      "request_limit": 6,
+      "requests_completed": 6
+    },
+    "verified_successful_runs": 2,
+    "verified_formal_assertions": 8,
+    "verified_reviews": 2,
+    "downstream_binding_verified": true,
+    "downstream_current": {
+      "source_fence": 2,
+      "task_id": "3efda5d5b61423eb8425b0e47a08068d",
+      "baseline_version": 1,
+      "composition_id": "fe7f83a76fc1df5e64ee96d7e83c2956",
+      "run_id": null,
+      "development_or_test_repeated": false,
+      "source_head": "21cc51598692c6121e7324f382757f45cd0a1e9e",
+      "version": 2,
+      "source_attempt": 2,
+      "status": "todo"
+    },
+    "normal_process_closure_verified": true,
+    "raw_closed_phases": [
+      {
+        "phase": "one",
+        "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/actual/closed.local.json",
+        "checks_passed": false,
+        "normal_process_exit_codes": [
+          0,
+          0,
+          0
+        ],
+        "forced": false,
+        "integrity": "ok",
+        "old_all_business_rows_unchanged_guard": false,
+        "database_sha256": "d6e2ac235acb22120028054f0f25a7dce47cbe324f30fd752e2499df91ed5124",
+        "reason": "Over-strong all-old-rows guard rejected legitimate bounded usage-account aggregate changes; rawfalse retained"
+      },
+      {
+        "phase": "two",
+        "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/actual/resumed/closed-final.local.json",
+        "checks_passed": false,
+        "normal_process_exit_codes": [
+          0,
+          0,
+          0
+        ],
+        "forced": false,
+        "integrity": "ok",
+        "bounded_verification_passed": false,
+        "bounded_verification_error": "AssertionError: ",
+        "financial_delta": null,
+        "source031_preservation": true,
+        "non_db_preservation": true,
+        "authority_counts_unchanged": true,
+        "browser_sessions_unchanged": true,
+        "database_sha256": "7e538a4f2f00804b7334722c15e3e91f55f0e51a11d6da7e10cd69c0e3d721bb",
+        "reason": "Incomplete repair/test/Review/baseline journey, not a replacement accounting pass"
+      }
+    ],
+    "phase_one_financial_audit": {
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/actual/phase-one-audit.local.json",
+      "state": "physical_closure_valid_bounded_financial_delta_verified",
+      "raw_closure_false_preserved": true,
+      "selected_original_table_schemas_unchanged": true,
+      "selected_original_tables": 121,
+      "other_original_business_rows_exact": true,
+      "changed_existing_usage_accounts": 2,
+      "scopes": [
+        "organization",
+        "project"
+      ],
+      "versions": {
+        "before": 15,
+        "after": 17
+      },
+      "unresolved": {
+        "before": 1,
+        "after": 2
+      },
+      "spent": "80 unchanged",
+      "reserved": "0 unchanged",
+      "new_unreported_source_X_attempts": 1,
+      "reported_tokens": null,
+      "estimated_cost_micros": null,
+      "whole_ledger_ignored": false,
+      "unknown_is_not_zero": true
+    },
+    "new_runs": 3,
+    "code_attempts": 4,
+    "run_split": {
+      "source_X_success": 1,
+      "repair_recovered_success": 1,
+      "original_known_conflict_failed": 1
+    },
+    "formal_split": {
+      "repair": 4,
+      "source_X": 4
+    },
+    "review_boundary": "Two explicit local fixture-owner Reviews, not external production acceptance",
+    "final_processes": {
+      "forced": false,
+      "runner_B": {
+        "exit_code": 0,
+        "pid": 251820
+      },
+      "runner_A": {
+        "exit_code": 0,
+        "pid": 253380
+      },
+      "control": {
+        "exit_code": 0,
+        "pid": 246720
+      }
+    },
+    "current_database_sha256": "8101d7edd594b00cedbe80ee00ee4b74db77580c5c2f84b0bce1a62751615645",
+    "final_financial_audit": {
+      "authority_and_sessions_unchanged": true,
+      "reserved": "0 unchanged",
+      "changed_existing_usage_accounts": 2,
+      "scopes": [
+        "organization",
+        "project"
+      ],
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/actual/recovered/closed-final.local.json",
+      "passed": true,
+      "unresolved": {
+        "after": 4,
+        "before": 1
+      },
+      "unknown_is_not_zero": true,
+      "whole_ledger_ignored": false,
+      "prior_raw_false_closures_preserved": true,
+      "attempts": [
+        "SourceX1",
+        "premodel repair1",
+        "repair2"
+      ],
+      "spent": "80 unchanged",
+      "reported_tokens": null,
+      "original_other_rows_schema_exact": true,
+      "new_unreported_attempts": 3,
+      "estimated_cost_micros": null,
+      "versions": {
+        "after": 21,
+        "before": 15
+      }
+    },
+    "browser": {
+      "refresh_readback": true,
+      "passed": true,
+      "known_failed1_successful2_fence2": true,
+      "no_uncaught_errors": true,
+      "languages": [
+        "zh-CN",
+        "en-US"
+      ],
+      "original_conflict_single_repair_link": true,
+      "keyboard_evidence_expand_collapse": true,
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/browser/verification.local.json"
+    },
+    "cold_readback": {
+      "model_calls": 0,
+      "all_current_business_schema_rows_and_accounts_unchanged": true,
+      "receipt": ".cache/e2e/candidate-conflict-repair-stage-032/final-readback-recovered/out/closed.local.json",
+      "repeated_formal_tests": 0,
+      "runner_count": 0,
+      "current_database_sha256": "c90ea8ab1cc105df1b5748d949be1933ef0a7936e158404ab740f2fdedd01483",
+      "passed": true,
+      "exit_code": 0,
+      "control_pid": 256088,
+      "forced": false,
+      "reviewed_control_delta": true,
+      "same_exact_lineage_test_review_baseline": true,
+      "source_and_closed_model_evidence_unchanged": true,
+      "new_credentials": 0,
+      "cold_source_sha256": "3114a23dd25d6ba42df20db1b1bb53ac1f3de48b076d037337a187741b04e148",
+      "new_logins": 0,
+      "actual_source_sha256": "b8a0ae196e46b937c23a440b862d959aafda681c2f48d5156b368c729d53d2f1"
+    }
+  },
+  "primary_upgrade": {
+    "existing_runs": {
+      "failed": 1,
+      "succeeded": 2
+    },
+    "warm_receipt": ".cache/e2e/candidate-conflict-repair-stage-032/primary-upgrade/warm-browser-verification.local.json",
+    "post_warm_all183_full_rows_unchanged": false,
+    "current_holder_pid": 212508,
+    "status": "normal032_forward_upgrade_and_existing_session_warm_CNEN_verified",
+    "original_overstrong_guard_failure_retained": true,
+    "original_tables": 183,
+    "current_control_pid": 233736,
+    "db_restore_or_counter_rewrite": false,
+    "warm_lock_sequence_changes": {
+      "rows": 34,
+      "all_identity_columns_unchanged": true,
+      "only_column": "sequence",
+      "delta_each": 22,
+      "tables": 4
+    },
+    "mode": "normal",
+    "primary_intentionally_running": true,
+    "complete": true,
+    "vendor_calls": 0,
+    "tables_after": 184,
+    "diagnostic_receipt": ".cache/e2e/candidate-conflict-repair-stage-032/primary-upgrade/warm-guard-diagnostic.local.json",
+    "pre_warm_original183_full_schema_and_rows_unchanged": true,
+    "authority_rows": 18,
+    "post_warm_original183_full_schema_unchanged": true,
+    "new_empty_table": "suma_candidate_composition_repair_sources",
+    "result_receipt": ".cache/e2e/candidate-conflict-repair-stage-032/primary-upgrade/result.local.json",
+    "previous031_graceful_exit": 0,
+    "exec_session": 31937,
+    "explicit_new_indexes": 0,
+    "control_sha256": "1e1f735a6a06152f9bf0f18d9484c63bf766c7904d7c903e8dd1499c7afe072a",
+    "grants": 0,
+    "model_calls": 0,
+    "web_index_sha256": "8a802f340ba22297b6d555acfa42e850c0752c14c6b67fefb541067d759b7a08",
+    "new_credentials": 0,
+    "pre_browser_receipt": ".cache/e2e/candidate-conflict-repair-stage-032/primary-upgrade/final-verification.local.json",
+    "post_warm_original179_nonlock_full_rows_unchanged": true,
+    "new_logins": 0,
+    "existing_sessions_unchanged": true
+  },
+  "validation_policy": {
+    "full_suite_repeated": false,
+    "late_sixteen_source_or_sdk_fixture_repeat": false,
+    "rationale": "Reuse unchanged official SDK/native11 source inputs/161closure,16-source fixture and prior focused receipts. Go-only seal/purpose/identity/command and optional default/null changes each have scoped regression/current builds; final generated TS required one isolated web-delivery build. Actual b8a0 execution is preserved;3114a final cold/primary uses reviewed API-default delta without model/Runner/test replay."
+  },
+  "remaining": [
+    "Governed full plan/tool reassignment revision and broader autonomous recovery",
+    "Vendor model quality/billing, physical multi-host, real remote and production acceptance",
+    "Complete P0-P7 platform scope remains in progress"
+  ],
+  "receipt_inventory": [
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/domain/verification.local.json",
+      "sha256": "85d87198e87b0aa9ff371d26802c99521293bad7be50123bf4782ccef60af58a"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/domain/pool-transport.local.json",
+      "sha256": "6b87c61143c0ed89416a1002ae66ff78162743b61012e58986a23d2dcfe60517"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/domain/native-seal-seam.local.json",
+      "sha256": "f0e3a979754c6a8b8e5233d60a22092fabf4166c0d06fcd43f75870b9ca9d6c5"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/domain/stable-conflict-identity.local.json",
+      "sha256": "89babcb67c730c67f49b9abb2ce44d864cc9261cec93b5a7920ebc48d4a1fb68"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/domain/managed-run-commands.local.json",
+      "sha256": "4a38f12741854940526f19ab53052d06d45333fd29a29906636a81586e54a681"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/runtime-verification.local.json",
+      "sha256": "c0c8261c00ce391f14348f0165a9778195760e39ed7f45ada047f5d791628410"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/runtime-seal-state-delta.local.json",
+      "sha256": "2fbc671e0145edae16a73bd3bc15258630898b1ee63800bb948e3585a5d65199"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/runtime-purpose-dispatch-delta.local.json",
+      "sha256": "ab04faa7ef8a3614f67c56af31f3df22394dacda3990b18acd3410624e86e26e"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/runtime-resolved/build-facts.local.json",
+      "sha256": "be18b5ea4f1d07a93f455a29b4be986d322cde9590c7211f4c7410bd44914f7e"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/runtime-native-release/native-build-manifest.local.json",
+      "sha256": "45b5417fc2e2fe3f3dd120066da4cf6d5ebca6fd6632b9797323fdc5a1ab0399"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/verification/web-release-build.local.json",
+      "sha256": "afc7befbca88cc7ca0f4a117fbac0f2979be4e0a1c7737d9883a920cc431be6f"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/verification/web-release-artifacts.local.json",
+      "sha256": "dcd78f3a8a7c60be24688ed93530bbe5667a6a3649753399f3773f6e4282d473"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/verification/web-release-guard-fix.local.json",
+      "sha256": "8652d9f8ff49ffc55d68004aaa0a9950623632a1727dec304d824cf00c78b985"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/verification/root-contract-delta.local.json",
+      "sha256": "0185c34a37e482961f6d6af4b7a2c4ddade372e5fa489116e8595c414acabd6c"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/verification/source-inventory-correction.local.json",
+      "sha256": "e0c7cb6d723d6a88e62fc76f5adf4eba3924c01113e124648a5e3356155ac7b9"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/verification/final-preparation-review.local.json",
+      "sha256": "d3f95bdab5348bde8494141cda537e6fbb7b3024674a1f84ab1bcf979709bd18"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/verification/compiler-cache-recovery.local.json",
+      "sha256": "7b73cfc91182ee2ebc6ca6765227bbe090669e791ec7f55732d14424b885d59f"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/actual/closed.local.json",
+      "sha256": "47b6769a1299df8738045435324e3701cd0040f379e04f90fb1aa99596926ac4"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/actual/phase-one-audit.local.json",
+      "sha256": "d1683233f81dac42c646a01d57e823163e7b06c82df8db79851c2748b34ee4c4"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/actual/resumed/closed-final.local.json",
+      "sha256": "739cb376f0e1f4724b460411ea866f219495e4873dfa9251c9df9557c3a89cf4"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/actual/resumed/final-ui-facts.local.json",
+      "sha256": "f74cdc026f68cbaf94bbffb6513a43168962f09b67e72ad6b325c9a9a484c4bb"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/domain/optional-priority.local.json",
+      "sha256": "d73da4469a4b78ec6a4aa8d5688b35c2eed8daa0985a87a87fcae9ee41b84e2c"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/runtime-delivery/build-facts.local.json",
+      "sha256": "6d9ef6078116f8b7eefffdc7ec810237495cb67bab7015dd48e4d1ebe3b3291f"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/verification/web-delivery-build.local.json",
+      "sha256": "c56d67a359242839a939fcc45b8710fa13da4f77c7863d59938aa4a19017300f"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/verification/web-delivery-artifacts.local.json",
+      "sha256": "7b657e81a9ad88749ced573091b5af6f663e986b9f62f96d36aa727cfc24d9d9"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/verification/root-final-cold-review.local.json",
+      "sha256": "e90fed9254d2df94738f01d9d867ad5f79f0724cf0b7d0e1edd399550eb5d2df"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/actual/recovered/closed-final.local.json",
+      "sha256": "dc075bc20afc5099c8f81999bb0a0a859eb7153f3877608ffb636d105f6cc368"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/actual/recovered/final-ui-facts.local.json",
+      "sha256": "e23813ff90beeb16abf2d32c3a4d3b3452570b5afa205e8681b79e604a1fa3d3"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/final-readback-recovered/out/closed.local.json",
+      "sha256": "7be582fb3b1fd7b05e6829935aea6b0e022e005467668d795af0099ee1a025ee"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/model-fixture/model-summary.local.json",
+      "sha256": "3de9df3d2314bef18a15399b8de4bb0e9af810b1c1db99f7989cb4f13c82c308"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/model-fixture/model-closed.local.json",
+      "sha256": "20d482e059e17735a7ac1034c812ad520fb967dfe2029e096b3a6c534aeb0f23"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/browser/verification.local.json",
+      "sha256": "885ca6e00d92fcd42f7408a7afbc6df2cd10e97ca8bcf53a053bedd90f54672a"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/browser/primary-warm.local.json",
+      "sha256": "319cb4d9b35d3fcb884bb9e556e4a17c916d6b1af61b255f92d1b76b063cefd9"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/primary-upgrade/result.local.json",
+      "sha256": "57372bf4c5cd69107d62f9269f0462ff781eed5cc0388140e32e500e2d11de44"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/primary-upgrade/final-verification.local.json",
+      "sha256": "0ad4847605e7b5f390b68ec27a1db306771d87f6b8889386b423214b28d191d7"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/primary-upgrade/warm-browser-verification.local.json",
+      "sha256": "c315d4de0f0147563d0621b36f4a8b0d36f2ca16e04c8d9b1f3d1d5e4ccaf625"
+    },
+    {
+      "path": ".cache/e2e/candidate-conflict-repair-stage-032/primary-upgrade/warm-guard-diagnostic.local.json",
+      "sha256": "36837b6a2d9f07b25f4779ce95c16005e1a18e6165622dc630db0221f5bfc94e"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T210727273Z.command.json",
+      "sha256": "df777a651cd8e3b0b6526554ebfa48fa8acf7bb0502cc4f7ff4d1153776a06cd"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T215108959Z.command.json",
+      "sha256": "fe72dbbf696803c07e3d2e870c3afa144185f71cc81d4fe6cd018631f4807328"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T215114715Z.command.json",
+      "sha256": "56fc557432d5b8ea18703a0d69113345291431d831856b74215c0f93e91ca83a"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T215228642Z.command.json",
+      "sha256": "1d67376ced014d9520ca4b7846e0bf998ff561c44e389aae95e464564a2e6571"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T215232520Z.command.json",
+      "sha256": "00b2e050437dc271962271ceae84efea7387f6db090457c569607d04377c3814"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T215233535Z.command.json",
+      "sha256": "00b4f8ab92ed0a4dbccfa8d8daeffa65b4f98acafa328b6e2646118c74ec3781"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T215234705Z.command.json",
+      "sha256": "aac7f9803806b4b2c82bebbc03ddb794dc648b1acd56eef8242d9a30ca2acb16"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T215236199Z.command.json",
+      "sha256": "f713828e3009c03df28227d7eff79e49c14fbc06dc28d7d769a2a017ad467485"
+    }
+  ],
+  "commit_evidence_policy": "Exact reviewed source/document digests and local commit are recorded in Git history and ignored .cache/e2e/candidate-conflict-repair-stage-032/commit.local.json; no self-referencing commit hash"
+}

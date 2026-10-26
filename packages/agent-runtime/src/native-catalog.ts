@@ -55,6 +55,8 @@ export const nativeCatalog={
  "native.workspace.catalog":{"en":"Workspace tool identity or catalogue is invalid","zh":"工作区工具身份或目录无效"},
  "native.workspace.config":{"en":"Workspace bridge configuration is invalid","zh":"工作区连接配置无效"},
  "native.workspace.effects":{"en":"Workspace effects require reconciliation; do not restart the model","zh":"工作区操作效果需要核对，请勿重新运行模型"},
+ "native.workspace.merge_incomplete":{"en":"All frozen sources must be processed before sealing.","zh":"全部固定来源处理完成后，才能封存候选。"},
+ "native.workspace.merge_unresolved":{"en":"Resolve every active conflict before continuing the fixed merge.","zh":"请解决全部当前冲突，再继续固定来源的合并。"},
  "native.workspace.transport":{"en":"Workspace tool connection failed; inspect the current execution","zh":"工作区工具连接失败，请核对当前执行"},
 } as const satisfies Record<string,NativeCatalogEntry>;
 export type NativeMessageKey=keyof typeof nativeCatalog;

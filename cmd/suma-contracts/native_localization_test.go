@@ -50,7 +50,7 @@ func TestNativeLocalizationGenerationIsDeterministicAndComplete(t *testing.T) {
 	if err := json.Unmarshal([]byte(object), &generated); err != nil {
 		t.Fatal("generated catalog is not a plain serializable object", err)
 	}
-	if len(generated) != 50 {
+	if len(generated) != len(localization.NativeCatalog()) {
 		t.Fatalf("generated native key count: %d", len(generated))
 	}
 	for _, definition := range localization.NativeCatalog() {

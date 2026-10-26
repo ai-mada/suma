@@ -3,17 +3,19 @@
 package toolcontract
 
 type ToolExecutionProfile struct {
-	CommandID             string                         `json:"command_id"`
-	Adapter               string                         `json:"adapter"`
-	Protocol              string                         `json:"protocol"`
-	ProfileSHA256         string                         `json:"profile_sha256"`
-	ExecutableSHA256      string                         `json:"executable_sha256"`
-	ToolVersion           string                         `json:"tool_version"`
-	ReadOnly              bool                           `json:"read_only"`
-	WorkspaceToolsVersion string                         `json:"workspace_tools_version,omitempty"`
-	Planning              *PlanningCapability            `json:"planning,omitempty"`
-	KnowledgeExtraction   *KnowledgeExtractionCapability `json:"knowledge_extraction,omitempty"`
-	FailureDiagnosis      *FailureDiagnosisCapability    `json:"failure_diagnosis,omitempty"`
+	CommandID             string `json:"command_id"`
+	Adapter               string `json:"adapter"`
+	Protocol              string `json:"protocol"`
+	ProfileSHA256         string `json:"profile_sha256"`
+	ExecutableSHA256      string `json:"executable_sha256"`
+	ToolVersion           string `json:"tool_version"`
+	ReadOnly              bool   `json:"read_only"`
+	WorkspaceToolsVersion string `json:"workspace_tools_version,omitempty"`
+	// ConflictRepairProtocol is an explicitly enabled host-native capability, not a grant of Git or acceptance authority.
+	ConflictRepairProtocol string                         `json:"conflict_repair_protocol,omitempty"`
+	Planning               *PlanningCapability            `json:"planning,omitempty"`
+	KnowledgeExtraction    *KnowledgeExtractionCapability `json:"knowledge_extraction,omitempty"`
+	FailureDiagnosis       *FailureDiagnosisCapability    `json:"failure_diagnosis,omitempty"`
 }
 
 // PlanningCapability names a probed, fixed model configuration, not account health.

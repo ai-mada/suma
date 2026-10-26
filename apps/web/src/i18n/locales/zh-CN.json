@@ -670,5 +670,7 @@
   "records.review_placeholder": "记录测试证据与验收结论",
   "records.recover_review": "恢复评审回执",
   "records.submit_review": "提交评审",
-  "records.current_reference": "当前{{kind}}（未在已加载范围）"
+  "records.current_reference": "当前{{kind}}（未在已加载范围）",
+  "native.workspace.merge_unresolved": "请解决全部当前冲突，再继续固定来源的合并。",
+  "native.workspace.merge_incomplete": "全部固定来源处理完成后，才能封存候选。"
 }

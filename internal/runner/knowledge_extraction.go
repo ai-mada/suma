@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 
+	ccc "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
@@ -80,6 +81,15 @@ func probeKnowledgeExtraction(ctx context.Context, exe string, spec CommandSpec,
 }
 
 func modelPurposeRequest(a Assignment, spec CommandSpec, profile tc.Profile) (map[string]any, error) {
+	if a.CandidateConflictRepair != nil || a.Config["purpose"] == "candidate_conflict_repair" {
+		if a.Type != "agent" || a.Config["purpose"] != "candidate_conflict_repair" || a.CandidateConflictRepair == nil || ccc.ValidateCandidateConflictRepairExecution(*a.CandidateConflictRepair) != nil || a.CandidateComposition != nil || a.CodeBaseline != nil || a.RepositoryIntegration != nil || a.ReleaseExecution != nil || hasCandidate(a) || spec.Adapter != "suma" || spec.Protocol != "suma-jsonl-v1" || spec.Input != "agent-jsonl" || spec.NativeWorkspace == nil || !spec.NativeWorkspace.ConflictRepair || spec.ReadOnly || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis || profile.Adapter != "suma" || profile.Protocol != "suma-jsonl-v1" || profile.ReadOnly || profile.WorkspaceToolsVersion != NativeWorkspaceVersion || profile.ConflictRepairProtocol != ccc.CandidateConflictRepairProtocol || profile.Planning != nil || profile.KnowledgeExtraction != nil || profile.FailureDiagnosis != nil {
+			return nil, fmt.Errorf("candidate conflict repair requires its typed native execution and probed profile")
+		}
+		// This is a host dispatch marker, not a read-only model-document purpose.
+		// Execute supplies the authenticated native bridge; the SDK selects repair
+		// tools and budgets from that bridge without a document-purpose payload.
+		return nil, nil
+	}
 	if spec.FailureDiagnosis || a.Config["purpose"] == "failure_diagnosis" {
 		return failureDiagnosisRequest(a, spec, profile)
 	}

@@ -99,6 +99,11 @@ func effectiveCommandProfileDigest(cfg ExecConfig, spec CommandSpec, executableS
 	if err = validateNativeWorkspacePolicy(cfg, "", spec); err != nil {
 		return "", err
 	}
+	if spec.NativeWorkspace.ConflictRepair {
+		if _, err = probeCompositionGit(context.Background(), "git"); err != nil {
+			return "", err
+		}
+	}
 	manifest, err := nativeManifestDigest(spec)
 	if err != nil {
 		return "", err

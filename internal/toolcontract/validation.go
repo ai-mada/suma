@@ -12,6 +12,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 )
 
 var commandID = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$`)
@@ -38,6 +40,12 @@ func ValidProtocol(protocol string) bool {
 	return protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == "opencode-jsonl-v1" || protocol == "dsh-multica-jsonl-v1" || protocol == "codebuddy-jsonl-v1"
 }
 func ValidateProfile(p Profile, complete bool) error {
+	// A capability advertisement is accepted only for the existing native
+	// writable workspace mode. A generic CLI or read-only model purpose cannot
+	// acquire the authenticated merge continuation tools by naming a protocol.
+	if p.ConflictRepairProtocol != "" && (p.ConflictRepairProtocol != ccmp.CandidateConflictRepairProtocol || p.WorkspaceToolsVersion != "attempt-workspace-v1" || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || p.ReadOnly || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil) {
+		return fmt.Errorf("invalid conflict repair capability")
+	}
 	if p.Planning != nil {
 		if p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || ValidatePlanningCapability(*p.Planning) != nil {
 			return fmt.Errorf("invalid planning capability")

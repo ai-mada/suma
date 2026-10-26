@@ -43,3 +43,11 @@ it.each([{generation:1},{stopped:true},{outcome_unknown:true},{exit_code:1}])('d
 it('distinguishes no recorded checks, no seal and an actual no-change receipt',async()=>{
  const value=evidence(),record=value.native_workspace as NativeWorkspaceEvidence;record.checks=[];record.seal=undefined;await render(value);expect(facts()?.textContent).toContain('No development checks recorded');expect(facts()?.textContent).toContain('Not sealed');record.seal={...native().seal!,state:'no_change',changed_paths:0,commit:base};value.head_commit=base;await render(value);expect(facts()?.textContent).toContain('No net source change');expect(facts()?.textContent).not.toContain('Candidate sealed locally');
 });
+
+it('describes no additional edits only after valid completed repair merges and preserves ordinary copy for invalid repair facts',async()=>{
+ const value=evidence(),record=value.native_workspace as NativeWorkspaceEvidence;record.seal={...native().seal!,state:'no_change',previous_commit:head,commit:head,changed_paths:0};value.admin_base_commit=base;value.changed_paths_total=3;
+ const repair={protocol:'suma.candidate-conflict-repair.v1',plan_id:'repair-plan',plan_version:2,composition_id:'original-composition',original_assignment:{run_id:'original-run',node_id:'compose',attempt:1,fence:2,worker_id:'original-worker'},original_evidence_sha256:policy,sources_sha256:policy,operation_id:'repair-operation',state:'completed',steps:[{source_index:1,left_commit:base,right_commit:'f'.repeat(40),seed_tree:tree,conflict_sha256:policy,result_commit:head,result_tree:tree,parents:[base,'f'.repeat(40)]}],result_commit:head,result_tree:tree,parents:[base,'f'.repeat(40)],source_heads:[base,'f'.repeat(40)],merge_commits:[head]};
+ value.candidate_conflict_repair=repair;await render(value);expect(facts()?.textContent).toContain('No additional edits after completed merges');expect(facts()?.textContent).not.toContain('No net source change');await act(async()=>setLocale('zh-CN',{persist:false}));expect(facts()?.textContent).toContain('合并完成后无额外编辑');
+ for(const invalid of [{...repair,result_commit:'f'.repeat(40)},{...repair,state:'resolved'}]){value.candidate_conflict_repair=invalid;await render(value);expect(facts()?.textContent).toContain('源码无净变更');expect(facts()?.textContent).not.toContain('合并完成后无额外编辑');}
+ expect(fetch).not.toHaveBeenCalled();
+});

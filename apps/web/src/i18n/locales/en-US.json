@@ -670,5 +670,7 @@
   "records.review_placeholder": "Record the test evidence and acceptance decision",
   "records.recover_review": "Recover review receipt",
   "records.submit_review": "Submit review",
-  "records.current_reference": "Current {{kind}} (outside loaded records)"
+  "records.current_reference": "Current {{kind}} (outside loaded records)",
+  "native.workspace.merge_unresolved": "Resolve every active conflict before continuing the fixed merge.",
+  "native.workspace.merge_incomplete": "All frozen sources must be processed before sealing."
 }

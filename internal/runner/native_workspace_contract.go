@@ -10,6 +10,7 @@ const NativeWorkspaceVersion = nwc.Version
 // NativeWorkspacePolicy is local administrator configuration. A workflow may
 // select a profile, but cannot inject endpoints, filesystem roots or commands.
 type NativeWorkspacePolicy struct {
+	ConflictRepair  bool     `json:"conflict_repair,omitempty"`
 	Checks          []string `json:"checks"`
 	RuntimeManifest string   `json:"runtime_manifest"`
 }
@@ -17,11 +18,12 @@ type NativeWorkspacePolicy struct {
 // NativeWorkspaceBridge is carried only on the child's stdin. It must never
 // appear in model messages, stdout facts, platform metadata or saved evidence.
 type NativeWorkspaceBridge struct {
-	Version      int    `json:"version"`
-	Endpoint     string `json:"endpoint"`
-	Token        string `json:"token"`
-	PolicySHA256 string `json:"policy_sha256"`
-	RequestID    string `json:"request_id"`
+	ConflictRepairProtocol string `json:"conflict_repair_protocol,omitempty"`
+	Version                int    `json:"version"`
+	Endpoint               string `json:"endpoint"`
+	Token                  string `json:"token"`
+	PolicySHA256           string `json:"policy_sha256"`
+	RequestID              string `json:"request_id"`
 }
 
 type NativeWorkspaceFileEffect = nwc.NativeWorkspaceFileEffect

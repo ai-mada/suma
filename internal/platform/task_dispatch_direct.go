@@ -19,6 +19,9 @@ func (s *Service) BindDirectRunTx(ctx context.Context, tx *sql.Tx, auth *authori
 	if taskID == "" {
 		return nil
 	}
+	if err := s.rejectReservedCandidateRepairTaskTx(ctx, tx, p.TenantID, project, taskID, ""); err != nil {
+		return err
+	}
 	var raw string
 	err := tx.QueryRowContext(ctx, s.q(`SELECT w.spec FROM dag_runs r JOIN dag_workflows w ON w.tenant_id=r.tenant_id AND w.project_id=r.project_id AND w.id=r.workflow_id AND w.version=r.workflow_version WHERE r.tenant_id=? AND r.project_id=? AND r.id=?`), p.TenantID, project, runID).Scan(&raw)
 	if err != nil {

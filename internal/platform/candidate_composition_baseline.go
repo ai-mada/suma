@@ -16,7 +16,7 @@ func (s *Service) compositionAcceptedBasisTx(ctx context.Context, tx *sql.Tx, p 
 	if err != nil {
 		return RepositoryIntegrationBasis{}, err
 	}
-	if r.Plan.Version != version || r.Plan.RunID == "" || r.Execution == nil {
+	if r.Plan.Version != version || r.Plan.RunID == "" || !validCandidateCompositionExecutionRecord(r) {
 		return RepositoryIntegrationBasis{}, compositionError(409, "baseline_changed", compositionBaseline)
 	}
 	if err = s.checkCompositionSourcesTx(ctx, tx, p, r.Plan); err != nil {
@@ -76,6 +76,13 @@ func (s *Service) GetTaskCodeBaseline(ctx context.Context, actor Actor, project,
 		return out, err
 	}
 	out.CanBind = write && run == ""
+	if e := s.rejectReservedCandidateRepairTaskTx(ctx, auth.tx, auth.target.tenantID, project, task, ""); e != nil {
+		if !repositoryKnownError(e) {
+			return out, e
+		}
+		out.CanBind = false
+		out.Blockers = append(out.Blockers, compositionRepairTask)
+	}
 	if run != "" {
 		out.Blockers = append(out.Blockers, compositionStarted)
 	}
@@ -124,6 +131,9 @@ func (s *Service) BindTaskCodeBaseline(ctx context.Context, engine *dag.Engine, 
 	}
 	if out.RunID != "" || out.Status == "accepted" {
 		return out, compositionError(409, "started", compositionStarted)
+	}
+	if err = s.rejectReservedCandidateRepairTaskTx(ctx, auth.tx, auth.target.tenantID, project, task, ""); err != nil {
+		return out, err
 	}
 	_, oldVersion, err := s.taskCodeBaselineTx(ctx, auth.tx, auth.target.tenantID, project, task)
 	if err != nil {

@@ -714,7 +714,13 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 						return err
 					}
 					if !task {
-						return invalid("发布执行必须从发布计划核对或恢复，不能使用通用运行命令")
+						composition, err := s.Service.authorizeCandidateCompositionRunCommandTx(authority.ctx, tx, authority.proof, project, parts[1], str(m, "action"))
+						if err != nil {
+							return err
+						}
+						if !composition {
+							return invalid("发布执行必须从发布计划核对或恢复，不能使用通用运行命令")
+						}
 					}
 				}
 				return nil
@@ -978,6 +984,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				return err
 			}
 			if err := s.Service.validateCandidateCompositionResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {
+				return err
+			}
+			if err := s.Service.validateCandidateCompositionRepairResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {
 				return err
 			}
 			if err := s.Service.validateCodeBaselineResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {

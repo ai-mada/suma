@@ -60,11 +60,14 @@ func (s *Service) checkCandidateCompositionExecutionTx(ctx context.Context, tx *
 	if err != nil || !found {
 		return err
 	}
+	if r.RepairExecution != nil {
+		return s.checkCandidateCompositionRepairExecutionTx(ctx, tx, tenant, project, run, r.Plan.ProducerNodeID, requireCurrentSource)
+	}
 	p, err := s.compositionCreatorTx(ctx, tx, tenant, project, r.Creator)
 	if err != nil {
 		return err
 	}
-	if r.Execution == nil || r.Plan.RunID != run || ccmp.ValidateCandidateCompositionExecution(*r.Execution) != nil {
+	if r.Plan.RunID != run || !validCandidateCompositionExecutionRecord(r) {
 		return compositionError(409, "changed", compositionChanged)
 	}
 	if requireCurrentSource {
@@ -124,6 +127,8 @@ func (s *Service) codeInputBindingTx(ctx context.Context, tx *sql.Tx, a *candida
 	case "code_baseline":
 		// Only the platform's immutable run/node baseline record may grant this mode.
 		return s.codeBaselineInputBindingTx(ctx, tx, a, req)
+	case "conflict_repair":
+		return s.conflictRepairInputBindingTx(ctx, tx, a, req)
 	default:
 		return out, forbidden()
 	}
@@ -158,6 +163,9 @@ func (s *Service) compositionSnapshotTx(ctx context.Context, engine *dag.Engine,
 	}
 	if run != "" {
 		return out, compositionError(409, "started", compositionStarted)
+	}
+	if err = s.rejectReservedCandidateRepairTaskTx(ctx, auth.tx, p.TenantID, project, req.TaskID, ""); err != nil {
+		return out, err
 	}
 	baseline, _, err := s.taskCodeBaselineTx(ctx, auth.tx, p.TenantID, project, req.TaskID)
 	if err != nil {

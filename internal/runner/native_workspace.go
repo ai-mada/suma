@@ -43,6 +43,8 @@ func nativeError(code string) error {
 		"native_workspace_check_changed":      "Workspace check changed source files.",
 		"native_workspace_checks_stale":       "Required workspace checks have not passed for current source.",
 		"native_workspace_cursor":             "Workspace list cursor is invalid or stale.",
+		"native_workspace_merge_unresolved":   "Resolve every active conflict before continuing the fixed merge.",
+		"native_workspace_merge_incomplete":   "All frozen sources must be processed before sealing.",
 	}
 	fatal := code == "native_workspace_scope" || code == "native_workspace_closed" || code == "native_workspace_unavailable" || code == "native_workspace_operation_conflict" || code == "native_workspace_unknown" || code == "native_workspace_check_changed"
 	return &NativeWorkspaceError{Code: code, Message: messages[code], Fatal: fatal}
@@ -169,6 +171,9 @@ func (n *nativeWorkspace) ReadyToSeal() error {
 	if n.ledger.Unknown {
 		return nativeError("native_workspace_unknown")
 	}
+	if repair := n.workspace.ConflictRepair; repair != nil && (repair.State != "resolved" || repair.Pending != nil || repair.SourceIndex != len(n.assignment.CandidateConflictRepair.Composition.Sources)) {
+		return nativeError("native_workspace_merge_incomplete")
+	}
 	_, sourceSHA, err := n.verifySourceLocked()
 	if err != nil {
 		return err
@@ -211,6 +216,10 @@ func (n *nativeWorkspace) invoke(ctx context.Context, name string, raw json.RawM
 		result, err = n.readLocked(args)
 	case "write", "edit", "remove", "check":
 		result, err = n.operationLocked(ctx, name, args, operationID)
+	case "merge_status":
+		result, err = n.mergeStatusLocked()
+	case "merge_continue":
+		result, err = n.mergeContinueLocked(ctx, args, operationID)
 	default:
 		err = nativeError("native_workspace_arguments")
 	}

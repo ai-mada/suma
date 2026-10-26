@@ -31,9 +31,10 @@ type cliMessage struct{ key, zh string }
 // 精确匹配的是本 CLI 自己生成的静态诊断，绝不把远端诊断、用户文本或
 // 工具原始输出送进此映射。机器 code、状态和幂等请求正文不受语言影响。
 var cliMessages = map[string]cliMessage{
-	compositionCLIUsage:         {"cli.candidate_composition.action_required", "candidate-compositions 需要 options、list、get、create、start 或 command；task-code-baseline 需要 get 或 bind，请查看 --help"},
+	compositionCLIUsage:         {"cli.candidate_composition.action_required", "candidate-compositions 需要 options、list、get、conflict、create、repair、start 或 command；task-code-baseline 需要 get 或 bind，请查看 --help"},
 	compositionCLIReadInvalid:   {"cli.candidate_composition.read_invalid", "候选合成读取参数无效，请提供有效任务或计划标识及 1–100 的 limit"},
 	compositionCLIWriteOptions:  {"cli.candidate_composition.write_options", "候选合成与代码基线写入需要 --file JSON_FILE 或 --file -，并明确提供 --confirm"},
+	compositionCLIRepairInvalid: {"cli.candidate_composition.repair_basis_required", "冲突修复需要准确冲突依据、类型化修复任务、流程和工具版本及稳定操作标识"},
 	compositionCLIWriteInvalid:  {"cli.candidate_composition.basis_required", "候选合成需要类型化 JSON、精确整数版本、按序 2–16 个不同来源、明确确认及稳定的 8–128 字符 idempotency_key"},
 	diagnosisCLIUsage:           {"cli.failure_diagnosis.action_required", "failure-diagnosis 需要 context、list、get、create 或 command，请查看 failure-diagnosis --help"},
 	diagnosisCLIReadInvalid:     {"cli.failure_diagnosis.read_invalid", "失败分诊读取参数无效，请提供 --run、--node、规范正整数 --attempt 及 1–100 的 limit"},
