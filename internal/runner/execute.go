@@ -165,6 +165,9 @@ func (b *output) flushProgress() error {
 }
 func contains(a, b string) bool { return strings.Contains(a, b) }
 func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
+	if a.RepositoryIntegration != nil {
+		return executeRepositoryIntegration(ctx, a, cfg)
+	}
 	if a.ReleaseExecution != nil {
 		return executeRelease(ctx, a, cfg)
 	}

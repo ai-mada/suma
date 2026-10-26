@@ -348,7 +348,7 @@ func (e *Engine) getAttempt(ctx context.Context, tx *sql.Tx, tenant, project, ru
 		}
 		// Provider observations carry explicit release evidence. A live worker's
 		// formal read-only completion retains its original runner provenance.
-		if resolution.ReleaseEvidence != nil {
+		if resolution.ReleaseEvidence != nil || resolution.IntegrationEvidence != nil {
 			out.ResultSource = "managed_observation"
 		}
 	}

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -18,13 +19,14 @@ import (
 // Local scopes are configurations, never project grants. Paths and command
 // environments remain local and are never included in machine diagnostics.
 type PoolLocalScope struct {
-	TenantID   string                 `json:"tenant_id"`
-	ProjectID  string                 `json:"project_id"`
-	Workspace  string                 `json:"workspace"`
-	Repository string                 `json:"repository,omitempty"`
-	BaseCommit string                 `json:"base_commit,omitempty"`
-	Worktrees  string                 `json:"worktrees,omitempty"`
-	Commands   map[string]CommandSpec `json:"commands"`
+	TenantID   string                  `json:"tenant_id"`
+	ProjectID  string                  `json:"project_id"`
+	Workspace  string                  `json:"workspace"`
+	Repository string                  `json:"repository,omitempty"`
+	BaseCommit string                  `json:"base_commit,omitempty"`
+	Worktrees  string                  `json:"worktrees,omitempty"`
+	Commands   map[string]CommandSpec  `json:"commands"`
+	External   map[string]ExternalSpec `json:"external,omitempty"`
 }
 type PoolLocalConfig struct {
 	SchemaVersion       int              `json:"schema_version"`
@@ -68,6 +70,14 @@ func validatePoolLocalConfig(c PoolLocalConfig) error {
 			return fmt.Errorf("invalid or duplicate local project scope")
 		}
 		seen[key] = true
+		for id, spec := range s.External {
+			if id == "" || spec.Protocol != rc.RepositoryProtocol || spec.TokenEnv == "" {
+				return fmt.Errorf("pool external configuration only supports explicit repository integration providers")
+			}
+			if _, err := externalURL(spec); err != nil {
+				return err
+			}
+		}
 		if err := ValidateToolConfiguration(ExecConfig{Commands: s.Commands}); err != nil {
 			return err
 		}
@@ -237,7 +247,7 @@ func (w *PoolWorker) Run(ctx context.Context) error {
 		pool.TenantID, pool.ProjectID = scope.TenantID, scope.ProjectID
 		client.Pool = &pool
 		client.ProjectID = scope.ProjectID
-		w.local[key] = &Worker{Client: &client, Journal: j, ID: session.Runner.WorkerID, Exec: ExecConfig{AllowExec: w.AllowExec, Workspace: scope.Workspace, Repository: scope.Repository, BaseCommit: scope.BaseCommit, WorktreeRoot: scope.Worktrees, Commands: scope.Commands, Secrets: []string{w.Client.Token}}}
+		w.local[key] = &Worker{Client: &client, Journal: j, ID: session.Runner.WorkerID, Exec: ExecConfig{AllowExec: w.AllowExec, Workspace: scope.Workspace, Repository: scope.Repository, BaseCommit: scope.BaseCommit, WorktreeRoot: scope.Worktrees, Commands: scope.Commands, External: scope.External, Secrets: []string{w.Client.Token}}}
 	}
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -298,6 +308,23 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 		}
 	}
 	for ctx.Err() == nil {
+		for _, a := range j.pendingReleases() {
+			if a.RepositoryIntegration == nil || a.ReleaseExecution != nil {
+				return fmt.Errorf("pool recovery requires a repository integration binding")
+			}
+			local := w.local[scopeKey(a.TenantID, a.ProjectID)]
+			if local == nil {
+				return fmt.Errorf("pool repository recovery lacks its fixed local scope")
+			}
+			client, e := w.Client.forPoolAssignment(a)
+			if e != nil {
+				return e
+			}
+			executor := Worker{Client: client, Journal: j, ID: worker, Exec: local.Exec, inventory: local.currentInventory()}
+			if e = executor.runAssignment(ctx, a, beat); e != nil {
+				return e
+			}
+		}
 		if err = replayPool(ctx, w.Client, j); err != nil {
 			var status *runnerHTTPStatusError
 			if errors.As(err, &status) && (status.Status == 401 || status.Status == 403) {
@@ -334,7 +361,8 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 		for _, scope := range w.Config.Scopes {
 			local := w.local[scopeKey(scope.TenantID, scope.ProjectID)]
 			if active[scopeKey(scope.TenantID, scope.ProjectID)] && local.canClaimInventory() {
-				scopes = append(scopes, PoolCapabilityScope{TenantID: scope.TenantID, ProjectID: scope.ProjectID, Capabilities: ToolCapabilities(local.currentInventory())})
+				caps := append(ToolCapabilities(local.currentInventory()), ExternalCapabilities(local.Exec.External)...)
+				scopes = append(scopes, PoolCapabilityScope{TenantID: scope.TenantID, ProjectID: scope.ProjectID, Capabilities: caps})
 			}
 		}
 		// A pending request must be refreshed even when the pool is paused or a
@@ -375,7 +403,7 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 			if local == nil {
 				return fmt.Errorf("dispatch lacks exact local project configuration")
 			}
-			if a.ReleaseExecution != nil || a.Type == "external_workflow" {
+			if a.ReleaseExecution != nil || a.Type == "external_workflow" && a.RepositoryIntegration == nil {
 				return fmt.Errorf("pool external/deployment capability is not configured")
 			}
 			if e = j.Accept(*a); e != nil {

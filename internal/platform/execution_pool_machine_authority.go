@@ -52,7 +52,19 @@ type poolMachineIdentity struct {
 // poolMachineIdentityTx never authenticates a human account and never returns a
 // token/hash. The current read is taken only after ordered organization locks.
 func (s *Service) poolMachineIdentityTx(ctx context.Context, tx *sql.Tx, token, runnerID string, current bool) (poolMachineIdentity, error) {
+	if token == "" {
+		return poolMachineIdentity{}, forbidden()
+	}
+	return s.poolMachineIdentityByHashTx(ctx, tx, digest(token), runnerID, current)
+}
+
+// Only persisted, previously authenticated operation credentials call this
+// internal seam. It is not exposed as a token/hash authentication endpoint.
+func (s *Service) poolMachineIdentityByHashTx(ctx context.Context, tx *sql.Tx, tokenHash, runnerID string, current bool) (poolMachineIdentity, error) {
 	var out poolMachineIdentity
+	if !contentDigest.MatchString(tokenHash) {
+		return out, forbidden()
+	}
 	query := `SELECT r.id,r.pool_id,r.worker_id,r.name,r.version,r.status,r.max_slots,r.credential_version,r.last_seen_at,r.created_at,c.expires_at,p.owner_tenant_id,c.id,p.status,c.status,c.version FROM suma_execution_pool_runners r JOIN suma_execution_pool_credentials c ON c.runner_id=r.id JOIN suma_execution_pools p ON p.id=r.pool_id WHERE r.id=? AND c.token_hash=?`
 	if current && s.Dialect != "sqlite" {
 		query += ` FOR UPDATE`
@@ -60,7 +72,7 @@ func (s *Service) poolMachineIdentityTx(ctx context.Context, tx *sql.Tx, token, 
 	var credentialStatus string
 	var credentialVersion int
 	r := &out.runner
-	err := tx.QueryRowContext(ctx, s.q(query), runnerID, digest(token)).Scan(&r.ID, &r.PoolID, &r.WorkerID, &r.Name, &r.Version, &r.Status, &r.MaxSlots, &r.CredentialVersion, &r.LastSeenAt, &r.CreatedAt, &r.CredentialExpiresAt, &out.owner, &out.credentialID, &out.poolStatus, &credentialStatus, &credentialVersion)
+	err := tx.QueryRowContext(ctx, s.q(query), runnerID, tokenHash).Scan(&r.ID, &r.PoolID, &r.WorkerID, &r.Name, &r.Version, &r.Status, &r.MaxSlots, &r.CredentialVersion, &r.LastSeenAt, &r.CreatedAt, &r.CredentialExpiresAt, &out.owner, &out.credentialID, &out.poolStatus, &credentialStatus, &credentialVersion)
 	if errors.Is(err, sql.ErrNoRows) {
 		return out, forbidden()
 	}
@@ -72,7 +84,7 @@ func (s *Service) poolMachineIdentityTx(ctx context.Context, tx *sql.Tx, token, 
 		return out, err
 	}
 	expires, parseErr := time.Parse(time.RFC3339Nano, r.CredentialExpiresAt)
-	if token == "" || r.Status != "active" || credentialStatus != "active" || credentialVersion != r.CredentialVersion || parseErr != nil || expires.Unix() <= clock.Unix() || r.WorkerID != "pool-"+r.ID || r.MaxSlots < 1 || r.MaxSlots > 128 {
+	if r.Status != "active" || credentialStatus != "active" || credentialVersion != r.CredentialVersion || parseErr != nil || expires.Unix() <= clock.Unix() || r.WorkerID != "pool-"+r.ID || r.MaxSlots < 1 || r.MaxSlots > 128 {
 		return poolMachineIdentity{}, forbidden()
 	}
 	r.AllowedActions = []string{}
@@ -183,6 +195,13 @@ func (s *Service) authorizePoolRunnerTx(ctx context.Context, tx *sql.Tx, token, 
 // attempt; it cannot create or recover an executable new dispatch. Machine
 // revocation and credential expiry still reject every privileged response.
 func (s *Service) PoolRunnerAssignmentAuthorityTx(ctx context.Context, tx *sql.Tx, token string, a dag.Assignment) (*poolMachineProof, error) {
+	if token == "" {
+		return nil, forbidden()
+	}
+	return s.poolRunnerAssignmentAuthorityByHashTx(ctx, tx, digest(token), a)
+}
+
+func (s *Service) poolRunnerAssignmentAuthorityByHashTx(ctx context.Context, tx *sql.Tx, tokenHash string, a dag.Assignment) (*poolMachineProof, error) {
 	deadline := s.txAuthorityBudget(ctx, tx).deadline
 	ctx, cancel := context.WithDeadline(ctx, deadline)
 	defer cancel()
@@ -190,7 +209,7 @@ func (s *Service) PoolRunnerAssignmentAuthorityTx(ctx context.Context, tx *sql.T
 		return nil, err
 	}
 
-	identity, err := s.poolMachineIdentityTx(ctx, tx, token, a.PoolRunnerID, false)
+	identity, err := s.poolMachineIdentityByHashTx(ctx, tx, tokenHash, a.PoolRunnerID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +229,7 @@ func (s *Service) PoolRunnerAssignmentAuthorityTx(ctx context.Context, tx *sql.T
 	if err = s.poolOrderedOrganizationsTx(ctx, tx, []string{identity.owner, tenant}); err != nil {
 		return nil, err
 	}
-	identity, err = s.poolMachineIdentityTx(ctx, tx, token, a.PoolRunnerID, true)
+	identity, err = s.poolMachineIdentityByHashTx(ctx, tx, tokenHash, a.PoolRunnerID, true)
 	if err != nil {
 		return nil, err
 	}

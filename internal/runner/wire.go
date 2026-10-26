@@ -3,10 +3,12 @@ package runner
 import (
 	"encoding/json"
 	"github.com/ai-mada/suma/internal/releasecontract"
+	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
 type Assignment struct {
+	RepositoryIntegration   *rc.RepositoryExecution           `json:"repository_integration,omitempty"`
 	TenantID                string                            `json:"tenant_id,omitempty"`
 	ProjectID               string                            `json:"project_id,omitempty"`
 	PoolID                  string                            `json:"pool_id,omitempty"`
@@ -37,6 +39,7 @@ type Assignment struct {
 	ReleaseExecution        *releasecontract.ReleaseExecution `json:"release_execution,omitempty"`
 }
 type Result struct {
+	IntegrationEvidence *rc.RepositoryResult `json:"integration_evidence,omitempty"`
 	Assignment
 	ExitCode          int                               `json:"exit_code"`
 	Output            string                            `json:"output"`
@@ -64,21 +67,22 @@ type Progress struct {
 // Result carries only completion fields on the wire, independently of the full durable assignment.
 func (r Result) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		RunID             string                            `json:"run_id"`
-		NodeID            string                            `json:"node_id"`
-		Attempt           int                               `json:"attempt"`
-		Fence             int64                             `json:"fence"`
-		WorkerID          string                            `json:"worker_id"`
-		ExitCode          int                               `json:"exit_code"`
-		Output            string                            `json:"output"`
-		Error             string                            `json:"error"`
-		FailureClass      string                            `json:"failure_class,omitempty"`
-		OperationID       string                            `json:"operation_id"`
-		Stopped           bool                              `json:"stopped"`
-		OutcomeUnknown    bool                              `json:"outcome_unknown"`
-		WorkspaceEvidence map[string]any                    `json:"workspace_evidence,omitempty"`
-		ArtifactEvidence  *releasecontract.ArtifactEvidence `json:"artifact_evidence,omitempty"`
-		ReleaseEvidence   *releasecontract.ReleaseResult    `json:"release_evidence,omitempty"`
-		ToolEvidence      *tc.Evidence                      `json:"tool_evidence,omitempty"`
-	}{r.RunID, r.NodeID, r.Attempt, r.Fence, r.WorkerID, r.ExitCode, r.Output, r.Error, r.FailureClass, r.OperationID, r.Stopped, r.OutcomeUnknown, r.WorkspaceEvidence, r.ArtifactEvidence, r.ReleaseEvidence, r.ToolEvidence})
+		IntegrationEvidence *rc.RepositoryResult              `json:"integration_evidence,omitempty"`
+		RunID               string                            `json:"run_id"`
+		NodeID              string                            `json:"node_id"`
+		Attempt             int                               `json:"attempt"`
+		Fence               int64                             `json:"fence"`
+		WorkerID            string                            `json:"worker_id"`
+		ExitCode            int                               `json:"exit_code"`
+		Output              string                            `json:"output"`
+		Error               string                            `json:"error"`
+		FailureClass        string                            `json:"failure_class,omitempty"`
+		OperationID         string                            `json:"operation_id"`
+		Stopped             bool                              `json:"stopped"`
+		OutcomeUnknown      bool                              `json:"outcome_unknown"`
+		WorkspaceEvidence   map[string]any                    `json:"workspace_evidence,omitempty"`
+		ArtifactEvidence    *releasecontract.ArtifactEvidence `json:"artifact_evidence,omitempty"`
+		ReleaseEvidence     *releasecontract.ReleaseResult    `json:"release_evidence,omitempty"`
+		ToolEvidence        *tc.Evidence                      `json:"tool_evidence,omitempty"`
+	}{r.IntegrationEvidence, r.RunID, r.NodeID, r.Attempt, r.Fence, r.WorkerID, r.ExitCode, r.Output, r.Error, r.FailureClass, r.OperationID, r.Stopped, r.OutcomeUnknown, r.WorkspaceEvidence, r.ArtifactEvidence, r.ReleaseEvidence, r.ToolEvidence})
 }

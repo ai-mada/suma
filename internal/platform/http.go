@@ -10,6 +10,7 @@ import (
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/releasecontract"
+	ri "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
 	"io"
 	"log/slog"
 	"net/http"
@@ -135,7 +136,7 @@ func decode(r *http.Request) (map[string]any, error) {
 	// Preserve numeric lexemes so a fractional counter near 2^53 cannot round
 	// into a valid integer before that validation. Legacy map-backed routes
 	// retain their existing number representation until their DTO migration.
-	if strings.HasPrefix(r.URL.Path, "/api/v1/expert-teams") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-team-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/knowledge-intelligence") || strings.HasPrefix(r.URL.Path, "/api/v1/skill-catalog") || strings.HasPrefix(r.URL.Path, "/api/v1/usage") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/analyses") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/alerts") || (strings.HasPrefix(r.URL.Path, "/api/v1/requirements/") && strings.Contains(r.URL.Path, "/design")) || strings.HasPrefix(r.URL.Path, "/api/v1/task-dispatch-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/task-handoffs") || strings.HasPrefix(r.URL.Path, "/api/v1/project-knowledge") || r.URL.Path == "/api/v1/agent/tools/invoke" || strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
+	if strings.HasPrefix(r.URL.Path, "/api/v1/repository-provider/") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integrations") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integration-targets") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-teams") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-team-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/knowledge-intelligence") || strings.HasPrefix(r.URL.Path, "/api/v1/skill-catalog") || strings.HasPrefix(r.URL.Path, "/api/v1/usage") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/analyses") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/alerts") || (strings.HasPrefix(r.URL.Path, "/api/v1/requirements/") && strings.Contains(r.URL.Path, "/design")) || strings.HasPrefix(r.URL.Path, "/api/v1/task-dispatch-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/task-handoffs") || strings.HasPrefix(r.URL.Path, "/api/v1/project-knowledge") || r.URL.Path == "/api/v1/agent/tools/invoke" || strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
 		d.UseNumber()
 	}
 	if err := d.Decode(&m); err != nil {
@@ -172,6 +173,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	path := strings.Trim(strings.TrimPrefix(r.URL.Path, "/api/v1/"), "/")
 	parts := strings.Split(path, "/")
 	if s.automationIngressPublicHTTP(w, r, path, parts) {
+		return
+	}
+	if s.repositoryProviderHTTP(w, r, path) {
 		return
 	}
 	if s.releaseProviderHTTP(w, r, path) {
@@ -463,6 +467,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.usageAccountingHTTP(w, r, actor, scope, parts, project, m) {
+		return
+	}
+	if s.repositoryIntegrationHTTP(w, r, actor, scope, project, parts, m) {
 		return
 	}
 	if s.expertTeamHTTP(w, r, actor, scope, project, parts, m) {
@@ -800,6 +807,18 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			return s.Service.validateToolProgressTx(authority.ctx, tx, authority.proof, assignment, event)
 		})
 		respond(w, 200, map[string]bool{"acknowledged": e == nil}, e)
+	case "runner/repository-integrations/authorize":
+		var req ri.RepositoryAuthorizationRequest
+		if err := repositoryDecodeBody(m, &req); err != nil {
+			writeError(w, err)
+			return
+		}
+		if req.ProjectID != project {
+			writeError(w, forbidden())
+			return
+		}
+		out, err := s.Service.AuthorizeRepositoryIntegration(r.Context(), actor, req)
+		respond(w, 200, out, err)
 	case "runner/claim":
 		var claim RunnerClaimRequest
 		if err := strictAutomation(m, &claim); err != nil {
@@ -837,10 +856,20 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				}
 				return false, err
 			}
+			if err := s.Service.checkRepositoryIntegrationExecutionTx(authority.ctx, tx, p.TenantID, project, run); err != nil {
+				var apiErr *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && strings.HasPrefix(apiErr.Code, "repository_integration_") {
+					return false, nil
+				}
+				return false, err
+			}
 			return s.Service.toolClaimEligibleTx(authority.ctx, tx, authority.proof, claim.WorkerID, run, node)
 		})
 		if e == nil && a != nil && a.DispatchState == "active" {
 			a.ReleaseExecution, e = s.Service.ReleaseExecutionForAssignment(r.Context(), actor, project, *a)
+			if e == nil {
+				e = s.Service.decorateRepositoryAssignment(r.Context(), actor, project, a)
+			}
 		}
 		respond(w, 200, RunnerClaimResponse{Assignment: a}, e)
 	case "runner/heartbeat":
@@ -861,7 +890,10 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			if err := s.Service.checkPlanningExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID); err != nil {
 				return err
 			}
-			return s.Service.checkKnowledgeIntelligenceExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID, false)
+			if err := s.Service.checkKnowledgeIntelligenceExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID, false); err != nil {
+				return err
+			}
+			return s.Service.checkRepositoryIntegrationExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID)
 		})
 		if errors.Is(e, dag.ErrCancelled) {
 			writeJSON(w, 200, map[string]any{"cancel_requested": true})
@@ -895,7 +927,13 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			if err := s.Service.recordPlanningOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {
 				return err
 			}
-			return s.Service.recordKnowledgeIntelligenceOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize)
+			if err := s.Service.recordKnowledgeIntelligenceOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {
+				return err
+			}
+			if err := s.Service.validateRepositoryIntegrationResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {
+				return err
+			}
+			return s.Service.recordRepositoryIntegrationOutcomeTx(authority.ctx, tx, p.TenantID, project, result)
 		})
 		if e == nil {
 			run, re := s.Engine.GetRun(r.Context(), p.TenantID, project, result.RunID)

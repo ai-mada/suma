@@ -142,6 +142,16 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof
 		return false, err
 	}
 	if managed != 0 {
+		// Only this fixed managed envelope has the dedicated repository effect
+		// protocol. General external workflows and release effects stay denied.
+		integration, err := s.RepositoryIntegrationRunTx(ctx, tx, scope.TenantID, scope.ProjectID, run)
+		if err != nil {
+			return false, err
+		}
+		if integration {
+			return true, nil
+		}
+
 		task, err := s.TaskDispatchRunTx(ctx, tx, scope.TenantID, scope.ProjectID, run)
 		if err != nil {
 			return false, err

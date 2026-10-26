@@ -1,0 +1,353 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-028",
+  "product_version": "1.0.0",
+  "status": "locally_verified_full_platform_in_progress",
+  "scope": "same-host actual fixed local bare Git provider, private Runner UI journey and typed Pool domain checks; not physical remote or production acceptance",
+  "contract": "contracts/repository-integration.md",
+  "source_files": 370,
+  "source_sha256": "b598b6ebb3138ebcdb32999543d5fb7c014c556b644c8122d561edce2dea9d3e",
+  "binaries": {
+    "suma-control.exe": "95905c6e1d0d2c25034ae0806879e2e6259ba1e0c9effaecf3cec60cb54d6695",
+    "suma-repository-provider.exe": "e91d637be7a308b0409218763637dfe2e4231b729b76eef65a3fc8e3a87f5ae0",
+    "suma-runner.exe": "b35b2a346aa3cf41050520ada1e387d4123368ebfd8012a3e89fc40ed4b33c0f"
+  },
+  "frontend": {
+    "paired_keys": 3886,
+    "new_paired_keys": 97,
+    "focused_UI_checks": 4,
+    "typescript_exit": 0,
+    "production_build_exit": 0,
+    "web_files": 131,
+    "web_index_sha256": "cd72d1c95360c9d633745af85f178f688c879dc18b1cdb326a0b87dab0c0ff7a",
+    "schemas": 367,
+    "paths": 215,
+    "CN_EN_actual": true,
+    "refresh_same_plan": true,
+    "new_controls_explicit_labels": 10
+  },
+  "affected_checks": [
+    {
+      "path": ".cache/mcp019-deps/20261026T135939818Z.command.json",
+      "sha256": "eaeaf900bc89ef6fe2fb31b5d92837f1dc707ef0edde1b0e659085cc3b668be3",
+      "arguments": [
+        "test",
+        "-json",
+        "./internal/platform",
+        "./internal/localization",
+        "./cmd/suma-contracts",
+        "-run",
+        "TestRepositoryHTTPStrictScopeAndMachineTransport|TestRepositoryLocalizationPreservesApprovedEvidence|TestPlatformDiagnosticCoverage|Test.*Contracts|Test.*Schema|Test.*Wire"
+      ],
+      "exit_code": 0,
+      "top_pass": 17,
+      "pass_events": 39
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T141034039Z.command.json",
+      "sha256": "5222d37b5b201c08bc3459ec53fbfeac9b2b5e7a6e9533447ac450c5ddf2cdc7",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^TestRepositoryIntegration(Unknown|CurrentCreator|RejectsUnconsumed|BasisAndActual|PrepareConcurrent|ProviderConfiguration)",
+        "-count=1",
+        "-json"
+      ],
+      "exit_code": 0,
+      "top_pass": 6,
+      "pass_events": 12
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T141127500Z.command.json",
+      "sha256": "768a5cce4c4fa89aa3923ed8ead268eb82c6c8165d4930298d8745dcbfa6bfc1",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^TestCandidateTransferPoolUsesIndependentCurrentAuthorityAndFrozenConsumer$",
+        "-count=1",
+        "-json"
+      ],
+      "exit_code": 0,
+      "top_pass": 1,
+      "pass_events": 1
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T141252123Z.command.json",
+      "sha256": "7dc4eeb031a4483ea2f29d38d07304dc967ec6f905f02ca65a2e940bd6ad8e73",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^TestRepositoryIntegrationAcceptedBasisAuthenticatedPrepareApplyAndReplay$",
+        "-count=1",
+        "-json"
+      ],
+      "exit_code": 0,
+      "top_pass": 1,
+      "pass_events": 1
+    }
+  ],
+  "runtime_checks": [
+    {
+      "receipt": ".cache/mcp019-deps/20261026T135221435Z.command.json",
+      "receipt_sha256": "cb699650d374b946127a737a40e81d1dda3f49768992dfc6d16faf67ce309759",
+      "arguments": [
+        "test",
+        "./internal/repositoryprovider",
+        "./internal/repositoryintegrationcontract",
+        "./internal/runner",
+        "./internal/dag",
+        "./cmd/suma-repository-provider",
+        "-run",
+        "^TestRepository|^TestReleaseV2|^TestManagedObservationResolution|^TestPoolConfigRejectsCredentialForwardingAndUnscopedArtifactPrivileges$",
+        "-count=1",
+        "-json"
+      ],
+      "exit_code": 0,
+      "pass_events": 28,
+      "fail_events": 0,
+      "top_level_count": 15
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261026T135657062Z.command.json",
+      "receipt_sha256": "8ec5c753025d47c5d61982276f963e42286fc3e134671be6f6646bd1a58d8cab",
+      "arguments": [
+        "test",
+        "./internal/repositoryprovider",
+        "-run",
+        "^TestRepositoryReconcileMissingIntentAndBoundedReview$|^TestRepositoryGitLostAckAndAtomicOrphanRace$/lost_ack$",
+        "-count=1",
+        "-json"
+      ],
+      "exit_code": 0,
+      "pass_events": 7,
+      "fail_events": 0,
+      "top_level_count": 2
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261026T135741088Z.command.json",
+      "receipt_sha256": "f339af5f2e2456d737e5c72605929a6e9bd8e2e168f37791a067ef8385f72580",
+      "arguments": [
+        "test",
+        "./internal/runner",
+        "-run",
+        "^TestRepositoryBridgeTypedEvidenceAndRecovery$",
+        "-count=1",
+        "-json"
+      ],
+      "exit_code": 0,
+      "pass_events": 7,
+      "fail_events": 0,
+      "top_level_count": 1
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261026T135745006Z.command.json",
+      "receipt_sha256": "cb00d179404dbe2f167cf2fe618a4d4cc06ac99ed8760dc3c3e5af146fd786ae",
+      "arguments": [
+        "vet",
+        "./internal/repositoryintegrationcontract",
+        "./internal/repositoryprovider",
+        "./internal/runner",
+        "./internal/dag",
+        "./cmd/suma-repository-provider"
+      ],
+      "exit_code": 0,
+      "pass_events": 0,
+      "fail_events": 0,
+      "top_level_count": 0
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261026T140633698Z.command.json",
+      "receipt_sha256": "2f2a473c8dd8d9f7f1a461a3812677c5d01fac329502bb7c27997793eb9514f1",
+      "arguments": [
+        "test",
+        "./internal/runner",
+        "-run",
+        "^TestRepositoryBridgeTypedEvidenceAndRecovery$",
+        "-count=1",
+        "-json"
+      ],
+      "exit_code": 0,
+      "pass_events": 9,
+      "fail_events": 0,
+      "top_level_count": 1
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261026T140941920Z.command.json",
+      "receipt_sha256": "20414ff4e312e80cb8858b652975dcfd8d94093999d54fa219adfbc9c1d3a4a5",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^TestRepositoryIntegrationPoolCurrentArmAndGrantedFactRecovery$",
+        "-count=1",
+        "-json"
+      ],
+      "exit_code": 0,
+      "pass_events": 3,
+      "fail_events": 0,
+      "top_level_count": 1
+    }
+  ],
+  "count_policy": "Do not add overlapping reruns; use the final receipt for each changed input. Only affected checks and actual journey, no repeated full suite.",
+  "actual": {
+    "stage": "T-P4-028",
+    "scope": "same-Windows-host real Control/Runner/Git Provider; reused accepted027 fixture",
+    "plan_id": "8673df710e66e29555603e7a0d225694",
+    "task_id": "0c8c659951b564a3fbee7bfb2acb3586",
+    "prepare_run_id": "repository-prepare-8673df710e66e29555603e7a0d225694",
+    "apply_run_id": "repository-apply-8673df710e66e29555603e7a0d225694",
+    "operation_id": "repo-apply-8673df710e66e29555603e7a0d225694",
+    "base_commit": "5c9427194708f1fbc35fca2717ff5cbea2b01a17",
+    "result_commit": "d15c517cb9a1684481c61a2bf127331785821fce",
+    "prepared_sha256": "7919e516c869740cecb721e72bf4ddcdb87809cac275229995cdaa54c9355efb",
+    "receipt_oid": "bbe4fd5b34feeb3ff7a214ae9bd48faee0e7b50f",
+    "receipt_sha256": "ebe4eecc05abe8a77869fa6ca136ef5451e957007cf5cf59f4d0c60d9763f49b",
+    "diff_files": 2,
+    "diff_bytes": 464,
+    "bundle_bytes": 725,
+    "checks": {
+      "integrated": true,
+      "exact_tested_candidate": true,
+      "approved_exact_prepared_diff": true,
+      "actual_git_blob_oid": true,
+      "canonical_receipt_digest": true,
+      "operation_receipt": true,
+      "generation_fence": true,
+      "receipt_binding": true,
+      "fixed_bundle_configuration": true,
+      "barrier_released": true,
+      "generation_one": true,
+      "prepare_run_succeeded": true,
+      "prepare_typed_result": true,
+      "apply_run_succeeded": true,
+      "apply_typed_result": true,
+      "existing_acceptance_unchanged": true,
+      "facts_persisted": true
+    },
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "new_agent_tokens": 0,
+    "new_business_acceptance": false
+  },
+  "primary": {
+    "tables": 175,
+    "original_tables": 168,
+    "original_schema_changes": 0,
+    "schema_additions": [
+      {
+        "type": "index",
+        "name": "suma_repository_operation_plan",
+        "table": "suma_repository_operations"
+      },
+      {
+        "type": "index",
+        "name": "suma_repository_plan_scope",
+        "table": "suma_repository_plans"
+      },
+      {
+        "type": "index",
+        "name": "suma_repository_target_scope",
+        "table": "suma_repository_targets"
+      },
+      {
+        "type": "table",
+        "name": "suma_repository_approvals",
+        "table": "suma_repository_approvals"
+      },
+      {
+        "type": "table",
+        "name": "suma_repository_authorizations",
+        "table": "suma_repository_authorizations"
+      },
+      {
+        "type": "table",
+        "name": "suma_repository_observations",
+        "table": "suma_repository_observations"
+      },
+      {
+        "type": "table",
+        "name": "suma_repository_operations",
+        "table": "suma_repository_operations"
+      },
+      {
+        "type": "table",
+        "name": "suma_repository_plans",
+        "table": "suma_repository_plans"
+      },
+      {
+        "type": "table",
+        "name": "suma_repository_reconciliation_grants",
+        "table": "suma_repository_reconciliation_grants"
+      },
+      {
+        "type": "table",
+        "name": "suma_repository_targets",
+        "table": "suma_repository_targets"
+      }
+    ],
+    "new_repository_integration_tables_empty": true,
+    "identical_full_tables": 168,
+    "changed_tables": [],
+    "integrity": "ok",
+    "authority_rows": 18,
+    "grant_rows": 0,
+    "authority_rows_unchanged": true,
+    "grant_rows_unchanged": true,
+    "normal_login_not_reissued": true,
+    "run_states": [
+      [
+        "failed",
+        1
+      ],
+      [
+        "succeeded",
+        2
+      ]
+    ],
+    "source_inputs": 370,
+    "served": {
+      "http://127.0.0.1:4324": {
+        "html_bytes_match": true,
+        "linked_assets_match": 2
+      },
+      "http://pool.localhost:4324": {
+        "html_bytes_match": true,
+        "linked_assets_match": 2
+      }
+    },
+    "existing_run_rows_unchanged": true,
+    "pid": 245164,
+    "holder_pid": 248308,
+    "url": "http://pool.localhost:4324/",
+    "control_sha256": "95905c6e1d0d2c25034ae0806879e2e6259ba1e0c9effaecf3cec60cb54d6695"
+  },
+  "source_fixture": {
+    "source_db_sha256": "3b4d054851985c633fc99445a817392609ae40eaa2948b6e410687a50bad1763",
+    "original_files": 4,
+    "bytes": 2590148,
+    "source_unchanged": true,
+    "all_owned_actual_processes_closed_zero": true
+  },
+  "actual_initial_findings": [
+    "Missing managed purpose blocked two actual prepare runs before tickets or Git writes; history retained, workflow corrected and final real UI journey succeeded.",
+    "Private assignment normalization found by first domain check, corrected and exact affected flow rechecked.",
+    "Existing consumed prepare intent must resume without a new authorization; unknown apply stays query-only."
+  ],
+  "remaining": [
+    "merge/squash strategies require newly tested result",
+    "remote TLS/federated provider and physical multi-host acceptance",
+    "OceanBase/PostgreSQL real database matrix and capacity",
+    "full P0-P7 platform, vendor/account connections, mobile, office/collaboration and SaaS billing/install acceptance"
+  ],
+  "evidence": {
+    ".cache/e2e/repository-integration-stage-028/browser/verification.local.json": "80988c670ce8ea2f305039ce5147e8db94d495dd6bfd2149007593a832087169",
+    ".cache/e2e/repository-integration-stage-028/actual/run3/verification.local.json": "da03684028f07d2a2569c9077ff90f228d07b9b872f73141f21ccd2331bdc2b7",
+    ".cache/e2e/repository-integration-stage-028/actual/run3/closed.local.json": "5bb563d9fe2c8b6208738882fc1104e238c844337e4bac23e09c10e793994c2d",
+    ".cache/e2e/repository-integration-stage-028/primary-upgrade/final-verification.local.json": "23efb8a07c76b0542de300b4979bec167bbc9002f68d0692401f90cd2b7d54e4",
+    ".cache/e2e/repository-integration-stage-028/runtime/verification.local.json": "57e2b2b66efcffa4399be6dc1b21993673552c2a1a91ef4b680796b93b660292"
+  },
+  "git_policy": "Necessary source, contracts/design and compact summary only. Raw evidence/DB/credentials/logs/binaries/screenshots ignored. Local commit only, no push."
+}

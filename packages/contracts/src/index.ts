@@ -174,6 +174,7 @@ export interface ArtifactUploadState {
   missing_blobs: (string)[];
 }
 export interface Assignment {
+  repository_integration?: RepositoryExecution | null;
   tenant_id?: string;
   project_id?: string;
   pool_id?: string;
@@ -1540,6 +1541,13 @@ export interface PoolClaimRequest {
   operation_id: string;
   scopes: (PoolCapabilityScope)[];
 }
+export interface PoolRepositoryAuthorizationRequest {
+  project_id: string;
+  assignment: CandidateAssignmentRef;
+  operation_id: string;
+  tenant_id: string;
+  runner_id: string;
+}
 export interface PoolRunnerAssignmentRequest {
   runner_id: string;
   tenant_id: string;
@@ -2108,6 +2116,329 @@ export interface Rendered {
   localized: boolean;
   fallback?: string;
 }
+export interface RepositoryAuthorization {
+  authorization_id: string;
+  authorization_ticket: string;
+  expires_at: string;
+  operation_id: string;
+  request_sha256: string;
+}
+export interface RepositoryAuthorizationGrant {
+  authorization_id: string;
+  operation_id: string;
+  provider_id: string;
+  assignment: CandidateAssignmentRef;
+  execution: RepositoryExecution;
+  request_sha256: string;
+  state: string;
+}
+export interface RepositoryAuthorizationRequest {
+  project_id: string;
+  assignment: CandidateAssignmentRef;
+  operation_id: string;
+}
+export interface RepositoryBeginEffect {
+  authorization_id: string;
+  operation_id: string;
+  assignment: CandidateAssignmentRef;
+  request_sha256: string;
+  generation: number;
+}
+export interface RepositoryBundleRequest {
+  authorization_id: string;
+  operation_id: string;
+  assignment: CandidateAssignmentRef;
+  request_sha256: string;
+}
+export interface RepositoryConsumeAuthorization {
+  provider_id: string;
+  authorization_ticket: string;
+  operation_id: string;
+  assignment: CandidateAssignmentRef;
+  request_sha256: string;
+}
+export interface RepositoryConsumeReconciliation {
+  provider_id: string;
+  operation_id: string;
+  request_sha256: string;
+  reconciliation_ticket: string;
+  execution: RepositoryExecution;
+  assignment: CandidateAssignmentRef;
+}
+export interface RepositoryEffectGrant {
+  effect_grant_id: string;
+  operation_id: string;
+  generation: number;
+  state: string;
+}
+export interface RepositoryExecution {
+  protocol: string;
+  tenant_id: string;
+  project_id: string;
+  provider_id: string;
+  target_id: string;
+  target_alias: string;
+  target_ref: string;
+  target_config_sha256: string;
+  plan_id: string;
+  plan_version: number;
+  phase: string;
+  operation_id: string;
+  source: CandidateBinding;
+  expected_target_head: string;
+  expected_fence_oid: string;
+  expected_git_generation: number;
+  generation: number;
+  prepared_sha256: string;
+}
+export interface RepositoryFileChange {
+  path: string;
+  old_path?: string;
+  status: string;
+  old_oid: string;
+  new_oid: string;
+  binary: boolean;
+}
+export interface RepositoryInspectAuthorization {
+  operation_id: string;
+  assignment: CandidateAssignmentRef;
+  request_sha256: string;
+}
+export interface RepositoryIntegrationApproval {
+  actor_id: string;
+  decision: string;
+  reason: string;
+  plan_version: number;
+  prepared_sha256: string;
+  basis_sha256: string;
+  at: string;
+}
+export interface RepositoryIntegrationBasis {
+  task_id: string;
+  task_version: number;
+  run_id: string;
+  source_node_id: string;
+  source: CandidateBinding;
+  accepted_task_basis: ReleaseTaskBasis;
+  basis_sha256: string;
+}
+export interface RepositoryIntegrationOptions {
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  sources: (RepositoryIntegrationSourceChoice)[];
+  targets: (RepositoryIntegrationTarget)[];
+  providers: (RepositoryIntegrationProviderChoice)[];
+  can_create: boolean;
+  can_manage: boolean;
+  blockers: (string)[];
+}
+export interface RepositoryIntegrationPlan {
+  id: string;
+  project_id: string;
+  version: number;
+  task_id: string;
+  target_id: string;
+  state: string;
+  basis: RepositoryIntegrationBasis;
+  target: RepositoryIntegrationTarget;
+  prepare_run_id: string;
+  apply_run_id: string;
+  preview?: RepositoryPreview | null;
+  prepared_sha256: string;
+  approval?: RepositoryIntegrationApproval | null;
+  operation_id: string;
+  observation?: RepositoryObservation | null;
+  created_at: string;
+  expires_at: string;
+  can_approve: boolean;
+  can_execute: boolean;
+  can_reconcile: boolean;
+  blockers: (string)[];
+}
+export interface RepositoryIntegrationPlanCommandRequest {
+  project_id: string;
+  expected_version: number;
+  action: string;
+  reason: string;
+  acknowledge: boolean;
+  idempotency_key: string;
+}
+export interface RepositoryIntegrationPlanCreateRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  source_node_id: string;
+  target_id: string;
+  expected_target_version: number;
+  idempotency_key: string;
+}
+export interface RepositoryIntegrationPlanPage {
+  items: (RepositoryIntegrationPlan)[];
+  total: number;
+  next_cursor?: string;
+}
+export interface RepositoryIntegrationProviderChoice {
+  id: string;
+  target_aliases: (string)[];
+}
+export interface RepositoryIntegrationSourceChoice {
+  source_node_id: string;
+  source: CandidateBinding;
+  eligible: boolean;
+  blockers: (string)[];
+}
+export interface RepositoryIntegrationTarget {
+  id: string;
+  project_id: string;
+  version: number;
+  name: string;
+  provider_id: string;
+  target_alias: string;
+  ref: string;
+  config_sha256: string;
+  status: string;
+  generation: number;
+  active_operation_id: string;
+  observation?: RepositoryTargetObservation | null;
+  can_manage: boolean;
+  blockers: (string)[];
+}
+export interface RepositoryIntegrationTargetCreateRequest {
+  project_id: string;
+  name: string;
+  provider_id: string;
+  target_alias: string;
+  idempotency_key: string;
+}
+export interface RepositoryIntegrationTargetUpdateRequest {
+  project_id: string;
+  expected_version: number;
+  name: string;
+  status: string;
+  idempotency_key: string;
+}
+export interface RepositoryNonSecretRequest {
+  protocol: string;
+  tenant_id: string;
+  project_id: string;
+  provider_id: string;
+  target_id: string;
+  target_alias: string;
+  target_ref: string;
+  target_config_sha256: string;
+  plan_id: string;
+  plan_version: number;
+  phase: string;
+  operation_id: string;
+  source: CandidateBinding;
+  expected_target_head: string;
+  expected_fence_oid: string;
+  expected_git_generation: number;
+  generation: number;
+  prepared_sha256: string;
+  assignment: CandidateAssignmentRef;
+}
+export interface RepositoryObservation {
+  protocol: string;
+  operation_id: string;
+  request_sha256: string;
+  phase: string;
+  state: string;
+  version: number;
+  execution: RepositoryExecution;
+  preview?: RepositoryPreview | null;
+  receipt_oid: string;
+  receipt_sha256: string;
+  receipt?: RepositoryReceipt | null;
+  effect_grant_id: string;
+  reason: string;
+  observed_at: string;
+  observation_sha256: string;
+}
+export interface RepositoryPreview {
+  target_head: string;
+  candidate_head: string;
+  files: (RepositoryFileChange)[];
+  diff: string;
+  diff_sha256: string;
+  source_bundle_sha256: string;
+  config_sha256: string;
+  prepared_sha256: string;
+  fast_forward: boolean;
+  blocked_reason: string;
+}
+export interface RepositoryReceipt {
+  protocol: string;
+  operation_id: string;
+  request_sha256: string;
+  target_id: string;
+  target_alias: string;
+  target_ref: string;
+  target_config_sha256: string;
+  before_commit: string;
+  result_commit: string;
+  source_bundle_sha256: string;
+  prepared_sha256: string;
+  generation: number;
+  effect_grant_id: string;
+  state: string;
+}
+export interface RepositoryReconcileRequest {
+  operation_id: string;
+  request_sha256: string;
+  reconciliation_ticket: string;
+  request?: RepositoryNonSecretRequest | null;
+}
+export interface RepositoryReconciliationGrant {
+  reconciliation_id: string;
+  operation_id: string;
+  request_sha256: string;
+  generation: number;
+  state: string;
+  execution: RepositoryExecution;
+  assignment: CandidateAssignmentRef;
+}
+export interface RepositoryRequest {
+  protocol: string;
+  tenant_id: string;
+  project_id: string;
+  provider_id: string;
+  target_id: string;
+  target_alias: string;
+  target_ref: string;
+  target_config_sha256: string;
+  plan_id: string;
+  plan_version: number;
+  phase: string;
+  operation_id: string;
+  source: CandidateBinding;
+  expected_target_head: string;
+  expected_fence_oid: string;
+  expected_git_generation: number;
+  generation: number;
+  prepared_sha256: string;
+  assignment: CandidateAssignmentRef;
+  authorization_ticket: string;
+}
+export interface RepositoryResult {
+  operation_id: string;
+  request_sha256: string;
+  observation_sha256: string;
+  version: number;
+}
+export interface RepositoryTargetObservation {
+  alias: string;
+  ref: string;
+  config_sha256: string;
+  head_commit: string;
+  object_format: string;
+  fence_oid: string;
+  generation: number;
+  available: boolean;
+  reason: string;
+  observed_at: string;
+}
 export interface RequirementDesignAdoptRequest {
   project_id: string;
   expected_version: number;
@@ -2271,6 +2602,7 @@ export interface ResourceSnapshot {
   release_class: string;
 }
 export interface Result {
+  integration_evidence?: RepositoryResult | null;
   run_id: string;
   node_id: string;
   attempt: number;

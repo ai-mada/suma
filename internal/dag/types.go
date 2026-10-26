@@ -3,6 +3,7 @@ package dag
 import (
 	"errors"
 	"github.com/ai-mada/suma/internal/releasecontract"
+	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
 	"github.com/ai-mada/suma/internal/toolcontract"
 )
 
@@ -90,6 +91,7 @@ type NodeRun struct {
 	AdmissionPolicyVersion int                               `json:"admission_policy_version,omitempty"`
 }
 type Assignment struct {
+	RepositoryIntegration   *rc.RepositoryExecution           `json:"repository_integration,omitempty"`
 	TenantID                string                            `json:"tenant_id,omitempty"`
 	ProjectID               string                            `json:"project_id,omitempty"`
 	PoolID                  string                            `json:"pool_id,omitempty"`
@@ -120,22 +122,23 @@ type Assignment struct {
 	LeaseUntil              string                            `json:"lease_until,omitempty"`
 }
 type Result struct {
-	RunID             string                            `json:"run_id"`
-	NodeID            string                            `json:"node_id"`
-	Attempt           int                               `json:"attempt"`
-	Fence             int64                             `json:"fence"`
-	WorkerID          string                            `json:"worker_id"`
-	ExitCode          int                               `json:"exit_code"`
-	Output            string                            `json:"output"`
-	Error             string                            `json:"error"`
-	OperationID       string                            `json:"operation_id"`
-	Stopped           bool                              `json:"stopped"`
-	OutcomeUnknown    bool                              `json:"outcome_unknown"`
-	FailureClass      string                            `json:"failure_class,omitempty"`
-	WorkspaceEvidence map[string]any                    `json:"workspace_evidence,omitempty"`
-	ArtifactEvidence  *releasecontract.ArtifactEvidence `json:"artifact_evidence,omitempty"`
-	ReleaseEvidence   *releasecontract.ReleaseResult    `json:"release_evidence,omitempty"`
-	ToolEvidence      *toolcontract.Evidence            `json:"tool_evidence,omitempty"`
+	IntegrationEvidence *rc.RepositoryResult              `json:"integration_evidence,omitempty"`
+	RunID               string                            `json:"run_id"`
+	NodeID              string                            `json:"node_id"`
+	Attempt             int                               `json:"attempt"`
+	Fence               int64                             `json:"fence"`
+	WorkerID            string                            `json:"worker_id"`
+	ExitCode            int                               `json:"exit_code"`
+	Output              string                            `json:"output"`
+	Error               string                            `json:"error"`
+	OperationID         string                            `json:"operation_id"`
+	Stopped             bool                              `json:"stopped"`
+	OutcomeUnknown      bool                              `json:"outcome_unknown"`
+	FailureClass        string                            `json:"failure_class,omitempty"`
+	WorkspaceEvidence   map[string]any                    `json:"workspace_evidence,omitempty"`
+	ArtifactEvidence    *releasecontract.ArtifactEvidence `json:"artifact_evidence,omitempty"`
+	ReleaseEvidence     *releasecontract.ReleaseResult    `json:"release_evidence,omitempty"`
+	ToolEvidence        *toolcontract.Evidence            `json:"tool_evidence,omitempty"`
 }
 type Event struct {
 	Sequence int64          `json:"sequence"`

@@ -53,6 +53,18 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 		return nil
 	}
 	switch path {
+	case "pool-runner/repository-integrations/authorize":
+		var req PoolRepositoryAuthorizationRequest
+		if err := decode(&req); err != nil {
+			writeError(w, err)
+			break
+		}
+		if req.TenantID != req.Assignment.TenantID || req.RunnerID != req.Assignment.PoolRunnerID {
+			writeError(w, forbidden())
+			break
+		}
+		out, err := s.Service.AuthorizePoolRepositoryIntegration(r.Context(), token, req.RepositoryAuthorizationRequest)
+		respond(w, 200, out, err)
 	case "pool-runner/claim":
 		var req dag.PoolClaimRequest
 		if err := decode(&req); err != nil {
@@ -83,8 +95,18 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				}
 				return false, err
 			}
+			if err := s.Service.checkRepositoryIntegrationExecutionTx(r.Context(), tx, scope.TenantID, scope.ProjectID, run); err != nil {
+				var apiErr *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && strings.HasPrefix(apiErr.Code, "repository_integration_") {
+					return false, nil
+				}
+				return false, err
+			}
 			return s.Service.PoolToolClaimEligibleTx(r.Context(), tx, proof, scope, run, node)
 		})
+		if err == nil && a != nil && a.DispatchState == "active" {
+			err = s.Service.decoratePoolRepositoryAssignment(r.Context(), token, a)
+		}
 		respond(w, 200, PoolRunnerClaimResponse{Assignment: a}, err)
 	case "pool-runner/tool-inventory":
 		var req PoolToolInventoryRequest
@@ -112,7 +134,10 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			if err := s.Service.checkPlanningExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID); err != nil {
 				return err
 			}
-			return s.Service.checkKnowledgeIntelligenceExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID, false)
+			if err := s.Service.checkKnowledgeIntelligenceExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID, false); err != nil {
+				return err
+			}
+			return s.Service.checkRepositoryIntegrationExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID)
 		})
 		if errors.Is(err, dag.ErrCancelled) {
 			writeJSON(w, 200, map[string]bool{"cancel_requested": true})
@@ -171,7 +196,13 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			if err := s.Service.recordPlanningOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {
 				return err
 			}
-			return s.Service.recordKnowledgeIntelligenceOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize)
+			if err := s.Service.recordKnowledgeIntelligenceOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {
+				return err
+			}
+			if err := s.Service.validateRepositoryIntegrationResultTx(r.Context(), tx, a.TenantID, a.ProjectID, result); err != nil {
+				return err
+			}
+			return s.Service.recordRepositoryIntegrationOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result)
 		})
 		if err == nil {
 			// Completion remains committed if projection is temporarily unavailable;

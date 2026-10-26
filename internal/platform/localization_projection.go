@@ -38,6 +38,28 @@ func localizeAdmission(w http.ResponseWriter, in dag.NodeAdmissionSnapshot) dag.
 // changing them so serialization cannot mutate an application result/receipt.
 func localizePresentation(w http.ResponseWriter, value any) any {
 	switch in := value.(type) {
+	case RepositoryIntegrationOptions:
+		in.Blockers = localizeRepositoryBlockers(w, in.Blockers)
+		in.Targets = append([]RepositoryIntegrationTarget{}, in.Targets...)
+		for i := range in.Targets {
+			in.Targets[i].Blockers = localizeRepositoryBlockers(w, in.Targets[i].Blockers)
+		}
+		in.Sources = append([]RepositoryIntegrationSourceChoice{}, in.Sources...)
+		for i := range in.Sources {
+			in.Sources[i].Blockers = localizeRepositoryBlockers(w, in.Sources[i].Blockers)
+		}
+		return in
+	case RepositoryIntegrationPlan:
+		return localizeRepositoryPlan(w, in)
+	case RepositoryIntegrationTarget:
+		in.Blockers = localizeRepositoryBlockers(w, in.Blockers)
+		return in
+	case RepositoryIntegrationPlanPage:
+		in.Items = append([]RepositoryIntegrationPlan{}, in.Items...)
+		for i := range in.Items {
+			in.Items[i] = localizeRepositoryPlan(w, in.Items[i])
+		}
+		return in
 	case ExecutionPoolPolicyPreview:
 		in.Reason = presentationSource(w, in.Reason)
 		return in
@@ -64,4 +86,18 @@ func localizePresentation(w http.ResponseWriter, value any) any {
 	default:
 		return value
 	}
+}
+
+func localizeRepositoryBlockers(w http.ResponseWriter, values []string) []string {
+	out := append([]string{}, values...)
+	for i := range out {
+		out[i] = presentationSource(w, out[i])
+	}
+	return out
+}
+func localizeRepositoryPlan(w http.ResponseWriter, in RepositoryIntegrationPlan) RepositoryIntegrationPlan {
+	in.Blockers = localizeRepositoryBlockers(w, in.Blockers)
+	in.Target.Blockers = localizeRepositoryBlockers(w, in.Target.Blockers)
+	// Do not translate Preview/Observation: their bytes bind approved digests.
+	return in
 }

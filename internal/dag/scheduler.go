@@ -330,7 +330,7 @@ func (e *Engine) CompleteBound(ctx context.Context, tenant, project string, resu
 // The authority and observation hooks are mandatory; the old attempt result is
 // retained separately instead of pretending a lost worker sent a stop receipt.
 func (e *Engine) CompleteManagedObservedBound(ctx context.Context, tenant, project string, result Result, before func(*sql.Tx) error, commit func(*sql.Tx, string) error) error {
-	if before == nil || commit == nil || result.ReleaseEvidence == nil || result.ArtifactEvidence != nil || result.OutcomeUnknown {
+	if before == nil || commit == nil || (result.ReleaseEvidence == nil) == (result.IntegrationEvidence == nil) || result.ArtifactEvidence != nil || result.OutcomeUnknown || result.IntegrationEvidence != nil && (result.WorkspaceEvidence != nil || result.ToolEvidence != nil) {
 		return dagDiagnostic(fmt.Errorf("%w: managed resolution requires authority and terminal provider evidence", ErrInvalid), "dag.result.managed_resolution", nil)
 	}
 	return e.completeBound(ctx, tenant, project, result, before, commit, true)
@@ -404,7 +404,13 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 			if err = t.exec("INSERT INTO dag_managed_resolutions(run_id,node_id,attempt,operation_id,original_result,resolution_result,resolved_at)VALUES(?,?,?,?,?,?,?)", r.ID, n.ID, n.Attempt, result.OperationID, original, encoded(result), stamp(t.now)); err != nil {
 				return err
 			}
-			if err = t.event(r, n.ID, "managed_observation_reconciled", map[string]any{"attempt": n.Attempt, "previous_result_sha256": hashText(original), "provider_evidence_sha256": result.ReleaseEvidence.EvidenceSHA256, "resolution_operation_id": result.OperationID}); err != nil {
+			providerSHA := ""
+			if result.ReleaseEvidence != nil {
+				providerSHA = result.ReleaseEvidence.EvidenceSHA256
+			} else {
+				providerSHA = result.IntegrationEvidence.ObservationSHA256
+			}
+			if err = t.event(r, n.ID, "managed_observation_reconciled", map[string]any{"attempt": n.Attempt, "previous_result_sha256": hashText(original), "provider_evidence_sha256": providerSHA, "resolution_operation_id": result.OperationID}); err != nil {
 				return err
 			}
 		}

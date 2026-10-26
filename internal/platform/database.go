@@ -13,6 +13,7 @@ type Service struct {
 	Dialect              string
 	DataDir              string
 	ReleaseProviders     []ReleaseProviderConfig
+	RepositoryProviders  []RepositoryProviderConfig
 	AutomationIngressKey []byte
 	authorityBudgets     sync.Map // *sql.Tx -> *authorityTxBudget; never persisted authority
 	authorityBudgetMu    sync.Mutex
@@ -126,5 +127,8 @@ func (s *Service) Migrate(ctx context.Context) error {
 	if err := s.MigrateTaskHandoffs(ctx); err != nil {
 		return err
 	}
-	return s.MigrateCandidateTransfers(ctx)
+	if err := s.MigrateCandidateTransfers(ctx); err != nil {
+		return err
+	}
+	return s.MigrateRepositoryIntegration(ctx)
 }

@@ -98,7 +98,7 @@ func OpenJournal(dir string) (*Journal, error) {
 				j.entries[k] = e
 			}
 		}
-		if e.Result == nil && e.ArtifactPending == nil && e.CandidatePending == nil && e.Assignment.ReleaseExecution == nil {
+		if e.Result == nil && e.ArtifactPending == nil && e.CandidatePending == nil && e.Assignment.ReleaseExecution == nil && e.Assignment.RepositoryIntegration == nil {
 			e.Result = &Result{Assignment: e.Assignment, ExitCode: -1, OutcomeUnknown: true, Error: "runner restart: execution outcome unknown; reconcile required", OperationID: operationID()}
 			j.entries[k] = e
 		}
@@ -115,7 +115,7 @@ func (j *Journal) pendingReleases() []Assignment {
 	defer j.mu.Unlock()
 	keys := []string{}
 	for k, e := range j.entries {
-		if e.Result == nil && e.Assignment.ReleaseExecution != nil {
+		if e.Result == nil && (e.Assignment.ReleaseExecution != nil || e.Assignment.RepositoryIntegration != nil) {
 			keys = append(keys, k)
 		}
 	}

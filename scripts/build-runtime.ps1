@@ -29,6 +29,7 @@ $taskPrograms = @(
     [ordered]@{ name = 'suma-control'; package = './cmd/suma-control' },
     [ordered]@{ name = 'suma-runner'; package = './cmd/suma-runner' },
     [ordered]@{ name = 'suma-deployer'; package = './cmd/suma-deployer' },
+    [ordered]@{ name = 'suma-repository-provider'; package = './cmd/suma-repository-provider' },
     [ordered]@{ name = 'suma'; package = './cmd/suma' }
 )
 $taskSourceRoots = @($taskPrograms | ForEach-Object { $_.package.Substring(2) }) + @('internal')

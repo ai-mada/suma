@@ -74,6 +74,11 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 		logger.Error(app.Text("发布提供方配置失败", "release provider configuration"), "event", "control.release_provider_configuration", "error", err)
 		return 1
 	}
+	service.RepositoryProviders, err = platform.LoadRepositoryProviders(app.Getenv("SUMA_REPOSITORY_PROVIDERS_JSON"), app.Getenv)
+	if err != nil {
+		logger.Error(app.Text("代码集成提供方配置失败", "repository integration provider configuration"), "event", "control.repository_provider_configuration", "error", err)
+		return 1
+	}
 	if err = service.Migrate(context.Background()); err != nil {
 		logger.Error(app.Text("业务数据库结构迁移失败", "migrate business schema"), "event", "control.business_schema_migrate", "error", err)
 		return 1
