@@ -121,7 +121,8 @@ func (s *Service) WriteUsageRate(ctx context.Context, actor Actor, project strin
 	if err != nil {
 		return out, err
 	}
-	if !planningProfile(profile) {
+	model, origin, priced := usagePricedModel(profile)
+	if !priced {
 		return out, invalid(usageRateProfile)
 	}
 	// Pricing is configuration, not permission to dispatch a process. Bind the
@@ -140,7 +141,7 @@ func (s *Service) WriteUsageRate(ctx context.Context, actor Actor, project strin
 	if version != req.ExpectedVersion {
 		return out, conflict(usageVersion)
 	}
-	out = UsageRateRevision{ID: newID(), ProjectID: project, ToolProfileID: profile.ID, Version: version + 1, ProfileSHA256: profile.Profile.ProfileSHA256, Model: profile.Profile.Planning.Model, EndpointOrigin: profile.Profile.Planning.EndpointOrigin, Currency: req.Currency, InputRateMicrosPerMillion: req.InputRateMicrosPerMillion, OutputRateMicrosPerMillion: req.OutputRateMicrosPerMillion, InputTokenReservation: req.InputTokenReservation, OutputTokenReservation: req.OutputTokenReservation, Reason: req.Reason, CreatedBy: auth.currentPrincipal.ID, CreatedAt: now()}
+	out = UsageRateRevision{ID: newID(), ProjectID: project, ToolProfileID: profile.ID, Version: version + 1, ProfileSHA256: profile.Profile.ProfileSHA256, Model: model, EndpointOrigin: origin, Currency: req.Currency, InputRateMicrosPerMillion: req.InputRateMicrosPerMillion, OutputRateMicrosPerMillion: req.OutputRateMicrosPerMillion, InputTokenReservation: req.InputTokenReservation, OutputTokenReservation: req.OutputTokenReservation, Reason: req.Reason, CreatedBy: auth.currentPrincipal.ID, CreatedAt: now()}
 	if usagePublic(usageCost(out.InputTokenReservation, out.OutputTokenReservation, out)) == nil {
 		return out, invalid(usageInvalid)
 	}

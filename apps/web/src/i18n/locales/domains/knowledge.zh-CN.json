@@ -101,6 +101,7 @@
   "knowledge.method.manual": "手动编写",
   "knowledge.method.extractive": "原文提取",
   "knowledge.method.catalog_adoption": "从共享目录采用",
+  "knowledge.method.model_assisted": "模型辅助提炼",
   "knowledge.dispatch.remove": "移除",
   "knowledge.dispatch.clear": "清空选择",
   "knowledge.source_read_current": "读取当前来源",

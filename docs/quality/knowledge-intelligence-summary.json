@@ -1,0 +1,174 @@
+{
+  "stage": "T-P4-026",
+  "product_version": "1.0.0",
+  "status": "locally_verified_limited",
+  "production_integration_complete": false,
+  "scope": [
+    "fixed current project sources and dedicated single-call no-tools knowledge extraction",
+    "strict proposal, immutable original facts, explicit model_assisted draft adoption and provenance",
+    "current private/pool authorization, atomic usage and quota accounting",
+    "controlled live read-only unknown-to-known reconciliation with fresh service authority"
+  ],
+  "evidence_root": ".cache/e2e/knowledge-intelligence-stage-026",
+  "checks": {
+    "counting_policy": "Independent slices; parent/subtest events and overlapping reruns are not summed.",
+    "backend": {
+      "necessary_top_level_groups": 6,
+      "initial_receipt": ".cache/mcp019-deps/20261026T105207072Z.command.json",
+      "initial_exit_code": 1,
+      "initial_failure": "Four execution groups stopped at missing managed claim integration; strict schema and create groups passed.",
+      "affected_green_receipt": ".cache/mcp019-deps/20261026T105427981Z.command.json",
+      "affected_green_exit_code": 0
+    },
+    "pool_usage": {
+      "receipt": ".cache/mcp019-deps/20261026T105652702Z.command.json",
+      "exit_code": 0,
+      "top_level_pass": 1,
+      "scope": "Second organization/project actor, dedicated extraction profile, two-scope quota reservation, source-drift heartbeat/result, single settlement in the project tenant, no stale adoption."
+    },
+    "http": {
+      "receipt": ".cache/mcp019-deps/20261026T112324907Z.command.json",
+      "exit_code": 0,
+      "scope": "Strict budgets, omitted defaults, fixed project scope and independent draft journey."
+    },
+    "runtime": {
+      "receipt": ".cache/e2e/knowledge-intelligence-stage-026/runtime/verification.local.json",
+      "new_go_top_level": 5,
+      "affected_planning_go_top_level": 4,
+      "final_node_tests": 9,
+      "typescript_check": "passed",
+      "go_vet": "passed"
+    },
+    "core_reconciliation": {
+      "receipt": ".cache/mcp019-deps/20261026T112649244Z.command.json",
+      "verification": ".cache/e2e/knowledge-intelligence-stage-026/core/verification.local.json",
+      "exit_code": 0,
+      "top_level_pass": 4,
+      "test_pass_events": 31,
+      "skipped_events": 0
+    },
+    "core_provenance": {
+      "receipt": ".cache/mcp019-deps/20261026T113135896Z.command.json",
+      "verification": ".cache/e2e/knowledge-intelligence-stage-026/core/provenance.local.json",
+      "exit_code": 0,
+      "top_level_pass": 2,
+      "test_pass_events": 4
+    },
+    "late_known_http": {
+      "receipt": ".cache/mcp019-deps/20261026T112550497Z.command.json",
+      "exit_code": 0,
+      "top_level_pass": 1,
+      "subtests_pass": 5,
+      "scope": "Empty/partial unknown observations retain original facts; known valid JSON becomes ready, invalid JSON fails the analysis but records final usage; stopped and expired attempts remain denied."
+    },
+    "creator_revoked_after_unknown": {
+      "receipt": ".cache/mcp019-deps/20261026T113344195Z.command.json",
+      "exit_code": 0,
+      "selected_subtests": 1,
+      "scope": "Actual creator logout after unknown denies automatic reconciliation with 409; valid Runner cannot substitute authority; no final fact/original/draft, accounting remains unknown."
+    },
+    "full_suite_rerun": false
+  },
+  "actual": {
+    "verification": ".cache/e2e/knowledge-intelligence-stage-026/actual/verification.local.json",
+    "status": "passed_limited_local_protocol_journey",
+    "checks_passed": 29,
+    "checks_failed": 0,
+    "analysis_id": "11246f2e8d037e34745ede494998e05d",
+    "project_id": "303773769c679ad9734e9ec7a9debfc4",
+    "run_id": "knowledge-11246f2e8d037e34745ede494998e05d",
+    "model_boundary": "deterministic loopback protocol fixture, not a vendor model",
+    "model_calls_in_this_journey": 1,
+    "vendor_calls": 0,
+    "tools_present": false,
+    "input_tokens": 23,
+    "output_tokens": 17,
+    "reported_tokens": 40,
+    "currency": "CNY",
+    "estimated_cost_micros": 57,
+    "scope_deltas": {
+      "organization": {"tokens": 40, "cost_micros": 57, "reserved_tokens": 0, "reserved_cost_micros": 0},
+      "project": {"tokens": 40, "cost_micros": 57, "reserved_tokens": 0, "reserved_cost_micros": 0}
+    },
+    "source_sha256": "a5b4ab5124a6c40a035d9a8bc01e39aa5aca6593e5019e9e7e58398f0f1f08de",
+    "original_output_sha256": "ebb29eaa3d104eb1e9678e53a512ea587fa3b02f0e730dd0c3fabd52995773ab",
+    "initial_business_state": "ready with no automatic knowledge creation/publication",
+    "runner_exit_code": 0,
+    "model_closed": true,
+    "normal_model_journey_repeated_for_reconciliation_fix": false
+  },
+  "existing_ui_result": {
+    "status": "representative_local_UI_verified_and_confirmed_by_readonly_fixture_database_queries",
+    "fixtures": ["ui/data/suma.db", "ui-final/data/suma.db"],
+    "analysis_state": "adopted",
+    "analysis_version": 4,
+    "knowledge_id": "8059e3356073730eb4b698f253ba95a8",
+    "knowledge_state": "published",
+    "knowledge_version": 2,
+    "published_revision": 2,
+    "method": "model_assisted",
+    "published_sha256": "c34a759e7235b93219cacf23fa9e057c97fe0fe35ab655efba691a3cfd530927",
+    "content_sha256": "ce4853c274057d1db58993332deba04281f3642e351db35afd16b9abe933015f",
+    "source_and_original_output_sha256_unchanged": true,
+    "isolated_database_tables": 164,
+    "original_ui_close_receipt": ".cache/e2e/knowledge-intelligence-stage-026/ui/closed-integrity.local.json",
+    "original_ui_control_exit_code": 0,
+    "original_ui_integrity": "ok",
+    "production_approval": false,
+    "final_ui_verification": "passed_representative_CNEN_fields_original_hint_and_lineage_links",
+    "final_ui_receipt": ".cache/e2e/knowledge-intelligence-stage-026/browser/verification.local.json",
+    "final_ui_receipt_sha256": "32d9a82baf4039e5483c22619f37de2e3c0b66404269ae0673b009a507f9eb7a",
+    "screenshots": {
+      "final-en.png": "75dbf9f2ac50933b38704b38d67e9d696053effdbdfd34d5baeabc7da94870c8",
+      "final-zh.png": "e19c3bc1142ad56556ea228f7a51677e341bac87d06d5df1ee4a804243794c58"
+    },
+    "final_ui_exec_sessions_closed0": [50126, 9805],
+    "forced_stop": false
+  },
+  "preserved_red_receipts": [
+    ".cache/mcp019-deps/20261026T104751693Z.command.json",
+    ".cache/mcp019-deps/20261026T105207072Z.command.json",
+    ".cache/mcp019-deps/20261026T111637617Z.command.json",
+    ".cache/mcp019-deps/20261026T112439181Z.command.json"
+  ],
+  "finalization": {
+    "owner": "Root",
+    "status": "verified_limited_local_preview",
+    "build_receipt": ".cache/e2e/knowledge-intelligence-stage-026/runtime-final/build-facts.local.json",
+    "build_receipt_sha256": "87a98bbd0940fc538a0b6f97709460bf9725051cfd1d9e5c464f136859ea6a32",
+    "source_inputs": 337,
+    "final_source_sha256": "b48d4561940a69e0df31cac28ddf3ad40e63455059e1a5772a6c5508e9e82d67",
+    "final_control_sha256": "12f28126714601fdc4bf211173035ad6b67d24d8e770cc0f2cd8dccebe61b79d",
+    "final_web": "web-release2",
+    "final_web_files": 121,
+    "final_web_index_sha256": "b59a3bdcccae7d67a5e38c285faf1595d528cbe2c831df70f364480d8eae9c0b",
+    "primary_url": "http://pool.localhost:4324/",
+    "primary_control_pid": 199624,
+    "primary_holder_pid": 250388,
+    "primary_exec_session": 2716,
+    "primary_keep_running": true,
+    "predecessor_exec_session_closed0": 43321,
+    "final_ui_receipt": ".cache/e2e/knowledge-intelligence-stage-026/browser/verification.local.json",
+    "primary_preservation_receipt": ".cache/e2e/knowledge-intelligence-stage-026/primary-upgrade/final-verification.local.json",
+    "primary_preservation_receipt_sha256": "f2cdf2987a8e306101fa3d67410d80075fbaa63d1d1e3278939e8a66a7619016",
+    "original_tables": 161,
+    "tables": 164,
+    "original_schema_changes": 0,
+    "identical_original_full_tables": 161,
+    "new_empty_tables": 3,
+    "new_indexes": 1,
+    "integrity": "ok",
+    "authority_rows": 18,
+    "grant_rows": 0,
+    "original_authority_and_grants_unchanged": true,
+    "normal_login_not_reissued": true,
+    "original_run_states": {"failed": 1, "succeeded": 2},
+    "isolated_acceptance_business_not_imported_into_primary": true
+  },
+  "remaining": [
+    "vendor accounts, model quality and vendor billing/production acceptance",
+    "full CLI command and localization journey",
+    "complete device/theme matrix, cross-database and distributed scale",
+    "autonomous quality evaluation, vector retrieval, executable skill packages, mobile and full P0-P7"
+  ]
+}

@@ -4735,6 +4735,451 @@
         ],
         "type": "object"
       },
+      "KnowledgeExtractionCapability": {
+        "additionalProperties": false,
+        "properties": {
+          "endpoint_origin": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "model": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "protocol": {
+            "const": "suma-knowledge-extraction-v1",
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol",
+          "model",
+          "endpoint_origin"
+        ],
+        "type": "object"
+      },
+      "KnowledgeIntelligenceAdoption": {
+        "properties": {
+          "adopted_at": {
+            "type": "string"
+          },
+          "adopted_by": {
+            "type": "string"
+          },
+          "analysis_id": {
+            "type": "string"
+          },
+          "analysis_version": {
+            "type": "integer"
+          },
+          "knowledge_id": {
+            "type": "string"
+          },
+          "original_output_sha256": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "source_indices": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "source_sha256": {
+            "type": "string"
+          },
+          "tool_profile_sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "analysis_id",
+          "analysis_version",
+          "run_id",
+          "tool_profile_sha256",
+          "source_sha256",
+          "original_output_sha256",
+          "source_indices",
+          "project_id",
+          "knowledge_id",
+          "revision",
+          "sha256",
+          "adopted_by",
+          "adopted_at",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "KnowledgeIntelligenceAnalysis": {
+        "properties": {
+          "adopted_knowledge_id": {
+            "type": "string"
+          },
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "basis_current": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "goal": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "memory",
+              "spec",
+              "skill"
+            ],
+            "type": "string"
+          },
+          "locale": {
+            "enum": [
+              "zh-CN",
+              "en-US"
+            ],
+            "type": "string"
+          },
+          "max_output_tokens": {
+            "default": 4096,
+            "maximum": 8192,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "max_steps": {
+            "const": 1,
+            "default": 1,
+            "type": "integer"
+          },
+          "original_output": {
+            "type": "string"
+          },
+          "original_output_sha256": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "proposal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KnowledgeIntelligenceOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/KnowledgeIntelligenceSource"
+          },
+          "state": {
+            "enum": [
+              "running",
+              "ready",
+              "failed",
+              "reconciling",
+              "adopted",
+              "dismissed"
+            ],
+            "type": "string"
+          },
+          "tool_profile_id": {
+            "type": "string"
+          },
+          "tool_profile_sha256": {
+            "type": "string"
+          },
+          "tool_profile_version": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "version",
+          "state",
+          "kind",
+          "goal",
+          "locale",
+          "created_by",
+          "created_at",
+          "updated_at",
+          "tool_profile_id",
+          "tool_profile_version",
+          "tool_profile_sha256",
+          "run_id",
+          "max_steps",
+          "max_output_tokens",
+          "source",
+          "original_output",
+          "original_output_sha256",
+          "adopted_knowledge_id",
+          "reason",
+          "allowed_actions",
+          "basis_current"
+        ],
+        "type": "object"
+      },
+      "KnowledgeIntelligenceCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge_draft": {
+            "description": "Must be true for explicit adopt; not publication approval.",
+            "type": "boolean"
+          },
+          "action": {
+            "enum": [
+              "revise",
+              "adopt",
+              "dismiss"
+            ],
+            "type": "string"
+          },
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "proposal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KnowledgeIntelligenceOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 2000
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "action",
+          "reason",
+          "acknowledge_draft",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "KnowledgeIntelligenceCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge_model_use": {
+            "const": true,
+            "type": "boolean"
+          },
+          "expected_tool_version": {
+            "type": "integer"
+          },
+          "goal": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 4000
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "memory",
+              "spec",
+              "skill"
+            ],
+            "type": "string"
+          },
+          "locale": {
+            "enum": [
+              "zh-CN",
+              "en-US"
+            ],
+            "type": "string"
+          },
+          "max_output_tokens": {
+            "default": 4096,
+            "maximum": 8192,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "max_steps": {
+            "const": 1,
+            "default": 1,
+            "type": "integer"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectKnowledgeSourceInput"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array"
+          },
+          "tool_profile_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "kind",
+          "goal",
+          "locale",
+          "sources",
+          "tool_profile_id",
+          "expected_tool_version",
+          "acknowledge_model_use",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "KnowledgeIntelligenceOutput": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "maxLength": 16000,
+            "type": "string",
+            "x-max-utf8-bytes": 16000
+          },
+          "rationale": {
+            "maxLength": 8000,
+            "type": "string",
+            "x-max-utf8-bytes": 8000
+          },
+          "schema_version": {
+            "const": 1,
+            "type": "integer"
+          },
+          "source_indices": {
+            "description": "Zero-based subset of the frozen source list. Never caller-supplied source snapshots or authority.",
+            "items": {
+              "maximum": 7,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "summary": {
+            "maxLength": 1000,
+            "type": "string",
+            "x-max-utf8-bytes": 1000
+          },
+          "title": {
+            "maxLength": 200,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          }
+        },
+        "required": [
+          "schema_version",
+          "title",
+          "summary",
+          "content",
+          "source_indices",
+          "rationale"
+        ],
+        "type": "object"
+      },
+      "KnowledgeIntelligencePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeIntelligenceAnalysis"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "KnowledgeIntelligenceSource": {
+        "properties": {
+          "sha256": {
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectKnowledgeSource"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "sha256",
+          "sources"
+        ],
+        "type": "object"
+      },
       "LocalePreferenceUpdateRequest": {
         "additionalProperties": false,
         "properties": {
@@ -7028,6 +7473,16 @@
             ],
             "type": "string"
           },
+          "model_adoption": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KnowledgeIntelligenceAdoption"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "revision": {
             "type": "integer"
           },
@@ -7118,6 +7573,16 @@
           },
           "latest_revision": {
             "type": "integer"
+          },
+          "model_adoption": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KnowledgeIntelligenceAdoption"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "project_id": {
             "type": "string"
@@ -7303,7 +7768,8 @@
             "enum": [
               "manual",
               "extractive",
-              "catalog_adoption"
+              "catalog_adoption",
+              "model_assisted"
             ],
             "type": "string"
           },
@@ -12221,6 +12687,27 @@
             "if": {
               "properties": {
                 "message_key": {
+                  "const": "native.knowledge.tools_forbidden"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
                   "const": "native.workspace.config"
                 }
               },
@@ -13321,6 +13808,7 @@
         "properties": {
           "message_key": {
             "enum": [
+              "native.knowledge.tools_forbidden",
               "native.workspace.config",
               "native.workspace.catalog",
               "native.workspace.transport",
@@ -13718,6 +14206,16 @@
           "executable_sha256": {
             "description": "Resolved executable byte digest, not complete transitive dependency attestation; may be empty only in unavailable observations.",
             "type": "string"
+          },
+          "knowledge_extraction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KnowledgeExtractionCapability"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "planning": {
             "anyOf": [
@@ -28652,6 +29150,794 @@
           "missing_status": 428,
           "required": true
         },
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/knowledge-intelligence/analyses": {
+      "get": {
+        "description": "Current-authorized model-assisted knowledge proposals. Create freezes real sources and a dedicated read-only model profile into one managed DAG execution. No tools or automatic retry. Raw output is preserved independently of schema validity and later source drift. Explicit adoption creates a project draft only; ordinary project approval is still required for publication. All writes use exact CAS and stable operation keys.",
+        "operationId": "get_knowledge-intelligence_analyses",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Bounded exact integer page size.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque project analysis boundary ID.",
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeIntelligencePage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      },
+      "post": {
+        "description": "Current-authorized model-assisted knowledge proposals. Create freezes real sources and a dedicated read-only model profile into one managed DAG execution. No tools or automatic retry. Raw output is preserved independently of schema validity and later source drift. Explicit adoption creates a project draft only; ordinary project approval is still required for publication. All writes use exact CAS and stable operation keys.",
+        "operationId": "post_knowledge-intelligence_analyses",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeIntelligenceCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeIntelligenceAnalysis"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/knowledge-intelligence/analyses/{id}": {
+      "get": {
+        "description": "Current-authorized model-assisted knowledge proposals. Create freezes real sources and a dedicated read-only model profile into one managed DAG execution. No tools or automatic retry. Raw output is preserved independently of schema validity and later source drift. Explicit adoption creates a project draft only; ordinary project approval is still required for publication. All writes use exact CAS and stable operation keys.",
+        "operationId": "get_knowledge-intelligence_analyses_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeIntelligenceAnalysis"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/knowledge-intelligence/analyses/{id}/commands": {
+      "post": {
+        "description": "Current-authorized model-assisted knowledge proposals. Create freezes real sources and a dedicated read-only model profile into one managed DAG execution. No tools or automatic retry. Raw output is preserved independently of schema validity and later source drift. Explicit adoption creates a project draft only; ordinary project approval is still required for publication. All writes use exact CAS and stable operation keys.",
+        "operationId": "post_knowledge-intelligence_analyses_id_commands",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeIntelligenceCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeIntelligenceAnalysis"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },

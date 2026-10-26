@@ -12,7 +12,7 @@ import (
 
 func TestNativeCatalogSnapshotsCannotChangeFormattingOrExpandTheAllowlist(t *testing.T) {
 	before := NativeCatalog()
-	if len(before) != 51 {
+	if len(before) != 52 {
 		t.Fatalf("native snapshot count: %d", len(before))
 	}
 	for _, definition := range before {
@@ -110,7 +110,7 @@ func TestNativeCatalogPreservesCompleteOriginalBilingualContent(t *testing.T) {
 		// The new workspace/planning vocabulary has paired SDK checks. Keep
 		// this historical golden bound to the original 46 meanings unchanged.
 		switch d.Key {
-		case "native.workspace.config", "native.workspace.catalog", "native.workspace.transport", "native.workspace.effects", "native.request.invalid_purpose":
+		case "native.workspace.config", "native.workspace.catalog", "native.workspace.transport", "native.workspace.effects", "native.request.invalid_purpose", "native.knowledge.tools_forbidden":
 			continue
 		}
 		if d.SourceTemplate != d.Texts[EnUS] {

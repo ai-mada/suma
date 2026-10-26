@@ -4,6 +4,7 @@
 
 | 主题 | 入口 |
 |---|---|
+| 模型辅助知识提炼（T-P4-026） | [PRD／交互](product/knowledge-intelligence.md)、[架构与AI SOP](architecture/knowledge-intelligence.md)、[合同](../contracts/knowledge-intelligence.md)、[限定验证](quality/knowledge-intelligence-verification.md) |
 | 组织共享技能目录（T-P4-025） | [PRD／交互](product/skill-catalog.md)、[架构与AI SOP](architecture/skill-catalog.md)、[正式合同](../contracts/skill-catalog.md)、[限定验证](quality/skill-catalog-verification.md) |
 | Token、费用估算与执行额度（T-P4-024） | [架构／交互与AI SOP](architecture/usage-accounting.md)、[正式合同](../contracts/usage-accounting.md) |
 | 模型规划与站内风险建议（T-P4-023） | [架构／交互与AI SOP](architecture/intelligent-planning.md)、[接口合同](../contracts/intelligent-planning.md) |

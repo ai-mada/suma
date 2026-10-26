@@ -962,6 +962,92 @@ export interface InvitationMetadata {
   accepted_by?: string;
   accepted_at?: string;
 }
+export interface KnowledgeExtractionCapability {
+  protocol: string;
+  model: string;
+  endpoint_origin: string;
+}
+export interface KnowledgeIntelligenceAdoption {
+  analysis_id: string;
+  analysis_version: number;
+  run_id: string;
+  tool_profile_sha256: string;
+  source_sha256: string;
+  original_output_sha256: string;
+  source_indices: (number)[];
+  project_id: string;
+  knowledge_id: string;
+  revision: number;
+  sha256: string;
+  adopted_by: string;
+  adopted_at: string;
+  reason: string;
+}
+export interface KnowledgeIntelligenceAnalysis {
+  id: string;
+  project_id: string;
+  version: number;
+  state: string;
+  kind: string;
+  goal: string;
+  locale: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  tool_profile_id: string;
+  tool_profile_version: number;
+  tool_profile_sha256: string;
+  run_id: string;
+  max_steps: number;
+  max_output_tokens: number;
+  source: KnowledgeIntelligenceSource;
+  proposal?: KnowledgeIntelligenceOutput | null;
+  original_output: string;
+  original_output_sha256: string;
+  adopted_knowledge_id: string;
+  reason: string;
+  allowed_actions: (string)[];
+  basis_current: boolean;
+}
+export interface KnowledgeIntelligenceCommandRequest {
+  project_id: string;
+  expected_version: number;
+  action: string;
+  proposal?: KnowledgeIntelligenceOutput | null;
+  reason: string;
+  acknowledge_draft: boolean;
+  idempotency_key: string;
+}
+export interface KnowledgeIntelligenceCreateRequest {
+  project_id: string;
+  kind: string;
+  goal: string;
+  locale: string;
+  sources: (ProjectKnowledgeSourceInput)[];
+  tool_profile_id: string;
+  expected_tool_version: number;
+  max_steps?: number;
+  max_output_tokens?: number;
+  acknowledge_model_use: boolean;
+  idempotency_key: string;
+}
+export interface KnowledgeIntelligenceOutput {
+  schema_version: number;
+  title: string;
+  summary: string;
+  content: string;
+  source_indices: (number)[];
+  rationale: string;
+}
+export interface KnowledgeIntelligencePage {
+  items: (KnowledgeIntelligenceAnalysis)[];
+  total: number;
+  next_cursor: string;
+}
+export interface KnowledgeIntelligenceSource {
+  sha256: string;
+  sources: (ProjectKnowledgeSource)[];
+}
 export interface LocalePreferenceUpdateRequest {
   locale: string;
   expected_version: number;
@@ -1441,6 +1527,7 @@ export interface ProjectKnowledgeCommandRequest {
   idempotency_key: string;
 }
 export interface ProjectKnowledgeContextItem {
+  model_adoption?: KnowledgeIntelligenceAdoption | null;
   catalog_adoption?: SkillCatalogAdoption | null;
   id: string;
   revision: number;
@@ -1459,6 +1546,7 @@ export interface ProjectKnowledgeContextSource {
   sha256: string;
 }
 export interface ProjectKnowledgeDetail {
+  model_adoption?: KnowledgeIntelligenceAdoption | null;
   catalog_adoption?: SkillCatalogAdoption | null;
   id: string;
   project_id: string;
@@ -2581,6 +2669,7 @@ export interface ToolExecutionProfile {
   read_only: boolean;
   workspace_tools_version?: string;
   planning?: PlanningCapability | null;
+  knowledge_extraction?: KnowledgeExtractionCapability | null;
 }
 export interface ToolInventoryReceipt {
   acknowledged: boolean;

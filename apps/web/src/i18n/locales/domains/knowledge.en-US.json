@@ -101,6 +101,7 @@
   "knowledge.method.manual": "Manually authored",
   "knowledge.method.extractive": "Extracted source text",
   "knowledge.method.catalog_adoption": "Adopted from shared catalog",
+  "knowledge.method.model_assisted": "Model-assisted extraction",
   "knowledge.dispatch.remove": "Remove",
   "knowledge.dispatch.clear": "Clear selection",
   "knowledge.source_read_current": "Read current source",

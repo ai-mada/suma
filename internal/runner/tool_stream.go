@@ -453,6 +453,13 @@ func (s *toolStream) suma(m map[string]any) {
 	}
 	switch kind {
 	case "started":
+		if s.profile.KnowledgeExtraction != nil {
+			tools, ok := m["tools"].([]any)
+			if !ok || len(tools) != 0 || textAt(m, "model") != s.profile.KnowledgeExtraction.Model {
+				s.invalid("knowledge extraction requires its fixed model and an empty tool catalog")
+				return
+			}
+		}
 		if s.sessionStarted {
 			s.invalid("duplicate native session start")
 			return
@@ -462,12 +469,20 @@ func (s *toolStream) suma(m map[string]any) {
 		s.event("session_started", "", "", "", nil)
 		s.event("turn_started", "", "", "", nil)
 	case "tool_started":
+		if s.profile.KnowledgeExtraction != nil {
+			s.invalid("knowledge extraction cannot request or execute tools")
+			return
+		}
 		if s.requestPending {
 			s.invalid("native tool activity before model request usage settled")
 			return
 		}
 		s.event("activity_started", textAt(m, "call_id"), "project_tool", "", nil)
 	case "tool_completed":
+		if s.profile.KnowledgeExtraction != nil {
+			s.invalid("knowledge extraction cannot request or execute tools")
+			return
+		}
 		if s.requestPending {
 			s.invalid("native tool activity before model request usage settled")
 			return
@@ -479,6 +494,9 @@ func (s *toolStream) suma(m map[string]any) {
 		maxSteps, maxAllowance := int64(16), int64(4096)
 		if s.profile.Planning != nil {
 			maxSteps, maxAllowance = 4, 8192
+		}
+		if s.profile.KnowledgeExtraction != nil {
+			maxSteps, maxAllowance = 1, 8192
 		}
 		if !ok || !valid || step != s.requestStep || step >= maxSteps || allowance < 1 || allowance > maxAllowance || s.requestPending {
 			s.invalid("invalid or out-of-order native model request")
@@ -514,12 +532,16 @@ func (s *toolStream) suma(m map[string]any) {
 		s.lastUsageState = state
 		s.event("usage", "model-step-"+strconv.FormatInt(step, 10), "", "", u, state)
 	case "completed":
+		if s.profile.KnowledgeExtraction != nil && s.requestStep != 1 {
+			s.invalid("knowledge extraction requires exactly one settled model request")
+			return
+		}
 		if strings.TrimSpace(textAt(m, "output")) == "" || s.requestPending {
 			s.invalid("missing completed output")
 			return
 		}
-		if s.profile.Planning != nil {
-			// Planning consumes the bounded final document, not the human activity
+		if s.profile.Planning != nil || s.profile.KnowledgeExtraction != nil {
+			// Model document purposes consume the bounded final document, not the human activity
 			// transcript. Keep existing secret sanitization without the 8 KiB
 			// progress projection's tail clipping or stderr/activity prefixes.
 			completion := newOutput(toolLineLimit, s.secrets)

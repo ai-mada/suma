@@ -1,5 +1,5 @@
 import { UiError, tr } from './i18n';
-import type {SkillCatalogAdoption} from '../../../packages/contracts/src';
+import type {KnowledgeIntelligenceAdoption,SkillCatalogAdoption} from '../../../packages/contracts/src';
 export const knowledgeKinds = ['memory', 'spec', 'skill'] as const;
 export type KnowledgeKind = typeof knowledgeKinds[number];
 export type KnowledgeState = 'draft' | 'published' | 'retired';
@@ -30,7 +30,7 @@ export type KnowledgeRevision = {
     content: string;
     sha256: string;
     sources: KnowledgeSource[];
-    method: 'manual' | 'extractive' | 'catalog_adoption';
+    method: 'manual' | 'extractive' | 'catalog_adoption' | 'model_assisted';
     created_by: string;
     created_at: string;
 };
@@ -54,6 +54,7 @@ export type KnowledgeSummary = {
     updated_at: string;
 };
 export type KnowledgeDetail = KnowledgeSummary & {
+    model_adoption?: KnowledgeIntelligenceAdoption | null;
     catalog_adoption?: SkillCatalogAdoption | null;
     latest: KnowledgeRevision;
     published?: KnowledgeRevision;
@@ -64,6 +65,7 @@ export type KnowledgePage = {
     next_cursor?: string;
 };
 export type KnowledgeSnapshot = KnowledgeReference & {
+    model_adoption?: KnowledgeIntelligenceAdoption | null;
     catalog_adoption?: SkillCatalogAdoption | null;
     kind: string;
     title: string;

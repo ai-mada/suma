@@ -6,6 +6,7 @@ package localization
 // placeholders use the common named-dot-v1 grammar. SourceTemplate is private
 // provenance and does not register an English source alias.
 var nativeCatalog = []Definition{
+	{Key: "native.knowledge.tools_forbidden", SourceTemplate: "Knowledge extraction cannot request or execute tools.", Texts: map[Locale]string{ZhCN: "知识提炼不允许请求或执行工具。", EnUS: "Knowledge extraction cannot request or execute tools."}},
 	{Key: "native.workspace.config", SourceTemplate: "Workspace bridge configuration is invalid", Texts: map[Locale]string{ZhCN: "工作区连接配置无效", EnUS: "Workspace bridge configuration is invalid"}},
 	{Key: "native.workspace.catalog", SourceTemplate: "Workspace tool identity or catalogue is invalid", Texts: map[Locale]string{ZhCN: "工作区工具身份或目录无效", EnUS: "Workspace tool identity or catalogue is invalid"}},
 	{Key: "native.workspace.transport", SourceTemplate: "Workspace tool connection failed; inspect the current execution", Texts: map[Locale]string{ZhCN: "工作区工具连接失败，请核对当前执行", EnUS: "Workspace tool connection failed; inspect the current execution"}},
@@ -33,7 +34,7 @@ var nativeCatalog = []Definition{
 	{Key: "native.limit.steps", SourceTemplate: "Agent reached the configured step limit", Texts: map[Locale]string{ZhCN: "智能体已达到配置的步骤上限", EnUS: "Agent reached the configured step limit"}},
 	{Key: "native.limit.tool_calls", SourceTemplate: "At most eight calls are allowed per step", Texts: map[Locale]string{ZhCN: "每一步最多允许八次工具调用", EnUS: "At most eight calls are allowed per step"}},
 	{Key: "native.request.invalid_goal", SourceTemplate: "A goal of 1–32000 characters is required", Texts: map[Locale]string{ZhCN: "目标必须包含 1–32000 个字符", EnUS: "A goal of 1–32000 characters is required"}},
-	{Key: "native.request.invalid_purpose", SourceTemplate: "Planning requires a read-only project-tool runtime without a workspace bridge", Texts: map[Locale]string{ZhCN: "规划要求只读项目工具运行时，不能使用工作区连接", EnUS: "Planning requires a read-only project-tool runtime without a workspace bridge"}},
+	{Key: "native.request.invalid_purpose", SourceTemplate: "The selected purpose requires its dedicated read-only model configuration without a workspace bridge.", Texts: map[Locale]string{ZhCN: "所选用途需要对应的专用只读模型配置，且不能连接工作区。", EnUS: "The selected purpose requires its dedicated read-only model configuration without a workspace bridge."}},
 	{Key: "native.request.invalid_limits", SourceTemplate: "Explicit max_steps/max_tokens must be positive integers within the supported bounds", Texts: map[Locale]string{ZhCN: "显式 max_steps/max_tokens 必须是支持范围内的正整数", EnUS: "Explicit max_steps/max_tokens must be positive integers within the supported bounds"}},
 	{Key: "native.response.empty", SourceTemplate: "Empty upstream response", Texts: map[Locale]string{ZhCN: "上游响应为空", EnUS: "Empty upstream response"}},
 	{Key: "native.response.invalid_json", SourceTemplate: "Upstream response is not JSON", Texts: map[Locale]string{ZhCN: "上游响应不是有效 JSON", EnUS: "Upstream response is not JSON"}},
@@ -93,6 +94,7 @@ func IsNativeMessageKey(key string) bool {
 		"native.request.invalid_goal",
 		"native.request.invalid_limits",
 		"native.request.invalid_purpose",
+		"native.knowledge.tools_forbidden",
 		"native.response.empty",
 		"native.response.invalid_json",
 		"native.response.no_choices",

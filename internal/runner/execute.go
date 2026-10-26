@@ -20,19 +20,20 @@ import (
 )
 
 type CommandSpec struct {
-	Adapter         string                 `json:"adapter,omitempty"`
-	Protocol        string                 `json:"protocol,omitempty"`
-	Executable      string                 `json:"executable"`
-	Args            []string               `json:"args"`
-	Env             map[string]string      `json:"env,omitempty"`
-	EnvFrom         []string               `json:"env_from,omitempty"`
-	Input           string                 `json:"input,omitempty"`
-	ReadOnly        bool                   `json:"read_only,omitempty"`
-	Planning        bool                   `json:"planning,omitempty"`
-	TestEvidence    bool                   `json:"test_evidence,omitempty"`
-	ArtifactOutput  string                 `json:"artifact_output,omitempty"`
-	ArtifactInput   bool                   `json:"artifact_input,omitempty"`
-	NativeWorkspace *NativeWorkspacePolicy `json:"native_workspace,omitempty"`
+	Adapter             string                 `json:"adapter,omitempty"`
+	Protocol            string                 `json:"protocol,omitempty"`
+	Executable          string                 `json:"executable"`
+	Args                []string               `json:"args"`
+	Env                 map[string]string      `json:"env,omitempty"`
+	EnvFrom             []string               `json:"env_from,omitempty"`
+	Input               string                 `json:"input,omitempty"`
+	ReadOnly            bool                   `json:"read_only,omitempty"`
+	Planning            bool                   `json:"planning,omitempty"`
+	KnowledgeExtraction bool                   `json:"knowledge_extraction,omitempty"`
+	TestEvidence        bool                   `json:"test_evidence,omitempty"`
+	ArtifactOutput      string                 `json:"artifact_output,omitempty"`
+	ArtifactInput       bool                   `json:"artifact_input,omitempty"`
+	NativeWorkspace     *NativeWorkspacePolicy `json:"native_workspace,omitempty"`
 }
 type ExecConfig struct {
 	AllowExec                            bool
@@ -222,9 +223,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if profileErr != nil {
 		return fail(profileErr.Error())
 	}
-	planningInput, planningErr := planningRequest(a, spec, profile)
-	if planningErr != nil {
-		return fail(planningErr.Error())
+	purposeInput, purposeErr := modelPurposeRequest(a, spec, profile)
+	if purposeErr != nil {
+		return fail(purposeErr.Error())
 	}
 	if spec.ArtifactInput {
 		binding, resolveErr := resolveArtifact(ctx, a, cfg)
@@ -284,7 +285,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		switch spec.Input {
 		case "agent-jsonl":
 			input := map[string]any{"goal": goal, "request_id": digest([]byte(key(a)))}
-			for name, value := range planningInput {
+			for name, value := range purposeInput {
 				input[name] = value
 			}
 			b, _ := json.Marshal(input)
@@ -520,7 +521,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" {
 			r.ToolEvidence = evidence
 		}
-		if profile.Planning != nil && stream.terminal == "completed" && stream.bad == nil {
+		if (profile.Planning != nil || profile.KnowledgeExtraction != nil) && stream.terminal == "completed" && stream.bad == nil {
 			r.Output = stream.completionOutput
 		} else {
 			r.Output = stream.output.String() + r.Output

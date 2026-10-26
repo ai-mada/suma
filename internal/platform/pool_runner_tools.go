@@ -148,8 +148,14 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof
 		}
 		if !task {
 			_, planning, err := s.planningExecutionRecordTx(ctx, tx, scope.TenantID, scope.ProjectID, run)
-			if err != nil || !planning {
+			if err != nil {
 				return false, err
+			}
+			if !planning {
+				_, extraction, err := s.knowledgeIntelligenceExecutionRecordTx(ctx, tx, scope.TenantID, scope.ProjectID, run)
+				if err != nil || !extraction {
+					return false, err
+				}
 			}
 		}
 	}

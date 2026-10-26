@@ -2,7 +2,7 @@ package localization
 
 // 键表示稳定的显示语义。相同 HTTP code 可以对应多个具体消息；翻译不
 // 改变机器状态、代码、用户内容或任何持久化业务字段。
-var catalog = combineCatalogs(commonCatalog, poolCatalog, preferencesCatalog, workspaceCatalog, controlCatalog, executionCatalog, releaseCatalog, validationCatalog, dagCatalog, nativeCatalog, toolDiagnosticCatalog, attemptHistoryCatalog, displayCatalog, authorityCatalog, knowledgeCatalog, requirementDesignCatalog, candidateTransferCatalog, applicationToolCatalog, nativeDevelopmentCatalog, teamCLICatalog, taskHandoffCatalog, intelligentPlanningCatalog, usageAccountingCatalog, skillCatalog)
+var catalog = combineCatalogs(commonCatalog, poolCatalog, preferencesCatalog, workspaceCatalog, controlCatalog, executionCatalog, releaseCatalog, validationCatalog, dagCatalog, nativeCatalog, toolDiagnosticCatalog, attemptHistoryCatalog, displayCatalog, authorityCatalog, knowledgeCatalog, requirementDesignCatalog, candidateTransferCatalog, applicationToolCatalog, nativeDevelopmentCatalog, teamCLICatalog, taskHandoffCatalog, intelligentPlanningCatalog, usageAccountingCatalog, skillCatalog, knowledgeIntelligenceCatalog)
 
 // Build a separate immutable catalog so adding a domain cannot reuse and mutate
 // another domain's backing array. Lookup and formatting remain request-scoped.
@@ -39,6 +39,9 @@ var commonCatalog = []Definition{
 // that reviewed domain; SourceTemplate elsewhere never becomes a global alias.
 var sourceAliases = func() map[string]string {
 	out := map[string]string{"登录已过期": "auth.session_expired"}
+	for _, d := range knowledgeIntelligenceCatalog {
+		out[d.SourceTemplate] = d.Key
+	}
 	for _, definition := range skillCatalog {
 		if definition.SourceTemplate != "" {
 			out[definition.SourceTemplate] = definition.Key

@@ -225,6 +225,11 @@ func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []st
 			return "", err
 		}
 	}
+	if spec.KnowledgeExtraction {
+		if err = probeKnowledgeExtraction(ctx, exe, spec, secrets); err != nil {
+			return "", err
+		}
+	}
 	version = strings.TrimSpace(strings.SplitN(version, "\n", 2)[0])
 	if version == "" || len(version) > 256 {
 		return "", fmt.Errorf("CLI version is missing or oversized")
@@ -373,6 +378,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 		if _, err := localPlanningCapability(spec); err != nil {
 			return err
 		}
+		if _, err := localKnowledgeExtractionCapability(spec); err != nil {
+			return err
+		}
 		if err := validateTeamCLICommand(spec); err != nil {
 			return err
 		}
@@ -462,6 +470,11 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 				fail(err.Error())
 				return
 			}
+			o.Profile.KnowledgeExtraction, err = localKnowledgeExtractionCapability(spec)
+			if err != nil {
+				fail(err.Error())
+				return
+			}
 			o.Available = true
 			o.Reason = "installed executable and protocol probe; model authentication and task success unverified"
 			results[i] = o
@@ -522,6 +535,10 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 		if err != nil {
 			return p, "", err
 		}
+		p.KnowledgeExtraction, err = localKnowledgeExtractionCapability(spec)
+		if err != nil {
+			return p, "", err
+		}
 	}
 	if err = tc.ValidateProfile(p, true); err != nil {
 		return p, "", fmt.Errorf("invalid tool profile")
@@ -536,6 +553,10 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 	expectedPlanning, err := localPlanningCapability(spec)
 	if err != nil || (p.Planning == nil) != (expectedPlanning == nil) || p.Planning != nil && *p.Planning != *expectedPlanning {
 		return p, "", fmt.Errorf("planning capability does not match local configuration")
+	}
+	expectedExtraction, err := localKnowledgeExtractionCapability(spec)
+	if err != nil || (p.KnowledgeExtraction == nil) != (expectedExtraction == nil) || p.KnowledgeExtraction != nil && *p.KnowledgeExtraction != *expectedExtraction {
+		return p, "", fmt.Errorf("knowledge extraction capability does not match local configuration")
 	}
 	if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" && pinned != p.ProfileSHA256 {
 		return p, "", fmt.Errorf("assignment tool profile digest does not match local configuration")

@@ -68,6 +68,7 @@ const workflowEventKeys:Record<string,string>={
  tool_progress:'development.workflow.event_name.tool_progress',
  node_progress:'development.workflow.event_name.node_progress',
  managed_observation_reconciled:'development.workflow.event_name.managed_observation_reconciled',
+ live_read_only_completion_reconciled:'development.workflow.event_name.live_read_only_completion_reconciled',
  map_manifest_saved:'development.workflow.event_name.map_manifest_saved',
  map_chunk_materialized:'development.workflow.event_name.map_chunk_materialized',
  retry_scheduled:'development.workflow.event_name.retry_scheduled',

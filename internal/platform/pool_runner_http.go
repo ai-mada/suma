@@ -76,6 +76,13 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				}
 				return false, err
 			}
+			if err := s.Service.checkKnowledgeIntelligenceExecutionTx(r.Context(), tx, scope.TenantID, scope.ProjectID, run, true); err != nil {
+				var apiErr *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Code == "knowledge_intelligence_basis_changed" {
+					return false, nil
+				}
+				return false, err
+			}
 			return s.Service.PoolToolClaimEligibleTx(r.Context(), tx, proof, scope, run, node)
 		})
 		respond(w, 200, PoolRunnerClaimResponse{Assignment: a}, err)
@@ -102,7 +109,10 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			if err != nil {
 				return err
 			}
-			return s.Service.checkPlanningExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID)
+			if err := s.Service.checkPlanningExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID); err != nil {
+				return err
+			}
+			return s.Service.checkKnowledgeIntelligenceExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID, false)
 		})
 		if errors.Is(err, dag.ErrCancelled) {
 			writeJSON(w, 200, map[string]bool{"cancel_requested": true})
@@ -154,10 +164,14 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			if err := s.Service.ValidatePoolToolResultTx(r.Context(), tx, proof, a, result); err != nil {
 				return err
 			}
-			return s.Service.recordPlanningOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, func(current *sql.Tx) error {
+			authorize := func(current *sql.Tx) error {
 				_, err := s.Service.PoolRunnerAssignmentAuthorityTx(r.Context(), current, token, a)
 				return err
-			})
+			}
+			if err := s.Service.recordPlanningOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {
+				return err
+			}
+			return s.Service.recordKnowledgeIntelligenceOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize)
 		})
 		if err == nil {
 			// Completion remains committed if projection is temporarily unavailable;

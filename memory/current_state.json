@@ -2,17 +2,17 @@
   "project": "suma",
   "name": "速码一栈式智能研发平台",
   "phase": "implementation",
-  "updated_at": "2026-10-26T10:42:11.625423+00:00",
+  "updated_at": "2026-10-26T11:58:50.247775+00:00",
   "status": "in_progress",
   "plan": "docs/delivery/implementation-plan.md",
   "workstreams": {
     "control_dag": "shared_pools_bilateral_grants_immutable_task_run_routes_hierarchical_weighted_admission_and_atomic_pool_project_resources_locally_verified_distributed_capacity_pending",
     "runtime": "native_attempt_workspace_actual_coding_host_seal_same_candidate_independent_test_locally_verified_official_SDKs; vendor_models_isolation_install_and_external_resume_pending",
     "workbench": "compact_native_development_facts_original_disclosure_CNEN_26raw_values_keyboard_refresh_390_representative_verified; full_IDE_candidate_review_and_target_merge_pending",
-    "architecture_documents": "025 catalog PRD/domain/data/interaction/AI SOP/contract and compact evidence updated; complete platform documentation continues",
-    "internationalization": "3573 paired frontend keys; actual representative CNEN catalog/adoption/source provenance and shorter forms; full surface/device matrix continues",
+    "architecture_documents": "026 PRD/architecture/domain/interaction/AI SOP/contract and compact evidence updated; full platform documentation continues",
+    "internationalization": "3684 paired frontend keys, final representative CNEN simple proposal/source/raw original and adoption hint verified; full CLI producer diagnostics and complete surfaces/device matrix pending",
     "identity_authority": "actual_primary013_to017_SQLite_upgrade_preserves129_legacy_table_columns14_credentials_unclassified_original_owner_normal_relogin_verified_API_Runner_Agent_reissue_still_required_cross_database_and_SSO_pending",
-    "project_knowledge": "organization_catalog_reviewed_metadata_immutable_project_publication_pointers_scoped_discovery_target_draft_adoption_then_publication_dispatch_lineage_CLI_MCP_locally_verified; actual_vector_model_extraction_team_squad_strategies_pending",
+    "project_knowledge": "model_assisted fixed-source one-call proposals, immutable originals/editable drafts/manual adoption and publication lineage with atomic usage and live readonly receipt reconciliation locally verified; organization catalog/CLI/MCP preserved; actual vector/index providers, vendor inference and expert-squad strategies pending",
     "requirement_design": "versioned_product_experience_technical_design_and_task_proposals_reviewed_publication_delta_adoption_protected_bindings_fixed_run_and_acceptance_basis_verified_focused_and_actual_SQLite_UI_iteration_manual_model_and_full_UED_pending",
     "candidate_transfer": "project_and_independent_pool_machine_sealed64MiB_native_Git_bundle_current_authority_source_proof_pinned_import_durable_pending_retry_and_zh_en_facts_verified_real_two_pool_workers_and_test_owner_review; inherited_nodelta_dynamic_merge_and_distributed_store_scale_pending",
     "external_application_tools": "officialGoSDK1.8.0 inboundMCP15/current-scoped_shared_skill_list_and_exact_version_read/unexpandedAgent4_locally_verified; OAuth_A2A_vendors_pending",
@@ -20,17 +20,17 @@
     "team_cli_runtime": "harness_multica_v1_and_CodeBuddy_JSONL_native_and_fixed_Node_entry_real_local_processes_private_Git_and_entry_drift_guard_verified; compact_CNEN_config_UI_and_original_preview_updated; vendor_models_WorkBuddy_teamhandoff_pending",
     "team_handoff": "human/team fixed proposal and atomic owner/CAS/invalidation with scoped current authority, history, CNEN panel and CLI locally verified; expert-squad autonomous handoff/cross-organization/distributed acceptance pending",
     "intelligent_planning": "bounded actual native model execution, fixed-source reviewed atomic schedules and durable in-app risks with current-authorized private/pool HTTP callbacks and CNEN folded UI locally verified; vendor/account/long-term autonomous strategy/scale pending",
-    "usage_accounting": "organization/project month token/currency estimates, immutable fixed-model rates, private/pool atomic holds/final ledger/manual confirmation, effective-state SQL paging and compact CNEN administration locally verified; vendor billing/hard gateway/full subject dimensions/scale pending"
+    "usage_accounting": "fixed planning/extraction model rate and origin shared accounting, private/Pool atomic holds and single final ledger, actual extraction40tokens57micros locally verified; vendor billing/hard gateway/full subject dimensions/scale pending"
   },
   "verified": [
-    "T-P4-025: organization skill catalog on one immutable project body store, metadata/version/history/current authorization and draft adoption lineage; 6 backend groups plus necessary fixes, Root6 MCP/application checks, CLI4+help/vet, cross-project HTTP publication->dispatch->real RunnerClaim, UI4 plus affectedshare, final3573 locale pairs/315schemas191paths/check/build. Actual UI sourcepub2->catalogv1->separate targetdraft->reviewpub2->refresh/body/lineage, ENZH source management link/keyboard and compact right form verified. Vector/model extraction and full subjects/platform/production remain pending.",
-    "Primary025/1.0.0 normal254508/233068 exec43321; original158schemas+allrows unchanged,3newemptytables+3indexes->161,18authority0Grant/original login/tasks/run1failed2succeeded kept;120web assets and linkedbytes match. Old024 and all025isolated controls/holders closed0, source clones unchanged. FullP0-P7 active."
+    "T-P4-026: fixed authorized sources, dedicated read-only one-call model extraction, editable proposals with immutable original and explicit independent draft adoption/publication lineage implemented. Focused HTTP/domain/Pool/accounting/recovery/Core checks, native9 and necessary UI checks, 323schemas/194paths and final3684 paired web keys/build verified; one actual local protocol model40tokens/57CNYmicros, UI revision3->adopt4->knowledgepub2 and original SHA preserved. Not vendor billing/inference or production acceptance.",
+    "Primary026/1.0.0 normal199624/holder250388 exec2716; all161 prior schemas/full tables exact,3newemptytables+1index->164,18authority0Grant/original login/tasks/run1failed2succeeded kept.121web assets and linkedbytes match. Old025 and all026isolated controls/holders closed0, source clones unchanged. FullP0-P7 active."
   ],
   "production_integration_complete": false,
-  "current_evidence": "docs/quality/skill-catalog-verification.md",
-  "stage": "T-P4-025_skill_catalog_locally_verified",
+  "current_evidence": "docs/quality/knowledge-intelligence-verification.md",
+  "stage": "T-P4-026_knowledge_intelligence_locally_verified",
   "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
-  "next_step": "Continue full P0-P7 with governed model-assisted capability extraction/refinement and expert squads/pipeline policies, protected repositories/merges, richer validated billing subjects/provider gateway, real vendor/WorkBuddy SDKs, SSO/A2A, intelligent CLI sync, mobile channels/App and distributed stores/scale/installers. Keep current primary43321; local stage source/docs commits only, no push; only necessary affected checks.",
+  "next_step": "Continue full P0-P7: authorized versioned vector/index integration and expert-team strategies, official vendor/platform adapters, distributed stores/capacity, complete CLI internationalization, mobile/channels and SaaS; preserve preview and original data. Necessary affected verification only, stage local commits, no push.",
   "additional_requirements": [
     "FND-I18N-001: internationalization in every implemented surface; initially zh-CN/en-US, unified catalogs, preference/negotiation, formatting, API errors, CLI/desktop/extensions/notifications and docs; preserve user content and immutable evidence; coverage must be honestly verified",
     "Idea lifecycle, reusable function/menu governance, visual configuration, alerts and WeChat/DingTalk/WeCom channels remain full platform scope",
@@ -53,25 +53,25 @@
   ],
   "verification_history": {
     "path": "memory/verification_history.json",
-    "entries": 86,
+    "entries": 89,
     "load_policy": "on demand; do not load during every startup"
   },
   "validation_policy": "Focused checks per changed behavior; reuse unchanged-input evidence; one full integration gate per milestone; representative UI verification only for changed interactions/layout. Preserve critical authority/transaction/migration/concurrency/idempotency checks. No redundant review, snapshots, logs or full-matrix reruns.",
-  "deployed_evidence": "docs/quality/usage-accounting-verification.md",
+  "deployed_evidence": "docs/quality/knowledge-intelligence-verification.md",
   "primary_preview": {
-    "stage": "T-P4-025",
-    "revision": "skill-catalog-v1",
+    "stage": "T-P4-026",
+    "revision": "knowledge-intelligence-v1",
     "url": "http://pool.localhost:4324/",
-    "control_pid": 254508,
-    "holder_pid": 233068,
-    "launch_receipt": ".cache/e2e/skill-catalog-stage-025/primary-upgrade/control-launch.local.json",
-    "stop_protocol": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\skill-catalog-stage-025\\primary-upgrade\\stop.request",
+    "control_pid": 199624,
+    "holder_pid": 250388,
+    "launch_receipt": ".cache/e2e/knowledge-intelligence-stage-026/primary-upgrade/control-launch.local.json",
+    "stop_protocol": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\knowledge-intelligence-stage-026\\primary-upgrade\\stop.request",
     "status": "normal_local_preview_not_production",
     "product_version": "1.0.0",
-    "source_sha256": "4efe74fc3bb35f4fdb73e4a0cf24c9443aef72518b4290874af0556b966bd4f6",
-    "control_sha256": "5f86e44637ef955ffa7d9718ba9caff3303270deed497fdb63acfe25bfe1b64a",
-    "web_index_sha256": "c315921e120f377d1005d292a23c3b561681e3827773f46556b480c56c636472",
-    "execution_session": 43321
+    "source_sha256": "b48d4561940a69e0df31cac28ddf3ad40e63455059e1a5772a6c5508e9e82d67",
+    "control_sha256": "12f28126714601fdc4bf211173035ad6b67d24d8e770cc0f2cd8dccebe61b79d",
+    "web_index_sha256": "b59a3bdcccae7d67a5e38c285faf1595d528cbe2c831df70f364480d8eae9c0b",
+    "execution_session": 2716
   },
   "native020_progress": {
     "status": "locally_verified",
@@ -140,12 +140,25 @@
   },
   "current_version": "1.0.0",
   "design_policy": "Current 1.0.0 best-fit architecture only; no historical compatibility shims or duplicated state. Preserve actual user data, immutable evidence and safe recovery; product SemVer is separate from protocol/SDK/domain revisions.",
-  "previous_goal_turn": "progress: added and integrated024 authoritative source/ledger/UI/actual evidence and paired158-table preview; prior023 commits retained",
+  "previous_goal_turn": "progress: T-P4-026 model-assisted extraction, immutable model original/editable proposals/draft-publication provenance, atomic usage and same-live-attempt completion reconciliation implemented; one actual loopback model and final CNEN UI, original-data preview upgrade verified. Full platform remains active.",
   "active_goal_source_sha256": "b48689cef76a9db9bd2fe13b51cec7247bca54f9f8a200075f3f0c029313f89c",
   "latest_request": {
     "path": "C:\\Users\\Administrator\\.codex\\attachments\\7f36912b-ab04-46c5-97e5-644e1dce7040\\已粘贴的文本.txt",
     "sha256": "cc034e549a01bb4557b268931039bd97c98c2eafaee17bbb33777ff69111ed71",
     "characters": 7414,
     "read": "complete through original user history plus current final requirements1-20; no scope reduction"
+  },
+  "knowledge_intelligence026_progress": {
+    "status": "locally_verified",
+    "contract": "contracts/knowledge-intelligence.md",
+    "summary": "docs/quality/knowledge-intelligence-summary.json",
+    "actual": ".cache/e2e/knowledge-intelligence-stage-026/actual/public-result.local.json",
+    "browser": ".cache/e2e/knowledge-intelligence-stage-026/browser/verification.local.json",
+    "build": ".cache/e2e/knowledge-intelligence-stage-026/runtime-final/build-facts.local.json",
+    "primary": ".cache/e2e/knowledge-intelligence-stage-026/primary-upgrade/final-verification.local.json",
+    "model_requests": 1,
+    "vendor_calls": 0,
+    "full_suite_repeated": false,
+    "full_platform": "in_progress"
   }
 }

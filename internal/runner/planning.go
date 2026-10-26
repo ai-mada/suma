@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"net"
-	"net/url"
 	"strings"
 
 	tc "github.com/ai-mada/suma/internal/toolcontract"
@@ -16,30 +14,14 @@ func localPlanningCapability(spec CommandSpec) (*tc.PlanningCapability, error) {
 	if !spec.Planning {
 		return nil, nil
 	}
-	if spec.Adapter != "suma" || spec.Protocol != "suma-jsonl-v1" || !spec.ReadOnly || spec.NativeWorkspace != nil || spec.Input != "agent-jsonl" || spec.TestEvidence || spec.ArtifactInput || spec.ArtifactOutput != "" {
-		return nil, fmt.Errorf("planning requires a read-only Suma profile without workspace or artifact capabilities")
+	if spec.KnowledgeExtraction {
+		return nil, fmt.Errorf("planning and knowledge extraction profiles are mutually exclusive")
 	}
-	for _, name := range spec.EnvFrom {
-		if strings.EqualFold(name, "SUMA_MODEL") || strings.EqualFold(name, "SUMA_MODEL_BASE_URL") {
-			return nil, fmt.Errorf("planning model and endpoint must be fixed local environment values")
-		}
+	model, origin, err := localReadOnlyModel(spec, "planning")
+	if err != nil {
+		return nil, err
 	}
-	for name := range spec.Env {
-		if (strings.EqualFold(name, "SUMA_MODEL") && name != "SUMA_MODEL") || (strings.EqualFold(name, "SUMA_MODEL_BASE_URL") && name != "SUMA_MODEL_BASE_URL") {
-			return nil, fmt.Errorf("planning model environment names must be canonical")
-		}
-	}
-	u, err := url.Parse(spec.Env["SUMA_MODEL_BASE_URL"])
-	if err != nil || u.User != nil || u.Opaque != "" || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" {
-		return nil, fmt.Errorf("planning endpoint is invalid")
-	}
-	host, port := strings.ToLower(u.Hostname()), u.Port()
-	if port != "" && !(u.Scheme == "https" && port == "443" || u.Scheme == "http" && port == "80") {
-		host = net.JoinHostPort(host, port)
-	} else if strings.Contains(host, ":") {
-		host = "[" + host + "]"
-	}
-	p := &tc.PlanningCapability{Protocol: tc.PlanningProtocol, Model: spec.Env["SUMA_MODEL"], EndpointOrigin: u.Scheme + "://" + host}
+	p := &tc.PlanningCapability{Protocol: tc.PlanningProtocol, Model: model, EndpointOrigin: origin}
 	if err = tc.ValidatePlanningCapability(*p); err != nil {
 		return nil, err
 	}

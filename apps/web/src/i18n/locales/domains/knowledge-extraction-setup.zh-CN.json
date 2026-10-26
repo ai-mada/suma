@@ -1,0 +1,7 @@
+{
+  "knowledge-extraction-setup.tool": "知识提炼模型",
+  "knowledge-extraction-setup.install": "使用本项目构建的 suma-agent 原生入口，准备模型配置。",
+  "knowledge-extraction-setup.configure": "将此只读配置写入执行节点；密钥通过 SUMA_MODEL_API_KEY 注入。",
+  "knowledge-extraction-setup.register": "同步能力报告，再由管理员登记并启用专用工具。",
+  "knowledge-extraction-setup.policy": "此用途仅分析固定来源，最多调用模型一次，不开放其他工具。能力探测不代表模型账户或服务已验证。"
+}

@@ -135,7 +135,7 @@ func decode(r *http.Request) (map[string]any, error) {
 	// Preserve numeric lexemes so a fractional counter near 2^53 cannot round
 	// into a valid integer before that validation. Legacy map-backed routes
 	// retain their existing number representation until their DTO migration.
-	if strings.HasPrefix(r.URL.Path, "/api/v1/skill-catalog") || strings.HasPrefix(r.URL.Path, "/api/v1/usage") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/analyses") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/alerts") || (strings.HasPrefix(r.URL.Path, "/api/v1/requirements/") && strings.Contains(r.URL.Path, "/design")) || strings.HasPrefix(r.URL.Path, "/api/v1/task-dispatch-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/task-handoffs") || strings.HasPrefix(r.URL.Path, "/api/v1/project-knowledge") || r.URL.Path == "/api/v1/agent/tools/invoke" || strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
+	if strings.HasPrefix(r.URL.Path, "/api/v1/knowledge-intelligence") || strings.HasPrefix(r.URL.Path, "/api/v1/skill-catalog") || strings.HasPrefix(r.URL.Path, "/api/v1/usage") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/analyses") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/alerts") || (strings.HasPrefix(r.URL.Path, "/api/v1/requirements/") && strings.Contains(r.URL.Path, "/design")) || strings.HasPrefix(r.URL.Path, "/api/v1/task-dispatch-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/task-handoffs") || strings.HasPrefix(r.URL.Path, "/api/v1/project-knowledge") || r.URL.Path == "/api/v1/agent/tools/invoke" || strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
 		d.UseNumber()
 	}
 	if err := d.Decode(&m); err != nil {
@@ -463,6 +463,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.usageAccountingHTTP(w, r, actor, scope, parts, project, m) {
+		return
+	}
+	if s.knowledgeIntelligenceHTTP(w, r, actor, scope, project, parts, m) {
 		return
 	}
 	if s.intelligentPlanningHTTP(w, r, actor, scope, parts, project, m) {
@@ -824,6 +827,13 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				}
 				return false, err
 			}
+			if err := s.Service.checkKnowledgeIntelligenceExecutionTx(authority.ctx, tx, p.TenantID, project, run, true); err != nil {
+				var apiErr *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Code == "knowledge_intelligence_basis_changed" {
+					return false, nil
+				}
+				return false, err
+			}
 			return s.Service.toolClaimEligibleTx(authority.ctx, tx, authority.proof, claim.WorkerID, run, node)
 		})
 		if e == nil && a != nil && a.DispatchState == "active" {
@@ -845,7 +855,10 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			if err := s.Service.projectRunnerExecutionAuthorityTx(authority.ctx, tx, authority.proof, a.WorkerID, a.RunID); err != nil {
 				return err
 			}
-			return s.Service.checkPlanningExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID)
+			if err := s.Service.checkPlanningExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID); err != nil {
+				return err
+			}
+			return s.Service.checkKnowledgeIntelligenceExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID, false)
 		})
 		if errors.Is(e, dag.ErrCancelled) {
 			writeJSON(w, 200, map[string]any{"cancel_requested": true})
@@ -875,7 +888,11 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			if err := s.Service.ValidateReleaseResultTx(authority.ctx, tx, authority.proof, result, state); err != nil {
 				return err
 			}
-			return s.Service.recordPlanningOutcomeTx(authority.ctx, tx, p.TenantID, project, result, func(current *sql.Tx) error { return authority.beforeRunner(current, result.WorkerID) })
+			authorize := func(current *sql.Tx) error { return authority.beforeRunner(current, result.WorkerID) }
+			if err := s.Service.recordPlanningOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {
+				return err
+			}
+			return s.Service.recordKnowledgeIntelligenceOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize)
 		})
 		if e == nil {
 			run, re := s.Engine.GetRun(r.Context(), p.TenantID, project, result.RunID)

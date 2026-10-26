@@ -378,7 +378,8 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 		if n.State != "running" && n.State != "reconciling" {
 			return ErrStale
 		}
-		if n.State == "reconciling" && !result.Stopped && !managedResolution {
+		liveResolution := n.State == "reconciling" && !result.Stopped && !managedResolution
+		if liveResolution && !t.liveReadOnlyCompletionCandidate(r, n, result, before != nil && commit != nil) {
 			return ErrStale
 		}
 		if n.State == "running" && n.lease <= t.now && !result.Stopped && !managedResolution {
@@ -389,6 +390,11 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 		}
 		if err = validateToolResult(n.spec, result); err != nil {
 			return err
+		}
+		if liveResolution {
+			if err = t.reconcileLiveReadOnlyCompletion(r, n, result); err != nil {
+				return err
+			}
 		}
 		if managedResolution {
 			var original string

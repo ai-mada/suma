@@ -333,12 +333,24 @@ func (e *Engine) getAttempt(ctx context.Context, tx *sql.Tx, tenant, project, ru
 	if err = attemptResultSource(&out, raw); err != nil {
 		return out, err
 	}
-	var observations int
-	if err = tx.QueryRowContext(ctx, e.q(`SELECT COUNT(*) FROM dag_managed_resolutions WHERE run_id=? AND node_id=? AND attempt=?`), runID, nodeID, attempt).Scan(&observations); err != nil {
+	var resolutionRaw string
+	err = tx.QueryRowContext(ctx, e.q(`SELECT resolution_result FROM dag_managed_resolutions WHERE run_id=? AND node_id=? AND attempt=?`), runID, nodeID, attempt).Scan(&resolutionRaw)
+	if err != nil && err != sql.ErrNoRows {
 		return out, err
 	}
-	if observations > 0 {
-		out.ResultSource = "managed_observation"
+	if err == nil {
+		var resolution *Result
+		if err = json.Unmarshal([]byte(resolutionRaw), &resolution); err != nil {
+			return out, err
+		}
+		if resolution == nil {
+			return out, fmt.Errorf("managed resolution result must be an object")
+		}
+		// Provider observations carry explicit release evidence. A live worker's
+		// formal read-only completion retains its original runner provenance.
+		if resolution.ReleaseEvidence != nil {
+			out.ResultSource = "managed_observation"
+		}
 	}
 	if owned {
 		return out, tx.Commit()

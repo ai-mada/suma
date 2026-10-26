@@ -816,5 +816,6 @@
   "development.transfer.source_identity": "Reported source execution identity",
   "development.transfer.invalid": "Candidate transfer metadata could not be verified. The original workspace evidence remains available.",
   "development.transfer.no_import": "No import receipt is recorded here. Candidate objects may already exist on the consuming Runner.",
-  "development.transfer.boundary": "Transfer metadata does not prove tests, human acceptance, merging or release."
+  "development.transfer.boundary": "Transfer metadata does not prove tests, human acceptance, merging or release.",
+  "development.workflow.event_name.live_read_only_completion_reconciled": "Read-only completion receipt reconciled"
 }

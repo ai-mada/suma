@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+
+	rc "github.com/ai-mada/suma/internal/releasecontract"
 )
 
 func TestClaimOperationPersistsEmptyActiveClosedAndRechecksAuthority(t *testing.T) {
@@ -210,11 +212,19 @@ func TestAttemptDeepLinkDistinguishesMissingNodeAndManualReconciliation(t *testi
 	if err != nil || len(page.Items) != 1 || page.Items[0].Result != nil || page.Items[0].ResultSource != "not_loaded" || page.Items[0].Reconciliation != nil {
 		t.Fatal("list must not read or infer full results", page, err)
 	}
-	if _, err = e.db.Exec(`INSERT INTO dag_managed_resolutions(run_id,node_id,attempt,operation_id,original_result,resolution_result,resolved_at)VALUES(?,?,1,'provider-lookup','{"outcome_unknown":true}','{}','fixture')`, r.ID, a.NodeID); err != nil {
+	if _, err = e.db.Exec(`INSERT INTO dag_managed_resolutions(run_id,node_id,attempt,operation_id,original_result,resolution_result,resolved_at)VALUES(?,?,1,'provider-lookup','{"outcome_unknown":true}',?,'fixture')`, r.ID, a.NodeID, encoded(Result{ReleaseEvidence: &rc.ReleaseResult{}})); err != nil {
 		t.Fatal(err)
 	}
 	proof, err = e.GetAttempt(ctx, "t", "p", r.ID, a.NodeID, 1)
 	if err != nil || proof.ResultSource != "managed_observation" {
 		t.Fatal("provider observation mislabeled Runner result", proof, err)
+	}
+	for _, corrupt := range []string{`{broken`, `null`} {
+		if _, err = e.db.Exec(`UPDATE dag_managed_resolutions SET resolution_result=? WHERE run_id=? AND node_id=? AND attempt=1`, corrupt, r.ID, a.NodeID); err != nil {
+			t.Fatal(err)
+		}
+		if _, err = e.GetAttempt(ctx, "t", "p", r.ID, a.NodeID, 1); err == nil {
+			t.Fatal("corrupt managed result silently fell back to another provenance", corrupt)
+		}
 	}
 }

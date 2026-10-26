@@ -1,0 +1,7 @@
+{
+  "knowledge-extraction-setup.tool": "Knowledge extraction model",
+  "knowledge-extraction-setup.install": "Use the suma-agent entry built from this project and prepare the model configuration.",
+  "knowledge-extraction-setup.configure": "Save this read-only configuration on the runner; inject the key through SUMA_MODEL_API_KEY.",
+  "knowledge-extraction-setup.register": "Report the observed capability, then have an administrator register and enable its dedicated profile.",
+  "knowledge-extraction-setup.policy": "This purpose analyzes only fixed sources, makes at most one model call, and exposes no tools. Capability discovery does not verify a model account or service."
+}

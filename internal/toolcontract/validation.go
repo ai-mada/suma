@@ -39,8 +39,13 @@ func ValidProtocol(protocol string) bool {
 }
 func ValidateProfile(p Profile, complete bool) error {
 	if p.Planning != nil {
-		if p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || ValidatePlanningCapability(*p.Planning) != nil {
+		if p.KnowledgeExtraction != nil || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || ValidatePlanningCapability(*p.Planning) != nil {
 			return fmt.Errorf("invalid planning capability")
+		}
+	}
+	if p.KnowledgeExtraction != nil {
+		if p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || ValidateKnowledgeExtractionCapability(*p.KnowledgeExtraction) != nil {
+			return fmt.Errorf("invalid knowledge extraction capability")
 		}
 	}
 	if p.WorkspaceToolsVersion != "" && (p.WorkspaceToolsVersion != "attempt-workspace-v1" || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || p.ReadOnly) {
@@ -61,11 +66,22 @@ func ValidateProfile(p Profile, complete bool) error {
 }
 
 func ValidatePlanningCapability(p PlanningCapability) error {
-	u, err := url.Parse(p.EndpointOrigin)
-	if p.Protocol != PlanningProtocol || strings.TrimSpace(p.Model) != p.Model || p.Model == "" || !validText(p.Model, 256, false) || !validText(p.EndpointOrigin, 2048, false) || err != nil || u.Hostname() == "" || u.User != nil || u.Opaque != "" || u.Path != "" || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" || p.EndpointOrigin != u.Scheme+"://"+u.Host || (u.Scheme != "https" && !(u.Scheme == "http" && (u.Hostname() == "localhost" || u.Hostname() == "127.0.0.1" || u.Hostname() == "::1"))) {
+	if p.Protocol != PlanningProtocol || !validFixedModel(p.Model, p.EndpointOrigin) {
 		return fmt.Errorf("invalid fixed planning model or endpoint origin")
 	}
 	return nil
+}
+
+func ValidateKnowledgeExtractionCapability(p KnowledgeExtractionCapability) error {
+	if p.Protocol != KnowledgeExtractionProtocol || !validFixedModel(p.Model, p.EndpointOrigin) {
+		return fmt.Errorf("invalid fixed knowledge extraction model or endpoint origin")
+	}
+	return nil
+}
+
+func validFixedModel(model, origin string) bool {
+	u, err := url.Parse(origin)
+	return strings.TrimSpace(model) == model && model != "" && validText(model, 256, false) && validText(origin, 2048, false) && err == nil && u.Hostname() != "" && u.User == nil && u.Opaque == "" && u.Path == "" && u.RawQuery == "" && !u.ForceQuery && u.Fragment == "" && origin == u.Scheme+"://"+u.Host && (u.Scheme == "https" || u.Scheme == "http" && (u.Hostname() == "localhost" || u.Hostname() == "127.0.0.1" || u.Hostname() == "::1"))
 }
 func ValidateObservation(o Observation) error {
 	if err := ValidateProfile(o.Profile, o.Available); err != nil {

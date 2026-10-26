@@ -60,11 +60,12 @@ func (s *Service) usagePricingTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	if err != nil {
 		return
 	}
-	if !planningProfile(profile) || profile.Profile.ProfileSHA256 != sha {
+	model, origin, priced := usagePricedModel(profile)
+	if !priced || profile.Profile.ProfileSHA256 != sha {
 		return profile, nil, org, project, nil
 	}
 	rate, err = s.usageRateTx(ctx, tx, ref.TenantID, ref.ProjectID, id)
-	if rate != nil && (rate.ProfileSHA256 != sha || rate.Model != profile.Profile.Planning.Model || rate.EndpointOrigin != profile.Profile.Planning.EndpointOrigin || rate.OutputTokenReservation < usageOutputBudget(ref.Spec)) {
+	if rate != nil && (rate.ProfileSHA256 != sha || rate.Model != model || rate.EndpointOrigin != origin || rate.OutputTokenReservation < usageOutputBudget(ref.Spec)) {
 		rate = nil
 	}
 	return
@@ -137,9 +138,9 @@ func (s *Service) ReserveAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Acco
 	stamp := now()
 	a := UsageAttempt{ID: usageID(ref), ProjectID: ref.ProjectID, Version: 1, RunID: ref.RunID, NodeID: ref.NodeID, Attempt: ref.Attempt, Fence: ref.Fence, WorkerID: ref.WorkerID, ToolProfileID: profile.ID, ProfileSHA256: profile.Profile.ProfileSHA256, Rate: rate, State: "unpriced", UsageState: toolcontract.UsageUnreported, UsageSource: "none", CreatedAt: stamp, UpdatedAt: stamp, AllowedActions: []string{}}
 	record := usageRecord{Attempt: a, Period: period, OrganizationPolicyVersion: org.Version, ProjectPolicyVersion: project.Version, ChargedTokens: "0", ChargedCost: "0", HeldTokens: "0", HeldCost: "0", Unresolved: true}
-	if profile.Profile.Planning != nil {
-		record.Attempt.Model = profile.Profile.Planning.Model
-		record.Attempt.EndpointOrigin = profile.Profile.Planning.EndpointOrigin
+	if model, origin, priced := usagePricedModel(profile); priced {
+		record.Attempt.Model = model
+		record.Attempt.EndpointOrigin = origin
 	}
 	if rate != nil {
 		record.Attempt.State = "reserved"

@@ -16,7 +16,7 @@ import (
 const (
 	usageInvalid             = "Invalid usage accounting request"
 	usageVersion             = "Usage accounting has changed; reload before deciding"
-	usageRateProfile         = "Pricing requires a current enabled read-only Suma planning profile"
+	usageRateProfile         = "Pricing requires a current enabled read-only Suma model profile"
 	usageConfirmRequired     = "Confirm the usage and provide its evidence source before settling"
 	usageCannotReduce        = "Confirmed usage cannot reduce an already reported counter"
 	usageEnforceConfirmation = "Confirm that enforcement can prevent new tool attempts"

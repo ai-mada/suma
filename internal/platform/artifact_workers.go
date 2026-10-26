@@ -339,6 +339,11 @@ func (s *Service) releaseClaimEligibleTx(ctx context.Context, tx *sql.Tx, auth *
 	} else if planning {
 		return true, nil
 	}
+	if _, extraction, err := s.knowledgeIntelligenceExecutionRecordTx(ctx, tx, p.TenantID, project, run); err != nil {
+		return false, err
+	} else if extraction {
+		return true, nil
+	}
 	if err := tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_release_workers WHERE tenant_id=? AND project_id=? AND worker_id=? AND token_hash=? AND deployment=1 AND status='active'`), p.TenantID, project, worker, auth.actor.credential.digest).Scan(&n); err != nil {
 		return false, err
 	}

@@ -1,6 +1,10 @@
 # 当前交付证据索引
 
-## 当前 T-P4-009 受控平台诊断
+## 当前 T-P4-026 模型辅助知识提炼
+
+[专项报告](../knowledge-intelligence-verification.md)与[精简摘要](../knowledge-intelligence-summary.json)绑定必要检查、一次实际模型协议、最终中英字段界面与原161表保持升级。原始记录、PNG、私有SQL快照和程序只保存在忽略目录 `.cache/e2e/knowledge-intelligence-stage-026/`，不提交Git；厂商、生产和完整平台仍待验收。
+
+## 历史 T-P4-009 受控平台诊断
 
 [专项报告](../backend-diagnostics-verification.md)及[精简摘要](../backend-diagnostics-summary.json)记录447＋10消息、AST合成负例／实际源覆盖、最终Go904／Web461／非Web30、24运行文件独立审计、真实6项双语拒绝检查、登录错误及44px入口和129表保持。原901检查因gate测试源变化未作为最终切面；原始日志、截图和数据库只留忽略目录`.cache/e2e/localization-stage-009/`。完整目标继续实施。
 
