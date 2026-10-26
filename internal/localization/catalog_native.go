@@ -6,6 +6,7 @@ package localization
 // placeholders use the common named-dot-v1 grammar. SourceTemplate is private
 // provenance and does not register an English source alias.
 var nativeCatalog = []Definition{
+	{Key: "native.failure.tools_forbidden", SourceTemplate: "Failure diagnosis cannot request or execute tools.", Texts: map[Locale]string{ZhCN: "失败分诊不能请求或执行工具。", EnUS: "Failure diagnosis cannot request or execute tools."}},
 	{Key: "native.knowledge.tools_forbidden", SourceTemplate: "Knowledge extraction cannot request or execute tools.", Texts: map[Locale]string{ZhCN: "知识提炼不允许请求或执行工具。", EnUS: "Knowledge extraction cannot request or execute tools."}},
 	{Key: "native.workspace.config", SourceTemplate: "Workspace bridge configuration is invalid", Texts: map[Locale]string{ZhCN: "工作区连接配置无效", EnUS: "Workspace bridge configuration is invalid"}},
 	{Key: "native.workspace.catalog", SourceTemplate: "Workspace tool identity or catalogue is invalid", Texts: map[Locale]string{ZhCN: "工作区工具身份或目录无效", EnUS: "Workspace tool identity or catalogue is invalid"}},
@@ -95,6 +96,7 @@ func IsNativeMessageKey(key string) bool {
 		"native.request.invalid_limits",
 		"native.request.invalid_purpose",
 		"native.knowledge.tools_forbidden",
+		"native.failure.tools_forbidden",
 		"native.response.empty",
 		"native.response.invalid_json",
 		"native.response.no_choices",

@@ -41,7 +41,10 @@ func (s *Service) MigrateKnowledgeIntelligence(ctx context.Context) error {
 			return e
 		}
 	}
-	return store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_knowledge_intelligence_page", "suma_knowledge_intelligence", "tenant_id", "project_id", "created_at", "id")
+	if err := store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_knowledge_intelligence_page", "suma_knowledge_intelligence", "tenant_id", "project_id", "created_at", "id"); err != nil {
+		return err
+	}
+	return s.MigrateFailureDiagnosis(ctx)
 }
 func (s *Service) knowledgeIntelligenceTx(ctx context.Context, tx *sql.Tx, tenant, project, id string) (out knowledgeIntelligenceRecord, err error) {
 	var raw, state string

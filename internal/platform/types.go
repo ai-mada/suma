@@ -9,24 +9,26 @@ import (
 )
 
 type Record struct {
-	ID                 string         `json:"id"`
-	TenantID           string         `json:"tenant_id"`
-	ProjectID          string         `json:"project_id"`
-	Version            int            `json:"version"`
-	Title              string         `json:"title"`
-	Name               string         `json:"name,omitempty"`
-	Description        string         `json:"description"`
-	Status             string         `json:"status"`
-	Priority           string         `json:"priority"`
-	OwnerID            string         `json:"owner_id"`
-	RequirementID      string         `json:"requirement_id"`
-	RunID              string         `json:"run_id,omitempty"`
-	DependsOn          []string       `json:"depends_on"`
-	AcceptanceCriteria []string       `json:"acceptance_criteria"`
-	Kind               string         `json:"kind,omitempty"`
-	CreatedAt          string         `json:"created_at"`
-	UpdatedAt          string         `json:"updated_at"`
-	Data               map[string]any `json:"data"`
+	// Read-only provenance from the diagnosis adoption table; never from Data.
+	FailureDiagnosisAdoption *FailureDiagnosisAdoption `json:"failure_diagnosis_adoption,omitempty"`
+	ID                       string                    `json:"id"`
+	TenantID                 string                    `json:"tenant_id"`
+	ProjectID                string                    `json:"project_id"`
+	Version                  int                       `json:"version"`
+	Title                    string                    `json:"title"`
+	Name                     string                    `json:"name,omitempty"`
+	Description              string                    `json:"description"`
+	Status                   string                    `json:"status"`
+	Priority                 string                    `json:"priority"`
+	OwnerID                  string                    `json:"owner_id"`
+	RequirementID            string                    `json:"requirement_id"`
+	RunID                    string                    `json:"run_id,omitempty"`
+	DependsOn                []string                  `json:"depends_on"`
+	AcceptanceCriteria       []string                  `json:"acceptance_criteria"`
+	Kind                     string                    `json:"kind,omitempty"`
+	CreatedAt                string                    `json:"created_at"`
+	UpdatedAt                string                    `json:"updated_at"`
+	Data                     map[string]any            `json:"data"`
 }
 
 type Principal struct {

@@ -13,6 +13,7 @@ type ToolExecutionProfile struct {
 	WorkspaceToolsVersion string                         `json:"workspace_tools_version,omitempty"`
 	Planning              *PlanningCapability            `json:"planning,omitempty"`
 	KnowledgeExtraction   *KnowledgeExtractionCapability `json:"knowledge_extraction,omitempty"`
+	FailureDiagnosis      *FailureDiagnosisCapability    `json:"failure_diagnosis,omitempty"`
 }
 
 // PlanningCapability names a probed, fixed model configuration, not account health.
@@ -33,13 +34,25 @@ type KnowledgeExtractionCapability struct {
 
 const KnowledgeExtractionProtocol = "suma-knowledge-extraction-v1"
 
+// FailureDiagnosisCapability fixes a single-call, text-only diagnostic purpose.
+// It grants no tools, repair execution, retries or task acceptance authority.
+type FailureDiagnosisCapability struct {
+	Protocol       string `json:"protocol"`
+	Model          string `json:"model"`
+	EndpointOrigin string `json:"endpoint_origin"`
+}
+
+const FailureDiagnosisProtocol = "suma-failure-diagnosis-v1"
+
 // EqualProfile compares capability values even after independent wire decoding.
 func EqualProfile(a, b Profile) bool {
 	ap, bp := a.Planning, b.Planning
 	ak, bk := a.KnowledgeExtraction, b.KnowledgeExtraction
+	af, bf := a.FailureDiagnosis, b.FailureDiagnosis
 	a.Planning, b.Planning = nil, nil
 	a.KnowledgeExtraction, b.KnowledgeExtraction = nil, nil
-	return a == b && (ap == nil && bp == nil || ap != nil && bp != nil && *ap == *bp) && (ak == nil && bk == nil || ak != nil && bk != nil && *ak == *bk)
+	a.FailureDiagnosis, b.FailureDiagnosis = nil, nil
+	return a == b && (ap == nil && bp == nil || ap != nil && bp != nil && *ap == *bp) && (ak == nil && bk == nil || ak != nil && bk != nil && *ak == *bk) && (af == nil && bf == nil || af != nil && bf != nil && *af == *bf)
 }
 
 func CloneProfile(p Profile) Profile {
@@ -50,6 +63,10 @@ func CloneProfile(p Profile) Profile {
 	if p.KnowledgeExtraction != nil {
 		value := *p.KnowledgeExtraction
 		p.KnowledgeExtraction = &value
+	}
+	if p.FailureDiagnosis != nil {
+		value := *p.FailureDiagnosis
+		p.FailureDiagnosis = &value
 	}
 	return p
 }

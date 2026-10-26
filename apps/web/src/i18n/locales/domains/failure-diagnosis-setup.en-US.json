@@ -1,0 +1,7 @@
+{
+  "failure-diagnosis-setup.tool": "Failure diagnosis model",
+  "failure-diagnosis-setup.install": "Use this project's built suma-agent entry and prepare a dedicated model configuration.",
+  "failure-diagnosis-setup.configure": "Save this read-only configuration on the execution node; inject the model secret only through SUMA_MODEL_API_KEY.",
+  "failure-diagnosis-setup.register": "Synchronize the actual capability report, then have an administrator register and enable the dedicated diagnosis tool.",
+  "failure-diagnosis-setup.policy": "Analyzes frozen failure evidence with at most one model request, without tools or a workspace. Diagnosis is advice; repair drafts require explicit review. A capability probe does not verify the vendor account."
+}

@@ -1040,6 +1040,152 @@ export interface ExpertTeamSaveRequest {
   roles: (ExpertTeamRoleRequest)[];
   idempotency_key: string;
 }
+export interface FailureDiagnosisAdoption {
+  analysis_id: string;
+  analysis_version: number;
+  diagnosis_run_id: string;
+  source_run_id: string;
+  source_node_id: string;
+  source_attempt: number;
+  source_fence: number;
+  issue_id: string;
+  tool_profile_sha256: string;
+  source_sha256: string;
+  original_output_sha256: string;
+  repair_sha256: string;
+  requirement_id: string;
+  requirement_version: number;
+  adopted_by: string;
+  adopted_at: string;
+  reason: string;
+}
+export interface FailureDiagnosisAnalysis {
+  reason_diagnostic?: Rendered | null;
+  id: string;
+  project_id: string;
+  version: number;
+  state: string;
+  goal: string;
+  locale: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  tool_profile_id: string;
+  tool_profile_version: number;
+  tool_profile_sha256: string;
+  run_id: string;
+  max_steps: number;
+  max_output_tokens: number;
+  source: FailureDiagnosisSource;
+  proposal?: FailureDiagnosisOutput | null;
+  repair?: FailureRepairDraft | null;
+  original_output: string;
+  original_output_sha256: string;
+  adopted_requirement_id: string;
+  reason: string;
+  allowed_actions: (string)[];
+  basis_current: boolean;
+}
+export interface FailureDiagnosisCapability {
+  protocol: string;
+  model: string;
+  endpoint_origin: string;
+}
+export interface FailureDiagnosisCommandRequest {
+  project_id: string;
+  expected_version: number;
+  action: string;
+  repair?: FailureRepairDraft | null;
+  reason: string;
+  acknowledge_draft: boolean;
+  idempotency_key: string;
+}
+export interface FailureDiagnosisContext {
+  blocker_diagnostics?: (Rendered | null)[];
+  project_id: string;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  source?: FailureDiagnosisSource | null;
+  issue?: Record | null;
+  requirement?: Record | null;
+  eligible: boolean;
+  can_create: boolean;
+  blockers: (string)[];
+}
+export interface FailureDiagnosisCreateRequest {
+  project_id: string;
+  issue_id: string;
+  expected_issue_version: number;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  expected_source_sha256: string;
+  goal: string;
+  locale: string;
+  tool_profile_id: string;
+  expected_tool_version: number;
+  max_steps?: number;
+  max_output_tokens?: number;
+  acknowledge_model_use: boolean;
+  idempotency_key: string;
+}
+export interface FailureDiagnosisEvidence {
+  kind: string;
+  text: string;
+  sha256: string;
+  total_bytes: number;
+  selected_bytes: number;
+  selection: string;
+}
+export interface FailureDiagnosisHypothesis {
+  statement: string;
+  evidence_indices: (number)[];
+  confidence: string;
+}
+export interface FailureDiagnosisObservation {
+  statement: string;
+  evidence_indices: (number)[];
+}
+export interface FailureDiagnosisOutput {
+  schema_version: number;
+  summary: string;
+  observations: (FailureDiagnosisObservation)[];
+  hypotheses: (FailureDiagnosisHypothesis)[];
+  recommended_actions: (string)[];
+  test_plan: (string)[];
+  repair: FailureRepairDraft;
+}
+export interface FailureDiagnosisPage {
+  items: (FailureDiagnosisAnalysis)[];
+  total: number;
+  next_cursor: string;
+}
+export interface FailureDiagnosisSource {
+  sha256: string;
+  issue_id: string;
+  issue_version: number;
+  run_id: string;
+  run_version: number;
+  run_state: string;
+  node_id: string;
+  node_state: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  task_id?: string;
+  task_version?: number;
+  task_title?: string;
+  requirement_id?: string;
+  requirement_version?: number;
+  evidence: (FailureDiagnosisEvidence)[];
+}
+export interface FailureRepairDraft {
+  title: string;
+  description: string;
+  priority: string;
+  acceptance_criteria: (string)[];
+}
 export interface HealthCheck {
   path: string;
   expected_status: number;
@@ -1378,6 +1524,7 @@ export interface OrganizationSummary {
   role: string;
 }
 export interface PlannedTask {
+  failure_diagnosis_adoption?: FailureDiagnosisAdoption | null;
   id: string;
   tenant_id: string;
   project_id: string;
@@ -1849,6 +1996,7 @@ export interface ReadyPage {
   next_cursor?: string;
 }
 export interface Record {
+  failure_diagnosis_adoption?: FailureDiagnosisAdoption | null;
   id: string;
   tenant_id: string;
   project_id: string;
@@ -3155,6 +3303,7 @@ export interface ToolExecutionProfile {
   workspace_tools_version?: string;
   planning?: PlanningCapability | null;
   knowledge_extraction?: KnowledgeExtractionCapability | null;
+  failure_diagnosis?: FailureDiagnosisCapability | null;
 }
 export interface ToolInventoryReceipt {
   acknowledged: boolean;

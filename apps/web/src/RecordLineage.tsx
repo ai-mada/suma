@@ -18,10 +18,14 @@ export function RecordLineage({item,project}:{item:RecordItem;project:string}){u
  const issue=identifier(item.source_issue_id??data.source_issue_id);
  const deployment=identifier(item.release_operation_id??data.release_operation_id??source.release_operation_id);
  const run=identifier(item.run_id??data.run_id??source.run_id);
+ const diagnosis=object(item.failure_diagnosis_adoption);
+ const diagnosisID=identifier(diagnosis.analysis_id),diagnosisSource=identifier(diagnosis.source_run_id),diagnosisNode=identifier(diagnosis.source_node_id);
+ const diagnosisAttempt=diagnosis.source_attempt;
  const links:{name:string;id:string;route:Record<string,string>}[]=[];
  if(issue)links.push({name:tr("records.lineage.issue"),id:issue,route:{view:'quality',sub:'issues',record:issue}});
  if(deployment)links.push({name:tr("records.lineage.deployment"),id:deployment,route:{view:'operations',sub:'deployments',record:deployment}});
  if(run)links.push({name:tr("records.lineage.run"),id:run,route:{view:'development',sub:'runs',run}});
+ if(diagnosis.requirement_id===item.id&&diagnosisID&&diagnosisSource&&diagnosisNode&&typeof diagnosisAttempt==='number'&&Number.isSafeInteger(diagnosisAttempt)&&diagnosisAttempt>0)links.push({name:tr('failure-diagnosis-entry.origin_analysis'),id:diagnosisID,route:{view:'development',sub:'runs',run:diagnosisSource,node:diagnosisNode,attempt:String(diagnosisAttempt),panel:'diagnosis:'+diagnosisID}});
  if(!links.length)return null;
  return <section className="detail-section" aria-label={tr("records.lineage.title")}><h3><Link size={15}/>{tr("records.lineage.title")}</h3>{links.map(link=><p key={link.id}><a href={'?'+new URLSearchParams({project,...link.route})}>{link.name}<ArrowUpRight size={14}/></a><small className="muted"> · {link.id.slice(0,16)}{link.id.length>16?'…':''}</small></p>)}</section>;
 }

@@ -7,7 +7,17 @@ import "github.com/ai-mada/suma/internal/toolcontract"
 // and accounting transaction; adding a purpose must not create a free lane.
 func usagePricedModel(profile ToolProfile) (model, origin string, ok bool) {
 	p := profile.Profile
-	if profile.State != "enabled" || p.Adapter != "suma" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || p.Planning != nil && p.KnowledgeExtraction != nil {
+	capabilities := 0
+	if p.Planning != nil {
+		capabilities++
+	}
+	if p.KnowledgeExtraction != nil {
+		capabilities++
+	}
+	if p.FailureDiagnosis != nil {
+		capabilities++
+	}
+	if profile.State != "enabled" || p.Adapter != "suma" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || capabilities != 1 {
 		return "", "", false
 	}
 	if p.Planning != nil && p.Planning.Protocol == toolcontract.PlanningProtocol {
@@ -15,6 +25,9 @@ func usagePricedModel(profile ToolProfile) (model, origin string, ok bool) {
 	}
 	if p.KnowledgeExtraction != nil && p.KnowledgeExtraction.Protocol == toolcontract.KnowledgeExtractionProtocol {
 		return p.KnowledgeExtraction.Model, p.KnowledgeExtraction.EndpointOrigin, true
+	}
+	if p.FailureDiagnosis != nil && p.FailureDiagnosis.Protocol == toolcontract.FailureDiagnosisProtocol {
+		return p.FailureDiagnosis.Model, p.FailureDiagnosis.EndpointOrigin, true
 	}
 	return "", "", false
 }

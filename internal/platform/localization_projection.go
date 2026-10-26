@@ -38,6 +38,20 @@ func localizeAdmission(w http.ResponseWriter, in dag.NodeAdmissionSnapshot) dag.
 // changing them so serialization cannot mutate an application result/receipt.
 func localizePresentation(w http.ResponseWriter, value any) any {
 	switch in := value.(type) {
+	case FailureDiagnosisContext:
+		in.BlockerDiagnostics = make([]*localization.Rendered, len(in.Blockers))
+		for i, source := range in.Blockers {
+			in.BlockerDiagnostics[i] = failureDiagnosisDiagnostic(w, source)
+		}
+		return in
+	case FailureDiagnosisAnalysis:
+		return localizeFailureDiagnosis(w, in)
+	case FailureDiagnosisPage:
+		in.Items = append([]FailureDiagnosisAnalysis{}, in.Items...)
+		for i := range in.Items {
+			in.Items[i] = localizeFailureDiagnosis(w, in.Items[i])
+		}
+		return in
 	case ExpertTeamPlan:
 		return localizeExpertPlan(w, in)
 	case ExpertTeamPlanPage:
@@ -119,4 +133,35 @@ func localizeExpertPlan(w http.ResponseWriter, in ExpertTeamPlan) ExpertTeamPlan
 		in.Items[i].Blockers = localizeKnownSources(w, in.Items[i].Blockers)
 	}
 	return in
+}
+
+func localizeFailureDiagnosis(w http.ResponseWriter, in FailureDiagnosisAnalysis) FailureDiagnosisAnalysis {
+	// Successful decisions carry the reviewer's literal reason. Only controlled
+	// execution/basis warnings are display messages; proposal/source bytes stay
+	// outside localization, even if they happen to match a catalog template.
+	controlled := in.State == "failed" || in.State == "reconciling" ||
+		!in.BasisCurrent && in.Reason == diagnosisSource ||
+		in.State == "ready" && in.AdoptedRequirementID != "" && in.Reason == diagnosisExisting
+	if controlled {
+		in.ReasonDiagnostic = failureDiagnosisDiagnostic(w, in.Reason)
+	} else {
+		in.ReasonDiagnostic = nil
+	}
+	return in
+}
+
+func failureDiagnosisDiagnostic(w http.ResponseWriter, source string) *localization.Rendered {
+	key, exists := localization.LookupSource(source)
+	if !exists {
+		return nil
+	}
+	locale, ok := localization.Normalize(w.Header().Get("Content-Language"))
+	if !ok {
+		locale = localization.DefaultLocale
+	}
+	diagnostic, err := localization.WithSource(locale, key, nil, source)
+	if err != nil {
+		return nil
+	}
+	return &diagnostic
 }

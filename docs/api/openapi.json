@@ -5113,6 +5113,786 @@
         ],
         "type": "object"
       },
+      "FailureDiagnosisAdoption": {
+        "properties": {
+          "adopted_at": {
+            "type": "string"
+          },
+          "adopted_by": {
+            "type": "string"
+          },
+          "analysis_id": {
+            "type": "string"
+          },
+          "analysis_version": {
+            "type": "integer"
+          },
+          "diagnosis_run_id": {
+            "type": "string"
+          },
+          "issue_id": {
+            "type": "string"
+          },
+          "original_output_sha256": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "repair_sha256": {
+            "type": "string"
+          },
+          "requirement_id": {
+            "type": "string"
+          },
+          "requirement_version": {
+            "type": "integer"
+          },
+          "source_attempt": {
+            "type": "integer"
+          },
+          "source_fence": {
+            "type": "integer"
+          },
+          "source_node_id": {
+            "type": "string"
+          },
+          "source_run_id": {
+            "type": "string"
+          },
+          "source_sha256": {
+            "type": "string"
+          },
+          "tool_profile_sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "analysis_id",
+          "analysis_version",
+          "diagnosis_run_id",
+          "source_run_id",
+          "source_node_id",
+          "source_attempt",
+          "source_fence",
+          "issue_id",
+          "tool_profile_sha256",
+          "source_sha256",
+          "original_output_sha256",
+          "repair_sha256",
+          "requirement_id",
+          "requirement_version",
+          "adopted_by",
+          "adopted_at",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "FailureDiagnosisAnalysis": {
+        "properties": {
+          "adopted_requirement_id": {
+            "type": "string"
+          },
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "basis_current": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "goal": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "locale": {
+            "enum": [
+              "zh-CN",
+              "en-US"
+            ],
+            "type": "string"
+          },
+          "max_output_tokens": {
+            "default": 4096,
+            "maximum": 8192,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "max_steps": {
+            "const": 1,
+            "default": 1,
+            "type": "integer"
+          },
+          "original_output": {
+            "type": "string"
+          },
+          "original_output_sha256": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "proposal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FailureDiagnosisOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "reason_diagnostic": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Rendered"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Present only for platform warnings; absent for literal human decision reasons.",
+            "readOnly": true
+          },
+          "repair": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FailureRepairDraft"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/FailureDiagnosisSource"
+          },
+          "state": {
+            "enum": [
+              "running",
+              "ready",
+              "failed",
+              "reconciling",
+              "adopted",
+              "dismissed"
+            ],
+            "type": "string"
+          },
+          "tool_profile_id": {
+            "type": "string"
+          },
+          "tool_profile_sha256": {
+            "type": "string"
+          },
+          "tool_profile_version": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "version",
+          "state",
+          "goal",
+          "locale",
+          "created_by",
+          "created_at",
+          "updated_at",
+          "tool_profile_id",
+          "tool_profile_version",
+          "tool_profile_sha256",
+          "run_id",
+          "max_steps",
+          "max_output_tokens",
+          "source",
+          "original_output",
+          "original_output_sha256",
+          "adopted_requirement_id",
+          "reason",
+          "allowed_actions",
+          "basis_current"
+        ],
+        "type": "object"
+      },
+      "FailureDiagnosisCapability": {
+        "additionalProperties": false,
+        "properties": {
+          "endpoint_origin": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "model": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "protocol": {
+            "const": "suma-failure-diagnosis-v1",
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol",
+          "model",
+          "endpoint_origin"
+        ],
+        "type": "object"
+      },
+      "FailureDiagnosisCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge_draft": {
+            "description": "Must be true for adopt. Other commands do not acquire execution authority.",
+            "type": "boolean"
+          },
+          "action": {
+            "enum": [
+              "revise",
+              "adopt",
+              "dismiss"
+            ],
+            "type": "string"
+          },
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 2000
+          },
+          "repair": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FailureRepairDraft"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "action",
+          "reason",
+          "acknowledge_draft",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "FailureDiagnosisContext": {
+        "properties": {
+          "attempt": {
+            "type": "integer"
+          },
+          "blocker_diagnostics": {
+            "description": "Positionally aligned optional display metadata. Canonical blocker bytes remain unchanged; clients render message_key in their current language.",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Rendered"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "can_create": {
+            "type": "boolean"
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "issue": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Record"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "requirement": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Record"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FailureDiagnosisSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "project_id",
+          "run_id",
+          "node_id",
+          "attempt",
+          "eligible",
+          "can_create",
+          "blockers"
+        ],
+        "type": "object"
+      },
+      "FailureDiagnosisCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge_model_use": {
+            "const": true,
+            "type": "boolean"
+          },
+          "attempt": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_issue_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_source_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "expected_tool_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "goal": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 2000
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "issue_id": {
+            "type": "string"
+          },
+          "locale": {
+            "enum": [
+              "zh-CN",
+              "en-US"
+            ],
+            "type": "string"
+          },
+          "max_output_tokens": {
+            "default": 4096,
+            "maximum": 8192,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "max_steps": {
+            "const": 1,
+            "default": 1,
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "tool_profile_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "issue_id",
+          "expected_issue_version",
+          "run_id",
+          "node_id",
+          "attempt",
+          "expected_source_sha256",
+          "goal",
+          "locale",
+          "tool_profile_id",
+          "expected_tool_version",
+          "acknowledge_model_use",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "FailureDiagnosisEvidence": {
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "selected_bytes": {
+            "type": "integer"
+          },
+          "selection": {
+            "enum": [
+              "full",
+              "tail"
+            ],
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "text": {
+            "description": "The explicit selected full/tail evidence. sha256 and total_bytes refer to the original complete source.",
+            "maxLength": 8000,
+            "type": "string",
+            "x-max-utf8-bytes": 8000
+          },
+          "total_bytes": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "text",
+          "sha256",
+          "total_bytes",
+          "selected_bytes",
+          "selection"
+        ],
+        "type": "object"
+      },
+      "FailureDiagnosisHypothesis": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "type": "string"
+          },
+          "evidence_indices": {
+            "items": {
+              "maximum": 5,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "maxItems": 6,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "statement": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 2000
+          }
+        },
+        "required": [
+          "statement",
+          "evidence_indices",
+          "confidence"
+        ],
+        "type": "object"
+      },
+      "FailureDiagnosisObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_indices": {
+            "items": {
+              "maximum": 5,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "maxItems": 6,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "statement": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 2000
+          }
+        },
+        "required": [
+          "statement",
+          "evidence_indices"
+        ],
+        "type": "object"
+      },
+      "FailureDiagnosisOutput": {
+        "additionalProperties": false,
+        "properties": {
+          "hypotheses": {
+            "items": {
+              "$ref": "#/components/schemas/FailureDiagnosisHypothesis"
+            },
+            "maxItems": 8,
+            "minItems": 0,
+            "type": "array"
+          },
+          "observations": {
+            "items": {
+              "$ref": "#/components/schemas/FailureDiagnosisObservation"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array"
+          },
+          "recommended_actions": {
+            "items": {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string",
+              "x-max-utf8-bytes": 2000
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array"
+          },
+          "repair": {
+            "$ref": "#/components/schemas/FailureRepairDraft"
+          },
+          "schema_version": {
+            "const": 1,
+            "type": "integer"
+          },
+          "summary": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 2000
+          },
+          "test_plan": {
+            "items": {
+              "maxLength": 2000,
+              "minLength": 1,
+              "type": "string",
+              "x-max-utf8-bytes": 2000
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "summary",
+          "observations",
+          "hypotheses",
+          "recommended_actions",
+          "test_plan",
+          "repair"
+        ],
+        "type": "object"
+      },
+      "FailureDiagnosisPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/FailureDiagnosisAnalysis"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "FailureDiagnosisSource": {
+        "properties": {
+          "attempt": {
+            "type": "integer"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/FailureDiagnosisEvidence"
+            },
+            "maxItems": 6,
+            "minItems": 1,
+            "type": "array"
+          },
+          "fence": {
+            "type": "integer"
+          },
+          "issue_id": {
+            "type": "string"
+          },
+          "issue_version": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "node_state": {
+            "type": "string"
+          },
+          "requirement_id": {
+            "type": "string"
+          },
+          "requirement_version": {
+            "type": "integer"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "run_state": {
+            "type": "string"
+          },
+          "run_version": {
+            "type": "integer"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "task_title": {
+            "type": "string"
+          },
+          "task_version": {
+            "type": "integer"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sha256",
+          "issue_id",
+          "issue_version",
+          "run_id",
+          "run_version",
+          "run_state",
+          "node_id",
+          "node_state",
+          "attempt",
+          "fence",
+          "worker_id",
+          "evidence"
+        ],
+        "type": "object"
+      },
+      "FailureRepairDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptance_criteria": {
+            "items": {
+              "maxLength": 1000,
+              "minLength": 1,
+              "type": "string",
+              "x-max-utf8-bytes": 1000
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "description": {
+            "maxLength": 16000,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 16000
+          },
+          "priority": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          }
+        },
+        "required": [
+          "title",
+          "description",
+          "priority",
+          "acceptance_criteria"
+        ],
+        "type": "object"
+      },
       "HealthCheck": {
         "properties": {
           "expected_file": {
@@ -6734,6 +7514,16 @@
           },
           "description": {
             "type": "string"
+          },
+          "failure_diagnosis_adoption": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FailureDiagnosisAdoption"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "id": {
             "type": "string"
@@ -8999,6 +9789,18 @@
           },
           "description": {
             "type": "string"
+          },
+          "failure_diagnosis_adoption": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FailureDiagnosisAdoption"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Authoritative immutable relation loaded from the adoption table; generic writes cannot manufacture it.",
+            "readOnly": true
           },
           "id": {
             "type": "string"
@@ -14865,6 +15667,27 @@
             "if": {
               "properties": {
                 "message_key": {
+                  "const": "native.failure.tools_forbidden"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
                   "const": "native.knowledge.tools_forbidden"
                 }
               },
@@ -15986,6 +16809,7 @@
         "properties": {
           "message_key": {
             "enum": [
+              "native.failure.tools_forbidden",
               "native.knowledge.tools_forbidden",
               "native.workspace.config",
               "native.workspace.catalog",
@@ -16384,6 +17208,16 @@
           "executable_sha256": {
             "description": "Resolved executable byte digest, not complete transitive dependency attestation; may be empty only in unavailable observations.",
             "type": "string"
+          },
+          "failure_diagnosis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FailureDiagnosisCapability"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "knowledge_extraction": {
             "anyOf": [
@@ -31563,6 +32397,1015 @@
         "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
       }
     },
+    "/failure-diagnosis/analyses": {
+      "get": {
+        "description": "Current-authorized diagnosis of frozen, known failed execution evidence. One dedicated read-only model call, no tools or automatic retries. Model observations and hypotheses require human review. Explicit adoption creates one repair requirement draft per source issue; existing requirements are opened without overwrite. Creating a draft never recovers a run, merges code, closes an issue or accepts a task.",
+        "operationId": "get_failure-diagnosis_analyses",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original failed run lookup hint; scope is checked from persisted records.",
+            "in": "query",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact current failed node.",
+            "in": "query",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "maxLength": 150,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Canonical positive decimal current attempt.",
+            "in": "query",
+            "name": "attempt",
+            "required": true,
+            "schema": {
+              "maximum": 2147483646,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Exact bounded page size.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor bound to project and original failure identity.",
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "maxLength": 4096,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureDiagnosisPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      },
+      "post": {
+        "description": "Current-authorized diagnosis of frozen, known failed execution evidence. One dedicated read-only model call, no tools or automatic retries. Model observations and hypotheses require human review. Explicit adoption creates one repair requirement draft per source issue; existing requirements are opened without overwrite. Creating a draft never recovers a run, merges code, closes an issue or accepts a task.",
+        "operationId": "post_failure-diagnosis_analyses",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FailureDiagnosisCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureDiagnosisAnalysis"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/failure-diagnosis/analyses/{id}": {
+      "get": {
+        "description": "Current-authorized diagnosis of frozen, known failed execution evidence. One dedicated read-only model call, no tools or automatic retries. Model observations and hypotheses require human review. Explicit adoption creates one repair requirement draft per source issue; existing requirements are opened without overwrite. Creating a draft never recovers a run, merges code, closes an issue or accepts a task.",
+        "operationId": "get_failure-diagnosis_analyses_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureDiagnosisAnalysis"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/failure-diagnosis/analyses/{id}/commands": {
+      "post": {
+        "description": "Current-authorized diagnosis of frozen, known failed execution evidence. One dedicated read-only model call, no tools or automatic retries. Model observations and hypotheses require human review. Explicit adoption creates one repair requirement draft per source issue; existing requirements are opened without overwrite. Creating a draft never recovers a run, merges code, closes an issue or accepts a task.",
+        "operationId": "post_failure-diagnosis_analyses_id_commands",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FailureDiagnosisCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureDiagnosisAnalysis"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/failure-diagnosis/context": {
+      "get": {
+        "description": "Current-authorized diagnosis of frozen, known failed execution evidence. One dedicated read-only model call, no tools or automatic retries. Model observations and hypotheses require human review. Explicit adoption creates one repair requirement draft per source issue; existing requirements are opened without overwrite. Creating a draft never recovers a run, merges code, closes an issue or accepts a task.",
+        "operationId": "get_failure-diagnosis_context",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original failed run lookup hint; scope is checked from persisted records.",
+            "in": "query",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact current failed node.",
+            "in": "query",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "maxLength": 150,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Canonical positive decimal current attempt.",
+            "in": "query",
+            "name": "attempt",
+            "required": true,
+            "schema": {
+              "maximum": 2147483646,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureDiagnosisContext"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
     "/hooks/{id}": {
       "post": {
         "description": "Signature-only receiver: rejects browser cookies, Authorization, Origin, query strings, encodings and duplicate protocol headers. GitHub stores body and delivery-ID tombstones across revisions; it cannot prove unseen old payload freshness. Suma binds ingress, timestamp, delivery ID and exact body. Only normalized source facts are retained; no payload-to-command mapping. Receipt and occurrence are committed atomically; dispatch rechecks current ingress/rule authority and fixed workflow.",
@@ -32766,6 +34609,167 @@
       }
     },
     "/issues/{id}/intake": {
+      "get": {
+        "description": "Current-authorized diagnosis of frozen, known failed execution evidence. One dedicated read-only model call, no tools or automatic retries. Model observations and hypotheses require human review. Explicit adoption creates one repair requirement draft per source issue; existing requirements are opened without overwrite. Creating a draft never recovers a run, merges code, closes an issue or accepts a task.",
+        "operationId": "get_issues_id_intake",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Record"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      },
       "post": {
         "operationId": "post_issues_id_intake",
         "parameters": [

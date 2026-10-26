@@ -2,15 +2,15 @@
   "project": "suma",
   "name": "速码一栈式智能研发平台",
   "phase": "implementation",
-  "updated_at": "2026-10-26T16:23:18.826662+00:00",
+  "updated_at": "2026-10-26T17:32:35.318527+00:00",
   "status": "in_progress",
   "plan": "docs/delivery/implementation-plan.md",
   "workstreams": {
     "control_dag": "shared_pools_bilateral_grants_immutable_task_run_routes_hierarchical_weighted_admission_and_atomic_pool_project_resources_locally_verified_distributed_capacity_pending",
     "runtime": "native_attempt_workspace_actual_coding_host_seal_same_candidate_independent_test_locally_verified_official_SDKs; vendor_models_isolation_install_and_external_resume_pending",
     "workbench": "compact_native_development_facts_original_disclosure_CNEN_26raw_values_keyboard_refresh_390_representative_verified; full_IDE_candidate_review_and_target_merge_pending",
-    "architecture_documents": "029 dependency orchestration PRD, frozen domain and CLI contracts, architecture/AI SOP, interaction, English entry and compact actual evidence updated; full platform documents continue",
-    "internationalization": "3968 paired frontend keys,82 new orchestration pairs; typed closed blocker projection, CLI messages and representative actual CNEN refresh/history/original task-run facts locally verified; full remaining platform/device/language surfaces continue",
+    "architecture_documents": "030 fixed-failure diagnosis PRD, domain/CLI contracts, architecture/AI SOP, typed API/display metadata and interaction plus English entry and compact actual evidence delivered; full platform continues",
+    "internationalization": "4090 paired frontend keys; diagnosis display metadata rerenders current language without another GET while canonical evidence/human decisions remain literal; CLI and native capability/probe are bilingual. Full remaining surfaces/device/production acceptance continue",
     "identity_authority": "actual_primary013_to017_SQLite_upgrade_preserves129_legacy_table_columns14_credentials_unclassified_original_owner_normal_relogin_verified_API_Runner_Agent_reissue_still_required_cross_database_and_SSO_pending",
     "project_knowledge": "model_assisted fixed-source one-call proposals, immutable originals/editable drafts/manual adoption and publication lineage with atomic usage and live readonly receipt reconciliation locally verified; organization catalog/CLI/MCP preserved; actual vector/index providers, vendor inference and expert-squad strategies pending",
     "requirement_design": "versioned_product_experience_technical_design_and_task_proposals_reviewed_publication_delta_adoption_protected_bindings_fixed_run_and_acceptance_basis_verified_focused_and_actual_SQLite_UI_iteration_manual_model_and_full_UED_pending",
@@ -22,9 +22,12 @@
     "intelligent_planning": "bounded actual native model execution, fixed-source reviewed atomic schedules and durable in-app risks with current-authorized private/pool HTTP callbacks and CNEN folded UI locally verified; vendor/account/long-term autonomous strategy/scale pending",
     "usage_accounting": "fixed planning/extraction model rate and origin shared accounting, private/Pool atomic holds and single final ledger, actual extraction40tokens57micros locally verified; vendor billing/hard gateway/full subject dimensions/scale pending",
     "expert_team_execution": "fixed dependency graph and source revisions, bounded durable exact-plan-run formal acceptance gated advancement, current original browser/API credential activation, pause/resume/stop/pending-only revision and CLI/compact CNEN locally verified; same-host twoRunner actual2runs/8formal checks/2explicit fixture owner reviews. Automatic code inheritance, physical remote/vendor and production remain pending",
-    "repository_integration": "accepted-task/sameSHA independent tests/sealedbundle, administrator fixed bare provider, complete bounded real diff, browser approval/separate current-grant FF Git CAS+receipt+fence, unknown original-operation positive/negative reconciliation and private/Pool typed callbacks locally verified; physical remote/TLS, merge strategies and production acceptance pending"
+    "repository_integration": "accepted-task/sameSHA independent tests/sealedbundle, administrator fixed bare provider, complete bounded real diff, browser approval/separate current-grant FF Git CAS+receipt+fence, unknown original-operation positive/negative reconciliation and private/Pool typed callbacks locally verified; physical remote/TLS, merge strategies and production acceptance pending",
+    "failure_diagnosis": "Known scoped failed node evidence snapshots, dedicated no-tools one-call native purpose, current original authority, same atomic model usage ledger, immutable observations/hypotheses/raw output, repair-only explicit human adoption and stable one-issue requirement intake; CLI/API/compact CNEN/source readback locally verified. Actual40tokens57CNYmicros local protocol fixture; vendor/automated repair/retest/physical remote/production pending"
   },
   "verified": [
+    "T-P4-030: current exact known failed node -> fixed five evidence ranges -> dedicated read-only one-call model -> immutable original/observations/hypotheses -> human repair revise/adopt -> draft v1 and authoritative source return. Domain7tops, runtime/CLI/Pool/HTTP/pricing/NLS/focused UI and final compile/contracts passed. Actual real Control/Runner/native bundle with one local protocol model40tokens57CNYmicros, original failure/unaccepted task unchanged, all owned processes0/source+oldbusiness unchanged. Final selected requirement detail proof, widened inspector, CNEN and URL refresh cold readback passed without repeat model. Full platform remains active.",
+    "Primary030/1.0.0 normal252836/holder137148 exec40508;177 original full schema+rows identical,3newemptydiagnosis tables1index->180;18authority0Grant/original login/task/run1failed2succeeded retained,131webassets exact. Old029 and all030 actual/readback processes closed0; backups/original artifacts retained.",
     "T-P4-029: same ExpertTeamPlan frozen dependency source, late current-authority exact-predecessor-run acceptance gated durable advancement; pause/resume/stop, pending-only R2 revisions, read-only history and CLI/compact CNEN. Focused domain/controller/HTTP/NLS/CLI/UI and final current-history boundary passed; actual same-host two independent Runners2runs8formal checks2UI local fixture-owner reviews. Paused accepted root did not dispatch child, explicit revision/resume did, current-fact409 draft recovery observed. No model/vendor/newAgentToken. Full platform remains active.",
     "Primary029/1.0.0 normal251820/holder199624 exec4728;175 old full schemas+rows identical,2newemptytables2indexes->177;18authority0Grant/original login/task/run1failed2succeeded kept,131webassets exact. Old028 plus all029 isolated actual/readback processes closed0; source fixture inventory unchanged.",
     "T-P4-028: actual fixed local bare Git provider via real private Runner/Control, reused027 accepted candidate. GUI target binding -> full2file diff -> browser approval -> separate acknowledged FF -> same tested d15c517... result; Git receipt/fence/target CAS matched, both managed runs succeeded,17actual checks. CNEN refresh same plan/original code retained; exact input/authority/transaction/negative-fencing/lostACK/Pool boundaries locally checked. No vendor/model/newAgent token. Initial blocked runs retained and contract seams corrected. Full platform remains active.",
@@ -33,10 +36,10 @@
     "Primary027/1.0.0 normal255376/holder247864 exec63413; all164 oldschemas and fullrows unchanged,4newemptytables+2indexes->168,18authority0Grant/original login/tasks/run1failed2succeeded kept;127assets served exact. Old026exec2716 and all027 isolated UI/Runner/helpers closed0,source clones unchanged. Full platform remains active."
   ],
   "production_integration_complete": false,
-  "current_evidence": "docs/quality/expert-team-orchestration-verification.md",
-  "stage": "T-P4-029_expert_team_orchestration_locally_verified",
+  "current_evidence": "docs/quality/failure-diagnosis-verification.md",
+  "stage": "T-P4-030_failure_diagnosis_locally_verified",
   "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
-  "next_step": "Continue full P0-P7 with existing contracts: real vendor/remote distributed team execution, explicit candidate result handoff, intelligent skill/memory refinement and remaining production governance/deployment. Preserve exact-run human quality gates, focused checks and stage local commits; no push.",
+  "next_step": "031: multi-source accepted candidate integration baseline with independent tests of the exact combined result, then explicit fixed code-baseline handoff to downstream expert development. Continue full P0-P7, real vendors/remote, automated repair/retest, deployment and remaining platform scope; current goal stays active.",
   "additional_requirements": [
     "FND-I18N-001: internationalization in every implemented surface; initially zh-CN/en-US, unified catalogs, preference/negotiation, formatting, API errors, CLI/desktop/extensions/notifications and docs; preserve user content and immutable evidence; coverage must be honestly verified",
     "Idea lifecycle, reusable function/menu governance, visual configuration, alerts and WeChat/DingTalk/WeCom channels remain full platform scope",
@@ -63,21 +66,21 @@
     "load_policy": "on demand; do not load during every startup"
   },
   "validation_policy": "Focused checks per changed behavior; reuse unchanged-input evidence; one full integration gate per milestone; representative UI verification only for changed interactions/layout. Preserve critical authority/transaction/migration/concurrency/idempotency checks. No redundant review, snapshots, logs or full-matrix reruns.",
-  "deployed_evidence": "docs/quality/expert-team-orchestration-verification.md",
+  "deployed_evidence": "docs/quality/failure-diagnosis-verification.md",
   "primary_preview": {
-    "stage": "T-P4-029",
-    "revision": "expert-team-orchestration-v1",
+    "stage": "T-P4-030",
+    "revision": "failure-diagnosis-v1",
     "url": "http://pool.localhost:4324/",
-    "control_pid": 251820,
-    "holder_pid": 199624,
-    "launch_receipt": ".cache/e2e/expert-team-orchestration-stage-029/primary-upgrade/control-launch.local.json",
-    "stop_protocol": ".cache/e2e/expert-team-orchestration-stage-029/primary-upgrade/stop.request",
+    "control_pid": 252836,
+    "holder_pid": 137148,
+    "launch_receipt": ".cache/e2e/failure-diagnosis-stage-030/primary-upgrade/control-launch.local.json",
+    "stop_protocol": ".cache/e2e/failure-diagnosis-stage-030/primary-upgrade/stop.request",
     "status": "normal_local_preview_not_production",
     "product_version": "1.0.0",
-    "source_sha256": "2171e84a7d8c429d8b9edd59b23e5e3fc9bc4314c1087db4303a08540834346c",
-    "control_sha256": "0c15e37625aa3861871eccbba41302e609822546125a863d07a5fd5b65ef6648",
-    "web_index_sha256": "2c15d59f3104c21c3a57f8a8e262fe593356a80a30f0bfaa8bc9fe0d03a25387",
-    "execution_session": 4728
+    "source_sha256": "14b753648ad1199316bbb5cb45343b1a2684247ece30af6db65c5b0660ff4035",
+    "control_sha256": "89c7307e9a7a20edb55c60139380e37764a771b4ee483d6b8bb77ff364733e1c",
+    "web_index_sha256": "10130f26ac03a9af9c337a921665213e2de5115ba7ccc48145f18c4f9387431c",
+    "execution_session": 40508
   },
   "native020_progress": {
     "status": "locally_verified",
@@ -146,7 +149,7 @@
   },
   "current_version": "1.0.0",
   "design_policy": "Current 1.0.0 best-fit architecture only; no historical compatibility shims or duplicated state. Preserve actual user data, immutable evidence and safe recovery; product SemVer is separate from protocol/SDK/domain revisions.",
-  "previous_goal_turn": "progress:028 committed5ca05b5f992e7fe265d88541421ba4f733090b81;029 dependent orchestration actual/UI and reviewed preview upgrade now locally verified. Full P0-P7 remains active.",
+  "previous_goal_turn": "progress:029 committed e2f0444535379c828a0329fb5b80a555c9dc9c7d;030 real one-call diagnosis/reviewed draft, final UI readback and177-to180 primary upgrade now verified. Full P0-P7 active.",
   "active_goal_source_sha256": "b48689cef76a9db9bd2fe13b51cec7247bca54f9f8a200075f3f0c029313f89c",
   "latest_request": {
     "path": "C:\\Users\\Administrator\\.codex\\attachments\\7f36912b-ab04-46c5-97e5-644e1dce7040\\已粘贴的文本.txt",
@@ -208,6 +211,23 @@
     "actual_runs": 2,
     "formal_assertions": 8,
     "explicit_fixture_owner_reviews": 2,
+    "full_suite_repeated": false,
+    "full_platform": "in_progress"
+  },
+  "failure_diagnosis030_progress": {
+    "status": "locally_verified",
+    "contract": "contracts/failure-diagnosis.md",
+    "cli_contract": "contracts/failure-diagnosis-cli.md",
+    "summary": "docs/quality/failure-diagnosis-summary.json",
+    "actual": ".cache/e2e/failure-diagnosis-stage-030/actual/public-verification.local.json",
+    "browser": ".cache/e2e/failure-diagnosis-stage-030/browser/verification.local.json",
+    "build": ".cache/e2e/failure-diagnosis-stage-030/runtime-final/build-facts.local.json",
+    "primary": ".cache/e2e/failure-diagnosis-stage-030/primary-upgrade/final-verification.local.json",
+    "model_requests": 1,
+    "vendor_calls": 0,
+    "reported_tokens": 40,
+    "estimated_cost_micros": 57,
+    "currency": "CNY",
     "full_suite_repeated": false,
     "full_platform": "in_progress"
   }

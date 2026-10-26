@@ -4,9 +4,15 @@
 
 当前是可运行的开发版本。功能与验证范围见 [交付状态](docs/delivery/status.md)，完整目标见 [实施计划](docs/delivery/implementation-plan.md)。
 
-## 本轮进展：专家团队依赖编排
+## 本轮进展：固定失败证据的智能分诊
 
-团队任务支持固定依赖、逐项进度、暂停／恢复／停止、未开始项修订及只读历史。服务端在准确前置运行正式验收后自动派发后继，CLI 与中英文界面共用合同。实际同机双 Runner 完成两项开发、8 项独立正式测试与两次明确验收；当前本地预览已更新到029／1.0.0。见[功能与实际边界](docs/quality/expert-team-orchestration-verification.md)、[设计与AI SOP](docs/architecture/expert-team-orchestration.md)、[CLI](contracts/expert-team-orchestration-cli.md)。完整平台持续开发。
+T-P4-030／1.0.0 已完成限定本地验证：准确失败证据经专属只读模型诊断，人工编辑修复建议并明确采用为需求草稿，保留原运行、模型原件与来源回链。真实同机 Control／Runner／DAG／账本配合一次自有本地固定模型响应，记录 40 Token、估算 57 CNY micros；这不代表厂商模型质量或商业账单。最终中英冷回读及主预览前向更新完成，原 177 表完整结构与行保持，仅加三张空表及一个索引至 180 表。见[限定验证](docs/quality/failure-diagnosis-verification.md)、[设计与 AI SOP](docs/architecture/failure-diagnosis.md)、[English](docs/en/failure-diagnosis.md)。完整 P0–P7 持续实施。
+
+下一步 T-P4-031 待实现：多源已验收候选合成，对精确合成结果独立测试，再明确固定下游代码基线交接；业务依赖验收不自动合并或继承代码。见[实施待办](docs/delivery/implementation-plan.md)。
+
+## 历史进展：专家团队依赖编排
+
+T-P4-029 团队任务支持固定依赖、逐项进度、暂停／恢复／停止、未开始项修订及只读历史。服务端在准确前置运行正式验收后自动派发后继，CLI 与中英文界面共用合同。实际同机双 Runner 完成两项开发、8 项独立正式测试与两次明确验收，029／1.0.0 主预览更新作为历史证据保留。见[功能与实际边界](docs/quality/expert-team-orchestration-verification.md)、[设计与AI SOP](docs/architecture/expert-team-orchestration.md)、[CLI](contracts/expert-team-orchestration-cli.md)。完整平台持续开发。
 
 ## 历史进展：精确尝试的工具历史
 

@@ -1,0 +1,384 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-030",
+  "product_version": "1.0.0",
+  "prepared_on": "2026-10-27",
+  "status": "locally_verified_and_primary_preview_updated",
+  "stage_complete": true,
+  "contract": "contracts/failure-diagnosis.md",
+  "cli_contract": "contracts/failure-diagnosis-cli.md",
+  "counting_policy": "Top-level groups, child pass events and targeted reruns are distinct; overlapping selections are not summed as a stage total.",
+  "scope": "Fixed real failed evidence, dedicated read-only diagnosis, repair-only human edits and explicit existing issue-intake draft adoption. Unknown execution uses original run reconciliation. Vendor, multi-host and production acceptance are not claimed.",
+  "receipt_inventory": [
+    {
+      "path": ".cache/e2e/failure-diagnosis-stage-030/domain/verification.local.json",
+      "sha256": "0f866948a9dbe257c76dbcfa00ad74a55823819113a0d2c0d98a7bab83da2b3f"
+    },
+    {
+      "path": ".cache/e2e/failure-diagnosis-stage-030/runtime-checks/verification.local.json",
+      "sha256": "f5677aa990c14f605404e1a1955a449642f4c7adb2161c46280bb601724362aa"
+    },
+    {
+      "path": ".cache/e2e/failure-diagnosis-stage-030/runtime-checks/ts-command.local.json",
+      "sha256": "8ef377b4236aee612bd4d3282e9ebc7af722e8c5829c3f341646102b9b680cf0"
+    },
+    {
+      "path": ".cache/e2e/failure-diagnosis-stage-030/cli/verification.local.json",
+      "sha256": "cf8e7df133cf71cec834c5569f5fca3932e2a9ede6d50a279d69d6b8556d14a1"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T170957717Z.command.json",
+      "sha256": "deda2864fb5c8c53bce7562e0e8f4d12fc29df3852c182819e78a1ce0056281c"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T165447799Z.command.json",
+      "sha256": "ca83855b10b00679758a915b4cd12c1404ba890a3da212372521a8f86dc6b2a8"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T170314695Z.command.json",
+      "sha256": "64fc929342ca360db5f299d265f567e87f19905bfd3462471fb98b0c35cb6921"
+    },
+    {
+      "path": ".cache/e2e/failure-diagnosis-stage-030/runtime-final/build-facts.local.json",
+      "sha256": "bea85295f82e73401df97afe091522449f397594b83b1509c30470fd3ea2a568"
+    },
+    {
+      "path": ".cache/e2e/failure-diagnosis-stage-030/verification/web-artifacts.local.json",
+      "sha256": "3a12bbb2be198570ade6e406fe9d9b4d26a8ac5404f96323822d9bb29ce06c96"
+    },
+    {
+      "path": ".cache/e2e/failure-diagnosis-stage-030/actual/public-verification.local.json",
+      "sha256": "e4574759de4c626e3765f1ebc6e8c50a96523d30624a878897b3fb9a433f651c"
+    },
+    {
+      "path": ".cache/e2e/failure-diagnosis-stage-030/actual/usage-attempt.local.json",
+      "sha256": "3f7310a3759121ab1c178761f969a6e72b955675099c992d3905c4a68243822a"
+    },
+    {
+      "path": ".cache/e2e/failure-diagnosis-stage-030/actual/closed.local.json",
+      "sha256": "fb918e8dcdd6a6e8b0723a00bd31d70a79b4aebdfa9cd445adcf87d4a382cf17"
+    },
+    {
+      "path": ".cache/e2e/failure-diagnosis-stage-030/browser/verification.local.json",
+      "sha256": "6d25fcd127928c4cb5191033123e3c874a359db377018bf5a5efc75a310729cf"
+    },
+    {
+      "path": ".cache/e2e/failure-diagnosis-stage-030/final-readback/closed.local.json",
+      "sha256": "a7c5b8a4ef369bddbe251a5cef636d0134e1cfd6fd85a8b71275ca6ed1423e16"
+    },
+    {
+      "path": ".cache/e2e/failure-diagnosis-stage-030/primary-upgrade/final-verification.local.json",
+      "sha256": "8e75ae50b886f64843c0d8a7a091b8d54b10e072002aaca2ca91585f75ee8edd"
+    },
+    {
+      "path": ".cache/e2e/failure-diagnosis-stage-030/primary-upgrade/control-launch.local.json",
+      "sha256": "3f019a1e1ea7cff00f48cadb3d93c3c8640efc1aaee5f38571e198408a816a2f"
+    }
+  ],
+  "focused_checks": {
+    "domain": {
+      "distinct_passed_top_level": 7,
+      "receipt": ".cache/e2e/failure-diagnosis-stage-030/domain/verification.local.json",
+      "successful_commands": [
+        "20261026T164331322Z",
+        "20261026T164451241Z"
+      ],
+      "strict_output_top_passed_in_initial_exit1_command": "20261026T164254227Z"
+    },
+    "runtime_and_affected_capabilities": {
+      "top_level": 15,
+      "pass_events": 21,
+      "exit_code": 0,
+      "command_receipt": ".cache/mcp019-deps/20261026T163948171Z.command.json",
+      "command_sha256": "0836dd44016fd6ec0b30a5aa0c96d69fe30e9847943198b367c33556cc373f0b",
+      "includes": [
+        "FailureDiagnosis",
+        "KnowledgeExtraction",
+        "Planning"
+      ],
+      "vet_exit_code": 0,
+      "vet_receipt": ".cache/mcp019-deps/20261026T164202306Z.command.json"
+    },
+    "affected_stream_tool_rejection": {
+      "top_level": 1,
+      "pass_events": 1,
+      "exit_code": 0,
+      "command_receipt": ".cache/mcp019-deps/20261026T164133159Z.command.json",
+      "command_sha256": "e89c1af16c97a431387dbfd5ff88576ae962989d9922f2f436ade8bc3757939c"
+    },
+    "native_typescript": {
+      "passed": 4,
+      "failed": 0,
+      "node_exit_code": 0,
+      "typecheck_exit_code": 0,
+      "receipt": ".cache/e2e/failure-diagnosis-stage-030/runtime-checks/ts-command.local.json"
+    },
+    "cli": {
+      "top_level": 1,
+      "pass_events": 6,
+      "exit_code": 0,
+      "command_receipt": ".cache/mcp019-deps/20261026T165037615Z.command.json",
+      "command_sha256": "406cbd5c17fd038d27aae0fb7bfb8ee2ca0e13536d5c10e053e12874beeb6aad"
+    },
+    "pool": {
+      "top_level": 1,
+      "pass_events": 1,
+      "exit_code": 0,
+      "command_receipt": ".cache/mcp019-deps/20261026T170957717Z.command.json",
+      "test": "TestFailureDiagnosisPoolSourceDriftAndScopedUsageReplay",
+      "facts": [
+        "tenant isolation",
+        "source drift",
+        "one immutable usage settlement",
+        "duplicate acknowledgement",
+        "stale adoption rejected"
+      ],
+      "fixture_usage": {
+        "tokens": 40,
+        "estimated_cost_micros": 57,
+        "actual_final_verification": false
+      }
+    },
+    "http_initial_compound": {
+      "exit_code": 1,
+      "passed_top_level": 3,
+      "failed_top_level": 1,
+      "command_receipt": ".cache/mcp019-deps/20261026T165252209Z.command.json",
+      "command_sha256": "8e220b11391fbb8099a219e245cc0cb1652c85272578874ab7f19b241eb444d3",
+      "failure": "Create analysis returned 400 instead of 201 before strict UseNumber wiring was completed.",
+      "passed_tests": [
+        "TestPlatformDiagnosticCoverage",
+        "TestFailureDiagnosisPresentationPreservesLiteralSourcesAndHumanReasons",
+        "TestFailureDiagnosisUsesFixedModelPricingAndRejectsMixedPurpose"
+      ]
+    },
+    "http_targeted_rerun": {
+      "top_level": 1,
+      "pass_events": 1,
+      "exit_code": 0,
+      "command_receipt": ".cache/mcp019-deps/20261026T165447799Z.command.json",
+      "test": "TestFailureDiagnosisHTTPIngressAndPersistentRepairLink"
+    },
+    "canonical_localization_metadata": {
+      "top_level": 1,
+      "pass_events": 1,
+      "exit_code": 0,
+      "command_receipt": ".cache/mcp019-deps/20261026T170314695Z.command.json",
+      "test": "TestFailureDiagnosisPresentationPreservesLiteralSourcesAndHumanReasons"
+    }
+  },
+  "frontend": {
+    "evidence_kind": "agent_tool_execution_output",
+    "independent_raw_capture": null,
+    "panel_original": {
+      "passed": 5,
+      "failed": 0,
+      "exit_code": 0,
+      "local_time": "2026-10-27 00:45:11 +08:00",
+      "tool_chunk": "daa43f"
+    },
+    "launcher": {
+      "passed": 2,
+      "failed": 0,
+      "exit_code": 0,
+      "local_time": "2026-10-27 00:55:53 +08:00",
+      "tool_chunk": "d89c9e"
+    },
+    "panel_locale_targeted": {
+      "passed": 1,
+      "skipped": 5,
+      "exit_code": 0,
+      "local_time": "2026-10-27 01:01:20 +08:00",
+      "tool_chunk": "20bd94",
+      "facts": [
+        "CN to EN without another GET",
+        "metadata-rendered cached machine diagnostics",
+        "literal human reason preserved even when equal to a machine template"
+      ]
+    },
+    "root_setup_targeted": {
+      "passed": 2,
+      "evidence_kind": "parent_tool_report",
+      "raw_capture": null
+    },
+    "final_typecheck": {
+      "command": "tsc --noEmit",
+      "session_id": 24416,
+      "exit_code": 0,
+      "evidence_kind": "parent_tool_report",
+      "raw_capture": null,
+      "scope": "After selected requirement authoritative adoption read and all final shared entry changes"
+    },
+    "i18n": {
+      "paired_keys": 4090,
+      "status": "passed",
+      "evidence_kind": "parent_tool_report",
+      "raw_capture": null
+    },
+    "final_web": ".cache/e2e/failure-diagnosis-stage-030/web-release",
+    "necessary_final_adjustments": [
+      "Selected requirement one current-authorized detail read supplies immutable adoption; list is not N+1.",
+      "Desktop expanded diagnosis widens the inspector; compact list layout remains.",
+      "Actual final cold readback verifies source/diagnosis deep link, literal human text, CNEN and refresh."
+    ]
+  },
+  "preserved_failures": [
+    {
+      "receipt_id": "20261026T164254227Z",
+      "exit_code": 1,
+      "reason": "Legacy stringsAt rejected []string in actual adoption; strict output group already passed.",
+      "targeted_green": "20261026T164331322Z"
+    },
+    {
+      "receipt_id": "20261026T163619915Z",
+      "exit_code": 1,
+      "reason": "Tool activity rejection RED before stream fix.",
+      "targeted_green": "20261026T164133159Z"
+    },
+    {
+      "receipt_id": "20261026T164901083Z",
+      "exit_code": 1,
+      "reason": "Initial CLI help and confirmation case failed.",
+      "domain_green": "20261026T165037615Z"
+    },
+    {
+      "receipt_id": "20261026T165252209Z",
+      "exit_code": 1,
+      "reason": "HTTP strict numeric ingress returned 400 before UseNumber wiring.",
+      "targeted_green": "20261026T165447799Z"
+    },
+    {
+      "receipt_id": "20261026T170902141Z",
+      "exit_code": 1,
+      "reason": "Initial Pool test build failed.",
+      "targeted_green": "20261026T170957717Z"
+    },
+    {
+      "receipt_id": "20261026T170926182Z",
+      "exit_code": 1,
+      "reason": "Pool test assertion queried a nonexistent run_id column.",
+      "targeted_green": "20261026T170957717Z"
+    }
+  ],
+  "actual": {
+    "status": "complete_local_protocol_journey_and_normal_closure",
+    "complete": true,
+    "environment": "Same Windows host real Control, Go Runner, native bundle, DAG and usage ledger; one deterministic loopback model response, no vendor inference",
+    "receipt": ".cache/e2e/failure-diagnosis-stage-030/actual/public-verification.local.json",
+    "receipt_sha256": "e4574759de4c626e3765f1ebc6e8c50a96523d30624a878897b3fb9a433f651c",
+    "analysis_id": "fb963b9d6b1a3528087b6ce924f49807",
+    "analysis_version": 4,
+    "diagnosis_run_id": "diagnosis-fb963b9d6b1a3528087b6ce924f49807",
+    "source_run_id": "bffacdf91e492fc8886b5e3d78cf683c",
+    "issue_id": "c19b1f299139bc5a8e2bf7da2777a019",
+    "adopted_requirement_id": "223291c900a31d06ef3d511b1da149ec",
+    "requirement_state": "draft",
+    "requirement_version": 1,
+    "human_repair_differs_from_model_original": true,
+    "original_output_sha256": "e5dad345023168b72ec8682c21ba3190a1a9aa8f6908f778081a0a2a82f0e745",
+    "source_sha256": "b9e1c9233e16c501adcbd1fdf0122780696cf8d6f659cf01b22b9069d740cfa2",
+    "source_evidence_ranges": 5,
+    "known_failed_source_and_unaccepted_task_preserved": true,
+    "one_result_and_one_adoption": true,
+    "usage": {
+      "final_verified": true,
+      "model_requests": 1,
+      "input_tokens": 23,
+      "output_tokens": 17,
+      "reported_tokens": 40,
+      "estimated_cost_micros": 57,
+      "currency": "CNY",
+      "ledger_id": "293e8b538c571f3d685e2431e2843d5a",
+      "holds_released": true,
+      "vendor_bill": false
+    },
+    "closure": {
+      "helper_session": 9185,
+      "control_exit_code": 0,
+      "runner_exit_code": 0,
+      "model_thread_stopped": true,
+      "model_POST_count": 1,
+      "forced": false,
+      "integrity": "ok",
+      "source_six_formal_files_and_auxiliary_unchanged": true,
+      "old_business_rows_unchanged": true
+    },
+    "browser_final": ".cache/e2e/failure-diagnosis-stage-030/browser/verification.local.json",
+    "CNEN_and_literal_source": true,
+    "refresh_same_analysis_and_requirement": true,
+    "issue_existing_intake_opens_current_record": true,
+    "requirement_authoritative_adoption_links_original_analysis": true,
+    "final_readback": {
+      "process_exit_code": 0,
+      "no_Runner_model_or_login": true,
+      "business_facts_unchanged": true
+    },
+    "remaining": [
+      "Vendor/model quality and commercial billing",
+      "Physical remote hosts and production acceptance",
+      "Authorized automated repair and independent retest",
+      "Complete device/theme/database/capacity acceptance"
+    ]
+  },
+  "not_claimed": [
+    "real vendor account or inference",
+    "vendor bill verification",
+    "cross-physical-machine acceptance",
+    "full test suite",
+    "production acceptance"
+  ],
+  "draft_preparation": {
+    "initial_report_preserved_partial_until_actual_closure": true,
+    "finalized_by": "primary integrator",
+    "at": "2026-10-26T17:32:35.316214+00:00"
+  },
+  "full_platform_status": "in_progress",
+  "artifacts": {
+    "runtime": ".cache/e2e/failure-diagnosis-stage-030/runtime-final",
+    "source_inputs": 391,
+    "source_sha256": "14b753648ad1199316bbb5cb45343b1a2684247ece30af6db65c5b0660ff4035",
+    "binaries": {
+      "suma-control.exe": "89c7307e9a7a20edb55c60139380e37764a771b4ee483d6b8bb77ff364733e1c",
+      "suma-runner.exe": "a653b7e6039cf8854e92acf9879807b99ae0b150c83916a21d8e70464b364e23",
+      "suma.exe": "4dfca049c9fa3552e27f4aab0ef2242fee7c7244e634cd715afe785baad49419"
+    },
+    "native_bundle_sha256": "5ab81bdf05e461b73bcc50b32dec92f477b24da288cbf30d27f41f716a5c30d5",
+    "native_manifest_sha256": "4e2ff8ed9f34db5d18c79c6f17e8509e3c156ef4419bcab10ced6a6431e94e45",
+    "web_files": 131,
+    "web_index_sha256": "10130f26ac03a9af9c337a921665213e2de5115ba7ccc48145f18c4f9387431c",
+    "generated_schemas": 384,
+    "generated_paths": 222,
+    "final_generator_check_exit_code": 0
+  },
+  "primary_preview": {
+    "stage": "T-P4-030",
+    "product_version": "1.0.0",
+    "mode": "normal",
+    "url": "http://pool.localhost:4324/",
+    "control_pid": 252836,
+    "holder_pid": 137148,
+    "tables": 180,
+    "original_full_tables_unchanged": 177,
+    "original_schema_changes": 0,
+    "new_empty_tables": 3,
+    "new_indexes": 1,
+    "authority_rows": 18,
+    "grant_rows": 0,
+    "original_login_not_reissued": true,
+    "original_task_and_run_rows_unchanged": true,
+    "original_run_states": [
+      [
+        "failed",
+        1
+      ],
+      [
+        "succeeded",
+        2
+      ]
+    ],
+    "new_credentials": 0,
+    "new_grants": 0,
+    "model_calls": 0,
+    "prior_Control_and_holder_graceful_zero": true
+  }
+}

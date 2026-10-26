@@ -21,6 +21,7 @@ export const nativeCatalog={
  "native.config.missing_provider":{"en":"Configure SUMA_MODEL_BASE_URL for an OpenAI-compatible provider","zh":"请配置兼容 OpenAI 的提供方地址 SUMA_MODEL_BASE_URL"},
  "native.endpoint.rejected":{"en":"Endpoint rejected request (HTTP {{.status}})","zh":"端点拒绝请求（HTTP {{.status}}）","params":{"status":"integer"}},
  "native.endpoint.unsafe":{"en":"HTTPS or a loopback HTTP endpoint is required","zh":"端点必须使用 HTTPS 或本机回环 HTTP 地址"},
+ "native.failure.tools_forbidden":{"en":"Failure diagnosis cannot request or execute tools.","zh":"失败分诊不能请求或执行工具。"},
  "native.knowledge.tools_forbidden":{"en":"Knowledge extraction cannot request or execute tools.","zh":"知识提炼不允许请求或执行工具。"},
  "native.limit.output_allowance":{"en":"Agent output allowance exhausted","zh":"智能体输出额度已用尽"},
  "native.limit.output_truncated":{"en":"Model output was truncated","zh":"模型输出被截断"},

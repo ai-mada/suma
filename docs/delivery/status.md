@@ -2,7 +2,17 @@
 
 当前开发版本 **1.0.0**；新设计采用当前最佳合理结构，不增加历史兼容层。[版本与扩展需求基线](../product/v1-baseline.md)。
 
-## 当前 T-P4-029：专家团队依赖编排与交付进度（限定本地已验证）
+## 当前 T-P4-030：固定失败证据的智能分诊与修复需求（限定本地已验证）
+
+准确持久失败 run／node／attempt 的固定证据，经专属只读模型形成观察、假设和修复建议；人工仅修改 repair，明确采用为原问题的需求草稿，并保留原运行／原件／来源回链。未知执行先核对原运行，不自动诊断、修复、重试、验收或合并。
+
+必要领域、Runtime／原生 SDK、CLI、私有／Pool、HTTP、权限／来源、费用、原操作恢复及中英组件检查通过。真实同机 Control／Runner／DAG／账本配合一次自有 loopback 固定模型响应，40 Token、估算 57 CNY micros；分析 adopted v4→需求 draft v1。实际进程正常闭合，最终 web-release 冷回读确认中英刷新、原分诊深链和类型化需求来源，未再调用模型、启动 Runner 或登录。主预览030／1.0.0正常，原177表schema及全部行保持，仅新增3空表、1索引至180；18authority、0Grant、原1failed／2succeeded运行及登录保持。见[PRD](../product/failure-diagnosis.md)、[架构与 AI SOP](../architecture/failure-diagnosis.md)、[交互](../design/failure-diagnosis.md)、[限定验证](../quality/failure-diagnosis-verification.md)、[机器摘要](../quality/failure-diagnosis-summary.json)。本地协议不代表真实厂商质量／账单、跨机器或生产验收。
+
+## 下一步 T-P4-031：多源已验收候选合成与固定基线交接（待实施）
+
+固定多个真实已验收候选及原独立测试证明，受控形成精确合成结果；对该结果另做独立测试，再由有权主体明确选择固定为下游专家开发的代码基线。冲突、未知及权限仍走既有 DAG／候选／受管集成边界，不能把业务依赖验收自动解释为代码合并或继承。此项尚未实施／验收；全部 P0–P7 与用户完整范围继续，详见[实施计划](implementation-plan.md)。
+
+## 历史 T-P4-029：专家团队依赖编排与交付进度（限定本地已验证）
 
 原团队派发入口支持固定任务依赖、逐任务真实进度、暂停／恢复／停止、未开始项修订、只读版本历史及同合同 CLI。服务端持久推进器在本计划准确前置运行获得正式验收后才派发后继，每次重新核验原实际凭据、当前权限和固定来源；运行或测试成功不自动验收。沿用原 Go DAG、资源池、工作树和质量门禁。
 
@@ -176,7 +186,7 @@ Harness/dsh 和 CodeBuddy 复用现有任务／池派发、进度、私有工作
 工具档案、实时观察、精确命令资格、固定任务/需求/流程/工具预览和原子启动、typed执行事实、独立Agent授权已交付。实际协议夹具完成隔离开发、独立2项测试、人工验收、失败去重回流和两次真实停止；它不代表厂商模型效果。最终Go512个通过事件、0失败/跳过，vet通过；JS212项、类型和生产构建通过，合同147模型/117路径/344引用。新24程序批次`20261024T051829203Z-df0ca9b5`已构建与独立核对，Windows实际激活复验；4runs/8nodes/5attempts，原三次运行/35事件及验收回流保持。工具最终paused v5。响应式完整节点列表、桌面依赖图、精确需求导航与焦点/主题部分验证完成。[阶段验收](../quality/tool-execution-verification.md)、[当前运行包](../deployment/tool-stop-runtime-bundles.md)。完整P0–P7、厂商真实账户、集群、安装和规模目标继续实施。
 
 
-日期：2026-10-25。状态：可运行开发版本，当前阶段终验中，完整产品实施进行中。
+日期：2026-10-27。状态：可运行开发版本1.0.0，T-P4-030限定本地已验证，完整产品实施进行中。
 
 ## 当前可运行
 
@@ -190,20 +200,21 @@ Harness/dsh 和 CodeBuddy 复用现有任务／池派发、进度、私有工作
 | 持久自动化与事件续传 | internal/automation、internal/platform/automation*.go、run_stream.go、AutomationWorkspace.tsx | 真实人工/cron双触发、固定修订与流程、时区/错过/重叠、撤权与事务竞争；Chrome完整终态、正常轮换与重启上下文保持 |
 | 签名事件入口与交付追踪 | internal/platform/automation_ingress*.go、AutomationIngress.tsx、internal/cli/webhook.go | GitHub原生/Suma v1协议、本机真实Git标签/CI/监控事件触发、固定来源修订、当前授权、回执去重；重启不重复执行，来源元数据不注入执行命令 |
 | Runner与候选交接 | internal/runner、cmd/suma-runner、internal/dag/candidate.go | Windows实际独立Git工作树、进展持久ACK、固定候选交接、原失败保留及真实测试 |
-| 精确尝试工具历史 | internal/dag、internal/platform、apps/web | 当前授权与持久归属、固定窗口和有界分页、原始正文及历史页；当前原生双尝试／独立合成334条与部分四宽度观察已完成，阶段只读保持／停止／预览终验中 |
+| 精确尝试工具历史 | internal/dag、internal/platform、apps/web | 当前授权与持久归属、固定窗口和有界分页、原始正文及历史页；T-P4-012原生双尝试／独立合成334条、部分四宽度、只读保持／停止／预览检查为历史限定验证 |
 | 真实制品与不可变发布范围 | internal/platform/artifact_*.go、release_candidate_service.go | 真实上传字节、封存、build/package-test证明、固定C与当前已验收任务范围 |
 | 发布、核对与独立回退 | internal/deployer、release_deploy*.go、ReleaseWorkspace.tsx | 真实浏览器5次操作A/B/A/B/A；健康404与实际活跃内容分开，独立批准、单调代数、问题去重回流 |
 | 原生智能体 | packages/agent-runtime | 有界循环/工具协议；未连接生产模型 |
 | 外部工具 | 工具目录与许可命令、HTTP桥接 | 实机只读探测/本地协议测试；未调用收费模型 |
 | 知识服务 | packages/knowledge | 真实本地Lance全文/向量、版本隔离、墓碑 |
-| 界面与编辑 | apps/web | 当前Web652项／50文件、类型及生产构建通过；精确attempt历史分页、双语原文／焦点／刷新和四宽度部分页面观察见当前阶段。历史治理/计划/候选/发布、自动化与共享池闭环分别保留原切面，完整体验矩阵继续实施 |
+| 失败分诊与修复需求 | internal/platform/failure_diagnosis*.go、FailureDiagnosisPanel.tsx | 固定真实失败／一次专属只读模型／人工修复稿／明确采用草稿／原件及来源回链；同机本地协议、中英冷回读与主预览保持见030专项证据，非厂商质量验收 |
+| 界面与编辑 | apps/web | 当前030必要组件、类型、4090对中英键及最终生产构建通过，代表性中英／来源回链／刷新已观察；历史Web652项／50文件等原检查分别保留各自源码切面，不相加为当前全套。完整体验矩阵继续实施 |
 | Windows桌面 | apps/desktop、dist/desktop | 未签名NSIS/portable及目录构建；安装/GUI/升级仍分别验收 |
 | CLI与部署配置 | cmd/suma、deploy、Dockerfile | Bubble Tea/游标分页与签名交付测试；部署8项测试及Compose组合/配置校验，镜像/Helm未实跑 |
 | Go四程序交付 | scripts/build-runtime.ps1、dist/runtime/builds | 六目标×控制面/Runner/CLI/Deployer，真实编译、构建信息与逐文件摘要；目标系统运行分别验收 |
 
 ## 当前完整性边界
 
-完整目标与未完成项逐项列在implementation-plan.md。需要继续完成：分片增量调度/完整跨租户公平、实际合并与终端语言调试、工作制容量日历/实际工时/连续进度历史、组合规划、完整设计编辑、厂商Git/CI/监控账户与公网交付验收、完整OAuth及设备治理、生产CI/签名/远端和容器部署/灰度、授权智能故障修复、离线协作、办公/媒体/渠道、支付计费和跨平台正式交付。签名接收、本机协议事件与真实下游执行不等于真实厂商接入或外部CI身份证明。制品与Deployer首轮只支持本机静态站点；单个上游候选交接不包含多分支聚合和跨执行节点Git对象分发。
+完整目标与未完成项逐项列在implementation-plan.md。需要继续完成：031多源已验收候选合成、精确结果独立测试和显式下游代码基线交接，分片增量调度/完整跨租户公平、完整合并策略与终端语言调试、工作制容量日历/实际工时/连续进度历史、组合规划、完整设计编辑、厂商Git/CI/监控账户与公网交付验收、完整OAuth及设备治理、生产CI/签名/远端和容器部署/灰度、授权智能故障修复与独立复测、离线协作、办公/媒体/渠道、支付计费和跨平台正式交付。签名接收、本机协议事件与真实下游执行不等于真实厂商接入或外部CI身份证明。制品与Deployer首轮只支持本机静态站点；既有单候选跨节点交接与受管快进集成不包含多源候选合成及自动下游代码继承。
 
 OceanBase/PostgreSQL驱动与DDL代码不等于真实集群验证；本地Lance测试不等于多模态OCR/转录全部完成；单元测试不等于目标1000执行槽位已通过。
 

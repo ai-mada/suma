@@ -1,6 +1,18 @@
 # 验证报告与历史基线
 
-## 当前 T-P4-028：固定候选、实际差异与受管 Git 集成
+## 当前 T-P4-030：固定失败证据的智能分诊（1.0.0，限定本地已验证）
+
+[专项报告](failure-diagnosis-verification.md)与[机器摘要](failure-diagnosis-summary.json)记录领域7顶层、Runtime15顶层／21pass及受影响stream1、原生TS4、CLI1顶层／6pass、Pool1顶层／1pass、Panel5／Launcher2／元数据本地化单项、Root设置2、最终类型和4090对中英键的必要检查。初始UseNumber接线400、Pool测试查询及其他中间失败与定向复验分开保留，未冒充全套同次通过。
+
+同机真实Control／Runner／原生bundle／DAG／账本配合一次自有loopback模型响应，固定失败→人工修复稿→明确采用，分析adoptedv4、需求draftv1，40Token／估算57CNYmicros；原模型输出、来源与原失败保持。实际进程正常闭合，最终web-release中英冷回读／深链／类型化采用来源通过，未再调用模型、运行Runner或登录。主预览030／1.0.0正常，原177表完整schema及全部行保持，新增3空表、1索引至180，原18authority／0Grant／1failed2succeeded保持。该证据不代表厂商模型质量／账单、跨物理机器、完整设备矩阵或生产验收。
+
+下一步031尚待实现与验证：多源已验收候选合成、对精确结果独立测试、明确固定下游代码基线交接。不得沿用各原候选证明宣称组合结果已测或依赖验收自动继承代码；完整P0–P7和其余验收范围保持，见[实施计划](../delivery/implementation-plan.md)。
+
+## 历史 T-P4-029：专家团队依赖编排与交付进度
+
+[专项报告](expert-team-orchestration-verification.md)与[机器摘要](expert-team-orchestration-summary.json)保留同机Control／两独立Runner、自有Node CLI协议夹具的两项依赖开发、8项独立正式断言和两次明确UI验收；暂停后前置accepted仍不派发后继，未开始项修订保留root来源与run，409保稿后明确恢复完成R2。中英／刷新／只读历史及175旧表全部schema／行保持、2空表2索引至177已限定验证。该轮模型／厂商调用0，不代表自动Git继承、跨机器或完整平台完成。
+
+## 历史 T-P4-028：固定候选、实际差异与受管 Git 集成
 
 [专项报告](repository-integration-verification.md)与[精简摘要](repository-integration-summary.json)记录当前权限／审批／正式来源、Git原子正负回执、失联恢复、Pool、严格HTTP和双语的必要验证；真实浏览器完成完整差异审查和明确集成，17项实际事实相符。复用既有独立测试及已验收候选，模型／厂商调用0。主预览168原表全部结构／行保持，仅增加7空表与3索引；原失败和接缝修复如实保留。完整平台与远端、实库和生产验收继续。
 

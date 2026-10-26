@@ -1,6 +1,12 @@
 # suma documentation
 
-## Current T-P4-012: exact-attempt tool history — locally verified
+## Current T-P4-030: failure diagnosis — 1.0.0, locally verified
+
+Fixed real failure evidence now flows through a dedicated read-only diagnosis model, human repair edits and explicit adoption into a requirement draft, with original output and source links retained. The bounded journey used real Control, Runner, DAG and accounting on one Windows host with one owned loopback model response: 40 tokens and an estimated 57 CNY micros. Final Chinese/English cold readback and the primary preview forward update passed; the original 177 table schemas and full rows were preserved, with three empty tables and one index added. This does not establish vendor-model quality, commercial billing, remote-host or production acceptance. See the [English guide](failure-diagnosis.md), [verification — Chinese original](../quality/failure-diagnosis-verification.md) and [compact summary](../quality/failure-diagnosis-summary.json).
+
+Next, T-P4-031 remains planned: combine multiple accepted candidates, independently test the exact combined result, and explicitly fix that result as the downstream code baseline. T-P4-029 dependency orchestration remains [historical verified scope](expert-team-orchestration.md); it does not automatically combine or inherit code. The full P0–P7 scope and all remaining requirements continue in the [implementation ledger](../delivery/implementation-plan.md).
+
+## Historical T-P4-012: exact-attempt tool history — locally verified
 
 The new history reader binds each page to the selected project, run, node and attempt, with current authorization checked in the same database transaction. It preserves the original persisted JSON text as `raw_data`, separate from its parsed projection. Saved cursors retain one fixed watermark, including the initial empty window. Each request scans at most 1,000 candidates, limits one serialized event to 2 MiB and the returned event array to 4 MiB. The UI offers 5, 25, 50 or 100 rows (default 50); history pages are separate from the current live 40-row window.
 

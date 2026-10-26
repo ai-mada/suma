@@ -1,10 +1,12 @@
 # 速码项目设计文档
 
-状态：实施中。文档负责人：平台集成。设计依据：2026-10-23 用户确认的完整方案。本文档索引与源码、接口和验证报告共同维护。
+状态：T-P4-030／1.0.0 限定本地已验证，完整 P0–P7 继续实施。文档负责人：平台集成。设计依据：用户确认的完整方案及后续扩展要求。本文档索引与源码、接口和验证报告共同维护。
 
 | 主题 | 入口 |
 |---|---|
-| 专家团队依赖编排（T-P4-029） | [PRD](product/expert-team-orchestration.md)、[架构与AI SOP](architecture/expert-team-orchestration.md)、[交互](design/expert-team-orchestration.md)、[合同](../contracts/expert-team-orchestration.md)、[CLI](../contracts/expert-team-orchestration-cli.md)、[限定验证](quality/expert-team-orchestration-verification.md)、[English](en/expert-team-orchestration.md) |
+| 固定失败证据的智能分诊（当前 T-P4-030） | [PRD](product/failure-diagnosis.md)、[架构与 AI SOP](architecture/failure-diagnosis.md)、[交互](design/failure-diagnosis.md)、[合同](../contracts/failure-diagnosis.md)、[CLI](../contracts/failure-diagnosis-cli.md)、[限定验证](quality/failure-diagnosis-verification.md)、[摘要](quality/failure-diagnosis-summary.json)、[English](en/failure-diagnosis.md) |
+| 多源候选合成与下游代码基线（T-P4-031 待办） | [实施计划](delivery/implementation-plan.md)：已验收候选合成、精确结果独立测试、显式固定基线交接；尚未实施／验收 |
+| 专家团队依赖编排（T-P4-029 历史） | [PRD](product/expert-team-orchestration.md)、[架构与AI SOP](architecture/expert-team-orchestration.md)、[交互](design/expert-team-orchestration.md)、[合同](../contracts/expert-team-orchestration.md)、[CLI](../contracts/expert-team-orchestration-cli.md)、[限定验证](quality/expert-team-orchestration-verification.md)、[English](en/expert-team-orchestration.md) |
 | 受管代码集成（T-P4-028） | [PRD](product/repository-integration.md)、[架构／AI SOP](architecture/repository-integration.md)、[交互](design/repository-integration.md)、[部署](deployment/repository-integration.md)、[合同](../contracts/repository-integration.md)、[限定验证](quality/repository-integration-verification.md) |
 | 项目专家配置与团队派发（T-P4-027） | [PRD／交互](product/expert-team-dispatch.md)、[架构与AI SOP](architecture/expert-team-dispatch.md)、[合同](../contracts/expert-team-dispatch.md)、[限定验证](quality/expert-team-dispatch-verification.md) |
 | 模型辅助知识提炼（T-P4-026） | [PRD／交互](product/knowledge-intelligence.md)、[架构与AI SOP](architecture/knowledge-intelligence.md)、[合同](../contracts/knowledge-intelligence.md)、[限定验证](quality/knowledge-intelligence-verification.md) |
@@ -59,7 +61,7 @@
 
 “目标”表达完整产品合同；“已实现”必须有源码入口；“已验证”必须有当前环境证据。外部账户、OceanBase 集群、支付、媒体服务与跨平台包分别验收。历史结果不自动继承为新代码的通过结论。
 
-本轮在组织治理、规划和固定候选测试基础上，进一步实现真实字节制品、构建与包测试证明、不可变发布候选、环境与独立部署审批、受保护执行、实际本机 HTTP 健康检查、未知核对及独立新代数回退。浏览器完成 A→B健康异常→A回退，修复后再次复验问题及需求去重。容量仍是计划估算；完整设计编辑、工作制日历、风险与组合规划、生产CI、S3及分布式数据库验收继续列为待办，不能据此签收完整P0–P7。具体边界以能力矩阵、实施台账和统一验证报告为准。
+当前 030 已将真实失败证据、一次专属只读模型诊断、人工修复稿和正式需求草稿回链贯通，并完成中英冷回读及原 177 表保持的主预览更新。本机固定模型协议响应不代表厂商质量或商业账单；下一步 031 是多源已验收候选合成、精确结果独立测试及明确下游代码基线交接。029 依赖编排及更早制品、发布、健康检查与回退均保留各自历史证据。容量仍是计划估算；完整设计编辑、工作制日历、风险与组合规划、生产 CI、S3、分布式数据库和用户完整扩展要求继续列为待办，不能据此签收完整 P0–P7。具体边界以能力矩阵、实施台账和统一验证报告为准。
 
 ## 维护方式
 

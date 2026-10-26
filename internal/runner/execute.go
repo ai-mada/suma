@@ -30,6 +30,7 @@ type CommandSpec struct {
 	ReadOnly            bool                   `json:"read_only,omitempty"`
 	Planning            bool                   `json:"planning,omitempty"`
 	KnowledgeExtraction bool                   `json:"knowledge_extraction,omitempty"`
+	FailureDiagnosis    bool                   `json:"failure_diagnosis,omitempty"`
 	TestEvidence        bool                   `json:"test_evidence,omitempty"`
 	ArtifactOutput      string                 `json:"artifact_output,omitempty"`
 	ArtifactInput       bool                   `json:"artifact_input,omitempty"`
@@ -524,7 +525,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" {
 			r.ToolEvidence = evidence
 		}
-		if (profile.Planning != nil || profile.KnowledgeExtraction != nil) && stream.terminal == "completed" && stream.bad == nil {
+		if (profile.Planning != nil || profile.KnowledgeExtraction != nil || profile.FailureDiagnosis != nil) && stream.terminal == "completed" && stream.bad == nil {
 			r.Output = stream.completionOutput
 		} else {
 			r.Output = stream.output.String() + r.Output

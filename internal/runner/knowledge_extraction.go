@@ -44,7 +44,7 @@ func localKnowledgeExtractionCapability(spec CommandSpec) (*tc.KnowledgeExtracti
 	if !spec.KnowledgeExtraction {
 		return nil, nil
 	}
-	if spec.Planning {
+	if spec.Planning || spec.FailureDiagnosis {
 		return nil, fmt.Errorf("planning and knowledge extraction profiles are mutually exclusive")
 	}
 	model, origin, err := localReadOnlyModel(spec, "knowledge extraction")
@@ -80,24 +80,14 @@ func probeKnowledgeExtraction(ctx context.Context, exe string, spec CommandSpec,
 }
 
 func modelPurposeRequest(a Assignment, spec CommandSpec, profile tc.Profile) (map[string]any, error) {
+	if spec.FailureDiagnosis || a.Config["purpose"] == "failure_diagnosis" {
+		return failureDiagnosisRequest(a, spec, profile)
+	}
 	if !spec.KnowledgeExtraction && a.Config["purpose"] != "knowledge_extraction" {
 		return planningRequest(a, spec, profile)
 	}
-	if a.Config["purpose"] != "knowledge_extraction" || a.Type != "agent" || !spec.KnowledgeExtraction || profile.KnowledgeExtraction == nil || profile.Planning != nil || spec.NativeWorkspace != nil || spec.Input != "agent-jsonl" {
+	if a.Config["purpose"] != "knowledge_extraction" || a.Type != "agent" || !spec.KnowledgeExtraction || profile.KnowledgeExtraction == nil || profile.Planning != nil || profile.FailureDiagnosis != nil || spec.NativeWorkspace != nil || spec.Input != "agent-jsonl" {
 		return nil, fmt.Errorf("knowledge extraction requires its dedicated purpose and probed profile")
 	}
-	for _, name := range []string{"max_steps", "max_output_tokens"} {
-		if value, present := a.Config[name]; present && value == nil {
-			return nil, fmt.Errorf("knowledge extraction budget is invalid")
-		}
-	}
-	steps, err := planningLimit(a.Config["max_steps"], 1, 1)
-	if err != nil {
-		return nil, fmt.Errorf("knowledge extraction budget is invalid")
-	}
-	tokens, err := planningLimit(a.Config["max_output_tokens"], 4096, 8192)
-	if err != nil {
-		return nil, fmt.Errorf("knowledge extraction budget is invalid")
-	}
-	return map[string]any{"purpose": "knowledge_extraction", "max_steps": steps, "max_tokens": tokens}, nil
+	return oneCallModelRequest(a, "knowledge_extraction")
 }

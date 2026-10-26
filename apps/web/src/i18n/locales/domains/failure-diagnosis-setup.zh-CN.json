@@ -1,0 +1,7 @@
+{
+  "failure-diagnosis-setup.tool": "失败分诊模型",
+  "failure-diagnosis-setup.install": "使用本项目构建的 suma-agent 原生入口，准备专用模型配置。",
+  "failure-diagnosis-setup.configure": "将此只读配置写入执行节点；模型密钥仅通过 SUMA_MODEL_API_KEY 注入。",
+  "failure-diagnosis-setup.register": "同步真实能力报告，再由管理员登记并启用专用分诊工具。",
+  "failure-diagnosis-setup.policy": "仅分析固定失败证据，最多请求模型一次，不开放工具或工作区。诊断只是建议，修复需求仍须明确审核；能力探测不代表厂商账户已验证。"
+}

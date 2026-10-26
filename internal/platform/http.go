@@ -136,7 +136,7 @@ func decode(r *http.Request) (map[string]any, error) {
 	// Preserve numeric lexemes so a fractional counter near 2^53 cannot round
 	// into a valid integer before that validation. Legacy map-backed routes
 	// retain their existing number representation until their DTO migration.
-	if strings.HasPrefix(r.URL.Path, "/api/v1/repository-provider/") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integrations") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integration-targets") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-teams") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-team-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/knowledge-intelligence") || strings.HasPrefix(r.URL.Path, "/api/v1/skill-catalog") || strings.HasPrefix(r.URL.Path, "/api/v1/usage") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/analyses") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/alerts") || (strings.HasPrefix(r.URL.Path, "/api/v1/requirements/") && strings.Contains(r.URL.Path, "/design")) || strings.HasPrefix(r.URL.Path, "/api/v1/task-dispatch-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/task-handoffs") || strings.HasPrefix(r.URL.Path, "/api/v1/project-knowledge") || r.URL.Path == "/api/v1/agent/tools/invoke" || strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
+	if strings.HasPrefix(r.URL.Path, "/api/v1/failure-diagnosis") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-provider/") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integrations") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integration-targets") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-teams") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-team-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/knowledge-intelligence") || strings.HasPrefix(r.URL.Path, "/api/v1/skill-catalog") || strings.HasPrefix(r.URL.Path, "/api/v1/usage") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/analyses") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/alerts") || (strings.HasPrefix(r.URL.Path, "/api/v1/requirements/") && strings.Contains(r.URL.Path, "/design")) || strings.HasPrefix(r.URL.Path, "/api/v1/task-dispatch-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/task-handoffs") || strings.HasPrefix(r.URL.Path, "/api/v1/project-knowledge") || r.URL.Path == "/api/v1/agent/tools/invoke" || strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
 		d.UseNumber()
 	}
 	if err := d.Decode(&m); err != nil {
@@ -478,6 +478,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.knowledgeIntelligenceHTTP(w, r, actor, scope, project, parts, m) {
 		return
 	}
+	if s.failureDiagnosisHTTP(w, r, actor, scope, project, parts, m) {
+		return
+	}
 	if s.intelligentPlanningHTTP(w, r, actor, scope, parts, project, m) {
 		return
 	}
@@ -562,6 +565,15 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		if len(parts) == 3 && parts[0] == "issues" && parts[2] == "intake" && r.Method == "POST" {
 			out, e := s.Service.IssueToRequirement(ctx, actor, project, parts[1], m)
 			respond(w, 201, out, e)
+			return
+		}
+		if len(parts) == 3 && parts[0] == "issues" && parts[2] == "intake" && r.Method == "GET" {
+			if e := validateFailureIntakeReadQuery(r, project); e != nil {
+				writeError(w, e)
+				return
+			}
+			out, e := s.Service.IssueRequirement(ctx, actor, project, parts[1])
+			respond(w, 200, out, e)
 			return
 		}
 		writeError(w, missing())
@@ -856,6 +868,13 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				}
 				return false, err
 			}
+			if err := s.Service.checkFailureDiagnosisExecutionTx(authority.ctx, tx, p.TenantID, project, run, true); err != nil {
+				var apiErr *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Code == "failure_diagnosis_basis_changed" {
+					return false, nil
+				}
+				return false, err
+			}
 			if err := s.Service.checkRepositoryIntegrationExecutionTx(authority.ctx, tx, p.TenantID, project, run); err != nil {
 				var apiErr *APIError
 				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && strings.HasPrefix(apiErr.Code, "repository_integration_") {
@@ -893,6 +912,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			if err := s.Service.checkKnowledgeIntelligenceExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID, false); err != nil {
 				return err
 			}
+			if err := s.Service.checkFailureDiagnosisExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID, false); err != nil {
+				return err
+			}
 			return s.Service.checkRepositoryIntegrationExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID)
 		})
 		if errors.Is(e, dag.ErrCancelled) {
@@ -928,6 +950,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				return err
 			}
 			if err := s.Service.recordKnowledgeIntelligenceOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {
+				return err
+			}
+			if err := s.Service.recordFailureDiagnosisOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {
 				return err
 			}
 			if err := s.Service.validateRepositoryIntegrationResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {

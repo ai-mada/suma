@@ -39,13 +39,18 @@ func ValidProtocol(protocol string) bool {
 }
 func ValidateProfile(p Profile, complete bool) error {
 	if p.Planning != nil {
-		if p.KnowledgeExtraction != nil || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || ValidatePlanningCapability(*p.Planning) != nil {
+		if p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || ValidatePlanningCapability(*p.Planning) != nil {
 			return fmt.Errorf("invalid planning capability")
 		}
 	}
 	if p.KnowledgeExtraction != nil {
-		if p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || ValidateKnowledgeExtractionCapability(*p.KnowledgeExtraction) != nil {
+		if p.FailureDiagnosis != nil || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || ValidateKnowledgeExtractionCapability(*p.KnowledgeExtraction) != nil {
 			return fmt.Errorf("invalid knowledge extraction capability")
+		}
+	}
+	if p.FailureDiagnosis != nil {
+		if p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || ValidateFailureDiagnosisCapability(*p.FailureDiagnosis) != nil {
+			return fmt.Errorf("invalid failure diagnosis capability")
 		}
 	}
 	if p.WorkspaceToolsVersion != "" && (p.WorkspaceToolsVersion != "attempt-workspace-v1" || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || p.ReadOnly) {
@@ -75,6 +80,13 @@ func ValidatePlanningCapability(p PlanningCapability) error {
 func ValidateKnowledgeExtractionCapability(p KnowledgeExtractionCapability) error {
 	if p.Protocol != KnowledgeExtractionProtocol || !validFixedModel(p.Model, p.EndpointOrigin) {
 		return fmt.Errorf("invalid fixed knowledge extraction model or endpoint origin")
+	}
+	return nil
+}
+
+func ValidateFailureDiagnosisCapability(p FailureDiagnosisCapability) error {
+	if p.Protocol != FailureDiagnosisProtocol || !validFixedModel(p.Model, p.EndpointOrigin) {
+		return fmt.Errorf("invalid fixed failure diagnosis model or endpoint origin")
 	}
 	return nil
 }

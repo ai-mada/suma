@@ -69,6 +69,9 @@ func (s *Service) getRecordTx(ctx context.Context, auth *authorizedCommand, proj
 	if errors.Is(err, sql.ErrNoRows) {
 		return r, missing()
 	}
+	if err == nil && kind == "requirements" {
+		r.FailureDiagnosisAdoption, err = s.failureDiagnosisAdoptionTx(ctx, auth.tx, p.TenantID, project, id)
+	}
 	return r, err
 }
 func (s *Service) insertRecord(ctx context.Context, tx *sql.Tx, r Record, kind string) error {
@@ -248,6 +251,9 @@ func (s *Service) createCommandRecordTx(ctx context.Context, tx *sql.Tx, auth *a
 	if err := assertProjectCommand(tx, auth, project); err != nil {
 		return Record{}, err
 	}
+	if err := rejectFailureAdoptionInput(m); err != nil {
+		return Record{}, err
+	}
 	p := auth.currentPrincipal
 	key := str(m, "idempotency_key")
 	hash, replay, err := s.commandReceipt(ctx, auth, key, map[string]any{"kind": kind, "body": m})
@@ -315,6 +321,9 @@ func (s *Service) Update(ctx context.Context, actor Actor, project, kind, id str
 	}
 	p := auth.currentPrincipal
 	key := str(m, "idempotency_key")
+	if err := rejectFailureAdoptionInput(m); err != nil {
+		return Record{}, err
+	}
 	hash, replay, err := s.commandReceipt(ctx, auth, key, map[string]any{"kind": kind, "id": id, "body": m})
 	if err != nil {
 		return Record{}, err

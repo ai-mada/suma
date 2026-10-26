@@ -391,6 +391,14 @@ func (s *Service) IssueToRequirement(ctx context.Context, actor Actor, project, 
 	if err != nil {
 		return Record{}, err
 	}
+	// A reviewed diagnosis and the ordinary intake share one source issue slot.
+	// Read its current requirement rather than replaying another actor's body or
+	// overwriting a previously reviewed repair with the generic issue summary.
+	if existing, found, err := s.lookupIssueRequirementTx(ctx, auth, project, id); err != nil {
+		return Record{}, err
+	} else if found {
+		return existing, nil
+	}
 	title := str(m, "title")
 	if title == "" {
 		title = issue.Title

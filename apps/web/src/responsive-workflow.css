@@ -303,3 +303,10 @@
     scroll-behavior: auto !important;
   }
 }
+/* Reviewing evidence and a repair draft needs reading width. Keep the graph
+   visible on desktop; compact screens retain the existing full-width list. */
+@media (min-width: 1100px) {
+  .workflow-page .canvas-inspector:has(.failure-diagnosis-panel > .fd-toggle[aria-expanded="true"]) {
+    width: clamp(360px, 42vw, 560px);
+  }
+}

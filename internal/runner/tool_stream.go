@@ -447,16 +447,17 @@ func (s *toolStream) suma(m map[string]any) {
 	}
 	s.session = s.id(id)
 	kind := textAt(m, "type")
+	oneCallPurpose, fixedModel := oneCallModelProfile(s.profile)
 	if kind != "started" && kind != "error" && !s.sessionStarted {
 		s.invalid("native activity or completion before start")
 		return
 	}
 	switch kind {
 	case "started":
-		if s.profile.KnowledgeExtraction != nil {
+		if oneCallPurpose != "" {
 			tools, ok := m["tools"].([]any)
-			if !ok || len(tools) != 0 || textAt(m, "model") != s.profile.KnowledgeExtraction.Model {
-				s.invalid("knowledge extraction requires its fixed model and an empty tool catalog")
+			if !ok || len(tools) != 0 || textAt(m, "model") != fixedModel {
+				s.invalid(oneCallPurpose + " requires its fixed model and an empty tool catalog")
 				return
 			}
 		}
@@ -469,8 +470,8 @@ func (s *toolStream) suma(m map[string]any) {
 		s.event("session_started", "", "", "", nil)
 		s.event("turn_started", "", "", "", nil)
 	case "tool_started":
-		if s.profile.KnowledgeExtraction != nil {
-			s.invalid("knowledge extraction cannot request or execute tools")
+		if oneCallPurpose != "" {
+			s.invalid(oneCallPurpose + " cannot request or execute tools")
 			return
 		}
 		if s.requestPending {
@@ -479,8 +480,8 @@ func (s *toolStream) suma(m map[string]any) {
 		}
 		s.event("activity_started", textAt(m, "call_id"), "project_tool", "", nil)
 	case "tool_completed":
-		if s.profile.KnowledgeExtraction != nil {
-			s.invalid("knowledge extraction cannot request or execute tools")
+		if oneCallPurpose != "" {
+			s.invalid(oneCallPurpose + " cannot request or execute tools")
 			return
 		}
 		if s.requestPending {
@@ -495,7 +496,7 @@ func (s *toolStream) suma(m map[string]any) {
 		if s.profile.Planning != nil {
 			maxSteps, maxAllowance = 4, 8192
 		}
-		if s.profile.KnowledgeExtraction != nil {
+		if oneCallPurpose != "" {
 			maxSteps, maxAllowance = 1, 8192
 		}
 		if !ok || !valid || step != s.requestStep || step >= maxSteps || allowance < 1 || allowance > maxAllowance || s.requestPending {
@@ -532,15 +533,15 @@ func (s *toolStream) suma(m map[string]any) {
 		s.lastUsageState = state
 		s.event("usage", "model-step-"+strconv.FormatInt(step, 10), "", "", u, state)
 	case "completed":
-		if s.profile.KnowledgeExtraction != nil && s.requestStep != 1 {
-			s.invalid("knowledge extraction requires exactly one settled model request")
+		if oneCallPurpose != "" && s.requestStep != 1 {
+			s.invalid(oneCallPurpose + " requires exactly one settled model request")
 			return
 		}
 		if strings.TrimSpace(textAt(m, "output")) == "" || s.requestPending {
 			s.invalid("missing completed output")
 			return
 		}
-		if s.profile.Planning != nil || s.profile.KnowledgeExtraction != nil {
+		if s.profile.Planning != nil || oneCallPurpose != "" {
 			// Model document purposes consume the bounded final document, not the human activity
 			// transcript. Keep existing secret sanitization without the 8 KiB
 			// progress projection's tail clipping or stderr/activity prefixes.

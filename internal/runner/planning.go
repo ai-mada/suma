@@ -14,7 +14,7 @@ func localPlanningCapability(spec CommandSpec) (*tc.PlanningCapability, error) {
 	if !spec.Planning {
 		return nil, nil
 	}
-	if spec.KnowledgeExtraction {
+	if spec.KnowledgeExtraction || spec.FailureDiagnosis {
 		return nil, fmt.Errorf("planning and knowledge extraction profiles are mutually exclusive")
 	}
 	model, origin, err := localReadOnlyModel(spec, "planning")

@@ -5,6 +5,7 @@ import {useApi} from './api-context';
 import {formatDateTime,formatNumber,tr,UiError,useLocale} from './i18n';
 import {KnowledgeContextFacts} from './KnowledgeFacts';
 import {DispatchRouteFacts} from './execution-pools/DispatchRouteFacts';
+import {FailureDiagnosisLauncher} from './FailureDiagnosisLauncher';
 import {toolError,toolSessionStorage} from './tool-hooks';
 import {ErrorNotice,Field,Loading} from './ui';
 import {useWriteAction,WriteFields,WriteNotice} from './write-action';
@@ -58,7 +59,7 @@ export function ExpertTeamPlanPanel({project,session,plan,loading,read,onChanged
   <div className="expert-plan-summary"><div><h3>{plan.team_name}</h3><p>{t('plan.'+plan.state)} · {t('revision',{value:formatNumber(plan.revision)})}</p></div><button data-team-refresh type="button" aria-label={t('refresh')} disabled={action.busy||loading} onClick={()=>void read()}>{t('refresh')}</button></div>
   <dl className="expert-plan-progress" aria-label={t('progress')}>{(['total','waiting','ready','executing','awaiting_review','accepted','blocked','stopped'] as const).map(key=><div key={key}><dt>{t('count.'+key)}</dt><dd>{formatNumber(plan.progress[key])}</dd></div>)}</dl>
   {!!plan.blockers.length&&<div className="team-dispatch-callout"><strong>{old('blocked')}</strong><Reasons values={plan.blockers}/></div>}
-  <PlanItems plan={plan} project={project}/><p className="team-dispatch-muted">{t('acceptance_boundary')}</p>
+  <PlanItems plan={plan} project={project} session={session} onChanged={async()=>{await read();}}/><p className="team-dispatch-muted">{t('acceptance_boundary')}</p>
   <WriteNotice action={action} onRebase={rebase}/>{action.pending&&<div className="team-dispatch-callout" role="status"><strong>{old('original_operation')}</strong><p>{t('command_recovery')}</p><details><summary>{old('original_request')}</summary><pre className="team-dispatch-raw">{JSON.stringify(action.pending,null,2)}</pre></details><button data-team-command-restore type="button" disabled={action.busy||loading} onClick={()=>{const request=action.pending;if(request)void action.run<ExpertTeamPlan>(request.path,request.body,request.method).then(completed);}}>{old('restore')}</button></div>}
   <div className="expert-plan-actions">{(['pause','resume','stop','revise'] as const).filter(name=>plan.allowed_actions.includes(name)).map(name=><button type="button" data-team-command={name} key={name} disabled={locked||loading} onClick={()=>void choose(name)}>{t('action.'+name)}</button>)}</div>
   {decision&&<form data-team-decision className="team-dispatch-callout" onSubmit={event=>{event.preventDefault();void submit();}}><h4>{t('action.'+decision.action)}</h4><p>{t('help.'+decision.action)}</p>{lookupBusy&&<Loading/>}{Boolean(lookupError)&&<ErrorNotice error={toolError(lookupError)} onRetry={()=>void inputs(plan,editor)}/>}
@@ -73,13 +74,14 @@ export function ExpertTeamPlanPanel({project,session,plan,loading,read,onChanged
  </div>;
 }
 function Reasons({values}:{values:string[]}){return values.length?<ul className="expert-plan-reasons">{values.map((value,index)=><li key={index}>{expertPlanReason(value)}</li>)}</ul>:null;}
-function PlanItems({plan,project}:{plan:ExpertTeamPlan;project:string}){
+function PlanItems({plan,project,session,onChanged}:{plan:ExpertTeamPlan;project:string;session?:Session;onChanged?:()=>void|Promise<void>}){
  const items=expertTopology(plan.items)||[],titles=new Map(plan.items.map(item=>[item.task_id,item.plan.context.task.title||item.task_id]));
  return <ol className="expert-plan-items">{items.map(item=><li className="team-dispatch-task" data-team-item={item.task_id} key={item.task_id}><div className="team-dispatch-heading"><strong>{titles.get(item.task_id)}</strong><span className={'expert-plan-state expert-plan-state-'+item.state}>{t('item.'+item.state)}</span></div><p>{item.role_title} · {item.resource_name}</p>
   {!!item.dependencies.length&&<div className="expert-plan-dependencies" aria-label={t('dependencies')}>{item.dependencies.map(fact=><a key={fact.task_id} className={'expert-plan-dependency '+(fact.accepted?'is-accepted':'')} href={taskURL(project,fact.task_id)}>{titles.get(fact.task_id)||fact.task_id} · {t(fact.accepted?'dependency_accepted':'dependency_waiting')}{!fact.selected?' · '+t('external_dependency'):''}</a>)}</div>}
   {!!item.blockers.length&&<Reasons values={item.blockers}/>}{item.state==='awaiting_review'&&<p className="team-dispatch-muted">{t('review_required')}</p>}
   <div className="expert-plan-links"><a href={taskURL(project,item.task_id)}>{t(item.state==='awaiting_review'?'open_review':'open_task')}</a>{item.run_id&&item.dispatch_plan_id&&<a data-team-run href={runURL(project,item.run_id)}>{old('open_run')}</a>}</div>
   {item.run_id&&<p className="team-dispatch-muted">{t('actual_run_state',{state:item.run_state?stateLabel(item.run_state):old('run_unknown')})}</p>}
+  {session&&item.state==='blocked'&&item.run_id&&<FailureDiagnosisLauncher session={session} project={project} runID={item.run_id} refresh={plan.version} onChanged={onChanged}/>}
   <details><summary>{old('fixed_basis')}</summary><p>{old('task_version',{value:formatNumber(item.task_version)})} · {t('revision',{value:formatNumber(item.source_revision)})}</p><code>{item.task_basis_sha256}</code><p>{item.plan.tool_profile_id} · v{formatNumber(item.plan.tool_profile_version)}</p><code>{item.plan.tool_profile_sha256}</code><DispatchRouteFacts route={item.plan.execution_route}/><KnowledgeContextFacts project={project} items={item.plan.context.knowledge||[]}/><pre className="team-dispatch-raw">{JSON.stringify({task:item.plan.context.task,workflow:item.plan.workflow,dependencies:item.dependencies,dispatch_plan_id:item.dispatch_plan_id,run_id:item.run_id},null,2)}</pre></details>
  </li>)}</ol>;
 }
