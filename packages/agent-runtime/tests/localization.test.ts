@@ -27,7 +27,7 @@ test('invalid catalog SDK locale rejects before filesystem access or any process
 test('SDK default and supported aliases preserve immutable caller configuration',async()=>{
  for(const [locale,expected] of [[undefined,'zh-CN'],['zh_Hans_SG','zh-CN'],['en-GB','en-US']] as const){const config=Object.freeze({locale});const events:AgentEvent[]=[];await runAgent(Object.freeze({goal:'inspect'}),config,e=>events.push(e));assert.equal(events.at(-1)?.code,'missing_model');assert.equal(events.at(-1)?.display?.locale,expected);assert.equal(config.locale,locale);}
  const previousPath=process.env.PATH;process.env.PATH='';
- try{for(const [locale,expected] of [[undefined,'zh-CN'],['zh_Hans_SG','zh-CN'],['en-GB','en-US']] as const){const items=await inspectAdapters(locale);assert.equal(items.length,4);assert.ok(items.every(item=>item.display?.locale===expected&&item.reason==='CLI not found on PATH'));}}
+ try{for(const [locale,expected] of [[undefined,'zh-CN'],['zh_Hans_SG','zh-CN'],['en-GB','en-US']] as const){const items=await inspectAdapters(locale);assert.equal(items.length,5);assert.ok(items.every(item=>item.display?.locale===expected&&item.reason==='CLI not found on PATH'));}}
  finally{if(previousPath===undefined)delete process.env.PATH;else process.env.PATH=previousPath;}
 });
 

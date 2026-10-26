@@ -1,0 +1,46 @@
+{
+  "codex-develop": {
+    "adapter": "codex",
+    "protocol": "codex-jsonl-v1",
+    "executable": "codex",
+    "args": [
+      "exec",
+      "--json",
+      "--sandbox",
+      "workspace-write",
+      "--ephemeral",
+      "-"
+    ],
+    "input": "goal",
+    "read_only": false
+  },
+  "codebuddy-develop": {
+    "adapter": "codebuddy",
+    "protocol": "codebuddy-jsonl-v1",
+    "executable": "codebuddy",
+    "args": [
+      "-p",
+      "--input-format",
+      "text",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--permission-mode",
+      "acceptEdits"
+    ],
+    "input": "goal",
+    "read_only": false
+  },
+  "harness-develop": {
+    "adapter": "harness",
+    "protocol": "dsh-multica-jsonl-v1",
+    "executable": "dsh",
+    "args": [
+      "--profile",
+      "multica",
+      "--stdio"
+    ],
+    "input": "dsh-jsonl",
+    "read_only": false
+  }
+}

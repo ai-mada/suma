@@ -31,6 +31,7 @@ import {
 import { ToolProfileFacts } from "./ToolFacts";
 import "./tool.css";
 import { ToolRecoveryNotice } from "./ToolActions";
+import {ToolSetupGuide} from './ToolSetupGuide';
 import type { ProjectPoolRunnerPage } from "../../../packages/contracts/src";
 import {
   ToolIdentity,
@@ -162,6 +163,7 @@ export function ToolWorkspace({
         >
           {t("development.tools.return_to_task_dispatch")}</a>
       </div>
+      <ToolSetupGuide/>
       {returnRun && (
         <a
           onClick={(event) => {

@@ -31,10 +31,10 @@ func validText(s string, max int, multiline bool) bool {
 	return true
 }
 func protocolPair(adapter, protocol string) bool {
-	return map[string]string{"command": "text-v1", "suma": "suma-jsonl-v1", "codex": "codex-jsonl-v1", "opencode": "opencode-jsonl-v1"}[adapter] == protocol && protocol != ""
+	return map[string]string{"command": "text-v1", "suma": "suma-jsonl-v1", "codex": "codex-jsonl-v1", "opencode": "opencode-jsonl-v1", "harness": "dsh-multica-jsonl-v1", "codebuddy": "codebuddy-jsonl-v1"}[adapter] == protocol && protocol != ""
 }
 func ValidProtocol(protocol string) bool {
-	return protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == "opencode-jsonl-v1"
+	return protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == "opencode-jsonl-v1" || protocol == "dsh-multica-jsonl-v1" || protocol == "codebuddy-jsonl-v1"
 }
 func ValidateProfile(p Profile, complete bool) error {
 	if p.WorkspaceToolsVersion != "" && (p.WorkspaceToolsVersion != "attempt-workspace-v1" || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || p.ReadOnly) {

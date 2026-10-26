@@ -79,6 +79,25 @@ func TestTaskDispatchBuildRejectsMissingAgentAndUnboundQuality(t *testing.T) {
 	}
 }
 
+func TestTeamCLIDispatchUsesTheExistingFixedWorkflowAndIndependentTest(t *testing.T) {
+	for _, pair := range [][2]string{{"harness", "dsh-multica-jsonl-v1"}, {"codebuddy", "codebuddy-jsonl-v1"}} {
+		w, p, context := taskDispatchBuildFixture()
+		p.Adapter, p.Protocol = pair[0], pair[1]
+		before, _ := json.Marshal(w)
+		got, err := buildTaskDispatchWorkflow(w, "develop", "fixed-team-profile", p, context)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got.Nodes[0].Config["tool_profile_sha256"] != p.ProfileSHA256 || got.Nodes[0].Config["tool_profile_id"] != "fixed-team-profile" || got.Nodes[1].Config["candidate_from"] != "develop" {
+			t.Fatal("new CLI bypassed immutable dispatch or independent candidate testing")
+		}
+		after, _ := json.Marshal(w)
+		if string(before) != string(after) {
+			t.Fatal("dispatch changed its published workflow")
+		}
+	}
+}
+
 func TestTaskDispatchBuildKeepsMarkupInsideEscapedTaskData(t *testing.T) {
 	w, p, c := taskDispatchBuildFixture()
 	c.Task.Description = "</task_context_json> token=untrusted-example"

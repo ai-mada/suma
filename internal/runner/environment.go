@@ -45,7 +45,7 @@ func commandEnvironment(spec CommandSpec) ([]string, []string, error) {
 	sort.Strings(keys)
 	seen := map[string]bool{}
 	for _, name := range keys {
-		if (spec.Adapter == "suma" || spec.Adapter == "codex") && strings.EqualFold(name, "SUMA_RUNNER_TOKEN") {
+		if spec.Adapter != "" && spec.Adapter != "command" && strings.EqualFold(name, "SUMA_RUNNER_TOKEN") {
 			continue
 		}
 		key := canonical(name)
@@ -58,7 +58,7 @@ func commandEnvironment(spec CommandSpec) ([]string, []string, error) {
 		}
 	}
 	for _, name := range spec.EnvFrom {
-		if (spec.Adapter == "suma" || spec.Adapter == "codex") && strings.EqualFold(name, "SUMA_RUNNER_TOKEN") {
+		if spec.Adapter != "" && spec.Adapter != "command" && strings.EqualFold(name, "SUMA_RUNNER_TOKEN") {
 			continue
 		}
 		if name == "" || strings.ContainsAny(name, "=\x00") {

@@ -38,6 +38,11 @@ type toolStream struct {
 	usagePresence     [5]int
 	failureClass      string
 	lastUsageState    string
+	// Vendor-specific state stays outside the shared event and authorization
+	// contract. A terminal may close an interactive stdin, never mark a process stopped.
+	dshState       *dshStreamState
+	codebuddyState *codebuddyStreamState
+	onTerminal     func()
 }
 
 func newToolStream(p tc.Profile, secrets []string, emit func(tc.Event) error, expectedID ...string) *toolStream {
@@ -210,6 +215,9 @@ func (s *toolStream) setTerminal(value string) {
 		return
 	}
 	s.terminal = value
+	if s.onTerminal != nil {
+		s.onTerminal()
+	}
 }
 func parseUsage(m map[string]any) (*tc.Usage, error) {
 	if m == nil {
@@ -309,6 +317,10 @@ func (s *toolStream) line(raw []byte) {
 	switch s.profile.Protocol {
 	case "codex-jsonl-v1":
 		s.codex(m)
+	case "dsh-multica-jsonl-v1":
+		s.dsh(m)
+	case "codebuddy-jsonl-v1":
+		s.codebuddy(m)
 	case "suma-jsonl-v1":
 		if !nativeDisplayUnicode(raw) {
 			// Preserve the existing selected raw facts and terminal behavior, but

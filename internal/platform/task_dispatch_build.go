@@ -25,8 +25,8 @@ func buildTaskDispatchWorkflow(source dag.Workflow, agentID, profileID string, p
 	if profile.ReadOnly {
 		return w, invalid("任务开发派发需要隔离工作树写入工具；只读工具请通过独立流程运行")
 	}
-	if profile.Adapter != "suma" && profile.Adapter != "codex" {
-		return w, invalid("任务智能体派发需要已核实的Suma或Codex结构化协议；通用命令请使用明确的命令流程，其他适配器仍需验收")
+	if profile.Adapter != "suma" && profile.Adapter != "codex" && profile.Adapter != "harness" && profile.Adapter != "codebuddy" {
+		return w, invalid("任务智能体派发需要已核实的受支持结构化协议；通用命令请使用明确的命令流程")
 	}
 	chosen := -1
 	for i := range w.Nodes {

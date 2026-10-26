@@ -9,6 +9,7 @@ import {
   toolReturnPanel,
   toolReturnRun,
   taskPlanStarted,
+  taskToolProtocol,
   type ToolProfile,
   type ToolProfileDefinition,
 } from "./tool-model";
@@ -73,6 +74,14 @@ function storage() {
 }
 afterEach(() => vi.unstubAllGlobals());
 describe("tool manifest and fixed task choices", () => {
+  it("accepts the new fixed CLI protocols without accepting a cross-adapter protocol", () => {
+    for(const [adapter,protocol] of [['harness','dsh-multica-jsonl-v1'],['codebuddy','codebuddy-jsonl-v1']]){
+      const candidate={...definition,adapter,protocol};
+      expect(parseToolManifest(JSON.stringify([{profile:candidate,available:true,reason:''}]))[0].profile).toEqual(candidate);
+      expect(taskToolProtocol(candidate)).toBe(true);
+      expect(taskToolProtocol({...candidate,protocol:'suma-jsonl-v1'})).toBe(false);
+    }
+  });
   it("uses persisted started state rather than a reserved run identifier as the execution fact", () => {
     expect(taskPlanStarted({ state: "ready", run_id: "reserved-run-id" })).toBe(
       false,

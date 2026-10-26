@@ -25,6 +25,18 @@ func normalizedCommand(spec CommandSpec) CommandSpec {
 	if spec.Protocol == "" {
 		spec.Protocol = "text-v1"
 	}
+	if spec.Adapter == "codebuddy" {
+		// Normalize the enforced headless policy before hashing or probing it.
+		// Copy the caller's map so inventory cannot mutate shared configuration.
+		env := make(map[string]string, len(spec.Env)+1)
+		for name, value := range spec.Env {
+			if !strings.EqualFold(name, "CODEBUDDY_CODE_DISABLE_BACKGROUND_TASKS") {
+				env[name] = value
+			}
+		}
+		env["CODEBUDDY_CODE_DISABLE_BACKGROUND_TASKS"] = "1"
+		spec.Env = env
+	}
 	return spec
 }
 func DecodeCommands(raw []byte) (map[string]CommandSpec, error) {
@@ -78,27 +90,36 @@ func commandExecutable(spec CommandSpec) (string, string, error) {
 	return exe, hex.EncodeToString(h.Sum(nil)), nil
 }
 
-// For an interpreted Suma runtime, pin the declared entry's bytes as well as
+// For an interpreted runtime, pin the declared entry's bytes as well as
 // the interpreter. This intentionally does not attest all imported modules.
 func commandProfileDigest(spec CommandSpec, executableSHA string) (string, error) {
-	if spec.Adapter != "suma" {
+	entry, err := teamCLIEntry(spec)
+	if err != nil {
+		return "", err
+	}
+	if spec.Adapter == "suma" {
+		if len(spec.Args) != 1 || !filepath.IsAbs(spec.Args[0]) || (strings.ToLower(filepath.Ext(spec.Args[0])) != ".js" && strings.ToLower(filepath.Ext(spec.Args[0])) != ".mjs") {
+			return "", fmt.Errorf("Suma profile requires one absolute JavaScript entry")
+		}
+		entry = spec.Args[0]
+	}
+	if entry == "" {
 		return tc.ProfileDigest(spec, executableSHA)
 	}
-	if len(spec.Args) != 1 || !filepath.IsAbs(spec.Args[0]) || (strings.ToLower(filepath.Ext(spec.Args[0])) != ".js" && strings.ToLower(filepath.Ext(spec.Args[0])) != ".mjs") {
-		return "", fmt.Errorf("Suma profile requires one absolute JavaScript entry")
-	}
-	f, err := os.Open(spec.Args[0])
+	f, err := os.Open(entry)
 	if err != nil {
-		return "", fmt.Errorf("Suma JavaScript entry is unavailable")
+		return "", fmt.Errorf("runtime JavaScript entry is unavailable")
 	}
 	defer f.Close()
 	st, err := f.Stat()
 	if err != nil || !st.Mode().IsRegular() || st.Size() > 16<<20 {
-		return "", fmt.Errorf("Suma JavaScript entry is not a bounded regular file")
+		return "", fmt.Errorf("runtime JavaScript entry is not a bounded regular file")
 	}
 	h := sha256.New()
-	if _, err = io.Copy(h, f); err != nil {
-		return "", fmt.Errorf("Suma JavaScript entry digest unavailable")
+	// Bound the read too: a locally changing entry must not turn inventory into
+	// an unbounded read after the initial size check.
+	if count, err := io.Copy(h, io.LimitReader(f, (16<<20)+1)); err != nil || count > 16<<20 {
+		return "", fmt.Errorf("runtime JavaScript entry digest unavailable")
 	}
 	return tc.ProfileDigest(struct {
 		Command     CommandSpec `json:"command"`
@@ -107,6 +128,12 @@ func commandProfileDigest(spec CommandSpec, executableSHA string) (string, error
 }
 
 func probeCommand(ctx context.Context, exe string, args []string, spec CommandSpec, secrets []string) (string, error) {
+	return probeCommandStreams(ctx, exe, args, spec, secrets, false)
+}
+
+// Text help may use either stream. A versioned JSON probe must keep ordinary
+// stderr diagnostics separate from its authoritative stdout frame.
+func probeCommandStreams(ctx context.Context, exe string, args []string, spec CommandSpec, secrets []string, stdoutOnly bool) (string, error) {
 	if ctx.Err() != nil {
 		return "", fmt.Errorf("read-only CLI probe cancelled")
 	}
@@ -121,6 +148,11 @@ func probeCommand(ctx context.Context, exe string, args []string, spec CommandSp
 	out := newOutput(32<<10, append(append([]string{}, secrets...), hidden...))
 	cmd.Stdout = out
 	cmd.Stderr = out
+	var diagnostic *output
+	if stdoutOnly {
+		diagnostic = newOutput(32<<10, append(append([]string{}, secrets...), hidden...))
+		cmd.Stderr = diagnostic
+	}
 	ctl, err := startProcess(cmd)
 	if err != nil {
 		return "", fmt.Errorf("read-only CLI probe could not start")
@@ -141,13 +173,16 @@ func probeCommand(ctx context.Context, exe string, args []string, spec CommandSp
 	if err = ctl.Finish(); err != nil {
 		return "", fmt.Errorf("read-only CLI probe descendants unverified")
 	}
-	if out.truncated {
+	if out.truncated || diagnostic != nil && diagnostic.truncated {
 		return "", fmt.Errorf("read-only CLI probe exceeded 32 KiB")
 	}
 	return out.String(), nil
 }
 
 func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []string) (string, error) {
+	if spec.Adapter == "harness" || spec.Adapter == "codebuddy" {
+		return teamCLIVersion(ctx, exe, spec, secrets)
+	}
 	if spec.Adapter == "command" {
 		return "local-command", nil
 	}
@@ -330,6 +365,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 	}
 	for id, spec := range cfg.Commands {
 		spec = normalizedCommand(spec)
+		if err := validateTeamCLICommand(spec); err != nil {
+			return err
+		}
 		if err := validateNativeWorkspacePolicy(cfg, id, spec); err != nil {
 			return err
 		}

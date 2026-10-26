@@ -386,7 +386,7 @@
   "development.model.read_the_current_project_s_official_task": "Read the current project's official task version.",
   "development.model.tool_dispatch_eligibility_is_unconfirmed_check_the": "Tool dispatch eligibility is unconfirmed. Check the current project and live observations.",
   "development.model.task_development_requires_a_write_permitted_isolated": "Task development requires a write-permitted isolated tool. Use read-only configurations in independent workflows.",
-  "development.model.task_dispatch_supports_only_suma_codex_structured": "Task dispatch supports only Suma/Codex structured protocols with verified task input and terminal results. Use other configurations in independent command workflows.",
+  "development.model.task_dispatch_supports_only_suma_codex_structured": "Task dispatch requires a supported and verified structured tool protocol.",
   "development.model.choose_an_actual_agent_node_in_a": "Choose an actual agent node in a published workflow.",
   "development.model.the_workflow_lacks_an_independent_test_that": "The workflow lacks an independent test that consumes the selected development node's fixed candidate. Complete the workflow first.",
   "development.model.paused": "Paused",

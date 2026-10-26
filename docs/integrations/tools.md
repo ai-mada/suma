@@ -1,5 +1,11 @@
 # 工具与外部 Agent 接入
 
+## 当前团队CLI能力
+
+T-P4-021已本地实现CodeBuddy Code stream-json与DeepSeek Harness Multica v1协议，复用原Runner、DAG、共享执行池、隔离工作树、Journal、候选测试与人工评审。两种CLI支持原生可执行文件或Node直调固定绝对`.js`／`.mjs`／`.cjs`入口；不运行`.cmd`／`.bat`或shell包装器。Node本体SHA、入口内容SHA与完整配置共同固定profile，不证明全部模块依赖。工具向导默认折叠并提供中英文；仅这两种CLI显示原生／Node选择，入口为空或相对路径时不能复制模板。
+
+协议、原生进程与Node入口定向验证已通过，Node实际任务及最终UI／发布验收收尾中；厂商模型、WorkBuddy客户端和完整团队交接仍待实际验收。配置与验证范围见[团队CLI接入](team-cli-runtime.md)、[产品说明](../product/team-cli-runtime.md)及[三个原生profile示例](../../deploy/runner/team-cli.example.json)。注册／探测／真实执行／正式测试／人工验收是分别核验的事实。
+
 ## 授权工具目录
 
 原生内核只使用控制服务通过 `/api/v1/agent/tools` 返回的工具。当前目录提供项目概览、项目任务和项目搜索；服务端依据 Bearer 身份和 `project_id` 授权，工具调用走 `/api/v1/agent/tools/invoke`。项目数据是工具输出，不作为内核系统指令。
@@ -10,7 +16,7 @@
 
 `pnpm --filter @suma/agent-runtime build` 后运行 `pnpm --filter @suma/agent-runtime catalog`。该操作只在 PATH 查找候选程序，运行 `--version` 和对应的只读帮助命令；每次最多 5 秒、32 KiB 输出。Windows 优先查找原生 `.exe`；对 `.cmd/.bat` 包装器不自动启用 shell。目录中的 `installed`、`operations`、`verified` 分开表示安装存在、帮助声明的操作和实际完成的只读检查。`execution_enabled:false` 明确表示目录探测没有执行任务。
 
-2026-10-23 本机探测结果：
+以下为2026-10-23的历史本机探测结果，不代表T-P4-021新增适配器或当前机器库存：
 
 | 适配器 | 安装状态 | 实际检查 | 可声明的能力 |
 | --- | --- | --- | --- |
@@ -19,7 +25,7 @@
 | Hermes | 存在 `hermes.exe` | `--version` 退出 1 | 安装存在，兼容性未验证 |
 | dsh | PATH 未发现 | 未运行 | 无；不猜测未知 CLI 的参数或协议 |
 
-这些结果只是本次机器探测，其他机器必须重新探测。没有调用 Codex 模型或运行 CLI 编码任务。Hermes/OpenCode/dsh 未实现经过验证的 headless 任务协议；不能将安装存在描述成可用执行能力。
+这些结果只记录当时机器探测，其他机器必须重新探测；当时没有调用Codex模型或运行CLI编码任务。Harness/dsh现已实现固定Multica协议与Node入口支持，真实厂商验收仍待完成；Hermes/OpenCode的安装存在也不能描述成可用执行能力。
 
 ## 通过 Runner 使用已经核实的 CLI
 
@@ -40,7 +46,7 @@ agent 节点填写 `command:["codex-inspect"]` 与 `config.goal`，Runner 从 st
 
 T-P4-004增加显式adapter/protocol与本机 `--describe-tools`、固定配置／可执行摘要、worker绑定库存及command级能力匹配。上述Codex规范需要增加 `"adapter":"codex","protocol":"codex-jsonl-v1"` 才进入结构化模式；默认command/text-v1保留普通文本语义。Suma原生内核使用 `suma/suma-jsonl-v1` 和独立 `SUMA_AGENT_TOKEN`，Runner token不能用于项目工具。
 
-已实现Codex与Suma stdout JSONL的受限事件选择、会话来源、usage与整体终态证据，stderr独立有界脱敏；成功同时要求进程退出0及一致成功终态，模型文本不决定DAG／业务／测试／验收状态。非只读命令使用逐attempt独立工作树，后继测试仍使用调度器固定候选。会话ID只读，不自动resume；远端会话恢复、OpenCode/Hermes/dsh完整执行协议及第三方MCP工具仍待后续适配与真实验收。OpenCode当前profile明确不可用，研究版本CLI的step_finish不能证明整体运行结束。详细边界见[运行时合同与探测](../agents/tool-execution-runtime.md)。
+已实现Codex、Suma、CodeBuddy及Harness的受限结构化事件、会话来源、usage与整体终态证据，stderr独立有界脱敏；成功同时要求进程退出0、一致成功终态及进程树停止，模型文本不决定DAG／业务／测试／验收状态。非只读命令使用逐attempt独立工作树，后继测试仍使用调度器固定候选。会话ID只读，不自动resume；远端会话恢复、OpenCode/Hermes完整执行协议及第三方MCP工具仍待后续适配与真实验收。OpenCode当前profile明确不可用，研究版本CLI的step_finish不能证明整体运行结束。基础边界见[运行时合同与探测](../agents/tool-execution-runtime.md)，新增接入见[团队CLI运行时](team-cli-runtime.md)。
 
 ## 外部工作流 HTTP 桥接
 

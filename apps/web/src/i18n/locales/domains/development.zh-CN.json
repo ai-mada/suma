@@ -386,7 +386,7 @@
   "development.model.read_the_current_project_s_official_task": "请读取当前项目的正式任务版本。",
   "development.model.tool_dispatch_eligibility_is_unconfirmed_check_the": "工具配置当前尚未确认可派发，请核对当前项目与实时观察。",
   "development.model.task_development_requires_a_write_permitted_isolated": "任务开发需要许可写入的隔离工具；只读配置请通过独立流程使用。",
-  "development.model.task_dispatch_supports_only_suma_codex_structured": "任务派发仅支持已核实任务输入与终态的 Suma／Codex 结构化协议；其他配置请通过独立命令流程使用。",
+  "development.model.task_dispatch_supports_only_suma_codex_structured": "任务派发需要受支持且已核实的结构化工具协议。",
   "development.model.choose_an_actual_agent_node_in_a": "请选择已发布流程内真实的智能体节点。",
   "development.model.the_workflow_lacks_an_independent_test_that": "流程缺少取得所选开发节点固定候选的独立测试，请先完善工作流。",
   "development.model.paused": "已暂停",

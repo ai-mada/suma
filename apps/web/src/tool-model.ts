@@ -173,6 +173,8 @@ const protocols: Record<string, string> = {
   suma: "suma-jsonl-v1",
   codex: "codex-jsonl-v1",
   opencode: "opencode-jsonl-v1",
+  harness: "dsh-multica-jsonl-v1",
+  codebuddy: "codebuddy-jsonl-v1",
 };
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -291,7 +293,9 @@ export function toolBinding(
 export function taskToolProtocol(profile: ToolProfileDefinition) {
   return (
     (profile.adapter === "suma" && profile.protocol === "suma-jsonl-v1") ||
-    (profile.adapter === "codex" && profile.protocol === "codex-jsonl-v1")
+    (profile.adapter === "codex" && profile.protocol === "codex-jsonl-v1") ||
+    (profile.adapter === "harness" && profile.protocol === "dsh-multica-jsonl-v1") ||
+    (profile.adapter === "codebuddy" && profile.protocol === "codebuddy-jsonl-v1")
   );
 }
 export function dispatchRequest(

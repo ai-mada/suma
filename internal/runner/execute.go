@@ -8,6 +8,7 @@ import (
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -265,6 +266,11 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	defer cancel()
 	cmd := exec.Command(executable, spec.Args...)
 	cmd.Dir = root
+	var dshStdin *dshInput
+	var dshPipe io.WriteCloser
+	if (spec.Adapter == "harness" || spec.Adapter == "codebuddy") && a.Type != "agent" {
+		return fail("team CLI profiles require an agent node")
+	}
 	if a.Type == "agent" {
 		goal, _ := a.Config["goal"].(string)
 		if strings.TrimSpace(goal) == "" || len(goal) > 32000 {
@@ -276,14 +282,41 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			cmd.Stdin = bytes.NewReader(append(b, '\n'))
 		case "goal":
 			cmd.Stdin = strings.NewReader(goal + "\n")
+		case "dsh-jsonl":
+			if spec.Adapter != "harness" {
+				return fail("dsh-jsonl input requires the Harness adapter")
+			}
+			dshStdin, err = newDshInput(digest([]byte(key(a))), root, goal)
+			if err != nil {
+				return fail("Harness input could not be prepared")
+			}
+			defer dshStdin.Close()
+			// Own this copy loop explicitly. Giving exec.Cmd a blocking Reader
+			// would make Wait await stdin even when a child dies without a result.
+			dshPipe, err = cmd.StdinPipe()
+			if err != nil {
+				return fail("Harness stdin pipe could not be opened")
+			}
+			defer dshPipe.Close()
 		default:
-			return fail("agent command specification requires input agent-jsonl or goal")
+			return fail("agent command specification requires a supported fixed stdin format")
 		}
 	}
 	var environmentSecrets []string
 	cmd.Env, environmentSecrets, err = commandEnvironment(spec)
 	if err != nil {
 		return fail(err.Error())
+	}
+	if spec.Adapter == "codebuddy" {
+		// One-shot headless tasks must not leave background agents or tools
+		// outside the result interval. The decoder also rejects such events.
+		kept := cmd.Env[:0]
+		for _, value := range cmd.Env {
+			if !strings.HasPrefix(strings.ToUpper(value), "CODEBUDDY_CODE_DISABLE_BACKGROUND_TASKS=") {
+				kept = append(kept, value)
+			}
+		}
+		cmd.Env = append(kept, "CODEBUDDY_CODE_DISABLE_BACKGROUND_TASKS=1")
 	}
 	cfg.Secrets = append(cfg.Secrets, environmentSecrets...)
 	var native *nativeWorkspace
@@ -363,6 +396,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 		stream = newToolStream(profile, cfg.Secrets, emit, digest([]byte(key(a))))
 		stream.abort = cancel
+		if dshStdin != nil {
+			stream.onTerminal = func() { _ = dshStdin.Close() }
+		}
 		cmd.Stdout = stream
 	} else {
 		cmd.Stdout = out
@@ -393,6 +429,19 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		return fail(fmt.Sprintf("process start: %v", err))
 	}
 	defer controller.Close()
+	if dshStdin != nil {
+		stdinDone := make(chan struct{})
+		go func() {
+			defer close(stdinDone)
+			_, _ = io.Copy(dshPipe, dshStdin)
+			_ = dshPipe.Close()
+		}()
+		defer func() {
+			_ = dshStdin.Close()
+			_ = dshPipe.Close()
+			<-stdinDone
+		}()
+	}
 	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()
 	select {
@@ -404,15 +453,30 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			r.Error = "process exited unsuccessfully"
 		}
 	case <-ctx.Done():
+		waited := false
+		if dshStdin != nil {
+			// Give the versioned cancellation request a bounded chance to settle;
+			// it does not prove that the agent or its descendants actually stopped.
+			_ = dshStdin.Cancel()
+			grace := time.NewTimer(1500 * time.Millisecond)
+			select {
+			case <-done:
+				waited = true
+			case <-grace.C:
+			}
+			grace.Stop()
+			_ = dshStdin.Close()
+		}
 		stopErr := controller.Stop()
-		waitErr := <-done
+		if !waited {
+			<-done
+		}
 		r.Stopped = stopErr == nil
 		r.OutcomeUnknown = stopErr != nil
 		r.Error = ctx.Err().Error()
 		if stopErr != nil {
 			r.Error += "; process tree termination unverified"
 		}
-		_ = waitErr
 	}
 	if err = controller.Finish(); err != nil {
 		r.ExitCode = -1

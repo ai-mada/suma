@@ -1,0 +1,63 @@
+{
+  "stage": "T-P4-021",
+  "scope": "Harness/CodeBuddy fixed CLI runtime and safe Node entry, original scheduler/authority/quality gates",
+  "status": "locally_verified",
+  "full_platform_status": "in_progress",
+  "reference_multica": "a47a1ced0c71bdb113a43facce4675442acb9001",
+  "dependencies_added": false,
+  "runtime_build": ".cache/e2e/team-cli-stage-021/runtime-revision2/build-facts.local.json",
+  "web_artifacts": ".cache/e2e/team-cli-stage-021/verification/web-artifacts-revision2.local.json",
+  "checks": {
+    "native_process_cases": 4,
+    "node_entry_config_probe_pass_events": 10,
+    "node_entry_actual_cases": 5,
+    "node_entry_actual_pass_events": 6,
+    "frontend_contract_tests": 24,
+    "catalog_new_tests": 11,
+    "frontend_locale_pairs": 3229,
+    "full_go_rerun": false,
+    "vendor_model_invocations": 0
+  },
+  "evidence": {
+    "native_process": "20261026T045604180Z",
+    "native_no_result_affected": "20261026T045703718Z",
+    "native_probe_stderr_affected": "20261026T050709337Z",
+    "node_config_probe": "20261026T053832595Z",
+    "node_actual_execution": "20261026T053952182Z",
+    "baseline_browser": ".cache/e2e/team-cli-stage-021/browser/verification.local.json",
+    "final_browser": ".cache/e2e/team-cli-stage-021/browser-revision2/verification.local.json"
+  },
+  "limits": [
+    "local protocol fixtures, not installed vendor model validation",
+    "WorkBuddy client/service integration pending",
+    "entry and interpreter bytes bound; full third-party imported module/config closure not attested",
+    "all P0-P7 remaining scope retained"
+  ],
+  "verified_at": "2026-10-26T05:49:11.724103+00:00",
+  "browser": ".cache/e2e/team-cli-stage-021/browser-revision2/verification.local.json",
+  "primary_final": ".cache/e2e/team-cli-stage-021/primary-upgrade-revision2/final-after-browser.local.json",
+  "primary": {
+    "url": "http://pool.localhost:4324/",
+    "revision": "runtime-revision2",
+    "control_pid": 229668,
+    "holder_pid": 223492,
+    "table_schemas": 147,
+    "unchanged_full_tables": 143,
+    "coord_sequence_only_tables": 4,
+    "authority_rows": 18,
+    "grant_rows": 0,
+    "new_login": false,
+    "integrity": "ok"
+  },
+  "isolated_UI_closed": {
+    "control_exit": 0,
+    "holder_exit": 0,
+    "integrity": "ok"
+  },
+  "generated_contract": {
+    "schemas": 274,
+    "paths": 174,
+    "references": 1518,
+    "check": "passed"
+  }
+}

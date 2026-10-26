@@ -29,6 +29,7 @@
 | 本机发布与执行提供方 | [发布控制面](deployment/release-control.md)、[提供方协议](integrations/release-provider.md)、[四程序运行包](deployment/release-runtime-bundles.md) |
 | 原生智能体与开发工具 | [智能体运行时](agents/runtime.md)、[工具接入](integrations/tools.md) |
 | 原生实际编码与机器封存 | [PRD](product/native-coding.md)、[架构与AI SOP](agents/native-coding.md)、[交互规范](design/native-coding.md)、[实现合同](../contracts/native-coding.md)、[阶段验收](quality/native-coding-verification.md) |
+| 团队多工具接入 | [PRD](product/team-cli-runtime.md)、[集成与AI SOP](integrations/team-cli-runtime.md)、[合同](../contracts/team-cli-runtime.md)、[English](en/team-cli-runtime.md) |
 | 项目 MCP 与受控草稿 | [PRD](product/project-mcp.md)、[统一合同](../contracts/application-tools-mcp.md)、[接入与AI SOP](integrations/project-mcp.md)、[交互与国际化](design/project-mcp.md)、[阶段验证](quality/project-mcp-verification.md)、[生成工具Schema](api/mcp-tools.json) |
 | 工具配置与固定任务派发 | [执行架构](architecture/tool-execution.md)、[工具工作台](design/tool-workspace.md)、[本机工具运行时](agents/tool-execution-runtime.md)、[实现合同](../contracts/tool-execution.md)、[本机验收](quality/tool-execution-verification.md)、[当前四程序](deployment/tool-stop-runtime-bundles.md) |
 | 定时自动化与事件续传 | [自动化与事件架构](architecture/automation-events.md)、[自动化工作台](design/automation-workspace.md)、[本机验收](quality/automation-verification.md)、[当前四程序交付](deployment/automation-runtime-bundles.md) |
@@ -60,3 +61,5 @@ T-P4-012 已完成限定范围本地验证并提交：精确 attempt 的持久�
 T-P4-011 原生诊断贯通、此前自动化、制品与发布验证保留各自历史源码和证据切面。目录键数、一次成功构建或局部响应式检查都不代表所有语言、平台、规模与完整 P0–P7 已完成，范围以各专项报告和实施台账为准。
 
 接口修改先更新共享合同和对应验证；业务门禁变更同步状态机、用户旅程、错误恢复文案和测试。运行截图、HTTP 记录和大规模性能报告统一进入项目交付证据目录；日常临时文件使用 `.cache/`。
+
+本轮团队 CLI 的[限定验证](quality/team-cli-verification.md)与[机器摘要](quality/team-cli-summary.json)记录实际覆盖和后续完整范围。
