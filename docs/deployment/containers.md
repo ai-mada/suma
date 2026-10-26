@@ -12,7 +12,7 @@ docker build --target runner -t suma-runner:local .
 docker build --target knowledge -t suma-knowledge:local .
 ```
 
-[Dockerfile](../../Dockerfile) 固定 Go 1.24.5 与 pnpm 11.25.0，Node 使用 24 系列；依赖读取仓库锁文件。Go、浏览器和知识服务先独立构建，最终镜像不复制宿主机的 node_modules、数据库、秘密文件、缓存或既有 dist。发布时应保存实际镜像摘要，并在目标环境锁定已验收摘要。
+[Dockerfile](../../Dockerfile) 固定 Go 1.26.10 与 pnpm 11.25.0，Node 使用 24 系列；依赖读取仓库锁文件。Go、浏览器和知识服务先独立构建，最终镜像不复制宿主机的 node_modules、数据库、秘密文件、缓存或既有 dist。发布时应保存实际镜像摘要，并在目标环境锁定已验收摘要。
 
 `control` 是默认目标，含控制面、CLI 和浏览器静态文件。`runner` 只带 Runner、Git 和基础系统工具；所需语言编译器、智能体 CLI 及额外工具应由管理员构建进专用 Runner 镜像，并列入本地命令许可。`knowledge` 带原生 LanceDB 生产依赖及已编译的服务。
 

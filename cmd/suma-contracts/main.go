@@ -118,6 +118,9 @@ func generate() (map[string]any, string) {
 	for _, v := range candidateTransferModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range applicationToolModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range taskDesignViewModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -245,6 +248,7 @@ func generate() (map[string]any, string) {
 	requirementDesignContracts(add, api)
 	taskDesignViewContracts(add, api)
 	candidateTransferContracts(add, api)
+	applicationToolContracts(add, api)
 	currentAuthorityContracts(api)
 	localizationContracts(api)
 	displayDiagnosticContracts(api)
@@ -276,6 +280,16 @@ func generate() (map[string]any, string) {
 			}
 			if t.Name() == "DisplayDiagnostic" && f.Name == "MessageParams" {
 				wireType = "{ [key: string]: string | number }"
+			}
+			if t.Name() == "DeveloperConnectionMetadata" {
+				switch f.Name {
+				case "ClientConnectionVerified":
+					wireType = "false"
+				case "EndpointSource":
+					wireType = "'configured' | 'listener_loopback' | 'unconfigured'"
+				case "Transport":
+					wireType = "'streamable_http'"
+				}
 			}
 			fmt.Fprintf(&out, "  %s%s: %s;\n", key, optional, wireType)
 		}
@@ -320,6 +334,13 @@ func main() {
 	}
 	if err == nil {
 		err = emit("packages/contracts/src/index.ts", []byte(types), *check)
+	}
+	if err == nil {
+		var catalogue []byte
+		catalogue, err = applicationToolCatalogue()
+		if err == nil {
+			err = emit("docs/api/mcp-tools.json", catalogue, *check)
+		}
 	}
 	if err == nil {
 		var native []byte

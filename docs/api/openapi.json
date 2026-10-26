@@ -41,6 +41,313 @@
         ],
         "type": "object"
       },
+      "ApplicationRequirementDesignSaveInput": {
+        "properties": {
+          "content": {
+            "$ref": "#/components/schemas/RequirementDesignContent"
+          },
+          "expected_requirement_version": {
+            "type": "integer"
+          },
+          "expected_version": {
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "requirement_id": {
+            "type": "string"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/RequirementDesignTask"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "requirement_id",
+          "expected_version",
+          "expected_requirement_version",
+          "content",
+          "tasks",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "ApplicationRequirementDraftInput": {
+        "properties": {
+          "acceptance_criteria": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": {
+            "type": "string"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "owner_id": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "ApplicationTaskDraftInput": {
+        "properties": {
+          "acceptance_criteria": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "depends_on": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": {
+            "type": "string"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "owner_id": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "requirement_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "ApplicationToolDefinition": {
+        "additionalProperties": false,
+        "properties": {
+          "credential_scopes": {
+            "items": {
+              "enum": [
+                "agent",
+                "api"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": {
+            "type": "string"
+          },
+          "description_key": {
+            "type": "string"
+          },
+          "mcp_name": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "parameters": {
+            "additionalProperties": {},
+            "type": "object"
+          },
+          "read_only": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "mcp_name",
+          "description",
+          "description_key",
+          "parameters",
+          "read_only",
+          "credential_scopes"
+        ],
+        "type": "object"
+      },
+      "ApplicationToolDesignDraftResult": {
+        "properties": {
+          "has_draft": {
+            "type": "boolean"
+          },
+          "latest_revision": {
+            "type": "integer"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "published_revision": {
+            "type": "integer"
+          },
+          "requirement_id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "requirement_id",
+          "version",
+          "latest_revision",
+          "published_revision",
+          "has_draft"
+        ],
+        "type": "object"
+      },
+      "ApplicationToolDraftResult": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "version",
+          "status"
+        ],
+        "type": "object"
+      },
+      "ApplicationToolIDInput": {
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "ApplicationToolKnowledgeInput": {
+        "properties": {
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectKnowledgeReference"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "references"
+        ],
+        "type": "object"
+      },
+      "ApplicationToolKnowledgeListInput": {
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "query": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "ApplicationToolList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationToolDefinition"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "ApplicationToolPageInput": {
+        "properties": {
+          "cursor": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer"
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "ApplicationToolRequirementInput": {
+        "properties": {
+          "requirement_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "requirement_id"
+        ],
+        "type": "object"
+      },
+      "ApplicationToolSearchInput": {
+        "properties": {
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "ApplicationToolTaskInput": {
+        "properties": {
+          "task_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id"
+        ],
+        "type": "object"
+      },
       "ArtifactBinding": {
         "properties": {
           "artifact_id": {
@@ -2366,6 +2673,75 @@
           "artifact_sha256",
           "assignment",
           "authorization_ticket"
+        ],
+        "type": "object"
+      },
+      "DeveloperConnectionMetadata": {
+        "additionalProperties": false,
+        "properties": {
+          "client_connection_verified": {
+            "const": false,
+            "type": "boolean"
+          },
+          "endpoint_path": {
+            "type": "string"
+          },
+          "endpoint_source": {
+            "enum": [
+              "configured",
+              "listener_loopback",
+              "unconfigured"
+            ],
+            "type": "string"
+          },
+          "endpoint_url": {
+            "type": "string"
+          },
+          "expected_organization_id": {
+            "type": "string"
+          },
+          "expected_user_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "sdk_name": {
+            "type": "string"
+          },
+          "sdk_version": {
+            "type": "string"
+          },
+          "stateless": {
+            "type": "boolean"
+          },
+          "token_environment": {
+            "type": "string"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationToolDefinition"
+            },
+            "type": "array"
+          },
+          "transport": {
+            "const": "streamable_http",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "endpoint_path",
+          "endpoint_source",
+          "transport",
+          "stateless",
+          "sdk_name",
+          "sdk_version",
+          "token_environment",
+          "expected_user_id",
+          "expected_organization_id",
+          "client_connection_verified",
+          "tools"
         ],
         "type": "object"
       },
@@ -18018,6 +18394,161 @@
           "runner"
         ],
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/developer-connection": {
+      "get": {
+        "description": "Current browser or project API read. Declares available project MCP capabilities and an operator-trusted endpoint; never confirms client connectivity or exercises a credential. Agent and Runner credentials are rejected. No credentials are included.",
+        "operationId": "get_developer-connection",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeveloperConnectionMetadata"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
       }
     },
     "/documents": {

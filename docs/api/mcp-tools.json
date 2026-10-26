@@ -1,0 +1,538 @@
+{
+  "items": [
+    {
+      "name": "project.overview",
+      "mcp_name": "suma_project_overview",
+      "description": "读取当前授权项目的真实状态与活动",
+      "description_key": "agent.tool_overview",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {},
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "agent",
+        "api"
+      ]
+    },
+    {
+      "name": "project.tasks",
+      "mcp_name": "suma_project_tasks",
+      "description": "读取当前项目任务",
+      "description_key": "agent.tool_tasks",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "limit": {
+            "maximum": 200,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "agent",
+        "api"
+      ]
+    },
+    {
+      "name": "project.search",
+      "mcp_name": "suma_project_search",
+      "description": "检索当前项目资料并返回来源",
+      "description_key": "agent.tool_search",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "query": {
+            "maxLength": 500,
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "agent",
+        "api"
+      ]
+    },
+    {
+      "name": "project.knowledge",
+      "mcp_name": "suma_project_knowledge",
+      "description": "读取明确发布的项目知识固定修订并核验当前来源",
+      "description_key": "knowledge.agent_read",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "references": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "revision": {
+                  "maximum": 2147483647,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "sha256": {
+                  "maxLength": 64,
+                  "minLength": 64,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "revision",
+                "sha256"
+              ],
+              "type": "object"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "references"
+        ],
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "agent",
+        "api"
+      ]
+    },
+    {
+      "name": "project.requirements",
+      "mcp_name": "suma_project_requirements",
+      "description": "分页读取当前项目需求",
+      "description_key": "application_tool_project_requirements",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "limit": {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "api"
+      ]
+    },
+    {
+      "name": "project.requirement",
+      "mcp_name": "suma_project_requirement",
+      "description": "读取当前项目的单个正式需求",
+      "description_key": "application_tool_project_requirement",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "api"
+      ]
+    },
+    {
+      "name": "project.task",
+      "mcp_name": "suma_project_task",
+      "description": "读取当前项目的单个正式任务",
+      "description_key": "application_tool_project_task",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "api"
+      ]
+    },
+    {
+      "name": "project.requirement_design",
+      "mcp_name": "suma_project_requirement_design",
+      "description": "读取当前需求设计与发布资格",
+      "description_key": "application_tool_project_requirement_design",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "requirement_id": {
+            "maxLength": 64,
+            "type": "string"
+          }
+        },
+        "required": [
+          "requirement_id"
+        ],
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "api"
+      ]
+    },
+    {
+      "name": "project.task_design",
+      "mcp_name": "suma_project_task_design",
+      "description": "读取任务原采用设计依据与当前资格",
+      "description_key": "application_tool_project_task_design",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "task_id": {
+            "maxLength": 64,
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id"
+        ],
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "api"
+      ]
+    },
+    {
+      "name": "project.knowledge_list",
+      "mcp_name": "suma_project_knowledge_list",
+      "description": "分页读取当前项目知识元数据与草稿状态",
+      "description_key": "application_tool_project_knowledge_list",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "memory",
+              "spec",
+              "skill"
+            ],
+            "type": "string"
+          },
+          "limit": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "query": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "draft",
+              "published",
+              "retired"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "api"
+      ]
+    },
+    {
+      "name": "project.requirement_draft_create",
+      "mcp_name": "suma_project_requirement_draft_create",
+      "description": "创建当前项目需求草稿，不批准或启动执行",
+      "description_key": "application_tool_project_requirement_draft_create",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptance_criteria": {
+            "items": {
+              "maxLength": 1000,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "description": {
+            "maxLength": 200000,
+            "type": "string"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "owner_id": {
+            "maxLength": 64,
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "urgent",
+              "high",
+              "medium",
+              "low"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "read_only": false,
+      "credential_scopes": [
+        "api"
+      ]
+    },
+    {
+      "name": "project.task_draft_create",
+      "mcp_name": "suma_project_task_draft_create",
+      "description": "创建当前项目待办任务，不验收或启动执行",
+      "description_key": "application_tool_project_task_draft_create",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptance_criteria": {
+            "items": {
+              "maxLength": 1000,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": "array"
+          },
+          "depends_on": {
+            "items": {
+              "maxLength": 64,
+              "type": "string"
+            },
+            "maxItems": 200,
+            "type": "array"
+          },
+          "description": {
+            "maxLength": 200000,
+            "type": "string"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "owner_id": {
+            "maxLength": 64,
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "urgent",
+              "high",
+              "medium",
+              "low"
+            ],
+            "type": "string"
+          },
+          "requirement_id": {
+            "maxLength": 64,
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "read_only": false,
+      "credential_scopes": [
+        "api"
+      ]
+    },
+    {
+      "name": "project.requirement_design_save",
+      "mcp_name": "suma_project_requirement_design_save",
+      "description": "保存版本化需求设计草稿，不发布或采用任务",
+      "description_key": "application_tool_project_requirement_design_save",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "additionalProperties": false,
+            "properties": {
+              "experience": {
+                "maxLength": 16000,
+                "type": "string"
+              },
+              "product": {
+                "maxLength": 16000,
+                "type": "string"
+              },
+              "technical": {
+                "maxLength": 16000,
+                "type": "string"
+              }
+            },
+            "required": [
+              "product",
+              "experience",
+              "technical"
+            ],
+            "type": "object"
+          },
+          "expected_requirement_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "requirement_id": {
+            "maxLength": 64,
+            "type": "string"
+          },
+          "tasks": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "acceptance_criteria": {
+                  "items": {
+                    "maxLength": 1000,
+                    "type": "string"
+                  },
+                  "maxItems": 20,
+                  "type": "array"
+                },
+                "covers": {
+                  "items": {
+                    "maximum": 100,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "maxItems": 100,
+                  "type": "array"
+                },
+                "depends_on": {
+                  "items": {
+                    "maxLength": 64,
+                    "type": "string"
+                  },
+                  "maxItems": 100,
+                  "type": "array"
+                },
+                "description": {
+                  "maxLength": 4000,
+                  "type": "string"
+                },
+                "key": {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "owner_id": {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "priority": {
+                  "enum": [
+                    "urgent",
+                    "high",
+                    "medium",
+                    "low"
+                  ],
+                  "type": "string"
+                },
+                "title": {
+                  "maxLength": 200,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "key",
+                "title",
+                "description",
+                "priority",
+                "owner_id",
+                "depends_on",
+                "acceptance_criteria",
+                "covers"
+              ],
+              "type": "object"
+            },
+            "maxItems": 100,
+            "type": "array"
+          }
+        },
+        "required": [
+          "requirement_id",
+          "expected_version",
+          "expected_requirement_version",
+          "content",
+          "tasks",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "read_only": false,
+      "credential_scopes": [
+        "api"
+      ]
+    }
+  ]
+}

@@ -2,6 +2,7 @@
 [CmdletBinding()]
 param(
     [switch]$All,
+    [switch]$InspectToolchain,
     [string[]]$Targets = @(),
     [string]$ModuleCacheSeed = ''
 )
@@ -55,13 +56,13 @@ function Assert-Within([string]$Root, [string]$Path) {
     }
 }
 
-function Invoke-GoChild([string[]]$Arguments, [hashtable]$Extra = @{}) {
+function Invoke-GoChild([string[]]$Arguments, [hashtable]$Extra = @{}, [string]$WorkingDirectory = $taskRepository) {
     $index = $taskCommands.Count + 1
     $stdoutPath = Join-Path $taskLogs ('{0:D3}.stdout.txt' -f $index)
     $stderrPath = Join-Path $taskLogs ('{0:D3}.stderr.txt' -f $index)
     $start = [Diagnostics.ProcessStartInfo]::new()
     $start.FileName = $taskGo
-    $start.WorkingDirectory = $taskRepository
+    $start.WorkingDirectory = $WorkingDirectory
     $start.UseShellExecute = $false
     $start.CreateNoWindow = $true
     $start.RedirectStandardOutput = $true
@@ -174,20 +175,50 @@ function Read-BuildModules([string]$Text) {
 try {
     if ($All -and $Targets.Count -gt 0) { throw 'Use either -All or -Targets, not both.' }
     foreach ($directory in @($taskScratch, $taskLogs, $taskTemp, $taskTelemetry, $taskModuleCache, $taskBuildCache, $taskReceiptDirectory)) { [void][IO.Directory]::CreateDirectory($directory) }
-    # Go 1.24's telemetry shim honors this directory for both go and its child tools.
+    # Go's telemetry shim honors this directory for both go and its child tools.
     [IO.File]::WriteAllText((Join-Path $taskTelemetry 'mode'), 'off', $taskUtf8)
-    $taskGo = (Get-Command go -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+    $taskGoSource = 'PATH'
+    $taskPrivateGo = Join-Path $taskCache 'toolchains/go1.26.10/go/bin/go.exe'
+    if (-not [string]::IsNullOrWhiteSpace($env:SUMA_GO_EXE)) {
+        if (-not (Test-Path -LiteralPath $env:SUMA_GO_EXE -PathType Leaf)) { throw 'SUMA_GO_EXE must name an existing Go executable. Use the verified repository toolchain .cache/toolchains/go1.26.10/go/bin/go.exe or Go 1.26+.' }
+        $taskGo = (Resolve-Path -LiteralPath $env:SUMA_GO_EXE).Path
+        $taskGoSource = 'SUMA_GO_EXE'
+    } elseif (Test-Path -LiteralPath $taskPrivateGo -PathType Leaf) {
+        $taskGo = $taskPrivateGo
+        $taskGoSource = 'repository-private'
+    } else {
+        $taskPathGo = Get-Command go -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($null -eq $taskPathGo) { throw 'Go 1.26+ is required. Set SUMA_GO_EXE to a verified executable, prepare .cache/toolchains/go1.26.10/go/bin/go.exe, or install a supported Go version on PATH.' }
+        $taskGo = $taskPathGo.Source
+    }
     $taskEnvironment = @{
         GOCACHE = $taskBuildCache; GOMODCACHE = $taskModuleCache; GOTMPDIR = $taskTemp; TEMP = $taskTemp; TMP = $taskTemp; TMPDIR = $taskTemp
+        GOPATH = (Join-Path $taskCache 'go-path')
         CGO_ENABLED = '0'; GOTOOLCHAIN = 'local'; GOWORK = 'off'; GOENV = 'off'; GOFLAGS = ''; GOEXPERIMENT = ''; GOCACHEPROG = ''
         TEST_TELEMETRY_DIR = $taskTelemetry; GO_TELEMETRY_CHILD = ''; GO_TELEMETRY_CHILD_UPLOAD = ''; GOAMD64 = 'v1'; GOARM64 = 'v8.0'
         GOPROXY = 'off'; GOSUMDB = 'off'; GOPRIVATE = ''; GONOPROXY = 'none'; GONOSUMDB = ''; GOINSECURE = ''; GOVCS = '*:off'; GOOS = ''; GOARCH = ''
     }
-    $identity = Invoke-GoChild @('env', '-json', 'GOHOSTOS', 'GOHOSTARCH', 'GOVERSION')
+    # Inspect outside the module first so an old Go reports the upgrade guidance,
+    # rather than failing on go.mod before we can explain the required toolchain.
+    $identity = Invoke-GoChild @('version') @{} $taskScratch
     Require-GoSuccess $identity 'Go toolchain inspection'
+    if ($identity.Stdout -notmatch '\bgo(\d+)\.(\d+)(?:\.\d+)?\b' -or [int]$Matches[1] -lt 1 -or ([int]$Matches[1] -eq 1 -and [int]$Matches[2] -lt 26)) {
+        throw "Go 1.26+ is required; selected $taskGoSource executable reported '$($identity.Stdout.Trim())'. Set SUMA_GO_EXE to the verified .cache/toolchains/go1.26.10/go/bin/go.exe or use a supported Go on PATH. Automatic toolchain downloads are disabled."
+    }
+    $identity = Invoke-GoChild @('env', '-json', 'GOHOSTOS', 'GOHOSTARCH', 'GOVERSION')
+    Require-GoSuccess $identity 'Go toolchain environment inspection'
     $hostInfo = $identity.Stdout | ConvertFrom-Json
-    $taskRecord.toolchain = [ordered]@{ executable = $taskGo; version = $hostInfo.GOVERSION; automatic_download = $false }
+    $taskRecord.toolchain = [ordered]@{ executable = $taskGo; source = $taskGoSource; version = $hostInfo.GOVERSION; acceptance_pin = 'go1.26.10'; automatic_download = $false }
     $taskRecord.host = [ordered]@{ os = $hostInfo.GOHOSTOS; arch = $hostInfo.GOHOSTARCH }
+    if ($InspectToolchain) {
+        $taskRecord.status = 'toolchain_inspected'
+        $taskRecord.verification = 'Toolchain identity and minimum-version check only; no dependency verification, compilation, installation, launch, or deployment.'
+        $taskRecord.completed_at = [DateTime]::UtcNow.ToString('o')
+        Write-JsonFile (Join-Path $taskReceiptDirectory 'manifest.json') $taskRecord
+        Write-Host "Go toolchain: $($hostInfo.GOVERSION) ($taskGoSource)"
+        Write-Host "Toolchain inspection receipt: $taskReceiptDirectory"
+        exit 0
+    }
     $taskEnvironment.GOOS = $hostInfo.GOHOSTOS
     $taskEnvironment.GOARCH = $hostInfo.GOHOSTARCH
     $requested = @()

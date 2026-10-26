@@ -26,6 +26,10 @@ type Server struct {
 	WebDir         string
 	AllowedOrigins []string
 	SetupToken     string
+	// PublicURL is an operator-controlled origin. Never derive credential
+	// destinations from client Host or forwarding headers.
+	PublicURL       string
+	PublicURLSource string
 	// Maintenance freezes business commands while operators verify an upgrade.
 	// Authentication remains available; the control process also pauses projectors.
 	Maintenance bool
@@ -34,6 +38,7 @@ type Server struct {
 
 func (s *Server) Handler() http.Handler {
 	s.mux = http.NewServeMux()
+	s.mux.Handle("/api/v1/mcp/projects/", s.NewMCPHandler())
 	s.mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		if err := s.Service.DB.PingContext(r.Context()); err != nil {
 			writeError(w, err)
@@ -414,6 +419,11 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if s.taskDesignViewHTTP(w, r, actor, project, parts) {
+		return
+	}
+	if path == "developer-connection" && r.Method == http.MethodGet {
+		out, err := s.DeveloperConnection(ctx, actor, project)
+		respond(w, http.StatusOK, out, err)
 		return
 	}
 	if s.requirementDesignHTTP(w, r, actor, project, path, parts, m) {
@@ -858,51 +868,52 @@ func (s *Server) capabilities(ctx context.Context) map[string]any {
 	items := []map[string]any{{"id": "transactional_store", "name": "业务事务库", "configured": true, "available": connected, "verified": false, "backend": s.Service.Dialect, "checks": map[string]any{"connection": connected, "transaction": "not_run", "backup_restore": "not_run"}, "reason": "仅实时探测连接；事务、迁移和恢复验收见交付报告"}, {"id": "dag", "name": "持久化 DAG", "configured": true, "available": dagAvailable, "verified": false, "reason": "已探测调度表；完整运行验收见交付证据"}, {"id": "files", "name": "本地文件", "configured": true, "available": filesAvailable, "verified": false, "reason": "目录存在性探测，不代表写入、备份或恢复已验证"}, {"id": "semantic_search", "name": "多模态语义检索", "configured": os.Getenv("SUMA_KNOWLEDGE_URL") != "", "available": false, "verified": false, "reason": "需要连接检索服务并执行读写与检索验证"}, {"id": "payments", "name": "支付结算", "configured": false, "available": false, "verified": false, "reason": "尚未配置商户与支付适配器"}, {"id": "collaboration", "name": "多人实时协作", "configured": false, "available": false, "verified": false, "reason": "协作服务尚未部署"}}
 	return map[string]any{"items": items, "as_of": now()}
 }
+
+// The native read-only adapter projects the shared application catalogue without
+// broadening its legacy four-tool contract or routing writes through a POST query.
 func (s *Server) agent(w http.ResponseWriter, r *http.Request, actor Actor, project, path string, m map[string]any) {
 	if path == "agent/tools" && r.Method == http.MethodGet {
-		s.projectReadJSON(w, r, actor, project, func(context.Context, *authorizedCommand) (any, error) {
-			return map[string]any{"items": []map[string]any{{"name": "project.overview", "description": presentationSource(w, "读取当前授权项目的真实状态与活动"), "parameters": map[string]any{"type": "object", "properties": map[string]any{}, "additionalProperties": false}}, {"name": "project.tasks", "description": presentationSource(w, "读取当前项目任务"), "parameters": map[string]any{"type": "object", "properties": map[string]any{"limit": map[string]any{"type": "integer"}, "cursor": map[string]any{"type": "string"}}, "additionalProperties": false}}, {"name": "project.search", "description": presentationSource(w, "检索当前项目资料并返回来源"), "parameters": map[string]any{"type": "object", "properties": map[string]any{"query": map[string]any{"type": "string"}}, "required": []string{"query"}, "additionalProperties": false}}, {"name": "project.knowledge", "description": presentationSource(w, "读取明确发布的项目知识固定修订并核验当前来源"), "parameters": knowledgeReferenceParameters()}}}, nil
-		})
+		catalogue, err := s.Service.ApplicationTools(r.Context(), actor, project)
+		if err != nil {
+			writeError(w, err)
+			return
+		}
+		items := []map[string]any{}
+		for _, definition := range catalogue.Items {
+			if !legacyApplicationTool(definition.Name) {
+				continue
+			}
+			items = append(items, map[string]any{"name": definition.Name, "description": presentationSource(w, definition.Description), "parameters": definition.Parameters})
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"items": items})
 		return
 	}
 	if path == "agent/tools/invoke" && r.Method == http.MethodPost {
-		args, _ := m["arguments"].(map[string]any)
-		s.projectReadJSON(w, r, actor, project, func(ctx context.Context, auth *authorizedCommand) (any, error) {
-			switch str(m, "tool") {
-			case "project.overview":
-				return s.Service.overviewTx(ctx, auth, project)
-			case "project.tasks":
-				var input struct {
-					Limit  int    `json:"limit"`
-					Cursor string `json:"cursor"`
-				}
-				if err := strictAutomation(args, &input); err != nil {
-					return nil, err
-				}
-				items, total, next, err := s.Service.listPageTx(ctx, auth, project, "tasks", input.Limit, input.Cursor)
-				return map[string]any{"items": items, "total": total, "next_cursor": next}, err
-			case "project.knowledge":
-				var input struct {
-					References []ProjectKnowledgeReference `json:"references"`
-				}
-				if err := strictAutomation(args, &input); err != nil {
-					return nil, err
-				}
-				if len(input.References) == 0 {
-					return nil, invalid("请选择明确的已发布项目知识修订")
-				}
-				items, err := s.Service.resolvePublishedKnowledgeTx(ctx, auth, project, input.References)
-				return readListEnvelope(items), err
-			case "project.search":
-				return s.Service.searchKeywordsTx(ctx, auth, project, str(args, "query"))
-			default:
-				return nil, &APIError{422, "tool_not_allowed", "该工具尚未授权或未实现", nil}
-			}
-		})
+		name := str(m, "tool")
+		if !legacyApplicationTool(name) {
+			writeError(w, &APIError{422, "tool_not_allowed", "该工具尚未授权或未实现", nil})
+			return
+		}
+		raw, err := json.Marshal(m["arguments"])
+		if err != nil {
+			writeError(w, invalid("工具参数必须是有效的 JSON 对象"))
+			return
+		}
+		out, err := s.Service.InvokeApplicationTool(r.Context(), actor, ApplicationToolCall{ProjectID: project, Tool: name, Arguments: raw})
+		respond(w, http.StatusOK, out, err)
 		return
 	}
 	writeError(w, missing())
 }
+
+func legacyApplicationTool(name string) bool {
+	switch name {
+	case "project.overview", "project.tasks", "project.search", "project.knowledge":
+		return true
+	}
+	return false
+}
+
 func (s *Server) web(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" && r.Method != "HEAD" {
 		http.NotFound(w, r)

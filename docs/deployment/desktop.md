@@ -4,7 +4,7 @@
 
 ## 构建
 
-需要 Node.js 22+、pnpm、Go 1.24+。在仓库根目录安装依赖后执行：
+需要 Node.js 22+、pnpm、Go 1.26+（固定构建1.26.10）。在仓库根目录安装依赖后执行：
 
 ```powershell
 pnpm build

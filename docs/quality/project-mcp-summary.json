@@ -1,0 +1,168 @@
+{
+  "stage": "T-P4-019",
+  "date": "2026-10-26",
+  "overall_platform": "in_progress",
+  "scope": "Shared application tools, official SDK inbound project MCP, compact Chinese/English developer connection",
+  "SDK": {
+    "module": "github.com/modelcontextprotocol/go-sdk",
+    "version": "v1.8.0",
+    "compiler": "go1.26.10"
+  },
+  "backend": {
+    "integration_before_fixes": {
+      "exit_code": 1,
+      "pass_events": 1571,
+      "package_pass": 15,
+      "test_skips": 0,
+      "failures": [
+        [
+          "github.com/ai-mada/suma/internal/localization",
+          "TestPlatformDiagnosticCoverage"
+        ],
+        [
+          "github.com/ai-mada/suma/internal/localization",
+          null
+        ]
+      ]
+    },
+    "affected_after_fixes": {
+      "exit_code": 0,
+      "pass_events": 122,
+      "top_level_pass": 35,
+      "failure_events": 0,
+      "coverage": [
+        "platform_coverage_test.go:51: scope=internal/platform non-test Go; files=125 constructors=856 static_han=727 unique_static_han=645 annotated_dynamic=12 unique_annotation_keys=10 non_han_static_out_of_scope=75 raw_dynamic_out_of_scope=42 source_sha256=f493320099029b1e88d9ac65994c30d619ccd2402f9a2714fb1a767ab220bd70"
+      ]
+    },
+    "post_milestone_changed_inputs": [
+      "internal/localization/application_tool_catalog.go",
+      "internal/platform/application_tool_inputs.go",
+      "internal/platform/application_tools.go",
+      "internal/platform/application_tools_test.go"
+    ],
+    "vet_exit": 0,
+    "scope_note": "One full milestone found one missing source translation. Targeted fixes/rechecks only; counts overlap and are not summed."
+  },
+  "web": {
+    "tests": 28,
+    "files": 3,
+    "catalogue_paired_keys": 3165,
+    "typecheck_exit": 0,
+    "isolated_build_exit": 0,
+    "existing_chunk_size_warning": true
+  },
+  "contracts": {
+    "models": 269,
+    "paths": 174,
+    "references": 1515,
+    "generated_tool_definitions": 13
+  },
+  "actual_sdk": {
+    "complete": true,
+    "counts": {
+      "agent_tools": 4,
+      "api_tools": 13,
+      "checks_passed": 124,
+      "checks_total": 124,
+      "knowledge_metadata_total": 0,
+      "requirements_after": 2,
+      "requirements_before": 1,
+      "tasks_after": 2,
+      "tasks_before": 1
+    },
+    "records": {
+      "design": {
+        "id": "05353bafa401e295059128ce7c19aa6b",
+        "version": 1
+      },
+      "requirement": {
+        "id": "05353bafa401e295059128ce7c19aa6b",
+        "version": 1
+      },
+      "task": {
+        "id": "fa4d2ad1fe955bd2ef6a55a4b9135e31",
+        "version": 1
+      }
+    },
+    "test_grants_revoked": true,
+    "copied_secret_contexts_removed": true
+  },
+  "browser": {
+    "locales": [
+      "zh-CN",
+      "en-US"
+    ],
+    "catalogue_default_collapsed": true,
+    "keyboard_enter_expansion": true,
+    "configuration_actual_copy_paste": true,
+    "no_token_in_template": true,
+    "actual_requirement_and_design_visible": true,
+    "design_refresh_keeps_version": true,
+    "responsive_width": 390,
+    "responsive_document_width": 375,
+    "console_errors_warnings": 0,
+    "screenshots_sha256": {
+      "connection-zh-desktop.png": "1e6d3ed845c10bc4e28be83e5d7c7178a0a8dc1440f309ae97db30c4d89ba4d1",
+      "connection-en-390-normalized.png": "9f06a0ac759a00a1ab62d3f7d712a0b2e895f2decbb7c29386fb2fe04a34ebb0",
+      "primary-connection-zh.png": "cca9661b9aebab7ba997c5b434e5d582a87857e2eee557ad75e7eb3eec064a6b"
+    },
+    "excluded_capture_names": [
+      "connection-en-390.png",
+      "connection-en-390-cdp.png"
+    ],
+    "exclusion_reason": "Incorrect device-pixel capture; accepted 390 image uses read devicePixelRatio=1.5 and capture clip scale normalization."
+  },
+  "fixture": {
+    "tables": 147,
+    "integrity": "ok",
+    "all_old_schemas_same": true,
+    "control_graceful_exit": 0,
+    "holder_exit": 1,
+    "post_stop_audit_repair": "Tuple/map mistake in task-only holder; corrected read-only audit, no journey or service rerun."
+  },
+  "primary": {
+    "tables": 147,
+    "schema_changes": 0,
+    "identical_full_tables": 143,
+    "changed_tables": [
+      "suma_authority_credential_locks",
+      "suma_authority_sqlite_guard",
+      "suma_governance_locks",
+      "suma_identity_authority_locks"
+    ],
+    "integrity": "ok",
+    "run_states": [
+      [
+        "failed",
+        1
+      ],
+      [
+        "succeeded",
+        2
+      ]
+    ],
+    "counts": {
+      "suma_tasks": 2,
+      "suma_requirements": 3,
+      "suma_credential_grants": 0,
+      "suma_credential_authority": 18
+    },
+    "authority_rows_unchanged": true,
+    "grant_rows_unchanged": true,
+    "source_inputs": 270
+  },
+  "current_preview": {
+    "url": "http://pool.localhost:4324/",
+    "control_pid": 195636,
+    "holder_pid": 215080,
+    "stage": "T-P4-019",
+    "no_new_login": true,
+    "no_primary_machine_API_grants_issued": true,
+    "maintenance_rows_unchanged": true
+  },
+  "limits": [
+    "Official SDK client and local Windows SQLite only; no vendor model execution",
+    "OAuth, outbound MCP, A2A, executable plugins, SSO, installs, clustered stores and scale remain pending",
+    "Formal business acceptance and production deployment were not performed"
+  ]
+}

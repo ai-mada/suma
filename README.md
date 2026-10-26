@@ -12,7 +12,7 @@ T-P4-012 已实现按项目、运行、节点和 attempt 读取持久工具事�
 
 ## 本地运行
 
-要求 Go 1.24+、Node.js 22+、pnpm 11。
+要求 Go 1.26+（构建固定 1.26.10）、Node.js 22+、pnpm 11。可通过 `SUMA_GO_EXE` 指向私有工具链；构建脚本不修改系统环境。
 
 ```powershell
 pnpm install

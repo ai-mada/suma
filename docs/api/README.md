@@ -125,3 +125,7 @@ Attempt列表只查询元数据，`result_source=not_loaded`；精确详情才�
 `/requirements/{id}/design` 提供当前设计及严格PUT草稿，子接口为commands／只读preview／adopt／revisions／adoptions。正式类型来自Go，公开SDK类型由同源生成。保存允许不完整提案；发布必须完整设计、闭合依赖与验收覆盖；preview不是预留或批准。采用对全部相关范围重算摘要并原子应用，不重复创建稳定key对应任务。
 
 批准限当前浏览器ProjectApprove；API只编辑提案。TaskContext.design只读，由正式绑定及批准修订解析，进入派发与验收依据。当前249 Schema／164路径；合法输入与跨字段规则见[合同](../../contracts/requirement-design.md)，实际范围见[阶段验证](../quality/requirement-design-verification.md)。
+
+## 项目MCP（T-P4-019）
+
+入站端点 `/api/v1/mcp/projects/{project_id}` 使用固定官方Go SDK协议实现，无状态JSON HTTP；JSON-RPC协议封套不在本REST OpenAPI内重写。目录、参数Schema、读写效果和允许凭证种类从同一应用定义生成到[mcp-tools.json](mcp-tools.json)。元数据REST DTO在OpenAPI与TypeScript中同源生成。连接配置和当前授权、幂等／CAS／原页面头、超时／取消约定见[统一合同](../../contracts/application-tools-mcp.md)与[接入文档](../integrations/project-mcp.md)。目录声明不授予权限；SDK协议层自有原始诊断与平台可本地化业务错误分别处理。

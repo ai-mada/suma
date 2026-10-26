@@ -8,6 +8,84 @@ export interface AccountPreferences {
 export interface Acknowledgement {
   acknowledged: boolean;
 }
+export interface ApplicationRequirementDesignSaveInput {
+  requirement_id: string;
+  expected_version: number;
+  expected_requirement_version: number;
+  content: RequirementDesignContent;
+  tasks: (RequirementDesignTask)[];
+  idempotency_key: string;
+}
+export interface ApplicationRequirementDraftInput {
+  title: string;
+  description?: string;
+  priority?: string;
+  owner_id?: string;
+  acceptance_criteria?: (string)[];
+  idempotency_key: string;
+}
+export interface ApplicationTaskDraftInput {
+  title: string;
+  description?: string;
+  priority?: string;
+  owner_id?: string;
+  requirement_id?: string;
+  depends_on?: (string)[];
+  acceptance_criteria?: (string)[];
+  idempotency_key: string;
+}
+export interface ApplicationToolDefinition {
+  name: string;
+  mcp_name: string;
+  description: string;
+  description_key: string;
+  parameters: { [key: string]: unknown };
+  read_only: boolean;
+  credential_scopes: (string)[];
+}
+export interface ApplicationToolDesignDraftResult {
+  project_id: string;
+  requirement_id: string;
+  version: number;
+  latest_revision: number;
+  published_revision: number;
+  has_draft: boolean;
+}
+export interface ApplicationToolDraftResult {
+  id: string;
+  project_id: string;
+  version: number;
+  status: string;
+}
+export interface ApplicationToolIDInput {
+  id: string;
+}
+export interface ApplicationToolKnowledgeInput {
+  references: (ProjectKnowledgeReference)[];
+}
+export interface ApplicationToolKnowledgeListInput {
+  kind?: string;
+  state?: string;
+  query?: string;
+  limit?: number;
+  cursor?: string;
+}
+export interface ApplicationToolList {
+  items: (ApplicationToolDefinition)[];
+}
+export interface ApplicationToolPageInput {
+  limit?: number;
+  cursor?: string;
+}
+export interface ApplicationToolRequirementInput {
+  requirement_id: string;
+}
+export interface ApplicationToolSearchInput {
+  query: string;
+}
+export interface ApplicationToolTaskInput {
+  task_id: string;
+}
 export interface ArtifactBinding {
   artifact_id: string;
   manifest_sha256: string;
@@ -528,6 +606,21 @@ export interface DeploymentRequest {
   artifact_sha256: string;
   assignment: AssignmentRef;
   authorization_ticket: string;
+}
+export interface DeveloperConnectionMetadata {
+  project_id: string;
+  endpoint_path: string;
+  endpoint_url?: string;
+  endpoint_source: 'configured' | 'listener_loopback' | 'unconfigured';
+  transport: 'streamable_http';
+  stateless: boolean;
+  sdk_name: string;
+  sdk_version: string;
+  token_environment: string;
+  expected_user_id: string;
+  expected_organization_id: string;
+  client_connection_verified: false;
+  tools: (ApplicationToolDefinition)[];
 }
 export interface DisplayDiagnostic {
   schema_version: 1;

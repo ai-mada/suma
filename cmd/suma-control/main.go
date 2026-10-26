@@ -48,6 +48,11 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 		return 1
 	}
 	ip := net.ParseIP(host)
+	publicURL, publicURLSource, err := platform.ResolveMCPPublicURL(app.Getenv("SUMA_PUBLIC_URL"), *addr)
+	if err != nil {
+		logger.Error(app.Text("公开服务地址配置无效", "invalid public service URL configuration"), "event", "control.public_url_invalid")
+		return 1
+	}
 	if (ip == nil || !ip.IsLoopback()) && app.Getenv("SUMA_SETUP_TOKEN") == "" {
 		logger.Error(app.Text("外部监听需要 SUMA_SETUP_TOKEN 确立首次所有权；请配置 TLS 反向代理", "external binding requires SUMA_SETUP_TOKEN for first-run ownership; configure TLS reverse proxy"), "event", "control.external_binding_guard")
 		return 1
@@ -78,7 +83,7 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 		logger.Error(app.Text("执行数据库结构迁移失败", "migrate execution schema"), "event", "control.execution_schema_migrate", "error", err)
 		return 1
 	}
-	server := &platform.Server{Service: service, Engine: engine, WebDir: app.Env("SUMA_WEB_DIR", "apps/web/dist"), AllowedOrigins: strings.FieldsFunc(app.Env("SUMA_ALLOWED_ORIGINS", "http://127.0.0.1:5173,http://localhost:5173"), func(r rune) bool { return r == ',' }), SetupToken: app.Getenv("SUMA_SETUP_TOKEN"), Maintenance: *maintenance}
+	server := &platform.Server{Service: service, Engine: engine, WebDir: app.Env("SUMA_WEB_DIR", "apps/web/dist"), AllowedOrigins: strings.FieldsFunc(app.Env("SUMA_ALLOWED_ORIGINS", "http://127.0.0.1:5173,http://localhost:5173"), func(r rune) bool { return r == ',' }), SetupToken: app.Getenv("SUMA_SETUP_TOKEN"), PublicURL: publicURL, PublicURLSource: publicURLSource, Maintenance: *maintenance}
 	httpServer := &http.Server{Addr: *addr, Handler: server.Handler(), ReadHeaderTimeout: 10 * time.Second, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
