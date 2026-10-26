@@ -1,0 +1,172 @@
+{
+  "stage": "T-P4-025",
+  "product_version": "1.0.0",
+  "status": "locally_verified_limited",
+  "production_integration_complete": false,
+  "implementation": [
+    "organization catalog metadata/revision pointers to one project skill body store",
+    "current authorization, immutable adoption provenance, independent draft/publication/dispatch",
+    "read-only project API/MCP15 tools and unchanged Agent4, CLI governed operations",
+    "compact paired zh-CN/en-US workbench, literal metadata search, recovery and source management links"
+  ],
+  "checks": {
+    "backend": "6 focused groups plus affected fixture/source-state/retirement fixes; no overlapping sums",
+    "mcp": "6 affected top-level checks including exact reviewed pin with official SDK",
+    "cli": "4 new groups, existing bilingual help and vet",
+    "dispatch": "1 independent cross-project HTTP -> published snapshot -> real RunnerClaim integration",
+    "frontend": "4 focused interactions; only share case rerun after layout change; final type pass",
+    "locales": 3573,
+    "schemas": 315,
+    "paths": 191,
+    "old_paths_changed": 0,
+    "old_models_changed": [
+      "ProjectKnowledgeContextItem",
+      "ProjectKnowledgeDetail",
+      "ProjectKnowledgeRevision"
+    ],
+    "full_suite_rerun": false
+  },
+  "runtime": {
+    "source_sha256": "4efe74fc3bb35f4fdb73e4a0cf24c9443aef72518b4290874af0556b966bd4f6",
+    "conservative_non_test_inputs": 324,
+    "control_sha256": "5f86e44637ef955ffa7d9718ba9caff3303270deed497fdb63acfe25bfe1b64a",
+    "web_index_sha256": "c315921e120f377d1005d292a23c3b561681e3827773f46556b480c56c636472",
+    "web_files": 120
+  },
+  "actual_ui": {
+    "stage": "T-P4-025",
+    "status": "passed_limited_local",
+    "product_version": "1.0.0",
+    "revision": "skill-catalog-v1",
+    "ui_revision": 2,
+    "scope": "existing fixture identity, actual Control/SQLite UI at1265x710; no model, new login, credential issuance or production approval",
+    "source": {
+      "project_id": "303773769c679ad9734e9ec7a9debfc4",
+      "knowledge_id": "bfda8c73156daaff5f196690ed51ad42",
+      "version": 2,
+      "state": "published",
+      "published_revision": 2,
+      "sha256": "b52c02bf12255344071b14e172b46c551451eb296e7e7819c2eff5438c33e308",
+      "method": "manual",
+      "content_sha256": "0b70fe059e772793ff45907fb2834137fb2f8fdab59f6e74e253999c494c574e"
+    },
+    "target": {
+      "project_id": "e4a7bcd817fc66fdd0b71ecb7b85d0f6",
+      "knowledge_id": "86eba34ff49985472648aadc419bf520",
+      "version": 2,
+      "state": "published",
+      "published_revision": 2,
+      "sha256": "a4d825e0d9fd3ddae6095d1525d3453ed39fe3804f662f8531bfec6dfc2f536c",
+      "method": "catalog_adoption",
+      "content_sha256": "0b70fe059e772793ff45907fb2834137fb2f8fdab59f6e74e253999c494c574e"
+    },
+    "catalog_id": "adee2c5845ef92f0e36a7e0e658caf78",
+    "catalog_version": 1,
+    "checks": [
+      "GUI create skill draft/publish -> explicit organization sharing -> create separate target project -> literal filter -> adopt draft -> independent target publish -> refresh with unchanged text and immutable lineage",
+      "Final EN/ZH labels preserve Chinese source; no raw navigation key; no manual-method mislabel for imported content",
+      "Final source management link selects correct original project, new sharing form in right pane, short hints, keyboard source selection",
+      "Focused tests separately prove dispatch denied before publication then fixed lineage/body and real RunnerClaim goal; no extra Runner/model process for this UI check"
+    ],
+    "tables": 161,
+    "integrity": "ok",
+    "screenshots": {
+      "share-final-en.png": "383e643f0aca13b01496560fc98159c4b433d930017ddafbc77dbe2bb82c08cb",
+      "shared-final-zh.png": "397f5dedc97fe1e5999895bf5c49d7a78f8f13245f3dcb4acb2678377e3f795a"
+    },
+    "remaining": [
+      "390/768/1920/fulltheme/device matrix",
+      "OceanBase/PostgreSQL and distributed scale",
+      "vendor models/vector extraction/team/squad policies/fullP0-P7"
+    ]
+  },
+  "primary": {
+    "tables": 161,
+    "original_tables": 158,
+    "original_schema_changes": 0,
+    "schema_additions": [
+      {
+        "type": "index",
+        "name": "suma_skill_catalog_adoption_origin",
+        "table": "suma_skill_catalog_adoptions"
+      },
+      {
+        "type": "index",
+        "name": "suma_skill_catalog_domain",
+        "table": "suma_skill_catalog"
+      },
+      {
+        "type": "index",
+        "name": "suma_skill_catalog_page",
+        "table": "suma_skill_catalog"
+      },
+      {
+        "type": "table",
+        "name": "suma_skill_catalog",
+        "table": "suma_skill_catalog"
+      },
+      {
+        "type": "table",
+        "name": "suma_skill_catalog_adoptions",
+        "table": "suma_skill_catalog_adoptions"
+      },
+      {
+        "type": "table",
+        "name": "suma_skill_catalog_revisions",
+        "table": "suma_skill_catalog_revisions"
+      }
+    ],
+    "new_skill_catalog_tables_empty": true,
+    "identical_full_tables": 158,
+    "changed_tables": [],
+    "integrity": "ok",
+    "authority_rows": 18,
+    "grant_rows": 0,
+    "authority_rows_unchanged": true,
+    "grant_rows_unchanged": true,
+    "normal_login_not_reissued": true,
+    "run_states": [
+      [
+        "failed",
+        1
+      ],
+      [
+        "succeeded",
+        2
+      ]
+    ],
+    "source_inputs": 324,
+    "served": {
+      "http://127.0.0.1:4324": {
+        "html_bytes_match": true,
+        "linked_assets_match": 2
+      },
+      "http://pool.localhost:4324": {
+        "html_bytes_match": true,
+        "linked_assets_match": 2
+      }
+    },
+    "existing_run_rows_unchanged": true
+  },
+  "preview": {
+    "url": "http://pool.localhost:4324/",
+    "control_pid": 254508,
+    "holder_pid": 233068,
+    "execution_session": 43321,
+    "status": "normal",
+    "health_version": "1.0.0"
+  },
+  "process_cleanup": {
+    "isolated_initial_and_final_ui": "control/holder exit0, source clone unchanged, integrity ok",
+    "old024": "control/holder exit0",
+    "current025": "keep running"
+  },
+  "evidence_root": ".cache/e2e/skill-catalog-stage-025",
+  "remaining": [
+    "vector retrieval and authorization at model ingress",
+    "model extraction evaluation, expert/team policy dimensions, skill execution package signatures",
+    "vendor/WorkBuddy and complete CLI/platform adapters",
+    "OceanBase/PostgreSQL/distributed-scale/installers/SSO/A2A/SaaS/mobile",
+    "full viewport/theme/device matrix and production acceptance"
+  ]
+}

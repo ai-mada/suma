@@ -23,7 +23,7 @@ func (s *Service) MigrateProjectKnowledge(ctx context.Context) error {
 			return err
 		}
 	}
-	return nil
+	return s.MigrateSkillCatalog(ctx)
 }
 
 const knowledgeSelect = `SELECT a.id,a.project_id,a.version,a.kind,a.state,a.latest_revision,a.published_revision,a.created_at,a.updated_at,l.snapshot,p.snapshot FROM suma_project_knowledge a JOIN suma_project_knowledge_revisions l ON l.tenant_id=a.tenant_id AND l.project_id=a.project_id AND l.knowledge_id=a.id AND l.revision=a.latest_revision LEFT JOIN suma_project_knowledge_revisions p ON p.tenant_id=a.tenant_id AND p.project_id=a.project_id AND p.knowledge_id=a.id AND p.revision=a.published_revision`
@@ -56,7 +56,7 @@ func scanKnowledge(row scanner) (ProjectKnowledgeDetail, error) {
 	if err = json.Unmarshal([]byte(latest), &out.Latest); err != nil {
 		return out, err
 	}
-	if out.Latest.Revision != out.LatestRevision || out.Latest.Kind != out.Kind || knowledgeRevisionHash(out.Latest) != out.Latest.SHA256 {
+	if out.Latest.Revision != out.LatestRevision || out.Latest.Kind != out.Kind || !knowledgeMethod(out.Latest.Method) || knowledgeRevisionHash(out.Latest) != out.Latest.SHA256 {
 		return out, fmt.Errorf("project knowledge latest revision is inconsistent")
 	}
 	// Response metadata comes from the validated latest revision; aggregate
@@ -75,7 +75,7 @@ func scanKnowledge(row scanner) (ProjectKnowledgeDetail, error) {
 		if err = json.Unmarshal([]byte(published.String), &revision); err != nil {
 			return out, err
 		}
-		if revision.Revision != out.PublishedRevision || revision.Kind != out.Kind || revision.State != "published" || knowledgeRevisionHash(revision) != revision.SHA256 {
+		if revision.Revision != out.PublishedRevision || revision.Kind != out.Kind || revision.State != "published" || !knowledgeMethod(revision.Method) || knowledgeRevisionHash(revision) != revision.SHA256 {
 			return out, fmt.Errorf("project knowledge published revision is inconsistent")
 		}
 		out.Published = &revision
@@ -95,6 +95,10 @@ func (s *Service) knowledgeDetailTx(ctx context.Context, auth *authorizedCommand
 	if errors.Is(err, sql.ErrNoRows) {
 		return out, missing()
 	}
+	if err != nil {
+		return out, err
+	}
+	out.CatalogAdoption, err = s.skillCatalogAdoptionTx(ctx, auth.tx, auth.target.tenantID, project, id)
 	return out, err
 }
 
@@ -273,7 +277,7 @@ func (s *Service) resolvePublishedKnowledgeTx(ctx context.Context, auth *authori
 			return nil, conflict("知识来源已变化或不可访问，请重新选择")
 		}
 		r := detail.Published
-		out = append(out, ProjectKnowledgeContextItem{ID: detail.ID, Revision: r.Revision, Kind: r.Kind, Title: r.Title, Summary: r.Summary, Content: r.Content, SHA256: r.SHA256, Sources: knowledgeContextSources(r.Sources)})
+		out = append(out, ProjectKnowledgeContextItem{ID: detail.ID, Revision: r.Revision, Kind: r.Kind, Title: r.Title, Summary: r.Summary, Content: r.Content, SHA256: r.SHA256, Sources: knowledgeContextSources(r.Sources), CatalogAdoption: detail.CatalogAdoption})
 	}
 	return out, nil
 }
@@ -466,4 +470,9 @@ func knowledgeContextSources(sources []ProjectKnowledgeSource) []ProjectKnowledg
 		out = append(out, ProjectKnowledgeContextSource{Kind: source.Kind, ID: source.ID, Version: source.Version, Title: source.Title, SHA256: source.SHA256})
 	}
 	return out
+}
+
+// Methods describe provenance only; imported text never grants executable authority.
+func knowledgeMethod(method string) bool {
+	return method == "manual" || method == "extractive" || method == "catalog_adoption"
 }

@@ -58,7 +58,7 @@ func TestApplicationToolsCurrentCatalogueAndAuthority(t *testing.T) {
 		}
 	}
 	list, err := f.s.ApplicationTools(context.Background(), api, f.project)
-	if err != nil || len(list.Items) != 13 {
+	if err != nil || len(list.Items) != 15 {
 		t.Fatalf("API catalogue %d: %v", len(list.Items), err)
 	}
 	if _, err = f.s.ApplicationTools(context.Background(), runner, f.project); applicationStatus(err) != 403 {

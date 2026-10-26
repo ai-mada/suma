@@ -31,6 +31,16 @@ type cliMessage struct{ key, zh string }
 // 精确匹配的是本 CLI 自己生成的静态诊断，绝不把远端诊断、用户文本或
 // 工具原始输出送进此映射。机器 code、状态和幂等请求正文不受语言影响。
 var cliMessages = map[string]cliMessage{
+	"skill-catalog requires list, get, revisions, promote, update, retire, or adopt; use skill-catalog --help":              {"cli.skill_catalog.action_required", "skill-catalog 需要 list、get、revisions、promote、update、retire 或 adopt，请查看 skill-catalog --help"},
+	"invalid skill-catalog read options; limit must be 1..100 and state published or retired":                               {"cli.skill_catalog.read_invalid", "技能目录读取参数无效，limit 须为 1–100，state 须为 published 或 retired"},
+	"skill-catalog requires a valid catalog ID":                                                                             {"cli.skill_catalog.id_required", "技能目录命令需要有效的目录标识"},
+	"skill-catalog get accepts only the catalog ID":                                                                         {"cli.skill_catalog.get_options", "skill-catalog get 仅接受目录标识"},
+	"skill-catalog writes require --file JSON_FILE or --file - and --confirm":                                               {"cli.skill_catalog.write_options", "技能目录写入需要 --file JSON_FILE 或 --file -，并提供 --confirm"},
+	"skill-catalog writes require explicit --confirm; approval and draft publication remain server-controlled":              {"cli.skill_catalog.confirm_required", "技能目录写入须明确提供 --confirm；批准与草稿发布仍由服务端控制"},
+	"skill-catalog writes require explicit integer versions, fixed SHA256, reason, and an 8..128 character idempotency_key": {"cli.skill_catalog.basis_required", "技能目录写入须提供明确整数版本、固定 SHA256、说明和 8–128 字符 idempotency_key"},
+	"skill-catalog promote and update require acknowledge_sharing=true in JSON":                                             {"cli.skill_catalog.sharing_confirmation", "共享与更新须在 JSON 中明确 acknowledge_sharing=true"},
+	"skill-catalog adopt requires acknowledge_draft=true in JSON":                                                           {"cli.skill_catalog.draft_confirmation", "采用须在 JSON 中明确 acknowledge_draft=true"},
+
 	"original-view IDs must be 32 lowercase hexadecimal characters; organization requires user": {"cli.view_context.invalid", "原始页面身份必须是 32 位小写十六进制标识；指定组织时还须指定账户"},
 	"--language must be zh-CN or en-US (supported aliases are accepted)":                        {"cli.language.invalid", "--language 必须为 zh-CN 或 en-US，也支持已声明的语言别名"},
 	"invalid global flags; use --help":                                                          {"cli.flags.invalid", "全局参数无效，请查看 --help"},
@@ -134,9 +144,9 @@ func (c *client) text(zh, en string) string {
 
 func helpForLocale(locale localization.Locale) string {
 	if locale == localization.EnUS {
-		return strings.Replace(help, "--timeout 15s", "--timeout 15s --language en-US|zh-CN", 1) + projectContextHelp(locale) + handoffsHelp(locale)
+		return strings.Replace(help, "--timeout 15s", "--timeout 15s --language en-US|zh-CN", 1) + projectContextHelp(locale) + handoffsHelp(locale) + skillCatalogHelp(locale)
 	}
-	return helpZH + projectContextHelp(locale) + handoffsHelp(locale)
+	return helpZH + projectContextHelp(locale) + handoffsHelp(locale) + skillCatalogHelp(locale)
 }
 
 func projectContextHelp(locale localization.Locale) string {

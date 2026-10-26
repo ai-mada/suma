@@ -37,14 +37,15 @@ type ProjectKnowledgeContextSource struct {
 }
 
 type ProjectKnowledgeContextItem struct {
-	ID       string                          `json:"id"`
-	Revision int                             `json:"revision"`
-	Kind     string                          `json:"kind"`
-	Title    string                          `json:"title"`
-	Summary  string                          `json:"summary"`
-	Content  string                          `json:"content"`
-	SHA256   string                          `json:"sha256"`
-	Sources  []ProjectKnowledgeContextSource `json:"sources"`
+	CatalogAdoption *SkillCatalogAdoption           `json:"catalog_adoption,omitempty"`
+	ID              string                          `json:"id"`
+	Revision        int                             `json:"revision"`
+	Kind            string                          `json:"kind"`
+	Title           string                          `json:"title"`
+	Summary         string                          `json:"summary"`
+	Content         string                          `json:"content"`
+	SHA256          string                          `json:"sha256"`
+	Sources         []ProjectKnowledgeContextSource `json:"sources"`
 }
 
 type ProjectKnowledgeRevision struct {
@@ -83,6 +84,7 @@ type ProjectKnowledgeSummary struct {
 }
 
 type ProjectKnowledgeDetail struct {
+	CatalogAdoption *SkillCatalogAdoption `json:"catalog_adoption,omitempty"`
 	ProjectKnowledgeSummary
 	Latest    ProjectKnowledgeRevision  `json:"latest"`
 	Published *ProjectKnowledgeRevision `json:"published,omitempty"`

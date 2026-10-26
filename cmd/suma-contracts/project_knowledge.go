@@ -73,7 +73,7 @@ func projectKnowledgeContracts(add operationAdder, api map[string]any) {
 	field("ProjectKnowledgeSourceInput", "version", map[string]any{"minimum": 1, "maximum": 2147483647})
 	field("ProjectKnowledgeReference", "revision", map[string]any{"minimum": 1, "maximum": 2147483647})
 	field("ProjectKnowledgeReference", "sha256", map[string]any{"pattern": "^[a-f0-9]{64}$", "description": "Digest of the explicitly selected publication, not authority."})
-	field("ProjectKnowledgeRevision", "method", map[string]any{"enum": []string{"manual", "extractive"}})
+	field("ProjectKnowledgeRevision", "method", map[string]any{"enum": []string{"manual", "extractive", "catalog_adoption"}})
 	field("ProjectKnowledgeSummary", "eligibility", map[string]any{"enum": []string{"none", "current", "source_changed", "retired", "publication_changed"}, "description": "Current eligibility of this exact published revision; historical receipt content is not overwritten."})
 	field("TaskDispatchPreviewRequest", "knowledge", map[string]any{"maxItems": 16, "description": "Explicit reviewed publication references; defaultempty. Resolved server-side and fixed into context. Total goal remains<=32000 UTF8 bytes; no truncation."})
 	field("TaskContext", "knowledge", map[string]any{"maxItems": 16, "readOnly": true, "description": "Server-resolved immutable snapshots. Content does not grant platform/tool permissions."})

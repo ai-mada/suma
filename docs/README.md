@@ -4,6 +4,7 @@
 
 | 主题 | 入口 |
 |---|---|
+| 组织共享技能目录（T-P4-025） | [PRD／交互](product/skill-catalog.md)、[架构与AI SOP](architecture/skill-catalog.md)、[正式合同](../contracts/skill-catalog.md)、[限定验证](quality/skill-catalog-verification.md) |
 | Token、费用估算与执行额度（T-P4-024） | [架构／交互与AI SOP](architecture/usage-accounting.md)、[正式合同](../contracts/usage-accounting.md) |
 | 模型规划与站内风险建议（T-P4-023） | [架构／交互与AI SOP](architecture/intelligent-planning.md)、[接口合同](../contracts/intelligent-planning.md) |
 | 跨节点候选代码交接（T-P4-018，限定本地验证） | [PRD](product/candidate-transfer.md)、[领域架构与SOP](architecture/candidate-transfer.md)、[正式合同](../contracts/candidate-transfer.md)、[实际验收](quality/candidate-transfer-verification.md) |

@@ -22,7 +22,7 @@ func TestApplicationToolContractDeclaresEffectsWithoutVerifiedConnection(t *test
 			ReadOnly bool   `json:"read_only"`
 		} `json:"items"`
 	}
-	if json.Unmarshal(data, &catalogue) != nil || len(catalogue.Items) != 13 {
+	if json.Unmarshal(data, &catalogue) != nil || len(catalogue.Items) != 15 {
 		t.Fatal("tool catalogue drift")
 	}
 	writes := 0

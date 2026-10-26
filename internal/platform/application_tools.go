@@ -16,7 +16,7 @@ func DeclaredApplicationTools() []ApplicationToolDefinition {
 	knowledge := applicationObject(map[string]any{"references": applicationArray(applicationObject(map[string]any{"id": applicationString(64), "revision": applicationInteger(1, 2147483647), "sha256": map[string]any{"type": "string", "minLength": 64, "maxLength": 64}}, "id", "revision", "sha256"), 16)}, "references")
 	knowledge["properties"].(map[string]any)["references"].(map[string]any)["minItems"] = 1
 	listKnowledge := applicationObject(map[string]any{"kind": map[string]any{"type": "string", "enum": []string{"memory", "spec", "skill"}}, "state": map[string]any{"type": "string", "enum": []string{"draft", "published", "retired"}}, "query": applicationString(200), "limit": applicationInteger(1, 100), "cursor": applicationString(4096)})
-	return []ApplicationToolDefinition{
+	definitions := []ApplicationToolDefinition{
 		makeDefinition("project.overview", "读取当前授权项目的真实状态与活动", "agent.tool_overview", applicationObject(map[string]any{}), true, "agent", "api"),
 		makeDefinition("project.tasks", "读取当前项目任务", "agent.tool_tasks", applicationLegacyTaskPageSchema(), true, "agent", "api"),
 		makeDefinition("project.search", "检索当前项目资料并返回来源", "agent.tool_search", applicationObject(map[string]any{"query": applicationString(500)}, "query"), true, "agent", "api"),
@@ -31,6 +31,7 @@ func DeclaredApplicationTools() []ApplicationToolDefinition {
 		makeDefinition("project.task_draft_create", "创建当前项目待办任务，不验收或启动执行", "application_tool_project_task_draft_create", applicationDraftSchema(true), false, "api"),
 		makeDefinition("project.requirement_design_save", "保存版本化需求设计草稿，不发布或采用任务", "application_tool_project_requirement_design_save", applicationDesignSchema(), false, "api"),
 	}
+	return append(definitions, applicationSkillDefinitions(makeDefinition)...)
 }
 
 func applicationLegacyTool(name string) bool {
@@ -124,6 +125,8 @@ func (s *Service) InvokeApplicationTool(ctx context.Context, actor Actor, call A
 func (s *Service) invokeApplicationRead(ctx context.Context, auth *authorizedCommand, call ApplicationToolCall) (any, error) {
 	project, args := call.ProjectID, call.Arguments
 	switch call.Tool {
+	case "project.skill_catalog_list", "project.skill_catalog_get":
+		return s.invokeApplicationSkillRead(ctx, auth, call)
 	case "project.overview":
 		var input struct{}
 		if e := strictApplicationInput(args, &input); e != nil {

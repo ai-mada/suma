@@ -102,6 +102,14 @@
         "Final health metadata correction: Server.BuildVersion receives control executable version; /healthz now actual1.0.0. Only control rebuilt, no business/model rerun. Same-schema152→152 oldrows/Schemas/18authority0Grant/tasksDAG kept; current250364/227944 exec89312 healthy, predecessor228520/221228 closed0. Initial helper preflight missing obsolete UI proof keys stopped before any primary action; adapted to actual023 proof and forward update passed."
       ],
       "evidence": "docs/quality/intelligent-planning-verification.md"
+    },
+    {
+      "stage": "T-P4-024",
+      "summary": [
+        "T-P4-024: independent usage/cost-estimate ledger, fixed-model price revisions, org/project UTC-month quota, transactional private/pool reserve/final settlement/unknown holds/manual confirmation; platform7 groups plus affected fixes and exact-number HTTP/cross-org Pool groups, DAG4top/6sub, UI4 plus changed cases, final3490 locale pairs/types/build and304schemas186paths. One real Control/Runner/native local model protocol fixture recorded40token/CNY57micros/holds0; second fresh claim quota-denied attempt0. Actual two-window price409→rebase kept2/3 draft→ratev3, oldledger ratev1 kept57, zeroquota policyv3, CNEN/refresh passed. No vendor cost, hard provider cap, full subjects, DB/scale or full device matrix acceptance.",
+        "Primary024/1.0.0 normal244176/250660 exec29683; old152schemas+allrows unchanged,6newemptytables+4indexes→158,18authority0Grant/oldtasks/run1failed2succeeded/original login kept;117web assets match. All isolated control/holder/Runner/model closed0, source clones unchanged; prior250364/227944 closed0. FullP0-P7 remains in progress."
+      ],
+      "evidence": "docs/quality/usage-accounting-verification.md"
     }
   ],
   "archives": [

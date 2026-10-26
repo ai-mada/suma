@@ -533,6 +533,90 @@
       "credential_scopes": [
         "api"
       ]
+    },
+    {
+      "name": "project.skill_catalog_list",
+      "mcp_name": "suma_project_skill_catalog_list",
+      "description": "检索当前授权组织的共享技能目录，不安装或启用技能",
+      "description_key": "application_tool_project_skill_catalog_list",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "domain": {
+            "maxLength": 80,
+            "type": "string"
+          },
+          "limit": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "query": {
+            "maxLength": 200,
+            "type": "string"
+          },
+          "scenario": {
+            "maxLength": 80,
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "published",
+              "retired"
+            ],
+            "type": "string"
+          },
+          "tag": {
+            "maxLength": 40,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "api"
+      ]
+    },
+    {
+      "name": "project.skill_catalog_get",
+      "mcp_name": "suma_project_skill_catalog_get",
+      "description": "读取共享技能的明确版本和摘要，原来源原件与权限不随文本共享",
+      "description_key": "application_tool_project_skill_catalog_get",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "type": "string"
+          },
+          "origin_sha256": {
+            "maxLength": 64,
+            "minLength": 64,
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "origin_sha256"
+        ],
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "api"
+      ]
     }
   ]
 }

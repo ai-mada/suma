@@ -24,6 +24,20 @@ export interface ApplicationRequirementDraftInput {
   acceptance_criteria?: (string)[];
   idempotency_key: string;
 }
+export interface ApplicationSkillCatalogGetInput {
+  id: string;
+  version: number;
+  origin_sha256: string;
+}
+export interface ApplicationSkillCatalogListInput {
+  domain?: string;
+  scenario?: string;
+  tag?: string;
+  state?: string;
+  query?: string;
+  limit?: number;
+  cursor?: string;
+}
 export interface ApplicationTaskDraftInput {
   title: string;
   description?: string;
@@ -1427,6 +1441,7 @@ export interface ProjectKnowledgeCommandRequest {
   idempotency_key: string;
 }
 export interface ProjectKnowledgeContextItem {
+  catalog_adoption?: SkillCatalogAdoption | null;
   id: string;
   revision: number;
   kind: string;
@@ -1444,6 +1459,7 @@ export interface ProjectKnowledgeContextSource {
   sha256: string;
 }
 export interface ProjectKnowledgeDetail {
+  catalog_adoption?: SkillCatalogAdoption | null;
   id: string;
   project_id: string;
   version: number;
@@ -2218,6 +2234,109 @@ export interface SessionResponse {
   organization: SessionOrganization;
   projects: (Record)[];
   setup_required: boolean;
+}
+export interface SkillCatalogAdoptRequest {
+  project_id: string;
+  expected_version: number;
+  origin_sha256: string;
+  reason: string;
+  acknowledge_draft: boolean;
+  idempotency_key: string;
+}
+export interface SkillCatalogAdoption {
+  catalog_id: string;
+  catalog_version: number;
+  origin: SkillCatalogOrigin;
+  project_id: string;
+  knowledge_id: string;
+  revision: number;
+  sha256: string;
+  adopted_by: string;
+  adopted_at: string;
+  reason: string;
+}
+export interface SkillCatalogCommandRequest {
+  project_id: string;
+  action: string;
+  expected_version: number;
+  reason: string;
+  idempotency_key: string;
+}
+export interface SkillCatalogDetail {
+  id: string;
+  version: number;
+  state: string;
+  title: string;
+  summary: string;
+  domain: string;
+  scenarios: (string)[];
+  tags: (string)[];
+  origin: SkillCatalogOrigin;
+  source_current: boolean;
+  eligibility: string;
+  created_by: string;
+  created_at: string;
+  reviewed_by: string;
+  updated_at: string;
+  reason: string;
+  can_manage: boolean;
+  can_adopt: boolean;
+  allowed_actions: (string)[];
+  content: string;
+}
+export interface SkillCatalogOrigin {
+  project_id: string;
+  knowledge_id: string;
+  knowledge_version: number;
+  revision: number;
+  sha256: string;
+}
+export interface SkillCatalogPage {
+  items: (SkillCatalogSummary)[];
+  total: number;
+  next_cursor: string;
+  can_manage: boolean;
+  can_adopt: boolean;
+}
+export interface SkillCatalogRevisionPage {
+  items: (SkillCatalogDetail)[];
+  total: number;
+  next_cursor: string;
+}
+export interface SkillCatalogSummary {
+  id: string;
+  version: number;
+  state: string;
+  title: string;
+  summary: string;
+  domain: string;
+  scenarios: (string)[];
+  tags: (string)[];
+  origin: SkillCatalogOrigin;
+  source_current: boolean;
+  eligibility: string;
+  created_by: string;
+  created_at: string;
+  reviewed_by: string;
+  updated_at: string;
+  reason: string;
+  can_manage: boolean;
+  can_adopt: boolean;
+  allowed_actions: (string)[];
+}
+export interface SkillCatalogWriteRequest {
+  project_id: string;
+  knowledge_id: string;
+  expected_knowledge_version: number;
+  published_revision: number;
+  published_sha256: string;
+  expected_version: number;
+  domain: string;
+  scenarios: (string)[];
+  tags: (string)[];
+  reason: string;
+  acknowledge_sharing: boolean;
+  idempotency_key: string;
 }
 export interface SwitchOrganizationRequest {
   organization_id: string;

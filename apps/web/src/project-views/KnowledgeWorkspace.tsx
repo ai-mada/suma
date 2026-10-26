@@ -8,7 +8,8 @@ import { useLeaveGuard, useWriteAction, WriteNotice, type WriteAction } from '..
 import { useToolList, useToolRead, toolSessionStorage } from '../tool-hooks';
 import { useKnowledgeEntries } from '../knowledge-hooks';
 import { knowledgeKinds, knowledgeSourceInputs, knowledgeSourceLabel, type KnowledgeDetail, type KnowledgeFilters, type KnowledgeKind, type KnowledgeRevision, type KnowledgeSourceInput, type KnowledgeSourceKind, type KnowledgeState } from '../knowledge-model';
-import { KnowledgeRevisionFacts } from '../KnowledgeFacts';
+import { CatalogAdoptionFacts, KnowledgeRevisionFacts } from '../KnowledgeFacts';
+import {catalogHref} from '../skill-catalog-model';
 import '../knowledge.css';
 type Props = {
     project: string;
@@ -94,7 +95,8 @@ export function KnowledgeWorkspace({ project, session, selected, filters, onFilt
      <p className={current.eligibility === 'source_changed' ? 'warning' : 'muted'}>{t('knowledge.eligible.' + current.eligibility)}</p>
      {current.eligibility === 'source_changed' && <p>{t('knowledge.changed_hint')}</p>}
      {current.published && <Field label={t('knowledge.revision_view')}><select value={view} onChange={event => setView(event.target.value as typeof view)}><option value="latest">{t('knowledge.view_latest')} · {current.latest.revision}</option><option value="published">{t('knowledge.view_published')} · {current.published.revision}</option></select></Field>}
-     <KnowledgeRevisionFacts project={project} revision={shown}/><KnowledgeHistory key={current.id + ':' + current.version} project={project} id={current.id}/>
+     {current.kind==='skill'&&current.published_eligible&&current.eligibility==='current'&&<a className="sc-link" href={catalogHref(project,current.id)} onClick={event=>{if(blocked||!canLeave())event.preventDefault();}}>{t('skill-catalog.share_link')}</a>}
+     <KnowledgeRevisionFacts project={project} revision={shown}/><CatalogAdoptionFacts project={project} value={current.catalog_adoption}/><KnowledgeHistory key={current.id + ':' + current.version} project={project} id={current.id}/>
      <div className="knowledge-actions"><button disabled={blocked || stale || current.state === 'retired'} onClick={() => { action.clearConflict(); setEditor({ mode: 'edit', entry: current }); }}>{t('knowledge.edit')}</button><button className="primary" disabled={blocked || stale || current.state === 'retired' || !current.has_draft} onClick={() => { action.clearConflict(); setDecision({ action: 'publish', entry: current }); setConfirmation(false); }}><ShieldCheck size={15}/>{t('knowledge.publish')}</button><button disabled={blocked || stale || current.state === 'retired'} onClick={() => { action.clearConflict(); setDecision({ action: 'retire', entry: current }); setConfirmation(false); }}>{t('knowledge.retire')}</button></div><small className="muted">{t('knowledge.approval_hint')}</small>
     </>}
    </> : <Empty title={t('knowledge.no_selection')} description={t('knowledge.select_hint')}/>}
