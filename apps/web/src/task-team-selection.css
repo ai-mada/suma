@@ -1,0 +1,5 @@
+.task-team-selection-cell { width: 3.5rem; text-align: center; }
+.task-team-selection-cell input { accent-color: var(--accent); cursor: pointer; width: 1rem; height: 1rem; }
+.task-team-selection-cell input:disabled { cursor: default; }
+.task-team-selection-cell input:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.task-team-selection-help { color: var(--muted); font-size: .75rem; margin: .5rem 1rem 0; }

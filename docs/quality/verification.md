@@ -1,6 +1,10 @@
 # 验证报告与历史基线
 
-## 当前 T-P4-026：模型辅助知识提炼
+## 当前 T-P4-027：项目专家配置与原子团队派发
+
+[专项报告](expert-team-dispatch-verification.md)与[精简摘要](expert-team-dispatch-summary.json)分别记录领域／Core／HTTP必要验证、中英文实际配置与批次、同机双独立Runner并发编码和交叉候选8项测试、单任务显式测试owner验收，以及164旧表原结构／全部行保持。无模型／厂商调用或全套重复；完整P0–P7、远端与生产验收继续。
+
+## 历史 T-P4-026：模型辅助知识提炼
 
 [专项报告](knowledge-intelligence-verification.md)与[精简摘要](knowledge-intelligence-summary.json)记录固定来源、原件／修订／采用、用量账本与有效租约恢复的必要检查；一次实际本地协议调用、最终中英文简单字段及主预览161旧表原行保持。未重复模型、全套或设备矩阵，未把本地协议效果当作厂商或生产验收。完整P0–P7继续实施。
 

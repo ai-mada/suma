@@ -1,6 +1,10 @@
 # 当前交付证据索引
 
-## 当前 T-P4-026 模型辅助知识提炼
+## 当前 T-P4-027 项目专家配置与协同派发
+
+[专项报告](../expert-team-dispatch-verification.md)与[精简摘要](../expert-team-dispatch-summary.json)绑定必要检查、双本地Runner的真实并发／交叉候选测试、中英代表性GUI及原164表保持升级。原始日志、截图、账号、SQL副本与二进制仅保存在忽略目录 `.cache/e2e/expert-team-dispatch-stage-027/`。本地CLI协议夹具与真实厂商、远端物理机及生产分别验收。
+
+## 历史 T-P4-026 模型辅助知识提炼
 
 [专项报告](../knowledge-intelligence-verification.md)与[精简摘要](../knowledge-intelligence-summary.json)绑定必要检查、一次实际模型协议、最终中英字段界面与原161表保持升级。原始记录、PNG、私有SQL快照和程序只保存在忽略目录 `.cache/e2e/knowledge-intelligence-stage-026/`，不提交Git；厂商、生产和完整平台仍待验收。
 

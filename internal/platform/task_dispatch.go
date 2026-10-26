@@ -15,7 +15,10 @@ func (s *Service) MigrateTaskDispatch(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	return s.migrateTaskDispatchRoutes(ctx)
+	if err = s.migrateTaskDispatchRoutes(ctx); err != nil {
+		return err
+	}
+	return s.MigrateExpertTeams(ctx)
 }
 
 func taskContextRecord(r Record) TaskContextRecord {
@@ -156,6 +159,26 @@ func (s *Service) CreateTaskDispatchPlan(ctx context.Context, engine *dag.Engine
 		}
 		return out, tx.Commit()
 	}
+	out, err = s.createTaskDispatchPlanTx(ctx, engine, auth, project, request)
+	if err != nil {
+		return out, err
+	}
+	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
+		return out, err
+	}
+	return out, tx.Commit()
+}
+
+// Shared by ordinary and coordinated previews. The caller owns authority,
+// transaction and operation receipt; no nested transaction or run is created.
+func (s *Service) createTaskDispatchPlanTx(ctx context.Context, engine *dag.Engine, auth *authorizedCommand, project string, request TaskDispatchPreviewRequest) (out TaskDispatchPlan, err error) {
+	if engine == nil || auth == nil {
+		return out, invalid("任务调度器未配置")
+	}
+	if err = assertProjectCommand(auth.tx, auth, project); err != nil {
+		return out, err
+	}
+	tx, p := auth.tx, auth.currentPrincipal
 	context, err := s.taskContextForDispatchTx(ctx, auth, project, request.TaskID, request.Knowledge)
 	if err != nil {
 		return out, err
@@ -208,13 +231,10 @@ func (s *Service) CreateTaskDispatchPlan(ctx context.Context, engine *dag.Engine
 	if err = s.saveTaskDispatchRouteBasisTx(ctx, tx, out.ID, route); err != nil {
 		return out, err
 	}
-	if err = s.saveCommandReceipt(ctx, auth, request.IdempotencyKey, hash, out); err != nil {
-		return out, err
-	}
 	if err = s.commandActivity(ctx, auth, "task.dispatch_preview", out.ID, context.Task.Title); err != nil {
 		return out, err
 	}
-	return out, tx.Commit()
+	return out, nil
 }
 
 func (s *Service) GetTaskDispatchPlan(ctx context.Context, engine *dag.Engine, actor Actor, project, id string) (TaskDispatchPlan, error) {
@@ -262,6 +282,9 @@ func (s *Service) StartTaskDispatchPlan(ctx context.Context, engine *dag.Engine,
 			return e
 		}
 		p = authority.proof.currentPrincipal
+		if e := s.rejectExpertTeamOwnedPlanTx(ctx, tx, p.TenantID, project, id); e != nil {
+			return e
+		}
 		var replay bool
 		hash, replay, err = s.commandReceipt(ctx, authority.proof, request.IdempotencyKey, map[string]any{"task_dispatch_start": id, "request": request})
 		if err != nil || replay {

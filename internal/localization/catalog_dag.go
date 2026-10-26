@@ -4,6 +4,9 @@ package localization
 // SourceTemplate is canonical evidence; neither translation nor locale is persisted.
 // Bare sentinel keys are selected explicitly by a caller that owns that error identity.
 var dagCatalog = []Definition{
+	{Key: "dag.run.managed_batch_request", SourceTemplate: "invalid: managed batch requires 1..16 unique reserved IDs, serializable workflows and authority hooks", Texts: map[Locale]string{ZhCN: "批量运行需要1至16个唯一预留标识、有效流程和授权校验", EnUS: "Managed batch requires 1..16 unique reserved IDs, valid workflows and authority hooks."}},
+	{Key: "dag.run.managed_batch_nodes", SourceTemplate: "invalid: managed batch requires at most 10000 top-level nodes", Texts: map[Locale]string{ZhCN: "批量运行的顶层节点总数不能超过10000", EnUS: "Managed batch cannot exceed 10000 top-level nodes."}},
+	{Key: "dag.run.managed_batch_receipt", SourceTemplate: "conflict: managed batch receipt does not match its original runs", Texts: map[Locale]string{ZhCN: "批量运行回执与原运行不一致，请核对原操作", EnUS: "Managed batch receipt does not match its original runs."}},
 	{Key: "dag.artifact.ancestor", SourceTemplate: "invalid: artifact source is not an ancestor", Texts: map[Locale]string{ZhCN: "制品源不是当前节点的祖先", EnUS: "Artifact source is not an ancestor."}},
 	{Key: "dag.artifact.consumer", SourceTemplate: "invalid: artifact_from requires a test and an explicit build ancestor", Texts: map[Locale]string{ZhCN: "artifact_from 仅供测试节点使用，并且必须指定显式构建祖先", EnUS: "artifact_from requires a test node and an explicit build ancestor."}},
 	{Key: "dag.artifact.source", SourceTemplate: "invalid: artifact source must be a static build command", Texts: map[Locale]string{ZhCN: "制品源必须是静态构建命令节点", EnUS: "Artifact source must be a static build command."}},

@@ -886,6 +886,112 @@ export interface ExecutionRouteView {
   allowed_actions: (string)[];
   as_of: string;
 }
+export interface ExpertTeamCommandRequest {
+  project_id: string;
+  expected_version: number;
+  action: string;
+  reason: string;
+  idempotency_key: string;
+}
+export interface ExpertTeamConfiguration {
+  project_id: string;
+  team_id: string;
+  team_name: string;
+  team_version: number;
+  version: number;
+  state: string;
+  roles: (ExpertTeamRole)[];
+  created_at: string;
+  updated_at: string;
+  valid: boolean;
+  blockers: (string)[];
+  can_edit: boolean;
+  can_publish: boolean;
+  can_retire: boolean;
+}
+export interface ExpertTeamConfigurationPage {
+  items: (ExpertTeamConfiguration)[];
+  total: number;
+  next_cursor?: string;
+}
+export interface ExpertTeamPlan {
+  id: string;
+  project_id: string;
+  team_id: string;
+  team_name: string;
+  version: number;
+  state: string;
+  configuration_version: number;
+  configuration: ExpertTeamConfiguration;
+  items: (ExpertTeamPlanItem)[];
+  created_at: string;
+  expires_at: string;
+  valid: boolean;
+  blockers: (string)[];
+  can_start: boolean;
+}
+export interface ExpertTeamPlanCreateRequest {
+  project_id: string;
+  team_id: string;
+  expected_configuration_version: number;
+  items: (ExpertTeamPlanItemRequest)[];
+  idempotency_key: string;
+}
+export interface ExpertTeamPlanItem {
+  role_key: string;
+  role_title: string;
+  resource_id: string;
+  resource_name: string;
+  plan: TaskDispatchPlan;
+  run_state: string;
+}
+export interface ExpertTeamPlanItemRequest {
+  task_id: string;
+  expected_task_version: number;
+  role_key: string;
+}
+export interface ExpertTeamPlanStartRequest {
+  project_id: string;
+  expected_version: number;
+  acknowledge_dispatch: boolean;
+  idempotency_key: string;
+}
+export interface ExpertTeamRole {
+  key: string;
+  title: string;
+  resource_id: string;
+  resource_version: number;
+  resource_kind: string;
+  resource_name: string;
+  membership_id: string;
+  membership_version: number;
+  workflow_id: string;
+  workflow_version: number;
+  agent_node_id: string;
+  tool_profile_id: string;
+  tool_profile_version: number;
+  tool_profile_sha256: string;
+  tool_name: string;
+  knowledge: (ProjectKnowledgeReference)[];
+}
+export interface ExpertTeamRoleRequest {
+  key: string;
+  title: string;
+  resource_id: string;
+  expected_resource_version: number;
+  workflow_id: string;
+  workflow_version: number;
+  agent_node_id: string;
+  tool_profile_id: string;
+  expected_tool_version: number;
+  knowledge: (ProjectKnowledgeReference)[];
+}
+export interface ExpertTeamSaveRequest {
+  project_id: string;
+  expected_version: number;
+  roles: (ExpertTeamRoleRequest)[];
+  idempotency_key: string;
+}
 export interface HealthCheck {
   path: string;
   expected_status: number;

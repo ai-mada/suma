@@ -1,0 +1,662 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-027",
+  "product_version": "1.0.0",
+  "recorded_at": "2026-10-26T12:57:07.2589252Z",
+  "status": "limited_local_source_protocol_gui_and_primary_upgrade_verified",
+  "contract": "contracts/expert-team-dispatch.md",
+  "report": "docs/quality/expert-team-dispatch-verification.md",
+  "count_policy": "Separate evidence surfaces; never add parent, child, regression and rerun pass events into one stage total.",
+  "source_scope": [
+    "Versioned project expert role configuration with explicit publication and retirement",
+    "One atomic preview/start for 1..16 independent tasks, each with a fixed run and original route",
+    "Current authority and source rechecks; accepted predecessor requirement retained",
+    "Existing queue, claim-time resources, usage accounting, task quality and human acceptance retained",
+    "Core adds two owned files without changing the single-run API"
+  ],
+  "checks": {
+    "core": {
+      "verification": {
+        "path": ".cache/e2e/expert-team-dispatch-stage-027/core/verification.local.json",
+        "sha256": "4add6b3ef63d9450540e47cae0890e58e578f8156cddab8a0a307d0146eefb68"
+      },
+      "final": {
+        "receipt": {
+          "path": ".cache/mcp019-deps/20261026T122039559Z.command.json",
+          "sha256": "7d4d74b66d77628980e045d692721c1da4e858ac551b7f976956ccc1576ccfd9"
+        },
+        "arguments": [
+          "test",
+          "./internal/dag",
+          "-run",
+          "^TestManagedBatch",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "recorded_at": "2026-10-26T12:20:42.1560112Z",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261026T122039559Z.stdout.txt",
+          "sha256": "e5ce74e432669fd0d309c88153a5fa61b1879055ecf5cc7e00e6dc09643ddaec"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261026T122039559Z.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "top_level": [
+          {
+            "name": "TestManagedBatchAtomicRootsRoutesAndReplay",
+            "result": "pass"
+          },
+          {
+            "name": "TestManagedBatchFailuresRollBackEveryRunAndDomainEffect",
+            "result": "pass"
+          },
+          {
+            "name": "TestManagedBatchLimitsAndReceiptIntegrity",
+            "result": "pass"
+          },
+          {
+            "name": "TestManagedBatchConcurrentConnectionsRecoverOriginalRuns",
+            "result": "pass"
+          }
+        ],
+        "test_pass_events": 21,
+        "test_fail_events": 0
+      },
+      "coverage": "Private/Pool; independent roots; ordered replay; current authority; all-or-nothing rollback; limits and receipt integrity; dual-connection recovery under existing authority-before write coordination"
+    },
+    "domain": {
+      "status": "all_7_top_level_groups_covered_by_original_successes_and_focused_rerun",
+      "original": {
+        "receipt": {
+          "path": ".cache/mcp019-deps/20261026T121910828Z.command.json",
+          "sha256": "ad781354ee2331d67961db3790d6eaf30459b11bd8f6bf267f6b62ea73c07044"
+        },
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestExpertTeam",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 1,
+        "recorded_at": "2026-10-26T12:19:18.6441309Z",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261026T121910828Z.stdout.txt",
+          "sha256": "d7863a890712fadb66810eed737440ea2b92f171567bd6ac681bb81474499aa2"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261026T121910828Z.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "top_level": [
+          {
+            "name": "TestExpertTeamConfigurationRevisionsRetirementAndAPIPrivileges",
+            "result": "pass"
+          },
+          {
+            "name": "TestExpertTeamPreviewAtomicRollbackAndAcceptedDependencyGate",
+            "result": "fail"
+          },
+          {
+            "name": "TestExpertTeamStartIndependentPrivateAndPoolRunsReplay",
+            "result": "pass"
+          },
+          {
+            "name": "TestExpertTeamStartSourceAndConfigurationDriftRejectsWholeBatch",
+            "result": "pass"
+          },
+          {
+            "name": "TestExpertTeamOwnedTaskPlanCannotStartDirectly",
+            "result": "pass"
+          },
+          {
+            "name": "TestExpertTeamConcurrentStartAndRevokedReplay",
+            "result": "pass"
+          },
+          {
+            "name": "TestExpertTeamRoleIdentityAndScopeAreNotExecutionAuthority",
+            "result": "pass"
+          }
+        ],
+        "test_pass_events": 16,
+        "test_fail_events": 1
+      },
+      "failed_fixture_only_rerun": {
+        "receipt": {
+          "path": ".cache/mcp019-deps/20261026T121942453Z.command.json",
+          "sha256": "5d08ada36cefb16c4c1e792946d1e0d30d1132b36c3a8d3febcd10cc3643f7ee"
+        },
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestExpertTeamPreviewAtomicRollbackAndAcceptedDependencyGate$",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "recorded_at": "2026-10-26T12:19:48.3458072Z",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261026T121942453Z.stdout.txt",
+          "sha256": "b282c0472394da1feedfa978c2f5b7a52a35e649d4aced8b7a28e08835e4beb4"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261026T121942453Z.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "top_level": [
+          {
+            "name": "TestExpertTeamPreviewAtomicRollbackAndAcceptedDependencyGate",
+            "result": "pass"
+          }
+        ],
+        "test_pass_events": 1,
+        "test_fail_events": 0
+      },
+      "explanation": "Original command exits 1 with six top-level groups passed and one fixture failure; only the failed predecessor-fixture group rerun after JSON-shape correction. No production acceptance gate relaxed."
+    },
+    "affected_single_dispatch_and_bind_rollback": {
+      "final": {
+        "receipt": {
+          "path": ".cache/mcp019-deps/20261026T122047719Z.command.json",
+          "sha256": "8aad2ab24f6c0ba9c7ca8ef050cf05a810670b000fe49ad596a8c92b7c7fdff9"
+        },
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestExpertTeamStartSourceAndConfigurationDriftRejectsWholeBatch$/bind-rollback$|^TestTaskDispatchPreviewStartAtomicBindingAndReceiptRecovery$|^TestTaskDispatchMaximumOperationRecoversOneRunAcrossConnections$|^TestTaskDispatchRouteRejectsUnreachableWorkerBeforePlan$",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "recorded_at": "2026-10-26T12:20:54.0174136Z",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261026T122047719Z.stdout.txt",
+          "sha256": "cbd0cff13ca0e6a787017d400349ad5c4775e42e233e4330749c32264b287c94"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261026T122047719Z.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "top_level": [
+          {
+            "name": "TestTaskDispatchRouteRejectsUnreachableWorkerBeforePlan",
+            "result": "pass"
+          },
+          {
+            "name": "TestExpertTeamStartSourceAndConfigurationDriftRejectsWholeBatch",
+            "result": "pass"
+          },
+          {
+            "name": "TestTaskDispatchMaximumOperationRecoversOneRunAcrossConnections",
+            "result": "pass"
+          },
+          {
+            "name": "TestTaskDispatchPreviewStartAtomicBindingAndReceiptRecovery",
+            "result": "pass"
+          }
+        ],
+        "test_pass_events": 8,
+        "test_fail_events": 0
+      },
+      "coverage": "Three existing single-task top-level regressions and one newly added batch bind-rollback subtest; eight pass events, not eight new independent groups"
+    },
+    "http": {
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261026T122400892Z.command.json",
+        "sha256": "cb78a4a8bf84b394e01cf4f5b394cf24579600d8119c5ddc27814bbf852497ef"
+      },
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^TestExpertTeamHTTPContractsAndAtomicDispatch$",
+        "-count=1",
+        "-json"
+      ],
+      "exit_code": 0,
+      "recorded_at": "2026-10-26T12:24:06.4284629Z",
+      "stdout": {
+        "path": ".cache/mcp019-deps/20261026T122400892Z.stdout.txt",
+        "sha256": "66b01e314546d4c3f8dfa51ff25eb85eefa13a2e4b25c5bd91c6662b93c21224"
+      },
+      "stderr": {
+        "path": ".cache/mcp019-deps/20261026T122400892Z.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "top_level": [
+        {
+          "name": "TestExpertTeamHTTPContractsAndAtomicDispatch",
+          "result": "pass"
+        }
+      ],
+      "test_pass_events": 1,
+      "test_fail_events": 0
+    },
+    "go_localization": {
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261026T122637897Z.command.json",
+        "sha256": "babf911302d8ab9ed2c86a9be82ec54d520cc78d58a539138263573f346a1801"
+      },
+      "arguments": [
+        "test",
+        "./internal/localization",
+        "-run",
+        "^Test(PlatformDiagnosticCoverage|CanonicalTemplateGrammarAndCatalogSnapshot)$",
+        "-count=1",
+        "-json"
+      ],
+      "exit_code": 0,
+      "recorded_at": "2026-10-26T12:26:39.3964185Z",
+      "stdout": {
+        "path": ".cache/mcp019-deps/20261026T122637897Z.stdout.txt",
+        "sha256": "018ac2466b05fd8a6ed5a20501b667788a72f3762be0f548ebf4925e346ebee1"
+      },
+      "stderr": {
+        "path": ".cache/mcp019-deps/20261026T122637897Z.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "top_level": [
+        {
+          "name": "TestCanonicalTemplateGrammarAndCatalogSnapshot",
+          "result": "pass"
+        },
+        {
+          "name": "TestPlatformDiagnosticCoverage",
+          "result": "pass"
+        }
+      ],
+      "test_pass_events": 2,
+      "test_fail_events": 0
+    },
+    "generated_contract": {
+      "final": {
+        "receipt": {
+          "path": ".cache/mcp019-deps/20261026T122639478Z.command.json",
+          "sha256": "0f11696fc85b89b7b2870f2930d69dd9870b712d2e2119232d029c08cd355ae7"
+        },
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "recorded_at": "2026-10-26T12:26:41.4651875Z",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261026T122639478Z.stdout.txt",
+          "sha256": "11cdd0655625aac372210320af951d3bcea80294d7845847ab5e56323e1368fd"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261026T122639478Z.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "top_level": [],
+        "test_pass_events": 0,
+        "test_fail_events": 0
+      },
+      "domain_model_count": 333,
+      "independent_error_schema_count": 1,
+      "openapi_components_schemas": 334,
+      "api_paths": 201,
+      "typescript_wire_types": "verified"
+    },
+    "core_vet": {
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261026T122235454Z.command.json",
+        "sha256": "bc3b2927dfdce0c021e85d6b08a4edccf7ea5e0ed93ca3ce57ac7f4a88031a07"
+      },
+      "arguments": [
+        "vet",
+        "./internal/dag"
+      ],
+      "exit_code": 0,
+      "recorded_at": "2026-10-26T12:22:36.5330144Z",
+      "stdout": {
+        "path": ".cache/mcp019-deps/20261026T122235454Z.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": ".cache/mcp019-deps/20261026T122235454Z.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "top_level": [],
+      "test_pass_events": 0,
+      "test_fail_events": 0
+    },
+    "platform_and_entry_vet": {
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261026T122518351Z.command.json",
+        "sha256": "ec7707c9a6a5fd97e528b8cc8167d93da26f3ee9ed9be1523acf364d6003636f"
+      },
+      "arguments": [
+        "vet",
+        "./internal/platform",
+        "./cmd/suma-control",
+        "./cmd/suma-contracts"
+      ],
+      "exit_code": 0,
+      "recorded_at": "2026-10-26T12:25:21.8576257Z",
+      "stdout": {
+        "path": ".cache/mcp019-deps/20261026T122518351Z.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": ".cache/mcp019-deps/20261026T122518351Z.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "top_level": [],
+      "test_pass_events": 0,
+      "test_fail_events": 0
+    },
+    "web_types_and_localization": {
+      "verification": {
+        "path": ".cache/e2e/expert-team-dispatch-stage-027/verification/root-web-checks.local.json",
+        "sha256": "4983ccc5c05eab30d5cf05bb8200afa6856a350be9085a036e1c4fa6ac0918d5"
+      },
+      "source": "Root exec tool output summary; no independent raw capture",
+      "initial_execution": "2c6213 exit 2, App conditional JSX closing brace",
+      "final_execution": "session 19793 exit 0 after focused fix",
+      "typescript": "passed_after_fix",
+      "paired_frontend_keys": 3789,
+      "covered_module_hardcodes": 0,
+      "repeat_performed": false
+    },
+    "web_recovery_tests": {
+      "status": "representative_actual_GUI_original_plan_share_and_refresh_verified",
+      "verification": {
+        "path": ".cache/e2e/expert-team-dispatch-stage-027/browser/verification.local.json",
+        "sha256": "defffb9af37925106403daab57226285dbf050933715aad1a0c26d8174700de1"
+      },
+      "additional_automated_test_rerun": false
+    },
+    "full_suite_rerun": false,
+    "new_dependencies": false
+  },
+  "paired_build": {
+    "verification": {
+      "path": ".cache/e2e/expert-team-dispatch-stage-027/runtime/build-facts.local.json",
+      "sha256": "382e7358de40a51109bd88fce5c4d26e64534f8ac9739e1d3cb65a27cf26e09f"
+    },
+    "source_inventory": {
+      "path": ".cache/e2e/expert-team-dispatch-stage-027/runtime/source-before.local.json",
+      "sha256": "6d5a0701d6b169a44e9d69c80d07bd5c17c2ab16eb1411d22ca7bf77644364c7"
+    },
+    "source_file_count": 346,
+    "source_sha256": "54b56b2ffcfd501fe794b8afbbc59efa8970cca2538ee1381f7448ab3c980dc5",
+    "built_at": "2026-10-26T20:29:46.867549+08:00",
+    "control_sha256": "134124f9433afb1a6b8356ee66c25577b4bdb268d3f574331fcaf0c748ab7e21",
+    "runner_sha256": "936a5ea205fdb9d5e29022687943019ac7330963502447f3fffe83eb8bcf89bb",
+    "control_build": {
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261026T122737014Z.command.json",
+        "sha256": "cf1d4ec4cd43106e1042fc1ace4f9048e3541b795939661e992a4c53e76521be"
+      },
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-o",
+        ".cache/e2e/expert-team-dispatch-stage-027/runtime/suma-control.exe",
+        "./cmd/suma-control"
+      ],
+      "exit_code": 0,
+      "recorded_at": "2026-10-26T12:27:42.382907Z",
+      "stdout": {
+        "path": ".cache/mcp019-deps/20261026T122737014Z.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": ".cache/mcp019-deps/20261026T122737014Z.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "top_level": [],
+      "test_pass_events": 0,
+      "test_fail_events": 0
+    },
+    "runner_build": {
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261026T122913806Z.command.json",
+        "sha256": "52b75eae1acd0a70ac44b16a3cfb627b54518da2c3626b29cbfeab26dad5ed6d"
+      },
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-o",
+        ".cache/e2e/expert-team-dispatch-stage-027/runtime/suma-runner.exe",
+        "./cmd/suma-runner"
+      ],
+      "exit_code": 0,
+      "recorded_at": "2026-10-26T12:29:15.6156888Z",
+      "stdout": {
+        "path": ".cache/mcp019-deps/20261026T122913806Z.stdout.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": ".cache/mcp019-deps/20261026T122913806Z.stderr.txt",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "top_level": [],
+      "test_pass_events": 0,
+      "test_fail_events": 0
+    },
+    "web_file_count": 127,
+    "web_index_sha256": "45ecfe8da547b315b2c913a8b9e8e5adb8cdcce6bf6778b240774ad6ea5b193a",
+    "web_artifacts": {
+      "path": ".cache/e2e/expert-team-dispatch-stage-027/verification/web-artifacts.actual.local.json",
+      "sha256": "507e3a4ea4b4ec0b8b22225c6186dd53943d68469a4f0edd3b8b16015222f3f2"
+    },
+    "web_build_log": {
+      "path": ".cache/e2e/expert-team-dispatch-stage-027/verification/web-build.log",
+      "sha256": "d9bf4706fa05a4e1fe40f82a86d63092982cf6346e9941548ec98292963e0ee8"
+    },
+    "web_build_warning": "Existing minified chunk size warning retained",
+    "protocol": "Existing Runner/CLI contracts unchanged; paired stage control+Runner rebuilt; no native bundle needed for Harness/CodeBuddy fixture.",
+    "build_model_calls": 0,
+    "deployment_inferred_from_build": false,
+    "initial_web_index_sha256": "1d2e547f4a0300625b526ef7476755ebc0ac030d4af9f7d52cd5499d7ae6002e",
+    "initial_web_artifacts": {
+      "path": ".cache/e2e/expert-team-dispatch-stage-027/verification/web-artifacts.local.json",
+      "sha256": "507e3a4ea4b4ec0b8b22225c6186dd53943d68469a4f0edd3b8b16015222f3f2"
+    },
+    "web_directory": "web-final",
+    "final_web_build_log": {
+      "path": ".cache/e2e/expert-team-dispatch-stage-027/verification/web-final-build.log",
+      "sha256": "3611ace0dbbbee16f97829fb15ac8a6b7ba9b5750d0301a0aad8cb21bf1ebb07"
+    },
+    "final_web_change": "One preview expiry display line adds local hours/minutes; build exit 0; no repeated type/tests/CLI/model execution"
+  },
+  "actual": {
+    "status": "limited_local_protocol_verified_before_separate_GUI_acceptance",
+    "verification": {
+      "path": ".cache/e2e/expert-team-dispatch-stage-027/actual/verification.local.json",
+      "sha256": "fe8288af4f0a4e57956911f85f602d392c05b99f2bacac2791eba31d21e90414"
+    },
+    "checks_passed": 35,
+    "checks_failed": 0,
+    "batch_id": "d0c515c4189c03da89709e530847b368",
+    "team_id": "ce320e362ffae606bfc3b32f47632fa3",
+    "run_ids": {
+      "codebuddy": "4fa55fd688be983bcac51fffd4bfc793",
+      "harness": "a6d926ec2ef2e97d814148656de6dbc9"
+    },
+    "execution_scope": "Two independent local Runner processes and repositories on the same Windows host; not two physical hosts or remote distributed acceptance",
+    "runner_count": 2,
+    "independent_repositories": 2,
+    "actual_concurrent_cli_processes": true,
+    "cli_boundary": "Owned Node protocol fixtures; not installed or invoked Harness/CodeBuddy vendor CLI software",
+    "candidate_proof": "Sealed Git bundle passed between the local independent Runners, with pinned same-SHA candidate formal tests",
+    "formal_assertions_per_candidate": 4,
+    "formal_assertions_total": 8,
+    "attempts": 4,
+    "attempts_each_once_and_acknowledged": true,
+    "cross_machine_check_label_scope": "Legacy check names in raw receipt refer to cross-Runner bundle transfer only; no physical multi-host claim",
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "new_agent_tokens": 0,
+    "original_task_run_knowledge_and_026_40tokens57micros_rows_unchanged": true,
+    "original_checkouts_unchanged": true,
+    "source_db_sha256": "a30aa78b114bd855c1bc4b5726e17c05a9931ce318e4bca1ebdbb649c16dae8e",
+    "setup_recovery": "First helper setup returned correct API 400 for reserved execution_slots supplied through resource_limits; helper changed to concurrency_limit=2, resuming same DB and original operation IDs, without duplicate observe writes or CLI reruns",
+    "initial_failure_receipts": [
+      ".cache/e2e/expert-team-dispatch-stage-027/actual/setup-001-failure.local.json",
+      ".cache/e2e/expert-team-dispatch-stage-027/actual/setup-001-last-http-failure.local.json",
+      ".cache/e2e/expert-team-dispatch-stage-027/actual/setup-001-scheduling-before.local.json"
+    ],
+    "owned_processes": {
+      "verification": {
+        "path": ".cache/e2e/expert-team-dispatch-stage-027/actual/owned-Runners-final.local.json",
+        "sha256": "23bcdad2f954fe01ab533c7d2fb338e0c6c71e1c1bc458e097d41ea8d3d3aedb"
+      },
+      "runner_A_pid": 232728,
+      "runner_B_pid": 220848,
+      "holder_pid": 248212,
+      "exec_session": 49150,
+      "all_exit_code": 0,
+      "graceful": true,
+      "forced": false,
+      "root_control_stopped_by_helper": false
+    },
+    "script_pins": [
+      {
+        "path": ".cache/e2e/expert-team-dispatch-stage-027/actual/run-actual.py",
+        "sha256": "750c418e4ca0d762251ea6cbb37755075e887b964107ee880bbc97ad22fc338b"
+      },
+      {
+        "path": ".cache/e2e/expert-team-dispatch-stage-027/actual/formal-test.py",
+        "sha256": "d283c5095fc4ee6de2b92bee2d8e3842efd667a417e299d43b0536d7e21b08c8"
+      }
+    ],
+    "human_review_by_script": false
+  },
+  "gui": {
+    "status": "representative_local_CN_EN_journey_verified",
+    "verification": {
+      "path": ".cache/e2e/expert-team-dispatch-stage-027/browser/verification.local.json",
+      "sha256": "defffb9af37925106403daab57226285dbf050933715aad1a0c26d8174700de1"
+    },
+    "configuration_draft_version": 1,
+    "configuration_published_version": 2,
+    "batch_version": 2,
+    "batch_state": "started",
+    "run_states": [
+      "succeeded",
+      "succeeded"
+    ],
+    "checks": [
+      "Fixed resource/workflow/tool role editor",
+      "Explicit draft publication",
+      "Two loaded tasks and per-task role selection",
+      "One fixed preview and explicit atomic start",
+      "Actual run links and manual refresh",
+      "English and Chinese labels preserve user titles",
+      "Final build share/refresh restores original plan without selection",
+      "Formal test evidence and separate task review"
+    ],
+    "task_rows": [
+      {
+        "task_id": "0c8c659951b564a3fbee7bfb2acb3586",
+        "version": 3,
+        "state": "accepted",
+        "review": "One explicit local test-owner CodeBuddy review"
+      },
+      {
+        "task_id": "8616cc66c13f55bd9708f4b6ba67c571",
+        "version": 2,
+        "state": "in_progress",
+        "review": "Human acceptance still pending independently"
+      }
+    ],
+    "acceptance_scope": "Local test-owner verification only; neither business approval nor production acceptance",
+    "initial_UI_closed": {
+      "control_pid": 254700,
+      "holder_pid": 250112,
+      "exec_session": 10840,
+      "exit_code": 0,
+      "forced": false
+    },
+    "final_UI_closed": {
+      "control_pid": 251748,
+      "holder_pid": 214636,
+      "exec_session": 61402,
+      "exit_code": 0,
+      "forced": false,
+      "source_clone_unchanged": true
+    },
+    "screenshots": "Five PNG and their exact SHA256 are retained in the browser verification receipt",
+    "type_or_key_count_substitutes_for_gui": false
+  },
+  "primary": {
+    "status": "T-P4-027_normal_preview_forward_upgrade_locally_verified",
+    "stage": "T-P4-027",
+    "url": "http://pool.localhost:4324/",
+    "control_pid": 255376,
+    "holder_pid": 247864,
+    "exec_session": 63413,
+    "keep_running": true,
+    "upgrade_verification": {
+      "path": ".cache/e2e/expert-team-dispatch-stage-027/primary-upgrade/final-verification.local.json",
+      "sha256": "b20cf94ece63b4c3433a01451f58f2872e810b22434ae674ef6cf02d63683ff1"
+    },
+    "original_tables": 164,
+    "original_schema_changes": 0,
+    "identical_full_tables": 164,
+    "changed_tables": [],
+    "new_empty_tables": 4,
+    "new_indexes": 2,
+    "total_tables": 168,
+    "integrity": "ok",
+    "authority_rows": 18,
+    "grant_rows": 0,
+    "authority_and_grant_rows_unchanged": true,
+    "normal_login_not_reissued": true,
+    "original_run_states": {
+      "failed": 1,
+      "succeeded": 2
+    },
+    "existing_run_rows_unchanged": true,
+    "loopback_and_browser_alias_HTML_and_linked_assets_match": true,
+    "control_sha256": "134124f9433afb1a6b8356ee66c25577b4bdb268d3f574331fcaf0c748ab7e21",
+    "source_inputs": 346,
+    "source_sha256": "54b56b2ffcfd501fe794b8afbbc59efa8970cca2538ee1381f7448ab3c980dc5",
+    "web_files": 127,
+    "web_index_sha256": "45ecfe8da547b315b2c913a8b9e8e5adb8cdcce6bf6778b240774ad6ea5b193a",
+    "prior_026_exec_session": 2716,
+    "prior_026_exit_code": 0,
+    "test_business_data_imported": false
+  },
+  "intermediate_failures": [
+    {
+      "receipts": [
+        ".cache/mcp019-deps/20261026T121743088Z.command.json",
+        ".cache/mcp019-deps/20261026T121833395Z.command.json"
+      ],
+      "cause": "Existing SaveTeamMember map parser requires float64 expected_version, fixture supplied int 0",
+      "resolution": "Corrected fixture only; preserved original failed commands"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261026T121910828Z.command.json",
+      "cause": "Predecessor fixture used []string instead of JSON []any, ignored by existing stringsAt",
+      "resolution": "Only failed fixture group rerun successfully"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261026T121736114Z.command.json",
+      "cause": "Concurrent Core fixture omitted existing Service authority-before write coordination, producing SQLite BUSY",
+      "resolution": "Fixture uses same-transaction authority writer; focused concurrency and final four groups pass; no new automatic retry"
+    },
+    {
+      "receipt": ".cache/e2e/expert-team-dispatch-stage-027/verification/root-web-checks.local.json",
+      "cause": "Root App JSX conditional missing closing brace",
+      "resolution": "Focused correction; final type/i18n checks and isolated web build pass"
+    }
+  ],
+  "remaining": [
+    "Harness task human acceptance remains independently pending; successful run does not auto-accept it",
+    "No physical multi-host, remote distributed or cross-database/scale acceptance",
+    "No vendor CLI installation, vendor model/account/inference or vendor billing acceptance",
+    "No full device/theme matrix or full CLI diagnostic localization",
+    "General expert-result handoff/synthesis, candidate review, target branch CAS integration and complete P0-P7 remain platform work"
+  ]
+}
