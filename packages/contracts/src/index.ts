@@ -1144,6 +1144,93 @@ export interface PlannedTask {
   data: { [key: string]: unknown };
   plan: TaskPlan;
 }
+export interface PlanningAlert {
+  id: string;
+  project_id: string;
+  version: number;
+  analysis_id: string;
+  run_id: string;
+  risk_key: string;
+  severity: string;
+  title: string;
+  detail: string;
+  task_ids: (string)[];
+  state: string;
+  created_at: string;
+  updated_at: string;
+  decision_by: string;
+  decision_at: string;
+  decision_reason: string;
+}
+export interface PlanningAlertCommandRequest {
+  project_id: string;
+  expected_version: number;
+  action: string;
+  reason: string;
+  idempotency_key: string;
+}
+export interface PlanningAlertPage {
+  items: (PlanningAlert)[];
+  total: number;
+  next_cursor: string;
+  open_count: number;
+  critical_count: number;
+}
+export interface PlanningAnalysis {
+  id: string;
+  project_id: string;
+  version: number;
+  state: string;
+  goal: string;
+  locale: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  tool_profile_id: string;
+  tool_profile_version: number;
+  tool_profile_sha256: string;
+  run_id: string;
+  max_steps: number;
+  max_output_tokens: number;
+  source: PlanningSource;
+  proposal?: PlanningOutput | null;
+  original_output_sha256: string;
+  original_output: string;
+  reason: string;
+  allowed_actions: (string)[];
+  basis_current: boolean;
+}
+export interface PlanningAnalysisCommandRequest {
+  project_id: string;
+  expected_version: number;
+  action: string;
+  proposal?: PlanningOutput | null;
+  reason: string;
+  acknowledge_schedule_changes: boolean;
+  idempotency_key: string;
+}
+export interface PlanningAnalysisCreateRequest {
+  project_id: string;
+  goal: string;
+  locale: string;
+  task_ids: (string)[];
+  tool_profile_id: string;
+  expected_tool_version: number;
+  max_steps: number;
+  max_output_tokens: number;
+  acknowledge_model_use: boolean;
+  idempotency_key: string;
+}
+export interface PlanningAnalysisPage {
+  items: (PlanningAnalysis)[];
+  total: number;
+  next_cursor: string;
+}
+export interface PlanningCapability {
+  protocol: string;
+  model: string;
+  endpoint_origin: string;
+}
 export interface PlanningCoverage {
   loaded_tasks: number;
   total_tasks: number;
@@ -1159,6 +1246,13 @@ export interface PlanningMetrics {
   estimated_hours: number;
   overdue_tasks: number;
   acceptance_percent: number | null;
+}
+export interface PlanningOutput {
+  schema_version: number;
+  summary: string;
+  rationale: string;
+  actions: (PlanningScheduleAction)[];
+  risks: (PlanningRisk)[];
 }
 export interface PlanningPeriod {
   id: string;
@@ -1196,6 +1290,36 @@ export interface PlanningResponse {
   coverage: PlanningCoverage;
   metrics: PlanningMetrics;
   as_of: string;
+}
+export interface PlanningRisk {
+  key: string;
+  severity: string;
+  title: string;
+  detail: string;
+  task_ids: (string)[];
+}
+export interface PlanningScheduleAction {
+  task_id: string;
+  iteration_id: string;
+  milestone_id: string;
+  start_date: string;
+  due_date: string;
+  estimated_hours: number | null;
+}
+export interface PlanningSource {
+  sha256: string;
+  week_start: string;
+  tasks: (PlanningSourceTask)[];
+  requirements: (TaskContextRecord)[];
+  capacity: (CapacityEntry)[];
+}
+export interface PlanningSourceTask {
+  task: TaskContextRecord;
+  owner_id: string;
+  status: string;
+  priority: string;
+  depends_on: (string)[];
+  plan: TaskPlan;
 }
 export interface PoolCapabilityScope {
   tenant_id: string;
@@ -2337,6 +2461,7 @@ export interface ToolExecutionProfile {
   tool_version: string;
   read_only: boolean;
   workspace_tools_version?: string;
+  planning?: PlanningCapability | null;
 }
 export interface ToolInventoryReceipt {
   acknowledged: boolean;

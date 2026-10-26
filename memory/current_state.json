@@ -2,7 +2,7 @@
   "project": "suma",
   "name": "速码一栈式智能研发平台",
   "phase": "implementation",
-  "updated_at": "2026-10-26T06:45:16.749254+00:00",
+  "updated_at": "2026-10-26T07:49:56.969338+00:00",
   "status": "in_progress",
   "plan": "docs/delivery/implementation-plan.md",
   "workstreams": {
@@ -18,17 +18,18 @@
     "external_application_tools": "officialGoSDK1.8.0 inboundMCP13/sharedAgent4/currentAPI_drafts_and_compact_CNEN_connection_locally_verified; OAuth_outbound_A2A_vendors_pending",
     "native_coding": "six_osRoot_official_MCP_tools_CAS_durable_operations_fixed_check_host_Git_seal_and_independent_B_sameSHA_formal_tests_GUI_testowner_review_locally_verified; vendor_production_full_OS_sandbox_target_merge_pending",
     "team_cli_runtime": "harness_multica_v1_and_CodeBuddy_JSONL_native_and_fixed_Node_entry_real_local_processes_private_Git_and_entry_drift_guard_verified; compact_CNEN_config_UI_and_original_preview_updated; vendor_models_WorkBuddy_teamhandoff_pending",
-    "team_handoff": "human/team fixed proposal and atomic owner/CAS/invalidation with scoped current authority, history, CNEN panel and CLI locally verified; expert-squad autonomous handoff/cross-organization/distributed acceptance pending"
+    "team_handoff": "human/team fixed proposal and atomic owner/CAS/invalidation with scoped current authority, history, CNEN panel and CLI locally verified; expert-squad autonomous handoff/cross-organization/distributed acceptance pending",
+    "intelligent_planning": "bounded actual native model execution, fixed-source reviewed atomic schedules and durable in-app risks with current-authorized private/pool HTTP callbacks and CNEN folded UI locally verified; vendor/account/long-term autonomous strategy/scale pending"
   },
   "verified": [
-    "T-P4-022: versioned human/team task handoff pending→accepted/returned/withdrawn, current authority before receipt, fixed task/requirement/owner/run/delivery and recipient/team versions, single-pending slot and atomic owner/CAS/invalidation/receipt/activity. Necessary six backend groups plus HTTP boundaries have GREEN evidence; initial3fixture RED preserved, only affected3 then projection2 groups rerun. UI4, CLI1top/8sub (9pass), types/3279 locale pairs/281schemas176paths1541refs/affectedvet/build passed; no full suite/vendor/model/Runner rebuild. Actual isolated existingOwner sender+receiver newtask v1→v2/in_progress/newowner and acceptedhandoffv2, refresh/CNEN/rawbasis/ack/1366light passed; old acceptedtask and72protected tables unchanged; UI control/holder0/sourceDBsame. Primary022 normal243252/235428, old147schemas and143fulltables+4samePKseq preserved,2newemptytables total149,18authority0Grant/oldtasksDAG/run1failed2succeeded/originalCookie unchanged; oldcontrol/holder0. Full P0-P7, multi-expert automatic teams, WorkBuddy, vendor/production/distributed acceptance remain in progress.",
-    "1.0.0 steering: six owned package versions/desktop/Go defaults/CLI+native banners/Helm metadata aligned; no historical compatibility layers. Only service version6pass +CLI1pass, actual four Go binaries and native bundle all --version1.0.0; native SDK2.4 unchanged. Initial pnpm metadata guard/compiler-directory errors preserved, existing package-local tools built without downloads; pnpm install not revalidated. CSS CRLF/EOF normalization only, web115 assets and prior function evidence reused. Primary version-only149→149 forward normal247120/247472; authority18/Grant0/oldtasksDAG/newemptytables intact, priorcontrolholder0; health/assets verified without replaying business/model journeys. Full platform and signed installers/images/production remain pending."
+    "T-P4-023: model planning and persistent in-app risk suggestions locally verified: 8 backend groups plus affected schedule, native20 focused TS and relevant Go, frontend4 plus affected1, final3383 locale pairs,294schemas181paths/check and affectedvet/build. Real Control/Runner/native and one local deterministic HTTP model call yielded readyv2+one risk; UI reviewed source/original and explicit apply→appliedv3/planv1/2h/tasktodo v1, riskackv2/reason/refresh/CNEN. No vendor model/cost/production or full device matrix.",
+    "Primary023/1.0.0 normal228520/221228; old149schemas+allrows unchanged,3newemptytables+3indexes→152,18authority0Grant/oldtasks/run1failed2succeeded/original login preserved. Final115webassets and linkedbytes match; old022control247120/holder247472 and isolated fixtures closed0; keep current exec18464. FullP0-P7 continues."
   ],
   "production_integration_complete": false,
-  "current_evidence": "docs/quality/task-handoff-verification.md",
-  "stage": "T-P4-022_task_handoff_locally_verified",
+  "current_evidence": "docs/quality/intelligent-planning-verification.md",
+  "stage": "T-P4-023_intelligent_planning_locally_verified",
   "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
-  "next_step": "Continue full P0-P7 on 1.0.0 best-fit design, no historical compatibility layers. Prioritize token/cost metering and atomic budget/quotas, unified authorized versioned skill repository; then autonomous planning/expert squads, protected repository integration, WorkBuddy/other platforms, intelligent CLI/local-SaaS sync, model gateway, SSO/A2A/storage/scale/installers. Parallel functional work with mature tools and only necessary affected checks; no push.",
+  "next_step": "Continue complete P0-P7 on 1.0.0 without historical compatibility layers. Prioritize atomic actual usage/cost and quota reservations, authorized skill repository and reviewed reusable capability extraction, then autonomous expert squads/pipeline policies, repository protected integration, WorkBuddy/vendors/model SDKs, SSO/A2A, intelligent CLI/local-SaaS sync, mobile channels and standalone App, distributed databases/scale/installers. Preserve current preview18464 and staged commit policy; only necessary affected checks and no push.",
   "additional_requirements": [
     "FND-I18N-001: internationalization in every implemented surface; initially zh-CN/en-US, unified catalogs, preference/negotiation, formatting, API errors, CLI/desktop/extensions/notifications and docs; preserve user content and immutable evidence; coverage must be honestly verified",
     "Idea lifecycle, reusable function/menu governance, visual configuration, alerts and WeChat/DingTalk/WeCom channels remain full platform scope",
@@ -44,25 +45,32 @@
     "15: professional repository/branch/version management and protected CAS target integration",
     "16: unified versioned skill repository with structured metadata/domains/scenarios, authorized vector search, current scope isolation, reviewed extraction/publication and common CLI/Agent/tool consumption",
     "17: Suma intelligent CLI with local/SaaS modes, dispatch/sync/reporting/recovery and simple secure multi-platform installation",
-    "18: official SDK/API model and agent-platform adapters including OpenAI/Bailian/Coze/Dify/Pi, with current authorization, cost control and honest supported capability/verification boundaries"
+    "18: official SDK/API model and agent-platform adapters including OpenAI/Bailian/Coze/Dify/Pi, with current authorization, cost control and honest supported capability/verification boundaries",
+    "19: WeChat/DingTalk/WeCom mobile messaging channels with current authorization, durable event delivery and explicit sending consent; not yet implemented",
+    "20: independent mobile App (Flutter acceptable), shared identity/authorization/contracts, simple professional CNEN management UI, offline and notification boundaries; not yet implemented",
+    "2026-10-26 additional reference baseline: Multica README.zh.md and https://multica.ai/docs/zh read from official sources; capability mapping must distinguish source implementation, local verification and vendor/production acceptance"
   ],
   "verification_history": {
     "path": "memory/verification_history.json",
-    "entries": 84,
+    "entries": 85,
     "load_policy": "on demand; do not load during every startup"
   },
   "validation_policy": "Focused checks per changed behavior; reuse unchanged-input evidence; one full integration gate per milestone; representative UI verification only for changed interactions/layout. Preserve critical authority/transaction/migration/concurrency/idempotency checks. No redundant review, snapshots, logs or full-matrix reruns.",
-  "deployed_evidence": "docs/quality/task-handoff-verification.md",
+  "deployed_evidence": "docs/quality/intelligent-planning-verification.md",
   "primary_preview": {
-    "stage": "T-P4-022",
-    "revision": "release1.0.0",
+    "stage": "T-P4-023",
+    "revision": "intelligent-planning-v1",
     "url": "http://pool.localhost:4324/",
-    "control_pid": 247120,
-    "holder_pid": 247472,
-    "launch_receipt": ".cache/e2e/task-handoff-stage-022/primary-upgrade-v1/control-launch.local.json",
-    "stop_protocol": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\task-handoff-stage-022\\primary-upgrade-v1\\stop.request",
+    "control_pid": 228520,
+    "holder_pid": 221228,
+    "launch_receipt": ".cache/e2e/intelligent-planning-stage-023/primary-upgrade/control-launch.local.json",
+    "stop_protocol": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\intelligent-planning-stage-023\\primary-upgrade\\stop.request",
     "status": "normal_local_preview_not_production",
-    "product_version": "1.0.0"
+    "product_version": "1.0.0",
+    "source_sha256": "d4ff66edf1869f4dfac393f2fe0db3d65ac332d86a2add46ebb14f5936ac17ac",
+    "control_sha256": "18430ff0e96c139d403348d527982f89a26444be283fe2fa2f319df79d58bdc3",
+    "web_index_sha256": "5dbf60a992f15c6088a49ea944dd5ea007a07def6bb2d835792da72aa6cb493e",
+    "execution_session": 18464
   },
   "native020_progress": {
     "status": "locally_verified",

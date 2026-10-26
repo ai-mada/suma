@@ -27,6 +27,7 @@ export const nativeCatalog={
  "native.limit.tool_calls":{"en":"At most eight calls are allowed per step","zh":"每一步最多允许八次工具调用"},
  "native.request.invalid_goal":{"en":"A goal of 1–32000 characters is required","zh":"目标必须包含 1–32000 个字符"},
  "native.request.invalid_limits":{"en":"Explicit max_steps/max_tokens must be positive integers within the supported bounds","zh":"显式 max_steps/max_tokens 必须是支持范围内的正整数"},
+ "native.request.invalid_purpose":{"en":"Planning requires a read-only project-tool runtime without a workspace bridge","zh":"规划要求只读项目工具运行时，不能使用工作区连接"},
  "native.response.empty":{"en":"Empty upstream response","zh":"上游响应为空"},
  "native.response.invalid_json":{"en":"Upstream response is not JSON","zh":"上游响应不是有效 JSON"},
  "native.response.no_choices":{"en":"Model returned no choices","zh":"模型未返回候选结果"},

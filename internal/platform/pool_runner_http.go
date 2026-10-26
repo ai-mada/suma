@@ -69,6 +69,13 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			}
 			return auth, err
 		}, func(tx *sql.Tx, scope dag.PoolScope, run, node string) (bool, error) {
+			if err := s.Service.checkPlanningExecutionTx(r.Context(), tx, scope.TenantID, scope.ProjectID, run); err != nil {
+				var apiErr *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Code == "planning_basis_changed" {
+					return false, nil
+				}
+				return false, err
+			}
 			return s.Service.PoolToolClaimEligibleTx(r.Context(), tx, proof, scope, run, node)
 		})
 		respond(w, 200, PoolRunnerClaimResponse{Assignment: a}, err)
@@ -92,7 +99,10 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 		}
 		err := s.Engine.HeartbeatWithAuthority(r.Context(), req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment, func(tx *sql.Tx) error {
 			_, err := s.Service.PoolRunnerAssignmentAuthorityTx(r.Context(), tx, token, req.Assignment)
-			return err
+			if err != nil {
+				return err
+			}
+			return s.Service.checkPlanningExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID)
 		})
 		if errors.Is(err, dag.ErrCancelled) {
 			writeJSON(w, 200, map[string]bool{"cancel_requested": true})
@@ -141,7 +151,13 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			if result.ArtifactEvidence != nil || result.ReleaseEvidence != nil {
 				return &APIError{422, "pool_capability_unsupported", "资源池制品与生产部署需独立授权协议", nil}
 			}
-			return s.Service.ValidatePoolToolResultTx(r.Context(), tx, proof, a, result)
+			if err := s.Service.ValidatePoolToolResultTx(r.Context(), tx, proof, a, result); err != nil {
+				return err
+			}
+			return s.Service.recordPlanningOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, func(current *sql.Tx) error {
+				_, err := s.Service.PoolRunnerAssignmentAuthorityTx(r.Context(), current, token, a)
+				return err
+			})
 		})
 		if err == nil {
 			// Completion remains committed if projection is temporarily unavailable;

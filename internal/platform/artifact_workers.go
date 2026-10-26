@@ -332,6 +332,13 @@ func (s *Service) releaseClaimEligibleTx(ctx context.Context, tx *sql.Tx, auth *
 	} else if task {
 		return true, nil
 	}
+	// Planning is a read-only managed workflow, not a deployment. Its creator,
+	// source and exact tool are checked by planning and tool admission below.
+	if _, planning, err := s.planningExecutionRecordTx(ctx, tx, p.TenantID, project, run); err != nil {
+		return false, err
+	} else if planning {
+		return true, nil
+	}
 	if err := tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_release_workers WHERE tenant_id=? AND project_id=? AND worker_id=? AND token_hash=? AND deployment=1 AND status='active'`), p.TenantID, project, worker, auth.actor.credential.digest).Scan(&n); err != nil {
 		return false, err
 	}

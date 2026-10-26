@@ -453,6 +453,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.releaseDeploymentHTTP(w, r, actor, project, path, m) {
 		return
 	}
+	if s.intelligentPlanningHTTP(w, r, actor, scope, parts, project, m) {
+		return
+	}
 	if s.planning(w, r, actor, project, path, m) {
 		return
 	}
@@ -802,6 +805,13 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			if err != nil || !allowed {
 				return allowed, err
 			}
+			if err := s.Service.checkPlanningExecutionTx(authority.ctx, tx, p.TenantID, project, run); err != nil {
+				var apiErr *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Code == "planning_basis_changed" {
+					return false, nil
+				}
+				return false, err
+			}
 			return s.Service.toolClaimEligibleTx(authority.ctx, tx, authority.proof, claim.WorkerID, run, node)
 		})
 		if e == nil && a != nil && a.DispatchState == "active" {
@@ -820,7 +830,10 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			if err := authority.beforeRunner(tx, a.WorkerID); err != nil {
 				return err
 			}
-			return s.Service.projectRunnerExecutionAuthorityTx(authority.ctx, tx, authority.proof, a.WorkerID, a.RunID)
+			if err := s.Service.projectRunnerExecutionAuthorityTx(authority.ctx, tx, authority.proof, a.WorkerID, a.RunID); err != nil {
+				return err
+			}
+			return s.Service.checkPlanningExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID)
 		})
 		if errors.Is(e, dag.ErrCancelled) {
 			writeJSON(w, 200, map[string]any{"cancel_requested": true})
@@ -847,7 +860,10 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			if err := s.Service.verifyArtifactResultTx(authority.ctx, tx, authority.proof, result, state); err != nil {
 				return err
 			}
-			return s.Service.ValidateReleaseResultTx(authority.ctx, tx, authority.proof, result, state)
+			if err := s.Service.ValidateReleaseResultTx(authority.ctx, tx, authority.proof, result, state); err != nil {
+				return err
+			}
+			return s.Service.recordPlanningOutcomeTx(authority.ctx, tx, p.TenantID, project, result, func(current *sql.Tx) error { return authority.beforeRunner(current, result.WorkerID) })
 		})
 		if e == nil {
 			run, re := s.Engine.GetRun(r.Context(), p.TenantID, project, result.RunID)

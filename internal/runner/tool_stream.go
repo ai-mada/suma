@@ -38,6 +38,7 @@ type toolStream struct {
 	usagePresence     [5]int
 	failureClass      string
 	lastUsageState    string
+	completionOutput  string
 	// Vendor-specific state stays outside the shared event and authorization
 	// contract. A terminal may close an interactive stdin, never mark a process stopped.
 	dshState       *dshStreamState
@@ -46,7 +47,7 @@ type toolStream struct {
 }
 
 func newToolStream(p tc.Profile, secrets []string, emit func(tc.Event) error, expectedID ...string) *toolStream {
-	stream := &toolStream{profile: p, secrets: secrets, emit: emit, output: newOutput(128<<10, secrets)}
+	stream := &toolStream{profile: tc.CloneProfile(p), secrets: secrets, emit: emit, output: newOutput(128<<10, secrets)}
 	if len(expectedID) > 0 {
 		stream.expectedRequestID = expectedID[0]
 	}
@@ -475,7 +476,11 @@ func (s *toolStream) suma(m map[string]any) {
 	case "request_started":
 		step, ok := nativeInteger(m, "step")
 		allowance, valid := nativeInteger(m, "output_allowance")
-		if !ok || !valid || step != s.requestStep || step >= 16 || allowance < 1 || allowance > 4096 || s.requestPending {
+		maxSteps, maxAllowance := int64(16), int64(4096)
+		if s.profile.Planning != nil {
+			maxSteps, maxAllowance = 4, 8192
+		}
+		if !ok || !valid || step != s.requestStep || step >= maxSteps || allowance < 1 || allowance > maxAllowance || s.requestPending {
 			s.invalid("invalid or out-of-order native model request")
 			return
 		}
@@ -512,6 +517,14 @@ func (s *toolStream) suma(m map[string]any) {
 		if strings.TrimSpace(textAt(m, "output")) == "" || s.requestPending {
 			s.invalid("missing completed output")
 			return
+		}
+		if s.profile.Planning != nil {
+			// Planning consumes the bounded final document, not the human activity
+			// transcript. Keep existing secret sanitization without the 8 KiB
+			// progress projection's tail clipping or stderr/activity prefixes.
+			completion := newOutput(toolLineLimit, s.secrets)
+			_, _ = completion.Write([]byte(textAt(m, "output")))
+			s.completionOutput = completion.String()
 		}
 		s.setTerminal("completed")
 		s.event("message", "", textAt(m, "output"), "", nil)

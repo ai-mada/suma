@@ -20,6 +20,14 @@ type InventoryReport struct {
 	ObservedAt  string           `json:"observed_at,omitempty"`
 }
 
+func cloneObservations(items []tc.Observation) []tc.Observation {
+	result := append([]tc.Observation{}, items...)
+	for i := range result {
+		result[i].Profile = tc.CloneProfile(result[i].Profile)
+	}
+	return result
+}
+
 func (j *Journal) inventoryPath() string {
 	return filepath.Join(filepath.Dir(j.path), "tool-inventory.json")
 }
@@ -72,7 +80,7 @@ func (j *Journal) NewInventory(worker string, items []tc.Observation) (Inventory
 	if items == nil {
 		items = []tc.Observation{}
 	}
-	report := InventoryReport{WorkerID: worker, OperationID: operationID(), Items: append([]tc.Observation{}, items...)}
+	report := InventoryReport{WorkerID: worker, OperationID: operationID(), Items: cloneObservations(items)}
 	b, err := json.MarshalIndent(report, "", "  ")
 	if err != nil {
 		return InventoryReport{}, err
@@ -81,7 +89,9 @@ func (j *Journal) NewInventory(worker string, items []tc.Observation) (Inventory
 		return InventoryReport{}, err
 	}
 	j.inventory = &report
-	return report, nil
+	returned := report
+	returned.Items = cloneObservations(report.Items)
+	return returned, nil
 }
 func (j *Journal) PendingInventory() *InventoryReport {
 	j.mu.Lock()
@@ -90,7 +100,7 @@ func (j *Journal) PendingInventory() *InventoryReport {
 		return nil
 	}
 	report := *j.inventory
-	report.Items = append([]tc.Observation{}, report.Items...)
+	report.Items = cloneObservations(report.Items)
 	return &report
 }
 func (j *Journal) AckInventory(operationID, observed string) error {
@@ -188,7 +198,7 @@ func (w *Worker) currentInventory() []tc.Observation {
 	w.inventoryMu.Lock()
 	defer w.inventoryMu.Unlock()
 	if w.inventory == nil {
-		return w.Exec.ToolInventory
+		return cloneObservations(w.Exec.ToolInventory)
 	}
-	return append([]tc.Observation{}, w.inventory...)
+	return cloneObservations(w.inventory)
 }

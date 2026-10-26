@@ -187,7 +187,7 @@ func (s *Service) toolProfileObservationLockedTx(ctx context.Context, tx *sql.Tx
 		out = withToolReason(out, "当前执行节点未声明此命令", "command_missing", nil)
 		return out, nil
 	}
-	if out.Observation.Profile != out.Profile {
+	if !toolcontract.EqualProfile(out.Observation.Profile, out.Profile) {
 		out = withToolReason(out, "当前工具配置、版本或程序摘要与固定档案不匹配", "profile_mismatch", nil)
 		return out, nil
 	}

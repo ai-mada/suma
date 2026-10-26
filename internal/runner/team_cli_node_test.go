@@ -112,7 +112,7 @@ func TestTeamCLINodeEntryWorktreeAndDigestPin(t *testing.T) {
 					}
 				}
 			} else {
-				if result.ExitCode != 0 || result.Error != "" || result.Stopped || result.OutcomeUnknown || result.ToolEvidence == nil || result.ToolEvidence.Profile != profile || result.ToolEvidence.Terminal != "completed" {
+				if result.ExitCode != 0 || result.Error != "" || result.Stopped || result.OutcomeUnknown || result.ToolEvidence == nil || !tc.EqualProfile(result.ToolEvidence.Profile, profile) || result.ToolEvidence.Terminal != "completed" {
 					t.Fatalf("actual Node fixture did not settle successfully: %+v", result)
 				}
 				if err := tc.ValidateEvidence(*result.ToolEvidence); err != nil {

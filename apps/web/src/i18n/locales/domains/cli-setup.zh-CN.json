@@ -20,5 +20,14 @@
   "cli-setup.codex_policy": "Codex 使用固定的工作区写入策略，每次开发在独立 Git 工作树内执行。",
   "cli-setup.probe_help": "将 REPOSITORY 和 COMMIT 替换为实际仓库路径与完整提交；此命令只产生探测结果。",
   "cli-setup.shared_pool": "共享执行池使用本机 pool 配置中的同一命令允许列表；池与项目的授权及容量仍按既有规则检查。",
-  "cli-setup.boundary": "帮助或协议探测通过不表示开发已完成。执行进度、代码候选、独立测试与明确验收分别保存。"
+  "cli-setup.boundary": "帮助或协议探测通过不表示开发已完成。执行进度、代码候选、独立测试与明确验收分别保存。",
+  "cli-setup.planner": "速码只读模型规划器",
+  "cli-setup.model": "固定模型标识",
+  "cli-setup.endpoint": "固定模型 API 基础地址",
+  "cli-setup.planner_policy": "使用本地构建的 suma-agent.bundle.mjs 与 Node.js 22。模型和地址固定在工具配置中；模型密钥及项目级 Agent 凭证保留在执行节点环境。此处不会创建或验证模型账户。",
+  "cli-setup.planner_probe": "探测只检查本地安装和规划协议，不调用模型。将实际观察导入当前项目并启用，再从排期页面创建有明确预算的分析。",
+  "cli-setup.planner_entry_help": "填写执行节点上的 suma-agent.bundle.mjs 或 .js 入口绝对路径。Runner 核对固定入口内容，不使用 shell 启动器。",
+  "cli-setup.planner_install": "在执行节点构建或安装速码原生运行时及 Node.js 22。",
+  "cli-setup.planner_configure": "保存本地模板并配置固定模型和基础地址，通过执行节点环境提供模型密钥及项目 Agent 凭证。",
+  "cli-setup.planner_register": "导入并启用实际规划工具观察，再从项目计划页面选择该工具。"
 }

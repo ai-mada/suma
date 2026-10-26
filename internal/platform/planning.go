@@ -286,7 +286,6 @@ func (s *Service) ScheduleTasks(ctx context.Context, actor Actor, project string
 	if e != nil {
 		return nil, e
 	}
-	p := auth.currentPrincipal
 	key := str(m, "idempotency_key")
 	hash, replay, e := s.commandReceipt(ctx, auth, key, map[string]any{"schedule": m})
 	if e != nil {
@@ -297,6 +296,27 @@ func (s *Service) ScheduleTasks(ctx context.Context, actor Actor, project string
 		e = json.Unmarshal([]byte(hash), &out)
 		return out, e
 	}
+	items, e := s.scheduleTasksTx(ctx, tx, auth, project, changes)
+	if e != nil {
+		return nil, e
+	}
+	if e = s.saveCommandReceipt(ctx, auth, key, hash, items); e != nil {
+		return nil, e
+	}
+	return items, tx.Commit()
+}
+
+// scheduleTasksTx shares the complete normal schedule validation and writes
+// with explicit model-proposal adoption, in the caller's original transaction.
+func (s *Service) scheduleTasksTx(ctx context.Context, tx *sql.Tx, auth *authorizedCommand, project string, changes []any) ([]PlannedTask, error) {
+	if e := assertProjectCommand(tx, auth, project); e != nil {
+		return nil, e
+	}
+	if len(changes) == 0 || len(changes) > 200 {
+		return nil, invalid("请选择1–200条排期变更")
+	}
+	p := auth.currentPrincipal
+	var e error
 	items := []PlannedTask{}
 	seen := map[string]bool{}
 	for _, raw := range changes {
@@ -394,8 +414,5 @@ func (s *Service) ScheduleTasks(ctx context.Context, actor Actor, project string
 			return nil, e
 		}
 	}
-	if e = s.saveCommandReceipt(ctx, auth, key, hash, items); e != nil {
-		return nil, e
-	}
-	return items, tx.Commit()
+	return items, nil
 }

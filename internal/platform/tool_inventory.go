@@ -169,7 +169,7 @@ func (s *Service) validateToolResultTx(ctx context.Context, tx *sql.Tx, auth *au
 	if err != nil {
 		return err
 	}
-	if !bound || pr.WorkerID != result.WorkerID || pr.Profile.ProfileSHA256 != sha || result.ToolEvidence.Profile != pr.Profile {
+	if !bound || pr.WorkerID != result.WorkerID || pr.Profile.ProfileSHA256 != sha || !toolcontract.EqualProfile(result.ToolEvidence.Profile, pr.Profile) {
 		return invalid("工具执行证据与固定档案不匹配")
 	}
 	return nil

@@ -28,6 +28,7 @@ type CommandSpec struct {
 	EnvFrom         []string               `json:"env_from,omitempty"`
 	Input           string                 `json:"input,omitempty"`
 	ReadOnly        bool                   `json:"read_only,omitempty"`
+	Planning        bool                   `json:"planning,omitempty"`
 	TestEvidence    bool                   `json:"test_evidence,omitempty"`
 	ArtifactOutput  string                 `json:"artifact_output,omitempty"`
 	ArtifactInput   bool                   `json:"artifact_input,omitempty"`
@@ -221,6 +222,10 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if profileErr != nil {
 		return fail(profileErr.Error())
 	}
+	planningInput, planningErr := planningRequest(a, spec, profile)
+	if planningErr != nil {
+		return fail(planningErr.Error())
+	}
 	if spec.ArtifactInput {
 		binding, resolveErr := resolveArtifact(ctx, a, cfg)
 		if resolveErr != nil {
@@ -278,7 +283,11 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 		switch spec.Input {
 		case "agent-jsonl":
-			b, _ := json.Marshal(map[string]any{"goal": goal, "request_id": digest([]byte(key(a)))})
+			input := map[string]any{"goal": goal, "request_id": digest([]byte(key(a)))}
+			for name, value := range planningInput {
+				input[name] = value
+			}
+			b, _ := json.Marshal(input)
 			cmd.Stdin = bytes.NewReader(append(b, '\n'))
 		case "goal":
 			cmd.Stdin = strings.NewReader(goal + "\n")
@@ -511,7 +520,11 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" {
 			r.ToolEvidence = evidence
 		}
-		r.Output = stream.output.String() + r.Output
+		if profile.Planning != nil && stream.terminal == "completed" && stream.bad == nil {
+			r.Output = stream.completionOutput
+		} else {
+			r.Output = stream.output.String() + r.Output
+		}
 	} else if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" {
 		terminal := "failed"
 		if r.ExitCode == 0 && !r.Stopped && !r.OutcomeUnknown {

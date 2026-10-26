@@ -3,14 +3,39 @@
 package toolcontract
 
 type ToolExecutionProfile struct {
-	CommandID             string `json:"command_id"`
-	Adapter               string `json:"adapter"`
-	Protocol              string `json:"protocol"`
-	ProfileSHA256         string `json:"profile_sha256"`
-	ExecutableSHA256      string `json:"executable_sha256"`
-	ToolVersion           string `json:"tool_version"`
-	ReadOnly              bool   `json:"read_only"`
-	WorkspaceToolsVersion string `json:"workspace_tools_version,omitempty"`
+	CommandID             string              `json:"command_id"`
+	Adapter               string              `json:"adapter"`
+	Protocol              string              `json:"protocol"`
+	ProfileSHA256         string              `json:"profile_sha256"`
+	ExecutableSHA256      string              `json:"executable_sha256"`
+	ToolVersion           string              `json:"tool_version"`
+	ReadOnly              bool                `json:"read_only"`
+	WorkspaceToolsVersion string              `json:"workspace_tools_version,omitempty"`
+	Planning              *PlanningCapability `json:"planning,omitempty"`
+}
+
+// PlanningCapability names a probed, fixed model configuration, not account health.
+type PlanningCapability struct {
+	Protocol       string `json:"protocol"`
+	Model          string `json:"model"`
+	EndpointOrigin string `json:"endpoint_origin"`
+}
+
+const PlanningProtocol = "suma-schedule-plan-v1"
+
+// EqualProfile compares capability values even after independent wire decoding.
+func EqualProfile(a, b Profile) bool {
+	ap, bp := a.Planning, b.Planning
+	a.Planning, b.Planning = nil, nil
+	return a == b && (ap == nil && bp == nil || ap != nil && bp != nil && *ap == *bp)
+}
+
+func CloneProfile(p Profile) Profile {
+	if p.Planning != nil {
+		value := *p.Planning
+		p.Planning = &value
+	}
+	return p
 }
 
 type ToolObservation struct {

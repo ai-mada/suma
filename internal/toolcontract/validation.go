@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"regexp"
 	"strings"
 	"unicode"
@@ -37,6 +38,11 @@ func ValidProtocol(protocol string) bool {
 	return protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == "opencode-jsonl-v1" || protocol == "dsh-multica-jsonl-v1" || protocol == "codebuddy-jsonl-v1"
 }
 func ValidateProfile(p Profile, complete bool) error {
+	if p.Planning != nil {
+		if p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || ValidatePlanningCapability(*p.Planning) != nil {
+			return fmt.Errorf("invalid planning capability")
+		}
+	}
 	if p.WorkspaceToolsVersion != "" && (p.WorkspaceToolsVersion != "attempt-workspace-v1" || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || p.ReadOnly) {
 		return fmt.Errorf("invalid workspace tool capability")
 	}
@@ -50,6 +56,14 @@ func ValidateProfile(p Profile, complete bool) error {
 	}
 	if complete && strings.TrimSpace(p.ToolVersion) == "" || !validText(p.ToolVersion, 256, false) {
 		return fmt.Errorf("invalid tool version")
+	}
+	return nil
+}
+
+func ValidatePlanningCapability(p PlanningCapability) error {
+	u, err := url.Parse(p.EndpointOrigin)
+	if p.Protocol != PlanningProtocol || strings.TrimSpace(p.Model) != p.Model || p.Model == "" || !validText(p.Model, 256, false) || !validText(p.EndpointOrigin, 2048, false) || err != nil || u.Hostname() == "" || u.User != nil || u.Opaque != "" || u.Path != "" || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" || p.EndpointOrigin != u.Scheme+"://"+u.Host || (u.Scheme != "https" && !(u.Scheme == "http" && (u.Hostname() == "localhost" || u.Hostname() == "127.0.0.1" || u.Hostname() == "::1"))) {
+		return fmt.Errorf("invalid fixed planning model or endpoint origin")
 	}
 	return nil
 }

@@ -81,7 +81,7 @@ func TestTeamCLIActualProcessPipesAndBoundWorkspace(t *testing.T) {
 			}
 			started := time.Now()
 			result := Execute(ctx, a, cfg)
-			if result.ToolEvidence == nil || result.ToolEvidence.Profile != profile || result.WorkspaceEvidence == nil || result.WorkspaceEvidence["base_commit"] != base {
+			if result.ToolEvidence == nil || !tc.EqualProfile(result.ToolEvidence.Profile, profile) || result.WorkspaceEvidence == nil || result.WorkspaceEvidence["base_commit"] != base {
 				t.Fatalf("missing public profile/workspace binding: %+v", result)
 			}
 			if err := tc.ValidateEvidence(*result.ToolEvidence); err != nil {

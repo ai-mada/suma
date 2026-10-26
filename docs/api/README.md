@@ -129,3 +129,7 @@ Attempt列表只查询元数据，`result_source=not_loaded`；精确详情才�
 ## 项目MCP（T-P4-019）
 
 入站端点 `/api/v1/mcp/projects/{project_id}` 使用固定官方Go SDK协议实现，无状态JSON HTTP；JSON-RPC协议封套不在本REST OpenAPI内重写。目录、参数Schema、读写效果和允许凭证种类从同一应用定义生成到[mcp-tools.json](mcp-tools.json)。元数据REST DTO在OpenAPI与TypeScript中同源生成。连接配置和当前授权、幂等／CAS／原页面头、超时／取消约定见[统一合同](../../contracts/application-tools-mcp.md)与[接入文档](../integrations/project-mcp.md)。目录声明不授予权限；SDK协议层自有原始诊断与平台可本地化业务错误分别处理。
+
+## 模型规划与站内风险（T-P4-023）
+
+新增`/planning/analyses`、单项及commands、`/planning/alerts`和commands；共享Go DTO生成，当前294模型／181路径。使用固定只读规划profile、来源和显式采纳，原件、风险决策及回执保留。详细[合同](../../contracts/intelligent-planning.md)与[当前限定验证](../quality/intelligent-planning-verification.md)。

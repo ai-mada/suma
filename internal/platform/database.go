@@ -75,6 +75,9 @@ func (s *Service) Migrate(ctx context.Context) error {
 	if err := s.MigratePlanning(ctx); err != nil {
 		return err
 	}
+	if err := s.MigrateIntelligentPlanning(ctx); err != nil {
+		return err
+	}
 	if err := s.MigrateGovernance(ctx); err != nil {
 		return err
 	}

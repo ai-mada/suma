@@ -1,0 +1,66 @@
+{
+  "stage": "T-P4-023",
+  "product_version": "1.0.0",
+  "status": "locally_verified_full_platform_in_progress",
+  "feature": "Bounded real native model execution, reviewed schedule proposal and durable in-app risk alerts",
+  "checks": {
+    "backend": "8 focused groups plus affected existing schedule group passed, private and pool HTTP callbacks included",
+    "native": "20 focused TS tests; affected Go contract/Runner groups passed; final output9KiB and strict purpose checked",
+    "web": "4 focused interactions, one affected applied-state case rerun after actual UI finding; final build and 3383 paired locale keys passed",
+    "contracts": {
+      "models": 294,
+      "paths": 181,
+      "changed_existing_schemas": [
+        "ToolDiagnostic",
+        "ToolExecutionProfile"
+      ],
+      "existing_paths_unchanged": true,
+      "check_mode": "passed"
+    },
+    "static_analysis": "affected Go vet passed"
+  },
+  "actual": {
+    "control_runner_native_processes": true,
+    "model": "one deterministic loopback HTTP protocol fixture, not vendor LLM",
+    "usage": "fixture-reported 23 input/17 output, complete; not paid usage or measured cost",
+    "analysis_after_UI": "applied v3",
+    "task_delivery": "todo v1, not accepted",
+    "schedule": "plan v1 / 2026-10-27 to2026-10-28 /2h",
+    "alert_after_UI": "acknowledged v2, reason persisted",
+    "refresh_and_CNEN": true,
+    "temporary_services": "both isolated control/holder pairs and Runner/model stopped normally; primary kept running"
+  },
+  "primary": {
+    "url": "http://pool.localhost:4324/",
+    "control_pid": 228520,
+    "holder_pid": 221228,
+    "tables": 152,
+    "original_tables": 149,
+    "old_schemas_and_rows_unchanged": true,
+    "new_empty_tables": 3,
+    "new_indexes": 3,
+    "authority_rows": 18,
+    "grant_rows": 0,
+    "old_run_states": {
+      "failed": 1,
+      "succeeded": 2
+    },
+    "integrity": "ok"
+  },
+  "artifacts": {
+    "control_sha256": "18430ff0e96c139d403348d527982f89a26444be283fe2fa2f319df79d58bdc3",
+    "runner_sha256": "5eb555a0976080e4ee1bc48cc71837c68b3e91d2fe53442138ff319aee34862b",
+    "native_sha256": "ef365d757d9ba9cd0277a4208fb2e9a77434c8257e6b56e2b063c8cc41f6fd5f",
+    "web_index_sha256": "5dbf60a992f15c6088a49ea944dd5ea007a07def6bb2d835792da72aa6cb493e",
+    "web_assets": 115,
+    "conservative_non_test_go_inputs": 306
+  },
+  "evidence_root": ".cache/e2e/intelligent-planning-stage-023",
+  "limits": [
+    "No vendor model/account authentication or production acceptance",
+    "Source/capacity revalidation remains conservative O(project tasks/resources); scale targets unverified",
+    "No unattended expert-team adoption, complete cost/quota ledger, outbound channel notifications or mobile app delivered in this stage",
+    "No OceanBase/PostgreSQL/distributed-scale/cross-platform installers acceptance"
+  ],
+  "git_policy": "necessary source/contracts/docs only; raw fixtures, credentials, databases, screenshots, logs and binaries ignored; no push"
+}

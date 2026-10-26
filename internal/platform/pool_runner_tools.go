@@ -143,8 +143,14 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof
 	}
 	if managed != 0 {
 		task, err := s.TaskDispatchRunTx(ctx, tx, scope.TenantID, scope.ProjectID, run)
-		if err != nil || !task {
+		if err != nil {
 			return false, err
+		}
+		if !task {
+			_, planning, err := s.planningExecutionRecordTx(ctx, tx, scope.TenantID, scope.ProjectID, run)
+			if err != nil || !planning {
+				return false, err
+			}
 		}
 	}
 	n, p, err := s.poolBoundToolNodeTx(ctx, tx, scope, run, node)
@@ -211,7 +217,7 @@ func (s *Service) ValidatePoolToolResultTx(ctx context.Context, tx *sql.Tx, proo
 	if err != nil {
 		return err
 	}
-	if !bound || p.WorkerID != a.WorkerID || p.Profile.ProfileSHA256 != hash || result.ToolEvidence.Profile != p.Profile {
+	if !bound || p.WorkerID != a.WorkerID || p.Profile.ProfileSHA256 != hash || !tc.EqualProfile(result.ToolEvidence.Profile, p.Profile) {
 		return invalid("工具结果与本项目固定档案不匹配")
 	}
 	return nil

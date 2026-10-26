@@ -20,5 +20,14 @@
   "cli-setup.codex_policy": "Codex uses a fixed workspace-write policy and an independent Git worktree for each development attempt.",
   "cli-setup.probe_help": "Replace REPOSITORY and COMMIT with the actual repository path and full commit. This command only produces probe observations.",
   "cli-setup.shared_pool": "Shared execution pools use the same local command allowlist from their pool configuration. Existing pool and project authorization and capacity checks still apply.",
-  "cli-setup.boundary": "A successful help or protocol probe does not mean development is complete. Progress, code candidates, independent tests and explicit acceptance are stored separately."
+  "cli-setup.boundary": "A successful help or protocol probe does not mean development is complete. Progress, code candidates, independent tests and explicit acceptance are stored separately.",
+  "cli-setup.planner": "Suma read-only model planner",
+  "cli-setup.model": "Fixed model identifier",
+  "cli-setup.endpoint": "Fixed model API base URL",
+  "cli-setup.planner_policy": "Uses the locally built suma-agent.bundle.mjs with Node.js 22. Model and API address are fixed in the profile; API keys and the project-scoped Agent credential remain in the execution node environment. This does not create or validate a provider account.",
+  "cli-setup.planner_probe": "The probe checks local installation and the planning protocol without calling the model. Import and enable its real observation in this project, then create a bounded analysis from Planning.",
+  "cli-setup.planner_entry_help": "Enter the absolute suma-agent.bundle.mjs or .js entry on the execution node. The runner verifies the fixed entry content; a shell launcher is not used.",
+  "cli-setup.planner_install": "Build or install the Suma native runtime and Node.js 22 on the execution node.",
+  "cli-setup.planner_configure": "Save the local template, configure the fixed model and base URL, and supply API and project Agent credentials through that node’s environment.",
+  "cli-setup.planner_register": "Import and enable the actual planning observation, then select it from the project Planning page."
 }

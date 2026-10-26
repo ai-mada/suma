@@ -189,6 +189,7 @@ func (j *Journal) Finish(r Result) error {
 	previous := e
 	if r.ToolEvidence != nil {
 		copied := *r.ToolEvidence
+		copied.Profile = tc.CloneProfile(copied.Profile)
 		copied.Usage = cloneUsage(r.ToolEvidence.Usage)
 		r.ToolEvidence = &copied
 	}
@@ -373,6 +374,7 @@ func (j *Journal) Pending() []Result {
 			copy := *e.Result
 			if copy.ToolEvidence != nil {
 				evidence := *copy.ToolEvidence
+				evidence.Profile = tc.CloneProfile(evidence.Profile)
 				evidence.Usage = cloneUsage(evidence.Usage)
 				copy.ToolEvidence = &evidence
 			}
