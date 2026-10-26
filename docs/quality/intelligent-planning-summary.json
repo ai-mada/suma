@@ -17,7 +17,8 @@
       "existing_paths_unchanged": true,
       "check_mode": "passed"
     },
-    "static_analysis": "affected Go vet passed"
+    "static_analysis": "affected Go vet passed",
+    "health_metadata": "Actual final health endpoint uses executable build version1.0.0; control-only rebuild and scoped same-schema update, no business/model rerun"
   },
   "actual": {
     "control_runner_native_processes": true,
@@ -32,8 +33,8 @@
   },
   "primary": {
     "url": "http://pool.localhost:4324/",
-    "control_pid": 228520,
-    "holder_pid": 221228,
+    "control_pid": 250364,
+    "holder_pid": 227944,
     "tables": 152,
     "original_tables": 149,
     "old_schemas_and_rows_unchanged": true,
@@ -45,10 +46,12 @@
       "failed": 1,
       "succeeded": 2
     },
-    "integrity": "ok"
+    "integrity": "ok",
+    "health_version": "1.0.0",
+    "final_metadata_update": "152-to-152; every row/schema unchanged; original login unchanged"
   },
   "artifacts": {
-    "control_sha256": "18430ff0e96c139d403348d527982f89a26444be283fe2fa2f319df79d58bdc3",
+    "control_sha256": "335b0fdeb1310d80373b9a370db7947deb774585de3a5ccaeac479fa25f74012",
     "runner_sha256": "5eb555a0976080e4ee1bc48cc71837c68b3e91d2fe53442138ff319aee34862b",
     "native_sha256": "ef365d757d9ba9cd0277a4208fb2e9a77434c8257e6b56e2b063c8cc41f6fd5f",
     "web_index_sha256": "5dbf60a992f15c6088a49ea944dd5ea007a07def6bb2d835792da72aa6cb493e",

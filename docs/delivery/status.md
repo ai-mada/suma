@@ -6,7 +6,7 @@
 
 默认折叠中英规划面板、只读模型工具配置、固定任务／需求／容量来源、真实DAG／Runner模型执行、原件／结构化方案、人工修订与同事务明确采纳、持久站内风险确认／关闭已实现。复用现有权限、调度、用量和事件，不因模型文字自动改变负责人或验收。
 
-必要检查及实际Control→Runner→原生bundle→一次本地模型协议夹具→回写→界面采纳／风险确认／刷新已通过。主预览023／1.0.0正常，原149表schema／行保持，3新空表及索引至152。厂商模型、长期自主授权、完整费用配额与专家组／分布式／移动端继续实施。见[限定验证](../quality/intelligent-planning-verification.md)、[机器摘要](../quality/intelligent-planning-summary.json)、[架构／AI SOP](../architecture/intelligent-planning.md)。
+必要检查及实际Control→Runner→原生bundle→一次本地模型协议夹具→回写→界面采纳／风险确认／刷新已通过。主预览023／1.0.0正常（健康接口使用实际构建版本），原149表schema／行保持，3新空表及索引至152。厂商模型、长期自主授权、完整费用配额与专家组／分布式／移动端继续实施。见[限定验证](../quality/intelligent-planning-verification.md)、[机器摘要](../quality/intelligent-planning-summary.json)、[架构／AI SOP](../architecture/intelligent-planning.md)。
 
 ## 历史 T-P4-022：团队任务交接与 CLI（限定本地已验证）
 

@@ -27,8 +27,12 @@
 
 ## 主预览与数据保持
 
-`http://pool.localhost:4324/`已更新为023／1.0.0，control228520／holder221228，保留运行。对原149表做备份／维护迁移／前向切换：原schema和全部行保持，只增加3张空表与3个索引至152；18 authority／0 Grant、旧任务与1 failed／2 succeeded运行保持；原登录不重发。最终HTML和关联资源字节匹配。上一版control247120／holder247472已正常退出。证据在`primary-upgrade`。这不是生产部署验收。
+`http://pool.localhost:4324/`已更新为023／1.0.0，初次control228520／holder221228；最终版本修正后control250364／holder227944，保留运行。对原149表做备份／维护迁移／前向切换：原schema和全部行保持，只增加3张空表与3个索引至152；18 authority／0 Grant、旧任务与1 failed／2 succeeded运行保持；原登录不重发。最终HTML和关联资源字节匹配。上一版control247120／holder247472已正常退出。证据在`primary-upgrade`。这不是生产部署验收。
 
 ## 保留边界
 
 来源摘要保守覆盖项目容量相关正式输入，目前O(project tasks/resources)，未证明百万任务或分布式性能目标。模型账户／真实厂商、OceanBase／PostgreSQL、规模与故障全矩阵、独立移动端、外发通道、长期自主授权编排、专家组自动协作、完整成本预算／技能治理、签名安装包继续实施。参考能力和代码存在不等于已经生产验收。
+
+### 版本报告收尾
+
+最终健康探测发现旧接口写死0.1.0，已将构建版本注入Server.BuildVersion；实际`/healthz`返回1.0.0。只重建控制面，前端／Runner／原生bundle及业务／模型证据复用。152→152同schema更新后全部152表行保持，原authority／Grant／任务／DAG保持；上一进程228520／221228正常关闭，当前250364／227944与exec89312持续运行。首次升级助手的旧UI字段前置检查退出发生在任何主预览动作之前，改为核验本轮实际UI证据后成功执行；证据保留于`primary-upgrade-health`。

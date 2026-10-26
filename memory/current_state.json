@@ -2,7 +2,7 @@
   "project": "suma",
   "name": "速码一栈式智能研发平台",
   "phase": "implementation",
-  "updated_at": "2026-10-26T07:49:56.969338+00:00",
+  "updated_at": "2026-10-26T07:55:35.135477+00:00",
   "status": "in_progress",
   "plan": "docs/delivery/implementation-plan.md",
   "workstreams": {
@@ -23,13 +23,14 @@
   },
   "verified": [
     "T-P4-023: model planning and persistent in-app risk suggestions locally verified: 8 backend groups plus affected schedule, native20 focused TS and relevant Go, frontend4 plus affected1, final3383 locale pairs,294schemas181paths/check and affectedvet/build. Real Control/Runner/native and one local deterministic HTTP model call yielded readyv2+one risk; UI reviewed source/original and explicit apply→appliedv3/planv1/2h/tasktodo v1, riskackv2/reason/refresh/CNEN. No vendor model/cost/production or full device matrix.",
-    "Primary023/1.0.0 normal228520/221228; old149schemas+allrows unchanged,3newemptytables+3indexes→152,18authority0Grant/oldtasks/run1failed2succeeded/original login preserved. Final115webassets and linkedbytes match; old022control247120/holder247472 and isolated fixtures closed0; keep current exec18464. FullP0-P7 continues."
+    "Primary023/1.0.0 normal228520/221228; old149schemas+allrows unchanged,3newemptytables+3indexes→152,18authority0Grant/oldtasks/run1failed2succeeded/original login preserved. Final115webassets and linkedbytes match; old022control247120/holder247472 and isolated fixtures closed0; keep current exec18464. FullP0-P7 continues.",
+    "Final health metadata correction: Server.BuildVersion receives control executable version; /healthz now actual1.0.0. Only control rebuilt, no business/model rerun. Same-schema152→152 oldrows/Schemas/18authority0Grant/tasksDAG kept; current250364/227944 exec89312 healthy, predecessor228520/221228 closed0. Initial helper preflight missing obsolete UI proof keys stopped before any primary action; adapted to actual023 proof and forward update passed."
   ],
   "production_integration_complete": false,
   "current_evidence": "docs/quality/intelligent-planning-verification.md",
   "stage": "T-P4-023_intelligent_planning_locally_verified",
   "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
-  "next_step": "Continue complete P0-P7 on 1.0.0 without historical compatibility layers. Prioritize atomic actual usage/cost and quota reservations, authorized skill repository and reviewed reusable capability extraction, then autonomous expert squads/pipeline policies, repository protected integration, WorkBuddy/vendors/model SDKs, SSO/A2A, intelligent CLI/local-SaaS sync, mobile channels and standalone App, distributed databases/scale/installers. Preserve current preview18464 and staged commit policy; only necessary affected checks and no push.",
+  "next_step": "Continue complete P0-P7 on 1.0.0 without historical compatibility layers. Prioritize atomic actual usage/cost and quota reservations, authorized skill repository and reviewed reusable capability extraction, then autonomous expert squads/pipeline policies, repository protected integration, WorkBuddy/vendors/model SDKs, SSO/A2A, intelligent CLI/local-SaaS sync, mobile channels and standalone App, distributed databases/scale/installers. Preserve current preview89312 and staged commit policy; only necessary affected checks and no push.",
   "additional_requirements": [
     "FND-I18N-001: internationalization in every implemented surface; initially zh-CN/en-US, unified catalogs, preference/negotiation, formatting, API errors, CLI/desktop/extensions/notifications and docs; preserve user content and immutable evidence; coverage must be honestly verified",
     "Idea lifecycle, reusable function/menu governance, visual configuration, alerts and WeChat/DingTalk/WeCom channels remain full platform scope",
@@ -59,18 +60,18 @@
   "deployed_evidence": "docs/quality/intelligent-planning-verification.md",
   "primary_preview": {
     "stage": "T-P4-023",
-    "revision": "intelligent-planning-v1",
+    "revision": "health-build-version",
     "url": "http://pool.localhost:4324/",
-    "control_pid": 228520,
-    "holder_pid": 221228,
-    "launch_receipt": ".cache/e2e/intelligent-planning-stage-023/primary-upgrade/control-launch.local.json",
-    "stop_protocol": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\intelligent-planning-stage-023\\primary-upgrade\\stop.request",
+    "control_pid": 250364,
+    "holder_pid": 227944,
+    "launch_receipt": ".cache/e2e/intelligent-planning-stage-023/primary-upgrade-health/control-launch.local.json",
+    "stop_protocol": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\intelligent-planning-stage-023\\primary-upgrade-health\\stop.request",
     "status": "normal_local_preview_not_production",
     "product_version": "1.0.0",
-    "source_sha256": "d4ff66edf1869f4dfac393f2fe0db3d65ac332d86a2add46ebb14f5936ac17ac",
-    "control_sha256": "18430ff0e96c139d403348d527982f89a26444be283fe2fa2f319df79d58bdc3",
+    "source_sha256": "93f73c4ce87b75658bb3a6da5c1fc6153d281e769466b40dbaaf4e4d77689faa",
+    "control_sha256": "335b0fdeb1310d80373b9a370db7947deb774585de3a5ccaeac479fa25f74012",
     "web_index_sha256": "5dbf60a992f15c6088a49ea944dd5ea007a07def6bb2d835792da72aa6cb493e",
-    "execution_session": 18464
+    "execution_session": 89312
   },
   "native020_progress": {
     "status": "locally_verified",

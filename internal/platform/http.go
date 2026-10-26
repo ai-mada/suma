@@ -21,6 +21,8 @@ import (
 )
 
 type Server struct {
+	// BuildVersion comes from the executable build metadata, not a wire/API schema version.
+	BuildVersion   string
 	Service        *Service
 	Engine         *dag.Engine
 	WebDir         string
@@ -44,7 +46,11 @@ func (s *Server) Handler() http.Handler {
 			writeError(w, err)
 			return
 		}
-		writeJSON(w, 200, map[string]any{"status": "ok", "database": "connected", "version": "0.1.0", "maintenance": s.Maintenance})
+		buildVersion := s.BuildVersion
+		if buildVersion == "" {
+			buildVersion = "1.0.0"
+		}
+		writeJSON(w, 200, map[string]any{"status": "ok", "database": "connected", "version": buildVersion, "maintenance": s.Maintenance})
 	})
 	s.mux.HandleFunc("/api/v1/", s.api)
 	s.mux.HandleFunc("/", s.web)
