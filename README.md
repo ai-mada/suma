@@ -4,7 +4,11 @@
 
 当前是可运行的开发版本。功能与验证范围见 [交付状态](docs/delivery/status.md)，完整目标见 [实施计划](docs/delivery/implementation-plan.md)。
 
-## 本轮进展：精确尝试的工具历史
+## 本轮进展：专家团队依赖编排
+
+团队任务支持固定依赖、逐项进度、暂停／恢复／停止、未开始项修订及只读历史。服务端在准确前置运行正式验收后自动派发后继，CLI 与中英文界面共用合同。实际同机双 Runner 完成两项开发、8 项独立正式测试与两次明确验收；当前本地预览已更新到029／1.0.0。见[功能与实际边界](docs/quality/expert-team-orchestration-verification.md)、[设计与AI SOP](docs/architecture/expert-team-orchestration.md)、[CLI](contracts/expert-team-orchestration-cli.md)。完整平台持续开发。
+
+## 历史进展：精确尝试的工具历史
 
 T-P4-012 已实现按项目、运行、节点和 attempt 读取持久工具事实。运行详情中的“历史尝试”可分页查看原始正文和当前语言说明；刷新保持选中的尝试，翻页保持同一个读取窗口。历史页默认 50 条，可选 5／25／50／100 条，不受当前实时工具窗口 40 行限制。读取逐次核对当前权限，原文和执行依据不因显示语言变化。
 

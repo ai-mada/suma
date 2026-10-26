@@ -85,12 +85,22 @@ type ExpertTeamPlanCreateRequest struct {
 }
 
 type ExpertTeamPlanItem struct {
-	RoleKey      string           `json:"role_key"`
-	RoleTitle    string           `json:"role_title"`
-	ResourceID   string           `json:"resource_id"`
-	ResourceName string           `json:"resource_name"`
-	Plan         TaskDispatchPlan `json:"plan"`
-	RunState     string           `json:"run_state"`
+	TaskID          string                     `json:"task_id"`
+	TaskVersion     int                        `json:"task_version"`
+	TaskBasisSHA256 string                     `json:"task_basis_sha256"`
+	SourceRevision  int                        `json:"source_revision"`
+	DependsOn       []string                   `json:"depends_on"`
+	Dependencies    []ExpertTeamDependencyFact `json:"dependencies"`
+	State           string                     `json:"state"`
+	Blockers        []string                   `json:"blockers"`
+	DispatchPlanID  string                     `json:"dispatch_plan_id,omitempty"`
+	RunID           string                     `json:"run_id,omitempty"`
+	RoleKey         string                     `json:"role_key"`
+	RoleTitle       string                     `json:"role_title"`
+	ResourceID      string                     `json:"resource_id"`
+	ResourceName    string                     `json:"resource_name"`
+	Plan            TaskDispatchPlan           `json:"plan"`
+	RunState        string                     `json:"run_state"`
 }
 
 type ExpertTeamPlan struct {
@@ -99,6 +109,9 @@ type ExpertTeamPlan struct {
 	TeamID               string                  `json:"team_id"`
 	TeamName             string                  `json:"team_name"`
 	Version              int                     `json:"version"`
+	Revision             int                     `json:"revision"`
+	GraphSHA256          string                  `json:"graph_sha256"`
+	ActivationGeneration int                     `json:"activation_generation"`
 	State                string                  `json:"state"`
 	ConfigurationVersion int                     `json:"configuration_version"`
 	Configuration        ExpertTeamConfiguration `json:"configuration"`
@@ -108,6 +121,44 @@ type ExpertTeamPlan struct {
 	Valid                bool                    `json:"valid"`
 	Blockers             []string                `json:"blockers"`
 	CanStart             bool                    `json:"can_start"`
+	AllowedActions       []string                `json:"allowed_actions"`
+	Progress             ExpertTeamPlanProgress  `json:"progress"`
+}
+
+type ExpertTeamDependencyFact struct {
+	TaskID      string `json:"task_id"`
+	Selected    bool   `json:"selected"`
+	Accepted    bool   `json:"accepted"`
+	TaskVersion int    `json:"task_version"`
+	RunID       string `json:"run_id,omitempty"`
+}
+
+type ExpertTeamPlanProgress struct {
+	Total          int `json:"total"`
+	Waiting        int `json:"waiting"`
+	Ready          int `json:"ready"`
+	Executing      int `json:"executing"`
+	AwaitingReview int `json:"awaiting_review"`
+	Accepted       int `json:"accepted"`
+	Blocked        int `json:"blocked"`
+	Stopped        int `json:"stopped"`
+}
+
+type ExpertTeamPlanCommandRequest struct {
+	ProjectID                    string                      `json:"project_id"`
+	ExpectedVersion              int                         `json:"expected_version"`
+	Action                       string                      `json:"action"`
+	Reason                       string                      `json:"reason"`
+	Acknowledge                  bool                        `json:"acknowledge"`
+	ExpectedConfigurationVersion int                         `json:"expected_configuration_version,omitempty"`
+	Items                        []ExpertTeamPlanItemRequest `json:"items,omitempty"`
+	IdempotencyKey               string                      `json:"idempotency_key"`
+}
+
+type ExpertTeamPlanPage struct {
+	Items      []ExpertTeamPlan `json:"items"`
+	Total      int              `json:"total"`
+	NextCursor string           `json:"next_cursor,omitempty"`
 }
 
 type ExpertTeamPlanStartRequest struct {

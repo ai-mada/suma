@@ -4517,8 +4517,43 @@
         ],
         "type": "object"
       },
+      "ExpertTeamDependencyFact": {
+        "properties": {
+          "accepted": {
+            "type": "boolean"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "selected": {
+            "type": "boolean"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "task_version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "task_id",
+          "selected",
+          "accepted",
+          "task_version"
+        ],
+        "type": "object"
+      },
       "ExpertTeamPlan": {
         "properties": {
+          "activation_generation": {
+            "type": "integer"
+          },
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "blockers": {
             "items": {
               "type": "string"
@@ -4540,6 +4575,10 @@
           "expires_at": {
             "type": "string"
           },
+          "graph_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
           "id": {
             "type": "string"
           },
@@ -4549,13 +4588,23 @@
             },
             "type": "array"
           },
+          "progress": {
+            "$ref": "#/components/schemas/ExpertTeamPlanProgress"
+          },
           "project_id": {
             "type": "string"
+          },
+          "revision": {
+            "minimum": 1,
+            "type": "integer"
           },
           "state": {
             "enum": [
               "ready",
-              "started"
+              "active",
+              "paused",
+              "completed",
+              "stopped"
             ],
             "type": "string"
           },
@@ -4578,6 +4627,9 @@
           "team_id",
           "team_name",
           "version",
+          "revision",
+          "graph_sha256",
+          "activation_generation",
           "state",
           "configuration_version",
           "configuration",
@@ -4586,7 +4638,70 @@
           "expires_at",
           "valid",
           "blockers",
-          "can_start"
+          "can_start",
+          "allowed_actions",
+          "progress"
+        ],
+        "type": "object"
+      },
+      "ExpertTeamPlanCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge": {
+            "const": true,
+            "description": "Explicit activation/control decision; stop prevents new tasks and does not report active processes stopped.",
+            "type": "boolean"
+          },
+          "action": {
+            "enum": [
+              "pause",
+              "resume",
+              "stop",
+              "revise"
+            ],
+            "type": "string"
+          },
+          "expected_configuration_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "items": {
+            "description": "Explicit unstarted changes only; started task/run/source tuples remain immutable.",
+            "items": {
+              "$ref": "#/components/schemas/ExpertTeamPlanItemRequest"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 2000
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "action",
+          "reason",
+          "acknowledge",
+          "idempotency_key"
         ],
         "type": "object"
       },
@@ -4629,6 +4744,27 @@
       },
       "ExpertTeamPlanItem": {
         "properties": {
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "dependencies": {
+            "items": {
+              "$ref": "#/components/schemas/ExpertTeamDependencyFact"
+            },
+            "type": "array"
+          },
+          "depends_on": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "dispatch_plan_id": {
+            "type": "string"
+          },
           "plan": {
             "$ref": "#/components/schemas/TaskDispatchPlan"
           },
@@ -4644,11 +4780,47 @@
           "role_title": {
             "type": "string"
           },
+          "run_id": {
+            "type": "string"
+          },
           "run_state": {
             "type": "string"
+          },
+          "source_revision": {
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "waiting_dependencies",
+              "ready",
+              "queued",
+              "running",
+              "awaiting_review",
+              "accepted",
+              "blocked",
+              "stopped"
+            ],
+            "type": "string"
+          },
+          "task_basis_sha256": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "task_version": {
+            "type": "integer"
           }
         },
         "required": [
+          "task_id",
+          "task_version",
+          "task_basis_sha256",
+          "source_revision",
+          "depends_on",
+          "dependencies",
+          "state",
+          "blockers",
           "role_key",
           "role_title",
           "resource_id",
@@ -4679,6 +4851,66 @@
           "task_id",
           "expected_task_version",
           "role_key"
+        ],
+        "type": "object"
+      },
+      "ExpertTeamPlanPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ExpertTeamPlan"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "type": "object"
+      },
+      "ExpertTeamPlanProgress": {
+        "properties": {
+          "accepted": {
+            "type": "integer"
+          },
+          "awaiting_review": {
+            "type": "integer"
+          },
+          "blocked": {
+            "type": "integer"
+          },
+          "executing": {
+            "type": "integer"
+          },
+          "ready": {
+            "type": "integer"
+          },
+          "stopped": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "waiting": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "waiting",
+          "ready",
+          "executing",
+          "awaiting_review",
+          "accepted",
+          "blocked",
+          "stopped"
         ],
         "type": "object"
       },
@@ -29001,8 +29233,181 @@
       }
     },
     "/expert-team-plans": {
+      "get": {
+        "description": "Current project expert execution templates and versioned dependency delivery plans. Independent tasks are the all-root case. Explicit activation advances successors only after current formal acceptance of this plan predecessor run; success alone is insufficient. Pause/stop halt new work; active runs retain original controls. Revise affects only unstarted sources. No silent code inheritance. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
+        "operationId": "get_expert-team-plans",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact integer page size, 1..100.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque scope-bound page boundary from next_cursor.",
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "maxLength": 4096,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpertTeamPlanPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      },
       "post": {
-        "description": "Current project expert execution templates and atomic independent-task dispatch. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
+        "description": "Current project expert execution templates and versioned dependency delivery plans. Independent tasks are the all-root case. Explicit activation advances successors only after current formal acceptance of this plan predecessor run; success alone is insufficient. Pause/stop halt new work; active runs retain original controls. Revise affects only unstarted sources. No silent code inheritance. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
         "operationId": "post_expert-team-plans",
         "parameters": [
           {
@@ -29222,7 +29627,7 @@
     },
     "/expert-team-plans/{id}": {
       "get": {
-        "description": "Current project expert execution templates and atomic independent-task dispatch. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
+        "description": "Current project expert execution templates and versioned dependency delivery plans. Independent tasks are the all-root case. Explicit activation advances successors only after current formal acceptance of this plan predecessor run; success alone is insufficient. Pause/stop halt new work; active runs retain original controls. Revise affects only unstarted sources. No silent code inheritance. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
         "operationId": "get_expert-team-plans_id",
         "parameters": [
           {
@@ -29383,9 +29788,591 @@
         "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
       }
     },
+    "/expert-team-plans/{id}/commands": {
+      "post": {
+        "description": "Current project expert execution templates and versioned dependency delivery plans. Independent tasks are the all-root case. Explicit activation advances successors only after current formal acceptance of this plan predecessor run; success alone is insufficient. Pause/stop halt new work; active runs retain original controls. Revise affects only unstarted sources. No silent code inheritance. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
+        "operationId": "post_expert-team-plans_id_commands",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExpertTeamPlanCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpertTeamPlan"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/expert-team-plans/{id}/revisions": {
+      "get": {
+        "description": "Current project expert execution templates and versioned dependency delivery plans. Independent tasks are the all-root case. Explicit activation advances successors only after current formal acceptance of this plan predecessor run; success alone is insufficient. Pause/stop halt new work; active runs retain original controls. Revise affects only unstarted sources. No silent code inheritance. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
+        "operationId": "get_expert-team-plans_id_revisions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact integer page size, 1..100.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque scope-bound page boundary from next_cursor.",
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "maxLength": 4096,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpertTeamPlanPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/expert-team-plans/{id}/revisions/{revision}": {
+      "get": {
+        "description": "Current project expert execution templates and versioned dependency delivery plans. Independent tasks are the all-root case. Explicit activation advances successors only after current formal acceptance of this plan predecessor run; success alone is insufficient. Pause/stop halt new work; active runs retain original controls. Revise affects only unstarted sources. No silent code inheritance. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
+        "operationId": "get_expert-team-plans_id_revisions_revision",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "revision",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpertTeamPlan"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
     "/expert-team-plans/{id}/start": {
       "post": {
-        "description": "Current project expert execution templates and atomic independent-task dispatch. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
+        "description": "Current project expert execution templates and versioned dependency delivery plans. Independent tasks are the all-root case. Explicit activation advances successors only after current formal acceptance of this plan predecessor run; success alone is insufficient. Pause/stop halt new work; active runs retain original controls. Revise affects only unstarted sources. No silent code inheritance. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
         "operationId": "post_expert-team-plans_id_start",
         "parameters": [
           {
@@ -29613,7 +30600,7 @@
     },
     "/expert-teams": {
       "get": {
-        "description": "Current project expert execution templates and atomic independent-task dispatch. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
+        "description": "Current project expert execution templates and versioned dependency delivery plans. Independent tasks are the all-root case. Explicit activation advances successors only after current formal acceptance of this plan predecessor run; success alone is insufficient. Pause/stop halt new work; active runs retain original controls. Revise affects only unstarted sources. No silent code inheritance. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
         "operationId": "get_expert-teams",
         "parameters": [
           {
@@ -29636,11 +30623,11 @@
             }
           },
           {
-            "description": "Opaque team boundary from next_cursor.",
+            "description": "Opaque scope-bound page boundary from next_cursor.",
             "in": "query",
             "name": "before",
             "schema": {
-              "maxLength": 64,
+              "maxLength": 4096,
               "type": "string"
             }
           },
@@ -29788,7 +30775,7 @@
     },
     "/expert-teams/{team_id}": {
       "get": {
-        "description": "Current project expert execution templates and atomic independent-task dispatch. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
+        "description": "Current project expert execution templates and versioned dependency delivery plans. Independent tasks are the all-root case. Explicit activation advances successors only after current formal acceptance of this plan predecessor run; success alone is insufficient. Pause/stop halt new work; active runs retain original controls. Revise affects only unstarted sources. No silent code inheritance. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
         "operationId": "get_expert-teams_team_id",
         "parameters": [
           {
@@ -29949,7 +30936,7 @@
         "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
       },
       "post": {
-        "description": "Current project expert execution templates and atomic independent-task dispatch. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
+        "description": "Current project expert execution templates and versioned dependency delivery plans. Independent tasks are the all-root case. Explicit activation advances successors only after current formal acceptance of this plan predecessor run; success alone is insufficient. Pause/stop halt new work; active runs retain original controls. Revise affects only unstarted sources. No silent code inheritance. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
         "operationId": "post_expert-teams_team_id",
         "parameters": [
           {
@@ -30177,7 +31164,7 @@
     },
     "/expert-teams/{team_id}/commands": {
       "post": {
-        "description": "Current project expert execution templates and atomic independent-task dispatch. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
+        "description": "Current project expert execution templates and versioned dependency delivery plans. Independent tasks are the all-root case. Explicit activation advances successors only after current formal acceptance of this plan predecessor run; success alone is insufficient. Pause/stop halt new work; active runs retain original controls. Revise affects only unstarted sources. No silent code inheritance. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
         "operationId": "post_expert-teams_team_id_commands",
         "parameters": [
           {
@@ -30407,7 +31394,7 @@
     },
     "/expert-teams/{team_id}/revisions/{revision}": {
       "get": {
-        "description": "Current project expert execution templates and atomic independent-task dispatch. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
+        "description": "Current project expert execution templates and versioned dependency delivery plans. Independent tasks are the all-root case. Explicit activation advances successors only after current formal acceptance of this plan predecessor run; success alone is insufficient. Pause/stop halt new work; active runs retain original controls. Revise affects only unstarted sources. No silent code inheritance. Team labels never grant authority. Fixed role/resource/membership/workflow/tool/knowledge versions are rechecked before start. Each task retains a separate run, predecessor acceptance, independent tests and explicit human review. Draft/dispatch writes accept current scoped API writers; publication/retirement require browser approval. Stable operation keys recover original plans/runs without repeating execution.",
         "operationId": "get_expert-teams_team_id_revisions_revision",
         "parameters": [
           {

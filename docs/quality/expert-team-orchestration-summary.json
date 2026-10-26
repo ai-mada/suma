@@ -1,0 +1,367 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-029",
+  "product_version": "1.0.0",
+  "prepared_on": "2026-10-27",
+  "status": "locally_verified_and_primary_preview_updated",
+  "stage_complete": true,
+  "contract": "contracts/expert-team-orchestration.md",
+  "cli_contract": "contracts/expert-team-orchestration-cli.md",
+  "scope": "Existing ExpertTeamPlan dependency orchestration; same Windows host real Control/two independent Go Runners and fixed owned local Node CLI protocols. Vendor/remote/production acceptance pending.",
+  "counting_policy": "Top-level groups, child pass events and targeted reruns are distinct; overlapping selections are not summed as a stage total.",
+  "focused_checks": {
+    "domain_new": {
+      "top_level": 5,
+      "pass_events": 7,
+      "exit_code": 0,
+      "command_receipt": ".cache/mcp019-deps/20261026T144923673Z.command.json"
+    },
+    "affected_expert_dispatch": {
+      "top_level": 4,
+      "pass_events": 10,
+      "exit_code": 0,
+      "command_receipt": ".cache/mcp019-deps/20261026T145052591Z.command.json"
+    },
+    "affected_single_task_dispatch": {
+      "top_level": 3,
+      "pass_events": 8,
+      "exit_code": 0,
+      "command_receipt": ".cache/mcp019-deps/20261026T145228897Z.command.json"
+    },
+    "concurrent_start_revoked_replay": {
+      "top_level": 1,
+      "pass_events": 1,
+      "exit_code": 0,
+      "command_receipt": ".cache/mcp019-deps/20261026T145430896Z.command.json"
+    },
+    "controller_authority_and_projection": {
+      "top_level": 5,
+      "pass_events": 9,
+      "exit_code": 0,
+      "command_receipt": ".cache/mcp019-deps/20261026T145412475Z.command.json",
+      "vet_receipt": ".cache/mcp019-deps/20261026T145421109Z.command.json",
+      "vet_exit_code": 0
+    },
+    "reconciling_projection_fix": {
+      "red_receipt": ".cache/mcp019-deps/20261026T154814118Z.command.json",
+      "red_exit_code": 1,
+      "green_receipt": ".cache/mcp019-deps/20261026T155017221Z.command.json",
+      "green_exit_code": 0,
+      "top_level": 1,
+      "pass_events": 1,
+      "production_file": "internal/platform/expert_team_orchestration_projection.go",
+      "production_sha256": "528110c959c9cdd1b5db894c0c28a5da93f1a01d64ff5ed1e4739115100e92de",
+      "fact": "Exact scoped reconciling node projects blocked; original running RunState and RunID remain; subsequent Tick creates no new run."
+    },
+    "existing_cli_extension": {
+      "top_level": 1,
+      "pass_events": 5,
+      "exit_code": 0,
+      "command_receipt": ".cache/mcp019-deps/20261026T150004774Z.command.json",
+      "commands": [
+        "team-plan list",
+        "team-plan get",
+        "team-plan revisions",
+        "team-plan create",
+        "team-plan start",
+        "team-plan command"
+      ],
+      "scope": "Existing scoped HTTP/identity and strict bounded JSON transport; explicit confirmation and original key; no automatic retry or identity refresh."
+    },
+    "history_boundary_and_time": {
+      "top_level": 1,
+      "pass_events": 1,
+      "exit_code": 0,
+      "red_receipt": ".cache/mcp019-deps/20261026T161521248Z.command.json",
+      "green_receipt": ".cache/mcp019-deps/20261026T161630047Z.command.json",
+      "fact": "Exclude source-only original plans from current projection/list/actions, preserve original bytes/run references; return immutable revision row time on copy."
+    }
+  },
+  "frontend": {
+    "evidence_kind": "assistant_tool_execution_output_without_separate_raw_capture",
+    "test_file": "apps/web/src/TeamTaskDispatchDialog.test.tsx",
+    "command": "node node_modules/vitest/vitest.mjs run src/TeamTaskDispatchDialog.test.tsx --reporter=dot",
+    "working_directory": "apps/web",
+    "full_focused_group": {
+      "at": "2026-10-26T22:55:04+08:00",
+      "tests_passed": 5,
+      "exit_code": 0,
+      "tool_chunk": "6a1e87"
+    },
+    "affected_rerun": {
+      "at": "2026-10-26T22:57:30+08:00",
+      "tests_passed": 2,
+      "tests_unselected": 3,
+      "exit_code": 0,
+      "tool_chunk": "56fdbf",
+      "scope": "identity/403 propagation and original command recovery"
+    },
+    "typescript": {
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "session_id": 62993,
+      "exit_code": 0,
+      "tool_chunk": "6c913f"
+    },
+    "i18n": {
+      "command": "node scripts/check-i18n.mjs",
+      "paired_keys": 3968,
+      "new_domain_pairs": 82,
+      "exit_code": 0,
+      "tool_chunk": "659512"
+    },
+    "later_expiry_display_fix": {
+      "scope": "Show preview expiry only when nonempty and parseable; no new key or behavior in dispatch authority",
+      "retested": false,
+      "reason": "Integrator explicitly requested reuse of unchanged behavior/type evidence",
+      "file": "apps/web/src/TeamTaskDispatchDialog.tsx",
+      "sha256": "cc705ab28e3fd99b3dc612e7ca9c0e94adc82bc7fa986f32193b9968d85add34"
+    },
+    "reviewed_web_build_log": ".cache/e2e/expert-team-orchestration-stage-029/web-reviewed-build.local.log",
+    "reviewed_web_build_fact": "Final131-file web-reviewed built successfully; actual CNEN and refresh proof and artifact pairing recorded below. Chunk-size warning retained."
+  },
+  "preserved_failures": [
+    {
+      "receipt": ".cache/mcp019-deps/20261026T144053973Z.command.json",
+      "fact": "Expected preimplementation RED: dependent preview rejected."
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261026T144637182Z.command.json",
+      "fact": "Nested read before authority cleanup consumed deadline; fixed same-transaction preview projection and cleanup before final read."
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261026T145023994Z.command.json",
+      "fact": "Existing test fixture variable redeclaration compile error corrected locally."
+    },
+    {
+      "scope": "Initial UI fixtures",
+      "fact": "Old fixtures lacked enhanced DTO fields: 2 failed/1 passed; corrected fixed dependency fixtures, not a compatibility fallback."
+    }
+  ],
+  "initial_actual": {
+    "status": "retained_unknown_run_unstarted_work_stopped_and_owned_processes_closed",
+    "plan_id": "930af77aec2356aa10544840ab5c1f65",
+    "plan_state": "stopped",
+    "child_not_dispatched": true,
+    "cause": "Owned027 CLI fixture path guard and simultaneous-entry barrier were unsuitable for029 dependent execution; whole-run terminal missing, root reconciling, independent test pending.",
+    "not_product_dispatch_failure": true,
+    "same_windows_host": true,
+    "real_control_process": true,
+    "independent_runner_processes": 2,
+    "vendor_cli_execution": false,
+    "recorded_model_calls": 0,
+    "recorded_vendor_calls": 0,
+    "owned_process_closure": {
+      "control": 0,
+      "runner_A": 0,
+      "runner_B": 0,
+      "forced": false,
+      "integrity": "ok",
+      "source_inventory_unchanged": true
+    }
+  },
+  "actual_final": {
+    "status": "completed_and_all_owned_processes_graceful_zero",
+    "directory": ".cache/e2e/expert-team-orchestration-stage-029/actual-final",
+    "final_receipt": ".cache/e2e/expert-team-orchestration-stage-029/actual-final/verification.local.json",
+    "plan_id": "7518384b1e958d43cb7fd3c788ef1b08",
+    "plan_state": "completed",
+    "source_revision": 2,
+    "actual_runs": 2,
+    "unstarted_superseded_reservation_without_run": 1,
+    "formal_test_assertions": 8,
+    "explicit_UI_local_test_owner_reviews": 2,
+    "actual_tasks": [
+      {
+        "task_id": "ff643150686948f6d0a46fd209ef996a",
+        "run_id": "c494d922d64881a6954ac6eec8ea38a0",
+        "code_worker": "expert027-A-9344006f",
+        "test_worker": "expert027-B-fc54d7ec",
+        "candidate_sha": "2d7f8fb5c5fc5753a43f18c6d8afd014f21e1dc9",
+        "bundle_sha256": "b47a0d4aa47d85af2605a8cc47a6c2ff8bcf245a5eade48fd44d5d4544ba5707",
+        "formal_assertions": 4,
+        "attempts": 2,
+        "review": {
+          "task_version": 2,
+          "run_id": "c494d922d64881a6954ac6eec8ea38a0",
+          "decision": "accepted"
+        },
+        "task_version_after_review": 3
+      },
+      {
+        "task_id": "e5a41476c5a1ee1e9831cddd8b6e6c95",
+        "run_id": "e974cd71834d2d5066366949f1b41a7f",
+        "code_worker": "expert027-B-fc54d7ec",
+        "test_worker": "expert027-A-9344006f",
+        "candidate_sha": "67be2a599c23b9f1ab03c2db6eba3b61434781ec",
+        "bundle_sha256": "61c888ac702b7294a6423384321e43c84d94c0c44359e458d87c4241c4a07ce8",
+        "formal_assertions": 4,
+        "attempts": 2,
+        "review": {
+          "task_version": 4,
+          "run_id": "e974cd71834d2d5066366949f1b41a7f",
+          "decision": "accepted"
+        },
+        "task_version_after_review": 5
+      }
+    ],
+    "root_success_waits_for_review": true,
+    "paused_review_keeps_child_undispatched": true,
+    "pending_revision_preserves_started_source_and_run": true,
+    "explicit_resume_dispatches_child": true,
+    "resume_CAS_conflict_retains_draft_and_reconfirmation": true,
+    "browser_CN_EN_URL_refresh_same_original_runs": true,
+    "history_read_only": true,
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "new_agent_tokens": 0,
+    "source_inventory_unchanged": true,
+    "owned_control_and_two_runners_exit_codes": [
+      0,
+      0,
+      0
+    ],
+    "forced": false,
+    "integrity": "ok",
+    "execution_control_sha256": "322a86a373e6cfdc3320e8f25844b3965958845e2aa4ce1690f348a77504293e",
+    "final_readback_control_sha256": "0c15e37625aa3861871eccbba41302e609822546125a863d07a5fd5b65ef6648",
+    "final_readback": "cold reopen same completed DB, no login or Runner; actual revision times/current list correct; exit0",
+    "production_acceptance": false
+  },
+  "evidence": [
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/domain/verification.local.json",
+      "sha256": "f0f148151d5c0c4d14bf0560dac63b895d57a4c3c8f10fa285ea1c20adac359d"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/controller/verification.local.json",
+      "sha256": "1fc1e937a4c479a2e789c8cdfd2cdc74ae37f590804611c584e4a13d4f373382"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/controller/progress-recovery.local.json",
+      "sha256": "407ef83b5af9f0057e2dc22fc0d5ae4c8fa683feac1039a18a81565b2bd54066"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/cli/verification.local.json",
+      "sha256": "5e2cb16e3f4d0d4f1db3a91c79387ba4e107ddce99b7aaa79b6b270ad41852e3"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/actual/initial-fixture-findings.local.json",
+      "sha256": "b880551eb5e7e7be80a57514867ff758cc5bad0542feee7ff0f16617b851cdfe"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/actual/closed.local.json",
+      "sha256": "d9ea604145b6bdd6f44c68d52beedea79f4e217d4b05290a6346719985bd3fa8"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/actual-final/fixture-adaptation.local.json",
+      "sha256": "c43643b9e4c8e5d531fb42770dfa9e6d3f95e2b83498bf9dca45a4354fbb1987"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/web-reviewed-build.local.log",
+      "sha256": "23aa3f6d806a3912f57542a04636d04bf901c94fb1a3f04c3e195c9ece879fc6"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/domain/history-boundary-verification.local.json",
+      "sha256": "33ced38b3ba160c9d5434c04e8d1516ecb429064d4aeebc5bdfc9446b600e439"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/runtime-reviewed/build-facts.local.json",
+      "sha256": "8d21ccc684e695164746e4a0a59f087f525c98fcaf9969286f1632006131b294"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/verification/web-artifacts.local.json",
+      "sha256": "fd54177885cb8c69c10d759b0e82b626844e39858b71973328a7f10b03cf4b0a"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/actual-final/verification.local.json",
+      "sha256": "a94a4777eaaae6430a222b07f2cdbb2f11faa5ab454ea43d92cc0aa00557ee44"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/actual-final/closed.local.json",
+      "sha256": "a2ffffe499c902180984df4baebaef66e6ff8049d89f31bd70dd2b8c458fba62"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/browser/verification.local.json",
+      "sha256": "f136657ec8f73444ba42f80ce400684a4fba4e8c7dd7b119fed680981a2b33b2"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/final-readback/ready.local.json",
+      "sha256": "7147902d8c249435397c3ff6d9bc250dd835b50cd0f2401e884bffea5acbeb4e"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/final-readback/closed.local.json",
+      "sha256": "0a6d6fc2b1945ecdba7b86827ea4b343fe9e3005b10b0eeec4f209c53e9691db"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/primary-upgrade/final-verification.local.json",
+      "sha256": "1d4b39f8500a42ed0ebf5a5d55eceb39e2f7235e27deeff03e489192dccdf8ee"
+    },
+    {
+      "path": ".cache/e2e/expert-team-orchestration-stage-029/primary-upgrade/control-launch.local.json",
+      "sha256": "0e58154cf0c8ad8cca6b5e36391f773d2b98e633fc8e9eeda8cf3143c8f2f192"
+    }
+  ],
+  "not_claimed": [
+    "actual-final complete",
+    "actual-final CN/EN browser acceptance",
+    "physical multi-host acceptance",
+    "real vendor CLI/model/account/billing",
+    "production acceptance",
+    "full suites or full device/theme matrix",
+    "full P0-P7 platform completion",
+    "primary preview forward upgrade acceptance"
+  ],
+  "full_platform_status": "in_progress",
+  "root_integration": {
+    "command_receipt": ".cache/mcp019-deps/20261026T145117726Z.command.json",
+    "exit_code": 1,
+    "pass_events": 34,
+    "remaining_failure": "obsolete concurrent assertion comparing actual nonempty IDs to intentionally empty preview IDs; fixed and only affected group repeated at145430896Z",
+    "final_contract_generation_check_exit_code": 0,
+    "generated_schemas": 371,
+    "generated_paths": 218,
+    "no_full_repeat": true
+  },
+  "artifacts": {
+    "runtime": ".cache/e2e/expert-team-orchestration-stage-029/runtime-reviewed",
+    "production_inputs": 378,
+    "source_sha256": "2171e84a7d8c429d8b9edd59b23e5e3fc9bc4314c1087db4303a08540834346c",
+    "binaries": {
+      "suma-control.exe": "0c15e37625aa3861871eccbba41302e609822546125a863d07a5fd5b65ef6648",
+      "suma-runner.exe": "b721ecdb9d8169a0ccc5d4025e688bd886405b2a0030f3632c8846bdd6799289",
+      "suma.exe": "20dd031e4813d5aeb5f64feff1c71b50e533c4cb4186a0e26a4750813afb9cfa"
+    },
+    "web_files": 131,
+    "web_index_sha256": "2c15d59f3104c21c3a57f8a8e262fe593356a80a30f0bfaa8bc9fe0d03a25387"
+  },
+  "primary_preview": {
+    "stage": "T-P4-029",
+    "url": "http://pool.localhost:4324/",
+    "product_version": "1.0.0",
+    "control_pid": 251820,
+    "holder_pid": 199624,
+    "mode": "normal",
+    "tables": 177,
+    "original_tables": 175,
+    "identical_full_original_tables": 175,
+    "original_schema_changes": 0,
+    "new_tables_empty": 2,
+    "new_indexes": 2,
+    "authority_rows": 18,
+    "grant_rows": 0,
+    "original_login_not_reissued": true,
+    "original_task_and_run_rows_unchanged": true,
+    "run_states": [
+      [
+        "failed",
+        1
+      ],
+      [
+        "succeeded",
+        2
+      ]
+    ],
+    "prior_Control_and_holder_graceful_zero": true,
+    "no_new_credentials_or_model_execution": true
+  }
+}

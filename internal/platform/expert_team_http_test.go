@@ -78,16 +78,25 @@ func TestExpertTeamHTTPContractsAndAtomicDispatch(t *testing.T) {
 		t.Fatal("preview executed work")
 	}
 	first := plan.Items[0].Plan
-	f.call("POST", "/task-dispatch-plans/"+first.ID+"/start", TaskDispatchStartRequest{ProjectID: f.project, ExpectedVersion: first.Version, IdempotencyKey: newID()}, 409)
+	if first.ID != "" || first.RunID != "" {
+		t.Fatal("preview exposed an unstarted dispatch/run")
+	}
 	start := h.start(plan)
 	start.AcknowledgeDispatch = false
 	callAPI("/expert-team-plans/"+plan.ID+"/start", start, 400)
 	start.AcknowledgeDispatch = true
 	started := callAPI("/expert-team-plans/"+plan.ID+"/start", start, 200)
 	replayed := callAPI("/expert-team-plans/"+plan.ID+"/start", start, 200)
-	if started["state"] != "started" || started["version"] != float64(2) || expertCount(t, f, "dag_runs") != 2 {
+	if started["state"] != "active" || started["version"] != float64(2) || expertCount(t, f, "dag_runs") != 2 {
 		t.Fatal("API dispatch did not bind exactly two independent runs", started)
 	}
+	var bound ExpertTeamPlan
+	encodedBound, _ := json.Marshal(started)
+	if json.Unmarshal(encodedBound, &bound) != nil {
+		t.Fatal("invalid started plan")
+	}
+	first = bound.Items[0].Plan
+	f.call("POST", "/task-dispatch-plans/"+first.ID+"/start", TaskDispatchStartRequest{ProjectID: f.project, ExpectedVersion: first.Version, IdempotencyKey: newID()}, 409)
 	a, _ := json.Marshal(started["items"])
 	b, _ := json.Marshal(replayed["items"])
 	if !bytes.Equal(a, b) {

@@ -13,6 +13,7 @@ import (
 
 type expertFixture struct {
 	f             *fixture
+	runnerToken   string
 	team          string
 	resource      Record
 	role          ExpertTeamRoleRequest
@@ -22,7 +23,7 @@ type expertFixture struct {
 
 func newExpertFixture(t *testing.T, pool bool) *expertFixture {
 	t.Helper()
-	f, _, request, _ := taskDispatchFixture(t)
+	f, runnerToken, request, _ := taskDispatchFixture(t)
 	ctx := context.Background()
 	team, err := f.s.SaveTeam(ctx, f.actor, "", map[string]any{"name": "Actual expert team", "status": "active", "expected_version": float64(0), "idempotency_key": newID()})
 	if err != nil {
@@ -48,7 +49,7 @@ func newExpertFixture(t *testing.T, pool bool) *expertFixture {
 		profile := dispatchPoolTool(t, f, p)
 		role.ToolProfileID, role.ExpectedToolVersion = profile.ID, profile.Version
 	}
-	h := &expertFixture{f: f, team: teamID, resource: resource, role: role}
+	h := &expertFixture{f: f, runnerToken: runnerToken, team: teamID, resource: resource, role: role}
 	h.configuration, err = f.s.SaveExpertTeam(ctx, f.e, f.actor, f.project, teamID, ExpertTeamSaveRequest{ProjectID: f.project, Roles: []ExpertTeamRoleRequest{role}, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
@@ -156,10 +157,12 @@ func TestExpertTeamPreviewAtomicRollbackAndAcceptedDependencyGate(t *testing.T) 
 		t.Fatal(err)
 	}
 	h.tasks[1] = dependent
-	_, err = f.s.CreateExpertTeamPlan(ctx, f.e, f.actor, f.project, h.request())
-	expertStatus(t, err, 409)
+	dependentPlan, err := f.s.CreateExpertTeamPlan(ctx, f.e, f.actor, f.project, h.request())
+	if err != nil || dependentPlan.Items[1].State != "waiting_dependencies" {
+		t.Fatal(dependentPlan, err)
+	}
 	if expertCount(t, f, "suma_task_dispatch_plans") != 0 {
-		t.Fatal("unaccepted predecessor bypassed by selecting both tasks")
+		t.Fatal("waiting dependency created a premature dispatch plan")
 	}
 	r = h.request()
 	r.Items[1] = r.Items[0]
@@ -197,8 +200,8 @@ func TestExpertTeamStartIndependentPrivateAndPoolRunsReplay(t *testing.T) {
 				t.Fatal(replay, err)
 			}
 			for i, item := range started.Items {
-				if item.Plan.RunID != plan.Items[i].Plan.RunID || item.RunState == "" {
-					t.Fatal("reserved identity changed", item)
+				if item.Plan.RunID == "" || plan.Items[i].Plan.RunID != "" || item.RunState == "" {
+					t.Fatal("actual run identity was missing or exposed prematurely", item)
 				}
 				var root string
 				if e := f.s.DB.QueryRow(`SELECT root_run_id FROM dag_run_families WHERE run_id=?`, item.Plan.RunID).Scan(&root); e != nil || root != item.Plan.RunID {
@@ -278,16 +281,21 @@ func TestExpertTeamOwnedTaskPlanCannotStartDirectly(t *testing.T) {
 	h := newExpertFixture(t, false)
 	f, ctx := h.f, context.Background()
 	plan := h.preview(t)
+	var err error
+	plan, err = f.s.StartExpertTeamPlan(ctx, f.e, f.actor, f.project, plan.ID, h.start(plan))
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, item := range plan.Items {
 		_, err := f.s.StartTaskDispatchPlan(ctx, f.e, f.actor, f.project, item.Plan.ID, TaskDispatchStartRequest{ProjectID: f.project, ExpectedVersion: 1, IdempotencyKey: newID()})
 		expertStatus(t, err, 409)
 	}
-	if expertCount(t, f, "dag_runs") != 0 {
+	if expertCount(t, f, "dag_runs") != 2 {
 		t.Fatal("direct start escaped batch")
 	}
 	ack := h.start(plan)
 	ack.AcknowledgeDispatch = false
-	_, err := f.s.StartExpertTeamPlan(ctx, f.e, f.actor, f.project, plan.ID, ack)
+	_, err = f.s.StartExpertTeamPlan(ctx, f.e, f.actor, f.project, plan.ID, ack)
 	expertStatus(t, err, 400)
 }
 
@@ -313,6 +321,7 @@ func TestExpertTeamConcurrentStartAndRevokedReplay(t *testing.T) {
 	other := &Service{DB: db, Dialect: "sqlite"}
 	var group sync.WaitGroup
 	failures := make(chan error, 2)
+	results := make(chan ExpertTeamPlan, 2)
 	for i := 0; i < 2; i++ {
 		group.Add(1)
 		go func(i int) {
@@ -322,17 +331,32 @@ func TestExpertTeamConcurrentStartAndRevokedReplay(t *testing.T) {
 				s, e = other, engine
 			}
 			out, err := s.StartExpertTeamPlan(ctx, e, f.actor, f.project, plan.ID, start)
-			if err == nil && (out.Version != 2 || out.Items[0].Plan.RunID != plan.Items[0].Plan.RunID) {
+			if err == nil && (out.Version != 2 || len(out.Items) != 2 || out.Items[0].RunID == "" || out.Items[0].DispatchPlanID == "") {
 				err = errors.New("original runs changed")
 			}
 			failures <- err
+			results <- out
 		}(i)
 	}
 	group.Wait()
 	close(failures)
+	close(results)
 	for err := range failures {
 		if err != nil {
 			t.Fatal(err)
+		}
+	}
+	var first *ExpertTeamPlan
+	for out := range results {
+		if first == nil {
+			copy := out
+			first = &copy
+			continue
+		}
+		for i, item := range out.Items {
+			if item.RunID == "" || item.DispatchPlanID == "" || item.RunID != first.Items[i].RunID || item.DispatchPlanID != first.Items[i].DispatchPlanID || item.Plan.RunID != item.RunID || item.Plan.ID != item.DispatchPlanID {
+				t.Fatal("concurrent replies changed original actual bindings", *first, out)
+			}
 		}
 	}
 	if expertCount(t, f, "dag_runs") != 2 {

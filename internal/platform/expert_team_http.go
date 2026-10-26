@@ -22,9 +22,11 @@ func (s *Server) expertTeamHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 		bad()
 		return true
 	}
-	listing := parts[0] == "expert-teams" && len(parts) == 1 && r.Method == http.MethodGet
+	listing := len(parts) == 1 && r.Method == http.MethodGet
+	revisions := parts[0] == "expert-team-plans" && len(parts) == 3 && parts[2] == "revisions" && r.Method == http.MethodGet
+	paged := listing || revisions
 	for key, values := range values {
-		if len(values) != 1 || key != "project_id" && !(listing && (key == "limit" || key == "before")) {
+		if len(values) != 1 || key != "project_id" && !(paged && (key == "limit" || key == "before")) {
 			bad()
 			return true
 		}
@@ -32,6 +34,20 @@ func (s *Server) expertTeamHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 	if v, exists := values["project_id"]; exists && (v[0] == "" || v[0] != project) || r.Method == http.MethodGet && values.Get("project_id") == "" {
 		bad()
 		return true
+	}
+	pageLimit := 20
+	if paged {
+		if raw, ok := values["limit"]; ok {
+			pageLimit, err = expertTeamPositiveInteger(raw[0], 100)
+			if err != nil {
+				bad()
+				return true
+			}
+		}
+		if len(values.Get("before")) > 4096 {
+			bad()
+			return true
+		}
 	}
 	if parts[0] == "expert-teams" {
 		switch {
@@ -87,6 +103,38 @@ func (s *Server) expertTeamHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 		return true
 	}
 	switch {
+	case listing:
+		out, err := s.Service.ListExpertTeamPlans(r.Context(), s.Engine, actor, project, pageLimit, values.Get("before"))
+		respond(w, http.StatusOK, out, err)
+	case revisions:
+		out, err := s.Service.ExpertTeamPlanRevisions(r.Context(), s.Engine, actor, project, parts[1], pageLimit, values.Get("before"))
+		respond(w, http.StatusOK, out, err)
+	case len(parts) == 4 && parts[2] == "revisions" && r.Method == http.MethodGet:
+		revision, err := expertTeamPositiveInteger(parts[3], 2147483646)
+		if err != nil {
+			bad()
+			return true
+		}
+		out, err := s.Service.GetExpertTeamPlanRevision(r.Context(), s.Engine, actor, project, parts[1], revision)
+		respond(w, http.StatusOK, out, err)
+	case len(parts) == 3 && parts[2] == "commands" && r.Method == http.MethodPost:
+		var req ExpertTeamPlanCommandRequest
+		if err := projectKnowledgeRequired(m, "project_id", "expected_version", "action", "reason", "acknowledge", "idempotency_key"); err != nil {
+			bad()
+			return true
+		}
+		for _, optional := range []string{"expected_configuration_version", "items"} {
+			if _, present := m[optional]; present && m[optional] == nil {
+				bad()
+				return true
+			}
+		}
+		if err := strictAutomation(m, &req); err != nil {
+			writeError(w, err)
+			return true
+		}
+		out, err := s.Service.CommandExpertTeamPlan(r.Context(), s.Engine, actor, project, parts[1], req)
+		respond(w, http.StatusOK, out, err)
 	case len(parts) == 1 && r.Method == http.MethodPost:
 		var req ExpertTeamPlanCreateRequest
 		if err := projectKnowledgeRequired(m, "project_id", "team_id", "expected_configuration_version", "items", "idempotency_key"); err != nil {

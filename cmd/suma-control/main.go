@@ -114,6 +114,28 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 			}
 		}
 	}()
+	// Business dependency advancement has its own bounded worker. Slow project
+	// checks cannot hold the DAG lease/ready tick or create a browser dispatch loop.
+	go func() {
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				if *maintenance {
+					continue
+				}
+				tickCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+				err := service.TickExpertTeamPlans(tickCtx, engine)
+				cancel()
+				if err != nil && ctx.Err() == nil {
+					logger.Error(app.Text("专家团队计划推进失败", "expert team plan advancement"), "event", "control.expert_team_tick", "error", err)
+				}
+			}
+		}
+	}()
 	go func() {
 		ticker := time.NewTicker(2 * time.Second)
 		defer ticker.Stop()

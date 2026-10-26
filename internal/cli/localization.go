@@ -31,6 +31,10 @@ type cliMessage struct{ key, zh string }
 // 精确匹配的是本 CLI 自己生成的静态诊断，绝不把远端诊断、用户文本或
 // 工具原始输出送进此映射。机器 code、状态和幂等请求正文不受语言影响。
 var cliMessages = map[string]cliMessage{
+	expertPlanUsage:        {"cli.team_plan.action_required", "team-plan 需要 list、get、revisions、create、start 或 command，请查看 team-plan --help"},
+	expertPlanReadInvalid:  {"cli.team_plan.read_invalid", "交付计划读取参数无效，请提供有效标识、修订号及 1–100 的 limit"},
+	expertPlanWriteOptions: {"cli.team_plan.write_options", "交付计划写入需要 --file JSON_FILE 或 --file -，并明确提供 --confirm"},
+	expertPlanWriteInvalid: {"cli.team_plan.basis_required", "交付计划需要精确正整数版本、类型化任务、明确确认及稳定的 8–128 字符 idempotency_key"},
 	"skill-catalog requires list, get, revisions, promote, update, retire, or adopt; use skill-catalog --help":              {"cli.skill_catalog.action_required", "skill-catalog 需要 list、get、revisions、promote、update、retire 或 adopt，请查看 skill-catalog --help"},
 	"invalid skill-catalog read options; limit must be 1..100 and state published or retired":                               {"cli.skill_catalog.read_invalid", "技能目录读取参数无效，limit 须为 1–100，state 须为 published 或 retired"},
 	"skill-catalog requires a valid catalog ID":                                                                             {"cli.skill_catalog.id_required", "技能目录命令需要有效的目录标识"},
@@ -144,9 +148,9 @@ func (c *client) text(zh, en string) string {
 
 func helpForLocale(locale localization.Locale) string {
 	if locale == localization.EnUS {
-		return strings.Replace(help, "--timeout 15s", "--timeout 15s --language en-US|zh-CN", 1) + projectContextHelp(locale) + handoffsHelp(locale) + skillCatalogHelp(locale)
+		return strings.Replace(help, "--timeout 15s", "--timeout 15s --language en-US|zh-CN", 1) + projectContextHelp(locale) + handoffsHelp(locale) + skillCatalogHelp(locale) + expertPlansHelp(locale)
 	}
-	return helpZH + projectContextHelp(locale) + handoffsHelp(locale) + skillCatalogHelp(locale)
+	return helpZH + projectContextHelp(locale) + handoffsHelp(locale) + skillCatalogHelp(locale) + expertPlansHelp(locale)
 }
 
 func projectContextHelp(locale localization.Locale) string {

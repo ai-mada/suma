@@ -23,6 +23,15 @@ const (
 	expertOwned       = "This task dispatch plan belongs to an expert team batch"
 	expertAck         = "Explicit expert team dispatch acknowledgement required"
 	expertTask        = "Expert team task is active or its dependencies are not accepted"
+	expertGraph       = "Expert team task dependencies are invalid"
+	expertSource      = "Expert team pending task source changed; explicitly revise the plan"
+	expertWaiting     = "Expert team task is waiting for formal predecessor acceptance"
+	expertWrongRun    = "Expert team predecessor acceptance belongs to a different run"
+	expertStopped     = "Expert team plan is stopped; active runs retain their own controls"
+	expertPaused      = "Expert team plan is paused; active runs continue"
+	expertAuthority   = "Expert team activation credential is no longer authorized; explicitly resume"
+	expertRevision    = "Expert team revision may only change unstarted tasks"
+	expertRunBlocked  = "Expert team run requires explicit recovery or review; no automatic retry"
 )
 
 var expertRoleKey = regexp.MustCompile(`^[a-z][a-z0-9_-]{0,39}$`)
@@ -41,6 +50,7 @@ func (s *Service) MigrateExpertTeams(ctx context.Context) error {
 		`CREATE TABLE IF NOT EXISTS suma_expert_team_revisions(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,team_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(tenant_id,project_id,team_id,version))`,
 		`CREATE TABLE IF NOT EXISTS suma_expert_team_plans(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,team_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,state VARCHAR(20) NOT NULL,expires_at VARCHAR(40) NOT NULL,payload TEXT NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_expert_team_plan_items(task_plan_id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,expert_plan_id VARCHAR(64) NOT NULL,run_id VARCHAR(64) NOT NULL UNIQUE)`,
+		`CREATE TABLE IF NOT EXISTS suma_expert_team_plan_revisions(plan_id VARCHAR(64) NOT NULL,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,revision INTEGER NOT NULL,graph_sha256 VARCHAR(64) NOT NULL,payload TEXT NOT NULL,created_at VARCHAR(40) NOT NULL,PRIMARY KEY(plan_id,revision))`,
 	} {
 		if _, err := s.DB.ExecContext(ctx, s.ddl(ddl)); err != nil {
 			return err
@@ -49,7 +59,13 @@ func (s *Service) MigrateExpertTeams(ctx context.Context) error {
 	if err := store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_expert_team_plan_scope", "suma_expert_team_plans", "tenant_id", "project_id", "id"); err != nil {
 		return err
 	}
-	return store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_expert_team_item_scope", "suma_expert_team_plan_items", "tenant_id", "project_id", "expert_plan_id")
+	if err := store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_expert_team_item_scope", "suma_expert_team_plan_items", "tenant_id", "project_id", "expert_plan_id"); err != nil {
+		return err
+	}
+	if err := store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_expert_team_plan_revision_scope", "suma_expert_team_plan_revisions", "tenant_id", "project_id", "plan_id", "revision"); err != nil {
+		return err
+	}
+	return s.MigrateExpertTeamActivations(ctx)
 }
 
 func (s *Service) expertTeamHeadTx(ctx context.Context, auth *authorizedCommand, team string, revision int) (out ExpertTeamConfiguration, err error) {
@@ -111,6 +127,19 @@ func (s *Service) expertTeamPlanTx(ctx context.Context, tx *sql.Tx, tenant, proj
 		return out, err
 	}
 	err = json.Unmarshal([]byte(raw), &out)
+	if err != nil {
+		return out, err
+	}
+	// Only an immutable reviewed source revision authorizes the current model.
+	// Original-only records remain untouched; they are never pending work.
+	if out.ID != id || out.ProjectID != project || out.Revision < 1 || len(out.GraphSHA256) != 64 {
+		return out, expertError("expert_team_changed", expertPlanChanged)
+	}
+	var sourceSHA string
+	err = tx.QueryRowContext(ctx, s.q(`SELECT graph_sha256 FROM suma_expert_team_plan_revisions WHERE tenant_id=? AND project_id=? AND plan_id=? AND revision=?`), tenant, project, id, out.Revision).Scan(&sourceSHA)
+	if errors.Is(err, sql.ErrNoRows) || err == nil && sourceSHA != out.GraphSHA256 {
+		return out, expertError("expert_team_changed", expertPlanChanged)
+	}
 	return out, err
 }
 
@@ -123,4 +152,50 @@ func (s *Service) rejectExpertTeamOwnedPlanTx(ctx context.Context, tx *sql.Tx, t
 		return expertError("expert_team_batch_owned", expertOwned)
 	}
 	return nil
+}
+
+func expertTeamReservedIDs(plan string, item ExpertTeamPlanItem) (string, string) {
+	key := plan + ":" + item.TaskID + ":" + stringify(item.SourceRevision)
+	return digest("task-plan:" + key)[:32], digest("task-run:" + key)[:32]
+}
+
+func (s *Service) saveExpertTeamPlanHeadTx(ctx context.Context, auth *authorizedCommand, previous int, out ExpertTeamPlan) error {
+	res, err := auth.tx.ExecContext(ctx, s.q(`UPDATE suma_expert_team_plans SET version=?,state=?,expires_at=?,payload=? WHERE tenant_id=? AND project_id=? AND id=? AND version=?`), out.Version, out.State, out.ExpiresAt, stringify(out), auth.target.tenantID, out.ProjectID, out.ID, previous)
+	if err != nil {
+		return err
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n != 1 {
+		return expertError("expert_team_changed", expertPlanChanged)
+	}
+	return nil
+}
+
+func (s *Service) saveExpertTeamPlanRevisionTx(ctx context.Context, auth *authorizedCommand, out ExpertTeamPlan) error {
+	out.CanStart = false
+	out.AllowedActions = []string{}
+	out.Progress = ExpertTeamPlanProgress{Total: len(out.Items)}
+	for _, item := range out.Items {
+		switch item.State {
+		case "waiting_dependencies":
+			out.Progress.Waiting++
+		case "ready":
+			out.Progress.Ready++
+		case "queued", "executing":
+			out.Progress.Executing++
+		case "awaiting_review":
+			out.Progress.AwaitingReview++
+		case "accepted":
+			out.Progress.Accepted++
+		case "stopped":
+			out.Progress.Stopped++
+		default:
+			out.Progress.Blocked++
+		}
+	}
+	_, err := auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_expert_team_plan_revisions(plan_id,tenant_id,project_id,revision,graph_sha256,payload,created_at)VALUES(?,?,?,?,?,?,?)`), out.ID, auth.target.tenantID, out.ProjectID, out.Revision, out.GraphSHA256, stringify(out), automationStamp(auth.checkedAt))
+	return err
 }

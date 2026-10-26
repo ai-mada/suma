@@ -172,6 +172,18 @@ func (s *Service) CreateTaskDispatchPlan(ctx context.Context, engine *dag.Engine
 // Shared by ordinary and coordinated previews. The caller owns authority,
 // transaction and operation receipt; no nested transaction or run is created.
 func (s *Service) createTaskDispatchPlanTx(ctx context.Context, engine *dag.Engine, auth *authorizedCommand, project string, request TaskDispatchPreviewRequest) (out TaskDispatchPlan, err error) {
+	out, err = s.buildTaskDispatchSnapshotTx(ctx, engine, auth, project, request)
+	if err != nil {
+		return out, err
+	}
+	out.ID, out.RunID = newID(), newID()
+	err = s.persistTaskDispatchSnapshotTx(ctx, auth, &out)
+	return out, err
+}
+
+// A source snapshot neither reserves a machine nor starts its 30 minute
+// dispatch lifetime. The final admission persists a fresh plan in its own tx.
+func (s *Service) buildTaskDispatchSnapshotTx(ctx context.Context, engine *dag.Engine, auth *authorizedCommand, project string, request TaskDispatchPreviewRequest) (out TaskDispatchPlan, err error) {
 	if engine == nil || auth == nil {
 		return out, invalid("任务调度器未配置")
 	}
@@ -216,25 +228,33 @@ func (s *Service) createTaskDispatchPlanTx(ctx context.Context, engine *dag.Engi
 	if err != nil {
 		return out, err
 	}
-	clock, err := s.automationClock(ctx, tx)
-	if err != nil {
-		return out, err
-	}
-	out = TaskDispatchPlan{ID: newID(), ProjectID: project, Version: 1, State: "ready", TaskID: context.Task.ID, TaskVersion: context.Task.Version, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, RunID: newID(), CreatedAt: automationStamp(clock), ExpiresAt: automationStamp(clock.Add(30 * time.Minute)), Context: context, Workflow: derived, ExecutionRoute: &route, Valid: true}
+	out = TaskDispatchPlan{ProjectID: project, Version: 1, State: "ready", TaskID: context.Task.ID, TaskVersion: context.Task.Version, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, Context: context, Workflow: derived, ExecutionRoute: &route, Valid: true}
 	if context.Requirement != nil {
 		out.RequirementID, out.RequirementVersion = context.Requirement.ID, context.Requirement.Version
 	}
-	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_task_dispatch_plans(id,tenant_id,project_id,run_id,version,state,created_by,created_at,expires_at,payload)VALUES(?,?,?,?,1,'ready',?,?,?,?)`), out.ID, p.TenantID, project, out.RunID, p.ID, out.CreatedAt, out.ExpiresAt, stringify(out))
-	if err != nil {
-		return out, err
-	}
-	if err = s.saveTaskDispatchRouteBasisTx(ctx, tx, out.ID, route); err != nil {
-		return out, err
-	}
-	if err = s.commandActivity(ctx, auth, "task.dispatch_preview", out.ID, context.Task.Title); err != nil {
-		return out, err
-	}
 	return out, nil
+}
+
+func (s *Service) persistTaskDispatchSnapshotTx(ctx context.Context, auth *authorizedCommand, out *TaskDispatchPlan) error {
+	if out == nil || out.ID == "" || out.RunID == "" || out.ExecutionRoute == nil {
+		return expertError("expert_team_invalid", expertInvalid)
+	}
+	if err := assertProjectCommand(auth.tx, auth, out.ProjectID); err != nil {
+		return err
+	}
+	clock, err := s.automationClock(ctx, auth.tx)
+	if err != nil {
+		return err
+	}
+	out.CreatedAt, out.ExpiresAt = automationStamp(clock), automationStamp(clock.Add(30*time.Minute))
+	_, err = auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_task_dispatch_plans(id,tenant_id,project_id,run_id,version,state,created_by,created_at,expires_at,payload)VALUES(?,?,?,?,1,'ready',?,?,?,?)`), out.ID, auth.target.tenantID, out.ProjectID, out.RunID, auth.currentPrincipal.ID, out.CreatedAt, out.ExpiresAt, stringify(out))
+	if err != nil {
+		return err
+	}
+	if err = s.saveTaskDispatchRouteBasisTx(ctx, auth.tx, out.ID, *out.ExecutionRoute); err != nil {
+		return err
+	}
+	return s.commandActivity(ctx, auth, "task.dispatch_preview", out.ID, out.Context.Task.Title)
 }
 
 func (s *Service) GetTaskDispatchPlan(ctx context.Context, engine *dag.Engine, actor Actor, project, id string) (TaskDispatchPlan, error) {

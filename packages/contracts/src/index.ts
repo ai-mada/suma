@@ -915,12 +915,22 @@ export interface ExpertTeamConfigurationPage {
   total: number;
   next_cursor?: string;
 }
+export interface ExpertTeamDependencyFact {
+  task_id: string;
+  selected: boolean;
+  accepted: boolean;
+  task_version: number;
+  run_id?: string;
+}
 export interface ExpertTeamPlan {
   id: string;
   project_id: string;
   team_id: string;
   team_name: string;
   version: number;
+  revision: number;
+  graph_sha256: string;
+  activation_generation: number;
   state: string;
   configuration_version: number;
   configuration: ExpertTeamConfiguration;
@@ -930,6 +940,18 @@ export interface ExpertTeamPlan {
   valid: boolean;
   blockers: (string)[];
   can_start: boolean;
+  allowed_actions: (string)[];
+  progress: ExpertTeamPlanProgress;
+}
+export interface ExpertTeamPlanCommandRequest {
+  project_id: string;
+  expected_version: number;
+  action: string;
+  reason: string;
+  acknowledge: boolean;
+  expected_configuration_version?: number;
+  items?: (ExpertTeamPlanItemRequest)[];
+  idempotency_key: string;
 }
 export interface ExpertTeamPlanCreateRequest {
   project_id: string;
@@ -939,6 +961,16 @@ export interface ExpertTeamPlanCreateRequest {
   idempotency_key: string;
 }
 export interface ExpertTeamPlanItem {
+  task_id: string;
+  task_version: number;
+  task_basis_sha256: string;
+  source_revision: number;
+  depends_on: (string)[];
+  dependencies: (ExpertTeamDependencyFact)[];
+  state: string;
+  blockers: (string)[];
+  dispatch_plan_id?: string;
+  run_id?: string;
   role_key: string;
   role_title: string;
   resource_id: string;
@@ -950,6 +982,21 @@ export interface ExpertTeamPlanItemRequest {
   task_id: string;
   expected_task_version: number;
   role_key: string;
+}
+export interface ExpertTeamPlanPage {
+  items: (ExpertTeamPlan)[];
+  total: number;
+  next_cursor?: string;
+}
+export interface ExpertTeamPlanProgress {
+  total: number;
+  waiting: number;
+  ready: number;
+  executing: number;
+  awaiting_review: number;
+  accepted: number;
+  blocked: number;
+  stopped: number;
 }
 export interface ExpertTeamPlanStartRequest {
   project_id: string;

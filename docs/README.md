@@ -4,6 +4,7 @@
 
 | 主题 | 入口 |
 |---|---|
+| 专家团队依赖编排（T-P4-029） | [PRD](product/expert-team-orchestration.md)、[架构与AI SOP](architecture/expert-team-orchestration.md)、[交互](design/expert-team-orchestration.md)、[合同](../contracts/expert-team-orchestration.md)、[CLI](../contracts/expert-team-orchestration-cli.md)、[限定验证](quality/expert-team-orchestration-verification.md)、[English](en/expert-team-orchestration.md) |
 | 受管代码集成（T-P4-028） | [PRD](product/repository-integration.md)、[架构／AI SOP](architecture/repository-integration.md)、[交互](design/repository-integration.md)、[部署](deployment/repository-integration.md)、[合同](../contracts/repository-integration.md)、[限定验证](quality/repository-integration-verification.md) |
 | 项目专家配置与团队派发（T-P4-027） | [PRD／交互](product/expert-team-dispatch.md)、[架构与AI SOP](architecture/expert-team-dispatch.md)、[合同](../contracts/expert-team-dispatch.md)、[限定验证](quality/expert-team-dispatch-verification.md) |
 | 模型辅助知识提炼（T-P4-026） | [PRD／交互](product/knowledge-intelligence.md)、[架构与AI SOP](architecture/knowledge-intelligence.md)、[合同](../contracts/knowledge-intelligence.md)、[限定验证](quality/knowledge-intelligence-verification.md) |

@@ -167,40 +167,6 @@ func (s *Service) ListExpertTeams(ctx context.Context, actor Actor, project stri
 	return out, nil
 }
 
-func (s *Service) expertTeamPlanProjectionTx(ctx context.Context, engine *dag.Engine, auth *authorizedCommand, out ExpertTeamPlan) (ExpertTeamPlan, error) {
-	out.CanStart = false
-	out.Valid = true
-	out.Blockers = []string{}
-	clearExpertTeamActions(&out.Configuration)
-	if out.Items == nil {
-		out.Items = []ExpertTeamPlanItem{}
-	}
-	if out.State == "started" {
-		for i := range out.Items {
-			if err := auth.tx.QueryRowContext(ctx, s.q(`SELECT state FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), auth.target.tenantID, out.ProjectID, out.Items[i].Plan.RunID).Scan(&out.Items[i].RunState); err != nil {
-				return out, err
-			}
-			out.Items[i].Plan.Valid = false
-			out.Items[i].Plan.Reason = expertPlanChanged
-		}
-		return out, nil
-	}
-	if err := s.validateExpertTeamPlanTx(ctx, engine, auth, out, false); err != nil {
-		if !expertTeamExpectedError(err) {
-			return out, err
-		}
-		out.Valid = false
-		out.Blockers = append(out.Blockers, err.Error())
-		return out, nil
-	}
-	write, _, err := s.expertTeamCapabilitiesTx(ctx, auth)
-	if err != nil {
-		return out, err
-	}
-	out.CanStart = write
-	return out, nil
-}
-
 func (s *Service) GetExpertTeamPlan(ctx context.Context, engine *dag.Engine, actor Actor, project, id string) (out ExpertTeamPlan, err error) {
 	if engine == nil || !handoffID(project, false) || !handoffID(id, false) {
 		return out, expertError("expert_team_invalid", expertInvalid)
@@ -232,8 +198,8 @@ func (s *Service) checkExpertTeamPreviewReadTx(ctx context.Context, auth *author
 	if err != nil {
 		return err
 	}
-	if err = s.checkTaskDispatchRouteBasisTx(ctx, auth.tx, auth.target.tenantID, plan.ProjectID, plan.ID, route); err != nil {
-		return err
+	if plan.ExecutionRoute == nil || *plan.ExecutionRoute != route {
+		return expertError("expert_team_changed", expertSource)
 	}
 	profile, err := s.toolProfileTx(ctx, auth.tx, auth.currentPrincipal, plan.ProjectID, plan.ToolProfileID)
 	if err != nil {
