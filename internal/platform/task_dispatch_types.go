@@ -1,6 +1,9 @@
 package platform
 
-import "github.com/ai-mada/suma/internal/dag"
+import (
+	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
+	"github.com/ai-mada/suma/internal/dag"
+)
 
 type TaskContextRecord struct {
 	ID                 string   `json:"id"`
@@ -11,8 +14,10 @@ type TaskContextRecord struct {
 }
 
 type TaskContext struct {
-	Task        TaskContextRecord  `json:"task"`
-	Requirement *TaskContextRecord `json:"requirement,omitempty"`
+	// CodeBaseline is resolved only from the protected task binding.
+	CodeBaseline *ccmp.CodeBaselineBinding `json:"code_baseline,omitempty"`
+	Task         TaskContextRecord         `json:"task"`
+	Requirement  *TaskContextRecord        `json:"requirement,omitempty"`
 	// Knowledge is resolved server-side from explicitly selected reviewed revisions.
 	Knowledge []ProjectKnowledgeContextItem `json:"knowledge,omitempty"`
 	// Design is resolved from the protected task binding, never editable task data.
@@ -20,25 +25,26 @@ type TaskContext struct {
 }
 
 type TaskDispatchPlan struct {
-	ID                 string       `json:"id"`
-	ProjectID          string       `json:"project_id"`
-	Version            int          `json:"version"`
-	State              string       `json:"state"`
-	TaskID             string       `json:"task_id"`
-	TaskVersion        int          `json:"task_version"`
-	RequirementID      string       `json:"requirement_id,omitempty"`
-	RequirementVersion int          `json:"requirement_version,omitempty"`
-	WorkflowID         string       `json:"workflow_id"`
-	WorkflowVersion    int          `json:"workflow_version"`
-	AgentNodeID        string       `json:"agent_node_id"`
-	ToolProfileID      string       `json:"tool_profile_id"`
-	ToolProfileVersion int          `json:"tool_profile_version"`
-	ToolProfileSHA256  string       `json:"tool_profile_sha256"`
-	RunID              string       `json:"run_id"`
-	CreatedAt          string       `json:"created_at"`
-	ExpiresAt          string       `json:"expires_at"`
-	Context            TaskContext  `json:"context"`
-	Workflow           dag.Workflow `json:"workflow"`
+	CodeBaseline       *ccmp.CodeBaselineBinding `json:"code_baseline,omitempty"`
+	ID                 string                    `json:"id"`
+	ProjectID          string                    `json:"project_id"`
+	Version            int                       `json:"version"`
+	State              string                    `json:"state"`
+	TaskID             string                    `json:"task_id"`
+	TaskVersion        int                       `json:"task_version"`
+	RequirementID      string                    `json:"requirement_id,omitempty"`
+	RequirementVersion int                       `json:"requirement_version,omitempty"`
+	WorkflowID         string                    `json:"workflow_id"`
+	WorkflowVersion    int                       `json:"workflow_version"`
+	AgentNodeID        string                    `json:"agent_node_id"`
+	ToolProfileID      string                    `json:"tool_profile_id"`
+	ToolProfileVersion int                       `json:"tool_profile_version"`
+	ToolProfileSHA256  string                    `json:"tool_profile_sha256"`
+	RunID              string                    `json:"run_id"`
+	CreatedAt          string                    `json:"created_at"`
+	ExpiresAt          string                    `json:"expires_at"`
+	Context            TaskContext               `json:"context"`
+	Workflow           dag.Workflow              `json:"workflow"`
 	// ExecutionRoute is the original reviewed display snapshot, never input
 	// authority. Nil means older history did not record a public route view.
 	ExecutionRoute *dag.ProjectExecutionRoute `json:"execution_route,omitempty"`

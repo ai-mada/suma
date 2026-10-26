@@ -1,12 +1,18 @@
 # 验证报告与历史基线
 
-## 当前 T-P4-030：固定失败证据的智能分诊（1.0.0，限定本地已验证）
+## 当前 T-P4-031：候选合成与固定基线交接（1.0.0，限定本地已验证）
+
+[专项报告](candidate-composition-verification.md)与[机器摘要](candidate-composition-summary.json)记录必要领域、Runtime原生Git、CLI／私有／Pool／HTTP、来源与权限、受影响UI及最终构建；各重叠复验分别记录，不汇总为虚构同次全套。
+
+有序固定两份已验收候选，Runner以Git原生三方合成精确M；另一执行节点对M独立测试后，测试账号明确Review，再将M显式绑定未开始任务C。C从M开发出新提交，另一节点再独立测试并单独Review。实际同机两Runner、2项新运行、8项正式检查；原来源、管理员锚点与protected baseline全链路可追溯。冲突不封存、旧fence／乱序回执／来源变化／原操作恢复有定向证据。界面修复重复设计依据后，使用同一已完成数据库只启动Control冷读验证；不重复开发／模型或正式测试。主预览180旧表完整schema及全部行保持→183。仅本地自有协议夹具验证；未调用厂商或模型，未报告用量不推断为零Token。真实远端、多机、生产验收、完整P0–P7及全部扩展需求继续实施。
+
+## 历史 T-P4-030：固定失败证据的智能分诊（1.0.0，限定本地已验证）
 
 [专项报告](failure-diagnosis-verification.md)与[机器摘要](failure-diagnosis-summary.json)记录领域7顶层、Runtime15顶层／21pass及受影响stream1、原生TS4、CLI1顶层／6pass、Pool1顶层／1pass、Panel5／Launcher2／元数据本地化单项、Root设置2、最终类型和4090对中英键的必要检查。初始UseNumber接线400、Pool测试查询及其他中间失败与定向复验分开保留，未冒充全套同次通过。
 
 同机真实Control／Runner／原生bundle／DAG／账本配合一次自有loopback模型响应，固定失败→人工修复稿→明确采用，分析adoptedv4、需求draftv1，40Token／估算57CNYmicros；原模型输出、来源与原失败保持。实际进程正常闭合，最终web-release中英冷回读／深链／类型化采用来源通过，未再调用模型、运行Runner或登录。主预览030／1.0.0正常，原177表完整schema及全部行保持，新增3空表、1索引至180，原18authority／0Grant／1failed2succeeded保持。该证据不代表厂商模型质量／账单、跨物理机器、完整设备矩阵或生产验收。
 
-下一步031尚待实现与验证：多源已验收候选合成、对精确结果独立测试、明确固定下游代码基线交接。不得沿用各原候选证明宣称组合结果已测或依赖验收自动继承代码；完整P0–P7和其余验收范围保持，见[实施计划](../delivery/implementation-plan.md)。
+031限定交付见上方专项报告；其余P0–P7和完整平台验收继续。
 
 ## 历史 T-P4-029：专家团队依赖编排与交付进度
 

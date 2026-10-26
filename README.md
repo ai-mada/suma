@@ -6,9 +6,9 @@
 
 ## 本轮进展：固定失败证据的智能分诊
 
-T-P4-030／1.0.0 已完成限定本地验证：准确失败证据经专属只读模型诊断，人工编辑修复建议并明确采用为需求草稿，保留原运行、模型原件与来源回链。真实同机 Control／Runner／DAG／账本配合一次自有本地固定模型响应，记录 40 Token、估算 57 CNY micros；这不代表厂商模型质量或商业账单。最终中英冷回读及主预览前向更新完成，原 177 表完整结构与行保持，仅加三张空表及一个索引至 180 表。见[限定验证](docs/quality/failure-diagnosis-verification.md)、[设计与 AI SOP](docs/architecture/failure-diagnosis.md)、[English](docs/en/failure-diagnosis.md)。完整 P0–P7 持续实施。
+T-P4-031／1.0.0 已完成限定本地验证：有序固定两份已验收候选，Runner以Git原生三方合成精确M；另一执行节点对M独立测试后，测试账号明确Review，再将M显式绑定未开始任务C。C从M开发出新提交，另一节点再独立测试并单独Review。实际同机两Runner、2项新运行、8项正式检查；原来源、管理员锚点与protected baseline全链路可追溯。中英界面与冷回读通过，主预览保留180旧表完整结构及全部行，新增3空表和1索引至183。见[限定验证](docs/quality/candidate-composition-verification.md)、[设计与AI SOP](docs/architecture/candidate-composition.md)、[English](docs/en/candidate-composition.md)。仅本地自有协议夹具验证；未调用厂商或模型，未报告用量不推断为零Token。真实远端、多机、生产验收、完整P0–P7及全部扩展需求继续实施。
 
-下一步 T-P4-031 待实现：多源已验收候选合成，对精确合成结果独立测试，再明确固定下游代码基线交接；业务依赖验收不自动合并或继承代码。见[实施待办](docs/delivery/implementation-plan.md)。
+后续继续冲突修复与受控恢复、多机和厂商接入，见[实施待办](docs/delivery/implementation-plan.md)。
 
 ## 历史进展：专家团队依赖编排
 

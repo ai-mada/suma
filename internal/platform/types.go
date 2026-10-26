@@ -6,9 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 )
 
 type Record struct {
+	// Protected code input is read from the task baseline domain, never Data.
+	CodeBaseline *ccmp.CodeBaselineBinding `json:"code_baseline,omitempty"`
 	// Read-only provenance from the diagnosis adoption table; never from Data.
 	FailureDiagnosisAdoption *FailureDiagnosisAdoption `json:"failure_diagnosis_adoption,omitempty"`
 	ID                       string                    `json:"id"`

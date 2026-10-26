@@ -2,15 +2,21 @@
 
 当前开发版本 **1.0.0**；新设计采用当前最佳合理结构，不增加历史兼容层。[版本与扩展需求基线](../product/v1-baseline.md)。
 
-## 当前 T-P4-030：固定失败证据的智能分诊与修复需求（限定本地已验证）
+## 当前 T-P4-031：多源候选合成与固定基线交接（限定本地已验证）
+
+有序固定两份已验收候选，Runner以Git原生三方合成精确M；另一执行节点对M独立测试后，测试账号明确Review，再将M显式绑定未开始任务C。C从M开发出新提交，另一节点再独立测试并单独Review。实际同机两Runner、2项新运行、8项正式检查；原来源、管理员锚点与protected baseline全链路可追溯。
+
+冲突返回真实路径且不封存成功候选；不确定回执沿用原操作核对，来源变化阻止新的批准或代码使用，既有执行事实保留。中英文紧凑面板、刷新及冷回读通过；主预览031／1.0.0前向升级保留180旧表完整schema及全部行，仅增加3空表和1索引至183。[PRD](../product/candidate-composition.md)、[架构与AI SOP](../architecture/candidate-composition.md)、[交互](../design/candidate-composition.md)、[限定验证](../quality/candidate-composition-verification.md)、[机器摘要](../quality/candidate-composition-summary.json)。仅本地自有协议夹具验证；未调用厂商或模型，未报告用量不推断为零Token。真实远端、多机、生产验收、完整P0–P7及全部扩展需求继续实施。
+
+## 下一步：冲突修复与受控恢复深化
+
+将准确冲突路径、源版本和恢复依据纳入可审阅修复计划，修复后形成新候选、独立复测及明确验收；继续增强多机／厂商接入，不凭本轮通过宣称这些能力已完成。
+
+## 历史 T-P4-030：固定失败证据的智能分诊与修复需求（限定本地已验证）
 
 准确持久失败 run／node／attempt 的固定证据，经专属只读模型形成观察、假设和修复建议；人工仅修改 repair，明确采用为原问题的需求草稿，并保留原运行／原件／来源回链。未知执行先核对原运行，不自动诊断、修复、重试、验收或合并。
 
 必要领域、Runtime／原生 SDK、CLI、私有／Pool、HTTP、权限／来源、费用、原操作恢复及中英组件检查通过。真实同机 Control／Runner／DAG／账本配合一次自有 loopback 固定模型响应，40 Token、估算 57 CNY micros；分析 adopted v4→需求 draft v1。实际进程正常闭合，最终 web-release 冷回读确认中英刷新、原分诊深链和类型化需求来源，未再调用模型、启动 Runner 或登录。主预览030／1.0.0正常，原177表schema及全部行保持，仅新增3空表、1索引至180；18authority、0Grant、原1failed／2succeeded运行及登录保持。见[PRD](../product/failure-diagnosis.md)、[架构与 AI SOP](../architecture/failure-diagnosis.md)、[交互](../design/failure-diagnosis.md)、[限定验证](../quality/failure-diagnosis-verification.md)、[机器摘要](../quality/failure-diagnosis-summary.json)。本地协议不代表真实厂商质量／账单、跨机器或生产验收。
-
-## 下一步 T-P4-031：多源已验收候选合成与固定基线交接（待实施）
-
-固定多个真实已验收候选及原独立测试证明，受控形成精确合成结果；对该结果另做独立测试，再由有权主体明确选择固定为下游专家开发的代码基线。冲突、未知及权限仍走既有 DAG／候选／受管集成边界，不能把业务依赖验收自动解释为代码合并或继承。此项尚未实施／验收；全部 P0–P7 与用户完整范围继续，详见[实施计划](implementation-plan.md)。
 
 ## 历史 T-P4-029：专家团队依赖编排与交付进度（限定本地已验证）
 

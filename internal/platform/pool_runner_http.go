@@ -109,10 +109,20 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				}
 				return false, err
 			}
+			if err := s.Service.checkCodeInputExecutionTx(r.Context(), tx, scope.TenantID, scope.ProjectID, run, node, true); err != nil {
+				var api *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &api) && strings.HasPrefix(api.Code, "candidate_composition_") {
+					return false, nil
+				}
+				return false, err
+			}
 			return s.Service.PoolToolClaimEligibleTx(r.Context(), tx, proof, scope, run, node)
 		})
 		if err == nil && a != nil && a.DispatchState == "active" {
 			err = s.Service.decoratePoolRepositoryAssignment(r.Context(), token, a)
+			if err == nil {
+				err = s.Service.decorateCodeInputAssignment(r.Context(), candidateSubject{pool: true, token: token, tenant: a.TenantID, project: a.ProjectID}, a)
+			}
 		}
 		respond(w, 200, PoolRunnerClaimResponse{Assignment: a}, err)
 	case "pool-runner/tool-inventory":
@@ -145,6 +155,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				return err
 			}
 			if err := s.Service.checkFailureDiagnosisExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID, false); err != nil {
+				return err
+			}
+			if err := s.Service.checkCodeInputExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID, req.Assignment.NodeID, false); err != nil {
 				return err
 			}
 			return s.Service.checkRepositoryIntegrationExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID)
@@ -210,6 +223,12 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				return err
 			}
 			if err := s.Service.recordFailureDiagnosisOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {
+				return err
+			}
+			if err := s.Service.validateCandidateCompositionResultTx(r.Context(), tx, a.TenantID, a.ProjectID, result); err != nil {
+				return err
+			}
+			if err := s.Service.validateCodeBaselineResultTx(r.Context(), tx, a.TenantID, a.ProjectID, result); err != nil {
 				return err
 			}
 			if err := s.Service.validateRepositoryIntegrationResultTx(r.Context(), tx, a.TenantID, a.ProjectID, result); err != nil {

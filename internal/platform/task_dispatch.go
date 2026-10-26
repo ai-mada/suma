@@ -18,7 +18,10 @@ func (s *Service) MigrateTaskDispatch(ctx context.Context) error {
 	if err = s.migrateTaskDispatchRoutes(ctx); err != nil {
 		return err
 	}
-	return s.MigrateExpertTeams(ctx)
+	if err = s.MigrateExpertTeams(ctx); err != nil {
+		return err
+	}
+	return s.MigrateCandidateCompositions(ctx)
 }
 
 func taskContextRecord(r Record) TaskContextRecord {
@@ -49,6 +52,19 @@ func (s *Service) taskContextTx(ctx context.Context, tx *sql.Tx, p Principal, pr
 		}
 		c := taskContextRecord(r)
 		out.Requirement = &c
+	}
+	baseline, _, err := s.taskCodeBaselineTx(ctx, tx, p.TenantID, project, taskID)
+	if err != nil {
+		return out, err
+	}
+	if baseline != nil {
+		if baseline.TaskVersion != task.Version {
+			return out, compositionError(409, "baseline_changed", compositionBaseline)
+		}
+		if err = s.checkTaskCodeBaselineTx(ctx, tx, p.TenantID, project, *baseline); err != nil {
+			return out, err
+		}
+		out.CodeBaseline = baseline
 	}
 	return out, nil
 }
@@ -113,6 +129,9 @@ func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, en
 	}
 	if digest(stringify(current.Design)) != digest(stringify(plan.Context.Design)) {
 		return conflict("需求设计采用依据已变化，请重新预览派发")
+	}
+	if stringify(current.CodeBaseline) != stringify(plan.CodeBaseline) || stringify(plan.Context.CodeBaseline) != stringify(plan.CodeBaseline) {
+		return compositionError(409, "baseline_changed", compositionBaseline)
 	}
 	profile, err := s.validateToolDispatchTx(ctx, tx, auth, project, plan.ToolProfileID, plan.ToolProfileVersion, plan.ToolProfileSHA256)
 	if err != nil {
@@ -228,7 +247,7 @@ func (s *Service) buildTaskDispatchSnapshotTx(ctx context.Context, engine *dag.E
 	if err != nil {
 		return out, err
 	}
-	out = TaskDispatchPlan{ProjectID: project, Version: 1, State: "ready", TaskID: context.Task.ID, TaskVersion: context.Task.Version, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, Context: context, Workflow: derived, ExecutionRoute: &route, Valid: true}
+	out = TaskDispatchPlan{ProjectID: project, Version: 1, State: "ready", TaskID: context.Task.ID, TaskVersion: context.Task.Version, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, Context: context, CodeBaseline: context.CodeBaseline, Workflow: derived, ExecutionRoute: &route, Valid: true}
 	if context.Requirement != nil {
 		out.RequirementID, out.RequirementVersion = context.Requirement.ID, context.Requirement.Version
 	}
@@ -324,6 +343,11 @@ func (s *Service) StartTaskDispatchPlan(ctx context.Context, engine *dag.Engine,
 		}
 		if e := s.BindRunTx(ctx, tx, authority.proof, project, plan.TaskID, runID, plan.TaskVersion); e != nil {
 			return e
+		}
+		if plan.CodeBaseline != nil {
+			if e := s.bindCodeBaselineExecutionTx(ctx, tx, authority.proof, project, runID, plan.AgentNodeID, *plan.CodeBaseline); e != nil {
+				return e
+			}
 		}
 		res, e := tx.ExecContext(ctx, s.q(`UPDATE suma_task_dispatch_plans SET version=version+1,state='started' WHERE id=? AND tenant_id=? AND project_id=? AND version=? AND state='ready'`), id, p.TenantID, project, request.ExpectedVersion)
 		if e != nil {

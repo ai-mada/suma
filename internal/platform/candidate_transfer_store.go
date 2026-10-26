@@ -196,6 +196,9 @@ func (s *Service) startCandidateTransfer(ctx context.Context, subject candidateS
 	if auth.spec.Type != "command" && auth.spec.Type != "agent" {
 		return out, invalid("Candidate source must be a code command or agent")
 	}
+	if err = s.validateCandidateInputAnchorTx(ctx, tx, subject.tenant, subject.project, r); err != nil {
+		return out, err
+	}
 	hash, replay, err := s.candidateReceipt(ctx, auth, r.OperationID, map[string]any{"candidate_start": r})
 	if err != nil {
 		return out, err
@@ -209,7 +212,7 @@ func (s *Service) startCandidateTransfer(ctx context.Context, subject candidateS
 			return out, e
 		}
 		expected := cc.Binding{SchemaVersion: cc.SchemaVersion, TransferID: out.TransferID, ProjectID: subject.project, State: out.State,
-			Source: r.Assignment, BaseCommit: r.BaseCommit, HeadCommit: r.HeadCommit, EvidenceSHA256: r.EvidenceSHA256, BundleSHA256: r.BundleSHA256, SizeBytes: r.SizeBytes}
+			Source: r.Assignment, BaseCommit: r.BaseCommit, BundleBaseCommit: r.BundleBaseCommit, HeadCommit: r.HeadCommit, EvidenceSHA256: r.EvidenceSHA256, BundleSHA256: r.BundleSHA256, SizeBytes: r.SizeBytes}
 		if out != expected || current.subjectHash != subject.hash() || out.State != "uploading" && out.State != "sealed" {
 			return out, conflict("Candidate transfer metadata changed")
 		}
@@ -230,7 +233,7 @@ func (s *Service) startCandidateTransfer(ctx context.Context, subject candidateS
 	if existing != 0 {
 		return out, conflict("Candidate source already has a transfer; recover the original operation")
 	}
-	out = cc.Binding{SchemaVersion: cc.SchemaVersion, TransferID: newID(), ProjectID: subject.project, State: "uploading", Source: r.Assignment, BaseCommit: r.BaseCommit, HeadCommit: r.HeadCommit, EvidenceSHA256: r.EvidenceSHA256, BundleSHA256: r.BundleSHA256, SizeBytes: r.SizeBytes}
+	out = cc.Binding{SchemaVersion: cc.SchemaVersion, TransferID: newID(), ProjectID: subject.project, State: "uploading", Source: r.Assignment, BaseCommit: r.BaseCommit, BundleBaseCommit: r.BundleBaseCommit, HeadCommit: r.HeadCommit, EvidenceSHA256: r.EvidenceSHA256, BundleSHA256: r.BundleSHA256, SizeBytes: r.SizeBytes}
 	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_candidate_transfers(id,tenant_id,project_id,run_id,node_id,attempt,fence,worker_id,subject_hash,binding,storage_path,created_at)VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`), out.TransferID, subject.tenant, subject.project, r.Assignment.RunID, r.Assignment.NodeID, r.Assignment.Attempt, r.Assignment.Fence, r.Assignment.WorkerID, subject.hash(), stringify(out), "", now())
 	if err != nil {
 		return out, err
@@ -262,6 +265,9 @@ func (s *Service) candidateSourceTx(ctx context.Context, tx *sql.Tx, subject can
 	}
 	head, e := workspaceRevision(result.WorkspaceEvidence)
 	if e != nil || head != b.HeadCommit || result.WorkspaceEvidence["base_commit"] != b.BaseCommit || result.WorkspaceEvidence["evidence_sha256"] != b.EvidenceSHA256 {
+		return conflict("Candidate source result does not match sealed evidence")
+	}
+	if b.BundleBase() != b.BaseCommit && result.WorkspaceEvidence["admin_base_commit"] != b.BundleBase() {
 		return conflict("Candidate source result does not match sealed evidence")
 	}
 	var reported cc.Binding

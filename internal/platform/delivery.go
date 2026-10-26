@@ -275,6 +275,9 @@ func (s *Service) Review(ctx context.Context, actor Actor, project, id string, m
 		if err = s.checkTaskRequirementDesignRunTx(ctx, auth, project, id, runID, true); err != nil {
 			return r, err
 		}
+		if err = s.checkCandidateCompositionAcceptanceTx(ctx, tx, p, project, runID); err != nil {
+			return r, err
+		}
 	}
 	if decision == "accepted" {
 		basis, _ := r.Data["dependency_basis"].(map[string]any)

@@ -49,23 +49,33 @@ func ValidHash(s string) bool   { return hash.MatchString(s) }
 func ValidCommit(s string) bool { return commit.MatchString(s) }
 
 type CandidateTransferStartRequest struct {
-	ProjectID      string        `json:"project_id"`
-	TenantID       string        `json:"tenant_id,omitempty"`
-	RunnerID       string        `json:"runner_id,omitempty"`
-	Assignment     AssignmentRef `json:"assignment"`
-	OperationID    string        `json:"operation_id"`
-	BaseCommit     string        `json:"base_commit"`
-	HeadCommit     string        `json:"head_commit"`
-	EvidenceSHA256 string        `json:"evidence_sha256"`
-	BundleSHA256   string        `json:"bundle_sha256"`
-	SizeBytes      int64         `json:"size_bytes"`
+	ProjectID        string        `json:"project_id"`
+	TenantID         string        `json:"tenant_id,omitempty"`
+	RunnerID         string        `json:"runner_id,omitempty"`
+	Assignment       AssignmentRef `json:"assignment"`
+	OperationID      string        `json:"operation_id"`
+	BaseCommit       string        `json:"base_commit"`
+	BundleBaseCommit string        `json:"bundle_base_commit,omitempty"`
+	HeadCommit       string        `json:"head_commit"`
+	EvidenceSHA256   string        `json:"evidence_sha256"`
+	BundleSHA256     string        `json:"bundle_sha256"`
+	SizeBytes        int64         `json:"size_bytes"`
 }
 
 func (r CandidateTransferStartRequest) Validate() error {
-	if !r.Assignment.Valid() || !validID(r.ProjectID, 64) || !validID(r.OperationID, 128) || !ValidCommit(r.BaseCommit) || !ValidCommit(r.HeadCommit) || r.BaseCommit == r.HeadCommit || !ValidHash(r.EvidenceSHA256) || !ValidHash(r.BundleSHA256) || r.SizeBytes < 1 || r.SizeBytes > MaxBundleBytes {
+	if !r.Assignment.Valid() || !validID(r.ProjectID, 64) || !validID(r.OperationID, 128) || !ValidCommit(r.BaseCommit) || !ValidCommit(r.HeadCommit) || !ValidCommit(r.BundleBase()) || len(r.BaseCommit) != len(r.HeadCommit) || len(r.BundleBase()) != len(r.HeadCommit) || r.BundleBase() == r.HeadCommit || !ValidHash(r.EvidenceSHA256) || !ValidHash(r.BundleSHA256) || r.SizeBytes < 1 || r.SizeBytes > MaxBundleBytes {
 		return fmt.Errorf("invalid candidate transfer manifest or assignment")
 	}
 	return nil
+}
+
+// BundleBase is the pack prerequisite anchor. BaseCommit remains the selected
+// workspace input; inherited no-delta code can therefore transfer B..M honestly.
+func (r CandidateTransferStartRequest) BundleBase() string {
+	if r.BundleBaseCommit != "" {
+		return r.BundleBaseCommit
+	}
+	return r.BaseCommit
 }
 
 type CandidateTransferCommandRequest struct {
@@ -79,20 +89,28 @@ type CandidateTransferCommandRequest struct {
 // Binding is a sealed producer identity. Resolve still requires a current
 // consumer lease, frozen DAG candidate and successful matching source evidence.
 type CandidateBinding struct {
-	SchemaVersion  int           `json:"schema_version"`
-	TransferID     string        `json:"transfer_id"`
-	ProjectID      string        `json:"project_id"`
-	State          string        `json:"state"`
-	Source         AssignmentRef `json:"source"`
-	BaseCommit     string        `json:"base_commit"`
-	HeadCommit     string        `json:"head_commit"`
-	EvidenceSHA256 string        `json:"evidence_sha256"`
-	BundleSHA256   string        `json:"bundle_sha256"`
-	SizeBytes      int64         `json:"size_bytes"`
+	SchemaVersion    int           `json:"schema_version"`
+	TransferID       string        `json:"transfer_id"`
+	ProjectID        string        `json:"project_id"`
+	State            string        `json:"state"`
+	Source           AssignmentRef `json:"source"`
+	BaseCommit       string        `json:"base_commit"`
+	BundleBaseCommit string        `json:"bundle_base_commit,omitempty"`
+	HeadCommit       string        `json:"head_commit"`
+	EvidenceSHA256   string        `json:"evidence_sha256"`
+	BundleSHA256     string        `json:"bundle_sha256"`
+	SizeBytes        int64         `json:"size_bytes"`
 }
 
 func (b CandidateBinding) ValidSealed() bool {
-	return b.SchemaVersion == SchemaVersion && validID(b.TransferID, 64) && b.State == "sealed" && b.Source.Valid() && validID(b.ProjectID, 64) && ValidCommit(b.BaseCommit) && ValidCommit(b.HeadCommit) && b.BaseCommit != b.HeadCommit && ValidHash(b.EvidenceSHA256) && ValidHash(b.BundleSHA256) && b.SizeBytes > 0 && b.SizeBytes <= MaxBundleBytes
+	return b.SchemaVersion == SchemaVersion && validID(b.TransferID, 64) && b.State == "sealed" && b.Source.Valid() && validID(b.ProjectID, 64) && ValidCommit(b.BaseCommit) && ValidCommit(b.HeadCommit) && ValidCommit(b.BundleBase()) && len(b.BaseCommit) == len(b.HeadCommit) && len(b.BundleBase()) == len(b.HeadCommit) && b.BundleBase() != b.HeadCommit && ValidHash(b.EvidenceSHA256) && ValidHash(b.BundleSHA256) && b.SizeBytes > 0 && b.SizeBytes <= MaxBundleBytes
+}
+
+func (b CandidateBinding) BundleBase() string {
+	if b.BundleBaseCommit != "" {
+		return b.BundleBaseCommit
+	}
+	return b.BaseCommit
 }
 
 type CandidateImportReceipt struct {

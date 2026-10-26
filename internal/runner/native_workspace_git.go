@@ -11,6 +11,13 @@ import (
 
 type nativeGitScope struct{}
 
+func nativeGitExecutable(ctx context.Context) string {
+	if fixed, ok := ctx.Value(compositionGitExecutableScope{}).(string); ok && fixed != "" {
+		return fixed
+	}
+	return "git"
+}
+
 // This environment is also used before checkout: rejecting filters only after
 // a worktree exists is too late to prevent a configured smudge program running.
 func nativeGitCommand(ctx context.Context, dir string, args ...string) *exec.Cmd {
@@ -19,7 +26,7 @@ func nativeGitCommand(ctx context.Context, dir string, args ...string) *exec.Cmd
 	if len(args) > 0 && args[0] == "diff" {
 		args = append([]string{"diff", "--no-ext-diff", "--no-textconv"}, args[1:]...)
 	}
-	cmd := exec.CommandContext(ctx, "git", append(flags, args...)...)
+	cmd := exec.CommandContext(ctx, nativeGitExecutable(ctx), append(flags, args...)...)
 	cmd.Dir = dir
 	for _, name := range []string{"PATH", "SystemRoot", "WINDIR", "SystemDrive", "ComSpec", "PATHEXT", "TEMP", "TMP", "TMPDIR"} {
 		if value, ok := os.LookupEnv(name); ok {

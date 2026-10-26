@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	"github.com/ai-mada/suma/internal/dag"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
@@ -50,6 +51,23 @@ func buildTaskDispatchWorkflow(source dag.Workflow, agentID, profileID string, p
 	n := &w.Nodes[chosen]
 	if n.Config == nil {
 		n.Config = map[string]any{}
+	}
+	// Config is a frozen display/dispatch snapshot, never the authority to read
+	// code. The authenticated assignment is resolved from the durable run row.
+	delete(n.Config, "code_baseline")
+	delete(n.Config, "candidate_composition")
+	if task.CodeBaseline != nil {
+		if n.Config["candidate_from"] != nil {
+			return w, compositionError(409, "baseline_changed", compositionBaseline)
+		}
+		if err = ccmp.ValidateCodeBaselineBinding(*task.CodeBaseline); err != nil {
+			return w, compositionError(409, "baseline_changed", compositionBaseline)
+		}
+		var fixed map[string]any
+		if err = json.Unmarshal([]byte(stringify(task.CodeBaseline)), &fixed); err != nil {
+			return w, err
+		}
+		n.Config["code_baseline"] = fixed
 	}
 	if cap, _ := n.Config["capability"].(string); cap != "" && cap != "command:"+profile.CommandID {
 		return w, invalid("所选工具与流程原有额外执行能力约束不一致")

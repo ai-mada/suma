@@ -2,6 +2,7 @@ package dag
 
 import (
 	"errors"
+	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
 	"github.com/ai-mada/suma/internal/toolcontract"
@@ -91,35 +92,39 @@ type NodeRun struct {
 	AdmissionPolicyVersion int                               `json:"admission_policy_version,omitempty"`
 }
 type Assignment struct {
-	RepositoryIntegration   *rc.RepositoryExecution           `json:"repository_integration,omitempty"`
-	TenantID                string                            `json:"tenant_id,omitempty"`
-	ProjectID               string                            `json:"project_id,omitempty"`
-	PoolID                  string                            `json:"pool_id,omitempty"`
-	PoolRunnerID            string                            `json:"pool_runner_id,omitempty"`
-	PoolSlotID              string                            `json:"pool_slot_id,omitempty"`
-	PoolGrantID             string                            `json:"pool_grant_id,omitempty"`
-	PoolGrantVersion        int                               `json:"pool_grant_version,omitempty"`
-	PoolCredentialID        string                            `json:"pool_credential_id,omitempty"`
-	PoolCredentialVersion   int                               `json:"pool_credential_version,omitempty"`
-	RunID                   string                            `json:"run_id"`
-	NodeID                  string                            `json:"node_id"`
-	Attempt                 int                               `json:"attempt"`
-	Fence                   int64                             `json:"fence"`
-	WorkerID                string                            `json:"worker_id"`
-	Command                 []string                          `json:"command"`
-	Type                    string                            `json:"type"`
-	TimeoutSeconds          int                               `json:"timeout_seconds"`
-	Idempotent              bool                              `json:"idempotent"`
-	Config                  map[string]any                    `json:"config"`
-	CandidateCommit         string                            `json:"candidate_commit,omitempty"`
-	CandidateFrom           string                            `json:"candidate_from,omitempty"`
-	CandidateAttempt        int                               `json:"candidate_attempt,omitempty"`
-	CandidateFence          int64                             `json:"candidate_fence,omitempty"`
-	CandidateEvidenceSHA256 string                            `json:"candidate_evidence_sha256,omitempty"`
-	ReleaseExecution        *releasecontract.ReleaseExecution `json:"release_execution,omitempty"`
-	DispatchID              string                            `json:"dispatch_id,omitempty"`
-	DispatchState           string                            `json:"dispatch_state,omitempty"`
-	LeaseUntil              string                            `json:"lease_until,omitempty"`
+	// Code inputs are decorated from an exact managed run/node binding after
+	// claim. Workflow text and an arbitrary commit never authorize these modes.
+	CandidateComposition    *ccmp.CandidateCompositionExecution `json:"candidate_composition,omitempty"`
+	CodeBaseline            *ccmp.CodeBaselineBinding           `json:"code_baseline,omitempty"`
+	RepositoryIntegration   *rc.RepositoryExecution             `json:"repository_integration,omitempty"`
+	TenantID                string                              `json:"tenant_id,omitempty"`
+	ProjectID               string                              `json:"project_id,omitempty"`
+	PoolID                  string                              `json:"pool_id,omitempty"`
+	PoolRunnerID            string                              `json:"pool_runner_id,omitempty"`
+	PoolSlotID              string                              `json:"pool_slot_id,omitempty"`
+	PoolGrantID             string                              `json:"pool_grant_id,omitempty"`
+	PoolGrantVersion        int                                 `json:"pool_grant_version,omitempty"`
+	PoolCredentialID        string                              `json:"pool_credential_id,omitempty"`
+	PoolCredentialVersion   int                                 `json:"pool_credential_version,omitempty"`
+	RunID                   string                              `json:"run_id"`
+	NodeID                  string                              `json:"node_id"`
+	Attempt                 int                                 `json:"attempt"`
+	Fence                   int64                               `json:"fence"`
+	WorkerID                string                              `json:"worker_id"`
+	Command                 []string                            `json:"command"`
+	Type                    string                              `json:"type"`
+	TimeoutSeconds          int                                 `json:"timeout_seconds"`
+	Idempotent              bool                                `json:"idempotent"`
+	Config                  map[string]any                      `json:"config"`
+	CandidateCommit         string                              `json:"candidate_commit,omitempty"`
+	CandidateFrom           string                              `json:"candidate_from,omitempty"`
+	CandidateAttempt        int                                 `json:"candidate_attempt,omitempty"`
+	CandidateFence          int64                               `json:"candidate_fence,omitempty"`
+	CandidateEvidenceSHA256 string                              `json:"candidate_evidence_sha256,omitempty"`
+	ReleaseExecution        *releasecontract.ReleaseExecution   `json:"release_execution,omitempty"`
+	DispatchID              string                              `json:"dispatch_id,omitempty"`
+	DispatchState           string                              `json:"dispatch_state,omitempty"`
+	LeaseUntil              string                              `json:"lease_until,omitempty"`
 }
 type Result struct {
 	IntegrationEvidence *rc.RepositoryResult              `json:"integration_evidence,omitempty"`

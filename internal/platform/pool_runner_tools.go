@@ -157,6 +157,13 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof
 			return false, err
 		}
 		if !task {
+			_, composition, e := s.candidateCompositionExecutionRecordTx(ctx, tx, scope.TenantID, scope.ProjectID, run)
+			if e != nil {
+				return false, e
+			}
+			task = composition
+		}
+		if !task {
 			_, planning, err := s.planningExecutionRecordTx(ctx, tx, scope.TenantID, scope.ProjectID, run)
 			if err != nil {
 				return false, err
@@ -186,6 +193,9 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof
 	// authorization protocol; their project-runner privileges are not inherited.
 	if n.Type == "external_workflow" || n.Config["artifact_from"] != nil {
 		return false, nil
+	}
+	if eligible, err := s.codeInputNodeEligibleTx(ctx, tx, scope.TenantID, scope.ProjectID, run, node, n); err != nil || !eligible {
+		return false, err
 	}
 	_, hash, bound, err := dag.ToolBinding(n)
 	if err != nil {

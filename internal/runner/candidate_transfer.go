@@ -149,6 +149,9 @@ func (w *candidateLimitWriter) Write(p []byte) (int, error) {
 }
 
 func candidateGit(ctx context.Context, repo string, args ...string) *exec.Cmd {
+	if native, _ := ctx.Value(nativeGitScope{}).(bool); native {
+		return nativeGitCommand(ctx, repo, args...)
+	}
 	cmd := exec.CommandContext(ctx, "git", append([]string{"-c", "core.hooksPath=" + filepath.Join(repo, ".suma-disabled-hooks"), "-c", "transfer.fsckObjects=true", "-c", "fetch.fsckObjects=true"}, args...)...)
 	cmd.Dir = repo
 	environment, _, _ := commandEnvironment(CommandSpec{})
@@ -209,7 +212,7 @@ func candidateFileHash(path string) (string, int64, error) {
 }
 
 func candidateBindingMatches(b cc.Binding, q cc.StartRequest) bool {
-	return b.SchemaVersion == 1 && cc.ValidHash(b.BundleSHA256) && cc.ValidHash(b.EvidenceSHA256) && b.TransferID != "" && len(b.TransferID) <= 64 && !strings.ContainsAny(b.TransferID, "/\\\x00\r\n") && b.Source == q.Assignment && b.ProjectID == q.ProjectID && b.BaseCommit == q.BaseCommit && b.HeadCommit == q.HeadCommit && b.EvidenceSHA256 == q.EvidenceSHA256 && b.BundleSHA256 == q.BundleSHA256 && b.SizeBytes == q.SizeBytes && (b.State == "uploading" || b.ValidSealed())
+	return b.SchemaVersion == 1 && cc.ValidHash(b.BundleSHA256) && cc.ValidHash(b.EvidenceSHA256) && b.TransferID != "" && len(b.TransferID) <= 64 && !strings.ContainsAny(b.TransferID, "/\\\x00\r\n") && b.Source == q.Assignment && b.ProjectID == q.ProjectID && b.BaseCommit == q.BaseCommit && b.BundleBase() == q.BundleBase() && b.HeadCommit == q.HeadCommit && b.EvidenceSHA256 == q.EvidenceSHA256 && b.BundleSHA256 == q.BundleSHA256 && b.SizeBytes == q.SizeBytes && (b.State == "uploading" || b.ValidSealed())
 }
 
 func uploadCandidate(ctx context.Context, c *Client, p candidateTransfer) (cc.Binding, error) {
@@ -256,7 +259,7 @@ func finishCandidate(ctx context.Context, a Assignment, cfg ExecConfig, w *attem
 		return err
 	}
 	evidence, _ := r.WorkspaceEvidence["evidence_sha256"].(string)
-	p := candidateTransfer{Assignment: a, Result: *r, BundlePath: path, Request: cc.StartRequest{ProjectID: cfg.Artifacts.ProjectID, Assignment: candidateRef(a), OperationID: candidateOperation(a, "start"), BaseCommit: w.AdminBaseCommit, HeadCommit: w.HeadCommit, EvidenceSHA256: evidence, BundleSHA256: sha, SizeBytes: size}}
+	p := candidateTransfer{Assignment: a, Result: *r, BundlePath: path, Request: cc.StartRequest{ProjectID: cfg.Artifacts.ProjectID, Assignment: candidateRef(a), OperationID: candidateOperation(a, "start"), BaseCommit: w.BaseCommit, BundleBaseCommit: w.AdminBaseCommit, HeadCommit: w.HeadCommit, EvidenceSHA256: evidence, BundleSHA256: sha, SizeBytes: size}}
 	if p.Result.OperationID == "" {
 		p.Result.OperationID = candidateOperation(a, "result")
 		r.OperationID = p.Result.OperationID
@@ -293,7 +296,7 @@ func importCandidate(ctx context.Context, repo string, a Assignment, cfg ExecCon
 	if err != nil {
 		return nil, err
 	}
-	if !b.ValidSealed() || b.ProjectID != c.ProjectID || b.BaseCommit != cfg.BaseCommit || b.HeadCommit != a.CandidateCommit || b.Source.RunID != a.RunID || b.Source.NodeID != a.CandidateFrom || b.Source.Attempt != a.CandidateAttempt || b.Source.Fence != a.CandidateFence || b.EvidenceSHA256 != a.CandidateEvidenceSHA256 || (a.TenantID != "" && b.Source.TenantID != "" && a.TenantID != b.Source.TenantID) {
+	if !b.ValidSealed() || b.ProjectID != c.ProjectID || b.BundleBase() != cfg.BaseCommit || b.HeadCommit != a.CandidateCommit || b.Source.RunID != a.RunID || b.Source.NodeID != a.CandidateFrom || b.Source.Attempt != a.CandidateAttempt || b.Source.Fence != a.CandidateFence || b.EvidenceSHA256 != a.CandidateEvidenceSHA256 || (a.TenantID != "" && b.Source.TenantID != "" && a.TenantID != b.Source.TenantID) {
 		return nil, fmt.Errorf("resolved candidate differs from frozen source")
 	}
 	dir := filepath.Join(repo, ".cache", "runner", "candidate-imports", attemptKey(a))
@@ -318,45 +321,8 @@ func importCandidate(ctx context.Context, repo string, a Assignment, cfg ExecCon
 	if copyErr != nil || syncErr != nil || closeErr != nil || n != b.SizeBytes {
 		return nil, fmt.Errorf("candidate download length or persistence mismatch")
 	}
-	sha, size, err := candidateFileHash(path)
-	if err != nil || sha != b.BundleSHA256 || size != b.SizeBytes {
-		return nil, fmt.Errorf("candidate download hash mismatch")
-	}
-	if err = candidateBundleHeader(path, b.BaseCommit, b.HeadCommit); err != nil {
+	if err = importCandidateFile(ctx, repo, path, b); err != nil {
 		return nil, err
-	}
-	verify := candidateGit(ctx, repo, "bundle", "verify", path)
-	out := newOutput(8192, nil)
-	verify.Stdout = out
-	verify.Stderr = out
-	if verify.Run() != nil {
-		return nil, fmt.Errorf("candidate Git bundle verification failed")
-	}
-	pack, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer pack.Close()
-	reader := bufio.NewReader(pack)
-	for {
-		line, e := reader.ReadString('\n')
-		if e != nil {
-			return nil, fmt.Errorf("candidate bundle header changed")
-		}
-		if line == "\n" {
-			break
-		}
-	}
-	index := candidateGit(ctx, repo, "index-pack", "--stdin", "--fix-thin", "--strict", "--max-input-size=67108864")
-	index.Stdin = reader
-	index.Stdout = out
-	index.Stderr = out
-	if index.Run() != nil {
-		return nil, fmt.Errorf("candidate pack strict verification/import failed")
-	}
-	resolved, err := gitText(ctx, repo, "rev-parse", "--verify", a.CandidateCommit+"^{commit}")
-	if err != nil || resolved != a.CandidateCommit {
-		return nil, fmt.Errorf("import did not provide fixed candidate commit")
 	}
 	return &cc.ImportReceipt{Binding: b, Imported: true, TargetWorkerID: a.WorkerID}, nil
 }

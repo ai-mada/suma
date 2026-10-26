@@ -243,6 +243,11 @@ func (s *Service) advanceExpertTeamPlan(ctx context.Context, engine *dag.Engine,
 		if e := s.BindRunTx(ctx, tx, auth, project, item.TaskID, runID, item.TaskVersion); e != nil {
 			return e
 		}
+		if item.Plan.CodeBaseline != nil {
+			if e := s.bindCodeBaselineExecutionTx(ctx, tx, auth, project, runID, item.Plan.AgentNodeID, *item.Plan.CodeBaseline); e != nil {
+				return e
+			}
+		}
 		if _, e := tx.ExecContext(ctx, s.q(`UPDATE suma_task_dispatch_plans SET version=version+1,state='started' WHERE tenant_id=? AND project_id=? AND id=? AND version=1 AND state='ready'`), auth.target.tenantID, project, item.Plan.ID); e != nil {
 			return e
 		}

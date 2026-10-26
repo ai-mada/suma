@@ -106,6 +106,12 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 }
 
 func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
+	if len(args) > 0 && args[0] == "candidate-compositions" {
+		return candidateCompositionCommand(ctx, c, args[1:], in, out)
+	}
+	if len(args) > 0 && args[0] == "task-code-baseline" {
+		return taskCodeBaselineCommand(ctx, c, args[1:], in, out)
+	}
 	if len(args) > 0 && args[0] == "failure-diagnosis" {
 		return failureDiagnosisCommand(ctx, c, args[1:], in, out)
 	}

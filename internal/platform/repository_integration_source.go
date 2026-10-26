@@ -20,6 +20,7 @@ func (s *Service) repositoryBasisTx(ctx context.Context, auth *authorizedCommand
 // Called only after the caller has proven a current human project credential.
 // This resolves immutable data without inventing a browser Actor for callbacks.
 func (s *Service) repositoryBasisReadTx(ctx context.Context, tx *sql.Tx, p Principal, project, taskID, nodeID string) (out RepositoryIntegrationBasis, err error) {
+	ctx, _ = compositionAcceptanceContext(ctx)
 	task, err := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, taskID))
 	if err != nil {
 		return out, err
@@ -27,6 +28,9 @@ func (s *Service) repositoryBasisReadTx(ctx context.Context, tx *sql.Tx, p Princ
 	accepted, err := s.currentReleaseTaskBasisTx(ctx, tx, p, project, taskID, task.RunID)
 	if err != nil {
 		return out, repositoryConflict("basis", repositoryBasis)
+	}
+	if err = s.checkCandidateCompositionAcceptanceTx(ctx, tx, p, project, task.RunID); err != nil {
+		return out, err
 	}
 	var raw string
 	err = tx.QueryRowContext(ctx, s.q(`SELECT c.binding FROM suma_candidate_transfers c JOIN dag_nodes n ON n.run_id=c.run_id AND n.id=c.node_id AND n.attempt=c.attempt AND n.fence=c.fence AND n.worker_id=c.worker_id WHERE c.tenant_id=? AND c.project_id=? AND c.run_id=? AND c.node_id=?`), p.TenantID, project, task.RunID, nodeID).Scan(&raw)

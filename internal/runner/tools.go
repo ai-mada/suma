@@ -180,6 +180,9 @@ func probeCommandStreams(ctx context.Context, exe string, args []string, spec Co
 }
 
 func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []string) (string, error) {
+	if spec.CandidateComposition {
+		return probeCompositionGit(ctx, exe)
+	}
 	if spec.Adapter == "harness" || spec.Adapter == "codebuddy" {
 		return teamCLIVersion(ctx, exe, spec, secrets)
 	}
@@ -380,6 +383,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 	}
 	for id, spec := range cfg.Commands {
 		spec = normalizedCommand(spec)
+		if err := validateCompositionCommand(id, spec); err != nil {
+			return err
+		}
 		if _, err := localPlanningCapability(spec); err != nil {
 			return err
 		}

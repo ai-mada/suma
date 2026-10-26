@@ -1,10 +1,14 @@
 # suma documentation
 
-## Current T-P4-030: failure diagnosis — 1.0.0, locally verified
+## Current T-P4-031: candidate composition and development baselines — 1.0.0, locally verified
+
+Two fixed accepted candidates are composed using native Git, then independently tested at the exact combined commit M. An explicit local fixture-owner review permits a protected baseline binding to unstarted task C. C develops from M, creates a new candidate, and receives its own independent tests and explicit review: two new runs and eight formal assertions across two Runners on one Windows host. Chinese/English UI, cold readback, original-operation recovery and the primary forward update are recorded. The original 180 table schemas and full rows remain unchanged, with three empty tables and one index added. See the [English guide](candidate-composition.md), [verification](../quality/candidate-composition-verification.md) and [summary](../quality/candidate-composition-summary.json).
+
+Owned local protocol fixtures do not establish vendor-model, physical multi-host or production acceptance. No model or vendor was called; unreported usage is not inferred zero tokens. Conflict repair, controlled recovery, all remaining requirements and the full P0–P7 scope continue in the [implementation ledger](../delivery/implementation-plan.md).
+
+## Historical T-P4-030: failure diagnosis — 1.0.0, locally verified
 
 Fixed real failure evidence now flows through a dedicated read-only diagnosis model, human repair edits and explicit adoption into a requirement draft, with original output and source links retained. The bounded journey used real Control, Runner, DAG and accounting on one Windows host with one owned loopback model response: 40 tokens and an estimated 57 CNY micros. Final Chinese/English cold readback and the primary preview forward update passed; the original 177 table schemas and full rows were preserved, with three empty tables and one index added. This does not establish vendor-model quality, commercial billing, remote-host or production acceptance. See the [English guide](failure-diagnosis.md), [verification — Chinese original](../quality/failure-diagnosis-verification.md) and [compact summary](../quality/failure-diagnosis-summary.json).
-
-Next, T-P4-031 remains planned: combine multiple accepted candidates, independently test the exact combined result, and explicitly fix that result as the downstream code baseline. T-P4-029 dependency orchestration remains [historical verified scope](expert-team-orchestration.md); it does not automatically combine or inherit code. The full P0–P7 scope and all remaining requirements continue in the [implementation ledger](../delivery/implementation-plan.md).
 
 ## Historical T-P4-012: exact-attempt tool history — locally verified
 

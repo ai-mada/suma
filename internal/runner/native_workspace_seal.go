@@ -57,7 +57,7 @@ func nativeSealFailure(reason string) error {
 // fsmonitor, credentials or user identity can enter this local plumbing path.
 func nativeSealGit(ctx context.Context, w *attemptWorkspace, index string, input []byte, limit int, extraEnv []string, args ...string) ([]byte, error) {
 	options := []string{"-c", "core.hooksPath=" + os.DevNull, "-c", "core.fsmonitor=false", "-c", "core.untrackedCache=false", "-c", "core.autocrlf=false", "-c", "core.eol=lf", "-c", "core.safecrlf=false", "-c", "core.attributesFile=" + os.DevNull, "-c", "core.quotePath=false", "-c", "core.longpaths=true", "-c", "status.renames=false", "-c", "gc.auto=0", "-c", "maintenance.auto=false", "-c", "commit.gpgsign=false", "-c", "protocol.allow=never"}
-	cmd := exec.CommandContext(ctx, "git", append(options, args...)...)
+	cmd := exec.CommandContext(ctx, nativeGitExecutable(ctx), append(options, args...)...)
 	cmd.Dir = w.Source
 	environment, _, _ := commandEnvironment(CommandSpec{})
 	cmd.Env = append(environment, "GIT_TERMINAL_PROMPT=0", "GIT_OPTIONAL_LOCKS=0", "GIT_NO_REPLACE_OBJECTS=1", "GIT_CONFIG_NOSYSTEM=1", "GIT_CONFIG_GLOBAL="+os.DevNull, "GIT_ATTR_NOSYSTEM=1")

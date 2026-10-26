@@ -233,7 +233,7 @@ func (s *Server) importBundle(ctx context.Context, t *target, op *operation) err
 	if int64(len(data)) != e.Source.SizeBytes || hashBytes(data) != e.Source.BundleSHA256 {
 		return fmt.Errorf("candidate bundle bytes differ")
 	}
-	offset, err := bundleHeader(data, e.Source.BaseCommit, e.Source.HeadCommit)
+	offset, err := bundleHeader(data, e.Source.BundleBase(), e.Source.HeadCommit)
 	if err != nil {
 		return err
 	}
@@ -263,6 +263,11 @@ func (s *Server) importBundle(ctx context.Context, t *target, op *operation) err
 	resolved, err := s.git(ctx, t, nil, 4096, "rev-parse", "--verify", e.Source.HeadCommit+"^{commit}")
 	if err != nil || strings.TrimSpace(string(resolved)) != e.Source.HeadCommit {
 		return fmt.Errorf("candidate commit missing")
+	}
+	for _, relation := range [][2]string{{e.Source.BundleBase(), e.Source.BaseCommit}, {e.Source.BaseCommit, e.Source.HeadCommit}} {
+		if _, err = s.git(ctx, t, nil, 4096, "merge-base", "--is-ancestor", relation[0], relation[1]); err != nil {
+			return fmt.Errorf("candidate selected base or head is outside bundle anchor lineage")
+		}
 	}
 	return nil
 }

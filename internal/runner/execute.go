@@ -20,21 +20,22 @@ import (
 )
 
 type CommandSpec struct {
-	Adapter             string                 `json:"adapter,omitempty"`
-	Protocol            string                 `json:"protocol,omitempty"`
-	Executable          string                 `json:"executable"`
-	Args                []string               `json:"args"`
-	Env                 map[string]string      `json:"env,omitempty"`
-	EnvFrom             []string               `json:"env_from,omitempty"`
-	Input               string                 `json:"input,omitempty"`
-	ReadOnly            bool                   `json:"read_only,omitempty"`
-	Planning            bool                   `json:"planning,omitempty"`
-	KnowledgeExtraction bool                   `json:"knowledge_extraction,omitempty"`
-	FailureDiagnosis    bool                   `json:"failure_diagnosis,omitempty"`
-	TestEvidence        bool                   `json:"test_evidence,omitempty"`
-	ArtifactOutput      string                 `json:"artifact_output,omitempty"`
-	ArtifactInput       bool                   `json:"artifact_input,omitempty"`
-	NativeWorkspace     *NativeWorkspacePolicy `json:"native_workspace,omitempty"`
+	Adapter              string                 `json:"adapter,omitempty"`
+	Protocol             string                 `json:"protocol,omitempty"`
+	Executable           string                 `json:"executable"`
+	Args                 []string               `json:"args"`
+	Env                  map[string]string      `json:"env,omitempty"`
+	EnvFrom              []string               `json:"env_from,omitempty"`
+	Input                string                 `json:"input,omitempty"`
+	ReadOnly             bool                   `json:"read_only,omitempty"`
+	Planning             bool                   `json:"planning,omitempty"`
+	KnowledgeExtraction  bool                   `json:"knowledge_extraction,omitempty"`
+	FailureDiagnosis     bool                   `json:"failure_diagnosis,omitempty"`
+	CandidateComposition bool                   `json:"candidate_composition,omitempty"`
+	TestEvidence         bool                   `json:"test_evidence,omitempty"`
+	ArtifactOutput       string                 `json:"artifact_output,omitempty"`
+	ArtifactInput        bool                   `json:"artifact_input,omitempty"`
+	NativeWorkspace      *NativeWorkspacePolicy `json:"native_workspace,omitempty"`
 }
 type ExecConfig struct {
 	AllowExec                            bool
@@ -166,6 +167,18 @@ func (b *output) flushProgress() error {
 }
 func contains(a, b string) bool { return strings.Contains(a, b) }
 func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
+	if a.CandidateComposition != nil && a.Type != "command" {
+		return Result{Assignment: a, ExitCode: -1, Error: "candidate composition requires an isolated command node"}
+	}
+	if a.CodeBaseline != nil && a.Type != "agent" {
+		return Result{Assignment: a, ExitCode: -1, Error: "code baseline requires isolated development"}
+	}
+	if a.CandidateComposition != nil && (a.CodeBaseline != nil || a.RepositoryIntegration != nil || a.ReleaseExecution != nil || hasCandidate(a)) {
+		return Result{Assignment: a, ExitCode: -1, Error: "candidate composition cannot be mixed with another input mode"}
+	}
+	if a.CodeBaseline != nil && (a.CandidateComposition != nil || a.RepositoryIntegration != nil || a.ReleaseExecution != nil || hasCandidate(a)) {
+		return Result{Assignment: a, ExitCode: -1, Error: "code baseline cannot be mixed with another input mode"}
+	}
 	if a.RepositoryIntegration != nil {
 		return executeRepositoryIntegration(ctx, a, cfg)
 	}
@@ -192,6 +205,25 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	spec, ok := cfg.Commands[a.Command[0]]
 	if !ok {
 		return fail("command is not in the local allowlist")
+	}
+	if a.CandidateComposition != nil || spec.CandidateComposition || a.Command[0] == "suma-compose" {
+		return executeCandidateComposition(ctx, a, cfg, spec)
+	}
+	if a.CodeBaseline != nil {
+		if a.Type != "agent" || spec.ReadOnly || spec.ArtifactInput || spec.ArtifactOutput != "" {
+			return fail("code baseline requires isolated development")
+		}
+		ctx = context.WithValue(ctx, nativeGitScope{}, true)
+		baselineDuration := time.Duration(a.TimeoutSeconds) * time.Second
+		if baselineDuration <= 0 {
+			baselineDuration = 10 * time.Minute
+		}
+		if baselineDuration > 24*time.Hour {
+			baselineDuration = 24 * time.Hour
+		}
+		var baselineCancel context.CancelFunc
+		ctx, baselineCancel = context.WithTimeout(ctx, baselineDuration)
+		defer baselineCancel()
 	}
 	if spec.NativeWorkspace != nil {
 		if a.Type != "agent" {
@@ -591,7 +623,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		var captureErr error
 		workspace.nativeEvidence = nativeEvidence
 		captureCtx := context.Background()
-		if native != nil {
+		if native != nil || a.CodeBaseline != nil {
 			captureCtx = context.WithValue(captureCtx, nativeGitScope{}, true)
 		}
 		r.WorkspaceEvidence, captureErr = workspace.capture(captureCtx, r)
@@ -607,7 +639,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			r.Error = "artifact evidence: " + err.Error()
 		}
 	}
-	if workspace != nil && cfg.Artifacts != nil && (a.Type == "command" || a.Type == "agent") && workspace.HeadCommit != workspace.BaseCommit && r.ExitCode == 0 && !r.Stopped && !r.OutcomeUnknown && r.Error == "" && r.WorkspaceEvidence["clean"] == true {
+	if workspace != nil && cfg.Artifacts != nil && (a.Type == "command" || a.Type == "agent") && workspace.HeadCommit != workspace.AdminBaseCommit && r.ExitCode == 0 && !r.Stopped && !r.OutcomeUnknown && r.Error == "" && r.WorkspaceEvidence["clean"] == true {
 		if err = finishCandidate(ctx, a, cfg, workspace, &r); err != nil {
 			r.ExitCode = -1
 			r.Error = "candidate transfer: " + err.Error()

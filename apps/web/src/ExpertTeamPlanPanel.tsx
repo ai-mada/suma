@@ -6,6 +6,7 @@ import {formatDateTime,formatNumber,tr,UiError,useLocale} from './i18n';
 import {KnowledgeContextFacts} from './KnowledgeFacts';
 import {DispatchRouteFacts} from './execution-pools/DispatchRouteFacts';
 import {FailureDiagnosisLauncher} from './FailureDiagnosisLauncher';
+import {compositionCodeBaseline} from './candidate-composition-model';
 import {toolError,toolSessionStorage} from './tool-hooks';
 import {ErrorNotice,Field,Loading} from './ui';
 import {useWriteAction,WriteFields,WriteNotice} from './write-action';
@@ -80,8 +81,10 @@ function PlanItems({plan,project,session,onChanged}:{plan:ExpertTeamPlan;project
   {!!item.dependencies.length&&<div className="expert-plan-dependencies" aria-label={t('dependencies')}>{item.dependencies.map(fact=><a key={fact.task_id} className={'expert-plan-dependency '+(fact.accepted?'is-accepted':'')} href={taskURL(project,fact.task_id)}>{titles.get(fact.task_id)||fact.task_id} · {t(fact.accepted?'dependency_accepted':'dependency_waiting')}{!fact.selected?' · '+t('external_dependency'):''}</a>)}</div>}
   {!!item.blockers.length&&<Reasons values={item.blockers}/>}{item.state==='awaiting_review'&&<p className="team-dispatch-muted">{t('review_required')}</p>}
   <div className="expert-plan-links"><a href={taskURL(project,item.task_id)}>{t(item.state==='awaiting_review'?'open_review':'open_task')}</a>{item.run_id&&item.dispatch_plan_id&&<a data-team-run href={runURL(project,item.run_id)}>{old('open_run')}</a>}</div>
+  {session&&expertUnstarted(item)&&<div className="expert-plan-baseline-link"><a href={taskURL(project,item.task_id)+'&panel=code-baseline'}>{tr('candidate-composition.development_baseline_title')}</a><p className="team-dispatch-muted">{tr('candidate-composition.pending_baseline_help')}</p></div>}
+  {compositionCodeBaseline(item.plan.code_baseline,project,item.task_id)&&<p className="team-dispatch-muted">{tr('candidate-composition.selected_base')} <code>{item.plan.code_baseline.source.head_commit}</code></p>}
   {item.run_id&&<p className="team-dispatch-muted">{t('actual_run_state',{state:item.run_state?stateLabel(item.run_state):old('run_unknown')})}</p>}
   {session&&item.state==='blocked'&&item.run_id&&<FailureDiagnosisLauncher session={session} project={project} runID={item.run_id} refresh={plan.version} onChanged={onChanged}/>}
-  <details><summary>{old('fixed_basis')}</summary><p>{old('task_version',{value:formatNumber(item.task_version)})} · {t('revision',{value:formatNumber(item.source_revision)})}</p><code>{item.task_basis_sha256}</code><p>{item.plan.tool_profile_id} · v{formatNumber(item.plan.tool_profile_version)}</p><code>{item.plan.tool_profile_sha256}</code><DispatchRouteFacts route={item.plan.execution_route}/><KnowledgeContextFacts project={project} items={item.plan.context.knowledge||[]}/><pre className="team-dispatch-raw">{JSON.stringify({task:item.plan.context.task,workflow:item.plan.workflow,dependencies:item.dependencies,dispatch_plan_id:item.dispatch_plan_id,run_id:item.run_id},null,2)}</pre></details>
+  <details><summary>{old('fixed_basis')}</summary><p>{old('task_version',{value:formatNumber(item.task_version)})} · {t('revision',{value:formatNumber(item.source_revision)})}</p><code>{item.task_basis_sha256}</code><p>{item.plan.tool_profile_id} · v{formatNumber(item.plan.tool_profile_version)}</p><code>{item.plan.tool_profile_sha256}</code><DispatchRouteFacts route={item.plan.execution_route}/><KnowledgeContextFacts project={project} items={item.plan.context.knowledge||[]}/><pre className="team-dispatch-raw">{JSON.stringify({task:item.plan.context.task,workflow:item.plan.workflow,code_baseline:item.plan.code_baseline,dependencies:item.dependencies,dispatch_plan_id:item.dispatch_plan_id,run_id:item.run_id},null,2)}</pre></details>
  </li>)}</ol>;
 }

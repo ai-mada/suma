@@ -82,6 +82,9 @@ func (s *Service) toolClaimEligibleTx(ctx context.Context, tx *sql.Tx, auth *aut
 	if err = json.Unmarshal([]byte(raw), &spec); err != nil {
 		return false, err
 	}
+	if eligible, err := s.codeInputNodeEligibleTx(ctx, tx, p.TenantID, project, run, node, spec); err != nil || !eligible {
+		return false, err
+	}
 	id, sha, bound, err := dag.ToolBinding(spec)
 	if err != nil {
 		return false, nil

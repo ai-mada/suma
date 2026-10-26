@@ -16,6 +16,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	ccc "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
 )
 
@@ -24,20 +25,24 @@ var attemptID = regexp.MustCompile(`^[0-9a-f]{32}$`)
 var evidenceHash = regexp.MustCompile(`^[0-9a-f]{64}$`)
 
 type attemptWorkspace struct {
-	AttemptKey      string     `json:"attempt_key"`
-	Assignment      Assignment `json:"assignment"`
-	Repository      string     `json:"repository"`
-	BaseCommit      string     `json:"base_commit"`
-	AdminBaseCommit string     `json:"admin_base_commit"`
-	Directory       string     `json:"directory"`
-	Source          string     `json:"source"`
-	State           string     `json:"state"`
-	TestCommand     bool       `json:"test_command"`
-	HeadCommit      string     `json:"head_commit,omitempty"`
-	ExitCode        int        `json:"exit_code"`
-	OutcomeUnknown  bool       `json:"outcome_unknown"`
-	candidateImport *cc.ImportReceipt
-	nativeEvidence  *NativeWorkspaceEvidence
+	AttemptKey            string     `json:"attempt_key"`
+	Assignment            Assignment `json:"assignment"`
+	Repository            string     `json:"repository"`
+	BaseCommit            string     `json:"base_commit"`
+	AdminBaseCommit       string     `json:"admin_base_commit"`
+	Directory             string     `json:"directory"`
+	Source                string     `json:"source"`
+	State                 string     `json:"state"`
+	TestCommand           bool       `json:"test_command"`
+	HeadCommit            string     `json:"head_commit,omitempty"`
+	ExitCode              int        `json:"exit_code"`
+	OutcomeUnknown        bool       `json:"outcome_unknown"`
+	candidateImport       *cc.ImportReceipt
+	nativeEvidence        *NativeWorkspaceEvidence
+	CompositionEvidence   *ccc.CandidateCompositionEvidence `json:"candidate_composition,omitempty"`
+	compositionClient     *Client
+	compositionGitVersion string
+	compositionGitSHA256  string
 }
 
 func digest(b []byte) string { h := sha256.Sum256(b); return hex.EncodeToString(h[:]) }
@@ -56,6 +61,13 @@ func hasCandidate(a Assignment) bool {
 // Only the authenticated scheduler's complete envelope may select a candidate.
 // A workflow config commit or an unresolved source never changes the admin pin.
 func candidateBase(ctx context.Context, repo string, a Assignment, cfg ExecConfig) (string, error) {
+	if a.CodeBaseline != nil {
+		base, receipt, err := importCodeBaseline(ctx, repo, a, cfg)
+		if err == nil && cfg.candidateImport != nil {
+			*cfg.candidateImport = *receipt
+		}
+		return base, err
+	}
 	if !hasCandidate(a) {
 		return cfg.BaseCommit, nil
 	}
@@ -251,7 +263,7 @@ func prepareWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, spec Co
 	if err != nil {
 		return nil, err
 	}
-	if spec.NativeWorkspace != nil {
+	if spec.NativeWorkspace != nil || spec.CandidateComposition || a.CodeBaseline != nil {
 		if err = nativeBaseAttributes(ctx, repo, base); err != nil {
 			return nil, err
 		}
@@ -445,6 +457,15 @@ func (a *attemptWorkspace) capture(ctx context.Context, result Result) (map[stri
 	}
 	evidence := map[string]any{"attempt_key": a.AttemptKey, "base_commit": a.BaseCommit, "head_commit": head, "state": a.State, "exit_code": result.ExitCode, "outcome_unknown": result.OutcomeUnknown, "test_command": a.TestCommand, "clean": len(status) == 0, "diff_sha256": digest(diff), "status_sha256": digest(status), "untracked_sha256": digest(inv), "captured_at": time.Now().UTC().Format(time.RFC3339Nano)}
 	evidence["admin_base_commit"] = a.AdminBaseCommit
+	if a.Assignment.CodeBaseline != nil {
+		evidence["code_baseline"] = a.Assignment.CodeBaseline
+	}
+	if a.CompositionEvidence != nil {
+		evidence["candidate_composition"] = a.CompositionEvidence
+		evidence["composition_git_version"] = a.compositionGitVersion
+		evidence["composition_git_sha256"] = a.compositionGitSHA256
+		evidence["composition_git_policy"] = "isolated-bare-no-drivers-v1"
+	}
 	if hasCandidate(a.Assignment) {
 		evidence["candidate_from"] = a.Assignment.CandidateFrom
 		evidence["candidate_attempt"] = a.Assignment.CandidateAttempt

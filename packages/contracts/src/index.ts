@@ -174,6 +174,8 @@ export interface ArtifactUploadState {
   missing_blobs: (string)[];
 }
 export interface Assignment {
+  candidate_composition?: CandidateCompositionExecution | null;
+  code_baseline?: CodeBaselineBinding | null;
   repository_integration?: RepositoryExecution | null;
   tenant_id?: string;
   project_id?: string;
@@ -508,10 +510,127 @@ export interface CandidateBinding {
   state: string;
   source: CandidateAssignmentRef;
   base_commit: string;
+  bundle_base_commit?: string;
   head_commit: string;
   evidence_sha256: string;
   bundle_sha256: string;
   size_bytes: number;
+}
+export interface CandidateCompositionBaseline {
+  project_id: string;
+  task_id: string;
+  version: number;
+  binding?: CodeBaselineBinding | null;
+  can_bind: boolean;
+  blockers: (string)[];
+}
+export interface CandidateCompositionCommandRequest {
+  project_id: string;
+  expected_version: number;
+  action: string;
+  reason: string;
+  idempotency_key: string;
+}
+export interface CandidateCompositionCreateRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  workflow_id: string;
+  workflow_version: number;
+  producer_node_id: string;
+  sources: (CandidateCompositionSourceRequest)[];
+  idempotency_key: string;
+}
+export interface CandidateCompositionEvidence {
+  protocol: string;
+  plan_id: string;
+  plan_version: number;
+  sources_sha256: string;
+  operation_id: string;
+  base_commit: string;
+  state: string;
+  result_commit?: string;
+  result_tree?: string;
+  parents: (string)[];
+  source_heads: (string)[];
+  merge_commits: (string)[];
+  conflicts: (string)[];
+  conflict_source_index?: number;
+}
+export interface CandidateCompositionExecution {
+  protocol: string;
+  plan_id: string;
+  plan_version: number;
+  project_id: string;
+  base_commit: string;
+  sources: (CandidateBinding)[];
+  sources_sha256: string;
+  fixed_timestamp: string;
+  operation_id: string;
+}
+export interface CandidateCompositionOptions {
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  sources: (CandidateCompositionSourceChoice)[];
+  can_create: boolean;
+  blockers: (string)[];
+}
+export interface CandidateCompositionPage {
+  items: (CandidateCompositionPlan)[];
+  next_cursor: string;
+  total: number;
+}
+export interface CandidateCompositionPlan {
+  id: string;
+  project_id: string;
+  version: number;
+  state: string;
+  task_id: string;
+  task_version: number;
+  task_basis_sha256: string;
+  workflow_id: string;
+  workflow_version: number;
+  producer_node_id: string;
+  strategy: string;
+  admin_base_commit: string;
+  sources_sha256: string;
+  sources: (RepositoryIntegrationBasis)[];
+  context: TaskContext;
+  workflow: Workflow;
+  execution_route: ProjectExecutionRoute;
+  run_id: string;
+  run_state: string;
+  task_state: string;
+  candidate?: CandidateBinding | null;
+  conflicts: (string)[];
+  created_at: string;
+  expires_at: string;
+  fixed_timestamp: string;
+  operation_id: string;
+  valid: boolean;
+  blockers: (string)[];
+  allowed_actions: (string)[];
+}
+export interface CandidateCompositionSourceChoice {
+  task_id: string;
+  task_version: number;
+  title: string;
+  source_node_id: string;
+  source: CandidateBinding;
+  eligible: boolean;
+  blockers: (string)[];
+}
+export interface CandidateCompositionSourceRequest {
+  task_id: string;
+  expected_task_version: number;
+  source_node_id: string;
+}
+export interface CandidateCompositionStartRequest {
+  project_id: string;
+  expected_version: number;
+  acknowledge: boolean;
+  idempotency_key: string;
 }
 export interface CandidateImportReceipt {
   binding: CandidateBinding;
@@ -532,6 +651,7 @@ export interface CandidateTransferStartRequest {
   assignment: CandidateAssignmentRef;
   operation_id: string;
   base_commit: string;
+  bundle_base_commit?: string;
   head_commit: string;
   evidence_sha256: string;
   bundle_sha256: string;
@@ -554,6 +674,25 @@ export interface CapacityWriteRequest {
   available_hours: number | null;
   expected_version: number;
   idempotency_key: string;
+}
+export interface CodeBaselineBinding {
+  protocol: string;
+  id: string;
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  composition_id: string;
+  composition_version: number;
+  accepted_basis_sha256: string;
+  source: CandidateBinding;
+  binding_sha256: string;
+}
+export interface CodeInputRequest {
+  project_id: string;
+  assignment: CandidateAssignmentRef;
+  input_kind: string;
+  binding_id: string;
+  transfer_id: string;
 }
 export interface ConsumeDeploymentAuthorization {
   provider_id: string;
@@ -1524,6 +1663,7 @@ export interface OrganizationSummary {
   role: string;
 }
 export interface PlannedTask {
+  code_baseline?: CodeBaselineBinding | null;
   failure_diagnosis_adoption?: FailureDiagnosisAdoption | null;
   id: string;
   tenant_id: string;
@@ -1996,6 +2136,7 @@ export interface ReadyPage {
   next_cursor?: string;
 }
 export interface Record {
+  code_baseline?: CodeBaselineBinding | null;
   failure_diagnosis_adoption?: FailureDiagnosisAdoption | null;
   id: string;
   tenant_id: string;
@@ -3063,7 +3204,18 @@ export interface SwitchOrganizationRequest {
   organization_id: string;
   idempotency_key: string;
 }
+export interface TaskCodeBaselineBindRequest {
+  project_id: string;
+  expected_task_version: number;
+  expected_binding_version: number;
+  composition_id: string;
+  expected_composition_version: number;
+  acknowledge: boolean;
+  reason: string;
+  idempotency_key: string;
+}
 export interface TaskContext {
+  code_baseline?: CodeBaselineBinding | null;
   task: TaskContextRecord;
   requirement?: TaskContextRecord | null;
   knowledge?: (ProjectKnowledgeContextItem)[];
@@ -3092,6 +3244,7 @@ export interface TaskDesignContextView {
   current_published_revision: number;
 }
 export interface TaskDispatchPlan {
+  code_baseline?: CodeBaselineBinding | null;
   id: string;
   project_id: string;
   version: number;

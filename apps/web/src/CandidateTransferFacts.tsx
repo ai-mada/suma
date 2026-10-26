@@ -1,6 +1,7 @@
 import type {WorkspaceEvidence} from './api';
 import type {CandidateBinding as Binding,CandidateImportReceipt as ImportReceipt} from '../../../packages/contracts/src';
 import {formatNumber,tr as t,useLocale} from './i18n';
+import {compositionCodeBaseline} from './candidate-composition-model';
 import './candidate-transfer.css';
 
 const sourceFields=['run_id','node_id','attempt','fence','worker_id'];
@@ -17,7 +18,7 @@ const hash=(value:unknown)=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value
 // These guards only permit a versioned presentation. Current transfer authority
 // and Git verification remain server/Runner facts, never browser decisions.
 function binding(value:unknown):value is Binding{
- if(!object(value)||!closed(value,bindingFields)||value.schema_version!==1||value.state!=='sealed'||!identity(value.transfer_id,64)||!identity(value.project_id,64)||!commit(value.base_commit)||!commit(value.head_commit)||value.base_commit===value.head_commit||!hash(value.evidence_sha256)||!hash(value.bundle_sha256)||!positive(value.size_bytes)||value.size_bytes>64*1024*1024)return false;
+ if(!object(value)||!closed(value,bindingFields,['bundle_base_commit'])||value.schema_version!==1||value.state!=='sealed'||!identity(value.transfer_id,64)||!identity(value.project_id,64)||!commit(value.base_commit)||(Object.hasOwn(value,'bundle_base_commit')&&!commit(value.bundle_base_commit))||!commit(value.head_commit)||value.base_commit===value.head_commit||!hash(value.evidence_sha256)||!hash(value.bundle_sha256)||!positive(value.size_bytes)||value.size_bytes>64*1024*1024)return false;
  const source=value.source;
  return object(source)&&closed(source,sourceFields,[...poolIDs,...poolNumbers])&&identity(source.run_id,100)&&identity(source.node_id,150)&&identity(source.worker_id,100)&&positive(source.attempt)&&positive(source.fence)&&poolIDs.every(key=>!Object.hasOwn(source,key)||identity(source[key],150))&&poolNumbers.every(key=>!Object.hasOwn(source,key)||positive(source[key]));
 }
@@ -25,7 +26,10 @@ function imported(value:unknown):value is ImportReceipt{
  return object(value)&&closed(value,['binding','imported','target_worker_id'])&&binding(value.binding)&&typeof value.imported==='boolean'&&identity(value.target_worker_id,100);
 }
 function producerMatches(value:Binding,evidence:WorkspaceEvidence){return value.base_commit===evidence.base_commit&&value.head_commit===evidence.head_commit&&value.evidence_sha256===evidence.evidence_sha256;}
-function consumerMatches(value:Binding,evidence:WorkspaceEvidence){return value.head_commit===evidence.base_commit&&value.source.node_id===evidence.candidate_from&&value.source.attempt===evidence.candidate_attempt&&value.source.fence===evidence.candidate_fence&&value.evidence_sha256===evidence.candidate_evidence_sha256;}
+function consumerMatches(value:Binding,evidence:WorkspaceEvidence){
+ if(Object.hasOwn(evidence,'code_baseline')){const b=evidence.code_baseline;if(evidence.candidate_from||!compositionCodeBaseline(b,value.project_id))return false;const source=b.source;return value.head_commit===evidence.base_commit&&(value.bundle_base_commit??value.base_commit)===evidence.admin_base_commit&&value.transfer_id===source.transfer_id&&value.base_commit===source.base_commit&&value.head_commit===source.head_commit&&value.bundle_sha256===source.bundle_sha256&&value.evidence_sha256===source.evidence_sha256&&value.source.run_id===source.source.run_id&&value.source.node_id===source.source.node_id&&value.source.attempt===source.source.attempt&&value.source.fence===source.source.fence&&value.source.worker_id===source.source.worker_id;}
+ return value.head_commit===evidence.base_commit&&value.source.node_id===evidence.candidate_from&&value.source.attempt===evidence.candidate_attempt&&value.source.fence===evidence.candidate_fence&&value.evidence_sha256===evidence.candidate_evidence_sha256;
+}
 
 function BindingFacts({value,target}:{value:Binding;target?:string}){
  return <div className="candidate-transfer-record"><p className="candidate-transfer-state">{t(target?'development.transfer.imported':'development.transfer.sealed')}</p><dl>
@@ -40,7 +44,8 @@ function BindingFacts({value,target}:{value:Binding;target?:string}){
   <dt>{t('development.candidate.source_node')}</dt><dd><code>{value.source.node_id}</code></dd>
   <dt>{t('development.candidate.source_attempt')}</dt><dd>{formatNumber(value.source.attempt)}</dd>
   <dt>{t('development.candidate.source_fence')}</dt><dd>{formatNumber(value.source.fence)}</dd>
-  <dt>{t('development.evidence.base_commit')}</dt><dd><code>{value.base_commit}</code></dd>
+  <dt>{t(value.bundle_base_commit&&value.bundle_base_commit!==value.base_commit?'candidate-composition.selected_base':'development.evidence.base_commit')}</dt><dd><code>{value.base_commit}</code></dd>
+  {value.bundle_base_commit&&value.bundle_base_commit!==value.base_commit&&<><dt>{t('candidate-composition.admin_base')}</dt><dd><code>{value.bundle_base_commit}</code></dd></>}
   <dt>{t('development.candidate.pinned_commit')}</dt><dd><code>{value.head_commit}</code></dd>
   <dt>{t('development.candidate.source_evidence')}</dt><dd><code>{value.evidence_sha256}</code></dd>
  </dl>{[...poolIDs,...poolNumbers].some(key=>Object.hasOwn(value.source,key))&&<><h5>{t('development.transfer.source_identity')}</h5><pre>{JSON.stringify(value.source,null,2)}</pre></>}</details></div>;

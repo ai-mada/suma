@@ -23,17 +23,3 @@ func (s *Service) IssueRequirement(ctx context.Context, actor Actor, project, is
 	current.FailureDiagnosisAdoption, err = s.failureDiagnosisAdoptionTx(ctx, auth.tx, auth.target.tenantID, project, current.ID)
 	return current, err
 }
-
-// Diagnosis provenance is a server-owned immutable relation. Generic record
-// edits may change an ordinary requirement, but cannot manufacture this proof.
-func rejectFailureAdoptionInput(body map[string]any) error {
-	if _, present := body["failure_diagnosis_adoption"]; present {
-		return invalid(diagnosisInvalid)
-	}
-	if data, ok := body["data"].(map[string]any); ok {
-		if _, present := data["failure_diagnosis_adoption"]; present {
-			return invalid(diagnosisInvalid)
-		}
-	}
-	return nil
-}

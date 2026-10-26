@@ -337,6 +337,11 @@ func (s *Service) releaseClaimEligibleTx(ctx context.Context, tx *sql.Tx, auth *
 	} else if integration {
 		return true, nil
 	}
+	if _, composition, err := s.candidateCompositionExecutionRecordTx(ctx, tx, p.TenantID, project, run); err != nil {
+		return false, err
+	} else if composition {
+		return true, nil
+	}
 	// Planning is a read-only managed workflow, not a deployment. Its creator,
 	// source and exact tool are checked by planning and tool admission below.
 	if _, planning, err := s.planningExecutionRecordTx(ctx, tx, p.TenantID, project, run); err != nil {

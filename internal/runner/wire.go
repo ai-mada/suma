@@ -2,41 +2,44 @@ package runner
 
 import (
 	"encoding/json"
+	ccc "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
 type Assignment struct {
-	RepositoryIntegration   *rc.RepositoryExecution           `json:"repository_integration,omitempty"`
-	TenantID                string                            `json:"tenant_id,omitempty"`
-	ProjectID               string                            `json:"project_id,omitempty"`
-	PoolID                  string                            `json:"pool_id,omitempty"`
-	PoolRunnerID            string                            `json:"pool_runner_id,omitempty"`
-	PoolSlotID              string                            `json:"pool_slot_id,omitempty"`
-	PoolGrantID             string                            `json:"pool_grant_id,omitempty"`
-	PoolGrantVersion        int                               `json:"pool_grant_version,omitempty"`
-	PoolCredentialID        string                            `json:"pool_credential_id,omitempty"`
-	PoolCredentialVersion   int                               `json:"pool_credential_version,omitempty"`
-	RunID                   string                            `json:"run_id"`
-	NodeID                  string                            `json:"node_id"`
-	Attempt                 int                               `json:"attempt"`
-	Fence                   int64                             `json:"fence"`
-	WorkerID                string                            `json:"worker_id"`
-	Command                 []string                          `json:"command,omitempty"`
-	Type                    string                            `json:"type,omitempty"`
-	TimeoutSeconds          int                               `json:"timeout_seconds,omitempty"`
-	Idempotent              bool                              `json:"idempotent,omitempty"`
-	DispatchID              string                            `json:"dispatch_id,omitempty"`
-	DispatchState           string                            `json:"dispatch_state,omitempty"`
-	LeaseUntil              string                            `json:"lease_until,omitempty"`
-	Config                  map[string]any                    `json:"config,omitempty"`
-	CandidateCommit         string                            `json:"candidate_commit,omitempty"`
-	CandidateFrom           string                            `json:"candidate_from,omitempty"`
-	CandidateAttempt        int                               `json:"candidate_attempt,omitempty"`
-	CandidateFence          int64                             `json:"candidate_fence,omitempty"`
-	CandidateEvidenceSHA256 string                            `json:"candidate_evidence_sha256,omitempty"`
-	ReleaseExecution        *releasecontract.ReleaseExecution `json:"release_execution,omitempty"`
+	CandidateComposition    *ccc.CandidateCompositionExecution `json:"candidate_composition,omitempty"`
+	CodeBaseline            *ccc.CodeBaselineBinding           `json:"code_baseline,omitempty"`
+	RepositoryIntegration   *rc.RepositoryExecution            `json:"repository_integration,omitempty"`
+	TenantID                string                             `json:"tenant_id,omitempty"`
+	ProjectID               string                             `json:"project_id,omitempty"`
+	PoolID                  string                             `json:"pool_id,omitempty"`
+	PoolRunnerID            string                             `json:"pool_runner_id,omitempty"`
+	PoolSlotID              string                             `json:"pool_slot_id,omitempty"`
+	PoolGrantID             string                             `json:"pool_grant_id,omitempty"`
+	PoolGrantVersion        int                                `json:"pool_grant_version,omitempty"`
+	PoolCredentialID        string                             `json:"pool_credential_id,omitempty"`
+	PoolCredentialVersion   int                                `json:"pool_credential_version,omitempty"`
+	RunID                   string                             `json:"run_id"`
+	NodeID                  string                             `json:"node_id"`
+	Attempt                 int                                `json:"attempt"`
+	Fence                   int64                              `json:"fence"`
+	WorkerID                string                             `json:"worker_id"`
+	Command                 []string                           `json:"command,omitempty"`
+	Type                    string                             `json:"type,omitempty"`
+	TimeoutSeconds          int                                `json:"timeout_seconds,omitempty"`
+	Idempotent              bool                               `json:"idempotent,omitempty"`
+	DispatchID              string                             `json:"dispatch_id,omitempty"`
+	DispatchState           string                             `json:"dispatch_state,omitempty"`
+	LeaseUntil              string                             `json:"lease_until,omitempty"`
+	Config                  map[string]any                     `json:"config,omitempty"`
+	CandidateCommit         string                             `json:"candidate_commit,omitempty"`
+	CandidateFrom           string                             `json:"candidate_from,omitempty"`
+	CandidateAttempt        int                                `json:"candidate_attempt,omitempty"`
+	CandidateFence          int64                              `json:"candidate_fence,omitempty"`
+	CandidateEvidenceSHA256 string                             `json:"candidate_evidence_sha256,omitempty"`
+	ReleaseExecution        *releasecontract.ReleaseExecution  `json:"release_execution,omitempty"`
 }
 type Result struct {
 	IntegrationEvidence *rc.RepositoryResult `json:"integration_evidence,omitempty"`

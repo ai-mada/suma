@@ -13,15 +13,16 @@ import {repositoryApplied,repositoryCursor,repositoryID,repositoryInteger,reposi
 import {useRepositoryPage,useRepositoryRead,type RepositoryPage} from './repository-integration-hooks';
 import './RepositoryIntegrationPanel.css';
 
-type Props={project:string;taskID:string;session:Session;refresh:number;planID?:string;onPlan:(id:string)=>void;onRefresh:()=>void};
+type Props={project:string;taskID:string;session:Session;refresh:number;planID?:string;onPlan:(id:string)=>void;onRefresh:()=>void;open?:boolean;onOpenChange?:(open:boolean)=>void};
 type TargetDraft={id:string;version:number;name:string;status:string};
 const t=(key:string,values?:Record<string,unknown>)=>tr('repository-integration.'+key,values);
 const time=(value:string)=>formatDateTime(value,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
 const runLink=(project:string,run:string)=>'?'+new URLSearchParams({project,view:'development',sub:'runs',run});
 
 export function RepositoryIntegrationPanel(props:Props){return <IntegrationScope key={JSON.stringify([props.session.user.id,props.session.organization.id,props.project,props.taskID])} {...props}/>;}
-function IntegrationScope({project,taskID,session,refresh,planID,onPlan,onRefresh}:Props){
- useLocale();const api=useApi(),bodyID=useId(),[open,setOpen]=useState(false),[located,setLocated]=useState(repositoryID(planID)?planID:''),[tick,setTick]=useState(0),[forbidden,setForbidden]=useState<unknown>(),alive=useRef(true),callbacks=useRef({onPlan,onRefresh});callbacks.current={onPlan,onRefresh};
+function IntegrationScope({project,taskID,session,refresh,planID,onPlan,onRefresh,open:controlledOpen,onOpenChange}:Props){
+ useLocale();const api=useApi(),bodyID=useId(),[localOpen,setLocalOpen]=useState(false),[located,setLocated]=useState(repositoryID(planID)?planID:''),[tick,setTick]=useState(0),[forbidden,setForbidden]=useState<unknown>(),alive=useRef(true),callbacks=useRef({onPlan,onRefresh});callbacks.current={onPlan,onRefresh};
+ const open=controlledOpen??localOpen,setOpen=(value:boolean|((previous:boolean)=>boolean))=>{const next=typeof value==='function'?value(open):value;setLocalOpen(next);onOpenChange?.(next);};
  const action=useWriteAction({scope:JSON.stringify(['repository-integration',session.user.id,session.organization.id,project,taskID]),storage:toolSessionStorage(),validateRequest:request=>repositoryRecovery(request,project,taskID)}),pending=action.pending?.body;
  const [sourceID,setSourceID]=useState(typeof pending?.source_node_id==='string'?pending.source_node_id:''),[targetID,setTargetID]=useState(typeof pending?.target_id==='string'?pending.target_id:''),[reason,setReason]=useState(typeof pending?.reason==='string'?pending.reason:''),[ack,setAck]=useState(false),[targetName,setTargetName]=useState(''),[providerID,setProviderID]=useState(''),[alias,setAlias]=useState(''),[targetDraft,setTargetDraft]=useState<TargetDraft>(),[connection,setConnection]=useState<RunConnectionState>();
  const locked=action.busy||!!action.pending||action.persistenceBlocked;

@@ -136,7 +136,7 @@ func decode(r *http.Request) (map[string]any, error) {
 	// Preserve numeric lexemes so a fractional counter near 2^53 cannot round
 	// into a valid integer before that validation. Legacy map-backed routes
 	// retain their existing number representation until their DTO migration.
-	if strings.HasPrefix(r.URL.Path, "/api/v1/failure-diagnosis") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-provider/") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integrations") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integration-targets") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-teams") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-team-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/knowledge-intelligence") || strings.HasPrefix(r.URL.Path, "/api/v1/skill-catalog") || strings.HasPrefix(r.URL.Path, "/api/v1/usage") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/analyses") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/alerts") || (strings.HasPrefix(r.URL.Path, "/api/v1/requirements/") && strings.Contains(r.URL.Path, "/design")) || strings.HasPrefix(r.URL.Path, "/api/v1/task-dispatch-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/task-handoffs") || strings.HasPrefix(r.URL.Path, "/api/v1/project-knowledge") || r.URL.Path == "/api/v1/agent/tools/invoke" || strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
+	if strings.HasPrefix(r.URL.Path, "/api/v1/candidate-compositions") || (strings.HasPrefix(r.URL.Path, "/api/v1/tasks/") && strings.HasSuffix(r.URL.Path, "/code-baseline")) || strings.HasPrefix(r.URL.Path, "/api/v1/failure-diagnosis") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-provider/") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integrations") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integration-targets") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-teams") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-team-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/knowledge-intelligence") || strings.HasPrefix(r.URL.Path, "/api/v1/skill-catalog") || strings.HasPrefix(r.URL.Path, "/api/v1/usage") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/analyses") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/alerts") || (strings.HasPrefix(r.URL.Path, "/api/v1/requirements/") && strings.Contains(r.URL.Path, "/design")) || strings.HasPrefix(r.URL.Path, "/api/v1/task-dispatch-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/task-handoffs") || strings.HasPrefix(r.URL.Path, "/api/v1/project-knowledge") || r.URL.Path == "/api/v1/agent/tools/invoke" || strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
 		d.UseNumber()
 	}
 	if err := d.Decode(&m); err != nil {
@@ -179,6 +179,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.releaseProviderHTTP(w, r, path) {
+		return
+	}
+	if s.poolCodeInputHTTP(w, r, path) {
 		return
 	}
 	if s.poolCandidateTransferHTTP(w, r, path) {
@@ -445,6 +448,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.projectKnowledgeHTTP(w, r, actor, project, path, parts, m) {
 		return
 	}
+	if s.codeInputHTTP(w, r, actor, project, path, m) {
+		return
+	}
 	if s.candidateTransferHTTP(w, r, actor, project, path, m) {
 		return
 	}
@@ -476,6 +482,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.knowledgeIntelligenceHTTP(w, r, actor, scope, project, parts, m) {
+		return
+	}
+	if s.candidateCompositionHTTP(w, r, actor, scope, project, parts, m) {
 		return
 	}
 	if s.failureDiagnosisHTTP(w, r, actor, scope, project, parts, m) {
@@ -882,12 +891,22 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				}
 				return false, err
 			}
+			if err := s.Service.checkCodeInputExecutionTx(authority.ctx, tx, p.TenantID, project, run, node, true); err != nil {
+				var api *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &api) && strings.HasPrefix(api.Code, "candidate_composition_") {
+					return false, nil
+				}
+				return false, err
+			}
 			return s.Service.toolClaimEligibleTx(authority.ctx, tx, authority.proof, claim.WorkerID, run, node)
 		})
 		if e == nil && a != nil && a.DispatchState == "active" {
 			a.ReleaseExecution, e = s.Service.ReleaseExecutionForAssignment(r.Context(), actor, project, *a)
 			if e == nil {
 				e = s.Service.decorateRepositoryAssignment(r.Context(), actor, project, a)
+			}
+			if e == nil {
+				e = s.Service.decorateCodeInputAssignment(r.Context(), projectCandidateSubject(actor, project), a)
 			}
 		}
 		respond(w, 200, RunnerClaimResponse{Assignment: a}, e)
@@ -913,6 +932,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				return err
 			}
 			if err := s.Service.checkFailureDiagnosisExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID, false); err != nil {
+				return err
+			}
+			if err := s.Service.checkCodeInputExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID, a.NodeID, false); err != nil {
 				return err
 			}
 			return s.Service.checkRepositoryIntegrationExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID)
@@ -953,6 +975,12 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				return err
 			}
 			if err := s.Service.recordFailureDiagnosisOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {
+				return err
+			}
+			if err := s.Service.validateCandidateCompositionResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {
+				return err
+			}
+			if err := s.Service.validateCodeBaselineResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {
 				return err
 			}
 			if err := s.Service.validateRepositoryIntegrationResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {

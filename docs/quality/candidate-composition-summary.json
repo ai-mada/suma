@@ -1,0 +1,865 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-031",
+  "product_version": "1.0.0",
+  "prepared_on": "2026-10-27",
+  "status": "bounded_031_locally_verified_actual_cold_readback_and_primary_preview_updated",
+  "stage_complete": true,
+  "contract": "contracts/candidate-composition.md",
+  "cli_contract": "contracts/candidate-composition-cli.md",
+  "counting_policy": "Distinct top-level groups, child pass events and overlapping targeted reruns are separate. They are not summed into a stage total.",
+  "scope": "Ordered currently accepted sources produce a new trusted-command candidate; same-run formal tests, explicit browser Review, existing target CAS and explicitly protected downstream development baseline remain separate gates.",
+  "receipt_inventory": [
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/domain/verification.local.json",
+      "sha256": "9618d9f20b9b90d7940ea28e5f3e99aa7f223a2e0ce9c06513c24956a5e2aed6"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/domain/shared-verification.local.json",
+      "sha256": "de965f5346aaf41f657dbce759fa4e1352d81bfffaae80113558885df570a8e4"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/runtime/verification.local.json",
+      "sha256": "b1054b7c5aae37bb0de3a9c13cb079a67cf086229787176526c1dd761774bbf2"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/cli/verification.local.json",
+      "sha256": "b661eeaa67dff854cadf2cbad32e2cbe3bf1201f167ecd81425a31f6f640e0f3"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/runtime-final/build-facts.local.json",
+      "sha256": "7e306e647716987a3d34d3d5f7d60fdee42ac3ec800e2b71cb966060f9fcbd47",
+      "phase": "initial_cut_retained_not_final"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/verification/web-build.local.json",
+      "sha256": "3b3f0088015638a12ed1ce276403200a1342a41db427798bb57bf6dd345dc8ad"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T182208790Z.command.json",
+      "sha256": "b5048e0add5c613adcb3e8592a57d01d88695cbf87d197ebe509fdf3ecf0253a"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T182452131Z.command.json",
+      "sha256": "0f363376b222328d8ae7b9ec36694556cf9ae4e8aa10bb2378268bc692a74cd3"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261026T183110193Z.command.json",
+      "sha256": "fc94dcdbbc32d53ddfc074a1d0f1e61b31b51864b85549431aa3c903fb0a354a"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/domain/baseline-acceptance-verification.local.json",
+      "sha256": "dc69c1730c44d4251415916949f8306ec21aff4256996c88334e917b8ee7864b"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/runtime-release/build-facts.local.json",
+      "sha256": "6d74d9e9a164dfac6e19fb0011ca7f7f55977351087e4733a56c5d9b40932acb",
+      "phase": "second_cut_retained_not_final"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/runtime-reviewed/build-facts.local.json",
+      "sha256": "b34c46c47ba0c5cd9d476ad8d2bf359b1b9b6d464e2f955590079cd43bd41575",
+      "phase": "third_reviewed_backend_cut"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/domain/workflow-verification.local.json",
+      "sha256": "3667b69c18a0ad3a9f4f9ac868fa94be8092f94306727c119fca6d8a2b382ba6"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/actual/setup-evidence/inventory.local.json",
+      "sha256": "b936c458e0942b547d849d22523b1f785ff24def38e78abac192a08a72c706e9"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/actual/setup-evidence/closed.local.json",
+      "sha256": "ad6a18c0ea7eb6b8307066a6eb0482478a38ca31c5e957f7746cd01306b9c95c"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/verification/web-release-build.local.json",
+      "sha256": "c14d32c7feac8b1a1e225c8c80a432b14fa1bf033599aa5a1e06b6dea4b7b4f2",
+      "phase": "command_selection_corrected_web_release"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/actual/verification.local.json",
+      "sha256": "c7373bdf63fcbcc6ed955007c4f2489ff6314c1749e65fd2f7320878b60f5c06"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/actual/evidence-pins.local.json",
+      "sha256": "b4a8ee4124d1ea5212973dd0e114590a082820b1e75e62e9b3d94b3b3c94b10f"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/actual/closed-final.local.json",
+      "sha256": "7a029f68f70fbc9d11c0ac9dfc72edf4fd54bf35dc435c2fd168c301009e9be6"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/actual/collect-final-evidence.py",
+      "sha256": "2f41a77d046be8426b3c9347f491543b727b71f96cd752a44accc841ecece7a8"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/verification/web-polished-build.local.json",
+      "sha256": "d507847f0a46f834b1fc899fe7c3e163cce642484cda9106907f856a47ab608d"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/browser/verification.local.json",
+      "sha256": "db227d4ad6ab250bb5ddeb37f88156679ef159b34e6dc99d7e71a7b7cab22fa8"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/final-readback/out/closed.local.json",
+      "sha256": "b124af03feb372eeb1007861b21ea0afb057d1c0825c68d8c4d74a4a66f6ab58"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/primary-upgrade/final-verification.local.json",
+      "sha256": "01e161bc898148782280fb936f4dbfc954622f209fb52bc56403c1d01e5d9826"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/root-primary-review.local.json",
+      "sha256": "2e97c414844b602eccc35c98995d52002e5ff951e37a7ef2740d9c4012e08a68"
+    },
+    {
+      "path": ".cache/e2e/candidate-composition-stage-031/upgrade-primary.py",
+      "sha256": "7012575ba2ec4d30c58baf79d37eec5d6d96ad1caefe2cf6fc211f8494f385b1"
+    }
+  ],
+  "focused_checks": {
+    "domain": {
+      "distinct_top_level_passed": 6,
+      "receipt": ".cache/e2e/candidate-composition-stage-031/domain/verification.local.json",
+      "initial_five_command": "20261026T175456262Z",
+      "sixth_command": "20261026T175715573Z",
+      "affected_three_rerun": "20261026T180258555Z",
+      "final_affected_single": "20261026T180407471Z",
+      "boundary": "Actual database/HTTP/Core/transfer/test/Review transactions consuming explicitly typed byte and result fixtures; not Git subprocess evidence."
+    },
+    "shared_control_and_pool": {
+      "receipt": ".cache/e2e/candidate-composition-stage-031/domain/shared-verification.local.json",
+      "command": "20261026T182340461Z",
+      "top_level_passed": 4,
+      "fail": 0,
+      "scope": [
+        "Persisted ordinary baseline dispatch and private typed claim; old preview invalidation and fresh credential/source checks.",
+        "Explicit pending expert revision preserves historical binding and started root; real formal predecessor test/Review unlocks the revised child.",
+        "Published design task uses exact durable composition design proof for task binding and Review.",
+        "Same-organization bilateral Pool typed assignment and two exact source byte reads; wrong scope/fence/source/plan denied; source drift denies new read but preserves original known failure/replay; terminal lease rejects reuse."
+      ]
+    },
+    "affected_old_control": {
+      "command": "20261026T182537497Z",
+      "top_level_passed": 3,
+      "fail": 0,
+      "tests": [
+        "TestTaskDispatchPreviewStartAtomicBindingAndReceiptRecovery",
+        "TestExpertTeamPlanCommandsReviseOnlyPendingStopAndReplay",
+        "TestRequirementDesignIntegrationFixedContextAndCombinedBudget"
+      ],
+      "vet_command": "20261026T182537478Z",
+      "vet_exit": 0
+    },
+    "runtime": {
+      "receipt": ".cache/e2e/candidate-composition-stage-031/runtime/verification.local.json",
+      "real_git": {
+        "command": "20261026T180724241Z",
+        "top_level_passed": 3,
+        "pass_events": 3,
+        "skipped": 0,
+        "scope": "Divergent sources, deterministic hermetic merge-tree/commit-tree, real conflicts without seal, independent B-only repository tests M, downstream inherited base/no-delta full object closure."
+      },
+      "affected_runner": {
+        "command": "20261026T181148780Z",
+        "top_level_passed": 7,
+        "pass_events": 22,
+        "skipped": 0
+      },
+      "inherited_provider": {
+        "command": "20261026T181121853Z",
+        "top_level_passed": 1,
+        "pass_events": 1,
+        "scope": "Existing provider validates bundle anchor B to selected M to head and performs its governed preview/apply at a local Git boundary."
+      },
+      "shared_contract": {
+        "command": "20261026T181256723Z",
+        "top_level_passed": 2,
+        "pass_events": 2
+      },
+      "vet": {
+        "command": "20261026T181255943Z",
+        "packages": 4,
+        "exit": 0
+      },
+      "boundary": "Same-host isolated repositories and protocol fixtures do not prove physical multi-host or end-to-end UI acceptance."
+    },
+    "cli": {
+      "receipt": ".cache/e2e/candidate-composition-stage-031/cli/verification.local.json",
+      "command": "20261026T181916494Z",
+      "top_level_passed": 1,
+      "pass_events": 6,
+      "skipped": 0,
+      "no_automatic_retry_or_browser_identity": true
+    },
+    "root_http": {
+      "command": "20261026T182208790Z",
+      "selected_top_level": 2,
+      "exit": 0,
+      "json_pass_event_count": null,
+      "scope": "Exact HTTP ingress and original start recovery; private typed claim and current-assignment frozen binary download.",
+      "zero_binding_cas_rerun": {
+        "command": "20261026T182452131Z",
+        "selected_top_level": 1,
+        "exit": 0,
+        "scope": "Explicit integer zero reaches domain CAS; missing/string/fraction/exponent rejected."
+      }
+    },
+    "root_final_go": {
+      "cut": "third_runtime_reviewed",
+      "build_commands": [
+        "20261026T190300534Z",
+        "20261026T190304162Z",
+        "20261026T190305168Z",
+        "20261026T190306114Z"
+      ],
+      "programs": [
+        "Control",
+        "Runner",
+        "CLI",
+        "Repository Provider"
+      ],
+      "all_exit_codes": 0,
+      "reported_build_seconds": 7.6,
+      "old_tests_rerun": false,
+      "full_suite_rerun": false,
+      "prior_vet_and_contract_evidence": "root_release_cut_go",
+      "final_ui_web_release": "polished_build_and_final_CN_EN_cold_readback_verified"
+    },
+    "root_initial_cut_go": {
+      "vet_command": "20261026T183106399Z",
+      "generator_check": "20261026T183110193Z",
+      "build_commands": [
+        "20261026T183111931Z",
+        "20261026T183117159Z",
+        "20261026T183118982Z"
+      ],
+      "all_exit_codes": 0,
+      "full_suite_rerun": false
+    },
+    "inherited_baseline_lineage": {
+      "receipt": ".cache/e2e/candidate-composition-stage-031/domain/baseline-acceptance-verification.local.json",
+      "initial_red": "20261026T184107292Z",
+      "green": "20261026T184307354Z",
+      "top_level_passed": 1,
+      "child_passed": 2,
+      "pass_events": 3,
+      "skipped": 0,
+      "fail": 0,
+      "scope": "Actual fixed M to C baseline run, sealed candidate and independent formal test; old creator logged out, new current browser Review and accepted C repository qualification first succeed. After M source A changes, both pre-review and previously accepted C reject new Review and repository use while original C succeeded/result SHA remain readable.",
+      "approval_is_not_fresh_execution": true,
+      "old_creator_reauthorized": false,
+      "fresh_task_version_plus_one_rule_reused": false,
+      "bounds": {
+        "maximum_depth": 32,
+        "maximum_run_and_input_budget": 4096
+      },
+      "prior_6_4_3_groups_rerun": false
+    },
+    "root_release_cut_go": {
+      "vet_command": "20261026T184632921Z",
+      "generator_check": "20261026T184634930Z",
+      "build_commands": [
+        "20261026T184638900Z",
+        "20261026T184642498Z",
+        "20261026T184643498Z",
+        "20261026T184644496Z"
+      ],
+      "programs": [
+        "Control",
+        "Runner",
+        "CLI",
+        "Repository Provider"
+      ],
+      "all_exit_codes": 0,
+      "full_suite_rerun": false,
+      "web_rebuilt": false
+    },
+    "command_agent_template": {
+      "receipt": ".cache/e2e/candidate-composition-stage-031/domain/workflow-verification.local.json",
+      "initial_red": "20261026T190124467Z",
+      "green": "20261026T190144284Z",
+      "top_level_passed": 1,
+      "child_passed": 7,
+      "pass_events": 8,
+      "fail": 0,
+      "scope": "Root command and agent code producers and matching trusted capability accepted; test/nonroot/conditional/extra capability rejected; immutable workflow/independent quality unchanged.",
+      "production_change": "Only producer kind predicate and comment",
+      "old_tests_rerun": false
+    }
+  },
+  "ui": {
+    "evidence": "Agent tool outputs; no independent raw unit-test log files",
+    "initial_panel": {
+      "time_local": "2026-10-27 01:56:07 +08:00",
+      "tool_chunk": "d74aa8",
+      "pass": 3,
+      "fail": 1,
+      "unhandled_errors": 1,
+      "exit": 1
+    },
+    "targeted_reruns": [
+      {
+        "time_local": "01:56:30 +08:00",
+        "tool_chunk": "db4cba",
+        "scope": "Original request recovery via action.run",
+        "pass": 1,
+        "skip": 3,
+        "exit": 0
+      },
+      {
+        "time_local": "01:57:57 +08:00",
+        "tool_chunk": "7211c5",
+        "scope": "Exact baseline readback guard",
+        "pass": 1,
+        "skip": 3,
+        "exit": 0
+      },
+      {
+        "time_local": "01:59:10 +08:00",
+        "tool_chunk": "a04b76",
+        "scope": "Source drift cannot silently replace SHA; explicit remove and reselect",
+        "pass": 1,
+        "skip": 3,
+        "exit": 0
+      }
+    ],
+    "original_distinct_panel_groups_with_green": 4,
+    "same_final_four_group_run_claimed": false,
+    "new_baseline_and_anchor": {
+      "time_local": "02:24:54 +08:00",
+      "tool_chunk": "57437a",
+      "pass": 2,
+      "skip": 15,
+      "exit": 0,
+      "scope": "TaskCodeBaselinePanel fold/read/CAS/unknown/remount/started read-only, plus inherited CandidateTransfer bundle anchor"
+    },
+    "typecheck": {
+      "session_id": 59460,
+      "exit_code": 0,
+      "tool_chunk": "0e6a6e"
+    },
+    "i18n": {
+      "paired_keys": 4198,
+      "exit_code": 0,
+      "tool_chunk": "84dd4f",
+      "legacy_candidates": 0,
+      "covered_hardcodes": 0
+    },
+    "isolated_build_receipt": ".cache/e2e/candidate-composition-stage-031/verification/web-polished-build.local.json",
+    "independent_raw_output_file": null,
+    "browser_journey": "final_polished_CN_EN_cold_readback_passed",
+    "isolated_build_phase": "web_polished_after_actual_app_sibling_key_fix",
+    "command_producer_revision": {
+      "status": "actual_command_producer_and_final_cold_readback_verified",
+      "label": "Code producer node",
+      "rules": "command|agent root, no condition, empty or trusted matching capability",
+      "old_ui_and_backend_gap_preserved": true,
+      "targeted_selection": {
+        "passed": 1,
+        "skipped": 4,
+        "exit_code": 0,
+        "tool_chunk": "dc1772",
+        "local_started_at": "2026-10-27 03:03:24 +08:00"
+      },
+      "build_receipt": ".cache/e2e/candidate-composition-stage-031/verification/web-release-build.local.json"
+    },
+    "initial_typecheck": {
+      "session_id": 78460,
+      "exit_code": 0,
+      "tool_chunk": "502698"
+    },
+    "initial_i18n": {
+      "command": "node scripts/check-i18n.mjs",
+      "cwd": "apps/web",
+      "exit_code": 0,
+      "paired_keys": 4197,
+      "legacy_candidates": 0,
+      "covered_hardcodes": 0,
+      "tool_chunk": "470d78"
+    },
+    "initial_isolated_build_receipt": ".cache/e2e/candidate-composition-stage-031/verification/web-build.local.json",
+    "command_selection_typecheck": {
+      "session_id": 28711,
+      "exit_code": 0,
+      "tool_chunk": "79f9a6"
+    },
+    "actual_app_key_regression": {
+      "test": "keeps one actual task design container through asynchronous refresh versions and locale changes",
+      "red": {
+        "tool_chunk": "14aaa0",
+        "exit_code": 1,
+        "observed_design_containers": 3
+      },
+      "fixture_locator_correction": {
+        "tool_chunk": "40c43d",
+        "exit_code": 1,
+        "reason": "Hard-coded Refresh label differed from actual locale; switched to tr(shell.refresh)"
+      },
+      "green": {
+        "tool_chunk": "6a5f32",
+        "exit_code": 0,
+        "passed": 1,
+        "skipped": 13,
+        "local_started_at": "2026-10-27 03:29:55 +08:00",
+        "facts": [
+          "one host/body design container while reads pending",
+          "v3 to v4/v5/v6 async refresh",
+          "CN to EN redisplays sole live component",
+          "zero writes/no duplicate-key warnings"
+        ]
+      }
+    },
+    "polished_i18n_reuse": {
+      "rerun": false,
+      "paired_keys": 4198,
+      "all_i18n_source_bytes_unchanged": true,
+      "reused_receipt": ".cache/e2e/candidate-composition-stage-031/verification/web-release-build.local.json"
+    },
+    "final_browser_receipt": ".cache/e2e/candidate-composition-stage-031/browser/verification.local.json",
+    "final_browser_checks": {
+      "stage": "T-P4-031",
+      "finalDom": {
+        "accepted": true,
+        "bodyLength": 2552,
+        "compositionCandidate": true,
+        "designCount": 1,
+        "hasViteError": false,
+        "staleEnglishDesignLabel": false,
+        "title": "开发协作 · suma"
+      },
+      "logs": [],
+      "C_baseline_en": {
+        "designCount": 1,
+        "baseline": true
+      },
+      "C_baseline_zh": {
+        "designCount": 1,
+        "localized": true,
+        "noStaleDesignLabel": true
+      },
+      "C_refresh": {
+        "designCount": 1,
+        "baseline": true,
+        "version4": true
+      },
+      "M_en": {
+        "designCount": 1,
+        "accepted": true,
+        "sameCandidate": true
+      },
+      "keyboardProvenanceDisclosure": true,
+      "keyboardFocusRetained": true,
+      "newBusinessOperations": 0,
+      "newLogin": 0,
+      "modelCalls": 0,
+      "vendorCalls": 0,
+      "userTab5Untouched": true
+    },
+    "final_readback": {
+      "receipt": ".cache/e2e/candidate-composition-stage-031/final-readback/out/closed.local.json",
+      "graceful_control_exit": 0,
+      "selected_domain_and_DAG_tables": 121,
+      "all_selected_facts_unchanged": true,
+      "same_M_C_baseline_test_review_facts": true,
+      "source_and_original_non_db_files_unchanged": true,
+      "new_login_count": 0,
+      "runner_count": 0,
+      "repeated_formal_tests": 0,
+      "model_calls": 0,
+      "vendor_calls": 0,
+      "console_errors": 0,
+      "sole_design_container": true,
+      "deep_link_refresh_keyboard_CN_EN_passed": true,
+      "user_original_tab_5_untouched": true
+    }
+  },
+  "preserved_failures": [
+    {
+      "command": "20261026T175658859Z",
+      "phase": "compile",
+      "reason": "Runner import bufio missing during first implementation"
+    },
+    {
+      "command": "20261026T175711228Z",
+      "phase": "test",
+      "reason": "Invalid/unauthorized baseline silently selected administrator base",
+      "recheck": "20261026T180220142Z"
+    },
+    {
+      "command": "20261026T180019957Z",
+      "phase": "compile",
+      "reason": "Concurrent Runner implementation not yet complete: missing compositionClient/executeCandidateComposition; no test executed",
+      "recheck": "20261026T180258555Z"
+    },
+    {
+      "command": "20261026T180415575Z",
+      "phase": "test",
+      "reason": "Real Git produced composition but transfer fixture lacked candidate-transfer POST and returned 404",
+      "recheck": "20261026T180505854Z"
+    },
+    {
+      "command": "20261026T181050078Z",
+      "phase": "compile",
+      "reason": "Provider fixture request struct used wrong type"
+    },
+    {
+      "command": "20261026T181102962Z",
+      "phase": "test",
+      "reason": "Provider still validated bundle header against selected M instead of anchor B",
+      "recheck": "20261026T181121853Z"
+    },
+    {
+      "command": "20261026T181847549Z",
+      "phase": "test",
+      "reason": "CLI help did not name first-binding field; quoted zero accepted as json.Number",
+      "recheck": "20261026T181916494Z"
+    },
+    {
+      "tool_chunk": "d74aa8",
+      "phase": "ui_test",
+      "reason": "Recovery called nonexistent action.resume",
+      "recheck_tool_chunk": "db4cba"
+    },
+    {
+      "tool_chunk": "99263a",
+      "phase": "package_manager_preflight",
+      "error_code": "ERR_PNPM_VERIFY_DEPS_BEFORE_RUN",
+      "script_started": false,
+      "dependencies_changed": false,
+      "recovery": "Existing installed Node directly ran the same check script and Vite; one Vite build, exit zero."
+    },
+    {
+      "command": "20261026T184107292Z",
+      "phase": "test",
+      "reason": "Both inherited C cases incorrectly allowed a new Review after source A of frozen composition M changed; ordinary baseline runs had been omitted from the bounded acceptance walk.",
+      "recheck": "20261026T184307354Z"
+    },
+    {
+      "command": "20261026T190124467Z",
+      "phase": "test_after_actual_ui_gap",
+      "reason": "Actual fixed command-root template was disabled in UI and rejected by the backend agent-only predicate. The initial Root assumption that backend command roots already worked was wrong; fixture was not changed to agent as a workaround.",
+      "recheck": "20261026T190144284Z",
+      "old_artifacts_claimed_command_support": false
+    },
+    {
+      "tool_chunk": "14aaa0",
+      "phase": "actual_app_consumer_regression",
+      "reason": "First actual-App render produced three TaskDesignProvenance containers due to identical sibling keys shared with TaskHandoffPanel",
+      "fixture_locator_correction": "40c43d: replaced hard-coded Refresh with tr(shell.refresh), not a separate product defect",
+      "recheck_tool_chunk": "6a5f32",
+      "green_passed": 1,
+      "green_skipped": 13
+    }
+  ],
+  "build_artifacts": {
+    "receipt": ".cache/e2e/candidate-composition-stage-031/runtime-reviewed/build-facts.local.json",
+    "go_version": "1.26.10",
+    "controlled_source_items": 668,
+    "source_inventory_includes_tests": true,
+    "count_is_not_compiled_file_count": true,
+    "source_sha256": "7932801ef1dec95a54541b6a00123147a5a4f0812714f5e04db8953e290aff3a",
+    "binaries": {
+      "suma-control.exe": "17f95b5a190d3091eb0bd0ab51c38251af24d18805052ee613d548014359e528",
+      "suma-runner.exe": "039d883448c30044315d51617489c606198daf41a9bf46af5a5d6be64d926032",
+      "suma.exe": "09875e7cf7b3649f8169da1eae4498a40131ada2f8e8aaf4278fecef89497d78",
+      "suma-repository-provider.exe": "2b6d0e2b748cf0a0910d720881a19397a5c6b19ef82e12cf611bd55c3329c884"
+    },
+    "native_bundle_sha256": "5ab81bdf05e461b73bcc50b32dec92f477b24da288cbf30d27f41f716a5c30d5",
+    "native_manifest_sha256": "4e2ff8ed9f34db5d18c79c6f17e8509e3c156ef4419bcab10ced6a6431e94e45",
+    "native_bundle_reused_unchanged_inputs": true,
+    "native_bundle_rebuilt": false,
+    "vendor_or_model_calls": 0,
+    "web": {
+      "receipt": ".cache/e2e/candidate-composition-stage-031/verification/web-polished-build.local.json",
+      "phase": "final_polished_served_and_cold_readback_verified",
+      "files": 135,
+      "asset_files": 134,
+      "index_sha256": "34ffa34af3a43f08d98ba4f14c0935d6dd5268a198e459e85c6fa23842398e84",
+      "inventory_sha256": "bd313c5ab1a97f56051970f6be0da8cdff9f8c055317f1bb1b05cc82003ee35d",
+      "build_invocations": 1,
+      "source_items": 317,
+      "source_sha256": "000978a80faedce6cc08487527c6e02967f4007ad14595af107be74936911a36",
+      "source_unchanged": true,
+      "warnings": [
+        "Some chunks are larger than 500 kB after minification."
+      ]
+    },
+    "initial_go_cut": {
+      "receipt": ".cache/e2e/candidate-composition-stage-031/runtime-final/build-facts.local.json",
+      "controlled_source_items": 666,
+      "source_sha256": "6657c1c95e3f2a61e1889c3184dc14d9dd8eddfdba753f4dbd682c7571a3b156",
+      "binaries": {
+        "suma-control.exe": "5afd1abd40b2270e68466c0ea4a4cd8bbb2e646bd3799add35613f50f3f10abd",
+        "suma-runner.exe": "039d883448c30044315d51617489c606198daf41a9bf46af5a5d6be64d926032",
+        "suma.exe": "09875e7cf7b3649f8169da1eae4498a40131ada2f8e8aaf4278fecef89497d78"
+      },
+      "retained": true,
+      "is_final_release": false
+    },
+    "runner_and_cli_unchanged_from_initial_cut": true,
+    "intermediate_release_go_cut": {
+      "receipt": ".cache/e2e/candidate-composition-stage-031/runtime-release/build-facts.local.json",
+      "controlled_source_items": 667,
+      "source_sha256": "3674f32ab853046cbd1a699d39b27ad6f2a07fa30cf3bb5414f44599124b489b",
+      "binaries": {
+        "suma-control.exe": "35be599a4061ca304e64663c76dff91a4c76347a60ba2419c66ca2aaf90e6321",
+        "suma-runner.exe": "039d883448c30044315d51617489c606198daf41a9bf46af5a5d6be64d926032",
+        "suma.exe": "09875e7cf7b3649f8169da1eae4498a40131ada2f8e8aaf4278fecef89497d78",
+        "suma-repository-provider.exe": "2b6d0e2b748cf0a0910d720881a19397a5c6b19ef82e12cf611bd55c3329c884"
+      },
+      "retained": true,
+      "is_final_release": false
+    },
+    "runner_cli_provider_unchanged_from_second_cut": true,
+    "reviewed_ui_web_release": {
+      "status": "frozen_polished_build_cold_readback_passed",
+      "out_dir": ".cache/e2e/candidate-composition-stage-031/web-polished",
+      "verification": ".cache/e2e/candidate-composition-stage-031/verification/web-polished-build.local.json"
+    },
+    "initial_web_cut": {
+      "receipt": ".cache/e2e/candidate-composition-stage-031/verification/web-build.local.json",
+      "files": 135,
+      "asset_files": 134,
+      "index_sha256": "19a9d33a548cd2731c59459be93f37cdea910aa997309f8d6503bd0b403a5f93",
+      "inventory_sha256": "8e806bc76e0dee7dece6276540789fd4c4e64eaa2ca7487adda9f9c6917a9979",
+      "build_invocations": 1,
+      "source_items": 317,
+      "source_unchanged": true,
+      "warnings": [
+        "Some chunks are larger than 500 kB after minification."
+      ],
+      "phase": "initial_web_final_retained_before_command_selection_fix"
+    },
+    "intermediate_web_release": {
+      "receipt": ".cache/e2e/candidate-composition-stage-031/verification/web-release-build.local.json",
+      "phase": "command_selection_corrected_web_release",
+      "files": 135,
+      "asset_files": 134,
+      "index_sha256": "7fb87c4fef8fc6e98c282bc47818538977275e998433f87cf6df1862be1e6ded",
+      "inventory_sha256": "cf284e77de16fd3cb9cd915d81dd721d3928798e20faeebee12ee24245bc0c9b",
+      "build_invocations": 1,
+      "source_items": 317,
+      "source_sha256": "3c6a6f786c6596ac5c7e8cf38a0902f768cbd197eb5300fd9c75082f7fd8f3ed",
+      "source_unchanged": true,
+      "warnings": [
+        "Some chunks are larger than 500 kB after minification."
+      ]
+    }
+  },
+  "actual_local_journey": {
+    "status": "positive_composition_and_baseline_development_closed_final_readback_verified",
+    "public_verification": ".cache/e2e/candidate-composition-stage-031/actual/verification.local.json",
+    "browser_verification": ".cache/e2e/candidate-composition-stage-031/browser/verification.local.json",
+    "closed_receipt": ".cache/e2e/candidate-composition-stage-031/actual/closed-final.local.json",
+    "scope": "Same Windows host with two independent repositories and actual Go Runners: source composition M, independent M tests, explicit local test-owner Review, protected baseline bind, local Harness development C, independent C tests and second explicit Review. Target CAS and actual conflict are separate evidence.",
+    "setup_only": {
+      "status": "normally_closed_without_composition_or_dispatch",
+      "inventory": ".cache/e2e/candidate-composition-stage-031/actual/setup-evidence/inventory.local.json",
+      "closed_receipt": ".cache/e2e/candidate-composition-stage-031/actual/setup-evidence/closed.local.json",
+      "task_states": [
+        "integration v1 todo run_id empty",
+        "downstream v1 todo run_id empty"
+      ],
+      "composition_count": 0,
+      "new_stage_runs": 0,
+      "not_total_historical_database_runs": true,
+      "process_exit_codes": [
+        0,
+        0,
+        0
+      ],
+      "forced": false,
+      "integrity": "ok",
+      "source_inventory_unchanged": true,
+      "source_auxiliary_unchanged": true,
+      "source_business_rows_unchanged": true,
+      "clone_old_business_rows_unchanged": true,
+      "clone_original_non_db_files_unchanged": true,
+      "new_machine_api_agent_credentials": 0,
+      "browser_session_counts": {
+        "before": 16,
+        "after": 18,
+        "normal_logins_separately_recorded": true
+      },
+      "model_calls": 0,
+      "vendor_calls": 0,
+      "continuation": "Reuse the same database, retained browser session, tasks and profiles after normal shutdown; setup closure is not composition acceptance."
+    },
+    "evidence_pins": ".cache/e2e/candidate-composition-stage-031/actual/evidence-pins.local.json",
+    "collector": ".cache/e2e/candidate-composition-stage-031/actual/collect-final-evidence.py",
+    "new_runs": 2,
+    "new_formal_assertions": 8,
+    "new_assertion_split": {
+      "M": 4,
+      "C": 4
+    },
+    "old_029_assertions_not_added": true,
+    "explicit_local_test_owner_reviews": 2,
+    "production_human_acceptance_claimed": false,
+    "composition": {
+      "id": "a191e55babd552421a70d06fc522f949",
+      "run_id": "composition-a191e55babd552421a70d06fc522f949",
+      "task_id": "94a86c9e5969387c6dcc6420e4808ceb",
+      "task_version": 3,
+      "state": "accepted",
+      "candidate_head": "9bb999a604953b0c450500a47eed0bf618792188",
+      "candidate_bundle_sha256": "fb4d4095ec47e0064e6e2d4175f58623eb79d7bfdfb04e869bc2ba4f102031a7",
+      "candidate_bundle_bytes": 1344,
+      "parents": [
+        "2d7f8fb5c5fc5753a43f18c6d8afd014f21e1dc9",
+        "67be2a599c23b9f1ab03c2db6eba3b61434781ec"
+      ]
+    },
+    "protected_baseline": {
+      "id": "dd9335b311ab060b8e7fed03727bbb87",
+      "version": 1,
+      "task_version": 2,
+      "binding_sha256": "2697b0a50ce671caa6638088755b701ff66beff26888a1d1cfb8c49757ca2653",
+      "accepted_basis_sha256": "744a65bce26d6dd8e89ec3458fbc82afd27b2e9930bd5fdfdd9eed8bc6c620e4",
+      "change_after_started_allowed": false
+    },
+    "downstream": {
+      "dispatch_plan_id": "94ebcb4d50528aa3dfec564ccba6963a",
+      "run_id": "97791b55a2387767f786207dec1267a4",
+      "task_id": "227e047a54536bd4067b39ca92f45861",
+      "task_version": 4,
+      "state": "accepted",
+      "candidate_head": "d4b9917671a1af165e6707a332cefe19b1ef4baf",
+      "selected_base": "9bb999a604953b0c450500a47eed0bf618792188",
+      "administrator_bundle_anchor": "8cbc4344897335c2915efc9b763ad126f59d3bdd",
+      "candidate_bundle_sha256": "3dc8a65d5b86f194ebe1a7b9b33b3d4ec67441a07a0d800f258e92100fe25b5f",
+      "candidate_bundle_bytes": 1817,
+      "workspace_evidence_sha256": "408a49db7412dceb243c97db6a4a54eebef51ed62bd1994935490fa3c60036a9",
+      "usage_state": "unreported"
+    },
+    "same_host_runner_count": 2,
+    "administrator_checkouts_unchanged": true,
+    "preservation": {
+      "original_business_rows_checked": 385,
+      "remaining_setup_rows_checked": 418,
+      "original_rows_unchanged": true,
+      "only_two_UI_task_rows_allowed_to_change": true,
+      "database_sha256_before_after": "85d0ac35811061ea6672c39c3e06b17d4b905a54e0ffc7139af64f38c8f3f49d",
+      "browser_sessions_before": 18,
+      "browser_sessions_after": 18,
+      "new_login_count": 0,
+      "new_machine_api_agent_credentials": 0,
+      "source029_six_files_and_aux_unchanged": true,
+      "non_db_original_files_unchanged": true
+    },
+    "closure": {
+      "receipt": ".cache\\e2e\\candidate-composition-stage-031\\actual\\closed-final.local.json",
+      "sha256": "7a029f68f70fbc9d11c0ac9dfc72edf4fd54bf35dc435c2fd168c301009e9be6",
+      "all_three_processes_graceful_exit0": true,
+      "forced": false,
+      "integrity": "ok"
+    },
+    "browser_login_timeline": {
+      "setup_before": 16,
+      "setup_after": 18,
+      "setup_normal_logins": 2,
+      "resumed_before": 18,
+      "resumed_after": 18,
+      "resumed_new_logins": 0,
+      "scope": "The setup helper and UI logged in normally once each; resumed workflow reused the retained session. These are not primary-preview logins."
+    },
+    "setup_profile_import_enable_count": 1,
+    "setup_new_tasks": 2,
+    "setup_new_workflows": 2,
+    "new_machine_api_agent_credentials": 0,
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "target_cas_in_this_journey": false,
+    "actual_conflict_branch_in_this_journey": false,
+    "final_control_only_readback_receipt": ".cache/e2e/candidate-composition-stage-031/final-readback/out/closed.local.json",
+    "collector_stage_complete_is_earlier_phase_snapshot": true
+  },
+  "primary_preview_update": {
+    "status": "normal_ready",
+    "final_verification": ".cache/e2e/candidate-composition-stage-031/primary-upgrade/final-verification.local.json",
+    "final_control_pid": 24588,
+    "holder_pid": 244588,
+    "execution_handle": 3078,
+    "original_tables": 180,
+    "current_tables": 183,
+    "original_full_schema_changes": 0,
+    "identical_full_tables": 180,
+    "changed_tables": [],
+    "schema_additions": [
+      {
+        "type": "index",
+        "name": "suma_composition_scope",
+        "table": "suma_candidate_compositions"
+      },
+      {
+        "type": "table",
+        "name": "suma_candidate_composition_executions",
+        "table": "suma_candidate_composition_executions"
+      },
+      {
+        "type": "table",
+        "name": "suma_candidate_compositions",
+        "table": "suma_candidate_compositions"
+      },
+      {
+        "type": "table",
+        "name": "suma_task_code_baselines",
+        "table": "suma_task_code_baselines"
+      }
+    ],
+    "new_composition_tables_empty": true,
+    "integrity": "ok",
+    "authority_rows": 18,
+    "grant_rows": 0,
+    "authority_rows_unchanged": true,
+    "grant_rows_unchanged": true,
+    "normal_login_not_reissued": true,
+    "existing_run_rows_unchanged": true,
+    "run_states": [
+      [
+        "failed",
+        1
+      ],
+      [
+        "succeeded",
+        2
+      ]
+    ],
+    "controlled_source_inputs": 668,
+    "served": {
+      "http://127.0.0.1:4324": {
+        "html_bytes_match": true,
+        "linked_assets_match": 2
+      },
+      "http://pool.localhost:4324": {
+        "html_bytes_match": true,
+        "linked_assets_match": 2
+      }
+    },
+    "new_login_count": 0,
+    "new_credentials": 0,
+    "new_grants": 0,
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "scope": "Main preview database and authorities are distinct from the actual setup database, which legitimately had two initial browser logins."
+  },
+  "remaining_boundaries": [
+    "Full platform P0-P7 remains in_progress; bounded stage completion does not mean all platform goals are complete.",
+    "No production human acceptance, real vendor model/billing, physical multi-host deployment or full database/device/capacity matrix is inferred.",
+    "This positive actual journey did not perform a target ref CAS or a separate actual conflict task; prior Provider and Runtime real-conflict evidence remain independently scoped.",
+    "Original RED receipts, intermediate build cuts and local reruns are retained; no comprehensive full-suite rerun is claimed."
+  ],
+  "full_platform_status": "in_progress",
+  "stage_completion_scope": "Only the documented T-P4-031 focused checks, two same-host actual Runner runs, eight new formal checks, explicit local test-owner Reviews, final representative CN/EN cold readback and data-preserving preview update. Not full P0-P7 or production/multi-host acceptance.",
+  "executed_upgrade_helper": {
+    "path": ".cache/e2e/candidate-composition-stage-031/upgrade-primary.py",
+    "sha256": "7012575ba2ec4d30c58baf79d37eec5d6d96ad1caefe2cf6fc211f8494f385b1",
+    "root_review": ".cache/e2e/candidate-composition-stage-031/root-primary-review.local.json",
+    "readback_receipt_actual_path": ".cache/e2e/candidate-composition-stage-031/final-readback/out/closed.local.json",
+    "database_restore": false,
+    "force_stop": false
+  }
+}

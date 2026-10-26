@@ -3,7 +3,7 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { beforeEach, afterEach, it, expect, vi } from 'vitest';
 import { App } from './App';
-import { setLocale } from './i18n';
+import { setLocale, tr } from './i18n';
 import type { Session } from './api';
 import { ApiViewProvider } from './api-context';
 import { TaskDesignProvenance } from './TaskDesignProvenance';
@@ -81,6 +81,37 @@ it('keeps the original adopted snapshot, exact text and workspace destination th
   expect(snapshot.textContent).toContain('Original task acceptance'); expect(snapshot.textContent).toContain('prior-key');
   expect(snapshot.textContent).toContain('adoption-original'); expect(snapshot.textContent).toContain('a'.repeat(64));
   expect(reads).toHaveLength(1); expect(writes).toEqual([]);
+});
+
+it('keeps one actual task design container through asynchronous refresh versions and locale changes', async () => {
+  history.replaceState(null, '', '/?' + new URLSearchParams({ project, view: 'development', sub: 'tasks', record: taskId }));
+  let task = { id: taskId, project_id: project, version: 3, title: 'Original downstream task', status: 'in_progress', description: 'Original body', depends_on: [] as string[], data: {} };
+  const pending: { resolve: (response: Response) => void; version: number }[] = [];
+  const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.stubGlobal('fetch', vi.fn(async (input: string, options?: RequestInit) => {
+    const path = new URL(String(input), location.href).pathname.replace(/^\/api\/v1/, '');
+    if (options?.body) writes.push(path); else reads.push(path);
+    if (path === '/auth/session') return Response.json(session);
+    if (path === '/overview') return Response.json({ counts: { tasks: 1 } });
+    if (path === '/tasks') return Response.json({ items: [task], total: 1 });
+    if (path === '/tasks/' + taskId) return Response.json(task);
+    if (path === '/tasks/' + taskId + '/design-context') { const version = task.version; return new Promise<Response>(resolve => pending.push({ resolve, version })); }
+    if (['/requirements', '/members', '/runs', '/organizations', '/workflows', '/tool-profiles'].includes(path)) return Response.json({ items: [], total: 0 });
+    return Response.json({}, { status: 404 });
+  }));
+  const one = () => { expect(host.querySelectorAll('.task-design-provenance')).toHaveLength(1); expect(document.body.querySelectorAll('.task-design-provenance')).toHaveLength(1); };
+  const finishReads = async () => { const batch = pending.splice(0); await act(async () => batch.forEach(item => item.resolve(Response.json({ project_id: project, task_id: taskId, task_version: item.version, bound: false, eligibility: 'none', current_requirement_version: 0, current_design_version: 0, current_published_revision: 0 })))); await settle(); };
+  await act(async () => { root = createRoot(host); root.render(<App/>); }); await settle(); one(); await act(async () => { await setLocale('en-US', { persist: false }); }); await settle();
+  for (const version of [4, 5, 6]) {
+    task = { ...task, version, status: version === 6 ? 'accepted' : 'in_progress', depends_on: version % 2 ? [] : ['fixed-prerequisite'] };
+    const refresh = [...host.querySelectorAll<HTMLButtonElement>('.topbar button')].find(button => button.getAttribute('aria-label') === tr('shell.refresh')); expect(refresh).toBeDefined();
+    await act(async () => refresh!.click()); await settle(); one(); await finishReads(); one();
+    expect(host.querySelector('.tdp-current')?.textContent).toContain('version ' + version);
+  }
+  await act(async () => { await setLocale('zh-CN', { persist: false }); }); await settle(); one(); expect(host.querySelector('.task-design-provenance h3')?.textContent).toBe('设计依据');
+  await act(async () => { await setLocale('en-US', { persist: false }); }); await settle(); one(); expect(host.querySelector('.task-design-provenance h3')?.textContent).toBe('Design basis'); expect(host.querySelector('.task-design-provenance')?.textContent).not.toContain('设计依据');
+  expect(errors.mock.calls.filter(call => call.some(value => typeof value === 'string' && value.includes('same key')))).toHaveLength(0);
+  expect(writes).toEqual([]);
 });
 
 it.each([
