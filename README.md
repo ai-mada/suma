@@ -4,13 +4,13 @@
 
 当前是可运行的开发版本。功能与验证范围见 [交付状态](docs/delivery/status.md)，完整目标见 [实施计划](docs/delivery/implementation-plan.md)。
 
-## 当前阶段：真实执行器能力与当前工作台交付
+## 当前阶段：专家团队模型选择到真实执行
 
-T-P4-039／1.0.0 区分批准的原生工具与当前执行器的文件读取、保存协议。缺少真实协议声明的旧库存不会被误列为可读写目标；原命令和已发生效果仍可恢复。工具库存导入已支持公开原生／模型／用途字段，拒绝私有配置，详情用两行中英文事实说明能力。
+T-P4-040／1.0.0 已打通团队每任务模型、参数、Token／费用预算到真实原生执行及用量账本。按职责配置，可单独覆盖；待办来源可明确修订，原报价、已开始依据与历史保留。中英文、CLI和原操作恢复共用同一合同。
 
-已将036模型选择／参数／预算、037远程查看、038编辑／冲突恢复及039能力门禁交付到当前本地工作台。原186表事实保持，新增两张空表；原会话及业务历史保持。当前没有活动Runner，配置启用不表示在线。完整平台继续实施。
+实际自有协议运行结算40 Token／57 CNY微元估算，预留归零；另一GUI任务只预览／修订，未启动或正式验收。当前本地工作台已包含036–040实现，原188表数据、会话和业务历史保持。外部CLI独立模型、完整IDE与全平台其余范围继续实施。
 
-见[合同](contracts/workspace-transport-capabilities.md)、[接入架构与AI SOP](docs/integrations/workspace-transport-capabilities.md)、[限定验证](docs/quality/workspace-capability-verification.md)及[English](docs/en/workspace-transport-capabilities.md)。
+见[合同](contracts/expert-team-model-execution.md)、[架构与AI SOP](docs/architecture/expert-team-model-execution.md)、[限定验证](docs/quality/expert-team-model-execution-verification.md)、[English](docs/en/expert-team-model-execution.md)。
 
 ## 历史阶段：执行文件编辑、冲突比较与原保存恢复（T-P4-038）
 

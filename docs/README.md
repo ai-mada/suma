@@ -1,13 +1,14 @@
 # 速码项目设计文档
 
-状态：当前T-P4-039／1.0.0，执行器真实传输声明、封闭工具库存导入和当前预览升级取得限定本地证据。完整P0–P7、需求1–22继续实施。负责人：平台集成；最终范围见[交付状态](delivery/status.md)。
+状态：当前T-P4-040／1.0.0，专家团队逐任务模型、参数与预算经真实原生执行和独立GUI预览／修订取得限定本地证据。完整P0–P7、需求1–22继续实施。负责人：平台集成；最终范围见[交付状态](delivery/status.md)。
 
 | 主题 | 入口 |
 |---|---|
-| 当前执行器能力与预览交付（T-P4-039） | [合同](../contracts/workspace-transport-capabilities.md)／[架构与AI SOP](integrations/workspace-transport-capabilities.md)／[English](en/workspace-transport-capabilities.md)／[限定验证](quality/workspace-capability-verification.md)／[摘要](quality/workspace-capability-summary.json) |
+| 专家团队逐任务模型执行（当前T-P4-040） | [合同](../contracts/expert-team-model-execution.md)／[架构与AI SOP](architecture/expert-team-model-execution.md)／[English](en/expert-team-model-execution.md)／[限定验证](quality/expert-team-model-execution-verification.md)／[摘要](quality/expert-team-model-execution-summary.json) |
+| 历史执行器能力与预览交付（T-P4-039） | [合同](../contracts/workspace-transport-capabilities.md)／[架构与AI SOP](integrations/workspace-transport-capabilities.md)／[English](en/workspace-transport-capabilities.md)／[限定验证](quality/workspace-capability-verification.md)／[摘要](quality/workspace-capability-summary.json) |
 | 历史执行文件编辑、CAS保存与原操作恢复（T-P4-038） | [产品交互](product/remote-workspace-write.md)／[合同](../contracts/workspace-write.md)／[架构](architecture/remote-workspace-write.md)／[AI SOP](operations/remote-workspace-write.md)／[English](en/remote-workspace-write.md)／[实际验证](quality/workspace-write-verification.md)／[摘要](quality/workspace-write-summary.json) |
 | 执行工作区只读观察与出站恢复（历史T-P4-037） | [产品与交互](product/remote-workspace.md)／[合同](../contracts/workspace-observation.md)／[架构](architecture/remote-workspace-broker.md)／[AI SOP](operations/remote-workspace.md)／[English](en/remote-workspace.md)／[实际证据](quality/workspace-observation-verification.md)／[摘要](quality/workspace-observation-summary.json) |
-| 固定原生模型选择、attempt预算与真实执行（历史 T-P4-036，UI固定预览已验证） | [PRD](product/model-execution.md)／[架构与实现检查点](architecture/model-execution.md)／[AI SOP](operations/model-execution.md)／[English](en/model-execution.md)／[实际验证及剩余边界](quality/model-execution-verification.md)；外部CLI、专家团队独立选择和完整多模型报价目录仍待实施 |
+| 固定原生模型选择、attempt预算与真实执行（历史 T-P4-036，UI固定预览已验证） | [PRD](product/model-execution.md)／[架构与实现检查点](architecture/model-execution.md)／[AI SOP](operations/model-execution.md)／[English](en/model-execution.md)／[实际验证及剩余边界](quality/model-execution-verification.md)；团队逐任务原生选择见040，外部CLI、修复入口和完整报价／模型授权仍待实施 |
 | 开发工具真实只读MCP诊断（T-P4-036） | [developer check操作与边界](integrations/developer-connection-check.md)／[限定证据](quality/developer-connection036-verification.md)；[远程工作区出站broker](architecture/remote-workspace-broker.md)已在037/038限定实现，完整远程IDE继续实施 |
 | 只读Git审阅、Monaco保存快捷键与原生执行限额（历史 T-P4-035） | [PRD](product/workspace-git.md)／[架构](architecture/workspace-git.md)／[交互](design/workspace-git.md)／[接口与限额合同](../contracts/workspace-git.md)／[限定本地验证](quality/workspace-git-verification.md) |
 | 独立模型选择与计价的历史设计输入（T-P4-035） | [035模型部署、版本绑定与费率设计](architecture/035-model-selection-design.md)；当前限定原生实现见036，独立模型授权／完整报价目录等历史设计中的后续项不据此标记完成 |

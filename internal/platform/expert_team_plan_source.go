@@ -16,7 +16,7 @@ func expertTeamRole(c ExpertTeamConfiguration, key string) (ExpertTeamRole, bool
 	return ExpertTeamRole{}, false
 }
 
-func (s *Service) expertTeamSourceItemTx(ctx context.Context, engine *dag.Engine, auth *authorizedCommand, configuration ExpertTeamConfiguration, request ExpertTeamPlanItemRequest, revision int) (out ExpertTeamPlanItem, err error) {
+func (s *Service) expertTeamSourceItemTx(ctx context.Context, engine *dag.Engine, auth *authorizedCommand, configuration ExpertTeamConfiguration, request ExpertTeamPlanItemRequest, revision int, source *TaskDispatchPlan) (out ExpertTeamPlanItem, err error) {
 	role, ok := expertTeamRole(configuration, request.RoleKey)
 	if !ok {
 		return out, expertError("expert_team_invalid", expertInvalid)
@@ -35,7 +35,7 @@ func (s *Service) expertTeamSourceItemTx(ctx context.Context, engine *dag.Engine
 	if len(blockers) != 0 {
 		return out, expertError("expert_team_ineligible", expertTask)
 	}
-	snapshot, err := s.buildTaskDispatchSnapshotTx(ctx, engine, auth, auth.target.projectID, TaskDispatchPreviewRequest{ProjectID: auth.target.projectID, TaskID: task.ID, ExpectedTaskVersion: task.Version, WorkflowID: role.WorkflowID, WorkflowVersion: role.WorkflowVersion, AgentNodeID: role.AgentNodeID, ToolProfileID: role.ToolProfileID, ExpectedToolVersion: role.ToolProfileVersion, Knowledge: role.Knowledge})
+	snapshot, err := s.buildTaskDispatchSnapshotWithSourceTx(ctx, engine, auth, auth.target.projectID, TaskDispatchPreviewRequest{ProjectID: auth.target.projectID, TaskID: task.ID, ExpectedTaskVersion: task.Version, WorkflowID: role.WorkflowID, WorkflowVersion: role.WorkflowVersion, AgentNodeID: role.AgentNodeID, ToolProfileID: role.ToolProfileID, ExpectedToolVersion: role.ToolProfileVersion, Knowledge: role.Knowledge, ModelExecutionSelection: request.ModelExecutionSelection}, source)
 	if err != nil {
 		return out, err
 	}
@@ -170,7 +170,7 @@ func (s *Service) checkExpertTeamPendingSourceTx(ctx context.Context, engine *da
 		return expertError("expert_team_ineligible", expertTask)
 	}
 	if write {
-		current, err := s.expertTeamSourceItemTx(ctx, engine, auth, plan.Configuration, ExpertTeamPlanItemRequest{TaskID: item.TaskID, ExpectedTaskVersion: item.TaskVersion, RoleKey: item.RoleKey}, item.SourceRevision)
+		current, err := s.expertTeamSourceItemTx(ctx, engine, auth, plan.Configuration, ExpertTeamPlanItemRequest{TaskID: item.TaskID, ExpectedTaskVersion: item.TaskVersion, RoleKey: item.RoleKey}, item.SourceRevision, &item.Plan)
 		if err != nil {
 			return err
 		}

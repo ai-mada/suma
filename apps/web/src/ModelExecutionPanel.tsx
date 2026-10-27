@@ -9,9 +9,9 @@ import './ModelExecutionPanel.css';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('model-execution.' + key, values);
 export type ModelChoice = {selection?: ModelSelection; ready: boolean};
-type Props = {scope: ModelScope; supported: boolean; disabled: boolean; onChange: (value: ModelChoice) => void};
+type Props = {scope: ModelScope; supported: boolean; discover?: boolean; disabled: boolean; onChange: (value: ModelChoice) => void};
 /** A current scoped read, never a model health probe or a dispatch action. */
-export function ModelExecutionPanel({scope, supported, disabled, onChange}: Props) {
+export function ModelExecutionPanel({scope, supported, discover = false, disabled, onChange}: Props) {
   const api = useApi(); useLocale(); const id = useId();
   const [read, setRead] = useState<{api:typeof api;path:string;value:ModelExecutionOptions}>(), [error, setError] = useState<unknown>(), [loading, setLoading] = useState(false), [refresh, setRefresh] = useState(0);
   const [draft, setDraft] = useState<ModelDraft>({deployment: '', steps: '8', output: '4096', tokens: '', cost: ''});
@@ -20,7 +20,7 @@ export function ModelExecutionPanel({scope, supported, disabled, onChange}: Prop
   useEffect(() => {
     const abort = new AbortController(); setRead(undefined); setError(undefined);
     setDraft({deployment: '', steps: '8', output: '4096', tokens: '', cost: ''});
-    if (!supported) {setLoading(false); return () => abort.abort();}
+    if (!supported && !discover) {setLoading(false); return () => abort.abort();}
     setLoading(true);
     void api<ModelExecutionOptions>(path, undefined, 'GET', undefined, abort.signal).then(value => {
       if (abort.signal.aborted) return;
@@ -28,10 +28,10 @@ export function ModelExecutionPanel({scope, supported, disabled, onChange}: Prop
       setRead({api,path,value});
     }).catch(reason => {if (!abort.signal.aborted) setError(reason);}).finally(() => {if (!abort.signal.aborted) setLoading(false);});
     return () => abort.abort();
-  }, [api, path, supported, refresh]);
+  }, [api, path, supported, discover, refresh]);
   const selection = page && modelSelection(page, draft);
-  useEffect(() => {onChange({selection, ready: !supported || !!selection && !loading && !error});}, [supported, page, draft, loading, error, onChange]);
-  if (!supported) return <p className="muted">{t('fixed_tool')}</p>;
+  useEffect(() => {onChange({selection, ready: !supported && !discover || !loading && !error && (!!selection || !supported && discover && page?.supported === false)});}, [supported, discover, page, draft, loading, error, onChange]);
+  if (!supported && (!discover || page?.supported === false)) return <p className="muted">{t('fixed_tool')}</p>;
   const item = page?.items.find(item => item.deployment.deployment_sha256 === draft.deployment);
   return <section className="model-execution" aria-labelledby={id} aria-busy={loading}>
     <div className="model-execution-heading"><h3 id={id}>{t('title')}</h3><button type="button" aria-label={t('refresh')} disabled={disabled || loading} onClick={() => setRefresh(n => n + 1)}><RefreshCw size={14}/></button></div>

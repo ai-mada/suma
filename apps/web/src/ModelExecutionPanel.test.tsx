@@ -36,3 +36,11 @@ it('preserves exact decimal budgets and blocks unaffordable or unpriced selectio
  expect(validModelOptions(page,scope)).toBe(true);expect(modelSelection(page,draft)?.budget?.token_limit).toBe(16484);
  expect(modelSelection(page,{...draft,tokens:'16483'})).toBeUndefined();expect(modelSelection(page,{...draft,cost:'0.01'})).toBeUndefined();expect(modelSelection(page,{...draft,steps:'17'})).toBeUndefined();
 });
+
+it('discovers fixed tools only from an exact scoped response without weakening required native selection',async()=>{
+ const changed=vi.fn();vi.stubGlobal('fetch',vi.fn(async()=>Response.json({...options(),supported:false,items:[]})));
+ await act(async()=>{root=createRoot(host);root.render(<ApiViewProvider session={session}><ModelExecutionPanel scope={scope} supported={false} discover disabled={false} onChange={changed}/></ApiViewProvider>);});await settle();
+ expect(changed.mock.lastCall?.[0]).toEqual({ready:true,selection:undefined});
+ await act(async()=>root!.render(<ApiViewProvider session={session}><ModelExecutionPanel scope={scope} supported discover disabled={false} onChange={changed}/></ApiViewProvider>));await settle();
+ expect(changed.mock.lastCall?.[0].ready).toBe(false);
+});

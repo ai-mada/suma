@@ -1,3 +1,4 @@
+import {validExpertModelItems} from './expert-model-input';
 import type {ExpertTeamConfiguration,ExpertTeamRole,ExpertTeamRoleRequest,ProjectKnowledgeReference,ToolProfile} from '../../../packages/contracts/src';
 import type {RecordItem,Workflow} from './api';
 import type {WriteRecoveryRequest} from './write-action';
@@ -22,7 +23,7 @@ export function expertRecovery(request:WriteRecoveryRequest,project:string,team?
  const match=request.path.match(/^\/expert-teams\/([A-Za-z0-9_-]+)(\/commands)?$/);
  if(match){if(team&&match[1]!==team||!expertInteger(b.expected_version))return false;return match[2]?keys.every(key=>['project_id','expected_version','action','reason','idempotency_key'].includes(key))&&b.expected_version>0&&['publish','retire'].includes(String(b.action))&&expertText(b.reason):keys.every(key=>['project_id','expected_version','roles','idempotency_key'].includes(key))&&validExpertRoles(b.roles);}
  if(team)return false;
- if(request.path==='/expert-team-plans')return keys.every(key=>['project_id','team_id','expected_configuration_version','items','idempotency_key'].includes(key))&&expertID(b.team_id)&&expertInteger(b.expected_configuration_version)&&b.expected_configuration_version>0&&Array.isArray(b.items)&&b.items.length>=1&&b.items.length<=16&&b.items.every(item=>object(item)&&Object.keys(item).sort().join(',')==='expected_task_version,role_key,task_id'&&expertID(item.task_id)&&expertInteger(item.expected_task_version)&&item.expected_task_version>0&&typeof item.role_key==='string'&&/^[a-z][a-z0-9_-]{0,39}$/.test(item.role_key))&&new Set(b.items.map(item=>(item as Record<string,unknown>).task_id)).size===b.items.length;
+ if(request.path==='/expert-team-plans')return keys.every(key=>['project_id','team_id','expected_configuration_version','items','idempotency_key'].includes(key))&&expertID(b.team_id)&&expertInteger(b.expected_configuration_version)&&b.expected_configuration_version>0&&validExpertModelItems(b.items);
  return /^\/expert-team-plans\/[A-Za-z0-9_-]+\/start$/.test(request.path)&&keys.every(key=>['project_id','expected_version','acknowledge_dispatch','idempotency_key'].includes(key))&&expertInteger(b.expected_version)&&b.expected_version>0&&b.acknowledge_dispatch===true;
 }
 const blockerKeys:Record<string,string>={

@@ -105,3 +105,29 @@ func TestExpertPlanCLI(t *testing.T) {
 		}
 	})
 }
+
+func TestExpertPlanCLIModelSelection(t *testing.T) {
+	selection := `{"deployment_id":"owned-a","deployment_revision":2,"deployment_sha256":"` + strings.Repeat("a", 64) + `","parameters":{"max_steps":2,"max_output_tokens":100},"budget":{"token_limit":20000,"cost_limit_micros":20000,"currency":"CNY"}}`
+	payload := func(value string) string {
+		return `{"team_id":"team-a","expected_configuration_version":2,"items":[{"task_id":"task-a","expected_task_version":1,"role_key":"developer","model_execution_selection":` + value + `}],"idempotency_key":"model-selection-key"}`
+	}
+	body, err := expertPlanObject("-", strings.NewReader(payload(selection)), "create")
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, _ := json.Marshal(body)
+	if !strings.Contains(string(raw), `"max_output_tokens":100`) || !strings.Contains(string(raw), `"token_limit":20000`) {
+		t.Fatal(string(raw))
+	}
+	for _, invalid := range []string{
+		strings.Replace(selection, `"max_steps":2`, `"max_steps":17`, 1),
+		strings.Replace(selection, `"max_output_tokens":100`, `"max_output_tokens":1e2`, 1),
+		strings.Replace(selection, `"parameters":{`, `"parameters":{"api_key":"private",`, 1),
+		strings.Replace(selection, `"token_limit":20000`, `"token_limit":"private"`, 1),
+		strings.Replace(selection, `"currency":"CNY"`, `"currency":"EUR"`, 1),
+	} {
+		if _, err = expertPlanObject("-", strings.NewReader(payload(invalid)), "create"); err == nil {
+			t.Fatal("invalid model selection passed local gate", invalid)
+		}
+	}
+}

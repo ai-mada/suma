@@ -44,6 +44,6 @@ suma --control http://127.0.0.1:4310 --project PROJECT models options --tool TOO
 
 ## 边界
 
-本合同目前贯通普通任务的原生智能体。外部CLI、专家团队角色和受管冲突修复入口尚未接入独立模型选择；不支持时明确拒绝，不退回环境中的其他模型。模型 HTTP 层为受限 OpenAI 兼容协议适配器，工作区使用已安装的官方 MCP SDK；未新增官方模型 SDK。
+本合同已贯通普通任务，并在040扩展到[专家团队每项原生任务](expert-team-model-execution.md)。外部CLI和受管冲突修复入口尚未接入独立模型选择；不支持时明确拒绝，不退回环境中的其他模型。模型 HTTP 层为受限 OpenAI 兼容协议适配器，工作区使用已安装的官方 MCP SDK；未新增官方模型 SDK。
 
 `suma … developer check` 通过官方 Go MCP SDK 实际初始化、列工具并执行一次当前项目概览只读调用；这证明该次 MCP 连接，不能代表远程工作区、PTY、LSP或DAP已实现。见 [开发工具连接](../docs/integrations/developer-connection-check.md) 和 [限定验证](../docs/quality/model-execution-verification.md)。

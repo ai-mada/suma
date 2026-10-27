@@ -1277,6 +1277,7 @@ export interface ExpertTeamPlanItemRequest {
   task_id: string;
   expected_task_version: number;
   role_key: string;
+  model_execution_selection?: ModelSelection | null;
 }
 export interface ExpertTeamPlanPage {
   items: (ExpertTeamPlan)[];

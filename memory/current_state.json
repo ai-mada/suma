@@ -9,8 +9,8 @@
     "control_dag": "shared_pools_bilateral_grants_immutable_task_run_routes_hierarchical_weighted_admission_and_atomic_pool_project_resources_locally_verified_distributed_capacity_pending",
     "runtime": "Native scoped attempt filesystem/Git/MCP SDK host, ordinary6 tools and explicitly opted-in repair8 tools, final precise prefix seal and independent exact-candidate tests locally verified. Full16-source real Git regression is separate from actual2-source journey; vendor inference, OS isolation, full installs and remote resume pending. 035 strict typed step/output allowances propagated before effects; ordinary actual process and repair payload/stream focused verification passed; 036 complete-usage allowance reclaim verified. 036 local model allowlist/endpoint digest/credential ref, actual selected model requests and receipts; complete usage allowance reclaim, no automatic bound retry and conservative budget retention verified.",
     "workbench": "038 current native complete existing text<=48KiB CAS save, preserved drafts, explicit reviewed conflict comparison, on-demand metadata history and CNEN keyboard/refresh actually verified. Monaco model ownership and dynamic comparison names fixed. Local editor/Git retained. Large files/new-delete/Git write/PTY/LSP/DAP/full IDE pending.",
-    "architecture_documents": "038 product/interaction, shared save contract, actual control/native architecture, AI SOP, English and compact evidence delivered; historical036/037 contracts kept. Full P0-P7 and1..22 active.",
-    "internationalization": "4563 paired web keys passed. Actual initial/updated comparison names and full save UI CNEN verified; native builtin English menus and complete platform locales remain.",
+    "architecture_documents": "040 shared per-task model contract, architecture and AI SOP, English and compact evidence delivered; full P0-P7 and1..22 active.",
+    "internationalization": "4575 paired web keys passed;040 expert model input, draft preservation and historical facts CNEN actual verified. Complete platform, native menus and future locales remain.",
     "identity_authority": "actual_primary013_to017_SQLite_upgrade_preserves129_legacy_table_columns14_credentials_unclassified_original_owner_normal_relogin_verified_API_Runner_Agent_reissue_still_required_cross_database_and_SSO_pending",
     "project_knowledge": "model_assisted fixed-source one-call proposals, immutable originals/editable drafts/manual adoption and publication lineage with atomic usage and live readonly receipt reconciliation locally verified; organization catalog/CLI/MCP preserved; actual vector/index providers, vendor inference and expert-squad strategies pending",
     "requirement_design": "versioned_product_experience_technical_design_and_task_proposals_reviewed_publication_delta_adoption_protected_bindings_fixed_run_and_acceptance_basis_verified_focused_and_actual_SQLite_UI_iteration_manual_model_and_full_UED_pending",
@@ -46,10 +46,10 @@
     "Primary027/1.0.0 normal255376/holder247864 exec63413; all164 oldschemas and fullrows unchanged,4newemptytables+2indexes->168,18authority0Grant/original login/tasks/run1failed2succeeded kept;127assets served exact. Old026exec2716 and all027 isolated UI/Runner/helpers closed0,source clones unchanged. Full platform remains active."
   ],
   "production_integration_complete": false,
-  "current_evidence": "docs/quality/workspace-write-verification.md",
-  "stage": "T-P4-039_workspace_transport_capabilities",
+  "current_evidence": "docs/quality/expert-team-model-execution-verification.md",
+  "stage": "T-P4-040_expert_team_model_execution",
   "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
-  "next_step": "Preserve full P0-P7 and1..22. Continue governed model selection/parameters/budgets for external CLI and expert/repair roles, complete remote IDE, tool integrations and distributed concurrency/recovery. Current039 main is live on4324 (see launch handle before any action), no active Runner/Grant, do not infer online from enabled profiles. Continue all storage/knowledge/memory/skills/SSO/mobile/channels/installations/SaaS/scale gaps. Reuse passed affected evidence; no broad repeated tests.",
+  "next_step": "Commit verified040, then governed Codex app-server actual models/effort/tier and honest budget capability; no native hard-budget claims for external CLI. Continue full remote IDE, integrations and all P0-P7/1..22 storage/knowledge/memory/skills/SSO/mobile/channels/installations/SaaS/scale gaps. Revalidate actual primary current_launch, never infer live from stale PID; no broad repeated tests.",
   "additional_requirements": [
     "FND-I18N-001: internationalization in every implemented surface; initially zh-CN/en-US, unified catalogs, preference/negotiation, formatting, API errors, CLI/desktop/extensions/notifications and docs; preserve user content and immutable evidence; coverage must be honestly verified",
     "Idea lifecycle, reusable function/menu governance, visual configuration, alerts and WeChat/DingTalk/WeCom channels remain full platform scope",
@@ -81,22 +81,12 @@
   "validation_policy": "Focused checks per changed behavior; reuse unchanged-input evidence; one full integration gate per milestone; representative UI verification only for changed interactions/layout. Preserve critical authority/transaction/migration/concurrency/idempotency checks. No redundant review, snapshots, logs or full-matrix reruns.",
   "deployed_evidence": "docs/quality/workspace-git-verification.md",
   "primary_preview": {
-    "stage": "T-P4-035",
-    "revision": "workspace-git-final-frontend-v1",
-    "url": "http://pool.localhost:4324/",
-    "control_pid": 271036,
-    "holder_pid": 264708,
-    "execution_session": 1360,
-    "launch_receipt": ".cache/e2e/workspace-git-stage-035/primary-final-upgrade/control-launch.local.json",
-    "stop_protocol": ".cache/e2e/workspace-git-stage-035/primary-final-upgrade/stop.request",
-    "status": "normal_local_preview_not_production",
-    "product_version": "1.0.0",
-    "source_sha256": "7bd50d92a4af3982c3a4cc9b2ce51a23c862724468e651d68754b82acc3d213d",
-    "control_sha256": "0bc5111228b71fa6a504ee418543f98c6a2f1598d7099723579a3df7c6917295",
-    "web_index_sha256": "7e3b69324a6be69b07a7cdaa4450d3cf3ca6dc595a51b69f2a2210b2b188bd25",
-    "table_count": 186,
-    "workspace_configured": false,
-    "prior_terminal_recovery": "034 and035 firstcut Controls/holders normal exit0; same DB forward preserved, no restore."
+    "address": "http://pool.localhost:4324",
+    "stage": "040",
+    "launch": ".cache/e2e/expert-model-stage-040/primary-final/control-launch.local.json",
+    "status": "normal final040 receipt fix; exact process and original session verified; revalidate before future operations",
+    "data_preservation": "188 complete tables/schema preserved at startup; no backup restoration",
+    "full_platform": "in_progress"
   },
   "native020_progress": {
     "status": "locally_verified",
@@ -166,8 +156,8 @@
   },
   "current_version": "1.0.0",
   "design_policy": "Current 1.0.0 best-fit architecture only; no historical compatibility shims or duplicated state. Preserve actual user data, immutable evidence and safe recovery; product SemVer is separate from protocol/SDK/domain revisions.",
-  "previous_goal_turn": "progress:038 committed bc1be079bcf10975e77d83c4e58aa6425127e1ae; real outbound CAS, two-tab merge and exact recovery verified; full P0-P7 and1..22 active",
-  "active_goal_source_sha256": "b48689cef76a9db9bd2fe13b51cec7247bca54f9f8a200075f3f0c029313f89c",
+  "previous_goal_turn": "progress:039 committed68ada4c6be01e3f13a13df5630911009238312f8;040 native expert model execution, original-rate pending source, actual ledger and CNEN GUI completed, final recovery correction and stage commit follows. Full P0-P7 and1..22 active.",
+  "active_goal_source_sha256": "2743ccd3920cc648455d7c5ad12f5c9937590d3eafdecc5da36d6529aa829a71",
   "latest_request": {
     "path": "C:\\Users\\Administrator\\.codex\\attachments\\e130587c-7f03-4ba0-8884-c869a1d25274\\pasted-text-1.txt",
     "sha256": "2743ccd3920cc648455d7c5ad12f5c9937590d3eafdecc5da36d6529aa829a71",
@@ -277,7 +267,7 @@
   },
   "last_goal_turn_classification": {
     "classification": "progress",
-    "evidence": "039 current Runner transport gate, actual-native public inventory import, bounded CNEN display and main035→039 forward delivery verified; source/docs stage commit follows. Full objective remains active."
+    "evidence": "040 source, actual native expert ledger, final web interactions and forward188-table primary delivery verified; continuation also found prior primary handle missing and restored same exact artifact. Full scope remains active."
   },
   "candidate_conflict_repair032_progress": {
     "status": "bounded_local_functional_stage_verified",
@@ -461,6 +451,61 @@
     "main_preview": "039 live normal; original186fullfacts->188, final188 preserved at startup; noRunnerstarted",
     "CNEN_keys": 4568,
     "full_platform": "active; complete P0-P7 and1..22",
-    "production_integration_complete": false
+    "production_integration_complete": false,
+    "commit": "68ada4c6be01e3f13a13df5630911009238312f8"
+  },
+  "expert_team_model040_progress": {
+    "status": "bounded_local_functional_stage_verified",
+    "contract": "contracts/expert-team-model-execution.md",
+    "summary": "docs/quality/expert-team-model-execution-summary.json",
+    "actual": {
+      "path": ".cache/e2e/expert-model-stage-040/ui-final/runtime-receipt.local.json",
+      "sha256": "24ea4cd66f196f9833a23d7414d351bee48721b422c17a025da221adfa2bd4d5",
+      "command": "20261027T063329339Z.command.json",
+      "elapsed_seconds": 637.25,
+      "elapsed_includes_GUI_wait": true,
+      "run": "19af41bc1f0d9a4a4bdc66d21fed2749",
+      "reported_tokens": 40,
+      "estimated_cost_micros": 57,
+      "currency": "CNY",
+      "held_tokens": 0,
+      "held_cost_micros": 0,
+      "usage_state": "settled",
+      "owned_port59219_closed": true
+    },
+    "browser": {
+      "path": ".cache/e2e/expert-model-stage-040/browser/verified.local.json",
+      "sha256": "9f44b277829a7e7488e68b201b65afe4cd27551d09827856d54218abc727e8be",
+      "plan": "49b49a222af723f2c58697ff855c817e",
+      "source_revision": 2,
+      "task": "36b3c99a3c76ae02fcbf0efad5611162",
+      "started": false,
+      "CNEN": true,
+      "exact_history_and_refresh": true
+    },
+    "primary_current_launch": ".cache/e2e/expert-model-stage-040/primary-final/control-launch.local.json",
+    "owned_model_requests": 2,
+    "vendor_calls": 0,
+    "unique_affected_web_tests": 13,
+    "paired_CNEN_keys": 4575,
+    "full_platform": "active; complete P0-P7 and1..22",
+    "production_complete": false,
+    "primary": {
+      "initial_verified": ".cache/e2e/expert-model-stage-040/primary-upgrade/verified.local.json",
+      "initial_sha256": "08716d60bfaa827030fa3d8a133a3edead362eb93f401964e0dfa3ac88ea42a2",
+      "current_launch": ".cache/e2e/expert-model-stage-040/primary-final/control-launch.local.json",
+      "restoration": "Prior process/holder independently missing; restored same040 artifact, then gracefully upgraded original-receipt fix; no backup restored",
+      "tables_preserved": 188,
+      "new_logins": 0,
+      "new_credentials": 0,
+      "new_runs": 0,
+      "models": 0,
+      "runners_started": 0,
+      "final_verified": ".cache/e2e/expert-model-stage-040/primary-final/verified.local.json",
+      "final_sha256": "07ea91d08fc8c8a532862c6b9cd03e92abecdd3eab7df01c5e3904d8de385ffa",
+      "restoration_verified": ".cache/e2e/expert-model-stage-040/primary-restored/verified.local.json",
+      "restoration_sha256": "2c2a0b145368ed715d917117109039aab1e2e028ea8c9d057b3b8271ff0b9fef"
+    },
+    "receipt_recovery": "original effect snapshot, stale actions disabled;2new+3existing tests passed,0claim/models"
   }
 }

@@ -209,6 +209,12 @@ func (s *Service) createTaskDispatchPlanTx(ctx context.Context, engine *dag.Engi
 // A source snapshot neither reserves a machine nor starts its 30 minute
 // dispatch lifetime. The final admission persists a fresh plan in its own tx.
 func (s *Service) buildTaskDispatchSnapshotTx(ctx context.Context, engine *dag.Engine, auth *authorizedCommand, project string, request TaskDispatchPreviewRequest) (out TaskDispatchPlan, err error) {
+	return s.buildTaskDispatchSnapshotWithSourceTx(ctx, engine, auth, project, request, nil)
+}
+
+// source is a previously persisted, reviewed snapshot used only for current
+// semantic revalidation. Public requests cannot supply a frozen binding.
+func (s *Service) buildTaskDispatchSnapshotWithSourceTx(ctx context.Context, engine *dag.Engine, auth *authorizedCommand, project string, request TaskDispatchPreviewRequest, source *TaskDispatchPlan) (out TaskDispatchPlan, err error) {
 	if engine == nil || auth == nil {
 		return out, invalid("任务调度器未配置")
 	}
@@ -256,7 +262,7 @@ func (s *Service) buildTaskDispatchSnapshotTx(ctx context.Context, engine *dag.E
 	if err != nil {
 		return out, err
 	}
-	modelBinding, err := s.buildModelExecutionTx(ctx, tx, p.TenantID, project, profile, request.ModelExecutionSelection)
+	modelBinding, err := s.taskDispatchSourceModelTx(ctx, tx, p.TenantID, project, profile, request, source)
 	if err != nil {
 		return out, err
 	}

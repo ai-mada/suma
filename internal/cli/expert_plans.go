@@ -12,6 +12,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/ai-mada/suma/internal/localization"
+	"github.com/ai-mada/suma/internal/modelcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
@@ -21,9 +22,10 @@ const expertPlanWriteOptions = "team-plan writes require --file JSON_FILE or --f
 const expertPlanWriteInvalid = "team-plan requires exact positive integer versions, typed items, explicit acknowledgement and a stable 8..128 character idempotency_key"
 
 type expertPlanCLIItem struct {
-	TaskID              string      `json:"task_id"`
-	ExpectedTaskVersion json.Number `json:"expected_task_version"`
-	RoleKey             string      `json:"role_key"`
+	ModelExecutionSelection *modelcontract.Selection `json:"model_execution_selection,omitempty"`
+	TaskID                  string                   `json:"task_id"`
+	ExpectedTaskVersion     json.Number              `json:"expected_task_version"`
+	RoleKey                 string                   `json:"role_key"`
 }
 type expertPlanCLICreate struct {
 	ProjectID                    string              `json:"project_id"`
@@ -64,6 +66,11 @@ func expertPlanItems(items []expertPlanCLIItem) bool {
 		}
 		for i, r := range item.RoleKey {
 			if !(r >= 'a' && r <= 'z' || i > 0 && (r >= '0' && r <= '9' || r == '_' || r == '-')) {
+				return false
+			}
+		}
+		if selection := item.ModelExecutionSelection; selection != nil {
+			if modelcontract.ValidateSelection(*selection) != nil || selection.Parameters.MaxSteps > 16 || selection.Parameters.MaxOutputTokens > 32768 {
 				return false
 			}
 		}

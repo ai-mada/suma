@@ -1,6 +1,8 @@
 # 能力与验收矩阵
 
-当前增量T-P4-039：[真实执行器能力合同](../../contracts/workspace-transport-capabilities.md)、[架构与AI SOP](../integrations/workspace-transport-capabilities.md)、[限定证据](../quality/workspace-capability-verification.md)。当前read/write broker声明与权限分离、准确准入、公开库存导入及CNEN事实已实现；当前主预览升级039，未自行启动Runner。物理多机、全IDE和全部P0–P7/1–22继续实施。
+当前增量T-P4-040：[逐任务模型合同](../../contracts/expert-team-model-execution.md)、[架构与AI SOP](../architecture/expert-team-model-execution.md)、[限定证据](../quality/expert-team-model-execution-verification.md)。原生团队任务每项固定模型／参数／预算、原报价与真实账本，未开始项明确修订，中英与CLI恢复取得本地证据。外部CLI、修复入口、完整IDE及所有P0–P7／1–22继续实施。
+
+历史增量T-P4-039：[真实执行器能力合同](../../contracts/workspace-transport-capabilities.md)、[架构与AI SOP](../integrations/workspace-transport-capabilities.md)、[限定证据](../quality/workspace-capability-verification.md)。当前read/write broker声明与权限分离、准确准入、公开库存导入及CNEN事实已实现；当前主预览升级039，未自行启动Runner。物理多机、全IDE和全部P0–P7/1–22继续实施。
 
 历史增量T-P4-038：[执行文件产品与交互](remote-workspace-write.md)、[限定真实证据](../quality/workspace-write-verification.md)。现有完整小文件CAS保存、单次许可／原回执／显式核对、人工差异合并、CLI及中英文界面已取得本机实际证据。完整IDE／大文件、PTY／LSP／DAP、物理多机／TLS与生产继续待办；完整P0–P7及1–22保持。
 

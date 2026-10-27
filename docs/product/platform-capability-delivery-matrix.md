@@ -1,6 +1,8 @@
 # 参考平台能力与交付差距矩阵
 
-当前增量T-P4-039：[真实执行器能力合同](../../contracts/workspace-transport-capabilities.md)、[架构与AI SOP](../integrations/workspace-transport-capabilities.md)、[限定证据](../quality/workspace-capability-verification.md)。当前read/write broker声明与权限分离、准确准入、公开库存导入及CNEN事实已实现；当前主预览升级039，未自行启动Runner。物理多机、全IDE和全部P0–P7/1–22继续实施。
+当前增量T-P4-040：[逐任务模型合同](../../contracts/expert-team-model-execution.md)、[架构与AI SOP](../architecture/expert-team-model-execution.md)、[限定证据](../quality/expert-team-model-execution-verification.md)。原生团队任务每项固定模型／参数／预算、原报价与真实账本，未开始项明确修订，中英与CLI恢复取得本地证据。外部CLI、修复入口、完整IDE及所有P0–P7／1–22继续实施。
+
+历史增量T-P4-039：[真实执行器能力合同](../../contracts/workspace-transport-capabilities.md)、[架构与AI SOP](../integrations/workspace-transport-capabilities.md)、[限定证据](../quality/workspace-capability-verification.md)。当前read/write broker声明与权限分离、准确准入、公开库存导入及CNEN事实已实现；当前主预览升级039，未自行启动Runner。物理多机、全IDE和全部P0–P7/1–22继续实施。
 
 历史增量T-P4-038：[执行文件产品与交互](remote-workspace-write.md)、[限定真实证据](../quality/workspace-write-verification.md)。现有完整小文件CAS保存、单次许可／原回执／显式核对、人工差异合并、CLI及中英文界面已取得本机实际证据。完整IDE／大文件、PTY／LSP／DAP、物理多机／TLS与生产继续待办；完整P0–P7及1–22保持。
 
@@ -20,7 +22,7 @@
 
 | 参考与对齐方向 | 速码源码实现 | 本地／协议证据 | 真实工具与生产差距 |
 | --- | --- | --- | --- |
-| 原生模型选择与预算（平台能力） | [部署与绑定合同](../../internal/modelcontract/model.go)、[当前模型选项](../../internal/platform/model_execution.go)、原固定Plan、Runner本地允许清单和attempt账务钩子 | [036实际证据](../quality/model-execution-verification.md)：限定本地真实native CLI请求使用准确模型／参数，原费率与预算进入同一账本；GUI预览仍收尾 | 当前独立选择仅适用于声明能力的原生Suma工具；每tool一份当前匹配运营方费率，不是多模型报价目录。外部CLI／专家团队独立选择、自动策略、厂商账单和生产仍待完成 |
+| 原生模型选择与预算（平台能力） | [部署与绑定合同](../../internal/modelcontract/model.go)、[当前模型选项](../../internal/platform/model_execution.go)、原固定Plan、Runner本地允许清单和attempt账务钩子 | [036实际证据](../quality/model-execution-verification.md)：限定本地真实native CLI请求使用准确模型／参数，原费率与预算进入同一账本；GUI预览仍收尾 | 当前独立选择仅适用于声明能力的原生Suma工具；每tool一份当前匹配运营方费率，不是多模型报价目录。团队逐任务原生选择已在040验证；外部CLI、修复入口、自动策略、厂商账单和生产仍待完成 |
 | [Multica](https://github.com/multica-ai/multica/tree/a47a1ced0c71bdb113a43facce4675442acb9001)：团队、机器、任务与工作区协同 | Go DAG、共享池与双向Grant、专家团队计划、候选合成／修订和固定基线 | [团队依赖编排](../quality/expert-team-orchestration-verification.md)、[033实际闭环](../quality/candidate-repair-revisions-verification.md)：同机两Runner、独立工作树与独立测试 | 专家团队独立模型selection、Multica外部服务互操作、跨物理机器与规模／生产验收未完成；不能将同机进程称为真实远端集群 |
 | [Hermes](https://github.com/NousResearch/hermes-agent/commit/cb757fac59c92b49e9b8f2910e5cd7ab75efffdd)：工具、技能、记忆与长期智能执行 | 原生Suma内核、受限项目工具、技能目录与知识提案 | 原生工具／技能和提案有各自本地证据，不是Hermes运行证据 | 历史Hermes版本探测退出1，完整协议／会话／取消／恢复接入未验证；不标记可用 |
 | [OpenCode](https://github.com/anomalyco/opencode/commit/02671e66454260d77fe04d63cf5eb94e76921dee)：编码CLI与交互执行 | 工具配置与Runner能力注册基础存在 | 当前profile明确不可用；局部step完成不证明整个任务完成 | 需固定官方整体终态、输入等待、取消和恢复合同，并验证实际CLI／模型；生产未验收 |
@@ -40,7 +42,7 @@ CodeBuddy是另一个已实现受限适配合同的工具，见[团队CLI运行�
 | 优先级 | 当前及下一项实际纵向能力 | 可复用模块与必须补齐的边界 | 完成判据 |
 | --- | --- | --- | --- |
 | P1 当前可用工具选择 | 从真实任务／流程／节点读取候选，解释不可用与不兼容原因；明确采用推荐后再预览派发 | [工具档案](../../internal/platform/tool_profiles.go)、[任务派发](../../internal/platform/task_dispatch.go)、[当前专家授权](../../internal/platform/expert_team_orchestration_authority.go)；分页、实时库存、路由与权限分别校验 | 通过界面选择真实候选，固定工具版本后执行；过期库存、撤权、错误路由阻止新工作；推荐不自动批准／派发 |
-| P1 模型选择与成本 | 036已限定贯通原生固定选择／封闭参数／attempt预算→真实native执行→usage账本，GUI固定预览、中英／键盘／刷新已验证；后续补外部CLI、专家团队selection及完整多模型报价 | [PRD](model-execution.md)、[架构与检查点](../architecture/model-execution.md)、[AI SOP](../operations/model-execution.md)、[English](../en/model-execution.md)；当前每工具最新一份匹配费率，旧Plan／attempt固定原费率；未知费用不能排成“最便宜” | 原任务GUI准确预览通过后才关闭该交互待办；厂商／生产、完整报价／授权与策略分别留证，不将固定排序称为最优AI决策 |
+| P1 模型选择与成本 | 036已限定贯通原生固定选择／封闭参数／attempt预算→真实native执行→usage账本，GUI固定预览、中英／键盘／刷新已验证；040已补专家团队逐任务selection，后续补外部CLI、修复入口及完整模型授权／报价 | [PRD](model-execution.md)、[架构与检查点](../architecture/model-execution.md)、[AI SOP](../operations/model-execution.md)、[English](../en/model-execution.md)；当前每工具最新一份匹配费率，旧Plan／attempt固定原费率；未知费用不能排成“最便宜” | 原任务GUI准确预览通过后才关闭该交互待办；厂商／生产、完整报价／授权与策略分别留证，不将固定排序称为最优AI决策 |
 | P2 完整IDE | 先保证编辑／保存／切换与冲突恢复可靠，再接终端、语言服务、调试、Git与预览 | 复用现有工作区与独立attempt，客户端不自行执行命令或突破路径授权 | 用户在同一项目／工作树完成编辑、运行、调试、差异审阅、独立测试及证据定位；断线／冲突不丢内容 |
 | P2 技能、知识与记忆 | 统一版本与当前权限，授权检索、提案萃取、评估、采用与同步 | [技能目录](../../internal/platform/skill_catalog.go)、[项目知识](../../internal/platform/project_knowledge_service.go)及现有检索基础 | 检索结果与模型上下文再授权，过期／删除片段不回流；跨工具消费同一正式版本；私人凭据与未审查插件不进入共享内容 |
 | P3 多入口与分布式交付 | 先完成真实官方CLI／平台适配，再接多物理机器、消息渠道、桌面及移动端 | 共用身份、DAG、持久事件、配额、幂等操作与停止／核对合同 | 外部账户和机器真实执行、断线重传、取消确认、未知结果核对及独立测试；Windows/macOS/Linux安装、SaaS／私有部署分别留证 |

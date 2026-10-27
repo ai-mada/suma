@@ -62,6 +62,7 @@ func expertTeamContracts(add operationAdder, api map[string]any) {
 	field("ExpertTeamPlanCreateRequest", "items", map[string]any{"minItems": 1, "maxItems": 16})
 	field("ExpertTeamRoleRequest", "knowledge", map[string]any{"maxItems": 8})
 	field("ExpertTeamRoleRequest", "key", map[string]any{"pattern": "^[a-z][a-z0-9_-]{0,39}$", "maxLength": 40})
+	field("ExpertTeamPlanItemRequest", "model_execution_selection", map[string]any{"description": "Explicit native deployment, parameters and per-task allowance. Create or explicit unstarted revision only. The fixed binding and exact rate are retained through dependency waits; this is not a shared team budget."})
 	field("ExpertTeamPlanItemRequest", "role_key", map[string]any{"pattern": "^[a-z][a-z0-9_-]{0,39}$", "maxLength": 40})
 	field("ExpertTeamRoleRequest", "title", map[string]any{"minLength": 1, "maxLength": 120, "x-max-utf8-bytes": 120})
 	field("ExpertTeamCommandRequest", "action", map[string]any{"enum": []string{"publish", "retire"}})

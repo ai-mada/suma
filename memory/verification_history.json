@@ -143,5 +143,14 @@
     "summary": "docs/quality/workspace-capability-summary.json",
     "full_platform_status": "in_progress",
     "production_acceptance": false
+  },
+  "expert_team_model040": {
+    "summary": "docs/quality/expert-team-model-execution-summary.json",
+    "base_commit": "68ada4c6be01e3f13a13df5630911009238312f8",
+    "stage_owned_model_requests": 2,
+    "vendor_calls": 0,
+    "final_native_tokens": 40,
+    "final_estimated_CNY_micros": 57,
+    "scope": "local native expert per-task execution and unstarted GUI revision; full platform active"
   }
 }

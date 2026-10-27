@@ -2,7 +2,15 @@
 
 当前开发版本 **1.0.0**；新设计采用当前最佳合理结构，不增加历史兼容层。[版本与扩展需求基线](../product/v1-baseline.md)。
 
-## 当前 T-P4-039：真实传输能力与当前预览交付（限定本地验证）
+## 当前 T-P4-040：专家团队逐任务模型、参数与预算（限定本地验证）
+
+团队派发与未开始项来源修订已复用同一原生模型Selection和预算账本。可按职责快速配置并明确覆盖单任务；每项固定模型版本、参数、预算及准确费率。等待项重查当前资格但保留原报价，已开始项与历史不改写。CLI、恢复输入和错误2xx保留原操作同步完善。
+
+真实Control→Runner→原生Node／MCP→自有模型协议运行已结算40 Token、57 CNY微元估算，预留归零。全阶段2次自有协议请求（含1次宽正则事故），0厂商推理；GUI仅预览及修订另一待办任务、未启动或代替正式验收。13项不同界面用例、4575对语言键及受影响领域／CLI／合同检查取得证据。主预览040保持188表原数据与结构、原会话及运行历史；后续原进程退出已按同版产物恢复，没有还原备份或新增凭据／运行。
+
+[合同](../../contracts/expert-team-model-execution.md)、[架构与AI SOP](../architecture/expert-team-model-execution.md)、[English](../en/expert-team-model-execution.md)、[限定验证](../quality/expert-team-model-execution-verification.md)、[摘要](../quality/expert-team-model-execution-summary.json)。外部CLI独立模型及真实能力预算、修复入口、全IDE、完整P0–P7与1–22继续实施；本阶段不是全平台或生产验收。
+
+## 历史 T-P4-039：真实传输能力与当前预览交付（限定本地验证）
 
 执行器成功原生探测后上报精确read/write broker协议；Control据当前库存分别开放读取和保存，批准Profile不被隐式扩大。新许可/正文重发重查，原回执和效果事实仍可排空。真实原生/模型/用途库存导入已打通，工具详情两行事实与错误提示中英文完整。
 

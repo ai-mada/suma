@@ -52,7 +52,7 @@ eligibility is not a rewrite of history.
 (`publish` | `retire`), `reason`, `idempotency_key`.
 `ExpertTeamConfigurationPage`: `items`, `total`, `next_cursor`.
 
-`ExpertTeamPlanItemRequest`: `task_id`, `expected_task_version`, `role_key`.
+`ExpertTeamPlanItemRequest`: `task_id`, `expected_task_version`, `role_key`, optional `model_execution_selection` (T-P4-040; see [per-task model contract](expert-team-model-execution.md)).
 `ExpertTeamPlanCreateRequest`: `project_id`, `team_id`,
 `expected_configuration_version`, `items`, `idempotency_key`.
 `ExpertTeamPlanItem`: `role_key`, `role_title`, `resource_id`, `resource_name`,

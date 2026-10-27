@@ -6239,6 +6239,17 @@
             "minimum": 1,
             "type": "integer"
           },
+          "model_execution_selection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelSelection"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Explicit native deployment, parameters and per-task allowance. Create or explicit unstarted revision only. The fixed binding and exact rate are retained through dependency waits; this is not a shared team budget."
+          },
           "role_key": {
             "maxLength": 40,
             "pattern": "^[a-z][a-z0-9_-]{0,39}$",

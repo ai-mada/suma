@@ -2,7 +2,6 @@ package platform
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/ai-mada/suma/internal/dag"
 )
@@ -34,14 +33,7 @@ func (s *Service) CommandExpertTeamPlan(ctx context.Context, engine *dag.Engine,
 		return out, err
 	}
 	if replay {
-		if err = json.Unmarshal([]byte(hash), &out); err != nil {
-			return out, err
-		}
-		out, err = s.expertTeamPlanTx(ctx, auth.tx, auth.target.tenantID, project, id)
-		if err != nil {
-			return out, err
-		}
-		return s.expertTeamPlanProjectionTx(ctx, engine, auth, out)
+		return s.expertTeamPlanReceiptTx(ctx, engine, auth, hash, id, "")
 	}
 	out, err = s.expertTeamPlanTx(ctx, auth.tx, auth.target.tenantID, project, id)
 	if err != nil {
@@ -149,7 +141,7 @@ func (s *Service) reviseExpertTeamPlanTx(ctx context.Context, engine *dag.Engine
 		if !changed {
 			continue
 		}
-		fresh, e := s.expertTeamSourceItemTx(ctx, engine, auth, configuration, r, plan.Revision)
+		fresh, e := s.expertTeamSourceItemTx(ctx, engine, auth, configuration, r, plan.Revision, nil)
 		if e != nil {
 			return e
 		}

@@ -1,0 +1,9 @@
+{
+  "expert-model.title": "Models and run allowances",
+  "expert-model.intro": "Choose once per role, with optional task overrides. This only reads current tool options and never calls a model.",
+  "expert-model.tasks": "{{count}} tasks",
+  "expert-model.individual": "Configure individual tasks",
+  "expert-model.individual_help": "Choose a separate model, parameters and allowance for a checked task. Uncheck to use the role selection.",
+  "expert-model.override": "Configure a separate model for {{title}}",
+  "expert-model.budget_help": "Each task reserves and settles its own allowance. These are not shared team-plan budgets; dependency waits use no execution slot."
+}

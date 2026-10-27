@@ -3,7 +3,6 @@ package platform
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 
 	"github.com/ai-mada/suma/internal/dag"
 )
@@ -36,14 +35,7 @@ func (s *Service) CreateExpertTeamPlan(ctx context.Context, engine *dag.Engine, 
 		return out, err
 	}
 	if replay {
-		if err = json.Unmarshal([]byte(hash), &out); err != nil {
-			return out, err
-		}
-		out, err = s.expertTeamPlanTx(ctx, auth.tx, auth.target.tenantID, project, out.ID)
-		if err != nil {
-			return out, err
-		}
-		return s.expertTeamPlanProjectionTx(ctx, engine, auth, out)
+		return s.expertTeamPlanReceiptTx(ctx, engine, auth, hash, "", req.TeamID)
 	}
 	configuration, err := s.expertTeamHeadTx(ctx, auth, req.TeamID, 0)
 	if err != nil {
@@ -65,7 +57,7 @@ func (s *Service) CreateExpertTeamPlan(ctx context.Context, engine *dag.Engine, 
 	out = ExpertTeamPlan{ID: newID(), ProjectID: project, TeamID: req.TeamID, TeamName: configuration.TeamName, Version: 1, Revision: 1, State: "ready", ConfigurationVersion: configuration.Version, Configuration: configuration, Items: []ExpertTeamPlanItem{}, CreatedAt: automationStamp(clock), Valid: true, Blockers: []string{}, AllowedActions: []string{}}
 	nodes := 0
 	for _, request := range req.Items {
-		item, e := s.expertTeamSourceItemTx(ctx, engine, auth, configuration, request, 1)
+		item, e := s.expertTeamSourceItemTx(ctx, engine, auth, configuration, request, 1, nil)
 		if e != nil {
 			return out, e
 		}
@@ -301,10 +293,7 @@ func (s *Service) StartExpertTeamPlan(ctx context.Context, engine *dag.Engine, a
 		return out, err
 	}
 	if replay {
-		out, err = s.expertTeamPlanTx(receiptCtx, auth.tx, auth.target.tenantID, project, id)
-		if err == nil {
-			out, err = s.expertTeamPlanProjectionTx(receiptCtx, engine, auth, out)
-		}
+		out, err = s.expertTeamPlanReceiptTx(receiptCtx, engine, auth, hash, id, "")
 		close()
 		return out, err
 	}
@@ -333,13 +322,9 @@ func (s *Service) StartExpertTeamPlan(ctx context.Context, engine *dag.Engine, a
 			return out, err
 		}
 		defer retryClose()
-		_, found, e := s.commandReceipt(ctx, retryAuth, req.IdempotencyKey, map[string]any{"expert_team_start": id, "request": req})
+		receipt, found, e := s.commandReceipt(ctx, retryAuth, req.IdempotencyKey, map[string]any{"expert_team_start": id, "request": req})
 		if e == nil && found {
-			current, e := s.expertTeamPlanTx(ctx, retryAuth.tx, retryAuth.target.tenantID, project, id)
-			if e != nil {
-				return out, e
-			}
-			return s.expertTeamPlanProjectionTx(ctx, engine, retryAuth, current)
+			return s.expertTeamPlanReceiptTx(ctx, engine, retryAuth, receipt, id, "")
 		}
 	}
 	return out, err
