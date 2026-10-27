@@ -4,7 +4,17 @@
 
 当前是可运行的开发版本。功能与验证范围见 [交付状态](docs/delivery/status.md)，完整目标见 [实施计划](docs/delivery/implementation-plan.md)。
 
-## 阶段进展：当前工具推荐与IDE保存恢复
+## 阶段进展：只读Git审阅与原生执行限额
+
+T-P4-035／1.0.0 新增当前项目的只读Git状态，以及暂存区、工作树的准确文本比较。工作空间以“文件／变更”切换，复用Monaco DiffEditor；切回文件保留编辑模型与草稿，Ctrl/Cmd+S使用原保存与恢复合同。未保存草稿和磁盘变更分开表达；新增、删除、重命名、同路径暂存删除后重建及受限文件均保留明确边界。
+
+原生执行的 `max_steps`、`max_output_tokens` 现按普通／受管修复用途校验硬限额，并准确传递到SDK；非法配置在工作区、MCP和主进程启动前拒绝。此修正不代表可写模型已可独立选择或计价，[035模型选择方案](docs/architecture/035-model-selection-design.md)仅为后续设计输入。
+
+本阶段取得本地隔离Git／Monaco用户旅程和原生限额的定向证据；只读Git不会暂存、提交或派发开发任务。远程IDE、链接工作树的独立仓库授权、PTY／LSP／DAP、正式可写模型选择、真实厂商与分布式验收仍待实施。主预览与最终交付状态以[交付状态](docs/delivery/status.md)为准，完整平台继续开发。
+
+见[产品范围](docs/product/workspace-git.md)、[架构](docs/architecture/workspace-git.md)、[交互](docs/design/workspace-git.md)、[接口与限额合同](contracts/workspace-git.md)、[限定验证](docs/quality/workspace-git-verification.md)及[逐平台差距](docs/product/platform-capability-delivery-matrix.md)。
+
+## 历史阶段：当前工具推荐与IDE保存恢复（T-P4-034）
 
 任务派发现在按当前权限、任务／流程版本、工具真实库存与路由显示兼容选项；明确采用只填写原选择，保留准确档案版本与摘要，再进入既有固定预览和启动门禁。模型仍由工具配置固定，费用未知，不制造最优／零费用评分。IDE保存只确认准确路径、内容和UTF-8摘要；错误200保留原操作，恢复后不覆盖后来输入的新草稿。
 

@@ -1,10 +1,12 @@
 # 速码项目设计文档
 
-状态：T-P4-034／1.0.0 限定本地已验证，完整 P0–P7 继续实施。文档负责人：平台集成。设计依据：用户确认的完整方案及后续扩展要求。本文档索引与源码、接口和验证报告共同维护。
+状态：当前推进T-P4-035／1.0.0，只读Git工作区与原生执行限额已取得限定本地证据，完整 P0–P7 及需求1–22继续实施。主预览与最终交付状态以[交付状态](delivery/status.md)为准。文档负责人：平台集成。设计依据：用户确认的完整方案及后续扩展要求。本文档索引与源码、接口和验证报告共同维护。
 
 | 主题 | 入口 |
 |---|---|
-| 当前工具推荐与IDE保存恢复（当前 T-P4-034） | [PRD](product/task-dispatch-options.md)／[架构](architecture/intelligent-capability-selection-notes.md)／[AI SOP](operations/task-dispatch-options.md)／[交互](design/task-dispatch-options.md)／[合同](../contracts/task-dispatch-options.md)／[验证](quality/task-dispatch-options-verification.md)／[摘要](quality/task-dispatch-options-summary.json)／[English](en/task-dispatch-options.md)／[逐平台差距](product/platform-capability-delivery-matrix.md) |
+| 只读Git审阅、Monaco保存快捷键与原生执行限额（当前 T-P4-035） | [PRD](product/workspace-git.md)／[架构](architecture/workspace-git.md)／[交互](design/workspace-git.md)／[接口与限额合同](../contracts/workspace-git.md)／[限定本地验证](quality/workspace-git-verification.md) |
+| 独立可写模型选择与计价（035仅设计，尚未实现） | [后续模型部署、版本绑定与费率设计](architecture/035-model-selection-design.md)；不能由本阶段执行限额修正推断为已完成模型选择或正式计价 |
+| 当前工具推荐与IDE保存恢复（历史 T-P4-034） | [PRD](product/task-dispatch-options.md)／[架构](architecture/intelligent-capability-selection-notes.md)／[AI SOP](operations/task-dispatch-options.md)／[交互](design/task-dispatch-options.md)／[合同](../contracts/task-dispatch-options.md)／[验证](quality/task-dispatch-options-verification.md)／[摘要](quality/task-dispatch-options-summary.json)／[English](en/task-dispatch-options.md)／[逐平台差距](product/platform-capability-delivery-matrix.md) |
 | 修复计划修订与运行溯源（历史 T-P4-033） | [PRD](product/candidate-repair-revisions.md)／[架构](architecture/candidate-repair-revisions.md)／[AI SOP](operations/candidate-repair-revisions.md)／[交互](design/candidate-repair-revisions.md)／[合同](../contracts/candidate-repair-revisions.md)／[CLI](../contracts/candidate-repair-revisions-cli.md)／[限定验证](quality/candidate-repair-revisions-verification.md)／[摘要](quality/candidate-repair-revisions-summary.json)／[English](en/candidate-repair-revisions.md) |
 | 新增平台参考与智能选择／IDE缺口 | [OpenWorkBuddy、Octop固定官方基线](integrations/development-platform-reference-extensions.md)；许可、来源能力、当前实现与未完成项分别记录 |
 | 冲突修复与受控恢复（历史 T-P4-032） | [PRD](product/candidate-conflict-repair.md)／[架构与AI SOP](architecture/candidate-conflict-repair.md)／[交互](design/candidate-conflict-repair.md)／[合同](../contracts/candidate-conflict-repair.md)／[限定验证](quality/candidate-conflict-repair-verification.md)／[摘要](quality/candidate-conflict-repair-summary.json)／[English](en/candidate-conflict-repair.md) |
@@ -65,7 +67,9 @@
 
 “目标”表达完整产品合同；“已实现”必须有源码入口；“已验证”必须有当前环境证据。外部账户、OceanBase 集群、支付、媒体服务与跨平台包分别验收。历史结果不自动继承为新代码的通过结论。
 
-当前031已完成多源候选合成、精确结果独立测试、明确下游代码基线与后续开发闭环，原来源和准确测试分别记录。主预览保留180原表schema及全部行→183。仅本地自有协议夹具验证；未调用厂商或模型，未报告用量不推断为零Token。真实远端、多机、生产验收、完整P0–P7及全部扩展需求继续实施。此前030固定失败分诊、029依赖编排和更早发布／运维保留各自历史证据；完整设计、工作日历、生产CI、S3、分布式数据库、容量与跨平台验收仍以实施台账为准。
+035当前范围为本地只读Git状态、准确索引／工作树文本、Monaco保存快捷键与原生执行硬限额；远程IDE、PTY／LSP／DAP、正式可写模型选择及计价仍待实施。独立模型选择文档仅记录设计，不作为运行或生产验收证据。
+
+历史031已完成多源候选合成、精确结果独立测试、明确下游代码基线与后续开发闭环，原来源和准确测试分别记录。主预览保留180原表schema及全部行→183。仅本地自有协议夹具验证；未调用厂商或模型，未报告用量不推断为零Token。真实远端、多机、生产验收、完整P0–P7及全部扩展需求继续实施。此前030固定失败分诊、029依赖编排和更早发布／运维保留各自历史证据；完整设计、工作日历、生产CI、S3、分布式数据库、容量与跨平台验收仍以实施台账为准。
 
 ## 维护方式
 

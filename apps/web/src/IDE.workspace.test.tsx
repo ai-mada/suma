@@ -1,0 +1,89 @@
+// @vitest-environment jsdom
+import {act} from 'react';
+import {createRoot,type Root} from 'react-dom/client';
+import {webcrypto} from 'node:crypto';
+import {afterEach,expect,it,vi} from 'vitest';
+import {IDE} from './IDE';
+import {ApiViewProvider} from './api-context';
+import {setLocale} from './i18n';
+
+const commands=vi.hoisted(()=>({current:undefined as {run:()=>void|Promise<void>}|undefined}));
+vi.mock('@monaco-editor/react',async()=>{
+ const {createElement,useEffect,useRef}=await import('react');
+ function LocalEditor({value,onChange,onMount}:{value:string;onChange:(value:string)=>void;onMount:(instance:unknown,runtime:unknown)=>void}){
+  const mount=useRef(onMount);
+  useEffect(()=>{
+   let disposed:(()=>void)|undefined;
+   const instance={addAction:(action:{run:()=>void|Promise<void>})=>{commands.current=action;return {dispose(){if(commands.current===action)commands.current=undefined;}};},onDidDispose:(callback:()=>void)=>{disposed=callback;return {dispose(){disposed=undefined;}};}};
+   mount.current(instance,{KeyMod:{CtrlCmd:2048},KeyCode:{KeyS:49}});return()=>disposed?.();
+  },[]);
+  return createElement('textarea',{'aria-label':'Mock code editor',value,onChange:(event:{target:{value:string}})=>onChange(event.target.value)});
+ }
+ return {loader:{config:vi.fn()},default:LocalEditor,DiffEditor:({original,modified}:{original:string;modified:string})=>createElement('section',{'data-git-diff':true},createElement('pre',{'data-before':true},original),createElement('pre',{'data-after':true},modified))};
+});
+vi.mock('monaco-editor/esm/vs/editor/editor.api.js',()=>({KeyMod:{CtrlCmd:2048},KeyCode:{KeyS:49}}));
+vi.mock('monaco-editor/esm/vs/editor/editor.main.js',()=>({}));
+vi.mock('monaco-editor/esm/vs/editor/editor.worker?worker',()=>({default:class {}}));
+vi.mock('monaco-editor/esm/vs/language/typescript/ts.worker?worker',()=>({default:class {}}));
+vi.mock('monaco-editor/esm/vs/language/json/json.worker?worker',()=>({default:class {}}));
+vi.mock('monaco-editor/esm/vs/language/css/css.worker?worker',()=>({default:class {}}));
+vi.mock('monaco-editor/esm/vs/language/html/html.worker?worker',()=>({default:class {}}));
+let root:Root|undefined,host:HTMLDivElement|undefined;
+afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host?.remove();commands.current=undefined;vi.unstubAllGlobals();vi.restoreAllMocks();});
+const digest=async(value:string)=>Array.from(new Uint8Array(await webcrypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),byte=>byte.toString(16).padStart(2,'0')).join('');
+
+it('does not offer workspace binding when deployment disabled it, in either language, while project navigation stays available',async()=>{
+ vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);await setLocale('en-US',{persist:false});
+ const requests:RequestInit[]=[];
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init:RequestInit)=>{
+  requests.push(init);expect(new URL(String(input),location.href).pathname).toBe('/api/v1/workspace');
+  return Response.json({configured:false,binding_available:false,reason:'Forbidden workspace detail',files:[]});
+ }));
+ host=document.createElement('div');document.body.append(host);root=createRoot(host);let navigated=0;
+ await act(async()=>root!.render(<ApiViewProvider session={{user:{id:'u',name:'Editor',email:'e@example.test'},organization:{id:'o',name:'Org'}}}><nav aria-label="Project"><button type="button" onClick={()=>{if(window.dispatchEvent(new Event('suma:navigate',{cancelable:true})))navigated++;}}>Overview</button></nav><IDE project="p"/></ApiViewProvider>));
+ for(let i=0;i<30&&!host.querySelector('.settings-panel');i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});
+ expect(host.textContent).toContain('Local workspace is not enabled');
+ expect(host.textContent).toContain('Ask the deployment administrator to configure an allowed workspace directory before binding this project');
+ expect(host.textContent).not.toContain('Forbidden workspace detail');
+ expect(host.querySelector('form')).toBeNull();expect(host.querySelector('input')).toBeNull();expect(host.querySelector('[type=submit]')).toBeNull();
+ await act(async()=>[...host!.querySelectorAll('nav button')][0].dispatchEvent(new MouseEvent('click',{bubbles:true})));expect(navigated).toBe(1);
+ await act(async()=>{await setLocale('zh-CN',{persist:false});});
+ expect(host.textContent).toContain('本地工作空间尚未启用');
+ expect(host.textContent).toContain('请由部署管理员配置允许的工作目录后，再绑定项目');
+ expect(host.textContent).not.toContain('Forbidden workspace detail');expect(host.querySelector('form')).toBeNull();expect(host.querySelector('input')).toBeNull();
+ await act(async()=>[...host!.querySelectorAll('nav button')][0].dispatchEvent(new MouseEvent('click',{bubbles:true})));expect(navigated).toBe(2);
+ expect(requests).toHaveLength(1);expect(requests.every(request=>request.method==='GET'&&!request.body)).toBe(true);
+});
+
+it('keeps the editing model and draft through Git navigation, then saves once through the registered Monaco action',async()=>{
+ vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);vi.stubGlobal('crypto',webcrypto);await setLocale('en-US',{persist:false});
+ const path='src/main.ts',head='a'.repeat(40),observed='2026-10-27T01:00:00Z',initial='disk before\n',draft='unsaved draft 🧪\n';
+ let disk=initial;const writes:Record<string,unknown>[]=[];
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
+  const url=new URL(String(input),location.href);
+  if(url.pathname==='/api/v1/workspace')return Response.json({configured:true,name:'Owned workspace',root:'/owned',files:[{path,name:'main.ts',type:'file'}]});
+  if(url.pathname==='/api/v1/workspace/file'){
+   if(init?.body){const body=JSON.parse(String(init.body));writes.push(body);disk=body.content;}
+   return Response.json({path,content:disk,hash:await digest(disk),language:'typescript'});
+  }
+  if(url.pathname==='/api/v1/workspace/git')return Response.json({project_id:'p',available:true,reason_code:'ready',branch:'main',head,unborn:false,detached:false,files:[{path,previous_path:'',index_status:' ',worktree_status:'M',untracked:false,conflicted:false}],total:1,limit:200,truncated:false,restricted_files:0,observed_at:observed});
+  if(url.pathname==='/api/v1/workspace/git/diff')return Response.json({project_id:'p',path,previous_path:'',source:'worktree',head,original:initial,modified:disk,original_sha256:await digest(initial),modified_sha256:await digest(disk),binary:false,observed_at:observed});
+  throw Error('Unexpected request '+url.pathname);
+ }));
+ host=document.createElement('div');document.body.append(host);root=createRoot(host);
+ await act(async()=>root!.render(<ApiViewProvider session={{user:{id:'u',name:'Editor',email:'e@example.test'},organization:{id:'o',name:'Org'}}}><IDE project="p"/></ApiViewProvider>));
+ const button=(name:string)=>[...host!.querySelectorAll('button')].find(item=>item.textContent?.trim()===name||item.getAttribute('aria-label')===name)!;
+ async function settle(ready:()=>boolean){for(let i=0;i<40;i++){await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});if(ready())return;}expect(ready()).toBe(true);}
+ await settle(()=>!!button('main.ts'));await act(async()=>button('main.ts').click());await settle(()=>!!host!.querySelector('textarea'));
+ const editing=host.querySelector<HTMLTextAreaElement>('textarea')!;
+ await act(async()=>{Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value')!.set!.call(editing,draft);editing.dispatchEvent(new Event('input',{bubbles:true}));});
+ await act(async()=>button('Changes').click());await settle(()=>!!button(path));await act(async()=>button(path).click());await settle(()=>!!host!.querySelector('[data-git-diff]'));
+ expect(host.querySelector('[data-after]')?.textContent).toBe(initial);expect(writes).toHaveLength(0);
+ expect(host.querySelector('textarea')).toBe(editing);expect(editing.value).toBe(draft);
+ await act(async()=>button('Files').click());expect(editing.closest('[hidden]')).toBeNull();expect(editing.value).toBe(draft);
+ await act(async()=>commands.current!.run());await settle(()=>!!button('Save')?.disabled);
+ expect(writes).toHaveLength(1);expect(writes[0]).toMatchObject({project_id:'p',path,content:draft,expected_hash:await digest(initial)});
+ await act(async()=>commands.current!.run());expect(writes).toHaveLength(1);
+ await act(async()=>button('Changes').click());await settle(()=>host!.querySelector('[data-after]')?.textContent===draft);
+ expect(host.querySelector('textarea')).toBe(editing);expect(writes).toHaveLength(1);
+});

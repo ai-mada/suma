@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-035",
+  "product_version": "1.0.0",
+  "status": "bounded_local_functional_stage_verified",
+  "stage_complete": true,
+  "production_integration_complete": false,
+  "full_platform_status": "in_progress",
+  "contract": "contracts/workspace-git.md",
+  "verification": {
+    "affected_Go_domain_HTTP_CLI_vet": "passed; separate scoped selections, not a full suite",
+    "contracts_generated_and_checked": true,
+    "focused_web_checks": {
+      "original_UI": 6,
+      "save_action": 2,
+      "final_disabled_state": 1
+    },
+    "typecheck_exit_code": 0,
+    "i18n_paired_keys": 4419,
+    "Go_build_invocations": 1,
+    "Go_programs_built": 4,
+    "web_builds": 2,
+    "web_second_build_reason": "Actual primary found disabled workspace misleading permission/form; four-file frontend-only fix",
+    "native_inputs_reused_unchanged": [
+      11,
+      161
+    ],
+    "full_suite_repeated": false,
+    "Go_input_files": 444,
+    "Go_source_sha256": "7bd50d92a4af3982c3a4cc9b2ce51a23c862724468e651d68754b82acc3d213d",
+    "final_web_input_files": 361,
+    "final_web_source_sha256": "9570e02eec74e1f00dd396ad3ae414877797bd09c0240763fa3a6f7d886653e1"
+  },
+  "behavior": {
+    "Git": "Current authorized project-bound ordinary local Git, readonly status and exact HEAD/index/worktree UTF8 sides; metadata/config/path/scope checks",
+    "IDE": "Draft survives Files/Changes; native CtrlCmd+S reuses exact durable save and pending operation recovery",
+    "execution_limits": "Typed max_steps/max_output_tokens validated before workspace/MCP/process; ordinary and exact repair stream caps",
+    "model_selection": "Design only; writable immutable model/rate binding pending"
+  },
+  "actual": {
+    "scope": "Owned local Git on isolated closed034 SQLite copy; genuine Monaco UI and Git CLI",
+    "ui_checks": 14,
+    "file_save_requests": 1,
+    "completed_file_operations": 1,
+    "accepted_file_operations": 1,
+    "new_runs": 0,
+    "new_models": 0,
+    "vendor_calls": 0,
+    "formal_candidate_tests": 0,
+    "new_credentials": 0,
+    "HEAD": "24bd1b5e89bf3ccae3450c186ef8e5e7e7ce1237",
+    "working_diff_before_save": "index2 -> disk3; draft9 remains in editor",
+    "staged_diff": "HEAD1 -> index2",
+    "working_diff_after_save": "index2 -> disk9",
+    "closure": {
+      "path": ".cache/e2e/workspace-git-stage-035/actual/closed.local.json",
+      "sha256": "9f8573174a084c2e897cf97b048571be2157cd515017207aaa07c38e521f8962"
+    },
+    "UI": {
+      "path": ".cache/e2e/workspace-git-stage-035/browser/verification.local.json",
+      "sha256": "845c6213f5a19a10a97bd650b701d2b40f2206ca79e94fbf9d6746a48326fcfd"
+    },
+    "disabled_delivery_UI": {
+      "path": ".cache/e2e/workspace-git-stage-035/browser/disabled-delivery-verification.local.json",
+      "sha256": "c1f6ae41a5919d86eff6f1f96a14be35901397d19567414009a37509abefa0eb"
+    },
+    "disabled_delivery_closure": {
+      "path": ".cache/e2e/workspace-git-stage-035/disabled-readback/closed.local.json",
+      "sha256": "2d57eccee004c70b394a817a695cfa128a8a2eba9e55fd1bb258c9faacfa41f5"
+    },
+    "owned_isolated_processes": "both fixture holders and Controls normal exit0",
+    "disabled_scope": "No workspace binding, Git commands, save, model or business writes"
+  },
+  "primary": {
+    "url": "http://pool.localhost:4324/",
+    "control_pid": 271036,
+    "holder_pid": 264708,
+    "control_sha256": "0bc5111228b71fa6a504ee418543f98c6a2f1598d7099723579a3df7c6917295",
+    "web_directory": "web-delivery",
+    "web_index_sha256": "7e3b69324a6be69b07a7cdaa4450d3cf3ca6dc595a51b69f2a2210b2b188bd25",
+    "upgrade_all186_schemas_fullrows_exact": true,
+    "warm_nonlock_tables_fullrows_exact": 182,
+    "warm_lock_rows": 34,
+    "warm_lock_sequence_delta": 23,
+    "authority_rows": 18,
+    "grant_rows": 0,
+    "session_rows": 18,
+    "run_states": [
+      [
+        "failed",
+        1
+      ],
+      [
+        "succeeded",
+        2
+      ]
+    ],
+    "local_assets_hashed": 135,
+    "HTTP_asset_samples": 2,
+    "HTTP_total": 3,
+    "workspace_configured": false,
+    "workspace_binding_form_present": false,
+    "positive_Git_scope": "isolated_fixture_only",
+    "warm_evidence": {
+      "path": ".cache/e2e/workspace-git-stage-035/primary-final-upgrade/warm-verification.local.json",
+      "sha256": "250edd5d61f0813e0d5d5344238d207c8eb632285a07d09a27504ef7815b10f2"
+    },
+    "previous_firstcut_holder_normal_exit": true,
+    "production_acceptance": false
+  },
+  "receipts": {
+    "domain": {
+      "path": ".cache/e2e/workspace-git-stage-035/domain/verification.local.json",
+      "sha256": "66f3cff0daeca7fb10e3aa20992fb55cb7fba357c3e7379b5d141e0718225806"
+    },
+    "UI_focused": {
+      "path": ".cache/e2e/workspace-git-stage-035/ui/verification-final.local.json",
+      "sha256": "ac1be6a8fa7d28f99f94f100f18b734238076059373480d145a2a5a7cf505827"
+    },
+    "UI_final_fix": {
+      "path": ".cache/e2e/workspace-git-stage-035/ui/workspace-disabled-ux-fix.local.json",
+      "sha256": "44aaa3c9c4f32eee9eaf76f4f865237a9865340bafad0ea4212bfa5d4102a554"
+    },
+    "native_limits": {
+      "path": ".cache/e2e/native-execution-limits-stage-035/verification.local.json",
+      "sha256": "22bc33652088586e343417a39a614ac7509deaa030f549be581e089fef5608bc"
+    },
+    "runtime": {
+      "path": ".cache/e2e/workspace-git-stage-035/runtime-release/build-facts.local.json",
+      "sha256": "e800ef711167cc3770ce1d8fc3ab1ce605ef37102a21b98dd36cb1606c7d3545"
+    },
+    "final_delivery_pins": {
+      "path": ".cache/e2e/workspace-git-stage-035/runtime-pins.delivery.local.json",
+      "sha256": "199f99f779a8ff4f22f2f6837fbf1015e7bc1b675f0ee120e37b4de016233e06"
+    }
+  },
+  "remaining": [
+    "Explicit grants for linked-worktree metadata and remote workspace",
+    "Managed Git writes, PTY/LSP/DAP, editor localization and durable drafts",
+    "Writable immutable model/rate/parameter binding and official vendor SDK acceptance",
+    "Reclaim conservative output allowances only from complete verified usage",
+    "Physical distributed providers, production databases, SSO, scale and installers",
+    "Complete P0-P7 and all accepted requirements1..22"
+  ],
+  "commit_policy": "Only reviewed necessary source/contracts/docs/compact evidence; no cache, raw logs, databases, credentials, screenshots, binaries or push"
+}

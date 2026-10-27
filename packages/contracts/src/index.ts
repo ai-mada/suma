@@ -3880,3 +3880,39 @@ export interface WorkflowValidation {
   errors: (string)[];
   diagnostics: (Rendered)[];
 }
+export interface WorkspaceGitChange {
+  path: string;
+  previous_path: string;
+  index_status: string;
+  worktree_status: string;
+  untracked: boolean;
+  conflicted: boolean;
+}
+export interface WorkspaceGitDiff {
+  project_id: string;
+  path: string;
+  previous_path: string;
+  source: string;
+  head: string;
+  original: string;
+  modified: string;
+  original_sha256: string;
+  modified_sha256: string;
+  binary: boolean;
+  observed_at: string;
+}
+export interface WorkspaceGitStatus {
+  project_id: string;
+  available: boolean;
+  reason_code: string;
+  branch: string;
+  head: string;
+  unborn: boolean;
+  detached: boolean;
+  files: (WorkspaceGitChange)[];
+  total: number;
+  limit: number;
+  truncated: boolean;
+  restricted_files: number;
+  observed_at: string;
+}

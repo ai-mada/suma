@@ -38,6 +38,64 @@ type CommandSpec struct {
 	ArtifactInput        bool                   `json:"artifact_input,omitempty"`
 	NativeWorkspace      *NativeWorkspacePolicy `json:"native_workspace,omitempty"`
 }
+
+type nativeAgentLimits struct {
+	MaxSteps  int `json:"max_steps"`
+	MaxTokens int `json:"max_tokens"`
+}
+
+// Native workspace requests have their own stdin envelope. Validate its bounds
+// after the exact tool/purpose checks and before entering any workspace, then
+// carry the same limits into that envelope instead of falling back in the SDK.
+// Repair limits require the typed repair execution, never its string marker.
+func nativeExecutionLimits(a Assignment) (nativeAgentLimits, error) {
+	limits := nativeAgentLimits{MaxSteps: 8, MaxTokens: 4096}
+	maxSteps, maxTokens := 16, 32768
+	if a.CandidateConflictRepair != nil {
+		limits.MaxSteps, maxSteps, maxTokens = 64, 128, 131072
+	}
+	for _, field := range []struct {
+		name     string
+		fallback int
+		maximum  int
+		target   *int
+	}{
+		{"max_steps", limits.MaxSteps, maxSteps, &limits.MaxSteps},
+		{"max_output_tokens", limits.MaxTokens, maxTokens, &limits.MaxTokens},
+	} {
+		value, present := a.Config[field.name]
+		if present && value == nil {
+			return nativeAgentLimits{}, fmt.Errorf("Native agent execution limits are invalid")
+		}
+		if number, ok := value.(json.Number); ok {
+			n, err := number.Int64()
+			if err != nil || number.String() != fmt.Sprint(n) {
+				return nativeAgentLimits{}, fmt.Errorf("Native agent execution limits are invalid")
+			}
+		}
+		n, err := planningLimit(value, field.fallback, field.maximum)
+		if err != nil {
+			return nativeAgentLimits{}, fmt.Errorf("Native agent execution limits are invalid")
+		}
+		*field.target = n
+	}
+	return limits, nil
+}
+
+func nativeAgentInput(a Assignment, limits nativeAgentLimits, bridge NativeWorkspaceBridge) ([]byte, error) {
+	goal, ok := a.Config["goal"].(string)
+	if !ok || strings.TrimSpace(goal) == "" || len(goal) > 32000 {
+		return nil, fmt.Errorf("agent config.goal must contain 1–32000 characters")
+	}
+	return json.Marshal(struct {
+		Goal            string                `json:"goal"`
+		RequestID       string                `json:"request_id"`
+		MaxSteps        int                   `json:"max_steps"`
+		MaxTokens       int                   `json:"max_tokens"`
+		WorkspaceBridge NativeWorkspaceBridge `json:"workspace_bridge"`
+	}{Goal: goal, RequestID: digest([]byte(key(a))), MaxSteps: limits.MaxSteps, MaxTokens: limits.MaxTokens, WorkspaceBridge: bridge})
+}
+
 type ExecConfig struct {
 	AllowExec                            bool
 	Workspace                            string
@@ -281,6 +339,14 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if a.CandidateConflictRepair != nil {
 		startupProfile = &profile
 	}
+	var nativeLimits nativeAgentLimits
+	if spec.NativeWorkspace != nil {
+		limits, limitsErr := nativeExecutionLimits(a)
+		if limitsErr != nil {
+			return fail(limitsErr.Error())
+		}
+		nativeLimits = limits
+	}
 	if spec.ArtifactInput {
 		binding, resolveErr := resolveArtifact(ctx, a, cfg)
 		if resolveErr != nil {
@@ -403,7 +469,10 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			return fail("native workspace connection could not start")
 		}
 		cfg.Secrets = append(cfg.Secrets, bridge.Token)
-		payload, _ := json.Marshal(map[string]any{"goal": a.Config["goal"], "request_id": digest([]byte(key(a))), "workspace_bridge": bridge})
+		payload, inputErr := nativeAgentInput(a, nativeLimits, bridge)
+		if inputErr != nil {
+			return fail(inputErr.Error())
+		}
 		cmd.Stdin = bytes.NewReader(append(payload, '\n'))
 	}
 	tempRoot := filepath.Join(root, ".cache", "runner", "tmp", attemptKey(a))

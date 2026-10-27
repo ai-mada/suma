@@ -10,6 +10,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
+	ccc "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
@@ -493,6 +494,12 @@ func (s *toolStream) suma(m map[string]any) {
 		step, ok := nativeInteger(m, "step")
 		allowance, valid := nativeInteger(m, "output_allowance")
 		maxSteps, maxAllowance := int64(16), int64(4096)
+		// launchProfile has already validated this exact native capability. Only
+		// that known protocol admits the SDK's repair loop and 1024-token calls;
+		// an arbitrary nonempty marker must not expand ordinary execution.
+		if s.profile.ConflictRepairProtocol == ccc.CandidateConflictRepairProtocol {
+			maxSteps, maxAllowance = 128, 1024
+		}
 		if s.profile.Planning != nil {
 			maxSteps, maxAllowance = 4, 8192
 		}

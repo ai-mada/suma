@@ -1,6 +1,6 @@
 # 参考平台能力与交付差距矩阵
 
-状态：1.0.0／T-P4-034 实施输入，2026-10-27。负责人：平台集成。完整P0–P7及需求1–22继续实施；本页不是“具备所有参考平台能力”的声明。
+状态：1.0.0／T-P4-035 实施与差距记录，2026-10-27。负责人：平台集成。[035只读Git工作区](workspace-git.md)已取得限定本地证据。完整P0–P7及需求1–22继续实施；本页不是“具备所有参考平台能力”的声明。
 
 依据：[当前交付](../delivery/status.md)、[完整能力矩阵](capability-matrix.md)、[1.0.0基线](v1-baseline.md)、[固定参考提交](../integrations/references.json)、[新增参考与许可](../integrations/development-platform-reference-extensions.md)。本轮复用已记录基线，没有重新克隆参考仓库、安装工具或调用厂商模型；部分固定README网页读取返回缓存缺失，未据此推断新的接口或运行能力。
 
@@ -17,7 +17,7 @@
 | [Multica](https://github.com/multica-ai/multica/tree/a47a1ced0c71bdb113a43facce4675442acb9001)：团队、机器、任务与工作区协同 | Go DAG、共享池与双向Grant、专家团队计划、候选合成／修订和固定基线 | [团队依赖编排](../quality/expert-team-orchestration-verification.md)、[033实际闭环](../quality/candidate-repair-revisions-verification.md)：同机两Runner、独立工作树与独立测试 | 未完成Multica外部服务互操作、跨物理机器与规模／生产验收；不能将同机进程称为真实远端集群 |
 | [Hermes](https://github.com/NousResearch/hermes-agent/commit/cb757fac59c92b49e9b8f2910e5cd7ab75efffdd)：工具、技能、记忆与长期智能执行 | 原生Suma内核、受限项目工具、技能目录与知识提案 | 原生工具／技能和提案有各自本地证据，不是Hermes运行证据 | 历史Hermes版本探测退出1，完整协议／会话／取消／恢复接入未验证；不标记可用 |
 | [OpenCode](https://github.com/anomalyco/opencode/commit/02671e66454260d77fe04d63cf5eb94e76921dee)：编码CLI与交互执行 | 工具配置与Runner能力注册基础存在 | 当前profile明确不可用；局部step完成不证明整个任务完成 | 需固定官方整体终态、输入等待、取消和恢复合同，并验证实际CLI／模型；生产未验收 |
-| [Zed](https://github.com/zed-industries/zed/commit/e96ffb0fd3cc43ec56dcff421146f5e823b13841)：完整IDE与协作工作台 | [Monaco工作台](../../apps/web/src/IDE.tsx)、[工作区接口](../../internal/platform/workspace.go) | 文件读写与版本冲突是基础能力，完整IDE旅程未验收 | 终端PTY、LSP／DAP、调试、Git审查、预览与实时协作仍需完整实现；打开外部IDE不等于接入其开发能力 |
+| [Zed](https://github.com/zed-industries/zed/commit/e96ffb0fd3cc43ec56dcff421146f5e823b13841)：完整IDE与协作工作台 | [Monaco工作台](../../apps/web/src/IDE.tsx)、[工作区接口](../../internal/platform/workspace.go)、[只读Git状态与准确文本](../../internal/platform/workspace_git.go) | [035限定本地验证](../quality/workspace-git-verification.md)：真实Git只读状态、index／worktree准确差异、切换保留草稿及Monaco原生Ctrl/Cmd+S | 终端PTY、LSP／DAP、调试、预览与实时协作、受管Git写操作、远程IDE及链接工作树的项目仓库授权仍待实现／验收；完整IDE旅程未验收，打开外部IDE不等于接入其开发能力 |
 | [spec-kit](https://github.com/github/spec-kit/commit/27d14e20c187c1f2916540ea201ecbdc9f8ed588)：规范驱动需求、设计与拆解 | 需求／设计提案、批准快照、可审阅任务与版本化执行合同 | 既有需求设计本地验证见[能力矩阵](capability-matrix.md) | 没有完整spec-kit CLI执行互操作证据；规范正文、开发产物及质量门禁仍需持续追踪同一需求版本 |
 | [Bubble Tea](https://github.com/charmbracelet/bubbletea/commit/f9df43c4f2c021d8740a2628d59cd810a862eb98)：成熟终端交互 | [go.mod](../../go.mod)直接依赖v1.3.10；[TUI](../../internal/cli/tui.go)复用正式API | CLI／TUI已有定向检查，非终端模式有明确输出语义 | 当前只读TUI不能描述为完整交互IDE或自主开发终端；跨平台安装与完整操作旅程仍待验收 |
 | [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness/commit/687f282e8625c6b8d11ff58211a90524be2e4317)／DSH：编码执行协议 | [Harness／DSH适配](../integrations/team-cli-runtime.md)固定Multica JSONL与原生／Node入口 | 本地真实进程、双向输入、终态、进程停止和ACK验证 | 本地协议夹具不等于完整DeepSeek Harness产品或真实dsh／厂商运行；第三方会话恢复仍待接入 |

@@ -2,15 +2,15 @@
   "project": "suma",
   "name": "速码一栈式智能研发平台",
   "phase": "implementation",
-  "updated_at": "2026-10-27T00:59:04.674804+00:00",
+  "updated_at": "2026-10-27T02:09:47.964566+00:00",
   "status": "in_progress",
   "plan": "docs/delivery/implementation-plan.md",
   "workstreams": {
     "control_dag": "shared_pools_bilateral_grants_immutable_task_run_routes_hierarchical_weighted_admission_and_atomic_pool_project_resources_locally_verified_distributed_capacity_pending",
-    "runtime": "Native scoped attempt filesystem/Git/MCP SDK host, ordinary6 tools and explicitly opted-in repair8 tools, final precise prefix seal and independent exact-candidate tests locally verified. Full16-source real Git regression is separate from actual2-source journey; vendor inference, OS isolation, full installs and remote resume pending.",
-    "workbench": "034 compact real compatible-tool recommendation and existing exact-profile preview locally verified; genuine Monaco wrong200/original-request recovery/newer draft/new-key save verified CNEN. Complete IDE/PTY/LSP/DAP, durable drafts and full device/theme acceptance remain.",
+    "runtime": "Native scoped attempt filesystem/Git/MCP SDK host, ordinary6 tools and explicitly opted-in repair8 tools, final precise prefix seal and independent exact-candidate tests locally verified. Full16-source real Git regression is separate from actual2-source journey; vendor inference, OS isolation, full installs and remote resume pending. 035 strict typed step/output allowances propagated before effects; ordinary actual process and repair payload/stream focused verification passed; conservative SDK allowance reclaim pending.",
+    "workbench": "035 ordinary project-bound readonly Git status/index/worktree exact DiffEditor and draft-preserving CtrlCmd+S locally verified; disabled workspace CNEN accurately explained. Remote workspace, linked metadata grants, PTY/LSP/DAP, persistent drafts and full IDE remain.",
     "architecture_documents": "034 scoped task/tool selection contract, original dispatch integration, exact save acknowledgement design, PRD/architecture/AI SOP/CNEN interaction/API/CLI/compact evidence and12-reference gap matrix delivered. Full1..22 scope retained.",
-    "internationalization": "4363 paired frontend keys, affected HTTP/CLI errors and actual CNEN recommendation/save recovery/accepted-scope boundary/refresh verified. Built-in Monaco menu/diagnostic localization and full platform coverage remain.",
+    "internationalization": "4419 paired frontend keys and affected Git/CLI/execution-limit errors verified; actual Git/disabled main CNEN/keyboard/refresh passed. Built-in Monaco menus and diagnostics localization remain.",
     "identity_authority": "actual_primary013_to017_SQLite_upgrade_preserves129_legacy_table_columns14_credentials_unclassified_original_owner_normal_relogin_verified_API_Runner_Agent_reissue_still_required_cross_database_and_SSO_pending",
     "project_knowledge": "model_assisted fixed-source one-call proposals, immutable originals/editable drafts/manual adoption and publication lineage with atomic usage and live readonly receipt reconciliation locally verified; organization catalog/CLI/MCP preserved; actual vector/index providers, vendor inference and expert-squad strategies pending",
     "requirement_design": "versioned_product_experience_technical_design_and_task_proposals_reviewed_publication_delta_adoption_protected_bindings_fixed_run_and_acceptance_basis_verified_focused_and_actual_SQLite_UI_iteration_manual_model_and_full_UED_pending",
@@ -29,6 +29,7 @@
     "intelligent_capability_selection": "Current authorized task/workflow/node options, real tool inventory/route/compiler checks, exact scoped pagination, CNEN adoption and original fixed preview locally verified. Page-first eligible only; writable model fixed and cost unknown. Full model/constraint strategies and vendor acceptance pending."
   },
   "verified": [
+    "T-P4-035: actual owned Git HEAD1/index2/disk3 with draft9 -> staged1to2/working2to3 -> original Monaco CtrlS once -> working2to9, CNEN/keyboard/refresh and14 UI facts; isolated normal closure, new1save/0run/model/vendor/formal. Final disabled-state-only fix, 4419 keys, focused checks and same Go/finalWeb primary verified; all186 startup exact, warm182nonlock exact and34locksequence+23,18authority0Grant18session/1failed2succeeded preserved. Native typed limits actual process/payload checks passed. Full platform active.",
     "T-P4-034: current real A inventory and unavailable B -> page-first compatible adoption -> exact original fixed preview, task remains todo/noRun. Genuine Monaco wrong200 -> original key recovery preserves new draft -> new key exact save;3HTTP/2durable ops. Focused10 web checks, affected Go/contract/vet,4363paired keys and one Go/web build passed; unchanged11+161 native inputs reused. Final immutable15checks and primary186 complete tables/schema unchanged beforewarm,182 nonlock exact +34 locksequences each+28 afterwarm;18authority0Grant18sessions and1failed2succeeded kept.0models/vendors/formal-task-tests/newcredentials; full platform active.",
     "T-P4-032: fixed A+X known rich conflict -> new protected repair task; actual pre-model failure1 retained -> explicit same-run retry2/fence2 -> native host Git exact21cc5159 -> independent B4 formal checks -> explicit local fixture-owner Review -> D v2/baselinev1 unstarted. Actual3runs/8formal/2Reviews,6owned SDK requests/6tools/unreported/0vendor. CNEN/keyboard/refresh/cold with no replay passed; primary032 normal183to184 with exact business/authority/session preservation and separately verified monotonic authorization-lock sequences. Full platform remains active.",
     "T-P4-031: fixed ordered accepted A/B -> native Git M -> independent exact-M4 tests -> explicit local test-owner Review -> protected unstarted C baseline -> real C development -> independent exact-C4 tests -> separate local test-owner Review. Actual same-host2Runners/2runs/8new formal assertions; no model/vendor calls, usage unreported. Original source and business facts kept; all actual/readback processes closed0; CNEN/keyboard/refresh and single current design panel verified. Full platform remains active.",
@@ -43,8 +44,8 @@
     "Primary027/1.0.0 normal255376/holder247864 exec63413; all164 oldschemas and fullrows unchanged,4newemptytables+2indexes->168,18authority0Grant/original login/tasks/run1failed2succeeded kept;127assets served exact. Old026exec2716 and all027 isolated UI/Runner/helpers closed0,source clones unchanged. Full platform remains active."
   ],
   "production_integration_complete": false,
-  "current_evidence": "docs/quality/candidate-repair-revisions-verification.md",
-  "stage": "T-P4-033_candidate_repair_revisions",
+  "current_evidence": "docs/quality/workspace-git-verification.md",
+  "stage": "T-P4-035_workspace_git",
   "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
   "next_step": "Continue complete P0-P7 and1..22: explainable governed capability/model selection and mature official CLI/platform adapters, full IDE, physical multi-host/unknown operation recovery, production databases/scale/SSO, knowledge/memory/skills, installations/mobile/channels/SaaS. Reuse unchanged evidence; local033 does not complete full goal.",
   "additional_requirements": [
@@ -76,23 +77,24 @@
     "load_policy": "on demand; do not load during every startup"
   },
   "validation_policy": "Focused checks per changed behavior; reuse unchanged-input evidence; one full integration gate per milestone; representative UI verification only for changed interactions/layout. Preserve critical authority/transaction/migration/concurrency/idempotency checks. No redundant review, snapshots, logs or full-matrix reruns.",
-  "deployed_evidence": "docs/quality/candidate-repair-revisions-verification.md",
+  "deployed_evidence": "docs/quality/workspace-git-verification.md",
   "primary_preview": {
-    "stage": "T-P4-033",
-    "revision": "candidate-repair-revisions-v1",
+    "stage": "T-P4-035",
+    "revision": "workspace-git-final-frontend-v1",
     "url": "http://pool.localhost:4324/",
-    "control_pid": 187352,
-    "holder_pid": 237760,
-    "execution_session": 51039,
-    "launch_receipt": ".cache/e2e/candidate-repair-revisions-stage-033/primary-upgrade/control-launch.local.json",
-    "stop_protocol": ".cache/e2e/candidate-repair-revisions-stage-033/primary-upgrade/stop.request",
+    "control_pid": 271036,
+    "holder_pid": 264708,
+    "execution_session": 1360,
+    "launch_receipt": ".cache/e2e/workspace-git-stage-035/primary-final-upgrade/control-launch.local.json",
+    "stop_protocol": ".cache/e2e/workspace-git-stage-035/primary-final-upgrade/stop.request",
     "status": "normal_local_preview_not_production",
     "product_version": "1.0.0",
-    "source_sha256": "32b90a2a564fcb0e7e40577e13abe2885a16dc0ec13dcab5feb2d77cb5c58d58",
-    "control_sha256": "4b22956e77698a189dceb58c11af998c6ad4dc7a268faa1ea9176be5aa6b3190",
-    "web_index_sha256": "cf059de98de9627fe5edf1ca2faa0e7bf15e375820e4ac149f2cf56d50c873d6",
+    "source_sha256": "7bd50d92a4af3982c3a4cc9b2ce51a23c862724468e651d68754b82acc3d213d",
+    "control_sha256": "0bc5111228b71fa6a504ee418543f98c6a2f1598d7099723579a3df7c6917295",
+    "web_index_sha256": "7e3b69324a6be69b07a7cdaa4450d3cf3ca6dc595a51b69f2a2210b2b188bd25",
     "table_count": 186,
-    "prior_terminal_recovery": "Original032 Control/holder retained Windows objects were signaled terminal exit1; exact DB/WAL/SHM preserved and WAL-aware backup used before forward migration; no DB restore or old runtime restart."
+    "workspace_configured": false,
+    "prior_terminal_recovery": "034 and035 firstcut Controls/holders normal exit0; same DB forward preserved, no restore."
   },
   "native020_progress": {
     "status": "locally_verified",
@@ -165,10 +167,9 @@
   "previous_goal_turn": "progress:030 committed 11ff7a63191a5baebea4280e99818070d0d75e41;84 reviewed/index/commit byte-exact files, worktree clean then, primary030 kept. Full P0-P7 goal remains active.",
   "active_goal_source_sha256": "b48689cef76a9db9bd2fe13b51cec7247bca54f9f8a200075f3f0c029313f89c",
   "latest_request": {
-    "path": "C:\\Users\\Administrator\\.codex\\attachments\\7f36912b-ab04-46c5-97e5-644e1dce7040\\已粘贴的文本.txt",
-    "sha256": "cc034e549a01bb4557b268931039bd97c98c2eafaee17bbb33777ff69111ed71",
-    "characters": 7414,
-    "read": "complete through original user history plus current final requirements1-20; no scope reduction"
+    "path": "C:\\Users\\Administrator\\.codex\\attachments\\e130587c-7f03-4ba0-8884-c869a1d25274\\pasted-text-1.txt",
+    "sha256": "2743ccd3920cc648455d7c5ad12f5c9937590d3eafdecc5da36d6529aa829a71",
+    "read": "Complete original user request including requirements1..22; no scope reduction"
   },
   "knowledge_intelligence026_progress": {
     "status": "locally_verified",
@@ -274,7 +275,7 @@
   },
   "last_goal_turn_classification": {
     "classification": "progress",
-    "evidence": "034 source, scoped tool options HTTP/CLI and original preview, genuine IDE save recovery, bounded actual cold closure and primary preservation delivered; full platform and remaining model/IDE/vendor/distributed work remain active. Local exact-file commit follows, no push."
+    "evidence": "035 implemented scoped Git HTTP/CLI and Monaco diff/save, native execution limits; actual local Git+final disabled UI, primary preservation and targeted checks passed. Stage local exact-file commit follows; full P0-P7 and requirements1..22 active."
   },
   "candidate_conflict_repair032_progress": {
     "status": "bounded_local_functional_stage_verified",
@@ -340,7 +341,7 @@
   },
   "previous_goal_turn_classification": {
     "classification": "progress",
-    "evidence": "033 source and shared contracts built; actual3run journey, independent4formal, explicitly user-authorized local Review/baseline,45 domain assertions, final CNEN cold readback and primary184to186 forward recovery/21 warm preservation checks completed. Full goal remains active."
+    "evidence": "034 implemented and actually verified current tool options/original preview and Monaco save recovery, upgraded primary with full186-table preservation, and committed42 reviewed source/docs blobs as f014589fe871b89dd823fc45fcedf10d44e0daad; goal remains active."
   },
   "task_dispatch_options034_progress": {
     "status": "bounded_local_functional_stage_verified",
@@ -361,5 +362,24 @@
     "IDE_durable_operations": 2,
     "CNEN_keys": 4363,
     "full_platform": "active; P0-P7 and all accepted requirements1..22 continue"
+  },
+  "workspace_git035_progress": {
+    "status": "bounded_local_functional_stage_verified",
+    "contract": "contracts/workspace-git.md",
+    "summary": "docs/quality/workspace-git-summary.json",
+    "actual": {
+      "path": ".cache/e2e/workspace-git-stage-035/actual/closed.local.json",
+      "sha256": "9f8573174a084c2e897cf97b048571be2157cd515017207aaa07c38e521f8962"
+    },
+    "final_disabled": {
+      "path": ".cache/e2e/workspace-git-stage-035/disabled-readback/closed.local.json",
+      "sha256": "2d57eccee004c70b394a817a695cfa128a8a2eba9e55fd1bb258c9faacfa41f5"
+    },
+    "primary_warm": {
+      "path": ".cache/e2e/workspace-git-stage-035/primary-final-upgrade/warm-verification.local.json",
+      "sha256": "250edd5d61f0813e0d5d5344238d207c8eb632285a07d09a27504ef7815b10f2"
+    },
+    "full_platform": "active; complete P0-P7 and all accepted requirements1..22",
+    "pending_stage_action": "necessary exact-source local commit, no push"
   }
 }

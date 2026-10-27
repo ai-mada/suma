@@ -30,6 +30,7 @@ Read commands:
   run show ID
   run events ID [--after SEQUENCE]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
+  workspace git | workspace diff --path RELATIVE [--source worktree|index]
   tui                         Read-only Bubble Tea browser (default on a terminal)
 
 Explicit writes:
@@ -107,6 +108,9 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 }
 
 func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
+	if len(args) > 0 && args[0] == "workspace" {
+		return workspaceGitCommand(ctx, c, args[1:], out)
+	}
 	if len(args) > 1 && args[0] == "tasks" && args[1] == "dispatch-options" {
 		return taskDispatchOptionsCommand(ctx, c, args[2:], out)
 	}

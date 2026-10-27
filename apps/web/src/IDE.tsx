@@ -1,6 +1,6 @@
 import {useApi} from './api-context';
-import {useEffect,useRef,useState,type FormEvent} from 'react';
-import Editor,{loader} from '@monaco-editor/react';
+import {useEffect,useId,useRef,useState,type FormEvent} from 'react';
+import Editor,{loader,type OnMount} from '@monaco-editor/react';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 // Retain the full entry's editor features and all bundled language services.
 import 'monaco-editor/esm/vs/editor/editor.main.js';
@@ -9,28 +9,33 @@ import TypeScriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker
 import JSONWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 import CSSWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
 import HTMLWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
-import {Folder,FileCode,Save,RefreshCw,Link,AlertCircle,Check,Code2} from 'lucide-react';
+import {Folder,FileCode,FileDiff,Save,RefreshCw,Link,AlertCircle,Check,Code2} from 'lucide-react';
 import {api,query,operation,ApiError,type ApiCaller} from './api';
 import {Loading,ErrorNotice,Empty,Field} from './ui';
 import {FileSaveRequest,draftAfterFileSave,fileSaveReceipt,type FileDocument} from './file-saves';
 import {tr as t,useLocale,UiError,renderDiagnostic} from './i18n';
 import {Trans} from './i18n/Trans';
+import {WorkspaceGitPanel} from './WorkspaceGitPanel';
+import {bindWorkspaceSaveShortcut,type WorkspaceSaveShortcutState} from './workspace-save-shortcut';
 
 // All editor assets and workers are bundled locally. Monaco's ESM instance has
 // no public runtime NLS switch; the visible note states that precise boundary.
 (self as any).MonacoEnvironment={getWorker(_:unknown,label:string){if(label==='typescript'||label==='javascript')return new TypeScriptWorker();if(label==='json')return new JSONWorker();if(['css','scss','less'].includes(label))return new CSSWorker();if(['html','handlebars','razor'].includes(label))return new HTMLWorker();return new EditorWorker();}};
 loader.config({monaco});
-type Workspace={configured:boolean;root?:string;name?:string;reason?:string;files:{path:string;name:string;type:string}[]};
+type Workspace={configured:boolean;binding_available?:boolean;root?:string;name?:string;reason?:string;files:{path:string;name:string;type:string}[]};
 type FileState=FileDocument;
 export function IDE({project}:{project:string}){
  useLocale();
  return project?<ProjectIDE key={project} project={project}/>:<Empty title={t('workspace.select_project')}/>;
 }
 function ProjectIDE({project}:{project:string}){ const api=useApi();
- useLocale();
+ const locale=useLocale(),explorerID=useId();
  const [workspace,setWorkspace]=useState<Workspace>(),[file,setFile]=useState<FileState>(),[content,setContent]=useState(''),[error,setError]=useState<unknown>(),[busy,setBusy]=useState(false),[fileLoading,setFileLoading]=useState(false),[binding,setBinding]=useState(''),[saved,setSaved]=useState(false),[conflict,setConflict]=useState(false),[remote,setRemote]=useState<FileState>(),[treeFilter,setTreeFilter]=useState(''),[unconfirmed,setUnconfirmed]=useState(false),[reconciliation,setReconciliation]=useState(false);
+ const [explorer,setExplorer]=useState<'files'|'changes'>('files'),[gitPreview,setGitPreview]=useState<HTMLDivElement|null>(null);
  const pendingApi=useRef<ApiCaller|undefined>(undefined);
  const pending=useRef(new FileSaveRequest()),openGeneration=useRef(0),dirty=!!file&&content!==file.content;
+ const saveAction=useRef<monaco.IDisposable|undefined>(undefined),editingInstance=useRef<monaco.editor.IStandaloneCodeEditor|undefined>(undefined);
+ const shortcut=useRef<WorkspaceSaveShortcutState>({hasFile:false,dirty:false,pending:false,busy:false,conflict:false,save:()=>{}});
  async function loadWorkspace(){try{setWorkspace(await api<Workspace>('/workspace'+query(project)));setError(undefined);}catch(e){setError(e instanceof ApiError&&[404,501].includes(e.status)?new UiError('workspace.ide.interface_unavailable'):e);}}
  useEffect(()=>{void loadWorkspace();},[project]);
  useEffect(()=>{const unload=(e:BeforeUnloadEvent)=>{if(dirty||unconfirmed||pending.current.pending){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',unload);return()=>window.removeEventListener('beforeunload',unload);},[dirty,unconfirmed]);
@@ -48,19 +53,33 @@ function ProjectIDE({project}:{project:string}){ const api=useApi();
   catch(e){pending.current.failed(e);if(!pending.current.pending)pendingApi.current=undefined;setUnconfirmed(pending.current.unknown);setReconciliation(pending.current.reconciliation);setError(e);if(e instanceof ApiError&&e.status===409&&!pending.current.reconciliation){setConflict(true);try{setRemote(await api<FileState>('/workspace/file'+query(project)+'&path='+encodeURIComponent(body.path)));}catch{/* Keep the current draft if the comparison read also fails. */}}}
   finally{setBusy(false);}
  }
- useEffect(()=>{const key=(e:KeyboardEvent)=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();void save();}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[file,content,busy,conflict]);
+ // Monaco owns Ctrl/Cmd+S even when it stops DOM bubbling. Read current facts
+ // instead of closing over an earlier draft, provider or pending operation.
+ shortcut.current={hasFile:!!file&&!fileLoading,dirty,pending:!!pending.current.pending,busy,conflict,save};
+ const mountEditor:OnMount=(instance,runtime)=>{
+  saveAction.current?.dispose();editingInstance.current=instance;
+  saveAction.current=bindWorkspaceSaveShortcut(instance,runtime,()=>shortcut.current,t('workspace.ide.save'));
+  instance.onDidDispose(()=>{if(editingInstance.current===instance){editingInstance.current=undefined;saveAction.current?.dispose();saveAction.current=undefined;}});
+ };
+ useEffect(()=>{const instance=editingInstance.current;if(instance){saveAction.current?.dispose();saveAction.current=bindWorkspaceSaveShortcut(instance,monaco,()=>shortcut.current,t('workspace.ide.save'));}},[locale]);
+ useEffect(()=>()=>{saveAction.current?.dispose();},[]);
  async function bind(e:FormEvent){e.preventDefault();setBusy(true);try{await api('/workspace/binding',{project_id:project,path:binding,idempotency_key:operation()});await loadWorkspace();}catch(err){setError(err);}finally{setBusy(false);}}
  if(!workspace&&!error)return <Loading/>;
  return <div className="ide-workbench">
   {Boolean(error)&&<ErrorNotice error={error}/>}
   <div className="info-strip"><Code2 size={17}/><p>{t('workspace.ide.intro')}<br/><small>{t('workspace.ide.editor_language_boundary')}</small></p></div>
   {workspace?.configured?<section className="panel editor-panel">
-   <aside className="file-tree"><div className="tree-heading"><Folder size={15}/><strong>{workspace.name||t('workspace.ide.project_files')}</strong><button className="icon-button" aria-label={t('workspace.ide.refresh_tree')} onClick={()=>void loadWorkspace()}><RefreshCw size={13}/></button></div><input className="tree-search" value={treeFilter} aria-label={t('workspace.ide.filter_files')} placeholder={t('workspace.ide.filter_placeholder')} onChange={e=>setTreeFilter(e.target.value)}/><div className="tree-files">{(workspace.files||[]).filter(f=>f.path.toLowerCase().includes(treeFilter.toLowerCase())).map(f=><button className={file?.path===f.path?'active':''} key={f.path} title={f.path} disabled={f.type==='directory'} onClick={()=>void open(f.path)} style={{paddingLeft:12+Math.min(f.path.split('/').length-1,5)*10}}>{f.type==='directory'?<Folder size={13}/>:<FileCode size={13}/>}<span>{f.name||f.path}</span></button>)}</div><small className="tree-root">{workspace.root}</small></aside>
-   <div className="editor-main"><div className="editor-toolbar"><div><FileCode size={14}/><span>{file?.path||t('workspace.ide.select_file')}</span>{dirty&&<i className="dirty-dot" aria-label={t('workspace.ide.unsaved')}/>} {saved&&!dirty&&<span className="saved-state"><Check size={12}/>{t('workspace.ide.saved')}</span>}</div><div><button disabled={!dirty||busy||unconfirmed} onClick={()=>{if(file)setContent(file.content);setConflict(false);setRemote(undefined);setError(undefined);}}><RefreshCw size={13}/>{t('workspace.ide.revert')}</button><button className="primary" disabled={(!dirty&&!unconfirmed)||busy||conflict} onClick={()=>void save()}><Save size={13}/>{t(unconfirmed?'workspace.ide.recover_save':'workspace.ide.save')}</button></div></div>
+   <aside className="file-tree"><div className="tree-heading"><Folder size={15}/><strong>{workspace.name||t('workspace.ide.project_files')}</strong><button className="icon-button" aria-label={t('workspace.ide.refresh_tree')} onClick={()=>void loadWorkspace()}><RefreshCw size={13}/></button></div>
+    <div className="workspace-explorer-tabs" role="tablist" aria-label={t('workspace-git.explorer_tabs')} onKeyDown={event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const next=event.key==='Home'?'files':event.key==='End'?'changes':explorer==='files'?'changes':'files';setExplorer(next);document.getElementById(explorerID+'-'+next+'-tab')?.focus();}}>{(['files','changes'] as const).map(view=><button key={view} type="button" id={explorerID+'-'+view+'-tab'} role="tab" tabIndex={explorer===view?0:-1} aria-selected={explorer===view} aria-controls={explorerID+'-'+view} onClick={()=>setExplorer(view)}>{view==='files'?<FileCode size={13}/>:<FileDiff size={13}/>} {t('workspace-git.'+view+'_tab')}{view==='files'&&(dirty||unconfirmed)&&<i className="dirty-dot" aria-label={t('workspace.ide.unsaved')}/>}</button>)}</div>
+    <div id={explorerID+'-files'} role="tabpanel" aria-labelledby={explorerID+'-files-tab'} className="workspace-files-view" hidden={explorer!=='files'}><input className="tree-search" value={treeFilter} aria-label={t('workspace.ide.filter_files')} placeholder={t('workspace.ide.filter_placeholder')} onChange={e=>setTreeFilter(e.target.value)}/><div className="tree-files">{(workspace.files||[]).filter(f=>f.path.toLowerCase().includes(treeFilter.toLowerCase())).map(f=><button className={file?.path===f.path?'active':''} key={f.path} title={f.path} disabled={f.type==='directory'} onClick={()=>void open(f.path)} style={{paddingLeft:12+Math.min(f.path.split('/').length-1,5)*10}}>{f.type==='directory'?<Folder size={13}/>:<FileCode size={13}/>}<span>{f.name||f.path}</span></button>)}</div><small className="tree-root">{workspace.root}</small></div>
+    <WorkspaceGitPanel project={project} active={explorer==='changes'} previewTarget={gitPreview} id={explorerID+'-changes'} labelledBy={explorerID+'-changes-tab'} onOpenFile={path=>{setExplorer('files');if(file?.path!==path)void open(path);}}/>
+   </aside>
+   <div className="editor-main"><div className="workspace-code-host" hidden={explorer!=='files'}><div className="editor-toolbar"><div><FileCode size={14}/><span>{file?.path||t('workspace.ide.select_file')}</span>{dirty&&<i className="dirty-dot" aria-label={t('workspace.ide.unsaved')}/>} {saved&&!dirty&&<span className="saved-state"><Check size={12}/>{t('workspace.ide.saved')}</span>}</div><div><button disabled={!dirty||busy||unconfirmed} onClick={()=>{if(file)setContent(file.content);setConflict(false);setRemote(undefined);setError(undefined);}}><RefreshCw size={13}/>{t('workspace.ide.revert')}</button><button className="primary" disabled={(!dirty&&!unconfirmed)||busy||conflict} onClick={()=>void save()}><Save size={13}/>{t(unconfirmed?'workspace.ide.recover_save':'workspace.ide.save')}</button></div></div>
     {reconciliation&&<div className="conflict-banner"><AlertCircle size={17}/><div><strong>{t('workspace.ide.reconcile_title')}</strong><p>{t('workspace.ide.reconcile_help')}</p><p><Trans i18nKey="workspace.ide.pending_operation" values={{operation:pending.current.reconciliationDetails?.operation_id||pending.current.pending?.idempotency_key,path:pending.current.reconciliationDetails?.path||pending.current.pending?.path}} components={{code:<code/>}}/></p>{pending.current.reconciliationDetails?.operation_id&&pending.current.reconciliationDetails.operation_id!==pending.current.pending?.idempotency_key?<p>{t('workspace.ide.foreign_operation')}</p>:<details><summary>{t('workspace.ide.recovery_basis')}</summary><p>{t('workspace.ide.original_hash',{hash:pending.current.pending?.expected_hash})}</p><h4>{t('workspace.ide.original_content')}</h4><pre>{pending.current.source?.content}</pre><h4>{t('workspace.ide.submitted_content')}</h4><pre>{pending.current.pending?.content}</pre></details>}</div></div>}
     {conflict&&<div className="conflict-banner"><AlertCircle size={17}/><div><strong>{t('workspace.ide.conflict_title')}</strong><p>{t('workspace.ide.conflict_help')}</p><button disabled={!remote} onClick={()=>{if(remote){setFile(remote);setConflict(false);setRemote(undefined);setError(new UiError('workspace.ide.review_merge'));}}}>{t('workspace.ide.keep_draft')}</button><button disabled={!remote} onClick={()=>{if(remote){setContent(remote.content);setFile(remote);setConflict(false);setRemote(undefined);setError(undefined);}}}>{t('workspace.ide.load_latest')}</button></div></div>}
-    {fileLoading?<Loading/>:file?<Editor height="100%" path={file.path} language={file.language} value={content} onChange={value=>{setContent(value||'');setSaved(false);}} theme={document.documentElement.dataset.theme==='dark'?'vs-dark':'light'} options={{ariaLabel:t('workspace.ide.editor_label'),fontSize:12,lineHeight:22,minimap:{enabled:false},padding:{top:18},scrollBeyondLastLine:false,automaticLayout:true,wordWrap:'on',tabSize:2,renderLineHighlight:'gutter',fontFamily:'Consolas, monospace'}} loading={<Loading/>}/>:<Empty title={t('workspace.ide.empty_title')} description={t('workspace.ide.empty_description')}/>}
+    {fileLoading?<Loading/>:file?<Editor height="100%" path={file.path} language={file.language} value={content} onMount={mountEditor} onChange={value=>{setContent(value||'');setSaved(false);}} theme={document.documentElement.dataset.theme==='dark'?'vs-dark':'light'} options={{ariaLabel:t('workspace.ide.editor_label'),fontSize:12,lineHeight:22,minimap:{enabled:false},padding:{top:18},scrollBeyondLastLine:false,automaticLayout:true,wordWrap:'on',tabSize:2,renderLineHighlight:'gutter',fontFamily:'Consolas, monospace'}} loading={<Loading/>}/>:<Empty title={t('workspace.ide.empty_title')} description={t('workspace.ide.empty_description')}/>}
+    </div><div ref={setGitPreview} className="workspace-git-preview-host" hidden={explorer!=='changes'}/>
    </div>
-  </section>:<section className="panel settings-panel"><div className="panel-heading"><div><h2>{t('workspace.ide.bind_title')}</h2><p>{workspace?.reason?renderDiagnostic(workspace.reason):t('workspace.ide.unbound')}</p></div><Folder size={22}/></div><form onSubmit={e=>void bind(e)}><Field label={t('workspace.ide.absolute_path')} hint={t('workspace.ide.path_hint')}><input required value={binding} onChange={e=>setBinding(e.target.value)} placeholder="D:\projects\my-project"/></Field><button className="primary" disabled={busy}><Link size={15}/>{t('workspace.ide.bind')}</button></form></section>}
+  </section>:workspace?.binding_available===false?<section className="panel settings-panel"><Empty title={t('workspace-git.local_workspace_disabled')} description={t('workspace-git.local_workspace_disabled_help')}/></section>:<section className="panel settings-panel"><div className="panel-heading"><div><h2>{t('workspace.ide.bind_title')}</h2><p>{workspace?.reason?renderDiagnostic(workspace.reason):t('workspace.ide.unbound')}</p></div><Folder size={22}/></div><form onSubmit={e=>void bind(e)}><Field label={t('workspace.ide.absolute_path')} hint={t('workspace.ide.path_hint')}><input required value={binding} onChange={e=>setBinding(e.target.value)} placeholder="D:\projects\my-project"/></Field><button className="primary" disabled={busy}><Link size={15}/>{t('workspace.ide.bind')}</button></form></section>}
  </div>;
 }
