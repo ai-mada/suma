@@ -12,7 +12,7 @@ Read `memory/current_state.json`, `docs/delivery/status.md` and the relevant dom
 - Run meaningful tests for changed contracts; record actual commands/environment and remaining verification in docs/quality/verification.md.
 - Keep docs and capability status accurate. A planned interface is not an implemented integration.
 - Do not commit, push, publish or delete user files unless authorized in the active session.
-- The user authorizes a local commit after each verified functional stage. Include the matching design documents and evidence, use `type(scope): desc [T-id]`, and keep remaining platform work explicit. This does not authorize a push or publication.
+- The user authorizes committing and pushing each verified functional stage to `git@github.com:ai-mada/suma.git`, branch `dev`. Include matching design documents and compact evidence, use `type(scope): desc [T-id]`, and keep remaining platform work explicit. Use normal non-forced pushes; preserve remote changes. This does not authorize other repositories/branches, releases or deployments.
 
 ## Efficient implementation and validation
 

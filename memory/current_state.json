@@ -49,7 +49,7 @@
   "production_integration_complete": false,
   "current_evidence": "docs/quality/codex-app-server-verification.md",
   "stage": "T-P4-041_codex_app_server_execution",
-  "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
+  "commit_policy": "User authorizes commits and normal non-forced pushes after verified functional stages to git@github.com:ai-mada/suma.git, branch dev. Include necessary source, configuration, design/contracts and compact evidence only. Keep credentials, databases, raw logs, screenshots, snapshots, caches, dependencies and binaries out of Git; preserve remote changes. No authorization for releases or deployment.",
   "next_step": "Continue full P0-P7/requirements1..22: explicit expert/repair external model selection, other CLI adapters, full IDE/PTY/LSP/DAP, physical multi-machine and production capabilities. No silent scope reduction.",
   "additional_requirements": [
     "FND-I18N-001: internationalization in every implemented surface; initially zh-CN/en-US, unified catalogs, preference/negotiation, formatting, API errors, CLI/desktop/extensions/notifications and docs; preserve user content and immutable evidence; coverage must be honestly verified",
@@ -621,6 +621,14 @@
       "expert/repair Codex model entry and other CLI protocols pending",
       "Codex remote file broker, complete IDE, physical multi-machine/TLS and production scope pending"
     ],
-    "production_complete": false
+    "production_complete": false,
+    "commit": "8eb9a418931666e0c88f3c0e234107a7fbd4f9e7"
+  },
+  "git_delivery": {
+    "repository": "git@github.com:ai-mada/suma.git",
+    "branch": "dev",
+    "stage_commit": "8eb9a418931666e0c88f3c0e234107a7fbd4f9e7",
+    "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
+    "force_push": false
   }
 }
