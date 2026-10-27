@@ -233,7 +233,7 @@ func (e *Engine) ClaimPoolWithOperation(ctx context.Context, request PoolClaimRe
 				if err != nil {
 					return err
 				}
-				if r.kernelGeneration >= 2 && seconds <= 0 {
+				if seconds <= 0 {
 					if err = t.transition(r, n, "failed", "automatic retry deadline exhausted before dispatch"); err != nil {
 						return err
 					}
@@ -304,9 +304,6 @@ func (e *Engine) ClaimPoolWithOperation(ctx context.Context, request PoolClaimRe
 					return err
 				}
 				if err = t.exec(`DELETE FROM dag_ready WHERE run_id=? AND node_id=?`, r.ID, n.ID); err != nil {
-					return err
-				}
-				if err = t.exec(`DELETE FROM dag_ready_v2 WHERE run_id=? AND node_id=?`, r.ID, n.ID); err != nil {
 					return err
 				}
 				if err = t.exec(`INSERT INTO dag_attempts(run_id,node_id,attempt,fence,worker_id,state,started_at,completed_at,result)VALUES(?,?,?,?,?,'running',?,'','')`, r.ID, n.ID, n.Attempt, n.Fence, n.WorkerID, n.StartedAt); err != nil {

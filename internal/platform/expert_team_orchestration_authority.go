@@ -42,7 +42,7 @@ type expertTeamActivation struct {
 	Credential                                                                                             expertTeamCredentialReference
 }
 
-func (s *Service) MigrateExpertTeamActivations(ctx context.Context) error {
+func (s *Service) InitializeExpertTeamActivations(ctx context.Context) error {
 	_, err := s.DB.ExecContext(ctx, s.ddl(`CREATE TABLE IF NOT EXISTS suma_expert_team_plan_activations(plan_id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,generation INTEGER NOT NULL,source_revision INTEGER NOT NULL,state VARCHAR(20) NOT NULL,activated_by VARCHAR(64) NOT NULL,credential_hash VARCHAR(64) NOT NULL,credential_kind INTEGER NOT NULL,credential_reference TEXT NOT NULL,next_check_at VARCHAR(40) NOT NULL,last_checked_at VARCHAR(40) NOT NULL,last_error TEXT NOT NULL)`))
 	if err != nil {
 		return err

@@ -19,7 +19,7 @@ func TestSchedulingReadersUseCallerTransaction(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer tx.Rollback()
-	if _, err := tx.ExecContext(ctx, `UPDATE dag_ready_v2 SET ready_at='uncommitted-ready' WHERE run_id=?`, run.ID); err != nil {
+	if _, err := tx.ExecContext(ctx, `UPDATE dag_ready SET ready_at='uncommitted-ready' WHERE run_id=?`, run.ID); err != nil {
 		t.Fatal(err)
 	}
 	const raw = `{ "outcome" : "failed", "reason" : "uncommitted resolution", "note": 1e0 }`

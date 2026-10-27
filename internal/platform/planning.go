@@ -45,7 +45,7 @@ type CapacityEntry struct {
 	UnestimatedTasks int      `json:"unestimated_tasks"`
 }
 
-func (s *Service) MigratePlanning(ctx context.Context) error {
+func (s *Service) InitializePlanning(ctx context.Context) error {
 	statements := []string{
 		`CREATE TABLE IF NOT EXISTS suma_planning_periods(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,kind VARCHAR(20) NOT NULL,version INTEGER NOT NULL,title VARCHAR(500) NOT NULL,description TEXT NOT NULL,status VARCHAR(30) NOT NULL,start_date VARCHAR(10) NOT NULL,end_date VARCHAR(10) NOT NULL,target_date VARCHAR(10) NOT NULL,goal TEXT NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_task_plans(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,iteration_id VARCHAR(64) NOT NULL,milestone_id VARCHAR(64) NOT NULL,start_date VARCHAR(10) NOT NULL,due_date VARCHAR(10) NOT NULL,estimated_hours DOUBLE PRECISION,updated_at VARCHAR(40) NOT NULL,PRIMARY KEY(tenant_id,project_id,task_id))`,

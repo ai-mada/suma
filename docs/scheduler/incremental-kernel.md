@@ -1,6 +1,6 @@
 # 持久化增量调度内核
 
-状态：T-P4-005 本机 SQLite 实现与验证；负责人：Core 代理／主集成代理。关联需求：持久就绪队列、调度准入、恢复、可解释阻塞。共享合同：[scheduling-kernel](../../contracts/scheduling-kernel.md)，实现：`internal/dag/scheduling_*.go`，接口类型：`internal/dag/scheduling_types.go`。
+状态：1.0.0 初始化基线，本机 SQLite 实现与限定验证；负责人：Core 代理／主集成代理。关联需求：持久就绪队列、调度准入、恢复、可解释阻塞。共享合同：[scheduling-kernel](../../contracts/scheduling-kernel.md)，实现：`internal/dag/scheduling_*.go`，接口类型：`internal/dag/scheduling_types.go`。
 
 ## 事务与持久状态
 
@@ -11,7 +11,7 @@
 | `dag_graph_edges`、`dag_condition_watchers` | 直接依赖与显式条件依赖 |
 | `dag_edge_resolutions`、`dag_node_dependencies` | 代际、来源 attempt/fence、已解析／选中／成功计数 |
 | `dag_node_work`、`dag_run_counters` | 有界推进前沿与终态计数 |
-| `dag_ready_v2`、`dag_scheduler_run_turns` | 正式就绪记录、项目内运行轮转 |
+| `dag_ready`、`dag_scheduler_run_turns` | 正式就绪记录、项目内运行轮转 |
 | `dag_claim_run_scans`、`dag_dispatches` | 有界候选扫描进度、含空结果的领取回执 |
 | `dag_wakeups` | 定时、重试、租约、展开及传播唤醒 |
 | `dag_join_decisions` | 任一成功／阈值汇合的冻结获胜集合 |
@@ -49,7 +49,7 @@ sequenceDiagram
 
 ## 依赖、展开与重试
 
-新运行使用 generation 2 依赖语义：默认汇合等全部入边解析，只要求已选必需分支成功；全部未选则跳过。显式 `skipped`／`all_done` 边仍可选择被跳过结果。`any_success`／`quorum` 在首次满足阈值时持久冻结来源，后续兄弟完成不改获胜集合；运行最终仍等待独立分支终结，未处理失败不会被清理成功覆盖。
+全部运行使用统一依赖语义：默认汇合等全部入边解析，只要求已选必需分支成功；全部未选则跳过。显式 `skipped`／`all_done` 边仍可选择被跳过结果。`any_success`／`quorum` 在首次满足阈值时持久冻结来源，后续兄弟完成不改获胜集合；运行最终仍等待独立分支终结，未处理失败不会被清理成功覆盖。
 
 映射先保存完整输入、模板与二者 SHA-256，再以稳定 `map_id[index]` 创建每批最多 128 个子节点。子节点与 `next_index` 的 CAS 边界在同一事务，崩溃不会留下部分已提交但边界未前进的批次。展开未关闭时父节点不能完成；0 项关闭为空结果。重启通过持久展开唤醒补齐。单映射上限 1,000，编译校验包含子流程展开的总图上限 10,000。
 
@@ -57,7 +57,7 @@ sequenceDiagram
 
 ## 配额、资源与真实范围
 
-项目未持久化策略读作 version 0／default；创建运行或领取时确保正式 version 1，默认执行槽位为 1。每个 worker attempt 至少预留 1 execution slot、累计消耗 1 admission unit。节点显式请求 0 会在新编译拒绝；旧定义的 0 也不能绕过实际零预算。容量 0 阻止新派发，`null` 表示相应可选资源／累计预算不限。
+项目未持久化策略读作 version 0／default；创建运行或领取时确保正式 version 1，默认执行槽位为 1。每个 worker attempt 至少预留 1 execution slot、累计消耗 1 admission unit。节点显式请求 0 会在新编译拒绝；持久定义中的 0 也不能绕过实际零预算。容量 0 阻止新派发，`null` 表示相应可选资源／累计预算不限。
 
 准入先检查全部请求，再用当前计数、版本条件及受影响行数原子预留；最后一个额度不能由两个连接各自花一次。策略 `budget_spent` 和 budget account 必须一致，否则整笔准入回滚。预算即使不限也记录累计已发生单位，不退款。它不是金额、token 或已测硬件负载。
 
@@ -65,17 +65,15 @@ sequenceDiagram
 
 当前公平范围是同项目的运行轮转。跨租户／项目加权池、OS 实际硬限制、模型速率限制和真实结算尚未由本内核完成。
 
-## 旧数据迁移与升级边界
+## 初始化与正常重启
 
-迁移在专用维护锁和单事务下回填派生数据，以 `dag_kernel_migrations` 完整标记提交；不复用事件尾锁来反向取得项目锁。旧运行保留 generation 1 的已固定汇合解释，不自动推进、不改运行版本、不重写事件或 attempt。已有 ready 顺序、家族、租约、暂停定时及已知累计消费均保留。
+1.0.0仅建立当前持久表、索引和schema声明，调度只有一份ready队列及一套资源账本。初始化检查整个dag_命名空间；已有未声明领域表时拒绝启动，不读取旧队列推断运行、不回填分代、不补写预算，也不删除原数据库。
 
-旧活跃／核对中的 worker 即使没有旧 execution slot 记录，也保守补持有 1 个新默认槽位；仅完全匹配当前 attempt/fence 的已确认停止证据允许释放进程类。旧 budget consumed 按已知值迁移，缺失历史标 `partial`，不补造过去每 attempt 默认 1 的消费。重复打开不重新计费、不重复展开、不增加历史事件。
-
-升级前需要停止旧版本写入者并保存可验证备份。该迁移不承诺旧、新两个内核同时写同一数据库；切换后的新增写入也不能被旧快照无损回退。主集成另对历史运行数据库的独立备份验证迁移，原服务数据库不作试验。
+当前schema声明先于幂等DDL，允许同版安装中断后继续初始化；声明不代表服务就绪或生产验收。正常重启复用原运行、固定路由、attempt/fence、资源账本、依赖计数与唤醒。缺少应已持久化的图／计数／路由视为不完整事实，明确失败，不推断私有路由或静默重建。
 
 ## 验证与限制
 
-回归入口为[增量与唤醒](../../internal/dag/scheduling_incremental_test.go)、[准入与领取](../../internal/dag/scheduling_admission_test.go)、[重试窗口](../../internal/dag/scheduling_retry_test.go)、[旧数据迁移](../../internal/dag/scheduling_migration_test.go)及[真实驱动计数和基准](../../internal/dag/scheduling_benchmark_test.go)。计数记录实际SQL调用、返回行与受影响行，不计数据库内部页访问或隐式语句，也不将单次机器耗时作为唯一通过条件。
+回归入口为[增量与唤醒](../../internal/dag/scheduling_incremental_test.go)、[准入与领取](../../internal/dag/scheduling_admission_test.go)、[重试窗口](../../internal/dag/scheduling_retry_test.go)、[旧数据迁移](../../internal/dag/scheduling_restart_test.go)及[真实驱动计数和基准](../../internal/dag/scheduling_benchmark_test.go)。计数记录实际SQL调用、返回行与受影响行，不计数据库内部页访问或隐式语句，也不将单次机器耗时作为唯一通过条件。
 
 本域完整回归为91个顶层用例、含子用例123个pass事件，0失败／0跳过。已完成1,000节点／2,994边本机SQLite样本；冷启动建立持久账本，短链开销可能增加，热路径收益与冷启动成本分开披露。结果和复现方式见[阶段验证摘要](../quality/scheduling-verification.md)及[机器可读摘要](../quality/scheduling-summary.json)。
 

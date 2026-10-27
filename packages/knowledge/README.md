@@ -28,7 +28,7 @@
 {"tenant_id":"tenant-1","project_id":"project-1","source_id":"document-1","revision":3,"title":"发布说明","content":"文档正文","action":"upsert"}
 ```
 
-`revision` 是正的单调递增安全整数，也接受数字字符串；同 revision 的内容不可变。删除使用 `action:"delete"` 和更高 revision，title/content 可省略。乱序旧事件不会覆盖新 revision；delete tombstone 阻止相同/更旧 revision 的 upsert 复活。
+`revision` 是 JSON 数值类型的正的单调递增安全整数；同 revision 的内容不可变。删除使用 `action:"delete"` 和更高 revision，title/content 可省略。乱序旧事件不会覆盖新 revision；delete tombstone 阻止相同/更旧 revision 的 upsert 复活。
 
 ```json
 {"tenant_id":"tenant-1","project_id":"project-1","query":"发布","limit":10}

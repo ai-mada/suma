@@ -122,7 +122,7 @@ type ReleaseDeployment struct {
 	Blockers       []ReleaseBlocker           `json:"blockers"`
 }
 
-func (s *Service) MigrateReleaseDeployment(ctx context.Context) error {
+func (s *Service) InitializeReleaseDeployment(ctx context.Context) error {
 	for _, ddl := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_release_environments(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,data TEXT NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_release_plans(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,data TEXT NOT NULL)`,

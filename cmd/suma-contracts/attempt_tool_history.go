@@ -1,7 +1,7 @@
 package main
 
 // A dedicated route and envelope keep attempt-scoped opaque positions separate
-// from the legacy run-wide numeric event cursor. Both expose original Events.
+// from the run-wide numeric event cursor. Both expose original Events.
 func attemptToolHistoryContracts(add operationAdder) {
 	op := add("/runs/{id}/nodes/{node}/attempts/{attempt}/tool-events", "get", "AttemptToolEventPage", false, false)
 	successStatus(op, "200")
@@ -50,9 +50,9 @@ func enhanceAttemptToolHistorySchemas(schemas map[string]any) {
 		"then": map[string]any{"required": []string{"next_cursor"}},
 		"else": map[string]any{"not": map[string]any{"required": []string{"next_cursor"}}},
 	}}
-	// The raw body is optional for legacy run/SSE events; this page alone
-	// requires it, so a compatible map projection never claims byte fidelity.
+	// The raw body is optional for run/SSE events; this page alone
+	// requires it, so a parsed map projection never claims byte fidelity.
 	raw := toolContractMap(schemas, "Event", "properties", "raw_data")
 	raw["maxLength"] = 2 * 1024 * 1024
-	raw["description"] = "Original UTF-8 data text, populated only on exact-attempt history pages; never translated or normalized. data remains a compatible parsed projection. The full serialized Event, including both representations, is bounded to2MiB by the reader. Other event reads omit this field."
+	raw["description"] = "Original UTF-8 data text, populated only on exact-attempt history pages; never translated or normalized. data remains a parsed projection. The full serialized Event, including both representations, is bounded to2MiB by the reader. Other event reads omit this field."
 }

@@ -22,7 +22,7 @@ func workflowValidation(w http.ResponseWriter, workflow dag.Workflow) WorkflowVa
 		locale := localization.Locale(w.Header().Get("Content-Language"))
 		d, ok := localization.FormatError(locale, err)
 		if !ok {
-			d, _ = localization.WithSource(locale, "legacy.invalid_graph", nil, err.Error())
+			d, _ = localization.WithSource(locale, "untranslated.invalid_graph", nil, err.Error())
 		}
 		out.Diagnostics = append(out.Diagnostics, d)
 	}

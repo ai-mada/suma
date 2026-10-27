@@ -1,0 +1,117 @@
+{
+  "product_version": "1.0.0",
+  "delivery": "initial-version-baseline",
+  "status": "bounded_local_refactor_verified",
+  "full_platform_complete": false,
+  "complete_scope": "P0-P7 and accepted requirements1..22 remain active",
+  "base_commit": "25354e443c7466c7688538dc8faf09a59778f704",
+  "removed": [
+    "DAG old schema/data migration and kernel-generation behavior",
+    "old ready queue and resource reservation/limit mirrors",
+    "startup ready rank backfill and missing-graph reconstruction",
+    "legacy credential classification, migration_status and authority backfill",
+    "startup design-adoption index backfill",
+    "missing-route consent fallback",
+    "duplicate native read-tool allowlist",
+    "unreachable frontend i18n legacy baseline and empty baseline file",
+    "string aliases for knowledge revisions",
+    "redundant staged entry-document narratives and memory history copies"
+  ],
+  "retained": [
+    "current third-party SDK/protocol handling",
+    "authorization and complete issuance proof",
+    "workflow/data revisions, CAS, attempts, fences and leases",
+    "current idempotency, restart and unknown-effect reconciliation",
+    "full product backlog and exact existing evidence reports"
+  ],
+  "validation": {
+    "dag_top_level": 66,
+    "web_tests": 44,
+    "knowledge_regression_tests": 1,
+    "paired_web_locales": 4610,
+    "go_initialization_authority_selected": 21,
+    "namespace_review_fix_checks_top_level": 6,
+    "diagnostics_selected_top_level": 81,
+    "diagnostics_initial_failures": 3,
+    "final_precise_failures_retested": 3,
+    "go_compile_only_all_packages": true,
+    "affected_vet": true,
+    "web_and_knowledge_typecheck": true,
+    "new_dependencies": 0,
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "current_scope_recovery_required": true,
+    "evidence": [
+      {
+        "path": ".cache/e2e/baseline-100-runtime/summary.json",
+        "sha256": "1a8d9ee659ce5cad22faeef7d8da002407a0010ac5c1960b3ded1435fcb37330"
+      },
+      {
+        "path": ".cache/e2e/baseline-100-web/summary.local.json",
+        "sha256": "6d54007d96fd4497e0d0b9676fe3a921af878c66b451a8d7392bf81c18ead60a"
+      },
+      {
+        "path": ".cache/e2e/baseline-100-runtime/runner-artifact-fix-summary.json",
+        "sha256": "2f8b6e3af5939a6b044499d087b0788b31c5d196133c9be2c0dda885c8527d74"
+      },
+      {
+        "path": ".cache/v1-docs-normalization/verification.local.json",
+        "sha256": "445e96bd817407498c1a83f4da6444ed6b1f58583e5b38efd03bc20ea5c30f6c"
+      },
+      {
+        "path": ".cache/e2e/baseline-100/commands.local.json",
+        "sha256": "c399ab0ca6839cd84563bd9c146c35346c80989a3cc7d7d13c2e825e68876ffb"
+      }
+    ]
+  },
+  "current_schema": {
+    "tables": 183,
+    "declarations": {
+      "platform": "1.0.0",
+      "dag": "1.0.0"
+    },
+    "retired_tables_present": false,
+    "credential_migration_status_present": false,
+    "empty_install_and_exact_restart_verified": true,
+    "partial_unregistered_schema_rejected_unchanged": true
+  },
+  "actual_binaries": {
+    "path": ".cache/e2e/baseline-100/actual-shared-version/receipt.local.json",
+    "sha256": "fa8954cf80512102751a8094ee9b53df3ecb58c8d0a1ab5c16b7bd3e90739f40",
+    "build": "dist/runtime/builds/20261027T141158671Z-676c24a6/manifest.json",
+    "production_inputs": 450,
+    "source_sha256": "9dd35f39881d17a090e6e10bb67d2fd4e0bd3d3d9e16190e963788a0b2cdd62e",
+    "source_unchanged": true,
+    "windows_programs": 5,
+    "web": ".cache/e2e/baseline-100/web",
+    "existing_user_database_touched": false,
+    "new_accounts": 0,
+    "runner_started": false,
+    "previous_build": "dist/runtime/builds/20261027T140400868Z-15e2809d/manifest.json",
+    "previous_actual": {
+      "path": ".cache/e2e/baseline-100/actual-final/receipt.local.json",
+      "sha256": "163f20a03fe6eed8b7745ca6a80af79675299f7da30d67edec41fa449f220e73"
+    },
+    "final_version_identity": "all current product identities, including embedded health fallback, use shared Go version; schema/protocol revisions stay independent"
+  },
+  "review": {
+    "schema_partial_namespace_and_concurrent_startup_findings": "fixed; complete owned namespace, re-read current declaration before refusal",
+    "preexisting_artifact_finish_conflict": "fixed; artifact and generic candidate publication mutually exclusive, original AdminBase and unknown safeguards retained",
+    "initial_smoke_script_issue": "positional version used instead of --version; corrected harness only, first failure retained"
+  },
+  "documents": {
+    "P0_P7_items": 83,
+    "limited_checked": 58,
+    "remaining_unchecked": 25,
+    "requirements": 22,
+    "entry_link_targets_retained": 278,
+    "five_entry_bytes_before": 145915,
+    "five_entry_bytes_after": 60616,
+    "audit_reports_preserved": true
+  },
+  "limits": [
+    "SQLite/Windows local evidence only; real OceanBase/PostgreSQL and other OS acceptance remain",
+    "full platform and all product journeys are not claimed complete",
+    "existing preview/data were preserved; current binaries require a separate empty database"
+  ]
+}

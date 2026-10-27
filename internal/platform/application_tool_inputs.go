@@ -209,7 +209,7 @@ func applicationPageSchema() map[string]any {
 
 // The original task query treats explicit zero as the default page size.
 // Keep that contract in both native and MCP adapters; new queries remain strict.
-func applicationLegacyTaskPageSchema() map[string]any {
+func applicationTaskPageSchema() map[string]any {
 	return applicationObject(map[string]any{"limit": applicationInteger(0, 200), "cursor": applicationString(4096)})
 }
 func applicationDraftSchema(task bool) map[string]any {

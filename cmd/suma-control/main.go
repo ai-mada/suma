@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/ai-mada/suma/internal/buildinfo"
 	"io"
 	"log/slog"
 	"net"
@@ -19,7 +20,7 @@ import (
 	"github.com/ai-mada/suma/internal/store"
 )
 
-var version = "1.0.0"
+const version = buildinfo.Version
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr, os.LookupEnv)) }
 
@@ -79,7 +80,7 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 		logger.Error(app.Text("代码集成提供方配置失败", "repository integration provider configuration"), "event", "control.repository_provider_configuration", "error", err)
 		return 1
 	}
-	if err = service.Migrate(context.Background()); err != nil {
+	if err = service.Initialize(context.Background()); err != nil {
 		logger.Error(app.Text("业务数据库结构迁移失败", "migrate business schema"), "event", "control.business_schema_migrate", "error", err)
 		return 1
 	}

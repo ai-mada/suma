@@ -135,7 +135,7 @@ func TestLocalePreferencesPersistenceInheritanceAndScopedReplay(t *testing.T) {
 			t.Fatalf("clear did not inherit current organization: %v", head)
 		}
 	}
-	if err := f.s.Migrate(context.Background()); err != nil {
+	if err := f.s.Initialize(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	restarted := newPreferenceHTTP(t, (&Server{Service: f.s, Engine: f.e}).Handler())
@@ -494,7 +494,7 @@ func preferenceExistingTableHashes(t *testing.T, s *Service) map[string]string {
 	return out
 }
 
-func TestLocalePreferencesMigrationPreservesExistingTablesAndUnsetReads(t *testing.T) {
+func TestLocalePreferencesInitializationPreservesCurrentTablesAndUnsetReads(t *testing.T) {
 	f := newFixture(t)
 	for _, table := range []string{"suma_account_preferences", "suma_organization_preferences", "suma_account_preference_locks", "suma_locale_preference_operations"} {
 		if _, err := f.s.DB.Exec(`DROP TABLE ` + table); err != nil {
@@ -503,12 +503,12 @@ func TestLocalePreferencesMigrationPreservesExistingTablesAndUnsetReads(t *testi
 	}
 	before := preferenceExistingTableHashes(t, f.s)
 	for i := 0; i < 2; i++ {
-		if err := f.s.MigrateLocalePreferences(context.Background()); err != nil {
+		if err := f.s.InitializeLocalePreferences(context.Background()); err != nil {
 			t.Fatal(err)
 		}
 	}
 	if after := preferenceExistingTableHashes(t, f.s); stringify(before) != stringify(after) {
-		t.Fatal("preference migration changed existing table contents")
+		t.Fatal("preference initialization changed current table contents")
 	}
 	h := newPreferenceHTTP(t, f.handler)
 	h.expect("GET", "/account/preferences", "", f.cookie, 200)

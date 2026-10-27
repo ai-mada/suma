@@ -7,7 +7,7 @@ import (
 	"github.com/ai-mada/suma/internal/store"
 )
 
-func migrateEventIndexes(db *sql.DB, dialect string) error {
+func initializeEventIndexes(db *sql.DB, dialect string) error {
 	if err := store.EnsureIndex(context.Background(), db, dialect, "dag_events_run_sequence", "dag_events", "tenant_id", "project_id", "run_id", "sequence"); err != nil {
 		return err
 	}

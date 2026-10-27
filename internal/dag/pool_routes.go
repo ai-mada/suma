@@ -13,7 +13,7 @@ func (e *Engine) ReadProjectExecutionRouteTx(ctx context.Context, tx *sql.Tx, te
 
 // ReadProjectExecutionRouteTx is the transaction-scoped display contract for
 // services that do not own an Engine. It neither initializes the engine nor
-// migrates, locks or writes; absence means the explicit legacy-local default.
+// locks or writes; an unconfigured project uses the private default.
 func ReadProjectExecutionRouteTx(ctx context.Context, tx *sql.Tx, dialect, tenant, project string) (ProjectExecutionRoute, error) {
 	e := &Engine{dialect: dialect}
 	return e.projectRoute(ctx, tx, tenant, project, false)
@@ -46,24 +46,12 @@ func (e *Engine) runRoute(ctx context.Context, q queryer, tenant, project, id st
 	if err != sql.ErrNoRows {
 		return out, false, err
 	}
-	var present int
-	query = `SELECT 1 FROM dag_runs WHERE id=? AND tenant_id=? AND project_id=?`
-	if current {
-		query += e.currentReadSuffix()
-	}
-	err = q.QueryRowContext(ctx, e.q(query), id, tenant, project).Scan(&present)
-	if err == nil {
-		return out, true, nil
-	}
-	if err != sql.ErrNoRows {
-		return out, false, err
-	}
 	return out, false, nil
 }
 
 // ReadRunExecutionRouteTx exposes immutable routing for identity gates without
 // requiring callers to know private tables or infer routing from request fields.
-// It takes no authority or mutation locks and preserves explicit legacy-local.
+// It takes no authority or mutation locks and requires the frozen run route.
 func ReadRunExecutionRouteTx(ctx context.Context, tx *sql.Tx, dialect, tenant, project, runID string) (ProjectExecutionRoute, error) {
 	e := &Engine{dialect: dialect}
 	if scopeValid(tenant, project) != nil || runID == "" {
@@ -202,9 +190,12 @@ func (t *transaction) guardExecution(tenant, project, runID string) error {
 }
 func (t *transaction) newRunRoute(tenant, project string) (ProjectExecutionRoute, error) {
 	if t.familyRoot != "" {
-		route, _, err := t.e.runRoute(t.ctx, t.tx, tenant, project, t.familyRoot, false)
+		route, found, err := t.e.runRoute(t.ctx, t.tx, tenant, project, t.familyRoot, false)
 		if err != nil {
 			return route, err
+		}
+		if !found {
+			return route, ErrNotFound
 		}
 		if err = t.guardExecution(tenant, project, t.familyRoot); err != nil {
 			return route, err
@@ -223,9 +214,13 @@ func applyExecutionRoute(r *runState, route ProjectExecutionRoute) {
 	r.ExecutionPoolGrantVersion = route.GrantVersion
 }
 func (e *Engine) loadExecutionRoute(ctx context.Context, q queryer, r *runState) error {
-	route, _, err := e.runRoute(ctx, q, r.TenantID, r.ProjectID, r.ID, false)
-	if err == nil {
-		applyExecutionRoute(r, route)
+	route, found, err := e.runRoute(ctx, q, r.TenantID, r.ProjectID, r.ID, false)
+	if err != nil {
+		return err
 	}
-	return err
+	if !found {
+		return ErrNotFound
+	}
+	applyExecutionRoute(r, route)
+	return nil
 }

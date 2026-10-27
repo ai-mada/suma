@@ -45,7 +45,7 @@ func historyRaw(a *Assignment, payload string) string {
 func historySnapshot(t *testing.T, e *Engine) string {
 	t.Helper()
 	var all []byte
-	for _, table := range []string{"dag_runs", "dag_nodes", "dag_attempts", "dag_events", "dag_operations", "dag_resource_ledger", "dag_resource_limits", "dag_reservations"} {
+	for _, table := range []string{"dag_runs", "dag_nodes", "dag_attempts", "dag_events", "dag_operations", "dag_resource_ledger", "dag_resource_accounts"} {
 		rows, err := e.db.Query(`SELECT * FROM ` + table)
 		if err != nil {
 			t.Fatal(err)
@@ -439,7 +439,7 @@ func TestAttemptToolHistorySavedReceiptRejectsIdentityAliasesInEitherOrder(t *te
 func TestAttemptToolHistoryPortableIndexRestartDefinitionAndSeek(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "index.db")
 	e := openEngine(t, path)
-	if err := migrateEventIndexes(e.db, "sqlite"); err != nil {
+	if err := initializeEventIndexes(e.db, "sqlite"); err != nil {
 		t.Fatal(err)
 	}
 	tx, err := e.db.Begin()
@@ -495,7 +495,7 @@ func TestAttemptToolHistoryPortableIndexRestartDefinitionAndSeek(t *testing.T) {
 		if _, err = e.db.Exec(ddl); err != nil {
 			t.Fatal(err)
 		}
-		if err = migrateEventIndexes(e.db, "sqlite"); err == nil {
+		if err = initializeEventIndexes(e.db, "sqlite"); err == nil {
 			t.Fatal("silently accepted incompatible index")
 		}
 	}

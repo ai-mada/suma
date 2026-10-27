@@ -18,7 +18,7 @@ type claimTurn struct {
 
 func (t *transaction) refreshRunTurn(r *runState) error {
 	var first sql.NullInt64
-	if err := t.row(`SELECT MIN(sequence) FROM dag_ready_v2 WHERE run_id=?`, r.ID).Scan(&first); err != nil {
+	if err := t.row(`SELECT MIN(sequence) FROM dag_ready WHERE run_id=?`, r.ID).Scan(&first); err != nil {
 		return err
 	}
 	if !first.Valid {
@@ -188,7 +188,7 @@ func (t *transaction) claimCandidateBatchPool(tenant, project, worker string, ca
 }
 
 func readyCandidateStatement(run, filter string, filterParams []any, scan claimScan, resume bool, remaining int) (string, []any) {
-	query := `SELECT k.node_id,k.ready_sequence,k.rank_at FROM dag_ready_admission_order k JOIN dag_ready_v2 q ON q.run_id=k.run_id AND q.node_id=k.node_id WHERE k.run_id=? AND ` + filter
+	query := `SELECT k.node_id,k.ready_sequence,k.rank_at FROM dag_ready_admission_order k JOIN dag_ready q ON q.run_id=k.run_id AND q.node_id=k.node_id WHERE k.run_id=? AND ` + filter
 	args := append([]any{run}, filterParams...)
 	if resume {
 		query += ` AND (k.rank_at,k.ready_sequence,k.node_id)>(?,?,?)`

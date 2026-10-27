@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ai-mada/suma/internal/buildinfo"
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/releasecontract"
@@ -49,7 +50,7 @@ func (s *Server) Handler() http.Handler {
 		}
 		buildVersion := s.BuildVersion
 		if buildVersion == "" {
-			buildVersion = "1.0.0"
+			buildVersion = buildinfo.Version
 		}
 		writeJSON(w, 200, map[string]any{"status": "ok", "database": "connected", "version": buildVersion, "maintenance": s.Maintenance})
 	})
@@ -134,7 +135,7 @@ func decode(r *http.Request) (map[string]any, error) {
 	d := json.NewDecoder(bytes.NewReader(raw))
 	// These routes decode into strict integer DTOs after the public envelope.
 	// Preserve numeric lexemes so a fractional counter near 2^53 cannot round
-	// into a valid integer before that validation. Legacy map-backed routes
+	// into a valid integer before that validation. Map-backed routes
 	// retain their existing number representation until their DTO migration.
 	if strings.HasPrefix(r.URL.Path, "/api/v1/candidate-compositions") || (strings.HasPrefix(r.URL.Path, "/api/v1/tasks/") && strings.HasSuffix(r.URL.Path, "/code-baseline")) || strings.HasPrefix(r.URL.Path, "/api/v1/failure-diagnosis") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-provider/") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integrations") || strings.HasPrefix(r.URL.Path, "/api/v1/repository-integration-targets") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-teams") || strings.HasPrefix(r.URL.Path, "/api/v1/expert-team-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/knowledge-intelligence") || strings.HasPrefix(r.URL.Path, "/api/v1/skill-catalog") || strings.HasPrefix(r.URL.Path, "/api/v1/usage") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/analyses") || strings.HasPrefix(r.URL.Path, "/api/v1/planning/alerts") || (strings.HasPrefix(r.URL.Path, "/api/v1/requirements/") && strings.Contains(r.URL.Path, "/design")) || strings.HasPrefix(r.URL.Path, "/api/v1/task-dispatch-plans") || strings.HasPrefix(r.URL.Path, "/api/v1/task-handoffs") || strings.HasPrefix(r.URL.Path, "/api/v1/project-knowledge") || r.URL.Path == "/api/v1/agent/tools/invoke" || strings.HasPrefix(r.URL.Path, "/api/v1/scheduling/") || strings.HasPrefix(r.URL.Path, "/api/v1/runner/") || strings.HasPrefix(r.URL.Path, "/api/v1/execution-pools") || strings.HasPrefix(r.URL.Path, "/api/v1/project-execution/") {
 		d.UseNumber()
@@ -1042,7 +1043,7 @@ func (s *Server) capabilities(ctx context.Context) map[string]any {
 }
 
 // The native read-only adapter projects the shared application catalogue without
-// broadening its legacy four-tool contract or routing writes through a POST query.
+// broadening its four-tool read-only authority or routing writes through a POST query.
 func (s *Server) agent(w http.ResponseWriter, r *http.Request, actor Actor, project, path string, m map[string]any) {
 	if path == "agent/tools" && r.Method == http.MethodGet {
 		catalogue, err := s.Service.ApplicationTools(r.Context(), actor, project)
@@ -1052,7 +1053,7 @@ func (s *Server) agent(w http.ResponseWriter, r *http.Request, actor Actor, proj
 		}
 		items := []map[string]any{}
 		for _, definition := range catalogue.Items {
-			if !legacyApplicationTool(definition.Name) {
+			if !nativeReadToolAllowed(definition.Name) {
 				continue
 			}
 			items = append(items, map[string]any{"name": definition.Name, "description": presentationSource(w, definition.Description), "parameters": definition.Parameters})
@@ -1062,7 +1063,7 @@ func (s *Server) agent(w http.ResponseWriter, r *http.Request, actor Actor, proj
 	}
 	if path == "agent/tools/invoke" && r.Method == http.MethodPost {
 		name := str(m, "tool")
-		if !legacyApplicationTool(name) {
+		if !nativeReadToolAllowed(name) {
 			writeError(w, &APIError{422, "tool_not_allowed", "该工具尚未授权或未实现", nil})
 			return
 		}
@@ -1076,14 +1077,6 @@ func (s *Server) agent(w http.ResponseWriter, r *http.Request, actor Actor, proj
 		return
 	}
 	writeError(w, missing())
-}
-
-func legacyApplicationTool(name string) bool {
-	switch name {
-	case "project.overview", "project.tasks", "project.search", "project.knowledge":
-		return true
-	}
-	return false
 }
 
 func (s *Server) web(w http.ResponseWriter, r *http.Request) {

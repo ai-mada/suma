@@ -1,4 +1,4 @@
-export interface IndexRequest {tenant_id:string;project_id:string;source_id:string;revision:number|string;title:string;content:string;action:'upsert'|'delete'}
+export interface IndexRequest {tenant_id:string;project_id:string;source_id:string;revision:number;title:string;content:string;action:'upsert'|'delete'}
 export interface SearchRequest {tenant_id:string;project_id:string;query:string;limit?:number}
 export interface Chunk extends Record<string,unknown> {id:string;tenant_id:string;project_id:string;source_id:string;revision:number;title:string;content:string;locator:string;vector?:number[]}
 export interface SearchItem {id:string;title:string;snippet:string;source_ref:string;revision:number;locator:string}

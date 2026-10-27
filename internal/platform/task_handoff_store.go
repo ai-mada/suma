@@ -23,7 +23,7 @@ const (
 	handoffSameOwner        = "The recipient is already the task owner"
 )
 
-func (s *Service) MigrateTaskHandoffs(ctx context.Context) error {
+func (s *Service) InitializeTaskHandoffs(ctx context.Context) error {
 	for _, statement := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_task_handoffs(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,state VARCHAR(20) NOT NULL,created_at VARCHAR(40) NOT NULL,payload TEXT NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_task_handoff_pending(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,handoff_id VARCHAR(64) NOT NULL UNIQUE,PRIMARY KEY(tenant_id,project_id,task_id))`,

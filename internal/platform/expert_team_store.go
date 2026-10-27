@@ -44,7 +44,7 @@ func expertError(code, message string) error {
 	return &APIError{status, code, message, nil}
 }
 
-func (s *Service) MigrateExpertTeams(ctx context.Context) error {
+func (s *Service) InitializeExpertTeams(ctx context.Context) error {
 	for _, ddl := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_expert_team_configurations(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,team_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,state VARCHAR(20) NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(tenant_id,project_id,team_id))`,
 		`CREATE TABLE IF NOT EXISTS suma_expert_team_revisions(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,team_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(tenant_id,project_id,team_id,version))`,
@@ -65,7 +65,7 @@ func (s *Service) MigrateExpertTeams(ctx context.Context) error {
 	if err := store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_expert_team_plan_revision_scope", "suma_expert_team_plan_revisions", "tenant_id", "project_id", "plan_id", "revision"); err != nil {
 		return err
 	}
-	return s.MigrateExpertTeamActivations(ctx)
+	return s.InitializeExpertTeamActivations(ctx)
 }
 
 func (s *Service) expertTeamHeadTx(ctx context.Context, auth *authorizedCommand, team string, revision int) (out ExpertTeamConfiguration, err error) {

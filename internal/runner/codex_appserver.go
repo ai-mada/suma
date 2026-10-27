@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/ai-mada/suma/internal/buildinfo"
 	"io"
 	"path/filepath"
 	"strconv"
@@ -85,7 +86,7 @@ func newCodexAppServer(profile tc.Profile, spec CommandSpec, home, root, goal st
 		d.evidence = &cc.Evidence{BindingSHA256: binding.BindingSHA256, RequestedModel: binding.Model, RequestedReasoningEffort: binding.ReasoningEffort}
 		stream.codexEvidence = d.evidence
 	}
-	d.request("initialize", map[string]any{"clientInfo": map[string]any{"name": "suma", "title": "suma Runner", "version": "1.0.0"}, "capabilities": map[string]any{"experimentalApi": false, "requestAttestation": false, "explicitGatewayOauth": true, "optOutNotificationMethods": []string{"item/reasoning/textDelta", "item/reasoning/summaryTextDelta", "item/commandExecution/outputDelta", "item/agentMessage/delta", "rawResponse/completed"}}})
+	d.request("initialize", map[string]any{"clientInfo": map[string]any{"name": "suma", "title": "suma Runner", "version": buildinfo.Version}, "capabilities": map[string]any{"experimentalApi": false, "requestAttestation": false, "explicitGatewayOauth": true, "optOutNotificationMethods": []string{"item/reasoning/textDelta", "item/reasoning/summaryTextDelta", "item/commandExecution/outputDelta", "item/agentMessage/delta", "rawResponse/completed"}}})
 	return d
 }
 func (d *codexAppServer) CopyInput(w io.Writer) (int64, error) { return io.Copy(w, d.input) }

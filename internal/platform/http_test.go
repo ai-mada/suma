@@ -35,7 +35,7 @@ func newFixture(t *testing.T) *fixture {
 	}
 	t.Cleanup(func() { db.Close() })
 	s := &Service{DB: db, Dialect: "sqlite", DataDir: t.TempDir()}
-	if err = s.Migrate(context.Background()); err != nil {
+	if err = s.Initialize(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	e, err := dag.New(db, "sqlite")

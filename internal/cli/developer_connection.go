@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"github.com/ai-mada/suma/internal/buildinfo"
 	"io"
 	"log/slog"
 	"net"
@@ -57,8 +58,8 @@ func developerConnectionCommand(ctx context.Context, c *client, args []string, o
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 	hc := &http.Client{Transport: developerCheckTransport{base: c.http.Transport, endpoint: endpoint, token: c.token, language: string(c.locale)}, Timeout: c.timeout, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
-	sdk := mcp.NewClient(&mcp.Implementation{Name: "suma-developer-check", Version: "1.0.0"}, &mcp.ClientOptions{Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
-	// Explicit legacy initialization is supported by the current server. Disable
+	sdk := mcp.NewClient(&mcp.Implementation{Name: "suma-developer-check", Version: buildinfo.Version}, &mcp.ClientOptions{Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
+	// Explicit protocol negotiation is supported by the current server. Disable
 	// retries and standalone subscriptions for this one-shot read diagnostic.
 	session, err := sdk.Connect(ctx, &mcp.StreamableClientTransport{Endpoint: endpoint, HTTPClient: hc, MaxRetries: -1, DisableStandaloneSSE: true}, &mcp.ClientSessionOptions{ProtocolVersion: "2025-11-25"})
 	if err != nil {

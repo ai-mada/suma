@@ -177,7 +177,7 @@ func (e *Engine) ClaimWithOperation(ctx context.Context, tenant, project, worker
 			if err != nil {
 				return err
 			}
-			if r.kernelGeneration >= 2 && seconds <= 0 {
+			if seconds <= 0 {
 				if err = t.transition(r, n, "failed", "automatic retry deadline exhausted before dispatch"); err != nil {
 					return err
 				}
@@ -236,10 +236,7 @@ func (e *Engine) ClaimWithOperation(ctx context.Context, tenant, project, worker
 			if err = t.exec("INSERT INTO dag_run_fairness (run_id,last_claim_sequence) VALUES (?,?)", r.ID, claimSequence); err != nil {
 				return err
 			}
-			if err = t.exec("DELETE FROM dag_ready WHERE run_id=? AND node_id=?", r.ID, n.ID); err != nil {
-				return err
-			}
-			if err = t.exec(`DELETE FROM dag_ready_v2 WHERE run_id=? AND node_id=?`, r.ID, n.ID); err != nil {
+			if err = t.exec(`DELETE FROM dag_ready WHERE run_id=? AND node_id=?`, r.ID, n.ID); err != nil {
 				return err
 			}
 			if err = t.exec("INSERT INTO dag_attempts (run_id,node_id,attempt,fence,worker_id,state,started_at,completed_at,result) VALUES (?,?,?,?,?,?,?,?,?)", r.ID, n.ID, n.Attempt, n.Fence, worker, "running", n.StartedAt, "", ""); err != nil {
@@ -295,17 +292,15 @@ func (e *Engine) HeartbeatWithAuthority(ctx context.Context, tenant, project str
 			return ErrCancelled
 		}
 		n.lease = t.now + e.LeaseSeconds
-		if r.kernelGeneration >= 2 {
-			remaining, err := t.attemptWindow(r, n, false)
-			if err != nil {
-				return err
-			}
-			if remaining <= 0 {
-				return ErrStale
-			}
-			if n.lease > t.now+int64(remaining) {
-				n.lease = t.now + int64(remaining)
-			}
+		remaining, err := t.attemptWindow(r, n, false)
+		if err != nil {
+			return err
+		}
+		if remaining <= 0 {
+			return ErrStale
+		}
+		if n.lease > t.now+int64(remaining) {
+			n.lease = t.now + int64(remaining)
 		}
 		if err = t.syncWake(r, n); err != nil {
 			return err

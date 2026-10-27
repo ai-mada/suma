@@ -10,7 +10,7 @@ import (
 	"github.com/ai-mada/suma/internal/dag"
 )
 
-func (s *Service) MigrateCandidateTransfers(ctx context.Context) error {
+func (s *Service) InitializeCandidateTransfers(ctx context.Context) error {
 	_, err := s.DB.ExecContext(ctx, s.ddl(`CREATE TABLE IF NOT EXISTS suma_candidate_transfers(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,attempt INTEGER NOT NULL,fence BIGINT NOT NULL,worker_id VARCHAR(100) NOT NULL,subject_hash VARCHAR(64) NOT NULL,binding TEXT NOT NULL,storage_path VARCHAR(200) NOT NULL,created_at VARCHAR(40) NOT NULL,UNIQUE(tenant_id,project_id,run_id,node_id,attempt,fence))`))
 	return err
 }

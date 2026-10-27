@@ -311,10 +311,47 @@ func TestArtifactBuildCandidatePinsActualSourceC(t *testing.T) {
 	cfg.Artifacts = &Client{BaseURL: server.URL, ProjectID: "project", Token: "fixture-worker-token"}
 	a.Type = "command"
 	a.Command = []string{"build"}
+	journalDir := t.TempDir()
+	currentJournal, err := OpenJournal(journalDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if currentJournal != nil {
+			_ = currentJournal.Close()
+		}
+	})
+	if err = currentJournal.Accept(a); err != nil {
+		t.Fatal(err)
+	}
+	cfg.Journal = currentJournal
 	r := Execute(context.Background(), a, cfg)
 	proof := artifactResult(t, r)
-	if r.ExitCode != 0 || proof == nil || proof.SourceCommit != candidate || r.WorkspaceEvidence["base_commit"] != candidate || r.WorkspaceEvidence["head_commit"] != candidate || r.WorkspaceEvidence["admin_base_commit"] != base {
+	if r.ExitCode != 0 || r.Error != "" || r.OutcomeUnknown || r.artifactPending || r.candidatePending || proof == nil || proof.SourceCommit != candidate || r.WorkspaceEvidence["base_commit"] != candidate || r.WorkspaceEvidence["head_commit"] != candidate || r.WorkspaceEvidence["admin_base_commit"] != base {
 		t.Fatalf("build did not preserve candidate C: %+v proof=%+v", r, proof)
+	}
+	if len(currentJournal.pendingArtifacts()) != 1 || len(currentJournal.pendingCandidates()) != 0 || r.WorkspaceEvidence["candidate_bundle"] != nil {
+		t.Fatal("artifact build entered a second candidate transfer")
+	}
+	if err = currentJournal.Finish(r); err != nil {
+		t.Fatal(err)
+	}
+	if err = currentJournal.Close(); err != nil {
+		t.Fatal(err)
+	}
+	currentJournal, err = OpenJournal(journalDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pending := currentJournal.Pending()
+	if len(pending) != 1 || pending[0].ExitCode != 0 || pending[0].Error != "" || pending[0].ArtifactEvidence == nil || *pending[0].ArtifactEvidence != *proof || len(currentJournal.pendingArtifacts()) != 0 || len(currentJournal.pendingCandidates()) != 0 {
+		t.Fatalf("restart did not retain the completed artifact result: %+v", pending)
+	}
+	if err = Replay(context.Background(), cfg.Artifacts, currentJournal); err != nil {
+		t.Fatal(err)
+	}
+	if len(currentJournal.Pending()) != 0 || len(store.results) != 1 || store.uploads != 1 || store.seals != 1 {
+		t.Fatal("restart repeated artifact transfer or lost its result ACK")
 	}
 }
 

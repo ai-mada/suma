@@ -30,7 +30,7 @@ func TestDeveloperCheckActualPlatformMCPReadAndRevocation(t *testing.T) {
 	}
 	t.Cleanup(func() { db.Close() })
 	svc := &platform.Service{DB: db, Dialect: "sqlite", DataDir: t.TempDir()}
-	if err = svc.Migrate(context.Background()); err != nil {
+	if err = svc.Initialize(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	engine, err := dag.New(db, "sqlite")

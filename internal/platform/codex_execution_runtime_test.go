@@ -300,7 +300,7 @@ func codexActualFixture(t *testing.T, dir string) *fixture {
 	}
 	t.Cleanup(func() { _ = db.Close() })
 	s := &Service{DB: db, Dialect: "sqlite", DataDir: filepath.Join(dir, "data")}
-	if err = s.Migrate(context.Background()); err != nil {
+	if err = s.Initialize(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	e, err := dag.New(db, "sqlite")

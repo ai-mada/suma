@@ -7,7 +7,7 @@ const repository = resolve(
     dirname(fileURLToPath(import.meta.url)),
     "../../../..",
   ),
-  base = resolve(repository, ".cache/e2e/localization-stage/checker-fixtures"),
+  base = resolve(repository, ".cache/e2e/baseline-100-web/checker-fixtures"),
   script = resolve(repository, "apps/web/scripts/check-i18n.mjs");
 const created: string[] = [];
 function check(zh: string, en: string, domains: Record<string,string> = {}, sources?:Record<string,string>) {
@@ -23,9 +23,9 @@ function check(zh: string, en: string, domains: Record<string,string> = {}, sour
   }
   const auditArguments:string[]=[];
   if(sources){
-    const source=resolve(folder,'src'),baseline=resolve(folder,'baseline.json');mkdirSync(source);
+    const source=resolve(folder,'src');mkdirSync(source);
     for(const [file,value]of Object.entries(sources)){const target=resolve(source,file);mkdirSync(dirname(target),{recursive:true});writeFileSync(target,value);}
-    writeFileSync(baseline,JSON.stringify({remaining:[]}));auditArguments.push('--source-dir',source,'--baseline',baseline);
+    auditArguments.push('--source-dir',source);
   }else auditArguments.push('--skip-audit');
   return spawnSync(
     process.execPath,

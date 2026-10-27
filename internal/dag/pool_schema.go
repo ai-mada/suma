@@ -3,16 +3,13 @@ package dag
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/ai-mada/suma/internal/store"
 )
 
-// Pool tables are additive. Existing runs have no route row and therefore
-// remain explicitly local; migration never assigns historical work to a pool.
+// Pool routes and resources use the same current scheduling contract as private work.
 var poolSchema = []string{
 	`CREATE TABLE IF NOT EXISTS dag_execution_pool_guards(pool_id VARCHAR(100) PRIMARY KEY,version BIGINT NOT NULL)`,
 	`CREATE TABLE IF NOT EXISTS dag_execution_pool_policies(pool_id VARCHAR(100) PRIMARY KEY,version INTEGER NOT NULL,concurrency_limit BIGINT NOT NULL,resource_limits TEXT NOT NULL,budget_limit BIGINT,budget_spent BIGINT NOT NULL,tenant_weights TEXT NOT NULL,updated_at VARCHAR(40) NOT NULL)`,
@@ -29,53 +26,7 @@ var poolSchema = []string{
 	`CREATE TABLE IF NOT EXISTS dag_claim_ready_scans(tenant_id VARCHAR(100) NOT NULL,project_id VARCHAR(100) NOT NULL,worker_id VARCHAR(100) NOT NULL,capability_sha256 VARCHAR(64) NOT NULL,last_turn BIGINT NOT NULL,last_head BIGINT NOT NULL,last_run_id VARCHAR(100) NOT NULL,last_node_rank BIGINT NOT NULL,last_node_sequence BIGINT NOT NULL,last_node_id VARCHAR(150) NOT NULL,PRIMARY KEY(tenant_id,project_id,worker_id,capability_sha256))`,
 }
 
-// Existing ready rows retain their recorded time and fixed node priority. This
-// adds only a derived sort key, never a new ready event or changed run version.
-func (e *Engine) backfillReadyRanks(ctx context.Context) error {
-	return e.write(ctx, func(t *transaction) error {
-		rows, err := t.rows(`SELECT q.run_id,q.node_id,q.sequence,q.ready_at,n.spec FROM dag_ready_v2 q JOIN dag_nodes n ON n.run_id=q.run_id AND n.id=q.node_id LEFT JOIN dag_ready_admission_order k ON k.run_id=q.run_id AND k.node_id=q.node_id WHERE k.node_id IS NULL ORDER BY q.run_id,q.node_id`)
-		if err != nil {
-			return err
-		}
-		type rank struct {
-			run, node    string
-			at, sequence int64
-			priority     int
-		}
-		items := []rank{}
-		for rows.Next() {
-			var run, node, at, raw string
-			var sequence int64
-			if err = rows.Scan(&run, &node, &sequence, &at, &raw); err != nil {
-				rows.Close()
-				return err
-			}
-			var spec Node
-			if json.Unmarshal([]byte(raw), &spec) != nil || spec.Priority < 0 || spec.Priority > 9 {
-				rows.Close()
-				return ErrInvalid
-			}
-			value := sequence
-			if clock, parseErr := time.Parse(time.RFC3339, at); parseErr == nil {
-				value = clock.Unix() - int64(spec.Priority)*60
-			}
-			items = append(items, rank{run: run, node: node, at: value, sequence: sequence, priority: spec.Priority})
-		}
-		err = rows.Err()
-		rows.Close()
-		if err != nil {
-			return err
-		}
-		for _, item := range items {
-			if err = t.insertIgnore(`INSERT INTO dag_ready_admission_order(run_id,node_id,rank_at,ready_sequence,priority)VALUES(?,?,?,?,?)`, "run_id,node_id", item.run, item.node, item.at, item.sequence, item.priority); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-}
-
-func (e *Engine) migratePoolSchema(ctx context.Context) error {
+func (e *Engine) initializePoolSchema(ctx context.Context) error {
 	for _, ddl := range poolSchema {
 		if e.dialect == "oceanbase" {
 			ddl = strings.ReplaceAll(ddl, " TEXT", " LONGTEXT")

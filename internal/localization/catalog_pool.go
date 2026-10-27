@@ -20,7 +20,7 @@ var poolCatalog = []Definition{
 	{Key: "pool.admission.paused", Texts: map[Locale]string{ZhCN: "共享执行池已暂停，已派发工作继续排空", EnUS: "The shared execution pool is paused. Already dispatched work can finish."}},
 	{Key: "pool.release.unsupported", Texts: map[Locale]string{ZhCN: "共享资源池尚未提供独立生产部署授权协议；请使用项目发布执行节点，现有本地发布仍可核对和排空", EnUS: "Shared pools do not yet support the separate authorization protocol for production deployments. Use a project release execution node. Existing local deployments can still be reconciled and completed."}},
 	{Key: "pool.grant.project_not_eligible", Texts: map[Locale]string{ZhCN: "仅有效且名称不超过500字节的项目可申请执行授权", EnUS: "Only active projects with names of at most 500 bytes can request an execution grant."}},
-	{Key: "pool.dispatch.legacy_route_basis_missing", Texts: map[Locale]string{ZhCN: "旧派发计划没有当前执行路由依据，请重新预览", EnUS: "This earlier dispatch plan has no basis for the current execution route. Create a new preview."}},
+	{Key: "pool.dispatch.route_basis_missing", Texts: map[Locale]string{ZhCN: "派发计划缺少固定执行路由依据，请重新预览", EnUS: "This dispatch plan has no fixed execution route basis. Create a new preview."}},
 	{Key: "pool.route.preview_version_changed", Texts: map[Locale]string{ZhCN: "路由预览版本已变化，请刷新", EnUS: "The route preview version has changed. Refresh to continue."}},
 	{Key: "pool.route.preview_integrity_failed", Texts: map[Locale]string{ZhCN: "路由预览内容校验失败，请重新生成", EnUS: "The route preview failed its content integrity check. Generate it again."}},
 	{Key: "pool.policy.too_many_tenant_weights", Texts: map[Locale]string{ZhCN: "每个资源池最多配置 256 个组织权重", EnUS: "Each pool can configure weights for at most 256 organizations."}},

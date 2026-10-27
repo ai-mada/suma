@@ -152,7 +152,7 @@ func (s *Service) CreateExecutionPoolPolicyPreview(ctx context.Context, engine *
 	input := normalizedPoolInput(request.Policy)
 	out = ExecutionPoolPolicyPreview{ID: newID(), PoolID: poolID, Version: 1, State: "ready", PolicyVersion: before.Version, PoolVersion: pool.Version, Before: poolPolicyView(before), Policy: input, Changes: schedulingChanges(dag.SchedulingPolicyInput{ConcurrencyLimit: before.ConcurrencyLimit, ResourceLimits: before.ResourceLimits, BudgetLimit: before.BudgetLimit}, dag.SchedulingPolicyInput{ConcurrencyLimit: input.ConcurrencyLimit, ResourceLimits: input.ResourceLimits, BudgetLimit: input.BudgetLimit}), WeightChanges: poolWeightChanges(before.TenantWeights, input.TenantWeights), CreatedBy: p.ID, CreatedAt: automationStamp(clock), ExpiresAt: automationStamp(clock.Add(30 * time.Minute)), AllowedActions: []string{"commit"}, Valid: true}
 	out.Impact.AsOf = automationStamp(clock)
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM dag_ready_v2 q JOIN dag_run_execution_routes r ON r.run_id=q.run_id WHERE r.pool_id=?`), poolID).Scan(&out.Impact.ReadyNodes); err != nil {
+	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM dag_ready q JOIN dag_run_execution_routes r ON r.run_id=q.run_id WHERE r.pool_id=?`), poolID).Scan(&out.Impact.ReadyNodes); err != nil {
 		return out, err
 	}
 	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM dag_nodes n JOIN dag_run_execution_routes r ON r.run_id=n.run_id WHERE r.pool_id=? AND n.state IN ('running','reconciling')`), poolID).Scan(&out.Impact.ActiveAttempts); err != nil {

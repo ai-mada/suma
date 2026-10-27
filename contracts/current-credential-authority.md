@@ -1,6 +1,6 @@
 # 当前凭证权威性合同
 
-状态：**v1 冻结实施基线；尚未实现或验收**。Root于2026-10-25接受proposal-1-r1及独立定向复核，CCA-PROP-01..04全部ADDRESSED。源码基线为T-P4-013本地提交`0a8308919dd4b2bf5f8836e943118a40f2a1a10a`。本文不替换其他领域合同，不改写013已验证事实。
+状态：**1.0.0 当前初始化与权限合同；完整平台及生产验收未完成**。更新：2026-10-27。2026-10-25 的 proposal-1-r1、CCA-PROP-01..04 和 T-P4-013 提交 `0a8308919dd4b2bf5f8836e943118a40f2a1a10a` 为历史设计与取材证据，不代表当前代码或部署状态。本文不改写既有验证事实。
 
 关联：[架构与时序](../docs/architecture/current-credential-authority.md)、[实施与验收计划](../docs/delivery/current-authority-plan.md)。以下 MUST／不得均为冻结实施要求，不是对现有代码的完成声明。
 
@@ -14,15 +14,15 @@
 
 ### CCA-001A 凭证 kind 与 label
 
-当前事实：`http.go` 的 POST `/auth/tokens` 对 label 仅空值默认 `Runner` 和长度最多 200 的检查，没有 browser／scoped 前缀保留检查；另一个 scope 字段只允许 runner／agent／api，独立落 `suma_token_scopes`。`CreateToken` 当前把 label 原样写 session。**这是源码事实，不是新增已复现漏洞**；scope 行存在时当前多个 browser guard 会拒绝它。
+服务端 token scope 仅允许 runner／agent／api，并分别映射受限凭证 kind；label 只是长度受限的显示名，不参与权限、来源或 browser 判定。
 
-拟议服务端发行记录必须具有独立 `credential_kind`，限定 browser-session／user-api／scoped-runner／scoped-agent；pool credential、provider credential 与持久 activation 保持各自实际存储，不塞进用户 session 伪造人类身份。label 继续是可自定义显示名，允许既有字符串，其值不参与 kind 判定。
+服务端发行记录必须具有独立 `credential_kind`，限定 browser-session／user-api／scoped-runner／scoped-agent；pool credential、provider credential 与持久 activation 保持各自真实存储，不塞进用户 session 伪造人类身份。
 
 session kind 与 token scope 必须一致：browser-session 没有 scope；其他用户 token 必须具有精确 kind/project scope，行缺失／不一致 fail closed。POST `/auth/tokens` 的公开 scope 只映射三种允许的 scoped kind；不接受 browser-session，不能以 label、cookie 或 source Principal 绕过。来源始终是当前 server-issued browser-session；源或目标权限不足时不发行。
 
-Root已选择**不保留旧认证能力的一次性重新认证／重新发行**。迁移前没有完整可信source＋family（browser）或source＋Grant／issuance（独立token）证明的session，一律标记`credential_kind=legacy-unclassified`、`migration_status=reissue-required`；包括有真实runner／agent／api scope但没有Grant的旧token。保留原session row、scope、label、user/tenant绑定及原expiry用于审计，不删除、不续写旧expiry，不从label或scope自动得到有效kind、source、family、Grant或issuance，更不得伪造approved_by／批准时间／policy事实。auth及protected current-proof返回401，不支持legacy secret replacement/replay；现有scope只是历史范围证据。用户真实重新登录获得新browser family，再以新command/key显式批准并发行新Grant/token。
+当前 1.0.0 仅初始化当前模型的新库。`Service.Initialize` 在任何领域 DDL 前调用 `store.InitializeBaseline`；没有本组件 1.0.0 声明却已有领域表，或声明版本不匹配时，必须拒绝并要求使用独立空库。初始化不升级、不清库、不改写原记录。`suma_schema_baselines` 只声明 schema，不能证明服务健康、权限有效、业务验收或生产就绪。
 
-分类必须基于**结构与可信发行证据是否完整**，不能按“时间早于某日”或默认值把未来有效行都打legacy：若已有完整且相互绑定的新模型持久证据，就保留原kind/source/family或Grant，按正常current-state/expiry校验；完整模型但已过期／撤销仍是正常失效，不被重新分类为legacy。旧非原子孤儿session同样要求重新认证，缺Grant不提供fallback。该legacy策略已由Root指定，三文档必须一致；行为合同已冻结，代码正在迁移，整体仍未验收。
+`InitializeCredentialAuthority` 只建立当前权限结构，不扫描已有 session 推断身份，不补写 source、family、Grant 或 issuance。`AuthenticateActor` 以及每次事务内当前 proof 都必须核验真实发行记录；仅有 session／scope／label 而无完整可信证明时直接 401，不续写 expiry、不制造批准或成功回执。新凭证只能由真实 password／invitation／bootstrap proof 或当前 browser 明确批准的发行命令产生。
 
 ## CCA-002 类型与 interface
 
@@ -67,7 +67,7 @@ CCA-012逐入口登记是拟冻结的**唯一kind/purpose明细registry**，本�
 | Runner 领取、续租、工具进度／结果、制品／release authorization | 不允许以 browser kind 冒用 | 不允许 | runner 的精确 scope/worker/assignment；agent 仅现有读工具 | pool/provider 有独立协议 |
 | Agent overview/tasks/search | 按现有路径授权 | 按现有合法 API 能力，不能升级 Agent | agent exact project read | 不从机器 owner 投影借权 |
 
-当前 `currentSchedulingSessionTx` 只检查无 scope，不查 browser label 的事实必须保留在迁移差异中。新 browser-only purpose 必须检查真实 credential_kind；不是在旧 helper 上仅增加 label 比较就完成 kind 模型。
+browser-only purpose 必须检查真实 credential kind 与当前来源，不能以 label 或无 scope 代替 browser 证明；当前角色、项目及用途限制仍须独立满足。
 
 ## CCA-003 事务、锁序与数据库时间
 
@@ -121,22 +121,21 @@ automation/tool 管理用当前人类Actor；派发用从实际 activation row/r
 
 signed ingress保留server signature、key generation、时间窗、delivery body identity、当前配置和parent activation；duplicate receipt的协议不机械改成browser replay。启用／配置修改命令与public delivery分开。setup/login/invitation acceptance基于原本bootstrap/password/one-time proof，不能要求先有browser；服务端发行明确kind与source。每个真实来源独立测试，不写万能“internal:true”模拟。
 
-## CCA-007 API 对照与兼容
+## CCA-007 当前 API 与拒绝语义
 
-| 表面 | 当前 | 拟议变化／保持 |
-|---|---|---|
-| 交互业务 method | Principal 或 Principal+token | Actor；无裸Principal写兼容入口；DTO结果与业务版本保持 |
-| /teams,/tasks等写/replay | 部分只current membership | 实际credential+kind/scope+当前membership，同tx先于receipt |
-| 浏览器原视图 | 现主要偏好命令headers | 全部交互browser mutation拟统一要求 Expected-User/Expected-Organization，源于客户端当前加载view；API固定scope不以此头模拟browser。Root更新客户端与生成文档；缺少期待头拟428，错配403 |
-| auth/tokens | 默认label Runner；scope白名单；session与scope分步写；响应无稳定operation必需 | label仅显示；服务端kind；稳定idempotency_key；发行时源browser当前＋目标权限；原子Grant/session/scope/slot；固定Grant/kind/tenant-policy期限上限，**不cap browser剩余TTL**；secret重放见CCA-008 |
-| auth/switch | 源/目标会员；target-only锁；每次新7日browser | 当前源browser+两会员；完整排序锁；派生来源/同logical slot；expiry不超过源；不延寿 |
-| auth/logout | outer Authenticate后直接delete单session | 私有logout-only目标来自真实credential绑定；browser撤销本family/generation，API/Runner/Agent仅撤销自身credential/slot；完整组织集合排序→账户→family/credential/slot同序；重复／已撤销／未知目标200并安全清cookie，不授新能力、不改其他family/Grant/source；具体行变化见CCA-008B |
-| workflow publish | Engine.PublishWithOperation无platform before | 新PublishWithAuthority；当前Actor callback先于engine receipt |
-| preferences／未来SSO link | 偏好已有browser label/no-scope检查；SSO link未实现 | 偏好改真实browser kind并保留原视图/版本；未来link只预留seam不宣称实现 |
-| 失败代码 | 不同helper可能403 | 缺失/过期/撤销凭证401；活凭证kind/scope/会员/action不足403；expected-view缺失428；原版本/idempotency冲突409；HTTP状态/消息国际化由Root同步 |
-| GET/POST读取/SSE | 外层认证与部分strong read混合 | 第二轮统一全protected read registry；SSE每建立/轮换/有界batch current read；公开协议另列 |
+| 表面 | 当前合同 |
+|---|---|
+| 交互业务 method | 接收封闭 Actor；所有 mutation 与 receipt 先取得同事务、固定 target／purpose 的当前 proof，不保留裸 Principal 写入口 |
+| 浏览器原视图 | 交互 browser mutation 使用 `X-Suma-Expected-User`／`X-Suma-Expected-Organization` 固定客户端已加载视图；缺失 428、错配 403；API 使用自身固定 scope，header 不能构造 Actor |
+| auth/tokens | 当前 browser 与目标项目权限、稳定 idempotency key、明确批准、Grant／session／scope／slot 原子发行；独立 TTL 受 kind／tenant policy 限制，不取 browser 剩余 TTL；secret 恢复见 CCA-008 |
+| auth/switch | 当前源 browser、两处会员和完整排序锁；同 logical family／slot，expiry 不超过来源，不延寿 |
+| auth/logout | 从真实 secret 解析私有撤回目标；browser 撤销本 family，API／Runner／Agent 仅撤销自身 credential／slot；重复或未知请求安全清 cookie，不授予能力 |
+| workflow publish／run | 当前 Actor callback 先于 Engine operation lookup，bind／effect 使用同事务 proof；内核方法不等于平台授权 |
+| preferences／未来 SSO link | 偏好仅真实 browser 并保留原视图和版本；SSO link 尚未实现，不以 seam 冒称接入 |
+| 失败代码 | 缺失／到期／撤销／缺发行证明 401；kind／scope／会员／用途不足 403；原视图缺失 428；版本或幂等正文冲突 409 |
+| protected read／SSE | 按 CCA-009 的真实来源登记；SSE 建立、轮换和有界 batch 都执行当前 proof，公开和机器协议分别登记 |
 
-Expected-view扩展是拟议公开兼容变化，不能隐藏在“纯内部重构”中。Root可以在冻结时选择先兼容警告再强制的同阶段迁移，但最终交付必须定义客户端与API token差异；不得让header自报user/org构造Actor。logout、bootstrap、机器和public签名协议按各自proof不盲加该头。
+以上是当前 1.0.0 合同，不提供告警后放行、旧字段别名或 Principal 授权旁路。bootstrap、logout、机器及 public 签名协议按自身 proof 处理。
 
 ### CCA-008 source、switch 与 secret issuance
 
@@ -150,23 +149,23 @@ browser switch另有严格来源寿命合同：同一持久session-family/genera
 
 独立token使用时持续验证自身current、creator或Grant当前权限、Grant状态／TTL／scope／配额上限及account/authsource revocation generation；普通cookie Logout与account-wide/compromise/sourceProvider撤销分开。真实SSO/provider session撤销是否使该Grant失效由明确policy指定，不能私自把所有独立凭证绑到浏览器cookie。durableactivation仍按自身记录与激活人当前权限。不得继承更高scope或无上限寿命。
 
-### CCA-008A 拟议持久数据（新增，Root复核后冻结DDL）
+### CCA-008A 当前初始化与持久证明
 
-| 实际存储 | 拟议字段与唯一性 | 用途／兼容 |
-|---|---|---|
-| 新 suma_identity_authority_locks | user_id 主键；sequence 非空 | 同账号凭证/会员变更与短命令协调，不是业务audit |
-| 新 suma_identity_sources | id 主键；user_id、kind、status、generation、revision；local-password每user唯一kind记录 | 底层可信身份来源；本地密码首轮实现，SSO未来独立kind；不把浏览器session登出等同source撤销 |
-| 新 suma_session_families | id主键；user_id、source_id/source_generation、generation、status、authenticated_at、absolute_expires_at | 真实browserlogin创建；switch同family；正常secret轮换不改generation，familylogout/revoke改变；不递归依赖旧sessionrow |
-| suma_sessions additive字段 | credential_kind默认legacy-unclassified；migration_status、credential_state、source_id、source_generation、absolute_expires_at、session_family_id/family_generation、grant_id、derived_slot_id | 无完整来源／family或Grant证明则reissue-required，原row/scope/expiry保留；新browser明确family，新独立token明确Grant；正常模型行不能被重复迁移误降legacy |
-| 新 suma_credential_grants | id主键；tenant/project、kind/scope、subject/approved_by、source_id/source_generation、policy_revision、approved_at、expires_at、quota/state | 本次发行命令显式批准；当前creator/Grant权限持续复核；quota使用已支持policy语义，不虚构未实现节点长期离线能力 |
-| 新 suma_credential_issuances | tenant_id＋source_credential_hash＋operation_id唯一；source_id/source_generation、family_id或grant_id、request_hash、kind、project_id、fixed_expires_at、current_token_hash、version、state | 幂等logicalslot/replacement；不存rawsecret；source_credential_hash只绑定发行操作，不把独立token用时依赖browser |
-| suma_token_scopes | 原token_hash/kind/project_id原样保留 | 新完整credential与scope必须一致；旧scope仅审计，不自动补Grant或有效kind；pool/provider仍独立表 |
+| 实际存储 | 当前事实与边界 |
+|---|---|
+| `suma_schema_baselines` | component／version；由 `store.InitializeBaseline` 在领域 DDL 前校验，只声明当前 schema |
+| `suma_sessions`、`suma_token_scopes` | 实际 credential digest、user／tenant、expiry／label 与精确 token scope；单独存在不能证明身份 |
+| `suma_auth_sources`、`suma_session_families` | 真实认证建立 source／generation 与固定 browser family／expiry；普通 secret 轮换不延寿，family 注销不撤销独立 Grant |
+| `suma_credential_authority`、`suma_credential_issuance` | digest 绑定 kind、source／generation、family、Grant、slot 与实际发行时点／operation；缺失或不一致直接拒绝 |
+| `suma_credential_grants` | 明确批准的 subject、tenant／project、kind／scope、approved_by／approved_at、policy revision、expiry 与撤销状态；使用时继续检查当前权限 |
+| `suma_credential_slots` | user／tenant／operation 唯一、request hash、当前 digest、固定 expiry、family／Grant 与撤销状态；秘密替换不创建无限后代，不保存 raw secret |
+| `suma_identity_authority_locks`、`suma_authority_credential_locks` | 账户与 credential 的排序协调点；sequence 不是业务操作或验收计数 |
 
-local-password source的新建／generation参加同user协调锁，但**迁移不凭旧scope造出一次新的认证或Grant批准**。无完整证明的旧browser及Runner/API/Agent全部保留原row/scope/expiry，只加legacy/reissue-required标记；不生成假的source认证、family、approved_by、issuance、成功operation或business activity。真实password/invitation proof重新认证后才有新browser，当前browser再显式发行新Grant；旧expiry不续写，旧secret不复活。重复迁移必须幂等，完整新模型行正常验证、不降级，原业务／执行／receipt逻辑摘要保持。DDL须由现有migration框架按三dialect验证，不能在设计阶段冒称已迁移。
+`Service.Initialize` 与各 `Initialize*` 只建立当前结构，不执行历史凭证分类、回填、旧接口转换或数据库升级。空库初始化不能凭空产生用户、身份、批准或业务证据；完成真实认证与明确发行后，凭证及其全部证明必须在同一事务写入。已声明的当前库可幂等完成中断的当前 DDL，声明不保证这些 DDL 或业务能力已全部完成。
 
-部署影响必须写进UI／运维说明：旧浏览器需重新登录，旧节点/API/Agent需重新配置新token。升级前可按授权流程盘点与排空领取／journal，但不能以legacy旁路接受旧回报。若仍有已开始attempt，其旧token回报401；保留run/node/attempt/fence/lease与原journal事实，按既有租约、当前合法授权和核对／对账协议处理。不能因凭证迁移自动写failed、重复派发、伪造ACK/成功，或把新token自动绑定旧attempt；既有租约自然到期行为不被本迁移重写。UI说明“需重新认证／配置凭证，原执行待按租约或核对处理”，这只是拟实施要求，不是已上线提示。
+没有发行证明的 session 或 scope 只能被拒绝，不能从 label、存活状态或已有范围生成有效 kind／source／family／Grant。原执行、attempt／fence／lease／journal 和已接受操作保持事实；凭证拒绝不等于外部效果未发生，不得自动改 failed、重复派发、伪造 ACK，或将新凭证自动绑定到旧 attempt。未知效果继续核对原操作；接入真实已有数据库、数据导入和独立升级方案不在本次新库初始化范围。
 
-### CCA-008B kind-specific Logout（拟议公开兼容合同）
+### CCA-008B kind-specific Logout
 
 | kind | 同序锁与持久变化 | 不得影响 |
 |---|---|---|
@@ -174,7 +173,7 @@ local-password source的新建／generation参加同user协调锁，但**迁移�
 | user-api／scoped-runner／scoped-agent | 锁其精确tenant/project涉及组织→user协调→自身credential/issuance slot；credential_state=revoked，同slot state=revoked且version只递增一次，阻断旧secret与定义在同slot的replacement | browserfamily、identitysource、其他credential/slot/Grant；不因撤销一个token去全账户注销 |
 | pool/provider/durable | 不进入人类auth/logout；按现有独立revoke/rotate/activation命令 | 不能从用户自报kind/family/grant目标操作 |
 
-Root已接受本节browser family公开兼容行为；本表统一架构与计划，不能回退成“所有kind只DELETE当前row”或“所有kind都撤销source”。`logoutTarget`为私有、withdraw-only上下文，只由请求真实secret的digest和可信持久绑定解析，不接收JSON family/Grant选择，也不能生成authorizedCommand。Logout专用HTTP adapter在通用current-auth拒绝之外只做撤回／清cookie：已撤销、过期、未知目标重复请求都200；known revoked目标不再次递增generation/version，不新建成功operation/activity；未知／legacy无法证明family目标则清cookie且无权限状态扩写。其他所有auth/current-proof对legacy照常401，这个无数据的注销200不是认证成功或legacy能力恢复。已认证后在tx前并发撤销也按同一幂等规则。注销行保留可供审计，不凭猜测清理其他身份。
+本节定义当前 browser family 注销行为。`logoutTarget` 为私有、withdraw-only 上下文，只由请求真实 secret 的 digest 和可信持久绑定解析，不接收 JSON family／Grant 选择，也不能生成 authorizedCommand。Logout 专用 HTTP adapter 仅撤回已证明的目标并清 cookie；已撤销、过期或未知目标重复请求均返回 200，known revoked 目标不重复推进 generation／version，不新增成功 operation／activity。无法证明 family 的目标只清 cookie，不推断或扩写权限。该无数据注销响应不是认证成功；其他 auth／current-proof 对缺证明凭证仍返回 401。
 
 本阶段Grant配额模式明确为 `inherit-project-policy`：始终受当前已实现project/scheduler资源／并发／budget限制，记录policy revision，不以缺省quota=null绕过它们；不虚构未实现的独立token按次／离线quota。若某kind/tenant policy要求当前实现无法执行的额外quota，则拒绝该发行，而不是当无限。未来新quota模式、长期离线Grant及其消费协议需要另行完整合同。
 
@@ -204,7 +203,7 @@ public health/static/localization、setup/login/invitation proof、signed hook�
 
 八个原RED逐一必须变为实际401，且business/operation/activity无增加；replay不得返回原对象。这是修复最低起点而非全部范围。测试维持真实setup→cookie→Handler→第一次body.Read gated通道→第二连接commit→释放body，不手造Principal，不用sleep。expiry用第二连接固定过去值；DB clock边界另测。相反顺序命令先提交→logout→后续401必须保持先前业务。
 
-| 所需拒绝案例 | 已有真实入口／先提交的失效 | 被延迟动作 | 当前已观察结果 | 拟议修复验收 |
+| 所需拒绝案例 | 已有真实入口／先提交的失效 | 被延迟动作 | T-P4-013 历史观察（原 RED） | 所需拒绝结果 |
 |---|---|---|---|---|
 | CCA-RED-01 | POST /teams；第二连接Logout | 全新操作key创建team | 201；team/operation/activity各+1 | 401；三类各+0，无成功对象 |
 | CCA-RED-02 | POST /teams；第二连接Logout | 同key/body恢复seed回执 | 201；原team；三类各+0 | 401；不得返回seed ID/body；三类+0 |
@@ -221,7 +220,7 @@ public health/static/localization、setup/login/invitation proof、signed hook�
 
 API正向必须包含真实**新模型显式发行**的projectAPI token，对精确project且当前role允许时POST `/tasks` fresh 201与同key/body成功replay（同ID、无重复行）；Runner/Agent和foreignproject API拒绝。该正向与browser失效八案例并列，不用“其他record正向”间接替代tasks。
 
-迁移fixture必须真实建立旧browser及runner/api/agent session+scope但无Grant，执行迁移后auth/当前协议全部401；原session/scope/expiry、business/execution/receipt不变，无新success operation/activity、无假approved_by/issuance。再真实login＋新command发行新模型token，验证其合法scope请求可用及foreignscope拒绝；重复迁移不改变新模型行或复活旧token。旧attempt/lease/journal保持且无因迁移自动failed、duplicate dispatch或fakeACK。Logout另验证family A/B均失效而独立login与token/activation仍有效；独立token注销仅本credential/slot失效，重复调用200无二次generation/version变化。
+初始化验收必须覆盖独立空库建立当前 schema、同版本幂等重启，以及未声明的既有领域库在任何领域 DDL 前被拒绝且原数据不变。另以缺失发行证明的 session／scope 验证 auth 与当前协议全部 401，拒绝不得补写来源、Grant、批准、issuance、成功 operation 或 activity。合法 password 登录与明确批准发行后的精确 scope 请求须保持可用，foreign scope 必须拒绝。已存在 attempt／lease／journal 和原回执不得因认证拒绝被自动改为 failed、重复派发或伪造 ACK；未知效果沿原操作核对。Logout 仍分别验证 family、独立 token／slot 和其他 activation 的边界与重复幂等性。
 
 Review两阶段之间、workspaceprepare前/后、reconcile外部读前/后、source switch/mint、同账号两session两org、并发revoke/issue/membership增删、API合法写、Runner/Agent拒绝、人类与pool分离、browserlogout后durableactivation继续而降权/revoke阻断，都必须独立证据。
 
@@ -229,13 +228,13 @@ read registry逐域覆盖logout/expiry后禁止新protectedresult，SSE建立/�
 
 ## CCA-011 AI SOP、交付与风险
 
-Root冻结sharedtypes/目的矩阵后，按计划主集成+三并行域实施。每域交付interface、删除旧入口清单、证明所改familyfresh/replay、未验证项及实际sourcehash；不改其他域共享文件。Root集中DAG/http/lifecycle/migration/generator/全套。出现漏点明确补registry，不因编译失败放回Principal fallback。
+Root 统一 shared types、用途矩阵、DAG、HTTP、生命周期、schema 初始化、generator 与集成证据，各领域遵守明确文件所有权。交付说明必须列出当前 interface、fresh／replay 权限证据和未验证项；出现漏点补 registry，不以 Principal fallback 或旧无 guard wrapper 消除编译错误。
 
-锁timeout、缺source、legacy无证明、scope冲突与不可解析expiry一律failclosed；禁止静默downgrade。日志不带token/password/cookie/rawsignature。原报告/RED保留；新证据放项目.cache，最终可提交精简证据由Root另建。两轮未闭合前不发布为已完成，不用旧不安全二进制作为guard关闭回滚。P0–P7、SSO和其他平台交付不由本合同完成。
+锁 timeout、缺 source／发行证明、scope 冲突与不可解析 expiry 一律 fail closed；禁止静默 downgrade。日志不带 token／password／cookie／raw signature。原报告和 RED 保留，新证据置项目 .cache 并由 Root 汇总精简事实。没有对应证据不宣称权限基础、P0–P7、SSO 或生产交付完成，也不能关闭 guard 或切回不安全程序恢复运行。
 
-下方逐方法登记以既有111行矩阵为来源，区分**当前观察分类**与**拟迁移责任**。confirmed仅teams/tasks；guarded不等于全面验证。Root可复核冻结责任，但不得漏掉任何实际入口。
+下方 111 行登记保留 2026-10-25 的发现分类与实施责任，属于历史取材矩阵，不是当前未修复清单、当前 API 来源或验收结论；confirmed 仅指当时 teams／tasks 的已复现案例，guarded 不等于全面验证。当前入口仍必须满足本合同的封闭 Actor、同事务 proof 与完整用途登记。
 
-## CCA-012 111 行逐方法迁移登记（提议）
+## CCA-012 历史 111 行逐方法实施登记
 
 本表中的“共享/内核”表示主集成Root控制interface，不授权worker改共享源。每行的具体旧源码位置保留在本地map JSON；新签名对所有人类写一律Actor，同tx helper一律proof，机器/持久来源明确variant。method多处出现是不同route/context，不合并丢边界。
 | 序号 | 入口／方法 | 当前观察分类 | 拟议真实来源／事务 interface | 实施责任 |

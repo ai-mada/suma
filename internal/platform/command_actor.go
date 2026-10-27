@@ -78,7 +78,7 @@ func kindName(k actorKind) string {
 	case actorAgentRead:
 		return "scoped-agent"
 	}
-	return "legacy-unclassified"
+	return "invalid"
 }
 
 func scopeKind(scope string) actorKind {
@@ -95,13 +95,13 @@ func scopeKind(scope string) actorKind {
 
 func (s *Service) readCredential(ctx context.Context, q authorityQuery, hash string, current bool) (credentialState, error) {
 	var c credentialState
-	var kind, status, expiry string
+	var kind, expiry string
 	var revoked int
-	query := `SELECT t.user_id,t.tenant_id,t.expires_at,t.label,a.credential_kind,a.migration_status,a.source_id,a.source_generation,a.family_id,a.family_generation,a.grant_id,a.slot_id,a.revoked FROM suma_sessions t JOIN suma_credential_authority a ON a.token_hash=t.token_hash WHERE t.token_hash=?`
+	query := `SELECT t.user_id,t.tenant_id,t.expires_at,t.label,a.credential_kind,a.source_id,a.source_generation,a.family_id,a.family_generation,a.grant_id,a.slot_id,a.revoked FROM suma_sessions t JOIN suma_credential_authority a ON a.token_hash=t.token_hash WHERE t.token_hash=?`
 	if current {
 		query = s.currentSQL(query)
 	}
-	err := q.QueryRowContext(ctx, s.q(query), hash).Scan(&c.ref.subjectID, &c.ref.tenantID, &expiry, &c.label, &kind, &status, &c.ref.sourceID, &c.ref.sourceRevision, &c.ref.familyID, &c.ref.familyRevision, &c.ref.grantID, &c.ref.slotID, &revoked)
+	err := q.QueryRowContext(ctx, s.q(query), hash).Scan(&c.ref.subjectID, &c.ref.tenantID, &expiry, &c.label, &kind, &c.ref.sourceID, &c.ref.sourceRevision, &c.ref.familyID, &c.ref.familyRevision, &c.ref.grantID, &c.ref.slotID, &revoked)
 	if errors.Is(err, sql.ErrNoRows) {
 		return c, unauthenticated()
 	}
@@ -113,7 +113,7 @@ func (s *Service) readCredential(ctx context.Context, q authorityQuery, hash str
 			c.kind = k
 		}
 	}
-	if c.kind == actorInvalid || status != "current" || revoked != 0 {
+	if c.kind == actorInvalid || revoked != 0 {
 		return c, unauthenticated()
 	}
 	c.ref.digest = hash

@@ -34,7 +34,7 @@ type failureDiagnosisRecord struct {
 	Route                 dag.ProjectExecutionRoute `json:"route"`
 }
 
-func (s *Service) MigrateFailureDiagnosis(ctx context.Context) error {
+func (s *Service) InitializeFailureDiagnosis(ctx context.Context) error {
 	for _, q := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_failure_diagnoses(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,state VARCHAR(20) NOT NULL,run_id VARCHAR(100) NOT NULL UNIQUE,source_run_id VARCHAR(100) NOT NULL,source_node_id VARCHAR(150) NOT NULL,source_attempt INTEGER NOT NULL,created_at VARCHAR(40) NOT NULL,payload TEXT NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_failure_diagnosis_executions(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,analysis_id VARCHAR(64) NOT NULL,attempt INTEGER NOT NULL,fence BIGINT NOT NULL,result_sha256 VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,result TEXT NOT NULL,PRIMARY KEY(analysis_id,attempt,fence,result_sha256))`,

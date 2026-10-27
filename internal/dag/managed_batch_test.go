@@ -125,7 +125,7 @@ func TestManagedBatchAtomicRootsRoutesAndReplay(t *testing.T) {
 func managedBatchCounts(t *testing.T, e *Engine) map[string]int {
 	t.Helper()
 	out := map[string]int{}
-	for _, table := range []string{"dag_workflows", "dag_managed_workflows", "dag_runs", "dag_nodes", "dag_run_families", "dag_run_execution_routes", "dag_ready_v2", "dag_operations", "dag_events", "dag_resource_ledger", "batch_domain_fixture"} {
+	for _, table := range []string{"dag_workflows", "dag_managed_workflows", "dag_runs", "dag_nodes", "dag_run_families", "dag_run_execution_routes", "dag_ready", "dag_operations", "dag_events", "dag_resource_ledger", "batch_domain_fixture"} {
 		var count int
 		if err := e.db.QueryRow("SELECT COUNT(*) FROM " + table).Scan(&count); err != nil {
 			t.Fatal(err)

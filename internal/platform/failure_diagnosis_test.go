@@ -221,7 +221,7 @@ func newDiagnosisFixture(t *testing.T) *diagnosisFixture {
 	t.Helper()
 	f := newFixture(t)
 	ctx := context.Background()
-	if e := f.s.MigrateFailureDiagnosis(ctx); e != nil {
+	if e := f.s.InitializeFailureDiagnosis(ctx); e != nil {
 		t.Fatal(e)
 	}
 	task := f.call("POST", "/tasks", f.body(map[string]any{"title": "Actual failed engineering task", "description": "Retain the failed execution and require independent validation", "acceptance_criteria": []string{"Exercise the regression"}}), 201)

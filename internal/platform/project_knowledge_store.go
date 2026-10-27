@@ -14,7 +14,7 @@ import (
 
 // Aggregates contain pointers and CAS state only. Every draft edit, publish and
 // retirement appends a complete immutable revision; old runs keep their snapshot.
-func (s *Service) MigrateProjectKnowledge(ctx context.Context) error {
+func (s *Service) InitializeProjectKnowledge(ctx context.Context) error {
 	for _, ddl := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_project_knowledge(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,kind VARCHAR(20) NOT NULL,state VARCHAR(20) NOT NULL,latest_revision INTEGER NOT NULL,published_revision INTEGER NOT NULL,title VARCHAR(200) NOT NULL,summary TEXT NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL,PRIMARY KEY(tenant_id,project_id,id))`,
 		`CREATE TABLE IF NOT EXISTS suma_project_knowledge_revisions(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,knowledge_id VARCHAR(64) NOT NULL,revision INTEGER NOT NULL,snapshot TEXT NOT NULL,PRIMARY KEY(tenant_id,project_id,knowledge_id,revision))`,
@@ -23,10 +23,10 @@ func (s *Service) MigrateProjectKnowledge(ctx context.Context) error {
 			return err
 		}
 	}
-	if err := s.MigrateSkillCatalog(ctx); err != nil {
+	if err := s.InitializeSkillCatalog(ctx); err != nil {
 		return err
 	}
-	return s.MigrateKnowledgeIntelligence(ctx)
+	return s.InitializeKnowledgeIntelligence(ctx)
 }
 
 const knowledgeSelect = `SELECT a.id,a.project_id,a.version,a.kind,a.state,a.latest_revision,a.published_revision,a.created_at,a.updated_at,l.snapshot,p.snapshot FROM suma_project_knowledge a JOIN suma_project_knowledge_revisions l ON l.tenant_id=a.tenant_id AND l.project_id=a.project_id AND l.knowledge_id=a.id AND l.revision=a.latest_revision LEFT JOIN suma_project_knowledge_revisions p ON p.tenant_id=a.tenant_id AND p.project_id=a.project_id AND p.knowledge_id=a.id AND p.revision=a.published_revision`

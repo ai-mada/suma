@@ -1,4 +1,4 @@
-import { tr, useLocale, UiError } from "../i18n";
+import { tr, useLocale } from "../i18n";
 import { Trans } from "../i18n/Trans";
 import type { ProjectPoolRunnerPage } from "../../../../packages/contracts/src";
 import type { ExecutionWorker } from "../tool-model";
@@ -11,17 +11,17 @@ export type IdentityRead = ReturnType<
 export type SharedIdentityRead = ReturnType<
   typeof useToolRead<ProjectPoolRunnerPage>
 >;
-/** A project-authorized shared identity is a read-only option, not a legacy
+/** A project-authorized shared identity is a read-only option, not a private
  * credential owned by this project. Never merge it into revoke/admin records. */
 export function currentToolIdentity(
   worker: string,
-  legacy: IdentityRead,
+  local: IdentityRead,
   shared: SharedIdentityRead,
 ) {
   return (
-    (!legacy.loading &&
-      !legacy.error &&
-      legacy.data?.items.some(
+    (!local.loading &&
+      !local.error &&
+      local.data?.items.some(
         (item) => item.worker_id === worker && item.status === "active",
       )) ||
     (!shared.loading &&
@@ -32,26 +32,26 @@ export function currentToolIdentity(
   );
 }
 export function ToolIdentity({
-  legacy,
+  local,
   shared,
   value,
   onChange,
 }: {
-  legacy: IdentityRead;
+  local: IdentityRead;
   shared: SharedIdentityRead;
   value: string;
   onChange: (worker: string) => void;
 }) {
   useLocale();
-  const localReady = !legacy.loading && !legacy.error,
+  const localReady = !local.loading && !local.error,
     poolReady = !shared.loading && !shared.error,
     pool = poolReady
       ? shared.data?.items.find((item) => item.worker_id === value)
       : undefined;
   return (
     <>
-      {legacy.error && (
-        <ErrorNotice error={legacy.error} onRetry={() => void legacy.read()} />
+      {local.error && (
+        <ErrorNotice error={local.error} onRetry={() => void local.read()} />
       )}{" "}
       {shared.error && (
         <ErrorNotice error={shared.error} onRetry={() => void shared.read()} />
@@ -66,7 +66,7 @@ export function ToolIdentity({
           <option value="">{tr("pools.identity.select")}</option>
           <optgroup label={tr("pools.identity.local_group")}>
             {localReady &&
-              legacy.data?.items
+              local.data?.items
                 .filter((item) => item.status === "active")
                 .map((item) => (
                   <option key={item.id} value={item.worker_id}>

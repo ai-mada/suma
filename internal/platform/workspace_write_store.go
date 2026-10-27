@@ -43,7 +43,7 @@ type workspaceWriteRecord struct {
 	Expires, ExecuteBefore, InspectionBefore, NextExpiry int64
 }
 
-func (s *Service) MigrateWorkspaceWrites(ctx context.Context) error {
+func (s *Service) InitializeWorkspaceWrites(ctx context.Context) error {
 	_, err := s.DB.ExecContext(ctx, s.ddl(`CREATE TABLE IF NOT EXISTS suma_workspace_writes(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,caller_hash VARCHAR(64) NOT NULL,operation_id VARCHAR(128) NOT NULL,request_hash VARCHAR(64) NOT NULL,run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,attempt INTEGER NOT NULL,assignment_fence BIGINT NOT NULL,worker_id VARCHAR(100) NOT NULL,policy_sha256 VARCHAR(64) NOT NULL,state VARCHAR(20) NOT NULL,inspection_state VARCHAR(20) NOT NULL,version INTEGER NOT NULL,created_at BIGINT NOT NULL,expires_at BIGINT NOT NULL,execute_before BIGINT NOT NULL,next_expiry BIGINT NOT NULL,payload TEXT NOT NULL,content TEXT NOT NULL,UNIQUE(tenant_id,project_id,caller_hash,operation_id))`))
 	if err != nil {
 		return err

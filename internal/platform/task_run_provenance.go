@@ -28,7 +28,7 @@ type TaskRunProvenancePage struct {
 	NextCursor string              `json:"next_cursor"`
 }
 
-func (s *Service) MigrateTaskRunProvenance(ctx context.Context) error {
+func (s *Service) InitializeTaskRunProvenance(ctx context.Context) error {
 	_, err := s.DB.ExecContext(ctx, s.ddl(`CREATE TABLE IF NOT EXISTS suma_task_run_provenance(run_id VARCHAR(100) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,observed_at VARCHAR(40) NOT NULL,payload TEXT NOT NULL)`))
 	if err != nil {
 		return err

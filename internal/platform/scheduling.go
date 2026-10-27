@@ -12,7 +12,7 @@ import (
 	"github.com/ai-mada/suma/internal/dag"
 )
 
-func (s *Service) MigrateScheduling(ctx context.Context) error {
+func (s *Service) InitializeScheduling(ctx context.Context) error {
 	_, err := s.DB.ExecContext(ctx, s.ddl(`CREATE TABLE IF NOT EXISTS suma_scheduling_previews(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,state VARCHAR(20) NOT NULL,applied_policy_version INTEGER NOT NULL,created_by VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,expires_at VARCHAR(40) NOT NULL,payload TEXT NOT NULL)`))
 	return err
 }
@@ -243,7 +243,7 @@ func (s *Service) CreateSchedulingPreview(ctx context.Context, engine *dag.Engin
 		return out, err
 	}
 	impact := SchedulingPolicyImpact{ObservedAt: policy.AsOf, BudgetSpent: policy.BudgetSpent, BudgetHistory: policy.BudgetHistory, Resources: policy.Resources, Notes: []string{"容量为项目执行准入额度，并非实测硬件或操作系统硬限制", "降低容量只阻止新派发，已运行尝试继续；累计准入单位不退款", "影响数据为预览时快照；提交时重新核验权限与策略版本"}}
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM dag_ready_v2 q JOIN dag_nodes n ON n.run_id=q.run_id AND n.id=q.node_id WHERE q.tenant_id=? AND q.project_id=? AND n.state='ready'`), p.TenantID, project).Scan(&impact.ReadyTotal); err != nil {
+	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM dag_ready q JOIN dag_nodes n ON n.run_id=q.run_id AND n.id=q.node_id WHERE q.tenant_id=? AND q.project_id=? AND n.state='ready'`), p.TenantID, project).Scan(&impact.ReadyTotal); err != nil {
 		return out, err
 	}
 	for _, resource := range policy.Resources {

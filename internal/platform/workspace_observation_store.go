@@ -41,7 +41,7 @@ type workspaceObservationRecord struct {
 	LeaseOwner, ResultSHA                         string
 }
 
-func (s *Service) MigrateWorkspaceObservations(ctx context.Context) error {
+func (s *Service) InitializeWorkspaceObservations(ctx context.Context) error {
 	_, err := s.DB.ExecContext(ctx, s.ddl(`CREATE TABLE IF NOT EXISTS suma_workspace_observations(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,caller_hash VARCHAR(64) NOT NULL,operation_id VARCHAR(128) NOT NULL,request_hash VARCHAR(64) NOT NULL,run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,attempt INTEGER NOT NULL,assignment_fence BIGINT NOT NULL,worker_id VARCHAR(100) NOT NULL,state VARCHAR(20) NOT NULL,version INTEGER NOT NULL,lease_fence BIGINT NOT NULL,lease_until BIGINT NOT NULL,lease_owner VARCHAR(64) NOT NULL,expires_at BIGINT NOT NULL,payload TEXT NOT NULL,result TEXT NOT NULL,result_sha256 VARCHAR(64) NOT NULL,UNIQUE(tenant_id,project_id,caller_hash,operation_id))`))
 	if err != nil {
 		return err

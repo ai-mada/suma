@@ -8,9 +8,9 @@ import (
 	"github.com/ai-mada/suma/internal/store"
 )
 
-// MigrateExecutionPools stores ownership and delegation separately from the
+// InitializeExecutionPools stores ownership and delegation separately from the
 // scheduler's resource ledger. No machine credential is a human session.
-func (s *Service) MigrateExecutionPools(ctx context.Context) error {
+func (s *Service) InitializeExecutionPools(ctx context.Context) error {
 	statements := []string{
 		`CREATE TABLE IF NOT EXISTS suma_execution_pools(id VARCHAR(64) PRIMARY KEY,owner_tenant_id VARCHAR(64) NOT NULL,name VARCHAR(200) NOT NULL,description TEXT NOT NULL,version INTEGER NOT NULL,status VARCHAR(20) NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_execution_pool_grants(id VARCHAR(64) PRIMARY KEY,pool_id VARCHAR(64) NOT NULL,owner_tenant_id VARCHAR(64) NOT NULL,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,shared_project_name VARCHAR(500) NOT NULL,version INTEGER NOT NULL,status VARCHAR(20) NOT NULL,project_weight INTEGER NOT NULL,request_sha256 VARCHAR(64) NOT NULL,requested_by VARCHAR(64) NOT NULL,decided_by VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL)`,

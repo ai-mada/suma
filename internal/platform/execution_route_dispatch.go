@@ -11,7 +11,7 @@ import (
 // The plan's route basis is private persistence, not a client-selected grant.
 // It is the authority basis for the reviewed route generation. The public plan
 // snapshot makes that basis reviewable but is never trusted as authorization.
-func (s *Service) migrateTaskDispatchRoutes(ctx context.Context) error {
+func (s *Service) initializeTaskDispatchRoutes(ctx context.Context) error {
 	_, err := s.DB.ExecContext(ctx, s.ddl(`CREATE TABLE IF NOT EXISTS suma_task_dispatch_route_bases(plan_id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,route_version INTEGER NOT NULL,pool_id VARCHAR(100) NOT NULL,grant_id VARCHAR(100) NOT NULL,grant_version INTEGER NOT NULL)`))
 	return err
 }
@@ -25,12 +25,7 @@ func (s *Service) checkTaskDispatchRouteBasisTx(ctx context.Context, tx *sql.Tx,
 	basis := dag.ProjectExecutionRoute{TenantID: tenant, ProjectID: project}
 	err := tx.QueryRowContext(ctx, s.q(`SELECT route_version,pool_id,grant_id,grant_version FROM suma_task_dispatch_route_bases WHERE plan_id=? AND tenant_id=? AND project_id=?`), planID, tenant, project).Scan(&basis.Version, &basis.PoolID, &basis.GrantID, &basis.GrantVersion)
 	if errors.Is(err, sql.ErrNoRows) {
-		// Previously reviewed local plans predate routing. Do not reinterpret
-		// them as consent to a subsequently configured shared machine identity.
-		if current.Version == 0 && current.PoolID == "" {
-			return nil
-		}
-		return conflict("旧派发计划没有当前执行路由依据，请重新预览")
+		return conflict("派发计划缺少固定执行路由依据，请重新预览")
 	}
 	if err != nil {
 		return err

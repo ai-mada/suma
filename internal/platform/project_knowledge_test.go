@@ -10,7 +10,7 @@ import (
 func knowledgeFixture(t *testing.T) *fixture {
 	t.Helper()
 	f := newFixture(t)
-	if err := f.s.MigrateProjectKnowledge(context.Background()); err != nil {
+	if err := f.s.InitializeProjectKnowledge(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	return f

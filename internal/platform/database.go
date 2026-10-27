@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+
+	"github.com/ai-mada/suma/internal/store"
 )
 
 type Service struct {
@@ -42,7 +44,10 @@ func (s *Service) ddl(query string) string {
 	}
 	return query
 }
-func (s *Service) Migrate(ctx context.Context) error {
+func (s *Service) Initialize(ctx context.Context) error {
+	if err := store.InitializeBaseline(ctx, s.DB, s.Dialect, "platform", "suma_", "1.0.0"); err != nil {
+		return err
+	}
 	statements := []string{
 		`CREATE TABLE IF NOT EXISTS suma_human_resources(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,user_id VARCHAR(64) NOT NULL,resource_id VARCHAR(64) NOT NULL UNIQUE,PRIMARY KEY(tenant_id,project_id,user_id))`,
 		`CREATE TABLE IF NOT EXISTS suma_token_scopes(token_hash VARCHAR(64) PRIMARY KEY,kind VARCHAR(30) NOT NULL,project_id VARCHAR(64) NOT NULL)`,
@@ -67,74 +72,74 @@ func (s *Service) Migrate(ctx context.Context) error {
 			return fmt.Errorf("platform migration: %w", err)
 		}
 	}
-	if err := s.MigrateWorkspace(ctx); err != nil {
+	if err := s.InitializeWorkspace(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateWorkspaceObservations(ctx); err != nil {
+	if err := s.InitializeWorkspaceObservations(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateWorkspaceWrites(ctx); err != nil {
+	if err := s.InitializeWorkspaceWrites(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateProjections(ctx); err != nil {
+	if err := s.InitializeProjections(ctx); err != nil {
 		return err
 	}
-	if err := s.MigratePlanning(ctx); err != nil {
+	if err := s.InitializePlanning(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateIntelligentPlanning(ctx); err != nil {
+	if err := s.InitializeIntelligentPlanning(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateUsageAccounting(ctx); err != nil {
+	if err := s.InitializeUsageAccounting(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateGovernance(ctx); err != nil {
+	if err := s.InitializeGovernance(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateCredentialAuthority(ctx); err != nil {
+	if err := s.InitializeCredentialAuthority(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateLocalePreferences(ctx); err != nil {
+	if err := s.InitializeLocalePreferences(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateArtifacts(ctx); err != nil {
+	if err := s.InitializeArtifacts(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateReleaseDeployment(ctx); err != nil {
+	if err := s.InitializeReleaseDeployment(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateAutomations(ctx); err != nil {
+	if err := s.InitializeAutomations(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateAutomationIngresses(ctx); err != nil {
+	if err := s.InitializeAutomationIngresses(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateToolProfiles(ctx); err != nil {
+	if err := s.InitializeToolProfiles(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateTaskDispatch(ctx); err != nil {
+	if err := s.InitializeTaskDispatch(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateScheduling(ctx); err != nil {
+	if err := s.InitializeScheduling(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateExecutionPools(ctx); err != nil {
+	if err := s.InitializeExecutionPools(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateProjectKnowledge(ctx); err != nil {
+	if err := s.InitializeProjectKnowledge(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateRequirementDesign(ctx); err != nil {
+	if err := s.InitializeRequirementDesign(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateTaskDesignView(ctx); err != nil {
+	if err := s.InitializeTaskDesignView(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateTaskHandoffs(ctx); err != nil {
+	if err := s.InitializeTaskHandoffs(ctx); err != nil {
 		return err
 	}
-	if err := s.MigrateCandidateTransfers(ctx); err != nil {
+	if err := s.InitializeCandidateTransfers(ctx); err != nil {
 		return err
 	}
-	return s.MigrateRepositoryIntegration(ctx)
+	return s.InitializeRepositoryIntegration(ctx)
 }

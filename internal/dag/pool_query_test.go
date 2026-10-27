@@ -63,7 +63,7 @@ func TestPoolAdmissionOrderDoesNotAccumulateCompletedOrRunningRows(t *testing.T)
 	if err := e.Complete(ctx, a.TenantID, a.ProjectID, Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, OperationID: "rank-projection-finish"}); err != nil {
 		t.Fatal(err)
 	}
-	if err := e.db.QueryRow(`SELECT COUNT(*) FROM dag_ready_admission_order k LEFT JOIN dag_ready_v2 q ON q.run_id=k.run_id AND q.node_id=k.node_id WHERE q.node_id IS NULL`).Scan(&ranks); err != nil {
+	if err := e.db.QueryRow(`SELECT COUNT(*) FROM dag_ready_admission_order k LEFT JOIN dag_ready q ON q.run_id=k.run_id AND q.node_id=k.node_id WHERE q.node_id IS NULL`).Scan(&ranks); err != nil {
 		t.Fatal(err)
 	}
 	if ranks != 0 {

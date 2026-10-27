@@ -337,7 +337,7 @@ func TestSchedulingIndexQueryPlans(t *testing.T) {
 		args      []any
 	}{
 		{"due_wake", `SELECT run_id,node_id FROM dag_wakeups WHERE state='pending' AND due_at<=? ORDER BY due_at,run_id,node_id,kind LIMIT ?`, []any{int64(1), 100}},
-		{"ready_scope", `SELECT run_id,node_id FROM dag_ready_v2 WHERE tenant_id=? AND project_id=? AND sequence>? ORDER BY sequence,run_id,node_id LIMIT ?`, []any{"t", "p", int64(0), 50}},
+		{"ready_scope", `SELECT run_id,node_id FROM dag_ready WHERE tenant_id=? AND project_id=? AND sequence>? ORDER BY sequence,run_id,node_id LIMIT ?`, []any{"t", "p", int64(0), 50}},
 		{"run_turns", `SELECT run_id,last_sequence,first_ready_sequence FROM dag_scheduler_run_turns WHERE tenant_id=? AND project_id=? AND enabled=1 ORDER BY last_sequence,first_ready_sequence,run_id LIMIT 1`, []any{"t", "p"}},
 		{"node_work", `SELECT node_id FROM dag_node_work WHERE run_id=? ORDER BY sequence,node_id LIMIT 1`, []any{"r"}},
 		{"outbound_edges", `SELECT target_id,condition_value FROM dag_graph_edges WHERE run_id=? AND source_id=? ORDER BY target_id`, []any{"r", "n"}},

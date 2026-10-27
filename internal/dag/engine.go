@@ -56,7 +56,6 @@ type runState struct {
 	tx                                                     *transaction
 	partial                                                bool
 	indexed                                                bool
-	kernelGeneration                                       int
 	loadErr                                                error
 	totalNodes, terminalNodes, failedNodes, cancelledNodes int
 	resolved                                               map[string]string
@@ -70,17 +69,20 @@ func New(db *sql.DB, dialect string) (*Engine, error) {
 	if dialect != "sqlite" && dialect != "oceanbase" && dialect != "postgres" {
 		return nil, dagDiagnostic(fmt.Errorf("%w: database dialect", ErrUnsupported), "dag.storage.dialect", nil)
 	}
+	if err := store.InitializeBaseline(context.Background(), db, dialect, "dag", "dag_", "1.0.0"); err != nil {
+		return nil, err
+	}
 	e := &Engine{db: db, dialect: dialect, LeaseSeconds: 30}
 	for _, ddl := range schema {
 		if dialect == "oceanbase" {
 			ddl = strings.ReplaceAll(ddl, " TEXT", " LONGTEXT")
 		}
 		if _, err := db.Exec(ddl); err != nil {
-			return nil, fmt.Errorf("dag migration: %w", err)
+			return nil, fmt.Errorf("dag initialization: %w", err)
 		}
 	}
-	if err := migrateEventIndexes(db, dialect); err != nil {
-		return nil, fmt.Errorf("dag event index migration: %w", err)
+	if err := initializeEventIndexes(db, dialect); err != nil {
+		return nil, fmt.Errorf("dag event index initialization: %w", err)
 	}
 	insert := "INSERT INTO dag_lock (id,seq) VALUES (1,0) ON CONFLICT (id) DO NOTHING"
 	if dialect == "oceanbase" {
@@ -89,17 +91,11 @@ func New(db *sql.DB, dialect string) (*Engine, error) {
 	if _, err := db.Exec(insert); err != nil {
 		return nil, err
 	}
-	if err := e.migrateSchedulingSchema(context.Background()); err != nil {
-		return nil, fmt.Errorf("scheduling migration: %w", err)
+	if err := e.initializeSchedulingSchema(context.Background()); err != nil {
+		return nil, fmt.Errorf("scheduling initialization: %w", err)
 	}
-	if err := e.migratePoolSchema(context.Background()); err != nil {
+	if err := e.initializePoolSchema(context.Background()); err != nil {
 		return nil, err
-	}
-	if err := e.migrateSchedulingData(context.Background()); err != nil {
-		return nil, fmt.Errorf("scheduling data migration: %w", err)
-	}
-	if err := e.backfillReadyRanks(context.Background()); err != nil {
-		return nil, fmt.Errorf("ready rank migration: %w", err)
 	}
 	return e, nil
 }

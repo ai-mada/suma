@@ -2,7 +2,7 @@ package platform
 
 import "context"
 
-func (s *Service) MigrateArtifacts(ctx context.Context) error {
+func (s *Service) InitializeArtifacts(ctx context.Context) error {
 	for _, q := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_release_workers(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,worker_id VARCHAR(100) NOT NULL,token_hash VARCHAR(64) NOT NULL UNIQUE,version INTEGER NOT NULL,status VARCHAR(20) NOT NULL,profiles TEXT NOT NULL,deployment INTEGER NOT NULL,created_by VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,expires_at VARCHAR(40) NOT NULL,UNIQUE(tenant_id,project_id,worker_id))`,
 		`CREATE TABLE IF NOT EXISTS suma_artifact_uploads(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,worker_id VARCHAR(100) NOT NULL,token_hash VARCHAR(64) NOT NULL,run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,attempt INTEGER NOT NULL,fence BIGINT NOT NULL,profile_id VARCHAR(100) NOT NULL,profile_sha256 VARCHAR(64) NOT NULL,manifest_sha256 VARCHAR(64) NOT NULL,manifest TEXT NOT NULL,size_bytes BIGINT NOT NULL,state VARCHAR(20) NOT NULL,artifact_id VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,UNIQUE(tenant_id,project_id,run_id,node_id,attempt,fence))`,

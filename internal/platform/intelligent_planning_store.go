@@ -33,7 +33,7 @@ type planningRecord struct {
 	Route                 dag.ProjectExecutionRoute `json:"route"`
 }
 
-func (s *Service) MigrateIntelligentPlanning(ctx context.Context) error {
+func (s *Service) InitializeIntelligentPlanning(ctx context.Context) error {
 	for _, statement := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_planning_analyses(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,state VARCHAR(20) NOT NULL,run_id VARCHAR(100) NOT NULL UNIQUE,created_at VARCHAR(40) NOT NULL,payload TEXT NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_planning_outcomes(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,analysis_id VARCHAR(64) NOT NULL,run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,attempt INTEGER NOT NULL,fence BIGINT NOT NULL,worker_id VARCHAR(100) NOT NULL,result_sha256 VARCHAR(64) NOT NULL,PRIMARY KEY(analysis_id,attempt,fence))`,

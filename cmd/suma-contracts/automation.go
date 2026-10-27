@@ -46,9 +46,9 @@ func automationContracts(add operationAdder, paths map[string]any) {
 	op["x-request-schema-coverage"] = "strict project/after query and Last-Event-ID validation; run-bound cursor and live authorization"
 	op["x-event-schema"] = map[string]any{"$ref": "#/components/schemas/Event"}
 	op["x-disallowed-token-scopes"] = []string{"runner", "agent"}
-	legacy := paths["/runs/{id}/events"].(map[string]any)["get"].(map[string]any)
-	legacy["description"] = "Authorized durable history window, at most 128 events. Resume using next_cursor; zero or an existing sequence from this exact run. Same current authority checks as streaming."
-	for _, v := range legacy["parameters"].([]any) {
+	history := paths["/runs/{id}/events"].(map[string]any)["get"].(map[string]any)
+	history["description"] = "Authorized durable history window, at most 128 events. Resume using next_cursor; zero or an existing sequence from this exact run. Same current authority checks as streaming."
+	for _, v := range history["parameters"].([]any) {
 		parameter := v.(map[string]any)
 		if parameter["name"] == "after" {
 			parameter["schema"] = map[string]any{"type": "integer", "minimum": 0, "maximum": int64(9007199254740991)}

@@ -28,7 +28,7 @@ func repositoryError(status int, code, message string) error {
 }
 func repositoryConflict(code, message string) error { return repositoryError(409, code, message) }
 
-func (s *Service) MigrateRepositoryIntegration(ctx context.Context) error {
+func (s *Service) InitializeRepositoryIntegration(ctx context.Context) error {
 	for _, ddl := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_repository_targets(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,data TEXT NOT NULL,UNIQUE(tenant_id,project_id,id))`,
 		`CREATE TABLE IF NOT EXISTS suma_repository_plans(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,target_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,created_at VARCHAR(40) NOT NULL,data TEXT NOT NULL)`,

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
+	"github.com/ai-mada/suma/internal/buildinfo"
 	"io"
 	"net/url"
 	"os"
@@ -85,7 +86,7 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 		return 2
 	}
 	if *showVersion {
-		_, err := io.WriteString(out, "suma 1.0.0\n")
+		_, err := io.WriteString(out, "suma "+buildinfo.Version+"\n")
 		if err != nil {
 			return 1
 		}

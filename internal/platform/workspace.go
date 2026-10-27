@@ -134,7 +134,7 @@ func (s *Service) workspaceRoot(ctx context.Context, actor Actor, project string
 
 }
 
-func (s *Service) MigrateWorkspace(ctx context.Context) error {
+func (s *Service) InitializeWorkspace(ctx context.Context) error {
 	payloadType := "TEXT"
 	if s.Dialect == "oceanbase" {
 		payloadType = "MEDIUMTEXT"

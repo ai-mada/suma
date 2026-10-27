@@ -18,7 +18,7 @@ func setResponseLanguage(w http.ResponseWriter, r *http.Request) {
 }
 
 // Exact source lookup prevents a general invalid_input translation from hiding
-// the useful specific validation diagnostic. Legacy gaps remain visible and
+// the useful specific validation diagnostic. Untranslated diagnostics remain visible and
 // machine-readable; adding a catalog entry needs no change to stored evidence.
 func localizedAPIError(w http.ResponseWriter, e *APIError, original error) map[string]any {
 	locale, ok := localization.Normalize(w.Header().Get("Content-Language"))
@@ -51,7 +51,7 @@ func localizedAPIError(w http.ResponseWriter, e *APIError, original error) map[s
 		key, found = localization.LookupCode(e.Code)
 	}
 	if !found {
-		key = "legacy." + e.Code
+		key = "untranslated." + e.Code
 	}
 	text, _ := localization.WithSource(locale, key, params, e.Message)
 	message := text.Text

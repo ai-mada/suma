@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/ai-mada/suma/internal/buildinfo"
 	"io"
 	"log/slog"
 	"net"
@@ -17,7 +18,7 @@ import (
 	"github.com/ai-mada/suma/internal/deployer"
 )
 
-var version = "1.0.0"
+const version = buildinfo.Version
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr, os.LookupEnv)) }
 

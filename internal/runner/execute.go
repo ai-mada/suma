@@ -822,8 +822,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			r.ExitCode = -1
 			r.Error = "artifact evidence: " + err.Error()
 		}
-	}
-	if workspace != nil && cfg.Artifacts != nil && (a.Type == "command" || a.Type == "agent") && workspace.HeadCommit != workspace.AdminBaseCommit && r.ExitCode == 0 && !r.Stopped && !r.OutcomeUnknown && r.Error == "" && r.WorkspaceEvidence["clean"] == true {
+	} else if workspace != nil && cfg.Artifacts != nil && (a.Type == "command" || a.Type == "agent") && workspace.HeadCommit != workspace.AdminBaseCommit && r.ExitCode == 0 && !r.Stopped && !r.OutcomeUnknown && r.Error == "" && r.WorkspaceEvidence["clean"] == true {
 		if err = finishCandidate(ctx, a, cfg, workspace, &r); err != nil {
 			r.ExitCode = -1
 			r.Error = "candidate transfer: " + err.Error()

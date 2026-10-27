@@ -14,7 +14,7 @@ import (
 	"github.com/ai-mada/suma/internal/toolcontract"
 )
 
-func (s *Service) MigrateToolProfiles(ctx context.Context) error {
+func (s *Service) InitializeToolProfiles(ctx context.Context) error {
 	for _, statement := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_tool_profiles(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,worker_id VARCHAR(100) NOT NULL,name VARCHAR(200) NOT NULL,version INTEGER NOT NULL,state VARCHAR(20) NOT NULL,profile TEXT NOT NULL,enabled_by VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_tool_inventories(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,worker_id VARCHAR(100) NOT NULL,observed_at VARCHAR(40) NOT NULL,items TEXT NOT NULL,PRIMARY KEY(tenant_id,project_id,worker_id))`,

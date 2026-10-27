@@ -14,7 +14,7 @@ import (
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
-func TestProjectCommandClaimRemainsLocalAfterPoolMigration(t *testing.T) {
+func TestProjectCommandClaimRemainsLocalWithPoolEnabled(t *testing.T) {
 	f := newFixture(t)
 	credential := f.call("POST", "/release-workers", f.body(map[string]any{"worker_id": "route-local-fixture", "profiles": []any{}, "deployment": false}), 201)
 	w := f.call("POST", "/workflows", f.body(map[string]any{"name": "原项目领取入口", "nodes": []dag.Node{{ID: "work", Type: "command", Command: []string{"fixture"}}}}), 201)
@@ -188,13 +188,17 @@ func TestTaskDispatchBoundRouteRecheckRollsBackPostAuthorityDrift(t *testing.T) 
 	}
 }
 
-func TestTaskDispatchLegacyLocalPlanKeepsUnchangedDefaultOnly(t *testing.T) {
+func TestTaskDispatchRejectsMissingFixedRouteBasis(t *testing.T) {
 	f, _, request, _ := taskDispatchFixture(t)
 	plan := f.call("POST", "/task-dispatch-plans", request, 201)
 	if _, err := f.s.DB.Exec(`DELETE FROM suma_task_dispatch_route_bases WHERE plan_id=?`, plan["id"]); err != nil {
 		t.Fatal(err)
 	}
-	f.call("POST", "/task-dispatch-plans/"+plan["id"].(string)+"/start", f.body(map[string]any{"expected_version": plan["version"]}), 201)
+	f.call("POST", "/task-dispatch-plans/"+plan["id"].(string)+"/start", f.body(map[string]any{"expected_version": plan["version"]}), 409)
+	var runs int
+	if err := f.s.DB.QueryRow(`SELECT COUNT(*) FROM dag_runs`).Scan(&runs); err != nil || runs != 0 {
+		t.Fatalf("missing route created a run: %d %v", runs, err)
+	}
 }
 
 func TestTaskDispatchPoolGrantRevokedAfterPreviewDoesNotCreateRun(t *testing.T) {

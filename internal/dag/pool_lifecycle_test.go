@@ -102,7 +102,7 @@ func TestPoolLastCumulativeUnitIsAtomicAcrossConnections(t *testing.T) {
 	}
 }
 
-func TestPoolDefaultRouteSwitchPreservesChildAndLegacyRouting(t *testing.T) {
+func TestPoolDefaultRouteSwitchPreservesFrozenChildRouting(t *testing.T) {
 	e, scopes := poolFixture(t)
 	s := scopes[0]
 	if _, err := e.Publish(ctx, s.TenantID, s.ProjectID, Workflow{ID: "child", Name: "child", Nodes: []Node{{ID: "work", Type: "task"}}}); err != nil {

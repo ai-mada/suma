@@ -23,15 +23,11 @@ func (t *transaction) enqueueNode(r *runState, id string) error {
 	return t.insertIgnore(`INSERT INTO dag_node_work(run_id,node_id,sequence)VALUES(?,?,?)`, "run_id,node_id", r.ID, id, seq)
 }
 
-func (t *transaction) initializeGraph(r *runState, legacy bool) error {
+func (t *transaction) initializeGraph(r *runState) error {
 	r.tx = t
 	r.indexed = true
 	r.nodeMap = map[string]*nodeState{}
 	r.resolved = map[string]string{}
-	r.kernelGeneration = 2
-	if legacy {
-		r.kernelGeneration = 1
-	}
 	r.totalNodes = len(r.nodes)
 	r.terminalNodes, r.failedNodes, r.cancelledNodes = 0, 0, 0
 	for _, n := range r.nodes {
@@ -47,9 +43,6 @@ func (t *transaction) initializeGraph(r *runState, legacy bool) error {
 			r.cancelledNodes++
 		}
 	}
-	if err := t.insertIgnore(`INSERT INTO dag_run_generations(run_id,kernel_generation)VALUES(?,?)`, "run_id", r.ID, r.kernelGeneration); err != nil {
-		return err
-	}
 	if err := t.insertIgnore(`INSERT INTO dag_run_counters(run_id,total,terminal_count,failed_count,cancelled_count)VALUES(?,?,?,?,?)`, "run_id", r.ID, r.totalNodes, r.terminalNodes, r.failedNodes, r.cancelledNodes); err != nil {
 		return err
 	}
@@ -61,11 +54,7 @@ func (t *transaction) initializeGraph(r *runState, legacy bool) error {
 		incoming[edge.To]++
 	}
 	for _, n := range r.nodes {
-		decision := ""
-		if legacy && n.State != "pending" {
-			decision = "legacy_unrecorded"
-		}
-		if err := t.insertIgnore(`INSERT INTO dag_node_dependencies(run_id,node_id,generation,total,resolved,selected,success,failed,winners,decision_at,ready_at,version)VALUES(?,?,1,?,0,0,0,0,'[]',?,'',1)`, "run_id,node_id", r.ID, n.ID, incoming[n.ID], decision); err != nil {
+		if err := t.insertIgnore(`INSERT INTO dag_node_dependencies(run_id,node_id,generation,total,resolved,selected,success,failed,winners,decision_at,ready_at,version)VALUES(?,?,1,?,0,0,0,0,'[]','','',1)`, "run_id,node_id", r.ID, n.ID, incoming[n.ID]); err != nil {
 			return err
 		}
 		for _, expression := range predicates(n.spec) {
@@ -94,11 +83,7 @@ func (t *transaction) initializeGraph(r *runState, legacy bool) error {
 					count++
 				}
 			}
-			closed := 0
-			if legacy && n.State != "pending" {
-				closed = 1
-			}
-			if err := t.insertIgnore(`INSERT INTO dag_map_progress(run_id,node_id,total,terminal_count,failed_count,closed)VALUES(?,?,?,0,0,?)`, "run_id,node_id", r.ID, n.ID, count, closed); err != nil {
+			if err := t.insertIgnore(`INSERT INTO dag_map_progress(run_id,node_id,total,terminal_count,failed_count,closed)VALUES(?,?,?,0,0,0)`, "run_id,node_id", r.ID, n.ID, count); err != nil {
 				return err
 			}
 		}
@@ -108,11 +93,9 @@ func (t *transaction) initializeGraph(r *runState, legacy bool) error {
 			return err
 		}
 	}
-	if !legacy {
-		for _, n := range r.nodes {
-			if err := t.enqueueNode(r, n.ID); err != nil {
-				return err
-			}
+	for _, n := range r.nodes {
+		if err := t.enqueueNode(r, n.ID); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -136,18 +119,7 @@ func (t *transaction) loadHot(tenant, project, id string) (*runState, error) {
 	if err = t.e.loadExecutionRoute(t.ctx, t.tx, r); err != nil {
 		return nil, err
 	}
-	err = t.row(`SELECT c.total,c.terminal_count,c.failed_count,c.cancelled_count,g.kernel_generation FROM dag_run_counters c JOIN dag_run_generations g ON g.run_id=c.run_id WHERE c.run_id=?`, id).Scan(&r.totalNodes, &r.terminalNodes, &r.failedNodes, &r.cancelledNodes, &r.kernelGeneration)
-	if err == sql.ErrNoRows {
-		full, err := load(t.ctx, t.tx, t.e, tenant, project, id)
-		if err != nil {
-			return nil, err
-		}
-		if err = t.initializeGraph(full, true); err != nil {
-			return nil, err
-		}
-		full.partial = false
-		return full, nil
-	}
+	err = t.row(`SELECT total,terminal_count,failed_count,cancelled_count FROM dag_run_counters WHERE run_id=?`, id).Scan(&r.totalNodes, &r.terminalNodes, &r.failedNodes, &r.cancelledNodes)
 	if err != nil {
 		return nil, err
 	}
@@ -227,12 +199,8 @@ func (t *transaction) loadFull(tenant, project, id string) (*runState, error) {
 	for _, n := range r.nodes {
 		r.nodeMap[n.ID] = n
 	}
-	err = t.row(`SELECT c.total,c.terminal_count,c.failed_count,c.cancelled_count,g.kernel_generation FROM dag_run_counters c JOIN dag_run_generations g ON g.run_id=c.run_id WHERE c.run_id=?`, id).Scan(&r.totalNodes, &r.terminalNodes, &r.failedNodes, &r.cancelledNodes, &r.kernelGeneration)
-	if err == sql.ErrNoRows {
-		if err = t.initializeGraph(r, true); err != nil {
-			return nil, err
-		}
-	} else if err != nil {
+	err = t.row(`SELECT total,terminal_count,failed_count,cancelled_count FROM dag_run_counters WHERE run_id=?`, id).Scan(&r.totalNodes, &r.terminalNodes, &r.failedNodes, &r.cancelledNodes)
+	if err != nil {
 		return nil, err
 	}
 	r.indexed = true
@@ -353,7 +321,7 @@ func (t *transaction) resolveEdge(r *runState, n *nodeState, edge Edge, enqueue 
 	resolved, selected, success, failed := 0, 0, 0, 0
 	if terminal(n.State) {
 		resolved = 1
-		if edgeActive(edge, n) && !(r.kernelGeneration >= 2 && edge.Condition == "" && skippedUnselected(n)) {
+		if edgeActive(edge, n) && !(edge.Condition == "" && skippedUnselected(n)) {
 			selected = 1
 			if n.State == "succeeded" {
 				success = 1
@@ -424,11 +392,7 @@ func (t *transaction) incrementalEligible(r *runState, n *nodeState) (bool, bool
 		ready = success >= n.spec.Quorum
 		impossible = success+total-resolved < n.spec.Quorum
 	default:
-		required := selected
-		if r.kernelGeneration == 1 {
-			required = total
-		}
-		ready = all && selected > 0 && success == required
+		ready = all && selected > 0 && success == selected
 		impossible = all && !ready
 	}
 	if ready && decision == "" && (n.spec.Join == "any_success" || n.spec.Join == "quorum") {

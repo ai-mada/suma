@@ -1,26 +1,10 @@
 import {validCodexCatalog} from './codex-execution-model';
 import { tr as t, UiError } from "./i18n";
 import type { RecordItem, Workflow } from "./api";
-import type { ToolDiagnostic, DisplayDiagnostic, ToolExecutionProfile, ToolObservation as ContractToolObservation } from "../../../packages/contracts/src";
+import type { ToolDiagnostic, ToolExecutionProfile, ToolObservation as ContractToolObservation, ToolProfile as ContractToolProfile } from "../../../packages/contracts/src";
 export type ToolProfileDefinition = ToolExecutionProfile;
 export type ToolObservation = ContractToolObservation;
-export type ToolProfile = {
-  reason_diagnostic?: DisplayDiagnostic | null;
-  id: string;
-  project_id: string;
-  worker_id: string;
-  name: string;
-  version: number;
-  state: "paused" | "enabled" | "revoked";
-  profile: ToolProfileDefinition;
-  enabled_by: string;
-  created_at: string;
-  updated_at: string;
-  observation?: ToolObservation;
-  last_seen_at?: string;
-  available: boolean;
-  reason: string;
-};
+export type ToolProfile = ContractToolProfile;
 export type ToolUsage = {
   input_tokens?: number;
   cached_input_tokens?: number;

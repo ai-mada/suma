@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/ai-mada/suma/internal/buildinfo"
 	"github.com/ai-mada/suma/internal/commandlocale"
 	"github.com/ai-mada/suma/internal/repositoryprovider"
 	"io"
@@ -15,7 +16,7 @@ import (
 	"time"
 )
 
-var version = "1.0.0"
+const version = buildinfo.Version
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr, os.LookupEnv)) }
 func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool)) int {

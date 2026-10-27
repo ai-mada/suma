@@ -129,7 +129,7 @@ func (t *transaction) createRunID(tenant, project, runID string, w Workflow, bin
 			return nil, err
 		}
 	}
-	if err := t.initializeGraph(r, false); err != nil {
+	if err := t.initializeGraph(r); err != nil {
 		return nil, err
 	}
 	if err := t.event(r, "", "run_created", map[string]any{"workflow_version": w.Version}); err != nil {
@@ -245,14 +245,6 @@ func (t *transaction) resolveSubruns(r *runState) (bool, error) {
 		}
 		if err := t.exec("UPDATE dag_attempts SET state=?,completed_at=?,result=? WHERE run_id=? AND node_id=? AND attempt=?", next, stamp(t.now), n.Output, r.ID, n.ID, n.Attempt); err != nil {
 			return false, err
-		}
-		if r.kernelGeneration == 1 && next == "failed" && r.State != "cancelling" && n.spec.Idempotent && n.Attempt <= n.spec.MaxRetries {
-			n.State = "pending"
-			n.CompletedAt = ""
-			n.wake = t.now + 1
-			if err := t.event(r, n.ID, "retry_scheduled", map[string]any{"attempt": n.Attempt + 1, "previous_child_run_id": n.ChildRunID}); err != nil {
-				return false, err
-			}
 		}
 		changed = true
 	}

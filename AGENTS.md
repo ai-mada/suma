@@ -27,3 +27,10 @@ Read `memory/current_state.json`, `docs/delivery/status.md` and the relevant dom
 
 - UI 验证构建先确认输出目录是否被活动预览使用；优先向本次任务的忽略目录传 `--outDir`，不能把未联调的新前端覆盖到已验收旧后端的静态目录。
 - 若发生覆盖，保存新入口，按已提交摘要核对并恢复旧 HTML／资产；不要重启服务或修改数据库来掩盖版本混用。
+
+## Initial version architecture
+
+- Product release is 1.0.0. Use the single current implementation; do not introduce legacy aliases, upgrade backfills or version-dependent product behavior.
+- Current schema setup uses Service.Initialize and the component baseline declaration. An unregistered existing domain schema must be rejected before writes; never reset user data to make initialization pass.
+- Keep actual third-party protocol handling, data/workflow revisions, current authorization, idempotency and recovery invariants. They are not product compatibility shims.
+- Run `node scripts/check-version.mjs` when changing product identities or packaging versions. Keep current entry docs concise; complete scope remains in docs/delivery/implementation-plan.md.

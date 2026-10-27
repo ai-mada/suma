@@ -238,10 +238,10 @@ func (e *Engine) queuePage(ctx context.Context, tx *sql.Tx, tenant, project stri
 		}
 		defer tx.Rollback()
 	}
-	if err = tx.QueryRowContext(ctx, e.q(`SELECT COUNT(*) FROM dag_ready_v2 q JOIN dag_nodes n ON n.run_id=q.run_id AND n.id=q.node_id WHERE q.tenant_id=? AND q.project_id=? AND n.state='ready'`), tenant, project).Scan(&out.Total); err != nil {
+	if err = tx.QueryRowContext(ctx, e.q(`SELECT COUNT(*) FROM dag_ready q JOIN dag_nodes n ON n.run_id=q.run_id AND n.id=q.node_id WHERE q.tenant_id=? AND q.project_id=? AND n.state='ready'`), tenant, project).Scan(&out.Total); err != nil {
 		return out, err
 	}
-	query := `SELECT q.run_id,q.node_id,r.version,n.state,n.attempt,n.fence,q.ready_at,q.sequence,q.command_id,q.node_type,r.workflow_name,n.spec FROM dag_ready_v2 q JOIN dag_runs r ON r.id=q.run_id JOIN dag_nodes n ON n.run_id=q.run_id AND n.id=q.node_id WHERE q.tenant_id=? AND q.project_id=? AND n.state='ready'`
+	query := `SELECT q.run_id,q.node_id,r.version,n.state,n.attempt,n.fence,q.ready_at,q.sequence,q.command_id,q.node_type,r.workflow_name,n.spec FROM dag_ready q JOIN dag_runs r ON r.id=q.run_id JOIN dag_nodes n ON n.run_id=q.run_id AND n.id=q.node_id WHERE q.tenant_id=? AND q.project_id=? AND n.state='ready'`
 	params := []any{tenant, project}
 	if cursor != "" {
 		query += ` AND (q.sequence>? OR (q.sequence=? AND (q.run_id>? OR (q.run_id=? AND q.node_id>?))))`

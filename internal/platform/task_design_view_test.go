@@ -12,7 +12,7 @@ import (
 // adoption would expose a different caller's data or rewrite historical facts.
 type taskDesignViewReader interface {
 	GetTaskDesignContext(context.Context, Actor, string, string) (TaskDesignContextView, error)
-	MigrateTaskDesignView(context.Context) error
+	InitializeTaskDesignView(context.Context) error
 }
 
 func taskDesignViewService(t *testing.T, s *Service) taskDesignViewReader {
@@ -31,7 +31,7 @@ func taskDesignViewFixture(t *testing.T) (*designIntegrationFixture, map[string]
 	adoption := d.adopt(view)
 	task := d.task(adoption, "access")
 	reader := taskDesignViewService(t, d.f.s)
-	if err := reader.MigrateTaskDesignView(context.Background()); err != nil {
+	if err := reader.InitializeTaskDesignView(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	return d, view, adoption, task
@@ -131,7 +131,7 @@ func TestTaskDesignViewExcludedUsesOriginalAdoptionAcrossKeeps(t *testing.T) {
 	exclusion := d.adopt(d.publish(content, tasks[1:]))
 	task = d.task(exclusion, "access")
 	reader := taskDesignViewService(t, d.f.s)
-	if err := reader.MigrateTaskDesignView(context.Background()); err != nil {
+	if err := reader.InitializeTaskDesignView(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	out := taskDesignRead(t, d, task)
@@ -236,44 +236,30 @@ func TestTaskDesignViewUnavailableOriginalNeverUsesNewPublication(t *testing.T) 
 	}
 }
 
-func TestTaskDesignViewMigrationPagesAndIdempotentlyBackfills(t *testing.T) {
+func TestTaskDesignInitializationPreservesCurrentIndexAndSource(t *testing.T) {
 	d, _, original, task := taskDesignViewFixture(t)
 	f := d.f
-	ctx := context.Background()
 	reader := taskDesignViewService(t, f.s)
-	var raw string
-	if err := f.s.DB.QueryRow(`SELECT snapshot FROM suma_requirement_design_adoptions WHERE id=?`, original["id"]).Scan(&raw); err != nil {
+	var source string
+	if err := f.s.DB.QueryRow(`SELECT snapshot FROM suma_requirement_design_adoptions WHERE id=?`, original["id"]).Scan(&source); err != nil {
 		t.Fatal(err)
 	}
-	var adoption RequirementDesignAdoption
-	if err := json.Unmarshal([]byte(raw), &adoption); err != nil {
-		t.Fatal(err)
+	var before int
+	if err := f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_requirement_design_adoption_tasks`).Scan(&before); err != nil || before < 1 {
+		t.Fatalf("missing current adoption index: %v", err)
 	}
-	// Synthetic append-only legacy records cross the migration's page boundary;
-	// the actual adopted task and original publication remain untouched.
-	for n := 0; n < 135; n++ {
-		adoption.ID = fmt.Sprintf("legacy-page-%03d", n)
-		adoption.Version = n + 4
-		adoption.Tasks[0].Action = "keep"
-		if _, err := f.s.DB.Exec(`INSERT INTO suma_requirement_design_adoptions(tenant_id,project_id,requirement_id,id,version,snapshot)VALUES(?,?,?,?,?,?)`, f.user.TenantID, f.project, d.req["id"], adoption.ID, adoption.Version, stringify(adoption)); err != nil {
+	for n := 0; n < 2; n++ {
+		if err := reader.InitializeTaskDesignView(context.Background()); err != nil {
 			t.Fatal(err)
 		}
 	}
-	if _, err := f.s.DB.Exec(`DELETE FROM suma_requirement_design_adoption_tasks`); err != nil {
-		t.Fatal(err)
+	var after int
+	if err := f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_requirement_design_adoption_tasks`).Scan(&after); err != nil || after != before {
+		t.Fatalf("initialization changed current index: %v", err)
 	}
-	for repeat := 0; repeat < 2; repeat++ {
-		if err := reader.MigrateTaskDesignView(ctx); err != nil {
-			t.Fatal(err)
-		}
-		var count int
-		if err := f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_requirement_design_adoption_tasks`).Scan(&count); err != nil || count != 136 {
-			t.Fatalf("migration lost or duplicated relations: count=%d err=%v", count, err)
-		}
-	}
-	var preserved string
-	if err := f.s.DB.QueryRow(`SELECT snapshot FROM suma_requirement_design_adoptions WHERE id=?`, original["id"]).Scan(&preserved); err != nil || preserved != raw {
-		t.Fatal("migration rewrote the original adoption")
+	var retained string
+	if err := f.s.DB.QueryRow(`SELECT snapshot FROM suma_requirement_design_adoptions WHERE id=?`, original["id"]).Scan(&retained); err != nil || retained != source {
+		t.Fatalf("initialization changed approved source: %v", err)
 	}
 	assertTaskDesignOriginal(t, taskDesignRead(t, d, task), original, d.req["id"].(string))
 }

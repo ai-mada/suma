@@ -51,7 +51,7 @@ func currentAuthorityContracts(api map[string]any) {
 	request(tokens, "ProjectCredentialIssueRequest", "project_id", "idempotency_key")
 	successStatus(tokens, "201")
 	tokens["responses"].(map[string]any)["201"].(map[string]any)["content"] = map[string]any{"application/json": map[string]any{"schema": map[string]any{"$ref": "#/components/schemas/ProjectCredentialIssueResult"}}}
-	tokens["description"] = "Current browser organization owner/admin explicitly issues an independent project-scoped API, Runner or Agent Grant for 24 hours. Browser logout does not revoke the independent Grant. Exact same-key retries rotate the secret in the same fixed-expiry slot and revoke the prior secret; plaintext secrets are never stored in receipts. Unclassified legacy sessions require login and explicit reissuance."
+	tokens["description"] = "Current browser organization owner/admin explicitly issues an independent project-scoped API, Runner or Agent Grant for 24 hours. Browser logout does not revoke the independent Grant. Exact same-key retries rotate the secret in the same fixed-expiry slot and revoke the prior secret; plaintext secrets are never stored in receipts. Only credentials with complete current issuance proof are accepted."
 	input := toolContractMap(api, "components", "schemas", "ProjectCredentialIssueRequest")
 	input["additionalProperties"] = false
 	fields := input["properties"].(map[string]any)
@@ -61,5 +61,5 @@ func currentAuthorityContracts(api map[string]any) {
 	fields["idempotency_key"].(map[string]any)["minLength"] = 8
 	fields["idempotency_key"].(map[string]any)["maxLength"] = 128
 	logout := paths["/auth/logout"].(map[string]any)["post"].(map[string]any)
-	logout["description"] = "Withdraw-only, idempotent logout. A browser credential revokes its complete fixed-expiry session family; a scoped credential revokes its exact credential slot. Unknown, already revoked and legacy secrets return an empty successful logout response and grant no other authority."
+	logout["description"] = "Withdraw-only, idempotent logout. A browser credential revokes its complete fixed-expiry session family; a scoped credential revokes its exact credential slot. Unknown and already revoked secrets return an empty successful logout response and grant no other authority."
 }

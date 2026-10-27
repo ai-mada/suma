@@ -5,17 +5,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/ai-mada/suma/internal/store"
 )
 
 var errTaskDesignSource = errors.New("task design source is unavailable or inconsistent")
-
-type taskDesignAdoptionPosition struct {
-	tenant, project, requirement string
-	version                      int
-}
 
 type taskDesignIndexedAdoption struct {
 	id, key, action      string
@@ -85,9 +79,8 @@ func (s *Service) indexRequirementDesignAdoptionTx(ctx context.Context, auth *au
 	return s.insertTaskDesignAdoptionIndexTx(ctx, auth.tx, auth.target.tenantID, project, requirement, stored)
 }
 
-// Migration reads immutable sources in stable composite-key pages. Each page
-// commits only derived relations; interruptions safely resume on the next run.
-func (s *Service) MigrateTaskDesignView(ctx context.Context) error {
+// Initialize the index used by the current atomic adoption transaction.
+func (s *Service) InitializeTaskDesignView(ctx context.Context) error {
 	ddl := `CREATE TABLE IF NOT EXISTS suma_requirement_design_adoption_tasks(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,requirement_id VARCHAR(64) NOT NULL,adoption_id VARCHAR(64) NOT NULL,adoption_version INTEGER NOT NULL,task_id VARCHAR(64) NOT NULL,task_key VARCHAR(64) NOT NULL,action VARCHAR(20) NOT NULL,task_version INTEGER NOT NULL,PRIMARY KEY(tenant_id,project_id,requirement_id,adoption_id,task_id),UNIQUE(tenant_id,project_id,requirement_id,adoption_id,task_key))`
 	if _, err := s.DB.ExecContext(ctx, s.ddl(ddl)); err != nil {
 		return err
@@ -95,73 +88,7 @@ func (s *Service) MigrateTaskDesignView(ctx context.Context) error {
 	if err := store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_design_adoption_task_version", "suma_requirement_design_adoption_tasks", "tenant_id", "project_id", "requirement_id", "task_id", "task_key", "adoption_version"); err != nil {
 		return err
 	}
-	position := taskDesignAdoptionPosition{}
-	for {
-		next, count, err := s.backfillTaskDesignAdoptionPage(ctx, position)
-		if err != nil {
-			return fmt.Errorf("task design index migration: %w", err)
-		}
-		if count == 0 {
-			return nil
-		}
-		position = next
-	}
-}
-
-func (s *Service) backfillTaskDesignAdoptionPage(ctx context.Context, position taskDesignAdoptionPosition) (taskDesignAdoptionPosition, int, error) {
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return position, 0, err
-	}
-	defer tx.Rollback()
-	query := `SELECT tenant_id,project_id,requirement_id,id,version,snapshot FROM suma_requirement_design_adoptions`
-	args := []any{}
-	if position.tenant != "" {
-		query += ` WHERE tenant_id>? OR (tenant_id=? AND project_id>?) OR (tenant_id=? AND project_id=? AND requirement_id>?) OR (tenant_id=? AND project_id=? AND requirement_id=? AND version>?)`
-		args = append(args, position.tenant, position.tenant, position.project, position.tenant, position.project, position.requirement, position.tenant, position.project, position.requirement, position.version)
-	}
-	query += ` ORDER BY tenant_id,project_id,requirement_id,version LIMIT 32`
-	rows, err := tx.QueryContext(ctx, s.q(query), args...)
-	if err != nil {
-		return position, 0, err
-	}
-	type source struct {
-		position taskDesignAdoptionPosition
-		adoption RequirementDesignAdoption
-	}
-	sources := []source{}
-	for rows.Next() {
-		var item source
-		var id, raw string
-		if err = rows.Scan(&item.position.tenant, &item.position.project, &item.position.requirement, &id, &item.position.version, &raw); err != nil {
-			break
-		}
-		if item.position.tenant == "" {
-			err = errTaskDesignSource
-			break
-		}
-		if err = json.Unmarshal([]byte(raw), &item.adoption); err != nil {
-			break
-		}
-		if err = validateTaskDesignAdoption(item.adoption, item.position.project, item.position.requirement, id, item.position.version); err != nil {
-			break
-		}
-		sources = append(sources, item)
-	}
-	if err == nil {
-		err = rows.Err()
-	}
-	rows.Close()
-	if err != nil {
-		return position, 0, err
-	}
-	for _, item := range sources {
-		if err = s.insertTaskDesignAdoptionIndexTx(ctx, tx, item.position.tenant, item.position.project, item.position.requirement, item.adoption); err != nil {
-			return position, 0, err
-		}
-		position = item.position
-	}
-	return position, len(sources), tx.Commit()
+	return nil
 }
 
 func (s *Service) taskDesignAdoptionTx(ctx context.Context, auth *authorizedCommand, project, requirement, id string) (out RequirementDesignAdoption, err error) {

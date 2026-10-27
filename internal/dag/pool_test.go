@@ -227,18 +227,15 @@ func TestPoolReplayBindingAndUnknownStopRetainsEffects(t *testing.T) {
 	}
 }
 
-func TestPoolPriorityBackfillsExistingReadyRecords(t *testing.T) {
-	e, r := fixture(t, Workflow{Nodes: []Node{{ID: "low", Type: "task"}, {ID: "urgent", Type: "task", Priority: 9}}})
-	if _, err := e.db.Exec(`DELETE FROM dag_ready_admission_order WHERE run_id=?`, r.ID); err != nil {
-		t.Fatal(err)
-	}
+func TestPoolPriorityPersistsAcrossRestart(t *testing.T) {
+	e, _ := fixture(t, Workflow{Nodes: []Node{{ID: "low", Type: "task"}, {ID: "urgent", Type: "task", Priority: 9}}})
 	reopened, err := New(e.db, "sqlite")
 	if err != nil {
 		t.Fatal(err)
 	}
 	a := claim(t, reopened)
 	if a == nil || a.NodeID != "urgent" {
-		t.Fatal("old ready projection ignored fixed priority/age", a)
+		t.Fatal("durable ready order lost fixed priority/age", a)
 	}
 }
 

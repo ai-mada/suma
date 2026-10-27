@@ -144,7 +144,7 @@ func TestExecutionLocalizationHTTPPreservesUnknownSourceAndDetails(t *testing.T)
 			t.Fatal(err)
 		}
 		detail := out["error"].(map[string]any)
-		if status != 409 || header.Get("Content-Language") != locale || detail["message"] != source || detail["code"] != "version_conflict" || detail["message_key"] != "legacy.version_conflict" || detail["locale"] != locale || detail["localized"] != false || detail["fallback"] != "source_untranslated" || !reflect.DeepEqual(detail["details"], details) {
+		if status != 409 || header.Get("Content-Language") != locale || detail["message"] != source || detail["code"] != "version_conflict" || detail["message_key"] != "untranslated.version_conflict" || detail["locale"] != locale || detail["localized"] != false || detail["fallback"] != "source_untranslated" || !reflect.DeepEqual(detail["details"], details) {
 			t.Fatalf("unknown diagnostic was translated or machine details changed: %d %v", status, out)
 		}
 	}

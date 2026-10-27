@@ -10,9 +10,9 @@ import (
 	"time"
 )
 
-// The additive authority ledger preserves old session rows and scopes as audit
-// facts. Missing issuance evidence never becomes a new approval during upgrade.
-func (s *Service) MigrateCredentialAuthority(ctx context.Context) error {
+// Initialize current issuance, family and Grant facts without inferring authority
+// from pre-existing session rows. Authentication always checks the live proof.
+func (s *Service) InitializeCredentialAuthority(ctx context.Context) error {
 	statements := []string{
 		`CREATE TABLE IF NOT EXISTS suma_authority_sqlite_guard(id INTEGER PRIMARY KEY,sequence BIGINT NOT NULL)`,
 		`INSERT INTO suma_authority_sqlite_guard(id,sequence) SELECT 1,0 WHERE NOT EXISTS(SELECT 1 FROM suma_authority_sqlite_guard WHERE id=1)`,
@@ -23,30 +23,14 @@ func (s *Service) MigrateCredentialAuthority(ctx context.Context) error {
 		`CREATE TABLE IF NOT EXISTS suma_credential_grants(id VARCHAR(64) PRIMARY KEY,user_id VARCHAR(64) NOT NULL,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,scope_kind VARCHAR(30) NOT NULL,credential_kind VARCHAR(40) NOT NULL,approved_by VARCHAR(64) NOT NULL,approved_at VARCHAR(40) NOT NULL,expires_at VARCHAR(40) NOT NULL,policy_revision INTEGER NOT NULL,source_id VARCHAR(64) NOT NULL,source_generation BIGINT NOT NULL,revoked INTEGER NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_credential_slots(id VARCHAR(64) PRIMARY KEY,user_id VARCHAR(64) NOT NULL,tenant_id VARCHAR(64) NOT NULL,operation_id VARCHAR(128) NOT NULL,request_hash VARCHAR(64) NOT NULL,credential_kind VARCHAR(40) NOT NULL,project_id VARCHAR(64) NOT NULL,source_id VARCHAR(64) NOT NULL,grant_id VARCHAR(64) NOT NULL,family_id VARCHAR(64) NOT NULL,expires_at VARCHAR(40) NOT NULL,current_digest VARCHAR(64) NOT NULL,revoked INTEGER NOT NULL,UNIQUE(user_id,tenant_id,operation_id))`,
 		`CREATE TABLE IF NOT EXISTS suma_credential_issuance(token_hash VARCHAR(64) PRIMARY KEY,slot_id VARCHAR(64) NOT NULL,grant_id VARCHAR(64) NOT NULL,family_id VARCHAR(64) NOT NULL,issued_at VARCHAR(40) NOT NULL,operation_id VARCHAR(128) NOT NULL)`,
-		`CREATE TABLE IF NOT EXISTS suma_credential_authority(token_hash VARCHAR(64) PRIMARY KEY,credential_kind VARCHAR(40) NOT NULL,migration_status VARCHAR(40) NOT NULL,source_id VARCHAR(64) NOT NULL,source_generation BIGINT NOT NULL,family_id VARCHAR(64) NOT NULL,family_generation BIGINT NOT NULL,grant_id VARCHAR(64) NOT NULL,slot_id VARCHAR(64) NOT NULL,revoked INTEGER NOT NULL)`,
-		`INSERT INTO suma_credential_authority(token_hash,credential_kind,migration_status,source_id,source_generation,family_id,family_generation,grant_id,slot_id,revoked) SELECT t.token_hash,'legacy-unclassified','reissue-required','',0,'',0,'','',0 FROM suma_sessions t WHERE NOT EXISTS(SELECT 1 FROM suma_credential_authority a WHERE a.token_hash=t.token_hash)`,
+		`CREATE TABLE IF NOT EXISTS suma_credential_authority(token_hash VARCHAR(64) PRIMARY KEY,credential_kind VARCHAR(40) NOT NULL,source_id VARCHAR(64) NOT NULL,source_generation BIGINT NOT NULL,family_id VARCHAR(64) NOT NULL,family_generation BIGINT NOT NULL,grant_id VARCHAR(64) NOT NULL,slot_id VARCHAR(64) NOT NULL,revoked INTEGER NOT NULL)`,
 	}
 	for _, query := range statements {
 		if _, err := s.DB.ExecContext(ctx, s.ddl(query)); err != nil {
 			return err
 		}
 	}
-	// Structural checks deliberately exclude expiry/revocation: complete expired
-	// or withdrawn credentials keep their true kind and immutable issuance facts.
-	_, err := s.DB.ExecContext(ctx, `UPDATE suma_credential_authority SET credential_kind='legacy-unclassified',migration_status='reissue-required' WHERE migration_status='current' AND NOT EXISTS(
- SELECT 1 FROM suma_sessions t
- JOIN suma_auth_sources src ON src.id=suma_credential_authority.source_id AND src.user_id=t.user_id AND src.generation>=suma_credential_authority.source_generation AND src.source_kind IN ('setup','password','invitation') AND src.authenticated_at<>''
- JOIN suma_credential_issuance i ON i.token_hash=t.token_hash AND i.slot_id=suma_credential_authority.slot_id AND i.family_id=suma_credential_authority.family_id AND i.grant_id=suma_credential_authority.grant_id AND i.issued_at<>'' AND i.operation_id<>''
- JOIN suma_credential_slots sl ON sl.id=i.slot_id AND sl.user_id=t.user_id AND sl.credential_kind=suma_credential_authority.credential_kind AND sl.source_id=src.id AND sl.family_id=i.family_id AND sl.grant_id=i.grant_id AND sl.expires_at=t.expires_at
- WHERE t.token_hash=suma_credential_authority.token_hash AND suma_credential_authority.source_generation>0 AND (
- (suma_credential_authority.credential_kind='browser-session' AND i.grant_id='' AND suma_credential_authority.family_generation>0
- AND NOT EXISTS(SELECT 1 FROM suma_token_scopes sc WHERE sc.token_hash=t.token_hash)
- AND EXISTS(SELECT 1 FROM suma_session_families f WHERE f.id=i.family_id AND f.user_id=t.user_id AND f.source_id=src.id AND f.source_generation=suma_credential_authority.source_generation AND f.generation>=suma_credential_authority.family_generation AND f.expires_at=t.expires_at AND f.authenticated_at<>''))
- OR (suma_credential_authority.credential_kind IN ('user-api','scoped-runner','scoped-agent') AND i.family_id='' AND suma_credential_authority.family_generation=0
- AND EXISTS(SELECT 1 FROM suma_credential_grants g JOIN suma_token_scopes sc ON sc.token_hash=t.token_hash AND sc.project_id=g.project_id AND sc.kind=g.scope_kind
- WHERE g.id=i.grant_id AND g.user_id=t.user_id AND g.tenant_id=t.tenant_id AND g.project_id=sl.project_id AND g.credential_kind=suma_credential_authority.credential_kind AND g.source_id=src.id AND g.source_generation=suma_credential_authority.source_generation AND g.approved_by=g.user_id AND g.approved_at<>'' AND g.policy_revision>0 AND g.expires_at=t.expires_at
- AND ((g.scope_kind='api' AND g.credential_kind='user-api') OR (g.scope_kind='runner' AND g.credential_kind='scoped-runner') OR (g.scope_kind='agent' AND g.credential_kind='scoped-agent'))))))`)
-	return err
+	return nil
 }
 
 func (s *Service) persistCredential(ctx context.Context, tx *sql.Tx, p Principal, kind actorKind, ref credentialRef, label, expiry, issuedAt, operation string) (string, error) {
@@ -57,7 +41,7 @@ func (s *Service) persistCredential(ctx context.Context, tx *sql.Tx, p Principal
 		args  []any
 	}{
 		{`INSERT INTO suma_sessions(token_hash,user_id,tenant_id,expires_at,label) VALUES(?,?,?,?,?)`, []any{ref.digest, p.ID, p.TenantID, expiry, label}},
-		{`INSERT INTO suma_credential_authority(token_hash,credential_kind,migration_status,source_id,source_generation,family_id,family_generation,grant_id,slot_id,revoked) VALUES(?,?,'current',?,?,?,?,?,?,0)`, []any{ref.digest, kindName(kind), ref.sourceID, ref.sourceRevision, ref.familyID, ref.familyRevision, ref.grantID, ref.slotID}},
+		{`INSERT INTO suma_credential_authority(token_hash,credential_kind,source_id,source_generation,family_id,family_generation,grant_id,slot_id,revoked) VALUES(?,?,?,?,?,?,?,?,0)`, []any{ref.digest, kindName(kind), ref.sourceID, ref.sourceRevision, ref.familyID, ref.familyRevision, ref.grantID, ref.slotID}},
 		{`INSERT INTO suma_credential_issuance(token_hash,slot_id,grant_id,family_id,issued_at,operation_id) VALUES(?,?,?,?,?,?)`, []any{ref.digest, ref.slotID, ref.grantID, ref.familyID, issuedAt, operation}},
 		{`UPDATE suma_credential_slots SET current_digest=? WHERE id=? AND revoked=0`, []any{ref.digest, ref.slotID}},
 	}
@@ -318,7 +302,7 @@ func (s *Service) ResolveLogoutTarget(ctx context.Context, token string) (logout
 		return out, nil
 	}
 	var kind string
-	err := s.DB.QueryRowContext(ctx, s.q(`SELECT t.user_id,t.tenant_id,a.credential_kind,a.family_id,a.slot_id FROM suma_sessions t JOIN suma_credential_authority a ON a.token_hash=t.token_hash JOIN suma_credential_issuance i ON i.token_hash=t.token_hash AND i.slot_id=a.slot_id AND i.family_id=a.family_id AND i.grant_id=a.grant_id JOIN suma_credential_slots sl ON sl.id=a.slot_id AND sl.user_id=t.user_id AND sl.family_id=a.family_id AND sl.grant_id=a.grant_id JOIN suma_auth_sources src ON src.id=a.source_id AND src.user_id=t.user_id WHERE t.token_hash=? AND a.migration_status='current' AND ((a.credential_kind='browser-session' AND EXISTS(SELECT 1 FROM suma_session_families f WHERE f.id=a.family_id AND f.user_id=t.user_id AND f.source_id=src.id)) OR (a.credential_kind IN ('user-api','scoped-runner','scoped-agent') AND EXISTS(SELECT 1 FROM suma_credential_grants g WHERE g.id=a.grant_id AND g.user_id=t.user_id AND g.source_id=src.id)))`), digest(token)).Scan(&out.subjectID, &out.tenantID, &kind, &out.familyID, &out.slotID)
+	err := s.DB.QueryRowContext(ctx, s.q(`SELECT t.user_id,t.tenant_id,a.credential_kind,a.family_id,a.slot_id FROM suma_sessions t JOIN suma_credential_authority a ON a.token_hash=t.token_hash JOIN suma_credential_issuance i ON i.token_hash=t.token_hash AND i.slot_id=a.slot_id AND i.family_id=a.family_id AND i.grant_id=a.grant_id JOIN suma_credential_slots sl ON sl.id=a.slot_id AND sl.user_id=t.user_id AND sl.family_id=a.family_id AND sl.grant_id=a.grant_id JOIN suma_auth_sources src ON src.id=a.source_id AND src.user_id=t.user_id WHERE t.token_hash=? AND ((a.credential_kind='browser-session' AND EXISTS(SELECT 1 FROM suma_session_families f WHERE f.id=a.family_id AND f.user_id=t.user_id AND f.source_id=src.id)) OR (a.credential_kind IN ('user-api','scoped-runner','scoped-agent') AND EXISTS(SELECT 1 FROM suma_credential_grants g WHERE g.id=a.grant_id AND g.user_id=t.user_id AND g.source_id=src.id)))`), digest(token)).Scan(&out.subjectID, &out.tenantID, &kind, &out.familyID, &out.slotID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return logoutTarget{}, nil
 	}

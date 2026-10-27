@@ -74,13 +74,6 @@ func (t *transaction) reservePolicyResources(r *runState, n *nodeState) (bool, e
 			if budgetChanged != 1 {
 				return false, dagDiagnostic(fmt.Errorf("%w: policy and budget account differ", ErrConflict), "dag.resources.budget_account", nil)
 			}
-			if err != nil {
-				return false, err
-			}
-		} else {
-			if err = t.exec(`INSERT INTO dag_reservations(run_id,node_id,name,amount)VALUES(?,?,?,?)`, r.ID, n.ID, request.Name, request.Amount); err != nil {
-				return false, err
-			}
 		}
 		if err = t.exec(`INSERT INTO dag_resource_ledger(run_id,node_id,attempt,fence,name,tenant_id,project_id,amount,release_class,state)VALUES(?,?,?,?,?,?,?,?,?,?)`, r.ID, n.ID, n.Attempt+1, n.Fence+1, request.Name, r.TenantID, r.ProjectID, request.Amount, request.ReleaseClass, state); err != nil {
 			return false, err
@@ -139,9 +132,6 @@ func (t *transaction) releasePolicyResources(r *runState, n *nodeState, processO
 		}
 		if ledgerChanged != 1 {
 			return dagDiagnostic(fmt.Errorf("%w: reservation already released", ErrConflict), "dag.resources.released", nil)
-		}
-		if err = t.exec(`DELETE FROM dag_reservations WHERE run_id=? AND node_id=? AND name=?`, r.ID, n.ID, v.name); err != nil {
-			return err
 		}
 	}
 	return t.releasePoolResources(r, n, processOnly)

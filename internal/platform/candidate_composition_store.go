@@ -41,7 +41,7 @@ type candidateCompositionRecord struct {
 	RepairExecution *ccmp.CandidateConflictRepairExecution `json:"repair_execution,omitempty"`
 }
 
-func (s *Service) MigrateCandidateCompositions(ctx context.Context) error {
+func (s *Service) InitializeCandidateCompositions(ctx context.Context) error {
 	for _, ddl := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_candidate_compositions(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,state VARCHAR(24) NOT NULL,created_at VARCHAR(40) NOT NULL,payload TEXT NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_candidate_composition_executions(run_id VARCHAR(100) NOT NULL,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,plan_id VARCHAR(64) NOT NULL,node_id VARCHAR(150) NOT NULL,input_kind VARCHAR(24) NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(run_id,node_id))`,

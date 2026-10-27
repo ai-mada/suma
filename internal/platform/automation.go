@@ -104,7 +104,7 @@ type AutomationRevisions struct {
 	NextCursor string               `json:"next_cursor"`
 }
 
-func (s *Service) MigrateAutomations(ctx context.Context) error {
+func (s *Service) InitializeAutomations(ctx context.Context) error {
 	for _, q := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_automations(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,revision INTEGER NOT NULL,state VARCHAR(20) NOT NULL,activated_by VARCHAR(64) NOT NULL,next_at VARCHAR(40) NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL,last_error TEXT NOT NULL,spec TEXT NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_automation_revisions(rule_id VARCHAR(64) NOT NULL,revision INTEGER NOT NULL,spec TEXT NOT NULL,created_at VARCHAR(40) NOT NULL,PRIMARY KEY(rule_id,revision))`,

@@ -17,7 +17,7 @@ SQLite is exercised by the local test suite, including two independent connectio
 | `dag_run_fairness` | Last committed claim sequence per run |
 | `dag_operations` | Scoped operation keys and request fingerprints |
 | `dag_resource_limits` | Configured project capacities and cumulative budget consumed |
-| `dag_reservations` | Per-node concurrent resource reservations |
+| `dag_resource_ledger` | Per-node concurrent resource reservations |
 | `dag_subruns` | Unique parent-node-attempt to child run binding and parent pause ownership |
 | `dag_compensations` | Source run/version/state, explicit reason, compensation run and last reported compensation state |
 | `dag_compensation_effects` | Fixed successful source attempt/fence references for generated inverse nodes |

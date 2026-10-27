@@ -20,7 +20,7 @@ import (
 	"github.com/ai-mada/suma/internal/store"
 )
 
-func (s *Service) MigrateAutomationIngresses(ctx context.Context) error {
+func (s *Service) InitializeAutomationIngresses(ctx context.Context) error {
 	for _, statement := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_automation_ingresses(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,rule_id VARCHAR(64) NOT NULL,rule_revision INTEGER NOT NULL,version INTEGER NOT NULL,revision INTEGER NOT NULL,state VARCHAR(20) NOT NULL,activated_by VARCHAR(64) NOT NULL,key_generation INTEGER NOT NULL,key_fingerprint VARCHAR(64) NOT NULL,key_ciphertext TEXT NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL,last_error TEXT NOT NULL,spec TEXT NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_automation_ingress_revisions(ingress_id VARCHAR(64) NOT NULL,revision INTEGER NOT NULL,rule_revision INTEGER NOT NULL,spec TEXT NOT NULL,created_at VARCHAR(40) NOT NULL,PRIMARY KEY(ingress_id,revision))`,

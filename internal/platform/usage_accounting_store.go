@@ -49,7 +49,7 @@ type usageAccount struct {
 	unresolved, version              int
 }
 
-func (s *Service) MigrateUsageAccounting(ctx context.Context) error {
+func (s *Service) InitializeUsageAccounting(ctx context.Context) error {
 	for _, q := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_usage_policies(tenant_id VARCHAR(64) NOT NULL,scope VARCHAR(20) NOT NULL,project_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(tenant_id,scope,project_id))`,
 		`CREATE TABLE IF NOT EXISTS suma_usage_rates(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,tool_profile_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,created_at VARCHAR(40) NOT NULL,payload TEXT NOT NULL,UNIQUE(tenant_id,project_id,tool_profile_id,version))`,

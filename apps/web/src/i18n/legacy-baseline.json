@@ -1,5 +1,0 @@
-{
-  "requirement": "FND-I18N-001",
-  "scope": "AST Han-bearing production literals and JSX text, excluding comments/tests/native language name; candidate counts are not complete translation-key estimates.",
-  "remaining": []
-}

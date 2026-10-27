@@ -10,21 +10,21 @@ import (
 	"github.com/ai-mada/suma/internal/dag"
 )
 
-func (s *Service) MigrateTaskDispatch(ctx context.Context) error {
+func (s *Service) InitializeTaskDispatch(ctx context.Context) error {
 	_, err := s.DB.ExecContext(ctx, s.ddl(`CREATE TABLE IF NOT EXISTS suma_task_dispatch_plans(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,run_id VARCHAR(64) NOT NULL UNIQUE,version INTEGER NOT NULL,state VARCHAR(20) NOT NULL,created_by VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,expires_at VARCHAR(40) NOT NULL,payload TEXT NOT NULL)`))
 	if err != nil {
 		return err
 	}
-	if err = s.migrateTaskDispatchRoutes(ctx); err != nil {
+	if err = s.initializeTaskDispatchRoutes(ctx); err != nil {
 		return err
 	}
-	if err = s.MigrateTaskRunProvenance(ctx); err != nil {
+	if err = s.InitializeTaskRunProvenance(ctx); err != nil {
 		return err
 	}
-	if err = s.MigrateExpertTeams(ctx); err != nil {
+	if err = s.InitializeExpertTeams(ctx); err != nil {
 		return err
 	}
-	return s.MigrateCandidateCompositions(ctx)
+	return s.InitializeCandidateCompositions(ctx)
 }
 
 func taskContextRecord(r Record) TaskContextRecord {

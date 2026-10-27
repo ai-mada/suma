@@ -13,8 +13,8 @@ import (
 const organizationScope = "@organization"
 
 // Governance uses independent version tables so existing installations and
-// existing project/member schemas retain their data and wire compatibility.
-func (s *Service) MigrateGovernance(ctx context.Context) error {
+// organization and project authorization remain separate current concerns.
+func (s *Service) InitializeGovernance(ctx context.Context) error {
 	statements := []string{
 		`CREATE TABLE IF NOT EXISTS suma_governance_locks(tenant_id VARCHAR(64) PRIMARY KEY,sequence BIGINT NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_org_member_versions(tenant_id VARCHAR(64) NOT NULL,user_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,PRIMARY KEY(tenant_id,user_id))`,

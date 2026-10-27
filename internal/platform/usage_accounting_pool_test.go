@@ -34,7 +34,7 @@ func TestUsageAccountingPoolHTTPReservationQuotaAndResultReplay(t *testing.T) {
 	if f.user.TenantID == owner.user.TenantID || f.project == owner.project {
 		t.Fatal("fixture lacks an independent project tenant")
 	}
-	if err = f.s.MigrateUsageAccounting(ctx); err != nil {
+	if err = f.s.InitializeUsageAccounting(ctx); err != nil {
 		t.Fatal(err)
 	}
 	f.e.AttemptAccounting = f.s

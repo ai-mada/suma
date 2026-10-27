@@ -64,7 +64,7 @@ func validateLocalePreferenceExpectation(p Principal, organization bool, expecte
 // Independent tables leave existing users, organizations and all immutable
 // evidence untouched. An absent row means inherit at version zero; clearing an
 // existing value keeps its version, so stale creation cannot restore it.
-func (s *Service) MigrateLocalePreferences(ctx context.Context) error {
+func (s *Service) InitializeLocalePreferences(ctx context.Context) error {
 	for _, statement := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_account_preferences(user_id VARCHAR(64) PRIMARY KEY,locale VARCHAR(20) NOT NULL,version INTEGER NOT NULL,updated_at VARCHAR(40) NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_organization_preferences(tenant_id VARCHAR(64) PRIMARY KEY,locale VARCHAR(20) NOT NULL,version INTEGER NOT NULL,updated_at VARCHAR(40) NOT NULL)`,

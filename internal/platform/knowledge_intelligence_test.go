@@ -22,7 +22,7 @@ func newKnowledgeIntelligenceFixture(t *testing.T) *intelligenceFixture {
 	t.Helper()
 	f := newFixture(t)
 	ctx := context.Background()
-	if e := f.s.MigrateKnowledgeIntelligence(ctx); e != nil {
+	if e := f.s.InitializeKnowledgeIntelligence(ctx); e != nil {
 		t.Fatal(e)
 	}
 	token := f.call("POST", "/release-workers", f.body(map[string]any{"worker_id": "extraction-worker", "profiles": []any{}, "deployment": false}), 201)["token"].(string)

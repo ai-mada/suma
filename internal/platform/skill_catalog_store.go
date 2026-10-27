@@ -20,7 +20,7 @@ const (
 	skillOrigin  = "A shared skill cannot change its original project or knowledge identity"
 )
 
-func (s *Service) MigrateSkillCatalog(ctx context.Context) error {
+func (s *Service) InitializeSkillCatalog(ctx context.Context) error {
 	for _, q := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_skill_catalog(tenant_id VARCHAR(64) NOT NULL,id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,state VARCHAR(20) NOT NULL,title VARCHAR(200) NOT NULL,summary TEXT NOT NULL,domain VARCHAR(80) NOT NULL,scenarios TEXT NOT NULL,tags TEXT NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL,snapshot TEXT NOT NULL,PRIMARY KEY(tenant_id,id))`,
 		`CREATE TABLE IF NOT EXISTS suma_skill_catalog_revisions(tenant_id VARCHAR(64) NOT NULL,catalog_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,snapshot TEXT NOT NULL,PRIMARY KEY(tenant_id,catalog_id,version))`,

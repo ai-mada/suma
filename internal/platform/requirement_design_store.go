@@ -11,7 +11,7 @@ import (
 
 // The aggregate owns CAS pointers; immutable revisions and adoption facts never
 // change. Protected task links cannot be supplied through editable task Data.
-func (s *Service) MigrateRequirementDesign(ctx context.Context) error {
+func (s *Service) InitializeRequirementDesign(ctx context.Context) error {
 	for _, ddl := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_requirement_designs(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,requirement_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,latest_revision INTEGER NOT NULL,published_revision INTEGER NOT NULL,state VARCHAR(20) NOT NULL,last_adoption_id VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL,PRIMARY KEY(tenant_id,project_id,requirement_id))`,
 		`CREATE TABLE IF NOT EXISTS suma_requirement_design_revisions(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,requirement_id VARCHAR(64) NOT NULL,revision INTEGER NOT NULL,snapshot TEXT NOT NULL,PRIMARY KEY(tenant_id,project_id,requirement_id,revision))`,

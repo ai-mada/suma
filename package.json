@@ -11,6 +11,7 @@
     "test": "pnpm -r --if-present test",
     "desktop": "pnpm --filter @suma/desktop start",
     "desktop:package": "pnpm --filter @suma/desktop package",
-    "check:docs": "node scripts/check-docs.mjs"
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:version": "node scripts/check-version.mjs"
   }
 }

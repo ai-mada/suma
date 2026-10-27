@@ -44,7 +44,7 @@ func localizationContracts(api map[string]any) {
 	toolContractMap(api, "components", "schemas", "LocalizationCatalog", "properties", "template_format")["const"] = "named-dot-v1"
 	errorModel := toolContractMap(api, "components", "schemas", "Error", "properties", "error")
 	properties := errorModel["properties"].(map[string]any)
-	properties["message_key"] = map[string]any{"type": "string", "description": "Stable catalog key; legacy.<code> with localized=false explicitly denotes an unmigrated exact diagnostic."}
+	properties["message_key"] = map[string]any{"type": "string", "description": "Stable catalog key; untranslated.<code> with localized=false explicitly denotes an unmigrated exact diagnostic."}
 	properties["locale"] = map[string]any{"type": "string", "enum": []string{"zh-CN", "en-US"}}
 	properties["localized"] = map[string]any{"type": "boolean", "description": "False means the original exact source is preserved rather than hidden by a generic translated validation message."}
 	properties["fallback"] = map[string]any{"type": "string"}
@@ -57,7 +57,7 @@ func localizationContracts(api map[string]any) {
 			appendQuery(op, map[string]any{"in": "header", "name": "X-Suma-Language", "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.", "schema": map[string]any{"type": "string", "maxLength": 128}})
 			for code, response := range op["responses"].(map[string]any) {
 				r := response.(map[string]any)
-				r["headers"] = map[string]any{"Content-Language": map[string]any{"description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.", "schema": map[string]any{"type": "string", "enum": []string{"zh-CN", "en-US"}}}}
+				r["headers"] = map[string]any{"Content-Language": map[string]any{"description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.", "schema": map[string]any{"type": "string", "enum": []string{"zh-CN", "en-US"}}}}
 				if code == "400" || code == "401" || code == "403" || code == "409" {
 					r["content"] = map[string]any{"application/json": map[string]any{"schema": map[string]any{"$ref": "#/components/schemas/Error"}}}
 				}

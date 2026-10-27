@@ -55,7 +55,7 @@ func newCompositionFixture(t *testing.T) *compositionFixture {
 	t.Helper()
 	ctx := context.Background()
 	f, token, r := candidateTransferFixture(t)
-	if e := f.s.MigrateCandidateCompositions(ctx); e != nil {
+	if e := f.s.InitializeCandidateCompositions(ctx); e != nil {
 		t.Fatal(e)
 	}
 	first := compositionAcceptSource(t, f, token, r)

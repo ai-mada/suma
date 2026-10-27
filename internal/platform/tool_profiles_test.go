@@ -24,7 +24,7 @@ func toolActorForTest(t *testing.T, f *fixture, token string) Actor {
 func toolFixture(t *testing.T) (*fixture, string, ToolProfile) {
 	t.Helper()
 	f := newFixture(t)
-	if err := f.s.MigrateToolProfiles(context.Background()); err != nil {
+	if err := f.s.InitializeToolProfiles(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	worker := f.call("POST", "/release-workers", f.body(map[string]any{"worker_id": "tool-worker", "profiles": []any{}, "deployment": false}), 201)

@@ -44,9 +44,8 @@ export function validDispatchOptions(value:unknown,scope:DispatchOptionsScope):v
  }
  return value.recommended_tool_profile_id===recommended&&(!value.next_cursor||value.items.length>0);
 }
-/** The legacy selector has a narrower state union and omits null observations.
- * Convert a validated contract profile without changing its immutable identity. */
+/** Adopt the validated contract profile directly, preserving its exact facts. */
 export function selectedDispatchOption(page:TaskDispatchOptions):ToolProfile|undefined{
  const option=page.items.find(item=>item.eligible&&item.tool.id===page.recommended_tool_profile_id);
- return option?{...option.tool,state:option.tool.state as ToolProfile['state'],observation:option.tool.observation??undefined}:undefined;
+ return option?.tool;
 }

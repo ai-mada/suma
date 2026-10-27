@@ -6,9 +6,6 @@ import (
 )
 
 func (t *transaction) attemptWindow(r *runState, n *nodeState, start bool) (int, error) {
-	if r.kernelGeneration < 2 {
-		return n.spec.TimeoutSeconds, nil
-	}
 	var generation int
 	if err := t.row(`SELECT generation FROM dag_node_dependencies WHERE run_id=? AND node_id=?`, r.ID, n.ID).Scan(&generation); err != nil {
 		return 0, err
@@ -39,18 +36,6 @@ func (t *transaction) attemptWindow(r *runState, n *nodeState, start bool) (int,
 func (t *transaction) scheduleTransientRetry(r *runState, n *nodeState, result Result) (bool, error) {
 	if !n.spec.Idempotent || n.spec.MaxRetries == 0 || result.OutcomeUnknown || result.Stopped {
 		return false, nil
-	}
-	if r.kernelGeneration < 2 {
-		if n.Attempt > n.spec.MaxRetries {
-			return false, nil
-		}
-		n.State = "pending"
-		n.CompletedAt = ""
-		n.WorkerID = ""
-		if err := t.enqueueNode(r, n.ID); err != nil {
-			return false, err
-		}
-		return true, t.event(r, n.ID, "retry_scheduled", map[string]any{"attempt": n.Attempt + 1, "semantics_generation": 1})
 	}
 	if result.FailureClass != "transient" {
 		return false, nil

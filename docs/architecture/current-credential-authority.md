@@ -1,37 +1,38 @@
 # 当前凭证权威性：应用命令深模块设计
 
-状态：**v1 冻结设计基线；代码迁移与局部验证进行中，尚未整体验收**。日期：2026-10-25。Root接受proposal-1-r1及四项设计问题独立闭环；实施基线为T-P4-013本地提交`0a8308919dd4b2bf5f8836e943118a40f2a1a10a`。本设计不表示问题已修复或P0–P7已完成。
+状态：**1.0.0 当前初始化与权限设计；完整平台及生产验收未完成**。更新：2026-10-27。2026-10-25 的 proposal-1-r1 与 T-P4-013 提交 `0a8308919dd4b2bf5f8836e943118a40f2a1a10a` 为历史发现和设计取材，不代表当前源代码、运行预览或生产状态。
 
-关联：[拟议合同](../../contracts/current-credential-authority.md)、[拟议实施计划](../delivery/current-authority-plan.md)。本设计基于本地源码与忽略目录中的 `credential-authority-stage-014/credential-authority-discovery.md`、`summary.json`、`command-authority-map.md/json`。忽略目录是本地发现证据，不作为提交后的唯一规格来源；关键事实与验收条件已在本组三文档中复述。
+关联：[当前合同](../../contracts/current-credential-authority.md)、[实施与验收计划](../delivery/current-authority-plan.md)。历史发现保留于忽略目录 `credential-authority-stage-014/` 的 discovery、summary 与 command-authority-map；这些是历史证据，不是当前初始化或权限合同的替代来源。
 
 ## 实现落点与当前边界
 
-当前源码采用新增旁路账本，保留既有 `suma_sessions`、scope、回执和执行记录，不对旧行伪造有效来源：
+当前 1.0.0 在独立空库初始化真实发行与当前权限模型；`suma_sessions`、scope、来源、family、Grant 和 issuance 分别保存事实，任何单表或显示 label 都不能替代完整证明：
 
 | 模块／表 | 职责 |
 |---|---|
 | `command_actor.go`、`command_authority.go` | 真实来源解析、私有 Actor、事务／目标／用途证明 |
 | `authority_read.go`、领域 `*Tx` 读取 | 当前授权与完整响应查询同一事务；SSE 每个持久批次和发送前重新检查 |
 | `suma_auth_sources`、`suma_session_families` | 认证来源、固定 7 日浏览器家族及撤销代次 |
-| `suma_credential_authority`、`suma_credential_issuance` | 原会话的可信分类、发行证据、撤销标记与 legacy 拒绝 |
+| `suma_credential_authority`、`suma_credential_issuance` | credential digest 的真实 kind、来源绑定、发行证据和撤销标记；缺失或不一致直接拒绝 |
 | `suma_credential_grants`、`suma_credential_slots` | 独立批准、固定到期及同操作秘密轮换；不存秘密正文 |
 | `suma_identity_authority_locks`、`suma_authority_credential_locks` | 排序参与者与来源协调；SQLite 专用 writer guard |
+| `internal/store/baseline.go` | 领域 DDL 前的当前 1.0.0 schema 声明与拒绝边界；不解释已有历史结构 |
 | `internal/store/transaction.go` | 连接归属、事务结束、SQLite 本连接等待时限恢复；不修改全局设置 |
 | `apps/web/src/api-context.tsx`、CLI 原视图参数 | 请求闭包固定原页面账户／组织，重试不自动更换身份 |
 
 短事务使用首次 5 秒总预算，重复证明不重启计时，锁外进行提供方／文件 IO；交互完成返回前建立新证明。记录、审批、发布、工具、自动化、资源池与 Runner 共享该边界，各域保留自身业务门禁。可信 failure projection 和机器／持久 activation 使用封闭的真实来源证明，不转成通用系统用户。
 
-实际本地定向验证分领域推进，当前未完成全平台集成；PostgreSQL／OceanBase 当前权限并发、规模目标、外部厂商和升级后实际 UI 尚未验收。旧预览继续服务已验收 013 程序，不能把新源代码描述为已部署。
+`Service.Initialize` 先通过 `store.InitializeBaseline` 校验本组件 1.0.0 声明，再执行当前领域 DDL；未声明却已有领域表或版本不匹配时，在领域 DDL 前拒绝，要求独立空库，不升级、不清库。各 `Initialize*` 只初始化当前结构，`InitializeCredentialAuthority` 不从已有 session 回填身份。schema 声明不是 DDL 全部完成、服务健康、业务验收或生产就绪证明。当前源代码和已运行预览分别记录；本轮文档同步没有升级预览或接入已有数据库。PostgreSQL／OceanBase 并发、规模目标、外部厂商、物理多机和生产验收仍须独立证据。
 
-## 1. 问题、已知事实与目标
+## 1. 历史发现与当前目标
 
 两条真实 HTTP 路径已被确定性复现：POST `/api/v1/teams`、POST `/api/v1/tasks`。请求先完成真实 Authenticate，再在第一次读取正文时暂停；另一数据库连接先提交 Logout 或固定过去时间的会话 expiry；随后原请求仍以缓存 Principal 新增业务对象、operation 和 activity，或返回原先的成功回执。两端点 × logout/expiry × 新写/replay，共八个所需拒绝案例。fresh Authenticate 已拒绝，原成员关系仍存在；这是凭证存活与成员权限的区别。现有强校验偏好命令同时拒绝了同一失效凭证。
 
 仅上述两端点的这八个时序标记为已证实缺口。其余源码缺少当前凭证输入的调用点均为待迁移／待验证的 source gap，不能把矩阵直接升级成全库漏洞结论。现有 Characterization 通过只是重复观察缺口，必须保留原 RED，不是修复后的 GREEN。
 
-当前 `Principal` 在 `internal/platform/types.go` 包含身份／组织／角色投影和包私有 internal 位，没有 credential 标识。`liveOrganization`、`authorizeProjectTx` 复核账号和当前成员权限，却不能辨别先前认证的 session 已删除。团队治理 helper 与通用记录 Create 因而无法在事务内补查原凭证。
+T-P4-013 历史源码中的 `Principal` 在 `internal/platform/types.go` 包含身份／组织／角色投影和包私有 internal 位，没有 credential 标识。`liveOrganization`、`authorizeProjectTx` 复核账号和当前成员权限，却不能辨别先前认证的 session 已删除。团队治理 helper 与通用记录 Create 因而无法在事务内补查原凭证。
 
-部分路径已有更强实现：Runner 的 `currentRunnerCredentialTx` 采用 session/scope 当前行锁和数据库时间；pool 人类命令复用 `currentSchedulingSessionTx` 并另查 browser label；偏好、releaseBrowserTx、artifactAdminTx 也查询实际会话，但时间与行锁语义不一致。必须保留一个精确事实：**`currentSchedulingSessionTx` 自身检查 actor/tenant、无 scope、expiry、数据库时间和支持后端的 FOR UPDATE，不检查 label=browser**。不能把已有注释或调用者约束当作 helper 自身保证。
+T-P4-013 历史源码中部分路径已有更强实现：Runner 的 `currentRunnerCredentialTx` 采用 session/scope 当前行锁和数据库时间；pool 人类命令复用 `currentSchedulingSessionTx` 并另查 browser label；偏好、releaseBrowserTx、artifactAdminTx 也查询实际会话，但时间与行锁语义不一致。必须保留一个精确事实：**`currentSchedulingSessionTx` 自身检查 actor/tenant、无 scope、expiry、数据库时间和支持后端的 FOR UPDATE，不检查 label=browser**。不能把已有注释或调用者约束当作 helper 自身保证。
 
 目标是让所有已实现应用写入和回执恢复只使用当前、真实、允许该用途的凭证，并保留当前项目权限、幂等、版本和持久委派语义。任务范围覆盖矩阵的 111 个逐方法／入口行；它们包含机器、内部及重复方法行，**不是 111 个人类写端点**。完成判据是所有交互写入口被封闭迁移，并逐项登记机器／系统／委派差异。
 
@@ -39,7 +40,7 @@
 
 本阶段拟分两轮集成：第一轮覆盖全部已实现交互写命令、凭证生命周期和共享机器／委派适配；第二轮覆盖全部已实现受保护读、敏感回执、原文、文件与 SSE 的同一当前凭证规则。两轮都完成才可称本设计的当前权限基础完成。不能把第一轮两个端点的 GREEN 当作整体完成。
 
-纳入现有浏览器 opaque session、project API、Runner／release worker、Agent、独立 pool machine、provider machine、signed ingress、持久 automation/tool activation、FailureIssue 和 index projector。CLI／Runner client／agent-runtime 仍经现有真实 HTTP 协议。现有 Agent tools 仅 overview/tasks/search；POST invoke 是读取。没有发现已实现 MCP server/router 或 A2A transport，`mcp_tool_call` 是事件规范化名称；本阶段只规定其未来适配 seam，不声称已有支持。
+纳入现有浏览器 opaque session、project API、Runner／release worker、Agent、独立 pool machine、provider machine、signed ingress、持久 automation/tool activation、FailureIssue 和 index projector。CLI／Runner client／agent-runtime 仍经现有真实 HTTP 协议。现有 Agent tools 仅 overview/tasks/search；POST invoke 是读取。MCP／A2A 等扩展须按各自真实来源、协议与实际接入证据验收，权限基础不能代替完整外部集成或生产支持证明。
 
 保持业务表、历史回执正文、actor/body/scope 绑定、版本、执行 fence、原始工具事实和语言显示不变。旧回执无需重写，恢复之前必须通过新的当前权限。公开业务 JSON 不增加 actor、system、delegation、凭证种类或可信标记；客户端不能选择内部能力。
 
@@ -93,11 +94,11 @@ type delegationRef struct {
 
 Actor中projection是outer解析时的显示／关联提示，不得从其Role做当前授权。authorizeTx必须从当前SQL行生成proof内的currentPrincipal／当前machine权限；业务输出与角色判断以该结果为准。新增kind/source/family/grant引用也来自真实persistedrow，不能因已经封装进Actor便跳过事务内复核。
 
-`Principal` 移除 internal 位，保留纯投影；它可用于显示／当前角色结果，不能用于任何交互 mutation 授权。读兼容 Authenticate 如仍保留，必须仅返回投影、不能被写路径消费。新 `AuthenticateActor(ctx, rawToken) (Actor, error)` 基于实际 session/scope 解析来源；outer 解析只是取得上下文，真正授权还在命令事务内。生命周期、pool、provider 和持久来源各有专用构造，不能把机器伪装成资源拥有者。
+`Principal` 是纯投影，只用于显示／当前角色结果，不能用于交互 mutation 授权。`AuthenticateActor(ctx, rawToken) (Actor, error)` 基于真实 session、scope 与发行来源取得封闭上下文；缺少 issuance、source、family 或所需 Grant 时直接拒绝，不分类或回填旧行。outer 解析不证明后续权限，每次命令事务仍须重新取得当前 proof。生命周期、pool、provider 和持久来源各有专用构造，不能把机器伪装成资源拥有者。
 
 | variant | 可接受来源与用途 | 不得继承 |
 |---|---|---|
-| browser | 真实 session，server-established browser kind；旧无可信发行来源的 unscoped 行要求重新登录；允许的人类命令／读 | 用户 JSON label、无 scope 本身、缓存角色 |
+| browser | 真实 session、server-established browser kind 与完整 source／family／issuance；允许的人类命令／读 | 用户 JSON label、无 scope 本身、缓存角色 |
 | projectAPI | 真实 session + kind=api/project scope；仅现有允许的 project 命令与读 | 组织治理、browser-only、机器权限 |
 | projectRunner | session + runner scope + 精确项目，必要时 release worker 当前绑定/profile | 任意 worker、browser/Agent 权限 |
 | agentRead | session + agent scope；现有三个只读工具 | business mutation 或通用 API token |
@@ -139,7 +140,7 @@ Engine Create／Command／Claim 等 before callback 保持现有 sql.Tx seam；c
 
 所有参与权限更改的数据库 transaction 遵循：**完整组织集合按 ID 升序 → 账户权限协调行按 userID 升序 → credential/session 按稳定 key 升序 → 项目／scheduler（及池／环境既有细分顺序）**。账户协调行属于 credential 层，不在组织层之前。进入后一层后不得再扩展组织集合。`authorizeProjectTx` 等旧 helper 不能隐式重新拿锁并逆序；改为私有“锁已持有后的当前 role 检查”。
 
-拟增加 `suma_identity_authority_locks(user_id PRIMARY KEY, sequence)`，作为 session issue/revoke、成员变更、switch 和 account-wide revoke 的账户协调点；迁移只新增。人类命令短事务也拿当前账户协调行，再当前 session 行。它会使同一账号跨 session/组织短命令保守串行，换取可解释的统一撤销；不声称吞吐目标已验证。pool/provider 独立身份继续使用其既有组织／credential 锁，不凭空挂在人类账户上。是否需要后续 epoch 优化由实测决定，不在此引入分布式缓存。
+`suma_identity_authority_locks(user_id PRIMARY KEY, sequence)` 是 session issue／revoke、成员变更、switch 与 account-wide revoke 的账户协调点；人类短命令取得该行及当前 credential 锁。它使同账号跨 session／组织短命令保守串行，不代表吞吐目标已验证；pool／provider 独立身份使用其当前专用协调与凭证协议，不从 owner 借权。
 
 account-wide revoke、跨组织 switch 和影响多组织的成员／凭证命令：先读候选组织集合（非授权读），按序锁所有相关组织，再锁账户协调行，使用当前读取复核该账户的 membership/session 源／目标组织集合。集合有扩展则回滚，重新收集后最多重试 3 次，仍变化返回可重试 conflict；不能边持锁边补一个更小 ID 组织。所有新增／删除 membership、session issue 也参加该账户协调协议，因此复核之后集合不能悄悄变化。多账号治理先按组织再按全部 userID 排序；邀请注册要先确定现有或新 userID，禁止 password/source 变更绕开协调点。
 
@@ -202,21 +203,21 @@ SSE 每次建立、轮换、重连及有界批次读取都重用 current read au
 
 ## 7. API／数据／库与后续 SSO
 
-公开 route／DTO 原则上保留，仅拒绝语义加强、scope kind 明确和 auth token issue/switch 来源寿命变化。源／目标原视图 header 沿用 `X-Suma-Expected-User`、`X-Suma-Expected-Organization`；完整迁移对照见合同。缺少／不存在／到期／撤销凭证返回 401；存在但 kind/scope/member/action 不允许返回 403；原来的版本／幂等正文冲突保持 409。scope 错配不泄露外租户资源存在性。现有 guarded helper 的 403 断言可按统一合同有意迁移，但不能把业务错误随便改码。
+当前 1.0.0 route／DTO、scope kind 和 token issue／switch 均按当前合同设计，不提供旧字段别名或无 guard 入口。浏览器原视图使用 `X-Suma-Expected-User`、`X-Suma-Expected-Organization`，与真实 Actor 分开验证。缺失／到期／撤销／缺发行证明返回 401；kind／scope／会员／用途不足 403；原视图缺失 428；版本／幂等正文冲突 409。scope 错配不能泄露外租户对象存在性。
 
-Root已明确不需历史认证兼容：凡缺少完整可信source/family或独立Grant/issuance证明的legacy session，包括真实scope仍在但没有Grant的旧API/Runner/Agent，保留原row/scope/expiry作审计，标记legacy-unclassified/reissue-required，auth/current-proof均401。scope/label不能自动变成有效kind或补造Grant、approved_by、source认证、family/issuance；迁移不新增成功operation/activity，不续写旧expiry。真实重新登录后才有新browser，再按新command/key明确批准独立Grant；正常新模型完整行按其当前状态校验，不能被重复迁移一律降legacy。Root负责schema/generator，具体模型与幂等要求见CCA-001A/008A。
+当前持久结构见合同 CCA-008A。空库初始化只建立 schema，真实 password／invitation／bootstrap proof 才能发行 browser 来源；当前 browser 明确批准后才原子发行独立 Grant／credential／scope／slot。初始化和认证均不能从已有 session 或 scope 推导一次未发生的认证、批准或发行，也不续写 expiry。
 
-部署必须说明：旧节点/API/Agent要配置新token，旧browser要重登。先按授权运维流程盘点/排空；仍在进行的attempt收到旧token回报时必须拒绝401，保留原run/node/attempt/fence/lease/journal，按既有租约与核对协议处理。不能因迁移自动failed、重复派发、篡改run、伪造成功/ACK，不能拿新token默认为旧attempt补授权。既有租约自然到期规则保持，不通过兼容旁路接纳旧身份。迁移测试须覆盖旧scope无Grant全部拒绝、旧业务执行receipt及expiry不变、无假批准/成功audit、重新登录发行后可用及重复迁移幂等；UI/运维影响也是Root实施交付范围，本文没有实际执行迁移。
+任何缺失发行证明的凭证均拒绝 401，不新增分类状态或自动配置替换 token。仍在进行的 run／node／attempt／fence／lease／journal 和原回执保持原事实，不能因凭证拒绝自动 failed、重复派发或伪造成功／ACK，不能将新 token 自动绑定旧 attempt。未知外部效果沿原操作核对；真实已有库的导入／升级、凭证重新配置和运行接管必须有独立运维方案，本次初始化不执行这些操作。
 
 OIDC 只预留真实变化点：内部 source 当前状态解析函数输入持久 sourceID/revision，输出 enabled、subject binding、期限约束、revocation generation 与 authentication context。现有实际认证是 auth.go 本地密码与 session/scope；本文新的 Actor/local-password source adapter 已进入实现，尚未完成整体集成验收。没有第二个真实 SSO adapter 时不引入一整套空泛插件框架。未来 OIDC callback 经成熟维护库验证 issuer/audience/nonce/state/PKCE/signature 后才构造来源，本设计不选择未考证库、不写假 token verifier，也不把 SDK 配置成功当真实 SSO。
 
 ## 8. 风险、回滚与观测
 
-主要风险是迁移遗漏、同包任意 Actor 构造、跨 tx proof、锁序死锁、账户串行热点、RR 快照误用、source 派生扩寿、workspace 已接受副作用误取消、durable activation 被 browser guard 误伤及 read migration 改变原分页原文。每项由合同与计划指定具体验收，不靠“有 helper”结论。
+主要风险是入口登记遗漏、同包任意 Actor 构造、跨事务 proof、锁序死锁、账户串行热点、RR 快照误用、来源派生扩寿、workspace 已接受效果误取消、durable activation 被 browser guard 误伤，以及读权限调整破坏原分页／原文。各项须有具体边界与实际证据，不能以存在 helper 宣称完成。
 
 日志只记录 purpose、scope、actor kind、去敏 credential/source reference、拒绝 code、授权时间与锁等待时长；不记 raw token、密码、cookie、secret、签名正文或完整受保护结果。拒绝不得留下成功 operation/activity。协调计数不是业务操作计数。失败／timeout 不得静默 fallback 到旧 Principal 路径。
 
-两轮中间状态不可部署为“已完成权限基础”。回滚不允许关闭 guard 恢复旧问题；数据库 additive migration 可保留，应用回滚需回到同样拒绝失效凭证的兼容版本，否则仅停止服务／维持当前安全版本，Root 另决定运行恢复。没有本设计实施／实际数据库／全套稳定哈希证据前不得打正式 runtime cut。
+未完成所需权限验证时，不得部署为“已完成权限基础”。运行恢复不能关闭 guard、切回缺少当前 proof 的程序或隐式重解释已有数据库；可维持当前安全版本或停止服务，按独立恢复方案处理。保留原记录、备份与证据；schema 声明和初始化成功都不能替代实际权限、数据库后端、业务或生产验收。
 
 ## 9. AI SOP 与证据界限
 
@@ -235,13 +236,13 @@ Root 先复核冻结合同、类型和写／读 registry，再下发三域互斥
 | 锁序与账户多租户 | 两种logout winning order；2org/2session并发issue/membership集合变化 | lock取得/commit次序、重试、timeout、最终活动凭证集合 |
 | Review与文件多阶段 | 两tx中间logout；prepare前/后logout＋可信恢复 | 各txproof、receipt、文件hash、prepared/final状态和actualeffect |
 | browserfamily与独立Grant | switch不延authenticated_at/expiry；source正常轮换新session有效；browser临近expiry发行policy允许独立token | family/generation/Grant固定期限、旧secret拒绝、独立token与另一family正向 |
-| kind-specific Logout与legacy重新发行 | browser family A/B失效而独立family/token/activation保持；scoped仅owncredential/slot；legacy有scope无Grant仍401，新认证/发行后可用 | 重复200无二次generation/version变动；旧row/scope/expiry、business/run/receipt保持；无fakeGrant/ACK/duplicate dispatch |
+| kind-specific Logout 与缺证明拒绝 | browser family 注销而独立 family／token／activation 保持；scoped 仅撤销自身 credential／slot；缺发行证明的 session／scope 均 401 | 重复 200 无二次 generation／version 变化；无凭空补写 source／family／Grant／issuance，无 fake ACK 或 duplicate dispatch |
 | 持久activation与System | logout后Tick一次，降权/revision阻断；可信failedrun只投影其scope | actualrun/occurrence/issue与operation唯一性，无任意tenant授权 |
 | 全protectedread/SSE | 登出/expiry后无新batch/rawfile/result；cursor/原文分页保持 | currentguard和实际返回字节/事件、watermark/rawSQLTEXT、业务哈希保持 |
 
 上述是未来必须产生的证据，不能把本草案静态自审或既有局部guard测试计作这些验收已经通过。
 
-## 附录：本提议取材的实际 Go／adapter 源码哈希
+## 附录：2026-10-25 历史取材的 Go／adapter 源码哈希
 
 生成时间UTC：2026-10-25T08:45:46.8954783Z。仅绑定下列102个实际文件；不包含前端、文档、memory、忽略报告或并行013展示修改。没有复制源文件，没有运行编译或测试。未来实施必须重新建立其自己的before/aftermanifest，不能复用本表冒称修改后验证。
 

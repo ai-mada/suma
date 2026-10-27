@@ -12,9 +12,6 @@ const args = process.argv.slice(2),
 const sourceRoot = path.resolve(option('--source-dir')||path.join(base, "src")),
   catalogDir = path.resolve(
     option("--catalog-dir") || path.join(sourceRoot, "i18n/locales"),
-  ),
-  baselinePath = path.resolve(
-    option("--baseline") || path.join(sourceRoot, "i18n/legacy-baseline.json"),
   );
 const errors = [];
 function catalog(locale) {
@@ -165,11 +162,8 @@ try {
 } catch (error) {
   errors.push(error.message);
 }
-let legacy = [];
 // Every product-owned production module now participates. The three exact
 // immutable server filter identities and native language name are checked below.
-function covered() { return true; }
-
 for (const file of sourceFiles) {
   const relative = path.relative(sourceRoot, file).replaceAll("\\", "/"),
     sf = ts.createSourceFile(
@@ -178,8 +172,7 @@ for (const file of sourceFiles) {
       ts.ScriptTarget.Latest,
       true,
       file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
-    ),
-    found = new Map();
+    );
   function visit(node) {
     if (
       (ts.isStringLiteralLike(node) || ts.isJsxText(node) || ts.isTemplateHead(node) || ts.isTemplateMiddle(node) || ts.isTemplateTail(node)) &&
@@ -199,67 +192,16 @@ for (const file of sourceFiles) {
         for(let current=node;current;current=current.parent)
           if(ts.isVariableDeclaration(current)&&ts.isIdentifier(current.name)&&current.name.text==='standardPolicyNotes')return;
       }
-      if (covered(relative, node))
-        errors.push(
-          "new hardcoded UI text " +
-            relative +
-            ":" +
-            (sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1),
-        );
-      else found.set(hash, (found.get(hash) || 0) + 1);
+      errors.push(
+        "new hardcoded UI text " +
+          relative +
+          ":" +
+          (sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1),
+      );
     }
     ts.forEachChild(node, visit);
   }
   visit(sf);
-  if (found.size)
-    legacy.push({
-      file: relative,
-      strings: [...found]
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([sha256, count]) => ({ sha256, count })),
-      candidates: [...found.values()].reduce((a, b) => a + b, 0),
-    });
-}
-legacy.sort((a, b) => a.file.localeCompare(b.file));
-if (!args.includes("--skip-audit")) {
-  if (args.includes("--update-baseline")) {
-    fs.writeFileSync(
-      baselinePath,
-      JSON.stringify(
-        {
-          requirement: "FND-I18N-001",
-          scope:
-            "AST Han-bearing production literals and JSX text, excluding comments/tests/native language name; candidate counts are not complete translation-key estimates.",
-          remaining: legacy,
-        },
-        null,
-        2,
-      ) + "\n",
-    );
-  } else {
-    try {
-      const baseline = JSON.parse(fs.readFileSync(baselinePath, "utf8"));
-      for (const file of legacy) {
-        const old = baseline.remaining.find((item) => item.file === file.file);
-        for (const item of file.strings) {
-          const previous = old?.strings.find(
-            (entry) => entry.sha256 === item.sha256,
-          );
-          if (!previous || item.count > previous.count)
-            errors.push(
-              "legacy hardcode regression " +
-                file.file +
-                " " +
-                item.sha256.slice(0, 12),
-            );
-        }
-      }
-    } catch {
-      errors.push(
-        "missing or invalid legacy baseline; review an explicit --update-baseline",
-      );
-    }
-  }
 }
 if (errors.length) {
   process.stderr.write([...new Set(errors)].join("\n") + "\n");
@@ -270,6 +212,6 @@ if (errors.length) {
   );
   if (!args.includes("--skip-audit"))
     process.stdout.write(
-      `Legacy candidate strings ${legacy.reduce((sum, item) => sum + item.candidates, 0)} across ${legacy.length} modules remain explicitly unlocalized; covered-module hardcodes 0.\n`,
+      "Production source hardcodes 0.\n",
     );
 }

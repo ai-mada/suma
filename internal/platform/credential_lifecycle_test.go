@@ -56,7 +56,7 @@ func authorityEmptyFixture(t *testing.T) *Service {
 		}
 	})
 	s := &Service{DB: db, Dialect: "sqlite"}
-	if err = s.Migrate(context.Background()); err != nil {
+	if err = s.Initialize(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	return s
@@ -76,12 +76,12 @@ func authorityFixture(t *testing.T) (*Service, Principal, string, string) {
 	return s, p, token, project
 }
 
-func TestAuthorityLegacyKindsMigration(t *testing.T) {
+func TestAuthorityInitializationDoesNotGrantUnissuedSessions(t *testing.T) {
 	s, p, _, project := authorityFixture(t)
 	ctx := context.Background()
 	expires := time.Now().UTC().Add(time.Hour).Format(time.RFC3339Nano)
 	for _, scope := range []string{"", "api", "runner", "agent"} {
-		token := "legacy-" + scope
+		token := "unissued-" + scope
 		if _, err := s.DB.Exec(`INSERT INTO suma_sessions(token_hash,user_id,tenant_id,expires_at,label) VALUES(?,?,?,?,?)`, digest(token), p.ID, p.TenantID, expires, "browser"); err != nil {
 			t.Fatal(err)
 		}
@@ -91,16 +91,20 @@ func TestAuthorityLegacyKindsMigration(t *testing.T) {
 			}
 		}
 	}
-	if err := s.Migrate(ctx); err != nil {
+	if err := s.Initialize(ctx); err != nil {
 		t.Fatal(err)
 	}
 	for _, scope := range []string{"", "api", "runner", "agent"} {
-		if _, err := s.Authenticate(ctx, "legacy-"+scope); err == nil {
-			t.Errorf("legacy %q session remained authoritative", scope)
+		if _, err := s.Authenticate(ctx, "unissued-"+scope); err == nil {
+			t.Errorf("unissued %q session became authoritative", scope)
 		}
-		var gotExpiry, kind, status string
-		if err := s.DB.QueryRow(`SELECT t.expires_at,a.credential_kind,a.migration_status FROM suma_sessions t JOIN suma_credential_authority a ON a.token_hash=t.token_hash WHERE t.token_hash=?`, digest("legacy-"+scope)).Scan(&gotExpiry, &kind, &status); err != nil || gotExpiry != expires || kind != "legacy-unclassified" || status != "reissue-required" {
-			t.Fatalf("legacy audit changed %q: %v", scope, err)
+		var gotExpiry string
+		if err := s.DB.QueryRow(`SELECT expires_at FROM suma_sessions WHERE token_hash=?`, digest("unissued-"+scope)).Scan(&gotExpiry); err != nil || gotExpiry != expires {
+			t.Fatalf("unissued source changed: %v", err)
+		}
+		var count int
+		if err := s.DB.QueryRow(`SELECT COUNT(*) FROM suma_credential_authority WHERE token_hash=?`, digest("unissued-"+scope)).Scan(&count); err != nil || count != 0 {
+			t.Fatalf("initialization invented issuance proof: %d %v", count, err)
 		}
 	}
 	_, fresh, err := s.Login(ctx, "authority@example.test", "authority-test-password-42")
@@ -115,14 +119,14 @@ func TestAuthorityLegacyKindsMigration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = s.Migrate(ctx); err != nil {
+	if err = s.Initialize(ctx); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = s.AuthenticateActor(ctx, fresh); err != nil {
-		t.Fatalf("complete browser downgraded on repeat migration: %v", err)
+		t.Fatalf("complete browser downgraded on repeat initialization: %v", err)
 	}
 	if _, err = s.AuthenticateActor(ctx, issued.Token); err != nil {
-		t.Fatalf("complete Grant downgraded on repeat migration: %v", err)
+		t.Fatalf("complete Grant downgraded on repeat initialization: %v", err)
 	}
 }
 

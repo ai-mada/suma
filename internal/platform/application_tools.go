@@ -18,7 +18,7 @@ func DeclaredApplicationTools() []ApplicationToolDefinition {
 	listKnowledge := applicationObject(map[string]any{"kind": map[string]any{"type": "string", "enum": []string{"memory", "spec", "skill"}}, "state": map[string]any{"type": "string", "enum": []string{"draft", "published", "retired"}}, "query": applicationString(200), "limit": applicationInteger(1, 100), "cursor": applicationString(4096)})
 	definitions := []ApplicationToolDefinition{
 		makeDefinition("project.overview", "读取当前授权项目的真实状态与活动", "agent.tool_overview", applicationObject(map[string]any{}), true, "agent", "api"),
-		makeDefinition("project.tasks", "读取当前项目任务", "agent.tool_tasks", applicationLegacyTaskPageSchema(), true, "agent", "api"),
+		makeDefinition("project.tasks", "读取当前项目任务", "agent.tool_tasks", applicationTaskPageSchema(), true, "agent", "api"),
 		makeDefinition("project.search", "检索当前项目资料并返回来源", "agent.tool_search", applicationObject(map[string]any{"query": applicationString(500)}, "query"), true, "agent", "api"),
 		makeDefinition("project.knowledge", "读取明确发布的项目知识固定修订并核验当前来源", "knowledge.agent_read", knowledge, true, "agent", "api"),
 		makeDefinition("project.requirements", "分页读取当前项目需求", "application_tool_project_requirements", applicationPageSchema(), true, "api"),
@@ -34,7 +34,7 @@ func DeclaredApplicationTools() []ApplicationToolDefinition {
 	return append(definitions, applicationSkillDefinitions(makeDefinition)...)
 }
 
-func applicationLegacyTool(name string) bool {
+func nativeReadToolAllowed(name string) bool {
 	switch name {
 	case "project.overview", "project.tasks", "project.search", "project.knowledge":
 		return true
@@ -53,7 +53,7 @@ func applicationActorAllows(actor Actor, definition ApplicationToolDefinition) b
 	if actor.kind == actorProjectAPI {
 		return true
 	}
-	return (actor.kind == actorAgentRead || actor.kind == actorBrowser) && applicationLegacyTool(definition.Name) && definition.ReadOnly
+	return (actor.kind == actorAgentRead || actor.kind == actorBrowser) && nativeReadToolAllowed(definition.Name) && definition.ReadOnly
 }
 
 func (s *Service) ApplicationTools(ctx context.Context, actor Actor, projectID string) (out ApplicationToolList, err error) {

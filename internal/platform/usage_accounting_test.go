@@ -15,7 +15,7 @@ import (
 func newUsageFixture(t *testing.T) *intelligentFixture {
 	t.Helper()
 	h := newIntelligentFixture(t)
-	if e := h.f.s.MigrateUsageAccounting(context.Background()); e != nil {
+	if e := h.f.s.InitializeUsageAccounting(context.Background()); e != nil {
 		t.Fatal(e)
 	}
 	h.f.e.AttemptAccounting = h.f.s

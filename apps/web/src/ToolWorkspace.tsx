@@ -649,7 +649,7 @@ function ToolProfileForm({
           />
         </Field>
         <ToolIdentity
-          legacy={workers}
+          local={workers}
           shared={sharedWorkers}
           value={worker}
           onChange={(value) => {

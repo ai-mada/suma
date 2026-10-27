@@ -125,8 +125,8 @@ func TestControlDiagnosticHTTPProjectionPreservesDetailsAndUnknownSource(t *test
 	}{
 		{"/known", "en-US", "The record has changed. Keep your draft and reload.", "control.records.version_changed", "", "version_conflict", 409, true},
 		{"/known", "zh-CN", "记录已变化，请保留草稿并重新加载", "control.records.version_changed", "", "version_conflict", 409, true},
-		{"/unknown", "en-US", unknown.Message, "legacy.invalid_input", "source_untranslated", "invalid_input", 400, false},
-		{"/unknown", "zh-CN", unknown.Message, "legacy.invalid_input", "source_untranslated", "invalid_input", 400, false},
+		{"/unknown", "en-US", unknown.Message, "untranslated.invalid_input", "source_untranslated", "invalid_input", 400, false},
+		{"/unknown", "zh-CN", unknown.Message, "untranslated.invalid_input", "source_untranslated", "invalid_input", 400, false},
 	} {
 		t.Run(tc.path+"/"+tc.locale, func(t *testing.T) {
 			req, _ := http.NewRequest("GET", server.URL+tc.path, nil)

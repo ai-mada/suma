@@ -31,7 +31,7 @@ type knowledgeIntelligenceRecord struct {
 	Route                 dag.ProjectExecutionRoute     `json:"route"`
 }
 
-func (s *Service) MigrateKnowledgeIntelligence(ctx context.Context) error {
+func (s *Service) InitializeKnowledgeIntelligence(ctx context.Context) error {
 	for _, q := range []string{
 		`CREATE TABLE IF NOT EXISTS suma_knowledge_intelligence(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,state VARCHAR(20) NOT NULL,run_id VARCHAR(100) NOT NULL UNIQUE,created_at VARCHAR(40) NOT NULL,payload TEXT NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_knowledge_intelligence_outcomes(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,analysis_id VARCHAR(64) NOT NULL,attempt INTEGER NOT NULL,fence BIGINT NOT NULL,result_sha256 VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,result TEXT NOT NULL,PRIMARY KEY(analysis_id,attempt,fence,result_sha256))`,
@@ -44,7 +44,7 @@ func (s *Service) MigrateKnowledgeIntelligence(ctx context.Context) error {
 	if err := store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_knowledge_intelligence_page", "suma_knowledge_intelligence", "tenant_id", "project_id", "created_at", "id"); err != nil {
 		return err
 	}
-	return s.MigrateFailureDiagnosis(ctx)
+	return s.InitializeFailureDiagnosis(ctx)
 }
 func (s *Service) knowledgeIntelligenceTx(ctx context.Context, tx *sql.Tx, tenant, project, id string) (out knowledgeIntelligenceRecord, err error) {
 	var raw, state string

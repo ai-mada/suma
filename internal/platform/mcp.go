@@ -212,7 +212,7 @@ func mcpFailure(ctx context.Context, err error) *mcp.CallToolResult {
 	}
 	key, found := localization.LookupSource(api.Message)
 	if !found {
-		key = "legacy." + api.Code
+		key = "untranslated." + api.Code
 	}
 	text, _ := localization.WithSource(locale, key, nil, api.Message)
 	failure := mcpPublicFailure{map[string]any{"status": api.Status, "code": api.Code, "message": text.Text, "message_key": text.Key, "locale": string(locale), "localized": text.Localized}}

@@ -157,7 +157,7 @@ async function value(label: string, text: string) {
   });
 }
 describe("project-authorized shared pool tool identities", () => {
-  it("offers the current project shared runner separately from legacy identity management and saves only its worker ID", async () => {
+  it("offers the current project shared runner separately from private identity management and saves only its worker ID", async () => {
     await mount();
     const selection = field("绑定已登记执行节点") as HTMLSelectElement;
     const option = selection.querySelector(`option[value="${workerID}"]`);
@@ -196,7 +196,7 @@ describe("project-authorized shared pool tool identities", () => {
     ).toBeNull();
     expect(posts).toHaveLength(0);
   });
-  it("does not turn a project-shared identity into a legacy revoke/manage entry", async () => {
+  it("does not turn a project-shared identity into a private revoke/manage entry", async () => {
     await mount();
     const close = document.querySelector<HTMLButtonElement>(
       '[role="dialog"] [aria-label="关闭对话框"]',

@@ -20,10 +20,10 @@ import (
 func releaseTestSetup(t *testing.T) (*fixture, string) {
 	t.Helper()
 	f := newFixture(t)
-	if err := f.s.MigrateArtifacts(context.Background()); err != nil {
+	if err := f.s.InitializeArtifacts(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	if err := f.s.MigrateReleaseDeployment(context.Background()); err != nil {
+	if err := f.s.InitializeReleaseDeployment(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	secret := "provider-test-" + newID()
