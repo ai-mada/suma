@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -16,6 +17,7 @@ import (
 type WorkspaceObservationRegistry struct {
 	mu        sync.Mutex
 	projectID string
+	reader    *liveWorkspaceRead
 	native    *nativeWorkspace
 	scope     woc.Scope
 }
@@ -28,32 +30,58 @@ func nativeObservationScope(a Assignment, profileSHA string) woc.Scope {
 	return woc.Scope{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, ToolProfileID: profileID, ProfileSHA256: profileSHA}
 }
 func (r *WorkspaceObservationRegistry) register(native *nativeWorkspace) (func(), error) {
-	if r == nil || native == nil || r.projectID == "" {
+	if native == nil {
 		return nil, fmt.Errorf("workspace observation registry is unavailable")
 	}
-	native.mu.Lock()
-	scope := nativeObservationScope(native.assignment, native.profileSHA)
-	activeErr := native.activeLocked(context.Background())
-	native.mu.Unlock()
+	return r.registerRead(native.liveWorkspaceRead, native)
+}
+
+func (r *WorkspaceObservationRegistry) registerRead(reader *liveWorkspaceRead, native *nativeWorkspace) (func(), error) {
+	if r == nil || reader == nil || r.projectID == "" || native != nil && native.liveWorkspaceRead != reader {
+		return nil, fmt.Errorf("workspace observation registry is unavailable")
+	}
+	reader.mu.Lock()
+	scope := nativeObservationScope(reader.assignment, reader.profileSHA)
+	activeErr := reader.activeLocked(context.Background())
+	reader.mu.Unlock()
 	if activeErr != nil || woc.ValidateScope(scope) != nil {
-		return nil, fmt.Errorf("workspace observation requires an exact active native profile")
+		return nil, fmt.Errorf("workspace observation requires an exact active profile")
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if r.native != nil {
+	if r.reader != nil {
 		return nil, fmt.Errorf("workspace observation registry is already active")
 	}
-	r.native, r.scope = native, scope
+	r.reader, r.native, r.scope = reader, native, scope
 	return func() {
 		r.mu.Lock()
 		defer r.mu.Unlock()
-		if r.native == native {
+		if r.reader == reader {
+			r.reader = nil
 			r.native = nil
 			r.scope = woc.Scope{}
 		}
 	}, nil
 }
 func (r *WorkspaceObservationRegistry) active() (woc.Scope, string, bool) {
+	if r == nil {
+		return woc.Scope{}, "", false
+	}
+	r.mu.Lock()
+	reader, scope := r.reader, r.scope
+	r.mu.Unlock()
+	if reader == nil {
+		return woc.Scope{}, "", false
+	}
+	reader.mu.Lock()
+	defer reader.mu.Unlock()
+	if reader.activeLocked(context.Background()) != nil {
+		return woc.Scope{}, "", false
+	}
+	return scope, reader.policySHA, true
+}
+
+func (r *WorkspaceObservationRegistry) activeWrite() (woc.Scope, string, bool) {
 	if r == nil {
 		return woc.Scope{}, "", false
 	}
@@ -81,7 +109,7 @@ func validObservationLease(lease woc.Lease, project string, scope woc.Scope, pol
 	return nil
 }
 
-// Observe can issue only the two native read primitives. It never dispatches
+// Observe can issue only the two shared read primitives. It never dispatches
 // model instructions, writes, checks, merge operations or arbitrary MCP calls.
 func (r *WorkspaceObservationRegistry) Observe(ctx context.Context, lease woc.Lease) woc.ResultRequest {
 	observation := lease.Observation
@@ -96,20 +124,20 @@ func (r *WorkspaceObservationRegistry) Observe(ctx context.Context, lease woc.Le
 		return finish(nil, "workspace_closed")
 	}
 	r.mu.Lock()
-	native, scope, project := r.native, r.scope, r.projectID
+	reader, native, scope, project := r.reader, r.native, r.scope, r.projectID
 	r.mu.Unlock()
-	if native == nil {
+	if reader == nil {
 		return finish(nil, "workspace_closed")
 	}
-	if validObservationLease(lease, project, scope, native.policySHA, time.Now()) != nil {
+	if validObservationLease(lease, project, scope, reader.policySHA, time.Now()) != nil {
 		return finish(nil, "request_invalid")
 	}
 	until, _ := time.Parse(time.RFC3339Nano, lease.LeaseUntil)
 	readCtx, cancel := context.WithDeadline(ctx, until)
 	defer cancel()
-	native.mu.Lock()
-	defer native.mu.Unlock()
-	if native.activeLocked(readCtx) != nil {
+	reader.mu.Lock()
+	defer reader.mu.Unlock()
+	if reader.activeLocked(readCtx) != nil {
 		return finish(nil, "workspace_closed")
 	}
 	nativeArgs := observation.Arguments
@@ -125,16 +153,20 @@ func (r *WorkspaceObservationRegistry) Observe(ctx context.Context, lease woc.Le
 	var observed any
 	switch observation.Operation {
 	case "list":
-		observed, err = native.listLocked(args)
+		generation := 0
+		if native != nil {
+			generation = native.ledger.Generation
+		}
+		observed, err = reader.listLocked(args, generation)
 	case "read":
-		observed, err = native.readLocked(args)
+		observed, err = reader.readLocked(args)
 	default:
 		return finish(nil, "request_invalid")
 	}
 	if err != nil {
 		return finish(nil, observationErrorCode(err))
 	}
-	if native.activeLocked(readCtx) != nil {
+	if reader.activeLocked(readCtx) != nil {
 		return finish(nil, "workspace_closed")
 	}
 	result := &woc.Result{}
@@ -158,19 +190,30 @@ func (r *WorkspaceObservationRegistry) Observe(ctx context.Context, lease woc.Le
 	if result.Read != nil && observation.ExpectedSHA256 != "" && result.Read.SHA256 != observation.ExpectedSHA256 {
 		return finish(nil, "file_changed")
 	}
-	if native.observationSensitiveLocked(result) {
+	var extraSecrets []string
+	if native != nil {
+		extraSecrets = []string{native.bridge.Token}
+	}
+	if reader.observationSensitiveLocked(result, extraSecrets...) {
 		return finish(nil, "sensitive_content")
 	}
 	if woc.ValidateResult(observation, result, "") != nil {
 		return finish(nil, "output_limit")
 	}
-	if readCtx.Err() != nil {
+	r.mu.Lock()
+	registered := r.reader == reader && r.scope == scope
+	r.mu.Unlock()
+	if !registered || reader.activeLocked(readCtx) != nil {
 		return finish(nil, "workspace_closed")
 	}
 	return finish(result, "")
 }
 
 func (n *nativeWorkspace) observationSensitiveLocked(result *woc.Result) bool {
+	return n.liveWorkspaceRead.observationSensitiveLocked(result, n.bridge.Token)
+}
+
+func (n *liveWorkspaceRead) observationSensitiveLocked(result *woc.Result, extraSecrets ...string) bool {
 	var text string
 	if result.Read != nil {
 		text = result.Read.Content + "\n" + result.Read.Path
@@ -182,9 +225,10 @@ func (n *nativeWorkspace) observationSensitiveLocked(result *woc.Result) bool {
 	if credential.MatchString(text) {
 		return true
 	}
-	secrets := append(append([]string{}, n.secrets...), n.bridge.Token, n.workspace.Source, n.workspace.Directory, n.workspace.Repository)
+	secrets := append(append([]string{}, n.secrets...), extraSecrets...)
+	secrets = append(secrets, n.workspace.Source, n.workspace.Directory, n.workspace.Repository)
 	for _, secret := range secrets {
-		if secret != "" && strings.Contains(text, secret) {
+		if secret != "" && (strings.Contains(text, secret) || strings.Contains(text, filepath.ToSlash(secret))) {
 			return true
 		}
 	}
@@ -204,6 +248,8 @@ func observationErrorCode(err error) string {
 		return "output_limit"
 	case "native_workspace_cursor":
 		return "cursor_stale"
+	case "native_workspace_conflict":
+		return "file_changed"
 	case "native_workspace_arguments":
 		return "request_invalid"
 	default:

@@ -550,11 +550,12 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 				return
 			}
 			o.Available = true
-			if spec.NativeWorkspace != nil {
-				// Only the fully probed native configuration uses the live root
-				// registry and the compiled outbound brokers. This declaration
-				// does not probe a remote connection or change the approved profile.
+			// These declarations follow successful local probes and do not
+			// probe a remote connection or change the approved profile.
+			if tc.SupportsWorkspaceObservationProfile(o.Profile) {
 				o.WorkspaceObservationProtocol = woc.Protocol
+			}
+			if tc.SupportsWorkspaceWriteProfile(o.Profile) {
 				o.WorkspaceWriteProtocol = wwc.Protocol
 			}
 			o.Reason = "installed executable and protocol probe; model authentication and task success unverified"

@@ -44,6 +44,19 @@ func protocolPair(adapter, protocol string) bool {
 func ValidProtocol(protocol string) bool {
 	return protocol == cc.Protocol || protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == "opencode-jsonl-v1" || protocol == "dsh-multica-jsonl-v1" || protocol == "codebuddy-jsonl-v1"
 }
+
+// SupportsWorkspaceObservationProfile identifies profile kinds that can expose
+// an attempt workspace. Validation and current broker inventory remain separate.
+func SupportsWorkspaceObservationProfile(p Profile) bool {
+	return SupportsWorkspaceWriteProfile(p) || p.Adapter == "codex" && p.Protocol == cc.Protocol && !p.ReadOnly && p.WorkspaceToolsVersion == ""
+}
+
+// SupportsWorkspaceWriteProfile identifies the native writable workspace kind;
+// a Codex app-server read broker does not implement the native CAS contract.
+func SupportsWorkspaceWriteProfile(p Profile) bool {
+	return p.Adapter == "suma" && p.Protocol == "suma-jsonl-v1" && !p.ReadOnly && p.WorkspaceToolsVersion == "attempt-workspace-v1"
+}
+
 func ValidateProfile(p Profile, complete bool) error {
 	if p.Protocol == cc.Protocol && (p.Adapter != "codex" || p.ReadOnly || p.ModelExecutionProtocol != "" || p.WorkspaceToolsVersion != "" || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil) {
 		return fmt.Errorf("invalid Codex app-server capability")
@@ -128,7 +141,7 @@ func ValidateObservation(o Observation) error {
 	if o.WorkspaceObservationProtocol != "" || o.WorkspaceWriteProtocol != "" {
 		// The protocol packages reuse this package's strict JSON primitives;
 		// keep the closed wire names here to avoid reversing that dependency.
-		if !o.Available || o.Profile.Adapter != "suma" || o.Profile.Protocol != "suma-jsonl-v1" || o.Profile.ReadOnly || o.Profile.WorkspaceToolsVersion != "attempt-workspace-v1" || o.WorkspaceObservationProtocol != "workspace-observation-v1" || o.WorkspaceWriteProtocol != "" && o.WorkspaceWriteProtocol != "workspace-write-v1" {
+		if !o.Available || !SupportsWorkspaceObservationProfile(o.Profile) || o.WorkspaceObservationProtocol != "workspace-observation-v1" || o.WorkspaceWriteProtocol != "" && (o.WorkspaceWriteProtocol != "workspace-write-v1" || !SupportsWorkspaceWriteProfile(o.Profile)) {
 			return fmt.Errorf("invalid current workspace transport capability")
 		}
 	}

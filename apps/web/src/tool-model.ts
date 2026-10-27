@@ -180,6 +180,7 @@ function publicOrigin(value: unknown): boolean {
 function validatePublicCapabilities(profile: Record<string, unknown>, observation: Record<string, unknown>) {
   const native = profile.adapter === "suma" && profile.protocol === "suma-jsonl-v1";
   const workspace = native && profile.read_only === false && profile.workspace_tools_version === "attempt-workspace-v1";
+  const codexWorkspace = profile.adapter === "codex" && profile.protocol === "codex-app-server-v1" && profile.read_only === false && validCodexCatalog(observation.codex_catalog);
   for (const [field, protocol, permitted] of [
     ["workspace_tools_version", "attempt-workspace-v1", workspace],
     ["model_execution_protocol", "suma-model-execution-v1", workspace],
@@ -199,7 +200,7 @@ function validatePublicCapabilities(profile: Record<string, unknown>, observatio
   const read = observation.workspace_observation_protocol, write = observation.workspace_write_protocol;
   if (read !== undefined && typeof read !== "string" || write !== undefined && typeof write !== "string") invalidCapability();
   if (read || write) {
-    if (!workspace || observation.available !== true || read !== "workspace-observation-v1" || write && write !== "workspace-write-v1") invalidCapability();
+    if ((!workspace && !codexWorkspace) || observation.available !== true || read !== "workspace-observation-v1" || write && (!workspace || write !== "workspace-write-v1")) invalidCapability();
   }
   if (observation.model_deployments !== undefined) {
     const deployments = observation.model_deployments;
@@ -234,7 +235,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
   const seen = new Set<string>();
   return raw.map((item) => {
     const observation = record(item);
-    fields(observation, ["profile", "available", "reason", "model_deployments", "codex_catalog", "workspace_observation_protocol", "workspace_write_protocol"]);
+    fields(observation, ["profile", "available", "reason", "model_deployments", "codex_catalog", "workspace_observation_protocol", "workspace_write_protocol"] satisfies (keyof ToolObservation)[]);
     const profile = record(observation.profile);
     if (observation.codex_catalog !== undefined && (!validCodexCatalog(observation.codex_catalog) || observation.available !== true || profile.adapter !== 'codex' || profile.protocol !== 'codex-app-server-v1')) invalidCapability();
     if (profile.protocol === 'codex-app-server-v1' && (profile.read_only !== false || profile.workspace_tools_version || profile.model_execution_protocol || profile.planning || profile.knowledge_extraction || profile.failure_diagnosis || observation.available === true && !observation.codex_catalog)) invalidCapability();
@@ -248,7 +249,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
       "read_only",
       "workspace_tools_version", "model_execution_protocol", "conflict_repair_protocol",
       "planning", "knowledge_extraction", "failure_diagnosis",
-    ]);
+    ] satisfies (keyof ToolProfileDefinition)[]);
     if (
       typeof profile.command_id !== "string" ||
       !id.test(profile.command_id) ||

@@ -4,7 +4,7 @@
 
 ## 范围与授权
 
-仅允许 `list` 与 `read`。目标必须是当前项目内仍运行、租约有效的准确原生 `agent` attempt，工具档案已明确启用、当前库存与批准摘要一致，声明 `attempt-workspace-v1`。运行暂停时仍在执行的节点可被观察；取消、关闭、attempt／fence变化或租约失效停止读取。观察不创建运行、模型调用、候选、测试或人工验收。
+仅允许 `list` 与 `read`。目标必须是当前项目内仍运行、租约有效的准确 `agent` attempt，工具档案已明确启用、当前库存与批准摘要一致，并实际声明`workspace-observation-v1`。支持原生`attempt-workspace-v1`与准确`codex-app-server-v1`；后者同时需要有效目录且仅开放读取。运行暂停时仍在执行的节点可被观察；取消、关闭、attempt／fence变化或租约失效停止读取。观察不创建运行、模型调用、候选、测试或人工验收。Codex读取不启用原生MCP、保存、检查或合并操作，`can_write=false`。
 
 公开 `scope` 固定 `run_id`、`node_id`、`attempt`、`fence`、`worker_id`、`tool_profile_id`、`profile_sha256`。组织与项目来自真实凭据和外层 `project_id`。实际宿主在领取时另交 `workspace_policy_sha256`；它不是工具档案摘要的别名，同一观察重新领取不能换策略。
 
@@ -62,4 +62,8 @@ Control单独存放正文，读取时检查到期，后台每轮最多清除100�
 
 [Control用例](../internal/platform/workspace_observation_test.go)覆盖当前调用者／Pool授权、旧fence、到期、准确ACK、跨scope、metadata无正文和DAG状态保持；[真实Worker联合入口](../internal/platform/workspace_observation_runtime_test.go)覆盖实际原生子进程、独立attempt工作树、出站HTTP、真实list/read与关闭后拒绝，未调用模型或代替正式任务验收。
 
-远程Git、写入、终端、PTY、LSP／DAP、历史工作树恢复、物理多机／TLS、生产隔离与大规模调度仍待独立交付。现有本地项目工作区是独立能力，远程失败时不能静默代用。
+原生CAS保存有独立[合同](workspace-write.md)。Codex协调保存、远程Git、终端、PTY、LSP／DAP、历史工作树恢复、物理多机／TLS、生产隔离与大规模调度仍待独立交付。现有本地项目工作区是独立能力，远程失败时不能静默代用。
+
+## Codex 当前句柄与并发读取
+
+Runner只在已准备的隔离工作树持有活跃根句柄，复用规范路径、大小写、敏感内容和输出限额；不把服务端路径交给浏览器。外部CLI不使用原生写锁，因此读取会核对文件身份／元数据和重复摘要，变化时拒绝结果；后续分页固定原SHA。该防护不等于整个工作树的原子快照。原生与Codex读接口一致，Codex不会触发写领取轮询。上下文取消、终端事件或进程收尾均撤销句柄；恢复仅提交已保存的准确回执，不打开历史工作树。

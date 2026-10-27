@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 )
 
 const testWorkspaceObservationProtocol = "workspace-observation-v1"
@@ -71,6 +73,74 @@ func TestWorkspaceTransportObservationRejectsInvalidOrUnavailableDeclarations(t 
 			}
 			if err := ValidateObservation(observation); err == nil {
 				t.Fatal("inventory advertised a transport that the current host cannot support")
+			}
+		})
+	}
+}
+
+func TestWorkspaceTransportProfileKindsSeparateCodexReadFromNativeWrite(t *testing.T) {
+	for _, scenario := range []struct {
+		name    string
+		profile Profile
+		read    bool
+		write   bool
+	}{
+		{"native", Profile{Adapter: "suma", Protocol: "suma-jsonl-v1", WorkspaceToolsVersion: "attempt-workspace-v1"}, true, true},
+		{"codex-app-server", Profile{Adapter: "codex", Protocol: cc.Protocol}, true, false},
+		{"codex-jsonl", Profile{Adapter: "codex", Protocol: "codex-jsonl-v1"}, false, false},
+		{"command", Profile{Adapter: "command", Protocol: "text-v1"}, false, false},
+		{"other-adapter", Profile{Adapter: "command", Protocol: cc.Protocol}, false, false},
+		{"codex-native-claim", Profile{Adapter: "codex", Protocol: cc.Protocol, WorkspaceToolsVersion: "attempt-workspace-v1"}, false, false},
+		{"codex-readonly-purpose", Profile{Adapter: "codex", Protocol: cc.Protocol, ReadOnly: true}, false, false},
+		{"native-without-workspace", Profile{Adapter: "suma", Protocol: "suma-jsonl-v1"}, false, false},
+		{"native-planning-purpose", Profile{Adapter: "suma", Protocol: "suma-jsonl-v1", ReadOnly: true, Planning: &PlanningCapability{}}, false, false},
+	} {
+		t.Run(scenario.name, func(t *testing.T) {
+			if got := SupportsWorkspaceObservationProfile(scenario.profile); got != scenario.read {
+				t.Fatal("workspace observation kind", got, scenario.read)
+			}
+			if got := SupportsWorkspaceWriteProfile(scenario.profile); got != scenario.write {
+				t.Fatal("workspace write kind", got, scenario.write)
+			}
+		})
+	}
+}
+
+func TestWorkspaceTransportCodexRequiresValidCurrentReadCatalog(t *testing.T) {
+	catalog, err := cc.NewCatalog(strings.Repeat("c", 64), []cc.ModelOption{{Model: "model-a", ReasoningEfforts: []string{"low"}, DefaultReasoningEffort: "low"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, scenario := range []string{"read", "no-catalog", "invalid-catalog", "unavailable", "write", "write-without-read", "native-claim", "readonly-purpose", "planning-purpose", "jsonl", "unknown-read"} {
+		t.Run(scenario, func(t *testing.T) {
+			observation := workspaceTransportObservation(t, true, testWorkspaceObservationProtocol, "")
+			observation.Profile.Adapter, observation.Profile.Protocol, observation.Profile.WorkspaceToolsVersion = "codex", cc.Protocol, ""
+			observedCatalog := catalog
+			observation.CodexCatalog = &observedCatalog
+			switch scenario {
+			case "no-catalog":
+				observation.CodexCatalog = nil
+			case "invalid-catalog":
+				observedCatalog.CatalogSHA256 = strings.Repeat("d", 64)
+			case "unavailable":
+				observation.Available = false
+			case "write":
+				observation.WorkspaceWriteProtocol = testWorkspaceWriteProtocol
+			case "write-without-read":
+				observation.WorkspaceObservationProtocol, observation.WorkspaceWriteProtocol = "", testWorkspaceWriteProtocol
+			case "native-claim":
+				observation.Profile.WorkspaceToolsVersion = "attempt-workspace-v1"
+			case "readonly-purpose":
+				observation.Profile.ReadOnly = true
+			case "planning-purpose":
+				observation.Profile.Planning = &PlanningCapability{}
+			case "jsonl":
+				observation.Profile.Protocol = "codex-jsonl-v1"
+			case "unknown-read":
+				observation.WorkspaceObservationProtocol = "workspace-observation-v2"
+			}
+			if err := ValidateObservation(observation); (err == nil) != (scenario == "read") {
+				t.Fatal("unexpected Codex broker declaration validation", err)
 			}
 		})
 	}

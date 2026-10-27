@@ -10,7 +10,7 @@ There is one current **1.0.0** product baseline, with fresh schema initializatio
 | Native models and fixed attempt allowances | [Guide](model-execution.md), [per-task expert models](expert-team-model-execution.md) |
 | Codex model execution | [Integration guide](codex-app-server.md), [scoped execution evidence](../quality/codex-app-server-verification.md) |
 | Candidate composition and repair | [Composition](candidate-composition.md), [conflict repair](candidate-conflict-repair.md), [repair revisions](candidate-repair-revisions.md) |
-| Development workspaces | [Remote observations](remote-workspace.md), [governed saves](remote-workspace-write.md), [transport capabilities](workspace-transport-capabilities.md), [local Git](workspace-git.md) |
+| Development workspaces | [Remote observations](remote-workspace.md), [Codex live reads](codex-workspace-observation.md), [governed saves](remote-workspace-write.md), [transport capabilities](workspace-transport-capabilities.md), [local Git](workspace-git.md) |
 | Tools and project context | [Team CLI](team-cli-runtime.md), [dispatch options](task-dispatch-options.md), [MCP — Chinese original](../integrations/project-mcp.md), [failure diagnosis](failure-diagnosis.md) |
 | Knowledge and skills | [Knowledge intelligence — Chinese original](../product/knowledge-intelligence.md), [skill catalog — Chinese original](../product/skill-catalog.md) |
 | Language preferences | [Account and organization preferences](locale-preferences.md), [internationalization specification — Chinese original](../design/internationalization.md) |

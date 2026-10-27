@@ -12,6 +12,7 @@ import {
   taskToolProtocol,
   type ToolProfile,
   type ToolProfileDefinition,
+  type ToolObservation,
 } from "./tool-model";
 import { ToolWriteRecovery } from "./tool-write";
 const definition: ToolProfileDefinition = {
@@ -93,6 +94,30 @@ describe("tool manifest and fixed task choices", () => {
 		for (const [field, protocol] of [["planning", "suma-schedule-plan-v1"], ["knowledge_extraction", "suma-knowledge-extraction-v1"], ["failure_diagnosis", "suma-failure-diagnosis-v1"]]) {
 			const observation = { profile: { ...definition, read_only: true, [field]: { protocol, model: "fixed-model", endpoint_origin: "https://Model.Example:443" } }, available: true, reason: "local protocol probe; provider unverified" };
 			expect(parseToolManifest(JSON.stringify([observation]))[0]).toEqual(observation);
+		}
+	});
+	it("imports current Codex file reading without granting native tools or file saving", () => {
+		const codex: ToolObservation = {
+			profile: { ...definition, command_id: "codex", adapter: "codex", protocol: "codex-app-server-v1" },
+			available: true, reason: "local app-server probe; provider identity unverified",
+			codex_catalog: { protocol: "codex-app-server-v1", configuration_sha256: "c".repeat(64), catalog_sha256: "d".repeat(64), models: [{ model: "model-a", reasoning_efforts: ["high", "low"], default_reasoning_effort: "low" }] },
+			workspace_observation_protocol: "workspace-observation-v1",
+		};
+		const imported = parseToolManifest(JSON.stringify({ schema_version: 1, items: [codex] }))[0];
+		expect(imported).toEqual(codex);
+		expect(imported).not.toHaveProperty("workspace_write_protocol");
+		expect(imported.profile).not.toHaveProperty("workspace_tools_version");
+		for (const observation of [
+			{ ...codex, workspace_write_protocol: "workspace-write-v1" },
+			{ ...codex, workspace_observation_protocol: "workspace-observation-v2" },
+			{ ...codex, codex_catalog: undefined },
+			{ ...codex, codex_catalog: { ...codex.codex_catalog, models: [] } },
+			{ ...codex, available: false, reason: "probe failed" },
+			{ ...codex, profile: { ...codex.profile, read_only: true } },
+			...(["workspace_tools_version", "model_execution_protocol", "conflict_repair_protocol"] as const).map(field => ({ ...codex, profile: { ...codex.profile, [field]: nativeInventory.profile[field] } })),
+		]) expect(() => parseToolManifest(JSON.stringify([observation]))).toThrow();
+		for (const [adapter, protocol] of [["command", "text-v1"], ["codex", "codex-jsonl-v1"], ["opencode", "opencode-jsonl-v1"], ["harness", "dsh-multica-jsonl-v1"], ["codebuddy", "codebuddy-jsonl-v1"]]) {
+			expect(() => parseToolManifest(JSON.stringify([{ ...codex, codex_catalog: undefined, profile: { ...definition, adapter, protocol } }]))).toThrow();
 		}
 	});
 	it("rejects incompatible current transport markers and native purpose combinations", () => {

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ai-mada/suma/internal/dag"
+	tc "github.com/ai-mada/suma/internal/toolcontract"
 	woc "github.com/ai-mada/suma/internal/workspaceobservationcontract"
 )
 
@@ -66,7 +67,7 @@ func (s *Service) workspaceObservationBasisTx(ctx context.Context, tx *sql.Tx, t
 		return out, err
 	}
 	p := out.Profile
-	if p.WorkerID != worker || p.Profile.ProfileSHA256 != sha || p.Profile.CommandID != node.Command[0] || p.Profile.Adapter != "suma" || p.Profile.Protocol != "suma-jsonl-v1" || p.Profile.WorkspaceToolsVersion != "attempt-workspace-v1" || p.Profile.ReadOnly {
+	if p.WorkerID != worker || p.Profile.ProfileSHA256 != sha || p.Profile.CommandID != node.Command[0] || !tc.SupportsWorkspaceObservationProfile(p.Profile) {
 		return out, conflict(workspaceObservationUnavailable)
 	}
 	route, err := dag.ReadRunExecutionRouteTx(ctx, tx, s.Dialect, tenant, project, scope.RunID)

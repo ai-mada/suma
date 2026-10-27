@@ -540,6 +540,31 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 		cmd.Stdin = bytes.NewReader(append(payload, '\n'))
 	}
+	var codexRead *liveWorkspaceRead
+	var observationCloseErr error
+	closeObservation := func() {}
+	if codexBinding != nil && cfg.WorkspaceObservations != nil {
+		if profileID, _ := a.Config["tool_profile_id"].(string); profileID != "" {
+			codexRead, err = openLiveWorkspaceRead(ctx, a, cfg, workspace, profile.ProfileSHA256)
+			if err != nil {
+				return fail("Codex workspace observation could not be opened")
+			}
+			unregister, registerErr := cfg.WorkspaceObservations.registerRead(codexRead, nil)
+			if registerErr != nil {
+				_ = codexRead.Close()
+				return fail("Codex workspace observation registration failed")
+			}
+			var once sync.Once
+			closeObservation = func() {
+				once.Do(func() {
+					codexRead.cancel()
+					unregister()
+					observationCloseErr = codexRead.Close()
+				})
+			}
+			defer closeObservation()
+		}
+	}
 	tempRoot := filepath.Join(root, ".cache", "runner", "tmp", attemptKey(a))
 	if workspace != nil {
 		tempRoot = filepath.Join(workspace.Directory, "tmp")
@@ -604,6 +629,10 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			stream.onTerminal = func() { _ = dshStdin.Close() }
 		}
 		if codexBinding != nil {
+			if codexRead != nil {
+				// Revoke before publishing a terminal or capturing Git evidence.
+				stream.onTerminal = closeObservation
+			}
 			codexDriver = newCodexAppServer(profile, spec, cmd.Dir, root, a.Config["goal"].(string), codexBinding, stream)
 			defer codexDriver.Close()
 			cmd.Stdout = codexDriver
@@ -633,6 +662,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	}
 	controller, err := startProcess(cmd)
 	if err != nil {
+		closeObservation()
 		if workspace != nil {
 			r.WorkspaceEvidence, _ = workspace.capture(context.Background(), r)
 		}
@@ -704,6 +734,12 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		if stopErr != nil {
 			r.Error += "; process tree termination unverified"
 		}
+	}
+	closeObservation()
+	if observationCloseErr != nil {
+		r.ExitCode = -1
+		r.OutcomeUnknown = true
+		r.Error = "Codex workspace observation close requires reconciliation"
 	}
 	if err = controller.Finish(); err != nil {
 		r.ExitCode = -1

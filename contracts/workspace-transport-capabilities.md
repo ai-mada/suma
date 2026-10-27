@@ -4,7 +4,7 @@
 
 ## 声明与权限
 
-原生MCP工具与Go Runner的出站传输是不同能力。批准档案中的 `workspace_tools_version` 只证明工具合同；当前库存新增可选 `workspace_observation_protocol: workspace-observation-v1`、`workspace_write_protocol: workspace-write-v1`。write要求read；未知版本、不可用观察、普通CLI、缺原生工作区、只读用途均不能声明。由实际Runner代码在固定原生配置成功探测后填入，没有管理开关。协议声明不进入批准Profile或其摘要，不自动扩大权限。
+原生MCP工具与Go Runner的出站传输是不同能力；Codex读取复用现有传输，不获得原生工具权限。批准档案中的 `workspace_tools_version` 只证明工具合同；当前库存新增可选 `workspace_observation_protocol: workspace-observation-v1`、`workspace_write_protocol: workspace-write-v1`。write要求read。原生`attempt-workspace-v1`可声明read＋write；准确`codex-app-server-v1`仅可声明read，必须同时有有效模型目录，不能声明原生MCP或write。未知版本、不可用观察、普通CLI和只读用途不能声明。由实际Runner代码在准确工具配置成功探测后填入，没有管理开关。协议声明不进入批准Profile或其摘要，不自动扩大权限。
 
 声明沿原有机器认证、Pool双边范围和60秒库存有效期持久化。服务端仍检查当前原调用身份、项目、批准档案、准确活动attempt／fence／worker、工作区策略以及任务依据。受信Runner的声明不是远程二进制证明、文件句柄存活、提供方身份或连接健康证明。
 
@@ -19,6 +19,8 @@
 | 原POST回执丢失后移除能力 | 原key／请求摘要的命令metadata仍可恢复 |
 | 效果已发生后移除能力 | 准确原结果和ACK可排空，不丢事实；不能借此重新领取正文 |
 | 显式核对 | 按038合同读取原效果或无效果屏障，不需要新写能力、不重新执行 |
+
+Codex目录／文件读取使用已打开的当前attempt根句柄；没有保存账本、MCP桥接或任意RPC入口。外部CLI可能并发修改文件，单次读取检查句柄身份、前后元数据与重复读取摘要；分页须固定原SHA，不承诺整个工作树的原子快照。终端事件在结果提交前关闭句柄，旧scope不可重开。
 
 不增加表、路由、自动升级批准档案或历史兼容分支。未声明是当前事实，不能推断实现能力。
 

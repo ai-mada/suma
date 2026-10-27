@@ -94,7 +94,7 @@ func runWorkspaceWriteBroker(ctx context.Context, client *Client, journal *Journ
 	}
 	for ctx.Err() == nil {
 		if ReplayWorkspaceWrites(ctx, client, journal, registry) == nil {
-			if scope, policy, active := registry.active(); active {
+			if scope, policy, active := registry.activeWrite(); active {
 				if _, err := journal.beginWorkspaceWriteClaim(client.BaseURL, a, scope, policy, client.ProjectID); err == nil {
 					_ = ReplayWorkspaceWrites(ctx, client, journal, registry)
 				}

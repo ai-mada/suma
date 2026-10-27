@@ -19,8 +19,12 @@ func TestCodexCatalogAndEvidenceCannotAcquireNativeAuthority(t *testing.T) {
 	}
 	o.CodexCatalog = &catalog
 	o.WorkspaceObservationProtocol = "workspace-observation-v1"
+	if err := ValidateObservation(o); err != nil {
+		t.Fatal("observed app-server catalog could not declare a read broker", err)
+	}
+	o.WorkspaceWriteProtocol = "workspace-write-v1"
 	if ValidateObservation(o) == nil {
-		t.Fatal("external CLI acquired native broker")
+		t.Fatal("Codex read broker acquired native write authority")
 	}
 	b, _ := cc.NewBinding(catalog, cc.Selection{CatalogSHA256: catalog.CatalogSHA256, Model: "model-a", ReasoningEffort: "low"})
 	proof := &cc.Evidence{BindingSHA256: b.BindingSHA256, ThreadID: "thread-1", TurnID: "turn-1", RequestedModel: "model-a", RequestedReasoningEffort: "low", AcknowledgedModel: "model-a", AcknowledgedReasoningEffort: "low", AcknowledgedProvider: "owned", ConfigurationAcknowledged: true}

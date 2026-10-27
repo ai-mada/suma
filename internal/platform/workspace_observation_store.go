@@ -14,7 +14,7 @@ import (
 
 const (
 	workspaceObservationInvalid     = "Invalid workspace observation request"
-	workspaceObservationUnavailable = "The exact native workspace attempt is no longer available"
+	workspaceObservationUnavailable = "The exact workspace attempt is no longer available"
 	workspaceObservationStale       = "Workspace observation lease has changed or expired"
 	workspaceObservationCaller      = "Workspace observation belongs to its original current caller"
 )

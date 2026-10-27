@@ -1,0 +1,276 @@
+{
+  "stage": "T-WORKSPACE-103",
+  "product_version": "1.0.0",
+  "status": "bounded_local_verification_passed",
+  "verified_at": "2026-10-27T23:55:48.753163+00:00",
+  "scope": [
+    "current Codex app-server attempt list/read via existing outbound broker",
+    "shared live read handle with native-only independent writable handle",
+    "current caller/project/Pool/inventory/fence gates",
+    "CNEN read-only UI and native draft/pending-save isolation"
+  ],
+  "new_dependencies": 0,
+  "new_tables": 0,
+  "new_protocol_versions": 0,
+  "new_model_calls": 0,
+  "new_actual_vendor_cli_calls": 0,
+  "new_vendor_calls": 0,
+  "active_user_preview_or_database_modified": false,
+  "production_integration_complete": false,
+  "go_checks": [
+    {
+      "arguments": [
+        "test",
+        "./internal/toolcontract",
+        "-run",
+        "^(TestCodexCatalogAndEvidenceCannotAcquireNativeAuthority|TestWorkspaceTransport)",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261027T234606695Z.command.json",
+        "bytes": 1428,
+        "sha256": "76274f315af9ac5d82508602aa7ad4b6ff39f5a3f6f707615f8256d5567c573a"
+      },
+      "stdout_sha256": "fc8d8d1b80cb039eff550ac415a7d57afe1cf663d73661f550d315bea26a7677",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "arguments": [
+        "test",
+        "./internal/runner",
+        "-run",
+        "^(TestCodexWorkspace.*|TestReadOnlyWorkspaceRegistrationNeverClaimsWritesOrReopensAfterClose|TestWorkspaceReadSnapshotRejectsIdentityAndDigestChanges|TestWorkspaceObservation.*|TestWorkspaceWrite.*|TestWorkspaceTransportInventoryRequiresSuccessfulNativeProbe|TestNativeWorkspace.*|TestCodexAppServerSelectedConfigurationAndSnapshotProcess|TestCodexAppServerCancellationUsesExactTurnAndConfirmsProcess)$",
+        "-count=1",
+        "-timeout=180s"
+      ],
+      "exit_code": 1,
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261027T234835714Z.command.json",
+        "bytes": 1765,
+        "sha256": "460462869700e08faa97320abe9dfe68b5391a00e4480821a6c634dfc73a0e05"
+      },
+      "stdout_sha256": "e76de4746d8a7fa320fe5e6ab88be016f2b9024a11e9da16ffa0ce36b0ebd590",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^(TestCodexWorkspaceObservation|TestWorkspaceObservation(EmptyPollHasNoDurableReceipt|LeaseFencingAndExpiry|PoolRequiresExactCurrentGrantAndMachine|OriginalCallerCurrentAuthority)$|TestWorkspaceCapability|TestWorkspaceWrite(CurrentAuthorityAndImmutableCommand|OnePermitInspectionAndLateEffect|TaskBasisAndFactDrain|PoolWithdrawalBlocksNewWriteButDrainsFact)$)",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261027T235021441Z.command.json",
+        "bytes": 1702,
+        "sha256": "b853683484aa09e7febc6013d0ac4df9fea81ce9d07ef8640afe1b66dafd8483"
+      },
+      "stdout_sha256": "fce41fb298c49eb6a5a58783625a0ceb1b77205f2b234eca4d99be795b303e91",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "arguments": [
+        "test",
+        "./internal/runner",
+        "-run",
+        "^TestReadOnlyWorkspaceRegistrationNeverClaimsWritesOrReopensAfterClose$",
+        "-count=1",
+        "-timeout=45s"
+      ],
+      "exit_code": 0,
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261027T235053798Z.command.json",
+        "bytes": 1433,
+        "sha256": "9ad1a3fa97abe7c22ab8d276367683dbccbfecaf5adeb7042b2e319f3d60dad5"
+      },
+      "stdout_sha256": "9e311f1ab17dabcda1c9363b8e952b197a21efcfc54407541b4ea9ead2fc1f5d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^TestCodexWorkspaceActualOutboundReadAndCancellation$",
+        "-count=1",
+        "-v",
+        "-timeout=13m"
+      ],
+      "exit_code": 0,
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261027T235120560Z.command.json",
+        "bytes": 1428,
+        "sha256": "ec1c259acb9389b54939f110eb9aa2e39ddf00bbfefda7c13e1a4bfa814aabd8"
+      },
+      "stdout_sha256": "16b96583ffc658bfe3bd458ed7760b95558a85f2ab47a1273fb42e304e20e24c",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "arguments": [
+        "vet",
+        "./internal/runner",
+        "./internal/platform",
+        "./internal/toolcontract",
+        "./internal/localization"
+      ],
+      "exit_code": 0,
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261027T235339695Z.command.json",
+        "bytes": 1393,
+        "sha256": "eba8f1ee500aecd1597a9470bbb2f4dbdbcbf0aff5b7d2c17338656406999d45"
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "arguments": [
+        "test",
+        "./internal/localization",
+        "-run",
+        "^TestWorkspaceObservationExactBilingualDiagnostics$",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261027T235351707Z.command.json",
+        "bytes": 1398,
+        "sha256": "73462395095ca3f81141926289aac41057877da4b1c77c91bc7f369da1256812"
+      },
+      "stdout_sha256": "c90e8228677532ab5b5e936a550543edb238a67737ef1cab3d04eae15c8d9fc1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "arguments": [
+        "run",
+        "./cmd/suma-contracts",
+        "-check"
+      ],
+      "exit_code": 0,
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261027T235359278Z.command.json",
+        "bytes": 1319,
+        "sha256": "2fad7b7bc93e00a346a2ab96152b0bd18d2d17ded70131c1a3a92de35713482f"
+      },
+      "stdout_sha256": "8b305a62ad104434ba0b17866da6cfd4132f8b7515194f5d520811a163fc433b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "corrections": [
+    "Initial RED exposed missing Codex read inventory/registry.",
+    "Two Control test expectations corrected: refreshed fence is a new current target; revoked Pool credential method reports403.",
+    "Affected Runner batch exited1 only for new test journal-lock cleanup; added test-only Close then rechecked only that test, exit0. Other results not counted as a full all-green rerun.",
+    "Original combined fixture counter named code_candidates counts suma_candidate_transfers; corrected output label only, raw original preserved without repeating the journey."
+  ],
+  "web": {
+    "summary": {
+      "path": ".cache/e2e/codex-workspace-103/ui/summary.json",
+      "bytes": 2461,
+      "sha256": "74ea18ff134ec64c9a7edb454722dae4342b3b0556bbe92ca7ee1a99e8a627dd"
+    },
+    "affected_files": 5,
+    "tests_passed": 52,
+    "paired_keys": 4615,
+    "production_hardcodes": 0,
+    "typecheck": true,
+    "build_seconds": 45.46,
+    "build_log": {
+      "path": ".cache/e2e/codex-workspace-103/web-build.log",
+      "bytes": 17897,
+      "sha256": "99c380f857466b8a6a34dce5fac7ad4544b0e6e00f38d86e975dd8f2c58a1b5a"
+    },
+    "assets": {
+      "path": ".cache/e2e/codex-workspace-103/web-files.public.json",
+      "bytes": 22604,
+      "sha256": "ceaa0437c1d8a792b0d8bbcd1f121c24e109fff6c20ef2e960366985c37966e8"
+    },
+    "asset_count": 138,
+    "source_inputs_unchanged_from_UI_checks": true
+  },
+  "actual_local": {
+    "kind": "owned-protocol-fixture-real-Control-Worker-Git",
+    "closed_receipt": {
+      "path": ".cache/e2e/codex-workspace-103/gui/closed.public.json",
+      "bytes": 826,
+      "sha256": "6723756f8a59a228aeeb4b2b33aed3fdef585d8f78985d09a6f32492559e5d92"
+    },
+    "browser_receipt": {
+      "path": ".cache/e2e/codex-workspace-103/gui/browser.public.json",
+      "bytes": 836,
+      "sha256": "8f459c4f82394ebfb76e32959ab0bf890ba355f694aadaa00cf5915b508d5136"
+    },
+    "screenshot": {
+      "path": ".cache/e2e/codex-workspace-103/gui/workspace-zh.png",
+      "bytes": 64025,
+      "sha256": "da1c21d5471d2c4151c5d3fb3509d5e6c298fcbe77af2cac9b75d7287f34c78e"
+    },
+    "runs_created": 1,
+    "run_cancelled": true,
+    "read_only": true,
+    "admin_head_unchanged": true,
+    "local_bindings": 0,
+    "write_commands": 0,
+    "candidate_transfer_rows": 0,
+    "reviews": 0,
+    "source_sha256": "4e5c296be9a2445cefce915bceea16e3b8842596662072aaf13b0e2c70feacfc",
+    "closed_target_result_redacted": true,
+    "cn_en_and_target_refresh": true,
+    "edit_buttons": 0,
+    "console_warn_error_count": 0,
+    "temp_service_and_worker_closed": true,
+    "actual_vendor_CLI_executed": false
+  },
+  "build": {
+    "manifest": {
+      "path": "dist/runtime/builds/20261027T235405143Z-dd7f8bf6/manifest.json",
+      "bytes": 139005,
+      "sha256": "8b7d99b7b6f8304013aa926c0beeee4804a9a319672b45787c3d94bdc28a9965"
+    },
+    "production_inputs": 452,
+    "source_sha256": "d4f02d4d90bd2f15781645f9278730b2035a20fa2c777fdb5c8eadff394cff15",
+    "source_still_matches": true,
+    "target": "windows-amd64",
+    "artifacts": [
+      {
+        "name": "suma-control.exe",
+        "bytes": 37477376,
+        "sha256": "e163bdb3681dbf7ca4a6d80a77d602e03d84c4c1d5502e4bcbe6ffaa241a0990"
+      },
+      {
+        "name": "suma-runner.exe",
+        "bytes": 19369472,
+        "sha256": "a6c9f0cfdb3fe736563d72142723cc5f0ccad2da8d133c7c63b3db692817826e"
+      },
+      {
+        "name": "suma-deployer.exe",
+        "bytes": 17378816,
+        "sha256": "5a184b348ca5cd2c6a8e8c9ba93822b8423638c167cdf1d4b79674ab744482ff"
+      },
+      {
+        "name": "suma-repository-provider.exe",
+        "bytes": 17458176,
+        "sha256": "2f327297de5973e60f0ed7d17455036215eea18191436e9f603d818c40a68979"
+      },
+      {
+        "name": "suma.exe",
+        "bytes": 14763520,
+        "sha256": "fea069ae34e437dcfe98bdfe371c0b8de287ac335aa828ac8d35d0021a695433"
+      }
+    ],
+    "not_installation_or_platform_acceptance": true
+  },
+  "remaining": [
+    "Codex coordinated remote save/conflict repair",
+    "remote Git,PTY,LSP,DAP and completeIDE",
+    "actual installedCLI/provider,physicalmulti-host/TLS,production isolation and scale",
+    "all remaining P0-P7 and accepted requirements1..22"
+  ],
+  "delivery": {
+    "repository": "git@github.com:ai-mada/suma.git",
+    "branch": "dev",
+    "baseline_commit": "81777389f338b8aa2212c5dc00cebdbf78016789",
+    "force_push": false,
+    "raw_logs_screenshots_databases_secrets_binaries_ignored": true
+  }
+}

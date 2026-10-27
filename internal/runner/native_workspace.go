@@ -5,12 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"os"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -52,51 +49,27 @@ func nativeError(code string) error {
 }
 
 type nativeWorkspace struct {
-	mu         sync.Mutex
-	ctx        context.Context
-	cancel     context.CancelFunc
-	workspace  *attemptWorkspace
-	root       *os.Root
-	identity   os.FileInfo
-	policySHA  string
-	profileSHA string
-	assignment Assignment
-	check      nativeWorkspaceCheck
-	checkIDs   []string
-	secrets    []string
-	ledger     nativeWorkspaceLedger
-	closed     bool
-	server     *http.Server
-	bridge     NativeWorkspaceBridge
+	*liveWorkspaceRead
+	check    nativeWorkspaceCheck
+	checkIDs []string
+	ledger   nativeWorkspaceLedger
+	server   *http.Server
+	bridge   NativeWorkspaceBridge
 }
 
 func openNativeWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, w *attemptWorkspace, spec CommandSpec, profileSHA string, check nativeWorkspaceCheck) (*nativeWorkspace, error) {
-	if w == nil || spec.NativeWorkspace == nil || !evidenceHash.MatchString(profileSHA) || a.RunID == "" || a.NodeID == "" || a.WorkerID == "" || a.Attempt < 1 || a.Fence < 1 || key(a) != key(w.Assignment) || w.AttemptKey != attemptKey(a) {
+	if spec.NativeWorkspace == nil {
 		return nil, nativeError("native_workspace_scope")
 	}
-	if ctx.Err() != nil {
-		return nil, nativeError("native_workspace_closed")
-	}
-	source, err := realDirectory(w.Source)
-	if err != nil || source != filepath.Clean(w.Source) || !within(w.Directory, source) || source == filepath.Clean(w.Directory) {
-		return nil, nativeError("native_workspace_scope")
-	}
-	root, err := os.OpenRoot(source)
+	reader, err := openLiveWorkspaceRead(ctx, a, cfg, w, profileSHA)
 	if err != nil {
-		return nil, nativeError("native_workspace_unavailable")
+		return nil, err
 	}
-	identity, err := root.Stat(".")
-	if err != nil {
-		root.Close()
-		return nil, nativeError("native_workspace_unavailable")
-	}
-	runCtx, cancel := context.WithCancel(ctx)
-	n := &nativeWorkspace{ctx: runCtx, cancel: cancel, workspace: w, root: root, identity: identity, policySHA: profileSHA, profileSHA: profileSHA, assignment: a, check: check, secrets: append([]string{}, cfg.Secrets...)}
+	n := &nativeWorkspace{liveWorkspaceRead: reader, check: check}
 	seen := map[string]bool{}
 	for _, id := range spec.NativeWorkspace.Checks {
 		if id == "" || seen[id] {
-			root.Close()
-			cancel()
+			_ = reader.Close()
 			return nil, nativeError("native_workspace_scope")
 		}
 		seen[id] = true
@@ -104,8 +77,7 @@ func openNativeWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, w *a
 	}
 	sort.Strings(n.checkIDs)
 	if err = n.loadLedger(); err != nil {
-		root.Close()
-		cancel()
+		_ = reader.Close()
 		return nil, err
 	}
 	return n, nil
@@ -129,15 +101,8 @@ func (n *nativeWorkspace) Close() error {
 	}
 	n.mu.Lock()
 	defer n.mu.Unlock()
-	if n.closed {
-		return nil
-	}
-	n.closed = true
-	if n.root != nil {
-		if err := n.root.Close(); err != nil {
-			closeErr = err
-		}
-		n.root = nil
+	if err := n.closeLocked(); err != nil {
+		closeErr = err
 	}
 	if closeErr != nil {
 		return nativeError("native_workspace_unavailable")
@@ -185,17 +150,6 @@ func (n *nativeWorkspace) ReadyToSeal() error {
 		if !ok || check.Generation != n.ledger.Generation || check.WorkspaceSHA256 != sourceSHA || check.ExitCode != 0 || check.Stopped || check.OutcomeUnknown {
 			return nativeError("native_workspace_checks_stale")
 		}
-	}
-	return nil
-}
-
-func (n *nativeWorkspace) activeLocked(ctx context.Context) error {
-	if n.closed || n.ctx.Err() != nil || ctx.Err() != nil {
-		return nativeError("native_workspace_closed")
-	}
-	st, err := os.Stat(n.workspace.Source)
-	if err != nil || !os.SameFile(n.identity, st) {
-		return nativeError("native_workspace_scope")
 	}
 	return nil
 }

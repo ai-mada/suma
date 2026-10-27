@@ -4,6 +4,8 @@
 
 ## 范围和当前授权
 
+Codex目前仅支持[只读观察](workspace-observation.md)，不进入保存创建、execute／inspect正文领取或原生操作账本；`can_write=false`。
+
 仅覆盖当前原生 attempt 内**已存在的完整 UTF-8 文本文件**，新旧正文均不得超过48KiB。保存固定规范相对 `path`、原完整字节 `expected_sha256`、新正文及 `content_sha256`；不提供创建、删除、强制覆盖、任意路径、终端或 Git 写操作。路径和敏感内容仍由原生 `os.Root`、身份及策略检查。
 
 编辑来源使用[只读观察](workspace-observation.md)的 `read` 与 `arguments:{path,full_file:true}`；此模式禁止行分页参数，结果必须完整、从第1行开始，正文长度和 SHA 对应全部原字节。分页、截断或超限结果不能作为完整编辑基线。原观察到期不独立撤销草稿的 CAS 依据；发出新保存仍需当前授权。

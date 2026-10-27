@@ -263,7 +263,38 @@ func nativeReadBytes(root *os.Root, name string) ([]byte, bool, error) {
 	if len(b) > nativeWorkspaceFileLimit || !utf8.Valid(b) || bytes.IndexByte(b, 0) >= 0 {
 		return nil, false, nativeError("native_workspace_text")
 	}
+	if err = nativeReadSnapshotCurrent(root, name, f, st, b); err != nil {
+		return nil, false, err
+	}
 	return b, true, nil
+}
+
+// External CLIs do not share the native mutex. Reject a replaced file or bytes
+// that changed during a bounded read, including same-size timestamp aliases.
+func nativeReadSnapshotCurrent(root *os.Root, name string, file *os.File, initial os.FileInfo, data []byte) error {
+	if err := nativeValidatePath(root, name, false); err != nil {
+		return nativeError("native_workspace_conflict")
+	}
+	current, err := root.Lstat(name)
+	if err != nil || !os.SameFile(initial, current) || current.Size() != int64(len(data)) || current.Mode() != initial.Mode() || !current.ModTime().Equal(initial.ModTime()) {
+		return nativeError("native_workspace_conflict")
+	}
+	if _, err = file.Seek(0, io.SeekStart); err != nil {
+		return nativeError("native_workspace_unavailable")
+	}
+	confirmed, err := io.ReadAll(io.LimitReader(file, nativeWorkspaceFileLimit+1))
+	if err != nil {
+		return nativeError("native_workspace_unavailable")
+	}
+	final, err := file.Stat()
+	if err != nil || !os.SameFile(initial, final) || final.Size() != int64(len(data)) || final.Mode() != initial.Mode() || !final.ModTime().Equal(initial.ModTime()) || !bytes.Equal(data, confirmed) {
+		return nativeError("native_workspace_conflict")
+	}
+	current, err = root.Lstat(name)
+	if err != nil || !os.SameFile(initial, current) || current.Size() != final.Size() || !current.ModTime().Equal(final.ModTime()) {
+		return nativeError("native_workspace_conflict")
+	}
+	return nil
 }
 
 type nativeReadResult struct {
@@ -276,7 +307,7 @@ type nativeReadResult struct {
 	Complete  bool   `json:"complete"`
 }
 
-func (n *nativeWorkspace) readLocked(args map[string]any) (any, error) {
+func (n *liveWorkspaceRead) readLocked(args map[string]any) (any, error) {
 	name := nativeString(args, "path")
 	data, exists, err := nativeReadBytes(n.root, name)
 	if err != nil {
@@ -339,6 +370,10 @@ type nativeListCursor struct {
 }
 
 func (n *nativeWorkspace) listLocked(args map[string]any) (any, error) {
+	return n.liveWorkspaceRead.listLocked(args, n.ledger.Generation)
+}
+
+func (n *liveWorkspaceRead) listLocked(args map[string]any, generation int) (any, error) {
 	directory := nativeString(args, "directory")
 	name := directory
 	if name == "" {
@@ -401,7 +436,7 @@ func (n *nativeWorkspace) listLocked(args map[string]any) (any, error) {
 		var c nativeListCursor
 		parseErr := json.Unmarshal(raw, &c)
 		canonical, _ := json.Marshal(c)
-		if e != nil || len(raw) > 4096 || parseErr != nil || !bytes.Equal(raw, canonical) || c.Scope != digest([]byte(key(n.assignment)+":"+n.policySHA)) || c.Directory != directory || c.Snapshot != snapshot || c.Generation != n.ledger.Generation || c.Offset < 1 || c.Offset >= len(entries) {
+		if e != nil || len(raw) > 4096 || parseErr != nil || !bytes.Equal(raw, canonical) || c.Scope != digest([]byte(key(n.assignment)+":"+n.policySHA)) || c.Directory != directory || c.Snapshot != snapshot || c.Generation != generation || c.Offset < 1 || c.Offset >= len(entries) {
 			return nil, nativeError("native_workspace_cursor")
 		}
 		offset = c.Offset
@@ -409,7 +444,7 @@ func (n *nativeWorkspace) listLocked(args map[string]any) (any, error) {
 	end := min(len(entries), offset+nativeWorkspaceInteger(args, "limit", 100))
 	next := ""
 	if end < len(entries) {
-		b, _ := json.Marshal(nativeListCursor{Scope: digest([]byte(key(n.assignment) + ":" + n.policySHA)), Directory: directory, Snapshot: snapshot, Offset: end, Generation: n.ledger.Generation})
+		b, _ := json.Marshal(nativeListCursor{Scope: digest([]byte(key(n.assignment) + ":" + n.policySHA)), Directory: directory, Snapshot: snapshot, Offset: end, Generation: generation})
 		next = base64.RawURLEncoding.EncodeToString(b)
 	}
 	return map[string]any{"entries": entries[offset:end], "next_cursor": next, "complete": next == ""}, nil

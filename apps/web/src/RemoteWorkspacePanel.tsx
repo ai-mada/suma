@@ -26,12 +26,13 @@ export function RemoteWorkspacePanel({project,active=true}:{project:string;activ
  const wantedEdit=useRef(false),previousActive=useRef(active);
  const page=targets?.api===api?targets.value:undefined,target=page?.items.find(item=>remoteScopeKey(item)===targetKey);
  const signature=target?remoteScopeKey(target):'',currentScope=useRef(signature);currentScope.current=signature;
+ const access=useRef({api,scope:signature,canWrite:target?.can_write===true});access.current={api,scope:signature,canWrite:target?.can_write===true};
  const epoch=useRef(0),targetEpoch=useRef(0),controller=useRef<AbortController|undefined>(undefined),targetController=useRef<AbortController|undefined>(undefined),timer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
  const last=useRef<{api:ApiCaller;body:WorkspaceObservationCreateRequest;id?:string}|undefined>(undefined);
  const visible=(snapshot?:Snapshot)=>snapshot?.api===api&&snapshot.scope===signature?snapshot.observation:undefined;
  const files=visible(listing),document=visible(reading),status=visible(current);
  const list=files?.result?.list,read=document?.result?.read;
- const editor=editing?.api===api&&editing.scope===signature?editing.source:undefined;
+ const editor=target?.can_write&&editing?.api===api&&editing.scope===signature?editing.source:undefined;
  const waiting=sending||status?.state==='requested'||status?.state==='leased';
  // Each snapshot has its own deadline. Starting another read cannot extend a
  // previous file list or source body while authorization polling is in flight.
@@ -46,6 +47,7 @@ export function RemoteWorkspacePanel({project,active=true}:{project:string;activ
  function stop(){epoch.current++;controller.current?.abort();if(timer.current)clearTimeout(timer.current);}
  function clear(){stop();wantedEdit.current=false;setListing(undefined);setReading(undefined);setCurrent(undefined);setError(undefined);setSending(false);last.current=undefined;}
  async function readTargets(){
+  if(editor)return;
   const request=++targetEpoch.current;targetController.current?.abort();const abort=new AbortController();targetController.current=abort;
   clear();setTargets(undefined);setTargetError(undefined);setTargetLoading(true);
   try{const value=await api<WorkspaceObservationTargetPage>('/workspace/targets'+query(project),undefined,'GET',undefined,abort.signal);if(abort.signal.aborted||request!==targetEpoch.current)return;if(!validRemoteTargets(value,project))throw new UiError('remote-workspace.invalid_response');setTargets({api,value});}
@@ -53,8 +55,8 @@ export function RemoteWorkspacePanel({project,active=true}:{project:string;activ
   finally{if(!abort.signal.aborted&&request===targetEpoch.current)setTargetLoading(false);}
  }
  useEffect(()=>{setTargets(undefined);setEditing(undefined);setTargetKey(savedTarget(project));if(active)void readTargets();return()=>{targetEpoch.current++;targetController.current?.abort();stop();};},[api,project]);
- useEffect(()=>{clear();setDirectory('');if(target&&active&&!editing)void observe('list',{directory:'',limit:100});},[signature]);
- useEffect(()=>{if(!active)stop();else if(!previousActive.current&&!editing)void readTargets();previousActive.current=active;},[active]);
+ useEffect(()=>{clear();setDirectory('');if(target&&active&&!editor)void observe('list',{directory:'',limit:100});},[signature]);
+ useEffect(()=>{if(!active)stop();else if(!previousActive.current&&!editor)void readTargets();previousActive.current=active;},[active]);
  async function observe(kind:string,args:WorkspaceObservationArguments,expected=''){
   if(!target)return;stop();setCurrent(undefined);setSending(true);setError(undefined);if(kind==='list'){setListing(undefined);setReading(undefined);}else setReading(undefined);
   const body:WorkspaceObservationCreateRequest={project_id:project,scope:{run_id:target.run_id,node_id:target.node_id,attempt:target.attempt,fence:target.fence,worker_id:target.worker_id,tool_profile_id:target.tool_profile_id,profile_sha256:target.profile_sha256},operation:kind,arguments:args,...(expected?{expected_sha256:expected}:{}),idempotency_key:operation()};
@@ -83,14 +85,15 @@ export function RemoteWorkspacePanel({project,active=true}:{project:string;activ
   setError(undefined);setSending(true);await receive();
  }
  async function openEditor(value:WorkspaceObservation){
-  const generation=epoch.current;
-  try{if(!await editableRemoteSource(value))throw new UiError('remote-workspace-write.incomplete_source');if(epoch.current!==generation)return;stop();setEditing({api,scope:remoteScopeKey(value.scope),source:value});setError(undefined);}
+  const generation=epoch.current,key=remoteScopeKey(value.scope),permitted=()=>access.current.api===api&&access.current.scope===key&&access.current.canWrite;
+  if(!permitted())return;
+  try{if(!await editableRemoteSource(value))throw new UiError('remote-workspace-write.incomplete_source');if(epoch.current!==generation||!permitted())return;stop();setEditing({api,scope:key,source:value});setError(undefined);}
   catch(reason){if(epoch.current===generation)setError(reason);}
  }
- function editFile(){if(!document?.result?.read)return;const value=document.result.read;if(value.start_line===1&&value.complete)void openEditor(document);else{wantedEdit.current=true;void observe('read',{path:value.path,full_file:true});}}
+ function editFile(){if(!target?.can_write||!document?.result?.read)return;const value=document.result.read;if(value.start_line===1&&value.complete)void openEditor(document);else{wantedEdit.current=true;void observe('read',{path:value.path,full_file:true});}}
  function closeEditor(){setEditing(undefined);if(target&&active)openDirectory(directory);}
  function accessLost(){setEditing(undefined);clear();setTargets(undefined);setTargetError(new UiError('remote-workspace-write.access_lost'));}
- function choose(value:string){clear();setTargetKey(value);try{sessionStorage.setItem(preference(project),value);}catch{/* Preference loss must never block an authorized read. */}}
+ function choose(value:string){if(editor)return;clear();setTargetKey(value);try{sessionStorage.setItem(preference(project),value);}catch{/* Preference loss must never block an authorized read. */}}
  function openDirectory(value:string){setDirectory(value);void observe('list',{directory:value,limit:100});}
  const sourceLink=target?'?'+new URLSearchParams({project,view:'development',sub:'runs',run:target.run_id,node:target.node_id,attempt:String(target.attempt)}):'';
  return <section className="remote-workspace panel" aria-label={t('title')}>
@@ -99,9 +102,10 @@ export function RemoteWorkspacePanel({project,active=true}:{project:string;activ
   {page&&<><Field label={t('target')} hint={t('target_hint')}><select data-remote-target disabled={!!editor} value={target?targetKey:''} onChange={event=>choose(event.target.value)}><option value="">{t('choose')}</option>{page.items.map(item=><option key={remoteScopeKey(item)} value={remoteScopeKey(item)}>{item.node_name||item.node_id} · {item.run_name||item.run_id.slice(0,8)} · {t('attempt',{attempt:formatNumber(item.attempt)})}</option>)}</select></Field>{page.truncated&&<p className="muted">{t('truncated',{limit:formatNumber(page.limit)})}</p>}{!page.items.length&&<Empty title={t('no_targets')} description={t('no_targets_help')}/>}</>}
   {target&&<>
    <div className="remote-heading"><span>{target.node_name||target.node_id} · {target.worker_id} · {editor?tr('remote-workspace-write.editing_tag'):t('readonly')}</span><a href={sourceLink}>{t('open_execution')}</a></div>
+   <p className="muted">{t('tool_profile')}: <code>{target.tool_profile_id}</code> · {target.pool_id?t('pool_route',{pool:target.pool_id}):t('private_route')}</p>
    {waiting&&<p role="status">{t(sending?'requesting':status?.state==='leased'?'reading':'waiting')}</p>}
    {!!error&&<div><ErrorNotice error={error}/><button type="button" disabled={!last.current||last.current.api!==api} onClick={()=>{if(last.current?.api===api)void execute(last.current);}}>{t('retry_original')}</button></div>}
-   {editor?<RemoteWorkspaceEditor project={project} source={editor} active={active} onClose={closeEditor} onAccessLost={accessLost} onRecorded={()=>setWriteRevision(value=>value+1)}/>:<div className="remote-grid"><aside aria-label={t('files')}>
+   {editor?<RemoteWorkspaceEditor key={signature+':'+editor.id} project={project} source={editor} active={active} onClose={closeEditor} onAccessLost={accessLost} onRecorded={()=>setWriteRevision(value=>value+1)}/>:<div className="remote-grid"><aside aria-label={t('files')}>
     <div className="remote-filebar"><span>{directory||t('root')}</span><button type="button" aria-label={t('refresh_files')} disabled={waiting} onClick={()=>openDirectory(directory)}><RefreshCw size={14}/></button></div>
     {directory&&<button type="button" className="remote-entry" disabled={waiting} onClick={()=>openDirectory(directory.split('/').slice(0,-1).join('/'))}><ArrowLeft size={14}/>{t('parent')}</button>}
     {list?.entries.map(entry=><button key={entry.path} type="button" className="remote-entry" disabled={waiting} onClick={()=>entry.kind==='directory'?openDirectory(entry.path):void observe('read',{path:entry.path,start_line:1,max_lines:200})}>{entry.kind==='directory'?<Folder size={14}/>:<FileCode size={14}/>}<span>{entry.path.split('/').pop()}</span></button>)}

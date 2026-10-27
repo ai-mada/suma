@@ -11,15 +11,15 @@ import (
 
 const workspaceWriteTransportUnavailable = "Current worker has not declared remote workspace save support"
 
-// The approved profile binds native tools. Transport versions are independent
+// The approved profile binds the tool kind. Transport versions are independent
 // current inventory facts, not proof of a live handle or model authentication.
 func supportsWorkspaceObservation(profile ToolProfile) bool {
 	p, observation := profile.Profile, profile.Observation
-	return profile.Available && observation != nil && observation.Available && tc.EqualProfile(p, observation.Profile) && p.Adapter == "suma" && p.Protocol == "suma-jsonl-v1" && !p.ReadOnly && p.WorkspaceToolsVersion == "attempt-workspace-v1" && observation.WorkspaceObservationProtocol == woc.Protocol
+	return profile.Available && observation != nil && observation.Available && tc.EqualProfile(p, observation.Profile) && tc.SupportsWorkspaceObservationProfile(p) && observation.WorkspaceObservationProtocol == woc.Protocol
 }
 
 func supportsWorkspaceWrite(profile ToolProfile) bool {
-	return supportsWorkspaceObservation(profile) && profile.Observation.WorkspaceWriteProtocol == wcc.Protocol
+	return supportsWorkspaceObservation(profile) && tc.SupportsWorkspaceWriteProfile(profile.Profile) && profile.Observation.WorkspaceWriteProtocol == wcc.Protocol
 }
 
 func (s *Service) requireWorkspaceWriteTransportTx(ctx context.Context, tx *sql.Tx, tenant, project string, basis workspaceObservationBasis) error {
