@@ -30,12 +30,15 @@ func (s *Service) workspaceWriteTaskBasisTx(ctx context.Context, tx *sql.Tx, ten
 	return nil
 }
 
-// canWorkspaceWriteTargetTx derives only human permission/task eligibility.
-// Native availability remains independently checked by the observation path.
+// Current save support and human/task eligibility are separate requirements;
+// their conjunction still does not promise a live native workspace handle.
 func (s *Service) canWorkspaceWriteTargetTx(ctx context.Context, tx *sql.Tx, actor Actor, project string, b workspaceObservationBasis) (bool, error) {
 	_, err := s.authorizeTxWithParticipants(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectWrite, []string{b.PoolOwner})
 	if err == nil {
 		err = s.workspaceWriteTaskBasisTx(ctx, tx, actor.credential.tenantID, project, b.Scope.RunID)
+	}
+	if err == nil {
+		err = s.requireWorkspaceWriteTransportTx(ctx, tx, actor.credential.tenantID, project, b)
 	}
 	if err != nil {
 		var api *APIError
@@ -84,6 +87,9 @@ func (s *Service) workspaceWriteExecuteAuthorityTx(ctx context.Context, tx *sql.
 		return err
 	}
 	if err = s.workspaceObservationMachineAuthorityTx(ctx, tx, subject, b, nil); err != nil {
+		return err
+	}
+	if err = s.requireWorkspaceWriteTransportTx(ctx, tx, subject.Tenant, subject.Project, b); err != nil {
 		return err
 	}
 	return s.workspaceWriteTaskBasisTx(ctx, tx, subject.Tenant, subject.Project, b.Scope.RunID)

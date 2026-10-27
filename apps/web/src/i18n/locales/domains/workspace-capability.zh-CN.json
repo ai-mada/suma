@@ -1,0 +1,6 @@
+{
+  "workspace-capability.read": "远程文件读取（最近上报）",
+  "workspace-capability.write": "远程文件保存（最近上报）",
+  "workspace-capability.missing": "未声明",
+  "workspace-capability.help": "协议声明表示该执行器实现了对应文件传输能力。是否仍可执行以当前库存、权限和实际尝试为准；此记录不证明连接健康。"
+}

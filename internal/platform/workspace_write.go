@@ -86,6 +86,9 @@ func (s *Service) CreateWorkspaceWrite(ctx context.Context, actor Actor, project
 	if err = s.validateWorkspaceObservationBasisTx(ctx, tx, actor.credential.tenantID, project, basis); err != nil {
 		return out, err
 	}
+	if err = s.requireWorkspaceWriteTransportTx(ctx, tx, actor.credential.tenantID, project, basis); err != nil {
+		return out, err
+	}
 	if err = s.workspaceWriteTaskBasisTx(ctx, tx, actor.credential.tenantID, project, req.Scope.RunID); err != nil {
 		return out, err
 	}

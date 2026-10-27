@@ -19831,6 +19831,20 @@
             "maxLength": 1000,
             "type": "string",
             "x-max-utf8-bytes": 1000
+          },
+          "workspace_observation_protocol": {
+            "description": "Current Runner outbound read broker implementation. Declared only after a successful native workspace probe; not a profile grant or connection-health result.",
+            "enum": [
+              "workspace-observation-v1"
+            ],
+            "type": "string"
+          },
+          "workspace_write_protocol": {
+            "description": "Current Runner outbound CAS-save broker. Requires the read broker declaration; current file/task/credential authority is checked separately.",
+            "enum": [
+              "workspace-write-v1"
+            ],
+            "type": "string"
           }
         },
         "required": [

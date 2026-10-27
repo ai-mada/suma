@@ -47,9 +47,9 @@
   ],
   "production_integration_complete": false,
   "current_evidence": "docs/quality/workspace-write-verification.md",
-  "stage": "T-P4-038_workspace_write",
+  "stage": "T-P4-039_workspace_transport_capabilities",
   "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
-  "next_step": "Preserve full P0-P7 and1..22. Revalidate actual primary035 process/port/data and configured runners, then safely upgrade to current verified Control/Runner/Web with DB backup and exact artifact mapping; continue governed model/CLI/expert capabilities, complete IDE/multi-host recovery/storage/scale/SSO/knowledge/memory/skills/mobile/channels/installations/SaaS. Do not reuse stale PIDs, repeat unchanged tests, or call the whole platform complete.",
+  "next_step": "Preserve full P0-P7 and1..22. Continue governed model selection/parameters/budgets for external CLI and expert/repair roles, complete remote IDE, tool integrations and distributed concurrency/recovery. Current039 main is live on4324 (see launch handle before any action), no active Runner/Grant, do not infer online from enabled profiles. Continue all storage/knowledge/memory/skills/SSO/mobile/channels/installations/SaaS/scale gaps. Reuse passed affected evidence; no broad repeated tests.",
   "additional_requirements": [
     "FND-I18N-001: internationalization in every implemented surface; initially zh-CN/en-US, unified catalogs, preference/negotiation, formatting, API errors, CLI/desktop/extensions/notifications and docs; preserve user content and immutable evidence; coverage must be honestly verified",
     "Idea lifecycle, reusable function/menu governance, visual configuration, alerts and WeChat/DingTalk/WeCom channels remain full platform scope",
@@ -166,7 +166,7 @@
   },
   "current_version": "1.0.0",
   "design_policy": "Current 1.0.0 best-fit architecture only; no historical compatibility shims or duplicated state. Preserve actual user data, immutable evidence and safe recovery; product SemVer is separate from protocol/SDK/domain revisions.",
-  "previous_goal_turn": "progress:037 committed14e7c2669a16388d20f15914625ca6765cf2b3cb; real outbound readonly workspace, exact ACK replay,0empty-poll ledger growth and CNEN/keyboard/refresh UI verified. Full P0-P7 and1..22 active.",
+  "previous_goal_turn": "progress:038 committed bc1be079bcf10975e77d83c4e58aa6425127e1ae; real outbound CAS, two-tab merge and exact recovery verified; full P0-P7 and1..22 active",
   "active_goal_source_sha256": "b48689cef76a9db9bd2fe13b51cec7247bca54f9f8a200075f3f0c029313f89c",
   "latest_request": {
     "path": "C:\\Users\\Administrator\\.codex\\attachments\\e130587c-7f03-4ba0-8884-c869a1d25274\\pasted-text-1.txt",
@@ -277,7 +277,7 @@
   },
   "last_goal_turn_classification": {
     "classification": "progress",
-    "evidence": "038 current native complete-file CAS saves, original credential/task/Pool authority, single execute/receipt-only recovery, CLI and actual two-tab conflict/merged generation3 verified. Real unique joint passed, source unchanged, stage commit follows. Full goal remains active."
+    "evidence": "039 current Runner transport gate, actual-native public inventory import, bounded CNEN display and main035→039 forward delivery verified; source/docs stage commit follows. Full objective remains active."
   },
   "candidate_conflict_repair032_progress": {
     "status": "bounded_local_functional_stage_verified",
@@ -446,6 +446,21 @@
     },
     "owned_host59218": "closed",
     "primary_preview": "035 unchanged; upgrade next after actual handle/data check",
-    "full_platform": "active; complete P0-P7 and1..22"
+    "full_platform": "active; complete P0-P7 and1..22",
+    "commit": "bc1be079bcf10975e77d83c4e58aa6425127e1ae"
+  },
+  "workspace_transport039_progress": {
+    "status": "bounded_local_functional_stage_verified",
+    "contract": "contracts/workspace-transport-capabilities.md",
+    "summary": "docs/quality/workspace-capability-summary.json",
+    "primary": {
+      "path": ".cache/e2e/preview-stage-039/primary-final/verified.local.json",
+      "sha256": "23f83cac2981b5a06f9c21a1d58a41ebd9210f1980a6ba100ed16fcd22ebafb7"
+    },
+    "launch": ".cache/e2e/preview-stage-039/primary-final/control-launch.local.json",
+    "main_preview": "039 live normal; original186fullfacts->188, final188 preserved at startup; noRunnerstarted",
+    "CNEN_keys": 4568,
+    "full_platform": "active; complete P0-P7 and1..22",
+    "production_integration_complete": false
   }
 }

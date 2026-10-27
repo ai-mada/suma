@@ -135,5 +135,13 @@
       "previous_source_commit": "f6e05595313b705ac205a3abf9940c94118ea245",
       "action": "preserved current verified facts verbatim before 022 finalization"
     }
-  ]
+  ],
+  "workspace_transport039": {
+    "stage": "T-P4-039",
+    "date": "2026-10-27",
+    "report": "docs/quality/workspace-capability-verification.md",
+    "summary": "docs/quality/workspace-capability-summary.json",
+    "full_platform_status": "in_progress",
+    "production_acceptance": false
+  }
 }

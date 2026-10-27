@@ -121,6 +121,10 @@ export function ToolProfileFacts({ profile }: { profile: ToolProfile }) { useLoc
             <dd>
               {profile.observation.available ? t("development.facts.yes_for_that_local_probe_only") : t("development.facts.no")}
             </dd>
+            <dt>{t("workspace-capability.read")}</dt>
+            <dd><code>{profile.observation.workspace_observation_protocol || t("workspace-capability.missing")}</code></dd>
+            <dt>{t("workspace-capability.write")}</dt>
+            <dd><code>{profile.observation.workspace_write_protocol || t("workspace-capability.missing")}</code></dd>
             <dt>{t("development.facts.version_at_that_time")}</dt>
             <dd>{profile.observation.profile.tool_version || t("development.workflow.not_provided")}</dd>
             <dt>{t("development.facts.configuration_fingerprint_at_that_time")}</dt>
@@ -130,6 +134,7 @@ export function ToolProfileFacts({ profile }: { profile: ToolProfile }) { useLoc
               </code>
             </dd>
           </dl>
+          <p className="muted">{t("workspace-capability.help")}</p>
         </details>
       )}
     </section>

@@ -2,7 +2,17 @@
 
 当前开发版本 **1.0.0**；新设计采用当前最佳合理结构，不增加历史兼容层。[版本与扩展需求基线](../product/v1-baseline.md)。
 
-## 当前 T-P4-038：执行文件编辑、单次CAS保存与准确恢复（限定本地验证）
+## 当前 T-P4-039：真实传输能力与当前预览交付（限定本地验证）
+
+执行器成功原生探测后上报精确read/write broker协议；Control据当前库存分别开放读取和保存，批准Profile不被隐式扩大。新许可/正文重发重查，原回执和效果事实仍可排空。真实原生/模型/用途库存导入已打通，工具详情两行事实与错误提示中英文完整。
+
+定向Control回归含两个实际出站联合用例通过26.684秒，27项工具导入及1项新显示检查、最终类型/4568对语言键/生成合同/vet/必要构建通过；未跑无关全套或厂商模型。主预览已由旧035数据升级到039同版Control/Web，原186表完整事实保持，新增两张空表；最终启动188表保持，GUI读取后184非锁表保持，34锁身份仅sequence单独变化。原18authority/0Grant/18session、1failed/2succeeded及任务v3保持。
+
+现有配置已启用但机器凭据过期，界面准确显示条件未确认和协议未声明，没有擅自启动Runner/创建凭据。未提交缓存/密钥/数据库/截图/二进制，未push。全范围继续实施，下一步推进外部CLI/专家团队模型配置与完整IDE等缺口。
+
+[合同](../../contracts/workspace-transport-capabilities.md)、[架构与AI SOP](../integrations/workspace-transport-capabilities.md)、[English](../en/workspace-transport-capabilities.md)、[限定证据](../quality/workspace-capability-verification.md)、[摘要](../quality/workspace-capability-summary.json)。
+
+## 历史 T-P4-038：执行文件编辑、单次CAS保存与准确恢复（限定本地验证）
 
 在037真实只读工作区上补齐完整小文件编辑与保存。当前原调用人写权限、task当前run／依据及Pool授权核验，固定原SHA／新内容SHA／scope／策略；只签发一次10秒execute许可，超时后不重新派发。Runner复用活动os.Root和原CAS账本，未知／prepared不补rename，只有准确原回执或持久未发生屏障才能定论。
 

@@ -817,5 +817,6 @@
   "development.transfer.invalid": "候选传递元数据未能通过核对，原工作区证据仍可查看。",
   "development.transfer.no_import": "本回执未记录导入。消费方 Runner 可能已具备候选对象。",
   "development.transfer.boundary": "传递元数据不证明测试、人工验收、合并或发布已通过。",
-  "development.workflow.event_name.live_read_only_completion_reconciled": "只读执行完成回执已核对"
+  "development.workflow.event_name.live_read_only_completion_reconciled": "只读执行完成回执已核对",
+  "development.model.the_tool_capability_format_is_invalid": "工具公开能力清单格式无效，请重新复制实际探测结果。"
 }

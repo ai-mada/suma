@@ -77,6 +77,8 @@ func enhanceToolExecutionSchemas(schemas map[string]any) {
 	field("ToolExecutionProfile", "tool_version", map[string]any{"maxLength": 256, "x-max-utf8-bytes": 256})
 	field("ToolExecutionProfile", "read_only", map[string]any{"description": "Administrator policy declaration; not a generic operating-system sandbox attestation."})
 	field("ToolObservation", "reason", map[string]any{"maxLength": 1000, "x-max-utf8-bytes": 1000})
+	field("ToolObservation", "workspace_observation_protocol", map[string]any{"enum": []string{"workspace-observation-v1"}, "description": "Current Runner outbound read broker implementation. Declared only after a successful native workspace probe; not a profile grant or connection-health result."})
+	field("ToolObservation", "workspace_write_protocol", map[string]any{"enum": []string{"workspace-write-v1"}, "description": "Current Runner outbound CAS-save broker. Requires the read broker declaration; current file/task/credential authority is checked separately."})
 	field("ToolEvent", "schema_version", map[string]any{"const": 1})
 	field("ToolEvent", "kind", map[string]any{"enum": []string{"session_started", "turn_started", "activity_started", "activity_updated", "activity_completed", "message", "usage", "error", "turn_completed", "turn_failed", "waiting_input"}})
 	field("ToolEvent", "message", map[string]any{"maxLength": 8192, "x-max-utf8-bytes": 8192})

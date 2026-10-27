@@ -4,7 +4,15 @@
 
 当前是可运行的开发版本。功能与验证范围见 [交付状态](docs/delivery/status.md)，完整目标见 [实施计划](docs/delivery/implementation-plan.md)。
 
-## 当前阶段：执行文件编辑、冲突比较与原保存恢复
+## 当前阶段：真实执行器能力与当前工作台交付
+
+T-P4-039／1.0.0 区分批准的原生工具与当前执行器的文件读取、保存协议。缺少真实协议声明的旧库存不会被误列为可读写目标；原命令和已发生效果仍可恢复。工具库存导入已支持公开原生／模型／用途字段，拒绝私有配置，详情用两行中英文事实说明能力。
+
+已将036模型选择／参数／预算、037远程查看、038编辑／冲突恢复及039能力门禁交付到当前本地工作台。原186表事实保持，新增两张空表；原会话及业务历史保持。当前没有活动Runner，配置启用不表示在线。完整平台继续实施。
+
+见[合同](contracts/workspace-transport-capabilities.md)、[接入架构与AI SOP](docs/integrations/workspace-transport-capabilities.md)、[限定验证](docs/quality/workspace-capability-verification.md)及[English](docs/en/workspace-transport-capabilities.md)。
+
+## 历史阶段：执行文件编辑、冲突比较与原保存恢复（T-P4-038）
 
 T-P4-038／1.0.0 将当前原生执行工作区贯通到浏览器和CLI实际编辑、CAS保存与回执恢复。完整文件按原摘要保存；模型或另一位编辑者先修改时，不静默覆盖，保留草稿并通过Monaco差异视图明确比较和合并。
 

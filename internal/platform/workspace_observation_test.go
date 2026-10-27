@@ -10,6 +10,7 @@ import (
 	"github.com/ai-mada/suma/internal/dag"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	woc "github.com/ai-mada/suma/internal/workspaceobservationcontract"
+	wcc "github.com/ai-mada/suma/internal/workspacewritecontract"
 )
 
 func workspaceObservationFixture(t *testing.T) (*fixture, Actor, woc.Scope) {
@@ -26,7 +27,7 @@ func workspaceObservationFixture(t *testing.T) (*fixture, Actor, woc.Scope) {
 		t.Fatal(err)
 	}
 	actor := toolActorForTest(t, f, token)
-	if _, err = f.s.ReportToolInventory(ctx, actor, f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: p.WorkerID, OperationID: newID(), Items: []tc.Observation{{Profile: p.Profile, Available: true}}}); err != nil {
+	if _, err = f.s.ReportToolInventory(ctx, actor, f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: p.WorkerID, OperationID: newID(), Items: []tc.Observation{{Profile: p.Profile, Available: true, WorkspaceObservationProtocol: woc.Protocol, WorkspaceWriteProtocol: wcc.Protocol}}}); err != nil {
 		t.Fatal(err)
 	}
 	plan := f.call("POST", "/task-dispatch-plans", request, 201)
@@ -171,7 +172,7 @@ func TestWorkspaceObservationPoolRequiresExactCurrentGrantAndMachine(t *testing.
 	machine := p.credential.Runner
 	profile := toolTestProfile()
 	profile.WorkspaceToolsVersion = "attempt-workspace-v1"
-	if _, err := f.s.ReportPoolToolInventory(ctx, p.credential.Token, PoolToolInventoryRequest{RunnerID: machine.ID, TenantID: f.user.TenantID, ProjectID: f.project, OperationID: newID(), Items: []tc.Observation{{Profile: profile, Available: true}}}); err != nil {
+	if _, err := f.s.ReportPoolToolInventory(ctx, p.credential.Token, PoolToolInventoryRequest{RunnerID: machine.ID, TenantID: f.user.TenantID, ProjectID: f.project, OperationID: newID(), Items: []tc.Observation{{Profile: profile, Available: true, WorkspaceObservationProtocol: woc.Protocol, WorkspaceWriteProtocol: wcc.Protocol}}}); err != nil {
 		t.Fatal(err)
 	}
 	pr, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: machine.WorkerID, Name: "Pool native observation", Profile: profile, IdempotencyKey: newID()})

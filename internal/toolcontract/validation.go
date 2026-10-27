@@ -111,6 +111,13 @@ func ValidateObservation(o Observation) error {
 	if err := ValidateProfile(o.Profile, o.Available); err != nil {
 		return err
 	}
+	if o.WorkspaceObservationProtocol != "" || o.WorkspaceWriteProtocol != "" {
+		// The protocol packages reuse this package's strict JSON primitives;
+		// keep the closed wire names here to avoid reversing that dependency.
+		if !o.Available || o.Profile.Adapter != "suma" || o.Profile.Protocol != "suma-jsonl-v1" || o.Profile.ReadOnly || o.Profile.WorkspaceToolsVersion != "attempt-workspace-v1" || o.WorkspaceObservationProtocol != "workspace-observation-v1" || o.WorkspaceWriteProtocol != "" && o.WorkspaceWriteProtocol != "workspace-write-v1" {
+			return fmt.Errorf("invalid current workspace transport capability")
+		}
+	}
 	if !validText(o.Reason, 1000, false) {
 		return fmt.Errorf("invalid observation reason")
 	}

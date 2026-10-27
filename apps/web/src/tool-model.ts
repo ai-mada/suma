@@ -1,23 +1,8 @@
 import { tr as t, UiError } from "./i18n";
 import type { RecordItem, Workflow } from "./api";
-import type { ToolDiagnostic, DisplayDiagnostic } from "../../../packages/contracts/src";
-export type ToolProfileDefinition = {
-  model_execution_protocol?: string;
-  workspace_tools_version?: string;
-  conflict_repair_protocol?: string;
-  command_id: string;
-  adapter: string;
-  protocol: string;
-  profile_sha256: string;
-  executable_sha256: string;
-  tool_version: string;
-  read_only: boolean;
-};
-export type ToolObservation = {
-  profile: ToolProfileDefinition;
-  available: boolean;
-  reason: string;
-};
+import type { ToolDiagnostic, DisplayDiagnostic, ToolExecutionProfile, ToolObservation as ContractToolObservation } from "../../../packages/contracts/src";
+export type ToolProfileDefinition = ToolExecutionProfile;
+export type ToolObservation = ContractToolObservation;
 export type ToolProfile = {
   reason_diagnostic?: DisplayDiagnostic | null;
   id: string;
@@ -189,6 +174,60 @@ function fields(value: Record<string, unknown>, allowed: string[]) {
   if (Object.keys(value).some((key) => !allowed.includes(key)))
     throw new UiError("development.model.the_inventory_contains_private_fields_or_secret");
 }
+
+function invalidCapability(): never {
+  throw new UiError("development.model.the_tool_capability_format_is_invalid");
+}
+function publicText(value: unknown, maxBytes: number): value is string {
+  return typeof value === "string" && value.length > 0 && value.trim() === value && encoder.encode(value).byteLength <= maxBytes && !/[\u0000-\u001f\u007f-\u009f]/.test(value);
+}
+function publicOrigin(value: unknown): boolean {
+  // Only the public origin belongs in inventory. Never import credentials,
+  // endpoint paths, query strings or fragments from a local provider config.
+  if (!publicText(value, 2048) || !/^(https?):\/\/[^/?#@\s]+$/.test(value)) return false;
+  try {
+    const origin = new URL(value);
+    return !origin.username && !origin.password && (origin.protocol === "https:" || (origin.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(origin.hostname)));
+  } catch { return false; }
+}
+function validatePublicCapabilities(profile: Record<string, unknown>, observation: Record<string, unknown>) {
+  const native = profile.adapter === "suma" && profile.protocol === "suma-jsonl-v1";
+  const workspace = native && profile.read_only === false && profile.workspace_tools_version === "attempt-workspace-v1";
+  for (const [field, protocol, permitted] of [
+    ["workspace_tools_version", "attempt-workspace-v1", workspace],
+    ["model_execution_protocol", "suma-model-execution-v1", workspace],
+    ["conflict_repair_protocol", "suma.candidate-conflict-repair.v1", workspace],
+  ] as const) {
+    if (profile[field] !== undefined && profile[field] !== "" && (profile[field] !== protocol || !permitted)) invalidCapability();
+    if (profile[field] !== undefined && typeof profile[field] !== "string") invalidCapability();
+  }
+  const purposes = [["planning", "suma-schedule-plan-v1"], ["knowledge_extraction", "suma-knowledge-extraction-v1"], ["failure_diagnosis", "suma-failure-diagnosis-v1"]] as const;
+  let purposeCount = 0;
+  for (const [field, protocol] of purposes) {
+    if (profile[field] === undefined || profile[field] === null) continue;
+    const capability = record(profile[field]);
+    fields(capability, ["protocol", "model", "endpoint_origin"]);
+    if (++purposeCount > 1 || !native || profile.read_only !== true || profile.workspace_tools_version || profile.model_execution_protocol || profile.conflict_repair_protocol || capability.protocol !== protocol || !publicText(capability.model, 256) || !publicOrigin(capability.endpoint_origin)) invalidCapability();
+  }
+  const read = observation.workspace_observation_protocol, write = observation.workspace_write_protocol;
+  if (read !== undefined && typeof read !== "string" || write !== undefined && typeof write !== "string") invalidCapability();
+  if (read || write) {
+    if (!workspace || observation.available !== true || read !== "workspace-observation-v1" || write && write !== "workspace-write-v1") invalidCapability();
+  }
+  if (observation.model_deployments !== undefined) {
+    const deployments = observation.model_deployments;
+    if (!Array.isArray(deployments) || deployments.length > 64 || deployments.length > 0 && profile.model_execution_protocol !== "suma-model-execution-v1") invalidCapability();
+    const seen = new Set<string>();
+    for (const item of deployments) {
+      const deployment = record(item);
+      fields(deployment, ["deployment_id", "revision", "deployment_sha256", "protocol", "model", "endpoint_origin", "endpoint_config_sha256", "context_window"]);
+      if (typeof deployment.deployment_id !== "string" || !id.test(deployment.deployment_id) || !Number.isSafeInteger(deployment.revision) || (deployment.revision as number) < 1 || (deployment.revision as number) > 2147483647 || deployment.protocol !== "openai-chat-completions-v1" || !publicText(deployment.model, 256) || !publicOrigin(deployment.endpoint_origin) || typeof deployment.deployment_sha256 !== "string" || !digest.test(deployment.deployment_sha256) || typeof deployment.endpoint_config_sha256 !== "string" || !digest.test(deployment.endpoint_config_sha256) || !Number.isSafeInteger(deployment.context_window) || (deployment.context_window as number) < 1 || (deployment.context_window as number) > 10000000) invalidCapability();
+      const key = JSON.stringify([deployment.deployment_id, deployment.revision]);
+      if (seen.has(key)) invalidCapability();
+      seen.add(key);
+    }
+  }
+}
 export function parseToolManifest(text: string): ToolObservation[] {
   if (encoder.encode(text).byteLength > 256 * 1024)
     throw new UiError("development.model.the_tool_inventory_exceeds_256_kib_reduce");
@@ -208,7 +247,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
   const seen = new Set<string>();
   return raw.map((item) => {
     const observation = record(item);
-    fields(observation, ["profile", "available", "reason"]);
+    fields(observation, ["profile", "available", "reason", "model_deployments", "workspace_observation_protocol", "workspace_write_protocol"]);
     const profile = record(observation.profile);
     fields(profile, [
       "command_id",
@@ -218,6 +257,8 @@ export function parseToolManifest(text: string): ToolObservation[] {
       "executable_sha256",
       "tool_version",
       "read_only",
+      "workspace_tools_version", "model_execution_protocol", "conflict_repair_protocol",
+      "planning", "knowledge_extraction", "failure_diagnosis",
     ]);
     if (
       typeof profile.command_id !== "string" ||
@@ -266,7 +307,8 @@ export function parseToolManifest(text: string): ToolObservation[] {
         typeof profile.read_only !== "boolean")
     )
       throw new UiError("development.model.an_available_tool_requires_complete_configuration_and");
-    return observation as ToolObservation;
+    validatePublicCapabilities(profile, observation);
+    return observation as unknown as ToolObservation;
   });
 }
 export function toolBinding(

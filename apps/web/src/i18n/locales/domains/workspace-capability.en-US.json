@@ -1,0 +1,6 @@
+{
+  "workspace-capability.read": "Remote file read (last report)",
+  "workspace-capability.write": "Remote file save (last report)",
+  "workspace-capability.missing": "Not declared",
+  "workspace-capability.help": "A protocol declaration identifies the runner’s file transport implementation. Current inventory, permissions and the actual attempt determine eligibility; this record does not verify connection health."
+}

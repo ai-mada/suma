@@ -74,6 +74,48 @@ function storage() {
 }
 afterEach(() => vi.unstubAllGlobals());
 describe("tool manifest and fixed task choices", () => {
+	const nativeInventory = {
+		profile: { ...definition, workspace_tools_version: "attempt-workspace-v1", model_execution_protocol: "suma-model-execution-v1", conflict_repair_protocol: "suma.candidate-conflict-repair.v1" },
+		available: true,
+		reason: "installed executable and protocol probe; model authentication and task success unverified",
+		model_deployments: [{ deployment_id: "local-model", revision: 1, deployment_sha256: "c".repeat(64), protocol: "openai-chat-completions-v1", model: "model-A", endpoint_origin: "http://127.0.0.1:1234", endpoint_config_sha256: "d".repeat(64), context_window: 8192 }],
+		workspace_observation_protocol: "workspace-observation-v1",
+		workspace_write_protocol: "workspace-write-v1",
+	};
+	it("imports the actual native public inventory shape without changing the approved profile or inventing health", () => {
+		const before = JSON.stringify(nativeInventory);
+		const imported = parseToolManifest(JSON.stringify({ schema_version: 1, execution_enabled: true, items: [nativeInventory] }))[0];
+		expect(imported).toEqual(nativeInventory);
+		expect(imported.profile).toEqual(nativeInventory.profile);
+		expect(imported.profile).not.toHaveProperty("workspace_write_protocol");
+		expect(imported).not.toHaveProperty("connected");
+		expect(JSON.stringify(nativeInventory)).toBe(before);
+		for (const [field, protocol] of [["planning", "suma-schedule-plan-v1"], ["knowledge_extraction", "suma-knowledge-extraction-v1"], ["failure_diagnosis", "suma-failure-diagnosis-v1"]]) {
+			const observation = { profile: { ...definition, read_only: true, [field]: { protocol, model: "fixed-model", endpoint_origin: "https://Model.Example:443" } }, available: true, reason: "local protocol probe; provider unverified" };
+			expect(parseToolManifest(JSON.stringify([observation]))[0]).toEqual(observation);
+		}
+	});
+	it("rejects incompatible current transport markers and native purpose combinations", () => {
+		for (const observation of [
+			{ ...nativeInventory, workspace_observation_protocol: "workspace-observation-v2" },
+			{ ...nativeInventory, workspace_write_protocol: "workspace-write-v2" },
+			{ ...nativeInventory, workspace_observation_protocol: undefined },
+			{ ...nativeInventory, available: false },
+			{ ...nativeInventory, profile: definition },
+			{ ...nativeInventory, profile: { ...nativeInventory.profile, model_execution_protocol: "unknown" } },
+			{ ...nativeInventory, profile: { ...nativeInventory.profile, planning: { protocol: "suma-schedule-plan-v1", model: "fixed", endpoint_origin: "https://example.test" } } },
+		]) expect(() => parseToolManifest(JSON.stringify([observation]))).toThrow();
+	});
+	it("keeps imported purpose and deployment objects closed to private configuration and credential URLs", () => {
+		for (const observation of [
+			{ ...nativeInventory, model_deployments: [{ ...nativeInventory.model_deployments[0], base_url: "https://private.example/v1" }] },
+			{ ...nativeInventory, model_deployments: [{ ...nativeInventory.model_deployments[0], api_key_env_ref: "PRIVATE_KEY" }] },
+			{ ...nativeInventory, model_deployments: [{ ...nativeInventory.model_deployments[0], endpoint_origin: "https://user:password@example.test" }] },
+			{ ...nativeInventory, model_deployments: [nativeInventory.model_deployments[0], nativeInventory.model_deployments[0]] },
+			{ ...nativeInventory, profile: { ...definition, read_only: true, planning: { protocol: "suma-schedule-plan-v1", model: "fixed", endpoint_origin: "https://example.test?key=secret" } } },
+			{ ...nativeInventory, profile: { ...definition, read_only: true, planning: { protocol: "suma-schedule-plan-v1", model: "fixed", endpoint_origin: "https://example.test", env: { KEY: "secret" } } } },
+		]) expect(() => parseToolManifest(JSON.stringify([observation]))).toThrow();
+	});
   it("accepts the new fixed CLI protocols without accepting a cross-adapter protocol", () => {
     for(const [adapter,protocol] of [['harness','dsh-multica-jsonl-v1'],['codebuddy','codebuddy-jsonl-v1']]){
       const candidate={...definition,adapter,protocol};

@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-039",
+  "product_version": "1.0.0",
+  "status": "bounded_local_functional_stage_verified",
+  "full_platform_status": "in_progress",
+  "production_integration_complete": false,
+  "previous_commit": "bc1be079bcf10975e77d83c4e58aa6425127e1ae",
+  "contract": "contracts/workspace-transport-capabilities.md",
+  "implemented": [
+    "Current native Runner read/save transport declarations, distinct from approved tool profile",
+    "Current inventory gates for observation and new save/content redelivery; original metadata/effect recovery preserved",
+    "Generated public types and strict import of native/model/purpose tool inventory",
+    "Simple bilingual collapsed protocol facts; missing/stale observations never become healthy status",
+    "Same-version primary Control/Web delivery with WAL-consistent backup and complete original data preservation"
+  ],
+  "checks": {
+    "control": "2 new capability regressions red-green0.816s; affected capability/write/observation group26.684s passed, includes2 actual outbound joints without GUI hold",
+    "shared_runner": "2 shared transport tests and1 actual local Node probe group passed0.118s/1.311s",
+    "tool_import": "27/27 focused Vitest passed after representative actual-native shape regression; 3 new import scenarios",
+    "tool_facts": "1 focused new display test passed,8 unchanged cases intentionally filtered",
+    "typescript": "final direct tsc exit0 after generated-alias cast correction",
+    "i18n": "4568 paired keys passed",
+    "generated_contracts": "-check passed; changed schema/localization packages passed",
+    "vet": "affected Go packages passed",
+    "builds": "2 necessary Windows host source cuts038 and039,5 programs each; one039frontendbuild40.87s; original038web reused for first delivery",
+    "erased_cast": "single final as-unknown cast emits identical JavaScript; recorded rather than repeating unchanged frontend build",
+    "browser": "Existing main session/project/task preserved; current039 protocol absence and expired runner facts, CNEN expansion and0console errors/warnings verified",
+    "full_suite_repeated": false,
+    "dependencies_installed": 0,
+    "vendor_calls": 0,
+    "new_model_calls": 0,
+    "new_credentials": 0,
+    "new_runs": 0,
+    "runners_started": 0
+  },
+  "primary": {
+    "url": "http://pool.localhost:4324/",
+    "source_cut": "039",
+    "migration": "original186 complete tables/schema unchanged,2 new empty tables ->188",
+    "final_startup": "all188 full tables/schema exact",
+    "warm": "184 non-lock full tables unchanged;34 lock identities unchanged with separately measured sequence increments",
+    "credential_authority": 18,
+    "grants": 0,
+    "sessions": 18,
+    "run_states": {
+      "failed": 1,
+      "succeeded": 2
+    },
+    "Go_source_sha256": "bb850f03e3c9e58769ed309b5832ea44bb8cf938f889be8944253f7a7d3f6609",
+    "Control_sha256": "abc06107acc898cbb0c5a336935945262cb2220456f6808ca80f2c4a0811bf59"
+  },
+  "evidence": [
+    {
+      "path": ".cache/e2e/preview-stage-039/focused-commands.local.json",
+      "sha256": "6d55d08be132083d2599ceb07d5b12cdffd91ca4e56ca46cb3cc67d2bf5d0774"
+    },
+    {
+      "path": ".cache/e2e/preview-stage-039/primary/verified.local.json",
+      "sha256": "4558f714f933977cc49dfd8216a5e76e616f0d30566f35370b118a3602367b8b"
+    },
+    {
+      "path": ".cache/e2e/preview-stage-039/primary-final/verified.local.json",
+      "sha256": "23f83cac2981b5a06f9c21a1d58a41ebd9210f1980a6ba100ed16fcd22ebafb7"
+    },
+    {
+      "path": ".cache/e2e/preview-stage-039/primary-final/artifacts.local.json",
+      "sha256": "0f710cc0fe27212e59ab9199c4924f4562fd932fae96d2a104782289e0cb9682"
+    },
+    {
+      "path": ".cache/e2e/preview-stage-039/browser/capability-facts-zh.png",
+      "sha256": "f0e1df8bc1a2059c28488abdeceeb10df5d738a30fef54ea28584d6fe73a30f1"
+    },
+    {
+      "path": ".cache/e2e/preview-stage-039/erased-cast-equivalence.local.json",
+      "sha256": "2dde4aabda9c06af981a28e68d317b278f026f77552d3723ddf51a5de8aad5aa"
+    }
+  ],
+  "remaining": [
+    "External CLI/expert-team model selection",
+    "Independent model permissions and complete rate catalog",
+    "Native full IDE/PTY/LSP/DAP and larger file support",
+    "Physical multi-machine/TLS and distributed database/scale verification",
+    "All original P0-P7 and numbered1..22 requirements remain active"
+  ]
+}

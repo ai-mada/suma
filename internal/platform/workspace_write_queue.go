@@ -80,6 +80,9 @@ func (s *Service) claimWorkspaceWrite(ctx context.Context, subject workspaceObse
 		if e = s.workspaceObservationMachineAuthorityTx(ctx, tx, subject, basis, nil); e != nil {
 			return nil, e
 		}
+		if e = s.requireWorkspaceWriteTransportTx(ctx, tx, subject.Tenant, subject.Project, basis); e != nil {
+			return nil, e
+		}
 		return nil, tx.Commit()
 	}
 	r, err := s.workspaceWriteTx(ctx, tx, subject.Tenant, subject.Project, id)

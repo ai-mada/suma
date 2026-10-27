@@ -294,3 +294,19 @@ describe("tool execution facts are separate from acceptance", () => {
     expect(html).toContain("工具报告本轮结束");
   });
 });
+
+// Native tool approval never manufactures a current transport declaration.
+describe("remote workspace transport observations", () => {
+  it("keeps missing and historical declarations distinct from current eligibility", () => {
+    const native={...profile,profile:{...profile.profile,adapter:"suma",protocol:"suma-jsonl-v1",workspace_tools_version:"attempt-workspace-v1"}};
+    const absent=renderToStaticMarkup(createElement(ToolProfileFacts,{profile:{...native,observation:{profile:native.profile,available:true,reason:""}}}));
+    expect(absent).toContain("远程文件读取（最近上报）");
+    expect(absent.match(/未声明/g)).toHaveLength(2);
+    expect(absent).not.toContain("workspace-write-v1");
+    const historical=renderToStaticMarkup(createElement(ToolProfileFacts,{profile:{...native,available:false,reason:"inventory_stale",observation:{profile:native.profile,available:true,reason:"",workspace_observation_protocol:"workspace-observation-v1",workspace_write_protocol:"workspace-write-v1"}}}));
+    expect(historical).toContain("workspace-observation-v1");
+    expect(historical).toContain("workspace-write-v1");
+    expect(historical).toContain("不证明连接健康");
+    expect(historical).toContain("已过期");
+  });
+});

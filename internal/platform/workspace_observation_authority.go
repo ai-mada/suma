@@ -193,7 +193,7 @@ func (s *Service) validateWorkspaceObservationBasisTx(ctx context.Context, tx *s
 	if err != nil {
 		return err
 	}
-	if !profile.Available {
+	if !supportsWorkspaceObservation(profile) {
 		return conflict(workspaceObservationUnavailable)
 	}
 	return nil

@@ -81,6 +81,10 @@ type ToolObservation struct {
 	Available        bool                       `json:"available"`
 	Reason           string                     `json:"reason"`
 	ModelDeployments []modelcontract.Deployment `json:"model_deployments,omitempty"`
+	// These are the current Runner's outbound transport implementations, not
+	// approved command inputs or proof that a remote host is connected/healthy.
+	WorkspaceObservationProtocol string `json:"workspace_observation_protocol,omitempty"`
+	WorkspaceWriteProtocol       string `json:"workspace_write_protocol,omitempty"`
 }
 
 type ToolUsage struct {

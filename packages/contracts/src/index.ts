@@ -3828,6 +3828,8 @@ export interface ToolObservation {
   available: boolean;
   reason: string;
   model_deployments?: (ModelDeployment)[];
+  workspace_observation_protocol?: string;
+  workspace_write_protocol?: string;
 }
 export interface ToolProfile {
   id: string;

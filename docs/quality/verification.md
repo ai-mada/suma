@@ -1,5 +1,7 @@
 # 验证报告与历史基线
 
+当前T-P4-039的协议能力、导入修复、定向检查和主预览迁移/数据保持证据见[限定验证](workspace-capability-verification.md)、[精简摘要](workspace-capability-summary.json)。原始脚本错误、实际恢复和最终结果分别保留；不扩大历史验证或完整平台完成范围。
+
 当前T-P4-038的命令、实际Control／Worker／GUI证据、故障及边界见[执行文件保存限定验证](workspace-write-verification.md)和[机器摘要](workspace-write-summary.json)。它不扩大本报告历史阶段的验收范围。
 
 ## 当前 T-P4-036：模型配置、预算与真实原生执行（限定本地验证）

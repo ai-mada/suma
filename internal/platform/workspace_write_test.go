@@ -8,6 +8,7 @@ import (
 
 	"github.com/ai-mada/suma/internal/dag"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	woc "github.com/ai-mada/suma/internal/workspaceobservationcontract"
 	wcc "github.com/ai-mada/suma/internal/workspacewritecontract"
 )
 
@@ -213,7 +214,7 @@ func TestWorkspaceWritePoolWithdrawalBlocksNewWriteButDrainsFact(t *testing.T) {
 	f, ctx := p.f, context.Background()
 	machine, profile := p.credential.Runner, toolTestProfile()
 	profile.WorkspaceToolsVersion = "attempt-workspace-v1"
-	if _, err := f.s.ReportPoolToolInventory(ctx, p.credential.Token, PoolToolInventoryRequest{RunnerID: machine.ID, TenantID: f.user.TenantID, ProjectID: f.project, OperationID: newID(), Items: []tc.Observation{{Profile: profile, Available: true}}}); err != nil {
+	if _, err := f.s.ReportPoolToolInventory(ctx, p.credential.Token, PoolToolInventoryRequest{RunnerID: machine.ID, TenantID: f.user.TenantID, ProjectID: f.project, OperationID: newID(), Items: []tc.Observation{{Profile: profile, Available: true, WorkspaceObservationProtocol: woc.Protocol, WorkspaceWriteProtocol: wcc.Protocol}}}); err != nil {
 		t.Fatal(err)
 	}
 	pr, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: machine.WorkerID, Name: "Pool native save", Profile: profile, IdempotencyKey: newID()})
