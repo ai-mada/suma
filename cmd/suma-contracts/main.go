@@ -139,6 +139,9 @@ func generate() (map[string]any, string) {
 	for _, v := range candidateCompositionModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range taskDispatchOptionsModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range candidateRepairRevisionModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -287,6 +290,7 @@ func generate() (map[string]any, string) {
 	knowledgeIntelligenceContracts(add, api)
 	candidateCompositionContracts(add, api)
 	candidateRepairRevisionContracts(add, api)
+	taskDispatchOptionsContracts(add, api)
 	failureDiagnosisContracts(add, api)
 	expertTeamContracts(add, api)
 	repositoryIntegrationContracts(add, api)

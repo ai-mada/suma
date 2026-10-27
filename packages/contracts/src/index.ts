@@ -3409,6 +3409,31 @@ export interface TaskDesignContextView {
   current_design_version: number;
   current_published_revision: number;
 }
+export interface TaskDispatchOptions {
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  workflow_id: string;
+  workflow_version: number;
+  agent_node_id: string;
+  observed_at: string;
+  context: TaskContext;
+  execution_route: ProjectExecutionRoute;
+  items: (TaskDispatchToolOption)[];
+  total: number;
+  next_cursor: string;
+  recommended_tool_profile_id: string;
+}
+export interface TaskDispatchOptionsRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  workflow_id: string;
+  workflow_version: number;
+  agent_node_id: string;
+  limit?: number;
+  before?: string;
+}
 export interface TaskDispatchPlan {
   code_baseline?: CodeBaselineBinding | null;
   id: string;
@@ -3450,6 +3475,16 @@ export interface TaskDispatchStartRequest {
   project_id: string;
   expected_version: number;
   idempotency_key: string;
+}
+export interface TaskDispatchToolOption {
+  tool: ToolProfile;
+  eligible: boolean;
+  reason_code: string;
+  reason: string;
+  reason_diagnostic?: DisplayDiagnostic | null;
+  model_state: string;
+  cost_state: string;
+  eligible_basis: string;
 }
 export interface TaskHandoff {
   id: string;

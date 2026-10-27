@@ -2,7 +2,17 @@
 
 当前开发版本 **1.0.0**；新设计采用当前最佳合理结构，不增加历史兼容层。[版本与扩展需求基线](../product/v1-baseline.md)。
 
-## 当前 T-P4-033：修复计划修订与运行溯源（限定本地已验证）
+## 当前 T-P4-034：当前工具推荐与IDE保存恢复（限定本地已验证）
+
+任务派发现在按当前权限、任务／流程版本、工具真实库存与路由显示兼容选项；明确采用只填写原选择，保留准确档案版本与摘要，再进入既有固定预览和启动门禁。模型仍由工具配置固定，费用未知，不制造最优／零费用评分。IDE保存只确认准确路径、内容和UTF-8摘要；错误200保留原操作，恢复后不覆盖后来输入的新草稿。
+
+隔离副本实际完成中英文推荐→采用→准确计划预览／刷新，以及真实Monaco错误回执→原key恢复→新草稿新key保存。3次HTTP对应2项持久保存；任务仍待办、未Start，无新运行／模型／厂商调用／正式候选测试／凭证。15项最终冷态核对通过；原始失败与纠正依据完整保留，未重跑历史开发或完整套件。
+
+主预览034正常运行；033旧服务正常退出，186表完整schema与行在升级前后准确保持，无新schema。原会话中英／键盘／刷新核对后，182张非锁表保持，4张内部锁表34行仅sequence各增加28；18authority／0Grant／18session及原1failed／2succeeded不变。135本地资产摘要准确，实际抽查页面入口与JS两项，未重复抓取全部资产。
+
+见[PRD](../product/task-dispatch-options.md)、[架构](../architecture/intelligent-capability-selection-notes.md)、[交互](../design/task-dispatch-options.md)、[AI SOP](../operations/task-dispatch-options.md)、[合同](../../contracts/task-dispatch-options.md)、[验证](../quality/task-dispatch-options-verification.md)、[摘要](../quality/task-dispatch-options-summary.json)、[English](../en/task-dispatch-options.md)及[逐平台差距矩阵](../product/platform-capability-delivery-matrix.md)。完整P0–P7、模型选择／成本、完整IDE、真实厂商与分布式验收继续实施。
+
+## 历史 T-P4-033：修复计划修订与运行溯源（限定本地已验证）
 
 T-P4-033／1.0.0 已完成限定本地验证。修复任务支持新计划版本重选工具与流程；原冲突、来源顺序、失败运行及回执保留。只有宿主类型化证明的执行前失败可准备替代计划，未知或已发生效果的运行继续沿原操作核对。新计划仍须单独启动、独立测试和明确验收。
 

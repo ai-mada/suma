@@ -16352,6 +16352,105 @@
         ],
         "type": "object"
       },
+      "TaskDispatchOptions": {
+        "properties": {
+          "agent_node_id": {
+            "type": "string"
+          },
+          "context": {
+            "$ref": "#/components/schemas/TaskContext"
+          },
+          "execution_route": {
+            "$ref": "#/components/schemas/ProjectExecutionRoute"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TaskDispatchToolOption"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "observed_at": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "recommended_tool_profile_id": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "task_version": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "workflow_id": {
+            "type": "string"
+          },
+          "workflow_version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "task_version",
+          "workflow_id",
+          "workflow_version",
+          "agent_node_id",
+          "observed_at",
+          "context",
+          "execution_route",
+          "items",
+          "total",
+          "next_cursor",
+          "recommended_tool_profile_id"
+        ],
+        "type": "object"
+      },
+      "TaskDispatchOptionsRequest": {
+        "properties": {
+          "agent_node_id": {
+            "type": "string"
+          },
+          "before": {
+            "type": "string"
+          },
+          "expected_task_version": {
+            "type": "integer"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "workflow_id": {
+            "type": "string"
+          },
+          "workflow_version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "expected_task_version",
+          "workflow_id",
+          "workflow_version",
+          "agent_node_id"
+        ],
+        "type": "object"
+      },
       "TaskDispatchPlan": {
         "properties": {
           "agent_node_id": {
@@ -16540,6 +16639,66 @@
           "project_id",
           "expected_version",
           "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "TaskDispatchToolOption": {
+        "properties": {
+          "cost_state": {
+            "enum": [
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "eligible_basis": {
+            "enum": [
+              "current_observation_and_compatibility"
+            ],
+            "type": "string"
+          },
+          "model_state": {
+            "enum": [
+              "fixed_by_tool"
+            ],
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "reason_code": {
+            "enum": [
+              "eligible",
+              "tool_unavailable",
+              "workflow_incompatible",
+              "route_incompatible"
+            ],
+            "type": "string"
+          },
+          "reason_diagnostic": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DisplayDiagnostic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolProfile"
+          }
+        },
+        "required": [
+          "tool",
+          "eligible",
+          "reason_code",
+          "reason",
+          "model_state",
+          "cost_state",
+          "eligible_basis"
         ],
         "type": "object"
       },
@@ -72869,6 +73028,255 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TaskDesignContextView"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/tasks/{id}/dispatch-options": {
+      "get": {
+        "description": "Read current tool observations and fixed workflow compatibility only. The first eligible tool on this stable ID-ordered page is suggested, without quality/cost/slot claims. Adoption never creates or starts work; explicit preview and Start recheck current authority, context, route and budget. Model stays fixed by tool; cost remains unknown.",
+        "operationId": "get_tasks_id_dispatch-options",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact current version; canonical positive decimal.",
+            "in": "query",
+            "name": "expected_task_version",
+            "required": true,
+            "schema": {
+              "maximum": 2147483646,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Exact current version; canonical positive decimal.",
+            "in": "query",
+            "name": "workflow_version",
+            "required": true,
+            "schema": {
+              "maximum": 2147483646,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Fixed workflow/node identity.",
+            "in": "query",
+            "name": "workflow_id",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Fixed workflow/node identity.",
+            "in": "query",
+            "name": "agent_node_id",
+            "required": true,
+            "schema": {
+              "maxLength": 150,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Current page size; recommendation is page-local.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Original actor/project/task/workflow/node-bound cursor.",
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "maxLength": 4096,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskDispatchOptions"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskDispatchOptions"
                 }
               }
             },

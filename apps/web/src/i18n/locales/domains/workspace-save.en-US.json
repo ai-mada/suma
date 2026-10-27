@@ -1,0 +1,3 @@
+{
+ "workspace-save.invalid_receipt":"The save acknowledgement does not match this file and submitted content. The original operation and your current draft are retained. Recover the previous save; do not create another write."
+}

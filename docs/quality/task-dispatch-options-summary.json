@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-034",
+  "product_version": "1.0.0",
+  "prepared_on": "2026-10-27",
+  "status": "bounded_local_functional_stage_verified",
+  "stage_complete": true,
+  "production_integration_complete": false,
+  "full_platform_status": "in_progress",
+  "contract": "contracts/task-dispatch-options.md",
+  "verification": {
+    "focused_web_checks": 10,
+    "unrelated_IDE_checks_skipped": 26,
+    "typecheck_exit_code": 0,
+    "i18n_paired_keys": 4363,
+    "contract_check_exit_code": 0,
+    "affected_go_vet_exit_code": 0,
+    "full_suite_repeated": false,
+    "runtime_builds": 4,
+    "web_builds": 1,
+    "native_input_reuse": [
+      11,
+      161
+    ],
+    "production_input_files": 439,
+    "production_source_sha256": "d6c8dc4bc4ce931d03189be252eaa578c3cc30be510819abacbed6f9fbd0450d",
+    "web_input_files": 351,
+    "web_source_sha256": "a4d855f0143f80f127b5b5b66f8c15639307a82983727ea761ef85eaf07bd893"
+  },
+  "behavior": {
+    "recommendation": "First eligible option in current stable-ID page, after current authority, inventory, route and original workflow compiler checks",
+    "adopt": "Fill original selector with exact real profile version/hash; no dispatch",
+    "model": "fixed_by_tool",
+    "cost": "unknown",
+    "file_save": "Exact path/content/UTF8 SHA256 acknowledgement; preserve original request/caller/key and newer draft through unknown result"
+  },
+  "actual": {
+    "scope": "Same Windows host; isolated SQLite copy, one real Runner inventory and genuine Monaco plus owned loopback response fault",
+    "task_id": "8b16500641bbee62b1f29623eb37d989",
+    "workflow_id": "bfe12bf2e48238d6724c56d0e12560ae",
+    "plan_id": "0eba4f3983263b7812b69d335a20e1a8",
+    "tool_profile_version": 2,
+    "tool_profile_sha256": "406f503c788e731eb220f0279492e5868a9683ebbdb43ce0036f838958363267",
+    "task_state": "todo",
+    "plan_state": "ready",
+    "new_runs": 0,
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "formal_task_tests": 0,
+    "new_credentials": 0,
+    "new_logins": 0,
+    "save_HTTP_requests": 3,
+    "durable_file_operations": 2,
+    "injected_wrong200": 1,
+    "same_original_request_recovered": true,
+    "newer_draft_retained_and_saved_with_new_key": true,
+    "final_file_sha256": "4a61ec8228f7ada7b4b20eb2d4cd2ef68be50dbfe83a15e91ac2504d803c2ddf",
+    "final_closed_database_sha256": "cc32dda48b97c7a62b6699128de8179fd07eaaf69e5a88a0fa5f5b3fae898af3",
+    "final_composite_checks": 15,
+    "source033_unchanged": true,
+    "CNEN_keyboard_refresh": true
+  },
+  "primary": {
+    "origin": "http://pool.localhost:4324",
+    "control_pid": 248172,
+    "holder_pid": 211636,
+    "control_sha256": "8f5ab83082e3177defa04128943a7cae88f81391759407ed398fbf30b27a9a0a",
+    "web_index_sha256": "f5b1930cceb910952f28a90e636d0abf93238dc955ba1673ea1e844ef0493a19",
+    "tables": 186,
+    "new_schema": false,
+    "all_full_rows_and_schema_exact_before_warm": true,
+    "warm_identical_full_tables": 182,
+    "warm_sequence_only_tables": 4,
+    "warm_lock_rows": 34,
+    "each_lock_sequence_delta": 28,
+    "authority_rows": 18,
+    "grant_rows": 0,
+    "session_rows": 18,
+    "run_states": [
+      [
+        "failed",
+        1
+      ],
+      [
+        "succeeded",
+        2
+      ]
+    ],
+    "local_assets_hashed": 135,
+    "served_samples_checked": 2,
+    "warm_verification_HTTP_GETs": 3,
+    "business_commands": 0
+  },
+  "evidence": {
+    "actual": {
+      "path": ".cache/e2e/task-dispatch-options-stage-034/actual/final-reviewed-closure.local.json",
+      "sha256": "ea1f1a8fc8396c67efcc5d2fa68463cca35bfc27be722ddcaf23793ea17214d6"
+    },
+    "raw_closed": {
+      "path": ".cache/e2e/task-dispatch-options-stage-034/actual/closed.local.json",
+      "sha256": "7a04eb50843515a1a3c5f2c645a6d05d2733a3189693dc97bec8290cb6817057"
+    },
+    "actual_warm": {
+      "path": ".cache/e2e/task-dispatch-options-stage-034/actual/audit.local.json",
+      "sha256": "3faa59ceca4107fb304aaa9097f2eb3f5f811939629f3e139c50876a7d55a7c5"
+    },
+    "browser": {
+      "path": ".cache/e2e/task-dispatch-options-stage-034/browser/verification.local.json",
+      "sha256": "800b0a2a353787e6de91e9afa1b232152efc21611e2cfa5596150c706327872c"
+    },
+    "proxy": {
+      "path": ".cache/e2e/task-dispatch-options-stage-034/ide-actual/proxy-closed.local.json",
+      "sha256": "3bcb90a0cca3684bd2b6a7dc02937ebbe328050b25e9e4e95dac44a482f8ff6a"
+    },
+    "primary": {
+      "path": ".cache/e2e/task-dispatch-options-stage-034/primary-upgrade/result.local.json",
+      "sha256": "d8ff77c9b2240d9944e5d6df3bf38fb6e7944ab8624674bb32c6a00a2752e4bc"
+    },
+    "primary_warm": {
+      "path": ".cache/e2e/task-dispatch-options-stage-034/primary-upgrade/warm-verification.local.json",
+      "sha256": "7bd4f528f76076f3bfbf4d46e60843c6c93f7080c635a54d1ff59fdb70ca0a2a"
+    },
+    "build": {
+      "path": ".cache/e2e/task-dispatch-options-stage-034/runtime-release/build-facts.local.json",
+      "sha256": "d9ed1e548ef11b5496db09dd8b1befa68a9d759e014cae702605f40a1366507a"
+    },
+    "web": {
+      "path": ".cache/e2e/task-dispatch-options-stage-034/verification/web-build.local.json",
+      "sha256": "06009913e7cb2f6651bdbea7c151b43d1f9bdb32252bf1a2fe759cfd63547e59"
+    },
+    "web_focused": {
+      "path": ".cache/e2e/task-dispatch-options-stage-034/verification/ui-agent-focused-checks.local.json",
+      "sha256": "e6a2451704301a50415613f9cdf7792a90e5f23f6234b8f0d0ae4032dfc00e16"
+    }
+  },
+  "known_failed_records_preserved": [
+    "Initial local public-URL config rejection exited1 before business writes; preserved before explicit config correction",
+    "Raw holder closure failed an overstrict dag_operations predicate despite both children graceful0; final immutable review proves exactly one legitimate workflow-publish receipt and no new execution",
+    "A source mode=ro connection created empty WAL/SHM; preserved and moved only self-created auxiliary files after all readers closed, original source DB and inventory exact"
+  ],
+  "remaining": [
+    "Versioned independently selectable/priced writable model capabilities and constraint-based selection",
+    "Full IDE PTY/LSP/DAP, localized built-in editor menus and durable drafts across browser close",
+    "Real vendor tools/accounts, physical multi-host, distributed database and capacity acceptance",
+    "Complete P0-P7 and all accepted extension requirements1..22"
+  ],
+  "git_policy": "Only necessary source/contracts/docs/compact summary; no cache, DB, logs, credentials, screenshots or binaries; local commit only, no push"
+}

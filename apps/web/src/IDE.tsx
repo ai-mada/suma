@@ -12,7 +12,7 @@ import HTMLWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 import {Folder,FileCode,Save,RefreshCw,Link,AlertCircle,Check,Code2} from 'lucide-react';
 import {api,query,operation,ApiError,type ApiCaller} from './api';
 import {Loading,ErrorNotice,Empty,Field} from './ui';
-import {FileSaveRequest,draftAfterFileSave,type FileDocument} from './file-saves';
+import {FileSaveRequest,draftAfterFileSave,fileSaveReceipt,type FileDocument} from './file-saves';
 import {tr as t,useLocale,UiError,renderDiagnostic} from './i18n';
 import {Trans} from './i18n/Trans';
 
@@ -44,7 +44,7 @@ function ProjectIDE({project}:{project:string}){ const api=useApi();
  async function save(){
   if(!file||busy||(!dirty&&!pending.current.pending)||conflict)return;
   setBusy(true);if(!pending.current.pending)pendingApi.current=api;const body=pending.current.begin(project,file,content);
-  try{const next=await (pendingApi.current??api)<FileState>('/workspace/file',body);setFile(next);setContent(current=>draftAfterFileSave(current,body.content,next.content));setSaved(true);setError(undefined);pending.current.completed();pendingApi.current=undefined;setUnconfirmed(false);setReconciliation(false);}
+  try{const response=await (pendingApi.current??api)<unknown>('/workspace/file',body);const next=await fileSaveReceipt(response,body);if(!next)throw new UiError('workspace-save.invalid_receipt');setFile(next);setContent(current=>draftAfterFileSave(current,body.content,next.content));setSaved(true);setError(undefined);pending.current.completed();pendingApi.current=undefined;setUnconfirmed(false);setReconciliation(false);}
   catch(e){pending.current.failed(e);if(!pending.current.pending)pendingApi.current=undefined;setUnconfirmed(pending.current.unknown);setReconciliation(pending.current.reconciliation);setError(e);if(e instanceof ApiError&&e.status===409&&!pending.current.reconciliation){setConflict(true);try{setRemote(await api<FileState>('/workspace/file'+query(project)+'&path='+encodeURIComponent(body.path)));}catch{/* Keep the current draft if the comparison read also fails. */}}}
   finally{setBusy(false);}
  }

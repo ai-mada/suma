@@ -3,6 +3,7 @@ import {useKnowledgeEntries} from './knowledge-hooks';
 import {publishedKnowledgeReference,pinnedKnowledgeReferences,type KnowledgeSummary} from './knowledge-model';
 import {KnowledgeContextFacts} from './KnowledgeFacts';
 import {RequirementDesignFacts} from './RequirementDesignFacts';
+import {TaskDispatchOptionsPanel} from './TaskDispatchOptionsPanel';
 import {UiError} from './i18n';
 import './knowledge.css';
 import {literalText} from './i18n/literal';
@@ -68,6 +69,7 @@ export function TaskDispatchDialog({
     [created, setCreated] = useState<TaskDispatchPlan>(),
     [error, setError] = useState<unknown>(""),
     [confirmed, setConfirmed] = useState(false);
+  const [adoptedProfile,setAdoptedProfile]=useState<ToolProfile>(),[profileScope,setProfileScope]=useState('');
   const [knowledgeSelection,setKnowledgeSelection]=useState<KnowledgeSummary[]>([]);
   const knowledge=useKnowledgeEntries(project,{kind:'all',state:'published',q:''},0,!planID||planID==='new');
   const selectionCurrent=knowledgeSelection.every(selected=>knowledge.items?.some(current=>current.id===selected.id&&current.published_eligible&&current.eligibility==='current'&&current.published_revision===selected.published_revision&&current.published_sha256===selected.published_sha256));
@@ -106,8 +108,18 @@ export function TaskDispatchDialog({
     flow = workflows.data?.items.find(
       (item) => item.id + "@" + item.version === flowKey,
     ),
-    profile = profiles.items?.find((item) => item.id === profileID),
     blocked = action.busy || !!action.pending;
+  const selectionScope=JSON.stringify([session.organization.id,session.user.id,project,currentTask?.id,currentTask?.version,flow?.id,flow?.version,agentID]);
+  const selectedProfileID=profileScope===selectionScope?profileID:'';
+  const scopedAdopted=profileScope===selectionScope?adoptedProfile:undefined;
+  // An adopted recommendation can belong to another inventory page. Keep its
+  // exact current profile version in the existing selector until preview fixes
+  // it, rather than silently substituting an older loaded version of that ID.
+  const visibleProfiles=scopedAdopted?[...(profiles.items||[]).filter(item=>item.id!==scopedAdopted.id),scopedAdopted]:profiles.items||[];
+  const profile=visibleProfiles.find(item=>item.id===selectedProfileID);
+  useEffect(()=>{
+    if(!blocked&&profileScope!==selectionScope){setProfileID('');setAdoptedProfile(undefined);setProfileScope(selectionScope);}
+  },[selectionScope,profileScope,blocked]);
   useEffect(() => {
     setCurrentTask(task);
   }, [task?.id, task?.version]);
@@ -264,6 +276,13 @@ export function TaskDispatchDialog({
                     ))}
                 </select>
               </Field>
+              {currentTask&&flow&&flow.nodes.some(node=>node.id===agentID&&node.type==='agent')&&<TaskDispatchOptionsPanel
+                session={session}
+                scope={{project_id:project,task_id:currentTask.id,expected_task_version:currentTask.version,workflow_id:flow.id,workflow_version:flow.version,agent_node_id:agentID}}
+                disabled={blocked}
+                onAdopt={tool=>{if(!blocked){setProfileScope(selectionScope);setProfileID(tool.id);setAdoptedProfile(tool);}}}
+                onUnavailable={()=>{if(!blocked){setProfileID('');setAdoptedProfile(undefined);}}}
+              />}
               {profiles.error && (
                 <ErrorNotice
                   error={profiles.error}
@@ -278,11 +297,11 @@ export function TaskDispatchDialog({
               >
                 <select
                   required
-                  value={profileID}
-                  onChange={(event) => setProfileID(event.target.value)}
+                  value={selectedProfileID}
+                  onChange={(event) => {setProfileScope(selectionScope);setProfileID(event.target.value);setAdoptedProfile(undefined);}}
                 >
                   <option value="">{t("development.dispatch.choose_a_dispatchable_tool")}</option>
-                  {profiles.items?.map((item) => (
+                  {visibleProfiles.map((item) => (
                     <option
                       key={item.id}
                       value={item.id}

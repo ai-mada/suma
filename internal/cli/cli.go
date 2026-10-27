@@ -29,6 +29,7 @@ Read commands:
   doctor | projects | requirements | tasks | runs | workflows
   run show ID
   run events ID [--after SEQUENCE]
+  tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
   tui                         Read-only Bubble Tea browser (default on a terminal)
 
 Explicit writes:
@@ -106,6 +107,9 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 }
 
 func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
+	if len(args) > 1 && args[0] == "tasks" && args[1] == "dispatch-options" {
+		return taskDispatchOptionsCommand(ctx, c, args[2:], out)
+	}
 	if len(args) > 1 && args[0] == "tasks" && args[1] == "run-history" {
 		return taskRunHistoryCommand(ctx, c, args[2:], out)
 	}
