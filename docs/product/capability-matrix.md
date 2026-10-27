@@ -1,5 +1,7 @@
 # 能力与验收矩阵
 
+当前增量T-P4-037：[执行工作区产品与交互](remote-workspace.md)、[限定实际证据](../quality/workspace-observation-verification.md)。当前native attempt只读list/read、私有／Pool出站恢复、CLI和中英文界面取得本机实际证据；空轮询不落回执。远程写、PTY／LSP／DAP、完整IDE、物理多机／TLS和生产继续待办。036模型执行证据沿用，完整P0–P7及1–22不缩减。
+
 状态：源码与本地证据审查，平台整体尚未完成。日期：2026-10-24。Owner：产品、架构与集成负责人。
 
 计划：[P0–P7 实施台账](../delivery/implementation-plan.md)。验收依据：[验证报告](../quality/verification.md)、[调度阶段摘要](../quality/scheduling-verification.md)、[验收要求](../quality/acceptance.md)、[浏览器旅程记录](../quality/evidence/browser-journey.json)。本页反映当前实现边界；最终测试日志和外部验收签字以交付报告为准。

@@ -1,5 +1,7 @@
 # 参考平台能力与交付差距矩阵
 
+当前增量T-P4-037：[执行工作区产品与交互](remote-workspace.md)、[限定实际证据](../quality/workspace-observation-verification.md)。当前native attempt只读list/read、私有／Pool出站恢复、CLI和中英文界面取得本机实际证据；空轮询不落回执。远程写、PTY／LSP／DAP、完整IDE、物理多机／TLS和生产继续待办。036模型执行证据沿用，完整P0–P7及1–22不缩减。
+
 状态：1.0.0／T-P4-036 实施与差距记录，2026-10-27。负责人：平台集成。[原生模型固定选择与attempt预算](model-execution.md)→真实native执行→usage账本已取得限定本地证据，原任务GUI固定预览、中英／键盘／刷新已验证；[developer check](../integrations/developer-connection-check.md)仅为单次真实只读MCP诊断。[035只读Git工作区](workspace-git.md)及历史证据保留。完整P0–P7及需求1–22继续实施；本页不是“具备所有参考平台能力”的声明。
 
 依据：[当前交付](../delivery/status.md)、[完整能力矩阵](capability-matrix.md)、[1.0.0基线](v1-baseline.md)、[固定参考提交](../integrations/references.json)、[新增参考与许可](../integrations/development-platform-reference-extensions.md)。本轮复用已记录基线，没有重新克隆参考仓库、安装工具或调用厂商模型；部分固定README网页读取返回缓存缺失，未据此推断新的接口或运行能力。

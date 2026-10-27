@@ -337,6 +337,7 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 			}
 			continue
 		}
+		_ = ReplayWorkspaceObservations(ctx, w.Client, j, nil)
 		session, e := w.Client.PoolSession(ctx)
 		if e != nil {
 			if permanentInventoryError(e) {

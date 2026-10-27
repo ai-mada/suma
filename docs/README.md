@@ -1,10 +1,11 @@
 # 速码项目设计文档
 
-状态：当前推进T-P4-036／1.0.0，固定原生模型选择／封闭参数／attempt预算→真实native执行→同一usage账本已取得限定本地证据，原任务GUI固定预览、中英／键盘／刷新已验证；`developer check`仅证明单次只读MCP诊断。完整 P0–P7 及需求1–22继续实施。主预览与最终交付状态以[交付状态](delivery/status.md)为准。文档负责人：平台集成。设计依据：用户确认的完整方案及后续扩展要求。本文档索引与源码、接口和验证报告共同维护。
+状态：当前推进T-P4-037／1.0.0，执行工作区只读出站观察、原回执恢复、CLI及中英文简洁界面取得限定本地实际证据。036固定模型／参数／预算真实执行证据保留。完整P0–P7及需求1–22继续实施，主035预览未重启。负责人：平台集成；范围以[交付状态](delivery/status.md)与证据报告为准。
 
 | 主题 | 入口 |
 |---|---|
-| 固定原生模型选择、attempt预算与真实执行（当前 T-P4-036，UI固定预览已验证） | [PRD](product/model-execution.md)／[架构与实现检查点](architecture/model-execution.md)／[AI SOP](operations/model-execution.md)／[English](en/model-execution.md)／[实际验证及剩余边界](quality/model-execution-verification.md)；外部CLI、专家团队独立选择和完整多模型报价目录仍待实施 |
+| 当前执行工作区只读观察与出站恢复（T-P4-037） | [产品与交互](product/remote-workspace.md)／[合同](../contracts/workspace-observation.md)／[架构](architecture/remote-workspace-broker.md)／[AI SOP](operations/remote-workspace.md)／[English](en/remote-workspace.md)／[实际证据](quality/workspace-observation-verification.md)／[摘要](quality/workspace-observation-summary.json) |
+| 固定原生模型选择、attempt预算与真实执行（历史 T-P4-036，UI固定预览已验证） | [PRD](product/model-execution.md)／[架构与实现检查点](architecture/model-execution.md)／[AI SOP](operations/model-execution.md)／[English](en/model-execution.md)／[实际验证及剩余边界](quality/model-execution-verification.md)；外部CLI、专家团队独立选择和完整多模型报价目录仍待实施 |
 | 开发工具真实只读MCP诊断（T-P4-036） | [developer check操作与边界](integrations/developer-connection-check.md)／[限定证据](quality/developer-connection036-verification.md)；[远程工作区出站broker](architecture/remote-workspace-broker.md)尚未实施，不宣称完整远程IDE接入 |
 | 只读Git审阅、Monaco保存快捷键与原生执行限额（历史 T-P4-035） | [PRD](product/workspace-git.md)／[架构](architecture/workspace-git.md)／[交互](design/workspace-git.md)／[接口与限额合同](../contracts/workspace-git.md)／[限定本地验证](quality/workspace-git-verification.md) |
 | 独立模型选择与计价的历史设计输入（T-P4-035） | [035模型部署、版本绑定与费率设计](architecture/035-model-selection-design.md)；当前限定原生实现见036，独立模型授权／完整报价目录等历史设计中的后续项不据此标记完成 |

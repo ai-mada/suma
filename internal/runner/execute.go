@@ -127,6 +127,7 @@ type ExecConfig struct {
 	ToolProgress                         func(tc.Event) error
 	ToolInventory                        []tc.Observation
 	ModelDeployments                     []ModelDeploymentSpec
+	WorkspaceObservations                *WorkspaceObservationRegistry
 	Artifacts                            *Client
 	Journal                              *Journal
 	resolvedArtifact                     *releasecontract.ArtifactBinding
@@ -497,6 +498,15 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			return fail("native workspace connection could not start")
 		}
 		cfg.Secrets = append(cfg.Secrets, bridge.Token)
+		if cfg.WorkspaceObservations != nil {
+			if profileID, _ := a.Config["tool_profile_id"].(string); profileID != "" {
+				unregister, registerErr := cfg.WorkspaceObservations.register(native)
+				if registerErr != nil {
+					return fail("native workspace observation registration failed")
+				}
+				defer unregister()
+			}
+		}
 		payload, inputErr := nativeAgentInput(a, nativeLimits, bridge)
 		if inputErr != nil {
 			return fail(inputErr.Error())

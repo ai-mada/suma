@@ -1,3 +1,4 @@
+import {RemoteWorkspacePanel} from './RemoteWorkspacePanel';
 import {useApi} from './api-context';
 import {useEffect,useId,useRef,useState,type FormEvent} from 'react';
 import Editor,{loader,type OnMount} from '@monaco-editor/react';
@@ -28,7 +29,19 @@ export function IDE({project}:{project:string}){
  useLocale();
  return project?<ProjectIDE key={project} project={project}/>:<Empty title={t('workspace.select_project')}/>;
 }
-function ProjectIDE({project}:{project:string}){ const api=useApi();
+function ProjectIDE({project}:{project:string}){
+ const api=useApi();useLocale();
+ const sourceID=useId();
+ const owner=useRef({api,epoch:0});if(owner.current.api!==api)owner.current={api,epoch:owner.current.epoch+1};
+ const [source,setSource]=useState<'local'|'remote'>(()=>{try{return sessionStorage.getItem('suma-ide-source:'+project)==='remote'?'remote':'local';}catch{return 'local';}});
+ function select(value:'local'|'remote'){setSource(value);try{sessionStorage.setItem('suma-ide-source:'+project,value);}catch{/* UI preference only; source content is never cached. */}}
+ return <div><div className="ide-sources" role="tablist" aria-label={t('remote-workspace.source')} onKeyDown={event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const next=event.key==='Home'?'local':event.key==='End'?'remote':source==='local'?'remote':'local';select(next);event.currentTarget.querySelectorAll<HTMLButtonElement>('[role=tab]')[next==='local'?0:1]?.focus();}}}>
+ <button type="button" id={sourceID+'-local-tab'} aria-controls={sourceID+'-local-panel'} role="tab" aria-selected={source==='local'} tabIndex={source==='local'?0:-1} onClick={()=>select('local')}>{t('remote-workspace.local')}</button>
+ <button type="button" id={sourceID+'-remote-tab'} aria-controls={sourceID+'-remote-panel'} role="tab" aria-selected={source==='remote'} tabIndex={source==='remote'?0:-1} onClick={()=>select('remote')}>{t('remote-workspace.remote')}</button></div>
+ <div id={sourceID+'-local-panel'} role="tabpanel" aria-labelledby={sourceID+'-local-tab'} hidden={source!=='local'}><LocalProjectIDE key={owner.current.epoch} project={project} active={source==='local'}/></div>
+ <div id={sourceID+'-remote-panel'} role="tabpanel" aria-labelledby={sourceID+'-remote-tab'} hidden={source!=='remote'}>{source==='remote'&&<RemoteWorkspacePanel key={owner.current.epoch} project={project}/>}</div></div>;
+}
+function LocalProjectIDE({project,active}:{project:string;active:boolean}){ const api=useApi();
  const locale=useLocale(),explorerID=useId();
  const [workspace,setWorkspace]=useState<Workspace>(),[file,setFile]=useState<FileState>(),[content,setContent]=useState(''),[error,setError]=useState<unknown>(),[busy,setBusy]=useState(false),[fileLoading,setFileLoading]=useState(false),[binding,setBinding]=useState(''),[saved,setSaved]=useState(false),[conflict,setConflict]=useState(false),[remote,setRemote]=useState<FileState>(),[treeFilter,setTreeFilter]=useState(''),[unconfirmed,setUnconfirmed]=useState(false),[reconciliation,setReconciliation]=useState(false);
  const [explorer,setExplorer]=useState<'files'|'changes'>('files'),[gitPreview,setGitPreview]=useState<HTMLDivElement|null>(null);
@@ -55,7 +68,7 @@ function ProjectIDE({project}:{project:string}){ const api=useApi();
  }
  // Monaco owns Ctrl/Cmd+S even when it stops DOM bubbling. Read current facts
  // instead of closing over an earlier draft, provider or pending operation.
- shortcut.current={hasFile:!!file&&!fileLoading,dirty,pending:!!pending.current.pending,busy,conflict,save};
+ shortcut.current={hasFile:active&&!!file&&!fileLoading,dirty,pending:!!pending.current.pending,busy,conflict,save};
  const mountEditor:OnMount=(instance,runtime)=>{
   saveAction.current?.dispose();editingInstance.current=instance;
   saveAction.current=bindWorkspaceSaveShortcut(instance,runtime,()=>shortcut.current,t('workspace.ide.save'));

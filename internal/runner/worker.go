@@ -83,6 +83,7 @@ func (w *Worker) Run(ctx context.Context) error {
 			}
 			continue
 		}
+		_ = ReplayWorkspaceObservations(ctx, w.Client, w.Journal, nil)
 		if !w.canClaimInventory() {
 			if !wait(ctx, poll) {
 				break
@@ -138,6 +139,14 @@ func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Dura
 		cfg.Artifacts = w.Client
 	}
 	cfg.Journal = w.Journal
+	registry := NewWorkspaceObservationRegistry(w.Client.ProjectID)
+	cfg.WorkspaceObservations = registry
+	observationDone := make(chan struct{})
+	go func() {
+		defer close(observationDone)
+		runWorkspaceObservationBroker(runCtx, w.Client, w.Journal, a, registry, beat)
+	}()
+	defer func() { cancel(); <-observationDone }()
 	cfg.Progress = func(message string) error {
 		if err := w.Journal.RecordProgress(a, message); err != nil {
 			return err

@@ -284,6 +284,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	s.applyLocalePreferences(w, r, actor)
+	if s.workspaceObservationHTTP(w, r, actor, scope, boundProject, path, parts) {
+		return
+	}
 	if s.localePreferencesHTTP(w, r, actor, path) {
 		return
 	}

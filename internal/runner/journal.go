@@ -24,12 +24,13 @@ type entry struct {
 	CandidatePending  *candidateTransfer `json:"candidate_pending,omitempty"`
 }
 type Journal struct {
-	mu        sync.Mutex
-	path      string
-	entries   map[string]entry
-	unlock    func() error
-	inventory *InventoryReport
-	claim     *ClaimCheckpoint
+	mu                    sync.Mutex
+	path                  string
+	entries               map[string]entry
+	unlock                func() error
+	inventory             *InventoryReport
+	claim                 *ClaimCheckpoint
+	workspaceObservations map[string]workspaceObservationCheckpoint
 }
 
 func key(a Assignment) string {
@@ -74,6 +75,9 @@ func OpenJournal(dir string) (*Journal, error) {
 		return nil, err
 	}
 	if err = j.loadClaim(); err != nil {
+		return nil, err
+	}
+	if err = j.loadWorkspaceObservations(); err != nil {
 		return nil, err
 	}
 	for k, e := range j.entries {

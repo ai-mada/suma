@@ -2157,6 +2157,32 @@ export interface PoolToolInventoryRequest {
   operation_id: string;
   items: (ToolObservation)[];
 }
+export interface PoolWorkspaceObservationClaimRequest {
+  project_id: string;
+  worker_id: string;
+  scope: WorkspaceObservationScope;
+  workspace_policy_sha256: string;
+  operation_id: string;
+  tenant_id: string;
+  runner_id: string;
+  assignment: Assignment;
+}
+export interface PoolWorkspaceObservationResultRequest {
+  project_id: string;
+  worker_id: string;
+  request_id: string;
+  scope: WorkspaceObservationScope;
+  lease_fence: number;
+  workspace_policy_sha256: string;
+  observed_at: string;
+  observation_result?: WorkspaceObservationResult | null;
+  error_code?: string;
+  result_sha256: string;
+  operation_id: string;
+  tenant_id: string;
+  runner_id: string;
+  assignment: Assignment;
+}
 export interface Principal {
   id: string;
   name: string;
@@ -4004,5 +4030,122 @@ export interface WorkspaceGitStatus {
   limit: number;
   truncated: boolean;
   restricted_files: number;
+  observed_at: string;
+}
+export interface WorkspaceObservation {
+  id: string;
+  project_id: string;
+  version: number;
+  state: string;
+  scope: WorkspaceObservationScope;
+  operation: string;
+  arguments: WorkspaceObservationArguments;
+  expected_sha256?: string;
+  workspace_policy_sha256?: string;
+  created_at: string;
+  expires_at: string;
+  observed_at?: string;
+  result?: WorkspaceObservationResult | null;
+  error_code?: string;
+}
+export interface WorkspaceObservationArguments {
+  directory?: string;
+  limit?: number;
+  cursor?: string;
+  path?: string;
+  start_line?: number;
+  max_lines?: number;
+}
+export interface WorkspaceObservationClaimRequest {
+  project_id: string;
+  worker_id: string;
+  scope: WorkspaceObservationScope;
+  workspace_policy_sha256: string;
+  operation_id: string;
+}
+export interface WorkspaceObservationClaimResponse {
+  lease: WorkspaceObservationLease | null;
+}
+export interface WorkspaceObservationCreateRequest {
+  project_id: string;
+  scope: WorkspaceObservationScope;
+  operation: string;
+  arguments: WorkspaceObservationArguments;
+  expected_sha256?: string;
+  idempotency_key: string;
+}
+export interface WorkspaceObservationEntry {
+  path: string;
+  kind: string;
+}
+export interface WorkspaceObservationLease {
+  observation: WorkspaceObservation;
+  lease_fence: number;
+  lease_until: string;
+}
+export interface WorkspaceObservationList {
+  entries: (WorkspaceObservationEntry)[];
+  next_cursor: string;
+  complete: boolean;
+}
+export interface WorkspaceObservationRead {
+  path: string;
+  content: string;
+  sha256: string;
+  bytes: number;
+  start_line: number;
+  next_line?: number;
+  complete: boolean;
+}
+export interface WorkspaceObservationReceipt {
+  request_id: string;
+  lease_fence: number;
+  result_sha256: string;
+  acknowledged: boolean;
+}
+export interface WorkspaceObservationResult {
+  list?: WorkspaceObservationList | null;
+  read?: WorkspaceObservationRead | null;
+}
+export interface WorkspaceObservationResultRequest {
+  project_id: string;
+  worker_id: string;
+  request_id: string;
+  scope: WorkspaceObservationScope;
+  lease_fence: number;
+  workspace_policy_sha256: string;
+  observed_at: string;
+  observation_result?: WorkspaceObservationResult | null;
+  error_code?: string;
+  result_sha256: string;
+  operation_id: string;
+}
+export interface WorkspaceObservationScope {
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  tool_profile_id: string;
+  profile_sha256: string;
+}
+export interface WorkspaceObservationTarget {
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  tool_profile_id: string;
+  profile_sha256: string;
+  run_name: string;
+  node_name: string;
+  pool_id?: string;
+}
+export interface WorkspaceObservationTargetPage {
+  project_id: string;
+  items: (WorkspaceObservationTarget)[];
+  total: number;
+  limit: number;
+  truncated: boolean;
   observed_at: string;
 }

@@ -4,9 +4,17 @@
 
 当前是可运行的开发版本。功能与验证范围见 [交付状态](docs/delivery/status.md)，完整目标见 [实施计划](docs/delivery/implementation-plan.md)。
 
-## 当前阶段：固定模型选择、执行预算与真实原生调用
+## 当前阶段：执行工作区只读查看与出站恢复
 
-T-P4-036／1.0.0 已贯通限定本地的原生模型固定选择、封闭执行参数、attempt 预算、真实 native CLI 请求和同一用量账本；原任务界面的模型预览交互仍在收尾，尚不声明完整 GUI 旅程完成。支持的原生 Suma 工具从当前授权执行节点的公开允许清单选择准确部署，固定计划保存模型／参数／预算／匹配费率，启动与领取分别复核当前资格。
+T-P4-037／1.0.0 新增从浏览器或CLI查看当前原生执行工作树的目录和文本。通过控制面与Runner现有出站连接返回，严格绑定当前项目、身份、尝试、派发和工作区策略；使用准确读取租约和原回执恢复，不暴露Runner文件端口或凭据。
+
+IDE采用“本地／执行”来源切换、只读Monaco、折叠摘要、中英文和键盘操作。真实本机进程的隔离界面已验证文件正文、时分秒、刷新和运行定位；最终联合流程通过。空轮询不会持续新增操作回执。主035预览尚未重启，完整远程编辑／PTY／LSP／DAP、物理多机与生产验收继续实施。
+
+见[产品与交互](docs/product/remote-workspace.md)、[合同](contracts/workspace-observation.md)、[架构](docs/architecture/remote-workspace-broker.md)、[AI SOP](docs/operations/remote-workspace.md)、[English](docs/en/remote-workspace.md)、[限定验证与证据](docs/quality/workspace-observation-verification.md)。完整P0–P7及需求1–22继续保留。
+
+## 历史阶段：固定模型选择、执行预算与真实原生调用（T-P4-036）
+
+T-P4-036／1.0.0 已贯通限定本地的原生模型固定选择、封闭执行参数、attempt 预算、真实 native CLI 请求和同一用量账本；原任务界面的固定预览、中英、键盘和刷新已在036实际验证；该界面未启动执行。支持的原生 Suma 工具从当前授权执行节点的公开允许清单选择准确部署，固定计划保存模型／参数／预算／匹配费率，启动与领取分别复核当前资格。
 
 参数只开放 `max_steps`、`max_output_tokens`。Token 和费用预算使用保守入场预留及冻结运营方费率；当前每工具仅一份最新匹配费率供新选择使用，没有完整多模型报价目录。缺失用量、模型别名／身份不符和未知结果保留原 attempt 及待核对余额，不能记成零费用或自动换模型重跑。
 

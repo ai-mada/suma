@@ -31,6 +31,7 @@ Read commands:
   run events ID [--after SEQUENCE]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
   models options --tool ID --expected-tool-version N
+  workspace targets | workspace observe --file request.json [--wait] | workspace observation ID [--wait]
   workspace git | workspace diff --path RELATIVE [--source worktree|index]
   developer check             Verify current MCP tools with a real read-only call
   tui                         Read-only Bubble Tea browser (default on a terminal)
@@ -115,6 +116,9 @@ func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out i
 	}
 	if len(args) > 0 && args[0] == "developer" {
 		return developerConnectionCommand(ctx, c, args[1:], out)
+	}
+	if len(args) > 1 && args[0] == "workspace" && (args[1] == "targets" || args[1] == "observe" || args[1] == "observation") {
+		return workspaceObservationCommand(ctx, c, args[1:], in, out)
 	}
 	if len(args) > 0 && args[0] == "workspace" {
 		return workspaceGitCommand(ctx, c, args[1:], out)

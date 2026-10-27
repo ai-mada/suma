@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-037",
+  "product_version": "1.0.0",
+  "status": "bounded_local_functional_stage_verified",
+  "stage_complete": true,
+  "full_platform_status": "in_progress",
+  "production_integration_complete": false,
+  "implemented": [
+    "Exact live native attempt readonly list/read through current-authorized control broker",
+    "Private/Pool outbound claim/result with policy digest and independent observation lease fence",
+    "Durable original-result ACK replay; local retirement distinct from acknowledged receipt",
+    "CLI targets/observe/observation plus generated shared contracts",
+    "Simple local/execution source tabs, readonly Monaco, CNEN, keyboard and refresh",
+    "No-effect empty queue polls create no operation receipt"
+  ],
+  "verification": {
+    "control_domain_HTTP": "3 original focused groups passed; new empty-poll red-green and existing lease group passed",
+    "runner": "6 top-level focused groups passed; existing process-tree and Pool cancellation subset passed",
+    "shared_contract": "2 original focused tests passed",
+    "CLI": "scoped targets/create/idempotency and malformed JSON rejection passed",
+    "localization": "6 exact bilingual static diagnostics passed; frontend 4497 paired keys passed",
+    "web": "7 initial affected tests passed; final changed UI subset5 passed, including date+seconds and identity isolation",
+    "typecheck": true,
+    "builds": 2,
+    "second_build_reason": "Actual GUI exposed date-only observed time; added locale-aware seconds and rechecked only changed UI",
+    "generated_contracts": "final generation/check passed; machine-only credential schemes and no forbidden query/header parameters",
+    "vet": "final affected Go packages passed",
+    "runtime_final": {
+      "path": ".cache/e2e/workspace-observation-stage-037/runtime-final/verified.local.json",
+      "sha256": "54797251ee652effe6583f5fa74642b10baa0ee5c7bf462f1562c6afea053f82",
+      "result": "passed",
+      "duration_seconds": 5.72,
+      "source_HEAD_unchanged": true,
+      "old_body_hidden": true,
+      "new_read_after_close": 409,
+      "model_calls": 0,
+      "formal_tests": 0
+    },
+    "long_GUI_host": {
+      "result": "old_test_assertion_failed_after_normal_host_close",
+      "duration_seconds": 394.79,
+      "actual_state": "expired",
+      "actual_result": null,
+      "cause": "cancelled-only test expectation did not account for correct60s expiry; source assertion fixed; final joint passed",
+      "original_log": ".cache/mcp019-deps/20261027T041323007Z.stdout.txt",
+      "final_log": ".cache/mcp019-deps/20261027T042013709Z.stdout.txt",
+      "listener59217": "closed"
+    },
+    "documentation": "235 Markdown local links,246 API paths and2221 schema references resolve",
+    "diff_check": "passed after normalizing task-owned text to repository LF"
+  },
+  "browser": {
+    "origin": "http://workspace037.localhost:59217",
+    "viewport": "desktop1265x712; screenshot is full page",
+    "engine": "Codex IAB via CUA",
+    "actual_native_worktree": true,
+    "Control_local_workspace_binding": false,
+    "CNEN": true,
+    "source_keyboard_navigation": true,
+    "refresh_restores_exact_target": true,
+    "exact_run_node_attempt_link": true,
+    "readonly_Monaco": true,
+    "locale_time_includes_seconds": true,
+    "console_warnings_errors": 0,
+    "receipt": ".cache/e2e/workspace-observation-stage-037/browser/verified.local.json",
+    "receipt_sha256": "2660ab97c877e342d5c2924d384432afd802a720ca57e901a85bb0b08cb582e7",
+    "screenshot": ".cache/e2e/workspace-observation-stage-037/browser/remote-read-final-zh.png",
+    "screenshot_sha256": "9d3ca4e9fff5454c35dee30bcafbaf2e9294062f09420544c78a422591c1b073",
+    "source_sha256": "73cfeba9dce884604ca986ae5856c7df109997707f9299273de1e81e10274f3c"
+  },
+  "resource_policy": {
+    "new_dependencies": 0,
+    "vendor_model_calls": 0,
+    "formal_acceptance_actions": 0,
+    "old_model_journeys_repeated": 0,
+    "GUI_hosts_started": 2,
+    "earlier_GUI_host": "Started before web readiness, stopped normally without GUI claim; final GUI used one replacement host",
+    "primary_preview": "035 unchanged; no primary DB changes",
+    "empty_poll_ledger_growth": 0
+  },
+  "boundaries": [
+    "Current native attempt list/read only; remote writes/Git/PTY/LSP/DAP not delivered",
+    "Same-machine real processes/protocol, not physical remote/TLS or distributed database/scale acceptance",
+    "Control logical disclosure TTL is not secure erasure of all copies; Runner journal prunes at later checkpoint",
+    "No vendor/model health inferred from eligible target inventory",
+    "Existing Monaco builtin English menus and large lazy bundles remain; mobile viewport not actually checked"
+  ],
+  "artifacts_committed": false
+}

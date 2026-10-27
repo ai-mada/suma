@@ -2,7 +2,19 @@
 
 当前开发版本 **1.0.0**；新设计采用当前最佳合理结构，不增加历史兼容层。[版本与扩展需求基线](../product/v1-baseline.md)。
 
-## 当前 T-P4-036：模型配置、预算与真实原生执行（限定本地验证）
+## 当前 T-P4-037：执行工作区只读观察与出站回执（限定本地验证）
+
+在036固定模型／参数／预算→真实原生执行的基础上，本阶段增加当前原生attempt的只读工作区链路。浏览器／CLI通过同一控制面申请目录或文本，Runner复用活动os.Root与现有出站连接读取；当前原调用凭据、项目、attempt／fence／worker、真实工作区策略摘要以及Pool当前双边授权分别核验。独立读取租约、准确原回执与迟到拒绝不干预DAG、模型或正式验收。
+
+工作空间提供“本地／执行”两个来源，复用只读Monaco，完整中英文、日期时分秒、文件摘要、方向键、刷新和准确运行链接已在真实本机进程的隔离界面验证。Control没有本地文件绑定。空队列轮询不再创建回执记录；实际lease／ACK保持持久幂等。
+
+最终Go联合执行5.72秒通过；长GUI等待最早读取正确expired／无正文被旧cancelled-only测试断言报FAIL，原日志保留，断言修正与最终结果分别记录。0厂商／模型调用、0正式测试／人工验收操作，无新增依赖。主035预览未重启或更新；缓存、数据库、凭据、截图不提交Git。
+
+本阶段只读list/read；远程写入、Git写、PTY／LSP／DAP、完整远程IDE、物理多机／TLS、分布式数据库与规模、厂商和生产验收继续实施。Control逻辑到期清除与Runner journal后续checkpoint裁剪不等于所有磁盘副本同步擦除。
+
+[产品与交互](../product/remote-workspace.md)、[合同](../../contracts/workspace-observation.md)、[架构](../architecture/remote-workspace-broker.md)、[AI SOP](../operations/remote-workspace.md)、[English](../en/remote-workspace.md)、[限定验证](../quality/workspace-observation-verification.md)、[摘要](../quality/workspace-observation-summary.json)。
+
+## 历史 T-P4-036：模型配置、预算与真实原生执行（限定本地验证）
 
 当前授权库存中的模型版本、封闭参数和本次预算进入同一固定Plan／节点／attempt，实际原生CLI请求所选模型，再按原准确运营方费率回写用量与账本。自有协议联合执行40 Token／57 CNY微元，预留归零；错误身份、缺证和超界保留核对，新绑定不自动重试。原任务界面实际保存2次调用／100输出／20000 Token／CNY0.02的固定预览，中英、键盘和刷新保持；未Start或代替正式验收。
 

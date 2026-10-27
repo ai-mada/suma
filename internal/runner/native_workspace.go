@@ -58,6 +58,7 @@ type nativeWorkspace struct {
 	root       *os.Root
 	identity   os.FileInfo
 	policySHA  string
+	profileSHA string
 	assignment Assignment
 	check      nativeWorkspaceCheck
 	checkIDs   []string
@@ -89,7 +90,7 @@ func openNativeWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, w *a
 		return nil, nativeError("native_workspace_unavailable")
 	}
 	runCtx, cancel := context.WithCancel(ctx)
-	n := &nativeWorkspace{ctx: runCtx, cancel: cancel, workspace: w, root: root, identity: identity, policySHA: profileSHA, assignment: a, check: check, secrets: append([]string{}, cfg.Secrets...)}
+	n := &nativeWorkspace{ctx: runCtx, cancel: cancel, workspace: w, root: root, identity: identity, policySHA: profileSHA, profileSHA: profileSHA, assignment: a, check: check, secrets: append([]string{}, cfg.Secrets...)}
 	seen := map[string]bool{}
 	for _, id := range spec.NativeWorkspace.Checks {
 		if id == "" || seen[id] {
