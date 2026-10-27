@@ -1,6 +1,6 @@
 # 1.0.0 当前交付状态
 
-更新：2026-10-27。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–22 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。
+更新：2026-10-28。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–22 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。
 
 当前能力按实现范围汇总。下表中的验证均受对应报告的源码、环境和实际场景限制；不会因本次版本统一继承为新代码全部通过。执行成功、独立测试、人工验收与生产发布是不同事实。
 
@@ -16,8 +16,8 @@
 | DAG 与共享执行池 | 条件／并行／汇合／map／子流程／人审／等待／补偿、增量前沿、attempt／fence／回执、双边授权及分层加权准入 | [增量调度](../quality/scheduling-verification.md)、[平台门禁](../quality/scheduling-platform-guards.md)、[共享池](../quality/execution-pool-verification.md)；同机多进程不等于物理分布式、完整公平／吞吐或长期容量验收 |
 | 工具派发与应用工具 | 固定工具版本、真实库存、当前资格与路由推荐、明确采用后预览／启动；官方 MCP SDK 项目读取和受控草稿 | [工具执行](../quality/tool-execution-verification.md)、[工具推荐](../quality/task-dispatch-options-verification.md)、[项目 MCP](../quality/project-mcp-verification.md)、[只读诊断](../quality/developer-connection036-verification.md)；探测、复制配置和单次诊断不等于完整客户端接通 |
 | 原生与外部 CLI 执行 | 原生受限工具、独立 Git 工作树、固定开发检查、机器封存及另一 Runner 同 SHA 正式测试；Harness／DSH、CodeBuddy 的限定协议与 Node 入口 | [原生编码](../quality/native-coding-verification.md)、[团队 CLI](../quality/team-cli-verification.md)；本地协议夹具与真实厂商任务分开，其他工具、会话恢复及 OS 隔离待办 |
-| Codex 独立模型执行 | 真实目录选择模型／推理强度、固定单任务计划、安装版 app-server 私有工作树编码、持久原进度／结果与部分用量、明确取消门禁 | [Codex 限定验证](../quality/codex-app-server-verification.md)；自有 Responses 端点实际编码观测 88 Token、费用未定价，配置 ACK 不证明提供方模型身份；observe-only 提醒不等于硬预算；团队／修复入口与远程文件 broker 待办 |
-| 模型、预算与用量 | 原生模型固定选择、封闭执行参数、attempt 额度、冻结运营方费率、私有／Pool 原子预留与去重结算；专家团队逐任务选择与明确修订 | [模型执行](../quality/model-execution-verification.md)、[团队模型](../quality/expert-team-model-execution-verification.md)、[账本](../quality/usage-accounting-verification.md)；每工具当前匹配费率不等于完整报价目录，缺失／partial usage 不记零，厂商账单及全主体额度待办 |
+| Codex 独立模型执行 | 真实目录选择模型／推理强度、固定单任务计划、安装版 app-server 私有工作树编码、持久原进度／结果与部分用量、明确取消门禁 | [Codex 限定验证](../quality/codex-app-server-verification.md)；自有 Responses 端点实际编码观测 88 Token、费用未定价，配置 ACK 不证明提供方模型身份；observe-only 提醒不等于硬预算；专家逐项选择与修订已有[跨入口证据](../quality/model-selection-workflows-verification.md)；Codex 修复与远程文件 broker 待办 |
+| 模型、预算与用量 | 原生模型固定选择、封闭执行参数、attempt 额度、冻结运营方费率、私有／Pool 原子预留与去重结算；专家逐任务原生／Codex选择与明确修订、原生冲突修复选择／修订 | [模型执行](../quality/model-execution-verification.md)、[团队模型](../quality/expert-team-model-execution-verification.md)、[跨入口配置与恢复](../quality/model-selection-workflows-verification.md)、[账本](../quality/usage-accounting-verification.md)；每工具当前匹配费率不等于完整报价目录，缺失／partial usage 不记零，厂商账单及全主体额度待办 |
 | 专家团队与任务交接 | 版本化专家职责、固定工具／流程／知识、原子多任务派发、验收依赖推进、暂停／恢复／停止、未开始项修订及明确人员交接 | [团队派发](../quality/expert-team-dispatch-verification.md)、[依赖编排](../quality/expert-team-orchestration-verification.md)、[任务交接](../quality/task-handoff-verification.md)；运行完成不自动验收，完整自主专家协同与跨组织远端待办 |
 | 候选、修复与仓库集成 | 机器封存 bundle、跨 Runner 导入、固定多源 Git 合成、精确结果独立测试、明确下游基线；冲突独立修复任务、受控重试／修订；固定提供方审批后 CAS 快进 | [候选交接](../quality/candidate-transfer-verification.md)、[多源合成](../quality/candidate-composition-verification.md)、[冲突修复](../quality/candidate-conflict-repair-verification.md)、[修订](../quality/candidate-repair-revisions-verification.md)、[仓库集成](../quality/repository-integration-verification.md)；本地裸仓库／同机 Runner 证据，完整合并策略、动态来源继承、物理远端与未知效果恢复待办 |
 | 工作区与 IDE 基础 | 本地 Monaco 文本树、草稿／CAS 保存、只读 Git index／worktree 差异；原生执行工作区出站 list／read、一次保存许可、原回执及显式 inspect、手工差异合并 | [Git](../quality/workspace-git-verification.md)、[执行读取](../quality/workspace-observation-verification.md)、[执行保存](../quality/workspace-write-verification.md)、[传输能力](../quality/workspace-capability-verification.md)；执行保存仅已有 UTF-8 文本且新旧均 ≤48KiB，创建／删除、大文件、Git 写、PTY／LSP／DAP、完整 IDE 待办 |

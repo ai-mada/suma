@@ -55,12 +55,20 @@ func structSchema(t reflect.Type) map[string]any {
 		if name == "" {
 			name = f.Name
 		}
-		properties[name] = schema(f.Type)
+		fieldType := f.Type
+		if f.Tag.Get("wire") == "nonnull" && fieldType.Kind() == reflect.Pointer {
+			fieldType = fieldType.Elem()
+		}
+		properties[name] = schema(fieldType)
 		if !strings.Contains(tag, "omitempty") {
 			required = append(required, name)
 		}
 	}
-	return map[string]any{"type": "object", "properties": properties, "required": required}
+	out := map[string]any{"type": "object", "properties": properties, "required": required}
+	if properties["model_execution_selection"] != nil && properties["codex_execution_selection"] != nil {
+		out["not"] = map[string]any{"required": []string{"model_execution_selection", "codex_execution_selection"}}
+	}
+	return out
 }
 
 // encoding/json promotes untagged embedded struct fields into the outer object.
@@ -337,7 +345,7 @@ func generate() (map[string]any, string) {
 				optional = "?"
 			}
 			wireType := ts(f.Type)
-			if t.Name() == "ToolUsage" && f.Type.Kind() == reflect.Pointer {
+			if (t.Name() == "ToolUsage" || f.Tag.Get("wire") == "nonnull") && f.Type.Kind() == reflect.Pointer {
 				wireType = ts(f.Type.Elem()) // Omitted means unreported; reported null is invalid.
 			}
 			if t.Name() == "DisplayDiagnostic" && f.Name == "SchemaVersion" {

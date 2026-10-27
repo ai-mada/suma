@@ -50,7 +50,7 @@ func (s *Server) candidateRepairRevisionHTTP(w http.ResponseWriter, r *http.Requ
 		respond(w, http.StatusOK, out, err)
 	case revision && parts[2] == "repair-revisions" && r.Method == http.MethodPost:
 		allowed := map[string]bool{}
-		for _, field := range []string{"project_id", "expected_version", "expected_task_version", "expected_conflict_sha256", "workflow_id", "workflow_version", "producer_node_id", "tool_profile_id", "expected_tool_version", "expected_recovery_sha256", "reason", "acknowledge", "idempotency_key"} {
+		for _, field := range []string{"project_id", "expected_version", "expected_task_version", "expected_conflict_sha256", "workflow_id", "workflow_version", "producer_node_id", "tool_profile_id", "expected_tool_version", "expected_recovery_sha256", "reason", "acknowledge", "idempotency_key", "model_execution_selection"} {
 			allowed[field] = true
 		}
 		for field := range body {
@@ -72,6 +72,10 @@ func (s *Server) candidateRepairRevisionHTTP(w http.ResponseWriter, r *http.Requ
 			}
 		}
 		var req CandidateCompositionRepairRevisionRequest
+		if err := validateModelSelectionFields(body); err != nil {
+			writeError(w, err)
+			return true
+		}
 		if err := projectKnowledgeRequired(body, "project_id", "expected_version", "expected_task_version", "expected_conflict_sha256", "workflow_id", "workflow_version", "producer_node_id", "tool_profile_id", "expected_tool_version", "reason", "acknowledge", "idempotency_key"); err != nil {
 			writeError(w, invalid(compositionInvalid))
 			return true

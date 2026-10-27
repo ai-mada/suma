@@ -3,6 +3,8 @@ package cli
 import (
 	"encoding/json"
 	"strings"
+
+	"github.com/ai-mada/suma/internal/modelcontract"
 )
 
 const compositionCLIRepairInvalid = "conflict repair requires an exact conflict identity, typed repair task, workflow/tool versions and a stable operation key"
@@ -18,6 +20,7 @@ type compositionCLIRepairTask struct {
 	AcceptanceCriteria []string `json:"acceptance_criteria"`
 }
 type compositionCLIRepair struct {
+	ModelExecutionSelection    *modelcontract.Selection `json:"model_execution_selection,omitempty"`
 	ProjectID                  string                   `json:"project_id"`
 	ExpectedCompositionVersion json.Number              `json:"expected_composition_version"`
 	ExpectedConflictSHA256     string                   `json:"expected_conflict_sha256"`
@@ -36,7 +39,7 @@ func compositionCLIRepairObject(decoder *json.Decoder, body map[string]any) bool
 		return false
 	}
 	repair, ok := body["repair"].(map[string]any)
-	if !ok || !diagnosisCLIFields(body, "project_id expected_composition_version expected_conflict_sha256 repair workflow_id workflow_version producer_node_id tool_profile_id expected_tool_version idempotency_key") || !diagnosisCLIFields(repair, "title description priority owner_id acceptance_criteria") {
+	if !ok || !diagnosisCLIFields(body, "project_id expected_composition_version expected_conflict_sha256 repair workflow_id workflow_version producer_node_id tool_profile_id expected_tool_version idempotency_key model_execution_selection") || !diagnosisCLIFields(repair, "title description priority owner_id acceptance_criteria") || !compositionCLIRepairModel(q.ModelExecutionSelection) {
 		return false
 	}
 	if !compositionCLINumber(body, "expected_composition_version", 1) || !compositionCLINumber(body, "workflow_version", 1) || !compositionCLINumber(body, "expected_tool_version", 1) || !compositionCLIIdentifier(q.WorkflowID, 100) || !compositionCLIIdentifier(q.ProducerNodeID, 150) || !compositionCLIIdentifier(q.ToolProfileID, 64) || !handoffCLIOperation(q.IdempotencyKey) {

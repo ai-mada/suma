@@ -31,5 +31,6 @@
   "model-execution.rate_deployment": "报价对应的模型版本",
   "model-execution.select_after_tool": "选择工具后可在模型与额度中明确配置。",
   "model-execution.fixed_budget": "本次预算：{{tokens}} Token · {{cost}}",
-  "model-execution.inherited": "沿用组织／项目策略"
+  "model-execution.inherited": "沿用组织／项目策略",
+  "model-execution.codex_not_supported": "此入口尚不支持 Codex 执行，请选择受支持的原生修复工具。"
 }

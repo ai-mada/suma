@@ -31,5 +31,6 @@
   "model-execution.rate_deployment": "Model revision for this rate",
   "model-execution.select_after_tool": "After choosing the tool, configure its model and allowance explicitly.",
   "model-execution.fixed_budget": "Attempt budget: {{tokens}} tokens · {{cost}}",
-  "model-execution.inherited": "Use organization/project policy"
+  "model-execution.inherited": "Use organization/project policy",
+  "model-execution.codex_not_supported": "This entry does not support Codex execution. Select a supported native repair tool."
 }

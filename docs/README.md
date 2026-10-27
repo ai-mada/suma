@@ -59,6 +59,7 @@
 
 | 领域 | 设计、合同与验证 |
 | --- | --- |
+| 模型选择跨普通／专家／修复入口 | [产品操作](product/model-selection-workflows.md)／[架构与AI SOP](architecture/model-selection-workflows.md)／[修复合同](../contracts/repair-model-execution.md)／[English](en/model-selection-workflows.md)／[限定验证](quality/model-selection-workflows-verification.md)／[摘要](quality/model-selection-workflows-summary.json) |
 | Codex模型到真实编码 | [PRD](product/codex-model-execution.md)／[合同](../contracts/codex-app-server.md)／[架构与AI SOP](integrations/codex-app-server.md)／[交互](design/codex-model-execution.md)／[English](en/codex-app-server.md)／[限定验证](quality/codex-app-server-verification.md)／[摘要](quality/codex-app-server-summary.json) |
 | 专家团队逐任务模型执行 | [合同](../contracts/expert-team-model-execution.md)／[架构与AI SOP](architecture/expert-team-model-execution.md)／[English](en/expert-team-model-execution.md)／[限定验证](quality/expert-team-model-execution-verification.md)／[摘要](quality/expert-team-model-execution-summary.json) |
 | 执行器传输能力 | [合同](../contracts/workspace-transport-capabilities.md)／[架构与AI SOP](integrations/workspace-transport-capabilities.md)／[English](en/workspace-transport-capabilities.md)／[限定验证](quality/workspace-capability-verification.md)／[摘要](quality/workspace-capability-summary.json) |

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"unicode/utf8"
 
+	"github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/localization"
 	"github.com/ai-mada/suma/internal/modelcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
@@ -23,6 +24,7 @@ const expertPlanWriteInvalid = "team-plan requires exact positive integer versio
 
 type expertPlanCLIItem struct {
 	ModelExecutionSelection *modelcontract.Selection `json:"model_execution_selection,omitempty"`
+	CodexExecutionSelection *codexcontract.Selection `json:"codex_execution_selection,omitempty"`
 	TaskID                  string                   `json:"task_id"`
 	ExpectedTaskVersion     json.Number              `json:"expected_task_version"`
 	RoleKey                 string                   `json:"role_key"`
@@ -71,6 +73,11 @@ func expertPlanItems(items []expertPlanCLIItem) bool {
 		}
 		if selection := item.ModelExecutionSelection; selection != nil {
 			if modelcontract.ValidateSelection(*selection) != nil || selection.Parameters.MaxSteps > 16 || selection.Parameters.MaxOutputTokens > 32768 {
+				return false
+			}
+		}
+		if selection := item.CodexExecutionSelection; selection != nil {
+			if item.ModelExecutionSelection != nil || codexcontract.ValidateSelection(*selection) != nil {
 				return false
 			}
 		}
@@ -149,6 +156,17 @@ func expertPlanObject(file string, in io.Reader, action string) (map[string]any,
 	body, err := readObject("-", bytes.NewReader(raw))
 	if err != nil {
 		return nil, err
+	}
+	if items, ok := body["items"].([]any); ok {
+		for _, rawItem := range items {
+			if item, ok := rawItem.(map[string]any); ok {
+				native, nativePresent := item["model_execution_selection"]
+				codex, codexPresent := item["codex_execution_selection"]
+				if nativePresent && (native == nil || codexPresent) || codexPresent && codex == nil {
+					return nil, usage(expertPlanWriteInvalid)
+				}
+			}
+		}
 	}
 	decoder := json.NewDecoder(bytes.NewReader(raw))
 	decoder.DisallowUnknownFields()

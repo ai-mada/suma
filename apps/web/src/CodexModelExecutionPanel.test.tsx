@@ -24,11 +24,12 @@ it('uses GET-only scoped options and preserves explicit effort and notice across
  await act(async()=>setLocale('zh-CN',{persist:false}));expect((host.querySelector('[data-codex-notice]') as HTMLInputElement).value).toBe('40');expect(host.textContent).toContain('不支持硬额度');expect(host.querySelector('[data-codex-effort] option:checked')?.textContent).toBe('高');expect(fetcher).toHaveBeenCalledTimes(1);expect(fetcher.mock.calls[0][1]?.method).toBe('GET');
  await set('[data-codex-notice]','1e2');expect(changed.mock.lastCall?.[0].ready).toBe(false);
 });
-it('blocks an unrelated catalog and does not silently treat team Codex as a fixed tool',async()=>{
+it('blocks an unrelated catalog and requires a real Codex choice after discovery',async()=>{
  const changed=vi.fn();vi.stubGlobal('fetch',vi.fn(async()=>Response.json({...options(),project_id:'other-project'})));
  await act(async()=>{root=createRoot(host);root.render(<ApiViewProvider session={session}><ModelExecutionPanel scope={scope} supported={false} codex disabled={false} onChange={changed}/></ApiViewProvider>);});await settle();expect(changed.mock.lastCall?.[0].ready).toBe(false);expect(host.querySelector('[data-codex-model]')).toBeNull();
  vi.stubGlobal('fetch',vi.fn(async()=>Response.json(options())));
- await act(async()=>root!.render(<ApiViewProvider session={session}><ModelExecutionPanel scope={scope} supported={false} discover disabled={false} onChange={changed}/></ApiViewProvider>));await settle();expect(changed.mock.lastCall?.[0].ready).toBe(false);expect(host.textContent).toContain('individual task dispatch');
+ await act(async()=>root!.render(<ApiViewProvider session={session}><ModelExecutionPanel scope={scope} supported={false} discover disabled={false} onChange={changed}/></ApiViewProvider>));await settle();expect(changed.mock.lastCall?.[0].ready).toBe(false);expect(host.querySelector('[data-codex-model]')).not.toBeNull();
+ await act(async()=>root!.render(<ApiViewProvider session={session}><ModelExecutionPanel scope={scope} supported={false} discover allowCodex={false} disabled={false} onChange={changed}/></ApiViewProvider>));await settle();expect(changed.mock.lastCall?.[0].ready).toBe(false);expect(host.querySelector('[data-codex-model]')).toBeNull();expect(host.textContent).toContain('does not support Codex');expect(host.textContent).not.toContain('configures its own model');
 });
 it('keeps configuration acknowledgement separate from provider identity and hard budgets',async()=>{
  const binding={protocol:'codex-app-server-v1',configuration_sha256:'b'.repeat(64),catalog_sha256:'c'.repeat(64),model:'model-a',reasoning_effort:'high',token_notice_limit:40,budget_mode:'observe_only',identity_evidence:'configuration_ack_only',binding_sha256:'d'.repeat(64)} satisfies CodexBinding;

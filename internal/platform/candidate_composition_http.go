@@ -105,6 +105,9 @@ func (s *Server) candidateCompositionHTTP(w http.ResponseWriter, r *http.Request
 		respond(w, http.StatusOK, out, err)
 	case composition && len(parts) == 3 && parts[2] == "repairs" && r.Method == http.MethodPost:
 		var req CandidateCompositionRepairCreateRequest
+		if reject(validateModelSelectionFields(body)) {
+			return true
+		}
 		if reject(projectKnowledgeRequired(body, "project_id", "expected_composition_version", "expected_conflict_sha256", "repair", "workflow_id", "workflow_version", "producer_node_id", "tool_profile_id", "expected_tool_version", "idempotency_key")) || reject(compositionBodyIntegers(body, "expected_composition_version", "workflow_version", "expected_tool_version")) || reject(strictAutomation(body, &req)) {
 			return true
 		}

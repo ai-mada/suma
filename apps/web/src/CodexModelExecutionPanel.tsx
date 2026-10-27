@@ -1,6 +1,6 @@
 import {useEffect, useId, useState} from 'react';
 import {RefreshCw} from 'lucide-react';
-import type {CodexBinding, CodexEvidence, ModelExecutionOptions} from '../../../packages/contracts/src';
+import type {CodexBinding, CodexCatalog, CodexEvidence, ModelExecutionOptions} from '../../../packages/contracts/src';
 import {useApi} from './api-context';
 import {formatNumber, tr, UiError, useLocale} from './i18n';
 import {ErrorNotice, Field, Loading} from './ui';
@@ -13,12 +13,11 @@ type Props={scope:ModelScope;disabled:boolean;onChange:(choice:ModelChoice)=>voi
 /** A fresh scoped inventory read. Selecting values neither starts the CLI nor
  * borrows its account configuration, workspace permissions or pricing. */
 export function CodexModelExecutionPanel({scope,disabled,onChange}:Props) {
- useLocale();const api=useApi(),id=useId(),path=modelOptionsPath(scope);
+ useLocale();const api=useApi(),path=modelOptionsPath(scope);
  const [read,setRead]=useState<{api:typeof api;path:string;value:ModelExecutionOptions}>(),[error,setError]=useState<unknown>(),[loading,setLoading]=useState(false),[refresh,setRefresh]=useState(0);
- const [draft,setDraft]=useState({model:'',effort:'',threshold:''});
  const page=read?.api===api&&read.path===path?read.value:undefined;
  useEffect(()=>{
-  const abort=new AbortController();setRead(undefined);setError(undefined);setLoading(true);setDraft({model:'',effort:'',threshold:''});
+  const abort=new AbortController();setRead(undefined);setError(undefined);setLoading(true);
   void api<ModelExecutionOptions>(path,undefined,'GET',undefined,abort.signal).then(value=>{
    if(abort.signal.aborted)return;
    if(!validModelOptions(value,scope)||value.supported||value.codex_supported!==true||!validCodexCatalog(value.codex_catalog))throw new UiError('codex-execution.invalid_options');
@@ -26,11 +25,16 @@ export function CodexModelExecutionPanel({scope,disabled,onChange}:Props) {
   }).catch(reason=>{if(!abort.signal.aborted)setError(reason);}).finally(()=>{if(!abort.signal.aborted)setLoading(false);});
   return()=>abort.abort();
  },[api,path,refresh]);
- const catalog=page?.codex_catalog,selection=catalog?codexSelection(catalog,draft.model,draft.effort,draft.threshold):undefined;
+ return <CodexModelExecutionSelector key={path+':'+refresh} catalog={page?.codex_catalog} disabled={disabled} loading={loading} error={error} onChange={onChange} onRefresh={()=>setRefresh(n=>n+1)}/>;
+}
+/** Reuse an already validated discovery response so role discovery reads once. */
+export function CodexModelExecutionSelector({catalog,disabled,loading=false,error,onChange,onRefresh}:{catalog?:CodexCatalog|null;disabled:boolean;loading?:boolean;error?:unknown;onChange:(choice:ModelChoice)=>void;onRefresh:()=>void}) {
+ useLocale();const id=useId(),[draft,setDraft]=useState({model:'',effort:'',threshold:''});
+ const selection=catalog?codexSelection(catalog,draft.model,draft.effort,draft.threshold):undefined;
  useEffect(()=>onChange({ready:!loading&&!error&&!!selection,codexSelection:selection}),[catalog,draft,loading,error,onChange]);
  const selected=catalog?.models.find(item=>item.model===draft.model);
  return <section className="model-execution" aria-labelledby={id} aria-busy={loading}>
-  <div className="model-execution-heading"><h3 id={id}>{t('title')}</h3><button type="button" aria-label={t('refresh')} disabled={disabled||loading} onClick={()=>setRefresh(n=>n+1)}><RefreshCw size={14}/></button></div>
+  <div className="model-execution-heading"><h3 id={id}>{t('title')}</h3><button type="button" aria-label={t('refresh')} disabled={disabled||loading} onClick={onRefresh}><RefreshCw size={14}/></button></div>
   <p className="muted">{t('intro')}</p>{loading&&<Loading/>}{!!error&&<ErrorNotice error={error}/>}
   {catalog&&<><Field label={t('model')}><select data-codex-model value={draft.model} disabled={disabled||loading} onChange={event=>{const model=catalog.models.find(item=>item.model===event.target.value);setDraft({model:event.target.value,effort:model?.default_reasoning_effort||'',threshold:''});}}><option value="">{t('choose')}</option>{catalog.models.map(item=><option key={item.model} value={item.model}>{item.model}</option>)}</select></Field>
    {selected&&<><Field label={t('effort')}><select data-codex-effort value={draft.effort} disabled={disabled||loading||!selected.reasoning_efforts.length} onChange={event=>setDraft({...draft,effort:event.target.value})}>{selected.reasoning_efforts.length?selected.reasoning_efforts.map(effort=><option key={effort} value={effort}>{codexEffortLabel(effort)}</option>):<option value="">{t('default_effort')}</option>}</select></Field>

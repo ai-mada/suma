@@ -30,6 +30,7 @@
  "candidate-conflict-repair.tool_help":"仅当前可用且由管理员明确启用冲突修复能力的原生工具可以执行修复。",
  "candidate-conflict-repair.choose_tool":"选择已启用修复的原生工具",
  "candidate-conflict-repair.tool_blocked":"不可用于冲突修复",
+ "candidate-conflict-repair.codex_blocked":"Codex 尚不支持修复所需的专用工作区",
  "candidate-conflict-repair.more_tools":"加载更多工具配置",
  "candidate-conflict-repair.create_help":"这会创建一项新任务及固定预览。请核对预览后单独确认启动；创建不会开始运行。",
  "candidate-conflict-repair.create":"创建修复任务并预览",

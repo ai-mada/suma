@@ -2832,6 +2832,16 @@
           "id": {
             "type": "string"
           },
+          "model_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelBinding"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "operation_id": {
             "type": "string"
           },
@@ -2968,6 +2978,9 @@
             "maxLength": 128,
             "minLength": 8,
             "type": "string"
+          },
+          "model_execution_selection": {
+            "$ref": "#/components/schemas/ModelSelection"
           },
           "producer_node_id": {
             "type": "string"
@@ -3261,6 +3274,9 @@
             "maxLength": 128,
             "minLength": 8,
             "type": "string"
+          },
+          "model_execution_selection": {
+            "$ref": "#/components/schemas/ModelSelection"
           },
           "producer_node_id": {
             "type": "string"
@@ -6415,21 +6431,23 @@
       },
       "ExpertTeamPlanItemRequest": {
         "additionalProperties": false,
+        "not": {
+          "required": [
+            "model_execution_selection",
+            "codex_execution_selection"
+          ]
+        },
         "properties": {
+          "codex_execution_selection": {
+            "$ref": "#/components/schemas/CodexSelection"
+          },
           "expected_task_version": {
             "maximum": 2147483646,
             "minimum": 1,
             "type": "integer"
           },
           "model_execution_selection": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ModelSelection"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "$ref": "#/components/schemas/ModelSelection",
             "description": "Explicit native deployment, parameters and per-task allowance. Create or explicit unstarted revision only. The fixed binding and exact rate are retained through dependency waits; this is not a shared team budget."
           },
           "role_key": {
@@ -17370,19 +17388,18 @@
       },
       "TaskDispatchPreviewRequest": {
         "additionalProperties": false,
+        "not": {
+          "required": [
+            "model_execution_selection",
+            "codex_execution_selection"
+          ]
+        },
         "properties": {
           "agent_node_id": {
             "type": "string"
           },
           "codex_execution_selection": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/CodexSelection"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/CodexSelection"
           },
           "expected_task_version": {
             "type": "integer"
@@ -17404,14 +17421,7 @@
             "type": "array"
           },
           "model_execution_selection": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ModelSelection"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/ModelSelection"
           },
           "project_id": {
             "type": "string"

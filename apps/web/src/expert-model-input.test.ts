@@ -8,3 +8,11 @@ it('recovers exact create and revision model allowances without broad secret exc
  expect(expertPlanCommandRecovery({method:'POST',path:'/expert-team-plans/plan-a/commands',idempotency_key:'original-key',body:{project_id:'project-a',expected_version:1,action:'revise',reason:'Reviewed model change',acknowledge:true,expected_configuration_version:1,items:[item],idempotency_key:'original-key'}},'project-a','plan-a')).toBe(true);
  for(const bad of [{...item,token:'private'},{...item,model_execution_selection:{...selection,api_key:'private'}},{...item,model_execution_selection:{...selection,budget:{token_limit:'private'}}},{...item,model_execution_selection:{...selection,parameters:{...selection.parameters,max_output_tokens:0}}}]) expect(validExpertRevisionItems([bad])).toBe(false);
 });
+it('recovers closed Codex selections while rejecting mixed executors and private fields',()=>{
+ const codex={catalog_sha256:'b'.repeat(64),model:'codex-a',reasoning_effort:'high',token_notice_limit:123};
+ const entry={task_id:'task-a',expected_task_version:2,role_key:'developer',codex_execution_selection:codex};
+ expect(validExpertRevisionItems([entry])).toBe(true);
+ expect(validExpertRevisionItems([{...entry,model_execution_selection:selection}])).toBe(false);
+ expect(validExpertRevisionItems([{...entry,codex_execution_selection:null}])).toBe(false);expect(validExpertRevisionItems([{...item,model_execution_selection:null}])).toBe(false);
+ for(const bad of [{...codex,api_token:'private'},{...codex,token_notice_limit:'private'},{...codex,token_limit:123}])expect(validExpertRevisionItems([{...entry,codex_execution_selection:bad}])).toBe(false);
+});

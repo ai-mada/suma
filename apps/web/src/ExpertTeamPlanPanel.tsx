@@ -1,6 +1,7 @@
 import {expertPlanResponse} from './expert-plan-response';
-import {ExpertModelSelections,expertModelScope,type ExpertModelChoices,type ExpertModelTask} from './ExpertModelSelections';
+import {ExpertModelSelections,expertModelScope,expertModelPayload,type ExpertModelChoices,type ExpertModelTask} from './ExpertModelSelections';
 import {ModelExecutionFacts} from './ModelExecutionPanel';
+import {CodexExecutionFacts} from './CodexModelExecutionPanel';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import type {ExpertTeamConfiguration,ExpertTeamPlan,ExpertTeamPlanItem} from '../../../packages/contracts/src';
 import {ApiError,query,stateLabel,type RecordItem,type Session} from './api';
@@ -58,7 +59,7 @@ export function ExpertTeamPlanPanel({project,session,plan,loading,read,onChanged
  }
  async function choose(name:Command){if(locked||!allowed(name))return;lookup.current?.abort();setLookupBusy(false);setLookupError(undefined);setDecision({action:name,version:plan.version,reason:''});setAck(false);setEditor(undefined);if(name==='revise')await inputs(plan);}
  async function completed(value:ExpertTeamPlan|undefined){if(!value||!alive.current)return;if(!validOrchestratedPlan(value,project,plan.id)){action.setError(new UiError('expert-team.invalid_read'));return;}setDecision(undefined);setEditor(undefined);setAck(false);setHistoryTick(value=>value+1);await callbacks.current.onChanged(value);}
- async function submit(){if(!decision||!allowed(decision.action)||!ack||!expertText(decision.reason)||locked||action.conflict||lookupBusy||decision.action==='revise'&&!canRevise)return;await completed(await action.run<ExpertTeamPlan>('/expert-team-plans/'+encodeURIComponent(plan.id)+'/commands',{project_id:project,expected_version:decision.version,action:decision.action,reason:decision.reason,acknowledge:true,...(decision.action==='revise'&&editor?{expected_configuration_version:editor.configuration.version,items:selected.map(row=>({task_id:row.taskID,expected_task_version:row.version,role_key:row.role,...(models?.selections[row.taskID]?{model_execution_selection:models.selections[row.taskID]}:{})}))}:{})}));}
+ async function submit(){if(!decision||!allowed(decision.action)||!ack||!expertText(decision.reason)||locked||action.conflict||lookupBusy||decision.action==='revise'&&!canRevise)return;await completed(await action.run<ExpertTeamPlan>('/expert-team-plans/'+encodeURIComponent(plan.id)+'/commands',{project_id:project,expected_version:decision.version,action:decision.action,reason:decision.reason,acknowledge:true,...(decision.action==='revise'&&editor?{expected_configuration_version:editor.configuration.version,items:selected.map(row=>({task_id:row.taskID,expected_task_version:row.version,role_key:row.role,...expertModelPayload(models,row.taskID)}))}:{})}));}
  async function rebase(){setAck(false);const latest=await callbacks.current.read();if(!latest)throw new UiError('expert-team.refresh_failed');if(decision?.action==='revise'&&!await inputs(latest,editor))throw new UiError('expert-team-orchestration.revision_inputs_failed');setDecision(previous=>previous?{...previous,version:latest.version}:previous);}
  const ready=!!decision&&allowed(decision.action)&&ack&&expertText(decision.reason)&&!locked&&!action.conflict&&!lookupBusy&&(decision.action!=='revise'||canRevise);
  if(forbidden)return <ErrorNotice error={toolError(forbidden)}/>;
@@ -92,7 +93,7 @@ function PlanItems({plan,project,session,onChanged}:{plan:ExpertTeamPlan;project
   {compositionCodeBaseline(item.plan.code_baseline,project,item.task_id)&&<p className="team-dispatch-muted">{tr('candidate-composition.selected_base')} <code>{item.plan.code_baseline.source.head_commit}</code></p>}
   {item.run_id&&<p className="team-dispatch-muted">{t('actual_run_state',{state:item.run_state?stateLabel(item.run_state):old('run_unknown')})}</p>}
   {session&&item.state==='blocked'&&item.run_id&&<FailureDiagnosisLauncher session={session} project={project} runID={item.run_id} refresh={plan.version} onChanged={onChanged}/>}
-  <ModelExecutionFacts binding={item.plan.model_execution}/>
+  <ModelExecutionFacts binding={item.plan.model_execution}/><CodexExecutionFacts binding={item.plan.codex_execution}/>
   <details><summary>{old('fixed_basis')}</summary><p>{old('task_version',{value:formatNumber(item.task_version)})} · {t('revision',{value:formatNumber(item.source_revision)})}</p><code>{item.task_basis_sha256}</code><p>{item.plan.tool_profile_id} · v{formatNumber(item.plan.tool_profile_version)}</p><code>{item.plan.tool_profile_sha256}</code><DispatchRouteFacts route={item.plan.execution_route}/><KnowledgeContextFacts project={project} items={item.plan.context.knowledge||[]}/><pre className="team-dispatch-raw">{JSON.stringify({task:item.plan.context.task,workflow:item.plan.workflow,code_baseline:item.plan.code_baseline,dependencies:item.dependencies,dispatch_plan_id:item.dispatch_plan_id,run_id:item.run_id},null,2)}</pre></details>
  </li>)}</ol>;
 }

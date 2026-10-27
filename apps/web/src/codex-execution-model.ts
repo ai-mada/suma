@@ -28,7 +28,13 @@ export function codexSelection(catalog: CodexCatalog, model: string, effort: str
  return {catalog_sha256:catalog.catalog_sha256,model,reasoning_effort:effort,...(amount===undefined?{}:{token_notice_limit:amount})};
 }
 export function codexBindingPresent(value: unknown): value is CodexBinding {
- return object(value) && value.protocol==='codex-app-server-v1' && hash(value.binding_sha256) && hash(value.configuration_sha256) && hash(value.catalog_sha256) && identifier(value.model) && identifier(value.reasoning_effort,true) && notice(value.token_notice_limit) && value.budget_mode==='observe_only' && value.identity_evidence==='configuration_ack_only';
+ return object(value) && closed(value,['protocol','configuration_sha256','catalog_sha256','model','reasoning_effort','token_notice_limit','budget_mode','identity_evidence','binding_sha256']) && value.protocol==='codex-app-server-v1' && hash(value.binding_sha256) && hash(value.configuration_sha256) && hash(value.catalog_sha256) && identifier(value.model) && identifier(value.reasoning_effort,true) && notice(value.token_notice_limit) && value.budget_mode==='observe_only' && value.identity_evidence==='configuration_ack_only';
+}
+export function codexBindingMatchesSelection(binding: unknown, selection: unknown): binding is CodexBinding {
+ return validCodexSelection(selection) && codexBindingPresent(binding) && binding.catalog_sha256===selection.catalog_sha256 && binding.model===selection.model && binding.reasoning_effort===selection.reasoning_effort && binding.token_notice_limit===selection.token_notice_limit;
+}
+export function sameCodexBinding(left: unknown, right: CodexBinding): boolean {
+ return codexBindingPresent(left) && Object.entries(right).every(([key,value])=>left[key as keyof CodexBinding]===value) && Object.keys(left).length===Object.keys(right).length;
 }
 
 /** Recovery acknowledges only the original public model choice and task/tool

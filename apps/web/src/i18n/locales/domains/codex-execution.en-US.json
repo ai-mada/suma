@@ -24,7 +24,6 @@
   "codex-execution.rerouted": "CLI-reported model reroutes",
   "codex-execution.thread": "Thread",
   "codex-execution.turn": "Turn",
-  "codex-execution.team_pending": "Use individual task dispatch to configure this Codex integration. Per-item team support is still being implemented.",
   "codex-execution.invalid_response": "The response does not match the original task or Codex configuration. The original operation was kept for recovery.",
   "codex-execution.effort_none": "No reasoning",
   "codex-execution.effort_minimal": "Minimal",

@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -102,6 +103,90 @@ func TestExpertPlanCLI(t *testing.T) {
 		code, _, _ := contextInvoke(t, s.URL, "en-US", `{"expected_version":1,"action":"accept","reason":"no implicit acceptance","acknowledge":true,"idempotency_key":"original-key"}`, "team-plan", "command", "plan-one", "--file", "-", "--confirm")
 		if code != 2 || calls != 0 {
 			t.Fatal("invalid input made a mutation", code, calls)
+		}
+	})
+}
+
+func TestExpertPlanCLICodexSelectionExactRecoveryAndStrictFields(t *testing.T) {
+	selection := `{"catalog_sha256":"` + strings.Repeat("a", 64) + `","model":"codex-a","reasoning_effort":"high","token_notice_limit":9007199254740991}`
+	item := func(choice string) string {
+		return `{"task_id":"task-one","expected_task_version":1,"role_key":"developer","codex_execution_selection":` + choice + `}`
+	}
+	for _, action := range []string{"create", "revise"} {
+		t.Run(action, func(t *testing.T) {
+			body := `{"team_id":"team-one","expected_configuration_version":2,"items":[` + item(selection) + `],"idempotency_key":"codex-original-create"}`
+			args := []string{"team-plan", "create", "--file", "-", "--confirm"}
+			if action == "revise" {
+				body = `{"expected_version":3,"action":"revise","reason":"Explicit original Codex source","acknowledge":true,"expected_configuration_version":2,"items":[` + item(selection) + `],"idempotency_key":"codex-original-revise"}`
+				args = []string{"team-plan", "command", "plan-one", "--file", "-", "--confirm"}
+			}
+			requests := []map[string]any{}
+			s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				decoder := json.NewDecoder(r.Body)
+				decoder.UseNumber()
+				var request map[string]any
+				if err := decoder.Decode(&request); err != nil {
+					t.Error(err)
+				}
+				requests = append(requests, request)
+				if len(requests) == 1 {
+					w.WriteHeader(http.StatusServiceUnavailable)
+					_, _ = w.Write([]byte(`{"error":{"code":"uncertain","message":"Keep the original operation"}}`))
+					return
+				}
+				_, _ = w.Write([]byte(`{"original_receipt":true}`))
+			}))
+			defer s.Close()
+			code, _, problem := contextInvoke(t, s.URL, "en-US", body, args...)
+			if code == 0 || problem == "" || len(requests) != 1 {
+				t.Fatal("uncertain mutation was lost or retried automatically", code, problem, len(requests))
+			}
+			code, out, problem := contextInvoke(t, s.URL, "en-US", body, args...)
+			if code != 0 || problem != "" || !strings.Contains(out, `"original_receipt": true`) || len(requests) != 2 || !reflect.DeepEqual(requests[0], requests[1]) {
+				t.Fatal("explicit recovery changed original Codex operation", code, out, problem, requests)
+			}
+			var want map[string]any
+			decoder := json.NewDecoder(strings.NewReader(body))
+			decoder.UseNumber()
+			if err := decoder.Decode(&want); err != nil {
+				t.Fatal(err)
+			}
+			want["project_id"] = "project-one"
+			if !reflect.DeepEqual(requests[0], want) {
+				t.Fatal("transport changed public selection or integer lexemes", requests[0])
+			}
+		})
+	}
+	t.Run("private_and_ambiguous_values_never_sent", func(t *testing.T) {
+		calls := 0
+		s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { calls++; w.WriteHeader(500) }))
+		defer s.Close()
+		for _, invalid := range []string{
+			`null`,
+			strings.Replace(selection, `"model":`, `"api_key":"private","model":`, 1),
+			strings.Replace(selection, `"model":`, `"configuration_sha256":"`+strings.Repeat("b", 64)+`","model":`, 1),
+			strings.Replace(selection, `"model":`, `"provider":"private","model":`, 1),
+			strings.Replace(selection, `"model":`, `"budget_mode":"enforce","model":`, 1),
+			strings.Replace(selection, `"model":`, `"model":"duplicate","model":`, 1),
+			strings.Replace(selection, `9007199254740991`, `1e2`, 1),
+			strings.Replace(selection, `9007199254740991`, `1.0`, 1),
+			strings.Replace(selection, `9007199254740991`, `9007199254740992`, 1),
+			strings.Replace(selection, `9007199254740991`, `0`, 1),
+			strings.Replace(selection, `"codex-a"`, `{"api_key":"private"}`, 1),
+		} {
+			body := `{"team_id":"team-one","expected_configuration_version":2,"items":[` + item(invalid) + `],"idempotency_key":"codex-original-create"}`
+			code, _, problem := contextInvoke(t, s.URL, "en-US", body, "team-plan", "create", "--file", "-", "--confirm")
+			if code != 2 || problem == "" {
+				t.Fatal("invalid Codex selection accepted", code, invalid)
+			}
+		}
+		dual := strings.Replace(item(selection), `"codex_execution_selection":`, `"model_execution_selection":null,"codex_execution_selection":`, 1)
+		body := `{"team_id":"team-one","expected_configuration_version":2,"items":[` + dual + `],"idempotency_key":"codex-original-create"}`
+		if _, err := expertPlanObject("-", strings.NewReader(body), "create"); err == nil {
+			t.Fatal("dual native/Codex selection accepted")
+		}
+		if calls != 0 {
+			t.Fatal("invalid input reached server", calls)
 		}
 	})
 }

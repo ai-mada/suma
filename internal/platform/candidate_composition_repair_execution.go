@@ -19,7 +19,8 @@ func validCandidateCompositionExecutionRecord(r candidateCompositionRecord) bool
 	}
 	e := r.RepairExecution
 	b := p.ConflictBasis
-	return r.Execution == nil && e != nil && ccmp.ValidateCandidateConflictRepairExecution(*e) == nil && e.PlanID == p.ID && e.PlanVersion == p.Version && e.ProjectID == p.ProjectID && e.CompositionID == b.CompositionID && e.CompositionVersion == b.CompositionVersion && e.OriginalAssignment == b.Assignment && e.OriginalEvidenceSHA256 == b.EvidenceSHA256 && stringify(e.Conflict) == stringify(b.Evidence) && e.Composition.SourcesSHA256 == p.SourcesSHA256 && e.Composition.BaseCommit == p.AdminBaseCommit && stringify(e.Composition.Sources) == stringify(compositionSources(p)) && e.FixedTimestamp == p.FixedTimestamp && e.OperationID == p.OperationID && b.SHA256 == conflictBasisDigest(*b)
+	node := candidateRepairProducer(p)
+	return r.Execution == nil && e != nil && node != nil && e.Instructions == node.Config["goal"] && validCandidateRepairModelDefinition(p) && ccmp.ValidateCandidateConflictRepairExecution(*e) == nil && e.PlanID == p.ID && e.PlanVersion == p.Version && e.ProjectID == p.ProjectID && e.CompositionID == b.CompositionID && e.CompositionVersion == b.CompositionVersion && e.OriginalAssignment == b.Assignment && e.OriginalEvidenceSHA256 == b.EvidenceSHA256 && stringify(e.Conflict) == stringify(b.Evidence) && e.Composition.SourcesSHA256 == p.SourcesSHA256 && e.Composition.BaseCommit == p.AdminBaseCommit && stringify(e.Composition.Sources) == stringify(compositionSources(p)) && e.FixedTimestamp == p.FixedTimestamp && e.OperationID == p.OperationID && b.SHA256 == conflictBasisDigest(*b)
 }
 
 func (s *Service) readCandidateCompositionRepairExecutionTx(ctx context.Context, tx *sql.Tx, tenant, project, run, node string) (*ccmp.CandidateConflictRepairExecution, error) {
@@ -74,6 +75,11 @@ func (s *Service) checkCandidateCompositionRepairExecutionTx(ctx context.Context
 	if taskRun != run || json.Unmarshal([]byte(specRaw), &spec) != nil || spec.Type != "agent" || spec.Config["purpose"] != "candidate_conflict_repair" || spec.Config["candidate_from"] != nil || spec.Config["code_baseline"] != nil || spec.Config["candidate_composition"] != nil || spec.Config["tool_profile_id"] != r.Plan.ToolProfileID || spec.Config["tool_profile_sha256"] != r.Plan.ToolProfileSHA256 {
 		return compositionError(409, "changed", compositionChanged)
 	}
+	// Fresh work and input access use the exact reviewed producer, including its
+	// final goal/context, model, limits and disabled automatic retries.
+	if stringify(spec) != stringify(candidateRepairProducer(r.Plan)) {
+		return compositionError(409, "changed", compositionChanged)
+	}
 	if fresh {
 		if err = s.requireCurrentCandidateRepairTx(ctx, tx, tenant, project, r.Plan); err != nil {
 			return err
@@ -102,6 +108,9 @@ func (s *Service) checkCandidateCompositionRepairExecutionTx(ctx context.Context
 			return compositionError(409, "repair_profile", compositionRepairProfile)
 		}
 		if err = s.checkDispatchProfileRouteTx(ctx, tx, tenant, project, profile, route); err != nil {
+			return err
+		}
+		if err = s.validateCandidateRepairModelTx(ctx, tx, tenant, project, profile, r.Plan, r.Plan.Workflow); err != nil {
 			return err
 		}
 	}

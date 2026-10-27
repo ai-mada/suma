@@ -9,24 +9,27 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/ai-mada/suma/internal/modelcontract"
 )
 
 const compositionCLIRevisionInvalid = "repair revision requires exact plan, task, conflict and selected workflow/tool versions, acknowledgement, reason and original operation key"
 
 type compositionCLIRevision struct {
-	ProjectID              string      `json:"project_id"`
-	ExpectedVersion        json.Number `json:"expected_version"`
-	ExpectedTaskVersion    json.Number `json:"expected_task_version"`
-	ExpectedConflictSHA256 string      `json:"expected_conflict_sha256"`
-	WorkflowID             string      `json:"workflow_id"`
-	WorkflowVersion        json.Number `json:"workflow_version"`
-	ProducerNodeID         string      `json:"producer_node_id"`
-	ToolProfileID          string      `json:"tool_profile_id"`
-	ExpectedToolVersion    json.Number `json:"expected_tool_version"`
-	ExpectedRecoverySHA256 string      `json:"expected_recovery_sha256,omitempty"`
-	Reason                 string      `json:"reason"`
-	Acknowledge            bool        `json:"acknowledge"`
-	IdempotencyKey         string      `json:"idempotency_key"`
+	ModelExecutionSelection *modelcontract.Selection `json:"model_execution_selection,omitempty"`
+	ProjectID               string                   `json:"project_id"`
+	ExpectedVersion         json.Number              `json:"expected_version"`
+	ExpectedTaskVersion     json.Number              `json:"expected_task_version"`
+	ExpectedConflictSHA256  string                   `json:"expected_conflict_sha256"`
+	WorkflowID              string                   `json:"workflow_id"`
+	WorkflowVersion         json.Number              `json:"workflow_version"`
+	ProducerNodeID          string                   `json:"producer_node_id"`
+	ToolProfileID           string                   `json:"tool_profile_id"`
+	ExpectedToolVersion     json.Number              `json:"expected_tool_version"`
+	ExpectedRecoverySHA256  string                   `json:"expected_recovery_sha256,omitempty"`
+	Reason                  string                   `json:"reason"`
+	Acknowledge             bool                     `json:"acknowledge"`
+	IdempotencyKey          string                   `json:"idempotency_key"`
 }
 
 func compositionCLIHash(value string) bool {
@@ -37,7 +40,7 @@ func compositionCLIHash(value string) bool {
 // transport only: current revision/recovery authority is resolved by the server.
 func compositionCLIRevisionObject(decoder *json.Decoder, body map[string]any) bool {
 	var q compositionCLIRevision
-	if decoder.Decode(&q) != nil || !diagnosisCLIFields(body, "project_id expected_version expected_task_version expected_conflict_sha256 workflow_id workflow_version producer_node_id tool_profile_id expected_tool_version expected_recovery_sha256 reason acknowledge idempotency_key") {
+	if decoder.Decode(&q) != nil || !diagnosisCLIFields(body, "project_id expected_version expected_task_version expected_conflict_sha256 workflow_id workflow_version producer_node_id tool_profile_id expected_tool_version expected_recovery_sha256 reason acknowledge idempotency_key model_execution_selection") || !compositionCLIRepairModel(q.ModelExecutionSelection) {
 		return false
 	}
 	for _, field := range []string{"expected_version", "expected_task_version", "workflow_version", "expected_tool_version"} {
@@ -49,6 +52,10 @@ func compositionCLIRevisionObject(decoder *json.Decoder, body map[string]any) bo
 		return false
 	}
 	return compositionCLIHash(q.ExpectedConflictSHA256) && compositionCLIIdentifier(q.WorkflowID, 100) && compositionCLIIdentifier(q.ProducerNodeID, 150) && compositionCLIIdentifier(q.ToolProfileID, 64) && diagnosisCLIText(q.Reason, 2000) && q.Acknowledge && handoffCLIOperation(q.IdempotencyKey)
+}
+
+func compositionCLIRepairModel(selection *modelcontract.Selection) bool {
+	return selection == nil || modelcontract.ValidateSelection(*selection) == nil && selection.Parameters.MaxSteps <= 16 && selection.Parameters.MaxOutputTokens <= 32768
 }
 
 func taskRunHistoryCommand(ctx context.Context, c *client, args []string, out io.Writer) error {

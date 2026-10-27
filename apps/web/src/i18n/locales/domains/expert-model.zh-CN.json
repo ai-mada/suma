@@ -3,7 +3,7 @@
   "expert-model.intro": "先按角色统一选择；同角色任务可以单独调整。只读取当前工具选项，不会调用模型。",
   "expert-model.tasks": "{{count}} 项任务",
   "expert-model.individual": "单个任务独立配置",
-  "expert-model.individual_help": "勾选后为该任务重新选择模型、参数和额度；取消后沿用角色选择。",
+  "expert-model.individual_help": "为勾选的任务单独选择模型与执行设置；取消勾选后使用该职责的选择。",
   "expert-model.override": "为{{title}}独立配置模型",
-  "expert-model.budget_help": "每项任务独立预留和结算。这里的额度不是整个团队计划的共享额度；依赖等待不占执行槽位。"
+  "expert-model.budget_help": "原生任务分别预留并结算各自额度。Codex 任务观测用量并可发送提醒，不支持硬额度或精确计价。依赖等待不占用执行槽位。"
 }

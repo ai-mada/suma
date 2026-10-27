@@ -13,6 +13,10 @@ func (s *Server) taskDispatchHTTP(w http.ResponseWriter, r *http.Request, actor 
 	switch {
 	case len(parts) == 1 && r.Method == "POST":
 		var request TaskDispatchPreviewRequest
+		if err := validateModelSelectionFields(m); err != nil {
+			writeError(w, err)
+			return true
+		}
 		if err := strictAutomation(m, &request); err != nil {
 			writeError(w, err)
 			return true

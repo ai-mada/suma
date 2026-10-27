@@ -4,6 +4,7 @@ import (
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	"github.com/ai-mada/suma/internal/dag"
+	"github.com/ai-mada/suma/internal/modelcontract"
 )
 
 type CandidateCompositionSourceRequest struct {
@@ -35,6 +36,7 @@ type CandidateCompositionCommandRequest struct {
 	IdempotencyKey  string `json:"idempotency_key"`
 }
 type CandidateCompositionPlan struct {
+	ModelExecution     *modelcontract.Binding                     `json:"model_execution,omitempty"`
 	RepairRevision     *CandidateCompositionRepairRevisionLineage `json:"repair_revision,omitempty"`
 	ConflictBasis      *CandidateCompositionConflictBasis         `json:"conflict_basis,omitempty"`
 	ToolProfileID      string                                     `json:"tool_profile_id,omitempty"`

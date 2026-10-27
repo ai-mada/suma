@@ -34,6 +34,10 @@ required merely to develop this stage.
    the current head. Old Start/revision receipt replay restores the original
    operation identity, never compiles or starts the new head.
 
+Native model selection, frozen quote and budget handling for Create/revision
+follow [repair model execution](repair-model-execution.md); Codex repair remains
+unsupported under the dedicated native workspace lifecycle.
+
 The initial revision is ordinal1; at most32 semantic revisions per family.
 Refresh is still an expiry-only operation on the current ready plan. It cannot
 alter its selected definition. Accepted candidates/plans cannot be revised.
@@ -46,6 +50,7 @@ read/start/source/head guards, repair DTOs and composition migration integration
 - `CandidateCompositionRepairRevisionRequest`: project_id, expected_version,
   expected_task_version, expected_conflict_sha256, workflow_id, workflow_version,
   producer_node_id, tool_profile_id, expected_tool_version,
+  model_execution_selection?,
   expected_recovery_sha256?, reason, acknowledge:true, idempotency_key.
 - `CandidateCompositionRepairRevisionContext`: project_id, plan_id,
   plan_version, task_version, conflict_basis?, recovery_basis?, can_revise,

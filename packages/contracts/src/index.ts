@@ -612,6 +612,7 @@ export interface CandidateCompositionPage {
   total: number;
 }
 export interface CandidateCompositionPlan {
+  model_execution?: ModelBinding | null;
   repair_revision?: CandidateCompositionRepairRevisionLineage | null;
   conflict_basis?: CandidateCompositionConflictBasis | null;
   tool_profile_id?: string;
@@ -648,6 +649,7 @@ export interface CandidateCompositionPlan {
   allowed_actions: (string)[];
 }
 export interface CandidateCompositionRepairCreateRequest {
+  model_execution_selection?: ModelSelection;
   project_id: string;
   expected_composition_version: number;
   expected_conflict_sha256: string;
@@ -706,6 +708,7 @@ export interface CandidateCompositionRepairRevisionLineage {
   observed: boolean;
 }
 export interface CandidateCompositionRepairRevisionRequest {
+  model_execution_selection?: ModelSelection;
   project_id: string;
   expected_version: number;
   expected_task_version: number;
@@ -1320,7 +1323,8 @@ export interface ExpertTeamPlanItemRequest {
   task_id: string;
   expected_task_version: number;
   role_key: string;
-  model_execution_selection?: ModelSelection | null;
+  model_execution_selection?: ModelSelection;
+  codex_execution_selection?: CodexSelection;
 }
 export interface ExpertTeamPlanPage {
   items: (ExpertTeamPlan)[];
@@ -3643,8 +3647,8 @@ export interface TaskDispatchPlan {
   reason: string;
 }
 export interface TaskDispatchPreviewRequest {
-  codex_execution_selection?: CodexSelection | null;
-  model_execution_selection?: ModelSelection | null;
+  codex_execution_selection?: CodexSelection;
+  model_execution_selection?: ModelSelection;
   project_id: string;
   task_id: string;
   expected_task_version: number;

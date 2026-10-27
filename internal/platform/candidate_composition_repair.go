@@ -100,6 +100,12 @@ func (s *Service) compositionRepairWorkflowTx(ctx context.Context, auth *authori
 		return template, profile, err
 	}
 	w, err := buildCandidateCompositionRepairWorkflow(template, p.ProducerNodeID, p.ToolProfileID, profile.Profile, p.Context)
+	if err == nil {
+		err = bindModelExecutionWorkflow(&w, p.ProducerNodeID, p.ModelExecution)
+	}
+	if err == nil {
+		err = s.validateCandidateRepairModelTx(ctx, auth.tx, auth.target.tenantID, project, profile, p, w)
+	}
 	return w, profile, err
 }
 
@@ -127,7 +133,17 @@ func (s *Service) CreateCandidateCompositionRepair(ctx context.Context, engine *
 		if e != nil {
 			return out, e
 		}
-		return s.candidateCompositionProjectionTx(ctx, auth, r.Plan)
+		// Recover the original Create effect even if another view has since
+		// started or revised it. Only eligibility is a current projection.
+		out, e = s.candidateCompositionProjectionTx(ctx, auth, out)
+		if e == nil && (r.Plan.Version != out.Version || r.Plan.RunID != out.RunID) {
+			out.Valid = false
+			out.AllowedActions = []string{}
+			if len(out.Blockers) == 0 {
+				out.Blockers = []string{compositionChanged}
+			}
+		}
+		return out, e
 	}
 	original, err := s.candidateCompositionTx(ctx, auth.tx, auth.target.tenantID, project, id)
 	if err != nil {
@@ -152,6 +168,11 @@ func (s *Service) CreateCandidateCompositionRepair(ctx context.Context, engine *
 		if e != nil {
 			return out, e
 		}
+		// A reserved conflict recovers its exact plan; a different reviewed model
+		// choice requires the explicit revision command, never silent substitution.
+		if !candidateRepairModelSelectionMatches(r.Plan.ModelExecution, req.ModelExecutionSelection) {
+			return out, conflict(modelExecutionChanged)
+		}
 		out, e = s.candidateCompositionProjectionTx(ctx, auth, r.Plan)
 		if e != nil {
 			return out, e
@@ -170,6 +191,10 @@ func (s *Service) CreateCandidateCompositionRepair(ctx context.Context, engine *
 	}
 	if !candidateConflictRepairProfile(profile.Profile) {
 		return out, compositionError(409, "repair_profile", compositionRepairProfile)
+	}
+	modelBinding, err := s.buildModelExecutionTx(ctx, auth.tx, auth.target.tenantID, project, profile, req.ModelExecutionSelection)
+	if err != nil {
+		return out, err
 	}
 	owner := req.Repair.OwnerID
 	if owner == "" {
@@ -217,6 +242,7 @@ func (s *Service) CreateCandidateCompositionRepair(ctx context.Context, engine *
 	}
 	out = CandidateCompositionPlan{ID: newID(), ProjectID: project, Version: 1, State: "ready", TaskID: task.ID, TaskVersion: task.Version, TaskBasisSHA256: digest(stringify(context)), WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, ProducerNodeID: req.ProducerNodeID, Strategy: "conflict_repair", AdminBaseCommit: original.Plan.AdminBaseCommit, SourcesSHA256: original.Plan.SourcesSHA256, Sources: original.Plan.Sources, Context: context, ConflictBasis: &basis, ToolProfileID: profile.ID, ToolProfileVersion: req.ExpectedToolVersion, ToolProfileSHA256: profile.Profile.ProfileSHA256, CreatedAt: automationStamp(clock), ExpiresAt: automationStamp(clock.Add(30 * time.Minute)), FixedTimestamp: clock.UTC().Format(time.RFC3339Nano), Valid: true, Conflicts: []string{}, Blockers: []string{}, AllowedActions: []string{}}
 	out.OperationID = "composition-repair-" + out.ID
+	out.ModelExecution = modelBinding
 	out.ExecutionRoute, err = engine.ReadProjectExecutionRouteTx(ctx, auth.tx, auth.target.tenantID, project)
 	if err != nil {
 		return out, err

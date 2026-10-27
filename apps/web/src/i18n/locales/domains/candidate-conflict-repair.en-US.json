@@ -30,6 +30,7 @@
  "candidate-conflict-repair.tool_help":"Only a currently available native tool with an explicit administrator conflict-repair capability can run this repair.",
  "candidate-conflict-repair.choose_tool":"Choose an opted-in native tool",
  "candidate-conflict-repair.tool_blocked":"Unavailable for conflict repair",
+ "candidate-conflict-repair.codex_blocked":"Codex does not support the required repair workspace",
  "candidate-conflict-repair.more_tools":"Load more tool configurations",
  "candidate-conflict-repair.create_help":"This creates one new task and its fixed preview. Review that preview and separately confirm Start; creation does not launch a run.",
  "candidate-conflict-repair.create":"Create repair task and preview",

@@ -57,8 +57,8 @@ type TaskDispatchPlan struct {
 }
 
 type TaskDispatchPreviewRequest struct {
-	CodexExecutionSelection *cc.Selection               `json:"codex_execution_selection,omitempty"`
-	ModelExecutionSelection *modelcontract.Selection    `json:"model_execution_selection,omitempty"`
+	CodexExecutionSelection *cc.Selection               `json:"codex_execution_selection,omitempty" wire:"nonnull"`
+	ModelExecutionSelection *modelcontract.Selection    `json:"model_execution_selection,omitempty" wire:"nonnull"`
 	ProjectID               string                      `json:"project_id"`
 	TaskID                  string                      `json:"task_id"`
 	ExpectedTaskVersion     int                         `json:"expected_task_version"`

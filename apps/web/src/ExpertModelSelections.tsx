@@ -1,10 +1,11 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
-import type {ExpertTeamRole, ModelSelection} from '../../../packages/contracts/src';
+import type {CodexSelection, ExpertTeamRole, ModelSelection} from '../../../packages/contracts/src';
 import {ModelExecutionPanel, type ModelChoice} from './ModelExecutionPanel';
 import {formatNumber, tr, useLocale} from './i18n';
 
 export type ExpertModelTask = {taskID: string; title: string; role: ExpertTeamRole};
-export type ExpertModelChoices = {scope: string; ready: boolean; selections: Record<string, ModelSelection | undefined>};
+export type ExpertModelChoices = {scope: string; ready: boolean; selections: Record<string, ModelSelection | undefined>; codexSelections: Record<string, CodexSelection | undefined>};
+export const expertModelPayload = (models: ExpertModelChoices | undefined, taskID: string) => models?.codexSelections[taskID] ? {codex_execution_selection:models.codexSelections[taskID]} : models?.selections[taskID] ? {model_execution_selection:models.selections[taskID]} : {};
 const t = (key: string, values?: Record<string, unknown>) => tr('expert-model.' + key, values);
 const roleScope = (role: ExpertTeamRole) => JSON.stringify([role.key, role.tool_profile_id, role.tool_profile_version, role.tool_profile_sha256]);
 const taskScope = (task: ExpertModelTask) => JSON.stringify([task.taskID, roleScope(task.role)]);
@@ -36,13 +37,14 @@ function ScopedSelections({project, tasks, scope, disabled, onChange}: {
     return [...result.entries()];
   }, [scope]);
   useEffect(() => {
-    const selections: ExpertModelChoices['selections'] = {};
+    const selections: ExpertModelChoices['selections'] = {}, codexSelections: ExpertModelChoices['codexSelections'] = {};
     const ready = tasks.length > 0 && tasks.every(task => {
       const choice = overrides[taskScope(task)] ? individual[taskScope(task)] : shared[roleScope(task.role)];
       selections[task.taskID] = choice?.selection;
+      codexSelections[task.taskID] = choice?.codexSelection;
       return choice?.ready === true;
     });
-    onChange({scope, ready, selections});
+    onChange({scope, ready, selections, codexSelections});
   }, [scope, shared, individual, overrides, onChange]);
   const sharedChoice = useCallback((key: string, value: ModelChoice) => setShared(current => ({...current, [key]: value})), []);
   const taskChoice = useCallback((key: string, value: ModelChoice) => setIndividual(current => ({...current, [key]: value})), []);

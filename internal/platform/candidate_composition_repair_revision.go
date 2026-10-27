@@ -22,7 +22,7 @@ type candidateRepairRevisionRecord struct {
 }
 
 func repairDefinitionDigest(p CandidateCompositionPlan) string {
-	return digest(stringify(map[string]any{"id": p.ID, "project_id": p.ProjectID, "task_id": p.TaskID, "task_version": p.TaskVersion, "task_basis": p.TaskBasisSHA256, "workflow_id": p.WorkflowID, "workflow_version": p.WorkflowVersion, "producer": p.ProducerNodeID, "workflow": p.Workflow, "route": p.ExecutionRoute, "strategy": p.Strategy, "base": p.AdminBaseCommit, "sources_sha256": p.SourcesSHA256, "sources": p.Sources, "conflict": p.ConflictBasis, "tool_id": p.ToolProfileID, "tool_version": p.ToolProfileVersion, "tool_sha256": p.ToolProfileSHA256, "fixed_timestamp": p.FixedTimestamp, "operation_id": p.OperationID}))
+	return digest(stringify(map[string]any{"id": p.ID, "project_id": p.ProjectID, "task_id": p.TaskID, "task_version": p.TaskVersion, "task_basis": p.TaskBasisSHA256, "context": p.Context, "workflow_id": p.WorkflowID, "workflow_version": p.WorkflowVersion, "producer": p.ProducerNodeID, "workflow": p.Workflow, "model_execution": p.ModelExecution, "route": p.ExecutionRoute, "strategy": p.Strategy, "base": p.AdminBaseCommit, "sources_sha256": p.SourcesSHA256, "sources": p.Sources, "conflict": p.ConflictBasis, "tool_id": p.ToolProfileID, "tool_version": p.ToolProfileVersion, "tool_sha256": p.ToolProfileSHA256, "fixed_timestamp": p.FixedTimestamp, "operation_id": p.OperationID}))
 }
 
 func (s *Service) candidateRepairRevisionTx(ctx context.Context, tx governanceQuery, tenant, project, id string) (out candidateRepairRevisionRecord, found bool, err error) {
@@ -360,6 +360,13 @@ func (s *Service) ReviseCandidateCompositionRepair(ctx context.Context, engine *
 	if err != nil {
 		return out, err
 	}
+	if !candidateConflictRepairProfile(profile.Profile) {
+		return out, compositionError(409, "repair_profile", compositionRepairProfile)
+	}
+	modelBinding, err := s.buildModelExecutionTx(ctx, auth.tx, auth.target.tenantID, project, profile, req.ModelExecutionSelection)
+	if err != nil {
+		return out, err
+	}
 	clock, err := s.automationClock(ctx, auth.tx)
 	if err != nil {
 		return out, err
@@ -383,6 +390,7 @@ func (s *Service) ReviseCandidateCompositionRepair(ctx context.Context, engine *
 	out.ToolProfileID = req.ToolProfileID
 	out.ToolProfileVersion = req.ExpectedToolVersion
 	out.ToolProfileSHA256 = profile.Profile.ProfileSHA256
+	out.ModelExecution = modelBinding
 	out.CreatedAt = automationStamp(clock)
 	out.ExpiresAt = automationStamp(clock.Add(30 * time.Minute))
 	out.FixedTimestamp = clock.UTC().Format(time.RFC3339Nano)

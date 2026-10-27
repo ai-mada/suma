@@ -6,16 +6,18 @@ import {formatNumber, tr, UiError, useLocale} from './i18n';
 import {ErrorNotice, Field, Loading} from './ui';
 import {bindingPresent, modelOptionsPath, modelSelection, validModelOptions, type ModelDraft, type ModelScope} from './model-execution-model';
 import './ModelExecutionPanel.css';
-import {CodexModelExecutionPanel} from './CodexModelExecutionPanel';
+import {CodexModelExecutionPanel, CodexModelExecutionSelector} from './CodexModelExecutionPanel';
+import {validCodexCatalog} from './codex-execution-model';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('model-execution.' + key, values);
-export type ModelChoice = {selection?: ModelSelection; codexSelection?: CodexSelection; ready: boolean};
-type Props = {scope: ModelScope; supported: boolean; discover?: boolean; codex?: boolean; disabled: boolean; onChange: (value: ModelChoice) => void};
+export type ModelChoice = {ready: boolean} & ({selection?: ModelSelection; codexSelection?: never} | {selection?: never; codexSelection?: CodexSelection});
+type Props = {scope: ModelScope; supported: boolean; discover?: boolean; codex?: boolean; allowCodex?: boolean; disabled: boolean; onChange: (value: ModelChoice) => void};
 /** A current scoped read, never a model health probe or a dispatch action. */
 export function ModelExecutionPanel(props: Props) {
-  return props.codex ? <CodexModelExecutionPanel scope={props.scope} disabled={props.disabled} onChange={props.onChange}/> : <NativeModelExecutionPanel {...props}/>;
+  const key=JSON.stringify(props.scope);
+  return props.codex ? <CodexModelExecutionPanel key={key} scope={props.scope} disabled={props.disabled} onChange={props.onChange}/> : <NativeModelExecutionPanel key={key} {...props}/>;
 }
-function NativeModelExecutionPanel({scope, supported, discover = false, disabled, onChange}: Props) {
+function NativeModelExecutionPanel({scope, supported, discover = false, allowCodex = true, disabled, onChange}: Props) {
   const api = useApi(); useLocale(); const id = useId();
   const [read, setRead] = useState<{api:typeof api;path:string;value:ModelExecutionOptions}>(), [error, setError] = useState<unknown>(), [loading, setLoading] = useState(false), [refresh, setRefresh] = useState(0);
   const [draft, setDraft] = useState<ModelDraft>({deployment: '', steps: '8', output: '4096', tokens: '', cost: ''});
@@ -28,14 +30,14 @@ function NativeModelExecutionPanel({scope, supported, discover = false, disabled
     setLoading(true);
     void api<ModelExecutionOptions>(path, undefined, 'GET', undefined, abort.signal).then(value => {
       if (abort.signal.aborted) return;
-      if (!validModelOptions(value, scope)) throw new UiError('model-execution.invalid_options');
+      if (!validModelOptions(value, scope) || value.codex_supported && (value.supported || !validCodexCatalog(value.codex_catalog))) throw new UiError('model-execution.invalid_options');
       setRead({api,path,value});
     }).catch(reason => {if (!abort.signal.aborted) setError(reason);}).finally(() => {if (!abort.signal.aborted) setLoading(false);});
     return () => abort.abort();
   }, [api, path, supported, discover, refresh]);
   const selection = page && modelSelection(page, draft);
-  useEffect(() => {onChange({selection, ready: !supported && !discover || !loading && !error && (!!selection || !supported && discover && page?.supported === false && !page.codex_supported)});}, [supported, discover, page, draft, loading, error, onChange]);
-  if (discover && page?.codex_supported) return <p className="muted">{tr('codex-execution.team_pending')}</p>;
+  useEffect(() => {if (discover && allowCodex && page?.codex_supported) return;onChange({selection, ready: !supported && !discover || !loading && !error && (!!selection || !supported && discover && page?.supported === false && !page.codex_supported)});}, [supported, discover, allowCodex, page, draft, loading, error, onChange]);
+  if (discover && page?.codex_supported) return allowCodex ? <CodexModelExecutionSelector catalog={page.codex_catalog} disabled={disabled} onChange={onChange} onRefresh={()=>setRefresh(n=>n+1)}/> : <p role="status" className="muted">{t('codex_not_supported')}</p>;
   if (!supported && (!discover || page?.supported === false)) return <p className="muted">{t('fixed_tool')}</p>;
   const item = page?.items.find(item => item.deployment.deployment_sha256 === draft.deployment);
   return <section className="model-execution" aria-labelledby={id} aria-busy={loading}>

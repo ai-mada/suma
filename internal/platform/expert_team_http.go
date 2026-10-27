@@ -102,6 +102,18 @@ func (s *Server) expertTeamHTTP(w http.ResponseWriter, r *http.Request, actor Ac
 		}
 		return true
 	}
+	if r.Method == http.MethodPost && (len(parts) == 1 || len(parts) == 3 && parts[2] == "commands" && m["action"] == "revise") {
+		if items, ok := m["items"].([]any); ok {
+			for _, raw := range items {
+				if item, ok := raw.(map[string]any); ok {
+					if err := validateModelSelectionFields(item); err != nil {
+						writeError(w, err)
+						return true
+					}
+				}
+			}
+		}
+	}
 	switch {
 	case listing:
 		out, err := s.Service.ListExpertTeamPlans(r.Context(), s.Engine, actor, project, pageLimit, values.Get("before"))

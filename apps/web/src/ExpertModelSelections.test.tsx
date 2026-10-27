@@ -29,3 +29,16 @@ it('does not inherit a choice across changed role/tool versions and preserves la
  await render();await choose(0,first);await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('模型与本次额度');expect(changed.mock.lastCall?.[0].ready).toBe(true);
  await render(tasks.map(task=>({...task,role:{...role,tool_profile_version:3}})));expect(changed.mock.lastCall?.[0].ready).toBe(false);expect(host.querySelector('[data-model-select]')).toBeNull();
 });
+it('discovers Codex once per role and keeps model, effort and notices separate for explicit task overrides',async()=>{
+ const catalog={protocol:'codex-app-server-v1',configuration_sha256:sha,catalog_sha256:first,models:[{model:'codex-a',reasoning_efforts:['high','low'],default_reasoning_effort:'low'}]};
+ vi.stubGlobal('fetch',vi.fn(async()=>Response.json({...options(),supported:false,items:[],codex_supported:true,codex_catalog:catalog})));
+ await render();expect(fetch).toHaveBeenCalledTimes(1);expect(host.querySelector('[data-codex-model]')).not.toBeNull();
+ await act(async()=>{const select=host.querySelector<HTMLSelectElement>('[data-codex-model]')!;select.value='codex-a';select.dispatchEvent(new Event('change',{bubbles:true}));});await settle();
+ expect(changed.mock.lastCall?.[0]).toMatchObject({ready:true,selections:{'task-a':undefined},codexSelections:{'task-a':{model:'codex-a',reasoning_effort:'low',catalog_sha256:first},'task-b':{model:'codex-a',reasoning_effort:'low'}}});
+ await act(async()=>host.querySelector<HTMLInputElement>('[data-expert-model-task="task-b"] input')!.click());await settle();
+ expect(fetch).toHaveBeenCalledTimes(2);expect(changed.mock.lastCall?.[0].ready).toBe(false);
+ await act(async()=>{const select=host.querySelectorAll<HTMLSelectElement>('[data-codex-model]')[1];select.value='codex-a';select.dispatchEvent(new Event('change',{bubbles:true}));});await settle();
+ await act(async()=>{const select=host.querySelectorAll<HTMLSelectElement>('[data-codex-effort]')[1];select.value='high';select.dispatchEvent(new Event('change',{bubbles:true}));});await settle();
+ expect(changed.mock.lastCall?.[0].codexSelections['task-b'].reasoning_effort).toBe('high');expect(changed.mock.lastCall?.[0].codexSelections['task-a'].reasoning_effort).toBe('low');
+ expect(host.querySelector('[data-model-token-budget]')).toBeNull();expect(host.textContent).toContain('does not attest');
+});

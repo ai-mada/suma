@@ -35,6 +35,7 @@
  "candidate-repair-revision.tool_help":"Choose a currently available native tool with administrator-enabled conflict repair.",
  "candidate-repair-revision.choose_tool":"Choose a native repair tool",
  "candidate-repair-revision.tool_blocked":"Unavailable for conflict repair",
+ "candidate-repair-revision.codex_blocked":"Codex does not support the required repair workspace",
  "candidate-repair-revision.more_tools":"Load more tool configurations",
  "candidate-repair-revision.choose_producer":"Choose the repair agent",
  "candidate-repair-revision.current_route":"Current project execution route",

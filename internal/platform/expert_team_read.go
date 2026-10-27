@@ -208,5 +208,8 @@ func (s *Service) checkExpertTeamPreviewReadTx(ctx context.Context, auth *author
 	if err = s.checkDispatchProfileRouteTx(ctx, auth.tx, auth.target.tenantID, plan.ProjectID, profile, route); err != nil {
 		return err
 	}
-	return s.validateModelExecutionPlanTx(ctx, auth.tx, auth.target.tenantID, plan.ProjectID, profile, plan)
+	if err = s.validateModelExecutionPlanTx(ctx, auth.tx, auth.target.tenantID, plan.ProjectID, profile, plan); err != nil {
+		return err
+	}
+	return s.validateCodexExecutionPlanTx(ctx, auth.tx, auth.target.tenantID, plan.ProjectID, profile, plan)
 }

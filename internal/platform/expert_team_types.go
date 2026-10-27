@@ -1,6 +1,9 @@
 package platform
 
-import "github.com/ai-mada/suma/internal/modelcontract"
+import (
+	"github.com/ai-mada/suma/internal/codexcontract"
+	"github.com/ai-mada/suma/internal/modelcontract"
+)
 
 type ExpertTeamRoleRequest struct {
 	Key                     string                      `json:"key"`
@@ -76,7 +79,8 @@ type ExpertTeamPlanItemRequest struct {
 	TaskID                  string                   `json:"task_id"`
 	ExpectedTaskVersion     int                      `json:"expected_task_version"`
 	RoleKey                 string                   `json:"role_key"`
-	ModelExecutionSelection *modelcontract.Selection `json:"model_execution_selection,omitempty"`
+	ModelExecutionSelection *modelcontract.Selection `json:"model_execution_selection,omitempty" wire:"nonnull"`
+	CodexExecutionSelection *codexcontract.Selection `json:"codex_execution_selection,omitempty" wire:"nonnull"`
 }
 
 type ExpertTeamPlanCreateRequest struct {

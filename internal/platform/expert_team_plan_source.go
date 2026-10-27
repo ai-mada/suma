@@ -35,7 +35,7 @@ func (s *Service) expertTeamSourceItemTx(ctx context.Context, engine *dag.Engine
 	if len(blockers) != 0 {
 		return out, expertError("expert_team_ineligible", expertTask)
 	}
-	snapshot, err := s.buildTaskDispatchSnapshotWithSourceTx(ctx, engine, auth, auth.target.projectID, TaskDispatchPreviewRequest{ProjectID: auth.target.projectID, TaskID: task.ID, ExpectedTaskVersion: task.Version, WorkflowID: role.WorkflowID, WorkflowVersion: role.WorkflowVersion, AgentNodeID: role.AgentNodeID, ToolProfileID: role.ToolProfileID, ExpectedToolVersion: role.ToolProfileVersion, Knowledge: role.Knowledge, ModelExecutionSelection: request.ModelExecutionSelection}, source)
+	snapshot, err := s.buildTaskDispatchSnapshotWithSourceTx(ctx, engine, auth, auth.target.projectID, TaskDispatchPreviewRequest{ProjectID: auth.target.projectID, TaskID: task.ID, ExpectedTaskVersion: task.Version, WorkflowID: role.WorkflowID, WorkflowVersion: role.WorkflowVersion, AgentNodeID: role.AgentNodeID, ToolProfileID: role.ToolProfileID, ExpectedToolVersion: role.ToolProfileVersion, Knowledge: role.Knowledge, ModelExecutionSelection: request.ModelExecutionSelection, CodexExecutionSelection: request.CodexExecutionSelection}, source)
 	if err != nil {
 		return out, err
 	}

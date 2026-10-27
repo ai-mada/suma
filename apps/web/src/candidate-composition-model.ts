@@ -2,6 +2,8 @@ import type {CandidateBinding,CandidateCompositionBaseline,CandidateCompositionO
 import type {RecordItem,Workflow} from './api';
 import {tr} from './i18n';
 import type {WriteRecoveryRequest} from './write-action';
+import {bindingPresent} from './model-execution-model';
+import {sameModelBinding} from './model-execution-input';
 
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 export const compositionID=(value:unknown):value is string=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,100}$/.test(value);
@@ -32,6 +34,7 @@ export function validCompositionPlan(value:unknown,project:string,task:string,id
   if(!value.sources.every((source,index)=>object(source)&&object(source.source)&&source.source.head_commit===heads[index]))return false;
  }
  if(value.repair_revision!=null&&(!value.conflict_basis||!validCompositionRepairRevision(value.repair_revision,String(value.id))))return false;
+ if(value.model_execution!=null){const node=value.workflow.nodes.find((node:unknown)=>object(node)&&node.id===value.producer_node_id);if(!value.conflict_basis||!bindingPresent(value.model_execution as CandidateCompositionPlan['model_execution'])||!object(node)||!object(node.config)||!sameModelBinding(node.config.model_execution,value.model_execution as NonNullable<CandidateCompositionPlan['model_execution']>))return false;}
  return value.state!=='accepted'||!!value.candidate;
 }
 export function validCompositionRepairRevision(value:unknown,planID:string):boolean{

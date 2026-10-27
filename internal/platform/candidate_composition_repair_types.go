@@ -3,24 +3,26 @@ package platform
 import (
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
+	"github.com/ai-mada/suma/internal/modelcontract"
 )
 
 // Revision requests select current published execution inputs. The task and
 // original sources are resolved from the protected reservation, never supplied.
 type CandidateCompositionRepairRevisionRequest struct {
-	ProjectID              string `json:"project_id"`
-	ExpectedVersion        int    `json:"expected_version"`
-	ExpectedTaskVersion    int    `json:"expected_task_version"`
-	ExpectedConflictSHA256 string `json:"expected_conflict_sha256"`
-	WorkflowID             string `json:"workflow_id"`
-	WorkflowVersion        int    `json:"workflow_version"`
-	ProducerNodeID         string `json:"producer_node_id"`
-	ToolProfileID          string `json:"tool_profile_id"`
-	ExpectedToolVersion    int    `json:"expected_tool_version"`
-	ExpectedRecoverySHA256 string `json:"expected_recovery_sha256,omitempty"`
-	Reason                 string `json:"reason"`
-	Acknowledge            bool   `json:"acknowledge"`
-	IdempotencyKey         string `json:"idempotency_key"`
+	ModelExecutionSelection *modelcontract.Selection `json:"model_execution_selection,omitempty" wire:"nonnull"`
+	ProjectID               string                   `json:"project_id"`
+	ExpectedVersion         int                      `json:"expected_version"`
+	ExpectedTaskVersion     int                      `json:"expected_task_version"`
+	ExpectedConflictSHA256  string                   `json:"expected_conflict_sha256"`
+	WorkflowID              string                   `json:"workflow_id"`
+	WorkflowVersion         int                      `json:"workflow_version"`
+	ProducerNodeID          string                   `json:"producer_node_id"`
+	ToolProfileID           string                   `json:"tool_profile_id"`
+	ExpectedToolVersion     int                      `json:"expected_tool_version"`
+	ExpectedRecoverySHA256  string                   `json:"expected_recovery_sha256,omitempty"`
+	Reason                  string                   `json:"reason"`
+	Acknowledge             bool                     `json:"acknowledge"`
+	IdempotencyKey          string                   `json:"idempotency_key"`
 }
 
 type CandidateCompositionRepairRecoveryAttempt struct {
@@ -107,6 +109,7 @@ type CandidateCompositionRepairDraft struct {
 }
 
 type CandidateCompositionRepairCreateRequest struct {
+	ModelExecutionSelection    *modelcontract.Selection        `json:"model_execution_selection,omitempty" wire:"nonnull"`
 	ProjectID                  string                          `json:"project_id"`
 	ExpectedCompositionVersion int                             `json:"expected_composition_version"`
 	ExpectedConflictSHA256     string                          `json:"expected_conflict_sha256"`

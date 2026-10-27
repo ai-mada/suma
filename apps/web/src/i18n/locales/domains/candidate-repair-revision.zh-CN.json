@@ -35,6 +35,7 @@
  "candidate-repair-revision.tool_help":"选择当前可用且管理员已明确启用冲突修复能力的原生工具。",
  "candidate-repair-revision.choose_tool":"选择原生修复工具",
  "candidate-repair-revision.tool_blocked":"不可用于冲突修复",
+ "candidate-repair-revision.codex_blocked":"Codex 尚不支持修复所需的专用工作区",
  "candidate-repair-revision.more_tools":"加载更多工具配置",
  "candidate-repair-revision.choose_producer":"选择修复 Agent",
  "candidate-repair-revision.current_route":"当前项目执行路由",

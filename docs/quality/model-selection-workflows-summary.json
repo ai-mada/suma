@@ -1,0 +1,237 @@
+{
+  "stage": "T-MODEL-102",
+  "product_version": "1.0.0",
+  "status": "bounded_local_verification_passed",
+  "verified_at": "2026-10-27T23:41:09.394976+00:00",
+  "scope": [
+    "per-item native/Codex expert selections and explicit unstarted revisions",
+    "native conflict-repair create/revise model, parameters and attempt budget",
+    "same frozen plan/workflow binding and current authority/catalog gates",
+    "strict nonnull/canonical request contracts and original-operation recovery"
+  ],
+  "new_model_calls": 0,
+  "new_actual_cli_calls": 0,
+  "new_vendor_calls": 0,
+  "new_dependencies": 0,
+  "new_database_tables": 0,
+  "active_user_database_modified": false,
+  "active_user_preview_modified": false,
+  "production_integration_complete": false,
+  "backend_receipts": [
+    {
+      "path": ".cache/e2e/expert-codex-102/backend/evidence.json",
+      "bytes": 10164,
+      "sha256": "740af0f729bba360e3418905aef105dfa2359e9820643f043e1bfe639b196b41"
+    },
+    {
+      "path": ".cache/e2e/expert-codex-102/repair/verification.json",
+      "bytes": 8351,
+      "sha256": "4f3a3a580780fd9182d00e3517bb4c4ec8e54e5e9c4daf0ee8b7b65a320d4858"
+    }
+  ],
+  "shared_final_checks": [
+    {
+      "arguments": [
+        "test",
+        "./cmd/suma-contracts",
+        "-run",
+        "^TestModelSelectionRequestsMatchNonNullHTTPContract$",
+        "-count=1",
+        "-v"
+      ],
+      "exit_code": 0,
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261027T232552640Z.command.json",
+        "bytes": 1407,
+        "sha256": "4fd218b984e71b9af7bc1f61913f56eccd9eb00a2cdb2e0c83be045b6cd62200"
+      },
+      "stdout_sha256": "6c7b7596e58349f8a11e8cff1a15eec4e49c178bdfa83b59694427178b7bb1a1",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^(TestModelSelectionWireRejectsCaseAliasesBeforePointerDecoding|TestModelSelectionWireCanonicalNestedKeys)$",
+        "-count=1",
+        "-v",
+        "-timeout",
+        "30s"
+      ],
+      "exit_code": 0,
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261027T233009907Z.command.json",
+        "bytes": 1490,
+        "sha256": "0280801bc2555decc74f563adad8e91b811ae931bce5ac4f509972ab0ec6734f"
+      },
+      "stdout_sha256": "e4b72983b89901bfa6b8e4514bad2c76bda8f5db378605b306debfb5755a31b3",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "arguments": [
+        "vet",
+        "./internal/platform",
+        "./internal/cli",
+        "./cmd/suma-contracts"
+      ],
+      "exit_code": 0,
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261027T233742178Z.command.json",
+        "bytes": 1355,
+        "sha256": "2329e0453faeb2470e5fe12e4c527f36461c2dd8d3cd14844bcfdc20f4149629"
+      },
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "arguments": [
+        "run",
+        "./cmd/suma-contracts",
+        "-check"
+      ],
+      "exit_code": 0,
+      "receipt": {
+        "path": ".cache/mcp019-deps/20261027T233749429Z.command.json",
+        "bytes": 1319,
+        "sha256": "5d9405dbfb29873941a2d256a0ad962f68850be620918cdbcaed7439273d86d9"
+      },
+      "stdout_sha256": "8b305a62ad104434ba0b17866da6cfd4132f8b7515194f5d520811a163fc433b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "web_checks": {
+    "evidence_kind": "subagent tool-session receipts; no separate raw disk log",
+    "typescript": {
+      "exit_code": 0,
+      "tool_chunk": "3e2d0c"
+    },
+    "i18n": {
+      "exit_code": 0,
+      "paired_keys": 4612,
+      "production_hardcodes": 0,
+      "tool_chunk": "18619a"
+    },
+    "vitest_batches": [
+      {
+        "files": 10,
+        "passed": 46,
+        "seconds": 11.45,
+        "tool_chunk": "0420cf"
+      },
+      {
+        "files": 2,
+        "passed": 3,
+        "seconds": 1.05,
+        "tool_chunk": "ed5a83"
+      },
+      {
+        "files": 6,
+        "passed": 29,
+        "seconds": 8.16,
+        "tool_chunk": "fcc226"
+      }
+    ],
+    "distinct_test_files": 11,
+    "distinct_test_cases": 47,
+    "overlapping_counts_not_summed": true,
+    "intermediate_failures": "RED expectations, incorrect fixture GET/readback and nullable/union TypeScript issues corrected; one root module path failure executed no tests. Original tool-session outputs retained."
+  },
+  "gui": {
+    "evidence": {
+      "path": ".cache/e2e/expert-codex-102/gui/evidence.public.json",
+      "bytes": 7440,
+      "sha256": "6295f258c26f74bcea40435aea289a3d07a0c35f5ae48bbb280adf2302b6c36b"
+    },
+    "browser_receipt": {
+      "path": ".cache/e2e/expert-codex-102/browser/verified.local.json",
+      "bytes": 1332,
+      "sha256": "b81693b1e1722c850389b64e1dd59bd7b9eec570b74a97113fc0f48750db223b"
+    },
+    "kind": "real local Control/SQLite/browser with explicit owned protocol fixtures",
+    "schemas_per_database": 183,
+    "new_runs": 0,
+    "new_attempts": 0,
+    "new_reviews": 0,
+    "new_usage_attempts": 0,
+    "console_warnings_errors": 0,
+    "cn_en_drafts_and_refresh": true,
+    "started_or_activated": false,
+    "closed_normally": true,
+    "original_temp_databases_cleaned_after_public_export": true,
+    "screenshots": [
+      {
+        "path": ".cache/e2e/expert-codex-102/browser/expert-models-zh.png",
+        "bytes": 55425,
+        "sha256": "007ba2f0fdfb1f89c1e963dd5d8369e3eebd0f623eff2905370b3747c0d09d6f"
+      },
+      {
+        "path": ".cache/e2e/expert-codex-102/browser/repair-models-zh.png",
+        "bytes": 74529,
+        "sha256": "ff823714d85776335819edba5fea9dd0a1df97bddfc9335fe4320f9f6a10f4fb"
+      }
+    ]
+  },
+  "build": {
+    "manifest": {
+      "path": "dist/runtime/builds/20261027T233758260Z-d2f76321/manifest.json",
+      "bytes": 138828,
+      "sha256": "70834a614b93fdd1a97a2fb63e84c3555e1da52041b4219eb13b959e91f12ee2"
+    },
+    "production_inputs": 451,
+    "source_sha256": "9004ddb2fde03d86393ef0e54f1633f8d698042ac1dea22469fbdbf9e9460fa5",
+    "source_still_matches": true,
+    "target": "windows-amd64",
+    "artifacts": [
+      {
+        "name": "suma-control.exe",
+        "size_bytes": 37469696,
+        "sha256": "5e8a554542a63c7616f38da8963fbe4fba668ff937dd0570d20d09a5e75ff128"
+      },
+      {
+        "name": "suma-runner.exe",
+        "size_bytes": 19344896,
+        "sha256": "e595a4f5eb4f93973f57431c80e8be5040fd849c2e4ed1be2690d9e5879645e5"
+      },
+      {
+        "name": "suma-deployer.exe",
+        "size_bytes": 17378816,
+        "sha256": "085ad538bdfd0c5556b856c287a790622faebb0114e5d58560e64f9a44905ebc"
+      },
+      {
+        "name": "suma-repository-provider.exe",
+        "size_bytes": 17458176,
+        "sha256": "13d0cbd34f894254b16ef1299104f02da78cf36a24e53ff992b655a23b3c107e"
+      },
+      {
+        "name": "suma.exe",
+        "size_bytes": 14763520,
+        "sha256": "3f4068c25eb4904cf2d72b1913b4faa1a2ff7914b1843185fd8b1394aee61950"
+      }
+    ],
+    "web_build_log": {
+      "path": ".cache/e2e/expert-codex-102/web-build.log",
+      "bytes": 17483,
+      "sha256": "f5e93988c47e8ada50f47109749fc58ea0b224188f11be6e446d882c3ebf19f0"
+    },
+    "web_file_manifest": {
+      "path": ".cache/e2e/expert-codex-102/gui/web.files.public.json",
+      "bytes": 21207,
+      "sha256": "2f1971681572fed40f1dcc591ecebc4042e2f6a483d2a2d29fbfd8fdf9584d3e"
+    },
+    "not_installation_or_platform_acceptance": true
+  },
+  "limits": [
+    "Codex remains observe_only/configuration_ack_only; no provider-model attestation or hard budget",
+    "Codex conflict repair remains unsupported",
+    "No new actual CLI/provider inference; earlier041 evidence retains its original source scope",
+    "Physical multi-host, complete IDE, distributed databases, installers and full P0-P7/requirements1..22 remain active"
+  ],
+  "delivery": {
+    "repository": "git@github.com:ai-mada/suma.git",
+    "branch": "dev",
+    "baseline_commit": "2017b00f2851ebaeb70303aff5597cfa004952d6",
+    "force_push": false,
+    "tracked_scope": "Necessary source, contracts, design and compact summary only; raw receipts, screenshots, secrets, databases and binaries stay ignored."
+  }
+}
