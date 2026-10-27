@@ -9,13 +9,13 @@ import type {Session} from './api';
 const project='project-a',a:Session={user:{id:'a'.repeat(32),name:'A',email:'a@example.test'},organization:{id:'b'.repeat(32),name:'Org A'},projects:[]},b:Session={...a,user:{...a.user,id:'c'.repeat(32)}};
 let root:Root|undefined,host:HTMLDivElement,hook:WriteAction,writes:{body:any;headers:Headers}[],mode:'unknown'|'403'|'409'|'success';
 const scope=(session:Session)=>session.user.id+':'+session.organization.id+':'+project;
-function Harness({session=a,storage=sessionStorage}:{session?:Session;storage?:Pick<Storage,'getItem'|'setItem'|'removeItem'>}){
- hook=useWriteAction({scope:scope(session),storage,validateRequest:request=>request.path==='/project-knowledge'&&request.body.project_id===project});
+function Harness({session=a,storage=sessionStorage,validateResponse}:{session?:Session;storage?:Pick<Storage,'getItem'|'setItem'|'removeItem'>;validateResponse?:(value:unknown)=>boolean}){
+ hook=useWriteAction({scope:scope(session),storage,validateRequest:request=>request.path==='/project-knowledge'&&request.body.project_id===project,validateResponse});
  return <><WriteNotice action={hook}/><WriteFields action={hook}><input aria-label="draft" defaultValue="edited draft"/></WriteFields><WriteButton action={hook}>Write</WriteButton><output>{hook.unknown?'unknown':'known'}:{hook.pending?.idempotency_key}</output></>;
 }
 beforeEach(async()=>{await setLocale('en-US',{persist:false});sessionStorage.clear();writes=[];mode='unknown';vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);host=document.createElement('div');document.body.append(host);vi.stubGlobal('fetch',vi.fn(async(_input:string,init?:RequestInit)=>{writes.push({body:JSON.parse(String(init?.body)),headers:new Headers(init?.headers)});if(mode==='unknown')throw new TypeError('lost');if(mode==='403'||mode==='409')return Response.json({error:{code:'refused',message:'Current source is not allowed'}},{status:Number(mode)});return Response.json({id:'knowledge-a',version:1});}));});
 afterEach(async()=>{if(root)await act(async()=>root?.unmount());root=undefined;host.remove();await setLocale('zh-CN',{persist:false});vi.unstubAllGlobals();vi.restoreAllMocks();});
-async function render(session=a,storage:Pick<Storage,'getItem'|'setItem'|'removeItem'>=sessionStorage){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={session}><Harness session={session} storage={storage}/></ApiViewProvider>);});}
+async function render(session=a,storage:Pick<Storage,'getItem'|'setItem'|'removeItem'>=sessionStorage,validateResponse?:(value:unknown)=>boolean){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={session}><Harness session={session} storage={storage} validateResponse={validateResponse}/></ApiViewProvider>);});}
 async function run(body:Record<string,unknown>={project_id:project,title:'original body',content:'raw {{text}}'} ){let result:unknown;await act(async()=>{result=await hook.run('/project-knowledge',body);});return result;}
 
 it.each(['403','409'] as const)('retains the exact unknown operation and original view after Provider replacement and %s',async(refusal)=>{
@@ -45,4 +45,17 @@ it('keeps scoped recovery when a late success arrives after view change and unmo
  const original=structuredClone(sent[0]);await render(b);await act(async()=>root!.unmount());root=undefined;
  await act(async()=>{finish(Response.json({id:'a-result',version:1}));await request;});expect(await request).toBeUndefined();expect(sessionStorage.getItem('suma-write-recovery-v1:'+scope(a))).not.toBeNull();
  await render(a);expect(hook.pending).toBeDefined();expect(await run({project_id:project,title:'new text must not replace recovery'})).toMatchObject({id:'a-result'});expect(sent[1]).toEqual(original);expect(hook.pending).toBeUndefined();expect(sessionStorage.getItem('suma-write-recovery-v1:'+scope(a))).toBeNull();
+});
+
+it('retains malformed success as the original uncertain operation and validates the recovered response before clearing it',async()=>{
+ const valid=(value:unknown)=>!!value&&typeof value==='object'&&(value as {id?:unknown}).id==='knowledge-a';
+ mode='success';await render(a,sessionStorage,valid);vi.mocked(fetch).mockImplementationOnce(async(_input,init)=>{writes.push({body:JSON.parse(String(init?.body)),headers:new Headers(init?.headers)});return Response.json({unrelated:'not the created record'});});
+ expect(await run()).toBeUndefined();expect(hook.unknown).toBe(true);expect(hook.pending).toBeDefined();expect(host.querySelector('input')?.matches(':disabled')).toBe(true);
+ const original=structuredClone(writes[0].body);expect(sessionStorage.getItem('suma-write-recovery-v1:'+scope(a))).not.toBeNull();
+ await act(async()=>root!.unmount());root=undefined;await render(a,sessionStorage,valid);
+ expect(await run({project_id:project,title:'must not replace original request'})).toMatchObject({id:'knowledge-a'});expect(writes).toHaveLength(2);expect(writes[1].body).toEqual(original);expect(hook.pending).toBeUndefined();
+});
+
+it('keeps the original response validator with an unknown operation across provider and validator changes',async()=>{
+ const original=(value:unknown)=>!!value&&typeof value==='object'&&(value as {id?:unknown}).id==='knowledge-a';await render(a,sessionStorage,original);await run();await render(b,sessionStorage,()=>false);mode='success';expect(await run()).toBeUndefined();expect(hook.pending).toBeDefined();await render(a,sessionStorage,original);expect(await run()).toMatchObject({id:'knowledge-a'});expect(writes).toHaveLength(2);expect(hook.pending).toBeUndefined();
 });

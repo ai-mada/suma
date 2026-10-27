@@ -65,6 +65,7 @@
   "usage-accounting.open_run": "查看来源运行",
   "usage-accounting.overrun": "上报用量已超过预留；实际用量仍记入账本，并可能阻止后续执行准入。",
   "usage-accounting.source.none": "来源：尚无完整用量证据。",
+  "usage-accounting.source.host_startup_proof": "已认证的执行启动前失败",
   "usage-accounting.source.tool_evidence": "来源：工具最终证据，不是厂商账单。",
   "usage-accounting.source.manual_confirmation": "来源：人工确认。原工具证据仍保留，此记录不冒充厂商上报。",
   "usage-accounting.source_details": "原始计数与固定来源",

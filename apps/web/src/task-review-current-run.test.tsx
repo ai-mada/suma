@@ -1,0 +1,53 @@
+// @vitest-environment jsdom
+import {act} from 'react';
+import {createRoot,type Root} from 'react-dom/client';
+import {afterEach,expect,it,vi} from 'vitest';
+import {App} from './App';
+import {setLocale} from './i18n';
+
+let root:Root|undefined,host:HTMLDivElement|undefined;
+afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host?.remove();vi.restoreAllMocks();vi.unstubAllGlobals();});
+
+// Opening acceptance is a fresh read, while an uncertain acceptance remains
+// the original operation. Neither event changes the reviewer's selected run.
+it('refreshes a completed linked run on opening review and retains an uncertain review verbatim',async()=>{
+ const project='review-current-project',taskID='review-current-task',runID='review-current-run',olderID='review-earlier-run';
+ const task={id:taskID,project_id:project,version:3,title:'Fixed review task',description:'Original task scope',status:'in_progress',run_id:runID,data:{},acceptance_criteria:['Independent candidate checks']};
+ let state='running',linkedReads=0,failWrite=true;
+ const writes:{path:string;body:Record<string,unknown>}[]=[];
+ const run=(id:string,runState:string)=>({id,project_id:project,task_id:taskID,workflow_name:'Independent candidate workflow',state:runState,nodes:[],version:4});
+ await setLocale('en-US',{persist:false});localStorage.clear();sessionStorage.clear();
+ history.replaceState(null,'','/?'+new URLSearchParams({project,view:'development',sub:'tasks',record:taskID}));
+ host=document.createElement('div');document.body.append(host);vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
+  const path=new URL(String(input),location.href).pathname.replace(/^\/api\/v1/,'');
+  let value:unknown;
+  if(init?.body){writes.push({path,body:JSON.parse(String(init.body))});if(failWrite){failWrite=false;return Response.json({error:{code:'uncertain',message:'Original review acknowledgement unavailable'}},{status:500});}value={...task,status:'accepted',version:4};}
+  else if(path==='/auth/session')value={user:{id:'review-user',name:'Reviewer',email:'review@example.test',role:'owner'},organization:{id:'review-org',name:'Review organization'},projects:[{id:project,version:1,title:'Review project'}]};
+  else if(path==='/overview')value={counts:{tasks:1},activity:[]};
+  else if(path==='/tasks')value={items:[task],total:1};
+  else if(path==='/tasks/'+taskID)value=task;
+  else if(path==='/runs/'+runID){linkedReads++;value=run(runID,state);}
+  else if(path==='/runs')value={items:[run(runID,state),run(olderID,'succeeded')],total:2};
+  else if(['/requirements','/members'].includes(path))value={items:[],total:0};
+  else throw Error('Unexpected request '+path);
+  return Response.json(value);
+ }));
+ async function settle(ready:()=>boolean){for(let i=0;i<50;i++){await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});if(ready())return;}expect(ready()).toBe(true);}
+ await act(async()=>{root=createRoot(host!);root.render(<App/>);});
+ await settle(()=>linkedReads===1&&!!host?.querySelector('aside.detail-pane'));
+ state='succeeded';
+ const open=[...host!.querySelectorAll('button')].find(button=>button.textContent==='Review and accept');expect(open).toBeDefined();
+ await act(async()=>open!.click());
+ await settle(()=>linkedReads===2);
+ const select=document.querySelector<HTMLSelectElement>('[role=dialog] select[name=run_id]')!;
+ expect(select).not.toBeNull();expect(select.value).toBe(runID);
+ expect(select.options.namedItem(runID)?.textContent??[...select.options].find(option=>option.value===runID)?.textContent).toContain('Succeeded');
+ await act(async()=>{select.value=olderID;select.dispatchEvent(new Event('change',{bubbles:true}));const reason=document.querySelector<HTMLTextAreaElement>('[role=dialog] textarea[name=reason]')!;reason.value='Independent tests reviewed; preserve this exact selection.';reason.dispatchEvent(new Event('input',{bubbles:true}));document.querySelector('[role=dialog] form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));});
+ await settle(()=>writes.length===1&&!!document.querySelector('[role=dialog] fieldset[disabled]'));
+ expect(writes[0].body.run_id).toBe(olderID);expect(writes[0].path).toBe('/tasks/'+taskID+'/review');
+ state='failed';
+ await act(async()=>document.querySelector('[role=dialog] form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
+ await settle(()=>writes.length===2);
+ expect(writes[1]).toEqual(writes[0]);expect(writes[1].body.idempotency_key).toBeTruthy();
+});

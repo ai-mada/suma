@@ -187,6 +187,11 @@ func (j *Journal) Finish(r Result) error {
 		r.OperationID = operationID()
 	}
 	previous := e
+	if r.StartupFailure != nil {
+		proof := *r.StartupFailure
+		proof.Profile = tc.CloneProfile(proof.Profile)
+		r.StartupFailure = &proof
+	}
 	if r.ToolEvidence != nil {
 		copied := *r.ToolEvidence
 		copied.Profile = tc.CloneProfile(copied.Profile)
@@ -372,6 +377,11 @@ func (j *Journal) Pending() []Result {
 	for _, e := range j.entries {
 		if !e.Acked && e.Result != nil {
 			copy := *e.Result
+			if copy.StartupFailure != nil {
+				proof := *copy.StartupFailure
+				proof.Profile = tc.CloneProfile(proof.Profile)
+				copy.StartupFailure = &proof
+			}
 			if copy.ToolEvidence != nil {
 				evidence := *copy.ToolEvidence
 				evidence.Profile = tc.CloneProfile(evidence.Profile)

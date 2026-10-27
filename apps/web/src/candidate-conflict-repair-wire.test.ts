@@ -22,3 +22,9 @@ it('reads the actual repair strategy only with its complete fixed basis and reje
  ])expect(validRepairPlan(invalid,project,original)).toBe(false);
  expect(validRepairPlan(captured,project,'different-original')).toBe(false);
 });
+
+it('rejects malformed revision lineage rather than treating an old plan as the current repair head',()=>{
+ const lineage={root_plan_id:captured.id,parent_plan_id:'',ordinal:1,current_head_plan_id:captured.id,is_current:true,reason:'Initial repair plan observed before explicit revision',created_at:'2026-10-27T01:00:00Z',definition_sha256:'a'.repeat(64),creator_kind:'browser',creator_principal_id:'fixture-author',observed:true};
+ expect(validCompositionPlan({...captured,repair_revision:lineage},captured.project_id,captured.task_id)).toBe(true);
+ for(const invalid of [{...lineage,ordinal:0},{...lineage,current_head_plan_id:'other-head'},{...lineage,creator_kind:'browser',creator_principal_id:''},{...lineage,definition_sha256:''}])expect(validCompositionPlan({...captured,repair_revision:invalid},captured.project_id,captured.task_id)).toBe(false);
+});

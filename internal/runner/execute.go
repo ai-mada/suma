@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
+	ec "github.com/ai-mada/suma/internal/executioncontract"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	"io"
@@ -195,7 +196,15 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		return executeExternal(ctx, a, cfg)
 	}
 	r := Result{Assignment: a, ExitCode: -1}
-	fail := func(e string) Result { r.Error = e; return r }
+	var startupProfile *tc.Profile
+	beforeWorkspace := true
+	fail := func(e string) Result {
+		r.Error = e
+		if startupProfile != nil && beforeWorkspace {
+			r.StartupFailure = &ec.StartupFailureProof{Protocol: ec.StartupFailureProtocol, Stage: "before_workspace", Assignment: candidateRef(a), Profile: *startupProfile, Purpose: "candidate_conflict_repair"}
+		}
+		return r
+	}
 	if !cfg.AllowExec {
 		return fail("execution disabled: set --allow-exec with a command allowlist")
 	}
@@ -269,6 +278,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if purposeErr != nil {
 		return fail(purposeErr.Error())
 	}
+	if a.CandidateConflictRepair != nil {
+		startupProfile = &profile
+	}
 	if spec.ArtifactInput {
 		binding, resolveErr := resolveArtifact(ctx, a, cfg)
 		if resolveErr != nil {
@@ -290,6 +302,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	}
 	var workspace *attemptWorkspace
 	if !spec.ReadOnly {
+		// Entering preparation can create private Git/filesystem state even
+		// when it returns an error. Only failures before this call certify it.
+		beforeWorkspace = false
 		workspace, err = prepareWorkspace(ctx, a, cfg, spec)
 		if err != nil {
 			return fail(err.Error())

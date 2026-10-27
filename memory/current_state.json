@@ -2,15 +2,15 @@
   "project": "suma",
   "name": "速码一栈式智能研发平台",
   "phase": "implementation",
-  "updated_at": "2026-10-26T22:13:47.455023+00:00",
+  "updated_at": "2026-10-27T00:13:41.377303+00:00",
   "status": "in_progress",
   "plan": "docs/delivery/implementation-plan.md",
   "workstreams": {
     "control_dag": "shared_pools_bilateral_grants_immutable_task_run_routes_hierarchical_weighted_admission_and_atomic_pool_project_resources_locally_verified_distributed_capacity_pending",
     "runtime": "Native scoped attempt filesystem/Git/MCP SDK host, ordinary6 tools and explicitly opted-in repair8 tools, final precise prefix seal and independent exact-candidate tests locally verified. Full16-source real Git regression is separate from actual2-source journey; vendor inference, OS isolation, full installs and remote resume pending.",
     "workbench": "Compact CNEN task composition and protected code-baseline panels, frozen source order and real run/test/Review links locally verified including keyboard/current-language/refresh/cold readback. Full IDE and remaining visual/device acceptance continue.",
-    "architecture_documents": "032 PRD, domain/API/CLI contracts, native ordered Git repair, scoped recovery/storage/authority architecture, AI SOP and CNEN interaction guides plus bounded evidence index delivered. Complete P0-P7 remains active.",
-    "internationalization": "4269 paired frontend keys;55 closed native Go/SDK diagnostics. Candidate composition/repair, recovery, provenance, current no-change semantics, CLI/API metadata and actual CNEN/refresh/keyboard/cold readback verified. Literal user/code/evidence kept. Full surfaces/device/install/channel/production acceptance continues.",
+    "architecture_documents": "033 PRD/domain/API/CLI, versioned repair architecture, AI SOP, CNEN interaction/quality guides, English overview and compact actual evidence delivered; updated22-item scope and new official platform reference gaps retained.",
+    "internationalization": "4335 paired frontend keys;033 revision/startup/history current labels and system-observation explanation, CLI/API errors and actual CNEN/keyboard/refresh/final cold GUI verified. User text/code/immutable evidence preserved; complete platform locale coverage remains ongoing.",
     "identity_authority": "actual_primary013_to017_SQLite_upgrade_preserves129_legacy_table_columns14_credentials_unclassified_original_owner_normal_relogin_verified_API_Runner_Agent_reissue_still_required_cross_database_and_SSO_pending",
     "project_knowledge": "model_assisted fixed-source one-call proposals, immutable originals/editable drafts/manual adoption and publication lineage with atomic usage and live readonly receipt reconciliation locally verified; organization catalog/CLI/MCP preserved; actual vector/index providers, vendor inference and expert-squad strategies pending",
     "requirement_design": "versioned_product_experience_technical_design_and_task_proposals_reviewed_publication_delta_adoption_protected_bindings_fixed_run_and_acceptance_basis_verified_focused_and_actual_SQLite_UI_iteration_manual_model_and_full_UED_pending",
@@ -41,10 +41,10 @@
     "Primary027/1.0.0 normal255376/holder247864 exec63413; all164 oldschemas and fullrows unchanged,4newemptytables+2indexes->168,18authority0Grant/original login/tasks/run1failed2succeeded kept;127assets served exact. Old026exec2716 and all027 isolated UI/Runner/helpers closed0,source clones unchanged. Full platform remains active."
   ],
   "production_integration_complete": false,
-  "current_evidence": "docs/quality/candidate-conflict-repair-verification.md",
-  "stage": "T-P4-032_candidate_conflict_repair_integration",
+  "current_evidence": "docs/quality/candidate-repair-revisions-verification.md",
+  "stage": "T-P4-033_candidate_repair_revisions",
   "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
-  "next_step": "Continue the complete P0-P7 ledger: physical multi-host/vendor integration and governed distributed recovery, actual database/scale/production acceptance, remaining IDE, knowledge/memory/skills, collaboration, deployment/install/mobile/SaaS and channels. Reuse unchanged focused evidence; never replay unknown operations or treat this local milestone as the full platform.",
+  "next_step": "Continue complete P0-P7 and1..22: explainable governed capability/model selection and mature official CLI/platform adapters, full IDE, physical multi-host/unknown operation recovery, production databases/scale/SSO, knowledge/memory/skills, installations/mobile/channels/SaaS. Reuse unchanged evidence; local033 does not complete full goal.",
   "additional_requirements": [
     "FND-I18N-001: internationalization in every implemented surface; initially zh-CN/en-US, unified catalogs, preference/negotiation, formatting, API errors, CLI/desktop/extensions/notifications and docs; preserve user content and immutable evidence; coverage must be honestly verified",
     "Idea lifecycle, reusable function/menu governance, visual configuration, alerts and WeChat/DingTalk/WeCom channels remain full platform scope",
@@ -63,29 +63,34 @@
     "18: official SDK/API model and agent-platform adapters including OpenAI/Bailian/Coze/Dify/Pi, with current authorization, cost control and honest supported capability/verification boundaries",
     "19: WeChat/DingTalk/WeCom mobile messaging channels with current authorization, durable event delivery and explicit sending consent; not yet implemented",
     "20: independent mobile App (Flutter acceptable), shared identity/authorization/contracts, simple professional CNEN management UI, offline and notification boundaries; not yet implemented",
-    "2026-10-26 additional reference baseline: Multica README.zh.md and https://multica.ai/docs/zh read from official sources; capability mapping must distinguish source implementation, local verification and vendor/production acceptance"
+    "2026-10-26 additional reference baseline: Multica README.zh.md and https://multica.ai/docs/zh read from official sources; capability mapping must distinguish source implementation, local verification and vendor/production acceptance",
+    "21: intelligent, explainable selection of CLI/Agent/expert team/skills/models and dynamic parameters/rates based on complexity, quality, performance, capacity and cost; current permission/version/budget gates remain mandatory; full implementation pending",
+    "22: complete professional integrated development workbench and IDE, including terminal/LSP/DAP/Git/preview/collaboration; current Monaco/workspace foundation is not full IDE completion",
+    "New official references: OpenWorkBuddy2e76920dabc3ac057283148ccaa5f8dbb0489530/0.17.5 PolyFormNC1.0.0 and Octop890111b7879665840414ca28ab168b05b0db0921/1.0.3b1 MIT; reference review is not an integration claim"
   ],
   "verification_history": {
     "path": "memory/verification_history.json",
-    "entries": 91,
+    "entries": 92,
     "load_policy": "on demand; do not load during every startup"
   },
   "validation_policy": "Focused checks per changed behavior; reuse unchanged-input evidence; one full integration gate per milestone; representative UI verification only for changed interactions/layout. Preserve critical authority/transaction/migration/concurrency/idempotency checks. No redundant review, snapshots, logs or full-matrix reruns.",
-  "deployed_evidence": "docs/quality/failure-diagnosis-verification.md",
+  "deployed_evidence": "docs/quality/candidate-repair-revisions-verification.md",
   "primary_preview": {
-    "stage": "T-P4-032",
-    "revision": "candidate-conflict-repair-v1",
+    "stage": "T-P4-033",
+    "revision": "candidate-repair-revisions-v1",
     "url": "http://pool.localhost:4324/",
-    "control_pid": 233736,
-    "holder_pid": 212508,
-    "execution_session": 31937,
-    "launch_receipt": ".cache/e2e/candidate-conflict-repair-stage-032/primary-upgrade/control-launch.local.json",
-    "stop_protocol": ".cache/e2e/candidate-conflict-repair-stage-032/primary-upgrade/stop.request",
+    "control_pid": 187352,
+    "holder_pid": 237760,
+    "execution_session": 51039,
+    "launch_receipt": ".cache/e2e/candidate-repair-revisions-stage-033/primary-upgrade/control-launch.local.json",
+    "stop_protocol": ".cache/e2e/candidate-repair-revisions-stage-033/primary-upgrade/stop.request",
     "status": "normal_local_preview_not_production",
     "product_version": "1.0.0",
-    "source_sha256": "3114a23dd25d6ba42df20db1b1bb53ac1f3de48b076d037337a187741b04e148",
-    "control_sha256": "1e1f735a6a06152f9bf0f18d9484c63bf766c7904d7c903e8dd1499c7afe072a",
-    "web_index_sha256": "8a802f340ba22297b6d555acfa42e850c0752c14c6b67fefb541067d759b7a08"
+    "source_sha256": "32b90a2a564fcb0e7e40577e13abe2885a16dc0ec13dcab5feb2d77cb5c58d58",
+    "control_sha256": "4b22956e77698a189dceb58c11af998c6ad4dc7a268faa1ea9176be5aa6b3190",
+    "web_index_sha256": "cf059de98de9627fe5edf1ca2faa0e7bf15e375820e4ac149f2cf56d50c873d6",
+    "table_count": 186,
+    "prior_terminal_recovery": "Original032 Control/holder retained Windows objects were signaled terminal exit1; exact DB/WAL/SHM preserved and WAL-aware backup used before forward migration; no DB restore or old runtime restart."
   },
   "native020_progress": {
     "status": "locally_verified",
@@ -99,6 +104,7 @@
     "full_platform_status": "in_progress"
   },
   "goal_references": [
+    "C:/Users/Administrator/.codex/attachments/e130587c-7f03-4ba0-8884-c869a1d25274/pasted-text-1.txt",
     "C:/Users/Administrator/.codex/attachments/559d11fe-014c-4203-bb2b-b3aa0f3ad594/pasted-text-1.txt",
     "C:/Users/Administrator/.codex/attachments/4ba40bf9-b9f4-49a6-acca-7db39ce7dc20/pasted-text-1.txt",
     "C:/Users/Administrator/.codex/attachments/34ae3618-98af-4c30-9e8e-274cb13dca78/已粘贴的文本.txt",
@@ -302,5 +308,36 @@
     "actual_finance": "Only original organization/project token account aggregate deltas15to21/unresolved1to4 derive exactly3unreported attempts; known spent80/reserved0 unchanged.",
     "primary_preservation": "183 original full schemas/rows exact beforewarm;1newemptytable->184/noexplicitindex. Afterwarm only4current-authoritylocktables34 sequence counters+22; identities and all179nonlockfullrows exact,18authority0Grant/sessions/1failed2succeeded kept.",
     "local_commit_policy": "Commit only reviewed source/contracts/docs/compact evidence after these gates. Exact commit receipt lives in ignored stage cache; no push/cache/DB/log/credential/screenshot/binary staging."
+  },
+  "candidate_repair_revisions_progress": {
+    "status": "locally_verified",
+    "contract": "contracts/candidate-repair-revisions.md",
+    "evidence": "docs/quality/candidate-repair-revisions-verification.md",
+    "summary": "docs/quality/candidate-repair-revisions-summary.json",
+    "actual": ".cache/e2e/candidate-repair-revisions-stage-033/actual/audit-final2.local.json",
+    "actual_checks": 45,
+    "actual_new_runs": 3,
+    "formal_assertions": 4,
+    "explicit_user_authorized_fixture_owner_reviews": 1,
+    "candidate": "cd9c611ac90ea3531247ec2340b74b083bdc1ef4",
+    "downstream_unstarted": true,
+    "model_protocol_responses": 6,
+    "real_tools": 6,
+    "vendor_calls": 0,
+    "usage": "typed startup known0/unpriced; healthy native usage unreported, not zero",
+    "native_sdk_reused_exact_direct_and_actual_inputs": [
+      11,
+      161
+    ],
+    "source_redevelopment_or_retests": 0,
+    "CNEN_paired_frontend_keys": 4335,
+    "cold_readback": ".cache/e2e/candidate-repair-revisions-stage-033/cold-readback/closed.local.json",
+    "primary_warm": ".cache/e2e/candidate-repair-revisions-stage-033/primary-upgrade/warm-verification.local.json",
+    "production_acceptance": false,
+    "full_goal": "active; complete P0-P7 and numbered1..22 remain in scope"
+  },
+  "previous_goal_turn_classification": {
+    "classification": "progress",
+    "evidence": "033 source and shared contracts built; actual3run journey, independent4formal, explicitly user-authorized local Review/baseline,45 domain assertions, final CNEN cold readback and primary184to186 forward recovery/21 warm preservation checks completed. Full goal remains active."
   }
 }

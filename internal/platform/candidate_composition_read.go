@@ -66,7 +66,31 @@ func (s *Service) candidateCompositionProjectionTx(ctx context.Context, auth *au
 	if err != nil {
 		return out, err
 	}
+	currentRepair := true
+	if out.ConflictBasis != nil {
+		currentRepair, err = s.projectCandidateRepairLineageTx(ctx, auth, &out)
+		if err != nil {
+			return out, err
+		}
+		if !currentRepair {
+			out.Valid = false
+			out.Blockers = append(out.Blockers, compositionRepairHistorical)
+		} else if write {
+			r, e := s.candidateCompositionTx(ctx, auth.tx, auth.target.tenantID, out.ProjectID, out.ID)
+			if e != nil {
+				return out, e
+			}
+			if _, e = s.candidateRepairRevisionEligibilityTx(ctx, auth, r); e == nil {
+				out.AllowedActions = append(out.AllowedActions, "revise")
+			} else if !repositoryKnownError(e) {
+				return out, e
+			}
+		}
+	}
 	if out.RunID == "" {
+		if !currentRepair {
+			return out, nil
+		}
 		if out.State == "ready" {
 			if write {
 				out.AllowedActions = append(out.AllowedActions, "dismiss")

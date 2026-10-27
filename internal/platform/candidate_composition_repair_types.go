@@ -5,6 +5,69 @@ import (
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
 )
 
+// Revision requests select current published execution inputs. The task and
+// original sources are resolved from the protected reservation, never supplied.
+type CandidateCompositionRepairRevisionRequest struct {
+	ProjectID              string `json:"project_id"`
+	ExpectedVersion        int    `json:"expected_version"`
+	ExpectedTaskVersion    int    `json:"expected_task_version"`
+	ExpectedConflictSHA256 string `json:"expected_conflict_sha256"`
+	WorkflowID             string `json:"workflow_id"`
+	WorkflowVersion        int    `json:"workflow_version"`
+	ProducerNodeID         string `json:"producer_node_id"`
+	ToolProfileID          string `json:"tool_profile_id"`
+	ExpectedToolVersion    int    `json:"expected_tool_version"`
+	ExpectedRecoverySHA256 string `json:"expected_recovery_sha256,omitempty"`
+	Reason                 string `json:"reason"`
+	Acknowledge            bool   `json:"acknowledge"`
+	IdempotencyKey         string `json:"idempotency_key"`
+}
+
+type CandidateCompositionRepairRecoveryAttempt struct {
+	Assignment           cc.AssignmentRef `json:"assignment"`
+	ResultSHA256         string           `json:"result_sha256"`
+	StartupFailureSHA256 string           `json:"startup_failure_sha256"`
+}
+
+type CandidateCompositionRepairRecoveryBasis struct {
+	PlanID      string                                      `json:"plan_id"`
+	PlanVersion int                                         `json:"plan_version"`
+	TaskID      string                                      `json:"task_id"`
+	TaskVersion int                                         `json:"task_version"`
+	RunID       string                                      `json:"run_id"`
+	RunVersion  int                                         `json:"run_version"`
+	Attempts    []CandidateCompositionRepairRecoveryAttempt `json:"attempts"`
+	SHA256      string                                      `json:"sha256"`
+}
+
+type CandidateCompositionRepairRevisionContext struct {
+	ProjectID       string                                   `json:"project_id"`
+	PlanID          string                                   `json:"plan_id"`
+	PlanVersion     int                                      `json:"plan_version"`
+	TaskVersion     int                                      `json:"task_version"`
+	ConflictBasis   *CandidateCompositionConflictBasis       `json:"conflict_basis,omitempty"`
+	RecoveryBasis   *CandidateCompositionRepairRecoveryBasis `json:"recovery_basis,omitempty"`
+	EligibilityMode string                                   `json:"eligibility_mode"`
+	CanRevise       bool                                     `json:"can_revise"`
+	Blockers        []string                                 `json:"blockers"`
+}
+
+// Only this safe projection is public. The initiating credential reference and
+// token digest remain inside immutable execution records.
+type CandidateCompositionRepairRevisionLineage struct {
+	RootPlanID         string `json:"root_plan_id"`
+	ParentPlanID       string `json:"parent_plan_id"`
+	Ordinal            int    `json:"ordinal"`
+	CurrentHeadPlanID  string `json:"current_head_plan_id"`
+	IsCurrent          bool   `json:"is_current"`
+	Reason             string `json:"reason"`
+	CreatedAt          string `json:"created_at"`
+	DefinitionSHA256   string `json:"definition_sha256"`
+	CreatorKind        string `json:"creator_kind"`
+	CreatorPrincipalID string `json:"creator_principal_id"`
+	Observed           bool   `json:"observed"`
+}
+
 // ConflictBasis preserves one known failed attempt. It never represents sealed
 // code or a successful composition; a repair produces its own independent run.
 type CandidateCompositionConflictBasis struct {

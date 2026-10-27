@@ -248,6 +248,9 @@ func (s *Service) validateCandidateCompositionRepairTx(ctx context.Context, engi
 	if p.ConflictBasis == nil || p.State != "ready" || p.RunID != "" {
 		return compositionError(409, "changed", compositionChanged)
 	}
+	if err := s.requireCurrentCandidateRepairTx(ctx, auth.tx, auth.target.tenantID, p.ProjectID, p); err != nil {
+		return err
+	}
 	clock, err := s.automationClock(ctx, auth.tx)
 	if err != nil {
 		return err
@@ -272,7 +275,26 @@ func (s *Service) validateCandidateCompositionRepairTx(ctx context.Context, engi
 	if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT run_id FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`), auth.target.tenantID, p.ProjectID, p.TaskID).Scan(&run); err != nil {
 		return err
 	}
-	if run != "" || digest(stringify(current)) != p.TaskBasisSHA256 {
+	if digest(stringify(current)) != p.TaskBasisSHA256 {
+		return compositionError(409, "changed", compositionChanged)
+	}
+	lineage, found, err := s.candidateRepairRevisionTx(ctx, auth.tx, auth.target.tenantID, p.ProjectID, p.ID)
+	if err != nil {
+		return err
+	}
+	if found && lineage.RecoveryBasis != nil {
+		previous, e := s.candidateCompositionTx(ctx, auth.tx, auth.target.tenantID, p.ProjectID, lineage.RecoveryBasis.PlanID)
+		if e != nil {
+			return e
+		}
+		basis, e := s.candidateRepairRecoveryBasisTx(ctx, auth.tx, auth.target.tenantID, p.ProjectID, previous)
+		if e != nil {
+			return e
+		}
+		if basis.SHA256 != lineage.RecoveryBasis.SHA256 || run != basis.RunID {
+			return compositionError(409, "repair_recovery", compositionRepairRecovery)
+		}
+	} else if run != "" {
 		return compositionError(409, "changed", compositionChanged)
 	}
 	w, _, err := s.compositionRepairWorkflowTx(ctx, auth, p.ProjectID, p)

@@ -4,7 +4,15 @@
 
 当前是可运行的开发版本。功能与验证范围见 [交付状态](docs/delivery/status.md)，完整目标见 [实施计划](docs/delivery/implementation-plan.md)。
 
-## 阶段进展：冲突修复与受控恢复
+## 阶段进展：修复计划修订与运行溯源
+
+T-P4-033／1.0.0 已完成限定本地验证。修复任务支持新计划版本重选工具与流程；原冲突、来源顺序、失败运行及回执保留。只有宿主类型化证明的执行前失败可准备替代计划，未知或已发生效果的运行继续沿原操作核对。新计划仍须单独启动、独立测试和明确验收。
+
+实际复用已验收 A／X，完成待启动修订→真实启动前失败→明确切换至 B→A 独立测试准确候选 `cd9c611ac90ea3531247ec2340b74b083bdc1ef4`→经用户许可的隔离测试账号 Review→绑定仍未开始的 D。共3项新运行、4项正式检查、6次自有loopback模型协议响应和6次真实工具调用，无来源重复开发／复测，无厂商调用。启动证明准确记零Token且费用未定价；健康模型执行用量未报告，不推断为零。
+
+见[PRD](docs/product/candidate-repair-revisions.md)、[架构](docs/architecture/candidate-repair-revisions.md)、[AI SOP](docs/operations/candidate-repair-revisions.md)、[交互](docs/design/candidate-repair-revisions.md)、[CLI](contracts/candidate-repair-revisions-cli.md)、[限定验证](docs/quality/candidate-repair-revisions-verification.md)、[摘要](docs/quality/candidate-repair-revisions-summary.json)、[English](docs/en/candidate-repair-revisions.md)。真实厂商、多物理机器、分布式数据库／规模、完整IDE、智能工具／模型选择和完整P0–P7继续实施。
+
+## 历史进展：冲突修复与受控恢复
 
 T-P4-032／1.0.0 已完成限定本地验证。固定已验收来源发生真实冲突后，明确创建独立修复任务；原生工具完成有序合并与受控编辑，独立节点测试准确候选，再通过显式 Review 交接到未开始任务。已知失败可在原运行中受控重试，保留原尝试并生成新尝试与租约；结果未知、来源变化和非幂等节点保持门禁。
 

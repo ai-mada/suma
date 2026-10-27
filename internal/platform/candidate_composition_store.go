@@ -10,20 +10,24 @@ import (
 )
 
 const (
-	compositionInvalid       = "Invalid candidate composition request"
-	compositionChanged       = "Candidate composition changed; refresh the fixed preview"
-	compositionSource        = "Candidate composition source acceptance or candidate changed"
-	compositionTemplate      = "Candidate composition requires one producer and independent candidate tests"
-	compositionBase          = "Candidate composition sources do not share the administrator base"
-	compositionExpired       = "Candidate composition preview expired"
-	compositionAck           = "Explicit candidate composition acknowledgement required"
-	compositionAuthority     = "Candidate composition initiating credential is no longer authorized"
-	compositionBaseline      = "Code baseline changed or is no longer accepted"
-	compositionStarted       = "Code baseline requires an unstarted task"
-	compositionUnknown       = "Candidate composition requires recovery of the original run"
-	compositionConflict      = "Candidate composition requires a known exact conflict with complete Git evidence"
-	compositionRepairProfile = "Conflict repair requires an explicitly enabled native workspace tool profile"
-	compositionRepairTask    = "Conflict repair task must start through its fixed repair plan"
+	compositionInvalid          = "Invalid candidate composition request"
+	compositionChanged          = "Candidate composition changed; refresh the fixed preview"
+	compositionSource           = "Candidate composition source acceptance or candidate changed"
+	compositionTemplate         = "Candidate composition requires one producer and independent candidate tests"
+	compositionBase             = "Candidate composition sources do not share the administrator base"
+	compositionExpired          = "Candidate composition preview expired"
+	compositionAck              = "Explicit candidate composition acknowledgement required"
+	compositionAuthority        = "Candidate composition initiating credential is no longer authorized"
+	compositionBaseline         = "Code baseline changed or is no longer accepted"
+	compositionStarted          = "Code baseline requires an unstarted task"
+	compositionUnknown          = "Candidate composition requires recovery of the original run"
+	compositionConflict         = "Candidate composition requires a known exact conflict with complete Git evidence"
+	compositionRepairProfile    = "Conflict repair requires an explicitly enabled native workspace tool profile"
+	compositionRepairTask       = "Conflict repair task must start through its fixed repair plan"
+	compositionRepairHistorical = "Conflict repair plan was superseded; open its current reviewed revision"
+	compositionRepairRevision   = "Conflict repair revision requires a current ready plan or certified startup failure"
+	compositionRepairRecovery   = "Conflict repair recovery changed or requires reconciliation of the original run"
+	compositionRepairLimit      = "Conflict repair revision family reached its limit of 32 plans"
 )
 
 func compositionError(status int, code, message string) error {
@@ -43,6 +47,7 @@ func (s *Service) MigrateCandidateCompositions(ctx context.Context) error {
 		`CREATE TABLE IF NOT EXISTS suma_candidate_composition_executions(run_id VARCHAR(100) NOT NULL,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,plan_id VARCHAR(64) NOT NULL,node_id VARCHAR(150) NOT NULL,input_kind VARCHAR(24) NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(run_id,node_id))`,
 		`CREATE TABLE IF NOT EXISTS suma_task_code_baselines(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,binding TEXT NOT NULL,PRIMARY KEY(tenant_id,project_id,task_id))`,
 		`CREATE TABLE IF NOT EXISTS suma_candidate_composition_repair_sources(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,composition_id VARCHAR(64) NOT NULL,conflict_sha256 VARCHAR(64) NOT NULL,repair_plan_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,PRIMARY KEY(tenant_id,project_id,composition_id,conflict_sha256),UNIQUE(tenant_id,project_id,task_id))`,
+		`CREATE TABLE IF NOT EXISTS suma_candidate_composition_repair_revisions(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,root_plan_id VARCHAR(64) NOT NULL,plan_id VARCHAR(64) PRIMARY KEY,parent_plan_id VARCHAR(64),ordinal INTEGER NOT NULL,task_id VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,payload TEXT NOT NULL,UNIQUE(tenant_id,project_id,root_plan_id,ordinal),UNIQUE(tenant_id,project_id,parent_plan_id))`,
 	} {
 		if _, err := s.DB.ExecContext(ctx, s.ddl(ddl)); err != nil {
 			return err

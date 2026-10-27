@@ -275,6 +275,10 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	if count > 0 {
 		return nil
 	}
+	startupZero, e := s.CertifiedCandidateRepairStartupFailureTx(ctx, tx, ref.TenantID, ref.ProjectID, result)
+	if e != nil {
+		return e
+	}
 	old := record.Attempt.Version
 	a := &record.Attempt
 	previousUsage := a.Usage
@@ -292,6 +296,12 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	if result.ToolEvidence != nil {
 		a.Usage = result.ToolEvidence.Usage
 		a.UsageState = result.ToolEvidence.UsageState
+	}
+	if startupZero {
+		a.Usage = &toolcontract.Usage{InputTokens: usageInt(0), OutputTokens: usageInt(0)}
+		a.UsageState = toolcontract.UsageComplete
+		a.UsageSource = "host_startup_proof"
+		a.SourceRef = result.StartupFailure.Protocol + ":" + digest(stringify(result.StartupFailure))
 	}
 	// A later stop/reconciliation cannot erase counters previously reported by
 	// the same attempt. Keep the original facts and per-counter lower bounds.

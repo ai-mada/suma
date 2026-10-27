@@ -3,6 +3,7 @@ package dag
 import (
 	"errors"
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
+	ec "github.com/ai-mada/suma/internal/executioncontract"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
 	"github.com/ai-mada/suma/internal/toolcontract"
@@ -128,6 +129,7 @@ type Assignment struct {
 	LeaseUntil              string                                 `json:"lease_until,omitempty"`
 }
 type Result struct {
+	StartupFailure      *ec.StartupFailureProof           `json:"startup_failure,omitempty"`
 	IntegrationEvidence *rc.RepositoryResult              `json:"integration_evidence,omitempty"`
 	RunID               string                            `json:"run_id"`
 	NodeID              string                            `json:"node_id"`

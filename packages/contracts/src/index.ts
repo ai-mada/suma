@@ -612,6 +612,7 @@ export interface CandidateCompositionPage {
   total: number;
 }
 export interface CandidateCompositionPlan {
+  repair_revision?: CandidateCompositionRepairRevisionLineage | null;
   conflict_basis?: CandidateCompositionConflictBasis | null;
   tool_profile_id?: string;
   tool_profile_version?: number;
@@ -664,6 +665,60 @@ export interface CandidateCompositionRepairDraft {
   priority?: string;
   owner_id?: string;
   acceptance_criteria: (string)[];
+}
+export interface CandidateCompositionRepairRecoveryAttempt {
+  assignment: CandidateAssignmentRef;
+  result_sha256: string;
+  startup_failure_sha256: string;
+}
+export interface CandidateCompositionRepairRecoveryBasis {
+  plan_id: string;
+  plan_version: number;
+  task_id: string;
+  task_version: number;
+  run_id: string;
+  run_version: number;
+  attempts: (CandidateCompositionRepairRecoveryAttempt)[];
+  sha256: string;
+}
+export interface CandidateCompositionRepairRevisionContext {
+  project_id: string;
+  plan_id: string;
+  plan_version: number;
+  task_version: number;
+  conflict_basis?: CandidateCompositionConflictBasis | null;
+  recovery_basis?: CandidateCompositionRepairRecoveryBasis | null;
+  eligibility_mode: string;
+  can_revise: boolean;
+  blockers: (string)[];
+}
+export interface CandidateCompositionRepairRevisionLineage {
+  root_plan_id: string;
+  parent_plan_id: string;
+  ordinal: number;
+  current_head_plan_id: string;
+  is_current: boolean;
+  reason: string;
+  created_at: string;
+  definition_sha256: string;
+  creator_kind: string;
+  creator_principal_id: string;
+  observed: boolean;
+}
+export interface CandidateCompositionRepairRevisionRequest {
+  project_id: string;
+  expected_version: number;
+  expected_task_version: number;
+  expected_conflict_sha256: string;
+  workflow_id: string;
+  workflow_version: number;
+  producer_node_id: string;
+  tool_profile_id: string;
+  expected_tool_version: number;
+  expected_recovery_sha256?: string;
+  reason: string;
+  acknowledge: boolean;
+  idempotency_key: string;
 }
 export interface CandidateCompositionSourceChoice {
   task_id: string;
@@ -3039,6 +3094,7 @@ export interface ResourceSnapshot {
   release_class: string;
 }
 export interface Result {
+  startup_failure?: StartupFailureProof | null;
   integration_evidence?: RepositoryResult | null;
   run_id: string;
   node_id: string;
@@ -3301,6 +3357,15 @@ export interface SkillCatalogWriteRequest {
   acknowledge_sharing: boolean;
   idempotency_key: string;
 }
+export interface StartupFailureProof {
+  protocol: string;
+  stage: string;
+  assignment: CandidateAssignmentRef;
+  profile: ToolExecutionProfile;
+  purpose: string;
+  workspace_started: boolean;
+  process_started: boolean;
+}
 export interface SwitchOrganizationRequest {
   organization_id: string;
   idempotency_key: string;
@@ -3470,6 +3535,21 @@ export interface TaskPlan {
   start_date: string;
   due_date: string;
   estimated_hours: number | null;
+}
+export interface TaskRunProvenance {
+  task_id: string;
+  run_id: string;
+  task_version: number | null;
+  bound_at: string | null;
+  observed_at: string;
+  binding_kind: string;
+  plan_id: string;
+  current: boolean;
+}
+export interface TaskRunProvenancePage {
+  items: (TaskRunProvenance)[];
+  total: number;
+  next_cursor: string;
 }
 export interface Team {
   id: string;

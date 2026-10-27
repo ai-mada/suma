@@ -65,6 +65,7 @@
   "usage-accounting.open_run": "View source run",
   "usage-accounting.overrun": "Reported usage exceeded the reservation. Actual usage remains recorded and may block future admission.",
   "usage-accounting.source.none": "Source: no complete usage evidence yet.",
+  "usage-accounting.source.host_startup_proof": "Certified startup failure",
   "usage-accounting.source.tool_evidence": "Source: final tool evidence. This is not a provider invoice.",
   "usage-accounting.source.manual_confirmation": "Source: manual confirmation. Original tool evidence is retained; this is not a provider report.",
   "usage-accounting.source_details": "Reported counters & frozen source",

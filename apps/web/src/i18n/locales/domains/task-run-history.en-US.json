@@ -1,0 +1,17 @@
+{
+ "task-run-history.title":"Task execution history",
+ "task-run-history.intro":"Current and earlier run associations recorded for this task. Each run keeps its own results and plan.",
+ "task-run-history.refresh":"Refresh execution history",
+ "task-run-history.empty":"No run associations have been recorded. Reading this view does not create history.",
+ "task-run-history.current":"Current task run",
+ "task-run-history.earlier":"Earlier task run",
+ "task-run-history.kind_bound":"Recorded at explicit run binding",
+ "task-run-history.kind_observed":"Earlier association observed before replacement",
+ "task-run-history.task_version":"Task version at binding",
+ "task-run-history.recorded_task_version":"Recorded task version",
+ "task-run-history.bound_at":"Bound at",
+ "task-run-history.observed_at":"Observed at",
+ "task-run-history.unrecorded":"Original binding time and task version were not recorded.",
+ "task-run-history.open_plan":"Open this run's fixed plan",
+ "task-run-history.more":"Load more run associations"
+}

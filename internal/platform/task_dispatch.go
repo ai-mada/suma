@@ -18,6 +18,9 @@ func (s *Service) MigrateTaskDispatch(ctx context.Context) error {
 	if err = s.migrateTaskDispatchRoutes(ctx); err != nil {
 		return err
 	}
+	if err = s.MigrateTaskRunProvenance(ctx); err != nil {
+		return err
+	}
 	if err = s.MigrateExpertTeams(ctx); err != nil {
 		return err
 	}

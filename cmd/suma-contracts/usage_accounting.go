@@ -58,7 +58,7 @@ func usageAccountingContracts(add operationAdder, api map[string]any) {
 	field("UsageConfirmRequest", "source_ref", map[string]any{"minLength": 1, "maxLength": 2000, "description": "Human-reviewed evidence reference. Recorded as manual confirmation, not vendor-measured usage."})
 	field("UsageConfirmRequest", "acknowledge_usage", map[string]any{"const": true})
 	field("UsageAttempt", "state", map[string]any{"enum": []string{"reserved", "settled", "partial", "unreported", "reconciling", "confirmed", "unpriced"}})
-	field("UsageAttempt", "usage_source", map[string]any{"enum": []string{"none", "tool_evidence", "manual_confirmation"}})
+	field("UsageAttempt", "usage_source", map[string]any{"enum": []string{"none", "tool_evidence", "manual_confirmation", "host_startup_proof"}})
 	field("UsageAttempt", "usage_state", map[string]any{"enum": []string{"complete", "partial", "unreported"}})
 	for _, model := range []string{"UsagePolicy", "UsageRateRevision", "UsageMoneyBalance", "UsageBalance", "UsageDashboard", "UsageAttempt", "UsageAttemptPage"} {
 		for _, value := range toolContractMap(schemas, model, "properties") {

@@ -5,7 +5,7 @@ package platform
 func rejectProtectedRecordProvenanceInput(body map[string]any) error {
 	// Repair lineage is bound by the protected composition domain and cannot be
 	// manufactured as ordinary task metadata or raw execution configuration.
-	for _, name := range []string{"candidate_conflict_repair", "conflict_repair", "conflict_basis"} {
+	for _, name := range []string{"candidate_conflict_repair", "conflict_repair", "conflict_basis", "repair_revision", "repair_recovery", "startup_failure", "run_provenance", "task_run_provenance"} {
 		if _, present := body[name]; present {
 			return invalid(compositionInvalid)
 		}

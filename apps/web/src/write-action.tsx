@@ -23,12 +23,14 @@ export type WriteActionOptions = {
     scope?: string;
     storage?: StorageLike;
     validateRequest?: (request: WriteRecoveryRequest) => boolean;
+    validateResponse?: (value: unknown, request: WriteRecoveryRequest) => boolean;
 };
 type Pending = {
     request: WriteRecoveryRequest;
     caller: typeof api;
     identity: string;
     uncertain: boolean;
+    validateResponse?: WriteActionOptions['validateResponse'];
     outcome?: {
         ok: true;
         value: unknown;
@@ -75,7 +77,7 @@ function loadRecovery(options: WriteActionOptions, caller: typeof api, instance:
                 state.error = recoveryError('recovery_invalid');
                 return state;
             }
-            state.pending = { request, caller, identity: recoveryIdentity(state.scope, instance, request), uncertain: true };
+            state.pending = { request, caller, identity: recoveryIdentity(state.scope, instance, request), uncertain: true, validateResponse: options.validateResponse };
         }
     }
     catch {
@@ -124,7 +126,7 @@ export function useWriteAction(options: WriteActionOptions = {}) {
                         throw recoveryError('storage_unavailable');
                     current.storage.setItem(current.key, JSON.stringify(request));
                 }
-                current.pending = { request, caller: api, identity: recoveryIdentity(current.scope, instance.current, request), uncertain: false };
+                current.pending = { request, caller: api, identity: recoveryIdentity(current.scope, instance.current, request), uncertain: false, validateResponse: options.validateResponse };
             }
             catch (error) {
                 current.error = error instanceof UiError ? error : recoveryError('storage_unavailable');
@@ -141,7 +143,18 @@ export function useWriteAction(options: WriteActionOptions = {}) {
             if (!pending.outcome) {
                 try {
                     const request = pending.request;
-                    pending.outcome = { ok: true, value: await mutate<T>(request.path, request.body, request.method, pending.identity, pending.caller) };
+                    const value = await mutate<T>(request.path, request.body, request.method, pending.identity, pending.caller);
+                    // A success status alone does not acknowledge a usable result.
+                    // Keep the original validator, caller and durable request until
+                    // that exact operation returns a response its consumer can read.
+                    let valid = true;
+                    try { valid = !pending.validateResponse || pending.validateResponse(value, structuredClone(request)); }
+                    catch { valid = false; }
+                    if (!valid) {
+                        const diagnostic = new UiError('common.responseUnknown');
+                        throw new ApiError(0, 'response_unknown', diagnostic.message, undefined, undefined, diagnostic);
+                    }
+                    pending.outcome = { ok: true, value };
                 }
                 catch (error) {
                     if (restoring || uncertainWrite(error)) {

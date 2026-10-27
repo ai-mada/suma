@@ -17,7 +17,7 @@ import (
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
-const compositionCLIUsage = "candidate-compositions requires options, list, get, conflict, create, repair, start, or command; task-code-baseline requires get or bind; use --help"
+const compositionCLIUsage = "candidate-compositions requires options, list, get, conflict, revision-context, create, repair, revise-repair, start, or command; task-code-baseline requires get or bind; use --help"
 const compositionCLIReadInvalid = "invalid composition read options; provide a valid task or plan ID and limit 1..100"
 const compositionCLIWriteOptions = "composition and code-baseline writes require --file JSON_FILE or --file - and explicit --confirm"
 const compositionCLIWriteInvalid = "composition requires typed JSON, exact integer versions, ordered 2..16 distinct sources, explicit acknowledgement and a stable 8..128 character idempotency_key"
@@ -87,6 +87,9 @@ func compositionCLIObject(file string, input io.Reader, action string) (map[stri
 		reader = f
 	}
 	invalid := func() (map[string]any, error) {
+		if action == "revise-repair" {
+			return nil, usage(compositionCLIRevisionInvalid)
+		}
 		if action == "repair" {
 			return nil, usage(compositionCLIRepairInvalid)
 		}
@@ -170,6 +173,8 @@ func compositionCLIObject(file string, input io.Reader, action string) (map[stri
 		}
 	case "repair":
 		valid = compositionCLIRepairObject(decoder, body)
+	case "revise-repair":
+		valid = compositionCLIRevisionObject(decoder, body)
 	case "start":
 		var q compositionCLIStart
 		if decoder.Decode(&q) == nil {
@@ -232,18 +237,20 @@ func candidateCompositionCommand(ctx context.Context, c *client, args []string, 
 		}
 		return contextRead(ctx, c, path+"?"+query.Encode(), out)
 	}
-	if action == "get" || action == "conflict" {
+	if action == "get" || action == "conflict" || action == "revision-context" {
 		if len(args) != 2 || !compositionCLIIdentifier(args[1], 64) {
 			return usage(compositionCLIReadInvalid)
 		}
 		path := base + "/" + url.PathEscape(args[1])
 		if action == "conflict" {
 			path += "/conflict"
+		} else if action == "revision-context" {
+			path += "/repair-revision-context"
 		}
 		return contextRead(ctx, c, path, out)
 	}
 	offset, path := 1, base
-	if action == "start" || action == "command" || action == "repair" {
+	if action == "start" || action == "command" || action == "repair" || action == "revise-repair" {
 		if len(args) < 2 || !compositionCLIIdentifier(args[1], 64) {
 			return usage(compositionCLIReadInvalid)
 		}
@@ -253,6 +260,8 @@ func candidateCompositionCommand(ctx context.Context, c *client, args []string, 
 			path += "/start"
 		} else if action == "repair" {
 			path += "/repairs"
+		} else if action == "revise-repair" {
+			path += "/repair-revisions"
 		} else {
 			path += "/commands"
 		}
@@ -315,6 +324,9 @@ Governed candidate composition and task code baselines (global flags first):
   candidate-compositions get PLAN_ID
   candidate-compositions conflict PLAN_ID
   candidate-compositions repair PLAN_ID --file repair.json --confirm
+  candidate-compositions revision-context PLAN_ID
+  candidate-compositions revise-repair PLAN_ID --file revision.json --confirm
+  tasks run-history TASK_ID [--limit 1..100] [--before NEXT_CURSOR]
   candidate-compositions create --file request.json --confirm
   candidate-compositions start|command PLAN_ID --file request.json --confirm
   task-code-baseline get TASK_ID
@@ -323,6 +335,8 @@ Governed candidate composition and task code baselines (global flags first):
 conflict reads the original failure and current eligibility separately. repair explicitly
 creates one unstarted repair task and a new plan; it does not execute development.
 Use the new repair plan ID for its separately acknowledged start and exact review.
+Revision creates a new plan for the same task and never starts it. Certified failed
+startup replacement retains the original run; history separates bound and observed facts.
 create stores a fixed preview and starts no run. start requires acknowledge=true;
 command supports dismiss before start and explicit refresh of an unstarted repair. bind requires acknowledge=true and
 explicit task/binding/composition versions; the first expected_binding_version is 0.
@@ -339,6 +353,9 @@ const compositionCLIHelpZH = `
   candidate-compositions get PLAN_ID
   candidate-compositions conflict PLAN_ID
   candidate-compositions repair PLAN_ID --file repair.json --confirm
+  candidate-compositions revision-context PLAN_ID
+  candidate-compositions revise-repair PLAN_ID --file revision.json --confirm
+  tasks run-history TASK_ID [--limit 1..100] [--before NEXT_CURSOR]
   candidate-compositions create --file request.json --confirm
   candidate-compositions start|command PLAN_ID --file request.json --confirm
   task-code-baseline get TASK_ID
@@ -346,6 +363,8 @@ const compositionCLIHelpZH = `
 
 conflict 分别读取原冲突事实与当前资格；repair 明确创建一个未开始修复任务和新计划，
 不启动开发。随后使用新修复计划编号单独确认 start，并独立测试和验收。
+revision-context 核对当前修订资格；revise-repair 为同一任务创建新计划，不自动启动。
+启动证明支持的失败替换仍保留原运行；run-history 区分正式绑定与后续观察事实。
 create 保存固定预览，不启动运行；start 须 acknowledge=true；command 只支持启动前
 dismiss；未开始修复计划还可明确 refresh 固定预览。bind 须 acknowledge=true 和明确的任务／绑定／合成版本，首次 expected_binding_version=0。
 来源按明确顺序提供 2–16 个不同任务，版本须为精确 JSON 整数，保留原 8–128 字符

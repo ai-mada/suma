@@ -75,6 +75,9 @@ func (s *Service) checkCandidateCompositionRepairExecutionTx(ctx context.Context
 		return compositionError(409, "changed", compositionChanged)
 	}
 	if fresh {
+		if err = s.requireCurrentCandidateRepairTx(ctx, tx, tenant, project, r.Plan); err != nil {
+			return err
+		}
 		if version != r.Plan.TaskVersion+1 {
 			return compositionError(409, "changed", compositionChanged)
 		}

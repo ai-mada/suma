@@ -2841,6 +2841,18 @@
           "project_id": {
             "type": "string"
           },
+          "repair_revision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CandidateCompositionRepairRevisionLineage"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Protected immutable repair lineage; generic task/data writes cannot manufacture it.",
+            "readOnly": true
+          },
           "run_id": {
             "type": "string"
           },
@@ -3032,6 +3044,261 @@
           "title",
           "description",
           "acceptance_criteria"
+        ],
+        "type": "object"
+      },
+      "CandidateCompositionRepairRecoveryAttempt": {
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/CandidateAssignmentRef"
+          },
+          "result_sha256": {
+            "type": "string"
+          },
+          "startup_failure_sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "assignment",
+          "result_sha256",
+          "startup_failure_sha256"
+        ],
+        "type": "object"
+      },
+      "CandidateCompositionRepairRecoveryBasis": {
+        "properties": {
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/CandidateCompositionRepairRecoveryAttempt"
+            },
+            "type": "array"
+          },
+          "plan_id": {
+            "type": "string"
+          },
+          "plan_version": {
+            "type": "integer"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "run_version": {
+            "type": "integer"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "task_version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "plan_id",
+          "plan_version",
+          "task_id",
+          "task_version",
+          "run_id",
+          "run_version",
+          "attempts",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "CandidateCompositionRepairRevisionContext": {
+        "properties": {
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "can_revise": {
+            "type": "boolean"
+          },
+          "conflict_basis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CandidateCompositionConflictBasis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "eligibility_mode": {
+            "enum": [
+              "",
+              "ready",
+              "certified_startup_failure"
+            ],
+            "type": "string"
+          },
+          "plan_id": {
+            "type": "string"
+          },
+          "plan_version": {
+            "type": "integer"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "recovery_basis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CandidateCompositionRepairRecoveryBasis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "task_version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "plan_id",
+          "plan_version",
+          "task_version",
+          "eligibility_mode",
+          "can_revise",
+          "blockers"
+        ],
+        "type": "object"
+      },
+      "CandidateCompositionRepairRevisionLineage": {
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "creator_kind": {
+            "type": "string"
+          },
+          "creator_principal_id": {
+            "type": "string"
+          },
+          "current_head_plan_id": {
+            "type": "string"
+          },
+          "definition_sha256": {
+            "type": "string"
+          },
+          "is_current": {
+            "type": "boolean"
+          },
+          "observed": {
+            "type": "boolean"
+          },
+          "ordinal": {
+            "maximum": 32,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "parent_plan_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "root_plan_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "root_plan_id",
+          "parent_plan_id",
+          "ordinal",
+          "current_head_plan_id",
+          "is_current",
+          "reason",
+          "created_at",
+          "definition_sha256",
+          "creator_kind",
+          "creator_principal_id",
+          "observed"
+        ],
+        "type": "object"
+      },
+      "CandidateCompositionRepairRevisionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge": {
+            "const": true,
+            "type": "boolean"
+          },
+          "expected_conflict_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "expected_recovery_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "expected_task_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer",
+            "x-integer-lexeme": true
+          },
+          "expected_tool_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer",
+            "x-integer-lexeme": true
+          },
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer",
+            "x-integer-lexeme": true
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "producer_node_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "tool_profile_id": {
+            "type": "string"
+          },
+          "workflow_id": {
+            "type": "string"
+          },
+          "workflow_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer",
+            "x-integer-lexeme": true
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "expected_task_version",
+          "expected_conflict_sha256",
+          "workflow_id",
+          "workflow_version",
+          "producer_node_id",
+          "tool_profile_id",
+          "expected_tool_version",
+          "reason",
+          "acknowledge",
+          "idempotency_key"
         ],
         "type": "object"
       },
@@ -14569,6 +14836,16 @@
           "run_id": {
             "type": "string"
           },
+          "startup_failure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StartupFailureProof"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "stopped": {
             "type": "boolean"
           },
@@ -15796,6 +16073,47 @@
         ],
         "type": "object"
       },
+      "StartupFailureProof": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/CandidateAssignmentRef"
+          },
+          "process_started": {
+            "const": false,
+            "type": "boolean"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/ToolExecutionProfile"
+          },
+          "protocol": {
+            "const": "suma.execution-startup-failure.v1",
+            "type": "string"
+          },
+          "purpose": {
+            "const": "candidate_conflict_repair",
+            "type": "string"
+          },
+          "stage": {
+            "const": "before_workspace",
+            "type": "string"
+          },
+          "workspace_started": {
+            "const": false,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "protocol",
+          "stage",
+          "assignment",
+          "profile",
+          "purpose",
+          "workspace_started",
+          "process_started"
+        ],
+        "type": "object"
+      },
       "SwitchOrganizationRequest": {
         "properties": {
           "idempotency_key": {
@@ -16667,6 +16985,85 @@
           "start_date",
           "due_date",
           "estimated_hours"
+        ],
+        "type": "object"
+      },
+      "TaskRunProvenance": {
+        "properties": {
+          "binding_kind": {
+            "enum": [
+              "bound",
+              "observed"
+            ],
+            "type": "string"
+          },
+          "bound_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current": {
+            "type": "boolean"
+          },
+          "observed_at": {
+            "type": "string"
+          },
+          "plan_id": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "task_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "task_id",
+          "run_id",
+          "task_version",
+          "bound_at",
+          "observed_at",
+          "binding_kind",
+          "plan_id",
+          "current"
+        ],
+        "type": "object"
+      },
+      "TaskRunProvenancePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TaskRunProvenance"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "next_cursor"
         ],
         "type": "object"
       },
@@ -18991,7 +19388,8 @@
             "enum": [
               "none",
               "tool_evidence",
-              "manual_confirmation"
+              "manual_confirmation",
+              "host_startup_proof"
             ],
             "readOnly": true,
             "type": "string"
@@ -26148,6 +26546,397 @@
           }
         ],
         "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/candidate-compositions/{id}/repair-revision-context": {
+      "get": {
+        "description": "Current-scoped explicit repair revision creates a new plan for the same reserved task; it never starts work. Immutable original plans/runs/facts remain readable. Failed replacement requires exact certified host startup proof; history separates actual binding from observed current references.",
+        "operationId": "get_candidate-compositions_id_repair-revision-context",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateCompositionRepairRevisionContext"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/candidate-compositions/{id}/repair-revisions": {
+      "post": {
+        "description": "Current-scoped explicit repair revision creates a new plan for the same reserved task; it never starts work. Immutable original plans/runs/facts remain readable. Failed replacement requires exact certified host startup proof; history separates actual binding from observed current references.",
+        "operationId": "post_candidate-compositions_id_repair-revisions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CandidateCompositionRepairRevisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CandidateCompositionPlan"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },
     "/candidate-compositions/{id}/repairs": {
@@ -72455,6 +73244,189 @@
           "missing_status": 428,
           "required": true
         },
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/tasks/{id}/run-history": {
+      "get": {
+        "description": "Current-scoped explicit repair revision creates a new plan for the same reserved task; it never starts work. Immutable original plans/runs/facts remain readable. Failed replacement requires exact certified host startup proof; history separates actual binding from observed current references.",
+        "operationId": "get_tasks_id_run-history",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Canonical bounded decimal page size.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Original actor/project/task-bound next_cursor.",
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "maxLength": 4096,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskRunProvenancePage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
         "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
       }
     },

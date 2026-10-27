@@ -31,7 +31,13 @@ export function validCompositionPlan(value:unknown,project:string,task:string,id
   const heads=value.conflict_basis.evidence.source_heads;
   if(!value.sources.every((source,index)=>object(source)&&object(source.source)&&source.source.head_commit===heads[index]))return false;
  }
+ if(value.repair_revision!=null&&(!value.conflict_basis||!validCompositionRepairRevision(value.repair_revision,String(value.id))))return false;
  return value.state!=='accepted'||!!value.candidate;
+}
+export function validCompositionRepairRevision(value:unknown,planID:string):boolean{
+ if(!object(value)||Object.keys(value).sort().join(',')!=='created_at,creator_kind,creator_principal_id,current_head_plan_id,definition_sha256,is_current,observed,ordinal,parent_plan_id,reason,root_plan_id'||!compositionID(value.root_plan_id)||!compositionID(value.current_head_plan_id)||typeof value.parent_plan_id!=='string'||!compositionInteger(value.ordinal)||value.ordinal<1||value.ordinal>32||typeof value.is_current!=='boolean'||value.is_current!==(value.current_head_plan_id===planID)||!compositionText(value.reason)||typeof value.created_at!=='string'||!Number.isFinite(Date.parse(value.created_at))||!hash(value.definition_sha256)||typeof value.observed!=='boolean')return false;
+ if(value.ordinal===1?(value.root_plan_id!==planID||value.parent_plan_id!==''):(!compositionID(value.parent_plan_id)||value.parent_plan_id===planID||value.root_plan_id===planID))return false;
+ return value.creator_kind===''?value.observed&&value.creator_principal_id==='':['browser','project_api'].includes(String(value.creator_kind))&&identity(value.creator_principal_id,128);
 }
 /** Validate provenance shape; the server owns all digest and current-authority checks. */
 export function compositionConflictBasis(value:unknown,_project:string):value is CandidateCompositionConflictBasis{
@@ -61,5 +67,6 @@ const reasons:Record<string,string>={
  'Invalid candidate composition request':'invalid','Candidate composition changed; refresh the fixed preview':'changed','Candidate composition source acceptance or candidate changed':'source','Candidate composition requires one producer and independent candidate tests':'template','Candidate composition sources do not share the administrator base':'base','Candidate composition preview expired':'expired','Explicit candidate composition acknowledgement required':'ack','Candidate composition initiating credential is no longer authorized':'authority','Code baseline changed or is no longer accepted':'baseline','Code baseline requires an unstarted task':'started','Candidate composition requires recovery of the original run':'unknown',
 };
 const repairReasons:Record<string,string>={'Candidate composition requires a known exact conflict with complete Git evidence':'missing','Conflict repair requires an explicitly enabled native workspace tool profile':'tool','Conflict repair task must start through its fixed repair plan':'reserved'};
-export const compositionReason=(raw:string)=>reasons[raw]?tr('candidate-composition.reason.'+reasons[raw]):repairReasons[raw]?tr('candidate-conflict-repair.reason.'+repairReasons[raw]):raw;
+const revisionReasons:Record<string,string>={'Conflict repair plan was superseded; open its current reviewed revision':'repair_historical','Conflict repair revision requires a current ready plan or certified startup failure':'repair_revision','Conflict repair recovery changed or requires reconciliation of the original run':'repair_recovery','Conflict repair revision family reached its limit of 32 plans':'repair_revision_limit'};
+export const compositionReason=(raw:string)=>reasons[raw]?tr('candidate-composition.reason.'+reasons[raw]):repairReasons[raw]?tr('candidate-conflict-repair.reason.'+repairReasons[raw]):revisionReasons[raw]?tr('candidate-repair-revision.reason.'+revisionReasons[raw]):raw;
 export type {CandidateCompositionBaseline,CandidateCompositionOptions,CandidateCompositionPlan,CandidateCompositionSourceChoice,CodeBaselineBinding};

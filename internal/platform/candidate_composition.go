@@ -104,7 +104,16 @@ func (s *Service) StartCandidateComposition(ctx context.Context, engine *dag.Eng
 	r, err := s.candidateCompositionTx(read, auth.tx, auth.target.tenantID, project, id)
 	body := map[string]any{"composition_start": id, "request": req}
 	if err == nil {
-		_, _, err = s.commandReceipt(read, auth, req.IdempotencyKey, body)
+		var saved string
+		var replay bool
+		saved, replay, err = s.commandReceipt(read, auth, req.IdempotencyKey, body)
+		if err == nil && replay {
+			// A historical Start receipt names its own original run. Never
+			// compile a later definition or execute again while recovering it.
+			err = json.Unmarshal([]byte(saved), &out)
+			close()
+			return out, err
+		}
 	}
 	close()
 	if err != nil {
@@ -208,6 +217,11 @@ func (s *Service) CommandCandidateComposition(ctx context.Context, engine *dag.E
 	}
 	if r.Plan.Version != req.ExpectedVersion || r.Plan.RunID != "" || r.Plan.State != "ready" {
 		return out, compositionError(409, "changed", compositionChanged)
+	}
+	if r.Plan.ConflictBasis != nil {
+		if err = s.requireCurrentCandidateRepairTx(ctx, auth.tx, auth.target.tenantID, project, r.Plan); err != nil {
+			return out, err
+		}
 	}
 	old := r.Plan.Version
 	activity := "candidate.composition_dismissed"

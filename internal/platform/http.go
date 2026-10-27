@@ -484,6 +484,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.knowledgeIntelligenceHTTP(w, r, actor, scope, project, parts, m) {
 		return
 	}
+	if s.candidateRepairRevisionHTTP(w, r, actor, scope, project, parts, m) {
+		return
+	}
 	if s.candidateCompositionHTTP(w, r, actor, scope, project, parts, m) {
 		return
 	}
@@ -984,6 +987,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				return err
 			}
 			if err := s.Service.validateCandidateCompositionResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {
+				return err
+			}
+			if err := s.Service.validateStartupFailureResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {
 				return err
 			}
 			if err := s.Service.validateCandidateCompositionRepairResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {

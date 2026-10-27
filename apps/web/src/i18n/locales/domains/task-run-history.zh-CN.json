@@ -1,0 +1,17 @@
+{
+ "task-run-history.title":"任务执行历史",
+ "task-run-history.intro":"查看此任务已记录的当前及较早运行关联，每次运行保留自己的结果和计划。",
+ "task-run-history.refresh":"刷新执行历史",
+ "task-run-history.empty":"尚未记录运行关联。读取此处不会创建历史。",
+ "task-run-history.current":"任务当前运行",
+ "task-run-history.earlier":"任务较早运行",
+ "task-run-history.kind_bound":"明确绑定运行时记录",
+ "task-run-history.kind_observed":"替换前观察到的早期关联",
+ "task-run-history.task_version":"绑定时的任务版本",
+ "task-run-history.recorded_task_version":"已记录的任务版本",
+ "task-run-history.bound_at":"绑定时间",
+ "task-run-history.observed_at":"观察时间",
+ "task-run-history.unrecorded":"原绑定时间和任务版本未记录。",
+ "task-run-history.open_plan":"打开本次运行的固定计划",
+ "task-run-history.more":"加载更多运行关联"
+}

@@ -130,10 +130,13 @@ func (s *Service) BindRunTx(ctx context.Context, tx *sql.Tx, auth *authorizedCom
 		return missing()
 	}
 	if r.RunID == runID {
-		return nil
+		return s.bindTaskRunProvenanceTx(ctx, tx, auth, r, runID)
 	}
 	if expected != 0 && r.Version != expected {
 		return conflict("任务已变化，需要重新派发预览")
+	}
+	if err = s.bindTaskRunProvenanceTx(ctx, tx, auth, r, runID); err != nil {
+		return err
 	}
 	if err = s.checkTaskRequirementDesignRunTx(ctx, auth, project, taskID, runID, false); err != nil {
 		return err

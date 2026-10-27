@@ -1,10 +1,12 @@
 # 速码项目设计文档
 
-状态：T-P4-032／1.0.0 限定本地已验证，完整 P0–P7 继续实施。文档负责人：平台集成。设计依据：用户确认的完整方案及后续扩展要求。本文档索引与源码、接口和验证报告共同维护。
+状态：T-P4-033／1.0.0 限定本地已验证，完整 P0–P7 继续实施。文档负责人：平台集成。设计依据：用户确认的完整方案及后续扩展要求。本文档索引与源码、接口和验证报告共同维护。
 
 | 主题 | 入口 |
 |---|---|
-| 冲突修复与受控恢复（当前 T-P4-032） | [PRD](product/candidate-conflict-repair.md)／[架构与AI SOP](architecture/candidate-conflict-repair.md)／[交互](design/candidate-conflict-repair.md)／[合同](../contracts/candidate-conflict-repair.md)／[限定验证](quality/candidate-conflict-repair-verification.md)／[摘要](quality/candidate-conflict-repair-summary.json)／[English](en/candidate-conflict-repair.md) |
+| 修复计划修订与运行溯源（当前 T-P4-033） | [PRD](product/candidate-repair-revisions.md)／[架构](architecture/candidate-repair-revisions.md)／[AI SOP](operations/candidate-repair-revisions.md)／[交互](design/candidate-repair-revisions.md)／[合同](../contracts/candidate-repair-revisions.md)／[CLI](../contracts/candidate-repair-revisions-cli.md)／[限定验证](quality/candidate-repair-revisions-verification.md)／[摘要](quality/candidate-repair-revisions-summary.json)／[English](en/candidate-repair-revisions.md) |
+| 新增平台参考与智能选择／IDE缺口 | [OpenWorkBuddy、Octop固定官方基线](integrations/development-platform-reference-extensions.md)；许可、来源能力、当前实现与未完成项分别记录 |
+| 冲突修复与受控恢复（历史 T-P4-032） | [PRD](product/candidate-conflict-repair.md)／[架构与AI SOP](architecture/candidate-conflict-repair.md)／[交互](design/candidate-conflict-repair.md)／[合同](../contracts/candidate-conflict-repair.md)／[限定验证](quality/candidate-conflict-repair-verification.md)／[摘要](quality/candidate-conflict-repair-summary.json)／[English](en/candidate-conflict-repair.md) |
 | 固定失败证据的智能分诊（历史 T-P4-030） | [PRD](product/failure-diagnosis.md)、[架构与 AI SOP](architecture/failure-diagnosis.md)、[交互](design/failure-diagnosis.md)、[合同](../contracts/failure-diagnosis.md)、[CLI](../contracts/failure-diagnosis-cli.md)、[限定验证](quality/failure-diagnosis-verification.md)、[摘要](quality/failure-diagnosis-summary.json)、[English](en/failure-diagnosis.md) |
 | 多源候选合成与下游代码基线（历史 T-P4-031） | [PRD](product/candidate-composition.md)、[架构与AI SOP](architecture/candidate-composition.md)、[交互](design/candidate-composition.md)、[合同](../contracts/candidate-composition.md)、[CLI](../contracts/candidate-composition-cli.md)、[限定验证](quality/candidate-composition-verification.md)、[摘要](quality/candidate-composition-summary.json)、[English](en/candidate-composition.md) |
 | 专家团队依赖编排（T-P4-029 历史） | [PRD](product/expert-team-orchestration.md)、[架构与AI SOP](architecture/expert-team-orchestration.md)、[交互](design/expert-team-orchestration.md)、[合同](../contracts/expert-team-orchestration.md)、[CLI](../contracts/expert-team-orchestration-cli.md)、[限定验证](quality/expert-team-orchestration-verification.md)、[English](en/expert-team-orchestration.md) |
