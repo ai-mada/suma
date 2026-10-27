@@ -140,6 +140,9 @@ func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, en
 	if err != nil {
 		return err
 	}
+	if err = s.validateModelExecutionPlanTx(ctx, tx, p.TenantID, project, profile, plan); err != nil {
+		return err
+	}
 	return s.checkTaskDispatchCurrentRouteTx(ctx, tx, engine, p, project, plan, profile)
 }
 
@@ -253,7 +256,15 @@ func (s *Service) buildTaskDispatchSnapshotTx(ctx context.Context, engine *dag.E
 	if err != nil {
 		return out, err
 	}
+	modelBinding, err := s.buildModelExecutionTx(ctx, tx, p.TenantID, project, profile, request.ModelExecutionSelection)
+	if err != nil {
+		return out, err
+	}
+	if err = bindModelExecutionWorkflow(&derived, request.AgentNodeID, modelBinding); err != nil {
+		return out, err
+	}
 	out = TaskDispatchPlan{ProjectID: project, Version: 1, State: "ready", TaskID: context.Task.ID, TaskVersion: context.Task.Version, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, Context: context, CodeBaseline: context.CodeBaseline, Workflow: derived, ExecutionRoute: &route, Valid: true}
+	out.ModelExecution = modelBinding
 	if context.Requirement != nil {
 		out.RequirementID, out.RequirementVersion = context.Requirement.ID, context.Requirement.Version
 	}

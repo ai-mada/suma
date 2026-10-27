@@ -60,6 +60,22 @@ func (s *Service) usagePricingTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	if err != nil {
 		return
 	}
+	modelBinding, modelErr := dag.ModelBinding(ref.Spec)
+	if modelErr != nil {
+		err = invalid(modelExecutionInvalid)
+		return
+	}
+	if modelBinding != nil {
+		if !supportsModelExecution(profile) || profile.Profile.ProfileSHA256 != sha {
+			err = invalid(modelExecutionChanged)
+			return
+		}
+		rate, err = s.modelExecutionExactRateTx(ctx, tx, ref.TenantID, ref.ProjectID, id, *modelBinding)
+		if err == nil && modelBinding.Rate != nil && (rate == nil || rate.ProfileSHA256 != sha) {
+			err = invalid(modelExecutionChanged)
+		}
+		return
+	}
 	model, origin, priced := usagePricedModel(profile)
 	if !priced || profile.Profile.ProfileSHA256 != sha {
 		return profile, nil, org, project, nil
@@ -69,6 +85,13 @@ func (s *Service) usagePricingTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 		rate = nil
 	}
 	return
+}
+
+func usageReservations(spec dag.Node, rate UsageRateRevision) (int64, int64) {
+	if b, err := dag.ModelBinding(spec); err == nil && b != nil {
+		return b.InputTokenReservation, b.OutputTokenReservation
+	}
+	return rate.InputTokenReservation, rate.OutputTokenReservation
 }
 
 func (s *Service) CheckAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.AccountingAttempt) (bool, error) {
@@ -94,8 +117,9 @@ func (s *Service) CheckAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 		if rate == nil || rate.Currency != policy.Currency {
 			return false, nil
 		}
-		tokens := big.NewInt(rate.InputTokenReservation + rate.OutputTokenReservation)
-		cost := usageCost(rate.InputTokenReservation, rate.OutputTokenReservation, *rate)
+		inputReservation, outputReservation := usageReservations(ref.Spec, *rate)
+		tokens := big.NewInt(inputReservation + outputReservation)
+		cost := usageCost(inputReservation, outputReservation, *rate)
 		for _, resource := range []struct {
 			name   string
 			amount *big.Int
@@ -142,11 +166,22 @@ func (s *Service) ReserveAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Acco
 		record.Attempt.Model = model
 		record.Attempt.EndpointOrigin = origin
 	}
+	if b, err := dag.ModelBinding(ref.Spec); err != nil {
+		return invalid(modelExecutionInvalid)
+	} else if b != nil {
+		record.Attempt.ModelExecution = b
+		record.Attempt.Model = b.Deployment.Model
+		record.Attempt.EndpointOrigin = b.Deployment.EndpointOrigin
+		record.Attempt.ReservedTokens = b.InputTokenReservation + b.OutputTokenReservation
+		record.Attempt.HeldTokens = record.Attempt.ReservedTokens
+		record.HeldTokens = big.NewInt(record.Attempt.ReservedTokens).String()
+	}
 	if rate != nil {
 		record.Attempt.State = "reserved"
 		record.Attempt.Currency = rate.Currency
-		record.Attempt.ReservedTokens = rate.InputTokenReservation + rate.OutputTokenReservation
-		record.Attempt.ReservedCostMicros = usagePublic(usageCost(rate.InputTokenReservation, rate.OutputTokenReservation, *rate))
+		inputReservation, outputReservation := usageReservations(ref.Spec, *rate)
+		record.Attempt.ReservedTokens = inputReservation + outputReservation
+		record.Attempt.ReservedCostMicros = usagePublic(usageCost(inputReservation, outputReservation, *rate))
 		record.Attempt.HeldTokens = record.Attempt.ReservedTokens
 		record.Attempt.HeldCostMicros = record.Attempt.ReservedCostMicros
 		record.HeldTokens = big.NewInt(record.Attempt.ReservedTokens).String()
@@ -308,13 +343,37 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	monotonic := usageCountersAtLeastOrPartial(a.Usage, previousUsage)
 	a.Usage = usageCounterMaximum(a.Usage, previousUsage)
 	complete := monotonic && !result.Stopped && !result.OutcomeUnknown && a.UsageState == toolcontract.UsageComplete && a.Usage != nil && a.Usage.InputTokens != nil && a.Usage.OutputTokens != nil
+	modelReconciling := false
+	if b := a.ModelExecution; b != nil && !startupZero {
+		if result.ToolEvidence == nil || result.ToolEvidence.ModelExecution == nil {
+			complete = false
+			modelReconciling = true
+		} else {
+			e := result.ToolEvidence.ModelExecution
+			if e.BindingSHA256 != b.BindingSHA256 || e.DeploymentSHA256 != b.Deployment.SHA256 || e.ParametersSHA256 != b.ParametersSHA256 || e.Model != b.Deployment.Model || len(e.Requests) < 1 || len(e.Requests) > b.Parameters.MaxSteps {
+				complete = false
+				modelReconciling = true
+			}
+			for _, request := range e.Requests {
+				if request.ProviderModel != b.Deployment.Model || request.ResponseSHA256 == "" || request.UsageState != "complete" || request.OutputAllowance > b.OutputTokenReservation {
+					complete = false
+					modelReconciling = true
+				}
+			}
+		}
+		if a.Usage != nil && (a.Usage.InputTokens != nil && *a.Usage.InputTokens > b.InputTokenReservation || a.Usage.OutputTokens != nil && *a.Usage.OutputTokens > b.OutputTokenReservation) {
+			complete = false
+			modelReconciling = true
+			a.Overrun = true
+		}
+	}
 	state := "settled"
 	if !complete {
 		state = "unreported"
 		if a.Usage != nil {
 			state = "partial"
 		}
-		if result.OutcomeUnknown {
+		if result.OutcomeUnknown || modelReconciling {
 			state = "reconciling"
 		}
 	} else if a.Rate == nil {

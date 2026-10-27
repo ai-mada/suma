@@ -109,7 +109,10 @@ func (s *Service) toolClaimEligibleTx(ctx context.Context, tx *sql.Tx, auth *aut
 		return false, nil
 	}
 	profile, err = s.toolProfileObservationTx(ctx, tx, p, project, profile)
-	return profile.Available, err
+	if err != nil || !profile.Available {
+		return false, err
+	}
+	return s.modelExecutionClaimEligibleTx(ctx, tx, p.TenantID, project, profile, spec)
 }
 
 func (s *Service) toolBoundNodeTx(ctx context.Context, tx *sql.Tx, p Principal, project, run, node string) (dag.Node, ToolProfile, error) {

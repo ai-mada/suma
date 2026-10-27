@@ -4,7 +4,17 @@
 
 当前是可运行的开发版本。功能与验证范围见 [交付状态](docs/delivery/status.md)，完整目标见 [实施计划](docs/delivery/implementation-plan.md)。
 
-## 阶段进展：只读Git审阅与原生执行限额
+## 当前阶段：固定模型选择、执行预算与真实原生调用
+
+T-P4-036／1.0.0 已贯通限定本地的原生模型固定选择、封闭执行参数、attempt 预算、真实 native CLI 请求和同一用量账本；原任务界面的模型预览交互仍在收尾，尚不声明完整 GUI 旅程完成。支持的原生 Suma 工具从当前授权执行节点的公开允许清单选择准确部署，固定计划保存模型／参数／预算／匹配费率，启动与领取分别复核当前资格。
+
+参数只开放 `max_steps`、`max_output_tokens`。Token 和费用预算使用保守入场预留及冻结运营方费率；当前每工具仅一份最新匹配费率供新选择使用，没有完整多模型报价目录。缺失用量、模型别名／身份不符和未知结果保留原 attempt 及待核对余额，不能记成零费用或自动换模型重跑。
+
+新增 `suma ... developer check`，通过官方 MCP SDK 实际完成当前项目初始化、工具目录和一次只读概览调用。该诊断不等于 Codex 客户端、远程 Runner 工作区或远程 IDE 已连接。外部 CLI 与专家团队的独立模型选择、多模型报价、[远程工作区 broker](docs/architecture/remote-workspace-broker.md)、真实厂商及生产验收继续待办。
+
+见[产品范围](docs/product/model-execution.md)、[架构与实现检查点](docs/architecture/model-execution.md)、[AI SOP](docs/operations/model-execution.md)、[English](docs/en/model-execution.md)、[实际证据与UI固定预览已验证状态](docs/quality/model-execution-verification.md)及[开发工具诊断说明](docs/integrations/developer-connection-check.md)。主预览和最终阶段状态以[交付状态](docs/delivery/status.md)为准。
+
+## 历史阶段：只读Git审阅与原生执行限额（T-P4-035）
 
 T-P4-035／1.0.0 新增当前项目的只读Git状态，以及暂存区、工作树的准确文本比较。工作空间以“文件／变更”切换，复用Monaco DiffEditor；切回文件保留编辑模型与草稿，Ctrl/Cmd+S使用原保存与恢复合同。未保存草稿和磁盘变更分开表达；新增、删除、重命名、同路径暂存删除后重建及受限文件均保留明确边界。
 

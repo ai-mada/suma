@@ -2,6 +2,7 @@ import { tr as t, UiError } from "./i18n";
 import type { RecordItem, Workflow } from "./api";
 import type { ToolDiagnostic, DisplayDiagnostic } from "../../../packages/contracts/src";
 export type ToolProfileDefinition = {
+  model_execution_protocol?: string;
   workspace_tools_version?: string;
   conflict_repair_protocol?: string;
   command_id: string;
@@ -96,6 +97,7 @@ export type TaskContextRecord = {
   acceptance_criteria: string[];
 };
 export type TaskDispatchPlan = {
+  model_execution?: import("../../../packages/contracts/src").ModelBinding | null;
   execution_route?: import("../../../packages/contracts/src").TaskDispatchPlan["execution_route"];
   id: string;
   project_id: string;

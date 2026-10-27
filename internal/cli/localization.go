@@ -33,6 +33,7 @@ type cliMessage struct{ key, zh string }
 var cliMessages = map[string]cliMessage{
 	compositionCLIUsage:           {"cli.candidate_composition.action_required", "candidate-compositions 需要 options、list、get、conflict、revision-context、create、repair、revise-repair、start 或 command；task-code-baseline 需要 get 或 bind，请查看 --help"},
 	compositionCLIRevisionInvalid: {"cli.candidate_composition.revision_basis_required", "修复计划修订需要准确计划、任务、冲突和所选流程／工具版本、明确确认、理由及原操作标识"},
+	modelOptionsUsage:             {"cli.model_execution.usage", "模型选项需要：models options --tool 工具ID --expected-tool-version 当前版本"},
 	dispatchOptionsCLIUsage:       {"cli.task_dispatch_options.usage", "任务工具推荐需要：tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID；可选 --limit 1..200 与 --before 原分页游标"},
 	workspaceGitCLIUsage:          {"cli.workspace_git.usage", "工作区只读命令：workspace git；或 workspace diff --path 相对路径 [--source worktree|index]"},
 	compositionCLIReadInvalid:     {"cli.candidate_composition.read_invalid", "候选合成读取参数无效，请提供有效任务或计划标识及 1–100 的 limit"},
@@ -234,6 +235,8 @@ const helpZH = `suma — 速码控制面客户端
   run show ID
   run events ID [--after SEQUENCE]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
+  models options --tool 工具ID --expected-tool-version 当前版本
+  developer check            验证当前项目的真实MCP连接（只读）
   workspace git | workspace diff --path 相对路径 [--source worktree|index]
   tui                         只读 Bubble Tea 工作台（交互终端默认入口）
 

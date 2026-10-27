@@ -62,7 +62,7 @@ function OptionsScope({scope,disabled=false,onAdopt,onUnavailable}:Props){
      {recommended?<div className="composition-callout"><p>{t('recommended',{name:recommended.name})}</p><button type="button" data-dispatch-options-adopt disabled={disabled||loading} onClick={()=>onAdopt(recommended)}>{t('adopt')}</button></div>:<p>{t('none_eligible')}</p>}
     </>}
     {page.next_cursor&&<button type="button" data-dispatch-options-more disabled={disabled||loading} onClick={()=>void read(page.next_cursor,pageNumber+1)}>{t('next')}</button>}
-    <details><summary>{t('boundaries')}</summary><dl className="composition-facts"><dt>{t('route')}</dt><dd>{page.execution_route.pool_id?t('route_pool',{pool:page.execution_route.pool_id}):t('route_local')}</dd><dt>{t('model')}</dt><dd>{t('model_fixed')}</dd><dt>{t('cost')}</dt><dd>{t('cost_unknown')}</dd></dl><p className="composition-muted">{t('recheck')}</p></details>
+    <details><summary>{t('boundaries')}</summary><dl className="composition-facts"><dt>{t('route')}</dt><dd>{page.execution_route.pool_id?t('route_pool',{pool:page.execution_route.pool_id}):t('route_local')}</dd><dt>{t('model')}</dt><dd>{recommended?.profile.model_execution_protocol==='suma-model-execution-v1'?tr('model-execution.select_after_tool'):t('model_fixed')}</dd><dt>{t('cost')}</dt><dd>{t('cost_unknown')}</dd></dl><p className="composition-muted">{t('recheck')}</p></details>
    </>}
   </div>}
  </section>;

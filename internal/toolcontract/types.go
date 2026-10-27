@@ -2,15 +2,18 @@
 // the control plane, scheduler and execution nodes.
 package toolcontract
 
+import "github.com/ai-mada/suma/internal/modelcontract"
+
 type ToolExecutionProfile struct {
-	CommandID             string `json:"command_id"`
-	Adapter               string `json:"adapter"`
-	Protocol              string `json:"protocol"`
-	ProfileSHA256         string `json:"profile_sha256"`
-	ExecutableSHA256      string `json:"executable_sha256"`
-	ToolVersion           string `json:"tool_version"`
-	ReadOnly              bool   `json:"read_only"`
-	WorkspaceToolsVersion string `json:"workspace_tools_version,omitempty"`
+	CommandID              string `json:"command_id"`
+	Adapter                string `json:"adapter"`
+	Protocol               string `json:"protocol"`
+	ProfileSHA256          string `json:"profile_sha256"`
+	ExecutableSHA256       string `json:"executable_sha256"`
+	ToolVersion            string `json:"tool_version"`
+	ReadOnly               bool   `json:"read_only"`
+	WorkspaceToolsVersion  string `json:"workspace_tools_version,omitempty"`
+	ModelExecutionProtocol string `json:"model_execution_protocol,omitempty"`
 	// ConflictRepairProtocol is an explicitly enabled host-native capability, not a grant of Git or acceptance authority.
 	ConflictRepairProtocol string                         `json:"conflict_repair_protocol,omitempty"`
 	Planning               *PlanningCapability            `json:"planning,omitempty"`
@@ -74,9 +77,10 @@ func CloneProfile(p Profile) Profile {
 }
 
 type ToolObservation struct {
-	Profile   Profile `json:"profile"`
-	Available bool    `json:"available"`
-	Reason    string  `json:"reason"`
+	Profile          Profile                    `json:"profile"`
+	Available        bool                       `json:"available"`
+	Reason           string                     `json:"reason"`
+	ModelDeployments []modelcontract.Deployment `json:"model_deployments,omitempty"`
 }
 
 type ToolUsage struct {
@@ -120,12 +124,13 @@ type ToolDiagnostic struct {
 }
 
 type ToolEvidence struct {
-	Profile    Profile `json:"profile"`
-	SessionID  string  `json:"session_id,omitempty"`
-	Terminal   string  `json:"terminal"`
-	EventCount int     `json:"event_count"`
-	Usage      *Usage  `json:"usage,omitempty"`
-	UsageState string  `json:"usage_state"`
+	Profile        Profile                 `json:"profile"`
+	SessionID      string                  `json:"session_id,omitempty"`
+	Terminal       string                  `json:"terminal"`
+	EventCount     int                     `json:"event_count"`
+	Usage          *Usage                  `json:"usage,omitempty"`
+	UsageState     string                  `json:"usage_state"`
+	ModelExecution *modelcontract.Evidence `json:"model_execution,omitempty"`
 }
 
 type Profile = ToolExecutionProfile

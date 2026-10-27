@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-036",
+  "product_version": "1.0.0",
+  "status": "bounded_local_functional_stage_verified",
+  "stage_complete": true,
+  "full_platform_status": "in_progress",
+  "production_integration_complete": false,
+  "contract": "contracts/model-execution.md",
+  "implemented": [
+    "Current authorized native deployment options and immutable selection/binding",
+    "Closed execution parameters and per-attempt budget admission with frozen operator rate",
+    "Actual native CLI/provider request and exact result/usage accounting",
+    "No automatic retry for bound model work; uncertain identity/usage retains hold",
+    "CLI models options and real readonly MCP developer check",
+    "CNEN simple selection, editable budgets and fixed preview facts"
+  ],
+  "verification": {
+    "Go_contract_domain_HTTP_dispatch_usage": "affected selections passed; separate runs are not a full platform suite",
+    "runtime": {
+      "typescript_typecheck": "pass",
+      "native_runtime_full": "75/76 passed; stale original catalogue count was the only failure",
+      "native_runtime_affected_after_fix": "22/22 passed; original 50-key hash preserved, explicit paired extensions total 58",
+      "runner_focused": "pass; model, actual stdin, exact repair bounds, journal, claim and inventory",
+      "runner_cli_package": "pass",
+      "pool_config_and_model_boundary_subset": "pass",
+      "typed_repair_pre_workspace_proof": "red-green pass",
+      "joint_final": "pass on final native bundle",
+      "vendor_calls": 0,
+      "dependency_installs": 0,
+      "preview_changes": 0,
+      "bound_http429_no_automatic_retry": "TS and Runner red-green pass",
+      "bound_fallback_limits_before_workspace": "red-green pass"
+    },
+    "web_focused": {
+      "model_selection_rendering": 3,
+      "exact_numeric_budget_recovery": 2,
+      "typecheck": true,
+      "paired_locale_keys": 4452,
+      "web_builds": 2,
+      "second_build_reason": "actual browser found numeric token fields rejected as secrets; exact path numeric exception plus visible fixed budget"
+    },
+    "shared_go_vet": "passed",
+    "generated_contract_check": "passed",
+    "localization_package": "initially two stale native snapshot assertions failed; both corrected explicit extension sets, original46 digest unchanged; affected2 passed",
+    "dependency_installs": 0,
+    "main_preview": "035 not changed or restarted in this stage"
+  },
+  "actual_native": {
+    "test": "TestModelExecutionCurrentPreviewActualRuntimeAndUsageLedger",
+    "current_actor_preview_start": true,
+    "real_http_claim_result": true,
+    "real_runner_native_bundle_mcp_process": true,
+    "provider_requests_per_joint_execution": 1,
+    "input_tokens": 23,
+    "output_tokens": 17,
+    "total_tokens": 40,
+    "estimated_cny_micros": 57,
+    "usage_state": "settled",
+    "held_tokens": 0,
+    "held_cost_micros": 0,
+    "exact_request_response_binding_hashes_asserted": true,
+    "source_head_unchanged": true,
+    "independent_formal_tests": 0,
+    "human_acceptances": 0
+  },
+  "actual_two_deployments": {
+    "test": "TestModelExecutionTwoDeploymentsReachActualNativeBundle",
+    "distinct_local_deployments": 2,
+    "real_native_processes": 2,
+    "exact_private_endpoint_and_separate_envref_checked": true,
+    "input_tokens_per_request": 7,
+    "output_tokens_per_request": 3,
+    "ledger_claim": false
+  },
+  "actual_UI": {
+    "plan_id": "47969350d5f324c15fc9ede87a3580ad",
+    "model": "owned-ui-model-a-036",
+    "max_steps": 2,
+    "max_output_tokens": 100,
+    "token_budget": 20000,
+    "cost_budget_micros": 20000,
+    "currency": "CNY",
+    "unpriced_model_checked": true,
+    "model_requests": 0,
+    "runs_started": 0,
+    "formal_tests": 0,
+    "persisted_plan_count": 1,
+    "refresh_same_plan": true,
+    "CNEN_and_keyboard": true,
+    "owned_tab_closed": true,
+    "owned_fixture_normal_exit": true,
+    "exact_database_readback": true,
+    "source_HEAD_unchanged": true,
+    "source_drift": "Real inventory change correctly blocked old approved digest; a distinct exact current fixture profile was explicitly approved, retaining the original fact.",
+    "original_UI_failure": "Secret guard rejected numeric max_output_tokens/token_limit before HTTP; preserved and fixed through narrow typed-path validation."
+  },
+  "developer_connection": {
+    "official_Go_MCP_SDK": true,
+    "actual_SQLite_authorized_service": true,
+    "handshake_and_tool_list_and_readonly_overview": true,
+    "Agent_and_API_credentials": true,
+    "revocation_redirect_timeout_and_invalid_result_rejected": true,
+    "remote_workspace_claim": false
+  },
+  "evidence": {
+    "runtime": {
+      "path": ".cache/e2e/model-execution-stage-036/runtime/verified.local.json",
+      "sha256": "a4f6080ba4d88515c29a6402fc2311efbaefb9a27b0471414aec4c1f37005a6f"
+    },
+    "browser": {
+      "path": ".cache/e2e/model-execution-stage-036/browser/verified.local.json",
+      "sha256": "b8154870a1a7dead12bdda1bbb5744658dfd8866d119f7512ea4fc0dc9833c2e"
+    },
+    "UI_database_closure": {
+      "path": ".cache/e2e/model-execution-stage-036/ui-fixture/closed.local.json",
+      "sha256": "2e2989e62ba49b4c0f385b243a20be5de465a5f144af2e7f50a43e73f4c71825"
+    },
+    "web_delivery": {
+      "path": ".cache/e2e/model-execution-stage-036/verification/web-fixture-publish.local.json",
+      "sha256": "ee78e4eb7ce73ee2b7d0e5618999bb6acf71f223870f771a2f9e90c40a5996d3"
+    },
+    "developer_check": {
+      "path": ".cache/developer-check036/receipt.local.json",
+      "sha256": "2599a82a4b0417325c6570701efc17ae3b7fa5b06af5b59f36f60a97ff410340"
+    }
+  },
+  "remaining": [
+    "Actual vendor inference and billing, provider-specific tokenizers and hard gateway budgets",
+    "Multiple current model quotes per tool and separate model grant/catalog management",
+    "Independent model selection for external CLIs, expert teams and managed repair",
+    "Remote workspace outbound broker/files/PTY/LSP/DAP and physical distributed acceptance",
+    "Full P0-P7 and all accepted platform requirements"
+  ],
+  "commit_policy": "Necessary source/contracts/docs/compact summary only. No cache, DB, credential, log, screenshot, binary, installer or push."
+}

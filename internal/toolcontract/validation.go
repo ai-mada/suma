@@ -14,6 +14,7 @@ import (
 	"unicode/utf8"
 
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
+	"github.com/ai-mada/suma/internal/modelcontract"
 )
 
 var commandID = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$`)
@@ -40,6 +41,9 @@ func ValidProtocol(protocol string) bool {
 	return protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == "opencode-jsonl-v1" || protocol == "dsh-multica-jsonl-v1" || protocol == "codebuddy-jsonl-v1"
 }
 func ValidateProfile(p Profile, complete bool) error {
+	if p.ModelExecutionProtocol != "" && (p.ModelExecutionProtocol != "suma-model-execution-v1" || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || p.ReadOnly || p.WorkspaceToolsVersion != "attempt-workspace-v1" || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil) {
+		return fmt.Errorf("invalid native model execution capability")
+	}
 	// A capability advertisement is accepted only for the existing native
 	// writable workspace mode. A generic CLI or read-only model purpose cannot
 	// acquire the authenticated merge continuation tools by naming a protocol.
@@ -112,6 +116,20 @@ func ValidateObservation(o Observation) error {
 	}
 	if !o.Available && strings.TrimSpace(o.Reason) == "" {
 		return fmt.Errorf("unavailable observation requires a reason")
+	}
+	if len(o.ModelDeployments) > 64 || len(o.ModelDeployments) > 0 && o.Profile.ModelExecutionProtocol == "" {
+		return fmt.Errorf("invalid model deployment inventory")
+	}
+	seen := map[string]bool{}
+	for _, deployment := range o.ModelDeployments {
+		if err := modelcontract.ValidateDeployment(deployment); err != nil {
+			return err
+		}
+		key := fmt.Sprintf("%s:%d", deployment.ID, deployment.Revision)
+		if seen[key] {
+			return fmt.Errorf("duplicate model deployment revision")
+		}
+		seen[key] = true
 	}
 	return nil
 }
@@ -230,6 +248,14 @@ func ValidateEvidence(e Evidence) error {
 	}
 	if e.EventCount < 0 || e.EventCount > 1000000 {
 		return fmt.Errorf("invalid event count")
+	}
+	if e.ModelExecution != nil {
+		if e.Profile.ModelExecutionProtocol != modelcontract.Protocol {
+			return fmt.Errorf("model evidence requires native model execution capability")
+		}
+		if err := modelcontract.ValidateEvidence(*e.ModelExecution); err != nil {
+			return err
+		}
 	}
 	return validateCoverage(e.UsageState, e.Usage)
 }

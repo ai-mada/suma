@@ -13,16 +13,23 @@ const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 function validate(path: string, body: unknown) {
   if (!allowedPath.test(path))
     throw new UiError("development.errors.operation_scope");
-  const inspect = (value: unknown) => {
+  const inspect = (value: unknown, parents: string[] = []) => {
     if (!value || typeof value !== "object") return;
     for (const [key, item] of Object.entries(value)) {
+      // Token allowances are public numbers, not authentication tokens. Keep
+      // this exception tied to the exact typed selection path and request.
+      const modelNumber = path === '/task-dispatch-plans' &&
+        typeof item === 'number' && Number.isSafeInteger(item) &&
+        ((parents.join('.') === 'model_execution_selection.parameters' && key === 'max_output_tokens' && item > 0 && item <= 131072) ||
+         (parents.join('.') === 'model_execution_selection.budget' && key === 'token_limit' && item >= 0));
       if (
+        !modelNumber &&
         /password|token|secret|credential|authorization|executable$|^args$|^env$/i.test(
           key,
         )
       )
         throw new UiError("development.errors.recovery_secrets");
-      inspect(item);
+      inspect(item, [...parents, key]);
     }
   };
   inspect(body);

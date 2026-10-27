@@ -1664,6 +1664,84 @@ export interface LocalizationParameter {
   name: string;
   kind: string;
 }
+export interface ModelBinding {
+  protocol: string;
+  deployment: ModelDeployment;
+  parameters: ModelParameters;
+  parameters_sha256: string;
+  binding_sha256: string;
+  input_token_reservation: number;
+  output_token_reservation: number;
+  budget?: ModelBudget | null;
+  rate?: ModelRateSnapshot | null;
+}
+export interface ModelBudget {
+  token_limit?: number | null;
+  cost_limit_micros?: number | null;
+  currency?: string;
+}
+export interface ModelDeployment {
+  deployment_id: string;
+  revision: number;
+  deployment_sha256: string;
+  protocol: string;
+  model: string;
+  endpoint_origin: string;
+  endpoint_config_sha256: string;
+  context_window: number;
+}
+export interface ModelEvidence {
+  binding_sha256: string;
+  deployment_sha256: string;
+  parameters_sha256: string;
+  model: string;
+  requests: (ModelRequestEvidence)[];
+}
+export interface ModelExecutionOption {
+  deployment: ModelDeployment;
+  rate?: UsageRateRevision | null;
+  cost_state: string;
+  default_parameters: ModelParameters;
+  input_token_reservation: number;
+  output_token_reservation: number;
+}
+export interface ModelExecutionOptions {
+  project_id: string;
+  tool_profile_id: string;
+  tool_profile_version: number;
+  tool_profile_sha256: string;
+  observed_at: string;
+  supported: boolean;
+  reason: string;
+  items: (ModelExecutionOption)[];
+}
+export interface ModelParameters {
+  max_steps: number;
+  max_output_tokens: number;
+}
+export interface ModelRateSnapshot {
+  id: string;
+  version: number;
+  currency: string;
+  input_rate_micros_per_million: number;
+  output_rate_micros_per_million: number;
+}
+export interface ModelRequestEvidence {
+  step: number;
+  request_sha256: string;
+  response_sha256?: string;
+  provider_model?: string;
+  provider_request_id?: string;
+  output_allowance: number;
+  usage_state: string;
+}
+export interface ModelSelection {
+  deployment_id: string;
+  deployment_revision: number;
+  deployment_sha256: string;
+  parameters: ModelParameters;
+  budget?: ModelBudget | null;
+}
 export interface NativeWorkspaceCheckResult {
   operation_id: string;
   check_id: string;
@@ -3435,6 +3513,7 @@ export interface TaskDispatchOptionsRequest {
   before?: string;
 }
 export interface TaskDispatchPlan {
+  model_execution?: ModelBinding | null;
   code_baseline?: CodeBaselineBinding | null;
   id: string;
   project_id: string;
@@ -3460,6 +3539,7 @@ export interface TaskDispatchPlan {
   reason: string;
 }
 export interface TaskDispatchPreviewRequest {
+  model_execution_selection?: ModelSelection | null;
   project_id: string;
   task_id: string;
   expected_task_version: number;
@@ -3660,6 +3740,7 @@ export interface ToolEvidence {
   event_count: number;
   usage?: ToolUsage | null;
   usage_state: string;
+  model_execution?: ModelEvidence | null;
 }
 export interface ToolExecutionProfile {
   command_id: string;
@@ -3670,6 +3751,7 @@ export interface ToolExecutionProfile {
   tool_version: string;
   read_only: boolean;
   workspace_tools_version?: string;
+  model_execution_protocol?: string;
   conflict_repair_protocol?: string;
   planning?: PlanningCapability | null;
   knowledge_extraction?: KnowledgeExtractionCapability | null;
@@ -3689,6 +3771,7 @@ export interface ToolObservation {
   profile: ToolExecutionProfile;
   available: boolean;
   reason: string;
+  model_deployments?: (ModelDeployment)[];
 }
 export interface ToolProfile {
   id: string;
@@ -3733,6 +3816,7 @@ export interface ToolUsage {
   reasoning_output_tokens?: number;
 }
 export interface UsageAttempt {
+  model_execution?: ModelBinding | null;
   id: string;
   project_id: string;
   version: number;
@@ -3835,6 +3919,9 @@ export interface UsagePolicyWriteRequest {
   idempotency_key: string;
 }
 export interface UsageRateRevision {
+  model_deployment_id?: string;
+  model_deployment_revision?: number;
+  model_deployment_sha256?: string;
   id: string;
   project_id: string;
   tool_profile_id: string;
@@ -3852,6 +3939,9 @@ export interface UsageRateRevision {
   created_at: string;
 }
 export interface UsageRateWriteRequest {
+  model_deployment_id?: string;
+  model_deployment_revision?: number;
+  model_deployment_sha256?: string;
   project_id: string;
   tool_profile_id: string;
   expected_tool_version: number;

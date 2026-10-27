@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	mc "github.com/ai-mada/suma/internal/modelcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
@@ -24,6 +25,7 @@ func cloneObservations(items []tc.Observation) []tc.Observation {
 	result := append([]tc.Observation{}, items...)
 	for i := range result {
 		result[i].Profile = tc.CloneProfile(result[i].Profile)
+		result[i].ModelDeployments = append([]mc.Deployment(nil), result[i].ModelDeployments...)
 	}
 	return result
 }

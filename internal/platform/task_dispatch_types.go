@@ -3,6 +3,7 @@ package platform
 import (
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	"github.com/ai-mada/suma/internal/dag"
+	"github.com/ai-mada/suma/internal/modelcontract"
 )
 
 type TaskContextRecord struct {
@@ -25,6 +26,7 @@ type TaskContext struct {
 }
 
 type TaskDispatchPlan struct {
+	ModelExecution     *modelcontract.Binding    `json:"model_execution,omitempty"`
 	CodeBaseline       *ccmp.CodeBaselineBinding `json:"code_baseline,omitempty"`
 	ID                 string                    `json:"id"`
 	ProjectID          string                    `json:"project_id"`
@@ -53,16 +55,17 @@ type TaskDispatchPlan struct {
 }
 
 type TaskDispatchPreviewRequest struct {
-	ProjectID           string                      `json:"project_id"`
-	TaskID              string                      `json:"task_id"`
-	ExpectedTaskVersion int                         `json:"expected_task_version"`
-	WorkflowID          string                      `json:"workflow_id"`
-	WorkflowVersion     int                         `json:"workflow_version"`
-	AgentNodeID         string                      `json:"agent_node_id"`
-	ToolProfileID       string                      `json:"tool_profile_id"`
-	ExpectedToolVersion int                         `json:"expected_tool_version"`
-	IdempotencyKey      string                      `json:"idempotency_key"`
-	Knowledge           []ProjectKnowledgeReference `json:"knowledge,omitempty"`
+	ModelExecutionSelection *modelcontract.Selection    `json:"model_execution_selection,omitempty"`
+	ProjectID               string                      `json:"project_id"`
+	TaskID                  string                      `json:"task_id"`
+	ExpectedTaskVersion     int                         `json:"expected_task_version"`
+	WorkflowID              string                      `json:"workflow_id"`
+	WorkflowVersion         int                         `json:"workflow_version"`
+	AgentNodeID             string                      `json:"agent_node_id"`
+	ToolProfileID           string                      `json:"tool_profile_id"`
+	ExpectedToolVersion     int                         `json:"expected_tool_version"`
+	IdempotencyKey          string                      `json:"idempotency_key"`
+	Knowledge               []ProjectKnowledgeReference `json:"knowledge,omitempty"`
 }
 
 type TaskDispatchStartRequest struct {

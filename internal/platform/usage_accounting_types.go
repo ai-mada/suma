@@ -1,6 +1,9 @@
 package platform
 
-import "github.com/ai-mada/suma/internal/toolcontract"
+import (
+	"github.com/ai-mada/suma/internal/modelcontract"
+	"github.com/ai-mada/suma/internal/toolcontract"
+)
 
 type UsagePolicy struct {
 	ID              string   `json:"id"`
@@ -28,6 +31,9 @@ type UsagePolicyWriteRequest struct {
 	IdempotencyKey         string `json:"idempotency_key"`
 }
 type UsageRateRevision struct {
+	ModelDeploymentID          string `json:"model_deployment_id,omitempty"`
+	ModelDeploymentRevision    int    `json:"model_deployment_revision,omitempty"`
+	ModelDeploymentSHA256      string `json:"model_deployment_sha256,omitempty"`
 	ID                         string `json:"id"`
 	ProjectID                  string `json:"project_id"`
 	ToolProfileID              string `json:"tool_profile_id"`
@@ -45,6 +51,9 @@ type UsageRateRevision struct {
 	CreatedAt                  string `json:"created_at"`
 }
 type UsageRateWriteRequest struct {
+	ModelDeploymentID          string `json:"model_deployment_id,omitempty"`
+	ModelDeploymentRevision    int    `json:"model_deployment_revision,omitempty"`
+	ModelDeploymentSHA256      string `json:"model_deployment_sha256,omitempty"`
 	ProjectID                  string `json:"project_id"`
 	ToolProfileID              string `json:"tool_profile_id"`
 	ExpectedToolVersion        int    `json:"expected_tool_version"`
@@ -86,39 +95,40 @@ type UsageDashboard struct {
 	CanManageRates        bool                `json:"can_manage_rates"`
 }
 type UsageAttempt struct {
-	ID                  string              `json:"id"`
-	ProjectID           string              `json:"project_id"`
-	Version             int                 `json:"version"`
-	RunID               string              `json:"run_id"`
-	NodeID              string              `json:"node_id"`
-	Attempt             int                 `json:"attempt"`
-	Fence               int64               `json:"fence"`
-	WorkerID            string              `json:"worker_id"`
-	ToolProfileID       string              `json:"tool_profile_id"`
-	ProfileSHA256       string              `json:"profile_sha256"`
-	Model               string              `json:"model"`
-	EndpointOrigin      string              `json:"endpoint_origin"`
-	Currency            string              `json:"currency"`
-	Rate                *UsageRateRevision  `json:"rate,omitempty"`
-	State               string              `json:"state"`
-	Usage               *toolcontract.Usage `json:"usage,omitempty"`
-	UsageState          string              `json:"usage_state"`
-	ReportedTokens      *int64              `json:"reported_tokens"`
-	EstimatedCostMicros *int64              `json:"estimated_cost_micros"`
-	ReservedTokens      int64               `json:"reserved_tokens"`
-	ReservedCostMicros  *int64              `json:"reserved_cost_micros"`
-	HeldTokens          int64               `json:"held_tokens"`
-	HeldCostMicros      *int64              `json:"held_cost_micros"`
-	UsageSource         string              `json:"usage_source"`
-	DecisionBy          string              `json:"decision_by"`
-	DecisionAt          string              `json:"decision_at"`
-	DecisionReason      string              `json:"decision_reason"`
-	SourceRef           string              `json:"source_ref"`
-	Overrun             bool                `json:"overrun"`
-	SourceResultSHA256  string              `json:"source_result_sha256"`
-	CreatedAt           string              `json:"created_at"`
-	UpdatedAt           string              `json:"updated_at"`
-	AllowedActions      []string            `json:"allowed_actions"`
+	ModelExecution      *modelcontract.Binding `json:"model_execution,omitempty"`
+	ID                  string                 `json:"id"`
+	ProjectID           string                 `json:"project_id"`
+	Version             int                    `json:"version"`
+	RunID               string                 `json:"run_id"`
+	NodeID              string                 `json:"node_id"`
+	Attempt             int                    `json:"attempt"`
+	Fence               int64                  `json:"fence"`
+	WorkerID            string                 `json:"worker_id"`
+	ToolProfileID       string                 `json:"tool_profile_id"`
+	ProfileSHA256       string                 `json:"profile_sha256"`
+	Model               string                 `json:"model"`
+	EndpointOrigin      string                 `json:"endpoint_origin"`
+	Currency            string                 `json:"currency"`
+	Rate                *UsageRateRevision     `json:"rate,omitempty"`
+	State               string                 `json:"state"`
+	Usage               *toolcontract.Usage    `json:"usage,omitempty"`
+	UsageState          string                 `json:"usage_state"`
+	ReportedTokens      *int64                 `json:"reported_tokens"`
+	EstimatedCostMicros *int64                 `json:"estimated_cost_micros"`
+	ReservedTokens      int64                  `json:"reserved_tokens"`
+	ReservedCostMicros  *int64                 `json:"reserved_cost_micros"`
+	HeldTokens          int64                  `json:"held_tokens"`
+	HeldCostMicros      *int64                 `json:"held_cost_micros"`
+	UsageSource         string                 `json:"usage_source"`
+	DecisionBy          string                 `json:"decision_by"`
+	DecisionAt          string                 `json:"decision_at"`
+	DecisionReason      string                 `json:"decision_reason"`
+	SourceRef           string                 `json:"source_ref"`
+	Overrun             bool                   `json:"overrun"`
+	SourceResultSHA256  string                 `json:"source_result_sha256"`
+	CreatedAt           string                 `json:"created_at"`
+	UpdatedAt           string                 `json:"updated_at"`
+	AllowedActions      []string               `json:"allowed_actions"`
 }
 type UsageAttemptPage struct {
 	Items      []UsageAttempt `json:"items"`

@@ -122,6 +122,20 @@ func (s *Service) WriteUsageRate(ctx context.Context, actor Actor, project strin
 		return out, err
 	}
 	model, origin, priced := usagePricedModel(profile)
+	if supportsModelExecution(profile) {
+		_, deployments, e := s.currentModelDeploymentsTx(ctx, auth.tx, auth.target.tenantID, project, profile)
+		if e != nil {
+			return out, e
+		}
+		for _, d := range deployments {
+			if d.ID == req.ModelDeploymentID && d.Revision == req.ModelDeploymentRevision && d.SHA256 == req.ModelDeploymentSHA256 {
+				model, origin, priced = d.Model, d.EndpointOrigin, true
+				break
+			}
+		}
+	} else if req.ModelDeploymentID != "" || req.ModelDeploymentRevision != 0 || req.ModelDeploymentSHA256 != "" {
+		return out, invalid(usageInvalid)
+	}
 	if !priced {
 		return out, invalid(usageRateProfile)
 	}
@@ -142,6 +156,7 @@ func (s *Service) WriteUsageRate(ctx context.Context, actor Actor, project strin
 		return out, conflict(usageVersion)
 	}
 	out = UsageRateRevision{ID: newID(), ProjectID: project, ToolProfileID: profile.ID, Version: version + 1, ProfileSHA256: profile.Profile.ProfileSHA256, Model: model, EndpointOrigin: origin, Currency: req.Currency, InputRateMicrosPerMillion: req.InputRateMicrosPerMillion, OutputRateMicrosPerMillion: req.OutputRateMicrosPerMillion, InputTokenReservation: req.InputTokenReservation, OutputTokenReservation: req.OutputTokenReservation, Reason: req.Reason, CreatedBy: auth.currentPrincipal.ID, CreatedAt: now()}
+	out.ModelDeploymentID, out.ModelDeploymentRevision, out.ModelDeploymentSHA256 = req.ModelDeploymentID, req.ModelDeploymentRevision, req.ModelDeploymentSHA256
 	if usagePublic(usageCost(out.InputTokenReservation, out.OutputTokenReservation, out)) == nil {
 		return out, invalid(usageInvalid)
 	}

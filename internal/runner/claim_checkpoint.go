@@ -30,7 +30,7 @@ func cloneClaim(v *ClaimCheckpoint) ClaimCheckpoint {
 	copy := *v
 	copy.Capabilities = append([]string{}, v.Capabilities...)
 	if v.Assignment != nil {
-		a := *v.Assignment
+		a := cloneModelAssignment(*v.Assignment)
 		copy.Assignment = &a
 	}
 	return copy

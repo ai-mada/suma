@@ -460,6 +460,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.toolProfilesHTTP(w, r, actor, scope, path, parts, project, m) {
 		return
 	}
+	if s.modelExecutionHTTP(w, r, actor, scope, project, parts) {
+		return
+	}
 	if s.workspaceGitHTTP(w, r, actor, scope, project, parts) {
 		return
 	}

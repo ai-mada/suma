@@ -5,10 +5,10 @@ import {nativeCatalog,nativeDisplay,type NativeMessageKey} from '../src/display.
 
 test('native catalog preserves the original 50 definitions and paired purpose extensions',()=>{
  const entries=Object.entries(nativeCatalog).map(([key,entry])=>({key,en:entry.en,zh:entry.zh,params:Object.entries('params' in entry?entry.params:{}).map(([name,kind])=>({name,kind}))})).sort((a,b)=>a.key<b.key?-1:a.key>b.key?1:0);
- assert.equal(entries.length,52);
+ assert.equal(entries.length,58);
  // T-P4-020 authority-generated baseline: the original 46 definitions plus
  // four dedicated workspace diagnostics; unknown keys remain unaccepted.
- const original=entries.filter(entry=>!['native.request.invalid_purpose','native.knowledge.tools_forbidden'].includes(entry.key));
+ const original=entries.filter(entry=>!['native.request.invalid_purpose','native.knowledge.tools_forbidden','native.failure.tools_forbidden','native.workspace.merge_unresolved','native.workspace.merge_incomplete','native.model.binding_invalid','native.model.identity_mismatch','native.model.context_exceeded'].includes(entry.key));
  assert.equal(original.length,50);
  assert.equal(createHash('sha256').update(JSON.stringify(original)).digest('hex'),'5fc7a465774ab720caca5e87a90a8a7c1f2d5924fece17697a97701ae7cd28b3');
  assert.deepEqual(nativeCatalog['native.request.invalid_purpose'],{en:'The selected purpose requires its dedicated read-only model configuration without a workspace bridge.',zh:'所选用途需要对应的专用只读模型配置，且不能连接工作区。'});

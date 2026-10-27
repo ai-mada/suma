@@ -30,7 +30,9 @@ Read commands:
   run show ID
   run events ID [--after SEQUENCE]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
+  models options --tool ID --expected-tool-version N
   workspace git | workspace diff --path RELATIVE [--source worktree|index]
+  developer check             Verify current MCP tools with a real read-only call
   tui                         Read-only Bubble Tea browser (default on a terminal)
 
 Explicit writes:
@@ -108,6 +110,12 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 }
 
 func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
+	if len(args) > 0 && args[0] == "models" {
+		return modelExecutionCommand(ctx, c, args[1:], out)
+	}
+	if len(args) > 0 && args[0] == "developer" {
+		return developerConnectionCommand(ctx, c, args[1:], out)
+	}
 	if len(args) > 0 && args[0] == "workspace" {
 		return workspaceGitCommand(ctx, c, args[1:], out)
 	}

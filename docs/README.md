@@ -1,11 +1,13 @@
 # 速码项目设计文档
 
-状态：当前推进T-P4-035／1.0.0，只读Git工作区与原生执行限额已取得限定本地证据，完整 P0–P7 及需求1–22继续实施。主预览与最终交付状态以[交付状态](delivery/status.md)为准。文档负责人：平台集成。设计依据：用户确认的完整方案及后续扩展要求。本文档索引与源码、接口和验证报告共同维护。
+状态：当前推进T-P4-036／1.0.0，固定原生模型选择／封闭参数／attempt预算→真实native执行→同一usage账本已取得限定本地证据，原任务GUI固定预览、中英／键盘／刷新已验证；`developer check`仅证明单次只读MCP诊断。完整 P0–P7 及需求1–22继续实施。主预览与最终交付状态以[交付状态](delivery/status.md)为准。文档负责人：平台集成。设计依据：用户确认的完整方案及后续扩展要求。本文档索引与源码、接口和验证报告共同维护。
 
 | 主题 | 入口 |
 |---|---|
-| 只读Git审阅、Monaco保存快捷键与原生执行限额（当前 T-P4-035） | [PRD](product/workspace-git.md)／[架构](architecture/workspace-git.md)／[交互](design/workspace-git.md)／[接口与限额合同](../contracts/workspace-git.md)／[限定本地验证](quality/workspace-git-verification.md) |
-| 独立可写模型选择与计价（035仅设计，尚未实现） | [后续模型部署、版本绑定与费率设计](architecture/035-model-selection-design.md)；不能由本阶段执行限额修正推断为已完成模型选择或正式计价 |
+| 固定原生模型选择、attempt预算与真实执行（当前 T-P4-036，UI固定预览已验证） | [PRD](product/model-execution.md)／[架构与实现检查点](architecture/model-execution.md)／[AI SOP](operations/model-execution.md)／[English](en/model-execution.md)／[实际验证及剩余边界](quality/model-execution-verification.md)；外部CLI、专家团队独立选择和完整多模型报价目录仍待实施 |
+| 开发工具真实只读MCP诊断（T-P4-036） | [developer check操作与边界](integrations/developer-connection-check.md)／[限定证据](quality/developer-connection036-verification.md)；[远程工作区出站broker](architecture/remote-workspace-broker.md)尚未实施，不宣称完整远程IDE接入 |
+| 只读Git审阅、Monaco保存快捷键与原生执行限额（历史 T-P4-035） | [PRD](product/workspace-git.md)／[架构](architecture/workspace-git.md)／[交互](design/workspace-git.md)／[接口与限额合同](../contracts/workspace-git.md)／[限定本地验证](quality/workspace-git-verification.md) |
+| 独立模型选择与计价的历史设计输入（T-P4-035） | [035模型部署、版本绑定与费率设计](architecture/035-model-selection-design.md)；当前限定原生实现见036，独立模型授权／完整报价目录等历史设计中的后续项不据此标记完成 |
 | 当前工具推荐与IDE保存恢复（历史 T-P4-034） | [PRD](product/task-dispatch-options.md)／[架构](architecture/intelligent-capability-selection-notes.md)／[AI SOP](operations/task-dispatch-options.md)／[交互](design/task-dispatch-options.md)／[合同](../contracts/task-dispatch-options.md)／[验证](quality/task-dispatch-options-verification.md)／[摘要](quality/task-dispatch-options-summary.json)／[English](en/task-dispatch-options.md)／[逐平台差距](product/platform-capability-delivery-matrix.md) |
 | 修复计划修订与运行溯源（历史 T-P4-033） | [PRD](product/candidate-repair-revisions.md)／[架构](architecture/candidate-repair-revisions.md)／[AI SOP](operations/candidate-repair-revisions.md)／[交互](design/candidate-repair-revisions.md)／[合同](../contracts/candidate-repair-revisions.md)／[CLI](../contracts/candidate-repair-revisions-cli.md)／[限定验证](quality/candidate-repair-revisions-verification.md)／[摘要](quality/candidate-repair-revisions-summary.json)／[English](en/candidate-repair-revisions.md) |
 | 新增平台参考与智能选择／IDE缺口 | [OpenWorkBuddy、Octop固定官方基线](integrations/development-platform-reference-extensions.md)；许可、来源能力、当前实现与未完成项分别记录 |

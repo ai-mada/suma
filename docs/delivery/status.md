@@ -2,7 +2,15 @@
 
 当前开发版本 **1.0.0**；新设计采用当前最佳合理结构，不增加历史兼容层。[版本与扩展需求基线](../product/v1-baseline.md)。
 
-## 当前 T-P4-035：实时Git工作区与原生执行限额（1.0.0，限定本地已验证）
+## 当前 T-P4-036：模型配置、预算与真实原生执行（限定本地验证）
+
+当前授权库存中的模型版本、封闭参数和本次预算进入同一固定Plan／节点／attempt，实际原生CLI请求所选模型，再按原准确运营方费率回写用量与账本。自有协议联合执行40 Token／57 CNY微元，预留归零；错误身份、缺证和超界保留核对，新绑定不自动重试。原任务界面实际保存2次调用／100输出／20000 Token／CNY0.02的固定预览，中英、键盘和刷新保持；未Start或代替正式验收。
+
+CLI新增models options及基于官方SDK的developer check真实MCP初始化／工具列表／项目只读调用。费用未定价保持未知；每工具当前仅一份匹配报价。外部CLI独立模型选择、专家团队／修复入口、远程工作区broker与完整IDE、真实厂商及生产／规模验收继续实施。主035预览未修改或重启。
+
+[合同](../../contracts/model-execution.md)、[PRD](../product/model-execution.md)、[架构](../architecture/model-execution.md)、[AI SOP](../operations/model-execution.md)、[限定验证](../quality/model-execution-verification.md)、[摘要](../quality/model-execution-summary.json)、[English](../en/model-execution.md)。
+
+## 历史 T-P4-035：实时Git工作区与原生执行限额（1.0.0，限定本地已验证）
 
 新增当前项目的Git状态和工作树／暂存区准确差异；复用Monaco只读DiffEditor，切换变更保留原草稿，CtrlCmd+S沿用准确回执与原操作恢复。Git读取核验身份、目录、配置与当前元数据，不修改索引或提交；暂存删除后同路径重建等真实边界已修正。原生执行的步数和输出限额在创建工作区或进程前严格校验，并准确传入SDK；可写模型选择仍为设计。
 

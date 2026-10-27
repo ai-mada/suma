@@ -1,10 +1,13 @@
 import {createHash,randomUUID} from 'node:crypto';
 import {nativeDisplay,requireNativeLocale,type NativeMessageKey,type NativeDisplay} from './display.js';
 import {AttemptWorkspaceClient,WorkspaceBridgeError,type WorkspaceBridge} from './workspace-client.js';
+import {resolveModelExecution,ModelBindingError,type ModelBinding,type LocalModelExecution} from './model-execution.js';
+import {OpenAICompatibleProviderAdapter} from './provider-adapter.js';
+export {modelExecutionCapability,type ModelBinding,type LocalModelExecution} from './model-execution.js';
 export {normalizeLocale,nativeDisplay,NativeLocaleError,type NativeDisplay,type NativeLocale} from './display.js';
 
-export interface AgentRequest {goal:string;purpose?:'planning'|'knowledge_extraction'|'failure_diagnosis';max_steps?:number;max_tokens?:number;request_id?:string}
-export interface RuntimeConfig {model?:string;baseURL?:string;apiKey?:string;controlURL?:string;controlToken?:string;projectID?:string;timeoutMS?:number;locale?:string;workspaceBridge?:WorkspaceBridge}
+export interface AgentRequest {goal:string;purpose?:'planning'|'knowledge_extraction'|'failure_diagnosis';max_steps?:number;max_tokens?:number;request_id?:string;model_execution?:ModelBinding}
+export interface RuntimeConfig {model?:string;baseURL?:string;apiKey?:string;controlURL?:string;controlToken?:string;projectID?:string;timeoutMS?:number;locale?:string;workspaceBridge?:WorkspaceBridge;modelExecution?:LocalModelExecution}
 export interface AgentEvent {type:string;request_id?:string;display?:NativeDisplay;[key:string]:unknown}
 interface Tool {name:string;providerName:string;description?:string;parameters:Record<string,unknown>}
 interface Message {role:string;content?:string|null;tool_calls?:ToolCall[];tool_call_id?:string}
@@ -45,7 +48,7 @@ async function jsonRequest(url:string,init:RequestInit,signal:AbortSignal,exactU
  safeURL(url);const response=await fetch(url,{...init,signal,redirect:'error'});if(!response.ok)throw new RuntimeError('upstream_rejected',`Endpoint rejected request (HTTP ${response.status})`,'native.endpoint.rejected',response.status,{status:response.status});
  const reader=response.body?.getReader();if(!reader)throw new RuntimeError('invalid_response','Empty upstream response','native.response.empty');let size=0;const chunks:Uint8Array[]=[];
  try{for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>2*1024*1024){await reader.cancel();throw new RuntimeError('response_limit','Upstream response exceeded 2 MiB','native.response.too_large')};chunks.push(value)}}finally{reader.releaseLock()}
- try{const text=Buffer.concat(chunks).toString('utf8');return exactUsage?parseModelJSON(text):JSON.parse(text)}catch{throw new RuntimeError('invalid_response','Upstream response is not JSON','native.response.invalid_json')}
+ try{const text=Buffer.concat(chunks).toString('utf8');return exactUsage?{data:parseModelJSON(text),responseSHA256:createHash('sha256').update(Buffer.concat(chunks)).digest('hex')}:JSON.parse(text)}catch{throw new RuntimeError('invalid_response','Upstream response is not JSON','native.response.invalid_json')}
 }
 function asObject(x:unknown):Record<string,unknown>{if(!x || typeof x!=='object' || Array.isArray(x))throw new RuntimeError('invalid_response','Expected an object','native.response.object_required');return x as Record<string,unknown>}
 function processLimit(x:unknown,fallback:number,max:number):number{if(x===undefined)return fallback;if(typeof x!=='number'||!Number.isSafeInteger(x)||x<1||x>max)throw new RuntimeError('invalid_limits','Explicit max_steps/max_tokens must be positive integers within the supported bounds','native.request.invalid_limits');return x;}
@@ -59,10 +62,12 @@ function modelUsage(response:Record<string,unknown>):UsageFacts{
  if(response.usage===undefined||response.usage===null)return {counts:{},state:'unreported'};
  const raw=asObject(response.usage);const counts:Record<string,number>={};
  const set=(name:string,value:number|undefined)=>{if(value===undefined)return;if(Object.hasOwn(counts,name)&&counts[name]!==value)throw new RuntimeError('invalid_response','Conflicting model usage counters','native.usage.conflicting_counters');counts[name]=value;};
- set('input_tokens',counter(raw,'prompt_tokens'));set('output_tokens',counter(raw,'completion_tokens'));counter(raw,'total_tokens');
+ set('input_tokens',counter(raw,'prompt_tokens'));set('output_tokens',counter(raw,'completion_tokens'));const total=counter(raw,'total_tokens');
  for(const key of ['cached_input_tokens','cache_write_input_tokens','reasoning_output_tokens'])set(key,counter(raw,key));
  if(Object.hasOwn(raw,'prompt_tokens_details'))set('cached_input_tokens',counter(asObject(raw.prompt_tokens_details),'cached_tokens'));
  if(Object.hasOwn(raw,'completion_tokens_details'))set('reasoning_output_tokens',counter(asObject(raw.completion_tokens_details),'reasoning_tokens'));
+ const input=counts.input_tokens,output=counts.output_tokens;
+ if(total!==undefined&&input!==undefined&&output!==undefined&&BigInt(total)!==BigInt(input)+BigInt(output)||input!==undefined&&BigInt(counts.cached_input_tokens??0)+BigInt(counts.cache_write_input_tokens??0)>BigInt(input)||output!==undefined&&counts.reasoning_output_tokens!==undefined&&counts.reasoning_output_tokens>output)throw new RuntimeError('invalid_response','Conflicting model usage counters','native.usage.conflicting_counters');
  return {counts,state:Object.keys(counts).length===0?'unreported':counts.input_tokens!==undefined&&counts.output_tokens!==undefined?'complete':'partial'};
 }
 function usageCoverage(steps:UsageFacts[]):UsageFacts['state']{
@@ -83,9 +88,11 @@ function providerToolCatalog(items:unknown[]):{tools:Tool[];aliases:Map<string,T
  return {tools,aliases};
 }
 export async function runAgent(request:AgentRequest,config:RuntimeConfig,emit:(event:AgentEvent)=>void,externalSignal?:AbortSignal):Promise<void>{
- const locale=requireNativeLocale(config.locale);const requestID=request.request_id??randomUUID();const event=(e:AgentEvent)=>emit({...e,request_id:requestID});
+ const locale=requireNativeLocale(config.locale);const requestID=request.request_id??randomUUID();let execution:LocalModelExecution|undefined;const event=(e:AgentEvent)=>emit({...e,request_id:requestID,...(execution?{binding_sha256:execution.binding.binding_sha256,deployment_sha256:execution.binding.deployment.deployment_sha256,parameters_sha256:execution.binding.parameters_sha256,model:execution.binding.deployment.model}:{})});
  let workspace:AttemptWorkspaceClient|undefined;
  try{
+ execution=resolveModelExecution(request.model_execution,config.modelExecution);
+ if(execution){config={...config,model:execution.binding.deployment.model,baseURL:execution.base_url,apiKey:execution.api_key};if(request.purpose!==undefined||request.max_steps!==undefined&&request.max_steps!==execution.binding.parameters.max_steps||request.max_tokens!==undefined&&request.max_tokens!==execution.binding.parameters.max_output_tokens)throw new ModelBindingError();request={...request,max_steps:execution.binding.parameters.max_steps,max_tokens:execution.binding.parameters.max_output_tokens};}
  if(!request.goal?.trim() || request.goal.length>32000 || (request.purpose==='knowledge_extraction'||request.purpose==='failure_diagnosis')&&Buffer.byteLength(request.goal)>32000)throw new RuntimeError('invalid_goal','A goal of 1–32000 characters is required','native.request.invalid_goal');
  const planning=request.purpose==='planning',extracting=request.purpose==='knowledge_extraction',diagnosing=request.purpose==='failure_diagnosis',oneCallPurpose=extracting||diagnosing,documentPurpose=planning||oneCallPurpose;
  if(request.purpose!==undefined&&!documentPurpose||documentPurpose&&config.workspaceBridge!==undefined)throw new RuntimeError('invalid_purpose','The selected purpose requires its dedicated read-only model configuration without a workspace bridge.','native.request.invalid_purpose');
@@ -97,7 +104,7 @@ export async function runAgent(request:AgentRequest,config:RuntimeConfig,emit:(e
  if(extracting)knowledgeExtractionCapability(config);
  if(diagnosing)failureDiagnosisCapability(config);
  const signal=AbortSignal.any([AbortSignal.timeout(config.timeoutMS??120000),...(externalSignal?[externalSignal]:[])]);
- const base=safeURL(config.baseURL).href.replace(/\/$/,'');let allowanceConsumed=0;let outputTokens=0;const usageSteps:UsageFacts[]=[];
+ const base=safeURL(config.baseURL).href.replace(/\/$/,'');const provider=new OpenAICompatibleProviderAdapter(config.model,base,config.apiKey,jsonRequest);let allowanceConsumed=0;let outputTokens=0;const usageSteps:UsageFacts[]=[];
  let tools:Tool[]=[];let toolAliases=new Map<string,Tool>();const control=config.controlURL?.replace(/\/$/,'');
  if(control&&!oneCallPurpose){if(!config.controlToken || !config.projectID)throw new RuntimeError('missing_control_auth','Control token and project are required for tools','native.config.missing_control_auth');const raw=asObject(await jsonRequest(`${control}/api/v1/agent/tools?project_id=${encodeURIComponent(config.projectID)}`,{headers:{Authorization:`Bearer ${config.controlToken}`}},signal));if(!Array.isArray(raw.items))throw new RuntimeError('invalid_tools','Control service did not return a tool catalog','native.tools.catalog_missing');const catalog=providerToolCatalog(planning?raw.items.filter(item=>planningTools.has(String(asObject(item).name))):raw.items);tools=catalog.tools;toolAliases=catalog.aliases;}
  if(config.workspaceBridge!==undefined){workspace=await AttemptWorkspaceClient.connect(config.workspaceBridge,requestID,signal);const catalog=providerToolCatalog([...tools.map(tool=>({name:tool.name,description:tool.description,parameters:tool.parameters})),...workspace.tools]);tools=catalog.tools;toolAliases=catalog.aliases;}
@@ -106,15 +113,18 @@ export async function runAgent(request:AgentRequest,config:RuntimeConfig,emit:(e
  event({type:'started',model:config.model,tools:tools.map(t=>t.name)});
  for(let step=0;step<steps;step++){
  if(signal.aborted)throw signal.reason;if(allowanceConsumed>=budget)throw new RuntimeError('token_limit','Agent output allowance exhausted','native.limit.output_allowance');
- const allowance=Math.min(budget-allowanceConsumed,documentPurpose?8192:repairing?1024:4096);allowanceConsumed+=allowance;
- event({type:'request_started',step,output_allowance:allowance});
+ const allowance=Math.min(budget-allowanceConsumed,documentPurpose?8192:repairing?1024:4096,execution?.binding.deployment.context_window??Number.MAX_SAFE_INTEGER);allowanceConsumed+=allowance;
  const body={model:config.model,messages,stream:false,max_completion_tokens:allowance,...(documentPurpose?{response_format:{type:'json_object'}}:{}),...(oneCallPurpose?{tool_choice:'none'}:{}),...(tools.length?{tools:tools.map(t=>({type:'function',function:{name:t.providerName,description:t.description,parameters:t.parameters}}))}:{})};
+ const prepared=provider.prepare(body);event({type:'request_started',step,output_allowance:allowance,...(execution?{endpoint_config_sha256:execution.binding.deployment.endpoint_config_sha256,request_sha256:prepared.requestSHA256}:{})});
  let response:Record<string,unknown>;let facts:UsageFacts;
- try{response=asObject(await jsonRequest(`${base}/chat/completions`,{method:'POST',headers:{'Content-Type':'application/json',...(config.apiKey?{Authorization:`Bearer ${config.apiKey}`}:{})},body:JSON.stringify(body)},signal,true));facts=modelUsage(response);}
- catch(error){usageSteps.push({counts:{},state:'unreported'});event({type:'usage',step,usage_state:'unreported',usage_reported:false});if(error instanceof RuntimeError&&error.httpStatus===429)error.modelRejected=true;throw error;}
- usageSteps.push(facts);event({type:'usage',step,...facts.counts,usage_state:facts.state,usage_reported:facts.state==='complete'});
+ let responseSHA256='';let providerModel='';let providerRequestID='';
+ try{const received=await provider.invoke(prepared,signal);responseSHA256=received.responseSHA256;response=asObject(received.data);providerModel=typeof response.model==='string'?response.model:'';providerRequestID=typeof response.id==='string'?response.id:'';facts=modelUsage(response);}
+ catch(error){usageSteps.push({counts:{},state:'unreported'});event({type:'usage',step,usage_state:'unreported',usage_reported:false,...(execution?{response_sha256:responseSHA256,provider_model:providerModel,provider_request_id:providerRequestID}:{})});if(!execution&&error instanceof RuntimeError&&error.httpStatus===429)error.modelRejected=true;throw error;}
+ usageSteps.push(facts);event({type:'usage',step,...facts.counts,usage_state:facts.state,usage_reported:facts.state==='complete',...(execution?{response_sha256:responseSHA256,provider_model:providerModel,provider_request_id:providerRequestID}:{})});
+ if(execution&&(providerModel!==execution.binding.deployment.model||providerModel.length>256||providerRequestID.length>256||/[\p{Cc}\p{Cs}]/u.test(providerModel+providerRequestID)))throw new RuntimeError('provider_model_mismatch','Provider response model does not match the selected deployment','native.model.identity_mismatch');
+ if(execution&&facts.counts.input_tokens!==undefined&&facts.counts.input_tokens>execution.binding.deployment.context_window)throw new RuntimeError('provider_context_exceeded','Provider reported input beyond the declared context bound','native.model.context_exceeded');
  const output=facts.counts.output_tokens;
- if(output!==undefined){if(output>allowance)throw new RuntimeError('provider_allowance_exceeded','Provider reported output beyond the reserved request allowance','native.usage.allowance_exceeded');allowanceConsumed-=allowance-output;outputTokens+=output;}
+ if(output!==undefined){if(output>allowance)throw new RuntimeError('provider_allowance_exceeded','Provider reported output beyond the reserved request allowance','native.usage.allowance_exceeded');if(facts.state==='complete')allowanceConsumed-=allowance-output;outputTokens+=output;}
  if(!Array.isArray(response.choices) || !response.choices[0])throw new RuntimeError('invalid_response','Model returned no choices','native.response.no_choices');const choice=asObject(response.choices[0]);const message=asObject(choice.message);const calls=message.tool_calls;
  if(!calls || (Array.isArray(calls) && calls.length===0)){if(choice.finish_reason==='length')throw new RuntimeError('token_limit','Model output was truncated','native.limit.output_truncated');if(typeof message.content!=='string' || !message.content.trim())throw new RuntimeError('empty_completion','Model returned no text','native.response.no_text');await workspace?.close();workspace=undefined;event({type:'completed',output:message.content,usage_state:usageCoverage(usageSteps),...(usageSteps.every(item=>item.counts.output_tokens!==undefined)?{output_tokens:outputTokens}:{})});return;}
  if(diagnosing)throw new RuntimeError('failure_tools_forbidden','Failure diagnosis cannot request or execute tools.','native.failure.tools_forbidden');
@@ -129,9 +139,9 @@ export async function runAgent(request:AgentRequest,config:RuntimeConfig,emit:(e
  }catch(error){
   const aborted=externalSignal?.aborted || (error instanceof Error && ['AbortError','TimeoutError'].includes(error.name));
   const workspaceDiagnostic=error instanceof WorkspaceBridgeError?workspaceDiagnostics[error.code]??workspaceDiagnostics.workspace_fatal:undefined;
-  const key=aborted?'native.run.aborted':workspaceDiagnostic?.key??(error instanceof RuntimeError?error.displayKey:'native.run.failed');
-  const message=aborted?'Agent aborted or timed out':workspaceDiagnostic?.message??(error instanceof RuntimeError?error.message:'Agent request failed; inspect provider and control configuration');
-  event({type:'error',code:aborted?'aborted':error instanceof RuntimeError||error instanceof WorkspaceBridgeError?error.code:'runtime_error',message,display:nativeDisplay(key,locale,!aborted&&error instanceof RuntimeError?error.displayParams:{}),...(error instanceof RuntimeError&&error.modelRejected?{source:'model',http_status:429,failure_class:'transient'}:{})});
+  const key=aborted?'native.run.aborted':workspaceDiagnostic?.key??(error instanceof ModelBindingError?'native.model.binding_invalid':error instanceof RuntimeError?error.displayKey:'native.run.failed');
+  const message=aborted?'Agent aborted or timed out':workspaceDiagnostic?.message??(error instanceof RuntimeError||error instanceof ModelBindingError?error.message:'Agent request failed; inspect provider and control configuration');
+  event({type:'error',code:aborted?'aborted':error instanceof RuntimeError||error instanceof WorkspaceBridgeError||error instanceof ModelBindingError?error.code:'runtime_error',message,display:nativeDisplay(key,locale,!aborted&&error instanceof RuntimeError?error.displayParams:{}),...(error instanceof RuntimeError&&error.modelRejected?{source:'model',http_status:429,failure_class:'transient'}:{})});
  }
  finally{await workspace?.close().catch(()=>{});}
 }

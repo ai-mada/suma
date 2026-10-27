@@ -19,14 +19,15 @@ import (
 // Local scopes are configurations, never project grants. Paths and command
 // environments remain local and are never included in machine diagnostics.
 type PoolLocalScope struct {
-	TenantID   string                  `json:"tenant_id"`
-	ProjectID  string                  `json:"project_id"`
-	Workspace  string                  `json:"workspace"`
-	Repository string                  `json:"repository,omitempty"`
-	BaseCommit string                  `json:"base_commit,omitempty"`
-	Worktrees  string                  `json:"worktrees,omitempty"`
-	Commands   map[string]CommandSpec  `json:"commands"`
-	External   map[string]ExternalSpec `json:"external,omitempty"`
+	TenantID         string                  `json:"tenant_id"`
+	ProjectID        string                  `json:"project_id"`
+	Workspace        string                  `json:"workspace"`
+	Repository       string                  `json:"repository,omitempty"`
+	BaseCommit       string                  `json:"base_commit,omitempty"`
+	Worktrees        string                  `json:"worktrees,omitempty"`
+	Commands         map[string]CommandSpec  `json:"commands"`
+	External         map[string]ExternalSpec `json:"external,omitempty"`
+	ModelDeployments []ModelDeploymentSpec   `json:"model_deployments,omitempty"`
 }
 type PoolLocalConfig struct {
 	SchemaVersion       int              `json:"schema_version"`
@@ -78,7 +79,7 @@ func validatePoolLocalConfig(c PoolLocalConfig) error {
 				return err
 			}
 		}
-		if err := ValidateToolConfiguration(ExecConfig{Commands: s.Commands}); err != nil {
+		if err := ValidateToolConfiguration(ExecConfig{Commands: s.Commands, ModelDeployments: s.ModelDeployments}); err != nil {
 			return err
 		}
 		for _, spec := range s.Commands {
@@ -247,7 +248,7 @@ func (w *PoolWorker) Run(ctx context.Context) error {
 		pool.TenantID, pool.ProjectID = scope.TenantID, scope.ProjectID
 		client.Pool = &pool
 		client.ProjectID = scope.ProjectID
-		w.local[key] = &Worker{Client: &client, Journal: j, ID: session.Runner.WorkerID, Exec: ExecConfig{AllowExec: w.AllowExec, Workspace: scope.Workspace, Repository: scope.Repository, BaseCommit: scope.BaseCommit, WorktreeRoot: scope.Worktrees, Commands: scope.Commands, External: scope.External, Secrets: []string{w.Client.Token}}}
+		w.local[key] = &Worker{Client: &client, Journal: j, ID: session.Runner.WorkerID, Exec: ExecConfig{AllowExec: w.AllowExec, Workspace: scope.Workspace, Repository: scope.Repository, BaseCommit: scope.BaseCommit, WorktreeRoot: scope.Worktrees, Commands: scope.Commands, ModelDeployments: scope.ModelDeployments, External: scope.External, Secrets: []string{w.Client.Token}}}
 	}
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()

@@ -169,7 +169,7 @@ func (j *Journal) Accept(a Assignment) error {
 	if _, ok := j.entries[k]; ok {
 		return fmt.Errorf("attempt already recorded")
 	}
-	j.entries[k] = entry{Assignment: a}
+	j.entries[k] = entry{Assignment: cloneModelAssignment(a)}
 	return j.save()
 }
 func (j *Journal) Finish(r Result) error {
@@ -196,8 +196,10 @@ func (j *Journal) Finish(r Result) error {
 		copied := *r.ToolEvidence
 		copied.Profile = tc.CloneProfile(copied.Profile)
 		copied.Usage = cloneUsage(r.ToolEvidence.Usage)
+		copied.ModelExecution = cloneModelEvidence(r.ToolEvidence.ModelExecution)
 		r.ToolEvidence = &copied
 	}
+	r.Assignment = cloneModelAssignment(r.Assignment)
 	e.Result = &r
 	e.ArtifactPending = nil
 	e.CandidatePending = nil
@@ -291,7 +293,7 @@ func (j *Journal) recordProgress(a Assignment, message string, event *tc.Event) 
 	if event != nil {
 		event = cloneToolEvent(event)
 	}
-	e.Progress = append(e.Progress, Progress{Assignment: a, OperationID: hex.EncodeToString(h[:]), Message: message, ToolEvent: event})
+	e.Progress = append(e.Progress, Progress{Assignment: cloneModelAssignment(a), OperationID: hex.EncodeToString(h[:]), Message: message, ToolEvent: event})
 	j.entries[k] = e
 	if err := j.save(); err != nil {
 		j.entries[k] = previous
@@ -344,6 +346,7 @@ func (j *Journal) PendingProgress() []Progress {
 		for _, p := range j.entries[k].Progress {
 			if !p.Acked {
 				p.ToolEvent = cloneToolEvent(p.ToolEvent)
+				p.Assignment = cloneModelAssignment(p.Assignment)
 				result = append(result, p)
 			}
 		}
@@ -377,6 +380,7 @@ func (j *Journal) Pending() []Result {
 	for _, e := range j.entries {
 		if !e.Acked && e.Result != nil {
 			copy := *e.Result
+			copy.Assignment = cloneModelAssignment(copy.Assignment)
 			if copy.StartupFailure != nil {
 				proof := *copy.StartupFailure
 				proof.Profile = tc.CloneProfile(proof.Profile)
@@ -386,6 +390,7 @@ func (j *Journal) Pending() []Result {
 				evidence := *copy.ToolEvidence
 				evidence.Profile = tc.CloneProfile(evidence.Profile)
 				evidence.Usage = cloneUsage(evidence.Usage)
+				evidence.ModelExecution = cloneModelEvidence(evidence.ModelExecution)
 				copy.ToolEvidence = &evidence
 			}
 			results = append(results, copy)

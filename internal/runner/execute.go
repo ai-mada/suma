@@ -7,6 +7,7 @@ import (
 	"fmt"
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	ec "github.com/ai-mada/suma/internal/executioncontract"
+	mc "github.com/ai-mada/suma/internal/modelcontract"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	"io"
@@ -21,22 +22,23 @@ import (
 )
 
 type CommandSpec struct {
-	Adapter              string                 `json:"adapter,omitempty"`
-	Protocol             string                 `json:"protocol,omitempty"`
-	Executable           string                 `json:"executable"`
-	Args                 []string               `json:"args"`
-	Env                  map[string]string      `json:"env,omitempty"`
-	EnvFrom              []string               `json:"env_from,omitempty"`
-	Input                string                 `json:"input,omitempty"`
-	ReadOnly             bool                   `json:"read_only,omitempty"`
-	Planning             bool                   `json:"planning,omitempty"`
-	KnowledgeExtraction  bool                   `json:"knowledge_extraction,omitempty"`
-	FailureDiagnosis     bool                   `json:"failure_diagnosis,omitempty"`
-	CandidateComposition bool                   `json:"candidate_composition,omitempty"`
-	TestEvidence         bool                   `json:"test_evidence,omitempty"`
-	ArtifactOutput       string                 `json:"artifact_output,omitempty"`
-	ArtifactInput        bool                   `json:"artifact_input,omitempty"`
-	NativeWorkspace      *NativeWorkspacePolicy `json:"native_workspace,omitempty"`
+	Adapter                string                 `json:"adapter,omitempty"`
+	Protocol               string                 `json:"protocol,omitempty"`
+	Executable             string                 `json:"executable"`
+	Args                   []string               `json:"args"`
+	Env                    map[string]string      `json:"env,omitempty"`
+	EnvFrom                []string               `json:"env_from,omitempty"`
+	Input                  string                 `json:"input,omitempty"`
+	ReadOnly               bool                   `json:"read_only,omitempty"`
+	Planning               bool                   `json:"planning,omitempty"`
+	KnowledgeExtraction    bool                   `json:"knowledge_extraction,omitempty"`
+	FailureDiagnosis       bool                   `json:"failure_diagnosis,omitempty"`
+	CandidateComposition   bool                   `json:"candidate_composition,omitempty"`
+	TestEvidence           bool                   `json:"test_evidence,omitempty"`
+	ArtifactOutput         string                 `json:"artifact_output,omitempty"`
+	ArtifactInput          bool                   `json:"artifact_input,omitempty"`
+	NativeWorkspace        *NativeWorkspacePolicy `json:"native_workspace,omitempty"`
+	ModelExecutionProtocol string                 `json:"model_execution_protocol,omitempty"`
 }
 
 type nativeAgentLimits struct {
@@ -53,6 +55,16 @@ func nativeExecutionLimits(a Assignment) (nativeAgentLimits, error) {
 	maxSteps, maxTokens := 16, 32768
 	if a.CandidateConflictRepair != nil {
 		limits.MaxSteps, maxSteps, maxTokens = 64, 128, 131072
+	}
+	if value, present := a.Config["model_execution"]; present {
+		binding, err := mc.DecodeBinding(value)
+		if err != nil {
+			return nativeAgentLimits{}, fmt.Errorf("model execution binding is invalid")
+		}
+		if binding.Parameters.MaxSteps > maxSteps || binding.Parameters.MaxOutputTokens > int64(maxTokens) {
+			return nativeAgentLimits{}, fmt.Errorf("Native agent execution limits are invalid")
+		}
+		limits.MaxSteps, limits.MaxTokens = binding.Parameters.MaxSteps, int(binding.Parameters.MaxOutputTokens)
 	}
 	for _, field := range []struct {
 		name     string
@@ -79,6 +91,12 @@ func nativeExecutionLimits(a Assignment) (nativeAgentLimits, error) {
 		}
 		*field.target = n
 	}
+	if value, present := a.Config["model_execution"]; present {
+		binding, _ := mc.DecodeBinding(value)
+		if limits.MaxSteps != binding.Parameters.MaxSteps || int64(limits.MaxTokens) != binding.Parameters.MaxOutputTokens {
+			return nativeAgentLimits{}, fmt.Errorf("model execution limits differ from the immutable binding")
+		}
+	}
 	return limits, nil
 }
 
@@ -93,7 +111,8 @@ func nativeAgentInput(a Assignment, limits nativeAgentLimits, bridge NativeWorks
 		MaxSteps        int                   `json:"max_steps"`
 		MaxTokens       int                   `json:"max_tokens"`
 		WorkspaceBridge NativeWorkspaceBridge `json:"workspace_bridge"`
-	}{Goal: goal, RequestID: digest([]byte(key(a))), MaxSteps: limits.MaxSteps, MaxTokens: limits.MaxTokens, WorkspaceBridge: bridge})
+		ModelExecution  any                   `json:"model_execution,omitempty"`
+	}{Goal: goal, RequestID: digest([]byte(key(a))), MaxSteps: limits.MaxSteps, MaxTokens: limits.MaxTokens, WorkspaceBridge: bridge, ModelExecution: a.Config["model_execution"]})
 }
 
 type ExecConfig struct {
@@ -107,6 +126,7 @@ type ExecConfig struct {
 	Progress                             func(string) error
 	ToolProgress                         func(tc.Event) error
 	ToolInventory                        []tc.Observation
+	ModelDeployments                     []ModelDeploymentSpec
 	Artifacts                            *Client
 	Journal                              *Journal
 	resolvedArtifact                     *releasecontract.ArtifactBinding
@@ -339,6 +359,10 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if a.CandidateConflictRepair != nil {
 		startupProfile = &profile
 	}
+	modelExecution, modelErr := modelExecutionRequest(a, cfg, spec, profile)
+	if modelErr != nil {
+		return fail(modelErr.Error())
+	}
 	var nativeLimits nativeAgentLimits
 	if spec.NativeWorkspace != nil {
 		limits, limitsErr := nativeExecutionLimits(a)
@@ -440,6 +464,10 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if err != nil {
 		return fail(err.Error())
 	}
+	if modelExecution != nil {
+		cmd.Env = applyModelExecutionEnvironment(cmd.Env, modelExecution)
+		cfg.Secrets = append(cfg.Secrets, modelExecution.APIKey)
+	}
 	if spec.Adapter == "codebuddy" {
 		// One-shot headless tasks must not leave background agents or tools
 		// outside the result interval. The decoder also rejects such events.
@@ -531,6 +559,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			emit = cfg.ToolProgress
 		}
 		stream = newToolStream(profile, cfg.Secrets, emit, digest([]byte(key(a))))
+		if modelExecution != nil {
+			stream.modelBinding = &modelExecution.Binding
+		}
 		stream.abort = cancel
 		if dshStdin != nil {
 			stream.onTerminal = func() { _ = dshStdin.Close() }

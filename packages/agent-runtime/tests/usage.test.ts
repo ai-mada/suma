@@ -42,6 +42,10 @@ test('every present provider counter is a nonnegative safe integer before tool a
  }
 });
 
+test('reported total and subset usage counters cannot contradict exact input and output totals',async()=>{
+ for(const usage of [{prompt_tokens:3,completion_tokens:2,total_tokens:6},{prompt_tokens:3,completion_tokens:2,prompt_tokens_details:{cached_tokens:4}},{prompt_tokens:3,completion_tokens:2,cached_input_tokens:2,cache_write_input_tokens:2},{prompt_tokens:3,completion_tokens:2,completion_tokens_details:{reasoning_tokens:3}}]){const f=await modelFixture(request=>call(request,usage),true);try{const events:AgentEvent[]=[];await runAgent({goal:'contradictory usage must not authorize tools'},f.config,e=>events.push(e));assert.equal(events.at(-1)?.code,'invalid_response');assert.equal(f.invocations.length,0);assert.ok(!events.some(event=>event.type==='completed'));}finally{await f.close();}}
+});
+
 test('unknown usage consumes reserved allowance across actual model requests',async()=>{
  const f=await modelFixture(request=>call(request),true);
  try{const events:AgentEvent[]=[];await runAgent({goal:'unknown multi-step usage',max_steps:8,max_tokens:5000},f.config,e=>events.push(e));assert.equal(events.at(-1)?.code,'token_limit');assert.deepEqual(f.requests.map(r=>r.max_completion_tokens),[4096,904]);assert.equal(f.invocations.length,2);const starts=events.filter(e=>e.type==='request_started');assert.deepEqual(starts.map(e=>e.output_allowance),[4096,904]);assert.equal(events.filter(e=>e.type==='usage').length,2);}
@@ -63,6 +67,18 @@ test('a provider exceeding this request allowance records actual usage then bloc
 test('known actual output releases unused reservation while missing later usage keeps its allowance',async()=>{
  const f=await modelFixture((request,index)=>index===0?call(request,{prompt_tokens:3,completion_tokens:2}):call(request),true);
  try{const events:AgentEvent[]=[];await runAgent({goal:'mixed coverage',max_tokens:10,max_steps:8},f.config,e=>events.push(e));assert.deepEqual(f.requests.map(r=>r.max_completion_tokens),[10,8]);assert.equal(events.at(-1)?.code,'token_limit');assert.equal(events.filter(e=>e.type==='usage')[1]?.usage_state,'unreported');}
+ finally{await f.close();}
+});
+
+test('output-only partial usage cannot release the request reservation',async()=>{
+ const f=await modelFixture(request=>call(request,{completion_tokens:1}),true);
+ try{const events:AgentEvent[]=[];await runAgent({goal:'partial output cannot prove a complete request',max_tokens:10,max_steps:8},f.config,e=>events.push(e));assert.deepEqual(f.requests.map(r=>r.max_completion_tokens),[10]);assert.equal(events.at(-1)?.code,'token_limit');assert.equal(events.find(e=>e.type==='usage')?.output_tokens,1);assert.equal(events.find(e=>e.type==='usage')?.usage_state,'partial');}
+ finally{await f.close();}
+});
+
+test('complete exact usage reuses unused allowance over several real protocol requests',async()=>{
+ const f=await modelFixture((request,index)=>index<3?call(request,{prompt_tokens:3,completion_tokens:1}):completed({prompt_tokens:4,completion_tokens:1}),true);
+ try{const events:AgentEvent[]=[];await runAgent({goal:'four small exact model responses',max_tokens:4096,max_steps:4},f.config,e=>events.push(e));assert.deepEqual(f.requests.map(r=>r.max_completion_tokens),[4096,4095,4094,4093]);assert.equal(events.at(-1)?.type,'completed');assert.equal(events.at(-1)?.output_tokens,4);assert.equal(events.at(-1)?.usage_state,'complete');assert.equal(f.invocations.length,3);}
  finally{await f.close();}
 });
 

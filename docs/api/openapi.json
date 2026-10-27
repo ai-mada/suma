@@ -8210,6 +8210,345 @@
         ],
         "type": "object"
       },
+      "ModelBinding": {
+        "properties": {
+          "binding_sha256": {
+            "type": "string"
+          },
+          "budget": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelBudget"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "deployment": {
+            "$ref": "#/components/schemas/ModelDeployment"
+          },
+          "input_token_reservation": {
+            "type": "integer"
+          },
+          "output_token_reservation": {
+            "type": "integer"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/ModelParameters"
+          },
+          "parameters_sha256": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "rate": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelRateSnapshot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "protocol",
+          "deployment",
+          "parameters",
+          "parameters_sha256",
+          "binding_sha256",
+          "input_token_reservation",
+          "output_token_reservation"
+        ],
+        "type": "object"
+      },
+      "ModelBudget": {
+        "properties": {
+          "cost_limit_micros": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency": {
+            "type": "string"
+          },
+          "token_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [],
+        "type": "object"
+      },
+      "ModelDeployment": {
+        "properties": {
+          "context_window": {
+            "type": "integer"
+          },
+          "deployment_id": {
+            "type": "string"
+          },
+          "deployment_sha256": {
+            "type": "string"
+          },
+          "endpoint_config_sha256": {
+            "type": "string"
+          },
+          "endpoint_origin": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "deployment_id",
+          "revision",
+          "deployment_sha256",
+          "protocol",
+          "model",
+          "endpoint_origin",
+          "endpoint_config_sha256",
+          "context_window"
+        ],
+        "type": "object"
+      },
+      "ModelEvidence": {
+        "properties": {
+          "binding_sha256": {
+            "type": "string"
+          },
+          "deployment_sha256": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "parameters_sha256": {
+            "type": "string"
+          },
+          "requests": {
+            "items": {
+              "$ref": "#/components/schemas/ModelRequestEvidence"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "binding_sha256",
+          "deployment_sha256",
+          "parameters_sha256",
+          "model",
+          "requests"
+        ],
+        "type": "object"
+      },
+      "ModelExecutionOption": {
+        "properties": {
+          "cost_state": {
+            "type": "string"
+          },
+          "default_parameters": {
+            "$ref": "#/components/schemas/ModelParameters"
+          },
+          "deployment": {
+            "$ref": "#/components/schemas/ModelDeployment"
+          },
+          "input_token_reservation": {
+            "type": "integer"
+          },
+          "output_token_reservation": {
+            "type": "integer"
+          },
+          "rate": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UsageRateRevision"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "deployment",
+          "cost_state",
+          "default_parameters",
+          "input_token_reservation",
+          "output_token_reservation"
+        ],
+        "type": "object"
+      },
+      "ModelExecutionOptions": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ModelExecutionOption"
+            },
+            "type": "array"
+          },
+          "observed_at": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "supported": {
+            "type": "boolean"
+          },
+          "tool_profile_id": {
+            "type": "string"
+          },
+          "tool_profile_sha256": {
+            "type": "string"
+          },
+          "tool_profile_version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "tool_profile_id",
+          "tool_profile_version",
+          "tool_profile_sha256",
+          "observed_at",
+          "supported",
+          "reason",
+          "items"
+        ],
+        "type": "object"
+      },
+      "ModelParameters": {
+        "properties": {
+          "max_output_tokens": {
+            "type": "integer"
+          },
+          "max_steps": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "max_steps",
+          "max_output_tokens"
+        ],
+        "type": "object"
+      },
+      "ModelRateSnapshot": {
+        "properties": {
+          "currency": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "input_rate_micros_per_million": {
+            "type": "integer"
+          },
+          "output_rate_micros_per_million": {
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "currency",
+          "input_rate_micros_per_million",
+          "output_rate_micros_per_million"
+        ],
+        "type": "object"
+      },
+      "ModelRequestEvidence": {
+        "properties": {
+          "output_allowance": {
+            "type": "integer"
+          },
+          "provider_model": {
+            "type": "string"
+          },
+          "provider_request_id": {
+            "type": "string"
+          },
+          "request_sha256": {
+            "type": "string"
+          },
+          "response_sha256": {
+            "type": "string"
+          },
+          "step": {
+            "type": "integer"
+          },
+          "usage_state": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "step",
+          "request_sha256",
+          "output_allowance",
+          "usage_state"
+        ],
+        "type": "object"
+      },
+      "ModelSelection": {
+        "properties": {
+          "budget": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelBudget"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "deployment_id": {
+            "type": "string"
+          },
+          "deployment_revision": {
+            "type": "integer"
+          },
+          "deployment_sha256": {
+            "type": "string"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/ModelParameters"
+          }
+        },
+        "required": [
+          "deployment_id",
+          "deployment_revision",
+          "deployment_sha256",
+          "parameters"
+        ],
+        "type": "object"
+      },
       "NativeWorkspaceCheckResult": {
         "additionalProperties": false,
         "properties": {
@@ -16490,6 +16829,16 @@
           "id": {
             "type": "string"
           },
+          "model_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelBinding"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "project_id": {
             "type": "string"
           },
@@ -16590,6 +16939,16 @@
             },
             "maxItems": 16,
             "type": "array"
+          },
+          "model_execution_selection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelSelection"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "project_id": {
             "type": "string"
@@ -18127,6 +18486,69 @@
             "if": {
               "properties": {
                 "message_key": {
+                  "const": "native.model.binding_invalid"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.model.identity_mismatch"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.model.context_exceeded"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
                   "const": "native.response.empty"
                 }
               },
@@ -18663,6 +19085,9 @@
               "native.request.invalid_goal",
               "native.request.invalid_purpose",
               "native.request.invalid_limits",
+              "native.model.binding_invalid",
+              "native.model.identity_mismatch",
+              "native.model.context_exceeded",
               "native.response.empty",
               "native.response.invalid_json",
               "native.response.no_choices",
@@ -18978,6 +19403,16 @@
             "minimum": 0,
             "type": "integer"
           },
+          "model_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "profile": {
             "$ref": "#/components/schemas/ToolExecutionProfile"
           },
@@ -19056,6 +19491,9 @@
                 "type": "null"
               }
             ]
+          },
+          "model_execution_protocol": {
+            "type": "string"
           },
           "planning": {
             "anyOf": [
@@ -19147,6 +19585,12 @@
         "properties": {
           "available": {
             "type": "boolean"
+          },
+          "model_deployments": {
+            "items": {
+              "$ref": "#/components/schemas/ModelDeployment"
+            },
+            "type": "array"
           },
           "profile": {
             "$ref": "#/components/schemas/ToolExecutionProfile"
@@ -19445,6 +19889,17 @@
           "model": {
             "readOnly": true,
             "type": "string"
+          },
+          "model_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelBinding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
           },
           "node_id": {
             "readOnly": true,
@@ -20070,6 +20525,18 @@
             "readOnly": true,
             "type": "string"
           },
+          "model_deployment_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "model_deployment_revision": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "model_deployment_sha256": {
+            "readOnly": true,
+            "type": "string"
+          },
           "output_rate_micros_per_million": {
             "readOnly": true,
             "type": "integer"
@@ -20151,6 +20618,15 @@
             "maximum": 9007199254740991,
             "minimum": 0,
             "type": "integer"
+          },
+          "model_deployment_id": {
+            "type": "string"
+          },
+          "model_deployment_revision": {
+            "type": "integer"
+          },
+          "model_deployment_sha256": {
+            "type": "string"
           },
           "output_rate_micros_per_million": {
             "maximum": 9007199254740991,
@@ -42105,6 +42581,203 @@
           "required": true
         },
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/model-execution/options": {
+      "get": {
+        "description": "Current project-authorized worker model deployment observations and matching operator rate. Does not probe provider health, request a model, dispatch work or certify vendor billing. Dispatch preview freezes the selected exact revision and rate.",
+        "operationId": "get_model-execution_options",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Current approved native workspace tool profile ID.",
+            "in": "query",
+            "name": "tool_profile_id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact current tool record version.",
+            "in": "query",
+            "name": "expected_tool_version",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelExecutionOptions"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelExecutionOptions"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every legacy diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "legacy generic envelope; field validation is specified by the handler and API guide"
       }
     },
     "/organization/invitations": {

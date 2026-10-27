@@ -56,6 +56,16 @@ func validateToolResult(n Node, r Result) error {
 	if success && (e.Terminal != "completed" || e.Profile.Protocol != "text-v1" && e.EventCount == 0) {
 		return dagDiagnostic(fmt.Errorf("%w: protocol completion does not prove success", ErrInvalid), "dag.tool.protocol_success", nil)
 	}
+	model, err := ModelBinding(n)
+	if err != nil {
+		return err
+	}
+	if model != nil && success {
+		actual := e.ModelExecution
+		if actual == nil || actual.BindingSHA256 != model.BindingSHA256 || actual.DeploymentSHA256 != model.Deployment.SHA256 || actual.ParametersSHA256 != model.ParametersSHA256 || actual.Model != model.Deployment.Model || len(actual.Requests) < 1 || len(actual.Requests) > model.Parameters.MaxSteps {
+			return fmt.Errorf("%w: model execution evidence differs from fixed node", ErrInvalid)
+		}
+	}
 	if e.Terminal == "unknown" && !r.OutcomeUnknown && !r.Stopped {
 		return dagDiagnostic(fmt.Errorf("%w: unknown tool evidence requires unknown outcome", ErrInvalid), "dag.tool.unknown_outcome", nil)
 	}

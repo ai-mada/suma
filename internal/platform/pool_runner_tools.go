@@ -208,7 +208,10 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof
 		return false, nil
 	}
 	p, err = s.toolProfileForPoolTx(ctx, tx, proof, scope, p)
-	return p.Available, err
+	if err != nil || !p.Available {
+		return false, err
+	}
+	return s.modelExecutionClaimEligibleTx(ctx, tx, scope.TenantID, scope.ProjectID, p, n)
 }
 
 func (s *Service) ValidatePoolToolProgressTx(ctx context.Context, tx *sql.Tx, proof *poolMachineProof, a dag.Assignment, event *tc.Event) error {

@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	mc "github.com/ai-mada/suma/internal/modelcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
@@ -383,11 +384,17 @@ func inventoryWorkspace(ctx context.Context, cfg ExecConfig, write bool) error {
 // DescribeTools performs only local installation and read-only protocol probes.
 // Availability never claims model authentication or successful task execution.
 func ValidateToolConfiguration(cfg ExecConfig) error {
+	if err := validateModelDeployments(cfg.ModelDeployments); err != nil {
+		return err
+	}
 	if len(cfg.Commands) > 128 {
 		return fmt.Errorf("at most 128 local command profiles are supported")
 	}
 	for id, spec := range cfg.Commands {
 		spec = normalizedCommand(spec)
+		if err := validateModelExecutionSpec(spec); err != nil {
+			return err
+		}
 		if err := validateCompositionCommand(id, spec); err != nil {
 			return err
 		}
@@ -440,7 +447,7 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 			sem <- struct{}{}
 			defer func() { <-sem; done <- i }()
 			spec := normalizedCommand(cfg.Commands[id])
-			p := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly}
+			p := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol}
 			if spec.NativeWorkspace != nil {
 				p.WorkspaceToolsVersion = NativeWorkspaceVersion
 				if spec.NativeWorkspace.ConflictRepair {
@@ -487,6 +494,15 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 				return
 			}
 			o.Profile.ToolVersion = version
+			if spec.ModelExecutionProtocol == mc.Protocol {
+				if err = probeModelExecution(ctx, exe, spec); err != nil {
+					fail(err.Error())
+					return
+				}
+				for _, local := range cfg.ModelDeployments {
+					o.ModelDeployments = append(o.ModelDeployments, local.Deployment)
+				}
+			}
 			o.Profile.Planning, err = localPlanningCapability(spec)
 			if err != nil {
 				fail(err.Error())
@@ -554,7 +570,12 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 		if e != nil {
 			return p, "", e
 		}
-		p = tc.Profile{CommandID: a.Command[0], Adapter: spec.Adapter, Protocol: spec.Protocol, ProfileSHA256: digest, ExecutableSHA256: sha, ToolVersion: version, ReadOnly: spec.ReadOnly}
+		p = tc.Profile{CommandID: a.Command[0], Adapter: spec.Adapter, Protocol: spec.Protocol, ProfileSHA256: digest, ExecutableSHA256: sha, ToolVersion: version, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol}
+		if spec.ModelExecutionProtocol == mc.Protocol {
+			if err = probeModelExecution(ctx, exe, spec); err != nil {
+				return p, "", err
+			}
+		}
 		if spec.NativeWorkspace != nil {
 			p.WorkspaceToolsVersion = NativeWorkspaceVersion
 			if spec.NativeWorkspace.ConflictRepair {
@@ -576,6 +597,9 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 	}
 	if err = tc.ValidateProfile(p, true); err != nil {
 		return p, "", fmt.Errorf("invalid tool profile")
+	}
+	if p.ModelExecutionProtocol != spec.ModelExecutionProtocol || validateModelExecutionSpec(spec) != nil {
+		return p, "", fmt.Errorf("model execution capability does not match local configuration")
 	}
 	expectedWorkspace := ""
 	if spec.NativeWorkspace != nil {
