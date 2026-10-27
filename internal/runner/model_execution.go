@@ -159,25 +159,27 @@ func cloneModelEvidence(value *mc.Evidence) *mc.Evidence {
 // Preserve the selected nested object when caller-owned maps are later reused.
 // Retain generic JSON values so durable assignment identity stays byte-stable.
 func cloneModelAssignment(value Assignment) Assignment {
-	selected, present := value.Config["model_execution"]
-	if !present {
-		return value
+	for _, field := range []string{"model_execution", "codex_execution"} {
+		selected, present := value.Config[field]
+		if !present {
+			continue
+		}
+		raw, err := json.Marshal(selected)
+		if err != nil {
+			continue
+		}
+		var copied any
+		decoder := json.NewDecoder(bytes.NewReader(raw))
+		decoder.UseNumber()
+		if decoder.Decode(&copied) != nil {
+			continue
+		}
+		config := make(map[string]any, len(value.Config))
+		for name, item := range value.Config {
+			config[name] = item
+		}
+		config[field] = copied
+		value.Config = config
 	}
-	raw, err := json.Marshal(selected)
-	if err != nil {
-		return value
-	}
-	var copied any
-	decoder := json.NewDecoder(bytes.NewReader(raw))
-	decoder.UseNumber()
-	if decoder.Decode(&copied) != nil {
-		return value
-	}
-	config := make(map[string]any, len(value.Config))
-	for name, item := range value.Config {
-		config[name] = item
-	}
-	config["model_execution"] = copied
-	value.Config = config
 	return value
 }

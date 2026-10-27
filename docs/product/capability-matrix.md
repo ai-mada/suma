@@ -1,6 +1,8 @@
 # 能力与验收矩阵
 
-当前增量T-P4-040：[逐任务模型合同](../../contracts/expert-team-model-execution.md)、[架构与AI SOP](../architecture/expert-team-model-execution.md)、[限定证据](../quality/expert-team-model-execution-verification.md)。原生团队任务每项固定模型／参数／预算、原报价与真实账本，未开始项明确修订，中英与CLI恢复取得本地证据。外部CLI、修复入口、完整IDE及所有P0–P7／1–22继续实施。
+当前增量T-P4-041：[Codex合同](../../contracts/codex-app-server.md)、[接入与AI SOP](../integrations/codex-app-server.md)、[限定证据](../quality/codex-app-server-verification.md)。真实目录选择、固定单任务配置、实际CLI私有工作树编码、原进展／结果与partial未定价账本取得本地证据。配置ACK不代表提供方模型，observe-only不能用于enforce预算；团队／修复入口、其他CLI、完整IDE及所有P0–P7／1–22继续实施。
+
+历史增量T-P4-040：[逐任务模型合同](../../contracts/expert-team-model-execution.md)、[架构与AI SOP](../architecture/expert-team-model-execution.md)、[限定证据](../quality/expert-team-model-execution-verification.md)。原生团队任务每项固定模型／参数／预算、原报价与真实账本，未开始项明确修订，中英与CLI恢复取得本地证据。外部CLI、修复入口、完整IDE及所有P0–P7／1–22继续实施。
 
 历史增量T-P4-039：[真实执行器能力合同](../../contracts/workspace-transport-capabilities.md)、[架构与AI SOP](../integrations/workspace-transport-capabilities.md)、[限定证据](../quality/workspace-capability-verification.md)。当前read/write broker声明与权限分离、准确准入、公开库存导入及CNEN事实已实现；当前主预览升级039，未自行启动Runner。物理多机、全IDE和全部P0–P7/1–22继续实施。
 

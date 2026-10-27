@@ -3864,6 +3864,188 @@
         ],
         "type": "object"
       },
+      "CodexBinding": {
+        "properties": {
+          "binding_sha256": {
+            "type": "string"
+          },
+          "budget_mode": {
+            "type": "string"
+          },
+          "catalog_sha256": {
+            "type": "string"
+          },
+          "configuration_sha256": {
+            "type": "string"
+          },
+          "identity_evidence": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "reasoning_effort": {
+            "type": "string"
+          },
+          "token_notice_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "protocol",
+          "configuration_sha256",
+          "catalog_sha256",
+          "model",
+          "reasoning_effort",
+          "budget_mode",
+          "identity_evidence",
+          "binding_sha256"
+        ],
+        "type": "object"
+      },
+      "CodexCatalog": {
+        "properties": {
+          "catalog_sha256": {
+            "type": "string"
+          },
+          "configuration_sha256": {
+            "type": "string"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/CodexModelOption"
+            },
+            "type": "array"
+          },
+          "protocol": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol",
+          "configuration_sha256",
+          "models",
+          "catalog_sha256"
+        ],
+        "type": "object"
+      },
+      "CodexEvidence": {
+        "properties": {
+          "acknowledged_model": {
+            "type": "string"
+          },
+          "acknowledged_provider": {
+            "type": "string"
+          },
+          "acknowledged_reasoning_effort": {
+            "type": "string"
+          },
+          "binding_sha256": {
+            "type": "string"
+          },
+          "configuration_acknowledged": {
+            "type": "boolean"
+          },
+          "interrupt_acknowledged": {
+            "type": "boolean"
+          },
+          "interrupt_requested": {
+            "type": "boolean"
+          },
+          "requested_model": {
+            "type": "string"
+          },
+          "requested_reasoning_effort": {
+            "type": "string"
+          },
+          "rerouted_models": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "thread_id": {
+            "type": "string"
+          },
+          "token_notice_exceeded": {
+            "type": "boolean"
+          },
+          "turn_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "binding_sha256",
+          "requested_model",
+          "requested_reasoning_effort",
+          "configuration_acknowledged",
+          "interrupt_requested",
+          "interrupt_acknowledged",
+          "token_notice_exceeded"
+        ],
+        "type": "object"
+      },
+      "CodexModelOption": {
+        "properties": {
+          "default_reasoning_effort": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "reasoning_efforts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "model",
+          "reasoning_efforts",
+          "default_reasoning_effort"
+        ],
+        "type": "object"
+      },
+      "CodexSelection": {
+        "properties": {
+          "catalog_sha256": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "reasoning_effort": {
+            "type": "string"
+          },
+          "token_notice_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "catalog_sha256",
+          "model",
+          "reasoning_effort"
+        ],
+        "type": "object"
+      },
       "ConsumeDeploymentAuthorization": {
         "additionalProperties": false,
         "properties": {
@@ -8413,6 +8595,22 @@
       },
       "ModelExecutionOptions": {
         "properties": {
+          "codex_catalog": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodexCatalog"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "codex_reason": {
+            "type": "string"
+          },
+          "codex_supported": {
+            "type": "boolean"
+          },
           "items": {
             "items": {
               "$ref": "#/components/schemas/ModelExecutionOption"
@@ -8442,6 +8640,8 @@
           }
         },
         "required": [
+          "codex_supported",
+          "codex_reason",
           "project_id",
           "tool_profile_id",
           "tool_profile_version",
@@ -17048,6 +17248,16 @@
               }
             ]
           },
+          "codex_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodexBinding"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "context": {
             "$ref": "#/components/schemas/TaskContext"
           },
@@ -17163,6 +17373,16 @@
         "properties": {
           "agent_node_id": {
             "type": "string"
+          },
+          "codex_execution_selection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodexSelection"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "expected_task_version": {
             "type": "integer"
@@ -19642,6 +19862,16 @@
           }
         ],
         "properties": {
+          "codex_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodexEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "event_count": {
             "minimum": 0,
             "type": "integer"
@@ -19828,6 +20058,16 @@
         "properties": {
           "available": {
             "type": "boolean"
+          },
+          "codex_catalog": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodexCatalog"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "model_deployments": {
             "items": {
@@ -20084,6 +20324,17 @@
           "attempt": {
             "readOnly": true,
             "type": "integer"
+          },
+          "codex_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodexBinding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
           },
           "created_at": {
             "readOnly": true,
@@ -43705,7 +43956,7 @@
     },
     "/model-execution/options": {
       "get": {
-        "description": "Current project-authorized worker model deployment observations and matching operator rate. Does not probe provider health, request a model, dispatch work or certify vendor billing. Dispatch preview freezes the selected exact revision and rate.",
+        "description": "Current project-authorized worker native deployments or Codex app-server catalog. Native supported and Codex codex_supported are distinct. Codex model/effort confirms configuration only, with optional token notice and observed partial usage; it provides no native hard allowance or provider pricing. This read never invokes a model or dispatches work.",
         "operationId": "get_model-execution_options",
         "parameters": [
           {
@@ -43717,7 +43968,7 @@
             }
           },
           {
-            "description": "Current approved native workspace tool profile ID.",
+            "description": "Current approved tool profile ID. Native workspace and Codex app-server capabilities are returned separately.",
             "in": "query",
             "name": "tool_profile_id",
             "required": true,

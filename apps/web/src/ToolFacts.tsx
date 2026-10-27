@@ -1,3 +1,4 @@
+import {CodexExecutionFacts} from './CodexModelExecutionPanel';
 import { Trans } from "./i18n/Trans";
 import { NativeToolMessage } from "./NativeToolMessage";
 import { renderDisplayDiagnostic } from "./display-diagnostic";
@@ -365,6 +366,7 @@ export function ToolExecutionFacts({
         <p className="muted">
           {t("development.facts.the_session_id_is_for_traceability_and")}</p>
       )}
+      <CodexExecutionFacts evidence={evidence?.codex_execution}/>
       <UsageFacts
         usage={usage ?? undefined}
         usageState={usageState}

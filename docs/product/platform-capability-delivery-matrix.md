@@ -1,6 +1,8 @@
 # 参考平台能力与交付差距矩阵
 
-当前增量T-P4-040：[逐任务模型合同](../../contracts/expert-team-model-execution.md)、[架构与AI SOP](../architecture/expert-team-model-execution.md)、[限定证据](../quality/expert-team-model-execution-verification.md)。原生团队任务每项固定模型／参数／预算、原报价与真实账本，未开始项明确修订，中英与CLI恢复取得本地证据。外部CLI、修复入口、完整IDE及所有P0–P7／1–22继续实施。
+当前增量T-P4-041：[Codex合同](../../contracts/codex-app-server.md)、[接入与AI SOP](../integrations/codex-app-server.md)、[限定证据](../quality/codex-app-server-verification.md)。真实目录选择、固定单任务配置、实际CLI私有工作树编码、原进展／结果与partial未定价账本取得本地证据。配置ACK不代表提供方模型，observe-only不能用于enforce预算；团队／修复入口、其他CLI、完整IDE及所有P0–P7／1–22继续实施。
+
+历史增量T-P4-040：[逐任务模型合同](../../contracts/expert-team-model-execution.md)、[架构与AI SOP](../architecture/expert-team-model-execution.md)、[限定证据](../quality/expert-team-model-execution-verification.md)。原生团队任务每项固定模型／参数／预算、原报价与真实账本，未开始项明确修订，中英与CLI恢复取得本地证据。外部CLI、修复入口、完整IDE及所有P0–P7／1–22继续实施。
 
 历史增量T-P4-039：[真实执行器能力合同](../../contracts/workspace-transport-capabilities.md)、[架构与AI SOP](../integrations/workspace-transport-capabilities.md)、[限定证据](../quality/workspace-capability-verification.md)。当前read/write broker声明与权限分离、准确准入、公开库存导入及CNEN事实已实现；当前主预览升级039，未自行启动Runner。物理多机、全IDE和全部P0–P7/1–22继续实施。
 
@@ -22,7 +24,7 @@
 
 | 参考与对齐方向 | 速码源码实现 | 本地／协议证据 | 真实工具与生产差距 |
 | --- | --- | --- | --- |
-| 原生模型选择与预算（平台能力） | [部署与绑定合同](../../internal/modelcontract/model.go)、[当前模型选项](../../internal/platform/model_execution.go)、原固定Plan、Runner本地允许清单和attempt账务钩子 | [036实际证据](../quality/model-execution-verification.md)：限定本地真实native CLI请求使用准确模型／参数，原费率与预算进入同一账本；GUI预览仍收尾 | 当前独立选择仅适用于声明能力的原生Suma工具；每tool一份当前匹配运营方费率，不是多模型报价目录。团队逐任务原生选择已在040验证；外部CLI、修复入口、自动策略、厂商账单和生产仍待完成 |
+| 原生模型选择与预算（平台能力） | [部署与绑定合同](../../internal/modelcontract/model.go)、[当前模型选项](../../internal/platform/model_execution.go)、原固定Plan、Runner本地允许清单和attempt账务钩子 | [036实际证据](../quality/model-execution-verification.md)：限定本地真实native CLI请求使用准确模型／参数，原费率与预算进入同一账本；GUI固定预览已验证 | 原生Suma保留硬预算与冻结运营方费率，每tool一份当前匹配费率；团队逐任务原生选择在040验证。041新增独立Codex单任务选择，配置ACK／partial用量／observe-only明确分开；其他CLI、团队／修复独立Codex选择、自动策略、厂商账单与生产继续实施 |
 | [Multica](https://github.com/multica-ai/multica/tree/a47a1ced0c71bdb113a43facce4675442acb9001)：团队、机器、任务与工作区协同 | Go DAG、共享池与双向Grant、专家团队计划、候选合成／修订和固定基线 | [团队依赖编排](../quality/expert-team-orchestration-verification.md)、[033实际闭环](../quality/candidate-repair-revisions-verification.md)：同机两Runner、独立工作树与独立测试 | 专家团队独立模型selection、Multica外部服务互操作、跨物理机器与规模／生产验收未完成；不能将同机进程称为真实远端集群 |
 | [Hermes](https://github.com/NousResearch/hermes-agent/commit/cb757fac59c92b49e9b8f2910e5cd7ab75efffdd)：工具、技能、记忆与长期智能执行 | 原生Suma内核、受限项目工具、技能目录与知识提案 | 原生工具／技能和提案有各自本地证据，不是Hermes运行证据 | 历史Hermes版本探测退出1，完整协议／会话／取消／恢复接入未验证；不标记可用 |
 | [OpenCode](https://github.com/anomalyco/opencode/commit/02671e66454260d77fe04d63cf5eb94e76921dee)：编码CLI与交互执行 | 工具配置与Runner能力注册基础存在 | 当前profile明确不可用；局部step完成不证明整个任务完成 | 需固定官方整体终态、输入等待、取消和恢复合同，并验证实际CLI／模型；生产未验收 |

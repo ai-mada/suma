@@ -2,7 +2,7 @@
   "project": "suma",
   "name": "速码一栈式智能研发平台",
   "phase": "implementation",
-  "updated_at": "2026-10-27",
+  "updated_at": "2026-10-27T13:34:25.624826+00:00",
   "status": "in_progress",
   "plan": "docs/delivery/implementation-plan.md",
   "workstreams": {
@@ -30,6 +30,7 @@
     "remote_workspace": "038 private/Pool exact outbound saves and readonly FullFile, single execute permits/late fact drain/durable original ACK and explicit inspect; unique same-host real joint1197.21s incl GUI passed. Native generation3/GUI SHA49918... independently recorded. Physical multi-host/TLS/production pending."
   },
   "verified": [
+    "T-P4-041: installed Codex -> owned Responses -> isolated worktree edit;7 persisted progress events, exact result ACK,88 partial tokens/nullcost; separate CNEN model/effort/notice preview+refresh0Start. Cancellation4-branch RED/GREEN, affected driver/vet and final5-program build; main188/184facts preserved. Full goal remains active.",
     "T-P4-036: current model selection/parameters/budget frozen in Plan/assignment, actual native CLI/MCP/local provider request and original result ->40tokens/57CNYmicros/hold0; second two-deployment process test separately verified. GUI exact model/2calls100output/20000tokens/CNY0.02 -> same fixed ready plan CNEN/keyboard/refresh,0run/model/formal,closed0. Numeric token recovery guard fixed narrowly; credential rejection retained. MCP developer check actual SDK/SQLite authority verified.4452keys, affected checks/types/contracts/vet; main035 untouched; full goal remains in progress.",
     "T-P4-035: actual owned Git HEAD1/index2/disk3 with draft9 -> staged1to2/working2to3 -> original Monaco CtrlS once -> working2to9, CNEN/keyboard/refresh and14 UI facts; isolated normal closure, new1save/0run/model/vendor/formal. Final disabled-state-only fix, 4419 keys, focused checks and same Go/finalWeb primary verified; all186 startup exact, warm182nonlock exact and34locksequence+23,18authority0Grant18session/1failed2succeeded preserved. Native typed limits actual process/payload checks passed. Full platform active.",
     "T-P4-034: current real A inventory and unavailable B -> page-first compatible adoption -> exact original fixed preview, task remains todo/noRun. Genuine Monaco wrong200 -> original key recovery preserves new draft -> new key exact save;3HTTP/2durable ops. Focused10 web checks, affected Go/contract/vet,4363paired keys and one Go/web build passed; unchanged11+161 native inputs reused. Final immutable15checks and primary186 complete tables/schema unchanged beforewarm,182 nonlock exact +34 locksequences each+28 afterwarm;18authority0Grant18sessions and1failed2succeeded kept.0models/vendors/formal-task-tests/newcredentials; full platform active.",
@@ -46,10 +47,10 @@
     "Primary027/1.0.0 normal255376/holder247864 exec63413; all164 oldschemas and fullrows unchanged,4newemptytables+2indexes->168,18authority0Grant/original login/tasks/run1failed2succeeded kept;127assets served exact. Old026exec2716 and all027 isolated UI/Runner/helpers closed0,source clones unchanged. Full platform remains active."
   ],
   "production_integration_complete": false,
-  "current_evidence": "docs/quality/expert-team-model-execution-verification.md",
-  "stage": "T-P4-040_expert_team_model_execution",
+  "current_evidence": "docs/quality/codex-app-server-verification.md",
+  "stage": "T-P4-041_codex_app_server_execution",
   "commit_policy": "User authorizes local commits after validated functional stages. Commit necessary source, configuration, design/contracts and compact acceptance summaries only; keep raw logs, screenshots, snapshots, credentials, databases, caches and binaries out of Git. No push.",
-  "next_step": "Commit verified040, then governed Codex app-server actual models/effort/tier and honest budget capability; no native hard-budget claims for external CLI. Continue full remote IDE, integrations and all P0-P7/1..22 storage/knowledge/memory/skills/SSO/mobile/channels/installations/SaaS/scale gaps. Revalidate actual primary current_launch, never infer live from stale PID; no broad repeated tests.",
+  "next_step": "Continue full P0-P7/requirements1..22: explicit expert/repair external model selection, other CLI adapters, full IDE/PTY/LSP/DAP, physical multi-machine and production capabilities. No silent scope reduction.",
   "additional_requirements": [
     "FND-I18N-001: internationalization in every implemented surface; initially zh-CN/en-US, unified catalogs, preference/negotiation, formatting, API errors, CLI/desktop/extensions/notifications and docs; preserve user content and immutable evidence; coverage must be honestly verified",
     "Idea lifecycle, reusable function/menu governance, visual configuration, alerts and WeChat/DingTalk/WeCom channels remain full platform scope",
@@ -79,14 +80,12 @@
     "load_policy": "on demand; do not load during every startup"
   },
   "validation_policy": "Focused checks per changed behavior; reuse unchanged-input evidence; one full integration gate per milestone; representative UI verification only for changed interactions/layout. Preserve critical authority/transaction/migration/concurrency/idempotency checks. No redundant review, snapshots, logs or full-matrix reruns.",
-  "deployed_evidence": "docs/quality/workspace-git-verification.md",
+  "deployed_evidence": "docs/quality/codex-app-server-summary.json",
   "primary_preview": {
-    "address": "http://pool.localhost:4324",
-    "stage": "040",
-    "launch": ".cache/e2e/expert-model-stage-040/primary-final/control-launch.local.json",
-    "status": "normal final040 receipt fix; exact process and original session verified; revalidate before future operations",
-    "data_preservation": "188 complete tables/schema preserved at startup; no backup restoration",
-    "full_platform": "in_progress"
+    "status": "041 live normal; original188tables and184nonlock facts preserved; no new login/credential/run/Runner",
+    "launch": ".cache/e2e/codex-execution-stage-041/primary-cancel-guard/control-launch.local.json",
+    "origin": "http://pool.localhost:4324",
+    "last_verified": ".cache/e2e/codex-execution-stage-041/primary-cancel-guard/verified.local.json"
   },
   "native020_progress": {
     "status": "locally_verified",
@@ -156,13 +155,9 @@
   },
   "current_version": "1.0.0",
   "design_policy": "Current 1.0.0 best-fit architecture only; no historical compatibility shims or duplicated state. Preserve actual user data, immutable evidence and safe recovery; product SemVer is separate from protocol/SDK/domain revisions.",
-  "previous_goal_turn": "progress:039 committed68ada4c6be01e3f13a13df5630911009238312f8;040 native expert model execution, original-rate pending source, actual ledger and CNEN GUI completed, final recovery correction and stage commit follows. Full P0-P7 and1..22 active.",
+  "previous_goal_turn": "progress:040 committedf9e78b9297ab4edf9743daecdd0881d9aa1bcfea with real native expert execution, original quote, exact receipt recovery and CNEN UI; full P0-P7 and1..22 stay active.",
   "active_goal_source_sha256": "2743ccd3920cc648455d7c5ad12f5c9937590d3eafdecc5da36d6529aa829a71",
-  "latest_request": {
-    "path": "C:\\Users\\Administrator\\.codex\\attachments\\e130587c-7f03-4ba0-8884-c869a1d25274\\pasted-text-1.txt",
-    "sha256": "2743ccd3920cc648455d7c5ad12f5c9937590d3eafdecc5da36d6529aa829a71",
-    "read": "Complete original user request including requirements1..22; no scope reduction"
-  },
+  "latest_request": "Continue parallel model/parameter/budget to actual CLI execution; remote workspaces/tools; simple complete CNEN; mature SDK; only necessary checks; local commits without cache.",
   "knowledge_intelligence026_progress": {
     "status": "locally_verified",
     "contract": "contracts/knowledge-intelligence.md",
@@ -265,10 +260,7 @@
     "vendor_calls": 0,
     "tool_usage": "unreported; not inferred zero tokens"
   },
-  "last_goal_turn_classification": {
-    "classification": "progress",
-    "evidence": "040 source, actual native expert ledger, final web interactions and forward188-table primary delivery verified; continuation also found prior primary handle missing and restored same exact artifact. Full scope remains active."
-  },
+  "last_goal_turn_classification": "progress: actual Codex worktree edit, original progress/result and partial unpriced ledger; CNEN fixed preview; forward main delivery, full goal remains active",
   "candidate_conflict_repair032_progress": {
     "status": "bounded_local_functional_stage_verified",
     "previous_commit": "3e1d36c64b6e4e55c1822165b7c67b781a6b6c87",
@@ -331,10 +323,7 @@
     "production_acceptance": false,
     "full_goal": "active; complete P0-P7 and numbered1..22 remain in scope"
   },
-  "previous_goal_turn_classification": {
-    "classification": "progress",
-    "evidence": "037 exact live native readonly outbound workspace broker, original ACK replay, no empty-poll receipt, CLI/CNEN actual UI/final Go joint locally verified; stage commit follows. Full P0-P7 and1..22 preserved."
-  },
+  "previous_goal_turn_classification": "progress",
   "task_dispatch_options034_progress": {
     "status": "bounded_local_functional_stage_verified",
     "contract": "contracts/task-dispatch-options.md",
@@ -506,6 +495,132 @@
       "restoration_verified": ".cache/e2e/expert-model-stage-040/primary-restored/verified.local.json",
       "restoration_sha256": "2c2a0b145368ed715d917117109039aab1e2e028ea8c9d057b3b8271ff0b9fef"
     },
-    "receipt_recovery": "original effect snapshot, stale actions disabled;2new+3existing tests passed,0claim/models"
+    "receipt_recovery": "original effect snapshot, stale actions disabled;2new+3existing tests passed,0claim/models",
+    "commit": "f9e78b9297ab4edf9743daecdd0881d9aa1bcfea"
+  },
+  "codex_execution041_progress": {
+    "stage": "T-P4-041",
+    "product_version": "1.0.0",
+    "status": "bounded_local_functional_stage_verified",
+    "full_objective": "active: complete P0-P7 and accepted requirements1..22",
+    "base_commit": "f9e78b9297ab4edf9743daecdd0881d9aa1bcfea",
+    "new_dependencies": 0,
+    "stage_owned_model_requests": 4,
+    "final_actual_owned_model_requests": 2,
+    "vendor_model_requests": 0,
+    "formal_tests": 0,
+    "human_acceptances": 0,
+    "actual": {
+      "path": ".cache/e2e/codex-execution-stage-041/actual/ui-normal/receipt.local.json",
+      "sha256": "a4d3700364c5291fdcf65a5c2f1ae1d06d13197150d80790a7e421fe5ed081f5",
+      "command": "20261027T131710093Z.command.json",
+      "elapsed_seconds": 300.94,
+      "includes_GUI_wait": true,
+      "cli_version": "codex-cli 0.164.0-alpha.11.1",
+      "cli_sha256": "1103e9e09c71fa2cd0afd6d8f3b9a2d63174fe8efd7cb5bd09f1cb14ef58a098",
+      "run": "3abe7ecb1412ac343f5ab63e543efbd6",
+      "node": "develop",
+      "attempt": 1,
+      "model_configuration": "gpt-5.5",
+      "reasoning_effort": "medium",
+      "identity_evidence": "configuration_ack_only",
+      "observed_tokens": 88,
+      "usage_state": "partial",
+      "estimated_cost_micros": null,
+      "persisted_progress_events": 7,
+      "result_acknowledged": true,
+      "private_worktree_changed": true,
+      "source_original_preserved": true,
+      "token_notice_exceeded": true,
+      "notice_threshold": 1,
+      "port59220_closed": true
+    },
+    "browser": {
+      "path": ".cache/e2e/codex-execution-stage-041/browser/receipt.local.json",
+      "sha256": "600055dc1aba6bcb49c95cbcbee5f92f056257904267165e2279c479b2fe25ba",
+      "plan": "896d775e0c80a808a603284636900cec",
+      "model": "gpt-5.5",
+      "reasoning_effort": "medium",
+      "notice_threshold": 40,
+      "CNEN_draft": true,
+      "fixed_plan_refresh": true,
+      "started": false,
+      "console_errors_warnings": 0
+    },
+    "validation": {
+      "unique_affected_web_cases": 39,
+      "paired_CNEN_keys": 4610,
+      "final_direct_tsc_exit": 0,
+      "generated_contracts_check": "20261027T132236840Z.command.json",
+      "affected_vet": "20261027T131223787Z.command.json",
+      "focused_commands": ".cache/e2e/codex-execution-stage-041/focused-commands.local.json",
+      "failure_logs_retained": true,
+      "full_suite_replayed": false,
+      "cancellation_guard": {
+        "regressions": 4,
+        "RED_retained": true,
+        "driver_group_seconds": 9.215,
+        "exact_final_seconds": 0.144,
+        "driver_source_sha256": "19d5d50e2b5bfffc49ae568fcd0e473f53dfb0715320262c410f2c8ac297e772",
+        "final_actual_replayed": false,
+        "evidence": [
+          {
+            "path": ".cache/e2e/codex-execution-stage-041/discovery-debug/stop-red.stdout.txt",
+            "sha256": "68374a329bd408686cf1e757df75ff5bbec470c7d8a2eb063bf71b2379450520"
+          },
+          {
+            "path": ".cache/e2e/codex-execution-stage-041/discovery-debug/stop-green.stdout.txt",
+            "sha256": "aa0a9a11d2782e52f2806779d3c84f446baba1054634b080d84d13d75f836a8d"
+          },
+          {
+            "path": ".cache/e2e/codex-execution-stage-041/discovery-debug/stop-exact-final.stdout.txt",
+            "sha256": "d8131dc0ea3ac2a72b5d62928c69ba1ec25ca7f54a7428ff5f8e079563278700"
+          }
+        ]
+      },
+      "final_runner_vet": "20261027T133338751Z.command.json"
+    },
+    "runtime": {
+      "build": "dist/runtime/builds/20261027T133225401Z-53378c2c/manifest.json",
+      "production_inputs": 449,
+      "source_sha256": "cbc81fa4da3b3f0ccbd441acd287f643570175393b69c1bb115470debbbc096e",
+      "source_unchanged": true,
+      "windows_programs": 5,
+      "control_sha256": "a175ec5250191e07f7b9ab849d3c47efe862091d0bbacfe6bb9287b42dbfea17",
+      "web": ".cache/e2e/codex-execution-stage-041/web-v3",
+      "web_manifest": {
+        "path": ".cache/e2e/codex-execution-stage-041/web-final.local.json",
+        "sha256": "31c3abfe8468c2dd974f7220202a61c232c44a92bb828527bf555d329a142449"
+      },
+      "web_prepost_source_digest_claim": false,
+      "prior_build": "dist/runtime/builds/20261027T132235421Z-665fd89d/manifest.json",
+      "runner_sha256": "116353cf0c60e2c40b824e56c07c0ed5cc010bdfba08c726c82bdcbe63b0e6fb"
+    },
+    "primary": {
+      "path": ".cache/e2e/codex-execution-stage-041/primary-cancel-guard/verified.local.json",
+      "sha256": "735f8f86a8ae02b95a6ae75a58c2e885fe08246a2ed2d2f662b33b685218c8f1",
+      "current_launch": ".cache/e2e/codex-execution-stage-041/primary-cancel-guard/control-launch.local.json",
+      "origin": "http://pool.localhost:4324",
+      "startup_tables_preserved": 188,
+      "nonlock_tables_preserved_after_browser": 184,
+      "original_session_usable": true,
+      "baseline_sessions": 20,
+      "baseline_authorities": 20,
+      "new_logins": 0,
+      "new_runs": 0,
+      "new_credentials": 0,
+      "new_models": 0,
+      "backup_restored": false,
+      "old_041_stopped_normally": true
+    },
+    "known_limits": [
+      "observe_only; no hard token or monetary budget",
+      "configuration ACK is not provider model identity",
+      "partial counters; no accurate vendor billing",
+      "Windows backend explicit; nested restricted parent can fail CreateRestrictedToken87",
+      "expert/repair Codex model entry and other CLI protocols pending",
+      "Codex remote file broker, complete IDE, physical multi-machine/TLS and production scope pending"
+    ],
+    "production_complete": false
   }
 }

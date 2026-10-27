@@ -1,3 +1,4 @@
+import {validCodexCatalog} from './codex-execution-model';
 import { tr as t, UiError } from "./i18n";
 import type { RecordItem, Workflow } from "./api";
 import type { ToolDiagnostic, DisplayDiagnostic, ToolExecutionProfile, ToolObservation as ContractToolObservation } from "../../../packages/contracts/src";
@@ -68,6 +69,7 @@ export function toolEventRows(events: readonly ToolEvent[]) {
 }
 export type ToolEvidence = {
   profile: ToolProfileDefinition;
+  codex_execution?: import("../../../packages/contracts/src").CodexEvidence | null;
   session_id?: string;
   terminal: "completed" | "failed" | "unknown";
   event_count: number;
@@ -82,6 +84,7 @@ export type TaskContextRecord = {
   acceptance_criteria: string[];
 };
 export type TaskDispatchPlan = {
+  codex_execution?: import("../../../packages/contracts/src").CodexBinding | null;
   model_execution?: import("../../../packages/contracts/src").ModelBinding | null;
   execution_route?: import("../../../packages/contracts/src").TaskDispatchPlan["execution_route"];
   id: string;
@@ -247,8 +250,10 @@ export function parseToolManifest(text: string): ToolObservation[] {
   const seen = new Set<string>();
   return raw.map((item) => {
     const observation = record(item);
-    fields(observation, ["profile", "available", "reason", "model_deployments", "workspace_observation_protocol", "workspace_write_protocol"]);
+    fields(observation, ["profile", "available", "reason", "model_deployments", "codex_catalog", "workspace_observation_protocol", "workspace_write_protocol"]);
     const profile = record(observation.profile);
+    if (observation.codex_catalog !== undefined && (!validCodexCatalog(observation.codex_catalog) || observation.available !== true || profile.adapter !== 'codex' || profile.protocol !== 'codex-app-server-v1')) invalidCapability();
+    if (profile.protocol === 'codex-app-server-v1' && (profile.read_only !== false || profile.workspace_tools_version || profile.model_execution_protocol || profile.planning || profile.knowledge_extraction || profile.failure_diagnosis || observation.available === true && !observation.codex_catalog)) invalidCapability();
     fields(profile, [
       "command_id",
       "adapter",
@@ -269,7 +274,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
     seen.add(profile.command_id);
     if (
       typeof profile.adapter !== "string" ||
-      protocols[profile.adapter] !== profile.protocol
+      protocols[profile.adapter] !== profile.protocol && !(profile.adapter === "codex" && profile.protocol === "codex-app-server-v1")
     )
       throw new UiError("development.model.the_adapter_and_protocol_do_not_match");
     if (
@@ -339,7 +344,7 @@ export function toolBinding(
 export function taskToolProtocol(profile: ToolProfileDefinition) {
   return (
     (profile.adapter === "suma" && profile.protocol === "suma-jsonl-v1") ||
-    (profile.adapter === "codex" && profile.protocol === "codex-jsonl-v1") ||
+    (profile.adapter === "codex" && ["codex-jsonl-v1","codex-app-server-v1"].includes(profile.protocol)) ||
     (profile.adapter === "harness" && profile.protocol === "dsh-multica-jsonl-v1") ||
     (profile.adapter === "codebuddy" && profile.protocol === "codebuddy-jsonl-v1")
   );

@@ -1,17 +1,21 @@
 import {useEffect, useId, useState} from 'react';
 import {RefreshCw} from 'lucide-react';
-import type {ModelBinding, ModelExecutionOptions, ModelSelection} from '../../../packages/contracts/src';
+import type {ModelBinding, ModelExecutionOptions, ModelSelection, CodexSelection} from '../../../packages/contracts/src';
 import {useApi} from './api-context';
 import {formatNumber, tr, UiError, useLocale} from './i18n';
 import {ErrorNotice, Field, Loading} from './ui';
 import {bindingPresent, modelOptionsPath, modelSelection, validModelOptions, type ModelDraft, type ModelScope} from './model-execution-model';
 import './ModelExecutionPanel.css';
+import {CodexModelExecutionPanel} from './CodexModelExecutionPanel';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('model-execution.' + key, values);
-export type ModelChoice = {selection?: ModelSelection; ready: boolean};
-type Props = {scope: ModelScope; supported: boolean; discover?: boolean; disabled: boolean; onChange: (value: ModelChoice) => void};
+export type ModelChoice = {selection?: ModelSelection; codexSelection?: CodexSelection; ready: boolean};
+type Props = {scope: ModelScope; supported: boolean; discover?: boolean; codex?: boolean; disabled: boolean; onChange: (value: ModelChoice) => void};
 /** A current scoped read, never a model health probe or a dispatch action. */
-export function ModelExecutionPanel({scope, supported, discover = false, disabled, onChange}: Props) {
+export function ModelExecutionPanel(props: Props) {
+  return props.codex ? <CodexModelExecutionPanel scope={props.scope} disabled={props.disabled} onChange={props.onChange}/> : <NativeModelExecutionPanel {...props}/>;
+}
+function NativeModelExecutionPanel({scope, supported, discover = false, disabled, onChange}: Props) {
   const api = useApi(); useLocale(); const id = useId();
   const [read, setRead] = useState<{api:typeof api;path:string;value:ModelExecutionOptions}>(), [error, setError] = useState<unknown>(), [loading, setLoading] = useState(false), [refresh, setRefresh] = useState(0);
   const [draft, setDraft] = useState<ModelDraft>({deployment: '', steps: '8', output: '4096', tokens: '', cost: ''});
@@ -30,7 +34,8 @@ export function ModelExecutionPanel({scope, supported, discover = false, disable
     return () => abort.abort();
   }, [api, path, supported, discover, refresh]);
   const selection = page && modelSelection(page, draft);
-  useEffect(() => {onChange({selection, ready: !supported && !discover || !loading && !error && (!!selection || !supported && discover && page?.supported === false)});}, [supported, discover, page, draft, loading, error, onChange]);
+  useEffect(() => {onChange({selection, ready: !supported && !discover || !loading && !error && (!!selection || !supported && discover && page?.supported === false && !page.codex_supported)});}, [supported, discover, page, draft, loading, error, onChange]);
+  if (discover && page?.codex_supported) return <p className="muted">{tr('codex-execution.team_pending')}</p>;
   if (!supported && (!discover || page?.supported === false)) return <p className="muted">{t('fixed_tool')}</p>;
   const item = page?.items.find(item => item.deployment.deployment_sha256 === draft.deployment);
   return <section className="model-execution" aria-labelledby={id} aria-busy={loading}>

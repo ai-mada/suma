@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	mc "github.com/ai-mada/suma/internal/modelcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	woc "github.com/ai-mada/suma/internal/workspaceobservationcontract"
@@ -70,7 +71,7 @@ func commandExecutable(spec CommandSpec) (string, string, error) {
 	if err != nil {
 		return "", "", fmt.Errorf("executable path unavailable")
 	}
-	exe, err = filepath.EvalSymlinks(exe)
+	exe, err = resolveExecutableTarget(exe)
 	if err != nil {
 		return "", "", fmt.Errorf("executable target unavailable")
 	}
@@ -96,6 +97,12 @@ func commandExecutable(spec CommandSpec) (string, string, error) {
 // For an interpreted runtime, pin the declared entry's bytes as well as
 // the interpreter. This intentionally does not attest all imported modules.
 func commandProfileDigest(spec CommandSpec, executableSHA string) (string, error) {
+	if spec.CodexAppServer != nil {
+		return tc.ProfileDigest(struct {
+			Command             CommandSpec `json:"command"`
+			ConfigurationSHA256 string      `json:"configuration_sha256"`
+		}{spec, CodexConfigurationDigest(*spec.CodexAppServer)}, executableSHA)
+	}
 	entry, err := teamCLIEntry(spec)
 	if err != nil {
 		return "", err
@@ -182,7 +189,10 @@ func probeCommandStreams(ctx context.Context, exe string, args []string, spec Co
 	return out.String(), nil
 }
 
-func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []string) (string, error) {
+func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []string, workspace string) (string, error) {
+	if spec.Protocol == cc.Protocol {
+		return probeCodexVersion(ctx, exe, spec, secrets, workspace)
+	}
 	if spec.CandidateComposition {
 		return probeCompositionGit(ctx, exe)
 	}
@@ -203,6 +213,9 @@ func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []st
 		}
 		versionArgs = []string{"--version"}
 		helpArgs = []string{"exec", "--help"}
+		if spec.Protocol == cc.Protocol {
+			helpArgs = []string{"app-server", "--help"}
+		}
 	case "suma":
 		if spec.Input != "agent-jsonl" || len(spec.Args) != 1 || (strings.ToLower(filepath.Ext(spec.Args[0])) != ".js" && strings.ToLower(filepath.Ext(spec.Args[0])) != ".mjs") {
 			return "", fmt.Errorf("Suma profile requires one runtime JavaScript entry and agent-jsonl stdin")
@@ -220,8 +233,11 @@ func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []st
 	if err != nil {
 		return "", err
 	}
-	if spec.Adapter == "codex" && (!strings.Contains(version, "codex-cli ") || !strings.Contains(help, "--json") || !strings.Contains(help, "--sandbox")) {
+	if spec.Adapter == "codex" && spec.Protocol != cc.Protocol && (!strings.Contains(version, "codex-cli ") || !strings.Contains(help, "--json") || !strings.Contains(help, "--sandbox")) {
 		return "", fmt.Errorf("installed Codex version/help does not match JSONL exec protocol")
+	}
+	if spec.Protocol == cc.Protocol && (!strings.Contains(version, "codex-cli ") || !strings.Contains(help, "--listen")) {
+		return "", fmt.Errorf("installed Codex version/help does not match app-server stdio protocol")
 	}
 	if spec.Adapter == "suma" && (!strings.HasPrefix(version, "suma-agent-runtime ") || !strings.Contains(help, "JSONL") || !strings.Contains(help, "SUMA_AGENT_TOKEN")) {
 		return "", fmt.Errorf("installed Suma version/help does not match JSONL agent protocol")
@@ -254,6 +270,9 @@ func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []st
 }
 
 func validateCodexCommand(spec CommandSpec) error {
+	if spec.Protocol == cc.Protocol {
+		return validateCodexAppServerSpec(spec)
+	}
 	fail := func() error {
 		return fmt.Errorf("Codex requires the supported fixed-stdin exec --json preset with matching explicit sandbox; prompt/resume/cwd/config overrides are unavailable")
 	}
@@ -394,6 +413,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 	}
 	for id, spec := range cfg.Commands {
 		spec = normalizedCommand(spec)
+		if err := validateCodexAppServerSpec(spec); err != nil {
+			return err
+		}
 		if err := validateModelExecutionSpec(spec); err != nil {
 			return err
 		}
@@ -490,12 +512,19 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 				return
 			}
 			o.Profile.ProfileSHA256 = digest
-			version, err := toolVersion(ctx, exe, spec, cfg.Secrets)
+			version, err := toolVersion(ctx, exe, spec, cfg.Secrets, cfg.Workspace)
 			if err != nil {
 				fail(err.Error())
 				return
 			}
 			o.Profile.ToolVersion = version
+			if spec.Protocol == cc.Protocol {
+				o.CodexCatalog, err = probeCodexCatalog(ctx, exe, spec, cfg)
+				if err != nil {
+					fail(err.Error())
+					return
+				}
+			}
 			if spec.ModelExecutionProtocol == mc.Protocol {
 				if err = probeModelExecution(ctx, exe, spec); err != nil {
 					fail(err.Error())
@@ -575,7 +604,7 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 			return p, "", fmt.Errorf("local tool profile changed or is unavailable; refresh inventory before execution")
 		}
 	} else {
-		version, e := toolVersion(ctx, exe, spec, cfg.Secrets)
+		version, e := toolVersion(ctx, exe, spec, cfg.Secrets, cfg.Workspace)
 		if e != nil {
 			return p, "", e
 		}

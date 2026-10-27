@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	"os"
 	"path/filepath"
@@ -205,6 +206,7 @@ func (j *Journal) Finish(r Result) error {
 		copied.Profile = tc.CloneProfile(copied.Profile)
 		copied.Usage = cloneUsage(r.ToolEvidence.Usage)
 		copied.ModelExecution = cloneModelEvidence(r.ToolEvidence.ModelExecution)
+		copied.CodexExecution = cc.CloneEvidence(r.ToolEvidence.CodexExecution)
 		r.ToolEvidence = &copied
 	}
 	r.Assignment = cloneModelAssignment(r.Assignment)
@@ -399,6 +401,7 @@ func (j *Journal) Pending() []Result {
 				evidence.Profile = tc.CloneProfile(evidence.Profile)
 				evidence.Usage = cloneUsage(evidence.Usage)
 				evidence.ModelExecution = cloneModelEvidence(evidence.ModelExecution)
+				evidence.CodexExecution = cc.CloneEvidence(evidence.CodexExecution)
 				copy.ToolEvidence = &evidence
 			}
 			results = append(results, copy)

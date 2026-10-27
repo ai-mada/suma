@@ -13,6 +13,9 @@ func ModelBinding(n Node) (*modelcontract.Binding, error) {
 	if !exists {
 		return nil, nil
 	}
+	if _, codex := n.Config["codex_execution"]; codex {
+		return nil, fmt.Errorf("%w: invalid model execution binding", ErrInvalid)
+	}
 	// Model requests are not certified idempotent provider operations. A fixed
 	// model binding must not inherit either scheduler generation's auto retries.
 	if n.MaxRetries != 0 {

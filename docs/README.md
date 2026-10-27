@@ -1,10 +1,11 @@
 # 速码项目设计文档
 
-状态：当前T-P4-040／1.0.0，专家团队逐任务模型、参数与预算经真实原生执行和独立GUI预览／修订取得限定本地证据。完整P0–P7、需求1–22继续实施。负责人：平台集成；最终范围见[交付状态](delivery/status.md)。
+状态：当前T-P4-041／1.0.0，Codex模型配置、真实独立工作树编码、原进度／结果与partial未定价账本取得限定本地证据；中英固定预览与刷新已验证。完整P0–P7、需求1–22继续实施。负责人：平台集成；最终范围见[交付状态](delivery/status.md)。
 
 | 主题 | 入口 |
 |---|---|
-| 专家团队逐任务模型执行（当前T-P4-040） | [合同](../contracts/expert-team-model-execution.md)／[架构与AI SOP](architecture/expert-team-model-execution.md)／[English](en/expert-team-model-execution.md)／[限定验证](quality/expert-team-model-execution-verification.md)／[摘要](quality/expert-team-model-execution-summary.json) |
+| Codex模型到真实编码（当前T-P4-041） | [PRD](product/codex-model-execution.md)／[合同](../contracts/codex-app-server.md)／[架构与AI SOP](integrations/codex-app-server.md)／[交互](design/codex-model-execution.md)／[English](en/codex-app-server.md)／[限定验证](quality/codex-app-server-verification.md)／[摘要](quality/codex-app-server-summary.json) |
+| 专家团队逐任务模型执行（历史T-P4-040） | [合同](../contracts/expert-team-model-execution.md)／[架构与AI SOP](architecture/expert-team-model-execution.md)／[English](en/expert-team-model-execution.md)／[限定验证](quality/expert-team-model-execution-verification.md)／[摘要](quality/expert-team-model-execution-summary.json) |
 | 历史执行器能力与预览交付（T-P4-039） | [合同](../contracts/workspace-transport-capabilities.md)／[架构与AI SOP](integrations/workspace-transport-capabilities.md)／[English](en/workspace-transport-capabilities.md)／[限定验证](quality/workspace-capability-verification.md)／[摘要](quality/workspace-capability-summary.json) |
 | 历史执行文件编辑、CAS保存与原操作恢复（T-P4-038） | [产品交互](product/remote-workspace-write.md)／[合同](../contracts/workspace-write.md)／[架构](architecture/remote-workspace-write.md)／[AI SOP](operations/remote-workspace-write.md)／[English](en/remote-workspace-write.md)／[实际验证](quality/workspace-write-verification.md)／[摘要](quality/workspace-write-summary.json) |
 | 执行工作区只读观察与出站恢复（历史T-P4-037） | [产品与交互](product/remote-workspace.md)／[合同](../contracts/workspace-observation.md)／[架构](architecture/remote-workspace-broker.md)／[AI SOP](operations/remote-workspace.md)／[English](en/remote-workspace.md)／[实际证据](quality/workspace-observation-verification.md)／[摘要](quality/workspace-observation-summary.json) |

@@ -1,0 +1,125 @@
+{
+  "stage": "T-P4-041",
+  "product_version": "1.0.0",
+  "status": "bounded_local_functional_stage_verified",
+  "full_objective": "active: complete P0-P7 and accepted requirements1..22",
+  "base_commit": "f9e78b9297ab4edf9743daecdd0881d9aa1bcfea",
+  "new_dependencies": 0,
+  "stage_owned_model_requests": 4,
+  "final_actual_owned_model_requests": 2,
+  "vendor_model_requests": 0,
+  "formal_tests": 0,
+  "human_acceptances": 0,
+  "actual": {
+    "path": ".cache/e2e/codex-execution-stage-041/actual/ui-normal/receipt.local.json",
+    "sha256": "a4d3700364c5291fdcf65a5c2f1ae1d06d13197150d80790a7e421fe5ed081f5",
+    "command": "20261027T131710093Z.command.json",
+    "elapsed_seconds": 300.94,
+    "includes_GUI_wait": true,
+    "cli_version": "codex-cli 0.164.0-alpha.11.1",
+    "cli_sha256": "1103e9e09c71fa2cd0afd6d8f3b9a2d63174fe8efd7cb5bd09f1cb14ef58a098",
+    "run": "3abe7ecb1412ac343f5ab63e543efbd6",
+    "node": "develop",
+    "attempt": 1,
+    "model_configuration": "gpt-5.5",
+    "reasoning_effort": "medium",
+    "identity_evidence": "configuration_ack_only",
+    "observed_tokens": 88,
+    "usage_state": "partial",
+    "estimated_cost_micros": null,
+    "persisted_progress_events": 7,
+    "result_acknowledged": true,
+    "private_worktree_changed": true,
+    "source_original_preserved": true,
+    "token_notice_exceeded": true,
+    "notice_threshold": 1,
+    "port59220_closed": true
+  },
+  "browser": {
+    "path": ".cache/e2e/codex-execution-stage-041/browser/receipt.local.json",
+    "sha256": "600055dc1aba6bcb49c95cbcbee5f92f056257904267165e2279c479b2fe25ba",
+    "plan": "896d775e0c80a808a603284636900cec",
+    "model": "gpt-5.5",
+    "reasoning_effort": "medium",
+    "notice_threshold": 40,
+    "CNEN_draft": true,
+    "fixed_plan_refresh": true,
+    "started": false,
+    "console_errors_warnings": 0
+  },
+  "validation": {
+    "unique_affected_web_cases": 39,
+    "paired_CNEN_keys": 4610,
+    "final_direct_tsc_exit": 0,
+    "generated_contracts_check": "20261027T132236840Z.command.json",
+    "affected_vet": "20261027T131223787Z.command.json",
+    "focused_commands": ".cache/e2e/codex-execution-stage-041/focused-commands.local.json",
+    "failure_logs_retained": true,
+    "full_suite_replayed": false,
+    "cancellation_guard": {
+      "regressions": 4,
+      "RED_retained": true,
+      "driver_group_seconds": 9.215,
+      "exact_final_seconds": 0.144,
+      "driver_source_sha256": "19d5d50e2b5bfffc49ae568fcd0e473f53dfb0715320262c410f2c8ac297e772",
+      "final_actual_replayed": false,
+      "evidence": [
+        {
+          "path": ".cache/e2e/codex-execution-stage-041/discovery-debug/stop-red.stdout.txt",
+          "sha256": "68374a329bd408686cf1e757df75ff5bbec470c7d8a2eb063bf71b2379450520"
+        },
+        {
+          "path": ".cache/e2e/codex-execution-stage-041/discovery-debug/stop-green.stdout.txt",
+          "sha256": "aa0a9a11d2782e52f2806779d3c84f446baba1054634b080d84d13d75f836a8d"
+        },
+        {
+          "path": ".cache/e2e/codex-execution-stage-041/discovery-debug/stop-exact-final.stdout.txt",
+          "sha256": "d8131dc0ea3ac2a72b5d62928c69ba1ec25ca7f54a7428ff5f8e079563278700"
+        }
+      ]
+    },
+    "final_runner_vet": "20261027T133338751Z.command.json"
+  },
+  "runtime": {
+    "build": "dist/runtime/builds/20261027T133225401Z-53378c2c/manifest.json",
+    "production_inputs": 449,
+    "source_sha256": "cbc81fa4da3b3f0ccbd441acd287f643570175393b69c1bb115470debbbc096e",
+    "source_unchanged": true,
+    "windows_programs": 5,
+    "control_sha256": "a175ec5250191e07f7b9ab849d3c47efe862091d0bbacfe6bb9287b42dbfea17",
+    "web": ".cache/e2e/codex-execution-stage-041/web-v3",
+    "web_manifest": {
+      "path": ".cache/e2e/codex-execution-stage-041/web-final.local.json",
+      "sha256": "31c3abfe8468c2dd974f7220202a61c232c44a92bb828527bf555d329a142449"
+    },
+    "web_prepost_source_digest_claim": false,
+    "prior_build": "dist/runtime/builds/20261027T132235421Z-665fd89d/manifest.json",
+    "runner_sha256": "116353cf0c60e2c40b824e56c07c0ed5cc010bdfba08c726c82bdcbe63b0e6fb"
+  },
+  "primary": {
+    "path": ".cache/e2e/codex-execution-stage-041/primary-cancel-guard/verified.local.json",
+    "sha256": "735f8f86a8ae02b95a6ae75a58c2e885fe08246a2ed2d2f662b33b685218c8f1",
+    "current_launch": ".cache/e2e/codex-execution-stage-041/primary-cancel-guard/control-launch.local.json",
+    "origin": "http://pool.localhost:4324",
+    "startup_tables_preserved": 188,
+    "nonlock_tables_preserved_after_browser": 184,
+    "original_session_usable": true,
+    "baseline_sessions": 20,
+    "baseline_authorities": 20,
+    "new_logins": 0,
+    "new_runs": 0,
+    "new_credentials": 0,
+    "new_models": 0,
+    "backup_restored": false,
+    "old_041_stopped_normally": true
+  },
+  "known_limits": [
+    "observe_only; no hard token or monetary budget",
+    "configuration ACK is not provider model identity",
+    "partial counters; no accurate vendor billing",
+    "Windows backend explicit; nested restricted parent can fail CreateRestrictedToken87",
+    "expert/repair Codex model entry and other CLI protocols pending",
+    "Codex remote file broker, complete IDE, physical multi-machine/TLS and production scope pending"
+  ],
+  "production_complete": false
+}

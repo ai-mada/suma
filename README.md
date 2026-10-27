@@ -4,7 +4,13 @@
 
 当前是可运行的开发版本。功能与验证范围见 [交付状态](docs/delivery/status.md)，完整目标见 [实施计划](docs/delivery/implementation-plan.md)。
 
-## 当前阶段：专家团队模型选择到真实执行
+## 当前阶段：模型配置到真实 Codex 编码
+
+T-P4-041／1.0.0 新增独立Codex app-server接入：真实目录选择模型／推理强度，固定任务计划，独立工作树编码，原进度／结果回写与部分用量。可选Token提醒与硬预算能力分别表达；不支持enforce项目时明确拒绝。中英文简洁配置、准确预览与刷新恢复已验证，没有新增依赖。
+
+安装版CLI经自有端点实际修改私有工作树，回写88 Token观测值、费用未定价；GUI只预览。当前主工作台已更新041，原188表及现有会话／业务历史保持。其他CLI、团队／修复入口和完整IDE及全平台范围继续实现。见[接入与AI SOP](docs/integrations/codex-app-server.md)、[PRD](docs/product/codex-model-execution.md)、[限定验证](docs/quality/codex-app-server-verification.md)、[English](docs/en/codex-app-server.md)。
+
+## 历史阶段：专家团队模型选择到真实执行
 
 T-P4-040／1.0.0 已打通团队每任务模型、参数、Token／费用预算到真实原生执行及用量账本。按职责配置，可单独覆盖；待办来源可明确修订，原报价、已开始依据与历史保留。中英文、CLI和原操作恢复共用同一合同。
 

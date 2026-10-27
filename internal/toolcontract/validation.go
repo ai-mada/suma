@@ -14,6 +14,7 @@ import (
 	"unicode/utf8"
 
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/modelcontract"
 )
 
@@ -35,12 +36,18 @@ func validText(s string, max int, multiline bool) bool {
 	return true
 }
 func protocolPair(adapter, protocol string) bool {
+	if adapter == "codex" && protocol == cc.Protocol {
+		return true
+	}
 	return map[string]string{"command": "text-v1", "suma": "suma-jsonl-v1", "codex": "codex-jsonl-v1", "opencode": "opencode-jsonl-v1", "harness": "dsh-multica-jsonl-v1", "codebuddy": "codebuddy-jsonl-v1"}[adapter] == protocol && protocol != ""
 }
 func ValidProtocol(protocol string) bool {
-	return protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == "opencode-jsonl-v1" || protocol == "dsh-multica-jsonl-v1" || protocol == "codebuddy-jsonl-v1"
+	return protocol == cc.Protocol || protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == "opencode-jsonl-v1" || protocol == "dsh-multica-jsonl-v1" || protocol == "codebuddy-jsonl-v1"
 }
 func ValidateProfile(p Profile, complete bool) error {
+	if p.Protocol == cc.Protocol && (p.Adapter != "codex" || p.ReadOnly || p.ModelExecutionProtocol != "" || p.WorkspaceToolsVersion != "" || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil) {
+		return fmt.Errorf("invalid Codex app-server capability")
+	}
 	if p.ModelExecutionProtocol != "" && (p.ModelExecutionProtocol != "suma-model-execution-v1" || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || p.ReadOnly || p.WorkspaceToolsVersion != "attempt-workspace-v1" || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil) {
 		return fmt.Errorf("invalid native model execution capability")
 	}
@@ -108,6 +115,13 @@ func validFixedModel(model, origin string) bool {
 	return strings.TrimSpace(model) == model && model != "" && validText(model, 256, false) && validText(origin, 2048, false) && err == nil && u.Hostname() != "" && u.User == nil && u.Opaque == "" && u.Path == "" && u.RawQuery == "" && !u.ForceQuery && u.Fragment == "" && origin == u.Scheme+"://"+u.Host && (u.Scheme == "https" || u.Scheme == "http" && (u.Hostname() == "localhost" || u.Hostname() == "127.0.0.1" || u.Hostname() == "::1"))
 }
 func ValidateObservation(o Observation) error {
+	if o.CodexCatalog != nil {
+		if !o.Available || o.Profile.Protocol != cc.Protocol || cc.ValidateCatalog(*o.CodexCatalog) != nil {
+			return fmt.Errorf("invalid Codex model catalog observation")
+		}
+	} else if o.Available && o.Profile.Protocol == cc.Protocol {
+		return fmt.Errorf("Codex app-server requires an observed model catalog")
+	}
 	if err := ValidateProfile(o.Profile, o.Available); err != nil {
 		return err
 	}
@@ -244,6 +258,13 @@ func ValidateEvent(e Event) error {
 	return nil
 }
 func ValidateEvidence(e Evidence) error {
+	if e.CodexExecution != nil {
+		if e.Profile.Protocol != cc.Protocol || e.ModelExecution != nil || cc.ValidateEvidence(*e.CodexExecution) != nil || e.SessionID != e.CodexExecution.ThreadID || e.UsageState == UsageComplete {
+			return fmt.Errorf("invalid Codex execution evidence")
+		}
+	} else if e.Profile.Protocol == cc.Protocol {
+		return fmt.Errorf("Codex configuration evidence is required")
+	}
 	if err := ValidateProfile(e.Profile, true); err != nil {
 		return err
 	}

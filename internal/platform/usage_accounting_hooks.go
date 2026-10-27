@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"math/big"
 
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/toolcontract"
 )
@@ -58,6 +59,22 @@ func (s *Service) usagePricingTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	}
 	project, err = s.usagePolicyTx(ctx, tx, ref.TenantID, ref.ProjectID, "project")
 	if err != nil {
+		return
+	}
+	codexBinding, codexErr := dag.CodexBinding(ref.Spec)
+	if codexErr != nil {
+		err = invalid(codexExecutionInvalid)
+		return
+	}
+	if codexBinding != nil {
+		if !supportsCodexExecution(profile) || profile.Profile.ProfileSHA256 != sha {
+			err = invalid(codexExecutionChanged)
+		}
+		// A configured model ACK is not provider request identity or a price.
+		return
+	}
+	if supportsCodexExecution(profile) {
+		err = invalid(codexExecutionChanged)
 		return
 	}
 	modelBinding, modelErr := dag.ModelBinding(ref.Spec)
@@ -155,6 +172,11 @@ func (s *Service) ReserveAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Acco
 	if e != nil {
 		return e
 	}
+	if b, err := dag.CodexBinding(ref.Spec); err != nil {
+		return invalid(codexExecutionInvalid)
+	} else if b != nil && (org.Mode == "enforce" || project.Mode == "enforce") {
+		return invalid(codexExecutionBudget)
+	}
 	period, e := s.usagePeriodTx(ctx, tx)
 	if e != nil {
 		return e
@@ -175,6 +197,12 @@ func (s *Service) ReserveAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Acco
 		record.Attempt.ReservedTokens = b.InputTokenReservation + b.OutputTokenReservation
 		record.Attempt.HeldTokens = record.Attempt.ReservedTokens
 		record.HeldTokens = big.NewInt(record.Attempt.ReservedTokens).String()
+	}
+	if b, err := dag.CodexBinding(ref.Spec); err != nil {
+		return invalid(codexExecutionInvalid)
+	} else if b != nil {
+		fixed := cc.CloneBinding(*b)
+		record.Attempt.CodexExecution = &fixed
 	}
 	if rate != nil {
 		record.Attempt.State = "reserved"
@@ -344,6 +372,19 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	a.Usage = usageCounterMaximum(a.Usage, previousUsage)
 	complete := monotonic && !result.Stopped && !result.OutcomeUnknown && a.UsageState == toolcontract.UsageComplete && a.Usage != nil && a.Usage.InputTokens != nil && a.Usage.OutputTokens != nil
 	modelReconciling := false
+	if b := a.CodexExecution; b != nil {
+		// Codex reports cumulative counters with no request coverage proof.
+		// Preserve these observations without certifying billing or a hard cap.
+		complete = false
+		if a.Usage != nil {
+			a.UsageState = toolcontract.UsagePartial
+		} else {
+			a.UsageState = toolcontract.UsageUnreported
+		}
+		if result.ToolEvidence == nil || result.ToolEvidence.CodexExecution == nil || !cc.EvidenceMatchesBinding(*b, *result.ToolEvidence.CodexExecution) {
+			modelReconciling = true
+		}
+	}
 	if b := a.ModelExecution; b != nil && !startupZero {
 		if result.ToolEvidence == nil || result.ToolEvidence.ModelExecution == nil {
 			complete = false

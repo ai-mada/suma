@@ -52,6 +52,9 @@ func normalize(w Workflow) (Workflow, error) {
 		if _, err := ModelBinding(n); err != nil {
 			return w, err
 		}
+		if _, err := CodexBinding(n); err != nil {
+			return w, err
+		}
 		if n.MaxRetries < 0 || n.MaxRetries > 2 || n.TimeoutSeconds < 0 || n.TimeoutSeconds > maxExecutionTimeoutSeconds || n.MaxRetries > 0 && !n.Idempotent {
 			return w, dagDiagnostic(fmt.Errorf("%w: retries require idempotency and 0..2 retries; timeout must be 0..9223372036 whole seconds", ErrInvalid), "dag.node.retry_timeout", nil)
 		}

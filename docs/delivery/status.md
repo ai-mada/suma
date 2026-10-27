@@ -2,7 +2,17 @@
 
 当前开发版本 **1.0.0**；新设计采用当前最佳合理结构，不增加历史兼容层。[版本与扩展需求基线](../product/v1-baseline.md)。
 
-## 当前 T-P4-040：专家团队逐任务模型、参数与预算（限定本地验证）
+## 当前 T-P4-041：独立Codex模型、真实编码与用量（限定本地验证）
+
+固定模型／effort／可选提醒进入同一任务Plan、DAG和attempt；真实CLI目录、配置ACK、当前授权与预算能力分别核验。Runner复用原工作树、进程、候选和原回执；不重复提交未知turn。中英文渐进配置、固定预览、刷新和错误2xx恢复已验证。取消或持久化失败后的新RPC提交已通过四分支回归修复，未重跑模型。
+
+实际安装Codex经自有Responses完成私有工作树修改，7条进展及原结果ACK、88 Token部分观测、费用未定价。全阶段4次自有请求（2失败／2成功），0厂商、0正式测试或人工验收。Windows嵌套受限token失败和正常宿主对照保留原证据，未弱化内层策略。39项不同Web用例、4610对语言键及必要受影响检查通过，没有无关全套或新依赖。
+
+041主预览188表启动内容／结构保持，原会话可用；GUI读取后184非锁表保持，锁身份保持仅序号变化。当前基线20session／20authority，0新增登录／凭据／运行；未恢复备份、未启动Runner。缓存、日志、数据库、截图和构建产物不提交。
+
+[合同](../../contracts/codex-app-server.md)、[PRD](../product/codex-model-execution.md)、[架构与AI SOP](../integrations/codex-app-server.md)、[交互](../design/codex-model-execution.md)、[English](../en/codex-app-server.md)、[限定验证](../quality/codex-app-server-verification.md)、[摘要](../quality/codex-app-server-summary.json)。其他CLI、团队／修复选择、完整IDE及所有P0–P7／1–22继续实施。
+
+## 历史 T-P4-040：专家团队逐任务模型、参数与预算（限定本地验证）
 
 团队派发与未开始项来源修订已复用同一原生模型Selection和预算账本。可按职责快速配置并明确覆盖单任务；每项固定模型版本、参数、预算及准确费率。等待项重查当前资格但保留原报价，已开始项与历史不改写。CLI、恢复输入和错误2xx保留原操作同步完善。
 

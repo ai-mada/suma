@@ -39,6 +39,7 @@ type CommandSpec struct {
 	ArtifactInput          bool                   `json:"artifact_input,omitempty"`
 	NativeWorkspace        *NativeWorkspacePolicy `json:"native_workspace,omitempty"`
 	ModelExecutionProtocol string                 `json:"model_execution_protocol,omitempty"`
+	CodexAppServer         *CodexAppServerSpec    `json:"codex_app_server,omitempty"`
 }
 
 type nativeAgentLimits struct {
@@ -364,6 +365,10 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if modelErr != nil {
 		return fail(modelErr.Error())
 	}
+	codexBinding, codexErr := codexExecutionRequest(a, cfg, spec)
+	if codexErr != nil {
+		return fail(codexErr.Error())
+	}
 	var nativeLimits nativeAgentLimits
 	if spec.NativeWorkspace != nil {
 		limits, limitsErr := nativeExecutionLimits(a)
@@ -422,6 +427,8 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	cmd.Dir = root
 	var dshStdin *dshInput
 	var dshPipe io.WriteCloser
+	var codexPipe io.WriteCloser
+	var codexDriver *codexAppServer
 	if (spec.Adapter == "harness" || spec.Adapter == "codebuddy") && a.Type != "agent" {
 		return fail("team CLI profiles require an agent node")
 	}
@@ -456,12 +463,32 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				return fail("Harness stdin pipe could not be opened")
 			}
 			defer dshPipe.Close()
+		case "codex-app-server":
+			if codexBinding == nil {
+				return fail("Codex app-server requires its fixed execution binding")
+			}
+			codexPipe, err = cmd.StdinPipe()
+			if err != nil {
+				return fail("Codex app-server stdin pipe could not be opened")
+			}
+			defer codexPipe.Close()
 		default:
 			return fail("agent command specification requires a supported fixed stdin format")
 		}
 	}
 	var environmentSecrets []string
 	cmd.Env, environmentSecrets, err = commandEnvironment(spec)
+	if codexBinding != nil {
+		// Replace the inherited home and authentication context before the
+		// child starts. A separate generated home contains no login state.
+		codexHome := filepath.Join(workspace.Directory, "codex-home")
+		if err = prepareCodexHome(spec, codexHome, root); err != nil {
+			return fail("Codex isolated configuration could not be prepared")
+		}
+		cmd.Dir = codexHome
+		cmd.Env, environmentSecrets, err = codexEnvironment(spec, codexHome)
+		cfg.Secrets = append(cfg.Secrets, codexHome, root, spec.CodexAppServer.BaseURL)
+	}
 	if err != nil {
 		return fail(err.Error())
 	}
@@ -576,7 +603,13 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		if dshStdin != nil {
 			stream.onTerminal = func() { _ = dshStdin.Close() }
 		}
-		cmd.Stdout = stream
+		if codexBinding != nil {
+			codexDriver = newCodexAppServer(profile, spec, cmd.Dir, root, a.Config["goal"].(string), codexBinding, stream)
+			defer codexDriver.Close()
+			cmd.Stdout = codexDriver
+		} else {
+			cmd.Stdout = stream
+		}
 	} else {
 		cmd.Stdout = out
 	}
@@ -619,6 +652,15 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			<-stdinDone
 		}()
 	}
+	if codexDriver != nil {
+		stdinDone := make(chan struct{})
+		go func() {
+			defer close(stdinDone)
+			_, _ = codexDriver.CopyInput(codexPipe)
+			_ = codexPipe.Close()
+		}()
+		defer func() { _ = codexDriver.Close(); _ = codexPipe.Close(); <-stdinDone }()
+	}
 	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()
 	select {
@@ -631,10 +673,14 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 	case <-ctx.Done():
 		waited := false
-		if dshStdin != nil {
+		if dshStdin != nil || codexDriver != nil {
 			// Give the versioned cancellation request a bounded chance to settle;
 			// it does not prove that the agent or its descendants actually stopped.
-			_ = dshStdin.Cancel()
+			if dshStdin != nil {
+				_ = dshStdin.Cancel()
+			} else {
+				_ = codexDriver.Cancel()
+			}
 			grace := time.NewTimer(1500 * time.Millisecond)
 			select {
 			case <-done:
@@ -642,7 +688,11 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			case <-grace.C:
 			}
 			grace.Stop()
-			_ = dshStdin.Close()
+			if dshStdin != nil {
+				_ = dshStdin.Close()
+			} else {
+				_ = codexDriver.Close()
+			}
 		}
 		stopErr := controller.Stop()
 		if !waited {
@@ -662,6 +712,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	}
 	r.Output = out.String()
 	if stream != nil {
+		if codexDriver != nil {
+			codexDriver.Finish()
+		}
 		invalidBeforeFinish := stream.bad != nil
 		evidence, streamErr := stream.finish()
 		if r.Stopped || r.OutcomeUnknown {

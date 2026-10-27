@@ -57,6 +57,7 @@ func buildTaskDispatchWorkflow(source dag.Workflow, agentID, profileID string, p
 	delete(n.Config, "code_baseline")
 	delete(n.Config, "candidate_composition")
 	delete(n.Config, "model_execution")
+	delete(n.Config, "codex_execution")
 	if task.CodeBaseline != nil {
 		if n.Config["candidate_from"] != nil {
 			return w, compositionError(409, "baseline_changed", compositionBaseline)

@@ -18,6 +18,9 @@ import (
 // This executable fixture speaks a deliberately small declared protocol. It is
 // not a Codex/model invocation; only transport and process semantics are tested.
 func TestMain(m *testing.M) {
+	if codexAppServerFixtureProcess() {
+		return
+	}
 	if os.Getenv("SUMA_TOOL_FIXTURE") == "1" {
 		if len(os.Args) == 2 && os.Args[1] == "--version" {
 			fmt.Println("codex-cli fixture-transport-only")

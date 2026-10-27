@@ -12,6 +12,7 @@ import (
 	"unicode/utf8"
 
 	ccc "github.com/ai-mada/suma/internal/candidatecompositioncontract"
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	mc "github.com/ai-mada/suma/internal/modelcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
@@ -44,6 +45,7 @@ type toolStream struct {
 	completionOutput       string
 	modelBinding           *mc.Binding
 	modelEvidence          *mc.Evidence
+	codexEvidence          *cc.Evidence
 	modelAllowanceConsumed int64
 	modelRequestAllowance  int64
 	// Vendor-specific state stays outside the shared event and authorization
@@ -653,6 +655,6 @@ func (s *toolStream) finish() (*tc.Evidence, error) {
 	if s.bad != nil || terminal == "" {
 		terminal = "unknown"
 	}
-	e := &tc.Evidence{Profile: s.profile, SessionID: s.session, Terminal: terminal, EventCount: s.count, Usage: s.usage, UsageState: s.coverage(), ModelExecution: s.modelEvidence}
+	e := &tc.Evidence{Profile: s.profile, SessionID: s.session, Terminal: terminal, EventCount: s.count, Usage: s.usage, UsageState: s.coverage(), ModelExecution: s.modelEvidence, CodexExecution: cc.CloneEvidence(s.codexEvidence)}
 	return e, s.bad
 }

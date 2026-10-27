@@ -1,6 +1,9 @@
 package platform
 
-import "github.com/ai-mada/suma/internal/modelcontract"
+import (
+	cc "github.com/ai-mada/suma/internal/codexcontract"
+	"github.com/ai-mada/suma/internal/modelcontract"
+)
 
 type ModelExecutionOptionsRequest struct {
 	ProjectID           string `json:"project_id"`
@@ -16,6 +19,9 @@ type ModelExecutionOption struct {
 	OutputTokenReservation int64                    `json:"output_token_reservation"`
 }
 type ModelExecutionOptions struct {
+	CodexSupported     bool                   `json:"codex_supported"`
+	CodexCatalog       *cc.Catalog            `json:"codex_catalog,omitempty"`
+	CodexReason        string                 `json:"codex_reason"`
 	ProjectID          string                 `json:"project_id"`
 	ToolProfileID      string                 `json:"tool_profile_id"`
 	ToolProfileVersion int                    `json:"tool_profile_version"`

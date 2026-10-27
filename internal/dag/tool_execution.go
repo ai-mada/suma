@@ -66,6 +66,9 @@ func validateToolResult(n Node, r Result) error {
 			return fmt.Errorf("%w: model execution evidence differs from fixed node", ErrInvalid)
 		}
 	}
+	if err := validateCodexResult(n, r); err != nil {
+		return err
+	}
 	if e.Terminal == "unknown" && !r.OutcomeUnknown && !r.Stopped {
 		return dagDiagnostic(fmt.Errorf("%w: unknown tool evidence requires unknown outcome", ErrInvalid), "dag.tool.unknown_outcome", nil)
 	}

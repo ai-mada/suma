@@ -2,6 +2,7 @@ package platform
 
 import (
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/modelcontract"
 )
@@ -26,6 +27,7 @@ type TaskContext struct {
 }
 
 type TaskDispatchPlan struct {
+	CodexExecution     *cc.Binding               `json:"codex_execution,omitempty"`
 	ModelExecution     *modelcontract.Binding    `json:"model_execution,omitempty"`
 	CodeBaseline       *ccmp.CodeBaselineBinding `json:"code_baseline,omitempty"`
 	ID                 string                    `json:"id"`
@@ -55,6 +57,7 @@ type TaskDispatchPlan struct {
 }
 
 type TaskDispatchPreviewRequest struct {
+	CodexExecutionSelection *cc.Selection               `json:"codex_execution_selection,omitempty"`
 	ModelExecutionSelection *modelcontract.Selection    `json:"model_execution_selection,omitempty"`
 	ProjectID               string                      `json:"project_id"`
 	TaskID                  string                      `json:"task_id"`

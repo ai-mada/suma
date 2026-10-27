@@ -1,3 +1,4 @@
+import {validCodexSelection} from './codex-execution-model';
 import { tr as t, UiError, renderDiagnostic } from "./i18n";
 import { api, ApiError, operation } from "./api";
 export type ToolPendingRequest = {
@@ -13,6 +14,7 @@ const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 function validate(path: string, body: unknown) {
   if (!allowedPath.test(path))
     throw new UiError("development.errors.operation_scope");
+  if (path === '/task-dispatch-plans' && body && typeof body === 'object' && Object.hasOwn(body,'codex_execution_selection') && !validCodexSelection((body as Record<string,unknown>).codex_execution_selection)) throw new UiError("development.errors.request_invalid");
   const inspect = (value: unknown, parents: string[] = []) => {
     if (!value || typeof value !== "object") return;
     for (const [key, item] of Object.entries(value)) {
@@ -21,7 +23,8 @@ function validate(path: string, body: unknown) {
       const modelNumber = path === '/task-dispatch-plans' &&
         typeof item === 'number' && Number.isSafeInteger(item) &&
         ((parents.join('.') === 'model_execution_selection.parameters' && key === 'max_output_tokens' && item > 0 && item <= 131072) ||
-         (parents.join('.') === 'model_execution_selection.budget' && key === 'token_limit' && item >= 0));
+         (parents.join('.') === 'model_execution_selection.budget' && key === 'token_limit' && item >= 0) ||
+         (parents.join('.') === 'codex_execution_selection' && key === 'token_notice_limit' && item > 0));
       if (
         !modelNumber &&
         /password|token|secret|credential|authorization|executable$|^args$|^env$/i.test(
@@ -45,6 +48,7 @@ export class ToolWriteRecovery {
     scope: string,
     private storage: StorageLike | undefined,
     private send: typeof api = api,
+    private validateResponse?: (value: unknown, request: ToolPendingRequest) => boolean | Promise<boolean>,
   ) {
     this.key = "suma-tool-recovery-v1:" + scope;
     try {
@@ -103,6 +107,11 @@ export class ToolWriteRecovery {
         { ...request.body, idempotency_key: request.idempotency_key },
         request.method,
       );
+      if (this.validateResponse) {
+        let accepted = false;
+        try { accepted = await this.validateResponse(result, copy(request)); } catch { /* The effect is still uncertain. */ }
+        if (!accepted) throw new UiError("codex-execution.invalid_response");
+      }
       this.clear();
       return result;
     } catch (error) {

@@ -54,6 +54,24 @@ func (s *Service) GetModelExecutionOptions(ctx context.Context, actor Actor, pro
 			return e
 		}
 		out = ModelExecutionOptions{ProjectID: project, ToolProfileID: p.ID, ToolProfileVersion: p.Version, ToolProfileSHA256: p.Profile.ProfileSHA256, ObservedAt: automationStamp(clock), Items: []ModelExecutionOption{}}
+		out.CodexReason = codexExecutionUnsupported
+		if supportsCodexExecution(p) {
+			out.Reason = modelExecutionUnsupported
+			out.CodexCatalog, e = s.currentCodexCatalogTx(auth.ctx, auth.tx, auth.target.tenantID, project, p)
+			if e != nil {
+				return e
+			}
+			if e = s.checkCodexBudgetTx(auth.ctx, auth.tx, auth.target.tenantID, project); e != nil {
+				var api *APIError
+				if errors.As(e, &api) {
+					out.CodexReason = api.Message
+					return nil
+				}
+				return e
+			}
+			out.CodexSupported, out.CodexReason = true, ""
+			return nil
+		}
 		if !supportsModelExecution(p) {
 			out.Reason = modelExecutionUnsupported
 			return nil
@@ -227,6 +245,9 @@ func (s *Service) modelExecutionExactRateTx(ctx context.Context, tx *sql.Tx, ten
 }
 
 func (s *Service) modelExecutionClaimEligibleTx(ctx context.Context, tx *sql.Tx, tenant, project string, p ToolProfile, n dag.Node) (bool, error) {
+	if eligible, err := s.codexExecutionClaimEligibleTx(ctx, tx, tenant, project, p, n); err != nil || !eligible {
+		return false, err
+	}
 	b, err := dag.ModelBinding(n)
 	if err != nil {
 		return false, nil

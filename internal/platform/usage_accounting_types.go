@@ -1,6 +1,7 @@
 package platform
 
 import (
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/modelcontract"
 	"github.com/ai-mada/suma/internal/toolcontract"
 )
@@ -95,6 +96,7 @@ type UsageDashboard struct {
 	CanManageRates        bool                `json:"can_manage_rates"`
 }
 type UsageAttempt struct {
+	CodexExecution      *cc.Binding            `json:"codex_execution,omitempty"`
 	ModelExecution      *modelcontract.Binding `json:"model_execution,omitempty"`
 	ID                  string                 `json:"id"`
 	ProjectID           string                 `json:"project_id"`

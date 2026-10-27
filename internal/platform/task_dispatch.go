@@ -143,6 +143,9 @@ func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, en
 	if err = s.validateModelExecutionPlanTx(ctx, tx, p.TenantID, project, profile, plan); err != nil {
 		return err
 	}
+	if err = s.validateCodexExecutionPlanTx(ctx, tx, p.TenantID, project, profile, plan); err != nil {
+		return err
+	}
 	return s.checkTaskDispatchCurrentRouteTx(ctx, tx, engine, p, project, plan, profile)
 }
 
@@ -269,8 +272,16 @@ func (s *Service) buildTaskDispatchSnapshotWithSourceTx(ctx context.Context, eng
 	if err = bindModelExecutionWorkflow(&derived, request.AgentNodeID, modelBinding); err != nil {
 		return out, err
 	}
+	codexBinding, err := s.taskDispatchSourceCodexTx(ctx, tx, p.TenantID, project, profile, request, source)
+	if err != nil {
+		return out, err
+	}
+	if err = bindCodexExecutionWorkflow(&derived, request.AgentNodeID, codexBinding); err != nil {
+		return out, err
+	}
 	out = TaskDispatchPlan{ProjectID: project, Version: 1, State: "ready", TaskID: context.Task.ID, TaskVersion: context.Task.Version, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, Context: context, CodeBaseline: context.CodeBaseline, Workflow: derived, ExecutionRoute: &route, Valid: true}
 	out.ModelExecution = modelBinding
+	out.CodexExecution = codexBinding
 	if context.Requirement != nil {
 		out.RequirementID, out.RequirementVersion = context.Requirement.ID, context.Requirement.Version
 	}

@@ -850,6 +850,49 @@ export interface CodeInputRequest {
   binding_id: string;
   transfer_id: string;
 }
+export interface CodexBinding {
+  protocol: string;
+  configuration_sha256: string;
+  catalog_sha256: string;
+  model: string;
+  reasoning_effort: string;
+  token_notice_limit?: number | null;
+  budget_mode: string;
+  identity_evidence: string;
+  binding_sha256: string;
+}
+export interface CodexCatalog {
+  protocol: string;
+  configuration_sha256: string;
+  models: (CodexModelOption)[];
+  catalog_sha256: string;
+}
+export interface CodexEvidence {
+  binding_sha256: string;
+  thread_id?: string;
+  turn_id?: string;
+  requested_model: string;
+  requested_reasoning_effort: string;
+  acknowledged_model?: string;
+  acknowledged_reasoning_effort?: string;
+  acknowledged_provider?: string;
+  configuration_acknowledged: boolean;
+  interrupt_requested: boolean;
+  interrupt_acknowledged: boolean;
+  rerouted_models?: (string)[];
+  token_notice_exceeded: boolean;
+}
+export interface CodexModelOption {
+  model: string;
+  reasoning_efforts: (string)[];
+  default_reasoning_effort: string;
+}
+export interface CodexSelection {
+  catalog_sha256: string;
+  model: string;
+  reasoning_effort: string;
+  token_notice_limit?: number | null;
+}
 export interface ConsumeDeploymentAuthorization {
   provider_id: string;
   authorization_ticket: string;
@@ -1707,6 +1750,9 @@ export interface ModelExecutionOption {
   output_token_reservation: number;
 }
 export interface ModelExecutionOptions {
+  codex_supported: boolean;
+  codex_catalog?: CodexCatalog | null;
+  codex_reason: string;
   project_id: string;
   tool_profile_id: string;
   tool_profile_version: number;
@@ -3570,6 +3616,7 @@ export interface TaskDispatchOptionsRequest {
   before?: string;
 }
 export interface TaskDispatchPlan {
+  codex_execution?: CodexBinding | null;
   model_execution?: ModelBinding | null;
   code_baseline?: CodeBaselineBinding | null;
   id: string;
@@ -3596,6 +3643,7 @@ export interface TaskDispatchPlan {
   reason: string;
 }
 export interface TaskDispatchPreviewRequest {
+  codex_execution_selection?: CodexSelection | null;
   model_execution_selection?: ModelSelection | null;
   project_id: string;
   task_id: string;
@@ -3798,6 +3846,7 @@ export interface ToolEvidence {
   usage?: ToolUsage | null;
   usage_state: string;
   model_execution?: ModelEvidence | null;
+  codex_execution?: CodexEvidence | null;
 }
 export interface ToolExecutionProfile {
   command_id: string;
@@ -3829,6 +3878,7 @@ export interface ToolObservation {
   available: boolean;
   reason: string;
   model_deployments?: (ModelDeployment)[];
+  codex_catalog?: CodexCatalog | null;
   workspace_observation_protocol?: string;
   workspace_write_protocol?: string;
 }
@@ -3875,6 +3925,7 @@ export interface ToolUsage {
   reasoning_output_tokens?: number;
 }
 export interface UsageAttempt {
+  codex_execution?: CodexBinding | null;
   model_execution?: ModelBinding | null;
   id: string;
   project_id: string;

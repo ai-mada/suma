@@ -1,3 +1,5 @@
+import {validateTaskDispatchResponse} from './task-dispatch-response';
+import {CodexExecutionFacts} from './CodexModelExecutionPanel';
 import {ModelExecutionPanel, ModelExecutionFacts, type ModelChoice} from './ModelExecutionPanel';
 import {useApi} from './api-context';
 import {useKnowledgeEntries} from './knowledge-hooks';
@@ -92,7 +94,7 @@ export function TaskDispatchDialog({
             session.user.id +
             ":" +
             project +
-            ":dispatch", toolSessionStorage(), api),
+            ":dispatch", toolSessionStorage(), api, (value,request)=>validateTaskDispatchResponse(value,request,api,project)),
       [session.organization.id, session.user.id, project, api],
     ),
     action = useToolAction(recovery, onClose);
@@ -122,7 +124,8 @@ export function TaskDispatchDialog({
   const [modelChoice,setModelChoice]=useState<ModelChoice & {key:string}>({key:'',ready:false});
   const updateModelChoice=useCallback((choice:ModelChoice)=>setModelChoice({...choice,key:modelKey}),[modelKey]);
   const modelRequired=profile?.profile.model_execution_protocol==='suma-model-execution-v1';
-  const modelReady=!modelRequired||modelChoice.key===modelKey&&modelChoice.ready;
+  const codexRequired=profile?.profile.protocol==='codex-app-server-v1';
+  const modelReady=!(modelRequired||codexRequired)||modelChoice.key===modelKey&&modelChoice.ready;
   useEffect(()=>{
     if(!blocked&&profileScope!==selectionScope){setProfileID('');setAdoptedProfile(undefined);setProfileScope(selectionScope);}
   },[selectionScope,profileScope,blocked]);
@@ -168,7 +171,7 @@ export function TaskDispatchDialog({
         throw new Error(t("development.dispatch.choose_a_current_task_a_published_workflow"));
       const result = await action.run<TaskDispatchPlan>(
         "/task-dispatch-plans",
-        {...dispatchRequest(project, currentTask, flow, agentID, profile),knowledge:pinnedKnowledgeReferences(knowledgeSelection,project),...(modelRequired&&modelChoice.selection?{model_execution_selection:modelChoice.selection}:{})},
+        {...dispatchRequest(project, currentTask, flow, agentID, profile),knowledge:pinnedKnowledgeReferences(knowledgeSelection,project),...(modelRequired&&modelChoice.selection?{model_execution_selection:modelChoice.selection}:{}),...(codexRequired&&modelChoice.codexSelection?{codex_execution_selection:modelChoice.codexSelection}:{})},
       );
       if (result) saved("/task-dispatch-plans", result);
     } catch (error) {
@@ -353,7 +356,7 @@ export function TaskDispatchDialog({
                   <code>{profile.profile.profile_sha256}</code>
                 </div>
               )}
-              {profile&&<ModelExecutionPanel key={modelKey} scope={{project,profile:profile.id,version:profile.version,sha256:profile.profile.profile_sha256}} supported={modelRequired} disabled={blocked} onChange={updateModelChoice}/>}
+              {profile&&<ModelExecutionPanel key={modelKey} scope={{project,profile:profile.id,version:profile.version,sha256:profile.profile.profile_sha256}} supported={modelRequired} codex={codexRequired} disabled={blocked} onChange={updateModelChoice}/>}
               <section aria-label={t('knowledge.dispatch.title')}>
                 <h3>{t('knowledge.dispatch.title')}</h3><p className="muted">{t('knowledge.dispatch.hint')}</p>
                 <div className="knowledge-actions"><button type="button" disabled={blocked||knowledge.loading} onClick={()=>void knowledge.read()}><RefreshCw size={14}/>{t('knowledge.dispatch.refresh')}</button><a href={'?'+new URLSearchParams({project,view:'knowledge',sub:'project-knowledge'})}>{t('knowledge.dispatch.open')}</a></div>
@@ -400,7 +403,7 @@ export function TaskDispatchDialog({
         ) : plan ? (
           <>
             <TaskDispatchFacts plan={plan} />
-            <ModelExecutionFacts binding={plan.model_execution}/>
+            <ModelExecutionFacts binding={plan.model_execution}/><CodexExecutionFacts binding={plan.codex_execution}/>
             <RequirementDesignFacts project={project} value={plan.context.design}/>
             <KnowledgeContextFacts project={project} items={plan.context.knowledge}/>
             <TaskDispatchRunFacts plan={plan} onRun={onRun} />

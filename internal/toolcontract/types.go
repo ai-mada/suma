@@ -2,7 +2,10 @@
 // the control plane, scheduler and execution nodes.
 package toolcontract
 
-import "github.com/ai-mada/suma/internal/modelcontract"
+import (
+	cc "github.com/ai-mada/suma/internal/codexcontract"
+	"github.com/ai-mada/suma/internal/modelcontract"
+)
 
 type ToolExecutionProfile struct {
 	CommandID              string `json:"command_id"`
@@ -81,6 +84,8 @@ type ToolObservation struct {
 	Available        bool                       `json:"available"`
 	Reason           string                     `json:"reason"`
 	ModelDeployments []modelcontract.Deployment `json:"model_deployments,omitempty"`
+	// CodexCatalog is from actual model/list under the pinned local configuration.
+	CodexCatalog *cc.Catalog `json:"codex_catalog,omitempty"`
 	// These are the current Runner's outbound transport implementations, not
 	// approved command inputs or proof that a remote host is connected/healthy.
 	WorkspaceObservationProtocol string `json:"workspace_observation_protocol,omitempty"`
@@ -135,6 +140,8 @@ type ToolEvidence struct {
 	Usage          *Usage                  `json:"usage,omitempty"`
 	UsageState     string                  `json:"usage_state"`
 	ModelExecution *modelcontract.Evidence `json:"model_execution,omitempty"`
+	// CodexExecution records requested/acknowledged configuration, never provider billing identity.
+	CodexExecution *cc.Evidence `json:"codex_execution,omitempty"`
 }
 
 type Profile = ToolExecutionProfile

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	mc "github.com/ai-mada/suma/internal/modelcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
@@ -26,6 +27,10 @@ func cloneObservations(items []tc.Observation) []tc.Observation {
 	for i := range result {
 		result[i].Profile = tc.CloneProfile(result[i].Profile)
 		result[i].ModelDeployments = append([]mc.Deployment(nil), result[i].ModelDeployments...)
+		if result[i].CodexCatalog != nil {
+			copied := cc.CloneCatalog(*result[i].CodexCatalog)
+			result[i].CodexCatalog = &copied
+		}
 	}
 	return result
 }
