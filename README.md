@@ -4,7 +4,17 @@
 
 当前是可运行的开发版本。功能与验证范围见 [交付状态](docs/delivery/status.md)，完整目标见 [实施计划](docs/delivery/implementation-plan.md)。
 
-## 当前阶段：执行工作区只读查看与出站恢复
+## 当前阶段：执行文件编辑、冲突比较与原保存恢复
+
+T-P4-038／1.0.0 将当前原生执行工作区贯通到浏览器和CLI实际编辑、CAS保存与回执恢复。完整文件按原摘要保存；模型或另一位编辑者先修改时，不静默覆盖，保留草稿并通过Monaco差异视图明确比较和合并。
+
+一次执行许可、持久原回执和显式inspect核对保证未知结果不会被自动重写；保存递增工作区版本并使旧检查失效，正式测试和验收仍独立。支持中英文、快捷键、刷新和按需加载的最近保存元数据，界面模型和ARIA生命周期问题已通过真实验证修复。
+
+真实Control／Worker／原生进程和两个隔离测试标签页已完成保存、冲突及合并，主035预览尚未升级。当前仅已存在文本、新旧均≤48KiB；完整远程IDE、PTY／LSP／DAP、实体多机与生产验收等总范围继续实施。
+
+见[产品交互](docs/product/remote-workspace-write.md)、[合同](contracts/workspace-write.md)、[架构](docs/architecture/remote-workspace-write.md)、[AI SOP](docs/operations/remote-workspace-write.md)、[English](docs/en/remote-workspace-write.md)、[限定实际证据](docs/quality/workspace-write-verification.md)。
+
+## 历史阶段：执行工作区只读查看与出站恢复（T-P4-037）
 
 T-P4-037／1.0.0 新增从浏览器或CLI查看当前原生执行工作树的目录和文本。通过控制面与Runner现有出站连接返回，严格绑定当前项目、身份、尝试、派发和工作区策略；使用准确读取租约和原回执恢复，不暴露Runner文件端口或凭据。
 

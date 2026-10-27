@@ -11,6 +11,9 @@ import (
 )
 
 func (s *Service) workspaceObservationBrowserTx(ctx context.Context, tx *sql.Tx, actor Actor, project string, bases []workspaceObservationBasis) (*authorizedCommand, error) {
+	return s.workspaceScopeBrowserTx(ctx, tx, actor, project, bases, purposeProjectRead)
+}
+func (s *Service) workspaceScopeBrowserTx(ctx context.Context, tx *sql.Tx, actor Actor, project string, bases []workspaceObservationBasis, purpose commandPurpose) (*authorizedCommand, error) {
 	users, orgs := []string{}, []string{actor.credential.tenantID}
 	for _, basis := range bases {
 		more, err := s.workspaceObservationBasisUsersTx(ctx, tx, actor.credential.tenantID, project, basis)
@@ -23,7 +26,7 @@ func (s *Service) workspaceObservationBrowserTx(ctx context.Context, tx *sql.Tx,
 	if err := s.workspaceObservationLockActorsTx(ctx, tx, []Actor{actor}, users, orgs); err != nil {
 		return nil, err
 	}
-	return s.authorizeTxWithParticipants(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, orgs)
+	return s.authorizeTxWithParticipants(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purpose, orgs)
 }
 
 func (s *Service) GetWorkspaceObservationTargets(ctx context.Context, actor Actor, project string) (out woc.TargetPage, err error) {
@@ -98,7 +101,11 @@ func (s *Service) GetWorkspaceObservationTargets(ctx context.Context, actor Acto
 		}
 		out.Total++
 		if len(out.Items) < out.Limit {
-			out.Items = append(out.Items, woc.Target{WorkspaceObservationScope: basis.Scope, RunName: basis.RunName, NodeName: basis.NodeName, PoolID: basis.Assignment.PoolID})
+			canWrite, e := s.canWorkspaceWriteTargetTx(ctx, tx, actor, project, basis)
+			if e != nil {
+				return out, e
+			}
+			out.Items = append(out.Items, woc.Target{WorkspaceObservationScope: basis.Scope, RunName: basis.RunName, NodeName: basis.NodeName, PoolID: basis.Assignment.PoolID, CanWrite: canWrite})
 		} else {
 			out.Truncated = true
 		}

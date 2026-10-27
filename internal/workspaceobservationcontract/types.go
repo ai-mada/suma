@@ -30,6 +30,7 @@ type WorkspaceObservationScope struct {
 }
 type WorkspaceObservationTarget struct {
 	WorkspaceObservationScope
+	CanWrite bool   `json:"can_write"`
 	RunName  string `json:"run_name"`
 	NodeName string `json:"node_name"`
 	PoolID   string `json:"pool_id,omitempty"`
@@ -49,6 +50,7 @@ type WorkspaceObservationArguments struct {
 	Path      string `json:"path,omitempty"`
 	StartLine int    `json:"start_line,omitempty"`
 	MaxLines  int    `json:"max_lines,omitempty"`
+	FullFile  bool   `json:"full_file,omitempty"`
 }
 type WorkspaceObservationCreateRequest struct {
 	ProjectID      string                        `json:"project_id"`
@@ -191,11 +193,11 @@ func ValidateOperation(operation string, a Arguments, expected string) error {
 	}
 	switch operation {
 	case "list":
-		if !ValidPath(a.Directory, true) || a.Path != "" || a.StartLine != 0 || a.MaxLines != 0 || expected != "" || a.Limit < 0 || a.Limit > 200 || len(a.Cursor) > 4096 || !utf8.ValidString(a.Cursor) || strings.IndexFunc(a.Cursor, unicode.IsControl) >= 0 {
+		if !ValidPath(a.Directory, true) || a.Path != "" || a.StartLine != 0 || a.MaxLines != 0 || a.FullFile || expected != "" || a.Limit < 0 || a.Limit > 200 || len(a.Cursor) > 4096 || !utf8.ValidString(a.Cursor) || strings.IndexFunc(a.Cursor, unicode.IsControl) >= 0 {
 			return fmt.Errorf("invalid workspace observation arguments")
 		}
 	case "read":
-		if !ValidPath(a.Path, false) || a.Directory != "" || a.Cursor != "" || a.Limit != 0 || a.StartLine < 0 || a.StartLine > 1048577 || a.MaxLines < 0 || a.MaxLines > 1000 {
+		if !ValidPath(a.Path, false) || a.Directory != "" || a.Cursor != "" || a.Limit != 0 || a.StartLine < 0 || a.StartLine > 1048577 || a.MaxLines < 0 || a.MaxLines > 1000 || (a.FullFile && (a.StartLine != 0 || a.MaxLines != 0)) {
 			return fmt.Errorf("invalid workspace observation arguments")
 		}
 	default:
@@ -235,6 +237,15 @@ func ValidateResult(o Observation, r *Result, code string) error {
 		x := r.Read
 		if x == nil || x.Path != o.Arguments.Path || !ValidDigest(x.SHA256) || x.Bytes < 0 || x.Bytes > 1<<20 || !utf8.ValidString(x.Content) || len(x.Content) > 48<<10 || x.StartLine < 1 || x.StartLine != max(1, o.Arguments.StartLine) || x.NextLine < 0 || (!x.Complete && x.NextLine <= x.StartLine) || (x.Complete && x.NextLine != 0) || (o.ExpectedSHA256 != "" && x.SHA256 != o.ExpectedSHA256) {
 			return fmt.Errorf("invalid workspace observation result")
+		}
+		if o.Arguments.FullFile {
+			if !x.Complete || x.NextLine != 0 || x.StartLine != 1 || x.Bytes != len(x.Content) {
+				return fmt.Errorf("incomplete full-file observation")
+			}
+			sum := sha256.Sum256([]byte(x.Content))
+			if hex.EncodeToString(sum[:]) != x.SHA256 {
+				return fmt.Errorf("full-file observation digest changed")
+			}
 		}
 	} else {
 		return fmt.Errorf("invalid workspace observation result")

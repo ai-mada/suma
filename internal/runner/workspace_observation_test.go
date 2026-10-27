@@ -319,3 +319,23 @@ func TestWorkspaceObservationLeaseDecoderRejectsCaseAliasesAndUnknownPayloads(t 
 		}
 	}
 }
+
+func TestWorkspaceObservationFullFilePreservesEveryLineWithinExistingByteLimits(t *testing.T) {
+	registry, _, workspace, lease := nativeObservationFixture(t)
+	content := strings.Repeat("x\n", 3000)
+	if err := os.WriteFile(filepath.Join(workspace.Source, "file.txt"), []byte(content), 0600); err != nil {
+		t.Fatal(err)
+	}
+	lease.Observation.Arguments = woc.Arguments{Path: "file.txt", FullFile: true}
+	result := registry.Observe(context.Background(), lease)
+	if result.ErrorCode != "" || result.ObservationResult == nil || result.ObservationResult.Read == nil || !result.ObservationResult.Read.Complete || result.ObservationResult.Read.Content != content {
+		t.Fatal("bounded whole file read lost short lines or forwarded full_file as a native parameter")
+	}
+	if err := os.WriteFile(filepath.Join(workspace.Source, "file.txt"), []byte(strings.Repeat("x", (48<<10)+1)), 0600); err != nil {
+		t.Fatal(err)
+	}
+	result = registry.Observe(context.Background(), lease)
+	if result.ErrorCode != "output_limit" || result.ObservationResult != nil {
+		t.Fatal("whole file read exceeded the bounded editable text limit")
+	}
+}

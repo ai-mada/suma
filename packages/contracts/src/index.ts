@@ -2183,6 +2183,36 @@ export interface PoolWorkspaceObservationResultRequest {
   runner_id: string;
   assignment: Assignment;
 }
+export interface PoolWorkspaceWriteClaimRequest {
+  project_id: string;
+  worker_id: string;
+  scope: WorkspaceObservationScope;
+  workspace_policy_sha256: string;
+  operation_id: string;
+  tenant_id: string;
+  runner_id: string;
+  assignment: Assignment;
+}
+export interface PoolWorkspaceWriteResultRequest {
+  project_id: string;
+  worker_id: string;
+  command_id: string;
+  scope: WorkspaceObservationScope;
+  workspace_policy_sha256: string;
+  request_sha256: string;
+  execution_fence: number;
+  claim_id: string;
+  mode: string;
+  outcome: string;
+  effect?: WorkspaceWriteEffect | null;
+  error_code?: string;
+  observed_at: string;
+  result_sha256: string;
+  operation_id: string;
+  tenant_id: string;
+  runner_id: string;
+  assignment: Assignment;
+}
 export interface Principal {
   id: string;
   name: string;
@@ -4055,6 +4085,7 @@ export interface WorkspaceObservationArguments {
   path?: string;
   start_line?: number;
   max_lines?: number;
+  full_file?: boolean;
 }
 export interface WorkspaceObservationClaimRequest {
   project_id: string;
@@ -4137,6 +4168,7 @@ export interface WorkspaceObservationTarget {
   worker_id: string;
   tool_profile_id: string;
   profile_sha256: string;
+  can_write: boolean;
   run_name: string;
   node_name: string;
   pool_id?: string;
@@ -4148,4 +4180,94 @@ export interface WorkspaceObservationTargetPage {
   limit: number;
   truncated: boolean;
   observed_at: string;
+}
+export interface WorkspaceWriteClaimRequest {
+  project_id: string;
+  worker_id: string;
+  scope: WorkspaceObservationScope;
+  workspace_policy_sha256: string;
+  operation_id: string;
+}
+export interface WorkspaceWriteClaimResponse {
+  lease: WorkspaceWriteLease | null;
+}
+export interface WorkspaceWriteCommand {
+  id: string;
+  project_id: string;
+  version: number;
+  state: string;
+  scope: WorkspaceObservationScope;
+  workspace_policy_sha256: string;
+  path: string;
+  expected_sha256: string;
+  content_sha256: string;
+  request_sha256: string;
+  execution_fence: number;
+  execute_claim_id?: string;
+  execute_before?: string;
+  inspection_id?: string;
+  inspection_state?: string;
+  created_at: string;
+  expires_at: string;
+  result?: WorkspaceWriteEffect | null;
+  error_code?: string;
+}
+export interface WorkspaceWriteCreateRequest {
+  project_id: string;
+  scope: WorkspaceObservationScope;
+  workspace_policy_sha256: string;
+  path: string;
+  expected_sha256: string;
+  content: string;
+  content_sha256: string;
+  idempotency_key: string;
+}
+export interface WorkspaceWriteEffect {
+  native_operation_id: string;
+  path: string;
+  previous_sha256: string;
+  sha256: string;
+  generation: number;
+}
+export interface WorkspaceWriteInspectionRequest {
+  project_id: string;
+  expected_version: number;
+  idempotency_key: string;
+}
+export interface WorkspaceWriteLease {
+  command: WorkspaceWriteCommand;
+  claim_id: string;
+  mode: string;
+  lease_until: string;
+  content?: string | null;
+}
+export interface WorkspaceWritePage {
+  project_id: string;
+  items: (WorkspaceWriteCommand)[];
+  total: number;
+  limit: number;
+  truncated: boolean;
+}
+export interface WorkspaceWriteReceipt {
+  command_id: string;
+  claim_id: string;
+  result_sha256: string;
+  acknowledged: boolean;
+}
+export interface WorkspaceWriteResultRequest {
+  project_id: string;
+  worker_id: string;
+  command_id: string;
+  scope: WorkspaceObservationScope;
+  workspace_policy_sha256: string;
+  request_sha256: string;
+  execution_fence: number;
+  claim_id: string;
+  mode: string;
+  outcome: string;
+  effect?: WorkspaceWriteEffect | null;
+  error_code?: string;
+  observed_at: string;
+  result_sha256: string;
+  operation_id: string;
 }

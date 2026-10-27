@@ -1,10 +1,11 @@
 # 速码项目设计文档
 
-状态：当前推进T-P4-037／1.0.0，执行工作区只读出站观察、原回执恢复、CLI及中英文简洁界面取得限定本地实际证据。036固定模型／参数／预算真实执行证据保留。完整P0–P7及需求1–22继续实施，主035预览未重启。负责人：平台集成；范围以[交付状态](delivery/status.md)与证据报告为准。
+状态：当前T-P4-038／1.0.0，当前原生执行文件的完整编辑、单次CAS保存、原回执恢复与人工冲突比较取得本机真实证据；中英文及组件生命周期已实际验证。完整P0–P7、需求1–22继续实施，主035预览尚未升级。负责人：平台集成，最终范围见[交付状态](delivery/status.md)。
 
 | 主题 | 入口 |
 |---|---|
-| 当前执行工作区只读观察与出站恢复（T-P4-037） | [产品与交互](product/remote-workspace.md)／[合同](../contracts/workspace-observation.md)／[架构](architecture/remote-workspace-broker.md)／[AI SOP](operations/remote-workspace.md)／[English](en/remote-workspace.md)／[实际证据](quality/workspace-observation-verification.md)／[摘要](quality/workspace-observation-summary.json) |
+| 当前执行文件编辑、CAS保存与原操作恢复（T-P4-038） | [产品交互](product/remote-workspace-write.md)／[合同](../contracts/workspace-write.md)／[架构](architecture/remote-workspace-write.md)／[AI SOP](operations/remote-workspace-write.md)／[English](en/remote-workspace-write.md)／[实际验证](quality/workspace-write-verification.md)／[摘要](quality/workspace-write-summary.json) |
+| 执行工作区只读观察与出站恢复（历史T-P4-037） | [产品与交互](product/remote-workspace.md)／[合同](../contracts/workspace-observation.md)／[架构](architecture/remote-workspace-broker.md)／[AI SOP](operations/remote-workspace.md)／[English](en/remote-workspace.md)／[实际证据](quality/workspace-observation-verification.md)／[摘要](quality/workspace-observation-summary.json) |
 | 固定原生模型选择、attempt预算与真实执行（历史 T-P4-036，UI固定预览已验证） | [PRD](product/model-execution.md)／[架构与实现检查点](architecture/model-execution.md)／[AI SOP](operations/model-execution.md)／[English](en/model-execution.md)／[实际验证及剩余边界](quality/model-execution-verification.md)；外部CLI、专家团队独立选择和完整多模型报价目录仍待实施 |
 | 开发工具真实只读MCP诊断（T-P4-036） | [developer check操作与边界](integrations/developer-connection-check.md)／[限定证据](quality/developer-connection036-verification.md)；[远程工作区出站broker](architecture/remote-workspace-broker.md)尚未实施，不宣称完整远程IDE接入 |
 | 只读Git审阅、Monaco保存快捷键与原生执行限额（历史 T-P4-035） | [PRD](product/workspace-git.md)／[架构](architecture/workspace-git.md)／[交互](design/workspace-git.md)／[接口与限额合同](../contracts/workspace-git.md)／[限定本地验证](quality/workspace-git-verification.md) |

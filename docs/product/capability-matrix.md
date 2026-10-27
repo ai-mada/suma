@@ -1,6 +1,8 @@
 # 能力与验收矩阵
 
-当前增量T-P4-037：[执行工作区产品与交互](remote-workspace.md)、[限定实际证据](../quality/workspace-observation-verification.md)。当前native attempt只读list/read、私有／Pool出站恢复、CLI和中英文界面取得本机实际证据；空轮询不落回执。远程写、PTY／LSP／DAP、完整IDE、物理多机／TLS和生产继续待办。036模型执行证据沿用，完整P0–P7及1–22不缩减。
+当前增量T-P4-038：[执行文件产品与交互](remote-workspace-write.md)、[限定真实证据](../quality/workspace-write-verification.md)。现有完整小文件CAS保存、单次许可／原回执／显式核对、人工差异合并、CLI及中英文界面已取得本机实际证据。完整IDE／大文件、PTY／LSP／DAP、物理多机／TLS与生产继续待办；完整P0–P7及1–22保持。
+
+历史增量T-P4-037：[执行工作区产品与交互](remote-workspace.md)、[限定实际证据](../quality/workspace-observation-verification.md)。当前native attempt只读list/read、私有／Pool出站恢复、CLI和中英文界面取得本机实际证据；空轮询不落回执。远程写、PTY／LSP／DAP、完整IDE、物理多机／TLS和生产继续待办。036模型执行证据沿用，完整P0–P7及1–22不缩减。
 
 状态：源码与本地证据审查，平台整体尚未完成。日期：2026-10-24。Owner：产品、架构与集成负责人。
 

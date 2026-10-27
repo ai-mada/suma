@@ -4,7 +4,19 @@
 
 本轮台账更新：2026-10-27。勾选仅限定到具体实现范围，不代表整个阶段已验收。当前阶段见[交付状态](status.md)；各阶段勾选只对应所列实现和验证范围，不扩大完整平台验收。
 
-## 当前纵向交付 T-P4-037（只读出站工作区，本地界面与最终联合已验证）
+## 当前纵向交付 T-P4-038（实际单次保存、冲突合并与恢复）
+
+- [x] 完整小文件编辑基线、当前写资格与task／Pool准确授权；独立有副作用命令、短execute许可、无正文永久metadata及120秒未领取期限。
+- [x] 原native CAS／generation账本、原回执journal、prepared不补写、显式inspect与阻迟到屏障；权限撤回阻止新许可，已admitted结果按原事实排空。
+- [x] CLI save／save-status／inspect-save，准确URI／请求／效果校验；浏览器中英编辑、手工差异合并、原操作恢复、最近保存、刷新及生命周期实际验证。
+- [x] 同一真实实例已完成正常保存、旧基线冲突、10次许可交付丢失／过期核对和GUI两标签合并；主源HEAD未变，0新依赖／任务模型调用／正式验收操作。
+- [x] 产品／合同／架构／AI SOP／英文与精确证据、已知边界同步；阶段本地提交，不提交缓存与秘密。
+- [ ] 核对主预览真实进程与数据，安全升级Control／Runner／Web到当前已验证版本；不凭历史PID推断活动状态，不混用前后端资产。
+- [ ] 完整远程IDE与大文件／创建删除、PTY／LSP／DAP、实体多机／TLS、存储／规模、厂商与生产验收；完整P0–P7、需求1–22不缩减。
+
+见[产品交互](../product/remote-workspace-write.md)、[限定报告](../quality/workspace-write-verification.md)、[合同](../../contracts/workspace-write.md)。
+
+## 历史纵向交付 T-P4-037（只读出站工作区，本地界面与最终联合已验证）
 
 - [x] 当前原生attempt的list／read合同、严格JSON、当前原调用凭据／项目／派发／策略与Pool授权核验；独立观察租约和正文到期清除。
 - [x] 真实活动os.Root、私有／Pool出站claim／result、准确回执journal重传及ACK／退休分开；空轮询无持久效果不产生receipt。

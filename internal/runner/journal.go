@@ -31,6 +31,7 @@ type Journal struct {
 	inventory             *InventoryReport
 	claim                 *ClaimCheckpoint
 	workspaceObservations map[string]workspaceObservationCheckpoint
+	workspaceWrites       workspaceWriteJournal
 }
 
 func key(a Assignment) string {
@@ -78,6 +79,9 @@ func OpenJournal(dir string) (*Journal, error) {
 		return nil, err
 	}
 	if err = j.loadWorkspaceObservations(); err != nil {
+		return nil, err
+	}
+	if err = j.loadWorkspaceWrites(); err != nil {
 		return nil, err
 	}
 	for k, e := range j.entries {

@@ -73,6 +73,9 @@ func (s *Service) Migrate(ctx context.Context) error {
 	if err := s.MigrateWorkspaceObservations(ctx); err != nil {
 		return err
 	}
+	if err := s.MigrateWorkspaceWrites(ctx); err != nil {
+		return err
+	}
 	if err := s.MigrateProjections(ctx); err != nil {
 		return err
 	}

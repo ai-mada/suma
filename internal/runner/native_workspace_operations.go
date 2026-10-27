@@ -15,16 +15,17 @@ import (
 )
 
 type nativeWorkspaceOperation struct {
-	ID          string          `json:"id"`
-	Kind        string          `json:"kind"`
-	RequestSHA  string          `json:"request_sha256"`
-	State       string          `json:"state"`
-	Path        string          `json:"path,omitempty"`
-	PreviousSHA string          `json:"previous_sha256,omitempty"`
-	SHA         string          `json:"sha256,omitempty"`
-	Content     string          `json:"content,omitempty"`
-	Generation  int             `json:"generation"`
-	Result      json.RawMessage `json:"result,omitempty"`
+	ID          string             `json:"id"`
+	Kind        string             `json:"kind"`
+	RequestSHA  string             `json:"request_sha256"`
+	State       string             `json:"state"`
+	Path        string             `json:"path,omitempty"`
+	PreviousSHA string             `json:"previous_sha256,omitempty"`
+	SHA         string             `json:"sha256,omitempty"`
+	Content     string             `json:"content,omitempty"`
+	Generation  int                `json:"generation"`
+	Result      json.RawMessage    `json:"result,omitempty"`
+	RemoteWrite *nativeRemoteWrite `json:"remote_write,omitempty"`
 }
 type nativeWorkspaceLedger struct {
 	Version    int                                   `json:"version"`
@@ -87,6 +88,20 @@ func (n *nativeWorkspace) loadLedger() error {
 		if op == nil || id != op.ID || !nativeOperationID(id) || !evidenceHash.MatchString(op.RequestSHA) || op.Generation < 0 {
 			return nativeError("native_workspace_scope")
 		}
+		if op.RemoteWrite != nil {
+			if !n.validRemoteWriteOperationLocked(op) {
+				return nativeError("native_workspace_scope")
+			}
+			if op.State == "not_applied" {
+				continue
+			}
+			if op.State != "completed" {
+				// A remote permit is not a durable authorization to retry a write.
+				// Preserve prepared metadata for inspection; never resume rename.
+				n.ledger.Unknown = true
+				continue
+			}
+		}
 		if op.State == "completed" {
 			if len(op.Result) == 0 || !json.Valid(op.Result) {
 				return nativeError("native_workspace_scope")
@@ -127,12 +142,21 @@ func nativeOperationID(id string) bool {
 }
 
 func (n *nativeWorkspace) operationLocked(ctx context.Context, kind string, args map[string]any, id string) (any, error) {
+	return n.operationLockedWithAdmission(ctx, kind, args, id, nil, nil)
+}
+
+// The remote channel shares the native CAS/receipt implementation. Its guard
+// is checked before preparing an effect and again immediately before rename.
+func (n *nativeWorkspace) operationLockedWithAdmission(ctx context.Context, kind string, args map[string]any, id string, remote *nativeRemoteWrite, guard func() error) (any, error) {
 	if !nativeOperationID(id) {
 		return nil, nativeError("native_workspace_operation")
 	}
 	requestSHA := nativeRequestHash(kind, args)
+	if remote != nil {
+		requestSHA = remote.Command.RequestSHA256
+	}
 	if op, ok := n.ledger.Operations[id]; ok {
-		if op.Kind != kind || op.RequestSHA != requestSHA {
+		if op.Kind != kind || op.RequestSHA != requestSHA || (op.RemoteWrite == nil) != (remote == nil) {
 			return nil, nativeError("native_workspace_operation_conflict")
 		}
 		if op.State != "completed" {
@@ -158,6 +182,11 @@ func (n *nativeWorkspace) operationLocked(ctx context.Context, kind string, args
 	if kind == "check" {
 		return n.runCheckLocked(ctx, args, id, requestSHA)
 	}
+	if guard != nil {
+		if err := guard(); err != nil {
+			return nil, err
+		}
+	}
 	name := nativeString(args, "path")
 	data, exists, err := nativeReadBytes(n.root, name)
 	if err != nil {
@@ -172,10 +201,15 @@ func (n *nativeWorkspace) operationLocked(ctx context.Context, kind string, args
 	if kind == "remove" && !exists || absent && exists || !absent && (!exists || old != expected) {
 		return nil, nativeError("native_workspace_conflict")
 	}
-	op := &nativeWorkspaceOperation{ID: id, Kind: kind, RequestSHA: requestSHA, State: "prepared", Path: name, PreviousSHA: old, Generation: n.ledger.Generation + 1}
+	op := &nativeWorkspaceOperation{ID: id, Kind: kind, RequestSHA: requestSHA, State: "prepared", Path: name, PreviousSHA: old, Generation: n.ledger.Generation + 1, RemoteWrite: remote}
 	if kind == "write" {
 		op.Content = nativeString(args, "content")
 		op.SHA = digest([]byte(op.Content))
+	}
+	if guard != nil {
+		if err := guard(); err != nil {
+			return nil, err
+		}
 	}
 	if kind == "edit" {
 		op.Content, err = nativeApplyEdits(string(data), args["edits"].([]any))
@@ -189,7 +223,7 @@ func (n *nativeWorkspace) operationLocked(ctx context.Context, kind string, args
 		delete(n.ledger.Operations, id)
 		return nil, err
 	}
-	if err = n.recoverFileOperationLocked(op); err != nil {
+	if err = n.recoverFileOperationLockedWithAdmission(op, guard); err != nil {
 		n.ledger.Unknown = true
 		_ = n.saveLedger()
 		return nil, err
@@ -200,6 +234,12 @@ func (n *nativeWorkspace) operationLocked(ctx context.Context, kind string, args
 }
 
 func (n *nativeWorkspace) recoverFileOperationLocked(op *nativeWorkspaceOperation) error {
+	if op.RemoteWrite != nil {
+		return nativeError("native_workspace_unknown")
+	}
+	return n.recoverFileOperationLockedWithAdmission(op, nil)
+}
+func (n *nativeWorkspace) recoverFileOperationLockedWithAdmission(op *nativeWorkspaceOperation, guard func() error) error {
 	if _, err := nativeWorkspacePath(op.Path); err != nil {
 		return err
 	}
@@ -218,11 +258,14 @@ func (n *nativeWorkspace) recoverFileOperationLocked(op *nativeWorkspaceOperatio
 		current = digest(data)
 	}
 	if op.Kind == "write" || op.Kind == "edit" {
-		if current != op.SHA {
+		// Ordinary local prepared recovery can recognize its already-renamed
+		// bytes. A fresh remote effect must perform the original guarded CAS;
+		// matching external bytes alone are never proof that it was applied.
+		if current != op.SHA || op.RemoteWrite != nil {
 			if current != op.PreviousSHA {
 				return nativeError("native_workspace_unknown")
 			}
-			if err = n.atomicWriteLocked(op.Path, []byte(op.Content), op.PreviousSHA, op.ID); err != nil {
+			if err = n.atomicWriteLockedWithAdmission(op.Path, []byte(op.Content), op.PreviousSHA, op.ID, guard); err != nil {
 				return err
 			}
 		}
@@ -296,6 +339,9 @@ func nativeApplyEdits(original string, edits []any) (string, error) {
 }
 
 func (n *nativeWorkspace) atomicWriteLocked(name string, data []byte, expected, operation string) error {
+	return n.atomicWriteLockedWithAdmission(name, data, expected, operation, nil)
+}
+func (n *nativeWorkspace) atomicWriteLockedWithAdmission(name string, data []byte, expected, operation string, guard func() error) error {
 	parent := path.Dir(name)
 	if parent != "." {
 		current := ""
@@ -364,6 +410,11 @@ func (n *nativeWorkspace) atomicWriteLocked(name string, data []byte, expected, 
 	}
 	if err = nativeValidatePath(n.root, name, true); err != nil {
 		return err
+	}
+	if guard != nil {
+		if err = guard(); err != nil {
+			return err
+		}
 	}
 	if err = n.root.Rename(temp, name); err != nil {
 		return nativeError("native_workspace_unavailable")

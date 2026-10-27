@@ -2,7 +2,19 @@
 
 当前开发版本 **1.0.0**；新设计采用当前最佳合理结构，不增加历史兼容层。[版本与扩展需求基线](../product/v1-baseline.md)。
 
-## 当前 T-P4-037：执行工作区只读观察与出站回执（限定本地验证）
+## 当前 T-P4-038：执行文件编辑、单次CAS保存与准确恢复（限定本地验证）
+
+在037真实只读工作区上补齐完整小文件编辑与保存。当前原调用人写权限、task当前run／依据及Pool授权核验，固定原SHA／新内容SHA／scope／策略；只签发一次10秒execute许可，超时后不重新派发。Runner复用活动os.Root和原CAS账本，未知／prepared不补rename，只有准确原回执或持久未发生屏障才能定论。
+
+浏览器与CLI均贯通。两个真实隔离标签页完成先保存、旧SHA冲突、保留草稿、人工比较合并、显式采用基线后再保存：提交SHA49918b20…，generation3。最近保存按原凭据准确加载3项元数据；中英、刷新、左右编辑区名称与模型退出生命周期已实际验证。旧ACK不覆盖新草稿，原POST／inspect超时保持原key和正文／版本。
+
+唯一Control→Worker→原生Node实例联合PASS，1197.21秒含10秒许可故障与GUI等待；服务正常关闭、源HEAD未变、0任务模型／厂商调用、0正式人工验收。实际发现的ReactMonaco模型销毁和初始ARIA重置已修复，最终关闭前相关console为0。新依赖0；缓存、凭据、截图、日志和构建产物不提交。
+
+仅当前原生attempt现有UTF-8文本、新旧均≤48KiB；创建／删除／force／Git写、PTY／LSP／DAP、完整远程IDE、实体多机／TLS、分布式数据库／容量和生产继续实施。主035预览尚未升级；下一步先核对实际进程／数据再交付当前已验证版本，继续完整P0–P7与需求1–22，不将此局部阶段当作完整平台。
+
+[产品交互](../product/remote-workspace-write.md)、[合同](../../contracts/workspace-write.md)、[架构](../architecture/remote-workspace-write.md)、[AI SOP](../operations/remote-workspace-write.md)、[English](../en/remote-workspace-write.md)、[实际验证](../quality/workspace-write-verification.md)、[摘要](../quality/workspace-write-summary.json)。
+
+## 历史 T-P4-037：执行工作区只读观察与出站回执（限定本地验证）
 
 在036固定模型／参数／预算→真实原生执行的基础上，本阶段增加当前原生attempt的只读工作区链路。浏览器／CLI通过同一控制面申请目录或文本，Runner复用活动os.Root与现有出站连接读取；当前原调用凭据、项目、attempt／fence／worker、真实工作区策略摘要以及Pool当前双边授权分别核验。独立读取租约、准确原回执与迟到拒绝不干预DAG、模型或正式验收。
 

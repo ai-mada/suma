@@ -112,10 +112,15 @@ func (r *WorkspaceObservationRegistry) Observe(ctx context.Context, lease woc.Le
 	if native.activeLocked(readCtx) != nil {
 		return finish(nil, "workspace_closed")
 	}
-	raw, _ := json.Marshal(observation.Arguments)
+	nativeArgs := observation.Arguments
+	nativeArgs.FullFile = false // This is broker metadata, not a native/MCP parameter.
+	raw, _ := json.Marshal(nativeArgs)
 	args, err := nativeArguments(observation.Operation, raw)
 	if err != nil {
 		return finish(nil, observationErrorCode(err))
+	}
+	if observation.Arguments.FullFile {
+		args["max_lines"] = json.Number("1048577")
 	}
 	var observed any
 	switch observation.Operation {
@@ -146,6 +151,9 @@ func (r *WorkspaceObservationRegistry) Observe(ctx context.Context, lease woc.Le
 	}
 	if err != nil {
 		return finish(nil, "workspace_unavailable")
+	}
+	if observation.Arguments.FullFile && result.Read != nil && (!result.Read.Complete || result.Read.Bytes > 48<<10) {
+		return finish(nil, "output_limit")
 	}
 	if result.Read != nil && observation.ExpectedSHA256 != "" && result.Read.SHA256 != observation.ExpectedSHA256 {
 		return finish(nil, "file_changed")

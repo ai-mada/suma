@@ -114,6 +114,9 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 				if _, e := service.ExpireWorkspaceObservations(ctx); e != nil && ctx.Err() == nil {
 					logger.Error(app.Text("工作区观察到期待处理", "workspace observation expiry pending"), "event", "control.workspace_observation_expiry", "error", e)
 				}
+				if _, e := service.ExpireWorkspaceWrites(ctx); e != nil && ctx.Err() == nil {
+					logger.Error(app.Text("工作区保存核对待处理", "workspace save reconciliation pending"), "event", "control.workspace_write_expiry", "error", e)
+				}
 			}
 		}
 	}()

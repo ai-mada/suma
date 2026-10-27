@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -204,6 +205,9 @@ func (n *nativeWorkspace) invoke(ctx context.Context, name string, raw json.RawM
 	defer n.mu.Unlock()
 	if err := n.activeLocked(ctx); err != nil {
 		return nil, err
+	}
+	if strings.HasPrefix(operationID, "remote-write:") {
+		return nil, nativeError("native_workspace_operation")
 	}
 	args, err := nativeArguments(name, raw)
 	if err != nil {

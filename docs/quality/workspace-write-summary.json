@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "stage": "T-P4-038",
+  "product_version": "1.0.0",
+  "status": "bounded_local_functional_stage_verified",
+  "stage_complete": true,
+  "full_platform_status": "in_progress",
+  "production_integration_complete": false,
+  "contract": "contracts/workspace-write.md",
+  "implemented": [
+    "Existing complete UTF-8 files up to48KiB; exact original file CAS through live native host",
+    "Separate single-execute permit and persistent metadata; original actor/task/Pool current authority",
+    "Prepared/unknown recovery never writes again; exact receipt replay and explicit inspection with durable no-effect barrier",
+    "CLI save/save-status/inspect-save with exact URI/request/effect validation and uncertain exit status",
+    "Simple CNEN editor, manual reviewed conflict comparison, preserved newer drafts and on-demand receipt history",
+    "FullFile observation, write eligibility, source-tab draft retention and owned Monaco model/configuration lifecycle"
+  ],
+  "checks": {
+    "control": "4 focused write groups plus changed observation regressions passed8.856s; exact-key read-only recovery permission regression red-green0.522s",
+    "runner": "focused CAS/concurrency/check-generation/permit/rename/tombstone/no-reapply/ACK/Pool/FullFile tests passed; exact logs in runtime-focused receipt",
+    "shared_contracts": "2 write tests and2 prior observation tests passed when affected",
+    "CLI": "2 focused groups passed; wrong URI identity and unknown status protected",
+    "web": "11 unique affected tests: editor6, previous panel3 and local IDE2; final additional inspection recovery test ran alone and reused previous5 passing editor tests",
+    "typescript": "final build typecheck passed",
+    "i18n": "4563 paired keys passed",
+    "go_vet": "final affected packages passed",
+    "generated_contracts": "final -check passed",
+    "actual_joint": {
+      "count": 1,
+      "result": "pass",
+      "seconds_including_GUI_hold": 1197.21,
+      "note": "Includes actual permit expiry and long GUI waiting; not a latency/capacity benchmark",
+      "native_processes": 1,
+      "control_workspace_bindings": 0,
+      "dropped_execute_deliveries": 10,
+      "explicit_inspection": "not_started after durable barrier, no re-execution",
+      "source_HEAD_unchanged": true,
+      "host59218_closed": true
+    },
+    "documentation": "240 Markdown local links,253 API paths and2291 schema references resolve"
+  },
+  "browser": {
+    "engine": "IAB/CUA",
+    "origin": "http://workspace038.localhost:59218",
+    "viewport": "desktop1265x712, full-page screenshot",
+    "tabs": 2,
+    "both_tabs_closed": true,
+    "successful_GUI_writes": 2,
+    "GUI_CAS_conflicts": 1,
+    "merged_command_id": "e2804cefc5396a1192da5b8341cd3c3c",
+    "merged_content_sha256": "49918b20e3d073e404805b75454b9b77f0469e71012dd6501c32b40bab4ed0cd",
+    "merged_generation": 3,
+    "history_original_caller_records": 3,
+    "CNEN": true,
+    "refresh_restores_source_and_receipt_lookup": true,
+    "initial_and_updated_diff_accessibility_names": true,
+    "pre_fix_console_errors": 1,
+    "final_pre_shutdown_console_errors": 0,
+    "model_dispose_failure_fixed": true,
+    "post_merge_fix_verification_added_writes": 0
+  },
+  "resources": {
+    "new_dependencies": 0,
+    "vendor_calls": 0,
+    "task_model_calls": 0,
+    "formal_acceptance_actions": 0,
+    "old_model_journeys_repeated": 0,
+    "actual_joint_reruns": 0,
+    "successful_web_builds": 4,
+    "build_reasons": [
+      "Initial integration",
+      "Actual DiffEditor model disposal failure",
+      "SDK option-only initial ARIA name reset remained",
+      "Public SDK configuration event retained initial and changed names"
+    ],
+    "initial_build_launcher": "No Vite run: missing owned cache log directory; created directory and continued",
+    "primary035_preview": "unchanged",
+    "duplicate_build_cleanup": {
+      "removed_directories": 2,
+      "reclaimed_bytes": 32571344,
+      "unique_assets_and_HTML_preserved": true,
+      "receipt_path": ".cache/e2e/workspace-write-stage-038/ui-final/build-duplicate-cleanup.local.json",
+      "receipt_sha256": "20b98b07be4879781a72950f56bf5a127477b65c3d7bb3fece04bb144ea314aa"
+    }
+  },
+  "artifacts": {
+    "browser/verified.local.json": {
+      "path": ".cache/e2e/workspace-write-stage-038/browser/verified.local.json",
+      "sha256": "cb8bdb3c965368b6b1cec393f1eedcd17fda56690cf463c17973ee7798b7695f"
+    },
+    "browser/final-compare-en.png": {
+      "path": ".cache/e2e/workspace-write-stage-038/browser/final-compare-en.png",
+      "sha256": "626dafb3dc5e9a630e9518d90199a45a4dfb97e4669ffc7590da2d225bff04df"
+    },
+    "browser/pre-fix-console.local.json": {
+      "path": ".cache/e2e/workspace-write-stage-038/browser/pre-fix-console.local.json",
+      "sha256": "34965bc9a5c6f876486b6a003382f3fe21187c43a2947dd33a0bb8318fb10688"
+    },
+    "runtime-focused/receipt.local.json": {
+      "path": ".cache/e2e/workspace-write-stage-038/runtime-focused/receipt.local.json",
+      "sha256": "afa7bc146f604ac68ce1b7bd2f2406e52ae1fb1e5571438dc1af7b4c6955c4c6"
+    },
+    "ui-final/runtime-receipt.local.json": {
+      "path": ".cache/e2e/workspace-write-stage-038/ui-final/runtime-receipt.local.json",
+      "sha256": "dfe274c25dd6f6ce5460b801de560ceaf73de27be27d956f23193901849a2fcf"
+    },
+    "ui-final/closed.local.json": {
+      "path": ".cache/e2e/workspace-write-stage-038/ui-final/closed.local.json",
+      "sha256": "78ffac5f2637469c3ee2a89d3dcc194680b82a3fbefa717fa8af8079d97a6917"
+    }
+  },
+  "boundaries": [
+    "Complete P0-P7 and requirements1..22 remain active",
+    "Only current native existing text save; no new/delete/force/Git write/PTY/LSP/DAP",
+    "Physical multi-host/TLS, distributed database/scale, mobile and vendor production not accepted",
+    "Already-admitted side effects cannot be rolled back by permission withdrawal; metadata fact drain is separate from new authority",
+    "Drafts are in memory; source/request bytes use documented bounded delivery/journal retention, not secure erasure",
+    "Monaco builtin menus and large lazy bundles remain; no full cross-platform/performance claim"
+  ]
+}
