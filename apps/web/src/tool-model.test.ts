@@ -95,6 +95,9 @@ describe("tool manifest and fixed task choices", () => {
 			const observation = { profile: { ...definition, read_only: true, [field]: { protocol, model: "fixed-model", endpoint_origin: "https://Model.Example:443" } }, available: true, reason: "local protocol probe; provider unverified" };
 			expect(parseToolManifest(JSON.stringify([observation]))[0]).toEqual(observation);
 		}
+		const report = { profile: { ...definition, adapter: "command", protocol: "text-v1", read_only: false, test_report_protocol: "suma-junit-report-v1" }, available: true, reason: "Local test configuration; execution not verified" };
+		expect(parseToolManifest(JSON.stringify([report]))[0]).toEqual(report);
+		expect(() => parseToolManifest(JSON.stringify([{ ...report, profile: { ...report.profile, read_only: true } }]))).toThrow();
 	});
 	it("imports current Codex file reading without granting native tools or file saving", () => {
 		const codex: ToolObservation = {

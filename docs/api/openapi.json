@@ -10606,6 +10606,58 @@
         ],
         "type": "object"
       },
+      "ParsedTestReport": {
+        "additionalProperties": false,
+        "properties": {
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/TestReportCase"
+            },
+            "maxItems": 1000,
+            "readOnly": true,
+            "type": "array"
+          },
+          "errors": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "failed": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "passed": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "skipped": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "total": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cases",
+          "total",
+          "passed",
+          "failed",
+          "errors",
+          "skipped"
+        ],
+        "type": "object"
+      },
       "PlannedTask": {
         "properties": {
           "acceptance_criteria": {
@@ -13028,6 +13080,80 @@
           "project_id",
           "expected_version",
           "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "QualityTestCase": {
+        "additionalProperties": false,
+        "properties": {
+          "covers": {
+            "description": "1-based positions in the exact fixed task acceptance_criteria, not requirement positions or inferred matching. Publication covers every current task criterion.",
+            "items": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxItems": 100,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "description": {
+            "maxLength": 4000,
+            "type": "string",
+            "x-max-utf8-bytes": 4000
+          },
+          "expected_result": {
+            "maxLength": 4000,
+            "type": "string",
+            "x-max-utf8-bytes": 4000
+          },
+          "key": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "type": "string"
+          },
+          "preconditions": {
+            "maxLength": 4000,
+            "type": "string",
+            "x-max-utf8-bytes": 4000
+          },
+          "priority": {
+            "enum": [
+              "urgent",
+              "high",
+              "medium",
+              "low"
+            ],
+            "type": "string"
+          },
+          "selector": {
+            "$ref": "#/components/schemas/TestCaseSelector"
+          },
+          "steps": {
+            "description": "May be empty in a draft; publication requires at least one nonempty step.",
+            "items": {
+              "maxLength": 1000,
+              "type": "string",
+              "x-max-utf8-bytes": 1000
+            },
+            "maxItems": 20,
+            "minItems": 0,
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 200,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          }
+        },
+        "required": [
+          "key",
+          "title",
+          "description",
+          "preconditions",
+          "steps",
+          "expected_result",
+          "priority",
+          "covers",
+          "selector"
         ],
         "type": "object"
       },
@@ -16984,6 +17110,16 @@
           "stopped": {
             "type": "boolean"
           },
+          "test_report": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TestReport"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "tool_evidence": {
             "anyOf": [
               {
@@ -18358,6 +18494,16 @@
           },
           "task": {
             "$ref": "#/components/schemas/TaskContextRecord"
+          },
+          "test_plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TaskTestPlanContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -18447,6 +18593,10 @@
           "task_version": {
             "readOnly": true,
             "type": "integer"
+          },
+          "test_plan_id": {
+            "readOnly": true,
+            "type": "string"
           }
         },
         "required": [
@@ -20004,6 +20154,33 @@
         ],
         "type": "object"
       },
+      "TaskTestPlanContext": {
+        "properties": {
+          "case_count": {
+            "type": "integer"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "source_sha256": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision",
+          "sha256",
+          "source_sha256",
+          "case_count",
+          "title"
+        ],
+        "type": "object"
+      },
       "Team": {
         "properties": {
           "created_at": {
@@ -20167,6 +20344,1095 @@
         },
         "required": [
           "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "TestCaseEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "duration_ms": {
+            "maximum": 86400000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "fence": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "message": {
+            "description": "Bounded diagnostic projection; long text is shortened at a UTF-8 boundary. Complete bounded original XML remains available through the authorized report read.",
+            "maxLength": 3000,
+            "readOnly": true,
+            "type": "string",
+            "x-max-utf8-bytes": 3000
+          },
+          "node_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "report_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "source_commit": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "passed",
+              "failed",
+              "error",
+              "skipped"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "worker_id": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "report_id",
+          "node_id",
+          "attempt",
+          "fence",
+          "worker_id",
+          "source_commit",
+          "status",
+          "message",
+          "duration_ms"
+        ],
+        "type": "object"
+      },
+      "TestCaseResult": {
+        "additionalProperties": false,
+        "properties": {
+          "case_key": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "covers": {
+            "items": {
+              "type": "integer"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/TestCaseEvidence"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "issue_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "passed",
+              "failed",
+              "error",
+              "skipped",
+              "not_run",
+              "unknown",
+              "ambiguous"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "title": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "case_key",
+          "title",
+          "status",
+          "covers",
+          "evidence",
+          "issue_id"
+        ],
+        "type": "object"
+      },
+      "TestCaseSelector": {
+        "additionalProperties": false,
+        "properties": {
+          "class_name": {
+            "description": "Exact JUnit identity with no controls or surrounding whitespace. Empty draft values are legal; publication and actual reports require nonempty name. No fuzzy matching.",
+            "maxLength": 500,
+            "type": "string",
+            "x-max-utf8-bytes": 500
+          },
+          "name": {
+            "description": "Exact JUnit identity with no controls or surrounding whitespace. Empty draft values are legal; publication and actual reports require nonempty name. No fuzzy matching.",
+            "maxLength": 500,
+            "type": "string",
+            "x-max-utf8-bytes": 500
+          }
+        },
+        "required": [
+          "class_name",
+          "name"
+        ],
+        "type": "object"
+      },
+      "TestPlanCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "publish",
+              "retire"
+            ],
+            "type": "string"
+          },
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "description": "Stable original operation key, 8–128 UTF-8 bytes; changed same-key bodies conflict. Current actor authorization precedes receipt replay.",
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128,
+            "x-min-utf8-bytes": 8
+          },
+          "project_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 2000
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "action",
+          "reason",
+          "idempotency_key"
+        ],
+        "type": "object",
+        "x-max-json-utf8-bytes": 262144
+      },
+      "TestPlanCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "cases": {
+            "description": "Complete non-null draft array. Publication requires at least one complete case, unique exact selectors and coverage of every task acceptance criterion.",
+            "items": {
+              "$ref": "#/components/schemas/QualityTestCase"
+            },
+            "maxItems": 100,
+            "minItems": 0,
+            "type": "array",
+            "x-max-json-utf8-bytes": 131072
+          },
+          "description": {
+            "maxLength": 4000,
+            "type": "string",
+            "x-max-utf8-bytes": 4000
+          },
+          "expected_requirement_version": {
+            "description": "Exact current linked requirement version, or explicit0 when no requirement exists.",
+            "maximum": 2147483646,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "expected_task_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "description": "Stable original operation key, 8–128 UTF-8 bytes; changed same-key bodies conflict. Current actor authorization precedes receipt replay.",
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128,
+            "x-min-utf8-bytes": 8
+          },
+          "project_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "type": "string"
+          },
+          "task_id": {
+            "description": "Current authorized project task; exactly one plan per task. Caller input cannot supply run or result bindings.",
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "expected_task_version",
+          "expected_requirement_version",
+          "title",
+          "description",
+          "cases",
+          "idempotency_key"
+        ],
+        "type": "object",
+        "x-max-json-utf8-bytes": 262144
+      },
+      "TestPlanDefectRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "case_key": {
+            "description": "Currently failed/error case in the exact execution. Issue creation is deduplicated by plan/run/case; passed, skipped or unknown cases cannot use this action.",
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "type": "string"
+          },
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "description": "Stable original operation key, 8–128 UTF-8 bytes; changed same-key bodies conflict. Current actor authorization precedes receipt replay.",
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128,
+            "x-min-utf8-bytes": 8
+          },
+          "project_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 2000
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "case_key",
+          "reason",
+          "idempotency_key"
+        ],
+        "type": "object",
+        "x-max-json-utf8-bytes": 262144
+      },
+      "TestPlanExecution": {
+        "additionalProperties": false,
+        "properties": {
+          "basis_current": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/TestCaseResult"
+            },
+            "maxItems": 100,
+            "readOnly": true,
+            "type": "array"
+          },
+          "created_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "errors": {
+            "maximum": 100,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "failed": {
+            "maximum": 100,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "not_run": {
+            "maximum": 100,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "passed": {
+            "maximum": 100,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "plan_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "plan_sha256": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "reports": {
+            "items": {
+              "$ref": "#/components/schemas/TestPlanReportRef"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "revision": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "run_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_state": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "skipped": {
+            "maximum": 100,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "source_commits": {
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "passed",
+              "failed",
+              "incomplete",
+              "unknown",
+              "source_changed",
+              "retired",
+              "run_changed"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "maximum": 100,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "plan_id",
+          "task_id",
+          "revision",
+          "plan_sha256",
+          "run_id",
+          "run_state",
+          "created_at",
+          "state",
+          "basis_current",
+          "source_commits",
+          "total",
+          "passed",
+          "failed",
+          "errors",
+          "skipped",
+          "not_run",
+          "cases",
+          "reports"
+        ],
+        "type": "object"
+      },
+      "TestPlanExecutionList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TestPlanExecution"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "next_cursor": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "TestPlanList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TestPlanView"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "next_cursor": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "TestPlanReport": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/TestReportCase"
+            },
+            "maxItems": 1000,
+            "readOnly": true,
+            "type": "array"
+          },
+          "eligibility": {
+            "enum": [
+              "current",
+              "invalid",
+              "unknown",
+              "stale_attempt",
+              "source_changed"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "errors": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "failed": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "fence": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "node_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "outcome_unknown": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "passed": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "process_exit_code": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "protocol": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "reported_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "sha256": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "skipped": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "source_commit": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "unmapped": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "worker_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "xml": {
+            "description": "Explicit original-report read; empty when no original was captured. Report validity and process outcome are separate facts.",
+            "maxLength": 262144,
+            "readOnly": true,
+            "type": "string",
+            "x-max-utf8-bytes": 262144
+          }
+        },
+        "required": [
+          "id",
+          "run_id",
+          "node_id",
+          "attempt",
+          "fence",
+          "worker_id",
+          "source_commit",
+          "sha256",
+          "protocol",
+          "eligibility",
+          "process_exit_code",
+          "outcome_unknown",
+          "reported_at",
+          "total",
+          "passed",
+          "failed",
+          "errors",
+          "skipped",
+          "unmapped",
+          "xml",
+          "cases"
+        ],
+        "type": "object"
+      },
+      "TestPlanReportRef": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "eligibility": {
+            "enum": [
+              "current",
+              "invalid",
+              "unknown",
+              "stale_attempt",
+              "source_changed"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "errors": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "failed": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "fence": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "node_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "outcome_unknown": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "passed": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "process_exit_code": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "protocol": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "reported_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "sha256": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "skipped": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "source_commit": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "unmapped": {
+            "maximum": 1000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "worker_id": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "run_id",
+          "node_id",
+          "attempt",
+          "fence",
+          "worker_id",
+          "source_commit",
+          "sha256",
+          "protocol",
+          "eligibility",
+          "process_exit_code",
+          "outcome_unknown",
+          "reported_at",
+          "total",
+          "passed",
+          "failed",
+          "errors",
+          "skipped",
+          "unmapped"
+        ],
+        "type": "object"
+      },
+      "TestPlanRevision": {
+        "additionalProperties": false,
+        "properties": {
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/QualityTestCase"
+            },
+            "maxItems": 100,
+            "readOnly": true,
+            "type": "array",
+            "x-max-json-utf8-bytes": 131072
+          },
+          "created_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "created_by": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "description": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "revision": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "sha256": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/TestPlanSource",
+            "readOnly": true
+          },
+          "state": {
+            "enum": [
+              "draft",
+              "published",
+              "retired"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "title": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision",
+          "state",
+          "title",
+          "description",
+          "source",
+          "cases",
+          "sha256",
+          "created_by",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "TestPlanSaveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "cases": {
+            "description": "Complete non-null draft array. Publication requires at least one complete case, unique exact selectors and coverage of every task acceptance criterion.",
+            "items": {
+              "$ref": "#/components/schemas/QualityTestCase"
+            },
+            "maxItems": 100,
+            "minItems": 0,
+            "type": "array",
+            "x-max-json-utf8-bytes": 131072
+          },
+          "description": {
+            "maxLength": 4000,
+            "type": "string",
+            "x-max-utf8-bytes": 4000
+          },
+          "expected_requirement_version": {
+            "description": "Exact current linked requirement version, or explicit0 when no requirement exists.",
+            "maximum": 2147483646,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "expected_task_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "description": "Stable original operation key, 8–128 UTF-8 bytes; changed same-key bodies conflict. Current actor authorization precedes receipt replay.",
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 128,
+            "x-min-utf8-bytes": 8
+          },
+          "project_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "expected_task_version",
+          "expected_requirement_version",
+          "title",
+          "description",
+          "cases",
+          "idempotency_key"
+        ],
+        "type": "object",
+        "x-max-json-utf8-bytes": 262144
+      },
+      "TestPlanSource": {
+        "additionalProperties": false,
+        "properties": {
+          "requirement": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TaskContextRecord"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "sha256": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task": {
+            "$ref": "#/components/schemas/TaskContextRecord",
+            "readOnly": true
+          },
+          "task_basis_sha256": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "task",
+          "task_basis_sha256",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "TestPlanView": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_actions": {
+            "description": "Server-resolved current actions, never caller grants.",
+            "items": {
+              "enum": [
+                "save",
+                "publish",
+                "retire"
+              ],
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "basis_current": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "created_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "eligibility": {
+            "enum": [
+              "none",
+              "current",
+              "source_changed",
+              "retired"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "has_draft": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TestPlanRevision"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "latest_revision": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "published": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TestPlanRevision"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "published_revision": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "draft",
+              "published",
+              "retired"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "updated_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "version": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "task_id",
+          "version",
+          "state",
+          "latest_revision",
+          "published_revision",
+          "has_draft",
+          "basis_current",
+          "eligibility",
+          "allowed_actions",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "TestReport": {
+        "additionalProperties": false,
+        "properties": {
+          "protocol": {
+            "const": "suma-junit-report-v1",
+            "type": "string"
+          },
+          "sha256": {
+            "description": "SHA256 of exact original UTF-8 bytes, not reserialized or redacted XML.",
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "xml": {
+            "description": "Complete original UTF-8 XML, never silently truncated. The domain parser rejects directives, namespaces, duplicate selectors, ambiguous outcomes, inconsistent counters and unsupported structures.",
+            "maxLength": 262144,
+            "type": "string",
+            "x-max-utf8-bytes": 262144
+          }
+        },
+        "required": [
+          "protocol",
+          "xml",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "TestReportCase": {
+        "additionalProperties": false,
+        "properties": {
+          "duration_ms": {
+            "maximum": 86400000,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "message": {
+            "description": "Bounded diagnostic projection; long text is shortened at a UTF-8 boundary. Complete bounded original XML remains available through the authorized report read.",
+            "maxLength": 3000,
+            "readOnly": true,
+            "type": "string",
+            "x-max-utf8-bytes": 3000
+          },
+          "selector": {
+            "$ref": "#/components/schemas/TestCaseSelector",
+            "allOf": [
+              {
+                "properties": {
+                  "name": {
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            ],
+            "readOnly": true
+          },
+          "status": {
+            "enum": [
+              "passed",
+              "failed",
+              "error",
+              "skipped"
+            ],
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "selector",
+          "status",
+          "message",
+          "duration_ms"
         ],
         "type": "object"
       },
@@ -22019,6 +23285,14 @@
           "read_only": {
             "description": "Administrator policy declaration; not a generic operating-system sandbox attestation.",
             "type": "boolean"
+          },
+          "test_report_protocol": {
+            "description": "Explicit administrator-enabled capture on an isolated command test. Discovery does not prove a test run, passing cases or human acceptance.",
+            "enum": [
+              "",
+              "suma-junit-report-v1"
+            ],
+            "type": "string"
           },
           "tool_version": {
             "maxLength": 256,
@@ -82758,6 +84032,1829 @@
           "runner"
         ],
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/test-plans": {
+      "get": {
+        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "operationId": "get_test-plans",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Canonical positive decimal page size.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Existing plan ID in this tenant/project, descending created_at/id keyset.",
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string",
+              "x-max-utf8-bytes": 64
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestPlanList"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "agent",
+          "runner"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-required-project-authority": "current project read"
+      },
+      "post": {
+        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "operationId": "post_test-plans",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestPlanCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestPlanView"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-required-project-authority": "current project write"
+      }
+    },
+    "/test-plans/{id}": {
+      "get": {
+        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "operationId": "get_test-plans_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestPlanView"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "agent",
+          "runner"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-required-project-authority": "current project read"
+      },
+      "put": {
+        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "operationId": "put_test-plans_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestPlanSaveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestPlanView"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-required-project-authority": "current project write"
+      }
+    },
+    "/test-plans/{id}/commands": {
+      "post": {
+        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "operationId": "post_test-plans_id_commands",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestPlanCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestPlanView"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-required-project-authority": "current browser project approval"
+      }
+    },
+    "/test-plans/{id}/executions": {
+      "get": {
+        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "operationId": "get_test-plans_id_executions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Canonical positive decimal page size.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Existing task run ID in this tenant/project, descending created_at/run_id keyset.",
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string",
+              "x-max-utf8-bytes": 100
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestPlanExecutionList"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "agent",
+          "runner"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-required-project-authority": "current project read"
+      }
+    },
+    "/test-plans/{id}/executions/{run}": {
+      "get": {
+        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "operationId": "get_test-plans_id_executions_run",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestPlanExecution"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "agent",
+          "runner"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-required-project-authority": "current project read"
+      }
+    },
+    "/test-plans/{id}/executions/{run}/defects": {
+      "post": {
+        "description": "Task-bound immutable test plan revisions and exact-attempt JUnit evidence. Current authorization precedes reads, writes and original-operation receipts. Existing task dispatch freezes the published plan; process success, case success and human approval remain distinct.",
+        "operationId": "post_test-plans_id_executions_run_defects",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "run",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestPlanDefectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Record"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-required-project-authority": "current project write"
+      }
+    },
+    "/test-plans/{id}/reports/{report}": {
+      "get": {
+        "description": "Explicit authorized read of the bounded original XML and parsed cases. Ordinary execution summaries carry references without XML. Report IDs, raw XML and case names cannot grant execution or acceptance rights.",
+        "operationId": "get_test-plans_id_reports_report",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "report",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestPlanReport"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "agent",
+          "runner"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide",
+        "x-required-project-authority": "current project read"
       }
     },
     "/tests": {

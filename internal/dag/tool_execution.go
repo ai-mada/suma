@@ -3,7 +3,9 @@ package dag
 import (
 	"fmt"
 
+	tr "github.com/ai-mada/suma/internal/testreportcontract"
 	"github.com/ai-mada/suma/internal/toolcontract"
+	"unicode/utf8"
 )
 
 // ToolBinding returns a complete immutable tool reference; partial bindings
@@ -23,7 +25,7 @@ func ToolBinding(n Node) (id, sha string, bound bool, err error) {
 	}
 	id, idString := rawID.(string)
 	sha, shaString := rawSHA.(string)
-	if n.Type != "agent" || !idOK || !shaOK || !idString || !shaString || !toolcontract.ValidCommandID(id) || !toolcontract.ValidDigest(sha) || len(n.Command) != 1 || !toolcontract.ValidCommandID(n.Command[0]) {
+	if (n.Type != "agent" && n.Type != "test") || !idOK || !shaOK || !idString || !shaString || !toolcontract.ValidCommandID(id) || !toolcontract.ValidDigest(sha) || len(n.Command) != 1 || !toolcontract.ValidCommandID(n.Command[0]) {
 		return "", "", false, dagDiagnostic(fmt.Errorf("%w: complete agent tool binding required", ErrInvalid), "dag.tool.binding", nil)
 	}
 	return id, sha, true, nil
@@ -42,6 +44,12 @@ func validateToolEvent(n Node, e toolcontract.Event) error {
 	return nil
 }
 func validateToolResult(n Node, r Result) error {
+	// The domain owns parsed case facts. The scheduler only admits bounded
+	// original report bytes from a fixed, report-capable test command; even a
+	// malformed XML report cannot grant another node or a model this capability.
+	if r.TestReport != nil && (n.Type != "test" || r.ToolEvidence == nil || r.ToolEvidence.Profile.TestReportProtocol != tr.Protocol || r.TestReport.Protocol != tr.Protocol || len(r.TestReport.XML) > 256*1024 || !utf8.ValidString(r.TestReport.XML) || r.TestReport.SHA256 != hashText(r.TestReport.XML)) {
+		return dagDiagnostic(fmt.Errorf("%w: test report differs from fixed test capability", ErrInvalid), "dag.tool.test_report", nil)
+	}
 	_, sha, bound, err := ToolBinding(n)
 	if err != nil {
 		return err

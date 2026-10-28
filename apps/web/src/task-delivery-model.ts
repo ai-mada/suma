@@ -22,12 +22,13 @@ export function validTaskDeliveryRun(value:unknown):value is TaskDeliveryRun{
  * complete nested workflow or a formal independent-evidence eligibility check. */
 export function validTaskDelivery(value:unknown,project:string,task:string):value is TaskDelivery{
  if(!object(value)||value.project_id!==project||value.task_id!==task||!positive(value.task_version)||!text(value.task_status)||!['not_dispatched','current','changed','unknown'].includes(String(value.run_basis_state))||typeof value.formal_acceptance!=='boolean')return false;
+ if(value.test_plan_id!==undefined&&!identifier(value.test_plan_id))return false;
  const run=value.run;
  if(run!==null&&!validTaskDeliveryRun(run))return false;
  if(value.run_basis_state==='current'&&run===null||value.run_basis_state==='not_dispatched'&&run!==null)return false;
  if(value.formal_acceptance&&(value.task_status!=='accepted'||value.run_basis_state!=='current'||!object(run)||run.state!=='succeeded'))return false;
  const plans=value.expert_plans,issues=value.issues;
  if(!object(plans)||plans.scope!=='current_run'||!page(plans,item=>object(item)&&identifier(item.plan_id)&&positive(item.version)&&positive(item.revision)&&identifier(item.team_id)&&text(item.team_name)&&text(item.state)&&text(item.item_state)))return false;
- if(!object(issues)||issues.scope!=='current_run'||!page(issues,item=>object(item)&&identifier(item.issue_id)&&text(item.title)&&positive(item.issue_version)&&text(item.issue_status)&&['execution_failure','review_rejected'].includes(String(item.source))&&text(item.source_review_id)&&(item.source==='execution_failure'||identifier(item.source_review_id))&&text(item.requirement_id)&&(item.requirement_id===''?item.requirement_version===0:identifier(item.requirement_id)&&positive(item.requirement_version))))return false;
+ if(!object(issues)||issues.scope!=='current_run'||!page(issues,item=>object(item)&&identifier(item.issue_id)&&text(item.title)&&positive(item.issue_version)&&text(item.issue_status)&&['execution_failure','review_rejected','test_case'].includes(String(item.source))&&text(item.source_review_id)&&(item.source!=='review_rejected'||identifier(item.source_review_id))&&text(item.requirement_id)&&(item.requirement_id===''?item.requirement_version===0:identifier(item.requirement_id)&&positive(item.requirement_version))))return false;
  return new Set((plans.items as Record<string,unknown>[]).map(item=>item.plan_id)).size===(plans.items as unknown[]).length&&new Set((issues.items as Record<string,unknown>[]).map(item=>item.issue_id)).size===(issues.items as unknown[]).length;
 }

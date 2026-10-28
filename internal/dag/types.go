@@ -6,6 +6,7 @@ import (
 	ec "github.com/ai-mada/suma/internal/executioncontract"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
+	tr "github.com/ai-mada/suma/internal/testreportcontract"
 	"github.com/ai-mada/suma/internal/toolcontract"
 )
 
@@ -129,6 +130,7 @@ type Assignment struct {
 	LeaseUntil              string                                 `json:"lease_until,omitempty"`
 }
 type Result struct {
+	TestReport          *tr.TestReport                    `json:"test_report,omitempty"`
 	StartupFailure      *ec.StartupFailureProof           `json:"startup_failure,omitempty"`
 	IntegrationEvidence *rc.RepositoryResult              `json:"integration_evidence,omitempty"`
 	RunID               string                            `json:"run_id"`

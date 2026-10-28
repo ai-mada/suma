@@ -34,5 +34,6 @@
  "task-delivery.no_issues":"No canonical failure or rejected-review issue is linked to this execution.",
  "task-delivery.source.execution_failure":"Execution failure",
  "task-delivery.source.review_rejected":"Acceptance rejected",
- "task-delivery.open_requirement":"Open feedback requirement"
+ "task-delivery.open_requirement":"Open feedback requirement",
+ "task-delivery.source.test_case":"Failed test case"
 }

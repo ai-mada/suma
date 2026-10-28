@@ -1,0 +1,8 @@
+{
+  "test-report-setup.tool": "Independent JUnit tests (Node.js)",
+  "test-report-setup.install": "Install Node.js 22 or later on the runner and use node:test in the project.",
+  "test-report-setup.configure": "Save this local test configuration. The runner tests an isolated code revision and assigns a fresh report path.",
+  "test-report-setup.register": "Report the observed capability, then have an administrator register and enable it. Select this fixed profile on the workflow test node.",
+  "test-report-setup.policy": "Collects a report for a fixed code revision. Discovery is not proof of test execution; test outcomes and human acceptance are separate facts.",
+  "test-report-setup.open_plan": "Open test plan and case results"
+}

@@ -17,6 +17,9 @@ type ToolExecutionProfile struct {
 	ReadOnly               bool   `json:"read_only"`
 	WorkspaceToolsVersion  string `json:"workspace_tools_version,omitempty"`
 	ModelExecutionProtocol string `json:"model_execution_protocol,omitempty"`
+	// TestReportProtocol is a process-collected report capability of an isolated,
+	// administrator-designated test command. It grants no case acceptance.
+	TestReportProtocol string `json:"test_report_protocol,omitempty"`
 	// ConflictRepairProtocol is an explicitly enabled host-native capability, not a grant of Git or acceptance authority.
 	ConflictRepairProtocol string                           `json:"conflict_repair_protocol,omitempty"`
 	Planning               *PlanningCapability              `json:"planning,omitempty"`

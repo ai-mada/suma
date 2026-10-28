@@ -241,6 +241,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			if err := s.Service.recordIntelligentOperationsOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {
 				return err
 			}
+			if err := s.Service.recordTaskTestPlanReportTx(r.Context(), tx, a.TenantID, a.ProjectID, result); err != nil {
+				return err
+			}
 			if err := s.Service.recordFailureDiagnosisOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {
 				return err
 			}

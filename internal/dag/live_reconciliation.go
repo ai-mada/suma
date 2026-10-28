@@ -24,7 +24,7 @@ type LiveReadOnlyCompletionReconciler interface {
 }
 
 func noCompletionEffects(result Result) bool {
-	return result.WorkspaceEvidence == nil && result.ArtifactEvidence == nil && result.ReleaseEvidence == nil && result.IntegrationEvidence == nil
+	return result.WorkspaceEvidence == nil && result.ArtifactEvidence == nil && result.ReleaseEvidence == nil && result.IntegrationEvidence == nil && result.TestReport == nil
 }
 
 func (t *transaction) liveReadOnlyCompletionCandidate(r *runState, n *nodeState, final Result, serviceBound bool) bool {

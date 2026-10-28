@@ -43,6 +43,13 @@ func (s *Service) taskContextTx(ctx context.Context, tx *sql.Tx, p Principal, pr
 		return out, err
 	}
 	out.Task = taskContextRecord(task)
+	quality, err := s.taskTestPlanContextTx(ctx, tx, p.TenantID, project, taskID)
+	if err != nil {
+		return out, err
+	}
+	if quality != nil {
+		out.TestPlan = &TaskTestPlanContext{Revision: quality.Revision, SHA256: quality.SHA256, SourceSHA256: quality.Source.SHA256, CaseCount: len(quality.Cases), Title: quality.Title}
+	}
 	if task.Status == "accepted" {
 		return out, invalid("任务已经验收；请通过变更需求创建明确的新开发范围")
 	}
@@ -133,6 +140,9 @@ func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, en
 	}
 	if digest(stringify(current.Design)) != digest(stringify(plan.Context.Design)) {
 		return conflict("需求设计采用依据已变化，请重新预览派发")
+	}
+	if stringify(current.TestPlan) != stringify(plan.Context.TestPlan) {
+		return conflict("The published test plan changed; preview dispatch again")
 	}
 	if stringify(current.CodeBaseline) != stringify(plan.CodeBaseline) || stringify(plan.Context.CodeBaseline) != stringify(plan.CodeBaseline) {
 		return compositionError(409, "baseline_changed", compositionBaseline)

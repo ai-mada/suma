@@ -167,6 +167,7 @@ function validatePublicCapabilities(profile: Record<string, unknown>, observatio
     fields(capability, ["protocol", "model", "endpoint_origin"]);
     if (++purposeCount > 1 || !native || profile.read_only !== true || profile.workspace_tools_version || profile.model_execution_protocol || profile.conflict_repair_protocol || capability.protocol !== protocol || !publicText(capability.model, 256) || !publicOrigin(capability.endpoint_origin)) invalidCapability();
   }
+  if (profile.test_report_protocol !== undefined && (typeof profile.test_report_protocol !== "string" || profile.test_report_protocol !== "" && (profile.test_report_protocol !== "suma-junit-report-v1" || profile.adapter !== "command" || profile.protocol !== "text-v1" || profile.read_only !== false || profile.workspace_tools_version || profile.model_execution_protocol || profile.conflict_repair_protocol || purposeCount || profile.opencode_execution))) invalidCapability();
   const read = observation.workspace_observation_protocol, write = observation.workspace_write_protocol;
   if (read !== undefined && typeof read !== "string" || write !== undefined && typeof write !== "string") invalidCapability();
   if (read || write) {
@@ -217,7 +218,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
       "executable_sha256",
       "tool_version",
       "read_only",
-      "workspace_tools_version", "model_execution_protocol", "conflict_repair_protocol",
+      "workspace_tools_version", "model_execution_protocol", "conflict_repair_protocol", "test_report_protocol",
       "planning", "knowledge_extraction", "failure_diagnosis", "intelligent_operations", "opencode_execution",
     ] satisfies (keyof ToolProfileDefinition)[]);
     if (

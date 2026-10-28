@@ -16,6 +16,7 @@ import (
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/modelcontract"
+	tr "github.com/ai-mada/suma/internal/testreportcontract"
 )
 
 var commandID = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$`)
@@ -58,6 +59,9 @@ func SupportsWorkspaceWriteProfile(p Profile) bool {
 }
 
 func ValidateProfile(p Profile, complete bool) error {
+	if p.TestReportProtocol != "" && (p.TestReportProtocol != tr.Protocol || p.Adapter != "command" || p.Protocol != "text-v1" || p.ReadOnly || p.WorkspaceToolsVersion != "" || p.ModelExecutionProtocol != "" || p.ConflictRepairProtocol != "" || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil || p.IntelligentOperations != nil || p.OpenCodeExecution != nil) {
+		return fmt.Errorf("invalid isolated test report capability")
+	}
 	if err := validateOpenCodeProfile(p, complete); err != nil {
 		return err
 	}

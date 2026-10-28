@@ -135,7 +135,7 @@ func decode(r *http.Request) (map[string]any, error) {
 	d := json.NewDecoder(bytes.NewReader(raw))
 	// Business dependency versions use the same exact numeric lexemes as the
 	// strict integer DTO routes below; generic map-backed routes remain unchanged.
-	if strings.HasPrefix(r.URL.Path, "/api/v1/task-dependencies") || strings.HasPrefix(r.URL.Path, "/api/v1/intelligent-operations") {
+	if strings.HasPrefix(r.URL.Path, "/api/v1/task-dependencies") || strings.HasPrefix(r.URL.Path, "/api/v1/intelligent-operations") || strings.HasPrefix(r.URL.Path, "/api/v1/test-plans") {
 		d.UseNumber()
 	}
 	// These routes decode into strict integer DTOs after the public envelope.
@@ -479,6 +479,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.intelligentOperationsHTTP(w, r, actor, scope, project, parts, m) {
+		return
+	}
+	if s.testPlansHTTP(w, r, actor, scope, project, parts, m) {
 		return
 	}
 	if s.requirementTraceabilityHTTP(w, r, actor, scope, project, parts) {
@@ -1030,6 +1033,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				return err
 			}
 			if err := s.Service.recordIntelligentOperationsOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {
+				return err
+			}
+			if err := s.Service.recordTaskTestPlanReportTx(authority.ctx, tx, p.TenantID, project, result); err != nil {
 				return err
 			}
 			if err := s.Service.recordFailureDiagnosisOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {

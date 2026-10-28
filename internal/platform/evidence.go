@@ -198,6 +198,9 @@ func (s *Service) checkEvidenceReadTx(ctx context.Context, tx *sql.Tx, tenant, p
 	if compensated {
 		return conflict("原执行已进入补偿，需要重新交付")
 	}
+	if err = s.checkTestPlanRunEvidenceTx(ctx, tx, tenant, project, runID); err != nil {
+		return err
+	}
 	rows, err := tx.QueryContext(ctx, s.q(s.executionReadSQL(`SELECT x.child_run_id FROM dag_subruns x JOIN dag_nodes n ON n.run_id=x.parent_run_id AND n.id=x.node_id AND n.attempt=x.attempt WHERE x.parent_run_id=? ORDER BY x.child_run_id`, current)), runID)
 	if err != nil {
 		return err

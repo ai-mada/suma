@@ -124,6 +124,8 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 
 ## P5 质量、发布与运维闭环
 
+T-QUALITY-115按本节既有范围细化[自动化测试计划与逐例证据](../development/test-plans.md)：一任务一个计划及不可变修订，沿原Go DAG冻结计划或空绑定，固定候选独立测试采集原JUnit、逐例门禁与明确问题回流。当前[合同](../../contracts/test-plans.md)和[架构](../architecture/quality-evidence.md)已随源码建立；实际隔离双Runner／HTTP／Node报告检查见[阶段报告](../quality/test-plans-verification.md)及[摘要](../quality/test-plans-summary.json)，真实界面未验、不新增勾选项，维持58项限定实现／34待办／92总计。完整手工／应用／发布测试、缺陷关闭／重开与第24／25项全生命周期仍待交付。
+
 - [x] 明确测试节点证据、当前版本人工验收、失败问题与去重需求回流。T-DELIVERY-112 增加[任务交付与质量面板](../development/task-delivery-chain.md)，仅 current_run 及每类 20 条正式引用；验收退回在同事务创建问题并使下游验收失效，需求回流使用专用 kind／作用域摘要映射，拒绝通用记录预占来源槽位。测试节点成功不替代人工验收。
 - [x] 版本/测试/证据登记，不将其冒充实际发布或实际测试。
 - [x] 受信Worker及固定命令配置、真实build/package-test证明、当前已验收任务的不可变候选范围。

@@ -140,6 +140,9 @@ func (s *Service) GetTaskDelivery(ctx context.Context, actor Actor, project, tas
 		return out, err
 	}
 	out = TaskDelivery{ProjectID: project, TaskID: task.ID, TaskVersion: task.Version, TaskStatus: task.Status, RunBasisState: "not_dispatched", ExpertPlans: TaskDeliveryExpertPlans{Scope: "current_run", Limit: taskDeliveryReferenceLimit, Complete: true, Items: []TaskDeliveryExpertPlan{}}, Issues: TaskDeliveryIssues{Scope: "current_run", Limit: taskDeliveryReferenceLimit, Complete: true, Items: []TaskDeliveryIssue{}}}
+	if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT id FROM suma_test_plans WHERE tenant_id=? AND project_id=? AND task_id=?`), auth.target.tenantID, project, taskID).Scan(&out.TestPlanID); err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return out, err
+	}
 	if task.RunID == "" {
 		return out, nil
 	}
@@ -173,6 +176,9 @@ func (s *Service) GetTaskDelivery(ctx context.Context, actor Actor, project, tas
 		return out, err
 	}
 	if out.Issues, err = s.taskDeliveryIssuesTx(ctx, auth, task, workflow); err != nil {
+		return out, err
+	}
+	if err = s.appendTaskDeliveryCaseDefectsTx(ctx, auth, task, &out.Issues); err != nil {
 		return out, err
 	}
 	if err = auth.assertTx(auth.tx, auth.target, auth.purpose); err != nil {

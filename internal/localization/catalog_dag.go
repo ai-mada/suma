@@ -4,6 +4,7 @@ package localization
 // SourceTemplate is canonical evidence; neither translation nor locale is persisted.
 // Bare sentinel keys are selected explicitly by a caller that owns that error identity.
 var dagCatalog = []Definition{
+	{Key: "dag.tool.test_report", SourceTemplate: "invalid: test report differs from fixed test capability", Texts: map[Locale]string{ZhCN: "测试报告与固定测试工具能力不符", EnUS: "The test report does not match the fixed test capability."}},
 	{Key: "dag.run.managed_batch_request", SourceTemplate: "invalid: managed batch requires 1..16 unique reserved IDs, serializable workflows and authority hooks", Texts: map[Locale]string{ZhCN: "批量运行需要1至16个唯一预留标识、有效流程和授权校验", EnUS: "Managed batch requires 1..16 unique reserved IDs, valid workflows and authority hooks."}},
 	{Key: "dag.run.managed_batch_nodes", SourceTemplate: "invalid: managed batch requires at most 10000 top-level nodes", Texts: map[Locale]string{ZhCN: "批量运行的顶层节点总数不能超过10000", EnUS: "Managed batch cannot exceed 10000 top-level nodes."}},
 	{Key: "dag.run.managed_batch_receipt", SourceTemplate: "conflict: managed batch receipt does not match its original runs", Texts: map[Locale]string{ZhCN: "批量运行回执与原运行不一致，请核对原操作", EnUS: "Managed batch receipt does not match its original runs."}},

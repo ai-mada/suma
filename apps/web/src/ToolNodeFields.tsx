@@ -18,7 +18,8 @@ export function ToolNodeFields({
       typeof node.config?.tool_profile_id === "string"
         ? node.config.tool_profile_id
         : "",
-    current = profiles.items?.find((item) => item.id === id);
+    availableProfiles = profiles.items?.filter(item => node.type === "test" ? item.profile.test_report_protocol === "suma-junit-report-v1" : !item.profile.test_report_protocol),
+    current = availableProfiles?.find((item) => item.id === id);
   return (
     <section className="tool-binding">
       <Field
@@ -32,7 +33,7 @@ export function ToolNodeFields({
               toolBinding(
                 node,
                 event.target.value
-                  ? profiles.items?.find(
+                  ? availableProfiles?.find(
                       (item) => item.id === event.target.value,
                     )
                   : undefined,
@@ -44,7 +45,7 @@ export function ToolNodeFields({
           {id && !current && (
             <option value={id}>{t("development.node.binding_option",{id})}</option>
           )}
-          {profiles.items?.map((item) => (
+          {availableProfiles?.map((item) => (
             <option
               value={item.id}
               key={item.id}

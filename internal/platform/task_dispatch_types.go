@@ -17,6 +17,9 @@ type TaskContextRecord struct {
 }
 
 type TaskContext struct {
+	// TestPlan is the current published, protected quality contract. It is
+	// compared again before dispatch and frozen in the same run transaction.
+	TestPlan *TaskTestPlanContext `json:"test_plan,omitempty"`
 	// CodeBaseline is resolved only from the protected task binding.
 	CodeBaseline *ccmp.CodeBaselineBinding `json:"code_baseline,omitempty"`
 	Task         TaskContextRecord         `json:"task"`

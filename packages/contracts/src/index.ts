@@ -2120,6 +2120,14 @@ export interface OrganizationSummary {
   name: string;
   role: string;
 }
+export interface ParsedTestReport {
+  cases: (TestReportCase)[];
+  total: number;
+  passed: number;
+  failed: number;
+  errors: number;
+  skipped: number;
+}
 export interface PlannedTask {
   code_baseline?: CodeBaselineBinding | null;
   failure_diagnosis_adoption?: FailureDiagnosisAdoption | null;
@@ -2627,6 +2635,17 @@ export interface ProjectVersionedOperation {
   project_id: string;
   expected_version: number;
   idempotency_key: string;
+}
+export interface QualityTestCase {
+  key: string;
+  title: string;
+  description: string;
+  preconditions: string;
+  steps: (string)[];
+  expected_result: string;
+  priority: string;
+  covers: (number)[];
+  selector: TestCaseSelector;
 }
 export interface ReadyEntry {
   run_id: string;
@@ -3481,6 +3500,7 @@ export interface ResourceSnapshot {
   release_class: string;
 }
 export interface Result {
+  test_report?: TestReport | null;
   startup_failure?: StartupFailureProof | null;
   integration_evidence?: RepositoryResult | null;
   run_id: string;
@@ -3768,6 +3788,7 @@ export interface TaskCodeBaselineBindRequest {
   idempotency_key: string;
 }
 export interface TaskContext {
+  test_plan?: TaskTestPlanContext | null;
   code_baseline?: CodeBaselineBinding | null;
   task: TaskContextRecord;
   requirement?: TaskContextRecord | null;
@@ -3782,6 +3803,7 @@ export interface TaskContextRecord {
   acceptance_criteria: (string)[];
 }
 export interface TaskDelivery {
+  test_plan_id?: string;
   project_id: string;
   task_id: string;
   task_version: number;
@@ -4084,6 +4106,13 @@ export interface TaskRunProvenancePage {
   total: number;
   next_cursor: string;
 }
+export interface TaskTestPlanContext {
+  revision: number;
+  sha256: string;
+  source_sha256: string;
+  case_count: number;
+  title: string;
+}
 export interface Team {
   id: string;
   version: number;
@@ -4119,6 +4148,182 @@ export interface TeamWriteRequest {
   status?: string;
   expected_version?: number;
   idempotency_key: string;
+}
+export interface TestCaseEvidence {
+  report_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  source_commit: string;
+  status: string;
+  message: string;
+  duration_ms: number;
+}
+export interface TestCaseResult {
+  case_key: string;
+  title: string;
+  status: string;
+  covers: (number)[];
+  evidence: (TestCaseEvidence)[];
+  issue_id: string;
+}
+export interface TestCaseSelector {
+  class_name: string;
+  name: string;
+}
+export interface TestPlanCommandRequest {
+  project_id: string;
+  expected_version: number;
+  action: string;
+  reason: string;
+  idempotency_key: string;
+}
+export interface TestPlanCreateRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  expected_requirement_version: number;
+  title: string;
+  description: string;
+  cases: (QualityTestCase)[];
+  idempotency_key: string;
+}
+export interface TestPlanDefectRequest {
+  project_id: string;
+  expected_version: number;
+  case_key: string;
+  reason: string;
+  idempotency_key: string;
+}
+export interface TestPlanExecution {
+  plan_id: string;
+  task_id: string;
+  revision: number;
+  plan_sha256: string;
+  run_id: string;
+  run_state: string;
+  created_at: string;
+  state: string;
+  basis_current: boolean;
+  source_commits: (string)[];
+  total: number;
+  passed: number;
+  failed: number;
+  errors: number;
+  skipped: number;
+  not_run: number;
+  cases: (TestCaseResult)[];
+  reports: (TestPlanReportRef)[];
+}
+export interface TestPlanExecutionList {
+  items: (TestPlanExecution)[];
+  total: number;
+  next_cursor: string;
+}
+export interface TestPlanList {
+  items: (TestPlanView)[];
+  total: number;
+  next_cursor: string;
+}
+export interface TestPlanReport {
+  id: string;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  source_commit: string;
+  sha256: string;
+  protocol: string;
+  eligibility: string;
+  process_exit_code: number;
+  outcome_unknown: boolean;
+  reported_at: string;
+  total: number;
+  passed: number;
+  failed: number;
+  errors: number;
+  skipped: number;
+  unmapped: number;
+  xml: string;
+  cases: (TestReportCase)[];
+}
+export interface TestPlanReportRef {
+  id: string;
+  run_id: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  source_commit: string;
+  sha256: string;
+  protocol: string;
+  eligibility: string;
+  process_exit_code: number;
+  outcome_unknown: boolean;
+  reported_at: string;
+  total: number;
+  passed: number;
+  failed: number;
+  errors: number;
+  skipped: number;
+  unmapped: number;
+}
+export interface TestPlanRevision {
+  revision: number;
+  state: string;
+  title: string;
+  description: string;
+  source: TestPlanSource;
+  cases: (QualityTestCase)[];
+  sha256: string;
+  created_by: string;
+  created_at: string;
+}
+export interface TestPlanSaveRequest {
+  project_id: string;
+  expected_version: number;
+  expected_task_version: number;
+  expected_requirement_version: number;
+  title: string;
+  description: string;
+  cases: (QualityTestCase)[];
+  idempotency_key: string;
+}
+export interface TestPlanSource {
+  task: TaskContextRecord;
+  task_basis_sha256: string;
+  requirement?: TaskContextRecord | null;
+  sha256: string;
+}
+export interface TestPlanView {
+  id: string;
+  project_id: string;
+  task_id: string;
+  version: number;
+  state: string;
+  latest_revision: number;
+  published_revision: number;
+  has_draft: boolean;
+  basis_current: boolean;
+  eligibility: string;
+  latest?: TestPlanRevision | null;
+  published?: TestPlanRevision | null;
+  allowed_actions: (string)[];
+  created_at: string;
+  updated_at: string;
+}
+export interface TestReport {
+  protocol: string;
+  xml: string;
+  sha256: string;
+}
+export interface TestReportCase {
+  selector: TestCaseSelector;
+  status: string;
+  message: string;
+  duration_ms: number;
 }
 export interface TickFailure {
   tenant_id: string;
@@ -4172,6 +4377,7 @@ export interface ToolExecutionProfile {
   read_only: boolean;
   workspace_tools_version?: string;
   model_execution_protocol?: string;
+  test_report_protocol?: string;
   conflict_repair_protocol?: string;
   planning?: PlanningCapability | null;
   knowledge_extraction?: KnowledgeExtractionCapability | null;

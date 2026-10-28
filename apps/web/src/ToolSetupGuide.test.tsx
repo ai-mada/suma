@@ -33,3 +33,8 @@ it('requires an explicit local native repair opt-in and valid administrator runt
  const command=()=>Object.values(JSON.parse(host.querySelector('pre')!.textContent!))[0] as any;
  expect(command().native_workspace).toEqual({checks:['formal-check'],runtime_manifest:'D:/tools/suma/suma-agent.manifest.json'});const optIn=host.querySelector<HTMLInputElement>('[name=native_conflict_repair]')!;expect(optIn.checked).toBe(false);await act(async()=>optIn.click());expect(command().native_workspace.conflict_repair).toBe(true);expect(host.textContent).toContain('浏览器不会修改 Runner 策略');await change(tool,'codex');expect(JSON.parse(host.querySelector('pre')!.textContent!)['codex-develop']).not.toHaveProperty('native_workspace');
 });
+
+it('configures real Node JUnit reporting with a runner-assigned path and no model credentials',async()=>{
+ await act(async()=>{root=createRoot(host);root.render(<ToolSetupGuide/>);});await change(host.querySelector<HTMLSelectElement>('.tool-cli-setup-select select')!,'junit');
+ const configuration=JSON.parse(host.querySelector('pre')!.textContent!),command=configuration['junit-tests'];expect(command).toMatchObject({adapter:'command',protocol:'text-v1',executable:'node',input:'none',read_only:false,test_evidence:true,test_report:true,args:['--test','--test-reporter=junit','--test-reporter-destination={{test_report_path}}']});expect(command).not.toHaveProperty('env_from');expect(command).not.toHaveProperty('env');expect(host.querySelector('.tool-cli-setup-entry')).toBeNull();expect(host.querySelector<HTMLButtonElement>('.tool-cli-setup-actions button')?.disabled).toBe(false);
+});

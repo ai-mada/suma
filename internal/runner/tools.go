@@ -430,6 +430,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 	}
 	for id, spec := range cfg.Commands {
 		spec = normalizedCommand(spec)
+		if err := validateTestReportSpec(spec); err != nil {
+			return err
+		}
 		if _, err := localIntelligentOperationsCapability(spec); err != nil {
 			return err
 		}
@@ -494,7 +497,7 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 			sem <- struct{}{}
 			defer func() { <-sem; done <- i }()
 			spec := normalizedCommand(cfg.Commands[id])
-			p := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol}
+			p := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec)}
 			if spec.NativeWorkspace != nil && spec.Adapter != "opencode" {
 				p.WorkspaceToolsVersion = NativeWorkspaceVersion
 				if spec.NativeWorkspace.ConflictRepair {
@@ -612,6 +615,9 @@ func ToolCapabilities(items []tc.Observation) []string {
 
 func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec CommandSpec) (tc.Profile, string, error) {
 	spec = normalizedCommand(spec)
+	if err := validateTestReportSpec(spec); err != nil {
+		return tc.Profile{}, "", err
+	}
 	if _, err := localIntelligentOperationsCapability(spec); err != nil {
 		return tc.Profile{}, "", err
 	}
@@ -647,7 +653,7 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 		if e != nil {
 			return p, "", e
 		}
-		p = tc.Profile{CommandID: a.Command[0], Adapter: spec.Adapter, Protocol: spec.Protocol, ProfileSHA256: digest, ExecutableSHA256: sha, ToolVersion: version, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol}
+		p = tc.Profile{CommandID: a.Command[0], Adapter: spec.Adapter, Protocol: spec.Protocol, ProfileSHA256: digest, ExecutableSHA256: sha, ToolVersion: version, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec)}
 		p.OpenCodeExecution, err = localOpenCodeCapability(spec)
 		if err != nil {
 			return p, "", err
@@ -682,6 +688,9 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 	}
 	if err = tc.ValidateProfile(p, true); err != nil {
 		return p, "", fmt.Errorf("invalid tool profile")
+	}
+	if p.TestReportProtocol != testReportProtocol(spec) {
+		return p, "", fmt.Errorf("test report capability does not match local configuration")
 	}
 	expectedOpenCode, err := localOpenCodeCapability(spec)
 	if err != nil || (p.OpenCodeExecution == nil) != (expectedOpenCode == nil) || p.OpenCodeExecution != nil && *p.OpenCodeExecution != *expectedOpenCode {

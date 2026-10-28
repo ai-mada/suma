@@ -36,6 +36,7 @@ type CommandSpec struct {
 	IntelligentOperations  bool                   `json:"intelligent_operations,omitempty"`
 	CandidateComposition   bool                   `json:"candidate_composition,omitempty"`
 	TestEvidence           bool                   `json:"test_evidence,omitempty"`
+	TestReport             bool                   `json:"test_report,omitempty"`
 	ArtifactOutput         string                 `json:"artifact_output,omitempty"`
 	ArtifactInput          bool                   `json:"artifact_input,omitempty"`
 	NativeWorkspace        *NativeWorkspacePolicy `json:"native_workspace,omitempty"`
@@ -304,6 +305,12 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if !ok {
 		return fail("command is not in the local allowlist")
 	}
+	if err := validateTestReportSpec(spec); err != nil {
+		return fail(err.Error())
+	}
+	if spec.TestReport && a.Type != "test" {
+		return fail("test reports require an isolated administrator-designated command test")
+	}
 	if a.CandidateComposition != nil || spec.CandidateComposition || a.Command[0] == "suma-compose" {
 		return executeCandidateComposition(ctx, a, cfg, spec)
 	}
@@ -416,6 +423,13 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 		root = workspace.Source
 	}
+	var reportCapture *testReportCapture
+	if spec.TestReport {
+		reportCapture, err = prepareTestReport(workspace)
+		if err != nil {
+			return fail(err.Error())
+		}
+	}
 	artifactDir := ""
 	if spec.ArtifactInput {
 		artifactDir = filepath.Join(root, ".cache", "runner", "artifact-input")
@@ -432,7 +446,16 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	}
 	ctx, cancel := context.WithTimeout(ctx, duration)
 	defer cancel()
-	cmd := exec.Command(executable, spec.Args...)
+	// Expand only the administrator's literal template into an argument copy.
+	// The profile digest keeps the original template; no shell or remote value
+	// participates, so absolute paths containing spaces stay a single argument.
+	arguments := append([]string(nil), spec.Args...)
+	if reportCapture != nil {
+		for index, argument := range arguments {
+			arguments[index] = strings.ReplaceAll(argument, "{{test_report_path}}", reportCapture.path)
+		}
+	}
+	cmd := exec.Command(executable, arguments...)
 	cmd.Dir = root
 	var dshStdin *dshInput
 	var dshPipe io.WriteCloser
@@ -613,6 +636,17 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 	}
 	cmd.Env = append(filtered, "TEMP="+tempRoot, "TMP="+tempRoot, "TMPDIR="+tempRoot)
+	if reportCapture != nil {
+		// The dedicated absolute path is Runner-owned and never read from the
+		// remote node config. Drop any inherited spelling before injecting it.
+		kept := cmd.Env[:0]
+		for _, value := range cmd.Env {
+			if !strings.HasPrefix(strings.ToUpper(value), "SUMA_TEST_REPORT_PATH=") {
+				kept = append(kept, value)
+			}
+		}
+		cmd.Env = append(kept, "SUMA_TEST_REPORT_PATH="+reportCapture.path)
+	}
 	if artifactDir != "" {
 		filtered = cmd.Env[:0]
 		for _, value := range cmd.Env {
@@ -846,6 +880,23 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		r.ExitCode = -1
 		r.Error = "durable progress unavailable: " + err.Error()
 	}
+	reportDiagnostic := ""
+	if reportCapture != nil && processContainmentVerified && !r.Stopped && !r.OutcomeUnknown {
+		// Known failed commands still carry their genuine failure/error cases.
+		// An uncertain or still-running producer cannot certify case outcomes.
+		r.TestReport, err = reportCapture.collect(cfg.Secrets)
+		if err != nil {
+			if r.ExitCode == 0 && r.Error == "" {
+				reportDiagnostic = err.Error()
+			}
+			r.Error = err.Error()
+		} else if reportCapture.failedCases && r.ExitCode == 0 && r.Error == "" {
+			// Keep the real process exit and protocol terminal. Parsed failed
+			// cases independently make the DAG test node unsuccessful.
+			reportDiagnostic = "test report includes failed or error cases"
+			r.Error = reportDiagnostic
+		}
+	}
 	if workspace != nil {
 		var nativeEvidence *NativeWorkspaceEvidence
 		if native != nil {
@@ -917,9 +968,12 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if r.ToolEvidence != nil {
 		if r.OutcomeUnknown || r.Stopped {
 			r.ToolEvidence.Terminal = "unknown"
-		} else if r.ExitCode != 0 || r.Error != "" {
+		} else if (r.ExitCode != 0 || r.Error != "") && !(r.ExitCode == 0 && reportDiagnostic != "" && r.Error == reportDiagnostic) {
 			r.ToolEvidence.Terminal = "failed"
 		}
+	}
+	if r.OutcomeUnknown || r.Stopped {
+		r.TestReport = nil
 	}
 	return r
 }

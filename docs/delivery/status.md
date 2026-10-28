@@ -6,6 +6,8 @@
 
 完整台账为 **58 项限定实现、34 项待实现，共 92 项**。`FND-INTENT-001`仍待完整交付；T-INTENT-114推进统一智能输入到需求／设计／知识草稿计划、明确预览及同库原子采用，不增加整项完成。T-TRACE-113需求验收追踪及历史T-DELIVERY-112仍以各自报告的源码／环境和台账为准，局部交付不表示平台完成。
 
+T-QUALITY-115在原P5范围内细化自动化测试计划及逐例证据，不新增整项完成或改变上述统计。当前实现边界见[合同](../../contracts/test-plans.md)与[架构](../architecture/quality-evidence.md)；实际双Runner／HTTP／Node报告旅程及定向检查见[阶段报告](../quality/test-plans-verification.md)和[摘要](../quality/test-plans-summary.json)；真实界面仍未验，不能据本阶段推断全平台或生产验收完成。
+
 两份分享规划均已取得当前可见正文；第一份64个编号、第二份需求26及S01–S12见[逐域采用与缺口映射](../integrations/shared-roadmap-adoption.md)。两份末尾均不完整，未见内容保持未知。它们是设计来源，不作为源码或完成证明；当前草稿计划仅推进需求26的一部分，通用配置与全场景多端旅程仍待实现。
 
 ## 当前实现与证据
@@ -16,6 +18,7 @@
 | 项目计划与进度 | 迭代、里程碑、版本化排期、完整项目不可变基线、当前比较、自然周估算分摊与真实业务指标 | [产品与治理](../product/governance.md)、[验证](../quality/verification.md)；计划估算不等于实际工时，人员日历、连续历史、预测和 portfolio 待办 |
 | 业务任务依赖编辑与参考源码整合 | 当前项目完整任务图、图／表共享草稿、最多 100 项原子版本 CAS、全图校验、显式冲突处理及原操作回执恢复；修改撤销旧验收资格并保留执行快照 | [中文操作](../development/task-dependencies.md)／[English](../en/task-dependencies.md)、[合同](../../contracts/task-dependencies.md)、[源码适配清单](../integrations/referenced-conversation-integration.md)、[本阶段报告](../quality/task-dependencies-verification.md)；按实际参考源码重构当前 1.0.0，不是旧 Git 历史 cherry-pick；最多 1000 个任务完整图，实际 API 与界面复验结果以报告为准，分布式／大图性能／生产验收未由本阶段推断 |
 | 任务交付与质量链路 | 依赖图所选任务按需读取确切运行、完整节点／测试计数和每类 20 条正式引用；团队预览／派发、证据、人工验收、退回问题与专用来源映射的需求草稿连通 | [操作](../development/task-delivery-chain.md)／[English](../en/task-delivery-chain.md)、[合同](../../contracts/task-delivery-chain.md)、[限定报告](../quality/task-delivery-chain-verification.md)；本机自有 DSH 协议命令实际提交代码，另一 Runner 对同 SHA 执行 3 项断言，界面退回形成 1 个问题并回流 1 个需求草稿；下游 B 保持未启动并等待正式验收，非厂商智能编码效果、物理多机或生产验收 |
+| 自动化计划与逐例质量门禁 | 每任务单一计划、不可变草稿／发布修订、任务依据与需求精确版本；原Go DAG同运行绑定与固定候选独立测试、受限原JUnit采集、当前attempt逐例投影、Review重核及明确failed/error用例问题回流 | [中文指南](../development/test-plans.md)／[English](../en/test-plans.md)、[合同](../../contracts/test-plans.md)、[架构](../architecture/quality-evidence.md)、[阶段报告](../quality/test-plans-verification.md)、[摘要](../quality/test-plans-summary.json)；当前源码边界已落，实际隔离验证待报告补充。没有人工passed或事后倒签；带计划运行不支持map／子流程／外部流程，完整Issue／TestCase管理、手工／应用／发布测试及缺陷关闭／重开仍待交付 |
 | Runner 本地执行日志诊断 | `--inspect-state` 有界读取单个 journal，白名单计数及最多 100 条引用，缺失／损坏／不可读／超限分别表达，不创建目录、不读取凭据、不改 ACK 或重跑 | [中文指南](../agents/runner-journal-inspection.md)／[English](../en/runner-journal-inspection.md)、[合同](../../contracts/runner-journal-inspection.md)、[本阶段报告](../quality/task-delivery-chain-verification.md)；仅本地执行日志，非完整设备健康、服务器回执、持久隔离原因或自动恢复能力 |
 | 需求与设计 | 版本化产品／体验／技术设计、可审阅任务提案、明确发布及原子采用、固定执行与验收依据 | [设计采用](../quality/requirement-design-verification.md)、[依据展示](../quality/task-design-context-verification.md)；完整 AI 需求与设计编辑、可运行 UED 原型待办 |
 | 需求验收追踪 | 当前正式需求版本／条目序号 → 已发布提案 → 受保护采用任务 → 确切运行、当前测试节点和正式验收读取 | [中文指南](../development/requirement-traceability.md)／[English](../en/requirement-traceability.md)、[合同](../../contracts/requirement-traceability.md)、[限定报告](../quality/requirement-traceability-verification.md)；需求变更不沿用旧序号映射，执行／测试／验收分别展示，实际验证以报告为准；完整TestPlan／TestCase、跨版本标准身份及应用版本／发布矩阵待办 |

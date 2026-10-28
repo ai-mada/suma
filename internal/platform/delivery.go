@@ -130,7 +130,10 @@ func (s *Service) BindRunTx(ctx context.Context, tx *sql.Tx, auth *authorizedCom
 		return missing()
 	}
 	if r.RunID == runID {
-		return s.bindTaskRunProvenanceTx(ctx, tx, auth, r, runID)
+		if err = s.bindTaskRunProvenanceTx(ctx, tx, auth, r, runID); err != nil {
+			return err
+		}
+		return s.freezeTaskTestPlanRunTx(ctx, tx, auth, project, taskID, runID)
 	}
 	if expected != 0 && r.Version != expected {
 		return conflict("任务已变化，需要重新派发预览")
@@ -139,6 +142,9 @@ func (s *Service) BindRunTx(ctx context.Context, tx *sql.Tx, auth *authorizedCom
 		return err
 	}
 	if err = s.checkTaskRequirementDesignRunTx(ctx, auth, project, taskID, runID, false); err != nil {
+		return err
+	}
+	if err = s.freezeTaskTestPlanRunTx(ctx, tx, auth, project, taskID, runID); err != nil {
 		return err
 	}
 	dependencyBasis := map[string]string{}
@@ -282,6 +288,9 @@ func (s *Service) Review(ctx context.Context, actor Actor, project, id string, m
 			return r, err
 		}
 		if err = s.checkCandidateCompositionAcceptanceTx(ctx, tx, p, project, runID); err != nil {
+			return r, err
+		}
+		if err = s.checkCurrentTaskTestPlanRunTx(ctx, tx, p.TenantID, project, id, runID); err != nil {
 			return r, err
 		}
 	}

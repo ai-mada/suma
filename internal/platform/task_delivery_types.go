@@ -3,6 +3,7 @@ package platform
 // TaskDelivery is a read-only projection of one current task and its exact
 // bound run. It never grants review/dispatch authority or creates work on read.
 type TaskDelivery struct {
+	TestPlanID       string                  `json:"test_plan_id,omitempty"`
 	ProjectID        string                  `json:"project_id"`
 	TaskID           string                  `json:"task_id"`
 	TaskVersion      int                     `json:"task_version"`

@@ -186,6 +186,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.InitializeRequirementDesign(ctx); err != nil {
 		return err
 	}
+	if err := s.InitializeTestPlans(ctx); err != nil {
+		return err
+	}
 	if err := s.InitializeTaskDesignView(ctx); err != nil {
 		return err
 	}

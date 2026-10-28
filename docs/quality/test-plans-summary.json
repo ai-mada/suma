@@ -1,0 +1,490 @@
+{
+  "stage": "T-QUALITY-115",
+  "product_version": "1.0.0",
+  "recorded_at": "2026-10-28T11:14:05.455884+00:00",
+  "status": "scoped_verified_full_platform_in_progress",
+  "full_platform_complete": false,
+  "source_sha256": "826dd8866920e35442c0516cbd850269b78bef39a0cc2f94f27fb94bf6c91935",
+  "source_files": 65,
+  "source_manifest": ".cache/e2e/test-plans-115/source-manifest.json",
+  "full_scope": {
+    "items": 92,
+    "limited_implemented": 58,
+    "pending": 34,
+    "requirements": "P0–P7 and requirements1–26 remain active"
+  },
+  "adopted_sources": [
+    {
+      "url": "https://chatgpt.com/s/t_6ae19e1f3af481918d11132ccf5119fe",
+      "sha256": "1135aeaa9519c56d5daa95d6d0ae37fda944e0eeb4ecaae7edc361277086fc30",
+      "adoption": "QA-001/002/003 limited task-bound automatic plans, original report evidence, exact-code gates and feedback; no full application/release lifecycle claim"
+    },
+    {
+      "url": "https://chatgpt.com/s/t_6ae1a95216648191961a25087e713f3a",
+      "sha256": "038cb2784ece5c79a710b9c8eca7d083b4c63a9a5951f6163183d9fc2efbcb9e",
+      "adoption": "Shared lifecycle and S10 quality/DevOps boundary; no inferred unpublished sections or configuration-complete claim"
+    }
+  ],
+  "implementation": {
+    "new_domain_tables": 5,
+    "application_tables_fresh_sqlite": 192,
+    "plan_cases_limit": 100,
+    "cases_json_max_bytes": 131072,
+    "request_json_max_bytes": 262144,
+    "report_max_bytes": 262144,
+    "report_case_limit": 1000,
+    "report_depth_limit": 16,
+    "report_token_limit": 50000,
+    "authority": "Browser current project approval for publish/retire; browser/project API current write for drafts/explicit defect; Runner and Agent cannot self-certify or self-approve",
+    "run_binding": "Every task/run records immutable publication or explicit nil plus monotonic publication/retirement governance revision; draft saves do not advance governance; subsequent publish/retire cannot restore an old unbound run",
+    "execution": "One existing Go DAG; report-capable isolated command/text-v1 test, same-run candidate_from, exact source/attempt/fence; process result and report result independent",
+    "context": "Compact plan revision/SHA/source SHA/case count/title; full cases and XML are not injected into every model call",
+    "problem_feedback": "Protected plan/run/case unique issue lineage; original IssueIntake and original-operation receipts reused",
+    "summary_boundary": "No XML in ordinary response/projected report summary. Current workspace-proof query still decodes private full attempt result JSON, which can include XML."
+  },
+  "checks": {
+    "distinct_affected_passed_cases": 37,
+    "grouped_not_single_full_suite": true,
+    "new_go": {
+      "parser": 3,
+      "runner": 3,
+      "dag": 1,
+      "platform": 4,
+      "contract_generator": 2,
+      "localization": 1
+    },
+    "existing_go_regressions": 5,
+    "web_plan_model_and_ui": 9,
+    "web_tool_setup_and_import": 2,
+    "web_delivery_model_and_ui": 7,
+    "subcases_and_affected_reruns_not_counted_again": true,
+    "web_typecheck": true,
+    "web_build": true,
+    "catalog_paired_keys": 5170,
+    "production_hardcodes": 0,
+    "generated_contract_check": true,
+    "generated_models": 526,
+    "api_paths": 269,
+    "new_api_paths": 7,
+    "new_api_operations": 9,
+    "existing_api_paths_changed": 0,
+    "new_schemas": 20,
+    "sqlite_integrity_check": "ok",
+    "quality_rows": {
+      "suma_test_plans": 1,
+      "suma_test_plan_revisions": 2,
+      "suma_test_plan_runs": 2,
+      "suma_test_plan_reports": 2,
+      "suma_test_plan_defects": 1
+    },
+    "actual_browser_verified": false,
+    "browser_boundary": "Computer Use stopped while observing a returned Chrome window because it could not determine the current browser URL with enough confidence to enforce policy; no input, authentication or policy bypass was attempted. jsdom/HTTP are not GUI evidence.",
+    "native_and_full_suite_not_repeated": true,
+    "documentation_local_links_resolve": true,
+    "known_actual_credentials_absent_from_delivery": true,
+    "diff_whitespace_errors": 0
+  },
+  "actual": {
+    "project_id": "a9e54cff2784fa02c9f5e48a91e1ecaa",
+    "task_id": "879133bb6743022971b89351ddf58617",
+    "plan_id": "c29b451995412bed131ad4e8c76a742c",
+    "published_revision": 2,
+    "plan_sha256": "6a0d6b66831d07dd88419e1926cda0a075219f0056e7fd5b5e8af713b4285159",
+    "source_sha256": "1e10a45a8527b48f13025ed88d81a74bce7a950180e639379d3826f39baea6cd",
+    "baseline": "264c49a6c2755ebdf9543c2a0895966c8e8a3d21",
+    "broken": {
+      "run_id": "4aa43e9b2d9db5a3d718ab15364695df",
+      "head_commit": "5928ba2d1f18ceaacfe99789860ccf60700334f8",
+      "state": "failed",
+      "passed": 1,
+      "failed": 1,
+      "report_id": "d96bc1e54e2bb549b126045890040f96",
+      "report_sha256": "5ee4432aaa74019e5c1934ff3503a7d6f7d2969f29f85909c93c8e6f15294b05"
+    },
+    "fixed": {
+      "run_id": "8b3e82b90cc4b5f753024663ad8c4cef",
+      "head_commit": "de359803046769bd03d527f87533bc4c386a578f",
+      "state": "passed",
+      "passed": 2,
+      "failed": 0,
+      "report_id": "f5a2d199a911aa451dfb99279897a9c2",
+      "report_sha256": "d08667d7e095f91f38d86c4b245ebfdaf352dd1cd66e49a2568538a230d0c1f8"
+    },
+    "case_issue_id": "5ce2aafd7459619bb6b3999bf3d66581",
+    "repair_requirement_id": "eb2cf2575cc34e8465596aedee6599e8",
+    "case_issue_deduplicated": true,
+    "repair_requirement_state": "draft",
+    "current_formal_acceptance": false,
+    "run_count": 2,
+    "attempt_count": 4,
+    "test_process_count": 2,
+    "cases_per_test_process": 2,
+    "model_requests": 0,
+    "vendor_calls": 0,
+    "physical_host_count": 1,
+    "workers": {
+      "development": "quality115-A-6423747d0680",
+      "independent_test": "quality115-B-1f18a94dddc7"
+    },
+    "fingerprints": {
+      "control": {
+        "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\test-plans-115\\runtime-final\\suma-control.exe",
+        "sha256": "e7fdfc7dea5b871fc86dbec45737534e58c734b891c3eb839c6215350b3d8306"
+      },
+      "runner": {
+        "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\test-plans-115\\runtime-final\\suma-runner.exe",
+        "sha256": "2f1d8c0f0c95bd52d64f9b850856748841c4a353cd02d77305bf0c3baea7476a"
+      },
+      "helper": {
+        "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\test-plans-115\\actual-fixture.mjs",
+        "sha256": "b5d5e52af3dae8d9b2ad0e80fa4383826aa18c0ecdacaf4a7be5aeeb1947ce28"
+      },
+      "node": {
+        "path": "C:\\Program Files\\nodejs\\node.exe",
+        "sha256": "c5ff4c736112dd483c750fd4149d30c8a116db1a49b8b3ec88be4b65e6c86c19",
+        "version": "v22.16.0"
+      },
+      "web_entry": {
+        "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\test-plans-115\\web\\index.html",
+        "sha256": "67ed088c52cc83da71675dae03c98ca7488e995122986612decdca5a5a4f1547"
+      },
+      "developer": {
+        "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\test-plans-115\\actual-verified\\develop.mjs",
+        "sha256": "a6cd47bd659d53198aec67f522b7feb1c4dc5587a77af5e2483c26abf48b172f"
+      },
+      "node_tests": {
+        "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\test-plans-115\\actual-verified\\repository-A\\orders.test.mjs",
+        "sha256": "125fc3745ed0bf175ac323b48435beba09905ec02304edb0c6d8fb852bdaafe3"
+      }
+    },
+    "checks": [
+      {
+        "code": "fresh_browser_identity",
+        "passed": true
+      },
+      {
+        "code": "actual_test_report_capability",
+        "passed": true
+      },
+      {
+        "code": "draft_has_no_publication",
+        "passed": true
+      },
+      {
+        "code": "publication_is_immutable_revision",
+        "passed": true
+      },
+      {
+        "code": "broken_actual_run_state",
+        "passed": true
+      },
+      {
+        "code": "broken_two_distinct_workers",
+        "passed": true
+      },
+      {
+        "code": "broken_exact_clean_candidate",
+        "passed": true
+      },
+      {
+        "code": "broken_actual_cross_runner_import",
+        "passed": true
+      },
+      {
+        "code": "broken_frozen_published_plan",
+        "passed": true
+      },
+      {
+        "code": "broken_original_node_xml_and_hash",
+        "passed": true
+      },
+      {
+        "code": "broken_actual_junit_selectors",
+        "passed": true
+      },
+      {
+        "code": "broken_mapped_case_results",
+        "passed": true
+      },
+      {
+        "code": "broken_evidence_names_exact_attempt",
+        "passed": true
+      },
+      {
+        "code": "case_defect_original_and_domain_dedup",
+        "passed": true
+      },
+      {
+        "code": "canonical_issue_requirement_feedback",
+        "passed": true
+      },
+      {
+        "code": "case_issue_link_projected",
+        "passed": true
+      },
+      {
+        "code": "fixed_actual_run_state",
+        "passed": true
+      },
+      {
+        "code": "fixed_two_distinct_workers",
+        "passed": true
+      },
+      {
+        "code": "fixed_exact_clean_candidate",
+        "passed": true
+      },
+      {
+        "code": "fixed_actual_cross_runner_import",
+        "passed": true
+      },
+      {
+        "code": "fixed_frozen_published_plan",
+        "passed": true
+      },
+      {
+        "code": "fixed_original_node_xml_and_hash",
+        "passed": true
+      },
+      {
+        "code": "fixed_actual_junit_selectors",
+        "passed": true
+      },
+      {
+        "code": "fixed_mapped_case_results",
+        "passed": true
+      },
+      {
+        "code": "fixed_evidence_names_exact_attempt",
+        "passed": true
+      },
+      {
+        "code": "repair_has_different_real_commit",
+        "passed": true
+      },
+      {
+        "code": "original_failure_retained_and_current_run_separate",
+        "passed": true
+      },
+      {
+        "code": "publication_unchanged_across_both_runs",
+        "passed": true
+      },
+      {
+        "code": "current_pass_does_not_auto_accept",
+        "passed": true
+      },
+      {
+        "code": "runner_a_two_original_acks",
+        "passed": true
+      },
+      {
+        "code": "runner_b_two_original_acks",
+        "passed": true
+      },
+      {
+        "code": "owned_primary_repositories_unchanged",
+        "passed": true
+      },
+      {
+        "code": "one_canonical_case_issue_in_pool",
+        "passed": true
+      }
+    ],
+    "owned_processes_closed": true,
+    "database_files_after_close": [
+      {
+        "name": "suma.db",
+        "bytes": 2170880,
+        "sha256": "6303e60db6c28b0fb2048a050f564245ce1698e432ce955e5bd1e6a6c6fbecef"
+      },
+      {
+        "name": "suma.db-wal",
+        "bytes": 4128272,
+        "sha256": "e6e5636a023cdb3222f5fe68a3f0492ca2f5747a14aae9998daba31f27ff640b"
+      },
+      {
+        "name": "suma.db-shm",
+        "bytes": 32768,
+        "sha256": "59dbf7a2b24287e7574d7f1c4edb1965e4daba76d51696e93f6e884553474254"
+      }
+    ]
+  },
+  "actual_boundary": "Actual owned administrator command workflow and actual Node22.16.0 built-in JUnit on two same-host Runners; no real vendor CLI/model, physical multi-host, browser, production acceptance or deployment claim.",
+  "actual_prior_observations": [
+    {
+      "path": ".cache/e2e/test-plans-115/actual/public-result.json",
+      "runs": 0,
+      "reason": "Fixture incorrectly bound a command node as an agent tool; valid graph rejection; isolated processes closed"
+    },
+    {
+      "path": ".cache/e2e/test-plans-115/actual-corrected/public-result.json",
+      "runs": 0,
+      "reason": "Fixture tried direct task binding for an agent node; current dispatch protection correctly rejected it; isolated processes closed"
+    },
+    {
+      "path": ".cache/e2e/test-plans-115/actual-final/public-result.json",
+      "runs": 1,
+      "attempts": 2,
+      "reason": "Real candidate transfer succeeded; actual Node flat JUnit rejected by parser. Original report retained locally. Supported Node layout fixed before final fresh-database verification; processes closed"
+    }
+  ],
+  "resource_use": {
+    "successful_journey_runs": 2,
+    "successful_journey_attempts": 4,
+    "total_actual_runs_including_failed_integration": 3,
+    "total_actual_attempts": 6,
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "web_builds": 1,
+    "control_builds": 2,
+    "runner_builds": 2,
+    "native_builds": 0,
+    "full_suite_runs": 0,
+    "temporary_files_deleted": 0
+  },
+  "go_receipts": [
+    {
+      "receipt": ".cache/mcp019-deps/20261028T100910240Z.command.json",
+      "command": "go test ./internal/testreportcontract ./internal/runner -run ^TestJUnitReport -count=1",
+      "exit_code": 1,
+      "sha256": "c7d404687024830435c578ccfe102773f1832797459dfe9bf2b2220e2b8b818d"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T101611429Z.command.json",
+      "command": "go fmt ./internal/testreportcontract ./internal/runner ./internal/toolcontract ./internal/dag",
+      "exit_code": 0,
+      "sha256": "4882943c21e522a00ff38436005de29e83ada1b333b4ecc1065ef89fe228739e"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T101615345Z.command.json",
+      "command": "go test ./internal/testreportcontract ./internal/runner ./internal/dag -run ^TestJUnitReport -count=1",
+      "exit_code": 0,
+      "sha256": "92a6e6f4a517415637298fcc4c09def192219b3a40393a8b515ebffaaa9e6899"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T102206587Z.command.json",
+      "command": "go test ./internal/runner -run ^TestJUnitReport -count=1",
+      "exit_code": 0,
+      "sha256": "e80d56cfdaf037a0bfb8b4539fdf8f8b51832f5c10a8cfca92e9baa13d7b8a61"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T102708864Z.command.json",
+      "command": "go fmt ./internal/platform ./internal/runner",
+      "exit_code": 0,
+      "sha256": "761e2188d1ebfc7575642d95570be9630f5eea3c75b39d4307e43406ad642792"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T102712954Z.command.json",
+      "command": "go test ./internal/platform -run ^TestTestPlan -count=1",
+      "exit_code": 1,
+      "sha256": "671ab5011f3dea0cb19a75ce99952d833f2381154530cf041fe2cd48582bbcd5"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T102949940Z.command.json",
+      "command": "go test ./internal/platform -run ^TestTestPlan -count=1",
+      "exit_code": 1,
+      "sha256": "605ae84cca2a5d083b89f15c3e2e0547bc1034aaa077c3df2d972d288323f000"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T103547549Z.command.json",
+      "command": "go fmt ./internal/platform ./internal/localization ./cmd/suma-contracts",
+      "exit_code": 0,
+      "sha256": "26c7a86a8059ed70435cdd2c437759db1c17ce88ca1e304b1fa2acfa7f7d2908"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T103552193Z.command.json",
+      "command": "go test ./internal/platform ./cmd/suma-contracts ./internal/localization -run ^TestTestPlan -count=1",
+      "exit_code": 0,
+      "sha256": "3ea7ed4642bbd1482f59e0a5dc8ee149a081bf8f0de1bcc5e9ca07127ddf67cb"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T104230123Z.command.json",
+      "command": "go test ./internal/platform -run ^TestTestPlanImmutableDraftPublicationAndCurrentAuthority$ -count=1",
+      "exit_code": 0,
+      "sha256": "5022e86d2399fd05e57cdfcfffbb9e8703b6d2586de1011e1044aa36236ebb9c"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T104255426Z.command.json",
+      "command": "go run ./cmd/suma-contracts",
+      "exit_code": 0,
+      "sha256": "e8430cfeed4d8cf2764d6205fb0f11f7ec4fe955c24199aeb473d962523f96b2"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T105755409Z.command.json",
+      "command": "go fmt ./internal/platform ./internal/dag ./internal/localization ./cmd/suma-contracts",
+      "exit_code": 0,
+      "sha256": "b7e99803a8e3974edb845f4f85b5e46022500789d59b6b67487dc981a861e955"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T105756163Z.command.json",
+      "command": "go test ./internal/platform ./internal/dag -run ^(TestTestPlan|TestTaskDispatchPreviewStartAtomicBindingAndReceiptRecovery$|TestTaskDeliveryHTTPUndispatchedReadOnlySnapshot$|TestTaskDeliveryRejectedReviewCreatesOneTrustedIssue$|TestToolCompileAndCapabilitiesPreventAttempt$|TestToolPublicBindingUsesCurrentSpecAndRetryClearsEvidence$) -count=1",
+      "exit_code": 0,
+      "sha256": "d358fdb74602eb1c1943b229302fb54f485e7e37ff26eb1825cbe1d7861fd77f"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T105901114Z.command.json",
+      "command": "go run ./cmd/suma-contracts -check",
+      "exit_code": 0,
+      "sha256": "34474ca0b2b5b62d722a130f5b5a1a5daf0baa72de04b7a235c984782254dd38"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T105905537Z.command.json",
+      "command": "go build -o .cache/e2e/test-plans-115/runtime/ ./cmd/suma-control ./cmd/suma-runner",
+      "exit_code": 0,
+      "sha256": "fad82142b90e4f8ac97dc8e5123d028866cf12fe9e38ff211a56d5bf313f1b11"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T110604953Z.command.json",
+      "command": "go fmt ./internal/testreportcontract",
+      "exit_code": 0,
+      "sha256": "a9277049239a4cee784c2a1e66c554f7574cb8092378fc4316e1763e713583da"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T110605552Z.command.json",
+      "command": "go test ./internal/testreportcontract ./internal/runner -run ^TestJUnitReport -count=1",
+      "exit_code": 0,
+      "sha256": "b971e0f8f8cbacadea64f01d5efee01e8d3d790262e1afee755517b3daff78ee"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T110824847Z.command.json",
+      "command": "go fmt ./internal/platform",
+      "exit_code": 0,
+      "sha256": "d7763e7692fdbee516b830eed8b1f9d3a162aa496124db03ee07fdb92e873bff"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T110825838Z.command.json",
+      "command": "go test ./internal/platform -run ^TestTestPlan -count=1",
+      "exit_code": 0,
+      "sha256": "5bb74bfb73f7176e4b47edc9899b0c1da4b42ae1dc0046469536feab30c55bd1"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T110837648Z.command.json",
+      "command": "go build -o .cache/e2e/test-plans-115/runtime-final/ ./cmd/suma-control ./cmd/suma-runner",
+      "exit_code": 0,
+      "sha256": "70b0dfb3a6e1fb0eaaad1b1692a744cf9cccb1428c0baa6ff02479b5807e4462"
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T111255476Z.command.json",
+      "command": "go run ./cmd/suma-contracts -check",
+      "exit_code": 0,
+      "sha256": "2f10e0f2038d4691667a5dbf277eb4f2f27eadd46c5e24891920735976334951"
+    }
+  ],
+  "remaining": [
+    "Full manual/exploratory TestExecution and defect lifecycle",
+    "Application/release-version-wide coverage and reusable test suites",
+    "All other JUnit dialects; map/subworkflow/external-workflow plan execution",
+    "Real Pool/multi-host and actual OceanBase/PostgreSQL database acceptance",
+    "Vendor CLI/model effect and billing; full IDE and remaining P0–P7",
+    "Actual GUI and device/theme/keyboard release matrix",
+    "Eliminate full private attempt-result reads from compact quality workspace queries"
+  ],
+  "git_boundary": "Only source, generated public contracts, paired catalogs, design/operation documents and compact report. Cache, DB/WAL/SHM, originals, command credentials, dependencies and binaries remain ignored; normal dev push only.",
+  "evidence_inventory": {
+    "path": ".cache/e2e/test-plans-115/evidence-inventory.json",
+    "files": 738,
+    "sha256": "b532e2a8f7e375cc1ca96d3b143fcd8dd04564f13abdf702df05c0565715258e",
+    "cleanup_performed": false
+  }
+}

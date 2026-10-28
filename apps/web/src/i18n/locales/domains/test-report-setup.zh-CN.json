@@ -1,0 +1,8 @@
+{
+  "test-report-setup.tool": "独立测试报告（Node.js）",
+  "test-report-setup.install": "在执行节点安装 Node.js 22 或以上版本，项目中使用 node:test 测试。",
+  "test-report-setup.configure": "保存这份本地测试工具配置；执行节点会在隔离代码版本上运行，并分配全新的报告路径。",
+  "test-report-setup.register": "同步实际工具能力，再由管理员登记并启用。流程中的测试节点应选择这份固定配置。",
+  "test-report-setup.policy": "自动收集固定版本的测试报告。能力探测不代表测试已执行；测试结果与人工验收分别记录。",
+  "test-report-setup.open_plan": "打开测试计划与逐用例结果"
+}

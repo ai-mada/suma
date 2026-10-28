@@ -6,6 +6,7 @@ import (
 	ec "github.com/ai-mada/suma/internal/executioncontract"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
+	tr "github.com/ai-mada/suma/internal/testreportcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
@@ -44,6 +45,7 @@ type Assignment struct {
 	ReleaseExecution        *releasecontract.ReleaseExecution     `json:"release_execution,omitempty"`
 }
 type Result struct {
+	TestReport          *tr.TestReport          `json:"test_report,omitempty"`
 	StartupFailure      *ec.StartupFailureProof `json:"startup_failure,omitempty"`
 	IntegrationEvidence *rc.RepositoryResult    `json:"integration_evidence,omitempty"`
 	Assignment
@@ -73,6 +75,7 @@ type Progress struct {
 // Result carries only completion fields on the wire, independently of the full durable assignment.
 func (r Result) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
+		TestReport          *tr.TestReport                    `json:"test_report,omitempty"`
 		StartupFailure      *ec.StartupFailureProof           `json:"startup_failure,omitempty"`
 		IntegrationEvidence *rc.RepositoryResult              `json:"integration_evidence,omitempty"`
 		RunID               string                            `json:"run_id"`
@@ -91,5 +94,5 @@ func (r Result) MarshalJSON() ([]byte, error) {
 		ArtifactEvidence    *releasecontract.ArtifactEvidence `json:"artifact_evidence,omitempty"`
 		ReleaseEvidence     *releasecontract.ReleaseResult    `json:"release_evidence,omitempty"`
 		ToolEvidence        *tc.Evidence                      `json:"tool_evidence,omitempty"`
-	}{r.StartupFailure, r.IntegrationEvidence, r.RunID, r.NodeID, r.Attempt, r.Fence, r.WorkerID, r.ExitCode, r.Output, r.Error, r.FailureClass, r.OperationID, r.Stopped, r.OutcomeUnknown, r.WorkspaceEvidence, r.ArtifactEvidence, r.ReleaseEvidence, r.ToolEvidence})
+	}{r.TestReport, r.StartupFailure, r.IntegrationEvidence, r.RunID, r.NodeID, r.Attempt, r.Fence, r.WorkerID, r.ExitCode, r.Output, r.Error, r.FailureClass, r.OperationID, r.Stopped, r.OutcomeUnknown, r.WorkspaceEvidence, r.ArtifactEvidence, r.ReleaseEvidence, r.ToolEvidence})
 }
