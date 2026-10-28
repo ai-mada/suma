@@ -1,0 +1,404 @@
+{
+  "stage": "T-APPLICATION-123",
+  "date": "2026-10-29",
+  "status": "scoped_local_verified",
+  "product_version": "1.0.0",
+  "scope": "Project application ownership, independently accepted integrated source, immutable code versions and declared dependency/impact; full platform remains active",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "sha256": "644fe94d84ad5f41d979d31b1bd329e5d98b29df997209ec414b607aefd4d613",
+    "changed_files": 71,
+    "deleted_files": [
+      {
+        "path": "internal/platform/issue_repair_candidate.go",
+        "previous_sha256": "230f5b1058503f03b79819146d097d2b59a68361f894b4cfb7a8775e555f21c7"
+      }
+    ],
+    "inventory": ".cache/e2e/application-123/source-inventory.json",
+    "previous_published_commit": "d1a8d39d793091f824a6e0d3efd05d0eab97c9bd"
+  },
+  "checks": {
+    "distinct_go_top_tests": [
+      "TestApplicationGraphImpactPreservesPinsAndCycles",
+      "TestApplicationSourceCredentialAndRemoteTransportRemainExplicit",
+      "TestDispatchRecommendationHTTPPreservesVersionNumberLexemes",
+      "TestProjectApplicationActualIntegratedSourceAndPinnedVersions",
+      "TestProjectApplicationCatalogOwnershipOriginalReceiptsAndHierarchy",
+      "TestProjectApplicationHTTPRejectsAliasesNullAndMachineWrites",
+      "TestProjectApplicationImmutableVersionAndPinnedDependencyFacts",
+      "TestProjectApplicationSourceRequiresIndependentBoundCandidate",
+      "TestProjectRiskNestedExecutionCannotHideCodeOrUnsupportedSources",
+      "TestRepositorySourceInspectionAppliedWorkspaceAndReadAuthority",
+      "TestRepositorySourceInspectionClosedProofAndRoots"
+    ],
+    "go_count": 11,
+    "web_behavior_cases": 5,
+    "source_inspector_behavior_cases": 1,
+    "desktop_packaging_protocol_cases": 3,
+    "desktop_cjs_syntax_files": 8,
+    "desktop_plan": true,
+    "full_web_typecheck": true,
+    "go_control_compile_only": true,
+    "generated_contract_check": true,
+    "generated_models": 620,
+    "api_paths": 291,
+    "new_paths": [
+      "/applications",
+      "/applications/graph",
+      "/applications/impact",
+      "/applications/options",
+      "/applications/{id}",
+      "/applications/{id}/versions",
+      "/applications/{id}/versions/options",
+      "/applications/{id}/versions/preview",
+      "/applications/{id}/versions/{version_id}"
+    ],
+    "existing_schema_changes": [],
+    "catalog_keys": 5869,
+    "web_production_hardcodes": 0,
+    "version_check": true,
+    "documentation_check": true,
+    "documentation_markdown_files": 331,
+    "schema_references": 2754
+  },
+  "actual": {
+    "base_commit": "075aa2fe49a61896ebf827a909e9848bb5b35dc2",
+    "candidate_commit": "83a462c7296b38088d214e76bc327cb1fd056df1",
+    "customer_human_signoff": false,
+    "independent_junit_sha256": "9950f6298ab515de49691cebc366b2f14149d13cbedef230f8ab7f58a60cd4e2",
+    "integration_plan_id": "9538cc9ea7190ba6d2028aad4d2e01aa",
+    "integration_receipt_sha256": "adc7bad9c3a5cc72d5c5eb83a1a86a2f9f68a8126d01b5bac60c8a2ad433f5f5",
+    "library_id": "a12f0dedd7b2b5615e15ef07e6ef0483",
+    "library_version_id": "fa3f43409fa2efff01305b6a86f059c2",
+    "library_version_sha256": "a689bf85e0c7d70bfda5c90be6ca1f001ba278ec61fdeb2bf3a179ce9f054f4d",
+    "model_calls": 0,
+    "parser_sha256": "27c99fa9ab21f704f2751f4f53dcb51854346480a45b9f4a5cb77d49554d4a6a",
+    "repository_target_id": "2520db81a668c8d64c0b3d0929056016",
+    "run_id": "00973e901336973a5068ef79ee1dda2d",
+    "source_snapshot_sha256": "c549a99580fb5400fd333629373b7b319f97a159dc57686b625e4a27a973d9b7",
+    "stage": "T-APPLICATION-123",
+    "task_id": "86865b5aedc47010f9d16b51981ac996",
+    "web_id": "56f840a1ebe5252fcc39d709f7e4c205",
+    "web_original_version_id": "510ba1ea1efe1977ab57603d3e2445db",
+    "web_reviewed_version_id": "eb41053251bedaf25fca3b7e5b85ac3f"
+  },
+  "browser": {
+    "stage": "T-APPLICATION-123",
+    "scope": "Owned actual Git candidate -> independent Worker/JUnit/fixture owner review -> repository provider prepare/apply -> exact application versions and dependency impact; read-only browser",
+    "catalog_cn": true,
+    "registered_version_and_task_run_links": true,
+    "english": true,
+    "dependency_graph": true,
+    "reverse_impact_path": "Shared library -> Web application",
+    "affected_applications": 1,
+    "narrow_width": 390,
+    "document_width": 375,
+    "keyboard_focus": "Close details",
+    "refresh_restores_application_and_version": true,
+    "refresh_graph_mode_retained": false,
+    "refresh_note": "Graph/List mode is component-local; application and immutable version URL restored, list default on reload",
+    "screenshots": [
+      "applications-en.png",
+      "applications-390-cn.png"
+    ],
+    "business_mutations": 0,
+    "model_calls": 0,
+    "user_preview_modified": false,
+    "owned_tab_closed": true,
+    "viewport_reset": true
+  },
+  "source_archives": [
+    {
+      "archive": "base-source.tar",
+      "bytes": 10240,
+      "commit": "075aa2fe49a61896ebf827a909e9848bb5b35dc2",
+      "files": [
+        {
+          "bytes": 8,
+          "path": ".gitignore",
+          "sha256": "70a213afeabe5ac38ae4c88b2c7002ce5068b91a3e57a032245ab809dc6fa460"
+        },
+        {
+          "bytes": 87,
+          "path": "apps/web/package.json",
+          "sha256": "d1b6f9d3037c762a82b1f5f1c8e2b1fdf4d98a09213caee5b8fecf56ffa0f8cd"
+        },
+        {
+          "bytes": 101,
+          "path": "package.json",
+          "sha256": "b5ed1fbc4ccb6adabf3329e897dddf39ef2bd21220640da39629b94a5842d824"
+        },
+        {
+          "bytes": 46,
+          "path": "packages/library/package.json",
+          "sha256": "d55baf92a68f2f6060a554cca74549cc2270a9a5ba3a37cc591abedc0a39adae"
+        },
+        {
+          "bytes": 40,
+          "path": "pnpm-workspace.yaml",
+          "sha256": "60ce4d1dbf137701a4683d171391c51662700c2f3e32a7caab8b2efc22540e65"
+        },
+        {
+          "bytes": 27,
+          "path": "sum.cjs",
+          "sha256": "703cb2a470cfd0a2ea935122ac16338093078ba039d78aeda1e9442ffb5cc0a3"
+        }
+      ],
+      "sha256": "9ae9a084f4b470590283a418b96101cd143ccce2707c06941f06ef329575f01d"
+    },
+    {
+      "archive": "candidate-source.tar",
+      "bytes": 10240,
+      "commit": "83a462c7296b38088d214e76bc327cb1fd056df1",
+      "files": [
+        {
+          "bytes": 8,
+          "path": ".gitignore",
+          "sha256": "70a213afeabe5ac38ae4c88b2c7002ce5068b91a3e57a032245ab809dc6fa460"
+        },
+        {
+          "bytes": 87,
+          "path": "apps/web/package.json",
+          "sha256": "d1b6f9d3037c762a82b1f5f1c8e2b1fdf4d98a09213caee5b8fecf56ffa0f8cd"
+        },
+        {
+          "bytes": 101,
+          "path": "package.json",
+          "sha256": "b5ed1fbc4ccb6adabf3329e897dddf39ef2bd21220640da39629b94a5842d824"
+        },
+        {
+          "bytes": 46,
+          "path": "packages/library/package.json",
+          "sha256": "d55baf92a68f2f6060a554cca74549cc2270a9a5ba3a37cc591abedc0a39adae"
+        },
+        {
+          "bytes": 40,
+          "path": "pnpm-workspace.yaml",
+          "sha256": "60ce4d1dbf137701a4683d171391c51662700c2f3e32a7caab8b2efc22540e65"
+        },
+        {
+          "bytes": 27,
+          "path": "sum.cjs",
+          "sha256": "b7fe0fbde04b24b85270a6b7006017ce20facbb63eff2f45e82b96bb2e100620"
+        }
+      ],
+      "sha256": "a58c6ff8c7ace1358b85b80891910ec5c18eaeed012a4e1974b60333d57a385a"
+    }
+  ],
+  "retained_data": [
+    {
+      "bytes": 445,
+      "path": "release-artifacts/blobs/1dcd5347f85cd60608792fa6fa62a21d",
+      "sha256": "7fed250af232ac3f95e4ed72b218e35930818f45e4c0b7601777ad1458d01927"
+    }
+  ],
+  "resources": {
+    "model_requests": 0,
+    "commercial_vendor_calls": 0,
+    "web_builds_completed": 1,
+    "source_inspector_builds": 1,
+    "native_sdk_builds": 0,
+    "octop_sdk_builds": 0,
+    "control_binary_builds": 0,
+    "runner_binary_builds": 0,
+    "go_commands_sequential": true,
+    "browser_business_mutations": 0,
+    "browser_guard_unchanged": true,
+    "owned_processes_terminal": true,
+    "container_builds": 0,
+    "desktop_installer_builds": 0
+  },
+  "evidence": {
+    "go_receipts": [
+      {
+        "command": ".cache/mcp019-deps/20261028T215135646Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T215520180Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "06c799592f14d6f4f919b587c22c351726324d6082cc38d2ae620c6a9f986384"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T215736758Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^(TestProjectApplicationCatalogOwnershipOriginalReceiptsAndHierarchy|TestProjectApplicationSourceRequiresIndependentBoundCandidate|TestProjectApplicationHTTPRejectsAliasesNullAndMachineWrites|TestProjectApplicationImmutableVersionAndPinnedDependencyFacts|TestApplicationGraphImpactPreservesPinsAndCycles|TestApplicationSourceCredentialAndRemoteTransportRemainExplicit|TestDispatchRecommendationHTTPPreservesVersionNumberLexemes|TestProjectRiskNestedExecutionCannotHideCodeOrUnsupportedSources)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "4m"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 4,
+        "failed_top_level": 4,
+        "stdout_sha256": "045caf210fe96c7e3e23530d49649b0d7643fc432ec59f213168319b6c467f71"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T215831316Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/repositoryintegrationcontract",
+          "./internal/repositoryprovider",
+          "-run",
+          "^TestRepositorySourceInspection",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 2,
+        "failed_top_level": 0,
+        "stdout_sha256": "967624467377bb22dd18f020ec8ff0105b5706b12b0a59adb3665f042a0b9f8d"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T215920672Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestProjectApplication(CatalogOwnershipOriginalReceiptsAndHierarchy|SourceRequiresIndependentBoundCandidate|HTTPRejectsAliasesNullAndMachineWrites|ImmutableVersionAndPinnedDependencyFacts)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 4,
+        "failed_top_level": 0,
+        "stdout_sha256": "1bf6e77d50062a4a4d7e140b254ba45fe94b6cbecd71bd84ba12d3e1d998bc81"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T220107226Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestProjectApplicationActualIntegratedSourceAndPinnedVersions$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "7m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 1,
+        "failed_top_level": 0,
+        "stdout_sha256": "14431febd6fc8bd01d282cea8328a1891410d1e940e949c3acf115daffe19743"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T220710358Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "1a9863bc0698a14457c3cc0a92f3f0dcef9915c1ce7d7c60ff3989c05bce638f"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T221108407Z.command.json",
+        "arguments": [
+          "test",
+          "./cmd/suma-control",
+          "-run",
+          "^$",
+          "-count=1"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "101f34ea137eeeeb319711bb9bdc8c75c6ee2c5cba47dc36d4fd843d62dbb25a"
+      }
+    ],
+    "web_behaviors": ".cache/e2e/application-123/ui-focused-2.stdout.txt",
+    "typecheck": ".cache/e2e/application-123/ui-typecheck-fixed.stdout.txt",
+    "desktop_tests": ".cache/e2e/application-123/desktop-tests.log",
+    "desktop_plan": ".cache/e2e/application-123/desktop-plan.json",
+    "web_build": ".cache/e2e/application-123/web-build.log",
+    "web_inventory": ".cache/e2e/application-123/web-inventory.json",
+    "artifacts": [
+      {
+        "path": ".cache/e2e/application-123/actual-ui/fixture.sqlite",
+        "bytes": 2412544,
+        "sha256": "6642da8d5618532d8d673e103828be2e2e2d0c77eef3c520baf112fd5aca55b5",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/application-123/actual-ui/base-source.tar",
+        "bytes": 10240,
+        "sha256": "9ae9a084f4b470590283a418b96101cd143ccce2707c06941f06ef329575f01d",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/application-123/actual-ui/candidate-source.tar",
+        "bytes": 10240,
+        "sha256": "a58c6ff8c7ace1358b85b80891910ec5c18eaeed012a4e1974b60333d57a385a",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/application-123/actual-ui/retained-data/release-artifacts/blobs/1dcd5347f85cd60608792fa6fa62a21d",
+        "bytes": 445,
+        "sha256": "7fed250af232ac3f95e4ed72b218e35930818f45e4c0b7601777ad1458d01927",
+        "git_include": false
+      }
+    ],
+    "screenshots": [
+      {
+        "path": ".cache/e2e/application-123/applications-en.png",
+        "bytes": 63726,
+        "sha256": "dbe421f7c0444cc551d8618e7fe46257ae545705adc5ca08d114fc073bf03b29",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/application-123/applications-390-cn.png",
+        "bytes": 31830,
+        "sha256": "ed37a7215331d561f3322e3d8263331f695e8d77345d4c978ab1e16693bdcfea",
+        "git_include": false
+      }
+    ],
+    "parser_bundle": {
+      "sha256": "223d2608c92755d055f0c21e3d43159d1ca8091af74aeeeb91cc611c7c026e1a",
+      "notices_sha256": "1606812ce4e13bb5bd35cee9b6c8d45c7d61b7a94fd610fea1646298257f24f9",
+      "git_include": false
+    },
+    "documentation_check": ".cache/e2e/application-123/docs-check.log"
+  },
+  "corrected_failures": [
+    "Project HTTP helper name collided with an existing generic application helper; renamed scoped helper",
+    "New direct team fixture used int instead of established map-backed numeric type; fixture corrected without weakening production",
+    "Typed Web submit boundary required an object spread; full typecheck passed after correction",
+    "First desktop test invocation used a nonexistent singular test directory and executed zero cases; corrected discovered tests directory passed3"
+  ],
+  "remaining": [
+    "Complete P0-P7 and requirements1-26;58/34/92 unchanged",
+    "Independent subproject ACL, complete app release sets/cross-app plans/build/test/deployment",
+    "All languages, lock and runtime dependency resolution, external knowledge and full capability autonomy",
+    "Full Octop CLI/GUI, vendor accounts, physical multi-host and production acceptance",
+    "OceanBase/PostgreSQL, real container builds and six-platform installation/signing",
+    "Graph/List mode is not URL-persisted; reload restores app and exact version but defaults to list; large bounded option selectors need dedicated lookup",
+    "Bounded local protocol/fixture review is not customer sign-off or production deployment"
+  ]
+}

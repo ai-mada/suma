@@ -39,7 +39,7 @@ func TestProjectRiskNestedExecutionCannotHideCodeOrUnsupportedSources(t *testing
 			t.Fatal(e)
 		}
 		defer close()
-		ok, code, e := f.s.projectRiskCodeEvidenceTx(current, auth, f.project, runID)
+		ok, code, e := f.s.currentCodeCandidateEvidenceTx(current, auth, f.project, runID)
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -49,7 +49,7 @@ func TestProjectRiskNestedExecutionCannotHideCodeOrUnsupportedSources(t *testing
 	if err != nil || actual.State != "succeeded" {
 		t.Fatal("parent did not finish through its actual protected child", actual, err)
 	}
-	if ok, code := check(run.ID); ok || code != "risk_task_evidence_stale" {
+	if ok, code := check(run.ID); ok || code != "code_evidence_stale" {
 		t.Fatal("nested code was mistaken for non-code action", ok, code)
 	}
 	leaf, err := f.e.Publish(ctx, f.user.TenantID, f.project, dag.Workflow{Name: "Non-code leaf", Nodes: []dag.Node{{ID: "noop", Type: "noop"}}})
@@ -75,7 +75,7 @@ func TestProjectRiskNestedExecutionCannotHideCodeOrUnsupportedSources(t *testing
 	if err != nil {
 		t.Fatal(err)
 	}
-	if ok, code := check(emptyMap.ID); ok || code != "risk_execution_source_unsupported" {
+	if ok, code := check(emptyMap.ID); ok || code != "code_source_unsupported" {
 		t.Fatal("unsupported source did not expose its exact boundary", ok, code)
 	}
 }

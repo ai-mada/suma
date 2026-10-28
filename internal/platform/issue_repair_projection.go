@@ -150,7 +150,7 @@ func (s *Service) issueRepairClosureTx(ctx context.Context, auth *authorizedComm
 			continue
 		}
 		for _, evidence := range item.Evidence {
-			valid, checkErr := s.issueRepairCaseCandidateTx(ctx, auth, project, runID, evidence)
+			valid, checkErr := s.codeCandidateIndependentTestTx(ctx, auth, project, runID, evidence)
 			if checkErr != nil {
 				return nil, blockers, checkErr
 			}

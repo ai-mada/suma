@@ -20,6 +20,7 @@ const messages=Object.freeze({
  shutdown_failed:Object.freeze({'zh-CN':'速码服务停止失败','en-US':'Suma service shutdown failed'}),
  missing_control:Object.freeze({'zh-CN':'缺少内置控制服务，请先构建桌面安装包。','en-US':'The bundled control service is missing. Build the desktop bundle first.'}),
  missing_web:Object.freeze({'zh-CN':'缺少网页资源，请先构建工作台。','en-US':'The web bundle is missing. Build the workbench first.'}),
+ missing_source_inspector:Object.freeze({'zh-CN':'缺少内置源码观察器，请重新准备桌面资源或安装完整安装包。','en-US':'The bundled source inspector is missing. Prepare desktop resources again or install the complete package.'}),
  startup_exited:Object.freeze({'zh-CN':'内置控制服务在启动前退出','en-US':'Bundled control service exited before startup'}),
  startup_unhealthy:Object.freeze({'zh-CN':'内置控制服务未能就绪','en-US':'Bundled control service did not become healthy'}),
  termination_failed:Object.freeze({'zh-CN':'控制服务终止失败','en-US':'Control service termination failed'}),

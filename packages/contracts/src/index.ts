@@ -8,6 +8,173 @@ export interface AccountPreferences {
 export interface Acknowledgement {
   acknowledged: boolean;
 }
+export interface ApplicationCodeScope {
+  id: string;
+  target_id: string;
+  provider_id: string;
+  target_alias: string;
+  target_ref: string;
+  config_sha256: string;
+  relative_root: string;
+  shared: boolean;
+  reason: string;
+}
+export interface ApplicationCodeScopeInput {
+  id: string;
+  target_id: string;
+  expected_target_version: number;
+  relative_root: string;
+  shared: boolean;
+  reason: string;
+}
+export interface ApplicationCodeVersion {
+  id: string;
+  project_id: string;
+  application_id: string;
+  sequence: number;
+  label: string;
+  application: ProjectApplication;
+  sources: (ApplicationVersionSource)[];
+  observations: (ApplicationDependencyObservation)[];
+  dependencies: (ApplicationDependency)[];
+  dependency_coverage_complete: boolean;
+  dependency_gaps_acknowledged: boolean;
+  snapshot_sha256: string;
+  registered_preview_sha256: string;
+  reason: string;
+  registered_by: string;
+  registered_at: string;
+}
+export interface ApplicationDependency {
+  target_application_id: string;
+  target_version_id: string;
+  target_version_sha256: string;
+  observation_id: string;
+  declared_range: string;
+  reason: string;
+  observed_declared_range: string;
+  compatibility: string;
+}
+export interface ApplicationDependencyGraph {
+  project_id: string;
+  sha256: string;
+  nodes: (ApplicationGraphNode)[];
+  edges: (ApplicationGraphEdge)[];
+  cycles: ((string)[])[];
+  application_total: number;
+  edge_total: number;
+  edge_total_exact: boolean;
+  complete: boolean;
+  max_applications: number;
+  max_edges: number;
+}
+export interface ApplicationDependencyInput {
+  target_application_id: string;
+  target_version_id: string;
+  target_version_sha256: string;
+  observation_id: string;
+  declared_range: string;
+  reason: string;
+}
+export interface ApplicationDependencyObservation {
+  id: string;
+  scope_id: string;
+  manifest_path: string;
+  manifest_sha256: string;
+  parser: string;
+  parser_version: string;
+  ecosystem: string;
+  name: string;
+  declared_range: string;
+  kind: string;
+  match_state: string;
+  range_state: string;
+  compatibility: string;
+  range_redacted: boolean;
+  declared_range_sha256: string;
+  candidate_application_ids: (string)[];
+}
+export interface ApplicationGraphEdge {
+  source_application_id: string;
+  source_version_id: string;
+  target_application_id: string;
+  target_version_id: string;
+  target_version_sha256: string;
+  observation_id: string;
+  state: string;
+}
+export interface ApplicationGraphNode {
+  application_id: string;
+  name: string;
+  kind: string;
+  state: string;
+  parent_application_id: string;
+  owner_team_id: string;
+  version_id: string;
+  version_label: string;
+  dependency_coverage_complete: boolean;
+}
+export interface ApplicationImpact {
+  graph: ApplicationDependencyGraph;
+  application_id: string;
+  items: (ApplicationImpactItem)[];
+  complete: boolean;
+  max_depth: number;
+}
+export interface ApplicationImpactItem {
+  application_id: string;
+  version_id: string;
+  owner_team_id: string;
+  depth: number;
+  path: (string)[];
+}
+export interface ApplicationImpactRequest {
+  project_id: string;
+  application_id: string;
+  expected_graph_sha256: string;
+}
+export interface ApplicationIntegrationOption {
+  id: string;
+  version: number;
+  task_id: string;
+  target_id: string;
+  commit: string;
+  state: string;
+}
+export interface ApplicationManifestDependency {
+  name: string;
+  declared_range: string;
+  kind: string;
+  range_state: string;
+  compatibility: string;
+  range_redacted: boolean;
+  declared_range_sha256: string;
+}
+export interface ApplicationManifestObservation {
+  path: string;
+  blob_oid: string;
+  sha256: string;
+  parser: string;
+  parser_version: string;
+  ecosystem: string;
+  package_name: string;
+  declared_version: string;
+  dependencies: (ApplicationManifestDependency)[];
+  complete: boolean;
+  reason: string;
+}
+export interface ApplicationOptions {
+  project_id: string;
+  teams: (ApplicationTeamOption)[];
+  targets: (RepositoryIntegrationTarget)[];
+  applications: (ProjectApplication)[];
+  team_total: number;
+  team_total_exact: boolean;
+  target_total: number;
+  application_total: number;
+  complete: boolean;
+  limit: number;
+}
 export interface ApplicationQualityCase {
   case_key: string;
   title: string;
@@ -88,6 +255,23 @@ export interface ApplicationSkillCatalogListInput {
   limit?: number;
   cursor?: string;
 }
+export interface ApplicationSourceCoverage {
+  complete: boolean;
+  manifest_total: number;
+  manifest_count: number;
+  max_manifests: number;
+  reason: string;
+}
+export interface ApplicationSourceInspection {
+  snapshot_sha256: string;
+  commit: string;
+  tree_oid: string;
+  relative_root: string;
+  scope_tree_oid: string;
+  parser_sha256: string;
+  manifests: (ApplicationManifestObservation)[];
+  coverage: ApplicationSourceCoverage;
+}
 export interface ApplicationTaskDraftInput {
   title: string;
   description?: string;
@@ -97,6 +281,11 @@ export interface ApplicationTaskDraftInput {
   depends_on?: (string)[];
   acceptance_criteria?: (string)[];
   idempotency_key: string;
+}
+export interface ApplicationTeamOption {
+  id: string;
+  version: number;
+  name: string;
 }
 export interface ApplicationToolDefinition {
   name: string;
@@ -149,6 +338,92 @@ export interface ApplicationToolSearchInput {
 }
 export interface ApplicationToolTaskInput {
   task_id: string;
+}
+export interface ApplicationVersionOption {
+  id: string;
+  application_id: string;
+  sequence: number;
+  label: string;
+  snapshot_sha256: string;
+}
+export interface ApplicationVersionOptions {
+  project_id: string;
+  application_id: string;
+  integrations: (ApplicationIntegrationOption)[];
+  applications: (ProjectApplication)[];
+  versions: (ApplicationVersionOption)[];
+  integration_total: number;
+  integration_total_exact: boolean;
+  version_total: number;
+  complete: boolean;
+  limit: number;
+}
+export interface ApplicationVersionPage {
+  items: (ApplicationCodeVersion)[];
+  total: number;
+  next_cursor: string;
+}
+export interface ApplicationVersionPreview {
+  version: ApplicationCodeVersion;
+  preview_sha256: string;
+  can_register: boolean;
+  blockers: (string)[];
+}
+export interface ApplicationVersionPreviewRequest {
+  project_id: string;
+  expected_application_version: number;
+  label: string;
+  sources: (ApplicationVersionSourceInput)[];
+  dependencies: (ApplicationDependencyInput)[];
+  acknowledge_dependency_gaps: boolean;
+  reason: string;
+}
+export interface ApplicationVersionRegisterRequest {
+  project_id: string;
+  expected_application_version: number;
+  label: string;
+  sources: (ApplicationVersionSourceInput)[];
+  dependencies: (ApplicationDependencyInput)[];
+  acknowledge_dependency_gaps: boolean;
+  reason: string;
+  expected_preview_sha256: string;
+  idempotency_key: string;
+}
+export interface ApplicationVersionSource {
+  scope: ApplicationCodeScope;
+  integration_plan_id: string;
+  integration_plan_version: number;
+  operation_id: string;
+  receipt_sha256: string;
+  receipt_oid: string;
+  commit: string;
+  task_basis: ReleaseTaskBasis;
+  source_node_id: string;
+  inspection: ApplicationSourceInspection;
+}
+export interface ApplicationVersionSourceInput {
+  scope_id: string;
+  integration_plan_id: string;
+  expected_integration_version: number;
+}
+export interface ApplicationVersionView {
+  version: ApplicationCodeVersion;
+  basis_current: boolean;
+  blockers: (string)[];
+}
+export interface ApplicationWriteRequest {
+  project_id: string;
+  expected_version: number;
+  key: string;
+  name: string;
+  description: string;
+  kind: string;
+  parent_application_id: string;
+  owner_team_id: string;
+  state: string;
+  code_scopes: (ApplicationCodeScopeInput)[];
+  reason: string;
+  idempotency_key: string;
 }
 export interface ArtifactBinding {
   artifact_id: string;
@@ -2792,6 +3067,35 @@ export interface ProjectAccessWriteRequest {
   expected_version: number;
   idempotency_key: string;
 }
+export interface ProjectApplication {
+  id: string;
+  project_id: string;
+  version: number;
+  key: string;
+  name: string;
+  description: string;
+  kind: string;
+  parent_application_id: string;
+  owner_team_id: string;
+  state: string;
+  code_scopes: (ApplicationCodeScope)[];
+  current_registered_version_id: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+export interface ProjectApplicationPage {
+  items: (ProjectApplication)[];
+  total: number;
+  next_cursor: string;
+  can_create: boolean;
+}
+export interface ProjectApplicationView {
+  application: ProjectApplication;
+  registered_version_count: number;
+  allowed_actions: (string)[];
+  blockers: (string)[];
+}
 export interface ProjectCredentialIssueRequest {
   project_id: string;
   scope?: string;
@@ -3138,6 +3442,17 @@ export interface ProjectVersionedOperation {
   project_id: string;
   expected_version: number;
   idempotency_key: string;
+}
+export interface ProviderSourceInspection {
+  protocol: string;
+  inspection_request_sha256: string;
+  snapshot_sha256: string;
+  exact_commit: string;
+  tree_oid: string;
+  scopes: (RepositorySourceInspectionScope)[];
+  manifests: (RepositorySourceManifest)[];
+  coverage: RepositorySourceInspectionCoverage;
+  limits: RepositorySourceInspectionLimits;
 }
 export interface QualityTestCase {
   key: string;
@@ -3799,6 +4114,48 @@ export interface RepositoryResult {
   observation_sha256: string;
   version: number;
 }
+export interface RepositorySourceInspectionCoverage {
+  state: string;
+  tree_entries: number;
+  manifest_count: number;
+  content_bytes: number;
+  skipped_entries: number;
+  reasons: (string)[];
+}
+export interface RepositorySourceInspectionLimits {
+  max_manifests: number;
+  max_tree_entries: number;
+  max_file_bytes: number;
+  max_content_bytes: number;
+  max_report_bytes: number;
+}
+export interface RepositorySourceInspectionRequest {
+  protocol: string;
+  tenant_id: string;
+  project_id: string;
+  provider_id: string;
+  target_id: string;
+  target_alias: string;
+  target_ref: string;
+  target_config_sha256: string;
+  operation_id: string;
+  request_sha256: string;
+  receipt_sha256: string;
+  exact_commit: string;
+  relative_roots: (string)[];
+}
+export interface RepositorySourceInspectionScope {
+  relative_root: string;
+  tree_oid: string;
+}
+export interface RepositorySourceManifest {
+  path: string;
+  blob_oid: string;
+  sha256: string;
+  size_bytes: number;
+  content_base64: string;
+  format: string;
+}
 export interface RepositoryTargetObservation {
   alias: string;
   ref: string;
@@ -4266,6 +4623,68 @@ export interface SkillCatalogWriteRequest {
   reason: string;
   acknowledge_sharing: boolean;
   idempotency_key: string;
+}
+export interface SourceDependencyCoverage {
+  state: string;
+  files: number;
+  parsed_files: number;
+  packages: number;
+  dependencies: number;
+  workspace_declarations: boolean;
+  external_lock_resolution: boolean;
+  runtime_dependencies: boolean;
+  other_languages: boolean;
+  reasons: (string)[];
+}
+export interface SourceDependencyDeclaration {
+  id: string;
+  source_snapshot_sha256: string;
+  from_package_id: string;
+  section: string;
+  name: string;
+  raw_range: string;
+  raw_range_sha256: string;
+  range_redacted: boolean;
+  workspace: boolean;
+  target_package_ids: (string)[];
+  range_state: string;
+  compatibility: string;
+  path: string;
+  pointer: string;
+}
+export interface SourceDependencyDiagnostic {
+  source_snapshot_sha256: string;
+  path: string;
+  pointer: string;
+  code: string;
+}
+export interface SourceDependencyFile {
+  source_snapshot_sha256: string;
+  path: string;
+  blob_oid: string;
+  sha256: string;
+  size_bytes: number;
+  format: string;
+}
+export interface SourceDependencyPackage {
+  id: string;
+  source_snapshot_sha256: string;
+  path: string;
+  name: string;
+  version: string;
+  root: string;
+  workspace_member: boolean;
+}
+export interface SourceDependencyReport {
+  schema_version: number;
+  parser_id: string;
+  parser_version: string;
+  source_snapshots: (string)[];
+  packages: (SourceDependencyPackage)[];
+  dependencies: (SourceDependencyDeclaration)[];
+  files: (SourceDependencyFile)[];
+  coverage: SourceDependencyCoverage;
+  diagnostics: (SourceDependencyDiagnostic)[];
 }
 export interface StartupFailureProof {
   protocol: string;

@@ -17,7 +17,7 @@ import (
 // This opt-in hold serves the already completed actual mitigation journey.
 // Browser actions are read/refresh only. Unique owned database and committed
 // source archives are retained before any test TempDir is cleaned.
-func projectRiskRuntimeHold(t *testing.T, f *fixture, risk string, evidence projectRiskRuntimeEvidence, receipt map[string]any) {
+func projectRiskRuntimeHold(t *testing.T, f *fixture, risk string, evidence actualFixedCandidateEvidence, receipt map[string]any) {
 	t.Helper()
 	dir, web := os.Getenv("SUMA_PROJECT_RISK_UI_DIR"), os.Getenv("SUMA_PROJECT_RISK_WEB_DIR")
 	if dir == "" && web == "" {

@@ -4,6 +4,7 @@ import {Badge,Empty,ErrorNotice,Loading} from '../ui';
 import {formatNumber,tr,useLocale} from '../i18n';
 import {useProjectRead} from './useProjectRead';
 import {ProjectRiskSummaryCard} from '../ProjectRisks';
+import '../ProjectApplications.css';
 
 type Destination='overview'|'requirements'|'development'|'quality'|'operations'|'knowledge'|'settings';
 type OverviewData={project?:RecordItem;counts?:Record<string,number|{total?:number}>;activity?:{id?:string;title?:string;message?:string;action?:string;type?:string;actor_name?:string;actor?:string;at?:string;created_at?:string}[]};
@@ -12,7 +13,7 @@ const cards=[{key:'requirements',icon:Layers,to:'requirements'},{key:'tasks',ico
 const journey=[{key:'requirements',icon:Layers,view:'requirements'},{key:'collaboration',icon:Users,view:'settings',sub:'members'},{key:'workflow',icon:GitBranch,view:'development',sub:'workflows'},{key:'acceptance',icon:ShieldCheck,view:'quality'}] as const;
 function countText(value:number|{total?:number}|undefined){const count=typeof value==='number'?value:value?.total;return typeof count==='number'&&Number.isSafeInteger(count)&&count>=0?formatNumber(count):'—';}
 
-export function Overview({project,refresh,navigate,openRecord,onOpenRisks}:{project:string;refresh:number;navigate:(view:Destination,sub?:string)=>void;openRecord:(id:string)=>void;onOpenRisks:()=>void}){
+export function Overview({project,refresh,navigate,openRecord,onOpenRisks,onOpenApplications}:{project:string;refresh:number;navigate:(view:Destination,sub?:string)=>void;openRecord:(id:string)=>void;onOpenRisks:()=>void;onOpenApplications:()=>void}){
  useLocale();const snapshot=useProjectRead(project,refresh,readOverview);
  if(snapshot.error)return <ErrorNotice error={snapshot.error}/>;
  if(!snapshot.data)return <Loading/>;
@@ -21,6 +22,7 @@ export function Overview({project,refresh,navigate,openRecord,onOpenRisks}:{proj
   <div className="overview-banner"><div className="banner-symbol"><GitBranch size={25}/></div><div><span className="eyebrow">{tr('workbench.overview.eyebrow')}</span><h2>{tr('workbench.overview.title')}</h2><p>{data.project?.description||tr('workbench.overview.description')}</p></div><button onClick={()=>navigate('requirements')}><Plus size={16}/>{tr('workbench.overview.plan')}</button></div>
   <div className="metric-grid">{cards.map(card=><button className="metric-card" key={card.key} onClick={()=>navigate(card.to,'sub'in card?card.sub:undefined)}><div><span>{tr('workbench.overview.count.'+card.key)}</span><card.icon size={17}/></div><strong>{countText(data.counts?.[card.key])}</strong><span className="metric-link">{tr('workbench.overview.view_all')}<ArrowDownRight size={14}/></span></button>)}</div>
   <ProjectRiskSummaryCard project={project} refresh={refresh} onOpen={onOpenRisks}/>
+  <section className="pa-overview-entry"><div><strong>{tr('project-applications.title')}</strong><p>{tr('project-applications.overview_hint')}</p></div><button type="button" onClick={onOpenApplications}>{tr('project-applications.open_catalog')}<ArrowRight size={14}/></button></section>
   <div className="overview-columns">
    <section className="panel"><div className="panel-heading"><div><h2>{tr('workbench.overview.active')}</h2><p>{tr('workbench.overview.active_scope')}</p></div><button className="text-button" onClick={()=>navigate('development','tasks')}>{tr('workbench.overview.all_tasks')}<ArrowRight size={14}/></button></div>
     {active.length?<div className="compact-task-list">{active.slice(0,6).map(task=><button key={task.id} onClick={()=>openRecord(task.id)}><span className={'task-state-dot '+task.status}/><div><strong>{label(task)}</strong><small>{task.id.slice(0,12)} · {['urgent','high','medium','low'].includes(task.priority||'medium')?tr('common.priority.'+(task.priority||'medium')):task.priority}</small></div><Badge state={task.status}/><ChevronRight size={15}/></button>)}</div>:<Empty title={tr(tasks.length?'workbench.overview.no_active':'workbench.overview.no_tasks')} description={tr(tasks.length?'workbench.overview.active_empty_scope':'workbench.overview.no_tasks_hint')} action={<button onClick={()=>navigate(tasks.length?'development':'requirements',tasks.length?'tasks':undefined)}>{tr(tasks.length?'workbench.overview.all_tasks':'workbench.overview.go_requirements')}<ArrowRight size={14}/></button>}/>}</section>

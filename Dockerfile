@@ -19,6 +19,13 @@ COPY apps/desktop/package.json ./apps/desktop/package.json
 COPY packages/contracts/package.json ./packages/contracts/package.json
 COPY packages/agent-runtime/package.json ./packages/agent-runtime/package.json
 COPY packages/knowledge/package.json ./packages/knowledge/package.json
+COPY packages/source-inspector/package.json ./packages/source-inspector/package.json
+
+FROM node-build-base AS source-inspector-build
+RUN pnpm --filter @suma/source-inspector... install --frozen-lockfile
+COPY packages/source-inspector ./packages/source-inspector
+COPY packages/contracts ./packages/contracts
+RUN pnpm --filter @suma/source-inspector build
 
 FROM node-build-base AS web-build
 RUN pnpm --filter @suma/web... install --frozen-lockfile
@@ -74,9 +81,18 @@ CMD ["node", "dist/src/server.js"]
 
 # Default image serves the built web application and the Go API from one origin.
 FROM runtime-base AS control
+USER root
+RUN apt-get update \
+ && apt-get install --yes --no-install-recommends libstdc++6 libgcc-s1 libatomic1 \
+ && rm -rf /var/lib/apt/lists/*
 COPY --from=go-build /out/suma-control /out/suma /usr/local/bin/
 COPY --from=web-build --chown=10001:10001 /src/apps/web/dist /opt/suma/web
-ENV SUMA_ADDR=0.0.0.0:4310 SUMA_DATA_DIR=/var/lib/suma SUMA_WEB_DIR=/opt/suma/web
+COPY --from=source-inspector-build /usr/local/bin/node /usr/local/bin/node
+COPY --from=source-inspector-build /usr/local/LICENSE /opt/suma/source-inspector/NODE_LICENSE.txt
+COPY --from=source-inspector-build /src/packages/source-inspector/dist/source-inspector.bundle.mjs /src/packages/source-inspector/dist/THIRD_PARTY_NOTICES.txt /opt/suma/source-inspector/
+USER 10001:10001
+ENV SUMA_ADDR=0.0.0.0:4310 SUMA_DATA_DIR=/var/lib/suma SUMA_WEB_DIR=/opt/suma/web \
+    SUMA_SOURCE_INSPECTOR_NODE=/usr/local/bin/node SUMA_SOURCE_INSPECTOR_ENTRY=/opt/suma/source-inspector/source-inspector.bundle.mjs
 EXPOSE 4310
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD ["curl", "--fail", "--silent", "--show-error", "http://127.0.0.1:4310/healthz"]
 CMD ["/usr/local/bin/suma-control"]

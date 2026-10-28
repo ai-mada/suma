@@ -121,7 +121,7 @@ function developmentOverrides(sourceDirectory,environment={},packaged=false){
  return {userData:values[0],binary:values[1],web:values[2]};
 }
 function controlEnvironment(environment,{data,web,origin,key}){
- const clean={};for(const [name,value] of Object.entries(environment))if(!/^SUMA_(DB_.*|DESKTOP_.*|WORKSPACE_ROOT(?:_FILE)?|DATA_DIR(?:_FILE)?|WEB_DIR(?:_FILE)?|ADDR(?:_FILE)?|PUBLIC_URL(?:_FILE)?|ALLOWED_ORIGINS(?:_FILE)?)$/i.test(name))clean[name]=value;
+ const clean={};for(const [name,value] of Object.entries(environment))if(!/^SUMA_(DB_.*|DESKTOP_.*|SOURCE_INSPECTOR_.*|WORKSPACE_ROOT(?:_FILE)?|DATA_DIR(?:_FILE)?|WEB_DIR(?:_FILE)?|ADDR(?:_FILE)?|PUBLIC_URL(?:_FILE)?|ALLOWED_ORIGINS(?:_FILE)?)$/i.test(name))clean[name]=value;
  return {...clean,SUMA_DB_DRIVER:'sqlite',SUMA_DB_DSN:path.join(data,'suma.db'),SUMA_DATA_DIR:data,SUMA_WEB_DIR:web,SUMA_PUBLIC_URL:origin,SUMA_ALLOWED_ORIGINS:origin,SUMA_DESKTOP_WORKSPACE_KEY:key.toString('hex')};
 }
 module.exports={CHANNEL,PROTOCOL,canonicalLocalPath,ensurePrivateDirectory,loadWorkspaceKey,validRequest,senderAllowed,signDirectoryGrant,createDirectoryPicker,developmentOverrides,controlEnvironment};

@@ -25,6 +25,8 @@ const messages = {
   embed_inventory: ['Go 内嵌资源需要先纳入源码摘要范围', 'Go embedded resources must first be included in the source inventory'],
   maintainer_required: ['Debian 安装包需要真实维护者；请设置 --maintainer 或 SUMA_DESKTOP_MAINTAINER 为姓名 <邮箱>', 'Debian packages require a real maintainer; set --maintainer or SUMA_DESKTOP_MAINTAINER to Name <email>'],
   maintainer_invalid: ['维护者必须是有效的姓名 <邮箱>，不能包含控制字符', 'Maintainer must be a valid Name <email> without control characters'],
+  source_inspector_node: ['源码观察器需要目标平台 Node 22+ 及其原始许可证；跨目标请提供 --node-binary 和 --node-license', 'Source inspection requires target Node 22+ and its original license; provide --node-binary and --node-license for a different target'],
+  source_inspector_bundle: ['源码观察器及依赖许可资源缺失或摘要不匹配，请重新准备桌面资源', 'Source inspector or dependency notices are missing or their hashes differ; prepare desktop resources again'],
 };
 function locale(value) { return value === 'en-US' || value === 'en' ? 'en-US' : 'zh-CN'; }
 function failure(code, detail = '', language = 'zh-CN') {
@@ -43,7 +45,7 @@ function createPlan(argv = [], context = {}) {
   const hostArch = context.hostArch || process.arch;
   const options = {};
   const boolean = new Set(['plan', 'help']);
-  const names = new Set(['platform', 'arch', 'format', 'web-dir', 'control-binary', 'control-manifest', 'electron-dist', 'out-dir', 'signing', 'language', 'maintainer', ...boolean]);
+  const names = new Set(['platform', 'arch', 'format', 'web-dir', 'control-binary', 'control-manifest', 'electron-dist', 'node-binary', 'node-license', 'out-dir', 'signing', 'language', 'maintainer', ...boolean]);
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (!arg.startsWith('--') || !names.has(arg.slice(2)) || Object.hasOwn(options, arg.slice(2))) throw failure('option', arg, options.language || env.SUMA_LANGUAGE);
@@ -63,7 +65,7 @@ function createPlan(argv = [], context = {}) {
   const signing = options.signing || 'off';
   if (!['win32','darwin','linux'].includes(platform) || !['x64','arm64'].includes(arch) || !['installer','portable','dir','all'].includes(format) || !['off','auto','required'].includes(signing)) throw failure('option', '', language);
   if (options['control-manifest'] && !options['control-binary']) throw failure('option', '--control-manifest requires --control-binary', language);
-  for (const name of ['web-dir','control-binary','control-manifest','electron-dist','out-dir']) if (options[name] && !path.isAbsolute(options[name])) throw failure('absolute_path', `--${name}`, language);
+  for (const name of ['web-dir','control-binary','control-manifest','electron-dist','node-binary','node-license','out-dir']) if (options[name] && !path.isAbsolute(options[name])) throw failure('absolute_path', `--${name}`, language);
   const target = `${platform}-${arch}`;
   const stage = path.join(root, '.cache/desktop', target);
   const output = path.resolve(options['out-dir'] || path.join(root, 'dist/desktop', target));
@@ -91,11 +93,13 @@ function createPlan(argv = [], context = {}) {
     schema_version:1, product:'suma', version, language, root, platform, arch, target, format, targets,
     host:{platform:hostPlatform,arch:hostArch}, goos:platform === 'win32' ? 'windows' : platform, goarch:arch === 'x64' ? 'amd64' : arch,
     plan_only:Boolean(options.plan), help:Boolean(options.help), output, stage,
-    resources:{control:path.join(stage,'control',platform === 'win32' ? 'suma-control.exe' : 'suma-control'),web:path.join(stage,'web')},
+    resources:{control:path.join(stage,'control',platform === 'win32' ? 'suma-control.exe' : 'suma-control'),web:path.join(stage,'web'),source_inspector:path.join(stage,'source-inspector')},
     web_source:options['web-dir'] ? path.resolve(options['web-dir']) : null,
     control_source:options['control-binary'] ? path.resolve(options['control-binary']) : null,
     control_manifest:options['control-binary'] ? path.resolve(options['control-manifest'] || `${options['control-binary']}.manifest.json`) : null,
     electron_dist:options['electron-dist'] ? path.resolve(options['electron-dist']) : null,
+    node_source:options['node-binary'] ? path.resolve(options['node-binary']) : platform === hostPlatform && arch === hostArch ? process.execPath : null,
+    node_license_source:options['node-license'] ? path.resolve(options['node-license']) : null,
     tmp:path.join(stage,'tmp'), cache:path.join(stage,'cache'), signing, supported_signing:['off'], maintainer, publish:'never',
     native_host_required:format !== 'dir' || platform === 'darwin', build_allowed:reasons.length === 0, reasons,
     limitations:['cross_os_dir_requires_sdk_and_target_electron_resources','signing_and_notarization_need_independent_verification','installation_and_gui_acceptance_not_proven'],

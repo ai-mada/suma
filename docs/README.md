@@ -6,6 +6,7 @@
 
 | 当前入口 | 内容 |
 | --- | --- |
+| [应用、源码版本与依赖](development/project-applications.md) | T-APPLICATION-123：项目内应用归属、原真实仓库集成来源、固定提交清单观察、人工依赖固定和不可变登记版本；[架构](architecture/project-applications.md)、[部署与资源边界](deployment/application-source-inspector.md)、[English](en/project-applications.md)、[术语](../GLOSSARY.md)。代码版本登记与发布部署分别管理，需求25完整范围继续保留。 |
 | [智能派发推荐](product/dispatch-recommendations.md) | T-ROUTING-122：有界真实工具／模型候选、单次只读分析、可编辑人工采用到原计划与明确启动；[架构与SOP](architecture/dispatch-recommendations.md)、[合同](../contracts/dispatch-recommendations.md)、[报告](quality/dispatch-recommendations-verification.md)、[摘要](quality/dispatch-recommendations-summary.json) |
 | [项目风险](development/project-risks.md) | T-PROJECT-121：正式风险与模型建议分开，责任／评估、关联任务处置、固定复核与关闭／重开；[English](en/project-risks.md)、[PRD](product/project-risks.md)、[合同](../contracts/project-risks.md)、[架构](architecture/project-risks.md)、[报告](quality/project-risks-verification.md)、[摘要](quality/project-risks-summary.json) |
 | [产品与设计基线](product/v1-baseline.md) | 单一新库初始化、版本边界、完整需求1–26及工程约束；当前58项有限实现／34待办／92总计 |

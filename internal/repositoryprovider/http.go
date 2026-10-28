@@ -91,6 +91,10 @@ func DecodeConfig(raw []byte) (Config, error) {
 }
 func (s *Server) Handler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/source-inspections" {
+			s.sourceInspectionHTTP(w, r)
+			return
+		}
 		runner, reconciler := token(r, s.cfg.RunnerTokenEnv), token(r, s.cfg.ReconcileTokenEnv)
 		if !runner && !reconciler {
 			writeError(w, 403, "repository_forbidden")

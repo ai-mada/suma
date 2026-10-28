@@ -11,15 +11,16 @@ import (
 )
 
 type Service struct {
-	DB                   *sql.DB
-	Dialect              string
-	DataDir              string
-	ReleaseProviders     []ReleaseProviderConfig
-	RepositoryProviders  []RepositoryProviderConfig
-	AutomationIngressKey []byte
-	DesktopWorkspaceKey  []byte   // Local desktop root approvals only; never projected to clients or tools.
-	authorityBudgets     sync.Map // *sql.Tx -> *authorityTxBudget; never persisted authority
-	authorityBudgetMu    sync.Mutex
+	DB                         *sql.DB
+	Dialect                    string
+	DataDir                    string
+	ReleaseProviders           []ReleaseProviderConfig
+	RepositoryProviders        []RepositoryProviderConfig
+	ApplicationSourceInspector ApplicationSourceInspectorConfig
+	AutomationIngressKey       []byte
+	DesktopWorkspaceKey        []byte   // Local desktop root approvals only; never projected to clients or tools.
+	authorityBudgets           sync.Map // *sql.Tx -> *authorityTxBudget; never persisted authority
+	authorityBudgetMu          sync.Mutex
 }
 
 func (s *Service) q(query string) string {
@@ -191,6 +192,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 		return err
 	}
 	if err := s.InitializeProjectRisks(ctx); err != nil {
+		return err
+	}
+	if err := s.InitializeProjectApplications(ctx); err != nil {
 		return err
 	}
 	if err := s.InitializeDispatchRecommendations(ctx); err != nil {

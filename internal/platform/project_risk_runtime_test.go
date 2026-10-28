@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 
@@ -17,11 +18,12 @@ import (
 
 // Only generated source fixtures are used. These are deterministic local
 // commands, not AI execution or evidence of a customer's human sign-off.
-type projectRiskRuntimeEvidence struct {
+type actualFixedCandidateEvidence struct {
 	Repository             string `json:"-"`
 	BaseCommit             string `json:"base_commit"`
 	CandidateCommit        string `json:"candidate_commit"`
 	RunID                  string `json:"run_id"`
+	SourceNodeID           string `json:"source_node_id"`
 	TaskID                 string `json:"task_id"`
 	PlanID                 string `json:"plan_id"`
 	PlanRevision           int    `json:"plan_revision"`
@@ -81,7 +83,7 @@ func TestProjectRiskActualAlertAdoptionMitigationReviewAndReopen(t *testing.T) {
 	if started.Risk.State != "mitigating" || started.Readiness.MitigationReady {
 		t.Fatal("risk started without retaining the unverified mitigation gate", started)
 	}
-	evidence := projectRiskRuntimeMitigate(t, f, task)
+	evidence := actualFixedCandidateDelivery(t, f, task, nil, false)
 	current := read()
 	if !current.Readiness.MitigationReady {
 		t.Fatal("current formal acceptance and independent candidate evidence were not recognized", current)
@@ -112,7 +114,7 @@ func TestProjectRiskActualAlertAdoptionMitigationReviewAndReopen(t *testing.T) {
 
 // Reuse the original T119 profile/inventory, publication and decoding helpers;
 // keep only the new risk journey's two-process candidate verification here.
-func projectRiskRuntimeMitigate(t *testing.T, f *fixture, task Record) projectRiskRuntimeEvidence {
+func actualFixedCandidateDelivery(t *testing.T, f *fixture, task Record, extraFiles map[string]string, exportCandidate bool) actualFixedCandidateEvidence {
 	t.Helper()
 	ctx := context.Background()
 	f.e.AttemptAccounting = f.s
@@ -124,13 +126,27 @@ func projectRiskRuntimeMitigate(t *testing.T, f *fixture, task Record) projectRi
 	if err != nil {
 		t.Fatal("Git is required for actual risk mitigation", err)
 	}
-	evidence := projectRiskRuntimeEvidence{Repository: t.TempDir(), TaskID: task.ID}
+	evidence := actualFixedCandidateEvidence{Repository: t.TempDir(), TaskID: task.ID, SourceNodeID: "mitigate"}
 	repo := evidence.Repository
 	workspaceGitTestCommand(t, repo, "init", "--initial-branch=main")
 	workspaceGitTestWrite(t, repo, ".gitignore", ".cache/\n")
 	const original = "module.exports=(a,b)=>a-b;\n"
 	workspaceGitTestWrite(t, repo, "sum.cjs", original)
-	workspaceGitTestCommand(t, repo, "add", ".gitignore", "sum.cjs")
+	paths := []string{}
+	for path := range extraFiles {
+		paths = append(paths, path)
+	}
+	sort.Strings(paths)
+	for _, path := range paths {
+		if path == "sum.cjs" || path == ".gitignore" || filepath.IsAbs(path) || !under(repo, filepath.Join(repo, filepath.FromSlash(path))) {
+			t.Fatal("extra fixture file is outside its owned source scope")
+		}
+		if err := os.MkdirAll(filepath.Dir(filepath.Join(repo, filepath.FromSlash(path))), 0700); err != nil {
+			t.Fatal(err)
+		}
+		workspaceGitTestWrite(t, repo, path, extraFiles[path])
+	}
+	workspaceGitTestCommand(t, repo, "add", "--", ".")
 	workspaceGitTestCommand(t, repo, "commit", "-m", "fixture: project risk original source")
 	evidence.BaseCommit = workspaceGitTestCommand(t, repo, "rev-parse", "HEAD")
 	const fix = `const fs=require('node:fs'),cp=require('node:child_process'),path=require('node:path');const root=path.resolve('.cache','project-risk121-git'),hooks=path.join(root,'empty-hooks'),config=path.join(root,'empty.gitconfig');fs.mkdirSync(hooks,{recursive:true,mode:0o700});fs.writeFileSync(config,'',{flag:'wx',mode:0o600});fs.writeFileSync('sum.cjs','module.exports=(a,b)=>a+b;\n');const git=process.argv[1],flags=['-c','core.hooksPath='+hooks,'-c','user.name=Risk fixture','-c','user.email=risk@example.invalid','-c','commit.gpgsign=false','-c','core.autocrlf=false'];for(const args of [['add','--','sum.cjs'],['commit','-m','fixture: mitigate the exact project risk']])cp.execFileSync(git,[...flags,...args],{env:{...process.env,GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:config,GIT_TERMINAL_PROMPT:'0'},stdio:'pipe'});console.log('Owned mitigation candidate committed.');`
@@ -148,16 +164,25 @@ func projectRiskRuntimeMitigate(t *testing.T, f *fixture, task Record) projectRi
 	defer control.Close()
 	producer := &runner.Client{BaseURL: control.URL, Token: producerToken, ProjectID: f.project}
 	tester := &runner.Client{BaseURL: control.URL, Token: testToken, ProjectID: f.project}
+	if exportCandidate {
+		developer.Artifacts = producer
+		verifier.Artifacts = tester
+	}
 	a, err := producer.Claim(ctx, producerProfile.WorkerID, []string{"command:mitigate121"})
 	if err != nil || a == nil || a.RunID != evidence.RunID {
 		t.Fatal("actual mitigation claim missing", err)
 	}
 	produced := runner.Execute(ctx, *a, developer)
-	produced.OperationID = newID()
+	if produced.OperationID == "" {
+		produced.OperationID = newID()
+	}
 	if produced.ExitCode != 0 || produced.Error != "" || produced.OutcomeUnknown || produced.ToolEvidence == nil || produced.ToolEvidence.Profile.ProfileSHA256 != producerProfile.Profile.ProfileSHA256 || produced.WorkspaceEvidence["clean"] != true {
 		t.Fatalf("actual mitigation failed: exit=%d error=%s output=%q", produced.ExitCode, produced.Error, produced.Output[:min(len(produced.Output), 4000)])
 	}
 	evidence.CandidateCommit, _ = produced.WorkspaceEvidence["head_commit"].(string)
+	if exportCandidate && produced.WorkspaceEvidence["candidate_bundle"] == nil {
+		t.Fatal("the actual candidate bundle was not sealed through the control plane")
+	}
 	if evidence.CandidateCommit == "" || evidence.CandidateCommit == evidence.BaseCommit {
 		t.Fatal("mitigation did not create a new committed candidate")
 	}

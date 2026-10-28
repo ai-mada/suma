@@ -9,13 +9,14 @@ import (
 // RepositoryProviderConfig is immutable startup configuration. Secrets and local
 // target paths never enter public domain snapshots.
 type RepositoryProviderConfig struct {
-	ID             string   `json:"id"`
-	TenantID       string   `json:"tenant_id"`
-	ProjectID      string   `json:"project_id"`
-	TargetAliases  []string `json:"target_aliases"`
-	TokenHash      string   `json:"-"`
-	Origin         string   `json:"-"`
-	ReconcileToken string   `json:"-"`
+	ID              string   `json:"id"`
+	TenantID        string   `json:"tenant_id"`
+	ProjectID       string   `json:"project_id"`
+	TargetAliases   []string `json:"target_aliases"`
+	TokenHash       string   `json:"-"`
+	Origin          string   `json:"-"`
+	ReconcileToken  string   `json:"-"`
+	SourceReadToken string   `json:"-"` // Independent capability; ordinary Runner/reconcile credentials cannot read source bytes.
 }
 type RepositoryIntegrationTarget struct {
 	ID                string                          `json:"id"`

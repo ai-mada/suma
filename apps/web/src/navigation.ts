@@ -19,6 +19,14 @@ export function locateProjectRisk(id:string,canLeave:()=>boolean,update:(change:
  return true;
 }
 
+/** Application and pinned-version locators change together. A rejected leave
+ * guard must not replace a task, version or another page's detail selection. */
+export function locateProjectApplication(id:string,version:string,canLeave:()=>boolean,update:(change:(route:WorkbenchRoute)=>WorkbenchRoute)=>void):boolean{
+ if(!canLeave())return false;
+ update(route=>({...route,view:'overview',sub:'',layout:'applications',panel:id?'application:'+id:'',record:version,run:'',node:'',attempt:'',q:'',status:'all',knowledge_kind:undefined,catalog_domain:undefined,catalog_scenario:undefined,catalog_state:undefined,catalog_source:undefined}));
+ return true;
+}
+
 /** Provider locators are data, never URLs. Only known in-project record kinds
  * become workbench destinations; foreign/invalid locators have no link. */
 export function sourceDestination(project:string,value:unknown):Pick<WorkbenchRoute,'project'|'view'|'sub'|'record'>|undefined {

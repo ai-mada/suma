@@ -24,16 +24,17 @@ type TargetConfig struct {
 	Ref            string `json:"ref"`
 }
 type Config struct {
-	ProviderID        string                  `json:"provider_id"`
-	TenantID          string                  `json:"tenant_id"`
-	ProjectID         string                  `json:"project_id"`
-	ControlURL        string                  `json:"control_url"`
-	ControlTokenEnv   string                  `json:"control_token_env"`
-	RunnerTokenEnv    string                  `json:"runner_token_env"`
-	ReconcileTokenEnv string                  `json:"reconcile_token_env"`
-	GitExecutable     string                  `json:"git_executable"`
-	Targets           map[string]TargetConfig `json:"targets"`
-	StateDir          string                  `json:"-"`
+	ProviderID         string                  `json:"provider_id"`
+	TenantID           string                  `json:"tenant_id"`
+	ProjectID          string                  `json:"project_id"`
+	ControlURL         string                  `json:"control_url"`
+	ControlTokenEnv    string                  `json:"control_token_env"`
+	RunnerTokenEnv     string                  `json:"runner_token_env"`
+	ReconcileTokenEnv  string                  `json:"reconcile_token_env"`
+	SourceReadTokenEnv string                  `json:"source_read_token_env,omitempty"`
+	GitExecutable      string                  `json:"git_executable"`
+	Targets            map[string]TargetConfig `json:"targets"`
+	StateDir           string                  `json:"-"`
 }
 type target struct {
 	config                                  TargetConfig
@@ -104,6 +105,14 @@ func New(cfg Config) (result *Server, err error) {
 		}
 		seen[name] = true
 		values[v] = true
+	}
+	// Source content has a separate opt-in read capability. A Runner or a
+	// reconciliation credential must not gain arbitrary repository content IO.
+	if cfg.SourceReadTokenEnv != "" {
+		value := os.Getenv(cfg.SourceReadTokenEnv)
+		if seen[cfg.SourceReadTokenEnv] || len(value) < 32 || values[value] || strings.TrimSpace(value) != value || strings.ContainsAny(value, "\r\n") {
+			return nil, fmt.Errorf("source read requires an independent credential of at least 32 bytes")
+		}
 	}
 	if !filepath.IsAbs(cfg.GitExecutable) {
 		return nil, fmt.Errorf("fixed absolute Git executable required")

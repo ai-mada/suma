@@ -71,6 +71,33 @@ function binaryFixture(filename, platform = 'win32', arch = 'x64') {
   }
   fs.writeFileSync(filename,data);
 }
+// Controlled packaging protocol inputs, not a real Node distribution or parser
+// execution. The injected command callback below is the sole build boundary.
+function sourceInspectorFixture(directory) {
+  for (const name of ['packages/source-inspector/src','packages/source-inspector/scripts','packages/contracts/src','input-node']) fs.mkdirSync(path.join(directory,name),{recursive:true});
+  fs.writeFileSync(path.join(directory,'packages/source-inspector/src/cli.mjs'),'// Controlled parser source fixture\n');
+  fs.writeFileSync(path.join(directory,'packages/source-inspector/scripts/build.mjs'),'// Controlled build boundary fixture\n');
+  fs.writeFileSync(path.join(directory,'packages/source-inspector/package.json'),'{"name":"@suma/source-inspector","version":"1.0.0"}');
+  fs.writeFileSync(path.join(directory,'packages/contracts/src/source-inspector-runtime.mjs'),'export const SCHEMA_VERSION=1;\n');
+  fs.writeFileSync(path.join(directory,'pnpm-lock.yaml'),'lockfileVersion: 9.0\n');
+  const node = path.join(directory,'input-node/node.exe');binaryFixture(node);
+  const license = path.join(directory,'input-node/LICENSE');fs.writeFileSync(license,'Node distribution license protocol fixture, not a distributable license.\n');
+  const calls = {builds:0,versions:0};
+  return {args:['--node-binary',node,'--node-license',license],calls,run(command,argv){
+    if (argv.length===2&&argv[0]==='--language=en'&&argv[1]==='--version') return {status:0,stdout:'suma-control 1.0.0\n'};
+    if (command===node&&argv.length===1&&argv[0]==='--version'){calls.versions++;return {status:0,stdout:'v24.0.0\n'};}
+    assert.equal(command,process.execPath);assert.deepEqual(argv,[path.join(directory,'packages/source-inspector/scripts/build.mjs')]);
+    calls.builds++;const dist=path.join(directory,'packages/source-inspector/dist');fs.mkdirSync(dist,{recursive:true});
+    fs.writeFileSync(path.join(dist,'source-inspector.bundle.mjs'),'// Controlled bundled parser bytes\n');
+    fs.writeFileSync(path.join(dist,'THIRD_PARTY_NOTICES.txt'),'Controlled dependency license fixture\n');return {status:0};
+  }};
+}
+function inspectorResourcesFixture(plan,directory) {
+  const {fileHash} = require('../scripts/provenance.cjs');fs.mkdirSync(directory,{recursive:true});binaryFixture(path.join(directory,'node.exe'));
+  for (const name of ['source-inspector.bundle.mjs','NODE_LICENSE.txt','THIRD_PARTY_NOTICES.txt']) fs.writeFileSync(path.join(directory,name),'Controlled packaged resource fixture: '+name);
+  const file=name=>({file:name,sha256:fileHash(path.join(directory,name))});
+  return {schema_version:1,kind:'suma-source-inspector',product_version:plan.version,target:plan.target,source_sha256:'a'.repeat(64),node:{...file('node.exe'),version:'v24.0.0',version_verification:'native_version_and_format'},entry:file('source-inspector.bundle.mjs'),notices:[file('NODE_LICENSE.txt'),file('THIRD_PARTY_NOTICES.txt')]};
+}
 fs.mkdirSync(path.join(root,'.cache/e2e/desktop-108'),{recursive:true});
 
 test('prebuilt control rejects a wrong CPU and rejects a binary changed after its source attestation', t => {
@@ -107,18 +134,22 @@ test('preparation reuses validated control and copies web without writing shared
   const {prepare} = require('../scripts/prepare.cjs');
   assert.equal(typeof prepare,'function','preparation must be callable without running a build at require time');
   const binary = path.join(directory,'control.exe');binaryFixture(binary);
-  const args = ['--platform','win32','--arch','x64','--web-dir',path.join(directory,'input-web'),'--control-binary',binary];
+  const inspector = sourceInspectorFixture(directory);
+  const args = ['--platform','win32','--arch','x64','--web-dir',path.join(directory,'input-web'),'--control-binary',binary,...inspector.args];
   const plan = createPlan(args,{root:directory,hostPlatform:'win32',hostArch:'x64'});
   fs.writeFileSync(`${binary}.manifest.json`,JSON.stringify(createControlManifest(plan,binary)));
   const parent = {TEMP:'original',GOOS:'original',CSC_LINK:'secret-not-for-unsigned-build'};
   const env = childEnvironment(plan,parent);
   assert.equal(parent.TEMP,'original');assert.equal(parent.GOOS,'original');assert.equal(parent.CSC_LINK,'secret-not-for-unsigned-build');
   assert.equal(env.GOOS,'windows');assert.equal(env.GOARCH,'amd64');assert.equal(env.CGO_ENABLED,'0');assert.equal(env.CSC_LINK,undefined);
-  const receipt = await prepare(plan,{run:(_command,argv)=>{assert.deepEqual(argv,['--language=en','--version']);return {status:0,stdout:'suma-control 1.0.0\n'};}});
+  const receipt = await prepare(plan,{run:inspector.run});
   assert.equal(receipt.control.binary_sha256,createControlManifest(plan,binary).binary_sha256);
   assert.equal(fs.readFileSync(plan.resources.web + '/index.html','utf8'),'<!doctype html><title>Suma</title>');
   assert.equal(fs.existsSync(path.join(directory,'.cache/desktop/control')),false);
   assert.equal(fs.existsSync(path.join(directory,'apps/web/dist')),false);
+  assert.equal(inspector.calls.builds,1);assert.equal(inspector.calls.versions,1);
+  assert.equal(receipt.source_inspector.node.version,'v24.0.0');
+  assert.equal(require('../scripts/source-inspector.cjs').validateSourceInspector(plan,plan.resources.source_inspector,receipt.source_inspector),receipt.source_inspector);
 });
 
 test('web input rejects accidental credentials and databases before staged resources are copied', async t => {
@@ -177,10 +208,11 @@ test('an SDK failure leaves no completed public delivery', async t => {
   const {createPlan} = require(contractPath);
   const {createControlManifest} = require('../scripts/provenance.cjs');
   const binary = path.join(directory,'control.exe');binaryFixture(binary);
-  const args = ['--platform','win32','--arch','x64','--web-dir',path.join(directory,'input-web'),'--control-binary',binary];
+  const inspector = sourceInspectorFixture(directory);
+  const args = ['--platform','win32','--arch','x64','--web-dir',path.join(directory,'input-web'),'--control-binary',binary,...inspector.args];
   const plan = createPlan(args,{root:directory,hostPlatform:'win32'});
   fs.writeFileSync(`${binary}.manifest.json`,JSON.stringify(createControlManifest(plan,binary)));
-  await assert.rejects(()=>packageDesktop(args,{root:directory,hostPlatform:'win32',run:()=>({status:0,stdout:'suma-control 1.0.0\n'}),sdkBuild:async()=>{throw Error('controlled SDK failure');}}),/controlled SDK failure/);
+  await assert.rejects(()=>packageDesktop(args,{root:directory,hostPlatform:'win32',run:inspector.run,sdkBuild:async()=>{throw Error('controlled SDK failure');}}),/controlled SDK failure/);
   assert.equal(fs.existsSync(plan.output),false);
   assert.equal(fs.existsSync(path.join(plan.stage,'build.lock')),false);
 });
@@ -209,7 +241,7 @@ test('packed app resource validation rejects wrong runtime CPU or stale embedded
   const runtime = path.join(unpacked,'Suma.exe');binaryFixture(runtime,'win32','arm64');
   const control = path.join(unpacked,'resources/control/suma-control.exe');binaryFixture(control);
   fs.writeFileSync(path.join(unpacked,'resources/web/index.html'),'current');
-  const prepared = {control:createControlManifest(plan,control),web:inventory(path.join(unpacked,'resources/web'))};
+  const prepared = {control:createControlManifest(plan,control),web:inventory(path.join(unpacked,'resources/web')),source_inspector:inspectorResourcesFixture(plan,path.join(unpacked,'resources/source-inspector'))};
   assert.throws(()=>validatePackagedApplication(plan,prepared,unpacked),{code:'binary_target'});
   binaryFixture(runtime);
   validatePackagedApplication(plan,prepared,unpacked);

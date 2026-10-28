@@ -9,6 +9,12 @@ import (
 )
 
 func projectRiskRating(v *int) bool { return v == nil || *v >= 1 && *v <= 5 }
+func projectRiskCodeEvidenceBlocker(code string) string {
+	if code == "code_source_unsupported" {
+		return "risk_execution_source_unsupported"
+	}
+	return "risk_task_evidence_stale"
+}
 func projectRiskLinkKind(kind string) string {
 	return map[string]string{"task": "tasks", "requirement": "requirements", "issue": "issues"}[kind]
 }
@@ -93,12 +99,12 @@ func (s *Service) projectRiskLinksTx(ctx context.Context, auth *authorizedComman
 					}
 					blockers = append(blockers, ProjectRiskBlocker{Code: "risk_task_evidence_stale", RefID: r.ID})
 				} else {
-					ok, code, e := s.projectRiskCodeEvidenceTx(ctx, auth, risk.ProjectID, basis.VerifiedRunID)
+					ok, code, e := s.currentCodeCandidateEvidenceTx(ctx, auth, risk.ProjectID, basis.VerifiedRunID)
 					if e != nil {
 						return nil, blockers, e
 					}
 					if !ok {
-						blockers = append(blockers, ProjectRiskBlocker{Code: code, RefID: r.ID})
+						blockers = append(blockers, ProjectRiskBlocker{Code: projectRiskCodeEvidenceBlocker(code), RefID: r.ID})
 					}
 				}
 			}

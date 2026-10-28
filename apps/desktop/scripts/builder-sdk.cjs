@@ -30,6 +30,7 @@ function builderConfig(plan,rawOutput) {
     extraResources:[
       {from:plan.resources.control,to:`control/${path.basename(plan.resources.control)}`},
       {from:plan.resources.web,to:'web',filter:['**/*']},
+      {from:plan.resources.source_inspector,to:'source-inspector',filter:['node','node.exe','source-inspector.bundle.mjs','NODE_LICENSE.txt','THIRD_PARTY_NOTICES.txt','manifest.json']},
     ],
     win:{target:plan.platform === 'win32' ? plan.targets : [],signExecutable:plan.signing !== 'off'},
     mac:{target:plan.platform === 'darwin' ? plan.targets : [],category:'public.app-category.developer-tools',hardenedRuntime:true,entitlements:path.join(__dirname,'entitlements.mac.plist'),entitlementsInherit:path.join(__dirname,'entitlements.mac.plist'),notarize:false,...(plan.signing === 'off' ? {identity:null} : {})},

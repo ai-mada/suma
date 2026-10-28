@@ -5,9 +5,10 @@ const {randomUUID} = require('node:crypto');
 const {spawnSync} = require('node:child_process');
 const {createPlan,childEnvironment,failure,within} = require('./build-plan.cjs');
 const {inventory,sourceInventory,assertPlainPath,createControlManifest,validateControlManifest,validateTarget} = require('./provenance.cjs');
+const {prepareSourceInspector} = require('./source-inspector.cjs');
 
 function assertScratch(plan) {
-  const directories = [plan.stage,plan.tmp,plan.cache,path.join(plan.cache,'go-build'),path.join(plan.cache,'go-mod'),path.join(plan.cache,'electron'),path.join(plan.cache,'electron-builder'),path.join(plan.stage,'previous'),path.dirname(plan.resources.control),plan.resources.web];
+  const directories = [plan.stage,plan.tmp,plan.cache,path.join(plan.cache,'go-build'),path.join(plan.cache,'go-mod'),path.join(plan.cache,'electron'),path.join(plan.cache,'electron-builder'),path.join(plan.stage,'previous'),path.dirname(plan.resources.control),plan.resources.web,plan.resources.source_inspector];
   for (const directory of directories) {
     if (directory !== plan.stage && !within(plan.stage,directory)) throw failure('unsafe_path',directory,plan.language);
     assertPlainPath(directory,plan.language,true);
@@ -45,7 +46,7 @@ function archivePrevious(plan) {
   // Preserve prior generated resources, including unexpected unique files. No recursive deletion.
   const previous = path.join(plan.stage,'previous',randomUUID());
   assertPlainPath(previous,plan.language,true);
-  for (const name of ['control','web','prepared.json']) {
+  for (const name of ['control','web','source-inspector','prepared.json']) {
     const filename = path.join(plan.stage,name);
     if (!fs.existsSync(filename)) continue;
     assertPlainPath(filename,plan.language);
@@ -92,6 +93,7 @@ async function prepare(plan, context = {}) {
     if (version.stdout?.trim() !== `suma-control ${plan.version}`) throw failure('binary_version','suma-control',plan.language);
   }
   const control = prebuilt || createControlManifest(plan,plan.resources.control,source);
+  const sourceInspector = await prepareSourceInspector(plan,env,(command,args,options)=>checkedRun(command,args,options,plan,execute));
   if (web) {
     for (const file of web.files) {
       const destination = path.join(plan.resources.web,file.path);
@@ -110,14 +112,14 @@ async function prepare(plan, context = {}) {
   const stagedWeb = inventory(plan.resources.web,{language:plan.language});
   if (web.sha256 !== stagedWeb.sha256 || source.sha256 !== sourceInventory(plan.root).sha256) throw failure('source_changed','',plan.language);
   fs.writeFileSync(`${plan.resources.control}.manifest.json`,`${JSON.stringify(control,null,2)}\n`);
-  const receipt = {schema_version:1,product_version:plan.version,target:plan.target,control,web:stagedWeb};
+  const receipt = {schema_version:1,product_version:plan.version,target:plan.target,control,web:stagedWeb,source_inspector:sourceInspector};
   fs.writeFileSync(path.join(plan.stage,'prepared.json'),`${JSON.stringify(receipt,null,2)}\n`);
   return receipt;
 }
 async function prepareDesktop(argv = process.argv.slice(2), context = {}) {
   const plan = createPlan(argv,context);
   if (plan.plan_only) return plan;
-  if (plan.help) return {usage:'node apps/desktop/scripts/prepare.cjs --platform win32|darwin|linux --arch x64|arm64 [--plan] [--web-dir ABS] [--control-binary ABS] [--control-manifest ABS] [--language zh-CN|en-US]'};
+  if (plan.help) return {usage:'node apps/desktop/scripts/prepare.cjs --platform win32|darwin|linux --arch x64|arm64 [--plan] [--web-dir ABS] [--control-binary ABS] [--control-manifest ABS] [--node-binary ABS] [--node-license ABS] [--language zh-CN|en-US]'};
   return prepare(plan,context);
 }
 if (require.main === module) prepareDesktop().then(value=>process.stdout.write(`${JSON.stringify(value,null,2)}\n`)).catch(error=>{process.stderr.write(`[${error.code || 'prepare_failed'}] ${error.message}\n`);process.exitCode=1;});

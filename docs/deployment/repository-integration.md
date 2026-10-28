@@ -4,7 +4,7 @@
 
 ## 进程与信任边界
 
-复用 Go、Git、HTTP、持久 DAG 与现有 Runner。`suma-repository-provider` 是管理员维护的独立进程，管理预先指定的裸仓库和分支。当前控制面到提供方只接纳明确的回环 HTTP 地址；跨主机提供方的 TLS、身份联邦和容量验收仍待交付。Runner 通过现有项目或 Pool 凭证领取固定信封，不能提交任意仓库路径。Provider 配置不代表拥有业务项目权限。
+复用 Go、Git、HTTP、持久 DAG 与现有 Runner。`suma-repository-provider` 是管理员维护的独立进程，管理预先指定的裸仓库和分支。当前控制面支持正常证书验证的HTTPS提供方地址及明确配置的字面回环IP HTTP地址，不使用代理或重定向；提供方命令本身只监听回环地址，跨主机部署需要管理员管理的HTTPS入口。协议支持与实际TLS、身份联邦及容量验收分别记录。Runner 通过现有项目或 Pool 凭证领取固定信封，不能提交任意仓库路径。Provider 配置不代表拥有业务项目权限。
 
 `scripts/build-runtime.ps1` 将新进程纳入既有运行时构建清单。它可以独立部署；浏览器、CLI 和桌面业务仍共用控制面。开发构建可执行 `go build ./cmd/suma-repository-provider`。跨平台构建成功与实际安装、签名、启动验收分别记录。
 
@@ -47,6 +47,8 @@ Provider 配置示意（占位标识需要替换）：
   }
 }
 ```
+
+应用固定源码检查另使用独立可选`source_read_token_env`，不是上述Runner或核对密钥的别名；未配置禁止源码读取。两端配置、固定Node解析器和限额见[应用源码检查部署](application-source-inspector.md)。仓库集成权限不自动授予应用目录写入或版本登记权限。
 
 ## 停止、备份与核对
 

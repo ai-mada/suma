@@ -10,7 +10,7 @@ import (
 	"github.com/ai-mada/suma/internal/toolcontract"
 )
 
-type issueRepairNodeResult struct {
+type codeCandidateNodeResult struct {
 	ID, State, Worker string
 	Attempt           int
 	Fence             int64
@@ -20,7 +20,7 @@ type issueRepairNodeResult struct {
 
 // Read the result for the current node attempt/fence/worker only. A report or
 // editable issue field cannot substitute an earlier producer or test attempt.
-func (s *Service) issueRepairNodeResultTx(ctx context.Context, auth *authorizedCommand, project, run, node string) (out issueRepairNodeResult, found bool, err error) {
+func (s *Service) codeCandidateNodeResultTx(ctx context.Context, auth *authorizedCommand, project, run, node string) (out codeCandidateNodeResult, found bool, err error) {
 	var spec, result string
 	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT n.id,n.state,n.attempt,n.fence,n.worker_id,n.spec,COALESCE(a.result,'') FROM dag_nodes n JOIN dag_runs r ON r.id=n.run_id LEFT JOIN dag_attempts a ON a.run_id=n.run_id AND a.node_id=n.id AND a.attempt=n.attempt AND a.fence=n.fence AND a.worker_id=n.worker_id WHERE r.tenant_id=? AND r.project_id=? AND n.run_id=? AND n.id=?`), auth.target.tenantID, project, run, node).Scan(&out.ID, &out.State, &out.Attempt, &out.Fence, &out.Worker, &spec, &result)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -41,12 +41,12 @@ func (s *Service) issueRepairNodeResultTx(ctx context.Context, auth *authorizedC
 	return out, true, nil
 }
 
-func issueRepairResultIdentity(n issueRepairNodeResult, run string) bool {
+func codeCandidateResultIdentity(n codeCandidateNodeResult, run string) bool {
 	r := n.Result
 	return n.State == "succeeded" && n.Attempt > 0 && n.Fence > 0 && n.Worker != "" && r.RunID == run && r.NodeID == n.ID && r.Attempt == n.Attempt && r.Fence == n.Fence && r.WorkerID == n.Worker && r.ExitCode == 0 && r.Error == "" && !r.Stopped && !r.OutcomeUnknown
 }
 
-func issueRepairProofInteger(v any, expected int64) bool {
+func codeCandidateProofInteger(v any, expected int64) bool {
 	switch n := v.(type) {
 	case int:
 		return int64(n) == expected
@@ -58,16 +58,16 @@ func issueRepairProofInteger(v any, expected int64) bool {
 	return false
 }
 
-// Issue closure is narrower than generic test-only task acceptance: every
-// selected regression report must verify a real repair producer through the
+// Code-bearing formal decisions require more than a green test-only run: every
+// selected report must verify its actual producer through the
 // scheduler's immutable candidate pin, on an independent execution identity.
 // Complex/test_from sources remain blocked until they have equivalent proof.
-func (s *Service) issueRepairCaseCandidateTx(ctx context.Context, auth *authorizedCommand, project, run string, evidence TestCaseEvidence) (bool, error) {
-	test, found, err := s.issueRepairNodeResultTx(ctx, auth, project, run, evidence.NodeID)
+func (s *Service) codeCandidateIndependentTestTx(ctx context.Context, auth *authorizedCommand, project, run string, evidence TestCaseEvidence) (bool, error) {
+	test, found, err := s.codeCandidateNodeResultTx(ctx, auth, project, run, evidence.NodeID)
 	if err != nil || !found {
 		return false, err
 	}
-	if test.Spec.Type != "test" || !issueRepairResultIdentity(test, run) || test.Attempt != evidence.Attempt || test.Fence != evidence.Fence || test.Worker != evidence.WorkerID {
+	if test.Spec.Type != "test" || !codeCandidateResultIdentity(test, run) || test.Attempt != evidence.Attempt || test.Fence != evidence.Fence || test.Worker != evidence.WorkerID {
 		return false, nil
 	}
 	source, ok := test.Spec.Config["candidate_from"].(string)
@@ -92,14 +92,14 @@ func (s *Service) issueRepairCaseCandidateTx(ctx context.Context, auth *authoriz
 		return false, nil
 	}
 	proof := test.Result.WorkspaceEvidence
-	if proof["candidate_from"] != source || !issueRepairProofInteger(proof["candidate_attempt"], int64(sourceAttempt)) || !issueRepairProofInteger(proof["candidate_fence"], sourceFence) || proof["candidate_evidence_sha256"] != pinnedSHA {
+	if proof["candidate_from"] != source || !codeCandidateProofInteger(proof["candidate_attempt"], int64(sourceAttempt)) || !codeCandidateProofInteger(proof["candidate_fence"], sourceFence) || proof["candidate_evidence_sha256"] != pinnedSHA {
 		return false, nil
 	}
-	producer, found, err := s.issueRepairNodeResultTx(ctx, auth, project, run, source)
+	producer, found, err := s.codeCandidateNodeResultTx(ctx, auth, project, run, source)
 	if err != nil || !found {
 		return false, err
 	}
-	if producer.Spec.Type != "command" && producer.Spec.Type != "agent" || !issueRepairResultIdentity(producer, run) || producer.Worker == test.Worker || producer.Attempt != sourceAttempt || producer.Fence != sourceFence {
+	if producer.Spec.Type != "command" && producer.Spec.Type != "agent" || !codeCandidateResultIdentity(producer, run) || producer.Worker == test.Worker || producer.Attempt != sourceAttempt || producer.Fence != sourceFence {
 		return false, nil
 	}
 	profileID, profileSHA, bound, err := dag.ToolBinding(producer.Spec)

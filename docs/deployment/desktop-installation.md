@@ -163,3 +163,5 @@ node apps/desktop/scripts/package.cjs --platform linux --arch arm64 --format por
 | GPU子进程`0xC0000135` | 当前已知真实启动阻断；保留原错误和环境信息，继续定位依赖并重跑原生旅程；Node／网页检查通过不证明已修复 |
 
 提交问题时附版本、包名、摘要、系统／架构、安装形式和脱敏错误。不要上传数据库、工作区密钥、令牌、完整私有路径或项目源文件。[当前交付状态](../delivery/status.md)是安装、签名及完整平台剩余工作的统一入口。
+
+源码观察器使用固定目标Node与许可资源；原生目标默认当前Node，跨目标需管理员通过`--node-binary`、`--node-license`提供对应绝对文件路径。参见[当前源码观察资源合同](application-source-inspector.md#桌面与容器资源链)。

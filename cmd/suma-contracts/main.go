@@ -193,6 +193,9 @@ func generate() (map[string]any, string) {
 	for _, v := range dispatchRecommendationModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range projectApplicationModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range projectRiskModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -340,6 +343,7 @@ func generate() (map[string]any, string) {
 	testPlanContracts(add, api)
 	issueRepairContracts(add, api)
 	projectRiskContracts(add, api)
+	projectApplicationContracts(add, api)
 	dispatchRecommendationContracts(add, api)
 	usageAccountingContracts(add, api)
 	skillCatalogContracts(add, api)
@@ -452,6 +456,13 @@ func main() {
 		catalogue, err = applicationToolCatalogue()
 		if err == nil {
 			err = emit("docs/api/mcp-tools.json", catalogue, *check)
+		}
+	}
+	if err == nil {
+		var source []byte
+		source, err = sourceInspectorRuntimeContract()
+		if err == nil {
+			err = emit("packages/contracts/src/source-inspector-runtime.mjs", source, *check)
 		}
 	}
 	if err == nil {

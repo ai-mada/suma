@@ -163,3 +163,5 @@ Prebuilt inputs avoid recompiling the web and control service, but do not guaran
 | GPU child exit `0xC0000135` | Known actual startup blocker; retain the original error/environment, resolve the dependency and repeat the native journey. Passing Node/web checks does not prove a fix |
 
 When reporting an issue, include version, package filename, hash, system/architecture, format and a redacted error. Do not upload databases, workspace keys, tokens, complete private paths or project source. [Delivery status](../delivery/status.md) tracks remaining installation, signing and full-platform work.
+
+Source inspection packages a fixed target Node executable, its original license, the parser bundle and dependency notices. Native preparation checks Node22+; cross-target preparation requires explicit absolute `--node-binary` and `--node-license` inputs. It verifies the executable target format, not an unexecuted target runtime or installer. See the [current deployment contract](../deployment/application-source-inspector.md).

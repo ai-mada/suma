@@ -22,14 +22,23 @@ async function start(){
  const prepared=resolve(resources,'.cache/desktop',`${process.platform}-${process.arch}`);
  const binary=overrides?.binary||(app.isPackaged?join(resources,'control',process.platform==='win32'?'suma-control.exe':'suma-control'):join(prepared,'control',process.platform==='win32'?'suma-control.exe':'suma-control'));
  const web=overrides?.web||(app.isPackaged?join(resources,'web'):join(prepared,'web'));
+ const sourceInspector=join(app.isPackaged?resources:prepared,'source-inspector');
+ const sourceInspectorNode=join(sourceInspector,process.platform==='win32'?'node.exe':'node');
+ const sourceInspectorEntry=join(sourceInspector,'source-inspector.bundle.mjs');
  if(!existsSync(binary))throw localError(locale,'missing_control');if(!existsSync(join(web,'index.html')))throw localError(locale,'missing_web');
+ if(!existsSync(sourceInspectorNode)||!existsSync(sourceInspectorEntry))throw localError(locale,'missing_source_inspector');
  let key;try{key=loadWorkspaceKey(app.getPath('userData'))}catch{throw localError(locale,'workspace_key_failed')}
  let data;try{
   data=ensurePrivateDirectory(join(app.getPath('userData'),'data'));
   try{const database=lstatSync(join(data,'suma.db'));if(!database.isFile()||database.isSymbolicLink())throw Error('invalid local database')}catch(error){if(error.code!=='ENOENT')throw error}
  }catch{throw localError(locale,'desktop_data_failed')}
  const port=await availablePort();origin=`http://127.0.0.1:${port}`;
- service=spawn(binary,['--addr',`127.0.0.1:${port}`],{cwd:data,env:controlEnvironment(process.env,{data,web,origin,key}),stdio:'ignore',windowsHide:true});let exited=false;let spawnError;service.once('error',()=>{spawnError=true;exited=true});service.once('exit',()=>{exited=true;if(window && !shuttingDown){dialog.showErrorBox(message(locale,'service_stopped_title'),message(locale,'service_stopped'));window.close()}});
+ const environment=controlEnvironment(process.env,{data,web,origin,key});
+ // Fixed packaged resources, never renderer input or inherited executable
+ // settings. The Go service pins their real-file hashes before first use.
+ environment.SUMA_SOURCE_INSPECTOR_NODE=sourceInspectorNode;
+ environment.SUMA_SOURCE_INSPECTOR_ENTRY=sourceInspectorEntry;
+ service=spawn(binary,['--addr',`127.0.0.1:${port}`],{cwd:data,env:environment,stdio:'ignore',windowsHide:true});let exited=false;let spawnError;service.once('error',()=>{spawnError=true;exited=true});service.once('exit',()=>{exited=true;if(window && !shuttingDown){dialog.showErrorBox(message(locale,'service_stopped_title'),message(locale,'service_stopped'));window.close()}});
  try{await waitForHealth(origin,()=>exited,15000,locale)}catch(error){if(spawnError)throw localError(locale,'startup_failed');throw error}
  window=new BrowserWindow({width:1440,height:960,minWidth:960,minHeight:640,show:false,title:message(locale,'window_title'),backgroundColor:'#101014',webPreferences:{preload:join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,webSecurity:true,allowRunningInsecureContent:false}});
  window.webContents.setWindowOpenHandler(()=>({action:'deny'}));window.webContents.on('will-navigate',(event,url)=>{if(!allowedNavigation(url,origin))event.preventDefault()});window.webContents.on('will-redirect',(event,url)=>{if(!allowedNavigation(url,origin))event.preventDefault()});window.webContents.session.setPermissionRequestHandler((_contents,_permission,callback)=>callback(false));window.webContents.session.setPermissionCheckHandler(()=>false);
