@@ -164,10 +164,18 @@ func cloneOpenCodeEvidence(value *tc.OpenCodeExecutionEvidence) *tc.OpenCodeExec
 	return &copied
 }
 
+func cloneOctopEvidence(value *tc.OctopExecutionEvidence) *tc.OctopExecutionEvidence {
+	if value == nil {
+		return nil
+	}
+	copied := *value
+	return &copied
+}
+
 // Preserve the selected nested object when caller-owned maps are later reused.
 // Retain generic JSON values so durable assignment identity stays byte-stable.
 func cloneModelAssignment(value Assignment) Assignment {
-	for _, field := range []string{"model_execution", "codex_execution", "opencode_execution"} {
+	for _, field := range []string{"model_execution", "codex_execution", "opencode_execution", "octop_execution"} {
 		selected, present := value.Config[field]
 		if !present {
 			continue

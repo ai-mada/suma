@@ -56,6 +56,18 @@ func (s *Service) GetModelExecutionOptions(ctx context.Context, actor Actor, pro
 		}
 		out = ModelExecutionOptions{ProjectID: project, ToolProfileID: p.ID, ToolProfileVersion: p.Version, ToolProfileSHA256: p.Profile.ProfileSHA256, ObservedAt: automationStamp(clock), Items: []ModelExecutionOption{}}
 		out.CodexReason = codexExecutionUnsupported
+		if supportsOctopExecution(p) {
+			current, err := s.toolProfileObservationLockedTx(auth.ctx, auth.tx, auth.target.tenantID, project, p)
+			if err != nil {
+				return err
+			}
+			if !current.Available {
+				return conflict(octopExecutionUnavailable)
+			}
+			out.FixedOctop = tc.CloneProfile(current.Profile).OctopExecution
+			out.Reason = "fixed_by_tool"
+			return nil
+		}
 		if supportsOpenCodeExecution(p) {
 			current, err := s.toolProfileObservationLockedTx(auth.ctx, auth.tx, auth.target.tenantID, project, p)
 			if err != nil {
@@ -186,6 +198,9 @@ func bindModelExecutionWorkflow(w *dag.Workflow, node string, b *modelcontract.B
 }
 
 func (s *Service) validateModelExecutionPlanTx(ctx context.Context, tx *sql.Tx, tenant, project string, p ToolProfile, plan TaskDispatchPlan) error {
+	if err := s.validateOctopExecutionPlanTx(ctx, tx, tenant, project, p, plan); err != nil {
+		return err
+	}
 	if err := s.validateOpenCodeExecutionPlanTx(ctx, tx, tenant, project, p, plan); err != nil {
 		return err
 	}
@@ -261,6 +276,9 @@ func (s *Service) modelExecutionExactRateTx(ctx context.Context, tx *sql.Tx, ten
 }
 
 func (s *Service) modelExecutionClaimEligibleTx(ctx context.Context, tx *sql.Tx, tenant, project string, p ToolProfile, n dag.Node) (bool, error) {
+	if eligible, err := s.octopExecutionClaimEligibleTx(ctx, tx, tenant, project, p, n); err != nil || !eligible {
+		return false, err
+	}
 	if eligible, err := s.openCodeExecutionClaimEligibleTx(ctx, tx, tenant, project, p, n); err != nil || !eligible {
 		return false, err
 	}

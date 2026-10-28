@@ -40,10 +40,10 @@ func protocolPair(adapter, protocol string) bool {
 	if adapter == "codex" && protocol == cc.Protocol {
 		return true
 	}
-	return map[string]string{"command": "text-v1", "suma": "suma-jsonl-v1", "codex": "codex-jsonl-v1", "opencode": OpenCodeSDKProtocol, "harness": "dsh-multica-jsonl-v1", "codebuddy": "codebuddy-jsonl-v1"}[adapter] == protocol && protocol != ""
+	return map[string]string{"octop": OctopProtocol, "command": "text-v1", "suma": "suma-jsonl-v1", "codex": "codex-jsonl-v1", "opencode": OpenCodeSDKProtocol, "harness": "dsh-multica-jsonl-v1", "codebuddy": "codebuddy-jsonl-v1"}[adapter] == protocol && protocol != ""
 }
 func ValidProtocol(protocol string) bool {
-	return protocol == cc.Protocol || protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == OpenCodeSDKProtocol || protocol == "dsh-multica-jsonl-v1" || protocol == "codebuddy-jsonl-v1"
+	return protocol == OctopProtocol || protocol == cc.Protocol || protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == OpenCodeSDKProtocol || protocol == "dsh-multica-jsonl-v1" || protocol == "codebuddy-jsonl-v1"
 }
 
 // SupportsWorkspaceObservationProfile identifies profile kinds that can expose
@@ -55,10 +55,13 @@ func SupportsWorkspaceObservationProfile(p Profile) bool {
 // SupportsWorkspaceWriteProfile identifies the implemented host CAS bridge;
 // a Codex app-server read broker does not implement that write contract.
 func SupportsWorkspaceWriteProfile(p Profile) bool {
-	return p.Adapter == "suma" && p.Protocol == "suma-jsonl-v1" && !p.ReadOnly && p.WorkspaceToolsVersion == "attempt-workspace-v1" || SupportsOpenCodeExecutionProfile(p)
+	return p.Adapter == "suma" && p.Protocol == "suma-jsonl-v1" && !p.ReadOnly && p.WorkspaceToolsVersion == "attempt-workspace-v1" || SupportsOpenCodeExecutionProfile(p) || SupportsOctopExecutionProfile(p)
 }
 
 func ValidateProfile(p Profile, complete bool) error {
+	if err := validateOctopProfile(p, complete); err != nil {
+		return err
+	}
 	if p.TestReportProtocol != "" && (p.TestReportProtocol != tr.Protocol || p.Adapter != "command" || p.Protocol != "text-v1" || p.ReadOnly || p.WorkspaceToolsVersion != "" || p.ModelExecutionProtocol != "" || p.ConflictRepairProtocol != "" || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil || p.IntelligentOperations != nil || p.OpenCodeExecution != nil) {
 		return fmt.Errorf("invalid isolated test report capability")
 	}
@@ -283,6 +286,9 @@ func ValidateEvent(e Event) error {
 	return nil
 }
 func ValidateEvidence(e Evidence) error {
+	if err := validateOctopEvidence(e); err != nil {
+		return err
+	}
 	if err := validateOpenCodeEvidence(e); err != nil {
 		return err
 	}

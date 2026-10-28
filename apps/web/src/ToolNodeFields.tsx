@@ -4,6 +4,7 @@ import type { WNode } from "./api";
 import { ErrorNotice, Field } from "./ui";
 import { toolBinding, type ToolProfile } from "./tool-model";
 import { useToolList } from "./tool-hooks";
+import {OctopExecutionFacts} from './OctopExecutionFacts';
 export function ToolNodeFields({
   project,
   node,
@@ -79,6 +80,7 @@ export function ToolNodeFields({
         <p className="warning">
           {t("development.node.this_configuration_does_not_currently_meet_dispatch")}</p>
       )}
+      {current?.profile.adapter==='octop'&&node.config?.tool_profile_sha256===current.profile.profile_sha256&&<OctopExecutionFacts capability={current.profile.octop_execution}/>}
       <a
         href={
           "?" +

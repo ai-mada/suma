@@ -56,7 +56,7 @@ func ValidateOpenCodeExecutionCapability(c OpenCodeExecutionCapability) error {
 // SupportsOpenCodeExecutionProfile names the implemented host-tool bridge. A
 // current inventory must separately advertise each actual outbound transport.
 func SupportsOpenCodeExecutionProfile(p Profile) bool {
-	return p.Adapter == "opencode" && p.Protocol == OpenCodeSDKProtocol && !p.ReadOnly && p.WorkspaceToolsVersion == "attempt-workspace-v1" && p.ModelExecutionProtocol == "" && p.ConflictRepairProtocol == "" && p.Planning == nil && p.KnowledgeExtraction == nil && p.FailureDiagnosis == nil && p.OpenCodeExecution != nil && ValidateOpenCodeExecutionCapability(*p.OpenCodeExecution) == nil
+	return p.Adapter == "opencode" && p.Protocol == OpenCodeSDKProtocol && !p.ReadOnly && p.WorkspaceToolsVersion == "attempt-workspace-v1" && p.ModelExecutionProtocol == "" && p.ConflictRepairProtocol == "" && p.Planning == nil && p.KnowledgeExtraction == nil && p.FailureDiagnosis == nil && p.OctopExecution == nil && p.OpenCodeExecution != nil && ValidateOpenCodeExecutionCapability(*p.OpenCodeExecution) == nil
 }
 
 // DecodeOpenCodeNodeConfiguration admits only the fixed reviewed model fact.
@@ -70,7 +70,7 @@ func DecodeOpenCodeNodeConfiguration(config map[string]any) (*OpenCodeExecutionC
 	if cc.HasNodeOverrides(config) {
 		return nil, fmt.Errorf("invalid OpenCode node override")
 	}
-	for _, field := range []string{"codex_execution", "max_tokens", "max_cost", "max_cost_micros", "hard_budget", "token_budget", "budget", "resume", "session_id", "tools", "mcp_servers"} {
+	for _, field := range []string{"octop_execution", "codex_execution", "max_tokens", "max_cost", "max_cost_micros", "hard_budget", "token_budget", "budget", "resume", "session_id", "tools", "mcp_servers"} {
 		if _, exists := config[field]; exists {
 			return nil, fmt.Errorf("invalid OpenCode node override")
 		}

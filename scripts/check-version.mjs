@@ -19,6 +19,7 @@ for (const path of [
   'packages/opencode-runtime/package.json',
 ]) verify(path, JSON.parse(read(path)).version);
 verify('internal/buildinfo/version.go', /const Version = "([^"]+)"/.exec(read('internal/buildinfo/version.go'))?.[1]);
+verify('packages/octop-runtime/pyproject.toml', /^version = "([^"]+)"/m.exec(read('packages/octop-runtime/pyproject.toml'))?.[1]);
 const chart = read('deploy/helm/suma/Chart.yaml');
 verify('Helm chart version', /^version:\s*"?([^"\s]+)"?\s*$/m.exec(chart)?.[1]);
 verify('Helm appVersion', /^appVersion:\s*"?([^"\s]+)"?\s*$/m.exec(chart)?.[1]);

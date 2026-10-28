@@ -53,6 +53,7 @@ type toolStream struct {
 	dshState       *dshStreamState
 	codebuddyState *codebuddyStreamState
 	openCodeState  *openCodeStreamState
+	octopState     *octopStreamState
 	onTerminal     func()
 }
 
@@ -332,6 +333,12 @@ func (s *toolStream) line(raw []byte) {
 		return
 	}
 	switch s.profile.Protocol {
+	case tc.OctopProtocol:
+		if !tc.ValidJSONUnicode(raw) {
+			s.invalid("invalid Octop SDK Unicode")
+			return
+		}
+		s.octop(m)
 	case tc.OpenCodeSDKProtocol:
 		if !tc.ValidJSONUnicode(raw) {
 			s.invalid("invalid OpenCode SDK Unicode")
@@ -675,6 +682,13 @@ func (s *toolStream) finish() (*tc.Evidence, error) {
 			proof = s.openCodeState.proof
 		}
 		e.OpenCodeExecution = &proof
+	}
+	if c := s.profile.OctopExecution; c != nil {
+		proof := tc.OctopExecutionEvidence{ConfigurationSHA256: c.ConfigurationSHA256, RequestedProvider: c.ProviderID, RequestedModel: c.Model}
+		if s.octopState != nil {
+			proof = s.octopState.proof
+		}
+		e.OctopExecution = &proof
 	}
 	return e, s.bad
 }

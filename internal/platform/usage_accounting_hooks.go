@@ -93,6 +93,12 @@ func (s *Service) usagePricingTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 		}
 		return
 	}
+	if supportsOctopExecution(profile) {
+		if profile.Profile.ProfileSHA256 != sha || !octopNodeMatchesProfile(ref.Spec, profile) {
+			err = invalid(octopExecutionChanged)
+		}
+		return
+	}
 	if supportsOpenCodeExecution(profile) {
 		if profile.Profile.ProfileSHA256 != sha || !openCodeNodeMatchesProfile(ref.Spec, profile) {
 			err = invalid(opencodeExecutionChanged)
@@ -129,6 +135,9 @@ func (s *Service) CheckAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	profile, rate, org, project, e := s.usagePricingTx(ctx, tx, ref)
 	if e != nil {
 		return false, e
+	}
+	if checkOctopObserveOnlyPolicies(profile, org, project) != nil {
+		return false, nil
 	}
 	if checkOpenCodeObserveOnlyPolicies(profile, org, project) != nil {
 		return false, nil
@@ -181,6 +190,9 @@ func (s *Service) ReserveAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Acco
 	profile, rate, org, project, e := s.usagePricingTx(ctx, tx, ref)
 	if e != nil {
 		return e
+	}
+	if err := checkOctopObserveOnlyPolicies(profile, org, project); err != nil {
+		return err
 	}
 	if err := checkOpenCodeObserveOnlyPolicies(profile, org, project); err != nil {
 		return err
@@ -396,6 +408,25 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 		}
 		if result.ToolEvidence == nil || result.ToolEvidence.CodexExecution == nil || !cc.EvidenceMatchesBinding(*b, *result.ToolEvidence.CodexExecution) {
 			modelReconciling = true
+		}
+	}
+	if fixed, err := octopNodeConfiguration(ref.Spec); err != nil {
+		return err
+	} else if fixed != nil {
+		// ACP session counters do not prove complete request or billing coverage.
+		complete = false
+		if a.Usage != nil {
+			a.UsageState = toolcontract.UsagePartial
+		} else {
+			a.UsageState = toolcontract.UsageUnreported
+		}
+		if result.ToolEvidence == nil || result.ToolEvidence.OctopExecution == nil {
+			modelReconciling = true
+		} else {
+			proof := result.ToolEvidence.OctopExecution
+			if proof.ConfigurationSHA256 != fixed.ConfigurationSHA256 || proof.RequestedProvider != fixed.ProviderID || proof.RequestedModel != fixed.Model || toolcontract.ValidateEvidence(*result.ToolEvidence) != nil {
+				modelReconciling = true
+			}
 		}
 	}
 	if fixed, err := openCodeNodeConfiguration(ref.Spec); err != nil {

@@ -1,4 +1,5 @@
 import {validOpenCodeCapability} from './opencode-execution-model';
+import {validOctopCapability} from './octop-execution-model';
 import type {ModelBinding, ModelExecutionOptions, ModelSelection} from '../../../packages/contracts/src';
 
 const digest = (value: unknown): value is string => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
@@ -16,6 +17,7 @@ export function modelOptionsPath(scope: ModelScope) {
 }
 /** Match the whole caller/tool scope before displaying or adopting a response. */
 export function validModelOptions(value: ModelExecutionOptions, scope: ModelScope): boolean {
+  if(!value||value.fixed_octop!==undefined&&(value.fixed_opencode!==undefined||value.supported!==false||value.codex_supported!==false||value.reason!=='fixed_by_tool'||!Array.isArray(value.items)||value.items.length!==0||!validOctopCapability(value.fixed_octop)))return false;
   return !!value && (value.fixed_opencode===undefined||!value.supported&&!value.codex_supported&&value.reason==='fixed_by_tool'&&Array.isArray(value.items)&&value.items.length===0&&validOpenCodeCapability(value.fixed_opencode)) && value.project_id === scope.project && value.tool_profile_id === scope.profile && value.tool_profile_version === scope.version && value.tool_profile_sha256 === scope.sha256 && typeof value.supported === 'boolean' && typeof value.observed_at === 'string' && Number.isFinite(Date.parse(value.observed_at)) && Array.isArray(value.items) && value.items.length <= 1000 && value.items.every(item => {
     const d = item.deployment;
     return !!d && typeof d.deployment_id === 'string' && d.deployment_id.length > 0 && Number.isSafeInteger(d.revision) && d.revision > 0 && digest(d.deployment_sha256) && digest(d.endpoint_config_sha256) && d.protocol === 'openai-chat-completions-v1' && typeof d.model === 'string' && d.model.length > 0 && Number.isSafeInteger(d.context_window) && d.context_window > 0 && ['priced', 'unpriced'].includes(item.cost_state) && (item.cost_state !== 'priced' || !!item.rate);

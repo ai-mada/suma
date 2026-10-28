@@ -1,0 +1,130 @@
+{
+  "stage": "T-OCTOP-117",
+  "product_version": "1.0.0",
+  "recorded_at": "2026-10-28T14:30:05.850117+00:00",
+  "status": "limited_local_sdk_delivery",
+  "source_sha256": "b24229c99e2a5bd6039126aba0b600f42154b96e857c8d7527fd76cfa4b3638b",
+  "source_files": 73,
+  "full_platform_complete": false,
+  "scope_ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92,
+    "phases": "P0-P7",
+    "requirements": "1-26"
+  },
+  "sdk": {
+    "octop_harness": "1.0.5",
+    "python_acp": "0.12.1",
+    "mcp": "1.30.0",
+    "jsonschema": "4.26.0",
+    "python": "3.13.3",
+    "installed_distribution_versions": 96,
+    "platform": "Windows",
+    "bundle_sha256": "7abbaab83a213b72b4c44890a182d167f7e9602a3bfb441aebe21e93dab131d4",
+    "manifest_sha256": "3a4885a92146bcc9e102bccd6943ea278459c567a89ec1e3cacc54be05d7b54f",
+    "full_dependency_bytes_attestation": false,
+    "os_sandbox_attested": false
+  },
+  "verification": {
+    "distinct_go_passed": 11,
+    "distinct_web_passed": 14,
+    "distinct_python_passed": 6,
+    "distinct_total_passed": 31,
+    "counting": "Top-level distinct test identities; repeats and table subcases not counted as new. Python unit snapshot precedes final carrier hardening; actual final SDK journeys verify integrated behavior.",
+    "typecheck": true,
+    "generated_contract_check": true,
+    "catalog_keys": 5233,
+    "paired_locales": [
+      "zh-CN",
+      "en-US"
+    ],
+    "production_source_hardcodes": 0,
+    "product_version_check": true
+  },
+  "actual": {
+    "official_sdk": true,
+    "actual_octop_cli_or_gui": false,
+    "actual_vendor_account": false,
+    "host_workspace_mcp": true,
+    "fixed_model_and_output_parameter": true,
+    "candidate_write_check_seal": true,
+    "independent_exact_sha_junit": true,
+    "actual_sdk_cancel_and_go_tree_stop": true,
+    "native_human_acceptance_performed": false,
+    "production_deployment_performed": false,
+    "positive_journey_local_model_requests": 4,
+    "cancel_journey_local_model_requests": 1,
+    "vendor_requests": 0,
+    "physical_multi_host": false,
+    "enforced_total_budget": false,
+    "usage_coverage": "unreported"
+  },
+  "browser": {
+    "actual": true,
+    "scope": "Dedicated tool configuration only: incomplete/complete draft, progressive disclosure, live CN/EN, preserved input, clipboard feedback. Run/dispatch cards have component/receipt checks, not a full UI execution claim.",
+    "synthetic_loopback_account": true,
+    "existing_user_database_modified": false,
+    "viewport_default_content_width": 1265,
+    "responsive_viewport_width": 390,
+    "responsive_document_content_width": 375,
+    "horizontal_page_overflow": false,
+    "console_errors_or_warnings": 0,
+    "temporary_viewport_reset": true,
+    "own_tab_closed": true,
+    "own_control_closed": true,
+    "web_entry_sha256": "d945338ce20d4c6254e8073a3174fcb9432d1ed1c7ad4353753d91886c67f52e",
+    "control_sha256": "afbf9ffa3734a4453d36d1776df757170b86a41322d30af1f4122417c7615fec",
+    "screenshots": [
+      {
+        "path": ".cache/e2e/octop-117/screenshots/setup-en-mobile.jpg",
+        "bytes": 44873,
+        "sha256": "a1b629076e84dcc4ea27e78fa00510796e2c6becf09ae53714e07fee85d2b125"
+      },
+      {
+        "path": ".cache/e2e/octop-117/screenshots/setup-en.jpg",
+        "bytes": 68790,
+        "sha256": "2bed22b537aec2cfa45d6d6a47c73b787015180edf3d0e6d61769c6f6f64436e"
+      },
+      {
+        "path": ".cache/e2e/octop-117/screenshots/setup-zh-final.jpg",
+        "bytes": 64826,
+        "sha256": "d0bc7cfd4c6e4f6b0439d656cb6ed23edb4bd2c585915583af530afffcf01bbe"
+      },
+      {
+        "path": ".cache/e2e/octop-117/screenshots/setup-zh-top.jpg",
+        "bytes": 64559,
+        "sha256": "d5a876972a9a2cc496b15f596304be6f43f73d8a2e3443e9e90289a22f46fb79"
+      },
+      {
+        "path": ".cache/e2e/octop-117/screenshots/setup-zh.jpg",
+        "bytes": 62942,
+        "sha256": "4f729fdd2d44555a1bde61c44227f689e13a7c0d882f551184676a5963d95da3"
+      }
+    ]
+  },
+  "resources": {
+    "web_builds": 2,
+    "control_builds": 1,
+    "runner_binary_builds": 0,
+    "native_installers_built": 0,
+    "vendor_model_requests": 0,
+    "broad_test_suite_runs": 0,
+    "validation_policy": "Affected behavior checks and failure-localized retries; no repeated green suite. SDK integration failures and corrections retained in report."
+  },
+  "evidence": {
+    "implementation_manifest": ".cache/e2e/octop-117/implementation-manifest.json",
+    "go_receipts": ".cache/e2e/octop-117/go-receipt-index.json",
+    "ui_receipt_sha256": "3f498bad2613d019439f9941c315a5f8c045bf89c6e6fc6d222c561f54e61029",
+    "python_receipt_sha256": "0999d6bb5618b38313a36760d06ecb2c87a498df471fd485bf13fdfed51323c6",
+    "owned_preview_closed_receipt_sha256": "65ebbb2515f5ac2fd70a3ad236180c36e320ae203a23cd1a521111b1867298bc",
+    "raw_evidence_committed": false
+  },
+  "remaining": [
+    "Complete Octop CLI/GUI and vendor-account execution",
+    "Total-token/cost hard budget and independently attested vendor model identity",
+    "Expert/memory/skill/channel/office synchronization",
+    "SDK installation acceptance on macOS/Linux",
+    "Physical multi-host, production and full platform acceptance"
+  ]
+}

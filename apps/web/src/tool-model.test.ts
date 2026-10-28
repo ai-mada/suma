@@ -15,6 +15,14 @@ import {
   type ToolObservation,
 } from "./tool-model";
 import { ToolWriteRecovery } from "./tool-write";
+import {validOctopCapability} from './octop-execution-model';
+it('imports Octop ACP observations without promoting an unavailable runtime or weakening the fixed capability',()=>{
+ const capability={harness_version:'1.0.5',acp_sdk_version:'0.10.1',provider_id:'openai',model:'configured-model',endpoint_origin:'https://provider.example.test',configuration_sha256:'a'.repeat(64),budget_mode:'observe_only',identity_evidence:'configuration_ack_only'};
+ const octop={command_id:'octop-code',adapter:'octop',protocol:'octop-harness-acp-v1',profile_sha256:'b'.repeat(64),executable_sha256:'c'.repeat(64),tool_version:'1.0.5',read_only:false,workspace_tools_version:'attempt-workspace-v1',octop_execution:capability};
+ const observed=parseToolManifest(JSON.stringify([{profile:octop,available:true,reason:'actual bounded probe'}]));expect(validOctopCapability(observed[0].profile.octop_execution)).toBe(true);expect(taskToolProtocol(observed[0].profile)).toBe(true);
+ const unavailable=parseToolManifest(JSON.stringify([{profile:{command_id:'missing-octop',adapter:'octop',protocol:'octop-harness-acp-v1',read_only:false},available:false,reason:'runtime unavailable'}]));expect(taskToolProtocol(unavailable[0].profile)).toBe(false);
+ for(const patch of [{octop_execution:undefined},{read_only:true},{workspace_tools_version:undefined},{protocol:'text-v1'},{octop_execution:{...capability,budget_mode:'hard'}},{octop_execution:{...capability,api_key:'private'}}])expect(()=>parseToolManifest(JSON.stringify([{profile:{...octop,...patch},available:true,reason:'unverified claim'}]))).toThrow();
+});
 const definition: ToolProfileDefinition = {
   command_id: "coder",
   adapter: "suma",

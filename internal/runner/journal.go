@@ -208,6 +208,7 @@ func (j *Journal) Finish(r Result) error {
 		copied.ModelExecution = cloneModelEvidence(r.ToolEvidence.ModelExecution)
 		copied.CodexExecution = cc.CloneEvidence(r.ToolEvidence.CodexExecution)
 		copied.OpenCodeExecution = cloneOpenCodeEvidence(r.ToolEvidence.OpenCodeExecution)
+		copied.OctopExecution = cloneOctopEvidence(r.ToolEvidence.OctopExecution)
 		r.ToolEvidence = &copied
 	}
 	r.Assignment = cloneModelAssignment(r.Assignment)
@@ -404,6 +405,7 @@ func (j *Journal) Pending() []Result {
 				evidence.ModelExecution = cloneModelEvidence(evidence.ModelExecution)
 				evidence.CodexExecution = cc.CloneEvidence(evidence.CodexExecution)
 				evidence.OpenCodeExecution = cloneOpenCodeEvidence(evidence.OpenCodeExecution)
+				evidence.OctopExecution = cloneOctopEvidence(evidence.OctopExecution)
 				copy.ToolEvidence = &evidence
 			}
 			results = append(results, copy)

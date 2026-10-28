@@ -162,3 +162,5 @@ T-QUALITY-115按本节既有范围细化[自动化测试计划与逐例证据](.
 - 当前入口只维护一份状态；历史阶段由Git、[专项报告索引](../README.md)和[证据索引](../quality/evidence/README.md)追溯，不重写原质量报告或外部版本。
 
 T-OCTOP-116按原互操作／项目协作范围推进[Octop项目MCP](../integrations/octop.md)及当前交付／逐例质量读取；真实SDK／HTTP与连接界面证据见[专项报告](../quality/octop-integration-verification.md)。只读和原草稿工具不授予ACP编码、批准或派发，完整范围与58／34／92统计不变。
+
+T-OCTOP-117继续同一范围，新增[公开Harness／ACP执行](../architecture/octop-execution.md)：固定模型与参数、唯一Go派发、六工具工作树、操作记录／检查／候选、精确SHA独立JUnit及取消树停止；真实官方SDK＋本地模型协议和实际中英文配置向导见[报告](../quality/octop-execution-verification.md)。完整Octop CLI／GUI、厂商账户、记忆／技能同步、跨平台SDK安装和总量硬预算继续待办，不改变完整P0–P7、需求1–26和58／34／92统计。

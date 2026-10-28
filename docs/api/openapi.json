@@ -9890,6 +9890,16 @@
           "codex_supported": {
             "type": "boolean"
           },
+          "fixed_octop": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OctopExecutionCapability"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "fixed_opencode": {
             "anyOf": [
               {
@@ -10584,6 +10594,99 @@
           "artifact_id",
           "artifact_sha256",
           "assignment"
+        ],
+        "type": "object"
+      },
+      "OctopExecutionCapability": {
+        "additionalProperties": false,
+        "properties": {
+          "acp_sdk_version": {
+            "const": "0.12.1",
+            "type": "string"
+          },
+          "budget_mode": {
+            "const": "observe_only",
+            "type": "string"
+          },
+          "configuration_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "endpoint_origin": {
+            "type": "string"
+          },
+          "harness_version": {
+            "const": "1.0.5",
+            "type": "string"
+          },
+          "identity_evidence": {
+            "const": "configuration_ack_only",
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "provider_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "harness_version",
+          "acp_sdk_version",
+          "provider_id",
+          "model",
+          "endpoint_origin",
+          "configuration_sha256",
+          "budget_mode",
+          "identity_evidence"
+        ],
+        "type": "object"
+      },
+      "OctopExecutionEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledged_model": {
+            "type": "string"
+          },
+          "acknowledged_provider": {
+            "type": "string"
+          },
+          "cancel_requested": {
+            "type": "boolean"
+          },
+          "completed_at": {
+            "type": "string"
+          },
+          "configuration_sha256": {
+            "type": "string"
+          },
+          "process_stopped": {
+            "type": "boolean"
+          },
+          "requested_model": {
+            "type": "string"
+          },
+          "requested_provider": {
+            "type": "string"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "stop_reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "configuration_sha256",
+          "session_id",
+          "requested_provider",
+          "requested_model",
+          "acknowledged_provider",
+          "acknowledged_model",
+          "stop_reason",
+          "completed_at",
+          "process_stopped",
+          "cancel_requested"
         ],
         "type": "object"
       },
@@ -19624,6 +19727,16 @@
               }
             ]
           },
+          "octop_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OctopExecutionCapability"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "opencode_execution": {
             "anyOf": [
               {
@@ -23381,6 +23494,17 @@
               }
             ]
           },
+          "octop_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OctopExecutionEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Original ACP session and fixed Harness configuration. ACP end_turn, cancellation intent, Go-confirmed process stop, independent tests and human acceptance are separate facts. No vendor identity or complete billing attestation."
+          },
           "opencode_execution": {
             "anyOf": [
               {
@@ -23483,6 +23607,16 @@
           },
           "model_execution_protocol": {
             "type": "string"
+          },
+          "octop_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OctopExecutionCapability"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "opencode_execution": {
             "anyOf": [

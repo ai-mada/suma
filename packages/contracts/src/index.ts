@@ -1952,6 +1952,7 @@ export interface ModelExecutionOption {
   output_token_reservation: number;
 }
 export interface ModelExecutionOptions {
+  fixed_octop?: OctopExecutionCapability | null;
   fixed_opencode?: OpenCodeExecutionCapability | null;
   codex_supported: boolean;
   codex_catalog?: CodexCatalog | null;
@@ -2111,6 +2112,28 @@ export interface NonSecretDeploymentRequest {
   artifact_id: string;
   artifact_sha256: string;
   assignment: AssignmentRef;
+}
+export interface OctopExecutionCapability {
+  harness_version: string;
+  acp_sdk_version: string;
+  provider_id: string;
+  model: string;
+  endpoint_origin: string;
+  configuration_sha256: string;
+  budget_mode: string;
+  identity_evidence: string;
+}
+export interface OctopExecutionEvidence {
+  configuration_sha256: string;
+  session_id: string;
+  requested_provider: string;
+  requested_model: string;
+  acknowledged_provider: string;
+  acknowledged_model: string;
+  stop_reason: string;
+  completed_at: string;
+  process_stopped: boolean;
+  cancel_requested: boolean;
 }
 export interface OpenCodeExecutionCapability {
   sdk_version: string;
@@ -4000,6 +4023,7 @@ export interface TaskDispatchOptionsRequest {
   before?: string;
 }
 export interface TaskDispatchPlan {
+  octop_execution?: OctopExecutionCapability | null;
   opencode_execution?: OpenCodeExecutionCapability | null;
   codex_execution?: CodexBinding | null;
   model_execution?: ModelBinding | null;
@@ -4416,6 +4440,7 @@ export interface ToolEvidence {
   model_execution?: ModelEvidence | null;
   codex_execution?: CodexEvidence | null;
   opencode_execution?: OpenCodeExecutionEvidence | null;
+  octop_execution?: OctopExecutionEvidence | null;
 }
 export interface ToolExecutionProfile {
   command_id: string;
@@ -4434,6 +4459,7 @@ export interface ToolExecutionProfile {
   intelligent_operations?: IntelligentOperationsCapability | null;
   failure_diagnosis?: FailureDiagnosisCapability | null;
   opencode_execution?: OpenCodeExecutionCapability | null;
+  octop_execution?: OctopExecutionCapability | null;
 }
 export interface ToolInventoryReceipt {
   acknowledged: boolean;

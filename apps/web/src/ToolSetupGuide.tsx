@@ -2,11 +2,14 @@ import {useId,useState} from 'react';
 import {Check,Copy,Terminal} from 'lucide-react';
 import {tr as t,useLocale} from './i18n';
 import './ToolSetupGuide.css';
+import {OctopHarnessSetup} from './OctopHarnessSetup';
+import {octopHarnessPreset} from './octop-execution-model';
 
-type Preset='junit'|'operations'|'codex'|'codebuddy'|'harness'|'planner'|'extractor'|'diagnosis'|'native-coder';
+type Preset='junit'|'operations'|'codex'|'codebuddy'|'harness'|'planner'|'extractor'|'diagnosis'|'native-coder'|'octop';
 // These are local administrator templates, never a registration or live
 // inventory. The existing observation/import flow remains the authority.
 const presets={
+ octop:octopHarnessPreset,
  junit:{'junit-tests':{adapter:'command',protocol:'text-v1',executable:'node',args:['--test','--test-reporter=junit','--test-reporter-destination={{test_report_path}}'],input:'none',read_only:false,test_evidence:true,test_report:true}},
  operations:{'suma-intelligent-operations':{adapter:'suma',protocol:'suma-jsonl-v1',executable:'node',args:[] as string[],input:'agent-jsonl',read_only:true,intelligent_operations:true}},
  'native-coder':{'native-coder':{adapter:'suma',protocol:'suma-jsonl-v1',executable:'node',args:[] as string[],input:'agent-jsonl',read_only:false}},
@@ -43,8 +46,9 @@ export function ToolSetupGuide(){
   <div className="tool-cli-setup-body">
    <p className="muted">{t('cli-setup.intro')}</p>
    <label className="tool-cli-setup-select">{t('cli-setup.tool')}<select value={selected} onChange={event=>{setSelected(event.target.value as Preset);setFailed(false);}}>
-    <option value="junit">{t('test-report-setup.tool')}</option><option value="operations">{t('intent-operations.setup_tool')}</option><option value="native-coder">{t('candidate-conflict-repair.local_preset')}</option><option value="diagnosis">{t('failure-diagnosis-setup.tool')}</option><option value="extractor">{t('knowledge-extraction-setup.tool')}</option><option value="planner">{t('cli-setup.planner')}</option><option value="codex">Codex</option><option value="codebuddy">CodeBuddy Code</option><option value="harness">DeepSeek Harness / dsh</option>
+    <option value="junit">{t('test-report-setup.tool')}</option><option value="operations">{t('intent-operations.setup_tool')}</option><option value="native-coder">{t('candidate-conflict-repair.local_preset')}</option><option value="diagnosis">{t('failure-diagnosis-setup.tool')}</option><option value="extractor">{t('knowledge-extraction-setup.tool')}</option><option value="planner">{t('cli-setup.planner')}</option><option value="codex">Codex</option><option value="codebuddy">CodeBuddy Code</option><option value="harness">DeepSeek Harness / dsh</option><option value="octop">{t('octop-execution.title')}</option>
    </select></label>
+   {selected==='octop'?<OctopHarnessSetup/>:<>
    {selected!=='codex'&&!structured&&!nativeCoder&&!junit&&<label className="tool-cli-setup-select">{t('cli-setup.launch_mode')}<select value={launchMode} onChange={event=>{setLaunchMode(event.target.value as 'native'|'node');setFailed(false);}}>
     <option value="native">{t('cli-setup.native_mode')}</option><option value="node">{t('cli-setup.node_mode')}</option>
    </select></label>}
@@ -63,6 +67,7 @@ export function ToolSetupGuide(){
    <code className="tool-cli-setup-command">{structured?'suma-runner --commands commands.local.json --allow-exec --describe-tools':'suma-runner --commands commands.local.json --allow-exec --repository REPOSITORY --base-commit COMMIT --describe-tools'}</code>
    <p className="muted">{t('cli-setup.shared_pool')}</p>
    <p className="muted">{t('cli-setup.boundary')}</p>
+   </>}
   </div>
  </details>;
 }

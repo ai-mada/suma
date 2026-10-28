@@ -1,4 +1,5 @@
 import {OpenCodeExecutionFacts} from './OpenCodeExecutionFacts';
+import {OctopExecutionFacts} from './OctopExecutionFacts';
 import {openCodeRunFacts,type OpenCodeRunTest} from './opencode-run-model';
 import {CodexExecutionFacts} from './CodexModelExecutionPanel';
 import { Trans } from "./i18n/Trans";
@@ -106,6 +107,7 @@ export function ToolProfileFacts({ profile }: { profile: ToolProfile }) { useLoc
       <p className="muted">
         {t("development.facts.version_and_probing_do_not_prove_model")}</p>
       <OpenCodeExecutionFacts capability={profile.profile.opencode_execution}/>
+      {profile.profile.adapter==='octop'&&profile.profile.protocol==='octop-harness-acp-v1'&&<OctopExecutionFacts capability={profile.profile.octop_execution}/>}
       {'workspace_tools_version' in profile.profile&&profile.profile.workspace_tools_version==='attempt-workspace-v1'&&<p className="muted">{t('native-workspace.capability')}</p>}
       {profile.profile.conflict_repair_protocol==='suma.candidate-conflict-repair.v1'&&<p className="muted">{t('candidate-conflict-repair.capability')}</p>}
       {profile.reason && (
@@ -315,7 +317,7 @@ export function ToolExecutionFacts({
   fixedOpenCode?:OpenCodeExecutionCapability;
   tests?:OpenCodeRunTest[];
 }) { useLocale();
-  const openCode=openCodeRunFacts({state,evidence,events,fixedOpenCode});
+  const openCode=openCodeRunFacts({state,evidence,events,fixedOpenCode}),octop=evidence?.profile.adapter==='octop'&&evidence.profile.protocol==='octop-harness-acp-v1';
   if (!evidence && !events.length&&!openCode) return null;
   const recent = toolEventRows(events).slice(-40),
     last = events.at(-1),
@@ -347,7 +349,7 @@ export function ToolExecutionFacts({
             <dd>
               {evidence.profile.command_id} · {evidence.profile.tool_version}
             </dd>
-            {!openCode&&<><dt>{t("development.facts.tool_report")}</dt>
+            {!openCode&&!octop&&<><dt>{t("development.facts.tool_report")}</dt>
             <dd>
               {(
                 {
@@ -361,7 +363,7 @@ export function ToolExecutionFacts({
             <dd>{formatNumber(evidence.event_count)}</dd>
           </>
         )}
-        {!openCode&&session && (
+        {!openCode&&!octop&&session && (
           <>
             <dt>{t("development.facts.external_session_id")}</dt>
             <dd>
@@ -370,11 +372,12 @@ export function ToolExecutionFacts({
           </>
         )}
       </dl>
-      {!openCode&&session && (
+      {!openCode&&!octop&&session && (
         <p className="muted">
           {t("development.facts.the_session_id_is_for_traceability_and")}</p>
       )}
       <CodexExecutionFacts evidence={evidence?.codex_execution}/><OpenCodeExecutionFacts run={openCode} tests={tests}/>
+      {octop&&<OctopExecutionFacts state={state} evidence={evidence}/>}
       <UsageFacts
         usage={usage ?? undefined}
         usageState={usageState}

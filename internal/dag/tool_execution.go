@@ -14,11 +14,12 @@ func ToolBinding(n Node) (id, sha string, bound bool, err error) {
 	rawID, idOK := n.Config["tool_profile_id"]
 	rawSHA, shaOK := n.Config["tool_profile_sha256"]
 	fixedOpenCode, openCodeErr := toolcontract.DecodeOpenCodeNodeConfiguration(n.Config)
-	if openCodeErr != nil || fixedOpenCode != nil && n.MaxRetries != 0 {
+	fixedOctop, octopErr := toolcontract.DecodeOctopNodeConfiguration(n.Config)
+	if openCodeErr != nil || fixedOpenCode != nil && n.MaxRetries != 0 || octopErr != nil || fixedOctop != nil && (n.MaxRetries != 0 || n.Type != "agent") {
 		return "", "", false, dagDiagnostic(fmt.Errorf("%w: complete agent tool binding required", ErrInvalid), "dag.tool.binding", nil)
 	}
 	if !idOK && !shaOK {
-		if fixedOpenCode != nil {
+		if fixedOpenCode != nil || fixedOctop != nil {
 			return "", "", false, dagDiagnostic(fmt.Errorf("%w: complete agent tool binding required", ErrInvalid), "dag.tool.binding", nil)
 		}
 		return "", "", false, nil
@@ -58,9 +59,13 @@ func validateToolResult(n Node, r Result) error {
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrInvalid, err)
 	}
+	fixedOctop, err := toolcontract.DecodeOctopNodeConfiguration(n.Config)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalid, err)
+	}
 	success := r.ExitCode == 0 && r.Error == "" && !r.Stopped && !r.OutcomeUnknown
 	if r.ToolEvidence == nil {
-		if fixedOpenCode != nil && r.Stopped {
+		if (fixedOpenCode != nil || fixedOctop != nil) && r.Stopped {
 			return dagDiagnostic(fmt.Errorf("%w: tool evidence differs from fixed node", ErrInvalid), "dag.tool.result_binding", nil)
 		}
 		if bound && success {
@@ -78,6 +83,13 @@ func validateToolResult(n Node, r Result) error {
 	sdkEvidence := e.Profile.Protocol == toolcontract.OpenCodeSDKProtocol || e.Profile.OpenCodeExecution != nil || e.OpenCodeExecution != nil
 	if (fixedOpenCode != nil) != sdkEvidence || fixedOpenCode != nil && (e.Profile.OpenCodeExecution == nil || *fixedOpenCode != *e.Profile.OpenCodeExecution) {
 		return dagDiagnostic(fmt.Errorf("%w: tool evidence differs from fixed node", ErrInvalid), "dag.tool.result_binding", nil)
+	}
+	octopEvidence := e.Profile.Protocol == toolcontract.OctopProtocol || e.Profile.OctopExecution != nil || e.OctopExecution != nil
+	if (fixedOctop != nil) != octopEvidence || fixedOctop != nil && (e.Profile.OctopExecution == nil || *fixedOctop != *e.Profile.OctopExecution || e.Terminal == "completed" && !success) {
+		return dagDiagnostic(fmt.Errorf("%w: tool evidence differs from fixed node", ErrInvalid), "dag.tool.result_binding", nil)
+	}
+	if err := toolcontract.ValidateOctopResultStop(*e, r.Stopped, r.OutcomeUnknown); err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalid, err)
 	}
 	if err := toolcontract.ValidateOpenCodeResultStop(*e, r.Stopped, r.OutcomeUnknown); err != nil {
 		return fmt.Errorf("%w: %v", ErrInvalid, err)

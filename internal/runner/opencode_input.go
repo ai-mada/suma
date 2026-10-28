@@ -8,8 +8,13 @@ import (
 )
 
 func newOpenCodeInput(requestID, goal string, bridge NativeWorkspaceBridge) (*duplexInput, error) {
+	return newHostAgentInput(requestID, goal, bridge)
+}
+
+// Shared bounded host carrier; each SDK retains its own protocol decoder.
+func newHostAgentInput(requestID, goal string, bridge NativeWorkspaceBridge) (*duplexInput, error) {
 	if requestID == "" || !utf8.ValidString(requestID) || len(requestID) > 128 || strings.ContainsAny(requestID, "\x00\r\n") || bridge.RequestID != requestID || bridge.ConflictRepairProtocol != "" || strings.TrimSpace(goal) == "" || !utf8.ValidString(goal) || strings.ContainsRune(goal, 0) || len(goal) > 32000 {
-		return nil, fmt.Errorf("OpenCode input requires its host-owned request and bounded goal")
+		return nil, fmt.Errorf("SDK input requires its host-owned request and bounded goal")
 	}
 	execute, err := json.Marshal(struct {
 		Version         int                   `json:"v"`

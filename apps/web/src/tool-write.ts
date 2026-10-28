@@ -15,6 +15,7 @@ function validate(path: string, body: unknown) {
   if (!allowedPath.test(path))
     throw new UiError("development.errors.operation_scope");
   if (path === '/task-dispatch-plans' && body && typeof body === 'object' && Object.hasOwn(body,'codex_execution_selection') && !validCodexSelection((body as Record<string,unknown>).codex_execution_selection)) throw new UiError("development.errors.request_invalid");
+  if(path.startsWith('/task-dispatch-plans')&&body&&typeof body==='object'&&['octop_execution','octop_execution_selection','octop','fixed_octop'].some(key=>Object.hasOwn(body,key)))throw new UiError('development.errors.request_invalid');
   const inspect = (value: unknown, parents: string[] = []) => {
     if (!value || typeof value !== "object") return;
     for (const [key, item] of Object.entries(value)) {

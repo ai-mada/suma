@@ -208,6 +208,9 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof
 		return false, nil
 	}
 	if !bound {
+		if _, present := n.Config["octop_execution"]; present {
+			return false, nil
+		}
 		if _, present := n.Config["opencode_execution"]; present {
 			return false, nil
 		}

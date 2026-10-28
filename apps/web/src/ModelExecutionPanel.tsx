@@ -1,6 +1,8 @@
 import {useEffect, useId, useState} from 'react';
 import {OpenCodeExecutionFacts} from './OpenCodeExecutionFacts';
 import {validOpenCodeCapability} from './opencode-execution-model';
+import {OctopExecutionFacts} from './OctopExecutionFacts';
+import {validOctopCapability,type OctopExecutionCapability} from './octop-execution-model';
 import {RefreshCw} from 'lucide-react';
 import type {ModelBinding, ModelExecutionOptions, ModelSelection, CodexSelection, OpenCodeExecutionCapability} from '../../../packages/contracts/src';
 import {useApi} from './api-context';
@@ -13,13 +15,13 @@ import {validCodexCatalog} from './codex-execution-model';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('model-execution.' + key, values);
 export type ModelChoice = {ready: boolean} & ({selection?: ModelSelection; codexSelection?: never} | {selection?: never; codexSelection?: CodexSelection});
-type Props = {scope: ModelScope; fixedOpenCode?:OpenCodeExecutionCapability|null; supported: boolean; discover?: boolean; codex?: boolean; allowCodex?: boolean; disabled: boolean; onChange: (value: ModelChoice) => void};
+type Props = {scope: ModelScope; fixedOpenCode?:OpenCodeExecutionCapability|null; fixedOctop?:OctopExecutionCapability|null; supported: boolean; discover?: boolean; codex?: boolean; allowCodex?: boolean; disabled: boolean; onChange: (value: ModelChoice) => void};
 /** A current scoped read, never a model health probe or a dispatch action. */
 export function ModelExecutionPanel(props: Props) {
   const key=JSON.stringify(props.scope);
   return props.codex ? <CodexModelExecutionPanel key={key} scope={props.scope} disabled={props.disabled} onChange={props.onChange}/> : <NativeModelExecutionPanel key={key} {...props}/>;
 }
-function NativeModelExecutionPanel({scope, fixedOpenCode, supported, discover = false, allowCodex = true, disabled, onChange}: Props) {
+function NativeModelExecutionPanel({scope, fixedOpenCode, fixedOctop, supported, discover = false, allowCodex = true, disabled, onChange}: Props) {
   const api = useApi(); useLocale(); const id = useId();
   const [read, setRead] = useState<{api:typeof api;path:string;value:ModelExecutionOptions}>(), [error, setError] = useState<unknown>(), [loading, setLoading] = useState(false), [refresh, setRefresh] = useState(0);
   const [draft, setDraft] = useState<ModelDraft>({deployment: '', steps: '8', output: '4096', tokens: '', cost: ''});
@@ -40,7 +42,7 @@ function NativeModelExecutionPanel({scope, fixedOpenCode, supported, discover = 
   const selection = page && modelSelection(page, draft);
   useEffect(() => {if (discover && allowCodex && page?.codex_supported) return;onChange({selection, ready: !supported && !discover || !loading && !error && (!!selection || !supported && discover && page?.supported === false && !page.codex_supported)});}, [supported, discover, allowCodex, page, draft, loading, error, onChange]);
   if (discover && page?.codex_supported) return allowCodex ? <CodexModelExecutionSelector catalog={page.codex_catalog} disabled={disabled} onChange={onChange} onRefresh={()=>setRefresh(n=>n+1)}/> : <p role="status" className="muted">{t('codex_not_supported')}</p>;
-  if (!supported && (!discover || page?.supported === false)) { const fixed=fixedOpenCode??page?.fixed_opencode; return validOpenCodeCapability(fixed)?<OpenCodeExecutionFacts capability={fixed}/>:<p className="muted">{t('fixed_tool')}</p>; }
+  if (!supported && (!discover || page?.supported === false)) { const octop=fixedOctop??page?.fixed_octop,fixed=fixedOpenCode??page?.fixed_opencode; return validOctopCapability(octop)?<OctopExecutionFacts capability={octop}/>:validOpenCodeCapability(fixed)?<OpenCodeExecutionFacts capability={fixed}/>:<p className="muted">{t('fixed_tool')}</p>; }
   const item = page?.items.find(item => item.deployment.deployment_sha256 === draft.deployment);
   return <section className="model-execution" aria-labelledby={id} aria-busy={loading}>
     <div className="model-execution-heading"><h3 id={id}>{t('title')}</h3><button type="button" aria-label={t('refresh')} disabled={disabled || loading} onClick={() => setRefresh(n => n + 1)}><RefreshCw size={14}/></button></div>

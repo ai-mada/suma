@@ -43,6 +43,7 @@ type CommandSpec struct {
 	ModelExecutionProtocol string                 `json:"model_execution_protocol,omitempty"`
 	CodexAppServer         *CodexAppServerSpec    `json:"codex_app_server,omitempty"`
 	OpenCode               *OpenCodeSpec          `json:"opencode,omitempty"`
+	Octop                  *OctopSpec             `json:"octop,omitempty"`
 }
 
 type nativeAgentLimits struct {
@@ -370,6 +371,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if err := openCodeExecutionRequest(a, spec, profile); err != nil {
 		return fail(err.Error())
 	}
+	if err := octopExecutionRequest(a, spec, profile); err != nil {
+		return fail(err.Error())
+	}
 	purposeInput, purposeErr := modelPurposeRequest(a, spec, profile)
 	if purposeErr != nil {
 		return fail(purposeErr.Error())
@@ -386,7 +390,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		return fail(codexErr.Error())
 	}
 	var nativeLimits nativeAgentLimits
-	if spec.NativeWorkspace != nil && spec.OpenCode == nil {
+	if spec.NativeWorkspace != nil && spec.OpenCode == nil && spec.Octop == nil {
 		limits, limitsErr := nativeExecutionLimits(a)
 		if limitsErr != nil {
 			return fail(limitsErr.Error())
@@ -504,6 +508,15 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				return fail("Codex app-server stdin pipe could not be opened")
 			}
 			defer codexPipe.Close()
+		case "octop-acp-jsonl":
+			if spec.Octop == nil {
+				return fail("Octop requires its fixed local configuration")
+			}
+			dshPipe, err = cmd.StdinPipe()
+			if err != nil {
+				return fail("Octop stdin pipe could not be opened")
+			}
+			defer dshPipe.Close()
 		case "opencode-sdk-jsonl":
 			if spec.OpenCode == nil {
 				return fail("OpenCode SDK requires its fixed local configuration")
@@ -538,6 +551,15 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	}
 	if err != nil {
 		return fail(err.Error())
+	}
+	if spec.Octop != nil {
+		home := filepath.Join(workspace.Directory, "octop-home")
+		cmd.Env, environmentSecrets, err = octopEnvironment(spec, home, true)
+		cmd.Dir = home
+		cfg.Secrets = append(cfg.Secrets, home, root, spec.Octop.BaseURL)
+		if err != nil {
+			return fail(err.Error())
+		}
 	}
 	if modelExecution != nil {
 		cmd.Env = applyModelExecutionEnvironment(cmd.Env, modelExecution)
@@ -581,8 +603,8 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				defer unregister()
 			}
 		}
-		if spec.OpenCode != nil {
-			dshStdin, err = newOpenCodeInput(digest([]byte(key(a))), a.Config["goal"].(string), bridge)
+		if spec.OpenCode != nil || spec.Octop != nil {
+			dshStdin, err = newHostAgentInput(digest([]byte(key(a))), a.Config["goal"].(string), bridge)
 			if err != nil {
 				return fail(err.Error())
 			}
@@ -779,7 +801,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				_ = codexDriver.Cancel()
 			}
 			graceDuration := 1500 * time.Millisecond
-			if spec.OpenCode != nil {
+			if spec.OpenCode != nil || spec.Octop != nil {
 				graceDuration = 10 * time.Second
 			}
 			grace := time.NewTimer(graceDuration)
@@ -828,6 +850,8 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		evidence, streamErr := stream.finish()
 		parentStopped := stream.openCodeState != nil && stream.openCodeState.parentStopped
 		applyOpenCodeProcessContainment(evidence, parentStopped, processContainmentVerified)
+		octopParentStopped := stream.octopState != nil && stream.octopState.parentStopped
+		applyOctopProcessContainment(evidence, octopParentStopped, processContainmentVerified)
 		if r.Stopped || r.OutcomeUnknown {
 			evidence.Terminal = "unknown"
 		}
@@ -859,6 +883,13 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				r.OutcomeUnknown = true
 				evidence.Terminal = "unknown"
 				r.Error = "OpenCode SDK stop acknowledgement requires reconciliation"
+			}
+		}
+		if profile.Protocol == tc.OctopProtocol {
+			if stopErr := tc.ValidateOctopResultStop(*evidence, r.Stopped, r.OutcomeUnknown); stopErr != nil {
+				r.Stopped, r.OutcomeUnknown, r.ExitCode = false, true, -1
+				evidence.Terminal = "unknown"
+				r.Error = "Octop process-stop evidence requires reconciliation"
 			}
 		}
 		if (profile.Planning != nil || profile.KnowledgeExtraction != nil || profile.FailureDiagnosis != nil || profile.IntelligentOperations != nil) && stream.terminal == "completed" && stream.bad == nil {

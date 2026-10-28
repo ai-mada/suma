@@ -14,7 +14,7 @@ T-QUALITY-115在原P5范围内细化自动化测试计划及逐例证据，不�
 
 | 领域 | 当前实现 | 验证入口与明确边界 |
 | --- | --- | --- |
-| Octop 项目MCP | 项目专用配置、2项新增API只读、共享目录17项；同事务复用交付／质量、紧凑分页及中英文连接界面 | [指南](../integrations/octop.md)、[报告](../quality/octop-integration-verification.md)、[摘要](../quality/octop-integration-summary.json)；实际Octop实例与ACP编码仍待验 |
+| Octop 项目MCP与Harness执行 | 项目专用MCP配置、17项共享目录；公开Harness1.0.5／ACP0.12.1、固定模型到Go六工具、独立工作树、检查、封存与同SHA独立JUnit；中英文配置与执行事实 | [接入](../integrations/octop.md)、[执行架构](../architecture/octop-execution.md)、[执行报告](../quality/octop-execution-verification.md)；真实官方SDK＋本地模型协议样本与取消进程树已验，完整Octop CLI／GUI、厂商账户、多主机和总量硬预算仍待验；58／34／92不变 |
 | 身份、组织与治理 | 初始化、登录、会话、组织／项目隔离、真实账号、团队、邀请、角色、撤权及当前凭证授权 | [当前权限](../quality/current-authority-verification.md)、[平台验证](../quality/verification.md)；完整自定义角色／菜单、企业 SSO、OAuth／设备治理及跨数据库验收待办 |
 | 项目计划与进度 | 迭代、里程碑、版本化排期、完整项目不可变基线、当前比较、自然周估算分摊与真实业务指标 | [产品与治理](../product/governance.md)、[验证](../quality/verification.md)；计划估算不等于实际工时，人员日历、连续历史、预测和 portfolio 待办 |
 | 业务任务依赖编辑与参考源码整合 | 当前项目完整任务图、图／表共享草稿、最多 100 项原子版本 CAS、全图校验、显式冲突处理及原操作回执恢复；修改撤销旧验收资格并保留执行快照 | [中文操作](../development/task-dependencies.md)／[English](../en/task-dependencies.md)、[合同](../../contracts/task-dependencies.md)、[源码适配清单](../integrations/referenced-conversation-integration.md)、[本阶段报告](../quality/task-dependencies-verification.md)；按实际参考源码重构当前 1.0.0，不是旧 Git 历史 cherry-pick；最多 1000 个任务完整图，实际 API 与界面复验结果以报告为准，分布式／大图性能／生产验收未由本阶段推断 |

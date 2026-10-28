@@ -113,6 +113,12 @@ func commandProfileDigest(spec CommandSpec, executableSHA string) (string, error
 		}
 		entry = spec.Args[0]
 	}
+	if spec.Octop != nil {
+		if err := validateOctopSpec(spec); err != nil {
+			return "", err
+		}
+		entry = spec.Args[0]
+	}
 	if entry == "" {
 		return tc.ProfileDigest(spec, executableSHA)
 	}
@@ -213,6 +219,9 @@ func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []st
 	}
 	if spec.Adapter == "command" {
 		return "local-command", nil
+	}
+	if spec.Adapter == "octop" {
+		return probeOctop(ctx, exe, spec, secrets, workspace)
 	}
 	if spec.Adapter == "opencode" {
 		return probeOpenCode(ctx, exe, spec, secrets, workspace)
@@ -439,6 +448,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 		if err := validateOpenCodeSpec(spec); err != nil {
 			return err
 		}
+		if err := validateOctopSpec(spec); err != nil {
+			return err
+		}
 		if err := validateCodexAppServerSpec(spec); err != nil {
 			return err
 		}
@@ -498,7 +510,7 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 			defer func() { <-sem; done <- i }()
 			spec := normalizedCommand(cfg.Commands[id])
 			p := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec)}
-			if spec.NativeWorkspace != nil && spec.Adapter != "opencode" {
+			if spec.NativeWorkspace != nil && spec.Adapter != "opencode" && spec.Adapter != "octop" {
 				p.WorkspaceToolsVersion = NativeWorkspaceVersion
 				if spec.NativeWorkspace.ConflictRepair {
 					p.ConflictRepairProtocol = "suma.candidate-conflict-repair.v1"
@@ -542,6 +554,14 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 			o.Profile.ToolVersion = version
 			if spec.Adapter == "opencode" {
 				o.Profile.OpenCodeExecution, err = localOpenCodeCapability(spec)
+				if err != nil {
+					fail(err.Error())
+					return
+				}
+				o.Profile.WorkspaceToolsVersion = NativeWorkspaceVersion
+			}
+			if spec.Adapter == "octop" {
+				o.Profile.OctopExecution, err = localOctopCapability(spec)
 				if err != nil {
 					fail(err.Error())
 					return
@@ -624,6 +644,9 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 	if err := validateOpenCodeSpec(spec); err != nil {
 		return tc.Profile{}, "", err
 	}
+	if err := validateOctopSpec(spec); err != nil {
+		return tc.Profile{}, "", err
+	}
 	if spec.Adapter == "codex" {
 		if err := validateCodexCommand(spec); err != nil {
 			return tc.Profile{}, "", err
@@ -655,6 +678,10 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 		}
 		p = tc.Profile{CommandID: a.Command[0], Adapter: spec.Adapter, Protocol: spec.Protocol, ProfileSHA256: digest, ExecutableSHA256: sha, ToolVersion: version, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec)}
 		p.OpenCodeExecution, err = localOpenCodeCapability(spec)
+		if err != nil {
+			return p, "", err
+		}
+		p.OctopExecution, err = localOctopCapability(spec)
 		if err != nil {
 			return p, "", err
 		}
@@ -695,6 +722,10 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 	expectedOpenCode, err := localOpenCodeCapability(spec)
 	if err != nil || (p.OpenCodeExecution == nil) != (expectedOpenCode == nil) || p.OpenCodeExecution != nil && *p.OpenCodeExecution != *expectedOpenCode {
 		return p, "", fmt.Errorf("OpenCode fixed configuration differs from local inventory")
+	}
+	expectedOctop, err := localOctopCapability(spec)
+	if err != nil || (p.OctopExecution == nil) != (expectedOctop == nil) || p.OctopExecution != nil && *p.OctopExecution != *expectedOctop {
+		return p, "", fmt.Errorf("Octop fixed configuration differs from local inventory")
 	}
 	if p.ModelExecutionProtocol != spec.ModelExecutionProtocol || validateModelExecutionSpec(spec) != nil {
 		return p, "", fmt.Errorf("model execution capability does not match local configuration")

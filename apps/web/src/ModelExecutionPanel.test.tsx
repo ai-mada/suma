@@ -44,3 +44,12 @@ it('discovers fixed tools only from an exact scoped response without weakening r
  await act(async()=>root!.render(<ApiViewProvider session={session}><ModelExecutionPanel scope={scope} supported discover disabled={false} onChange={changed}/></ApiViewProvider>));await settle();
  expect(changed.mock.lastCall?.[0].ready).toBe(false);
 });
+it('validates exclusive fixed Octop options and displays their scoped configuration without creating a model selection',async()=>{
+ const capability={harness_version:'1.0.5',acp_sdk_version:'0.10.1',provider_id:'openai',model:'configured-octop',endpoint_origin:'https://provider.example.test',configuration_sha256:'e'.repeat(64),budget_mode:'observe_only',identity_evidence:'configuration_ack_only'} as const;
+ const fixed:ModelExecutionOptions={...options(),supported:false,codex_supported:false,reason:'fixed_by_tool',items:[],fixed_octop:capability};expect(validModelOptions(fixed,scope)).toBe(true);
+ const openCode={sdk_version:'1.19.4',server_version:'1.19.4',provider_id:'owned',model:'team/model-a',endpoint_origin:'https://models.example',configuration_sha256:'f'.repeat(64),budget_mode:'observe_only',identity_evidence:'configuration_ack_only'} as const;
+ for(const patch of [{supported:true},{codex_supported:true},{reason:'other'},{items:options().items},{fixed_opencode:openCode},{fixed_octop:{...capability,api_key:'private'}},{fixed_octop:{...capability,budget_mode:'hard'}},{tool_profile_sha256:'f'.repeat(64)}])expect(validModelOptions({...fixed,...patch} as ModelExecutionOptions,scope)).toBe(false);
+ const changed=vi.fn(),fetcher=vi.fn(async()=>Response.json(fixed));vi.stubGlobal('fetch',fetcher);await act(async()=>{root=createRoot(host);root.render(<ApiViewProvider session={session}><ModelExecutionPanel scope={scope} supported={false} discover disabled={false} onChange={changed}/></ApiViewProvider>);});await settle();
+ expect(host.textContent).toContain('openai/configured-octop');expect(host.textContent).toContain('observe-only');expect(host.querySelector('[data-model-select]')).toBeNull();expect(changed.mock.lastCall?.[0]).toEqual({ready:true,selection:undefined});expect(fetcher).toHaveBeenCalledTimes(1);
+ await act(async()=>root!.render(<ApiViewProvider session={session}><ModelExecutionPanel scope={scope} supported={false} fixedOctop={capability} disabled={false} onChange={changed}/></ApiViewProvider>));await settle();expect(host.textContent).toContain('openai/configured-octop');expect(fetcher).toHaveBeenCalledTimes(1);
+});

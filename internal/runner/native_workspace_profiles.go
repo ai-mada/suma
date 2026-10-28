@@ -33,7 +33,8 @@ func validateNativeWorkspacePolicy(cfg ExecConfig, id string, spec CommandSpec) 
 	policy := spec.NativeWorkspace
 	native := spec.Adapter == "suma" && spec.Protocol == "suma-jsonl-v1" && spec.Input == "agent-jsonl"
 	openCode := spec.Adapter == "opencode" && spec.Protocol == tc.OpenCodeSDKProtocol && spec.Input == "opencode-sdk-jsonl" && spec.OpenCode != nil && !policy.ConflictRepair
-	if (!native && !openCode) || spec.ReadOnly || spec.IntelligentOperations || spec.ArtifactInput || spec.ArtifactOutput != "" || spec.TestEvidence || len(policy.Checks) > 16 || !filepath.IsAbs(policy.RuntimeManifest) {
+	octop := spec.Adapter == "octop" && spec.Protocol == tc.OctopProtocol && spec.Input == "octop-acp-jsonl" && spec.Octop != nil && !policy.ConflictRepair
+	if (!native && !openCode && !octop) || spec.ReadOnly || spec.IntelligentOperations || spec.ArtifactInput || spec.ArtifactOutput != "" || spec.TestEvidence || len(policy.Checks) > 16 || !filepath.IsAbs(policy.RuntimeManifest) {
 		return fmt.Errorf("native workspace requires an isolated Suma agent, a runtime manifest and bounded fixed checks")
 	}
 	seen := map[string]bool{}
@@ -48,10 +49,15 @@ func validateNativeWorkspacePolicy(cfg ExecConfig, id string, spec CommandSpec) 
 	return nil
 }
 
-// The bundled entry closes the JS/SDK dependency graph. A module entry alone
-// cannot prove that a later dependency import still matches the inventory.
+// Pin the host runtime entry and declared dependencies. JavaScript bundles
+// close their imports; Python uses a separately managed locked environment,
+// whose SDK versions are checked by the offline probe. This is not an OS sandbox.
 func nativeManifestDigest(spec CommandSpec) (string, error) {
-	if len(spec.Args) != 1 || strings.ToLower(filepath.Ext(spec.Args[0])) != ".mjs" || !filepath.IsAbs(spec.Args[0]) {
+	extension := ".mjs"
+	if spec.Octop != nil {
+		extension = ".pyz"
+	}
+	if len(spec.Args) != 1 || strings.ToLower(filepath.Ext(spec.Args[0])) != extension || !filepath.IsAbs(spec.Args[0]) {
 		return "", fmt.Errorf("native workspace requires one bundled ESM entry")
 	}
 	path := spec.NativeWorkspace.RuntimeManifest
@@ -91,7 +97,11 @@ func nativeManifestDigest(spec CommandSpec) (string, error) {
 			return "", fmt.Errorf("native runtime bundle contains a non-Node external dependency")
 		}
 	}
-	if manifest.Dependencies["@modelcontextprotocol/client"] == "" {
+	if spec.Octop != nil {
+		if len(manifest.ExternalImports) != 0 || manifest.Dependencies["octop-harness"] != tc.OctopHarnessVersion || manifest.Dependencies["agent-client-protocol"] != tc.OctopACPSDKVersion || manifest.Dependencies["mcp"] != "1.30.0" || manifest.Dependencies["jsonschema"] != "4.26.0" || manifest.OpenCode != nil || len(manifest.Assets) != 0 {
+			return "", fmt.Errorf("Octop manifest must declare its exact supported Python SDKs")
+		}
+	} else if manifest.Dependencies["@modelcontextprotocol/client"] == "" {
 		return "", fmt.Errorf("native runtime manifest is missing its official MCP client version")
 	}
 	if spec.Adapter == "opencode" {

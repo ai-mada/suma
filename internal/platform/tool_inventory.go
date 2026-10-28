@@ -90,6 +90,9 @@ func (s *Service) toolClaimEligibleTx(ctx context.Context, tx *sql.Tx, auth *aut
 		return false, nil
 	}
 	if !bound {
+		if _, present := spec.Config["octop_execution"]; present {
+			return false, nil
+		}
 		if _, present := spec.Config["opencode_execution"]; present {
 			return false, nil
 		}

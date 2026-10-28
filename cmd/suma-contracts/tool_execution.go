@@ -55,6 +55,7 @@ func toolExecutionContracts(add operationAdder, paths map[string]any) {
 func enhanceToolExecutionSchemas(schemas map[string]any) {
 	nativeDiagnosticContracts(schemas)
 	openCodeExecutionSchemas(schemas)
+	octopExecutionSchemas(schemas)
 	field := func(model, name string, attrs map[string]any) {
 		value := toolContractMap(schemas, model, "properties", name)
 		for k, v := range attrs {

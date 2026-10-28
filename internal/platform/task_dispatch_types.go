@@ -31,6 +31,7 @@ type TaskContext struct {
 }
 
 type TaskDispatchPlan struct {
+	OctopExecution     *tc.OctopExecutionCapability    `json:"octop_execution,omitempty"`
 	OpenCodeExecution  *tc.OpenCodeExecutionCapability `json:"opencode_execution,omitempty"`
 	CodexExecution     *cc.Binding                     `json:"codex_execution,omitempty"`
 	ModelExecution     *modelcontract.Binding          `json:"model_execution,omitempty"`
