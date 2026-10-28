@@ -6,6 +6,7 @@ import {mutate} from './operations';
 type View=Readonly<{userID:string;organizationID:string}>;
 type ViewSession=Pick<Session,'user'|'organization'>;
 const ApiContext=createContext<ApiCaller|undefined>(undefined);
+const ViewContext=createContext<View|undefined>(undefined);
 const userHeader='X-Suma-Expected-User',organizationHeader='X-Suma-Expected-Organization';
 const bootstrap=new Set(['/auth/setup','/auth/login','/auth/invitations/accept','/auth/logout']);
 
@@ -56,10 +57,15 @@ export function useViewApi(session:ViewSession|null|undefined):ApiCaller{
 }
 export function ApiViewProvider({session,children}:{session:ViewSession|null;children:ReactNode}){
  const caller=useViewApi(session);
- return <ApiContext.Provider value={caller}>{children}</ApiContext.Provider>;
+ const userID=session?.user.id,organizationID=session?.organization.id;
+ const view=userID&&organizationID?Object.freeze({userID,organizationID}):undefined;
+ return <ViewContext.Provider value={view}><ApiContext.Provider value={caller}>{children}</ApiContext.Provider></ViewContext.Provider>;
 }
 /** The raw fallback carries no view; it cannot guess a user outside a Provider. */
 export function useApi():ApiCaller{return useContext(ApiContext)??api;}
+/** Native selection binds these original primitives; it never receives a
+ * session cookie, authentication token or permission inferred from the UI. */
+export function useApiView():View|undefined{return useContext(ViewContext);}
 export function useMutationApi(){
  const caller=useApi();
  return useCallback(<T=any>(path:string,body:Record<string,unknown>,method?:string,identity?:string)=>mutate<T>(path,body,method,identity,caller),[caller]);

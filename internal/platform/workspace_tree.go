@@ -70,15 +70,11 @@ func (s *Service) workspaceTreeGuard(ctx context.Context, actor Actor, project, 
 		}
 		return err
 	}
-	allowed, err := allowedWorkspaceRoot()
-	if err != nil {
-		return workspaceTreeError(403, "forbidden", workspaceTreeForbidden)
-	}
 	resolved, err := filepath.EvalSymlinks(root)
 	if err != nil {
 		return workspaceTreeError(422, "unavailable", workspaceTreeUnavailable)
 	}
-	if !workspaceTreeSamePath(root, resolved) || !under(allowed, resolved) {
+	if !workspaceTreeSamePath(root, resolved) {
 		return workspaceTreeError(403, "forbidden", workspaceTreeForbidden)
 	}
 	return ctx.Err()
@@ -151,7 +147,7 @@ func (s *Service) listWorkspaceTree(ctx context.Context, actor Actor, project, r
 	if rootInfo.Mode()&os.ModeSymlink != 0 {
 		return out, workspaceTreeError(403, "forbidden", workspaceTreeForbidden)
 	}
-	jail, err := os.OpenRoot(root)
+	jail, err := s.openWorkspaceFileRoot(ctx, actor, project, root)
 	if err != nil {
 		return out, workspaceTreeError(422, "unavailable", workspaceTreeUnavailable)
 	}

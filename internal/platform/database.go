@@ -17,6 +17,7 @@ type Service struct {
 	ReleaseProviders     []ReleaseProviderConfig
 	RepositoryProviders  []RepositoryProviderConfig
 	AutomationIngressKey []byte
+	DesktopWorkspaceKey  []byte   // Local desktop root approvals only; never projected to clients or tools.
 	authorityBudgets     sync.Map // *sql.Tx -> *authorityTxBudget; never persisted authority
 	authorityBudgetMu    sync.Mutex
 }

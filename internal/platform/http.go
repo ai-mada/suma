@@ -523,6 +523,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	}
 	switch {
 	case parts[0] == "workspace":
+		if s.workspaceDesktopBindingHTTP(w, r, actor, project, path, m) {
+			return
+		}
 		s.workspace(w, r, actor, project, path, m)
 	case path == "overview" && r.Method == "GET":
 		// Filesystem/health probes finish before taking the bounded SQL proof.

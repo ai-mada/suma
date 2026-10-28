@@ -49,6 +49,11 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 		return 1
 	}
 	ip := net.ParseIP(host)
+	desktopKey, err := desktopWorkspaceKey(app.Getenv("SUMA_DESKTOP_WORKSPACE_KEY"), driver, ip)
+	if err != nil {
+		logger.Error(app.Text("桌面目录授权配置无效", "invalid desktop workspace configuration"), "event", "control.desktop_workspace_configuration", "error", err)
+		return 1
+	}
 	publicURL, publicURLSource, err := platform.ResolveMCPPublicURL(app.Getenv("SUMA_PUBLIC_URL"), *addr)
 	if err != nil {
 		logger.Error(app.Text("公开服务地址配置无效", "invalid public service URL configuration"), "event", "control.public_url_invalid")
@@ -64,7 +69,7 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 		return 1
 	}
 	defer db.Close()
-	service := &platform.Service{DB: db, Dialect: store.Dialect(driver), DataDir: data}
+	service := &platform.Service{DB: db, Dialect: store.Dialect(driver), DataDir: data, DesktopWorkspaceKey: desktopKey}
 	service.AutomationIngressKey, err = platform.LoadAutomationIngressKey(data, store.Dialect(driver), app.Getenv)
 	if err != nil {
 		logger.Error(app.Text("自动化接入密钥配置失败", "automation ingress key configuration"), "event", "control.automation_key_configuration", "error", err)

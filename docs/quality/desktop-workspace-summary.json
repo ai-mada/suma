@@ -1,0 +1,293 @@
+{
+  "stage": "T-DESKTOP-107",
+  "product_version": "1.0.0",
+  "status": "scoped_implementation_and_http_verified_native_gui_pending",
+  "complete_platform": false,
+  "recorded_at": "2026-10-28T02:55:31.433626+00:00",
+  "scope": "Native project directory selection and explicit scoped binding; current root-constrained tree/file/save/Git and original receipts",
+  "environment": {
+    "os": "Windows x64",
+    "go": "1.26.10",
+    "node": "v22.16.0",
+    "electron": "35.7.5"
+  },
+  "checks": {
+    "desktop_node_initial": {
+      "command": "node --test apps/desktop/tests/workspace-main.test.cjs apps/desktop/tests/workspace-grants.test.cjs apps/desktop/tests/localization.test.cjs apps/desktop/tests/lifecycle.test.cjs",
+      "exit_code": 0,
+      "tests": 18,
+      "passed": 17,
+      "failed": 0,
+      "skipped": 1,
+      "log": ".cache/e2e/desktop-107/node-desktop-tests.log",
+      "log_sha256": "94af696429852877f5e13d085da020bc8828a67f3da95bb81d28fa3dc45fe5b3",
+      "syntax_checks": 4,
+      "source_scope": "Observed before the review changes to canonical path bounds and development path validation; superseded for those branches by review_followup"
+    },
+    "desktop_node_review_affected": {
+      "changes": [
+        "Development paths are scoped to this repository .cache, without a stage-specific runtime name; existing target/ancestor links and realpath mismatches are rejected",
+        "Canonical selection path is limited to 4096 UTF-8 bytes before grant creation"
+      ],
+      "command": "node --test --test-name-pattern=\"canonical selection paths|development overrides\" apps/desktop/tests/workspace-grants.test.cjs",
+      "exit_code": 0,
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "log": ".cache/e2e/desktop-107/node-desktop-review-tests.log",
+      "log_sha256": "f3a1b35694717588bb26b8e68a7d282fd7b5b2bfeae32fbe4c0975225c89bf14",
+      "scope_note": "Only the two affected cases were rerun after review; the initial 18-case result predates the review changes"
+    },
+    "web_distinct_affected_passed": 10,
+    "web_review_affected_passed": 2,
+    "web_typecheck": true,
+    "web_i18n_paired_keys": 4698,
+    "own_production_frontend_chinese_hardcodes": 0,
+    "product_versions": "1.0.0 check passed",
+    "go_initial_selected_set": "one Windows held-root rename test assumption failed; other selected tests passed",
+    "go_corrected_single_case": "passed; no repeated full set",
+    "go_vet": true,
+    "generated_contract_check": {
+      "passed": true,
+      "receipt": "20261028T024230899Z.command.json"
+    },
+    "control_build_sha256": "eb4c5572911f6ce11efcc9cdd085c2c78f9bdf3bcc9f29fa4f08456286988b74",
+    "web_build": "final source passed in51.58s; existing large chunk warning",
+    "web_current_binding_review_affected_passed": 3,
+    "web_current_binding_scope": "Original ACK distinct from fresh current metadata; GET retry never repeats POST. Three affected cases passed after original10 + prior2; overlaps are not an aggregate suite."
+  },
+  "actual_http": {
+    "passed": true,
+    "native_picker_exercised": false,
+    "checks": {
+      "normal_setup_and_login": true,
+      "native_proof_transport_fixture_bound": true,
+      "paged_tree_directory_first_without_duplicates": true,
+      "cas_save_matched_original_hash": true,
+      "actual_control_git_status_observed_change": true,
+      "original_receipts_replayed_without_rebinding": true,
+      "same_key_and_database_restart_retained_root_and_content": true,
+      "fixture_readme_and_git_metadata_unchanged": true
+    },
+    "requests": 22,
+    "tree_pages": 2,
+    "tree_entries": 2,
+    "file_save_operations": 1,
+    "git_changed_entries": 1,
+    "sqlite_tables": 184,
+    "persistent_root_mac_verified": true,
+    "same_database_restart": true,
+    "owned_control_launches": 2,
+    "owned_control_parent_closes": 2,
+    "dag_runs": 0,
+    "model_requests": 0
+  },
+  "native_gui": {
+    "passed": false,
+    "attempts": 3,
+    "observed_gpu_child_exit": "0xC0000135",
+    "exact_dependency_unresolved": true,
+    "actual_window_observed": false,
+    "native_picker_exercised": false,
+    "layouts": [
+      "official dependency runtime default",
+      "same runtime disable-gpu only",
+      "hash-matched owned public runtime copy with RX-only AC/AR default GPU"
+    ],
+    "runtime_copy_files": 73,
+    "runtime_copy_removed": true,
+    "no_sandbox_disabling": true,
+    "no_source_shared_runtime_system_or_private_data_acl_changes": true,
+    "renderer_assets_revision": "Stage assets before final current-binding review; no usable window reached. Final renderer was checked by affected tests/typecheck/build only."
+  },
+  "receipt_hashes": [
+    {
+      "path": ".cache/e2e/desktop-107/desktop-node-receipt.json",
+      "sha256": "0137f6d0d4efff09f8ac30a0110560ea40367e3d919510abf83208233def847b"
+    },
+    {
+      "path": ".cache/e2e/desktop-107/web-checks.agent.json",
+      "sha256": "205353ce5629da77dda16f6c389fa629933426eb368eaacc82c141933586e834"
+    },
+    {
+      "path": ".cache/e2e/desktop-107/http.public.json",
+      "sha256": "ca55e1a34e6cc58401e057514a9181875cee34e3e22255152e190e7a09debf64"
+    },
+    {
+      "path": ".cache/e2e/desktop-107/electron-loader-diagnosis.json",
+      "sha256": "76117ec935eabe84a0bedea7bacae6cf7d884b1ade3f26ff41a6642a9af90534"
+    },
+    {
+      "path": ".cache/e2e/desktop-107/runtime-layout.public.json",
+      "sha256": "11aac42c6b87c9fcb14c4f8d0d106fad8c59eea94c9b66845a99dc44e28a73cb"
+    },
+    {
+      "path": ".cache/e2e/desktop-107/runtime-layout-result.public.json",
+      "sha256": "b024ce80398a1255f4490ce50cf330d9d425c3f9c8505097d86f6aa24272668d"
+    },
+    {
+      "path": ".cache/e2e/desktop-107/web-build.log",
+      "sha256": "efe876f803fa931bcdf2ed93bfe86477c50632209bb17c3757c1b873c62c74cf"
+    },
+    {
+      "path": ".cache/e2e/desktop-107/web-final-build.log",
+      "sha256": "780f7bc83be058c0016d3a66894f568727a2c3fbfdad68936798642fde10e8d2"
+    },
+    {
+      "path": ".cache/e2e/desktop-107/web-final.public.json",
+      "sha256": "59cdff5bf7382cd3af4ac253f5c5f69ebd91c7b2236ddfeb6fbe7afee7f61a7d"
+    }
+  ],
+  "source_files": [
+    {
+      "path": "apps/desktop/src/localization.cjs",
+      "sha256": "4cf20aabfb55a7ee5bc90ff190ddf6b2ce2f1977357a45a8f02c1ccd73103504"
+    },
+    {
+      "path": "apps/desktop/src/main.cjs",
+      "sha256": "83dd0e9498c9f8f17a1af8252c498532ef1ef453c48184b6a9881983c88c61b8"
+    },
+    {
+      "path": "apps/desktop/src/preload.cjs",
+      "sha256": "6736f20c80f7788d2ee6dd0e891badaafafc30b446103f1abd8a92ec4f66acfb"
+    },
+    {
+      "path": "apps/desktop/src/workspace-grants.cjs",
+      "sha256": "f3fe1802b1a0ebe68a8e31a4a6a62ab834fb6b98a2f163ffe29ba9339c998d42"
+    },
+    {
+      "path": "apps/desktop/tests/workspace-grants.test.cjs",
+      "sha256": "c1cfc19909006732e66513e7d0a6a8dd58d7679a7b4b7280ff512c205e84835c"
+    },
+    {
+      "path": "apps/desktop/tests/workspace-main.test.cjs",
+      "sha256": "9f65a8ec511ed46a64d9e4f9cb05d5bb87305a954e61239cbbd89a2d53addfed"
+    },
+    {
+      "path": "apps/web/src/DesktopWorkspacePicker.css",
+      "sha256": "801c4e78875a3e7804dce82917430cc143f02e01adf911a2a7c234d298c8be55"
+    },
+    {
+      "path": "apps/web/src/DesktopWorkspacePicker.test.tsx",
+      "sha256": "9cc007646b9aa9f42761b5acc8799a2420b069c4097c2ebc7ccd8040b2af8176"
+    },
+    {
+      "path": "apps/web/src/DesktopWorkspacePicker.tsx",
+      "sha256": "0498703f4bcee9e3bb01b040f7b17b8bd87c234bb6680f79659a50688fe0c4d1"
+    },
+    {
+      "path": "apps/web/src/IDE.tsx",
+      "sha256": "6fb31e8a666acc0f7214295a6d3914cce829263a2a4a2d0ac7c60f15b5bc5ac0"
+    },
+    {
+      "path": "apps/web/src/IDE.workspace.test.tsx",
+      "sha256": "b556a5ace9f7d6b1411206971c787f758ad80f992f68c4b8c1e6962d457ddb74"
+    },
+    {
+      "path": "apps/web/src/api-context.tsx",
+      "sha256": "36a42e8404fb393767093e53954caeac9b1641b4714aa71096effc5d3a667732"
+    },
+    {
+      "path": "apps/web/src/desktop-workspace-model.ts",
+      "sha256": "e4d333af23a55df307aa7fe0468c76734c9637870278fae823fc073b16b71467"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/desktop-workspace.en-US.json",
+      "sha256": "dc6098c4225e8731348d65350eae65dde64a282712b8171a593cb874a7a04fa2"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/desktop-workspace.zh-CN.json",
+      "sha256": "f6295cdabf0ddd5a425b664eba40b405ab178866d0d625fef43e1c5ba5b22137"
+    },
+    {
+      "path": "cmd/suma-contracts/desktop_workspace.go",
+      "sha256": "cb058a24ea16ffbea009a04aeaf2121c7bf3063d33f0084f6d6238c5d6cabe9e"
+    },
+    {
+      "path": "cmd/suma-contracts/main.go",
+      "sha256": "85843d2c26e4b1564e89fc3ec4ada313347426603bd57a1f9c4d982587ed2822"
+    },
+    {
+      "path": "cmd/suma-control/desktop_workspace.go",
+      "sha256": "b63e71c5514d139c3a1083925590079f94fd49ee2cc4516ec6aee4eae8f57801"
+    },
+    {
+      "path": "cmd/suma-control/desktop_workspace_test.go",
+      "sha256": "f93d6782088f68a8a819492f523bee6c281071ef8ede19de2912f37848f05045"
+    },
+    {
+      "path": "cmd/suma-control/main.go",
+      "sha256": "4278b399d0ad04f90867a9235fc0cb2cb61156af5f160f58a171e6b30836963b"
+    },
+    {
+      "path": "contracts/desktop-workspace.md",
+      "sha256": "28133c4229fda51e97d8df3a9d14105e205304396b2c7d4ca5a66eaa7d6ff04a"
+    },
+    {
+      "path": "docs/api/openapi.json",
+      "sha256": "101e28467832b5e2dbdf3dc1aec5da873325cde8194f7d1813594a8e52a47f65"
+    },
+    {
+      "path": "internal/localization/catalog.go",
+      "sha256": "329c7c387c5e7f80a598d81d9893137fe09eccd054b78e77d5e184be09c4c5b1"
+    },
+    {
+      "path": "internal/localization/desktop_workspace.go",
+      "sha256": "5fe53111dab5d7e662dc8e2970f8dbc603fc2b2e8b22a4893a0dbbadd73a6637"
+    },
+    {
+      "path": "internal/platform/database.go",
+      "sha256": "2506f3786314c0b8e9f1e5b3ef0d179e50138d56c345ee45cbe2219d9a27a18d"
+    },
+    {
+      "path": "internal/platform/desktop_workspace.go",
+      "sha256": "d1d5baefff1ea9a0c43c4acf90e7d10ccf3f0aeed3178051b2e6d2d9493ed97f"
+    },
+    {
+      "path": "internal/platform/desktop_workspace_http.go",
+      "sha256": "0379a26c61872031daedc30d105d5009a35926c48122401336f0144fbb86bc91"
+    },
+    {
+      "path": "internal/platform/desktop_workspace_root.go",
+      "sha256": "1349121d7e45d2c447c3bdf8d7400821adb2a7949d3f59bb2739a866cb436e4b"
+    },
+    {
+      "path": "internal/platform/desktop_workspace_test.go",
+      "sha256": "b55b6ec76db6b452c40acedfec6db942b74bcef731db2a44a127e5c4d8349b46"
+    },
+    {
+      "path": "internal/platform/http.go",
+      "sha256": "d90baa681d850f76b8fd9b6a14ffcb72e402a5f888497247b6b1fb8b4b390de5"
+    },
+    {
+      "path": "internal/platform/workspace.go",
+      "sha256": "d0d6d866515921d2280a9b85e59dc39c9df278f59640a0f089da01ce37f59c09"
+    },
+    {
+      "path": "internal/platform/workspace_file_root.go",
+      "sha256": "13dd39b7cb261be170650b844d016fda256dc4b065b377a788b3695880131a30"
+    },
+    {
+      "path": "internal/platform/workspace_git.go",
+      "sha256": "5b9c0c44e934a00b586b7e623af3c2df68532c9496ede26234342d9c5dd9db99"
+    },
+    {
+      "path": "internal/platform/workspace_metadata.go",
+      "sha256": "5ff1923271dcb370361ce99c0f02e664df84d0e42b2a80f9f237f7af7e393b75"
+    },
+    {
+      "path": "internal/platform/workspace_tree.go",
+      "sha256": "e0131dec72a57e491c97137518ee606e8e537c2f643ddf80c7f76491fc585758"
+    },
+    {
+      "path": "internal/platform/workspace_tree_test.go",
+      "sha256": "bb762d6453cb49962ca42a1f8e614dcae69defa7d9e60928f8d8ea486ad79ce3"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "sha256": "a6da33fb309ccc51f0599a44481b5c7ae0b3e5a3ac7c15ff6cf92c3cf2ca0205"
+    }
+  ],
+  "remaining": "Full P0-P7 and requirements1..25; real native choose/cancel/bind/refresh/restart, complete IDE/PTy/LSP/DAP/remote and signed target-system installers remain."
+}

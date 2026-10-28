@@ -25,6 +25,11 @@ const messages=Object.freeze({
  termination_failed:Object.freeze({'zh-CN':'控制服务终止失败','en-US':'Control service termination failed'}),
  termination_timeout:Object.freeze({'zh-CN':'控制服务在强制终止后仍未退出','en-US':'Control service did not exit after forced termination'}),
  window_title:Object.freeze({'zh-CN':'速码','en-US':'Suma'}),
+ workspace_choose_title:Object.freeze({'zh-CN':'选择当前项目的工作目录','en-US':'Choose this project’s working directory'}),
+ workspace_choose_button:Object.freeze({'zh-CN':'选择目录','en-US':'Choose directory'}),
+ workspace_key_failed:Object.freeze({'zh-CN':'桌面工作区授权密钥不可用，请检查本地应用数据目录。','en-US':'The desktop workspace key is unavailable. Check the local app data directory.'}),
+ desktop_data_failed:Object.freeze({'zh-CN':'桌面本地数据目录不可用。','en-US':'The local desktop data directory is unavailable.'}),
+ desktop_configuration_invalid:Object.freeze({'zh-CN':'桌面验证配置无效，请使用本次验证目录内的完整本地路径。','en-US':'The desktop validation configuration is invalid. Use complete local paths inside this validation directory.'}),
 });
 function message(locale,key){return messages[key]?.[normalizeLocale(locale)||'zh-CN']||key}
 // 未知操作系统异常保留原始诊断；自有错误只翻译上下文，不伪造已覆盖的诊断。

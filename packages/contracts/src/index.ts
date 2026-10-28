@@ -4112,6 +4112,23 @@ export interface WorkflowValidation {
   errors: (string)[];
   diagnostics: (Rendered)[];
 }
+export interface WorkspaceDesktopBindingRequest {
+  project_id: string;
+  expected_binding_sha256: string;
+  grant: WorkspaceDesktopGrant;
+  idempotency_key: string;
+}
+export interface WorkspaceDesktopGrant {
+  protocol: string;
+  operation_id: string;
+  user_id: string;
+  tenant_id: string;
+  project_id: string;
+  path: string;
+  expires_at: string;
+  nonce: string;
+  signature: string;
+}
 export interface WorkspaceGitChange {
   path: string;
   previous_path: string;
@@ -4149,10 +4166,16 @@ export interface WorkspaceGitStatus {
   observed_at: string;
 }
 export interface WorkspaceMetadata {
+  project_id: string;
   configured: boolean;
   binding_available: boolean;
+  binding_sha256: string;
+  binding_path_sha256: string;
+  binding_operation_id: string;
+  desktop_binding_available: boolean;
   name?: string;
   reason?: string;
+  reason_message_key?: string;
 }
 export interface WorkspaceObservation {
   id: string;

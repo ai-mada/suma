@@ -1,6 +1,6 @@
 # suma 1.0.0 documentation
 
-suma is an intelligent development platform for teams, projects, requirements, design, execution, testing, human acceptance, releases and issue feedback. The full P0–P7 scope and accepted requirements1–22 remain in progress. Business acceptance, execution state, test evidence and deployment are distinct facts.
+suma is an intelligent development platform for teams, projects, requirements, design, execution, testing, human acceptance, releases and issue feedback. The full P0–P7 scope and accepted requirements1–25 remain in progress. Business acceptance, execution state, test evidence and deployment are distinct facts.
 
 There is one current **1.0.0** product baseline, with fresh schema initialization and no historical compatibility or automatic legacy database upgrades. Protocol, workflow and business revisions remain independent. Current saved facts, user originals and scoped verification records are preserved.
 
@@ -11,6 +11,7 @@ There is one current **1.0.0** product baseline, with fresh schema initializatio
 | OpenCode fixed SDK execution | [Current guide](opencode-execution.md), [bounded SDK/host/UI verification](../quality/opencode-actual-execution-verification.md); actual Windows vendor CLI with an owned model endpoint verified; commercial model quality and billing remain unverified |
 | Codex model execution | [Integration guide](codex-app-server.md), [scoped execution evidence](../quality/codex-app-server-verification.md) |
 | Candidate composition and repair | [Composition](candidate-composition.md), [conflict repair](candidate-conflict-repair.md), [repair revisions](candidate-repair-revisions.md) |
+| Local desktop workbench | [Capability matrix and current boundaries](local-development-workbench.md), [native directory contract](../../contracts/desktop-workspace.md), [bounded verification](../quality/desktop-workspace-verification.md); actual HTTP passed, native GUI startup remains unverified |
 | Development workspaces | [Remote observations](remote-workspace.md), [Codex live reads](codex-workspace-observation.md), [governed saves](remote-workspace-write.md), [transport capabilities](workspace-transport-capabilities.md), [local Git](workspace-git.md), [paged local directories](workspace-directory-browser.md) |
 | Tools and project context | [Team CLI](team-cli-runtime.md), [dispatch options](task-dispatch-options.md), [MCP — Chinese original](../integrations/project-mcp.md), [failure diagnosis](failure-diagnosis.md) |
 | Knowledge and skills | [Knowledge intelligence — Chinese original](../product/knowledge-intelligence.md), [skill catalog — Chinese original](../product/skill-catalog.md) |

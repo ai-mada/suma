@@ -1,6 +1,6 @@
 # 1.0.0 当前交付状态
 
-更新：2026-10-28。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–22 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。
+更新：2026-10-28。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–25 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。
 
 当前能力按实现范围汇总。下表中的验证均受对应报告的源码、环境和实际场景限制；不会因本次版本统一继承为新代码全部通过。执行成功、独立测试、人工验收与生产发布是不同事实。
 
@@ -21,7 +21,7 @@
 | 模型、预算与用量 | 原生模型固定选择、封闭执行参数、attempt 额度、冻结运营方费率、私有／Pool 原子预留与去重结算；专家逐任务原生／Codex选择与明确修订、原生冲突修复选择／修订 | [模型执行](../quality/model-execution-verification.md)、[团队模型](../quality/expert-team-model-execution-verification.md)、[跨入口配置与恢复](../quality/model-selection-workflows-verification.md)、[账本](../quality/usage-accounting-verification.md)；每工具当前匹配费率不等于完整报价目录，缺失／partial usage 不记零，厂商账单及全主体额度待办 |
 | 专家团队与任务交接 | 版本化专家职责、固定工具／流程／知识、原子多任务派发、验收依赖推进、暂停／恢复／停止、未开始项修订及明确人员交接 | [团队派发](../quality/expert-team-dispatch-verification.md)、[依赖编排](../quality/expert-team-orchestration-verification.md)、[任务交接](../quality/task-handoff-verification.md)；运行完成不自动验收，完整自主专家协同与跨组织远端待办 |
 | 候选、修复与仓库集成 | 机器封存 bundle、跨 Runner 导入、固定多源 Git 合成、精确结果独立测试、明确下游基线；冲突独立修复任务、受控重试／修订；固定提供方审批后 CAS 快进 | [候选交接](../quality/candidate-transfer-verification.md)、[多源合成](../quality/candidate-composition-verification.md)、[冲突修复](../quality/candidate-conflict-repair-verification.md)、[修订](../quality/candidate-repair-revisions-verification.md)、[仓库集成](../quality/repository-integration-verification.md)；本地裸仓库／同机 Runner 证据，完整合并策略、动态来源继承、物理远端与未知效果恢复待办 |
-| 工作区与 IDE 基础 | 本地 Monaco 目录快照分页、范围筛选、草稿／CAS 保存、只读 Git index／worktree 差异；原生／Codex活动工作区出站 list／read；原生一次保存许可、原回执及显式 inspect、手工差异合并 | [目录与CLI](../quality/workspace-directory-verification.md)、[Git](../quality/workspace-git-verification.md)、[执行读取](../quality/workspace-observation-verification.md)、[执行保存](../quality/workspace-write-verification.md)、[传输能力](../quality/workspace-capability-verification.md)、[Codex读取](../quality/codex-workspace-observation-verification.md)；Codex只读，执行保存仅已有 UTF-8 文本且新旧均 ≤48KiB，创建／删除、大文件、Git 写、PTY／LSP／DAP、完整 IDE 待办 |
+| 工作区与 IDE 基础 | 桌面项目范围原生选择／明确绑定及持久根证明；本地 Monaco 目录快照分页、范围筛选、草稿／CAS 保存、只读 Git index／worktree 差异；原生／Codex活动工作区出站 list／read；原生一次保存许可、原回执及显式 inspect、手工差异合并 | [桌面目录与真实文件链路](../quality/desktop-workspace-verification.md)：HTTP保存／回执／184表重启已验证，原生GUI因运行时启动失败仍待验；[目录与CLI](../quality/workspace-directory-verification.md)、[Git](../quality/workspace-git-verification.md)、[执行读取](../quality/workspace-observation-verification.md)、[执行保存](../quality/workspace-write-verification.md)、[传输能力](../quality/workspace-capability-verification.md)、[Codex读取](../quality/codex-workspace-observation-verification.md)；Codex只读，执行保存仅已有 UTF-8 文本且新旧均 ≤48KiB，创建／删除、大文件、Git 写、PTY／LSP／DAP、完整 IDE 待办 |
 | 自动化与事件 | 持久人工／cron 触发、时区／错过／重叠策略、固定来源、签名 GitHub／Suma 事件、去重交付、当前授权 SSE 与断线续传 | [自动化](../quality/automation-verification.md)、[事件入口](../quality/ingress-verification.md)；本机真实 Git／协议事件不替代公网厂商、生产 CI 身份或消息通道验收 |
 | 质量、制品与发布 | 独立测试证据、人工验收、失败去重回流；真实字节上传封存、包测试、固定范围、本机静态站点批准／发布／核对／独立回退 | [验收矩阵](../quality/acceptance.md)、[发布控制](../deployment/release-control.md)、[发布证据](../architecture/release-evidence.md)；生产 CI、签名、远端／容器部署、灰度与生产健康待办 |
 | 国际化与交互 | 成对中文／英文目录、持久账户／组织偏好、结构化诊断、原文保留及代表性键盘／刷新旅程 | [语言偏好](../quality/locale-preferences-verification.md)、[自有前端](../quality/remaining-localization-verification.md)、[后端诊断](../quality/backend-diagnostics-verification.md)、[运行诊断](../quality/native-diagnostics-verification.md)、[显示资格](../quality/platform-display-verification.md)；目录键数不代表完整平台、库内控件、通知、安装器及所有语言表面完成 |
@@ -39,10 +39,10 @@ OceanBase／PostgreSQL 的驱动与 DDL 不等于实集群验收，本地检索�
 
 优先补齐智能选择与模型授权／报价、完整 IDE、知识／技能同步、真正多机与厂商任务闭环；身份、存储、协作、渠道、移动端、支付、安装和规模仍按完整台账实施，不以局部适配缩减范围。
 
-浏览器默认 `127.0.0.1:4310`。执行需另建项目范围 Runner 凭证并配置许可命令；文件编辑需明确服务端允许根目录和项目工作区绑定。首次初始化与部署配置见 [服务器说明](../deployment/server.md)。
+浏览器默认 `127.0.0.1:4310`。执行需另建项目范围 Runner 凭证并配置许可命令；浏览器文件编辑需明确服务端允许根目录和项目绑定；桌面使用原生明确选择形成项目根证明，当前实际界面旅程仍待验。首次初始化与部署配置见 [服务器说明](../deployment/server.md)。
 
 验证数据使用独立 `.cache/e2e/`，保留用户正式运行目录。正式产物进入 `dist/`，专业文档进入 `docs/`；秘密、数据库、原始日志、截图、依赖缓存和本地二进制不提交。历史阶段过程由 Git 和专项报告追溯，本页只维护当前能力。
 
 ## 初始化结构
 
-当前源码以单一1.0.0新库结构建立，旧队列／资源镜像、旧内核分代与凭证／设计索引回填已删除；当前183表正常重启保持。详见[初始化设计](../architecture/initial-version.md)和[限定验证](../quality/initial-version-verification.md)。本次未改写既有用户数据库。
+当前源码以单一1.0.0新库结构建立，旧队列／资源镜像、旧内核分代与凭证／设计索引回填已删除；当前184表已在独立本机服务中重新初始化和重启验证，新增项目范围原生目录证明；其余初始化拒绝边界沿用原限定证据。详见[初始化设计](../architecture/initial-version.md)、[原初始化验证](../quality/initial-version-verification.md)和[当前桌面文件链路验证](../quality/desktop-workspace-verification.md)。本次未改写既有用户数据库。

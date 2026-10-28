@@ -157,7 +157,7 @@ func generate() (map[string]any, string) {
 	for _, v := range modelExecutionModels() {
 		schema(reflect.TypeOf(v))
 	}
-	for _, v := range append(workspaceGitModels(), workspaceTreeModels()...) {
+	for _, v := range append(append(workspaceGitModels(), workspaceTreeModels()...), desktopWorkspaceModels()...) {
 		schema(reflect.TypeOf(v))
 	}
 	for _, v := range taskDispatchOptionsModels() {
@@ -316,6 +316,7 @@ func generate() (map[string]any, string) {
 	modelExecutionContracts(add, api)
 	workspaceGitContracts(add, api)
 	workspaceTreeContracts(add, api)
+	desktopWorkspaceContracts(add, api)
 	taskDispatchOptionsContracts(add, api)
 	failureDiagnosisContracts(add, api)
 	expertTeamContracts(add, api)

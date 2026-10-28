@@ -5,11 +5,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"unicode/utf8"
 )
@@ -43,60 +41,11 @@ func forbiddenPath(path string) bool {
 	return false
 }
 
-// Reject every symlink component, even when its destination is inside the jail.
-func workspaceFile(root, rel string) (string, error) {
-	resolved, err := filepath.EvalSymlinks(root)
-	sameRoot := filepath.Clean(resolved) == filepath.Clean(root)
-	if runtime.GOOS == "windows" {
-		sameRoot = strings.EqualFold(filepath.Clean(resolved), filepath.Clean(root))
-	}
-	if err != nil || !sameRoot {
-		return "", forbidden()
-	}
-	if rel == "" || filepath.IsAbs(rel) || strings.Contains(rel, ":") || strings.ContainsRune(rel, 0) || forbiddenPath(rel) {
-		return "", forbidden()
-	}
-	parts := strings.Split(strings.ReplaceAll(rel, "\\", "/"), "/")
-	for _, part := range parts {
-		if part == ".." {
-			return "", missing()
-		}
-		if part == "" || part == "." || strings.HasSuffix(part, ".") || strings.HasSuffix(part, " ") {
-			return "", forbidden()
-		}
-	}
-	target := root
-	for i, part := range parts {
-		target = filepath.Join(target, part)
-		info, e := os.Lstat(target)
-		if e != nil {
-			return "", missing()
-		}
-		if info.Mode()&os.ModeSymlink != 0 {
-			return "", forbidden()
-		}
-		if i == len(parts)-1 && !info.Mode().IsRegular() {
-			return "", forbidden()
-		}
-	}
-	if !under(root, target) {
-		return "", forbidden()
-	}
-	return target, nil
-}
 func (s *Service) workspaceReadGuard(ctx context.Context, actor Actor, project, expected string) (root string, err error) {
 	err = s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(auth *authorizedCommand) error {
-		e := auth.tx.QueryRowContext(ctx, s.q(`SELECT root_path FROM suma_workspace_bindings WHERE tenant_id=? AND project_id=?`), auth.currentPrincipal.TenantID, project).Scan(&root)
-		if errors.Is(e, sql.ErrNoRows) {
-			return &APIError{422, "workspace_not_configured", "请先配置当前项目的工作区", nil}
-		}
-		if e != nil {
-			return e
-		}
-		if expected != "" && root != expected {
-			return conflict("工作区绑定已变化，请重新加载")
-		}
-		return nil
+		var e error
+		root, e = s.workspaceRootAuthorityTx(ctx, auth.tx, auth.currentPrincipal.TenantID, project, expected)
+		return e
 	})
 	return root, err
 }
@@ -104,33 +53,7 @@ func (s *Service) workspaceReadGuard(ctx context.Context, actor Actor, project, 
 var errWorkspaceDisabled = forbidden()
 
 func (s *Service) workspaceRoot(ctx context.Context, actor Actor, project string) (string, error) {
-	if strings.TrimSpace(os.Getenv("SUMA_WORKSPACE_ROOT")) == "" {
-		if err := s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(*authorizedCommand) error { return nil }); err != nil {
-			return "", err
-		}
-		return "", errWorkspaceDisabled
-	}
-	root, e := s.workspaceReadGuard(ctx, actor, project, "")
-	if e != nil {
-		return "", e
-	}
-	if strings.TrimSpace(os.Getenv("SUMA_WORKSPACE_ROOT")) == "" {
-		return "", forbidden()
-	}
-	resolved, e := filepath.EvalSymlinks(root)
-	if e != nil {
-		return "", invalid("工作区目录不可用")
-	}
-	allowed, e := allowedWorkspaceRoot()
-	if e != nil || !under(allowed, resolved) {
-		return "", forbidden()
-	}
-	info, e := os.Stat(resolved)
-	if e != nil || !info.IsDir() {
-		return "", invalid("工作区目录不可用")
-	}
-	return resolved, nil
-
+	return s.workspaceReadGuard(ctx, actor, project, "")
 }
 
 func (s *Service) InitializeWorkspace(ctx context.Context) error {
@@ -143,7 +66,10 @@ func (s *Service) InitializeWorkspace(ctx context.Context) error {
 		return e
 	}
 	_, e = s.DB.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS suma_workspace_accepted_operations(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,operation_id VARCHAR(128) NOT NULL,request_hash VARCHAR(64) NOT NULL,accepted_by VARCHAR(64) NOT NULL,accepted_at VARCHAR(40) NOT NULL,PRIMARY KEY(tenant_id,project_id,operation_id))`)
-	return e
+	if e != nil {
+		return e
+	}
+	return s.InitializeDesktopWorkspaces(ctx)
 }
 
 // Writing before reading obtains SQLite's writer lock or the project row lock.
@@ -168,74 +94,6 @@ func fileResponse(rel, content string) map[string]any {
 		lang = "plaintext"
 	}
 	return map[string]any{"path": filepath.ToSlash(rel), "content": content, "hash": digest(content), "language": lang}
-}
-func readWorkspaceFile(target string) (string, error) {
-	f, e := os.Open(target)
-	if e != nil {
-		return "", e
-	}
-	defer f.Close()
-	b, e := io.ReadAll(io.LimitReader(f, (1<<20)+1))
-	if e != nil {
-		return "", e
-	}
-	if len(b) > 1<<20 || strings.ContainsRune(string(b), 0) || !utf8.Valid(b) {
-		return "", invalid("编辑器仅打开 1 MiB 以内的文本文件")
-	}
-	return string(b), nil
-}
-func replaceWorkspaceFile(root, rel, expected, content string) error {
-	target, e := workspaceFile(root, rel)
-	if e != nil {
-		return e
-	}
-	info, e := os.Stat(target)
-	if e != nil {
-		return e
-	}
-	temp, e := os.CreateTemp(filepath.Dir(target), ".suma-save-*")
-	if e != nil {
-		return e
-	}
-	defer os.Remove(temp.Name())
-	if e = temp.Chmod(info.Mode().Perm()); e == nil {
-		_, e = temp.WriteString(content)
-	}
-	if e == nil {
-		e = temp.Sync()
-	}
-	closed := temp.Close()
-	if e == nil {
-		e = closed
-	}
-	if e != nil {
-		return e
-	}
-	checked, e := workspaceFile(root, rel)
-	if e != nil {
-		return e
-	}
-	current, e := readWorkspaceFile(checked)
-	if e != nil {
-		return e
-	}
-	if digest(current) != expected {
-		return conflict("文件保存冲突，请重新加载")
-	}
-	if e = os.Rename(temp.Name(), checked); e != nil {
-		return e
-	}
-	// Windows does not expose portable directory fsync through os.File.Sync.
-	if runtime.GOOS != "windows" {
-		dir, e := os.Open(filepath.Dir(checked))
-		if e != nil {
-			return e
-		}
-		e = dir.Sync()
-		dir.Close()
-		return e
-	}
-	return nil
 }
 
 // Recover under the project lock before any later save. Unknown external edits
@@ -264,25 +122,8 @@ func (s *Service) recoverWorkspace(ctx context.Context, tx *sql.Tx, p Principal,
 		if e = tx.QueryRowContext(ctx, s.q(`SELECT a.request_hash FROM suma_workspace_accepted_operations a JOIN suma_workspace_file_operations o ON o.tenant_id=a.tenant_id AND o.project_id=a.project_id AND o.operation_id=a.operation_id AND o.request_hash=a.request_hash WHERE a.tenant_id=? AND a.project_id=? AND a.operation_id=?`), p.TenantID, project, op.key).Scan(&accepted); e != nil {
 			return &APIError{409, "workspace_reconciliation_required", "先前保存缺少可信受理记录，需要核对", nil}
 		}
-		allowed, e := allowedWorkspaceRoot()
-		if e != nil || !under(allowed, op.root) {
-			return forbidden()
-		}
-		target, e := workspaceFile(op.root, op.path)
-		if e != nil {
+		if e = s.recoverWorkspaceFile(ctx, tx, p, project, op); e != nil {
 			return e
-		}
-		current, e := readWorkspaceFile(target)
-		if e != nil {
-			return e
-		}
-		hash := digest(current)
-		if hash == op.expected {
-			if e = replaceWorkspaceFile(op.root, op.path, op.expected, op.content); e != nil {
-				return e
-			}
-		} else if hash != op.next {
-			return &APIError{409, "workspace_reconciliation_required", "先前保存结果不确定；请将文件恢复为原内容或已提交内容后重试同一请求", map[string]any{"operation_id": op.key, "path": op.path}}
 		}
 		if _, e = tx.ExecContext(ctx, s.q(`UPDATE suma_workspace_file_operations SET state='completed' WHERE tenant_id=? AND project_id=? AND operation_id=?`), p.TenantID, project, op.key); e != nil {
 			return e
@@ -359,20 +200,20 @@ func (s *Service) saveWorkspace(ctx context.Context, actor Actor, project string
 	}
 	// Use the transaction to avoid acquiring a second connection from a
 	// single-connection SQLite pool while the writer lock is held.
-	var root string
-	if e = tx.QueryRowContext(ctx, s.q(`SELECT root_path FROM suma_workspace_bindings WHERE tenant_id=? AND project_id=?`), p.TenantID, project).Scan(&root); e != nil {
-		return nil, e
-	}
-	allowed, e := allowedWorkspaceRoot()
-	if e != nil || !under(allowed, root) {
-		return nil, forbidden()
-	}
-	target, e := workspaceFile(root, rel)
+	root, e := s.workspaceRootAuthorityTx(ctx, tx, p.TenantID, project, "")
 	if e != nil {
 		return nil, e
 	}
-	current, e := readWorkspaceFile(target)
+	jail, e := s.openWorkspaceFileRootTx(ctx, tx, p.TenantID, project, root)
 	if e != nil {
+		return nil, e
+	}
+	current, _, e := readWorkspaceRootedFile(ctx, jail, rel)
+	jail.Close()
+	if e != nil {
+		return nil, e
+	}
+	if _, e = s.workspaceRootAuthorityTx(ctx, tx, p.TenantID, project, root); e != nil {
 		return nil, e
 	}
 	if str(m, "expected_hash") != digest(current) {
@@ -465,6 +306,11 @@ func (s *Server) workspace(w http.ResponseWriter, r *http.Request, actor Actor, 
 			e = s.Service.recoverWorkspace(ctx, tx, p, project)
 		}
 		if e == nil {
+			// An explicit ordinary binding chooses the configured authority source;
+			// a bad native proof never disappears through an implicit read fallback.
+			_, e = tx.ExecContext(ctx, s.Service.q(`DELETE FROM suma_desktop_workspace_roots WHERE tenant_id=? AND project_id=?`), p.TenantID, project)
+		}
+		if e == nil {
 			_, e = tx.ExecContext(ctx, s.Service.q(`DELETE FROM suma_workspace_bindings WHERE tenant_id=? AND project_id=?`), p.TenantID, project)
 		}
 		if e == nil {
@@ -495,25 +341,14 @@ func (s *Server) workspace(w http.ResponseWriter, r *http.Request, actor Actor, 
 			return
 		}
 	}
-	root, e := s.Service.workspaceRoot(ctx, actor, project)
-	if e != nil {
-		if automationAuthorityFailure(e) && !errors.Is(e, errWorkspaceDisabled) {
-			writeError(w, e)
-			return
-		}
-		if path == "workspace" {
-			writeJSON(w, 200, WorkspaceMetadata{Configured: false, Reason: e.Error(), BindingAvailable: os.Getenv("SUMA_WORKSPACE_ROOT") != ""})
-			return
-		}
-		writeError(w, e)
+	if path == "workspace" {
+		metadata, metadataErr := s.Service.GetWorkspaceMetadata(ctx, actor, project)
+		respond(w, http.StatusOK, metadata, metadataErr)
 		return
 	}
-	if path == "workspace" {
-		if _, e = s.Service.workspaceReadGuard(ctx, actor, project, root); e != nil {
-			writeError(w, e)
-			return
-		}
-		writeJSON(w, 200, WorkspaceMetadata{Configured: true, BindingAvailable: true, Name: filepath.Base(root)})
+	root, e := s.Service.workspaceRoot(ctx, actor, project)
+	if e != nil {
+		writeError(w, e)
 		return
 	}
 	if path == "workspace/tree" {
@@ -527,12 +362,13 @@ func (s *Server) workspace(w http.ResponseWriter, r *http.Request, actor Actor, 
 		return
 	}
 	rel := r.URL.Query().Get("path")
-	target, e := workspaceFile(root, rel)
+	jail, e := s.Service.openWorkspaceFileRoot(ctx, actor, project, root)
 	if e != nil {
 		writeError(w, e)
 		return
 	}
-	content, e := readWorkspaceFile(target)
+	defer jail.Close()
+	content, _, e := readWorkspaceRootedFile(ctx, jail, rel)
 	if e == nil {
 		_, e = s.Service.workspaceReadGuard(ctx, actor, project, root)
 	}

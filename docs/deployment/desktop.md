@@ -1,78 +1,73 @@
-# 桌面打包与启动
+# 桌面启动与本地项目目录
 
-`apps/desktop` 使用 Electron 主进程启动本机 Go 控制服务；渲染页与浏览器版共用 `apps/web`。2026-10-24 已在 Windows 构建 NSIS 安装器、portable 便携版和完整 unpacked 目录，均未签名；安装、升级、卸载及完整桌面 GUI 尚未实测。
+状态：**1.0.0／T-DESKTOP-107，实施中**，更新于2026-10-28。Electron管理本机Go控制服务，复用React工作台及现有权限、DAG和Runner。完整P0–P7及需求1–25仍在实施；本页说明当前启动与目录绑定，完整第23项见[本地工作台架构](../architecture/local-development-workbench.md)，协议以[原生目录合同](../../contracts/desktop-workspace.md)为准。[English capability matrix](../en/local-development-workbench.md)。
 
-## 构建
+当前Node与Web定向检查通过，**实际Electron启动因GPU子进程退出`0xC0000135`失败**，尚未验证原生目录选择到IDE的真实界面旅程。本阶段未验收当前1.0.0安装器、签名或安装／升级／卸载；既往打包记录不能证明当前源码已完成这些验证。
 
-需要 Node.js 22+、pnpm、Go 1.26+（固定构建1.26.10）。在仓库根目录安装依赖后执行：
+## 开发与打包入口
+
+需要Node.js 22+、仓库固定的pnpm和Go工具链；`go.mod`声明Go1.26.0、toolchain1.26.10。依赖准备好后，在仓库根目录执行：
 
 ```powershell
 pnpm build
-pnpm --filter @suma/desktop package:dir
+node apps/desktop/scripts/prepare.cjs
+pnpm desktop
 ```
 
-准备脚本将当前宿主平台的 `cmd/suma-control` 编译到仓库忽略目录 `.cache/desktop/control`；electron-builder 使用已安装的 Electron distribution，把控制服务和 `apps/web/dist` 复制进应用 resources。可分发构建执行 `pnpm desktop:package`，最终交付物位于 `dist/desktop`。开发启动 `pnpm desktop` 也需要先完成网页与控制服务准备；可先运行 `node apps/desktop/scripts/prepare.cjs`。
+`pnpm build`生成`apps/web/dist`；准备脚本检查网页入口，并将当前宿主平台的`cmd/suma-control`编译到`.cache/desktop/control`。`pnpm desktop`只启动Electron，不自动构建这两个资源。`pnpm dev`仅启动网页开发服务，不能提供原生目录对话框。
 
-本轮使用冻结的网页构建，在独立 PowerShell 进程中执行以下命令。缓存与临时目录只影响该进程及其子进程，全部位于仓库 `.cache`，未改机器或用户环境变量：
+需要打包时，先构建匹配的网页，再使用下列入口之一。两个打包脚本都会重新准备控制程序：
 
-```powershell
-$packCacheRoot = Join-Path (Get-Location) '.cache/desktop/packaging-recovery'
-$env:TEMP = Join-Path $packCacheRoot 'tmp'
-$env:TMP = $env:TEMP
-$env:GOTMPDIR = Join-Path $packCacheRoot 'go-tmp'
-$env:GOCACHE = Join-Path (Get-Location) '.cache/go-build'
-$env:ELECTRON_CACHE = Join-Path (Get-Location) '.cache/electron'
-$env:ELECTRON_BUILDER_CACHE = Join-Path (Get-Location) '.cache/electron-builder'
-$env:CSC_IDENTITY_AUTO_DISCOVERY = 'false'
-New-Item -ItemType Directory -Force -Path $env:TEMP,$env:GOTMPDIR,$env:ELECTRON_CACHE,$env:ELECTRON_BUILDER_CACHE | Out-Null
-pnpm --filter @suma/desktop package --win --config.win.signAndEditExecutable=false
-pnpm --filter @suma/desktop package:dir --win --config.win.signAndEditExecutable=false
-```
+| 命令 | 当前配置的输出 |
+| --- | --- |
+| `pnpm --filter @suma/desktop package:dir` | `dist/desktop`中的未安装应用目录 |
+| `pnpm desktop:package` | 同目录中的平台分发目标：Windows NSIS／portable、macOS DMG／ZIP、Linux AppImage／deb |
 
-`signAndEditExecutable=false` 同时跳过应用可执行文件的资源编辑，当前使用默认 Electron 图标。正式发布仍需独立配置图标、版本资源及代码签名。
+这些是构建入口与目标配置，不是当前产物已验收的声明。准备脚本按宿主系统编译，需在相应操作系统构建和验证。签名、公证及目标系统安装测试仍待交付。过程缓存与临时目录应位于仓库`.cache`，环境覆盖只作用于本次进程；不要覆盖活动预览的网页资产或真实用户数据。
 
-本轮产物：
+## 启动、配置与数据生命周期
 
-| 路径 | 构建状态 | 尚未验证 |
-| --- | --- | --- |
-| `dist/desktop/Suma Setup 0.1.0.exe` | NSIS 构建成功，Authenticode `NotSigned` | 安装、升级、卸载及其系统副作用 |
-| `dist/desktop/Suma 0.1.0.exe` | portable 构建成功，Authenticode `NotSigned` | 便携版 GUI 启动、退出与数据行为 |
-| `dist/desktop/win-unpacked` | 独立目录打包成功，内置控制服务和网页齐全 | 完整 Electron 窗口与桌面交互 |
+主进程持有单实例锁，在`127.0.0.1`选择空闲端口并启动控制服务。开发时读取上述准备目录和`apps/web/dist`；打包后读取应用`resources/control`和`resources/web`。`/healthz`就绪后才加载窗口；缺少资源、提前退出或15秒内未就绪均显示启动错误。关闭应用时先请求子服务退出，5秒宽限后强制终止，并核对退出；当前不会自动重启服务或启动Runner。
 
-`dist/desktop/SHA256SUMS.txt` 保存主要产物摘要；`packaging-verification.json` 保存目录核验结果、未签名检查及成功/失败打包日志的 SHA-256。原始日志保留在 `.cache/desktop/packaging-recovery`，未将本机日志或依赖缓存纳入源码。
+桌面将数据库固定为`<Electron userData>/data/suma.db`，网页与origin固定为本次本机服务。继承环境中的数据库、桌面、工作区根和服务地址配置会在子进程环境中清除或覆盖，避免误连共享数据库；普通服务器部署使用[独立服务配置](server.md)。显式远程连接管理仍待实现。
 
-### 本轮环境故障与恢复
+`userData/desktop-workspace.key`保存32字节本机签名密钥，`userData/data`保存业务数据。启动会拒绝链接或不合要求的密钥／数据位置。原生目录授权依赖该密钥及数据库内的项目证明；备份与恢复需保护两者，不能将其加入项目、日志或Git，也不能靠删除／替换密钥修复授权。所选项目文件留在原目录，不会复制到`userData`。
 
-依赖收集首次调用真实 `pnpm list --prod --json --depth Infinity` 时出现 `ERR_SQLITE_ERROR: unable to open database file`。检查本机 pnpm 11.25.0 源码和错误栈，确认 `list` 从 `node_modules/.modules.yaml` 读取 `storeDir` 并打开对应 `index.db`；此路径来自安装元数据，单改通用 `cacheDir` 不会更正它。现场元数据仍指向 `D:\.pnpm-store\v11`，而仓库已配置 `.cache/pnpm-store`。
+隔离开发验证可同时提供三个绝对路径：
 
-恢复时先备份并记录旧元数据摘要，确认仓库内现存 `.cache/pnpm-store/v11/index.db` 通过 SQLite `quick_check`，再只将本机生成元数据的 `storeDir` 更正为该现存仓库。随后根目录和桌面目录的真实依赖列表均成功。这是本地安装元数据修复，没有重装依赖、改依赖版本、替换包管理器或绕过依赖校验。源码配置仅在 `pnpm-workspace.yaml` 增加 `cacheDir: .cache/pnpm-cache`，用于将通用 pnpm 缓存留在仓库内。
+| 环境变量 | 用途 |
+| --- | --- |
+| `SUMA_DESKTOP_USER_DATA` | 独立测试应用数据目录 |
+| `SUMA_DESKTOP_CONTROL_BINARY` | 已准备的控制程序文件 |
+| `SUMA_DESKTOP_WEB_DIR` | 与控制程序匹配的网页资源目录 |
 
-修复后，完整构建在沙箱中进入 NSIS 阶段，但下载官方 GitHub 工具时被网络权限阻止（`connect EACCES 20.205.243.166:443`）。一次经过自动审查的网络权限重试成功，electron-builder 从官方 `electron-userland/electron-builder-binaries` 下载 NSIS、7zip 和 NSIS resources，使用工具内置校验摘要并缓存到仓库 `.cache`；NSIS 与 portable 均完成。随后再次独立执行 `package:dir` 成功，恢复了首次失败时被部分覆盖的 `win-unpacked`。
+三个覆盖必须一起设置，全部位于当前仓库`.cache`之内；已有路径及祖先不能是链接或解析到其他位置。打包模式忽略这些开发覆盖。它们不改变正式用户数据位置，也不授权任意项目根。
 
-| 平台 | 已配置目标 | 发布前仍需完成 |
-| --- | --- | --- |
-| Windows | NSIS、portable | Windows 真机安装/升级/卸载验证与代码签名 |
-| macOS | DMG、ZIP、hardened runtime | macOS 宿主构建、开发者签名、公证、系统权限验证 |
-| Linux | AppImage、deb | Linux 宿主构建、发行版与 sandbox 验证 |
+## 选择与绑定项目文件夹
 
-准备脚本按宿主系统编译服务；请在对应操作系统构建。不能把 Windows 的 Go 二进制打进 macOS/Linux 包并声称跨平台可运行。仓库不包含签名密钥、开发者证书或自动公证凭据。
+登录后进入当前项目的开发工作空间。只有实际原生桥和服务端桌面绑定能力同时可用，才显示“选择项目文件夹”。选择后先展示目录与项目，用户明确点击“绑定目录”才提交。 原操作确认后另读当前绑定再展示工作区；如果读取失败，只重读状态，不重复绑定。取消不会绑定；未保存草稿或待核对保存会禁用更换目录。普通浏览器继续使用服务器已配置允许根的既有绑定入口。
 
-## 服务与数据
+主进程校验准确窗口、主frame和本机origin，规范化实际目录后签发120秒选择证明。控制面再次核验当前账号／组织／项目权限、原绑定CAS、路径与签名。规范本机绝对目录受支持，UNC、扩展前缀、控制字符及非目录不会成为项目根。完整字段和签名规则见[合同](../../contracts/desktop-workspace.md)，不在此维护另一套DTO。
 
-每次启动选择一个 loopback 空闲端口，执行打包的 `suma-control --addr 127.0.0.1:PORT`。传入 `SUMA_DATA_DIR=<Electron userData>/data` 与 `SUMA_WEB_DIR=<resources>/web`，等待 `/healthz` 就绪后才打开窗口。数据位于操作系统的应用用户目录；未显式配置数据库时使用该目录下的 SQLite 数据库。没有找到服务或网页文件、服务提前退出、健康检查超时都会显示启动错误。
+成功回执需准确关联原项目、目录名、路径摘要与操作；随后进入现有IDE。后续目录、文件、保存和Git复用当前项目根许可及目录身份检查，不扩大服务器全局允许根。相同密钥、数据和目录身份可保留重启后的许可；密钥变化、目录替换或证明失效必须重新选择。
 
-主进程持有服务句柄，关闭应用时发送终止信号并等待退出，超过宽限后强制终止。单实例锁避免重复启动桌面数据实例。异常结束后数据库通过自身事务/WAL 恢复；Runner 的 inbox/outbox 使用独立目录，桌面当前不会自动启动 Runner。
+结果不明时保留原API、请求与操作标识，使用“核对原绑定”显式恢复，即使原选择已过期也核对原操作。恢复槽只在当前应用内存中，阻止当前视图离开并在关闭／刷新前提醒，不能承诺网页或进程重启后恢复。账号、组织、项目或API变化会隐藏旧选择并忽略迟到响应；返回原视图才可核对。明确409冲突须刷新绑定状态后重新选择，不能静默替换旧CAS；新操作410过期须重新选择。
 
-桌面绑定本机 loopback；服务器、多节点和远程 Runner 的部署使用独立控制服务。桌面本机启动不等同于公网服务。`SUMA_DB_DSN` 等显式环境配置由控制服务解释，若把多个桌面实例指向同一远程数据库，需按服务部署要求管理租户与连接。
+## 隔离与语言
 
-## 渲染器边界
+窗口保持`contextIsolation:true`、`sandbox:true`、`nodeIntegration:false`和webSecurity；新窗口被拒绝，导航限制为当前本机服务origin，系统权限默认拒绝。preload仅暴露平台、版本和单用途目录选择，不开放通用IPC、文件、命令、Cookie或密钥接口。原生选择证明不授予组织角色、工具执行或人工验收权限。
 
-`contextIsolation:true`、`sandbox:true`、`nodeIntegration:false`；启用 webSecurity，禁止混合内容，所有新窗口被拒绝，页面导航/重定向限制在所启动服务的 origin。摄像头、麦克风等 Electron 权限默认拒绝。
+主进程启动诊断优先使用本进程`SUMA_LANGUAGE`，其次系统语言，支持zh-CN／en-US，默认中文。目录对话框使用工作台当前语言；工作台文案与服务端已知诊断支持中英文。项目名称、路径、源代码、工具输出及未知系统错误保留原文；完整Monaco内置菜单国际化仍待实现。
 
-preload 只暴露不可变的平台和版本信息，没有文件、进程执行、通用 IPC 或密钥读取入口。登录使用控制服务的同源 HttpOnly 会话；模型凭据不通过 preload 交给渲染页。
+## 故障处理与验证边界
 
-## 验证状态
+| 现象 | 当前处理 |
+| --- | --- |
+| 缺少控制程序／网页 | 核对匹配的构建资源及启动路径，按上方顺序准备；开发覆盖必须三项完整且位于仓库`.cache` |
+| 服务未就绪或运行中退出 | 保留原启动诊断，核对本机数据位置与控制程序；当前需要显式重启应用 |
+| 授权密钥／数据目录不可用 | 核对专属数据目录的文件类型、权限与路径；保留原数据和密钥，不通过删除数据重置环境 |
+| 按钮缺失或不可用 | 核对实际桌面桥、服务端能力、当前项目视图，以及草稿／待核对保存；网页模式不会伪装原生能力 |
+| 绑定过期／冲突／结果不明 | 分别重新选择、明确刷新后重新选择、核对原绑定；不要用新操作替代未知操作 |
+| GPU子进程`0xC0000135` | 当前真实启动阻断，日志报告DLL加载失败状态，具体缺失依赖尚未定位；需修复运行环境并重做真实旅程，不能把Node或Web测试视为恢复成功 |
 
-已在 Windows 执行主进程/preload 语法检查与生命周期测试：健康就绪、启动进程提前退出、实际子进程退出确认，以及 origin 导航限制。使用 electron-builder 26.15.3 / Electron 35.7.5 完成上述 NSIS、portable 与目录打包。目录核验确认内置网页逐文件与冻结的 `apps/web/dist` 一致，控制服务与准备产物一致，ASAR 中主进程、生命周期和 preload 源码一致，内置控制服务 `--help` 可执行。安装器、便携版、目录应用和内置控制服务的 Authenticode 状态均为 `NotSigned`。
-
-本轮未执行安装器、未启动桌面 GUI、未进行安装/升级/卸载测试；内置服务的 `--help` 核验不代表完整桌面启动通过。Go Runner 的 Windows Job Object 超时测试独立通过。正式代码签名、公证以及 macOS/Linux 实机验证仍需单独记录。
+阶段证据位于忽略目录`.cache/e2e/desktop-107`：`desktop-node-receipt.json`记录Node检查及局限；`web-checks.agent.json`记录10个受影响Web用例、2个后续定向复验及类型检查；`electron-first-failure.public.json`保留原生启动失败摘要。Node检查包含VM模拟，不能证明真实系统对话框已工作；真实中英选择／取消／绑定／重启／退出、安装器、签名及多系统验收仍待完成。[当前交付状态](../delivery/status.md)统一记录后续进展。

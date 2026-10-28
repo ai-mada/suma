@@ -409,7 +409,7 @@ func (s *Service) openWorkspaceGit(parent context.Context, actor Actor, project 
 			g = nil
 		}
 	}()
-	g.root, err = os.OpenRoot(root)
+	g.root, err = s.openWorkspaceFileRoot(ctx, actor, project, root)
 	if err != nil {
 		return g, out, workspaceGitError(422, "failed", workspaceGitFailed)
 	}

@@ -304,7 +304,7 @@ func TestWorkspaceTreeMetadataContainsOnlySummary(t *testing.T) {
 		t.Fatalf("configured metadata lost its binding summary: %v", metadata)
 	}
 	for key := range metadata {
-		if key != "configured" && key != "binding_available" && key != "name" && key != "reason" {
+		if key != "project_id" && key != "configured" && key != "binding_available" && key != "name" && key != "reason" && key != "reason_message_key" && key != "binding_sha256" && key != "binding_path_sha256" && key != "binding_operation_id" && key != "desktop_binding_available" {
 			t.Fatalf("workspace metadata returned an inventory or private field: %q", key)
 		}
 	}

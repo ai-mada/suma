@@ -21385,6 +21385,83 @@
         ],
         "type": "object"
       },
+      "WorkspaceDesktopBindingRequest": {
+        "properties": {
+          "expected_binding_sha256": {
+            "pattern": "^(?:[a-f0-9]{64})?$",
+            "type": "string"
+          },
+          "grant": {
+            "$ref": "#/components/schemas/WorkspaceDesktopGrant"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_binding_sha256",
+          "grant",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "WorkspaceDesktopGrant": {
+        "properties": {
+          "expires_at": {
+            "type": "string"
+          },
+          "nonce": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "operation_id": {
+            "pattern": "^desktop-workspace-[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "path": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "project_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "protocol": {
+            "enum": [
+              "suma-desktop-workspace-v1"
+            ],
+            "type": "string"
+          },
+          "signature": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "tenant_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          },
+          "user_id": {
+            "pattern": "^[a-f0-9]{32}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol",
+          "operation_id",
+          "user_id",
+          "tenant_id",
+          "project_id",
+          "path",
+          "expires_at",
+          "nonce",
+          "signature"
+        ],
+        "type": "object"
+      },
       "WorkspaceGitChange": {
         "properties": {
           "conflicted": {
@@ -21545,19 +21622,42 @@
           "binding_available": {
             "type": "boolean"
           },
+          "binding_operation_id": {
+            "type": "string"
+          },
+          "binding_path_sha256": {
+            "type": "string"
+          },
+          "binding_sha256": {
+            "type": "string"
+          },
           "configured": {
+            "type": "boolean"
+          },
+          "desktop_binding_available": {
             "type": "boolean"
           },
           "name": {
             "type": "string"
           },
+          "project_id": {
+            "type": "string"
+          },
           "reason": {
+            "type": "string"
+          },
+          "reason_message_key": {
             "type": "string"
           }
         },
         "required": [
+          "project_id",
           "configured",
-          "binding_available"
+          "binding_available",
+          "binding_sha256",
+          "binding_path_sha256",
+          "binding_operation_id",
+          "desktop_binding_available"
         ],
         "type": "object"
       },
@@ -82969,6 +83069,228 @@
           "required": true
         },
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/workspace/desktop-binding": {
+      "post": {
+        "description": "Explicitly bind the current project to a native-selected local desktop directory. Current browser approval, an exact short-lived signed selection and original binding CAS are mandatory. Replaying the same committed operation restores its original receipt without a new filesystem effect. The selection does not broaden the global workspace root or grant execution authority.",
+        "operationId": "post_workspace_desktop-binding",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceDesktopBindingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceMetadata"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },
     "/workspace/file": {

@@ -4,55 +4,74 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-WORKSPACE-106",
-  "updated_at": "2026-10-28T02:05:26.005702+00:00",
+  "stage": "T-DESKTOP-107",
+  "updated_at": "2026-10-28T02:55:31.433058+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/workspace-directory-verification.md",
-  "current_summary": "docs/quality/workspace-directory-summary.json",
+  "current_evidence": "docs/quality/desktop-workspace-verification.md",
+  "current_summary": "docs/quality/desktop-workspace-summary.json",
   "scope": {
-    "full_platform": "active: complete P0-P7 and accepted requirements1..22",
-    "source_sha256": "2743ccd3920cc648455d7c5ad12f5c9937590d3eafdecc5da36d6529aa829a71",
-    "items": 83,
+    "full_platform": "active: complete P0-P7 and accepted requirements1..25",
+    "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
+    "items": 91,
     "limited_implemented_items": 58,
-    "pending_items": 25,
-    "status_source": "docs/delivery/status.md"
+    "pending_items": 33,
+    "status_source": "docs/delivery/status.md",
+    "source_attachments": [
+      "C:/Users/Administrator/.codex/attachments/668c40e7-c219-485e-9df1-0763b7018ffa/pasted-text-1.txt",
+      "C:/Users/Administrator/.codex/attachments/668c40e7-c219-485e-9df1-0763b7018ffa/pasted-text-2.txt"
+    ]
   },
   "current_implementation": {
     "initialization": "Service.Initialize and domain Initialize methods; current schema namespaces and registration; unknown existing schema rejected before DDL, never upgraded/reset.",
     "scheduling": "One ready queue, accounts/ledger, complete current dependency semantics and fixed routes; persisted current restart remains.",
     "identity": "Current complete issuance/source/family/Grant/slot proof and transactional revocation; no inferred authority or migration status.",
-    "workbench": "Metadata-only local IDE entry; current root-constrained single-directory paging, snapshots/cursors, CNEN sidebar/CLI and draft-preserving navigation; native/Codex/OpenCode execution lifecycle unchanged. Complete remoteIDE/Git/PTY/LSP/DAP remain.",
-    "internationalization": "zh-CN/en-US paired extensible catalogs4674keys; current directory/CLI and structured diagnostics; own frontend production hardcodes0; built-in Monaco/vendor surfaces remain separately scoped.",
+    "workbench": "Native Electron scoped directory selection, explicit project binding, durable root proof, rooted file/tree/Git/CAS and original receipt recovery implemented; shared local/CLI/remote foundations retained. Actual native GUI startup gap remains. Complete multi-root/editor/PTY/LSP/DAP/remote IDE and requirement23 remain.",
+    "internationalization": "zh-CN/en-US paired extensible catalogs4698keys; scoped desktop selection/binding/recovery and known server diagnostics; own frontend production hardcodes0. Native/system/vendor/installer surfaces need separate acceptance.",
     "versioning": "Go product identity has one source; workspace/desktop/Helm check:version is1.0.0; protocol/workflow/data revisions independent.",
     "architecture": "Single initial1.0.0; one current OpenCode SDK path, no old JSONL parser/alias or duplicate dispatcher. Generated public types replace duplicate web DTOs; current native host/ledger reused.",
     "opencode": "Actual officialWindows1.19.4 CLI/SDK + owned deterministic model protocol, real host MCP/write/check/seal, twoWorker candidate/import/independent exactSHA test; currentstream client lifetime, single Go tree authority and compact CNEN status/drilldown. Not commercial model/billing or production evidence."
   },
   "verified": {
-    "current_report": "docs/quality/workspace-directory-verification.md",
+    "current_report": "docs/quality/desktop-workspace-verification.md",
     "product_version": "1.0.0",
-    "actual_program_versions": 2,
-    "programs": [
-      "suma-control",
-      "suma"
-    ],
-    "workspace_tree_cases": 6,
-    "web_affected_distinct_cases": 13,
+    "desktop_node_initial": {
+      "passed": 17,
+      "skipped": 1,
+      "failed": 0
+    },
+    "desktop_node_review_affected_passed": 2,
+    "web_distinct_affected_cases": 10,
+    "web_review_affected_passed": 2,
     "web_typecheck": true,
-    "web_catalog_keys": 4674,
-    "actual_http_page_counts": [
-      100,
-      8
-    ],
-    "actual_cli": true,
-    "actual_cn_en_directory_and_draft_navigation": true,
-    "actual_narrow_layout": 640,
-    "file_save_operations": 0,
+    "web_catalog_keys": 4698,
+    "go_initial_selected_set": "one Windows test assumption failure; others passed",
+    "go_corrected_single_case": "passed; no repeated full set",
+    "go_vet": true,
+    "contract_drift_check": true,
+    "control_and_web_build": true,
+    "actual_http_checks": {
+      "normal_setup_and_login": true,
+      "native_proof_transport_fixture_bound": true,
+      "paged_tree_directory_first_without_duplicates": true,
+      "cas_save_matched_original_hash": true,
+      "actual_control_git_status_observed_change": true,
+      "original_receipts_replayed_without_rebinding": true,
+      "same_key_and_database_restart_retained_root_and_content": true,
+      "fixture_readme_and_git_metadata_unchanged": true
+    },
+    "actual_http_requests": 22,
+    "actual_schema_tables": 184,
+    "file_save_operations": 1,
     "dag_runs": 0,
     "model_calls": 0,
+    "actual_electron_native_picker": false,
+    "actual_electron_startup": "three bounded layouts failed GPU child0xC0000135; exact dependency unresolved",
+    "actual_gui_cn_en": false,
+    "actual_installers": false,
     "previous_opencode_evidence": "docs/quality/opencode-actual-execution-verification.md",
-    "owned_fixture_source_unchanged": true
+    "web_current_binding_review_affected_passed": 3
   },
   "production_integration_complete": false,
   "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
@@ -62,20 +81,22 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "e5ba2911e0f8aaa8815abc58e249c834799329af"
+    "previously_published_commit": "56c2a3dfca2fb2e44b04bea4a42f5d3e3fa1d695"
   },
   "existing_preview": {
     "updated": false,
     "user_database_modified": false,
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
-  "remaining_work": "Keep full P0-P7 and1..22; see current complete plan for unimplemented/partially verified capabilities.",
-  "last_goal_turn_classification": "progress: replaced recursive flat localIDE inventory with actual paged directory/CLI workflow, current-authority cursor/activation, draft protection and verified CNEN narrow UI. Complete P0-P7 and1..22 remain active.",
-  "previous_goal_turn": "progress: actual official OpenCode/SDK+Go host candidate and independent test achieved after proven lifecycle fixes; scoped CNEN status/evidence/test interactions verified. Original failure and full platform remaining scope retained.",
+  "remaining_work": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope.",
+  "last_goal_turn_classification": "progress: native directory selection and project binding implemented in parallel; rooted file I/O and actual isolated HTTP chain/restart verified. NativeGUI startup unresolved, full P0-P7 and requirements1..25 active.",
+  "previous_goal_turn": "progress: replaced recursive flat localIDE inventory with actual paged directory/CLI workflow, current-authority cursor/activation, draft protection and verified CNEN narrow UI. Complete P0-P7 and1..22 remain active.",
   "current_work": {
-    "status": "verified_bounded_stage",
-    "interface": "Directory/sidebar/refresh/paging, draft+Git retention, CNEN and corrected640px visibility verified with actual currentControl and unchanged owned fixtures.",
-    "runtime": "Current Control+CLI built and launched1.0.0; same-session CLI read succeeded. Model0/run0/save0; no userdata changed, owned servers/tabs closed.",
-    "deferred_not_dropped": "Keep full P0-P7 and1..22; see current complete plan for unimplemented/partially verified capabilities."
+    "status": "scoped_implementation_verified_native_gui_pending",
+    "native": "Desktop native picker, scoped expiring HMAC selection, durable per-project root identity and original binding ACK recovery implemented. No home/global-root expansion, source matches current1.0.0 only.",
+    "verification": "Affected Node/Web/Go checks, final tsc/vet/generated drift/version/i18n and current builds verified; actual isolated HTTP bind/tree/read/CAS/Git/receipts/184table restart passed. Native Electron GUI failed three bounded layouts; no security disabling or system/shared SDK changes.",
+    "updated_goal": "Both new attachments fully read; requirements24/25 added to full baseline/plan, desktop23 remains aligned.",
+    "deferred_not_dropped": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope.",
+    "next_integration": "Resolve the actual Electron loader failure without weakening protections; verify native choose/bind/editor/restart. Carry read-time binding identity into file save intent as part of full IDE, then continue all P0-P7/1..25 tasks."
   }
 }

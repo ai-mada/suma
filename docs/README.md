@@ -4,7 +4,7 @@
 
 | 当前入口 | 内容 |
 | --- | --- |
-| [产品与设计基线](product/v1-baseline.md) | 单一新库初始化、版本边界、完整需求1–22及工程约束 |
+| [产品与设计基线](product/v1-baseline.md) | 单一新库初始化、版本边界、完整需求1–25及工程约束 |
 | [实施计划](delivery/implementation-plan.md) | P0–P7完整范围、限定实现与未完成项 |
 | [交付状态](delivery/status.md) | 当前能力、实际证据、限制与后续交付 |
 | [验证入口](quality/verification.md) | 当前变更检查与各专项证据 |
@@ -21,6 +21,7 @@
 | 产品交互与流程图 | [工作台](design/workbench.md)、[DAG 三视图](design/dag-interactions.md) |
 | 全平台多语言与本地化 | [国际化规范](design/internationalization.md)、[账户与组织偏好](design/locale-preferences.md)、[偏好接口合同](../contracts/locale-preferences.md)、[偏好验收](quality/locale-preferences-verification.md)、[自有工作台迁移验收](quality/remaining-localization-verification.md)、[自有工作台摘要](quality/remaining-localization-summary.json)、[受控诊断架构](architecture/localized-diagnostics.md)、[后端诊断验收](quality/backend-diagnostics-verification.md)、[当前工具历史摘要](quality/attempt-tool-history-summary.json) |
 | English documentation | [English entry and translation status](en/README.md) |
+| 应用级迭代与问题全生命周期 | [需求24／25领域及验收基线](product/application-delivery.md)，待实现范围与现有局部基础分开记录 |
 | 组织治理、项目计划与候选测试 | [组织、团队与权限](product/governance.md)、[规划与治理工作台](design/planning-governance.md) |
 
 当前外部工具执行：[OpenCode 固定 SDK、架构与 AI SOP](architecture/opencode-execution.md)、[合同](../contracts/opencode-sdk.md)、[英文指南](en/opencode-execution.md)、[限定验证](quality/opencode-actual-execution-verification.md)。本地协议与厂商运行证据分别记录。
@@ -64,6 +65,7 @@
 | 模型选择跨普通／专家／修复入口 | [产品操作](product/model-selection-workflows.md)／[架构与AI SOP](architecture/model-selection-workflows.md)／[修复合同](../contracts/repair-model-execution.md)／[English](en/model-selection-workflows.md)／[限定验证](quality/model-selection-workflows-verification.md)／[摘要](quality/model-selection-workflows-summary.json) |
 | Codex模型到真实编码 | [PRD](product/codex-model-execution.md)／[合同](../contracts/codex-app-server.md)／[架构与AI SOP](integrations/codex-app-server.md)／[交互](design/codex-model-execution.md)／[English](en/codex-app-server.md)／[限定验证](quality/codex-app-server-verification.md)／[摘要](quality/codex-app-server-summary.json) |
 | 专家团队逐任务模型执行 | [合同](../contracts/expert-team-model-execution.md)／[架构与AI SOP](architecture/expert-team-model-execution.md)／[English](en/expert-team-model-execution.md)／[限定验证](quality/expert-team-model-execution-verification.md)／[摘要](quality/expert-team-model-execution-summary.json) |
+| 电脑本地开发工作台 | [完整架构与AI SOP](architecture/local-development-workbench.md)、[原生目录合同](../contracts/desktop-workspace.md)、[当前部署](deployment/desktop.md)、[English](en/local-development-workbench.md)、[限定验证](quality/desktop-workspace-verification.md) |
 | 本地 IDE 目录浏览 | [接口合同](../contracts/workspace-tree.md)、[架构与 AI SOP](architecture/workspace-directory-browser.md)、[English](en/workspace-directory-browser.md)、[限定验证](quality/workspace-directory-verification.md) |
 | Codex活动工作区读取 | [架构与AI SOP](architecture/codex-workspace-observation.md)／[交互](design/codex-workspace-observation.md)／[English](en/codex-workspace-observation.md)／[限定验证](quality/codex-workspace-observation-verification.md)／[摘要](quality/codex-workspace-observation-summary.json) |
 | 执行器传输能力 | [合同](../contracts/workspace-transport-capabilities.md)／[架构与AI SOP](integrations/workspace-transport-capabilities.md)／[English](en/workspace-transport-capabilities.md)／[限定验证](quality/workspace-capability-verification.md)／[摘要](quality/workspace-capability-summary.json) |
