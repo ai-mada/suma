@@ -7,9 +7,13 @@ import (
 	"fmt"
 )
 
+// InitialDataContract identifies the one supported initial persistent contract,
+// including JSON payload semantics. It is independent of the product version.
+const InitialDataContract = "suma-initial-gateway-v1"
+
 // ErrInitialSchema prevents initialization from interpreting unregistered data as
 // a current installation. Initialization never upgrades, resets or deletes data.
-var ErrInitialSchema = errors.New("database does not declare the suma 1.0.0 initial schema; use a separate empty database")
+var ErrInitialSchema = errors.New("database does not declare the current suma initial data contract; preserve it and use a separate empty database")
 
 // InitializeBaseline declares a component's current schema before its idempotent
 // DDL runs. It is a schema declaration, not an upgrade ledger or readiness flag.
@@ -18,6 +22,9 @@ var ErrInitialSchema = errors.New("database does not declare the suma 1.0.0 init
 func InitializeBaseline(ctx context.Context, db *sql.DB, dialect, component, ownedPrefix, version string) error {
 	if component == "" || ownedPrefix == "" || version == "" {
 		return fmt.Errorf("initial schema declaration is incomplete")
+	}
+	if version != InitialDataContract || component != "platform" && component != "dag" {
+		return fmt.Errorf("%w: unsupported component or data contract", ErrInitialSchema)
 	}
 	placeholder := "?"
 	if dialect == "postgres" {
@@ -31,6 +38,31 @@ func InitializeBaseline(ctx context.Context, db *sql.DB, dialect, component, own
 	declared := func() (bool, error) {
 		present, err := baselineTableExists(ctx, db, dialect, "suma_schema_baselines")
 		if err != nil || !present {
+			return false, err
+		}
+		// Validate the whole shared contract before either component runs DDL.
+		// A current platform marker cannot mask an incompatible DAG or unknown
+		// namespace. These declarations are never rewritten during startup.
+		rows, err := db.QueryContext(ctx, `SELECT component,version FROM suma_schema_baselines`)
+		if err != nil {
+			return false, err
+		}
+		for rows.Next() {
+			var name, contract string
+			if err = rows.Scan(&name, &contract); err != nil {
+				rows.Close()
+				return false, err
+			}
+			if name != "platform" && name != "dag" || contract != InitialDataContract {
+				rows.Close()
+				return false, fmt.Errorf("%w: component %s", ErrInitialSchema, name)
+			}
+		}
+		if err = rows.Err(); err != nil {
+			rows.Close()
+			return false, err
+		}
+		if err = rows.Close(); err != nil {
 			return false, err
 		}
 		found, err := read()
@@ -74,14 +106,10 @@ func InitializeBaseline(ctx context.Context, db *sql.DB, dialect, component, own
 	}
 	// A concurrent initializer may have declared another schema. Verify the
 	// durable winner instead of treating an ignored insert as agreement.
-	found, err := read()
-	if err != nil {
+	if ok, err := declared(); err != nil || ok {
 		return err
 	}
-	if found != version {
-		return fmt.Errorf("%w: component %s", ErrInitialSchema, component)
-	}
-	return nil
+	return fmt.Errorf("%w: component %s", ErrInitialSchema, component)
 }
 
 // Inspect the entire component namespace, including interrupted initializations

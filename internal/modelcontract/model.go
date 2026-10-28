@@ -18,6 +18,9 @@ import (
 
 const Protocol = "suma-model-execution-v1"
 const ProviderProtocol = "openai-chat-completions-v1"
+const GatewayProtocol = "suma-model-gateway-v1"
+const MaxSteps = 128
+const MaxOutputTokens int64 = 131072
 const MaxSafeInteger int64 = 9007199254740991
 
 type ModelDeployment struct {
@@ -65,15 +68,29 @@ type ModelBinding struct {
 	Rate                   *RateSnapshot `json:"rate,omitempty"`
 }
 type ModelRequestEvidence struct {
-	Step              int    `json:"step"`
-	RequestSHA256     string `json:"request_sha256"`
-	ResponseSHA256    string `json:"response_sha256,omitempty"`
-	ProviderModel     string `json:"provider_model,omitempty"`
-	ProviderRequestID string `json:"provider_request_id,omitempty"`
-	OutputAllowance   int64  `json:"output_allowance"`
-	UsageState        string `json:"usage_state"`
+	State             string             `json:"state"`
+	Step              int                `json:"step"`
+	RequestSHA256     string             `json:"request_sha256"`
+	ResponseSHA256    string             `json:"response_sha256,omitempty"`
+	ProviderModel     string             `json:"provider_model,omitempty"`
+	ProviderRequestID string             `json:"provider_request_id,omitempty"`
+	OutputAllowance   int64              `json:"output_allowance"`
+	UsageState        string             `json:"usage_state"`
+	Usage             *ModelRequestUsage `json:"usage,omitempty"`
+}
+
+// ModelRequestUsage contains host-observed exact counters. Missing counters are
+// absent: neither an SDK aggregate nor a failed request implies zero usage.
+type ModelRequestUsage struct {
+	InputTokens           *int64 `json:"input_tokens,omitempty"`
+	OutputTokens          *int64 `json:"output_tokens,omitempty"`
+	CachedInputTokens     *int64 `json:"cached_input_tokens,omitempty"`
+	CacheWriteInputTokens *int64 `json:"cache_write_input_tokens,omitempty"`
+	ReasoningOutputTokens *int64 `json:"reasoning_output_tokens,omitempty"`
 }
 type ModelEvidence struct {
+	GatewayProtocol  string            `json:"gateway_protocol"`
+	GatewayClosed    bool              `json:"gateway_closed"`
 	BindingSHA256    string            `json:"binding_sha256"`
 	DeploymentSHA256 string            `json:"deployment_sha256"`
 	ParametersSHA256 string            `json:"parameters_sha256"`
@@ -88,6 +105,7 @@ type Selection = ModelSelection
 type RateSnapshot = ModelRateSnapshot
 type Binding = ModelBinding
 type RequestEvidence = ModelRequestEvidence
+type RequestUsage = ModelRequestUsage
 type Evidence = ModelEvidence
 
 var idPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$`)
@@ -128,7 +146,7 @@ func ValidateDeployment(v Deployment) error {
 	return nil
 }
 func ValidateParameters(v Parameters) error {
-	if v.MaxSteps < 1 || v.MaxSteps > 128 || v.MaxOutputTokens < 1 || v.MaxOutputTokens > 131072 {
+	if v.MaxSteps < 1 || v.MaxSteps > MaxSteps || v.MaxOutputTokens < 1 || v.MaxOutputTokens > MaxOutputTokens {
 		return fmt.Errorf("invalid model execution parameters")
 	}
 	return nil
@@ -207,15 +225,149 @@ func ReservedCostMicros(b Binding) (int64, error) {
 	return total.Int64(), nil
 }
 func ValidateEvidence(v Evidence) error {
-	if !ValidDigest(v.BindingSHA256) || !ValidDigest(v.DeploymentSHA256) || !ValidDigest(v.ParametersSHA256) || v.Model == "" || !boundedText(v.Model, 256) || len(v.Requests) > 128 {
+	if v.GatewayProtocol != GatewayProtocol || !ValidDigest(v.BindingSHA256) || !ValidDigest(v.DeploymentSHA256) || !ValidDigest(v.ParametersSHA256) || v.Model == "" || !boundedText(v.Model, 256) || v.Requests == nil || len(v.Requests) > MaxSteps {
 		return fmt.Errorf("invalid model execution evidence")
 	}
 	for i, r := range v.Requests {
-		if r.Step != i || !ValidDigest(r.RequestSHA256) || r.ResponseSHA256 != "" && !ValidDigest(r.ResponseSHA256) || !boundedText(r.ProviderModel, 256) || !boundedText(r.ProviderRequestID, 256) || r.OutputAllowance < 1 || r.OutputAllowance > 131072 || r.UsageState != "complete" && r.UsageState != "partial" && r.UsageState != "unreported" {
+		if r.Step != i || !ValidDigest(r.RequestSHA256) || r.ResponseSHA256 != "" && !ValidDigest(r.ResponseSHA256) || !boundedText(r.ProviderModel, 256) || !boundedText(r.ProviderRequestID, 256) || r.OutputAllowance < 1 || r.OutputAllowance > MaxOutputTokens || r.UsageState != "complete" && r.UsageState != "partial" && r.UsageState != "unreported" {
 			return fmt.Errorf("invalid model request evidence")
+		}
+		if r.State != "started" && r.State != "completed" && r.State != "rejected" && r.State != "unknown" || validateRequestUsage(r.UsageState, r.Usage) != nil {
+			return fmt.Errorf("invalid model request state or usage")
+		}
+		if r.State == "started" && (v.GatewayClosed || r.ResponseSHA256 != "" || r.ProviderModel != "" || r.ProviderRequestID != "" || r.Usage != nil) || r.State == "completed" && (r.ResponseSHA256 == "" || r.ProviderModel == "") {
+			return fmt.Errorf("invalid model request lifecycle evidence")
 		}
 	}
 	return nil
+}
+
+func validateRequestUsage(state string, u *RequestUsage) error {
+	if u == nil {
+		if state != "unreported" {
+			return fmt.Errorf("missing model request usage")
+		}
+		return nil
+	}
+	present := false
+	for _, n := range []*int64{u.InputTokens, u.OutputTokens, u.CachedInputTokens, u.CacheWriteInputTokens, u.ReasoningOutputTokens} {
+		if n == nil {
+			continue
+		}
+		present = true
+		if *n < 0 || *n > MaxSafeInteger {
+			return fmt.Errorf("invalid model request counter")
+		}
+	}
+	if !present || state == "unreported" || state == "complete" && (u.InputTokens == nil || u.OutputTokens == nil) {
+		return fmt.Errorf("invalid model request usage coverage")
+	}
+	if u.InputTokens != nil {
+		var cached, write int64
+		if u.CachedInputTokens != nil {
+			cached = *u.CachedInputTokens
+		}
+		if u.CacheWriteInputTokens != nil {
+			write = *u.CacheWriteInputTokens
+		}
+		if cached+write > *u.InputTokens {
+			return fmt.Errorf("conflicting model input counters")
+		}
+	}
+	if u.OutputTokens != nil && u.ReasoningOutputTokens != nil && *u.ReasoningOutputTokens > *u.OutputTokens {
+		return fmt.Errorf("conflicting model output counters")
+	}
+	return nil
+}
+
+// EvidenceMatchesBinding checks immutable identity separately from execution
+// success. Billing can be known even when the source check or sealing fails.
+func EvidenceMatchesBinding(b Binding, e Evidence) bool {
+	return ValidateBinding(b) == nil && ValidateEvidence(e) == nil &&
+		e.BindingSHA256 == b.BindingSHA256 && e.DeploymentSHA256 == b.Deployment.SHA256 &&
+		e.ParametersSHA256 == b.ParametersSHA256 && e.Model == b.Deployment.Model &&
+		len(e.Requests) <= b.Parameters.MaxSteps
+}
+
+// A request spends its entire output allowance before HTTP starts. Only an
+// original complete response may return unused allowance to the next request.
+func evidenceAllowancesValid(b Binding, e Evidence) bool {
+	var consumed int64
+	for _, r := range e.Requests {
+		if r.OutputAllowance > b.OutputTokenReservation-consumed {
+			return false
+		}
+		consumed += r.OutputAllowance
+		if r.State == "completed" && r.UsageState == "complete" && r.Usage != nil && r.Usage.OutputTokens != nil {
+			if *r.Usage.OutputTokens > r.OutputAllowance {
+				return false
+			}
+			consumed -= r.OutputAllowance - *r.Usage.OutputTokens
+		}
+	}
+	return true
+}
+
+// EvidenceResponsesComplete proves provider request coverage for code execution.
+// Token coverage is separate: a valid model reply may omit billing counters.
+func EvidenceResponsesComplete(b Binding, e Evidence) bool {
+	if !EvidenceMatchesBinding(b, e) || !e.GatewayClosed || len(e.Requests) == 0 || !evidenceAllowancesValid(b, e) {
+		return false
+	}
+	for _, r := range e.Requests {
+		if r.State != "completed" || r.ResponseSHA256 == "" || r.ProviderModel != b.Deployment.Model {
+			return false
+		}
+	}
+	return true
+}
+
+// AggregateEvidenceUsage preserves every known host counter. Completeness also
+// needs the gateway closed and every admitted request's original response. A
+// genuinely closed gateway with no requests certifies zero without a model ACK.
+func AggregateEvidenceUsage(b Binding, e Evidence) (*RequestUsage, bool) {
+	if !EvidenceMatchesBinding(b, e) {
+		return nil, false
+	}
+	complete := e.GatewayClosed && evidenceAllowancesValid(b, e)
+	values := []*int64{nil, nil, nil, nil, nil}
+	for _, r := range e.Requests {
+		if r.State != "completed" || r.ResponseSHA256 == "" || r.ProviderModel != b.Deployment.Model || r.UsageState != "complete" || r.Usage == nil {
+			complete = false
+		}
+		if r.Usage == nil {
+			continue
+		}
+		counts := []*int64{r.Usage.InputTokens, r.Usage.OutputTokens, r.Usage.CachedInputTokens, r.Usage.CacheWriteInputTokens, r.Usage.ReasoningOutputTokens}
+		for i, n := range counts {
+			if n == nil {
+				continue
+			}
+			if values[i] == nil {
+				v := int64(0)
+				values[i] = &v
+			}
+			if *values[i] > MaxSafeInteger-*n {
+				return nil, false
+			}
+			*values[i] += *n
+		}
+		if r.Usage.InputTokens != nil && *r.Usage.InputTokens > b.Deployment.ContextWindow || r.Usage.OutputTokens != nil && *r.Usage.OutputTokens > r.OutputAllowance {
+			complete = false
+		}
+	}
+	if len(e.Requests) == 0 && complete {
+		input, output := int64(0), int64(0)
+		values[0], values[1] = &input, &output
+	}
+	u := &RequestUsage{InputTokens: values[0], OutputTokens: values[1], CachedInputTokens: values[2], CacheWriteInputTokens: values[3], ReasoningOutputTokens: values[4]}
+	if values[0] == nil && values[1] == nil && values[2] == nil && values[3] == nil && values[4] == nil {
+		return nil, false
+	}
+	if u.InputTokens != nil && *u.InputTokens > b.InputTokenReservation || u.OutputTokens != nil && *u.OutputTokens > b.OutputTokenReservation {
+		complete = false
+	}
+	return u, complete
 }
 
 func boundedText(value string, limit int) bool {

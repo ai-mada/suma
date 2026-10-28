@@ -93,13 +93,17 @@ export async function runAgent(request:AgentRequest,config:RuntimeConfig,emit:(e
  const locale=requireNativeLocale(config.locale);const requestID=request.request_id??randomUUID();let execution:LocalModelExecution|undefined;const event=(e:AgentEvent)=>emit({...e,request_id:requestID,...(execution?{binding_sha256:execution.binding.binding_sha256,deployment_sha256:execution.binding.deployment.deployment_sha256,parameters_sha256:execution.binding.parameters_sha256,model:execution.binding.deployment.model}:{})});
  let workspace:AttemptWorkspaceClient|undefined;
  try{
- execution=resolveModelExecution(request.model_execution,config.modelExecution);
- if(execution){config={...config,model:execution.binding.deployment.model,baseURL:execution.base_url,apiKey:execution.api_key};if(request.purpose!==undefined||request.max_steps!==undefined&&request.max_steps!==execution.binding.parameters.max_steps||request.max_tokens!==undefined&&request.max_tokens!==execution.binding.parameters.max_output_tokens)throw new ModelBindingError();request={...request,max_steps:execution.binding.parameters.max_steps,max_tokens:execution.binding.parameters.max_output_tokens};}
+ execution=resolveModelExecution(request.model_execution,config.modelExecution,requestID);
+ // Every coding workspace, including conflict repair, must use a frozen host
+ // model binding. Ambient provider settings are only for dedicated read-only
+ // purposes without a workspace; they cannot become a coding fallback.
+ if(config.workspaceBridge!==undefined&&!execution)throw new ModelBindingError();
+ if(execution){config={...config,model:execution.binding.deployment.model,baseURL:execution.gateway.base_url,apiKey:execution.gateway.token};if(request.purpose!==undefined||request.max_steps!==undefined&&request.max_steps!==execution.binding.parameters.max_steps||request.max_tokens!==undefined&&request.max_tokens!==execution.binding.parameters.max_output_tokens)throw new ModelBindingError();request={...request,max_steps:execution.binding.parameters.max_steps,max_tokens:execution.binding.parameters.max_output_tokens};}
  if(!request.goal?.trim() || request.goal.length>32000 || (request.purpose==='knowledge_extraction'||request.purpose==='failure_diagnosis'||request.purpose==='intelligent_operations')&&Buffer.byteLength(request.goal)>32000)throw new RuntimeError('invalid_goal','A goal of 1–32000 characters is required','native.request.invalid_goal');
  const planning=request.purpose==='planning',extracting=request.purpose==='knowledge_extraction',diagnosing=request.purpose==='failure_diagnosis',operating=request.purpose==='intelligent_operations',oneCallPurpose=extracting||diagnosing||operating,documentPurpose=planning||oneCallPurpose;
  if(request.purpose!==undefined&&!documentPurpose||documentPurpose&&config.workspaceBridge!==undefined)throw new RuntimeError('invalid_purpose','The selected purpose requires its dedicated read-only model configuration without a workspace bridge.','native.request.invalid_purpose');
  const repairing=config.workspaceBridge?.conflict_repair_protocol==='suma.candidate-conflict-repair.v1';
- const steps=processLimit(request.max_steps,oneCallPurpose?1:planning?3:repairing?64:8,oneCallPurpose?1:planning?4:repairing?128:16);const budget=processLimit(request.max_tokens,documentPurpose?4096:repairing?65536:8192,documentPurpose?8192:repairing?131072:32768);
+ const steps=processLimit(request.max_steps,oneCallPurpose?1:planning?3:repairing?64:8,execution?128:oneCallPurpose?1:planning?4:repairing?128:16);const budget=processLimit(request.max_tokens,documentPurpose?4096:repairing?65536:8192,execution?131072:documentPurpose?8192:repairing?131072:32768);
  if(!config.model?.trim())throw new RuntimeError('missing_model','Configure SUMA_MODEL and SUMA_MODEL_BASE_URL to run an agent','native.config.missing_model');
  if(!config.baseURL)throw new RuntimeError('missing_provider','Configure SUMA_MODEL_BASE_URL for an OpenAI-compatible provider','native.config.missing_provider');
  if(planning)planningCapability(config);
@@ -116,12 +120,14 @@ export async function runAgent(request:AgentRequest,config:RuntimeConfig,emit:(e
  event({type:'started',model:config.model,tools:tools.map(t=>t.name)});
  for(let step=0;step<steps;step++){
  if(signal.aborted)throw signal.reason;if(allowanceConsumed>=budget)throw new RuntimeError('token_limit','Agent output allowance exhausted','native.limit.output_allowance');
- const allowance=Math.min(budget-allowanceConsumed,documentPurpose?8192:repairing?1024:4096,execution?.binding.deployment.context_window??Number.MAX_SAFE_INTEGER);allowanceConsumed+=allowance;
+ // Bound coding uses its complete remaining approved allowance. The Go
+ // gateway owns actual cumulative admission; do not add a hidden per-call cap.
+ const allowance=Math.min(budget-allowanceConsumed,execution?budget-allowanceConsumed:documentPurpose?8192:repairing?1024:4096,execution?.binding.deployment.context_window??Number.MAX_SAFE_INTEGER);allowanceConsumed+=allowance;
  const body={model:config.model,messages,stream:false,max_completion_tokens:allowance,...(documentPurpose?{response_format:{type:'json_object'}}:{}),...(oneCallPurpose?{tool_choice:'none'}:{}),...(tools.length?{tools:tools.map(t=>({type:'function',function:{name:t.providerName,description:t.description,parameters:t.parameters}}))}:{})};
  const prepared=provider.prepare(body);event({type:'request_started',step,output_allowance:allowance,...(execution?{endpoint_config_sha256:execution.binding.deployment.endpoint_config_sha256,request_sha256:prepared.requestSHA256}:{})});
  let response:Record<string,unknown>;let facts:UsageFacts;
  let responseSHA256='';let providerModel='';let providerRequestID='';
- try{const received=await provider.invoke(prepared,signal);responseSHA256=received.responseSHA256;response=asObject(received.data);providerModel=typeof response.model==='string'?response.model:'';providerRequestID=typeof response.id==='string'?response.id:'';facts=modelUsage(response);}
+  try{const received=await provider.invoke(prepared,signal,execution?step:undefined);responseSHA256=received.responseSHA256;response=asObject(received.data);providerModel=typeof response.model==='string'?response.model:'';providerRequestID=typeof response.id==='string'?response.id:'';facts=modelUsage(response);}
  catch(error){usageSteps.push({counts:{},state:'unreported'});event({type:'usage',step,usage_state:'unreported',usage_reported:false,...(execution?{response_sha256:responseSHA256,provider_model:providerModel,provider_request_id:providerRequestID}:{})});if(!execution&&error instanceof RuntimeError&&error.httpStatus===429)error.modelRejected=true;throw error;}
  usageSteps.push(facts);event({type:'usage',step,...facts.counts,usage_state:facts.state,usage_reported:facts.state==='complete',...(execution?{response_sha256:responseSHA256,provider_model:providerModel,provider_request_id:providerRequestID}:{})});
  if(execution&&(providerModel!==execution.binding.deployment.model||providerModel.length>256||providerRequestID.length>256||/[\p{Cc}\p{Cs}]/u.test(providerModel+providerRequestID)))throw new RuntimeError('provider_model_mismatch','Provider response model does not match the selected deployment','native.model.identity_mismatch');

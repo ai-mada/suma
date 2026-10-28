@@ -8,6 +8,7 @@ import (
 
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/dag"
+	"github.com/ai-mada/suma/internal/modelcontract"
 	"github.com/ai-mada/suma/internal/toolcontract"
 )
 
@@ -93,12 +94,6 @@ func (s *Service) usagePricingTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 		}
 		return
 	}
-	if supportsOctopExecution(profile) {
-		if profile.Profile.ProfileSHA256 != sha || !octopNodeMatchesProfile(ref.Spec, profile) {
-			err = invalid(octopExecutionChanged)
-		}
-		return
-	}
 	if supportsOpenCodeExecution(profile) {
 		if profile.Profile.ProfileSHA256 != sha || !openCodeNodeMatchesProfile(ref.Spec, profile) {
 			err = invalid(opencodeExecutionChanged)
@@ -135,9 +130,6 @@ func (s *Service) CheckAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	profile, rate, org, project, e := s.usagePricingTx(ctx, tx, ref)
 	if e != nil {
 		return false, e
-	}
-	if checkOctopObserveOnlyPolicies(profile, org, project) != nil {
-		return false, nil
 	}
 	if checkOpenCodeObserveOnlyPolicies(profile, org, project) != nil {
 		return false, nil
@@ -190,9 +182,6 @@ func (s *Service) ReserveAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Acco
 	profile, rate, org, project, e := s.usagePricingTx(ctx, tx, ref)
 	if e != nil {
 		return e
-	}
-	if err := checkOctopObserveOnlyPolicies(profile, org, project); err != nil {
-		return err
 	}
 	if err := checkOpenCodeObserveOnlyPolicies(profile, org, project); err != nil {
 		return err
@@ -410,25 +399,6 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 			modelReconciling = true
 		}
 	}
-	if fixed, err := octopNodeConfiguration(ref.Spec); err != nil {
-		return err
-	} else if fixed != nil {
-		// ACP session counters do not prove complete request or billing coverage.
-		complete = false
-		if a.Usage != nil {
-			a.UsageState = toolcontract.UsagePartial
-		} else {
-			a.UsageState = toolcontract.UsageUnreported
-		}
-		if result.ToolEvidence == nil || result.ToolEvidence.OctopExecution == nil {
-			modelReconciling = true
-		} else {
-			proof := result.ToolEvidence.OctopExecution
-			if proof.ConfigurationSHA256 != fixed.ConfigurationSHA256 || proof.RequestedProvider != fixed.ProviderID || proof.RequestedModel != fixed.Model || toolcontract.ValidateEvidence(*result.ToolEvidence) != nil {
-				modelReconciling = true
-			}
-		}
-	}
 	if fixed, err := openCodeNodeConfiguration(ref.Spec); err != nil {
 		return err
 	} else if fixed != nil {
@@ -450,26 +420,53 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 		}
 	}
 	if b := a.ModelExecution; b != nil && !startupZero {
+		// The host gateway is the single request and billing authority. Code
+		// cancellation, failed checks or sealing do not erase known HTTP costs.
+		var observed *toolcontract.Usage
+		complete = false
 		if result.ToolEvidence == nil || result.ToolEvidence.ModelExecution == nil {
-			complete = false
 			modelReconciling = true
 		} else {
-			e := result.ToolEvidence.ModelExecution
-			if e.BindingSHA256 != b.BindingSHA256 || e.DeploymentSHA256 != b.Deployment.SHA256 || e.ParametersSHA256 != b.ParametersSHA256 || e.Model != b.Deployment.Model || len(e.Requests) < 1 || len(e.Requests) > b.Parameters.MaxSteps {
-				complete = false
+			evidence := result.ToolEvidence.ModelExecution
+			if !modelcontract.EvidenceMatchesBinding(*b, *evidence) {
 				modelReconciling = true
-			}
-			for _, request := range e.Requests {
-				if request.ProviderModel != b.Deployment.Model || request.ResponseSHA256 == "" || request.UsageState != "complete" || request.OutputAllowance > b.OutputTokenReservation {
-					complete = false
+			} else {
+				counters, covered := modelcontract.AggregateEvidenceUsage(*b, *evidence)
+				observed = usageFromModelGateway(counters)
+				complete = covered
+				if a.UsageSource != "manual_confirmation" {
+					a.UsageSource = "host_model_gateway"
+				}
+				if !evidence.GatewayClosed {
 					modelReconciling = true
+				}
+				for _, request := range evidence.Requests {
+					if request.State == "unknown" || request.State == "started" || request.ProviderModel != b.Deployment.Model {
+						modelReconciling = true
+					}
+					if request.Usage != nil && (request.Usage.InputTokens != nil && *request.Usage.InputTokens > b.Deployment.ContextWindow || request.Usage.OutputTokens != nil && *request.Usage.OutputTokens > request.OutputAllowance) {
+						a.Overrun = true
+					}
 				}
 			}
 		}
-		if a.Usage != nil && (a.Usage.InputTokens != nil && *a.Usage.InputTokens > b.InputTokenReservation || a.Usage.OutputTokens != nil && *a.Usage.OutputTokens > b.OutputTokenReservation) {
+		// A later receipt cannot reduce counters already acknowledged for the
+		// attempt, even if the new coverage itself is valid and closed.
+		if !usageCountersAtLeastOrPartial(observed, previousUsage) {
 			complete = false
 			modelReconciling = true
+		}
+		a.Usage = usageCounterMaximum(observed, previousUsage)
+		if a.Usage != nil && (a.Usage.InputTokens != nil && *a.Usage.InputTokens > b.InputTokenReservation || a.Usage.OutputTokens != nil && *a.Usage.OutputTokens > b.OutputTokenReservation) {
 			a.Overrun = true
+			complete = false
+			modelReconciling = true
+		}
+		a.UsageState = toolcontract.UsageUnreported
+		if complete {
+			a.UsageState = toolcontract.UsageComplete
+		} else if a.Usage != nil {
+			a.UsageState = toolcontract.UsagePartial
 		}
 	}
 	state := "settled"

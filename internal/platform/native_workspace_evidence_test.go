@@ -18,7 +18,7 @@ func nativeEvidenceFixture() (map[string]any, *tc.Evidence) {
 	head := strings.Repeat("c", 40)
 	files := []nwc.NativeWorkspaceFileEffect{{Path: "src/code.ts", OperationID: "write-op", SHA256: strings.Repeat("d", 64), Generation: 1}}
 	evidence := nwc.NativeWorkspaceEvidence{SchemaVersion: 1, PolicySHA256: policy, Generation: 1, State: "closed", Files: files, Checks: []nwc.NativeWorkspaceCheckResult{{OperationID: "check-op", CheckID: "unit", ProfileSHA256: strings.Repeat("e", 64), WorkspaceSHA256: strings.Repeat("f", 64), Generation: 1, ExitCode: 0}}, Seal: &nwc.NativeWorkspaceSeal{SchemaVersion: 1, OperationID: "seal-op", PolicySHA256: policy, State: "sealed", PreviousCommit: base, Commit: head, Tree: strings.Repeat("d", 40), ChangedPaths: 1}}
-	return map[string]any{"base_commit": base, "head_commit": head, "native_workspace": evidence}, &tc.Evidence{Profile: tc.Profile{Adapter: "suma", Protocol: "suma-jsonl-v1", ProfileSHA256: policy, WorkspaceToolsVersion: nwc.Version}}
+	return map[string]any{"base_commit": base, "head_commit": head, "native_workspace": evidence}, &tc.Evidence{Profile: tc.Profile{Adapter: "suma", Protocol: "suma-jsonl-v1", ProfileSHA256: policy, WorkspaceToolsVersion: nwc.Version, ModelExecutionProtocol: "suma-model-execution-v1"}}
 }
 
 func nativeRepairEvidenceFixture(edited bool) (map[string]any, *tc.Evidence) {

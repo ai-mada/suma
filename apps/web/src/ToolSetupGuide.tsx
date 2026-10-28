@@ -12,7 +12,7 @@ const presets={
  octop:octopHarnessPreset,
  junit:{'junit-tests':{adapter:'command',protocol:'text-v1',executable:'node',args:['--test','--test-reporter=junit','--test-reporter-destination={{test_report_path}}'],input:'none',read_only:false,test_evidence:true,test_report:true}},
  operations:{'suma-intelligent-operations':{adapter:'suma',protocol:'suma-jsonl-v1',executable:'node',args:[] as string[],input:'agent-jsonl',read_only:true,intelligent_operations:true}},
- 'native-coder':{'native-coder':{adapter:'suma',protocol:'suma-jsonl-v1',executable:'node',args:[] as string[],input:'agent-jsonl',read_only:false}},
+ 'native-coder':{'native-coder':{adapter:'suma',protocol:'suma-jsonl-v1',executable:'node',args:[] as string[],input:'agent-jsonl',read_only:false,model_execution_protocol:'suma-model-execution-v1'}},
  diagnosis:{'suma-failure-diagnosis':{adapter:'suma',protocol:'suma-jsonl-v1',executable:'node',args:[] as string[],input:'agent-jsonl',read_only:true,failure_diagnosis:true}},
  extractor:{'suma-knowledge-extractor':{adapter:'suma',protocol:'suma-jsonl-v1',executable:'node',args:[] as string[],input:'agent-jsonl',read_only:true,knowledge_extraction:true}},
  planner:{'suma-planner':{adapter:'suma',protocol:'suma-jsonl-v1',executable:'node',args:[] as string[],input:'agent-jsonl',read_only:true,planning:true}},
@@ -29,7 +29,7 @@ export function ToolSetupGuide(){
  const [model,setModel]=useState(''),[endpoint,setEndpoint]=useState('');
  const [manifest,setManifest]=useState(''),[checks,setChecks]=useState(''),[allowRepair,setAllowRepair]=useState(false);
  const junit=selected==='junit',operations=selected==='operations',planner=selected==='planner',extractor=selected==='extractor',diagnosis=selected==='diagnosis',nativeCoder=selected==='native-coder',structured=operations||planner||extractor||diagnosis;
- const guideText=(name:'install'|'configure'|'register')=>junit?'test-report-setup.'+name:operations?'intent-operations.setup_'+name:diagnosis?'failure-diagnosis-setup.'+name:extractor?'knowledge-extraction-setup.'+name:planner?'cli-setup.planner_'+name:'cli-setup.'+name;
+ const guideText=(name:'install'|'configure'|'register')=>nativeCoder&&name==='configure'?'model-execution.setup_deployments':junit?'test-report-setup.'+name:operations?'intent-operations.setup_'+name:diagnosis?'failure-diagnosis-setup.'+name:extractor?'knowledge-extraction-setup.'+name:planner?'cli-setup.planner_'+name:'cli-setup.'+name;
  let validEndpoint=false;try{const u=new URL(endpoint);validEndpoint=(u.protocol==='https:'||u.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(u.hostname))&&!u.username&&!u.password&&!u.search&&!u.hash;}catch{/* Incomplete input is a draft, never configuration authority. */}
  const nodeMode=structured||nativeCoder||!junit&&selected!=='codex'&&launchMode==='node';
  // The runner can be remote, so browser OS detection cannot select its launch
@@ -39,7 +39,7 @@ export function ToolSetupGuide(){
  const validNative=validManifest&&checkIDs.length>0&&checkIDs.length<=16&&new Set(checkIDs).size===checkIDs.length&&checkIDs.every(value=>/^[A-Za-z0-9._-]{1,100}$/.test(value))&&/\.(?:js|mjs)$/i.test(entry);
  const canCopy=(!nodeMode||validEntry)&&(!structured||/\.(?:js|mjs)$/i.test(entry)&&model.trim().length>0&&model.length<=200&&validEndpoint)&&(!nativeCoder||validNative);
  const [commandName,command]=Object.entries(presets[selected])[0];
- const configuration=JSON.stringify({[commandName]:nativeCoder?{...command,args:[entry],native_workspace:{checks:checkIDs,runtime_manifest:manifest,...(allowRepair?{conflict_repair:true}:{})},env_from:['SUMA_MODEL','SUMA_MODEL_BASE_URL','SUMA_MODEL_API_KEY','SUMA_CONTROL_URL','SUMA_AGENT_TOKEN','SUMA_PROJECT_ID']}:structured?{...command,args:[entry],env:{SUMA_MODEL:model.trim(),SUMA_MODEL_BASE_URL:endpoint},env_from:operations||extractor||diagnosis?['SUMA_MODEL_API_KEY']:['SUMA_MODEL_API_KEY','SUMA_CONTROL_URL','SUMA_AGENT_TOKEN','SUMA_PROJECT_ID']}:nodeMode?{...command,executable:'node',args:[entry,...command.args]}:command},null,2);
+ const configuration=JSON.stringify({[commandName]:nativeCoder?{...command,args:[entry],native_workspace:{checks:checkIDs,runtime_manifest:manifest,...(allowRepair?{conflict_repair:true}:{})}}:structured?{...command,args:[entry],env:{SUMA_MODEL:model.trim(),SUMA_MODEL_BASE_URL:endpoint},env_from:operations||extractor||diagnosis?['SUMA_MODEL_API_KEY']:['SUMA_MODEL_API_KEY','SUMA_CONTROL_URL','SUMA_AGENT_TOKEN','SUMA_PROJECT_ID']}:nodeMode?{...command,executable:'node',args:[entry,...command.args]}:command},null,2);
  async function copy(){if(!canCopy)return;try{await navigator.clipboard.writeText(configuration);setCopied(configuration);setFailed(false);}catch{setFailed(true);}}
  return <details className="tool-cli-setup">
   <summary><Terminal size={15}/>{t('cli-setup.title')}</summary>

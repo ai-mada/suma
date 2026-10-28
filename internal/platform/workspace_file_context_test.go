@@ -450,7 +450,7 @@ func TestWorkspaceContextInitialSchemaResumesAfterInterruptedWorkspaceDDL(t *tes
 	}
 	defer db.Close()
 	ctx := context.Background()
-	if err = store.InitializeBaseline(ctx, db, "sqlite", "platform", "suma_", "1.0.0"); err != nil {
+	if err = store.InitializeBaseline(ctx, db, "sqlite", "platform", "suma_", store.InitialDataContract); err != nil {
 		t.Fatal(err)
 	}
 	// A conflicting index forces real DDL failure at the operation table. The

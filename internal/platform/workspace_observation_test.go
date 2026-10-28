@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ai-mada/suma/internal/dag"
+	"github.com/ai-mada/suma/internal/modelcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	woc "github.com/ai-mada/suma/internal/workspaceobservationcontract"
 	wcc "github.com/ai-mada/suma/internal/workspacewritecontract"
@@ -15,7 +16,7 @@ import (
 
 func workspaceObservationFixture(t *testing.T) (*fixture, Actor, woc.Scope) {
 	t.Helper()
-	f, token, request, _ := taskDispatchFixture(t)
+	f, token, request, _, deployments := modelExecutionFixture(t)
 	ctx := context.Background()
 	p, err := f.s.GetToolProfile(ctx, f.actor, f.project, request["tool_profile_id"].(string))
 	if err != nil {
@@ -27,7 +28,7 @@ func workspaceObservationFixture(t *testing.T) (*fixture, Actor, woc.Scope) {
 		t.Fatal(err)
 	}
 	actor := toolActorForTest(t, f, token)
-	if _, err = f.s.ReportToolInventory(ctx, actor, f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: p.WorkerID, OperationID: newID(), Items: []tc.Observation{{Profile: p.Profile, Available: true, WorkspaceObservationProtocol: woc.Protocol, WorkspaceWriteProtocol: wcc.Protocol}}}); err != nil {
+	if _, err = f.s.ReportToolInventory(ctx, actor, f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: p.WorkerID, OperationID: newID(), Items: []tc.Observation{{Profile: p.Profile, Available: true, WorkspaceObservationProtocol: woc.Protocol, WorkspaceWriteProtocol: wcc.Protocol, ModelDeployments: deployments}}}); err != nil {
 		t.Fatal(err)
 	}
 	plan := f.call("POST", "/task-dispatch-plans", request, 201)
@@ -172,7 +173,9 @@ func TestWorkspaceObservationPoolRequiresExactCurrentGrantAndMachine(t *testing.
 	machine := p.credential.Runner
 	profile := toolTestProfile()
 	profile.WorkspaceToolsVersion = "attempt-workspace-v1"
-	if _, err := f.s.ReportPoolToolInventory(ctx, p.credential.Token, PoolToolInventoryRequest{RunnerID: machine.ID, TenantID: f.user.TenantID, ProjectID: f.project, OperationID: newID(), Items: []tc.Observation{{Profile: profile, Available: true, WorkspaceObservationProtocol: woc.Protocol, WorkspaceWriteProtocol: wcc.Protocol}}}); err != nil {
+	profile.ModelExecutionProtocol = "suma-model-execution-v1"
+	model := nativeWorkspaceModelForTest(t)
+	if _, err := f.s.ReportPoolToolInventory(ctx, p.credential.Token, PoolToolInventoryRequest{RunnerID: machine.ID, TenantID: f.user.TenantID, ProjectID: f.project, OperationID: newID(), Items: []tc.Observation{{Profile: profile, Available: true, WorkspaceObservationProtocol: woc.Protocol, WorkspaceWriteProtocol: wcc.Protocol, ModelDeployments: []modelcontract.Deployment{model.Deployment}}}}); err != nil {
 		t.Fatal(err)
 	}
 	pr, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: machine.WorkerID, Name: "Pool native observation", Profile: profile, IdempotencyKey: newID()})
@@ -183,7 +186,7 @@ func TestWorkspaceObservationPoolRequiresExactCurrentGrantAndMachine(t *testing.
 	if err != nil {
 		t.Fatal(err)
 	}
-	w, err := f.e.Publish(ctx, f.user.TenantID, f.project, dag.Workflow{Name: "Pool live native target", Nodes: []dag.Node{{ID: "code", Type: "agent", Command: []string{profile.CommandID}, Config: map[string]any{"goal": "observe bounded source only", "tool_profile_id": pr.ID, "tool_profile_sha256": profile.ProfileSHA256}}}})
+	w, err := f.e.Publish(ctx, f.user.TenantID, f.project, dag.Workflow{Name: "Pool live native target", Nodes: []dag.Node{{ID: "code", Type: "agent", Command: []string{profile.CommandID}, Config: map[string]any{"goal": "observe bounded source only", "tool_profile_id": pr.ID, "tool_profile_sha256": profile.ProfileSHA256, "model_execution": model, "max_steps": model.Parameters.MaxSteps, "max_output_tokens": model.Parameters.MaxOutputTokens}}}})
 	if err != nil {
 		t.Fatal(err)
 	}

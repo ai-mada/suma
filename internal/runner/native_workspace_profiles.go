@@ -31,9 +31,9 @@ func validateNativeWorkspacePolicy(cfg ExecConfig, id string, spec CommandSpec) 
 		return nil
 	}
 	policy := spec.NativeWorkspace
-	native := spec.Adapter == "suma" && spec.Protocol == "suma-jsonl-v1" && spec.Input == "agent-jsonl"
+	native := spec.Adapter == "suma" && spec.Protocol == "suma-jsonl-v1" && spec.Input == "agent-jsonl" && spec.ModelExecutionProtocol == "suma-model-execution-v1" && len(spec.Env) == 0 && len(spec.EnvFrom) == 0
 	openCode := spec.Adapter == "opencode" && spec.Protocol == tc.OpenCodeSDKProtocol && spec.Input == "opencode-sdk-jsonl" && spec.OpenCode != nil && !policy.ConflictRepair
-	octop := spec.Adapter == "octop" && spec.Protocol == tc.OctopProtocol && spec.Input == "octop-acp-jsonl" && spec.Octop != nil && !policy.ConflictRepair
+	octop := spec.Adapter == "octop" && spec.Protocol == tc.OctopProtocol && spec.Input == "octop-acp-jsonl" && spec.ModelExecutionProtocol == "suma-model-execution-v1" && !policy.ConflictRepair
 	if (!native && !openCode && !octop) || spec.ReadOnly || spec.IntelligentOperations || spec.ArtifactInput || spec.ArtifactOutput != "" || spec.TestEvidence || len(policy.Checks) > 16 || !filepath.IsAbs(policy.RuntimeManifest) {
 		return fmt.Errorf("native workspace requires an isolated Suma agent, a runtime manifest and bounded fixed checks")
 	}
@@ -54,7 +54,7 @@ func validateNativeWorkspacePolicy(cfg ExecConfig, id string, spec CommandSpec) 
 // whose SDK versions are checked by the offline probe. This is not an OS sandbox.
 func nativeManifestDigest(spec CommandSpec) (string, error) {
 	extension := ".mjs"
-	if spec.Octop != nil {
+	if spec.Adapter == "octop" {
 		extension = ".pyz"
 	}
 	if len(spec.Args) != 1 || strings.ToLower(filepath.Ext(spec.Args[0])) != extension || !filepath.IsAbs(spec.Args[0]) {
@@ -97,7 +97,7 @@ func nativeManifestDigest(spec CommandSpec) (string, error) {
 			return "", fmt.Errorf("native runtime bundle contains a non-Node external dependency")
 		}
 	}
-	if spec.Octop != nil {
+	if spec.Adapter == "octop" {
 		if len(manifest.ExternalImports) != 0 || manifest.Dependencies["octop-harness"] != tc.OctopHarnessVersion || manifest.Dependencies["agent-client-protocol"] != tc.OctopACPSDKVersion || manifest.Dependencies["mcp"] != "1.30.0" || manifest.Dependencies["jsonschema"] != "4.26.0" || manifest.OpenCode != nil || len(manifest.Assets) != 0 {
 			return "", fmt.Errorf("Octop manifest must declare its exact supported Python SDKs")
 		}

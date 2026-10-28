@@ -113,7 +113,7 @@ func commandProfileDigest(spec CommandSpec, executableSHA string) (string, error
 		}
 		entry = spec.Args[0]
 	}
-	if spec.Octop != nil {
+	if spec.Adapter == "octop" {
 		if err := validateOctopSpec(spec); err != nil {
 			return "", err
 		}
@@ -475,7 +475,7 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 		if err := validateNativeWorkspacePolicy(cfg, id, spec); err != nil {
 			return err
 		}
-		if tc.ValidateProfile(tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol}, false) != nil {
+		if !tc.ValidCommandIdentity(id, spec.Adapter, spec.Protocol) {
 			return fmt.Errorf("local command identity or adapter/protocol is invalid")
 		}
 	}

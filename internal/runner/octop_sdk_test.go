@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	mc "github.com/ai-mada/suma/internal/modelcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
@@ -29,6 +30,8 @@ func TestOctopSDKActualHostCandidateAndIndependentJUnit(t *testing.T) {
 	}
 	var calls atomic.Int32
 	var invalid atomic.Bool
+	const providerKey = "synthetic-octop-provider-only-key"
+	t.Setenv("OCTOP_TEST_PROVIDER_KEY", providerKey)
 	endpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request struct {
 			Model               string `json:"model"`
@@ -41,7 +44,9 @@ func TestOctopSDKActualHostCandidateAndIndependentJUnit(t *testing.T) {
 				} `json:"function"`
 			} `json:"tools"`
 		}
-		if r.Method != "POST" || r.URL.Path != "/v1/chat/completions" || json.NewDecoder(io.LimitReader(r.Body, 1<<20)).Decode(&request) != nil || request.Model != "coding117" || request.MaxTokens != 512 && request.MaxCompletionTokens != 512 || len(request.Tools) != 6 {
+		n := calls.Add(1)
+		allowance := 512 - 3*int(n-1)
+		if r.Method != "POST" || r.URL.Path != "/v1/chat/completions" || r.Header.Get("Authorization") != "Bearer "+providerKey || json.NewDecoder(io.LimitReader(r.Body, 1<<20)).Decode(&request) != nil || request.Model != "coding117" || request.MaxTokens != allowance && request.MaxCompletionTokens != allowance || len(request.Tools) != 6 || !request.Stream {
 			invalid.Store(true)
 			http.Error(w, "fixed provider request mismatch", http.StatusBadRequest)
 			return
@@ -51,7 +56,6 @@ func TestOctopSDKActualHostCandidateAndIndependentJUnit(t *testing.T) {
 				invalid.Store(true)
 			}
 		}
-		n := calls.Add(1)
 		name, arguments := "", ""
 		switch n {
 		case 1:
@@ -72,16 +76,15 @@ func TestOctopSDKActualHostCandidateAndIndependentJUnit(t *testing.T) {
 			delta = map[string]any{"role": "assistant", "tool_calls": []any{map[string]any{"index": 0, "id": fmt.Sprintf("call117_%d", n), "type": "function", "function": map[string]string{"name": name, "arguments": arguments}}}}
 			finish = "tool_calls"
 		}
-		if !request.Stream {
-			w.Header().Set("Content-Type", "application/json")
-			_ = json.NewEncoder(w).Encode(map[string]any{"id": fmt.Sprintf("completion117_%d", n), "object": "chat.completion", "created": 1, "model": request.Model, "choices": []any{map[string]any{"index": 0, "message": delta, "finish_reason": finish}}})
-			return
-		}
 		w.Header().Set("Content-Type", "text/event-stream")
 		for _, choice := range []any{map[string]any{"index": 0, "delta": delta, "finish_reason": nil}, map[string]any{"index": 0, "delta": map[string]any{}, "finish_reason": finish}} {
 			raw, _ := json.Marshal(map[string]any{"id": fmt.Sprintf("completion117_%d", n), "object": "chat.completion.chunk", "created": 1, "model": request.Model, "choices": []any{choice}})
 			_, _ = fmt.Fprintf(w, "data: %s\n\n", raw)
 		}
+		// Usage is its own terminal suffix, not mixed into a content delta. The
+		// host must persist it before releasing this turn to the SDK.
+		usage, _ := json.Marshal(map[string]any{"id": fmt.Sprintf("completion117_%d", n), "object": "chat.completion.chunk", "created": 1, "model": request.Model, "choices": []any{}, "usage": map[string]int{"prompt_tokens": 7, "completion_tokens": 3, "total_tokens": 10}})
+		_, _ = fmt.Fprintf(w, "data: %s\n\n", usage)
 		_, _ = io.WriteString(w, "data: [DONE]\n\n")
 	}))
 	defer endpoint.Close()
@@ -90,9 +93,10 @@ func TestOctopSDKActualHostCandidateAndIndependentJUnit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	spec := CommandSpec{Adapter: "octop", Protocol: tc.OctopProtocol, Executable: python, Args: []string{bundle}, Input: "octop-acp-jsonl", NativeWorkspace: &NativeWorkspacePolicy{Checks: []string{"check117"}, RuntimeManifest: filepath.Join(filepath.Dir(bundle), "suma-octop.manifest.json")}, Octop: &OctopSpec{ProviderID: "local117", Model: "coding117", BaseURL: endpoint.URL + "/v1", MaxSteps: 8, MaxOutputTokens: 512}}
+	binding := octopModelBinding(t, endpoint.URL+"/v1")
+	spec := CommandSpec{Adapter: "octop", Protocol: tc.OctopProtocol, ModelExecutionProtocol: mc.Protocol, Executable: python, Args: []string{bundle}, Input: "octop-acp-jsonl", NativeWorkspace: &NativeWorkspacePolicy{Checks: []string{"check117"}, RuntimeManifest: filepath.Join(filepath.Dir(bundle), "suma-octop.manifest.json")}}
 	check := CommandSpec{Executable: node, Args: []string{"-e", `if(require('node:fs').readFileSync('output117.txt','utf8')!=='actual Harness output\n')process.exit(2)`}}
-	cfg := ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: base, Commands: map[string]CommandSpec{"octop117": spec, "check117": check}}
+	cfg := ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: base, ModelDeployments: []ModelDeploymentSpec{{Deployment: binding.Deployment, BaseURL: endpoint.URL + "/v1", APIKeyEnvRef: "OCTOP_TEST_PROVIDER_KEY"}}, Commands: map[string]CommandSpec{"octop117": spec, "check117": check}}
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 	items, err := DescribeTools(ctx, cfg)
@@ -118,7 +122,7 @@ func TestOctopSDKActualHostCandidateAndIndependentJUnit(t *testing.T) {
 		}
 		return nil
 	}
-	a := Assignment{RunID: "octop117", NodeID: "develop", WorkerID: "developer117", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"octop117"}, Config: map[string]any{"goal": "Read file.txt, create output117.txt, run check117 and finish.", "tool_profile_sha256": profile.ProfileSHA256, "octop_execution": profile.OctopExecution}}
+	a := Assignment{RunID: "octop117", NodeID: "develop", WorkerID: "developer117", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"octop117"}, Config: map[string]any{"goal": "Read file.txt, create output117.txt, run check117 and finish.", "tool_profile_sha256": profile.ProfileSHA256, "model_execution": binding, "max_steps": binding.Parameters.MaxSteps, "max_output_tokens": binding.Parameters.MaxOutputTokens}}
 	r := Execute(ctx, a, cfg)
 	if r.ExitCode != 0 || r.Error != "" || r.OutcomeUnknown || r.ToolEvidence == nil || r.ToolEvidence.Terminal != "completed" || tc.ValidateEvidence(*r.ToolEvidence) != nil {
 		// Only this credential-free synthetic attempt is inspected. Preserve the
@@ -136,6 +140,15 @@ func TestOctopSDKActualHostCandidateAndIndependentJUnit(t *testing.T) {
 	evidence, ok := r.WorkspaceEvidence["native_workspace"].(*NativeWorkspaceEvidence)
 	if !ok || evidence.Generation != 1 || len(evidence.Files) != 1 || len(evidence.Checks) != 1 || evidence.Seal == nil || evidence.Seal.State != "sealed" || calls.Load() != 4 || invalid.Load() {
 		t.Fatalf("SDK bypassed the fixed model/tool/ledger/check boundary: calls=%d evidence=%+v", calls.Load(), evidence)
+	}
+	model := r.ToolEvidence.ModelExecution
+	if model == nil || !mc.EvidenceResponsesComplete(binding, *model) || len(model.Requests) != 4 || r.ToolEvidence.UsageState != tc.UsageComplete || r.ToolEvidence.Usage == nil || r.ToolEvidence.Usage.InputTokens == nil || *r.ToolEvidence.Usage.InputTokens != 28 || r.ToolEvidence.Usage.OutputTokens == nil || *r.ToolEvidence.Usage.OutputTokens != 12 {
+		t.Fatalf("provider HTTP receipts did not establish complete host usage: %+v", r.ToolEvidence)
+	}
+	for i, request := range model.Requests {
+		if request.OutputAllowance != int64(512-3*i) {
+			t.Fatalf("request %d did not clamp cumulative output: %+v", i, request)
+		}
 	}
 	if _, err := os.Stat(filepath.Join(repo, "output117.txt")); !os.IsNotExist(err) || strings.TrimSpace(gitTest(t, repo, "rev-parse", "HEAD")) != base {
 		t.Fatal("SDK modified administrator checkout")
@@ -162,7 +175,13 @@ func TestOctopSDKActualCancellationUsesGoTree(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
 	var calls atomic.Int32
+	const providerKey = "synthetic-octop-cancel-provider-key"
+	t.Setenv("OCTOP_TEST_PROVIDER_KEY", providerKey)
 	endpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer "+providerKey {
+			http.Error(w, "supplier key did not remain host-owned", http.StatusUnauthorized)
+			return
+		}
 		calls.Add(1)
 		cancel()
 		select {
@@ -172,17 +191,22 @@ func TestOctopSDKActualCancellationUsesGoTree(t *testing.T) {
 	}))
 	defer endpoint.Close()
 	repo, base := gitFixture(t)
-	spec := CommandSpec{Adapter: "octop", Protocol: tc.OctopProtocol, Executable: python, Args: []string{bundle}, Input: "octop-acp-jsonl", NativeWorkspace: &NativeWorkspacePolicy{Checks: []string{}, RuntimeManifest: filepath.Join(filepath.Dir(bundle), "suma-octop.manifest.json")}, Octop: &OctopSpec{ProviderID: "local117", Model: "coding117", BaseURL: endpoint.URL + "/v1", MaxSteps: 8, MaxOutputTokens: 512}}
-	cfg := ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: base, Commands: map[string]CommandSpec{"octop117": spec}}
+	binding := octopModelBinding(t, endpoint.URL+"/v1")
+	spec := CommandSpec{Adapter: "octop", Protocol: tc.OctopProtocol, ModelExecutionProtocol: mc.Protocol, Executable: python, Args: []string{bundle}, Input: "octop-acp-jsonl", NativeWorkspace: &NativeWorkspacePolicy{Checks: []string{}, RuntimeManifest: filepath.Join(filepath.Dir(bundle), "suma-octop.manifest.json")}}
+	cfg := ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: base, ModelDeployments: []ModelDeploymentSpec{{Deployment: binding.Deployment, BaseURL: endpoint.URL + "/v1", APIKeyEnvRef: "OCTOP_TEST_PROVIDER_KEY"}}, Commands: map[string]CommandSpec{"octop117": spec}}
 	items, err := DescribeTools(ctx, cfg)
 	if err != nil || len(items) != 1 || !items[0].Available {
 		t.Fatalf("actual SDK probe failed: %+v %v", items, err)
 	}
 	cfg.ToolInventory = items
 	p := items[0].Profile
-	a := Assignment{RunID: "cancel117", NodeID: "develop", WorkerID: "developer117", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"octop117"}, Config: map[string]any{"goal": "Wait for the assigned model.", "tool_profile_sha256": p.ProfileSHA256, "octop_execution": p.OctopExecution}}
+	a := Assignment{RunID: "cancel117", NodeID: "develop", WorkerID: "developer117", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"octop117"}, Config: map[string]any{"goal": "Wait for the assigned model.", "tool_profile_sha256": p.ProfileSHA256, "model_execution": binding, "max_steps": binding.Parameters.MaxSteps, "max_output_tokens": binding.Parameters.MaxOutputTokens}}
 	r := Execute(ctx, a, cfg)
 	if calls.Load() != 1 || !r.Stopped || r.OutcomeUnknown || r.ToolEvidence == nil || r.ToolEvidence.Terminal != "unknown" || r.ToolEvidence.OctopExecution == nil || !r.ToolEvidence.OctopExecution.CancelRequested || !r.ToolEvidence.OctopExecution.ProcessStopped || tc.ValidateOctopResultStop(*r.ToolEvidence, true, false) != nil {
 		t.Fatalf("ACP cancellation became completion or lost its Go stop fact: calls=%d %+v", calls.Load(), r)
+	}
+	model := r.ToolEvidence.ModelExecution
+	if model == nil || !model.GatewayClosed || len(model.Requests) != 1 || model.Requests[0].State != "unknown" || r.ToolEvidence.UsageState == tc.UsageComplete || mc.EvidenceResponsesComplete(binding, *model) {
+		t.Fatalf("cancelled provider request lost its unknown usage hold: %+v", r.ToolEvidence)
 	}
 }

@@ -10,6 +10,7 @@ import (
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	"github.com/ai-mada/suma/internal/dag"
+	"github.com/ai-mada/suma/internal/modelcontract"
 	nwc "github.com/ai-mada/suma/internal/nativeworkspacecontract"
 	"github.com/ai-mada/suma/internal/toolcontract"
 )
@@ -57,6 +58,7 @@ func compositionRepairRequestFixture(t *testing.T, h *compositionFixture, p Cand
 	}
 	profile := toolTestProfile()
 	profile.WorkspaceToolsVersion = nwc.Version
+	profile.ModelExecutionProtocol = "suma-model-execution-v1"
 	profile.ConflictRepairProtocol = ccmp.CandidateConflictRepairProtocol
 	worker := f.call("POST", "/release-workers", f.body(map[string]any{"worker_id": "repair-worker", "profiles": []any{}, "deployment": false}), 201)
 	token := worker["token"].(string)
@@ -64,7 +66,7 @@ func compositionRepairRequestFixture(t *testing.T, h *compositionFixture, p Cand
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = f.s.ReportToolInventory(ctx, toolActorForTest(t, f, token), f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: pr.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: profile, Available: true}}})
+	_, err = f.s.ReportToolInventory(ctx, toolActorForTest(t, f, token), f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: pr.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: profile, Available: true, ModelDeployments: []modelcontract.Deployment{nativeWorkspaceModelForTest(t).Deployment}}}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,7 +74,7 @@ func compositionRepairRequestFixture(t *testing.T, h *compositionFixture, p Cand
 	if err != nil {
 		t.Fatal(err)
 	}
-	return CandidateCompositionRepairCreateRequest{ProjectID: f.project, ExpectedCompositionVersion: p.Version, ExpectedConflictSHA256: view.Basis.SHA256, Repair: CandidateCompositionRepairDraft{Title: "Resolve the fixed shared source conflict", Description: "Preserve both reviewed source intentions and resolve the real Git conflict.", Priority: "high", AcceptanceCriteria: []string{"Both source contracts pass independent tests"}}, WorkflowID: h.req.WorkflowID, WorkflowVersion: h.req.WorkflowVersion, ProducerNodeID: h.req.ProducerNodeID, ToolProfileID: pr.ID, ExpectedToolVersion: pr.Version, IdempotencyKey: newID()}, pr, token
+	return CandidateCompositionRepairCreateRequest{ModelExecutionSelection: nativeWorkspaceSelectionForTest(t), ProjectID: f.project, ExpectedCompositionVersion: p.Version, ExpectedConflictSHA256: view.Basis.SHA256, Repair: CandidateCompositionRepairDraft{Title: "Resolve the fixed shared source conflict", Description: "Preserve both reviewed source intentions and resolve the real Git conflict.", Priority: "high", AcceptanceCriteria: []string{"Both source contracts pass independent tests"}}, WorkflowID: h.req.WorkflowID, WorkflowVersion: h.req.WorkflowVersion, ProducerNodeID: h.req.ProducerNodeID, ToolProfileID: pr.ID, ExpectedToolVersion: pr.Version, IdempotencyKey: newID()}, pr, token
 }
 
 func TestCandidateConflictRepairRollbackConcurrentIdentityAndSourceDrift(t *testing.T) {
@@ -182,6 +184,10 @@ func compositionRepairCompleteFixture(t *testing.T, h *compositionFixture, p Can
 	tool.Terminal = "completed"
 	tool.EventCount = 1
 	tool.UsageState = toolcontract.UsageUnreported
+	if p.ModelExecution == nil {
+		t.Fatal("native repair fixture lost its model binding")
+	}
+	tool.ModelExecution = nativeGatewayReceiptForTest(t, *p.ModelExecution)
 	proof["native_workspace"] = nwc.NativeWorkspaceEvidence{SchemaVersion: 1, PolicySHA256: profile.Profile.ProfileSHA256, Generation: 1, State: "closed", Files: []nwc.NativeWorkspaceFileEffect{}, Checks: []nwc.NativeWorkspaceCheckResult{{OperationID: "repair-check", CheckID: "unit", ProfileSHA256: strings.Repeat("a", 64), WorkspaceSHA256: strings.Repeat("b", 64), Generation: 1}}, Seal: &nwc.NativeWorkspaceSeal{SchemaVersion: 1, OperationID: p.OperationID, PolicySHA256: profile.Profile.ProfileSHA256, State: "no_change", PreviousCommit: manifest.HeadCommit, Commit: manifest.HeadCommit, Tree: strings.Repeat("e", 40), ChangedPaths: 0}}
 	result := dag.Result{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, OperationID: newID(), WorkspaceEvidence: proof, ToolEvidence: tool}
 	if afterSeal != nil {
@@ -422,13 +428,14 @@ func TestCandidateConflictRepairAtomicDraftAndReservedTask(t *testing.T) {
 	}
 	profile := toolTestProfile()
 	profile.WorkspaceToolsVersion = "attempt-workspace-v1"
+	profile.ModelExecutionProtocol = "suma-model-execution-v1"
 	profile.ConflictRepairProtocol = ccmp.CandidateConflictRepairProtocol
 	worker := f.call("POST", "/release-workers", f.body(map[string]any{"worker_id": "repair-worker", "profiles": []any{}, "deployment": false}), 201)
 	pr, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: "repair-worker", Name: "Explicit native conflict repair", Profile: profile, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = f.s.ReportToolInventory(ctx, toolActorForTest(t, f, worker["token"].(string)), f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: pr.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: profile, Available: true}}})
+	_, err = f.s.ReportToolInventory(ctx, toolActorForTest(t, f, worker["token"].(string)), f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: pr.WorkerID, OperationID: newID(), Items: []toolcontract.Observation{{Profile: profile, Available: true, ModelDeployments: []modelcontract.Deployment{nativeWorkspaceModelForTest(t).Deployment}}}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -436,7 +443,7 @@ func TestCandidateConflictRepairAtomicDraftAndReservedTask(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	req := CandidateCompositionRepairCreateRequest{ProjectID: f.project, ExpectedCompositionVersion: p.Version, ExpectedConflictSHA256: view.Basis.SHA256, Repair: CandidateCompositionRepairDraft{Title: "Resolve the fixed shared source conflict", Description: "Preserve both reviewed source intentions and resolve the real Git conflict.", Priority: "high", AcceptanceCriteria: []string{"Both source contracts pass independent tests"}}, WorkflowID: h.req.WorkflowID, WorkflowVersion: h.req.WorkflowVersion, ProducerNodeID: h.req.ProducerNodeID, ToolProfileID: pr.ID, ExpectedToolVersion: pr.Version, IdempotencyKey: newID()}
+	req := CandidateCompositionRepairCreateRequest{ModelExecutionSelection: nativeWorkspaceSelectionForTest(t), ProjectID: f.project, ExpectedCompositionVersion: p.Version, ExpectedConflictSHA256: view.Basis.SHA256, Repair: CandidateCompositionRepairDraft{Title: "Resolve the fixed shared source conflict", Description: "Preserve both reviewed source intentions and resolve the real Git conflict.", Priority: "high", AcceptanceCriteria: []string{"Both source contracts pass independent tests"}}, WorkflowID: h.req.WorkflowID, WorkflowVersion: h.req.WorkflowVersion, ProducerNodeID: h.req.ProducerNodeID, ToolProfileID: pr.ID, ExpectedToolVersion: pr.Version, IdempotencyKey: newID()}
 	before := expertCount(t, f, "suma_tasks")
 	repair, err := f.s.CreateCandidateCompositionRepair(ctx, f.e, f.actor, f.project, p.ID, req)
 	if err != nil || repair.TaskID == p.TaskID || repair.RunID != "" || repair.State != "ready" || repair.ConflictBasis == nil || repair.ConflictBasis.SHA256 != view.Basis.SHA256 {

@@ -1,3 +1,4 @@
+import {ExecutionModelFacts} from './ExecutionModelFacts';
 import {useCallback,useEffect,useId,useRef,useState} from 'react';
 import {ChevronDown,Wrench} from 'lucide-react';
 import type {CandidateCompositionConflictContext,CandidateCompositionPlan} from '../../../packages/contracts/src';
@@ -10,7 +11,7 @@ import {repairRecovery,repairTaskURL,repairToolEligible,validConflictContext,val
 import {toolError,toolSessionStorage} from './tool-hooks';
 import {ErrorNotice,Field,Loading} from './ui';
 import {useLeaveGuard,useWriteAction,WriteNotice} from './write-action';
-import {ModelExecutionPanel,ModelExecutionFacts,type ModelChoice} from './ModelExecutionPanel';
+import {ModelExecutionPanel,type ModelChoice} from './ModelExecutionPanel';
 
 const t=(key:string,values?:Record<string,unknown>)=>tr('candidate-conflict-repair.'+key,values);
 type Props={session:Session;project:string;composition:CandidateCompositionPlan;compositionLoading?:boolean;readComposition:()=>Promise<CandidateCompositionPlan|undefined>;refresh?:number;onChanged?:()=>void|Promise<void>;onLock?:(locked:boolean)=>void};
@@ -52,7 +53,7 @@ function RepairScope({session,project,composition,compositionLoading=false,readC
   {!forbidden&&<>{errors.map((error,index)=><ErrorNotice key={index} error={toolError(error)}/>)}<button data-conflict-repair-refresh type="button" disabled={action.busy} onClick={()=>setTick(value=>value+1)}>{t('refresh')}</button>{context.loading&&<Loading/>}
    {facts&&<><div className="composition-callout"><strong>{t('original_outcome')}</strong><p>{t('original_failed')}</p><a href={'?'+new URLSearchParams({project,view:'development',sub:'runs',run:facts.basis?.run_id||composition.run_id})}>{t('open_original_run')}</a></div><div><strong>{t('current_eligibility')}</strong><p>{t(facts.can_create?'eligible':'blocked')}</p>{facts.blockers.length>0&&<ul className="composition-reasons">{facts.blockers.map((value,index)=><li key={index}>{compositionReason(value)}</li>)}</ul>}</div>
    {facts.basis&&<details><summary>{t('fixed_failure')}</summary><dl className="composition-facts"><dt>{t('original_attempt')}</dt><dd>{facts.basis.node_id} · {formatNumber(facts.basis.attempt)} · {formatNumber(facts.basis.fence)}</dd><dt>{t('basis_digest')}</dt><dd><code>{facts.basis.sha256}</code></dd><dt>{t('conflict_step')}</dt><dd>{formatNumber(Number(facts.basis.evidence.conflict_source_index)+1)}</dd></dl><ul>{facts.basis.evidence.conflicts.map(path=><li key={path}><code>{path}</code></li>)}</ul><pre className="composition-raw">{JSON.stringify(facts.basis,null,2)}</pre></details>}
-   {existing.loading&&<Loading/>}{child&&<div className="composition-callout" role="status"><strong>{t('created')}</strong><p>{child.context.task.title||child.task_id} · {tr('candidate-composition.state.'+child.state)}</p><p>{t('created_help')}</p><a data-conflict-repair-child href={repairTaskURL(project,child.task_id,child.id)}>{t('open_child')}</a><ModelExecutionFacts binding={child.model_execution}/></div>}
+   {existing.loading&&<Loading/>}{child&&<div className="composition-callout" role="status"><strong>{t('created')}</strong><p>{child.context.task.title||child.task_id} · {tr('candidate-composition.state.'+child.state)}</p><p>{t('created_help')}</p><a data-conflict-repair-child href={repairTaskURL(project,child.task_id,child.id)}>{t('open_child')}</a><ExecutionModelFacts binding={child.model_execution}/></div>}
    {facts.can_create&&!child&&!facts.repair_plan_id&&<form data-conflict-repair-form onSubmit={event=>{event.preventDefault();void create();}}><fieldset className="form-fields" disabled={locked}>
     <Field label={t('task_title')}><input name="conflict_repair_title" aria-label={t('task_title')} value={title} onChange={event=>setTitle(event.target.value)} maxLength={200}/></Field><Field label={t('description')}><textarea name="conflict_repair_description" aria-label={t('description')} value={description} onChange={event=>setDescription(event.target.value)} rows={3} maxLength={16000}/></Field>
     <Field label={t('criteria')} hint={t('criteria_help')}><textarea name="conflict_repair_criteria" aria-label={t('criteria')} value={criteria} onChange={event=>setCriteria(event.target.value)} rows={3} maxLength={16016}/></Field>

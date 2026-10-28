@@ -20,7 +20,7 @@ type ModelExecutionOption struct {
 	OutputTokenReservation int64                    `json:"output_token_reservation"`
 }
 type ModelExecutionOptions struct {
-	FixedOctop         *tc.OctopExecutionCapability    `json:"fixed_octop,omitempty"`
+	ParameterLimits    *modelcontract.Parameters       `json:"parameter_limits,omitempty"`
 	FixedOpenCode      *tc.OpenCodeExecutionCapability `json:"fixed_opencode,omitempty"`
 	CodexSupported     bool                            `json:"codex_supported"`
 	CodexCatalog       *cc.Catalog                     `json:"codex_catalog,omitempty"`

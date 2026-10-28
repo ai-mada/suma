@@ -294,7 +294,6 @@ func (s *Service) buildTaskDispatchSnapshotWithSourceTx(ctx context.Context, eng
 	out.ModelExecution = modelBinding
 	out.CodexExecution = codexBinding
 	out.OpenCodeExecution = toolcontract.CloneProfile(profile.Profile).OpenCodeExecution
-	out.OctopExecution = toolcontract.CloneProfile(profile.Profile).OctopExecution
 	if context.Requirement != nil {
 		out.RequirementID, out.RequirementVersion = context.Requirement.ID, context.Requirement.Version
 	}

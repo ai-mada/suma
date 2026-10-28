@@ -3,141 +3,129 @@ package platform
 import (
 	"context"
 	"encoding/json"
-	"strconv"
+	"github.com/ai-mada/suma/internal/dag"
+	mc "github.com/ai-mada/suma/internal/modelcontract"
+	tc "github.com/ai-mada/suma/internal/toolcontract"
 	"strings"
 	"testing"
-
-	"github.com/ai-mada/suma/internal/dag"
-	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
-func octopTestProfile() tc.Profile {
-	return tc.Profile{CommandID: "octop-acp", Adapter: "octop", Protocol: tc.OctopProtocol, ProfileSHA256: strings.Repeat("c", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: tc.OctopHarnessVersion, WorkspaceToolsVersion: "attempt-workspace-v1", OctopExecution: &tc.OctopExecutionCapability{HarnessVersion: tc.OctopHarnessVersion, ACPSDKVersion: tc.OctopACPSDKVersion, ProviderID: "owned", Model: "model-a", EndpointOrigin: "https://models.example", ConfigurationSHA256: strings.Repeat("d", 64), BudgetMode: "observe_only", IdentityEvidence: "configuration_ack_only"}}
-}
-
-func octopExecutionFixture(t *testing.T) (*fixture, string, TaskDispatchPreviewRequest, ToolProfile) {
+// Reuse the real native selection/accounting fixture: Octop does not acquire a
+// second model catalog, rate or budget lane by changing its adapter.
+func octopExecutionFixture(t *testing.T) (*fixture, string, TaskDispatchPreviewRequest, ToolProfile, []mc.Deployment) {
 	t.Helper()
-	f, token, raw, _ := taskDispatchFixture(t)
-	p, err := f.s.CreateToolProfile(context.Background(), f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: "tool-worker", Name: "Fixed Octop ACP", Profile: octopTestProfile(), IdempotencyKey: newID()})
-	if err != nil {
+	f, token, raw, p, deployments := modelExecutionFixture(t)
+	p.Profile.Adapter, p.Profile.Protocol, p.Profile.ToolVersion = "octop", tc.OctopProtocol, tc.OctopHarnessVersion
+	p.Profile.OctopExecution = &tc.OctopExecutionCapability{HarnessVersion: tc.OctopHarnessVersion, ACPSDKVersion: tc.OctopACPSDKVersion}
+	if _, err := f.s.DB.Exec(`UPDATE suma_tool_profiles SET profile=? WHERE id=?`, stringify(p.Profile), p.ID); err != nil {
 		t.Fatal(err)
 	}
-	_, err = f.s.ReportToolInventory(context.Background(), toolActorForTest(t, f, token), f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: p.WorkerID, OperationID: newID(), Items: []tc.Observation{{Profile: p.Profile, Available: true, WorkspaceObservationProtocol: "workspace-observation-v1", WorkspaceWriteProtocol: "workspace-write-v1"}}})
-	if err != nil {
+	if _, err := f.s.ReportToolInventory(context.Background(), toolActorForTest(t, f, token), f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: p.WorkerID, OperationID: newID(), Items: []tc.Observation{{Profile: p.Profile, Available: true, ModelDeployments: deployments}}}); err != nil {
 		t.Fatal(err)
-	}
-	p, err = f.s.CommandToolProfile(context.Background(), f.actor, f.project, p.ID, ToolProfileCommandRequest{ProjectID: f.project, ExpectedVersion: p.Version, Action: "enable", IdempotencyKey: newID()})
-	if err != nil || !p.Available {
-		t.Fatal("fixed local ACP tool was not eligible", p, err)
 	}
 	var req TaskDispatchPreviewRequest
-	if err = json.Unmarshal([]byte(stringify(raw)), &req); err != nil {
+	if err := json.Unmarshal([]byte(stringify(raw)), &req); err != nil {
 		t.Fatal(err)
 	}
-	req.ToolProfileID, req.ExpectedToolVersion = p.ID, p.Version
-	f.e.AttemptAccounting = f.s
-	return f, token, req, p
+	return f, token, req, p, deployments
 }
 
-func TestOctopControlFixedConfigurationAndEnforcedBudget(t *testing.T) {
-	f, token, req, p := octopExecutionFixture(t)
+func TestOctopControlUsesUnifiedSelectionAndSettlesKnownCancelledCost(t *testing.T) {
+	f, token, req, p, deployments := octopExecutionFixture(t)
 	ctx := context.Background()
-	options := f.call("GET", "/model-execution/options?project_id="+f.project+"&tool_profile_id="+p.ID+"&expected_tool_version="+strconv.Itoa(p.Version), nil, 200)
-	fixed, _ := options["fixed_octop"].(map[string]any)
-	if options["supported"] != false || options["codex_supported"] != false || options["reason"] != "fixed_by_tool" || fixed["model"] != "model-a" || fixed["acp_sdk_version"] != tc.OctopACPSDKVersion {
-		t.Fatal("fixed profile was silently treated as selectable native model", options)
+	options, err := f.s.GetModelExecutionOptions(ctx, f.actor, f.project, ModelExecutionOptionsRequest{ProjectID: f.project, ToolProfileID: p.ID, ExpectedToolVersion: p.Version})
+	if err != nil || !options.Supported || len(options.Items) != 2 || options.ParameterLimits == nil || options.ParameterLimits.MaxSteps != mc.MaxSteps || options.ParameterLimits.MaxOutputTokens != mc.MaxOutputTokens {
+		t.Fatal("unified authorized model catalog/limits lost", options, err)
 	}
-	org := codexPolicy(t, f, "organization", "enforce", 0)
-	if _, err := f.s.CreateTaskDispatchPlan(ctx, f.e, f.actor, f.project, req); err == nil {
-		t.Fatal("enforce admitted observe-only preview")
+	modelRateForTest(t, f, p, deployments[0], 0)
+	if _, err = f.s.WriteUsagePolicy(ctx, f.actor, f.project, UsagePolicyWriteRequest{ProjectID: f.project, Scope: "organization", Mode: "enforce", ExpectedVersion: 0, Currency: "CNY", TokenLimit: usageInt(64100), CostLimitMicros: usageInt(64200), AcknowledgeEnforcement: true, Reason: "Exact model reservation", IdempotencyKey: newID()}); err != nil {
+		t.Fatal(err)
 	}
-	org = codexPolicy(t, f, "organization", "observe", org.Version)
 	plan, err := f.s.CreateTaskDispatchPlan(ctx, f.e, f.actor, f.project, req)
-	if err != nil || plan.OctopExecution == nil || *plan.OctopExecution != *p.Profile.OctopExecution || plan.ModelExecution != nil || plan.CodexExecution != nil || plan.OpenCodeExecution != nil {
-		t.Fatal("fixed original plan lost ACP identity", plan, err)
+	if err != nil || plan.ModelExecution == nil {
+		t.Fatal("enforced exact-rate Octop preview failed", plan, err)
 	}
 	n := codexPlanNode(t, plan)
-	if !octopNodeMatchesProfile(n, p) || n.MaxRetries != 0 {
-		t.Fatal("reviewed node did not bind exact ACP profile", n)
+	if _, present := n.Config["octop_execution"]; present {
+		t.Fatal("duplicate Octop model snapshot survived")
 	}
-	project := codexPolicy(t, f, "project", "enforce", 0)
-	start := TaskDispatchStartRequest{ProjectID: f.project, ExpectedVersion: plan.Version, IdempotencyKey: newID()}
-	if _, err = f.s.StartTaskDispatchPlan(ctx, f.e, f.actor, f.project, plan.ID, start); err == nil || expertCount(t, f, "dag_runs") != 0 {
-		t.Fatal("changed enforced budget admitted Start", err)
+	if n.MaxRetries != 0 || tc.ValidateOctopNodeConfiguration(n.Config) != nil {
+		t.Fatal("unreviewed overrides/retries survived")
 	}
-	codexPolicy(t, f, "project", "observe", project.Version)
-	run, err := f.s.StartTaskDispatchPlan(ctx, f.e, f.actor, f.project, plan.ID, start)
+	run, err := f.s.StartTaskDispatchPlan(ctx, f.e, f.actor, f.project, plan.ID, TaskDispatchStartRequest{ProjectID: f.project, ExpectedVersion: plan.Version, IdempotencyKey: newID()})
 	if err != nil {
 		t.Fatal(err)
 	}
-	org = codexPolicy(t, f, "organization", "enforce", org.Version)
-	claim := f.bearer("POST", "/runner/claim", token, f.body(map[string]any{"worker_id": p.WorkerID, "capabilities": []string{"command:" + p.Profile.CommandID}}), 200)
-	if claim["assignment"] != nil || expertCount(t, f, "suma_usage_attempts") != 0 {
-		t.Fatal("enforced policy consumed an attempt", claim)
-	}
-	tx, err := f.s.DB.Begin()
-	if err != nil {
-		t.Fatal(err)
-	}
-	ref := dag.AccountingAttempt{TenantID: f.user.TenantID, ProjectID: f.project, RunID: run.ID, NodeID: plan.AgentNodeID, WorkerID: p.WorkerID, Attempt: 1, Fence: 1, Spec: n}
-	allowed, checkErr := f.s.CheckAttemptTx(ctx, tx, ref)
-	reserveErr := f.s.ReserveAttemptTx(ctx, tx, ref)
-	tx.Rollback()
-	if checkErr != nil || allowed || reserveErr == nil {
-		t.Fatal("atomic accounting manufactured a hard budget", allowed, checkErr, reserveErr)
-	}
-	codexPolicy(t, f, "organization", "observe", org.Version)
-	claim = f.bearer("POST", "/runner/claim", token, f.body(map[string]any{"worker_id": p.WorkerID, "capabilities": []string{"command:" + p.Profile.CommandID}}), 200)
+	reply := f.bearer("POST", "/runner/claim", token, f.body(map[string]any{"worker_id": p.WorkerID, "capabilities": []string{"command:" + p.Profile.CommandID}}), 200)
 	var a dag.Assignment
-	if json.Unmarshal([]byte(stringify(claim["assignment"])), &a) != nil || a.RunID != run.ID {
-		t.Fatal("eligible original run was not claimed", claim)
+	if json.Unmarshal([]byte(stringify(reply["assignment"])), &a) != nil || a.RunID != run.ID {
+		t.Fatal("unified Octop model was not claimed", reply)
 	}
-	actual, err := tc.DecodeOctopNodeConfiguration(a.Config)
-	if err != nil || actual == nil || *actual != *p.Profile.OctopExecution {
-		t.Fatal("claim changed reviewed configuration", actual, err)
+	b, err := dag.ModelBinding(n)
+	if err != nil || b == nil || b.BindingSHA256 != plan.ModelExecution.BindingSHA256 {
+		t.Fatal("claim changed model authority", b, err)
+	}
+	me := &mc.Evidence{GatewayProtocol: mc.GatewayProtocol, GatewayClosed: true, BindingSHA256: b.BindingSHA256, DeploymentSHA256: b.Deployment.SHA256, ParametersSHA256: b.ParametersSHA256, Model: b.Deployment.Model, Requests: []mc.RequestEvidence{{State: "completed", Step: 0, RequestSHA256: strings.Repeat("a", 64), ResponseSHA256: strings.Repeat("b", 64), ProviderModel: b.Deployment.Model, OutputAllowance: 100, UsageState: "complete", Usage: &mc.RequestUsage{InputTokens: usageInt(23), OutputTokens: usageInt(17)}}}}
+	result := dag.Result{RunID: a.RunID, NodeID: a.NodeID, WorkerID: a.WorkerID, Attempt: a.Attempt, Fence: a.Fence, OperationID: newID(), Stopped: true, ExitCode: -1, Error: "cancelled after model response", ToolEvidence: &tc.Evidence{Profile: p.Profile, SessionID: "real-acp-session", Terminal: "unknown", EventCount: 4, UsageState: tc.UsageComplete, Usage: &tc.Usage{InputTokens: usageInt(23), OutputTokens: usageInt(17)}, ModelExecution: me, OctopExecution: &tc.OctopExecutionEvidence{BindingSHA256: b.BindingSHA256, SessionID: "real-acp-session", ProcessStopped: true, CancelRequested: true}}}
+	ref := dag.AccountingAttempt{TenantID: f.user.TenantID, ProjectID: f.project, RunID: a.RunID, NodeID: a.NodeID, WorkerID: a.WorkerID, Attempt: a.Attempt, Fence: a.Fence, Spec: n}
+	for i := 0; i < 2; i++ {
+		tx, e := f.s.DB.Begin()
+		if e != nil {
+			t.Fatal(e)
+		}
+		if e = f.s.RecordResultTx(ctx, tx, ref, result); e != nil {
+			tx.Rollback()
+			t.Fatal(e)
+		}
+		if e = tx.Commit(); e != nil {
+			t.Fatal(e)
+		}
 	}
 	page, err := f.s.ListUsageAttempts(ctx, f.actor, f.project, "", "", 10, "")
-	if err != nil || len(page.Items) != 1 || page.Items[0].Rate != nil || page.Items[0].ReservedTokens != 0 || page.Items[0].EstimatedCostMicros != nil {
-		t.Fatal("configuration ACK was priced as provider identity", page, err)
+	if err != nil || len(page.Items) != 1 {
+		t.Fatal(page, err)
+	}
+	billed := page.Items[0]
+	if billed.State != "settled" || billed.ReportedTokens == nil || *billed.ReportedTokens != 40 || billed.EstimatedCostMicros == nil || *billed.EstimatedCostMicros != 57 || billed.HeldTokens != 0 || billed.Version != 2 {
+		t.Fatal("known costs were erased by code cancellation or counted twice", billed)
 	}
 }
 
-func TestOctopControlRejectsReviewedSnapshotDriftAndModelOverrides(t *testing.T) {
-	for _, kind := range []string{"snapshot-model", "missing-node", "retry", "native-limits", "resume"} {
+func TestOctopControlRejectsOldSnapshotsAndReviewedModelDrift(t *testing.T) {
+	for _, kind := range []string{"old-snapshot", "retry", "limits", "resume", "binding"} {
 		t.Run(kind, func(t *testing.T) {
-			f, _, req, _ := octopExecutionFixture(t)
-			ctx := context.Background()
-			plan, err := f.s.CreateTaskDispatchPlan(ctx, f.e, f.actor, f.project, req)
+			f, _, req, _, _ := octopExecutionFixture(t)
+			plan, err := f.s.CreateTaskDispatchPlan(context.Background(), f.e, f.actor, f.project, req)
 			if err != nil {
 				t.Fatal(err)
 			}
 			wire := candidateJSON(t, plan)
-			nodes := wire["workflow"].(map[string]any)["nodes"].([]any)
 			var node map[string]any
-			for _, item := range nodes {
-				v := item.(map[string]any)
+			for _, raw := range wire["workflow"].(map[string]any)["nodes"].([]any) {
+				v := raw.(map[string]any)
 				if v["id"] == plan.AgentNodeID {
 					node = v
 					break
 				}
 			}
+			config := node["config"].(map[string]any)
 			switch kind {
-			case "snapshot-model":
-				wire["octop_execution"].(map[string]any)["model"] = "other"
-			case "missing-node":
-				delete(node["config"].(map[string]any), "octop_execution")
+			case "old-snapshot":
+				config["octop_execution"] = map[string]any{"model": "old"}
 			case "retry":
 				node["max_retries"] = 1
-			case "native-limits":
-				node["config"].(map[string]any)["max_steps"] = 2
+			case "limits":
+				config["max_steps"] = 3
 			case "resume":
-				node["config"].(map[string]any)["resume"] = "another-session"
+				config["resume"] = "foreign"
+			case "binding":
+				delete(config, "model_execution")
 			}
 			if _, err = f.s.DB.Exec(`UPDATE suma_task_dispatch_plans SET payload=? WHERE id=?`, stringify(wire), plan.ID); err != nil {
 				t.Fatal(err)
 			}
-			if _, err = f.s.StartTaskDispatchPlan(ctx, f.e, f.actor, f.project, plan.ID, TaskDispatchStartRequest{ProjectID: f.project, ExpectedVersion: plan.Version, IdempotencyKey: newID()}); err == nil || expertCount(t, f, "dag_runs") != 0 {
-				t.Fatal("modified reviewed snapshot started a run", kind, err)
+			if _, err = f.s.StartTaskDispatchPlan(context.Background(), f.e, f.actor, f.project, plan.ID, TaskDispatchStartRequest{ProjectID: f.project, ExpectedVersion: plan.Version, IdempotencyKey: newID()}); err == nil || expertCount(t, f, "dag_runs") != 0 {
+				t.Fatal("unreviewed Octop input started", kind, err)
 			}
 		})
 	}

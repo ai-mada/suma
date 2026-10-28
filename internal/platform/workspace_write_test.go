@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ai-mada/suma/internal/dag"
+	"github.com/ai-mada/suma/internal/modelcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	woc "github.com/ai-mada/suma/internal/workspaceobservationcontract"
 	wcc "github.com/ai-mada/suma/internal/workspacewritecontract"
@@ -214,7 +215,9 @@ func TestWorkspaceWritePoolWithdrawalBlocksNewWriteButDrainsFact(t *testing.T) {
 	f, ctx := p.f, context.Background()
 	machine, profile := p.credential.Runner, toolTestProfile()
 	profile.WorkspaceToolsVersion = "attempt-workspace-v1"
-	if _, err := f.s.ReportPoolToolInventory(ctx, p.credential.Token, PoolToolInventoryRequest{RunnerID: machine.ID, TenantID: f.user.TenantID, ProjectID: f.project, OperationID: newID(), Items: []tc.Observation{{Profile: profile, Available: true, WorkspaceObservationProtocol: woc.Protocol, WorkspaceWriteProtocol: wcc.Protocol}}}); err != nil {
+	profile.ModelExecutionProtocol = "suma-model-execution-v1"
+	model := nativeWorkspaceModelForTest(t)
+	if _, err := f.s.ReportPoolToolInventory(ctx, p.credential.Token, PoolToolInventoryRequest{RunnerID: machine.ID, TenantID: f.user.TenantID, ProjectID: f.project, OperationID: newID(), Items: []tc.Observation{{Profile: profile, Available: true, WorkspaceObservationProtocol: woc.Protocol, WorkspaceWriteProtocol: wcc.Protocol, ModelDeployments: []modelcontract.Deployment{model.Deployment}}}}); err != nil {
 		t.Fatal(err)
 	}
 	pr, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: machine.WorkerID, Name: "Pool native save", Profile: profile, IdempotencyKey: newID()})
@@ -225,7 +228,7 @@ func TestWorkspaceWritePoolWithdrawalBlocksNewWriteButDrainsFact(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	w, err := f.e.Publish(ctx, f.user.TenantID, f.project, dag.Workflow{Name: "Pool native save", Nodes: []dag.Node{{ID: "code", Type: "agent", Command: []string{profile.CommandID}, Config: map[string]any{"goal": "save bounded text", "tool_profile_id": pr.ID, "tool_profile_sha256": profile.ProfileSHA256}}}})
+	w, err := f.e.Publish(ctx, f.user.TenantID, f.project, dag.Workflow{Name: "Pool native save", Nodes: []dag.Node{{ID: "code", Type: "agent", Command: []string{profile.CommandID}, Config: map[string]any{"goal": "save bounded text", "tool_profile_id": pr.ID, "tool_profile_sha256": profile.ProfileSHA256, "model_execution": model, "max_steps": model.Parameters.MaxSteps, "max_output_tokens": model.Parameters.MaxOutputTokens}}}})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -41,7 +41,7 @@ func TestModelExecutionCurrentPreviewActualRuntimeAndUsageLedger(t *testing.T) {
 		}
 		calls++
 		requestSHA = hash(raw)
-		reply, _ := json.Marshal(map[string]any{"id": "owned-model-response-036", "model": "owned-model-036", "choices": []any{map[string]any{"message": map[string]any{"content": "Owned protocol fixture; no source changes or formal acceptance claimed."}, "finish_reason": "stop"}}, "usage": map[string]any{"prompt_tokens": 23, "completion_tokens": 17}})
+		reply, _ := json.Marshal(map[string]any{"id": "owned-model-response-036", "model": "owned-model-036", "choices": []any{map[string]any{"index": 0, "message": map[string]any{"role": "assistant", "content": "Owned protocol fixture; no source changes or formal acceptance claimed."}, "finish_reason": "stop"}}, "usage": map[string]any{"prompt_tokens": 23, "completion_tokens": 17}})
 		responseSHA = hash(reply)
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(reply)
@@ -145,4 +145,5 @@ func TestModelExecutionCurrentPreviewActualRuntimeAndUsageLedger(t *testing.T) {
 	retained, _ := json.Marshal(map[string]any{"run_id": assignment.RunID, "node_id": assignment.NodeID, "attempt": assignment.Attempt, "fence": assignment.Fence, "profile_sha256": profile.Profile.ProfileSHA256, "binding": binding, "model_execution": receipt, "usage_attempt_id": accounting.ID, "reported_tokens": accounting.ReportedTokens, "estimated_cost_micros": accounting.EstimatedCostMicros, "currency": "CNY", "state": accounting.State, "held_tokens": accounting.HeldTokens, "held_cost_micros": accounting.HeldCostMicros})
 	t.Logf("model_execution_ledger_receipt=%s", retained)
 	t.Logf("one current-actor preview/start, one real HTTP claim, one actual native bundle/MCP process, one owned model protocol response, exact request/response/binding hashes, 40 tokens / 57 CNY micros settled; independent formal task tests and acceptance remain pending")
+	holdActualModelGatewayUI(t, f, map[string]any{"run_id": assignment.RunID, "node_id": assignment.NodeID, "task_id": task["id"], "plan_id": plan["id"], "tool_profile_id": profile.ID, "usage_attempt_id": accounting.ID, "source_model_requests": calls, "reported_tokens": accounting.ReportedTokens, "estimated_cost_micros": accounting.EstimatedCostMicros, "currency": "CNY"})
 }

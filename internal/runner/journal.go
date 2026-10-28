@@ -16,13 +16,14 @@ import (
 )
 
 type entry struct {
-	Assignment        Assignment         `json:"assignment"`
-	Result            *Result            `json:"result,omitempty"`
-	Acked             bool               `json:"acked"`
-	Progress          []Progress         `json:"progress,omitempty"`
-	ProgressTruncated bool               `json:"progress_truncated,omitempty"`
-	ArtifactPending   *artifactTransfer  `json:"artifact_pending,omitempty"`
-	CandidatePending  *candidateTransfer `json:"candidate_pending,omitempty"`
+	Assignment        Assignment              `json:"assignment"`
+	Result            *Result                 `json:"result,omitempty"`
+	Acked             bool                    `json:"acked"`
+	Progress          []Progress              `json:"progress,omitempty"`
+	ProgressTruncated bool                    `json:"progress_truncated,omitempty"`
+	ArtifactPending   *artifactTransfer       `json:"artifact_pending,omitempty"`
+	CandidatePending  *candidateTransfer      `json:"candidate_pending,omitempty"`
+	ModelGateway      *modelGatewayCheckpoint `json:"model_gateway,omitempty"`
 }
 type Journal struct {
 	mu                    sync.Mutex
@@ -86,6 +87,11 @@ func OpenJournal(dir string) (*Journal, error) {
 		return nil, err
 	}
 	for k, e := range j.entries {
+		if e.ModelGateway != nil {
+			if err := validModelGatewayCheckpoint(e.Assignment, k, *e.ModelGateway); err != nil {
+				return nil, err
+			}
+		}
 		if e.CandidatePending != nil {
 			p := *e.CandidatePending
 			p.Result.Assignment = p.Assignment
@@ -109,6 +115,12 @@ func OpenJournal(dir string) (*Journal, error) {
 		}
 		if e.Result == nil && e.ArtifactPending == nil && e.CandidatePending == nil && e.Assignment.ReleaseExecution == nil && e.Assignment.RepositoryIntegration == nil {
 			e.Result = &Result{Assignment: e.Assignment, ExitCode: -1, OutcomeUnknown: true, Error: "runner restart: execution outcome unknown; reconcile required", OperationID: operationID()}
+			if e.ModelGateway != nil {
+				e.Result.ToolEvidence, err = recoveredModelGatewayEvidence(e.Assignment, *e.ModelGateway)
+				if err != nil {
+					return nil, err
+				}
+			}
 			j.entries[k] = e
 		}
 	}

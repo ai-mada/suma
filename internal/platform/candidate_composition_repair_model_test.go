@@ -18,6 +18,7 @@ func repairModelFixture(t *testing.T) (*compositionFixture, CandidateComposition
 	h, original := compositionConflictFixture(t, true)
 	f := h.f
 	req, profile, token := compositionRepairRequestFixture(t, h, original)
+	req.ModelExecutionSelection = nil
 	profile.Profile.ModelExecutionProtocol = mc.Protocol
 	profile.Profile.ProfileSHA256 = strings.Repeat("c", 64)
 	if _, err := f.s.DB.Exec(`UPDATE suma_tool_profiles SET profile=? WHERE id=?`, stringify(profile.Profile), profile.ID); err != nil {

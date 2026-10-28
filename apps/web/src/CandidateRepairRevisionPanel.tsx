@@ -1,3 +1,4 @@
+import {ExecutionModelFacts} from './ExecutionModelFacts';
 import {useCallback,useEffect,useId,useRef,useState} from 'react';
 import {ChevronDown,FilePenLine} from 'lucide-react';
 import type {CandidateCompositionPlan,CandidateCompositionRepairRevisionContext,ExecutionRouteView} from '../../../packages/contracts/src';
@@ -12,7 +13,7 @@ import {toolError,toolSessionStorage} from './tool-hooks';
 import {ErrorNotice,Field,Loading} from './ui';
 import {useLeaveGuard,useWriteAction,WriteNotice} from './write-action';
 import {DispatchRouteFacts} from './execution-pools/DispatchRouteFacts';
-import {ModelExecutionPanel,ModelExecutionFacts,type ModelChoice} from './ModelExecutionPanel';
+import {ModelExecutionPanel,type ModelChoice} from './ModelExecutionPanel';
 
 const t=(key:string,values?:Record<string,unknown>)=>tr('candidate-repair-revision.'+key,values);
 const stamp=(value:string)=>Number.isFinite(Date.parse(value))?formatDateTime(value,{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
@@ -21,7 +22,7 @@ type Props={session:Session;project:string;plan:CandidateCompositionPlan;planLoa
 /** Passive safe lineage. The current viewer is never inferred to be its author. */
 export function CandidateRepairPlanFacts({project,plan}:{project:string;plan:CandidateCompositionPlan}){
  useLocale();const revision=plan.repair_revision;if(!plan.conflict_basis)return null;
- return <div className="composition-callout repair-plan-facts"><dl className="composition-facts"><dt>{t('plan_version')}</dt><dd>v{formatNumber(plan.version)}{revision?' · '+t('revision_number',{value:formatNumber(revision.ordinal)}):''}</dd><dt>{t('workflow')}</dt><dd>{plan.workflow.name||plan.workflow_id} · v{formatNumber(plan.workflow_version)}</dd><dt>{t('producer')}</dt><dd>{plan.producer_node_id}</dd><dt>{t('tool')}</dt><dd>{plan.tool_profile_id} · v{formatNumber(plan.tool_profile_version||0)}</dd></dl><DispatchRouteFacts route={plan.execution_route}/><ModelExecutionFacts binding={plan.model_execution}/>
+ return <div className="composition-callout repair-plan-facts"><dl className="composition-facts"><dt>{t('plan_version')}</dt><dd>v{formatNumber(plan.version)}{revision?' · '+t('revision_number',{value:formatNumber(revision.ordinal)}):''}</dd><dt>{t('workflow')}</dt><dd>{plan.workflow.name||plan.workflow_id} · v{formatNumber(plan.workflow_version)}</dd><dt>{t('producer')}</dt><dd>{plan.producer_node_id}</dd><dt>{t('tool')}</dt><dd>{plan.tool_profile_id} · v{formatNumber(plan.tool_profile_version||0)}</dd></dl><DispatchRouteFacts route={plan.execution_route}/><ExecutionModelFacts binding={plan.model_execution}/>
   {revision&&<><p role="status">{t(revision.is_current?'current':'historical')}</p>{!revision.is_current&&<a data-repair-revision-current href={repairTaskURL(project,plan.task_id,revision.current_head_plan_id)}>{t('open_current')}</a>}{revision.parent_plan_id&&<a data-repair-revision-parent href={repairTaskURL(project,plan.task_id,revision.parent_plan_id)}>{t('open_previous')}</a>}<details><summary>{t('lineage')}</summary><dl className="composition-facts"><dt>{t('creator')}</dt><dd>{revision.creator_kind?tr('candidate-repair-revision.creator_'+revision.creator_kind)+' · '+revision.creator_principal_id:t('creator_unrecorded')}</dd><dt>{t(revision.observed?'observed_at':'created_at')}</dt><dd>{stamp(revision.created_at)}</dd><dt>{t('reason')}</dt><dd className="preserve">{revision.observed?t('observed_help'):revision.reason}</dd><dt>{t('definition_digest')}</dt><dd><code>{revision.definition_sha256}</code></dd></dl><a href={repairTaskURL(project,plan.task_id,revision.root_plan_id)}>{t('open_root')}</a></details></>}
  </div>;
 }

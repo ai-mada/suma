@@ -1,0 +1,335 @@
+{
+  "stage": "T-MODEL-118",
+  "product_version": "1.0.0",
+  "recorded_at": "2026-10-28T16:40:26.953835+00:00",
+  "status": "scoped_local_gateway_delivery",
+  "source_sha256": "5291a891e7daa288ee29b7d99ac7485ac611c61399f6a0589d00f7cec00a605b",
+  "source_files": 117,
+  "full_platform_complete": false,
+  "scope_ledger": {
+    "requirements": "1–26",
+    "phases": "P0–P7",
+    "limited_implemented": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "architecture": {
+    "dispatch_authority": "single Go scheduler",
+    "model_authority": "attempt-scoped Go HTTP/SSE gateway, native coding and Octop",
+    "provider_secrets_in_child": false,
+    "gateway_protocol": "suma-model-gateway-v1",
+    "data_contract": "suma-initial-gateway-v1",
+    "historical_migration": false,
+    "provider_retry": false,
+    "unknown_requests_resent": false,
+    "max_steps": 128,
+    "max_total_output_tokens": 131072,
+    "request_bytes": 2097152,
+    "response_bytes": 8388608,
+    "private_response_cache_bytes": 33554432
+  },
+  "verification": {
+    "distinct_go_top_level_passed": 35,
+    "distinct_web_behaviors_passed": 13,
+    "distinct_runtime_behaviors_passed": 8,
+    "initial_failed_cases_later_passed": 4,
+    "unresolved_failed_cases": 0,
+    "typecheck": true,
+    "generated_contract_check": true,
+    "catalog_keys": 5259,
+    "production_source_hardcodes": 0,
+    "version_check": true,
+    "full_suites": 0
+  },
+  "actual": {
+    "official_harness": "1.0.5",
+    "official_acp_sdk": "0.12.1",
+    "actual_sdk_not_full_octop_cli": true,
+    "octop_positive_model_calls": 4,
+    "octop_positive_output_allowances": [
+      512,
+      509,
+      506,
+      503
+    ],
+    "octop_independent_same_commit_junit": true,
+    "octop_cancel_and_go_process_tree_stop": true,
+    "native_current_preview_http_claim_and_process": true,
+    "native_model_requests": 1,
+    "native_reported_tokens": 40,
+    "native_estimated_cost_micros": 57,
+    "native_currency": "CNY",
+    "native_ledger_state": "settled",
+    "native_source_changes": 0,
+    "native_independent_formal_test_performed": false,
+    "human_acceptance_performed": false,
+    "vendor_calls": 0
+  },
+  "browser": {
+    "stage": "T-MODEL-118",
+    "actual_native_run": true,
+    "known_usage": {
+      "input": 23,
+      "output": 17,
+      "total": 40,
+      "estimated_cost_micros": 57,
+      "currency": "CNY"
+    },
+    "cn_en_live_switch": true,
+    "octop_runtime_only_draft": true,
+    "draft_preserved_across_locale": true,
+    "read_only_ledger_drilldown": true,
+    "model_requests_fold": true,
+    "responsive_width": 390,
+    "document_width": 375,
+    "document_scroll_width": 375,
+    "final_usage_values_nowrap": true,
+    "console_warn_error_count": 0,
+    "new_execution_or_review_requested": false,
+    "provider_accounts_used": false,
+    "final_build_reloaded": true
+  },
+  "resources": {
+    "web_builds": 4,
+    "web_build_reasons": [
+      "initial integrated build",
+      "Octop quotation eligibility fix",
+      "diagnostic generation consistency check (display producer is separate; no new display source rows)",
+      "actual narrow-screen value wrapping fix"
+    ],
+    "control_binary_builds": 0,
+    "runner_binary_builds": 0,
+    "native_and_octop_artifacts": "reused final bundles listed below",
+    "go_commands_sequential": true,
+    "owned_server_closed": true,
+    "owned_browser_closed": true,
+    "user_preview_updated": false,
+    "user_database_modified": false
+  },
+  "evidence": {
+    "go_receipts": [
+      {
+        "command": ".cache/mcp019-deps/20261028T153702960Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/runner",
+          "./internal/platform",
+          "./cmd/suma-contracts",
+          "-run",
+          "^TestModelGatewayJournal",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 1,
+        "failed_top_level": 0,
+        "stdout_sha256": "4ae6d57585170650f5a12449a17816c031e80ca84514918b6f35454d00c6d4db"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T154340515Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/modelcontract",
+          "./internal/toolcontract",
+          "./internal/dag",
+          "./internal/platform",
+          "./internal/runner",
+          "./cmd/suma-contracts",
+          "-run",
+          "^(TestOctop|TestModelExecution|TestGatewayCoverage)",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 19,
+        "failed_top_level": 4,
+        "stdout_sha256": "d95e9721f217373366d3778845145bb83ac17ae7e814aeb8c84b2217fb9fbb15"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T154913597Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/runner",
+          "-run",
+          "^TestOctopSDKActual",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 2,
+        "failed_top_level": 0,
+        "stdout_sha256": "fb3e365c156dbd63a896b2c9c4d13c4068833296cf14abae994571a7431167e4"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T155659216Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/modelgateway",
+          "./internal/runner",
+          "./internal/platform",
+          "-run",
+          "^(TestGateway|TestModelExecutionCurrentPreviewActualRuntimeAndUsageLedger|TestModelExecutionRequiresLocalDeploymentBeforeWorkspace|TestNativeExecutionLimits)",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 8,
+        "failed_top_level": 0,
+        "stdout_sha256": "f0e7619335bbd3c2b53b52071212be1090649d4dfd3dbd009e32d320ee3f24ae"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T162206806Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/store",
+          "-run",
+          "^TestInitial",
+          "-count=1",
+          "-v"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 5,
+        "failed_top_level": 0,
+        "stdout_sha256": "66ddad02ac024f8215eb1a1945c247208f06ba8927ae7025240b3141da771346"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T162233994Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/runner",
+          "-run",
+          "^TestOctopSDKActualHostCandidateAndIndependentJUnit$",
+          "-count=1",
+          "-v"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 1,
+        "failed_top_level": 0,
+        "stdout_sha256": "cb8ac165167031921bc71b082223f13c8b56b5e71526009bc5717300dbfaf140"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T162910279Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestModelExecutionCurrentPreviewActualRuntimeAndUsageLedger$",
+          "-count=1",
+          "-v"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 1,
+        "failed_top_level": 0,
+        "stdout_sha256": "5ebdc1a192e46655df619ea89f460664a60d7f3a5d6718c5eda7ee106ef19c96"
+      }
+    ],
+    "runtime_summary": ".cache/e2e/model-118/runtime-gateway-checks.json",
+    "web_summary": ".cache/e2e/model-118/ui-targeted-summary.json",
+    "additional_web_rate_regression": ".cache/e2e/model-118/usage-rate-ui.txt",
+    "source_inventory": ".cache/e2e/model-118/source-inventory.json",
+    "web_inventory": ".cache/e2e/model-118/web-inventory.json",
+    "closed_ui_receipt": ".cache/e2e/model-118/actual-ui/closed.public.json",
+    "artifacts": [
+      {
+        "path": "packages/agent-runtime/dist/suma-agent.bundle.mjs",
+        "bytes": 997401,
+        "sha256": "1c8ce954e4aec79231dc52248fa794c116841613b7194727163a267de9d8cd19",
+        "git_included": false
+      },
+      {
+        "path": "packages/agent-runtime/dist/suma-agent.manifest.json",
+        "bytes": 508,
+        "sha256": "bc7fcd9978d5738825abd74009856da3807212f9c78089203c31018a64798193",
+        "git_included": false
+      },
+      {
+        "path": "packages/octop-runtime/dist/suma-octop.pyz",
+        "bytes": 17249,
+        "sha256": "83228b2036e12933b74251b61fbac0208452422a33f5d4a86beb4c8d2d48809d",
+        "git_included": false
+      },
+      {
+        "path": "packages/octop-runtime/dist/suma-octop.manifest.json",
+        "bytes": 2984,
+        "sha256": "b60f5f9f42c8de02b9124a8d555a603807fcc58fc5f2d300ac6fd30d6aa16f2a",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/model-118/web/index.html",
+        "bytes": 415,
+        "sha256": "386ae4269bc3c5816b731fbbb1c8ad4fed0639bff5d713b7306c4f254324d863",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/model-118/actual-ui/actual.sqlite",
+        "bytes": 2166784,
+        "sha256": "f14b6f0d4b2723bf2fcfc1c785dca5c903979dc5170f125d5556c3b32b6dbfd7",
+        "git_included": false
+      }
+    ],
+    "screenshots": [
+      {
+        "path": ".cache/e2e/model-118/screenshots/model-en-390.jpg",
+        "bytes": 35704,
+        "sha256": "bf3366a18809663fb95c3b2ad59e3511588731fdf7eecbff0c2a566206a8a0dc",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/model-118/screenshots/model-final-en-390.jpg",
+        "bytes": 39083,
+        "sha256": "72e0fe953495b7fb00fad89a656e5c35b851bd6f1f5c8c88c2337b052191d59e",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/model-118/screenshots/model-final-zh-390.jpg",
+        "bytes": 31743,
+        "sha256": "efd2dca70c185d0592ad73089fc292d585affac9391a630402d0dbb5579a4dcf",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/model-118/screenshots/octop-setup-en.jpg",
+        "bytes": 88440,
+        "sha256": "da31a4cc7371ce7bba7ec712c78611ad00b42aa14743fd2b87fbc1912ffe41e8",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/model-118/screenshots/octop-setup-zh.jpg",
+        "bytes": 79298,
+        "sha256": "a49b5430a4b0059b951db3d174629ced8e4eb09eec021709fc5a74c96d85eaea",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/model-118/screenshots/run-en-390.jpg",
+        "bytes": 32220,
+        "sha256": "f8c80ce80912d55a106675b29b0640c4ed0856539b24335c18987dcde1d5602a",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/model-118/screenshots/run-en-desktop.jpg",
+        "bytes": 68845,
+        "sha256": "b6db0ec17399b600595d68ad74360ff0ad409508a84655b41af01289ba8b5dfb",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/model-118/screenshots/run-zh-desktop.jpg",
+        "bytes": 61160,
+        "sha256": "43c12fdcdd4ff9f61d8f12a2cc66386fff4171156345cedb0e2b6063fac032fc",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/model-118/screenshots/usage-zh-390.jpg",
+        "bytes": 35070,
+        "sha256": "e47afe8d6ed992e2978b9d048dde6b96f81528bed0deb7ba547ffeb22a626a93",
+        "git_included": false
+      }
+    ]
+  },
+  "remaining": [
+    "Complete P0–P7 and requirements1–26; the 58/34/92 scope is unchanged",
+    "Full Octop CLI/console/channel/memory/skill synchronization and platform installers",
+    "Vendor quality, invoices, exact tokenizer and absolute money caps",
+    "Physical distributed hosts, actual OceanBase/PostgreSQL and production load",
+    "Read-only model purposes, OpenCode and Codex keep their separate current contracts",
+    "Current model selector behavior is component-verified; actual browser covers runtime setup, persisted native facts/ledger and responsive rendering, not starting an Octop task from GUI"
+  ]
+}

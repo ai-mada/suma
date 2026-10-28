@@ -1937,6 +1937,8 @@ export interface ModelDeployment {
   context_window: number;
 }
 export interface ModelEvidence {
+  gateway_protocol: string;
+  gateway_closed: boolean;
   binding_sha256: string;
   deployment_sha256: string;
   parameters_sha256: string;
@@ -1952,7 +1954,7 @@ export interface ModelExecutionOption {
   output_token_reservation: number;
 }
 export interface ModelExecutionOptions {
-  fixed_octop?: OctopExecutionCapability | null;
+  parameter_limits?: ModelParameters | null;
   fixed_opencode?: OpenCodeExecutionCapability | null;
   codex_supported: boolean;
   codex_catalog?: CodexCatalog | null;
@@ -1978,6 +1980,7 @@ export interface ModelRateSnapshot {
   output_rate_micros_per_million: number;
 }
 export interface ModelRequestEvidence {
+  state: string;
   step: number;
   request_sha256: string;
   response_sha256?: string;
@@ -1985,6 +1988,14 @@ export interface ModelRequestEvidence {
   provider_request_id?: string;
   output_allowance: number;
   usage_state: string;
+  usage?: ModelRequestUsage | null;
+}
+export interface ModelRequestUsage {
+  input_tokens?: number | null;
+  output_tokens?: number | null;
+  cached_input_tokens?: number | null;
+  cache_write_input_tokens?: number | null;
+  reasoning_output_tokens?: number | null;
 }
 export interface ModelSelection {
   deployment_id: string;
@@ -2116,20 +2127,10 @@ export interface NonSecretDeploymentRequest {
 export interface OctopExecutionCapability {
   harness_version: string;
   acp_sdk_version: string;
-  provider_id: string;
-  model: string;
-  endpoint_origin: string;
-  configuration_sha256: string;
-  budget_mode: string;
-  identity_evidence: string;
 }
 export interface OctopExecutionEvidence {
-  configuration_sha256: string;
+  binding_sha256: string;
   session_id: string;
-  requested_provider: string;
-  requested_model: string;
-  acknowledged_provider: string;
-  acknowledged_model: string;
   stop_reason: string;
   completed_at: string;
   process_stopped: boolean;
@@ -4023,7 +4024,6 @@ export interface TaskDispatchOptionsRequest {
   before?: string;
 }
 export interface TaskDispatchPlan {
-  octop_execution?: OctopExecutionCapability | null;
   opencode_execution?: OpenCodeExecutionCapability | null;
   codex_execution?: CodexBinding | null;
   model_execution?: ModelBinding | null;

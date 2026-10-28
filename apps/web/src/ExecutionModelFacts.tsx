@@ -1,0 +1,14 @@
+import type {ModelBinding,CodexBinding,OpenCodeExecutionCapability,ToolEvidence} from '../../../packages/contracts/src';
+import {ModelExecutionFacts} from './ModelExecutionPanel';
+import {CodexExecutionFacts} from './CodexModelExecutionPanel';
+import {OpenCodeExecutionFacts} from './OpenCodeExecutionFacts';
+import {OctopExecutionFacts} from './OctopExecutionFacts';
+import {ModelGatewayFacts} from './ModelGatewayFacts';
+import type {OpenCodeRunFacts,OpenCodeRunTest} from './opencode-run-model';
+import type {OctopExecutionCapability} from './octop-execution-model';
+type Props={binding?:ModelBinding|null;codex?:CodexBinding|null;openCode?:OpenCodeExecutionCapability|null;octop?:OctopExecutionCapability|null;evidence?:ToolEvidence;state?:string;openCodeRun?:OpenCodeRunFacts;tests?:OpenCodeRunTest[];project?:string};
+/** Shared mounting across tasks, expert plans and repair plans. Each driver
+ * keeps its own receipt semantics; all platform models share one binding. */
+export function ExecutionModelFacts({binding,codex,openCode,octop,evidence,state,openCodeRun,tests,project}:Props){
+ return <><ModelExecutionFacts binding={binding}/><CodexExecutionFacts binding={codex} evidence={evidence?.codex_execution}/><OpenCodeExecutionFacts capability={openCode} run={openCodeRun} tests={tests}/><ModelGatewayFacts binding={binding} evidence={evidence?.model_execution} project={project} required={!!binding&&state!==undefined}/>{(octop||evidence?.profile.adapter==='octop')&&<OctopExecutionFacts capability={octop??evidence?.profile.octop_execution} evidence={evidence} state={state}/>}</>;
+}

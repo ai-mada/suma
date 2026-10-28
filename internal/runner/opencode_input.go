@@ -12,9 +12,16 @@ func newOpenCodeInput(requestID, goal string, bridge NativeWorkspaceBridge) (*du
 }
 
 // Shared bounded host carrier; each SDK retains its own protocol decoder.
-func newHostAgentInput(requestID, goal string, bridge NativeWorkspaceBridge) (*duplexInput, error) {
+func newHostAgentInput(requestID, goal string, bridge NativeWorkspaceBridge, model ...any) (*duplexInput, error) {
 	if requestID == "" || !utf8.ValidString(requestID) || len(requestID) > 128 || strings.ContainsAny(requestID, "\x00\r\n") || bridge.RequestID != requestID || bridge.ConflictRepairProtocol != "" || strings.TrimSpace(goal) == "" || !utf8.ValidString(goal) || strings.ContainsRune(goal, 0) || len(goal) > 32000 {
 		return nil, fmt.Errorf("SDK input requires its host-owned request and bounded goal")
+	}
+	if len(model) > 1 {
+		return nil, fmt.Errorf("SDK input has multiple model bindings")
+	}
+	var selected any
+	if len(model) == 1 {
+		selected = model[0]
 	}
 	execute, err := json.Marshal(struct {
 		Version         int                   `json:"v"`
@@ -22,7 +29,8 @@ func newHostAgentInput(requestID, goal string, bridge NativeWorkspaceBridge) (*d
 		RequestID       string                `json:"request_id"`
 		Goal            string                `json:"goal"`
 		WorkspaceBridge NativeWorkspaceBridge `json:"workspace_bridge"`
-	}{1, "execute", requestID, goal, bridge})
+		ModelExecution  any                   `json:"model_execution,omitempty"`
+	}{1, "execute", requestID, goal, bridge, selected})
 	if err != nil {
 		return nil, err
 	}

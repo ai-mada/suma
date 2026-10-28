@@ -87,7 +87,7 @@ func TestModelExecutionFrozenRateClaimReservationAndSingleSettlement(t *testing.
 	if attempt.Rate == nil || attempt.Rate.ID != rate.ID || attempt.Model != "model-one" || attempt.ReservedTokens != 64100 || attempt.ReservedCostMicros == nil || *attempt.ReservedCostMicros != 64200 {
 		t.Fatal("frozen rate or conservative reservation lost", attempt)
 	}
-	result := dag.Result{RunID: a.RunID, NodeID: a.NodeID, WorkerID: a.WorkerID, Attempt: a.Attempt, Fence: a.Fence, OperationID: newID(), ToolEvidence: &tc.Evidence{Profile: p.Profile, Terminal: "completed", EventCount: 4, Usage: &tc.Usage{InputTokens: usageInt(23), OutputTokens: usageInt(17)}, UsageState: tc.UsageComplete, ModelExecution: &modelcontract.Evidence{BindingSHA256: b.BindingSHA256, DeploymentSHA256: b.Deployment.SHA256, ParametersSHA256: b.ParametersSHA256, Model: b.Deployment.Model, Requests: []modelcontract.RequestEvidence{{Step: 0, RequestSHA256: strings.Repeat("a", 64), ResponseSHA256: strings.Repeat("b", 64), ProviderModel: b.Deployment.Model, OutputAllowance: 100, UsageState: tc.UsageComplete}}}}}
+	result := dag.Result{RunID: a.RunID, NodeID: a.NodeID, WorkerID: a.WorkerID, Attempt: a.Attempt, Fence: a.Fence, OperationID: newID(), ToolEvidence: &tc.Evidence{Profile: p.Profile, Terminal: "completed", EventCount: 4, Usage: &tc.Usage{InputTokens: usageInt(23), OutputTokens: usageInt(17)}, UsageState: tc.UsageComplete, ModelExecution: &modelcontract.Evidence{GatewayProtocol: modelcontract.GatewayProtocol, GatewayClosed: true, BindingSHA256: b.BindingSHA256, DeploymentSHA256: b.Deployment.SHA256, ParametersSHA256: b.ParametersSHA256, Model: b.Deployment.Model, Requests: []modelcontract.RequestEvidence{{State: "completed", Step: 0, RequestSHA256: strings.Repeat("a", 64), ResponseSHA256: strings.Repeat("b", 64), ProviderModel: b.Deployment.Model, OutputAllowance: 100, UsageState: tc.UsageComplete, Usage: &modelcontract.RequestUsage{InputTokens: usageInt(23), OutputTokens: usageInt(17)}}}}}}
 	for i := 0; i < 2; i++ {
 		tx, e := f.s.DB.Begin()
 		if e != nil {
@@ -138,7 +138,7 @@ func TestModelExecutionInventoryDriftAndMissingSelectionPreventStart(t *testing.
 }
 
 func TestModelExecutionUncertainProviderUsageKeepsKnownCountersAndHold(t *testing.T) {
-	for _, scenario := range []string{"foreign_provider_model", "old_worker_without_model_receipt", "output_overrun"} {
+	for _, scenario := range []string{"foreign_provider_model", "missing_host_gateway_receipt", "output_overrun"} {
 		t.Run(scenario, func(t *testing.T) {
 			f, _, _, p, deployments := modelExecutionFixture(t)
 			rate := modelRateForTest(t, f, p, deployments[0], 0)
@@ -158,15 +158,18 @@ func TestModelExecutionUncertainProviderUsageKeepsKnownCountersAndHold(t *testin
 			if err = tx.Commit(); err != nil {
 				t.Fatal(err)
 			}
-			evidence := &modelcontract.Evidence{BindingSHA256: binding.BindingSHA256, DeploymentSHA256: binding.Deployment.SHA256, ParametersSHA256: binding.ParametersSHA256, Model: binding.Deployment.Model, Requests: []modelcontract.RequestEvidence{{Step: 0, RequestSHA256: strings.Repeat("a", 64), ResponseSHA256: strings.Repeat("b", 64), ProviderModel: binding.Deployment.Model, OutputAllowance: 100, UsageState: tc.UsageComplete}}}
+			evidence := &modelcontract.Evidence{GatewayProtocol: modelcontract.GatewayProtocol, GatewayClosed: true, BindingSHA256: binding.BindingSHA256, DeploymentSHA256: binding.Deployment.SHA256, ParametersSHA256: binding.ParametersSHA256, Model: binding.Deployment.Model, Requests: []modelcontract.RequestEvidence{{State: "completed", Step: 0, RequestSHA256: strings.Repeat("a", 64), ResponseSHA256: strings.Repeat("b", 64), ProviderModel: binding.Deployment.Model, OutputAllowance: 100, UsageState: tc.UsageComplete, Usage: &modelcontract.RequestUsage{InputTokens: usageInt(23), OutputTokens: usageInt(17)}}}}
 			output := int64(17)
 			switch scenario {
 			case "foreign_provider_model":
 				evidence.Requests[0].ProviderModel = "foreign"
-			case "old_worker_without_model_receipt":
+			case "missing_host_gateway_receipt":
 				evidence = nil
 			case "output_overrun":
 				output = 101
+			}
+			if evidence != nil {
+				evidence.Requests[0].Usage.OutputTokens = &output
 			}
 			result := dag.Result{RunID: ref.RunID, NodeID: ref.NodeID, WorkerID: ref.WorkerID, Attempt: 1, Fence: 1, OperationID: newID(), ToolEvidence: &tc.Evidence{Profile: p.Profile, Terminal: "failed", EventCount: 4, Usage: &tc.Usage{InputTokens: usageInt(23), OutputTokens: &output}, UsageState: tc.UsageComplete, ModelExecution: evidence}}
 			tx, err = f.s.DB.Begin()
@@ -185,6 +188,12 @@ func TestModelExecutionUncertainProviderUsageKeepsKnownCountersAndHold(t *testin
 				t.Fatal(page, err)
 			}
 			a := page.Items[0]
+			if scenario == "missing_host_gateway_receipt" {
+				if a.State != "reconciling" || a.ReportedTokens != nil || a.HeldTokens == 0 {
+					t.Fatal("unproven SDK counters were trusted or reservation released", a)
+				}
+				return
+			}
 			if a.State != "reconciling" || a.ReportedTokens == nil || *a.ReportedTokens != 23+output || a.EstimatedCostMicros == nil || *a.EstimatedCostMicros != 23+output*2 || a.HeldTokens == 0 || a.HeldCostMicros == nil || *a.HeldCostMicros == 0 {
 				t.Fatal("uncertain execution lost usage or reservation", a)
 			}
@@ -212,4 +221,25 @@ func TestModelExecutionDispatchCopyClearsAutomaticRetryWithoutChangingTemplate(t
 	if derived.Nodes[0].MaxRetries != 0 || source.Nodes[0].MaxRetries != 2 {
 		t.Fatal("model preview did not disable retries only in its copied node", derived.Nodes[0].MaxRetries, source.Nodes[0].MaxRetries)
 	}
+}
+
+// These helpers keep typed workspace/repair service fixtures on the current
+// model contract. They create no provider, process or claimed real inference.
+func nativeWorkspaceModelForTest(t *testing.T) modelcontract.Binding {
+	t.Helper()
+	d := modelcontract.Deployment{ID: "workspace-model-fixture", Revision: 1, Protocol: modelcontract.ProviderProtocol, Model: "workspace-model-fixture", EndpointOrigin: "https://models.example", EndpointConfigSHA256: strings.Repeat("d", 64), ContextWindow: 8192}
+	d.SHA256 = modelcontract.DeploymentDigest(d)
+	b, err := modelcontract.NewBinding(d, modelcontract.Parameters{MaxSteps: 2, MaxOutputTokens: 100}, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return b
+}
+func nativeWorkspaceSelectionForTest(t *testing.T) *modelcontract.Selection {
+	b := nativeWorkspaceModelForTest(t)
+	return &modelcontract.Selection{DeploymentID: b.Deployment.ID, DeploymentRevision: b.Deployment.Revision, DeploymentSHA256: b.Deployment.SHA256, Parameters: b.Parameters}
+}
+func nativeGatewayReceiptForTest(t *testing.T, b modelcontract.Binding) *modelcontract.Evidence {
+	t.Helper()
+	return &modelcontract.Evidence{GatewayProtocol: modelcontract.GatewayProtocol, GatewayClosed: true, BindingSHA256: b.BindingSHA256, DeploymentSHA256: b.Deployment.SHA256, ParametersSHA256: b.ParametersSHA256, Model: b.Deployment.Model, Requests: []modelcontract.RequestEvidence{{State: "completed", Step: 0, RequestSHA256: strings.Repeat("a", 64), ResponseSHA256: strings.Repeat("b", 64), ProviderModel: b.Deployment.Model, OutputAllowance: 100, UsageState: "unreported"}}}
 }

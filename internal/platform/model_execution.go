@@ -19,7 +19,7 @@ const (
 )
 
 func supportsModelExecution(p ToolProfile) bool {
-	return p.Profile.ModelExecutionProtocol == modelcontract.Protocol && p.Profile.Adapter == "suma" && !p.Profile.ReadOnly && p.Profile.WorkspaceToolsVersion == "attempt-workspace-v1"
+	return p.Profile.ModelExecutionProtocol == modelcontract.Protocol && !p.Profile.ReadOnly && p.Profile.WorkspaceToolsVersion == "attempt-workspace-v1" && (p.Profile.Adapter == "suma" && p.Profile.Protocol == "suma-jsonl-v1" || supportsOctopExecution(p))
 }
 func matchingModelRate(rate *UsageRateRevision, profile ToolProfile, d modelcontract.Deployment) bool {
 	return rate != nil && rate.ToolProfileID == profile.ID && rate.ProfileSHA256 == profile.Profile.ProfileSHA256 && rate.ModelDeploymentID == d.ID && rate.ModelDeploymentRevision == d.Revision && rate.ModelDeploymentSHA256 == d.SHA256 && rate.Model == d.Model && rate.EndpointOrigin == d.EndpointOrigin
@@ -56,18 +56,6 @@ func (s *Service) GetModelExecutionOptions(ctx context.Context, actor Actor, pro
 		}
 		out = ModelExecutionOptions{ProjectID: project, ToolProfileID: p.ID, ToolProfileVersion: p.Version, ToolProfileSHA256: p.Profile.ProfileSHA256, ObservedAt: automationStamp(clock), Items: []ModelExecutionOption{}}
 		out.CodexReason = codexExecutionUnsupported
-		if supportsOctopExecution(p) {
-			current, err := s.toolProfileObservationLockedTx(auth.ctx, auth.tx, auth.target.tenantID, project, p)
-			if err != nil {
-				return err
-			}
-			if !current.Available {
-				return conflict(octopExecutionUnavailable)
-			}
-			out.FixedOctop = tc.CloneProfile(current.Profile).OctopExecution
-			out.Reason = "fixed_by_tool"
-			return nil
-		}
 		if supportsOpenCodeExecution(p) {
 			current, err := s.toolProfileObservationLockedTx(auth.ctx, auth.tx, auth.target.tenantID, project, p)
 			if err != nil {
@@ -110,6 +98,7 @@ func (s *Service) GetModelExecutionOptions(ctx context.Context, actor Actor, pro
 			return e
 		}
 		out.Supported = true
+		out.ParameterLimits = &modelcontract.Parameters{MaxSteps: modelcontract.MaxSteps, MaxOutputTokens: modelcontract.MaxOutputTokens}
 		for _, d := range deployments {
 			if e = modelcontract.ValidateDeployment(d); e != nil {
 				return invalid(modelExecutionInvalid)
@@ -188,7 +177,7 @@ func bindModelExecutionWorkflow(w *dag.Workflow, node string, b *modelcontract.B
 			w.Nodes[i].Config["model_execution"] = raw
 			w.Nodes[i].Config["max_steps"] = b.Parameters.MaxSteps
 			w.Nodes[i].Config["max_output_tokens"] = b.Parameters.MaxOutputTokens
-			if b.Parameters.MaxSteps > 16 || b.Parameters.MaxOutputTokens > 32768 {
+			if b.Parameters.MaxSteps > modelcontract.MaxSteps || b.Parameters.MaxOutputTokens > modelcontract.MaxOutputTokens {
 				return invalid(modelExecutionInvalid)
 			}
 		}
@@ -198,9 +187,6 @@ func bindModelExecutionWorkflow(w *dag.Workflow, node string, b *modelcontract.B
 }
 
 func (s *Service) validateModelExecutionPlanTx(ctx context.Context, tx *sql.Tx, tenant, project string, p ToolProfile, plan TaskDispatchPlan) error {
-	if err := s.validateOctopExecutionPlanTx(ctx, tx, tenant, project, p, plan); err != nil {
-		return err
-	}
 	if err := s.validateOpenCodeExecutionPlanTx(ctx, tx, tenant, project, p, plan); err != nil {
 		return err
 	}
@@ -213,6 +199,9 @@ func (s *Service) validateModelExecutionPlanTx(ctx context.Context, tx *sql.Tx, 
 	}
 	if node == nil {
 		return invalid(modelExecutionInvalid)
+	}
+	if supportsOctopExecution(p) && tc.ValidateOctopNodeConfiguration(node.Config) != nil {
+		return conflict(modelExecutionChanged)
 	}
 	b, err := dag.ModelBinding(*node)
 	if err != nil {
@@ -276,8 +265,8 @@ func (s *Service) modelExecutionExactRateTx(ctx context.Context, tx *sql.Tx, ten
 }
 
 func (s *Service) modelExecutionClaimEligibleTx(ctx context.Context, tx *sql.Tx, tenant, project string, p ToolProfile, n dag.Node) (bool, error) {
-	if eligible, err := s.octopExecutionClaimEligibleTx(ctx, tx, tenant, project, p, n); err != nil || !eligible {
-		return false, err
+	if supportsOctopExecution(p) && tc.ValidateOctopNodeConfiguration(n.Config) != nil {
+		return false, nil
 	}
 	if eligible, err := s.openCodeExecutionClaimEligibleTx(ctx, tx, tenant, project, p, n); err != nil || !eligible {
 		return false, err

@@ -8,6 +8,7 @@ import (
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	ec "github.com/ai-mada/suma/internal/executioncontract"
 	mc "github.com/ai-mada/suma/internal/modelcontract"
+	mg "github.com/ai-mada/suma/internal/modelgateway"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 	"io"
@@ -43,7 +44,6 @@ type CommandSpec struct {
 	ModelExecutionProtocol string                 `json:"model_execution_protocol,omitempty"`
 	CodexAppServer         *CodexAppServerSpec    `json:"codex_app_server,omitempty"`
 	OpenCode               *OpenCodeSpec          `json:"opencode,omitempty"`
-	Octop                  *OctopSpec             `json:"octop,omitempty"`
 }
 
 type nativeAgentLimits struct {
@@ -57,7 +57,7 @@ type nativeAgentLimits struct {
 // Repair limits require the typed repair execution, never its string marker.
 func nativeExecutionLimits(a Assignment) (nativeAgentLimits, error) {
 	limits := nativeAgentLimits{MaxSteps: 8, MaxTokens: 4096}
-	maxSteps, maxTokens := 16, 32768
+	maxSteps, maxTokens := mc.MaxSteps, int(mc.MaxOutputTokens)
 	if a.CandidateConflictRepair != nil {
 		limits.MaxSteps, maxSteps, maxTokens = 64, 128, 131072
 	}
@@ -390,7 +390,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		return fail(codexErr.Error())
 	}
 	var nativeLimits nativeAgentLimits
-	if spec.NativeWorkspace != nil && spec.OpenCode == nil && spec.Octop == nil {
+	if spec.NativeWorkspace != nil && spec.OpenCode == nil && spec.Adapter != "octop" {
 		limits, limitsErr := nativeExecutionLimits(a)
 		if limitsErr != nil {
 			return fail(limitsErr.Error())
@@ -509,7 +509,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			}
 			defer codexPipe.Close()
 		case "octop-acp-jsonl":
-			if spec.Octop == nil {
+			if spec.Adapter != "octop" {
 				return fail("Octop requires its fixed local configuration")
 			}
 			dshPipe, err = cmd.StdinPipe()
@@ -552,17 +552,18 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if err != nil {
 		return fail(err.Error())
 	}
-	if spec.Octop != nil {
+	if spec.Adapter == "octop" {
 		home := filepath.Join(workspace.Directory, "octop-home")
-		cmd.Env, environmentSecrets, err = octopEnvironment(spec, home, true)
+		cmd.Env, environmentSecrets, err = octopEnvironment(spec, home)
 		cmd.Dir = home
-		cfg.Secrets = append(cfg.Secrets, home, root, spec.Octop.BaseURL)
+		cfg.Secrets = append(cfg.Secrets, home, root)
 		if err != nil {
 			return fail(err.Error())
 		}
 	}
 	if modelExecution != nil {
-		cmd.Env = applyModelExecutionEnvironment(cmd.Env, modelExecution)
+		// The provider key stays in this Go process. The loopback connection is
+		// injected only after its durable model gateway has been opened below.
 		cfg.Secrets = append(cfg.Secrets, modelExecution.APIKey)
 	}
 	if spec.Adapter == "codebuddy" {
@@ -603,8 +604,8 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				defer unregister()
 			}
 		}
-		if spec.OpenCode != nil || spec.Octop != nil {
-			dshStdin, err = newHostAgentInput(digest([]byte(key(a))), a.Config["goal"].(string), bridge)
+		if spec.OpenCode != nil || spec.Adapter == "octop" {
+			dshStdin, err = newHostAgentInput(digest([]byte(key(a))), a.Config["goal"].(string), bridge, a.Config["model_execution"])
 			if err != nil {
 				return fail(err.Error())
 			}
@@ -616,6 +617,20 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			}
 			cmd.Stdin = bytes.NewReader(append(payload, '\n'))
 		}
+	}
+	var gatewaySnapshot mg.Snapshot
+	var gatewayCloseError error
+	closeModelGateway := func() {}
+	if modelExecution != nil {
+		gateway, gatewayErr := openAttemptModelGateway(ctx, cancel, a, cfg, workspace, profile, modelExecution)
+		if gatewayErr != nil {
+			return fail("model gateway could not record its original attempt")
+		}
+		var once sync.Once
+		closeModelGateway = func() { once.Do(func() { gatewaySnapshot, gatewayCloseError = gateway.Close() }) }
+		defer closeModelGateway()
+		cmd.Env = applyModelExecutionEnvironment(cmd.Env, modelExecution.Binding, gateway.Connection())
+		cfg.Secrets = append(cfg.Secrets, gateway.Connection().Token, modelExecution.BaseURL)
 	}
 	var codexRead *liveWorkspaceRead
 	var observationCloseErr error
@@ -707,6 +722,17 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		var emit func(tc.Event) error
 		if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" {
 			emit = cfg.ToolProgress
+			if modelExecution != nil && emit != nil {
+				forward := emit
+				emit = func(event tc.Event) error {
+					// SDK usage is not an accounting authority. Final host receipts
+					// replace it; ordinary model/tool activity is still forwarded.
+					if event.Kind == "usage" {
+						return nil
+					}
+					return forward(event)
+				}
+			}
 		}
 		stream = newToolStream(profile, cfg.Secrets, emit, digest([]byte(key(a))))
 		if modelExecution != nil {
@@ -801,7 +827,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				_ = codexDriver.Cancel()
 			}
 			graceDuration := 1500 * time.Millisecond
-			if spec.OpenCode != nil || spec.Octop != nil {
+			if spec.OpenCode != nil || spec.Adapter == "octop" {
 				graceDuration = 10 * time.Second
 			}
 			grace := time.NewTimer(graceDuration)
@@ -841,6 +867,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		r.OutcomeUnknown = true
 		r.Error = "process tree final state unverified"
 	}
+	closeModelGateway()
 	r.Output = out.String()
 	if stream != nil {
 		if codexDriver != nil {
@@ -848,6 +875,16 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 		invalidBeforeFinish := stream.bad != nil
 		evidence, streamErr := stream.finish()
+		if modelExecution != nil {
+			if gatewayCloseError != nil {
+				gatewaySnapshot.Closed = false
+			}
+			complete := applyModelGatewayEvidence(evidence, gatewaySnapshot)
+			if gatewayCloseError != nil || evidence.Terminal == "completed" && !complete {
+				evidence.Terminal = "unknown"
+				streamErr = fmt.Errorf("model gateway response coverage requires reconciliation")
+			}
+		}
 		parentStopped := stream.openCodeState != nil && stream.openCodeState.parentStopped
 		applyOpenCodeProcessContainment(evidence, parentStopped, processContainmentVerified)
 		octopParentStopped := stream.octopState != nil && stream.octopState.parentStopped

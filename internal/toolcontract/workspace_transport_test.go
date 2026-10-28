@@ -16,7 +16,7 @@ const testWorkspaceWriteProtocol = "workspace-write-v1"
 func workspaceTransportObservation(t *testing.T, available bool, read, write string) Observation {
 	t.Helper()
 	raw, _ := json.Marshal(map[string]any{
-		"profile":   Profile{CommandID: "native", Adapter: "suma", Protocol: "suma-jsonl-v1", ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "owned-native-probe", WorkspaceToolsVersion: "attempt-workspace-v1"},
+		"profile":   Profile{CommandID: "native", Adapter: "suma", Protocol: "suma-jsonl-v1", ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "owned-native-probe", WorkspaceToolsVersion: "attempt-workspace-v1", ModelExecutionProtocol: "suma-model-execution-v1"},
 		"available": available, "reason": "local executable protocol probe; connection unverified",
 		"workspace_observation_protocol": read, "workspace_write_protocol": write,
 	})
@@ -85,12 +85,13 @@ func TestWorkspaceTransportProfileKindsSeparateCodexReadFromNativeWrite(t *testi
 		read    bool
 		write   bool
 	}{
-		{"native", Profile{Adapter: "suma", Protocol: "suma-jsonl-v1", WorkspaceToolsVersion: "attempt-workspace-v1"}, true, true},
+		{"native", Profile{Adapter: "suma", Protocol: "suma-jsonl-v1", WorkspaceToolsVersion: "attempt-workspace-v1", ModelExecutionProtocol: "suma-model-execution-v1"}, true, true},
+		{"native-without-model-gateway", Profile{Adapter: "suma", Protocol: "suma-jsonl-v1", WorkspaceToolsVersion: "attempt-workspace-v1"}, false, false},
 		{"codex-app-server", Profile{Adapter: "codex", Protocol: cc.Protocol}, true, false},
 		{"codex-jsonl", Profile{Adapter: "codex", Protocol: "codex-jsonl-v1"}, false, false},
 		{"command", Profile{Adapter: "command", Protocol: "text-v1"}, false, false},
 		{"other-adapter", Profile{Adapter: "command", Protocol: cc.Protocol}, false, false},
-		{"codex-native-claim", Profile{Adapter: "codex", Protocol: cc.Protocol, WorkspaceToolsVersion: "attempt-workspace-v1"}, false, false},
+		{"codex-native-claim", Profile{Adapter: "codex", Protocol: cc.Protocol, WorkspaceToolsVersion: "attempt-workspace-v1", ModelExecutionProtocol: "suma-model-execution-v1"}, false, false},
 		{"codex-readonly-purpose", Profile{Adapter: "codex", Protocol: cc.Protocol, ReadOnly: true}, false, false},
 		{"native-without-workspace", Profile{Adapter: "suma", Protocol: "suma-jsonl-v1"}, false, false},
 		{"native-planning-purpose", Profile{Adapter: "suma", Protocol: "suma-jsonl-v1", ReadOnly: true, Planning: &PlanningCapability{}}, false, false},
@@ -115,6 +116,7 @@ func TestWorkspaceTransportCodexRequiresValidCurrentReadCatalog(t *testing.T) {
 		t.Run(scenario, func(t *testing.T) {
 			observation := workspaceTransportObservation(t, true, testWorkspaceObservationProtocol, "")
 			observation.Profile.Adapter, observation.Profile.Protocol, observation.Profile.WorkspaceToolsVersion = "codex", cc.Protocol, ""
+			observation.Profile.ModelExecutionProtocol = ""
 			observedCatalog := catalog
 			observation.CodexCatalog = &observedCatalog
 			switch scenario {

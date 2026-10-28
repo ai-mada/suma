@@ -1,6 +1,8 @@
 # 速码 1.0.0 文档索引
 
-当前只有 **1.0.0** 产品基线，完整平台仍在实现与验收中。入口按领域组织，当前能力由交付状态统一维护；专项设计、合同、英文说明、验证报告与精简摘要保留各自范围，不把历史阶段编号当成产品版本或当前完成状态。
+更新：2026-10-29。当前只有 **1.0.0** 产品基线，完整平台仍在实现与验收中。入口按领域组织，当前能力由交付状态统一维护；专项设计、合同、英文说明、验证报告与精简摘要保留各自范围，不把历史阶段编号当成产品版本或当前完成状态。
+
+当前初始数据合同为 `suma-initial-gateway-v1`，与产品版本分别管理。旧目录或声明不匹配时拒绝启动写入，保留原数据；新实例使用独立空目录／数据库。统一模型网关及本轮真实检查范围见[报告](quality/model-gateway-verification.md)与[精简摘要](quality/model-gateway-summary.json)。
 
 | 当前入口 | 内容 |
 | --- | --- |
@@ -13,7 +15,7 @@
 | [任务依赖编辑](development/task-dependencies.md) | 完整业务任务图、图／表共享草稿、原子保存、冲突与原操作恢复；[English](en/task-dependencies.md)、[合同](../contracts/task-dependencies.md)、[当前专项报告](quality/task-dependencies-verification.md) |
 | [任务交付与质量](development/task-delivery-chain.md) | 从依赖图进入团队预览、确切运行／测试、正式验收及问题回流；[English](en/task-delivery-chain.md)、[合同](../contracts/task-delivery-chain.md)、[本阶段限定报告](quality/task-delivery-chain-verification.md) |
 | [Octop 项目接入](integrations/octop.md) | 项目专用MCP配置片段、统一任务交付／逐例质量读取、当前权限与人工门禁；[架构](architecture/octop-integration.md)、[真实限定报告](quality/octop-integration-verification.md) |
-| [Octop Harness 开发执行](architecture/octop-execution.md) | 公开 SDK／ACP、固定模型到六工具工作区、代码封存及独立测试；[合同](../contracts/octop-harness-acp.md)、[专项证据](quality/octop-execution-verification.md) |
+| [Octop Harness 开发执行](architecture/octop-execution.md) | 公开 Harness／ACP 与原生编码共用模型选择、Go 网关和六工具工作区，代码封存后同 SHA 独立测试；[合同](../contracts/octop-harness-acp.md)、[当前 T-MODEL-118 报告](quality/model-gateway-verification.md)、[摘要](quality/model-gateway-summary.json) |
 | [自动化测试计划与逐例证据](development/test-plans.md) | T-QUALITY-115：一个任务的不可变计划修订、同运行固定候选独立测试、原 JUnit 报告、逐例门禁与明确问题回流；[English](en/test-plans.md)、[合同](../contracts/test-plans.md)、[证据架构](architecture/quality-evidence.md)、[阶段报告](quality/test-plans-verification.md)、[摘要](quality/test-plans-summary.json)。实际范围以报告为准，完整测试／缺陷与应用交付仍待办 |
 | [需求验收追踪](development/requirement-traceability.md) | 当前需求版本／序号到正式发布、受保护采用及确切运行／验收；[English](en/requirement-traceability.md)、[合同](../contracts/requirement-traceability.md)、[限定报告](quality/requirement-traceability-verification.md)，不等于用例覆盖／应用版本矩阵 |
 | [统一智能输入与草稿计划](development/intelligent-operations.md) | 自然语言经一次只读模型形成最多8步需求／设计／知识草稿计划，本次预览确认、同库原子采用及原操作恢复；[English](en/intelligent-operations.md)、[合同](../contracts/intelligent-operations.md)、[架构与SOP](architecture/intelligent-operations.md)、[限定报告](quality/intelligent-operations-verification.md)；需求26整体仍待完成 |
@@ -84,7 +86,7 @@
 | 执行器传输能力 | [合同](../contracts/workspace-transport-capabilities.md)／[架构与AI SOP](integrations/workspace-transport-capabilities.md)／[English](en/workspace-transport-capabilities.md)／[限定验证](quality/workspace-capability-verification.md)／[摘要](quality/workspace-capability-summary.json) |
 | 执行文件编辑、CAS保存与原操作恢复 | [产品交互](product/remote-workspace-write.md)／[合同](../contracts/workspace-write.md)／[架构](architecture/remote-workspace-write.md)／[AI SOP](operations/remote-workspace-write.md)／[English](en/remote-workspace-write.md)／[实际验证](quality/workspace-write-verification.md)／[摘要](quality/workspace-write-summary.json) |
 | 执行工作区只读观察与出站恢复 | [产品与交互](product/remote-workspace.md)／[合同](../contracts/workspace-observation.md)／[架构](architecture/remote-workspace-broker.md)／[AI SOP](operations/remote-workspace.md)／[English](en/remote-workspace.md)／[实际证据](quality/workspace-observation-verification.md)／[摘要](quality/workspace-observation-summary.json) |
-| 固定原生模型选择、attempt预算与真实执行 | [PRD](product/model-execution.md)／[架构与实现检查点](architecture/model-execution.md)／[AI SOP](operations/model-execution.md)／[English](en/model-execution.md)／[实际验证及剩余边界](quality/model-execution-verification.md) |
+| 原生／Octop 统一模型选择、预算与真实执行 | [共同模型合同](../contracts/model-execution.md)、[Go 网关架构与 SOP](architecture/model-gateway.md)、[当前报告](quality/model-gateway-verification.md)、[摘要](quality/model-gateway-summary.json)：真实 SSE、剩余总输出许可、持久回执与原响应回放；简洁中英文模型／报价入口及可展开执行事实，厂商账单与费用硬上限仍须独立验收 |
 | 开发工具真实只读MCP诊断 | [developer check操作与边界](integrations/developer-connection-check.md)／[限定证据](quality/developer-connection036-verification.md) |
 | 只读Git审阅、Monaco保存快捷键与原生执行限额 | [PRD](product/workspace-git.md)／[架构](architecture/workspace-git.md)／[交互](design/workspace-git.md)／[接口与限额合同](../contracts/workspace-git.md)／[限定本地验证](quality/workspace-git-verification.md) |
 | 独立模型选择与计价的设计输入（追溯） | [模型部署、版本绑定与费率设计](architecture/035-model-selection-design.md) |

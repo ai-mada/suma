@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 from .contract import RuntimeFault
@@ -13,16 +12,16 @@ from .workspace import WorkspaceBridge
 class FrozenHarness:
     """A public stream facade; the official ACP adapter cannot alter execution inputs."""
 
-    def __init__(self, harness, config, bridge, policy):
-        self.harness, self.config, self.bridge, self.policy = harness, config, bridge, policy
+    def __init__(self, harness, binding, bridge, policy):
+        self.harness, self.binding, self.bridge, self.policy = harness, binding, bridge, policy
 
     async def stream(self, value):
         from octop_harness import ChatRequest
         request = ChatRequest(
             messages=value["messages"], thread_id=value["thread_id"], source="suma-acp",
-            model=self.config["provider_id"] + "/" + self.config["model"], skills=[],
-            configurable={"model_settings": {"max_tokens": self.config["max_output_tokens"], "parallel_tool_calls": False}},
-            recursion_limit=self.config["max_steps"] * 3 + 10,
+            model="suma_gateway/" + self.binding["deployment"]["model"], skills=[],
+            configurable={"model_settings": {"max_tokens": self.binding["parameters"]["max_output_tokens"], "parallel_tool_calls": False}},
+            recursion_limit=self.binding["parameters"]["max_steps"] * 3 + 10,
         )
         async for chunk in self.harness.stream(request):
             yield chunk
@@ -32,20 +31,36 @@ class FrozenHarness:
             raise RuntimeFault(self.policy.fatal_code)
 
 
-async def run_child(config: dict, request: dict):
+async def run_child(config: dict, request: dict, execution: dict):
     # Imports follow private HOME setup in the entrypoint. Never bootstrap vendor
     # workspace templates or copy any personal Octop DB, agent, history or credential.
     from acp import run_agent
     from octop_harness import HarnessAgent, HarnessAgentConfig, ModelConfig, ProviderConfig
     from octop_harness.acp.server import build_harness_acp_agent
+    from octop_harness.llm.factory import ChatModelFactory
 
     home = Path(config["home"])
-    key_ref = config.get("api_key_env_ref")
-    key = os.environ.get(key_ref, "") if key_ref else "suma-local-gateway"
-    if key_ref and not key:
-        raise RuntimeFault("provider_credential_missing")
+    binding, gateway = execution["binding"], execution["gateway"]
+    parameters = binding["parameters"]
+    selected_model = binding["deployment"]["model"]
+    frozen_ref = "suma_gateway/" + selected_model
+
+    class FrozenModelFactory(ChatModelFactory):
+        """Use a public factory seam to disable hidden SDK retries, not streaming."""
+
+        def get_chat_model(self, model_ref, *, max_retries=None):
+            if model_ref != frozen_ref or max_retries not in (None, 0):
+                raise RuntimeFault("model_binding_invalid")
+            model = super().get_chat_model(model_ref, max_retries=0)
+            # langchain-openai injects temperature=1 for some model names even
+            # when callers omit it. Temperature is not part of our frozen
+            # parameter contract; clear that public field rather than expanding
+            # the host broker's allowlist or silently selecting a new setting.
+            model.temperature = None
+            return model
+
     async with WorkspaceBridge(request) as bridge:
-        policy = WorkspaceOnlyMiddleware(config["max_steps"], config["max_output_tokens"])
+        policy = WorkspaceOnlyMiddleware(parameters["max_steps"], parameters["max_output_tokens"])
         settings = HarnessAgentConfig(
             name="suma-octop-harness", workspace_dir=home / "agent", language="en",
             # DeepAgents performs its own skill-directory listing before the
@@ -53,8 +68,8 @@ async def run_child(config: dict, request: dict):
             # must include that private metadata subtree as well as home/state.
             # This is still fresh runtime state, never the Go source worktree.
             backend={"type": "filesystem", "root_dir": str(home), "virtual_mode": True},
-            providers=[ProviderConfig(id=config["provider_id"], name="Suma frozen provider", protocol="openai", base_url=config["base_url"], api_key=key, models=[ModelConfig(id=config["model"], max_output_tokens=config["max_output_tokens"], api_mode="chat_completions")])],
-            default_model=config["provider_id"] + "/" + config["model"],
+            providers=[ProviderConfig(id="suma_gateway", name="Suma attempt model gateway", protocol="openai", base_url=gateway["base_url"], api_key=gateway["token"], stream_usage=True, models=[ModelConfig(id=selected_model, max_output_tokens=parameters["max_output_tokens"], api_mode="chat_completions", api_fallback="none", native_tool_search=False)])],
+            default_model=frozen_ref,
             tools=bridge.tools(), middleware=[policy], mcp_server_configs={},
             team_enabled=False, team_peers=(), subagents_auto_load=False, subagents=[],
             acp_delegate_enabled=False, acp_runners={}, ask_user_enabled=False,
@@ -68,5 +83,9 @@ async def run_child(config: dict, request: dict):
                            "Use content-hash preconditions, run the configured workspace check before finishing, and report actual results. "
                            "Do not use shell, network, delegation, approvals, arbitrary checks or external tools. Never claim human acceptance or deployment."),
         )
-        async with HarnessAgent(settings) as harness:
-            await run_agent(build_harness_acp_agent(FrozenHarness(harness, config, bridge, policy), agent_id="suma-octop-harness"), stdio_buffer_limit_bytes=2 * 1024 * 1024)
+        factory = FrozenModelFactory(settings.providers, agent_config=settings)
+        try:
+            async with HarnessAgent(settings, model_factory=factory) as harness:
+                await run_agent(build_harness_acp_agent(FrozenHarness(harness, binding, bridge, policy), agent_id="suma-octop-harness"), stdio_buffer_limit_bytes=2 * 1024 * 1024)
+        finally:
+            await factory.aclose()

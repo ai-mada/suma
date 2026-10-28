@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	mc "github.com/ai-mada/suma/internal/modelcontract"
 )
 
 // This deterministic CLI tests host finalization, not a model or SDK. The
@@ -24,6 +26,7 @@ func nativeHostFixture(t *testing.T) (ExecConfig, string) {
 	script := `import {createInterface} from 'node:readline';
 if(process.argv.includes('--version')){console.log('suma-agent-runtime 0.1.0');process.exit(0)}
 if(process.argv.includes('--help')){console.log('JSONL SUMA_AGENT_TOKEN');process.exit(0)}
+if(process.argv.includes('--model-execution-probe')){console.log(JSON.stringify({protocol:'suma-model-execution-v1',provider_protocol:'openai-chat-completions-v1',parameters:['max_steps','max_output_tokens']}));process.exit(0)}
 const input=createInterface({input:process.stdin});input.once('line',line=>{const r=JSON.parse(line);const emit=value=>console.log(JSON.stringify({...value,request_id:r.request_id}));emit({type:'started',model:'host-fixture',tools:[]});emit({type:'request_started',step:0,output_allowance:100});emit({type:'usage',step:0,input_tokens:3,output_tokens:2,usage_state:'complete',usage_reported:true});emit({type:'completed',output:'No source changes',usage_state:'complete',output_tokens:2});if(r.goal==='cancel')process.stderr.write('cancel-finalization\n');input.close()});`
 	if err = os.WriteFile(entry, []byte(script), 0600); err != nil {
 		t.Fatal(err)
@@ -34,7 +37,7 @@ const input=createInterface({input:process.stdin});input.once('line',line=>{cons
 	if err = os.WriteFile(name, raw, 0600); err != nil {
 		t.Fatal(err)
 	}
-	spec := CommandSpec{Adapter: "suma", Protocol: "suma-jsonl-v1", Executable: node, Args: []string{entry}, Input: "agent-jsonl", NativeWorkspace: &NativeWorkspacePolicy{Checks: []string{}, RuntimeManifest: name}}
+	spec := CommandSpec{Adapter: "suma", Protocol: "suma-jsonl-v1", ModelExecutionProtocol: mc.Protocol, Executable: node, Args: []string{entry}, Input: "agent-jsonl", NativeWorkspace: &NativeWorkspacePolicy{Checks: []string{}, RuntimeManifest: name}}
 	return ExecConfig{AllowExec: true, Workspace: repo, Repository: repo, BaseCommit: base, Commands: map[string]CommandSpec{"native": spec}}, entry
 }
 

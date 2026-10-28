@@ -28,7 +28,7 @@ def safe_id(value: object) -> bool:
 
 
 def closed(value: object, keys: set[str], required: set[str] | None = None) -> dict:
-    if not isinstance(value, dict) or set(value) - keys or not (required or keys) <= set(value):
+    if not isinstance(value, dict) or set(value) - keys or not (required if required is not None else keys) <= set(value):
         raise RuntimeFault("request_invalid")
     return value
 
@@ -63,7 +63,7 @@ def parse_json(raw: str | bytes) -> object:
 
 
 def parse_execute(value: object) -> dict:
-    request = closed(value, {"v", "type", "request_id", "goal", "workspace_bridge"})
+    request = closed(value, {"v", "type", "request_id", "goal", "workspace_bridge", "model_execution"})
     if type(request["v"]) is not int or request["v"] != 1 or request["type"] != "execute" or not safe_id(request["request_id"]):
         raise RuntimeFault("request_invalid")
     goal = request["goal"]
@@ -86,28 +86,9 @@ def parse_execute(value: object) -> dict:
 
 
 def parse_config(value: object) -> dict:
-    keys = {"home", "provider_id", "model", "base_url", "configuration_sha256", "max_steps", "max_output_tokens", "api_key_env_ref"}
-    config = closed(value, keys, keys - {"api_key_env_ref"})
+    config = closed(value, {"home"})
     if not isinstance(config["home"], str) or not Path(config["home"]).is_absolute():
         raise RuntimeFault("configuration_invalid")
-    if not safe_id(config["provider_id"]) or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", config["provider_id"]) or not safe_id(config["model"]):
-        raise RuntimeFault("configuration_invalid")
-    if not isinstance(config["configuration_sha256"], str) or not re.fullmatch(r"[a-f0-9]{64}", config["configuration_sha256"]):
-        raise RuntimeFault("configuration_invalid")
-    for key, maximum in (("max_steps", 128), ("max_output_tokens", 131072)):
-        if type(config[key]) is not int or not 1 <= config[key] <= maximum:
-            raise RuntimeFault("configuration_invalid")
-    if "api_key_env_ref" in config:
-        ref = config["api_key_env_ref"]
-        reserved = {"HOME", "USERPROFILE", "PATH", "SYSTEMROOT", "WINDIR", "COMSPEC", "PATHEXT", "LANG", "LC_ALL", "TEMP", "TMP", "VIRTUAL_ENV", "SUMA_OCTOP_CONFIG", "SUMA_OCTOP_REQUEST", "OCTOP_HOME"}
-        if not isinstance(ref, str) or not re.fullmatch(r"[A-Z][A-Z0-9_]{1,127}", ref) or ref in reserved or ref.startswith(("PYTHON", "LD_", "DYLD_", "SUMA_", "LANGCHAIN", "LANGSMITH", "HF_", "OTEL_")):
-            raise RuntimeFault("configuration_invalid")
-    try:
-        url = urlsplit(config["base_url"])
-        if url.username or url.password or url.query or url.fragment or not url.hostname or url.scheme not in {"https", "http"} or (url.scheme == "http" and url.hostname not in {"127.0.0.1", "localhost", "::1"}):
-            raise ValueError()
-    except (TypeError, ValueError) as exc:
-        raise RuntimeFault("configuration_invalid") from exc
     return config
 
 

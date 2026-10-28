@@ -249,6 +249,25 @@
   justify-content: space-between;
   gap: 12px;
 }
+/* The workflow inspector is narrow even on a wide desktop. Keep each
+   usage label/value pair on one full grid row; never split numeric values. */
+.canvas-inspector .tool-usage-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: start;
+  gap: 8px 12px;
+}
+.canvas-inspector .tool-usage-row dt {
+  min-width: 0;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.canvas-inspector .tool-usage-row dd {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
 .tool-execution-facts {
   border: 1px solid var(--border);
   padding: 14px;
@@ -311,6 +330,25 @@
   }
   .tool-context {
     padding: 13px;
+  }
+}
+@media (max-width: 600px) {
+  .tool-execution-facts .tool-usage-row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: start;
+    gap: 8px 12px;
+  }
+  .tool-execution-facts .tool-usage-row dt {
+    min-width: 0;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+  .tool-execution-facts .tool-usage-row dd {
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -1,14 +1,14 @@
 import {OpenCodeExecutionFacts} from './OpenCodeExecutionFacts';
 import {OctopExecutionFacts} from './OctopExecutionFacts';
 import {openCodeRunFacts,type OpenCodeRunTest} from './opencode-run-model';
-import {CodexExecutionFacts} from './CodexModelExecutionPanel';
+import {ExecutionModelFacts} from './ExecutionModelFacts';
 import { Trans } from "./i18n/Trans";
 import { NativeToolMessage } from "./NativeToolMessage";
 import { renderDisplayDiagnostic } from "./display-diagnostic";
 import { tr as t, useLocale, formatDateTime, formatNumber } from "./i18n";
 import { DispatchRouteFacts } from "./execution-pools/DispatchRouteFacts";
 import { stateLabel } from "./api";
-import type { OpenCodeExecutionCapability } from "../../../packages/contracts/src";
+import type { ModelBinding, OpenCodeExecutionCapability } from "../../../packages/contracts/src";
 import {
   taskPlanStarted,
   toolEventNames,
@@ -309,16 +309,20 @@ export function ToolExecutionFacts({
   evidence,
   events = [],
   fixedOpenCode,
+  modelBinding,
+  project,
   tests,
 }: {
   state: string;
   evidence?: ToolEvidence;
   events?: ToolEvent[];
   fixedOpenCode?:OpenCodeExecutionCapability;
+  modelBinding?:ModelBinding;
+  project?:string;
   tests?:OpenCodeRunTest[];
 }) { useLocale();
   const openCode=openCodeRunFacts({state,evidence,events,fixedOpenCode}),octop=evidence?.profile.adapter==='octop'&&evidence.profile.protocol==='octop-harness-acp-v1';
-  if (!evidence && !events.length&&!openCode) return null;
+  if (!evidence && !events.length&&!openCode&&!modelBinding) return null;
   const recent = toolEventRows(events).slice(-40),
     last = events.at(-1),
     session =
@@ -376,8 +380,7 @@ export function ToolExecutionFacts({
         <p className="muted">
           {t("development.facts.the_session_id_is_for_traceability_and")}</p>
       )}
-      <CodexExecutionFacts evidence={evidence?.codex_execution}/><OpenCodeExecutionFacts run={openCode} tests={tests}/>
-      {octop&&<OctopExecutionFacts state={state} evidence={evidence}/>}
+      <ExecutionModelFacts binding={modelBinding} evidence={evidence} state={state} openCodeRun={openCode} tests={tests} project={project}/>
       <UsageFacts
         usage={usage ?? undefined}
         usageState={usageState}

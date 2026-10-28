@@ -1,49 +1,69 @@
-# 原生模型执行合同 v1
+# 统一模型执行合同
 
-状态：1.0.0／T-P4-036，限定本地实现及验证通过。权威类型为 [modelcontract](../internal/modelcontract/model.go)，生成接口见 [OpenAPI](../docs/api/openapi.json)。本合同不授予模型访问权限，不代替当前项目、工具和执行节点授权。
+状态：suma 1.0.0／T-MODEL-118 当前合同。责任：模型合同、控制面、DAG、Runner 与工作台。权威类型：[modelcontract](../internal/modelcontract/model.go)；公开接口：[OpenAPI](../docs/api/openapi.json)；架构：[统一模型网关](../docs/architecture/model-gateway.md)。实际证据另见[本轮报告](../docs/quality/model-gateway-verification.md)，本文不预先声明验收通过。
 
-## 配置与发现
+## 配置与能力发现
 
-Runner 使用独立 `--model-deployments` 文件；Pool 在各项目执行范围配置相同的允许列表。每项包含公开不可变部署定义，以及仅本地读取的完整 `base_url` 和 `api_key_env_ref`。密钥值不进入库存、计划、节点或浏览器。本地定义和完整端点摘要必须匹配，节点不能覆盖 URL、环境或模型。
+Runner 使用现有 `--model-deployments` 允许列表，Pool 按各项目执行范围配置。公开不可变部署包含 ID、修订、摘要、协议、模型、`endpoint_origin`、完整端点配置摘要与 `context_window`。完整 `base_url`、`api_key_env_ref` 和真实密钥留在 Go 管理范围，不进入库存、任务、模型上下文或 SDK 环境。
 
-工具显式声明 `model_execution_protocol: suma-model-execution-v1`，且必须是启用工作区的原生 Suma JSONL 工具。实际离线能力探测通过后，库存携带公开 `model_deployments`。配置声明、程序可执行、模型服务健康和厂商验收是不同事实。
-
-`GET /api/v1/model-execution/options?project_id=…&tool_profile_id=…&expected_tool_version=…` 返回当前授权工具版本／摘要、观察时间及部署选项。未知、重复、空参数和非规范版本整数均拒绝。CLI 等价读取为：
+当前接入共同协议的工具是启用 `attempt-workspace-v1` 的原生 Suma 编码与 Octop Harness／ACP，均显式声明 `model_execution_protocol=suma-model-execution-v1`。离线能力探测通过后，观察携带公开模型目录。安装、配置、最近可用性、模型认证和实际验收是不同事实；不可用工具不因目录或协议字段存在而取得派发资格。
 
 ```text
-suma --control http://127.0.0.1:4310 --project PROJECT models options --tool TOOL --expected-tool-version 2
+GET /api/v1/model-execution/options?project_id=PROJECT&tool_profile_id=TOOL&expected_tool_version=VERSION
+suma --control http://127.0.0.1:4310 --project PROJECT models options --tool TOOL --expected-tool-version VERSION
 ```
 
-## 选择与固定计划
+响应绑定准确项目、工具 ID／版本／摘要和观察时间；支持共同选择时必须有 `parameter_limits`。当前合同最高为 `max_steps:128`、`max_output_tokens:131072`，界面遵守本次响应中的上限。`items` 提供真实部署、默认参数、当前精确匹配费率或未定价事实。不存在 Octop 专用固定模型选项，工具模型选择沿同一入口。
 
-原 `POST /task-dispatch-plans` 接受 `model_execution_selection`：
+## 选择与不可变计划
+
+现有任务预演接受 `model_execution_selection`：
 
 ```json
 {
   "deployment_id": "team-model",
   "deployment_revision": 1,
-  "deployment_sha256": "从当前选项完整复制的64位摘要",
-  "parameters": {"max_steps": 2, "max_output_tokens": 100},
-  "budget": {"token_limit": 20000, "cost_limit_micros": 20000, "currency": "CNY"}
+  "deployment_sha256": "来自当前模型选项的实际64位摘要",
+  "parameters": {"max_steps": 8, "max_output_tokens": 4096},
+  "budget": {"token_limit": 100000, "cost_limit_micros": 20000, "currency": "CNY"}
 }
 ```
 
-上述片段是字段说明，摘要及部署须来自当前真实选项；不能直接作为现成部署使用。预算可省略；费用使用整数微货币，界面将 `CNY 0.02` 精确转换为 `20000`。只有 `max_steps` 和累计 `max_output_tokens` 可选，普通任务范围分别为1–16和1–32768。其他参数、凭证或环境输入拒绝。
+示例仅说明字段，摘要和预算须来自真实目录与预留计算。预算可省略，沿用当前组织／项目政策；费用是整数微货币。`max_steps` 限制一次 attempt 的请求次数，`max_output_tokens` 限制**整个 attempt 累计输出**。未开放的模型、URL、凭据、环境、温度或 SDK 设置覆盖均拒绝。
 
-服务端先清除模板可能携带的模型绑定，再从可信选项生成 `ModelBinding`：公开部署、参数及摘要、预算、准确费率快照、保守输入／输出预留和绑定摘要。相同绑定进入 Plan 与 agent Node.Config；顶层执行限额必须一致。仅复制的派发节点将 `max_retries` 固定为0，原发布模板保留。编译拒绝非零自动重试，模型异常不能授权自动重跑。
+服务端从可信选择生成 `ModelBinding`：部署、参数及摘要、预算、准确费率快照、保守预留与完整绑定摘要。同一完整绑定写入 Plan 与唯一 agent 生产节点。普通、专家逐项计划和原生受管修复分别沿既有授权与修订入口使用它；Octop 不自动获得原生修复用途。派发节点 `max_retries=0`，不允许供应商异常触发无条件自动重跑。
 
-预览、Start和Claim分别检查其当前依据；未知结果恢复原操作，不能换模型重新执行。恢复存储只例外接受准确选择路径中的数值额度，凭证字段及伪装对象仍被拒绝。
+预览、Start、Claim、Runner 均核对原计划与当前权限、工具／路由、模型版本和费率依据。客户端也核验原操作的项目、任务、工具和生产节点绑定；不一致的成功响应不能清除待核对操作。网络未知结果恢复原 `idempotency_key`，不换模型、正文或 key 再创计划。
 
-## 费率、预算与实际结果
+## 额度、费率与唯一请求权威
 
-现有 `/usage/rates` 写请求增加 `model_deployment_id`、`model_deployment_revision`、`model_deployment_sha256`。可写原生工具报价必须匹配当前真实库存。首轮每工具只读取一份当前报价，其他模型显示未定价；已固定 Plan／attempt 始终读取其原准确报价ID／版本，不自动采用后续当前报价。
+```text
+I = context_window × max_steps
+O = max_output_tokens
+reservation_tokens = I + O
+reservation_cost_micros = ceil((I × input_rate + O × output_rate) / 1_000_000)
+```
 
-输入保守预留为 `context_window × max_steps`，输出预留为整个执行的总额度。本次预算必须覆盖预留，领取时同时检查当前组织／项目策略并原子预留。此处依赖提供方声明的上下文上限，尚无精确 tokenizer、厂商账单对账或逐 Token 金额网关，不能宣称无条件费用保证。
+领取时按原费率、组织／项目额度及 attempt 预算原子预留，溢出或不足拒绝。上下文窗口是管理员声明的保守上界，不是精确 tokenizer。当前费率为冻结运营方输入／输出两档估算，不代表完整供应商报价或绝对账单保证。未定价不显示免费，也不伪造费用通过门禁；后续当前报价不替换原计划的准确费率 ID／版本。
 
-真实 Runtime 核验本地部署和绑定，按所选模型、完整端点和允许参数发请求。单请求输出额度取总剩余、用途上限与声明上下文上限的最小值；只有完整可信整数用量才回收未使用输出许可。请求／响应摘要、提供方模型／请求ID和逐次覆盖状态形成绑定回执；模型身份不符、缺证、超界或不完整用量保留已知事实和未解除的预留，进入核对。按冻结运营方输入／输出两档费率使用整数运算结算，重复回执不重复记账。
+Go 网关唯一拥有供应商密钥、真实上游 HTTP 与持久请求账本。SDK 仅获本 attempt 的短期回环连接。发送上游前持久保存 started；同 step 同原正文仅在存在 completed 原响应缓存时返缓存，不再发上游。未知、缺缓存、不同正文或乱序请求拒绝，不能退回直连供应商。
 
-## 边界
+真实 SSE 内容持续转发；终态、usage 和 DONE 后缀待权威响应及 journal 检查点持久化后再释放。完整用量才回收未用输出许可，缺失／partial／unknown 继续占用保守许可。SDK 汇总不能覆盖 Go 原始请求事实。
 
-本合同已贯通普通任务，并在040扩展到[专家团队每项原生任务](expert-team-model-execution.md)。外部CLI和受管冲突修复入口尚未接入独立模型选择；不支持时明确拒绝，不退回环境中的其他模型。模型 HTTP 层为受限 OpenAI 兼容协议适配器，工作区使用已安装的官方 MCP SDK；未新增官方模型 SDK。
+## 回执、恢复与账务
 
-`suma … developer check` 通过官方 Go MCP SDK 实际初始化、列工具并执行一次当前项目概览只读调用；这证明该次 MCP 连接，不能代表远程工作区、PTY、LSP或DAP已实现。见 [开发工具连接](../docs/integrations/developer-connection-check.md) 和 [限定验证](../docs/quality/model-execution-verification.md)。
+`ModelEvidence` 使用 `gateway_protocol=suma-model-gateway-v1`，包含 `gateway_closed`、绑定／部署／参数摘要、所选模型和连续请求数组。每次请求索引从 0 开始，包含 `state`（started／completed／rejected／unknown）、`step`、请求／可选响应摘要、真实返回模型／请求 ID、输出许可、usage_state 与可选 input／output／cached_input／cache_write_input／reasoning_output 五类计数。
+
+缺失不是零，取消不是零。原始返回模型或证据不一致阻止代码成功；已知计数仍保留。Runner journal 重启从原 assignment／attempt／fence／工具／绑定检查点恢复，保留已知 usage，把未完成请求作为 unknown，不自动再请求供应商或伪造进程停止。原操作核对前保留未解 hold。
+
+网关关闭、模型响应覆盖、用量完整、账本 `settlement_state`／hold、代码封存、独立测试和人工验收分别记录。真正关闭且零请求可证明零模型消耗，不证明编码已完成。代码失败仍可能产生已知费用；模型响应成功但用量不全仍需账务核对。使用既有用量账本查看结算，不由 UI 或 SDK 自行推断冻结释放。
+
+## 接入范围
+
+只读规划、知识提炼、故障分诊和智能运维的专用 purpose、OpenCode 固定模型与 Codex app-server 合同保持其明确范围。本合同不声明所有 SDK、CLI 或外部平台都已统一，也不扩大项目权限、生产授权或人工验收能力。真实厂商账户、账单、物理多机及生产验收须独立证据。
+
+## English contract summary
+
+Native coding and Octop ACP share `suma-model-execution-v1`, model selection, one immutable binding/rate snapshot and the existing budget ledger. Supported options carry dynamic parameter limits. Output tokens are a **total attempt allowance**; input reservation is a conservative declared context bound times maximum requests.
+
+Go alone owns provider secrets, HTTP and durable request admission. SDKs use short-lived attempt loopback access. An identical completed step can return its original cache without another upstream call; unknown outcomes are not retried. SSE remains streamed, with its terminal/usage suffix released only after durable host evidence. Restart preserves known usage and unresolved holds. Model response, usage, settlement, source correctness and human acceptance remain separate facts.

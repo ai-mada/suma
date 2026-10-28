@@ -19,6 +19,7 @@ from pathlib import Path
 
 from . import ACP_VERSION, HARNESS_VERSION, MCP_VERSION, PROTOCOL, VERSION
 from .contract import RuntimeFault, TOOL_NAMES, closed, parse_config, parse_execute, parse_json, safe_id
+from .model import model_execution_capability, resolve_execution
 
 
 def versions() -> dict:
@@ -53,7 +54,7 @@ def config_from_environment() -> dict:
     return parse_config(parse_json(raw))
 
 
-def private_environment(config: dict, request: dict) -> dict:
+def private_environment(config: dict, request: dict, execution: dict) -> dict:
     home = Path(config["home"])
     # Create once and fail closed on reused/symlinked state. Recovery belongs to
     # the Go operation ledger, not replaying a previous model conversation.
@@ -67,13 +68,7 @@ def private_environment(config: dict, request: dict) -> dict:
     for child in ("tmp", "state", "agent", "logs"):
         (home / child).mkdir(mode=0o700)
     env = {key: value for key, value in os.environ.items() if key.upper() in {"SYSTEMROOT", "WINDIR", "COMSPEC", "PATHEXT", "PATH", "LANG", "LC_ALL"}}
-    env.update({"HOME": str(home), "USERPROFILE": str(home), "OCTOP_HOME": str(home), "TEMP": str(home / "tmp"), "TMP": str(home / "tmp"), "PYTHONNOUSERSITE": "1", "PYTHONDONTWRITEBYTECODE": "1", "PYTHONUNBUFFERED": "1", "PYTHONUTF8": "1", "HF_HUB_OFFLINE": "1", "LANGCHAIN_TRACING_V2": "false", "LANGSMITH_TRACING": "false", "SUMA_OCTOP_CONFIG": json.dumps(config), "SUMA_OCTOP_REQUEST": json.dumps(request)})
-    if config.get("api_key_env_ref"):
-        ref = config["api_key_env_ref"]
-        key = os.environ.get(ref)
-        if not key:
-            raise RuntimeFault("provider_credential_missing")
-        env[ref] = key
+    env.update({"HOME": str(home), "USERPROFILE": str(home), "OCTOP_HOME": str(home), "TEMP": str(home / "tmp"), "TMP": str(home / "tmp"), "PYTHONNOUSERSITE": "1", "PYTHONDONTWRITEBYTECODE": "1", "PYTHONUNBUFFERED": "1", "PYTHONUTF8": "1", "HF_HUB_OFFLINE": "1", "LANGCHAIN_TRACING_V2": "false", "LANGSMITH_TRACING": "false", "SUMA_OCTOP_CONFIG": json.dumps(config), "SUMA_OCTOP_REQUEST": json.dumps(request), "SUMA_MODEL_EXECUTION": json.dumps(execution)})
     return env
 
 
@@ -149,9 +144,11 @@ async def run_parent(config: dict, queue: asyncio.Queue):
         raise RuntimeFault("request_invalid")
     request = parse_execute(parse_json(raw))
     rid = request["request_id"]
-    env = private_environment(config, request)
+    execution = resolve_execution(request, parse_json(os.environ.get("SUMA_MODEL_EXECUTION", "")))
+    binding = execution["binding"]
+    env = private_environment(config, request, execution)
     sdk = versions()
-    emit({"type": "ready", "request_id": rid, **sdk, "configuration_sha256": config["configuration_sha256"], "provider_id": config["provider_id"], "model": config["model"]})
+    emit({"type": "ready", "request_id": rid, **sdk, "binding_sha256": binding["binding_sha256"]})
     client = CarrierClient(rid)
     cancelled = False
     terminal = None
@@ -188,7 +185,7 @@ async def run_parent(config: dict, queue: asyncio.Queue):
                     answer = prompt.result()
                     if answer.stop_reason != "end_turn" or client.failure:
                         raise RuntimeFault(client.failure or "acp_terminal_invalid")
-                    terminal = {"type": "completed", "request_id": rid, "session_id": client.session_id, "provider_id": config["provider_id"], "model": config["model"], "stop_reason": "end_turn", "completed_at": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"), "usage_state": "unreported"}
+                    terminal = {"type": "completed", "request_id": rid, "session_id": client.session_id, "binding_sha256": binding["binding_sha256"], "stop_reason": "end_turn", "completed_at": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")}
             finally:
                 following.cancel()
                 if not prompt.done():
@@ -209,13 +206,18 @@ async def run_parent(config: dict, queue: asyncio.Queue):
 
 
 async def async_main(args: list[str]):
+    if args == ["--model-execution-probe"]:
+        sys.stdout.write(json.dumps(model_execution_capability(), separators=(",", ":")) + "\n")
+        sys.stdout.flush()
+        return
     config = config_from_environment()
     if args == ["--probe"]:
-        emit({"type": "probe", "protocol": PROTOCOL, "runtime_version": VERSION, **versions(), "configuration_sha256": config["configuration_sha256"], "provider_id": config["provider_id"], "model": config["model"], "workspace_tools_version": "attempt-workspace-v1"})
+        emit({"type": "probe", "protocol": PROTOCOL, "runtime_version": VERSION, **versions(), "workspace_tools_version": "attempt-workspace-v1", "model_execution_protocol": "suma-model-execution-v1", "gateway_protocol": "suma-model-gateway-v1"})
         return
     if args == ["--acp-child"]:
         home = Path(config["home"])
         request = parse_execute(parse_json(os.environ.pop("SUMA_OCTOP_REQUEST", "")))
+        execution = resolve_execution(request, parse_json(os.environ.pop("SUMA_MODEL_EXECUTION", "")))
         if not home.is_dir() or home.is_symlink() or (home / ".suma-attempt").read_text(encoding="utf-8") != request["request_id"]:
             raise RuntimeFault("state_not_fresh")
         for key in ("HOME", "USERPROFILE", "OCTOP_HOME"):
@@ -225,7 +227,7 @@ async def async_main(args: list[str]):
         logging.basicConfig(filename=home / "logs" / "runtime.log", level=logging.WARNING)
         versions()
         from .agent import run_child
-        await run_child(config, request)
+        await run_child(config, request, execution)
         return
     if args:
         raise RuntimeFault("arguments_invalid")

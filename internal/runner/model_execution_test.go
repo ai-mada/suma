@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	mc "github.com/ai-mada/suma/internal/modelcontract"
+	mg "github.com/ai-mada/suma/internal/modelgateway"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
@@ -71,7 +72,7 @@ func TestModelExecutionTwoDeploymentsReachActualNativeBundle(t *testing.T) {
 		calls = append(calls, body)
 		requestDigests = append(requestDigests, digest(raw))
 		w.Header().Set("Content-Type", "application/json")
-		responseRaw, _ := json.Marshal(map[string]any{"id": "fixture-response-" + suffix, "model": model, "choices": []any{map[string]any{"message": map[string]any{"content": "Two-deployment local protocol evidence only"}, "finish_reason": "stop"}}, "usage": map[string]any{"prompt_tokens": 7, "completion_tokens": 3}})
+		responseRaw, _ := json.Marshal(map[string]any{"id": "fixture-response-" + suffix, "model": model, "choices": []any{map[string]any{"index": 0, "message": map[string]any{"role": "assistant", "content": "Two-deployment local protocol evidence only"}, "finish_reason": "stop"}}, "usage": map[string]any{"prompt_tokens": 7, "completion_tokens": 3}})
 		responseDigests = append(responseDigests, digest(responseRaw))
 		_, _ = w.Write(responseRaw)
 	}))
@@ -90,8 +91,11 @@ func TestModelExecutionTwoDeploymentsReachActualNativeBundle(t *testing.T) {
 	spec.Args = []string{bundle}
 	spec.NativeWorkspace.RuntimeManifest = manifest
 	spec.ModelExecutionProtocol = mc.Protocol
-	// An ambient legacy provider is explicitly ignored for a bound execution.
-	spec.Env = map[string]string{"SUMA_MODEL": "ambient-must-not-run", "SUMA_MODEL_BASE_URL": "https://unused.invalid"}
+	// Native workspace configuration cannot forward provider environments.
+	// Ambient values must not replace the Go-owned immutable deployment.
+	spec.Env, spec.EnvFrom = nil, nil
+	t.Setenv("SUMA_MODEL", "ambient-must-not-run")
+	t.Setenv("SUMA_MODEL_BASE_URL", "https://unused.invalid")
 	cfg.Commands["native"] = spec
 	bindings := []mc.Binding{}
 	for _, suffix := range []string{"a", "b"} {
@@ -133,7 +137,7 @@ func TestModelExecutionTwoDeploymentsReachActualNativeBundle(t *testing.T) {
 			t.Fatalf("complete native usage evidence missing: %+v", evidence)
 		}
 		actual := evidence.ModelExecution
-		if actual.BindingSHA256 != binding.BindingSHA256 || actual.ParametersSHA256 != binding.ParametersSHA256 || actual.DeploymentSHA256 != binding.Deployment.SHA256 || actual.Model != binding.Deployment.Model || len(actual.Requests) != 1 || actual.Requests[0].ProviderModel != binding.Deployment.Model || actual.Requests[0].ProviderRequestID != fmt.Sprintf("fixture-response-%s", []string{"a", "b"}[index]) || !mc.ValidDigest(actual.Requests[0].ResponseSHA256) {
+		if actual.GatewayProtocol != mc.GatewayProtocol || !actual.GatewayClosed || actual.BindingSHA256 != binding.BindingSHA256 || actual.ParametersSHA256 != binding.ParametersSHA256 || actual.DeploymentSHA256 != binding.Deployment.SHA256 || actual.Model != binding.Deployment.Model || len(actual.Requests) != 1 || actual.Requests[0].State != "completed" || actual.Requests[0].ProviderModel != binding.Deployment.Model || actual.Requests[0].ProviderRequestID != fmt.Sprintf("fixture-response-%s", []string{"a", "b"}[index]) || !mc.ValidDigest(actual.Requests[0].ResponseSHA256) {
 			t.Fatalf("actual model evidence changed binding: %+v", actual)
 		}
 		if actual.Requests[0].RequestSHA256 != requestDigests[index] || actual.Requests[0].ResponseSHA256 != responseDigests[index] {
@@ -190,12 +194,13 @@ func TestModelExecutionLocalConfigAndBindingsRejectTampering(t *testing.T) {
 		t.Fatal("node limits changed selected parameters")
 	}
 	delete(a.Config, "max_output_tokens")
-	tooWide, err := mc.NewBinding(binding.Deployment, mc.Parameters{MaxSteps: 17, MaxOutputTokens: 128}, nil, nil)
+	widest, err := mc.NewBinding(binding.Deployment, mc.Parameters{MaxSteps: mc.MaxSteps, MaxOutputTokens: mc.MaxOutputTokens}, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = nativeExecutionLimits(Assignment{Config: map[string]any{"model_execution": modelBindingValue(t, tooWide)}}); err == nil {
-		t.Fatal("ordinary bound fallback bypassed native limits before workspace")
+	limits, err := nativeExecutionLimits(Assignment{Config: map[string]any{"model_execution": modelBindingValue(t, widest)}})
+	if err != nil || limits.MaxSteps != mc.MaxSteps || int64(limits.MaxTokens) != mc.MaxOutputTokens {
+		t.Fatal("ordinary native parameters differ from the shared model contract", limits, err)
 	}
 	spec.ModelExecutionProtocol = ""
 	if _, err := modelExecutionRequest(a, cfg, spec, profile); err == nil {
@@ -227,30 +232,21 @@ func TestModelExecutionRequiresLocalDeploymentBeforeWorkspace(t *testing.T) {
 	}
 }
 
-func TestModelExecutionStreamKeepsKnownUsageOnUnknownProviderIdentity(t *testing.T) {
+// Accounting comes from a host HTTP snapshot, never SDK progress frames. These
+// are typed host fixtures; this test itself does not contact a model provider.
+func TestModelExecutionHostKeepsKnownUsageOnUnknownProviderIdentity(t *testing.T) {
 	binding := testModelBinding(t, "http://127.0.0.1:19991")
-	for _, provider := range []string{"foreign-alias", "", "bad\nidentity"} {
+	for _, provider := range []string{"foreign-alias", ""} {
 		profile := structuredProfile("suma-jsonl-v1")
 		profile.ReadOnly = false
 		profile.WorkspaceToolsVersion = NativeWorkspaceVersion
 		profile.ModelExecutionProtocol = mc.Protocol
-		stream := newToolStream(profile, nil, nil, "bound-receipt")
-		stream.modelBinding = &binding
-		emit := func(frame map[string]any) {
-			frame["request_id"] = "bound-receipt"
-			frame["binding_sha256"] = binding.BindingSHA256
-			frame["deployment_sha256"] = binding.Deployment.SHA256
-			frame["parameters_sha256"] = binding.ParametersSHA256
-			frame["model"] = binding.Deployment.Model
-			raw, _ := json.Marshal(frame)
-			_, _ = stream.Write(append(raw, '\n'))
-		}
-		emit(map[string]any{"type": "started", "tools": []string{}})
-		emit(map[string]any{"type": "request_started", "step": 0, "output_allowance": 128, "request_sha256": strings.Repeat("a", 64), "endpoint_config_sha256": binding.Deployment.EndpointConfigSHA256})
-		emit(map[string]any{"type": "usage", "step": 0, "input_tokens": 7, "output_tokens": 3, "usage_state": "complete", "usage_reported": true, "provider_model": provider, "response_sha256": strings.Repeat("b", 64)})
-		evidence, err := stream.finish()
-		if err == nil || evidence.Terminal != "unknown" || evidence.Usage == nil || evidence.Usage.InputTokens == nil || *evidence.Usage.InputTokens != 7 || evidence.Usage.OutputTokens == nil || *evidence.Usage.OutputTokens != 3 || evidence.ModelExecution == nil || mc.ValidateEvidence(*evidence.ModelExecution) != nil {
-			t.Fatalf("unknown provider identity lost known accounting: %+v %v", evidence, err)
+		input, output := int64(7), int64(3)
+		snapshot := mg.Snapshot{Version: 1, RequestID: strings.Repeat("a", 64), Binding: binding, Closed: true, FailureCode: "model_gateway_upstream_invalid", Records: []mg.Record{{RequestEvidence: mc.RequestEvidence{State: "unknown", Step: 0, RequestSHA256: strings.Repeat("a", 64), ResponseSHA256: strings.Repeat("b", 64), ProviderModel: provider, OutputAllowance: 128, UsageState: "complete", Usage: &mc.RequestUsage{InputTokens: &input, OutputTokens: &output}}, ClientSHA256: strings.Repeat("c", 64), HTTPStatus: 200}}}
+		evidence := &tc.Evidence{Profile: profile, Terminal: "unknown", UsageState: tc.UsageComplete, Usage: &tc.Usage{InputTokens: cloneUsageCount(&output), OutputTokens: cloneUsageCount(&input)}}
+		complete := applyModelGatewayEvidence(evidence, snapshot)
+		if complete || evidence.Terminal != "unknown" || evidence.UsageState != tc.UsagePartial || evidence.Usage == nil || evidence.Usage.InputTokens == nil || *evidence.Usage.InputTokens != 7 || evidence.Usage.OutputTokens == nil || *evidence.Usage.OutputTokens != 3 || evidence.ModelExecution == nil || mc.ValidateEvidence(*evidence.ModelExecution) != nil {
+			t.Fatalf("unknown provider identity was completed or lost original host accounting: %+v", evidence)
 		}
 	}
 }
@@ -308,17 +304,21 @@ func TestModelExecutionJournalPreservesOriginalInventoryAndReceipt(t *testing.T)
 	if err = journal.Accept(a); err != nil {
 		t.Fatal(err)
 	}
-	receipt := &mc.Evidence{BindingSHA256: binding.BindingSHA256, DeploymentSHA256: binding.Deployment.SHA256, ParametersSHA256: binding.ParametersSHA256, Model: binding.Deployment.Model, Requests: []mc.RequestEvidence{{Step: 0, RequestSHA256: strings.Repeat("a", 64), ResponseSHA256: strings.Repeat("b", 64), ProviderModel: binding.Deployment.Model, OutputAllowance: 128, UsageState: tc.UsageComplete}}}
-	if err = journal.Finish(Result{Assignment: a, ExitCode: 0, ToolEvidence: &tc.Evidence{Profile: profile, Terminal: "completed", EventCount: 4, UsageState: tc.UsageComplete, ModelExecution: receipt}}); err != nil {
+	// This receipt is a typed journal fixture, not real provider evidence.
+	input, output := int64(7), int64(3)
+	receipt := &mc.Evidence{GatewayProtocol: mc.GatewayProtocol, GatewayClosed: true, BindingSHA256: binding.BindingSHA256, DeploymentSHA256: binding.Deployment.SHA256, ParametersSHA256: binding.ParametersSHA256, Model: binding.Deployment.Model, Requests: []mc.RequestEvidence{{State: "completed", Step: 0, RequestSHA256: strings.Repeat("a", 64), ResponseSHA256: strings.Repeat("b", 64), ProviderModel: binding.Deployment.Model, OutputAllowance: 128, UsageState: tc.UsageComplete, Usage: &mc.RequestUsage{InputTokens: &input, OutputTokens: &output}}}}
+	if err = journal.Finish(Result{Assignment: a, ExitCode: 0, ToolEvidence: &tc.Evidence{Profile: profile, Terminal: "completed", EventCount: 4, UsageState: tc.UsageComplete, Usage: &tc.Usage{InputTokens: &input, OutputTokens: &output}, ModelExecution: receipt}}); err != nil {
 		t.Fatal(err)
 	}
 	receipt.Requests[0].ProviderModel = "mutated-input"
+	*receipt.Requests[0].Usage.OutputTokens = 99
 	first := journal.Pending()
-	if first[0].ToolEvidence.ModelExecution.Requests[0].ProviderModel != binding.Deployment.Model {
+	if first[0].ToolEvidence.ModelExecution.Requests[0].ProviderModel != binding.Deployment.Model || *first[0].ToolEvidence.ModelExecution.Requests[0].Usage.OutputTokens != 3 {
 		t.Fatal("mutable receipt changed durable original result")
 	}
 	first[0].ToolEvidence.ModelExecution.Requests[0].ProviderModel = "mutated-readback"
-	if journal.Pending()[0].ToolEvidence.ModelExecution.Requests[0].ProviderModel != binding.Deployment.Model {
+	*first[0].ToolEvidence.ModelExecution.Requests[0].Usage.InputTokens = 77
+	if journal.Pending()[0].ToolEvidence.ModelExecution.Requests[0].ProviderModel != binding.Deployment.Model || *journal.Pending()[0].ToolEvidence.ModelExecution.Requests[0].Usage.InputTokens != 7 {
 		t.Fatal("returned receipt changed durable original result")
 	}
 }

@@ -69,7 +69,7 @@ func New(db *sql.DB, dialect string) (*Engine, error) {
 	if dialect != "sqlite" && dialect != "oceanbase" && dialect != "postgres" {
 		return nil, dagDiagnostic(fmt.Errorf("%w: database dialect", ErrUnsupported), "dag.storage.dialect", nil)
 	}
-	if err := store.InitializeBaseline(context.Background(), db, dialect, "dag", "dag_", "1.0.0"); err != nil {
+	if err := store.InitializeBaseline(context.Background(), db, dialect, "dag", "dag_", store.InitialDataContract); err != nil {
 		return nil, err
 	}
 	e := &Engine{db: db, dialect: dialect, LeaseSeconds: 30}

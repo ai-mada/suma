@@ -6,11 +6,12 @@ import (
 )
 
 func TestConflictRepairProfileCannotEscalateGenericOrReadOnlyTools(t *testing.T) {
-	p := Profile{CommandID: "native-repair", Adapter: "suma", Protocol: "suma-jsonl-v1", WorkspaceToolsVersion: "attempt-workspace-v1", ConflictRepairProtocol: ccmp.CandidateConflictRepairProtocol}
+	p := Profile{CommandID: "native-repair", Adapter: "suma", Protocol: "suma-jsonl-v1", WorkspaceToolsVersion: "attempt-workspace-v1", ModelExecutionProtocol: "suma-model-execution-v1", ConflictRepairProtocol: ccmp.CandidateConflictRepairProtocol}
 	if err := ValidateProfile(p, false); err != nil {
 		t.Fatal(err)
 	}
 	mutations := []func(*Profile){
+		func(v *Profile) { v.ModelExecutionProtocol = "" },
 		func(v *Profile) { v.ConflictRepairProtocol = "unsupported" },
 		func(v *Profile) { v.Adapter = "codex"; v.Protocol = "codex-jsonl-v1" },
 		func(v *Profile) { v.ReadOnly = true },

@@ -47,3 +47,30 @@ func TestBindingDecodeRejectsUnknownAndNullParameters(t *testing.T) {
 		}
 	}
 }
+
+func TestGatewayCoverageKeepsUnknownCostsAndCertifiesClosedZero(t *testing.T) {
+	d := Deployment{ID: "gateway-model", Revision: 1, Protocol: ProviderProtocol, Model: "model", EndpointOrigin: "https://models.example", EndpointConfigSHA256: strings.Repeat("a", 64), ContextWindow: 100}
+	d.SHA256 = DeploymentDigest(d)
+	b, err := NewBinding(d, Parameters{MaxSteps: 2, MaxOutputTokens: 20}, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	e := Evidence{GatewayProtocol: GatewayProtocol, GatewayClosed: true, BindingSHA256: b.BindingSHA256, DeploymentSHA256: d.SHA256, ParametersSHA256: b.ParametersSHA256, Model: d.Model, Requests: []RequestEvidence{}}
+	u, complete := AggregateEvidenceUsage(b, e)
+	if !complete || u == nil || u.InputTokens == nil || *u.InputTokens != 0 || u.OutputTokens == nil || *u.OutputTokens != 0 {
+		t.Fatal("closed no-request host proof did not certify zero", u, complete)
+	}
+	input, output := int64(5), int64(4)
+	e.Requests = []RequestEvidence{{State: "completed", Step: 0, RequestSHA256: strings.Repeat("b", 64), ResponseSHA256: strings.Repeat("c", 64), ProviderModel: d.Model, OutputAllowance: 10, UsageState: "complete", Usage: &RequestUsage{InputTokens: &input, OutputTokens: &output}}, {State: "unknown", Step: 1, RequestSHA256: strings.Repeat("d", 64), OutputAllowance: 10, UsageState: "unreported"}}
+	u, complete = AggregateEvidenceUsage(b, e)
+	if complete || u == nil || *u.InputTokens != 5 || *u.OutputTokens != 4 || EvidenceResponsesComplete(b, e) {
+		t.Fatal("uncertain HTTP request released known allowance or erased actual counters", u, complete)
+	}
+	raw, _ := json.Marshal(e)
+	for _, bad := range []string{strings.Replace(string(raw), `"gateway_closed":true`, `"gateway_closed":null`, 1), strings.TrimSuffix(string(raw), "}") + `,"gateway_closed":true}`, strings.Replace(string(raw), `"input_tokens":5`, `"input_tokens":5.0`, 1), strings.TrimSuffix(string(raw), "}") + `,"sdk_usage":true}`} {
+		var decoded Evidence
+		if json.Unmarshal([]byte(bad), &decoded) == nil {
+			t.Fatal("non-exact gateway evidence accepted", bad)
+		}
+	}
+}

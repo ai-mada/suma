@@ -27,12 +27,12 @@ func applyOctopProcessContainment(evidence *tc.Evidence, parentStopped, verified
 
 func (s *toolStream) octop(m map[string]any) {
 	c := s.profile.OctopExecution
-	if c == nil || !tc.SupportsOctopExecutionProfile(s.profile) {
+	if c == nil || !tc.SupportsOctopExecutionProfile(s.profile) || s.modelBinding == nil {
 		s.invalid("Octop Harness fixed configuration is missing")
 		return
 	}
 	if s.octopState == nil {
-		s.octopState = &octopStreamState{proof: tc.OctopExecutionEvidence{ConfigurationSHA256: c.ConfigurationSHA256, RequestedProvider: c.ProviderID, RequestedModel: c.Model}}
+		s.octopState = &octopStreamState{proof: tc.OctopExecutionEvidence{BindingSHA256: s.modelBinding.BindingSHA256}}
 	}
 	d := s.octopState
 	v, valid := nativeInteger(m, "v")
@@ -42,12 +42,11 @@ func (s *toolStream) octop(m map[string]any) {
 	}
 	switch textAt(m, "type") {
 	case "ready":
-		if !closedOpenCodeFrame(m, "harness_version", "acp_sdk_version", "configuration_sha256", "provider_id", "model") || d.ready || s.sessionStarted || textAt(m, "harness_version") != c.HarnessVersion || textAt(m, "acp_sdk_version") != c.ACPSDKVersion || textAt(m, "configuration_sha256") != c.ConfigurationSHA256 || textAt(m, "provider_id") != c.ProviderID || textAt(m, "model") != c.Model {
+		if !closedOpenCodeFrame(m, "harness_version", "acp_sdk_version", "binding_sha256") || d.ready || s.sessionStarted || textAt(m, "harness_version") != c.HarnessVersion || textAt(m, "acp_sdk_version") != c.ACPSDKVersion || textAt(m, "binding_sha256") != s.modelBinding.BindingSHA256 {
 			s.invalid("Octop readiness differs from the pinned configuration")
 			return
 		}
 		d.ready = true
-		d.proof.AcknowledgedProvider, d.proof.AcknowledgedModel = c.ProviderID, c.Model
 	case "started":
 		session := textAt(m, "session_id")
 		if !closedOpenCodeFrame(m, "session_id") || !d.ready || s.sessionStarted || !s.openCodeID(session) {
@@ -90,7 +89,7 @@ func (s *toolStream) octop(m map[string]any) {
 		}
 		s.event(event, item, item, status, nil)
 	case "completed":
-		if !closedOpenCodeFrame(m, "session_id", "provider_id", "model", "stop_reason", "completed_at", "agent_parent_stopped", "usage", "usage_state") || !d.ready || !s.sessionStarted || d.failed || textAt(m, "session_id") != d.proof.SessionID || textAt(m, "provider_id") != c.ProviderID || textAt(m, "model") != c.Model || textAt(m, "stop_reason") != "end_turn" || m["agent_parent_stopped"] != true {
+		if !closedOpenCodeFrame(m, "session_id", "binding_sha256", "stop_reason", "completed_at", "agent_parent_stopped") || !d.ready || !s.sessionStarted || d.failed || textAt(m, "session_id") != d.proof.SessionID || textAt(m, "binding_sha256") != s.modelBinding.BindingSHA256 || textAt(m, "stop_reason") != "end_turn" || m["agent_parent_stopped"] != true {
 			s.invalid("Octop completion lacks matching ACP and parent-close facts")
 			return
 		}
@@ -98,15 +97,6 @@ func (s *toolStream) octop(m map[string]any) {
 		if err != nil || completed.Location() != time.UTC || completed.Format(time.RFC3339Nano) != textAt(m, "completed_at") {
 			s.invalid("Octop completion time is invalid")
 			return
-		}
-		usage, state, err := openCodeUsage(m)
-		if err != nil {
-			s.invalid(err.Error())
-			return
-		}
-		s.usage, s.usagePartial = usage, usage != nil
-		if usage != nil {
-			s.event("usage", "", "", "", usage, state)
 		}
 		d.proof.StopReason, d.proof.CompletedAt = "end_turn", completed.Format(time.RFC3339Nano)
 		d.parentStopped = true

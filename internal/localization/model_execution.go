@@ -1,6 +1,16 @@
 package localization
 
 var modelExecutionCatalog = []Definition{
+	// Exact host-owned diagnostics only. Provider error bodies and gateway
+	// machine codes remain evidence rather than becoming public message keys.
+	{Key: "model_execution.gateway_record", SourceTemplate: "model gateway could not record its original attempt", Texts: map[Locale]string{ZhCN: "模型网关无法记录原执行尝试，请检查执行节点的持久化状态", EnUS: "The model gateway could not record the original attempt. Check the runner's persistence status."}},
+	{Key: "model_execution.gateway_coverage", SourceTemplate: "model gateway response coverage requires reconciliation", Texts: map[Locale]string{ZhCN: "模型响应覆盖情况需要核对，请查看原执行记录", EnUS: "Model response coverage requires reconciliation. Inspect the original execution records."}},
+	{Key: "model_execution.binding_limits", SourceTemplate: "model execution limits differ from the immutable binding", Texts: map[Locale]string{ZhCN: "执行参数与固定模型绑定不一致，请核对执行计划", EnUS: "Execution limits differ from the immutable model binding. Check the execution plan."}},
+	{Key: "model_execution.native_gateway_required", SourceTemplate: "native workspace execution requires the host model gateway capability", Texts: map[Locale]string{ZhCN: "原生工作区编码需要通过受控模型网关执行", EnUS: "Native workspace coding requires the host model gateway capability."}},
+	{Key: "model_execution.native_workspace_configuration", SourceTemplate: "native workspace requires an isolated Suma agent, a runtime manifest and bounded fixed checks", Texts: map[Locale]string{ZhCN: "工作区需要隔离执行、运行时清单和受限的固定检查，请核对工具的模型协议与环境变量配置", EnUS: "The workspace requires isolated execution, a runtime manifest and bounded fixed checks. Check the tool's model protocol and environment settings."}},
+	{Key: "model_execution.octop_gateway_configuration", SourceTemplate: "Octop Harness requires its fixed Python bundle, model gateway and isolated host workspace", Texts: map[Locale]string{ZhCN: "Octop 需要固定的 Python 运行包、受控模型网关和隔离工作区，请核对协议与环境变量配置", EnUS: "Octop requires its fixed Python bundle, model gateway and isolated workspace. Check its protocol and environment settings."}},
+	{Key: "model_execution.octop_gateway_required", SourceTemplate: "Octop execution requires its current host model gateway capability", Texts: map[Locale]string{ZhCN: "Octop 执行需要当前有效的工作区与模型网关能力", EnUS: "Octop execution requires its current host workspace and model gateway capability."}},
+	{Key: "model_execution.octop_binding_required", SourceTemplate: "Octop execution requires its reviewed model binding", Texts: map[Locale]string{ZhCN: "Octop 执行需要有效且已审阅的模型绑定", EnUS: "Octop execution requires its valid reviewed model binding."}},
 	{Key: "model_execution.evidence", SourceTemplate: "invalid: model execution evidence differs from fixed node", Texts: map[Locale]string{ZhCN: "执行模型证据与固定节点依据不一致", EnUS: "Model execution evidence differs from the fixed node."}},
 	{Key: "model_execution.invalid", SourceTemplate: "Invalid native model execution selection", Texts: map[Locale]string{ZhCN: "模型选择、执行参数或预算无效，请检查后重新预览", EnUS: "Invalid native model execution selection"}},
 	{Key: "model_execution.unsupported", SourceTemplate: "Independent model selection requires an approved native workspace tool", Texts: map[Locale]string{ZhCN: "独立选择模型需要已批准并支持此能力的原生工作区工具", EnUS: "Independent model selection requires an approved native workspace tool"}},

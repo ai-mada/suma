@@ -25,6 +25,12 @@ var digest = regexp.MustCompile(`^[a-f0-9]{64}$`)
 
 func ValidCommandID(s string) bool { return commandID.MatchString(s) }
 func ValidDigest(s string) bool    { return digest.MatchString(s) }
+
+// ValidCommandIdentity checks configuration identity without pretending that
+// installation or model/workspace capability probes have already succeeded.
+func ValidCommandIdentity(id, adapter, protocol string) bool {
+	return ValidCommandID(id) && protocolPair(adapter, protocol)
+}
 func validText(s string, max int, multiline bool) bool {
 	if len(s) > max || !utf8.ValidString(s) {
 		return false
@@ -55,10 +61,15 @@ func SupportsWorkspaceObservationProfile(p Profile) bool {
 // SupportsWorkspaceWriteProfile identifies the implemented host CAS bridge;
 // a Codex app-server read broker does not implement that write contract.
 func SupportsWorkspaceWriteProfile(p Profile) bool {
-	return p.Adapter == "suma" && p.Protocol == "suma-jsonl-v1" && !p.ReadOnly && p.WorkspaceToolsVersion == "attempt-workspace-v1" || SupportsOpenCodeExecutionProfile(p) || SupportsOctopExecutionProfile(p)
+	return p.Adapter == "suma" && p.Protocol == "suma-jsonl-v1" && !p.ReadOnly && p.WorkspaceToolsVersion == "attempt-workspace-v1" && p.ModelExecutionProtocol == modelcontract.Protocol || SupportsOpenCodeExecutionProfile(p) || SupportsOctopExecutionProfile(p)
 }
 
 func ValidateProfile(p Profile, complete bool) error {
+	// Native code (including conflict repair) always uses the host model gateway.
+	// Read-only purposes without a workspace keep their separate contracts.
+	if p.Adapter == "suma" && p.WorkspaceToolsVersion == "attempt-workspace-v1" && p.ModelExecutionProtocol != modelcontract.Protocol {
+		return fmt.Errorf("native workspace execution requires the host model gateway capability")
+	}
 	if err := validateOctopProfile(p, complete); err != nil {
 		return err
 	}
@@ -71,7 +82,7 @@ func ValidateProfile(p Profile, complete bool) error {
 	if p.Protocol == cc.Protocol && (p.Adapter != "codex" || p.ReadOnly || p.ModelExecutionProtocol != "" || p.WorkspaceToolsVersion != "" || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil) {
 		return fmt.Errorf("invalid Codex app-server capability")
 	}
-	if p.ModelExecutionProtocol != "" && (p.ModelExecutionProtocol != "suma-model-execution-v1" || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || p.ReadOnly || p.WorkspaceToolsVersion != "attempt-workspace-v1" || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil) {
+	if p.ModelExecutionProtocol != "" && (p.ModelExecutionProtocol != modelcontract.Protocol || p.ReadOnly || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil || p.IntelligentOperations != nil || !(p.Adapter == "suma" && p.Protocol == "suma-jsonl-v1" && p.WorkspaceToolsVersion == "attempt-workspace-v1" || SupportsOctopExecutionProfile(p) || !complete && p.Adapter == "octop" && p.Protocol == OctopProtocol && p.WorkspaceToolsVersion == "" && p.OctopExecution == nil)) {
 		return fmt.Errorf("invalid native model execution capability")
 	}
 	// A capability advertisement is accepted only for the existing native

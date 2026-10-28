@@ -9806,11 +9806,19 @@
         "type": "object"
       },
       "ModelEvidence": {
+        "additionalProperties": false,
         "properties": {
           "binding_sha256": {
             "type": "string"
           },
           "deployment_sha256": {
+            "type": "string"
+          },
+          "gateway_closed": {
+            "type": "boolean"
+          },
+          "gateway_protocol": {
+            "const": "suma-model-gateway-v1",
             "type": "string"
           },
           "model": {
@@ -9823,10 +9831,13 @@
             "items": {
               "$ref": "#/components/schemas/ModelRequestEvidence"
             },
+            "maxItems": 128,
             "type": "array"
           }
         },
         "required": [
+          "gateway_protocol",
+          "gateway_closed",
           "binding_sha256",
           "deployment_sha256",
           "parameters_sha256",
@@ -9873,6 +9884,22 @@
         "type": "object"
       },
       "ModelExecutionOptions": {
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "supported": {
+                  "const": true
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "parameter_limits"
+              ]
+            }
+          }
+        ],
         "properties": {
           "codex_catalog": {
             "anyOf": [
@@ -9889,16 +9916,6 @@
           },
           "codex_supported": {
             "type": "boolean"
-          },
-          "fixed_octop": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/OctopExecutionCapability"
-              },
-              {
-                "type": "null"
-              }
-            ]
           },
           "fixed_opencode": {
             "anyOf": [
@@ -9919,6 +9936,16 @@
           },
           "observed_at": {
             "type": "string"
+          },
+          "parameter_limits": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelParameters"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "project_id": {
             "type": "string"
@@ -9996,6 +10023,7 @@
         "type": "object"
       },
       "ModelRequestEvidence": {
+        "additionalProperties": false,
         "properties": {
           "output_allowance": {
             "type": "integer"
@@ -10012,19 +10040,98 @@
           "response_sha256": {
             "type": "string"
           },
+          "state": {
+            "enum": [
+              "started",
+              "completed",
+              "rejected",
+              "unknown"
+            ],
+            "type": "string"
+          },
           "step": {
+            "maximum": 127,
+            "minimum": 0,
             "type": "integer"
+          },
+          "usage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelRequestUsage"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "usage_state": {
             "type": "string"
           }
         },
         "required": [
+          "state",
           "step",
           "request_sha256",
           "output_allowance",
           "usage_state"
         ],
+        "type": "object"
+      },
+      "ModelRequestUsage": {
+        "additionalProperties": false,
+        "properties": {
+          "cache_write_input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cached_input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reasoning_output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [],
         "type": "object"
       },
       "ModelSelection": {
@@ -10604,51 +10711,21 @@
             "const": "0.12.1",
             "type": "string"
           },
-          "budget_mode": {
-            "const": "observe_only",
-            "type": "string"
-          },
-          "configuration_sha256": {
-            "pattern": "^[a-f0-9]{64}$",
-            "type": "string"
-          },
-          "endpoint_origin": {
-            "type": "string"
-          },
           "harness_version": {
             "const": "1.0.5",
-            "type": "string"
-          },
-          "identity_evidence": {
-            "const": "configuration_ack_only",
-            "type": "string"
-          },
-          "model": {
-            "type": "string"
-          },
-          "provider_id": {
             "type": "string"
           }
         },
         "required": [
           "harness_version",
-          "acp_sdk_version",
-          "provider_id",
-          "model",
-          "endpoint_origin",
-          "configuration_sha256",
-          "budget_mode",
-          "identity_evidence"
+          "acp_sdk_version"
         ],
         "type": "object"
       },
       "OctopExecutionEvidence": {
         "additionalProperties": false,
         "properties": {
-          "acknowledged_model": {
-            "type": "string"
-          },
-          "acknowledged_provider": {
+          "binding_sha256": {
             "type": "string"
           },
           "cancel_requested": {
@@ -10657,17 +10734,8 @@
           "completed_at": {
             "type": "string"
           },
-          "configuration_sha256": {
-            "type": "string"
-          },
           "process_stopped": {
             "type": "boolean"
-          },
-          "requested_model": {
-            "type": "string"
-          },
-          "requested_provider": {
-            "type": "string"
           },
           "session_id": {
             "type": "string"
@@ -10677,12 +10745,8 @@
           }
         },
         "required": [
-          "configuration_sha256",
+          "binding_sha256",
           "session_id",
-          "requested_provider",
-          "requested_model",
-          "acknowledged_provider",
-          "acknowledged_model",
           "stop_reason",
           "completed_at",
           "process_stopped",
@@ -19727,16 +19791,6 @@
               }
             ]
           },
-          "octop_execution": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/OctopExecutionCapability"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "opencode_execution": {
             "anyOf": [
               {
@@ -23503,7 +23557,7 @@
                 "type": "null"
               }
             ],
-            "description": "Original ACP session and fixed Harness configuration. ACP end_turn, cancellation intent, Go-confirmed process stop, independent tests and human acceptance are separate facts. No vendor identity or complete billing attestation."
+            "description": "Original ACP session, reviewed common model binding and Go-confirmed process stop. Model request/usage authority is the Go gateway; ACP end_turn and cancellation are separate from code, tests and human acceptance."
           },
           "opencode_execution": {
             "anyOf": [

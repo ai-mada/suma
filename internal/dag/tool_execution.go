@@ -3,6 +3,7 @@ package dag
 import (
 	"fmt"
 
+	"github.com/ai-mada/suma/internal/modelcontract"
 	tr "github.com/ai-mada/suma/internal/testreportcontract"
 	"github.com/ai-mada/suma/internal/toolcontract"
 	"unicode/utf8"
@@ -14,12 +15,12 @@ func ToolBinding(n Node) (id, sha string, bound bool, err error) {
 	rawID, idOK := n.Config["tool_profile_id"]
 	rawSHA, shaOK := n.Config["tool_profile_sha256"]
 	fixedOpenCode, openCodeErr := toolcontract.DecodeOpenCodeNodeConfiguration(n.Config)
-	fixedOctop, octopErr := toolcontract.DecodeOctopNodeConfiguration(n.Config)
-	if openCodeErr != nil || fixedOpenCode != nil && n.MaxRetries != 0 || octopErr != nil || fixedOctop != nil && (n.MaxRetries != 0 || n.Type != "agent") {
+	_, oldOctop := n.Config["octop_execution"]
+	if openCodeErr != nil || fixedOpenCode != nil && n.MaxRetries != 0 || oldOctop {
 		return "", "", false, dagDiagnostic(fmt.Errorf("%w: complete agent tool binding required", ErrInvalid), "dag.tool.binding", nil)
 	}
 	if !idOK && !shaOK {
-		if fixedOpenCode != nil || fixedOctop != nil {
+		if fixedOpenCode != nil {
 			return "", "", false, dagDiagnostic(fmt.Errorf("%w: complete agent tool binding required", ErrInvalid), "dag.tool.binding", nil)
 		}
 		return "", "", false, nil
@@ -59,13 +60,9 @@ func validateToolResult(n Node, r Result) error {
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrInvalid, err)
 	}
-	fixedOctop, err := toolcontract.DecodeOctopNodeConfiguration(n.Config)
-	if err != nil {
-		return fmt.Errorf("%w: %v", ErrInvalid, err)
-	}
 	success := r.ExitCode == 0 && r.Error == "" && !r.Stopped && !r.OutcomeUnknown
 	if r.ToolEvidence == nil {
-		if (fixedOpenCode != nil || fixedOctop != nil) && r.Stopped {
+		if fixedOpenCode != nil && r.Stopped {
 			return dagDiagnostic(fmt.Errorf("%w: tool evidence differs from fixed node", ErrInvalid), "dag.tool.result_binding", nil)
 		}
 		if bound && success {
@@ -85,7 +82,7 @@ func validateToolResult(n Node, r Result) error {
 		return dagDiagnostic(fmt.Errorf("%w: tool evidence differs from fixed node", ErrInvalid), "dag.tool.result_binding", nil)
 	}
 	octopEvidence := e.Profile.Protocol == toolcontract.OctopProtocol || e.Profile.OctopExecution != nil || e.OctopExecution != nil
-	if (fixedOctop != nil) != octopEvidence || fixedOctop != nil && (e.Profile.OctopExecution == nil || *fixedOctop != *e.Profile.OctopExecution || e.Terminal == "completed" && !success) {
+	if octopEvidence && (toolcontract.ValidateOctopNodeConfiguration(n.Config) != nil || e.Terminal == "completed" && !success) {
 		return dagDiagnostic(fmt.Errorf("%w: tool evidence differs from fixed node", ErrInvalid), "dag.tool.result_binding", nil)
 	}
 	if err := toolcontract.ValidateOctopResultStop(*e, r.Stopped, r.OutcomeUnknown); err != nil {
@@ -101,9 +98,12 @@ func validateToolResult(n Node, r Result) error {
 	if err != nil {
 		return err
 	}
+	if e.ModelExecution != nil && model == nil || octopEvidence && model == nil {
+		return fmt.Errorf("%w: model gateway evidence requires its reviewed node binding", ErrInvalid)
+	}
 	if model != nil && success {
 		actual := e.ModelExecution
-		if actual == nil || actual.BindingSHA256 != model.BindingSHA256 || actual.DeploymentSHA256 != model.Deployment.SHA256 || actual.ParametersSHA256 != model.ParametersSHA256 || actual.Model != model.Deployment.Model || len(actual.Requests) < 1 || len(actual.Requests) > model.Parameters.MaxSteps {
+		if actual == nil || !modelcontract.EvidenceResponsesComplete(*model, *actual) {
 			return fmt.Errorf("%w: model execution evidence differs from fixed node", ErrInvalid)
 		}
 	}

@@ -1,3 +1,4 @@
+import {modelBinding,octopEvidence} from './model-execution.test-support';
 // @vitest-environment jsdom
 import {act} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
@@ -63,4 +64,15 @@ it('versions configured planner rates and confirms uncertain usage only above ev
 
 it('uses scoped pagination and aborts old reads on account or project changes without rendering late facts',async()=>{
  let deferred=false;const pending:{path:string;resolve:(response:Response)=>void}[]=[];transport(async path=>{if(deferred)return new Promise<Response>(resolve=>pending.push({path,resolve}));if(path.startsWith('/usage/attempts?'))return Response.json({items:[attempt(path.includes('before=')?'attempt-b':'attempt-a')],total:2,next_cursor:path.includes('before=')?'':'cursor-a'});return defaults(path);});await render();await click('[data-usage-more]');expect(reads.at(-1)?.path).toContain('before=cursor-a');expect(host.querySelectorAll('[data-usage-attempt]')).toHaveLength(2);deferred=true;await change('[name=usage_month]','2026-09');const old=reads.slice(-2);await render({...session,user:{...session.user,id:'other-user'},organization:{id:'other-org',name:'Other'}},'other-project');expect(old.every(read=>read.signal?.aborted)).toBe(true);await act(async()=>{for(const request of pending)request.resolve(defaults(request.path));});await settle();expect(host.textContent).not.toContain('configured-model');expect(host.querySelectorAll('[data-usage-attempt]')).toHaveLength(0);expect(writes).toHaveLength(0);
+});
+
+it('T118 prices an available Octop deployment through the shared model contract without enabling foreign read-only purposes',async()=>{
+ const deployment=modelBinding.deployment,octop={...profile,id:'octop-a',name:'Shared Octop model',available:true,profile:octopEvidence().profile,observation:{model_deployments:[deployment]}};
+ const offline={...octop,id:'offline-octop',available:false},foreignPurpose={...profile,id:'foreign-purpose',profile:{...profile.profile,adapter:'octop'}};
+ transport(async(path,init)=>{if(init?.body)return Response.json({id:'rate-octop',version:1});if(path.startsWith('/tool-profiles'))return Response.json({items:[octop,offline,foreignPurpose,profile],total:4,next_cursor:''});if(path.startsWith('/usage/attempts?'))return Response.json({items:[{...attempt(),usage_source:'host_model_gateway'}],total:1,next_cursor:''});return defaults(path);});
+ await render();expect(host.textContent).toContain('host model gateway request records');await click('[data-usage-rate-toggle]');
+ const choices=[...host.querySelectorAll<HTMLOptionElement>('[name=rate_profile] option')].map(option=>option.value);expect(choices).toContain('octop-a');expect(choices).toContain('planner-a');expect(choices).not.toContain('offline-octop');expect(choices).not.toContain('foreign-purpose');
+ await change('[name=rate_profile]','octop-a');expect(host.querySelector<HTMLSelectElement>('[name=rate_model_deployment]')?.value).toBe(deployment.deployment_sha256);await change('[name=input_rate]','1.000001');await change('[name=output_rate]','0.000023');await change('[name=input_reservation]','8192');await change('[name=output_reservation]','4096');await change('[name=rate_reason]','Shared gateway deployment quote');await submit('[data-usage-rate-form]');
+ expect(writes).toHaveLength(1);expect(writes[0]).toMatchObject({path:'/usage/rates',body:{tool_profile_id:'octop-a',expected_tool_version:4,model_deployment_id:deployment.deployment_id,model_deployment_revision:deployment.revision,model_deployment_sha256:deployment.deployment_sha256,input_rate_micros_per_million:1000001,output_rate_micros_per_million:23}});expect(writes[0].body).not.toHaveProperty('model');expect(writes[0].body).not.toHaveProperty('api_key');
+ await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('Go 宿主模型网关的请求记录');
 });

@@ -1,8 +1,10 @@
 # 1.0.0 完整实施计划
 
-更新：2026-10-28。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。
+更新：2026-10-29。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。
 
 [产品基线](../product/v1-baseline.md)记录完整编号范围和单一新库初始化策略，[交付状态](status.md)集中当前实现与限制，[文档索引](../README.md)提供领域设计／合同／专项证据。本台账保留各阶段的原始能力范围，删除重复阶段流水和历史测试数字。
+
+当前数据合同为 `suma-initial-gateway-v1`，独立于产品版本1.0.0。旧声明、混合组件或未知合同在初始化写入前拒绝，既有用户数据保留；新实例使用独立空目录／数据库。实现与实际检查范围见[T-MODEL-118报告](../quality/model-gateway-verification.md)及[摘要](../quality/model-gateway-summary.json)。
 
 勾选只表示所列限定实现存在，不表示整阶段完成；报告只支持原源码／环境／场景。当前本地已实现的模型配置、Codex执行、专家团队、候选合成／修复、工作区、知识提炼与账本等具体边界统一见交付状态。未配置、未验证和结果未知必须明确，不以局部交付缩减剩余目标。
 
@@ -64,7 +66,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 - [ ] 完整仓库授权、合并策略、冲突及未知效果恢复，真实终端、LSP/DAP、完整调试预览；当前本地审批快进、多源合成／独立修复及bundle交接已有证据，动态多分支／跨map／子流程候选继承及真正分布式Git制品传送仍待验收。
 - [x] 持久增量前沿、边结算／就绪／唤醒索引、短事件提交尾锁、稳定领取回执、项目资源账本、分块展开与持久重试窗口；见[增量内核](../scheduler/incremental-kernel.md)与[限定验收](../quality/scheduling-verification.md)。
 - [x] 跨组织共享池、明确多项目独立机器身份、双边授权、固定任务/运行路由、持久租户/项目加权准入份额与共享账本；SQLite本机双项目真实并行、独立测试及故障回流见[阶段验收](../quality/execution-pool-verification.md)。
-- [ ] 模型请求硬许可／速率、完整厂商成本结算、分布式数据库及目标吞吐验收；持久回执安全压缩、空闲退避/抖动、领取限流及长期增长验证。空回执不能在未定义幂等失效窗口时直接删除。
+- [ ] 全工具模型请求许可／速率、完整厂商成本结算、分布式数据库及目标吞吐验收；原生／Octop当前已有Go网关逐请求剩余输出许可，不代表供应商账单硬帽。持久回执安全压缩、空闲退避/抖动、领取限流及长期增长继续验证；空回执不能在未定义幂等失效窗口时直接删除。
 
 ## 第23项：电脑本地专业一站式开发工作台
 
@@ -109,7 +111,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 - [x] 多进程SQL调度互斥、租约与故障恢复测试。
 - [x] 外部流程HTTP桥接合同与可配置执行器。
 - [x] 不可变工具档案、项目绑定执行身份、受限本机探测及60秒观察；精确命令能力、配置/程序摘要与当前授权核验后再占用attempt和资源。
-- [x] 固定任务／需求／流程／工具／模型配置预览、显式启动与同操作原子恢复；原生和Codex独立单任务配置、原进展／结果、专家逐项原生／Codex选择、原生修复创建／修订及部分／未知用量语义分别验证；见[跨入口限定证据](../quality/model-selection-workflows-verification.md)。Codex修复、完整厂商预算与物理远端仍待实现／验收。
+- [x] 固定任务／需求／流程／工具／模型配置预览、显式启动与同操作原子恢复；原生／Octop共用ModelBinding、动态参数上限、Go HTTP／SSE网关、剩余总输出许可和持久原响应回放，见[当前报告](../quality/model-gateway-verification.md)及[摘要](../quality/model-gateway-summary.json)。Codex独立单任务配置、专家逐项选择、原生修复及部分／未知用量仍按各自[跨入口证据](../quality/model-selection-workflows-verification.md)记录；Codex修复、完整厂商预算与物理远端仍待实现／验收。
 - [x] 项目准入策略固定影响预览／独立确认、真实就绪队列、多重阻塞、持久尝试与来源下钻；当前凭证复核、项目门禁和提交尾序。见[调度验收](../quality/scheduling-verification.md)。
 - [x] 确定性协议夹具实际接收固定上下文、隔离提交、候选独立测试、人员验收、失败去重回流及实际停止；明确区分协议fixture与真实模型效果。
 - [x] 持久人工/Cron规则、固定流程修订、数据库时间、时区预演、启停与归档；错过策略、重叠策略和原子触发去重。
@@ -163,4 +165,4 @@ T-QUALITY-115按本节既有范围细化[自动化测试计划与逐例证据](.
 
 T-OCTOP-116按原互操作／项目协作范围推进[Octop项目MCP](../integrations/octop.md)及当前交付／逐例质量读取；真实SDK／HTTP与连接界面证据见[专项报告](../quality/octop-integration-verification.md)。只读和原草稿工具不授予ACP编码、批准或派发，完整范围与58／34／92统计不变。
 
-T-OCTOP-117继续同一范围，新增[公开Harness／ACP执行](../architecture/octop-execution.md)：固定模型与参数、唯一Go派发、六工具工作树、操作记录／检查／候选、精确SHA独立JUnit及取消树停止；真实官方SDK＋本地模型协议和实际中英文配置向导见[报告](../quality/octop-execution-verification.md)。完整Octop CLI／GUI、厂商账户、记忆／技能同步、跨平台SDK安装和总量硬预算继续待办，不改变完整P0–P7、需求1–26和58／34／92统计。
+T-MODEL-118将[公开Harness／ACP执行](../architecture/octop-execution.md)与原生编码收敛到共同模型选择、冻结报价、attempt预算和唯一Go网关，不再保留Octop第二条固定模型配置权威。当前真实SSE、逐次剩余输出许可、持久准入／回执、同正文原响应回放及未知不重复外发，官方SDK六工具工作树、检查／封存、同SHA独立JUnit与取消树停止，简洁中英文模型／报价入口和可展开运行事实，分别见[当前报告](../quality/model-gateway-verification.md)及[摘要](../quality/model-gateway-summary.json)。[T-OCTOP-117报告](../quality/octop-execution-verification.md)保留原阶段事实，不替代当前验证。完整Octop CLI／GUI、厂商账户、记忆／技能同步、跨平台SDK安装、供应商账单与绝对费用保证继续待办，不改变完整P0–P7、需求1–26和58／34／92统计。

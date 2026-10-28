@@ -1,8 +1,6 @@
-import {OpenCodeExecutionFacts} from './OpenCodeExecutionFacts';
+import {ExecutionModelFacts} from './ExecutionModelFacts';
 import {expertPlanResponse} from './expert-plan-response';
 import {ExpertModelSelections,expertModelScope,expertModelPayload,type ExpertModelChoices,type ExpertModelTask} from './ExpertModelSelections';
-import {ModelExecutionFacts} from './ModelExecutionPanel';
-import {CodexExecutionFacts} from './CodexModelExecutionPanel';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import type {ExpertTeamConfiguration,ExpertTeamPlan,ExpertTeamPlanItem} from '../../../packages/contracts/src';
 import {ApiError,query,stateLabel,type RecordItem,type Session} from './api';
@@ -94,7 +92,7 @@ function PlanItems({plan,project,session,onChanged}:{plan:ExpertTeamPlan;project
   {compositionCodeBaseline(item.plan.code_baseline,project,item.task_id)&&<p className="team-dispatch-muted">{tr('candidate-composition.selected_base')} <code>{item.plan.code_baseline.source.head_commit}</code></p>}
   {item.run_id&&<p className="team-dispatch-muted">{t('actual_run_state',{state:item.run_state?stateLabel(item.run_state):old('run_unknown')})}</p>}
   {session&&item.state==='blocked'&&item.run_id&&<FailureDiagnosisLauncher session={session} project={project} runID={item.run_id} refresh={plan.version} onChanged={onChanged}/>}
-  <ModelExecutionFacts binding={item.plan.model_execution}/><CodexExecutionFacts binding={item.plan.codex_execution}/><OpenCodeExecutionFacts capability={item.plan.opencode_execution}/>
+  <ExecutionModelFacts binding={item.plan.model_execution} codex={item.plan.codex_execution} openCode={item.plan.opencode_execution}/>
   <details><summary>{old('fixed_basis')}</summary><p>{old('task_version',{value:formatNumber(item.task_version)})} · {t('revision',{value:formatNumber(item.source_revision)})}</p><code>{item.task_basis_sha256}</code><p>{item.plan.tool_profile_id} · v{formatNumber(item.plan.tool_profile_version)}</p><code>{item.plan.tool_profile_sha256}</code><DispatchRouteFacts route={item.plan.execution_route}/><KnowledgeContextFacts project={project} items={item.plan.context.knowledge||[]}/><pre className="team-dispatch-raw">{JSON.stringify({task:item.plan.context.task,workflow:item.plan.workflow,code_baseline:item.plan.code_baseline,dependencies:item.dependencies,dispatch_plan_id:item.dispatch_plan_id,run_id:item.run_id},null,2)}</pre></details>
  </li>)}</ol>;
 }

@@ -9,6 +9,7 @@ import (
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	"github.com/ai-mada/suma/internal/dag"
+	"github.com/ai-mada/suma/internal/modelcontract"
 	nwc "github.com/ai-mada/suma/internal/nativeworkspacecontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
@@ -32,8 +33,9 @@ func TestCandidateConflictRepairPoolExactInputAndLateFacts(t *testing.T) {
 			}
 			profile := toolTestProfile()
 			profile.WorkspaceToolsVersion = nwc.Version
+			profile.ModelExecutionProtocol = "suma-model-execution-v1"
 			profile.ConflictRepairProtocol = ccmp.CandidateConflictRepairProtocol
-			f.bearer("POST", "/pool-runner/tool-inventory", machine.Token, PoolToolInventoryRequest{RunnerID: machine.Runner.ID, TenantID: f.user.TenantID, ProjectID: f.project, OperationID: newID(), Items: []tc.Observation{{Profile: profile, Available: true}}}, 200)
+			f.bearer("POST", "/pool-runner/tool-inventory", machine.Token, PoolToolInventoryRequest{RunnerID: machine.Runner.ID, TenantID: f.user.TenantID, ProjectID: f.project, OperationID: newID(), Items: []tc.Observation{{Profile: profile, Available: true, ModelDeployments: []modelcontract.Deployment{nativeWorkspaceModelForTest(t).Deployment}}}}, 200)
 			pr, err := f.s.CreateToolProfile(ctx, f.actor, f.project, ToolProfileCreateRequest{ProjectID: f.project, WorkerID: machine.Runner.WorkerID, Name: "Project-approved native Pool conflict repair", Profile: profile, IdempotencyKey: newID()})
 			if err != nil {
 				t.Fatal(err)
@@ -46,7 +48,7 @@ func TestCandidateConflictRepairPoolExactInputAndLateFacts(t *testing.T) {
 			if err = json.Unmarshal([]byte(stringify(f.call("GET", "/candidate-compositions/"+original.ID+"/conflict?project_id="+f.project, nil, 200))), &conflict); err != nil || conflict.Basis == nil || !conflict.CanCreate {
 				t.Fatal(conflict, err)
 			}
-			request := CandidateCompositionRepairCreateRequest{ProjectID: f.project, ExpectedCompositionVersion: original.Version, ExpectedConflictSHA256: conflict.Basis.SHA256, Repair: CandidateCompositionRepairDraft{Title: "Resolve the fixed Pool source conflict", Description: "Resolve the original native Git conflict and preserve every frozen source.", Priority: "high", AcceptanceCriteria: []string{"Independent tests must cover the exact repaired candidate"}}, WorkflowID: h.req.WorkflowID, WorkflowVersion: h.req.WorkflowVersion, ProducerNodeID: h.req.ProducerNodeID, ToolProfileID: pr.ID, ExpectedToolVersion: pr.Version, IdempotencyKey: newID()}
+			request := CandidateCompositionRepairCreateRequest{ModelExecutionSelection: nativeWorkspaceSelectionForTest(t), ProjectID: f.project, ExpectedCompositionVersion: original.Version, ExpectedConflictSHA256: conflict.Basis.SHA256, Repair: CandidateCompositionRepairDraft{Title: "Resolve the fixed Pool source conflict", Description: "Resolve the original native Git conflict and preserve every frozen source.", Priority: "high", AcceptanceCriteria: []string{"Independent tests must cover the exact repaired candidate"}}, WorkflowID: h.req.WorkflowID, WorkflowVersion: h.req.WorkflowVersion, ProducerNodeID: h.req.ProducerNodeID, ToolProfileID: pr.ID, ExpectedToolVersion: pr.Version, IdempotencyKey: newID()}
 			var plan CandidateCompositionPlan
 			if err = json.Unmarshal([]byte(stringify(f.call("POST", "/candidate-compositions/"+original.ID+"/repairs", request, 201))), &plan); err != nil || plan.RunID != "" || plan.ConflictBasis == nil || plan.TaskID == original.TaskID {
 				t.Fatal(plan, err)
@@ -112,6 +114,10 @@ func TestCandidateConflictRepairPoolExactInputAndLateFacts(t *testing.T) {
 				result.Error = ""
 				result.WorkspaceEvidence = proof
 				result.ToolEvidence.Terminal = "completed"
+				if plan.ModelExecution == nil {
+					t.Fatal("Pool repair fixture lost its model binding")
+				}
+				result.ToolEvidence.ModelExecution = nativeGatewayReceiptForTest(t, *plan.ModelExecution)
 				if err = validateNativeWorkspaceEvidence(proof, result.ToolEvidence); err != nil {
 					t.Fatal("actual-shaped Pool repair seal was rejected", err)
 				}

@@ -5,7 +5,10 @@ export interface ModelParameters {max_steps:number;max_output_tokens:number}
 export interface ModelBudget {token_limit?:number;cost_limit_micros?:number;currency?:string}
 export interface ModelRate {id:string;version:number;currency:string;input_rate_micros_per_million:number;output_rate_micros_per_million:number}
 export interface ModelBinding {protocol:string;deployment:ModelDeployment;parameters:ModelParameters;parameters_sha256:string;binding_sha256:string;input_token_reservation:number;output_token_reservation:number;budget?:ModelBudget;rate?:ModelRate}
-export interface LocalModelExecution {binding:ModelBinding;base_url:string;api_key:string}
+// The runtime receives only an attempt-local broker capability. The real
+// deployment endpoint and supplier credential remain inside the Go host.
+export interface ModelGateway {protocol:'suma-model-gateway-v1';base_url:string;token:string;request_id:string;binding_sha256:string}
+export interface LocalModelExecution {binding:ModelBinding;gateway:ModelGateway}
 export class ModelBindingError extends Error {readonly code='model_binding_invalid';constructor(){super('Native model execution does not match its approved local deployment and binding');}}
 const fail=():never=>{throw new ModelBindingError();};
 const object=(value:unknown):Record<string,unknown>=>value!==null&&typeof value==='object'&&!Array.isArray(value)?value as Record<string,unknown>:fail();
@@ -41,8 +44,8 @@ export function validateModelBinding(value:unknown):ModelBinding {
 export function safeModelEndpoint(value:string):string {
  const endpoint=new URL(value);if(endpoint.username||endpoint.password||endpoint.search||endpoint.hash||value.trim()!==value||endpoint.protocol!=='https:'&&!(endpoint.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(endpoint.hostname)))fail();return endpoint.href.replace(/\/+$/,'');
 }
-export function resolveModelExecution(requestBinding:unknown,local:unknown):LocalModelExecution|undefined {
+export function resolveModelExecution(requestBinding:unknown,local:unknown,requestID:string):LocalModelExecution|undefined {
  if(requestBinding===undefined&&local===undefined)return undefined;
- try{const raw=fields(local,['binding','base_url','api_key']);const selected=validateModelBinding(requestBinding);const approved=validateModelBinding(raw.binding);const endpoint=safeModelEndpoint(text(raw.base_url,4096));const apiKey=text(raw.api_key,16384);if(modelJSON(selected)!==modelJSON(approved)||endpoint!==raw.base_url||new URL(endpoint).origin!==selected.deployment.endpoint_origin||modelHash(endpoint)!==selected.deployment.endpoint_config_sha256)fail();return {binding:selected,base_url:endpoint,api_key:apiKey};}catch{fail();}
+ try{const raw=fields(local,['binding','gateway']);const selected=validateModelBinding(requestBinding);const approved=validateModelBinding(raw.binding);const g=fields(raw.gateway,['protocol','base_url','token','request_id','binding_sha256']);const endpoint=text(g.base_url,2048);const url=new URL(endpoint);const token=text(g.token,512);if(g.protocol!=='suma-model-gateway-v1'||!/^http:\/\/127\.0\.0\.1:[1-9][0-9]*\/v1$/.test(endpoint)||url.port===''||Number(url.port)>65535||url.href!==endpoint||! /^[A-Za-z0-9._~-]{16,512}$/.test(token)||text(g.request_id)!==requestID||sha(g.binding_sha256)!==selected.binding_sha256||modelJSON(selected)!==modelJSON(approved))fail();return {binding:selected,gateway:{protocol:'suma-model-gateway-v1',base_url:endpoint,token,request_id:requestID,binding_sha256:selected.binding_sha256}};}catch{fail();}
 }
 export const modelExecutionCapability=()=>({protocol:'suma-model-execution-v1',provider_protocol:'openai-chat-completions-v1',parameters:['max_steps','max_output_tokens']});

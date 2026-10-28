@@ -7,45 +7,35 @@ import (
 	"io"
 	"time"
 
-	cc "github.com/ai-mada/suma/internal/codexcontract"
+	mc "github.com/ai-mada/suma/internal/modelcontract"
 )
 
 const OctopProtocol = "octop-harness-acp-v1"
 const OctopHarnessVersion = "1.0.5"
 const OctopACPSDKVersion = "0.12.1"
 
-// OctopExecutionCapability fixes the administrator's local harness and model.
-// It is configuration acknowledgement, never account health or a hard budget.
+// OctopExecutionCapability identifies only the SDK execution adapter. Model,
+// parameters, credentials and budget have one authority: ModelBinding + Go host.
 type OctopExecutionCapability struct {
-	HarnessVersion      string `json:"harness_version"`
-	ACPSDKVersion       string `json:"acp_sdk_version"`
-	ProviderID          string `json:"provider_id"`
-	Model               string `json:"model"`
-	EndpointOrigin      string `json:"endpoint_origin"`
-	ConfigurationSHA256 string `json:"configuration_sha256"`
-	BudgetMode          string `json:"budget_mode"`
-	IdentityEvidence    string `json:"identity_evidence"`
+	HarnessVersion string `json:"harness_version"`
+	ACPSDKVersion  string `json:"acp_sdk_version"`
 }
 
 // OctopExecutionEvidence retains the actual ACP session and independent Go
 // process-stop proof. ACP cancellation is a notification, not an abort ACK.
 // Octop end_turn by itself cannot prove a successful turn or code delivery.
 type OctopExecutionEvidence struct {
-	ConfigurationSHA256  string `json:"configuration_sha256"`
-	SessionID            string `json:"session_id"`
-	RequestedProvider    string `json:"requested_provider"`
-	RequestedModel       string `json:"requested_model"`
-	AcknowledgedProvider string `json:"acknowledged_provider"`
-	AcknowledgedModel    string `json:"acknowledged_model"`
-	StopReason           string `json:"stop_reason"`
-	CompletedAt          string `json:"completed_at"`
-	ProcessStopped       bool   `json:"process_stopped"`
-	CancelRequested      bool   `json:"cancel_requested"`
+	BindingSHA256   string `json:"binding_sha256"`
+	SessionID       string `json:"session_id"`
+	StopReason      string `json:"stop_reason"`
+	CompletedAt     string `json:"completed_at"`
+	ProcessStopped  bool   `json:"process_stopped"`
+	CancelRequested bool   `json:"cancel_requested"`
 }
 
 func ValidateOctopExecutionCapability(c OctopExecutionCapability) error {
-	if c.HarnessVersion != OctopHarnessVersion || c.ACPSDKVersion != OctopACPSDKVersion || !ValidCommandID(c.ProviderID) || !openCodeModel.MatchString(c.Model) || !validFixedModel(c.Model, c.EndpointOrigin) || !ValidDigest(c.ConfigurationSHA256) || c.BudgetMode != "observe_only" || c.IdentityEvidence != "configuration_ack_only" {
-		return fmt.Errorf("invalid fixed Octop ACP configuration")
+	if c.HarnessVersion != OctopHarnessVersion || c.ACPSDKVersion != OctopACPSDKVersion {
+		return fmt.Errorf("invalid Octop ACP runtime capability")
 	}
 	return nil
 }
@@ -53,7 +43,7 @@ func ValidateOctopExecutionCapability(c OctopExecutionCapability) error {
 // The protocol is enabled only with the implemented host workspace. A profile
 // cannot acquire native model limits, repair, tests or another model purpose.
 func SupportsOctopExecutionProfile(p Profile) bool {
-	return p.Adapter == "octop" && p.Protocol == OctopProtocol && !p.ReadOnly && p.WorkspaceToolsVersion == "attempt-workspace-v1" && p.ModelExecutionProtocol == "" && p.ConflictRepairProtocol == "" && p.TestReportProtocol == "" && p.Planning == nil && p.KnowledgeExtraction == nil && p.FailureDiagnosis == nil && p.IntelligentOperations == nil && p.OpenCodeExecution == nil && p.OctopExecution != nil && ValidateOctopExecutionCapability(*p.OctopExecution) == nil
+	return p.Adapter == "octop" && p.Protocol == OctopProtocol && !p.ReadOnly && p.WorkspaceToolsVersion == "attempt-workspace-v1" && p.ModelExecutionProtocol == mc.Protocol && p.ConflictRepairProtocol == "" && p.TestReportProtocol == "" && p.Planning == nil && p.KnowledgeExtraction == nil && p.FailureDiagnosis == nil && p.IntelligentOperations == nil && p.OpenCodeExecution == nil && p.OctopExecution != nil && ValidateOctopExecutionCapability(*p.OctopExecution) == nil
 }
 
 func validateOctopProfile(p Profile, complete bool) error {
@@ -63,36 +53,21 @@ func validateOctopProfile(p Profile, complete bool) error {
 	if SupportsOctopExecutionProfile(p) {
 		return nil
 	}
-	if !complete && p.Adapter == "octop" && p.Protocol == OctopProtocol && !p.ReadOnly && p.WorkspaceToolsVersion == "" && p.ModelExecutionProtocol == "" && p.ConflictRepairProtocol == "" && p.TestReportProtocol == "" && p.Planning == nil && p.KnowledgeExtraction == nil && p.FailureDiagnosis == nil && p.IntelligentOperations == nil && p.OpenCodeExecution == nil && p.OctopExecution == nil {
+	if !complete && p.Adapter == "octop" && p.Protocol == OctopProtocol && !p.ReadOnly && p.WorkspaceToolsVersion == "" && p.ModelExecutionProtocol == mc.Protocol && p.ConflictRepairProtocol == "" && p.TestReportProtocol == "" && p.Planning == nil && p.KnowledgeExtraction == nil && p.FailureDiagnosis == nil && p.IntelligentOperations == nil && p.OpenCodeExecution == nil && p.OctopExecution == nil {
 		return nil
 	}
 	return fmt.Errorf("invalid Octop ACP host-workspace capability")
 }
 
-// Node input can retain only the reviewed public configuration. Process,
-// experts, provider credentials, roots and limits belong to the local profile.
-func DecodeOctopNodeConfiguration(config map[string]any) (*OctopExecutionCapability, error) {
-	value, present := config["octop_execution"]
-	if !present {
-		return nil, nil
-	}
-	if cc.HasNodeOverrides(config) {
-		return nil, fmt.Errorf("invalid Octop node override")
-	}
-	for _, field := range []string{"codex_execution", "opencode_execution", "max_tokens", "max_cost", "max_cost_micros", "hard_budget", "token_budget", "budget", "resume", "session_id", "tools", "mcp_servers", "agent", "agent_id", "expert", "provider_id", "parameters", "model_parameters", "home", "octop_home", "workspace", "python", "executable", "args", "api_key_env_ref"} {
+// The only model input is the reviewed ModelBinding. Process and SDK state are
+// administrator-owned; old Octop snapshots are rejected rather than migrated.
+func ValidateOctopNodeConfiguration(config map[string]any) error {
+	for _, field := range []string{"octop_execution", "codex_execution", "opencode_execution", "model", "model_id", "provider", "provider_id", "base_url", "model_base_url", "endpoint", "endpoint_url", "api_key", "env", "env_from", "cwd", "max_tokens", "max_cost", "max_cost_micros", "hard_budget", "token_budget", "budget", "resume", "session_id", "tools", "mcp_servers", "agent", "agent_id", "expert", "parameters", "model_parameters", "home", "octop_home", "workspace", "python", "executable", "args", "api_key_env_ref"} {
 		if _, exists := config[field]; exists {
-			return nil, fmt.Errorf("invalid Octop node override")
+			return fmt.Errorf("invalid Octop node override")
 		}
 	}
-	raw, err := json.Marshal(value)
-	if err != nil {
-		return nil, err
-	}
-	var fixed OctopExecutionCapability
-	if err := json.Unmarshal(raw, &fixed); err != nil {
-		return nil, err
-	}
-	return &fixed, nil
+	return nil
 }
 
 func validateOctopEvidence(e Evidence) error {
@@ -102,12 +77,12 @@ func validateOctopEvidence(e Evidence) error {
 		}
 		return nil
 	}
-	c, proof := e.Profile.OctopExecution, e.OctopExecution
-	if !SupportsOctopExecutionProfile(e.Profile) || e.OpenCodeExecution != nil || e.CodexExecution != nil || e.ModelExecution != nil || e.UsageState == UsageComplete || c == nil || proof.ConfigurationSHA256 != c.ConfigurationSHA256 || proof.RequestedProvider != c.ProviderID || proof.RequestedModel != c.Model || e.SessionID != proof.SessionID {
+	proof := e.OctopExecution
+	if !SupportsOctopExecutionProfile(e.Profile) || e.OpenCodeExecution != nil || e.CodexExecution != nil || e.ModelExecution == nil || !ValidDigest(proof.BindingSHA256) || proof.BindingSHA256 != e.ModelExecution.BindingSHA256 || e.SessionID != proof.SessionID {
 		return fmt.Errorf("invalid Octop execution configuration evidence")
 	}
-	if proof.SessionID != "" && !safeID.MatchString(proof.SessionID) || proof.AcknowledgedProvider != "" && proof.AcknowledgedProvider != c.ProviderID || proof.AcknowledgedModel != "" && proof.AcknowledgedModel != c.Model {
-		return fmt.Errorf("invalid Octop execution acknowledgement")
+	if proof.SessionID != "" && !safeID.MatchString(proof.SessionID) {
+		return fmt.Errorf("invalid Octop execution session")
 	}
 	switch proof.StopReason {
 	case "", "end_turn", "max_tokens", "max_turn_requests", "refusal", "cancelled":
@@ -120,7 +95,7 @@ func validateOctopEvidence(e Evidence) error {
 			return fmt.Errorf("invalid Octop completion time")
 		}
 	}
-	if e.Terminal == "completed" && (proof.SessionID == "" || proof.AcknowledgedProvider != c.ProviderID || proof.AcknowledgedModel != c.Model || proof.StopReason != "end_turn" || proof.CompletedAt == "" || !proof.ProcessStopped || proof.CancelRequested) {
+	if e.Terminal == "completed" && (proof.SessionID == "" || proof.StopReason != "end_turn" || proof.CompletedAt == "" || !proof.ProcessStopped || proof.CancelRequested || !e.ModelExecution.GatewayClosed) {
 		return fmt.Errorf("Octop completion requires the original successful turn and stopped process scope")
 	}
 	return nil
@@ -173,7 +148,7 @@ func decodeOctopObject(raw []byte, target any, fields []string) error {
 func (c *OctopExecutionCapability) UnmarshalJSON(raw []byte) error {
 	type wire OctopExecutionCapability
 	var value wire
-	if err := decodeOctopObject(raw, &value, []string{"harness_version", "acp_sdk_version", "provider_id", "model", "endpoint_origin", "configuration_sha256", "budget_mode", "identity_evidence"}); err != nil {
+	if err := decodeOctopObject(raw, &value, []string{"harness_version", "acp_sdk_version"}); err != nil {
 		return err
 	}
 	if err := ValidateOctopExecutionCapability(OctopExecutionCapability(value)); err != nil {
@@ -186,7 +161,7 @@ func (c *OctopExecutionCapability) UnmarshalJSON(raw []byte) error {
 func (e *OctopExecutionEvidence) UnmarshalJSON(raw []byte) error {
 	type wire OctopExecutionEvidence
 	var value wire
-	if err := decodeOctopObject(raw, &value, []string{"configuration_sha256", "session_id", "requested_provider", "requested_model", "acknowledged_provider", "acknowledged_model", "stop_reason", "completed_at", "process_stopped", "cancel_requested"}); err != nil {
+	if err := decodeOctopObject(raw, &value, []string{"binding_sha256", "session_id", "stop_reason", "completed_at", "process_stopped", "cancel_requested"}); err != nil {
 		return err
 	}
 	*e = OctopExecutionEvidence(value)

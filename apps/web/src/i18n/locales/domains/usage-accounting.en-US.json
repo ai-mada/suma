@@ -67,6 +67,7 @@
   "usage-accounting.source.none": "Source: no complete usage evidence yet.",
   "usage-accounting.source.host_startup_proof": "Certified startup failure",
   "usage-accounting.source.tool_evidence": "Source: final tool evidence. This is not a provider invoice.",
+  "usage-accounting.source.host_model_gateway": "Source: host model gateway request records. Usage coverage and settlement are separate; this is not a provider invoice.",
   "usage-accounting.source.manual_confirmation": "Source: manual confirmation. Original tool evidence is retained; this is not a provider report.",
   "usage-accounting.source_details": "Reported counters & frozen source",
   "usage-accounting.usage_state": "Evidence coverage",

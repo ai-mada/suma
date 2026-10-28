@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	mc "github.com/ai-mada/suma/internal/modelcontract"
+	mg "github.com/ai-mada/suma/internal/modelgateway"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
 )
 
@@ -67,13 +68,19 @@ func validateModelExecutionSpec(spec CommandSpec) error {
 	if spec.ModelExecutionProtocol == "" {
 		return nil
 	}
-	if spec.ModelExecutionProtocol != mc.Protocol || spec.Adapter != "suma" || spec.Protocol != "suma-jsonl-v1" || spec.Input != "agent-jsonl" || spec.ReadOnly || spec.NativeWorkspace == nil || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis || spec.IntelligentOperations {
+	native := spec.Adapter == "suma" && spec.Protocol == "suma-jsonl-v1" && spec.Input == "agent-jsonl"
+	octop := spec.Adapter == "octop" && spec.Protocol == tc.OctopProtocol && spec.Input == "octop-acp-jsonl"
+	if spec.ModelExecutionProtocol != mc.Protocol || (!native && !octop) || spec.ReadOnly || spec.NativeWorkspace == nil || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis || spec.IntelligentOperations {
 		return fmt.Errorf("model execution requires the explicitly enabled native workspace protocol")
 	}
 	return nil
 }
 
 func probeModelExecution(ctx context.Context, executable string, spec CommandSpec) error {
+	if spec.Adapter == "octop" {
+		// toolVersion has already verified the combined SDK/gateway probe.
+		return nil
+	}
 	// Reuse the host's bounded read-only probe and process-tree finalization.
 	// No provider or platform credential is forwarded to this offline probe.
 	output, err := probeCommandStreams(ctx, executable, append(append([]string{}, spec.Args...), "--model-execution-probe"), CommandSpec{}, nil, true)
@@ -131,19 +138,18 @@ func modelExecutionRequest(a Assignment, cfg ExecConfig, spec CommandSpec, profi
 	return nil, fmt.Errorf("model execution deployment is absent from the local allowlist")
 }
 
-func applyModelExecutionEnvironment(environment []string, local *localModelExecution) []string {
-	if local == nil {
-		return environment
-	}
+func applyModelExecutionEnvironment(environment []string, binding mc.Binding, gateway mg.Connection) []string {
 	filtered := make([]string, 0, len(environment)+1)
 	for _, value := range environment {
 		name, _, _ := strings.Cut(value, "=")
-		if strings.HasPrefix(strings.ToUpper(name), "SUMA_MODEL") {
-			continue
+		if !strings.HasPrefix(strings.ToUpper(name), "SUMA_MODEL") {
+			filtered = append(filtered, value)
 		}
-		filtered = append(filtered, value)
 	}
-	raw, _ := json.Marshal(local)
+	raw, _ := json.Marshal(struct {
+		Binding mc.Binding    `json:"binding"`
+		Gateway mg.Connection `json:"gateway"`
+	}{binding, gateway})
 	return append(filtered, "SUMA_MODEL_EXECUTION="+string(raw))
 }
 
@@ -153,6 +159,18 @@ func cloneModelEvidence(value *mc.Evidence) *mc.Evidence {
 	}
 	copied := *value
 	copied.Requests = append([]mc.RequestEvidence{}, value.Requests...)
+	for i := range copied.Requests {
+		if original := copied.Requests[i].Usage; original != nil {
+			u := *original
+			for _, field := range []**int64{&u.InputTokens, &u.OutputTokens, &u.CachedInputTokens, &u.CacheWriteInputTokens, &u.ReasoningOutputTokens} {
+				if *field != nil {
+					n := **field
+					*field = &n
+				}
+			}
+			copied.Requests[i].Usage = &u
+		}
+	}
 	return &copied
 }
 

@@ -26,9 +26,10 @@ class ContractTests(unittest.TestCase):
             operation_id("request", "provider-call", "execute")
 
     def test_execute_cannot_supply_arbitrary_mcp_server(self):
-        value = {"v": 1, "type": "execute", "request_id": "r", "goal": "code", "workspace_bridge": {"version": 1, "endpoint": "https://example.com/mcp", "token": "x" * 32, "policy_sha256": "a" * 64, "request_id": "r"}}
-        with self.assertRaises(RuntimeFault):
+        value = {"v": 1, "type": "execute", "request_id": "r", "goal": "code", "model_execution": {}, "workspace_bridge": {"version": 1, "endpoint": "https://example.com/mcp", "token": "x" * 32, "policy_sha256": "a" * 64, "request_id": "r"}}
+        with self.assertRaises(RuntimeFault) as caught:
             parse_execute(value)
+        self.assertEqual(caught.exception.code, "workspace_config")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,16 @@
 package platform
 
-import "github.com/ai-mada/suma/internal/toolcontract"
+import (
+	"github.com/ai-mada/suma/internal/modelcontract"
+	"github.com/ai-mada/suma/internal/toolcontract"
+)
+
+func usageFromModelGateway(u *modelcontract.RequestUsage) *toolcontract.Usage {
+	if u == nil {
+		return nil
+	}
+	return &toolcontract.Usage{InputTokens: u.InputTokens, OutputTokens: u.OutputTokens, CachedInputTokens: u.CachedInputTokens, CacheWriteInputTokens: u.CacheWriteInputTokens, ReasoningOutputTokens: u.ReasoningOutputTokens}
+}
 
 // Pricing identifies the immutable configured model, never the model named by
 // an untrusted CLI result. Specialized read-only purposes share the same quota

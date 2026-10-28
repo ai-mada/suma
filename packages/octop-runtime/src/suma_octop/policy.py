@@ -28,6 +28,9 @@ class WorkspaceOnlyMiddleware(AgentMiddleware):
         settings = dict(request.model_settings or {})
         settings["max_tokens"] = self.max_output_tokens
         settings["parallel_tool_calls"] = False
+        # This header is supplied by our middleware, never a model argument.
+        # The Go broker owns step admission, cumulative allowance and receipts.
+        settings["extra_headers"] = {"X-Suma-Model-Step": str(self.model_steps - 1)}
         return request.override(tools=allowed, model_settings=settings)
 
     def wrap_model_call(self, request, handler):

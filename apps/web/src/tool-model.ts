@@ -151,13 +151,13 @@ function validatePublicCapabilities(profile: Record<string, unknown>, observatio
   const native = profile.adapter === "suma" && profile.protocol === "suma-jsonl-v1";
   const openCode = profile.adapter === "opencode" && profile.protocol === "opencode-sdk-v1" && validOpenCodeCapability(profile.opencode_execution);
   const octop = profile.adapter === 'octop' && profile.protocol === 'octop-harness-acp-v1' && validOctopCapability(profile.octop_execution);
-  if(profile.octop_execution!==undefined&&!octop||profile.adapter==='octop'&&(profile.read_only!==false||observation.available===true&&!octop||octop&&profile.workspace_tools_version!=='attempt-workspace-v1'))invalidCapability();
+  if(profile.octop_execution!==undefined&&!octop||profile.adapter==='octop'&&(profile.protocol!=='octop-harness-acp-v1'||profile.read_only!==false||profile.model_execution_protocol!=='suma-model-execution-v1'||observation.available===true&&!octop||octop&&profile.workspace_tools_version!=='attempt-workspace-v1'))invalidCapability();
   if (profile.opencode_execution !== undefined && !openCode || profile.adapter === "opencode" && (!openCode || profile.read_only!==false || profile.workspace_tools_version!=="attempt-workspace-v1")) invalidCapability();
   const workspace = (native || openCode || octop) && profile.read_only === false && profile.workspace_tools_version === "attempt-workspace-v1";
   const codexWorkspace = profile.adapter === "codex" && profile.protocol === "codex-app-server-v1" && profile.read_only === false && validCodexCatalog(observation.codex_catalog);
   for (const [field, protocol, permitted] of [
     ["workspace_tools_version", "attempt-workspace-v1", workspace],
-    ["model_execution_protocol", "suma-model-execution-v1", native && workspace],
+    ["model_execution_protocol", "suma-model-execution-v1", native && workspace || profile.adapter === "octop" && profile.protocol === "octop-harness-acp-v1" && profile.read_only === false],
     ["conflict_repair_protocol", "suma.candidate-conflict-repair.v1", native && workspace],
   ] as const) {
     if (profile[field] !== undefined && profile[field] !== "" && (profile[field] !== protocol || !permitted)) invalidCapability();
@@ -308,7 +308,7 @@ export function taskToolProtocol(profile: ToolProfileDefinition) {
     (profile.adapter === "codex" && ["codex-jsonl-v1","codex-app-server-v1"].includes(profile.protocol)) ||
     (profile.adapter === "harness" && profile.protocol === "dsh-multica-jsonl-v1") ||
     (profile.adapter === "codebuddy" && profile.protocol === "codebuddy-jsonl-v1") ||
-    (profile.adapter === 'octop' && profile.protocol === 'octop-harness-acp-v1' && profile.read_only===false && profile.workspace_tools_version==='attempt-workspace-v1' && validOctopCapability(profile.octop_execution))
+    (profile.adapter === 'octop' && profile.protocol === 'octop-harness-acp-v1' && profile.read_only===false && profile.workspace_tools_version==='attempt-workspace-v1' && profile.model_execution_protocol==='suma-model-execution-v1' && validOctopCapability(profile.octop_execution))
   );
 }
 export function dispatchRequest(

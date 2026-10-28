@@ -60,14 +60,6 @@ func buildTaskDispatchWorkflow(source dag.Workflow, agentID, profileID string, p
 	delete(n.Config, "codex_execution")
 	delete(n.Config, "opencode_execution")
 	delete(n.Config, "octop_execution")
-	if tc.SupportsOctopExecutionProfile(profile) {
-		n.MaxRetries = 0
-		var fixed map[string]any
-		if err := json.Unmarshal([]byte(stringify(profile.OctopExecution)), &fixed); err != nil {
-			return w, err
-		}
-		n.Config["octop_execution"] = fixed
-	}
 	if tc.SupportsOpenCodeExecutionProfile(profile) {
 		// An uncertain external prompt must retain its original operation. The
 		// fixed public configuration is a reviewed fact, never caller selection.

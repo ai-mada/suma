@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"unicode"
 	"unicode/utf8"
 
 	ccc "github.com/ai-mada/suma/internal/candidatecompositioncontract"
@@ -20,34 +19,31 @@ import (
 const toolLineLimit = 64 << 10
 
 type toolStream struct {
-	mu                     sync.Mutex
-	profile                tc.Profile
-	secrets                []string
-	pending                []byte
-	emit                   func(tc.Event) error
-	abort                  func()
-	output                 *output
-	session, terminal      string
-	count, terminals       int
-	usage                  *tc.Usage
-	bad                    error
-	expectedRequestID      string
-	sessionStarted         bool
-	turnStarted            bool
-	requestPending         bool
-	requestStep            int64
-	usageSteps             int
-	usageMissing           bool
-	usagePartial           bool
-	usagePresence          [5]int
-	failureClass           string
-	lastUsageState         string
-	completionOutput       string
-	modelBinding           *mc.Binding
-	modelEvidence          *mc.Evidence
-	codexEvidence          *cc.Evidence
-	modelAllowanceConsumed int64
-	modelRequestAllowance  int64
+	mu                sync.Mutex
+	profile           tc.Profile
+	secrets           []string
+	pending           []byte
+	emit              func(tc.Event) error
+	abort             func()
+	output            *output
+	session, terminal string
+	count, terminals  int
+	usage             *tc.Usage
+	bad               error
+	expectedRequestID string
+	sessionStarted    bool
+	turnStarted       bool
+	requestPending    bool
+	requestStep       int64
+	usageSteps        int
+	usageMissing      bool
+	usagePartial      bool
+	usagePresence     [5]int
+	failureClass      string
+	lastUsageState    string
+	completionOutput  string
+	modelBinding      *mc.Binding
+	codexEvidence     *cc.Evidence
 	// Vendor-specific state stays outside the shared event and authorization
 	// contract. A terminal may close an interactive stdin, never mark a process stopped.
 	dshState       *dshStreamState
@@ -482,9 +478,6 @@ func (s *toolStream) suma(m map[string]any) {
 			s.invalid("native model execution receipt differs from its immutable binding")
 			return
 		}
-		if s.modelEvidence == nil {
-			s.modelEvidence = &mc.Evidence{BindingSHA256: b.BindingSHA256, DeploymentSHA256: b.Deployment.SHA256, ParametersSHA256: b.ParametersSHA256, Model: b.Deployment.Model, Requests: []mc.RequestEvidence{}}
-		}
 	}
 	oneCallPurpose, fixedModel := oneCallModelProfile(s.profile)
 	if kind != "started" && kind != "error" && !s.sessionStarted {
@@ -547,7 +540,8 @@ func (s *toolStream) suma(m map[string]any) {
 		if s.modelBinding != nil {
 			b := s.modelBinding
 			maxSteps = int64(b.Parameters.MaxSteps)
-			if textAt(m, "endpoint_config_sha256") != b.Deployment.EndpointConfigSHA256 || !mc.ValidDigest(textAt(m, "request_sha256")) || allowance > b.Deployment.ContextWindow || allowance > b.OutputTokenReservation-s.modelAllowanceConsumed {
+			maxAllowance = b.Parameters.MaxOutputTokens
+			if textAt(m, "endpoint_config_sha256") != b.Deployment.EndpointConfigSHA256 || !mc.ValidDigest(textAt(m, "request_sha256")) || allowance > b.Deployment.ContextWindow || allowance > b.OutputTokenReservation {
 				s.invalid("native model request exceeds or changes the fixed binding")
 				return
 			}
@@ -557,11 +551,6 @@ func (s *toolStream) suma(m map[string]any) {
 			return
 		}
 		s.requestPending = true
-		if s.modelBinding != nil {
-			s.modelRequestAllowance = allowance
-			s.modelAllowanceConsumed += allowance
-			s.modelEvidence.Requests = append(s.modelEvidence.Requests, mc.RequestEvidence{Step: int(step), RequestSHA256: textAt(m, "request_sha256"), OutputAllowance: allowance, UsageState: tc.UsageUnreported})
-		}
 		s.event("activity_started", "model-step-"+strconv.FormatInt(step, 10), "model_request", "model_request", nil)
 	case "usage":
 		step, ok := nativeInteger(m, "step")
@@ -590,47 +579,7 @@ func (s *toolStream) suma(m map[string]any) {
 		s.usagePartial = s.usagePartial || state == tc.UsagePartial
 		s.lastUsageState = state
 		s.event("usage", "model-step-"+strconv.FormatInt(step, 10), "", "", u, state)
-		if s.modelBinding != nil {
-			r := &s.modelEvidence.Requests[len(s.modelEvidence.Requests)-1]
-			r.ResponseSHA256, r.ProviderModel, r.ProviderRequestID, r.UsageState = textAt(m, "response_sha256"), textAt(m, "provider_model"), textAt(m, "provider_request_id"), state
-			if r.ResponseSHA256 != "" && !mc.ValidDigest(r.ResponseSHA256) || len(r.ProviderRequestID) > 256 || strings.IndexFunc(r.ProviderRequestID, unicode.IsControl) >= 0 || len(r.ProviderModel) > 256 || strings.IndexFunc(r.ProviderModel, unicode.IsControl) >= 0 {
-				r.ResponseSHA256, r.ProviderModel, r.ProviderRequestID = "", "", ""
-				s.invalid("native provider response identity is invalid")
-				return
-			}
-			if u != nil && u.OutputTokens != nil {
-				if *u.OutputTokens > s.modelRequestAllowance {
-					s.invalid("native provider output exceeds request allowance")
-					return
-				}
-				if state == tc.UsageComplete {
-					s.modelAllowanceConsumed -= s.modelRequestAllowance - *u.OutputTokens
-				}
-			}
-			if u != nil && u.InputTokens != nil && *u.InputTokens > s.modelBinding.Deployment.ContextWindow {
-				s.invalid("native provider input exceeds deployment context bound")
-				return
-			}
-			// A response with foreign/missing identity retains already reported
-			// usage, but cannot certify completion or release its budget hold.
-			if r.ResponseSHA256 != "" && r.ProviderModel != s.modelBinding.Deployment.Model {
-				s.invalid("native provider model differs from the selected deployment")
-				return
-			}
-		}
 	case "completed":
-		if s.modelBinding != nil {
-			if s.modelEvidence == nil || len(s.modelEvidence.Requests) == 0 {
-				s.invalid("native model completion has no model request evidence")
-				return
-			}
-			for _, request := range s.modelEvidence.Requests {
-				if request.ResponseSHA256 == "" || request.ProviderModel != s.modelBinding.Deployment.Model {
-					s.invalid("native model completion lacks the selected provider identity")
-					return
-				}
-			}
-		}
 		if oneCallPurpose != "" && s.requestStep != 1 {
 			s.invalid(oneCallPurpose + " requires exactly one settled model request")
 			return
@@ -675,7 +624,7 @@ func (s *toolStream) finish() (*tc.Evidence, error) {
 	if s.bad != nil || terminal == "" {
 		terminal = "unknown"
 	}
-	e := &tc.Evidence{Profile: s.profile, SessionID: s.session, Terminal: terminal, EventCount: s.count, Usage: s.usage, UsageState: s.coverage(), ModelExecution: s.modelEvidence, CodexExecution: cc.CloneEvidence(s.codexEvidence)}
+	e := &tc.Evidence{Profile: s.profile, SessionID: s.session, Terminal: terminal, EventCount: s.count, Usage: s.usage, UsageState: s.coverage(), CodexExecution: cc.CloneEvidence(s.codexEvidence)}
 	if c := s.profile.OpenCodeExecution; c != nil {
 		proof := tc.OpenCodeExecutionEvidence{ConfigurationSHA256: c.ConfigurationSHA256, RequestedProvider: c.ProviderID, RequestedModel: c.Model}
 		if s.openCodeState != nil {
@@ -683,8 +632,11 @@ func (s *toolStream) finish() (*tc.Evidence, error) {
 		}
 		e.OpenCodeExecution = &proof
 	}
-	if c := s.profile.OctopExecution; c != nil {
-		proof := tc.OctopExecutionEvidence{ConfigurationSHA256: c.ConfigurationSHA256, RequestedProvider: c.ProviderID, RequestedModel: c.Model}
+	if s.profile.OctopExecution != nil {
+		proof := tc.OctopExecutionEvidence{}
+		if s.modelBinding != nil {
+			proof.BindingSHA256 = s.modelBinding.BindingSHA256
+		}
 		if s.octopState != nil {
 			proof = s.octopState.proof
 		}
