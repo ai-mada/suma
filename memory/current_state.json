@@ -4,13 +4,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-OPENCODE-105",
-  "updated_at": "2026-10-28T01:36:56.482350+00:00",
+  "stage": "T-WORKSPACE-106",
+  "updated_at": "2026-10-28T02:05:26.005702+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/opencode-actual-execution-verification.md",
-  "current_summary": "docs/quality/opencode-actual-execution-summary.json",
+  "current_evidence": "docs/quality/workspace-directory-verification.md",
+  "current_summary": "docs/quality/workspace-directory-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..22",
     "source_sha256": "2743ccd3920cc648455d7c5ad12f5c9937590d3eafdecc5da36d6529aa829a71",
@@ -23,33 +23,36 @@
     "initialization": "Service.Initialize and domain Initialize methods; current schema namespaces and registration; unknown existing schema rejected before DDL, never upgraded/reset.",
     "scheduling": "One ready queue, accounts/ledger, complete current dependency semantics and fixed routes; persisted current restart remains.",
     "identity": "Current complete issuance/source/family/Grant/slot proof and transactional revocation; no inferred authority or migration status.",
-    "workbench": "Current local/Pool workspace; native and Codex live attempt list/read via shared root, native-only CAS save; fixed ordinary/expert models and native repair; fullIDE/coordinatedexternalwrites remain.",
-    "internationalization": "zh-CN/en-US paired extensible catalogs4653keys; current run phase/evidence/test actions, frontend hardcodes0; vendor/original data remain original.",
+    "workbench": "Metadata-only local IDE entry; current root-constrained single-directory paging, snapshots/cursors, CNEN sidebar/CLI and draft-preserving navigation; native/Codex/OpenCode execution lifecycle unchanged. Complete remoteIDE/Git/PTY/LSP/DAP remain.",
+    "internationalization": "zh-CN/en-US paired extensible catalogs4674keys; current directory/CLI and structured diagnostics; own frontend production hardcodes0; built-in Monaco/vendor surfaces remain separately scoped.",
     "versioning": "Go product identity has one source; workspace/desktop/Helm check:version is1.0.0; protocol/workflow/data revisions independent.",
     "architecture": "Single initial1.0.0; one current OpenCode SDK path, no old JSONL parser/alias or duplicate dispatcher. Generated public types replace duplicate web DTOs; current native host/ledger reused.",
     "opencode": "Actual officialWindows1.19.4 CLI/SDK + owned deterministic model protocol, real host MCP/write/check/seal, twoWorker candidate/import/independent exactSHA test; currentstream client lifetime, single Go tree authority and compact CNEN status/drilldown. Not commercial model/billing or production evidence."
   },
   "verified": {
-    "current_report": "docs/quality/opencode-actual-execution-verification.md",
+    "current_report": "docs/quality/workspace-directory-verification.md",
     "product_version": "1.0.0",
-    "actual_program_versions": 5,
-    "actual_official_opencode_executable": true,
-    "actual_official_sdk_serve_host_candidate_independent_test": true,
-    "commercial_model_calls": 0,
-    "owned_model_protocol_requests_failed_attempt": 3,
-    "owned_model_protocol_requests_successful_attempt": 4,
-    "new_business_tables": 0,
-    "new_external_dependencies": 0,
-    "web_affected_distinct_cases": 33,
+    "actual_program_versions": 2,
+    "programs": [
+      "suma-control",
+      "suma"
+    ],
+    "workspace_tree_cases": 6,
+    "web_affected_distinct_cases": 13,
     "web_typecheck": true,
-    "web_catalog_keys": 4653,
-    "sdk_validation": "22cases at parent/config checkpoint, later4affected MCP/observer checks; no repeated unrelated suite",
-    "go_validation": "focused carrier/progress, actual full105b exit0, affected vet",
-    "windows_runtime_manifest": "dist/runtime/builds/20261028T012825420Z-9d8a03be/manifest.json",
-    "production_source_sha256": "1357da5fb681af729d6d208bc4e03a6b12bcfdb5a7d3c673fba58f7ebf555593",
-    "production_go_inputs": 460,
-    "actual_cn_en_current_run_and_test_drilldown": true,
-    "gui_review_snapshot_no_new_execution": true
+    "web_catalog_keys": 4674,
+    "actual_http_page_counts": [
+      100,
+      8
+    ],
+    "actual_cli": true,
+    "actual_cn_en_directory_and_draft_navigation": true,
+    "actual_narrow_layout": 640,
+    "file_save_operations": 0,
+    "dag_runs": 0,
+    "model_calls": 0,
+    "previous_opencode_evidence": "docs/quality/opencode-actual-execution-verification.md",
+    "owned_fixture_source_unchanged": true
   },
   "production_integration_complete": false,
   "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
@@ -59,7 +62,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "64ecdd80bdf0d3266cbb6c7e41d39bcd064e777b"
+    "previously_published_commit": "e5ba2911e0f8aaa8815abc58e249c834799329af"
   },
   "existing_preview": {
     "updated": false,
@@ -67,13 +70,12 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Keep full P0-P7 and1..22; see current complete plan for unimplemented/partially verified capabilities.",
-  "last_goal_turn_classification": "progress: actual official OpenCode/SDK+Go host candidate and independent test achieved after proven lifecycle fixes; scoped CNEN status/evidence/test interactions verified. Original failure and full platform remaining scope retained.",
-  "previous_goal_turn": "progress: current1.0.0 OpenCode SDK path and original fixed configuration/host tools/ledger/stop/UI implemented; old unverified JSONL and duplicate DTO/status branches removed. Scoped checks/SDK/host/browser/build passed. Full platform goal remains active.",
+  "last_goal_turn_classification": "progress: replaced recursive flat localIDE inventory with actual paged directory/CLI workflow, current-authority cursor/activation, draft protection and verified CNEN narrow UI. Complete P0-P7 and1..22 remain active.",
+  "previous_goal_turn": "progress: actual official OpenCode/SDK+Go host candidate and independent test achieved after proven lifecycle fixes; scoped CNEN status/evidence/test interactions verified. Original failure and full platform remaining scope retained.",
   "current_work": {
     "status": "verified_bounded_stage",
-    "runtime": "Official Windows1.19.4 toolchain passed actual read/CASwrite/check, native seal, candidate transport and second Worker independent sameSHA test. Four owned protocol responses; task remainsin_progress/unaccepted.",
-    "sdk": "Exact decoded config, currentstream freshMCPclient per call, parent-only private ACK combined with Go scope proof; failed toolprogress remainsfailed; original failed105a preserved.",
-    "interface": "Compact currentrun facts, exact frozenmodel, original messages/stop basis, same-run testcallback, CNEN+refresh; live and immutable maintenance-copy review completed, review processclosed/sourceunchanged.",
-    "deferred_not_dropped": "Complete P0-P7/requirements1..22; commercial providers/billing, physicalhosts, Unix/macOSrun/installation, fullIDE/session recovery/automatic expert intelligence and remaining acceptance."
+    "interface": "Directory/sidebar/refresh/paging, draft+Git retention, CNEN and corrected640px visibility verified with actual currentControl and unchanged owned fixtures.",
+    "runtime": "Current Control+CLI built and launched1.0.0; same-session CLI read succeeded. Model0/run0/save0; no userdata changed, owned servers/tabs closed.",
+    "deferred_not_dropped": "Keep full P0-P7 and1..22; see current complete plan for unimplemented/partially verified capabilities."
   }
 }

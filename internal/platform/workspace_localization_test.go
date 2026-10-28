@@ -64,7 +64,7 @@ func TestWorkspaceLocalizationUnconfiguredKeepsOriginalReason(t *testing.T) {
 		}
 		for _, locale := range []string{"en-US", "zh-CN"} {
 			status, out, err := workspaceLocalizedCall(f, "GET", "/workspace?project_id="+f.project, locale, nil)
-			if err != nil || status != 200 || out["configured"] != false || out["binding_available"] != wantAvailable || out["reason"] != wantReason || len(out["files"].([]any)) != 0 {
+			if err != nil || status != 200 || out["configured"] != false || out["binding_available"] != wantAvailable || out["reason"] != wantReason || out["files"] != nil || out["root"] != nil {
 				t.Fatalf("unconfigured state became healthy or lost its original reason: %d %v %v", status, out, err)
 			}
 		}

@@ -4148,6 +4148,12 @@ export interface WorkspaceGitStatus {
   restricted_files: number;
   observed_at: string;
 }
+export interface WorkspaceMetadata {
+  configured: boolean;
+  binding_available: boolean;
+  name?: string;
+  reason?: string;
+}
 export interface WorkspaceObservation {
   id: string;
   project_id: string;
@@ -4265,6 +4271,20 @@ export interface WorkspaceObservationTargetPage {
   total: number;
   limit: number;
   truncated: boolean;
+  observed_at: string;
+}
+export interface WorkspaceTreeEntry {
+  path: string;
+  name: string;
+  kind: string;
+}
+export interface WorkspaceTreePage {
+  project_id: string;
+  directory: string;
+  entries: (WorkspaceTreeEntry)[];
+  limit: number;
+  next_cursor: string;
+  snapshot_sha256: string;
   observed_at: string;
 }
 export interface WorkspaceWriteClaimRequest {

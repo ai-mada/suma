@@ -34,6 +34,7 @@ Read commands:
   models options --tool ID --expected-tool-version N
   workspace save-status ID [--wait]
   workspace targets | workspace observe --file request.json [--wait] | workspace observation ID [--wait]
+  workspace files [--directory RELATIVE] [--limit 100] [--before CURSOR]
   workspace git | workspace diff --path RELATIVE [--source worktree|index]
   developer check             Verify current MCP tools with a real read-only call
   tui                         Read-only Bubble Tea browser (default on a terminal)
@@ -126,6 +127,9 @@ func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out i
 	}
 	if len(args) > 1 && args[0] == "workspace" && (args[1] == "targets" || args[1] == "observe" || args[1] == "observation") {
 		return workspaceObservationCommand(ctx, c, args[1:], in, out)
+	}
+	if len(args) > 1 && args[0] == "workspace" && args[1] == "files" {
+		return workspaceTreeCommand(ctx, c, args[2:], out)
 	}
 	if len(args) > 0 && args[0] == "workspace" {
 		return workspaceGitCommand(ctx, c, args[1:], out)

@@ -1,0 +1,23 @@
+{
+  "workspace-tree.title":"项目文件导航",
+  "workspace-tree.breadcrumbs":"当前目录路径",
+  "workspace-tree.root":"项目根目录",
+  "workspace-tree.parent":"上一级",
+  "workspace-tree.refresh":"刷新目录",
+  "workspace-tree.filter":"过滤当前目录已加载的项目",
+  "workspace-tree.filter_placeholder":"过滤已加载名称…",
+  "workspace-tree.filter_hint":"仅过滤当前目录已加载的项目，不会搜索整个项目。",
+  "workspace-tree.loaded":"已加载 {{count}} 项",
+  "workspace-tree.filtered":"匹配 {{shown}} 项 · 已加载 {{loaded}} 项",
+  "workspace-tree.more_available":"此目录还有下一页",
+  "workspace-tree.all_loaded":"此目录已加载完毕",
+  "workspace-tree.more":"加载更多",
+  "workspace-tree.loading":"正在读取目录…",
+  "workspace-tree.loading_more":"正在加载下一页…",
+  "workspace-tree.empty":"此目录没有可显示的项目。",
+  "workspace-tree.empty_page":"当前页没有可显示的项目，可继续加载下一页。",
+  "workspace-tree.no_matches":"已加载项目中没有匹配名称。",
+  "workspace-tree.changed":"目录内容已变化。请刷新目录，从第一页重新加载。",
+  "workspace-tree.invalid_response":"目录响应与当前浏览范围不一致，请刷新后重试。",
+  "workspace-tree.refresh_required":"刷新并重新加载"
+}

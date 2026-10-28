@@ -11,19 +11,20 @@ import JSONWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 import CSSWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
 import HTMLWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 import {Folder,FileCode,FileDiff,Save,RefreshCw,Link,AlertCircle,Check,Code2} from 'lucide-react';
-import {api,query,operation,ApiError,type ApiCaller} from './api';
+import {query,operation,ApiError,type ApiCaller} from './api';
+import type {WorkspaceMetadata} from '../../../packages/contracts/src';
 import {Loading,ErrorNotice,Empty,Field} from './ui';
 import {FileSaveRequest,draftAfterFileSave,fileSaveReceipt,type FileDocument} from './file-saves';
 import {tr as t,useLocale,UiError,renderDiagnostic} from './i18n';
 import {Trans} from './i18n/Trans';
 import {WorkspaceGitPanel} from './WorkspaceGitPanel';
 import {bindWorkspaceSaveShortcut,type WorkspaceSaveShortcutState} from './workspace-save-shortcut';
+import {WorkspaceTree} from './WorkspaceTree';
 
 // All editor assets and workers are bundled locally. Monaco's ESM instance has
 // no public runtime NLS switch; the visible note states that precise boundary.
 (self as any).MonacoEnvironment={getWorker(_:unknown,label:string){if(label==='typescript'||label==='javascript')return new TypeScriptWorker();if(label==='json')return new JSONWorker();if(['css','scss','less'].includes(label))return new CSSWorker();if(['html','handlebars','razor'].includes(label))return new HTMLWorker();return new EditorWorker();}};
 loader.config({monaco});
-type Workspace={configured:boolean;binding_available?:boolean;root?:string;name?:string;reason?:string;files:{path:string;name:string;type:string}[]};
 type FileState=FileDocument;
 export function IDE({project}:{project:string}){
  useLocale();
@@ -44,14 +45,20 @@ function ProjectIDE({project}:{project:string}){
 }
 function LocalProjectIDE({project,active}:{project:string;active:boolean}){ const api=useApi();
  const locale=useLocale(),explorerID=useId();
- const [workspace,setWorkspace]=useState<Workspace>(),[file,setFile]=useState<FileState>(),[content,setContent]=useState(''),[error,setError]=useState<unknown>(),[busy,setBusy]=useState(false),[fileLoading,setFileLoading]=useState(false),[binding,setBinding]=useState(''),[saved,setSaved]=useState(false),[conflict,setConflict]=useState(false),[remote,setRemote]=useState<FileState>(),[treeFilter,setTreeFilter]=useState(''),[unconfirmed,setUnconfirmed]=useState(false),[reconciliation,setReconciliation]=useState(false);
+ const [workspace,setWorkspace]=useState<WorkspaceMetadata>(),[file,setFile]=useState<FileState>(),[content,setContent]=useState(''),[error,setError]=useState<unknown>(),[busy,setBusy]=useState(false),[fileLoading,setFileLoading]=useState(false),[binding,setBinding]=useState(''),[saved,setSaved]=useState(false),[conflict,setConflict]=useState(false),[remote,setRemote]=useState<FileState>(),[unconfirmed,setUnconfirmed]=useState(false),[reconciliation,setReconciliation]=useState(false);
  const [explorer,setExplorer]=useState<'files'|'changes'>('files'),[gitPreview,setGitPreview]=useState<HTMLDivElement|null>(null);
  const pendingApi=useRef<ApiCaller|undefined>(undefined);
  const pending=useRef(new FileSaveRequest()),openGeneration=useRef(0),dirty=!!file&&content!==file.content;
  const saveAction=useRef<monaco.IDisposable|undefined>(undefined),editingInstance=useRef<monaco.editor.IStandaloneCodeEditor|undefined>(undefined);
  const shortcut=useRef<WorkspaceSaveShortcutState>({hasFile:false,dirty:false,pending:false,busy:false,conflict:false,save:()=>{}});
- async function loadWorkspace(){try{setWorkspace(await api<Workspace>('/workspace'+query(project)));setError(undefined);}catch(e){setError(e instanceof ApiError&&[404,501].includes(e.status)?new UiError('workspace.ide.interface_unavailable'):e);}}
- useEffect(()=>{void loadWorkspace();},[project]);
+ const workspaceGeneration=useRef(0),workspaceAbort=useRef<AbortController|undefined>(undefined),workspaceActive=useRef(active),workspaceRefresh=useRef(false);workspaceActive.current=active;
+ async function loadWorkspace(){
+  if(!workspaceActive.current)return;
+  const generation=++workspaceGeneration.current;workspaceAbort.current?.abort();const abort=new AbortController();workspaceAbort.current=abort;
+  try{const next=await api<WorkspaceMetadata>('/workspace'+query(project),undefined,'GET',undefined,abort.signal);if(!abort.signal.aborted&&generation===workspaceGeneration.current&&workspaceActive.current){setWorkspace(next);workspaceRefresh.current=false;setError(undefined);}}
+  catch(e){if(!abort.signal.aborted&&generation===workspaceGeneration.current&&workspaceActive.current)setError(e instanceof ApiError&&[404,501].includes(e.status)?new UiError('workspace.ide.interface_unavailable'):e);}
+ }
+ useEffect(()=>{if(active&&(!workspace||workspaceRefresh.current))void loadWorkspace();return()=>{workspaceGeneration.current++;workspaceAbort.current?.abort();};},[api,project,active]);
  useEffect(()=>{const unload=(e:BeforeUnloadEvent)=>{if(dirty||unconfirmed||pending.current.pending){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',unload);return()=>window.removeEventListener('beforeunload',unload);},[dirty,unconfirmed]);
  useEffect(()=>{const guard=(e:Event)=>{if(dirty||unconfirmed||pending.current.pending){e.preventDefault();setError(new UiError('workspace.ide.dirty_navigation'));}};window.addEventListener('suma:navigate',guard);return()=>window.removeEventListener('suma:navigate',guard);},[dirty,unconfirmed]);
  async function open(path:string){
@@ -77,16 +84,16 @@ function LocalProjectIDE({project,active}:{project:string;active:boolean}){ cons
  };
  useEffect(()=>{const instance=editingInstance.current;if(instance){saveAction.current?.dispose();saveAction.current=bindWorkspaceSaveShortcut(instance,monaco,()=>shortcut.current,t('workspace.ide.save'));}},[locale]);
  useEffect(()=>()=>{saveAction.current?.dispose();},[]);
- async function bind(e:FormEvent){e.preventDefault();setBusy(true);try{await api('/workspace/binding',{project_id:project,path:binding,idempotency_key:operation()});await loadWorkspace();}catch(err){setError(err);}finally{setBusy(false);}}
+ async function bind(e:FormEvent){e.preventDefault();setBusy(true);try{await api('/workspace/binding',{project_id:project,path:binding,idempotency_key:operation()});workspaceRefresh.current=true;await loadWorkspace();}catch(err){setError(err);}finally{setBusy(false);}}
  if(!workspace&&!error)return <Loading/>;
  return <div className="ide-workbench">
   {Boolean(error)&&<ErrorNotice error={error}/>}
   <div className="info-strip"><Code2 size={17}/><p>{t('workspace.ide.intro')}<br/><small>{t('workspace.ide.editor_language_boundary')}</small></p></div>
   {workspace?.configured?<section className="panel editor-panel">
-   <aside className="file-tree"><div className="tree-heading"><Folder size={15}/><strong>{workspace.name||t('workspace.ide.project_files')}</strong><button className="icon-button" aria-label={t('workspace.ide.refresh_tree')} onClick={()=>void loadWorkspace()}><RefreshCw size={13}/></button></div>
+   <aside className="file-tree"><div className="tree-heading"><Folder size={15}/><strong>{workspace.name||t('workspace.ide.project_files')}</strong></div>
     <div className="workspace-explorer-tabs" role="tablist" aria-label={t('workspace-git.explorer_tabs')} onKeyDown={event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const next=event.key==='Home'?'files':event.key==='End'?'changes':explorer==='files'?'changes':'files';setExplorer(next);document.getElementById(explorerID+'-'+next+'-tab')?.focus();}}>{(['files','changes'] as const).map(view=><button key={view} type="button" id={explorerID+'-'+view+'-tab'} role="tab" tabIndex={explorer===view?0:-1} aria-selected={explorer===view} aria-controls={explorerID+'-'+view} onClick={()=>setExplorer(view)}>{view==='files'?<FileCode size={13}/>:<FileDiff size={13}/>} {t('workspace-git.'+view+'_tab')}{view==='files'&&(dirty||unconfirmed)&&<i className="dirty-dot" aria-label={t('workspace.ide.unsaved')}/>}</button>)}</div>
-    <div id={explorerID+'-files'} role="tabpanel" aria-labelledby={explorerID+'-files-tab'} className="workspace-files-view" hidden={explorer!=='files'}><input className="tree-search" value={treeFilter} aria-label={t('workspace.ide.filter_files')} placeholder={t('workspace.ide.filter_placeholder')} onChange={e=>setTreeFilter(e.target.value)}/><div className="tree-files">{(workspace.files||[]).filter(f=>f.path.toLowerCase().includes(treeFilter.toLowerCase())).map(f=><button className={file?.path===f.path?'active':''} key={f.path} title={f.path} disabled={f.type==='directory'} onClick={()=>void open(f.path)} style={{paddingLeft:12+Math.min(f.path.split('/').length-1,5)*10}}>{f.type==='directory'?<Folder size={13}/>:<FileCode size={13}/>}<span>{f.name||f.path}</span></button>)}</div><small className="tree-root">{workspace.root}</small></div>
-    <WorkspaceGitPanel project={project} active={explorer==='changes'} previewTarget={gitPreview} id={explorerID+'-changes'} labelledBy={explorerID+'-changes-tab'} onOpenFile={path=>{setExplorer('files');if(file?.path!==path)void open(path);}}/>
+    <div id={explorerID+'-files'} role="tabpanel" aria-labelledby={explorerID+'-files-tab'} className="workspace-files-view" hidden={explorer!=='files'}><WorkspaceTree project={project} active={active&&explorer==='files'} selectedPath={file?.path} onOpen={path=>{if(file?.path!==path)void open(path);}}/></div>
+    <WorkspaceGitPanel project={project} active={active&&explorer==='changes'} previewTarget={gitPreview} id={explorerID+'-changes'} labelledBy={explorerID+'-changes-tab'} onOpenFile={path=>{setExplorer('files');if(file?.path!==path)void open(path);}}/>
    </aside>
    <div className="editor-main"><div className="workspace-code-host" hidden={explorer!=='files'}><div className="editor-toolbar"><div><FileCode size={14}/><span>{file?.path||t('workspace.ide.select_file')}</span>{dirty&&<i className="dirty-dot" aria-label={t('workspace.ide.unsaved')}/>} {saved&&!dirty&&<span className="saved-state"><Check size={12}/>{t('workspace.ide.saved')}</span>}</div><div><button disabled={!dirty||busy||unconfirmed} onClick={()=>{if(file)setContent(file.content);setConflict(false);setRemote(undefined);setError(undefined);}}><RefreshCw size={13}/>{t('workspace.ide.revert')}</button><button className="primary" disabled={(!dirty&&!unconfirmed)||busy||conflict} onClick={()=>void save()}><Save size={13}/>{t(unconfirmed?'workspace.ide.recover_save':'workspace.ide.save')}</button></div></div>
     {reconciliation&&<div className="conflict-banner"><AlertCircle size={17}/><div><strong>{t('workspace.ide.reconcile_title')}</strong><p>{t('workspace.ide.reconcile_help')}</p><p><Trans i18nKey="workspace.ide.pending_operation" values={{operation:pending.current.reconciliationDetails?.operation_id||pending.current.pending?.idempotency_key,path:pending.current.reconciliationDetails?.path||pending.current.pending?.path}} components={{code:<code/>}}/></p>{pending.current.reconciliationDetails?.operation_id&&pending.current.reconciliationDetails.operation_id!==pending.current.pending?.idempotency_key?<p>{t('workspace.ide.foreign_operation')}</p>:<details><summary>{t('workspace.ide.recovery_basis')}</summary><p>{t('workspace.ide.original_hash',{hash:pending.current.pending?.expected_hash})}</p><h4>{t('workspace.ide.original_content')}</h4><pre>{pending.current.source?.content}</pre><h4>{t('workspace.ide.submitted_content')}</h4><pre>{pending.current.pending?.content}</pre></details>}</div></div>}

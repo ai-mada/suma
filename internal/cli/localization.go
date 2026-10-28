@@ -31,6 +31,7 @@ type cliMessage struct{ key, zh string }
 // 精确匹配的是本 CLI 自己生成的静态诊断，绝不把远端诊断、用户文本或
 // 工具原始输出送进此映射。机器 code、状态和幂等请求正文不受语言影响。
 var cliMessages = map[string]cliMessage{
+	workspaceTreeCLIUsage:         {"cli.workspace_tree.usage", "目录浏览命令：workspace files [--directory 相对目录] [--limit 1..200] [--before 上一页游标]"},
 	compositionCLIUsage:           {"cli.candidate_composition.action_required", "candidate-compositions 需要 options、list、get、conflict、revision-context、create、repair、revise-repair、start 或 command；task-code-baseline 需要 get 或 bind，请查看 --help"},
 	compositionCLIRevisionInvalid: {"cli.candidate_composition.revision_basis_required", "修复计划修订需要准确计划、任务、冲突和所选流程／工具版本、明确确认、理由及原操作标识"},
 	modelOptionsUsage:             {"cli.model_execution.usage", "模型选项需要：models options --tool 工具ID --expected-tool-version 当前版本"},
@@ -242,6 +243,7 @@ const helpZH = `suma — 速码控制面客户端
   developer check            验证当前项目的真实MCP连接（只读）
   workspace save-status ID [--wait]
   workspace targets | workspace observe --file 请求JSON [--wait] | workspace observation ID [--wait]
+  workspace files [--directory 相对目录] [--limit 100] [--before 上一页游标]
   workspace git | workspace diff --path 相对路径 [--source worktree|index]
   tui                         只读 Bubble Tea 工作台（交互终端默认入口）
 

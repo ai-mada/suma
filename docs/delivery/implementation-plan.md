@@ -52,7 +52,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 - [x] 动态map持久展开、固定版本子流程、外部工作流协议、显式补偿运行。
 - [x] 节点attempt/fence、资源预留、持久回执、失联核对、取消实际停止。
 - [x] Runner命令许可、Windows进程树、原生智能体有限循环、外部CLI探测。
-- [x] Monaco本地文本树、摘要保存、草稿保护；工作流三视图与实际状态。 当前原生／Codex活动attempt支持真实出站list/read，原生CAS保存独立；见[Codex读取](../quality/codex-workspace-observation-verification.md)。协调远程写、Git、PTY/LSP/DAP仍待交付。
+- [x] Monaco本地按目录分页导航、摘要保存、草稿保护；[目录浏览与CLI](../quality/workspace-directory-verification.md)明确快照、当前权限与加载范围；工作流三视图与实际状态。 当前原生／Codex活动attempt支持真实出站list/read，原生CAS保存独立；见[Codex读取](../quality/codex-workspace-observation-verification.md)。协调远程写、Git、PTY/LSP/DAP仍待交付。
 - [x] 许可写命令的逐attempt隔离Git工作树、管理员固定仓库／基准、持久操作元数据与真实差异／状态／提交；固定候选经独立测试和明确批准后，支持本机提供方CAS快进，未知效果沿原操作核对。
 - [x] 当前attempt/worker/fence的真实有界进展、持久ACK和事件展示；重试/补偿使用运行固定定义的标记。
 - [x] 测试节点可选择固定command/agent候选来源；机器封存与跨Runner导入同SHA，在隔离工作树独立测试。多源合成／修复候选另测准确结果，明确验收后才绑定未开始任务基线。

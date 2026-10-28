@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"sort"
 	"strings"
 	"unicode/utf8"
 )
@@ -477,7 +476,7 @@ func (s *Server) workspace(w http.ResponseWriter, r *http.Request, actor Actor, 
 		respond(w, 200, map[string]any{"configured": e == nil, "root": target}, e)
 		return
 	}
-	if path != "workspace" && path != "workspace/file" {
+	if path != "workspace" && path != "workspace/file" && path != "workspace/tree" {
 		writeError(w, missing())
 		return
 	}
@@ -490,6 +489,12 @@ func (s *Server) workspace(w http.ResponseWriter, r *http.Request, actor Actor, 
 		writeError(w, &APIError{405, "method_not_allowed", "不支持此请求方法", nil})
 		return
 	}
+	if path == "workspace" || path == "workspace/tree" {
+		if _, _, _, queryErr := workspaceTreeQuery(r, project, path == "workspace/tree"); queryErr != nil {
+			writeError(w, queryErr)
+			return
+		}
+	}
 	root, e := s.Service.workspaceRoot(ctx, actor, project)
 	if e != nil {
 		if automationAuthorityFailure(e) && !errors.Is(e, errWorkspaceDisabled) {
@@ -497,44 +502,28 @@ func (s *Server) workspace(w http.ResponseWriter, r *http.Request, actor Actor, 
 			return
 		}
 		if path == "workspace" {
-			writeJSON(w, 200, map[string]any{"configured": false, "files": []any{}, "reason": e.Error(), "binding_available": os.Getenv("SUMA_WORKSPACE_ROOT") != ""})
+			writeJSON(w, 200, WorkspaceMetadata{Configured: false, Reason: e.Error(), BindingAvailable: os.Getenv("SUMA_WORKSPACE_ROOT") != ""})
 			return
 		}
 		writeError(w, e)
 		return
 	}
 	if path == "workspace" {
-		files := []map[string]any{}
-		truncated := false
-		filepath.WalkDir(root, func(path string, d os.DirEntry, e error) error {
-			if e != nil {
-				return nil
-			}
-			rel, _ := filepath.Rel(root, path)
-			if rel == "." {
-				return nil
-			}
-			if forbiddenPath(rel) || d.Type()&os.ModeSymlink != 0 || strings.HasPrefix(d.Name(), ".suma-save-") {
-				if d.IsDir() {
-					return filepath.SkipDir
-				}
-				return nil
-			}
-			if len(files) >= 1000 {
-				truncated = true
-				return filepath.SkipAll
-			}
-			if !d.IsDir() {
-				files = append(files, map[string]any{"path": filepath.ToSlash(rel), "name": d.Name(), "type": "file"})
-			}
-			return nil
-		})
-		sort.Slice(files, func(i, j int) bool { return files[i]["path"].(string) < files[j]["path"].(string) })
 		if _, e = s.Service.workspaceReadGuard(ctx, actor, project, root); e != nil {
 			writeError(w, e)
 			return
 		}
-		writeJSON(w, 200, map[string]any{"configured": true, "root": root, "name": filepath.Base(root), "files": files, "limit": 1000, "truncated": truncated})
+		writeJSON(w, 200, WorkspaceMetadata{Configured: true, BindingAvailable: true, Name: filepath.Base(root)})
+		return
+	}
+	if path == "workspace/tree" {
+		directory, limit, before, queryErr := workspaceTreeQuery(r, project, true)
+		if queryErr != nil {
+			writeError(w, queryErr)
+			return
+		}
+		page, readErr := s.Service.listWorkspaceTree(ctx, actor, project, root, directory, limit, before)
+		respond(w, http.StatusOK, page, readErr)
 		return
 	}
 	rel := r.URL.Query().Get("path")

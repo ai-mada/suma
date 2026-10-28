@@ -157,7 +157,7 @@ func generate() (map[string]any, string) {
 	for _, v := range modelExecutionModels() {
 		schema(reflect.TypeOf(v))
 	}
-	for _, v := range workspaceGitModels() {
+	for _, v := range append(workspaceGitModels(), workspaceTreeModels()...) {
 		schema(reflect.TypeOf(v))
 	}
 	for _, v := range taskDispatchOptionsModels() {
@@ -280,7 +280,7 @@ func generate() (map[string]any, string) {
 	for _, route := range []string{"claim", "heartbeat", "results"} {
 		add("/runner/"+route, "post", "", false, true)
 	}
-	add("/workspace", "get", "", false, false)
+	add("/workspace", "get", "WorkspaceMetadata", false, false)
 	add("/workspace/binding", "post", "", false, true)
 	add("/workspace/file", "get", "", false, false)
 	add("/workspace/file", "post", "", false, true)
@@ -315,6 +315,7 @@ func generate() (map[string]any, string) {
 	workspaceWriteContracts(add, api)
 	modelExecutionContracts(add, api)
 	workspaceGitContracts(add, api)
+	workspaceTreeContracts(add, api)
 	taskDispatchOptionsContracts(add, api)
 	failureDiagnosisContracts(add, api)
 	expertTeamContracts(add, api)

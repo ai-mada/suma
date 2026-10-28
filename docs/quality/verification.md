@@ -4,6 +4,7 @@
 
 | 当前范围 | 验证与限制 |
 | --- | --- |
+| 本地IDE目录分页与CLI | [限定报告](workspace-directory-verification.md)、[摘要](workspace-directory-summary.json)：元数据入口、原范围游标、草稿保护、CNEN及640px布局；正式保存／运行0，物理多机／完整IDE和容量矩阵未验 |
 | OpenCode实际CLI／SDK／宿主／独立测试与运行交互 | [实际限定报告](opencode-actual-execution-verification.md)、[摘要](opencode-actual-execution-summary.json)：真实官方Windows工具配自有模型协议、两Worker／同SHA独立测试；原数据快照CNEN／刷新／测试下钻；商业模型效果、物理多机、跨平台与生产未验 |
 | Codex当前执行工作区只读 | [限定报告](codex-workspace-observation-verification.md)、[精简摘要](codex-workspace-observation-summary.json)：真实本机Control／Runner／隔离Git／自有协议子进程的出站读取、界面及取消；零厂商或模型调用，保存仍仅限原生 |
 | 模型选择跨普通任务、专家与原生修复 | [当前限定报告](model-selection-workflows-verification.md)、[精简摘要](model-selection-workflows-summary.json)：受影响接口／CLI／Web、实际预览及修订／刷新、零新增模型和执行；原生修复仍不支持 Codex |

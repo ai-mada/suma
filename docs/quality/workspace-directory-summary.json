@@ -1,0 +1,253 @@
+{
+  "schema_version": 1,
+  "task": "T-WORKSPACE-106",
+  "product_version": "1.0.0",
+  "baseline_commit": "e5ba2911e0f8aaa8815abc58e249c834799329af",
+  "status": "bounded_local_directory_browser_verified",
+  "full_platform_status": "active: complete P0-P7 and requirements1..22 retained",
+  "changes": [
+    "metadata-only workspace entry",
+    "root-confined single-directory paging and scoped metadata snapshot cursors",
+    "current-authority reactivation",
+    "draft-preserving directory/sidebar and narrow layout",
+    "same scoped CLI directory read",
+    "CNEN source diagnostics and UI"
+  ],
+  "new_tables": 0,
+  "new_dependencies": 0,
+  "model_calls": 0,
+  "verification": {
+    "go_command_receipts": [
+      {
+        "path": ".cache/mcp019-deps/20261028T014741993Z.command.json",
+        "sha256": "888f78057606e70f29605b92552f35baf78999c8f7f03252053eec6ed466e146",
+        "arguments": [
+          "fmt",
+          "./internal/platform",
+          "./internal/cli",
+          "./internal/localization",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/mcp019-deps/20261028T014748985Z.command.json",
+        "sha256": "97d0cbf043e727a3ee44dedcdc8be2b1c2e80967c3ea7c299a9c9c78e434ee65",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/mcp019-deps/20261028T014803535Z.command.json",
+        "sha256": "9f369ee8d69b5c2598a465457d0bea9b344609da897b849690ec0d55c0e74033",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./internal/cli",
+          "./internal/localization",
+          "-run",
+          "^(TestWorkspace(Tree|Localization|ReadNeverMutatesBusinessState|LostAcknowledgement|ConcurrentSaves|RecoversPrepared|RejectsEscapes|UnknownPrepared)|TestWorkspaceGitCLI)",
+          "-count=1"
+        ],
+        "exit_code": 1
+      },
+      {
+        "path": ".cache/mcp019-deps/20261028T014850399Z.command.json",
+        "sha256": "3fba44f3c424c8396509d966b402ddbde77ccb30b886cd10ffccb60bdb38d1c4",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestWorkspaceTree",
+          "-count=1",
+          "-v"
+        ],
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/mcp019-deps/20261028T014943305Z.command.json",
+        "sha256": "b33782b36617bfcdaa796acd560985852d758d9c1d6ddcdafa7db48aab4f2faa",
+        "arguments": [
+          "vet",
+          "./internal/platform",
+          "./internal/cli",
+          "./internal/localization",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/mcp019-deps/20261028T014956905Z.command.json",
+        "sha256": "047994dc003391afd644e848a280378a11a55d1646a6e1f29c5355f4db6526ae",
+        "arguments": [
+          "build",
+          "-trimpath",
+          "-buildvcs=false",
+          "-o",
+          "D:/codes/ai-dev-os/suma/.cache/e2e/workspace-106/runtime/",
+          "./cmd/suma-control",
+          "./cmd/suma"
+        ],
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/mcp019-deps/20261028T015723515Z.command.json",
+        "sha256": "1464f443d037b0149a0565926da0ed132de2a94c19a2523f82be621b2938f021",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/mcp019-deps/20261028T020523685Z.command.json",
+        "sha256": "875d1cb42afbdf42baa384fce102a04f2b6e9937e7494f313f0ba0010b7838ee",
+        "arguments": [
+          "test",
+          "./internal/localization",
+          "-run",
+          "^TestCatalog",
+          "-count=1"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "directory_cases": 6,
+    "directory_cases_duration_seconds": 2.144,
+    "go_initial_failure": "new route omitted from preexisting path whitelist; fixed and reran only six affected cases",
+    "actual_symlink_cases": "not executed: Windows host lacks symlink privilege",
+    "web_distinct_new_and_affected_cases": 13,
+    "web_evidence_policy": "10 IDE/tree cases via9initial+1selectorfix;5related final-input cases rerun, not additional unique cases;3original i18n IDE cases passed,12unrelatedskipped",
+    "web_inputs": [
+      {
+        "path": "apps/web/src/IDE.tsx",
+        "sha256": "cfafbd4a1a4a22d863d6956df40b78bac0b8f5103a9710dad905e900d83cf4a2"
+      },
+      {
+        "path": "apps/web/src/IDE.workspace.test.tsx",
+        "sha256": "6c41c6522e3c698af9dc5dbaa4868bfc26f3088428321c1d98a384d67d62ca3b"
+      },
+      {
+        "path": "apps/web/src/WorkspaceTree.tsx",
+        "sha256": "fb9438f7a4a3dadddc0bd11380bc79c4fe2814646d7c7fe7a8ecea8bf462eaec"
+      },
+      {
+        "path": "apps/web/src/WorkspaceTree.css",
+        "sha256": "4d73db79a4c76755211d20d08ce20b4737d44488430f3441b366e317a09a4561"
+      },
+      {
+        "path": "apps/web/src/WorkspaceTree.test.tsx",
+        "sha256": "3a318056c770ab0481e2aa08fcaf94f7a37cd5d78b4b31bcb5b9e66095d15d42"
+      },
+      {
+        "path": "apps/web/src/workspace-tree-model.ts",
+        "sha256": "e4e9472d55ce60a52426b0755cb2940db5ed957bd3c650030d7f62a4b86ab8aa"
+      },
+      {
+        "path": "apps/web/src/i18n/locales/domains/workspace-tree.zh-CN.json",
+        "sha256": "77047a02b01f84ac7c2d92205d1c7a1ce9d9198a74eace64158d75ef63685f80"
+      },
+      {
+        "path": "apps/web/src/i18n/locales/domains/workspace-tree.en-US.json",
+        "sha256": "cd1759865d13582849140428b7092b9b67db5f4cb80907af347e4d96574c582b"
+      }
+    ],
+    "typecheck": true,
+    "catalog_keys": 4674,
+    "own_production_hardcodes": 0,
+    "web_build_seconds": [
+      38.31,
+      40.27
+    ],
+    "second_build_reason": "actual640px clipping and reactivation fix; isolated output, same owned data",
+    "generated_contract_drift": false,
+    "post_verification_source_normalization": {
+      "path": "apps/web/src/WorkspaceTree.css",
+      "previous_sha256": "7a580473c98d7c4d6614189e9e8f3a18e1e30d880605ca8fff258c8c6967ddcc",
+      "current_sha256": "4d73db79a4c76755211d20d08ce20b4737d44488430f3441b366e317a09a4561",
+      "change": "line endings only; decoded CSS text identical; no runtime/style change or repeated build"
+    }
+  },
+  "actual_http": {
+    "project_id": "dddb383aa7942a84a060cf657b854d37",
+    "url": "http://127.0.0.1:54554",
+    "metadata": {
+      "configured": true,
+      "binding_available": true,
+      "name": "project"
+    },
+    "first_count": 100,
+    "second_count": 8,
+    "same_snapshot": true,
+    "sensitive_fixture_hidden": true,
+    "file_writes": 0,
+    "model_calls": 0
+  },
+  "actual_cli": {
+    "exit_code": 0,
+    "method": "GET",
+    "directory": "src",
+    "entry_paths": [
+      "src/main.ts"
+    ],
+    "api_scope": "original test session/current project",
+    "new_credentials": 0,
+    "versions": {
+      "suma": {
+        "version": "suma 1.0.0",
+        "sha256": "3e35ae1c7215cbc8a02450b31a1a2730f059a70404c9da996254219d390a5dfb"
+      },
+      "suma-control": {
+        "version": "suma-control 1.0.0",
+        "sha256": "59ba6c908c5be19f190acb9e0d27be39382f8a28d9b0a5ad9cbd99e9426f7970"
+      }
+    }
+  },
+  "browser": {
+    "task": "T-WORKSPACE-106",
+    "url": "http://127.0.0.1:54554/",
+    "project_id": "dddb383aa7942a84a060cf657b854d37",
+    "page_counts": [
+      100,
+      108
+    ],
+    "entered_directories": [
+      "src",
+      "docs"
+    ],
+    "same_unsaved_editor_during_navigation_and_locale": true,
+    "test_draft_reverted_without_saving": true,
+    "final_narrow_width": 640,
+    "final_file_and_footer_visible": true,
+    "reactivated_same_directory": true,
+    "keyboard_refresh": true,
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "final_screenshots": [
+      "workspace-final-en.png",
+      "workspace-final-zh.png"
+    ],
+    "full_viewport_theme_matrix": false
+  },
+  "hygiene": {
+    "owned_fixture_files": 109,
+    "source_unchanged": true,
+    "business_counts": {
+      "suma_workspace_file_operations": 0,
+      "dag_runs": 0
+    },
+    "review_processes_closed": true,
+    "browser_tab_closed": true
+  },
+  "remaining": [
+    "full remoteIDE,PTY,LSP,DAP and filesystem mutations",
+    "physicalhosts,Unix/macOS execution and installation",
+    "10000entry capacity and full viewport/theme matrix",
+    "full platform and production acceptance"
+  ]
+}

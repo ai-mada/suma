@@ -21540,6 +21540,27 @@
         ],
         "type": "object"
       },
+      "WorkspaceMetadata": {
+        "properties": {
+          "binding_available": {
+            "type": "boolean"
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "configured",
+          "binding_available"
+        ],
+        "type": "object"
+      },
       "WorkspaceObservation": {
         "properties": {
           "arguments": {
@@ -22017,6 +22038,67 @@
           "total",
           "limit",
           "truncated",
+          "observed_at"
+        ],
+        "type": "object"
+      },
+      "WorkspaceTreeEntry": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "file",
+              "directory"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "name",
+          "kind"
+        ],
+        "type": "object"
+      },
+      "WorkspaceTreePage": {
+        "properties": {
+          "directory": {
+            "type": "string"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceTreeEntry"
+            },
+            "type": "array"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "observed_at": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "directory",
+          "entries",
+          "limit",
+          "next_cursor",
+          "snapshot_sha256",
           "observed_at"
         ],
         "type": "object"
@@ -82499,7 +82581,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceMetadata"
+                }
               }
             },
             "description": "Successful response; creates may return 201",
@@ -82519,7 +82603,9 @@
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceMetadata"
+                }
               }
             },
             "description": "Created",
@@ -84238,6 +84324,214 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WorkspaceObservationTargetPage"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/workspace/tree": {
+      "get": {
+        "description": "Read one current authorized directory with stable, bounded pagination. No recursive inventory or absolute host paths. A cursor fixes the original caller, binding, directory and metadata snapshot; changes require a fresh first page. This is not a full-tree or file-content snapshot.",
+        "operationId": "get_workspace_tree",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Workspace-relative directory; empty selects the root. Never absolute, traversing, sensitive or linked.",
+            "in": "query",
+            "name": "directory",
+            "schema": {
+              "default": "",
+              "maxLength": 1024,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Maximum entries in this page.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque exact-directory snapshot cursor returned by the preceding page. Omit for a fresh first page.",
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "maxLength": 1024,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceTreePage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceTreePage"
                 }
               }
             },

@@ -1,0 +1,23 @@
+{
+  "workspace-tree.title":"Project file navigation",
+  "workspace-tree.breadcrumbs":"Current directory path",
+  "workspace-tree.root":"Project root",
+  "workspace-tree.parent":"Up one level",
+  "workspace-tree.refresh":"Refresh directory",
+  "workspace-tree.filter":"Filter loaded items in this directory",
+  "workspace-tree.filter_placeholder":"Filter loaded names…",
+  "workspace-tree.filter_hint":"Filters loaded items in this directory only; it does not search the whole project.",
+  "workspace-tree.loaded":"Loaded: {{count}}",
+  "workspace-tree.filtered":"Matches: {{shown}} · Loaded: {{loaded}}",
+  "workspace-tree.more_available":"More entries are available in this directory",
+  "workspace-tree.all_loaded":"All entries in this directory are loaded",
+  "workspace-tree.more":"Load more",
+  "workspace-tree.loading":"Reading directory…",
+  "workspace-tree.loading_more":"Loading the next page…",
+  "workspace-tree.empty":"This directory has no displayable entries.",
+  "workspace-tree.empty_page":"This page has no displayable entries. More entries may be loaded.",
+  "workspace-tree.no_matches":"No loaded names match the filter.",
+  "workspace-tree.changed":"The directory changed. Refresh it to reload from the first page.",
+  "workspace-tree.invalid_response":"The directory response does not match the current browsing scope. Refresh and try again.",
+  "workspace-tree.refresh_required":"Refresh and reload"
+}

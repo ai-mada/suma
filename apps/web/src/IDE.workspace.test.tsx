@@ -37,7 +37,7 @@ it('does not offer workspace binding when deployment disabled it, in either lang
  const requests:RequestInit[]=[];
  vi.stubGlobal('fetch',vi.fn(async(input:string,init:RequestInit)=>{
   requests.push(init);expect(new URL(String(input),location.href).pathname).toBe('/api/v1/workspace');
-  return Response.json({configured:false,binding_available:false,reason:'Forbidden workspace detail',files:[]});
+  return Response.json({configured:false,binding_available:false,reason:'Forbidden workspace detail'});
  }));
  host=document.createElement('div');document.body.append(host);root=createRoot(host);let navigated=0;
  await act(async()=>root!.render(<ApiViewProvider session={{user:{id:'u',name:'Editor',email:'e@example.test'},organization:{id:'o',name:'Org'}}}><nav aria-label="Project"><button type="button" onClick={()=>{if(window.dispatchEvent(new Event('suma:navigate',{cancelable:true})))navigated++;}}>Overview</button></nav><IDE project="p"/></ApiViewProvider>));
@@ -61,7 +61,8 @@ it('keeps the editing model and draft through Git navigation, then saves once th
  let disk=initial;const writes:Record<string,unknown>[]=[];
  vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
   const url=new URL(String(input),location.href);
-  if(url.pathname==='/api/v1/workspace')return Response.json({configured:true,name:'Owned workspace',root:'/owned',files:[{path,name:'main.ts',type:'file'}]});
+  if(url.pathname==='/api/v1/workspace')return Response.json({configured:true,binding_available:true,name:'Owned workspace'});
+  if(url.pathname==='/api/v1/workspace/tree')return Response.json({project_id:'p',directory:url.searchParams.get('directory')||'',entries:url.searchParams.get('directory')==='src'?[{path,name:'main.ts',kind:'file'}]:[{path:'src',name:'src',kind:'directory'}],limit:100,next_cursor:'',snapshot_sha256:'d'.repeat(64),observed_at:observed});
   if(url.pathname==='/api/v1/workspace/file'){
    if(init?.body){const body=JSON.parse(String(init.body));writes.push(body);disk=body.content;}
    return Response.json({path,content:disk,hash:await digest(disk),language:'typescript'});
@@ -74,9 +75,11 @@ it('keeps the editing model and draft through Git navigation, then saves once th
  await act(async()=>root!.render(<ApiViewProvider session={{user:{id:'u',name:'Editor',email:'e@example.test'},organization:{id:'o',name:'Org'}}}><IDE project="p"/></ApiViewProvider>));
  const button=(name:string)=>[...host!.querySelectorAll('button')].find(item=>item.textContent?.trim()===name||item.getAttribute('aria-label')===name)!;
  async function settle(ready:()=>boolean){for(let i=0;i<40;i++){await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});if(ready())return;}expect(ready()).toBe(true);}
- await settle(()=>!!button('main.ts'));await act(async()=>button('main.ts').click());await settle(()=>!!host!.querySelector('textarea'));
+ await settle(()=>!!button('src'));await act(async()=>button('src').click());await settle(()=>!!button('main.ts'));await act(async()=>button('main.ts').click());await settle(()=>!!host!.querySelector('textarea'));
  const editing=host.querySelector<HTMLTextAreaElement>('textarea')!;
  await act(async()=>{Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value')!.set!.call(editing,draft);editing.dispatchEvent(new Event('input',{bubbles:true}));});
+ await act(async()=>button('Up one level').click());await settle(()=>!!button('src'));await act(async()=>button('Refresh directory').click());await settle(()=>!!button('src'));await act(async()=>button('src').click());await settle(()=>!!button('main.ts'));
+ expect(host.querySelector('textarea')).toBe(editing);expect(editing.value).toBe(draft);expect(writes).toHaveLength(0);
  await act(async()=>button('Changes').click());await settle(()=>!!button(path));await act(async()=>button(path).click());await settle(()=>!!host!.querySelector('[data-git-diff]'));
  expect(host.querySelector('[data-after]')?.textContent).toBe(initial);expect(writes).toHaveLength(0);
  expect(host.querySelector('textarea')).toBe(editing);expect(editing.value).toBe(draft);

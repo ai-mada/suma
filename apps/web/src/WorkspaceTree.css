@@ -1,0 +1,191 @@
+.workspace-tree {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  font-size: 11px;
+}
+
+.workspace-tree-navigation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 7px 0;
+  min-width: 0;
+}
+
+.workspace-tree-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  overflow-x: auto;
+  min-width: 0;
+  flex: 1;
+}
+
+.workspace-tree-breadcrumbs > span {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.workspace-tree-breadcrumbs button {
+  border: 0;
+  background: transparent;
+  min-height: 28px;
+  padding: 4px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.workspace-tree-breadcrumbs button[aria-current=location] {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.workspace-tree-parent {
+  justify-content: flex-start;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  min-height: 28px;
+  padding: 4px 12px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.workspace-tree .tree-search {
+  margin: 7px 10px 4px;
+}
+
+.workspace-tree-hint {
+  margin: 0 11px 6px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.workspace-tree-entries {
+  min-height: 0;
+}
+
+.workspace-tree-entries button:hover,
+.workspace-tree-entries button:focus-visible {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.workspace-tree-entries button[aria-current=page] {
+  font-weight: 600;
+}
+
+.workspace-tree-entries .workspace-tree-directory-arrow {
+  margin-left: auto;
+}
+
+.workspace-tree-note {
+  padding: 8px 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.workspace-tree-error {
+  padding: 6px 9px;
+  line-height: 1.6;
+}
+
+.workspace-tree-error .error {
+  padding: 8px;
+  font-size: 10px;
+  gap: 5px;
+  align-items: flex-start;
+}
+
+.workspace-tree-error > button {
+  font-size: 10px;
+  margin-top: 5px;
+}
+
+.workspace-tree-error > p {
+  font-size: 10px;
+  color: var(--amber);
+  margin-top: 5px;
+}
+
+.workspace-tree-footer {
+  padding: 8px 11px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.workspace-tree-footer button {
+  width: 100%;
+  font-size: 10px;
+  margin-top: 5px;
+  min-height: 28px;
+}
+
+.workspace-tree-footer p:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .ide-workbench .editor-panel > .file-tree {
+    height: 340px;
+    min-height: 340px;
+    flex-basis: 340px;
+  }
+
+  .workspace-tree {
+    overflow-y: auto;
+  }
+
+  .workspace-tree-navigation,
+  .workspace-tree-parent,
+  .workspace-tree .tree-search,
+  .workspace-tree-hint,
+  .workspace-tree-error,
+  .workspace-tree-note,
+  .workspace-tree-footer {
+    flex-shrink: 0;
+  }
+
+  .workspace-tree .workspace-tree-entries {
+    flex: 1 0 72px;
+    min-height: 72px;
+    overflow-y: auto;
+  }
+
+  .workspace-tree-navigation {
+    padding-top: 2px;
+  }
+
+  .workspace-tree-parent {
+    min-height: 24px;
+  }
+
+  .workspace-tree .tree-search {
+    margin-top: 3px;
+  }
+
+  .workspace-tree-hint {
+    margin-bottom: 2px;
+  }
+
+  .workspace-tree-footer {
+    padding: 3px 10px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 3px 10px;
+  }
+
+  .workspace-tree-footer button {
+    width: auto;
+    margin-top: 0;
+    margin-left: auto;
+  }
+}
