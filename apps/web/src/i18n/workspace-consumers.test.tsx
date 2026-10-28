@@ -2,6 +2,7 @@
 import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
+import {createHash,webcrypto} from 'node:crypto';
 import { IDE } from "../IDE";
 import { Tokens } from "../Tokens";
 import { ExecutionWorkspace } from "../ExecutionWorkspace";
@@ -22,14 +23,15 @@ vi.mock("monaco-editor/esm/vs/language/typescript/ts.worker?worker", () => ({def
 vi.mock("monaco-editor/esm/vs/language/json/json.worker?worker", () => ({default: class {}}));
 vi.mock("monaco-editor/esm/vs/language/css/css.worker?worker", () => ({default: class {}}));
 vi.mock("monaco-editor/esm/vs/language/html/html.worker?worker", () => ({default: class {}}));
-const project="original-project", original={path:"src/用户原件.ts",content:"// 原始文件 <strong>",hash:"original-file-hash",language:"typescript"};
+const digest=(content:string)=>createHash('sha256').update(content).digest('hex');
+const project="original-project", original={project_id:'original-project',path:"src/用户原件.ts",content:"// 原始文件 <strong>",hash:digest("// 原始文件 <strong>"),language:"typescript",workspace_name:'用户目录原名',context_sha256:'a'.repeat(64)};
 let host:HTMLDivElement, root:Root|undefined;
 let reads:string[], writes:{path:string;body:Record<string,unknown>}[], fixture:(path:string,body?:Record<string,unknown>,params?:URLSearchParams)=>Response|Promise<Response>;
 const json=(value:unknown,status=200)=>new Response(JSON.stringify(value),{status,headers:{"Content-Type":"application/json"}});
 beforeEach(async()=>{
  localStorage.clear();sessionStorage.clear();reads=[];writes=[];await setLocale("en-US",{persist:false});
- vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT",true);host=document.createElement("div");document.body.append(host);
- fixture=async(path,body,params)=>path==="/workspace"?json({configured:true,binding_available:true,name:"用户目录原名"}):path==="/workspace/tree"?json({project_id:project,directory:params?.get("directory")||"",entries:params?.get("directory")==="src"?[{path:original.path,name:"用户原件.ts",kind:"file"}]:[{path:"src",name:"src",kind:"directory"}],limit:100,next_cursor:"",snapshot_sha256:"a".repeat(64),observed_at:"2026-10-28T00:00:00Z"}):path==="/workspace/file"?json(body?{...original,content:body.content,hash:"saved-hash"}:original):json({items:[],total:0});
+ vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT",true);vi.stubGlobal('crypto',webcrypto);host=document.createElement("div");document.body.append(host);
+ fixture=async(path,body,params)=>path==="/workspace"?json({configured:true,binding_available:true,name:"用户目录原名"}):path==="/workspace/tree"?json({project_id:project,directory:params?.get("directory")||"",entries:params?.get("directory")==="src"?[{path:original.path,name:"用户原件.ts",kind:"file"}]:[{path:"src",name:"src",kind:"directory"}],limit:100,next_cursor:"",snapshot_sha256:"a".repeat(64),observed_at:"2026-10-28T00:00:00Z"}):path==="/workspace/file"?json(body?{...original,content:body.content,hash:digest(String(body.content))}:original):json({items:[],total:0});
  vi.stubGlobal("fetch",vi.fn(async(input:string,options?:RequestInit)=>{const url=new URL(String(input),location.href),path=url.pathname.replace(/^\/api\/v1/,"");const body=options?.body?JSON.parse(String(options.body)):undefined;if(body)writes.push({path,body});else reads.push(path+url.search);return fixture(path,body,url.searchParams);}));
 });
 afterEach(async()=>{if(root)await act(async()=>root?.unmount());root=undefined;host.remove();await setLocale("zh-CN",{persist:false});vi.unstubAllGlobals();vi.restoreAllMocks();});
@@ -47,7 +49,7 @@ it("relocalizes IDE controls and dirty navigation refusal without reloading the 
 });
 it("keeps the original unknown file-save operation, hash and submitted body across language changes and later edits",async()=>{
  const base=fixture;let failed=false;fixture=async(path,body,params)=>{if(path==="/workspace/file"&&body&&!failed){failed=true;throw new TypeError("lost receipt");}return base(path,body,params);};
- await render(<IDE project={project}/>);await click("src");await click("用户原件.ts");const editor=host.querySelector<HTMLTextAreaElement>("textarea")!;await value(editor,"// submitted original");await click("Save");expect(writes).toHaveLength(1);const envelope=structuredClone(writes[0].body);await value(editor,"// newer 用户草稿");const count=reads.length;await locale("zh-CN");expect(host.textContent).toContain("恢复上次保存");expect(writes).toHaveLength(1);expect(reads).toHaveLength(count);await click("恢复上次保存");expect(writes[1].body).toEqual(envelope);expect(envelope).toMatchObject({project_id:project,path:original.path,expected_hash:original.hash,content:"// submitted original"});expect(editor.value).toBe("// newer 用户草稿");
+ await render(<IDE project={project}/>);await click("src");await click("用户原件.ts");const editor=host.querySelector<HTMLTextAreaElement>("textarea")!;await value(editor,"// submitted original");await click("Save");expect(writes).toHaveLength(1);const envelope=structuredClone(writes[0].body);await value(editor,"// newer 用户草稿");const count=reads.length;await locale("zh-CN");expect(host.textContent).toContain("恢复上次保存");expect(writes).toHaveLength(1);expect(reads).toHaveLength(count);await click("恢复上次保存");expect(writes[1].body).toEqual(envelope);expect(envelope).toMatchObject({project_id:project,path:original.path,expected_hash:original.hash,expected_context_sha256:original.context_sha256,content:"// submitted original"});expect(editor.value).toBe("// newer 用户草稿");expect(host.textContent).toContain('读取当前文件');
 });
 it("keeps reconciliation evidence raw while translating recovery without issuing another file save",async()=>{
  const base=fixture;fixture=async(path,body,params)=>path==="/workspace/file"&&body?json({error:{code:"workspace_reconciliation_required",message:"原始后端原因 <strong>",details:{operation_id:body.idempotency_key,path:original.path}}},409):base(path,body,params);

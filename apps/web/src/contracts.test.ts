@@ -153,21 +153,21 @@ describe('bounded entity pagination',()=>{
 });
 describe('file save concurrency and lost receipts',()=>{
  it('retains typing after save submission and uses the saved base hash for the next write',()=>{
-  const pending=new FileSaveRequest(),before={path:'main.ts',content:'old',hash:'hash-old'};
-  const submitted=pending.begin('p',before,'submitted');const response={path:'main.ts',content:'submitted',hash:'hash-saved'};
+  const pending=new FileSaveRequest(),before={project_id:'p',path:'main.ts',content:'old',hash:'hash-old',language:'typescript',workspace_name:'workspace-a',context_sha256:'a'.repeat(64)};
+  const submitted=pending.begin('p',before,'submitted');const response={...before,content:'submitted',hash:'hash-saved'};
   const draft=draftAfterFileSave('submitted plus later typing',submitted.content,response.content);
   expect(draft).toBe('submitted plus later typing');pending.completed();
   expect(pending.begin('p',response,draft)).toMatchObject({content:draft,expected_hash:'hash-saved'});
   expect(draftAfterFileSave('submitted','submitted','submitted')).toBe('submitted');
  });
  it('replays the entire original file envelope even when the editor has changed after a lost response',()=>{
-  const pending=new FileSaveRequest(),before={path:'main.ts',content:'old',hash:'hash-old'};
+  const pending=new FileSaveRequest(),before={project_id:'p',path:'main.ts',content:'old',hash:'hash-old',language:'typescript',workspace_name:'workspace-a',context_sha256:'a'.repeat(64)};
   const first=pending.begin('p',before,'submitted');pending.failed(new ApiError(0,'network_error','Lost'));
   const retry=pending.begin('p',{...before,hash:'different'},'new typing');
   expect(retry).toBe(first);expect(retry).toMatchObject({content:'submitted',expected_hash:'hash-old'});expect(pending.unknown).toBe(true);
  });
  it('keeps reconciliation identity instead of treating an unknown prepared operation as a new hash conflict',()=>{
-  const pending=new FileSaveRequest(),first=pending.begin('p',{path:'a.ts',content:'before',hash:'before-hash'},'submitted');
+  const pending=new FileSaveRequest(),first=pending.begin('p',{project_id:'p',path:'a.ts',content:'before',hash:'before-hash',language:'typescript',workspace_name:'workspace-a',context_sha256:'a'.repeat(64)},'submitted');
   pending.failed(new ApiError(409,'workspace_reconciliation_required','Recover',{operation_id:first.idempotency_key,path:'a.ts'}));
   expect(pending.pending).toBe(first);expect(pending.reconciliation).toBe(true);expect(pending.reconciliationDetails?.operation_id).toBe(first.idempotency_key);
   pending.completed();expect(pending.pending).toBeUndefined();expect(pending.unknown).toBe(false);

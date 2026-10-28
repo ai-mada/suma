@@ -1,0 +1,365 @@
+{
+  "stage": "T-WORKSPACE-109",
+  "product_version": "1.0.0",
+  "status": "scoped_verified_full_platform_in_progress",
+  "complete_platform": false,
+  "recorded_at": "2026-10-28T04:43:49.251708+00:00",
+  "source_sha256": "e9cd8bad662ca4f6d4c5d9481abc5afb2d5370db816aa00e3fa8877bbfc66aa5",
+  "source_files": 31,
+  "source_manifest": ".cache/e2e/workspace-109/source-manifest.json",
+  "environment": {
+    "os": "Windows x64",
+    "go": "1.26.10",
+    "node": "22.16.0",
+    "web": "React19 / Monaco0.52.2 / Vite6.1.0"
+  },
+  "go_checks": [
+    {
+      "receipt": "20261028T041624300Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^TestWorkspaceContextRejectsSameBytesAfterBindingSwitch$",
+        "-count=1"
+      ],
+      "exit_code": 1,
+      "receipt_sha256": "db97daca6c5f97c2b9593e4575d907e84fcd092d55eb478ca04d4b9c1ff81b74",
+      "stdout_sha256": "207cc8bd19cba9758f55a27604aa90fdf14944823e80a361603ab1b8e2fa90d9"
+    },
+    {
+      "receipt": "20261028T041814269Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^TestWorkspaceContextRejectsSameBytesAfterBindingSwitch$",
+        "-count=1"
+      ],
+      "exit_code": 1,
+      "receipt_sha256": "d61598d32c0e02a9d018eca84652652fc17b41fd1098e0062bd6c90f2b3a8725",
+      "stdout_sha256": "e0726b371a298aa62560f576420b8cbeb45542bea0773faabb2910fbcbb6d8bf"
+    },
+    {
+      "receipt": "20261028T042029792Z.command.json",
+      "arguments": [
+        "run",
+        "./cmd/suma-contracts"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "eb726cfc855f6628e591fa68b2fdd7e81cc556cef9f5f38e85cabb6b3fcf4490",
+      "stdout_sha256": "97a8fd3a3d8cec6a38ae506ceae6c23e13311c8585ea472f886b34ed4ee00bbd"
+    },
+    {
+      "receipt": "20261028T042130344Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "./internal/localization",
+        "./cmd/suma-contracts",
+        "-run",
+        "^(TestWorkspace|TestDesktopWorkspace|TestAuthorityDomainC|TestHTTP|TestFile|TestWorkspaceFileTypedContextContract|TestWorkspaceFileContextCatalogExactSources)",
+        "-count=1"
+      ],
+      "exit_code": 1,
+      "receipt_sha256": "d0648c7a1632b2563ee1cc1a7d52f120c0fc6d3205309f8f274970a91134f599",
+      "stdout_sha256": "f158ca6914cc2f70a3439d7d7732ebcb292acc85540d833fe6830e7dfcb7455b"
+    },
+    {
+      "receipt": "20261028T042342688Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^TestWorkspaceContextOrdinaryBindingOriginalReceiptNeverRebinds$",
+        "-count=1"
+      ],
+      "exit_code": 1,
+      "receipt_sha256": "f06973485677e7a31d66397e6d0778351a40533c8774790c6864f8fe97d0f005",
+      "stdout_sha256": "7fac38a2fd062a1ffdcb7b850b9e7ba5891f89b12b22c23f51e02fbd2d9fcd91"
+    },
+    {
+      "receipt": "20261028T042424824Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "./cmd/suma-contracts",
+        "-run",
+        "^(TestWorkspaceContextOrdinaryBindingOriginalReceiptNeverRebinds|TestWorkspaceLocalizationReadSaveAndBindingDiagnostics|TestWorkspaceTreeCursorBindsScopeAndSnapshot|TestWorkspaceReadNeverMutatesBusinessState|TestWorkspaceFileTypedContextContract)$",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "75f49a6a44830ea139b917ce16812bbf5ab0345046d33bb1452a385472c3210b",
+      "stdout_sha256": "24c29e3f42e00fb1722774247b2166f042f7a346da8f84269c4bde1673686ed3"
+    },
+    {
+      "receipt": "20261028T042510622Z.command.json",
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-o",
+        ".cache/e2e/workspace-109/suma-control.exe",
+        "./cmd/suma-control"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "4dffac8afa35e22abd9c9834103c025bb546dd2648d3deada18fa64a29387520",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "receipt": "20261028T042530737Z.command.json",
+      "arguments": [
+        "run",
+        "./cmd/suma-contracts",
+        "-check"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "a88adc45164b401bc77f07aeaa2a8bf114a5371b2be96b316bbb0022590c287f",
+      "stdout_sha256": "2adb36ca139db96100b44b4b3e5dc38b11d87073d84afec418b166c80b8e3556"
+    },
+    {
+      "receipt": "20261028T043209083Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^TestWorkspaceContextRejectedOperationCannotReviveAfterPhysicalRootABA$",
+        "-count=1"
+      ],
+      "exit_code": 1,
+      "receipt_sha256": "c531b036625e39131ab41a230d083794e91da3169f75c47f06ae615abd299cee",
+      "stdout_sha256": "95cd714999d2341123a33ca97c2fbbfa7bc6a081ca90b19265b2e55bc9a54f2f"
+    },
+    {
+      "receipt": "20261028T043337356Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "./cmd/suma-contracts",
+        "-run",
+        "^(TestWorkspaceContext|TestWorkspaceLocalizationContextValidationAndUnacceptedProof|TestWorkspaceLocalizationReadSaveAndBindingDiagnostics|TestWorkspaceFileTypedContextContract)",
+        "-count=1"
+      ],
+      "exit_code": 1,
+      "receipt_sha256": "b04f052bff7a9bc735038a3c47b67a35e4cfe16d67b44299bb6ecc8fc958163b",
+      "stdout_sha256": "2c6f6f9a59e7304cd69b93f30d951a5cf69b11da51db63eb85791f39a439219a"
+    },
+    {
+      "receipt": "20261028T043750834Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "./internal/store",
+        "./internal/dag",
+        "./cmd/suma-contracts",
+        "-run",
+        "^(TestWorkspaceContext|TestWorkspaceLocalizationContextValidationAndUnacceptedProof|TestWorkspaceLocalizationReadSaveAndBindingDiagnostics|TestWorkspaceFileTypedContextContract|TestScopedTx|TestAuthorityTransaction|TestAccountingClaimReservationsRollbackAndReplay|TestAccountingCompletionFollowsProofAndRollsBackWithReceipt|TestPublishWithAuthorityRollsBack)",
+        "-count=1"
+      ],
+      "exit_code": 1,
+      "receipt_sha256": "64bc65b0f4821b9876df6d8fd0c6b721070c4cf04e54ad4d587eb1a291c01060",
+      "stdout_sha256": "5f554fe0e70f024fc52fd229fdb896426f160af5e63e3942b3feadadb434c95c"
+    },
+    {
+      "receipt": "20261028T044037354Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^(TestWorkspaceContext|TestWorkspaceLocalizationContextValidationAndUnacceptedProof|TestWorkspaceLocalizationReadSaveAndBindingDiagnostics|TestAuthorityFirstBudgetAndBlockedDeadline)$",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "01d31e19464b551af0aad524d762ef6177a740cc6a781aa6a66a858beaadf4ee",
+      "stdout_sha256": "416ac742b0538ce6b01baae2d7e5e8635b6635d0c24dafafaa78903e9cb20d61"
+    },
+    {
+      "receipt": "20261028T044112789Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^TestWorkspaceContext",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "357da66231991f4f821ebaa6c5c0cde0ed7e54258e3613cc15669101bbf5a59a",
+      "stdout_sha256": "c71fd65d6e3faa02d476376086a343595493fd6117a6318cdb2427bc2422350b"
+    },
+    {
+      "receipt": "20261028T044141011Z.command.json",
+      "arguments": [
+        "run",
+        "./cmd/suma-contracts"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "b6545013fe06e424a4275b373d04760bd78e451c91302d1c8d974c19a488233b",
+      "stdout_sha256": "97a8fd3a3d8cec6a38ae506ceae6c23e13311c8585ea472f886b34ed4ee00bbd"
+    },
+    {
+      "receipt": "20261028T044152718Z.command.json",
+      "arguments": [
+        "build",
+        "-trimpath",
+        "-o",
+        ".cache/e2e/workspace-109/suma-control.exe",
+        "./cmd/suma-control"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "94f9f6b4cc636b148cf1a598fab357204e2a8ad8151ce259851de32ec6eb9b35",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "receipt": "20261028T044330951Z.command.json",
+      "arguments": [
+        "run",
+        "./cmd/suma-contracts",
+        "-check"
+      ],
+      "exit_code": 0,
+      "receipt_sha256": "848c62d8ad37b96cbfa81bf67c252b57baf32deed6bb69868f97395c0f3b9112",
+      "stdout_sha256": "2adb36ca139db96100b44b4b3e5dc38b11d87073d84afec418b166c80b8e3556"
+    }
+  ],
+  "web_checks": {
+    "distinct_affected_cases": 29,
+    "typecheck": true,
+    "paired_catalog_keys": 4706,
+    "own_production_hardcodes": 0,
+    "isolated_build": true,
+    "build_seconds": 63,
+    "existing_large_chunk_warning": true,
+    "receipt_sha256": "a12d650c8da39727c98db01d6ccbf04c019b93d2fc01e0ac3fd1f87f56f3f9bc",
+    "original_input_sha256": "043ac3b9e1405cefe2fc715874a706ecb1ff937bebc4bb5cef64205bbdaabe44",
+    "post_check_formatting": "Four changed test fixture lines normalized at line ends only; semantic diff unchanged; production sources/build unaffected."
+  },
+  "actual_browser": {
+    "passed": true,
+    "engine": "Codex in-app browser",
+    "viewport": "1265x712 observed screenshot",
+    "journey": [
+      "real Monaco edit in A",
+      "same-byte B binding through authenticated fixture API",
+      "stale save refused and draft retained",
+      "live zh-CN/en-US controls and diagnostics",
+      "explicit current read and expandable B comparison",
+      "explicit keep-draft adoption refreshes B tree",
+      "new operation saves B",
+      "reload and reopen retain exact content"
+    ],
+    "a_bytes_unchanged": true,
+    "b_bytes_match_browser_draft": true,
+    "screenshots": [
+      {
+        "path": ".cache/e2e/workspace-109/workspace-compare.en.png",
+        "sha256": "f0a7fda45ca1f9f261eb394069dbdc5cd56e72970bec9bfafd0026849c8ce711"
+      },
+      {
+        "path": ".cache/e2e/workspace-109/workspace-review.zh.png",
+        "sha256": "c9b9c427d74608582c1eadac12d8a4bc44e5b13fbe96fa766bbeded6ec8f2cf5"
+      },
+      {
+        "path": ".cache/e2e/workspace-109/workspace-saved.en.png",
+        "sha256": "d804433fb4b31a8f2cf053f177b9b1da875c0bbb70682a41e4252e539c1c7364"
+      }
+    ],
+    "cross_account_late_ack": "Affected DOM regressions only; not repeated as actual browser account-switch journey",
+    "control_sha256": "f15589415918871ce8fff01624adc4326aeedaa643b6334803245bd672d94ee8",
+    "source_boundary": "Unchanged final Web bytes, browser against the initial184-table backend. The final185-table terminal-rejection/store changes were verified by focused Go regressions and a new actual HTTP/restart/physical-ABA journey; browser/model/build not repeated unnecessarily."
+  },
+  "resource_policy": {
+    "control_builds": 2,
+    "web_builds": 1,
+    "model_calls": 0,
+    "new_dependencies": 0,
+    "full_suite_runs": 0,
+    "owned_controls_closed": 4,
+    "helper_cleanup": "Owned Node stdin waiter closed after both control exits and final receipts; no shared processes stopped.",
+    "cache_cleanup": {
+      "files": 75,
+      "bytes": 2158028216,
+      "receipt_sha256": "daccb04f024a1b24ffae79466ba59a6d298c508a68a5c31a1dcdf18f088653ad",
+      "scope": "Old named compiled cache entries only; no source, database, screenshot or delivery deletion"
+    }
+  },
+  "remaining": [
+    "Full P0-P7 and requirements1..25",
+    "Native Electron startup 0xC0000135 unresolved",
+    "Cross-platform install/signature and remote CI unverified",
+    "Real OceanBase/PostgreSQL concurrency/recovery unverified",
+    "Full IDE/remote writes/PTY/LSP/DAP and large files pending",
+    "No production or human business acceptance implied"
+  ],
+  "actual_http_before_terminal_rejection": {
+    "kind": "actual-control-http-workspace-context",
+    "product_version": "1.0.0",
+    "binary_sha256": "f15589415918871ce8fff01624adc4326aeedaa643b6334803245bd672d94ee8",
+    "checks": {
+      "immutable_original_receipt_after_rebind": true,
+      "stale_same_path_same_bytes_rejected": true,
+      "aba_does_not_revive_old_context": true,
+      "same_database_restart_and_original_receipt": true
+    },
+    "requests": 22,
+    "launches": 2,
+    "closed": 2,
+    "model_requests": 0,
+    "passed": true,
+    "finished_at": "2026-10-28T04:28:35.182Z"
+  },
+  "actual_http": {
+    "kind": "actual-control-http-workspace-context",
+    "product_version": "1.0.0",
+    "binary_sha256": "13b2ecf51fd2d2f63a79fb912d1b4948b4267f9b4dc0f993a0d37498d2eba20f",
+    "checks": {
+      "physical_root_aba_rejection_terminal": true,
+      "immutable_original_receipt_after_rebind": true,
+      "stale_same_path_same_bytes_rejected": true,
+      "aba_does_not_revive_old_context": true,
+      "same_database_restart_and_original_receipt": true
+    },
+    "requests": 24,
+    "launches": 2,
+    "closed": 2,
+    "model_requests": 0,
+    "passed": true,
+    "finished_at": "2026-10-28T04:42:08.690Z"
+  },
+  "browser_sqlite_before_terminal_rejection": {
+    "tables": 184,
+    "counts": {
+      "suma_workspace_bindings": 1,
+      "suma_workspace_file_operations": 3,
+      "suma_workspace_accepted_operations": 3,
+      "dag_runs": 0,
+      "dag_attempts": 0
+    },
+    "all_three_saves_completed_with_context": true
+  },
+  "sqlite": {
+    "tables": 185,
+    "counts": {
+      "suma_workspace_file_rejections": 2,
+      "suma_workspace_file_operations": 2,
+      "suma_workspace_accepted_operations": 2,
+      "dag_runs": 0,
+      "dag_attempts": 0
+    },
+    "rejections_remain_rejected_after_physical_aba": true
+  },
+  "serena": {
+    "mcp_available": true,
+    "project": "suma",
+    "go_and_typescript": true,
+    "meaningful_semantic_query": "BeginScopedTx references identified platform and DAG consumers for affected checks",
+    "onboarding_run": false
+  },
+  "failure_followups": [
+    "Initial localization partial parallel edit compilation failed, then actual same-byte wrong-root regression failed as expected",
+    "Initial contract test incorrectly rejected shared identity/language headers, corrected and passed",
+    "Ordinary binding retry regression failed before idempotency correction, then passed",
+    "Physical root ABA accepted an old request before terminal durable refusal, then focused and actual HTTP passed",
+    "Deferred-FK commit failure exposed a retained SQLite transaction, fixed on exact scoped connection; store/DAG checks passed",
+    "Final platform compilation interrupted by disk full;75 old compiled cache files inventoried/removed; only interrupted platform checks rerun",
+    "An anchored platform selector ran localization/authority only; separate ^TestWorkspaceContext run confirmed all new context regressions"
+  ]
+}

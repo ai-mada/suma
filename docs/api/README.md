@@ -84,7 +84,7 @@ Go导出域模型直接反射，包括PlanningPeriod、TaskPlan、PlannedTask、
 | planning、iterations、milestones | 全项目计划指标、任务窗口、迭代及里程碑完成门禁 |
 | planning/schedule、planning/capacity | 双版本原子排期与周一开始的nullable资源工时 |
 | planning/baselines、planning/baselines/{id} | 全范围不可变捕获、分页快照与全范围当前比较 |
-| workspace、workspace/binding、workspace/file | 授权本地文本编辑与摘要冲突 |
+| workspace、workspace/binding、workspace/file | 授权本地文本编辑、原文件摘要＋工作区上下文CAS及不可变原回执；[字段与未受理证明](../../contracts/workspace-file-context.md) |
 | search、capabilities | 来源可定位检索与分层能力报告 |
 | agent/tools、agent/tools/invoke | 原生智能体工具目录与受控调用 |
 

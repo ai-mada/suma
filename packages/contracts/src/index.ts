@@ -4129,6 +4129,23 @@ export interface WorkspaceDesktopGrant {
   nonce: string;
   signature: string;
 }
+export interface WorkspaceFileDocument {
+  project_id: string;
+  path: string;
+  content: string;
+  hash: string;
+  language: string;
+  workspace_name: string;
+  context_sha256: string;
+}
+export interface WorkspaceFileSaveRequest {
+  project_id: string;
+  path: string;
+  content: string;
+  expected_hash: string;
+  expected_context_sha256: string;
+  idempotency_key: string;
+}
 export interface WorkspaceGitChange {
   path: string;
   previous_path: string;

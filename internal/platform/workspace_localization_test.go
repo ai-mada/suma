@@ -81,17 +81,18 @@ func TestWorkspaceLocalizationUnconfiguredKeepsOriginalReason(t *testing.T) {
 
 func TestWorkspaceLocalizationReadSaveAndBindingDiagnostics(t *testing.T) {
 	f, root := workspaceFixture(t)
+	original := f.call("GET", "/workspace/file?project_id="+f.project+"&path=main.go", nil, 200)
 	if err := os.WriteFile(filepath.Join(root, "binary.txt"), []byte{0}, 0600); err != nil {
 		t.Fatal(err)
 	}
 	assertWorkspaceLocalizedError(t, f, "GET", "/workspace/file?project_id="+f.project+"&path=binary.txt", nil, 400, "invalid_input", "workspace.read.text_limit", "编辑器仅打开 1 MiB 以内的文本文件", "The editor can only open text files of at most 1 MiB.")
-	assertWorkspaceLocalizedError(t, f, "POST", "/workspace/file", f.body(map[string]any{"path": "main.go", "idempotency_key": "short", "content": "用户内容"}), 400, "invalid_input", "workspace.save.operation_invalid", "请提供 8–128 字符的 idempotency_key", "Provide an idempotency_key of 8 to 128 characters.")
-	assertWorkspaceLocalizedError(t, f, "POST", "/workspace/file", f.body(map[string]any{"path": "main.go", "expected_hash": "stale", "content": "用户内容"}), 409, "version_conflict", "workspace.save.file_changed", "文件已被其他操作修改，请比较后保存", "Another operation has changed the file. Compare the contents before saving.")
+	assertWorkspaceLocalizedError(t, f, "POST", "/workspace/file", f.body(map[string]any{"path": "main.go", "idempotency_key": "short", "expected_hash": original["hash"], "expected_context_sha256": original["context_sha256"], "content": "用户内容"}), 400, "invalid_input", "workspace.save.operation_invalid", "请提供 8–128 字符的 idempotency_key", "Provide an idempotency_key of 8 to 128 characters.")
+	assertWorkspaceLocalizedError(t, f, "POST", "/workspace/file", f.body(map[string]any{"path": "main.go", "expected_hash": strings.Repeat("0", 64), "expected_context_sha256": original["context_sha256"], "content": "用户内容"}), 409, "version_conflict", "workspace.save.file_changed", "文件已被其他操作修改，请比较后保存", "Another operation has changed the file. Compare the contents before saving.")
 	assertWorkspaceLocalizedError(t, f, "POST", "/workspace/binding", f.body(map[string]any{"path": filepath.Join(root, "main.go")}), 400, "invalid_input", "workspace.binding.directory_required", "工作区必须是目录", "The workspace must be a directory.")
 	assertWorkspaceLocalizedError(t, f, "POST", "/workspace/binding", f.body(map[string]any{"path": t.TempDir()}), 400, "invalid_input", "workspace.binding.outside_allowed_root", "工作区必须位于服务端允许根目录内", "The workspace must be inside the root directory allowed by the server.")
 	assertWorkspaceLocalizedError(t, f, "GET", "/workspace/file?project_id="+f.project+"&path=.env", nil, 403, "forbidden", "common.forbidden", "当前身份没有此操作权限", "Your current identity does not have permission for this operation.")
 	assertWorkspaceLocalizedError(t, f, "GET", "/workspace/file?project_id="+f.project+"&path=../outside", nil, 404, "not_found", "common.not_found", "记录不存在或不可访问", "The record does not exist or is not accessible.")
-	body := f.body(map[string]any{"path": "main.go", "expected_hash": digest("original"), "content": "用户原文 original user text"})
+	body := f.body(map[string]any{"path": "main.go", "expected_hash": original["hash"], "expected_context_sha256": original["context_sha256"], "content": "用户原文 original user text"})
 	f.call("POST", "/workspace/file", body, 200)
 	body["content"] = "changed user content"
 	assertWorkspaceLocalizedError(t, f, "POST", "/workspace/file", body, 409, "idempotency_conflict", "workspace.save.idempotency_conflict", "该操作标识已用于其他内容", "This operation ID was already used for different content.")
@@ -105,7 +106,8 @@ func TestWorkspaceLocalizationReadSaveAndBindingDiagnostics(t *testing.T) {
 
 func TestWorkspaceLocalizationConcurrentRequestsDoNotShareLanguage(t *testing.T) {
 	f, root := workspaceFixture(t)
-	body := f.body(map[string]any{"path": "main.go", "content": "\x00"})
+	original := f.call("GET", "/workspace/file?project_id="+f.project+"&path=main.go", nil, 200)
+	body := f.body(map[string]any{"path": "main.go", "expected_hash": original["hash"], "expected_context_sha256": original["context_sha256"], "content": "\x00"})
 	var wg sync.WaitGroup
 	errors := make(chan error, 24)
 	for i := 0; i < 24; i++ {
@@ -142,9 +144,45 @@ func TestWorkspaceLocalizationConcurrentRequestsDoNotShareLanguage(t *testing.T)
 	}
 }
 
+func TestWorkspaceLocalizationContextValidationAndUnacceptedProof(t *testing.T) {
+	f, root := workspaceFixture(t)
+	original := f.call("GET", "/workspace/file?project_id="+f.project+"&path=main.go", nil, 200)
+	body := f.body(map[string]any{"path": "main.go", "expected_hash": original["hash"], "content": "用户草稿"})
+	assertWorkspaceLocalizedError(t, f, "POST", "/workspace/file", body, 400, "invalid_input", "workspace.save.context_required", "请提供原文件读取结果中的 64 位小写工作区上下文摘要 expected_context_sha256", "Provide expected_context_sha256 as the original file's 64-character lowercase workspace context digest.")
+	body["expected_context_sha256"] = original["context_sha256"]
+	body["unexpected"] = "user content"
+	assertWorkspaceLocalizedError(t, f, "POST", "/workspace/file", body, 400, "invalid_input", "workspace.save.invalid_request", "文件保存请求无效，请保留原文件读取结果并核对保存字段", "The file save request is invalid. Keep the original file snapshot and review the save fields.")
+	delete(body, "unexpected")
+	// A new binding to the same physical root is still a distinct draft context.
+	f.call("POST", "/workspace/binding", f.body(map[string]any{"path": root}), 200)
+	assertWorkspaceLocalizedError(t, f, "POST", "/workspace/file", body, 409, "workspace_context_changed", "workspace.save.context_changed", "工作区上下文已变化，请重新加载文件后保存", "The workspace context has changed. Reload the file before saving.")
+	for _, locale := range []string{"zh-CN", "en-US"} {
+		status, out, err := workspaceLocalizedCall(f, "POST", "/workspace/file", locale, body)
+		if err != nil || status != 409 {
+			t.Fatalf("context proof response: %d %v %v", status, out, err)
+		}
+		details := out["error"].(map[string]any)["details"].(map[string]any)
+		if len(details) != 5 || details["project_id"] != f.project || details["path"] != body["path"] || details["operation_id"] != body["idempotency_key"] || details["expected_context_sha256"] != original["context_sha256"] || details["not_accepted"] != true {
+			t.Fatalf("locale changed exact unaccepted operation proof: %v", details)
+		}
+	}
+	var operations, accepted int
+	if err := f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_workspace_file_operations`).Scan(&operations); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_workspace_accepted_operations`).Scan(&accepted); err != nil || operations != 0 || accepted != 0 {
+		t.Fatalf("unaccepted localized errors created effects: operations=%d accepted=%d err=%v", operations, accepted, err)
+	}
+	actual, err := os.ReadFile(filepath.Join(root, "main.go"))
+	if err != nil || string(actual) != "original" {
+		t.Fatalf("unaccepted localized errors changed original file: %q %v", actual, err)
+	}
+}
+
 func TestWorkspaceLocalizationRecoveryKeepsOriginalEvidence(t *testing.T) {
 	f, root := workspaceFixture(t)
-	body := f.body(map[string]any{"path": "main.go", "expected_hash": digest("original"), "content": "submitted content"})
+	original := f.call("GET", "/workspace/file?project_id="+f.project+"&path=main.go", nil, 200)
+	body := f.body(map[string]any{"path": "main.go", "expected_hash": original["hash"], "expected_context_sha256": original["context_sha256"], "content": "submitted content"})
 	f.call("POST", "/workspace/file", body, 200)
 	if _, err := f.s.DB.Exec(`UPDATE suma_workspace_file_operations SET state='prepared' WHERE operation_id=?`, body["idempotency_key"]); err != nil {
 		t.Fatal(err)
@@ -204,6 +242,8 @@ func TestWorkspaceLocalizationPublicCatalogAllowsDisplaySwitchWithoutNewRequest(
 	for _, example := range []struct{ key, source, english string }{
 		{"workspace.project_not_configured", "请先配置当前项目的工作区", "Configure a workspace for the current project first."},
 		{"workspace.save.file_changed", "文件已被其他操作修改，请比较后保存", "Another operation has changed the file. Compare the contents before saving."},
+		{"workspace.save.context_required", "请提供原文件读取结果中的 64 位小写工作区上下文摘要 expected_context_sha256", "Provide expected_context_sha256 as the original file's 64-character lowercase workspace context digest."},
+		{"workspace.save.context_changed", "工作区上下文已变化，请重新加载文件后保存", "The workspace context has changed. Reload the file before saving."},
 		{"search.keyword.coverage", "当前授权项目的全部需求、任务、问题和文档；返回最多 50 条", "All requirements, tasks, issues, and documents in the currently authorized project; at most 50 results are returned."},
 	} {
 		message, ok := messages[example.key]

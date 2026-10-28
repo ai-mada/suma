@@ -21462,6 +21462,84 @@
         ],
         "type": "object"
       },
+      "WorkspaceFileDocument": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "context_sha256": {
+            "description": "Opaque original workspace context; not an authority token or a file content hash.",
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "workspace_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "path",
+          "content",
+          "hash",
+          "language",
+          "workspace_name",
+          "context_sha256"
+        ],
+        "type": "object"
+      },
+      "WorkspaceFileSaveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "expected_context_sha256": {
+            "description": "Copy context_sha256 from the original file GET. Never infer it from current binding metadata or another file request.",
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "expected_hash": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "path": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "project_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "path",
+          "content",
+          "expected_hash",
+          "expected_context_sha256",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
       "WorkspaceGitChange": {
         "properties": {
           "conflicted": {
@@ -82824,6 +82902,7 @@
     },
     "/workspace/binding": {
       "post": {
+        "description": "Explicitly bind the authorized project to a directory inside the configured server root. An exact operation retry restores its immutable original metadata receipt before current directory checks, preserving its binding identity and any later binding. A new operation creates a fresh binding identity.",
         "operationId": "post_workspace_binding",
         "parameters": [
           {
@@ -82905,30 +82984,12 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceMetadata"
+                }
               }
             },
             "description": "Successful response; creates may return 201",
-            "headers": {
-              "Content-Language": {
-                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
-                "schema": {
-                  "enum": [
-                    "zh-CN",
-                    "en-US"
-                  ],
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Created",
             "headers": {
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
@@ -83295,6 +83356,7 @@
     },
     "/workspace/file": {
       "get": {
+        "description": "Read one authorized bound-workspace text file. context_sha256 binds the tenant, project, fresh binding identity and the actual opened root directory's OS identity. The context is opaque and must be retained with this file snapshot; equal file bytes or rebinding to the same path do not preserve it.",
         "operationId": "get_workspace_file",
         "parameters": [
           {
@@ -83302,6 +83364,16 @@
             "name": "project_id",
             "required": true,
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Workspace-relative safe file path; never absolute, traversing, sensitive or linked.",
+            "in": "query",
+            "name": "path",
+            "required": true,
+            "schema": {
+              "minLength": 1,
               "type": "string"
             }
           },
@@ -83328,30 +83400,12 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceFileDocument"
+                }
               }
             },
             "description": "Successful response; creates may return 201",
-            "headers": {
-              "Content-Language": {
-                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
-                "schema": {
-                  "enum": [
-                    "zh-CN",
-                    "en-US"
-                  ],
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Created",
             "headers": {
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
@@ -83462,19 +83516,12 @@
             "bearerAuth": []
           }
         ],
-        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+        "x-request-schema-coverage": "required project_id and workspace-relative path; current authorization, binding and actual opened root identity are server-enforced"
       },
       "post": {
+        "description": "Save existing UTF-8 text with both original file hash and original workspace context. Replay of a completed exact operation restores its immutable original document before checking the current root. workspace_context_changed with not_accepted=true requires a committed terminal rejection receipt, created only after proving the original operation absent under current authorization and the project lock. Exact retries replay that rejection even if the original physical root returns. A prepared operation remains reconciliation-required when its original root context cannot be recovered.",
         "operationId": "post_workspace_file",
         "parameters": [
-          {
-            "in": "query",
-            "name": "project_id",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
             "in": "header",
@@ -83524,19 +83571,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "additionalProperties": true,
-                "properties": {
-                  "expected_version": {
-                    "type": "integer"
-                  },
-                  "idempotency_key": {
-                    "type": "string"
-                  },
-                  "project_id": {
-                    "type": "string"
-                  }
-                },
-                "type": "object"
+                "$ref": "#/components/schemas/WorkspaceFileSaveRequest"
               }
             }
           },
@@ -83546,30 +83581,12 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceFileDocument"
+                }
               }
             },
             "description": "Successful response; creates may return 201",
-            "headers": {
-              "Content-Language": {
-                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
-                "schema": {
-                  "enum": [
-                    "zh-CN",
-                    "en-US"
-                  ],
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Created",
             "headers": {
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
@@ -83709,7 +83726,7 @@
           "missing_status": 428,
           "required": true
         },
-        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+        "x-request-schema-coverage": "typed required save fields; lowercase context digest, content bounds, current authority, original receipts and locked context comparison are server-enforced"
       }
     },
     "/workspace/git": {

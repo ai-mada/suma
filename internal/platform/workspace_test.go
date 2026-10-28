@@ -29,7 +29,7 @@ func workspaceFixture(t *testing.T) (*fixture, string) {
 func TestWorkspaceLostAcknowledgementReplaysOriginalResult(t *testing.T) {
 	f, root := workspaceFixture(t)
 	first := f.call("GET", "/workspace/file?project_id="+f.project+"&path=main.go", nil, 200)
-	body := f.body(map[string]any{"path": "main.go", "expected_hash": first["hash"], "content": "saved"})
+	body := workspaceContextTestBody(f, first, "saved")
 	saved := f.call("POST", "/workspace/file", body, 200)
 	if err := os.WriteFile(filepath.Join(root, "main.go"), []byte("later external edit"), 0600); err != nil {
 		t.Fatal(err)
@@ -68,7 +68,7 @@ func TestWorkspaceConcurrentSavesRejectStaleWriter(t *testing.T) {
 		if index == 1 {
 			handler = secondHandler
 		}
-		body := map[string]any{"project_id": f.project, "idempotency_key": newID(), "path": "main.go", "expected_hash": first["hash"], "content": value}
+		body := map[string]any{"project_id": f.project, "idempotency_key": newID(), "path": "main.go", "expected_hash": first["hash"], "expected_context_sha256": first["context_sha256"], "content": value}
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -126,8 +126,10 @@ func TestWorkspaceRecoversPreparedBeforeAndAfterFilesystemCommit(t *testing.T) {
 	for _, committed := range []bool{false, true} {
 		t.Run(fmt.Sprint(committed), func(t *testing.T) {
 			f, root := workspaceFixture(t)
-			body := f.body(map[string]any{"path": "main.go", "expected_hash": digest("original"), "content": "prepared content"})
+			original := workspaceContextTestRead(t, f)
+			body := workspaceContextTestBody(f, original, "prepared content")
 			response := fileResponse("main.go", "prepared content")
+			response["project_id"], response["workspace_name"], response["context_sha256"] = f.project, original["workspace_name"], original["context_sha256"]
 			hash := digest(f.user.ID + stringify(map[string]any{"kind": "workspace.file", "body": body}))
 			ctx, tx, cancel, err := f.s.beginAuthorityTx(context.Background())
 			if err != nil {
@@ -177,12 +179,13 @@ func TestWorkspaceRejectsEscapesSecretsAndSymlinks(t *testing.T) {
 		return
 	}
 	f.call("GET", "/workspace/file?project_id="+f.project+"&path=linked.go", nil, 403)
-	f.call("POST", "/workspace/file", f.body(map[string]any{"path": "linked.go", "content": "bad", "expected_hash": digest("original")}), 403)
+	original := workspaceContextTestRead(t, f)
+	f.call("POST", "/workspace/file", f.body(map[string]any{"path": "linked.go", "content": "bad", "expected_hash": digest("original"), "expected_context_sha256": original["context_sha256"]}), 403)
 }
 
 func TestWorkspaceUnknownPreparedResultRequiresReconciliation(t *testing.T) {
 	f, root := workspaceFixture(t)
-	body := f.body(map[string]any{"path": "main.go", "expected_hash": digest("original"), "content": "saved"})
+	body := workspaceContextTestBody(f, workspaceContextTestRead(t, f), "saved")
 	f.call("POST", "/workspace/file", body, 200)
 	if _, err := f.s.DB.Exec(`UPDATE suma_workspace_file_operations SET state='prepared' WHERE operation_id=?`, body["idempotency_key"]); err != nil {
 		t.Fatal(err)

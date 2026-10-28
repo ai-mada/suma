@@ -1,3 +1,11 @@
 {
- "workspace-save.invalid_receipt":"保存回执与本次文件及提交内容不匹配。原操作和当前草稿已保留，请恢复上一次保存，不要另建写入。"
+ "workspace-save.invalid_receipt":"保存回执与本次文件及提交内容不匹配。原操作和当前草稿已保留，请恢复上一次保存，不要另建写入。",
+ "workspace-save.invalid_read":"文件响应缺少可核验的项目、工作区或内容。草稿已保留，请重新读取当前文件。",
+ "workspace-save.context_title":"工作区已变化或需要核实",
+ "workspace-save.context_help":"草稿来自 {{name}}。请读取当前文件，核对所属工作区后，再选择新的保存依据。",
+ "workspace-save.context_pending":"请先恢复原保存操作。原操作的结果不能证明当前工作区状态。",
+ "workspace-save.read_current":"读取当前文件",
+ "workspace-save.current_origin":"当前文件来自：{{name}}",
+ "workspace-save.compare_current":"比较当前内容",
+ "workspace-save.adopt_current":"采用当前工作区并保留草稿"
 }

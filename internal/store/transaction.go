@@ -55,7 +55,17 @@ func (s *TxScope) Close() error {
 		}
 		if s.conn != nil {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-			_, err := s.conn.ExecContext(ctx, `PRAGMA busy_timeout=`+strconv.Itoa(s.sqliteBusy))
+			// A failed deferred-constraint COMMIT can finish sql.Tx while
+			// SQLite keeps its transaction open. Clean only this retained
+			// connection. SAVEPOINT also makes the full ROLLBACK valid after
+			// a successful commit/rollback, without matching driver errors.
+			_, err := s.conn.ExecContext(ctx, `SAVEPOINT suma_scope_cleanup`)
+			if err == nil {
+				_, err = s.conn.ExecContext(ctx, `ROLLBACK`)
+			}
+			if err == nil {
+				_, err = s.conn.ExecContext(ctx, `PRAGMA busy_timeout=`+strconv.Itoa(s.sqliteBusy))
+			}
 			cancel()
 			if err != nil {
 				// database/sql recognizes this sentinel and evicts the physical

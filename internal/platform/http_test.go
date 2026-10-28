@@ -174,8 +174,8 @@ func TestWorkspaceScopeHashAndNoMutationOnRead(t *testing.T) {
 	}
 	f.call("POST", "/workspace/binding", f.body(map[string]any{"path": root}), 200)
 	file := f.call("GET", "/workspace/file?project_id="+f.project+"&path=main.ts", nil, 200)
-	f.call("POST", "/workspace/file", f.body(map[string]any{"path": "main.ts", "expected_hash": "stale", "content": "bad"}), 409)
-	saved := f.call("POST", "/workspace/file", f.body(map[string]any{"path": "main.ts", "expected_hash": file["hash"], "content": "const x = 2;"}), 200)
+	f.call("POST", "/workspace/file", f.body(map[string]any{"path": "main.ts", "expected_hash": strings.Repeat("0", 64), "expected_context_sha256": file["context_sha256"], "content": "bad"}), 409)
+	saved := f.call("POST", "/workspace/file", f.body(map[string]any{"path": "main.ts", "expected_hash": file["hash"], "expected_context_sha256": file["context_sha256"], "content": "const x = 2;"}), 200)
 	if saved["content"] != "const x = 2;" {
 		t.Fatal("save failed")
 	}

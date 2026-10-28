@@ -3,6 +3,7 @@ package platform
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"io"
 	"os"
 	"path"
@@ -277,14 +278,21 @@ func replaceWorkspaceRootedFile(ctx context.Context, root *os.Root, rel, expecte
 }
 
 func (s *Service) recoverWorkspaceFile(ctx context.Context, tx *sql.Tx, p Principal, project string, op workspaceOperation) error {
-	if op.root == "" {
-		return forbidden()
+	if op.root == "" || !desktopWorkspaceHex(op.contextSHA256, 64) {
+		return workspaceReconciliation(op)
 	}
-	root, err := s.openWorkspaceFileRootTx(ctx, tx, p.TenantID, project, op.root)
+	root, basis, err := s.openWorkspaceFileContextTx(ctx, tx, p.TenantID, project, op.root)
 	if err != nil {
+		var api *APIError
+		if errors.As(err, &api) && (api.Status == 409 || api.Status == 422) {
+			return workspaceReconciliation(op)
+		}
 		return err
 	}
 	defer root.Close()
+	if basis.sha256 != op.contextSHA256 {
+		return workspaceReconciliation(op)
+	}
 	current, _, err := readWorkspaceRootedFile(ctx, root, op.path)
 	if err != nil {
 		return err
@@ -295,10 +303,16 @@ func (s *Service) recoverWorkspaceFile(ctx context.Context, tx *sql.Tx, p Princi
 			return err
 		}
 	} else if hash != op.next {
-		return &APIError{409, "workspace_reconciliation_required", "先前保存结果不确定；请将文件恢复为原内容或已提交内容后重试同一请求", map[string]any{"operation_id": op.key, "path": op.path}}
+		return workspaceReconciliation(op)
 	}
 	// If a rename exchanged the project root during I/O, preserve the prepared
 	// journal instead of certifying that its current bound path was committed.
-	_, err = s.workspaceRootAuthorityTx(ctx, tx, p.TenantID, project, op.root)
+	err = s.verifyWorkspaceFileContextTx(ctx, tx, p.TenantID, project, basis)
+	if err != nil {
+		var api *APIError
+		if errors.As(err, &api) && (api.Status == 409 || api.Status == 422) {
+			return workspaceReconciliation(op)
+		}
+	}
 	return err
 }

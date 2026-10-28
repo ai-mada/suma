@@ -154,6 +154,9 @@ func generate() (map[string]any, string) {
 	for _, v := range workspaceObservationModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range workspaceFileModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range modelExecutionModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -281,9 +284,9 @@ func generate() (map[string]any, string) {
 		add("/runner/"+route, "post", "", false, true)
 	}
 	add("/workspace", "get", "WorkspaceMetadata", false, false)
-	add("/workspace/binding", "post", "", false, true)
-	add("/workspace/file", "get", "", false, false)
-	add("/workspace/file", "post", "", false, true)
+	workspaceBinding := add("/workspace/binding", "post", "WorkspaceMetadata", false, true)
+	successStatus(workspaceBinding, "200")
+	workspaceBinding["description"] = "Explicitly bind the authorized project to a directory inside the configured server root. An exact operation retry restores its immutable original metadata receipt before current directory checks, preserving its binding identity and any later binding. A new operation creates a fresh binding identity."
 	add("/agent/tools", "get", "", true, false)
 	add("/agent/tools/invoke", "post", "", false, true)
 	extendContracts(add, paths)
@@ -313,6 +316,7 @@ func generate() (map[string]any, string) {
 	candidateRepairRevisionContracts(add, api)
 	workspaceObservationContracts(add, api)
 	workspaceWriteContracts(add, api)
+	workspaceFileContracts(add, api)
 	modelExecutionContracts(add, api)
 	workspaceGitContracts(add, api)
 	workspaceTreeContracts(add, api)

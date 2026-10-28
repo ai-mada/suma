@@ -90,7 +90,8 @@ func domainCActor(t *testing.T, s *Service, token string) Actor {
 func TestAuthorityDomainCWorkspaceInteractiveRechecksAndAcceptedRecoverySurvivesLogout(t *testing.T) {
 	f, root := workspaceFixture(t)
 	ctx := context.Background()
-	body := f.body(map[string]any{"path": "main.go", "expected_hash": digest("original"), "content": "accepted durable content"})
+	original := f.call("GET", "/workspace/file?project_id="+f.project+"&path=main.go", nil, 200)
+	body := f.body(map[string]any{"path": "main.go", "expected_hash": original["hash"], "expected_context_sha256": original["context_sha256"], "content": "accepted durable content"})
 	key := str(body, "idempotency_key")
 	hash := digest(f.user.ID + stringify(map[string]any{"kind": "workspace.file", "body": body}))
 	bound, tx, cancel, err := f.s.beginAuthorityTx(ctx)
@@ -99,7 +100,9 @@ func TestAuthorityDomainCWorkspaceInteractiveRechecksAndAcceptedRecoverySurvives
 	}
 	auth, err := f.s.authorizeTx(bound, tx, f.actor, commandTarget{tenantID: f.user.TenantID, projectID: f.project}, purposeProjectWrite)
 	if err == nil {
-		err = f.s.prepareWorkspaceOperationTx(bound, auth, key, hash, root, "main.go", "original", "accepted durable content", fileResponse("main.go", "accepted durable content"))
+		response := fileResponse("main.go", "accepted durable content")
+		response["project_id"], response["workspace_name"], response["context_sha256"] = original["project_id"], original["workspace_name"], original["context_sha256"]
+		err = f.s.prepareWorkspaceOperationTx(bound, auth, key, hash, root, "main.go", "original", "accepted durable content", response)
 	}
 	if err == nil {
 		err = tx.Commit()
@@ -138,25 +141,26 @@ func TestAuthorityDomainCWorkspaceInteractiveRechecksAndAcceptedRecoverySurvives
 		t.Fatal("trusted accepted recovery lost", err)
 	}
 }
-func TestAuthorityDomainCWorkspaceLegacyPreparedIsNotAccepted(t *testing.T) {
+func TestAuthorityDomainCWorkspaceUntrustedPreparedIsNotAccepted(t *testing.T) {
 	f, root := workspaceFixture(t)
+	original := f.call("GET", "/workspace/file?project_id="+f.project+"&path=main.go", nil, 200)
 	key := newID()
-	_, err := f.s.DB.Exec(`INSERT INTO suma_workspace_file_operations(tenant_id,project_id,operation_id,request_hash,root_path,path,expected_hash,new_hash,content,response,state,created_at)VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`, f.user.TenantID, f.project, key, digest("legacy"), root, "main.go", digest("original"), digest("untrusted"), "untrusted", "{}", "prepared", now())
+	_, err := f.s.DB.Exec(`INSERT INTO suma_workspace_file_operations(tenant_id,project_id,operation_id,request_hash,root_path,path,expected_hash,new_hash,content,response,state,created_at,context_sha256)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`, f.user.TenantID, f.project, key, digest("untrusted"), root, "main.go", original["hash"], digest("untrusted"), "untrusted", "{}", "prepared", now(), original["context_sha256"])
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = f.s.saveWorkspace(context.Background(), f.actor, f.project, f.body(map[string]any{"path": "main.go", "expected_hash": digest("original"), "content": "next"}))
+	_, err = f.s.saveWorkspace(context.Background(), f.actor, f.project, f.body(map[string]any{"path": "main.go", "expected_hash": original["hash"], "expected_context_sha256": original["context_sha256"], "content": "next"}))
 	var api *APIError
 	if !errors.As(err, &api) || api.Status != 409 {
-		t.Fatalf("legacy recovery = %v", err)
+		t.Fatalf("untrusted recovery = %v", err)
 	}
 	actual, err := os.ReadFile(filepath.Join(root, "main.go"))
 	if err != nil || string(actual) != "original" {
-		t.Fatal("legacy recovery changed file", err)
+		t.Fatal("untrusted recovery changed file", err)
 	}
 	var accepted int
 	if err = f.s.DB.QueryRow(`SELECT COUNT(*) FROM suma_workspace_accepted_operations WHERE operation_id=?`, key).Scan(&accepted); err != nil || accepted != 0 {
-		t.Fatal("legacy accepted marker fabricated", err)
+		t.Fatal("untrusted accepted marker fabricated", err)
 	}
 }
 

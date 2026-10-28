@@ -62,9 +62,9 @@ func TestDesktopWorkspaceBindsProjectWithoutChangingServerRootAndSurvivesRestart
 	if os.Getenv("SUMA_WORKSPACE_ROOT") != "" {
 		t.Fatal("native selection changed the global server root")
 	}
-	f.call("GET", "/workspace/file?project_id="+f.project+"&path=main.go", nil, 200)
+	original := workspaceContextTestRead(t, f)
 	f.call("GET", workspaceTreeTestURL(f.project, "", 100, ""), nil, 200)
-	f.call("POST", "/workspace/file", f.body(map[string]any{"path": "main.go", "expected_hash": digest("original"), "content": "native save"}), 200)
+	f.call("POST", "/workspace/file", workspaceContextTestBody(f, original, "native save"), 200)
 	if _, err = f.s.GetWorkspaceGitStatus(ctx, f.actor, f.project); err != nil {
 		t.Fatalf("native root did not reach the guarded Git reader: %v", err)
 	}
@@ -214,6 +214,7 @@ func TestDesktopWorkspaceInvalidProofAndReplacedRootKeepCASWithoutFallback(t *te
 	if err != nil {
 		t.Fatal(err)
 	}
+	original := workspaceContextTestRead(t, f)
 	// The ordinary configured source would allow this path. A present native
 	// proof must still be verified rather than silently falling back to it.
 	t.Setenv("SUMA_WORKSPACE_ROOT", filepath.Dir(root))
@@ -230,7 +231,7 @@ func TestDesktopWorkspaceInvalidProofAndReplacedRootKeepCASWithoutFallback(t *te
 	}
 	f.call("GET", "/workspace/file?project_id="+f.project+"&path=main.go", nil, 403)
 	f.call("GET", workspaceTreeTestURL(f.project, "", 100, ""), nil, 403)
-	f.call("POST", "/workspace/file", f.body(map[string]any{"path": "main.go", "expected_hash": digest("original"), "content": "must not save"}), 403)
+	f.call("POST", "/workspace/file", workspaceContextTestBody(f, original, "must not save"), 403)
 	if _, err = f.s.GetWorkspaceGitStatus(ctx, f.actor, f.project); err == nil {
 		t.Fatal("Git trusted a tampered native root")
 	}
@@ -253,7 +254,7 @@ func TestDesktopWorkspaceInvalidProofAndReplacedRootKeepCASWithoutFallback(t *te
 	_, err = f.s.workspaceRoot(ctx, f.actor, f.project)
 	requireAuthorityStatus(t, err, 409)
 	f.call("GET", "/workspace/file?project_id="+f.project+"&path=main.go", nil, 409)
-	f.call("POST", "/workspace/file", f.body(map[string]any{"path": "main.go", "expected_hash": digest("replacement directory"), "content": "must not save"}), 409)
+	f.call("POST", "/workspace/file", f.body(map[string]any{"path": "main.go", "expected_hash": digest("replacement directory"), "expected_context_sha256": original["context_sha256"], "content": "must not save"}), 409)
 	newBinding, err := f.s.BindDesktopWorkspace(ctx, f.actor, f.project, desktopWorkspaceTestRequest(f, root, bound.BindingSHA256))
 	if err != nil || !newBinding.Configured || newBinding.BindingSHA256 == bound.BindingSHA256 {
 		t.Fatalf("explicit fresh selection could not repair a replaced root: %+v %v", newBinding, err)
@@ -355,7 +356,7 @@ func TestDesktopWorkspaceCurrentAuthorityAndCrossProjectProof(t *testing.T) {
 	wrongProject.ProjectID = other
 	_, err := f.s.BindDesktopWorkspace(ctx, f.actor, other, wrongProject)
 	requireAuthorityStatus(t, err, 403)
-	if _, err = f.s.DB.Exec(`INSERT INTO suma_workspace_bindings(tenant_id,project_id,root_path) VALUES(?,?,?)`, f.user.TenantID, other, root); err != nil {
+	if _, err = f.s.DB.Exec(`INSERT INTO suma_workspace_bindings(tenant_id,project_id,root_path,binding_id) VALUES(?,?,?,?)`, f.user.TenantID, other, root, newID()); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = f.s.DB.Exec(`INSERT INTO suma_desktop_workspace_roots(tenant_id,project_id,root_path,root_identity,registered_by,operation_id,signature,created_at) SELECT tenant_id,?,root_path,root_identity,registered_by,operation_id,signature,created_at FROM suma_desktop_workspace_roots WHERE tenant_id=? AND project_id=?`, other, f.user.TenantID, f.project); err != nil {
@@ -387,8 +388,10 @@ func TestDesktopWorkspacePreparedSaveRecoveryRequiresCurrentRootProof(t *testing
 	if _, err := f.s.BindDesktopWorkspace(ctx, f.actor, f.project, desktopWorkspaceTestRequest(f, root, "")); err != nil {
 		t.Fatal(err)
 	}
-	body := f.body(map[string]any{"path": "main.go", "expected_hash": digest("original"), "content": "recovered native save"})
+	original := workspaceContextTestRead(t, f)
+	body := workspaceContextTestBody(f, original, "recovered native save")
 	response := fileResponse("main.go", "recovered native save")
+	response["project_id"], response["workspace_name"], response["context_sha256"] = f.project, original["workspace_name"], original["context_sha256"]
 	hash := digest(f.user.ID + stringify(map[string]any{"kind": "workspace.file", "body": body}))
 	bounded, tx, cancel, err := f.s.beginAuthorityTx(ctx)
 	if err != nil {
@@ -467,4 +470,44 @@ func TestDesktopWorkspaceHTTPRequiresClosedBodyAndReturnsScopedAcknowledgement(t
 	expired.Grant.ExpiresAt = time.Now().UTC().Add(-time.Minute).Format(time.RFC3339Nano)
 	desktopWorkspaceTestSign(f.s.DesktopWorkspaceKey, &expired.Grant)
 	assertWorkspaceLocalizedError(t, f, "POST", "/workspace/desktop-binding", expired, 410, "desktop_workspace_grant_expired", "desktop_workspace.grant_expired", "本次目录选择已过期，请重新选择后绑定", "The directory selection has expired. Choose the directory again before binding.")
+}
+
+func TestDesktopWorkspaceRepeatedSelectionChangesContextButReceiptReplayDoesNot(t *testing.T) {
+	f, root := desktopWorkspaceFixture(t)
+	ctx := context.Background()
+	firstRequest := desktopWorkspaceTestRequest(f, root, "")
+	first, err := f.s.BindDesktopWorkspace(ctx, f.actor, f.project, firstRequest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	firstDocument := workspaceContextTestRead(t, f)
+	var firstID string
+	if err = f.s.DB.QueryRow(`SELECT binding_id FROM suma_workspace_bindings WHERE project_id=?`, f.project).Scan(&firstID); err != nil || !desktopWorkspaceHex(firstID, 32) {
+		t.Fatal("binding did not receive a fresh identity", err)
+	}
+	second, err := f.s.BindDesktopWorkspace(ctx, f.actor, f.project, desktopWorkspaceTestRequest(f, root, first.BindingSHA256))
+	if err != nil || second.BindingSHA256 == first.BindingSHA256 {
+		t.Fatalf("same-directory selection revived metadata CAS: %+v %v", second, err)
+	}
+	secondDocument := workspaceContextTestRead(t, f)
+	if secondDocument["context_sha256"] == firstDocument["context_sha256"] {
+		t.Fatal("same-directory selection revived an old editor context")
+	}
+	var secondID string
+	if err = f.s.DB.QueryRow(`SELECT binding_id FROM suma_workspace_bindings WHERE project_id=?`, f.project).Scan(&secondID); err != nil || secondID == firstID {
+		t.Fatal("explicit selection reused the previous binding identity", err)
+	}
+	replayed, err := f.s.BindDesktopWorkspace(ctx, f.actor, f.project, firstRequest)
+	if err != nil || replayed != first {
+		t.Fatalf("original native binding acknowledgement changed: %+v %v", replayed, err)
+	}
+	var afterReplayID string
+	if err = f.s.DB.QueryRow(`SELECT binding_id FROM suma_workspace_bindings WHERE project_id=?`, f.project).Scan(&afterReplayID); err != nil || afterReplayID != secondID {
+		t.Fatal("receipt replay generated a new binding identity", err)
+	}
+	if current := workspaceContextTestRead(t, f); current["context_sha256"] != secondDocument["context_sha256"] {
+		t.Fatal("receipt replay changed the current editor context")
+	}
+	f.call("POST", "/workspace/file", workspaceContextTestBody(f, firstDocument, "must not save"), 409)
+	f.call("POST", "/workspace/file", workspaceContextTestBody(f, secondDocument, "current native save"), 200)
 }

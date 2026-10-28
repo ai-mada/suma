@@ -93,7 +93,7 @@ it('keeps the editing model and draft through Git navigation, then saves once th
   if(url.pathname==='/api/v1/workspace/tree')return Response.json({project_id:'p',directory:url.searchParams.get('directory')||'',entries:url.searchParams.get('directory')==='src'?[{path,name:'main.ts',kind:'file'}]:[{path:'src',name:'src',kind:'directory'}],limit:100,next_cursor:'',snapshot_sha256:'d'.repeat(64),observed_at:observed});
   if(url.pathname==='/api/v1/workspace/file'){
    if(init?.body){const body=JSON.parse(String(init.body));writes.push(body);disk=body.content;}
-   return Response.json({path,content:disk,hash:await digest(disk),language:'typescript'});
+   return Response.json({project_id:'p',path,content:disk,hash:await digest(disk),language:'typescript',workspace_name:'Owned workspace',context_sha256:'a'.repeat(64)});
   }
   if(url.pathname==='/api/v1/workspace/git')return Response.json({project_id:'p',available:true,reason_code:'ready',branch:'main',head,unborn:false,detached:false,files:[{path,previous_path:'',index_status:' ',worktree_status:'M',untracked:false,conflicted:false}],total:1,limit:200,truncated:false,restricted_files:0,observed_at:observed});
   if(url.pathname==='/api/v1/workspace/git/diff')return Response.json({project_id:'p',path,previous_path:'',source:'worktree',head,original:initial,modified:disk,original_sha256:await digest(initial),modified_sha256:await digest(disk),binary:false,observed_at:observed});
@@ -114,7 +114,7 @@ it('keeps the editing model and draft through Git navigation, then saves once th
  expect(host.querySelector('textarea')).toBe(editing);expect(editing.value).toBe(draft);
  await act(async()=>button('Files').click());expect(editing.closest('[hidden]')).toBeNull();expect(editing.value).toBe(draft);
  await act(async()=>commands.current!.run());await settle(()=>!!button('Save')?.disabled);
- expect(writes).toHaveLength(1);expect(writes[0]).toMatchObject({project_id:'p',path,content:draft,expected_hash:await digest(initial)});
+ expect(writes).toHaveLength(1);expect(writes[0]).toMatchObject({project_id:'p',path,content:draft,expected_hash:await digest(initial),expected_context_sha256:'a'.repeat(64)});
  expect(button('Choose project folder').disabled).toBe(false);
  await act(async()=>commands.current!.run());expect(writes).toHaveLength(1);
  await act(async()=>button('Changes').click());await settle(()=>host!.querySelector('[data-after]')?.textContent===draft);

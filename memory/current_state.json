@@ -4,13 +4,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-DESKTOP-108",
-  "updated_at": "2026-10-28T03:32:46.192Z",
+  "stage": "T-WORKSPACE-109",
+  "updated_at": "2026-10-28T04:43:49.251708+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/desktop-packaging-verification.md",
-  "current_summary": "docs/quality/desktop-packaging-summary.json",
+  "current_evidence": "docs/quality/workspace-file-context-verification.md",
+  "current_summary": "docs/quality/workspace-file-context-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..25",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -27,14 +27,67 @@
     "initialization": "Service.Initialize and domain Initialize methods; current schema namespaces and registration; unknown existing schema rejected before DDL, never upgraded/reset.",
     "scheduling": "One ready queue, accounts/ledger, complete current dependency semantics and fixed routes; persisted current restart remains.",
     "identity": "Current complete issuance/source/family/Grant/slot proof and transactional revocation; no inferred authority or migration status.",
-    "workbench": "Native Electron scoped directory selection, explicit project binding, durable root proof, rooted file/tree/Git/CAS and original receipt recovery implemented; shared local/CLI/remote foundations retained. Actual native GUI startup gap remains. Complete multi-root/editor/PTY/LSP/DAP/remote IDE and requirement23 remain.",
-    "internationalization": "zh-CN/en-US paired extensible catalogs4698keys; scoped desktop selection/binding/recovery and known server diagnostics; own frontend production hardcodes0. Native/system/vendor/installer surfaces need separate acceptance.",
+    "workbench": "Local file snapshots and saves bind tenant/project/fresh binding/actual opened root identity; exact original receipt recovery, ordinary/native binding idempotency, explicit current-basis adoption, owner-isolated ephemeral draft retention. Actual browser/HTTP/restart verified. Full IDE and native GUI remain pending.",
+    "internationalization": "zh-CN/en-US paired extensible catalogs4706keys; local context review/adoption/recovery and exact backend diagnostics; own frontend production hardcodes0. Vendor/native/installer surfaces remain scoped separately.",
     "versioning": "Go product identity has one source; workspace/desktop/Helm check:version is1.0.0; protocol/workflow/data revisions independent.",
     "architecture": "Single initial1.0.0; one current OpenCode SDK path, no old JSONL parser/alias or duplicate dispatcher. Generated public types replace duplicate web DTOs; current native host/ledger reused.",
     "opencode": "Actual officialWindows1.19.4 CLI/SDK + owned deterministic model protocol, real host MCP/write/check/seal, twoWorker candidate/import/independent exactSHA test; currentstream client lifetime, single Go tree authority and compact CNEN status/drilldown. Not commercial model/billing or production evidence.",
     "desktop_packaging": "Six native platform/architecture build plans, isolated source/provenance validation, unsigned installer/portable/dir, actual Windows x64 installer+portable, manual native CI with shared Web; signed delivery blocked pending lineage/OS verification. Approved maintainer zhaoyingchao."
   },
   "verified": {
+    "current_report": "docs/quality/workspace-file-context-verification.md",
+    "source_sha256": "e9cd8bad662ca4f6d4c5d9481abc5afb2d5370db816aa00e3fa8877bbfc66aa5",
+    "product_version": "1.0.0",
+    "go_affected_platform_and_localization": true,
+    "go_affected_ordinary_binding_followup": true,
+    "go_terminal_rejection_scoped_store_dag_followup": true,
+    "generated_contract_check": true,
+    "web_distinct_affected_cases": 29,
+    "web_typecheck": true,
+    "web_build": true,
+    "web_catalog_keys": 4706,
+    "actual_http_checks": {
+      "physical_root_aba_rejection_terminal": true,
+      "immutable_original_receipt_after_rebind": true,
+      "stale_same_path_same_bytes_rejected": true,
+      "aba_does_not_revive_old_context": true,
+      "same_database_restart_and_original_receipt": true
+    },
+    "actual_http_requests": 24,
+    "actual_control_launches": 4,
+    "actual_controls_closed": 4,
+    "actual_browser_local_file_save_refresh": true,
+    "browser_backend_boundary": "Unchanged final Web bytes, browser against the initial184-table backend. The final185-table terminal-rejection/store changes were verified by focused Go regressions and a new actual HTTP/restart/physical-ABA journey; browser/model/build not repeated unnecessarily.",
+    "actual_sqlite_tables": 185,
+    "actual_native_gui": false,
+    "model_calls": 0
+  },
+  "production_integration_complete": false,
+  "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
+  "commit_policy": "User authorizes commits and normal non-forced pushes after verified functional stages to git@github.com:ai-mada/suma.git, branch dev. Include necessary source, configuration, design/contracts and compact evidence only. Keep credentials, databases, raw logs, screenshots, snapshots, caches, dependencies and binaries out of Git; preserve remote changes. No authorization for releases or deployment.",
+  "git_delivery": {
+    "repository": "git@github.com:ai-mada/suma.git",
+    "branch": "dev",
+    "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
+    "force_push": false,
+    "previously_published_commit": "f2b6ae38ffd02bd34f7a8cd36edf324387a49c2f"
+  },
+  "existing_preview": {
+    "updated": false,
+    "user_database_modified": false,
+    "reason": "The initial schema uses a separate empty database; existing data are preserved."
+  },
+  "remaining_work": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope.",
+  "last_goal_turn_classification": "progress: workspace-context file read/save and recovery completed in parallel; actual isolated HTTP, restart and CNEN browser read/adopt/save/refresh verified; full platform remains active.",
+  "previous_goal_turn": "progress: six-target packaging and provenance implemented in parallel; actual unsigned Windows installer/portable and archive verified; approved public maintainer corrected to zhaoyingchao. Full P0-P7/1..25 and target-system/signature/GUI acceptance remain.",
+  "current_work": {
+    "status": "scoped_delivery_verified_full_platform_in_progress",
+    "stage": "T-WORKSPACE-109",
+    "verification": "Affected Go/contract/localization and29 distinct web cases, typecheck/i18n, one isolated Control/Web build, real HTTP restart and CNEN Monaco journey. Zero model calls.",
+    "next_integration": "Keep full P0-P7/1..25: native Electron loader/install/signature; complete IDE/remote coordinated writes/PTY/LSP/DAP; multi-host vendor integrations and remaining full lifecycle.",
+    "deferred_not_dropped": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope."
+  },
+  "previous_stage_verification": {
     "current_report": "docs/quality/desktop-packaging-verification.md",
     "product_version": "1.0.0",
     "earlier_desktop_tests": {
@@ -54,70 +107,5 @@
     "actual_signatures": false,
     "model_calls": 0,
     "web_builds_added": 0
-  },
-  "production_integration_complete": false,
-  "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
-  "commit_policy": "User authorizes commits and normal non-forced pushes after verified functional stages to git@github.com:ai-mada/suma.git, branch dev. Include necessary source, configuration, design/contracts and compact evidence only. Keep credentials, databases, raw logs, screenshots, snapshots, caches, dependencies and binaries out of Git; preserve remote changes. No authorization for releases or deployment.",
-  "git_delivery": {
-    "repository": "git@github.com:ai-mada/suma.git",
-    "branch": "dev",
-    "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
-    "force_push": false,
-    "previously_published_commit": "c21d2d65bcd127218e7e015afc0d01c5bb1d7b71"
-  },
-  "existing_preview": {
-    "updated": false,
-    "user_database_modified": false,
-    "reason": "The initial schema uses a separate empty database; existing data are preserved."
-  },
-  "remaining_work": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope.",
-  "last_goal_turn_classification": "progress: six-target packaging and provenance implemented in parallel; actual unsigned Windows installer/portable and archive verified; approved public maintainer corrected to zhaoyingchao. Full P0-P7/1..25 and target-system/signature/GUI acceptance remain.",
-  "previous_goal_turn": "progress: native directory selection and project binding implemented in parallel; rooted file I/O and actual isolated HTTP chain/restart verified. NativeGUI startup unresolved, full P0-P7 and requirements1..25 active.",
-  "current_work": {
-    "status": "scoped_delivery_verified_full_platform_in_progress",
-    "stage": "T-DESKTOP-108",
-    "verification": "Exact source receipts; affected Node checks, actual five cross-builds plus current native binary, six headers, actual Windows SDK and hashes/archive, native matrix planning and version/syntax checks. No installation, model, UI or remote workflow execution.",
-    "next_integration": "Preserve full P0-P7/1..25: resolve Electron loader issue; actual native install/GUI matrix; signed-content lineage and OS signature/notarization; complete IDE/root-aware save context.",
-    "deferred_not_dropped": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope."
-  },
-  "previous_stage_verification": {
-    "current_report": "docs/quality/desktop-workspace-verification.md",
-    "product_version": "1.0.0",
-    "desktop_node_initial": {
-      "passed": 17,
-      "skipped": 1,
-      "failed": 0
-    },
-    "desktop_node_review_affected_passed": 2,
-    "web_distinct_affected_cases": 10,
-    "web_review_affected_passed": 2,
-    "web_typecheck": true,
-    "web_catalog_keys": 4698,
-    "go_initial_selected_set": "one Windows test assumption failure; others passed",
-    "go_corrected_single_case": "passed; no repeated full set",
-    "go_vet": true,
-    "contract_drift_check": true,
-    "control_and_web_build": true,
-    "actual_http_checks": {
-      "normal_setup_and_login": true,
-      "native_proof_transport_fixture_bound": true,
-      "paged_tree_directory_first_without_duplicates": true,
-      "cas_save_matched_original_hash": true,
-      "actual_control_git_status_observed_change": true,
-      "original_receipts_replayed_without_rebinding": true,
-      "same_key_and_database_restart_retained_root_and_content": true,
-      "fixture_readme_and_git_metadata_unchanged": true
-    },
-    "actual_http_requests": 22,
-    "actual_schema_tables": 184,
-    "file_save_operations": 1,
-    "dag_runs": 0,
-    "model_calls": 0,
-    "actual_electron_native_picker": false,
-    "actual_electron_startup": "three bounded layouts failed GPU child0xC0000135; exact dependency unresolved",
-    "actual_gui_cn_en": false,
-    "actual_installers": false,
-    "previous_opencode_evidence": "docs/quality/opencode-actual-execution-verification.md",
-    "web_current_binding_review_affected_passed": 3
   }
 }

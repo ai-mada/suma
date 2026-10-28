@@ -8,6 +8,7 @@
 | [实施计划](delivery/implementation-plan.md) | P0–P7完整范围、限定实现与未完成项 |
 | [交付状态](delivery/status.md) | 当前能力、实际证据、限制与后续交付 |
 | [验证入口](quality/verification.md) | 当前变更检查与各专项证据 |
+| [本地文件编辑](development/local-file-editing.md) | 工作区来源、保留草稿、冲突处理与原保存恢复；[English](en/local-file-editing.md) |
 
 ## 产品、范围与体验
 

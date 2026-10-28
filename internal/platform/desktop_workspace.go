@@ -240,6 +240,7 @@ func (s *Service) BindDesktopWorkspace(parent context.Context, actor Actor, proj
 	}
 	proof := desktopWorkspaceRootProof{Root: request.Grant.Path, Identity: identity, RegisteredBy: p.ID, OperationID: request.Grant.OperationID, CreatedAt: automationStamp(checkedAt)}
 	proof.Signature = s.signDesktopWorkspaceRoot(p.TenantID, project, proof)
+	bindingID := newID()
 	if _, err = tx.ExecContext(ctx, s.q(`DELETE FROM suma_desktop_workspace_roots WHERE tenant_id=? AND project_id=?`), p.TenantID, project); err == nil {
 		_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_desktop_workspace_roots(tenant_id,project_id,root_path,root_identity,registered_by,operation_id,signature,created_at) VALUES(?,?,?,?,?,?,?,?)`), p.TenantID, project, proof.Root, proof.Identity, proof.RegisteredBy, proof.OperationID, proof.Signature, proof.CreatedAt)
 	}
@@ -247,12 +248,13 @@ func (s *Service) BindDesktopWorkspace(parent context.Context, actor Actor, proj
 		_, err = tx.ExecContext(ctx, s.q(`DELETE FROM suma_workspace_bindings WHERE tenant_id=? AND project_id=?`), p.TenantID, project)
 	}
 	if err == nil {
-		_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_workspace_bindings(tenant_id,project_id,root_path) VALUES(?,?,?)`), p.TenantID, project, proof.Root)
+		_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_workspace_bindings(tenant_id,project_id,root_path,binding_id) VALUES(?,?,?,?)`), p.TenantID, project, proof.Root, bindingID)
 	}
 	if err != nil {
 		return out, err
 	}
-	state = workspaceBindingState{root: proof.Root, proof: &proof, sha256: digest(proof.Root + proof.Signature)}
+	state = workspaceBindingState{root: proof.Root, bindingID: bindingID, proof: &proof}
+	state.sha256 = workspaceBindingDigest(state)
 	if err = s.validateWorkspaceBindingRoot(ctx, p.TenantID, project, state); err != nil {
 		return out, err
 	}

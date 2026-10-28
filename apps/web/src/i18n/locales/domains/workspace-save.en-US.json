@@ -1,3 +1,11 @@
 {
- "workspace-save.invalid_receipt":"The save acknowledgement does not match this file and submitted content. The original operation and your current draft are retained. Recover the previous save; do not create another write."
+ "workspace-save.invalid_receipt":"The save acknowledgement does not match this file and submitted content. The original operation and your current draft are retained. Recover the previous save; do not create another write.",
+ "workspace-save.invalid_read":"The file response has no verified project, workspace or content. Your draft is retained. Read the current file again.",
+ "workspace-save.context_title":"Workspace changed or needs verification",
+ "workspace-save.context_help":"Your draft is from {{name}}. Read the current file and review its workspace before choosing a new save basis.",
+ "workspace-save.context_pending":"Recover the original save first. Its result does not verify the current workspace.",
+ "workspace-save.read_current":"Read current file",
+ "workspace-save.current_origin":"Current file: {{name}}",
+ "workspace-save.compare_current":"Compare current content",
+ "workspace-save.adopt_current":"Use current workspace and keep draft"
 }

@@ -45,14 +45,67 @@ func (s *Service) ddl(query string) string {
 	}
 	return query
 }
+
+// A declared 1.0.0 database must already have the current shape. Inspect before
+// initialization writes anything; old user databases are never upgraded here.
+func (s *Service) validateWorkspaceInitialSchema(ctx context.Context) error {
+	workspacePresent, rejectionsPresent := false, false
+	for _, table := range []struct{ name, columns string }{
+		{"suma_workspace_bindings", "binding_id"},
+		{"suma_workspace_file_operations", "context_sha256"},
+		{"suma_workspace_file_rejections", "request_hash,path,expected_context_sha256,rejected_by,rejected_at"},
+	} {
+		var query string
+		switch s.Dialect {
+		case "sqlite":
+			query = `SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?`
+		case "postgres":
+			query = `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=current_schema() AND table_name=? AND table_type='BASE TABLE'`
+		case "oceanbase":
+			query = `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=? AND table_type='BASE TABLE'`
+		default:
+			return fmt.Errorf("unsupported initial schema dialect %q", s.Dialect)
+		}
+		var present int
+		if err := s.DB.QueryRowContext(ctx, s.q(query), table.name).Scan(&present); err != nil {
+			return err
+		}
+		if present == 0 {
+			continue
+		}
+		if table.name == "suma_workspace_file_rejections" {
+			rejectionsPresent = true
+		} else {
+			workspacePresent = true
+		}
+		rows, err := s.DB.QueryContext(ctx, "SELECT "+table.columns+" FROM "+table.name+" WHERE 1=0")
+		if err != nil {
+			return fmt.Errorf("%w: current workspace schema required for %s", store.ErrInitialSchema, table.name)
+		}
+		if err = rows.Close(); err != nil {
+			return err
+		}
+	}
+	if workspacePresent && !rejectionsPresent {
+		return fmt.Errorf("%w: current workspace rejection receipts are required", store.ErrInitialSchema)
+	}
+	return nil
+}
+
 func (s *Service) Initialize(ctx context.Context) error {
+	if err := s.validateWorkspaceInitialSchema(ctx); err != nil {
+		return err
+	}
 	if err := store.InitializeBaseline(ctx, s.DB, s.Dialect, "platform", "suma_", "1.0.0"); err != nil {
+		return err
+	}
+	if err := s.initializeWorkspace(ctx); err != nil {
 		return err
 	}
 	statements := []string{
 		`CREATE TABLE IF NOT EXISTS suma_human_resources(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,user_id VARCHAR(64) NOT NULL,resource_id VARCHAR(64) NOT NULL UNIQUE,PRIMARY KEY(tenant_id,project_id,user_id))`,
 		`CREATE TABLE IF NOT EXISTS suma_token_scopes(token_hash VARCHAR(64) PRIMARY KEY,kind VARCHAR(30) NOT NULL,project_id VARCHAR(64) NOT NULL)`,
-		`CREATE TABLE IF NOT EXISTS suma_workspace_bindings(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,root_path TEXT NOT NULL,PRIMARY KEY(tenant_id,project_id))`,
+		`CREATE TABLE IF NOT EXISTS suma_workspace_bindings(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,root_path TEXT NOT NULL,binding_id VARCHAR(32) NOT NULL,PRIMARY KEY(tenant_id,project_id))`,
 		`CREATE TABLE IF NOT EXISTS suma_organizations (id VARCHAR(64) PRIMARY KEY,name VARCHAR(200) NOT NULL,created_at VARCHAR(40) NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_users (id VARCHAR(64) PRIMARY KEY,name VARCHAR(200) NOT NULL,email VARCHAR(254) NOT NULL UNIQUE,password_hash TEXT NOT NULL,created_at VARCHAR(40) NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_org_members (tenant_id VARCHAR(64) NOT NULL,user_id VARCHAR(64) NOT NULL,role VARCHAR(30) NOT NULL,PRIMARY KEY(tenant_id,user_id))`,
@@ -72,9 +125,6 @@ func (s *Service) Initialize(ctx context.Context) error {
 		if _, err := s.DB.ExecContext(ctx, s.ddl(query)); err != nil {
 			return fmt.Errorf("platform migration: %w", err)
 		}
-	}
-	if err := s.InitializeWorkspace(ctx); err != nil {
-		return err
 	}
 	if err := s.InitializeWorkspaceObservations(ctx); err != nil {
 		return err

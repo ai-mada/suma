@@ -15,9 +15,10 @@ type desktopWorkspaceRootProof struct {
 }
 
 type workspaceBindingState struct {
-	root   string
-	sha256 string
-	proof  *desktopWorkspaceRootProof
+	root      string
+	bindingID string
+	sha256    string
+	proof     *desktopWorkspaceRootProof
 }
 
 func (s *Service) signDesktopWorkspaceRoot(tenant, project string, proof desktopWorkspaceRootProof) string {
@@ -36,7 +37,7 @@ func (s *Service) validateDesktopWorkspaceRootProof(tenant, project string, stat
 
 func (s *Service) workspaceBindingStateTx(ctx context.Context, tx *sql.Tx, tenant, project string) (workspaceBindingState, error) {
 	var state workspaceBindingState
-	err := tx.QueryRowContext(ctx, s.q(`SELECT root_path FROM suma_workspace_bindings WHERE tenant_id=? AND project_id=?`), tenant, project).Scan(&state.root)
+	err := tx.QueryRowContext(ctx, s.q(`SELECT root_path,binding_id FROM suma_workspace_bindings WHERE tenant_id=? AND project_id=?`), tenant, project).Scan(&state.root, &state.bindingID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return state, nil
 	}
@@ -48,12 +49,20 @@ func (s *Service) workspaceBindingStateTx(ctx context.Context, tx *sql.Tx, tenan
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return state, err
 	}
-	state.sha256 = digest(state.root)
+	state.sha256 = workspaceBindingDigest(state)
 	if err == nil {
 		state.proof = proof
-		state.sha256 = digest(state.root + proof.Signature)
+		state.sha256 = workspaceBindingDigest(state)
 	}
 	return state, nil
+}
+
+func workspaceBindingDigest(state workspaceBindingState) string {
+	signature := ""
+	if state.proof != nil {
+		signature = state.proof.Signature
+	}
+	return digest("suma-workspace-binding-v1\x00" + stringify([]string{state.bindingID, state.root, signature}))
 }
 
 func (s *Service) validateWorkspaceBindingRoot(ctx context.Context, tenant, project string, state workspaceBindingState) error {
@@ -62,6 +71,9 @@ func (s *Service) validateWorkspaceBindingRoot(ctx context.Context, tenant, proj
 			return errWorkspaceDisabled
 		}
 		return &APIError{422, "workspace_not_configured", "请先配置当前项目的工作区", nil}
+	}
+	if !desktopWorkspaceHex(state.bindingID, 32) {
+		return forbidden()
 	}
 	if proof := state.proof; proof != nil {
 		if err := s.validateDesktopWorkspaceRootProof(tenant, project, state); err != nil {

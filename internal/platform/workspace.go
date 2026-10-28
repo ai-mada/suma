@@ -57,11 +57,25 @@ func (s *Service) workspaceRoot(ctx context.Context, actor Actor, project string
 }
 
 func (s *Service) InitializeWorkspace(ctx context.Context) error {
+	if err := s.validateWorkspaceInitialSchema(ctx); err != nil {
+		return err
+	}
+	return s.initializeWorkspace(ctx)
+}
+
+func (s *Service) initializeWorkspace(ctx context.Context) error {
 	payloadType := "TEXT"
 	if s.Dialect == "oceanbase" {
 		payloadType = "MEDIUMTEXT"
 	}
-	_, e := s.DB.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS suma_workspace_file_operations (tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,operation_id VARCHAR(128) NOT NULL,request_hash VARCHAR(64) NOT NULL,root_path TEXT NOT NULL,path TEXT NOT NULL,expected_hash VARCHAR(64) NOT NULL,new_hash VARCHAR(64) NOT NULL,content `+payloadType+` NOT NULL,response `+payloadType+` NOT NULL,state VARCHAR(20) NOT NULL,created_at VARCHAR(40) NOT NULL,PRIMARY KEY(tenant_id,project_id,operation_id))`)
+	// This first workspace table distinguishes the current initial shape from
+	// an older installation. Creating it first lets an interrupted fresh setup
+	// resume without interpreting an existing installation as an upgrade.
+	_, e := s.DB.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS suma_workspace_file_rejections(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,operation_id VARCHAR(128) NOT NULL,request_hash VARCHAR(64) NOT NULL,path TEXT NOT NULL,expected_context_sha256 VARCHAR(64) NOT NULL,rejected_by VARCHAR(64) NOT NULL,rejected_at VARCHAR(40) NOT NULL,PRIMARY KEY(tenant_id,project_id,operation_id))`)
+	if e != nil {
+		return e
+	}
+	_, e = s.DB.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS suma_workspace_file_operations (tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,operation_id VARCHAR(128) NOT NULL,request_hash VARCHAR(64) NOT NULL,root_path TEXT NOT NULL,context_sha256 VARCHAR(64) NOT NULL,path TEXT NOT NULL,expected_hash VARCHAR(64) NOT NULL,new_hash VARCHAR(64) NOT NULL,content `+payloadType+` NOT NULL,response `+payloadType+` NOT NULL,state VARCHAR(20) NOT NULL,created_at VARCHAR(40) NOT NULL,PRIMARY KEY(tenant_id,project_id,operation_id))`)
 	if e != nil {
 		return e
 	}
@@ -86,7 +100,7 @@ func (s *Service) workspaceLock(ctx context.Context, tx *sql.Tx, p Principal, pr
 	return e
 }
 
-type workspaceOperation struct{ key, root, path, expected, next, content, response string }
+type workspaceOperation struct{ key, root, contextSHA256, path, expected, next, content, response string }
 
 func fileResponse(rel, content string) map[string]any {
 	lang := map[string]string{".ts": "typescript", ".tsx": "typescript", ".js": "javascript", ".jsx": "javascript", ".go": "go", ".py": "python", ".java": "java", ".rs": "rust", ".md": "markdown", ".json": "json", ".yaml": "yaml", ".yml": "yaml", ".css": "css", ".html": "html", ".cpp": "cpp", ".c": "c"}[filepath.Ext(rel)]
@@ -99,14 +113,14 @@ func fileResponse(rel, content string) map[string]any {
 // Recover under the project lock before any later save. Unknown external edits
 // require reconciliation instead of inventing either success or failure.
 func (s *Service) recoverWorkspace(ctx context.Context, tx *sql.Tx, p Principal, project string) error {
-	rows, e := tx.QueryContext(ctx, s.q(`SELECT operation_id,root_path,path,expected_hash,new_hash,content,response FROM suma_workspace_file_operations WHERE tenant_id=? AND project_id=? AND state='prepared' ORDER BY created_at,operation_id`), p.TenantID, project)
+	rows, e := tx.QueryContext(ctx, s.q(`SELECT operation_id,root_path,context_sha256,path,expected_hash,new_hash,content,response FROM suma_workspace_file_operations WHERE tenant_id=? AND project_id=? AND state='prepared' ORDER BY created_at,operation_id`), p.TenantID, project)
 	if e != nil {
 		return e
 	}
 	var pending []workspaceOperation
 	for rows.Next() {
 		var op workspaceOperation
-		if e = rows.Scan(&op.key, &op.root, &op.path, &op.expected, &op.next, &op.content, &op.response); e != nil {
+		if e = rows.Scan(&op.key, &op.root, &op.contextSHA256, &op.path, &op.expected, &op.next, &op.content, &op.response); e != nil {
 			rows.Close()
 			return e
 		}
@@ -142,7 +156,14 @@ func (s *Service) prepareWorkspaceOperationTx(ctx context.Context, auth *authori
 		return err
 	}
 	p, project := auth.currentPrincipal, auth.target.projectID
-	if _, err := auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_workspace_file_operations(tenant_id,project_id,operation_id,request_hash,root_path,path,expected_hash,new_hash,content,response,state,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`), p.TenantID, project, key, hash, root, rel, digest(current), digest(content), content, stringify(out), "prepared", automationStamp(auth.checkedAt)); err != nil {
+	contextSHA256 := str(out, "context_sha256")
+	if !desktopWorkspaceHex(contextSHA256, 64) {
+		return invalid("expected_context_sha256 must be a 64-character lowercase SHA-256 digest")
+	}
+	if err := s.verifyWorkspaceFileContextTx(ctx, auth.tx, p.TenantID, project, workspaceFileContext{root: root, sha256: contextSHA256}); err != nil {
+		return err
+	}
+	if _, err := auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_workspace_file_operations(tenant_id,project_id,operation_id,request_hash,root_path,context_sha256,path,expected_hash,new_hash,content,response,state,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`), p.TenantID, project, key, hash, root, contextSHA256, rel, digest(current), digest(content), content, stringify(out), "prepared", automationStamp(auth.checkedAt)); err != nil {
 		return err
 	}
 	_, err := auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_workspace_accepted_operations(tenant_id,project_id,operation_id,request_hash,accepted_by,accepted_at)VALUES(?,?,?,?,?,?)`), p.TenantID, project, key, hash, p.ID, automationStamp(auth.checkedAt))
@@ -187,10 +208,10 @@ func (s *Service) saveWorkspace(ctx context.Context, actor Actor, project string
 	} else if !errors.Is(e, sql.ErrNoRows) {
 		return nil, e
 	}
-	if e = s.recoverWorkspace(ctx, tx, p, project); e != nil {
-		return nil, e
-	}
 	if stored != "" {
+		if e = s.recoverWorkspace(ctx, tx, p, project); e != nil {
+			return nil, e
+		}
 		if e = tx.Commit(); e != nil {
 			return nil, e
 		}
@@ -198,14 +219,60 @@ func (s *Service) saveWorkspace(ctx context.Context, actor Actor, project string
 		e = json.Unmarshal([]byte(response), &out)
 		return out, e
 	}
-	// Use the transaction to avoid acquiring a second connection from a
-	// single-connection SQLite pool while the writer lock is held.
-	root, e := s.workspaceRootAuthorityTx(ctx, tx, p.TenantID, project, "")
+	// An accepted record without its journal is uncertain, never proof that
+	// this operation was not accepted. Original lookup always precedes a new
+	// context comparison, including when the current binding has changed.
+	var accepted string
+	e = tx.QueryRowContext(ctx, s.q(`SELECT request_hash FROM suma_workspace_accepted_operations WHERE tenant_id=? AND project_id=? AND operation_id=?`), p.TenantID, project, key).Scan(&accepted)
+	if e == nil {
+		return nil, workspaceReconciliation(workspaceOperation{key: key, path: rel})
+	}
+	if !errors.Is(e, sql.ErrNoRows) {
+		return nil, e
+	}
+	// A definitive rejection is durable too: physical A -> B -> A can restore
+	// the original OS identity without a new binding. An old packet must never
+	// become acceptable after the client has received its not-accepted proof.
+	var rejectedHash, rejectedPath, rejectedContext string
+	e = tx.QueryRowContext(ctx, s.q(`SELECT request_hash,path,expected_context_sha256 FROM suma_workspace_file_rejections WHERE tenant_id=? AND project_id=? AND operation_id=?`), p.TenantID, project, key).Scan(&rejectedHash, &rejectedPath, &rejectedContext)
+	if e == nil {
+		if rejectedHash != hash {
+			return nil, &APIError{409, "idempotency_conflict", "该操作标识已用于其他内容", nil}
+		}
+		return nil, workspaceContextChanged(project, rejectedPath, key, rejectedContext)
+	}
+	if !errors.Is(e, sql.ErrNoRows) {
+		return nil, e
+	}
+	request, e := workspaceSaveRequest(project, m)
 	if e != nil {
 		return nil, e
 	}
-	jail, e := s.openWorkspaceFileRootTx(ctx, tx, p.TenantID, project, root)
+	// Use the transaction to avoid acquiring a second connection from a
+	// single-connection SQLite pool while the writer lock is held.
+	jail, basis, e := s.openWorkspaceFileContextTx(ctx, tx, p.TenantID, project, "")
 	if e != nil {
+		return nil, e
+	}
+	if basis.sha256 != request.ExpectedContextSHA256 {
+		jail.Close()
+		if e = auth.assertTx(tx, auth.target, purposeProjectWrite); e != nil {
+			return nil, e
+		}
+		if _, e = tx.ExecContext(ctx, s.q(`INSERT INTO suma_workspace_file_rejections(tenant_id,project_id,operation_id,request_hash,path,expected_context_sha256,rejected_by,rejected_at) VALUES(?,?,?,?,?,?,?,?)`), p.TenantID, project, key, hash, rel, request.ExpectedContextSHA256, p.ID, automationStamp(auth.checkedAt)); e != nil {
+			return nil, e
+		}
+		// Publish proof only after the rejection is durable. A failed commit is
+		// uncertainty, so it must return an error without not_accepted details.
+		if e = tx.Commit(); e != nil {
+			return nil, e
+		}
+		return nil, workspaceContextChanged(project, rel, key, request.ExpectedContextSHA256)
+	}
+	// Reject a stale new request before recovery can write any older prepared
+	// operation. Accepted operations continue through their separate branch.
+	if e = s.recoverWorkspace(ctx, tx, p, project); e != nil {
+		jail.Close()
 		return nil, e
 	}
 	current, _, e := readWorkspaceRootedFile(ctx, jail, rel)
@@ -213,14 +280,14 @@ func (s *Service) saveWorkspace(ctx context.Context, actor Actor, project string
 	if e != nil {
 		return nil, e
 	}
-	if _, e = s.workspaceRootAuthorityTx(ctx, tx, p.TenantID, project, root); e != nil {
+	if e = s.verifyWorkspaceFileContextTx(ctx, tx, p.TenantID, project, basis); e != nil {
 		return nil, e
 	}
 	if str(m, "expected_hash") != digest(current) {
 		return nil, conflict("文件已被其他操作修改，请比较后保存")
 	}
-	out := fileResponse(rel, content)
-	if e = s.prepareWorkspaceOperationTx(ctx, auth, key, hash, root, rel, current, content, out); e != nil {
+	out := workspaceDocumentMap(workspaceDocument(project, rel, content, basis))
+	if e = s.prepareWorkspaceOperationTx(ctx, auth, key, hash, basis.root, rel, current, content, out); e != nil {
 		return nil, e
 	}
 	if e = tx.Commit(); e != nil {
@@ -251,75 +318,92 @@ func (s *Service) saveWorkspace(ctx context.Context, actor Actor, project string
 	}
 	return out, nil
 }
+func (s *Service) bindWorkspace(parent context.Context, actor Actor, project string, request map[string]any) (WorkspaceMetadata, error) {
+	var out WorkspaceMetadata
+	ctx, tx, cancel, err := s.beginAuthorityTx(parent)
+	if err != nil {
+		return out, err
+	}
+	defer cancel()
+	defer tx.Rollback()
+	auth, err := s.authorizeTx(ctx, tx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectApprove)
+	if err != nil {
+		return out, err
+	}
+	p := auth.currentPrincipal
+	if !orgAdmin(p) {
+		return out, forbidden()
+	}
+	if err = s.workspaceLock(ctx, tx, p, project); err != nil {
+		return out, err
+	}
+	key := str(request, "idempotency_key")
+	stored, replay, err := s.commandReceipt(ctx, auth, key, map[string]any{"kind": "workspace.binding", "request": request})
+	if err != nil {
+		return out, err
+	}
+	if replay {
+		err = json.Unmarshal([]byte(stored), &out)
+		return out, err
+	}
+	// A committed receipt is an original operation fact. Only a new binding
+	// needs the configured directory to remain available and permissible.
+	allowed := os.Getenv("SUMA_WORKSPACE_ROOT")
+	if allowed == "" {
+		return out, invalid("服务端尚未配置 SUMA_WORKSPACE_ROOT")
+	}
+	allowed, err = filepath.Abs(allowed)
+	if err == nil {
+		allowed, err = filepath.EvalSymlinks(allowed)
+	}
+	if err != nil {
+		return out, err
+	}
+	target := str(request, "path")
+	if target == "" {
+		target = allowed
+	}
+	target, err = filepath.Abs(target)
+	if err == nil {
+		target, err = filepath.EvalSymlinks(target)
+	}
+	if err != nil || !under(allowed, target) {
+		return out, invalid("工作区必须位于服务端允许根目录内")
+	}
+	info, err := os.Stat(target)
+	if err != nil || !info.IsDir() {
+		return out, invalid("工作区必须是目录")
+	}
+	if err = s.recoverWorkspace(ctx, tx, p, project); err != nil {
+		return out, err
+	}
+	// An explicit ordinary binding chooses the configured authority source;
+	// a bad native proof never disappears through an implicit read fallback.
+	if _, err = tx.ExecContext(ctx, s.q(`DELETE FROM suma_desktop_workspace_roots WHERE tenant_id=? AND project_id=?`), p.TenantID, project); err == nil {
+		_, err = tx.ExecContext(ctx, s.q(`DELETE FROM suma_workspace_bindings WHERE tenant_id=? AND project_id=?`), p.TenantID, project)
+	}
+	state := workspaceBindingState{root: target, bindingID: newID()}
+	state.sha256 = workspaceBindingDigest(state)
+	if err == nil {
+		_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_workspace_bindings(tenant_id,project_id,root_path,binding_id)VALUES(?,?,?,?)`), p.TenantID, project, target, state.bindingID)
+	}
+	if err != nil {
+		return out, err
+	}
+	out = s.workspaceBindingMetadata(project, state)
+	out.Configured, out.Name = true, filepath.Base(target)
+	if err = s.saveCommandReceipt(ctx, auth, key, stored, out); err != nil {
+		return out, err
+	}
+	err = tx.Commit()
+	return out, err
+}
+
 func (s *Server) workspace(w http.ResponseWriter, r *http.Request, actor Actor, project, path string, m map[string]any) {
 	ctx := r.Context()
-	p := actor.Projection()
 	if path == "workspace/binding" && r.Method == "POST" {
-		allowed := os.Getenv("SUMA_WORKSPACE_ROOT")
-		if allowed == "" {
-			writeError(w, invalid("服务端尚未配置 SUMA_WORKSPACE_ROOT"))
-			return
-		}
-		allowed, e := filepath.Abs(allowed)
-		if e == nil {
-			allowed, e = filepath.EvalSymlinks(allowed)
-		}
-		if e != nil {
-			writeError(w, e)
-			return
-		}
-		target := str(m, "path")
-		if target == "" {
-			target = allowed
-		}
-		target, e = filepath.Abs(target)
-		if e == nil {
-			target, e = filepath.EvalSymlinks(target)
-		}
-		if e != nil || !under(allowed, target) {
-			writeError(w, invalid("工作区必须位于服务端允许根目录内"))
-			return
-		}
-		info, e := os.Stat(target)
-		if e != nil || !info.IsDir() {
-			writeError(w, invalid("工作区必须是目录"))
-			return
-		}
-		ctx, tx, cancel, e := s.Service.beginAuthorityTx(ctx)
-		if e != nil {
-			writeError(w, e)
-			return
-		}
-		defer cancel()
-		defer tx.Rollback()
-		auth, e := s.Service.authorizeTx(ctx, tx, actor, commandTarget{tenantID: p.TenantID, projectID: project}, purposeProjectApprove)
-		if e != nil {
-			writeError(w, e)
-			return
-		}
-		p = auth.currentPrincipal
-		if !orgAdmin(p) {
-			writeError(w, forbidden())
-			return
-		}
-		if e = s.Service.workspaceLock(ctx, tx, p, project); e == nil {
-			e = s.Service.recoverWorkspace(ctx, tx, p, project)
-		}
-		if e == nil {
-			// An explicit ordinary binding chooses the configured authority source;
-			// a bad native proof never disappears through an implicit read fallback.
-			_, e = tx.ExecContext(ctx, s.Service.q(`DELETE FROM suma_desktop_workspace_roots WHERE tenant_id=? AND project_id=?`), p.TenantID, project)
-		}
-		if e == nil {
-			_, e = tx.ExecContext(ctx, s.Service.q(`DELETE FROM suma_workspace_bindings WHERE tenant_id=? AND project_id=?`), p.TenantID, project)
-		}
-		if e == nil {
-			_, e = tx.ExecContext(ctx, s.Service.q(`INSERT INTO suma_workspace_bindings(tenant_id,project_id,root_path)VALUES(?,?,?)`), p.TenantID, project, target)
-		}
-		if e == nil {
-			e = tx.Commit()
-		}
-		respond(w, 200, map[string]any{"configured": e == nil, "root": target}, e)
+		out, err := s.Service.bindWorkspace(ctx, actor, project, m)
+		respond(w, http.StatusOK, out, err)
 		return
 	}
 	if path != "workspace" && path != "workspace/file" && path != "workspace/tree" {
@@ -346,6 +430,11 @@ func (s *Server) workspace(w http.ResponseWriter, r *http.Request, actor Actor, 
 		respond(w, http.StatusOK, metadata, metadataErr)
 		return
 	}
+	if path == "workspace/file" {
+		document, readErr := s.Service.GetWorkspaceFile(ctx, actor, project, r.URL.Query().Get("path"))
+		respond(w, http.StatusOK, document, readErr)
+		return
+	}
 	root, e := s.Service.workspaceRoot(ctx, actor, project)
 	if e != nil {
 		writeError(w, e)
@@ -361,16 +450,4 @@ func (s *Server) workspace(w http.ResponseWriter, r *http.Request, actor Actor, 
 		respond(w, http.StatusOK, page, readErr)
 		return
 	}
-	rel := r.URL.Query().Get("path")
-	jail, e := s.Service.openWorkspaceFileRoot(ctx, actor, project, root)
-	if e != nil {
-		writeError(w, e)
-		return
-	}
-	defer jail.Close()
-	content, _, e := readWorkspaceRootedFile(ctx, jail, rel)
-	if e == nil {
-		_, e = s.Service.workspaceReadGuard(ctx, actor, project, root)
-	}
-	respond(w, 200, fileResponse(rel, content), e)
 }
