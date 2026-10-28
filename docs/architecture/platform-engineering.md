@@ -29,6 +29,8 @@ flowchart TB
 
 当前模块化单体位于`internal/platform`和`internal/dag`，Runner独立；新能力按独立文件／组件归属实现。现有较大的App／Workflow与平台HTTP入口逐步提取应用服务和功能工作区，不能用一次大范围机械重写破坏已验证行为。服务拆分以权限边界、独立扩缩和事务证据为依据，不以增加进程数作为成熟度指标。
 
+需求26的自然语言输入、补全与配置建议沿用这些边界：[统一智能操作架构](intelligent-operations.md)只在现有规划及应用命令之上增加可审阅结构化提案，不新增派发器。需求验收追踪是[当前正式来源的读取投影](../../contracts/requirement-traceability.md)，固定需求版本／序号及受保护采用，不拥有第二套质量结论。两份分享规划的S01–S12归并与缺口见[来源映射](../integrations/shared-roadmap-adoption.md)。
+
 ## 成熟框架与SDK选择
 
 已采用React、Radix Dialog、ReactFlow／ELK、Monaco、Electron、Bubble Tea及正式SQL驱动，准确已解析版本见[依赖清单](../delivery/third-party.md)。新增能力先查现有依赖，再评估官方SDK、维护状态、许可、运行时基线、离线安装、可测试性和升级成本；没有实际使用理由不增加依赖。

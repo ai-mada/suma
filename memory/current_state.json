@@ -4,23 +4,39 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-DELIVERY-112",
-  "updated_at": "2026-10-28T07:37:13.897018+00:00",
+  "stage": "T-TRACE-113",
+  "updated_at": "2026-10-28T08:32:05.124135+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/task-delivery-chain-verification.md",
-  "current_summary": "docs/quality/task-delivery-chain-summary.json",
+  "current_evidence": "docs/quality/requirement-traceability-verification.md",
+  "current_summary": "docs/quality/requirement-traceability-summary.json",
   "scope": {
-    "full_platform": "active: complete P0-P7 and accepted requirements1..25",
+    "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
-    "items": 91,
+    "items": 92,
     "limited_implemented_items": 58,
-    "pending_items": 33,
+    "pending_items": 34,
     "status_source": "docs/delivery/status.md",
     "source_attachments": [
       "C:/Users/Administrator/.codex/attachments/668c40e7-c219-485e-9df1-0763b7018ffa/pasted-text-1.txt",
       "C:/Users/Administrator/.codex/attachments/668c40e7-c219-485e-9df1-0763b7018ffa/pasted-text-2.txt"
+    ],
+    "source_basis": "Original attachments cover1..25; two actual published shared planning sources supplement requirement26; no inferred unpublished sections.",
+    "supplemental_sources": [
+      {
+        "url": "https://chatgpt.com/s/t_6ae19e1f3af481918d11132ccf5119fe",
+        "source_sha256": "1135aeaa9519c56d5daa95d6d0ae37fda944e0eeb4ecaae7edc361277086fc30",
+        "visible_numbered_requirements": 64,
+        "scope": "Published visible REQ/TEAM/INT/SCH/QA/KM, original ends during knowledge explanation"
+      },
+      {
+        "url": "https://chatgpt.com/s/t_6ae1a95216648191961a25087e713f3a",
+        "source_sha256": "038cb2784ece5c79a710b9c8eca7d083b4c63a9a5951f6163183d9fc2efbcb9e",
+        "source_bytes": 10174,
+        "extraction": "basic HTTP200 original rawHTML fallbackMarkdown decoded as JSON only; markdown initially empty; no scripts or internal API",
+        "scope": "Requirement26, S01-S12, intelligent input/configuration and eight acceptance conditions; original ends at incomplete reference table"
+      }
     ]
   },
   "current_implementation": {
@@ -28,7 +44,7 @@
     "scheduling": "One ready queue, accounts/ledger, complete current dependency semantics and fixed routes; persisted current restart remains.",
     "identity": "Current complete issuance/source/family/Grant/slot proof and transactional revocation; no inferred authority or migration status.",
     "workbench": "Local file snapshots and saves bind tenant/project/fresh binding/actual opened root identity; exact original receipt recovery, ordinary/native binding idempotency, explicit current-basis adoption, owner-isolated ephemeral draft retention. Actual browser/HTTP/restart verified. Full IDE and native GUI remain pending.",
-    "internationalization": "zh-CN/en-US paired extensible catalogs4825keys; task delivery/dependency controls and exact API diagnostics. Own production hardcodes0; original business content preserved; vendor/native/installer surfaces separately scoped.",
+    "internationalization": "zh-CN/en-US paired extensible catalogs4868keys; exact traceability API diagnostic and all new controls. Own production hardcodes0; current browser/installer/vendor coverage separately limited.",
     "versioning": "Go product identity has one source; workspace/desktop/Helm check:version is1.0.0; protocol/workflow/data revisions independent.",
     "architecture": "Single initial1.0.0; one current OpenCode SDK path, no old JSONL parser/alias or duplicate dispatcher. Generated public types replace duplicate web DTOs; current native host/ledger reused.",
     "opencode": "Actual officialWindows1.19.4 CLI/SDK + owned deterministic model protocol, real host MCP/write/check/seal, twoWorker candidate/import/independent exactSHA test; currentstream client lifetime, single Go tree authority and compact CNEN status/drilldown. Not commercial model/billing or production evidence.",
@@ -36,9 +52,58 @@
     "team_execution": "First-class project execution team view; existing current plans/commands reused, source/review progress distinct, owner-isolated paged reads, auth-failure retry starts fresh scope, cached diagnostics switch via existing catalog. No new dispatcher or physical multi-host acceptance.",
     "task_dependencies": "Complete project business graph, atomic original-version CAS draft edits, final-graph validation, explicit conflict adoption and original-operation recovery; shared ordinary task rules and CNEN graph/list. Source reviewed from supplied bundle; no legacy service/history merge.",
     "task_delivery": "On-demand exact-run summary, explicit team selection, current acceptance/test distinctions, atomic human-rejection issue and transitive invalidation, single canonical issue-intake receipt shared by reviewed diagnosis and ordinary intake. Public record keys cannot reserve internal source slots; forged generic receipt fails closed.",
-    "runner_local_inspection": "Credential-independent bounded read-only journal JSON; safe whitelist and exact zh-CN/en-US diagnostics; no health, server ACK, quarantine mutation, retry or replay claim."
+    "runner_local_inspection": "Credential-independent bounded read-only journal JSON; safe whitelist and exact zh-CN/en-US diagnostics; no health, server ACK, quarantine mutation, retry or replay claim.",
+    "requirement_traceability": "Current version-scoped criteria to published design, protected adoption, exact run/test-node facts and current formal acceptance; unmapped/stale/missing/failed reads distinct; explicit parent refresh avoids repeated permission/version reads. Not per-test-case coverage.",
+    "intelligent_operations": "Requirement26 and S01-S12 design mapped to existing domains, explicit current approval/receipt/verification path. FND-INTENT-001 remains pending, no second dispatcher or generic configuration execution claimed."
   },
   "verified": {
+    "current_report": "docs/quality/requirement-traceability-verification.md",
+    "source_sha256": "65eca1ff190718b9c2d609366a45a345bb2ca90c1a20091692653d77b6a1e8a0",
+    "product_version": "1.0.0",
+    "distinct_affected_passed_cases": 16,
+    "typecheck": true,
+    "generated_contract_check": true,
+    "catalog_keys": 4868,
+    "actual_http_publication_adoption_changed_source_retirement": true,
+    "actual_cn_en_server_diagnostics": true,
+    "actual_browser_verified": false,
+    "browser_stop_reason": "Windows Computer Use policy could not identify current browser URL reliably; all further app input stopped",
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "runs": 0,
+    "reviews": 0,
+    "web_builds": 2,
+    "control_builds": 1,
+    "runner_builds": 0,
+    "owned_control_closed": true,
+    "full_platform_complete": false
+  },
+  "production_integration_complete": false,
+  "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
+  "commit_policy": "User authorizes commits and normal non-forced pushes after verified functional stages to git@github.com:ai-mada/suma.git, branch dev. Include necessary source, configuration, design/contracts and compact evidence only. Keep credentials, databases, raw logs, screenshots, snapshots, caches, dependencies and binaries out of Git; preserve remote changes. No authorization for releases or deployment.",
+  "git_delivery": {
+    "repository": "git@github.com:ai-mada/suma.git",
+    "branch": "dev",
+    "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
+    "force_push": false,
+    "previously_published_commit": "a427e7483a6da2df7755a6e086bf9efd31ce5725"
+  },
+  "existing_preview": {
+    "updated": false,
+    "user_database_modified": false,
+    "reason": "The initial schema uses a separate empty database; existing data are preserved."
+  },
+  "remaining_work": "Continue complete P0-P7 and requirements1..26, including full issue/bug/test lifecycle, subproject/microapplication version delivery, and unified intelligent input/configuration.",
+  "last_goal_turn_classification": "progress: both actual published shares reconciled, requirement26 added without dropping prior scope; current authorized version-scoped requirement traceability delivered across API/UI. Actual HTTP and affected checks verified; browser blocked by URL policy, full platform remains active.",
+  "previous_goal_turn": "progress: current task/team/execution/test/rejection/intake chain and C206 bounded local inspection delivered. Actual same-host own protocol plus independent exactSHA test; full platform remains active.",
+  "current_work": {
+    "status": "scoped_delivery_verified_full_platform_in_progress",
+    "stage": "T-TRACE-113",
+    "verification": "16 distinct affected cases pass, explicit-refresh correction retried only2 cases; current contracts/typecheck/4868 paired keys, real independent Control HTTP adoption/change/retire and exact CNEN diagnostics. Browser not verified due URL policy.",
+    "next_integration": "Continue P0-P7 and1..26; full TestPlan/TestCase and application-version traceability, FND-INTENT-001 multi-domain intelligent input/configuration, full workbench, real vendors/multi-host and current browser gap remain explicit.",
+    "deferred_not_dropped": "Full P0-P7/requirements1..26, 58 limited/34 pending/92 total; planning source is not implementation evidence."
+  },
+  "previous_stage_verification": {
     "current_report": "docs/quality/task-delivery-chain-verification.md",
     "source_sha256": "03e2dd0116b9e7f7760d80efbb13b012243f10097930ff4a632bfcb82e0c38a0",
     "product_version": "1.0.0",
@@ -66,57 +131,19 @@
     "owned_processes_absent_after_environment_reload": true,
     "full_platform_complete": false
   },
-  "production_integration_complete": false,
-  "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
-  "commit_policy": "User authorizes commits and normal non-forced pushes after verified functional stages to git@github.com:ai-mada/suma.git, branch dev. Include necessary source, configuration, design/contracts and compact evidence only. Keep credentials, databases, raw logs, screenshots, snapshots, caches, dependencies and binaries out of Git; preserve remote changes. No authorization for releases or deployment.",
-  "git_delivery": {
-    "repository": "git@github.com:ai-mada/suma.git",
-    "branch": "dev",
-    "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
-    "force_push": false,
-    "previously_published_commit": "75ae6ed674ec4a613a525b3993f5c976e079bea2"
-  },
-  "existing_preview": {
-    "updated": false,
-    "user_database_modified": false,
-    "reason": "The initial schema uses a separate empty database; existing data are preserved."
-  },
-  "remaining_work": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope.",
-  "last_goal_turn_classification": "progress: current task/team/execution/test/rejection/intake chain and C206 bounded local inspection delivered. Actual same-host own protocol plus independent exactSHA test; full platform remains active.",
-  "previous_goal_turn": "progress: real reference archive audited, current business dependency graph editing integrated across API/UI, atomic CAS and original receipts, conflict recovery and CNEN browser verified. Complete platform scope remains active.",
-  "current_work": {
-    "status": "scoped_delivery_verified_full_platform_in_progress",
-    "stage": "T-DELIVERY-112",
-    "verification": "43 distinct affected cases pass, one Windows symlink case skipped; same-host owned CLI and independent Runner3 assertions, Chinese UI rejection/intake, final persisted read-only audit; no vendors/models or production acceptance.",
-    "next_integration": "Continue full platform scope; rejected-journal diagnosis/recovery UI, full workbench, real multi-host/vendor coordination, knowledge/skill synchronization and current final English browser gap remain explicit.",
-    "deferred_not_dropped": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope."
-  },
-  "previous_stage_verification": {
-    "current_report": "docs/quality/task-dependencies-verification.md",
-    "source_sha256": "0cd4744a72d34fe47579880676b31f8f0588c7fb109dde4578d4821aaa9f5fe9",
-    "product_version": "1.0.0",
-    "distinct_affected_cases": 19,
-    "typecheck": true,
-    "generated_contract_check": true,
-    "catalog_keys": 4780,
-    "actual_atomic_http_and_cas": true,
-    "actual_browser_save_conflict_reload_cn_en": true,
-    "model_calls": 0,
-    "vendor_calls": 0,
-    "runs": 0,
-    "current_sqlite_tables": 185,
-    "web_builds": 3,
-    "all_owned_controls_closed": true,
-    "full_platform_complete": false
-  },
   "latest_request": {
     "reference_conversation": "6ae163e6-0700-83e9-bf86-623690b54884",
     "archive_path": "C:/Users/Administrator/Downloads/suma-0.2.0-dev-3f272a3.zip",
     "archive_sha256": "a46db2758a5b467522870edcb2ba45bb719725c0766c732c566392d6536dbf79",
-    "scope": "Continue integrated delivery chain and source-reviewed design; compact professional CNEN UI, bounded independent test and trusted issue feedback, local Runner diagnostics; normal commit/dev push. Preserve full P0-P7/1..25.",
+    "scope": "Reconcile both actual shared design sources and implement complete current traceability feature; preserve full1.0.0 platform objective, no historical compatibility, stage commit/normal dev push.",
     "new_share_url": "https://chatgpt.com/s/t_6ae19e1f3af481918d11132ccf5119fe",
     "new_share_content_status": "Firecrawl basic direct scrape HTTP200 obtained64 visible numbered requirements; original body ends after KM-010 mid-sentence. Map actual published scope only; not implementation proof.",
     "new_share_source_content_sha256": "1135aeaa9519c56d5daa95d6d0ae37fda944e0eeb4ecaae7edc361277086fc30",
-    "new_share_adoption": "docs/integrations/shared-roadmap-adoption.md"
+    "new_share_adoption": "docs/integrations/shared-roadmap-adoption.md",
+    "reference_sources": [
+      "https://chatgpt.com/s/t_6ae19e1f3af481918d11132ccf5119fe",
+      "https://chatgpt.com/s/t_6ae1a95216648191961a25087e713f3a"
+    ],
+    "requirement26": "FND-INTENT-001 pending, with architecture/AI SOP/acceptance and S01-S12 mapping"
   }
 }

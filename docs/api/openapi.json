@@ -15548,6 +15548,195 @@
         ],
         "type": "object"
       },
+      "RequirementTraceability": {
+        "additionalProperties": false,
+        "properties": {
+          "criteria": {
+            "items": {
+              "$ref": "#/components/schemas/RequirementTraceabilityCriterion"
+            },
+            "maxItems": 100,
+            "readOnly": true,
+            "type": "array"
+          },
+          "design_sha256": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "design_version": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "eligibility": {
+            "enum": [
+              "none",
+              "current",
+              "requirement_changed",
+              "retired",
+              "source_unavailable"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "published_revision": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "requirement_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "requirement_status": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "requirement_version": {
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/RequirementTraceabilityTask"
+            },
+            "maxItems": 100,
+            "readOnly": true,
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "requirement_id",
+          "requirement_version",
+          "requirement_status",
+          "design_version",
+          "published_revision",
+          "design_sha256",
+          "eligibility",
+          "criteria",
+          "tasks"
+        ],
+        "type": "object"
+      },
+      "RequirementTraceabilityCriterion": {
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "task_keys": {
+            "description": "Complete current published task keys covering this exact requirement version and index. Empty for an unmapped or noncurrent source.",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "text": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "index",
+          "text",
+          "task_keys"
+        ],
+        "type": "object"
+      },
+      "RequirementTraceabilityTask": {
+        "additionalProperties": false,
+        "properties": {
+          "binding_state": {
+            "enum": [
+              "not_adopted",
+              "current",
+              "excluded",
+              "retired",
+              "publication_changed",
+              "requirement_changed",
+              "task_changed",
+              "source_unavailable"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "covers": {
+            "items": {
+              "type": "integer"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "formal_acceptance": {
+            "description": "Current published binding, exact design/run evidence and formal task acceptance all hold. This is not a test-case coverage claim or can-review grant.",
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "key": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TaskDeliveryRun"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "run_basis_state": {
+            "enum": [
+              "not_dispatched",
+              "current",
+              "changed",
+              "unknown"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_status": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_version": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "title": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "title",
+          "covers",
+          "task_id",
+          "task_version",
+          "task_status",
+          "binding_state",
+          "run_basis_state",
+          "formal_acceptance",
+          "run"
+        ],
+        "type": "object"
+      },
       "ReservedExecution": {
         "properties": {
           "node_id": {
@@ -66294,6 +66483,169 @@
           }
         ],
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/requirements/{id}/traceability": {
+      "get": {
+        "description": "Read current requirement criteria through the exact published design and protected adopted tasks. A criterion index is scoped to requirement ID and version. Changed, retired or unavailable sources do not remap old indices. Current-run test-node summaries are execution facts, not per-criterion test-case coverage or permission to accept. Reading never dispatches, reviews or creates issues.",
+        "operationId": "get_requirements_id_traceability",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequirementTraceability"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "exact id and required single project_id; one current project-read authorization transaction; no arbitrary projection filters"
       }
     },
     "/runner/artifact-uploads": {

@@ -478,6 +478,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.workspaceGitHTTP(w, r, actor, scope, project, parts) {
 		return
 	}
+	if s.requirementTraceabilityHTTP(w, r, actor, scope, project, parts) {
+		return
+	}
 	if s.taskDeliveryHTTP(w, r, actor, scope, project, parts) {
 		return
 	}

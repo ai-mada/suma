@@ -3276,6 +3276,35 @@ export interface RequirementDesignView {
   validation: (RequirementDesignDiagnostic)[];
   last_adoption?: RequirementDesignAdoption | null;
 }
+export interface RequirementTraceability {
+  project_id: string;
+  requirement_id: string;
+  requirement_version: number;
+  requirement_status: string;
+  design_version: number;
+  published_revision: number;
+  design_sha256: string;
+  eligibility: string;
+  criteria: (RequirementTraceabilityCriterion)[];
+  tasks: (RequirementTraceabilityTask)[];
+}
+export interface RequirementTraceabilityCriterion {
+  index: number;
+  text: string;
+  task_keys: (string)[];
+}
+export interface RequirementTraceabilityTask {
+  key: string;
+  title: string;
+  covers: (number)[];
+  task_id: string;
+  task_version: number;
+  task_status: string;
+  binding_state: string;
+  run_basis_state: string;
+  formal_acceptance: boolean;
+  run: TaskDeliveryRun | null;
+}
 export interface ReservedExecution {
   run_id: string;
   node_id: string;

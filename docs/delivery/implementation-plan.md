@@ -1,18 +1,18 @@
 # 1.0.0 完整实施计划
 
-更新：2026-10-28。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–25全部保留，完整产品和生产验收仍在进行中。
+更新：2026-10-28。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。
 
 [产品基线](../product/v1-baseline.md)记录完整编号范围和单一新库初始化策略，[交付状态](status.md)集中当前实现与限制，[文档索引](../README.md)提供领域设计／合同／专项证据。本台账保留各阶段的原始能力范围，删除重复阶段流水和历史测试数字。
 
 勾选只表示所列限定实现存在，不表示整阶段完成；报告只支持原源码／环境／场景。当前本地已实现的模型配置、Codex执行、专家团队、候选合成／修复、工作区、知识提炼与账本等具体边界统一见交付状态。未配置、未验证和结果未知必须明确，不以局部交付缩减剩余目标。
 
-当前仍为 58 项限定实现、33 项待实现，共 91 项。T-DELIVERY-112 在既有条目内推进[任务交付链路](../../contracts/task-delivery-chain.md)和[Runner 只读诊断](../../contracts/runner-journal-inspection.md)：实际本机自有 DSH 协议命令提交代码、另一 Runner 对精确同 SHA 完成 3 项断言、界面人工退回形成 1 个问题和 1 个需求草稿；下游任务保持未启动并等待正式验收。范围、源码和最终界面复验见[本阶段报告](../quality/task-delivery-chain-verification.md)，不新增完成项或冒充厂商、多机及生产验收。
+当前为 **58 项限定实现、34 项待实现，共 92 项**。新增需求 26 仅增加 `FND-INTENT-001` 待办；T-TRACE-113 的[需求验收追踪](../../contracts/requirement-traceability.md)在既有设计／质量条目内推进，不新增整项完成。它按固定需求版本追踪正式发布／采用、当前运行与验收，实际验证范围见[限定报告](../quality/requirement-traceability-verification.md)。此前 T-DELIVERY-112 的本机命令／同 SHA 独立测试、退回问题与需求回流保留[原报告](../quality/task-delivery-chain-verification.md)的源码、场景与台账事实，不冒充厂商、多机及生产验收。
 
-新的分享规划已取得当前可见正文，按来源实际 64 个编号映射为[当前模块、采用决定与验收缺口](../integrations/shared-roadmap-adoption.md)。其优先级不替代本计划阶段；页面末尾仍不完整，未见范围不推断，规划条目也不新增为已完成能力。
+两份分享规划均已取得当前可见正文，[采用映射](../integrations/shared-roadmap-adoption.md)保留第一份实际 64 个编号，以及第二份新增需求 26／S01–S12。两份末尾均不完整，未见范围不推断；来源优先级不替代本计划阶段，设计不当作实现证明。
 
 ## 扩展需求与阶段对应
 
-完整需求1–25逐项见[统一范围表](../product/v1-baseline.md)。参考能力与全栈闭环贯穿全部阶段；身份／可视配置／交互属于P0、P1、P3、P7；CLI／模型／专家团队／仓库／智能规划／IDE属于P2–P5；技能、知识、记忆及同步属于P1、P3、P6；渠道／移动端／SaaS／商业化属于P4、P6、P7。编号不是完成标记，全部能力均需独立实现与实际验收。
+完整需求1–26逐项见[统一范围表](../product/v1-baseline.md)。参考能力与全栈闭环贯穿全部阶段；身份／可视配置／交互属于P0、P1、P3、P7；CLI／模型／专家团队／仓库／智能规划／IDE属于P2–P5；技能、知识、记忆及同步属于P1、P3、P6；渠道／移动端／SaaS／商业化属于P4、P6、P7。需求26以P0统一合同贯穿各域。编号不是完成标记，全部能力均需独立实现与实际验收。
 
 ## 既定架构
 
@@ -21,6 +21,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 ## P0 产品与架构
 
 - [ ] FND-I18N-001 全平台多语言：中英文目录、语言协商/偏好、界面/错误/通知/CLI/桌面/扩展/文档入口、格式化、缺项门禁和真实旅程验收；正在统一基础及迁移，详见[规范](../design/internationalization.md)。
+- [ ] FND-INTENT-001 需求26全平台智能输入／补全／自动配置及CLI驱动流程：共享结构化意图、当前授权上下文、来源版本、差异预览、必要人审、策略化低风险采用、原操作恢复与实际结果核对；复用现有规划、领域命令、模型／工具端口和唯一Go DAG。模板／实例／秘密引用／验证／变更记录及Web／CLI／桌面中英旅程按[架构与验收](../architecture/intelligent-operations.md)实施，当前仍待办。
 - [x] 原生诊断的权威目录、SDK／Runner／Journal／当前授权／DAG／界面传播，原文、净化、Unicode与证据身份；单许可命令和自定义worker交互分别验证。见[设计与SOP](../agents/native-diagnostics.md)、[限定验收](../quality/native-diagnostics-verification.md)。
 - [x] DAG、运行命令与原生消息目录、结构化校验和原始错误绑定；见[运行国际化验收](../quality/runtime-localization-verification.md)。
 - [x] 请求级语言协商、CLI／桌面基础、通用记录与共享池中英文基础；见[前端基础验收](../quality/frontend-localization-verification.md)。
@@ -67,7 +68,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 
 ## 第23项：电脑本地专业一站式开发工作台
 
-[完整架构与AI SOP](../architecture/local-development-workbench.md)与[原生目录合同](../../contracts/desktop-workspace.md)作为当前实现基线，不缩减P0–P7和需求1–25。
+[完整架构与AI SOP](../architecture/local-development-workbench.md)与[原生目录合同](../../contracts/desktop-workspace.md)作为当前实现基线，不缩减P0–P7和需求1–26。
 
 - [ ] 原生项目目录选择、账号／组织／项目授权、持久目录身份、正常重启及共享IDE实际闭环；本阶段实施中。
 - [ ] 多项目最近工作区、分支／任务上下文、多标签／拆分编辑、全局查找和完整文件操作；将绑定版本贯穿文件打开／保存，防止另一操作换根后相同路径／内容被误当作原编辑依据。
@@ -76,7 +77,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 
 ## P3 项目、需求、设计与团队
 
-- [x] 需求版本化三段设计、完整任务提案、审阅发布及create/update/keep/exclude原子采用，保护绑定固定执行／验收依据与任务详情溯源；见[设计采用](../quality/requirement-design-verification.md)、[任务依据](../quality/task-design-context-verification.md)。
+- [x] 需求版本化三段设计、完整任务提案、审阅发布及create/update/keep/exclude原子采用，保护绑定固定执行／验收依据与任务详情溯源；见[设计采用](../quality/requirement-design-verification.md)、[任务依据](../quality/task-design-context-verification.md)。T-TRACE-113 [验收追踪](../development/requirement-traceability.md)按当前需求版本／序号读取正式发布及采用关系，非跨版本标准身份或完整用例覆盖。
 - [ ] 模型设计提案与来源证明、完整可运行UED原型、手动任务明确导入、跨项目设计与完整采用依据展示；当前同项目任务详情依据已有限定证据，人工文本设计不等于全部AI设计完成。
 
 - [x] 项目记忆／规范／文本技能的版本、来源、审阅发布与固定任务／Agent上下文；组织技能目录、受审阅跨项目采用和模型辅助提案保留同源证据。见[项目资产](../quality/project-knowledge-verification.md)、[技能目录](../quality/skill-catalog-verification.md)、[知识提炼](../quality/knowledge-intelligence-verification.md)。

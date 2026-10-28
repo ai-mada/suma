@@ -2,8 +2,11 @@
 
 更新：2026-10-28。当前只有单一 **1.0.0** 初始化基线；完整平台继续实施。本页按能力指向准确报告，不重复阶段流水、旧测试数字或旧数据库升级说明。详细过程仍可从专项档案与 Git 追溯。
 
+当前范围为需求1–26，58项有限实现、34项待办，共92项。新增需求26／`FND-INTENT-001`尚未实现；验收追踪只推进已有范围，历史专项报告保留当时台账和证据。
+
 | 当前范围 | 验证与限制 |
 | --- | --- |
+| 当前需求版本的验收追踪 | [限定报告](requirement-traceability-verification.md)、[精简摘要](requirement-traceability-summary.json)、[中文指南](../development/requirement-traceability.md)／[English](../en/requirement-traceability.md)、[正式合同](../../contracts/requirement-traceability.md)：固定需求版本／条目序号、当前发布／受保护采用及确切运行／测试节点／正式验收，实际检查结果以报告为准；不代表完整用例覆盖、应用版本／发布矩阵或需求26完成 |
 | 任务交付闭环与 Runner 本地诊断 | [限定报告](task-delivery-chain-verification.md)、[精简摘要](task-delivery-chain-summary.json)、[中文指南](../development/task-delivery-chain.md)／[English](../en/task-delivery-chain.md)、[交付合同](../../contracts/task-delivery-chain.md)、[本地诊断合同](../../contracts/runner-journal-inspection.md)：当前运行摘要与正式来源、退回问题／需求回流、单文件只读诊断；本机自有 DSH 协议命令和独立 Runner 同 SHA 测试不代表厂商模型或物理多机验收，最终界面覆盖以专项报告为准 |
 | 参考源码整合与业务任务依赖编辑 | [本阶段报告](task-dependencies-verification.md)、[中文指南](../development/task-dependencies.md)／[English](../en/task-dependencies.md)、[合同](../../contracts/task-dependencies.md)、[来源映射](../integrations/referenced-conversation-integration.md)：真实交付包设计适配、完整图／原子 CAS／冲突和原回执恢复；实际 API 与生产构建界面复验结果分别以专项报告为准，旧包数字不计为当前通过证据 |
 | 项目团队执行入口 | [限定报告](team-execution-verification.md)、[操作指南](../development/team-execution.md)：复用正式分页与原详情，区分验收／排队／阻塞，URL恢复及权限隔离；没有新增物理多机、厂商任务或生产验收结论 |
@@ -17,7 +20,7 @@
 | 单一初始化结构与共享版本 | [初始化报告](initial-version-verification.md)、[摘要](initial-version-summary.json)：该阶段183表、同结构正常重启、未知既有结构拒绝；不升级旧用户库 |
 | 安装版 Codex 实际编码 | [准确源码与环境的专项报告](codex-app-server-verification.md)：安装版 CLI 配合自有 Responses 端点；配置 ACK 不是提供方身份，提醒不等于硬预算；不将旧切片作为本轮厂商验收 |
 | 其他领域能力 | [交付状态](../delivery/status.md)与[完整文档索引](../README.md)列出各域当前实现和独立证据 |
-| 未完成范围 | [完整实施计划](../delivery/implementation-plan.md)、[产品基线](../product/v1-baseline.md)：P0–P7及扩展需求1–25仍全部保留 |
+| 未完成范围 | [完整实施计划](../delivery/implementation-plan.md)、[产品基线](../product/v1-baseline.md)：P0–P7及扩展需求1–26全部保留；[统一智能输入／配置](../architecture/intelligent-operations.md)仍待实现 |
 
 检查按变更影响选择，失败修正后仅复验相关路径。源码完成、协议夹具通过、真实执行、正式业务验收与生产验收分别记录；不累加重叠测试为虚构同轮全套。费用未定价、partial／缺失用量、未知执行结果都不能推断为零或成功。
 

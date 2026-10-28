@@ -1,0 +1,223 @@
+{
+  "stage": "T-TRACE-113",
+  "product_version": "1.0.0",
+  "recorded_at": "2026-10-28T08:32:05.124135+00:00",
+  "status": "scoped_verified_full_platform_in_progress",
+  "full_platform_complete": false,
+  "source_sha256": "65eca1ff190718b9c2d609366a45a345bb2ca90c1a20091692653d77b6a1e8a0",
+  "source_files": 23,
+  "source_manifest": ".cache/e2e/coverage-113/source-manifest.json",
+  "references": [
+    {
+      "url": "https://chatgpt.com/s/t_6ae19e1f3af481918d11132ccf5119fe",
+      "source_sha256": "1135aeaa9519c56d5daa95d6d0ae37fda944e0eeb4ecaae7edc361277086fc30",
+      "visible_numbered_requirements": 64,
+      "scope": "Published visible REQ/TEAM/INT/SCH/QA/KM, original ends during knowledge explanation"
+    },
+    {
+      "url": "https://chatgpt.com/s/t_6ae1a95216648191961a25087e713f3a",
+      "source_sha256": "038cb2784ece5c79a710b9c8eca7d083b4c63a9a5951f6163183d9fc2efbcb9e",
+      "source_bytes": 10174,
+      "extraction": "basic HTTP200 original rawHTML fallbackMarkdown decoded as JSON only; markdown initially empty; no scripts or internal API",
+      "scope": "Requirement26, S01-S12, intelligent input/configuration and eight acceptance conditions; original ends at incomplete reference table"
+    }
+  ],
+  "implementation": {
+    "endpoint": "GET /api/v1/requirements/{id}/traceability?project_id=...",
+    "criterion_identity": "requirement_id + requirement_version + 1-based index",
+    "max_criteria": 100,
+    "max_published_tasks": 100,
+    "max_node_references": 20,
+    "new_dependencies": 0,
+    "schema_changes": 0,
+    "generated_models": 489,
+    "generated_api_paths": 258,
+    "new_intelligent_operations_engine_implemented": false,
+    "design26_status": "FND-INTENT-001 pending; current domains and deterministic Go execution remain authoritative"
+  },
+  "checks": {
+    "distinct_affected_passed_cases": 16,
+    "go_platform_cases": 4,
+    "go_contract_cases": 1,
+    "go_catalog_cases": 1,
+    "web_model_cases": 4,
+    "web_component_cases": 6,
+    "typecheck": true,
+    "paired_catalog_keys": 4868,
+    "own_production_hardcodes": 0,
+    "generated_contract_check": true,
+    "go_receipts": [
+      {
+        "phase": "expected missing-feature RED",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestRequirementTraceability",
+          "-count=1"
+        ],
+        "exit_code": 1,
+        "receipt": ".cache/mcp019-deps/20261028T080103632Z.command.json",
+        "stdout_sha256": "24e0f6b85d07aec68fa32a91316afb65717d6c58b82b71f701047a9f03f7ca55",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "phase": "six affected Go cases GREEN",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./cmd/suma-contracts",
+          "./internal/localization",
+          "-run",
+          "TestRequirementTraceability",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "receipt": ".cache/mcp019-deps/20261028T080542036Z.command.json",
+        "stdout_sha256": "1fb7659079186d77c462abec0b161ff1a114d677a3f7cdf0cee070cba3d78667",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "phase": "final 100/100 contract bound GREEN",
+        "arguments": [
+          "test",
+          "./cmd/suma-contracts",
+          "-run",
+          "^TestRequirementTraceabilityReadContract$",
+          "-count=1"
+        ],
+        "exit_code": 0,
+        "receipt": ".cache/mcp019-deps/20261028T081640834Z.command.json",
+        "stdout_sha256": "c84676b0f591b11c6032110286a7c8354e8b77a90b96f17fda635adef659ca33",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "phase": "retirement detail consistency against original implementation GREEN",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestRequirementTraceabilityPublishedAdoptionAndVersionedPositions$",
+          "-count=1"
+        ],
+        "exit_code": 0,
+        "receipt": ".cache/mcp019-deps/20261028T081950975Z.command.json",
+        "stdout_sha256": "d3ed7c5cd6ff48d95d34858b533d20c142f1edac7eaf4ebe154d378267d86db5",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "phase": "Control build",
+        "arguments": [
+          "build",
+          "-o",
+          ".cache/e2e/coverage-113/suma-control.exe",
+          "./cmd/suma-control"
+        ],
+        "exit_code": 0,
+        "receipt": ".cache/mcp019-deps/20261028T081125526Z.command.json",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "phase": "generated contract check",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "receipt": ".cache/mcp019-deps/20261028T082607763Z.command.json",
+        "stdout_sha256": "74d3efd1f98f8a91d63e2ba4aa4083009bcd918219f419c7fd251ff6804b63f2",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "web_observations": ".cache/e2e/coverage-113/ui-targeted-summary.json",
+    "explicit_refresh_fix": "Removed automatic parent refresh on permission/version mismatch; only user action refreshes requirement; two affected cases rerun, no double count",
+    "retirement_consistency": "Original supported retire clears the current publication. Original production helper retained; no reproduced helper defect claimed.",
+    "skipped_browser_automation": "Computer Use stopped because current browser URL could not be determined with enough confidence to enforce policy",
+    "static_review": "Independent scoped backend/model/hooks reviewer found no P0/P1/P2 blocker; UI integration review found and fixed the automatic-refresh loop risk",
+    "source_after_checks": "Product source frozen; final nonsemantic line-ending hygiene only. Final schema bounds separately checked; explicit refresh interface rechecked and rebuilt.",
+    "documentation_markdown_files": 295,
+    "documentation_schema_references": 2364,
+    "documentation_local_links_resolve": true,
+    "diff_whitespace_errors": 0
+  },
+  "actual_http": {
+    "stage": "T-TRACE-113",
+    "observed_at": "2026-10-28T08:17:12.338Z",
+    "basis": "Current built Control, fresh SQLite, real HTTP; no browser or model claims",
+    "project_id": "5a9e2625564c9163318f762c7dcf126c",
+    "requirement_id": "bae349e59e56e4deae399c2ca1060fcc",
+    "unadopted": {
+      "criteria": 2,
+      "tasks": 2,
+      "formal_tasks": 0
+    },
+    "adopted": {
+      "criteria": 2,
+      "tasks": 2,
+      "formal_acceptance": 0,
+      "runs": 0
+    },
+    "changed": {
+      "version": 2,
+      "criteria": 1,
+      "mapped_tasks": 0,
+      "eligibility": "requirement_changed"
+    },
+    "retired": {
+      "criteria": 1,
+      "mapped_tasks": 0,
+      "eligibility": "retired"
+    },
+    "exact_query_diagnostics_locales": [
+      "zh-CN",
+      "en-US"
+    ],
+    "server_side_zh_en_messages_distinct": true,
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "runs_started": 0,
+    "reviews_submitted": 0,
+    "actual_browser_verified": false,
+    "control_sha256": "114de929a692fa9cc5ef4b8d187a012023f4f25e3bf5384a8ea3a1f6bd603321",
+    "web_entry_sha256": "ac761c80224b4f26ca91a5e50fc6aaa6e193358e4268879f0cf334e6b0a57475",
+    "diagnostic_messages": {
+      "zh-CN": "需求验收追踪查询无效，请提供当前项目",
+      "en-US": "The requirement traceability query is invalid. Provide the current project."
+    }
+  },
+  "builds": {
+    "web": 2,
+    "web_seconds": [
+      49.07,
+      52.66
+    ],
+    "reason_for_second_web_build": "Material explicit-refresh correction after independent review",
+    "control": 1,
+    "runner": 0,
+    "known_warning": "Existing IDE chunk size warning remains"
+  },
+  "browser": {
+    "actual_verified": false,
+    "screenshots_available": false,
+    "reason": "Windows Computer Use policy could not identify current browser URL reliably; all further app input stopped",
+    "new_blank_chrome_window_id": 1908718,
+    "window_close_not_confirmed": true,
+    "existing_user_tabs_or_preview_modified": false
+  },
+  "preservation": {
+    "owned_control_closed": true,
+    "closed_at": "2026-10-28T08:17:12.404Z",
+    "original_user_database_modified": false,
+    "raw_database_logs_secrets_html_binaries_and_caches_not_in_git": true
+  },
+  "scope": {
+    "limited_implemented": 58,
+    "pending": 34,
+    "total": 92,
+    "requirements": "P0-P7 and accepted requirements1..26",
+    "new_pending": "FND-INTENT-001"
+  }
+}
