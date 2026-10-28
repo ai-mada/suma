@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | Multica | `3de79cbeaf181283765f850327e9d82a3b2af6b0`（2026-10-24再次fetch）；原工作区 HEAD `18fa9f728a9e25f2465df2789631edb2a75442ad` 保留 | 架构与交互参考；未复制源码，原工作区HEAD、status及本地修改摘要保持；此前fetch记录在references.json保留 |
 | Hermes Agent | `cb757fac59c92b49e9b8f2910e5cd7ab75efffdd` | README 与外部 CLI 能力参考；当前探测适配不等于引入 Hermes 源码或完成账户执行集成 |
-| OpenCode | `02671e66454260d77fe04d63cf5eb94e76921dee` | README 与 CLI 协议参考；未复制源码；真实外部账户未验收 |
+| OpenCode | `148842ef7cb1bc34192b3fff57d0f9721ab9c801`，SDK／plugin／server 1.19.4 | MIT官方SDK与plugin作为依赖固定在pnpm锁文件；运行分发保留实际依赖与许可。当前SDK接入见[设计](../architecture/opencode-execution.md)和[证据](../quality/opencode-execution-verification.md)，厂商账户及生产另验 |
 | Zed | `e96ffb0fd3cc43ec56dcff421146f5e823b13841` | GPL 相关编辑器参考；仅参考，未复制 Zed 源码。当前编辑器实际使用 Monaco。未对 Zed 整个仓库各子目录许可作统一结论 |
 | Spec Kit | `27d14e20c187c1f2916540ea201ecbdc9f8ed588` | 规约流程参考；未将上游完整工具链集成为产品能力 |
 | BubbleTea 参考仓库 | `f9df43c4f2c021d8740a2628d59cd810a862eb98` | README/交互参考提交；另有真实 Go 依赖 **v1.3.10**，以 go.mod 为准，二者不是同一个版本声明 |

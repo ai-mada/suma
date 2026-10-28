@@ -55,15 +55,12 @@ func TestToolProfileDriftRefusesBeforeCommandLaunch(t *testing.T) {
 
 func TestToolInventoryDoesNotAdvertiseMissingIsolationOrUnsupportedTerminal(t *testing.T) {
 	exe, _ := os.Executable()
-	items := describeForTest(t, ExecConfig{AllowExec: true, Commands: map[string]CommandSpec{"write": {Executable: exe}, "open": {Executable: "missing-opencode", Adapter: "opencode", Protocol: "opencode-jsonl-v1"}}})
+	items := describeForTest(t, ExecConfig{AllowExec: true, Commands: map[string]CommandSpec{"write": {Executable: exe}}})
 	for _, o := range items {
 		if o.Available {
 			t.Fatalf("unexecutable profile advertised: %+v", o)
 		}
 		if o.Profile.CommandID == "write" && !strings.Contains(o.Reason, "repository") {
-			t.Fatal(o.Reason)
-		}
-		if o.Profile.CommandID == "open" && !strings.Contains(o.Reason, "whole-run") {
 			t.Fatal(o.Reason)
 		}
 	}

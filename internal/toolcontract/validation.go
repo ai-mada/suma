@@ -39,10 +39,10 @@ func protocolPair(adapter, protocol string) bool {
 	if adapter == "codex" && protocol == cc.Protocol {
 		return true
 	}
-	return map[string]string{"command": "text-v1", "suma": "suma-jsonl-v1", "codex": "codex-jsonl-v1", "opencode": "opencode-jsonl-v1", "harness": "dsh-multica-jsonl-v1", "codebuddy": "codebuddy-jsonl-v1"}[adapter] == protocol && protocol != ""
+	return map[string]string{"command": "text-v1", "suma": "suma-jsonl-v1", "codex": "codex-jsonl-v1", "opencode": OpenCodeSDKProtocol, "harness": "dsh-multica-jsonl-v1", "codebuddy": "codebuddy-jsonl-v1"}[adapter] == protocol && protocol != ""
 }
 func ValidProtocol(protocol string) bool {
-	return protocol == cc.Protocol || protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == "opencode-jsonl-v1" || protocol == "dsh-multica-jsonl-v1" || protocol == "codebuddy-jsonl-v1"
+	return protocol == cc.Protocol || protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == OpenCodeSDKProtocol || protocol == "dsh-multica-jsonl-v1" || protocol == "codebuddy-jsonl-v1"
 }
 
 // SupportsWorkspaceObservationProfile identifies profile kinds that can expose
@@ -51,13 +51,16 @@ func SupportsWorkspaceObservationProfile(p Profile) bool {
 	return SupportsWorkspaceWriteProfile(p) || p.Adapter == "codex" && p.Protocol == cc.Protocol && !p.ReadOnly && p.WorkspaceToolsVersion == ""
 }
 
-// SupportsWorkspaceWriteProfile identifies the native writable workspace kind;
-// a Codex app-server read broker does not implement the native CAS contract.
+// SupportsWorkspaceWriteProfile identifies the implemented host CAS bridge;
+// a Codex app-server read broker does not implement that write contract.
 func SupportsWorkspaceWriteProfile(p Profile) bool {
-	return p.Adapter == "suma" && p.Protocol == "suma-jsonl-v1" && !p.ReadOnly && p.WorkspaceToolsVersion == "attempt-workspace-v1"
+	return p.Adapter == "suma" && p.Protocol == "suma-jsonl-v1" && !p.ReadOnly && p.WorkspaceToolsVersion == "attempt-workspace-v1" || SupportsOpenCodeExecutionProfile(p)
 }
 
 func ValidateProfile(p Profile, complete bool) error {
+	if err := validateOpenCodeProfile(p, complete); err != nil {
+		return err
+	}
 	if p.Protocol == cc.Protocol && (p.Adapter != "codex" || p.ReadOnly || p.ModelExecutionProtocol != "" || p.WorkspaceToolsVersion != "" || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil) {
 		return fmt.Errorf("invalid Codex app-server capability")
 	}
@@ -85,7 +88,7 @@ func ValidateProfile(p Profile, complete bool) error {
 			return fmt.Errorf("invalid failure diagnosis capability")
 		}
 	}
-	if p.WorkspaceToolsVersion != "" && (p.WorkspaceToolsVersion != "attempt-workspace-v1" || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || p.ReadOnly) {
+	if p.WorkspaceToolsVersion != "" && !SupportsWorkspaceWriteProfile(p) {
 		return fmt.Errorf("invalid workspace tool capability")
 	}
 	if !ValidCommandID(p.CommandID) || !protocolPair(p.Adapter, p.Protocol) {
@@ -271,6 +274,9 @@ func ValidateEvent(e Event) error {
 	return nil
 }
 func ValidateEvidence(e Evidence) error {
+	if err := validateOpenCodeEvidence(e); err != nil {
+		return err
+	}
 	if e.CodexExecution != nil {
 		if e.Profile.Protocol != cc.Protocol || e.ModelExecution != nil || cc.ValidateEvidence(*e.CodexExecution) != nil || e.SessionID != e.CodexExecution.ThreadID || e.UsageState == UsageComplete {
 			return fmt.Errorf("invalid Codex execution evidence")

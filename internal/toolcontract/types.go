@@ -22,6 +22,9 @@ type ToolExecutionProfile struct {
 	Planning               *PlanningCapability            `json:"planning,omitempty"`
 	KnowledgeExtraction    *KnowledgeExtractionCapability `json:"knowledge_extraction,omitempty"`
 	FailureDiagnosis       *FailureDiagnosisCapability    `json:"failure_diagnosis,omitempty"`
+	// OpenCodeExecution is the immutable administrator configuration acknowledged
+	// by the pinned SDK/server probe, not an independently selectable deployment.
+	OpenCodeExecution *OpenCodeExecutionCapability `json:"opencode_execution,omitempty"`
 }
 
 // PlanningCapability names a probed, fixed model configuration, not account health.
@@ -57,10 +60,12 @@ func EqualProfile(a, b Profile) bool {
 	ap, bp := a.Planning, b.Planning
 	ak, bk := a.KnowledgeExtraction, b.KnowledgeExtraction
 	af, bf := a.FailureDiagnosis, b.FailureDiagnosis
+	ao, bo := a.OpenCodeExecution, b.OpenCodeExecution
 	a.Planning, b.Planning = nil, nil
 	a.KnowledgeExtraction, b.KnowledgeExtraction = nil, nil
 	a.FailureDiagnosis, b.FailureDiagnosis = nil, nil
-	return a == b && (ap == nil && bp == nil || ap != nil && bp != nil && *ap == *bp) && (ak == nil && bk == nil || ak != nil && bk != nil && *ak == *bk) && (af == nil && bf == nil || af != nil && bf != nil && *af == *bf)
+	a.OpenCodeExecution, b.OpenCodeExecution = nil, nil
+	return a == b && (ap == nil && bp == nil || ap != nil && bp != nil && *ap == *bp) && (ak == nil && bk == nil || ak != nil && bk != nil && *ak == *bk) && (af == nil && bf == nil || af != nil && bf != nil && *af == *bf) && (ao == nil && bo == nil || ao != nil && bo != nil && *ao == *bo)
 }
 
 func CloneProfile(p Profile) Profile {
@@ -75,6 +80,10 @@ func CloneProfile(p Profile) Profile {
 	if p.FailureDiagnosis != nil {
 		value := *p.FailureDiagnosis
 		p.FailureDiagnosis = &value
+	}
+	if p.OpenCodeExecution != nil {
+		value := *p.OpenCodeExecution
+		p.OpenCodeExecution = &value
 	}
 	return p
 }
@@ -141,7 +150,8 @@ type ToolEvidence struct {
 	UsageState     string                  `json:"usage_state"`
 	ModelExecution *modelcontract.Evidence `json:"model_execution,omitempty"`
 	// CodexExecution records requested/acknowledged configuration, never provider billing identity.
-	CodexExecution *cc.Evidence `json:"codex_execution,omitempty"`
+	CodexExecution    *cc.Evidence               `json:"codex_execution,omitempty"`
+	OpenCodeExecution *OpenCodeExecutionEvidence `json:"opencode_execution,omitempty"`
 }
 
 type Profile = ToolExecutionProfile

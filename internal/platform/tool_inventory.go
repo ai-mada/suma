@@ -90,6 +90,9 @@ func (s *Service) toolClaimEligibleTx(ctx context.Context, tx *sql.Tx, auth *aut
 		return false, nil
 	}
 	if !bound {
+		if _, present := spec.Config["opencode_execution"]; present {
+			return false, nil
+		}
 		return true, nil
 	}
 	if err = s.releaseWorkerBindingTx(ctx, tx, auth, worker, "", "", "identity"); err != nil {
@@ -164,12 +167,15 @@ func (s *Service) validateToolResultTx(ctx context.Context, tx *sql.Tx, auth *au
 		return err
 	}
 	p, project := auth.currentPrincipal, auth.target.projectID
-	if result.ToolEvidence == nil {
-		return nil
-	}
 	n, pr, err := s.toolBoundNodeTx(ctx, tx, p, project, result.RunID, result.NodeID)
 	if err != nil {
 		return err
+	}
+	if result.ToolEvidence == nil {
+		if result.Stopped && pr.Profile.Protocol == toolcontract.OpenCodeSDKProtocol {
+			return invalid(opencodeExecutionInvalid)
+		}
+		return nil
 	}
 	_, sha, bound, err := dag.ToolBinding(n)
 	if err != nil {
@@ -177,6 +183,11 @@ func (s *Service) validateToolResultTx(ctx context.Context, tx *sql.Tx, auth *au
 	}
 	if !bound || pr.WorkerID != result.WorkerID || pr.Profile.ProfileSHA256 != sha || !toolcontract.EqualProfile(result.ToolEvidence.Profile, pr.Profile) {
 		return invalid("工具执行证据与固定档案不匹配")
+	}
+	// A vendor abort acknowledgement and operating-system shutdown are distinct.
+	// Validate them against this result before the scheduler accepts a stop.
+	if err := toolcontract.ValidateOpenCodeResultStop(*result.ToolEvidence, result.Stopped, result.OutcomeUnknown); err != nil {
+		return invalid(opencodeExecutionInvalid)
 	}
 	return nil
 }

@@ -52,6 +52,7 @@ type toolStream struct {
 	// contract. A terminal may close an interactive stdin, never mark a process stopped.
 	dshState       *dshStreamState
 	codebuddyState *codebuddyStreamState
+	openCodeState  *openCodeStreamState
 	onTerminal     func()
 }
 
@@ -104,6 +105,12 @@ func (s *toolStream) Write(data []byte) (int, error) {
 // Vendor objects may contain richer fields, but only the explicitly selected
 // public facts below enter the platform. Duplicate keys and deep input fail closed.
 func decodeToolObject(raw []byte) (map[string]any, error) {
+	return decodeToolObjectBounded(raw, 32768)
+}
+
+// Large packaged manifests have a separate byte bound. Stream frames keep
+// their original stricter token limit through decodeToolObject.
+func decodeToolObjectBounded(raw []byte, tokenLimit int) (map[string]any, error) {
 	if !utf8.Valid(raw) {
 		return nil, fmt.Errorf("invalid UTF-8")
 	}
@@ -112,7 +119,7 @@ func decodeToolObject(raw []byte) (map[string]any, error) {
 	tokens := 0
 	var value func(int) (any, error)
 	value = func(depth int) (any, error) {
-		if depth > 32 || tokens > 32768 {
+		if depth > 32 || tokens > tokenLimit {
 			return nil, fmt.Errorf("JSON structure limit")
 		}
 		t, err := dec.Token()
@@ -325,6 +332,12 @@ func (s *toolStream) line(raw []byte) {
 		return
 	}
 	switch s.profile.Protocol {
+	case tc.OpenCodeSDKProtocol:
+		if !tc.ValidJSONUnicode(raw) {
+			s.invalid("invalid OpenCode SDK Unicode")
+			return
+		}
+		s.openCode(m)
 	case "codex-jsonl-v1":
 		s.codex(m)
 	case "dsh-multica-jsonl-v1":
@@ -656,5 +669,12 @@ func (s *toolStream) finish() (*tc.Evidence, error) {
 		terminal = "unknown"
 	}
 	e := &tc.Evidence{Profile: s.profile, SessionID: s.session, Terminal: terminal, EventCount: s.count, Usage: s.usage, UsageState: s.coverage(), ModelExecution: s.modelEvidence, CodexExecution: cc.CloneEvidence(s.codexEvidence)}
+	if c := s.profile.OpenCodeExecution; c != nil {
+		proof := tc.OpenCodeExecutionEvidence{ConfigurationSHA256: c.ConfigurationSHA256, RequestedProvider: c.ProviderID, RequestedModel: c.Model}
+		if s.openCodeState != nil {
+			proof = s.openCodeState.proof
+		}
+		e.OpenCodeExecution = &proof
+	}
 	return e, s.bad
 }

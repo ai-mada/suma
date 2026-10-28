@@ -1,3 +1,4 @@
+import {validOpenCodeCapability} from './opencode-execution-model';
 import {validCodexCatalog} from './codex-execution-model';
 import { tr as t, UiError } from "./i18n";
 import type { RecordItem, Workflow } from "./api";
@@ -51,15 +52,7 @@ export function toolEventRows(events: readonly ToolEvent[]) {
     return { event, key: JSON.stringify([source, content, occurrence]) };
   });
 }
-export type ToolEvidence = {
-  profile: ToolProfileDefinition;
-  codex_execution?: import("../../../packages/contracts/src").CodexEvidence | null;
-  session_id?: string;
-  terminal: "completed" | "failed" | "unknown";
-  event_count: number;
-  usage?: ToolUsage;
-  usage_state?: UsageState;
-};
+export type ToolEvidence = import("../../../packages/contracts/src").ToolEvidence;
 export type TaskContextRecord = {
   id: string;
   version: number;
@@ -67,32 +60,7 @@ export type TaskContextRecord = {
   description: string;
   acceptance_criteria: string[];
 };
-export type TaskDispatchPlan = {
-  codex_execution?: import("../../../packages/contracts/src").CodexBinding | null;
-  model_execution?: import("../../../packages/contracts/src").ModelBinding | null;
-  execution_route?: import("../../../packages/contracts/src").TaskDispatchPlan["execution_route"];
-  id: string;
-  project_id: string;
-  version: number;
-  state: string;
-  task_id: string;
-  task_version: number;
-  requirement_id?: string;
-  requirement_version?: number;
-  workflow_id: string;
-  workflow_version: number;
-  agent_node_id: string;
-  tool_profile_id: string;
-  tool_profile_version: number;
-  tool_profile_sha256: string;
-  run_id: string;
-  created_at: string;
-  expires_at: string;
-  context: { task: TaskContextRecord; requirement?: TaskContextRecord; knowledge?: import("../../../packages/contracts/src").ProjectKnowledgeContextItem[]; design?: import("../../../packages/contracts/src").RequirementDesignContext };
-  workflow: Workflow;
-  valid: boolean;
-  reason: string;
-};
+export type TaskDispatchPlan = import("../../../packages/contracts/src").TaskDispatchPlan;
 export function taskPlanStarted(
   plan: Pick<TaskDispatchPlan, "state" | "run_id">,
 ) {
@@ -148,7 +116,7 @@ const protocols: Record<string, string> = {
   command: "text-v1",
   suma: "suma-jsonl-v1",
   codex: "codex-jsonl-v1",
-  opencode: "opencode-jsonl-v1",
+  opencode: "opencode-sdk-v1",
   harness: "dsh-multica-jsonl-v1",
   codebuddy: "codebuddy-jsonl-v1",
 };
@@ -179,12 +147,14 @@ function publicOrigin(value: unknown): boolean {
 }
 function validatePublicCapabilities(profile: Record<string, unknown>, observation: Record<string, unknown>) {
   const native = profile.adapter === "suma" && profile.protocol === "suma-jsonl-v1";
-  const workspace = native && profile.read_only === false && profile.workspace_tools_version === "attempt-workspace-v1";
+  const openCode = profile.adapter === "opencode" && profile.protocol === "opencode-sdk-v1" && validOpenCodeCapability(profile.opencode_execution);
+  if (profile.opencode_execution !== undefined && !openCode || profile.adapter === "opencode" && (!openCode || profile.read_only!==false || profile.workspace_tools_version!=="attempt-workspace-v1")) invalidCapability();
+  const workspace = (native || openCode) && profile.read_only === false && profile.workspace_tools_version === "attempt-workspace-v1";
   const codexWorkspace = profile.adapter === "codex" && profile.protocol === "codex-app-server-v1" && profile.read_only === false && validCodexCatalog(observation.codex_catalog);
   for (const [field, protocol, permitted] of [
     ["workspace_tools_version", "attempt-workspace-v1", workspace],
-    ["model_execution_protocol", "suma-model-execution-v1", workspace],
-    ["conflict_repair_protocol", "suma.candidate-conflict-repair.v1", workspace],
+    ["model_execution_protocol", "suma-model-execution-v1", native && workspace],
+    ["conflict_repair_protocol", "suma.candidate-conflict-repair.v1", native && workspace],
   ] as const) {
     if (profile[field] !== undefined && profile[field] !== "" && (profile[field] !== protocol || !permitted)) invalidCapability();
     if (profile[field] !== undefined && typeof profile[field] !== "string") invalidCapability();
@@ -248,7 +218,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
       "tool_version",
       "read_only",
       "workspace_tools_version", "model_execution_protocol", "conflict_repair_protocol",
-      "planning", "knowledge_extraction", "failure_diagnosis",
+      "planning", "knowledge_extraction", "failure_diagnosis", "opencode_execution",
     ] satisfies (keyof ToolProfileDefinition)[]);
     if (
       typeof profile.command_id !== "string" ||
@@ -329,6 +299,7 @@ export function toolBinding(
 export function taskToolProtocol(profile: ToolProfileDefinition) {
   return (
     (profile.adapter === "suma" && profile.protocol === "suma-jsonl-v1") ||
+    (profile.adapter === "opencode" && profile.protocol === "opencode-sdk-v1" && validOpenCodeCapability(profile.opencode_execution)) ||
     (profile.adapter === "codex" && ["codex-jsonl-v1","codex-app-server-v1"].includes(profile.protocol)) ||
     (profile.adapter === "harness" && profile.protocol === "dsh-multica-jsonl-v1") ||
     (profile.adapter === "codebuddy" && profile.protocol === "codebuddy-jsonl-v1")

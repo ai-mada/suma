@@ -25,8 +25,8 @@ func TestDisplayCatalogExplicitSourceAndNoReverseAlias(t *testing.T) {
 			}
 		}
 	}
-	if count != 16 {
-		t.Fatalf("got %d display definitions, want 16", count)
+	if count != 15 {
+		t.Fatalf("got %d display definitions, want 15", count)
 	}
 	if k, ok := LookupSource("资源池已暂停，停止新派发"); !ok || k != "pool.paused" {
 		t.Fatal("existing pool source changed", k, ok)

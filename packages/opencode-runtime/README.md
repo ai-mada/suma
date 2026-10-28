@@ -1,0 +1,31 @@
+# OpenCode SDK runtime / OpenCode SDK 运行时
+
+This private Suma 1.0.0 package implements `opencode-sdk-v1`. It pins the official MIT `@opencode-ai/sdk` and `@opencode-ai/plugin` to **1.19.4**, upstream commit `148842ef7cb1bc34192b3fff57d0f9721ab9c801`. It uses the existing official MCP client 2.4.0 through `AttemptWorkspaceClient`; no model, account or endpoint is selected dynamically.
+
+本包仅实现固定模型的工作区执行，使用独立 OpenCode 服务与六项授权工具，不提供规划、冲突修复或硬预算声明。运行完成、候选封存、独立测试与人工验收仍是不同事实。
+
+## Build and assets
+
+`pnpm --filter @suma/opencode-runtime build` produces two Node-only bundles and `dist/suma-opencode.manifest.json`. The manifest has exactly `schema_version`, `entry`, `entry_sha256`, `external_imports`, `dependencies`, `assets` and `opencode`. Every asset is `{path,sha256,size_bytes}`. The `opencode` object has `sdk_version`, `server_version`, `tool_entry` (`suma-workspace.tool.mjs`) and `plugin_package_root` (`opencode-plugin`). Paths are relative to the manifest. Multiple bundled versions use explicit `package@version` dependency keys.
+
+The plugin payload contains the actual installed production dependency files and a generated npm v3 lock describing those real versions. It is copied to the sole generated configuration directory, including its real `node_modules`. This avoids the upstream loader's background dependency install; there is no invented install-disable flag or fake marker. The offline npm setting remains enabled. Old payload cleanup refuses unknown or changed files and preserves the previous manifest receipt under this package's ignored `.cache/build/`.
+
+## Closed host contract
+
+`SUMA_OPENCODE_CONFIG` is JSON with exactly `executable`, `executable_sha256`, `home`, `source`, `provider_id`, `model`, `base_url`, optional `api_key_env_ref`, `configuration_sha256`, `tool_entry`, `plugin_package_root`. Paths are absolute. `source` is the current attempt worktree; `home` is an empty separate attempt-owned directory. The approved API key is resolved only from its local environment reference and passed under a private child reference, never in frames.
+
+Input is one `{v:1,type:"execute",request_id,goal,workspace_bridge}` JSONL request, optionally followed by `{v:1,type:"cancel",request_id}`. Unknown fields, conflict-repair bridges and additional execution requests are rejected. Output frames are `ready`, `started`, bounded `progress`, and exactly one terminal `completed`, `failed` or `cancelled`; each binds `v:1` and `request_id`. Probe output is `{v:1,type:"probe",protocol:"opencode-sdk-v1",runtime_version:"1.0.0",sdk_version:"1.19.4",server_version:"1.19.4",configuration_sha256,provider_id,model,workspace_tools_version:"attempt-workspace-v1"}`. `--version` is `suma-opencode-runtime 1.0.0`. Help and own stderr follow `--language` > `SUMA_LANGUAGE` > `LC_ALL/LC_MESSAGES/LANG` > `zh-CN`.
+
+Success requires the complete SDK prompt response to contain the exact assistant/session/user parent/provider/model, a completed timestamp, no error, `finish:"stop"` and no pending or interrupted tool. The timestamp is canonical UTC. HTTP 200, idle, step-finish, stream EOF and abort ACK never establish success. `completed` waits for the private server parent to close. The Runner must additionally confirm its authoritative process-group/tree Finish/Stop before accepting the public `server_stopped` proof. Usage is omitted/unreported when absent or only upstream zero defaults exist, and at most partial when validated positive final-message counters exist; it never claims an aggregate bill or provider model attestation.
+
+## Authority and uncertainty
+
+The child has an isolated HOME/XDG/TEMP environment, no inherited account/provider/plugin/npm/proxy/startup credentials, disabled project configuration, pure mode, disabled default plugins and external skills, no AGENTS loading from project, and a sole trusted `suma` agent. All native tools and auxiliary agents are denied; title generation and auto compaction are disabled. Effective configuration must exactly match the generated configuration. System or MDM managed configuration is rejected before launch. These controls do not claim an operating-system network sandbox.
+
+Only the generated `tools/suma_workspace.js` module exports list/read/write/edit/remove/check. Its public plugin context declares session and message IDs; the pinned upstream runtime additionally spreads `callID` into that context. The module validates that implementation-dependent identity, asks its exact permission, serializes host calls and derives a stable operation identity from attempt/session/message/call/tool. Missing identity or unknown host effects close all later forwarding and leave a private failure receipt. No uncertain prompt or mutation is replayed. Native OpenCode MCP forwarding is disabled because it does not inject Suma operation metadata.
+
+Cancellation sends the SDK abort once and separately waits for the private parent process to close. A lost session-create response or missing abort proof remains `cancel_unconfirmed`; direct parent exit after a failed Windows tree kill is insufficient. POSIX children remain in the outer Go supervisor's process group. The wrapper never detaches the server or signals that entire group itself. The raw private-frame stop field and the Runner's successful Finish/Stop must both hold before public tree-stop proof is valid; standalone invocation does not claim process-tree containment. Outer Runner stop/reconciliation remains authoritative after wrapper failure.
+
+## Verification boundary
+
+Focused tests use the actual generated SDK against deterministic local HTTP/MCP fixtures and validate tool identities, cancellation races, configuration, real packaged dependencies, and bilingual CLI output. They do not invoke an installed OpenCode server, a provider model, login, account mutation or paid resource. Live OpenCode/provider acceptance and host operating-system policy require separate evidence.

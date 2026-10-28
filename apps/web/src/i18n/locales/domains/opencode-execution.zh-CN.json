@@ -1,0 +1,12 @@
+{
+  "opencode-execution.title": "OpenCode 固定执行配置",
+  "opencode-execution.fixed": "模型由已批准的工具配置固定；更换模型需重新批准工具配置。",
+  "opencode-execution.allowance": "用量仅供观察，费用未定价；此工具不能满足强制 Token 或费用预算。",
+  "opencode-execution.basis": "配置与执行依据",
+  "opencode-execution.runtime": "工具与 SDK 版本",
+  "opencode-execution.endpoint": "模型端点来源",
+  "opencode-execution.configuration": "配置摘要",
+  "opencode-execution.identity": "配置确认不证明提供方实际模型、账单、独立测试或人工验收。",
+  "opencode-execution.stopped": "独立工具服务已停止，仍需核对任务与测试证据。",
+  "opencode-execution.stop_unknown": "工具服务停止状态尚未确认。"
+}

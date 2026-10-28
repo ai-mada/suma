@@ -36,7 +36,6 @@ Go权威目录增加以下16个`display.tool.*`键，`SourceTemplate`必须显�
 | command_missing | 当前执行节点未声明此命令 |
 | profile_mismatch | 当前工具配置、版本或程序摘要与固定档案不匹配 |
 | reported_unavailable | 执行节点报告工具不可用：{{.reason}} |
-| protocol_unverified | OpenCode 当前版本尚未通过平台执行协议验收 |
 | dispatchable | 执行节点已报告可领取；模型认证、执行与验收结果需分别核验 |
 
 `reported_unavailable.reason`为既有目录Text参数，外部文字是数据，不能递归解释为键或翻译。当前Text边界（非空、合法Unicode、512字节内、无控制字符）外的原始Observation仍可合法保存；只丢弃不能证明的显示hint，完整原文保留。不得截断参数、抹掉外部原因或把它标为平台认证。

@@ -11,7 +11,14 @@ import (
 func ToolBinding(n Node) (id, sha string, bound bool, err error) {
 	rawID, idOK := n.Config["tool_profile_id"]
 	rawSHA, shaOK := n.Config["tool_profile_sha256"]
+	fixedOpenCode, openCodeErr := toolcontract.DecodeOpenCodeNodeConfiguration(n.Config)
+	if openCodeErr != nil || fixedOpenCode != nil && n.MaxRetries != 0 {
+		return "", "", false, dagDiagnostic(fmt.Errorf("%w: complete agent tool binding required", ErrInvalid), "dag.tool.binding", nil)
+	}
 	if !idOK && !shaOK {
+		if fixedOpenCode != nil {
+			return "", "", false, dagDiagnostic(fmt.Errorf("%w: complete agent tool binding required", ErrInvalid), "dag.tool.binding", nil)
+		}
 		return "", "", false, nil
 	}
 	id, idString := rawID.(string)
@@ -39,8 +46,15 @@ func validateToolResult(n Node, r Result) error {
 	if err != nil {
 		return err
 	}
+	fixedOpenCode, err := toolcontract.DecodeOpenCodeNodeConfiguration(n.Config)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalid, err)
+	}
 	success := r.ExitCode == 0 && r.Error == "" && !r.Stopped && !r.OutcomeUnknown
 	if r.ToolEvidence == nil {
+		if fixedOpenCode != nil && r.Stopped {
+			return dagDiagnostic(fmt.Errorf("%w: tool evidence differs from fixed node", ErrInvalid), "dag.tool.result_binding", nil)
+		}
 		if bound && success {
 			return dagDiagnostic(fmt.Errorf("%w: bound tool success requires terminal evidence", ErrInvalid), "dag.tool.terminal_evidence", nil)
 		}
@@ -52,6 +66,13 @@ func validateToolResult(n Node, r Result) error {
 	}
 	if !bound || e.Profile.CommandID != n.Command[0] || e.Profile.ProfileSHA256 != sha {
 		return dagDiagnostic(fmt.Errorf("%w: tool evidence differs from fixed node", ErrInvalid), "dag.tool.result_binding", nil)
+	}
+	sdkEvidence := e.Profile.Protocol == toolcontract.OpenCodeSDKProtocol || e.Profile.OpenCodeExecution != nil || e.OpenCodeExecution != nil
+	if (fixedOpenCode != nil) != sdkEvidence || fixedOpenCode != nil && (e.Profile.OpenCodeExecution == nil || *fixedOpenCode != *e.Profile.OpenCodeExecution) {
+		return dagDiagnostic(fmt.Errorf("%w: tool evidence differs from fixed node", ErrInvalid), "dag.tool.result_binding", nil)
+	}
+	if err := toolcontract.ValidateOpenCodeResultStop(*e, r.Stopped, r.OutcomeUnknown); err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalid, err)
 	}
 	if success && (e.Terminal != "completed" || e.Profile.Protocol != "text-v1" && e.EventCount == 0) {
 		return dagDiagnostic(fmt.Errorf("%w: protocol completion does not prove success", ErrInvalid), "dag.tool.protocol_success", nil)

@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "task": "T-OPENCODE-104",
+  "product_version": "1.0.0",
+  "baseline_commit": "b2462b47b2126a37a3c49f14bd4e8004de8bdedb",
+  "goal_status": "active; full P0-P7 and requirements1..22 retained",
+  "status": "bounded_source_protocol_host_gui_and_build_checks_passed",
+  "protocol": "opencode-sdk-v1",
+  "vendor_sdk_server_pin": "1.19.4",
+  "upstream_commit": "148842ef7cb1bc34192b3fff57d0f9721ab9c801",
+  "compatibility_policy": "Single current SDK path; unused old JSONL execution pair/parser and unavailable display branch removed. No migration, historical alias or second dispatcher added.",
+  "new_database_tables": 0,
+  "sdk": {
+    "focused_tests": 17,
+    "vendor_server_calls": 0,
+    "vendor_model_calls": 0,
+    "manifest_sha256": "0b3417bbca73fafab3a2c85617417cfadbca169e4d6f7af5cb618a8b0956252a",
+    "entry_sha256": "ba780fea768677ac0c9eb10739c8127fd3f87d62d15e3134a2cc47b659cefda6",
+    "assets": 3621,
+    "asset_bytes": 57548131,
+    "sdk_handoff_sha256": "0bde046235715f11ca58f7ee1cbaa9fde7355333b331c7d06bbef2aeabddae26"
+  },
+  "go_receipts": [
+    {
+      "receipt": ".cache/mcp019-deps/20261028T000725201Z.command.json",
+      "sha256": "71e10b6fb109fbb7fd6b831103ba2498274c95fe2afa15bc25dbbbc1278eb4d8",
+      "arguments": [
+        "test",
+        "./internal/toolcontract",
+        "-run",
+        "^TestOpenCode",
+        "-count=1"
+      ],
+      "exit_code": 0
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T001226554Z.command.json",
+      "sha256": "6d0021e4489da1e35865149cbe685364f87278b0511ea4ac30d789405226fe0f",
+      "arguments": [
+        "test",
+        "./internal/toolcontract",
+        "./internal/platform",
+        "-run",
+        "^(TestOpenCode|TestToolDisplayEligibilityBranches|TestModelExecution|TestCodexExecutionControl|TestExpertCodex)",
+        "-count=1"
+      ],
+      "exit_code": 1
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T001348615Z.command.json",
+      "sha256": "7788378d7efcb20bf319bac4ad65e80b548a77dc1ab5ec33bcd8b3877a9bfb06",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^(TestOpenCodeControlFixedProfileHTTPAndPlanIdentity|TestOpenCodeExpertPreviewFreezesSameAdministratorModelAndBudgetGate)$",
+        "-count=1"
+      ],
+      "exit_code": 0
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T001453632Z.command.json",
+      "sha256": "ef5a72b784225388c0a942c0c74fa76708e56643fc53dc953fae5d8a5f2b57f4",
+      "arguments": [
+        "test",
+        "./internal/runner",
+        "-run",
+        "TestOpenCode|TestDsh|TestNativeWorkspace|TestToolInventoryDoesNotAdvertise",
+        "-count=1"
+      ],
+      "exit_code": 1
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T001741659Z.command.json",
+      "sha256": "5839809c07934a63190f9a14d075a9836a1387b9a4d896faa62802fbef4e0571",
+      "arguments": [
+        "test",
+        "./internal/runner",
+        "-run",
+        "TestOpenCode",
+        "-count=1"
+      ],
+      "exit_code": 0
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T001850380Z.command.json",
+      "sha256": "fb13228b7d108c844c39fa77caa35d05df17f221602026672ded2d8a7fdbd699",
+      "arguments": [
+        "test",
+        "./internal/dag",
+        "./internal/platform",
+        "-run",
+        "^(TestOpenCodeResultBindsExactSDKNodeAndStopFacts|TestOpenCodeStoppedCallbacksPrivatePoolRejectForgedReceiptAndPreserveOriginal|TestOpenCodeDirectWorkflowRequiresBoundFixedConfiguration)$",
+        "-count=1"
+      ],
+      "exit_code": 1
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T001950143Z.command.json",
+      "sha256": "cd7f2146256c424c36ff4ca18b8fbc91b540778a45ec19962c9c076b4c27ba00",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^(TestOpenCodeStoppedCallbacksPrivatePoolRejectForgedReceiptAndPreserveOriginal|TestOpenCodeDirectWorkflowRequiresBoundFixedConfiguration)$",
+        "-count=1"
+      ],
+      "exit_code": 0
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T002108414Z.command.json",
+      "sha256": "97959cbedef43a6b0a1d20200ea0ddde81bf14ce3a75c0209431b67e0f6a56d7",
+      "arguments": [
+        "test",
+        "./internal/runner",
+        "-run",
+        "^(TestOpenCodeProcessCancellationNeedsOriginalAbortAndServerStop|TestOpenCodeProcessContainmentErrorRevokesServerStopProof)$",
+        "-count=1"
+      ],
+      "exit_code": 0
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T002220284Z.command.json",
+      "sha256": "947616098b68718532e96951386a932cf4d0c7dc294a94d59bd1f42ea35eefc3",
+      "arguments": [
+        "test",
+        "./cmd/suma-contracts",
+        "./internal/localization",
+        "./internal/displaycontract",
+        "-count=1"
+      ],
+      "exit_code": 1
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T002254336Z.command.json",
+      "sha256": "289ad210295b05afd69b450d6bdb21c5924479a351915945b28153c09a091099",
+      "arguments": [
+        "test",
+        "./cmd/suma-contracts",
+        "./internal/localization",
+        "./internal/displaycontract",
+        "-run",
+        "^(TestDisplayDiagnosticPublishedContract|TestDisplaySourcesArtifactIsStandalone|TestDisplayCatalogExplicitSourceAndNoReverseAlias|TestSourceDefinitionsAreApprovedSortedSnapshots)$",
+        "-count=1"
+      ],
+      "exit_code": 0
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T002309942Z.command.json",
+      "sha256": "0d48c70ccd735eb691479ec8558fd638a7480cf0bb33330e996b518031d952b2",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^TestOpenCodeWorkbenchFixedConfigurationPreview$",
+        "-count=1",
+        "-timeout",
+        "12m",
+        "-v"
+      ],
+      "exit_code": 0
+    },
+    {
+      "receipt": ".cache/mcp019-deps/20261028T002545779Z.command.json",
+      "sha256": "514fe67dc0c8c136a97c53dfa96e1bba245b4e32c2bcbc22117212753be65a2d",
+      "arguments": [
+        "vet",
+        "./internal/runner",
+        "./internal/toolcontract",
+        "./internal/dag",
+        "./internal/platform",
+        "./cmd/suma-contracts"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "web": {
+    "distinct_cases": 99,
+    "files": 7,
+    "typecheck_exit_code": 0,
+    "catalog_keys": 4625,
+    "production_hardcodes": 0,
+    "final_build_exit_code": 0,
+    "final_build_seconds": 41.42,
+    "outdir": ".cache/e2e/opencode-104/web-dist",
+    "warnings": [
+      "Existing large Monaco/Flow chunks remain; no performance acceptance inferred."
+    ]
+  },
+  "browser": {
+    "plan_id": "c5890df6ee21a96379820550d1b91ba2",
+    "project_id": "a34d107b6c33c438a2be0e5807c780d0",
+    "actual_ui_preview": true,
+    "refresh_preserved_plan": true,
+    "locales": [
+      "zh-CN",
+      "en-US"
+    ],
+    "fixed_model": "owned/model-a",
+    "configuration_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "start_clicked": false,
+    "model_calls": 0,
+    "vendor_cli_calls": 0
+  },
+  "browser_closed": {
+    "model_calls": 0,
+    "runs": 0,
+    "usage_attempts": 0,
+    "vendor_cli_calls": 0
+  },
+  "build": {
+    "manifest": "dist/runtime/builds/20261028T002604908Z-382e6cea/manifest.json",
+    "source_sha256": "b3358cd72c818d66637c525b23ea5216411faa450c98c2b70bae462ecc91e31b",
+    "source_inputs": 460,
+    "source_unchanged": true,
+    "programs": 5,
+    "target": "windows-amd64",
+    "executed_version_flags": [
+      "suma-control 1.0.0",
+      "suma-runner 1.0.0",
+      "suma-deployer 1.0.0",
+      "suma-repository-provider 1.0.0",
+      "suma 1.0.0"
+    ]
+  },
+  "not_verified": [
+    "Actual OpenCode executable/serve/provider coding with the live Go host in one combined vendor attempt",
+    "Vendor identity or billing; complete aggregate token usage; hard budgets",
+    "Physical distributed hosts, Unix/macOS runtime and cross-platform installation",
+    "Full interactive session/resume, native conflict repair/planning/extraction/diagnosis for OpenCode",
+    "Production acceptance or full P0-P7 completion"
+  ],
+  "git_policy": "Only necessary source, configuration, lock, contracts, design and compact evidence; no caches/dependency trees/databases/credentials/rawlogs/binaries/screenshots"
+}

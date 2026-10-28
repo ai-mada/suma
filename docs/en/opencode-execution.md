@@ -1,0 +1,13 @@
+# Fixed OpenCode execution — suma 1.0.0
+
+Owners: execution, control and workbench. [Contract](../../contracts/opencode-sdk.md), [architecture and SOP](../architecture/opencode-execution.md), [verification](../quality/opencode-execution-verification.md).
+
+The single current adapter uses official SDK/plugin **1.19.4** and the matching server. The administrator fixes its provider/model/endpoint through the local command configuration; a task cannot inject process settings or select another model. Inventory, original preview and producer retain identical public configuration facts. Changed facts require an explicit new preview. There are no old JSONL aliases, historical configuration converters or automatic prompt retries.
+
+Build `pnpm --filter @suma/opencode-runtime build`, retain the entire generated bundle/manifest/plugin asset closure, then adapt the [Runner example](../../deploy/runner/opencode.example.json). The Runner still requires an authorized project identity, approved tool profile, allowed execution root, real repository, fixed base commit and independent test command. Keep API keys in a local environment reference. An offline probe verifies configuration/assets/version, not account health or task success.
+
+The wrapper runs an authenticated private loopback server, generated isolated configuration and six trusted custom tools. Built-in file/command tools, unapproved plugins, project settings and implicit title/compaction jobs are disabled. Existing host MCP, root-constrained files, CAS operations and durable receipts remain authoritative. The private server stays in the Go supervisor's process scope; missing stop proof, disconnect or lost responses cannot become success. This application bridge does not claim full OS/network isolation.
+
+Whole-turn completion requires the original session/user-parent/final-assistant/model correlation, completed timestamp, finish=stop and no error or pending tool. A step ending, HTTP200 or abort ACK is insufficient. The same candidate seal, transfer, independent exact-SHA test, human review and controlled repository integration follow. Usage is unreported or partial and unpriced; organization/project enforced budget policies reject this tool. Configuration acknowledgement does not attest actual provider identity or billing.
+
+The workbench reuses the compact model facts area. The fixed model and boundary are visible; version/origin/digest are disclosed on demand. Refresh preserves the original plan, malformed responses preserve the original operation, and English/Chinese switch without another model request. SDK foreign-session resume, input relay, this tool's native repair/planning/extraction/diagnosis and full vendor/production acceptance remain separately tracked.

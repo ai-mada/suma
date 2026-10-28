@@ -4,13 +4,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-WORKSPACE-103",
-  "updated_at": "2026-10-27T23:55:48.756188+00:00",
+  "stage": "T-OPENCODE-104",
+  "updated_at": "2026-10-28T00:29:51.083059+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/codex-workspace-observation-verification.md",
-  "current_summary": "docs/quality/codex-workspace-observation-summary.json",
+  "current_evidence": "docs/quality/opencode-execution-verification.md",
+  "current_summary": "docs/quality/opencode-execution-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..22",
     "source_sha256": "2743ccd3920cc648455d7c5ad12f5c9937590d3eafdecc5da36d6529aa829a71",
@@ -24,26 +24,29 @@
     "scheduling": "One ready queue, accounts/ledger, complete current dependency semantics and fixed routes; persisted current restart remains.",
     "identity": "Current complete issuance/source/family/Grant/slot proof and transactional revocation; no inferred authority or migration status.",
     "workbench": "Current local/Pool workspace; native and Codex live attempt list/read via shared root, native-only CAS save; fixed ordinary/expert models and native repair; fullIDE/coordinatedexternalwrites remain.",
-    "internationalization": "zh-CN/en-US extensible catalogs, 4615 paired web keys; current shared observation diagnostics.",
+    "internationalization": "zh-CN/en-US extensible paired catalogs,4625 web keys; new OpenCode own CLI help/diagnostics bilingual; original source remains original.",
     "versioning": "Go product identity has one source; workspace/desktop/Helm check:version is1.0.0; protocol/workflow/data revisions independent.",
-    "architecture": "Single initial1.0.0 domain architecture; current model selections reuse one builder/domain; no added compatibility, DDL or dependencies."
+    "architecture": "Single initial1.0.0; one current OpenCode SDK path, no old JSONL parser/alias or duplicate dispatcher. Generated public types replace duplicate web DTOs; current native host/ledger reused.",
+    "opencode": "Fixed official SDK/plugin/server1.19.4; current original ordinary/expert configuration; existing host MCP/ledger/seal; observe-only unpriced; actual vendor combined journey remains pending."
   },
   "verified": {
-    "initial_sqlite_tables": 183,
+    "current_report": "docs/quality/opencode-execution-verification.md",
     "actual_program_versions": 5,
-    "exact_restart_preserved": true,
-    "unknown_partial_schema_refused_unchanged": true,
+    "product_version": "1.0.0",
+    "new_database_tables_this_delivery": 0,
     "model_calls_this_delivery": 0,
     "vendor_calls_this_delivery": 0,
-    "new_dependencies": 0,
-    "current_report": "docs/quality/codex-workspace-observation-verification.md",
-    "actual_cli_calls_this_delivery": 0,
-    "new_tables_this_delivery": 0,
-    "production_source_sha256": "d4f02d4d90bd2f15781645f9278730b2035a20fa2c777fdb5c8eadff394cff15",
-    "windows_runtime_manifest": "dist/runtime/builds/20261027T235405143Z-dd7f8bf6/manifest.json",
-    "distinct_affected_web_cases": 52,
-    "actual_live_outbound_codex_protocol_workspace": true,
-    "actual_vendor_codex_invoked_this_delivery": false
+    "new_direct_external_sdk_dependencies": 2,
+    "distinct_affected_web_cases": 99,
+    "sdk_focused_cases": 17,
+    "go_affected_checks": "passed including precise failure replays; see report for scope",
+    "windows_runtime_manifest": "dist/runtime/builds/20261028T002604908Z-382e6cea/manifest.json",
+    "production_source_sha256": "b3358cd72c818d66637c525b23ea5216411faa450c98c2b70bae462ecc91e31b",
+    "production_go_inputs": 460,
+    "real_sdk_owned_http": true,
+    "actual_host_mcp_git_protocol_child": true,
+    "actual_vendor_opencode_serve_or_model": false,
+    "actual_cn_en_preview_refresh_browser": true
   },
   "production_integration_complete": false,
   "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
@@ -53,7 +56,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "81777389f338b8aa2212c5dc00cebdbf78016789"
+    "previously_published_commit": "b2462b47b2126a37a3c49f14bd4e8004de8bdedb"
   },
   "existing_preview": {
     "updated": false,
@@ -61,13 +64,13 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Keep full P0-P7 and1..22; see current complete plan for unimplemented/partially verified capabilities.",
-  "last_goal_turn_classification": "progress: Codex active workspace read transport implemented end-to-end with actual local protocol child/Worker/Control/Git and CNEN browser evidence; full platform goal remains active",
-  "previous_goal_turn": "progress: fixed model choices across ordinary/expert/native-repair, current gates and original recovery, CNEN preview/revision GUI, necessary checks and Windowsbuild completed and pushed81777389",
+  "last_goal_turn_classification": "progress: current1.0.0 OpenCode SDK path and original fixed configuration/host tools/ledger/stop/UI implemented; old unverified JSONL and duplicate DTO/status branches removed. Scoped checks/SDK/host/browser/build passed. Full platform goal remains active.",
+  "previous_goal_turn": "progress: Codex active workspace read transport implemented end-to-end with actual local protocol child/Worker/Control/Git and CNEN browser evidence; full platform goal remains active",
   "current_work": {
-    "status": "verified",
-    "runner": "Implemented shared live read handle and exact Codex registration/revocation, native-only write handle; affected checks and combined real Control/Worker/Git/protocol fixture passed.",
-    "control": "Codex read declarations and private/Pool observation lifecycle passed, current authority/inventory/fence retained, writesdenied.",
-    "interface": "Existing simple readonly interface, currenttarget refresh/CNEN/actualfile reads verified; native draft/pendingoperation isolation tested.",
-    "deferred_not_dropped": "Codex coordinated save/conflict repair; PTY/LSP/DAP/fullIDE and all remaining P0-P7/requirements1..22."
+    "status": "verified_bounded_stage",
+    "runner": "Current SDK config/input/manifest, shared native host and receipt ledger/candidate seal, exact independent tests, original result replay, combined wrapper+Go stop evidence; Windows targeted checks passed.",
+    "control": "Original fixed ordinary/expert configuration, no mixed/native/Codex override or retry, current private/Pool admission/reserve and stop validation; common DAG proof independently bound.",
+    "interface": "Compact fixed configuration, current public inventory, original bad-response recovery, real isolated CNEN preview and refresh;4625 paired keys.",
+    "deferred_not_dropped": "Actual installed OpenCode/serve/provider combined coding journey, foreign-session recovery, fullIDE and all remaining P0-P7/requirements1..22."
   }
 }

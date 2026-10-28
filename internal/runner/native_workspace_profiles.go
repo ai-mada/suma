@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,11 +17,13 @@ import (
 )
 
 type nativeRuntimeManifest struct {
-	SchemaVersion   int               `json:"schema_version"`
-	Entry           string            `json:"entry"`
-	EntrySHA256     string            `json:"entry_sha256"`
-	ExternalImports []string          `json:"external_imports"`
-	Dependencies    map[string]string `json:"dependencies"`
+	SchemaVersion   int                      `json:"schema_version"`
+	Entry           string                   `json:"entry"`
+	EntrySHA256     string                   `json:"entry_sha256"`
+	ExternalImports []string                 `json:"external_imports"`
+	Dependencies    map[string]string        `json:"dependencies"`
+	Assets          []openCodeRuntimeAsset   `json:"assets,omitempty"`
+	OpenCode        *openCodeRuntimeMetadata `json:"opencode,omitempty"`
 }
 
 func validateNativeWorkspacePolicy(cfg ExecConfig, id string, spec CommandSpec) error {
@@ -28,7 +31,9 @@ func validateNativeWorkspacePolicy(cfg ExecConfig, id string, spec CommandSpec) 
 		return nil
 	}
 	policy := spec.NativeWorkspace
-	if spec.Adapter != "suma" || spec.Protocol != "suma-jsonl-v1" || spec.ReadOnly || spec.Input != "agent-jsonl" || spec.ArtifactInput || spec.ArtifactOutput != "" || spec.TestEvidence || len(policy.Checks) > 16 || !filepath.IsAbs(policy.RuntimeManifest) {
+	native := spec.Adapter == "suma" && spec.Protocol == "suma-jsonl-v1" && spec.Input == "agent-jsonl"
+	openCode := spec.Adapter == "opencode" && spec.Protocol == tc.OpenCodeSDKProtocol && spec.Input == "opencode-sdk-jsonl" && spec.OpenCode != nil && !policy.ConflictRepair
+	if (!native && !openCode) || spec.ReadOnly || spec.ArtifactInput || spec.ArtifactOutput != "" || spec.TestEvidence || len(policy.Checks) > 16 || !filepath.IsAbs(policy.RuntimeManifest) {
 		return fmt.Errorf("native workspace requires an isolated Suma agent, a runtime manifest and bounded fixed checks")
 	}
 	seen := map[string]bool{}
@@ -51,14 +56,28 @@ func nativeManifestDigest(spec CommandSpec) (string, error) {
 	}
 	path := spec.NativeWorkspace.RuntimeManifest
 	st, err := os.Lstat(path)
-	if err != nil || !st.Mode().IsRegular() || st.Mode()&os.ModeSymlink != 0 || st.Size() > 256<<10 {
+	maximum := int64(256 << 10)
+	if spec.Adapter == "opencode" {
+		maximum = 8 << 20
+	}
+	if err != nil || !st.Mode().IsRegular() || st.Mode()&os.ModeSymlink != 0 || st.Size() > maximum {
 		return "", fmt.Errorf("native runtime manifest is unavailable or invalid")
 	}
-	raw, err := os.ReadFile(path)
+	f, err := os.Open(path)
 	if err != nil {
 		return "", fmt.Errorf("native runtime manifest is unavailable")
 	}
-	if _, err = decodeToolObject(raw); err != nil {
+	opened, statErr := f.Stat()
+	raw, err := io.ReadAll(io.LimitReader(f, maximum+1))
+	_ = f.Close()
+	if err != nil || statErr != nil || !os.SameFile(st, opened) || int64(len(raw)) > maximum {
+		return "", fmt.Errorf("native runtime manifest is unavailable")
+	}
+	tokens := 32768
+	if spec.Adapter == "opencode" {
+		tokens = 1 << 20
+	}
+	if _, err = decodeToolObjectBounded(raw, tokens); err != nil {
 		return "", fmt.Errorf("native runtime manifest is invalid")
 	}
 	var manifest nativeRuntimeManifest
@@ -75,6 +94,13 @@ func nativeManifestDigest(spec CommandSpec) (string, error) {
 	if manifest.Dependencies["@modelcontextprotocol/client"] == "" {
 		return "", fmt.Errorf("native runtime manifest is missing its official MCP client version")
 	}
+	if spec.Adapter == "opencode" {
+		if err = validateOpenCodeRuntimeAssets(spec, manifest); err != nil {
+			return "", err
+		}
+	} else if manifest.OpenCode != nil || len(manifest.Assets) != 0 {
+		return "", fmt.Errorf("native runtime manifest has foreign assets")
+	}
 	for name, version := range manifest.Dependencies {
 		if name == "" || version == "" || len(name) > 256 || len(version) > 100 || strings.ContainsAny(name+version, "\x00\r\n") {
 			return "", fmt.Errorf("native runtime dependency declaration is invalid")
@@ -84,8 +110,14 @@ func nativeManifestDigest(spec CommandSpec) (string, error) {
 	if err != nil || !entry.Mode().IsRegular() || entry.Mode()&os.ModeSymlink != 0 || entry.Size() > 16<<20 {
 		return "", fmt.Errorf("native runtime bundle is unavailable or invalid")
 	}
-	data, err := os.ReadFile(spec.Args[0])
-	if err != nil || digest(data) != manifest.EntrySHA256 {
+	f, err = os.Open(spec.Args[0])
+	if err != nil {
+		return "", fmt.Errorf("native runtime bundle is unavailable")
+	}
+	opened, statErr = f.Stat()
+	data, err := io.ReadAll(io.LimitReader(f, (16<<20)+1))
+	_ = f.Close()
+	if err != nil || statErr != nil || !os.SameFile(entry, opened) || len(data) > 16<<20 || digest(data) != manifest.EntrySHA256 {
 		return "", fmt.Errorf("native runtime bundle does not match its manifest")
 	}
 	return digest(raw), nil

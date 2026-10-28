@@ -1,0 +1,10 @@
+import {tool} from '@opencode-ai/plugin/tool';
+import {hostTools} from './tool-host.js';
+const z=tool.schema;
+const path=z.string(),hash=z.string(),integer=z.number().int();
+export const list=tool({description:'List the authorized attempt workspace.',args:{directory:path.optional(),limit:integer.optional(),cursor:z.string().optional()},execute:(args,context)=>hostTools().invoke('list',args,context)});
+export const read=tool({description:'Read text from the authorized attempt workspace.',args:{path,start_line:integer.optional(),max_lines:integer.optional()},execute:(args,context)=>hostTools().invoke('read',args,context)});
+export const write=tool({description:'Write an authorized file with its expected revision.',args:{path,content:z.string(),expected_sha256:hash.optional(),expected_absent:z.boolean().optional()},execute:(args,context)=>hostTools().invoke('write',args,context)});
+export const edit=tool({description:'Apply exact edits with the expected file revision.',args:{path,expected_sha256:hash,edits:z.array(z.object({old_text:z.string(),new_text:z.string()}).strict())},execute:(args,context)=>hostTools().invoke('edit',args,context)});
+export const remove=tool({description:'Remove an authorized file with its expected revision.',args:{path,expected_sha256:hash},execute:(args,context)=>hostTools().invoke('remove',args,context)});
+export const check=tool({description:'Run one fixed administrator-provided workspace check.',args:{check_id:z.string()},execute:(args,context)=>hostTools().invoke('check',args,context)});

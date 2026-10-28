@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "main": "dist/src/index.js",
-  "exports": "./dist/src/index.js",
+  "exports": { ".": "./dist/src/index.js", "./workspace-client": "./dist/src/workspace-client.js" },
   "bin": {
     "suma-agent": "dist/suma-agent.bundle.mjs"
   },

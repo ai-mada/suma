@@ -1,0 +1,29 @@
+{
+  "opencode-coder": {
+    "executable": "C:/Program Files/nodejs/node.exe",
+    "args": ["D:/work/suma/packages/opencode-runtime/dist/suma-opencode.bundle.mjs"],
+    "adapter": "opencode",
+    "protocol": "opencode-sdk-v1",
+    "input": "opencode-sdk-jsonl",
+    "read_only": false,
+    "native_workspace": {
+      "checks": ["python-tests"],
+      "runtime_manifest": "D:/work/suma/packages/opencode-runtime/dist/suma-opencode.manifest.json"
+    },
+    "opencode": {
+      "executable": "D:/tools/opencode/opencode.exe",
+      "provider_id": "approved",
+      "model": "approved-model",
+      "base_url": "https://models.example/v1",
+      "api_key_env_ref": "MODEL_PROVIDER_API_KEY"
+    }
+  },
+  "python-tests": {
+    "executable": "python",
+    "args": ["-m", "unittest", "discover", "-s", "tests"],
+    "adapter": "command",
+    "protocol": "text-v1",
+    "read_only": false,
+    "test_evidence": true
+  }
+}

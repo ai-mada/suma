@@ -107,7 +107,7 @@ func commandProfileDigest(spec CommandSpec, executableSHA string) (string, error
 	if err != nil {
 		return "", err
 	}
-	if spec.Adapter == "suma" {
+	if spec.Adapter == "suma" || spec.Adapter == "opencode" {
 		if len(spec.Args) != 1 || !filepath.IsAbs(spec.Args[0]) || (strings.ToLower(filepath.Ext(spec.Args[0])) != ".js" && strings.ToLower(filepath.Ext(spec.Args[0])) != ".mjs") {
 			return "", fmt.Errorf("Suma profile requires one absolute JavaScript entry")
 		}
@@ -130,6 +130,18 @@ func commandProfileDigest(spec CommandSpec, executableSHA string) (string, error
 	// an unbounded read after the initial size check.
 	if count, err := io.Copy(h, io.LimitReader(f, (16<<20)+1)); err != nil || count > 16<<20 {
 		return "", fmt.Errorf("runtime JavaScript entry digest unavailable")
+	}
+	if spec.OpenCode != nil {
+		_, serverSHA, err := openCodeExecutable(spec)
+		if err != nil {
+			return "", err
+		}
+		return tc.ProfileDigest(struct {
+			Command             CommandSpec `json:"command"`
+			EntrySHA256         string      `json:"entry_sha256"`
+			ServerSHA256        string      `json:"server_sha256"`
+			ConfigurationSHA256 string      `json:"configuration_sha256"`
+		}{spec, hex.EncodeToString(h.Sum(nil)), serverSHA, OpenCodeConfigurationDigest(*spec.OpenCode)}, executableSHA)
 	}
 	return tc.ProfileDigest(struct {
 		Command     CommandSpec `json:"command"`
@@ -203,7 +215,7 @@ func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []st
 		return "local-command", nil
 	}
 	if spec.Adapter == "opencode" {
-		return "", fmt.Errorf("OpenCode whole-run JSONL terminal is not supported; step_finish is not a run completion")
+		return probeOpenCode(ctx, exe, spec, secrets, workspace)
 	}
 	var versionArgs, helpArgs []string
 	switch spec.Adapter {
@@ -413,6 +425,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 	}
 	for id, spec := range cfg.Commands {
 		spec = normalizedCommand(spec)
+		if err := validateOpenCodeSpec(spec); err != nil {
+			return err
+		}
 		if err := validateCodexAppServerSpec(spec); err != nil {
 			return err
 		}
@@ -472,7 +487,7 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 			defer func() { <-sem; done <- i }()
 			spec := normalizedCommand(cfg.Commands[id])
 			p := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol}
-			if spec.NativeWorkspace != nil {
+			if spec.NativeWorkspace != nil && spec.Adapter != "opencode" {
 				p.WorkspaceToolsVersion = NativeWorkspaceVersion
 				if spec.NativeWorkspace.ConflictRepair {
 					p.ConflictRepairProtocol = "suma.candidate-conflict-repair.v1"
@@ -486,10 +501,6 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 			}
 			if !cfg.AllowExec {
 				fail("execution is disabled by the local administrator")
-				return
-			}
-			if spec.Adapter == "opencode" {
-				fail("OpenCode whole-run JSONL terminal is not supported; step_finish is not a run completion")
 				return
 			}
 			if readErr != nil {
@@ -518,6 +529,14 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 				return
 			}
 			o.Profile.ToolVersion = version
+			if spec.Adapter == "opencode" {
+				o.Profile.OpenCodeExecution, err = localOpenCodeCapability(spec)
+				if err != nil {
+					fail(err.Error())
+					return
+				}
+				o.Profile.WorkspaceToolsVersion = NativeWorkspaceVersion
+			}
 			if spec.Protocol == cc.Protocol {
 				o.CodexCatalog, err = probeCodexCatalog(ctx, exe, spec, cfg)
 				if err != nil {
@@ -580,6 +599,9 @@ func ToolCapabilities(items []tc.Observation) []string {
 
 func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec CommandSpec) (tc.Profile, string, error) {
 	spec = normalizedCommand(spec)
+	if err := validateOpenCodeSpec(spec); err != nil {
+		return tc.Profile{}, "", err
+	}
 	if spec.Adapter == "codex" {
 		if err := validateCodexCommand(spec); err != nil {
 			return tc.Profile{}, "", err
@@ -610,6 +632,10 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 			return p, "", e
 		}
 		p = tc.Profile{CommandID: a.Command[0], Adapter: spec.Adapter, Protocol: spec.Protocol, ProfileSHA256: digest, ExecutableSHA256: sha, ToolVersion: version, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol}
+		p.OpenCodeExecution, err = localOpenCodeCapability(spec)
+		if err != nil {
+			return p, "", err
+		}
 		if spec.ModelExecutionProtocol == mc.Protocol {
 			if err = probeModelExecution(ctx, exe, spec); err != nil {
 				return p, "", err
@@ -636,6 +662,10 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 	}
 	if err = tc.ValidateProfile(p, true); err != nil {
 		return p, "", fmt.Errorf("invalid tool profile")
+	}
+	expectedOpenCode, err := localOpenCodeCapability(spec)
+	if err != nil || (p.OpenCodeExecution == nil) != (expectedOpenCode == nil) || p.OpenCodeExecution != nil && *p.OpenCodeExecution != *expectedOpenCode {
+		return p, "", fmt.Errorf("OpenCode fixed configuration differs from local inventory")
 	}
 	if p.ModelExecutionProtocol != spec.ModelExecutionProtocol || validateModelExecutionSpec(spec) != nil {
 		return p, "", fmt.Errorf("model execution capability does not match local configuration")

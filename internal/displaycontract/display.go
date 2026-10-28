@@ -31,7 +31,7 @@ var toolKeys = map[string]bool{
 	"display.tool.pool_expired": true, "display.tool.inventory_missing": true,
 	"display.tool.inventory_stale": true, "display.tool.command_missing": true,
 	"display.tool.profile_mismatch": true, "display.tool.reported_unavailable": true,
-	"display.tool.protocol_unverified": true, "display.tool.dispatchable": true,
+	"display.tool.dispatchable": true,
 }
 
 // BindToolReason is called at a concrete trusted producer, never by reverse

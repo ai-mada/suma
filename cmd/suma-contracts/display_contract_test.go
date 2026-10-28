@@ -29,7 +29,7 @@ func TestDisplayDiagnosticPublishedContract(t *testing.T) {
 		t.Fatal("display diagnostic version is not fixed")
 	}
 	keys, ok := properties["message_key"].(map[string]any)["enum"].([]string)
-	if !ok || len(keys) != 16 {
+	if !ok || len(keys) != 15 {
 		t.Fatal("display contract must contain all approved tool reason identities")
 	}
 	for _, key := range keys {
@@ -118,7 +118,7 @@ func TestDisplaySourcesArtifactIsStandalone(t *testing.T) {
 		t.Fatal("displaySourceDefinitions export missing")
 	}
 	var entries []map[string]json.RawMessage
-	if err := json.Unmarshal([]byte(strings.SplitN(parts[1], " as const", 2)[0]), &entries); err != nil || len(entries) != 16 {
+	if err := json.Unmarshal([]byte(strings.SplitN(parts[1], " as const", 2)[0]), &entries); err != nil || len(entries) != 15 {
 		t.Fatal("generated source definitions are incomplete or not serializable", err)
 	}
 }

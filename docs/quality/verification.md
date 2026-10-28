@@ -4,6 +4,7 @@
 
 | 当前范围 | 验证与限制 |
 | --- | --- |
+| 当前 OpenCode SDK 与1.0.0冗余清理 | [限定报告](opencode-execution-verification.md)、[精简摘要](opencode-execution-summary.json)：单一SDK合同、固定配置／用量／停止、真实本机宿主MCP／Git与独立测试、CNEN预览／刷新及五程序1.0.0；真实厂商serve／模型同次闭环未验 |
 | Codex当前执行工作区只读 | [限定报告](codex-workspace-observation-verification.md)、[精简摘要](codex-workspace-observation-summary.json)：真实本机Control／Runner／隔离Git／自有协议子进程的出站读取、界面及取消；零厂商或模型调用，保存仍仅限原生 |
 | 模型选择跨普通任务、专家与原生修复 | [当前限定报告](model-selection-workflows-verification.md)、[精简摘要](model-selection-workflows-summary.json)：受影响接口／CLI／Web、实际预览及修订／刷新、零新增模型和执行；原生修复仍不支持 Codex |
 | 单一初始化结构与共享版本 | [初始化报告](initial-version-verification.md)、[摘要](initial-version-summary.json)：当前183表、同结构正常重启、未知既有结构拒绝；不升级旧用户库 |

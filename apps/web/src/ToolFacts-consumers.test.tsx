@@ -186,8 +186,8 @@ describe("tool execution facts are separate from acceptance", () => {
         name: "固定流程",
         version: 4,
         nodes: [
-          { id: "code", name: "开发", type: "agent" },
-          { id: "test", name: "独立测试", type: "test" },
+          { id: "code", name: "开发", type: "agent", command: [], depends_on: [], join: "", quorum: 0, timeout_seconds: 0, max_retries: 0, idempotent: false },
+          { id: "test", name: "独立测试", type: "test", command: [], depends_on: [], join: "", quorum: 0, timeout_seconds: 0, max_retries: 0, idempotent: false },
         ],
         edges: [],
       },
@@ -230,6 +230,7 @@ describe("tool execution facts are separate from acceptance", () => {
           session_id: "session-1",
           terminal: "completed",
           event_count: 4,
+          usage_state: "partial",
           usage: { input_tokens: 0, output_tokens: 5 },
         },
       }),
@@ -278,6 +279,7 @@ describe("tool execution facts are separate from acceptance", () => {
           profile: profile.profile,
           terminal: "completed",
           event_count: 2,
+          usage_state: "unreported",
         },
         events: [
           {

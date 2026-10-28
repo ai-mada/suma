@@ -248,7 +248,7 @@
   "development.dispatch.node_receiving_the_fixed_task_context": "Node receiving the fixed task context",
   "development.dispatch.choose_this_execution_s_agent_node": "Choose this execution's agent node",
   "development.dispatch.actual_tool_configuration": "Actual tool configuration",
-  "development.dispatch.development_dispatch_currently_uses_suma_codex_structured": "Development dispatch currently uses Suma/Codex structured tools with verified task input and terminal results. They must be enabled with fresh matching observations. Other tools can run in independent command workflows. The server checks again at preview and start.",
+  "development.dispatch.verified_tool_requirements": "Development dispatch uses tools with verified task input and whole-turn completion. They must be enabled with fresh matching observations. Other tools can run in independent command workflows. The server checks again at preview and start.",
   "development.dispatch.choose_a_dispatchable_tool": "Choose a dispatchable tool",
   "development.dispatch.load_more_tool_configurations": "Load more tool configurations",
   "development.dispatch.view_tool_configurations_and_unavailable_reasons": "View tool configurations and unavailable reasons",

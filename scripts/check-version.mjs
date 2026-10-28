@@ -16,6 +16,7 @@ for (const path of [
   'apps/web/package.json', 'apps/desktop/package.json',
   'packages/contracts/package.json', 'packages/knowledge/package.json',
   'packages/agent-runtime/package.json',
+  'packages/opencode-runtime/package.json',
 ]) verify(path, JSON.parse(read(path)).version);
 verify('internal/buildinfo/version.go', /const Version = "([^"]+)"/.exec(read('internal/buildinfo/version.go'))?.[1]);
 const chart = read('deploy/helm/suma/Chart.yaml');

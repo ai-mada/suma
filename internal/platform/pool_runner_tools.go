@@ -202,6 +202,9 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof
 		return false, nil
 	}
 	if !bound {
+		if _, present := n.Config["opencode_execution"]; present {
+			return false, nil
+		}
 		return true, nil
 	}
 	if p.WorkerID != runner.WorkerID || p.Profile.CommandID != n.Command[0] || p.Profile.ProfileSHA256 != hash {
@@ -241,12 +244,15 @@ func (s *Service) ValidatePoolToolResultTx(ctx context.Context, tx *sql.Tx, proo
 		return err
 	}
 
-	if result.ToolEvidence == nil {
-		return nil
-	}
 	n, p, err := s.poolBoundToolNodeTx(ctx, tx, dag.PoolScope{TenantID: a.TenantID, ProjectID: a.ProjectID}, a.RunID, a.NodeID)
 	if err != nil {
 		return err
+	}
+	if result.ToolEvidence == nil {
+		if result.Stopped && p.Profile.Protocol == tc.OpenCodeSDKProtocol {
+			return invalid(opencodeExecutionInvalid)
+		}
+		return nil
 	}
 	_, hash, bound, err := dag.ToolBinding(n)
 	if err != nil {
@@ -254,6 +260,9 @@ func (s *Service) ValidatePoolToolResultTx(ctx context.Context, tx *sql.Tx, proo
 	}
 	if !bound || p.WorkerID != a.WorkerID || p.Profile.ProfileSHA256 != hash || !tc.EqualProfile(result.ToolEvidence.Profile, p.Profile) {
 		return invalid("工具结果与本项目固定档案不匹配")
+	}
+	if err := tc.ValidateOpenCodeResultStop(*result.ToolEvidence, result.Stopped, result.OutcomeUnknown); err != nil {
+		return invalid(opencodeExecutionInvalid)
 	}
 	return nil
 }

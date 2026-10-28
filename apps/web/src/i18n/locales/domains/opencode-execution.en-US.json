@@ -1,0 +1,12 @@
+{
+  "opencode-execution.title": "Fixed OpenCode execution",
+  "opencode-execution.fixed": "The approved tool fixes the model. Changing it requires a newly approved tool configuration.",
+  "opencode-execution.allowance": "Usage is observed and cost is unpriced. This tool cannot satisfy enforced token or spending limits.",
+  "opencode-execution.basis": "Configuration and execution basis",
+  "opencode-execution.runtime": "Tool and SDK versions",
+  "opencode-execution.endpoint": "Model endpoint origin",
+  "opencode-execution.configuration": "Configuration digest",
+  "opencode-execution.identity": "Configuration acknowledgement does not attest the provider model, bill, independent tests or human acceptance.",
+  "opencode-execution.stopped": "The private tool service has stopped. Task and test evidence remain separate.",
+  "opencode-execution.stop_unknown": "The tool service stop has not been confirmed."
+}

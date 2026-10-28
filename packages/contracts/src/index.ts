@@ -1754,6 +1754,7 @@ export interface ModelExecutionOption {
   output_token_reservation: number;
 }
 export interface ModelExecutionOptions {
+  fixed_opencode?: OpenCodeExecutionCapability | null;
   codex_supported: boolean;
   codex_catalog?: CodexCatalog | null;
   codex_reason: string;
@@ -1912,6 +1913,30 @@ export interface NonSecretDeploymentRequest {
   artifact_id: string;
   artifact_sha256: string;
   assignment: AssignmentRef;
+}
+export interface OpenCodeExecutionCapability {
+  sdk_version: string;
+  server_version: string;
+  provider_id: string;
+  model: string;
+  endpoint_origin: string;
+  configuration_sha256: string;
+  budget_mode: string;
+  identity_evidence: string;
+}
+export interface OpenCodeExecutionEvidence {
+  configuration_sha256: string;
+  session_id: string;
+  user_message_id: string;
+  assistant_message_id: string;
+  requested_provider: string;
+  requested_model: string;
+  acknowledged_provider: string;
+  acknowledged_model: string;
+  finish: string;
+  completed_at: string;
+  server_stopped: boolean;
+  abort_acknowledged: boolean;
 }
 export interface OrganizationCreateRequest {
   name: string;
@@ -3620,6 +3645,7 @@ export interface TaskDispatchOptionsRequest {
   before?: string;
 }
 export interface TaskDispatchPlan {
+  opencode_execution?: OpenCodeExecutionCapability | null;
   codex_execution?: CodexBinding | null;
   model_execution?: ModelBinding | null;
   code_baseline?: CodeBaselineBinding | null;
@@ -3851,6 +3877,7 @@ export interface ToolEvidence {
   usage_state: string;
   model_execution?: ModelEvidence | null;
   codex_execution?: CodexEvidence | null;
+  opencode_execution?: OpenCodeExecutionEvidence | null;
 }
 export interface ToolExecutionProfile {
   command_id: string;
@@ -3866,6 +3893,7 @@ export interface ToolExecutionProfile {
   planning?: PlanningCapability | null;
   knowledge_extraction?: KnowledgeExtractionCapability | null;
   failure_diagnosis?: FailureDiagnosisCapability | null;
+  opencode_execution?: OpenCodeExecutionCapability | null;
 }
 export interface ToolInventoryReceipt {
   acknowledged: boolean;

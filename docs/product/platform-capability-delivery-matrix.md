@@ -1,18 +1,8 @@
-# 参考平台能力与交付差距矩阵
+# 参考平台能力与当前交付边界
 
-当前增量T-P4-041：[Codex合同](../../contracts/codex-app-server.md)、[接入与AI SOP](../integrations/codex-app-server.md)、[限定证据](../quality/codex-app-server-verification.md)。真实目录选择、固定单任务配置、实际CLI私有工作树编码、原进展／结果与partial未定价账本取得本地证据。配置ACK不代表提供方模型，observe-only不能用于enforce预算；团队／修复入口、其他CLI、完整IDE及所有P0–P7／1–22继续实施。
+产品统一为 **1.0.0**。本页只维护参考能力映射；当前实现／证据以[交付状态](../delivery/status.md)为准，完整P0–P7与需求1–22仍见[实施计划](../delivery/implementation-plan.md)。初始化、流程／数据修订和第三方协议版本分别管理，不保留旧产品入口或兼容适配。
 
-历史增量T-P4-040：[逐任务模型合同](../../contracts/expert-team-model-execution.md)、[架构与AI SOP](../architecture/expert-team-model-execution.md)、[限定证据](../quality/expert-team-model-execution-verification.md)。原生团队任务每项固定模型／参数／预算、原报价与真实账本，未开始项明确修订，中英与CLI恢复取得本地证据。外部CLI、修复入口、完整IDE及所有P0–P7／1–22继续实施。
-
-历史增量T-P4-039：[真实执行器能力合同](../../contracts/workspace-transport-capabilities.md)、[架构与AI SOP](../integrations/workspace-transport-capabilities.md)、[限定证据](../quality/workspace-capability-verification.md)。当前read/write broker声明与权限分离、准确准入、公开库存导入及CNEN事实已实现；当前主预览升级039，未自行启动Runner。物理多机、全IDE和全部P0–P7/1–22继续实施。
-
-历史增量T-P4-038：[执行文件产品与交互](remote-workspace-write.md)、[限定真实证据](../quality/workspace-write-verification.md)。现有完整小文件CAS保存、单次许可／原回执／显式核对、人工差异合并、CLI及中英文界面已取得本机实际证据。完整IDE／大文件、PTY／LSP／DAP、物理多机／TLS与生产继续待办；完整P0–P7及1–22保持。
-
-历史增量T-P4-037：[执行工作区产品与交互](remote-workspace.md)、[限定实际证据](../quality/workspace-observation-verification.md)。当前native attempt只读list/read、私有／Pool出站恢复、CLI和中英文界面取得本机实际证据；空轮询不落回执。远程写、PTY／LSP／DAP、完整IDE、物理多机／TLS和生产继续待办。036模型执行证据沿用，完整P0–P7及1–22不缩减。
-
-状态：1.0.0／T-P4-036 实施与差距记录，2026-10-27。负责人：平台集成。[原生模型固定选择与attempt预算](model-execution.md)→真实native执行→usage账本已取得限定本地证据，原任务GUI固定预览、中英／键盘／刷新已验证；[developer check](../integrations/developer-connection-check.md)仅为单次真实只读MCP诊断。[035只读Git工作区](workspace-git.md)及历史证据保留。完整P0–P7及需求1–22继续实施；本页不是“具备所有参考平台能力”的声明。
-
-依据：[当前交付](../delivery/status.md)、[完整能力矩阵](capability-matrix.md)、[1.0.0基线](v1-baseline.md)、[固定参考提交](../integrations/references.json)、[新增参考与许可](../integrations/development-platform-reference-extensions.md)。本轮复用已记录基线，没有重新克隆参考仓库、安装工具或调用厂商模型；部分固定README网页读取返回缓存缺失，未据此推断新的接口或运行能力。
+OpenCode当前采用[固定SDK合同](../../contracts/opencode-sdk.md)，普通／专家模型选择见[当前跨入口设计](../architecture/model-selection-workflows.md)，活动工作区见[当前读取设计](../architecture/codex-workspace-observation.md)。各自证据保持范围，不能组合成整个平台生产验收。
 
 ## 判定规则
 
@@ -25,9 +15,9 @@
 | 参考与对齐方向 | 速码源码实现 | 本地／协议证据 | 真实工具与生产差距 |
 | --- | --- | --- | --- |
 | 原生模型选择与预算（平台能力） | [部署与绑定合同](../../internal/modelcontract/model.go)、[当前模型选项](../../internal/platform/model_execution.go)、原固定Plan、Runner本地允许清单和attempt账务钩子 | [036实际证据](../quality/model-execution-verification.md)：限定本地真实native CLI请求使用准确模型／参数，原费率与预算进入同一账本；GUI固定预览已验证 | 原生Suma保留硬预算与冻结运营方费率，每tool一份当前匹配费率；团队逐任务原生选择在040验证。041新增独立Codex单任务选择，配置ACK／partial用量／observe-only明确分开；其他CLI、团队／修复独立Codex选择、自动策略、厂商账单与生产继续实施 |
-| [Multica](https://github.com/multica-ai/multica/tree/a47a1ced0c71bdb113a43facce4675442acb9001)：团队、机器、任务与工作区协同 | Go DAG、共享池与双向Grant、专家团队计划、候选合成／修订和固定基线 | [团队依赖编排](../quality/expert-team-orchestration-verification.md)、[033实际闭环](../quality/candidate-repair-revisions-verification.md)：同机两Runner、独立工作树与独立测试 | 专家团队独立模型selection、Multica外部服务互操作、跨物理机器与规模／生产验收未完成；不能将同机进程称为真实远端集群 |
+| [Multica](https://github.com/multica-ai/multica/tree/a47a1ced0c71bdb113a43facce4675442acb9001)：团队、机器、任务与工作区协同 | Go DAG、共享池与双向Grant、专家团队计划、候选合成／修订和固定基线 | [团队依赖编排](../quality/expert-team-orchestration-verification.md)、[033实际闭环](../quality/candidate-repair-revisions-verification.md)：同机两Runner、独立工作树与独立测试 | Multica外部服务互操作、跨物理机器与规模／生产验收未完成；不能将同机进程称为真实远端集群 |
 | [Hermes](https://github.com/NousResearch/hermes-agent/commit/cb757fac59c92b49e9b8f2910e5cd7ab75efffdd)：工具、技能、记忆与长期智能执行 | 原生Suma内核、受限项目工具、技能目录与知识提案 | 原生工具／技能和提案有各自本地证据，不是Hermes运行证据 | 历史Hermes版本探测退出1，完整协议／会话／取消／恢复接入未验证；不标记可用 |
-| [OpenCode](https://github.com/anomalyco/opencode/commit/02671e66454260d77fe04d63cf5eb94e76921dee)：编码CLI与交互执行 | 工具配置与Runner能力注册基础存在 | 当前profile明确不可用；局部step完成不证明整个任务完成 | 需固定官方整体终态、输入等待、取消和恢复合同，并验证实际CLI／模型；生产未验收 |
+| [OpenCode](https://github.com/anomalyco/opencode/tree/148842ef7cb1bc34192b3fff57d0f9721ab9c801)：SDK／编码执行 | 固定官方SDK与服务1.19.4、可信六工具、原生宿主账本／封存、固定配置与observe-only门禁 | [当前SDK设计](../architecture/opencode-execution.md)、[专项证据](../quality/opencode-execution-verification.md)分别记录SDK协议、真实宿主进程和界面范围 | 实际厂商CLI／模型完整编码验收、会话恢复、完整IDE、物理多机与生产仍待办；配置ACK不是模型身份或账单证明 |
 | [Zed](https://github.com/zed-industries/zed/commit/e96ffb0fd3cc43ec56dcff421146f5e823b13841)：完整IDE与协作工作台 | [Monaco工作台](../../apps/web/src/IDE.tsx)、[工作区接口](../../internal/platform/workspace.go)、[只读Git状态与准确文本](../../internal/platform/workspace_git.go) | [035限定本地验证](../quality/workspace-git-verification.md)：真实Git只读状态、index／worktree准确差异、切换保留草稿及Monaco原生Ctrl/Cmd+S | 终端PTY、LSP／DAP、调试、预览与实时协作、受管Git写操作、远程IDE及链接工作树的项目仓库授权仍待实现／验收；完整IDE旅程未验收，打开外部IDE不等于接入其开发能力 |
 | [spec-kit](https://github.com/github/spec-kit/commit/27d14e20c187c1f2916540ea201ecbdc9f8ed588)：规范驱动需求、设计与拆解 | 需求／设计提案、批准快照、可审阅任务与版本化执行合同 | 既有需求设计本地验证见[能力矩阵](capability-matrix.md) | 没有完整spec-kit CLI执行互操作证据；规范正文、开发产物及质量门禁仍需持续追踪同一需求版本 |
 | [Bubble Tea](https://github.com/charmbracelet/bubbletea/commit/f9df43c4f2c021d8740a2628d59cd810a862eb98)：成熟终端交互 | [go.mod](../../go.mod)直接依赖v1.3.10；[TUI](../../internal/cli/tui.go)复用正式API | CLI／TUI已有定向检查，非终端模式有明确输出语义 | 当前只读TUI不能描述为完整交互IDE或自主开发终端；跨平台安装与完整操作旅程仍待验收 |

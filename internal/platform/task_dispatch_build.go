@@ -26,7 +26,7 @@ func buildTaskDispatchWorkflow(source dag.Workflow, agentID, profileID string, p
 	if profile.ReadOnly {
 		return w, invalid("任务开发派发需要隔离工作树写入工具；只读工具请通过独立流程运行")
 	}
-	if profile.Adapter != "suma" && profile.Adapter != "codex" && profile.Adapter != "harness" && profile.Adapter != "codebuddy" {
+	if profile.Adapter != "suma" && profile.Adapter != "codex" && profile.Adapter != "harness" && profile.Adapter != "codebuddy" && !tc.SupportsOpenCodeExecutionProfile(profile) {
 		return w, invalid("任务智能体派发需要已核实的受支持结构化协议；通用命令请使用明确的命令流程")
 	}
 	chosen := -1
@@ -58,6 +58,17 @@ func buildTaskDispatchWorkflow(source dag.Workflow, agentID, profileID string, p
 	delete(n.Config, "candidate_composition")
 	delete(n.Config, "model_execution")
 	delete(n.Config, "codex_execution")
+	delete(n.Config, "opencode_execution")
+	if tc.SupportsOpenCodeExecutionProfile(profile) {
+		// An uncertain external prompt must retain its original operation. The
+		// fixed public configuration is a reviewed fact, never caller selection.
+		n.MaxRetries = 0
+		var fixed map[string]any
+		if err := json.Unmarshal([]byte(stringify(profile.OpenCodeExecution)), &fixed); err != nil {
+			return w, err
+		}
+		n.Config["opencode_execution"] = fixed
+	}
 	if task.CodeBaseline != nil {
 		if n.Config["candidate_from"] != nil {
 			return w, compositionError(409, "baseline_changed", compositionBaseline)

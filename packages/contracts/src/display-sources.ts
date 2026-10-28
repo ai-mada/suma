@@ -58,11 +58,6 @@ export const displaySourceDefinitions=[
     "source_template": "工具档案已永久撤销"
   },
   {
-    "key": "display.tool.protocol_unverified",
-    "parameters": [],
-    "source_template": "OpenCode 当前版本尚未通过平台执行协议验收"
-  },
-  {
     "key": "display.tool.reported_unavailable",
     "parameters": [
       {

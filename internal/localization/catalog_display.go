@@ -17,6 +17,5 @@ var displayCatalog = []Definition{
 	{Key: "display.tool.command_missing", SourceTemplate: "当前执行节点未声明此命令", Texts: map[Locale]string{ZhCN: "当前执行节点未声明此命令", EnUS: "The current runner has not declared this command."}},
 	{Key: "display.tool.profile_mismatch", SourceTemplate: "当前工具配置、版本或程序摘要与固定档案不匹配", Texts: map[Locale]string{ZhCN: "当前工具配置、版本或程序摘要与固定档案不匹配", EnUS: "The current tool configuration, version, or executable digest does not match the pinned profile."}},
 	{Key: "display.tool.reported_unavailable", SourceTemplate: "执行节点报告工具不可用：{{.reason}}", Parameters: []Parameter{{Name: "reason", Kind: Text}}, Texts: map[Locale]string{ZhCN: "执行节点报告工具不可用：{{.reason}}", EnUS: "The runner reported the tool unavailable: {{.reason}}"}},
-	{Key: "display.tool.protocol_unverified", SourceTemplate: "OpenCode 当前版本尚未通过平台执行协议验收", Texts: map[Locale]string{ZhCN: "OpenCode 当前版本尚未通过平台执行协议验收", EnUS: "The current OpenCode version has not passed platform execution protocol acceptance."}},
 	{Key: "display.tool.dispatchable", SourceTemplate: "执行节点已报告可领取；模型认证、执行与验收结果需分别核验", Texts: map[Locale]string{ZhCN: "执行节点已报告可领取；模型认证、执行与验收结果需分别核验", EnUS: "The runner reported it can claim work; model authentication, execution, and acceptance results require separate verification."}},
 }

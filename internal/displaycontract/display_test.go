@@ -65,7 +65,7 @@ func TestToolReasonRejectsUnprovableMetadata(t *testing.T) {
 }
 func TestSourceDefinitionsAreApprovedSortedSnapshots(t *testing.T) {
 	before := SourceDefinitions()
-	if len(before) != 16 {
+	if len(before) != 15 {
 		t.Fatalf("got %d definitions", len(before))
 	}
 	for i, d := range before {

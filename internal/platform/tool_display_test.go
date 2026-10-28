@@ -22,7 +22,7 @@ func TestToolDisplayEligibilityBranches(t *testing.T) {
 		{"inventory_missing", "执行节点尚未上报工具清单"}, {"inventory_stale", "工具清单已过期，等待执行节点重新探测"},
 		{"command_missing", "当前执行节点未声明此命令"}, {"profile_mismatch", "当前工具配置、版本或程序摘要与固定档案不匹配"},
 		{"reported_unavailable", "执行节点报告工具不可用：vendor {{.reason}} native.run.failed"},
-		{"protocol_unverified", "OpenCode 当前版本尚未通过平台执行协议验收"}, {"dispatchable", "执行节点已报告可领取；模型认证、执行与验收结果需分别核验"},
+		{"dispatchable", "执行节点已报告可领取；模型认证、执行与验收结果需分别核验"},
 	}
 	for _, c := range cases {
 		t.Run(c.key, func(t *testing.T) {
@@ -74,11 +74,6 @@ func TestToolDisplayEligibilityBranches(t *testing.T) {
 			case "reported_unavailable":
 				o.Available = false
 				o.Reason = "vendor {{.reason}} native.run.failed"
-			case "protocol_unverified":
-				p.Profile.Adapter = "opencode"
-				p.Profile.Protocol = "opencode-jsonl-v1"
-				o.Profile = p.Profile
-				exec(`UPDATE suma_tool_profiles SET profile=? WHERE id=?`, stringify(p.Profile), p.ID)
 			}
 			if c.key != "inventory_missing" {
 				at := time.Now().UTC().Format(time.RFC3339)

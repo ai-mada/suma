@@ -1,0 +1,25 @@
+{
+  "name": "@suma/opencode-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/src/index.js",
+  "exports": "./dist/src/index.js",
+  "bin": { "suma-opencode": "dist/suma-opencode.bundle.mjs" },
+  "scripts": {
+    "build": "tsc && node scripts/build-opencode-runtime.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc && node scripts/build-opencode-runtime.mjs && node --test dist/tests/*.test.js"
+  },
+  "dependencies": {
+    "@suma/agent-runtime": "workspace:*",
+    "@opencode-ai/sdk": "1.19.4",
+    "@opencode-ai/plugin": "1.19.4",
+    "@modelcontextprotocol/client": "2.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "esbuild": "0.24.2",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,3 +1,4 @@
+import {OpenCodeExecutionFacts} from './OpenCodeExecutionFacts';
 import {validateTaskDispatchResponse} from './task-dispatch-response';
 import {CodexExecutionFacts} from './CodexModelExecutionPanel';
 import {ModelExecutionPanel, ModelExecutionFacts, type ModelChoice} from './ModelExecutionPanel';
@@ -302,7 +303,7 @@ export function TaskDispatchDialog({
               )}
               <Field
                 label={t("development.dispatch.actual_tool_configuration")}
-                hint={t("development.dispatch.development_dispatch_currently_uses_suma_codex_structured")}
+                hint={t("development.dispatch.verified_tool_requirements")}
               >
                 <select
                   required
@@ -356,7 +357,7 @@ export function TaskDispatchDialog({
                   <code>{profile.profile.profile_sha256}</code>
                 </div>
               )}
-              {profile&&<ModelExecutionPanel key={modelKey} scope={{project,profile:profile.id,version:profile.version,sha256:profile.profile.profile_sha256}} supported={modelRequired} codex={codexRequired} disabled={blocked} onChange={updateModelChoice}/>}
+              {profile&&<ModelExecutionPanel key={modelKey} scope={{project,profile:profile.id,version:profile.version,sha256:profile.profile.profile_sha256}} supported={modelRequired} fixedOpenCode={profile.profile.opencode_execution} codex={codexRequired} disabled={blocked} onChange={updateModelChoice}/>}
               <section aria-label={t('knowledge.dispatch.title')}>
                 <h3>{t('knowledge.dispatch.title')}</h3><p className="muted">{t('knowledge.dispatch.hint')}</p>
                 <div className="knowledge-actions"><button type="button" disabled={blocked||knowledge.loading} onClick={()=>void knowledge.read()}><RefreshCw size={14}/>{t('knowledge.dispatch.refresh')}</button><a href={'?'+new URLSearchParams({project,view:'knowledge',sub:'project-knowledge'})}>{t('knowledge.dispatch.open')}</a></div>
@@ -403,8 +404,8 @@ export function TaskDispatchDialog({
         ) : plan ? (
           <>
             <TaskDispatchFacts plan={plan} />
-            <ModelExecutionFacts binding={plan.model_execution}/><CodexExecutionFacts binding={plan.codex_execution}/>
-            <RequirementDesignFacts project={project} value={plan.context.design}/>
+            <ModelExecutionFacts binding={plan.model_execution}/><CodexExecutionFacts binding={plan.codex_execution}/><OpenCodeExecutionFacts capability={plan.opencode_execution}/>
+            <RequirementDesignFacts project={project} value={plan.context.design??undefined}/>
             <KnowledgeContextFacts project={project} items={plan.context.knowledge}/>
             <TaskDispatchRunFacts plan={plan} onRun={onRun} />
             {!taskPlanStarted(plan) && (

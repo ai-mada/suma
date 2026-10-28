@@ -195,10 +195,6 @@ func (s *Service) toolProfileObservationLockedTx(ctx context.Context, tx *sql.Tx
 		out = withToolReason(out, "执行节点报告工具不可用："+out.Observation.Reason, "reported_unavailable", map[string]any{"reason": out.Observation.Reason})
 		return out, nil
 	}
-	if out.Profile.Protocol == "opencode-jsonl-v1" {
-		out = withToolReason(out, "OpenCode 当前版本尚未通过平台执行协议验收", "protocol_unverified", nil)
-		return out, nil
-	}
 	out.Available = true
 	out = withToolReason(out, "执行节点已报告可领取；模型认证、执行与验收结果需分别核验", "dispatchable", nil)
 	return out, nil
@@ -435,6 +431,9 @@ func (s *Service) validateToolDispatchTx(ctx context.Context, tx *sql.Tx, auth *
 	}
 	if !out.Available {
 		return out, conflict(out.Reason)
+	}
+	if err := s.checkOpenCodeBudgetTx(ctx, tx, p.TenantID, project, out); err != nil {
+		return out, err
 	}
 	return out, nil
 }

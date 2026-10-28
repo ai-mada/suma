@@ -93,6 +93,13 @@ func (s *Service) usagePricingTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 		}
 		return
 	}
+	if supportsOpenCodeExecution(profile) {
+		if profile.Profile.ProfileSHA256 != sha || !openCodeNodeMatchesProfile(ref.Spec, profile) {
+			err = invalid(opencodeExecutionChanged)
+		}
+		// A fixed model configuration ACK does not establish provider billing.
+		return
+	}
 	model, origin, priced := usagePricedModel(profile)
 	if !priced || profile.Profile.ProfileSHA256 != sha {
 		return profile, nil, org, project, nil
@@ -119,9 +126,12 @@ func (s *Service) CheckAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	if e = s.usageLockTx(ctx, tx, ref.TenantID); e != nil {
 		return false, e
 	}
-	_, rate, org, project, e := s.usagePricingTx(ctx, tx, ref)
+	profile, rate, org, project, e := s.usagePricingTx(ctx, tx, ref)
 	if e != nil {
 		return false, e
+	}
+	if checkOpenCodeObserveOnlyPolicies(profile, org, project) != nil {
+		return false, nil
 	}
 	period, e := s.usagePeriodTx(ctx, tx)
 	if e != nil {
@@ -171,6 +181,9 @@ func (s *Service) ReserveAttemptTx(ctx context.Context, tx *sql.Tx, ref dag.Acco
 	profile, rate, org, project, e := s.usagePricingTx(ctx, tx, ref)
 	if e != nil {
 		return e
+	}
+	if err := checkOpenCodeObserveOnlyPolicies(profile, org, project); err != nil {
+		return err
 	}
 	if b, err := dag.CodexBinding(ref.Spec); err != nil {
 		return invalid(codexExecutionInvalid)
@@ -383,6 +396,26 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 		}
 		if result.ToolEvidence == nil || result.ToolEvidence.CodexExecution == nil || !cc.EvidenceMatchesBinding(*b, *result.ToolEvidence.CodexExecution) {
 			modelReconciling = true
+		}
+	}
+	if fixed, err := openCodeNodeConfiguration(ref.Spec); err != nil {
+		return err
+	} else if fixed != nil {
+		// OpenCode step/message aggregates have no complete request coverage.
+		// Keep counters without turning configuration ACKs into billed identity.
+		complete = false
+		if a.Usage != nil {
+			a.UsageState = toolcontract.UsagePartial
+		} else {
+			a.UsageState = toolcontract.UsageUnreported
+		}
+		if result.ToolEvidence == nil || result.ToolEvidence.OpenCodeExecution == nil {
+			modelReconciling = true
+		} else {
+			proof := result.ToolEvidence.OpenCodeExecution
+			if proof.ConfigurationSHA256 != fixed.ConfigurationSHA256 || proof.RequestedProvider != fixed.ProviderID || proof.RequestedModel != fixed.Model || toolcontract.ValidateEvidence(*result.ToolEvidence) != nil {
+				modelReconciling = true
+			}
 		}
 	}
 	if b := a.ModelExecution; b != nil && !startupZero {

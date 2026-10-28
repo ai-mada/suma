@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ai-mada/suma/internal/dag"
+	"github.com/ai-mada/suma/internal/toolcontract"
 )
 
 func (s *Service) InitializeTaskDispatch(ctx context.Context) error {
@@ -282,6 +283,7 @@ func (s *Service) buildTaskDispatchSnapshotWithSourceTx(ctx context.Context, eng
 	out = TaskDispatchPlan{ProjectID: project, Version: 1, State: "ready", TaskID: context.Task.ID, TaskVersion: context.Task.Version, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, Context: context, CodeBaseline: context.CodeBaseline, Workflow: derived, ExecutionRoute: &route, Valid: true}
 	out.ModelExecution = modelBinding
 	out.CodexExecution = codexBinding
+	out.OpenCodeExecution = toolcontract.CloneProfile(profile.Profile).OpenCodeExecution
 	if context.Requirement != nil {
 		out.RequirementID, out.RequirementVersion = context.Requirement.ID, context.Requirement.Version
 	}

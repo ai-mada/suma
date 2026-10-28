@@ -4643,27 +4643,6 @@
             "if": {
               "properties": {
                 "message_key": {
-                  "const": "display.tool.protocol_unverified"
-                }
-              },
-              "required": [
-                "message_key"
-              ]
-            },
-            "then": {
-              "properties": {
-                "message_params": {
-                  "additionalProperties": false,
-                  "properties": {},
-                  "type": "object"
-                }
-              }
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "message_key": {
                   "const": "display.tool.reported_unavailable"
                 }
               },
@@ -4774,7 +4753,6 @@
               "display.tool.profile_mismatch",
               "display.tool.profile_paused",
               "display.tool.profile_revoked",
-              "display.tool.protocol_unverified",
               "display.tool.reported_unavailable",
               "display.tool.worker_creator_revoked",
               "display.tool.worker_expired",
@@ -8629,6 +8607,17 @@
           "codex_supported": {
             "type": "boolean"
           },
+          "fixed_opencode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenCodeExecutionCapability"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Fixed administrator-approved SDK configuration. Not an independently selectable deployment, vendor identity attestation, price or hard budget."
+          },
           "items": {
             "items": {
               "$ref": "#/components/schemas/ModelExecutionOption"
@@ -9312,6 +9301,109 @@
           "artifact_id",
           "artifact_sha256",
           "assignment"
+        ],
+        "type": "object"
+      },
+      "OpenCodeExecutionCapability": {
+        "additionalProperties": false,
+        "properties": {
+          "budget_mode": {
+            "const": "observe_only",
+            "type": "string"
+          },
+          "configuration_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "endpoint_origin": {
+            "type": "string"
+          },
+          "identity_evidence": {
+            "const": "configuration_ack_only",
+            "type": "string"
+          },
+          "model": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+\\-]{0,255}$",
+            "type": "string"
+          },
+          "provider_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+            "type": "string"
+          },
+          "sdk_version": {
+            "const": "1.19.4",
+            "type": "string"
+          },
+          "server_version": {
+            "const": "1.19.4",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sdk_version",
+          "server_version",
+          "provider_id",
+          "model",
+          "endpoint_origin",
+          "configuration_sha256",
+          "budget_mode",
+          "identity_evidence"
+        ],
+        "type": "object"
+      },
+      "OpenCodeExecutionEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "abort_acknowledged": {
+            "type": "boolean"
+          },
+          "acknowledged_model": {
+            "type": "string"
+          },
+          "acknowledged_provider": {
+            "type": "string"
+          },
+          "assistant_message_id": {
+            "type": "string"
+          },
+          "completed_at": {
+            "type": "string"
+          },
+          "configuration_sha256": {
+            "type": "string"
+          },
+          "finish": {
+            "type": "string"
+          },
+          "requested_model": {
+            "type": "string"
+          },
+          "requested_provider": {
+            "type": "string"
+          },
+          "server_stopped": {
+            "type": "boolean"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "user_message_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "configuration_sha256",
+          "session_id",
+          "user_message_id",
+          "assistant_message_id",
+          "requested_provider",
+          "requested_model",
+          "acknowledged_provider",
+          "acknowledged_model",
+          "finish",
+          "completed_at",
+          "server_stopped",
+          "abort_acknowledged"
         ],
         "type": "object"
       },
@@ -17310,6 +17402,17 @@
               }
             ]
           },
+          "opencode_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenCodeExecutionCapability"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Original reviewed fixed SDK configuration; must equal the producer node and approved current tool profile at admission."
+          },
           "project_id": {
             "type": "string"
           },
@@ -19896,6 +19999,17 @@
               }
             ]
           },
+          "opencode_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenCodeExecutionEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Correlated original session/user/assistant and private service shutdown facts. Whole-turn completion, independent tests and human acceptance are separate facts."
+          },
           "profile": {
             "$ref": "#/components/schemas/ToolExecutionProfile"
           },
@@ -19977,6 +20091,16 @@
           },
           "model_execution_protocol": {
             "type": "string"
+          },
+          "opencode_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpenCodeExecutionCapability"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "planning": {
             "anyOf": [

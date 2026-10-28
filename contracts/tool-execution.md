@@ -29,7 +29,7 @@ See [native diagnostic design](../docs/agents/native-diagnostics.md) and [local 
 
 All JSON snake_case. No secrets, executable paths, raw args/environment values or external login files in inventory/read DTOs.
 
-`Profile {command_id:string,adapter:string,protocol:string,profile_sha256:string,executable_sha256:string,tool_version:string,read_only:bool}`. IDs match `[A-Za-z0-9][A-Za-z0-9_.-]{0,99}`; both hashes canonical lower64 hex; version 1..256 UTF-8 bytes. Adapters command/suma/codex/opencode; protocols text-v1/suma-jsonl-v1/codex-jsonl-v1/opencode-jsonl-v1 with exact matching pairs. command/text supports generic allowlisted processes. No guessed vendor protocol.
+`Profile {command_id:string,adapter:string,protocol:string,profile_sha256:string,executable_sha256:string,tool_version:string,read_only:bool}`. IDs match `[A-Za-z0-9][A-Za-z0-9_.-]{0,99}`; both hashes canonical lower64 hex; version 1..256 UTF-8 bytes. Adapters command/suma/codex/opencode/harness/codebuddy; protocols text-v1/suma-jsonl-v1/codex-jsonl-v1/opencode-sdk-v1 with exact matching pairs. command/text supports generic allowlisted processes. No guessed vendor protocol. OpenCode uses only the [current pinned SDK contract](opencode-sdk.md), without a raw CLI JSONL compatibility parser.
 
 `Observation {profile:Profile,available:bool,reason:string}`. reason is at most1000 UTF-8 bytes and nonempty when unavailable. An unavailable entry still names its configured command, but may lack unavailable executable/version hashes. Display declared/probed/available/execution/accepted distinctly. An installed binary/version/help is not authenticated model health or successful execution.
 

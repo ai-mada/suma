@@ -40,6 +40,7 @@ type CommandSpec struct {
 	NativeWorkspace        *NativeWorkspacePolicy `json:"native_workspace,omitempty"`
 	ModelExecutionProtocol string                 `json:"model_execution_protocol,omitempty"`
 	CodexAppServer         *CodexAppServerSpec    `json:"codex_app_server,omitempty"`
+	OpenCode               *OpenCodeSpec          `json:"opencode,omitempty"`
 }
 
 type nativeAgentLimits struct {
@@ -248,6 +249,10 @@ func (b *output) flushProgress() error {
 }
 func contains(a, b string) bool { return strings.Contains(a, b) }
 func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
+	// Freeze nested reviewed bindings in the same wire form used by the
+	// journal and durable attempt. Typed in-process callers must not change
+	// identity merely because a saved attempt is decoded into JSON objects.
+	a = cloneModelAssignment(a)
 	if a.CandidateConflictRepair != nil && (a.Type != "agent" || a.CandidateComposition != nil || a.CodeBaseline != nil || a.RepositoryIntegration != nil || a.ReleaseExecution != nil || hasCandidate(a)) {
 		return Result{Assignment: a, ExitCode: -1, Error: "conflict repair requires a dedicated native agent input"}
 	}
@@ -354,6 +359,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if profileErr != nil {
 		return fail(profileErr.Error())
 	}
+	if err := openCodeExecutionRequest(a, spec, profile); err != nil {
+		return fail(err.Error())
+	}
 	purposeInput, purposeErr := modelPurposeRequest(a, spec, profile)
 	if purposeErr != nil {
 		return fail(purposeErr.Error())
@@ -370,7 +378,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		return fail(codexErr.Error())
 	}
 	var nativeLimits nativeAgentLimits
-	if spec.NativeWorkspace != nil {
+	if spec.NativeWorkspace != nil && spec.OpenCode == nil {
 		limits, limitsErr := nativeExecutionLimits(a)
 		if limitsErr != nil {
 			return fail(limitsErr.Error())
@@ -472,6 +480,15 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				return fail("Codex app-server stdin pipe could not be opened")
 			}
 			defer codexPipe.Close()
+		case "opencode-sdk-jsonl":
+			if spec.OpenCode == nil {
+				return fail("OpenCode SDK requires its fixed local configuration")
+			}
+			dshPipe, err = cmd.StdinPipe()
+			if err != nil {
+				return fail("OpenCode SDK stdin pipe could not be opened")
+			}
+			defer dshPipe.Close()
 		default:
 			return fail("agent command specification requires a supported fixed stdin format")
 		}
@@ -488,6 +505,12 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		cmd.Dir = codexHome
 		cmd.Env, environmentSecrets, err = codexEnvironment(spec, codexHome)
 		cfg.Secrets = append(cfg.Secrets, codexHome, root, spec.CodexAppServer.BaseURL)
+	}
+	if spec.OpenCode != nil {
+		home := filepath.Join(workspace.Directory, "opencode-home")
+		cmd.Env, environmentSecrets, err = openCodeEnvironment(spec, home, root, true)
+		cmd.Dir = home
+		cfg.Secrets = append(cfg.Secrets, home, root, spec.OpenCode.BaseURL)
 	}
 	if err != nil {
 		return fail(err.Error())
@@ -534,11 +557,19 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				defer unregister()
 			}
 		}
-		payload, inputErr := nativeAgentInput(a, nativeLimits, bridge)
-		if inputErr != nil {
-			return fail(inputErr.Error())
+		if spec.OpenCode != nil {
+			dshStdin, err = newOpenCodeInput(digest([]byte(key(a))), a.Config["goal"].(string), bridge)
+			if err != nil {
+				return fail(err.Error())
+			}
+			defer dshStdin.Close()
+		} else {
+			payload, inputErr := nativeAgentInput(a, nativeLimits, bridge)
+			if inputErr != nil {
+				return fail(inputErr.Error())
+			}
+			cmd.Stdin = bytes.NewReader(append(payload, '\n'))
 		}
-		cmd.Stdin = bytes.NewReader(append(payload, '\n'))
 	}
 	var codexRead *liveWorkspaceRead
 	var observationCloseErr error
@@ -692,6 +723,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		defer func() { _ = codexDriver.Close(); _ = codexPipe.Close(); <-stdinDone }()
 	}
 	done := make(chan error, 1)
+	processContainmentVerified := true
 	go func() { done <- cmd.Wait() }()
 	select {
 	case err = <-done:
@@ -711,7 +743,11 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			} else {
 				_ = codexDriver.Cancel()
 			}
-			grace := time.NewTimer(1500 * time.Millisecond)
+			graceDuration := 1500 * time.Millisecond
+			if spec.OpenCode != nil {
+				graceDuration = 10 * time.Second
+			}
+			grace := time.NewTimer(graceDuration)
 			select {
 			case <-done:
 				waited = true
@@ -732,6 +768,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		r.OutcomeUnknown = stopErr != nil
 		r.Error = ctx.Err().Error()
 		if stopErr != nil {
+			processContainmentVerified = false
 			r.Error += "; process tree termination unverified"
 		}
 	}
@@ -742,6 +779,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		r.Error = "Codex workspace observation close requires reconciliation"
 	}
 	if err = controller.Finish(); err != nil {
+		processContainmentVerified = false
 		r.ExitCode = -1
 		r.OutcomeUnknown = true
 		r.Error = "process tree final state unverified"
@@ -753,6 +791,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 		invalidBeforeFinish := stream.bad != nil
 		evidence, streamErr := stream.finish()
+		applyOpenCodeProcessContainment(evidence, processContainmentVerified)
 		if r.Stopped || r.OutcomeUnknown {
 			evidence.Terminal = "unknown"
 		}
@@ -776,6 +815,15 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 		if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" {
 			r.ToolEvidence = evidence
+		}
+		if profile.Protocol == tc.OpenCodeSDKProtocol {
+			if stopErr := tc.ValidateOpenCodeResultStop(*evidence, r.Stopped, r.OutcomeUnknown); stopErr != nil {
+				r.Stopped = false
+				r.ExitCode = -1
+				r.OutcomeUnknown = true
+				evidence.Terminal = "unknown"
+				r.Error = "OpenCode SDK stop acknowledgement requires reconciliation"
+			}
 		}
 		if (profile.Planning != nil || profile.KnowledgeExtraction != nil || profile.FailureDiagnosis != nil) && stream.terminal == "completed" && stream.bad == nil {
 			r.Output = stream.completionOutput

@@ -248,7 +248,7 @@
   "development.dispatch.node_receiving_the_fixed_task_context": "接收固定任务上下文的节点",
   "development.dispatch.choose_this_execution_s_agent_node": "选择本次智能体节点",
   "development.dispatch.actual_tool_configuration": "真实工具配置",
-  "development.dispatch.development_dispatch_currently_uses_suma_codex_structured": "开发派发当前使用已核实任务输入与终态的 Suma／Codex 结构化工具，并须启用且具有匹配新鲜观察；其他工具可用于独立命令流程。服务端在预览和启动时再次核验。",
+  "development.dispatch.verified_tool_requirements": "开发派发使用已核实任务输入与整轮终态的工具，并须启用且具有匹配的新鲜观察；其他工具可用于独立命令流程。服务端在预览和启动时再次核验。",
   "development.dispatch.choose_a_dispatchable_tool": "选择可派发工具",
   "development.dispatch.load_more_tool_configurations": "加载更多工具配置",
   "development.dispatch.view_tool_configurations_and_unavailable_reasons": "查看工具配置和不可用原因",

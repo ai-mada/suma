@@ -17,7 +17,6 @@ const cases = [
  ['inventory_stale','工具清单已过期，等待执行节点重新探测','Tool inventory has expired; waiting for worker reprobe'],
  ['command_missing','当前执行节点未声明此命令','Current worker has not declared this command'],
  ['profile_mismatch','当前工具配置、版本或程序摘要与固定档案不匹配','Current tool configuration, version, or executable digest does not match the pinned profile'],
- ['protocol_unverified','OpenCode 当前版本尚未通过平台执行协议验收','Current OpenCode version has not passed platform execution protocol acceptance'],
  ['dispatchable','执行节点已报告可领取；模型认证、执行与验收结果需分别核验','Worker reports dispatch readiness; model authentication, execution, and acceptance must be checked separately'],
 ] as const;
 const catalog = {version:'display-test',template_format:'named-dot-v1',default_locale:'zh-CN',supported_locales:['zh-CN','en-US'],messages:[
