@@ -1,0 +1,12 @@
+{
+  "octop-connection.client": "接入客户端",
+  "octop-connection.codex": "Codex",
+  "octop-connection.octop": "Octop",
+  "octop-connection.more": "令牌、连接与执行边界",
+  "octop-connection.configuration": "Octop 自定义 MCP 连接器配置",
+  "octop-connection.unavailable": "当前端点或项目标识不符合 Octop 连接器要求。请刷新元数据，并由管理员核对公开地址、传输方式和项目范围后再配置。",
+  "octop-connection.instructions": "将此片段手工合并到 Octop 自定义 MCP 非 OAuth 连接器的配置中，并保留已有 servers 条目；不要整体覆盖现有配置。项目专用条目默认私有、不向专家默认开放。这里只提供模板，不会自动连接或修改 Octop。",
+  "octop-connection.credential": "在受控的 Octop 配置中手动把 REPLACE_WITH_PROJECT_API_TOKEN 替换为当前项目专用、最小权限且可撤销的 API 令牌。HTTP 请求头使用字面值，不会展开环境变量，且可能被明文回读；不要共享填写后的配置、截图、日志或提交到 Git。OAuth 保存的令牌可能覆盖 Authorization。",
+  "octop-connection.network": "连接地址必须能从 Octop 所在主机访问。回环地址只适用于同一主机，不表示远程节点已连通。",
+  "octop-connection.boundary": "此连接供 Octop 按当前速码权限读取项目或写入草稿；正式评审、验收、发布与执行门禁保持独立。这不是 Octop ACP 任务派发，ACP 的 cwd 也不证明速码隔离工作树。"
+}

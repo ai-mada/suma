@@ -1,0 +1,278 @@
+{
+  "stage": "T-OCTOP-116",
+  "version": "1.0.0",
+  "recorded_at": "2026-10-28T13:06:25.326419+00:00",
+  "status": "scoped_verified_full_platform_in_progress",
+  "full_platform_complete": false,
+  "source_sha256": "bc05a3a0477b670ebcdf62192eeda2a74a42c71a068f123ee758690bca65b3ab",
+  "source_files": 22,
+  "source_manifest": ".cache/e2e/octop-116/implementation-manifest.json",
+  "reference_manifest": {
+    "path": ".cache/e2e/octop-116/source-manifest.json",
+    "sha256": "7b80b60858f28418e124258f5b482b5e9c69849a8a190bcc70f308e5075b0cbe"
+  },
+  "sources": [
+    {
+      "url": "https://chatgpt.com/s/t_6ae1ab6e8dbc8191932d54994456a29b",
+      "sha256": "75cce3fa8054555776577e7a019ff80be6db7a4511d0c36d9b2f557a73643063",
+      "bytes": 10599,
+      "visible_scope": "Principles, five-layer architecture, UX001–010, project/micro-application, requirement/design and organization/team; ends in3.4, no inferred following sections"
+    },
+    {
+      "url": "https://chatgpt.com/s/t_6ae1c83c15d481919f8406398a772b2a",
+      "sha256": "b6a0fa8ec712f9c68ab6a6ae287f03234be1f47967ff13d5afba8f4c95ba9f87",
+      "bytes": 11829,
+      "visible_scope": "Task-driven workspace, domains, bounded planning/routing, extensions, configuration and progressive disclosure; ends in partial section6 page table"
+    },
+    {
+      "url": "https://github.com/TencentCloud/Octop/blob/890111b7879665840414ca28ab168b05b0db0921/README_CN.md",
+      "commit": "890111b7879665840414ca28ab168b05b0db0921",
+      "version": "1.0.3b1",
+      "license": "MIT",
+      "scope": "Current official README and connector/ACP/workspace code; reference research, not execution acceptance"
+    }
+  ],
+  "full_scope": {
+    "limited_implemented": 58,
+    "pending": 34,
+    "items": 92,
+    "requirements": "P0–P7 and1–26 remain active"
+  },
+  "implementation": {
+    "client_direction": "Octop consumes the existing Suma project Streamable HTTP MCP server",
+    "sdk": "github.com/modelcontextprotocol/go-sdk v1.8.0",
+    "mcp_implementation_identity": "suma1.0.0 from buildinfo.Version; MCP protocol/SDK versions remain independent",
+    "new_tools": [
+      "project.task_delivery",
+      "project.quality_execution"
+    ],
+    "credential_scope": "Current project API only; Agent retains four original reads; browser and Runner cannot connect through MCP",
+    "write_effects": "Existing three draft operations unchanged; no new approval, dispatch, evidence writes, process, release or production action",
+    "transaction": "taskDeliveryTx extracted for current same-authority transaction; quality reuses testPlanExecutionTx in that transaction; no nested connection or new scheduler",
+    "bounds": {
+      "case_page_default": 10,
+      "case_page_max": 20,
+      "case_evidence_references_max": 3,
+      "source_commit_references_max": 16,
+      "application_result_max_bytes": 65536,
+      "original_xml_returned": false,
+      "counts_and_completeness_preserved": true
+    },
+    "configuration": "Project-specific key; literal placeholder; fixed current account/organization/language; private/shared=false/default_open=false; manual merge only. No real secret injection or external PUT/probe.",
+    "presentation": "Client selector in the existing connection view; advanced credential/network/ACP guidance collapsed after actual layout review; declared/unverified state preserved"
+  },
+  "checks": {
+    "distinct_affected_passed_cases": 22,
+    "grouped_not_full_suite": true,
+    "new_platform": 2,
+    "existing_platform_regressions": 5,
+    "generator": 1,
+    "localization": 1,
+    "web_new": 2,
+    "web_existing": 11,
+    "web_typecheck": true,
+    "web_build": true,
+    "catalog_paired_keys": 5180,
+    "production_hardcodes": 0,
+    "generated_contract_check": true,
+    "product_version_check": true,
+    "public_models": 530,
+    "api_paths": 269,
+    "new_models": 4,
+    "new_rest_paths": 0,
+    "tool_declarations": 17,
+    "draft_write_tools": 3,
+    "actual_mcp": "Official Go SDK initialize/list/call against actual owned in-process HTTP server and current domain transactions; no handwritten protocol mock replaces the transport",
+    "quality_fixture": "Fixed report results in owned domain fixtures; actual Node/two-Runner code execution remains the separately recorded T-QUALITY-115 evidence, not repeated here",
+    "browser": {
+      "stage": "T-OCTOP-116",
+      "url": "http://127.0.0.1:53976/?project=09906cb624adcf5118cd6021c4332cca&view=settings&sub=tokens&status=all&layout=list&week=2026-10-26",
+      "layout": {
+        "height": 720,
+        "horizontalOverflow": false,
+        "width": 1265
+      },
+      "source": "actual current built Web and owned Control via cua_repl",
+      "checks": {
+        "chineseLogin": true,
+        "octopSelector": true,
+        "literalPlaceholder": true,
+        "privateProjectKey": true,
+        "copyFeedback": true,
+        "englishSwitch": true,
+        "englishLanguageHeader": true,
+        "detailsCollapsedByDefault": true,
+        "detailsExpandedAndCollapsed": true,
+        "unverifiedStatePreserved": true,
+        "consoleWarningsAndErrors": 0,
+        "horizontalOverflow": false
+      },
+      "boundary": "Synthetic localhost account only; no token issued, no Octop installed or configured, no ACP dispatch, no model or vendor call."
+    },
+    "screenshots": [
+      {
+        "path": ".cache/e2e/octop-116/screenshots/before-disclosure.jpg",
+        "bytes": 52472,
+        "sha256": "69f8ae84c37b20e74664f27735fd63b376902f728d8ea3b18828a6f6897700b8"
+      },
+      {
+        "path": ".cache/e2e/octop-116/screenshots/octop-en-main.jpg",
+        "bytes": 71159,
+        "sha256": "394cfd510d8f54982ee42e551d9194f38d17a495ea08cc4d406e660e31dc50aa"
+      },
+      {
+        "path": ".cache/e2e/octop-116/screenshots/octop-zh-CN.jpg",
+        "bytes": 63096,
+        "sha256": "191430974f75ba6929ebb7ef6825804c029e11ce88c4904e0ffeb6d8d3b56171"
+      },
+      {
+        "path": ".cache/e2e/octop-116/screenshots/octop-zh-main.jpg",
+        "bytes": 67114,
+        "sha256": "7a40167d0f416db777bab061b4cbe4e209723f2b89b9b8b1583398bcbc2bbfd0"
+      }
+    ],
+    "console_warning_or_error_count": 0,
+    "polish_after_unit_tests": "Only reversible details/summary markup and one paired key changed; verified in the actual production build/browser rather than repeating13 unchanged logic tests",
+    "documentation_local_links_resolve": true,
+    "actual_credentials_absent_from_delivery": true
+  },
+  "go_receipts": [
+    {
+      "path": ".cache/mcp019-deps/20261028T123600456Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^TestApplicationQuality",
+        "-count=1"
+      ],
+      "exit_code": 1,
+      "sha256": "b9dc75833097e4b8451ee188b540af22e1536a4baf89f6adf2a5fad0c08ee654"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261028T124210538Z.command.json",
+      "arguments": [
+        "fmt",
+        "./internal/platform",
+        "./internal/localization",
+        "./cmd/suma-contracts"
+      ],
+      "exit_code": 0,
+      "sha256": "e802a90f26b162dfe63166c1b53addcc28c7de1d2c56b67c7a721a1c75d7e371"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261028T124211308Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "./internal/localization",
+        "./cmd/suma-contracts",
+        "-run",
+        "^(TestApplicationQuality|TestApplicationToolsCurrentCatalogueAndAuthority$|TestMCPRealSDKAgentListsOnlyFourAndCurrentRevocationRejects$|TestMCPRealSDKAPICreatesDraftAndReconcilesSameOperation$|TestTaskDeliveryHTTPUndispatchedReadOnlySnapshot$|TestTaskDeliveryRejectedReviewCreatesOneTrustedIssue$|TestApplicationToolContractDeclaresEffectsWithoutVerifiedConnection$)",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "sha256": "24004da887c7355a14d79103705e011b434c9285b633ecb0cf504212d7c0a7da"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261028T124412660Z.command.json",
+      "arguments": [
+        "run",
+        "./cmd/suma-contracts"
+      ],
+      "exit_code": 0,
+      "sha256": "8cab2d49dbf2d55cabe6cbd358cfc25d8ea614eae25649e1eccf8cc12411ef10"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261028T124414461Z.command.json",
+      "arguments": [
+        "build",
+        "-o",
+        ".cache/e2e/octop-116/runtime/",
+        "./cmd/suma-control"
+      ],
+      "exit_code": 0,
+      "sha256": "d2fdd52ff063f81ad3cda50a4ad63987d3686a5ffab759ed77f5c5857e2509d4"
+    },
+    {
+      "path": ".cache/mcp019-deps/20261028T125954490Z.command.json",
+      "arguments": [
+        "run",
+        "./cmd/suma-contracts",
+        "-check"
+      ],
+      "exit_code": 0,
+      "sha256": "f234449e6bc8cd8e98ce0533749fbb858d42faf80c34c189c22c5545cf3e2b62"
+    }
+  ],
+  "ui_receipt": {
+    "path": ".cache/e2e/octop-116/ui-targeted-summary.json",
+    "sha256": "4a5c3359d1ab2025aea810977316245aa5c2c40f588a2316136a43dacecf4326"
+  },
+  "owned_http_previews": [
+    {
+      "stage": "T-OCTOP-116",
+      "base": "http://127.0.0.1:62750",
+      "project_id": "3fa48fd2611840996f0553f3436a3bf3",
+      "pid": 7868,
+      "started_at": "2026-10-28T12:45:02.887Z",
+      "tool_declarations": 17,
+      "client_connection_verified": false,
+      "control_sha256": "641d06351e71322544714252e3d1286f80891be134cb8e8e7f615a10294fe2f9",
+      "web_entry_sha256": "a37f2d0c6299ea2ca6f22237f807064cc26bda1e94958193caee8246a03435ca",
+      "model_calls": 0,
+      "vendor_calls": 0,
+      "closed_at": "2026-10-28T12:52:23.467Z",
+      "owned_process_closed": true,
+      "exit_code": null,
+      "shutdown_boundary": "Only this owned child terminated. Graceful Windows checkpoint is not inferred."
+    },
+    {
+      "stage": "T-OCTOP-116",
+      "base": "http://127.0.0.1:53976",
+      "project_id": "09906cb624adcf5118cd6021c4332cca",
+      "pid": 40976,
+      "started_at": "2026-10-28T12:53:45.989Z",
+      "tool_declarations": 17,
+      "client_connection_verified": false,
+      "control_sha256": "641d06351e71322544714252e3d1286f80891be134cb8e8e7f615a10294fe2f9",
+      "web_entry_sha256": "52b2b0e0c6dfdefb658c245f9ee68367d0a6459dbf1efbdcb7868ace94eab840",
+      "model_calls": 0,
+      "vendor_calls": 0,
+      "closed_at": "2026-10-28T12:59:52.527Z",
+      "owned_process_closed": true,
+      "exit_code": null,
+      "shutdown_boundary": "Only this owned child terminated. Graceful Windows checkpoint is not inferred."
+    }
+  ],
+  "resources": {
+    "web_builds": 2,
+    "control_builds": 1,
+    "runner_builds": 0,
+    "native_builds": 0,
+    "full_suite_runs": 0,
+    "new_dependencies": 0,
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "octop_installed": false,
+    "external_octop_config_writes": 0,
+    "project_tokens_issued_in_gui": 0,
+    "dag_runs_created_in_gui": 0,
+    "all_owned_processes_closed": true,
+    "empty_misplaced_task_directories_removed": 4,
+    "important_scratch_deleted": false
+  },
+  "remaining": [
+    "Actual authenticated Octop instance/connector and vendor tasks",
+    "ACP standard SDK runtime, fixed isolated backend/worktree proof, permission and process-stop/unknown-outcome recovery",
+    "Full model parameters and budgets, expert/memory/skill/channel integration",
+    "Other complete P0–P7 requirements, multi-host/database/desktop/mobile/SaaS acceptance",
+    "Full screen/device/theme/accessibility release matrix; this browser evidence covers the connection view only",
+    "Original quality projection still decodes private full attempt JSON internally; compact output is not zero-XML database reads"
+  ],
+  "evidence_inventory": {
+    "path": ".cache/e2e/octop-116/evidence-inventory.json",
+    "sha256": "58c863347fe9d285704c65b868e57091db7995fba515a92e9c1c385edff260cc",
+    "files": 380
+  }
+}

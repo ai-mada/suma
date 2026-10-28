@@ -135,6 +135,18 @@ func (s *Service) GetTaskDelivery(ctx context.Context, actor Actor, project, tas
 		return out, err
 	}
 	defer close()
+	return s.taskDeliveryTx(ctx, auth, project, taskID)
+}
+
+// Reuse the exact current project-read transaction for HTTP and application/MCP
+// reads. The original caller owns its lifetime; no second connection is opened.
+func (s *Service) taskDeliveryTx(ctx context.Context, auth *authorizedCommand, project, taskID string) (out TaskDelivery, err error) {
+	if auth == nil || auth.target.projectID != project || auth.purpose != purposeProjectRead {
+		return out, forbidden()
+	}
+	if err = auth.assertTx(auth.tx, auth.target, purposeProjectRead); err != nil {
+		return out, err
+	}
 	task, err := s.getRecordTx(ctx, auth, project, "tasks", taskID)
 	if err != nil {
 		return out, err

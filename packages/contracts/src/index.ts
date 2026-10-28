@@ -8,6 +8,56 @@ export interface AccountPreferences {
 export interface Acknowledgement {
   acknowledged: boolean;
 }
+export interface ApplicationQualityCase {
+  case_key: string;
+  title: string;
+  status: string;
+  covers: (number)[];
+  issue_id: string;
+  evidence: (ApplicationQualityEvidenceReference)[];
+  evidence_total: number;
+  evidence_complete: boolean;
+}
+export interface ApplicationQualityEvidenceReference {
+  report_id: string;
+  source_commit: string;
+  node_id: string;
+  attempt: number;
+  fence: number;
+  worker_id: string;
+  status: string;
+}
+export interface ApplicationQualityExecutionInput {
+  task_id: string;
+  run_id: string;
+  limit?: number;
+  after_case?: string;
+}
+export interface ApplicationQualityExecutionPage {
+  project_id: string;
+  task_id: string;
+  plan_id: string;
+  run_id: string;
+  revision: number;
+  plan_sha256: string;
+  source_sha256: string;
+  source_commits: (string)[];
+  source_commit_total: number;
+  source_commits_complete: boolean;
+  run_state: string;
+  state: string;
+  basis_current: boolean;
+  total: number;
+  passed: number;
+  failed: number;
+  errors: number;
+  skipped: number;
+  not_run: number;
+  limit: number;
+  complete: boolean;
+  next_case?: string;
+  cases: (ApplicationQualityCase)[];
+}
 export interface ApplicationRequirementDesignSaveInput {
   requirement_id: string;
   expected_version: number;

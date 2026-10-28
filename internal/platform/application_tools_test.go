@@ -58,7 +58,7 @@ func TestApplicationToolsCurrentCatalogueAndAuthority(t *testing.T) {
 		}
 	}
 	list, err := f.s.ApplicationTools(context.Background(), api, f.project)
-	if err != nil || len(list.Items) != 15 {
+	if err != nil || len(list.Items) != len(DeclaredApplicationTools()) {
 		t.Fatalf("API catalogue %d: %v", len(list.Items), err)
 	}
 	if _, err = f.s.ApplicationTools(context.Background(), runner, f.project); applicationStatus(err) != 403 {
@@ -89,8 +89,16 @@ func TestApplicationToolsCurrentCatalogueAndAuthority(t *testing.T) {
 
 func TestApplicationToolsDeclarationsAreIndependent(t *testing.T) {
 	first := DeclaredApplicationTools()
-	if len(first) != 13 {
-		t.Fatalf("declared %d", len(first))
+	want := map[string]bool{
+		"project.overview": true, "project.tasks": true, "project.search": true, "project.knowledge": true,
+		"project.requirements": true, "project.requirement": true, "project.task": true,
+		"project.requirement_design": true, "project.task_design": true, "project.knowledge_list": true,
+		"project.requirement_draft_create": true, "project.task_draft_create": true, "project.requirement_design_save": true,
+		"project.skill_catalog_list": true, "project.skill_catalog_get": true,
+		"project.task_delivery": true, "project.quality_execution": true,
+	}
+	if len(first) != len(want) {
+		t.Fatalf("declared %d, expected exactly %d current tools", len(first), len(want))
 	}
 	first[0].Name = "changed"
 	first[0].CredentialScopes[0] = "runner"
@@ -101,6 +109,10 @@ func TestApplicationToolsDeclarationsAreIndependent(t *testing.T) {
 	}
 	seen := map[string]bool{}
 	for _, d := range second {
+		if !want[d.Name] {
+			t.Fatal("unexpected or missing current declaration", d.Name)
+		}
+		delete(want, d.Name)
 		if seen[d.MCPName] || d.MCPName != "suma_"+strings.ReplaceAll(d.Name, ".", "_") || d.DescriptionKey == "" {
 			t.Fatalf("invalid declaration: %+v", d)
 		}

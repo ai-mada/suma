@@ -617,6 +617,69 @@
       "credential_scopes": [
         "api"
       ]
+    },
+    {
+      "name": "project.task_delivery",
+      "mcp_name": "suma_project_task_delivery",
+      "description": "读取当前任务的交付、测试与人工验收事实，不派发或修改状态",
+      "description_key": "application_tool_project_task_delivery",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "task_id": {
+            "maxLength": 64,
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id"
+        ],
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "api"
+      ]
+    },
+    {
+      "name": "project.quality_execution",
+      "mcp_name": "suma_project_quality_execution",
+      "description": "分页读取固定任务运行的逐例质量与紧凑证据引用，不读取报告原件或批准验收",
+      "description_key": "application_tool_project_quality_execution",
+      "parameters": {
+        "additionalProperties": false,
+        "properties": {
+          "after_case": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "type": "string"
+          },
+          "limit": {
+            "default": 10,
+            "maximum": 20,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "run_id": {
+            "maxLength": 100,
+            "type": "string"
+          },
+          "task_id": {
+            "maxLength": 64,
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "run_id"
+        ],
+        "type": "object"
+      },
+      "read_only": true,
+      "credential_scopes": [
+        "api"
+      ]
     }
   ]
 }

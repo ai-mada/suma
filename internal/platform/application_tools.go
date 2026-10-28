@@ -31,7 +31,8 @@ func DeclaredApplicationTools() []ApplicationToolDefinition {
 		makeDefinition("project.task_draft_create", "创建当前项目待办任务，不验收或启动执行", "application_tool_project_task_draft_create", applicationDraftSchema(true), false, "api"),
 		makeDefinition("project.requirement_design_save", "保存版本化需求设计草稿，不发布或采用任务", "application_tool_project_requirement_design_save", applicationDesignSchema(), false, "api"),
 	}
-	return append(definitions, applicationSkillDefinitions(makeDefinition)...)
+	definitions = append(definitions, applicationSkillDefinitions(makeDefinition)...)
+	return append(definitions, applicationQualityDefinitions(makeDefinition)...)
 }
 
 func nativeReadToolAllowed(name string) bool {
@@ -125,6 +126,8 @@ func (s *Service) InvokeApplicationTool(ctx context.Context, actor Actor, call A
 func (s *Service) invokeApplicationRead(ctx context.Context, auth *authorizedCommand, call ApplicationToolCall) (any, error) {
 	project, args := call.ProjectID, call.Arguments
 	switch call.Tool {
+	case "project.task_delivery", "project.quality_execution":
+		return s.invokeApplicationQualityRead(ctx, auth, call)
 	case "project.skill_catalog_list", "project.skill_catalog_get":
 		return s.invokeApplicationSkillRead(ctx, auth, call)
 	case "project.overview":

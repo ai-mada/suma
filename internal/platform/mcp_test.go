@@ -162,7 +162,7 @@ func TestMCPDeveloperMetadataUsesCanonicalOriginAndNeverVerifiesClient(t *testin
 	if err != nil {
 		t.Fatal(err)
 	}
-	if m.EndpointURL != "https://suma.example/api/v1/mcp/projects/"+f.project || m.ClientConnectionVerified || len(m.Tools) != 15 {
+	if m.EndpointURL != "https://suma.example/api/v1/mcp/projects/"+f.project || m.ClientConnectionVerified || len(m.Tools) != len(DeclaredApplicationTools()) {
 		t.Fatalf("metadata=%+v", m)
 	}
 	raw, _ := json.Marshal(m)
@@ -201,7 +201,7 @@ func TestMCPRealSDKAPICreatesDraftAndReconcilesSameOperation(t *testing.T) {
 	t.Cleanup(ts.Close)
 	session := mcpTestClient(t, ts.URL, f.project, token, f.user, "2025-11-25")
 	list, err := session.ListTools(context.Background(), nil)
-	if err != nil || len(list.Tools) != 15 {
+	if err != nil || len(list.Tools) != len(DeclaredApplicationTools()) {
 		t.Fatalf("API tools=%+v err=%v", list, err)
 	}
 	args := map[string]any{"title": "MCP requirement draft", "idempotency_key": "mcp-sdk-requirement-create"}

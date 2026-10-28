@@ -1,0 +1,12 @@
+{
+  "octop-connection.client": "Connection client",
+  "octop-connection.codex": "Codex",
+  "octop-connection.octop": "Octop",
+  "octop-connection.more": "Credentials, connectivity and execution scope",
+  "octop-connection.configuration": "Octop custom MCP connector configuration",
+  "octop-connection.unavailable": "The current endpoint or project identifier does not meet Octop’s connector requirements. Refresh the metadata and ask an administrator to check the public URL, transport and project scope before configuring it.",
+  "octop-connection.instructions": "Manually merge this fragment into an Octop custom MCP connector without OAuth. Preserve existing servers entries instead of replacing the entire configuration. The project-specific entry defaults to private and is not open to experts by default. This view provides a template; it does not connect to or change Octop.",
+  "octop-connection.credential": "In a controlled Octop configuration, manually replace REPLACE_WITH_PROJECT_API_TOKEN with a dedicated, least-privilege, revocable API token for the current project. HTTP headers are literal values, do not expand environment variables and may be returned in plain text. Do not share the completed configuration, screenshots or logs, or commit it to Git. An OAuth token may override Authorization.",
+  "octop-connection.network": "The endpoint must be reachable from the host running Octop. A loopback address works only on the same host and does not establish remote connectivity.",
+  "octop-connection.boundary": "This connection lets Octop read project facts or write drafts under current Suma permissions. Formal review, acceptance, release and execution gates remain separate. It does not dispatch Octop ACP tasks, and an ACP cwd does not prove an isolated Suma worktree."
+}

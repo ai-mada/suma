@@ -4,13 +4,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-QUALITY-115",
-  "updated_at": "2026-10-28T11:14:05.455884+00:00",
+  "stage": "T-OCTOP-116",
+  "updated_at": "2026-10-28T13:06:25.326419+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/test-plans-verification.md",
-  "current_summary": "docs/quality/test-plans-summary.json",
+  "current_evidence": "docs/quality/octop-integration-verification.md",
+  "current_summary": "docs/quality/octop-integration-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -36,6 +36,18 @@
         "source_bytes": 10174,
         "extraction": "basic HTTP200 original rawHTML fallbackMarkdown decoded as JSON only; markdown initially empty; no scripts or internal API",
         "scope": "Requirement26, S01-S12, intelligent input/configuration and eight acceptance conditions; original ends at incomplete reference table"
+      },
+      {
+        "url": "https://chatgpt.com/s/t_6ae1ab6e8dbc8191932d54994456a29b",
+        "sha256": "75cce3fa8054555776577e7a019ff80be6db7a4511d0c36d9b2f557a73643063",
+        "bytes": 10599,
+        "visible_scope": "Principles, five-layer architecture, UX001–010, project/micro-application, requirement/design and organization/team; ends in3.4, no inferred following sections"
+      },
+      {
+        "url": "https://chatgpt.com/s/t_6ae1c83c15d481919f8406398a772b2a",
+        "sha256": "b6a0fa8ec712f9c68ab6a6ae287f03234be1f47967ff13d5afba8f4c95ba9f87",
+        "bytes": 11829,
+        "visible_scope": "Task-driven workspace, domains, bounded planning/routing, extensions, configuration and progressive disclosure; ends in partial section6 page table"
       }
     ]
   },
@@ -44,7 +56,7 @@
     "scheduling": "One ready queue, accounts/ledger, complete current dependency semantics and fixed routes; persisted current restart remains.",
     "identity": "Current complete issuance/source/family/Grant/slot proof and transactional revocation; no inferred authority or migration status.",
     "workbench": "Local file snapshots and saves bind tenant/project/fresh binding/actual opened root identity; exact original receipt recovery, ordinary/native binding idempotency, explicit current-basis adoption, owner-isolated ephemeral draft retention. Actual browser/HTTP/restart verified. Full IDE and native GUI remain pending.",
-    "internationalization": "zh-CN/en-US paired extensible catalogs5170keys; current quality-plan/results/report/setup controls and structured diagnostics; own production hardcodes0, actual GUI/vendor/installer coverage remains separately limited.",
+    "internationalization": "zh-CN/en-US extensible paired catalogs5180keys; Octop selector/configuration and progressive disclosure verified in actual current browser; own production hardcodes0; other GUI/vendor/installer surfaces retain their separate limits.",
     "versioning": "Go product identity has one source; workspace/desktop/Helm check:version is1.0.0; protocol/workflow/data revisions independent.",
     "architecture": "Single initial1.0.0; one current OpenCode SDK path, no old JSONL parser/alias or duplicate dispatcher. Generated public types replace duplicate web DTOs; current native host/ledger reused.",
     "opencode": "Actual officialWindows1.19.4 CLI/SDK + owned deterministic model protocol, real host MCP/write/check/seal, twoWorker candidate/import/independent exactSHA test; currentstream client lifetime, single Go tree authority and compact CNEN status/drilldown. Not commercial model/billing or production evidence.",
@@ -55,28 +67,27 @@
     "runner_local_inspection": "Credential-independent bounded read-only journal JSON; safe whitelist and exact zh-CN/en-US diagnostics; no health, server ACK, quarantine mutation, retry or replay claim.",
     "requirement_traceability": "Current version-scoped criteria to published design, protected adoption, exact run/test-node facts and current formal acceptance; unmapped/stale/missing/failed reads distinct; explicit parent refresh avoids repeated permission/version reads. Not per-test-case coverage.",
     "intelligent_operations": "Requirement26: one fixed-purpose read-only native model call via the single Go DAG; editable closed <=8-step plan, preview and confirmed same-SQL-transaction requirement/design/knowledge drafts; real IDs/revisions/original receipts, usage, private/Pool dispatch and late-known recovery. No generic configuration writes/persistent autoapproval. FND-INTENT-001 remains pending.",
-    "test_plans": "Task-bound immutable draft/publication/retirement; frozen publication or nil plus monotonic governance; real isolated command JUnit, exact source/attempt/fence, per-case gates and protected defect->canonical requirement. Manual test/defect/application-version lifecycle remains pending."
+    "test_plans": "Task-bound immutable draft/publication/retirement; frozen publication or nil plus monotonic governance; real isolated command JUnit, exact source/attempt/fence, per-case gates and protected defect->canonical requirement. Manual test/defect/application-version lifecycle remains pending.",
+    "octop": "Official pinned Octop1.0.3b1 MIT connector contract; project-specific literal-placeholder MCP configuration, current API-only task delivery/quality compact reads; official GoSDK HTTP and actual CNEN connection UI verified. Octop instance not installed/exercised; ACP worktree/backend/cancellation and full capabilities pending."
   },
   "verified": {
-    "current_report": "docs/quality/test-plans-verification.md",
-    "current_summary": "docs/quality/test-plans-summary.json",
-    "source_sha256": "826dd8866920e35442c0516cbd850269b78bef39a0cc2f94f27fb94bf6c91935",
+    "current_report": "docs/quality/octop-integration-verification.md",
+    "current_summary": "docs/quality/octop-integration-summary.json",
+    "source_sha256": "bc05a3a0477b670ebcdf62192eeda2a74a42c71a068f123ee758690bca65b3ab",
     "product_version": "1.0.0",
-    "distinct_affected_passed_cases": 37,
+    "distinct_affected_passed_cases": 22,
     "typecheck": true,
     "generated_contract_check": true,
-    "catalog_keys": 5170,
-    "actual_node_junit_two_runner": true,
-    "actual_browser_verified": false,
-    "browser_boundary": "Computer Use stopped while observing a returned Chrome window because it could not determine the current browser URL with enough confidence to enforce policy; no input, authentication or policy bypass was attempted. jsdom/HTTP are not GUI evidence.",
+    "catalog_keys": 5180,
+    "actual_browser_verified": true,
+    "browser_scope": "Current connection panel only; synthetic localhost account. Prior quality-page GUI gap remains.",
+    "actual_standard_mcp_sdk": true,
+    "actual_octop_instance": false,
     "model_calls": 0,
     "vendor_calls": 0,
-    "successful_journey_runs": 2,
-    "total_actual_runs": 3,
-    "reviews": 0,
-    "web_builds": 1,
-    "control_builds": 2,
-    "runner_builds": 2,
+    "web_builds": 2,
+    "control_builds": 1,
+    "runner_builds": 0,
     "native_builds": 0,
     "owned_processes_closed": true,
     "full_platform_complete": false
@@ -89,7 +100,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "8104291e74aa9f7f357d21e7ee33492371ff96b6"
+    "previously_published_commit": "8d0bd5d7b482140b43e2c06c6ef430e3e3f8df42"
   },
   "existing_preview": {
     "updated": false,
@@ -97,33 +108,37 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and requirements1–26, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance.",
-  "last_goal_turn_classification": "progress: versioned automatic quality plans, genuine Node JUnit exact-candidate two-Runner evidence, human gate and protected case issue/intake; full platform remains active",
+  "last_goal_turn_classification": "progress: two additional visible sources adopted; Octop project MCP template and current compact delivery/quality tools implemented, standard SDK and actual connection GUI verified; actual Octop/ACP and complete platform remain active.",
   "previous_goal_turn": "progress: current task/team/execution/test/rejection/intake chain and C206 bounded local inspection delivered. Actual same-host own protocol plus independent exactSHA test; full platform remains active.",
   "current_work": {
-    "stage": "T-QUALITY-115",
+    "stage": "T-OCTOP-116",
     "status": "scoped_verified",
-    "implementation": "Versioned automatic plans, report-capable fixed tests, per-case projection, human gate and protected defect/intake; no new dispatcher",
-    "remaining": "Full P0–P7 and requirements1–26 remain active; browser/device matrix, manual test and defect lifecycle, application versions, multi-host/database/vendor acceptance remain pending"
+    "implementation": "Octop project-MCP configuration and compact delivery/quality reads; same current authority/domain transactions; no new dispatcher",
+    "remaining": "Complete P0–P7 and1–26; actual Octop/ACP workspace/permissions/cancellation/model budgets and remaining platform capabilities"
   },
   "previous_stage_verification": {
-    "stage": "T-TRACE-113",
-    "summary": "docs/quality/requirement-traceability-summary.json",
-    "source_sha256": "65eca1ff190718b9c2d609366a45a345bb2ca90c1a20091692653d77b6a1e8a0",
-    "report": "docs/quality/requirement-traceability-verification.md"
+    "stage": "T-QUALITY-115",
+    "report": "docs/quality/test-plans-verification.md",
+    "summary": "docs/quality/test-plans-summary.json",
+    "source_sha256": "826dd8866920e35442c0516cbd850269b78bef39a0cc2f94f27fb94bf6c91935"
   },
   "latest_request": {
     "reference_conversation": "6ae163e6-0700-83e9-bf86-623690b54884",
     "archive_path": "C:/Users/Administrator/Downloads/suma-0.2.0-dev-3f272a3.zip",
     "archive_sha256": "a46db2758a5b467522870edcb2ba45bb719725c0766c732c566392d6536dbf79",
-    "scope": "Reconcile both actual shared design sources and implement complete current traceability feature; preserve full1.0.0 platform objective, no historical compatibility, stage commit/normal dev push.",
+    "scope": "Continue complete1.0.0 P0–P7 and requirements1–26 using all four visible shared planning sources; prioritize accurate Octop integration and reuse, current professional architecture and simple CNEN interfaces; stage commit/normal dev push.",
     "new_share_url": "https://chatgpt.com/s/t_6ae19e1f3af481918d11132ccf5119fe",
     "new_share_content_status": "Firecrawl basic direct scrape HTTP200 obtained64 visible numbered requirements; original body ends after KM-010 mid-sentence. Map actual published scope only; not implementation proof.",
     "new_share_source_content_sha256": "1135aeaa9519c56d5daa95d6d0ae37fda944e0eeb4ecaae7edc361277086fc30",
     "new_share_adoption": "docs/integrations/shared-roadmap-adoption.md",
     "reference_sources": [
       "https://chatgpt.com/s/t_6ae19e1f3af481918d11132ccf5119fe",
-      "https://chatgpt.com/s/t_6ae1a95216648191961a25087e713f3a"
+      "https://chatgpt.com/s/t_6ae1a95216648191961a25087e713f3a",
+      "https://chatgpt.com/s/t_6ae1ab6e8dbc8191932d54994456a29b",
+      "https://chatgpt.com/s/t_6ae1c83c15d481919f8406398a772b2a",
+      "https://github.com/TencentCloud/Octop/blob/main/README_CN.md"
     ],
-    "requirement26": "FND-INTENT-001 pending, with architecture/AI SOP/acceptance and S01-S12 mapping"
+    "requirement26": "FND-INTENT-001 pending, with architecture/AI SOP/acceptance and S01-S12 mapping",
+    "current_octop_scope": "T-OCTOP-116 MCP configuration and compact current delivery/quality reads implemented and verified in standard SDK/actual UI. Actual Octop instance, ACP isolated coding, provider/budget and full related platform capabilities remain priority work."
   }
 }

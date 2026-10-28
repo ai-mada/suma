@@ -7,6 +7,7 @@ import (
 
 func applicationToolModels() []any {
 	return []any{platform.ApplicationToolDefinition{}, platform.ApplicationToolList{}, platform.DeveloperConnectionMetadata{},
+		platform.ApplicationQualityExecutionInput{}, platform.ApplicationQualityEvidenceReference{}, platform.ApplicationQualityCase{}, platform.ApplicationQualityExecutionPage{},
 		platform.ApplicationToolPageInput{}, platform.ApplicationToolIDInput{}, platform.ApplicationToolRequirementInput{}, platform.ApplicationToolTaskInput{}, platform.ApplicationToolSearchInput{}, platform.ApplicationToolKnowledgeInput{}, platform.ApplicationToolKnowledgeListInput{}, platform.ApplicationRequirementDraftInput{}, platform.ApplicationTaskDraftInput{}, platform.ApplicationRequirementDesignSaveInput{}, platform.ApplicationToolDraftResult{}, platform.ApplicationToolDesignDraftResult{}}
 }
 
@@ -28,4 +29,28 @@ func applicationToolContracts(add operationAdder, api map[string]any) {
 	toolContractMap(api, "components", "schemas", "DeveloperConnectionMetadata", "properties", "transport")["const"] = "streamable_http"
 	toolContractMap(api, "components", "schemas", "DeveloperConnectionMetadata", "properties", "endpoint_source")["enum"] = []string{"configured", "listener_loopback", "unconfigured"}
 	toolContractMap(api, "components", "schemas", "ApplicationToolDefinition", "properties", "credential_scopes", "items")["enum"] = []string{"agent", "api"}
+	applicationQualityContracts(api)
+}
+
+// Application tools and the REST declarations share the same public shapes.
+// The MCP wire envelope remains owned by the official SDK. These limits describe
+// the compact projection; they never grant access to full reports or execution.
+func applicationQualityContracts(api map[string]any) {
+	for _, model := range []string{"ApplicationQualityExecutionInput", "ApplicationQualityEvidenceReference", "ApplicationQualityCase", "ApplicationQualityExecutionPage"} {
+		schema := toolContractMap(api, "components", "schemas", model)
+		schema["additionalProperties"] = false
+		if model != "ApplicationQualityExecutionInput" {
+			schema["readOnly"] = true
+		}
+	}
+	input := toolContractMap(api, "components", "schemas", "ApplicationQualityExecutionInput", "properties")
+	for name, maximum := range map[string]int{"task_id": 64, "run_id": 100, "after_case": 64} {
+		input[name] = map[string]any{"type": "string", "minLength": 1, "maxLength": maximum, "x-max-utf8-bytes": maximum}
+	}
+	input["limit"] = map[string]any{"type": "integer", "minimum": 1, "maximum": 20, "default": 10}
+	toolContractMap(api, "components", "schemas", "ApplicationQualityExecutionPage", "properties", "cases")["maxItems"] = 20
+	toolContractMap(api, "components", "schemas", "ApplicationQualityExecutionPage", "properties", "source_commits")["maxItems"] = 16
+	toolContractMap(api, "components", "schemas", "ApplicationQualityExecutionPage", "properties", "complete")["description"] = "All frozen cases have been included up to this page; this is not task acceptance or production verification."
+	toolContractMap(api, "components", "schemas", "ApplicationQualityCase", "properties", "evidence")["maxItems"] = 3
+	toolContractMap(api, "components", "schemas", "ApplicationQualityCase", "properties", "evidence_complete")["description"] = "All evidence references for this case fit in the compact response. The full quality workspace retains the original evidence."
 }

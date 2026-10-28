@@ -41,6 +41,235 @@
         ],
         "type": "object"
       },
+      "ApplicationQualityCase": {
+        "additionalProperties": false,
+        "properties": {
+          "case_key": {
+            "type": "string"
+          },
+          "covers": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationQualityEvidenceReference"
+            },
+            "maxItems": 3,
+            "type": "array"
+          },
+          "evidence_complete": {
+            "description": "All evidence references for this case fit in the compact response. The full quality workspace retains the original evidence.",
+            "type": "boolean"
+          },
+          "evidence_total": {
+            "type": "integer"
+          },
+          "issue_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "case_key",
+          "title",
+          "status",
+          "covers",
+          "issue_id",
+          "evidence",
+          "evidence_total",
+          "evidence_complete"
+        ],
+        "type": "object"
+      },
+      "ApplicationQualityEvidenceReference": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "type": "integer"
+          },
+          "fence": {
+            "type": "integer"
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "report_id": {
+            "type": "string"
+          },
+          "source_commit": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "worker_id": {
+            "type": "string"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "report_id",
+          "source_commit",
+          "node_id",
+          "attempt",
+          "fence",
+          "worker_id",
+          "status"
+        ],
+        "type": "object"
+      },
+      "ApplicationQualityExecutionInput": {
+        "additionalProperties": false,
+        "properties": {
+          "after_case": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          },
+          "limit": {
+            "default": 10,
+            "maximum": 20,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "run_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 100
+          },
+          "task_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          }
+        },
+        "required": [
+          "task_id",
+          "run_id"
+        ],
+        "type": "object"
+      },
+      "ApplicationQualityExecutionPage": {
+        "additionalProperties": false,
+        "properties": {
+          "basis_current": {
+            "type": "boolean"
+          },
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationQualityCase"
+            },
+            "maxItems": 20,
+            "type": "array"
+          },
+          "complete": {
+            "description": "All frozen cases have been included up to this page; this is not task acceptance or production verification.",
+            "type": "boolean"
+          },
+          "errors": {
+            "type": "integer"
+          },
+          "failed": {
+            "type": "integer"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "next_case": {
+            "type": "string"
+          },
+          "not_run": {
+            "type": "integer"
+          },
+          "passed": {
+            "type": "integer"
+          },
+          "plan_id": {
+            "type": "string"
+          },
+          "plan_sha256": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "run_state": {
+            "type": "string"
+          },
+          "skipped": {
+            "type": "integer"
+          },
+          "source_commit_total": {
+            "type": "integer"
+          },
+          "source_commits": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "type": "array"
+          },
+          "source_commits_complete": {
+            "type": "boolean"
+          },
+          "source_sha256": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "task_id": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "readOnly": true,
+        "required": [
+          "project_id",
+          "task_id",
+          "plan_id",
+          "run_id",
+          "revision",
+          "plan_sha256",
+          "source_sha256",
+          "source_commits",
+          "source_commit_total",
+          "source_commits_complete",
+          "run_state",
+          "state",
+          "basis_current",
+          "total",
+          "passed",
+          "failed",
+          "errors",
+          "skipped",
+          "not_run",
+          "limit",
+          "complete",
+          "cases"
+        ],
+        "type": "object"
+      },
       "ApplicationRequirementDesignSaveInput": {
         "properties": {
           "content": {

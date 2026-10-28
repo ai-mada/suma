@@ -1,6 +1,6 @@
 # 分享规划的采用与当前能力映射
 
-状态：1.0.0，T-TRACE-113 两份可见规划整合；来源不作为完整平台完成或新增运行证据。需求26新增一个待办后，正式进度为 **58 项有限实现、34 项待实现，共 92 项**，见[实施计划](../delivery/implementation-plan.md)与[当前交付状态](../delivery/status.md)。历史T-DELIVERY-112报告保留当时范围。
+状态：1.0.0，T-OCTOP-116 四份可见规划逐项采用；来源不作为完整平台完成或新增运行证据。需求26新增一个待办后，正式进度为 **58 项有限实现、34 项待实现，共 92 项**，见[实施计划](../delivery/implementation-plan.md)与[当前交付状态](../delivery/status.md)。历史T-DELIVERY-112报告保留当时范围。
 
 ## 第一份来源与可见范围
 
@@ -120,3 +120,42 @@ T-DELIVERY-112 对 REQ-008／REQ-010、TEAM-004／TEAM-005、INT-005、SCH-007�
 T-TRACE-113 按当前需求版本及1起始序号读取标准 → 当前发布提案 → 受保护采用 → 精确运行／测试节点／正式验收，实际检查和界面范围由[专项报告](../quality/requirement-traceability-verification.md)记录。它仅推进REQ-008／QA-001部分基础，不完成完整用例、应用版本／发布追踪或新增需求26。
 
 下一批需求按当前92项台账对应域细化，补明确验收条件、依赖、负责人和证据；不将此参考自动当作批准执行、发消息、付费模型调用、生产发布或数据迁移授权。两份原规划不可见部分保持未知；取得新可见来源后再增补，不补造编号。
+
+## 2026-10-28 补充：第三、第四份分享与 Octop
+
+状态：T-OCTOP-116 来源采用补充。保留前文各阶段的原范围与历史事实；当前仍为 **58项有限实现、34项待实现、共92项**，P0–P7及需求1–26全部保持。以下是新的设计来源与采用决定，不是新增完成项，也不表示各参考平台的全部能力已经接通。检查与真实场景以[Octop专项报告](../quality/octop-integration-verification.md)及[摘要](../quality/octop-integration-summary.json)为准。
+
+### 第三份：专业化增强实施蓝图
+
+来源：[速码 suma 专业化增强实施蓝图](https://chatgpt.com/s/t_6ae1ab6e8dbc8191932d54994456a29b)。网页工具未直接取得正文后，通过同一用户指定地址的普通只读HTTP获取原HTML，状态200；只对其中序列化 `fallbackMarkdown` 做JSON字符串解码，不执行页面脚本。原件在项目忽略目录 `.cache/e2e/octop-116/share-3.html`，实际可见正文为 `share-3-body.md`，10,599 UTF-8字节，SHA-256 `75cce3fa8054555776577e7a019ff80be6db7a4511d0c36d9b2f557a73643063`。
+
+可见范围：总体原则与分层架构、统一智能工作台的UX-001…UX-010、项目／子项目／微应用、需求／PRD／UED／SPEC／ADR及组织／团队／人和Agent职责。正文止于3.4组织团队权限说明，接三个“可继续说明”提议；没有取得其后章节，不能将提议当正文或要求用户重新确认已授权范围。
+
+### 第四份：深度设计 V2
+
+来源：[速码 suma 深度设计 V2：从智能研发工作台升级为可扩展的智能研发操作系统](https://chatgpt.com/s/t_6ae1c83c15d481919f8406398a772b2a)。同样取得HTTP200原HTML后仅JSON解码可见正文，原件 `.cache/e2e/octop-116/share-4.html`、正文 `share-4-body.md`，11,829 UTF-8字节，SHA-256 `b6a0fa8ec712f9c68ab6a6ae287f03234be1f47967ff13d5afba8f4c95ba9f87`。
+
+可见范围：任务驱动工作台、统一领域实体／状态／事件、智能理解与拆解、先硬约束后软评分的模型／工具路由、有预算和次数上限的重新规划、统一插件／技能／工具／MCP／A2A、五类可视配置与部分页面状态表。正文止于第六节表格第二行的项目总览“空项目”项，接三个继续提议；完整后续页面矩阵及章节不可见。来源的V2是该设计文档名，不改变速码单一1.0.0产品基线。
+
+### 采用与尚未完成的范围
+
+| 新来源的方向 | 当前采用与对应领域 | 保持明确的缺口 |
+| --- | --- | --- |
+| UX-001…UX-004：智能输入、上下文、补全、结构化解析 | 复用需求26、统一智能输入与固定项目上下文；[智能操作架构](../architecture/intelligent-operations.md) | 既有有限草稿计划不等于全平台自动配置／全部输入场景完成 |
+| UX-005…UX-008：预览、差异、明确执行及快捷操作 | 原DAG、领域命令、固定计划、当前权限和正式回执；本阶段连接器只生成无秘密人工合并片段 | 模型输出不能自行授权、派发、批准、写测试结果或生产变更 |
+| UX-009…UX-010：CLI与中断恢复 | 原CLI／Runner、稳定operation、凭据撤销及未知结果核对 | 完整CLI项目创建／同步、所有厂商会话恢复继续待办，不把重试变成重复资源 |
+| 项目、微应用与产品设计 | 现有项目、版本化需求设计、任务依赖及[应用交付基线](../product/application-delivery.md) | 子项目／微应用完整生命周期、PRD／UED编辑、接口与发布影响矩阵仍待完整实现 |
+| Profile／Runtime／成员关系分离 | 复用当前团队、专家配置、工具profile和Worker事实；角色不自动等于运行进程或项目权限 | 全部专家自主协作、SSO、跨组织与物理多机验收继续待办 |
+| 十二领域及统一事件约束 | 采用Identity、Portfolio、Product、Collaboration、Orchestration、Execution、Integration、Intelligence、Knowledge、Quality、Delivery、Governance的职责方向 | 不为来源名称复制现有服务、调度状态或操作回执，实际领域能力仍逐项交付 |
+| 硬约束优先、再软评分 | 现有权限、路由、工具能力、资源、预算先核验；排序只能作为候选解释 | 完整预测路由、历史效果评分和持续优化没有由本次MCP读取获得实现证据 |
+| 有上限重新规划 | 采用按任务预算、次数、截止时间及未知效果边界审阅的方向；权限拒绝不能靠换工具绕过 | 来源建议初期最多2次不是全平台已生效策略，本阶段不新增自动重规划引擎 |
+| 通用扩展与Octop | 同一项目MCP服务新增真实任务交付与有界逐例质量读取；复用已有草稿工具；[Octop指南](octop.md)与[集成架构](../architecture/octop-integration.md) | ACP编码、A2A、完整插件／技能／记忆／IM／桌面与厂商实际实例另行准入，不由“配置存在”推断健康 |
+| 五类配置与渐进披露 | 同一DeveloperConnection面板选择Codex／Octop；保留项目、账户、组织、语言和可撤销凭据边界 | 全平台默认／组织／项目／任务继承、配置审计／差异／回滚的统一中心仍待交付；低层级不能放松安全策略 |
+
+第三份中的FastAPI、Celery、Alembic等是参考实现示例；当前已批准的Go控制面／唯一DAG／Runner与初始库设计保持。第四份的插件版本与兼容范围属于插件协议建议，不引入速码产品历史兼容分支。采用可验证的产品、领域、交互与扩展约束，不能为追求“全部参考能力”复制互相冲突的控制面。
+
+### Octop 官方代码采用证据
+
+本次通过已连接GitHub只读能力核验，`TencentCloud/Octop`当前main仍为[`890111b7879665840414ca28ab168b05b0db0921`](https://github.com/TencentCloud/Octop/commit/890111b7879665840414ca28ab168b05b0db0921)，版本1.0.3b1；[README_CN](https://github.com/TencentCloud/Octop/blob/890111b7879665840414ca28ab168b05b0db0921/README_CN.md)与[MIT许可](https://github.com/TencentCloud/Octop/blob/890111b7879665840414ca28ab168b05b0db0921/LICENSE)已读。没有把未变化的提交说成一次新的代码升级。`octop-harness`相关ACP源码固定为[`68b5423bb80ecef7fca57ba5a37d9a2bdcbf12d2`](https://github.com/TencentCloud/octop-harness/commit/68b5423bb80ecef7fca57ba5a37d9a2bdcbf12d2)。原始资料、代码片段与摘要清单保留在忽略目录 `.cache/e2e/octop-116/`。
+
+优先复用Octop已有Streamable HTTP自定义MCP：项目私有server、字面Bearer占位符、固定预期主体与语言、人工合并保留其他配置。新增读取只供当前API项目读权限，Agent仍原四读；无秘密片段不是已连接证明。官方ACP的`session/new.cwd`未直接决定实际Agent工作区，`OCTOP_HOME`／workspace_dir／backend.root_dir需要真实配置和范围核验；取消事件也不是进程树停止证明。上述差距写入[ACP后续准入设计](../architecture/octop-integration.md)，不以普通命令或MCP接通替代编码执行验收。

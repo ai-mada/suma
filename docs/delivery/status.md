@@ -8,12 +8,13 @@
 
 T-QUALITY-115在原P5范围内细化自动化测试计划及逐例证据，不新增整项完成或改变上述统计。当前实现边界见[合同](../../contracts/test-plans.md)与[架构](../architecture/quality-evidence.md)；实际双Runner／HTTP／Node报告旅程及定向检查见[阶段报告](../quality/test-plans-verification.md)和[摘要](../quality/test-plans-summary.json)；真实界面仍未验，不能据本阶段推断全平台或生产验收完成。
 
-两份分享规划均已取得当前可见正文；第一份64个编号、第二份需求26及S01–S12见[逐域采用与缺口映射](../integrations/shared-roadmap-adoption.md)。两份末尾均不完整，未见内容保持未知。它们是设计来源，不作为源码或完成证明；当前草稿计划仅推进需求26的一部分，通用配置与全场景多端旅程仍待实现。
+四份分享规划均已取得当前可见正文；新增实施蓝图与深度设计的可见范围、截断及采用见同一映射。第一份64个编号、第二份需求26及S01–S12见[逐域采用与缺口映射](../integrations/shared-roadmap-adoption.md)。两份末尾均不完整，未见内容保持未知。它们是设计来源，不作为源码或完成证明；当前草稿计划仅推进需求26的一部分，通用配置与全场景多端旅程仍待实现。
 
 ## 当前实现与证据
 
 | 领域 | 当前实现 | 验证入口与明确边界 |
 | --- | --- | --- |
+| Octop 项目MCP | 项目专用配置、2项新增API只读、共享目录17项；同事务复用交付／质量、紧凑分页及中英文连接界面 | [指南](../integrations/octop.md)、[报告](../quality/octop-integration-verification.md)、[摘要](../quality/octop-integration-summary.json)；实际Octop实例与ACP编码仍待验 |
 | 身份、组织与治理 | 初始化、登录、会话、组织／项目隔离、真实账号、团队、邀请、角色、撤权及当前凭证授权 | [当前权限](../quality/current-authority-verification.md)、[平台验证](../quality/verification.md)；完整自定义角色／菜单、企业 SSO、OAuth／设备治理及跨数据库验收待办 |
 | 项目计划与进度 | 迭代、里程碑、版本化排期、完整项目不可变基线、当前比较、自然周估算分摊与真实业务指标 | [产品与治理](../product/governance.md)、[验证](../quality/verification.md)；计划估算不等于实际工时，人员日历、连续历史、预测和 portfolio 待办 |
 | 业务任务依赖编辑与参考源码整合 | 当前项目完整任务图、图／表共享草稿、最多 100 项原子版本 CAS、全图校验、显式冲突处理及原操作回执恢复；修改撤销旧验收资格并保留执行快照 | [中文操作](../development/task-dependencies.md)／[English](../en/task-dependencies.md)、[合同](../../contracts/task-dependencies.md)、[源码适配清单](../integrations/referenced-conversation-integration.md)、[本阶段报告](../quality/task-dependencies-verification.md)；按实际参考源码重构当前 1.0.0，不是旧 Git 历史 cherry-pick；最多 1000 个任务完整图，实际 API 与界面复验结果以报告为准，分布式／大图性能／生产验收未由本阶段推断 |

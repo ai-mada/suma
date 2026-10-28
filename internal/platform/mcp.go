@@ -13,6 +13,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/ai-mada/suma/internal/buildinfo"
 	"github.com/ai-mada/suma/internal/localization"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -35,7 +36,7 @@ type mcpRequestState struct {
 // request supplies a fresh credential and fixed project; SDK sessions grant no
 // platform authority, and each application call rechecks its domain transaction.
 func (s *Server) NewMCPHandler() http.Handler {
-	server := mcp.NewServer(&mcp.Implementation{Name: "suma", Version: "0.1.0"}, &mcp.ServerOptions{
+	server := mcp.NewServer(&mcp.Implementation{Name: "suma", Version: buildinfo.Version}, &mcp.ServerOptions{
 		PageSize:     100,
 		SetCacheable: func(_ context.Context, _ mcp.Request, c *mcp.Cacheable) { c.CacheScope = "private"; c.TTLMs = 0 },
 	})

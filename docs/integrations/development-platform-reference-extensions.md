@@ -35,3 +35,5 @@ Octop的固定[README](https://github.com/TencentCloud/Octop/blob/890111b7879665
 开发顺序保持纵向闭环：先补可解释的能力选择与固定执行合同，再扩展真实厂商适配、完整IDE和多入口协作；分别记录源码完成、协议验证、真实运行及生产验收。参考研究不替代本轮多分支合成、独立测试、基线交接和异常恢复交付。
 
 *English scope: The two official repositories are pinned references. Suma integration, intelligent capability selection and the complete IDE remain implementation work; documentation review does not establish feature or production acceptance.*
+
+T-OCTOP-116新增[Octop项目MCP连接与应用读取](octop.md)，复用现有正式服务、权限与两项紧凑质量／交付工具，实际限定检查见[报告](../quality/octop-integration-verification.md)。没有安装／运行Octop、没有完成ACP派发；参考基线与其余完整能力差距继续保留。

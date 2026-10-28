@@ -57,3 +57,9 @@ SDK工具使用共享schema及受验证typed handler。错误保留可用机器c
 工具链与SDK仅从官方源下载、校验及许可盘点，所有任务缓存和TEMP/TMP在repo.cache、进程内环境，不改机器环境。模块升级及容器／构建入口同步，历史1.24结果保留原切面。Go工具链是全后端集成变化，允许一次必要完整Go里程碑检查；日常功能只运行相关回归。
 
 验收至少含官方SDK客户端真正Initialize→ListTools→CallTool；Agent精确四读取，API读取与draft写入、同key恢复／漂移409、撤权后拒绝、未知／null／重复键／跨项目、保留原批准门禁、原生HTTP共源、可取消及有界输出、私有缓存／恶意Origin／Host、真实中英文连接说明。OAuth discovery、外连MCP、插件执行、A2A、厂商模型和完整平台验收继续独立实施，不冒充本轮完成。
+
+## 当前交付／质量读取与Octop配置
+
+T-OCTOP-116新增仅api当前ProjectRead的`project.task_delivery {task_id}`与`project.quality_execution {task_id,run_id,limit?,after_case?}`。HTTP与MCP共用taskDeliveryTx，quality共用原事务中的testPlanExecutionTx；不嵌套事务、不改变领域判定。后者默认10／最多20例，每例3条证据引用、最多16个来源提交，保留总数／完整性；after_case只能为该运行固定修订中的实际key。原64KiB输出界限、当前授权、四项Agent只读与三项草稿写入保持。无XML／日志／命令输出，也不注册批准／派发工具。公共4DTO及共享schema从同一生成器输出，MCP Implementation版本取产品buildinfo1.0.0而SDK维持1.8.0。
+
+DeveloperConnection增加[Octop](../docs/integrations/octop.md)项目专用配置片段，仅人工合并，不自动外部PUT或探测。HTTP Authorization为字面占位符，实际专用可撤销项目令牌由操作者在Octop受控凭据区填写；不生成不存在的env替换协议。shared/default_open默认false，来源／权限／执行资格不由配置模板推断。[验收](../docs/quality/octop-integration-verification.md)分别记录标准协议、真实界面和Octop实际实例未验边界。

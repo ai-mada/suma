@@ -21,3 +21,13 @@ export function codexConnectionConfig(metadata:DeveloperConnectionMetadata,local
  if(metadata.endpoint_source==='unconfigured'||!metadata.endpoint_url)return;
  return '[mcp_servers.suma]\nurl = '+JSON.stringify(metadata.endpoint_url)+'\nbearer_token_env_var = "SUMA_MCP_TOKEN"\nhttp_headers = { "X-Suma-Expected-User" = '+JSON.stringify(metadata.expected_user_id)+', "X-Suma-Expected-Organization" = '+JSON.stringify(metadata.expected_organization_id)+', "X-Suma-Language" = '+JSON.stringify(locale)+' }';
 }
+
+// Octop's custom MCP connector accepts literal HTTP headers. Unlike the Codex
+// client it does not expand a bearer-token environment reference here. Keep a
+// visibly non-secret placeholder; the connection view never receives a token.
+export function octopConnectionConfig(metadata:DeveloperConnectionMetadata,locale:Locale):string|undefined{
+ if(metadata.endpoint_source==='unconfigured'||!metadata.endpoint_url||metadata.transport!=='streamable_http'||!text(metadata.project_id)||!/^[A-Za-z0-9_-]+$/.test(metadata.project_id))return;
+ // Project-specific keys avoid silently replacing another project's connector
+ // when the administrator merges this fragment into Octop's servers object.
+ return JSON.stringify({servers:{['suma_'+metadata.project_id]:{transport:'streamable_http',url:metadata.endpoint_url,headers:{Authorization:'Bearer REPLACE_WITH_PROJECT_API_TOKEN','X-Suma-Expected-User':metadata.expected_user_id,'X-Suma-Expected-Organization':metadata.expected_organization_id,'X-Suma-Language':locale},enabled:true,display_name:'suma',shared:false,default_open:false}}},null,2);
+}
