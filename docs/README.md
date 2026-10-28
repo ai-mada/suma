@@ -2,7 +2,7 @@
 
 更新：2026-10-29。当前只有 **1.0.0** 产品基线，完整平台仍在实现与验收中。入口按领域组织，当前能力由交付状态统一维护；专项设计、合同、英文说明、验证报告与精简摘要保留各自范围，不把历史阶段编号当成产品版本或当前完成状态。
 
-当前初始数据合同为 `suma-initial-gateway-v1`，与产品版本分别管理。旧目录或声明不匹配时拒绝启动写入，保留原数据；新实例使用独立空目录／数据库。统一模型网关及本轮真实检查范围见[报告](quality/model-gateway-verification.md)与[精简摘要](quality/model-gateway-summary.json)。
+当前初始数据合同为 `suma-initial-quality-v1`，与产品版本分别管理。包括旧网关标记在内的不匹配声明须在写入前拒绝，原数据保留，新实例使用独立空目录／数据库，不迁移或回填。T-QUALITY-119受保护修复与当前数据检查见[报告](quality/issue-repair-verification.md)和[摘要](quality/issue-repair-summary.json)；既有模型网关结果保留在[原阶段报告](quality/model-gateway-verification.md)。
 
 | 当前入口 | 内容 |
 | --- | --- |
@@ -14,6 +14,7 @@
 | [团队执行](development/team-execution.md) | 无需先选任务即可跟进项目团队计划、阻塞与正式验收；[English](en/team-execution.md) |
 | [任务依赖编辑](development/task-dependencies.md) | 完整业务任务图、图／表共享草稿、原子保存、冲突与原操作恢复；[English](en/task-dependencies.md)、[合同](../contracts/task-dependencies.md)、[当前专项报告](quality/task-dependencies-verification.md) |
 | [任务交付与质量](development/task-delivery-chain.md) | 从依赖图进入团队预览、确切运行／测试、正式验收及问题回流；[English](en/task-delivery-chain.md)、[合同](../contracts/task-delivery-chain.md)、[本阶段限定报告](quality/task-delivery-chain-verification.md) |
+| [问题修复与回归关闭](development/issue-repair.md) | T-QUALITY-119：唯一问题回流、新修复任务、原失败用例回归、固定候选与独立Worker测试、当前Review关单及保留历史的重开；简洁中英文问题面板、[English](en/issue-repair.md)、[合同](../contracts/issue-repair.md)、[架构](architecture/issue-repair.md)、[报告](quality/issue-repair-verification.md)、[摘要](quality/issue-repair-summary.json)。完整缺陷管理仍在实施 |
 | [Octop 项目接入](integrations/octop.md) | 项目专用MCP配置片段、统一任务交付／逐例质量读取、当前权限与人工门禁；[架构](architecture/octop-integration.md)、[真实限定报告](quality/octop-integration-verification.md) |
 | [Octop Harness 开发执行](architecture/octop-execution.md) | 公开 Harness／ACP 与原生编码共用模型选择、Go 网关和六工具工作区，代码封存后同 SHA 独立测试；[合同](../contracts/octop-harness-acp.md)、[当前 T-MODEL-118 报告](quality/model-gateway-verification.md)、[摘要](quality/model-gateway-summary.json) |
 | [自动化测试计划与逐例证据](development/test-plans.md) | T-QUALITY-115：一个任务的不可变计划修订、同运行固定候选独立测试、原 JUnit 报告、逐例门禁与明确问题回流；[English](en/test-plans.md)、[合同](../contracts/test-plans.md)、[证据架构](architecture/quality-evidence.md)、[阶段报告](quality/test-plans-verification.md)、[摘要](quality/test-plans-summary.json)。实际范围以报告为准，完整测试／缺陷与应用交付仍待办 |

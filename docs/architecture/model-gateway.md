@@ -1,12 +1,12 @@
 # 统一模型网关架构
 
-状态：suma 1.0.0／T-MODEL-118 当前设计与实现合同。责任：控制面、调度与账务、Runner、原生运行时、Octop runtime 和工作台。关联：[模型合同](../../contracts/model-execution.md)、[Octop 合同](../../contracts/octop-harness-acp.md)、[统一绑定入口](model-execution.md)。本轮实际测试、真实协议运行与未验范围以[专项验证报告](../quality/model-gateway-verification.md)为准，本文不预先声明通过。
+状态：suma 1.0.0，T-MODEL-118统一网关设计及T-QUALITY-119当前数据／质量衔接。更新：2026-10-29。责任：控制面、调度与账务、Runner、原生运行时、Octop runtime 和工作台。关联：[模型合同](../../contracts/model-execution.md)、[Octop 合同](../../contracts/octop-harness-acp.md)、[统一绑定入口](model-execution.md)。模型专项原结果见[T-MODEL-118报告](../quality/model-gateway-verification.md)，当前修复与数据检查见[T-QUALITY-119报告](../quality/issue-repair-verification.md)和[摘要](../quality/issue-repair-summary.json)，本文不预先声明通过。
 
 ## 当前持久数据合同
 
-产品版本仍为 **1.0.0**；当前唯一持久数据合同为 **`suma-initial-gateway-v1`**，由 `internal/store/baseline.go` 的 `InitialDataContract` 定义。它包含当前模型网关 JSON／请求证据语义，与产品版本、SDK 版本、流程修订和 API 协议分别管理，不构成历史兼容分支。
+产品版本仍为 **1.0.0**；当前唯一持久数据合同为 **`suma-initial-quality-v1`**，由 `internal/store/baseline.go` 的 `InitialDataContract` 定义。它包含模型网关JSON／请求证据和问题修复的受保护生命周期语义，与产品版本、SDK版本、流程修订和API协议分别管理，不构成历史兼容分支。
 
-初始化先只读检查 `suma_schema_baselines` 的完整 platform／dag 声明。旧合同、未知组件、混合声明或已有但未登记的领域表必须拒绝进入当前写路径；一个正确组件不能掩盖另一个不匹配组件。程序不迁移、不改写声明、不清空旧目录，也不能靠删除用户数据库使初始化“通过”。
+初始化先只读检查 `suma_schema_baselines` 的完整 platform／dag 声明。旧网关合同、其他不匹配合同、未知组件、混合声明或已有但未登记的领域表必须拒绝进入当前写路径；一个正确组件不能掩盖另一个不匹配组件。程序不迁移、不回填、不改写声明、不清空旧目录，也不能靠删除用户数据库使初始化“通过”。
 
 部署当前代码须使用**单独的新空数据目录／空数据库**，由当前初始化声明合同；原目录、凭据、业务原件与历史证据完整保留供原环境核对。当前合同已声明的库可重启，并按幂等初始化完成本次合同内被中断的建表，这不是升级旧库。新实例的身份、配置及验收由其自身建立，不把保留的旧库直接当成当前可写数据。
 
@@ -124,7 +124,13 @@ sequenceDiagram
 
 代码检查失败仍可能有完整、应计费的模型用量；模型返回成功但用量 partial 仍须保留账务核对。取消后继续保留已知计数与冻结费率。共享事实卡只显示网关与所绑定证据；未读取账本处提供既有用量页链接，不新增轮询、不自行计算“已结算”或“冻结已释放”。
 
-## 7. 接入范围与验收
+## 7. 问题修复与正式质量衔接
+
+问题修复沿既有唯一需求回流建立每轮新普通任务，模型编码仍使用上述选择、预算和原操作合同；准备任务与绑定回归都不派发或批准。关闭问题须复核原失败case及selector、当前发布计划修订／SHA、正式产码候选及原attempt／fence／证据摘要、不同Worker的同SHA独立测试和当前Review。重开保留原关闭快照，新周期不能复用旧任务／旧关闭运行。
+
+管理员固定的`command/text-v1`产码命令也可通过同一DAG执行：精确档案、当前私有／Pool库存及原ToolEvidence必须匹配，结构化Agent不能借command类型绕过原用途门禁；固定命令本身不因此获得模型网关或供应商凭据能力。简洁中英文问题面板只显示真实修复／回归／验收／关闭事实及阻塞，不自动把绿色测试等同修复完成。详见[质量架构](issue-repair.md)、[合同](../../contracts/issue-repair.md)和[当前验证](../quality/issue-repair-verification.md)。
+
+## 8. 接入范围与验收
 
 本设计当前覆盖声明共同模型协议的原生编码与 Octop Harness／ACP。只读规划、知识提炼、失败分诊和智能运维等无工作区 purpose 仍遵守各自固定合同；OpenCode 的固定模型 SDK 合同、Codex app-server 的模型目录与证据合同也保持独立，不能据此宣称全部外部工具已统一。
 
@@ -132,7 +138,7 @@ sequenceDiagram
 
 ## English design summary
 
-The product remains version **1.0.0**, while its sole current persistent data contract is **`suma-initial-gateway-v1`**. Initialization reads and rejects incompatible, mixed or undeclared existing data before current writes; it does not migrate, reset or erase an old directory. Use a separate empty data directory/database and preserve the original files and evidence. Current-contract restarts remain idempotent.
+The product remains version **1.0.0**, while its sole current persistent data contract is **`suma-initial-quality-v1`**. Initialization rejects the earlier gateway marker and other incompatible, mixed or undeclared existing data before current writes; it does not migrate, backfill, reset or erase an old directory. Use a separate empty data directory/database and preserve the original files and evidence. Current-contract restarts remain idempotent.
 
 Native Suma coding and Octop Harness/ACP use one immutable model binding, rate snapshot and attempt budget. The Go Runner alone owns provider credentials, provider HTTP, admission and durable request receipts; SDKs receive only an attempt-scoped loopback endpoint and short-lived token. Other tool contracts remain distinct.
 
@@ -141,3 +147,5 @@ Native Suma coding and Octop Harness/ACP use one immutable model binding, rate s
 Real SSE token content remains streamed. The terminal/usage/DONE suffix reaches the SDK only after the host response receipt is durable. Repeating an identical completed step returns an available original cached response without another upstream call; an unresolved step or missing cache requires reconciliation. Restart retains known usage and unresolved holds, without replaying model calls or inventing process-stop evidence. Responses use checksum-verified attempt-private cache files, with default limits of 2 MiB per request, 8 MiB per response and 32 MiB total cache; worst-case response space is admitted before each upstream call. SSE response digests cover the LF-normalized forwarded representation rather than original wire line endings.
 
 Gateway closure, response coverage, usage coverage, ledger settlement, source checks and business acceptance are separate facts. Cancellation never resets known consumption. The common UI reads the original binding and evidence, with a link to the existing ledger rather than inferred settlement. Actual verification is recorded separately in the linked T-MODEL-118 report.
+
+T-QUALITY-119 connects protected issue repair cycles to the existing task and quality authority. Closure requires the original failed case/selector, a current published regression revision, the exact scheduler-pinned code producer, independent tests on another Worker and current formal Review. Fixed command profiles are restricted to `command/text-v1`; they do not grant model or approval capabilities. Reopening preserves the previous closure and requires a fresh task. Current data, runtime and compact Chinese/English panel checks are scoped by the [T-QUALITY-119 report](../quality/issue-repair-verification.md) and [summary](../quality/issue-repair-summary.json); full defect management remains pending.

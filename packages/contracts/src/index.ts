@@ -1803,6 +1803,98 @@ export interface InvitationMetadata {
   accepted_by?: string;
   accepted_at?: string;
 }
+export interface IssueRegressionBinding {
+  plan_id: string;
+  plan_revision: number;
+  plan_sha256: string;
+  case_keys: (string)[];
+  bound_by: string;
+  bound_at: string;
+}
+export interface IssueRepair {
+  id: string;
+  tenant_id: string;
+  project_id: string;
+  issue_id: string;
+  cycle: number;
+  version: number;
+  requirement_id: string;
+  task_id: string;
+  prepared_by: string;
+  created_at: string;
+  updated_at: string;
+  regression?: IssueRegressionBinding | null;
+  closure?: IssueRepairClosure | null;
+  reopened_at?: string;
+  reopened_by?: string;
+  reopen_reason?: string;
+}
+export interface IssueRepairBindRequest {
+  project_id: string;
+  expected_issue_version: number;
+  expected_repair_version: number;
+  expected_plan_version: number;
+  plan_id: string;
+  case_keys: (string)[];
+  reason: string;
+  idempotency_key: string;
+}
+export interface IssueRepairBlocker {
+  code: string;
+  ref_id?: string;
+}
+export interface IssueRepairCloseRequest {
+  project_id: string;
+  expected_issue_version: number;
+  expected_repair_version: number;
+  run_id: string;
+  reason: string;
+  idempotency_key: string;
+}
+export interface IssueRepairClosure {
+  run_id: string;
+  task_version: number;
+  review_id: string;
+  plan_id: string;
+  plan_revision: number;
+  plan_sha256: string;
+  case_keys: (string)[];
+  source_commits: (string)[];
+  closed_by: string;
+  closed_at: string;
+  reason: string;
+}
+export interface IssueRepairPrepareRequest {
+  project_id: string;
+  expected_issue_version: number;
+  title: string;
+  description: string;
+  owner_id: string;
+  acceptance_criteria: (string)[];
+  reason: string;
+  idempotency_key: string;
+}
+export interface IssueRepairReopenRequest {
+  project_id: string;
+  expected_issue_version: number;
+  expected_repair_version: number;
+  reason: string;
+  idempotency_key: string;
+}
+export interface IssueRepairView {
+  issue: Record;
+  cycle: number;
+  current?: IssueRepair | null;
+  task?: Record | null;
+  history: (IssueRepair)[];
+  history_total: number;
+  history_complete: boolean;
+  can_prepare: boolean;
+  can_bind: boolean;
+  can_close: boolean;
+  can_reopen: boolean;
+  blockers: (IssueRepairBlocker)[];
+}
 export interface KnowledgeExtractionCapability {
   protocol: string;
   model: string;

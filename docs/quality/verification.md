@@ -1,11 +1,12 @@
 # 1.0.0 验证入口
 
-更新：2026-10-29。当前只有单一 **1.0.0** 产品基线，当前数据合同为 `suma-initial-gateway-v1`；完整平台继续实施。本页按能力指向准确报告，不重复阶段流水、旧测试数字或旧数据库升级说明。详细过程仍可从专项档案与 Git 追溯。
+更新：2026-10-29。当前只有单一 **1.0.0** 产品基线，当前唯一数据合同为 `suma-initial-quality-v1`；完整平台继续实施。本页按能力指向准确报告，不重复阶段流水、旧测试数字或旧数据库升级说明。详细过程仍可从专项档案与 Git 追溯。
 
 当前范围为需求1–26，58项有限实现、34项待办，共92项。新增需求26／`FND-INTENT-001`尚未实现；验收追踪只推进已有范围，历史专项报告保留当时台账和证据。
 
 | 当前范围 | 验证与限制 |
 | --- | --- |
+| T-QUALITY-119 受保护修复、回归与关单重开 | [当前报告](issue-repair-verification.md)、[精简摘要](issue-repair-summary.json)、[中文操作](../development/issue-repair.md)／[English](../en/issue-repair.md)、[合同](../../contracts/issue-repair.md)：唯一需求回流与新修复任务、原失败case／selector、固定发布计划、正式产码候选与不同Worker独立测试、当前Review后人员关单及保留历史的重开；复用固定`command/text-v1`档案和私有／Pool资格，通用记录旁路拒绝。简洁中英文问题面板、实际OS／HTTP执行、接口、权限、恢复及当前数据合同各以报告记录为准，不推断所有检查通过；完整Issue／Bug治理、复杂候选来源、应用／发布测试和生产仍待交付 |
 | T-MODEL-118 原生／Octop统一模型网关 | [当前报告](model-gateway-verification.md)、[精简摘要](model-gateway-summary.json)、[架构与SOP](../architecture/model-gateway.md)：共同ModelBinding／冻结报价／预算、真实HTTP／SSE、逐次剩余总输出许可、持久原操作与原响应回放；本机原生真实Claim与费用账本、官方Harness／ACP六工具工作树和同SHA独立JUnit、取消与journal分别留证。中英文模型／报价入口与可展开事实的组件、实际界面及最终数据合同检查各以报告为准；已知费用为运营方费率估算，非供应商账单硬帽，历史通过不继承为当前全套通过 |
 | Octop 项目MCP与统一交付读取 | [指南](../integrations/octop.md)、[阶段报告](octop-integration-verification.md)与[摘要](octop-integration-summary.json)：17项共享目录、2项新增API只读、分页／当前权限、项目专用配置及中英文实际界面；此报告仅证明业务MCP范围，当前Harness／ACP编码与隔离工作树证据见[T-MODEL-118报告](model-gateway-verification.md)。完整Octop CLI／GUI和厂商账户仍未验 |
 | T-QUALITY-115 自动化计划与逐例证据 | [阶段报告](test-plans-verification.md)、[精简摘要](test-plans-summary.json)、[中文指南](../development/test-plans.md)／[English](../en/test-plans.md)、[合同](../../contracts/test-plans.md)、[证据架构](../architecture/quality-evidence.md)：当前代码覆盖任务计划不可变修订、固定候选 JUnit 原件采集、当前 attempt 逐例投影、正式 Review 附加门禁和受保护失败用例问题回流；实际隔离双Runner／HTTP／Node报告旅程与定向检查通过，真实界面因浏览器工具无法确认URL仍未验，以报告为准。仅自动化用例，完整测试／缺陷生命周期、应用／发布测试和平台全范围仍待实现，不改变58／34／92统计 |
@@ -20,7 +21,7 @@
 | OpenCode实际CLI／SDK／宿主／独立测试与运行交互 | [实际限定报告](opencode-actual-execution-verification.md)、[摘要](opencode-actual-execution-summary.json)：真实官方Windows工具配自有模型协议、两Worker／同SHA独立测试；原数据快照CNEN／刷新／测试下钻；商业模型效果、物理多机、跨平台与生产未验 |
 | Codex当前执行工作区只读 | [限定报告](codex-workspace-observation-verification.md)、[精简摘要](codex-workspace-observation-summary.json)：真实本机Control／Runner／隔离Git／自有协议子进程的出站读取、界面及取消；零厂商或模型调用，保存仍仅限原生 |
 | 模型选择跨普通任务、专家与原生修复 | [当前限定报告](model-selection-workflows-verification.md)、[精简摘要](model-selection-workflows-summary.json)：受影响接口／CLI／Web、实际预览及修订／刷新、零新增模型和执行；原生修复仍不支持 Codex |
-| 当前数据合同与共享产品版本 | 产品保持1.0.0，当前数据合同为 `suma-initial-gateway-v1`；旧声明、混合组件和未知合同在初始化写入前拒绝，原数据保留，新实例另选独立空目录／数据库。当前新库／重启／拒绝写入检查见[T-MODEL-118报告](model-gateway-verification.md)及[摘要](model-gateway-summary.json)；[原初始化报告](initial-version-verification.md)、[摘要](initial-version-summary.json)保留该阶段183表及原源码结果，不证明当前数据合同已验 |
+| 当前数据合同与共享产品版本 | 产品保持1.0.0，当前唯一数据合同为 `suma-initial-quality-v1`；旧网关标记、不匹配或混合声明、未知组件及未登记领域表在初始化写入前拒绝，原数据保留，不迁移／回填，新实例另选独立空目录／数据库。当前新库／重启／拒绝写入检查见[T-QUALITY-119报告](issue-repair-verification.md)及[摘要](issue-repair-summary.json)；[T-MODEL-118报告](model-gateway-verification.md)、[原初始化报告](initial-version-verification.md)保留原合同及源码结果，不证明当前数据合同已验 |
 | 安装版 Codex 实际编码 | [准确源码与环境的专项报告](codex-app-server-verification.md)：安装版 CLI 配合自有 Responses 端点；配置 ACK 不是提供方身份，提醒不等于硬预算；不将旧切片作为本轮厂商验收 |
 | 其他领域能力 | [交付状态](../delivery/status.md)与[完整文档索引](../README.md)列出各域当前实现和独立证据 |
 | 未完成范围 | [完整实施计划](../delivery/implementation-plan.md)、[产品基线](../product/v1-baseline.md)：P0–P7及扩展需求1–26全部保留；[统一智能输入／配置](../architecture/intelligent-operations.md)仍待实现 |

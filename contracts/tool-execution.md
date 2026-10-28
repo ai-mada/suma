@@ -1,6 +1,6 @@
-# T-P4-004 — Tool profiles, task dispatch and structured execution
+# Tool profiles, fixed command workflows and structured execution
 
-Status: frozen implementation contract, 2026-10-24. Full product scope remains in docs/delivery/implementation-plan.md. This stage must have real local HTTP/process evidence and a local commit. Production vendor accounts, remote session resume, full terminal/input mediation and external bridge restart-query support are separate pending requirements.
+Status: current suma 1.0.0 contract, updated 2026-10-29 / T-QUALITY-119. Full product scope remains in docs/delivery/implementation-plan.md. Real HTTP/process evidence is recorded separately from vendor and production acceptance. Remote session resume, full terminal/input mediation and external bridge restart-query support remain separate requirements.
 
 ## T-P4-011 — Native diagnostic projection
 
@@ -85,3 +85,16 @@ Native agent CLI uses SUMA_AGENT_TOKEN for `/agent/tools`; Runner token remains 
 Use existing compact local workbench. Settings show execution workers/profile configuration, observed version/protocol, online expiry and actual availability reasons; no false percent/uptime. Task details -> preview fixed plan -> explicit start -> real run. Preserve unknown operation identity and CAS drafts, current project/user isolation and URL state. Workflow editor selects actual profiles, retains keyboard/JSON equivalent. Run panel shows typed facts/session and terminal status separately from DAG/business/test/acceptance. Partial narrow/wide/light/dark and Escape/focus must be tested in browser.
 
 Tests include missing tool/disabled exec/wrong capability keeping ready without attempt, pinned digest drift, stale/replayed inventory, another worker/token/project, revocation, plan version/content changes, duplicate start/lost ACK, structured malformed/oversize/split output, success/failure conflicts, cancellation/unknown, credential redaction and actual agent-vs-runner scope. Actual journey must send task context into a real process, execute isolated candidate and independent test, human acceptance, plus a failed process and deduplicated issue/requirement. Deterministic fixture must be labelled as fixture; real CLI probe and any model execution separately disclosed.
+
+## Fixed command workflows
+
+An explicit `command` node may bind the complete `tool_profile_id` and
+`tool_profile_sha256` pair. Its profile must be `command/text-v1`; structured
+agents cannot acquire command-node semantics. Both private and shared-pool
+claims and callbacks recheck the current authorized profile and exact
+fingerprint. Agent development still uses its reviewed task dispatch plan.
+A deterministic command workflow is not an AI model call.
+
+Issue regression closure additionally requires the scheduler-pinned candidate,
+the original producer attempt/fence/evidence, and a different test Worker. A
+test command's self-reported source hash alone is insufficient.

@@ -40,6 +40,9 @@ func testPlanContracts(add operationAdder, api map[string]any) {
 			op["description"] = "Explicit authorized read of the bounded original XML and parsed cases. Ordinary execution summaries carry references without XML. Report IDs, raw XML and case names cannot grant execution or acceptance rights."
 		}
 		if r.output == "TestPlanList" || r.output == "TestPlanExecutionList" {
+			if r.output == "TestPlanList" {
+				appendQuery(op, queryParameter("task_id", "Optional exact current project task. Filtering applies before count and pagination; a cursor from another task is rejected.", map[string]any{"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"}))
+			}
 			appendQuery(op, queryParameter("limit", "Canonical positive decimal page size.", map[string]any{"type": "integer", "minimum": 1, "maximum": 100, "default": 20}))
 			maximum := 64
 			description := "Existing plan ID in this tenant/project, descending created_at/id keyset."

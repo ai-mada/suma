@@ -41,6 +41,7 @@
   "status.accepted": "Accepted",
   "status.done": "Done",
   "status.active": "Enabled",
+  "status.closed": "Closed",
   "status.resolved": "Resolved",
   "status.published": "Published",
   "status.blocked": "Blocked",

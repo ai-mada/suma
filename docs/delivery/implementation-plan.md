@@ -4,7 +4,7 @@
 
 [产品基线](../product/v1-baseline.md)记录完整编号范围和单一新库初始化策略，[交付状态](status.md)集中当前实现与限制，[文档索引](../README.md)提供领域设计／合同／专项证据。本台账保留各阶段的原始能力范围，删除重复阶段流水和历史测试数字。
 
-当前数据合同为 `suma-initial-gateway-v1`，独立于产品版本1.0.0。旧声明、混合组件或未知合同在初始化写入前拒绝，既有用户数据保留；新实例使用独立空目录／数据库。实现与实际检查范围见[T-MODEL-118报告](../quality/model-gateway-verification.md)及[摘要](../quality/model-gateway-summary.json)。
+当前唯一数据合同为 `suma-initial-quality-v1`，独立于产品版本1.0.0。包括旧网关标记在内的不匹配声明、混合组件或未知合同在初始化写入前拒绝，既有用户数据保留，不迁移或回填；新实例使用独立空目录／数据库。实现与实际检查范围见[T-QUALITY-119报告](../quality/issue-repair-verification.md)及[摘要](../quality/issue-repair-summary.json)。
 
 勾选只表示所列限定实现存在，不表示整阶段完成；报告只支持原源码／环境／场景。当前本地已实现的模型配置、Codex执行、专家团队、候选合成／修复、工作区、知识提炼与账本等具体边界统一见交付状态。未配置、未验证和结果未知必须明确，不以局部交付缩减剩余目标。
 
@@ -126,7 +126,9 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 
 ## P5 质量、发布与运维闭环
 
-T-QUALITY-115按本节既有范围细化[自动化测试计划与逐例证据](../development/test-plans.md)：一任务一个计划及不可变修订，沿原Go DAG冻结计划或空绑定，固定候选独立测试采集原JUnit、逐例门禁与明确问题回流。当前[合同](../../contracts/test-plans.md)和[架构](../architecture/quality-evidence.md)已随源码建立；实际隔离双Runner／HTTP／Node报告检查见[阶段报告](../quality/test-plans-verification.md)及[摘要](../quality/test-plans-summary.json)，真实界面未验、不新增勾选项，维持58项限定实现／34待办／92总计。完整手工／应用／发布测试、缺陷关闭／重开与第24／25项全生命周期仍待交付。
+T-QUALITY-115按本节既有范围细化[自动化测试计划与逐例证据](../development/test-plans.md)：一任务一个计划及不可变修订，沿原Go DAG冻结计划或空绑定，固定候选独立测试采集原JUnit、逐例门禁与明确问题回流。当前[合同](../../contracts/test-plans.md)和[架构](../architecture/quality-evidence.md)已随源码建立；实际隔离双Runner／HTTP／Node报告检查见[阶段报告](../quality/test-plans-verification.md)及[摘要](../quality/test-plans-summary.json)，该阶段真实界面未验、不新增勾选项，维持58项限定实现／34待办／92总计。完整手工／应用／发布测试、缺陷治理与第24／25项全生命周期仍待交付。
+
+T-QUALITY-119在同一待办内推进[受保护问题修复](../development/issue-repair.md)：唯一需求回流、每轮新普通任务、当前发布回归计划的精确修订／SHA及非空用例；原测试缺陷必须包含原case及相同selector。正式关单同时要求固定产码候选、原attempt／fence／证据摘要、不同Worker独立复测与当前Review；重开保留旧关闭依据，新周期不能复用旧任务／旧关闭运行。`command/text-v1`复用正式固定档案、当前私有／Pool资格及原结果校验，仍由唯一Go DAG派发；通用记录无权制造生命周期或修复关系。简洁中英文问题面板、实际执行、接口及门禁结果见[当前报告](../quality/issue-repair-verification.md)和[摘要](../quality/issue-repair-summary.json)，不增加勾选项，不代表完整Issue／Bug能力或复杂候选来源已经完成。
 
 - [x] 明确测试节点证据、当前版本人工验收、失败问题与去重需求回流。T-DELIVERY-112 增加[任务交付与质量面板](../development/task-delivery-chain.md)，仅 current_run 及每类 20 条正式引用；验收退回在同事务创建问题并使下游验收失效，需求回流使用专用 kind／作用域摘要映射，拒绝通用记录预占来源槽位。测试节点成功不替代人工验收。
 - [x] 版本/测试/证据登记，不将其冒充实际发布或实际测试。

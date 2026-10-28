@@ -13,7 +13,7 @@ func toolNode() Node {
 	return Node{ID: "agent", Type: "agent", Command: []string{"native-agent"}, Config: map[string]any{"goal": "inspect", "tool_profile_id": "profile-1", "tool_profile_sha256": strings.Repeat("a", 64)}}
 }
 func TestToolCompileAndCapabilitiesPreventAttempt(t *testing.T) {
-	for _, n := range []Node{{ID: "bad", Type: "agent"}, {ID: "bad", Type: "command", Command: []string{"one", "two"}}, {ID: "bad", Type: "test", Command: []string{"../path"}}, {ID: "bad", Type: "agent", Command: []string{"agent"}, Config: map[string]any{"tool_profile_id": "p"}}, {ID: "bad", Type: "command", Command: []string{"agent"}, Config: map[string]any{"tool_profile_id": "p", "tool_profile_sha256": strings.Repeat("a", 64)}}} {
+	for _, n := range []Node{{ID: "bad", Type: "agent"}, {ID: "bad", Type: "command", Command: []string{"one", "two"}}, {ID: "bad", Type: "test", Command: []string{"../path"}}, {ID: "bad", Type: "agent", Command: []string{"agent"}, Config: map[string]any{"tool_profile_id": "p"}}, {ID: "bad", Type: "script", Command: []string{"agent"}, Config: map[string]any{"tool_profile_id": "p", "tool_profile_sha256": strings.Repeat("a", 64)}}} {
 		if Compile(Workflow{Nodes: []Node{n}}) == nil {
 			t.Fatal("unsafe command/tool binding compiled", n)
 		}
@@ -35,6 +35,27 @@ func TestToolCompileAndCapabilitiesPreventAttempt(t *testing.T) {
 	a, err := e.Claim(ctx, "t", "p", "w", []string{"command:native-agent"})
 	if err != nil || a == nil {
 		t.Fatal(a, err)
+	}
+}
+
+func TestCommandToolBindingRejectsStructuredAdapterAndStaleProof(t *testing.T) {
+	n := Node{ID: "produce", Type: "command", Command: []string{"fixed-shell"}, Config: map[string]any{"tool_profile_id": "fixed-profile", "tool_profile_sha256": strings.Repeat("a", 64)}}
+	if err := Compile(Workflow{Nodes: []Node{n}}); err != nil {
+		t.Fatal("fixed command did not compile", err)
+	}
+	p := toolcontract.Profile{CommandID: "fixed-shell", Adapter: "command", Protocol: "text-v1", ProfileSHA256: strings.Repeat("a", 64), ExecutableSHA256: strings.Repeat("b", 64), ToolVersion: "fixed command fixture"}
+	r := Result{ToolEvidence: &toolcontract.Evidence{Profile: p, Terminal: "completed", UsageState: toolcontract.UsageUnreported}}
+	if err := validateToolResult(n, r); err != nil {
+		t.Fatal("current text command receipt rejected", err)
+	}
+	r.ToolEvidence.Profile.Adapter, r.ToolEvidence.Profile.Protocol, r.ToolEvidence.EventCount = "suma", "suma-jsonl-v1", 1
+	if err := validateToolResult(n, r); !errors.Is(err, ErrInvalid) {
+		t.Fatal("structured agent masqueraded as command", err)
+	}
+	r.ToolEvidence.Profile, r.ToolEvidence.EventCount = p, 0
+	r.ToolEvidence.Profile.ProfileSHA256 = strings.Repeat("c", 64)
+	if err := validateToolResult(n, r); !errors.Is(err, ErrInvalid) {
+		t.Fatal("old fixed profile was accepted", err)
 	}
 }
 

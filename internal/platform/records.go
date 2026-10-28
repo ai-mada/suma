@@ -125,6 +125,9 @@ func (s *Service) validateRecord(ctx context.Context, tx *sql.Tx, auth *authoriz
 	if kind == "tasks" && (r.Status == "accepted" || r.Status == "completed" || r.Status == "done") {
 		return invalid("任务完成须经过测试证据与人工验收")
 	}
+	if kind == "issues" && r.Status != "open" && r.Status != "in_progress" && r.Status != "closed" {
+		return invalid(issueRepairProtected)
+	}
 	if r.OwnerID != "" {
 		var n int
 		if err := tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_members WHERE tenant_id=? AND project_id=? AND id=?`), r.TenantID, r.ProjectID, r.OwnerID).Scan(&n); err != nil {
@@ -274,6 +277,9 @@ func (s *Service) createCommandRecordTx(ctx context.Context, tx *sql.Tx, auth *a
 	if err := rejectProtectedRecordProvenanceInput(m); err != nil {
 		return Record{}, err
 	}
+	if kind == "issues" && str(m, "status") != "" && str(m, "status") != "open" {
+		return Record{}, invalid(issueRepairProtected)
+	}
 	p := auth.currentPrincipal
 	key := str(m, "idempotency_key")
 	hash, replay, err := s.commandReceipt(ctx, auth, key, map[string]any{"kind": kind, "body": m})
@@ -365,6 +371,9 @@ func (s *Service) Update(ctx context.Context, actor Actor, project, kind, id str
 	}
 	if number(m, "expected_version") != r.Version {
 		return r, conflict("记录已变化，请保留草稿并重新加载")
+	}
+	if status, present := m["status"]; kind == "issues" && present && status != r.Status {
+		return r, invalid(issueRepairProtected)
 	}
 	oldBasis := taskBasis(r)
 	originalKind := r.Kind

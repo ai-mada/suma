@@ -256,7 +256,7 @@ func (s *Service) GetTestPlan(ctx context.Context, actor Actor, project, id stri
 	}
 	return s.testPlanViewTx(ctx, auth, project, current)
 }
-func (s *Service) ListTestPlans(ctx context.Context, actor Actor, project string, limit int, before string) (out TestPlanList, err error) {
+func (s *Service) ListTestPlans(ctx context.Context, actor Actor, project, task string, limit int, before string) (out TestPlanList, err error) {
 	out.Items = []TestPlanView{}
 	if !testPlanActor(actor) {
 		return out, forbidden()
@@ -264,7 +264,7 @@ func (s *Service) ListTestPlans(ctx context.Context, actor Actor, project string
 	if limit == 0 {
 		limit = 20
 	}
-	if !handoffID(project, false) || !handoffID(before, true) || limit < 1 || limit > 100 {
+	if !handoffID(project, false) || !handoffID(task, true) || !handoffID(before, true) || limit < 1 || limit > 100 {
 		return out, invalid(testPlanInvalid)
 	}
 	ctx, auth, close, err := s.planningAuthority(ctx, actor, project, "", purposeProjectRead)
@@ -273,15 +273,28 @@ func (s *Service) ListTestPlans(ctx context.Context, actor Actor, project string
 	}
 	defer close()
 	tenant := auth.target.tenantID
-	if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_test_plans WHERE tenant_id=? AND project_id=?`), tenant, project).Scan(&out.Total); err != nil {
+	from := ` FROM suma_test_plans WHERE tenant_id=? AND project_id=?`
+	args := []any{tenant, project}
+	if task != "" {
+		// A task-scoped selector proves its current project relation before
+		// exposing its plan. It never scans another task's client-side page.
+		if _, err = s.getRecordTx(ctx, auth, project, "tasks", task); err != nil {
+			return out, err
+		}
+		from += ` AND task_id=?`
+		args = append(args, task)
+	}
+	if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*)`+from), args...).Scan(&out.Total); err != nil {
 		return out, err
 	}
-	query := `SELECT id FROM suma_test_plans WHERE tenant_id=? AND project_id=?`
-	args := []any{tenant, project}
+	query := `SELECT id` + from
 	if before != "" {
 		cursor, e := s.testPlanTx(ctx, auth.tx, tenant, project, before)
 		if e != nil {
 			return out, e
+		}
+		if task != "" && cursor.TaskID != task {
+			return out, invalid(testPlanInvalid)
 		}
 		query += ` AND (created_at<? OR (created_at=? AND id<?))`
 		args = append(args, cursor.CreatedAt, cursor.CreatedAt, before)

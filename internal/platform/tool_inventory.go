@@ -114,6 +114,9 @@ func (s *Service) toolClaimEligibleTx(ctx context.Context, tx *sql.Tx, auth *aut
 	if profile.WorkerID != worker || profile.Profile.CommandID != spec.Command[0] || profile.Profile.ProfileSHA256 != sha {
 		return false, nil
 	}
+	if spec.Type == "command" && (profile.Profile.Adapter != "command" || profile.Profile.Protocol != "text-v1") {
+		return false, nil
+	}
 	profile, err = s.toolProfileObservationTx(ctx, tx, p, project, profile)
 	if err != nil || !profile.Available {
 		return false, err
@@ -159,7 +162,7 @@ func (s *Service) validateToolProgressTx(ctx context.Context, tx *sql.Tx, auth *
 	if err != nil {
 		return err
 	}
-	if !bound || pr.WorkerID != a.WorkerID || pr.Profile.ProfileSHA256 != sha || pr.Profile.CommandID != event.CommandID || pr.Profile.Protocol != event.Protocol || event.ProfileSHA256 != sha {
+	if !bound || pr.WorkerID != a.WorkerID || pr.Profile.ProfileSHA256 != sha || pr.Profile.CommandID != event.CommandID || pr.Profile.Protocol != event.Protocol || event.ProfileSHA256 != sha || n.Type == "command" && (pr.Profile.Adapter != "command" || pr.Profile.Protocol != "text-v1") {
 		return invalid("工具进度与固定档案不匹配")
 	}
 	return nil
@@ -184,7 +187,7 @@ func (s *Service) validateToolResultTx(ctx context.Context, tx *sql.Tx, auth *au
 	if err != nil {
 		return err
 	}
-	if !bound || pr.WorkerID != result.WorkerID || pr.Profile.ProfileSHA256 != sha || !toolcontract.EqualProfile(result.ToolEvidence.Profile, pr.Profile) {
+	if !bound || pr.WorkerID != result.WorkerID || pr.Profile.ProfileSHA256 != sha || !toolcontract.EqualProfile(result.ToolEvidence.Profile, pr.Profile) || n.Type == "command" && (pr.Profile.Adapter != "command" || pr.Profile.Protocol != "text-v1") {
 		return invalid("工具执行证据与固定档案不匹配")
 	}
 	// A vendor abort acknowledgement and operating-system shutdown are distinct.

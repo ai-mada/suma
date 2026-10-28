@@ -9,7 +9,7 @@ import (
 
 // InitialDataContract identifies the one supported initial persistent contract,
 // including JSON payload semantics. It is independent of the product version.
-const InitialDataContract = "suma-initial-gateway-v1"
+const InitialDataContract = "suma-initial-quality-v1"
 
 // ErrInitialSchema prevents initialization from interpreting unregistered data as
 // a current installation. Initialization never upgrades, resets or deletes data.

@@ -27,7 +27,7 @@ func ToolBinding(n Node) (id, sha string, bound bool, err error) {
 	}
 	id, idString := rawID.(string)
 	sha, shaString := rawSHA.(string)
-	if (n.Type != "agent" && n.Type != "test") || !idOK || !shaOK || !idString || !shaString || !toolcontract.ValidCommandID(id) || !toolcontract.ValidDigest(sha) || len(n.Command) != 1 || !toolcontract.ValidCommandID(n.Command[0]) {
+	if (n.Type != "agent" && n.Type != "test" && n.Type != "command") || n.Type == "command" && fixedOpenCode != nil || !idOK || !shaOK || !idString || !shaString || !toolcontract.ValidCommandID(id) || !toolcontract.ValidDigest(sha) || len(n.Command) != 1 || !toolcontract.ValidCommandID(n.Command[0]) {
 		return "", "", false, dagDiagnostic(fmt.Errorf("%w: complete agent tool binding required", ErrInvalid), "dag.tool.binding", nil)
 	}
 	return id, sha, true, nil
@@ -40,7 +40,7 @@ func validateToolEvent(n Node, e toolcontract.Event) error {
 	if err != nil {
 		return err
 	}
-	if !bound || e.CommandID != n.Command[0] || e.ProfileSHA256 != sha {
+	if !bound || e.CommandID != n.Command[0] || e.ProfileSHA256 != sha || n.Type == "command" && e.Protocol != "text-v1" {
 		return dagDiagnostic(fmt.Errorf("%w: tool event differs from fixed node", ErrInvalid), "dag.tool.event_binding", nil)
 	}
 	return nil
@@ -75,6 +75,11 @@ func validateToolResult(n Node, r Result) error {
 		return fmt.Errorf("%w: %v", ErrInvalid, err)
 	}
 	if !bound || e.Profile.CommandID != n.Command[0] || e.Profile.ProfileSHA256 != sha {
+		return dagDiagnostic(fmt.Errorf("%w: tool evidence differs from fixed node", ErrInvalid), "dag.tool.result_binding", nil)
+	}
+	// A fixed shell command is an administrator-defined executable, never a
+	// structured agent hidden behind the more permissive command node type.
+	if n.Type == "command" && (e.Profile.Adapter != "command" || e.Profile.Protocol != "text-v1") {
 		return dagDiagnostic(fmt.Errorf("%w: tool evidence differs from fixed node", ErrInvalid), "dag.tool.result_binding", nil)
 	}
 	sdkEvidence := e.Profile.Protocol == toolcontract.OpenCodeSDKProtocol || e.Profile.OpenCodeExecution != nil || e.OpenCodeExecution != nil

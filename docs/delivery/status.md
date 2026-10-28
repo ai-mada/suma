@@ -10,6 +10,8 @@ T-QUALITY-115在原P5范围内细化自动化测试计划及逐例证据，不�
 
 T-MODEL-118收敛原生编码与 Octop 的共同模型选择、Go HTTP／SSE 网关、逐次剩余输出许可和持久原操作回执。当前实现、实际 SDK／本机端点、独立测试、取消、账务及中英文界面范围统一见[本轮报告](../quality/model-gateway-verification.md)与[摘要](../quality/model-gateway-summary.json)，不沿用历史 T-OCTOP-117 结果替代当前检查，也不改变58／34／92台账。
 
+T-QUALITY-119继续原P5范围：问题的受保护修复周期、原失败用例回归、固定产码候选与不同Worker独立测试、当前正式Review后关单，以及保留旧证据的重开。复用原Go DAG与`command/text-v1`固定档案，不增加派发或审批权威。简洁中英文问题面板及实际检查范围见[当前报告](../quality/issue-repair-verification.md)和[摘要](../quality/issue-repair-summary.json)，不代表完整Issue／Bug全生命周期或生产验收完成。
+
 四份分享规划均已取得当前可见正文；新增实施蓝图与深度设计的可见范围、截断及采用见同一映射。第一份64个编号、第二份需求26及S01–S12见[逐域采用与缺口映射](../integrations/shared-roadmap-adoption.md)。两份末尾均不完整，未见内容保持未知。它们是设计来源，不作为源码或完成证明；当前草稿计划仅推进需求26的一部分，通用配置与全场景多端旅程仍待实现。
 
 ## 当前实现与证据
@@ -21,7 +23,8 @@ T-MODEL-118收敛原生编码与 Octop 的共同模型选择、Go HTTP／SSE 网
 | 项目计划与进度 | 迭代、里程碑、版本化排期、完整项目不可变基线、当前比较、自然周估算分摊与真实业务指标 | [产品与治理](../product/governance.md)、[验证](../quality/verification.md)；计划估算不等于实际工时，人员日历、连续历史、预测和 portfolio 待办 |
 | 业务任务依赖编辑与参考源码整合 | 当前项目完整任务图、图／表共享草稿、最多 100 项原子版本 CAS、全图校验、显式冲突处理及原操作回执恢复；修改撤销旧验收资格并保留执行快照 | [中文操作](../development/task-dependencies.md)／[English](../en/task-dependencies.md)、[合同](../../contracts/task-dependencies.md)、[源码适配清单](../integrations/referenced-conversation-integration.md)、[本阶段报告](../quality/task-dependencies-verification.md)；按实际参考源码重构当前 1.0.0，不是旧 Git 历史 cherry-pick；最多 1000 个任务完整图，实际 API 与界面复验结果以报告为准，分布式／大图性能／生产验收未由本阶段推断 |
 | 任务交付与质量链路 | 依赖图所选任务按需读取确切运行、完整节点／测试计数和每类 20 条正式引用；团队预览／派发、证据、人工验收、退回问题与专用来源映射的需求草稿连通 | [操作](../development/task-delivery-chain.md)／[English](../en/task-delivery-chain.md)、[合同](../../contracts/task-delivery-chain.md)、[限定报告](../quality/task-delivery-chain-verification.md)；本机自有 DSH 协议命令实际提交代码，另一 Runner 对同 SHA 执行 3 项断言，界面退回形成 1 个问题并回流 1 个需求草稿；下游 B 保持未启动并等待正式验收，非厂商智能编码效果、物理多机或生产验收 |
-| 自动化计划与逐例质量门禁 | 每任务单一计划、不可变草稿／发布修订、任务依据与需求精确版本；原Go DAG同运行绑定与固定候选独立测试、受限原JUnit采集、当前attempt逐例投影、Review重核及明确failed/error用例问题回流 | [中文指南](../development/test-plans.md)／[English](../en/test-plans.md)、[合同](../../contracts/test-plans.md)、[架构](../architecture/quality-evidence.md)、[阶段报告](../quality/test-plans-verification.md)、[摘要](../quality/test-plans-summary.json)；当前源码边界已落，实际隔离验证待报告补充。没有人工passed或事后倒签；带计划运行不支持map／子流程／外部流程，完整Issue／TestCase管理、手工／应用／发布测试及缺陷关闭／重开仍待交付 |
+| 自动化计划与逐例质量门禁 | 每任务单一计划、不可变草稿／发布修订、任务依据与需求精确版本；原Go DAG同运行绑定与固定候选独立测试、受限原JUnit采集、当前attempt逐例投影、Review重核及明确failed/error用例问题回流 | [中文指南](../development/test-plans.md)／[English](../en/test-plans.md)、[合同](../../contracts/test-plans.md)、[架构](../architecture/quality-evidence.md)、[阶段报告](../quality/test-plans-verification.md)、[摘要](../quality/test-plans-summary.json)保留对应阶段事实。没有人工passed或事后倒签；带计划运行不支持map／子流程／外部流程，完整Issue／TestCase管理和手工／应用／发布测试仍待交付；当前限定修复关单与重开见下一行 |
+| 受保护问题修复与回归关闭 | `open/in_progress/closed`业务状态；同事务唯一需求回流与每轮新普通任务，明确绑定当前发布计划及非空回归用例；原测试缺陷必须保留原case和selector；所选报告对应固定产码候选、原attempt／fence／摘要和不同Worker独立测试；当前Review后由有权人员关单，重开保留旧关闭证据并开始新周期 | [中文指南](../development/issue-repair.md)／[English](../en/issue-repair.md)、[合同](../../contracts/issue-repair.md)、[架构](../architecture/issue-repair.md)、[当前报告](../quality/issue-repair-verification.md)、[摘要](../quality/issue-repair-summary.json)。简洁问题面板提供当前事实、阻塞和有界历史；`command/text-v1`沿固定档案、当前库存及原结果合同执行，通用记录不能改生命周期或伪造关系。测试独立报绿不能代替修复来源，复杂未证明候选来源继续阻止；实际结果以报告为准，完整分诊、缺陷治理、应用／发布回归和多机生产范围仍待交付 |
 | Runner 本地执行日志诊断 | `--inspect-state` 有界读取单个 journal，白名单计数及最多 100 条引用，缺失／损坏／不可读／超限分别表达，不创建目录、不读取凭据、不改 ACK 或重跑 | [中文指南](../agents/runner-journal-inspection.md)／[English](../en/runner-journal-inspection.md)、[合同](../../contracts/runner-journal-inspection.md)、[本阶段报告](../quality/task-delivery-chain-verification.md)；仅本地执行日志，非完整设备健康、服务器回执、持久隔离原因或自动恢复能力 |
 | 需求与设计 | 版本化产品／体验／技术设计、可审阅任务提案、明确发布及原子采用、固定执行与验收依据 | [设计采用](../quality/requirement-design-verification.md)、[依据展示](../quality/task-design-context-verification.md)；完整 AI 需求与设计编辑、可运行 UED 原型待办 |
 | 需求验收追踪 | 当前正式需求版本／条目序号 → 已发布提案 → 受保护采用任务 → 确切运行、当前测试节点和正式验收读取 | [中文指南](../development/requirement-traceability.md)／[English](../en/requirement-traceability.md)、[合同](../../contracts/requirement-traceability.md)、[限定报告](../quality/requirement-traceability-verification.md)；需求变更不沿用旧序号映射，执行／测试／验收分别展示，实际验证以报告为准；完整TestPlan／TestCase、跨版本标准身份及应用版本／发布矩阵待办 |
@@ -44,7 +47,7 @@ T-MODEL-118收敛原生编码与 Octop 的共同模型选择、Go HTTP／SSE 网
 
 ## 1.0.0 初始化与验证边界
 
-应用统一为单一 1.0.0 新库初始化，当前数据合同为 `suma-initial-gateway-v1`，不保留历史库升级、旧字段别名或旧协议适配分支。旧声明、混合组件或未知合同在初始化写入前拒绝；现有 `.suma/`、原凭据、业务原件与专项验收档案保留，不自动迁移、清空或重写。新实例另选独立空目录／数据库，检查范围见[本轮报告](../quality/model-gateway-verification.md)。产品版本、协议版本、业务修订和数据合同分别管理。
+应用统一为单一 1.0.0 新库初始化，当前唯一数据合同为 `suma-initial-quality-v1`，不保留历史库升级、旧字段别名或旧协议适配分支。包括旧网关声明在内的不匹配合同、混合组件或未知合同在初始化写入前拒绝；现有 `.suma/`、原凭据、业务原件与专项验收档案保留，不迁移、回填、清空或重写。新实例另选独立空目录／数据库，检查范围见[本轮报告](../quality/issue-repair-verification.md)及[摘要](../quality/issue-repair-summary.json)。产品版本、协议版本、业务修订和数据合同分别管理。
 
 既有主预览曾以保留 188 表与原会话的前向交付取得证据，准确过程留在 [Codex 专项报告](../quality/codex-app-server-verification.md)。该事实不作为本次新库初始化变更的迁移承诺，也不表示当前代码已经重新部署。当前变更的检查结果以 [验证入口](../quality/verification.md)为准。
 
@@ -60,4 +63,4 @@ OceanBase／PostgreSQL 的驱动与 DDL 不等于实集群验收，本地检索�
 
 ## 初始化结构
 
-当前源码以单一1.0.0新库结构建立，旧队列／资源镜像、旧内核分代与凭证／设计索引回填已删除；当前185表在独立本机服务中完成新库与重启验证，包含项目原生目录证明和本地保存终态拒绝；当前DDL中断恢复与缺失结构拒绝已有定向证据。详见[初始化设计](../architecture/initial-version.md)、[原初始化验证](../quality/initial-version-verification.md)和[当前文件上下文验证](../quality/workspace-file-context-verification.md)。既有用户数据库保持原样。
+当前源码以单一1.0.0及`suma-initial-quality-v1`新库结构建立，不维护旧队列／资源镜像、旧内核分代或凭证／设计索引回填。当前新库、重启及不匹配声明拒绝的实际检查见[T-QUALITY-119报告](../quality/issue-repair-verification.md)；[初始化设计](../architecture/initial-version.md)、[原初始化验证](../quality/initial-version-verification.md)和[文件上下文验证](../quality/workspace-file-context-verification.md)保留对应旧阶段的表数和环境，不推断为当前全量通过。既有用户数据库保持原样。

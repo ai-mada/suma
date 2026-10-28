@@ -1,0 +1,383 @@
+{
+  "stage": "T-QUALITY-119",
+  "product_version": "1.0.0",
+  "recorded_at": "2026-10-28T17:52:43.812894+00:00",
+  "status": "scoped_local_issue_repair_delivery",
+  "source_sha256": "7cc06dcd62afd29b9c3f8731a9a47563f9abc673f7cfd989b242abe71a3f7ef5",
+  "source_files": 42,
+  "full_platform_complete": false,
+  "scope_ledger": {
+    "requirements": "1–26",
+    "phases": "P0–P7",
+    "limited_implemented": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "architecture": {
+    "issue_states": [
+      "open",
+      "in_progress",
+      "closed"
+    ],
+    "protected_cycle_relation": true,
+    "canonical_requirement_reused": true,
+    "new_task_each_cycle": true,
+    "same_original_case_and_selector": true,
+    "fixed_command_profile": "command/text-v1",
+    "single_go_dispatcher": true,
+    "independent_worker_and_exact_candidate_required": true,
+    "current_formal_review_required": true,
+    "close_reopen_browser_approval_only": true,
+    "generic_lifecycle_bypass": false,
+    "history_window": 10,
+    "history_total_disclosed": true,
+    "data_contract": "suma-initial-quality-v1",
+    "historical_migration": false
+  },
+  "verification": {
+    "distinct_go_top_level_passed": 22,
+    "distinct_web_behaviors_passed": 5,
+    "unresolved_test_failures": 0,
+    "full_suites": 0,
+    "final_typecheck": true,
+    "generated_contract_check": true,
+    "generated_schemas": 541,
+    "api_paths": 274,
+    "catalog_keys": 5348,
+    "production_source_hardcodes": 0,
+    "version_check": true
+  },
+  "actual_final_runtime": {
+    "actual_node_processes": 3,
+    "administrator_checkout_unchanged": true,
+    "base_commit": "888123161afdabff66ba4d0e4b518831c1e40f83",
+    "candidate_commit": "c70c1f6fac1da7a43bedee4d2ad98e9d95fe9ad2",
+    "case_key": "sum-regression",
+    "customer_human_signoff": false,
+    "cycle": 2,
+    "issue_id": "9f87c170d2da08d7967bdd42406fac5e",
+    "kind": "actual_os_http_issue_repair",
+    "model_calls": 0,
+    "next_task_id": "9982de345b13a8659fc08d5cd8b57bda",
+    "original_run_id": "93526539f499e4bb39a6b8e75027cc6a",
+    "original_task_id": "684f89dbaf17810a59a1d28fbd6cce7b",
+    "plan_id": "5c885ef0b7486009500a42b83c69c3c4",
+    "plan_revision": 2,
+    "plan_sha256": "d9d6ff20c613a471181d57ce66daf4efc2a6b8615ec2d646da76054d783890a0",
+    "producer_worker": "repair-worker-119",
+    "producer_workspace_sha256": "e985173c9f63c4b1e2d4517ecb1e51b4af55253cef78cab63bce4d2d43a01422",
+    "project_id": "2d54d23ae45d43d28a3dcc17e968c8e1",
+    "repair_run_id": "597005b2ac4e6dea9faac7108722a0be",
+    "repair_task_id": "7b0dce1b58ec66ef846b5cb1fa0a4810",
+    "report_sha256": "b2ce4555092b4eb20ba57db0ea119766ab36a2d7472d928eb9265ba6ea78c3be",
+    "source_commits": [
+      "c70c1f6fac1da7a43bedee4d2ad98e9d95fe9ad2"
+    ],
+    "test_worker": "independent-worker-119",
+    "test_workspace_sha256": "5b82a2986b4b4157f84e3e7ad81b6e283b8b26b4b768178ffb6390664523c81a"
+  },
+  "browser_runtime": {
+    "actual_node_processes": 3,
+    "administrator_checkout_unchanged": true,
+    "base_commit": "ceb243c84d61e7bd8560f6c777c03041c6d2c30e",
+    "candidate_commit": "244c57739f3f5917de836c2f0b9c89ade7fab0e7",
+    "case_key": "sum-regression",
+    "customer_human_signoff": false,
+    "cycle": 2,
+    "issue_id": "94d2da908a591b654c2c6e1aa3223647",
+    "kind": "actual_os_http_issue_repair",
+    "model_calls": 0,
+    "next_task_id": "86aacdd61e935935d4bc2746b4fadb4a",
+    "original_run_id": "c35634550c188f157e2619d74f4b256e",
+    "original_task_id": "c414cf3deb765c861aa3d31de8f0ff8e",
+    "plan_id": "386f053ca17a623c4ae5d1d4b89fc2db",
+    "plan_revision": 2,
+    "plan_sha256": "baa02a64cd39b39d98d8c0a359cac65f7d34c2208cde6345db67ca2954ed2541",
+    "producer_worker": "repair-worker-119",
+    "producer_workspace_sha256": "0f4ac4e36e5b7e9e6f6e5aca675bdcd454dd3ee2445ebba22ba08aed38d9fd88",
+    "project_id": "ff414d516ef17f175f70f40965b0c7f3",
+    "repair_run_id": "a02c093e6fbe96a929eae1386490e861",
+    "repair_task_id": "9e7b944fc59c2b4ba852226077cab2e2",
+    "report_sha256": "b2ce4555092b4eb20ba57db0ea119766ab36a2d7472d928eb9265ba6ea78c3be",
+    "source_commits": [
+      "244c57739f3f5917de836c2f0b9c89ade7fab0e7"
+    ],
+    "test_worker": "independent-worker-119",
+    "test_workspace_sha256": "a5a72f6acf78b1067509d7f306c5a4d1380c58cde5795317178d99402531efaf"
+  },
+  "browser": {
+    "stage": "T-QUALITY-119",
+    "cn_en_live_switch": true,
+    "history_cycle_1_retained": true,
+    "current_cycle_2_unstarted_task": true,
+    "history_exact_run_and_regression_links": true,
+    "actual_ui_link_drilldown": true,
+    "actual_regression_case_passed": true,
+    "original_xml_read": false,
+    "final_build_reloaded": true,
+    "width": 390,
+    "client_width": 375,
+    "scroll_width": 375,
+    "console_warn_error_count": 0,
+    "command_or_approval_actions": 0,
+    "source": "actual_os_http_fixture_not_vendor_or_customer_signoff"
+  },
+  "failure_audit": [
+    {
+      "kind": "initial compile/contract assertion and missing current requirement version",
+      "resolution": "corrected fixtures/contract assertion and affected cases passed; no gate weakened"
+    },
+    {
+      "kind": "Windows Node device path passed to Git global configuration",
+      "resolution": "reproduced Invalid argument, then verified real private empty config/hooks; actual journey passed"
+    },
+    {
+      "kind": "optional15min GUI hold exceeded Go default10min",
+      "command_exit_code": 1,
+      "journey_assertions_completed_before_hold": true,
+      "resolution": "retained SQLite and exact source archives, verified unchanged counts, shortened hold to5min and passed the necessary no-hold real journey",
+      "optional_shortened_hold_cleanup_reexercised": false
+    }
+  ],
+  "resources": {
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "final_journey_business_node_processes": 3,
+    "probe_and_git_metadata_queries_excluded_from_node_count": true,
+    "web_builds": 2,
+    "control_binary_builds": 0,
+    "runner_binary_builds": 0,
+    "go_commands_sequential": true,
+    "owned_test_processes_terminal": true,
+    "main_owned_browser_closed": true,
+    "failed_connection_tab": "temporary browser tab; automatic turn-end cleanup after browser URL policy blocked access to its internal error page",
+    "user_preview_updated": false,
+    "user_database_modified": false
+  },
+  "evidence": {
+    "go_receipts": [
+      {
+        "command": ".cache/mcp019-deps/20261028T170054566Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./cmd/suma-contracts",
+          "-run",
+          "^TestIssueRepair",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 0,
+        "failed_top_level": 1,
+        "stdout_sha256": "f4987fd589188a61f60765f1f0c6866e79d145ee6635be5da99380af2df78bbd"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T170139804Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./cmd/suma-contracts",
+          "-run",
+          "^TestIssueRepair",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 3,
+        "failed_top_level": 3,
+        "stdout_sha256": "c2a63cff7a5362473e730bd1273f087772ffa8373a068845aedfeee034185998"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T170353800Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./cmd/suma-contracts",
+          "-run",
+          "^(TestIssueRepairOriginal|TestIssueRepairCurrent|TestIssueRepairContract)",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 3,
+        "failed_top_level": 0,
+        "stdout_sha256": "ec11359b12369491df74986db1c3e89842ea45b1b30cafd1c3b48d129501d8ee"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T171048434Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestIssueRepairOriginalCaseGateCloseReopenAndReceipts$",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 1,
+        "failed_top_level": 0,
+        "stdout_sha256": "83107e83f1b416bf39d1dedd8e86a25c2738dcd7fcdb4ca73397a0f436e468e0"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T171731555Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/dag",
+          "./internal/platform",
+          "./internal/store",
+          "./cmd/suma-contracts",
+          "-run",
+          "^(TestCommandToolBinding|TestBoundCommand|TestIssueRepair(Generic|Original|Current|HTTP|TaskScoped|Contract)|TestTestPlan|TestIssueIntake|TestInitial)",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 21,
+        "failed_top_level": 0,
+        "stdout_sha256": "25a828f68696911a3d32372a95ab0c1a34ba843a2726dbc927f39ee2a4c0c825"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T172128222Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "3fca3c02dcfc4673628561fabcb4bc9b5c903a4b530eee390f9f07d15c67d024"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T172208394Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "--check"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "41bb5b7de826b4b83dadd603bef4e8ee8988b377dd72b80cc0984f2ad845c38d"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T172239683Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestIssueRepairActualWorkspaceIndependentRegressionAndReopen$",
+          "-count=1",
+          "-v"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 0,
+        "failed_top_level": 1,
+        "stdout_sha256": "c47c56aae1978a4029d0cb4b7c9df0afa8d9cefe74c7dd92bca3a8e7a047e724"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T172858310Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestIssueRepairActualWorkspaceIndependentRegressionAndReopen$",
+          "-count=1",
+          "-v"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "6ce5a071e76ce2aca5b5573a0446d3881ae9ce841aed46be4100e57557d6de3a"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T174300510Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestIssueRepairActualWorkspaceIndependentRegressionAndReopen$",
+          "-count=1",
+          "-timeout=90s",
+          "-v"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 1,
+        "failed_top_level": 0,
+        "stdout_sha256": "c0868a4d203973356c8bfd426a101da6e6d3d0ea718df5a5791082ce0570bc7e"
+      }
+    ],
+    "web_summary": ".cache/e2e/issue-119/ui-targeted-summary.json",
+    "source_inventory": ".cache/e2e/issue-repair-119/source-inventory.json",
+    "web_inventory": ".cache/e2e/issue-repair-119/web-inventory.json",
+    "retained_ui_receipt": ".cache/e2e/issue-repair-119/actual-ui/retained.public.json",
+    "git_device_reproduction": ".cache/e2e/issue-repair-119/git-repro-20261029a/reproduction.json",
+    "git_device_fixed": ".cache/e2e/issue-repair-119/git-repro-20261029a/reproduction-fixed.json",
+    "artifacts": [
+      {
+        "path": ".cache/e2e/issue-repair-119/web/index.html",
+        "bytes": 415,
+        "sha256": "823081c687e2c8dd3c6f768222105b1fda638a8973df32d87eb94cab720c5221",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/issue-repair-119/actual-ui/retained.sqlite",
+        "bytes": 2248704,
+        "sha256": "24a0055bdb265c22414a7bc048ebc6427c57c8cb45f1e65c8a4071183a7dba5d",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/issue-repair-119/actual-ui/ui-source-baseline.tar",
+        "bytes": 10240,
+        "sha256": "694657be5a1fdae64d4caabfba1023e0f00a9e564d9538639d8ca1566ed7bc36",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/issue-repair-119/actual-ui/ui-source-candidate.tar",
+        "bytes": 10240,
+        "sha256": "27b1e88ad55d0541b260e4ef68f3944b4574cde1ece3202fad00e6e79087c3ed",
+        "git_included": false
+      }
+    ],
+    "screenshots": [
+      {
+        "path": ".cache/e2e/issue-repair-119/screenshots/regression-original-en-390.jpg",
+        "bytes": 36959,
+        "sha256": "baf468fd386b5d600c56b64545db26dcdf73d9898232c5ccc5c33ed74755404d",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/issue-repair-119/screenshots/repair-en-390-before-links.jpg",
+        "bytes": 33377,
+        "sha256": "522b950569f14c5135be0db90b4fb6c166839d80683a68c9df6facfc9e6fa508",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/issue-repair-119/screenshots/repair-final-en-390.jpg",
+        "bytes": 32392,
+        "sha256": "2038865103202ca541d393d449652fea3f0116b7bc92a2aa520a4cd65e8338be",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/issue-repair-119/screenshots/repair-final-zh-390.jpg",
+        "bytes": 31900,
+        "sha256": "845398c8e7b3cd348ae50e4de5b5c4729f7e95babf5ada06052c9cc1687c206c",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/issue-repair-119/screenshots/repair-zh-desktop.jpg",
+        "bytes": 57613,
+        "sha256": "0c7c71daa6b96abe6c9c82ddc6097c9a0486411637197bfd20dfe691c327a8fb",
+        "git_included": false
+      }
+    ]
+  },
+  "remaining": [
+    "Complete P0–P7 and requirements1–26;58/34/92 ledger unchanged",
+    "Original XML browser body was not observed before inspection ended; no complete XML UI claim",
+    "Complex map/subworkflow/external regression sources need equivalent candidate proof and currently block closure",
+    "Complete issue taxonomy/cross-origin dedup/bulk workflows, manual/application/release tests and application-version lifecycle",
+    "Physical multi-host, OceanBase/PostgreSQL, full installer/vendor/production acceptance",
+    "Shortened optional hold timer is a harness correction; final required real journey passed without holding"
+  ]
+}

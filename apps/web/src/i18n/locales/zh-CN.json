@@ -41,6 +41,7 @@
   "status.accepted": "已验收",
   "status.done": "已完成",
   "status.active": "已启用",
+  "status.closed": "已关闭",
   "status.resolved": "已解决",
   "status.published": "已发布",
   "status.blocked": "受阻",

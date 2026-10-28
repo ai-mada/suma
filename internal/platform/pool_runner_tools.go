@@ -219,6 +219,9 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof
 	if p.WorkerID != runner.WorkerID || p.Profile.CommandID != n.Command[0] || p.Profile.ProfileSHA256 != hash {
 		return false, nil
 	}
+	if n.Type == "command" && (p.Profile.Adapter != "command" || p.Profile.Protocol != "text-v1") {
+		return false, nil
+	}
 	p, err = s.toolProfileForPoolTx(ctx, tx, proof, scope, p)
 	if err != nil || !p.Available {
 		return false, err
@@ -242,7 +245,7 @@ func (s *Service) ValidatePoolToolProgressTx(ctx context.Context, tx *sql.Tx, pr
 	if err != nil {
 		return err
 	}
-	if !bound || p.WorkerID != a.WorkerID || p.Profile.ProfileSHA256 != hash || p.Profile.CommandID != event.CommandID || p.Profile.Protocol != event.Protocol || event.ProfileSHA256 != hash {
+	if !bound || p.WorkerID != a.WorkerID || p.Profile.ProfileSHA256 != hash || p.Profile.CommandID != event.CommandID || p.Profile.Protocol != event.Protocol || event.ProfileSHA256 != hash || n.Type == "command" && (p.Profile.Adapter != "command" || p.Profile.Protocol != "text-v1") {
 		return invalid("工具进度与本项目固定档案不匹配")
 	}
 	return nil
@@ -267,7 +270,7 @@ func (s *Service) ValidatePoolToolResultTx(ctx context.Context, tx *sql.Tx, proo
 	if err != nil {
 		return err
 	}
-	if !bound || p.WorkerID != a.WorkerID || p.Profile.ProfileSHA256 != hash || !tc.EqualProfile(result.ToolEvidence.Profile, p.Profile) {
+	if !bound || p.WorkerID != a.WorkerID || p.Profile.ProfileSHA256 != hash || !tc.EqualProfile(result.ToolEvidence.Profile, p.Profile) || n.Type == "command" && (p.Profile.Adapter != "command" || p.Profile.Protocol != "text-v1") {
 		return invalid("工具结果与本项目固定档案不匹配")
 	}
 	if err := tc.ValidateOpenCodeResultStop(*result.ToolEvidence, result.Stopped, result.OutcomeUnknown); err != nil {

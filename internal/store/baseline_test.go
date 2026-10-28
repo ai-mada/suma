@@ -121,6 +121,7 @@ func TestInitialDataContractFailsBeforeWritesAndCurrentDatabaseReopens(t *testin
 		declarations [][2]string
 	}{
 		{"prior-declaration", [][2]string{{"platform", "1.0.0"}}},
+		{"unprotected-issue-semantics", [][2]string{{"platform", "suma-initial-gateway-v1"}, {"dag", "suma-initial-gateway-v1"}}},
 		{"mixed-components", [][2]string{{"platform", InitialDataContract}, {"dag", "1.0.0"}}},
 		{"unknown-component", [][2]string{{"platform", InitialDataContract}, {"unknown", InitialDataContract}}},
 	} {
