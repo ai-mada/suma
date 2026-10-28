@@ -1,0 +1,197 @@
+{
+  "stage": "T-INTEGRATION-111",
+  "product_version": "1.0.0",
+  "recorded_at": "2026-10-28T05:58:53.081667+00:00",
+  "status": "scoped_verified_full_platform_in_progress",
+  "complete_platform": false,
+  "source_sha256": "0cd4744a72d34fe47579880676b31f8f0588c7fb109dde4578d4821aaa9f5fe9",
+  "source_files": 20,
+  "source_manifest": ".cache/e2e/integration-111/source-manifest.json",
+  "reference": {
+    "archive_sha256": "a46db2758a5b467522870edcb2ba45bb719725c0766c732c566392d6536dbf79",
+    "archive_bytes": 801382,
+    "bundle_commit": "3f272a3925f2bfa192143753f423ffaa1b3615ea",
+    "bundle_verify": true,
+    "adoption": "Source-reviewed reimplementation within the current Go1.0.0 domains, not a historical branch merge. C201-C208 mapping records reuse, improvements and remaining differences."
+  },
+  "implementation": {
+    "entry": "development/tasks layout=dependencies",
+    "graph_limit": 1000,
+    "atomic_dirty_task_limit": 100,
+    "new_dependencies": 0,
+    "schema_changes": 0,
+    "generated_models": 478,
+    "generated_api_paths": 256
+  },
+  "checks": {
+    "distinct_affected_cases": 19,
+    "platform_cases": 8,
+    "contract_cases": 1,
+    "localization_cases": 1,
+    "frontend_model_cases": 3,
+    "frontend_component_cases": 6,
+    "typecheck": true,
+    "paired_catalog_keys": 4780,
+    "own_production_hardcodes": 0,
+    "generated_contract_check": true,
+    "go_receipts": [
+      {
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestTaskDependenciesHTTPCompleteVersionedGraph$",
+          "-count=1"
+        ],
+        "command_receipt": ".cache/mcp019-deps/20261028T052939558Z.command.json",
+        "stdout_sha256": "a8e11a31781cedc6bc53f784ef5d4877c1215d9968efec2815b9e5bdb5aac80f",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "output_contains_fail": true,
+        "phase": "expected RED"
+      },
+      {
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./cmd/suma-contracts",
+          "./internal/localization",
+          "-run",
+          "TaskDependenc",
+          "-count=1"
+        ],
+        "command_receipt": ".cache/mcp019-deps/20261028T053820579Z.command.json",
+        "stdout_sha256": "b66b3dc0ce212e7c93d92d56a53e613e02e7121df48ad8ffd2c109df57251b70",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "output_contains_fail": true,
+        "phase": "initial test-envelope assertions corrected"
+      },
+      {
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestTaskDependencies",
+          "-count=1"
+        ],
+        "command_receipt": ".cache/mcp019-deps/20261028T053957993Z.command.json",
+        "stdout_sha256": "c51d12afa9734d422f821b6dff263590b6c6fa13a856e5d9011d7bb3ae3babbc",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "output_contains_fail": false,
+        "phase": "affected GREEN"
+      },
+      {
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestTaskDependenciesCompleteGraphLimitAndExistingLargeDependencySet$",
+          "-count=1"
+        ],
+        "command_receipt": ".cache/mcp019-deps/20261028T054214845Z.command.json",
+        "stdout_sha256": "7f634e5806f610023ddf5f171065e20acd4299f0e200084f47591daff7dcca2e",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "output_contains_fail": false,
+        "phase": "affected GREEN"
+      },
+      {
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestTaskDependenciesOrdinaryTaskWritesRejectDuplicateEdges$",
+          "-count=1"
+        ],
+        "command_receipt": ".cache/mcp019-deps/20261028T054530851Z.command.json",
+        "stdout_sha256": "4fb8cbd1a3c1dd5e8135c17d443c9bb3c21fccf9b19b687fd0db6b20f09c6260",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "output_contains_fail": false,
+        "phase": "affected GREEN"
+      }
+    ],
+    "frontend_observation": ".cache/e2e/integration-111/ui-targeted-summary.json",
+    "full_suite_runs": 0,
+    "markdown_documents_checked": 285,
+    "openapi_references_checked": 2343
+  },
+  "build": {
+    "control_builds": 2,
+    "control_sha256": "3a45e3ecec107c058dd153ba08cdccdef50ca5935f1c8d0176567dff703136b1",
+    "web_builds": 3,
+    "web_durations_seconds": [
+      55.36,
+      46.39,
+      43.21
+    ],
+    "final_log_sha256": "44c145f6be8d1e2cc86891503c189ef19b9e1b35efd9c110905c3847add0db82",
+    "final_entry_sha256": "5625730d16b4682331c39b4c372b309ce193fb1765af9cccbba86a3b2b3d737e",
+    "existing_large_chunk_warning": true,
+    "reason": "The real browser found a controlled-selection render loop after the first build. The second build verified the behavioral fix; the final build adds explicit ReactFlow type parameters and CNEN edge/node accessibility labels. Backend rebuild followed the ordinary-task duplicate-edge fix. Only final source and final bundle represent current evidence."
+  },
+  "actual_api": {
+    "checks": {
+      "seeded_complete_four_task_graph": true,
+      "atomic_final_graph_rewire": true,
+      "stale_cas_batch_has_no_partial_write": true,
+      "cycle_batch_has_no_partial_write": true,
+      "original_ack_replays_after_later_edit_without_reverting_graph": true,
+      "no_runner_model_or_git": true
+    },
+    "helper_requests": 21,
+    "request_status_counts": {
+      "200": 12,
+      "201": 4,
+      "409": 1,
+      "400": 1
+    },
+    "concurrent_edit": {
+      "check": "ordinary-concurrent-edit",
+      "project_id": "786be796809d13808e8623da6483988f",
+      "task_id": "c92e01672ad7393d2bd860c600124d17",
+      "before": 2,
+      "after": 3
+    },
+    "current_sqlite_tables": 185,
+    "tasks": 4,
+    "runs": 0,
+    "owned_control_closed": true,
+    "readiness_attempts_without_response": 3
+  },
+  "browser": {
+    "task_list_entry": true,
+    "graph_inspector_selection_and_fit": true,
+    "dirty_navigation_guard": true,
+    "save_then_independent_read": true,
+    "ordinary_concurrent_edit_version_2_to_3": true,
+    "conflict_keeps_draft_and_explicit_comparison": true,
+    "explicit_rebase_then_save_version_4": true,
+    "final_restored_diamond_version_5": true,
+    "cycle_blocked_before_save": true,
+    "reload_keeps_persisted_dependencies": true,
+    "final_graph_and_list": true,
+    "final_cn_en_node_handle_and_edge_labels": true,
+    "keyboard_dark_theme": true,
+    "real_task_detail_version_5": true,
+    "screenshots": [
+      {
+        "path": ".cache/e2e/integration-111/task-dependencies.final.zh.png",
+        "sha256": "f7cf66993fc33e0b2227f8723f827cb7a02f2a26d79df57b12ce77bceb624c7a"
+      },
+      {
+        "path": ".cache/e2e/integration-111/task-dependencies.final.en.png",
+        "sha256": "816238d156f5991a91f57a0ec99de5ed0da275d2ce669ab341523003cd3588df"
+      }
+    ],
+    "temporary_tab_closed": true,
+    "scope": "Owned 127.0.0.1 fresh fixture, Windows in-app browser; representative desktop viewport only. No full device, pointer, accessibility or capacity matrix."
+  },
+  "model_calls": 0,
+  "vendor_calls": 0,
+  "runner_tasks": 0,
+  "limits": [
+    "Complete P0-P7 and requirements1..25 remain in progress; current full-platform ledger remains58 limited/33 pending/91 total.",
+    "The source package legacy Python service, Alembic chain and automatic expired-lease rerun were not imported.",
+    "Private Runner journal rejection inspection UI and full per-run quarantine remain separate work; existing safety and pool slot isolation are retained.",
+    "No new physical multi-host, OceanBase/PostgreSQL cluster, vendor model, production deployment or signed/native OS installation evidence.",
+    "Graph editing is bounded at1000 tasks and100 dirty tasks; no1000/10000-node performance attestation or full device/theme/accessibility matrix."
+  ]
+}

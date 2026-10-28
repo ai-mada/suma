@@ -10,6 +10,8 @@
 | [验证入口](quality/verification.md) | 当前变更检查与各专项证据 |
 | [本地文件编辑](development/local-file-editing.md) | 工作区来源、保留草稿、冲突处理与原保存恢复；[English](en/local-file-editing.md) |
 | [团队执行](development/team-execution.md) | 无需先选任务即可跟进项目团队计划、阻塞与正式验收；[English](en/team-execution.md) |
+| [任务依赖编辑](development/task-dependencies.md) | 完整业务任务图、图／表共享草稿、原子保存、冲突与原操作恢复；[English](en/task-dependencies.md)、[合同](../contracts/task-dependencies.md)、[当前专项报告](quality/task-dependencies-verification.md) |
+| [参考对话源码整合](integrations/referenced-conversation-integration.md) | 《完善速码平台架构》真实交付包、来源文件摘要、C201～C208 适配与未采用设计；按当前 1.0.0 重构，不是 Git 历史 cherry-pick |
 
 ## 产品、范围与体验
 

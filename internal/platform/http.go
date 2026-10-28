@@ -133,6 +133,11 @@ func decode(r *http.Request) (map[string]any, error) {
 	}
 	var m map[string]any
 	d := json.NewDecoder(bytes.NewReader(raw))
+	// Business dependency versions use the same exact numeric lexemes as the
+	// strict integer DTO routes below; generic map-backed routes remain unchanged.
+	if strings.HasPrefix(r.URL.Path, "/api/v1/task-dependencies") {
+		d.UseNumber()
+	}
 	// These routes decode into strict integer DTOs after the public envelope.
 	// Preserve numeric lexemes so a fractional counter near 2^53 cannot round
 	// into a valid integer before that validation. Map-backed routes
@@ -471,6 +476,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.workspaceGitHTTP(w, r, actor, scope, project, parts) {
+		return
+	}
+	if s.taskDependenciesHTTP(w, r, actor, scope, project, parts, m) {
 		return
 	}
 	if s.taskDispatchOptionsHTTP(w, r, actor, scope, project, parts) {

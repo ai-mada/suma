@@ -4,6 +4,7 @@
 
 | 当前范围 | 验证与限制 |
 | --- | --- |
+| 参考源码整合与业务任务依赖编辑 | [本阶段报告](task-dependencies-verification.md)、[中文指南](../development/task-dependencies.md)／[English](../en/task-dependencies.md)、[合同](../../contracts/task-dependencies.md)、[来源映射](../integrations/referenced-conversation-integration.md)：真实交付包设计适配、完整图／原子 CAS／冲突和原回执恢复；实际 API 与生产构建界面复验结果分别以专项报告为准，旧包数字不计为当前通过证据 |
 | 项目团队执行入口 | [限定报告](team-execution-verification.md)、[操作指南](../development/team-execution.md)：复用正式分页与原详情，区分验收／排队／阻塞，URL恢复及权限隔离；没有新增物理多机、厂商任务或生产验收结论 |
 | 本地文件来源、草稿与原操作恢复 | [限定报告](workspace-file-context-verification.md)、[操作指南](../development/local-file-editing.md)：读取／保存绑定实际目录身份，显式基线采用，账号组织隔离与原回执；完整IDE和生产验收继续待办 |
 | 六目标桌面打包与安装交付 | [限定报告](desktop-packaging-verification.md)、[摘要](desktop-packaging-summary.json)：六目标控制程序／计划、实际Windows安装／便携包、资源／校验清单和归档；原生多系统安装、GUI、远端CI及生产签名未验，非off签名预检拒绝 |

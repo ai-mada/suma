@@ -3604,6 +3604,41 @@ export interface TaskContextRecord {
   description: string;
   acceptance_criteria: (string)[];
 }
+export interface TaskDependencyChange {
+  task_id: string;
+  expected_version: number;
+  depends_on: (string)[];
+}
+export interface TaskDependencyChangeReceipt {
+  task_id: string;
+  previous_version: number;
+  version: number;
+  depends_on: (string)[];
+}
+export interface TaskDependencyChangeRequest {
+  project_id: string;
+  changes: (TaskDependencyChange)[];
+  idempotency_key: string;
+}
+export interface TaskDependencyChangeResult {
+  project_id: string;
+  operation_id: string;
+  changes: (TaskDependencyChangeReceipt)[];
+}
+export interface TaskDependencyGraph {
+  project_id: string;
+  total: number;
+  limit: number;
+  complete: boolean;
+  tasks: (TaskDependencyNode)[];
+}
+export interface TaskDependencyNode {
+  task_id: string;
+  version: number;
+  title: string;
+  status: string;
+  depends_on: (string)[];
+}
 export interface TaskDesignContextView {
   project_id: string;
   task_id: string;

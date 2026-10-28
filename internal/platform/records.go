@@ -106,7 +106,10 @@ func (s *Service) validateRecord(ctx context.Context, tx *sql.Tx, auth *authoriz
 	if err := requireTitle(r.Title); err != nil {
 		return err
 	}
-	if len(r.Description) > 200000 || len(r.DependsOn) > 200 || len(r.AcceptanceCriteria) > 100 {
+	// Tasks share one dependency domain with the atomic graph editor. A separate
+	// edge-count cap here would make an otherwise valid task impossible to edit.
+	// Request size and full same-project graph validation still bound task input.
+	if len(r.Description) > 200000 || kind != "tasks" && len(r.DependsOn) > 200 || len(r.AcceptanceCriteria) > 100 {
 		return invalid("内容超出单项限制")
 	}
 	if kind == "documents" {
@@ -181,6 +184,15 @@ func (s *Service) validateRecord(ctx context.Context, tx *sql.Tx, auth *authoriz
 		return invalid("发布登记不能替代实际部署验证")
 	}
 	if kind == "tasks" {
+		// Every task write shares the graph editor's unique-edge contract. Do not
+		// silently deduplicate: that would hide a malformed command from its author.
+		seenDependencies := map[string]bool{}
+		for _, id := range r.DependsOn {
+			if seenDependencies[id] {
+				return invalid(taskDependencyDuplicateEdge)
+			}
+			seenDependencies[id] = true
+		}
 		rows, err := tx.QueryContext(ctx, s.q(`SELECT id,depends_on FROM suma_tasks WHERE tenant_id=? AND project_id=?`), r.TenantID, r.ProjectID)
 		if err != nil {
 			return err
