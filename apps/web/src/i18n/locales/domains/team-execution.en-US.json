@@ -1,0 +1,21 @@
+{
+ "team-execution.tab":"Team execution",
+ "team-execution.title":"Team execution",
+ "team-execution.intro":"Follow project team plans, inspect blocked work and open the original tasks and runs. This list updates when you refresh it.",
+ "team-execution.refresh":"Refresh team plans",
+ "team-execution.acceptance_boundary":"Progress counts formally accepted tasks. Successful runs and passing tests still require the task's formal review.",
+ "team-execution.stale":"Previously loaded results are shown. Current state and access could not be confirmed; refresh before relying on them.",
+ "team-execution.page_scope":"Loaded {{loaded}} of {{total}} project plans visible to you. Counts below belong to each plan.",
+ "team-execution.empty_title":"No team plans yet",
+ "team-execution.empty_help":"Select project tasks to prepare a team plan. Preparing a preview does not start execution.",
+ "team-execution.open_tasks":"Choose tasks for a team",
+ "team-execution.plans":"Project team plans",
+ "team-execution.open_plan":"Open team plan: {{name}} ({{id}})",
+ "team-execution.plan_reference":"Plan {{id}}",
+ "team-execution.invalid_link":"This team plan link is invalid. Return to the list and choose an existing plan.",
+ "team-execution.back_to_list":"Return to team plans",
+ "team-execution.accepted":"Formally accepted {{accepted}} / {{total}} tasks",
+ "team-execution.accepted_label":"Formal acceptance progress for {{name}}",
+ "team-execution.source_changed":"Some fixed inputs or permissions need review. Open the plan to inspect its current blockers.",
+ "team-execution.more":"Load more team plans"
+}

@@ -15,20 +15,20 @@ import {useExpertPage,useExpertRead,type ExpertPage} from './expert-team-hooks';
 import {ExpertTeamPlanPanel} from './ExpertTeamPlanPanel';
 import './TeamTaskDispatchDialog.css';
 
-type Props={project:string;session:Session;tasks:RecordItem[];open:boolean;onClose:()=>void;onStarted:(plan:ExpertTeamPlan)=>void;planID?:string;onPlan:(id:string)=>void};
+type Props={project:string;session:Session;tasks:RecordItem[];open:boolean;onClose:()=>void;onStarted:(plan:ExpertTeamPlan)=>void;planID?:string;onPlan:(id:string)=>void;onForbidden?:(error:unknown)=>void};
 const t=(key:string,values?:Record<string,unknown>)=>tr('expert-team.'+key,values);
 const o=(key:string,values?:Record<string,unknown>)=>tr('expert-team-orchestration.'+key,values);
 const teamKey=(value:ExpertTeamConfiguration)=>value.team_id;
 const planKey=(value:ExpertTeamPlan)=>value.id;
 export function TeamTaskDispatchDialog(props:Props){return props.open?<DispatchScope key={JSON.stringify([props.session.user.id,props.session.organization.id,props.project])} {...props}/>:null;}
-function DispatchScope({project,session,tasks,onClose,onStarted,planID,onPlan}:Props){
- useLocale();const [models,setModels]=useState<ExpertModelChoices>();const api=useApi(),[located,setLocated]=useState(expertID(planID)?planID:''),[team,setTeam]=useState(''),[roles,setRoles]=useState<Record<string,string>>({}),[fixedTasks,setFixedTasks]=useState(()=>tasks.map(value=>({...value}))),[ack,setAck]=useState(false),[forbidden,setForbidden]=useState<unknown>(),[panelLocked,setPanelLocked]=useState(false),[historyOpen,setHistoryOpen]=useState(false),alive=useRef(true),taskRead=useRef<AbortController|undefined>(undefined),callbacks=useRef({onStarted,onPlan});callbacks.current={onStarted,onPlan};
+function DispatchScope({project,session,tasks,onClose,onStarted,planID,onPlan,onForbidden}:Props){
+ useLocale();const [models,setModels]=useState<ExpertModelChoices>();const api=useApi(),[located,setLocated]=useState(expertID(planID)?planID:''),[team,setTeam]=useState(''),[roles,setRoles]=useState<Record<string,string>>({}),[fixedTasks,setFixedTasks]=useState(()=>tasks.map(value=>({...value}))),[ack,setAck]=useState(false),[forbidden,setForbidden]=useState<unknown>(),[panelLocked,setPanelLocked]=useState(false),[historyOpen,setHistoryOpen]=useState(false),alive=useRef(true),taskRead=useRef<AbortController|undefined>(undefined),callbacks=useRef({onStarted,onPlan,onForbidden});callbacks.current={onStarted,onPlan,onForbidden};
  const action=useWriteAction({scope:JSON.stringify(['expert-team-dispatch',session.user.id,session.organization.id,project]),storage:toolSessionStorage(),validateRequest:request=>expertRecovery(request,project),validateResponse:(value,request)=>expertPlanResponse(value,request,project)}),locked=action.busy||!!action.pending||action.persistenceBlocked||panelLocked;
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;taskRead.current?.abort();};},[]);
  useEffect(()=>{if(expertID(planID))setLocated(planID);},[planID]);
  const recoveryPlan=action.pending?.path.match(/^\/expert-team-plans\/([A-Za-z0-9_-]+)\/start$/)?.[1]||'';
  useEffect(()=>{if(recoveryPlan)setLocated(recoveryPlan);},[recoveryPlan]);
- const failed=useCallback((error:unknown)=>{if(error instanceof ApiError&&[401,403].includes(error.status))setForbidden(error);},[]);
+ const failed=useCallback((error:unknown)=>{if(alive.current&&error instanceof ApiError&&[401,403].includes(error.status)){setForbidden(error);callbacks.current.onForbidden?.(error);}},[]);
  const configurationsValid=useCallback((value:ExpertPage<ExpertTeamConfiguration>)=>!!value&&Array.isArray(value.items)&&value.items.length<=20&&expertInteger(value.total)&&value.total>=value.items.length&&value.items.every(item=>validExpertConfiguration(item,project))&&(value.next_cursor===undefined||expertPlanCursor(value.next_cursor)),[project]);
  const configurations=useExpertPage<ExpertTeamConfiguration>(api,'/expert-teams'+query(project)+'&limit=20',!located&&!forbidden,0,configurationsValid,failed,teamKey,'before');
  const planValid=useCallback((value:ExpertTeamPlan)=>validOrchestratedPlan(value,project,located),[project,located]);

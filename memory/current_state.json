@@ -4,13 +4,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-WORKSPACE-109",
-  "updated_at": "2026-10-28T04:43:49.251708+00:00",
+  "stage": "T-TEAM-110",
+  "updated_at": "2026-10-28T05:18:11.551450+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/workspace-file-context-verification.md",
-  "current_summary": "docs/quality/workspace-file-context-summary.json",
+  "current_evidence": "docs/quality/team-execution-verification.md",
+  "current_summary": "docs/quality/team-execution-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..25",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -28,13 +28,58 @@
     "scheduling": "One ready queue, accounts/ledger, complete current dependency semantics and fixed routes; persisted current restart remains.",
     "identity": "Current complete issuance/source/family/Grant/slot proof and transactional revocation; no inferred authority or migration status.",
     "workbench": "Local file snapshots and saves bind tenant/project/fresh binding/actual opened root identity; exact original receipt recovery, ordinary/native binding idempotency, explicit current-basis adoption, owner-isolated ephemeral draft retention. Actual browser/HTTP/restart verified. Full IDE and native GUI remain pending.",
-    "internationalization": "zh-CN/en-US paired extensible catalogs4706keys; local context review/adoption/recovery and exact backend diagnostics; own frontend production hardcodes0. Vendor/native/installer surfaces remain scoped separately.",
+    "internationalization": "zh-CN/en-US paired extensible catalogs4725keys, team entry/current diagnostics and original scope recovery. Own frontend production hardcodes0; unknown source text retained. Vendor/native/installer surfaces remain separately scoped.",
     "versioning": "Go product identity has one source; workspace/desktop/Helm check:version is1.0.0; protocol/workflow/data revisions independent.",
     "architecture": "Single initial1.0.0; one current OpenCode SDK path, no old JSONL parser/alias or duplicate dispatcher. Generated public types replace duplicate web DTOs; current native host/ledger reused.",
     "opencode": "Actual officialWindows1.19.4 CLI/SDK + owned deterministic model protocol, real host MCP/write/check/seal, twoWorker candidate/import/independent exactSHA test; currentstream client lifetime, single Go tree authority and compact CNEN status/drilldown. Not commercial model/billing or production evidence.",
-    "desktop_packaging": "Six native platform/architecture build plans, isolated source/provenance validation, unsigned installer/portable/dir, actual Windows x64 installer+portable, manual native CI with shared Web; signed delivery blocked pending lineage/OS verification. Approved maintainer zhaoyingchao."
+    "desktop_packaging": "Six native platform/architecture build plans, isolated source/provenance validation, unsigned installer/portable/dir, actual Windows x64 installer+portable, manual native CI with shared Web; signed delivery blocked pending lineage/OS verification. Approved maintainer zhaoyingchao.",
+    "team_execution": "First-class project execution team view; existing current plans/commands reused, source/review progress distinct, owner-isolated paged reads, auth-failure retry starts fresh scope, cached diagnostics switch via existing catalog. No new dispatcher or physical multi-host acceptance."
   },
   "verified": {
+    "current_report": "docs/quality/team-execution-verification.md",
+    "source_sha256": "e760d1d1c89dad37cf46fe316f30901ed330dd252a34aee3d2c6e5eca0274c7a",
+    "product_version": "1.0.0",
+    "affected_cases": 28,
+    "typecheck": true,
+    "catalog_keys": 4725,
+    "actual_team_page_and_final_cached_diagnostic_switch": true,
+    "real_api_plans": 3,
+    "real_api_queued_runs": 2,
+    "actual_attempts": 0,
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "current_sqlite_tables": 185,
+    "go_changes_and_builds_added": 0,
+    "web_builds": 3,
+    "all_owned_controls_closed": true,
+    "full_platform_complete": false
+  },
+  "production_integration_complete": false,
+  "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
+  "commit_policy": "User authorizes commits and normal non-forced pushes after verified functional stages to git@github.com:ai-mada/suma.git, branch dev. Include necessary source, configuration, design/contracts and compact evidence only. Keep credentials, databases, raw logs, screenshots, snapshots, caches, dependencies and binaries out of Git; preserve remote changes. No authorization for releases or deployment.",
+  "git_delivery": {
+    "repository": "git@github.com:ai-mada/suma.git",
+    "branch": "dev",
+    "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
+    "force_push": false,
+    "previously_published_commit": "df6f58863c4732d308986335a67ac471c90f9b68"
+  },
+  "existing_preview": {
+    "updated": false,
+    "user_database_modified": false,
+    "reason": "The initial schema uses a separate empty database; existing data are preserved."
+  },
+  "remaining_work": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope.",
+  "last_goal_turn_classification": "progress: project team execution entry and scoped page/diagnostic recovery implemented in parallel; real API seed, paused queued runs, current source-drift blockers, URL/run drilldown and final CNEN browser verified. Complete platform remains active.",
+  "previous_goal_turn": "progress: workspace-context file read/save and recovery completed in parallel; actual isolated HTTP, restart and CNEN browser read/adopt/save/refresh verified; full platform remains active.",
+  "current_work": {
+    "status": "scoped_delivery_verified_full_platform_in_progress",
+    "stage": "T-TEAM-110",
+    "verification": "28 distinct affected cases, integrated typecheck/catalog, final frozen-source Web build; existing Control and actual describe-only Runner with owned Harness fixture, real API records and final CNEN browser. No model/task execution or new Go build.",
+    "next_integration": "Keep full P0-P7/1..25: complete developer workbench and native loader/install/signature, real multi-host/vendor coordination, knowledge/skills synchronization and remaining full issue/application lifecycle.",
+    "deferred_not_dropped": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope."
+  },
+  "previous_stage_verification": {
     "current_report": "docs/quality/workspace-file-context-verification.md",
     "source_sha256": "e9cd8bad662ca4f6d4c5d9481abc5afb2d5370db816aa00e3fa8877bbfc66aa5",
     "product_version": "1.0.0",
@@ -62,50 +107,9 @@
     "actual_native_gui": false,
     "model_calls": 0
   },
-  "production_integration_complete": false,
-  "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
-  "commit_policy": "User authorizes commits and normal non-forced pushes after verified functional stages to git@github.com:ai-mada/suma.git, branch dev. Include necessary source, configuration, design/contracts and compact evidence only. Keep credentials, databases, raw logs, screenshots, snapshots, caches, dependencies and binaries out of Git; preserve remote changes. No authorization for releases or deployment.",
-  "git_delivery": {
-    "repository": "git@github.com:ai-mada/suma.git",
-    "branch": "dev",
-    "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
-    "force_push": false,
-    "previously_published_commit": "f2b6ae38ffd02bd34f7a8cd36edf324387a49c2f"
-  },
-  "existing_preview": {
-    "updated": false,
-    "user_database_modified": false,
-    "reason": "The initial schema uses a separate empty database; existing data are preserved."
-  },
-  "remaining_work": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope.",
-  "last_goal_turn_classification": "progress: workspace-context file read/save and recovery completed in parallel; actual isolated HTTP, restart and CNEN browser read/adopt/save/refresh verified; full platform remains active.",
-  "previous_goal_turn": "progress: six-target packaging and provenance implemented in parallel; actual unsigned Windows installer/portable and archive verified; approved public maintainer corrected to zhaoyingchao. Full P0-P7/1..25 and target-system/signature/GUI acceptance remain.",
-  "current_work": {
-    "status": "scoped_delivery_verified_full_platform_in_progress",
-    "stage": "T-WORKSPACE-109",
-    "verification": "Affected Go/contract/localization and29 distinct web cases, typecheck/i18n, one isolated Control/Web build, real HTTP restart and CNEN Monaco journey. Zero model calls.",
-    "next_integration": "Keep full P0-P7/1..25: native Electron loader/install/signature; complete IDE/remote coordinated writes/PTY/LSP/DAP; multi-host vendor integrations and remaining full lifecycle.",
-    "deferred_not_dropped": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope."
-  },
-  "previous_stage_verification": {
-    "current_report": "docs/quality/desktop-packaging-verification.md",
-    "product_version": "1.0.0",
-    "earlier_desktop_tests": {
-      "passed": 33,
-      "skipped": 1
-    },
-    "later_packaging_tests": 17,
-    "final_affected_tests": 4,
-    "six_control_targets": 6,
-    "actual_cross_builds": 5,
-    "reused_current_native_control": 1,
-    "actual_windows_sdk_artifacts": 2,
-    "actual_archive": true,
-    "remote_ci_jobs": 0,
-    "actual_installations": 0,
-    "actual_gui": false,
-    "actual_signatures": false,
-    "model_calls": 0,
-    "web_builds_added": 0
+  "latest_request": {
+    "path": "C:/Users/Administrator/.codex/attachments/1947a8f9-6cdb-44d9-a2cc-f7574b6e02cc/已粘贴的文本.txt",
+    "sha256": "5812f8132b01e82692c8c7344b06afeffca171b288f5e8452e6747d9706f5789",
+    "scope": "Preserve complete P0-P7/1..25; prioritize practical team distributed development, simple professional CNEN UX, affected checks and stage dev push."
   }
 }

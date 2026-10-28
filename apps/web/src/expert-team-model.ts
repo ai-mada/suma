@@ -2,7 +2,7 @@ import {validExpertModelItems} from './expert-model-input';
 import type {ExpertTeamConfiguration,ExpertTeamRole,ExpertTeamRoleRequest,ProjectKnowledgeReference,ToolProfile} from '../../../packages/contracts/src';
 import type {RecordItem,Workflow} from './api';
 import type {WriteRecoveryRequest} from './write-action';
-import {tr} from './i18n';
+import {tr,renderDiagnostic} from './i18n';
 import {taskToolProtocol} from './tool-model';
 export const expertID=(value:unknown):value is string=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(value);
 export const expertWorkflowID=(value:unknown):value is string=>typeof value==='string'&&/^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/.test(value);
@@ -29,4 +29,6 @@ export function expertRecovery(request:WriteRecoveryRequest,project:string,team?
 const blockerKeys:Record<string,string>={
  'Invalid expert team request':'invalid','Expert team configuration changed; refresh the preview':'changed','Expert team configuration is retired':'retired','Expert team is not active':'inactive','Expert team resource or membership changed':'resource','Expert team workflow, tool or knowledge is no longer eligible':'binding','Expert team configuration must be published':'unpublished','Expert team dispatch preview expired':'expired','Expert team dispatch plan changed':'plan_changed','This task dispatch plan belongs to an expert team batch':'owned','Explicit expert team dispatch acknowledgement required':'ack','Expert team task is active or its dependencies are not accepted':'task'
 };
-export const expertBlocker=(value:string)=>Object.hasOwn(blockerKeys,value)?tr('expert-team.blocker.'+blockerKeys[value]):value;
+// Controlled API blockers may already use the request's presentation language.
+// Resolve only complete registered messages; unknown user text remains literal.
+export const expertBlocker=(value:string)=>Object.hasOwn(blockerKeys,value)?tr('expert-team.blocker.'+blockerKeys[value]):renderDiagnostic(value);

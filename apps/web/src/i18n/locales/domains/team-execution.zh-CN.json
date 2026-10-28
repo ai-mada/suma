@@ -1,0 +1,21 @@
+{
+ "team-execution.tab":"团队执行",
+ "team-execution.title":"团队执行",
+ "team-execution.intro":"跟进项目团队计划、查看阻塞工作，并打开对应任务与原始执行。本列表在刷新时更新。",
+ "team-execution.refresh":"刷新团队计划",
+ "team-execution.acceptance_boundary":"进度按已正式验收的任务统计。运行成功、测试通过后，仍需完成任务的正式验收。",
+ "team-execution.stale":"当前显示上次已加载的结果，尚无法确认最新状态与访问权限；请刷新后再据此操作。",
+ "team-execution.page_scope":"已加载你可见的 {{total}} 个项目计划中的 {{loaded}} 个。下方计数分别属于各自计划。",
+ "team-execution.empty_title":"暂无团队计划",
+ "team-execution.empty_help":"选择项目任务后即可准备团队计划。准备预览不会启动执行。",
+ "team-execution.open_tasks":"选择任务并安排团队",
+ "team-execution.plans":"项目团队计划",
+ "team-execution.open_plan":"打开团队计划：{{name}}（{{id}}）",
+ "team-execution.plan_reference":"计划 {{id}}",
+ "team-execution.invalid_link":"团队计划链接无效。请返回列表，选择已有计划。",
+ "team-execution.back_to_list":"返回团队计划列表",
+ "team-execution.accepted":"已正式验收 {{accepted}} / {{total}} 项任务",
+ "team-execution.accepted_label":"{{name}} 的正式验收进度",
+ "team-execution.source_changed":"部分固定依据或权限需要重新核对。请打开计划查看当前阻塞原因。",
+ "team-execution.more":"加载更多团队计划"
+}

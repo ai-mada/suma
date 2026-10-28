@@ -4,6 +4,7 @@
 
 | 当前范围 | 验证与限制 |
 | --- | --- |
+| 项目团队执行入口 | [限定报告](team-execution-verification.md)、[操作指南](../development/team-execution.md)：复用正式分页与原详情，区分验收／排队／阻塞，URL恢复及权限隔离；没有新增物理多机、厂商任务或生产验收结论 |
 | 本地文件来源、草稿与原操作恢复 | [限定报告](workspace-file-context-verification.md)、[操作指南](../development/local-file-editing.md)：读取／保存绑定实际目录身份，显式基线采用，账号组织隔离与原回执；完整IDE和生产验收继续待办 |
 | 六目标桌面打包与安装交付 | [限定报告](desktop-packaging-verification.md)、[摘要](desktop-packaging-summary.json)：六目标控制程序／计划、实际Windows安装／便携包、资源／校验清单和归档；原生多系统安装、GUI、远端CI及生产签名未验，非off签名预检拒绝 |
 | 桌面项目目录与根约束文件链路 | [限定报告](desktop-workspace-verification.md)、[摘要](desktop-workspace-summary.json)：原生桥／绑定合同、定向检查及实际HTTP保存／Git／回执／184表重启通过；Electron图形子进程启动失败，原生界面、安装器和完整IDE未验 |

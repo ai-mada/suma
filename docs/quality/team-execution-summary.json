@@ -1,0 +1,168 @@
+{
+  "stage": "T-TEAM-110",
+  "product_version": "1.0.0",
+  "status": "scoped_verified_full_platform_in_progress",
+  "complete_platform": false,
+  "recorded_at": "2026-10-28T05:18:11.551450+00:00",
+  "source_sha256": "e760d1d1c89dad37cf46fe316f30901ed330dd252a34aee3d2c6e5eca0274c7a",
+  "source_files": 12,
+  "source_manifest": ".cache/e2e/team-110/source-manifest.json",
+  "implementation": {
+    "entry": "development/runs layout=team; panel=expert-team:<id>",
+    "api": "Existing current-authorized expert-team-plans GETs and original detail/command semantics",
+    "new_dependencies": 0,
+    "go_source_changes": 0,
+    "schema_changes": 0,
+    "lazy_view_and_detail": true
+  },
+  "checks": {
+    "distinct_affected_cases": 28,
+    "team_frontend_cases": 24,
+    "cached_diagnostic_cases": 4,
+    "typecheck": true,
+    "paired_catalog_keys": 4725,
+    "own_production_hardcodes": 0,
+    "frontend_receipt_sha256": "fe9be373e5a76b006e4d5e81d86d836ceb13c92a4444b2c83aad33bc22abb252",
+    "frontend_input_sha256": "2f976cd735592dbf9d2da3898900d5ecb6b7c9e0b3b970437b23519d9bd26011",
+    "frontend_checks": [
+      {
+        "command": "./node_modules/.bin/vitest.cmd run src/TeamExecutionWorkspace.test.tsx src/i18n/workspace-consumers.test.tsx",
+        "cwd": "apps/web",
+        "passed": 21,
+        "failed": 0,
+        "scope": "First6 new team entry cases +15 existing workspace consumers before optional read-permission propagation"
+      },
+      {
+        "command": "./node_modules/.bin/vitest.cmd run src/TeamExecutionWorkspace.test.tsx src/TeamTaskDispatchDialog.test.tsx -t 'clears the underlying|does not read while closed'",
+        "cwd": "apps/web",
+        "passed": 2,
+        "failed": 0,
+        "skipped": 13,
+        "scope": "After GET401403 callback: new outer-scope clearing + existing actual detail/history403 notification; no write-error inference"
+      },
+      {
+        "command": "./node_modules/.bin/tsc.cmd --noEmit",
+        "cwd": "apps/web",
+        "exit_code": 0,
+        "runs": 3,
+        "reason": "Final static check after read-scope retry and separately-owned bilingual blocker fix; no repeated full test suite"
+      },
+      {
+        "command": "node scripts/check-i18n.mjs",
+        "cwd": "apps/web",
+        "exit_code": 0,
+        "catalog_keys": 4725,
+        "production_hardcodes": 0,
+        "runs": 2,
+        "reason": "Final integrated source after reviewer fixes; keys remain4725"
+      },
+      {
+        "command": "./node_modules/.bin/vitest.cmd run src/TeamExecutionWorkspace.test.tsx -t 'keeps revoked results hidden'",
+        "cwd": "apps/web",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 7,
+        "scope": "Permission-loss retry remounts the complete local read scope; pending new GET never exposes old authorized state"
+      }
+    ],
+    "diagnostic_command": "vitest run src/expert-blocker-localization.test.ts;4 passed once;no business fetch",
+    "document_links": 281,
+    "openapi_paths_unchanged": 255,
+    "full_suite_runs": 0,
+    "go_cli_test_or_build_invocations_added": 0
+  },
+  "build": {
+    "web_builds": 3,
+    "durations_seconds": [
+      45.46,
+      40.89,
+      62
+    ],
+    "final_log_sha256": "8ce3d76c065fd48b2f6e09c74fb17d2c0ae2fcab63552c1eb12162d4174a6941",
+    "entry_sha256": "840aa03118b60bd6f3a41c4a4c00d0decf8be7127f27aab2903f71580f3f41b4",
+    "reason": "First two builds preceded final independent-review retry-scope and actual-browser diagnostic fixes; only final frozen-source bundle is final delivery evidence. Unrelated model/Go suites not repeated.",
+    "existing_large_chunk_warning": true
+  },
+  "actual_api": {
+    "current_control_sha256": "13b2ecf51fd2d2f63a79fb912d1b4948b4267f9b4dc0f993a0d37498d2eba20f",
+    "describe_only_runner_sha256": "b721ecdb9d8169a0ccc5d4025e688bd886405b2a0030f3632c8846bdd6799289",
+    "checks": {
+      "real_probe_observation": true,
+      "real_preview_paused_and_source_blocked": true,
+      "current_plan_page_cursor": true
+    },
+    "helper_requests": 82,
+    "helper_request_status_counts": {
+      "transport_unconfirmed": 6,
+      "200": 59,
+      "201": 16,
+      "400": 1
+    },
+    "tool_probes": 32,
+    "tool_probe_scope": "Actual installed Runner describe-tools observing this owned Harness protocol fixture; heartbeat observations sustain its existing60s contract; not a vendor task or proof of coding success.",
+    "teams": 2,
+    "plans": 3,
+    "tasks": 5,
+    "queued_runs": 2,
+    "runner_tasks": 0,
+    "attempts": 0,
+    "model_requests": 0,
+    "vendor_requests": 0,
+    "sqlite_tables": 185,
+    "sqlite_counts": {
+      "suma_expert_team_plans": 3,
+      "dag_runs": 2,
+      "dag_attempts": 0
+    },
+    "owned_control_processes": 3,
+    "all_controls_closed": true,
+    "preparation_failures": "Two fixture setup assumptions failed: setup did not automatically register a human resource, then member creation returned400 because user_id must be in record data. Continued the original scoped DB via API receipts; no direct business SQL writes. Request count is not an all-passed test count."
+  },
+  "actual_browser": {
+    "engine": "Codex in-app browser",
+    "passed": true,
+    "journey": [
+      "Direct team entry without task selection",
+      "Chinese and English project plans and per-plan acceptance/queue/blocked facts",
+      "Source-drift plan blocks activation and links exact task",
+      "Paused plan links exact original queued run",
+      "Original run graph shows awaiting dispatch with0attempts",
+      "Back preserves original team plan URL",
+      "Final bundle reload restores shared plan locator",
+      "Final cached Chinese blocker immediately switches to English",
+      "Close detail returns same team list"
+    ],
+    "permission_failure_and_retry": "Targeted DOM regressions; not an actual account-revocation browser journey",
+    "pagination": "Actual API limit2 across pages plus DOM UI limit10 interaction; actual browser has3plans on1page",
+    "screenshots": [
+      {
+        "path": ".cache/e2e/team-110/team-diagnostic.en.png",
+        "sha256": "9af5f1f8938b5a6354f349a372b65a8f7bfaf40b8b4cfc8aa3d7fe06927784d8",
+        "width": 65536,
+        "height": 4292542531
+      },
+      {
+        "path": ".cache/e2e/team-110/team-plans.zh.png",
+        "sha256": "8cb465cf62058e433e91f6b122747362a0efab3def1250f6e5f0900aa2738afd",
+        "width": 65536,
+        "height": 4292542531
+      }
+    ],
+    "device_theme_matrix": "Observed screenshot dimensions only; full narrow/theme/keyboard release matrix pending"
+  },
+  "resource_hygiene": {
+    "cache_files_removed": 1269,
+    "cache_bytes_removed": 8591390457,
+    "cache_scope": "Old regenerable compiled cache files only; exact path/link checks; no source/database/evidence/delivery deletion",
+    "cache_inventory_complete": false,
+    "cache_audit_sha256": "e7d05b94c669a18b9af10a55a73dcb0525a41ca3ebf7c00f37ffeb2780b326a8",
+    "cache_inventory_note": "Disk exhausted during full inventory persistence; original partial inventory retained and compact actual count/selector audit recorded after cache cleanup.",
+    "existing_user_preview_or_database_modified": false
+  },
+  "remaining": [
+    "Full P0-P7 and accepted requirements1..25",
+    "Physical multi-host throughput, real vendor task integration and production acceptance",
+    "Complete IDE, native Electron loader/startup and cross-platform install/signature",
+    "Full quality/issue lifecycle and subproject/microapplication delivery"
+  ]
+}

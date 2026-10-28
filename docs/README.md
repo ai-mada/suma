@@ -9,6 +9,7 @@
 | [交付状态](delivery/status.md) | 当前能力、实际证据、限制与后续交付 |
 | [验证入口](quality/verification.md) | 当前变更检查与各专项证据 |
 | [本地文件编辑](development/local-file-editing.md) | 工作区来源、保留草稿、冲突处理与原保存恢复；[English](en/local-file-editing.md) |
+| [团队执行](development/team-execution.md) | 无需先选任务即可跟进项目团队计划、阻塞与正式验收；[English](en/team-execution.md) |
 
 ## 产品、范围与体验
 

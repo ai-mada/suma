@@ -6,6 +6,7 @@ There is one current **1.0.0** product baseline, with fresh schema initializatio
 
 | Area | Current guides and authoritative evidence |
 | --- | --- |
+| Project team execution | [Guide](team-execution.md), [workbench contract](../../contracts/team-execution-workbench.md), [bounded verification](../quality/team-execution-verification.md); existing plans, task progress and original recovery are accessible without a new task selection |
 | Local file editing and recovery | [Guide](local-file-editing.md), [current context contract](../../contracts/workspace-file-context.md), [bounded browser/HTTP evidence](../quality/workspace-file-context-verification.md); explicit workspace adoption retains drafts, original operations and account isolation |
 | Model choice across ordinary tasks, experts and native repairs | [English workflow guide](model-selection-workflows.md), [architecture and AI SOP — Chinese original](../architecture/model-selection-workflows.md), [bounded verification](../quality/model-selection-workflows-verification.md) |
 | Native models and fixed attempt allowances | [Guide](model-execution.md), [per-task expert models](expert-team-model-execution.md) |
