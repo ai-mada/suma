@@ -6,6 +6,7 @@
 
 | 当前入口 | 内容 |
 | --- | --- |
+| [智能派发推荐](product/dispatch-recommendations.md) | T-ROUTING-122：有界真实工具／模型候选、单次只读分析、可编辑人工采用到原计划与明确启动；[架构与SOP](architecture/dispatch-recommendations.md)、[合同](../contracts/dispatch-recommendations.md)、[报告](quality/dispatch-recommendations-verification.md)、[摘要](quality/dispatch-recommendations-summary.json) |
 | [项目风险](development/project-risks.md) | T-PROJECT-121：正式风险与模型建议分开，责任／评估、关联任务处置、固定复核与关闭／重开；[English](en/project-risks.md)、[PRD](product/project-risks.md)、[合同](../contracts/project-risks.md)、[架构](architecture/project-risks.md)、[报告](quality/project-risks-verification.md)、[摘要](quality/project-risks-summary.json) |
 | [产品与设计基线](product/v1-baseline.md) | 单一新库初始化、版本边界、完整需求1–26及工程约束；当前58项有限实现／34待办／92总计 |
 | [实施计划](delivery/implementation-plan.md) | P0–P7完整范围、限定实现与未完成项 |

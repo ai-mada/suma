@@ -7,6 +7,7 @@ import {publishedKnowledgeReference,pinnedKnowledgeReferences,type KnowledgeSumm
 import {KnowledgeContextFacts} from './KnowledgeFacts';
 import {RequirementDesignFacts} from './RequirementDesignFacts';
 import {TaskDispatchOptionsPanel} from './TaskDispatchOptionsPanel';
+import {DispatchRecommendation} from './DispatchRecommendation';
 import {UiError} from './i18n';
 import './knowledge.css';
 import {literalText} from './i18n/literal';
@@ -72,7 +73,7 @@ export function TaskDispatchDialog({
     [created, setCreated] = useState<TaskDispatchPlan>(),
     [error, setError] = useState<unknown>(""),
     [confirmed, setConfirmed] = useState(false);
-  const [adoptedProfile,setAdoptedProfile]=useState<ToolProfile>(),[profileScope,setProfileScope]=useState('');
+  const [adoptedProfile,setAdoptedProfile]=useState<ToolProfile>(),[profileScope,setProfileScope]=useState(''),[recommendationLocked,setRecommendationLocked]=useState(false);
   const [knowledgeSelection,setKnowledgeSelection]=useState<KnowledgeSummary[]>([]);
   const knowledge=useKnowledgeEntries(project,{kind:'all',state:'published',q:''},0,!planID||planID==='new');
   const selectionCurrent=knowledgeSelection.every(selected=>knowledge.items?.some(current=>current.id===selected.id&&current.published_eligible&&current.eligibility==='current'&&current.published_revision===selected.published_revision&&current.published_sha256===selected.published_sha256));
@@ -111,7 +112,9 @@ export function TaskDispatchDialog({
     flow = workflows.data?.items.find(
       (item) => item.id + "@" + item.version === flowKey,
     ),
-    blocked = action.busy || !!action.pending;
+    directBlocked = action.busy || !!action.pending,
+    blocked = directBlocked || recommendationLocked;
+  const recommendationKnowledge=useMemo(()=>{try{return pinnedKnowledgeReferences(knowledgeSelection,project);}catch{return undefined;}},[knowledgeSelection,project]);
   const selectionScope=JSON.stringify([session.organization.id,session.user.id,project,currentTask?.id,currentTask?.version,flow?.id,flow?.version,agentID]);
   const selectedProfileID=profileScope===selectionScope?profileID:'';
   const scopedAdopted=profileScope===selectionScope?adoptedProfile:undefined;
@@ -182,7 +185,8 @@ export function TaskDispatchDialog({
     <Modal
       open
       onClose={() => {
-        if (!action.busy && !action.pending) onClose();
+        if (!blocked) onClose();
+        else setError(new UiError('dispatch-recommendation.draft_guard'));
       }}
       title={t("development.dispatch.arrange_task_execution")}
       description={t("development.dispatch.fix_task_and_requirement_context_first_review")}
@@ -198,6 +202,8 @@ export function TaskDispatchDialog({
         )}{" "}
         {planRead.loading && <p role="status">{t("development.dispatch.reading_immutable_execution_plan")}</p>}
         {!planID || planID === "new" ? (
+          <>
+          {currentTask&&flow&&recommendationKnowledge&&flow.nodes.some(node=>node.id===agentID&&node.type==='agent')&&<DispatchRecommendation session={session} scope={{project_id:project,task_id:currentTask.id,expected_task_version:currentTask.version,workflow_id:flow.id,workflow_version:flow.version,agent_node_id:agentID,knowledge:recommendationKnowledge}} inventory={profiles} disabled={directBlocked} onLockChange={setRecommendationLocked} onPrepared={plan=>saved('/task-dispatch-plans',plan)} onOpenPlan={id=>onPlan(id,currentTask.id)} onManual={()=>{requestAnimationFrame(()=>document.querySelector<HTMLSelectElement>('[data-dispatch-manual-tool]')?.focus());}}/>}
           <form
             className="tool-form"
             onSubmit={(event) => {
@@ -305,6 +311,7 @@ export function TaskDispatchDialog({
                 hint={t("development.dispatch.verified_tool_requirements")}
               >
                 <select
+                  data-dispatch-manual-tool
                   required
                   value={selectedProfileID}
                   onChange={(event) => {setProfileScope(selectionScope);setProfileID(event.target.value);setAdoptedProfile(undefined);}}
@@ -400,6 +407,7 @@ export function TaskDispatchDialog({
                 {t("development.dispatch.fix_and_preview_execution_plan")}</button>
             </div>
           </form>
+          </>
         ) : plan ? (
           <>
             <TaskDispatchFacts plan={plan} />

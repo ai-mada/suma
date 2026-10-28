@@ -6,6 +6,11 @@ package localization
 // placeholders use the common named-dot-v1 grammar. SourceTemplate is private
 // provenance and does not register an English source alias.
 var nativeCatalog = []Definition{
+	{Key: "native.dispatch_recommendation.request_limit", SourceTemplate: "Recommendation request exceeded the 512 KiB transport limit", Texts: map[Locale]string{ZhCN: "推荐请求超过 512 KiB 传输上限", EnUS: "Recommendation request exceeded the 512 KiB transport limit"}},
+	{Key: "native.dispatch_recommendation.invalid_goal", SourceTemplate: "A recommendation input of 1–64000 UTF-8 bytes is required", Texts: map[Locale]string{ZhCN: "推荐输入必须包含 1–64000 个 UTF-8 字节", EnUS: "A recommendation input of 1–64000 UTF-8 bytes is required"}},
+	{Key: "native.dispatch_recommendation.output_invalid", SourceTemplate: "Dispatch recommendation output does not match the closed proposal schema.", Texts: map[Locale]string{ZhCN: "推荐输出不符合受限提案结构。", EnUS: "Dispatch recommendation output does not match the closed proposal schema."}},
+	{Key: "native.dispatch_recommendation.tools_forbidden", SourceTemplate: "Dispatch recommendation cannot request or execute tools.", Texts: map[Locale]string{ZhCN: "派发推荐分析不允许请求或执行工具。", EnUS: "Dispatch recommendation cannot request or execute tools."}},
+	{Key: "native.dispatch_recommendation.output_too_large", SourceTemplate: "Dispatch recommendation output exceeded 32768 UTF-8 bytes.", Texts: map[Locale]string{ZhCN: "推荐输出超过32 KiB上限。", EnUS: "Dispatch recommendation output exceeded 32768 UTF-8 bytes."}},
 	{Key: "native.operations.tools_forbidden", SourceTemplate: "Intelligent operations cannot request or execute tools.", Texts: map[Locale]string{ZhCN: "智能操作规划不能请求或执行工具", EnUS: "Intelligent operations cannot request or execute tools."}},
 	{Key: "native.operations.output_too_large", SourceTemplate: "Intelligent operation output exceeded 32000 UTF-8 bytes.", Texts: map[Locale]string{ZhCN: "智能操作输出超过32000字节，请缩小计划范围", EnUS: "Intelligent operation output exceeded 32000 UTF-8 bytes."}},
 	{Key: "native.failure.tools_forbidden", SourceTemplate: "Failure diagnosis cannot request or execute tools.", Texts: map[Locale]string{ZhCN: "失败分诊不能请求或执行工具。", EnUS: "Failure diagnosis cannot request or execute tools."}},
@@ -72,6 +77,8 @@ var nativeCatalog = []Definition{
 // future native-prefixed key does not become trusted through its prefix alone.
 func IsNativeMessageKey(key string) bool {
 	switch key {
+	case "native.dispatch_recommendation.request_limit", "native.dispatch_recommendation.invalid_goal", "native.dispatch_recommendation.output_invalid", "native.dispatch_recommendation.tools_forbidden", "native.dispatch_recommendation.output_too_large":
+		return true
 	case
 		"native.workspace.config",
 		"native.workspace.catalog",

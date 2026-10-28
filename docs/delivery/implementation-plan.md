@@ -2,6 +2,8 @@
 
 更新：2026-10-29。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。
 
+T-ROUTING-122在既有P2／P4推进单任务工具／模型智能推荐，保留人工采用原计划、独立启动和质量门禁；[设计与SOP](../architecture/dispatch-recommendations.md)、[当前证据](../quality/dispatch-recommendations-verification.md)。完整智能规划／团队编排及需求26整体继续待办，58／34／92不变。
+
 [产品基线](../product/v1-baseline.md)记录完整编号范围和单一新库初始化策略，[交付状态](status.md)集中当前实现与限制，[文档索引](../README.md)提供领域设计／合同／专项证据。本台账保留各阶段的原始能力范围，删除重复阶段流水和历史测试数字。
 
 当前唯一数据合同为 `suma-initial-quality-v1`，独立于产品版本1.0.0。包括旧网关标记在内的不匹配声明、混合组件或未知合同在初始化写入前拒绝，既有用户数据保留，不迁移或回填；新实例使用独立空目录／数据库。实现与实际检查范围见[T-QUALITY-119报告](../quality/issue-repair-verification.md)及[摘要](../quality/issue-repair-summary.json)。

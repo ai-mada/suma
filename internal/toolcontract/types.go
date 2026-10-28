@@ -21,11 +21,12 @@ type ToolExecutionProfile struct {
 	// administrator-designated test command. It grants no case acceptance.
 	TestReportProtocol string `json:"test_report_protocol,omitempty"`
 	// ConflictRepairProtocol is an explicitly enabled host-native capability, not a grant of Git or acceptance authority.
-	ConflictRepairProtocol string                           `json:"conflict_repair_protocol,omitempty"`
-	Planning               *PlanningCapability              `json:"planning,omitempty"`
-	KnowledgeExtraction    *KnowledgeExtractionCapability   `json:"knowledge_extraction,omitempty"`
-	IntelligentOperations  *IntelligentOperationsCapability `json:"intelligent_operations,omitempty"`
-	FailureDiagnosis       *FailureDiagnosisCapability      `json:"failure_diagnosis,omitempty"`
+	ConflictRepairProtocol string                            `json:"conflict_repair_protocol,omitempty"`
+	Planning               *PlanningCapability               `json:"planning,omitempty"`
+	KnowledgeExtraction    *KnowledgeExtractionCapability    `json:"knowledge_extraction,omitempty"`
+	IntelligentOperations  *IntelligentOperationsCapability  `json:"intelligent_operations,omitempty"`
+	DispatchRecommendation *DispatchRecommendationCapability `json:"dispatch_recommendation,omitempty"`
+	FailureDiagnosis       *FailureDiagnosisCapability       `json:"failure_diagnosis,omitempty"`
 	// OpenCodeExecution is the immutable administrator configuration acknowledged
 	// by the pinned SDK/server probe, not an independently selectable deployment.
 	OpenCodeExecution *OpenCodeExecutionCapability `json:"opencode_execution,omitempty"`
@@ -68,16 +69,25 @@ func EqualProfile(a, b Profile) bool {
 	af, bf := a.FailureDiagnosis, b.FailureDiagnosis
 	ao, bo := a.OpenCodeExecution, b.OpenCodeExecution
 	at, bt := a.OctopExecution, b.OctopExecution
+	ad, bd := a.DispatchRecommendation, b.DispatchRecommendation
 	a.Planning, b.Planning = nil, nil
 	a.KnowledgeExtraction, b.KnowledgeExtraction = nil, nil
 	a.IntelligentOperations, b.IntelligentOperations = nil, nil
 	a.FailureDiagnosis, b.FailureDiagnosis = nil, nil
 	a.OpenCodeExecution, b.OpenCodeExecution = nil, nil
 	a.OctopExecution, b.OctopExecution = nil, nil
+	a.DispatchRecommendation, b.DispatchRecommendation = nil, nil
+	if !(ad == nil && bd == nil || ad != nil && bd != nil && *ad == *bd) {
+		return false
+	}
 	return a == b && (ap == nil && bp == nil || ap != nil && bp != nil && *ap == *bp) && (ak == nil && bk == nil || ak != nil && bk != nil && *ak == *bk) && (ai == nil && bi == nil || ai != nil && bi != nil && *ai == *bi) && (af == nil && bf == nil || af != nil && bf != nil && *af == *bf) && (ao == nil && bo == nil || ao != nil && bo != nil && *ao == *bo) && (at == nil && bt == nil || at != nil && bt != nil && *at == *bt)
 }
 
 func CloneProfile(p Profile) Profile {
+	if p.DispatchRecommendation != nil {
+		value := *p.DispatchRecommendation
+		p.DispatchRecommendation = &value
+	}
 	if p.OctopExecution != nil {
 		value := *p.OctopExecution
 		p.OctopExecution = &value

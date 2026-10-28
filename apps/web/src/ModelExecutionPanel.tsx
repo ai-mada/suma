@@ -53,7 +53,7 @@ function NativeModelExecutionPanel({scope, fixedOpenCode, supported, discover = 
         setDraft({deployment: event.target.value, steps: String(selected?.default_parameters.max_steps || 8), output: String(selected?.default_parameters.max_output_tokens || 4096), tokens: '', cost: ''});
       }}><option value="">{t('choose')}</option>{page.items.map(option => <option key={option.deployment.deployment_sha256} value={option.deployment.deployment_sha256}>{option.deployment.model} · {option.deployment.deployment_id} · v{option.deployment.revision}</option>)}</select></Field>
       {item && <>
-        <div className="model-execution-grid"><Field label={t('steps')} hint={t('steps_hint',{max:formatNumber(page!.parameter_limits!.max_steps)})}><input data-model-steps type="number" min={1} max={page!.parameter_limits!.max_steps} step={1} value={draft.steps} disabled={disabled} onChange={event => setDraft({...draft, steps: event.target.value})}/></Field><Field label={t('output')} hint={t('output_hint',{max:formatNumber(page!.parameter_limits!.max_output_tokens)})}><input data-model-output type="number" min={1} max={page!.parameter_limits!.max_output_tokens} step={1} value={draft.output} disabled={disabled} onChange={event => setDraft({...draft, output: event.target.value})}/></Field></div>
+        <ModelParameterFields steps={draft.steps} output={draft.output} limits={page!.parameter_limits!} disabled={disabled} onChange={patch=>setDraft({...draft,...patch})}/>
         <p className="muted">{item.cost_state === 'priced' ? t('priced', {currency: item.rate!.currency, version: formatNumber(item.rate!.version)}) : t('unpriced')}</p>
         <details><summary>{t('budget')}</summary><p className="muted">{t('budget_hint')}</p><div className="model-execution-grid"><Field label={t('tokens')} hint={t('optional')}><input data-model-token-budget inputMode="numeric" value={draft.tokens} disabled={disabled} onChange={event => setDraft({...draft, tokens: event.target.value})}/></Field><Field label={t('cost', {currency: item.rate?.currency || ''})} hint={item.rate ? t('optional') : t('price_first')}><input data-model-cost-budget inputMode="decimal" value={draft.cost} disabled={disabled || !item.rate} onChange={event => setDraft({...draft, cost: event.target.value})}/></Field></div><p className="muted">{t('policy')}</p></details>
         <details><summary>{t('basis')}</summary><dl><dt>{t('endpoint')}</dt><dd>{item.deployment.endpoint_origin}</dd><dt>{t('revision')}</dt><dd>{item.deployment.deployment_sha256}</dd></dl><p className="muted">{t('boundary')}</p></details>
@@ -62,13 +62,19 @@ function NativeModelExecutionPanel({scope, fixedOpenCode, supported, discover = 
     </>}
   </section>;
 }
+/** Both direct dispatch and a reviewed recommendation edit the same bounded
+ * parameter fields. The caller supplies server-frozen limits, never authority. */
+export function ModelParameterFields({steps,output,limits,disabled,onChange}:{steps:string;output:string;limits:{max_steps:number;max_output_tokens:number};disabled:boolean;onChange:(patch:Partial<Pick<ModelDraft,'steps'|'output'>>)=>void}){
+ useLocale();
+ return <div className="model-execution-grid"><Field label={t('steps')} hint={t('steps_hint',{max:formatNumber(limits.max_steps)})}><input data-model-steps type="number" min={1} max={limits.max_steps} step={1} value={steps} disabled={disabled} onChange={event=>onChange({steps:event.target.value})}/></Field><Field label={t('output')} hint={t('output_hint',{max:formatNumber(limits.max_output_tokens)})}><input data-model-output type="number" min={1} max={limits.max_output_tokens} step={1} value={output} disabled={disabled} onChange={event=>onChange({output:event.target.value})}/></Field></div>;
+}
 export function ModelExecutionFacts({binding}: {binding?: ModelBinding | null}) {
   useLocale(); if (!bindingPresent(binding)) return null;
   return <section className="model-execution" aria-label={t('frozen')}><h3>{t('frozen')}</h3><strong>{binding.deployment.model}</strong><p>{t('parameters', {steps: formatNumber(binding.parameters.max_steps), output: formatNumber(binding.parameters.max_output_tokens)})}</p><p className="muted">{binding.rate ? t('priced', {currency: binding.rate.currency, version: formatNumber(binding.rate.version)}) : t('unpriced')}</p>{binding.budget&&<p>{t('fixed_budget',{tokens:binding.budget.token_limit==null?t('inherited'):formatNumber(binding.budget.token_limit),cost:binding.budget.cost_limit_micros==null?t('inherited'):binding.budget.currency+' '+modelBudgetMoney(binding.budget.cost_limit_micros)})}</p>}<details><summary>{t('basis')}</summary><p>{binding.deployment.deployment_id} · v{binding.deployment.revision}</p><code>{binding.binding_sha256}</code><p>{t('reservation', {input: formatNumber(binding.input_token_reservation), output: formatNumber(binding.output_token_reservation)})}</p><p className="muted">{t('boundary')}</p></details></section>;
 }
 
 // Money remains an exact decimal string; budget arithmetic never uses floats.
-function modelBudgetMoney(value:number){
+export function modelBudgetMoney(value:number){
  const micros=BigInt(value),fraction=String(micros%1000000n).padStart(6,'0').replace(/0+$/,'');
  return formatNumber(Number(micros/1000000n))+(fraction?'.'+fraction:'');
 }

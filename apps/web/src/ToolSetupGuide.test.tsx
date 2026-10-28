@@ -38,6 +38,14 @@ it('configures real Node JUnit reporting with a runner-assigned path and no mode
  await act(async()=>{root=createRoot(host);root.render(<ToolSetupGuide/>);});await change(host.querySelector<HTMLSelectElement>('.tool-cli-setup-select select')!,'junit');
  const configuration=JSON.parse(host.querySelector('pre')!.textContent!),command=configuration['junit-tests'];expect(command).toMatchObject({adapter:'command',protocol:'text-v1',executable:'node',input:'none',read_only:false,test_evidence:true,test_report:true,args:['--test','--test-reporter=junit','--test-reporter-destination={{test_report_path}}']});expect(command).not.toHaveProperty('env_from');expect(command).not.toHaveProperty('env');expect(host.querySelector('.tool-cli-setup-entry')).toBeNull();expect(host.querySelector<HTMLButtonElement>('.tool-cli-setup-actions button')?.disabled).toBe(false);
 });
+
+it('T122 recommendation preset exposes only the dedicated read-only host-model protocol',async()=>{
+ await act(async()=>{root=createRoot(host);root.render(<ToolSetupGuide/>);});await change(host.querySelector<HTMLSelectElement>('.tool-cli-setup-select select')!,'recommendation');
+ const copy=()=>host.querySelector<HTMLButtonElement>('.tool-cli-setup-actions button')!;expect(copy().disabled).toBe(true);expect(host.querySelector('.form-grid')).toBeNull();expect(host.querySelector('[name=native_runtime_manifest]')).toBeNull();
+ const entry=host.querySelector<HTMLInputElement>('.tool-cli-setup-entry input')!;await change(entry,'relative.mjs');expect(copy().disabled).toBe(true);await change(entry,'D:/tools/suma/suma-agent.bundle.mjs');expect(copy().disabled).toBe(false);
+ const command=JSON.parse(host.querySelector('pre')!.textContent!)['suma-dispatch-recommendation'];expect(command).toEqual({adapter:'suma',protocol:'suma-jsonl-v1',executable:'node',args:['D:/tools/suma/suma-agent.bundle.mjs'],input:'agent-jsonl',read_only:true,dispatch_recommendation:true,model_execution_protocol:'suma-model-execution-v1'});
+ expect(command).not.toHaveProperty('env');expect(command).not.toHaveProperty('env_from');expect(command).not.toHaveProperty('native_workspace');expect(host.querySelector('.tool-cli-setup-command')!.textContent).not.toContain('--repository');
+});
 it('T118 configures runtime-only Octop ACP with shared platform model selection',async()=>{
  await act(async()=>{root=createRoot(host);root.render(<ToolSetupGuide/>);});await change(host.querySelector<HTMLSelectElement>('.tool-cli-setup-select select')!,'octop');
  const copy=()=>host.querySelector<HTMLButtonElement>('[data-octop-setup-copy]')!;expect(copy()).not.toBeNull();expect(copy().disabled).toBe(true);

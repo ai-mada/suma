@@ -36,6 +36,7 @@ type CommandSpec struct {
 	KnowledgeExtraction    bool                   `json:"knowledge_extraction,omitempty"`
 	FailureDiagnosis       bool                   `json:"failure_diagnosis,omitempty"`
 	IntelligentOperations  bool                   `json:"intelligent_operations,omitempty"`
+	DispatchRecommendation bool                   `json:"dispatch_recommendation,omitempty"`
 	CandidateComposition   bool                   `json:"candidate_composition,omitempty"`
 	TestEvidence           bool                   `json:"test_evidence,omitempty"`
 	TestReport             bool                   `json:"test_report,omitempty"`
@@ -429,6 +430,14 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 		root = workspace.Source
 	}
+	modelAttempt := workspace
+	if spec.DispatchRecommendation {
+		modelAttempt, err = prepareReadOnlyModelAttempt(a, cfg)
+		if err != nil {
+			return fail(err.Error())
+		}
+		root = modelAttempt.Source
+	}
 	var reportCapture *testReportCapture
 	if spec.TestReport {
 		reportCapture, err = prepareTestReport(workspace)
@@ -472,12 +481,19 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	}
 	if a.Type == "agent" {
 		goal, _ := a.Config["goal"].(string)
-		if strings.TrimSpace(goal) == "" || len(goal) > 32000 {
-			return fail("agent config.goal must contain 1–32000 characters")
+		goalLimit := 32000
+		if spec.DispatchRecommendation {
+			goalLimit = 64000
+		}
+		if strings.TrimSpace(goal) == "" || len(goal) > goalLimit {
+			return fail(fmt.Sprintf("agent config.goal must contain 1–%d UTF-8 bytes", goalLimit))
 		}
 		switch spec.Input {
 		case "agent-jsonl":
 			input := map[string]any{"goal": goal, "request_id": digest([]byte(key(a)))}
+			if spec.DispatchRecommendation && modelExecution != nil {
+				input["model_execution"] = modelExecution.Binding
+			}
 			for name, value := range purposeInput {
 				input[name] = value
 			}
@@ -624,7 +640,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	var gatewayCloseError error
 	closeModelGateway := func() {}
 	if modelExecution != nil {
-		gateway, gatewayErr := openAttemptModelGateway(ctx, cancel, a, cfg, workspace, profile, modelExecution)
+		gateway, gatewayErr := openAttemptModelGateway(ctx, cancel, a, cfg, modelAttempt, profile, modelExecution)
 		if gatewayErr != nil {
 			return fail("model gateway could not record its original attempt")
 		}
@@ -931,7 +947,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				r.Error = "Octop process-stop evidence requires reconciliation"
 			}
 		}
-		if (profile.Planning != nil || profile.KnowledgeExtraction != nil || profile.FailureDiagnosis != nil || profile.IntelligentOperations != nil) && stream.terminal == "completed" && stream.bad == nil {
+		if (profile.Planning != nil || profile.KnowledgeExtraction != nil || profile.FailureDiagnosis != nil || profile.IntelligentOperations != nil || profile.DispatchRecommendation != nil) && stream.terminal == "completed" && stream.bad == nil {
 			r.Output = stream.completionOutput
 		} else {
 			r.Output = stream.output.String() + r.Output

@@ -164,6 +164,13 @@ func (s *Service) PoolToolClaimEligibleTx(ctx context.Context, tx *sql.Tx, proof
 			task = composition
 		}
 		if !task {
+			_, recommendation, err := s.dispatchRecommendationForRunTx(ctx, tx, scope.TenantID, scope.ProjectID, run)
+			if err != nil {
+				return false, err
+			}
+			task = recommendation
+		}
+		if !task {
 			_, planning, err := s.planningExecutionRecordTx(ctx, tx, scope.TenantID, scope.ProjectID, run)
 			if err != nil {
 				return false, err

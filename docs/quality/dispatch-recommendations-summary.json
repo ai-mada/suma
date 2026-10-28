@@ -1,0 +1,517 @@
+{
+  "stage": "T-ROUTING-122",
+  "product_version": "1.0.0",
+  "recorded_at": "2026-10-28T21:02:58.365825+00:00",
+  "status": "scoped_local_recommendation_delivery",
+  "source_sha256": "20e08ea12a9cfcbc11b5f203854e0df621c62e2326d5928c71e399838fb0148f",
+  "source_files": 68,
+  "full_platform_complete": false,
+  "scope_ledger": {
+    "phases": "P0–P7",
+    "requirements": "1–26",
+    "limited_implemented": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "architecture": {
+    "single_go_dispatcher": true,
+    "bounded_profiles": 32,
+    "bounded_candidates": 24,
+    "candidate_kinds": [
+      "model",
+      "codex",
+      "fixed"
+    ],
+    "unknown_performance_explicit": true,
+    "one_readonly_analysis": true,
+    "go_gateway_and_frozen_binding": true,
+    "provider_secrets_go_only": true,
+    "explicit_human_adoption_to_original_plan": true,
+    "separate_original_start": true,
+    "current_reader_authorization_before_history": true,
+    "protected_source_output_choice_provenance": true,
+    "current_project_scoped_real_creator_credential": true,
+    "no_historical_migration": true,
+    "data_contract": "suma-initial-quality-v1"
+  },
+  "verification": {
+    "distinct_go_top_level_passed": 13,
+    "go_top_level_names": [
+      "TestDispatchRecommendationActualGatewayAdoptionIndependentDelivery",
+      "TestDispatchRecommendationBudgetFeasibilityAndStableCandidateIdentity",
+      "TestDispatchRecommendationClosedProposal",
+      "TestDispatchRecommendationContractsKeepReadAnalysisAndHumanAdoptionDistinct",
+      "TestDispatchRecommendationForeignChoiceAndCurrentInventoryCannotBeAdopted",
+      "TestDispatchRecommendationHumanAdoptionPreservesOriginalPlanAndStart",
+      "TestDispatchRecommendationLateKnownOriginalAttemptPreservesFacts",
+      "TestDispatchRecommendationReaderReauthorizesHistoricalKnowledgeBeforeTaskDrift",
+      "TestDispatchRecommendationRequiresFrozenReadOnlyGateway",
+      "TestDispatchRecommendationSingleAnalysisReceiptAndSourceDrift",
+      "TestNativeCatalogPreservesCompleteOriginalBilingualContent",
+      "TestNativeCatalogRenderingKeepsExactParameterGrammarAndValidation",
+      "TestNativeCatalogSnapshotsCannotChangeFormattingOrExpandTheAllowlist"
+    ],
+    "distinct_web_behavior_cases_passed": 6,
+    "native_sdk_behavior_cases_passed": 1,
+    "unresolved_test_failures": 0,
+    "full_suites": 0,
+    "typecheck": true,
+    "generated_contract_check": true,
+    "generated_schemas": 575,
+    "api_paths": 282,
+    "catalog_keys": 5699,
+    "production_source_hardcodes": 0,
+    "version_check": true
+  },
+  "actual_runtime": {
+    "analysis_model_requests": 1,
+    "analysis_run_id": "recommendation-da4eac5c8bf2cc8d3ce8a6178918e0d0",
+    "base_commit": "ae8627a4d43c28327e65040570a92fa2bc7430d0",
+    "candidate_commit": "4f11db4e8ead5725cb68947f22644d10115c628a",
+    "candidate_id": "3f7684da05640326985039ea62401ee7204ee6ae8d7814ab32df400734c039f9",
+    "coding_model_requests": 2,
+    "customer_human_signoff": false,
+    "host_operation_records": 6,
+    "independent_worker": "independent-worker122",
+    "junit_sha256": "445daf3b90501a382a0a184392745b8851db11419e231a1436291d9b7f84f0e8",
+    "plan_id": "5f61402445c006bcb1a49332a36edcaa",
+    "recommendation_id": "da4eac5c8bf2cc8d3ce8a6178918e0d0",
+    "run_id": "6ccd48c6796056769a81b8de8bd538b2",
+    "source_sha256": "a15ab96101850e5c2af799f24ecd1659668a104ad78e701ffb93825d1df5c18a",
+    "stage": "T-ROUTING-122",
+    "task_id": "5bf902f8217a81bdcecc2304414c3729"
+  },
+  "browser": {
+    "stage": "T-ROUTING-122",
+    "scope": "Read-only actual recommendation history, fixed model/allowance and original reported usage, changed-basis adoption disabled, CN/EN,390 keyboard focus and original locator recovery after explicit workflow re-selection. No browser model/adopt/start/review mutation; not customer sign-off.",
+    "readonly": true,
+    "languages": [
+      "zh-CN",
+      "en-US"
+    ],
+    "client_width": 390,
+    "scroll_width": 390,
+    "keyboard_focus": "Prepare new analysis",
+    "actual_analysis_model": "analysis122",
+    "actual_reported_input_tokens": 7,
+    "actual_reported_output_tokens": 3,
+    "actual_target_model": "coding122",
+    "current_basis_changed_visible": true,
+    "adoption_disabled": true,
+    "refresh_original_locator_restored": true,
+    "refresh_requires_workflow_reselection": true,
+    "browser_business_mutations": 0,
+    "viewport_reset": true,
+    "owned_tab_closed": true
+  },
+  "retained_fixture": {
+    "customer_human_signoff": false,
+    "database_bytes": 2396160,
+    "database_sha256": "b868780b8da72ea04c3c86eea25844c5d94c6548964735e546fe8ec7fb231169",
+    "final_counts": {
+      "dag_attempts": 3,
+      "dag_events": 20,
+      "dag_runs": 2,
+      "suma_candidate_composition_executions": 0,
+      "suma_candidate_compositions": 0,
+      "suma_dispatch_recommendation_outcomes": 1,
+      "suma_dispatch_recommendations": 1,
+      "suma_expert_team_plans": 0,
+      "suma_requirements": 1,
+      "suma_reviews": 1,
+      "suma_tasks": 1,
+      "suma_test_plan_reports": 1,
+      "suma_usage_attempts": 3
+    },
+    "final_protected_sha256": "08fbf1c8dd13081dcc5deecf305eb11a0ebdf71ff8aaa942fd4d9a4bc7af653c",
+    "kind": "actual_gateway_recommendation_delivery",
+    "model_calls": 3,
+    "origin": "http://recommend122.localhost:53250",
+    "receipt": {
+      "analysis_model_requests": 1,
+      "analysis_run_id": "recommendation-da4eac5c8bf2cc8d3ce8a6178918e0d0",
+      "base_commit": "ae8627a4d43c28327e65040570a92fa2bc7430d0",
+      "candidate_commit": "4f11db4e8ead5725cb68947f22644d10115c628a",
+      "candidate_id": "3f7684da05640326985039ea62401ee7204ee6ae8d7814ab32df400734c039f9",
+      "coding_model_requests": 2,
+      "customer_human_signoff": false,
+      "host_operation_records": 6,
+      "independent_worker": "independent-worker122",
+      "junit_sha256": "445daf3b90501a382a0a184392745b8851db11419e231a1436291d9b7f84f0e8",
+      "plan_id": "5f61402445c006bcb1a49332a36edcaa",
+      "recommendation_id": "da4eac5c8bf2cc8d3ce8a6178918e0d0",
+      "run_id": "6ccd48c6796056769a81b8de8bd538b2",
+      "source_sha256": "a15ab96101850e5c2af799f24ecd1659668a104ad78e701ffb93825d1df5c18a",
+      "stage": "T-ROUTING-122",
+      "task_id": "5bf902f8217a81bdcecc2304414c3729"
+    },
+    "seed_counts": {
+      "dag_attempts": 3,
+      "dag_events": 20,
+      "dag_runs": 2,
+      "suma_candidate_composition_executions": 0,
+      "suma_candidate_compositions": 0,
+      "suma_dispatch_recommendation_outcomes": 1,
+      "suma_dispatch_recommendations": 1,
+      "suma_expert_team_plans": 0,
+      "suma_requirements": 1,
+      "suma_reviews": 1,
+      "suma_tasks": 1,
+      "suma_test_plan_reports": 1,
+      "suma_usage_attempts": 3
+    },
+    "seed_protected_sha256": "08fbf1c8dd13081dcc5deecf305eb11a0ebdf71ff8aaa942fd4d9a4bc7af653c",
+    "source_archives": [
+      {
+        "archive": "base-source.tar",
+        "bytes": 10240,
+        "files": [
+          {
+            "bytes": 8,
+            "path": ".gitignore",
+            "sha256": "70a213afeabe5ac38ae4c88b2c7002ce5068b91a3e57a032245ab809dc6fa460"
+          },
+          {
+            "bytes": 27,
+            "path": "sum.cjs",
+            "sha256": "703cb2a470cfd0a2ea935122ac16338093078ba039d78aeda1e9442ffb5cc0a3"
+          }
+        ],
+        "revision": "ae8627a4d43c28327e65040570a92fa2bc7430d0",
+        "sha256": "6f2b431dac265a61c010b1f40c5a9c60ddb0239437ea6289ffe1aac574b02c9d"
+      },
+      {
+        "archive": "candidate-source.tar",
+        "bytes": 10240,
+        "files": [
+          {
+            "bytes": 8,
+            "path": ".gitignore",
+            "sha256": "70a213afeabe5ac38ae4c88b2c7002ce5068b91a3e57a032245ab809dc6fa460"
+          },
+          {
+            "bytes": 27,
+            "path": "sum.cjs",
+            "sha256": "b7fe0fbde04b24b85270a6b7006017ce20facbb63eff2f45e82b96bb2e100620"
+          }
+        ],
+        "revision": "4f11db4e8ead5725cb68947f22644d10115c628a",
+        "sha256": "6f80b4e40ef9138710646c9496b1c22e2961757aa4740ff08264a2128d58509f"
+      }
+    ],
+    "status": "closed_without_new_execution",
+    "stop_reason": "explicit_stop"
+  },
+  "failure_audit": [
+    {
+      "kind": "first integration compile and runner fixture",
+      "resolution": "unique local hash helper and correct deployment origin; affected checks reran only"
+    },
+    {
+      "kind": "tool inventory projection proof was too specific for a reviewed task source",
+      "resolution": "strict public wrapper retained; current-project internal paging/freshness reused; source tests passed"
+    },
+    {
+      "kind": "new managed read-only purpose absent from private/Pool admission",
+      "resolution": "registered exact platform record in existing gates; no general managed effect allowance"
+    },
+    {
+      "kind": "protocol fixture had no terminal event count",
+      "resolution": "fixed fixture metadata; original production success rule retained"
+    },
+    {
+      "kind": "native catalog count and original text receipt missed new meanings",
+      "resolution": "current explicit65-key allowlist and original text receipt separately verified"
+    },
+    {
+      "kind": "Web nullable and unknown response types",
+      "resolution": "full typecheck fixed narrowing and canonical nullable handling, no unchecked casts"
+    },
+    {
+      "kind": "premature Web build while typecheck was failing",
+      "resolution": "interrupted before final output; one final complete build after corrected typecheck"
+    }
+  ],
+  "resources": {
+    "owned_model_requests": 3,
+    "analysis_model_requests": 1,
+    "coding_model_requests": 2,
+    "commercial_vendor_calls": 0,
+    "web_build_invocations": 2,
+    "web_builds_completed": 1,
+    "native_sdk_builds": 1,
+    "octop_sdk_builds": 0,
+    "control_binary_builds": 0,
+    "runner_binary_builds": 0,
+    "go_commands_sequential": true,
+    "owned_processes_terminal": true,
+    "browser_business_mutations": 0,
+    "browser_counts_and_protected_rows_unchanged": true,
+    "user_preview_updated": false,
+    "user_database_modified": false
+  },
+  "evidence": {
+    "go_receipts": [
+      {
+        "command": ".cache/mcp019-deps/20261028T203312242Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T203400709Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "597b3755289e5a5b06a33d662aa15e8863b2ee4303bc8446658aab833fd68347"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T203442478Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./internal/runner",
+          "./cmd/suma-contracts",
+          "-run",
+          "^TestDispatchRecommendation",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 1,
+        "failed_top_level": 1,
+        "stdout_sha256": "155f1ded3f78d847f3e08062cee50f4b531b5f0f2ec83c63ed2256a44506fed0"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T203714640Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./internal/runner",
+          "./cmd/suma-contracts",
+          "-run",
+          "^TestDispatchRecommendation(SingleAnalysis|HumanAdoption|ForeignChoice|ReaderReauthorizes|BudgetFeasibility|RequiresFrozen|ClosedProposal|ContractsKeep)",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 2,
+        "failed_top_level": 5,
+        "stdout_sha256": "c3d3db89e1e956e17e1c032c9247f363df016afd3d2242c70756432d5c48f418"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T203834804Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestDispatchRecommendation(SingleAnalysis|HumanAdoption|ForeignChoice|ReaderReauthorizes|BudgetFeasibility)",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 3,
+        "failed_top_level": 2,
+        "stdout_sha256": "475ac93b9053d24a78e9502b0c76aaa6eceb9d2147245087d1a1b28368dc8bcf"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T203955912Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestDispatchRecommendationHumanAdoption",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "1m"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 0,
+        "failed_top_level": 1,
+        "stdout_sha256": "439e811c9039898782cf47d52fc4782d8ab6572efa62754cf105d0fa7ca5d0dd"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T204107858Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestDispatchRecommendation(HumanAdoption|ForeignChoice)",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "1m"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 0,
+        "failed_top_level": 2,
+        "stdout_sha256": "7199209537e45d81bfadb22cafebc06e98d53e8366c943f66a7eefdb7d361c09"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T204228752Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestDispatchRecommendation(HumanAdoption|ForeignChoice)",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "1m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 2,
+        "failed_top_level": 0,
+        "stdout_sha256": "89f646120c196535541a7ff03c2fc17b20457d863d862ebb7a1b87b56901aa7e"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T204308501Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/dispatchrecommendationcontract",
+          "./internal/localization",
+          "-run",
+          "^Test(DispatchRecommendationClosedProposal|NativeCatalog)",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "1m"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 2,
+        "failed_top_level": 2,
+        "stdout_sha256": "0c43efc00c7f22b7c2a8b68e72592a34b1c429402b2f3c34876e8cc408e5b924"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T204403663Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/localization",
+          "-run",
+          "^TestNativeCatalog(Snapshots|Preserves)",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "1m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 2,
+        "failed_top_level": 0,
+        "stdout_sha256": "b17f1382c53ae25ca7470daa61c7f0be91c7e338a99203d3953abf9647aa4968"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T204705621Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "597b3755289e5a5b06a33d662aa15e8863b2ee4303bc8446658aab833fd68347"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T205707697Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestDispatchRecommendation",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "7m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 7,
+        "failed_top_level": 0,
+        "stdout_sha256": "0695c828935b6f14690ba4539789f3f1e24d62b51cc5ab0daaa66a1ce7fe8cb4"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T210210293Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "1f5e710a3bd98b00252011d6667325513e30ca5d5a8bc8e10f9154d71f49c86b"
+      }
+    ],
+    "web_behaviors": ".cache/e2e/dispatch-recommendation-122/ui-focused.stdout.txt",
+    "web_build": ".cache/e2e/dispatch-recommendation-122/web-build.log",
+    "source_inventory": ".cache/e2e/dispatch-recommendation-122/source-inventory.json",
+    "web_inventory": ".cache/e2e/dispatch-recommendation-122/web-inventory.json",
+    "artifacts": [
+      {
+        "path": ".cache/e2e/dispatch-recommendation-122/actual-ui/fixture.sqlite",
+        "bytes": 2396160,
+        "sha256": "b868780b8da72ea04c3c86eea25844c5d94c6548964735e546fe8ec7fb231169",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/dispatch-recommendation-122/actual-ui/base-source.tar",
+        "bytes": 10240,
+        "sha256": "6f2b431dac265a61c010b1f40c5a9c60ddb0239437ea6289ffe1aac574b02c9d",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/dispatch-recommendation-122/actual-ui/candidate-source.tar",
+        "bytes": 10240,
+        "sha256": "6f80b4e40ef9138710646c9496b1c22e2961757aa4740ff08264a2128d58509f",
+        "git_included": false
+      }
+    ],
+    "screenshots": [
+      {
+        "path": ".cache/e2e/dispatch-recommendation-122/screenshots/recommendation-en.png",
+        "bytes": 54645,
+        "sha256": "9920492056493be333ad9509124c1e41fb2a0277c9ec5dfb7fdcae7dca0d005b",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/dispatch-recommendation-122/screenshots/recommendation-final.png",
+        "bytes": 61786,
+        "sha256": "32207f2c49313fbd7434f87335423fca0b624785b3ad5bdf855a3005f4ca0680",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/dispatch-recommendation-122/screenshots/recommendation-mobile-en.png",
+        "bytes": 41526,
+        "sha256": "1563f5c6d4dd8735921b7f5d07c7447dab6896816b9f05c0498a9d8f2a62dd5c",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/dispatch-recommendation-122/screenshots/recommendation-zh.png",
+        "bytes": 50256,
+        "sha256": "622921c313c0e6d6d85af32e816a1d3dd9840ccbb62c5abbfd53c74a14996afb",
+        "git_included": false
+      }
+    ]
+  },
+  "remaining": [
+    "Complete P0–P7 and requirements1–26;58/34/92 unchanged",
+    "Full Octop CLI/GUI, vendor accounts/bills, physical multi-host, database matrix, complete IDE/installers and production acceptance",
+    "Full team autonomous planning, workflows/configuration and MCP/A2A surface; this stage covers one explicitly selected task/flow/node",
+    "Low-frequency recommendation refresh queue should await both scoped read promises; high-frequency tool progress already excluded",
+    "Owned protocol fixture and owner Review are not commercial model evaluation or customer human sign-off"
+  ]
+}

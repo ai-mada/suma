@@ -535,6 +535,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.failureDiagnosisHTTP(w, r, actor, scope, project, parts, m) {
 		return
 	}
+	if s.dispatchRecommendationHTTP(w, r, actor, scope, project, parts, m) {
+		return
+	}
 	if s.intelligentPlanningHTTP(w, r, actor, scope, parts, project, m) {
 		return
 	}
@@ -948,6 +951,13 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				}
 				return false, err
 			}
+			if err := s.Service.checkDispatchRecommendationExecutionTx(authority.ctx, tx, p.TenantID, project, run); err != nil {
+				var apiErr *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Status >= 400 && apiErr.Status < 500 {
+					return false, nil
+				}
+				return false, err
+			}
 			if err := s.Service.checkKnowledgeIntelligenceExecutionTx(authority.ctx, tx, p.TenantID, project, run, true); err != nil {
 				var apiErr *APIError
 				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Code == "knowledge_intelligence_basis_changed" {
@@ -1018,6 +1028,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			if err := s.Service.checkPlanningExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID); err != nil {
 				return err
 			}
+			if err := s.Service.checkDispatchRecommendationExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID); err != nil {
+				return err
+			}
 			if err := s.Service.checkKnowledgeIntelligenceExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID, false); err != nil {
 				return err
 			}
@@ -1062,6 +1075,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			}
 			authorize := func(current *sql.Tx) error { return authority.beforeRunner(current, result.WorkerID) }
 			if err := s.Service.recordPlanningOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {
+				return err
+			}
+			if err := s.Service.recordDispatchRecommendationOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {
 				return err
 			}
 			if err := s.Service.recordKnowledgeIntelligenceOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {

@@ -81,6 +81,9 @@ func probeKnowledgeExtraction(ctx context.Context, exe string, spec CommandSpec,
 }
 
 func modelPurposeRequest(a Assignment, spec CommandSpec, profile tc.Profile) (map[string]any, error) {
+	if spec.DispatchRecommendation || profile.DispatchRecommendation != nil || a.Config["purpose"] == "dispatch_recommendation" {
+		return dispatchRecommendationRequest(a, spec, profile)
+	}
 	if spec.IntelligentOperations || profile.IntelligentOperations != nil || a.Config["purpose"] == "intelligent_operations" {
 		return intelligentOperationsRequest(a, spec, profile)
 	}

@@ -1028,6 +1028,157 @@ export interface DeveloperConnectionMetadata {
   client_connection_verified: false;
   tools: (ApplicationToolDefinition)[];
 }
+export interface DispatchRecommendation {
+  id: string;
+  project_id: string;
+  version: number;
+  state: string;
+  goal: string;
+  locale: string;
+  run_id: string;
+  source: DispatchRecommendationSource;
+  analysis_tool_profile_id: string;
+  analysis_tool_profile_version: number;
+  analysis_tool_profile_sha256: string;
+  analysis_model_execution?: ModelBinding;
+  max_output_tokens: number;
+  proposal?: DispatchRecommendationProposal;
+  original_output_sha256: string;
+  original_output: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  expires_at: string;
+  basis_current: boolean;
+  reason: string;
+  allowed_actions: (string)[];
+  plan_id: string;
+  adopted_choice?: DispatchRecommendationChoice;
+}
+export interface DispatchRecommendationAdoptRequest {
+  project_id: string;
+  expected_version: number;
+  source_sha256: string;
+  choice: DispatchRecommendationChoice;
+  reason: string;
+  idempotency_key: string;
+}
+export interface DispatchRecommendationAdoption {
+  recommendation: DispatchRecommendation;
+  plan: TaskDispatchPlan;
+}
+export interface DispatchRecommendationCandidate {
+  id: string;
+  kind: string;
+  tool_profile_id: string;
+  tool_profile_version: number;
+  tool_profile_sha256: string;
+  worker_id: string;
+  tool_name: string;
+  adapter: string;
+  protocol: string;
+  inventory_observed_at: string;
+  model: string;
+  context_window: number;
+  model_state: string;
+  cost_state: string;
+  performance_state: string;
+  budget_mode: string;
+  model_selection?: ModelSelection;
+  model_rate?: ModelRateSnapshot;
+  codex_selection?: CodexSelection;
+  reasoning_efforts: (string)[];
+  fixed_configuration_sha256?: string;
+}
+export interface DispatchRecommendationCapability {
+  protocol: string;
+}
+export interface DispatchRecommendationChoice {
+  candidate_id: string;
+  max_steps: number | null;
+  max_output_tokens: number | null;
+  reasoning_effort: string | null;
+  reason: string;
+}
+export interface DispatchRecommendationConstraints {
+  require_hard_budget: boolean;
+  budget?: ModelBudget;
+  max_steps: number;
+  max_output_tokens: number;
+}
+export interface DispatchRecommendationCoverage {
+  profile_total: number;
+  profiles_examined: number;
+  candidate_count: number;
+  excluded_count: number;
+  max_profiles: number;
+  max_candidates: number;
+  complete: boolean;
+  reason: string;
+}
+export interface DispatchRecommendationCreateRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  workflow_id: string;
+  workflow_version: number;
+  agent_node_id: string;
+  knowledge: (ProjectKnowledgeReference)[];
+  constraints: DispatchRecommendationConstraints;
+  source_sha256: string;
+  goal: string;
+  locale: string;
+  analysis_tool_profile_id: string;
+  expected_analysis_tool_version: number;
+  analysis_model_execution_selection: ModelSelection;
+  acknowledge_model_use: boolean;
+  idempotency_key: string;
+}
+export interface DispatchRecommendationOptionsRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  workflow_id: string;
+  workflow_version: number;
+  agent_node_id: string;
+  knowledge: (ProjectKnowledgeReference)[];
+  constraints: DispatchRecommendationConstraints;
+}
+export interface DispatchRecommendationPage {
+  items: (DispatchRecommendation)[];
+  total: number;
+  next_cursor: string;
+}
+export interface DispatchRecommendationProposal {
+  schema_version: number;
+  summary: string;
+  rationale: string;
+  recommendations: (DispatchRecommendationChoice)[];
+  questions: (string)[];
+}
+export interface DispatchRecommendationProvenance {
+  recommendation_id: string;
+  recommendation_version: number;
+  source_sha256: string;
+  original_output_sha256: string;
+  candidate_id: string;
+  choice_sha256: string;
+  adopted_by: string;
+  adopted_at: string;
+  reason: string;
+}
+export interface DispatchRecommendationSource {
+  sha256: string;
+  policy_sha256: string;
+  observed_at: string;
+  context: TaskContext;
+  workflow: Workflow;
+  agent_node_id: string;
+  execution_route: ProjectExecutionRoute;
+  constraints: DispatchRecommendationConstraints;
+  candidates: (DispatchRecommendationCandidate)[];
+  coverage: DispatchRecommendationCoverage;
+}
 export interface DisplayDiagnostic {
   schema_version: 1;
   message_key: string;
@@ -4302,6 +4453,7 @@ export interface TaskDispatchOptionsRequest {
   before?: string;
 }
 export interface TaskDispatchPlan {
+  recommendation?: DispatchRecommendationProvenance;
   opencode_execution?: OpenCodeExecutionCapability | null;
   codex_execution?: CodexBinding | null;
   model_execution?: ModelBinding | null;
@@ -4735,6 +4887,7 @@ export interface ToolExecutionProfile {
   planning?: PlanningCapability | null;
   knowledge_extraction?: KnowledgeExtractionCapability | null;
   intelligent_operations?: IntelligentOperationsCapability | null;
+  dispatch_recommendation?: DispatchRecommendationCapability | null;
   failure_diagnosis?: FailureDiagnosisCapability | null;
   opencode_execution?: OpenCodeExecutionCapability | null;
   octop_execution?: OctopExecutionCapability | null;

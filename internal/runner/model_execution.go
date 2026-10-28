@@ -65,6 +65,10 @@ func validateModelDeployments(items []ModelDeploymentSpec) error {
 }
 
 func validateModelExecutionSpec(spec CommandSpec) error {
+	if spec.DispatchRecommendation {
+		_, err := localDispatchRecommendationCapability(spec)
+		return err
+	}
 	if spec.ModelExecutionProtocol == "" {
 		return nil
 	}

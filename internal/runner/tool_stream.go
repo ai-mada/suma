@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	drc "github.com/ai-mada/suma/internal/dispatchrecommendationcontract"
 	"io"
 	"strconv"
 	"strings"
@@ -486,6 +487,10 @@ func (s *toolStream) suma(m map[string]any) {
 		}
 	}
 	oneCallPurpose, fixedModel := oneCallModelProfile(s.profile)
+	if s.profile.DispatchRecommendation != nil && s.modelBinding == nil {
+		s.invalid("dispatch recommendation requires its host model binding")
+		return
+	}
 	if kind != "started" && kind != "error" && !s.sessionStarted {
 		s.invalid("native activity or completion before start")
 		return
@@ -494,7 +499,7 @@ func (s *toolStream) suma(m map[string]any) {
 	case "started":
 		if oneCallPurpose != "" {
 			tools, ok := m["tools"].([]any)
-			if !ok || len(tools) != 0 || textAt(m, "model") != fixedModel {
+			if !ok || len(tools) != 0 || fixedModel != "" && textAt(m, "model") != fixedModel {
 				s.invalid(oneCallPurpose + " requires its fixed model and an empty tool catalog")
 				return
 			}
@@ -593,6 +598,12 @@ func (s *toolStream) suma(m map[string]any) {
 		if strings.TrimSpace(textAt(m, "output")) == "" || s.requestPending {
 			s.invalid("missing completed output")
 			return
+		}
+		if s.profile.DispatchRecommendation != nil {
+			if _, err := drc.ParseProposal(textAt(m, "output")); err != nil {
+				s.invalid("dispatch recommendation output does not match its closed proposal contract")
+				return
+			}
 		}
 		if s.profile.Planning != nil || oneCallPurpose != "" {
 			// Model document purposes consume the bounded final document, not the human activity

@@ -227,6 +227,16 @@ func (s *Service) listToolProfilesCurrentTx(ctx context.Context, auth *authorize
 	if e := auth.assertTx(auth.tx, expected, purposeBrowserProjectRead); e != nil {
 		return ToolProfileList{}, e
 	}
+	return s.listToolProfilesForProjectTx(ctx, auth, project, limit, cursor)
+}
+
+// Internal project-authorized catalogue projection. Public browser inventory
+// keeps its stricter proof above; reviewed task/model snapshots reuse these
+// exact paging and freshness rules under their own current project proof.
+func (s *Service) listToolProfilesForProjectTx(ctx context.Context, auth *authorizedCommand, project string, limit int, cursor string) (ToolProfileList, error) {
+	if err := assertProjectRead(auth, project); err != nil {
+		return ToolProfileList{}, err
+	}
 	ctx = auth.ctx
 	tx, p := auth.tx, auth.currentPrincipal
 	var err error

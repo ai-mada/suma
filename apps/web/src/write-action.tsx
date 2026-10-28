@@ -23,7 +23,7 @@ export type WriteActionOptions = {
     scope?: string;
     storage?: StorageLike;
     validateRequest?: (request: WriteRecoveryRequest) => boolean;
-    validateResponse?: (value: unknown, request: WriteRecoveryRequest) => boolean;
+    validateResponse?: (value: unknown, request: WriteRecoveryRequest) => boolean | Promise<boolean>;
 };
 type Pending = {
     request: WriteRecoveryRequest;
@@ -87,9 +87,10 @@ function loadRecovery(options: WriteActionOptions, caller: typeof api, instance:
 }
 export function useWriteAction(options: WriteActionOptions = {}) {
     useLocale();
-    const api = useApi(), instance = useRef(crypto.randomUUID()), alive = useRef(true), viewScope = useRef(options.scope), holder = useRef<RecoveryState | undefined>(undefined);
+    const api = useApi(), instance = useRef(crypto.randomUUID()), alive = useRef(true), viewScope = useRef(options.scope), viewCaller = useRef(api), holder = useRef<RecoveryState | undefined>(undefined);
     useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
     viewScope.current = options.scope;
+    viewCaller.current = api;
     // A mounted unknown operation retains its original scope/caller even if the
     // Provider changes. A fresh mount only reads its own exact scoped storage key.
     if (!holder.current || (!holder.current.pending && holder.current.scope !== options.scope))
@@ -136,6 +137,13 @@ export function useWriteAction(options: WriteActionOptions = {}) {
             }
         }
         const pending = current.pending, restoring = pending.uncertain;
+        const originalScope=current.scope, originalIdentity=pending.identity, originalRequest=pending.request, originalKey=pending.request.idempotency_key, ownerCaller=api;
+        // An asynchronous receipt validator (for example, Web Crypto) creates
+        // another ownership boundary after HTTP. Caller identity detects an
+        // account/organization change; a complete consumer scope includes its
+        // project. Neither the request nor its durable key can move to a new
+        // holder while a late result is being verified.
+        const ownsRequest=()=>alive.current&&viewCaller.current===ownerCaller&&viewScope.current===originalScope&&current.scope===originalScope&&holder.current===current&&current.pending===pending&&pending.identity===originalIdentity&&pending.request===originalRequest&&pending.request.idempotency_key===originalKey&&pending.request.body.idempotency_key===originalKey;
         current.busy = true;
         setBusy(true);
         setError('');
@@ -144,12 +152,14 @@ export function useWriteAction(options: WriteActionOptions = {}) {
                 try {
                     const request = pending.request;
                     const value = await mutate<T>(request.path, request.body, request.method, pending.identity, pending.caller);
+                    if(!ownsRequest()){pending.uncertain=true;return;}
                     // A success status alone does not acknowledge a usable result.
                     // Keep the original validator, caller and durable request until
                     // that exact operation returns a response its consumer can read.
                     let valid = true;
-                    try { valid = !pending.validateResponse || pending.validateResponse(value, structuredClone(request)); }
+                    try { valid = !pending.validateResponse || await pending.validateResponse(value, structuredClone(request)); }
                     catch { valid = false; }
+                    if(!ownsRequest()){pending.uncertain=true;return;}
                     if (!valid) {
                         const diagnostic = new UiError('common.responseUnknown');
                         throw new ApiError(0, 'response_unknown', diagnostic.message, undefined, undefined, diagnostic);
@@ -157,6 +167,7 @@ export function useWriteAction(options: WriteActionOptions = {}) {
                     pending.outcome = { ok: true, value };
                 }
                 catch (error) {
+                    if(!ownsRequest()){pending.uncertain=true;return;}
                     if (restoring || uncertainWrite(error)) {
                         pending.uncertain = true;
                         setConflict(false);
@@ -169,8 +180,7 @@ export function useWriteAction(options: WriteActionOptions = {}) {
             // A late result belongs to the original scoped view. Keep its
             // recovery row until that view consumes it; clearing first would
             // lose a create operation's locator after unmount/account switch.
-            if (current.scope !== undefined && (!alive.current || current.scope !== viewScope.current))
-                return undefined;
+            if(!ownsRequest()){pending.uncertain=true;return undefined;}
             pending.uncertain = false;
             try {
                 clearStored(current);

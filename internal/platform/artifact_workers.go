@@ -342,6 +342,13 @@ func (s *Service) releaseClaimEligibleTx(ctx context.Context, tx *sql.Tx, auth *
 	} else if composition {
 		return true, nil
 	}
+	// Recommendation is a registered read-only analysis, never a deployment.
+	// Its dedicated admission hook rechecks the original credential and basis.
+	if _, recommendation, err := s.dispatchRecommendationForRunTx(ctx, tx, p.TenantID, project, run); err != nil {
+		return false, err
+	} else if recommendation {
+		return true, nil
+	}
 	// Planning is a read-only managed workflow, not a deployment. Its creator,
 	// source and exact tool are checked by planning and tool admission below.
 	if _, planning, err := s.planningExecutionRecordTx(ctx, tx, p.TenantID, project, run); err != nil {

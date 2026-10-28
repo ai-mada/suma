@@ -94,6 +94,13 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				}
 				return false, err
 			}
+			if err := s.Service.checkDispatchRecommendationExecutionTx(r.Context(), tx, scope.TenantID, scope.ProjectID, run); err != nil {
+				var apiErr *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Status >= 400 && apiErr.Status < 500 {
+					return false, nil
+				}
+				return false, err
+			}
 			if err := s.Service.checkKnowledgeIntelligenceExecutionTx(r.Context(), tx, scope.TenantID, scope.ProjectID, run, true); err != nil {
 				var apiErr *APIError
 				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Code == "knowledge_intelligence_basis_changed" {
@@ -162,6 +169,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				return err
 			}
 			if err := s.Service.checkPlanningExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID); err != nil {
+				return err
+			}
+			if err := s.Service.checkDispatchRecommendationExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID); err != nil {
 				return err
 			}
 			if err := s.Service.checkKnowledgeIntelligenceExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID, false); err != nil {
@@ -272,6 +282,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				return err
 			}
 			if err := s.Service.recordPlanningOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {
+				return err
+			}
+			if err := s.Service.recordDispatchRecommendationOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {
 				return err
 			}
 			if err := s.Service.recordKnowledgeIntelligenceOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {

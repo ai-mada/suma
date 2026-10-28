@@ -288,6 +288,11 @@ func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []st
 			return "", err
 		}
 	}
+	if spec.DispatchRecommendation {
+		if err = probeDispatchRecommendation(ctx, exe, spec); err != nil {
+			return "", err
+		}
+	}
 	version = strings.TrimSpace(strings.SplitN(version, "\n", 2)[0])
 	if version == "" || len(version) > 256 {
 		return "", fmt.Errorf("CLI version is missing or oversized")
@@ -439,6 +444,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 	}
 	for id, spec := range cfg.Commands {
 		spec = normalizedCommand(spec)
+		if _, err := localDispatchRecommendationCapability(spec); err != nil {
+			return err
+		}
 		if err := validateTestReportSpec(spec); err != nil {
 			return err
 		}
@@ -510,6 +518,9 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 			defer func() { <-sem; done <- i }()
 			spec := normalizedCommand(cfg.Commands[id])
 			p := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec)}
+			if spec.DispatchRecommendation {
+				p.DispatchRecommendation = &tc.DispatchRecommendationCapability{Protocol: tc.DispatchRecommendationProtocol}
+			}
 			if spec.NativeWorkspace != nil && spec.Adapter != "opencode" && spec.Adapter != "octop" {
 				p.WorkspaceToolsVersion = NativeWorkspaceVersion
 				if spec.NativeWorkspace.ConflictRepair {
@@ -604,6 +615,11 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 				fail(err.Error())
 				return
 			}
+			o.Profile.DispatchRecommendation, err = localDispatchRecommendationCapability(spec)
+			if err != nil {
+				fail(err.Error())
+				return
+			}
 			o.Available = true
 			// These declarations follow successful local probes and do not
 			// probe a remote connection or change the approved profile.
@@ -635,6 +651,9 @@ func ToolCapabilities(items []tc.Observation) []string {
 
 func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec CommandSpec) (tc.Profile, string, error) {
 	spec = normalizedCommand(spec)
+	if _, err := localDispatchRecommendationCapability(spec); err != nil {
+		return tc.Profile{}, "", err
+	}
 	if err := validateTestReportSpec(spec); err != nil {
 		return tc.Profile{}, "", err
 	}
@@ -712,6 +731,10 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 		if err != nil {
 			return p, "", err
 		}
+		p.DispatchRecommendation, err = localDispatchRecommendationCapability(spec)
+		if err != nil {
+			return p, "", err
+		}
 	}
 	if err = tc.ValidateProfile(p, true); err != nil {
 		return p, "", fmt.Errorf("invalid tool profile")
@@ -759,6 +782,10 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 	expectedOperations, err := localIntelligentOperationsCapability(spec)
 	if err != nil || (p.IntelligentOperations == nil) != (expectedOperations == nil) || p.IntelligentOperations != nil && *p.IntelligentOperations != *expectedOperations {
 		return p, "", fmt.Errorf("intelligent operations capability does not match local configuration")
+	}
+	expectedRecommendation, err := localDispatchRecommendationCapability(spec)
+	if err != nil || (p.DispatchRecommendation == nil) != (expectedRecommendation == nil) || p.DispatchRecommendation != nil && *p.DispatchRecommendation != *expectedRecommendation {
+		return p, "", fmt.Errorf("dispatch recommendation capability does not match local configuration")
 	}
 	if pinned, _ := a.Config["tool_profile_sha256"].(string); pinned != "" && pinned != p.ProfileSHA256 {
 		return p, "", fmt.Errorf("assignment tool profile digest does not match local configuration")

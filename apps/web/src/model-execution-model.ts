@@ -10,6 +10,10 @@ export function modelMoneyMicros(value: string): number | undefined {
   const result = BigInt(whole) * 1000000n + BigInt(fraction.padEnd(6, '0'));
   return result <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(result) : undefined;
 }
+/** Exact form input stays independent of localized display/group separators. */
+export function modelMoneyInput(value:number):string{
+ const micros=BigInt(value),whole=String(micros/1000000n),fraction=String(micros%1000000n).padStart(6,'0').replace(/0+$/,'');return whole+(fraction?'.'+fraction:'');
+}
 export type ModelScope = {project: string; profile: string; version: number; sha256: string};
 export function modelOptionsPath(scope: ModelScope) {
   return '/model-execution/options?' + new URLSearchParams({project_id: scope.project, tool_profile_id: scope.profile, expected_tool_version: String(scope.version)});

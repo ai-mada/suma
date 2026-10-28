@@ -19,7 +19,16 @@ const (
 )
 
 func supportsModelExecution(p ToolProfile) bool {
+	if supportsDispatchRecommendationModel(p) {
+		return true
+	}
 	return p.Profile.ModelExecutionProtocol == modelcontract.Protocol && !p.Profile.ReadOnly && p.Profile.WorkspaceToolsVersion == "attempt-workspace-v1" && (p.Profile.Adapter == "suma" && p.Profile.Protocol == "suma-jsonl-v1" || supportsOctopExecution(p))
+}
+
+// A recommendation is a separate read-only purpose: no workspace capability,
+// one bounded model request, and the same Go-owned provider/budget authority.
+func supportsDispatchRecommendationModel(p ToolProfile) bool {
+	return tc.SupportsDispatchRecommendationProfile(p.Profile)
 }
 func matchingModelRate(rate *UsageRateRevision, profile ToolProfile, d modelcontract.Deployment) bool {
 	return rate != nil && rate.ToolProfileID == profile.ID && rate.ProfileSHA256 == profile.Profile.ProfileSHA256 && rate.ModelDeploymentID == d.ID && rate.ModelDeploymentRevision == d.Revision && rate.ModelDeploymentSHA256 == d.SHA256 && rate.Model == d.Model && rate.EndpointOrigin == d.EndpointOrigin
@@ -99,11 +108,18 @@ func (s *Service) GetModelExecutionOptions(ctx context.Context, actor Actor, pro
 		}
 		out.Supported = true
 		out.ParameterLimits = &modelcontract.Parameters{MaxSteps: modelcontract.MaxSteps, MaxOutputTokens: modelcontract.MaxOutputTokens}
+		if supportsDispatchRecommendationModel(p) {
+			out.ParameterLimits = &modelcontract.Parameters{MaxSteps: 1, MaxOutputTokens: 8192}
+		}
 		for _, d := range deployments {
 			if e = modelcontract.ValidateDeployment(d); e != nil {
 				return invalid(modelExecutionInvalid)
 			}
 			option := ModelExecutionOption{Deployment: d, CostState: "unpriced", DefaultParameters: modelcontract.Parameters{MaxSteps: 8, MaxOutputTokens: 4096}, InputTokenReservation: d.ContextWindow * 8, OutputTokenReservation: 4096}
+			if supportsDispatchRecommendationModel(p) {
+				option.DefaultParameters.MaxSteps = 1
+				option.InputTokenReservation = d.ContextWindow
+			}
 			if matchingModelRate(rate, current, d) {
 				copy := *rate
 				option.Rate = &copy
@@ -124,6 +140,9 @@ func (s *Service) buildModelExecutionTx(ctx context.Context, tx *sql.Tx, tenant,
 		return nil, nil
 	}
 	if modelcontract.ValidateSelection(*selection) != nil {
+		return nil, invalid(modelExecutionInvalid)
+	}
+	if supportsDispatchRecommendationModel(profile) && (selection.Parameters.MaxSteps != 1 || selection.Parameters.MaxOutputTokens > 8192) {
 		return nil, invalid(modelExecutionInvalid)
 	}
 	_, deployments, err := s.currentModelDeploymentsTx(ctx, tx, tenant, project, profile)

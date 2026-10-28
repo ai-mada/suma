@@ -81,6 +81,9 @@ func oneCallModelRequest(a Assignment, purpose string) (map[string]any, error) {
 }
 
 func oneCallModelProfile(p tc.Profile) (purpose, model string) {
+	if p.DispatchRecommendation != nil {
+		return "dispatch recommendation", ""
+	}
 	if p.IntelligentOperations != nil {
 		return "intelligent operations", p.IntelligentOperations.Model
 	}
