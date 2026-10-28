@@ -6,6 +6,10 @@
 
 勾选只表示所列限定实现存在，不表示整阶段完成；报告只支持原源码／环境／场景。当前本地已实现的模型配置、Codex执行、专家团队、候选合成／修复、工作区、知识提炼与账本等具体边界统一见交付状态。未配置、未验证和结果未知必须明确，不以局部交付缩减剩余目标。
 
+当前仍为 58 项限定实现、33 项待实现，共 91 项。T-DELIVERY-112 在既有条目内推进[任务交付链路](../../contracts/task-delivery-chain.md)和[Runner 只读诊断](../../contracts/runner-journal-inspection.md)：实际本机自有 DSH 协议命令提交代码、另一 Runner 对精确同 SHA 完成 3 项断言、界面人工退回形成 1 个问题和 1 个需求草稿；下游任务保持未启动并等待正式验收。范围、源码和最终界面复验见[本阶段报告](../quality/task-delivery-chain-verification.md)，不新增完成项或冒充厂商、多机及生产验收。
+
+新的分享规划已取得当前可见正文，按来源实际 64 个编号映射为[当前模块、采用决定与验收缺口](../integrations/shared-roadmap-adoption.md)。其优先级不替代本计划阶段；页面末尾仍不完整，未见范围不推断，规划条目也不新增为已完成能力。
+
 ## 扩展需求与阶段对应
 
 完整需求1–25逐项见[统一范围表](../product/v1-baseline.md)。参考能力与全栈闭环贯穿全部阶段；身份／可视配置／交互属于P0、P1、P3、P7；CLI／模型／专家团队／仓库／智能规划／IDE属于P2–P5；技能、知识、记忆及同步属于P1、P3、P6；渠道／移动端／SaaS／商业化属于P4、P6、P7。编号不是完成标记，全部能力均需独立实现与实际验收。
@@ -54,7 +58,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 - [x] Runner命令许可、Windows进程树、原生智能体有限循环、外部CLI探测。
 - [x] Monaco本地按目录分页导航、摘要保存、草稿保护；[目录浏览与CLI](../quality/workspace-directory-verification.md)明确快照、当前权限与加载范围；工作流三视图与实际状态。 当前原生／Codex活动attempt支持真实出站list/read，原生CAS保存独立；见[Codex读取](../quality/codex-workspace-observation-verification.md)。协调远程写、Git、PTY/LSP/DAP仍待交付。
 - [x] 许可写命令的逐attempt隔离Git工作树、管理员固定仓库／基准、持久操作元数据与真实差异／状态／提交；固定候选经独立测试和明确批准后，支持本机提供方CAS快进，未知效果沿原操作核对。
-- [x] 当前attempt/worker/fence的真实有界进展、持久ACK和事件展示；重试/补偿使用运行固定定义的标记。
+- [x] 当前attempt/worker/fence的真实有界进展、持久ACK和事件展示；重试/补偿使用运行固定定义的标记。T-DELIVERY-112 增加[本地 journal 只读摘要](../agents/runner-journal-inspection.md)，不调用运行时 OpenJournal、不读取凭据、不修改回执或重跑；持久拒绝原因与完整设备巡检仍不在此范围。
 - [x] 测试节点可选择固定command/agent候选来源；机器封存与跨Runner导入同SHA，在隔离工作树独立测试。多源合成／修复候选另测准确结果，明确验收后才绑定未开始任务基线。
 - [ ] 完整仓库授权、合并策略、冲突及未知效果恢复，真实终端、LSP/DAP、完整调试预览；当前本地审批快进、多源合成／独立修复及bundle交接已有证据，动态多分支／跨map／子流程候选继承及真正分布式Git制品传送仍待验收。
 - [x] 持久增量前沿、边结算／就绪／唤醒索引、短事件提交尾锁、稳定领取回执、项目资源账本、分块展开与持久重试窗口；见[增量内核](../scheduler/incremental-kernel.md)与[限定验收](../quality/scheduling-verification.md)。
@@ -78,7 +82,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 - [x] 项目记忆／规范／文本技能的版本、来源、审阅发布与固定任务／Agent上下文；组织技能目录、受审阅跨项目采用和模型辅助提案保留同源证据。见[项目资产](../quality/project-knowledge-verification.md)、[技能目录](../quality/skill-catalog-verification.md)、[知识提炼](../quality/knowledge-intelligence-verification.md)。
 - [ ] 知识资产语义索引投影、外部记忆同步、可执行插件技能和完整专家策略；当前模型提案与受审阅跨项目共享已有限定证据，后续补齐完整自动提炼、同步和评测。
 
-- [x] 需求表单、当前内容拆解、任务依赖验证、分配与看板。
+- [x] 需求表单、当前内容拆解、任务依赖验证、分配与看板；已有[完整业务任务图编辑](../development/task-dependencies.md)，T-DELIVERY-112 从图中所选 1～16 个未验收任务进入既有团队预览／派发，保留原任务版本、模型配置和前置验收门禁。
 - [x] 实际业务统计、活动、测试证据与人工验收、内容变化失效。
 - [x] 组织团队、人类/Agent/工具真实身份归属、独立项目授权；团队归属不授予项目访问，人类项目资源必须绑定有权组织账号。
 - [x] 迭代、里程碑与关联任务验收完成门禁；任务版本和独立计划版本共同校验的完整排期原子批次。
@@ -119,7 +123,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 
 ## P5 质量、发布与运维闭环
 
-- [x] 明确测试节点证据、当前版本人工验收、失败问题与去重需求回流。
+- [x] 明确测试节点证据、当前版本人工验收、失败问题与去重需求回流。T-DELIVERY-112 增加[任务交付与质量面板](../development/task-delivery-chain.md)，仅 current_run 及每类 20 条正式引用；验收退回在同事务创建问题并使下游验收失效，需求回流使用专用 kind／作用域摘要映射，拒绝通用记录预占来源槽位。测试节点成功不替代人工验收。
 - [x] 版本/测试/证据登记，不将其冒充实际发布或实际测试。
 - [x] 受信Worker及固定命令配置、真实build/package-test证明、当前已验收任务的不可变候选范围。
 - [x] 独立环境策略、固定计划预览/批准/撤销、在线精确授权、受保护DAG、持久operation与generation屏障。

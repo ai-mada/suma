@@ -112,21 +112,19 @@ func (s *Service) lookupIssueRequirementTx(ctx context.Context, auth *authorized
 	if err = assertProjectRead(auth, project); err != nil {
 		return out, false, err
 	}
-	var raw string
-	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT response FROM suma_operations WHERE tenant_id=? AND project_id=? AND operation_id=?`), auth.target.tenantID, project, "issue-intake-"+issue).Scan(&raw)
+	var hash, raw string
+	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT request_hash,response FROM suma_operations WHERE tenant_id=? AND project_id=? AND operation_id=?`), auth.target.tenantID, project, "issue-intake-"+issue).Scan(&hash, &raw)
 	if errors.Is(err, sql.ErrNoRows) {
 		return out, false, nil
 	}
 	if err != nil {
 		return out, false, err
 	}
-	var identity struct {
-		ID string `json:"id"`
+	identity, err := parseIssueRequirementReceipt(raw, hash, auth.target.tenantID, project, issue)
+	if err != nil {
+		return out, false, err
 	}
-	if json.Unmarshal([]byte(raw), &identity) != nil || !handoffID(identity.ID, false) {
-		return out, false, conflict(diagnosisExisting)
-	}
-	out, err = s.getRecordTx(ctx, auth, project, "requirements", identity.ID)
+	out, err = s.getRecordTx(ctx, auth, project, "requirements", identity.RequirementID)
 	if err != nil {
 		return out, false, err
 	}

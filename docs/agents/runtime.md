@@ -75,6 +75,8 @@ go build -o .cache/bin/suma-runner.exe ./cmd/suma-runner
 
 所有上报携带 run/node/attempt/fence/worker 和固定的 `operation_id`。网络失败和非成功 HTTP 响应保留同一结果并重试，先清空 outbox 才领取新任务。永久拒绝也保留证据并阻止新领取，需操作者检查授权、租约与协调状态；Runner 不擅自删除记录。
 
+T-DELIVERY-112 的 `--inspect-state --state DIR` 提供[本地执行日志只读摘要](runner-journal-inspection.md)：有界读取单个 journal，不调用会生成重启结果的 `OpenJournal`，不读取凭据、改 ACK 或重跑。摘要不查询服务器回执、租约或真实拒绝原因；资源池需要指定具体槽位目录。[English](../en/runner-journal-inspection.md)与[精确合同](../../contracts/runner-journal-inspection.md)说明覆盖和排除范围。
+
 重启时，任何已有 inbox 而没有结果的 attempt 都转换为 `outcome_unknown:true`、`stopped:false`，进入人工协调，不会自动重跑。即使进程被终止，也无法推断先前是否已产生外部副作用。幂等节点的后续调度由控制服务决定，Runner 不自行重试命令。
 
 心跳携带完整 attempt fence；心跳返回取消请求或出现续约错误时中止执行。超时默认 10 分钟，上限 24 小时。Windows 在挂起状态创建进程，先加入禁止脱离的 Job Object，再恢复执行；取消时终止整个 job，查询活动进程数为零后才声明 `stopped:true`。进程正常退出也关闭 job。POSIX 当前只支持进程组信号，无法证明已经脱离进程组的后代被终止，因此超时/取消返回 `outcome_unknown:true`，要求协调；尚未提供 Linux cgroup 容器隔离。

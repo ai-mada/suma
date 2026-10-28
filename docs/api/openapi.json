@@ -17152,6 +17152,389 @@
         ],
         "type": "object"
       },
+      "TaskDelivery": {
+        "additionalProperties": false,
+        "properties": {
+          "expert_plans": {
+            "$ref": "#/components/schemas/TaskDeliveryExpertPlans",
+            "readOnly": true
+          },
+          "formal_acceptance": {
+            "description": "True only for current formal acceptance checked against the exact task, dependency and run evidence. Not a can-review grant.",
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "issues": {
+            "$ref": "#/components/schemas/TaskDeliveryIssues",
+            "readOnly": true
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TaskDeliveryRun"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "run_basis_state": {
+            "enum": [
+              "not_dispatched",
+              "current",
+              "changed",
+              "unknown"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_status": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_version": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "task_version",
+          "task_status",
+          "run_basis_state",
+          "formal_acceptance",
+          "run",
+          "expert_plans",
+          "issues"
+        ],
+        "type": "object"
+      },
+      "TaskDeliveryExpertPlan": {
+        "additionalProperties": false,
+        "properties": {
+          "item_state": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "plan_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "revision": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "state": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "team_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "team_name": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "version": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "plan_id",
+          "version",
+          "revision",
+          "team_id",
+          "team_name",
+          "state",
+          "item_state"
+        ],
+        "type": "object"
+      },
+      "TaskDeliveryExpertPlans": {
+        "additionalProperties": false,
+        "properties": {
+          "complete": {
+            "description": "Whether the bounded item list covers the total; counts always cover this declared collection scope.",
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TaskDeliveryExpertPlan"
+            },
+            "maxItems": 20,
+            "readOnly": true,
+            "type": "array"
+          },
+          "limit": {
+            "const": 20,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "scope": {
+            "const": "current_run",
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "scope",
+          "total",
+          "limit",
+          "complete",
+          "items"
+        ],
+        "type": "object"
+      },
+      "TaskDeliveryIssue": {
+        "additionalProperties": false,
+        "properties": {
+          "issue_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "issue_status": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "issue_version": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "requirement_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "requirement_version": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "source": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "source_review_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "title": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "issue_id",
+          "title",
+          "issue_version",
+          "issue_status",
+          "source",
+          "source_review_id",
+          "requirement_id",
+          "requirement_version"
+        ],
+        "type": "object"
+      },
+      "TaskDeliveryIssues": {
+        "additionalProperties": false,
+        "properties": {
+          "complete": {
+            "description": "Whether the bounded item list covers the total; counts always cover this declared collection scope.",
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TaskDeliveryIssue"
+            },
+            "maxItems": 20,
+            "readOnly": true,
+            "type": "array"
+          },
+          "limit": {
+            "const": 20,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "scope": {
+            "const": "current_run",
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "scope",
+          "total",
+          "limit",
+          "complete",
+          "items"
+        ],
+        "type": "object"
+      },
+      "TaskDeliveryNode": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "name": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "state": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "type": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "state",
+          "attempt"
+        ],
+        "type": "object"
+      },
+      "TaskDeliveryNodeSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "complete": {
+            "description": "Whether the bounded item list covers the total; counts always cover this declared collection scope.",
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "failed": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TaskDeliveryNode"
+            },
+            "maxItems": 20,
+            "readOnly": true,
+            "type": "array"
+          },
+          "limit": {
+            "const": 20,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "other": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "reconciling": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "running": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "skipped": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "succeeded": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "total": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "waiting": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "waiting",
+          "running",
+          "succeeded",
+          "failed",
+          "skipped",
+          "reconciling",
+          "other",
+          "limit",
+          "complete",
+          "items"
+        ],
+        "type": "object"
+      },
+      "TaskDeliveryRun": {
+        "additionalProperties": false,
+        "properties": {
+          "nodes": {
+            "$ref": "#/components/schemas/TaskDeliveryNodeSummary",
+            "readOnly": true
+          },
+          "run_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "state": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "tests": {
+            "$ref": "#/components/schemas/TaskDeliveryNodeSummary",
+            "readOnly": true
+          },
+          "version": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "run_id",
+          "version",
+          "state",
+          "nodes",
+          "tests"
+        ],
+        "type": "object"
+      },
       "TaskDependencyChange": {
         "additionalProperties": false,
         "properties": {
@@ -77829,6 +78212,169 @@
           "required": true
         },
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/tasks/{id}/delivery": {
+      "get": {
+        "description": "Read one currently authorized task and its exact bound run in one snapshot. Counts are execution facts, not independent test or human acceptance eligibility. Team plans and trusted issues cover only current_run, with at most 20 references per collection. No logs, output, commands, credentials, implicit dispatch, review or issue creation.",
+        "operationId": "get_tasks_id_delivery",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskDelivery"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-request-schema-coverage": "exact id and required project_id; current authorization, complete snapshot and trusted operation provenance enforced by server"
       }
     },
     "/tasks/{id}/design-context": {

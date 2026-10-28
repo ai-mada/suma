@@ -14,6 +14,7 @@ const flowProbe=vi.hoisted(()=>({fit:vi.fn(async()=>true)}));
 // actual canvas engine; production rendering is verified separately in-browser.
 vi.mock('@xyflow/react',async()=>{const {useEffect}=await import('react');return {ReactFlow:({children,nodes,onSelectionChange,onInit}:{children:ReactNode;nodes:{id:string;selected?:boolean}[];onSelectionChange:(value:{nodes:{id:string;selected?:boolean}[];edges:unknown[]})=>void;onInit:(instance:unknown)=>void})=>{useEffect(()=>{onInit({fitView:flowProbe.fit});},[onInit]);useEffect(()=>{onSelectionChange({nodes:nodes.filter(node=>node.selected),edges:[]});},[onSelectionChange,nodes]);return <div data-flow-snapshot>{nodes.filter(node=>node.selected).map(node=>node.id).join(',')}{children}</div>;},Background:()=>null,Controls:()=>null,Handle:()=>null,Position:{Left:'left',Right:'right'},MarkerType:{ArrowClosed:'arrowclosed'},applyNodeChanges:(_changes:unknown,nodes:unknown)=>nodes};});
 vi.mock('elkjs/lib/elk.bundled.js',()=>({default:class {async layout(value:unknown){return value;}}}));
+vi.mock('./TeamTaskDispatchDialog',()=>({TeamTaskDispatchDialog:({tasks,open}:{tasks:{id:string;version:number;depends_on:string[]}[];open:boolean})=>open?<pre data-team-dispatch-probe>{JSON.stringify(tasks)}</pre>:null}));
 const session:Session={user:{id:'user-a',name:'A',email:'a@example.test'},organization:{id:'org-a',name:'Org'},projects:[]};
 const snapshot=():TaskDependencyGraph=>({project_id:'project-a',total:3,limit:1000,complete:true,tasks:[{task_id:'a',version:2,title:'Architecture',status:'ready',depends_on:[]},{task_id:'b',version:4,title:'Develop',status:'in_progress',depends_on:['a']},{task_id:'c',version:1,title:'Verify',status:'draft',depends_on:['b']}]});
 let root:Root|undefined,host:HTMLDivElement,writes:{body:any;headers:Headers}[],reads:{path:string;signal?:AbortSignal|null}[];
@@ -62,4 +63,17 @@ it('keeps canvas selection callbacks stable across inspector changes and fits on
  vi.stubGlobal('matchMedia',()=>({matches:false}));transport(async()=>Response.json(snapshot()));await render();expect(flowProbe.fit).toHaveBeenCalledTimes(1);
  await select('dependency_task','c');expect(host.querySelector('[data-flow-snapshot]')!.textContent).toBe('c');await select('dependency_task','a');await select('dependency_task','b');expect(host.querySelector('[data-flow-snapshot]')!.textContent).toBe('b');expect(flowProbe.fit).toHaveBeenCalledTimes(1);
  await click('.task-dependencies-canvas-toolbar button');expect(flowProbe.fit).toHaveBeenCalledTimes(2);expect(writes).toHaveLength(0);
+});
+
+it('keeps a bounded dispatch selection separate from focus and dependencies, and blocks dispatch while editing',async()=>{
+ transport(async()=>Response.json(snapshot()));await render();await select('dependency_task','c');await click('[data-dependencies-mark]');await select('dependency_task','a');await click('[data-dependencies-mark]');await click('[data-dependencies-dispatch]');
+ const input=JSON.parse(host.querySelector('[data-team-dispatch-probe]')!.textContent!);expect(input.map((task:any)=>task.id).sort()).toEqual(['a','c']);expect(input.find((task:any)=>task.id==='c')).toMatchObject({project_id:'project-a',version:1,depends_on:['b']});expect(writes).toHaveLength(0);
+ // Re-mount under another scope so this independent case is not closing a
+ // mocked modal: real closing and original-operation recovery belong to it.
+ const other={...session,user:{...session.user,id:'user-b'}};await render(other);await select('dependency_task','c');await click('[data-dependencies-mark]');await click('[data-dependency-remove=b]');expect(host.querySelector<HTMLButtonElement>('[data-dependencies-dispatch]')!.disabled).toBe(true);
+});
+
+it('limits explicit selection to sixteen without silently selecting predecessor tasks',async()=>{
+ const graph=snapshot();graph.tasks=Array.from({length:18},(_,index)=>({task_id:'task-'+index,version:1,title:'Task '+index,status:'draft',depends_on:[]}));graph.total=18;transport(async()=>Response.json(graph));await render();
+ for(let index=0;index<16;index++)await click(`[data-dependencies-pick="task-${index}"]`);expect(host.querySelector<HTMLInputElement>('[data-dependencies-pick="task-16"]')!.disabled).toBe(true);await click('[data-dependencies-dispatch]');expect(JSON.parse(host.querySelector('[data-team-dispatch-probe]')!.textContent!)).toHaveLength(16);expect(writes).toHaveLength(0);
 });

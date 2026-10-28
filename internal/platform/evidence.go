@@ -3,6 +3,7 @@ package platform
 import (
 	"context"
 	"database/sql"
+	"errors"
 )
 
 // Strong gates call this only after organization/credential authorization and
@@ -52,6 +53,9 @@ func (s *Service) checkTaskEvidenceReadTx(ctx context.Context, tx *sql.Tx, p Pri
 	visiting[id] = true
 	defer delete(visiting, id)
 	task, err := scanRecord(tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT `+recordColumns+` FROM suma_tasks WHERE tenant_id=? AND project_id=? AND id=?`, current)), p.TenantID, project, id))
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
 	if err != nil || task.Status != "accepted" {
 		return conflict("前置任务验收已失效")
 	}
@@ -180,7 +184,11 @@ func (s *Service) checkEvidenceReadTx(ctx context.Context, tx *sql.Tx, tenant, p
 	}
 	seen[runID] = true
 	var state string
-	if err := tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT state FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`, current)), tenant, project, runID).Scan(&state); err != nil || state != "succeeded" {
+	err := tx.QueryRowContext(ctx, s.q(s.executionReadSQL(`SELECT state FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`, current)), tenant, project, runID).Scan(&state)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
+	if err != nil || state != "succeeded" {
 		return conflict("执行证据不再有效")
 	}
 	compensated, err := s.evidenceCompensatedTx(ctx, tx, runID, current)

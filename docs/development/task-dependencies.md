@@ -2,6 +2,8 @@
 
 [English](../en/task-dependencies.md) · [接口与一致性合同](../../contracts/task-dependencies.md) · [参考实现整合记录](../integrations/referenced-conversation-integration.md)
 
+交付阶段可在所选任务展开[交付与质量](task-delivery-chain.md)，或在完整图中勾选任务进入既有团队预览；依赖编辑、真实执行、独立测试和正式验收仍分别处理。
+
 版本：1.0.0；关联任务：T-INTEGRATION-111。任务依赖描述交付先后与前置验收，不会因编辑关系启动执行。任务执行仍使用已有流程、开发工具、独立测试和验收入口。
 
 ## 在同一草稿中查看和调整

@@ -53,5 +53,14 @@
  "task-dependencies.choose":"选择任务",
  "task-dependencies.add":"添加依赖",
  "task-dependencies.remove":"移除前置任务：{{title}}",
- "task-dependencies.open":"打开任务详情"
+ "task-dependencies.open":"打开任务详情",
+ "task-dependencies.dispatch":"团队派发（{{count}}）",
+ "task-dependencies.mark":"加入派发清单",
+ "task-dependencies.unmark":"移出派发清单",
+ "task-dependencies.marked":"已加入派发",
+ "task-dependencies.pick":"选择团队派发任务",
+ "task-dependencies.pick_task":"选择团队派发任务：{{title}}",
+ "task-dependencies.selection_help":"已选择 {{count}} 个任务，最多 16 个。不会自动加入前置任务，派发前会在团队预演中核对依赖。",
+ "task-dependencies.clear_selection":"清空选择",
+ "task-dependencies.dispatch_blocked":"请先保存或放弃依赖修改，并确认当前关系后再派发。"
 }

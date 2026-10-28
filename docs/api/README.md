@@ -1,5 +1,7 @@
 # HTTP、事件与客户端合同
 
+当前任务协作新增[业务依赖图合同](../../contracts/task-dependencies.md)和[交付与质量投影合同](../../contracts/task-delivery-chain.md)：`/task-dependencies` 的完整图／原子 CAS 与 `GET /tasks/{id}/delivery` 的确切当前运行摘要分别建模；后者每类引用最多 20 条，不提供执行或验收授权。[Runner 本地诊断](../../contracts/runner-journal-inspection.md)是本机只读命令，不是服务端巡检接口。当前限定证据见[交付链路报告](../quality/task-delivery-chain-verification.md)。
+
 ## 多语言显示合同（实施中）
 
 客户端通过 `Accept-Language` 协商显示语言，可用 `X-Suma-Language` 显式选择覆盖；首次支持 `zh-CN` / `en-US`，默认简体中文。有效浏览器会话的优先级为显式请求头、账户偏好、当前组织默认、语言协商及产品默认。账户和组织偏好通过独立GET/PATCH持久化，写入必须绑定原视图身份头、明确版本和操作标识；详见[精确偏好合同](../../contracts/locale-preferences.md)。响应 `Content-Language` 表示采用语言；不影响授权、业务版本、签名原文或不可变证据。

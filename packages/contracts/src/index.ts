@@ -3604,6 +3604,77 @@ export interface TaskContextRecord {
   description: string;
   acceptance_criteria: (string)[];
 }
+export interface TaskDelivery {
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  task_status: string;
+  run_basis_state: string;
+  formal_acceptance: boolean;
+  run: TaskDeliveryRun | null;
+  expert_plans: TaskDeliveryExpertPlans;
+  issues: TaskDeliveryIssues;
+}
+export interface TaskDeliveryExpertPlan {
+  plan_id: string;
+  version: number;
+  revision: number;
+  team_id: string;
+  team_name: string;
+  state: string;
+  item_state: string;
+}
+export interface TaskDeliveryExpertPlans {
+  scope: string;
+  total: number;
+  limit: number;
+  complete: boolean;
+  items: (TaskDeliveryExpertPlan)[];
+}
+export interface TaskDeliveryIssue {
+  issue_id: string;
+  title: string;
+  issue_version: number;
+  issue_status: string;
+  source: string;
+  source_review_id: string;
+  requirement_id: string;
+  requirement_version: number;
+}
+export interface TaskDeliveryIssues {
+  scope: string;
+  total: number;
+  limit: number;
+  complete: boolean;
+  items: (TaskDeliveryIssue)[];
+}
+export interface TaskDeliveryNode {
+  id: string;
+  name: string;
+  type: string;
+  state: string;
+  attempt: number;
+}
+export interface TaskDeliveryNodeSummary {
+  total: number;
+  waiting: number;
+  running: number;
+  succeeded: number;
+  failed: number;
+  skipped: number;
+  reconciling: number;
+  other: number;
+  limit: number;
+  complete: boolean;
+  items: (TaskDeliveryNode)[];
+}
+export interface TaskDeliveryRun {
+  run_id: string;
+  version: number;
+  state: string;
+  nodes: TaskDeliveryNodeSummary;
+  tests: TaskDeliveryNodeSummary;
+}
 export interface TaskDependencyChange {
   task_id: string;
   expected_version: number;

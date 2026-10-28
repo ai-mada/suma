@@ -29,6 +29,7 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	worktrees := app.String("worktrees", "", "仓库 .cache 下的尝试目录（默认 .cache/runner/worktrees）", "attempt directory under repository .cache (default .cache/runner/worktrees)")
 	preflight := app.String("merge-preflight", "", "已审核的本地 JSON 请求；只验证证据和提交，不执行合并", "reviewed local JSON request; validate evidence and heads without merging")
 	state := app.String("state", ".cache/runner", "执行器持久状态目录", "durable runner state directory")
+	inspectState := app.Bool("inspect-state", false, "只读查看指定本地执行日志的安全摘要；不读取凭据或启动执行器", "read-only safe summary of the selected local execution journal; no credentials or worker startup")
 	commands := app.String("commands", "", "本地 JSON 命令允许列表", "local JSON command allowlist")
 	modelDeployments := app.String("model-deployments", "", "管理员本地模型部署 JSON 允许列表；凭证只使用环境变量引用", "administrator local model deployment JSON allowlist; credentials use environment references")
 	externalConfig := app.String("external-config", "", "管理员 JSON 配置：外部工作流插件端点和凭证环境变量名", "administrator JSON map of external workflow plugin endpoints and token environment names")
@@ -37,6 +38,15 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	poolConfig := app.String("pool-config", "", "独立资源池机器及各项目执行范围的私有 JSON 配置", "private JSON configuration of an independent pool machine and per-project execution scopes")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	// This branch must precede every credential/configuration read and runtime
+	// OpenJournal call: opening a live journal can itself mutate durable state.
+	if *inspectState {
+		if *base != "http://127.0.0.1:4310" || *project != "" || *id != "" || *workspace != "." || *repository != "" || *baseCommit != "" || *worktrees != "" || *preflight != "" || *commands != "" || *modelDeployments != "" || *externalConfig != "" || *poolConfig != "" || *allow || *describe {
+			fmt.Fprintln(stderr, app.Text("本地执行日志诊断不能与执行、配置、资源池或控制面参数混用", "local journal inspection cannot be combined with execution, configuration, pool or control options"))
+			return 2
+		}
+		return runJournalInspection(app, *state)
 	}
 	// Errors from runner, the OS and JSON decoding retain their original text.
 	fail := func(err error) int { fmt.Fprintln(stderr, err); return 1 }

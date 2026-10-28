@@ -53,5 +53,14 @@
  "task-dependencies.choose":"Choose a task",
  "task-dependencies.add":"Add dependency",
  "task-dependencies.remove":"Remove predecessor: {{title}}",
- "task-dependencies.open":"Open task details"
+ "task-dependencies.open":"Open task details",
+ "task-dependencies.dispatch":"Team dispatch ({{count}})",
+ "task-dependencies.mark":"Add to dispatch selection",
+ "task-dependencies.unmark":"Remove from dispatch selection",
+ "task-dependencies.marked":"Selected for dispatch",
+ "task-dependencies.pick":"Select for team dispatch",
+ "task-dependencies.pick_task":"Select for team dispatch: {{title}}",
+ "task-dependencies.selection_help":"{{count}} of 16 tasks selected. Predecessors are not added automatically; the team preview checks dependencies before dispatch.",
+ "task-dependencies.clear_selection":"Clear selection",
+ "task-dependencies.dispatch_blocked":"Save or discard dependency edits and confirm the current graph before dispatching."
 }

@@ -3,7 +3,7 @@ package localization
 import "testing"
 
 func TestTaskDependenciesCatalogExactPairedSources(t *testing.T) {
-	for _, example := range taskDependenciesCatalog {
+	for _, example := range append(append([]Definition{}, taskDependenciesCatalog...), taskDeliveryCatalog...) {
 		key, found := LookupSource(example.SourceTemplate)
 		if !found || key != example.Key {
 			t.Fatalf("task dependency source lost its stable key: %q => %q", example.SourceTemplate, key)

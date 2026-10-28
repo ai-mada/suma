@@ -4,7 +4,9 @@
 
 当前能力按实现范围汇总。下表中的验证均受对应报告的源码、环境和实际场景限制；不会因本次版本统一继承为新代码全部通过。执行成功、独立测试、人工验收与生产发布是不同事实。
 
-完整台账仍为 **58 项限定实现、33 项待实现，共 91 项**。本阶段补充业务任务依赖编辑，不改变完整平台范围或将局部交付标成平台完成。
+完整台账仍为 **58 项限定实现、33 项待实现，共 91 项**。T-DELIVERY-112 在任务依赖编辑基础上补齐交付下钻、质量退回、可信需求回流及本地诊断，不改变完整平台范围或将局部交付标成平台完成。
+
+新增分享规划已自动取得当前可见正文，64 个编号见[逐域采用与缺口映射](../integrations/shared-roadmap-adoption.md)；原页面末尾不完整。该来源是设计规划，不作为源码或完成证明，不增加本台账的完成数。
 
 ## 当前实现与证据
 
@@ -13,6 +15,8 @@
 | 身份、组织与治理 | 初始化、登录、会话、组织／项目隔离、真实账号、团队、邀请、角色、撤权及当前凭证授权 | [当前权限](../quality/current-authority-verification.md)、[平台验证](../quality/verification.md)；完整自定义角色／菜单、企业 SSO、OAuth／设备治理及跨数据库验收待办 |
 | 项目计划与进度 | 迭代、里程碑、版本化排期、完整项目不可变基线、当前比较、自然周估算分摊与真实业务指标 | [产品与治理](../product/governance.md)、[验证](../quality/verification.md)；计划估算不等于实际工时，人员日历、连续历史、预测和 portfolio 待办 |
 | 业务任务依赖编辑与参考源码整合 | 当前项目完整任务图、图／表共享草稿、最多 100 项原子版本 CAS、全图校验、显式冲突处理及原操作回执恢复；修改撤销旧验收资格并保留执行快照 | [中文操作](../development/task-dependencies.md)／[English](../en/task-dependencies.md)、[合同](../../contracts/task-dependencies.md)、[源码适配清单](../integrations/referenced-conversation-integration.md)、[本阶段报告](../quality/task-dependencies-verification.md)；按实际参考源码重构当前 1.0.0，不是旧 Git 历史 cherry-pick；最多 1000 个任务完整图，实际 API 与界面复验结果以报告为准，分布式／大图性能／生产验收未由本阶段推断 |
+| 任务交付与质量链路 | 依赖图所选任务按需读取确切运行、完整节点／测试计数和每类 20 条正式引用；团队预览／派发、证据、人工验收、退回问题与专用来源映射的需求草稿连通 | [操作](../development/task-delivery-chain.md)／[English](../en/task-delivery-chain.md)、[合同](../../contracts/task-delivery-chain.md)、[限定报告](../quality/task-delivery-chain-verification.md)；本机自有 DSH 协议命令实际提交代码，另一 Runner 对同 SHA 执行 3 项断言，界面退回形成 1 个问题并回流 1 个需求草稿；下游 B 保持未启动并等待正式验收，非厂商智能编码效果、物理多机或生产验收 |
+| Runner 本地执行日志诊断 | `--inspect-state` 有界读取单个 journal，白名单计数及最多 100 条引用，缺失／损坏／不可读／超限分别表达，不创建目录、不读取凭据、不改 ACK 或重跑 | [中文指南](../agents/runner-journal-inspection.md)／[English](../en/runner-journal-inspection.md)、[合同](../../contracts/runner-journal-inspection.md)、[本阶段报告](../quality/task-delivery-chain-verification.md)；仅本地执行日志，非完整设备健康、服务器回执、持久隔离原因或自动恢复能力 |
 | 需求与设计 | 版本化产品／体验／技术设计、可审阅任务提案、明确发布及原子采用、固定执行与验收依据 | [设计采用](../quality/requirement-design-verification.md)、[依据展示](../quality/task-design-context-verification.md)；完整 AI 需求与设计编辑、可运行 UED 原型待办 |
 | 知识、记忆、规范与技能 | 项目资产版本、审阅发布、固定任务上下文、组织共享目录、授权检索、跨项目独立草稿采用、模型辅助提案及发布溯源 | [项目资产](../quality/project-knowledge-verification.md)、[共享技能](../quality/skill-catalog-verification.md)、[模型提炼](../quality/knowledge-intelligence-verification.md)；授权向量索引、外部记忆、可执行插件与完整专家策略待办 |
 | 智能规划与失败分诊 | 固定来源的单次模型规划、人工修订／采用、持久站内风险；真实失败证据形成不可变观察与人工修复需求 | [规划](../quality/intelligent-planning-verification.md)、[分诊](../quality/failure-diagnosis-verification.md)；本地自有协议证据，非厂商效果或长期自主恢复验收 |

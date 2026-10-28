@@ -187,6 +187,9 @@ func generate() (map[string]any, string) {
 	for _, v := range taskDependencyModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range taskDeliveryModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range requirementDesignModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -312,6 +315,7 @@ func generate() (map[string]any, string) {
 	taskDesignViewContracts(add, api)
 	taskHandoffContracts(add, api)
 	taskDependencyContracts(add, api)
+	taskDeliveryContracts(add, api)
 	intelligentPlanningContracts(add, api)
 	usageAccountingContracts(add, api)
 	skillCatalogContracts(add, api)

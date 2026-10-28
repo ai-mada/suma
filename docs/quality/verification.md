@@ -4,6 +4,7 @@
 
 | 当前范围 | 验证与限制 |
 | --- | --- |
+| 任务交付闭环与 Runner 本地诊断 | [限定报告](task-delivery-chain-verification.md)、[精简摘要](task-delivery-chain-summary.json)、[中文指南](../development/task-delivery-chain.md)／[English](../en/task-delivery-chain.md)、[交付合同](../../contracts/task-delivery-chain.md)、[本地诊断合同](../../contracts/runner-journal-inspection.md)：当前运行摘要与正式来源、退回问题／需求回流、单文件只读诊断；本机自有 DSH 协议命令和独立 Runner 同 SHA 测试不代表厂商模型或物理多机验收，最终界面覆盖以专项报告为准 |
 | 参考源码整合与业务任务依赖编辑 | [本阶段报告](task-dependencies-verification.md)、[中文指南](../development/task-dependencies.md)／[English](../en/task-dependencies.md)、[合同](../../contracts/task-dependencies.md)、[来源映射](../integrations/referenced-conversation-integration.md)：真实交付包设计适配、完整图／原子 CAS／冲突和原回执恢复；实际 API 与生产构建界面复验结果分别以专项报告为准，旧包数字不计为当前通过证据 |
 | 项目团队执行入口 | [限定报告](team-execution-verification.md)、[操作指南](../development/team-execution.md)：复用正式分页与原详情，区分验收／排队／阻塞，URL恢复及权限隔离；没有新增物理多机、厂商任务或生产验收结论 |
 | 本地文件来源、草稿与原操作恢复 | [限定报告](workspace-file-context-verification.md)、[操作指南](../development/local-file-editing.md)：读取／保存绑定实际目录身份，显式基线采用，账号组织隔离与原回执；完整IDE和生产验收继续待办 |

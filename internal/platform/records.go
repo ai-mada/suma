@@ -257,6 +257,9 @@ func (s *Service) Create(ctx context.Context, actor Actor, project, kind string,
 	if err != nil {
 		return Record{}, err
 	}
+	if err := rejectReservedRecordOperationKey(str(m, "idempotency_key")); err != nil {
+		return Record{}, err
+	}
 	r, err := s.createCommandRecordTx(ctx, tx, auth, project, kind, m)
 	if err != nil {
 		return r, err
@@ -338,6 +341,9 @@ func (s *Service) Update(ctx context.Context, actor Actor, project, kind, id str
 	}
 	p := auth.currentPrincipal
 	key := str(m, "idempotency_key")
+	if err := rejectReservedRecordOperationKey(key); err != nil {
+		return Record{}, err
+	}
 	if err := rejectProtectedRecordProvenanceInput(m); err != nil {
 		return Record{}, err
 	}

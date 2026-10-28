@@ -1,0 +1,275 @@
+{
+  "stage": "T-DELIVERY-112",
+  "product_version": "1.0.0",
+  "recorded_at": "2026-10-28T07:37:13.897018+00:00",
+  "status": "scoped_verified_full_platform_in_progress",
+  "complete_platform": false,
+  "source_sha256": "03e2dd0116b9e7f7760d80efbb13b012243f10097930ff4a632bfcb82e0c38a0",
+  "source_files": 43,
+  "source_manifest": ".cache/e2e/delivery-112/source-manifest.json",
+  "reference": {
+    "archive_sha256": "a46db2758a5b467522870edcb2ba45bb719725c0766c732c566392d6536dbf79",
+    "bundle_commit": "3f272a3925f2bfa192143753f423ffaa1b3615ea",
+    "adoption": "Current Go1.0.0 reimplementation, not old-service/history import",
+    "new_share_url": "https://chatgpt.com/s/t_6ae19e1f3af481918d11132ccf5119fe",
+    "new_share_content_obtained": true,
+    "new_share_attempts": [
+      "web open: cache miss",
+      "normal browser exact URL and reload: loading page only",
+      "read_thread exact user URL: durable unavailable",
+      "Firecrawl basic direct scrape: HTTP200, current published visible content obtained; original body ends mid-sentence"
+    ],
+    "new_share_requirements_invented": false,
+    "new_share_content_complete": false,
+    "new_share_source_content_sha256": "1135aeaa9519c56d5daa95d6d0ae37fda944e0eeb4ecaae7edc361277086fc30",
+    "new_share_numbered_visible_requirements": 64,
+    "new_share_adoption": "docs/integrations/shared-roadmap-adoption.md"
+  },
+  "implementation": {
+    "entry": "development/tasks layout=dependencies",
+    "dispatch_explicit_selection_limit": 16,
+    "read_reference_limit_each": 20,
+    "runner_journal_bytes_limit": 16777216,
+    "runner_journal_reference_limit": 100,
+    "new_dependencies": 0,
+    "schema_changes": 0,
+    "generated_models": 486,
+    "generated_api_paths": 257
+  },
+  "checks": {
+    "distinct_affected_passed_cases": 43,
+    "go_platform": 20,
+    "go_contract": 1,
+    "go_runner_cli": 6,
+    "go_catalog": 1,
+    "frontend_component": 13,
+    "frontend_model": 2,
+    "skipped_cases": [
+      "TestInspectJournalStateRejectsLinkedAndNonregularInputs: Windows symlink privilege unavailable; no link-success claim"
+    ],
+    "typecheck": true,
+    "paired_catalog_keys": 4825,
+    "own_production_hardcodes": 0,
+    "generated_contract_check": true,
+    "go_receipts": [
+      {
+        "phase": "affected delivery/review regression GREEN",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./cmd/suma-contracts",
+          "-run",
+          "TestTaskDelivery|TestExpertTeamCompletedSourceChange|TestEvidenceReadInfrastructureErrorsAreNotInvalidAcceptance|TestExpertTeamOrchestration|TestWorkspaceMetadataCannotReplaceExplicitTestNode|TestReviewRejectsWorkspaceCandidateNotCoveredByTests|TestReviewRechecksAuthority|TestReviewSuccessReceipt|TestCompensationInvalidatesTransitive",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "command_receipt": ".cache/mcp019-deps/20261028T062400481Z.command.json",
+        "stdout_sha256": "7027a9fa6745fe62a910b7dae8c869ce6c8e9f2e6509196ec8fe6ced02e539b1",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "phase": "Runner/CLI/catalog GREEN with one platform skip",
+        "arguments": [
+          "test",
+          "./internal/runner",
+          "./cmd/suma-runner",
+          "./internal/localization",
+          "-run",
+          "TestInspectJournalState|TestJournalInspectionCLI|TestTaskDependenciesCatalogExactPairedSources",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "command_receipt": ".cache/mcp019-deps/20261028T062618203Z.command.json",
+        "stdout_sha256": "88ffbf479349f0b67df284cf7df80bfad1f64c8930fa5e5ee65d2c07770c23ea",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "phase": "canonical intake and diagnosis GREEN",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestIssueIntake|^TestTaskDelivery|^TestFailureDiagnosis(AdoptionRollbackAndConcurrentSingleIssueDraft|ExistingIssueRequirementOnlyOpensCurrentDraft|ActualDAGRepairAdoptionAndOriginalIntakeReplay)$",
+          "-count=1"
+        ],
+        "exit_code": 0,
+        "command_receipt": ".cache/mcp019-deps/20261028T070247758Z.command.json",
+        "stdout_sha256": "2e173a3f3f89673cdef5363bdd9db320b57dbff5830434acae939f94a896e95b",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "phase": "final exact diagnostic catalog GREEN",
+        "arguments": [
+          "test",
+          "./internal/localization",
+          "-run",
+          "^TestTaskDependenciesCatalogExactPairedSources$",
+          "-count=1"
+        ],
+        "exit_code": 0,
+        "command_receipt": ".cache/mcp019-deps/20261028T073313594Z.command.json",
+        "stdout_sha256": "90230b57d6c4d43f9215362ccd2e7fcce258b22c40947e52f66f10d0a215ce50",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "phase": "current Runner build",
+        "arguments": [
+          "build",
+          "-o",
+          ".cache/e2e/delivery-112/suma-runner.exe",
+          "./cmd/suma-runner"
+        ],
+        "exit_code": 0,
+        "command_receipt": ".cache/mcp019-deps/20261028T065716485Z.command.json",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "phase": "current Control build",
+        "arguments": [
+          "build",
+          "-o",
+          ".cache/e2e/delivery-112/suma-control.exe",
+          "./cmd/suma-control"
+        ],
+        "exit_code": 0,
+        "command_receipt": ".cache/mcp019-deps/20261028T070520563Z.command.json",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "phase": "generated contract check",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "command_receipt": ".cache/mcp019-deps/20261028T070638616Z.command.json",
+        "stdout_sha256": "a3a319a616847d970d600e5ec63feb4e44e206294baa079422b4d7a71ddba51a",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "frontend_evidence": ".cache/e2e/delivery-112/ui-targeted-summary.json plus observed root attempt-zero RED/GREEN",
+    "test_count_rule": "Unique top-level cases only; subtests, reruns and skipped cases excluded. No all-platform suite claim.",
+    "source_after_checks": "Nonsemantic line-ending and one trailing-whitespace correction only; final exact diagnostic catalog rechecked after its last source addition.",
+    "documentation_markdown_files": 291,
+    "documentation_api_references": 2356,
+    "documentation_links_resolve": true,
+    "diff_whitespace_errors": 0
+  },
+  "actual_execution": {
+    "stage": "T-DELIVERY-112",
+    "observed_at": "2026-10-28T07:35:01.531187+00:00",
+    "basis": "Read-only SQLite/WAL audit after environment reload ended owned processes; final HTTP check ECONNREFUSED, not retried by rerunning development",
+    "project_id": "14fe8305b49f24cf892b2e1e69c89725",
+    "task_id": "951ef68dfb3b073842d8ba90ac8f8318",
+    "task_version": 3,
+    "task_status": "blocked",
+    "run_id": "16a0bf34725b5b00d7ed25809041db63",
+    "run_state": "succeeded",
+    "test_node": "test",
+    "test_node_state": "succeeded",
+    "test_attempt": 1,
+    "actual_test_assertions": 3,
+    "candidate_head": "a102a0fa60349db161b3e7aa1ad5724cfb34ae0d",
+    "review_id": "119ec48e6c523c6d0195ed9c44fa216e",
+    "review_decision": "rejected",
+    "issue_id": "7c8ab8054778ae2d9a782471bcdaa056",
+    "requirement_id": "03942ddd7b82f80b47a466b21e55fe58",
+    "requirement_status": "draft",
+    "requirement_version": 1,
+    "counts": {
+      "dag_runs": 1,
+      "suma_reviews": 1,
+      "suma_issues": 1,
+      "suma_requirements": 1
+    },
+    "downstream_task_id": "991bbc4aab05b83584c3f9721ef68f6a",
+    "downstream_unstarted": true,
+    "model_calls": 0,
+    "vendor_calls": 0,
+    "physical_hosts": 1,
+    "owned_control_runner_pids_absent": true,
+    "final_browser_screenshot_available": false,
+    "browser_interrupted_after_test_attempt_navigation": true
+  },
+  "actual_ui": {
+    "observed_before_environment_reload": [
+      "Chinese selected-task delivery summary",
+      "existing original team plan links and separate acceptance progress",
+      "human rejection with original reason",
+      "one canonical quality issue",
+      "explicit issue intake and original draft requirement link",
+      "B-only dispatch preview blocks awaiting predecessor formal acceptance",
+      "same-task delivery refresh shows canonical requirement v1"
+    ],
+    "last_navigation": "Test node attempt1 opened; loaded detail and final screenshot interrupted by tool/runtime reload",
+    "new_panel_english_browser_verified": false,
+    "english_controls_checked": "Paired catalogs and focused component checks; actual Runner inspection in both locales",
+    "screenshots_available": false,
+    "no_user_preview_or_database_changes": true
+  },
+  "inspection_actual": {
+    "before_sha256": "094cc96afc7168be31146df86b6d6102b523bc50d92708ccc3879ed5ea1ec64c",
+    "after_sha256": "094cc96afc7168be31146df86b6d6102b523bc50d92708ccc3879ed5ea1ec64c",
+    "file_count": 1,
+    "results": [
+      {
+        "language": "zh-CN",
+        "exit_code": 0,
+        "counts": {
+          "entries": 1,
+          "pending_results": 1,
+          "acknowledged_results": 0,
+          "unknown_results": 1,
+          "pending_progress": 1,
+          "unresolved_inbox": 0,
+          "pending_artifacts": 0,
+          "pending_candidates": 0,
+          "truncated_progress": 0
+        },
+        "stderr": "已读取本地执行日志快照；未检查服务器确认或执行器健康"
+      },
+      {
+        "language": "en-US",
+        "exit_code": 0,
+        "counts": {
+          "entries": 1,
+          "pending_results": 1,
+          "acknowledged_results": 0,
+          "unknown_results": 1,
+          "pending_progress": 1,
+          "unresolved_inbox": 0,
+          "pending_artifacts": 0,
+          "pending_candidates": 0,
+          "truncated_progress": 0
+        },
+        "stderr": "Local execution journal snapshot read; server acknowledgements and runner health were not checked"
+      }
+    ]
+  },
+  "builds": {
+    "web": 1,
+    "web_seconds": 42.69,
+    "web_output": ".cache/e2e/delivery-112/web",
+    "control": 1,
+    "runner": 1,
+    "known_warning": "Existing IDE bundle size warning; no chunk optimization claim"
+  },
+  "remaining": [
+    "Full P0-P7 and requirements1..25: 58 limited implemented,33 pending,91 total",
+    "Visible shared content mapped; original page ends mid-sentence after KM-010, so no later sections inferred",
+    "Final test-detail loaded view, English browser, mobile/theme/accessibility matrix not completed in this stage",
+    "Physical multi-host, vendor-model, OceanBase/PostgreSQL cluster, long-duration capacity, production acceptance not tested",
+    "Inspection covers one local journal only; server ACK, durable quarantine reasons, drop/retry/recovery UI not implemented by this command"
+  ],
+  "preservation": {
+    "owned_control_and_runner_pids_absent": true,
+    "shutdown_reason": "Environment reload; no normal closed receipt survived",
+    "temporary_browser_tab_close_not_confirmed": true,
+    "raw_credentials_logs_databases_archives_binaries_screenshots_kept_out_of_git": true
+  }
+}

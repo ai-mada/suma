@@ -1,6 +1,6 @@
 # 《完善速码平台架构》设计与实现整合记录
 
-状态：当前 1.0.0 的 T-INTEGRATION-111 整合记录。负责域：主集成、任务域、交互与合同文档。参考对话：《完善速码平台架构》（`chatgpt-conversation://6ae163e6-0700-83e9-bf86-623690b54884`）。
+状态：当前 1.0.0 的 T-INTEGRATION-111 来源整合与 T-DELIVERY-112 有限增强记录。负责域：主集成、任务域、交互与合同文档。参考对话：《完善速码平台架构》（`chatgpt-conversation://6ae163e6-0700-83e9-bf86-623690b54884`）。
 
 ## 来源与获取状态
 
@@ -59,11 +59,19 @@
 | C204 原子依赖。`services.py:89` Kahn 全图校验，`:111` 租户锁/项目授权后批量修改；`schemas.py:61` 使用 `expected_depends_on`，最多 1000 个改动、每任务 100 条依赖 | 采用全图、原子、草稿与冲突原则；重构为原任务版本 CAS、最多 100 个真实改动、重复显式拒绝、服务端无新增前驱数量限制；沿当前任务域使验收资格失效，不照搬旧状态冻结或旧 HTTP 422 接口 | `internal/platform/task_dependencies.go`；[当前合同](../../contracts/task-dependencies.md) |
 | C204 交互。`Dag.tsx`/`dependencies.ts` 提供图连接、表单替代、集合比较、局部草稿、离开保护；旧保存把响应任务直接合入缓存后清草稿 | 共享图/表草稿与等价入口；当前显式处理原操作未知结果，原回执不可变，独立 GET 后再核验；冲突保留草稿，用户确认才基于最新图重建脏任务 | 当前任务依赖组件与中英操作文档；本阶段 UI 证据单列 |
 | C205 领取范围。`planning.py:142` 的 `claim_filters` 仅允许项目及能力缩小授权；`worker.py` 在 `worker/claim` 发送本地项目和实际能力 | 复用当前 Runner 项目凭证、当前工具清单、执行池槽位和路由合同；保持机器配置不能扩权 | `internal/runner/worker.go`、`pool_worker.go`、`claim_checkpoint.go` |
-| C206 故障隔离。`transport.py` 的 `quarantine` 保留整 run 原事件和首拒绝原因；`Reporter.flush` 对 401/403 停止、永久拒绝隔离，`worker.py` 的 replay 不重启子进程 | 采用原事件、拒绝可诊断及执行隔离原则；当前私有 Runner 原 journal 拒绝后阻止继续领取，资源池按槽位隔离，不能宣称二者都具备旧包整 run 隔离界面 | `internal/runner/journal.go`、`worker.go`、`pool_worker.go`；后续改善检查入口需独立需求与证据 |
+| C206 故障隔离。`transport.py` 的 `quarantine` 保留整 run 原事件和首拒绝原因；`Reporter.flush` 对 401/403 停止、永久拒绝隔离，`worker.py` 的 replay 不重启子进程 | T-DELIVERY-112 有限实现[本地只读检查](../../contracts/runner-journal-inspection.md)：单 journal 白名单计数与最多 100 项，不读取凭据、不改 ACK／删除／重跑。私有 Runner 未确认回写继续阻止领取；Pool 普通回写错误隔离对应槽位，撤权等致命错误停止整机。未移植持久 quarantine 原因或宣称整 run 隔离界面完成 | `internal/runner/journal_inspection.go`、`cmd/suma-runner/journal_inspection.go`；[指南](../agents/runner-journal-inspection.md)、[本阶段报告](../quality/task-delivery-chain-verification.md) |
 | C207 无副作用预检。`preflight.py` 验证本地执行开关、凭证存在、Git/base_ref、状态目录、可执行入口及测试策略，明确模型认证未知 | 复用当前真实版本/help 观测、入口/配置哈希及已授权工作树校验；预检不调用付费模型，不能把可执行文件存在当作完整接通 | [工具运行时](../agents/tool-execution-runtime.md)、`internal/runner/tool_inventory.go`、`workspace.go` |
 | C208 Alembic 升级与旧数据保全 | 不移植旧数据库栈、0001/0002 历史链或兼容入口；遵从当前 1.0.0 初始化。存储备份/迁移能力继续由当前存储域规划与真实数据库验收负责 | `Service.Initialize` 与当前存储合同；不引入 Alembic 依赖 |
 
 来源 `services.py:449` 的验收核对 commit、artifact 与成功测试，`:500` 的问题提升按 `promoted_requirement_id` 幂等生成需求草稿。当前复用更严格的固定版本/独立测试/正式验收、失败诊断和问题 intake，不削弱为“工具退出成功即可验收”。源码审查同时确认来源 `services.py:241` 的过期租约恢复可以直接创建新 attempt；当前明确不采用这一路径，未知外部副作用继续先核对。
+
+T-DELIVERY-112 将依赖图中的任务选择接入既有团队预览，并增加[任务交付与质量投影](../../contracts/task-delivery-chain.md)：只读当前任务的确切运行、测试节点、正式验收、团队计划和可信问题／需求映射，不把编辑元数据当作原始来源。本机自有 DSH 协议命令提交代码，独立 Runner 对精确同 SHA 运行 3 项断言后，通过界面人工退回、形成 1 个问题并回流 1 个需求草稿；后续任务仍等待正式验收。该结果不是旧源码 Git 历史 cherry-pick，也不是厂商模型效果或生产全链路验收。
+
+## 新分享来源的获取边界
+
+用户另提供[新的分享链接](https://chatgpt.com/s/t_6ae19e1f3af481918d11132ccf5119fe)。最初 Web、独立 Chrome 标签及按确切链接读取会话未取得正文：Chrome 仅显示加载页，会话读取返回 `durable unavailable`。随后自动使用 Firecrawl 普通 basic 代理访问该明确链接取得 HTTP 200，已读取当前可见规划《速码 suma：下一阶段需求深化与智能化增强开发规划》。原始失败观测保留为历史，不再将该来源标为正文未获取。
+
+当前正文保存在忽略目录 `.cache/e2e/delivery-112/shared-reference-source/share-body.md`，13033 字节，SHA-256 `1135aeaa9519c56d5daa95d6d0ae37fda944e0eeb4ecaae7edc361277086fc30`。可见 64 个编号已逐项映射至[当前模块、采用决定与验收缺口](shared-roadmap-adoption.md)。页面在 KM-010 后的未完句及 Continue generating 处结束，不能宣称原规划全部章节完整获取。分享是规划，不是源码或完成证据；未上传源码、创建新分享、修改用户标签页或据此自动执行新任务。
 
 ## 不直接移植的设计
 

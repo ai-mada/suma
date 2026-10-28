@@ -83,7 +83,7 @@ func (s *Service) CommandFailureDiagnosis(ctx context.Context, engine *dag.Engin
 		for i, text := range draft.AcceptanceCriteria {
 			criteria[i] = text
 		}
-		requirement, e := s.createCommandRecordTx(ctx, auth.tx, auth, project, "requirements", map[string]any{"title": draft.Title, "description": draft.Description, "priority": draft.Priority, "acceptance_criteria": criteria, "status": "draft", "idempotency_key": "issue-intake-" + issue.ID, "data": map[string]any{"source_issue_id": issue.ID, "source": issue.Data, "failure_diagnosis_id": id}})
+		requirement, e := s.saveSharedIssueRequirementTx(ctx, auth, project, issue.ID, map[string]any{"title": draft.Title, "description": draft.Description, "priority": draft.Priority, "acceptance_criteria": criteria, "status": "draft", "data": map[string]any{"source_issue_id": issue.ID, "source": issue.Data, "failure_diagnosis_id": id}})
 		if e != nil {
 			return out, e
 		}

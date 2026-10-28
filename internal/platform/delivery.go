@@ -237,10 +237,10 @@ func (s *Service) Review(ctx context.Context, actor Actor, project, id string, m
 		return Record{}, err
 	}
 	p = auth.currentPrincipal
-	if decision == "accepted" {
-		if err = dag.GuardProjectTx(ctx, tx, s.Dialect, p.TenantID, project); err != nil {
-			return Record{}, err
-		}
+	// Rejection also invalidates downstream acceptance and writes its quality
+	// issue, so both decisions join the same project execution coordination.
+	if err = dag.GuardProjectTx(ctx, tx, s.Dialect, p.TenantID, project); err != nil {
+		return Record{}, err
 	}
 	hash, replay, err := s.commandReceipt(ctx, auth, key, request)
 	if err != nil {
@@ -307,7 +307,8 @@ func (s *Service) Review(ctx context.Context, actor Actor, project, id string, m
 			return r, conflict("需求已变更，旧执行不能通过验收")
 		}
 	}
-	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_reviews(id,tenant_id,project_id,task_id,task_version,run_id,reviewer_id,decision,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)`), newID(), p.TenantID, project, id, r.Version, runID, p.ID, decision, reason, now()); err != nil {
+	reviewID := newID()
+	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_reviews(id,tenant_id,project_id,task_id,task_version,run_id,reviewer_id,decision,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)`), reviewID, p.TenantID, project, id, r.Version, runID, p.ID, decision, reason, now()); err != nil {
 		return r, err
 	}
 	old := r.Version
@@ -316,6 +317,8 @@ func (s *Service) Review(ctx context.Context, actor Actor, project, id string, m
 	if decision == "accepted" {
 		r.Status = "accepted"
 		r.Data["verified_run_id"] = runID
+	} else {
+		delete(r.Data, "verified_run_id")
 	}
 	r.UpdatedAt = now()
 	result, err := tx.ExecContext(ctx, s.q(`UPDATE suma_tasks SET status=?,version=?,updated_at=?,data=? WHERE tenant_id=? AND project_id=? AND id=? AND version=?`), r.Status, r.Version, r.UpdatedAt, stringify(r.Data), p.TenantID, project, id, old)
@@ -325,6 +328,14 @@ func (s *Service) Review(ctx context.Context, actor Actor, project, id string, m
 	n, _ := result.RowsAffected()
 	if n != 1 {
 		return r, conflict("验收保存冲突")
+	}
+	if decision == "rejected" {
+		if err = s.createRejectedReviewIssueTx(ctx, auth, project, reviewID, id, runID, reason); err != nil {
+			return r, err
+		}
+		if err = s.InvalidateDependentsTx(ctx, tx, auth, project, []string{id}, false); err != nil {
+			return r, err
+		}
 	}
 	if err = s.ReopenPlanningTx(ctx, tx, auth, project); err != nil {
 		return r, err
@@ -412,7 +423,7 @@ func (s *Service) IssueToRequirement(ctx context.Context, actor Actor, project, 
 	if title == "" {
 		title = issue.Title
 	}
-	result, err := s.createCommandRecordTx(ctx, tx, auth, project, "requirements", map[string]any{"title": title, "description": issue.Description, "status": "draft", "priority": issue.Priority, "idempotency_key": "issue-intake-" + id, "data": map[string]any{"source_issue_id": id, "source": issue.Data}})
+	result, err := s.saveSharedIssueRequirementTx(ctx, auth, project, id, map[string]any{"title": title, "description": issue.Description, "status": "draft", "priority": issue.Priority, "data": map[string]any{"source_issue_id": id, "source": issue.Data}})
 	if err != nil {
 		return result, err
 	}

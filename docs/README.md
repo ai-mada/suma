@@ -11,7 +11,10 @@
 | [本地文件编辑](development/local-file-editing.md) | 工作区来源、保留草稿、冲突处理与原保存恢复；[English](en/local-file-editing.md) |
 | [团队执行](development/team-execution.md) | 无需先选任务即可跟进项目团队计划、阻塞与正式验收；[English](en/team-execution.md) |
 | [任务依赖编辑](development/task-dependencies.md) | 完整业务任务图、图／表共享草稿、原子保存、冲突与原操作恢复；[English](en/task-dependencies.md)、[合同](../contracts/task-dependencies.md)、[当前专项报告](quality/task-dependencies-verification.md) |
+| [任务交付与质量](development/task-delivery-chain.md) | 从依赖图进入团队预览、确切运行／测试、正式验收及问题回流；[English](en/task-delivery-chain.md)、[合同](../contracts/task-delivery-chain.md)、[本阶段限定报告](quality/task-delivery-chain-verification.md) |
+| [Runner 本地执行日志诊断](agents/runner-journal-inspection.md) | 不改状态、不读取凭据的有界单文件摘要；[English](en/runner-journal-inspection.md)、[合同](../contracts/runner-journal-inspection.md)；不代表服务器确认或执行器健康 |
 | [参考对话源码整合](integrations/referenced-conversation-integration.md) | 《完善速码平台架构》真实交付包、来源文件摘要、C201～C208 适配与未采用设计；按当前 1.0.0 重构，不是 Git 历史 cherry-pick |
+| [新增分享规划采用](integrations/shared-roadmap-adoption.md) | 实际可见的 64 个 REQ／TEAM／INT／SCH／QA／KM 编号映射、采用决定与剩余验收；页面末尾不完整，规划不作为完成证据 |
 
 ## 产品、范围与体验
 

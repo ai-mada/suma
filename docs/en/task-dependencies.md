@@ -2,6 +2,8 @@
 
 [中文](../development/task-dependencies.md) · [API and consistency contract](../../contracts/task-dependencies.md) · [Reference integration record](../integrations/referenced-conversation-integration.md)
 
+Open [Delivery and quality](task-delivery-chain.md) for a selected task, or mark tasks in a complete graph to enter the existing team preview. Dependency edits, actual execution, independent tests and formal acceptance remain separate actions.
+
 Version: 1.0.0. Delivery task: T-INTEGRATION-111. Business dependencies describe delivery order and predecessor acceptance. Editing them does not start execution; use the existing workflow, development tool, independent test and review actions for delivery.
 
 ## View and edit one draft

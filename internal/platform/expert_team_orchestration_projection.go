@@ -133,11 +133,16 @@ func (s *Service) expertTeamProjectFactsTx(ctx context.Context, tx *sql.Tx, tena
 			case reconciling > 0:
 				item.State = "blocked"
 				item.Blockers = append(item.Blockers, expertRunBlocked)
-			case accepted:
-				item.State = "accepted"
-			case task.Status == "accepted" && task.RunID != item.RunID:
+			case task.RunID != item.RunID:
 				item.State = "blocked"
 				item.Blockers = append(item.Blockers, expertWrongRun)
+			case taskBasis(task) != item.TaskBasisSHA256 || task.Data["run_task_basis"] != taskBasis(task):
+				// Completion belongs to the fixed execution source. A changed task
+				// cannot be advertised as ready for review of that older source.
+				item.State = "blocked"
+				item.Blockers = append(item.Blockers, expertSource)
+			case accepted:
+				item.State = "accepted"
 			case task.Status == "accepted":
 				item.State = "blocked"
 				item.Blockers = append(item.Blockers, expertRunBlocked)
