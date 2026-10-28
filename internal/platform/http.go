@@ -857,6 +857,30 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 		out, err := s.Service.ReportToolInventory(r.Context(), actor, project, request)
 		respond(w, 200, out, err)
 	case "runner/progress":
+		if _, host := m["host_operation"]; host {
+			request, err := decodeHostOperationProgressEnvelope(m)
+			if err != nil {
+				writeError(w, err)
+				return
+			}
+			if request.ProjectID != project {
+				writeError(w, forbidden())
+				return
+			}
+			authority := s.Service.engineAuthority(r.Context(), actor, commandTarget{tenantID: p.TenantID, projectID: project, resourceID: request.Assignment.WorkerID}, purposeRunnerWrite)
+			defer authority.close()
+			err = s.Engine.HostOperationProgressWithAuthority(authority.ctx, p.TenantID, project, request.Assignment, request.OperationID, request.HostOperation, func(tx *sql.Tx) error {
+				if err := authority.beforeRunner(tx, request.Assignment.WorkerID); err != nil {
+					return err
+				}
+				if err := s.Service.projectRunnerExecutionAuthorityTx(authority.ctx, tx, authority.proof, request.Assignment.WorkerID, request.Assignment.RunID); err != nil {
+					return err
+				}
+				return s.Service.validateHostOperationProgressTx(authority.ctx, tx, authority.proof, request.Assignment, request.HostOperation)
+			})
+			respond(w, 200, map[string]bool{"acknowledged": err == nil}, err)
+			return
+		}
 		var assignment dag.Assignment
 		if e := json.Unmarshal([]byte(stringify(m["assignment"])), &assignment); e != nil {
 			writeError(w, invalid("执行进度身份无效"))
@@ -958,6 +982,11 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			}
 			return s.Service.toolClaimEligibleTx(authority.ctx, tx, authority.proof, claim.WorkerID, run, node)
 		})
+		if e == nil && a != nil {
+			// The assignment's original authenticated scope is needed for host
+			// operation identities, including private Runner journal recovery.
+			a.TenantID, a.ProjectID = p.TenantID, project
+		}
 		if e == nil && a != nil && a.DispatchState == "active" {
 			a.ReleaseExecution, e = s.Service.ReleaseExecutionForAssignment(r.Context(), actor, project, *a)
 			if e == nil {

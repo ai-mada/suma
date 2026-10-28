@@ -12,6 +12,8 @@ T-MODEL-118收敛原生编码与 Octop 的共同模型选择、Go HTTP／SSE 网
 
 T-QUALITY-119继续原P5范围：问题的受保护修复周期、原失败用例回归、固定产码候选与不同Worker独立测试、当前正式Review后关单，以及保留旧证据的重开。复用原Go DAG与`command/text-v1`固定档案，不增加派发或审批权威。简洁中英文问题面板及实际检查范围见[当前报告](../quality/issue-repair-verification.md)和[摘要](../quality/issue-repair-summary.json)，不代表完整Issue／Bug全生命周期或生产验收完成。
 
+T-WORKSPACE-120继续原P2／P4与需求13、23：Go宿主工作区调用、原效果回放、拒绝、固定检查及父封存，经现有私有／Pool事件与确切attempt历史展示；本地采集、平台确认和当前页分别表达，默认收起、中英文完整。当前实现与实际范围见[报告](../quality/workspace-operations-verification.md)、[摘要](../quality/workspace-operations-summary.json)和[架构](../architecture/workspace-operations.md)。该阶段不改变58／34／92台账。
+
 四份分享规划均已取得当前可见正文；新增实施蓝图与深度设计的可见范围、截断及采用见同一映射。第一份64个编号、第二份需求26及S01–S12见[逐域采用与缺口映射](../integrations/shared-roadmap-adoption.md)。两份末尾均不完整，未见内容保持未知。它们是设计来源，不作为源码或完成证明；当前草稿计划仅推进需求26的一部分，通用配置与全场景多端旅程仍待实现。
 
 ## 当前实现与证据

@@ -131,7 +131,7 @@ func TestNativeExecutionLimitsReachActualStdin(t *testing.T) {
 			steps, tokens = mc.MaxSteps, int(mc.MaxOutputTokens)
 		}
 		binding := nativeLimitModelBinding(t, cfg, steps, tokens)
-		a := Assignment{RunID: fmt.Sprintf("limits-%t", explicit), NodeID: "code", WorkerID: "worker", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"native"}, Config: map[string]any{"goal": "Verify only stdin", "tool_profile_sha256": cfg.ToolInventory[0].Profile.ProfileSHA256, "model_execution": modelBindingValue(t, binding)}}
+		a := Assignment{TenantID: "tenant", ProjectID: "project", RunID: fmt.Sprintf("limits-%t", explicit), NodeID: "code", WorkerID: "worker", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"native"}, Config: map[string]any{"goal": "Verify only stdin", "tool_profile_sha256": cfg.ToolInventory[0].Profile.ProfileSHA256, "model_execution": modelBindingValue(t, binding)}}
 		if explicit {
 			a.Config["max_steps"], a.Config["max_output_tokens"] = json.Number(fmt.Sprint(steps)), float64(tokens)
 		}

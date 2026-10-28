@@ -2,7 +2,7 @@ package localization
 
 // 键表示稳定的显示语义。相同 HTTP code 可以对应多个具体消息；翻译不
 // 改变机器状态、代码、用户内容或任何持久化业务字段。
-var catalog = combineCatalogs(commonCatalog, poolCatalog, preferencesCatalog, workspaceCatalog, workspaceFileContextCatalog, controlCatalog, executionCatalog, releaseCatalog, validationCatalog, dagCatalog, nativeCatalog, toolDiagnosticCatalog, attemptHistoryCatalog, displayCatalog, authorityCatalog, knowledgeCatalog, requirementDesignCatalog, candidateTransferCatalog, applicationToolCatalog, applicationQualityCatalog, nativeDevelopmentCatalog, teamCLICatalog, taskHandoffCatalog, taskDependenciesCatalog, taskDeliveryCatalog, requirementTraceabilityCatalog, intelligentOperationsCatalog, testPlanCatalog, intelligentPlanningCatalog, usageAccountingCatalog, skillCatalog, knowledgeIntelligenceCatalog, expertTeamCatalog, repositoryIntegrationCatalog, failureDiagnosisCatalog, candidateCompositionCatalog, taskDispatchOptionsCatalog, workspaceGitCatalog, workspaceTreeCatalog, desktopWorkspaceCatalog, modelExecutionCatalog, workspaceObservationCatalog, workspaceWriteCatalog, codexExecutionCatalog, openCodeExecutionCatalog, octopExecutionCatalog, issueRepairCatalog)
+var catalog = combineCatalogs(commonCatalog, poolCatalog, preferencesCatalog, workspaceCatalog, workspaceFileContextCatalog, controlCatalog, executionCatalog, releaseCatalog, validationCatalog, dagCatalog, nativeCatalog, toolDiagnosticCatalog, attemptHistoryCatalog, displayCatalog, authorityCatalog, knowledgeCatalog, requirementDesignCatalog, candidateTransferCatalog, applicationToolCatalog, applicationQualityCatalog, nativeDevelopmentCatalog, teamCLICatalog, taskHandoffCatalog, taskDependenciesCatalog, taskDeliveryCatalog, requirementTraceabilityCatalog, intelligentOperationsCatalog, testPlanCatalog, intelligentPlanningCatalog, usageAccountingCatalog, skillCatalog, knowledgeIntelligenceCatalog, expertTeamCatalog, repositoryIntegrationCatalog, failureDiagnosisCatalog, candidateCompositionCatalog, taskDispatchOptionsCatalog, workspaceGitCatalog, workspaceTreeCatalog, desktopWorkspaceCatalog, modelExecutionCatalog, workspaceObservationCatalog, workspaceWriteCatalog, codexExecutionCatalog, openCodeExecutionCatalog, octopExecutionCatalog, issueRepairCatalog, workspaceOperationCatalog)
 
 // Build a separate immutable catalog so adding a domain cannot reuse and mutate
 // another domain's backing array. Lookup and formatting remain request-scoped.
@@ -75,6 +75,9 @@ var sourceAliases = func() map[string]string {
 		out[d.SourceTemplate] = d.Key
 	}
 	for _, d := range issueRepairCatalog {
+		out[d.SourceTemplate] = d.Key
+	}
+	for _, d := range workspaceOperationCatalog {
 		out[d.SourceTemplate] = d.Key
 	}
 	for _, d := range modelExecutionCatalog {

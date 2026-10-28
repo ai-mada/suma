@@ -32,6 +32,9 @@ func decodeRunnerProgressEnvelope(r *http.Request) (map[string]any, error) {
 	if event, present := fields["tool_event"]; present {
 		m["tool_event"] = event
 	}
+	if err = preserveHostOperationJSON(raw, m); err != nil {
+		return nil, invalid("Invalid Go workspace operation progress")
+	}
 	return m, nil
 }
 

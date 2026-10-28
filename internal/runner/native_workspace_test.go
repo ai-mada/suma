@@ -18,6 +18,10 @@ import (
 )
 
 func nativeFixture(t *testing.T, checks []string, callback nativeWorkspaceCheck) (*nativeWorkspace, *attemptWorkspace, CommandSpec) {
+	return nativeFixtureAssignment(t, Assignment{TenantID: "tenant", ProjectID: "project", RunID: "run", NodeID: "node", Attempt: 1, Fence: 2, WorkerID: "worker", Type: "agent"}, checks, callback)
+}
+
+func nativeFixtureAssignment(t *testing.T, a Assignment, checks []string, callback nativeWorkspaceCheck) (*nativeWorkspace, *attemptWorkspace, CommandSpec) {
 	t.Helper()
 	dir := t.TempDir()
 	src := filepath.Join(dir, "src")
@@ -27,7 +31,6 @@ func nativeFixture(t *testing.T, checks []string, callback nativeWorkspaceCheck)
 	if err := os.WriteFile(filepath.Join(src, "file.txt"), []byte("base\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	a := Assignment{TenantID: "tenant", ProjectID: "project", RunID: "run", NodeID: "node", Attempt: 1, Fence: 2, WorkerID: "worker", Type: "agent"}
 	w := &attemptWorkspace{AttemptKey: attemptKey(a), Assignment: a, Directory: dir, Source: src, State: "prepared"}
 	var spec CommandSpec
 	raw, _ := json.Marshal(map[string]any{"native_workspace": NativeWorkspacePolicy{Checks: checks}})

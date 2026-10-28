@@ -1,0 +1,386 @@
+{
+  "stage": "T-WORKSPACE-120",
+  "product_version": "1.0.0",
+  "recorded_at": "2026-10-28T18:50:00.857672+00:00",
+  "status": "scoped_local_workspace_operation_delivery",
+  "source_sha256": "d70691119b7e1d473822de140807f1de50e9130c372a3d569d141389d05b185f",
+  "source_files": 58,
+  "full_platform_complete": false,
+  "scope_ledger": {
+    "requirements": "1–26",
+    "phases": "P0–P7",
+    "limited_implemented": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "architecture": {
+    "single_go_dispatcher": true,
+    "host_and_sdk_closed_envelopes_separate": true,
+    "existing_progress_sse_history_routes_reused": true,
+    "new_api_paths": 0,
+    "max_invocations_per_attempt": 2048,
+    "max_host_records_per_attempt": 4096,
+    "local_capture_not_remote_ack": true,
+    "original_effect_receipt_preserved": true,
+    "known_old_attempt_metadata_only": true,
+    "restart_never_reexecutes_effect": true,
+    "private_and_pool_current_authority": true,
+    "host_drains_before_stale_sdk": true,
+    "remote_write_host_trace": true,
+    "business_test_approval_unchanged": true,
+    "data_contract": "suma-initial-quality-v1",
+    "migration": false
+  },
+  "verification": {
+    "distinct_go_top_level_passed": 15,
+    "distinct_web_behaviors_passed": 5,
+    "unresolved_test_failures": 0,
+    "full_suites": 0,
+    "typecheck": true,
+    "generated_contract_check": true,
+    "generated_schemas": 545,
+    "api_paths": 274,
+    "catalog_keys": 5440,
+    "production_source_hardcodes": 0,
+    "version_check": true
+  },
+  "actual_host_tools": {
+    "official_mcp_go_sdk": true,
+    "actions_observed": [
+      "list",
+      "read",
+      "write",
+      "edit",
+      "remove",
+      "check"
+    ],
+    "invocations": 10,
+    "phase_records": 20,
+    "actual_owned_node_check_processes": 1,
+    "check_exit_code": 1,
+    "effect_replays_not_reexecuted": true,
+    "unsafe_path_and_cas_rejections": true,
+    "source_and_output_not_projected": true,
+    "merge_recovery_existing_focused_test_passed": true,
+    "actual_parent_git_seal_passed": true
+  },
+  "actual_http_runtime": {
+    "actual_native_process": true,
+    "events": [
+      {
+        "protocol": "suma-workspace-operation-v1",
+        "source": "go_workspace_host",
+        "schema_version": 1,
+        "event_id": "68ad16aeb55e675cb8ad6969239893cf909ca89935b9285f8d51074ab5edec64",
+        "sequence": 1,
+        "operation_id": "workspace-175ed43dc42220362cdc7d1cb5c65c52",
+        "effect_operation_id": "native-seal-bf9cfb45014e5065133b630600818143d40b5f0a4da2b42d7bd0d5c94edbc04d",
+        "revision": 1,
+        "action": "seal",
+        "phase": "started",
+        "generation_before": 0,
+        "generation_after": 0,
+        "started_at": "2026-10-28T18:42:29.391914Z",
+        "recorded_at": "2026-10-28T18:42:29.391914Z",
+        "request_sha256": "52dcf9d84cfcc78d1ef60ab5a56292786cfd9a65e00458b32bac1e41951c1e76",
+        "policy_sha256": "b04c564d3848b2d349b5be7b0a79f4a54efbc94a9774f06c3bcfd336736b6031",
+        "profile_sha256": "b04c564d3848b2d349b5be7b0a79f4a54efbc94a9774f06c3bcfd336736b6031"
+      },
+      {
+        "protocol": "suma-workspace-operation-v1",
+        "source": "go_workspace_host",
+        "schema_version": 1,
+        "event_id": "b708ed9e636d77874179c6954fff5e472cf28e93a2ff61f48702fd24bab88a48",
+        "sequence": 2,
+        "operation_id": "workspace-175ed43dc42220362cdc7d1cb5c65c52",
+        "effect_operation_id": "native-seal-bf9cfb45014e5065133b630600818143d40b5f0a4da2b42d7bd0d5c94edbc04d",
+        "revision": 2,
+        "action": "seal",
+        "phase": "completed",
+        "generation_before": 0,
+        "generation_after": 0,
+        "started_at": "2026-10-28T18:42:29.391914Z",
+        "recorded_at": "2026-10-28T18:42:31.1984757Z",
+        "completed_at": "2026-10-28T18:42:31.1984757Z",
+        "request_sha256": "52dcf9d84cfcc78d1ef60ab5a56292786cfd9a65e00458b32bac1e41951c1e76",
+        "policy_sha256": "b04c564d3848b2d349b5be7b0a79f4a54efbc94a9774f06c3bcfd336736b6031",
+        "profile_sha256": "b04c564d3848b2d349b5be7b0a79f4a54efbc94a9774f06c3bcfd336736b6031",
+        "result_sha256": "bd54fb7d2fc5a0f5cc42a61011f875f2c1f0742fc6f02c39b3d29923ce855899"
+      }
+    ],
+    "exact_attempt_history_records": 2,
+    "host_action": "seal",
+    "host_invocations": 1,
+    "host_records": 2,
+    "http_progress_acked": 2,
+    "local_capture": {
+      "invocation_count": 1,
+      "record_count": 2,
+      "pending_count": 0,
+      "max_invocations": 2048,
+      "max_records": 4096,
+      "state": "complete"
+    },
+    "owned_model_requests": 1,
+    "post_completion_receipt_recovered": true
+  },
+  "browser": {
+    "stage": "T-WORKSPACE-120",
+    "recorded_at": "2026-10-28T18:45:55.179073+00:00",
+    "instance": "http://127.0.0.1:49943",
+    "current_default_collapsed": true,
+    "current_real_operations": 1,
+    "current_real_records": 2,
+    "parent_seal_details_observed": true,
+    "local_capture_vs_ack_disclosed": true,
+    "english_live_switch_same_identity": true,
+    "historical_exact_attempt_observed": true,
+    "historical_records": 2,
+    "historical_watermark": 5,
+    "historical_scanned_through": 5,
+    "viewport_requested": [
+      390,
+      844
+    ],
+    "client_width": 375,
+    "scroll_width": 375,
+    "keyboard_filter_focus_observed": true,
+    "refresh_attempt_context_restored": true,
+    "post_refresh_fact_fetch_observed_complete": false,
+    "unknown_failure_ui_only_behavior_tests": true,
+    "extra_execution_from_browser": false,
+    "fixture_business_actions_from_browser": false,
+    "model_calls_during_browser": 0,
+    "viewport_reset": true,
+    "owned_tab_closed": true,
+    "user_tabs_modified": false,
+    "screenshots": [
+      ".cache/e2e/workspace-120/screenshots/workspace-operations-cn.png",
+      ".cache/e2e/workspace-120/screenshots/workspace-operations-en-390.png",
+      ".cache/e2e/workspace-120/screenshots/workspace-operations-history-en-390.png"
+    ]
+  },
+  "retained_browser_counts": {
+    "after": {
+      "dag_attempts": 1,
+      "dag_runs": 1,
+      "suma_candidate_composition_executions": 0,
+      "suma_candidate_compositions": 0,
+      "suma_expert_team_plans": 0,
+      "suma_reviews": 0,
+      "suma_usage_attempts": 1
+    },
+    "before": {
+      "dag_attempts": 1,
+      "dag_runs": 1,
+      "suma_candidate_composition_executions": 0,
+      "suma_candidate_compositions": 0,
+      "suma_expert_team_plans": 0,
+      "suma_reviews": 0,
+      "suma_usage_attempts": 1
+    },
+    "closed_at": "2026-10-28T18:45:55.2780757Z",
+    "counts_unchanged": true,
+    "database_snapshot": "actual.sqlite",
+    "metadata": {
+      "currency": "CNY",
+      "estimated_cost_micros": 57,
+      "host_invocations": 1,
+      "host_records": 2,
+      "node_id": "develop",
+      "plan_id": "8f474d55734f39785cfb0d754007cf93",
+      "reported_tokens": 40,
+      "run_id": "558157780f4172ecc864888f3d6542cc",
+      "source_model_requests": 1,
+      "stage": "T-WORKSPACE-120",
+      "task_id": "b2f30288ca033f4f51bbfd2ac2cee905",
+      "tool_profile_id": "c6227fab362568092257f3d0b80de129",
+      "usage_attempt_id": "7f16a51455b56d790e59516e13a8ec88"
+    },
+    "stage": "T-WORKSPACE-120",
+    "status": "closed_without_new_execution"
+  },
+  "failure_audit": [
+    {
+      "kind": "new parent-seal fixture changed assignment after checkpoint",
+      "resolution": "initialized full scope before checkpoint; strict identity gate unchanged; affected case passed"
+    },
+    {
+      "kind": "new recovery fixture assumed pending-HTTP order was host order",
+      "resolution": "assert original host sequence instead of transport-ID order; close journals safely; affected case passed"
+    },
+    {
+      "kind": "new Pool replay fixture mutated attempt identity after workspace initialization",
+      "resolution": "shared fixture now fixes assignment before workspace checkpoint; private and Pool replay passed"
+    },
+    {
+      "kind": "first Web collection failed from one missing JSX closing tag",
+      "executed_cases": 0,
+      "resolution": "syntax corrected;5 focused behavior cases passed"
+    }
+  ],
+  "resources": {
+    "commercial_model_requests": 0,
+    "owned_local_model_requests": 1,
+    "model_requests_during_browser": 0,
+    "web_builds": 1,
+    "native_sdk_builds": 0,
+    "octop_sdk_builds": 0,
+    "control_binary_builds": 0,
+    "runner_binary_builds": 0,
+    "go_commands_sequential": true,
+    "owned_test_processes_terminal": true,
+    "browser_tab_closed": true,
+    "viewport_reset": true,
+    "user_preview_updated": false,
+    "user_database_modified": false
+  },
+  "evidence": {
+    "go_receipts": [
+      {
+        "command": ".cache/mcp019-deps/20261028T182936300Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/workspaceoperationcontract",
+          "./internal/dag",
+          "./internal/platform",
+          "./internal/runner",
+          "./cmd/suma-contracts",
+          "-run",
+          "^(TestWorkspaceOperation|TestHostOperationDurable|TestWorkspaceHostProgress|TestNativeWorkspaceCASReceiptsAndDeletion|TestNativeWorkspacePreparedOperationsRecoverWithoutRepeatingChecks)",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 8,
+        "failed_top_level": 2,
+        "stdout_sha256": "061b34d98be9df62799b47904cce2b9e12f243eeabe0470bf061e8adbd2dc449"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T183053406Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "b06ede53c4a0773b1605e5ccd28e0120e6fe5160e162631f061c6822f5bc7087"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T183801490Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/runner",
+          "./internal/localization",
+          "./cmd/suma-contracts",
+          "-run",
+          "^Test(WorkspaceOperationActualParentSealRetainsOriginalCandidate|WorkspaceOperationJournalRecoversLostFactsWithoutRepeatingChecks|WorkspaceOperationReplayDrainsHostBeforeStaleSDK|WorkspaceWriteCASReceiptAndCheckInvalidation|CandidateConflictRepairCASMarkersAndOriginalOperationRecovery|CanonicalTemplateGrammarAndCatalogSnapshot|WorkspaceOperationContractsSeparateHostAuthorityFromSDK)$",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 1,
+        "passed_top_level": 6,
+        "failed_top_level": 1,
+        "stdout_sha256": "e22e7306d11128fb312135bb6612605f2fcaa8015da51a66eb16aacea3ad905a"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T184149503Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "b06ede53c4a0773b1605e5ccd28e0120e6fe5160e162631f061c6822f5bc7087"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T184203012Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/runner",
+          "./internal/platform",
+          "-p",
+          "1",
+          "-run",
+          "^Test(WorkspaceOperationReplayDrainsHostBeforeStaleSDK|WorkspaceOperationJournalRecoversLostFactsWithoutRepeatingChecks|ModelExecutionCurrentPreviewActualRuntimeAndUsageLedger)$",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 3,
+        "failed_top_level": 0,
+        "stdout_sha256": "de7dfdf3c14015d1ee1f88729c063e52fc5511e28e2e8e606c4ac22ebb9eaf85"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T184751631Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "807ec51bd9ee211c704e6cde5d6e8fa9935f39de66331bf4ba1f0bccaf220846"
+      }
+    ],
+    "web_command": ".cache/e2e/workspace-120/ui-focused-2.command.txt",
+    "web_output": ".cache/e2e/workspace-120/ui-focused-2.stdout.txt",
+    "web_exit": ".cache/e2e/workspace-120/ui-focused-2.exit.txt",
+    "web_build": ".cache/e2e/workspace-120/web-build.log",
+    "source_inventory": ".cache/e2e/workspace-120/source-inventory.json",
+    "web_inventory": ".cache/e2e/workspace-120/web-inventory.json",
+    "browser_summary": ".cache/e2e/workspace-120/browser-summary.json",
+    "artifacts": [
+      {
+        "path": ".cache/e2e/workspace-120/actual-ui/actual.sqlite",
+        "bytes": 2183168,
+        "sha256": "bbfe43e296a0682ede0dc46d3704faeb5548c954352180ceee69b01a9ccd65ea",
+        "git_included": false
+      },
+      {
+        "path": "packages/agent-runtime/dist/suma-agent.bundle.mjs",
+        "bytes": 997401,
+        "sha256": "1c8ce954e4aec79231dc52248fa794c116841613b7194727163a267de9d8cd19",
+        "git_included": false
+      },
+      {
+        "path": "packages/agent-runtime/dist/suma-agent.manifest.json",
+        "bytes": 508,
+        "sha256": "bc7fcd9978d5738825abd74009856da3807212f9c78089203c31018a64798193",
+        "git_included": false
+      }
+    ],
+    "screenshots": [
+      {
+        "path": ".cache/e2e/workspace-120/screenshots/workspace-operations-cn.png",
+        "bytes": 59747,
+        "sha256": "f7cb6d9aaafa71f0fe450cdbff6b9a216082fba2903132211f17edd2db829701",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/workspace-120/screenshots/workspace-operations-en-390.png",
+        "bytes": 33191,
+        "sha256": "d94b228900e039ae2599afe40bfebbded82b4de7353052fb6621d6c6a5574911",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/workspace-120/screenshots/workspace-operations-history-en-390.png",
+        "bytes": 37212,
+        "sha256": "612def195929f48e683ee55e1446fb6bee4438e513fdceed57914edd9ec4633e",
+        "git_included": false
+      }
+    ]
+  },
+  "remaining": [
+    "Complete P0–P7/requirements1–26;58/34/92 unchanged",
+    "Full Octop CLI/GUI, vendor accounts and production acceptance",
+    "Physical multi-host, OceanBase/PostgreSQL, scale/performance and installers",
+    "Browser observed one real no-change parent seal, not every operation/failure/recovery; other facts have scoped Go/Web checks",
+    "Refresh restored the exact-attempt context; the subsequent fact fetch was still loading when the owned tab was closed",
+    "Known revoked authority may leave local facts unacknowledged; no bypass",
+    "Complete IDE, autonomous planning, channels, office collaboration and commercial SaaS remain in the platform backlog"
+  ]
+}

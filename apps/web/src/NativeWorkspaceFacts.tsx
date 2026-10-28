@@ -1,4 +1,6 @@
 import {useState} from 'react';
+import type {WorkspaceOperationEvent,WorkspaceOperationCoverage} from '../../../packages/contracts/src';
+import {validWorkspaceOperationCoverage} from './workspace-operations-model';
 import type {WorkspaceEvidence} from './api';
 import type {NativeWorkspaceEvidence as NativeEvidence,NativeWorkspaceFileEffect as FileEffect,NativeWorkspaceCheckResult as CheckResult,NativeWorkspaceSeal as Seal} from '../../../packages/contracts/src';
 import {formatNumber,tr as t,useLocale} from './i18n';
@@ -27,21 +29,21 @@ function seal(value:unknown,policy:string):value is Seal{
 // Versioned display validation does not replace Runner or platform acceptance.
 // Unknown fields are never dumped as JSON or promoted into development facts.
 function native(value:unknown):value is NativeEvidence{
- if(!object(value)||!closed(value,['schema_version','policy_sha256','generation','state','files','checks'],['seal'])||value.schema_version!==1||!hash(value.policy_sha256)||!natural(value.generation)||!['open','closed','unknown'].includes(String(value.state))||!Array.isArray(value.files)||value.files.length>2000||!Array.isArray(value.checks)||value.checks.length>2048)return false;
+ if(!object(value)||!closed(value,['schema_version','policy_sha256','generation','state','files','checks'],['seal','operation_trace'])||value.schema_version!==1||!hash(value.policy_sha256)||!natural(value.generation)||!['open','closed','unknown'].includes(String(value.state))||!Array.isArray(value.files)||value.files.length>2000||!Array.isArray(value.checks)||value.checks.length>2048)return false;
  if(!value.files.every(item=>file(item,value.generation as number))||!value.checks.every(item=>check(item,value.generation as number)))return false;
  if(new Set(value.files.map(item=>(item as FileEffect).path.toLowerCase())).size!==value.files.length||new Set(value.checks.map(item=>(item as CheckResult).check_id)).size!==value.checks.length)return false;
- return value.seal===undefined||value.seal===null||seal(value.seal,value.policy_sha256);
+ return (value.operation_trace===undefined||validWorkspaceOperationCoverage(value.operation_trace))&&(value.seal===undefined||value.seal===null||seal(value.seal,value.policy_sha256));
 }
 const knownSuccess=(check:CheckResult,generation:number)=>check.generation===generation&&check.exit_code===0&&!check.stopped&&!check.outcome_unknown;
 function checkState(check:CheckResult,generation:number){return check.outcome_unknown?'unknown':check.stopped?'stopped':check.generation!==generation?'earlier':check.exit_code!==0?'failed':'success';}
-function Output({check}:{check:CheckResult}){
+export function NativeWorkspaceCheckOutput({check}:{check:CheckResult}){
  const [open,setOpen]=useState(false);
  return <details className="native-workspace-output" onToggle={event=>setOpen(event.currentTarget.open)}><summary>{t('native-workspace.output')}</summary>{open&&<><pre tabIndex={0} aria-label={t('native-workspace.output')}>{check.output}</pre>{!check.output&&<p className="muted">{t('native-workspace.output_empty')}</p>}{check.output_truncated&&<p className="muted">{t('native-workspace.output_truncated')}</p>}</>}</details>;
 }
 function OriginalFacts({value}:{value:NativeEvidence}){
  return <details className="native-workspace-original"><summary>{t('native-workspace.original')}</summary><dl><dt>{t('native-workspace.policy')}</dt><dd><code>{value.policy_sha256}</code></dd><dt>{t('native-workspace.generation')}</dt><dd>{formatNumber(value.generation)}</dd><dt>{t('native-workspace.raw_state')}</dt><dd><code>{value.state}</code></dd></dl>
   {value.files.map(effect=><div className="native-workspace-record" key={effect.path}><h5><code>{effect.path}</code></h5><p>{t(effect.removed?'native-workspace.removed':'native-workspace.written')}</p><dl><dt>{t('native-workspace.operation')}</dt><dd><code>{effect.operation_id}</code></dd><dt>{t('native-workspace.generation')}</dt><dd>{formatNumber(effect.generation)}</dd>{effect.previous_sha256&&<><dt>{t('native-workspace.previous_sha')}</dt><dd><code>{effect.previous_sha256}</code></dd></>}{effect.sha256&&<><dt>{t('native-workspace.file_sha')}</dt><dd><code>{effect.sha256}</code></dd></>}</dl></div>)}
-  {value.checks.map(item=><div className="native-workspace-record" key={item.check_id}><h5><code>{item.check_id}</code></h5><p>{value.state==='unknown'?t('native-workspace.checks_unknown'):t('native-workspace.check_'+checkState(item,value.generation))}</p><dl><dt>{t('native-workspace.operation')}</dt><dd><code>{item.operation_id}</code></dd><dt>{t('native-workspace.generation')}</dt><dd>{formatNumber(item.generation)}</dd><dt>{t('native-workspace.profile_sha')}</dt><dd><code>{item.profile_sha256}</code></dd><dt>{t('native-workspace.workspace_sha')}</dt><dd><code>{item.workspace_sha256}</code></dd><dt>{t('native-workspace.exit_code')}</dt><dd>{formatNumber(item.exit_code)}</dd><dt>{t('native-workspace.stopped')}</dt><dd><code>{String(item.stopped)}</code></dd><dt>{t('native-workspace.unknown')}</dt><dd><code>{String(item.outcome_unknown)}</code></dd></dl><Output check={item}/></div>)}
+  {value.checks.map(item=><div className="native-workspace-record" key={item.check_id}><h5><code>{item.check_id}</code></h5><p>{value.state==='unknown'?t('native-workspace.checks_unknown'):t('native-workspace.check_'+checkState(item,value.generation))}</p><dl><dt>{t('native-workspace.operation')}</dt><dd><code>{item.operation_id}</code></dd><dt>{t('native-workspace.generation')}</dt><dd>{formatNumber(item.generation)}</dd><dt>{t('native-workspace.profile_sha')}</dt><dd><code>{item.profile_sha256}</code></dd><dt>{t('native-workspace.workspace_sha')}</dt><dd><code>{item.workspace_sha256}</code></dd><dt>{t('native-workspace.exit_code')}</dt><dd>{formatNumber(item.exit_code)}</dd><dt>{t('native-workspace.stopped')}</dt><dd><code>{String(item.stopped)}</code></dd><dt>{t('native-workspace.unknown')}</dt><dd><code>{String(item.outcome_unknown)}</code></dd></dl><NativeWorkspaceCheckOutput check={item}/></div>)}
   {value.seal&&<div className="native-workspace-record"><h5>{t('native-workspace.seal_record')}</h5><dl><dt>{t('native-workspace.operation')}</dt><dd><code>{value.seal.operation_id}</code></dd><dt>{t('native-workspace.raw_state')}</dt><dd><code>{value.seal.state}</code></dd><dt>{t('native-workspace.previous_commit')}</dt><dd><code>{value.seal.previous_commit}</code></dd>{value.seal.commit&&<><dt>{t('native-workspace.commit')}</dt><dd><code>{value.seal.commit}</code></dd></>}{value.seal.tree&&<><dt>{t('native-workspace.tree')}</dt><dd><code>{value.seal.tree}</code></dd></>}<dt>{t('native-workspace.changed_paths')}</dt><dd>{formatNumber(value.seal.changed_paths)}</dd></dl></div>}
  </details>;
 }
@@ -57,3 +59,11 @@ export function NativeWorkspaceFacts({evidence}:{evidence:WorkspaceEvidence}){
  const repair=evidence.candidate_conflict_repair,completedRepair=state==='no_change'&&validConflictRepairEvidence(repair,evidence)&&repair.state==='completed';
  return <section className="native-workspace-facts"><h4>{t('native-workspace.title')}</h4><p className={'native-workspace-state'+(['unknown','incomplete'].includes(state)?' warning':'')}>{t(completedRepair?'native-workspace.state_repair_no_change':'native-workspace.state_'+state)}</p><p className="native-workspace-summary"><span>{t('native-workspace.files',{count:formatNumber(value.files.length)})}</span><span>{needsReconciliation?t('native-workspace.checks_unknown'):value.checks.length?t('native-workspace.checks',{passed:formatNumber(successful),count:formatNumber(value.checks.length)}):t('native-workspace.no_checks')}</span></p><p className="muted">{t('native-workspace.boundary')}</p><OriginalFacts key={JSON.stringify(value)+String(evidence.head_commit)} value={value}/></section>;
 }
+
+/** Drilldown requires the exact effect receipt and source generation. The
+ * invocation identity and a reused check name cannot select another output. */
+export function nativeCheckForOperation(evidence:WorkspaceEvidence|undefined,operation:WorkspaceOperationEvent):CheckResult|undefined{
+ const value=evidence?.native_workspace;if(!native(value)||operation.action!=='check'||operation.revision!==2||!operation.effect_operation_id||!operation.check_id||operation.exit_code===undefined||operation.stopped===undefined||value.policy_sha256!==operation.policy_sha256)return;
+ return value.checks.find(item=>item.operation_id===operation.effect_operation_id&&item.generation===operation.generation_after&&item.check_id===operation.check_id&&item.exit_code===operation.exit_code&&item.stopped===operation.stopped&&item.outcome_unknown===(operation.phase==='unknown'));
+}
+export function nativeOperationCoverage(evidence:WorkspaceEvidence|undefined):WorkspaceOperationCoverage|undefined{const value=evidence?.native_workspace;return native(value)?value.operation_trace??undefined:undefined;}

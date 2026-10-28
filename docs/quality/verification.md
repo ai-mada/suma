@@ -6,6 +6,7 @@
 
 | 当前范围 | 验证与限制 |
 | --- | --- |
+| T-WORKSPACE-120 Go宿主工作区操作 | [报告](workspace-operations-verification.md)、[摘要](workspace-operations-summary.json)、[操作](../development/workspace-operations.md)／[English](../en/workspace-operations.md)、[架构](../architecture/workspace-operations.md)：真实调用与原效果、远程CAS、独立宿主Outbox及重启元数据恢复；复用私有／Pool进度和原attempt分页。15项Go、5项Web聚焦检查及一次真实原生／HTTP／Journal／封存历史旅程；中英文与390键盘操作实见，刷新恢复原attempt上下文，其后事实请求完成未观察。不代表完整Octop、厂商、多主机或生产验收 |
 | T-QUALITY-119 受保护修复、回归与关单重开 | [当前报告](issue-repair-verification.md)、[精简摘要](issue-repair-summary.json)、[中文操作](../development/issue-repair.md)／[English](../en/issue-repair.md)、[合同](../../contracts/issue-repair.md)：唯一需求回流与新修复任务、原失败case／selector、固定发布计划、正式产码候选与不同Worker独立测试、当前Review后人员关单及保留历史的重开；复用固定`command/text-v1`档案和私有／Pool资格，通用记录旁路拒绝。简洁中英文问题面板、实际OS／HTTP执行、接口、权限、恢复及当前数据合同各以报告记录为准，不推断所有检查通过；完整Issue／Bug治理、复杂候选来源、应用／发布测试和生产仍待交付 |
 | T-MODEL-118 原生／Octop统一模型网关 | [当前报告](model-gateway-verification.md)、[精简摘要](model-gateway-summary.json)、[架构与SOP](../architecture/model-gateway.md)：共同ModelBinding／冻结报价／预算、真实HTTP／SSE、逐次剩余总输出许可、持久原操作与原响应回放；本机原生真实Claim与费用账本、官方Harness／ACP六工具工作树和同SHA独立JUnit、取消与journal分别留证。中英文模型／报价入口与可展开事实的组件、实际界面及最终数据合同检查各以报告为准；已知费用为运营方费率估算，非供应商账单硬帽，历史通过不继承为当前全套通过 |
 | Octop 项目MCP与统一交付读取 | [指南](../integrations/octop.md)、[阶段报告](octop-integration-verification.md)与[摘要](octop-integration-summary.json)：17项共享目录、2项新增API只读、分页／当前权限、项目专用配置及中英文实际界面；此报告仅证明业务MCP范围，当前Harness／ACP编码与隔离工作树证据见[T-MODEL-118报告](model-gateway-verification.md)。完整Octop CLI／GUI和厂商账户仍未验 |

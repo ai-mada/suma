@@ -7,6 +7,7 @@ import (
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	nwc "github.com/ai-mada/suma/internal/nativeworkspacecontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	wo "github.com/ai-mada/suma/internal/workspaceoperationcontract"
 )
 
 // Native development checks are subordinate evidence. Formal acceptance still
@@ -31,6 +32,9 @@ func validateNativeWorkspaceEvidence(proof map[string]any, tool *tc.Evidence) er
 	d.DisallowUnknownFields()
 	if d.Decode(&evidence) != nil || evidence.SchemaVersion != 1 || evidence.State != "closed" || evidence.PolicySHA256 != tool.Profile.ProfileSHA256 || evidence.Generation < 0 || evidence.Generation > 2147483646 || len(evidence.Files) > 2000 || len(evidence.Checks) > 16 {
 		return invalid("原生编码证据尚未闭合或执行策略已变化")
+	}
+	if evidence.OperationTrace != nil && wo.ValidateCoverage(*evidence.OperationTrace) != nil {
+		return invalid("Invalid Go workspace operation coverage")
 	}
 	seal := evidence.Seal
 	if seal == nil || seal.SchemaVersion != 1 || seal.PolicySHA256 != evidence.PolicySHA256 || seal.OperationID == "" || seal.Commit != proof["head_commit"] || !gitRevision.MatchString(seal.Tree) || seal.ChangedPaths < 0 || seal.ChangedPaths > 2000 {

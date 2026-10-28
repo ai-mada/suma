@@ -106,6 +106,15 @@ func (c *Client) forPoolAssignment(a Assignment) (*Client, error) {
 }
 
 func replayPool(ctx context.Context, c *Client, j *Journal) error {
+	if err := drainWorkspaceProgress(ctx, j, func(ctx context.Context, p Progress) error {
+		scoped, err := c.forPoolAssignment(p.Assignment)
+		if err != nil {
+			return err
+		}
+		return scoped.Progress(ctx, p)
+	}); err != nil {
+		return err
+	}
 	if err := ReplayCandidates(ctx, c, j); err != nil {
 		return err
 	}
@@ -113,6 +122,9 @@ func replayPool(ctx context.Context, c *Client, j *Journal) error {
 		return fmt.Errorf("pool artifact/deployment recovery requires an explicit independent capability")
 	}
 	for _, p := range j.PendingProgress() {
+		if p.HostOperation != nil {
+			continue
+		}
 		scoped, err := c.forPoolAssignment(p.Assignment)
 		if err != nil {
 			return err

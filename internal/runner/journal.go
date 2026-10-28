@@ -16,14 +16,15 @@ import (
 )
 
 type entry struct {
-	Assignment        Assignment              `json:"assignment"`
-	Result            *Result                 `json:"result,omitempty"`
-	Acked             bool                    `json:"acked"`
-	Progress          []Progress              `json:"progress,omitempty"`
-	ProgressTruncated bool                    `json:"progress_truncated,omitempty"`
-	ArtifactPending   *artifactTransfer       `json:"artifact_pending,omitempty"`
-	CandidatePending  *candidateTransfer      `json:"candidate_pending,omitempty"`
-	ModelGateway      *modelGatewayCheckpoint `json:"model_gateway,omitempty"`
+	Assignment        Assignment                `json:"assignment"`
+	Result            *Result                   `json:"result,omitempty"`
+	Acked             bool                      `json:"acked"`
+	Progress          []Progress                `json:"progress,omitempty"`
+	ProgressTruncated bool                      `json:"progress_truncated,omitempty"`
+	ArtifactPending   *artifactTransfer         `json:"artifact_pending,omitempty"`
+	CandidatePending  *candidateTransfer        `json:"candidate_pending,omitempty"`
+	ModelGateway      *modelGatewayCheckpoint   `json:"model_gateway,omitempty"`
+	WorkspaceTrace    *workspaceTraceCheckpoint `json:"workspace_trace,omitempty"`
 }
 type Journal struct {
 	mu                    sync.Mutex
@@ -87,6 +88,12 @@ func OpenJournal(dir string) (*Journal, error) {
 		return nil, err
 	}
 	for k, e := range j.entries {
+		if e.WorkspaceTrace != nil {
+			if err = j.importWorkspaceTrace(&e); err != nil {
+				return nil, err
+			}
+			j.entries[k] = e
+		}
 		if e.ModelGateway != nil {
 			if err := validModelGatewayCheckpoint(e.Assignment, k, *e.ModelGateway); err != nil {
 				return nil, err
@@ -299,7 +306,13 @@ func (j *Journal) recordProgress(a Assignment, message string, event *tc.Event) 
 	if strings.TrimSpace(message) == "" && event == nil {
 		return nil
 	}
-	if len(e.Progress) >= 1024 {
+	sdkProgress := 0
+	for _, p := range e.Progress {
+		if p.HostOperation == nil {
+			sdkProgress++
+		}
+	}
+	if sdkProgress >= 1024 {
 		if !e.ProgressTruncated {
 			previous := e
 			e.ProgressTruncated = true
@@ -370,6 +383,7 @@ func (j *Journal) PendingProgress() []Progress {
 		for _, p := range j.entries[k].Progress {
 			if !p.Acked {
 				p.ToolEvent = cloneToolEvent(p.ToolEvent)
+				p.HostOperation = cloneWorkspaceEvent(p.HostOperation)
 				p.Assignment = cloneModelAssignment(p.Assignment)
 				result = append(result, p)
 			}

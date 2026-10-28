@@ -2,6 +2,8 @@
 // the Runner, control plane and generated clients. It grants no authority.
 package nativeworkspacecontract
 
+import wo "github.com/ai-mada/suma/internal/workspaceoperationcontract"
+
 const Version = "attempt-workspace-v1"
 
 type NativeWorkspaceFileEffect struct {
@@ -27,13 +29,14 @@ type NativeWorkspaceCheckResult struct {
 }
 
 type NativeWorkspaceEvidence struct {
-	SchemaVersion int                          `json:"schema_version"`
-	PolicySHA256  string                       `json:"policy_sha256"`
-	Generation    int                          `json:"generation"`
-	State         string                       `json:"state"`
-	Files         []NativeWorkspaceFileEffect  `json:"files"`
-	Checks        []NativeWorkspaceCheckResult `json:"checks"`
-	Seal          *NativeWorkspaceSeal         `json:"seal,omitempty"`
+	SchemaVersion  int                          `json:"schema_version"`
+	PolicySHA256   string                       `json:"policy_sha256"`
+	Generation     int                          `json:"generation"`
+	State          string                       `json:"state"`
+	Files          []NativeWorkspaceFileEffect  `json:"files"`
+	Checks         []NativeWorkspaceCheckResult `json:"checks"`
+	Seal           *NativeWorkspaceSeal         `json:"seal,omitempty"`
+	OperationTrace *wo.Coverage                 `json:"operation_trace,omitempty" wire:"nonnull"`
 }
 
 // Seal describes a local candidate commit, never a merge, formal test or human

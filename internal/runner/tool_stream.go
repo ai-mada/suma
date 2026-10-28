@@ -328,6 +328,12 @@ func (s *toolStream) line(raw []byte) {
 		s.invalid("invalid or oversized JSON structure")
 		return
 	}
+	// Only the parent Go workspace host can emit its typed progress envelope.
+	// SDK fields must never be promoted into that trusted channel.
+	if _, present := m["host_operation"]; present || textAt(m, "source") == "go_workspace_host" || textAt(m, "protocol") == "suma-workspace-operation-v1" {
+		s.invalid("SDK cannot publish Go workspace operation facts")
+		return
+	}
 	switch s.profile.Protocol {
 	case tc.OctopProtocol:
 		if !tc.ValidJSONUnicode(raw) {

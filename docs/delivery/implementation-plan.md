@@ -8,6 +8,8 @@
 
 勾选只表示所列限定实现存在，不表示整阶段完成；报告只支持原源码／环境／场景。当前本地已实现的模型配置、Codex执行、专家团队、候选合成／修复、工作区、知识提炼与账本等具体边界统一见交付状态。未配置、未验证和结果未知必须明确，不以局部交付缩减剩余目标。
 
+T-WORKSPACE-120在原P2／P4细化Go宿主真实操作的采集、原回执恢复与确切历史展示，复用现有唯一调度及事件通道，见[合同](../../contracts/workspace-operations.md)、[架构](../architecture/workspace-operations.md)和[验证报告](../quality/workspace-operations-verification.md)。它是现有执行项的限定增强，不新增整项完成。
+
 当前为 **58 项限定实现、34 项待实现，共 92 项**。T-INTENT-114的[统一智能输入草稿计划](../../contracts/intelligent-operations.md)推进需求26：一次真实只读模型提案、最多8步、本次明确预览确认及需求／设计／知识同库原子草稿采用，实际检查见[限定报告](../quality/intelligent-operations-verification.md)。全平台意图／配置、多端与持久自动策略尚未完整实现，`FND-INTENT-001`继续未勾选。T-TRACE-113的[需求验收追踪](../../contracts/requirement-traceability.md)和T-DELIVERY-112的[原交付报告](../quality/task-delivery-chain-verification.md)保留各自源码、场景及台账事实，不冒充完整平台、厂商、多机或生产验收。
 
 两份分享规划均已取得当前可见正文，[采用映射](../integrations/shared-roadmap-adoption.md)保留第一份实际 64 个编号，以及第二份新增需求 26／S01–S12。两份末尾均不完整，未见范围不推断；来源优先级不替代本计划阶段，设计不当作实现证明。

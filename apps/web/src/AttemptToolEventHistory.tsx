@@ -7,6 +7,8 @@ import {ToolEventContent} from './ToolFacts';
 import {toolError} from './tool-hooks';
 import {useAttemptToolHistory} from './use-attempt-tool-history';
 import {savedToolDisplayMatchesSource} from './attempt-tool-history';
+import {WorkspaceOperations,WorkspaceOperationRecord} from './WorkspaceOperations';
+import {workspaceOperationsForAttempt} from './workspace-operations-model';
 export function AttemptToolEventHistory({project,attempt,refresh=0}:{project:string;attempt:ExecutionAttempt;refresh?:number|string}){
  useLocale();
  const scope={project_id:project,run_id:attempt.run_id,node_id:attempt.node_id,attempt:attempt.attempt,fence:attempt.fence,worker_id:attempt.worker_id};
@@ -16,6 +18,8 @@ export function AttemptToolEventHistory({project,attempt,refresh=0}:{project:str
  // Leaving the region releases ownership; async replacement cannot reclaim it.
  useLayoutEffect(()=>{if(focusedRow.current&&!focusedRow.current.isConnected){const active=document.activeElement;if(!active||active===document.body||!active.isConnected)heading.current?.focus({preventScroll:true});focusedRow.current=null;}});
  const page=history.page;
+ const projection=page?workspaceOperationsForAttempt(page.items,scope,attempt.result?.tool_evidence?.profile.profile_sha256):undefined;
+ const openSource=(sequence:number)=>{const row=root.current?.querySelector<HTMLElement>('[data-saved-tool-event="'+sequence+'"]'),details=row?.querySelector<HTMLDetailsElement>('[data-saved-raw]');if(details){details.open=true;details.querySelector('summary')?.focus({preventScroll:true});row?.scrollIntoView?.({block:'nearest'});}};
  return <section ref={root} className="attempt-tool-history" aria-label={t('development.savedFacts.title')} aria-busy={history.loading} onFocusCapture={event=>{focusedRow.current=(event.target as HTMLElement).closest<HTMLElement>('[data-saved-tool-event]');}} onBlurCapture={event=>{const next=event.relatedTarget;if(!(next instanceof Node)||!root.current?.contains(next))focusedRow.current=null;}}>
   <h5 ref={heading} tabIndex={-1}>{t('development.savedFacts.title')}</h5>
   <p className="muted">{t('development.savedFacts.boundary')}</p>
@@ -34,14 +38,16 @@ export function AttemptToolEventHistory({project,attempt,refresh=0}:{project:str
   {!!history.failure&&<button onClick={history.retry}>{t('development.savedFacts.retry')}</button>}
   {page&&<>
    <small>{t('development.savedFacts.window',{watermark:formatNumber(page.watermark),scanned:formatNumber(page.scanned_through),count:formatNumber(page.items.length)})}</small>
+   {projection&&<WorkspaceOperations scope={scope} projection={projection} workspaceEvidence={attempt.result?.workspace_evidence??undefined} context="history" unconfirmed={!!history.failure} onSource={openSource}/>}
    <div className="tool-event-list">{page.items.map(event=>{
     const fact=savedToolDisplayMatchesSource(event)?toolFactsForAttempt([event],{id:attempt.node_id,...attempt})[0]:undefined;
+    const hostFact=projection?.facts.find(item=>item.serverSequence===event.sequence);
     const key=JSON.stringify([event]);
     return <article key={key} data-saved-tool-event={event.sequence}>
      <small>{t('development.savedFacts.sequence',{sequence:formatNumber(event.sequence)})}</small>
      <time dateTime={event.at}>{formatDateTime(event.at,{dateStyle:'short',timeStyle:'medium'})} · {event.at}</time>
-     {fact?<ToolEventContent event={fact}/>:<p className="muted">{t('development.savedFacts.rawOnly')}</p>}
-     <details><summary>{t('development.savedFacts.rawEvent')}</summary>
+     {fact?<ToolEventContent event={fact}/>:hostFact?<WorkspaceOperationRecord fact={hostFact}/>:<p className="muted">{t('development.savedFacts.rawOnly')}</p>}
+     <details data-saved-raw><summary>{t('development.savedFacts.rawEvent')}</summary>
       <p>{t('development.savedFacts.rawData')}</p><pre className="output" tabIndex={0} aria-label={t('development.savedFacts.rawData')} data-raw-event-data>{event.raw_data}</pre>
       <p>{t('development.savedFacts.envelope')}</p><pre className="output" tabIndex={0} aria-label={t('development.savedFacts.envelope')}>{JSON.stringify(event,null,2)}</pre>
      </details>

@@ -8,6 +8,10 @@ import { renderDisplayDiagnostic } from "./display-diagnostic";
 import { tr as t, useLocale, formatDateTime, formatNumber } from "./i18n";
 import { DispatchRouteFacts } from "./execution-pools/DispatchRouteFacts";
 import { stateLabel } from "./api";
+import type {WorkspaceEvidence} from './api';
+import type {AttemptToolScope} from './attempt-tool-history';
+import {WorkspaceOperations} from './WorkspaceOperations';
+import {workspaceOperationsForAttempt} from './workspace-operations-model';
 import type { ModelBinding, OpenCodeExecutionCapability } from "../../../packages/contracts/src";
 import {
   taskPlanStarted,
@@ -312,6 +316,7 @@ export function ToolExecutionFacts({
   modelBinding,
   project,
   tests,
+  workspaceOperations,
 }: {
   state: string;
   evidence?: ToolEvidence;
@@ -320,9 +325,12 @@ export function ToolExecutionFacts({
   modelBinding?:ModelBinding;
   project?:string;
   tests?:OpenCodeRunTest[];
+  workspaceOperations?:{scope:AttemptToolScope;events:readonly unknown[];evidence?:WorkspaceEvidence;profileSHA?:string;unconfirmed?:boolean};
 }) { useLocale();
   const openCode=openCodeRunFacts({state,evidence,events,fixedOpenCode}),octop=evidence?.profile.adapter==='octop'&&evidence.profile.protocol==='octop-harness-acp-v1';
-  if (!evidence && !events.length&&!openCode&&!modelBinding) return null;
+  const host=workspaceOperations?workspaceOperationsForAttempt(workspaceOperations.events,workspaceOperations.scope,workspaceOperations.profileSHA):undefined;
+  const hostFacts=workspaceOperations&&host?<WorkspaceOperations scope={workspaceOperations.scope} projection={host} workspaceEvidence={workspaceOperations.evidence} context="current" unconfirmed={workspaceOperations.unconfirmed}/>:null;
+  if (!evidence && !events.length&&!openCode&&!modelBinding) return hostFacts;
   const recent = toolEventRows(events).slice(-40),
     last = events.at(-1),
     session =
@@ -386,6 +394,7 @@ export function ToolExecutionFacts({
         usageState={usageState}
         step={!evidence}
       />
+      {hostFacts}
       {state === "running" && last?.kind === "waiting_input" && (
         <p className="warning">
           {t("development.facts.waiting_for_external_input_the_process_still")}</p>

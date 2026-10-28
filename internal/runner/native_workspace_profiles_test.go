@@ -84,7 +84,7 @@ func TestNativeWorkspaceHostProbesMJSAndSealsNoChange(t *testing.T) {
 		t.Fatalf("MJS native inventory unavailable: %+v", inventory)
 	}
 	cfg.ToolInventory = inventory
-	a := Assignment{RunID: "native-host-run", NodeID: "code", Attempt: 1, Fence: 1, WorkerID: "worker", Type: "agent", Command: []string{"native"}, Config: map[string]any{"goal": "inspect", "tool_profile_sha256": inventory[0].Profile.ProfileSHA256}}
+	a := Assignment{TenantID: "tenant", ProjectID: "project", RunID: "native-host-run", NodeID: "code", Attempt: 1, Fence: 1, WorkerID: "worker", Type: "agent", Command: []string{"native"}, Config: map[string]any{"goal": "inspect", "tool_profile_sha256": inventory[0].Profile.ProfileSHA256}}
 	result := Execute(context.Background(), a, cfg)
 	if result.ExitCode != 0 || result.Error != "" || result.OutcomeUnknown {
 		t.Fatalf("host failed: %+v", result)
@@ -122,7 +122,7 @@ func TestNativeWorkspaceCancellationCannotReportUnsealedSuccess(t *testing.T) {
 		}
 		return nil
 	}
-	a := Assignment{RunID: "native-cancel", NodeID: "code", Attempt: 1, Fence: 1, WorkerID: "worker", Type: "agent", Command: []string{"native"}, Config: map[string]any{"goal": "cancel"}}
+	a := Assignment{TenantID: "tenant", ProjectID: "project", RunID: "native-cancel", NodeID: "code", Attempt: 1, Fence: 1, WorkerID: "worker", Type: "agent", Command: []string{"native"}, Config: map[string]any{"goal": "cancel"}}
 	result := Execute(ctx, a, cfg)
 	if result.ExitCode == 0 && result.Error == "" {
 		t.Fatal("cancelled native work reported success")

@@ -1602,6 +1602,12 @@ export interface HealthPolicy {
   timeout_ms: number;
   attempts: number;
 }
+export interface HostOperationProgressRequest {
+  project_id: string;
+  assignment: Assignment;
+  operation_id: string;
+  host_operation: WorkspaceOperationEvent;
+}
 export interface InspectDeploymentAuthorization {
   operation_id: string;
   assignment: AssignmentRef;
@@ -2116,6 +2122,7 @@ export interface NativeWorkspaceEvidence {
   files: (NativeWorkspaceFileEffect)[];
   checks: (NativeWorkspaceCheckResult)[];
   seal?: NativeWorkspaceSeal | null;
+  operation_trace?: WorkspaceOperationCoverage;
 }
 export interface NativeWorkspaceFileEffect {
   path: string;
@@ -2506,6 +2513,14 @@ export interface PoolClaimRequest {
   slot_id: string;
   operation_id: string;
   scopes: (PoolCapabilityScope)[];
+}
+export interface PoolHostOperationProgressRequest {
+  runner_id: string;
+  tenant_id: string;
+  project_id: string;
+  assignment: Assignment;
+  operation_id: string;
+  host_operation: WorkspaceOperationEvent;
 }
 export interface PoolRepositoryAuthorizationRequest {
   project_id: string;
@@ -4970,6 +4985,42 @@ export interface WorkspaceObservationTargetPage {
   limit: number;
   truncated: boolean;
   observed_at: string;
+}
+export interface WorkspaceOperationCoverage {
+  invocation_count: number;
+  record_count: number;
+  pending_count: number;
+  max_invocations: number;
+  max_records: number;
+  state: string;
+  reason?: string;
+}
+export interface WorkspaceOperationEvent {
+  protocol: string;
+  source: string;
+  schema_version: number;
+  event_id: string;
+  sequence: number;
+  operation_id: string;
+  effect_operation_id?: string;
+  revision: number;
+  action: string;
+  phase: string;
+  generation_before: number;
+  generation_after: number;
+  started_at: string;
+  recorded_at: string;
+  completed_at?: string;
+  request_sha256: string;
+  policy_sha256: string;
+  profile_sha256: string;
+  path?: string;
+  check_id?: string;
+  result_sha256?: string;
+  exit_code?: number;
+  stopped?: boolean;
+  error_code?: string;
+  replayed?: boolean;
 }
 export interface WorkspaceTreeEntry {
   path: string;

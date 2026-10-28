@@ -122,7 +122,7 @@ func TestOctopSDKActualHostCandidateAndIndependentJUnit(t *testing.T) {
 		}
 		return nil
 	}
-	a := Assignment{RunID: "octop117", NodeID: "develop", WorkerID: "developer117", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"octop117"}, Config: map[string]any{"goal": "Read file.txt, create output117.txt, run check117 and finish.", "tool_profile_sha256": profile.ProfileSHA256, "model_execution": binding, "max_steps": binding.Parameters.MaxSteps, "max_output_tokens": binding.Parameters.MaxOutputTokens}}
+	a := Assignment{TenantID: "tenant", ProjectID: "project", RunID: "octop117", NodeID: "develop", WorkerID: "developer117", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"octop117"}, Config: map[string]any{"goal": "Read file.txt, create output117.txt, run check117 and finish.", "tool_profile_sha256": profile.ProfileSHA256, "model_execution": binding, "max_steps": binding.Parameters.MaxSteps, "max_output_tokens": binding.Parameters.MaxOutputTokens}}
 	r := Execute(ctx, a, cfg)
 	if r.ExitCode != 0 || r.Error != "" || r.OutcomeUnknown || r.ToolEvidence == nil || r.ToolEvidence.Terminal != "completed" || tc.ValidateEvidence(*r.ToolEvidence) != nil {
 		// Only this credential-free synthetic attempt is inspected. Preserve the
@@ -157,7 +157,7 @@ func TestOctopSDKActualHostCandidateAndIndependentJUnit(t *testing.T) {
 	// ordinary JUnit artifact. The model's check is not formal test evidence.
 	cfg.Commands = map[string]CommandSpec{"verify117": {Executable: node, Args: []string{"-e", `const fs=require('node:fs');if(fs.readFileSync('output117.txt','utf8')!=='actual Harness output\n')process.exit(2);fs.writeFileSync(process.argv[1],'<testsuite name="independent117" tests="1"><testcase classname="candidate117" name="output"/></testsuite>')`, "{{test_report_path}}"}, TestEvidence: true, TestReport: true}}
 	cfg.ToolInventory = nil
-	test := Assignment{RunID: a.RunID, NodeID: "test", WorkerID: "independent117", Attempt: 1, Fence: 1, Type: "test", Command: []string{"verify117"}, CandidateFrom: a.NodeID, CandidateCommit: r.WorkspaceEvidence["head_commit"].(string), CandidateAttempt: a.Attempt, CandidateFence: a.Fence, CandidateEvidenceSHA256: r.WorkspaceEvidence["evidence_sha256"].(string), Config: map[string]any{"candidate_from": a.NodeID}}
+	test := Assignment{TenantID: "tenant", ProjectID: "project", RunID: a.RunID, NodeID: "test", WorkerID: "independent117", Attempt: 1, Fence: 1, Type: "test", Command: []string{"verify117"}, CandidateFrom: a.NodeID, CandidateCommit: r.WorkspaceEvidence["head_commit"].(string), CandidateAttempt: a.Attempt, CandidateFence: a.Fence, CandidateEvidenceSHA256: r.WorkspaceEvidence["evidence_sha256"].(string), Config: map[string]any{"candidate_from": a.NodeID}}
 	checked := Execute(ctx, test, cfg)
 	if checked.ExitCode != 0 || checked.Error != "" || checked.WorkspaceEvidence["head_commit"] != test.CandidateCommit || checked.WorkspaceEvidence["test_command"] != true || checked.TestReport == nil {
 		t.Fatalf("independent same-SHA JUnit failed: %+v", checked)
@@ -200,7 +200,7 @@ func TestOctopSDKActualCancellationUsesGoTree(t *testing.T) {
 	}
 	cfg.ToolInventory = items
 	p := items[0].Profile
-	a := Assignment{RunID: "cancel117", NodeID: "develop", WorkerID: "developer117", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"octop117"}, Config: map[string]any{"goal": "Wait for the assigned model.", "tool_profile_sha256": p.ProfileSHA256, "model_execution": binding, "max_steps": binding.Parameters.MaxSteps, "max_output_tokens": binding.Parameters.MaxOutputTokens}}
+	a := Assignment{TenantID: "tenant", ProjectID: "project", RunID: "cancel117", NodeID: "develop", WorkerID: "developer117", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"octop117"}, Config: map[string]any{"goal": "Wait for the assigned model.", "tool_profile_sha256": p.ProfileSHA256, "model_execution": binding, "max_steps": binding.Parameters.MaxSteps, "max_output_tokens": binding.Parameters.MaxOutputTokens}}
 	r := Execute(ctx, a, cfg)
 	if calls.Load() != 1 || !r.Stopped || r.OutcomeUnknown || r.ToolEvidence == nil || r.ToolEvidence.Terminal != "unknown" || r.ToolEvidence.OctopExecution == nil || !r.ToolEvidence.OctopExecution.CancelRequested || !r.ToolEvidence.OctopExecution.ProcessStopped || tc.ValidateOctopResultStop(*r.ToolEvidence, true, false) != nil {
 		t.Fatalf("ACP cancellation became completion or lost its Go stop fact: calls=%d %+v", calls.Load(), r)

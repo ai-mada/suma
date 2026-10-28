@@ -37,7 +37,7 @@ function goJSONProjection(source:string):unknown {
 // proof. Keep that row raw-only unless its whole original tool view agrees.
 export function savedToolDisplayMatchesSource(event:Pick<SavedEvent,'data'|'raw_data'>):boolean {
  if(typeof event.raw_data!=='string')return false;
- try{const original=JSON.parse(event.raw_data);return object(original)&&sameJSON(original.tool_event,event.data.tool_event);}catch{return false;}
+ try{const original=JSON.parse(event.raw_data);return object(original)&&!Object.hasOwn(original,'host_operation')&&!Object.hasOwn(event.data,'host_operation')&&sameJSON(original.tool_event,event.data.tool_event);}catch{return false;}
 }
 // JSON.parse supplies the display projection, but cannot prove duplicate keys
 // or integer lexemes. Inspect top-level source tokens before accepting proof.

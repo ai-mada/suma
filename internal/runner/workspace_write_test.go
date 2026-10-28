@@ -57,6 +57,13 @@ func TestWorkspaceWriteCASReceiptAndCheckInvalidation(t *testing.T) {
 	if result.Outcome != "applied" || wwc.ValidateResult(lease.Command, result) != nil || result.Effect.Generation != 1 {
 		t.Fatalf("remote CAS did not produce exact native receipt: %+v", result)
 	}
+	if len(native.ledger.Trace.Calls) != 2 {
+		t.Fatal("remote write bypassed the host invocation history")
+	}
+	remoteTrace := native.ledger.Trace.Calls[1]
+	if remoteTrace.Started.Action != "write" || remoteTrace.Terminal == nil || remoteTrace.Terminal.Phase != "completed" || remoteTrace.Terminal.EffectOperationID != wwc.NativeOperationID(lease.Command.ID) {
+		t.Fatal("remote write trace differs from its original effect", remoteTrace)
+	}
 	if err := native.ReadyToSeal(); err == nil {
 		t.Fatal("pre-save checks certified the new generation")
 	}
@@ -66,6 +73,9 @@ func TestWorkspaceWriteCASReceiptAndCheckInvalidation(t *testing.T) {
 	again := ExecuteWorkspaceWrite(context.Background(), registry, lease)
 	if again.Outcome != "applied" || again.Effect.Generation != 1 {
 		t.Fatal("lost ACK replay lost original native receipt")
+	}
+	if len(native.ledger.Trace.Calls) != 3 {
+		t.Fatal("original remote receipt recovery was counted as a repeated write")
 	}
 	actual, _ := os.ReadFile(filepath.Join(workspace.Source, "file.txt"))
 	if string(actual) != "model later\n" || native.Evidence().Generation != 2 {

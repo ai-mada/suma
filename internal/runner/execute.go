@@ -11,6 +11,7 @@ import (
 	mg "github.com/ai-mada/suma/internal/modelgateway"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	wc "github.com/ai-mada/suma/internal/workspaceoperationcontract"
 	"io"
 	"os"
 	"os/exec"
@@ -130,6 +131,7 @@ type ExecConfig struct {
 	Repository, BaseCommit, WorktreeRoot string
 	Progress                             func(string) error
 	ToolProgress                         func(tc.Event) error
+	WorkspaceProgress                    func(wc.Event) error
 	ToolInventory                        []tc.Observation
 	ModelDeployments                     []ModelDeploymentSpec
 	WorkspaceObservations                *WorkspaceObservationRegistry
@@ -987,27 +989,23 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				r.Error = "native workspace effects require reconciliation"
 			}
 			if r.ExitCode == 0 && r.Error == "" && !r.Stopped && !r.OutcomeUnknown && ctx.Err() == nil {
-				if readyErr := native.ReadyToSeal(); readyErr != nil {
+				seal, sealErr := native.seal(ctx, evidence)
+				nativeEvidence.Seal = &seal
+				if sealErr != nil {
 					r.ExitCode = -1
-					r.Error = readyErr.Error()
-				} else {
-					seal, sealErr := sealNativeWorkspace(ctx, workspace, evidence)
-					nativeEvidence.Seal = &seal
-					if sealErr != nil {
-						r.ExitCode = -1
-						r.Error = sealErr.Error()
-						if seal.State == "unknown" || seal.State == "prepared" {
-							r.OutcomeUnknown = true
-							nativeEvidence.State = "unknown"
-						}
-					} else if seal.State != "sealed" && seal.State != "no_change" {
-						r.ExitCode = -1
+					r.Error = sealErr.Error()
+					if seal.State == "unknown" || seal.State == "prepared" {
 						r.OutcomeUnknown = true
-						r.Error = "native workspace sealing requires reconciliation"
 						nativeEvidence.State = "unknown"
 					}
+				} else if seal.State != "sealed" && seal.State != "no_change" {
+					r.ExitCode = -1
+					r.OutcomeUnknown = true
+					r.Error = "native workspace sealing requires reconciliation"
+					nativeEvidence.State = "unknown"
 				}
 			}
+			nativeEvidence.OperationTrace = native.traceCoverage()
 		}
 		var captureErr error
 		workspace.nativeEvidence = nativeEvidence

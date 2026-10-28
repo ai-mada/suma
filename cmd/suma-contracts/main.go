@@ -352,6 +352,7 @@ func generate() (map[string]any, string) {
 	candidateTransferContracts(add, api)
 	applicationToolContracts(add, api)
 	nativeWorkspaceSchemas(api)
+	workspaceOperationContracts(api)
 	currentAuthorityContracts(api)
 	localizationContracts(api)
 	displayDiagnosticContracts(api)

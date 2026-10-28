@@ -8,6 +8,7 @@ import (
 	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
 	tr "github.com/ai-mada/suma/internal/testreportcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	wc "github.com/ai-mada/suma/internal/workspaceoperationcontract"
 )
 
 type Assignment struct {
@@ -65,11 +66,12 @@ type Result struct {
 }
 
 type Progress struct {
-	Assignment  Assignment `json:"assignment"`
-	OperationID string     `json:"operation_id"`
-	Message     string     `json:"message"`
-	ToolEvent   *tc.Event  `json:"tool_event,omitempty"`
-	Acked       bool       `json:"acked,omitempty"`
+	Assignment    Assignment `json:"assignment"`
+	OperationID   string     `json:"operation_id"`
+	Message       string     `json:"message"`
+	ToolEvent     *tc.Event  `json:"tool_event,omitempty"`
+	HostOperation *wc.Event  `json:"host_operation,omitempty"`
+	Acked         bool       `json:"acked,omitempty"`
 }
 
 // Result carries only completion fields on the wire, independently of the full durable assignment.

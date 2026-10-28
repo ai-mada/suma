@@ -67,7 +67,7 @@ func TestOpenCodeProcessHostMCPSealsCandidateAndIndependentTest(t *testing.T) {
 	t.Setenv("SUMA_RUNNER_TOKEN", "must-not-reach-opencode")
 	t.Setenv("OPENCODE_CONFIG", "untrusted-global.json")
 	cfg, profile := openCodeHostFixture(t)
-	a := Assignment{RunID: "opencode-host104", NodeID: "develop", WorkerID: "worker104", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"opencode104"}, Config: map[string]any{"goal": "write", "tool_profile_sha256": profile.ProfileSHA256, "opencode_execution": profile.OpenCodeExecution}}
+	a := Assignment{TenantID: "tenant", ProjectID: "project", RunID: "opencode-host104", NodeID: "develop", WorkerID: "worker104", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"opencode104"}, Config: map[string]any{"goal": "write", "tool_profile_sha256": profile.ProfileSHA256, "opencode_execution": profile.OpenCodeExecution}}
 	r := Execute(context.Background(), a, cfg)
 	if r.ExitCode != 0 || r.Error != "" || r.Stopped || r.OutcomeUnknown || r.ToolEvidence == nil || r.ToolEvidence.Terminal != "completed" || r.ToolEvidence.OpenCodeExecution == nil || r.WorkspaceEvidence["clean"] != true || r.WorkspaceEvidence["head_commit"] == cfg.BaseCommit {
 		t.Fatalf("host MCP candidate failed: %+v", r)
@@ -88,7 +88,7 @@ func TestOpenCodeProcessHostMCPSealsCandidateAndIndependentTest(t *testing.T) {
 	node := cfg.Commands["opencode104"].Executable
 	cfg.Commands = map[string]CommandSpec{"verify": {Executable: node, Args: []string{"-e", `const fs=require('node:fs');if(fs.readFileSync('output104.txt','utf8')!=='host MCP fixture output\n')process.exit(2);console.log('independent candidate check passed')`}, TestEvidence: true}}
 	cfg.ToolInventory = nil
-	test := Assignment{RunID: a.RunID, NodeID: "test", WorkerID: "independent104", Attempt: 1, Fence: 1, Type: "test", Command: []string{"verify"}, CandidateFrom: a.NodeID, CandidateCommit: r.WorkspaceEvidence["head_commit"].(string), CandidateAttempt: a.Attempt, CandidateFence: a.Fence, CandidateEvidenceSHA256: r.WorkspaceEvidence["evidence_sha256"].(string), Config: map[string]any{"candidate_from": a.NodeID}}
+	test := Assignment{TenantID: "tenant", ProjectID: "project", RunID: a.RunID, NodeID: "test", WorkerID: "independent104", Attempt: 1, Fence: 1, Type: "test", Command: []string{"verify"}, CandidateFrom: a.NodeID, CandidateCommit: r.WorkspaceEvidence["head_commit"].(string), CandidateAttempt: a.Attempt, CandidateFence: a.Fence, CandidateEvidenceSHA256: r.WorkspaceEvidence["evidence_sha256"].(string), Config: map[string]any{"candidate_from": a.NodeID}}
 	checked := Execute(context.Background(), test, cfg)
 	if checked.ExitCode != 0 || checked.Error != "" || checked.WorkspaceEvidence["head_commit"] != test.CandidateCommit || checked.WorkspaceEvidence["test_command"] != true {
 		t.Fatalf("independent exact candidate check failed: %+v", checked)
@@ -99,7 +99,7 @@ func TestOpenCodeProcessCancellationNeedsOriginalAbortAndServerStop(t *testing.T
 	for _, mode := range []string{"cancel", "delayed-cancel", "no-ack", "no-terminal"} {
 		t.Run(mode, func(t *testing.T) {
 			cfg, profile := openCodeHostFixture(t)
-			a := Assignment{RunID: "opencode-" + mode, NodeID: "develop", WorkerID: "worker104", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"opencode104"}, Config: map[string]any{"goal": mode, "tool_profile_sha256": profile.ProfileSHA256, "opencode_execution": profile.OpenCodeExecution}}
+			a := Assignment{TenantID: "tenant", ProjectID: "project", RunID: "opencode-" + mode, NodeID: "develop", WorkerID: "worker104", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"opencode104"}, Config: map[string]any{"goal": mode, "tool_profile_sha256": profile.ProfileSHA256, "opencode_execution": profile.OpenCodeExecution}}
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			cfg.ToolProgress = func(event tc.Event) error {
@@ -138,7 +138,7 @@ func TestOpenCodeFrozenConfigurationRefusesBeforeAttemptCreation(t *testing.T) {
 			if mode == "native-limit" {
 				config["max_steps"] = 2
 			}
-			a := Assignment{RunID: "opencode-gate-" + mode, NodeID: "develop", WorkerID: "worker104", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"opencode104"}, Config: config}
+			a := Assignment{TenantID: "tenant", ProjectID: "project", RunID: "opencode-gate-" + mode, NodeID: "develop", WorkerID: "worker104", Attempt: 1, Fence: 1, Type: "agent", Command: []string{"opencode104"}, Config: config}
 			r := Execute(context.Background(), a, cfg)
 			if r.ExitCode == 0 || r.Error == "" || r.WorkspaceEvidence != nil {
 				t.Fatalf("unfrozen configuration reached workspace: %+v", r)

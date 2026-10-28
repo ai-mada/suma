@@ -7813,6 +7813,30 @@
         ],
         "type": "object"
       },
+      "HostOperationProgressRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/Assignment"
+          },
+          "host_operation": {
+            "$ref": "#/components/schemas/WorkspaceOperationEvent"
+          },
+          "operation_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "assignment",
+          "operation_id",
+          "host_operation"
+        ],
+        "type": "object"
+      },
       "InspectDeploymentAuthorization": {
         "additionalProperties": false,
         "properties": {
@@ -10725,6 +10749,9 @@
           "generation": {
             "type": "integer"
           },
+          "operation_trace": {
+            "$ref": "#/components/schemas/WorkspaceOperationCoverage"
+          },
           "policy_sha256": {
             "type": "string"
           },
@@ -12634,6 +12661,38 @@
         ],
         "type": "object"
       },
+      "PoolHostOperationProgressRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/Assignment"
+          },
+          "host_operation": {
+            "$ref": "#/components/schemas/WorkspaceOperationEvent"
+          },
+          "operation_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "runner_id": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "runner_id",
+          "tenant_id",
+          "project_id",
+          "assignment",
+          "operation_id",
+          "host_operation"
+        ],
+        "type": "object"
+      },
       "PoolRepositoryAuthorizationRequest": {
         "properties": {
           "assignment": {
@@ -12705,6 +12764,11 @@
       },
       "PoolRunnerProgressRequest": {
         "additionalProperties": false,
+        "not": {
+          "required": [
+            "host_operation"
+          ]
+        },
         "properties": {
           "assignment": {
             "$ref": "#/components/schemas/Assignment"
@@ -18178,6 +18242,11 @@
             ]
           }
         ],
+        "not": {
+          "required": [
+            "host_operation"
+          ]
+        },
         "properties": {
           "assignment": {
             "$ref": "#/components/schemas/Assignment"
@@ -26299,6 +26368,313 @@
           "observed_at"
         ],
         "type": "object"
+      },
+      "WorkspaceOperationCoverage": {
+        "additionalProperties": false,
+        "description": "Local durable capture only: record_count = 2*invocation_count - pending_count. Does not prove HTTP acknowledgement, complete server history or loaded page coverage. Missing coverage means not provided, not zero.",
+        "properties": {
+          "invocation_count": {
+            "maximum": 2048,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "max_invocations": {
+            "const": 2048,
+            "type": "integer"
+          },
+          "max_records": {
+            "const": 4096,
+            "type": "integer"
+          },
+          "pending_count": {
+            "maximum": 2048,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "record_count": {
+            "maximum": 4096,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "complete",
+              "partial",
+              "unknown"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "invocation_count",
+          "record_count",
+          "pending_count",
+          "max_invocations",
+          "max_records",
+          "state"
+        ],
+        "type": "object"
+      },
+      "WorkspaceOperationEvent": {
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "else": {
+              "properties": {
+                "revision": {
+                  "const": 2
+                }
+              }
+            },
+            "if": {
+              "properties": {
+                "phase": {
+                  "const": "started"
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "completed_at"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "exit_code"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "stopped"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "error_code"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "result_sha256"
+                    ]
+                  }
+                ]
+              },
+              "properties": {
+                "revision": {
+                  "const": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "phase": {
+                  "enum": [
+                    "completed",
+                    "failed"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "completed_at"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "phase": {
+                  "enum": [
+                    "failed",
+                    "unknown"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "error_code"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "phase": {
+                  "const": "unknown"
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "completed_at"
+                ]
+              }
+            }
+          }
+        ],
+        "description": "Durable safe metadata from the authenticated Go workspace host, separate from SDK claims. revision1 is started, revision2 is terminal. IDs bind the original assignment; source text, command args, output, environment, endpoint and credentials are forbidden. completed check is an observed completion, whose exit_code/stopped/unknown status must be considered separately.",
+        "properties": {
+          "action": {
+            "enum": [
+              "list",
+              "read",
+              "write",
+              "edit",
+              "remove",
+              "check",
+              "merge_status",
+              "merge_continue",
+              "seal"
+            ],
+            "type": "string"
+          },
+          "check_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "completed_at": {
+            "format": "date-time",
+            "maxLength": 35,
+            "pattern": "Z$",
+            "type": "string"
+          },
+          "effect_operation_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "error_code": {
+            "pattern": "^[a-z][a-z0-9_]{0,79}$",
+            "type": "string"
+          },
+          "event_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "exit_code": {
+            "maximum": 2147483647,
+            "minimum": -2147483648,
+            "type": "integer"
+          },
+          "generation_after": {
+            "maximum": 2048,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "generation_before": {
+            "maximum": 2048,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "operation_id": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "type": "string"
+          },
+          "path": {
+            "description": "Optional validated normalized relative locator; absent for root or unsafe arguments. Never a file-open capability.",
+            "maxLength": 1024,
+            "minLength": 1,
+            "type": "string"
+          },
+          "phase": {
+            "enum": [
+              "started",
+              "completed",
+              "failed",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "policy_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "profile_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "protocol": {
+            "const": "suma-workspace-operation-v1",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "maxLength": 35,
+            "pattern": "Z$",
+            "type": "string"
+          },
+          "replayed": {
+            "type": "boolean"
+          },
+          "request_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "result_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "revision": {
+            "enum": [
+              1,
+              2
+            ],
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": 1,
+            "type": "integer"
+          },
+          "sequence": {
+            "maximum": 4096,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "source": {
+            "const": "go_workspace_host",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "maxLength": 35,
+            "pattern": "Z$",
+            "type": "string"
+          },
+          "stopped": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "protocol",
+          "source",
+          "schema_version",
+          "event_id",
+          "sequence",
+          "operation_id",
+          "revision",
+          "action",
+          "phase",
+          "generation_before",
+          "generation_after",
+          "started_at",
+          "recorded_at",
+          "request_sha256",
+          "policy_sha256",
+          "profile_sha256"
+        ],
+        "type": "object",
+        "x-max-utf8-bytes": 4096
       },
       "WorkspaceTreeEntry": {
         "properties": {
@@ -56699,6 +57075,7 @@
     },
     "/pool-runner/progress": {
       "post": {
+        "description": "Authenticated original-assignment progress: SDK output/activity or a distinct, closed Go workspace-host transition. Host operation_id equals host_operation.event_id. Current credentials, profile and original attempt scope are checked before receipt recovery. Duplicate original facts recover the same receipt; changed bodies conflict. Host tracing never completes a node, grants a retry, or changes test/approval authority.",
         "operationId": "post_pool-runner_progress",
         "parameters": [
           {
@@ -56724,7 +57101,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PoolRunnerProgressRequest"
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/PoolRunnerProgressRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PoolHostOperationProgressRequest"
+                  }
+                ]
               }
             }
           },
@@ -74602,7 +74986,7 @@
     },
     "/runner/progress": {
       "post": {
-        "description": "Durable current-attempt output or bounded typed tool fact. Current worker identity and scope are checked before both new events and receipt replay. Emits node_progress or tool_progress; external completion, tokens and waiting-input observations never imply DAG success, business acceptance or release approval.",
+        "description": "Authenticated original-assignment progress: SDK output/activity or a distinct, closed Go workspace-host transition. Host operation_id equals host_operation.event_id. Current credentials, profile and original attempt scope are checked before receipt recovery. Duplicate original facts recover the same receipt; changed bodies conflict. Host tracing never completes a node, grants a retry, or changes test/approval authority.",
         "operationId": "post_runner_progress",
         "parameters": [
           {
@@ -74636,7 +75020,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RunnerProgressRequest"
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/RunnerProgressRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/HostOperationProgressRequest"
+                  }
+                ]
               }
             }
           },

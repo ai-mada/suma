@@ -123,9 +123,9 @@ func (n *nativeWorkspace) remoteWriteBarrierLocked(c wwc.Command, code string) b
 func ExecuteWorkspaceWrite(ctx context.Context, registry *WorkspaceObservationRegistry, lease wwc.Lease) wwc.ResultRequest {
 	return executeWorkspaceWrite(ctx, registry, lease, true)
 }
-func executeWorkspaceWrite(ctx context.Context, registry *WorkspaceObservationRegistry, lease wwc.Lease, allowApply bool) wwc.ResultRequest {
+func executeWorkspaceWrite(ctx context.Context, registry *WorkspaceObservationRegistry, lease wwc.Lease, allowApply bool) (result wwc.ResultRequest) {
 	c := lease.Command
-	result := wwc.ResultRequest{ProjectID: c.ProjectID, WorkerID: c.Scope.WorkerID, CommandID: c.ID, Scope: c.Scope, WorkspacePolicySHA256: c.WorkspacePolicySHA256, RequestSHA256: c.RequestSHA256, ExecutionFence: c.ExecutionFence, ClaimID: lease.ClaimID, Mode: lease.Mode, OperationID: operationID()}
+	result = wwc.ResultRequest{ProjectID: c.ProjectID, WorkerID: c.Scope.WorkerID, CommandID: c.ID, Scope: c.Scope, WorkspacePolicySHA256: c.WorkspacePolicySHA256, RequestSHA256: c.RequestSHA256, ExecutionFence: c.ExecutionFence, ClaimID: lease.ClaimID, Mode: lease.Mode, OperationID: operationID()}
 	finish := func(outcome, code string, effect *wwc.Effect) wwc.ResultRequest {
 		result.Outcome, result.ErrorCode, result.Effect = outcome, code, effect
 		result.ObservedAt = time.Now().UTC().Format(time.RFC3339Nano)
@@ -194,13 +194,36 @@ func executeWorkspaceWrite(ctx context.Context, registry *WorkspaceObservationRe
 		}
 		return unknown()
 	}
+	// The live remote-write channel shares file receipts but does not enter
+	// MCP. Capture its actual admission/CAS call once here; inspection and
+	// original-receipt recovery above remain read-only recovery operations.
+	argsRaw, _ := json.Marshal(map[string]any{"path": c.Path, "content": *lease.Content, "expected_sha256": c.ExpectedSHA256})
+	args, argsErr := nativeArguments("write", argsRaw)
+	trace, traceErr := native.beginTraceLocked("write", argsRaw, args, id)
+	if traceErr != nil {
+		return noEffect(writeErrorCode(traceErr))
+	}
+	defer func() {
+		var traceResult any
+		var traceError error
+		switch result.Outcome {
+		case "applied":
+			traceResult = result.Effect
+		case "not_applied":
+			traceError = &NativeWorkspaceError{Code: "native_workspace_remote_" + result.ErrorCode, Message: "Remote workspace write was not applied."}
+		default:
+			traceError = nativeError("native_workspace_unknown")
+		}
+		// Preserve the original remote admission receipt even if progress
+		// delivery fails after the effect. The trace's unavailable flag blocks
+		// sealing; it never rewrites an applied effect into a new operation.
+		_ = native.endTraceLocked(trace, traceResult, traceError)
+	}()
 	if err := guard(); err != nil {
 		return noEffect(err.(*remoteWriteGuardError).code)
 	}
-	argsRaw, _ := json.Marshal(map[string]any{"path": c.Path, "content": *lease.Content, "expected_sha256": c.ExpectedSHA256})
-	args, err := nativeArguments("write", argsRaw)
-	if err != nil {
-		return noEffect(writeErrorCode(err))
+	if argsErr != nil {
+		return noEffect(writeErrorCode(argsErr))
 	}
 	previous, exists, err := nativeReadBytes(native.root, c.Path)
 	if err != nil {

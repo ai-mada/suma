@@ -37,6 +37,7 @@ type nativeWorkspaceLedger struct {
 	Files      map[string]NativeWorkspaceFileEffect  `json:"files"`
 	Checks     map[string]NativeWorkspaceCheckResult `json:"checks"`
 	Operations map[string]*nativeWorkspaceOperation  `json:"operations"`
+	Trace      nativeWorkspaceTrace                  `json:"trace"`
 }
 
 func (n *nativeWorkspace) saveLedger() error {
@@ -63,7 +64,7 @@ func (n *nativeWorkspace) loadLedger() error {
 		if e != nil {
 			return e
 		}
-		n.ledger = nativeWorkspaceLedger{Version: 1, Assignment: n.assignment, PolicySHA: n.policySHA, Initial: initial, Files: map[string]NativeWorkspaceFileEffect{}, Checks: map[string]NativeWorkspaceCheckResult{}, Operations: map[string]*nativeWorkspaceOperation{}}
+		n.ledger = nativeWorkspaceLedger{Version: 1, Assignment: n.assignment, PolicySHA: n.policySHA, Initial: initial, Files: map[string]NativeWorkspaceFileEffect{}, Checks: map[string]NativeWorkspaceCheckResult{}, Operations: map[string]*nativeWorkspaceOperation{}, Trace: nativeWorkspaceTrace{Version: 1, ProfileSHA256: n.traceProfileSHA, Calls: []nativeWorkspaceInvocation{}}}
 		return n.saveLedger()
 	}
 	if err != nil {
@@ -73,7 +74,7 @@ func (n *nativeWorkspace) loadLedger() error {
 	if err != nil {
 		return nativeError("native_workspace_unavailable")
 	}
-	if _, err = decodeToolObject(raw); err != nil {
+	if _, err = decodeToolObjectBounded(raw, 1<<20); err != nil {
 		return nativeError("native_workspace_scope")
 	}
 	if json.Unmarshal(raw, &n.ledger) != nil || n.ledger.Version != 1 || n.ledger.PolicySHA != n.policySHA || n.ledger.Generation < 0 || n.ledger.Initial == nil || n.ledger.Files == nil || n.ledger.Checks == nil || n.ledger.Operations == nil {
@@ -83,6 +84,12 @@ func (n *nativeWorkspace) loadLedger() error {
 	current, _ := json.Marshal(n.assignment)
 	if string(stored) != string(current) {
 		return nativeError("native_workspace_scope")
+	}
+	if err := validateNativeTrace(n.assignment, n.policySHA, n.ledger.Trace); err != nil {
+		return nativeError("native_workspace_scope")
+	}
+	if calls := n.ledger.Trace.Calls; len(calls) > 0 && calls[len(calls)-1].Terminal == nil {
+		n.ledger.Unknown = true
 	}
 	for id, op := range n.ledger.Operations {
 		if op == nil || id != op.ID || !nativeOperationID(id) || !evidenceHash.MatchString(op.RequestSHA) || op.Generation < 0 {

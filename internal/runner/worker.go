@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	wc "github.com/ai-mada/suma/internal/workspaceoperationcontract"
 	"sync"
 	"time"
 )
@@ -166,6 +167,16 @@ func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Dura
 	}
 	cfg.ToolProgress = func(event tc.Event) error {
 		if err := w.Journal.RecordToolProgress(a, event); err != nil {
+			return err
+		}
+		select {
+		case progress <- struct{}{}:
+		default:
+		}
+		return nil
+	}
+	cfg.WorkspaceProgress = func(event wc.Event) error {
+		if err := w.Journal.RecordWorkspaceProgress(a, event); err != nil {
 			return err
 		}
 		select {

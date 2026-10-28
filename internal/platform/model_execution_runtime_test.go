@@ -14,8 +14,10 @@ import (
 	"testing"
 
 	"github.com/ai-mada/suma/internal/modelcontract"
+	nwc "github.com/ai-mada/suma/internal/nativeworkspacecontract"
 	"github.com/ai-mada/suma/internal/runner"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	wo "github.com/ai-mada/suma/internal/workspaceoperationcontract"
 )
 
 // One representative end-to-end execution. Authentication, fixed preview,
@@ -119,6 +121,32 @@ func TestModelExecutionCurrentPreviewActualRuntimeAndUsageLedger(t *testing.T) {
 		t.Fatal("real HTTP claim did not return the frozen assignment", err)
 	}
 	cfg.ToolInventory = inventory
+	// The actual parent seal traverses the same durable host outbox and HTTP
+	// contract as ordinary workspace calls. No second model run is needed to
+	// establish its source/attempt identity and historical receipt recovery.
+	journal, err := runner.OpenJournal(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer journal.Close()
+	if err = journal.Accept(*assignment); err != nil {
+		t.Fatal(err)
+	}
+	cfg.Journal = journal
+	hostEvents := []wo.Event{}
+	cfg.WorkspaceProgress = func(event wo.Event) error {
+		if err := journal.RecordWorkspaceProgress(*assignment, event); err != nil {
+			return err
+		}
+		if err := client.Progress(ctx, runner.Progress{Assignment: *assignment, OperationID: event.EventID, HostOperation: &event}); err != nil {
+			return err
+		}
+		if err := journal.AckProgress(event.EventID); err != nil {
+			return err
+		}
+		hostEvents = append(hostEvents, wo.CloneEvent(event))
+		return nil
+	}
 	result := runner.Execute(ctx, *assignment, cfg)
 	result.OperationID = newID()
 	if result.ExitCode != 0 || result.Error != "" || result.OutcomeUnknown || result.ToolEvidence == nil || result.ToolEvidence.UsageState != tc.UsageComplete || result.ToolEvidence.ModelExecution == nil {
@@ -131,6 +159,24 @@ func TestModelExecutionCurrentPreviewActualRuntimeAndUsageLedger(t *testing.T) {
 	if err = client.Complete(ctx, result); err != nil {
 		t.Fatal("original result callback rejected actual runtime evidence", err)
 	}
+	var workspaceEvidence nwc.NativeWorkspaceEvidence
+	workspaceJSON, _ := json.Marshal(result.WorkspaceEvidence["native_workspace"])
+	if err = json.Unmarshal(workspaceJSON, &workspaceEvidence); err != nil {
+		t.Fatal(err)
+	}
+	if len(hostEvents) != 2 || hostEvents[0].Action != "seal" || hostEvents[1].Phase != "completed" || workspaceEvidence.OperationTrace == nil || workspaceEvidence.OperationTrace.InvocationCount != 1 || workspaceEvidence.OperationTrace.RecordCount != 2 || len(journal.PendingProgress()) != 0 {
+		t.Fatal("actual parent seal trace differs from its durable outbox and result", hostEvents, workspaceEvidence)
+	}
+	// A completed attempt can acknowledge the original fact again without
+	// changing its result. The browser history reads those original envelopes.
+	if err = client.Progress(ctx, runner.Progress{Assignment: *assignment, OperationID: hostEvents[1].EventID, HostOperation: &hostEvents[1]}); err != nil {
+		t.Fatal("original post-completion host receipt rejected", err)
+	}
+	history := f.call("GET", "/runs/"+assignment.RunID+"/nodes/"+assignment.NodeID+"/attempts/1/tool-events?project_id="+f.project, nil, 200)
+	if len(history["items"].([]any)) != 2 {
+		t.Fatal("actual host calls were lost or replayed twice", history)
+	}
+	t.Logf("workspace_operation_runtime_receipt=%s", stringify(map[string]any{"actual_native_process": true, "owned_model_requests": calls, "host_action": "seal", "host_invocations": 1, "host_records": 2, "http_progress_acked": 2, "post_completion_receipt_recovered": true, "exact_attempt_history_records": 2, "local_capture": workspaceEvidence.OperationTrace, "events": hostEvents}))
 	attempts, err := f.s.ListUsageAttempts(ctx, f.actor, f.project, "", "", 100, "")
 	if err != nil || len(attempts.Items) != 1 {
 		t.Fatal("actual model accounting missing", err)
@@ -145,5 +191,5 @@ func TestModelExecutionCurrentPreviewActualRuntimeAndUsageLedger(t *testing.T) {
 	retained, _ := json.Marshal(map[string]any{"run_id": assignment.RunID, "node_id": assignment.NodeID, "attempt": assignment.Attempt, "fence": assignment.Fence, "profile_sha256": profile.Profile.ProfileSHA256, "binding": binding, "model_execution": receipt, "usage_attempt_id": accounting.ID, "reported_tokens": accounting.ReportedTokens, "estimated_cost_micros": accounting.EstimatedCostMicros, "currency": "CNY", "state": accounting.State, "held_tokens": accounting.HeldTokens, "held_cost_micros": accounting.HeldCostMicros})
 	t.Logf("model_execution_ledger_receipt=%s", retained)
 	t.Logf("one current-actor preview/start, one real HTTP claim, one actual native bundle/MCP process, one owned model protocol response, exact request/response/binding hashes, 40 tokens / 57 CNY micros settled; independent formal task tests and acceptance remain pending")
-	holdActualModelGatewayUI(t, f, map[string]any{"run_id": assignment.RunID, "node_id": assignment.NodeID, "task_id": task["id"], "plan_id": plan["id"], "tool_profile_id": profile.ID, "usage_attempt_id": accounting.ID, "source_model_requests": calls, "reported_tokens": accounting.ReportedTokens, "estimated_cost_micros": accounting.EstimatedCostMicros, "currency": "CNY"})
+	holdActualModelGatewayUI(t, f, map[string]any{"stage": "T-WORKSPACE-120", "host_invocations": 1, "host_records": 2, "run_id": assignment.RunID, "node_id": assignment.NodeID, "task_id": task["id"], "plan_id": plan["id"], "tool_profile_id": profile.ID, "usage_attempt_id": accounting.ID, "source_model_requests": calls, "reported_tokens": accounting.ReportedTokens, "estimated_cost_micros": accounting.EstimatedCostMicros, "currency": "CNY"})
 }

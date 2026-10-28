@@ -184,6 +184,45 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			respond(w, 200, map[string]bool{"cancel_requested": false}, err)
 		}
 	case "pool-runner/progress":
+		raw, readErr := io.ReadAll(io.LimitReader(r.Body, (2<<20)+1))
+		if readErr != nil || len(raw) > 2<<20 {
+			writeError(w, invalid("Invalid Go workspace operation progress"))
+			break
+		}
+		r.Body = io.NopCloser(bytes.NewReader(raw))
+		var fields map[string]json.RawMessage
+		if json.Unmarshal(raw, &fields) != nil {
+			writeError(w, invalid("机器请求字段无效"))
+			break
+		}
+		if _, host := fields["host_operation"]; host {
+			var request PoolHostOperationProgressRequest
+			if len(fields) != 6 {
+				writeError(w, invalid("Invalid Go workspace operation progress"))
+				break
+			}
+			if err := decode(&request); err != nil {
+				writeError(w, err)
+				break
+			}
+			if err := validatePoolEnvelope(request.PoolRunnerAssignmentRequest); err != nil {
+				writeError(w, err)
+				break
+			}
+			if request.OperationID != request.HostOperation.EventID {
+				writeError(w, invalid("Invalid Go workspace operation progress"))
+				break
+			}
+			err := s.Engine.HostOperationProgressWithAuthority(r.Context(), request.Assignment.TenantID, request.Assignment.ProjectID, request.Assignment, request.OperationID, request.HostOperation, func(tx *sql.Tx) error {
+				proof, err := s.Service.PoolRunnerAssignmentAuthorityTx(r.Context(), tx, token, request.Assignment)
+				if err != nil {
+					return err
+				}
+				return s.Service.ValidatePoolHostOperationProgressTx(r.Context(), tx, proof, request.Assignment, request.HostOperation)
+			})
+			respond(w, 200, map[string]bool{"acknowledged": err == nil}, err)
+			break
+		}
 		var req PoolRunnerProgressRequest
 		if err := decode(&req); err != nil {
 			writeError(w, err)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	wc "github.com/ai-mada/suma/internal/workspaceoperationcontract"
 	"net/http"
 	"sort"
 	"strconv"
@@ -41,20 +42,24 @@ func nativeError(code string) error {
 		"native_workspace_check_changed":      "Workspace check changed source files.",
 		"native_workspace_checks_stale":       "Required workspace checks have not passed for current source.",
 		"native_workspace_cursor":             "Workspace list cursor is invalid or stale.",
+		"native_workspace_trace_limit":        "Workspace operation history reached its bounded capacity.",
 		"native_workspace_merge_unresolved":   "Resolve every active conflict before continuing the fixed merge.",
 		"native_workspace_merge_incomplete":   "All frozen sources must be processed before sealing.",
 	}
-	fatal := code == "native_workspace_scope" || code == "native_workspace_closed" || code == "native_workspace_unavailable" || code == "native_workspace_operation_conflict" || code == "native_workspace_unknown" || code == "native_workspace_check_changed"
+	fatal := code == "native_workspace_scope" || code == "native_workspace_closed" || code == "native_workspace_unavailable" || code == "native_workspace_operation_conflict" || code == "native_workspace_unknown" || code == "native_workspace_check_changed" || code == "native_workspace_trace_limit"
 	return &NativeWorkspaceError{Code: code, Message: messages[code], Fatal: fatal}
 }
 
 type nativeWorkspace struct {
 	*liveWorkspaceRead
-	check    nativeWorkspaceCheck
-	checkIDs []string
-	ledger   nativeWorkspaceLedger
-	server   *http.Server
-	bridge   NativeWorkspaceBridge
+	check           nativeWorkspaceCheck
+	checkIDs        []string
+	ledger          nativeWorkspaceLedger
+	server          *http.Server
+	bridge          NativeWorkspaceBridge
+	traceProfileSHA string
+	traceProgress   func(wc.Event) error
+	traceJournal    *Journal
 }
 
 func openNativeWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, w *attemptWorkspace, spec CommandSpec, profileSHA string, check nativeWorkspaceCheck) (*nativeWorkspace, error) {
@@ -65,7 +70,7 @@ func openNativeWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, w *a
 	if err != nil {
 		return nil, err
 	}
-	n := &nativeWorkspace{liveWorkspaceRead: reader, check: check}
+	n := &nativeWorkspace{liveWorkspaceRead: reader, check: check, traceProfileSHA: profileSHA, traceProgress: cfg.WorkspaceProgress, traceJournal: cfg.Journal}
 	seen := map[string]bool{}
 	for _, id := range spec.NativeWorkspace.Checks {
 		if id == "" || seen[id] {
@@ -79,6 +84,12 @@ func openNativeWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, w *a
 	if err = n.loadLedger(); err != nil {
 		_ = reader.Close()
 		return nil, err
+	}
+	if n.traceJournal != nil {
+		if err = n.traceJournal.attachWorkspaceTrace(a, n.workspace.Directory, n.policySHA, profileSHA); err != nil {
+			_ = reader.Close()
+			return nil, nativeError("native_workspace_unavailable")
+		}
 	}
 	return n, nil
 }
@@ -120,7 +131,7 @@ func (n *nativeWorkspace) Evidence() NativeWorkspaceEvidence {
 	if n.ledger.Unknown {
 		state = "unknown"
 	}
-	e := NativeWorkspaceEvidence{SchemaVersion: 1, PolicySHA256: n.policySHA, Generation: n.ledger.Generation, State: state, Files: []NativeWorkspaceFileEffect{}, Checks: []NativeWorkspaceCheckResult{}}
+	e := NativeWorkspaceEvidence{SchemaVersion: 1, PolicySHA256: n.policySHA, Generation: n.ledger.Generation, State: state, Files: []NativeWorkspaceFileEffect{}, Checks: []NativeWorkspaceCheckResult{}, OperationTrace: n.traceCoverageLocked()}
 	for _, effect := range n.ledger.Files {
 		e.Files = append(e.Files, effect)
 	}
@@ -135,6 +146,12 @@ func (n *nativeWorkspace) Evidence() NativeWorkspaceEvidence {
 func (n *nativeWorkspace) ReadyToSeal() error {
 	n.mu.Lock()
 	defer n.mu.Unlock()
+	return n.readyToSealLocked()
+}
+func (n *nativeWorkspace) readyToSealLocked() error {
+	if n.ledger.Trace.Unavailable {
+		return nativeError("native_workspace_unavailable")
+	}
 	if n.ledger.Unknown {
 		return nativeError("native_workspace_unknown")
 	}
@@ -154,20 +171,28 @@ func (n *nativeWorkspace) ReadyToSeal() error {
 	return nil
 }
 
-func (n *nativeWorkspace) invoke(ctx context.Context, name string, raw json.RawMessage, operationID string) (any, error) {
+func (n *nativeWorkspace) invoke(ctx context.Context, name string, raw json.RawMessage, operationID string) (result any, callErr error) {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	if err := n.activeLocked(ctx); err != nil {
 		return nil, err
 	}
+	args, err := nativeArguments(name, raw)
+	trace, traceErr := n.beginTraceLocked(name, raw, args, operationID)
+	if traceErr != nil {
+		return nil, traceErr
+	}
+	defer func() {
+		if endErr := n.endTraceLocked(trace, result, callErr); endErr != nil {
+			result, callErr = nil, endErr
+		}
+	}()
 	if strings.HasPrefix(operationID, "remote-write:") {
 		return nil, nativeError("native_workspace_operation")
 	}
-	args, err := nativeArguments(name, raw)
 	if err != nil {
 		return nil, err
 	}
-	var result any
 	switch name {
 	case "list":
 		result, err = n.listLocked(args)

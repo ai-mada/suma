@@ -1,9 +1,13 @@
 package main
 
-import nwc "github.com/ai-mada/suma/internal/nativeworkspacecontract"
+import (
+	nwc "github.com/ai-mada/suma/internal/nativeworkspacecontract"
+	"github.com/ai-mada/suma/internal/platform"
+	wo "github.com/ai-mada/suma/internal/workspaceoperationcontract"
+)
 
 func nativeWorkspaceModels() []any {
-	return []any{nwc.NativeWorkspaceEvidence{}, nwc.NativeWorkspaceCheckResult{}, nwc.NativeWorkspaceFileEffect{}, nwc.NativeWorkspaceSeal{}}
+	return []any{nwc.NativeWorkspaceEvidence{}, nwc.NativeWorkspaceCheckResult{}, nwc.NativeWorkspaceFileEffect{}, nwc.NativeWorkspaceSeal{}, wo.Event{}, wo.Coverage{}, platform.HostOperationProgressRequest{}, platform.PoolHostOperationProgressRequest{}}
 }
 
 func nativeWorkspaceSchemas(api map[string]any) {

@@ -95,10 +95,22 @@ func (c *Client) Complete(ctx context.Context, r Result) error {
 	return c.post(ctx, "results", map[string]any{"project_id": c.ProjectID, "result": r}, nil)
 }
 func (c *Client) Progress(ctx context.Context, p Progress) error {
+	if p.HostOperation != nil {
+		if p.Message != "" || p.ToolEvent != nil {
+			return fmt.Errorf("workspace operation cannot mix SDK progress")
+		}
+		return c.post(ctx, "progress", map[string]any{"project_id": c.ProjectID, "assignment": p.Assignment, "operation_id": p.OperationID, "host_operation": p.HostOperation}, nil)
+	}
 	return c.post(ctx, "progress", map[string]any{"project_id": c.ProjectID, "assignment": p.Assignment, "operation_id": p.OperationID, "message": p.Message, "tool_event": p.ToolEvent}, nil)
 }
 func ReplayProgress(ctx context.Context, c *Client, j *Journal) error {
+	if err := drainWorkspaceProgress(ctx, j, c.Progress); err != nil {
+		return err
+	}
 	for _, p := range j.PendingProgress() {
+		if p.HostOperation != nil {
+			continue
+		}
 		if err := c.Progress(ctx, p); err != nil {
 			return err
 		}
@@ -109,6 +121,9 @@ func ReplayProgress(ctx context.Context, c *Client, j *Journal) error {
 	return nil
 }
 func Replay(ctx context.Context, c *Client, j *Journal) error {
+	if err := drainWorkspaceProgress(ctx, j, c.Progress); err != nil {
+		return err
+	}
 	if err := ReplayCandidates(ctx, c, j); err != nil {
 		return err
 	}

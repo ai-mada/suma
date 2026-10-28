@@ -398,7 +398,8 @@ export function toolFactsForAttempt(
       event.node_id !== target.id ||
       event.data?.attempt !== target.attempt ||
       event.data?.fence !== target.fence ||
-      event.data?.worker_id !== target.worker_id
+      event.data?.worker_id !== target.worker_id ||
+      Object.hasOwn(event.data || {}, 'host_operation')
     )
       return [];
     const fact = event.data!.tool_event as ToolEvent | undefined;

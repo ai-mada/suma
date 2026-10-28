@@ -21,6 +21,11 @@ func holdActualModelGatewayUI(t *testing.T, f *fixture, metadata map[string]any)
 		t.Fatal(err)
 	}
 	owned := filepath.Join(repository, ".cache", "e2e", "model-118")
+	stage := "T-MODEL-118"
+	if metadata["stage"] == "T-WORKSPACE-120" {
+		owned = filepath.Join(repository, ".cache", "e2e", "workspace-120")
+		stage = "T-WORKSPACE-120"
+	}
 	directory, err = filepath.Abs(directory)
 	if err != nil || !under(owned, directory) {
 		t.Fatal("model GUI receipts must stay inside the owned stage")
@@ -44,9 +49,9 @@ func holdActualModelGatewayUI(t *testing.T, f *fixture, metadata map[string]any)
 	defer server.Close()
 	private := map[string]any{"base": origin, "email": "owner@example.test", "password": "test-password-strong-42", "project_id": f.project, "metadata": metadata}
 	modelSelectionGUIJSON(t, filepath.Join(directory, "context.private.json"), private)
-	modelSelectionGUIJSON(t, filepath.Join(directory, "ready.public.json"), map[string]any{"stage": "T-MODEL-118", "base": origin, "project_id": f.project, "metadata": metadata, "kind": "actual_native_gateway_and_ledger", "new_model_requests_during_ui": 0, "before": before})
+	modelSelectionGUIJSON(t, filepath.Join(directory, "ready.public.json"), map[string]any{"stage": stage, "base": origin, "project_id": f.project, "metadata": metadata, "kind": "actual_native_gateway_and_ledger", "new_model_requests_during_ui": 0, "before": before})
 	t.Logf("owned actual gateway UI ready: %s", origin)
-	deadline := time.NewTimer(15 * time.Minute)
+	deadline := time.NewTimer(5 * time.Minute)
 	defer deadline.Stop()
 	tick := time.NewTicker(300 * time.Millisecond)
 	defer tick.Stop()
@@ -74,5 +79,5 @@ waiting:
 		t.Fatal("retain owned actual database snapshot", err)
 	}
 	data, _ := json.Marshal(metadata)
-	modelSelectionGUIJSON(t, filepath.Join(directory, "closed.public.json"), map[string]any{"stage": "T-MODEL-118", "status": "closed_without_new_execution", "metadata": json.RawMessage(data), "counts_unchanged": true, "before": before, "after": after, "database_snapshot": "actual.sqlite", "closed_at": time.Now().UTC().Format(time.RFC3339Nano)})
+	modelSelectionGUIJSON(t, filepath.Join(directory, "closed.public.json"), map[string]any{"stage": stage, "status": "closed_without_new_execution", "metadata": json.RawMessage(data), "counts_unchanged": true, "before": before, "after": after, "database_snapshot": "actual.sqlite", "closed_at": time.Now().UTC().Format(time.RFC3339Nano)})
 }

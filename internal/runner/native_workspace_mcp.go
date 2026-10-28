@@ -115,6 +115,14 @@ func (n *nativeWorkspace) StartMCP() (NativeWorkspaceBridge, error) {
 				}
 				name := strings.TrimPrefix(call.Params.Name, "suma_workspace_")
 				if _, err := nativeArguments(name, call.Params.Arguments); err != nil {
+					// Invalid known-tool arguments are real refused invocations too.
+					// Observe them through the same host-only durable trace instead
+					// of losing them before the typed SDK tool handler is reached.
+					id, _ := call.Params.GetMeta()["suma/operation_id"].(string)
+					_, observed := n.invoke(ctx, name, call.Params.Arguments, id)
+					if observed != nil {
+						err = observed
+					}
 					return nativeWorkspaceMCPError(err), nil
 				}
 			}

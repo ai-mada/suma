@@ -26,7 +26,7 @@ func nativeSealFixture(t *testing.T, attributes ...string) (*attemptWorkspace, N
 	}
 	gitTest(t, repo, "commit", "-m", "native seal fixture")
 	base := strings.TrimSpace(gitTest(t, repo, "rev-parse", "HEAD"))
-	a := Assignment{RunID: "native-seal-run", NodeID: "code", Attempt: 1, Fence: 7, WorkerID: "native-worker", Type: "agent", Command: []string{"native"}}
+	a := Assignment{TenantID: "tenant", ProjectID: "project", RunID: "native-seal-run", NodeID: "code", Attempt: 1, Fence: 7, WorkerID: "native-worker", Type: "agent", Command: []string{"native"}, Config: map[string]any{"tool_profile_sha256": strings.Repeat("a", 64)}}
 	w, err := prepareWorkspace(context.Background(), a, ExecConfig{Repository: repo, BaseCommit: base}, CommandSpec{})
 	if err != nil {
 		t.Fatal(err)

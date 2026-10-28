@@ -60,7 +60,7 @@ func conflictRepairFixture(t *testing.T, count int, firstConflict ...int) (*nati
 	if json.Unmarshal(raw, &facts) != nil || facts.ConflictTree == "" || len(facts.ConflictStages) != 3 {
 		t.Fatalf("missing genuine original stages: %s", raw)
 	}
-	assignment := Assignment{RunID: "repair-run", NodeID: "repair", WorkerID: "repairer", Type: "agent", Command: []string{"native"}, Attempt: 1, Fence: 2, Config: map[string]any{"goal": "Resolve the fixed sources."}}
+	assignment := Assignment{TenantID: "tenant", ProjectID: "project", RunID: "repair-run", NodeID: "repair", WorkerID: "repairer", Type: "agent", Command: []string{"native"}, Attempt: 1, Fence: 2, Config: map[string]any{"goal": "Resolve the fixed sources."}}
 	assignment.CandidateConflictRepair = &ccc.CandidateConflictRepairExecution{Protocol: ccc.CandidateConflictRepairProtocol, PlanID: "repair-plan", PlanVersion: 1, ProjectID: "project", CompositionID: original.CandidateComposition.PlanID, CompositionVersion: 2, OriginalAssignment: candidateRef(original), OriginalEvidenceSHA256: digest(raw), Composition: *original.CandidateComposition, Conflict: facts, Instructions: "Resolve each fixed conflict and preserve later sources.", FixedTimestamp: "2026-10-27T01:00:00Z", OperationID: "repair-operation"}
 	if err := ccc.ValidateCandidateConflictRepairExecution(*assignment.CandidateConflictRepair); err != nil {
 		t.Fatal(err)
@@ -183,7 +183,7 @@ func TestCandidateConflictRepairRealGitSixteenSourcesAndSecondConflict(t *testin
 	}
 	consumer := filepath.Join(t.TempDir(), "independent")
 	gitTest(t, w.Repository, "clone", "--no-local", w.Repository, consumer)
-	testAssignment := Assignment{RunID: w.Assignment.RunID, NodeID: "formal-test", WorkerID: "independent", Type: "test", Command: []string{"verify"}, Attempt: 1, Fence: 3, Config: map[string]any{"candidate_from": w.Assignment.NodeID}, CandidateFrom: w.Assignment.NodeID, CandidateCommit: seal.Commit, CandidateAttempt: 1, CandidateFence: 2, CandidateEvidenceSHA256: f.binding.EvidenceSHA256}
+	testAssignment := Assignment{TenantID: "tenant", ProjectID: "project", RunID: w.Assignment.RunID, NodeID: "formal-test", WorkerID: "independent", Type: "test", Command: []string{"verify"}, Attempt: 1, Fence: 3, Config: map[string]any{"candidate_from": w.Assignment.NodeID}, CandidateFrom: w.Assignment.NodeID, CandidateCommit: seal.Commit, CandidateAttempt: 1, CandidateFence: 2, CandidateEvidenceSHA256: f.binding.EvidenceSHA256}
 	exe, _ := os.Executable()
 	testCfg := ExecConfig{AllowExec: true, Repository: consumer, Workspace: consumer, BaseCommit: cfg.BaseCommit, Artifacts: cfg.Artifacts, Commands: map[string]CommandSpec{"verify": {Executable: exe, Args: []string{"-test.run=TestCandidateConflictRepairProcessHelper", "--"}, Env: map[string]string{"SUMA_REPAIR_HELPER": "yes"}, TestEvidence: true}}}
 	tested := Execute(context.Background(), testAssignment, testCfg)
