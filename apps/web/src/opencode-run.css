@@ -1,0 +1,22 @@
+/* Reuse the workbench's theme/status tokens. Original evidence remains a
+ * native disclosure; longer identifiers wrap without widening the inspector. */
+.opencode-run{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:8px;background:var(--surface);min-width:0}
+.opencode-run-heading{align-items:flex-start;flex-wrap:wrap;gap:8px}
+.opencode-run-heading h5{margin:0;font-size:12px;line-height:1.6;font-weight:600}
+.opencode-run-heading .badge{flex-shrink:0;white-space:normal;text-align:left;line-height:1.5}
+.opencode-run>strong{font-size:12px;line-height:1.65;overflow-wrap:anywhere}
+.opencode-run p{margin:0;font-size:11px;line-height:1.75;overflow-wrap:anywhere}
+.opencode-run details{margin:0;padding-top:9px;border-top:1px solid var(--border);min-width:0}
+.opencode-run summary{min-height:30px;line-height:1.7;font-size:11px;display:list-item;cursor:pointer;overflow-wrap:anywhere}
+.opencode-run summary:focus-visible,.opencode-run-tests button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.opencode-run details[open]>p{margin-top:10px}
+.opencode-run dl{display:grid;grid-template-columns:minmax(90px,.8fr) minmax(0,1.2fr);column-gap:12px;row-gap:8px;margin:10px 0 0;min-width:0}
+.opencode-run dl dt,.opencode-run dl dd{margin:0;font-size:11px;line-height:1.65;overflow-wrap:anywhere;min-width:0}
+.opencode-run dl dt{color:var(--muted);font-weight:400}
+.opencode-run dl code{font-size:10px;line-height:1.7;overflow-wrap:anywhere}
+.opencode-run-verification h5{margin:12px 0 8px;font-size:11px}
+.opencode-run-tests{gap:6px;margin-top:9px}
+.opencode-run-tests>button{display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;text-align:left;min-width:0;background:var(--surface-soft);border:1px solid var(--border);border-radius:5px;white-space:normal}
+.opencode-run-tests>button>span:first-child{flex:1;min-width:0;overflow-wrap:anywhere;line-height:1.6}
+.opencode-run-tests>button>.badge,.opencode-run-tests>button>svg{flex-shrink:0}
+@media(max-width:600px){.opencode-run{padding:12px}.opencode-run dl{grid-template-columns:minmax(0,1fr);row-gap:3px}.opencode-run dl dt:not(:first-child){margin-top:8px}.opencode-run summary,.opencode-run-tests>button{min-height:44px}.opencode-run-tests>button{flex-wrap:wrap}}

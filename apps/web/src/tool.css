@@ -1,3 +1,4 @@
+@import "./opencode-run.css";
 .tool-workspace,
 .tool-dispatch {
   display: grid;

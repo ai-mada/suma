@@ -10,7 +10,7 @@ import (
 
 const openCodeReadyFixture = `{"v":1,"type":"ready","request_id":"req-104","sdk_version":"1.19.4","server_version":"1.19.4","configuration_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","provider_id":"local104","model":"coding104"}`
 const openCodeStartedFixture = `{"v":1,"type":"started","request_id":"req-104","session_id":"ses_104","user_message_id":"msg_user104"}`
-const openCodeCompletedFixture = `{"v":1,"type":"completed","request_id":"req-104","session_id":"ses_104","user_message_id":"msg_user104","assistant_message_id":"msg_assistant104","provider_id":"local104","model":"coding104","finish":"stop","completed_at":"2026-10-28T00:00:00Z","server_stopped":true,"usage_state":"unreported"}`
+const openCodeCompletedFixture = `{"v":1,"type":"completed","request_id":"req-104","session_id":"ses_104","user_message_id":"msg_user104","assistant_message_id":"msg_assistant104","provider_id":"local104","model":"coding104","finish":"stop","completed_at":"2026-10-28T00:00:00Z","server_parent_stopped":true,"usage_state":"unreported"}`
 
 func openCodeFixtureProfile(t *testing.T) tc.Profile {
 	t.Helper()
@@ -33,6 +33,10 @@ func decodeOpenCodeFixture(t *testing.T, frames ...string) (*tc.Evidence, []tc.E
 		_, _ = stream.Write([]byte(frame + "\n"))
 	}
 	evidence, err := stream.finish()
+	// Parser fixtures explicitly supply a successful host-tree result. The
+	// wrapper's parent-close ACK alone is never a public containment receipt.
+	parentStopped := stream.openCodeState != nil && stream.openCodeState.parentStopped
+	applyOpenCodeProcessContainment(evidence, parentStopped, true)
 	return evidence, events, err
 }
 
@@ -74,7 +78,8 @@ func TestOpenCodeWrapperStreamRejectsUnprovenCompletion(t *testing.T) {
 		"model-drift":             {openCodeReadyFixture, openCodeStartedFixture, strings.Replace(openCodeCompletedFixture, "coding104", "other104", 1)},
 		"unfinished-tool-loop":    {openCodeReadyFixture, openCodeStartedFixture, strings.Replace(openCodeCompletedFixture, `"finish":"stop"`, `"finish":"tool-calls"`, 1)},
 		"missing-time":            {openCodeReadyFixture, openCodeStartedFixture, strings.Replace(openCodeCompletedFixture, `,"completed_at":"2026-10-28T00:00:00Z"`, "", 1)},
-		"unconfirmed-server":      {openCodeReadyFixture, openCodeStartedFixture, strings.Replace(openCodeCompletedFixture, `"server_stopped":true`, `"server_stopped":false`, 1)},
+		"unconfirmed-parent":      {openCodeReadyFixture, openCodeStartedFixture, strings.Replace(openCodeCompletedFixture, `"server_parent_stopped":true`, `"server_parent_stopped":false`, 1)},
+		"old-private-carrier":     {openCodeReadyFixture, openCodeStartedFixture, strings.Replace(openCodeCompletedFixture, `"server_parent_stopped":true`, `"server_stopped":true`, 1)},
 		"extra-field":             {openCodeReadyFixture, openCodeStartedFixture, strings.Replace(openCodeCompletedFixture, `"finish":"stop"`, `"finish":"stop","arbitrary":"payload"`, 1)},
 		"duplicate-terminal":      {openCodeReadyFixture, openCodeStartedFixture, openCodeCompletedFixture, openCodeCompletedFixture},
 		"usage-null":              {openCodeReadyFixture, openCodeStartedFixture, strings.Replace(openCodeCompletedFixture, `"usage_state":"unreported"`, `"usage_state":"partial","usage":{"input_tokens":null}`, 1)},
@@ -128,25 +133,62 @@ func TestOpenCodeJournalKeepsOriginalProofAcrossLostACK(t *testing.T) {
 }
 
 func TestOpenCodeProcessContainmentErrorRevokesServerStopProof(t *testing.T) {
-	for _, verified := range []bool{true, false} {
-		t.Run(map[bool]string{true: "verified", false: "unconfirmed"}[verified], func(t *testing.T) {
-			evidence, _, err := decodeOpenCodeFixture(t, openCodeReadyFixture, openCodeStartedFixture, openCodeCompletedFixture)
-			if err != nil {
-				t.Fatal(err)
-			}
-			applyOpenCodeProcessContainment(evidence, verified)
-			if verified {
+	stream := newToolStream(openCodeFixtureProfile(t), nil, nil, "req-104")
+	for _, frame := range []string{openCodeReadyFixture, openCodeStartedFixture, openCodeCompletedFixture} {
+		_, _ = stream.Write([]byte(frame + "\n"))
+	}
+	parsed, err := stream.finish()
+	if err != nil || stream.openCodeState == nil || !stream.openCodeState.parentStopped {
+		t.Fatalf("private parent-close carrier missing: %v", err)
+	}
+	if parsed.OpenCodeExecution.ServerStopped || tc.ValidateEvidence(*parsed) == nil {
+		t.Fatal("parent-close ACK was published as host process-tree proof before host confirmation")
+	}
+	for _, test := range []struct {
+		name         string
+		parent, host bool
+	}{{"both-confirmed", true, true}, {"parent-only", true, false}, {"host-only", false, true}, {"neither-confirmed", false, false}} {
+		t.Run(test.name, func(t *testing.T) {
+			evidence := *parsed
+			proof := *parsed.OpenCodeExecution
+			evidence.OpenCodeExecution = &proof
+			applyOpenCodeProcessContainment(&evidence, test.parent, test.host)
+			if test.parent && test.host {
 				if !evidence.OpenCodeExecution.ServerStopped || evidence.Terminal != "completed" {
-					t.Fatal("lost a confirmed private stop")
+					t.Fatal("lost the combined parent and host-tree stop")
+				}
+				if err := tc.ValidateEvidence(evidence); err != nil {
+					t.Fatal(err)
 				}
 			} else {
 				if evidence.OpenCodeExecution.ServerStopped || evidence.Terminal != "unknown" {
 					t.Fatal("wrapper-only ACK survived failed host containment")
 				}
-				if err := tc.ValidateOpenCodeResultStop(*evidence, true, false); err == nil {
+				if err := tc.ValidateOpenCodeResultStop(evidence, true, false); err == nil {
 					t.Fatal("unconfirmed containment could settle a stopped result")
 				}
 			}
 		})
+	}
+}
+
+func TestOpenCodeFailedToolProgressRemainsErrorUntilWholeRunTerminal(t *testing.T) {
+	var events []tc.Event
+	stream := newToolStream(openCodeFixtureProfile(t), nil, func(event tc.Event) error { events = append(events, event); return nil }, "req-104")
+	for _, frame := range []string{openCodeReadyFixture, openCodeStartedFixture, `{"v":1,"type":"progress","request_id":"req-104","session_id":"ses_104","kind":"tool","status":"failed","tool":"write"}`} {
+		_, _ = stream.Write([]byte(frame + "\n"))
+	}
+	if stream.bad != nil || stream.terminals != 0 || len(events) != 3 || events[2].Kind != "error" || events[2].Status != "failed" || events[2].ItemID != "workspace.write" {
+		t.Fatalf("failed host tool became completed activity or whole-run terminal: events=%+v terminal=%s err=%v", events, stream.terminal, stream.bad)
+	}
+	_, _ = stream.Write([]byte(`{"v":1,"type":"failed","request_id":"req-104","code":"workspace_fatal","server_parent_stopped":true}` + "\n"))
+	evidence, err := stream.finish()
+	applyOpenCodeProcessContainment(evidence, stream.openCodeState.parentStopped, true)
+	if err != nil || evidence.Terminal != "failed" || stream.terminals != 1 {
+		t.Fatalf("separate whole-run failure lost: %+v %v", evidence, err)
+	}
+	invalid, _, err := decodeOpenCodeFixture(t, openCodeReadyFixture, openCodeStartedFixture, `{"v":1,"type":"progress","request_id":"req-104","session_id":"ses_104","kind":"model","status":"failed"}`, openCodeCompletedFixture)
+	if err == nil || invalid.Terminal != "unknown" {
+		t.Fatal("tool-only failed status broadened model progress")
 	}
 }

@@ -21,7 +21,7 @@ if(!c||process.env.OPENCODE_CONFIG||process.env.NODE_OPTIONS||process.env.SUMA_R
 if(process.argv.includes('--probe')){console.log(JSON.stringify({v:1,type:'probe',protocol:'opencode-sdk-v1',runtime_version:'1.0.0',sdk_version:'1.19.4',server_version:'1.19.4',configuration_sha256:c.configuration_sha256,provider_id:c.provider_id,model:c.model,workspace_tools_version:'attempt-workspace-v1'}));process.exit(0)}
 const input=createInterface({input:process.stdin});let request;
 const emit=frame=>console.log(JSON.stringify({v:1,request_id:request.request_id,...frame}));
-input.on('line',line=>{void(async()=>{const r=JSON.parse(line);if(r.type==='cancel'){if(!request||r.request_id!==request.request_id)throw Error('cancel identity');if(request.goal==='delayed-cancel')await new Promise(resolve=>setTimeout(resolve,2000));emit(request.goal==='no-ack'?{type:'failed',code:'cancel_unconfirmed',server_stopped:true}:{type:'cancelled',session_id:'ses_fixture104',abort_acknowledged:true,server_stopped:true});input.close();return}
+input.on('line',line=>{void(async()=>{const r=JSON.parse(line);if(r.type==='cancel'){if(!request||r.request_id!==request.request_id)throw Error('cancel identity');if(request.goal==='delayed-cancel')await new Promise(resolve=>setTimeout(resolve,2000));emit(request.goal==='no-ack'?{type:'failed',code:'cancel_unconfirmed',server_parent_stopped:true}:{type:'cancelled',session_id:'ses_fixture104',abort_acknowledged:true,server_parent_stopped:true});input.close();return}
  if(request||Object.keys(r).sort().join(',')!=='goal,request_id,type,v,workspace_bridge'||r.v!==1||r.type!=='execute'||r.workspace_bridge.request_id!==r.request_id)throw Error('input');request=r;
  emit({type:'ready',sdk_version:'1.19.4',server_version:'1.19.4',configuration_sha256:c.configuration_sha256,provider_id:c.provider_id,model:c.model});emit({type:'started',session_id:'ses_fixture104',user_message_id:'msg_fixture_user104'});
  if(['cancel','no-ack','delayed-cancel'].includes(r.goal))return;if(r.goal==='no-terminal'){input.close();return}
@@ -33,8 +33,8 @@ input.on('line',line=>{void(async()=>{const r=JSON.parse(line);if(r.type==='canc
   const write={name:'suma_workspace_write',arguments:{path:'output104.txt',content:'host MCP fixture output\n',expected_absent:true},_meta:{'suma/operation_id':'transport-write104'}};
   await rpc('tools/call',write);await rpc('tools/call',write);
  }
- emit({type:'completed',session_id:'ses_fixture104',user_message_id:'msg_fixture_user104',assistant_message_id:'msg_fixture_assistant104',provider_id:c.provider_id,model:c.model,finish:'stop',completed_at:'2026-10-28T00:00:00.000Z',server_stopped:true,usage:{input_tokens:0,output_tokens:2},usage_state:'partial'});input.close();
- })().catch(()=>{if(request)emit({type:'failed',code:'fixture_failed',server_stopped:true});process.exitCode=1;input.close()})});`
+ emit({type:'completed',session_id:'ses_fixture104',user_message_id:'msg_fixture_user104',assistant_message_id:'msg_fixture_assistant104',provider_id:c.provider_id,model:c.model,finish:'stop',completed_at:'2026-10-28T00:00:00.000Z',server_parent_stopped:true,usage:{input_tokens:0,output_tokens:2},usage_state:'partial'});input.close();
+ })().catch(()=>{if(request)emit({type:'failed',code:'fixture_failed',server_parent_stopped:true});process.exitCode=1;input.close()})});`
 
 func openCodeHostFixture(t *testing.T) (ExecConfig, tc.Profile) {
 	t.Helper()

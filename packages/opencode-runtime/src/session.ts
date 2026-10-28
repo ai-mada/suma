@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {isDeepStrictEqual} from 'node:util';
 import {RuntimeError,SDK_VERSION,TOOL_NAMES,object,safeID,validateFinal,errorCode,type ExecuteRequest,type RuntimeConfig,type Emit,type Frame} from './contract.js';
-export interface ManagedServer{url:string;authorization:string;stop():Promise<void>}
+export interface ManagedServer{url:string;authorization:string;readonly parentPID?:number;stop():Promise<void>}
 
 // SDK parsing owns the protocol. This fetch only restricts transport, response
 // size and redirects; it never retries a possibly accepted mutation.
@@ -42,7 +42,7 @@ function usage(value:unknown):Record<string,number>|undefined{
 export async function runSession(request:ExecuteRequest,config:RuntimeConfig,server:ManagedServer,expected:unknown,emit:Emit,signal:AbortSignal):Promise<void>{
  const frame=(value:Omit<Frame,'v'|'request_id'>)=>emit({v:1,request_id:request.request_id,...value} as Frame);
  const client=createOpencodeClient({baseUrl:server.url,directory:config.source,fetch:localFetch(server.url,server.authorization),throwOnError:true});
- let sessionID='',userMessageID='',abortAcknowledged=false,stopped=false,final:unknown,failure:unknown,createSent=false;
+ let sessionID='',userMessageID='',abortAcknowledged=false,parentStopped=false,final:unknown,failure:unknown,createSent=false;
  const promptAbort=new AbortController();let abortTask:Promise<void>|undefined;
  const observationAbort=new AbortController();let observing=true,observation:Promise<void>|undefined;
  const abort=()=>{if(!abortTask)abortTask=(async()=>{try{if(sessionID){const result=await client.session.abort({sessionID},{signal:AbortSignal.timeout(3000),throwOnError:true});abortAcknowledged=result.data===true;}}catch{}finally{promptAbort.abort();}})();};
@@ -66,7 +66,7 @@ export async function runSession(request:ExecuteRequest,config:RuntimeConfig,ser
    const events=await client.event.subscribe({}, {signal:observationAbort.signal,sseMaxRetryAttempts:1,onSseError:()=>{}});const seen=new Set<string>();
    for await(const event of events.stream){if(!observing||seen.size>=4096)continue;const value:unknown=event;if(!object(value)||value.type!=='message.part.updated'||!object(value.properties)||!object(value.properties.part))continue;const part=value.properties.part;
     if(part.type!=='tool'||part.sessionID!==sessionID||typeof part.tool!=='string'||!object(part.state)||!safeID(part.messageID)||!safeID(part.callID))continue;const tool=part.tool.replace(/^suma_workspace_/,'');if(!TOOL_NAMES.includes(tool as typeof TOOL_NAMES[number])||part.tool!=='suma_workspace_'+tool)continue;
-    const status=part.state.status==='running'?'started':['completed','error'].includes(String(part.state.status))?'completed':undefined;if(!status)continue;const key=JSON.stringify([part.messageID,part.callID,status]);if(seen.has(key))continue;seen.add(key);frame({type:'progress',session_id:sessionID,kind:'tool',status,tool});
+    const status=part.state.status==='running'?'started':part.state.status==='completed'?'completed':part.state.status==='error'?'failed':undefined;if(!status)continue;const key=JSON.stringify([part.messageID,part.callID,status]);if(seen.has(key))continue;seen.add(key);frame({type:'progress',session_id:sessionID,kind:'tool',status,tool});
    }
   })().catch(()=>{});
   frame({type:'progress',session_id:sessionID,kind:'model',status:'started'});
@@ -79,11 +79,11 @@ export async function runSession(request:ExecuteRequest,config:RuntimeConfig,ser
   if(signal.aborted){abort();await abortTask;}
   observing=false;observationAbort.abort();await observation;
   signal.removeEventListener('abort',abort);
-  try{await server.stop();stopped=true;}catch{failure=new RuntimeError('server_stop_unconfirmed');}
+  try{await server.stop();parentStopped=true;}catch{failure=new RuntimeError('server_parent_stop_unconfirmed');}
  }
- if(signal.aborted){if(stopped&&(!sessionID&&!createSent||!!sessionID&&abortAcknowledged))frame({type:'cancelled',session_id:sessionID,abort_acknowledged:abortAcknowledged,server_stopped:true});else frame({type:'failed',code:'cancel_unconfirmed',server_stopped:stopped});return;}
- if(failure!==undefined||!stopped){frame({type:'failed',code:errorCode(failure),server_stopped:stopped});return;}
+ if(signal.aborted){if(parentStopped&&(!sessionID&&!createSent||!!sessionID&&abortAcknowledged))frame({type:'cancelled',session_id:sessionID,abort_acknowledged:abortAcknowledged,server_parent_stopped:true});else frame({type:'failed',code:'cancel_unconfirmed',server_parent_stopped:parentStopped});return;}
+ if(failure!==undefined||!parentStopped){frame({type:'failed',code:errorCode(failure),server_parent_stopped:parentStopped});return;}
  const proof=validateFinal(final,{sessionID,userMessageID,providerID:config.provider_id,model:config.model}),counters=usage(final);
  const completedAt=new Date(proof.completed_at).toISOString().replace(/\.000Z$/,'Z').replace(/(\.\d*?[1-9])0+Z$/,'$1Z');
- frame({type:'completed',session_id:sessionID,user_message_id:userMessageID,assistant_message_id:proof.assistant_message_id,provider_id:config.provider_id,model:config.model,finish:'stop',completed_at:completedAt,server_stopped:true,...(counters?{usage:counters}:{}),usage_state:counters?'partial':'unreported'});
+ frame({type:'completed',session_id:sessionID,user_message_id:userMessageID,assistant_message_id:proof.assistant_message_id,provider_id:config.provider_id,model:config.model,finish:'stop',completed_at:completedAt,server_parent_stopped:true,...(counters?{usage:counters}:{}),usage_state:counters?'partial':'unreported'});
 }

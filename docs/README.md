@@ -23,7 +23,7 @@
 | English documentation | [English entry and translation status](en/README.md) |
 | 组织治理、项目计划与候选测试 | [组织、团队与权限](product/governance.md)、[规划与治理工作台](design/planning-governance.md) |
 
-当前外部工具执行：[OpenCode 固定 SDK、架构与 AI SOP](architecture/opencode-execution.md)、[合同](../contracts/opencode-sdk.md)、[英文指南](en/opencode-execution.md)、[限定验证](quality/opencode-execution-verification.md)。本地协议与厂商运行证据分别记录。
+当前外部工具执行：[OpenCode 固定 SDK、架构与 AI SOP](architecture/opencode-execution.md)、[合同](../contracts/opencode-sdk.md)、[英文指南](en/opencode-execution.md)、[限定验证](quality/opencode-actual-execution-verification.md)。本地协议与厂商运行证据分别记录。
 
 ## 架构、身份与数据
 

@@ -9,17 +9,19 @@ import (
 )
 
 type openCodeStreamState struct {
-	ready bool
-	proof tc.OpenCodeExecutionEvidence
+	ready         bool
+	parentStopped bool
+	proof         tc.OpenCodeExecutionEvidence
 }
 
-// The wrapper observes its private server; only the host process controller
-// can confirm the surrounding execution tree. Never publish the former as a
-// successful stop when the latter requires reconciliation.
-func applyOpenCodeProcessContainment(evidence *tc.Evidence, verified bool) {
-	if evidence.OpenCodeExecution != nil && !verified {
-		evidence.OpenCodeExecution.ServerStopped = false
-		evidence.Terminal = "unknown"
+// The private carrier acknowledges only the server parent. The Go process
+// controller is the one tree authority; public proof combines both facts.
+func applyOpenCodeProcessContainment(evidence *tc.Evidence, parentStopped, verified bool) {
+	if evidence.OpenCodeExecution != nil {
+		evidence.OpenCodeExecution.ServerStopped = parentStopped && verified
+		if !evidence.OpenCodeExecution.ServerStopped {
+			evidence.Terminal = "unknown"
+		}
 	}
 }
 
@@ -81,7 +83,7 @@ func (s *toolStream) openCode(m map[string]any) {
 			return
 		}
 		activity, status := textAt(m, "kind"), textAt(m, "status")
-		if status != "started" && status != "completed" {
+		if status != "started" && status != "completed" && status != "failed" {
 			s.invalid("OpenCode SDK progress status is invalid")
 			return
 		}
@@ -93,18 +95,20 @@ func (s *toolStream) openCode(m map[string]any) {
 				return
 			}
 			item = "workspace." + tool
-		} else if activity != "model" || m["tool"] != nil {
+		} else if activity != "model" || m["tool"] != nil || status == "failed" {
 			s.invalid("OpenCode SDK activity kind is invalid")
 			return
 		}
 		event := "activity_started"
 		if status == "completed" {
 			event = "activity_completed"
+		} else if status == "failed" {
+			event = "error"
 		}
 		s.event(event, item, item, status, nil)
 	case "completed":
-		if !closedOpenCodeFrame(m, "session_id", "user_message_id", "assistant_message_id", "provider_id", "model", "finish", "completed_at", "server_stopped", "usage", "usage_state") || !d.ready || !s.sessionStarted || textAt(m, "session_id") != d.proof.SessionID || textAt(m, "user_message_id") != d.proof.UserMessageID || !s.openCodeID(textAt(m, "assistant_message_id")) || textAt(m, "assistant_message_id") == d.proof.UserMessageID || textAt(m, "provider_id") != c.ProviderID || textAt(m, "model") != c.Model || textAt(m, "finish") != "stop" || m["server_stopped"] != true {
-			s.invalid("OpenCode SDK completion lacks matching final assistant and server stop")
+		if !closedOpenCodeFrame(m, "session_id", "user_message_id", "assistant_message_id", "provider_id", "model", "finish", "completed_at", "server_parent_stopped", "usage", "usage_state") || !d.ready || !s.sessionStarted || textAt(m, "session_id") != d.proof.SessionID || textAt(m, "user_message_id") != d.proof.UserMessageID || !s.openCodeID(textAt(m, "assistant_message_id")) || textAt(m, "assistant_message_id") == d.proof.UserMessageID || textAt(m, "provider_id") != c.ProviderID || textAt(m, "model") != c.Model || textAt(m, "finish") != "stop" || m["server_parent_stopped"] != true {
+			s.invalid("OpenCode SDK completion lacks matching final assistant and server parent-close ACK")
 			return
 		}
 		completed, err := time.Parse(time.RFC3339Nano, textAt(m, "completed_at"))
@@ -122,12 +126,12 @@ func (s *toolStream) openCode(m map[string]any) {
 			s.event("usage", "", "", "", usage, state)
 		}
 		d.proof.AssistantMessageID, d.proof.Finish = textAt(m, "assistant_message_id"), "stop"
-		d.proof.CompletedAt, d.proof.ServerStopped = completed.UTC().Format(time.RFC3339Nano), true
+		d.proof.CompletedAt, d.parentStopped = completed.UTC().Format(time.RFC3339Nano), true
 		s.setTerminal("completed")
 		s.event("turn_completed", "", "", "", nil)
 	case "failed":
-		if !closedOpenCodeFrame(m, "code", "message", "server_stopped") || !s.openCodeID(textAt(m, "code")) || m["server_stopped"] != true || textAt(m, "code") == "cancel_unconfirmed" {
-			s.invalid("OpenCode SDK failure does not prove private server shutdown")
+		if !closedOpenCodeFrame(m, "code", "message", "server_parent_stopped") || !s.openCodeID(textAt(m, "code")) || m["server_parent_stopped"] != true || textAt(m, "code") == "cancel_unconfirmed" {
+			s.invalid("OpenCode SDK failure has no confirmed server parent-close ACK")
 			return
 		}
 		if _, present := m["message"]; present {
@@ -136,17 +140,17 @@ func (s *toolStream) openCode(m map[string]any) {
 				return
 			}
 		}
-		d.proof.ServerStopped = true
+		d.parentStopped = true
 		s.setTerminal("failed")
 		s.event("error", "", textAt(m, "message"), textAt(m, "code"), nil)
 	case "cancelled":
 		acknowledged, ok := m["abort_acknowledged"].(bool)
 		session := textAt(m, "session_id")
-		if !closedOpenCodeFrame(m, "session_id", "abort_acknowledged", "server_stopped") || !ok || m["server_stopped"] != true || s.sessionStarted && (session != d.proof.SessionID || !acknowledged) || !s.sessionStarted && (session != "" || acknowledged) {
+		if !closedOpenCodeFrame(m, "session_id", "abort_acknowledged", "server_parent_stopped") || !ok || m["server_parent_stopped"] != true || s.sessionStarted && (session != d.proof.SessionID || !acknowledged) || !s.sessionStarted && (session != "" || acknowledged) {
 			s.invalid("OpenCode SDK cancellation identity or acknowledgement is unverified")
 			return
 		}
-		d.proof.ServerStopped, d.proof.AbortAcknowledged = true, acknowledged
+		d.parentStopped, d.proof.AbortAcknowledged = true, acknowledged
 		s.setTerminal("failed")
 		s.event("turn_failed", "", "OpenCode SDK execution cancelled", "cancelled", nil)
 	default:

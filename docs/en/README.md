@@ -8,7 +8,7 @@ There is one current **1.0.0** product baseline, with fresh schema initializatio
 | --- | --- |
 | Model choice across ordinary tasks, experts and native repairs | [English workflow guide](model-selection-workflows.md), [architecture and AI SOP — Chinese original](../architecture/model-selection-workflows.md), [bounded verification](../quality/model-selection-workflows-verification.md) |
 | Native models and fixed attempt allowances | [Guide](model-execution.md), [per-task expert models](expert-team-model-execution.md) |
-| OpenCode fixed SDK execution | [Current guide](opencode-execution.md), [bounded SDK/host/UI verification](../quality/opencode-execution-verification.md); actual vendor serve/model combined journey remains unverified |
+| OpenCode fixed SDK execution | [Current guide](opencode-execution.md), [bounded SDK/host/UI verification](../quality/opencode-actual-execution-verification.md); actual Windows vendor CLI with an owned model endpoint verified; commercial model quality and billing remain unverified |
 | Codex model execution | [Integration guide](codex-app-server.md), [scoped execution evidence](../quality/codex-app-server-verification.md) |
 | Candidate composition and repair | [Composition](candidate-composition.md), [conflict repair](candidate-conflict-repair.md), [repair revisions](candidate-repair-revisions.md) |
 | Development workspaces | [Remote observations](remote-workspace.md), [Codex live reads](codex-workspace-observation.md), [governed saves](remote-workspace-write.md), [transport capabilities](workspace-transport-capabilities.md), [local Git](workspace-git.md) |

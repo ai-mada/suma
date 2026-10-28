@@ -25,14 +25,14 @@ if(args[0]==='--probe'){
  }catch{process.stderr.write(display('probe_failed',locale));process.exitCode=1;}
 }else{
  let active:AbortController|undefined,requestID='',used=false,terminal=false,protocolError=false;
- const emit=(frame:Frame)=>{if(terminal)return;if(['completed','failed','cancelled'].includes(frame.type)){if(protocolError)frame={v:1,type:'failed',request_id:requestID,code:'request_invalid',server_stopped:frame.server_stopped};terminal=true;process.exitCode=frame.type==='completed'||frame.type==='cancelled'?0:1;}write(frame);};
- const invalid=(id:string)=>{if(active){protocolError=true;active.abort();return;}if(safeID(id))emit({v:1,type:'failed',request_id:id,code:'request_invalid',server_stopped:true});else {process.stderr.write(display('request_invalid',locale));process.exitCode=2;}};
+ const emit=(frame:Frame)=>{if(terminal)return;if(['completed','failed','cancelled'].includes(frame.type)){if(protocolError)frame={v:1,type:'failed',request_id:requestID,code:'request_invalid',server_parent_stopped:frame.server_parent_stopped};terminal=true;process.exitCode=frame.type==='completed'||frame.type==='cancelled'?0:1;}write(frame);};
+ const invalid=(id:string)=>{if(active){protocolError=true;active.abort();return;}if(safeID(id))emit({v:1,type:'failed',request_id:id,code:'request_invalid',server_parent_stopped:true});else {process.stderr.write(display('request_invalid',locale));process.exitCode=2;}};
  const lines=createInterface({input:process.stdin,crlfDelay:Infinity});
  lines.on('line',line=>{
   if(Buffer.byteLength(line)>1024*1024){invalid(requestID);return;}let value:unknown;
   try{value=JSON.parse(line);if(object(value)&&value.type==='cancel'){closed(value,['v','type','request_id']);if(value.v!==1||!safeID(value.request_id)||value.request_id!==requestID||!active)throw new RuntimeError('request_invalid');active.abort();return;}
    const request=parseExecute(value);if(used)throw new RuntimeError('request_invalid');used=true;requestID=request.request_id;active=new AbortController();const controller=active;
-   void (async()=>{let serverStarted=false;try{const prepared=await prepareHome(config,request);if(controller.signal.aborted)throw new RuntimeError('aborted');const server=await startServer(config,prepared.env,controller.signal);serverStarted=true;await runSession(request,config,server,prepared.generated,emit,controller.signal);}catch(error){emit({v:1,type:'failed',request_id:requestID,code:errorCode(error),server_stopped:error instanceof ServerStartError?error.serverStopped:!serverStarted});}finally{active=undefined;lines.close();}})();
+   void (async()=>{let serverStarted=false;try{const prepared=await prepareHome(config,request);if(controller.signal.aborted)throw new RuntimeError('aborted');const server=await startServer(config,prepared.env,controller.signal);serverStarted=true;await runSession(request,config,server,prepared.generated,emit,controller.signal);}catch(error){emit({v:1,type:'failed',request_id:requestID,code:errorCode(error),server_parent_stopped:error instanceof ServerStartError?error.serverParentStopped:!serverStarted});}finally{active=undefined;lines.close();}})();
   }catch{invalid(object(value)&&safeID(value.request_id)?value.request_id:requestID);}
  });
  lines.on('close',()=>{if(!used&&!terminal){process.stderr.write(display('execute_required',locale));process.exitCode=2;}});

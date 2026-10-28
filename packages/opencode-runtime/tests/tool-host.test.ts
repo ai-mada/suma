@@ -10,7 +10,7 @@ test('custom host forwarding serializes calls and binds operation identities to 
  assert.equal(highest,1);assert.deepEqual(asks,['suma_workspace_write','suma_workspace_check']);assert.deepEqual(seen,[['workspace.write','{"path":"a"}',0,'["attempt","ses_a","msg_a","call-one","write"]'],['workspace.check','{"check_id":"fixed"}',0,'["attempt","ses_a","msg_a","call-two","check"]']]);
 });
 test('missing call identity and unknown host effects permanently close host forwarding',async()=>{
- for(const missing of [true,false]){let calls=0,failures=0;const host=new ToolHost('attempt',async()=>({invoke:async()=>{calls++;throw Error('unknown effect');},close:async()=>{}}),async()=>{failures++;});
-  await assert.rejects(host.invoke('write',{},context(missing?'':'call-one')));await assert.rejects(host.invoke('write',{},context('call-two')));assert.equal(calls,missing?0:1);assert.equal(failures,1);
+ for(const missing of [true,false]){let calls=0,failures=0,closed=0;const host=new ToolHost('attempt',async()=>({invoke:async()=>{calls++;throw Error('unknown effect');},close:async()=>{closed++;}}),async()=>{failures++;});
+  await assert.rejects(host.invoke('write',{},context(missing?'':'call-one')));await assert.rejects(host.invoke('write',{},context('call-two')));assert.equal(calls,missing?0:1);assert.equal(failures,1);assert.equal(closed,missing?0:1);
  }
 });

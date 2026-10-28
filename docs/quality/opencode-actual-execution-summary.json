@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "task": "T-OPENCODE-105",
+  "product_version": "1.0.0",
+  "baseline_commit": "64ecdd80bdf0d3266cbb6c7e41d39bcd064e777b",
+  "status": "real_official_cli_sdk_host_candidate_independent_test_and_scoped_gui_verified",
+  "full_platform_status": "active; P0-P7 and requirements1..22 retained",
+  "official_binary": {
+    "origin": "https://github.com/anomalyco/opencode/releases/tag/v1.19.4",
+    "version": "1.19.4",
+    "executable": "D:/codes/ai-dev-os/suma/.cache/e2e/opencode-105/vendor/portable/opencode.exe",
+    "size_bytes": 211699592,
+    "sha256": "eba9fc042ac622648a66ac5764c5ad41a73244eabcd7a00527d651b7c443efbd",
+    "archive_sha256": "21cac96abb146b0f6e770680ea7855fc4f354c7966aab39f5be9859b0df1deac"
+  },
+  "preflight": {
+    "health": true,
+    "strict_effective_configuration": true,
+    "sessions": 0,
+    "provider_requests": 0,
+    "original_stop_check_failed": true,
+    "original_stop_pid_and_raw_cause_unavailable": true,
+    "retained": "preflight/summary.json"
+  },
+  "failed_attempt": {
+    "directory": "actual/run-105a",
+    "owned_model_requests": 3,
+    "root_cause": "cached MCP client retained first LLM stream abort signal; actual read completed, next write failed before native ledger effects",
+    "native_generation": 0,
+    "native_operations": 0,
+    "replayed": false
+  },
+  "successful_attempt": {
+    "directory": "actual/run-105b",
+    "status": "closed",
+    "run_id": "fdd87e1256d950e8ea0dec1b67037e92",
+    "owned_model_requests": 4,
+    "tools": [
+      "suma_workspace_check",
+      "suma_workspace_edit",
+      "suma_workspace_list",
+      "suma_workspace_read",
+      "suma_workspace_remove",
+      "suma_workspace_write"
+    ],
+    "native_generation": 1,
+    "independent_test": true,
+    "task_status": "in_progress",
+    "candidate_commit": "5dbe757909dd0aee053c5c4ba916995defa4bfd1",
+    "bundle_sha256": "0a7293e9c4ac209339bba6d1ee680bb0352b807bcbbd738e582340853ddb2715",
+    "developer_worker": "opencode-actual-developer105",
+    "tester_worker": "opencode-independent-tester105",
+    "human_acceptance": false,
+    "deployment": false,
+    "paid_provider_requests": 0,
+    "usage_state": "partial",
+    "pricing": "unpriced",
+    "reported_final_message_input_tokens": 203,
+    "reported_final_message_output_tokens": 43
+  },
+  "stop_contract": {
+    "private_field": "server_parent_stopped",
+    "public_field": "server_stopped",
+    "proof": "parent close acknowledgement AND successful Go process scope Stop/Finish",
+    "old_private_alias": false,
+    "taskkill_dependency": false
+  },
+  "checks": {
+    "go_receipts": [
+      {
+        "path": ".cache/mcp019-deps/20261028T003735951Z.command.json",
+        "sha256": "5d6488f14e0b96cf7ebca3746a7e882affccf3da0ab830621e6f234591dee2e8",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestOpenCodeActualInstalledSDKHostCandidateAndIndependentTest$",
+          "-count=1",
+          "-v"
+        ],
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/mcp019-deps/20261028T004532989Z.command.json",
+        "sha256": "bc017bfc45b3a5afa6d7d43a5a42a6ce9c584f9f57212cc56a7ab80aecbf045c",
+        "arguments": [
+          "test",
+          "./internal/runner",
+          "-run",
+          "^TestOpenCode(Wrapper|Process|Journal)",
+          "-count=1"
+        ],
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/mcp019-deps/20261028T004753857Z.command.json",
+        "sha256": "6ce747beb2a340384c11266e68f4a6f7a731d7013398ccea98e91a53bd8388b4",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestOpenCodeActualInstalledSDKHostCandidateAndIndependentTest$",
+          "-count=1",
+          "-timeout",
+          "12m",
+          "-v"
+        ],
+        "exit_code": 1
+      },
+      {
+        "path": ".cache/mcp019-deps/20261028T005503774Z.command.json",
+        "sha256": "95ba74504fe3bda9e3c6e33061c83fee80d2a7392971d714b824a283af78f267",
+        "arguments": [
+          "test",
+          "./internal/runner",
+          "-run",
+          "^TestOpenCodeFailedToolProgressRemainsErrorUntilWholeRunTerminal$",
+          "-count=1"
+        ],
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/mcp019-deps/20261028T010113780Z.command.json",
+        "sha256": "408859639baf3ac45ba6961347d72c0d89c5d4231256724af7197d605c7f8684",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestOpenCodeActualInstalledSDKHostCandidateAndIndependentTest$",
+          "-count=1",
+          "-timeout",
+          "12m",
+          "-v"
+        ],
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/mcp019-deps/20261028T013320676Z.command.json",
+        "sha256": "656daa02d9fe8cd22ef2565d45d239da1e47d5602579727a2d1031b5bc926c92",
+        "arguments": [
+          "vet",
+          "./internal/runner",
+          "./internal/platform"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "sdk_prior_checkpoint_tests": 22,
+    "sdk_after_lifetime_and_progress_fix_affected_cases": 4,
+    "affected_web_distinct_cases": 33,
+    "web_typecheck": true,
+    "web_catalog_keys": 4653,
+    "web_hardcodes": 0,
+    "web_build_seconds": 42.42,
+    "web_build_warnings": [
+      "Existing large Monaco/Flow chunks; no performance acceptance inferred."
+    ],
+    "new_external_dependencies": 0,
+    "new_business_tables": 0,
+    "public_api_changes": 0
+  },
+  "build": {
+    "manifest": "dist/runtime/builds/20261028T012825420Z-9d8a03be/manifest.json",
+    "source_sha256": "1357da5fb681af729d6d208bc4e03a6b12bcfdb5a7d3c673fba58f7ebf555593",
+    "source_inputs": 460,
+    "source_unchanged": true,
+    "windows_amd64_programs": 5,
+    "all_actual_version_flags": "1.0.0"
+  },
+  "sdk_assets": {
+    "entry_sha256": "1f8d6d6e85f928d73385628117c2c0697c3901e47c65d185e92fda91fdfc809f",
+    "manifest_sha256": "da5f6d8c1c257055f80183a3ace71c572af916dd8d71ae108966be92bfbd92d8",
+    "trusted_tool_sha256": "b9d9beac278d9df4dceb139b8fe3456d8a325cbc13a74bd45f2e31972d7c71c2",
+    "asset_files": 3621,
+    "asset_bytes": 57547180
+  },
+  "browser": {
+    "run_id": "fdd87e1256d950e8ea0dec1b67037e92",
+    "node_id": "develop",
+    "completed_cn_en": true,
+    "refresh_preserved_scope": true,
+    "test_callback_selected_node": "test",
+    "independent_worker": "opencode-independent-tester105",
+    "candidate_commit": "5dbe757909dd0aee053c5c4ba916995defa4bfd1",
+    "model": "owned105/owned-coding105",
+    "review_mode": "maintenance_snapshot",
+    "no_new_execution": true,
+    "human_acceptance": false
+  },
+  "review_snapshot": {
+    "source_database_sha256": "a837ef875152ab5668e18b7cc8895e3c09f5db7cb27da642083a496573d479b0",
+    "source_unchanged": true,
+    "review_database_sha256": "11ef0a41e6901875cd4b5b2791ae6d4ba4462c763157c32d4fde2ef34176eac0",
+    "artifact_files": 1,
+    "artifact_manifest_sha256": "3531f9cc3e5cc15ec40d3d5d34234ae3665b0e0aa565864a6aab89e17fa47f92",
+    "purpose": "maintenance read review only; no Runner/model/acceptance/deployment"
+  },
+  "review_closed": {
+    "owned_pid": 16844,
+    "stopped": true,
+    "model_rerun": false,
+    "source_unchanged": true
+  },
+  "limits": [
+    "Deterministic owned model endpoint, not commercial model quality/identity/billing evidence",
+    "Windows local two-Worker journey, not physical distributed hosts or Unix/macOS runtime acceptance",
+    "No human task acceptance, merge, deployment or full P0-P7 completion",
+    "Large-scale graph performance and full responsive/device/release matrix remain pending"
+  ],
+  "git_hygiene": "Only necessary source/config/contracts/design/compact evidence; caches, vendor binary, database, screenshots, rawlogs, generated distributions and dependency trees excluded"
+}

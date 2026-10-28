@@ -1,4 +1,5 @@
 import {OpenCodeExecutionFacts} from './OpenCodeExecutionFacts';
+import {openCodeRunFacts,type OpenCodeRunTest} from './opencode-run-model';
 import {CodexExecutionFacts} from './CodexModelExecutionPanel';
 import { Trans } from "./i18n/Trans";
 import { NativeToolMessage } from "./NativeToolMessage";
@@ -6,7 +7,7 @@ import { renderDisplayDiagnostic } from "./display-diagnostic";
 import { tr as t, useLocale, formatDateTime, formatNumber } from "./i18n";
 import { DispatchRouteFacts } from "./execution-pools/DispatchRouteFacts";
 import { stateLabel } from "./api";
-import type { ToolEvidence as ContractToolEvidence } from "../../../packages/contracts/src";
+import type { OpenCodeExecutionCapability } from "../../../packages/contracts/src";
 import {
   taskPlanStarted,
   toolEventNames,
@@ -305,12 +306,17 @@ export function ToolExecutionFacts({
   state,
   evidence,
   events = [],
+  fixedOpenCode,
+  tests,
 }: {
   state: string;
-  evidence?: ToolEvidence | ContractToolEvidence;
+  evidence?: ToolEvidence;
   events?: ToolEvent[];
+  fixedOpenCode?:OpenCodeExecutionCapability;
+  tests?:OpenCodeRunTest[];
 }) { useLocale();
-  if (!evidence && !events.length) return null;
+  const openCode=openCodeRunFacts({state,evidence,events,fixedOpenCode});
+  if (!evidence && !events.length&&!openCode) return null;
   const recent = toolEventRows(events).slice(-40),
     last = events.at(-1),
     session =
@@ -341,7 +347,7 @@ export function ToolExecutionFacts({
             <dd>
               {evidence.profile.command_id} · {evidence.profile.tool_version}
             </dd>
-            <dt>{t("development.facts.tool_report")}</dt>
+            {!openCode&&<><dt>{t("development.facts.tool_report")}</dt>
             <dd>
               {(
                 {
@@ -350,12 +356,12 @@ export function ToolExecutionFacts({
                   unknown: t("development.facts.tool_result_unknown"),
                 } as Record<string, string>
               )[evidence.terminal] || t("development.facts.tool_provided_no_recognized_terminal_result")}
-            </dd>
+            </dd></>}
             <dt>{t("development.facts.recorded_events")}</dt>
             <dd>{formatNumber(evidence.event_count)}</dd>
           </>
         )}
-        {session && (
+        {!openCode&&session && (
           <>
             <dt>{t("development.facts.external_session_id")}</dt>
             <dd>
@@ -364,11 +370,11 @@ export function ToolExecutionFacts({
           </>
         )}
       </dl>
-      {session && (
+      {!openCode&&session && (
         <p className="muted">
           {t("development.facts.the_session_id_is_for_traceability_and")}</p>
       )}
-      <CodexExecutionFacts evidence={evidence?.codex_execution}/><OpenCodeExecutionFacts capability={evidence?.profile?.opencode_execution} evidence={evidence?.opencode_execution}/>
+      <CodexExecutionFacts evidence={evidence?.codex_execution}/><OpenCodeExecutionFacts run={openCode} tests={tests}/>
       <UsageFacts
         usage={usage ?? undefined}
         usageState={usageState}

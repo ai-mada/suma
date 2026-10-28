@@ -791,7 +791,8 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		}
 		invalidBeforeFinish := stream.bad != nil
 		evidence, streamErr := stream.finish()
-		applyOpenCodeProcessContainment(evidence, processContainmentVerified)
+		parentStopped := stream.openCodeState != nil && stream.openCodeState.parentStopped
+		applyOpenCodeProcessContainment(evidence, parentStopped, processContainmentVerified)
 		if r.Stopped || r.OutcomeUnknown {
 			evidence.Terminal = "unknown"
 		}
