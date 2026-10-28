@@ -109,7 +109,7 @@
 | 固定失败证据的智能分诊 | [PRD](product/failure-diagnosis.md)、[架构与 AI SOP](architecture/failure-diagnosis.md)、[交互](design/failure-diagnosis.md)、[合同](../contracts/failure-diagnosis.md)、[CLI](../contracts/failure-diagnosis-cli.md)、[限定验证](quality/failure-diagnosis-verification.md)、[摘要](quality/failure-diagnosis-summary.json)、[English](en/failure-diagnosis.md) |
 | 真实制品、发布授权与恢复 | [制品存储](data/release-artifacts.md)、[发布证据架构](architecture/release-evidence.md)、[发布工作台](design/release-workspace.md) |
 | 本机发布与执行提供方 | [发布控制面](deployment/release-control.md)、[提供方协议](integrations/release-provider.md)、[四程序运行包](deployment/release-runtime-bundles.md) |
-| 桌面、服务器与安装 | [桌面](deployment/desktop.md)、[服务器](deployment/server.md)、[容器与集群模板](deployment/containers.md) |
+| 桌面、服务器与安装 | [桌面](deployment/desktop.md)、[跨平台安装与打包](deployment/desktop-installation.md)、[限定验证](quality/desktop-packaging-verification.md)、[服务器](deployment/server.md)、[容器与集群模板](deployment/containers.md) |
 | 可复现构建与本地缓存 | [构建说明](deployment/build-reproducibility.md)、[六平台 Go 运行时](deployment/runtime-bundles.md) |
 | 验证与运维 | [验证报告](quality/verification.md)、[验收矩阵](quality/acceptance.md)、[运维手册](operations/runbook.md) |
 | 实际运行与交付摘要 | [证据索引](quality/evidence/README.md) |

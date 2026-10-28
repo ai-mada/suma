@@ -1,73 +1,53 @@
-# 桌面启动与本地项目目录
+# 桌面启动、跨平台构建与本地项目目录
 
-状态：**1.0.0／T-DESKTOP-107，实施中**，更新于2026-10-28。Electron管理本机Go控制服务，复用React工作台及现有权限、DAG和Runner。完整P0–P7及需求1–25仍在实施；本页说明当前启动与目录绑定，完整第23项见[本地工作台架构](../architecture/local-development-workbench.md)，协议以[原生目录合同](../../contracts/desktop-workspace.md)为准。[English capability matrix](../en/local-development-workbench.md)。
+状态：**1.0.0／T-DESKTOP-108**，2026-10-28。Electron管理本机Go控制面，复用React、当前权限、DAG与Runner合同。完整P0–P7及需求1–25继续实施。[中英文安装与打包指南](desktop-installation.md) · [English](../en/desktop-installation.md) · [工作台架构](../architecture/local-development-workbench.md) · [目录授权合同](../../contracts/desktop-workspace.md) · [本阶段验证](../quality/desktop-packaging-verification.md)。
 
-当前Node与Web定向检查通过，**实际Electron启动因GPU子进程退出`0xC0000135`失败**，尚未验证原生目录选择到IDE的真实界面旅程。本阶段未验收当前1.0.0安装器、签名或安装／升级／卸载；既往打包记录不能证明当前源码已完成这些验证。
+## 快速准备与启动
 
-## 开发与打包入口
+开发电脑需要仓库固定的Node／pnpm、Go工具链和依赖；安装后的客户端自带Electron、控制面与网页，不需要用户另装Go或Node才能打开工作台。外部CLI、Runner及完整开发服务仍按各自能力配置。
 
-需要Node.js 22+、仓库固定的pnpm和Go工具链；`go.mod`声明Go1.26.0、toolchain1.26.10。依赖准备好后，在仓库根目录执行：
-
-```powershell
-pnpm build
-node apps/desktop/scripts/prepare.cjs
+```sh
+pnpm desktop:plan
+pnpm desktop:prepare
 pnpm desktop
 ```
 
-`pnpm build`生成`apps/web/dist`；准备脚本检查网页入口，并将当前宿主平台的`cmd/suma-control`编译到`.cache/desktop/control`。`pnpm desktop`只启动Electron，不自动构建这两个资源。`pnpm dev`仅启动网页开发服务，不能提供原生目录对话框。
+准备命令按明确的目标编译控制面、构建网页并校验资源；开发启动只读取当前宿主的`.cache/desktop/<platform>-<arch>/control`与`web`。不使用共享的上一架构程序，也不覆盖活动浏览器预览的`apps/web/dist`。`--plan`与`--help`仅读取配置，不编译、下载或修改目录。
 
-需要打包时，先构建匹配的网页，再使用下列入口之一。两个打包脚本都会重新准备控制程序：
+```sh
+node apps/desktop/scripts/package.cjs --platform win32 --arch x64 --format all
+node apps/desktop/scripts/package.cjs --platform darwin --arch arm64 --format installer
+node apps/desktop/scripts/package.cjs --platform linux --arch arm64 --format all
+```
 
-| 命令 | 当前配置的输出 |
-| --- | --- |
-| `pnpm --filter @suma/desktop package:dir` | `dist/desktop`中的未安装应用目录 |
-| `pnpm desktop:package` | 同目录中的平台分发目标：Windows NSIS／portable、macOS DMG／ZIP、Linux AppImage／deb |
+安装／便携包在对应系统构建；六种目标、离线资源输入、当前维护者与错误处理见安装指南。输出默认进入`dist/desktop/<platform>-<arch>`，包括实际产物、`manifest.json`和`SHA256SUMS`。已有非空输出不会覆盖，后续构建可用`--out-dir`选择新的仓库交付子目录。源码准备及SDK临时数据留在目标专属`.cache`，不进入Git。
 
-这些是构建入口与目标配置，不是当前产物已验收的声明。准备脚本按宿主系统编译，需在相应操作系统构建和验证。签名、公证及目标系统安装测试仍待交付。过程缓存与临时目录应位于仓库`.cache`，环境覆盖只作用于本次进程；不要覆盖活动预览的网页资产或真实用户数据。
+当前仅**未签名**打包可用；`--signing auto|required`在准备、SDK及证书使用之前拒绝，不能据SDK配置冒充签名完成。正式Windows签名、macOS Developer ID／公证及签名后的内容溯源仍待实现和独立验收。不得通过关闭系统或渲染进程保护绕过此边界。
 
-## 启动、配置与数据生命周期
+## 按需原生CI
 
-主进程持有单实例锁，在`127.0.0.1`选择空闲端口并启动控制服务。开发时读取上述准备目录和`apps/web/dist`；打包后读取应用`resources/control`和`resources/web`。`/healthz`就绪后才加载窗口；缺少资源、提前退出或15秒内未就绪均显示启动错误。关闭应用时先请求子服务退出，5秒宽限后强制终止，并核对退出；当前不会自动重启服务或启动Runner。
+`.github/workflows/desktop.yaml`只接受人工触发，可选单一目标或六目标、安装／便携／目录／全部形式。一个网页构建供选中的原生系统任务复用；任务校验真实宿主架构，固定依赖，并归档公开交付目录，保留执行权限和应用链接。工作流仅有仓库读取权限，不接收签名证书，不发布Release或执行部署。
 
-桌面将数据库固定为`<Electron userData>/data/suma.db`，网页与origin固定为本次本机服务。继承环境中的数据库、桌面、工作区根和服务地址配置会在子进程环境中清除或覆盖，避免误连共享数据库；普通服务器部署使用[独立服务配置](server.md)。显式远程连接管理仍待实现。
+当前尚未执行远端六系统任务；工作流须先存在于仓库默认分支，具备权限后才能从Actions手工选择引用运行。目标配置、控制程序交叉编译和本机Windows打包不等于macOS／Linux安装包已实际通过。
 
-`userData/desktop-workspace.key`保存32字节本机签名密钥，`userData/data`保存业务数据。启动会拒绝链接或不合要求的密钥／数据位置。原生目录授权依赖该密钥及数据库内的项目证明；备份与恢复需保护两者，不能将其加入项目、日志或Git，也不能靠删除／替换密钥修复授权。所选项目文件留在原目录，不会复制到`userData`。
+## 运行与数据生命周期
 
-隔离开发验证可同时提供三个绝对路径：
+主进程持有单实例锁，选择loopback空闲端口并启动专属SQLite控制面，健康就绪后加载窗口。打包后读取`resources/control`与`resources/web`。关闭时请求子服务退出、等待并核对终止；当前不会自动启动Runner或自动恢复服务。
 
-| 环境变量 | 用途 |
-| --- | --- |
-| `SUMA_DESKTOP_USER_DATA` | 独立测试应用数据目录 |
-| `SUMA_DESKTOP_CONTROL_BINARY` | 已准备的控制程序文件 |
-| `SUMA_DESKTOP_WEB_DIR` | 与控制程序匹配的网页资源目录 |
+业务数据位于`<Electron userData>/data/suma.db`，目录私钥位于`userData/desktop-workspace.key`；原项目文件留在所选目录。启动拒绝链接或错误类型的密钥／数据位置，清除或覆盖继承的数据库、工作区根与服务地址配置。数据库、私钥、原始制品及项目目录身份须一起考虑备份恢复，不能靠删除密钥／数据修复权限。
 
-三个覆盖必须一起设置，全部位于当前仓库`.cache`之内；已有路径及祖先不能是链接或解析到其他位置。打包模式忽略这些开发覆盖。它们不改变正式用户数据位置，也不授权任意项目根。
+开发隔离验证可同时设置`SUMA_DESKTOP_USER_DATA`、`SUMA_DESKTOP_CONTROL_BINARY`、`SUMA_DESKTOP_WEB_DIR`三个绝对路径，均须位于仓库`.cache`且路径链无链接。打包模式忽略这些开发覆盖；不得修改真实桌面数据以强行通过验证。
 
-## 选择与绑定项目文件夹
+## 原生选择与项目绑定
 
-登录后进入当前项目的开发工作空间。只有实际原生桥和服务端桌面绑定能力同时可用，才显示“选择项目文件夹”。选择后先展示目录与项目，用户明确点击“绑定目录”才提交。 原操作确认后另读当前绑定再展示工作区；如果读取失败，只重读状态，不重复绑定。取消不会绑定；未保存草稿或待核对保存会禁用更换目录。普通浏览器继续使用服务器已配置允许根的既有绑定入口。
+登录后在当前项目开发工作空间选择目录，确认后明确绑定；取消不发绑定，未保存或待核对文件阻止换根。主进程核对准确窗口、主frame与本机origin，签发绑定原账号／组织／项目／路径的短期证明；控制面复核当前权限、CAS和原操作。
 
-主进程校验准确窗口、主frame和本机origin，规范化实际目录后签发120秒选择证明。控制面再次核验当前账号／组织／项目权限、原绑定CAS、路径与签名。规范本机绝对目录受支持，UNC、扩展前缀、控制字符及非目录不会成为项目根。完整字段和签名规则见[合同](../../contracts/desktop-workspace.md)，不在此维护另一套DTO。
+原ACK是该操作提交时的事实；界面另读当前绑定后才展示目录，读取失败只刷新，不重复POST。账号／项目切换忽略迟到结果。未知请求仅保留于有上限的内存，关闭／刷新前提示，不能承诺进程重启后恢复该内存槽。
 
-成功回执需准确关联原项目、目录名、路径摘要与操作；随后进入现有IDE。后续目录、文件、保存和Git复用当前项目根许可及目录身份检查，不扩大服务器全局允许根。相同密钥、数据和目录身份可保留重启后的许可；密钥变化、目录替换或证明失效必须重新选择。
+读取、目录、Git与保存复用项目根证明及已打开目录句柄；无效证明不降级为宽根。窗口保持sandbox、contextIsolation、webSecurity及禁用nodeIntegration；preload只暴露平台／版本和单用途目录选择。平台与已知诊断支持中英文，代码、用户正文和未知系统错误保留原文。
 
-结果不明时保留原API、请求与操作标识，使用“核对原绑定”显式恢复，即使原选择已过期也核对原操作。恢复槽只在当前应用内存中，阻止当前视图离开并在关闭／刷新前提醒，不能承诺网页或进程重启后恢复。账号、组织、项目或API变化会隐藏旧选择并忽略迟到响应；返回原视图才可核对。明确409冲突须刷新绑定状态后重新选择，不能静默替换旧CAS；新操作410过期须重新选择。
+## 当前验证与待办
 
-## 隔离与语言
+Windows x64安装版、便携版及校验清单已在本机由官方SDK生成；六目标Go控制程序的实际格式／架构已核验。未执行安装／卸载或新安装包GUI，未使用证书，未发布下载版本。[准确证据与源码范围](../quality/desktop-packaging-verification.md)分别列出各层。
 
-窗口保持`contextIsolation:true`、`sandbox:true`、`nodeIntegration:false`和webSecurity；新窗口被拒绝，导航限制为当前本机服务origin，系统权限默认拒绝。preload仅暴露平台、版本和单用途目录选择，不开放通用IPC、文件、命令、Cookie或密钥接口。原生选择证明不授予组织角色、工具执行或人工验收权限。
-
-主进程启动诊断优先使用本进程`SUMA_LANGUAGE`，其次系统语言，支持zh-CN／en-US，默认中文。目录对话框使用工作台当前语言；工作台文案与服务端已知诊断支持中英文。项目名称、路径、源代码、工具输出及未知系统错误保留原文；完整Monaco内置菜单国际化仍待实现。
-
-## 故障处理与验证边界
-
-| 现象 | 当前处理 |
-| --- | --- |
-| 缺少控制程序／网页 | 核对匹配的构建资源及启动路径，按上方顺序准备；开发覆盖必须三项完整且位于仓库`.cache` |
-| 服务未就绪或运行中退出 | 保留原启动诊断，核对本机数据位置与控制程序；当前需要显式重启应用 |
-| 授权密钥／数据目录不可用 | 核对专属数据目录的文件类型、权限与路径；保留原数据和密钥，不通过删除数据重置环境 |
-| 按钮缺失或不可用 | 核对实际桌面桥、服务端能力、当前项目视图，以及草稿／待核对保存；网页模式不会伪装原生能力 |
-| 绑定过期／冲突／结果不明 | 分别重新选择、明确刷新后重新选择、核对原绑定；不要用新操作替代未知操作 |
-| GPU子进程`0xC0000135` | 当前真实启动阻断，日志报告DLL加载失败状态，具体缺失依赖尚未定位；需修复运行环境并重做真实旅程，不能把Node或Web测试视为恢复成功 |
-
-阶段证据位于忽略目录`.cache/e2e/desktop-107`：`desktop-node-receipt.json`记录Node检查及局限；`web-checks.agent.json`记录10个受影响Web用例、2个后续定向复验及类型检查；`electron-first-failure.public.json`保留原生启动失败摘要。Node检查包含VM模拟，不能证明真实系统对话框已工作；真实中英选择／取消／绑定／重启／退出、安装器、签名及多系统验收仍待完成。[当前交付状态](../delivery/status.md)统一记录后续进展。
+此前实际Electron开发启动出现GPU子进程`0xC0000135`，具体依赖仍未定位；本阶段没有将打包成功宣称为修复成功。原生目录GUI、正式安装／升级、目标系统矩阵、品牌图标、完整IDE、远程连接与签名交付继续保留待办。

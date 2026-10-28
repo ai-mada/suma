@@ -2,7 +2,7 @@
 
 **速码一栈式智能研发平台**：连接想法、项目、需求、设计、任务、智能体执行、独立测试、人工验收、版本发布与问题回流，提供浏览器和本地桌面入口。
 
-当前统一开发基线为 **1.0.0**，完整平台仍在实现与验收中。产品范围与初始化策略见 [1.0.0 基线](docs/product/v1-baseline.md)，实际能力与限制见 [交付状态](docs/delivery/status.md)，完整 P0–P7 和扩展需求 1–22 见 [实施计划](docs/delivery/implementation-plan.md)。
+当前统一开发基线为 **1.0.0**，完整平台仍在实现与验收中。产品范围与初始化策略见 [1.0.0 基线](docs/product/v1-baseline.md)，实际能力与限制见 [交付状态](docs/delivery/status.md)，完整 P0–P7 和扩展需求 1–25 见 [实施计划](docs/delivery/implementation-plan.md)。
 
 ## 当前能力
 
@@ -53,3 +53,5 @@ pnpm check:docs
 - [四程序跨平台运行包](docs/deployment/release-runtime-bundles.md)
 
 代码和正式文档进入 Git；运行数据、凭据、依赖缓存、原始日志及临时构建文件不进入 Git。临时工作使用项目忽略的 `.cache/`，正式产物按项目交付目录管理。
+
+跨平台桌面：`pnpm desktop:plan`查看当前目标，`pnpm desktop:package`打包；系统／架构选择、已生成Windows产物与签名边界见[安装指南](docs/deployment/desktop-installation.md)及[阶段验证](docs/quality/desktop-packaging-verification.md)。

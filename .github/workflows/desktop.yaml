@@ -1,0 +1,152 @@
+name: Suma desktop packages / 速码桌面包
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "目标平台 / Target platform"
+        type: choice
+        default: win32-x64
+        options: [win32-x64, win32-arm64, darwin-x64, darwin-arm64, linux-x64, linux-arm64, all]
+      format:
+        description: "包类型 / Package format"
+        type: choice
+        default: installer
+        options: [installer, portable, dir, all]
+permissions:
+  contents: read
+concurrency:
+  group: desktop-${{ github.ref }}-${{ inputs.target }}-${{ inputs.format }}
+  cancel-in-progress: false
+jobs:
+  select:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.targets.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: "24"
+      - id: targets
+        env:
+          DESKTOP_TARGET: ${{ inputs.target }}
+          DESKTOP_FORMAT: ${{ inputs.format }}
+          DESKTOP_MAINTAINER: ${{ vars.SUMA_DESKTOP_MAINTAINER }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {appendFileSync,readFileSync} from 'node:fs';
+          const targets=[
+            {target:'win32-x64',platform:'win32',arch:'x64',runner:'windows-2025'},
+            {target:'win32-arm64',platform:'win32',arch:'arm64',runner:'windows-11-arm'},
+            {target:'darwin-x64',platform:'darwin',arch:'x64',runner:'macos-15-intel'},
+            {target:'darwin-arm64',platform:'darwin',arch:'arm64',runner:'macos-15'},
+            {target:'linux-x64',platform:'linux',arch:'x64',runner:'ubuntu-24.04'},
+            {target:'linux-arm64',platform:'linux',arch:'arm64',runner:'ubuntu-24.04-arm'},
+          ];
+          const include=targets.filter(x=>process.env.DESKTOP_TARGET==='all'||x.target===process.env.DESKTOP_TARGET);
+          if(!include.length)throw Error('Unsupported desktop target');
+          const maintainer=process.env.DESKTOP_MAINTAINER?.trim()||JSON.parse(readFileSync('package.json','utf8')).config?.desktopMaintainer;
+          if(include.some(x=>x.platform==='linux')&&['installer','all'].includes(process.env.DESKTOP_FORMAT)&&!maintainer)throw Error('Configure config.desktopMaintainer or SUMA_DESKTOP_MAINTAINER as Name <public-email> before building DEB packages');
+          appendFileSync(process.env.GITHUB_OUTPUT,`matrix=${JSON.stringify({include})}\n`);
+          NODE
+  web:
+    needs: select
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: "24"
+      - name: Prepare local temporary directories
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import {mkdirSync,appendFileSync} from 'node:fs';
+          import {join} from 'node:path';
+          const tmp=join(process.env.GITHUB_WORKSPACE,'.cache/desktop-ci/tmp');mkdirSync(tmp,{recursive:true});
+          appendFileSync(process.env.GITHUB_ENV,`TMPDIR=${tmp}\nTEMP=${tmp}\nTMP=${tmp}\n`);
+          NODE
+      - run: npm install --global pnpm@11.25.0
+      - run: pnpm install --frozen-lockfile --filter @suma/web...
+      # A single immutable Web build is shared by selected native package jobs.
+      - run: pnpm --filter @suma/web exec vite build --outDir ../../.cache/desktop-ci/web --emptyOutDir
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: desktop-web-${{ github.run_id }}
+          path: .cache/desktop-ci/web
+          if-no-files-found: error
+          retention-days: 1
+  package:
+    needs: [select, web]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.select.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+      SUMA_LANGUAGE: en-US
+      DESKTOP_PLATFORM: ${{ matrix.platform }}
+      DESKTOP_ARCH: ${{ matrix.arch }}
+      DESKTOP_TARGET: ${{ matrix.target }}
+      DESKTOP_FORMAT: ${{ inputs.format }}
+      SUMA_DESKTOP_MAINTAINER: ${{ vars.SUMA_DESKTOP_MAINTAINER }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: "24"
+      - name: Check native architecture and prepare local caches
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import {mkdirSync,appendFileSync} from 'node:fs';
+          import {join} from 'node:path';
+          if(process.platform!==process.env.DESKTOP_PLATFORM||process.arch!==process.env.DESKTOP_ARCH)throw Error('Runner platform/architecture does not match the package target');
+          const base=join(process.env.GITHUB_WORKSPACE,'.cache/desktop-ci');
+          const cache=join(process.env.GITHUB_WORKSPACE,'.cache/desktop',process.env.DESKTOP_TARGET,'cache');
+          for(const directory of [join(base,'tmp'),join(cache,'go-build'),join(cache,'go-mod')])mkdirSync(directory,{recursive:true});
+          appendFileSync(process.env.GITHUB_ENV,`TMPDIR=${join(base,'tmp')}\nTEMP=${join(base,'tmp')}\nTMP=${join(base,'tmp')}\nGOTMPDIR=${join(base,'tmp')}\nGOCACHE=${join(cache,'go-build')}\nGOMODCACHE=${join(cache,'go-mod')}\n`);
+          NODE
+      - uses: actions/setup-go@v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: npm install --global pnpm@11.25.0
+      - run: pnpm install --frozen-lockfile --filter @suma/desktop...
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: desktop-web-${{ github.run_id }}
+          path: .cache/desktop-ci/web
+      - name: Prepare Linux packaging dependencies
+        if: matrix.platform == 'linux' && (inputs.format == 'installer' || inputs.format == 'all')
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y libopenjp2-tools
+      - name: Build the selected unsigned package without publishing
+        shell: bash
+        run: |
+          node apps/desktop/scripts/package.cjs --platform "$DESKTOP_PLATFORM" --arch "$DESKTOP_ARCH" --format "$DESKTOP_FORMAT" --signing off --plan
+          node apps/desktop/scripts/package.cjs --platform "$DESKTOP_PLATFORM" --arch "$DESKTOP_ARCH" --format "$DESKTOP_FORMAT" --signing off --web-dir "$GITHUB_WORKSPACE/.cache/desktop-ci/web"
+      # tar preserves executable bits and macOS application/framework links.
+      # Uploading an unpacked application directly would discard permissions.
+      - name: Archive public deliverables
+        shell: bash
+        run: node scripts/archive-desktop.mjs "$DESKTOP_TARGET"
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: suma-desktop-${{ matrix.target }}-${{ inputs.format }}-unsigned
+          path: |
+            .cache/desktop-ci/artifacts/${{ matrix.target }}.tar.gz
+            .cache/desktop-ci/artifacts/${{ matrix.target }}.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 14

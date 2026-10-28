@@ -20,7 +20,7 @@ async function mainHarness(t,environment={}){
  }
  const child=new EventEmitter();Object.assign(child,{pid:123,exitCode:null,signalCode:null,kill(){this.signalCode='SIGTERM';queueMicrotask(()=>this.emit('exit',null,'SIGTERM'));return true}});
  const source=fs.readFileSync(path.join(__dirname,'../src/main.cjs'),'utf8');
- const context={__dirname:path.join(__dirname,'../src'),process:{platform:process.platform,env:environment},Buffer,URL,setTimeout,clearTimeout,require:id=>{
+ const context={__dirname:path.join(__dirname,'../src'),process:{platform:process.platform,arch:process.arch,env:environment},Buffer,URL,setTimeout,clearTimeout,require:id=>{
   if(id==='electron')return {app,BrowserWindow:Window,ipcMain:{handle:(name,fn)=>handlers.set(name,fn),removeHandler:name=>handlers.delete(name)},dialog:{showErrorBox:(...args)=>dialogs.push(args),showOpenDialog:async()=>({canceled:true,filePaths:[]})}};
   if(id==='node:fs')return {...fs,existsSync:()=>true};
   if(id==='node:child_process')return {spawn:(...args)=>{spawns.push(args);return child}};
@@ -39,6 +39,9 @@ test('main exposes only the directory picker on its exact owned frame and pins l
  assert.equal(h.handlers.size,1,'one fixed native picker handler must exist');
  const handler=[...h.handlers.values()][0];assert.equal(typeof handler,'function');
  const env=h.spawns[0][2].env;
+ const target=path.join(repository,'.cache/desktop',`${process.platform}-${process.arch}`);
+ assert.equal(h.spawns[0][0],path.join(target,'control',process.platform==='win32'?'suma-control.exe':'suma-control'));
+ assert.equal(env.SUMA_WEB_DIR,path.join(target,'web'),'development must consume the same prepared target');
  assert.equal(env.SUMA_DB_DRIVER,'sqlite');assert.equal(env.SUMA_DB_DSN.endsWith(path.join('data','suma.db')),true);
  assert.equal(Object.hasOwn(env,'SUMA_WORKSPACE_ROOT'),false);
  assert.equal(/^[a-f0-9]{64}$/.test(env.SUMA_DESKTOP_WORKSPACE_KEY),true,'child needs the private local key');

@@ -4,13 +4,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-DESKTOP-107",
-  "updated_at": "2026-10-28T02:55:31.433058+00:00",
+  "stage": "T-DESKTOP-108",
+  "updated_at": "2026-10-28T03:32:46.192Z",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/desktop-workspace-verification.md",
-  "current_summary": "docs/quality/desktop-workspace-summary.json",
+  "current_evidence": "docs/quality/desktop-packaging-verification.md",
+  "current_summary": "docs/quality/desktop-packaging-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..25",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -31,9 +31,56 @@
     "internationalization": "zh-CN/en-US paired extensible catalogs4698keys; scoped desktop selection/binding/recovery and known server diagnostics; own frontend production hardcodes0. Native/system/vendor/installer surfaces need separate acceptance.",
     "versioning": "Go product identity has one source; workspace/desktop/Helm check:version is1.0.0; protocol/workflow/data revisions independent.",
     "architecture": "Single initial1.0.0; one current OpenCode SDK path, no old JSONL parser/alias or duplicate dispatcher. Generated public types replace duplicate web DTOs; current native host/ledger reused.",
-    "opencode": "Actual officialWindows1.19.4 CLI/SDK + owned deterministic model protocol, real host MCP/write/check/seal, twoWorker candidate/import/independent exactSHA test; currentstream client lifetime, single Go tree authority and compact CNEN status/drilldown. Not commercial model/billing or production evidence."
+    "opencode": "Actual officialWindows1.19.4 CLI/SDK + owned deterministic model protocol, real host MCP/write/check/seal, twoWorker candidate/import/independent exactSHA test; currentstream client lifetime, single Go tree authority and compact CNEN status/drilldown. Not commercial model/billing or production evidence.",
+    "desktop_packaging": "Six native platform/architecture build plans, isolated source/provenance validation, unsigned installer/portable/dir, actual Windows x64 installer+portable, manual native CI with shared Web; signed delivery blocked pending lineage/OS verification. Approved maintainer zhaoyingchao."
   },
   "verified": {
+    "current_report": "docs/quality/desktop-packaging-verification.md",
+    "product_version": "1.0.0",
+    "earlier_desktop_tests": {
+      "passed": 33,
+      "skipped": 1
+    },
+    "later_packaging_tests": 17,
+    "final_affected_tests": 4,
+    "six_control_targets": 6,
+    "actual_cross_builds": 5,
+    "reused_current_native_control": 1,
+    "actual_windows_sdk_artifacts": 2,
+    "actual_archive": true,
+    "remote_ci_jobs": 0,
+    "actual_installations": 0,
+    "actual_gui": false,
+    "actual_signatures": false,
+    "model_calls": 0,
+    "web_builds_added": 0
+  },
+  "production_integration_complete": false,
+  "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
+  "commit_policy": "User authorizes commits and normal non-forced pushes after verified functional stages to git@github.com:ai-mada/suma.git, branch dev. Include necessary source, configuration, design/contracts and compact evidence only. Keep credentials, databases, raw logs, screenshots, snapshots, caches, dependencies and binaries out of Git; preserve remote changes. No authorization for releases or deployment.",
+  "git_delivery": {
+    "repository": "git@github.com:ai-mada/suma.git",
+    "branch": "dev",
+    "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
+    "force_push": false,
+    "previously_published_commit": "c21d2d65bcd127218e7e015afc0d01c5bb1d7b71"
+  },
+  "existing_preview": {
+    "updated": false,
+    "user_database_modified": false,
+    "reason": "The initial schema uses a separate empty database; existing data are preserved."
+  },
+  "remaining_work": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope.",
+  "last_goal_turn_classification": "progress: six-target packaging and provenance implemented in parallel; actual unsigned Windows installer/portable and archive verified; approved public maintainer corrected to zhaoyingchao. Full P0-P7/1..25 and target-system/signature/GUI acceptance remain.",
+  "previous_goal_turn": "progress: native directory selection and project binding implemented in parallel; rooted file I/O and actual isolated HTTP chain/restart verified. NativeGUI startup unresolved, full P0-P7 and requirements1..25 active.",
+  "current_work": {
+    "status": "scoped_delivery_verified_full_platform_in_progress",
+    "stage": "T-DESKTOP-108",
+    "verification": "Exact source receipts; affected Node checks, actual five cross-builds plus current native binary, six headers, actual Windows SDK and hashes/archive, native matrix planning and version/syntax checks. No installation, model, UI or remote workflow execution.",
+    "next_integration": "Preserve full P0-P7/1..25: resolve Electron loader issue; actual native install/GUI matrix; signed-content lineage and OS signature/notarization; complete IDE/root-aware save context.",
+    "deferred_not_dropped": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope."
+  },
+  "previous_stage_verification": {
     "current_report": "docs/quality/desktop-workspace-verification.md",
     "product_version": "1.0.0",
     "desktop_node_initial": {
@@ -72,31 +119,5 @@
     "actual_installers": false,
     "previous_opencode_evidence": "docs/quality/opencode-actual-execution-verification.md",
     "web_current_binding_review_affected_passed": 3
-  },
-  "production_integration_complete": false,
-  "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
-  "commit_policy": "User authorizes commits and normal non-forced pushes after verified functional stages to git@github.com:ai-mada/suma.git, branch dev. Include necessary source, configuration, design/contracts and compact evidence only. Keep credentials, databases, raw logs, screenshots, snapshots, caches, dependencies and binaries out of Git; preserve remote changes. No authorization for releases or deployment.",
-  "git_delivery": {
-    "repository": "git@github.com:ai-mada/suma.git",
-    "branch": "dev",
-    "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
-    "force_push": false,
-    "previously_published_commit": "56c2a3dfca2fb2e44b04bea4a42f5d3e3fa1d695"
-  },
-  "existing_preview": {
-    "updated": false,
-    "user_database_modified": false,
-    "reason": "The initial schema uses a separate empty database; existing data are preserved."
-  },
-  "remaining_work": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope.",
-  "last_goal_turn_classification": "progress: native directory selection and project binding implemented in parallel; rooted file I/O and actual isolated HTTP chain/restart verified. NativeGUI startup unresolved, full P0-P7 and requirements1..25 active.",
-  "previous_goal_turn": "progress: replaced recursive flat localIDE inventory with actual paged directory/CLI workflow, current-authority cursor/activation, draft protection and verified CNEN narrow UI. Complete P0-P7 and1..22 remain active.",
-  "current_work": {
-    "status": "scoped_implementation_verified_native_gui_pending",
-    "native": "Desktop native picker, scoped expiring HMAC selection, durable per-project root identity and original binding ACK recovery implemented. No home/global-root expansion, source matches current1.0.0 only.",
-    "verification": "Affected Node/Web/Go checks, final tsc/vet/generated drift/version/i18n and current builds verified; actual isolated HTTP bind/tree/read/CAS/Git/receipts/184table restart passed. Native Electron GUI failed three bounded layouts; no security disabling or system/shared SDK changes.",
-    "updated_goal": "Both new attachments fully read; requirements24/25 added to full baseline/plan, desktop23 remains aligned.",
-    "deferred_not_dropped": "Keep full P0-P7 and requirements1..25, including issue/bug/test lifecycle, subproject/microapplication dependency and version delivery; current architecture and plan track every incomplete scope.",
-    "next_integration": "Resolve the actual Electron loader failure without weakening protections; verify native choose/bind/editor/restart. Carry read-time binding identity into file save intent as part of full IDE, then continue all P0-P7/1..25 tasks."
   }
 }

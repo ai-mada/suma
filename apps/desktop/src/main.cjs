@@ -16,8 +16,12 @@ async function start(){
  locale=resolveLocale(app.getLocale(),process.env);
  if(configurationError)throw localError(locale,configurationError);
  const resources=app.isPackaged?process.resourcesPath:resolve(__dirname,'../../..');
- const binary=overrides?.binary||(app.isPackaged?join(resources,'control',process.platform==='win32'?'suma-control.exe':'suma-control'):resolve(resources,'.cache/desktop/control',process.platform==='win32'?'suma-control.exe':'suma-control'));
- const web=overrides?.web||(app.isPackaged?join(resources,'web'):resolve(resources,'apps/web/dist'));
+ // Development preparation and distribution use the same target identity.
+ // Keep each architecture's executable and Web assets together; never consume
+ // a different target's last build from a shared staging directory.
+ const prepared=resolve(resources,'.cache/desktop',`${process.platform}-${process.arch}`);
+ const binary=overrides?.binary||(app.isPackaged?join(resources,'control',process.platform==='win32'?'suma-control.exe':'suma-control'):join(prepared,'control',process.platform==='win32'?'suma-control.exe':'suma-control'));
+ const web=overrides?.web||(app.isPackaged?join(resources,'web'):join(prepared,'web'));
  if(!existsSync(binary))throw localError(locale,'missing_control');if(!existsSync(join(web,'index.html')))throw localError(locale,'missing_web');
  let key;try{key=loadWorkspaceKey(app.getPath('userData'))}catch{throw localError(locale,'workspace_key_failed')}
  let data;try{

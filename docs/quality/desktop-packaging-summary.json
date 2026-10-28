@@ -1,0 +1,309 @@
+{
+  "stage": "T-DESKTOP-108",
+  "product_version": "1.0.0",
+  "recorded_at": "2026-10-28T03:32:46.044Z",
+  "status": "unsigned_windows_packages_and_six_target_build_contract_verified",
+  "full_platform_complete": false,
+  "maintainer": "zhaoyingchao <zyc2012518@126.com>",
+  "versions": {
+    "node": "v22.16.0",
+    "electron": "35.7.5",
+    "electron_builder": "26.15.3",
+    "go": "1.26.10"
+  },
+  "verification": {
+    "earlier_full_desktop": {
+      "total": 34,
+      "passed": 33,
+      "skipped": 1,
+      "failed": 0,
+      "source_sha256": "a1070a15568148135e7bbec726ae787cab8d44f83cc50aafe528bd8431c62389"
+    },
+    "later_packaging_affected": {
+      "passed": 17,
+      "source_sha256": "5a89d0d8c672ad4f330185993355c9ec262163a6f20f1ae1ca058dc5bcf1ac00"
+    },
+    "final_affected": {
+      "passed": 4,
+      "failed": 0,
+      "scope": "maintainer and OS identity; root/env/CLI precedence; scratch junctions; signed-mode preflight"
+    },
+    "syntax": true,
+    "main_target_path_case": true,
+    "version_check": true,
+    "yaml_and_matrix_cases": 3,
+    "remote_ci_jobs": 0,
+    "frontend_builds_added": 0,
+    "model_requests": 0,
+    "installations": 0,
+    "actual_gui": 0,
+    "code_signatures_verified": 0
+  },
+  "controls": {
+    "product_version": "1.0.0",
+    "source_sha256": "9c48be6cea71943fb54b49dfda31794abdff7d1e081e44249e0697d368fd7558",
+    "source_files": 469,
+    "controls": [
+      {
+        "target": "win32-x64",
+        "format": "PE32+",
+        "sha256": "eb4c5572911f6ce11efcc9cdd085c2c78f9bdf3bcc9f29fa4f08456286988b74",
+        "source_sha256": "9c48be6cea71943fb54b49dfda31794abdff7d1e081e44249e0697d368fd7558",
+        "verification": "native_version_and_source_build_receipt"
+      },
+      {
+        "target": "win32-arm64",
+        "format": "PE32+",
+        "sha256": "b95aa8572af85606eb391a66e2483552261fd53a0d2327bf98c67e834b2d4858",
+        "source_sha256": "9c48be6cea71943fb54b49dfda31794abdff7d1e081e44249e0697d368fd7558",
+        "verification": "compiled_current_source"
+      },
+      {
+        "target": "linux-x64",
+        "format": "ELF64",
+        "sha256": "e4d64ebf8c69be68641bb9400c831ff3a7f9282eb8e62e388f2b56ef9d61c559",
+        "source_sha256": "9c48be6cea71943fb54b49dfda31794abdff7d1e081e44249e0697d368fd7558",
+        "verification": "compiled_current_source"
+      },
+      {
+        "target": "linux-arm64",
+        "format": "ELF64",
+        "sha256": "c86eb124807f25d088db952a7c40d0e8186acc7928c4d53ff7708a9e5f77c2f6",
+        "source_sha256": "9c48be6cea71943fb54b49dfda31794abdff7d1e081e44249e0697d368fd7558",
+        "verification": "compiled_current_source"
+      },
+      {
+        "target": "darwin-x64",
+        "format": "Mach-O64",
+        "sha256": "045c64739c0d2b8a72fdd0df155e4920357846beec9dfed1e3eead8849c59bc2",
+        "source_sha256": "9c48be6cea71943fb54b49dfda31794abdff7d1e081e44249e0697d368fd7558",
+        "verification": "compiled_current_source"
+      },
+      {
+        "target": "darwin-arm64",
+        "format": "Mach-O64",
+        "sha256": "78b7de1779f5bd56a2555d57d9677e97fe1c44bfd1f1a650cee3c5a2b76345f8",
+        "source_sha256": "9c48be6cea71943fb54b49dfda31794abdff7d1e081e44249e0697d368fd7558",
+        "verification": "compiled_current_source"
+      }
+    ],
+    "native_product_version": "suma-control 1.0.0",
+    "cross_build_commands": [
+      {
+        "path": "20261028T030822986Z.command.json",
+        "arguments": [
+          "build",
+          "-trimpath",
+          "-buildvcs=false",
+          "-mod=readonly",
+          "-o",
+          "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\desktop-108\\controls\\win32-arm64\\suma-control.exe",
+          "./cmd/suma-control"
+        ],
+        "exit_code": 0,
+        "goos": "windows",
+        "goarch": "arm64",
+        "cgo": "0"
+      },
+      {
+        "path": "20261028T030841669Z.command.json",
+        "arguments": [
+          "build",
+          "-trimpath",
+          "-buildvcs=false",
+          "-mod=readonly",
+          "-o",
+          "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\desktop-108\\controls\\linux-x64\\suma-control",
+          "./cmd/suma-control"
+        ],
+        "exit_code": 0,
+        "goos": "linux",
+        "goarch": "amd64",
+        "cgo": "0"
+      },
+      {
+        "path": "20261028T030901592Z.command.json",
+        "arguments": [
+          "build",
+          "-trimpath",
+          "-buildvcs=false",
+          "-mod=readonly",
+          "-o",
+          "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\desktop-108\\controls\\linux-arm64\\suma-control",
+          "./cmd/suma-control"
+        ],
+        "exit_code": 0,
+        "goos": "linux",
+        "goarch": "arm64",
+        "cgo": "0"
+      },
+      {
+        "path": "20261028T030921392Z.command.json",
+        "arguments": [
+          "build",
+          "-trimpath",
+          "-buildvcs=false",
+          "-mod=readonly",
+          "-o",
+          "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\desktop-108\\controls\\darwin-x64\\suma-control",
+          "./cmd/suma-control"
+        ],
+        "exit_code": 0,
+        "goos": "darwin",
+        "goarch": "amd64",
+        "cgo": "0"
+      },
+      {
+        "path": "20261028T030940658Z.command.json",
+        "arguments": [
+          "build",
+          "-trimpath",
+          "-buildvcs=false",
+          "-mod=readonly",
+          "-o",
+          "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\desktop-108\\controls\\darwin-arm64\\suma-control",
+          "./cmd/suma-control"
+        ],
+        "exit_code": 0,
+        "goos": "darwin",
+        "goarch": "arm64",
+        "cgo": "0"
+      }
+    ],
+    "actual_installation": false,
+    "actual_gui": false,
+    "signatures_verified": false
+  },
+  "windows_delivery": {
+    "artifacts": [
+      {
+        "path": "Suma-1.0.0-win32-x64-installer.exe",
+        "size_bytes": 94424049,
+        "sha256": "d9b17fc677b900f005cc9e6b986a33def2ca3e4170a03cd8367843b64cc06a58"
+      },
+      {
+        "path": "Suma-1.0.0-win32-x64-portable.exe",
+        "size_bytes": 94264491,
+        "sha256": "420b6947a28374c4d5552eb4340f9c0b6c079fa9332ae561d62f41938f4ab1fe"
+      }
+    ],
+    "manifest_sha256": "ff5aa4f3fbd88f5cc675b5f9f417d193922aed69207969e9ad777eb5f78dbeea",
+    "control": {
+      "schema_version": 1,
+      "kind": "suma-desktop-control",
+      "product_version": "1.0.0",
+      "target": "win32-x64",
+      "platform": "win32",
+      "arch": "x64",
+      "format": "PE32+",
+      "binary_sha256": "eb4c5572911f6ce11efcc9cdd085c2c78f9bdf3bcc9f29fa4f08456286988b74",
+      "source_sha256": "9c48be6cea71943fb54b49dfda31794abdff7d1e081e44249e0697d368fd7558",
+      "source_algorithm": "sha256(JSON.stringify(sorted [{path,size_bytes,sha256}])); UTF-8; repository-relative slash paths",
+      "version_verification": "native_version_and_source_build_receipt"
+    },
+    "web": {
+      "sha256": "cea1e6b2c1a3c75b09b3ef47b0db04d908c0e2bf0ded3d8c8e4c93ae2f102d5e",
+      "files": 138
+    },
+    "desktop_source_sha256": "fd6b0c6ac209526139f0f175f62140427beb1c1427913982dbed497c05bfdb2b",
+    "actual_sdk_exit_code": 0,
+    "executable_product_version": "1.0.0",
+    "authenticode_status": "NotSigned",
+    "installation": false,
+    "gui": false
+  },
+  "ci_archive": {
+    "path": ".cache/desktop-ci/artifacts/win32-x64.tar.gz",
+    "sha256": "8a415409f6af16ae26d50d7dced42c6f260c00db4479bdf191734cd5a4445ce0",
+    "listed_entries": 5,
+    "preserves_permissions_and_links": true,
+    "archive_installed": false
+  },
+  "receipts": [
+    {
+      "path": ".cache/e2e/desktop-108/packaging-node.agent.json",
+      "sha256": "57e2c7a48bef1fb0132ac4968a7ffc8e239af6e46e7d4446e93775e0fac82e0a"
+    },
+    {
+      "path": ".cache/e2e/desktop-108/controls.public.json",
+      "sha256": "fc0d22a913c3ad5ad4a8b0b134546f21a0ad233ef5963d1c39111ca190791cd4"
+    },
+    {
+      "path": ".cache/e2e/desktop-108/ci-matrix-final.public.json",
+      "sha256": "9abfcfdcd5098f86db704e13910788f2c6934d21246eb93a4c4a477e0e9c5eba"
+    },
+    {
+      "path": ".cache/e2e/desktop-108/windows-artifacts.public.json",
+      "sha256": "4245f7346b65f050e85d4d0049f776242a4e45436c53daad478a7426e42a01c4"
+    },
+    {
+      "path": ".cache/e2e/desktop-108/windows-package.log",
+      "sha256": "79f14b2187d31cf51a725d1f60f26978d0bf43ca9e82b9bb3ac3135b3d4dfc0f"
+    },
+    {
+      "path": ".cache/e2e/desktop-108/archive.log",
+      "sha256": "64fd2b68df5d59b20d2c12e8b751e5b7e8b5f9061fc8c9915bbbea9292637007"
+    }
+  ],
+  "source_files": [
+    {
+      "path": ".github/workflows/desktop.yaml",
+      "sha256": "00f3bd5fb44b289ff446c9348c36925e8b7750481892f3f27d376e58f9edcd8e"
+    },
+    {
+      "path": "apps/desktop/package.json",
+      "sha256": "00f4e892d88a7d66a886474c16c42e3d8ee483f94b16f4ca36eb60d668ef12c9"
+    },
+    {
+      "path": "apps/desktop/scripts/build-plan.cjs",
+      "sha256": "054f58a365b95a85dc7d696a26b4c112e87e229e3f52f14a98e2a4226cc5fab7"
+    },
+    {
+      "path": "apps/desktop/scripts/builder-sdk.cjs",
+      "sha256": "86b690174b0abc1a95ffbbfa0c0658fd8c1a3144ab64cb60aa4b5a7e942e0e8d"
+    },
+    {
+      "path": "apps/desktop/scripts/entitlements.mac.plist",
+      "sha256": "518f9a6c9bd10a1a56073039ddac9a7427745bcb5c470c4b33c814fadfb62d22"
+    },
+    {
+      "path": "apps/desktop/scripts/package.cjs",
+      "sha256": "b247bbf94aad2ab9fee45451e4193c74d8d6bd9885fc866f6336a55a6f32abf4"
+    },
+    {
+      "path": "apps/desktop/scripts/prepare.cjs",
+      "sha256": "09816ac703966a4281908af7f1260e032a443f35b4ac3e10008d9388cbdc3e8d"
+    },
+    {
+      "path": "apps/desktop/scripts/provenance.cjs",
+      "sha256": "a724002ed45bdf0475ae45a700bd02e8988fbd265b1a86a45628408b3536579e"
+    },
+    {
+      "path": "apps/desktop/src/main.cjs",
+      "sha256": "78285b0e12374a4ab8a9b5a15df7aa7253fe03c4964c9a5dddde82b1b4a455bb"
+    },
+    {
+      "path": "apps/desktop/tests/packaging.test.cjs",
+      "sha256": "4caf593e051ec03200b0d8ad8ae2b410361ef9abca22a029af9d915785ae8234"
+    },
+    {
+      "path": "apps/desktop/tests/workspace-main.test.cjs",
+      "sha256": "c9b23d4c58c4e21ed914b2d6c054a963c8bcc8285f5297dbd99c2b87133c3008"
+    },
+    {
+      "path": "package.json",
+      "sha256": "35c8e2e662984807c19bc51078813bdb16b574777a04cb2bc4bf723e511673d8"
+    },
+    {
+      "path": "scripts/archive-desktop.mjs",
+      "sha256": "c2adbc55f12551a58155387ede5b1a0e3509ee3b216e19e4ad1bf7835c10d699"
+    }
+  ],
+  "limitations": [
+    "Only unsigned/off delivery is executable. auto|required fail before preparation, SDK or certificate use.",
+    "Mac/Linux full SDK packages and Windows ARM64 package not built on native systems; six Go controls are compiled/header-checked only.",
+    "No install/uninstall, GUI, production signature/notarization, remote CI run or release.",
+    "Prior GPU-child0xC0000135 remains unresolved; default Electron icon remains pending branding.",
+    "Full P0-P7 and requirements1..25 remain active."
+  ]
+}

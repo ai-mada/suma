@@ -25,7 +25,7 @@
 | 自动化与事件 | 持久人工／cron 触发、时区／错过／重叠策略、固定来源、签名 GitHub／Suma 事件、去重交付、当前授权 SSE 与断线续传 | [自动化](../quality/automation-verification.md)、[事件入口](../quality/ingress-verification.md)；本机真实 Git／协议事件不替代公网厂商、生产 CI 身份或消息通道验收 |
 | 质量、制品与发布 | 独立测试证据、人工验收、失败去重回流；真实字节上传封存、包测试、固定范围、本机静态站点批准／发布／核对／独立回退 | [验收矩阵](../quality/acceptance.md)、[发布控制](../deployment/release-control.md)、[发布证据](../architecture/release-evidence.md)；生产 CI、签名、远端／容器部署、灰度与生产健康待办 |
 | 国际化与交互 | 成对中文／英文目录、持久账户／组织偏好、结构化诊断、原文保留及代表性键盘／刷新旅程 | [语言偏好](../quality/locale-preferences-verification.md)、[自有前端](../quality/remaining-localization-verification.md)、[后端诊断](../quality/backend-diagnostics-verification.md)、[运行诊断](../quality/native-diagnostics-verification.md)、[显示资格](../quality/platform-display-verification.md)；目录键数不代表完整平台、库内控件、通知、安装器及所有语言表面完成 |
-| 存储与客户端交付 | SQLite、本地文件／Lance 与 OceanBase／PostgreSQL 驱动路径；CLI／TUI、Web 构建、Windows 未签名桌面与六目标四程序交叉编译 | [数据设计](../data/transactional-store.md)、[构建](../deployment/build-reproducibility.md)、[运行包](../deployment/runtime-bundles.md)、[桌面](../deployment/desktop.md)；真实分布式数据库、S3／多模态全链路、安装／签名／目标系统运行、离线协作、移动 App 与 SaaS 商业化待办 |
+| 存储与客户端交付 | SQLite、本地文件／Lance 与 OceanBase／PostgreSQL 驱动路径；CLI／TUI、Web构建、六目标桌面打包入口／原生CI配置、实际Windows未签名安装／便携包及控制程序六架构核验 | [数据设计](../data/transactional-store.md)、[构建](../deployment/build-reproducibility.md)、[运行包](../deployment/runtime-bundles.md)、[桌面](../deployment/desktop.md)、[当前跨平台打包验证](../quality/desktop-packaging-verification.md)；真实分布式数据库、S3／多模态全链路、安装／签名／目标系统运行、离线协作、移动 App 与 SaaS 商业化待办 |
 
 ## 1.0.0 初始化与验证边界
 

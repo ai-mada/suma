@@ -138,7 +138,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 ## P7 商业化与正式交付
 
 - [ ] 可复用身份／自定义角色与资源动作、企业OIDC SSO及真实提供方验收；版本化插件／技能、官方SDK的MCP／A2A接入、配置管理和去敏可观测性，需求编号与验收见[平台基础PRD](../product/platform-foundation-prd.md)。
-- [x] 浏览器生产构建与Windows未签名桌面目录产物。
+- [x] 浏览器生产构建与Windows未签名桌面目录／安装／便携产物；六目标构建入口、架构／来源校验和按需原生CI配置（远端矩阵未执行），见[安装指南](../deployment/desktop-installation.md)与[限定验证](../quality/desktop-packaging-verification.md)。
 - [x] 控制面/Runner/CLI/本机Deployer四程序在Windows/Linux/macOS×amd64/arm64的24文件交叉编译与摘要核对。
 - [ ] Windows正式安装/升级验证，macOS/Linux构建、签名和实机矩阵。
 - [ ] 套餐、席位、租户配额、用量与账单，支付宝/微信/企业结算及回调验签。

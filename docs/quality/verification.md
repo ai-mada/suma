@@ -4,6 +4,7 @@
 
 | 当前范围 | 验证与限制 |
 | --- | --- |
+| 六目标桌面打包与安装交付 | [限定报告](desktop-packaging-verification.md)、[摘要](desktop-packaging-summary.json)：六目标控制程序／计划、实际Windows安装／便携包、资源／校验清单和归档；原生多系统安装、GUI、远端CI及生产签名未验，非off签名预检拒绝 |
 | 桌面项目目录与根约束文件链路 | [限定报告](desktop-workspace-verification.md)、[摘要](desktop-workspace-summary.json)：原生桥／绑定合同、定向检查及实际HTTP保存／Git／回执／184表重启通过；Electron图形子进程启动失败，原生界面、安装器和完整IDE未验 |
 | 本地IDE目录分页与CLI | [限定报告](workspace-directory-verification.md)、[摘要](workspace-directory-summary.json)：元数据入口、原范围游标、草稿保护、CNEN及640px布局；正式保存／运行0，物理多机／完整IDE和容量矩阵未验 |
 | OpenCode实际CLI／SDK／宿主／独立测试与运行交互 | [实际限定报告](opencode-actual-execution-verification.md)、[摘要](opencode-actual-execution-summary.json)：真实官方Windows工具配自有模型协议、两Worker／同SHA独立测试；原数据快照CNEN／刷新／测试下钻；商业模型效果、物理多机、跨平台与生产未验 |

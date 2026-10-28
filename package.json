@@ -4,12 +4,15 @@
   "private": true,
   "packageManager": "pnpm@11.25.0",
   "engines": { "node": ">=22" },
+  "config": { "desktopMaintainer": "zhaoyingchao <zyc2012518@126.com>" },
   "scripts": {
     "dev": "pnpm --filter @suma/web dev",
     "build": "pnpm --filter @suma/web build",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
     "desktop": "pnpm --filter @suma/desktop start",
+    "desktop:prepare": "node apps/desktop/scripts/prepare.cjs",
+    "desktop:plan": "node apps/desktop/scripts/package.cjs --plan",
     "desktop:package": "pnpm --filter @suma/desktop package",
     "check:docs": "node scripts/check-docs.mjs",
     "check:version": "node scripts/check-version.mjs"
