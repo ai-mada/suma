@@ -31,6 +31,9 @@ type testPlanRunSnapshot struct {
 	Revision           *TestPlanRevision `json:"revision,omitempty"`
 	GovernanceRevision int               `json:"governance_revision"`
 	CreatedAt          string            `json:"created_at"`
+	// Package tests consume a sealed artifact instead of producing JUnit cases.
+	// Their authority is frozen before execution, never inferred from a result.
+	PackageTests []testPlanPackageBinding `json:"package_tests"`
 }
 
 func (s *Service) InitializeTestPlans(ctx context.Context) error {

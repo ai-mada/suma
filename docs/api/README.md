@@ -141,3 +141,5 @@ Attempt列表只查询元数据，`result_source=not_loaded`；精确详情才�
 `GET /usage`、`POST /usage/policies`、`POST /usage/rates`、`GET /usage/attempts`和单项`confirm`复用当前授权／严格DTO；304模型／186路径，旧模型和路径未改。整数micros、空值未知、月度scope、原始事实与人工确认边界详见[合同](../../contracts/usage-accounting.md)和[实际限定验证](../quality/usage-accounting-verification.md)。
 
 [Application contracts](../development/project-applications.md) define the formal catalog, exact integrated source previews, immutable registration, declared graph and impact reads. Go types generate the shared TypeScript/OpenAPI and fixed source-inspector runtime constants; preview and impact are pure reads, registration remains an explicit current-authorized browser command.
+
+[Application release-set contracts](../../contracts/application-release-sets.md) bind immutable reviewed code/artifact associations to the original signed per-member deployment plans. Preparation creates pending-approval plans only; package evidence and JUnit case reports remain distinct.

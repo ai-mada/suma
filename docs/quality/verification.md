@@ -6,6 +6,7 @@
 
 | 当前范围 | 验证与限制 |
 | --- | --- |
+| T-RELEASESET-124 应用版本集与原部署 | [报告](application-release-sets-verification.md)、[摘要](application-release-sets-summary.json)、[操作](../development/application-release-sets.md)：准确成员、独立制品及闭包，原计划逐项批准／执行／实际健康，混合包测试与JUnit分别门禁；同机真实静态演示、中英390与原计划双向追溯，完整跨应用与生产仍待办 |
 | T-APPLICATION-123 应用版本与依赖影响 | [报告](project-applications-verification.md)、[摘要](project-applications-summary.json)：真实集成来源、不可变代码版本、精确人工固定、声明覆盖、轻量图与反向影响；实际双Worker／Git／JUnit／fixture Review及中英390只读界面。完整跨应用与生产能力仍待办 |
 | T-PROJECT-121 正式项目风险闭环 | [报告](project-risks-verification.md)、[摘要](project-risks-summary.json)、[中文操作](../development/project-risks.md)／[English](../en/project-risks.md)：正式风险与模型建议分别保存，来源去重、当前人类负责人、评估与版本关联、复核／关闭／重开；接口规范字段与子流程门禁专项修正，实际Node／Git／独立Worker同SHA测试及正式Review、概览和中英390界面分别留证。复杂来源、portfolio及生产验收仍待完成 |
 | T-WORKSPACE-120 Go宿主工作区操作 | [报告](workspace-operations-verification.md)、[摘要](workspace-operations-summary.json)、[操作](../development/workspace-operations.md)／[English](../en/workspace-operations.md)、[架构](../architecture/workspace-operations.md)：真实调用与原效果、远程CAS、独立宿主Outbox及重启元数据恢复；复用私有／Pool进度和原attempt分页。15项Go、5项Web聚焦检查及一次真实原生／HTTP／Journal／封存历史旅程；中英文与390键盘操作实见，刷新恢复原attempt上下文，其后事实请求完成未观察。不代表完整Octop、厂商、多主机或生产验收 |

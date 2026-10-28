@@ -27,6 +27,12 @@ export function locateProjectApplication(id:string,version:string,canLeave:()=>b
  return true;
 }
 
+export function locateApplicationReleaseSet(id:string,canLeave:()=>boolean,update:(change:(route:WorkbenchRoute)=>WorkbenchRoute)=>void):boolean{
+ if(!canLeave())return false;
+ update(route=>({...route,view:'operations',sub:'release-candidates',layout:'release-sets',record:id,panel:id?'application-release-set:'+id:'',run:'',node:'',attempt:'',q:'',status:'all',knowledge_kind:undefined,catalog_domain:undefined,catalog_scenario:undefined,catalog_state:undefined,catalog_source:undefined}));
+ return true;
+}
+
 /** Provider locators are data, never URLs. Only known in-project record kinds
  * become workbench destinations; foreign/invalid locators have no link. */
 export function sourceDestination(project:string,value:unknown):Pick<WorkbenchRoute,'project'|'view'|'sub'|'record'>|undefined {

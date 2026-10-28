@@ -180,3 +180,5 @@
 ## 初始化架构与验证
 
 [1.0.0初始化设计与AI SOP](architecture/initial-version.md) · [初始化限定验证](quality/initial-version-verification.md) · [精简摘要](quality/initial-version-summary.json)。
+
+[应用版本集与逐项部署](architecture/application-release-sets.md) · [操作与AI SOP](development/application-release-sets.md) · [合同](../contracts/application-release-sets.md) · [限定证据](quality/application-release-sets-verification.md)。

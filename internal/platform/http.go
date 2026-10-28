@@ -135,7 +135,7 @@ func decode(r *http.Request) (map[string]any, error) {
 	d := json.NewDecoder(bytes.NewReader(raw))
 	// Business dependency versions use the same exact numeric lexemes as the
 	// strict integer DTO routes below; generic map-backed routes remain unchanged.
-	if strings.HasPrefix(r.URL.Path, "/api/v1/applications") || strings.HasPrefix(r.URL.Path, "/api/v1/dispatch-recommendations") || strings.HasPrefix(r.URL.Path, "/api/v1/task-dependencies") || strings.HasPrefix(r.URL.Path, "/api/v1/intelligent-operations") || strings.HasPrefix(r.URL.Path, "/api/v1/test-plans") {
+	if strings.HasPrefix(r.URL.Path, "/api/v1/application-release-sets") || strings.HasPrefix(r.URL.Path, "/api/v1/applications") || strings.HasPrefix(r.URL.Path, "/api/v1/dispatch-recommendations") || strings.HasPrefix(r.URL.Path, "/api/v1/task-dependencies") || strings.HasPrefix(r.URL.Path, "/api/v1/intelligent-operations") || strings.HasPrefix(r.URL.Path, "/api/v1/test-plans") {
 		d.UseNumber()
 	}
 	// These routes decode into strict integer DTOs after the public envelope.
@@ -533,6 +533,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.failureDiagnosisHTTP(w, r, actor, scope, project, parts, m) {
+		return
+	}
+	if s.applicationReleaseSetHTTP(w, r, actor, scope, project, parts, m) {
 		return
 	}
 	if s.projectApplicationsHTTP(w, r, actor, scope, project, parts, m) {

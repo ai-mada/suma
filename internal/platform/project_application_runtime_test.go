@@ -27,7 +27,24 @@ import (
 // produces and transfers a candidate, another Worker tests its exact SHA, the
 // fixture owner formally accepts it, and the real provider atomically applies
 // it. Application versions are registered metadata, never deployment claims.
-func TestProjectApplicationActualIntegratedSourceAndPinnedVersions(t *testing.T) {
+type actualApplicationFixture struct {
+	f                          *fixture
+	task                       Record
+	delivery                   actualFixedCandidateEvidence
+	manifests                  map[string]string
+	control                    *httptest.Server
+	target                     RepositoryIntegrationTarget
+	plan                       RepositoryIntegrationPlan
+	library, web               ProjectApplication
+	libraryVersion, webVersion ApplicationVersionView
+	libraryPreview             ApplicationVersionPreview
+	webRequest                 ApplicationVersionPreviewRequest
+	preview                    func(ProjectApplication, ApplicationVersionPreviewRequest) ApplicationVersionPreview
+	register                   func(ProjectApplication, ApplicationVersionPreviewRequest, ApplicationVersionPreview) ApplicationVersionView
+}
+
+func newActualApplicationFixture(t *testing.T) *actualApplicationFixture {
+	t.Helper()
 	ctx := context.Background()
 	f := newFixture(t)
 	requirement := f.call("POST", "/requirements", f.body(map[string]any{"title": "Owned workspace application catalog", "description": "Register exact repository code scopes after an independently tested correction.", "acceptance_criteria": []string{"The fixed candidate returns the correct sum and retains the declared package manifests"}}), 201)
@@ -44,7 +61,7 @@ func TestProjectApplicationActualIntegratedSourceAndPinnedVersions(t *testing.T)
 		t.Fatal(err)
 	}
 	control := httptest.NewServer(f.handler)
-	defer control.Close()
+	t.Cleanup(control.Close)
 	git, err := exec.LookPath("git")
 	if err != nil {
 		t.Fatal(err)
@@ -63,9 +80,9 @@ func TestProjectApplicationActualIntegratedSourceAndPinnedVersions(t *testing.T)
 	if err != nil {
 		t.Fatal("start actual local repository provider", err)
 	}
-	defer provider.Close()
+	t.Cleanup(func() { _ = provider.Close() })
 	providerHTTP := httptest.NewServer(provider.Handler())
-	defer providerHTTP.Close()
+	t.Cleanup(providerHTTP.Close)
 	f.s.RepositoryProviders = []RepositoryProviderConfig{{ID: providerID, TenantID: f.user.TenantID, ProjectID: f.project, TargetAliases: []string{"main"}, TokenHash: digest(os.Getenv("SUMA_APP_CONTROL123")), Origin: providerHTTP.URL, ReconcileToken: os.Getenv("SUMA_APP_RECONCILE123"), SourceReadToken: os.Getenv("SUMA_APP_SOURCE123")}}
 	target := issueRepairRuntimeDecode[RepositoryIntegrationTarget](t, f.call("POST", "/repository-integration-targets", RepositoryIntegrationTargetCreateRequest{ProjectID: f.project, Name: "Actual governed application repository", ProviderID: providerID, TargetAlias: "main", IdempotencyKey: newID()}, 201))
 	plan := issueRepairRuntimeDecode[RepositoryIntegrationPlan](t, f.call("POST", "/repository-integrations/plans", RepositoryIntegrationPlanCreateRequest{ProjectID: f.project, TaskID: task.ID, ExpectedTaskVersion: task.Version, SourceNodeID: delivery.SourceNodeID, TargetID: target.ID, ExpectedTargetVersion: target.Version, IdempotencyKey: newID()}, 201))
@@ -173,6 +190,14 @@ func TestProjectApplicationActualIntegratedSourceAndPinnedVersions(t *testing.T)
 	webRequest.AcknowledgeDependencyGaps = true
 	webPreview = preview(web, webRequest)
 	webVersion := register(web, webRequest, webPreview)
+	return &actualApplicationFixture{f: f, task: task, delivery: delivery, manifests: manifests, control: control, target: target, plan: plan, library: library, web: web, libraryVersion: libraryVersion, webVersion: webVersion, libraryPreview: libraryPreview, webRequest: webRequest, preview: preview, register: register}
+}
+
+func TestProjectApplicationActualIntegratedSourceAndPinnedVersions(t *testing.T) {
+	h := newActualApplicationFixture(t)
+	f, task, delivery, manifests, target, plan := h.f, h.task, h.delivery, h.manifests, h.target, h.plan
+	library, web, libraryVersion, webVersion, libraryPreview, webRequest := h.library, h.web, h.libraryVersion, h.webVersion, h.libraryPreview, h.webRequest
+	preview, register := h.preview, h.register
 	graph := issueRepairRuntimeDecode[ApplicationDependencyGraph](t, f.call("GET", "/applications/graph?project_id="+f.project, nil, 200))
 	if len(graph.Nodes) != 2 || len(graph.Edges) != 1 || graph.Edges[0].TargetVersionID != libraryVersion.Version.ID || graph.Edges[0].TargetVersionSHA256 != libraryVersion.Version.SnapshotSHA256 {
 		t.Fatal("the current graph did not preserve the exact selected library version", graph)
@@ -214,19 +239,27 @@ func TestProjectApplicationActualIntegratedSourceAndPinnedVersions(t *testing.T)
 	}
 	receipt := map[string]any{"stage": "T-APPLICATION-123", "task_id": task.ID, "run_id": delivery.RunID, "candidate_commit": delivery.CandidateCommit, "base_commit": delivery.BaseCommit, "repository_target_id": target.ID, "integration_plan_id": plan.ID, "integration_receipt_sha256": plan.Observation.ReceiptSHA256, "library_id": library.ID, "library_version_id": libraryVersion.Version.ID, "library_version_sha256": libraryVersion.Version.SnapshotSHA256, "web_id": web.ID, "web_original_version_id": webVersion.Version.ID, "web_reviewed_version_id": second.Version.ID, "source_snapshot_sha256": libraryPreview.Version.Sources[0].Inspection.SnapshotSHA256, "parser_sha256": libraryPreview.Version.Sources[0].Inspection.ParserSHA256, "independent_junit_sha256": delivery.ReportSHA256, "model_calls": 0, "customer_human_signoff": false}
 	t.Logf("project_application_actual_receipt=%s", stringify(receipt))
-	applicationRuntimeHold(t, f, delivery, manifests, receipt)
+	actualApplicationRuntimeHold(t, f, delivery, manifests, receipt, actualApplicationHoldOptions{CacheDirectory: "application-123", DirectoryEnvironment: "SUMA_APPLICATION_UI_DIR", WebEnvironment: "SUMA_APPLICATION_WEB_DIR", Hostname: "applications123.localhost", Kind: "actual_application_source_version_delivery"})
 }
 
-func applicationRuntimeHold(t *testing.T, f *fixture, source actualFixedCandidateEvidence, extra map[string]string, receipt map[string]any) {
+type actualApplicationHoldOptions struct {
+	CacheDirectory, DirectoryEnvironment, WebEnvironment, Hostname, Kind string
+	AdditionalTables, ProtectedQueries                                   []string
+}
+
+func actualApplicationRuntimeHold(t *testing.T, f *fixture, source actualFixedCandidateEvidence, extra map[string]string, receipt map[string]any, options actualApplicationHoldOptions) {
 	t.Helper()
-	dir, web := os.Getenv("SUMA_APPLICATION_UI_DIR"), os.Getenv("SUMA_APPLICATION_WEB_DIR")
+	dir, web := os.Getenv(options.DirectoryEnvironment), os.Getenv(options.WebEnvironment)
 	if dir == "" && web == "" {
 		return
 	}
 	if dir == "" || web == "" {
 		t.Fatal("both owned application GUI directories are required")
 	}
-	root, err := filepath.Abs(filepath.Join("..", "..", ".cache", "e2e", "application-123"))
+	if options.CacheDirectory != "application-123" && options.CacheDirectory != "release-set-124" {
+		t.Fatal("unknown owned application evidence stage")
+	}
+	root, err := filepath.Abs(filepath.Join("..", "..", ".cache", "e2e", options.CacheDirectory))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -259,17 +292,21 @@ func applicationRuntimeHold(t *testing.T, f *fixture, source actualFixedCandidat
 			t.Fatal("application evidence directory must be fresh", name)
 		}
 	}
-	server, origin, port := modelSelectionGUIServer(t, f, web, "applications123.localhost")
+	server, origin, port := modelSelectionGUIServer(t, f, web, options.Hostname)
 	counts := func() map[string]int {
 		out := modelSelectionGUICounts(t, f)
 		for _, table := range []string{"suma_tasks", "suma_requirements", "suma_test_plan_reports", "dag_events", "suma_project_applications", "suma_application_versions", "suma_repository_plans", "suma_repository_observations"} {
+			out[table] = expertCount(t, f, table)
+		}
+		for _, table := range options.AdditionalTables {
 			out[table] = expertCount(t, f, table)
 		}
 		return out
 	}
 	protected := func() string {
 		values := [][]string{}
-		for _, query := range []string{`SELECT payload FROM suma_project_applications ORDER BY id`, `SELECT payload FROM suma_application_versions ORDER BY id`} {
+		queries := append([]string{`SELECT payload FROM suma_project_applications ORDER BY id`, `SELECT payload FROM suma_application_versions ORDER BY id`}, options.ProtectedQueries...)
+		for _, query := range queries {
 			rows, err := f.s.DB.Query(query)
 			if err != nil {
 				t.Fatal(err)
@@ -293,7 +330,7 @@ func applicationRuntimeHold(t *testing.T, f *fixture, source actualFixedCandidat
 		return dispatchRecommendationRuntimeHash([]byte(stringify(values)))
 	}
 	seed, seedSHA := counts(), protected()
-	state := map[string]any{"status": "ready", "kind": "actual_application_source_version_delivery", "origin": origin, "receipt": receipt, "seed_counts": seed, "seed_protected_sha256": seedSHA, "model_calls": 0, "customer_human_signoff": false}
+	state := map[string]any{"status": "ready", "kind": options.Kind, "origin": origin, "receipt": receipt, "seed_counts": seed, "seed_protected_sha256": seedSHA, "model_calls": 0, "customer_human_signoff": false}
 	t.Cleanup(func() {
 		server.Close()
 		final, finalSHA := counts(), protected()
@@ -364,9 +401,9 @@ func applicationRuntimeHold(t *testing.T, f *fixture, source actualFixedCandidat
 		}
 		modelSelectionGUIJSON(t, filepath.Join(dir, "result.public.json"), state)
 	})
-	modelSelectionGUIJSON(t, filepath.Join(dir, "login.local.json"), map[string]any{"kind": "actual_application_source_version_delivery", "allowed_actions": []string{"read", "refresh"}, "origin": origin, "base_url": server.URL, "email": "owner@example.test", "password": "test-password-strong-42", "project_id": f.project, "user_id": f.user.ID, "receipt": receipt})
+	modelSelectionGUIJSON(t, filepath.Join(dir, "login.local.json"), map[string]any{"kind": options.Kind, "allowed_actions": []string{"read", "refresh"}, "origin": origin, "base_url": server.URL, "email": "owner@example.test", "password": "test-password-strong-42", "project_id": f.project, "user_id": f.user.ID, "receipt": receipt})
 	modelSelectionGUIJSON(t, filepath.Join(dir, "web.files.public.json"), modelSelectionGUIWebFiles(t, web))
-	modelSelectionGUIJSON(t, filepath.Join(dir, "login.ready"), map[string]any{"status": "ready", "kind": "actual_application_source_version_delivery", "origin": origin, "port": port, "seed_counts": seed, "model_calls": 0})
+	modelSelectionGUIJSON(t, filepath.Join(dir, "login.ready"), map[string]any{"status": "ready", "kind": options.Kind, "origin": origin, "port": port, "seed_counts": seed, "model_calls": 0})
 	t.Logf("actual application GUI ready: %s; read/refresh only", origin)
 	timer := time.NewTimer(5 * time.Minute)
 	defer timer.Stop()

@@ -2,7 +2,7 @@
 
 更新：2026-10-29。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–26 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。
 
-T-APPLICATION-123在既有P3／P5推进正式应用目录、当前团队与代码归属、真实已集成提交的不可变代码版本、npm／pnpm声明观察及人工精确依赖固定，提供有界依赖图与反向影响；[架构与SOP](../architecture/project-applications.md)、[当前证据](../quality/project-applications-verification.md)。子项目ACL、完整版本集与跨应用发布继续待办，58／34／92不变。
+T-RELEASESET-124推进应用准确代码版本与独立制品候选的正式版本集、精确依赖闭包、原逐项部署计划及真实部分／健康状态；同时补齐固定包测试与JUnit共同参与的质量门禁。[架构与SOP](../architecture/application-release-sets.md)、[当前证据](../quality/application-release-sets-verification.md)。多来源构建、有序跨应用自动推广及完整平台继续待办，58／34／92不变。
 
 T-ROUTING-122继续原P2／P4与需求13、14、21、26：真实有界候选、统一Go网关的一次只读模型建议、可编辑人工采用及原计划明确启动，复用现有独立质量链路。设计及边界见[架构](../architecture/dispatch-recommendations.md)和[报告](../quality/dispatch-recommendations-verification.md)，58／34／92不变。
 

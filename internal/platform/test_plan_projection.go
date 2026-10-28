@@ -141,6 +141,20 @@ func (s *Service) testPlanExecutionTx(ctx context.Context, tx *sql.Tx, tenant, p
 		}
 	}
 	allKnownReports := true
+	for _, binding := range fixed.PackageTests {
+		node, exists := nodes[binding.NodeID]
+		if !exists {
+			allKnownReports = false
+			continue
+		}
+		current, e := s.testPlanPackageProofCurrentTx(ctx, tx, tenant, project, run, binding, node)
+		if e != nil {
+			return out, e
+		}
+		if !current {
+			allKnownReports = false
+		}
+	}
 	extraFailure := false
 	unknownReport := false
 	for i := range reports {

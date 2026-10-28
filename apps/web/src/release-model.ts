@@ -1,5 +1,6 @@
 import {tr,UiError} from './i18n';
 import type {RecordItem} from './api';
+import type {ApplicationReleaseSetRef} from '../../../packages/contracts/src';
 
 export type ReleaseBlocker={code:string;message:string};
 export type AssignmentRef={run_id:string;node_id:string;attempt:number;fence:number;worker_id:string};
@@ -14,7 +15,7 @@ export type HealthCheck={path:string;expected_status:number;expected_file:string
 export type HealthPolicy={checks:HealthCheck[];timeout_ms:number;attempts:number};
 export type ReleaseProvider={id:string;site_ids:string[];kind:string;capability_state:string};
 export type ReleaseEnvironment={id:string;project_id:string;version:number;name:string;status:string;provider_id:string;site_id:string;policy_version:number;health:HealthPolicy;generation:number;active_generation:number;active_artifact_id:string;active_artifact_sha256:string;barrier_operation_id:string;capability_state:string;created_at:string;updated_at:string;allowed_actions?:string[]};
-export type ReleasePlanContent={candidate_id:string;action:string;environment_id:string;provider_id:string;site_id:string;environment_policy_version:number;expected_generation:number;generation:number;artifact_id:string;artifact_sha256:string;source_commit:string;build_attestation_id:string;package_test_attestation_id:string;accepted_task_basis_sha256:string;reserved_execution:{run_id:string;node_id:string};health:HealthPolicy;rollback_source_operation_id?:string};
+export type ReleasePlanContent={application_release_set?:ApplicationReleaseSetRef|null;candidate_id:string;action:string;environment_id:string;provider_id:string;site_id:string;environment_policy_version:number;expected_generation:number;generation:number;artifact_id:string;artifact_sha256:string;source_commit:string;build_attestation_id:string;package_test_attestation_id:string;accepted_task_basis_sha256:string;reserved_execution:{run_id:string;node_id:string};health:HealthPolicy;rollback_source_operation_id?:string};
 export type ReleaseApproval={actor_id:string;decision:string;reason:string;at:string;plan_sha256:string};
 export type ReleasePlan={id:string;project_id:string;version:number;state:string;revision:number;sha256:string;content:ReleasePlanContent;created_by:string;created_at:string;approval:ReleaseApproval|null;execution_operation_id:string;eligibility:boolean;blockers:ReleaseBlocker[];allowed_actions:string[]};
 export type PlanInput={project_id:string;candidate_id:string;environment_id:string;action:'deploy'|'rollback';expected_environment_generation:number;rollback_source_operation_id?:string};

@@ -2,9 +2,7 @@
 
 更新：2026-10-29。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。
 
-T-APPLICATION-123在既有P3／P5推进正式应用目录、当前团队与代码归属、真实已集成提交的不可变代码版本、npm／pnpm声明观察及人工精确依赖固定，提供有界依赖图与反向影响；[架构与SOP](../architecture/project-applications.md)、[当前证据](../quality/project-applications-verification.md)。子项目ACL、完整版本集与跨应用发布继续待办，58／34／92不变。
-
-T-ROUTING-122在既有P2／P4推进单任务工具／模型智能推荐，保留人工采用原计划、独立启动和质量门禁；[设计与SOP](../architecture/dispatch-recommendations.md)、[当前证据](../quality/dispatch-recommendations-verification.md)。完整智能规划／团队编排及需求26整体继续待办，58／34／92不变。
+T-RELEASESET-124推进应用准确代码版本与独立制品候选的正式版本集、精确依赖闭包、原逐项部署计划及真实部分／健康状态；同时补齐固定包测试与JUnit共同参与的质量门禁。[架构与SOP](../architecture/application-release-sets.md)、[当前证据](../quality/application-release-sets-verification.md)。多来源构建、有序跨应用自动推广及完整平台继续待办，58／34／92不变。
 
 [产品基线](../product/v1-baseline.md)记录完整编号范围和单一新库初始化策略，[交付状态](status.md)集中当前实现与限制，[文档索引](../README.md)提供领域设计／合同／专项证据。本台账保留各阶段的原始能力范围，删除重复阶段流水和历史测试数字。
 

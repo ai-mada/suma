@@ -2,6 +2,7 @@ package platform
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/toolcontract"
@@ -11,13 +12,16 @@ import (
 // additionally retain the original candidate-to-independent-test relationship;
 // a successful test-only result cannot substitute a missing code producer.
 func (s *Service) currentCodeCandidateEvidenceTx(ctx context.Context, auth *authorizedCommand, project, run string) (bool, string, error) {
-	return s.currentCodeCandidateEvidenceTreeTx(ctx, auth, project, run, 0, map[string]bool{}, new(int))
+	if err := assertProjectRead(auth, project); err != nil {
+		return false, "", err
+	}
+	return s.currentCodeCandidateEvidenceReadTx(ctx, auth.tx, auth.currentPrincipal, project, run)
 }
 
 // A successful wrapper is not evidence that its children were non-code. Only
 // current scheduler-owned child links may extend this proof; arbitrary output
 // references and older subworkflow attempts cannot introduce a child result.
-func (s *Service) currentCodeCandidateEvidenceTreeTx(ctx context.Context, auth *authorizedCommand, project, run string, depth int, visiting map[string]bool, total *int) (bool, string, error) {
+func (s *Service) currentCodeCandidateEvidenceTreeReadTx(ctx context.Context, tx *sql.Tx, p Principal, project, run string, depth int, visiting map[string]bool, total *int) (bool, string, error) {
 	unsupported := "code_source_unsupported"
 	if run == "" || depth > 32 || visiting[run] {
 		return false, unsupported, nil
@@ -25,13 +29,13 @@ func (s *Service) currentCodeCandidateEvidenceTreeTx(ctx context.Context, auth *
 	visiting[run] = true
 	defer delete(visiting, run)
 	var state string
-	if err := auth.tx.QueryRowContext(ctx, s.q(`SELECT state FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), auth.target.tenantID, project, run).Scan(&state); err != nil {
+	if err := tx.QueryRowContext(ctx, s.q(`SELECT state FROM dag_runs WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, run).Scan(&state); err != nil {
 		return false, "", err
 	}
 	if state != "succeeded" {
 		return false, "code_evidence_stale", nil
 	}
-	nodes, err := s.testPlanNodesTx(ctx, auth.tx, auth.target.tenantID, project, run)
+	nodes, err := s.testPlanNodesTx(ctx, tx, p.TenantID, project, run)
 	if err != nil {
 		return false, "", err
 	}
@@ -72,7 +76,7 @@ func (s *Service) currentCodeCandidateEvidenceTreeTx(ctx context.Context, auth *
 			if test.Spec.Type != "test" || source != producer.ID {
 				continue
 			}
-			result, found, e := s.codeCandidateNodeResultTx(ctx, auth, project, run, test.ID)
+			result, found, e := s.codeCandidateNodeResultReadTx(ctx, tx, p, project, run, test.ID)
 			if e != nil {
 				return false, "", e
 			}
@@ -87,7 +91,7 @@ func (s *Service) currentCodeCandidateEvidenceTreeTx(ctx context.Context, auth *
 			if toolcontract.ValidateEvidence(*proof) != nil || proof.Terminal != "completed" || proof.Profile.ProfileSHA256 != profileSHA {
 				continue
 			}
-			profile, e := s.toolProfileTx(ctx, auth.tx, auth.currentPrincipal, project, profileID)
+			profile, e := s.toolProfileTx(ctx, tx, p, project, profileID)
 			if e != nil {
 				var api *APIError
 				if errors.As(e, &api) {
@@ -98,7 +102,7 @@ func (s *Service) currentCodeCandidateEvidenceTreeTx(ctx context.Context, auth *
 			if profile.WorkerID != test.Worker || !toolcontract.EqualProfile(profile.Profile, proof.Profile) {
 				continue
 			}
-			ok, e := s.codeCandidateIndependentTestTx(ctx, auth, project, run, TestCaseEvidence{NodeID: test.ID, Attempt: test.Attempt, Fence: test.Fence, WorkerID: test.Worker, SourceCommit: head})
+			ok, e := s.codeCandidateIndependentTestReadTx(ctx, tx, p, project, run, TestCaseEvidence{NodeID: test.ID, Attempt: test.Attempt, Fence: test.Fence, WorkerID: test.Worker, SourceCommit: head})
 			if e != nil {
 				return false, "", e
 			}
@@ -111,7 +115,7 @@ func (s *Service) currentCodeCandidateEvidenceTreeTx(ctx context.Context, auth *
 			return false, "code_evidence_stale", nil
 		}
 	}
-	rows, err := auth.tx.QueryContext(ctx, s.q(`SELECT x.node_id,x.child_run_id,COALESCE(c.tenant_id,''),COALESCE(c.project_id,''),COALESCE(c.state,'') FROM dag_subruns x JOIN dag_nodes n ON n.run_id=x.parent_run_id AND n.id=x.node_id AND n.attempt=x.attempt JOIN dag_runs p ON p.id=x.parent_run_id LEFT JOIN dag_runs c ON c.id=x.child_run_id WHERE p.tenant_id=? AND p.project_id=? AND x.parent_run_id=? ORDER BY x.node_id`), auth.target.tenantID, project, run)
+	rows, err := tx.QueryContext(ctx, s.q(`SELECT x.node_id,x.child_run_id,COALESCE(c.tenant_id,''),COALESCE(c.project_id,''),COALESCE(c.state,'') FROM dag_subruns x JOIN dag_nodes n ON n.run_id=x.parent_run_id AND n.id=x.node_id AND n.attempt=x.attempt JOIN dag_runs p ON p.id=x.parent_run_id LEFT JOIN dag_runs c ON c.id=x.child_run_id WHERE p.tenant_id=? AND p.project_id=? AND x.parent_run_id=? ORDER BY x.node_id`), p.TenantID, project, run)
 	if err != nil {
 		return false, "", err
 	}
@@ -134,11 +138,11 @@ func (s *Service) currentCodeCandidateEvidenceTreeTx(ctx context.Context, auth *
 	linked := map[string]bool{}
 	for _, child := range children {
 		node, ok := nodes[child.node]
-		if !ok || node.Spec.Type != "subworkflow" || node.State != "succeeded" || node.Attempt < 1 || linked[child.node] || child.tenant != auth.target.tenantID || child.project != project || child.state != "succeeded" {
+		if !ok || node.Spec.Type != "subworkflow" || node.State != "succeeded" || node.Attempt < 1 || linked[child.node] || child.tenant != p.TenantID || child.project != project || child.state != "succeeded" {
 			return false, unsupported, nil
 		}
 		linked[child.node] = true
-		ok, code, e := s.currentCodeCandidateEvidenceTreeTx(ctx, auth, project, child.id, depth+1, visiting, total)
+		ok, code, e := s.currentCodeCandidateEvidenceTreeReadTx(ctx, tx, p, project, child.id, depth+1, visiting, total)
 		if e != nil || !ok {
 			return ok, code, e
 		}
@@ -149,4 +153,9 @@ func (s *Service) currentCodeCandidateEvidenceTreeTx(ctx context.Context, auth *
 		}
 	}
 	return true, "", nil
+}
+
+// Caller must already hold current project authority and governance guards.
+func (s *Service) currentCodeCandidateEvidenceReadTx(ctx context.Context, tx *sql.Tx, p Principal, project, run string) (bool, string, error) {
+	return s.currentCodeCandidateEvidenceTreeReadTx(ctx, tx, p, project, run, 0, map[string]bool{}, new(int))
 }

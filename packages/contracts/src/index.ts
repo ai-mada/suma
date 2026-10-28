@@ -225,6 +225,207 @@ export interface ApplicationQualityExecutionPage {
   next_case?: string;
   cases: (ApplicationQualityCase)[];
 }
+export interface ApplicationReleaseSet {
+  id: string;
+  project_id: string;
+  label: string;
+  reason: string;
+  members: (ApplicationReleaseSetMember)[];
+  dependencies: (ApplicationReleaseSetDependency)[];
+  cycles: ((string)[])[];
+  dependency_closure_sha256: string;
+  unverified_compatibility_acknowledged: boolean;
+  snapshot_sha256: string;
+  registered_preview_sha256: string;
+  created_by: string;
+  created_at: string;
+}
+export interface ApplicationReleaseSetApplicationOption {
+  id: string;
+  name: string;
+  state: string;
+  current_registered_version_id: string;
+}
+export interface ApplicationReleaseSetBlocker {
+  code: string;
+  application_id: string;
+  ref_id: string;
+}
+export interface ApplicationReleaseSetCandidateOption {
+  id: string;
+  name: string;
+  source_commit: string;
+  artifact_id: string;
+  artifact_sha256: string;
+  build_worker_id: string;
+  package_test_worker_id: string;
+}
+export interface ApplicationReleaseSetDependency {
+  application_id: string;
+  application_version_id: string;
+  target_application_id: string;
+  target_version_id: string;
+  target_version_sha256: string;
+  compatibility: string;
+}
+export interface ApplicationReleaseSetDeploymentPrepareRequest {
+  project_id: string;
+  expected_set_sha256: string;
+  environments: (ApplicationReleaseSetEnvironmentInput)[];
+  reason: string;
+  expected_preview_sha256: string;
+  idempotency_key: string;
+}
+export interface ApplicationReleaseSetDeploymentPreview {
+  release_set_id: string;
+  release_set_sha256: string;
+  items: (ApplicationReleaseSetDeploymentPreviewItem)[];
+  preview_sha256: string;
+  can_prepare: boolean;
+  blockers: (ApplicationReleaseSetBlocker)[];
+}
+export interface ApplicationReleaseSetDeploymentPreviewItem {
+  application_id: string;
+  candidate_id: string;
+  preview: ReleasePlanPreview;
+}
+export interface ApplicationReleaseSetDeploymentPreviewRequest {
+  project_id: string;
+  expected_set_sha256: string;
+  environments: (ApplicationReleaseSetEnvironmentInput)[];
+  reason: string;
+}
+export interface ApplicationReleaseSetEnvironmentInput {
+  application_id: string;
+  environment_id: string;
+  expected_environment_generation: number;
+}
+export interface ApplicationReleaseSetMember {
+  application_id: string;
+  application_version_id: string;
+  application_version_sha256: string;
+  candidate_id: string;
+  application_name: string;
+  application_version_label: string;
+  candidate_name: string;
+  target_id: string;
+  source_commit: string;
+  artifact_id: string;
+  artifact_sha256: string;
+  candidate_sha256: string;
+  build_proof: ArtifactProof;
+  package_test_proof: ArtifactProof;
+  source_tasks: (ReleaseTaskBasis)[];
+  candidate_tasks: (ReleaseTaskBasis)[];
+}
+export interface ApplicationReleaseSetMemberInput {
+  application_id: string;
+  application_version_id: string;
+  application_version_sha256: string;
+  candidate_id: string;
+}
+export interface ApplicationReleaseSetOptions {
+  project_id: string;
+  applications: (ApplicationReleaseSetApplicationOption)[];
+  versions: (ApplicationVersionOption)[];
+  candidates: (ApplicationReleaseSetCandidateOption)[];
+  environments: (ReleaseEnvironment)[];
+  application_total: number;
+  version_total: number;
+  candidate_total: number;
+  environment_total: number;
+  complete: boolean;
+  limit: number;
+}
+export interface ApplicationReleaseSetPage {
+  items: (ApplicationReleaseSetSummary)[];
+  total: number;
+  next_cursor: string;
+  can_create: boolean;
+}
+export interface ApplicationReleaseSetPlanBinding {
+  application_id: string;
+  application_version_id: string;
+  application_version_sha256: string;
+  candidate_id: string;
+  artifact_id: string;
+  artifact_sha256: string;
+  environment_id: string;
+  plan_id: string;
+  plan_sha256: string;
+}
+export interface ApplicationReleaseSetPlanGroup {
+  id: string;
+  project_id: string;
+  release_set_id: string;
+  release_set_sha256: string;
+  bindings: (ApplicationReleaseSetPlanBinding)[];
+  prepared_preview_sha256: string;
+  snapshot_sha256: string;
+  reason: string;
+  created_by: string;
+  created_at: string;
+}
+export interface ApplicationReleaseSetPlanGroupView {
+  group: ApplicationReleaseSetPlanGroup;
+  items: (ApplicationReleaseSetRolloutItem)[];
+}
+export interface ApplicationReleaseSetPreview {
+  set: ApplicationReleaseSet;
+  preview_sha256: string;
+  can_register: boolean;
+  blockers: (ApplicationReleaseSetBlocker)[];
+}
+export interface ApplicationReleaseSetPreviewRequest {
+  project_id: string;
+  label: string;
+  members: (ApplicationReleaseSetMemberInput)[];
+  acknowledge_unverified_compatibility: boolean;
+  reason: string;
+}
+export interface ApplicationReleaseSetRef {
+  release_set_id: string;
+  release_set_sha256: string;
+  application_id: string;
+  application_version_id: string;
+  application_version_sha256: string;
+}
+export interface ApplicationReleaseSetRegisterRequest {
+  project_id: string;
+  label: string;
+  members: (ApplicationReleaseSetMemberInput)[];
+  acknowledge_unverified_compatibility: boolean;
+  reason: string;
+  expected_preview_sha256: string;
+  idempotency_key: string;
+}
+export interface ApplicationReleaseSetRolloutItem {
+  binding: ApplicationReleaseSetPlanBinding;
+  plan_version: number;
+  plan_state: string;
+  deployment_operation_id: string;
+  deployment_state: string;
+  effect_state: string;
+  health_state: string;
+}
+export interface ApplicationReleaseSetSummary {
+  id: string;
+  project_id: string;
+  label: string;
+  snapshot_sha256: string;
+  member_count: number;
+  created_by: string;
+  created_at: string;
+}
+export interface ApplicationReleaseSetView {
+  set: ApplicationReleaseSet;
+  basis_current: boolean;
+  blockers: (ApplicationReleaseSetBlocker)[];
+  allowed_actions: (string)[];
+  plan_groups: (ApplicationReleaseSetPlanGroupView)[];
+  plan_group_total: number;
+  plan_groups_complete: boolean;
+}
 export interface ApplicationRequirementDesignSaveInput {
   requirement_id: string;
   expected_version: number;
@@ -3673,6 +3874,7 @@ export interface ReleasePlan {
   allowed_actions: (string)[];
 }
 export interface ReleasePlanContent {
+  application_release_set?: ApplicationReleaseSetRef | null;
   candidate_id: string;
   action: string;
   environment_id: string;

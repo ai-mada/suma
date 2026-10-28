@@ -65,9 +65,12 @@ func (s *Service) projectApplicationTx(ctx context.Context, auth *authorizedComm
 	if err = assertProjectRead(auth, project); err != nil {
 		return
 	}
+	return s.projectApplicationReadTx(ctx, auth.tx, auth.currentPrincipal, project, id)
+}
+func (s *Service) projectApplicationReadTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (out ProjectApplication, err error) {
 	var raw, key, state, parent, team, current string
 	var version int
-	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT version,app_key,state,parent_id,owner_team_id,current_version_id,payload FROM suma_project_applications WHERE tenant_id=? AND project_id=? AND id=?`), auth.target.tenantID, project, id).Scan(&version, &key, &state, &parent, &team, &current, &raw)
+	err = tx.QueryRowContext(ctx, s.q(`SELECT version,app_key,state,parent_id,owner_team_id,current_version_id,payload FROM suma_project_applications WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id).Scan(&version, &key, &state, &parent, &team, &current, &raw)
 	if errors.Is(err, sql.ErrNoRows) {
 		return out, missing()
 	}
@@ -80,9 +83,12 @@ func (s *Service) applicationVersionTx(ctx context.Context, auth *authorizedComm
 	if err = assertProjectRead(auth, project); err != nil {
 		return
 	}
+	return s.applicationVersionReadTx(ctx, auth.tx, auth.currentPrincipal, project, app, id)
+}
+func (s *Service) applicationVersionReadTx(ctx context.Context, tx *sql.Tx, p Principal, project, app, id string) (out ApplicationCodeVersion, err error) {
 	var raw, label, sha string
 	var sequence int
-	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT sequence,label,snapshot_sha256,payload FROM suma_application_versions WHERE tenant_id=? AND project_id=? AND application_id=? AND id=?`), auth.target.tenantID, project, app, id).Scan(&sequence, &label, &sha, &raw)
+	err = tx.QueryRowContext(ctx, s.q(`SELECT sequence,label,snapshot_sha256,payload FROM suma_application_versions WHERE tenant_id=? AND project_id=? AND application_id=? AND id=?`), p.TenantID, project, app, id).Scan(&sequence, &label, &sha, &raw)
 	if errors.Is(err, sql.ErrNoRows) {
 		return out, missing()
 	}

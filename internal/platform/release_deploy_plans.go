@@ -178,13 +178,8 @@ func (s *Service) CreateReleasePlan(ctx context.Context, actor Actor, project st
 	if preview.PreviewSHA256 != in.PreviewSHA256 {
 		return out, releaseConflict("release_basis_changed", "预览依据已变化，请重新预览")
 	}
-	content.ReservedExecution = rc.ReservedExecution{RunID: newID(), NodeID: "deploy"}
-	out = ReleasePlan{ID: newID(), ProjectID: project, Version: 1, Revision: 1, State: "pending_approval", Content: content, CreatedBy: p.ID, CreatedAt: now(), Eligibility: true, Blockers: []ReleaseBlocker{}, AllowedActions: []string{}}
-	if s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil {
-		out.AllowedActions = []string{"approve", "reject"}
-	}
-	out.SHA256 = releasePlanHash(content)
-	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_release_plans(id,tenant_id,project_id,version,data)VALUES(?,?,?,?,?)`), out.ID, p.TenantID, project, 1, stringify(out)); err != nil {
+	out, err = s.createReleasePlanContentTx(ctx, tx, p, project, content)
+	if err != nil {
 		return out, err
 	}
 	if err = s.saveCommandReceipt(ctx, auth, in.IdempotencyKey, hash, out); err != nil {
@@ -204,6 +199,9 @@ func (s *Service) currentReleasePlanBasisTx(ctx context.Context, tx *sql.Tx, p P
 func (s *Service) releasePlanBasisReadTx(ctx context.Context, tx *sql.Tx, p Principal, project string, plan ReleasePlan, operation string, current bool) error {
 	if plan.SHA256 != releasePlanHash(plan.Content) {
 		return releaseConflict("release_basis_changed", "计划摘要损坏")
+	}
+	if err := s.applicationReleaseSetPlanBasisTx(ctx, tx, p, project, plan); err != nil {
+		return err
 	}
 	env, err := s.releaseEnvironmentTx(ctx, tx, p.TenantID, project, plan.Content.EnvironmentID, current)
 	if err != nil {
@@ -606,4 +604,23 @@ func (s *Service) readReleasePlanTx(ctx context.Context, auth *authorizedCommand
 	}
 	return plan, nil
 
+}
+
+// createReleasePlanContentTx persists an original plan after its caller has
+// authorized and checked the exact preview in the same guarded transaction.
+func (s *Service) createReleasePlanContentTx(ctx context.Context, tx *sql.Tx, p Principal, project string, content rc.ReleasePlanContent) (ReleasePlan, error) {
+	if err := rc.ValidateApplicationReleaseSetRef(content.ApplicationReleaseSet); err != nil {
+		return ReleasePlan{}, invalid(applicationReleaseSetInvalid)
+	}
+	content.ReservedExecution = rc.ReservedExecution{RunID: newID(), NodeID: "deploy"}
+	out := ReleasePlan{ID: newID(), ProjectID: project, Version: 1, Revision: 1, State: "pending_approval", Content: content, CreatedBy: p.ID, CreatedAt: now(), Eligibility: true, Blockers: []ReleaseBlocker{}, AllowedActions: []string{}}
+	if s.releaseActorAdminTx(ctx, tx, p.TenantID, project, p.ID) == nil {
+		out.AllowedActions = []string{"approve", "reject"}
+	}
+	out.SHA256 = releasePlanHash(content)
+	if _, err := tx.ExecContext(ctx, s.q(`INSERT INTO suma_release_plans(id,tenant_id,project_id,version,data)VALUES(?,?,?,?,?)`), out.ID, p.TenantID, project, 1, stringify(out)); err != nil {
+		return out, err
+	}
+
+	return out, nil
 }

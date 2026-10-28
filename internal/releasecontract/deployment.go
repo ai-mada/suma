@@ -27,24 +27,49 @@ type ReservedExecution struct {
 	RunID  string `json:"run_id"`
 	NodeID string `json:"node_id"`
 }
+
+// ApplicationReleaseSetRef binds the original deployment plan to one immutable
+// release-set member. The reference is part of the plan digest and authorization
+// grant; it does not grant group approval or permission to deploy other members.
+type ApplicationReleaseSetRef struct {
+	ReleaseSetID             string `json:"release_set_id"`
+	ReleaseSetSHA256         string `json:"release_set_sha256"`
+	ApplicationID            string `json:"application_id"`
+	ApplicationVersionID     string `json:"application_version_id"`
+	ApplicationVersionSHA256 string `json:"application_version_sha256"`
+}
+
+var applicationReleaseRefID = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$`)
+
+func ValidateApplicationReleaseSetRef(ref *ApplicationReleaseSetRef) error {
+	if ref == nil {
+		return nil
+	}
+	if !applicationReleaseRefID.MatchString(ref.ReleaseSetID) || !applicationReleaseRefID.MatchString(ref.ApplicationID) || !applicationReleaseRefID.MatchString(ref.ApplicationVersionID) || !ValidDigest(ref.ReleaseSetSHA256) || !ValidDigest(ref.ApplicationVersionSHA256) {
+		return fmt.Errorf("invalid application release-set plan binding")
+	}
+	return nil
+}
+
 type ReleasePlanContent struct {
-	CandidateID               string            `json:"candidate_id"`
-	Action                    string            `json:"action"`
-	EnvironmentID             string            `json:"environment_id"`
-	ProviderID                string            `json:"provider_id"`
-	SiteID                    string            `json:"site_id"`
-	EnvironmentPolicyVersion  int               `json:"environment_policy_version"`
-	ExpectedGeneration        int64             `json:"expected_generation"`
-	Generation                int64             `json:"generation"`
-	ArtifactID                string            `json:"artifact_id"`
-	ArtifactSHA256            string            `json:"artifact_sha256"`
-	SourceCommit              string            `json:"source_commit"`
-	BuildAttestationID        string            `json:"build_attestation_id"`
-	PackageTestAttestationID  string            `json:"package_test_attestation_id"`
-	AcceptedTaskBasisSHA256   string            `json:"accepted_task_basis_sha256"`
-	ReservedExecution         ReservedExecution `json:"reserved_execution"`
-	Health                    HealthPolicy      `json:"health"`
-	RollbackSourceOperationID string            `json:"rollback_source_operation_id,omitempty"`
+	ApplicationReleaseSet     *ApplicationReleaseSetRef `json:"application_release_set,omitempty"`
+	CandidateID               string                    `json:"candidate_id"`
+	Action                    string                    `json:"action"`
+	EnvironmentID             string                    `json:"environment_id"`
+	ProviderID                string                    `json:"provider_id"`
+	SiteID                    string                    `json:"site_id"`
+	EnvironmentPolicyVersion  int                       `json:"environment_policy_version"`
+	ExpectedGeneration        int64                     `json:"expected_generation"`
+	Generation                int64                     `json:"generation"`
+	ArtifactID                string                    `json:"artifact_id"`
+	ArtifactSHA256            string                    `json:"artifact_sha256"`
+	SourceCommit              string                    `json:"source_commit"`
+	BuildAttestationID        string                    `json:"build_attestation_id"`
+	PackageTestAttestationID  string                    `json:"package_test_attestation_id"`
+	AcceptedTaskBasisSHA256   string                    `json:"accepted_task_basis_sha256"`
+	ReservedExecution         ReservedExecution         `json:"reserved_execution"`
+	Health                    HealthPolicy              `json:"health"`
+	RollbackSourceOperationID string                    `json:"rollback_source_operation_id,omitempty"`
 }
 type ReleaseExecution struct {
 	Protocol           string `json:"protocol"`

@@ -43,8 +43,14 @@ func applicationRootsOverlap(a, b string) bool {
 // A team association records accountability only. It grants neither project
 // access nor ownership of another team's credentials or execution resources.
 func (s *Service) applicationTeamTx(ctx context.Context, auth *authorizedCommand, project, id string) (out ApplicationTeamOption, err error) {
+	if err = assertProjectRead(auth, project); err != nil {
+		return
+	}
+	return s.applicationTeamReadTx(ctx, auth.tx, auth.currentPrincipal, project, id)
+}
+func (s *Service) applicationTeamReadTx(ctx context.Context, tx *sql.Tx, p Principal, project, id string) (out ApplicationTeamOption, err error) {
 	var state string
-	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT id,version,name,status FROM suma_teams WHERE tenant_id=? AND id=?`), auth.target.tenantID, id).Scan(&out.ID, &out.Version, &out.Name, &state)
+	err = tx.QueryRowContext(ctx, s.q(`SELECT id,version,name,status FROM suma_teams WHERE tenant_id=? AND id=?`), p.TenantID, id).Scan(&out.ID, &out.Version, &out.Name, &state)
 	if errors.Is(err, sql.ErrNoRows) || err == nil && state != "active" {
 		return out, invalid(applicationTeam)
 	}
@@ -54,7 +60,7 @@ func (s *Service) applicationTeamTx(ctx context.Context, auth *authorizedCommand
 	// Filter eligibility in the database before taking one candidate. A large
 	// team cannot hide a real project member behind an arbitrary scan cutoff.
 	var kind, resource, resourceProject string
-	e := auth.tx.QueryRowContext(ctx, s.q(`SELECT tm.resource_kind,tm.resource_id,tm.project_id FROM suma_team_members tm WHERE tm.tenant_id=? AND tm.team_id=? AND tm.status='active' AND ((tm.resource_kind='human' AND tm.project_id='' AND EXISTS(SELECT 1 FROM suma_users u JOIN suma_org_members om ON om.user_id=u.id WHERE u.id=tm.resource_id AND om.tenant_id=tm.tenant_id AND (om.role IN ('owner','admin') OR EXISTS(SELECT 1 FROM suma_project_members pm WHERE pm.project_id=? AND pm.user_id=u.id AND pm.role IN ('admin','reviewer','developer','viewer'))))) OR (tm.resource_kind IN ('agent','tool') AND tm.project_id=? AND EXISTS(SELECT 1 FROM suma_members m WHERE m.tenant_id=tm.tenant_id AND m.project_id=tm.project_id AND m.id=tm.resource_id AND m.kind=tm.resource_kind AND m.status='active'))) ORDER BY tm.id LIMIT 1`), auth.target.tenantID, id, project, project).Scan(&kind, &resource, &resourceProject)
+	e := tx.QueryRowContext(ctx, s.q(`SELECT tm.resource_kind,tm.resource_id,tm.project_id FROM suma_team_members tm WHERE tm.tenant_id=? AND tm.team_id=? AND tm.status='active' AND ((tm.resource_kind='human' AND tm.project_id='' AND EXISTS(SELECT 1 FROM suma_users u JOIN suma_org_members om ON om.user_id=u.id WHERE u.id=tm.resource_id AND om.tenant_id=tm.tenant_id AND (om.role IN ('owner','admin') OR EXISTS(SELECT 1 FROM suma_project_members pm WHERE pm.project_id=? AND pm.user_id=u.id AND pm.role IN ('admin','reviewer','developer','viewer'))))) OR (tm.resource_kind IN ('agent','tool') AND tm.project_id=? AND EXISTS(SELECT 1 FROM suma_members m WHERE m.tenant_id=tm.tenant_id AND m.project_id=tm.project_id AND m.id=tm.resource_id AND m.kind=tm.resource_kind AND m.status='active'))) ORDER BY tm.id LIMIT 1`), p.TenantID, id, project, project).Scan(&kind, &resource, &resourceProject)
 	if errors.Is(e, sql.ErrNoRows) {
 		return out, invalid(applicationTeam)
 	}
@@ -64,10 +70,10 @@ func (s *Service) applicationTeamTx(ctx context.Context, auth *authorizedCommand
 	// Tenant/project governance is already locked by the authenticated command.
 	// Reuse the ordinary current membership/resource proof for the selected row.
 	if kind == "human" {
-		_, e = s.currentProjectMembershipLockedTx(ctx, auth.tx, auth.target.tenantID, resource, project, false, false)
+		_, e = s.currentProjectMembershipLockedTx(ctx, tx, p.TenantID, resource, project, false, false)
 		return out, e
 	}
-	r, e := s.getRecordTx(ctx, auth, project, "members", resource)
+	r, e := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_members WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, resource))
 	if e != nil {
 		return out, e
 	}

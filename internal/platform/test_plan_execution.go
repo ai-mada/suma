@@ -28,6 +28,9 @@ func (s *Service) testPlanRunTx(ctx context.Context, tx *sql.Tx, tenant, project
 	if out.TaskID != task || out.PlanID != plan || out.GovernanceRevision < 0 || out.Revision != nil && (out.GovernanceRevision != out.Revision.Revision) || out.Revision != nil && (out.Revision.SHA256 != testPlanRevisionHash(*out.Revision) || out.Revision.State != "published") {
 		return out, true, fmt.Errorf("test plan run snapshot is inconsistent")
 	}
+	if err = validateTestPlanPackageBindings(out.PackageTests); err != nil {
+		return out, true, err
+	}
 	return out, true, nil
 }
 
@@ -54,7 +57,7 @@ func (s *Service) freezeTaskTestPlanRunTx(ctx context.Context, tx *sql.Tx, auth 
 	if err != nil {
 		return err
 	}
-	snapshot := testPlanRunSnapshot{TaskID: taskID, Revision: revision, CreatedAt: now()}
+	snapshot := testPlanRunSnapshot{TaskID: taskID, Revision: revision, CreatedAt: now(), PackageTests: []testPlanPackageBinding{}}
 	if found {
 		snapshot.PlanID = current.ID
 		snapshot.GovernanceRevision = current.Governance
@@ -91,7 +94,6 @@ func (s *Service) freezeTaskTestPlanRunTx(ctx context.Context, tx *sql.Tx, auth 
 			if node.Type != "test" {
 				continue
 			}
-			count++
 			id, _ := node.Config["tool_profile_id"].(string)
 			sha, _ := node.Config["tool_profile_sha256"].(string)
 			if !handoffID(id, false) || !contentDigest.MatchString(sha) || len(node.Command) != 1 {
@@ -101,12 +103,26 @@ func (s *Service) freezeTaskTestPlanRunTx(ctx context.Context, tx *sql.Tx, auth 
 			if e != nil {
 				return e
 			}
-			if profile.Profile.TestReportProtocol != tr.Protocol || profile.Profile.CommandID != node.Command[0] || profile.Profile.ProfileSHA256 != sha {
+			if profile.Profile.CommandID != node.Command[0] || profile.Profile.ProfileSHA256 != sha {
 				return invalid(testPlanBinding)
 			}
 			if _, e = s.validateToolDispatchTx(ctx, tx, auth, project, id, profile.Version, sha); e != nil {
 				return e
 			}
+			if profile.Profile.TestReportProtocol == tr.Protocol {
+				// A report node cannot also consume an artifact. Runner contracts
+				// deliberately keep these two independent evidence kinds apart.
+				if _, exists := node.Config["artifact_from"]; exists {
+					return invalid(testPlanBinding)
+				}
+				count++
+				continue
+			}
+			binding, e := s.freezeTestPlanPackageBindingTx(ctx, tx, auth, project, runID, node, profile, specs)
+			if e != nil {
+				return e
+			}
+			snapshot.PackageTests = append(snapshot.PackageTests, binding)
 		}
 		if count == 0 {
 			return invalid(testPlanBinding)
@@ -155,6 +171,12 @@ func (s *Service) recordTaskTestPlanReportTx(ctx context.Context, tx *sql.Tx, te
 	}
 	if result.Attempt != attempt || result.Fence != fence || result.WorkerID != worker {
 		return forbidden()
+	}
+	if binding, packageTest := testPlanPackageBindingFor(fixed, node.ID); packageTest {
+		// No synthetic missing-JUnit report is created for an artifact test.
+		// Its actual sealed input and current artifact proof are checked by the
+		// release authority and by the plan projection, not counted as a case.
+		return validateTestPlanPackageResult(binding, node, result)
 	}
 	id := digest(stringify([]any{tenant, project, result.RunID, result.NodeID, result.Attempt, result.Fence}))[:32]
 	var existing string

@@ -997,6 +997,907 @@
         ],
         "type": "object"
       },
+      "ApplicationReleaseSet": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "cycles": {
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "dependencies": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetDependency"
+            },
+            "type": "array"
+          },
+          "dependency_closure_sha256": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetMember"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "registered_preview_sha256": {
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "type": "string"
+          },
+          "unverified_compatibility_acknowledged": {
+            "description": "Explicit human acknowledgement of unverified declared ranges; never a test or compatibility proof.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "label",
+          "reason",
+          "members",
+          "dependencies",
+          "cycles",
+          "dependency_closure_sha256",
+          "unverified_compatibility_acknowledged",
+          "snapshot_sha256",
+          "registered_preview_sha256",
+          "created_by",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetApplicationOption": {
+        "additionalProperties": false,
+        "properties": {
+          "current_registered_version_id": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "state",
+          "current_registered_version_id"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetBlocker": {
+        "additionalProperties": false,
+        "properties": {
+          "application_id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "ref_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "application_id",
+          "ref_id"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetCandidateOption": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "type": "string"
+          },
+          "artifact_sha256": {
+            "type": "string"
+          },
+          "build_worker_id": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "package_test_worker_id": {
+            "type": "string"
+          },
+          "source_commit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "source_commit",
+          "artifact_id",
+          "artifact_sha256",
+          "build_worker_id",
+          "package_test_worker_id"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetDependency": {
+        "additionalProperties": false,
+        "properties": {
+          "application_id": {
+            "type": "string"
+          },
+          "application_version_id": {
+            "type": "string"
+          },
+          "compatibility": {
+            "type": "string"
+          },
+          "target_application_id": {
+            "type": "string"
+          },
+          "target_version_id": {
+            "type": "string"
+          },
+          "target_version_sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "application_id",
+          "application_version_id",
+          "target_application_id",
+          "target_version_id",
+          "target_version_sha256",
+          "compatibility"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetDeploymentPrepareRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "environments": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetEnvironmentInput"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "expected_preview_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "expected_set_sha256": {
+            "type": "string"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_set_sha256",
+          "environments",
+          "reason",
+          "expected_preview_sha256",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetDeploymentPreview": {
+        "additionalProperties": false,
+        "properties": {
+          "blockers": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetBlocker"
+            },
+            "type": "array"
+          },
+          "can_prepare": {
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetDeploymentPreviewItem"
+            },
+            "type": "array"
+          },
+          "preview_sha256": {
+            "type": "string"
+          },
+          "release_set_id": {
+            "type": "string"
+          },
+          "release_set_sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "release_set_id",
+          "release_set_sha256",
+          "items",
+          "preview_sha256",
+          "can_prepare",
+          "blockers"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetDeploymentPreviewItem": {
+        "additionalProperties": false,
+        "properties": {
+          "application_id": {
+            "type": "string"
+          },
+          "candidate_id": {
+            "type": "string"
+          },
+          "preview": {
+            "$ref": "#/components/schemas/ReleasePlanPreview"
+          }
+        },
+        "required": [
+          "application_id",
+          "candidate_id",
+          "preview"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetDeploymentPreviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "environments": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetEnvironmentInput"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "expected_set_sha256": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_set_sha256",
+          "environments",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetEnvironmentInput": {
+        "additionalProperties": false,
+        "properties": {
+          "application_id": {
+            "type": "string"
+          },
+          "environment_id": {
+            "type": "string"
+          },
+          "expected_environment_generation": {
+            "maximum": 9007199254740990,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "application_id",
+          "environment_id",
+          "expected_environment_generation"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetMember": {
+        "additionalProperties": false,
+        "properties": {
+          "application_id": {
+            "type": "string"
+          },
+          "application_name": {
+            "type": "string"
+          },
+          "application_version_id": {
+            "type": "string"
+          },
+          "application_version_label": {
+            "type": "string"
+          },
+          "application_version_sha256": {
+            "type": "string"
+          },
+          "artifact_id": {
+            "type": "string"
+          },
+          "artifact_sha256": {
+            "type": "string"
+          },
+          "build_proof": {
+            "$ref": "#/components/schemas/ArtifactProof"
+          },
+          "candidate_id": {
+            "type": "string"
+          },
+          "candidate_name": {
+            "type": "string"
+          },
+          "candidate_sha256": {
+            "type": "string"
+          },
+          "candidate_tasks": {
+            "items": {
+              "$ref": "#/components/schemas/ReleaseTaskBasis"
+            },
+            "type": "array"
+          },
+          "package_test_proof": {
+            "$ref": "#/components/schemas/ArtifactProof"
+          },
+          "source_commit": {
+            "type": "string"
+          },
+          "source_tasks": {
+            "items": {
+              "$ref": "#/components/schemas/ReleaseTaskBasis"
+            },
+            "type": "array"
+          },
+          "target_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "application_id",
+          "application_version_id",
+          "application_version_sha256",
+          "candidate_id",
+          "application_name",
+          "application_version_label",
+          "candidate_name",
+          "target_id",
+          "source_commit",
+          "artifact_id",
+          "artifact_sha256",
+          "candidate_sha256",
+          "build_proof",
+          "package_test_proof",
+          "source_tasks",
+          "candidate_tasks"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetMemberInput": {
+        "additionalProperties": false,
+        "properties": {
+          "application_id": {
+            "type": "string"
+          },
+          "application_version_id": {
+            "type": "string"
+          },
+          "application_version_sha256": {
+            "type": "string"
+          },
+          "candidate_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "application_id",
+          "application_version_id",
+          "application_version_sha256",
+          "candidate_id"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "application_total": {
+            "type": "integer"
+          },
+          "applications": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetApplicationOption"
+            },
+            "type": "array"
+          },
+          "candidate_total": {
+            "type": "integer"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetCandidateOption"
+            },
+            "type": "array"
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "environment_total": {
+            "type": "integer"
+          },
+          "environments": {
+            "items": {
+              "$ref": "#/components/schemas/ReleaseEnvironment"
+            },
+            "type": "array"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "version_total": {
+            "type": "integer"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationVersionOption"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "applications",
+          "versions",
+          "candidates",
+          "environments",
+          "application_total",
+          "version_total",
+          "candidate_total",
+          "environment_total",
+          "complete",
+          "limit"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetPage": {
+        "additionalProperties": false,
+        "properties": {
+          "can_create": {
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetSummary"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "next_cursor",
+          "can_create"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetPlanBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "application_id": {
+            "type": "string"
+          },
+          "application_version_id": {
+            "type": "string"
+          },
+          "application_version_sha256": {
+            "type": "string"
+          },
+          "artifact_id": {
+            "type": "string"
+          },
+          "artifact_sha256": {
+            "type": "string"
+          },
+          "candidate_id": {
+            "type": "string"
+          },
+          "environment_id": {
+            "type": "string"
+          },
+          "plan_id": {
+            "type": "string"
+          },
+          "plan_sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "application_id",
+          "application_version_id",
+          "application_version_sha256",
+          "candidate_id",
+          "artifact_id",
+          "artifact_sha256",
+          "environment_id",
+          "plan_id",
+          "plan_sha256"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetPlanGroup": {
+        "additionalProperties": false,
+        "properties": {
+          "bindings": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetPlanBinding"
+            },
+            "type": "array"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "prepared_preview_sha256": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "release_set_id": {
+            "type": "string"
+          },
+          "release_set_sha256": {
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "release_set_id",
+          "release_set_sha256",
+          "bindings",
+          "prepared_preview_sha256",
+          "snapshot_sha256",
+          "reason",
+          "created_by",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetPlanGroupView": {
+        "additionalProperties": false,
+        "properties": {
+          "group": {
+            "$ref": "#/components/schemas/ApplicationReleaseSetPlanGroup"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetRolloutItem"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "group",
+          "items"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetPreview": {
+        "additionalProperties": false,
+        "properties": {
+          "blockers": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetBlocker"
+            },
+            "type": "array"
+          },
+          "can_register": {
+            "type": "boolean"
+          },
+          "preview_sha256": {
+            "type": "string"
+          },
+          "set": {
+            "$ref": "#/components/schemas/ApplicationReleaseSet"
+          }
+        },
+        "required": [
+          "set",
+          "preview_sha256",
+          "can_register",
+          "blockers"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetPreviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge_unverified_compatibility": {
+            "type": "boolean"
+          },
+          "label": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetMemberInput"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "label",
+          "members",
+          "acknowledge_unverified_compatibility",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetRef": {
+        "additionalProperties": false,
+        "properties": {
+          "application_id": {
+            "type": "string"
+          },
+          "application_version_id": {
+            "type": "string"
+          },
+          "application_version_sha256": {
+            "type": "string"
+          },
+          "release_set_id": {
+            "type": "string"
+          },
+          "release_set_sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "release_set_id",
+          "release_set_sha256",
+          "application_id",
+          "application_version_id",
+          "application_version_sha256"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetRegisterRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge_unverified_compatibility": {
+            "type": "boolean"
+          },
+          "expected_preview_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetMemberInput"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "label",
+          "members",
+          "acknowledge_unverified_compatibility",
+          "reason",
+          "expected_preview_sha256",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetRolloutItem": {
+        "additionalProperties": false,
+        "properties": {
+          "binding": {
+            "$ref": "#/components/schemas/ApplicationReleaseSetPlanBinding"
+          },
+          "deployment_operation_id": {
+            "type": "string"
+          },
+          "deployment_state": {
+            "type": "string"
+          },
+          "effect_state": {
+            "type": "string"
+          },
+          "health_state": {
+            "type": "string"
+          },
+          "plan_state": {
+            "type": "string"
+          },
+          "plan_version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "binding",
+          "plan_version",
+          "plan_state",
+          "deployment_operation_id",
+          "deployment_state",
+          "effect_state",
+          "health_state"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "member_count": {
+            "type": "integer"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "label",
+          "snapshot_sha256",
+          "member_count",
+          "created_by",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "ApplicationReleaseSetView": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "basis_current": {
+            "type": "boolean"
+          },
+          "blockers": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetBlocker"
+            },
+            "type": "array"
+          },
+          "plan_group_total": {
+            "type": "integer"
+          },
+          "plan_groups": {
+            "items": {
+              "$ref": "#/components/schemas/ApplicationReleaseSetPlanGroupView"
+            },
+            "type": "array"
+          },
+          "plan_groups_complete": {
+            "type": "boolean"
+          },
+          "set": {
+            "$ref": "#/components/schemas/ApplicationReleaseSet"
+          }
+        },
+        "required": [
+          "set",
+          "basis_current",
+          "blockers",
+          "allowed_actions",
+          "plan_groups",
+          "plan_group_total",
+          "plan_groups_complete"
+        ],
+        "type": "object"
+      },
       "ApplicationRequirementDesignSaveInput": {
         "properties": {
           "content": {
@@ -18166,6 +19067,17 @@
             ],
             "type": "string"
           },
+          "application_release_set": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApplicationReleaseSetRef"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional exact immutable member reference included in the original plan digest and provider authorization. Current set, code, candidate and quality facts are checked at the original approval/execution/effect gates."
+          },
           "artifact_id": {
             "type": "string"
           },
@@ -31589,6 +32501,1424 @@
           }
         ],
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/application-release-sets": {
+      "get": {
+        "description": "Current-authorized reviewed associations of exact immutable application code versions with independently proven artifact candidates, exact dependency closure and original per-member deployment plans. Member/code/build facts remain separate. Registration or plan preparation grants no approval, execution or atomic cross-environment success.",
+        "operationId": "get_application-release-sets",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Default20, maximum100.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Current-project page cursor.",
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationReleaseSetPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      },
+      "post": {
+        "description": "Current-authorized reviewed associations of exact immutable application code versions with independently proven artifact candidates, exact dependency closure and original per-member deployment plans. Member/code/build facts remain separate. Registration or plan preparation grants no approval, execution or atomic cross-environment success.",
+        "operationId": "post_application-release-sets",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationReleaseSetRegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationReleaseSetView"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-write-actor": "browser"
+      }
+    },
+    "/application-release-sets/options": {
+      "get": {
+        "description": "Current-authorized reviewed associations of exact immutable application code versions with independently proven artifact candidates, exact dependency closure and original per-member deployment plans. Member/code/build facts remain separate. Registration or plan preparation grants no approval, execution or atomic cross-environment success.",
+        "operationId": "get_application-release-sets_options",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationReleaseSetOptions"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/application-release-sets/preview": {
+      "post": {
+        "description": "Current-authorized reviewed associations of exact immutable application code versions with independently proven artifact candidates, exact dependency closure and original per-member deployment plans. Member/code/build facts remain separate. Registration or plan preparation grants no approval, execution or atomic cross-environment success.",
+        "operationId": "post_application-release-sets_preview",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationReleaseSetPreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationReleaseSetPreview"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/application-release-sets/{id}": {
+      "get": {
+        "description": "Current-authorized reviewed associations of exact immutable application code versions with independently proven artifact candidates, exact dependency closure and original per-member deployment plans. Member/code/build facts remain separate. Registration or plan preparation grants no approval, execution or atomic cross-environment success.",
+        "operationId": "get_application-release-sets_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationReleaseSetView"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/application-release-sets/{id}/deployment-plans": {
+      "post": {
+        "description": "Current-authorized reviewed associations of exact immutable application code versions with independently proven artifact candidates, exact dependency closure and original per-member deployment plans. Member/code/build facts remain separate. Registration or plan preparation grants no approval, execution or atomic cross-environment success.",
+        "operationId": "post_application-release-sets_id_deployment-plans",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationReleaseSetDeploymentPrepareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationReleaseSetPlanGroupView"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-write-actor": "browser"
+      }
+    },
+    "/application-release-sets/{id}/deployment-preview": {
+      "post": {
+        "description": "Current-authorized reviewed associations of exact immutable application code versions with independently proven artifact candidates, exact dependency closure and original per-member deployment plans. Member/code/build facts remain separate. Registration or plan preparation grants no approval, execution or atomic cross-environment success.",
+        "operationId": "post_application-release-sets_id_deployment-preview",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationReleaseSetDeploymentPreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationReleaseSetDeploymentPreview"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },
     "/applications": {

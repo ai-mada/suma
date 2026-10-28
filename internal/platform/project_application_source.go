@@ -2,6 +2,7 @@ package platform
 
 import (
 	"context"
+	"database/sql"
 	"sort"
 	"strings"
 
@@ -37,6 +38,12 @@ func applicationPreviewValid(project string, q ApplicationVersionPreviewRequest)
 	return true
 }
 func (s *Service) applicationSourceBasisTx(ctx context.Context, auth *authorizedCommand, a ProjectApplication, input ApplicationVersionSourceInput) (out applicationSourceBasis, err error) {
+	if err = assertProjectRead(auth, a.ProjectID); err != nil {
+		return
+	}
+	return s.applicationSourceBasisReadTx(ctx, auth.tx, auth.currentPrincipal, a, input)
+}
+func (s *Service) applicationSourceBasisReadTx(ctx context.Context, tx *sql.Tx, p Principal, a ProjectApplication, input ApplicationVersionSourceInput) (out applicationSourceBasis, err error) {
 	var scope ApplicationCodeScope
 	for _, x := range a.CodeScopes {
 		if x.ID == input.ScopeID {
@@ -46,25 +53,25 @@ func (s *Service) applicationSourceBasisTx(ctx context.Context, auth *authorized
 	if scope.ID == "" {
 		return out, conflict(applicationScope)
 	}
-	target, err := s.repositoryTargetTx(ctx, auth.tx, auth.target.tenantID, a.ProjectID, scope.TargetID)
+	target, err := s.repositoryTargetTx(ctx, tx, p.TenantID, a.ProjectID, scope.TargetID)
 	if err != nil {
 		return out, err
 	}
 	if target.Status != "active" || target.ProviderID != scope.ProviderID || target.TargetAlias != scope.TargetAlias || target.Ref != scope.TargetRef || target.ConfigSHA256 != scope.ConfigSHA256 {
 		return out, conflict(applicationScope)
 	}
-	cfg, err := s.repositoryProvider(auth.target.tenantID, a.ProjectID, scope.ProviderID, scope.TargetAlias)
+	cfg, err := s.repositoryProvider(p.TenantID, a.ProjectID, scope.ProviderID, scope.TargetAlias)
 	if err != nil {
 		return out, err
 	}
-	plan, err := s.repositoryPlanTx(ctx, auth.tx, auth.target.tenantID, a.ProjectID, input.IntegrationPlanID)
+	plan, err := s.repositoryPlanTx(ctx, tx, p.TenantID, a.ProjectID, input.IntegrationPlanID)
 	if err != nil {
 		return out, err
 	}
 	if plan.ProjectID != a.ProjectID || plan.Version != input.ExpectedIntegrationVersion || plan.TargetID != scope.TargetID || plan.State != "integrated" || plan.OperationID == "" || plan.ApplyRunID == "" || plan.Observation == nil {
 		return out, conflict(applicationSource)
 	}
-	op, err := s.repositoryOperationTx(ctx, auth.tx, auth.target.tenantID, a.ProjectID, plan.OperationID)
+	op, err := s.repositoryOperationTx(ctx, tx, p.TenantID, a.ProjectID, plan.OperationID)
 	if err != nil {
 		return out, err
 	}
@@ -75,27 +82,31 @@ func (s *Service) applicationSourceBasisTx(ctx context.Context, auth *authorized
 	if o.State != "applied" || o.Phase != "apply" || o.Receipt == nil || o.Receipt.State != "applied" || o.Receipt.ResultCommit != plan.Basis.Source.HeadCommit {
 		return out, conflict(applicationSource)
 	}
-	if err = s.validateRepositoryObservationTx(ctx, auth.tx, cfg, op, o); err != nil {
+	if err = s.validateRepositoryObservationTx(ctx, tx, cfg, op, o); err != nil {
 		return out, err
 	}
-	applied, found, err := s.codeCandidateNodeResultTx(ctx, auth, a.ProjectID, op.RunID, op.NodeID)
+	applied, found, err := s.codeCandidateNodeResultReadTx(ctx, tx, p, a.ProjectID, op.RunID, op.NodeID)
 	if err != nil {
 		return out, err
 	}
 	if !found || !codeCandidateResultIdentity(applied, op.RunID) || applied.Spec.Type != "external_workflow" || applied.Spec.Config["purpose"] != "repository_integration" {
 		return out, conflict(applicationSource)
 	}
-	actual, err := s.repositoryResultObservationTx(ctx, auth.tx, auth.target.tenantID, a.ProjectID, op, applied.Result)
+	actual, err := s.repositoryResultObservationTx(ctx, tx, p.TenantID, a.ProjectID, op, applied.Result)
 	if err != nil {
 		return out, err
 	}
 	if actual == nil || actual.ObservationSHA256 != o.ObservationSHA256 || actual.ReceiptSHA256 != o.ReceiptSHA256 {
 		return out, conflict(applicationSource)
 	}
-	if err = s.checkRepositoryBasisTx(ctx, auth, plan.Basis); err != nil {
-		return out, err
+	currentBasis, basisErr := s.repositoryBasisReadTx(ctx, tx, p, a.ProjectID, plan.Basis.TaskID, plan.Basis.SourceNodeID)
+	if basisErr != nil {
+		return out, basisErr
 	}
-	valid, _, err := s.currentCodeCandidateEvidenceTx(ctx, auth, a.ProjectID, plan.Basis.RunID)
+	if currentBasis != plan.Basis {
+		return out, conflict(applicationSource)
+	}
+	valid, _, err := s.currentCodeCandidateEvidenceReadTx(ctx, tx, p, a.ProjectID, plan.Basis.RunID)
 	if err != nil {
 		return out, err
 	}
@@ -103,7 +114,7 @@ func (s *Service) applicationSourceBasisTx(ctx context.Context, auth *authorized
 		return out, conflict(applicationSource)
 	}
 	out.Source = ApplicationVersionSource{Scope: scope, IntegrationPlanID: plan.ID, IntegrationPlanVersion: plan.Version, OperationID: op.Execution.OperationID, ReceiptSHA256: o.ReceiptSHA256, ReceiptOID: o.ReceiptOID, Commit: o.Receipt.ResultCommit, TaskBasis: plan.Basis.AcceptedTaskBasis, SourceNodeID: plan.Basis.SourceNodeID}
-	out.Request = ri.RepositorySourceInspectionRequest{Protocol: ri.RepositorySourceInspectionProtocol, TenantID: auth.target.tenantID, ProjectID: a.ProjectID, ProviderID: scope.ProviderID, TargetID: scope.TargetID, TargetAlias: scope.TargetAlias, TargetRef: scope.TargetRef, TargetConfigSHA256: scope.ConfigSHA256, OperationID: op.Execution.OperationID, RequestSHA256: op.RequestSHA256, ReceiptSHA256: o.ReceiptSHA256, ExactCommit: o.Receipt.ResultCommit, RelativeRoots: []string{scope.RelativeRoot}}
+	out.Request = ri.RepositorySourceInspectionRequest{Protocol: ri.RepositorySourceInspectionProtocol, TenantID: p.TenantID, ProjectID: a.ProjectID, ProviderID: scope.ProviderID, TargetID: scope.TargetID, TargetAlias: scope.TargetAlias, TargetRef: scope.TargetRef, TargetConfigSHA256: scope.ConfigSHA256, OperationID: op.Execution.OperationID, RequestSHA256: op.RequestSHA256, ReceiptSHA256: o.ReceiptSHA256, ExactCommit: o.Receipt.ResultCommit, RelativeRoots: []string{scope.RelativeRoot}}
 	out.TargetVersion = target.Version
 	return
 }
@@ -218,8 +229,14 @@ func (s *Service) applicationInspect(ctx context.Context, basis []applicationSou
 	return out, nil
 }
 func (s *Service) applicationVersionViewTx(ctx context.Context, auth *authorizedCommand, v ApplicationCodeVersion) (out ApplicationVersionView, err error) {
+	if err = assertProjectRead(auth, v.ProjectID); err != nil {
+		return
+	}
+	return s.applicationVersionViewReadTx(ctx, auth.tx, auth.currentPrincipal, v)
+}
+func (s *Service) applicationVersionViewReadTx(ctx context.Context, tx *sql.Tx, p Principal, v ApplicationCodeVersion) (out ApplicationVersionView, err error) {
 	out = ApplicationVersionView{Version: v, BasisCurrent: true, Blockers: []string{}}
-	app, err := s.projectApplicationTx(ctx, auth, v.ProjectID, v.ApplicationID)
+	app, err := s.projectApplicationReadTx(ctx, tx, p, v.ProjectID, v.ApplicationID)
 	if err != nil {
 		return out, err
 	}
@@ -231,7 +248,7 @@ func (s *Service) applicationVersionViewTx(ctx context.Context, auth *authorized
 	// today's governance facts. An archived team cannot remain falsely current
 	// merely because the caller is restoring a previously successful receipt.
 	governanceCurrent := app.OwnerTeamID == v.Application.OwnerTeamID && app.ParentApplicationID == v.Application.ParentApplicationID && app.Kind == v.Application.Kind
-	if _, e := s.applicationTeamTx(ctx, auth, v.ProjectID, app.OwnerTeamID); e != nil {
+	if _, e := s.applicationTeamReadTx(ctx, tx, p, v.ProjectID, app.OwnerTeamID); e != nil {
 		if !expertTeamExpectedError(e) {
 			return out, e
 		}
@@ -242,7 +259,7 @@ func (s *Service) applicationVersionViewTx(ctx context.Context, auth *authorized
 		out.Blockers = append(out.Blockers, "application_governance_changed")
 	}
 	for _, source := range v.Sources {
-		b, e := s.applicationSourceBasisTx(ctx, auth, v.Application, ApplicationVersionSourceInput{ScopeID: source.Scope.ID, IntegrationPlanID: source.IntegrationPlanID, ExpectedIntegrationVersion: source.IntegrationPlanVersion})
+		b, e := s.applicationSourceBasisReadTx(ctx, tx, p, v.Application, ApplicationVersionSourceInput{ScopeID: source.Scope.ID, IntegrationPlanID: source.IntegrationPlanID, ExpectedIntegrationVersion: source.IntegrationPlanVersion})
 		if e != nil {
 			if expertTeamExpectedError(e) {
 				out.BasisCurrent = false

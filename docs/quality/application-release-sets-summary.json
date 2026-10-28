@@ -1,0 +1,431 @@
+{
+  "stage": "T-RELEASESET-124",
+  "date": "2026-10-29",
+  "status": "scoped_local_verified",
+  "product_version": "1.0.0",
+  "scope": "Immutable reviewed multi-application code/artifact release sets, exact declared closure and original individual deployment plans; mixed registered package/JUnit evidence retains separate proof and gates",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "sha256": "eacdc53e753448a95539c78e9b62a2b829bc087e183df78cd3facbd794be87b7",
+    "changed_files": 48,
+    "deleted": [],
+    "inventory": ".cache/e2e/release-set-124/source-inventory.json",
+    "previous_published_commit": "d4c63e0398972783d374b55e2e08e2371fd73d95"
+  },
+  "checks": {
+    "distinct_go_top_tests": [
+      "TestApplicationReleaseSetActualArtifactsPlansAndIndependentDeployment",
+      "TestApplicationReleaseSetClosedHTTPAndSafeGeneration",
+      "TestApplicationReleaseSetDependencyClosureKeepsCyclesAndExactPins",
+      "TestApplicationReleaseSetOriginalReceiptKeepsHistoryAndReauthorizes",
+      "TestApplicationReleaseSetPlanReferenceBindsExactMember",
+      "TestProjectApplicationCatalogOwnershipOriginalReceiptsAndHierarchy",
+      "TestProjectApplicationHTTPRejectsAliasesNullAndMachineWrites",
+      "TestProjectApplicationImmutableVersionAndPinnedDependencyFacts",
+      "TestProjectApplicationSourceRequiresIndependentBoundCandidate",
+      "TestProjectRiskNestedExecutionCannotHideCodeOrUnsupportedSources",
+      "TestProviderApplicationReleaseReferenceMustRemainComplete",
+      "TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier",
+      "TestReleaseDeploymentTaskBasisMutationRechecksLiveAuthority",
+      "TestTestPlanExactReportCoverageAndGate",
+      "TestTestPlanMixedPackageEvidenceKeepsJUnitAndArtifactGates"
+    ],
+    "go_count": 15,
+    "web_behavior_cases": 4,
+    "changed_web_case_rerun": 1,
+    "full_final_web_typecheck": true,
+    "generated_contract_check": true,
+    "generated_models": 644,
+    "api_paths": 297,
+    "schema_changes": [
+      "ReleasePlanContent"
+    ],
+    "catalog_keys": 5977,
+    "production_hardcodes": 0,
+    "documentation_check": true,
+    "version_check": true,
+    "documentation_markdown_files": 335,
+    "schema_references": 2825
+  },
+  "actual": {
+    "build_task_id": "9b14b5a561a8048d687725fa941f7850",
+    "candidate_commit": "e42b3107596aa9aa7d346c2561a0504584491cfb",
+    "customer_human_signoff": false,
+    "library_artifact_sha256": "6c18a30f6b5483e337623921d7a63cc18d8aada7ef96ec4fdf4bfae314e506f9",
+    "library_candidate_id": "cfb78461f0386ce92f155760c1a0360e",
+    "model_calls": 0,
+    "plan_group_id": "321a856ea56513fc77c6161dd54f95c3",
+    "release_set_id": "13c061565db23aaa96c286a9467cc0c7",
+    "release_set_sha256": "825dcbd3a5ccd8243c3e4288e7f573efc3dd2d06809293b8d2c464b5eaf32036",
+    "source_task_id": "944f95ea1200d86063175f4a086317df",
+    "stage": "T-RELEASESET-124",
+    "static_demo_only": true,
+    "web_artifact_sha256": "bfd520673c9b3f840d50c6e993952b3f3a054c076f9ed802b02bf3d183fe5865",
+    "web_candidate_id": "3121a5d1218848386a23d0020ec5c381",
+    "partial_members": [
+      {
+        "application_id": "502a4c715d000e0374a91f56a3d45023",
+        "plan_id": "67b389b67bcd99c60fb9159a671fa029",
+        "plan_state": "pending_approval",
+        "deployment_operation_id": "",
+        "deployment_state": "",
+        "effect_state": "",
+        "health_state": ""
+      },
+      {
+        "application_id": "aae22f3a62b5314d439b496eae054cdd",
+        "plan_id": "d18022dd04a8bc2c8efeda50e1015d96",
+        "plan_state": "completed",
+        "deployment_operation_id": "deploy-233aa40a4905c1082e4a6a36ec3b9edc",
+        "deployment_state": "deployed_healthy",
+        "effect_state": "applied",
+        "health_state": "passed"
+      }
+    ],
+    "final_members": [
+      {
+        "application_id": "502a4c715d000e0374a91f56a3d45023",
+        "plan_id": "67b389b67bcd99c60fb9159a671fa029",
+        "plan_state": "completed",
+        "deployment_operation_id": "deploy-eb7018d6d22b75a61cab06c0ca904333",
+        "deployment_state": "deployed_healthy",
+        "effect_state": "applied",
+        "health_state": "passed"
+      },
+      {
+        "application_id": "aae22f3a62b5314d439b496eae054cdd",
+        "plan_id": "d18022dd04a8bc2c8efeda50e1015d96",
+        "plan_state": "completed",
+        "deployment_operation_id": "deploy-233aa40a4905c1082e4a6a36ec3b9edc",
+        "deployment_state": "deployed_healthy",
+        "effect_state": "applied",
+        "health_state": "passed"
+      }
+    ],
+    "members": [
+      {
+        "application_id": "502a4c715d000e0374a91f56a3d45023",
+        "application_version_id": "793d67693c7295b86ebf6bee91c95464",
+        "application_version_sha256": "6fb84770de0186028855b822778fb6b0559d156ad350f35b7b60bf7a5108a54a",
+        "candidate_id": "3121a5d1218848386a23d0020ec5c381",
+        "target_id": "9d74e582dad3f622fc7918f04435b77d",
+        "source_commit": "e42b3107596aa9aa7d346c2561a0504584491cfb",
+        "artifact_id": "df41281b091747616db08187e27c5163",
+        "artifact_sha256": "bfd520673c9b3f840d50c6e993952b3f3a054c076f9ed802b02bf3d183fe5865",
+        "candidate_sha256": "cabe1b40e31ba5116daeba0f55a4a8bf382f8811a3402927a55151ffe754b9dd"
+      },
+      {
+        "application_id": "aae22f3a62b5314d439b496eae054cdd",
+        "application_version_id": "1b1d0f9c4e65d48f118aa235115ffd37",
+        "application_version_sha256": "05f84299c85ee9f5c8a81d621aab47bc072458c8d177a0e20196d9e074ed4017",
+        "candidate_id": "cfb78461f0386ce92f155760c1a0360e",
+        "target_id": "9d74e582dad3f622fc7918f04435b77d",
+        "source_commit": "e42b3107596aa9aa7d346c2561a0504584491cfb",
+        "artifact_id": "8817ac93da85bf7f8f103bcccf6ba4ae",
+        "artifact_sha256": "6c18a30f6b5483e337623921d7a63cc18d8aada7ef96ec4fdf4bfae314e506f9",
+        "candidate_sha256": "ac7b3411527b7cfab7bbb3f3e808e78a09c7c80783475c94de708a0b5d596c62"
+      }
+    ]
+  },
+  "browser": {
+    "stage": "T-RELEASESET-124",
+    "scope": "Owned actual static-demo application artifacts, original per-application plans and verified deployment/health facts; browser read/refresh only",
+    "catalog_entry_via_release_candidates": true,
+    "registered_set_cn": true,
+    "immutable_application_and_candidate_links": true,
+    "two_actual_deployment_effect_and_health_facts": true,
+    "original_plan_round_trip": true,
+    "original_plan_executed_reason_preserved": true,
+    "english": true,
+    "narrow_width": 390,
+    "document_width": 375,
+    "keyboard_focus": "关闭详情",
+    "refresh_restores_set_and_route": true,
+    "screenshots": [
+      "release-set-cn.png",
+      "release-set-en.png",
+      "release-set-390-cn.png"
+    ],
+    "business_mutations": 0,
+    "model_calls": 0,
+    "user_preview_modified": false,
+    "owned_tab_closed": true,
+    "viewport_reset": true
+  },
+  "resources": {
+    "model_requests": 0,
+    "commercial_vendor_calls": 0,
+    "actual_journey_attempts": 2,
+    "first_actual_attempt_stopped_before_build": "published plan rejected legitimate mixed evidence; production composition fixed and targeted checks passed before second attempt",
+    "completed_actual_journeys": 1,
+    "node_processes_in_complete_journey": 9,
+    "web_builds_completed": 2,
+    "first_web_build_reason": "completed before a concrete immutable-member receipt guard correction; its inventory/log retained",
+    "source_inspector_builds": 0,
+    "native_sdk_builds": 0,
+    "octop_sdk_builds": 0,
+    "control_binary_builds": 0,
+    "runner_binary_builds": 0,
+    "go_commands_sequential": true,
+    "browser_business_mutations": 0,
+    "browser_guard_unchanged": true,
+    "owned_processes_terminal": true,
+    "container_builds": 0,
+    "desktop_installer_builds": 0
+  },
+  "evidence": {
+    "go_receipts": [
+      {
+        "command": ".cache/mcp019-deps/20261028T222922903Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/releasecontract",
+          "./internal/deployer",
+          "-run",
+          "^(TestApplicationReleaseSetPlanReferenceBindsExactMember|TestProviderApplicationReleaseReferenceMustRemainComplete)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 1,
+        "passed_top_level": [
+          "TestApplicationReleaseSetPlanReferenceBindsExactMember"
+        ],
+        "failed_top_level": [],
+        "stdout_sha256": "17fbdcc48ac6cb5c1e33e5a8bc684824a05868f61f571d6c2c47c74e43e1aa67"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T222953868Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/deployer",
+          "-run",
+          "^TestProviderApplicationReleaseReferenceMustRemainComplete$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": [
+          "TestProviderApplicationReleaseReferenceMustRemainComplete"
+        ],
+        "failed_top_level": [],
+        "stdout_sha256": "c8060ed66c6b8a8a0a0671d809e680690555cfeb3539bd7107b1d97d90d1febe"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T223645175Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "passed_top_level": [],
+        "failed_top_level": [],
+        "stdout_sha256": "e19a8a328fb9c710fad2b97695df6747394343af75571e73287287d98a8e716e"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T223727006Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestApplicationReleaseSet(DependencyClosureKeepsCyclesAndExactPins|ClosedHTTPAndSafeGeneration|OriginalReceiptKeepsHistoryAndReauthorizes)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": [
+          "TestApplicationReleaseSetClosedHTTPAndSafeGeneration",
+          "TestApplicationReleaseSetDependencyClosureKeepsCyclesAndExactPins",
+          "TestApplicationReleaseSetOriginalReceiptKeepsHistoryAndReauthorizes"
+        ],
+        "failed_top_level": [],
+        "stdout_sha256": "9c7d5408892a3d5e4d58cdb450fe9ea1e85861de9138c6c7faa7c6444f48c376"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T224037320Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^(TestProjectApplicationCatalogOwnershipOriginalReceiptsAndHierarchy|TestProjectApplicationSourceRequiresIndependentBoundCandidate|TestProjectApplicationHTTPRejectsAliasesNullAndMachineWrites|TestProjectApplicationImmutableVersionAndPinnedDependencyFacts|TestProjectRiskNestedExecutionCannotHideCodeOrUnsupportedSources|TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier|TestReleaseDeploymentTaskBasisMutationRechecksLiveAuthority)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "4m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": [
+          "TestProjectApplicationCatalogOwnershipOriginalReceiptsAndHierarchy",
+          "TestProjectApplicationHTTPRejectsAliasesNullAndMachineWrites",
+          "TestProjectApplicationImmutableVersionAndPinnedDependencyFacts",
+          "TestProjectApplicationSourceRequiresIndependentBoundCandidate",
+          "TestProjectRiskNestedExecutionCannotHideCodeOrUnsupportedSources",
+          "TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier",
+          "TestReleaseDeploymentTaskBasisMutationRechecksLiveAuthority"
+        ],
+        "failed_top_level": [],
+        "stdout_sha256": "c364ad0fad17bf21aaf1193167e7350cf4a47608c2047bb64e6e82b7b6241de4"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T224227485Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestApplicationReleaseSetActualArtifactsPlansAndIndependentDeployment$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "7m"
+        ],
+        "exit_code": 1,
+        "passed_top_level": [],
+        "failed_top_level": [
+          "TestApplicationReleaseSetActualArtifactsPlansAndIndependentDeployment"
+        ],
+        "stdout_sha256": "a8e904eeb981fab78323c6df2cf6ad569ae40657c0d8a5f72709aa5eaf658fc0"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T225222024Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "passed_top_level": [],
+        "failed_top_level": [],
+        "stdout_sha256": "973d24f22eaa022cf2b6d316106e78bfeb8e3658a1877134d6faeafd446d1a0b"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T225321871Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestTestPlan(MixedPackageEvidenceKeepsJUnitAndArtifactGates|ExactReportCoverageAndGate)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": [
+          "TestTestPlanExactReportCoverageAndGate",
+          "TestTestPlanMixedPackageEvidenceKeepsJUnitAndArtifactGates"
+        ],
+        "failed_top_level": [],
+        "stdout_sha256": "efa132e498fae10d2f6eb1f928f504a17075e26443557d4836206139065128fb"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T225407234Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestApplicationReleaseSetActualArtifactsPlansAndIndependentDeployment$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "7m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": [
+          "TestApplicationReleaseSetActualArtifactsPlansAndIndependentDeployment"
+        ],
+        "failed_top_level": [],
+        "stdout_sha256": "a7217f50b8a9ccdfbc834c486e19e543468f3508e3f8193305c3817bf4619ec3"
+      }
+    ],
+    "web_behaviors": ".cache/e2e/release-set-124/ui-focused.stdout.txt",
+    "changed_web_behavior": ".cache/e2e/release-set-124/ui-member-guard.stdout.txt",
+    "final_typecheck": ".cache/e2e/release-set-124/ui-member-typecheck.stdout.txt",
+    "i18n": ".cache/e2e/release-set-124/i18n.log",
+    "web_build": ".cache/e2e/release-set-124/web-build.log",
+    "web_inventory": ".cache/e2e/release-set-124/web-inventory.json",
+    "actual_full_receipt": {
+      "path": ".cache/e2e/release-set-124/actual-ui/result.public.json",
+      "sha256": "f5fbc6c722a0c8ef615038a08061a063cef594e1364f6b1e177307e57077ae20",
+      "git_include": false
+    },
+    "artifacts": [
+      {
+        "path": ".cache/e2e/release-set-124/actual-ui/fixture.sqlite",
+        "bytes": 2744320,
+        "sha256": "d1be741b678e9eb79e1c92681bb2d2a458a1ad47fc41f4fe3420f3e833706086",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/release-set-124/actual-ui/base-source.tar",
+        "bytes": 10240,
+        "sha256": "a9fbca1c64b3037fcab2e83b120a8010e0c6a071fb9841eb92706475027cf9ff",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/release-set-124/actual-ui/candidate-source.tar",
+        "bytes": 10240,
+        "sha256": "f4c56f97731bafee3e844971dd714c598859775d309b0a1736b82524031b9127",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/release-set-124/actual-ui/retained-data/release-artifacts/blobs/2437a58b933c809f8411125752f99faf",
+        "bytes": 66,
+        "sha256": "095b622ff5eaddb5b6a5223e1250f65f685b8263bc4dcb3c159c5563c01fdb34",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/release-set-124/actual-ui/retained-data/release-artifacts/blobs/4622739044c60fcf59f444e7d79dd0cb",
+        "bytes": 74,
+        "sha256": "4d33e1fbf571e587d53588cc6202d433dc981a59a4e7b4d33b3f1cb6417916fb",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/release-set-124/actual-ui/retained-data/release-artifacts/blobs/faeaa71fad01f18fe096ba56ef886d4b",
+        "bytes": 446,
+        "sha256": "a699db3ad494b9ef017e4983d19cfa2ceb8be9fb8eba71cf0c7bebb959292baa",
+        "git_include": false
+      }
+    ],
+    "screenshots": [
+      {
+        "path": ".cache/e2e/release-set-124/release-set-cn.png",
+        "bytes": 56768,
+        "sha256": "623b1079d7f73d3761a9fe1eeea3d8fce39b467f30c47080da38241ff578808a",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/release-set-124/release-set-en.png",
+        "bytes": 68339,
+        "sha256": "2b196e8b5bd86c7f9c1db6f94188bd250972fad0c6eceb7d4ed8e4524222f854",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/release-set-124/release-set-390-cn.png",
+        "bytes": 33642,
+        "sha256": "95c090135c08b7f4e1d05e05c36b7bdfaf00ad1db972d87ddebdff2835232597",
+        "git_include": false
+      }
+    ],
+    "documentation_check": ".cache/e2e/release-set-124/docs-check.log",
+    "version_check": ".cache/e2e/release-set-124/version-check.log"
+  },
+  "remaining": [
+    "Complete P0-P7 and requirements1-26;58/34/92 unchanged",
+    "Automatic application-scoped build attestation and composite multi-origin/commit source builds",
+    "Dependency-ordered automatic cross-application rollout/rollback and arbitrary artifact/deployment kinds",
+    "Independent subproject ACL and full intent/configuration/skill/memory/tool autonomy",
+    "Full Octop/vendor/CLI/MCP/A2A capability coverage, physical multi-host and production acceptance",
+    "OceanBase/PostgreSQL matrix and real cross-platform installers/signing",
+    "The actual deployment is two owned local static demos; fixture Review is not customer sign-off or production approval"
+  ]
+}

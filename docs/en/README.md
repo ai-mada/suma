@@ -33,3 +33,5 @@ Simplified Chinese (`zh-CN`) and US English (`en-US`) use extensible catalogs. U
 Current local browser checks and protocol fixtures establish only their recorded scope. They do not attest vendor models, commercial bills, physical multi-host execution, operating-system installation or production acceptance. Codex remains observe-only with configuration acknowledgement rather than provider-model attestation; native conflict repair remains a separate, native-only workspace lifecycle.
 
 [Project applications, fixed code versions and dependency impact](project-applications.md) cover the bounded T123 implementation; see the [verification](../quality/project-applications-verification.md). Full application release sets and cross-platform acceptance remain pending.
+
+[Application release sets and original deployment handoff](application-release-sets.md) provide exact code/artifact associations, bounded dependency closure and separately authorized per-member deployment. See the [scoped actual evidence](../quality/application-release-sets-verification.md).
