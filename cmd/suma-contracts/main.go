@@ -190,6 +190,9 @@ func generate() (map[string]any, string) {
 	for _, v := range issueRepairModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range projectRiskModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range taskHandoffModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -333,6 +336,7 @@ func generate() (map[string]any, string) {
 	intelligentOperationsContracts(add, api)
 	testPlanContracts(add, api)
 	issueRepairContracts(add, api)
+	projectRiskContracts(add, api)
 	usageAccountingContracts(add, api)
 	skillCatalogContracts(add, api)
 	knowledgeIntelligenceContracts(add, api)

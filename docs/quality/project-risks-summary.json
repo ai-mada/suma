@@ -1,0 +1,449 @@
+{
+  "stage": "T-PROJECT-121",
+  "product_version": "1.0.0",
+  "recorded_at": "2026-10-28T19:46:09.426626+00:00",
+  "status": "scoped_local_project_risk_delivery",
+  "source_sha256": "4026991422341dc7b546c90f1045272105f17b607d94b0eb9a713a57ad40c67f",
+  "source_files": 34,
+  "full_platform_complete": false,
+  "scope_ledger": {
+    "requirements": "1–26",
+    "phases": "P0–P7",
+    "limited_implemented": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "architecture": {
+    "independent_risk_aggregate": true,
+    "protected_unique_alert_source": true,
+    "ordinal_ratings_optional": true,
+    "score_only_when_both_known": true,
+    "protected_current_human_owner": true,
+    "same_project_links": true,
+    "states": [
+      "open",
+      "mitigating",
+      "in_review",
+      "closed"
+    ],
+    "frozen_review_basis": true,
+    "current_formal_task_review_required_for_mitigation": true,
+    "code_exact_candidate_independent_worker": true,
+    "human_exposure_decisions_separate": true,
+    "close_reopen_browser_approval": true,
+    "history_limit": 10,
+    "history_total_disclosed": true,
+    "child_proof_depth_limit": 32,
+    "child_proof_node_limit": 10000,
+    "unknown_complex_source_blocks": true,
+    "canonical_input_keys_required": true,
+    "atomic_guarded_risk_navigation": true,
+    "single_go_dispatcher": true,
+    "data_contract": "suma-initial-quality-v1",
+    "current_risk_tables": 3,
+    "migration": false
+  },
+  "verification": {
+    "distinct_go_top_level_passed": 9,
+    "distinct_web_behaviors_passed": 6,
+    "unresolved_test_failures": 0,
+    "full_suites": 0,
+    "typecheck": true,
+    "generated_contract_check": true,
+    "generated_schemas": 561,
+    "api_paths": 278,
+    "catalog_keys": 5584,
+    "production_source_hardcodes": 0,
+    "version_check": true,
+    "nested_source_regression": "actual protected scheduler child relations, missing code proof rejected, noop child recursively permitted, unsupported map rejected; no nested code-process execution claimed"
+  },
+  "actual_runtime": {
+    "actual_node_processes": 2,
+    "alert_id": "899803da8aa17cbbc415de23b60e0f46",
+    "analysis_id": "ba548f595b0f56edaa82a008749db59d",
+    "customer_human_signoff": false,
+    "cycle": 2,
+    "history_complete": true,
+    "history_total": 1,
+    "kind": "actual_os_http_project_risk",
+    "mitigation": {
+      "base_commit": "54b593bdc30b4ef96869838fffca87160ae181ad",
+      "candidate_commit": "d45a97655091ba024ce454058f3053ad89b739a1",
+      "run_id": "c2f68643fe5de0bb86e34cfbcb6ac35e",
+      "task_id": "108b229992c00c5465ca442bccbcf22a",
+      "plan_id": "90feca466c9b69c685a490e1a18ca142",
+      "plan_revision": 2,
+      "plan_sha256": "2c47cab287393f51a3a2d018f7b79f853fded71225c33f231df83788601f72a4",
+      "producer_worker": "risk-developer-121",
+      "test_worker": "risk-independent-121",
+      "producer_evidence_sha256": "e7fa74d4609cf4a1af4a4667176eb395f9f201308207833f38dc85a6ed8335ef",
+      "test_evidence_sha256": "29b771cc387ab2f608604e07089ead7e92bcfea3e36551be4d23474bd400723d",
+      "report_sha256": "9950f6298ab515de49691cebc366b2f14149d13cbedef230f8ab7f58a60cd4e2"
+    },
+    "model_calls": 0,
+    "owner_resource_id": "304db896ccc5fef55457a208cf55148b",
+    "planning_run_id": "planning-ba548f595b0f56edaa82a008749db59d",
+    "planning_source": "owned_protocol_output",
+    "review_id": "8b4d17f02ab4311d71fccdcd6b6940ad",
+    "risk_id": "7e6da5145fd5d729de3bf4edee53ebea",
+    "state": "open"
+  },
+  "browser": {
+    "stage": "T-PROJECT-121",
+    "recorded_at": "2026-10-28T19:40:10.062592+00:00",
+    "origin": "http://risk121.localhost:59164",
+    "real_risk_id": "7e6da5145fd5d729de3bf4edee53ebea",
+    "cycle": 2,
+    "current_state": "open",
+    "history_total": 1,
+    "closed_mitigation_review_observed": true,
+    "source_analysis_and_output_sha_observed": true,
+    "score": 12,
+    "probability": 3,
+    "impact": 4,
+    "owner_name_observed": true,
+    "overview_active": 1,
+    "overview_overdue": 0,
+    "overview_unassessed": 0,
+    "overview_to_risk_atomic_route_observed": true,
+    "cn_en_same_original_content": true,
+    "real_linked_task_accepted_observed": true,
+    "real_linked_execution_url_observed": true,
+    "viewport_requested": [
+      390,
+      844
+    ],
+    "client_width": 375,
+    "scroll_width": 375,
+    "keyboard_refresh_focus_observed": true,
+    "refresh_exact_risk_data_completed": true,
+    "browser_business_mutations": 0,
+    "extra_executions": 0,
+    "model_calls_during_browser": 0,
+    "viewport_reset": true,
+    "owned_tab_closed": true,
+    "user_tabs_modified": false
+  },
+  "retained_fixture": {
+    "actual_node_processes": 2,
+    "customer_human_signoff": false,
+    "database_bytes": 2273280,
+    "database_sha256": "e05556fc9613b10b791bc00d708310250600d0069a17f6f4419e1233dd078f6f",
+    "final_counts": {
+      "dag_attempts": 3,
+      "dag_events": 14,
+      "dag_runs": 2,
+      "suma_candidate_composition_executions": 0,
+      "suma_candidate_compositions": 0,
+      "suma_expert_team_plans": 0,
+      "suma_planning_alerts": 1,
+      "suma_planning_analyses": 1,
+      "suma_requirements": 0,
+      "suma_reviews": 1,
+      "suma_risk_reviews": 1,
+      "suma_risk_sources": 1,
+      "suma_risks": 1,
+      "suma_tasks": 2,
+      "suma_test_plan_reports": 1,
+      "suma_usage_attempts": 2
+    },
+    "final_risk_sha256": "36dea91c4ae09e020239a4473ca65c5ba0c3c3f395976192facac5e141a2a3a7",
+    "kind": "actual_os_http_project_risk",
+    "model_calls": 0,
+    "origin": "http://risk121.localhost:59164",
+    "receipt": {
+      "actual_node_processes": 2,
+      "alert_id": "899803da8aa17cbbc415de23b60e0f46",
+      "analysis_id": "ba548f595b0f56edaa82a008749db59d",
+      "customer_human_signoff": false,
+      "cycle": 2,
+      "history_complete": true,
+      "history_total": 1,
+      "kind": "actual_os_http_project_risk",
+      "mitigation": {
+        "base_commit": "54b593bdc30b4ef96869838fffca87160ae181ad",
+        "candidate_commit": "d45a97655091ba024ce454058f3053ad89b739a1",
+        "run_id": "c2f68643fe5de0bb86e34cfbcb6ac35e",
+        "task_id": "108b229992c00c5465ca442bccbcf22a",
+        "plan_id": "90feca466c9b69c685a490e1a18ca142",
+        "plan_revision": 2,
+        "plan_sha256": "2c47cab287393f51a3a2d018f7b79f853fded71225c33f231df83788601f72a4",
+        "producer_worker": "risk-developer-121",
+        "test_worker": "risk-independent-121",
+        "producer_evidence_sha256": "e7fa74d4609cf4a1af4a4667176eb395f9f201308207833f38dc85a6ed8335ef",
+        "test_evidence_sha256": "29b771cc387ab2f608604e07089ead7e92bcfea3e36551be4d23474bd400723d",
+        "report_sha256": "9950f6298ab515de49691cebc366b2f14149d13cbedef230f8ab7f58a60cd4e2"
+      },
+      "model_calls": 0,
+      "owner_resource_id": "304db896ccc5fef55457a208cf55148b",
+      "planning_run_id": "planning-ba548f595b0f56edaa82a008749db59d",
+      "planning_source": "owned_protocol_output",
+      "review_id": "8b4d17f02ab4311d71fccdcd6b6940ad",
+      "risk_id": "7e6da5145fd5d729de3bf4edee53ebea",
+      "state": "open"
+    },
+    "seed_counts": {
+      "dag_attempts": 3,
+      "dag_events": 14,
+      "dag_runs": 2,
+      "suma_candidate_composition_executions": 0,
+      "suma_candidate_compositions": 0,
+      "suma_expert_team_plans": 0,
+      "suma_planning_alerts": 1,
+      "suma_planning_analyses": 1,
+      "suma_requirements": 0,
+      "suma_reviews": 1,
+      "suma_risk_reviews": 1,
+      "suma_risk_sources": 1,
+      "suma_risks": 1,
+      "suma_tasks": 2,
+      "suma_test_plan_reports": 1,
+      "suma_usage_attempts": 2
+    },
+    "seed_risk_sha256": "36dea91c4ae09e020239a4473ca65c5ba0c3c3f395976192facac5e141a2a3a7",
+    "source_archives": [
+      {
+        "archive": "base-source.tar",
+        "bytes": 10240,
+        "files": [
+          {
+            "bytes": 8,
+            "path": ".gitignore",
+            "sha256": "70a213afeabe5ac38ae4c88b2c7002ce5068b91a3e57a032245ab809dc6fa460"
+          },
+          {
+            "bytes": 27,
+            "path": "sum.cjs",
+            "sha256": "703cb2a470cfd0a2ea935122ac16338093078ba039d78aeda1e9442ffb5cc0a3"
+          }
+        ],
+        "revision": "54b593bdc30b4ef96869838fffca87160ae181ad",
+        "sha256": "f85a2d2624aa723c2d87271c2d69410240dd2b6ce8e6efd730660d48e1d3c95e"
+      },
+      {
+        "archive": "candidate-source.tar",
+        "bytes": 10240,
+        "files": [
+          {
+            "bytes": 8,
+            "path": ".gitignore",
+            "sha256": "70a213afeabe5ac38ae4c88b2c7002ce5068b91a3e57a032245ab809dc6fa460"
+          },
+          {
+            "bytes": 27,
+            "path": "sum.cjs",
+            "sha256": "b7fe0fbde04b24b85270a6b7006017ce20facbb63eff2f45e82b96bb2e100620"
+          }
+        ],
+        "revision": "d45a97655091ba024ce454058f3053ad89b739a1",
+        "sha256": "ae4780aad9686dc3e2da31fa4f0c20af98dcb04f709ef5cdd2b9b5dcda53b6e3"
+      }
+    ],
+    "status": "closed_without_new_execution",
+    "stop_reason": "explicit_stop"
+  },
+  "failure_audit": [
+    {
+      "kind": "HTTP Go JSON case folding bypassed exact keys and required nullable residual ratings",
+      "resolution": "canonical outer/nested key whitelists;9 malformed shapes and one canonical nullable form in one focused test passed"
+    },
+    {
+      "kind": "nested child code could be mistaken for a non-code task",
+      "resolution": "current protected same-project child recursion with depth/node bounds; focused positive/negative scheduling cases passed; unsupported sources block"
+    },
+    {
+      "kind": "Web initial JSX collection error",
+      "executed_cases": 0,
+      "resolution": "syntax fixed,5 focused behaviors passed"
+    },
+    {
+      "kind": "App integration JSX bracket and nullable review type errors",
+      "resolution": "actual full Web typecheck found and corrected them; final typecheck passed"
+    },
+    {
+      "kind": "two-step risk navigation could partially update despite a leave guard or stale layout closure",
+      "resolution": "one shared guarded functional route update; only the new navigation case reran and passed"
+    }
+  ],
+  "resources": {
+    "new_model_calls": 0,
+    "commercial_vendor_calls": 0,
+    "actual_business_node_processes": 2,
+    "metadata_probes_and_git_queries_excluded_from_node_count": true,
+    "web_builds": 1,
+    "native_sdk_builds": 0,
+    "octop_sdk_builds": 0,
+    "control_binary_builds": 0,
+    "runner_binary_builds": 0,
+    "go_commands_sequential": true,
+    "owned_processes_terminal": true,
+    "browser_business_mutations": 0,
+    "browser_counts_and_protected_rows_unchanged": true,
+    "owned_tab_closed": true,
+    "viewport_reset": true,
+    "user_preview_updated": false,
+    "user_database_modified": false
+  },
+  "evidence": {
+    "go_receipts": [
+      {
+        "command": ".cache/mcp019-deps/20261028T191707919Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "de148d8c78c34caf6c3dd9d757dda26bc8a1907055a1f4d0d74baac2fb8db0ca"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T191758906Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./internal/localization",
+          "./cmd/suma-contracts",
+          "-run",
+          "^Test(ProjectRisk(CurrentAssessment|HumanExposure|MitigationAnd|CurrentHuman|Contract)|CanonicalTemplateGrammarAndCatalogSnapshot)",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 6,
+        "failed_top_level": 0,
+        "stdout_sha256": "f259372ee53c6c102480470069bde152bb9ec09405fd6a79e5df9775639399f9"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T192951868Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestProjectRisk(HTTPRejectsNonCanonicalMutationShapes|NestedExecutionCannotHideCodeOrUnsupportedSources)$",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 2,
+        "failed_top_level": 0,
+        "stdout_sha256": "46868b4e6408f8936b353d5135baab35774cb9c76fad5856ca80181551ed03b4"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T193333970Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "de148d8c78c34caf6c3dd9d757dda26bc8a1907055a1f4d0d74baac2fb8db0ca"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T193608633Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestProjectRiskActualAlertAdoptionMitigationReviewAndReopen$",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 1,
+        "failed_top_level": 0,
+        "stdout_sha256": "71b463135b29299bb7176b9051e1e5f6aab0cb9bd0e2e533182a4fb4a374d277"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T194227141Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "passed_top_level": 0,
+        "failed_top_level": 0,
+        "stdout_sha256": "247220a135fcb8c8480707f9e28aad4ea7e15b48b3125bdcbacf8c0e8fd28190"
+      }
+    ],
+    "web_behaviors": ".cache/e2e/project-121/ui-focused-2.stdout.txt",
+    "web_navigation": ".cache/e2e/project-121/ui-navigation.stdout.txt",
+    "web_build": ".cache/e2e/project-risk-121/web-build.log",
+    "source_inventory": ".cache/e2e/project-risk-121/source-inventory.json",
+    "web_inventory": ".cache/e2e/project-risk-121/web-inventory.json",
+    "browser_summary": ".cache/e2e/project-risk-121/browser-summary.json",
+    "artifacts": [
+      {
+        "path": ".cache/e2e/project-risk-121/actual-ui/fixture.sqlite",
+        "bytes": 2273280,
+        "sha256": "e05556fc9613b10b791bc00d708310250600d0069a17f6f4419e1233dd078f6f",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/project-risk-121/actual-ui/base-source.tar",
+        "bytes": 10240,
+        "sha256": "f85a2d2624aa723c2d87271c2d69410240dd2b6ce8e6efd730660d48e1d3c95e",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/project-risk-121/actual-ui/candidate-source.tar",
+        "bytes": 10240,
+        "sha256": "ae4780aad9686dc3e2da31fa4f0c20af98dcb04f709ef5cdd2b9b5dcda53b6e3",
+        "git_included": false
+      }
+    ],
+    "screenshots": [
+      {
+        "path": ".cache/e2e/project-risk-121/screenshots/project-risk-cn.png",
+        "bytes": 57009,
+        "sha256": "f8633de6b409a4849f372751c317059aeb4dc4b5814643b7c4eae32d5a739a2f",
+        "git_included": false
+      },
+      {
+        "path": ".cache/e2e/project-risk-121/screenshots/project-risk-en-390.png",
+        "bytes": 34496,
+        "sha256": "725dd03ecc649e9afdf511b8f627336357280ca27d690933b57179d0e4bda562",
+        "git_included": false
+      }
+    ]
+  },
+  "remaining": [
+    "Complete P0–P7 and requirements1–26;58/34/92 unchanged",
+    "Equivalent code proof for complex composition, dynamic mapping and external workflow sources; currently explicit unsupported blocker",
+    "Cross-project portfolio, continuous risk history/forecasting, external alerts and automatic policies",
+    "Semantic CLI/model recommendation to the existing reviewed dispatch plan remains pending; current eligibility suggestion is not intelligent scoring",
+    "New risk API/domain currently browser writes and project API reads; full CLI/MCP/A2A surface remains in the platform backlog",
+    "Physical multi-host, OceanBase/PostgreSQL, complete IDE/installers, vendor accounts and production acceptance",
+    "Browser observed readonly actual risk details/history/overview/linked accepted task/refresh; mutations validated by owned API/Go and scoped Web behavior cases, not customer sign-off"
+  ],
+  "generated_api_delta": {
+    "new_schemas": [
+      "ProjectRisk",
+      "ProjectRiskBlocker",
+      "ProjectRiskCommandRequest",
+      "ProjectRiskCreateRequest",
+      "ProjectRiskFields",
+      "ProjectRiskLinkBasis",
+      "ProjectRiskMatrixCell",
+      "ProjectRiskPage",
+      "ProjectRiskReadiness",
+      "ProjectRiskReference",
+      "ProjectRiskReview",
+      "ProjectRiskReviewInput",
+      "ProjectRiskSaveRequest",
+      "ProjectRiskSource",
+      "ProjectRiskSummary",
+      "ProjectRiskView"
+    ],
+    "new_paths": [
+      "/risks",
+      "/risks/summary",
+      "/risks/{id}",
+      "/risks/{id}/commands"
+    ],
+    "existing_schema_changes": [],
+    "existing_path_changes": []
+  }
+}

@@ -2812,6 +2812,177 @@ export interface ProjectPoolRunnerPage {
   items: (ProjectPoolRunner)[];
   as_of: string;
 }
+export interface ProjectRisk {
+  id: string;
+  tenant_id: string;
+  project_id: string;
+  version: number;
+  cycle: number;
+  assessment_revision: number;
+  state: string;
+  title: string;
+  detail: string;
+  owner_id: string;
+  review_date: string;
+  strategy: string;
+  plan: string;
+  probability: number | null;
+  impact: number | null;
+  links: (ProjectRiskReference)[];
+  score: number | null;
+  source?: ProjectRiskSource | null;
+  current_review_id?: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+export interface ProjectRiskBlocker {
+  code: string;
+  ref_id?: string;
+}
+export interface ProjectRiskCommandRequest {
+  project_id: string;
+  expected_version: number;
+  action: string;
+  review?: ProjectRiskReviewInput;
+  expected_review_id?: string;
+  reason: string;
+  idempotency_key: string;
+}
+export interface ProjectRiskCreateRequest {
+  project_id: string;
+  title: string;
+  detail: string;
+  owner_id: string;
+  review_date: string;
+  strategy: string;
+  plan: string;
+  probability: number | null;
+  impact: number | null;
+  links: (ProjectRiskReference)[];
+  source_alert_id?: string;
+  expected_alert_version?: number;
+  reason: string;
+  idempotency_key: string;
+}
+export interface ProjectRiskFields {
+  title: string;
+  detail: string;
+  owner_id: string;
+  review_date: string;
+  strategy: string;
+  plan: string;
+  probability: number | null;
+  impact: number | null;
+  links: (ProjectRiskReference)[];
+}
+export interface ProjectRiskLinkBasis {
+  kind: string;
+  id: string;
+  version: number;
+  verified_run_id?: string;
+  review_id?: string;
+}
+export interface ProjectRiskMatrixCell {
+  probability: number;
+  impact: number;
+  count: number;
+}
+export interface ProjectRiskPage {
+  items: (ProjectRisk)[];
+  total: number;
+  next_cursor: string;
+  can_create: boolean;
+}
+export interface ProjectRiskReadiness {
+  assessment_ready: boolean;
+  mitigation_ready: boolean;
+  close_ready: boolean;
+  blockers: (ProjectRiskBlocker)[];
+}
+export interface ProjectRiskReference {
+  kind: string;
+  id: string;
+}
+export interface ProjectRiskReview {
+  id: string;
+  cycle: number;
+  assessment_revision: number;
+  assessment_sha256: string;
+  owner_id: string;
+  owner_version: number;
+  owner_user_id: string;
+  links: (ProjectRiskLinkBasis)[];
+  disposition: string;
+  residual_probability: number | null;
+  residual_impact: number | null;
+  rationale: string;
+  evidence: string;
+  residual_score: number | null;
+  submitted_by: string;
+  submitted_at: string;
+  decision: string;
+  decided_by?: string;
+  decided_at?: string;
+  decision_reason?: string;
+}
+export interface ProjectRiskReviewInput {
+  disposition: string;
+  residual_probability: number | null;
+  residual_impact: number | null;
+  rationale: string;
+  evidence: string;
+}
+export interface ProjectRiskSaveRequest {
+  project_id: string;
+  expected_version: number;
+  title: string;
+  detail: string;
+  owner_id: string;
+  review_date: string;
+  strategy: string;
+  plan: string;
+  probability: number | null;
+  impact: number | null;
+  links: (ProjectRiskReference)[];
+  reason: string;
+  idempotency_key: string;
+}
+export interface ProjectRiskSource {
+  alert_id: string;
+  alert_version: number;
+  analysis_id: string;
+  run_id: string;
+  risk_key: string;
+  source_sha256: string;
+  original_output_sha256: string;
+  adopted_by: string;
+  adopted_at: string;
+}
+export interface ProjectRiskSummary {
+  project_id: string;
+  as_of: string;
+  total: number;
+  active_count: number;
+  open_count: number;
+  mitigating_count: number;
+  in_review_count: number;
+  closed_count: number;
+  unassessed_count: number;
+  overdue_count: number;
+  matrix: (ProjectRiskMatrixCell)[];
+  matrix_scope: string;
+}
+export interface ProjectRiskView {
+  risk: ProjectRisk;
+  current_review?: ProjectRiskReview | null;
+  history: (ProjectRiskReview)[];
+  history_total: number;
+  history_complete: boolean;
+  allowed_actions: (string)[];
+  readiness: ProjectRiskReadiness;
+  created?: boolean;
+}
 export interface ProjectVersionedOperation {
   project_id: string;
   expected_version: number;

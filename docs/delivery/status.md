@@ -14,6 +14,8 @@ T-QUALITY-119继续原P5范围：问题的受保护修复周期、原失败用�
 
 T-WORKSPACE-120继续原P2／P4与需求13、23：Go宿主工作区调用、原效果回放、拒绝、固定检查及父封存，经现有私有／Pool事件与确切attempt历史展示；本地采集、平台确认和当前页分别表达，默认收起、中英文完整。当前实现与实际范围见[报告](../quality/workspace-operations-verification.md)、[摘要](../quality/workspace-operations-summary.json)和[架构](../architecture/workspace-operations.md)。该阶段不改变58／34／92台账。
 
+T-PROJECT-121继续原P3／P5与需求7、10、12、13：正式项目风险登记、真实建议采用、负责人和顺序评估、任务关联、固定复核及关闭／重开。代码缓解保留当前正式Review与精确候选独立测试，子流程沿受保护关系有界核对；复杂来源不足明确阻止。概览入口及简洁中英文面板、实际双Worker代码链路与界面范围见[报告](../quality/project-risks-verification.md)、[摘要](../quality/project-risks-summary.json)、[PRD](../product/project-risks.md)和[架构](../architecture/project-risks.md)，不代表跨项目portfolio、外部告警或全平台验收完成，58／34／92不变。
+
 四份分享规划均已取得当前可见正文；新增实施蓝图与深度设计的可见范围、截断及采用见同一映射。第一份64个编号、第二份需求26及S01–S12见[逐域采用与缺口映射](../integrations/shared-roadmap-adoption.md)。两份末尾均不完整，未见内容保持未知。它们是设计来源，不作为源码或完成证明；当前草稿计划仅推进需求26的一部分，通用配置与全场景多端旅程仍待实现。
 
 ## 当前实现与证据

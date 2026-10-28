@@ -11,8 +11,9 @@ import {toolError,toolSessionStorage} from './tool-hooks';
 import {ErrorNotice,Field,Loading} from './ui';
 import {useWriteAction,WriteButton,WriteFields,WriteNotice,type WriteRecoveryRequest} from './write-action';
 import './PlanningIntelligence.css';
+import {ProjectRiskRegistration} from './ProjectRisks';
 
-type Props={session:Session;project:string;tasks:PlannedTask[];refresh:number;onChanged:()=>void|Promise<void>};
+type Props={session:Session;project:string;tasks:PlannedTask[];refresh:number;onChanged:()=>void|Promise<void>;onOpenRisk?:(id:string)=>void};
 type Analysis=PlanningAnalysis&{original_output?:string};
 type Planner=ToolProfile&{profile:ToolProfile['profile']&{planning?:{protocol:string;model:string;endpoint_origin:string}|null}};
 type Page<T>={items:T[];total:number;next_cursor?:string;open_count?:number;critical_count?:number};
@@ -91,7 +92,7 @@ export function PlanningIntelligence(props:Props){
  return <IntelligenceScope key={scope} {...props} scope={scope}/>;
 }
 
-function IntelligenceScope({session,project,tasks,refresh,onChanged,scope}:Props&{scope:string}){
+function IntelligenceScope({session,project,tasks,refresh,onChanged,scope,onOpenRisk}:Props&{scope:string}){
  const locale=useLocale(),api=useApi(),bodyID=useId(),[open,setOpen]=useState(false),[alertState,setAlertState]=useState('open');
  const action=useWriteAction({scope:'intelligent-planning:'+scope,storage:toolSessionStorage(),validateRequest:request=>recoveryValid(request,project)}),pending=action.pending?.body;
  const [goal,setGoal]=useState(typeof pending?.goal==='string'?pending.goal:''),[taskIDs,setTaskIDs]=useState<string[]>(Array.isArray(pending?.task_ids)?pending.task_ids as string[]:[]),[profileID,setProfileID]=useState(typeof pending?.tool_profile_id==='string'?pending.tool_profile_id:'');
@@ -197,7 +198,7 @@ function IntelligenceScope({session,project,tasks,refresh,onChanged,scope}:Props
     <p className="pi-muted">{text('risk_boundary')}</p>{alerts.loading&&<Loading/>}{Boolean(alerts.error)&&<ErrorNotice error={toolError(alerts.error)} onRetry={()=>void alerts.read()}/>}
     {alerts.page&&<p className="pi-muted">{text('alert_counts',{open:formatNumber(alerts.page.open_count as number),critical:formatNumber(alerts.page.critical_count as number)})}</p>}
     {alerts.page&&!alerts.page.items.length&&<p className="pi-muted">{text('no_alerts')}</p>}
-    {alerts.page?.items.map(item=><article key={item.id} className="pi-alert"><div className="pi-heading"><strong>{item.title}</strong><span>{text('severity.'+item.severity)} · {text('alert_state.'+item.state)}</span></div><p className="pi-raw">{item.detail}</p><small>{formatDateTime(item.created_at)}</small><div className="pi-actions"><button type="button" disabled={locked} onClick={()=>setSelectedID(item.analysis_id)}>{text('open_analysis')}</button>{canWrite&&item.state==='open'&&<button type="button" data-alert-action="acknowledge" disabled={locked} onClick={()=>setAlertDecision({item,action:'acknowledge',reason:''})}>{text('acknowledge')}</button>}{canWrite&&item.state!=='resolved'&&<button type="button" data-alert-action="resolve" disabled={locked} onClick={()=>setAlertDecision({item,action:'resolve',reason:''})}>{text('resolve')}</button>}</div></article>)}
+    {alerts.page?.items.map(item=><article key={item.id} className="pi-alert"><div className="pi-heading"><strong>{item.title}</strong><span>{text('severity.'+item.severity)} · {text('alert_state.'+item.state)}</span></div><p className="pi-raw">{item.detail}</p><small>{formatDateTime(item.created_at)}</small><div className="pi-actions">{canWrite&&<ProjectRiskRegistration session={session} project={project} alert={item} onOpenRisk={onOpenRisk} onChanged={onChanged}/>}<button type="button" disabled={locked} onClick={()=>setSelectedID(item.analysis_id)}>{text('open_analysis')}</button>{canWrite&&item.state==='open'&&<button type="button" data-alert-action="acknowledge" disabled={locked} onClick={()=>setAlertDecision({item,action:'acknowledge',reason:''})}>{text('acknowledge')}</button>}{canWrite&&item.state!=='resolved'&&<button type="button" data-alert-action="resolve" disabled={locked} onClick={()=>setAlertDecision({item,action:'resolve',reason:''})}>{text('resolve')}</button>}</div></article>)}
     {alerts.page?.next_cursor&&<button type="button" disabled={locked||alerts.loading} onClick={()=>void alerts.read(true)}>{text('more_alerts')}</button>}
     {alertDecision&&<form className="pi-alert-decision" data-alert-decision onSubmit={event=>{event.preventDefault();if(!boundedText(alertDecision.reason))return;void perform('/planning/alerts/'+encodeURIComponent(alertDecision.item.id)+'/commands',{project_id:project,expected_version:alertDecision.item.version,action:alertDecision.action,reason:alertDecision.reason});}}><h4>{text(alertDecision.action)}</h4><WriteFields action={action}><Field label={text('alert_reason')}><textarea name="alert_reason" value={alertDecision.reason} rows={2} maxLength={4000} required onChange={event=>setAlertDecision({...alertDecision,reason:event.target.value})}/></Field></WriteFields><div className="pi-actions"><WriteButton action={action} disabled={!boundedText(alertDecision.reason)||action.persistenceBlocked}>{text('confirm')}</WriteButton><button type="button" disabled={locked} onClick={()=>setAlertDecision(undefined)}>{text('cancel')}</button></div></form>}
    </section>

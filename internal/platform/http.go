@@ -487,6 +487,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.issueRepairHTTP(w, r, actor, scope, project, parts, m) {
 		return
 	}
+	if s.projectRisksHTTP(w, r, actor, scope, project, parts, m) {
+		return
+	}
 	if s.requirementTraceabilityHTTP(w, r, actor, scope, project, parts) {
 		return
 	}
