@@ -13,9 +13,12 @@ var _ dag.LiveReadOnlyCompletionReconciler = (*Service)(nil)
 // CheckLiveReadOnlyCompletionTx grants no new execution. The Core first proves
 // an unchanged, still-leased, not-stopped unknown attempt, validates its final
 // tool receipt, and requires the authenticated transport/commit hooks. Only a
-// platform-created single-call knowledge extraction may resolve that uncertainty
-// automatically. Ordinary CLIs and planning retain their existing reconciliation.
+// platform-created single-call read-only model purposes may resolve that
+// uncertainty automatically. Ordinary CLIs keep explicit reconciliation.
 func (s *Service) CheckLiveReadOnlyCompletionTx(ctx context.Context, tx *sql.Tx, scope dag.LiveReadOnlyCompletion, previous, final dag.Result) (bool, error) {
+	if scope.Spec.Config["purpose"] == "intelligent_operations" {
+		return s.checkIntelligentOperationCompletionTx(ctx, tx, scope, previous, final)
+	}
 	if scope.NodeID != "extract" || scope.Spec.Type != "agent" || scope.Spec.Config["purpose"] != "knowledge_extraction" || stringify(scope.Spec.Config["max_steps"]) != "1" || final.ToolEvidence == nil {
 		return false, nil
 	}

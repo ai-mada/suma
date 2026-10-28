@@ -13,6 +13,7 @@
 | [任务依赖编辑](development/task-dependencies.md) | 完整业务任务图、图／表共享草稿、原子保存、冲突与原操作恢复；[English](en/task-dependencies.md)、[合同](../contracts/task-dependencies.md)、[当前专项报告](quality/task-dependencies-verification.md) |
 | [任务交付与质量](development/task-delivery-chain.md) | 从依赖图进入团队预览、确切运行／测试、正式验收及问题回流；[English](en/task-delivery-chain.md)、[合同](../contracts/task-delivery-chain.md)、[本阶段限定报告](quality/task-delivery-chain-verification.md) |
 | [需求验收追踪](development/requirement-traceability.md) | 当前需求版本／序号到正式发布、受保护采用及确切运行／验收；[English](en/requirement-traceability.md)、[合同](../contracts/requirement-traceability.md)、[限定报告](quality/requirement-traceability-verification.md)，不等于用例覆盖／应用版本矩阵 |
+| [统一智能输入与草稿计划](development/intelligent-operations.md) | 自然语言经一次只读模型形成最多8步需求／设计／知识草稿计划，本次预览确认、同库原子采用及原操作恢复；[English](en/intelligent-operations.md)、[合同](../contracts/intelligent-operations.md)、[架构与SOP](architecture/intelligent-operations.md)、[限定报告](quality/intelligent-operations-verification.md)；需求26整体仍待完成 |
 | [Runner 本地执行日志诊断](agents/runner-journal-inspection.md) | 不改状态、不读取凭据的有界单文件摘要；[English](en/runner-journal-inspection.md)、[合同](../contracts/runner-journal-inspection.md)；不代表服务器确认或执行器健康 |
 | [参考对话源码整合](integrations/referenced-conversation-integration.md) | 《完善速码平台架构》真实交付包、来源文件摘要、C201～C208 适配与未采用设计；按当前 1.0.0 重构，不是 Git 历史 cherry-pick |
 | [两份分享规划采用](integrations/shared-roadmap-adoption.md) | 第一份64个REQ／TEAM／INT／SCH／QA／KM编号及第二份需求26／S01–S12映射；两份末尾均不完整，规划不作为完成证据 |
@@ -23,7 +24,7 @@
 | --- | --- |
 | 产品范围、角色和原则 | [产品需求](product/prd.md) |
 | 可复用平台与专业工程 | [基础PRD](product/platform-foundation-prd.md)、[领域／SDK／扩展架构](architecture/platform-engineering.md)、[AI与人员开发SOP](delivery/ai-engineering-sop.md) |
-| 统一智能输入、补全与自动配置 | [需求26目标架构与验收](architecture/intelligent-operations.md)、[来源采用](integrations/shared-roadmap-adoption.md)；`FND-INTENT-001`待办，复用现有规划／领域命令及唯一Go派发 |
+| 统一智能输入、补全与自动配置 | [当前草稿计划](development/intelligent-operations.md)／[English](en/intelligent-operations.md)、[领域合同](../contracts/intelligent-operations.md)、[架构与完整验收](architecture/intelligent-operations.md)、[来源采用](integrations/shared-roadmap-adoption.md)；T-INTENT-114只推进同库草稿闭环，FND-INTENT-001的全平台配置／多端目标仍未完成 |
 | 完整能力与验收范围 | [能力矩阵](product/capability-matrix.md) |
 | 可操作的完整旅程 | [用户旅程](product/user-journeys.md) |
 | 实现与待办 | [实施计划](delivery/implementation-plan.md)、[交付状态](delivery/status.md) |

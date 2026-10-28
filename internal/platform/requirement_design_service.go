@@ -120,34 +120,49 @@ func (s *Service) SaveRequirementDesign(ctx context.Context, actor Actor, projec
 		return RequirementDesignView{}, e
 	}
 	return s.designCommand(ctx, actor, project, requirement, purposeProjectWrite, request.IdempotencyKey, map[string]any{"design_save": requirement, "request": request}, func(ctx context.Context, auth *authorizedCommand) (RequirementDesignView, error) {
-		source, e := s.getRecordTx(ctx, auth, project, "requirements", requirement)
-		if e != nil {
-			return RequirementDesignView{}, e
-		}
-		current, e := s.designAggregateTx(ctx, auth, project, requirement)
-		if e != nil {
-			return RequirementDesignView{}, e
-		}
-		if current.Version != request.ExpectedVersion || source.Version != request.ExpectedRequirementVersion {
-			return RequirementDesignView{}, conflict("需求或设计已变化，请核对当前版本")
-		}
-		if e = s.validateDesignOwnersTx(ctx, auth, project, request.Tasks); e != nil {
-			return RequirementDesignView{}, e
-		}
-		revision := RequirementDesignRevision{Revision: current.Latest + 1, State: "draft", Requirement: designSnapshot(source), Content: request.Content, Tasks: request.Tasks, CreatedBy: auth.currentPrincipal.ID, CreatedAt: auth.checkedAt.Format(time.RFC3339Nano)}
-		revision.SHA256 = designRevisionHash(revision)
-		state := "draft"
-		if current.Published > 0 {
-			state = "published"
-		}
-		if e = s.advanceDesignTx(ctx, auth, project, requirement, current, revision, state, current.Published); e != nil {
-			return RequirementDesignView{}, e
-		}
-		if e = s.commandActivity(ctx, auth, "requirement.design_saved", requirement, source.Title); e != nil {
-			return RequirementDesignView{}, e
-		}
-		return s.designViewTx(ctx, auth, project, requirement)
+		return s.saveRequirementDesignDraftTx(ctx, auth, project, requirement, request)
 	})
+}
+
+// Both ordinary saves and a reviewed batch use the same domain validations and
+// immutable draft revision. The caller owns the current proof and transaction.
+func (s *Service) saveRequirementDesignDraftTx(ctx context.Context, auth *authorizedCommand, project, requirement string, request RequirementDesignSaveRequest) (RequirementDesignView, error) {
+	if request.ProjectID != project || !designVersion(request.ExpectedVersion) || !designVersion(request.ExpectedRequirementVersion) || request.ExpectedRequirementVersion < 1 {
+		return RequirementDesignView{}, invalid("需求设计项目或预期版本无效")
+	}
+	if e := assertDesignWrite(auth, project); e != nil {
+		return RequirementDesignView{}, e
+	}
+	if e := validateDesignDraft(request.Content, request.Tasks); e != nil {
+		return RequirementDesignView{}, e
+	}
+	source, e := s.getRecordTx(ctx, auth, project, "requirements", requirement)
+	if e != nil {
+		return RequirementDesignView{}, e
+	}
+	current, e := s.designAggregateTx(ctx, auth, project, requirement)
+	if e != nil {
+		return RequirementDesignView{}, e
+	}
+	if current.Version != request.ExpectedVersion || source.Version != request.ExpectedRequirementVersion {
+		return RequirementDesignView{}, conflict("需求或设计已变化，请核对当前版本")
+	}
+	if e = s.validateDesignOwnersTx(ctx, auth, project, request.Tasks); e != nil {
+		return RequirementDesignView{}, e
+	}
+	revision := RequirementDesignRevision{Revision: current.Latest + 1, State: "draft", Requirement: designSnapshot(source), Content: request.Content, Tasks: request.Tasks, CreatedBy: auth.currentPrincipal.ID, CreatedAt: auth.checkedAt.Format(time.RFC3339Nano)}
+	revision.SHA256 = designRevisionHash(revision)
+	state := "draft"
+	if current.Published > 0 {
+		state = "published"
+	}
+	if e = s.advanceDesignTx(ctx, auth, project, requirement, current, revision, state, current.Published); e != nil {
+		return RequirementDesignView{}, e
+	}
+	if e = s.commandActivity(ctx, auth, "requirement.design_saved", requirement, source.Title); e != nil {
+		return RequirementDesignView{}, e
+	}
+	return s.designViewTx(ctx, auth, project, requirement)
 }
 func (s *Service) CommandRequirementDesign(ctx context.Context, actor Actor, project, requirement string, request RequirementDesignCommandRequest) (RequirementDesignView, error) {
 	if request.ProjectID != project || !designVersion(request.ExpectedVersion) || request.ExpectedVersion < 1 || !designVersion(request.ExpectedRequirementVersion) || request.ExpectedRequirementVersion < 1 || request.Action != "publish" && request.Action != "retire" {

@@ -46,7 +46,7 @@ func validateTeamCLICommand(spec CommandSpec) error {
 	if spec.Adapter != "harness" && spec.Adapter != "codebuddy" {
 		return nil
 	}
-	if spec.ReadOnly || spec.TestEvidence || spec.NativeWorkspace != nil {
+	if spec.ReadOnly || spec.IntelligentOperations || spec.TestEvidence || spec.NativeWorkspace != nil {
 		return fmt.Errorf("team CLI requires an isolated development profile; formal tests remain independent")
 	}
 	entry, err := teamCLIEntry(spec)

@@ -91,7 +91,7 @@ describe("tool manifest and fixed task choices", () => {
 		expect(imported.profile).not.toHaveProperty("workspace_write_protocol");
 		expect(imported).not.toHaveProperty("connected");
 		expect(JSON.stringify(nativeInventory)).toBe(before);
-		for (const [field, protocol] of [["planning", "suma-schedule-plan-v1"], ["knowledge_extraction", "suma-knowledge-extraction-v1"], ["failure_diagnosis", "suma-failure-diagnosis-v1"]]) {
+		for (const [field, protocol] of [["planning", "suma-schedule-plan-v1"], ["knowledge_extraction", "suma-knowledge-extraction-v1"], ["failure_diagnosis", "suma-failure-diagnosis-v1"], ["intelligent_operations", "suma-intelligent-operations-v1"]]) {
 			const observation = { profile: { ...definition, read_only: true, [field]: { protocol, model: "fixed-model", endpoint_origin: "https://Model.Example:443" } }, available: true, reason: "local protocol probe; provider unverified" };
 			expect(parseToolManifest(JSON.stringify([observation]))[0]).toEqual(observation);
 		}

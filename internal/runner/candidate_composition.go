@@ -18,7 +18,7 @@ func validateCompositionCommand(id string, spec CommandSpec) error {
 		return nil
 	}
 	spec = normalizedCommand(spec)
-	if id != ccc.CompositionCommand || !spec.CandidateComposition || spec.Adapter != "command" || spec.Protocol != "text-v1" || spec.Executable == "" || len(spec.Args) != 0 || len(spec.Env) != 0 || len(spec.EnvFrom) != 0 || spec.Input != "" || spec.ReadOnly || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis || spec.TestEvidence || spec.ArtifactInput || spec.ArtifactOutput != "" || spec.NativeWorkspace != nil {
+	if id != ccc.CompositionCommand || !spec.CandidateComposition || spec.Adapter != "command" || spec.Protocol != "text-v1" || spec.Executable == "" || len(spec.Args) != 0 || len(spec.Env) != 0 || len(spec.EnvFrom) != 0 || spec.Input != "" || spec.ReadOnly || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis || spec.IntelligentOperations || spec.TestEvidence || spec.ArtifactInput || spec.ArtifactOutput != "" || spec.NativeWorkspace != nil {
 		return fmt.Errorf("candidate composition requires the dedicated fixed local Git command")
 	}
 	return nil

@@ -33,6 +33,7 @@ type CommandSpec struct {
 	Planning               bool                   `json:"planning,omitempty"`
 	KnowledgeExtraction    bool                   `json:"knowledge_extraction,omitempty"`
 	FailureDiagnosis       bool                   `json:"failure_diagnosis,omitempty"`
+	IntelligentOperations  bool                   `json:"intelligent_operations,omitempty"`
 	CandidateComposition   bool                   `json:"candidate_composition,omitempty"`
 	TestEvidence           bool                   `json:"test_evidence,omitempty"`
 	ArtifactOutput         string                 `json:"artifact_output,omitempty"`
@@ -826,7 +827,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				r.Error = "OpenCode SDK stop acknowledgement requires reconciliation"
 			}
 		}
-		if (profile.Planning != nil || profile.KnowledgeExtraction != nil || profile.FailureDiagnosis != nil) && stream.terminal == "completed" && stream.bad == nil {
+		if (profile.Planning != nil || profile.KnowledgeExtraction != nil || profile.FailureDiagnosis != nil || profile.IntelligentOperations != nil) && stream.terminal == "completed" && stream.bad == nil {
 			r.Output = stream.completionOutput
 		} else {
 			r.Output = stream.output.String() + r.Output

@@ -33,7 +33,7 @@ func validateOpenCodeSpec(spec CommandSpec) error {
 		return nil
 	}
 	p := spec.OpenCode
-	if p == nil || spec.Adapter != "opencode" || spec.Protocol != tc.OpenCodeSDKProtocol || spec.Input != "opencode-sdk-jsonl" || spec.ReadOnly || spec.NativeWorkspace == nil || spec.NativeWorkspace.ConflictRepair || spec.ModelExecutionProtocol != "" || spec.CodexAppServer != nil || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis || spec.CandidateComposition || spec.TestEvidence || spec.ArtifactInput || spec.ArtifactOutput != "" || len(spec.Args) != 1 || !filepath.IsAbs(spec.Args[0]) || strings.ToLower(filepath.Ext(spec.Args[0])) != ".mjs" || !filepath.IsAbs(p.Executable) || len(spec.Env) != 0 || len(spec.EnvFrom) != 0 {
+	if p == nil || spec.Adapter != "opencode" || spec.Protocol != tc.OpenCodeSDKProtocol || spec.Input != "opencode-sdk-jsonl" || spec.ReadOnly || spec.NativeWorkspace == nil || spec.NativeWorkspace.ConflictRepair || spec.ModelExecutionProtocol != "" || spec.CodexAppServer != nil || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis || spec.IntelligentOperations || spec.CandidateComposition || spec.TestEvidence || spec.ArtifactInput || spec.ArtifactOutput != "" || len(spec.Args) != 1 || !filepath.IsAbs(spec.Args[0]) || strings.ToLower(filepath.Ext(spec.Args[0])) != ".mjs" || !filepath.IsAbs(p.Executable) || len(spec.Env) != 0 || len(spec.EnvFrom) != 0 {
 		return fmt.Errorf("OpenCode SDK requires one fixed bundled entry, its local configuration and the isolated host workspace")
 	}
 	u, err := url.Parse(p.BaseURL)

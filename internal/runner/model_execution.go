@@ -67,7 +67,7 @@ func validateModelExecutionSpec(spec CommandSpec) error {
 	if spec.ModelExecutionProtocol == "" {
 		return nil
 	}
-	if spec.ModelExecutionProtocol != mc.Protocol || spec.Adapter != "suma" || spec.Protocol != "suma-jsonl-v1" || spec.Input != "agent-jsonl" || spec.ReadOnly || spec.NativeWorkspace == nil || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis {
+	if spec.ModelExecutionProtocol != mc.Protocol || spec.Adapter != "suma" || spec.Protocol != "suma-jsonl-v1" || spec.Input != "agent-jsonl" || spec.ReadOnly || spec.NativeWorkspace == nil || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis || spec.IntelligentOperations {
 		return fmt.Errorf("model execution requires the explicitly enabled native workspace protocol")
 	}
 	return nil

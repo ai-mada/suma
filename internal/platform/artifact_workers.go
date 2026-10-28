@@ -354,6 +354,13 @@ func (s *Service) releaseClaimEligibleTx(ctx context.Context, tx *sql.Tx, auth *
 	} else if extraction {
 		return true, nil
 	}
+	// Managed draft planning is not a deployment. Its dedicated admission
+	// hook below the shared claim gate rechecks the creator, source and profile.
+	if _, operation, err := s.intelligentOperationExecutionRecordTx(ctx, tx, p.TenantID, project, run); err != nil {
+		return false, err
+	} else if operation {
+		return true, nil
+	}
 	if _, diagnosis, err := s.failureDiagnosisExecutionRecordTx(ctx, tx, p.TenantID, project, run); err != nil {
 		return false, err
 	} else if diagnosis {

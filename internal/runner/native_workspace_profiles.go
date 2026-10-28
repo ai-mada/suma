@@ -33,7 +33,7 @@ func validateNativeWorkspacePolicy(cfg ExecConfig, id string, spec CommandSpec) 
 	policy := spec.NativeWorkspace
 	native := spec.Adapter == "suma" && spec.Protocol == "suma-jsonl-v1" && spec.Input == "agent-jsonl"
 	openCode := spec.Adapter == "opencode" && spec.Protocol == tc.OpenCodeSDKProtocol && spec.Input == "opencode-sdk-jsonl" && spec.OpenCode != nil && !policy.ConflictRepair
-	if (!native && !openCode) || spec.ReadOnly || spec.ArtifactInput || spec.ArtifactOutput != "" || spec.TestEvidence || len(policy.Checks) > 16 || !filepath.IsAbs(policy.RuntimeManifest) {
+	if (!native && !openCode) || spec.ReadOnly || spec.IntelligentOperations || spec.ArtifactInput || spec.ArtifactOutput != "" || spec.TestEvidence || len(policy.Checks) > 16 || !filepath.IsAbs(policy.RuntimeManifest) {
 		return fmt.Errorf("native workspace requires an isolated Suma agent, a runtime manifest and bounded fixed checks")
 	}
 	seen := map[string]bool{}

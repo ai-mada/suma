@@ -8,6 +8,9 @@ import "github.com/ai-mada/suma/internal/toolcontract"
 func usagePricedModel(profile ToolProfile) (model, origin string, ok bool) {
 	p := profile.Profile
 	capabilities := 0
+	if p.IntelligentOperations != nil {
+		capabilities++
+	}
 	if p.Planning != nil {
 		capabilities++
 	}
@@ -19,6 +22,9 @@ func usagePricedModel(profile ToolProfile) (model, origin string, ok bool) {
 	}
 	if profile.State != "enabled" || p.Adapter != "suma" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || capabilities != 1 {
 		return "", "", false
+	}
+	if p.IntelligentOperations != nil && p.IntelligentOperations.Protocol == toolcontract.IntelligentOperationsProtocol {
+		return p.IntelligentOperations.Model, p.IntelligentOperations.EndpointOrigin, true
 	}
 	if p.Planning != nil && p.Planning.Protocol == toolcontract.PlanningProtocol {
 		return p.Planning.Model, p.Planning.EndpointOrigin, true

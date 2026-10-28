@@ -135,7 +135,7 @@ func decode(r *http.Request) (map[string]any, error) {
 	d := json.NewDecoder(bytes.NewReader(raw))
 	// Business dependency versions use the same exact numeric lexemes as the
 	// strict integer DTO routes below; generic map-backed routes remain unchanged.
-	if strings.HasPrefix(r.URL.Path, "/api/v1/task-dependencies") {
+	if strings.HasPrefix(r.URL.Path, "/api/v1/task-dependencies") || strings.HasPrefix(r.URL.Path, "/api/v1/intelligent-operations") {
 		d.UseNumber()
 	}
 	// These routes decode into strict integer DTOs after the public envelope.
@@ -476,6 +476,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.workspaceGitHTTP(w, r, actor, scope, project, parts) {
+		return
+	}
+	if s.intelligentOperationsHTTP(w, r, actor, scope, project, parts, m) {
 		return
 	}
 	if s.requirementTraceabilityHTTP(w, r, actor, scope, project, parts) {
@@ -919,6 +922,13 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				}
 				return false, err
 			}
+			if err := s.Service.checkIntelligentOperationsExecutionTx(authority.ctx, tx, p.TenantID, project, run, true); err != nil {
+				var apiErr *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Code == "intelligent_operation_basis_changed" {
+					return false, nil
+				}
+				return false, err
+			}
 			if err := s.Service.checkFailureDiagnosisExecutionTx(authority.ctx, tx, p.TenantID, project, run, true); err != nil {
 				var apiErr *APIError
 				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Code == "failure_diagnosis_basis_changed" {
@@ -973,6 +983,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			if err := s.Service.checkKnowledgeIntelligenceExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID, false); err != nil {
 				return err
 			}
+			if err := s.Service.checkIntelligentOperationsExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID, false); err != nil {
+				return err
+			}
 			if err := s.Service.checkFailureDiagnosisExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID, false); err != nil {
 				return err
 			}
@@ -1014,6 +1027,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				return err
 			}
 			if err := s.Service.recordKnowledgeIntelligenceOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {
+				return err
+			}
+			if err := s.Service.recordIntelligentOperationsOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {
 				return err
 			}
 			if err := s.Service.recordFailureDiagnosisOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {

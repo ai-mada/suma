@@ -159,7 +159,7 @@ function validatePublicCapabilities(profile: Record<string, unknown>, observatio
     if (profile[field] !== undefined && profile[field] !== "" && (profile[field] !== protocol || !permitted)) invalidCapability();
     if (profile[field] !== undefined && typeof profile[field] !== "string") invalidCapability();
   }
-  const purposes = [["planning", "suma-schedule-plan-v1"], ["knowledge_extraction", "suma-knowledge-extraction-v1"], ["failure_diagnosis", "suma-failure-diagnosis-v1"]] as const;
+  const purposes = [["planning", "suma-schedule-plan-v1"], ["knowledge_extraction", "suma-knowledge-extraction-v1"], ["failure_diagnosis", "suma-failure-diagnosis-v1"], ["intelligent_operations", "suma-intelligent-operations-v1"]] as const;
   let purposeCount = 0;
   for (const [field, protocol] of purposes) {
     if (profile[field] === undefined || profile[field] === null) continue;
@@ -208,7 +208,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
     fields(observation, ["profile", "available", "reason", "model_deployments", "codex_catalog", "workspace_observation_protocol", "workspace_write_protocol"] satisfies (keyof ToolObservation)[]);
     const profile = record(observation.profile);
     if (observation.codex_catalog !== undefined && (!validCodexCatalog(observation.codex_catalog) || observation.available !== true || profile.adapter !== 'codex' || profile.protocol !== 'codex-app-server-v1')) invalidCapability();
-    if (profile.protocol === 'codex-app-server-v1' && (profile.read_only !== false || profile.workspace_tools_version || profile.model_execution_protocol || profile.planning || profile.knowledge_extraction || profile.failure_diagnosis || observation.available === true && !observation.codex_catalog)) invalidCapability();
+    if (profile.protocol === 'codex-app-server-v1' && (profile.read_only !== false || profile.workspace_tools_version || profile.model_execution_protocol || profile.planning || profile.knowledge_extraction || profile.failure_diagnosis || profile.intelligent_operations || observation.available === true && !observation.codex_catalog)) invalidCapability();
     fields(profile, [
       "command_id",
       "adapter",
@@ -218,7 +218,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
       "tool_version",
       "read_only",
       "workspace_tools_version", "model_execution_protocol", "conflict_repair_protocol",
-      "planning", "knowledge_extraction", "failure_diagnosis", "opencode_execution",
+      "planning", "knowledge_extraction", "failure_diagnosis", "intelligent_operations", "opencode_execution",
     ] satisfies (keyof ToolProfileDefinition)[]);
     if (
       typeof profile.command_id !== "string" ||

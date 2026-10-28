@@ -180,6 +180,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.InitializeProjectKnowledge(ctx); err != nil {
 		return err
 	}
+	if err := s.InitializeIntelligentOperations(ctx); err != nil {
+		return err
+	}
 	if err := s.InitializeRequirementDesign(ctx); err != nil {
 		return err
 	}

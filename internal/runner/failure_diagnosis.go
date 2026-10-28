@@ -15,7 +15,7 @@ func localFailureDiagnosisCapability(spec CommandSpec) (*tc.FailureDiagnosisCapa
 	if !spec.FailureDiagnosis {
 		return nil, nil
 	}
-	if spec.Planning || spec.KnowledgeExtraction {
+	if spec.Planning || spec.KnowledgeExtraction || spec.IntelligentOperations {
 		return nil, fmt.Errorf("failure diagnosis requires a dedicated model profile")
 	}
 	model, origin, err := localReadOnlyModel(spec, "failure diagnosis")
@@ -52,7 +52,7 @@ func probeFailureDiagnosis(ctx context.Context, exe string, spec CommandSpec, se
 
 func failureDiagnosisRequest(a Assignment, spec CommandSpec, profile tc.Profile) (map[string]any, error) {
 	expected, err := localFailureDiagnosisCapability(spec)
-	if err != nil || expected == nil || a.Type != "agent" || a.Config["purpose"] != "failure_diagnosis" || profile.FailureDiagnosis == nil || *profile.FailureDiagnosis != *expected || profile.Planning != nil || profile.KnowledgeExtraction != nil || !profile.ReadOnly {
+	if err != nil || expected == nil || a.Type != "agent" || a.Config["purpose"] != "failure_diagnosis" || profile.FailureDiagnosis == nil || *profile.FailureDiagnosis != *expected || profile.Planning != nil || profile.KnowledgeExtraction != nil || profile.IntelligentOperations != nil || !profile.ReadOnly {
 		return nil, fmt.Errorf("failure diagnosis requires its dedicated purpose and probed profile")
 	}
 	return oneCallModelRequest(a, "failure_diagnosis")
@@ -81,6 +81,9 @@ func oneCallModelRequest(a Assignment, purpose string) (map[string]any, error) {
 }
 
 func oneCallModelProfile(p tc.Profile) (purpose, model string) {
+	if p.IntelligentOperations != nil {
+		return "intelligent operations", p.IntelligentOperations.Model
+	}
 	if p.FailureDiagnosis != nil {
 		return "failure diagnosis", p.FailureDiagnosis.Model
 	}

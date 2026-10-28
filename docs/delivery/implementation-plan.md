@@ -6,7 +6,7 @@
 
 勾选只表示所列限定实现存在，不表示整阶段完成；报告只支持原源码／环境／场景。当前本地已实现的模型配置、Codex执行、专家团队、候选合成／修复、工作区、知识提炼与账本等具体边界统一见交付状态。未配置、未验证和结果未知必须明确，不以局部交付缩减剩余目标。
 
-当前为 **58 项限定实现、34 项待实现，共 92 项**。新增需求 26 仅增加 `FND-INTENT-001` 待办；T-TRACE-113 的[需求验收追踪](../../contracts/requirement-traceability.md)在既有设计／质量条目内推进，不新增整项完成。它按固定需求版本追踪正式发布／采用、当前运行与验收，实际验证范围见[限定报告](../quality/requirement-traceability-verification.md)。此前 T-DELIVERY-112 的本机命令／同 SHA 独立测试、退回问题与需求回流保留[原报告](../quality/task-delivery-chain-verification.md)的源码、场景与台账事实，不冒充厂商、多机及生产验收。
+当前为 **58 项限定实现、34 项待实现，共 92 项**。T-INTENT-114的[统一智能输入草稿计划](../../contracts/intelligent-operations.md)推进需求26：一次真实只读模型提案、最多8步、本次明确预览确认及需求／设计／知识同库原子草稿采用，实际检查见[限定报告](../quality/intelligent-operations-verification.md)。全平台意图／配置、多端与持久自动策略尚未完整实现，`FND-INTENT-001`继续未勾选。T-TRACE-113的[需求验收追踪](../../contracts/requirement-traceability.md)和T-DELIVERY-112的[原交付报告](../quality/task-delivery-chain-verification.md)保留各自源码、场景及台账事实，不冒充完整平台、厂商、多机或生产验收。
 
 两份分享规划均已取得当前可见正文，[采用映射](../integrations/shared-roadmap-adoption.md)保留第一份实际 64 个编号，以及第二份新增需求 26／S01–S12。两份末尾均不完整，未见范围不推断；来源优先级不替代本计划阶段，设计不当作实现证明。
 
@@ -21,7 +21,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 ## P0 产品与架构
 
 - [ ] FND-I18N-001 全平台多语言：中英文目录、语言协商/偏好、界面/错误/通知/CLI/桌面/扩展/文档入口、格式化、缺项门禁和真实旅程验收；正在统一基础及迁移，详见[规范](../design/internationalization.md)。
-- [ ] FND-INTENT-001 需求26全平台智能输入／补全／自动配置及CLI驱动流程：共享结构化意图、当前授权上下文、来源版本、差异预览、必要人审、策略化低风险采用、原操作恢复与实际结果核对；复用现有规划、领域命令、模型／工具端口和唯一Go DAG。模板／实例／秘密引用／验证／变更记录及Web／CLI／桌面中英旅程按[架构与验收](../architecture/intelligent-operations.md)实施，当前仍待办。
+- [ ] FND-INTENT-001 需求26全平台智能输入／补全／自动配置及CLI驱动流程：共享结构化意图、当前授权上下文、来源版本、差异预览、必要人审、策略化低风险采用、原操作恢复与实际结果核对；复用现有规划、领域命令、模型／工具端口和唯一Go DAG。T-INTENT-114先实现[本地草稿计划](../development/intelligent-operations.md)的限定闭环，不等于持久自动批准。全平台意图／补全、模板／实例／秘密引用／验证／变更记录、外部效果恢复及Web／CLI／桌面完整中英旅程继续按[架构与验收](../architecture/intelligent-operations.md)实施，未满足整项Definition前保持待办。
 - [x] 原生诊断的权威目录、SDK／Runner／Journal／当前授权／DAG／界面传播，原文、净化、Unicode与证据身份；单许可命令和自定义worker交互分别验证。见[设计与SOP](../agents/native-diagnostics.md)、[限定验收](../quality/native-diagnostics-verification.md)。
 - [x] DAG、运行命令与原生消息目录、结构化校验和原始错误绑定；见[运行国际化验收](../quality/runtime-localization-verification.md)。
 - [x] 请求级语言协商、CLI／桌面基础、通用记录与共享池中英文基础；见[前端基础验收](../quality/frontend-localization-verification.md)。

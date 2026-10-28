@@ -35,7 +35,7 @@ func validateCodexAppServerSpec(spec CommandSpec) error {
 		return nil
 	}
 	p := spec.CodexAppServer
-	if p == nil || spec.Adapter != "codex" || spec.Protocol != cc.Protocol || spec.Input != "codex-app-server" || spec.ReadOnly || spec.NativeWorkspace != nil || spec.ModelExecutionProtocol != "" || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis || spec.TestEvidence || spec.ArtifactInput || spec.ArtifactOutput != "" || len(spec.Args) != 3 || strings.Join(spec.Args, " ") != "app-server --listen stdio://" {
+	if p == nil || spec.Adapter != "codex" || spec.Protocol != cc.Protocol || spec.Input != "codex-app-server" || spec.ReadOnly || spec.NativeWorkspace != nil || spec.ModelExecutionProtocol != "" || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis || spec.IntelligentOperations || spec.TestEvidence || spec.ArtifactInput || spec.ArtifactOutput != "" || len(spec.Args) != 3 || strings.Join(spec.Args, " ") != "app-server --listen stdio://" {
 		return fmt.Errorf("Codex app-server requires its fixed isolated agent protocol")
 	}
 	if p.WindowsSandbox != "" && p.WindowsSandbox != "unelevated" && p.WindowsSandbox != "elevated" && p.WindowsSandbox != "mxc" {

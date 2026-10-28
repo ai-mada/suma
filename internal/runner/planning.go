@@ -14,7 +14,7 @@ func localPlanningCapability(spec CommandSpec) (*tc.PlanningCapability, error) {
 	if !spec.Planning {
 		return nil, nil
 	}
-	if spec.KnowledgeExtraction || spec.FailureDiagnosis {
+	if spec.KnowledgeExtraction || spec.FailureDiagnosis || spec.IntelligentOperations {
 		return nil, fmt.Errorf("planning and knowledge extraction profiles are mutually exclusive")
 	}
 	model, origin, err := localReadOnlyModel(spec, "planning")
@@ -82,6 +82,9 @@ func planningLimit(value any, fallback, maximum int) (int, error) {
 // Only the fixed planning purpose opens its smaller budget contract. Ordinary
 // agent requests retain their original input and limits.
 func planningRequest(a Assignment, spec CommandSpec, p tc.Profile) (map[string]any, error) {
+	if spec.IntelligentOperations || p.IntelligentOperations != nil {
+		return nil, fmt.Errorf("planning purpose requires a probed planning profile")
+	}
 	value, present := a.Config["purpose"]
 	if !present {
 		if spec.Planning {

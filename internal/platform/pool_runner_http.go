@@ -101,6 +101,13 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				}
 				return false, err
 			}
+			if err := s.Service.checkIntelligentOperationsExecutionTx(r.Context(), tx, scope.TenantID, scope.ProjectID, run, true); err != nil {
+				var apiErr *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Code == "intelligent_operation_basis_changed" {
+					return false, nil
+				}
+				return false, err
+			}
 			if err := s.Service.checkFailureDiagnosisExecutionTx(r.Context(), tx, scope.TenantID, scope.ProjectID, run, true); err != nil {
 				var apiErr *APIError
 				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Code == "failure_diagnosis_basis_changed" {
@@ -158,6 +165,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				return err
 			}
 			if err := s.Service.checkKnowledgeIntelligenceExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID, false); err != nil {
+				return err
+			}
+			if err := s.Service.checkIntelligentOperationsExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID, false); err != nil {
 				return err
 			}
 			if err := s.Service.checkFailureDiagnosisExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID, false); err != nil {
@@ -226,6 +236,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				return err
 			}
 			if err := s.Service.recordKnowledgeIntelligenceOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {
+				return err
+			}
+			if err := s.Service.recordIntelligentOperationsOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {
 				return err
 			}
 			if err := s.Service.recordFailureDiagnosisOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {

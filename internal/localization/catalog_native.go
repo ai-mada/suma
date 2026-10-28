@@ -6,6 +6,8 @@ package localization
 // placeholders use the common named-dot-v1 grammar. SourceTemplate is private
 // provenance and does not register an English source alias.
 var nativeCatalog = []Definition{
+	{Key: "native.operations.tools_forbidden", SourceTemplate: "Intelligent operations cannot request or execute tools.", Texts: map[Locale]string{ZhCN: "智能操作规划不能请求或执行工具", EnUS: "Intelligent operations cannot request or execute tools."}},
+	{Key: "native.operations.output_too_large", SourceTemplate: "Intelligent operation output exceeded 32000 UTF-8 bytes.", Texts: map[Locale]string{ZhCN: "智能操作输出超过32000字节，请缩小计划范围", EnUS: "Intelligent operation output exceeded 32000 UTF-8 bytes."}},
 	{Key: "native.failure.tools_forbidden", SourceTemplate: "Failure diagnosis cannot request or execute tools.", Texts: map[Locale]string{ZhCN: "失败分诊不能请求或执行工具。", EnUS: "Failure diagnosis cannot request or execute tools."}},
 	{Key: "native.knowledge.tools_forbidden", SourceTemplate: "Knowledge extraction cannot request or execute tools.", Texts: map[Locale]string{ZhCN: "知识提炼不允许请求或执行工具。", EnUS: "Knowledge extraction cannot request or execute tools."}},
 	{Key: "native.workspace.config", SourceTemplate: "Workspace bridge configuration is invalid", Texts: map[Locale]string{ZhCN: "工作区连接配置无效", EnUS: "Workspace bridge configuration is invalid"}},
@@ -106,6 +108,8 @@ func IsNativeMessageKey(key string) bool {
 		"native.model.context_exceeded",
 		"native.request.invalid_purpose",
 		"native.knowledge.tools_forbidden",
+		"native.operations.tools_forbidden",
+		"native.operations.output_too_large",
 		"native.failure.tools_forbidden",
 		"native.response.empty",
 		"native.response.invalid_json",

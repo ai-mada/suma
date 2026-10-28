@@ -1557,6 +1557,154 @@ export interface InspectDeploymentAuthorization {
   assignment: AssignmentRef;
   request_sha256: string;
 }
+export interface IntelligentOperationAnalysis {
+  id: string;
+  project_id: string;
+  version: number;
+  state: string;
+  goal: string;
+  locale: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  tool_profile_id: string;
+  tool_profile_version: number;
+  tool_profile_sha256: string;
+  run_id: string;
+  max_steps: number;
+  max_output_tokens: number;
+  source: IntelligentOperationSource;
+  proposal?: IntelligentOperationOutput | null;
+  original_output: string;
+  original_output_sha256: string;
+  reason: string;
+  reason_key?: string;
+  results: (IntelligentOperationStepResult)[];
+  applied_by: string;
+  applied_at: string;
+  applied_preview_sha256: string;
+  allowed_actions: (string)[];
+  basis_current: boolean;
+}
+export interface IntelligentOperationCommandRequest {
+  project_id: string;
+  expected_version: number;
+  action: string;
+  proposal?: IntelligentOperationOutput | null;
+  preview_sha256: string;
+  acknowledge_drafts: boolean;
+  reason: string;
+  idempotency_key: string;
+}
+export interface IntelligentOperationCreateRequest {
+  project_id: string;
+  goal: string;
+  locale: string;
+  sources: (ProjectKnowledgeSourceInput)[];
+  tool_profile_id: string;
+  expected_tool_version: number;
+  max_output_tokens: number;
+  acknowledge_model_use: boolean;
+  idempotency_key: string;
+}
+export interface IntelligentOperationDefault {
+  step_key: string;
+  field: string;
+  value: string;
+  source: string;
+}
+export interface IntelligentOperationDesign {
+  requirement_id: string;
+  requirement_step_key: string;
+  content: RequirementDesignContent;
+  tasks: (RequirementDesignTask)[];
+}
+export interface IntelligentOperationImpact {
+  key: string;
+  action: string;
+  target_kind: string;
+  target_id: string;
+  target_step_key: string;
+  current_version: number;
+  requirement_version: number;
+  title: string;
+  depends_on: (string)[];
+  required_permission: string;
+  risk: string;
+}
+export interface IntelligentOperationKnowledge {
+  kind: string;
+  title: string;
+  summary: string;
+  content: string;
+  source_indices: (number)[];
+}
+export interface IntelligentOperationOutput {
+  schema_version: number;
+  summary: string;
+  rationale: string;
+  questions: (string)[];
+  steps: (IntelligentOperationStep)[];
+}
+export interface IntelligentOperationPage {
+  items: (IntelligentOperationAnalysis)[];
+  total: number;
+  next_cursor: string;
+}
+export interface IntelligentOperationPreview {
+  id: string;
+  project_id: string;
+  version: number;
+  source_sha256: string;
+  proposal_sha256: string;
+  preview_sha256: string;
+  policy: string;
+  can_apply: boolean;
+  basis_current: boolean;
+  questions: (string)[];
+  defaults: (IntelligentOperationDefault)[];
+  steps: (IntelligentOperationImpact)[];
+}
+export interface IntelligentOperationPreviewRequest {
+  project_id: string;
+  expected_version: number;
+}
+export interface IntelligentOperationRequirement {
+  title: string;
+  description: string;
+  priority: string;
+  acceptance_criteria: (string)[];
+}
+export interface IntelligentOperationSource {
+  sha256: string;
+  sources: (ProjectKnowledgeSource)[];
+}
+export interface IntelligentOperationStep {
+  key: string;
+  action: string;
+  depends_on: (string)[];
+  requirement?: IntelligentOperationRequirement | null;
+  design?: IntelligentOperationDesign | null;
+  knowledge?: IntelligentOperationKnowledge | null;
+}
+export interface IntelligentOperationStepResult {
+  key: string;
+  action: string;
+  resource_kind: string;
+  resource_id: string;
+  version: number;
+  revision: number;
+  sha256: string;
+  source_sha256: string;
+  proposal_sha256: string;
+  original_output_sha256: string;
+  run_id: string;
+}
+export interface IntelligentOperationsCapability {
+  protocol: string;
+  model: string;
+  endpoint_origin: string;
+}
 export interface InvitationAcceptRequest {
   token: string;
   email: string;
@@ -4027,6 +4175,7 @@ export interface ToolExecutionProfile {
   conflict_repair_protocol?: string;
   planning?: PlanningCapability | null;
   knowledge_extraction?: KnowledgeExtractionCapability | null;
+  intelligent_operations?: IntelligentOperationsCapability | null;
   failure_diagnosis?: FailureDiagnosisCapability | null;
   opencode_execution?: OpenCodeExecutionCapability | null;
 }

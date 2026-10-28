@@ -30,6 +30,8 @@ export const nativeCatalog={
  "native.model.binding_invalid":{"en":"Native model execution does not match its approved local deployment and binding","zh":"原生模型执行与已批准的本地部署及固定绑定不一致"},
  "native.model.context_exceeded":{"en":"Provider reported input beyond the declared context bound","zh":"提供方报告的输入量超过已声明的上下文上限"},
  "native.model.identity_mismatch":{"en":"Provider response model does not match the selected deployment","zh":"提供方响应的模型与所选部署不一致"},
+ "native.operations.output_too_large":{"en":"Intelligent operation output exceeded 32000 UTF-8 bytes.","zh":"智能操作输出超过32000字节，请缩小计划范围"},
+ "native.operations.tools_forbidden":{"en":"Intelligent operations cannot request or execute tools.","zh":"智能操作规划不能请求或执行工具"},
  "native.request.invalid_goal":{"en":"A goal of 1–32000 characters is required","zh":"目标必须包含 1–32000 个字符"},
  "native.request.invalid_limits":{"en":"Explicit max_steps/max_tokens must be positive integers within the supported bounds","zh":"显式 max_steps/max_tokens 必须是支持范围内的正整数"},
  "native.request.invalid_purpose":{"en":"The selected purpose requires its dedicated read-only model configuration without a workspace bridge.","zh":"所选用途需要对应的专用只读模型配置，且不能连接工作区。"},

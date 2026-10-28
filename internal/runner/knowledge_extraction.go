@@ -45,7 +45,7 @@ func localKnowledgeExtractionCapability(spec CommandSpec) (*tc.KnowledgeExtracti
 	if !spec.KnowledgeExtraction {
 		return nil, nil
 	}
-	if spec.Planning || spec.FailureDiagnosis {
+	if spec.Planning || spec.FailureDiagnosis || spec.IntelligentOperations {
 		return nil, fmt.Errorf("planning and knowledge extraction profiles are mutually exclusive")
 	}
 	model, origin, err := localReadOnlyModel(spec, "knowledge extraction")
@@ -81,6 +81,9 @@ func probeKnowledgeExtraction(ctx context.Context, exe string, spec CommandSpec,
 }
 
 func modelPurposeRequest(a Assignment, spec CommandSpec, profile tc.Profile) (map[string]any, error) {
+	if spec.IntelligentOperations || profile.IntelligentOperations != nil || a.Config["purpose"] == "intelligent_operations" {
+		return intelligentOperationsRequest(a, spec, profile)
+	}
 	if a.CandidateConflictRepair != nil || a.Config["purpose"] == "candidate_conflict_repair" {
 		if a.Type != "agent" || a.Config["purpose"] != "candidate_conflict_repair" || a.CandidateConflictRepair == nil || ccc.ValidateCandidateConflictRepairExecution(*a.CandidateConflictRepair) != nil || a.CandidateComposition != nil || a.CodeBaseline != nil || a.RepositoryIntegration != nil || a.ReleaseExecution != nil || hasCandidate(a) || spec.Adapter != "suma" || spec.Protocol != "suma-jsonl-v1" || spec.Input != "agent-jsonl" || spec.NativeWorkspace == nil || !spec.NativeWorkspace.ConflictRepair || spec.ReadOnly || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis || profile.Adapter != "suma" || profile.Protocol != "suma-jsonl-v1" || profile.ReadOnly || profile.WorkspaceToolsVersion != NativeWorkspaceVersion || profile.ConflictRepairProtocol != ccc.CandidateConflictRepairProtocol || profile.Planning != nil || profile.KnowledgeExtraction != nil || profile.FailureDiagnosis != nil {
 			return nil, fmt.Errorf("candidate conflict repair requires its typed native execution and probed profile")
@@ -96,7 +99,7 @@ func modelPurposeRequest(a Assignment, spec CommandSpec, profile tc.Profile) (ma
 	if !spec.KnowledgeExtraction && a.Config["purpose"] != "knowledge_extraction" {
 		return planningRequest(a, spec, profile)
 	}
-	if a.Config["purpose"] != "knowledge_extraction" || a.Type != "agent" || !spec.KnowledgeExtraction || profile.KnowledgeExtraction == nil || profile.Planning != nil || profile.FailureDiagnosis != nil || spec.NativeWorkspace != nil || spec.Input != "agent-jsonl" {
+	if a.Config["purpose"] != "knowledge_extraction" || a.Type != "agent" || !spec.KnowledgeExtraction || profile.KnowledgeExtraction == nil || profile.Planning != nil || profile.FailureDiagnosis != nil || profile.IntelligentOperations != nil || spec.IntelligentOperations || spec.NativeWorkspace != nil || spec.Input != "agent-jsonl" {
 		return nil, fmt.Errorf("knowledge extraction requires its dedicated purpose and probed profile")
 	}
 	return oneCallModelRequest(a, "knowledge_extraction")

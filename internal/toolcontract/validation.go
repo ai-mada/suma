@@ -78,6 +78,11 @@ func ValidateProfile(p Profile, complete bool) error {
 			return fmt.Errorf("invalid planning capability")
 		}
 	}
+	if p.IntelligentOperations != nil {
+		if p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || p.ModelExecutionProtocol != "" || p.ConflictRepairProtocol != "" || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil || p.OpenCodeExecution != nil || ValidateIntelligentOperationsCapability(*p.IntelligentOperations) != nil {
+			return fmt.Errorf("invalid intelligent operations capability")
+		}
+	}
 	if p.KnowledgeExtraction != nil {
 		if p.FailureDiagnosis != nil || p.Adapter != "suma" || p.Protocol != "suma-jsonl-v1" || !p.ReadOnly || p.WorkspaceToolsVersion != "" || ValidateKnowledgeExtractionCapability(*p.KnowledgeExtraction) != nil {
 			return fmt.Errorf("invalid knowledge extraction capability")

@@ -1,0 +1,311 @@
+{
+  "stage": "T-INTENT-114",
+  "product_version": "1.0.0",
+  "recorded_at": "2026-10-28T09:47:53.628731+00:00",
+  "status": "scoped_verified_full_platform_in_progress",
+  "full_platform_complete": false,
+  "source_sha256": "cbb3eecc0ecda19b799794f91670962f8561c4d232851ff7c9383c165fb6789a",
+  "source_files": 66,
+  "source_manifest": ".cache/e2e/intent-114/source-manifest.json",
+  "full_scope": {
+    "items": 92,
+    "limited_implemented": 58,
+    "pending": 34,
+    "requirements": "1–26 and P0–P7 remain active",
+    "FND-INTENT-001": "pending; three local draft actions are a limited delivery"
+  },
+  "implementation": {
+    "closed_actions": [
+      "requirement.create_draft",
+      "requirement.design.save_draft",
+      "knowledge.create_draft"
+    ],
+    "max_steps": 8,
+    "max_sources": 8,
+    "model_calls_per_analysis": 1,
+    "max_output_tokens": 8192,
+    "max_prompt_and_output_utf8_bytes": 32000,
+    "authority": "Current browser or project API read/write; Runner and Agent cannot self-adopt",
+    "adoption": "One SQL transaction for domain drafts, immutable revisions, activities, results, analysis CAS and original operation receipt",
+    "source": "Safe selected title/description/criteria projection; Record.Data and secrets excluded, limited obvious secret precheck not full DLP",
+    "recovery": "Same operation key/body and current authorization recover original IDs; live unknown-to-known completion does not rerun model",
+    "initialization": "Two current domain tables in initial1.0.0;187 application tables in actual fresh SQLite; no old-data migration/reset"
+  },
+  "checks": {
+    "distinct_affected_passed_cases": 39,
+    "grouped_not_single_full_suite": true,
+    "new_go": {
+      "platform": 9,
+      "runner": 3,
+      "toolcontract": 1,
+      "contract_generator": 2,
+      "localization": 1
+    },
+    "existing_go_regressions": 2,
+    "web_model": 6,
+    "web_ui": 9,
+    "tool_import_existing_case": 1,
+    "tool_setup_operations_case": 1,
+    "native": 4,
+    "ui_prior14_grouped_receipt": ".cache/e2e/intent-114/ui-targeted-summary.json",
+    "root_ui_review_fix_checks": {
+      "command": "pnpm exec vitest run src/IntentOperationsPanel.test.tsx -t 'does not loop parent|opens an adopted design'",
+      "passed": 2,
+      "skipped": 7,
+      "exit_code": 0
+    },
+    "root_ui_existing_apply_after_move": {
+      "command": "pnpm exec vitest run src/IntentOperationsPanel.test.tsx -t 'invalidates preview on field edits'",
+      "passed": 1,
+      "skipped": 8,
+      "exit_code": 0,
+      "not_additional_distinct_case": true
+    },
+    "web_typecheck": true,
+    "native_typecheck_and_build": true,
+    "catalog_paired_keys": 5024,
+    "production_hardcodes": 0,
+    "generated_contract_check": true,
+    "generated_models": 505,
+    "api_paths": 262,
+    "existing_schemas_changed": [
+      "ToolExecutionProfile",
+      "ToolDiagnostic"
+    ],
+    "existing_paths_changed": 0,
+    "removed_schemas": 0,
+    "documentation_local_links_resolve": true,
+    "actual_browser_verified": false,
+    "actual_browser_boundary": "No browser interaction attempted this stage; prior URL-policy gap remains, jsdom and HTTP are not GUI evidence",
+    "documentation_markdown_files": 298,
+    "documentation_schema_references": 2411,
+    "diff_whitespace_errors": 0
+  },
+  "go_receipts": [
+    {
+      "path": ".cache/mcp019-deps/20261028T092412356Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "./internal/runner",
+        "./internal/toolcontract",
+        "-run",
+        "TestIntelligentOperations",
+        "-count=1"
+      ],
+      "exit_code": 1
+    },
+    {
+      "path": ".cache/mcp019-deps/20261028T092922032Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "./cmd/suma-contracts",
+        "./internal/localization",
+        "-run",
+        "^TestIntelligentOperations",
+        "-count=1"
+      ],
+      "exit_code": 0
+    },
+    {
+      "path": ".cache/mcp019-deps/20261028T093249048Z.command.json",
+      "arguments": [
+        "test",
+        "./internal/platform",
+        "-run",
+        "^(TestIntelligentOperationsPoolManagedClaimCurrentProfileAndResult|TestKnowledgeIntelligenceLateKnownOriginalHTTP|TestRequirementDesignDraftDiagnosticsAndStructure)$",
+        "-count=1"
+      ],
+      "exit_code": 0
+    },
+    {
+      "path": ".cache/mcp019-deps/20261028T093949126Z.command.json",
+      "arguments": [
+        "run",
+        "./cmd/suma-contracts",
+        "-check"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "initial_failures": {
+    "platform": "Missing managed-run family registration blocked private and Pool claim; fixed in existing gates",
+    "generator": "New native key allowlist was missing; current catalog registered and generation/check pass",
+    "ui": "Current generated-type inference repaired; review found failed-dismiss and design-result navigation omissions, both fixed and specifically checked",
+    "boundary": "The first combined Go command exited1 because platform failed; only Runner/toolcontract portions from that receipt are GREEN"
+  },
+  "builds": {
+    "control": 1,
+    "runner": 1,
+    "native_bundle": 1,
+    "web": 1,
+    "web_seconds": 78,
+    "web_large_chunk_warning": true,
+    "user_preview_changed": false,
+    "user_database_changed": false,
+    "new_dependencies": 0
+  },
+  "actual": {
+    "environment": "Windows, fresh isolated SQLite, own Control+Runner+native bundle; loopback deterministic OpenAI-compatible protocol endpoint",
+    "assertions": 23,
+    "model_requests": 1,
+    "vendor_calls": 0,
+    "run_count": 1,
+    "attempt_count": 1,
+    "draft_count": 3,
+    "formal_tasks_created": 0,
+    "publication_count": 0,
+    "human_reviews_submitted": 0,
+    "operation_replay_same_ids": true,
+    "input_tokens": 23,
+    "output_tokens": 17,
+    "reported_tokens": 40,
+    "estimated_cost_micros": 57,
+    "currency": "CNY",
+    "usage_boundary": "Protocol fixture-reported counters and local synthetic estimate; not vendor tokenization, inference, billing or acceptance.",
+    "draft_boundary": "Three atomically saved local drafts; no publication, adopted tasks, external effect or human acceptance.",
+    "analysis_id": "df0338d93754b6709f5433f177115194",
+    "run_id": "intent-df0338d93754b6709f5433f177115194",
+    "results": [
+      {
+        "key": "requirement",
+        "action": "requirement.create_draft",
+        "resource_kind": "requirements",
+        "resource_id": "2248f3200eaf7b24d29673d905eb7710",
+        "version": 1,
+        "revision": 0,
+        "sha256": "b81156efb45da52c0a7655ef16b01e3b29e958240375a83976868c2b67ad73eb",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "proposal_sha256": "3b4a941967a9e1451fa0abcdcc6badf09cf5c30c9ea2aac671f6a5f86dd1b1e4",
+        "original_output_sha256": "3b4a941967a9e1451fa0abcdcc6badf09cf5c30c9ea2aac671f6a5f86dd1b1e4",
+        "run_id": "intent-df0338d93754b6709f5433f177115194"
+      },
+      {
+        "key": "design",
+        "action": "requirement.design.save_draft",
+        "resource_kind": "requirement_designs",
+        "resource_id": "2248f3200eaf7b24d29673d905eb7710",
+        "version": 1,
+        "revision": 1,
+        "sha256": "61f37763a1b9753b3af24e003235b412bcf38ab374d2a15ff2faa3db5635e138",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "proposal_sha256": "3b4a941967a9e1451fa0abcdcc6badf09cf5c30c9ea2aac671f6a5f86dd1b1e4",
+        "original_output_sha256": "3b4a941967a9e1451fa0abcdcc6badf09cf5c30c9ea2aac671f6a5f86dd1b1e4",
+        "run_id": "intent-df0338d93754b6709f5433f177115194"
+      },
+      {
+        "key": "knowledge",
+        "action": "knowledge.create_draft",
+        "resource_kind": "project_knowledge",
+        "resource_id": "d35072b619a1f708e85f2a771d26875c",
+        "version": 1,
+        "revision": 1,
+        "sha256": "e86f9a7a4143189753309a2d4efaabb185797eaa9a721b1a5902355c98f15ba7",
+        "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "proposal_sha256": "3b4a941967a9e1451fa0abcdcc6badf09cf5c30c9ea2aac671f6a5f86dd1b1e4",
+        "original_output_sha256": "3b4a941967a9e1451fa0abcdcc6badf09cf5c30c9ea2aac671f6a5f86dd1b1e4",
+        "run_id": "intent-df0338d93754b6709f5433f177115194"
+      }
+    ],
+    "fingerprints": {
+      "control": {
+        "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\intent-114\\runtime\\suma-control.exe",
+        "sha256": "ed73c75a0c02fedc41db9275171afd2a4a5071ae60a70758bb1f3b47f03d144b"
+      },
+      "runner": {
+        "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\intent-114\\runtime\\suma-runner.exe",
+        "sha256": "0cbb28a08dc1bba357aeeed082e2dbac0c075bdd93e8aeeacd29f42e1768f30b"
+      },
+      "bundle": {
+        "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\intent-114\\runtime\\suma-agent.bundle.mjs",
+        "sha256": "5739f3ce935bfab53e4a08fd62a2a6263426e3456b5b0893d48c932afc358dd6"
+      },
+      "manifest": {
+        "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\intent-114\\runtime\\suma-agent.manifest.json",
+        "sha256": "e5a34207553c7b2e8efaf285b5372b1421fcbbb88cb3db2d831eb3338cb563c8"
+      },
+      "helper": {
+        "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\intent-114\\actual-fixture.mjs",
+        "sha256": "55a5064a28f05b1330a348bc84ccb0ba9fef4b980ffa8448ed2c9a6fca14caf7"
+      },
+      "node": {
+        "path": "C:\\Program Files\\nodejs\\node.exe",
+        "sha256": "c5ff4c736112dd483c750fd4149d30c8a116db1a49b8b3ec88be4b65e6c86c19",
+        "version": "v22.16.0"
+      }
+    },
+    "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "original_output_sha256": "3b4a941967a9e1451fa0abcdcc6badf09cf5c30c9ea2aac671f6a5f86dd1b1e4",
+    "preview_sha256": "8e4b9591b938450f6407a3c4186ff4959483c2a9d01158e37ccbb18b3410d2d5",
+    "runner_result_ack_verified": true,
+    "owned_processes_closed": true,
+    "model_listener_closed": true,
+    "helper_exit_code": 0,
+    "shutdown": [
+      {
+        "name": "runner",
+        "pid": 35588,
+        "already_closed": false,
+        "requested_signal": "SIGTERM",
+        "forced": false,
+        "closed": true,
+        "exit_code": null,
+        "signal": "SIGTERM",
+        "error": "",
+        "boundary": "Node kill terminates only this owned process; graceful Windows console shutdown is not claimed."
+      },
+      {
+        "name": "probe",
+        "pid": 81584,
+        "already_closed": true,
+        "requested_signal": null,
+        "forced": false,
+        "closed": true,
+        "exit_code": 0,
+        "signal": null,
+        "error": "",
+        "boundary": "Node kill terminates only this owned process; graceful Windows console shutdown is not claimed."
+      },
+      {
+        "name": "control",
+        "pid": 46732,
+        "already_closed": false,
+        "requested_signal": "SIGTERM",
+        "forced": false,
+        "closed": true,
+        "exit_code": null,
+        "signal": "SIGTERM",
+        "error": "",
+        "boundary": "Node kill terminates only this owned process; graceful Windows console shutdown is not claimed."
+      }
+    ],
+    "database_files_after_close": [
+      {
+        "name": "suma.db",
+        "bytes": 1859584,
+        "sha256": "a93af00df7cc1869c8353a16a094546cf034a5ee4ba127cab04176406ab5a04e"
+      },
+      {
+        "name": "suma.db-wal",
+        "bytes": 4124152,
+        "sha256": "c91f812b2e974db66de18061dddf80d6b28450f6654ad9cca431a7495b30e842"
+      },
+      {
+        "name": "suma.db-shm",
+        "bytes": 32768,
+        "sha256": "b9a8917be0d1c71199c061c6c76bb44a2841620ac3d076e745d7039c6cca51b4"
+      }
+    ],
+    "database_boundary": "Fresh owned database and any remaining WAL/SHM are hashed only after confirmed child closure. No database integrity or graceful Windows checkpoint is inferred from hashes.",
+    "raw_receipt": ".cache/e2e/intent-114/actual/public-result.json"
+  },
+  "limitations": [
+    "No actual GUI/browser journey in this stage",
+    "No commercial model inference, vendor billing or production acceptance",
+    "No physical multi-host or actual OceanBase/PostgreSQL cluster verification",
+    "No persistent automatic approval or generic configuration/external-effect actions",
+    "Optional source-picker interaction lacks a completed UI test",
+    "Large existing Web chunks remain; full platform and P0–P7 remain in progress"
+  ]
+}

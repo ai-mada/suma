@@ -18,10 +18,11 @@ type ToolExecutionProfile struct {
 	WorkspaceToolsVersion  string `json:"workspace_tools_version,omitempty"`
 	ModelExecutionProtocol string `json:"model_execution_protocol,omitempty"`
 	// ConflictRepairProtocol is an explicitly enabled host-native capability, not a grant of Git or acceptance authority.
-	ConflictRepairProtocol string                         `json:"conflict_repair_protocol,omitempty"`
-	Planning               *PlanningCapability            `json:"planning,omitempty"`
-	KnowledgeExtraction    *KnowledgeExtractionCapability `json:"knowledge_extraction,omitempty"`
-	FailureDiagnosis       *FailureDiagnosisCapability    `json:"failure_diagnosis,omitempty"`
+	ConflictRepairProtocol string                           `json:"conflict_repair_protocol,omitempty"`
+	Planning               *PlanningCapability              `json:"planning,omitempty"`
+	KnowledgeExtraction    *KnowledgeExtractionCapability   `json:"knowledge_extraction,omitempty"`
+	IntelligentOperations  *IntelligentOperationsCapability `json:"intelligent_operations,omitempty"`
+	FailureDiagnosis       *FailureDiagnosisCapability      `json:"failure_diagnosis,omitempty"`
 	// OpenCodeExecution is the immutable administrator configuration acknowledged
 	// by the pinned SDK/server probe, not an independently selectable deployment.
 	OpenCodeExecution *OpenCodeExecutionCapability `json:"opencode_execution,omitempty"`
@@ -59,16 +60,22 @@ const FailureDiagnosisProtocol = "suma-failure-diagnosis-v1"
 func EqualProfile(a, b Profile) bool {
 	ap, bp := a.Planning, b.Planning
 	ak, bk := a.KnowledgeExtraction, b.KnowledgeExtraction
+	ai, bi := a.IntelligentOperations, b.IntelligentOperations
 	af, bf := a.FailureDiagnosis, b.FailureDiagnosis
 	ao, bo := a.OpenCodeExecution, b.OpenCodeExecution
 	a.Planning, b.Planning = nil, nil
 	a.KnowledgeExtraction, b.KnowledgeExtraction = nil, nil
+	a.IntelligentOperations, b.IntelligentOperations = nil, nil
 	a.FailureDiagnosis, b.FailureDiagnosis = nil, nil
 	a.OpenCodeExecution, b.OpenCodeExecution = nil, nil
-	return a == b && (ap == nil && bp == nil || ap != nil && bp != nil && *ap == *bp) && (ak == nil && bk == nil || ak != nil && bk != nil && *ak == *bk) && (af == nil && bf == nil || af != nil && bf != nil && *af == *bf) && (ao == nil && bo == nil || ao != nil && bo != nil && *ao == *bo)
+	return a == b && (ap == nil && bp == nil || ap != nil && bp != nil && *ap == *bp) && (ak == nil && bk == nil || ak != nil && bk != nil && *ak == *bk) && (ai == nil && bi == nil || ai != nil && bi != nil && *ai == *bi) && (af == nil && bf == nil || af != nil && bf != nil && *af == *bf) && (ao == nil && bo == nil || ao != nil && bo != nil && *ao == *bo)
 }
 
 func CloneProfile(p Profile) Profile {
+	if p.IntelligentOperations != nil {
+		value := *p.IntelligentOperations
+		p.IntelligentOperations = &value
+	}
 	if p.Planning != nil {
 		value := *p.Planning
 		p.Planning = &value

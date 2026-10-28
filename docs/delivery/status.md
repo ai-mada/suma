@@ -4,9 +4,9 @@
 
 当前能力按实现范围汇总。下表中的验证均受对应报告的源码、环境和实际场景限制；不会因本次版本统一继承为新代码全部通过。执行成功、独立测试、人工验收与生产发布是不同事实。
 
-完整台账为 **58 项限定实现、34 项待实现，共 92 项**。需求26新增 `FND-INTENT-001` 待办；T-TRACE-113 的需求验收追踪推进既有设计／质量范围，不增加整项完成。历史 T-DELIVERY-112 报告保留当时 58／33／91 的台账与限定证据，局部交付不表示平台完成。
+完整台账为 **58 项限定实现、34 项待实现，共 92 项**。`FND-INTENT-001`仍待完整交付；T-INTENT-114推进统一智能输入到需求／设计／知识草稿计划、明确预览及同库原子采用，不增加整项完成。T-TRACE-113需求验收追踪及历史T-DELIVERY-112仍以各自报告的源码／环境和台账为准，局部交付不表示平台完成。
 
-两份分享规划均已取得当前可见正文；第一份64个编号、第二份需求26及S01–S12见[逐域采用与缺口映射](../integrations/shared-roadmap-adoption.md)。两份末尾均不完整，未见内容保持未知。它们是设计来源，不作为源码或完成证明；统一智能输入／配置仍待实现。
+两份分享规划均已取得当前可见正文；第一份64个编号、第二份需求26及S01–S12见[逐域采用与缺口映射](../integrations/shared-roadmap-adoption.md)。两份末尾均不完整，未见内容保持未知。它们是设计来源，不作为源码或完成证明；当前草稿计划仅推进需求26的一部分，通用配置与全场景多端旅程仍待实现。
 
 ## 当前实现与证据
 
@@ -19,7 +19,7 @@
 | Runner 本地执行日志诊断 | `--inspect-state` 有界读取单个 journal，白名单计数及最多 100 条引用，缺失／损坏／不可读／超限分别表达，不创建目录、不读取凭据、不改 ACK 或重跑 | [中文指南](../agents/runner-journal-inspection.md)／[English](../en/runner-journal-inspection.md)、[合同](../../contracts/runner-journal-inspection.md)、[本阶段报告](../quality/task-delivery-chain-verification.md)；仅本地执行日志，非完整设备健康、服务器回执、持久隔离原因或自动恢复能力 |
 | 需求与设计 | 版本化产品／体验／技术设计、可审阅任务提案、明确发布及原子采用、固定执行与验收依据 | [设计采用](../quality/requirement-design-verification.md)、[依据展示](../quality/task-design-context-verification.md)；完整 AI 需求与设计编辑、可运行 UED 原型待办 |
 | 需求验收追踪 | 当前正式需求版本／条目序号 → 已发布提案 → 受保护采用任务 → 确切运行、当前测试节点和正式验收读取 | [中文指南](../development/requirement-traceability.md)／[English](../en/requirement-traceability.md)、[合同](../../contracts/requirement-traceability.md)、[限定报告](../quality/requirement-traceability-verification.md)；需求变更不沿用旧序号映射，执行／测试／验收分别展示，实际验证以报告为准；完整TestPlan／TestCase、跨版本标准身份及应用版本／发布矩阵待办 |
-| 全平台智能输入与自动配置 | 现有单次智能规划、工具推荐、领域配置及CLI为可复用基础，新增需求26尚未形成统一能力 | [目标架构](../architecture/intelligent-operations.md)、`FND-INTENT-001` 待办；全场景结构化意图、补全、配置变更预览／采用／实际验证和多端低人工流程需独立实现与验收 |
+| 全平台智能输入与自动配置 | T-INTENT-114自然语言目标／选定安全来源，经唯一Go DAG一次只读模型生成最多8步需求／设计／知识草稿计划；可编辑提案、只读预览、本次明确确认、真实同库原子采用及原操作恢复 | [中文指南](../development/intelligent-operations.md)／[English](../en/intelligent-operations.md)、[合同](../../contracts/intelligent-operations.md)、[架构与验收SOP](../architecture/intelligent-operations.md)、[限定报告](../quality/intelligent-operations-verification.md)；只采用同库本地草稿，不发布／启动执行或改配置，实际验证以报告为准。FND-INTENT-001未勾选，全场景意图／补全、持久自动策略、配置变更／实际验证与多端完整旅程待办 |
 | 知识、记忆、规范与技能 | 项目资产版本、审阅发布、固定任务上下文、组织共享目录、授权检索、跨项目独立草稿采用、模型辅助提案及发布溯源 | [项目资产](../quality/project-knowledge-verification.md)、[共享技能](../quality/skill-catalog-verification.md)、[模型提炼](../quality/knowledge-intelligence-verification.md)；授权向量索引、外部记忆、可执行插件与完整专家策略待办 |
 | 智能规划与失败分诊 | 固定来源的单次模型规划、人工修订／采用、持久站内风险；真实失败证据形成不可变观察与人工修复需求 | [规划](../quality/intelligent-planning-verification.md)、[分诊](../quality/failure-diagnosis-verification.md)；本地自有协议证据，非厂商效果或长期自主恢复验收 |
 | DAG 与共享执行池 | 条件／并行／汇合／map／子流程／人审／等待／补偿、增量前沿、attempt／fence／回执、双边授权及分层加权准入 | [增量调度](../quality/scheduling-verification.md)、[平台门禁](../quality/scheduling-platform-guards.md)、[共享池](../quality/execution-pool-verification.md)；同机多进程不等于物理分布式、完整公平／吞吐或长期容量验收 |
