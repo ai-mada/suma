@@ -137,7 +137,7 @@ func importCandidateFile(ctx context.Context, repo, path string, b cc.Binding) e
 
 func importCodeBaseline(ctx context.Context, repo string, a Assignment, cfg ExecConfig) (string, *cc.ImportReceipt, error) {
 	binding := a.CodeBaseline
-	if cfg.Artifacts == nil || binding == nil || ccc.ValidateCodeBaselineBinding(*binding) != nil || a.CandidateComposition != nil || hasCandidate(a) || a.Type != "agent" || binding.ProjectID != cfg.Artifacts.ProjectID || binding.Source.BundleBase() != cfg.BaseCommit {
+	if cfg.Artifacts == nil || binding == nil || ccc.ValidateCodeBaselineBinding(*binding) != nil || a.CandidateComposition != nil || hasCandidate(a) || !codeBaselineInputNode(a) || binding.ProjectID != cfg.Artifacts.ProjectID || binding.Source.BundleBase() != cfg.BaseCommit {
 		return "", nil, fmt.Errorf("development requires a valid dedicated code baseline binding")
 	}
 	dir := filepath.Join(repo, ".cache", "runner", "code-inputs", attemptKey(a))

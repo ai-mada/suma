@@ -22,7 +22,7 @@ func validWorkspaceTerminalExchange(r term.ExchangeRequest) bool {
 	if r.TreeStopped && r.State != "stopped" && r.State != "exited" && r.State != "reconciling" {
 		return false
 	}
-	if (r.SourceSnapshotSHA256 != "" || r.BaseCommit != "") && (!r.TreeStopped || !contentDigest.MatchString(r.SourceSnapshotSHA256) || !gitRevision.MatchString(r.BaseCommit)) {
+	if (r.SourceSnapshotSHA256 != "" || r.BaseCommit != "" || r.AdminBaseCommit != "") && (!r.TreeStopped || !contentDigest.MatchString(r.SourceSnapshotSHA256) || !gitRevision.MatchString(r.BaseCommit) || !gitRevision.MatchString(r.AdminBaseCommit)) {
 		return false
 	}
 	return true
@@ -96,6 +96,9 @@ func (s *Service) exchangeWorkspaceTerminalTx(ctx context.Context, tx *sql.Tx, t
 	if err != nil {
 		return out, err
 	}
+	if stringify(req.CodeBaseline) != stringify(r.Session.CodeBaseline) {
+		return out, forbidden()
+	}
 	if r.Session.RunID != req.RunID || r.Session.WorkerID != req.WorkerID {
 		return out, forbidden()
 	}
@@ -152,12 +155,20 @@ func (s *Service) exchangeWorkspaceTerminalTx(ctx context.Context, tx *sql.Tx, t
 			r.Session.Directory = req.Directory
 		}
 		if req.SourceSnapshotSHA256 != "" {
-			if r.Session.SourceSnapshotSHA256 != "" && (r.Session.SourceSnapshotSHA256 != req.SourceSnapshotSHA256 || r.Session.BaseCommit != req.BaseCommit) {
+			if r.Session.CodeBaseline == nil {
+				if req.BaseCommit != req.AdminBaseCommit {
+					return out, conflict(workspaceTerminalChanged)
+				}
+			} else if req.BaseCommit != r.Session.CodeBaseline.Source.HeadCommit || req.AdminBaseCommit != r.Session.CodeBaseline.Source.BundleBase() {
+				return out, conflict(workspaceTerminalChanged)
+			}
+			if r.Session.SourceSnapshotSHA256 != "" && (r.Session.SourceSnapshotSHA256 != req.SourceSnapshotSHA256 || r.Session.BaseCommit != req.BaseCommit || r.Session.AdminBaseCommit != req.AdminBaseCommit) {
 				return out, conflict(workspaceTerminalChanged)
 			}
 			if r.Session.SourceSnapshotSHA256 == "" {
 				r.Session.SourceSnapshotSHA256 = req.SourceSnapshotSHA256
 				r.Session.BaseCommit = req.BaseCommit
+				r.Session.AdminBaseCommit = req.AdminBaseCommit
 				r.Session.Version++
 			}
 		}

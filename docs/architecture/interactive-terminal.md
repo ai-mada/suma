@@ -1,6 +1,6 @@
 # 受控交互终端与开发交接架构
 
-状态：**T130限定实现，完整终端与跨平台验收继续交付**。产品1.0.0；2026-10-29。负责人：控制面、DAG、Runner、工作台领域。关联需求9、12、17、22、23及完整P0–P7／需求1–26；58项有限实现、34项待办、92项总账保持不变。
+状态：**T131采用基线的限定连续开发，完整终端与跨平台验收继续交付**。产品1.0.0；2026-10-29。负责人：控制面、DAG、Runner、工作台领域。关联需求9、12、17、22、23及完整P0–P7／需求1–26；58项有限实现、34项待办、92项总账保持不变。
 
 本文件说明当前代码与明确边界；T130的[合同](../../contracts/terminal-recovery-candidates.md)、[交互](../design/terminal-recovery.md)、[验证报告](../quality/terminal-recovery-candidates-verification.md)和[摘要](../quality/terminal-recovery-candidates-summary.json)分别记录原执行核对、明确候选授权与实际证据。T129的Windows ConPTY／Job和讨论开发交接证据保留在[原报告](../quality/interactive-development-verification.md)／[原摘要](../quality/interactive-development-summary.json)，不推断为所有恢复故障、其他OS或生产验收。操作见[开发与AI SOP](../development/interactive-development.md)。
 
@@ -105,6 +105,14 @@ Unix进程组不足以证明已逃逸setsid／双fork后代停止。当前Probe�
 停止快照固定原基线、文件清单摘要与原attempt。用户明确授权创建候选预览，再另行确认启动。当前固定流程包含原Worker的普通可写command/text-v1检查节点和另一Worker的候选独立测试节点；宿主核对原缓存和快照，复制允许文件到新独立工作树，检查成功后封存真实提交。独立测试通过原bundle导入同一SHA，沿既有JUnit、逐例门禁、Review及唯一问题回流处理，不依赖模型调用或终端输出判定成功。
 
 当前正式验收仍绑定该候选运行时，可将其精确候选显式绑定为另一未启动任务的代码基线。基线请求只允许composition来源对或terminal_candidate_plan来源对之一，版本和原操作身份继续由现有命令核验；绑定不启动后续任务，也不继承原验收。界面按需读取真实历史计划，刷新或选择不重执行；受保护事实、候选授权、启动和验收各自独立。
+
+## T131采用基线的连续开发
+
+当前终端页在同一授权快照中返回任务版本、可选`code_baseline`、`baseline_current`和`baseline_reason`；`can_create`同时受当前来源资格控制。创建前展示精确采用提交，刷新或任务／绑定／资格变化撤销旧确认。未采用绑定时仍使用管理员基线，未报告的提交不推测。来源撤销、验收或运行变化由服务端重新核验，当前失效原因与历史固定来源分开展示。
+
+会话和停止候选来源固定`code_baseline`、`admin_base_commit`及`base_commit`：B为来源候选的`bundle_base_commit ?? base_commit`，M为已采用来源的`head_commit`和本次实际起点，N只来自新的真实封存候选。采用M的终端及候选不得静默退回B；界面校验同一会话、来源与任务上下文的固定绑定及B／M对应关系，独立测试与Review继续针对N。
+
+合同见[终端基线连续开发](../../contracts/terminal-baseline-development.md)，实际执行及界面范围见[报告](../quality/terminal-baseline-development-verification.md)／[摘要](../quality/terminal-baseline-development-summary.json)。本阶段界面检查范围为组件与静态；浏览器当前不可用，未宣称本阶段GUI通过。T130实际浏览器证据不继承为T131新增界面验收，Unix、物理多机、完整IDE和生产边界保持不变。
 
 ## 讨论到正式开发
 

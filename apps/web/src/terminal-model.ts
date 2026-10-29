@@ -1,5 +1,6 @@
-import type {WorkspaceTerminalSession, WorkspaceTerminalPage, WorkspaceTerminalOutputPage, WorkspaceTerminalCommandReceipt} from '../../../packages/contracts/src';
+import type {CodeBaselineBinding, WorkspaceTerminalSession, WorkspaceTerminalPage, WorkspaceTerminalOutputPage, WorkspaceTerminalCommandReceipt} from '../../../packages/contracts/src';
 import type {WriteRecoveryRequest} from './write-action';
+import {compositionCodeBaseline} from './candidate-composition-model';
 
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 const keys = (value: Record<string, unknown>, expected: string[]) => Object.keys(value).sort().join(',') === [...expected].sort().join(',');
@@ -10,11 +11,23 @@ export const terminalID = (value: unknown): value is string => text(value) && /^
 export const terminalStates = ['queued', 'running', 'stop_requested', 'exited', 'stopped', 'reconciling'] as const;
 const actions = ['input', 'resize', 'stop', 'ack'];
 export const terminalEnded = (session: WorkspaceTerminalSession) => ['exited', 'stopped'].includes(session.state);
+const commit = (value: unknown): value is string => text(value) && /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value);
+
+/** Qualification is a current server fact. This checks only frozen lineage:
+ * original administrator base B, selected accepted head M and target identity. */
+export function validTerminalBaseline(value: unknown, project: string, task: string, selected = '', admin = ''): value is CodeBaselineBinding | undefined {
+  if (value === undefined) return !selected || !admin || selected === admin;
+  return compositionCodeBaseline(value, project, task) && (!selected || value.source.head_commit === selected) &&
+    (!admin || (value.source.bundle_base_commit ?? value.source.base_commit) === admin);
+}
+export const sameTerminalBaseline = (left?: CodeBaselineBinding | null, right?: CodeBaselineBinding | null) =>
+  (left?.binding_sha256 || '') === (right?.binding_sha256 || '');
 
 export function validTerminalSession(value: unknown, project: string, task: string): value is WorkspaceTerminalSession {
   if (!object(value) || !keys(value, ['id', 'project_id', 'task_id', 'task_version', 'version', 'run_id', 'run_version', 'state',
     'tool_profile_id', 'tool_name', 'directory', 'worker_id', 'columns', 'rows', 'control_epoch', 'next_input_sequence',
-    'output_first_sequence', 'output_last_sequence', 'output_ack_sequence', 'expires_at', 'created_at', 'allowed_actions', 'reason', 'source_snapshot_sha256', 'base_commit'])) return false;
+    'output_first_sequence', 'output_last_sequence', 'output_ack_sequence', 'expires_at', 'created_at', 'allowed_actions', 'reason', 'source_snapshot_sha256', 'base_commit', 'admin_base_commit',
+    ...(Object.hasOwn(value, 'code_baseline') ? ['code_baseline'] : [])])) return false;
   return terminalID(value.id) && value.project_id === project && value.task_id === task && positive(value.task_version) &&
     positive(value.version) && terminalID(value.run_id) && positive(value.run_version) && terminalStates.includes(value.state as typeof terminalStates[number]) &&
     terminalID(value.tool_profile_id) && text(value.tool_name) && text(value.directory) && text(value.worker_id) &&
@@ -24,14 +37,18 @@ export function validTerminalSession(value: unknown, project: string, task: stri
     value.output_first_sequence <= value.output_last_sequence + 1 && text(value.expires_at) && Number.isFinite(Date.parse(value.expires_at)) &&
     text(value.created_at) && Number.isFinite(Date.parse(value.created_at)) && text(value.reason) &&
     text(value.source_snapshot_sha256) && (!value.source_snapshot_sha256 || /^[a-f0-9]{64}$/.test(value.source_snapshot_sha256)) &&
-    text(value.base_commit) && (!value.base_commit || /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value.base_commit)) && Array.isArray(value.allowed_actions) &&
+    text(value.base_commit) && (!value.base_commit || commit(value.base_commit)) && text(value.admin_base_commit) && (!value.admin_base_commit || commit(value.admin_base_commit)) &&
+    validTerminalBaseline(value.code_baseline, project, task, value.base_commit, value.admin_base_commit) && Array.isArray(value.allowed_actions) &&
     value.allowed_actions.every(action => actions.includes(String(action))) && new Set(value.allowed_actions).size === value.allowed_actions.length;
 }
 
 export function validTerminalPage(value: unknown, project: string, task: string): value is WorkspaceTerminalPage {
-  return object(value) && keys(value, ['items', 'profiles', 'task_version', 'can_create', 'profiles_complete']) && Array.isArray(value.items) &&
+  return object(value) && keys(value, ['items', 'profiles', 'task_version', 'can_create', 'profiles_complete', 'baseline_current', 'baseline_reason',
+    ...(Object.hasOwn(value, 'code_baseline') ? ['code_baseline'] : [])]) && Array.isArray(value.items) &&
     typeof value.profiles_complete === 'boolean' && value.items.length <= 20 && value.items.every(item => validTerminalSession(item, project, task)) &&
     new Set(value.items.map(item => item.id)).size === value.items.length && positive(value.task_version) && typeof value.can_create === 'boolean' &&
+    validTerminalBaseline(value.code_baseline, project, task) && typeof value.baseline_current === 'boolean' && text(value.baseline_reason) &&
+    (value.baseline_current || !!value.baseline_reason.trim()) && (!value.can_create || value.baseline_current) &&
     Array.isArray(value.profiles) && value.profiles.length <= 200 && value.profiles.every(profile => object(profile) && terminalID(profile.id) &&
       profile.project_id === project && positive(profile.version) && text(profile.name) && object(profile.profile) &&
       profile.profile.terminal_session_protocol === 'suma-pty-v1' && text(profile.profile.profile_sha256) && /^[a-f0-9]{64}$/.test(profile.profile.profile_sha256));

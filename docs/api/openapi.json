@@ -27009,8 +27009,24 @@
       "TerminalCandidateSource": {
         "additionalProperties": false,
         "properties": {
-          "base_commit": {
+          "admin_base_commit": {
+            "description": "Original administrator Git prerequisite B retained for authenticated candidate bundle lineage.",
             "type": "string"
+          },
+          "base_commit": {
+            "description": "Exact selected development base M; equals the administrator base when no code baseline was adopted.",
+            "type": "string"
+          },
+          "code_baseline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodeBaselineBinding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Exact adopted, accepted input frozen for this session or candidate. Its head is M and bundle prerequisite is B; current authorization is checked separately."
           },
           "original": {
             "$ref": "#/components/schemas/CandidateAssignmentRef"
@@ -27033,6 +27049,7 @@
           "session_version",
           "original",
           "base_commit",
+          "admin_base_commit",
           "snapshot_sha256",
           "plan_id"
         ],
@@ -33456,9 +33473,31 @@
       "WorkspaceTerminalPage": {
         "additionalProperties": false,
         "properties": {
+          "baseline_current": {
+            "description": "Current source and task-binding qualification; an absent binding is valid only after this authorized read succeeds.",
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "baseline_reason": {
+            "description": "Qualification failure reason from the same task read. It never changes historical frozen source facts.",
+            "readOnly": true,
+            "type": "string"
+          },
           "can_create": {
             "readOnly": true,
             "type": "boolean"
+          },
+          "code_baseline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodeBaselineBinding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Task's adopted code baseline read in the same authority snapshot as baseline_current and can_create.",
+            "readOnly": true
           },
           "items": {
             "items": {
@@ -33484,6 +33523,8 @@
           }
         },
         "required": [
+          "baseline_current",
+          "baseline_reason",
           "items",
           "profiles",
           "task_version",
@@ -33657,6 +33698,11 @@
       "WorkspaceTerminalSession": {
         "additionalProperties": false,
         "properties": {
+          "admin_base_commit": {
+            "description": "Original administrator Git prerequisite B retained for authenticated candidate bundle lineage.",
+            "readOnly": true,
+            "type": "string"
+          },
           "allowed_actions": {
             "items": {
               "type": "string"
@@ -33665,8 +33711,21 @@
             "type": "array"
           },
           "base_commit": {
+            "description": "Exact selected development base M; equals the administrator base when no code baseline was adopted.",
             "readOnly": true,
             "type": "string"
+          },
+          "code_baseline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CodeBaselineBinding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Exact adopted, accepted input frozen for this session or candidate. Its head is M and bundle prerequisite is B; current authorization is checked separately.",
+            "readOnly": true
           },
           "columns": {
             "readOnly": true,
@@ -33794,7 +33853,8 @@
           "allowed_actions",
           "reason",
           "source_snapshot_sha256",
-          "base_commit"
+          "base_commit",
+          "admin_base_commit"
         ],
         "type": "object"
       },

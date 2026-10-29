@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	ccc "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	"io"
 	"os"
 	"path/filepath"
@@ -22,12 +23,14 @@ type terminalCandidateFile struct {
 	Mode   uint32 `json:"mode"`
 }
 type terminalCandidateInventoryRecord struct {
-	SchemaVersion int                         `json:"schema_version"`
-	AttemptKey    string                      `json:"attempt_key"`
-	BaseCommit    string                      `json:"base_commit"`
-	Files         []NativeWorkspaceFileEffect `json:"files"`
-	Inventory     []terminalCandidateFile     `json:"inventory"`
-	SHA256        string                      `json:"sha256"`
+	SchemaVersion   int                         `json:"schema_version"`
+	AttemptKey      string                      `json:"attempt_key"`
+	BaseCommit      string                      `json:"base_commit"`
+	AdminBaseCommit string                      `json:"admin_base_commit"`
+	CodeBaseline    *ccc.CodeBaselineBinding    `json:"code_baseline,omitempty"`
+	Files           []NativeWorkspaceFileEffect `json:"files"`
+	Inventory       []terminalCandidateFile     `json:"inventory"`
+	SHA256          string                      `json:"sha256"`
 }
 
 func terminalCandidateInventoryDigest(value terminalCandidateInventoryRecord) string {
@@ -39,12 +42,12 @@ func terminalCandidateInventoryDigest(value terminalCandidateInventoryRecord) st
 // Inventory uses the same rooted reads, protected path policy and bounds as the
 // native parent seal. It never invokes the shell's Git hooks or external filters.
 func terminalCandidateInventory(ctx context.Context, w *attemptWorkspace) (terminalCandidateInventoryRecord, map[string]nativeSealFile, error) {
-	out := terminalCandidateInventoryRecord{SchemaVersion: 1, AttemptKey: w.AttemptKey, BaseCommit: w.BaseCommit, Files: []NativeWorkspaceFileEffect{}, Inventory: []terminalCandidateFile{}}
+	out := terminalCandidateInventoryRecord{SchemaVersion: 1, AttemptKey: w.AttemptKey, BaseCommit: w.BaseCommit, AdminBaseCommit: w.AdminBaseCommit, CodeBaseline: cloneTerminalCodeBaseline(w.Assignment.CodeBaseline), Files: []NativeWorkspaceFileEffect{}, Inventory: []terminalCandidateFile{}}
 	if _, err := nativeSealIdentity(ctx, w); err != nil {
 		return out, nil, err
 	}
 	head, err := nativeSealText(ctx, w, "", "rev-parse", "HEAD")
-	if err != nil || head != w.BaseCommit || w.BaseCommit != w.AdminBaseCommit {
+	if err != nil || head != w.BaseCommit || !terminalWorkspaceBasis(w.Assignment, w.BaseCommit, w.AdminBaseCommit) {
 		return out, nil, fmt.Errorf("Stopped terminal HEAD differs from its original administrator base")
 	}
 	base, _, err := nativeSealTree(ctx, w)
@@ -151,7 +154,7 @@ func terminalCandidateStopped(w *attemptWorkspace, sessionID string) error {
 // Called only after the terminal runtime confirms the entire original tree.
 // A later call may recover the same receipt, but cannot silently accept drift.
 func captureTerminalCandidateSource(ctx context.Context, a Assignment, cfg ExecConfig, w *attemptWorkspace, sessionID string) (string, error) {
-	if a.Type != "terminal_session" || w == nil || w.Assignment.DispatchID != a.DispatchID || w.Assignment.RunID != a.RunID || w.BaseCommit != cfg.BaseCommit {
+	if a.Type != "terminal_session" || w == nil || w.Assignment.DispatchID != a.DispatchID || w.Assignment.RunID != a.RunID || w.AdminBaseCommit != cfg.BaseCommit || !sameTerminalCodeBaseline(w.Assignment.CodeBaseline, a.CodeBaseline) || !terminalWorkspaceBasis(a, w.BaseCommit, w.AdminBaseCommit) {
 		return "", fmt.Errorf("Original terminal source identity changed")
 	}
 	if err := terminalCandidateStopped(w, sessionID); err != nil {
@@ -207,7 +210,7 @@ func recoverTerminalCandidateSnapshot(a Assignment, journalDir, sourceDir string
 	var inventory terminalCandidateInventoryRecord
 	decoder := json.NewDecoder(strings.NewReader(string(raw)))
 	decoder.DisallowUnknownFields()
-	if decoder.Decode(&inventory) != nil || inventory.SchemaVersion != 1 || !evidenceHash.MatchString(inventory.SHA256) || terminalCandidateInventoryDigest(inventory) != inventory.SHA256 || inventory.AttemptKey != attemptKey(a) || !commitID.MatchString(inventory.BaseCommit) || len(inventory.Files) > nativeSealMaxFiles || len(inventory.Inventory) > nativeSealMaxFiles {
+	if decoder.Decode(&inventory) != nil || inventory.SchemaVersion != 1 || !evidenceHash.MatchString(inventory.SHA256) || terminalCandidateInventoryDigest(inventory) != inventory.SHA256 || inventory.AttemptKey != attemptKey(a) || !terminalWorkspaceBasis(a, inventory.BaseCommit, inventory.AdminBaseCommit) || !sameTerminalCodeBaseline(inventory.CodeBaseline, a.CodeBaseline) || len(inventory.Files) > nativeSealMaxFiles || len(inventory.Inventory) > nativeSealMaxFiles {
 		return "", "", fmt.Errorf("Original stopped terminal snapshot receipt is invalid")
 	}
 	var trailing any
@@ -216,7 +219,7 @@ func recoverTerminalCandidateSnapshot(a Assignment, journalDir, sourceDir string
 	}
 	attemptRaw, e := nativeSealReadMetadata(filepath.Join(directory, "attempt.json"))
 	var original attemptWorkspace
-	if e != nil || json.Unmarshal(attemptRaw, &original) != nil || original.AttemptKey != attemptKey(a) || original.Directory != directory || original.Source != sourceDir || original.BaseCommit != inventory.BaseCommit || original.AdminBaseCommit != inventory.BaseCommit || original.Assignment.Type != "terminal_session" || original.Assignment.DispatchID != a.DispatchID || candidateRef(original.Assignment) != candidateRef(a) {
+	if e != nil || json.Unmarshal(attemptRaw, &original) != nil || original.AttemptKey != attemptKey(a) || original.Directory != directory || original.Source != sourceDir || original.BaseCommit != inventory.BaseCommit || original.AdminBaseCommit != inventory.AdminBaseCommit || !sameTerminalCodeBaseline(original.Assignment.CodeBaseline, inventory.CodeBaseline) || original.Assignment.Type != "terminal_session" || original.Assignment.DispatchID != a.DispatchID || candidateRef(original.Assignment) != candidateRef(a) {
 		return "", "", fmt.Errorf("Original stopped terminal snapshot attempt changed")
 	}
 	originalSession, _ := original.Assignment.Config["terminal_session_id"].(string)
@@ -238,7 +241,7 @@ func applyTerminalCandidateSource(ctx context.Context, a Assignment, cfg ExecCon
 		return nil
 	}
 	source, err := term.DecodeCandidateSource(raw)
-	if err != nil || source == nil || w == nil || a.Type != "command" || a.Attempt != 1 || a.Idempotent || len(a.Command) != 1 || a.WorkerID != source.Original.WorkerID || spec.Adapter != "command" || spec.Protocol != "text-v1" || spec.ReadOnly || spec.TerminalSession || spec.TestEvidence || spec.TestReport || spec.NativeWorkspace != nil || spec.ArtifactInput || spec.ArtifactOutput != "" || source.BaseCommit != cfg.BaseCommit || hasCandidate(a) || a.CodeBaseline != nil || a.CandidateComposition != nil || a.CandidateConflictRepair != nil {
+	if err != nil || source == nil || w == nil || a.Type != "command" || a.Attempt != 1 || a.Idempotent || len(a.Command) != 1 || a.WorkerID != source.Original.WorkerID || spec.Adapter != "command" || spec.Protocol != "text-v1" || spec.ReadOnly || spec.TerminalSession || spec.TestEvidence || spec.TestReport || spec.NativeWorkspace != nil || spec.ArtifactInput || spec.ArtifactOutput != "" || source.AdminBaseCommit != cfg.BaseCommit || w.AdminBaseCommit != source.AdminBaseCommit || w.BaseCommit != source.BaseCommit || !sameTerminalCodeBaseline(a.CodeBaseline, source.CodeBaseline) || !terminalWorkspaceBasis(a, w.BaseCommit, w.AdminBaseCommit) || hasCandidate(a) || a.CandidateComposition != nil || a.CandidateConflictRepair != nil {
 		return fmt.Errorf("Terminal candidate requires its protected original source and fixed writable command profile")
 	}
 	repo, root, err := workspaceConfig(ctx, cfg)
@@ -252,7 +255,7 @@ func applyTerminalCandidateSource(ctx context.Context, a Assignment, cfg ExecCon
 	directory := filepath.Join(root, key)
 	rawAttempt, err := nativeSealReadMetadata(filepath.Join(directory, "attempt.json"))
 	var original attemptWorkspace
-	if err != nil || json.Unmarshal(rawAttempt, &original) != nil || original.AttemptKey != key || original.Directory != directory || original.Source != filepath.Join(directory, "src") || original.Repository != repo || original.BaseCommit != source.BaseCommit || original.AdminBaseCommit != cfg.BaseCommit || original.Assignment.Type != "terminal_session" || candidateRef(original.Assignment) != source.Original {
+	if err != nil || json.Unmarshal(rawAttempt, &original) != nil || original.AttemptKey != key || original.Directory != directory || original.Source != filepath.Join(directory, "src") || original.Repository != repo || original.BaseCommit != source.BaseCommit || original.AdminBaseCommit != source.AdminBaseCommit || !sameTerminalCodeBaseline(original.Assignment.CodeBaseline, source.CodeBaseline) || original.Assignment.Type != "terminal_session" || candidateRef(original.Assignment) != source.Original {
 		return fmt.Errorf("Original stopped terminal attempt identity is unavailable")
 	}
 	if err = terminalCandidateStopped(&original, source.SessionID); err != nil {
@@ -260,7 +263,7 @@ func applyTerminalCandidateSource(ctx context.Context, a Assignment, cfg ExecCon
 	}
 	stored, err := nativeSealReadMetadata(filepath.Join(directory, "terminal-candidate-source.json"))
 	var fixed terminalCandidateInventoryRecord
-	if err != nil || json.Unmarshal(stored, &fixed) != nil || fixed.SHA256 != source.SnapshotSHA256 {
+	if err != nil || json.Unmarshal(stored, &fixed) != nil || fixed.SHA256 != source.SnapshotSHA256 || terminalCandidateInventoryDigest(fixed) != source.SnapshotSHA256 || fixed.BaseCommit != source.BaseCommit || fixed.AdminBaseCommit != source.AdminBaseCommit || !sameTerminalCodeBaseline(fixed.CodeBaseline, source.CodeBaseline) {
 		return fmt.Errorf("Stopped terminal snapshot receipt is unavailable")
 	}
 	inventory, files, err := terminalCandidateInventory(ctx, &original)
@@ -307,7 +310,7 @@ func sealTerminalCandidate(ctx context.Context, a Assignment, w *attemptWorkspac
 	}
 	data, err := nativeSealReadMetadata(filepath.Join(w.Directory, "terminal-candidate-import.json"))
 	var inventory terminalCandidateInventoryRecord
-	if err != nil || json.Unmarshal(data, &inventory) != nil || inventory.SHA256 != source.SnapshotSHA256 || terminalCandidateInventoryDigest(inventory) != source.SnapshotSHA256 {
+	if err != nil || json.Unmarshal(data, &inventory) != nil || inventory.SHA256 != source.SnapshotSHA256 || terminalCandidateInventoryDigest(inventory) != source.SnapshotSHA256 || inventory.BaseCommit != source.BaseCommit || inventory.AdminBaseCommit != source.AdminBaseCommit || !sameTerminalCodeBaseline(inventory.CodeBaseline, source.CodeBaseline) || w.BaseCommit != source.BaseCommit || w.AdminBaseCommit != source.AdminBaseCommit || !sameTerminalCodeBaseline(a.CodeBaseline, source.CodeBaseline) {
 		fail(fmt.Errorf("original captured files are unavailable"))
 		return
 	}

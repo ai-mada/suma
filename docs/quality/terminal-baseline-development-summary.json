@@ -1,0 +1,269 @@
+{
+  "stage": "T-BASELINE-131",
+  "date": "2026-10-29",
+  "product_version": "1.0.0",
+  "status": "scoped_actual_windows_accepted_baseline_terminal_continuation_verified_gui_not_verified",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "integration_parent": "6d02ab6e5133bcee744e08f1120bbe531a3b961e",
+    "inventory": ".cache/e2e/baseline-131/source-inventory.json",
+    "sha256": "68a6597566587cf68f64ade91a93e799c0c680de388c586114659a7053720f06",
+    "files": 43,
+    "policy": "Committed baseline plus exact owned source; concurrent desktop and tool discovery work excluded. No compatibility fallbacks."
+  },
+  "checks": {
+    "distinct_go_top_tests": [
+      "TestCandidateCompositionBaselineAcceptanceTraversesOriginalSources",
+      "TestCandidateCompositionBaselineDispatchFreezesAndRechecksCurrentAuthority",
+      "TestCandidateCompositionRealGitAndInheritedNoDelta",
+      "TestCodeBaselineDigestAndInheritedAnchorContract",
+      "TestCodeBaselineNeverFallsBackToAdministratorBase",
+      "TestCodeBaselineRequiresOneExactAcceptedOrigin",
+      "TestTerminalAdoptedBaselinePreservesSelectedCommitAndOriginalBundleAnchor",
+      "TestTerminalBaselineCannotFallBackOrMixSourceBindings",
+      "TestTerminalCandidateChangedImportManifestCannotAuthorizeCheckEdits",
+      "TestTerminalCandidateInventoryRejectsLaterDriftAndProtectedEdits",
+      "TestTerminalCandidatePublicTemplateCannotGrantSourceAuthority",
+      "TestTerminalCandidateSealOnlyAcceptsCapturedFiles",
+      "TestTerminalRestartImportsOnlyOriginalDurableStopAndLeavesEffectUnknown",
+      "TestTerminalRestartRecoversCapturedSourceBeforeFirstSnapshotExchange",
+      "TestWorkspaceTerminalAcceptedBaselineActualFollowupDevelopment",
+      "TestWorkspaceTerminalFreezesAcceptedBaselineWithoutBindingTaskRun"
+    ],
+    "go_count": 16,
+    "web_cases": 9,
+    "new_web_cases": 3,
+    "full_web_typecheck": true,
+    "web_production_build": true,
+    "catalog_keys": 6505,
+    "production_hardcodes": 0,
+    "generated_contract_check": true,
+    "public_models": 689,
+    "api_paths": 320,
+    "openapi_schema_definitions": 690,
+    "independent_readonly_review": "No evidenced blocking finding; no extra builds or model invocations by reviewer.",
+    "go_receipts": [
+      {
+        "path": ".cache/e2e/baseline-131/go/20261029T082148205Z.command.json",
+        "sha256": "d1f20a7841a85113ce650f2161ed681a986f2c07e7b415e6d7a733a4585c5a8b",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./internal/runner",
+          "./internal/candidatecompositioncontract",
+          "-run",
+          "^(TestWorkspaceTerminalFreezesAcceptedBaselineWithoutBindingTaskRun|TestWorkspaceTerminalAcceptedBaselineActualFollowupDevelopment|TestTerminalAdoptedBaselinePreservesSelectedCommitAndOriginalBundleAnchor|TestTerminalBaselineCannotFallBackOrMixSourceBindings|TestTerminalCandidate.*|TestTerminalRestartRecoversCapturedSourceBeforeFirstSnapshotExchange|TestTerminalRestartImportsOnlyOriginalDurableStopAndLeavesEffectUnknown|TestCodeBaselineNeverFallsBackToAdministratorBase|TestCandidateCompositionRealGitAndInheritedNoDelta|TestCandidateCompositionBaselineAcceptanceTraversesOriginalSources|TestCandidateCompositionBaselineDispatchFreezesAndRechecksCurrentAuthority|TestCodeBaselineDigestAndInheritedAnchorContract|TestCodeBaselineRequiresOneExactAcceptedOrigin)$",
+          "-count=1",
+          "-timeout",
+          "4m"
+        ],
+        "exit_code": 1,
+        "stdout_sha256": "81f954155d6fffe2c56d62221367d18c8ff2cd7db72b490d8aa6e50f53fbc0cf",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/e2e/baseline-131/go/20261029T082417126Z.command.json",
+        "sha256": "e5fecd77c73184026c007d98a7b09053a8f8f5bcacd8767c21e29832c928665b",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./internal/runner",
+          "./internal/candidatecompositioncontract",
+          "-run",
+          "^(TestWorkspaceTerminalFreezesAcceptedBaselineWithoutBindingTaskRun|TestWorkspaceTerminalAcceptedBaselineActualFollowupDevelopment|TestTerminalAdoptedBaselinePreservesSelectedCommitAndOriginalBundleAnchor|TestTerminalBaselineCannotFallBackOrMixSourceBindings|TestTerminalCandidate.*|TestTerminalRestartRecoversCapturedSourceBeforeFirstSnapshotExchange|TestTerminalRestartImportsOnlyOriginalDurableStopAndLeavesEffectUnknown|TestCodeBaselineNeverFallsBackToAdministratorBase|TestCandidateCompositionRealGitAndInheritedNoDelta|TestCandidateCompositionBaselineAcceptanceTraversesOriginalSources|TestCandidateCompositionBaselineDispatchFreezesAndRechecksCurrentAuthority|TestCodeBaselineDigestAndInheritedAnchorContract|TestCodeBaselineRequiresOneExactAcceptedOrigin)$",
+          "-count=1",
+          "-json",
+          "-timeout",
+          "4m"
+        ],
+        "exit_code": 1,
+        "stdout_sha256": "5d48aa6c0a573107ef4c274f303cc86ec104501ad7548c4b1f32c30cb7db40a6",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/e2e/baseline-131/go/20261029T082705571Z.command.json",
+        "sha256": "3132088e776d7b1704524de3e86c60bb312a2e3594d46746baa17d945f056796",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "fb54147de412b12cfaf52d365b7110960bef932c7485d828a3e031d5ce1c5885",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/e2e/baseline-131/go/20261029T082847616Z.command.json",
+        "sha256": "af33f024082928f4be19c2103decf6bc5cba8020a63c07f5dc5f9e68dda966b4",
+        "arguments": [
+          "run",
+          "D:/codes/ai-dev-os/suma/.cache/e2e/baseline-131/pathdiag.go"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "43474678e4bc6b6f9a18ef6f7513e8b04ab7067ca8ee9f1bc717e30dc568c016",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/e2e/baseline-131/go/20261029T083000364Z.command.json",
+        "sha256": "9a6a33fed710832a856a2a07893ba8b067c20a5f7ee949e0d72fe4ca5718f363",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./internal/runner",
+          "-run",
+          "^(TestWorkspaceTerminalAcceptedBaselineActualFollowupDevelopment|TestTerminalAdoptedBaselinePreservesSelectedCommitAndOriginalBundleAnchor|TestTerminalCandidateInventoryRejectsLaterDriftAndProtectedEdits|TestTerminalCandidateSealOnlyAcceptsCapturedFiles|TestTerminalCandidateChangedImportManifestCannotAuthorizeCheckEdits|TestTerminalRestartRecoversCapturedSourceBeforeFirstSnapshotExchange|TestCandidateCompositionRealGitAndInheritedNoDelta)$",
+          "-count=1",
+          "-json",
+          "-timeout",
+          "4m"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "6c7cfda7c04fcafc92e35d61ce2fcc9ef2eaeeec43c44812f79e74094ff69cdd",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/e2e/baseline-131/go/20261029T083417427Z.command.json",
+        "sha256": "8f0e91413270b5631f90406c72f71c0a2e1981b12c2c2bd14dafcfebccbc3dbf",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "c0e89c8a268b7f5ab04578ac5e46aaa7628eb8b9a58c2ae81d98fd2bd397fd84",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "final_merged_integration": {
+      "parent": "7f4e322c45914b926adf06aba6571d33ccf7724d",
+      "public_models": 690,
+      "api_paths": 321,
+      "openapi_schema_definitions": 691,
+      "contract_check": true,
+      "web_typecheck": true,
+      "web_i18n": true,
+      "source_note": "Merged with independently committed discovery132; own schema delta preserved, then combined schema and static web checks passed. No repeated behavior suite or build."
+    }
+  },
+  "actual": {
+    "accepted_review_id": "fcbd06f194c77f9b6a89636509ebe221",
+    "base_commit": "8741bcddbacff5fcf4296abba01945b3c2cd30c3",
+    "candidate_commit": "cdb48184a248f9c14e9f21726ee4d51005b6edf3",
+    "candidate_run_id": "f8edd0293ff13079e1c0237094628edb",
+    "canonical_issue_id": "9826c370aeabc6639e34f632adde385f",
+    "canonical_requirement_id": "c838ca1a954545c60720768037a73f5b",
+    "customer_human_signoff": false,
+    "followup_binding": {
+      "protocol": "suma.code-baseline.v1",
+      "id": "c954ece4cbcf792067cf12c0bc10b242",
+      "project_id": "9f8e94fb461f76d7ba184a0f68266b74",
+      "task_id": "b497c2055f7b76dd0ced6978ed8d0855",
+      "task_version": 2,
+      "terminal_candidate_plan_id": "c308a6a343adc3795c66d5081efb3b3f",
+      "terminal_candidate_plan_version": 2,
+      "accepted_basis_sha256": "f622c5c68ec2502938f7aed695eba7dba2740f24b3f4e400edf356d9897a21e6",
+      "source": {
+        "schema_version": 1,
+        "transfer_id": "2741656d244c5284a2a146c450098fe7",
+        "project_id": "9f8e94fb461f76d7ba184a0f68266b74",
+        "state": "sealed",
+        "source": {
+          "run_id": "f8edd0293ff13079e1c0237094628edb",
+          "node_id": "capture",
+          "attempt": 1,
+          "fence": 1,
+          "worker_id": "terminal-source-worker130"
+        },
+        "base_commit": "8741bcddbacff5fcf4296abba01945b3c2cd30c3",
+        "bundle_base_commit": "8741bcddbacff5fcf4296abba01945b3c2cd30c3",
+        "head_commit": "cdb48184a248f9c14e9f21726ee4d51005b6edf3",
+        "evidence_sha256": "980d0b1d9071a016b17d22e69e5db0800d66a25260fabe11dc41881ab21047c6",
+        "bundle_sha256": "a268077227b9f4730cc2fe71d2bc1562542b04ecc27966fd07cfa9938dfefda3",
+        "size_bytes": 503
+      },
+      "binding_sha256": "55224efbbeafea45fb7579bdab38ce981f1014d30b576c009a53b3f1bfc3be04"
+    },
+    "followup_development": {
+      "accepted_review_id": "516ba26a3a4aad2f470bb23d6f519343",
+      "admin_bundle_prerequisite": "8741bcddbacff5fcf4296abba01945b3c2cd30c3",
+      "adopted_source_commit": "cdb48184a248f9c14e9f21726ee4d51005b6edf3",
+      "candidate_commit": "2e9e0f6ef1d6e26c3f970646453b324c65f5818a",
+      "candidate_plan_id": "034039a82713fbb0bdf28d6d848eb0a6",
+      "candidate_run_id": "2347c29d74ab9aaf2ad21ced69249a20",
+      "customer_human_signoff": false,
+      "formal_cases_passed": 1,
+      "independent_worker": "baseline-independent-worker131",
+      "junit_sha256": "c9a974a8b2d2bce392d2b954d573d7fde3a0bf252d045b7d78a8a1f5e7b0e697",
+      "model_calls": 0,
+      "opened_source_sha256": "b7fe0fbde04b24b85270a6b7006017ce20facbb63eff2f45e82b96bb2e100620",
+      "producer_worker": "terminal-source-worker130",
+      "source_imported_before_shell": true,
+      "task_id": "b497c2055f7b76dd0ced6978ed8d0855",
+      "task_unchanged_by_terminal": true,
+      "terminal_run_id": "terminal-a224ece941ba8ae9e37b32194cab9812",
+      "terminal_session_id": "a224ece941ba8ae9e37b32194cab9812",
+      "terminal_snapshot_sha256": "59510f598e2095ca38d2c6f8837ca0c4e7bb943912ee6f75bf2b5e52e49b88b5",
+      "upstream_rejection_blocks_new_followup_review": true
+    },
+    "followup_task_id": "b497c2055f7b76dd0ced6978ed8d0855",
+    "formal_cases_passed": 1,
+    "independent_source_repo": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\baseline-131\\check-source\\.cache\\e2e\\baseline-131\\actual-2\\independent-source",
+    "independent_worker": "terminal-independent-worker130",
+    "junit_sha256": "76248a6011d104c024dc43a4f6aaae5144c1f3ad757c0b66c5c5376e1a85f52a",
+    "kind": "actual_windows_pty_stopped_candidate_independent_git_http_junit_review",
+    "late_rejection_invalidates_followup_baseline": true,
+    "model_calls": 0,
+    "parent_checkouts_unchanged": true,
+    "producer_worker": "terminal-source-worker130",
+    "production_complete": false,
+    "project_id": "9f8e94fb461f76d7ba184a0f68266b74",
+    "rejected_review_id": "81389d83b8ee942d8622b5fb5fa7495f",
+    "stage": "T-BASELINE-131",
+    "task_id": "822a66a2c869f7b7a92f1cedfe24c331",
+    "terminal_candidate_plan_id": "c308a6a343adc3795c66d5081efb3b3f",
+    "terminal_candidate_plan_version": 2,
+    "terminal_journal_sha256": "ee0731278c713522fdcb094f9649b51b19b11c4f2799d116551c5aa39ae08e95",
+    "terminal_manifest_file_sha256": "8da9eaa296677d3728802ff5425c2510d4a383855649ed9e9c3919aa94cf77b2",
+    "terminal_run_id": "terminal-068cee70e386607d5b59fd729cae78b5",
+    "terminal_session_id": "068cee70e386607d5b59fd729cae78b5",
+    "terminal_snapshot_sha256": "7f2b37b0ef92f8e2945c294f0cb6341d290c6a41cabd46570bdba5b558e81c62"
+  },
+  "evidence": {
+    "root": ".cache/e2e/baseline-131/actual-2",
+    "files": 213,
+    "inventory_sha256": "1c98fa62fb50c24304e4005dbf66c9adc0048320fdb9ec7d523a752beaff58c6",
+    "failed_fixture": ".cache/e2e/baseline-131/actual",
+    "failed_inventory_sha256": "e9ffbf7ee0743bdcf196167843241e459f7df196ef826a05a342f4bb723b48fd",
+    "path_note": "Retained fixture directories moved with before/after per-file hashes from isolated check-source to the stage root; original path strings in public evidence remain unchanged."
+  },
+  "diagnostics": [
+    {
+      "reason": "Initial owned-evidence path was outside the isolated fixture root; stopped before actual work.",
+      "production_change": false
+    },
+    {
+      "reason": "C temporary directory allowed Mkdir but filepath.EvalSymlinks returned Access is denied; old unchanged Git tests failed before imports. Task-local D cache restored native path inspection.",
+      "production_change": false
+    },
+    {
+      "reason": "Slower shared host caused genuine tool inventory expiry during first retained journey; fixture now re-probes and reports actual commands before new work. Production inventory TTL unchanged.",
+      "production_change": false
+    },
+    {
+      "reason": "Initial isolated Node imports lacked root package-store link; zero tests executed. Fixed workspace links, then9 passed. First typecheck ran before generation; generated contracts then typecheck passed.",
+      "production_change": false
+    }
+  ],
+  "limits": [
+    "Current GUI rendering not verified: last actual browser session reported browser use disabled in Work settings; no bypass or settings change. Component/locale/build evidence is not GUI acceptance.",
+    "Windows local OS/HTTP/Git/PTY only; separate workers and repositories share one physical host.",
+    "Fixture owner Review is explicit test acceptance, not customer or production signoff.",
+    "No model calls, no new dependencies, no native SDK build, no repeated full web suite.",
+    "Unix process containment, physical multi-host/Pool fault matrix, full terminal recovery matrix, installers and production remain pending.",
+    "Existing large Vite chunks remain; no new performance or capacity claim."
+  ]
+}

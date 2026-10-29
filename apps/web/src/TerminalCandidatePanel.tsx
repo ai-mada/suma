@@ -10,9 +10,10 @@ import {toolSessionStorage} from './tool-hooks';
 import {useReplyCollection, useReplyRead} from './task-conversation-reply-hooks';
 import {terminalEnded, terminalID} from './terminal-model';
 import {validTerminalRecoveryView} from './terminal-recovery-model';
-import {terminalCandidatePreviewReceipt, terminalCandidateProducers, terminalCandidateTool, validTerminalCandidatePlan,
+import {terminalCandidatePreviewReceipt, terminalCandidateProducers, terminalCandidateTool, validTerminalCandidatePlan, terminalCandidateMatchesSession,
   validTerminalCandidateRequest, validTerminalCandidateTools, validTerminalCandidateWorkflows, validTerminalCandidatePage} from './terminal-candidate-model';
 import {TerminalCandidateHandoffPanel} from './TerminalCandidateHandoffPanel';
+import {TerminalBaselineFacts} from './TerminalBaselineFacts';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('terminal.' + key, values);
 type Props = {project: string; task: string; taskVersion?: number; session: WorkspaceTerminalSession; scope: string; active: boolean; disabled: boolean;
@@ -34,32 +35,31 @@ export function TerminalCandidatePanel({project, task, taskVersion, session, sco
     validateRequest: request => validTerminalCandidateRequest(request, project, session.id),
     validateResponse: async (value, request) => {
       if (request.path.endsWith('/candidate-plans')) return terminalCandidatePreviewReceipt(value, request, project, task, session.id, session.run_id) &&
-        value.source.snapshot_sha256 === session.source_snapshot_sha256 && value.source.base_commit === session.base_commit && value.worker_id === session.worker_id;
+        terminalCandidateMatchesSession(value, session);
       const match = /^\/workspace\/terminal-candidate-plans\/([A-Za-z0-9_.-]+)\/start$/.exec(request.path);
       if (!match || !object(value) || value.project_id !== project) return false;
       const original = await api<unknown>('/workspace/terminal-candidate-plans/' + encodeURIComponent(match[1]) + query(project));
-      return validTerminalCandidatePlan(original, project, task, session.id) && original.id === match[1] && original.source.original.run_id === session.run_id &&
+      return validTerminalCandidatePlan(original, project, task, session.id) && original.id === match[1] && terminalCandidateMatchesSession(original, session) &&
         original.version >= Number(request.body.expected_version) && original.state === 'started' && value.id === original.run_id &&
         value.workflow_id === original.workflow.id && value.workflow_version === original.workflow.version;
     }});
   const locked = action.busy || !!action.pending || handoffLocked, blocked = action.errorStatus === 401 || action.errorStatus === 403;
   const refuse = useCallback(() => callbacks.current.onDenied(), []);
   const history = useReplyRead('/workspace/terminal-sessions/' + encodeURIComponent(session.id) + '/candidate-plans' + query(project), open && active && !blocked,
-    (value): value is WorkspaceTerminalCandidatePlanPage => validTerminalCandidatePage(value, project, task, session.id, session.run_id), refuse, refresh);
+    (value): value is WorkspaceTerminalCandidatePlanPage => validTerminalCandidatePage(value, project, task, session.id, session.run_id) && value.items.every(plan => terminalCandidateMatchesSession(plan, session)), refuse, refresh);
   const proof = useReplyRead('/workspace/terminal-sessions/' + encodeURIComponent(session.id) + '/recovery' + query(project), open && active && newPreview && !selected && !blocked,
     (value): value is WorkspaceTerminalRecoveryView => validTerminalRecoveryView(value, session.id, session.run_id), refuse, refresh);
   const workflows = useReplyRead('/workflows' + query(project), open && active && newPreview && !selected && !blocked, validTerminalCandidateWorkflows, refuse, refresh);
   const profiles = useReplyCollection('/tool-profiles' + query(project) + '&limit=100', 'cursor', open && active && newPreview && !selected && !blocked,
     (value): value is {items: import('./tool-model').ToolProfile[]; total: number; next_cursor?: string} => validTerminalCandidateTools(value, project), refuse, refresh);
   const planRead = useReplyRead('/workspace/terminal-candidate-plans/' + encodeURIComponent(selected) + query(project), open && active && !!selected && !blocked,
-    (value): value is WorkspaceTerminalCandidatePlan => validTerminalCandidatePlan(value, project, task, session.id) && value.id === selected && value.source.original.run_id === session.run_id &&
-      value.source.snapshot_sha256 === session.source_snapshot_sha256 && value.source.base_commit === session.base_commit && value.worker_id === session.worker_id, refuse, refresh);
+    (value): value is WorkspaceTerminalCandidatePlan => validTerminalCandidatePlan(value, project, task, session.id) && value.id === selected && terminalCandidateMatchesSession(value, session), refuse, refresh);
   const plan = planRead.value || (created?.id === selected ? created : undefined);
   const flow = workflows.value?.items.find(item => item.id + '@' + item.version === flowKey), command = flow?.nodes.find(node => node.id === producer)?.command?.[0];
   const tools = profiles.value?.items.filter(tool => terminalCandidateTool(tool, session.worker_id, command)) || [];
   const profile = tools.find(tool => tool.id === profileID);
   const currentTaskVersion = Math.max(taskVersion || 0, history.value?.task_version || 0);
-  const stopped = terminalEnded(session) && !!session.source_snapshot_sha256 && !!session.base_commit && proof.value?.tree_stopped && !proof.value.can_recover && !proof.loading && !proof.error;
+  const stopped = terminalEnded(session) && !!session.source_snapshot_sha256 && !!session.base_commit && !!session.admin_base_commit && proof.value?.tree_stopped && !proof.value.can_recover && !proof.loading && !proof.error;
   const ready = newPreview && !disabled && !locked && !blocked && !action.conflict && !action.persistenceBlocked && !!stopped && !!currentTaskVersion && consent &&
     !!flow && terminalCandidateProducers(flow).some(node => node.id === producer) && !!profile && !!command && profile.profile.command_id === command &&
     !workflows.loading && !workflows.error && !profiles.loading && !profiles.error;
@@ -123,8 +123,8 @@ export function TerminalCandidatePanel({project, task, taskVersion, session, sco
         <strong role="status">{t(plan.state === 'started' ? 'candidate.started' : 'candidate.prepared')}</strong>
         <p className="terminal-note">{t('candidate.boundary')}</p>
         {!!plan.reason && <p className="terminal-warning">{renderDiagnostic(plan.reason)}</p>}
-        <details><summary>{t('candidate.source')}</summary><dl className="terminal-facts"><dt>{t('recovery.run')}</dt><dd>{plan.source.original.run_id}</dd><dt>{t('worker')}</dt><dd>{plan.worker_id}</dd>
-          <dt>{t('candidate.base')}</dt><dd>{plan.source.base_commit}</dd><dt>{t('candidate.snapshot')}</dt><dd>{plan.source.snapshot_sha256}</dd></dl></details>
+        <details><summary>{t('candidate.source')}</summary><TerminalBaselineFacts project={project} binding={plan.source.code_baseline} adminCommit={plan.source.admin_base_commit} selectedCommit={plan.source.base_commit} title={t('baseline.frozen')}/>
+          <dl className="terminal-facts"><dt>{t('recovery.run')}</dt><dd>{plan.source.original.run_id}</dd><dt>{t('worker')}</dt><dd>{plan.worker_id}</dd><dt>{t('candidate.snapshot')}</dt><dd>{plan.source.snapshot_sha256}</dd></dl></details>
         <details><summary>{t('candidate.review')}</summary><p>{plan.context.task.title} · v{formatNumber(plan.task_version)}</p>
           <ul>{plan.context.task.acceptance_criteria.map((criterion, index) => <li key={index}>{criterion}</li>)}</ul>
           <ol>{plan.workflow.nodes.map(node => <li key={node.id}>{node.name || node.id} · {tr('development.workflow.type.' + node.type)}<small>{node.command?.join(' ')}</small></li>)}</ol>

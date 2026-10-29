@@ -2,7 +2,9 @@
 
 更新：2026-10-29。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–26 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。
 
-当前T130推进[终端原执行核对与代码候选](../development/interactive-development.md)：原会话停止证明、未知输入逐项确认及按失败关闭，与明确授权的候选预览、单独启动、同SHA独立Worker测试、人工Review和问题回流分别保留。已验收精确候选可显式绑定另一未启动任务的基线，不自动派发。实现与边界见[合同](../../contracts/terminal-recovery-candidates.md)、[架构](../architecture/interactive-terminal.md)、[交互](../design/terminal-recovery.md)、[当前专项报告](../quality/terminal-recovery-candidates-verification.md)和[摘要](../quality/terminal-recovery-candidates-summary.json)；检查数量、实际恢复故障、界面与本机链路以该报告为准。
+当前T-BASELINE-131将已验收基线真正用于后续终端开发：原管理员锚点B、采用提交M、新候选N分别保存，当前认证导入、明确候选授权、独立同提交JUnit与正式Review闭环，上游退回阻止新的验收。16项Go专项、9项Web、类型／语言／构建及真实Windows双Worker旅程通过；GUI当前未验。见[合同](../../contracts/terminal-baseline-development.md)、[报告](../quality/terminal-baseline-development-verification.md)和[摘要](../quality/terminal-baseline-development-summary.json)，58／34／92不变。
+
+前序T130推进[终端原执行核对与代码候选](../development/interactive-development.md)：原会话停止证明、未知输入逐项确认及按失败关闭，与明确授权的候选预览、单独启动、同SHA独立Worker测试、人工Review和问题回流分别保留。已验收精确候选可显式绑定另一未启动任务的基线，不自动派发。实现与边界见[合同](../../contracts/terminal-recovery-candidates.md)、[架构](../architecture/interactive-terminal.md)、[交互](../design/terminal-recovery.md)、[当前专项报告](../quality/terminal-recovery-candidates-verification.md)和[摘要](../quality/terminal-recovery-candidates-summary.json)；检查数量、实际恢复故障、界面与本机链路以该报告为准。
 
 本次真实PTY修改沿固定命令检查、候选封存与独立克隆测试继续原质量链路，不新增模型调用；提前Review拒绝、明确采用／拒绝与唯一问题回流分别记录。恢复仍要求原持久停止证明，不把失联、人工确认未知或历史读取当作进程已停／执行成功。完整恢复故障覆盖、Unix containment、物理多机、跨平台安装和生产验收继续待办，58／34／92不变。T129原终端与讨论开发交接的[历史报告](../quality/interactive-development-verification.md)／[摘要](../quality/interactive-development-summary.json)保留原来源及失败审计。
 

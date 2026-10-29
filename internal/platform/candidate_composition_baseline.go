@@ -214,14 +214,8 @@ func (s *Service) bindCodeBaselineExecutionTx(ctx context.Context, tx *sql.Tx, a
 	if err := s.checkTaskCodeBaselineTx(ctx, tx, auth.target.tenantID, project, b); err != nil {
 		return err
 	}
-	var taskRun, raw string
-	var version int
-	if err := tx.QueryRowContext(ctx, s.q(`SELECT t.run_id,t.version,n.spec FROM suma_tasks t JOIN dag_runs r ON r.tenant_id=t.tenant_id AND r.project_id=t.project_id AND r.id=t.run_id JOIN dag_nodes n ON n.run_id=r.id AND n.id=? WHERE t.tenant_id=? AND t.project_id=? AND t.id=?`), node, auth.target.tenantID, project, b.TaskID).Scan(&taskRun, &version, &raw); err != nil {
+	if _, err := s.codeBaselineTaskRelationTx(ctx, tx, auth.target.tenantID, project, run, node, b, true); err != nil {
 		return err
-	}
-	var spec dag.Node
-	if taskRun != run || version != b.TaskVersion+1 || json.Unmarshal([]byte(raw), &spec) != nil || spec.Type != "agent" || spec.Config["candidate_from"] != nil || !codeBaselineConfigMatches(spec.Config["code_baseline"], b) {
-		return compositionError(409, "baseline_changed", compositionBaseline)
 	}
 	route, err := dag.ReadRunExecutionRouteTx(ctx, tx, s.Dialect, auth.target.tenantID, project, run)
 	if err != nil {
@@ -267,15 +261,8 @@ func (s *Service) checkCodeBaselineExecutionTx(ctx context.Context, tx *sql.Tx, 
 	if _, err = s.compositionCreatorTx(ctx, tx, tenant, project, r.Creator); err != nil {
 		return err
 	}
-	var taskRun, specRaw string
-	var taskVersion int
-	err = tx.QueryRowContext(ctx, s.q(`SELECT t.run_id,t.version,n.spec FROM suma_tasks t JOIN dag_runs d ON d.tenant_id=t.tenant_id AND d.project_id=t.project_id AND d.id=? JOIN dag_nodes n ON n.run_id=d.id AND n.id=? WHERE t.tenant_id=? AND t.project_id=? AND t.id=?`), run, node, tenant, project, r.Binding.TaskID).Scan(&taskRun, &taskVersion, &specRaw)
-	if err != nil {
+	if _, err = s.codeBaselineTaskRelationTx(ctx, tx, tenant, project, run, node, r.Binding, requireCurrentSource); err != nil {
 		return err
-	}
-	var spec dag.Node
-	if taskRun != run || json.Unmarshal([]byte(specRaw), &spec) != nil || spec.Type != "agent" || spec.Config["candidate_from"] != nil || !codeBaselineConfigMatches(spec.Config["code_baseline"], r.Binding) {
-		return compositionError(409, "baseline_changed", compositionBaseline)
 	}
 	bound, err := dag.ReadRunExecutionRouteTx(ctx, tx, s.Dialect, tenant, project, run)
 	if err != nil {
@@ -285,9 +272,6 @@ func (s *Service) checkCodeBaselineExecutionTx(ctx context.Context, tx *sql.Tx, 
 		return compositionError(409, "baseline_changed", compositionBaseline)
 	}
 	if requireCurrentSource {
-		if taskVersion != r.Binding.TaskVersion+1 {
-			return compositionError(409, "baseline_changed", compositionBaseline)
-		}
 		if err = s.checkTaskCodeBaselineTx(ctx, tx, tenant, project, r.Binding); err != nil {
 			return err
 		}
@@ -308,7 +292,11 @@ func (s *Service) codeBaselineInputBindingTx(ctx context.Context, tx *sql.Tx, a 
 		return out, err
 	}
 	b := r.Binding
-	if b.ID != req.BindingID || b.Source.TransferID != req.TransferID || a.spec.Type != "agent" || a.spec.Config["candidate_from"] != nil {
+	allowed, err := s.codeBaselineNodeKindTx(ctx, tx, a.subject.tenant, a.subject.project, a.assignment.RunID, a.assignment.NodeID, a.spec, b)
+	if err != nil {
+		return out, err
+	}
+	if b.ID != req.BindingID || b.Source.TransferID != req.TransferID || !allowed {
 		return out, forbidden()
 	}
 	if err = s.checkCodeBaselineExecutionTx(ctx, tx, a.subject.tenant, a.subject.project, a.assignment.RunID, a.assignment.NodeID, true); err != nil {

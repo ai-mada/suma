@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	"time"
 
 	"github.com/ai-mada/suma/internal/dag"
@@ -22,6 +23,21 @@ func (s *Service) workspaceTerminalBasisTx(ctx context.Context, auth *authorized
 	}
 	if task.Status == "accepted" || task.Version != r.Task.Version || task.RunID != r.TaskRunID || stringify(taskContextRecord(task)) != stringify(r.Task) {
 		return conflict(workspaceTerminalChanged)
+	}
+	baseline, _, err := s.taskCodeBaselineTx(ctx, auth.tx, auth.target.tenantID, r.Session.ProjectID, r.Session.TaskID)
+	if err != nil {
+		return err
+	}
+	if stringify(baseline) != stringify(r.Session.CodeBaseline) {
+		return conflict(workspaceTerminalChanged)
+	}
+	if baseline != nil {
+		if baseline.TaskVersion != task.Version {
+			return conflict(workspaceTerminalChanged)
+		}
+		if err = s.checkTaskCodeBaselineTx(ctx, auth.tx, auth.target.tenantID, r.Session.ProjectID, *baseline); err != nil {
+			return err
+		}
 	}
 	if r.Requirement == nil {
 		if task.RequirementID != "" {
@@ -92,6 +108,12 @@ func (s *Service) CreateWorkspaceTerminal(ctx context.Context, engine *dag.Engin
 		err = conflict(workspaceTerminalChanged)
 	}
 	record := workspaceTerminalRecord{Task: taskContextRecord(task), TaskRunID: task.RunID, Creator: auth.currentPrincipal.ID, CreatorCredentialHash: actor.credential.digest}
+	var baseline *ccmp.CodeBaselineBinding
+	if err == nil {
+		var context TaskContext
+		context, err = s.taskContextTx(first, auth.tx, auth.currentPrincipal, project, req.TaskID)
+		baseline = context.CodeBaseline
+	}
 	if err == nil && task.RequirementID != "" {
 		var requirement Record
 		requirement, err = s.getRecordTx(first, auth, project, "requirements", task.RequirementID)
@@ -126,8 +148,15 @@ func (s *Service) CreateWorkspaceTerminal(ctx context.Context, engine *dag.Engin
 	}
 	id := digest(actor.credential.digest + ":" + project + ":" + req.IdempotencyKey + ":workspace-terminal")[:32]
 	record.Session = term.Session{ID: id, ProjectID: project, TaskID: req.TaskID, TaskVersion: req.ExpectedTaskVersion, Version: 1, RunID: "terminal-" + id, State: "queued", ToolProfileID: profile.ID, ToolName: profile.Name, WorkerID: profile.WorkerID, Columns: req.Columns, Rows: req.Rows, ControlEpoch: 1, NextInputSequence: 1, ExpiresAt: automationStamp(clock.Add(time.Duration(req.TimeoutSeconds) * time.Second)), CreatedAt: automationStamp(clock), AllowedActions: []string{}}
+	record.Session.CodeBaseline = baseline
+	if baseline != nil {
+		record.Session.BaseCommit, record.Session.AdminBaseCommit = baseline.Source.HeadCommit, baseline.Source.BundleBase()
+	}
 	record.ToolProfileVersion, record.ToolProfileSHA256 = profile.Version, profile.Profile.ProfileSHA256
 	w := dag.Workflow{Name: "Interactive task terminal", Nodes: []dag.Node{{ID: "terminal", Name: "Interactive isolated workspace shell", Type: "terminal_session", Command: []string{profile.Profile.CommandID}, DependsOn: []string{}, TimeoutSeconds: req.TimeoutSeconds, MaxRetries: 0, Idempotent: false, Config: map[string]any{"terminal_session_id": id, "task_id": req.TaskID, "task_version": req.ExpectedTaskVersion, "columns": req.Columns, "rows": req.Rows, "tool_profile_id": profile.ID, "tool_profile_sha256": profile.Profile.ProfileSHA256}}}, Edges: []dag.Edge{}}
+	if baseline != nil {
+		w.Nodes[0].Config["code_baseline"] = baseline
+	}
 	authority := s.engineAuthority(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: req.TaskID}, purposeProjectWrite)
 	defer authority.close()
 	_, err = engine.CreateManagedRunBound(authority.ctx, actor.credential.tenantID, project, record.Session.RunID, "terminal-create-"+id, w, authority.before, func(tx *sql.Tx, actual string) error {
@@ -164,6 +193,11 @@ func (s *Service) CreateWorkspaceTerminal(ctx context.Context, engine *dag.Engin
 		}
 		if _, e = tx.ExecContext(authority.ctx, s.q(`INSERT INTO suma_workspace_terminal_sessions(id,tenant_id,project_id,task_id,run_id,version,state,created_at,payload)VALUES(?,?,?,?,?,1,'queued',?,?)`), id, a.target.tenantID, project, req.TaskID, actual, record.Session.CreatedAt, stringify(record)); e != nil {
 			return e
+		}
+		if baseline != nil {
+			if e = s.bindCodeBaselineExecutionTx(authority.ctx, tx, a, project, actual, "terminal", *baseline); e != nil {
+				return e
+			}
 		}
 		if _, e = tx.ExecContext(authority.ctx, s.q(`INSERT INTO suma_workspace_terminal_active(tenant_id,project_id,task_id,session_id)VALUES(?,?,?,?)`), a.target.tenantID, project, req.TaskID, id); e != nil {
 			return e
@@ -340,6 +374,24 @@ func (s *Service) ListWorkspaceTerminals(ctx context.Context, actor Actor, proje
 		return out, err
 	}
 	out.TaskVersion = record.Version
+	out.BaselineCurrent = true
+	out.CodeBaseline, _, err = s.taskCodeBaselineTx(ctx, auth.tx, auth.target.tenantID, project, task)
+	if err != nil {
+		return out, err
+	}
+	if out.CodeBaseline != nil {
+		check := s.checkTaskCodeBaselineTx(ctx, auth.tx, auth.target.tenantID, project, *out.CodeBaseline)
+		if out.CodeBaseline.TaskVersion != record.Version && check == nil {
+			check = conflict(workspaceTerminalChanged)
+		}
+		if check != nil {
+			var api *APIError
+			if !errors.As(check, &api) {
+				return out, check
+			}
+			out.BaselineCurrent, out.BaselineReason = false, check.Error()
+		}
+	}
 	rows, err := auth.tx.QueryContext(ctx, s.q(`SELECT id FROM suma_workspace_terminal_sessions WHERE tenant_id=? AND project_id=? AND task_id=? ORDER BY created_at DESC,id DESC LIMIT 20`), auth.target.tenantID, project, task)
 	if err != nil {
 		return out, err
@@ -381,7 +433,7 @@ func (s *Service) ListWorkspaceTerminals(ctx context.Context, actor Actor, proje
 	}
 	_, writeErr := s.currentProjectMembershipLockedTx(ctx, auth.tx, auth.target.tenantID, auth.currentPrincipal.ID, project, true, false)
 	if writeErr == nil {
-		out.CanCreate = record.Status != "accepted" && s.workspaceTerminalActiveTx(ctx, auth.tx, auth.target.tenantID, project, task) == nil
+		out.CanCreate = record.Status != "accepted" && out.BaselineCurrent && s.workspaceTerminalActiveTx(ctx, auth.tx, auth.target.tenantID, project, task) == nil
 	} else {
 		var api *APIError
 		if !errors.As(writeErr, &api) || api.Status != 403 {

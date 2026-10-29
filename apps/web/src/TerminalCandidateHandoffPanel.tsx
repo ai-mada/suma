@@ -10,6 +10,7 @@ import {toolSessionStorage} from './tool-hooks';
 import {useReplyCollection, useReplyRead} from './task-conversation-reply-hooks';
 import {validTaskDelivery} from './task-delivery-model';
 import {compositionBinding, compositionRecovery, compositionText, validCodeBaseline, validCompositionTask} from './candidate-composition-model';
+import {TerminalBaselineFacts} from './TerminalBaselineFacts';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('terminal.' + key, values);
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
@@ -82,7 +83,7 @@ export function TerminalCandidateHandoffPanel({project, plan, scope, active, dis
       {(source.loading || run.loading || target.loading || baseline.loading || tasks.loading) && <Loading/>}
       {[source.error, run.error, tasks.error, target.error, baseline.error].filter(Boolean).map((error, index) => <ErrorNotice key={index} error={error}/>)}
       {!accepted && <p className="terminal-warning" role="status">{t('handoff.acceptance_required')}</p>}
-      {candidate && <p className="terminal-note">{t('handoff.source_commit')} <code>{candidate.head_commit}</code></p>}
+      {candidate && <TerminalBaselineFacts project={project} binding={plan.source.code_baseline} adminCommit={plan.source.admin_base_commit} selectedCommit={plan.source.base_commit} candidateCommit={candidate.head_commit} title={t('baseline.candidate_lineage')}/>}
       {!!accepted && <>
         <Field label={t('handoff.target')}><select data-terminal-handoff-target value={targetID} disabled={disabled || locked || tasks.loading} onChange={event => {setTargetID(event.target.value); setConsent(false); setBound(false);}}>
           <option value="">{t('handoff.choose_target')}</option>{tasks.value?.items.filter(item => item.id !== plan.task_id && !item.run_id).map(item => <option key={item.id} value={item.id}>{item.title || item.id} · v{formatNumber(item.version)}</option>)}

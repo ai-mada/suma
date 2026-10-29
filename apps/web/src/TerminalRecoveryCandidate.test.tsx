@@ -17,7 +17,7 @@ const stamp = '2026-10-29T12:00:00Z', project = 'project-a', task = 'task-a';
 const terminal: WorkspaceTerminalSession = {id: 'terminal-a', project_id: project, task_id: task, task_version: 3, version: 7, run_id: 'terminal-run-a', run_version: 4,
   state: 'reconciling', tool_profile_id: 'shell-a', tool_name: 'Original shell', directory: 'attempt-worktree', worker_id: 'worker-a', columns: 80, rows: 24,
   control_epoch: 1, next_input_sequence: 3, output_first_sequence: 1, output_last_sequence: 2, output_ack_sequence: 2,
-  expires_at: stamp, created_at: stamp, allowed_actions: [], reason: '', source_snapshot_sha256: 'e'.repeat(64), base_commit: 'a'.repeat(40)};
+  expires_at: stamp, created_at: stamp, allowed_actions: [], reason: '', source_snapshot_sha256: 'e'.repeat(64), base_commit: 'a'.repeat(40), admin_base_commit: 'a'.repeat(40)};
 const recovery: WorkspaceTerminalRecoveryView = {session_id: terminal.id, run_id: terminal.run_id, run_version: 4, run_state: 'reconciling', attempt: 1,
   fence: 8, dispatch_id: 'dispatch-original-a', tree_stopped: true, can_recover: true, reason: '',
   unknown_inputs: [{input_id: 'input-one', sequence: 1, sha256: 'a'.repeat(64)}, {input_id: 'input-two', sequence: 2, sha256: 'b'.repeat(64)}]};
@@ -30,7 +30,7 @@ const tool: ToolProfile = {id: 'check-profile', project_id: project, worker_id: 
   enabled_by: 'owner-a', created_at: stamp, updated_at: stamp, available: true, reason: ''};
 function planFixture(): WorkspaceTerminalCandidatePlan {
   const source = {session_id: terminal.id, session_version: 7, original: {run_id: terminal.run_id, node_id: 'terminal', attempt: 1, fence: 8, worker_id: terminal.worker_id},
-    base_commit: 'a'.repeat(40), snapshot_sha256: 'e'.repeat(64), plan_id: 'candidate-plan-a'};
+    base_commit: 'a'.repeat(40), admin_base_commit: 'a'.repeat(40), snapshot_sha256: 'e'.repeat(64), plan_id: 'candidate-plan-a'};
   return {id: source.plan_id, project_id: project, version: 1, state: 'ready', session_id: terminal.id, session_version: 7, task_id: task, task_version: 3,
     run_id: 'candidate-run-a', created_at: stamp, expires_at: '2099-10-29T12:00:00Z', tool_profile_id: tool.id, tool_profile_version: 2, tool_profile_sha256: tool.profile.profile_sha256,
     worker_id: terminal.worker_id, workflow_id: flow.id, workflow_version: 2, producer_node_id: 'check',

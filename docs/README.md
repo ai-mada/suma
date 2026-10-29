@@ -2,10 +2,13 @@
 
 更新：2026-10-29。当前只有 **1.0.0** 产品基线，完整平台仍在实现与验收中。入口按领域组织，当前能力由交付状态统一维护；专项设计、合同、英文说明、验证报告与精简摘要保留各自范围，不把历史阶段编号当成产品版本或当前完成状态。
 
+- [已验收基线上的终端迭代合同](../contracts/terminal-baseline-development.md) · [限定实际验证](quality/terminal-baseline-development-verification.md) · [精简摘要](quality/terminal-baseline-development-summary.json)：后续任务真实导入原候选、授权封存新代码、独立同提交测试及来源失效门禁；当前GUI未验。
+
 当前初始数据合同为 `suma-initial-quality-v1`，与产品版本分别管理。包括旧网关标记在内的不匹配声明须在写入前拒绝，原数据保留，新实例使用独立空目录／数据库，不迁移或回填。T-QUALITY-119受保护修复与当前数据检查见[报告](quality/issue-repair-verification.md)和[摘要](quality/issue-repair-summary.json)；既有模型网关结果保留在[原阶段报告](quality/model-gateway-verification.md)。
 
 | 当前入口 | 内容 |
 | --- | --- |
+| [平台架构/PRD/功能/交互规格 v1.0.0（主文档）](suma-architecture-design.html) | 全平台统一主规格（HTML，浏览器打开）：20 节覆盖执行摘要与能力雷达、10 大能力簇与用户故事、七层+六边形架构、全栈价值流全景、领域模型与事件体系、DAG 调度深潜、64 项功能清单（P0–P2 可筛选+全文搜索）、12 功能域 Tab、DevTools 统一管控协作拓扑（codex/cursor/claude/qoder/workbuddy/zed/opencode/octop/dsh/harness 统一接入契约）、配置中心与特性开关、智能输入/自动配置/智能调度、交互与可视化规范、权限安全、部署形态对比（SaaS/私有化/单机/桌面）、质量门禁、缺口分析 G1–G16、路线图与并发协作 AI SOP、版本迭代与缺陷全流程治理、计费计量与成本治理。支持明暗主题、PDF 导出、快捷键（T/F）与 Tab 记忆。 |
 | [交互终端与开发交接](development/interactive-development.md) | T130：真实停止证明与未知输入逐项确认后的原执行失败核对；独立候选授权、预览／启动、同SHA独立Worker测试、正式Review、问题回流及已验收基线交接。[合同](../contracts/terminal-recovery-candidates.md)、[架构](architecture/interactive-terminal.md)、[交互](design/terminal-recovery.md)、[当前报告](quality/terminal-recovery-candidates-verification.md)／[摘要](quality/terminal-recovery-candidates-summary.json)分别说明实现和实际范围；历史读取不重执行，完整恢复故障、Unix、多机和生产仍待验。[T129报告](quality/interactive-development-verification.md)／[摘要](quality/interactive-development-summary.json)保留原审计。 |
 | [任务智能体持续回复](development/task-conversation-replies.md) | T-REPLY-128：明确模型／单次参数、Token／费用预算、近期消息范围、独立运行和准确助手来源，见[架构](architecture/task-conversation-replies.md)、[合同](../contracts/task-conversation-replies.md)、[当前验证](quality/task-conversation-replies-verification.md)／[摘要](quality/task-conversation-replies-summary.json)。真实Go／Node原生CLI与本地受控提供方完成三轮／六条持久消息；第三轮由实际界面选择模型与预算创建，中英文1366／390、刷新及原运行已按报告限定验证；只读文本回复不执行终端命令，交互式[PTY](architecture/interactive-terminal.md)及明确开发交接的当前限定实现见T130入口，完整跨平台仍待交付。 |
 | [原生任务讨论](development/task-conversations.md) | T-COLLAB-127：真实持久人／API协作、准确上下文和原操作恢复，见[合同](../contracts/task-conversations.md)、[报告](quality/task-conversations-verification.md)／[摘要](quality/task-conversations-summary.json)。[交互终端架构](architecture/interactive-terminal.md)区分当前终端限定实现与完整后续目标；模型回复按 T-REPLY-128 的统一网关与正式回执合同独立验收，持久讨论的发送、刷新及中英文视觉缺口已由 T128 实际组合旅程补验，T127 原阶段档案保留。 |

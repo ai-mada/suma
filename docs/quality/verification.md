@@ -10,6 +10,7 @@ T-TERMINAL-130：原终端失联后持久交换先于结果、准确停止／未
 
 | 当前范围 | 验证与限制 |
 | --- | --- |
+| T-BASELINE-131 已验收基线上的终端迭代 | [报告](terminal-baseline-development-verification.md)、[摘要](terminal-baseline-development-summary.json)、[合同](../../contracts/terminal-baseline-development.md)：B／M／N来源、受保护当前导入、明确候选授权、独立同SHA测试与验收递归；16项Go／9项Web及本机Windows真实交接通过，GUI未验，全平台仍在实施 |
 | T-DISCOVERY-132 执行工具自动发现 | [合同](../../contracts/tool-execution.md)、[中文操作](../development/tool-discovery.md)／[English](../en/tool-discovery.md)、[报告](tool-discovery-verification.md)、[摘要](tool-discovery-summary.json)：授权节点真实上报自动填入、60秒／失权／未上报分态、人工草稿与重试恢复；80项Web、11项Go、合同及隔离类型／语言／构建通过，真实Node探测／Runner／SQLite／中英390暂停登记启用撤权闭环。读取不远程安装或执行，不代表模型健康或生产验收 |
 | T-MGMT-131 独立管理工作区 | [设计与SVG](../design/management-and-tool-discovery.md)、[报告](management-workspaces-verification.md)、[摘要](management-workspaces-summary.json)：六领域独立入口、本域导航、实际项目目录与明确来源模型目录；38项专项、类型／语言／构建及中英1440／390实际App夹具界面通过。真实节点自动发现属于后续阶段；模型配置不代表调用健康，估算不代表供应商发票 |
 | T-RELEASESET-124 应用版本集与原部署 | [报告](application-release-sets-verification.md)、[摘要](application-release-sets-summary.json)、[操作](../development/application-release-sets.md)：准确成员、独立制品及闭包，原计划逐项批准／执行／实际健康，混合包测试与JUnit分别门禁；同机真实静态演示、中英390与原计划双向追溯，完整跨应用与生产仍待办 |

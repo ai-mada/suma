@@ -1,8 +1,8 @@
-import type {WorkspaceTerminalCandidatePlan, WorkspaceTerminalCandidatePlanPage} from '../../../packages/contracts/src';
+import type {WorkspaceTerminalCandidatePlan, WorkspaceTerminalCandidatePlanPage, WorkspaceTerminalSession} from '../../../packages/contracts/src';
 import type {Workflow} from './api';
 import type {ToolProfile} from './tool-model';
 import type {WriteRecoveryRequest} from './write-action';
-import {terminalID} from './terminal-model';
+import {sameTerminalBaseline, terminalID, validTerminalBaseline} from './terminal-model';
 
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 const keys = (value: Record<string, unknown>, expected: string[]) => Object.keys(value).sort().join(',') === [...expected].sort().join(',');
@@ -58,14 +58,24 @@ export function validTerminalCandidatePlan(value: unknown, project: string, task
     value.context.task.id !== task || value.context.task.version !== value.task_version || !object(value.workflow) ||
     !Array.isArray(value.workflow.nodes) || !Array.isArray(value.workflow.edges) || !object(value.source)) return false;
   const source = value.source;
-  if (!keys(source, ['session_id', 'session_version', 'original', 'base_commit', 'snapshot_sha256', 'plan_id']) ||
+  const contextBaseline = value.context.code_baseline === null ? undefined : value.context.code_baseline;
+  if (!keys(source, ['session_id', 'session_version', 'original', 'base_commit', 'admin_base_commit', 'snapshot_sha256', 'plan_id',
+    ...(Object.hasOwn(source, 'code_baseline') ? ['code_baseline'] : [])]) ||
     source.session_id !== session || source.session_version !== value.session_version || source.plan_id !== value.id ||
-    !commit(source.base_commit) || !digest(source.snapshot_sha256) || !object(source.original)) return false;
+    !commit(source.base_commit) || !commit(source.admin_base_commit) || !digest(source.snapshot_sha256) || !object(source.original) ||
+    !validTerminalBaseline(source.code_baseline, project, task, source.base_commit, source.admin_base_commit) ||
+    !validTerminalBaseline(contextBaseline, project, task, source.base_commit, source.admin_base_commit) ||
+    !sameTerminalBaseline(source.code_baseline, contextBaseline)) return false;
   const original = source.original;
   return terminalID(original.run_id) && original.node_id === 'terminal' && original.attempt === 1 && positive(original.fence) && original.worker_id === value.worker_id &&
     (!original.project_id || original.project_id === project) && value.workflow.nodes.every(node => object(node) && typeof node.id === 'string' && typeof node.type === 'string') &&
     value.workflow.nodes.some(node => object(node) && node.id === value.producer_node_id && node.type === 'command' && object(node.config) && same(node.config.terminal_candidate_source, source));
 }
+
+export const terminalCandidateMatchesSession = (plan: WorkspaceTerminalCandidatePlan, session: WorkspaceTerminalSession) =>
+  plan.session_id === session.id && plan.source.original.run_id === session.run_id && plan.source.snapshot_sha256 === session.source_snapshot_sha256 &&
+  plan.source.base_commit === session.base_commit && plan.source.admin_base_commit === session.admin_base_commit && plan.worker_id === session.worker_id &&
+  sameTerminalBaseline(plan.source.code_baseline, session.code_baseline);
 
 export function validTerminalCandidatePage(value: unknown, project: string, task: string, session: string, originalRun: string): value is WorkspaceTerminalCandidatePlanPage {
   return object(value) && keys(value, ['items', 'task_version']) && positive(value.task_version) && Array.isArray(value.items) && value.items.length <= 20 &&

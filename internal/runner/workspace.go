@@ -251,6 +251,7 @@ func workspaceConfig(ctx context.Context, cfg ExecConfig) (string, string, error
 	return repo, root, nil
 }
 func prepareWorkspace(ctx context.Context, a Assignment, cfg ExecConfig, spec CommandSpec) (*attemptWorkspace, error) {
+	a = cloneModelAssignment(a)
 	if a.CandidateConflictRepair != nil {
 		return prepareConflictRepairWorkspace(ctx, a, cfg, spec)
 	}

@@ -105,15 +105,8 @@ func (s *Service) checkCodeBaselineAcceptanceTx(ctx context.Context, tx *sql.Tx,
 			return compositionError(409, "baseline_changed", compositionBaseline)
 		}
 		binding := execution.Binding
-		var taskRun, specRaw string
-		var taskVersion int
-		err = tx.QueryRowContext(ctx, s.q(`SELECT t.run_id,t.version,n.spec FROM suma_tasks t JOIN dag_runs d ON d.tenant_id=t.tenant_id AND d.project_id=t.project_id AND d.id=? JOIN dag_nodes n ON n.run_id=d.id AND n.id=? WHERE t.tenant_id=? AND t.project_id=? AND t.id=?`), run, in.node, p.TenantID, project, binding.TaskID).Scan(&taskRun, &taskVersion, &specRaw)
-		if err != nil {
+		if _, err = s.codeBaselineTaskRelationTx(ctx, tx, p.TenantID, project, run, in.node, binding, false); err != nil {
 			return err
-		}
-		var spec dag.Node
-		if taskRun != run || taskVersion <= binding.TaskVersion || json.Unmarshal([]byte(specRaw), &spec) != nil || spec.Type != "agent" || spec.Config["candidate_from"] != nil || !codeBaselineConfigMatches(spec.Config["code_baseline"], binding) {
-			return compositionError(409, "baseline_changed", compositionBaseline)
 		}
 		current, _, err := s.taskCodeBaselineTx(ctx, tx, p.TenantID, project, binding.TaskID)
 		if err != nil {
@@ -122,25 +115,15 @@ func (s *Service) checkCodeBaselineAcceptanceTx(ctx context.Context, tx *sql.Tx,
 		if current == nil || *current != binding {
 			return compositionError(409, "baseline_changed", compositionBaseline)
 		}
-		basisKey := binding.CompositionID + ":" + strconv.Itoa(binding.CompositionVersion)
+		basisKey := "composition:" + binding.CompositionID + ":" + strconv.Itoa(binding.CompositionVersion)
+		if binding.TerminalCandidatePlanID != "" {
+			basisKey = "terminal:" + binding.TerminalCandidatePlanID + ":" + strconv.Itoa(binding.TerminalCandidatePlanVersion)
+		}
 		basis, known := walk.bases[basisKey]
 		if !known {
-			source, err := s.candidateCompositionTx(ctx, tx, p.TenantID, project, binding.CompositionID)
+			basis, err = s.codeBaselineAcceptedOriginTx(ctx, tx, p, project, binding)
 			if err != nil {
 				return err
-			}
-			if source.Plan.Version != binding.CompositionVersion || source.Plan.RunID == "" || !validCandidateCompositionExecutionRecord(source) {
-				return compositionError(409, "baseline_changed", compositionBaseline)
-			}
-			if err = s.checkCandidateCompositionAcceptanceTx(ctx, tx, p, project, source.Plan.RunID); err != nil {
-				return err
-			}
-			basis, err = s.repositoryBasisReadTx(ctx, tx, p, project, source.Plan.TaskID, source.Plan.ProducerNodeID)
-			if err != nil {
-				return err
-			}
-			if basis.RunID != source.Plan.RunID {
-				return compositionError(409, "baseline_changed", compositionBaseline)
 			}
 			walk.bases[basisKey] = basis
 		}

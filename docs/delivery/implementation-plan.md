@@ -2,6 +2,8 @@
 
 更新：2026-10-29。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。
 
+T-BASELINE-131继续P2／P4／P5交付：采用基线→真实终端→明确候选→独立同提交测试→Review→来源失效阻断与问题回流，阶段实证见[报告](../quality/terminal-baseline-development-verification.md)／[摘要](../quality/terminal-baseline-development-summary.json)。完整平台范围及58／34／92不变；GUI与跨主机／跨平台验收仍待完成。
+
 当前T130实施[终端原执行核对与候选交付](../development/interactive-development.md)：已有真实停止证明与全部未知输入逐项确认后，仅按失败关闭原执行；停止快照的候选预览和启动分别授权，沿固定命令检查、同SHA独立Worker测试、正式Review及唯一问题回流交付，再显式绑定未启动后续任务的已验收基线。见[合同](../../contracts/terminal-recovery-candidates.md)、[架构](../architecture/interactive-terminal.md)、[交互](../design/terminal-recovery.md)、[当前报告](../quality/terminal-recovery-candidates-verification.md)及[摘要](../quality/terminal-recovery-candidates-summary.json)；实际恢复故障、界面、本机链路和检查数字以报告为准。T129的[原报告](../quality/interactive-development-verification.md)／[摘要](../quality/interactive-development-summary.json)保留历史范围。本切片不关闭完整恢复、Unix停止证明、物理多机、跨平台安装、完整IDE或生产待办，58／34／92不变。
 
 前序T-REPLY-128推进任务讨论到真实多轮智能体回复：明确模型、单次参数、近期消息范围和 Token／费用预算，沿原 Go 模型网关、唯一 DAG 与私有／Pool Runner 执行，并以准确回执追加助手消息。见[架构](../architecture/task-conversation-replies.md)、[合同](../../contracts/task-conversation-replies.md)、[开发与AI SOP](../development/task-conversation-replies.md)、[当前验证](../quality/task-conversation-replies-verification.md)和[摘要](../quality/task-conversation-replies-summary.json)。真实Go／Node原生CLI、本地受控提供方及网关HTTP已完成三轮／六条持久消息，第三轮由实际界面明确选择模型、输出512、近期20条、Token40000及CNY0.04费用上限后创建；实际中英文1366／390、刷新六条记录及原执行／用量已按报告限定验证。只读回复不会执行终端命令、修改任务开发运行或授予验收权。

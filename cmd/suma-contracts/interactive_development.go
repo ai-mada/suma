@@ -63,6 +63,17 @@ func interactiveDevelopmentContracts(add operationAdder, api map[string]any) {
 	field("WorkspaceTerminalCommandRequest", "control_epoch", map[string]any{"const": 1})
 	field("WorkspaceTerminalCommandRequest", "action", map[string]any{"enum": []string{"input", "resize", "stop", "ack"}})
 	field("WorkspaceTerminalSession", "state", map[string]any{"enum": []string{"queued", "running", "stop_requested", "exited", "stopped", "reconciling"}})
+	// The selected development base and the original bundle prerequisite are
+	// different source facts. Consumers must not replace an adopted baseline
+	// with the administrator base simply because it exists in a local cache.
+	for _, model := range []string{"WorkspaceTerminalSession", "TerminalCandidateSource"} {
+		field(model, "base_commit", map[string]any{"description": "Exact selected development base M; equals the administrator base when no code baseline was adopted."})
+		field(model, "admin_base_commit", map[string]any{"description": "Original administrator Git prerequisite B retained for authenticated candidate bundle lineage."})
+		field(model, "code_baseline", map[string]any{"description": "Exact adopted, accepted input frozen for this session or candidate. Its head is M and bundle prerequisite is B; current authorization is checked separately."})
+	}
+	field("WorkspaceTerminalPage", "code_baseline", map[string]any{"description": "Task's adopted code baseline read in the same authority snapshot as baseline_current and can_create."})
+	field("WorkspaceTerminalPage", "baseline_current", map[string]any{"description": "Current source and task-binding qualification; an absent binding is valid only after this authorized read succeeds."})
+	field("WorkspaceTerminalPage", "baseline_reason", map[string]any{"description": "Qualification failure reason from the same task read. It never changes historical frozen source facts."})
 	field("WorkspaceTerminalInputReceipt", "state", map[string]any{"enum": []string{"accepted", "delivered", "delivery_unknown"}})
 	field("WorkspaceTerminalRecoveryRequest", "reason", map[string]any{"minLength": 1, "x-max-utf8-bytes": 2000})
 	field("WorkspaceTerminalRecoveryRequest", "unknown_inputs", map[string]any{"maxItems": 65536})

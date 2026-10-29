@@ -21,6 +21,7 @@ import (
 // node. It owns a new attempt worktree and PTY for the entire process tree
 // lifetime. Shell exit never becomes an agent candidate, test or acceptance.
 func ExecuteTerminalSession(ctx context.Context, a Assignment, cfg ExecConfig) Result {
+	a = cloneModelAssignment(a)
 	r := Result{Assignment: a, ExitCode: -1}
 	fail := func(err error) Result { r.Error = err.Error(); return r }
 	if !cfg.AllowExec || cfg.TerminalClient == nil || a.Type != "terminal_session" || len(a.Command) != 1 || a.Idempotent || a.Attempt != 1 || a.Fence < 1 || a.DispatchID == "" {
@@ -40,8 +41,11 @@ func ExecuteTerminalSession(ctx context.Context, a Assignment, cfg ExecConfig) R
 	}
 	spec, ok := cfg.Commands[a.Command[0]]
 	spec = normalizedCommand(spec)
-	if !ok || !spec.TerminalSession || spec.ReadOnly || spec.Adapter != "command" || spec.Input != "" || spec.NativeWorkspace != nil || spec.TestEvidence || spec.TestReport || spec.ArtifactInput || spec.ArtifactOutput != "" || spec.ModelExecutionProtocol != "" || len(spec.EnvFrom) != 0 || a.CodeBaseline != nil || hasCandidate(a) || a.CandidateConflictRepair != nil || a.CandidateComposition != nil || a.ReleaseExecution != nil || a.RepositoryIntegration != nil {
+	if !ok || !spec.TerminalSession || spec.ReadOnly || spec.Adapter != "command" || spec.Input != "" || spec.NativeWorkspace != nil || spec.TestEvidence || spec.TestReport || spec.ArtifactInput || spec.ArtifactOutput != "" || spec.ModelExecutionProtocol != "" || len(spec.EnvFrom) != 0 || a.CodeBaseline != nil && !codeBaselineInputNode(a) || hasCandidate(a) || a.CandidateConflictRepair != nil || a.CandidateComposition != nil || a.ReleaseExecution != nil || a.RepositoryIntegration != nil {
 		return fail(fmt.Errorf("Terminal execution requires an isolated administrator shell profile"))
+	}
+	if a.CodeBaseline != nil {
+		ctx = context.WithValue(ctx, nativeGitScope{}, true)
 	}
 	if _, hasModel := a.Config["model_execution"]; hasModel {
 		return fail(fmt.Errorf("Terminal sessions cannot inherit a model gateway binding"))
@@ -59,7 +63,7 @@ func ExecuteTerminalSession(ctx context.Context, a Assignment, cfg ExecConfig) R
 		return fail(fmt.Errorf("Terminal profile does not have a current real PTY capability"))
 	}
 	r.ToolEvidence = &tc.Evidence{Profile: profile, SessionID: id, Terminal: "failed", UsageState: tc.UsageUnreported}
-	request := term.ExchangeRequest{SessionID: id, RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, DispatchID: a.DispatchID, OperationID: operationID(), OutputChunks: []term.OutputChunk{}, InputReceipts: []term.InputReceipt{}, State: "starting", ExitCode: -1}
+	request := term.ExchangeRequest{SessionID: id, RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, DispatchID: a.DispatchID, OperationID: operationID(), OutputChunks: []term.OutputChunk{}, InputReceipts: []term.InputReceipt{}, State: "starting", ExitCode: -1, CodeBaseline: cloneTerminalCodeBaseline(a.CodeBaseline)}
 	startCtx, startCancel := context.WithTimeout(ctx, 10*time.Second)
 	authority, err := client.TerminalExchange(startCtx, request)
 	startCancel()
@@ -154,7 +158,7 @@ func ExecuteTerminalSession(ctx context.Context, a Assignment, cfg ExecConfig) R
 			terminalError = fmt.Errorf("Terminal output acknowledgement fell behind retained history")
 			break
 		}
-		request = term.ExchangeRequest{SessionID: id, RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, DispatchID: a.DispatchID, OperationID: operationID(), OutputChunks: []term.OutputChunk{}, InputReceipts: append([]term.InputReceipt{}, pendingReceipts...), State: state.State, Directory: workspace.Source, ProcessID: state.ProcessID, TreeStopped: state.TreeStopped, ExitCode: -1, Error: state.Reason}
+		request = term.ExchangeRequest{SessionID: id, RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, DispatchID: a.DispatchID, OperationID: operationID(), OutputChunks: []term.OutputChunk{}, InputReceipts: append([]term.InputReceipt{}, pendingReceipts...), State: state.State, Directory: workspace.Source, ProcessID: state.ProcessID, TreeStopped: state.TreeStopped, ExitCode: -1, Error: state.Reason, CodeBaseline: cloneTerminalCodeBaseline(a.CodeBaseline)}
 		if state.ExitCode != nil {
 			request.ExitCode = *state.ExitCode
 		}
@@ -299,7 +303,7 @@ func ExecuteTerminalSession(ctx context.Context, a Assignment, cfg ExecConfig) R
 		}
 	}
 	flushCtx, flushCancel := context.WithTimeout(context.Background(), 20*time.Second)
-	flushErr := flushStoppedTerminal(flushCtx, client, cfg.Journal, a, session, workspace.Source, id, sourceSHA, cfg.BaseCommit, ack)
+	flushErr := flushStoppedTerminal(flushCtx, client, cfg.Journal, a, session, workspace.Source, id, sourceSHA, workspace.BaseCommit, workspace.AdminBaseCommit, ack)
 	flushCancel()
 	if flushErr != nil && cfg.Journal == nil {
 		r.OutcomeUnknown = true

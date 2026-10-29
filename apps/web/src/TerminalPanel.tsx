@@ -13,6 +13,7 @@ import {useTerminalConnection, type TerminalWriter} from './terminal-hooks';
 import {TerminalViewport} from './TerminalViewport';
 import {TerminalRecoveryPanel} from './TerminalRecoveryPanel';
 import {TerminalCandidatePanel} from './TerminalCandidatePanel';
+import {TerminalBaselineFacts} from './TerminalBaselineFacts';
 import './TerminalPanel.css';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('terminal.' + key, values);
@@ -76,6 +77,7 @@ function TerminalScope({project, taskId = '', active = true, disabled = false, s
   useEffect(() => {alive.current = true; return () => {alive.current = false;};}, []);
   useEffect(() => {if (action.pending) {setOpen(true); setVisited(true);}}, [!!action.pending]);
   useEffect(() => {setStopConsent(false);}, [selected, session?.state]);
+  useEffect(() => {setConsent(false);}, [sessions.value?.task_version, sessions.value?.code_baseline?.binding_sha256, sessions.value?.baseline_current, sessions.value?.baseline_reason]);
   function select(value: string) {
     if (locked) return;
     setWriter(undefined); setSelected(value); setObserved(undefined); setDetached(false); setConsent(false); setStopConsent(false);
@@ -88,7 +90,7 @@ function TerminalScope({project, taskId = '', active = true, disabled = false, s
   }
   async function create() {
     const page = sessions.value, tool = page?.profiles.find(item => item.id === profile), duration = Number(seconds);
-    if (!page?.can_create || !tool || !tool.available || tool.state !== 'enabled' || !consent || blocked || locked || disabled || !/^[1-9]\d*$/.test(seconds) || duration < 60 || duration > 3600) return;
+    if (!page?.can_create || !page.baseline_current || sessions.loading || sessions.error || !tool || !tool.available || tool.state !== 'enabled' || !consent || blocked || locked || disabled || !/^[1-9]\d*$/.test(seconds) || duration < 60 || duration > 3600) return;
     const caller = api;
     const value = await action.run<WorkspaceTerminalSession>('/workspace/terminal-sessions', {project_id: project, task_id: taskId,
       expected_task_version: page.task_version, tool_profile_id: tool.id, expected_tool_version: tool.version, columns: 80, rows: 24,
@@ -105,7 +107,7 @@ function TerminalScope({project, taskId = '', active = true, disabled = false, s
     else if (value && typeof value === 'object' && 'session' in value && validTerminalSession(value.session, project, taskId)) remember(value.session);
   }
   const selectedProfile = sessions.value?.profiles.find(tool => tool.id === profile);
-  const canCreate = !!sessions.value?.can_create && selectedProfile?.available && selectedProfile.state === 'enabled' && consent && !locked && !disabled && !blocked && /^[1-9]\d*$/.test(seconds) && Number(seconds) >= 60 && Number(seconds) <= 3600;
+  const canCreate = !!sessions.value?.can_create && sessions.value.baseline_current && !sessions.loading && !sessions.error && selectedProfile?.available && selectedProfile.state === 'enabled' && consent && !locked && !disabled && !blocked && /^[1-9]\d*$/.test(seconds) && Number(seconds) >= 60 && Number(seconds) <= 3600;
   return <section className="workspace-terminal" aria-label={t('title')}>
     <button type="button" className="terminal-toggle" data-terminal-toggle aria-expanded={open} aria-controls={id}
       onClick={() => {setVisited(true); setOpen(value => !value);}}><TerminalSquare size={15}/><span>{t('title')}</span><ChevronDown size={15}/></button>
@@ -124,6 +126,8 @@ function TerminalScope({project, taskId = '', active = true, disabled = false, s
         {sessions.loading && !session && <Loading/>}{!!sessions.error && <ErrorNotice error={sessions.error} onRetry={() => void sessions.read()}/>}
         {!!detail.error && <ErrorNotice error={detail.error} onRetry={() => void detail.read()}/>}
         {!selected && sessions.value && <><p className="terminal-note">{!sessions.value.items.length ? t('no_sessions') : t('detach_hint')}</p>
+          <TerminalBaselineFacts project={project} binding={sessions.value.code_baseline}/>
+          {!sessions.value.baseline_current && <p className="terminal-warning" role="alert" data-terminal-baseline-invalid>{t('baseline.invalid')} {renderDiagnostic(sessions.value.baseline_reason)}</p>}
           {sessions.value.can_create && <div className="terminal-create"><Field label={t('agent')}><select value={profile} disabled={locked || disabled} onChange={event => {setProfile(event.target.value); setConsent(false);}}>
             <option value="">{t('choose_profile')}</option>{sessions.value.profiles.map(tool => <option key={tool.id} value={tool.id} disabled={!tool.available || tool.state !== 'enabled'}>{tool.name} · v{formatNumber(tool.version)}</option>)}</select></Field>
             <Field label={t('duration')} hint={t('duration_hint')}><input inputMode="numeric" value={seconds} disabled={locked || disabled} onChange={event => {setSeconds(event.target.value); setConsent(false);}}/></Field>
@@ -153,6 +157,7 @@ function TerminalScope({project, taskId = '', active = true, disabled = false, s
             active={open && active && !blocked} disabled={disabled || action.busy || !!action.pending || recoveryLocked} onDenied={refuse} onLockChange={setCandidateLocked} onRefresh={() => setRefresh(value => value + 1)}/>
           <details><summary>{t('details')}</summary><dl className="terminal-facts"><dt>{t('directory')}</dt><dd>{session.directory}</dd><dt>{t('worker')}</dt><dd>{session.worker_id}</dd>
             <dt>{t('expires')}</dt><dd>{formatDateTime(session.expires_at, {dateStyle: 'short', timeStyle: 'medium'})}</dd></dl>
+            <TerminalBaselineFacts project={project} binding={session.code_baseline} adminCommit={session.admin_base_commit} selectedCommit={session.base_commit} title={t('baseline.frozen')}/>
             <p className="terminal-note">{t('received', {sequence: formatNumber(session.output_last_sequence)})}</p>
             <a href={'?' + new URLSearchParams({project, view: 'development', sub: 'runs', run: session.run_id})} onClick={event => {if (!window.dispatchEvent(new Event('suma:navigate', {cancelable: true}))) event.preventDefault();}}>{t('open_run')} <ArrowUpRight size={12}/></a></details>
         </div>}

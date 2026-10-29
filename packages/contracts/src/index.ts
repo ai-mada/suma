@@ -5518,6 +5518,8 @@ export interface TerminalCandidateSource {
   session_version: number;
   original: CandidateAssignmentRef;
   base_commit: string;
+  admin_base_commit: string;
+  code_baseline?: CodeBaselineBinding | null;
   snapshot_sha256: string;
   plan_id: string;
 }
@@ -6379,6 +6381,9 @@ export interface WorkspaceTerminalOutputPage {
   state: string;
 }
 export interface WorkspaceTerminalPage {
+  code_baseline?: CodeBaselineBinding | null;
+  baseline_current: boolean;
+  baseline_reason: string;
   items: (WorkspaceTerminalSession)[];
   profiles: (ToolProfile)[];
   task_version: number;
@@ -6445,6 +6450,8 @@ export interface WorkspaceTerminalSession {
   reason: string;
   source_snapshot_sha256: string;
   base_commit: string;
+  admin_base_commit: string;
+  code_baseline?: CodeBaselineBinding | null;
 }
 export interface WorkspaceTreeEntry {
   path: string;

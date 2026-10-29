@@ -33,13 +33,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-TERMINAL-130",
-  "updated_at": "2026-10-29T07:52:32.724171+00:00",
+  "stage": "T-BASELINE-131",
+  "updated_at": "2026-10-29T08:38:51.492482+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/terminal-recovery-candidates-verification.md",
-  "current_summary": "docs/quality/terminal-recovery-candidates-summary.json",
+  "current_evidence": "docs/quality/terminal-baseline-development-verification.md",
+  "current_summary": "docs/quality/terminal-baseline-development-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -176,5 +176,13 @@
     ],
     "requirement26": "FND-INTENT-001 pending, with architecture/AI SOP/acceptance and S01-S12 mapping",
     "current_octop_scope": "Official Harness1.0.5/ACP0.12.1 controlled SDK runtime shares Go ModelBinding/model catalog/quotes with native coding, durable HTTP/SSE and remaining total output allowance, private/Pool admission, six host tools, independent worktree/check/seal, same-SHA independent JUnit and actual cancellation/tree-stop. No provider secrets or secondary SDK billing authority. Full Octop CLI/GUI/vendor/multi-host remain pending."
+  },
+  "terminal_baseline_development": {
+    "stage": "T-BASELINE-131",
+    "status": "scoped_actual_windows_verified_gui_not_verified",
+    "report": "docs/quality/terminal-baseline-development-verification.md",
+    "summary": "docs/quality/terminal-baseline-development-summary.json",
+    "scope": "Accepted baseline imported under current authority before a follow-up terminal; selected M and admin B retained; explicit candidate N, independent exact-commit tests, fixture owner Review and upstream rejection revalidation. Full platform58/34/92 unchanged.",
+    "verification": "16 distinct Go top tests,9 web cases, generated contracts, web typecheck/i18n/build, actual Windows PTY/Git/HTTP/JUnit two-step continuation;0 model calls. Current GUI not verified."
   }
 }

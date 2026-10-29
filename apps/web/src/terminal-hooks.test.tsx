@@ -16,7 +16,7 @@ it('acknowledges terminal output only after the renderer confirms its original b
     version: 1, run_id: 'terminal-run', run_version: 1, state: 'running', tool_profile_id: 'shell-profile', tool_name: 'Owned shell',
     directory: 'attempt-worktree', worker_id: 'worker-one', columns: 80, rows: 24, control_epoch: 1, next_input_sequence: 1,
     output_first_sequence: 1, output_last_sequence: 1, output_ack_sequence: 0, expires_at: '2026-10-29T12:00:00Z',
-    created_at: '2026-10-29T11:00:00Z', allowed_actions: ['input', 'resize', 'stop', 'ack'], reason: '', source_snapshot_sha256: '', base_commit: ''};
+    created_at: '2026-10-29T11:00:00Z', allowed_actions: ['input', 'resize', 'stop', 'ack'], reason: '', source_snapshot_sha256: '', base_commit: '', admin_base_commit: ''};
   let consumed: ((value: boolean) => void) | undefined;
   const writer = vi.fn((_bytes: Uint8Array) => new Promise<boolean>(resolve => {consumed = resolve;}));
   const sendControl = vi.fn(async (_body: Record<string, unknown>) => ({session: {...session, version: 2, output_ack_sequence: 1}, input: null}));

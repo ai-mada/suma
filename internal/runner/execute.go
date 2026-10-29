@@ -274,7 +274,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if a.CandidateComposition != nil && a.Type != "command" {
 		return Result{Assignment: a, ExitCode: -1, Error: "candidate composition requires an isolated command node"}
 	}
-	if a.CodeBaseline != nil && a.Type != "agent" {
+	if a.CodeBaseline != nil && !codeBaselineInputNode(a) {
 		return Result{Assignment: a, ExitCode: -1, Error: "code baseline requires isolated development"}
 	}
 	if a.CandidateComposition != nil && (a.CodeBaseline != nil || a.RepositoryIntegration != nil || a.ReleaseExecution != nil || hasCandidate(a)) {
@@ -328,7 +328,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		return executeCandidateComposition(ctx, a, cfg, spec)
 	}
 	if a.CodeBaseline != nil {
-		if a.Type != "agent" || spec.ReadOnly || spec.ArtifactInput || spec.ArtifactOutput != "" {
+		if !codeBaselineInputNode(a) || spec.ReadOnly || spec.ArtifactInput || spec.ArtifactOutput != "" || a.Type == "command" && (!terminalCandidateBaseline(a) || spec.NativeWorkspace != nil || spec.TerminalSession || spec.TestEvidence || spec.TestReport || spec.Input != "" || normalizedCommand(spec).Adapter != "command" || normalizedCommand(spec).Protocol != "text-v1") {
 			return fail("code baseline requires isolated development")
 		}
 		ctx = context.WithValue(ctx, nativeGitScope{}, true)

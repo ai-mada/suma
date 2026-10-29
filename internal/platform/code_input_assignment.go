@@ -53,8 +53,11 @@ func (s *Service) codeInputNodeEligibleTx(ctx context.Context, tx *sql.Tx, tenan
 	if composition != nil && (spec.Type != "command" || len(spec.Command) != 1 || spec.Command[0] != ccmp.CompositionCommand || spec.Config["candidate_from"] != nil) {
 		return false, nil
 	}
-	if baseline != nil && (spec.Type != "agent" || spec.Config["candidate_from"] != nil || !sameCodeBaselineValue(spec.Config["code_baseline"], *baseline)) {
-		return false, nil
+	if baseline != nil {
+		eligible, e := s.codeBaselineNodeKindTx(ctx, tx, tenant, project, run, node, spec, *baseline)
+		if e != nil || !eligible {
+			return eligible, e
+		}
 	}
 	if repair != nil && (spec.Type != "agent" || spec.Config["purpose"] != "candidate_conflict_repair" || spec.Config["candidate_from"] != nil) {
 		return false, nil
@@ -164,6 +167,16 @@ func (s *Service) validateCodeBaselineResultTx(ctx context.Context, tx *sql.Tx, 
 	fact, present := result.WorkspaceEvidence["code_baseline"]
 	if baseline == nil {
 		if present {
+			return forbidden()
+		}
+		return nil
+	}
+	// A terminal consumes the frozen baseline but does not produce formal code
+	// evidence. Its original stop/effect guard remains the completion authority.
+	if r, found, e := s.workspaceTerminalForRunTx(ctx, tx, tenant, project, result.RunID); e != nil {
+		return e
+	} else if found {
+		if result.NodeID != "terminal" || r.Session.CodeBaseline == nil || *r.Session.CodeBaseline != *baseline || result.WorkspaceEvidence != nil {
 			return forbidden()
 		}
 		return nil

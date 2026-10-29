@@ -33,7 +33,8 @@ func (s *Service) workspaceTerminalCandidateNodeEligibleTx(ctx context.Context, 
 		return !present, nil
 	}
 	actual, err := term.DecodeCandidateSource(raw)
-	if err != nil || actual == nil || !present || stringify(actual) != stringify(source) || spec.Type != "command" || len(spec.Command) != 1 || spec.MaxRetries != 0 || spec.Idempotent || spec.Config["candidate_from"] != nil || spec.Config["code_baseline"] != nil || spec.Config["candidate_composition"] != nil || spec.Config["candidate_conflict_repair"] != nil || spec.Config["model_execution"] != nil {
+	baselineMatches := source.CodeBaseline == nil && spec.Config["code_baseline"] == nil || source.CodeBaseline != nil && codeBaselineConfigMatches(spec.Config["code_baseline"], *source.CodeBaseline)
+	if err != nil || actual == nil || !present || stringify(actual) != stringify(source) || spec.Type != "command" || len(spec.Command) != 1 || spec.MaxRetries != 0 || spec.Idempotent || spec.Config["candidate_from"] != nil || !baselineMatches || spec.Config["candidate_composition"] != nil || spec.Config["candidate_conflict_repair"] != nil || spec.Config["model_execution"] != nil {
 		return false, nil
 	}
 	var worker string
@@ -91,7 +92,7 @@ func validateTerminalCandidateEvidence(proof map[string]any, tool *tc.Evidence, 
 		return conflict(workspaceTerminalCandidateChanged)
 	}
 	seal := actual.Seal
-	if seal.SchemaVersion != 1 || seal.OperationID == "" || seal.State != "sealed" || seal.PolicySHA256 != tool.Profile.ProfileSHA256 || seal.PreviousCommit != expected.BaseCommit || seal.Commit != proof["head_commit"] || seal.Commit == seal.PreviousCommit || !gitRevision.MatchString(seal.Commit) || !gitRevision.MatchString(seal.Tree) || seal.ChangedPaths != actual.FileCount || proof["base_commit"] != expected.BaseCommit || proof["admin_base_commit"] != expected.BaseCommit {
+	if seal.SchemaVersion != 1 || seal.OperationID == "" || seal.State != "sealed" || seal.PolicySHA256 != tool.Profile.ProfileSHA256 || seal.PreviousCommit != expected.BaseCommit || seal.Commit != proof["head_commit"] || seal.Commit == seal.PreviousCommit || !gitRevision.MatchString(seal.Commit) || !gitRevision.MatchString(seal.Tree) || seal.ChangedPaths != actual.FileCount || proof["base_commit"] != expected.BaseCommit || proof["admin_base_commit"] != expected.AdminBaseCommit {
 		return conflict(workspaceTerminalCandidateChanged)
 	}
 	return nil

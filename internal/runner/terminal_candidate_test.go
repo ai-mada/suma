@@ -70,7 +70,7 @@ func TestTerminalCandidateChangedImportManifestCannotAuthorizeCheckEdits(t *test
 	if err != nil {
 		t.Fatal(err)
 	}
-	source := term.TerminalCandidateSource{SessionID: "original-terminal", SessionVersion: 3, Original: cc.AssignmentRef{RunID: "original-run", NodeID: "terminal", Attempt: 1, Fence: 4, WorkerID: w.Assignment.WorkerID}, BaseCommit: w.BaseCommit, SnapshotSHA256: inventory.SHA256, PlanID: "protected-plan"}
+	source := term.TerminalCandidateSource{SessionID: "original-terminal", SessionVersion: 3, Original: cc.AssignmentRef{RunID: "original-run", NodeID: "terminal", Attempt: 1, Fence: 4, WorkerID: w.Assignment.WorkerID}, BaseCommit: w.BaseCommit, AdminBaseCommit: w.AdminBaseCommit, SnapshotSHA256: inventory.SHA256, PlanID: "protected-plan"}
 	w.Assignment.Config[term.CandidateConfigKey] = source
 	// A check process must not rewrite the import ledger and bless its own edits.
 	inventory.Files[0].SHA256 = digest([]byte("unreviewed check mutation\n"))

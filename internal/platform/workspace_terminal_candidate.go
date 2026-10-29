@@ -43,7 +43,7 @@ func (s *Service) workspaceTerminalCandidateStoppedTx(ctx context.Context, tx *s
 	if err != nil {
 		return err
 	}
-	if r.Session.Version != source.SessionVersion || !r.TreeStopped || r.Session.State != "stopped" && r.Session.State != "exited" || r.Session.SourceSnapshotSHA256 != source.SnapshotSHA256 || r.Session.BaseCommit != source.BaseCommit || r.Attempt != source.Original.Attempt || r.Fence != source.Original.Fence || r.Session.WorkerID != source.Original.WorkerID || r.Session.RunID != source.Original.RunID {
+	if r.Session.Version != source.SessionVersion || !r.TreeStopped || r.Session.State != "stopped" && r.Session.State != "exited" || r.Session.SourceSnapshotSHA256 != source.SnapshotSHA256 || r.Session.BaseCommit != source.BaseCommit || r.Session.AdminBaseCommit != source.AdminBaseCommit || stringify(r.Session.CodeBaseline) != stringify(source.CodeBaseline) || r.Attempt != source.Original.Attempt || r.Fence != source.Original.Fence || r.Session.WorkerID != source.Original.WorkerID || r.Session.RunID != source.Original.RunID {
 		return conflict(workspaceTerminalCandidateChanged)
 	}
 	var count int
@@ -121,6 +121,9 @@ func (s *Service) buildWorkspaceTerminalCandidateWorkflowTx(ctx context.Context,
 	}
 	n.Config["tool_profile_id"], n.Config["tool_profile_sha256"] = profile.ID, profile.Profile.ProfileSHA256
 	n.Config[term.CandidateConfigKey] = source
+	if source.CodeBaseline != nil {
+		n.Config["code_baseline"] = source.CodeBaseline
+	}
 	n.MaxRetries, n.Idempotent = 0, false
 	derived.Name = "Stopped terminal candidate"
 	if err = dag.Compile(derived); err != nil {
@@ -181,8 +184,8 @@ func (s *Service) CreateWorkspaceTerminalCandidatePlan(ctx context.Context, engi
 	if err != nil {
 		return out, err
 	}
-	if context.CodeBaseline != nil {
-		return out, conflict("Terminal candidate cannot replace a task's adopted code baseline")
+	if stringify(context.CodeBaseline) != stringify(r.Session.CodeBaseline) {
+		return out, conflict(workspaceTerminalCandidateChanged)
 	}
 	profile, err := s.toolProfileTx(ctx, tx, auth.currentPrincipal, project, req.ToolProfileID)
 	if err != nil {
@@ -205,8 +208,8 @@ func (s *Service) CreateWorkspaceTerminalCandidatePlan(ctx context.Context, engi
 	if err != nil || json.Unmarshal([]byte(originalRaw), &original) != nil {
 		return out, conflict(workspaceTerminalCandidateChanged)
 	}
-	plan := TaskDispatchPlan{ID: newID(), RunID: newID(), ProjectID: project, Version: 1, State: "ready", TaskID: r.Session.TaskID, TaskVersion: context.Task.Version, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, AgentNodeID: req.ProducerNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, Context: context, Valid: true}
-	source := term.TerminalCandidateSource{SessionID: session, SessionVersion: r.Session.Version, Original: codeInputAssignmentRef(original), BaseCommit: r.Session.BaseCommit, SnapshotSHA256: r.Session.SourceSnapshotSHA256, PlanID: plan.ID}
+	plan := TaskDispatchPlan{ID: newID(), RunID: newID(), ProjectID: project, Version: 1, State: "ready", TaskID: r.Session.TaskID, TaskVersion: context.Task.Version, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, AgentNodeID: req.ProducerNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, Context: context, CodeBaseline: context.CodeBaseline, Valid: true}
+	source := term.TerminalCandidateSource{SessionID: session, SessionVersion: r.Session.Version, Original: codeInputAssignmentRef(original), BaseCommit: r.Session.BaseCommit, AdminBaseCommit: r.Session.AdminBaseCommit, CodeBaseline: r.Session.CodeBaseline, SnapshotSHA256: r.Session.SourceSnapshotSHA256, PlanID: plan.ID}
 	if !source.Valid() {
 		return out, conflict("The original terminal has no safe stopped source snapshot")
 	}

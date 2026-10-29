@@ -28,7 +28,7 @@ type terminalCheckpoint struct {
 
 func validTerminalExchangeAssignment(a Assignment, r term.ExchangeRequest) bool {
 	id, _ := a.Config["terminal_session_id"].(string)
-	return a.Type == "terminal_session" && a.Attempt == 1 && a.Fence > 0 && a.DispatchID != "" && r.SessionID == id && id != "" && r.RunID == a.RunID && r.NodeID == a.NodeID && r.Attempt == a.Attempt && r.Fence == a.Fence && r.WorkerID == a.WorkerID && r.DispatchID == a.DispatchID && r.OperationID != ""
+	return a.Type == "terminal_session" && a.Attempt == 1 && a.Fence > 0 && a.DispatchID != "" && r.SessionID == id && id != "" && r.RunID == a.RunID && r.NodeID == a.NodeID && r.Attempt == a.Attempt && r.Fence == a.Fence && r.WorkerID == a.WorkerID && r.DispatchID == a.DispatchID && r.OperationID != "" && sameTerminalCodeBaseline(a.CodeBaseline, r.CodeBaseline)
 }
 func cloneTerminalExchange(r term.ExchangeRequest) term.ExchangeRequest {
 	raw, _ := json.Marshal(r)
@@ -126,6 +126,9 @@ func (j *Journal) pendingTerminalExchanges() []pendingTerminalExchange {
 	return out
 }
 func (j *Journal) validateTerminalCheckpoint(a Assignment, p terminalCheckpoint) error {
+	if a.CodeBaseline != nil && !codeBaselineInputNode(a) {
+		return fmt.Errorf("terminal checkpoint baseline is not its valid frozen execution input")
+	}
 	if len(p.Pending) > 256 || len(p.Unapplied) > 256 || len(p.ReconciliationOperationID) > 128 || p.ReconciliationOperationID != "" && len(p.Pending) > 0 {
 		return fmt.Errorf("terminal outbox limit exceeded or reviewed disposition changed")
 	}
@@ -206,6 +209,10 @@ func (j *Journal) importTerminalCheckpoint(e *entry) error {
 	if sourceErr != nil {
 		sourceSHA, baseCommit = "", ""
 	}
+	adminBase := baseCommit
+	if e.Assignment.CodeBaseline != nil && sourceSHA != "" {
+		adminBase = e.Assignment.CodeBaseline.Source.BundleBase()
+	}
 	exit := -1
 	if snap.ExitCode != nil {
 		exit = *snap.ExitCode
@@ -220,7 +227,7 @@ func (j *Journal) importTerminalCheckpoint(e *entry) error {
 	for len(inputs) > 0 || len(copy.Pending) == len(p.Pending) {
 		count := min(32, len(inputs))
 		a := e.Assignment
-		r := term.ExchangeRequest{SessionID: id, RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, DispatchID: a.DispatchID, OperationID: operationID(), State: snap.State, Directory: p.Directory, ProcessID: snap.ProcessID, TreeStopped: true, ExitCode: exit, OutputChunks: []term.OutputChunk{}, InputReceipts: append([]term.InputReceipt{}, inputs[:count]...), Error: "Original terminal stop receipt recovered after Runner restart; execution effect requires review", SourceSnapshotSHA256: sourceSHA, BaseCommit: baseCommit}
+		r := term.ExchangeRequest{SessionID: id, RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, DispatchID: a.DispatchID, OperationID: operationID(), State: snap.State, Directory: p.Directory, ProcessID: snap.ProcessID, TreeStopped: true, ExitCode: exit, OutputChunks: []term.OutputChunk{}, InputReceipts: append([]term.InputReceipt{}, inputs[:count]...), Error: "Original terminal stop receipt recovered after Runner restart; execution effect requires review", SourceSnapshotSHA256: sourceSHA, BaseCommit: baseCommit, AdminBaseCommit: adminBase, CodeBaseline: cloneTerminalCodeBaseline(a.CodeBaseline)}
 		copy.Pending = append(copy.Pending, r)
 		inputs = inputs[count:]
 		if len(inputs) == 0 {
@@ -235,10 +242,11 @@ func (j *Journal) importTerminalCheckpoint(e *entry) error {
 	return nil
 }
 
-func flushStoppedTerminal(ctx context.Context, c *Client, j *Journal, a Assignment, session *terminalruntime.Session, source, id, sourceSHA, base string, after uint64) error {
+func flushStoppedTerminal(ctx context.Context, c *Client, j *Journal, a Assignment, session *terminalruntime.Session, source, id, sourceSHA, base, admin string, after uint64) error {
 	state := session.Snapshot()
 	if sourceSHA == "" {
 		base = ""
+		admin = ""
 	}
 	var firstErr error
 	inputs := []term.InputReceipt{}
@@ -253,7 +261,7 @@ func flushStoppedTerminal(ctx context.Context, c *Client, j *Journal, a Assignme
 		if len(page.Chunks) > 32 {
 			page.Chunks = page.Chunks[:32]
 		}
-		request := term.ExchangeRequest{SessionID: id, RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, DispatchID: a.DispatchID, OperationID: operationID(), State: state.State, Directory: source, ProcessID: state.ProcessID, TreeStopped: state.TreeStopped, ExitCode: -1, Error: state.Reason, OutputChunks: []term.OutputChunk{}, InputReceipts: []term.InputReceipt{}, SourceSnapshotSHA256: sourceSHA, BaseCommit: base}
+		request := term.ExchangeRequest{SessionID: id, RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, WorkerID: a.WorkerID, DispatchID: a.DispatchID, OperationID: operationID(), State: state.State, Directory: source, ProcessID: state.ProcessID, TreeStopped: state.TreeStopped, ExitCode: -1, Error: state.Reason, OutputChunks: []term.OutputChunk{}, InputReceipts: []term.InputReceipt{}, SourceSnapshotSHA256: sourceSHA, BaseCommit: base, AdminBaseCommit: admin, CodeBaseline: cloneTerminalCodeBaseline(a.CodeBaseline)}
 		if state.ExitCode != nil {
 			request.ExitCode = *state.ExitCode
 		}

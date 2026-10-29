@@ -6,6 +6,7 @@ package terminalcontract
 import (
 	"encoding/base64"
 	"fmt"
+	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 )
 
 const Protocol = "suma-pty-v1"
@@ -40,8 +41,10 @@ type Session struct {
 	Reason              string   `json:"reason"`
 	// Only a stopped original Runner can report this content manifest. It is
 	// source provenance for an explicit candidate plan, never test approval.
-	SourceSnapshotSHA256 string `json:"source_snapshot_sha256"`
-	BaseCommit           string `json:"base_commit"`
+	SourceSnapshotSHA256 string                    `json:"source_snapshot_sha256"`
+	BaseCommit           string                    `json:"base_commit"`
+	AdminBaseCommit      string                    `json:"admin_base_commit"`
+	CodeBaseline         *ccmp.CodeBaselineBinding `json:"code_baseline,omitempty"`
 }
 
 type CreateRequest struct {
@@ -107,24 +110,26 @@ type CommandReceipt struct {
 // same input identity; the Runner's durable write-intent ledger forbids writing
 // its bytes again. Outputs are acknowledged only after transactional storage.
 type ExchangeRequest struct {
-	SessionID            string         `json:"session_id"`
-	RunID                string         `json:"run_id"`
-	NodeID               string         `json:"node_id"`
-	Attempt              int            `json:"attempt"`
-	Fence                int64          `json:"fence"`
-	WorkerID             string         `json:"worker_id"`
-	DispatchID           string         `json:"dispatch_id"`
-	OperationID          string         `json:"operation_id"`
-	OutputChunks         []OutputChunk  `json:"output_chunks"`
-	InputReceipts        []InputReceipt `json:"input_receipts"`
-	State                string         `json:"state"`
-	Directory            string         `json:"directory"`
-	ProcessID            int            `json:"process_id"`
-	TreeStopped          bool           `json:"tree_stopped"`
-	ExitCode             int            `json:"exit_code"`
-	Error                string         `json:"error"`
-	SourceSnapshotSHA256 string         `json:"source_snapshot_sha256"`
-	BaseCommit           string         `json:"base_commit"`
+	SessionID            string                    `json:"session_id"`
+	RunID                string                    `json:"run_id"`
+	NodeID               string                    `json:"node_id"`
+	Attempt              int                       `json:"attempt"`
+	Fence                int64                     `json:"fence"`
+	WorkerID             string                    `json:"worker_id"`
+	DispatchID           string                    `json:"dispatch_id"`
+	OperationID          string                    `json:"operation_id"`
+	OutputChunks         []OutputChunk             `json:"output_chunks"`
+	InputReceipts        []InputReceipt            `json:"input_receipts"`
+	State                string                    `json:"state"`
+	Directory            string                    `json:"directory"`
+	ProcessID            int                       `json:"process_id"`
+	TreeStopped          bool                      `json:"tree_stopped"`
+	ExitCode             int                       `json:"exit_code"`
+	Error                string                    `json:"error"`
+	SourceSnapshotSHA256 string                    `json:"source_snapshot_sha256"`
+	BaseCommit           string                    `json:"base_commit"`
+	AdminBaseCommit      string                    `json:"admin_base_commit"`
+	CodeBaseline         *ccmp.CodeBaselineBinding `json:"code_baseline,omitempty"`
 }
 type ExchangeResponse struct {
 	// RecoveryOperationID is an explicit reviewed disposition of this exact

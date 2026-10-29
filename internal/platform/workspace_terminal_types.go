@@ -1,6 +1,7 @@
 package platform
 
 import (
+	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	"github.com/ai-mada/suma/internal/dag"
 	term "github.com/ai-mada/suma/internal/terminalcontract"
 )
@@ -25,6 +26,9 @@ type WorkspaceTerminalOutputPage struct {
 }
 
 type WorkspaceTerminalPage struct {
+	CodeBaseline     *ccmp.CodeBaselineBinding  `json:"code_baseline,omitempty"`
+	BaselineCurrent  bool                       `json:"baseline_current"`
+	BaselineReason   string                     `json:"baseline_reason"`
 	Items            []WorkspaceTerminalSession `json:"items"`
 	Profiles         []ToolProfile              `json:"profiles"`
 	TaskVersion      int                        `json:"task_version"`

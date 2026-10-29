@@ -6,7 +6,7 @@ const session: WorkspaceTerminalSession = {id: 'terminal-one', project_id: 'proj
   version: 3, run_id: 'terminal-run-one', run_version: 1, state: 'running', tool_profile_id: 'profile-one', tool_name: 'Owned shell',
   directory: 'attempt-worktree', worker_id: 'worker-one', columns: 80, rows: 24, control_epoch: 1, next_input_sequence: 1,
   output_first_sequence: 1, output_last_sequence: 2, output_ack_sequence: 0, expires_at: '2026-10-29T12:00:00Z',
-  created_at: '2026-10-29T11:00:00Z', allowed_actions: ['input', 'resize', 'ack', 'stop'], reason: '', source_snapshot_sha256: '', base_commit: ''};
+  created_at: '2026-10-29T11:00:00Z', allowed_actions: ['input', 'resize', 'ack', 'stop'], reason: '', source_snapshot_sha256: '', base_commit: '', admin_base_commit: ''};
 
 it('binds terminal output to its exact session and epoch, exposes gaps and excludes shell input from durable recovery', () => {
   const page = {session_id: session.id, control_epoch: 1, chunks: [{sequence: 1, data_base64: 'YQ=='}], first_sequence: 1, last_sequence: 2, gap: false, state: 'running'};

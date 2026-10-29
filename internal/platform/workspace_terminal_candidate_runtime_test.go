@@ -121,13 +121,42 @@ func terminalCandidateRuntimeTools(t *testing.T, f *fixture, worker string, cfg 
 	return profiles, token
 }
 
+func terminalCandidateRefreshRuntimeTools(t *testing.T, ctx context.Context, f *fixture, worker, token string, cfg *runner.ExecConfig) {
+	t.Helper()
+	inventory, err := runner.DescribeTools(ctx, *cfg)
+	if err != nil || len(inventory) != len(cfg.Commands) {
+		t.Fatalf("current actual tool probe failed: %+v %v", inventory, err)
+	}
+	for _, item := range inventory {
+		if !item.Available {
+			t.Fatal("current actual tool probe reported an unavailable command", item)
+		}
+	}
+	if _, err = f.s.ReportToolInventory(ctx, toolActorForTest(t, f, token), f.project, ToolInventoryRequest{ProjectID: f.project, WorkerID: worker, OperationID: newID(), Items: inventory}); err != nil {
+		t.Fatal(err)
+	}
+	cfg.ToolInventory = inventory
+}
+
 // Actual Windows ConPTY edits are copied only after the original tree stopped.
 // The fixture owner exercises Review; no customer sign-off or model is claimed.
 func TestWorkspaceTerminalCandidateActualStoppedSourceIndependentQuality(t *testing.T) {
+	terminalCandidateActualJourney(t, false)
+}
+
+func TestWorkspaceTerminalAcceptedBaselineActualFollowupDevelopment(t *testing.T) {
+	terminalCandidateActualJourney(t, true)
+}
+
+func terminalCandidateActualJourney(t *testing.T, continueBaseline bool) {
 	if runtime.GOOS != "windows" {
 		t.Skip("actual Windows ConPTY containment fixture")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	duration := 45 * time.Second
+	if continueBaseline {
+		duration = 180 * time.Second
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 	f := newFixture(t)
 	f.e.AttemptAccounting = f.s
@@ -140,18 +169,22 @@ func TestWorkspaceTerminalCandidateActualStoppedSourceIndependentQuality(t *test
 		t.Fatal(err)
 	}
 	evidenceDir := ""
-	if requested := os.Getenv("SUMA_TERMINAL_CANDIDATE_EVIDENCE_DIR"); requested != "" {
+	stage, owned, environment := "T-TERMINAL-130", "terminal-130", "SUMA_TERMINAL_CANDIDATE_EVIDENCE_DIR"
+	if continueBaseline {
+		stage, owned, environment = "T-BASELINE-131", "baseline-131", "SUMA_BASELINE_EVIDENCE_DIR"
+	}
+	if requested := os.Getenv(environment); requested != "" {
 		projectRoot, e := filepath.Abs(filepath.Join("..", ".."))
 		if e != nil {
 			t.Fatal(e)
 		}
-		evidenceDir = workbenchRetainedDirectory(t, requested, filepath.Join(projectRoot, ".cache", "e2e", "terminal-130"), true)
+		evidenceDir = workbenchRetainedDirectory(t, requested, filepath.Join(projectRoot, ".cache", "e2e", owned), true)
 	}
 	defer func() {
 		if evidenceDir == "" || !t.Failed() {
 			return
 		}
-		receipt := map[string]any{"stage": "T-TERMINAL-130", "status": "failed", "kind": "actual_terminal_candidate_failure_forensics", "production_complete": false}
+		receipt := map[string]any{"stage": stage, "status": "failed", "kind": "actual_terminal_candidate_failure_forensics", "production_complete": false}
 		counts := map[string]int{}
 		for _, table := range []string{"dag_runs", "dag_attempts", "suma_tasks", "suma_workspace_terminal_sessions", "suma_workspace_terminal_candidate_plans", "suma_candidate_transfers", "suma_test_plan_reports", "suma_reviews", "suma_issues", "suma_requirements"} {
 			var count int
@@ -293,6 +326,8 @@ func TestWorkspaceTerminalCandidateActualStoppedSourceIndependentQuality(t *test
 		map[string]any{"id": "capture", "type": "command", "command": []string{"candidate-check130"}, "config": map[string]any{"tool_profile_id": producer.ID, "tool_profile_sha256": producer.Profile.ProfileSHA256}},
 		map[string]any{"id": "independent", "type": "test", "command": []string{"candidate-test130"}, "depends_on": []string{"capture"}, "config": map[string]any{"candidate_from": "capture", "tool_profile_id": testProfile.ID, "tool_profile_sha256": testProfile.Profile.ProfileSHA256}},
 	}}), 201)
+	terminalCandidateRefreshRuntimeTools(t, ctx, f, producer.WorkerID, token, &developer)
+	terminalCandidateRefreshRuntimeTools(t, ctx, f, testProfile.WorkerID, testToken, &verifier)
 	request := WorkspaceTerminalCandidatePreviewRequest{ProjectID: f.project, ExpectedSessionVersion: session.Version, ExpectedTaskVersion: task.Version, ToolProfileID: producer.ID, ExpectedToolVersion: producer.Version, WorkflowID: wire["id"].(string), WorkflowVersion: int(wire["version"].(float64)), ProducerNodeID: "capture", AcknowledgeStoppedChanges: true, IdempotencyKey: newID()}
 	plan := issueRepairRuntimeDecode[WorkspaceTerminalCandidatePlan](t, f.call("POST", "/workspace/terminal-sessions/"+session.ID+"/candidate-plans", request, 201))
 	if !plan.Valid || plan.Source.SnapshotSHA256 != session.SourceSnapshotSHA256 || workspaceTerminalTaskSQL(t, f, task.ID).SHA256 != before.SHA256 {
@@ -349,7 +384,11 @@ func TestWorkspaceTerminalCandidateActualStoppedSourceIndependentQuality(t *test
 	if err != nil {
 		t.Fatal(err)
 	}
-	followup := issueRepairRuntimeDecode[Record](t, f.call("POST", "/tasks", f.body(map[string]any{"title": "Continue from the explicitly accepted original terminal candidate"}), 201))
+	followupBody := map[string]any{"title": "Continue from the explicitly accepted original terminal candidate"}
+	if continueBaseline {
+		followupBody["acceptance_criteria"] = []string{"Preserve the exact adopted arithmetic behavior", "Add the explicitly requested follow-up source marker"}
+	}
+	followup := issueRepairRuntimeDecode[Record](t, f.call("POST", "/tasks", f.body(followupBody), 201))
 	adopt := map[string]any{"project_id": f.project, "expected_task_version": followup.Version, "expected_binding_version": 0, "terminal_candidate_plan_id": plan.ID, "expected_terminal_candidate_plan_version": startedPlan.Version, "acknowledge": true, "reason": "Fixture owner explicitly adopts the accepted terminal candidate as this unstarted task's baseline", "idempotency_key": newID()}
 	bound := issueRepairRuntimeDecode[Record](t, f.call("POST", "/tasks/"+followup.ID+"/code-baseline", adopt, 200))
 	if bound.CodeBaseline == nil || bound.CodeBaseline.Source.HeadCommit != proof.Seal.Commit || bound.RunID != "" {
@@ -358,10 +397,28 @@ func TestWorkspaceTerminalCandidateActualStoppedSourceIndependentQuality(t *test
 	if repeated := issueRepairRuntimeDecode[Record](t, f.call("POST", "/tasks/"+followup.ID+"/code-baseline", adopt, 200)); repeated.Version != bound.Version {
 		t.Fatal("original adoption replay changed follow-up task")
 	}
+	var continuation map[string]any
+	if continueBaseline {
+		continuation = terminalBaselineActualContinuation(t, ctx, f, bound, developer, verifier, profiles, client, control.URL, proof.Seal.Commit, base, evidenceDir)
+	}
 	beforeIssues := expertCount(t, f, "suma_issues")
 	reject := f.body(map[string]any{"expected_version": accepted.Version, "run_id": run.ID, "decision": "rejected", "reason": "Fixture owner records additional requirements after the original candidate was accepted"})
 	f.call("POST", "/tasks/"+task.ID+"/review", reject, 200)
 	f.call("POST", "/tasks/"+task.ID+"/review", reject, 200)
+	if continueBaseline {
+		currentFollowup, e := f.s.Get(ctx, f.actor, f.project, "tasks", followup.ID)
+		if e != nil {
+			t.Fatal(e)
+		}
+		beforeReviews := expertCount(t, f, "suma_reviews")
+		if _, e = f.s.Review(ctx, f.actor, f.project, followup.ID, f.body(map[string]any{"expected_version": currentFollowup.Version, "run_id": currentFollowup.RunID, "decision": "accepted", "reason": "A new follow-up approval must revalidate the rejected upstream source"}), f.e); e == nil {
+			t.Fatal("a new follow-up approval reused a rejected baseline")
+		}
+		if expertCount(t, f, "suma_reviews") != beforeReviews {
+			t.Fatal("rejected upstream basis still wrote a follow-up review")
+		}
+		continuation["upstream_rejection_blocks_new_followup_review"] = true
+	}
 	if expertCount(t, f, "suma_issues") != beforeIssues+1 {
 		t.Fatal("original rejection did not create exactly one canonical issue")
 	}
@@ -423,7 +480,10 @@ func TestWorkspaceTerminalCandidateActualStoppedSourceIndependentQuality(t *test
 		if err != nil {
 			t.Fatal(err)
 		}
-		result := map[string]any{"stage": "T-TERMINAL-130", "kind": "actual_windows_pty_stopped_candidate_independent_git_http_junit_review", "project_id": f.project, "task_id": task.ID, "terminal_session_id": session.ID, "terminal_run_id": session.RunID, "terminal_snapshot_sha256": session.SourceSnapshotSHA256, "terminal_journal_sha256": digest(string(journal)), "terminal_manifest_file_sha256": digest(string(manifest)), "terminal_candidate_plan_id": plan.ID, "terminal_candidate_plan_version": startedPlan.Version, "candidate_run_id": run.ID, "base_commit": base, "candidate_commit": proof.Seal.Commit, "producer_worker": development.WorkerID, "independent_worker": test.WorkerID, "independent_source_repo": independentRepo, "junit_sha256": checked.TestReport.SHA256, "formal_cases_passed": execution.Passed, "accepted_review_id": acceptedReview, "followup_task_id": followup.ID, "followup_binding": bound.CodeBaseline, "rejected_review_id": rejectedReview, "canonical_issue_id": issue["issue_id"], "canonical_requirement_id": requirement.ID, "late_rejection_invalidates_followup_baseline": len(baseline.Blockers) > 0, "parent_checkouts_unchanged": true, "model_calls": 0, "customer_human_signoff": false, "production_complete": false}
+		result := map[string]any{"stage": stage, "kind": "actual_windows_pty_stopped_candidate_independent_git_http_junit_review", "project_id": f.project, "task_id": task.ID, "terminal_session_id": session.ID, "terminal_run_id": session.RunID, "terminal_snapshot_sha256": session.SourceSnapshotSHA256, "terminal_journal_sha256": digest(string(journal)), "terminal_manifest_file_sha256": digest(string(manifest)), "terminal_candidate_plan_id": plan.ID, "terminal_candidate_plan_version": startedPlan.Version, "candidate_run_id": run.ID, "base_commit": base, "candidate_commit": proof.Seal.Commit, "producer_worker": development.WorkerID, "independent_worker": test.WorkerID, "independent_source_repo": independentRepo, "junit_sha256": checked.TestReport.SHA256, "formal_cases_passed": execution.Passed, "accepted_review_id": acceptedReview, "followup_task_id": followup.ID, "followup_binding": bound.CodeBaseline, "rejected_review_id": rejectedReview, "canonical_issue_id": issue["issue_id"], "canonical_requirement_id": requirement.ID, "late_rejection_invalidates_followup_baseline": len(baseline.Blockers) > 0, "parent_checkouts_unchanged": true, "model_calls": 0, "customer_human_signoff": false, "production_complete": false}
+		if continuation != nil {
+			result["followup_development"] = continuation
+		}
 		modelSelectionGUIJSON(t, filepath.Join(evidenceDir, "result.public.json"), result)
 		modelSelectionGUIJSON(t, filepath.Join(evidenceDir, "network.public.json"), networkResult)
 		modelSelectionGUIJSON(t, filepath.Join(evidenceDir, "terminal.public.json"), session)
