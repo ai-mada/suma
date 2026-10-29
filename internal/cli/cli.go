@@ -116,6 +116,9 @@ func Execute(ctx context.Context, args []string, in io.Reader, out, stderr io.Wr
 }
 
 func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out io.Writer) error {
+	if len(args) > 0 && args[0] == "worklogs" {
+		return worklogsCommand(ctx, c, args[1:], out)
+	}
 	if len(args) > 0 && args[0] == "models" {
 		return modelExecutionCommand(ctx, c, args[1:], out)
 	}

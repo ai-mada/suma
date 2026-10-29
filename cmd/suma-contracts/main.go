@@ -118,6 +118,9 @@ func generate() (map[string]any, string) {
 	for _, v := range toolExecutionModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range worklogModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range schedulingModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -360,6 +363,7 @@ func generate() (map[string]any, string) {
 	automationIngressSecurity(api)
 	projectFocusContracts(add, api)
 	resourceCalendarContracts(add, api)
+	worklogContracts(add, api)
 	projectKnowledgeContracts(add, api)
 	requirementDesignContracts(add, api)
 	taskDesignViewContracts(add, api)

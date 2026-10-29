@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [人员工时合同](../contracts/worklogs.md) · [领域架构](architecture/worklogs.md) · [操作与AI SOP](development/worklogs.md) · [English](en/worklogs.md) · [限定验证](quality/worklogs-verification.md)：明确人员登记、保留更正／作废历史、组织跨项目日上限和原操作恢复。
+
 更新：2026-10-29。当前只有 **1.0.0** 产品基线，完整平台仍在实现与验收中。入口按领域组织，当前能力由交付状态统一维护；专项设计、合同、英文说明、验证报告与精简摘要保留各自范围，不把历史阶段编号当成产品版本或当前完成状态。
 
 - [资源工作日历合同](../contracts/resource-calendars.md) · [架构](architecture/resource-calendars.md) · [交互](design/resource-calendars.md) · [限定验证](quality/resource-calendars-verification.md)：工作制／日期例外、未知／0、按可用小时分摊与原操作恢复。

@@ -100,6 +100,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.validateResourceCalendarInitialSchema(ctx); err != nil {
 		return err
 	}
+	if err := s.validateWorklogInitialSchema(ctx); err != nil {
+		return err
+	}
 	if err := store.InitializeBaseline(ctx, s.DB, s.Dialect, "platform", "suma_", store.InitialDataContract); err != nil {
 		return err
 	}
@@ -141,6 +144,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 		return err
 	}
 	if err := s.InitializePlanning(ctx); err != nil {
+		return err
+	}
+	if err := s.InitializeWorklogs(ctx); err != nil {
 		return err
 	}
 	if err := s.InitializeIntelligentPlanning(ctx); err != nil {

@@ -6077,6 +6077,97 @@ export interface WorkflowValidation {
   errors: (string)[];
   diagnostics: (Rendered)[];
 }
+export interface Worklog {
+  id: string;
+  project_id: string;
+  version: number;
+  status: string;
+  source: string;
+  task_id: string;
+  task_version: number;
+  task_title: string;
+  member_id: string;
+  member_version: number;
+  member_name: string;
+  user_id: string;
+  user_name: string;
+  work_date: string;
+  minutes: number;
+  note: string;
+  reason: string;
+  actor_id: string;
+  actor_name: string;
+  on_behalf_ack: boolean;
+  created_at: string;
+  updated_at: string;
+  can_correct: boolean;
+  can_void: boolean;
+}
+export interface WorklogCorrectionRequest {
+  project_id: string;
+  expected_version: number;
+  task_id: string;
+  expected_task_version: number;
+  work_date: string;
+  minutes: number;
+  note: string;
+  reason: string;
+  on_behalf_ack: boolean;
+  idempotency_key: string;
+}
+export interface WorklogCreateRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  member_id: string;
+  work_date: string;
+  minutes: number;
+  note: string;
+  on_behalf_ack: boolean;
+  idempotency_key: string;
+}
+export interface WorklogListRequest {
+  task_id: string;
+  member_id: string;
+  from_date: string;
+  to_date: string;
+  status: string;
+  limit: number;
+  cursor: string;
+}
+export interface WorklogPage {
+  project_id: string;
+  items: (Worklog)[];
+  total: number;
+  limit: number;
+  next_cursor: string;
+  scope_version: number;
+  summary: WorklogSummary;
+  can_create: boolean;
+  can_manage_others: boolean;
+  self_member_id: string;
+}
+export interface WorklogRevisionPage {
+  project_id: string;
+  worklog_id: string;
+  items: (Worklog)[];
+  total: number;
+  limit: number;
+  next_cursor: string;
+  scope_version: number;
+}
+export interface WorklogSummary {
+  active_count: number;
+  voided_count: number;
+  total_minutes: number;
+}
+export interface WorklogVoidRequest {
+  project_id: string;
+  expected_version: number;
+  reason: string;
+  on_behalf_ack: boolean;
+  idempotency_key: string;
+}
 export interface WorkspaceDesktopBindingRequest {
   project_id: string;
   expected_binding_sha256: string;

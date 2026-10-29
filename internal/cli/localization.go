@@ -31,6 +31,12 @@ type cliMessage struct{ key, zh string }
 // 精确匹配的是本 CLI 自己生成的静态诊断，绝不把远端诊断、用户文本或
 // 工具原始输出送进此映射。机器 code、状态和幂等请求正文不受语言影响。
 var cliMessages = map[string]cliMessage{
+	worklogCLIUsage:               {"cli.worklog.action_required", "worklogs 需要 list、get、create、correct、void 或 history，请查看 worklogs --help"},
+	worklogCLIListInvalid:         {"cli.worklog.list_options", "工时列表须提供 --from-date 与 --to-date（YYYY-MM-DD，含首尾最多 31 天）、有效筛选参数及 1–50 的 --limit"},
+	worklogCLIReadInvalid:         {"cli.worklog.read_options", "读取／历史需要有效工时 ID；历史支持 1–50 的 --limit 与 --cursor"},
+	worklogCLICreateInvalid:       {"cli.worklog.create_options", "人工工时新建须提供 --task、正整数 --task-version、--member、--date YYYY-MM-DD、1–1440 的整数 --minutes 及 8–128 个 UTF-8 字节的 --operation；--note 最多 200 字"},
+	worklogCLICorrectInvalid:      {"cli.worklog.correct_options", "人工工时更正须提供 ID、正整数 --version 与 --task-version、--task、--date YYYY-MM-DD、1–1440 的整数 --minutes、1–200 字的 --reason 及 8–128 个 UTF-8 字节的 --operation；--note 最多 200 字"},
+	worklogCLIVoidInvalid:         {"cli.worklog.void_options", "人工工时作废须提供 ID、正整数 --version、1–200 字的 --reason 及 8–128 个 UTF-8 字节的 --operation"},
 	workspaceTreeCLIUsage:         {"cli.workspace_tree.usage", "目录浏览命令：workspace files [--directory 相对目录] [--limit 1..200] [--before 上一页游标]"},
 	compositionCLIUsage:           {"cli.candidate_composition.action_required", "candidate-compositions 需要 options、list、get、conflict、revision-context、create、repair、revise-repair、start 或 command；task-code-baseline 需要 get 或 bind，请查看 --help"},
 	compositionCLIRevisionInvalid: {"cli.candidate_composition.revision_basis_required", "修复计划修订需要准确计划、任务、冲突和所选流程／工具版本、明确确认、理由及原操作标识"},
@@ -166,9 +172,9 @@ func (c *client) text(zh, en string) string {
 
 func helpForLocale(locale localization.Locale) string {
 	if locale == localization.EnUS {
-		return strings.Replace(help, "--timeout 15s", "--timeout 15s --language en-US|zh-CN", 1) + projectContextHelp(locale) + handoffsHelp(locale) + skillCatalogHelp(locale) + expertPlansHelp(locale) + failureDiagnosisHelp(locale) + candidateCompositionHelp(locale)
+		return strings.Replace(help, "--timeout 15s", "--timeout 15s --language en-US|zh-CN", 1) + projectContextHelp(locale) + handoffsHelp(locale) + skillCatalogHelp(locale) + expertPlansHelp(locale) + failureDiagnosisHelp(locale) + candidateCompositionHelp(locale) + worklogsHelp(locale)
 	}
-	return helpZH + projectContextHelp(locale) + handoffsHelp(locale) + skillCatalogHelp(locale) + expertPlansHelp(locale) + failureDiagnosisHelp(locale) + candidateCompositionHelp(locale)
+	return helpZH + projectContextHelp(locale) + handoffsHelp(locale) + skillCatalogHelp(locale) + expertPlansHelp(locale) + failureDiagnosisHelp(locale) + candidateCompositionHelp(locale) + worklogsHelp(locale)
 }
 
 func projectContextHelp(locale localization.Locale) string {

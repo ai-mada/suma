@@ -1,10 +1,12 @@
 # 1.0.0 当前交付状态
 
+T-WORKLOG-135推进原P3人员协作：开发→计划→工时及同源Go CLI，当前人员身份、任务版本、明确代办、更正／作废不可变历史、组织跨项目每日1440分钟事务上限与原操作恢复。见[合同](../../contracts/worklogs.md)、[架构](../architecture/worklogs.md)、[限定报告](../quality/worklogs-verification.md)和[摘要](../quality/worklogs-summary.json)。登记是人员声明，非自动测量、审批、工资或机器计费。完整58／34／92不变，真实GUI／其他数据库、HR／组织容量与全平台仍待交付。
+
 本轮 T-PLATFORM-DESIGN-134 完成全平台设计细化与可点击样稿：[统一体验](../design/unified-experience.md)、[编排架构](../architecture/unified-capability-orchestration.md)、[工具／Harness矩阵](../integrations/development-tool-matrix.md)、[样稿](../design/prototypes/enterprise-workbench.html)。覆盖11项业务闭环、八个演示工作区、配置继承、调度背压和部署开放门槛；[验证报告](../quality/platform-design-verification.md)只证明设计样稿交互，不代表生产页面、新适配器或真实服务集成完成。源码实现基线仍为下述各专项，完整58／34／92保持不变。
 
 更新：2026-10-29。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–26 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。
 
-当前T-CALENDAR-134推进原资源排期：版本化七日工作制及日期例外、按完整任务区间可用小时分摊、未知／0与未完整排期分开，正式智能规划绑定完整日历。中英编辑器与原回执／当前资格连通；[报告](../quality/resource-calendars-verification.md)和[摘要](../quality/resource-calendars-summary.json)记录SQLite／HTTP、DOM及类型／语言／构建证据。真实浏览器及组织容量／HR／工时／生产仍待交付，58／34／92不变。
+当前T-CALENDAR-134推进原资源排期：版本化七日工作制及日期例外、按完整任务区间可用小时分摊、未知／0与未完整排期分开，正式智能规划绑定完整日历。中英编辑器与原回执／当前资格连通；[报告](../quality/resource-calendars-verification.md)和[摘要](../quality/resource-calendars-summary.json)记录SQLite／HTTP、DOM及类型／语言／构建证据。真实浏览器及组织计划容量／HR／生产仍待交付；人员明确登记由T-WORKLOG-135单独交付，58／34／92不变。
 
 前序T-EXPERIENCE-133深化[企业研发工作台需求与架构](../product/enterprise-workbench.md)：保留全量交付与分页关注，按需展开准确分类和原运行依据诊断；新增四类客户端可信无密钥配置导出及其他工具手动指南。8项Go、67项Web、类型／6673键中英／生产构建及合同检查通过，GUI实际渲染仍待验。见[当前报告](../quality/enterprise-experience-verification.md)／[摘要](../quality/enterprise-experience-summary.json)，完整58／34／92不变。
 

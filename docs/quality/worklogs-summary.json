@@ -1,0 +1,112 @@
+{
+  "stage": "T-WORKLOG-135",
+  "date": "2026-10-29",
+  "product_version": "1.0.0",
+  "status": "scoped_sqlite_http_cli_components_and_current_planning_authority_verified_gui_not_verified",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "parent": "b1439b3ceed97437ca519b4c6c23fc22e53e2eab",
+    "inventory": ".cache/e2e/worklog-135/source-inventory.json",
+    "sha256": "c6f315d652e827a39cb30221c96324ac89fa54dccf51318380412569c926eefd",
+    "files": 39,
+    "goal_source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9"
+  },
+  "implementation": {
+    "source": "Explicit human_manual integer minutes; no inference from plans, calendars, models or machine time.",
+    "identity": "Canonical current human binding; current self or browser manager with explicit acknowledgement; immutable person and revision history.",
+    "transactions": "Same-tenant user/date active1440 ceiling across projects; ordered atomic ledger deltas, current head CAS, immutable revisions, scope version, activity and original receipt in one transaction.",
+    "recovery": "Original operation remains reachable after move/void; current authorization before replay. Parent/child denial clears protected planning facts and invalidates pending reads.",
+    "initial_schema": "Independent empty domain; partial columns/keys or colliding views reject before initialization writes. No legacy imports, aliases, backfill or DROP in production."
+  },
+  "checks": {
+    "distinct_go_top_tests": [
+      "TestCanonicalTemplateGrammarAndCatalogSnapshot",
+      "TestCatalogKnownMessagesAreBilingualAndKeepMachineFields",
+      "TestPlanningChecksLivePermissionInsteadOfStalePrincipalRole",
+      "TestResourceCalendarContractUsesOneCurrentCalendarAndExplicitUnknown",
+      "TestResourceCalendarDoesNotInferSingleDayFromPartialDatesAndKeepsZeroEstimate",
+      "TestResourceCalendarFullScheduleChangesFormalPlanningDigest",
+      "TestResourceCalendarMalformedDeclaredShapeRejectsBeforeInitializationWrites",
+      "TestResourceCalendarProjectsCurrentEditPermissionBeforeReceiptRecovery",
+      "TestResourceCalendarRechecksCurrentCredentialBeforeReadAndReplay",
+      "TestResourceCalendarRejectsUnsupportedWeekAndTaskDates",
+      "TestResourceCalendarUnknownReplacementCASAndOriginalReceipt",
+      "TestResourceCalendarValidatesCompleteQuarterHourSchedule",
+      "TestResourceCalendarWeeklyOverrideAndWeightedEffort",
+      "TestWorklogCanonicalResourceBindingRequired",
+      "TestWorklogClosedWireRequiresCompleteFieldsAndOriginalView",
+      "TestWorklogContractPreservesHumanSnapshotsAndExplicitWriteBasis",
+      "TestWorklogCrossProjectAtomicLastMinuteAndNoProjectLeak",
+      "TestWorklogCurrentAndRevisionPagingBindScopeAndFilters",
+      "TestWorklogCurrentReadAndReplayRejectRevokedCredential",
+      "TestWorklogCurrentWriteRoleBeforeOriginalReceipt",
+      "TestWorklogDeveloperSelfOtherAcknowledgementAndHistoricalRepair",
+      "TestWorklogFailedDateMoveRollsBackAndVoidReleasesMinutes",
+      "TestWorklogImmutableLifecycleReceiptAndCurrentTotals",
+      "TestWorklogInitialDomainInstallsWithoutInferredHistory",
+      "TestWorklogInitialDomainRejectsMalformedShapeBeforeWrites",
+      "TestWorklogProjectAPIIsSelfOnlyAndMachinesCannotImpersonateHuman",
+      "TestWorklogTaskSnapshotsAndOriginalReceiptSurviveCurrentChanges",
+      "TestWorklogValidationAndTaskVersion",
+      "TestWorklogsCLICurrentServerAuthorityWithoutRetry",
+      "TestWorklogsCLIExplicitWrites",
+      "TestWorklogsCLIHelpIsBilingualAndReadOnly",
+      "TestWorklogsCLIInvalidInputNeverWrites",
+      "TestWorklogsCLIProjectRequiredForWrites",
+      "TestWorklogsCLIReadRoutes"
+    ],
+    "go_count": 34,
+    "go_initial_passed": 34,
+    "go_affected_recheck_passed": 3,
+    "web_distinct_cases": 17,
+    "web_initial": {
+      "total": 15,
+      "passed": 13,
+      "failed": 2
+    },
+    "web_recovery_repair": {
+      "passed": 2,
+      "skipped": 9
+    },
+    "web_planning_integration": {
+      "passed": 3,
+      "skipped": 10
+    },
+    "web_initial_failure_cause": "Two test assertions compared changing language headers/recovery metadata; corrected assertions retain exact wire body, operation and actor/org headers; no product workaround.",
+    "typecheck": "Initial and final TypeScript checks exit0.",
+    "i18n_keys": 6798,
+    "production_hardcodes": 0,
+    "contracts": {
+      "models": 710,
+      "paths": 329,
+      "schemas": 711
+    },
+    "build": "Final isolated production build exit0,50.06s; prior build exit0 before actual planning authority correction. Existing chunk warning retained.",
+    "go_environment": "Windows/Go1.26.10/CGO0/actual SQLite two independent connections; offline dependency cache.",
+    "docs": "382 Markdown local links and329 API paths/3109 schema references checked; exit0."
+  },
+  "evidence": {
+    "local_stage": ".cache/e2e/worklog-135",
+    "policy": "Compact summary committed; raw JSON/events/logs/DB/build files ignored. Initial wrapper receipts copied byte-for-byte from existing ignored shared scratch; no repeat merely for evidence paths.",
+    "browser": "2026-10-29 CUA inventory: browsers empty; Local browser use is disabled in Work settings. No bypass or new screenshots.",
+    "accidental_collection": "One early pnpm -- attempt broadly collected, immediately interrupted, no complete result counted; non-existent Planning.test.tsx filter later matched no extra file."
+  },
+  "remaining": [
+    "Actual browser rendering/theme/narrow/keyboard/device checks",
+    "Real OceanBase/PostgreSQL service/cluster/failure and performance validation",
+    "HR approval, automatic timing, payroll, organization reporting, cross-project planned capacity",
+    "Complete P0-P7 and user requirements1-26"
+  ],
+  "resource_policy": {
+    "new_dependencies": 0,
+    "model_calls": 0,
+    "production_deployments": 0,
+    "full_suite_repeated": false,
+    "active_preview_replaced": false
+  }
+}
