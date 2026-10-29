@@ -20,7 +20,7 @@
   "task-views.external_change": "Another tab changed saved views. Your current filters are retained.",
   "task-views.load_saved": "Load latest saved views",
   "task-views.search": "Search tasks",
-  "task-views.search_placeholder": "Title, description or task ID",
+  "task-views.search_placeholder": "Task title or description",
   "task-views.business_status": "Task business status",
   "task-views.all_owners": "All assignees",
   "task-views.all_priorities": "All priorities",
@@ -58,5 +58,8 @@
   "task-views.prerequisites_independent": "Prerequisite tasks are read from the current project independently of workspace filters.",
   "task-views.prerequisites_scope": "Loaded {{loaded}} of {{total}} prerequisite candidates.",
   "task-views.more_prerequisites": "Load more prerequisite tasks",
-  "task-views.controls": "Filters and views ({{count}})"
+  "task-views.controls": "Filters and views ({{count}})",
+  "task-views.refresh": "Refresh all",
+  "task-views.all_requirements": "All requirements",
+  "task-views.more_requirements": "Load more requirements"
 }

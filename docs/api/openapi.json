@@ -24978,6 +24978,79 @@
         ],
         "type": "object"
       },
+      "TaskCollectionGroup": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "total"
+        ],
+        "type": "object"
+      },
+      "TaskCollectionSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "group_by": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/TaskCollectionGroup"
+            },
+            "maxItems": 100,
+            "readOnly": true,
+            "type": "array"
+          },
+          "groups_limit": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "groups_total": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "next_group_cursor": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "as_of",
+          "total",
+          "group_by",
+          "groups",
+          "groups_total",
+          "groups_limit",
+          "next_group_cursor"
+        ],
+        "type": "object"
+      },
       "TaskContext": {
         "properties": {
           "code_baseline": {
@@ -27439,10 +27512,19 @@
             "items": {
               "$ref": "#/components/schemas/Record"
             },
+            "maxItems": 100,
             "readOnly": true,
             "type": "array"
           },
+          "limit": {
+            "readOnly": true,
+            "type": "integer"
+          },
           "next_cursor": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
             "readOnly": true,
             "type": "string"
           },
@@ -27452,6 +27534,8 @@
           }
         },
         "required": [
+          "project_id",
+          "limit",
           "items",
           "total",
           "next_cursor",
@@ -97762,6 +97846,272 @@
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
       }
     },
+    "/task-collection/summary": {
+      "get": {
+        "description": "Current-authorized aggregate of the same task scope as /task-workspace. Total covers all matched tasks; groups contains only a bounded current group page. Separate requests are live reads, not a frozen snapshot. Does not mutate, dispatch, test or approve.",
+        "operationId": "get_task-collection_summary",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Literal title, description or ID substring; spaces preserved, up to 200 Unicode characters, no controls. SQL wildcards are escaped.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact business status, including literal all or archived. Empty or omitted is unrestricted; mutually exclusive with status_unset=true.",
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact priority; empty or omitted is unrestricted, mutually exclusive with priority_unset=true.",
+            "in": "query",
+            "name": "priority",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Literal resource identifier, including __unassigned__ if that is a real ID. No sentinel; empty or omitted is unrestricted.",
+            "in": "query",
+            "name": "owner_id",
+            "schema": {
+              "maxLength": 64,
+              "type": "string",
+              "x-max-utf8-bytes": 64
+            }
+          },
+          {
+            "description": "Literal in-project requirement identifier. Unknown IDs match nothing and never expand authority.",
+            "in": "query",
+            "name": "requirement_id",
+            "schema": {
+              "maxLength": 64,
+              "type": "string",
+              "x-max-utf8-bytes": 64
+            }
+          },
+          {
+            "description": "Match genuinely unassigned owners; true is mutually exclusive with nonempty owner_id.",
+            "in": "query",
+            "name": "unassigned",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Match genuinely empty priority; true is mutually exclusive with nonempty priority.",
+            "in": "query",
+            "name": "priority_unset",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Match genuinely empty status; true is mutually exclusive with nonempty status.",
+            "in": "query",
+            "name": "status_unset",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Current task grouping field. Empty keys are genuine unset data.",
+            "in": "query",
+            "name": "group_by",
+            "schema": {
+              "default": "status",
+              "enum": [
+                "status",
+                "owner",
+                "priority"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Maximum group headers; loading more is explicit and independent of task-row pagination.",
+            "in": "query",
+            "name": "group_limit",
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque continuation bound to current identity, project, base filters, grouping and group limit.",
+            "in": "query",
+            "name": "group_cursor",
+            "schema": {
+              "maxLength": 4096,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskCollectionSummary"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
     "/task-conversation-replies": {
       "get": {
         "description": "Explicit read-only multi-turn task assistant using one managed DAG run, a fixed current model deployment/parameters/budget, frozen task/requirement/message context and one original model request. It never replaces the task run, dispatches development commands or accepts delivery. Only a verified exact original attempt/fence/model receipt can append an assistant message. Unknown work remains blocked; cancel requests are not stopped-process evidence.",
@@ -101245,7 +101595,7 @@
     },
     "/task-workspace": {
       "get": {
-        "description": "Current-authorized project-wide task search and filtering before bounded pagination. Total uses the same filters in the same read transaction. Grouping is presentation only. Each page is a current read, not an immutable multi-page snapshot; refresh to reconcile concurrent edits.",
+        "description": "Current-authorized project-wide task filtering before bounded keyset pagination, including archived tasks. Total uses the same read transaction. Every page is a current read, not an immutable snapshot. UTC time ordering preserves nanoseconds with an ID tie-breaker. Refresh to reconcile edits.",
         "operationId": "get_task-workspace",
         "parameters": [
           {
@@ -101257,7 +101607,7 @@
             }
           },
           {
-            "description": "Literal title, description or ID substring; trimmed, at most 200 Unicode characters, no control characters. SQL wildcard characters are not operators.",
+            "description": "Literal title, description or ID substring; spaces preserved, up to 200 Unicode characters, no controls. SQL wildcards are escaped.",
             "in": "query",
             "name": "q",
             "schema": {
@@ -101266,37 +101616,69 @@
             }
           },
           {
-            "description": "Exact trimmed business task status, at most 64 UTF-8 bytes, no controls; omit for all. Empty is invalid. This is not execution state.",
+            "description": "Exact business status, including literal all or archived. Empty or omitted is unrestricted; mutually exclusive with status_unset=true.",
             "in": "query",
             "name": "status",
             "schema": {
-              "maxLength": 64,
-              "minLength": 1,
+              "maxLength": 200,
               "type": "string"
             }
           },
           {
-            "description": "Exact resource ID (1-64 ASCII identifier characters), or __unassigned__ for no owner. Omit for all; unknown IDs yield no matches.",
+            "description": "Exact priority; empty or omitted is unrestricted, mutually exclusive with priority_unset=true.",
+            "in": "query",
+            "name": "priority",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Literal resource identifier, including __unassigned__ if that is a real ID. No sentinel; empty or omitted is unrestricted.",
             "in": "query",
             "name": "owner_id",
             "schema": {
               "maxLength": 64,
-              "minLength": 1,
-              "type": "string"
+              "type": "string",
+              "x-max-utf8-bytes": 64
             }
           },
           {
-            "description": "Exact trimmed priority, at most 64 UTF-8 bytes, no controls; omit for all. Empty is invalid.",
+            "description": "Literal in-project requirement identifier. Unknown IDs match nothing and never expand authority.",
             "in": "query",
-            "name": "priority",
+            "name": "requirement_id",
             "schema": {
               "maxLength": 64,
-              "minLength": 1,
-              "type": "string"
+              "type": "string",
+              "x-max-utf8-bytes": 64
             }
           },
           {
-            "description": "Stable server order with ID tie-breaker. Unrecognized priorities sort after known values.",
+            "description": "Match genuinely unassigned owners; true is mutually exclusive with nonempty owner_id.",
+            "in": "query",
+            "name": "unassigned",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Match genuinely empty priority; true is mutually exclusive with nonempty priority.",
+            "in": "query",
+            "name": "priority_unset",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Match genuinely empty status; true is mutually exclusive with nonempty status.",
+            "in": "query",
+            "name": "status_unset",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Stable server ordering; unrecognized priorities follow known values.",
             "in": "query",
             "name": "sort",
             "schema": {
@@ -101311,7 +101693,7 @@
             }
           },
           {
-            "description": "Bounded page size.",
+            "description": "Bounded task-row page size.",
             "in": "query",
             "name": "limit",
             "schema": {
@@ -101322,7 +101704,7 @@
             }
           },
           {
-            "description": "Opaque continuation bound to current identity, project and every filter/order. Changing scope requires the first page.",
+            "description": "Opaque continuation bound to current identity, project, every filter, sort and page size.",
             "in": "query",
             "name": "cursor",
             "schema": {

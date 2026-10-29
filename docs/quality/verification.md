@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-TASKS-137：[统一任务工作台限定验证](task-collection-verification.md)与[摘要](task-collection-summary.json)。当前权限、统一行查询／字面条件、四种排序、三类有界分组、独立列分页、命名偏好、纳秒排序与恢复已定向检查；实际界面证据与最终源码差异分别记录。完整平台／其他数据库／规模和厂商仍待交付，58／34／92不变。
+
 T-MULTICA-137：[任务工作台验证](multica-task-views-verification.md)与[摘要](multica-task-views-summary.json)。限定全项目读取、当前权限、筛选游标、本机视图恢复及真实App／Go／SQLite交互；记录初次失败、修复与实际命令，不扩展为共享视图、全部工具、跨数据库或生产验收。
 
 T-MULTICA-136：[个人协作与命令入口限定验证](multica-collaboration-verification.md)、[摘要](multica-collaboration-summary.json)。当前规范人员任务、精确SQL范围和命令导航接入既有任务／工作区；16个不同Go顶层、新功能Web34项及已完成导航14项、类型／6885语言／合同／最终隔离构建通过。初批worker异常和针对性修复单独留证，浏览器禁用、完整看板／通知／厂商及生产仍待交付；参考SHA139b13a，本轮独立实现，无参考代码或品牌复制。

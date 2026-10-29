@@ -13,7 +13,7 @@ describe('capacity week native input and route consumers',()=>{
   let route=parseWorkbenchRoute('?project=project-a&view=development&sub=planning&layout=capacity&week=2026-10-19');
   const widget={value:'2026-10-26'};
   expect(applyCapacityWeekInput(widget,route.week,week=>{route={...route,week};return true;})).toBe('');
-  const query=new URLSearchParams(Object.entries(route)).toString();
+  const query=new URLSearchParams(Object.entries(route).filter(([,value])=>Boolean(value)).map(([key,value])=>[key,String(value)])).toString();
   const restored=initializeSessionRoute(parseWorkbenchRoute('?'+query),[{id:'project-a'}]);
   expect(restored).toMatchObject({project:'project-a',sub:'planning',layout:'capacity',week:'2026-10-26'});
   const fetcher=vi.fn().mockResolvedValue(new Response(JSON.stringify({capacity:[{...row,week_start:'2026-10-26',available_hours:null,allocated_hours:0}]}),{status:200}));vi.stubGlobal('fetch',fetcher);

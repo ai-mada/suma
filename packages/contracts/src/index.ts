@@ -5117,6 +5117,20 @@ export interface TaskCodeBaselineBindRequest {
   reason: string;
   idempotency_key: string;
 }
+export interface TaskCollectionGroup {
+  key: string;
+  total: number;
+}
+export interface TaskCollectionSummary {
+  project_id: string;
+  as_of: string;
+  total: number;
+  group_by: string;
+  groups: (TaskCollectionGroup)[];
+  groups_total: number;
+  groups_limit: number;
+  next_group_cursor: string;
+}
 export interface TaskContext {
   test_plan?: TaskTestPlanContext | null;
   code_baseline?: CodeBaselineBinding | null;
@@ -5582,6 +5596,8 @@ export interface TaskTestPlanContext {
   title: string;
 }
 export interface TaskWorkspacePage {
+  project_id: string;
+  limit: number;
   items: (Record)[];
   total: number;
   next_cursor: string;

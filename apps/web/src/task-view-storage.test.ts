@@ -1,9 +1,9 @@
 import {describe, expect, it} from 'vitest';
-import {discardTaskViews, readTaskViews, taskViewsKey, writeTaskViews, type SavedTaskView, type TaskViewScope, type TaskViewStorage} from './task-views-storage';
+import {discardTaskViews, readTaskViews, taskViewsFormat, taskViewsKey, writeTaskViews, type SavedTaskView, type TaskViewScope, type TaskViewStorage} from './task-views-storage';
 
 const scope:TaskViewScope=['user-a','org-a','project-a'];
 const view=():SavedTaskView=>({id:'view-1',name:'支付任务',preferences:{q:'支付',status:'in_progress',owner_id:'member-a',priority:'high',sort:'updated_desc',layout:'board',group_by:'owner'}});
-const encode=(views:unknown[])=>JSON.stringify({version:1,views});
+const encode=(views:unknown[])=>JSON.stringify({format:taskViewsFormat,views});
 function memoryStorage(initial?:string){
  const values=new Map<string,string>(initial===undefined?[]:[[taskViewsKey(scope),initial]]);
  const storage:TaskViewStorage={getItem:key=>values.get(key)??null,setItem:(key,value)=>{values.set(key,value);},removeItem:key=>{values.delete(key);}};
@@ -11,14 +11,25 @@ function memoryStorage(initial?:string){
 }
 
 describe('local personal task views',()=>{
+ it('preserves the original numeric envelope instead of reinterpreting an unassigned marker as a literal owner',()=>{
+  const literal={...view(),preferences:{...view().preferences,owner_id:'__unassigned__'}};
+  const previous=JSON.stringify({version:1,views:[literal]}),{storage,values}=memoryStorage(previous);
+  expect(readTaskViews(storage,scope)).toMatchObject({raw:previous,collection:null,error:'corrupt'});
+  expect(writeTaskViews(storage,scope,[literal],previous).error).toBe('corrupt');expect(values.get(taskViewsKey(scope))).toBe(previous);
+  const current=JSON.stringify({format:taskViewsFormat,views:[literal]});values.set(taskViewsKey(scope),current);
+  expect(readTaskViews(storage,scope)).toMatchObject({raw:current,error:null,collection:{format:taskViewsFormat,views:[literal]}});
+ });
+ it('retains literal query spaces and optional criteria without rewriting an existing view collection',()=>{
+  const {storage}=memoryStorage();const extended={...view(),id:'extended'};extended.preferences={...extended.preferences,q:'  支付 %_  ',owner_id:'',priority:'',status:'',requirement_id:'req-a',unassigned:true,priority_unset:true,status_unset:true};const saved=writeTaskViews(storage,scope,[view(),extended],null);expect(saved.error).toBeNull();expect(readTaskViews(storage,scope).collection?.views[1].preferences).toEqual(extended.preferences);
+ });
  it('reads an absent collection without creating storage and saves only preferences',()=>{
   const {storage,values}=memoryStorage();
   const initial=readTaskViews(storage,scope);
-  expect(initial).toEqual({key:'suma-task-views-v1:["user-a","org-a","project-a"]',raw:null,collection:{version:1,views:[]},error:null});
+  expect(initial).toEqual({key:'suma-task-views-v1:["user-a","org-a","project-a"]',raw:null,collection:{format:taskViewsFormat,views:[]},error:null});
   expect(values.size).toBe(0);
   const written=writeTaskViews(storage,scope,[view()],initial.raw);
   expect(written.error).toBeNull();
-  expect(written.collection).toEqual({version:1,views:[view()]});
+  expect(written.collection).toEqual({format:taskViewsFormat,views:[view()]});
   expect(readTaskViews(storage,scope)).toEqual(written);
  });
 
@@ -63,11 +74,11 @@ describe('local personal task views',()=>{
  });
 
  it.each([
-  ['invalid JSON','{'],['unsupported version','{"version":2,"views":[]}'],
-  ['extra business facts',JSON.stringify({version:1,views:[],run_id:'run-1'})],
-  ['duplicate property','{"version":1,"version":1,"views":[]}'],
-  ['escaped duplicate property','{"version":1,"\\u0076ersion":1,"views":[]}'],
-  ['missing collection','{"version":1}'],['null collection','{"version":1,"views":null}'],
+  ['invalid JSON','{'],['unsupported format',JSON.stringify({format:'unknown-format',views:[]})],
+  ['extra business facts',JSON.stringify({format:taskViewsFormat,views:[],run_id:'run-1'})],
+  ['duplicate property','{"format":"suma-task-views-literal-v1","format":"suma-task-views-literal-v1","views":[]}'],
+  ['escaped duplicate property','{"format":"suma-task-views-literal-v1","\\u0066ormat":"suma-task-views-literal-v1","views":[]}'],
+  ['missing collection',JSON.stringify({format:taskViewsFormat})],['null collection',JSON.stringify({format:taskViewsFormat,views:null})],
   ['extra view field',encode([{...view(),task_status:'accepted'}])],
   ['extra preference field',encode([{...view(),preferences:{...view().preferences,run:'succeeded'}}])],
   ['duplicate view ID',encode([view(),view()])],
@@ -75,9 +86,8 @@ describe('local personal task views',()=>{
   ['untrimmed name',encode([{...view(),name:' 名称 '}])],
   ['control in status',encode([{...view(),preferences:{...view().preferences,status:'todo\naccepted'}}])],
   ['control in priority',encode([{...view(),preferences:{...view().preferences,priority:'\u0085'}}])],
-  ['status exceeds UTF-8 budget',encode([{...view(),preferences:{...view().preferences,status:'界'.repeat(22)}}])],
-  ['priority exceeds UTF-8 budget',encode([{...view(),preferences:{...view().preferences,priority:'界'.repeat(22)}}])],
-  ['untrimmed query',encode([{...view(),preferences:{...view().preferences,q:' 支付 '}}])],
+  ['status exceeds UTF-8 budget',encode([{...view(),preferences:{...view().preferences,status:'界'.repeat(201)}}])],
+  ['priority exceeds UTF-8 budget',encode([{...view(),preferences:{...view().preferences,priority:'界'.repeat(201)}}])],
   ['invalid owner',encode([{...view(),preferences:{...view().preferences,owner_id:'../member'}}])],
   ['unsupported layout',encode([{...view(),preferences:{...view().preferences,layout:'timeline'}}])],
   ['unsupported grouping',encode([{...view(),preferences:{...view().preferences,group_by:'run'}}])],
@@ -96,8 +106,8 @@ describe('local personal task views',()=>{
    [{...view(),name:'a'.repeat(81)}],
    [{...view(),preferences:{...view().preferences,q:'a'.repeat(201)}}],
    [{...view(),preferences:{...view().preferences,owner_id:'a'.repeat(129)}}],
-   [{...view(),preferences:{...view().preferences,status:'a'.repeat(65)}}],
-   [{...view(),preferences:{...view().preferences,priority:'a'.repeat(65)}}],
+   [{...view(),preferences:{...view().preferences,status:'a'.repeat(201)}}],
+   [{...view(),preferences:{...view().preferences,priority:'a'.repeat(201)}}],
    [{...view(),extra:undefined}],
   ];
   for(const views of invalidLists){
@@ -133,7 +143,7 @@ describe('local personal task views',()=>{
  it('permits only explicit discard of the exact corrupt value and preserves other scopes',()=>{
   const {storage,values}=memoryStorage('{broken');const other:TaskViewScope=['user-b','org-a','project-a'];
   writeTaskViews(storage,other,[view()],null);
-  expect(discardTaskViews(storage,scope,'{broken')).toMatchObject({raw:null,collection:{version:1,views:[]},error:null});
+  expect(discardTaskViews(storage,scope,'{broken')).toMatchObject({raw:null,collection:{format:taskViewsFormat,views:[]},error:null});
   expect(values.has(taskViewsKey(scope))).toBe(false);
   expect(readTaskViews(storage,other).collection?.views).toHaveLength(1);
  });

@@ -1,5 +1,7 @@
 # Multica 复用与任务工作台实施
 
+后续T-TASKS-137将任务入口、行查询与有界分组统一，见[交互与AI SOP](../design/task-collection.md)和[当前证据](../quality/task-collection-verification.md)。原历史代码归属保持不变；完整分组由服务端提供，窄范围适配仍用于独立可复用呈现器。
+
 阶段：T-MULTICA-137；2026-10-29；产品1.0.0。完整范围继续由[实施计划](../delivery/implementation-plan.md)管理。这里记录实际来源、采用边界和优先交付顺序，不建立第二套平台计划。
 
 ## 来源与采用方式

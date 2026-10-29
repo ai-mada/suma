@@ -7,9 +7,16 @@ export type TaskViewPreferences={
  sort:'updated_desc'|'created_desc'|'title_asc'|'priority_desc';
  layout:'list'|'board';
  group_by:'status'|'owner'|'priority';
+ requirement_id?:string;
+ unassigned?:boolean;
+ priority_unset?:boolean;
+ status_unset?:boolean;
 };
 export type SavedTaskView={id:string;name:string;preferences:TaskViewPreferences};
-export type TaskViewCollection={version:1;views:SavedTaskView[]};
+// This envelope states literal filter semantics. An earlier numeric envelope
+// cannot prove that intent and is preserved as invalid until explicit recovery.
+export const taskViewsFormat='suma-task-views-literal-v1' as const;
+export type TaskViewCollection={format:typeof taskViewsFormat;views:SavedTaskView[]};
 export type TaskViewScope=readonly [userId:string,organizationId:string,projectId:string];
 export type TaskViewStorage=Pick<Storage,'getItem'|'setItem'|'removeItem'>;
 export type TaskViewReadResult={key:string;raw:string|null;collection:TaskViewCollection|null;error:'corrupt'|'unavailable'|null};
@@ -21,8 +28,8 @@ const controls=/[\u0000-\u001f\u007f-\u009f]/;
 const identifier=/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,128}$/;
 const ownerIdentifier=/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/;
 const bytes=(value:string)=>new TextEncoder().encode(value).length;
-const text=(value:unknown,max:number):value is string=>typeof value==='string'&&value.length<=max&&!controls.test(value);
-const shortFilter=(value:unknown):value is string=>text(value,64)&&bytes(value)<=64;
+const text=(value:unknown,max:number):value is string=>typeof value==='string'&&value.length<=max&&!controls.test(value)&&(value===''||!!value.trim());
+const shortFilter=(value:unknown):value is string=>typeof value==='string'&&Array.from(value).length<=200&&!controls.test(value)&&(value===''||!!value.trim());
 
 export function taskViewsKey(scope:TaskViewScope):string{return prefix+JSON.stringify(scope);}
 
@@ -35,14 +42,21 @@ function exactObject(value:unknown,keys:readonly string[]):value is Record<strin
  return (prototype===Object.prototype||prototype===null)&&Reflect.ownKeys(value).length===keys.length&&keys.every(key=>Object.hasOwn(value,key));
 }
 function validPreferences(value:unknown):value is TaskViewPreferences{
- if(!exactObject(value,['q','status','owner_id','priority','sort','layout','group_by']))return false;
- return typeof value.q==='string'&&Array.from(value.q).length<=200&&!controls.test(value.q)&&value.q.trim()===value.q&&shortFilter(value.status)&&shortFilter(value.priority)
-  &&typeof value.owner_id==='string'&&(value.owner_id===''||value.owner_id==='__unassigned__'||ownerIdentifier.test(value.owner_id))
-  &&['updated_desc','created_desc','title_asc','priority_desc'].includes(value.sort as string)
-  &&['list','board'].includes(value.layout as string)&&['status','owner','priority'].includes(value.group_by as string);
+ if(value===null||typeof value!=='object'||Array.isArray(value))return false;
+ const prototype=Object.getPrototypeOf(value);if(prototype!==Object.prototype&&prototype!==null)return false;
+ const required=['q','status','owner_id','priority','sort','layout','group_by'],optional=['requirement_id','unassigned','priority_unset','status_unset'];
+ const keys=Reflect.ownKeys(value);if(!required.every(key=>Object.hasOwn(value,key))||keys.some(key=>typeof key!=='string'||!required.includes(key)&&!optional.includes(key)))return false;
+ const candidate=value as Record<string,unknown>;
+ if(candidate.requirement_id!==undefined&&(typeof candidate.requirement_id!=='string'||candidate.requirement_id!==''&&!ownerIdentifier.test(candidate.requirement_id)))return false;
+ for(const key of ['unassigned','priority_unset','status_unset'])if(candidate[key]!==undefined&&typeof candidate[key]!=='boolean')return false;
+ if(candidate.unassigned&&candidate.owner_id!==''||candidate.priority_unset&&candidate.priority!==''||candidate.status_unset&&candidate.status!=='')return false;
+ return typeof candidate.q==='string'&&Array.from(candidate.q).length<=200&&!controls.test(candidate.q)&&shortFilter(candidate.status)&&shortFilter(candidate.priority)
+  &&typeof candidate.owner_id==='string'&&(candidate.owner_id===''||ownerIdentifier.test(candidate.owner_id))
+  &&['updated_desc','created_desc','title_asc','priority_desc'].includes(candidate.sort as string)
+  &&['list','board'].includes(candidate.layout as string)&&['status','owner','priority'].includes(candidate.group_by as string);
 }
 function validCollection(value:unknown):value is TaskViewCollection{
- if(!exactObject(value,['version','views'])||value.version!==1||!Array.isArray(value.views)||value.views.length>20)return false;
+ if(!exactObject(value,['format','views'])||value.format!==taskViewsFormat||!Array.isArray(value.views)||value.views.length>20)return false;
  const ids=new Set<string>();
  for(const item of value.views){
   if(!exactObject(item,['id','name','preferences'])||typeof item.id!=='string'||!identifier.test(item.id)||ids.has(item.id)
@@ -67,7 +81,7 @@ function hasDuplicateKeys(raw:string):boolean{
  return false;
 }
 function decode(key:string,raw:string|null):TaskViewReadResult{
- if(raw===null)return {key,raw,collection:{version:1,views:[]},error:null};
+ if(raw===null)return {key,raw,collection:{format:taskViewsFormat,views:[]},error:null};
  try{
   if(raw.length>byteLimit||bytes(raw)>byteLimit)throw new Error('oversized');
   const collection:unknown=JSON.parse(raw);
@@ -94,7 +108,7 @@ export function writeTaskViews(storage:TaskViewStorage|null|undefined,scope:Task
  if(current.error)return current;
  let raw:string;
  try{
-  const collection={version:1,views};
+  const collection={format:taskViewsFormat,views};
   if(!validCollection(collection))return {...current,error:'invalid'};
   raw=JSON.stringify(collection);
   if(bytes(raw)>byteLimit)return {...current,error:'invalid'};

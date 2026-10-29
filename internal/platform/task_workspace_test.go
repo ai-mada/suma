@@ -65,10 +65,17 @@ func TestTaskWorkspaceFiltersFullProjectAndLiteralSearch(t *testing.T) {
 	if all.Total != 125 || len(all.Items) != 100 || all.NextCursor == "" {
 		t.Fatalf("default first page has incorrect full scope: %#v", all)
 	}
-	q := TaskWorkspaceQuery{Q: "  nEEdLe  ", Status: "custom-state", Priority: "custom-priority", OwnerID: "member-a", Limit: 2}
+	q := TaskWorkspaceQuery{Q: "nEEdLe", Status: "custom-state", Priority: "custom-priority", OwnerID: "member-a", Limit: 2}
 	page := readTaskWorkspace(t, f, q)
 	if page.Total != 5 || len(page.Items) != 2 || page.Items[0].ID != rows[120].ID {
 		t.Fatalf("filter was applied after truncation or ignored a predicate: %#v", page)
+	}
+	if spaced := readTaskWorkspace(t, f, TaskWorkspaceQuery{Q: "  nEEdLe  "}); spaced.Total != 0 {
+		t.Fatal("literal search whitespace was normalized")
+	}
+	for _, control := range []string{"\n", "\t", "\u0085"} {
+		_, err := f.s.ListTaskWorkspace(context.Background(), f.actor, f.project, TaskWorkspaceQuery{Q: "literal" + control + "query"})
+		requireAuthorityStatus(t, err, 400)
 	}
 	for _, search := range []string{"%_!", "100%", "_", "!", rows[124].ID} {
 		got := readTaskWorkspace(t, f, TaskWorkspaceQuery{Q: search})
@@ -86,7 +93,7 @@ func TestTaskWorkspaceFiltersFullProjectAndLiteralSearch(t *testing.T) {
 			t.Fatalf("unknown exact filter leaked records: %#v %#v", query, got)
 		}
 	}
-	if page := readTaskWorkspace(t, f, TaskWorkspaceQuery{OwnerID: "__unassigned__"}); page.Total != 120 {
+	if page := readTaskWorkspace(t, f, TaskWorkspaceQuery{Unassigned: true}); page.Total != 120 {
 		t.Fatalf("unassigned was not an exact empty-owner filter: %d", page.Total)
 	}
 }
@@ -290,7 +297,7 @@ func TestTaskWorkspaceHTTPRejectsMalformedQueries(t *testing.T) {
 	f := newFixture(t)
 	server := &Server{Service: f.s}
 	for _, suffix := range []string{
-		"&limit=0", "&limit=101", "&limit=01", "&limit=1.5", "&limit=", "&limit=1&limit=2", "&sort=updated", "&sort=", "&owner_id=", "&owner_id=a/b", "&status=", "&status=todo%00", "&priority=", "&q=%FF", "&q=" + strings.Repeat("a", 201), "&status=" + strings.Repeat("s", 65), "&priority=" + strings.Repeat("p", 65), "&cursor=", "&cursor=broken", "&unknown=1", "&project_id=" + f.project, "&q=a;q=b", "&q=x&q=y",
+		"&limit=0", "&limit=101", "&limit=01", "&limit=1.5", "&limit=", "&limit=1&limit=2", "&sort=updated", "&sort=", "&owner_id=a/b", "&status=todo%00", "&q=%FF", "&q=" + strings.Repeat("a", 201), "&status=" + strings.Repeat("s", 201), "&priority=" + strings.Repeat("p", 201), "&cursor=", "&cursor=broken", "&unknown=1", "&project_id=" + f.project, "&q=a;q=b", "&q=x&q=y",
 	} {
 		t.Run(suffix, func(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/api/v1/task-workspace?project_id="+f.project+suffix, nil)

@@ -152,6 +152,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.InitializeMyWork(ctx); err != nil {
 		return err
 	}
+	if err := s.InitializeTaskCollections(ctx); err != nil {
+		return err
+	}
 	if err := s.InitializeIntelligentPlanning(ctx); err != nil {
 		return err
 	}

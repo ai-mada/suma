@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 	"unicode/utf8"
 )
@@ -17,18 +18,24 @@ const (
 )
 
 type TaskWorkspaceQuery struct {
-	Q        string `json:"q,omitempty"`
-	Status   string `json:"status,omitempty"`
-	OwnerID  string `json:"owner_id,omitempty"`
-	Priority string `json:"priority,omitempty"`
-	Sort     string `json:"sort,omitempty"`
-	Limit    int    `json:"limit,omitempty"`
-	Cursor   string `json:"cursor,omitempty"`
+	Q             string `json:"q,omitempty"`
+	Status        string `json:"status,omitempty"`
+	StatusUnset   bool   `json:"status_unset,omitempty"`
+	OwnerID       string `json:"owner_id,omitempty"`
+	Priority      string `json:"priority,omitempty"`
+	RequirementID string `json:"requirement_id,omitempty"`
+	Unassigned    bool   `json:"unassigned,omitempty"`
+	PriorityUnset bool   `json:"priority_unset,omitempty"`
+	Sort          string `json:"sort,omitempty"`
+	Limit         int    `json:"limit,omitempty"`
+	Cursor        string `json:"cursor,omitempty"`
 }
 
 // Each page describes current authorized facts. AsOf is the observation time,
 // not a frozen cross-request snapshot: later edits can change totals or order.
 type TaskWorkspacePage struct {
+	ProjectID  string   `json:"project_id"`
+	Limit      int      `json:"limit"`
 	Items      []Record `json:"items"`
 	Total      int      `json:"total"`
 	NextCursor string   `json:"next_cursor"`
@@ -58,14 +65,13 @@ func taskWorkspaceText(value string) bool {
 }
 
 func normalizeTaskWorkspaceQuery(q TaskWorkspaceQuery) (TaskWorkspaceQuery, error) {
-	// Only the free-text query is normalized. Exact filter values must already
-	// be trimmed, so a malformed value cannot silently select a different set.
-	q.Q = strings.TrimSpace(q.Q)
-	if !taskWorkspaceText(q.Q) || utf8.RuneCountInString(q.Q) > 200 || len(q.Cursor) > 4096 || !handoffID(q.OwnerID, true) || !taskWorkspaceText(q.OwnerID) {
+	// Search and exact values remain literal. Whitespace cannot silently select
+	// a different task set; empty owner/priority are selected by explicit flags.
+	if !taskWorkspaceText(q.Q) || utf8.RuneCountInString(q.Q) > 200 || len(q.Cursor) > 4096 || !handoffID(q.OwnerID, true) || !handoffID(q.RequirementID, true) || q.Unassigned && q.OwnerID != "" || q.PriorityUnset && q.Priority != "" || q.StatusUnset && q.Status != "" {
 		return q, invalid(taskWorkspaceInvalid)
 	}
 	for _, value := range []string{q.Status, q.Priority} {
-		if len(value) > 64 || !taskWorkspaceText(value) || strings.TrimSpace(value) != value {
+		if utf8.RuneCountInString(value) > 200 || !taskWorkspaceText(value) || value != "" && strings.TrimSpace(value) == "" {
 			return q, invalid(taskWorkspaceInvalid)
 		}
 	}
@@ -106,7 +112,7 @@ func taskWorkspaceCursorDecode(encoded string, expected taskWorkspaceCursor, mod
 	}
 	switch mode {
 	case "updated_desc", "created_desc":
-		if !validReleaseTime(c.Value) {
+		if !validRecordOrderKey(c.Value) {
 			return c, invalid(taskWorkspaceCursorInvalid)
 		}
 	case "title_asc":
@@ -139,6 +145,9 @@ func taskWorkspacePriorityRank(priority string) int {
 // ListTaskWorkspace deliberately uses the ordinary project-read authority.
 // An agent/runner credential is not an alternative task workspace identity.
 func (s *Service) ListTaskWorkspace(ctx context.Context, actor Actor, project string, q TaskWorkspaceQuery) (out TaskWorkspacePage, err error) {
+	if !myWorkHuman(actor) {
+		return out, forbidden()
+	}
 	err = s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(auth *authorizedCommand) error {
 		bounded, cancel := context.WithDeadline(ctx, auth.deadline)
 		defer cancel()
@@ -155,44 +164,25 @@ func (s *Service) taskWorkspaceTx(ctx context.Context, auth *authorizedCommand, 
 	if err := assertProjectRead(auth, project); err != nil {
 		return TaskWorkspacePage{}, err
 	}
+	if !myWorkHuman(auth.actor) {
+		return TaskWorkspacePage{}, forbidden()
+	}
 	q, err := normalizeTaskWorkspaceQuery(input)
 	if err != nil || !handoffID(project, false) {
 		return TaskWorkspacePage{}, invalid(taskWorkspaceInvalid)
 	}
 	p := auth.currentPrincipal
-	position := taskWorkspaceCursor{Version: 1, Subject: p.ID, Tenant: p.TenantID, Project: project, Filter: digest(stringify([]string{q.Q, q.Status, q.OwnerID, q.Priority, q.Sort}))}
+	fingerprint := q
+	fingerprint.Cursor = ""
+	position := taskWorkspaceCursor{Version: 1, Subject: p.ID, Tenant: p.TenantID, Project: project, Filter: digest(stringify(fingerprint))}
 	if q.Cursor != "" {
 		position, err = taskWorkspaceCursorDecode(q.Cursor, position, q.Sort)
 		if err != nil {
 			return TaskWorkspacePage{}, err
 		}
 	}
-	out := TaskWorkspacePage{Items: []Record{}, AsOf: now()}
-	where := ` FROM suma_tasks WHERE tenant_id=? AND project_id=?`
-	args := []any{p.TenantID, project}
-	if q.Q != "" {
-		// Explicit folding and the portable ! escape preserve literal %, _ and !
-		// across the supported SQL dialects. Search never truncates before WHERE.
-		like := "%" + strings.NewReplacer("!", "!!", "%", "!%", "_", "!_").Replace(q.Q) + "%"
-		where += ` AND (LOWER(title) LIKE LOWER(?) ESCAPE '!' OR LOWER(description) LIKE LOWER(?) ESCAPE '!' OR LOWER(id) LIKE LOWER(?) ESCAPE '!')`
-		args = append(args, like, like, like)
-	}
-	if q.Status != "" {
-		where += ` AND status=?`
-		args = append(args, q.Status)
-	}
-	if q.Priority != "" {
-		where += ` AND priority=?`
-		args = append(args, q.Priority)
-	}
-	if q.OwnerID != "" {
-		owner := q.OwnerID
-		if owner == "__unassigned__" {
-			owner = ""
-		}
-		where += ` AND owner_id=?`
-		args = append(args, owner)
-	}
+	out := TaskWorkspacePage{ProjectID: project, Limit: q.Limit, Items: []Record{}, AsOf: auth.checkedAt.UTC().Format(time.RFC3339Nano)}
+	where, args := taskWorkspaceWhere(p.TenantID, project, q)
 	if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*)`+where), args...).Scan(&out.Total); err != nil {
 		return TaskWorkspacePage{}, err
 	}
@@ -204,6 +194,13 @@ func (s *Service) taskWorkspaceTx(ctx context.Context, auth *authorizedCommand, 
 		column, direction, operator = "title", "ASC", ">"
 	case "priority_desc":
 		column = taskWorkspacePriorityOrder
+	}
+	if q.Sort == "updated_desc" || q.Sort == "created_desc" {
+		column, err = recordOrderKeySQL(s.Dialect, column)
+		if err != nil {
+			return TaskWorkspacePage{}, err
+		}
+		column = "(" + column + ")"
 	}
 	query := `SELECT ` + recordColumns + where
 	if q.Cursor != "" {
@@ -226,6 +223,15 @@ func (s *Service) taskWorkspaceTx(ctx context.Context, auth *authorizedCommand, 
 		if err != nil {
 			return TaskWorkspacePage{}, err
 		}
+		if q.Sort == "updated_desc" || q.Sort == "created_desc" {
+			source := item.UpdatedAt
+			if q.Sort == "created_desc" {
+				source = item.CreatedAt
+			}
+			if _, keyErr := recordOrderKey(source); keyErr != nil {
+				return TaskWorkspacePage{}, keyErr
+			}
+		}
 		out.Items = append(out.Items, item)
 	}
 	if err = rows.Err(); err != nil {
@@ -243,7 +249,51 @@ func (s *Service) taskWorkspaceTx(ctx context.Context, auth *authorizedCommand, 
 		case "priority_desc":
 			position.Value = strconv.Itoa(taskWorkspacePriorityRank(last.Priority))
 		}
+		if q.Sort == "updated_desc" || q.Sort == "created_desc" {
+			position.Value, err = recordOrderKey(position.Value)
+			if err != nil {
+				return TaskWorkspacePage{}, err
+			}
+		}
 		out.NextCursor = taskWorkspaceCursorEncode(position)
 	}
 	return out, nil
+}
+
+// One parameterized compiler serves both complete group counts and canonical
+// item reads. No business status, including archived or literal "all", is hidden.
+func taskWorkspaceWhere(tenant, project string, q TaskWorkspaceQuery) (string, []any) {
+	where := ` FROM suma_tasks WHERE tenant_id=? AND project_id=?`
+	args := []any{tenant, project}
+	if q.Q != "" {
+		like := "%" + strings.NewReplacer("!", "!!", "%", "!%", "_", "!_").Replace(q.Q) + "%"
+		where += ` AND (LOWER(title) LIKE LOWER(?) ESCAPE '!' OR LOWER(description) LIKE LOWER(?) ESCAPE '!' OR LOWER(id) LIKE LOWER(?) ESCAPE '!')`
+		args = append(args, like, like, like)
+	}
+	if q.Status != "" {
+		where += ` AND status=?`
+		args = append(args, q.Status)
+	}
+	if q.StatusUnset {
+		where += ` AND status=''`
+	}
+	if q.Priority != "" {
+		where += ` AND priority=?`
+		args = append(args, q.Priority)
+	}
+	if q.PriorityUnset {
+		where += ` AND priority=''`
+	}
+	if q.OwnerID != "" {
+		where += ` AND owner_id=?`
+		args = append(args, q.OwnerID)
+	}
+	if q.Unassigned {
+		where += ` AND owner_id=''`
+	}
+	if q.RequirementID != "" {
+		where += ` AND requirement_id=?`
+		args = append(args, q.RequirementID)
+	}
+	return where, args
 }

@@ -7,18 +7,18 @@ describe('task view route and grouped projections',()=>{
  it('round trips exact custom all status and member filters without changing generic status semantics',()=>{
   const view={...defaultTaskView,status:'all',priority:'custom-priority',owner_id:'member-a',sort:'title_asc' as const,layout:'board' as const,group_by:'owner' as const};
   const fields=taskViewToRoute(view),url=new URLSearchParams({view:'development',sub:'tasks'});
-  for(const [key,value] of Object.entries(fields))if(value!==undefined)url.set(key,value);
+  for(const [key,value] of Object.entries(fields))if(value!==undefined)url.set(key,String(value));
   expect(taskViewFromRoute(parseWorkbenchRoute('?'+url))).toEqual(view);
-  expect(taskViewFromRoute(parseWorkbenchRoute('?view=development&status=todo')).status).toBe('todo');
+  expect(taskViewFromRoute(parseWorkbenchRoute('?view=development&status=todo')).status).toBe('');
   expect(parseWorkbenchRoute('?view=quality&sub=issues&status=open&task_owner=member-a').task_owner).toBeUndefined();
  });
- it.each(['task_status='+encodeURIComponent('字'.repeat(30)),'task_owner=../other','task_sort=arbitrary','task_group=run','q='+('a'.repeat(201))])('fails closed for invalid task links: %s',value=>{
+ it.each(['task_status='+encodeURIComponent('字'.repeat(201)),'task_owner=../other','task_sort=arbitrary','task_group=run','q='+('a'.repeat(201))])('fails closed for invalid task links: %s',value=>{
   expect(parseWorkbenchRoute('?view=development&sub=tasks&'+value).task_invalid).toBe('1');
  });
  it('keeps literal search and cursor characters in the server query',()=>{
   const path=taskWorkspacePath('project-a',{...defaultTaskView,q:'  %_<script>&  ',owner_id:'__unassigned__'},'opaque+&=');
   const params=new URL(path,'http://test').searchParams;
-  expect(params.get('q')).toBe('%_<script>&');expect(params.get('owner_id')).toBe('__unassigned__');expect(params.get('cursor')).toBe('opaque+&=');
+  expect(params.get('q')).toBe('  %_<script>&  ');expect(params.get('owner_id')).toBe('__unassigned__');expect(params.get('cursor')).toBe('opaque+&=');
  });
  it('preserves a 200-code-point astral query without splitting UTF-16 pairs',()=>{
   const q='😀'.repeat(200),route=parseWorkbenchRoute('?view=development&sub=tasks&q='+encodeURIComponent(q));

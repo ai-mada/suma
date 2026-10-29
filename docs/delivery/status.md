@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TASKS-137将任务工作台整合为同一正式入口：四种排序、本机命名视图、完整范围统计、三类有界分组与列分页；统一当前权限、字面筛选、纳秒排序、跨列版本去重及异常恢复。见[合同](../../contracts/task-workspace.md)、[交互与AI SOP](../design/task-collection.md)和[专项证据](../quality/task-collection-verification.md)。原有团队派发、独立测试、验收及问题回流权威保留；共享视图、其他数据库实测、规模和全平台仍待交付，58／34／92不变。
+
 T-MULTICA-137推进Multica M06／M07任务工作台：全项目搜索／筛选／稳定分页、列表看板同源分组、本机个人命名视图、跨标签提示与详情返回。少量改编可追溯历史分组算法，当前受限源码功能独立实现；见[复用清单](../integrations/multica-reuse.md)、[合同](../../contracts/task-workspace.md)与[限定证据](../quality/multica-task-views-verification.md)。共享保存视图、跨端同步、完整批量编辑、新工具真实接入与全平台生产验收仍待办，58／34／92不变。
 
 T-MULTICA-136基于已核对上游／本地一致SHA139b13a，独立实现个人任务完整范围查询与命令面板，复用既有任务／工作区／权限和Radix等组件；[参考采用](../integrations/multica-adoption.md)、[生产合同](../../contracts/my-work.md)、[交互](../design/multica-collaboration.md)及[限定证据](../quality/multica-collaboration-verification.md)。当前Multica许可附加托管／品牌等条件，本阶段未复制其代码／样式。全项目服务端分组分页、正式通知收件箱、审核分配及完整平台继续待办，58／34／92不变。

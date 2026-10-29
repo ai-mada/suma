@@ -44,12 +44,12 @@ describe('authorized task workspace query window',()=>{
  it('sends every filter and opaque cursor unchanged, keeping the server filtered total',async()=>{
   const view:TaskViewPreferences={...defaultTaskView,q:'  支付 #1 & API  ',status:'all',owner_id:'member-a',priority:'交付优先',sort:'priority_desc'};
   await render(view);await advance();
-  expect(parameters(0)).toEqual({project_id:'project-a',sort:'priority_desc',limit:'100',q:'支付 #1 & API',status:'all',owner_id:'member-a',priority:'交付优先'});
+  expect(parameters(0)).toEqual({project_id:'project-a',sort:'priority_desc',limit:'100',q:'  支付 #1 & API  ',status:'all',owner_id:'member-a',priority:'交付优先'});
   expect(pending[0]).toMatchObject({method:'GET',body:undefined});
   await resolve(0,response(['one','two'],3,'cursor/+&next'));
   expect(latest.total).toBe(3);expect(latest.items).toHaveLength(2);
   await more();
-  expect(parameters(1)).toEqual({project_id:'project-a',sort:'priority_desc',limit:'100',q:'支付 #1 & API',status:'all',owner_id:'member-a',priority:'交付优先',cursor:'cursor/+&next'});
+  expect(parameters(1)).toEqual({project_id:'project-a',sort:'priority_desc',limit:'100',q:'  支付 #1 & API  ',status:'all',owner_id:'member-a',priority:'交付优先',cursor:'cursor/+&next'});
   await resolve(1,response(['three'],3));
   expect(latest.items?.map(item=>item.id)).toEqual(['one','two','three']);
   expect(latest.total).toBe(3);expect(latest.next_cursor).toBe('');
@@ -58,10 +58,10 @@ describe('authorized task workspace query window',()=>{
  it('hides the old window immediately and ignores an old page arriving after a query change',async()=>{
   await render();await advance();await resolve(0,response(['old-first'],5,'old-cursor'));
   await more();const oldRead=pending[1];
-  await render({...defaultTaskView,q:'new filter',owner_id:'__unassigned__'});
+  await render({...defaultTaskView,q:'new filter',unassigned:true});
   expect(latest.items).toBeUndefined();expect(latest.total).toBe(0);expect(host.textContent).toBe('');
   expect(oldRead.signal?.aborted).toBe(true);
-  await advance();expect(parameters(2)).toEqual({project_id:'project-a',sort:'updated_desc',limit:'100',q:'new filter',owner_id:'__unassigned__'});
+  await advance();expect(parameters(2)).toEqual({project_id:'project-a',sort:'updated_desc',limit:'100',q:'new filter',unassigned:'true'});
   await resolve(2,response(['new-first'],1));await resolve(1,response(['old-late'],5));
   expect(latest.items?.map(item=>item.id)).toEqual(['new-first']);expect(latest.total).toBe(1);expect(latest.error).toBeNull();
  });

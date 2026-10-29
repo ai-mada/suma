@@ -49,3 +49,7 @@ it('shows corruption without deleting the original and isolates another account'
  await render(<Harness identity={['user-b','org-a','project-a']}/>);expect(host.textContent).not.toContain('Saved views are invalid');
  expect(localStorage.getItem(taskViewsKey(scope))).toBe('broken');
 });
+
+it('shows the original numeric saved-view envelope as invalid without applying or overwriting its owner meaning',async()=>{
+ const original=JSON.stringify({version:1,views:[{id:'original-view',name:'Original unassigned view',preferences:{...defaultTaskView,owner_id:'__unassigned__'}}]});localStorage.setItem(taskViewsKey(scope),original);await render();expect(host.textContent).toContain('original data is retained');expect(host.querySelector('.task-views-saved select')?.textContent).not.toContain('Original unassigned view');expect(localStorage.getItem(taskViewsKey(scope))).toBe(original);expect(changed).not.toHaveBeenCalled();
+});

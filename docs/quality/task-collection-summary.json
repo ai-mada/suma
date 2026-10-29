@@ -1,0 +1,227 @@
+{
+  "stage": "T-TASKS-137",
+  "date": "2026-10-29",
+  "product_version": "1.0.0",
+  "full_platform_complete": false,
+  "status": "scoped_verified",
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "parent": "e7ad2c55c7953cdc819d1400ce08c440cdfb4116",
+    "goal_source_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558",
+    "inventory": ".cache/e2e/tasks-137/source-inventory.json",
+    "inventory_sha256": "5faa1e09ff2ca0df5d80efb0450816f814e9e2dddcd0ff06850e8618e1fcccac",
+    "inventory_files": 61,
+    "inventory_excludes": "This summary to avoid recursive digest; shared verification working file includes separate uncommitted desktop text, staged blob is HEAD plus this stage entry only."
+  },
+  "implementation": {
+    "items": "One canonical task-workspace reader; exact literal filters including genuine empty fields,4 sorts,current authority,archived included,precise nine-digit UTC ordering without rewriting source.",
+    "groups": "Shared filter compiler; status/owner/priority aggregate and group keyset paging20/max100; independent row paging20UI/max100API;3-read client queue.",
+    "ui": "Single entry and controls; local named preferences, whitelist route projection,mobile collapsible filters,version-aware loaded selection,column retry,group-window drift reset,CAS refusal clears drafts,explicit refresh recovers authority.",
+    "boundary": "Original Go scheduler, budgets, team plans, fixed code candidates, independent tests, human acceptance and issue flow stay authoritative."
+  },
+  "checks": {
+    "go_top_level_unique": 33,
+    "go_tests": [
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestTaskCollectionContractSharesLiteralFiltersAndBoundsGroupPages"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestTaskWorkspaceContractIsScopedReadWithoutBusinessMutation"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskCollectionCLIAuthorityFailurePassesThroughWithoutRetry"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskCollectionCLIEmptyStatusFilterOnRowsAndGroups"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskCollectionCLIGroupKeysDistinguishEmptyFromLiteralIDs"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskCollectionCLIHelpAndUsageLanguages"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskCollectionCLIInvalidOptionsNeverReachTransport"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskCollectionCLIProjectFiltersAndSinglePage"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskCollectionCLIUnassignedDefaultAndCurrentStatus"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskCollectionCLIUsesCanonicalServerSorts"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/localization",
+        "name": "TestCanonicalTemplateGrammarAndCatalogSnapshot"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/localization",
+        "name": "TestCatalogKnownMessagesAreBilingualAndKeepMachineFields"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestMyWorkHTTPClosedQueriesAndBounds"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestRecordOrderKeyAcceptsExactUTCPrecisionWithoutRewritingSource"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskCollectionBoardColumnsUseExactDynamicState"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskCollectionBoundedGroupPagesAndScopedContinuation"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskCollectionCanonicalGroupingAndExplicitEmptyValues"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskCollectionCurrentHumanAPIAndMachineScope"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskCollectionCursorBindsEveryFilterAndCanonicalWire"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskCollectionExactUTCOrderAcrossSingleItemPages"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskCollectionHTTPRejectsAmbiguousOrUnboundedQueries"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskCollectionInvalidSourceFailsWithoutOmittingCountOrLookahead"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskCollectionLiveAssignmentAndStatusChanges"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskCollectionWholeProjectGroupsAndPagination"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskWorkspaceCursorBindsIdentityScopeAndAllFilters"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskWorkspaceFiltersFullProjectAndLiteralSearch"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskWorkspaceHTTPRejectsMalformedQueries"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskWorkspaceLongTitleCursorAndCurrentTotals"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskWorkspaceProjectAPIScopeIsNotAgentOrRunnerAuthority"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskWorkspaceQuerySearchLiteralAndWholeCounts"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskWorkspaceReadDoesNotInferDeliveryOrMutateFacts"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskWorkspaceRechecksCurrentAuthorityAndReturnsNoPartialPage"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskWorkspaceStablePagesForEverySort"
+      }
+    ],
+    "go_receipts": [
+      ".cache/e2e/tasks-137/go/20261029T130047163Z.command.json",
+      ".cache/e2e/tasks-137/go/20261029T130629334Z.command.json"
+    ],
+    "web_unique_passed": 161,
+    "web_receipts": [
+      ".cache/e2e/tasks-137/web-unified.json",
+      ".cache/e2e/tasks-137/web-unified-final.json",
+      ".cache/e2e/tasks-137/web-recovery-final.json",
+      ".cache/e2e/tasks-137/web-design-provenance-final.json",
+      ".cache/e2e/tasks-137/web-preferences-final.json"
+    ],
+    "typecheck": "passed final explicit preferences format",
+    "locales": 6996,
+    "production_hardcodes": 0,
+    "contract_check": "passed",
+    "isolated_production_build_seconds": 45.46,
+    "full_web_integration": {
+      "receipt": ".cache/conflict-20261029/web-unified-full.json",
+      "files": 164,
+      "passed": 1472,
+      "failed": 2,
+      "total": 1474,
+      "followup": "Two outdated task-design App fixtures updated to canonical summary/page/detail; original14 assertions passed. Later preferences format reviewed and focused storage/TaskViews/App checks passed. Full suite not repeated; no claim of a fresh all-green run."
+    }
+  },
+  "browser": {
+    "kind": "Actual App + Go HTTP + SQLite on separate43957 synthetic fixture; external authorized chat evidence read locally",
+    "main_checks": 27,
+    "group_checks": 12,
+    "source_scope": "Final TaskCollection refresh-epoch change rebuilt and targeted browser recovery passed. Four task catalog CRLF→LF-only changes retain identical parsed JSON; originals and comparison receipt preserved.",
+    "main_receipt": "dist/quality/conflict-20261029/unified/browser-summary.json",
+    "group_receipt": "dist/quality/conflict-20261029/unified/groups-summary.json",
+    "screenshots_reviewed": [
+      "mobile-en-light.png",
+      "desktop-zh-list.png"
+    ],
+    "browser-summary_sha256": "55328da7c4afd7d906a3c6e66d9a3015e2617518c61b944703f197784ff2c866",
+    "groups-summary_sha256": "00e325c81babdd9d8c2322537a893de5471b3abdb2410ee515fa84d09dc5809d",
+    "recovery-summary_sha256": "daf5ef5c4e5278ed8132caf541ccd3669ff1601733e1bc1e627873f2c499ab75",
+    "recovery_checks": 4,
+    "recovery_receipt": "dist/quality/conflict-20261029/unified/recovery-summary.json",
+    "recovery_scope": "Browser-injected403 with real authorized HTTP reread; server revocation is covered separately by Go tests.",
+    "final_TaskCollection_sha256": "c531b556535f9895fc0e365f4c89ff05c45657ae1866aad3312b36ffa2bc65e4",
+    "preferences_scope": "Final web-dist-preferences-final copied to owned web-delivery, actual Go/SQLite/browser; unknown format rejected unchanged, cancel preserves original, explicit reset and current-format save/reload keep125task scope.",
+    "preferences_checks": 5,
+    "total_assertions": 48,
+    "preferences_receipt": "dist/quality/conflict-20261029/unified/view-format-summary.json",
+    "preferences_receipt_sha256": "3663580f5f392fd6757ebca526cc2ec41b34806da4da00decadc78eb16be97fc"
+  },
+  "failures_and_corrections": [
+    "Earlier pre-unification compiler attempt hit independently restored conflict markers; raw receipts preserved; union resolved before new checks.",
+    "Initial unified typecheck found a string in a new boolean test fixture; corrected fixture, final types passed.",
+    "Independent review found group count collapse and CAS refresh refusal gaps; fixes and focused regressions passed.",
+    "Final component refusal remained sticky after parent refresh; bound to refresh epoch, replayed only changed2files/types/build.",
+    "Pre-unification full1467/36 evidence and prior42Web receipts are not counted as current-source proof.",
+    "Final full integration exposed2 outdated design-provenance App mocks; canonical summary/page/detail fixtures restored original14 assertions. Missing local preferences format could reinterpret old unassigned intent; required literal-format envelope rejects unknown data untouched until explicit reset, storage/UI regressions added."
+  ],
+  "limitations": [
+    "Not full P0-P7/requirements1..26 acceptance.",
+    "Shared server views/cross-device sync,all vendor integrations,real OceanBase/PostgreSQL,multi-host and production scale remain pending.",
+    "Expression ordering performance/index design needs real capacity validation; other old pagers not globally changed.",
+    "Build retains existing chunk-size advisories; no new dependencies.",
+    "Other desktop changes and peer conflict reports excluded from this commit."
+  ]
+}

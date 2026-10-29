@@ -17,10 +17,14 @@ beforeEach(async()=>{
   if(path==='/overview')return Response.json({counts:{tasks:205},activity:[]});
   if(lookupFailure&&path===lookupFailure.path&&(!lookupFailure.more||url.searchParams.has('cursor')))return Response.json({error:{code:'forbidden',message:'Current project access revoked'}},{status:lookupFailure.status});
   if(path==='/members')return Response.json({items:[{id:'member-a',project_id:'project-a',name:'Assignee A',version:1},{id:'member-last',project_id:'project-a',name:'Last assignee',version:1}],total:3,next_cursor:'members-next'});
+  if(path==='/task-collection/summary'){
+   const filtered=url.searchParams.get('owner_id')==='member-last',empty=url.searchParams.get('owner_id')==='missing-owner',total=empty?0:filtered?1:205,group_by=url.searchParams.get('group_by')||'status';
+   return Response.json({project_id:url.searchParams.get('project_id'),as_of:'2026-10-29T00:00:00Z',total,group_by,groups:total?[{key:group_by==='owner'?(filtered?'member-last':'member-a'):group_by==='priority'?'medium':'todo',total}]:[],groups_total:total?1:0,groups_limit:20,next_group_cursor:''});
+  }
   if(path==='/task-workspace'){
-   queries.push(new URLSearchParams(url.search));const filtered=url.searchParams.get('owner_id')==='member-last',empty=url.searchParams.get('owner_id')==='missing-owner',cursor=url.searchParams.get('cursor'),start=cursor==='last-page'?200:cursor?100:0;
-   const items=Array.from({length:empty?0:filtered?1:cursor==='last-page'?5:100},(_,index)=>({id:filtered?'task-205':'task-'+(start+index+1),project_id:url.searchParams.get('project_id'),version:1,title:filtered?'Task beyond first page':'Task '+(start+index),status:'todo',owner_id:filtered?'member-last':'member-a',priority:'medium',created_at:'2026-10-29T00:00:00Z'}));
-   return Response.json({items,total:empty?0:filtered?1:205,next_cursor:empty||filtered||cursor==='last-page'?undefined:cursor?'last-page':'next-page',as_of:'2026-10-29T00:00:00Z'});
+   queries.push(new URLSearchParams(url.search));const filtered=url.searchParams.get('owner_id')==='member-last',empty=url.searchParams.get('owner_id')==='missing-owner',cursor=url.searchParams.get('cursor'),limit=Number(url.searchParams.get('limit')||100),start=cursor==='last-page'?200:cursor?100:0;
+   const items=Array.from({length:empty?0:filtered?1:cursor==='last-page'?5:limit},(_,index)=>({id:filtered?'task-205':'task-'+(start+index+1),project_id:url.searchParams.get('project_id'),version:1,title:filtered?'Task beyond first page':'Task '+(start+index),status:'todo',owner_id:filtered?'member-last':'member-a',priority:'medium',created_at:'2026-10-29T00:00:00Z',updated_at:'2026-10-29T00:00:00Z'}));
+   return Response.json({project_id:url.searchParams.get('project_id'),limit,items,total:empty?0:filtered?1:205,next_cursor:empty||filtered||cursor==='last-page'?'':cursor?'last-page':'next-page',as_of:'2026-10-29T00:00:00Z'});
   }
   return Response.json({items:[],total:0});
  }));
@@ -28,12 +32,12 @@ beforeEach(async()=>{
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();});
 async function settle(){for(let i=0;i<4;i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});}
 it('wires full-project owner queries into Records and keeps the same membership through layout changes',async()=>{
- await act(async()=>root.render(<App/>));await settle();expect(host.querySelectorAll('[data-task-id]')).toHaveLength(100);expect(host.textContent).toContain('Loaded 100 of 205');
+ await act(async()=>root.render(<App/>));await settle();expect(host.querySelectorAll('[data-task-id]')).toHaveLength(20);expect(host.textContent).toContain('Loaded 20 of 205');
  const owner=[...host.querySelectorAll<HTMLSelectElement>('.task-views-filters select')].find(select=>select.parentElement?.textContent?.startsWith('Assignee'))!;
- await act(async()=>{owner.value='member-last';owner.dispatchEvent(new Event('change',{bubbles:true}));});await settle();
+ await act(async()=>{owner.value='value:member-last';owner.dispatchEvent(new Event('change',{bubbles:true}));});await settle();
  expect(queries.at(-1)?.get('owner_id')).toBe('member-last');expect(host.querySelectorAll('[data-task-id]')).toHaveLength(1);expect(host.textContent).toContain('Task beyond first page');expect(location.search).toContain('task_owner=member-last');
  const before=queries.length,board=[...host.querySelectorAll('button')].find(button=>button.textContent?.trim()==='Board view')!;
- await act(async()=>board.click());await settle();expect(queries).toHaveLength(before);expect(host.querySelector('[data-task-id="task-205"]')).toBeTruthy();
+ await act(async()=>board.click());await settle();expect(queries.length).toBeGreaterThan(before);expect(host.querySelector('[data-task-id="task-205"]')).toBeTruthy();
  const project=host.querySelector<HTMLOptionElement>('option[value="project-b"]')!.parentElement as HTMLSelectElement;
  await act(async()=>{project.value='project-b';project.dispatchEvent(new Event('change',{bubbles:true}));});await settle();
  expect(queries.at(-1)?.get('project_id')).toBe('project-b');expect(queries.at(-1)?.get('owner_id')).toBeNull();expect(new URLSearchParams(location.search).get('task_owner')).toBeNull();
@@ -52,7 +56,7 @@ it('clears every task-only filter when switching projects through the sidebar',a
  expect(queries.at(-1)?.get('project_id')).toBe('project-b');expect(queries.at(-1)?.get('owner_id')).toBeNull();expect(queries.at(-1)?.get('status')).toBeNull();expect(queries.at(-1)?.get('priority')).toBeNull();expect(queries.at(-1)?.get('sort')).toBe('updated_desc');
 });
 it.each([['/members',401],['/requirements',403]] as const)('clears loaded tasks and an open form when %s refresh returns %i',async(path,status)=>{
- await act(async()=>root.render(<App/>));await settle();expect(host.querySelectorAll('[data-task-id]')).toHaveLength(100);
+ await act(async()=>root.render(<App/>));await settle();expect(host.querySelectorAll('[data-task-id]')).toHaveLength(20);
  await act(async()=>host.querySelector<HTMLButtonElement>('.records-panel .list-toolbar button.primary')!.click());
  const title=document.querySelector<HTMLInputElement>('input[name="title"]')!;
  await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(title,'Private form draft');title.dispatchEvent(new Event('input',{bubbles:true}));});
@@ -72,7 +76,7 @@ it('closes an open form and clears task data when loading more assignees loses a
 it.each(['member-last','missing-owner'])('reads prerequisite candidates independently of the %s workspace filter',async owner=>{
  history.replaceState(null,'','/?project=project-a&view=development&sub=tasks&task_owner='+owner);
  await act(async()=>root.render(<App/>));await settle();expect(host.querySelectorAll('[data-task-id]')).toHaveLength(owner==='missing-owner'?0:1);
- expect(queries).toHaveLength(1);
+ expect(queries).toHaveLength(owner==='missing-owner'?0:1);
  await act(async()=>host.querySelector<HTMLButtonElement>('.records-panel .list-toolbar button.primary')!.click());await settle();
  const modal=document.querySelector('[role=dialog]')!;
  expect(queries.at(-1)?.get('owner_id')).toBeNull();expect(queries.at(-1)?.get('status')).toBeNull();expect(queries.at(-1)?.get('priority')).toBeNull();

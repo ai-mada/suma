@@ -20,7 +20,7 @@
   "task-views.external_change": "另一标签页更改了保存视图，当前筛选保留。",
   "task-views.load_saved": "载入最新视图列表",
   "task-views.search": "搜索任务",
-  "task-views.search_placeholder": "标题、描述或任务编号",
+  "task-views.search_placeholder": "任务标题或描述",
   "task-views.business_status": "任务业务状态",
   "task-views.all_owners": "所有负责人",
   "task-views.all_priorities": "所有优先级",
@@ -58,5 +58,8 @@
   "task-views.prerequisites_independent": "前置任务按当前项目独立读取，不继承工作台筛选。",
   "task-views.prerequisites_scope": "前置候选已载入{{loaded}} / {{total}}项。",
   "task-views.more_prerequisites": "加载更多前置任务",
-  "task-views.controls": "筛选与视图 · {{count}}项筛选"
+  "task-views.controls": "筛选与视图 · {{count}}项筛选",
+  "task-views.refresh": "全部刷新",
+  "task-views.all_requirements": "全部需求",
+  "task-views.more_requirements": "加载更多需求"
 }

@@ -143,6 +143,9 @@ func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out i
 	if len(args) > 1 && args[0] == "tasks" && args[1] == "run-history" {
 		return taskRunHistoryCommand(ctx, c, args[2:], out)
 	}
+	if len(args) > 1 && args[0] == "tasks" && (args[1] == "list" || args[1] == "groups" || args[1] == "help" || args[1] == "--help") {
+		return taskCollectionCommand(ctx, c, args[1:], out)
+	}
 	if len(args) > 0 && args[0] == "candidate-compositions" {
 		return candidateCompositionCommand(ctx, c, args[1:], in, out)
 	}

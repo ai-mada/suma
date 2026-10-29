@@ -44,14 +44,16 @@ function transport(reply: (path: string, options?: RequestInit) => Promise<Respo
 
 it('reads authoritative design provenance in task detail without a configured workflow or tool and ignores forged Record.Data', async () => {
   history.replaceState(null, '', '/?' + new URLSearchParams({ project, view: 'development', sub: 'tasks', record: taskId }));
-  const task = { id: taskId, project_id: project, version: 7, title: 'Manual task', status: 'todo', data: { design: { revision: 99 }, adopted_design: 'FORGED DESIGN CLAIM' } };
+  const task = { id: taskId, project_id: project, version: 7, title: 'Manual task', status: 'todo', owner_id: '', priority: 'medium', requirement_id: '', updated_at: '2026-10-29T00:00:00Z', created_at: '2026-10-29T00:00:00Z', data: { design: { revision: 99 }, adopted_design: 'FORGED DESIGN CLAIM' } };
   vi.stubGlobal('fetch', vi.fn(async (input: string, options?: RequestInit) => {
     const url = new URL(String(input), location.href), path = url.pathname.replace(/^\/api\/v1/, '');
     if (options?.body) writes.push(path); else reads.push(path + url.search);
     if (path === '/auth/session') return Response.json(session);
     if (path === '/overview') return Response.json({ counts: { tasks: 1 } });
     if (path === '/tasks') return Response.json({ items: [task], total: 1 });
-    if (path === '/task-workspace') return Response.json({ items: [task], total: 1, as_of: '2026-10-29T00:00:00Z' });
+    if (path === '/task-collection/summary') return Response.json({ project_id: project, total: 1, group_by: 'status', groups: [{ key: task.status, total: 1 }], groups_total: 1, groups_limit: 20, next_group_cursor: '', as_of: '2026-10-29T00:00:00Z' });
+    if (path === '/task-workspace') return Response.json({ project_id: project, limit: 20, items: [task], total: 1, next_cursor: '', as_of: '2026-10-29T00:00:00Z' });
+    if (path === '/tasks/' + taskId) return Response.json(task);
     if (path === '/tasks/' + taskId + '/design-context') return Response.json({ project_id: project, task_id: taskId, task_version: 7, bound: false, eligibility: 'none', current_requirement_version: 0, current_design_version: 0, current_published_revision: 0 });
     if (['/requirements', '/members', '/runs', '/organizations', '/workflows', '/tool-profiles'].includes(path)) return Response.json({ items: [], total: 0 });
     return Response.json({}, { status: 404 });
@@ -86,7 +88,7 @@ it('keeps the original adopted snapshot, exact text and workspace destination th
 
 it('keeps one actual task design container through asynchronous refresh versions and locale changes', async () => {
   history.replaceState(null, '', '/?' + new URLSearchParams({ project, view: 'development', sub: 'tasks', record: taskId }));
-  let task = { id: taskId, project_id: project, version: 3, title: 'Original downstream task', status: 'in_progress', description: 'Original body', depends_on: [] as string[], data: {} };
+  let task = { id: taskId, project_id: project, version: 3, title: 'Original downstream task', status: 'in_progress', description: 'Original body', owner_id: '', priority: 'medium', requirement_id: '', updated_at: '2026-10-29T00:00:00Z', created_at: '2026-10-29T00:00:00Z', depends_on: [] as string[], data: {} };
   const pending: { resolve: (response: Response) => void; version: number }[] = [];
   const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.stubGlobal('fetch', vi.fn(async (input: string, options?: RequestInit) => {
@@ -95,7 +97,8 @@ it('keeps one actual task design container through asynchronous refresh versions
     if (path === '/auth/session') return Response.json(session);
     if (path === '/overview') return Response.json({ counts: { tasks: 1 } });
     if (path === '/tasks') return Response.json({ items: [task], total: 1 });
-    if (path === '/task-workspace') return Response.json({ items: [task], total: 1, as_of: '2026-10-29T00:00:00Z' });
+    if (path === '/task-collection/summary') return Response.json({ project_id: project, total: 1, group_by: 'status', groups: [{ key: task.status, total: 1 }], groups_total: 1, groups_limit: 20, next_group_cursor: '', as_of: '2026-10-29T00:00:00Z' });
+    if (path === '/task-workspace') return Response.json({ project_id: project, limit: 20, items: [task], total: 1, next_cursor: '', as_of: '2026-10-29T00:00:00Z' });
     if (path === '/tasks/' + taskId) return Response.json(task);
     if (path === '/tasks/' + taskId + '/design-context') { const version = task.version; return new Promise<Response>(resolve => pending.push({ resolve, version })); }
     if (['/requirements', '/members', '/runs', '/organizations', '/workflows', '/tool-profiles'].includes(path)) return Response.json({ items: [], total: 0 });
