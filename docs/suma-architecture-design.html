@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>速码 suma · 一栈式智能研发平台 · 架构 / PRD / 功能 / 交互规格 v1.0.0</title>
+<style>
+  :root{
+    --bg:#f6f8fb;--bg-soft:#eef2f7;--panel:#fff;--panel-2:#f9fbfd;
+    --border:#e2e8f0;--border-strong:#cdd7e3;
+    --text:#1f2937;--text-soft:#51607a;--text-mute:#8a98ad;
+    --brand:#2f6df6;--brand-soft:#e7f0ff;--brand-2:#7c5cff;
+    --ok:#1f9d57;--ok-soft:#e4f7ec;--warn:#c9821a;--warn-soft:#fdf2e0;
+    --bad:#d6453d;--bad-soft:#fdeaea;
+    --shadow:0 1px 3px rgba(20,40,80,.06),0 8px 24px rgba(20,40,80,.06);
+    --radius:14px;--mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Consolas,monospace;
+    --sans:"Segoe UI",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  html[data-theme="dark"]{
+    --bg:#0e1320;--bg-soft:#141b2c;--panel:#161d2e;--panel-2:#1b2438;
+    --border:#29334a;--border-strong:#3a4760;
+    --text:#e8edf6;--text-soft:#aab6cc;--text-mute:#6f7d96;
+    --brand:#5b8dff;--brand-soft:#1b2b4d;--brand-2:#a48bff;
+    --ok:#43c97f;--ok-soft:#11301f;--warn:#e0a23c;--warn-soft:#33280f;
+    --bad:#ff6b62;--bad-soft:#3a1714;
+    --shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}html,body{margin:0;padding:0}html{scroll-behavior:smooth}
+  body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  a{color:var(--brand);text-decoration:none}a:hover{text-decoration:underline}
+  .topbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:14px;padding:10px 22px;background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+  .topbar .logo{font-weight:800;font-size:16px;display:flex;align-items:center;gap:9px}
+  .topbar .logo .mk{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;display:grid;place-items:center;font-size:13px;font-weight:800}
+  .topbar .sub{color:var(--text-mute);font-size:12.5px}.topbar .spacer{flex:1}
+  .btn{border:1px solid var(--border-strong);background:var(--panel);color:var(--text);padding:6px 12px;border-radius:9px;cursor:pointer;font-size:13px;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{border-color:var(--brand);color:var(--brand)}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}.btn.primary:hover{filter:brightness(1.06);color:#fff}
+  .shell{display:flex;align-items:flex-start}
+  .sidebar{position:sticky;top:53px;align-self:flex-start;width:258px;max-height:calc(100vh - 53px);overflow-y:auto;padding:14px 12px;border-right:1px solid var(--border);background:var(--bg-soft)}
+  .sidebar .grp{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-mute);margin:14px 10px 5px}
+  .sidebar a{display:block;padding:5px 10px;border-radius:8px;color:var(--text-soft);font-size:12.8px;border-left:2px solid transparent}
+  .sidebar a:hover{background:var(--panel);color:var(--text);text-decoration:none}
+  .sidebar a.active{background:var(--brand-soft);color:var(--brand);border-left-color:var(--brand);font-weight:600}
+  .main{flex:1;min-width:0;padding:28px 40px 90px;max-width:1220px;margin:0 auto}
+  @media(max-width:980px){.sidebar{display:none}.main{padding:22px 16px 60px}}
+  section{scroll-margin-top:64px;margin-bottom:46px}
+  h1{font-size:28px;margin:0 0 6px}h2{font-size:21px;margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+  h3{font-size:16px;margin:22px 0 10px}h4{font-size:14px;margin:15px 0 8px;color:var(--text-soft)}
+  p{color:var(--text-soft)}.lead{font-size:15px;color:var(--text-soft)}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow)}
+  .grid{display:grid;gap:16px}.grid.c2{grid-template-columns:repeat(2,1fr)}.grid.c3{grid-template-columns:repeat(3,1fr)}.grid.c4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:860px){.grid.c2,.grid.c3,.grid.c4{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:15px 16px;box-shadow:var(--shadow);transition:.15s}
+  .card:hover{border-color:var(--border-strong);transform:translateY(-1px)}
+  .card .t{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:8px}
+  .card .d{color:var(--text-soft);font-size:13px;margin-top:6px}
+  .card ul{margin:6px 0 0;padding-left:18px;color:var(--text-soft);font-size:13px}.card li{margin:2px 0}
+  .tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600;line-height:1.7;white-space:nowrap}
+  .tag.ok{background:var(--ok-soft);color:var(--ok)}.tag.warn{background:var(--warn-soft);color:var(--warn)}
+  .tag.bad{background:var(--bad-soft);color:var(--bad)}.tag.info{background:var(--brand-soft);color:var(--brand)}
+  .tag.mut{background:var(--bg-soft);color:var(--text-mute);border:1px solid var(--border)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  /* 修复：表头竖向吸顶在 overflow:auto 面板内会产生幽灵双层渲染，改为静态表头并强化样式 */
+  th{color:var(--text-soft);font-weight:700;background:var(--panel-2);border-bottom:2px solid var(--border-strong);white-space:nowrap}
+  tbody tr:nth-child(even){background:color-mix(in srgb,var(--panel-2) 45%,transparent)}
+  tbody tr:hover{background:var(--brand-soft)}
+  tbody tr:hover td{color:var(--text)}
+  td code,p code,li code{font-family:var(--mono);font-size:12px;background:var(--bg-soft);padding:1px 6px;border-radius:5px;color:var(--brand)}
+  .pill-row{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}
+  .kpi{display:flex;flex-direction:column;gap:2px}.kpi .v{font-size:25px;font-weight:800;color:var(--brand)}.kpi .l{font-size:12px;color:var(--text-mute)}
+  .bar{height:8px;border-radius:999px;background:var(--bg-soft);overflow:hidden;margin-top:8px}
+  .bar>i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--brand),var(--brand-2))}
+  .prog{display:flex;justify-content:space-between;font-size:12px;color:var(--text-mute);margin-top:5px}
+  .note{border-left:3px solid var(--brand);background:var(--brand-soft);padding:10px 14px;border-radius:8px;color:var(--text-soft);margin:12px 0}
+  .note.warn{border-color:var(--warn);background:var(--warn-soft)}.note.bad{border-color:var(--bad);background:var(--bad-soft)}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0}
+  .tab{border:1px solid var(--border-strong);background:var(--panel);color:var(--text-soft);padding:7px 13px;border-radius:10px 10px 0 0;cursor:pointer;font-size:12.5px;border-bottom:none}
+  .tab.active{background:var(--brand-soft);color:var(--brand);border-color:var(--brand);font-weight:700}
+  .tab-panel{display:none;border:1px solid var(--border);border-radius:0 12px 12px 12px;padding:18px;background:var(--panel)}
+  .tab-panel.active{display:block}
+  .filterbar{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 14px}
+  .chip{border:1px solid var(--border-strong);background:var(--panel);color:var(--text-soft);padding:4px 12px;border-radius:999px;cursor:pointer;font-size:12.5px}
+  .chip.active{background:var(--brand);border-color:var(--brand);color:#fff}
+  .readbar{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--brand),var(--brand-2));z-index:99;pointer-events:none}
+  #toTop{position:fixed;right:22px;bottom:26px;z-index:70;width:40px;height:40px;border-radius:50%;border:1px solid var(--border-strong);background:var(--panel);color:var(--text-soft);cursor:pointer;font-size:17px;box-shadow:var(--shadow);opacity:0;visibility:hidden;transition:.2s}
+  #toTop.show{opacity:1;visibility:visible}
+  #toTop:hover{border-color:var(--brand);color:var(--brand)}
+  .searchbox{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border-strong);background:var(--panel);border-radius:999px;padding:4px 12px}
+  .searchbox input{border:none;outline:none;background:transparent;color:var(--text);font-size:12.5px;width:190px;font-family:var(--sans)}
+  .searchbox .cnt{font-size:11.5px;color:var(--text-mute);white-space:nowrap}
+  .kbd-hint{color:var(--text-mute);font-size:11.5px;margin-left:8px}
+  #ftable td:first-child,#gtable td:first-child{font-family:var(--mono);font-size:12px;color:var(--brand);font-weight:600}
+  .svg-wrap{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);overflow-x:auto;cursor:zoom-in;position:relative;transition:border-color .15s}
+  .svg-wrap:hover{border-color:var(--brand)}
+  .svg-wrap::after{content:"⤢ 点击放大";position:absolute;top:8px;right:12px;font-size:11px;color:var(--text-mute);background:var(--bg-soft);border:1px solid var(--border);border-radius:999px;padding:2px 9px;opacity:.85;pointer-events:none}
+  .lightbox{position:fixed;inset:0;z-index:100;background:rgba(8,10,16,.86);background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(7px);display:none;align-items:center;justify-content:center;padding:28px}
+  .lightbox.open{display:flex}
+  .lightbox .lb-inner{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);max-width:1240px;width:100%;max-height:90vh;overflow:auto;padding:20px;cursor:zoom-out}
+  .lightbox .lb-inner svg{max-width:100%;height:auto}
+  .tab-panel.active{animation:fadeUp .22s ease}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  h2 .hlink,h3 .hlink{opacity:0;margin-left:9px;color:var(--text-mute);font-size:.75em;text-decoration:none;font-weight:400;transition:.15s}
+  h2:hover .hlink,h3:hover .hlink{opacity:1}
+  .hlink:hover{color:var(--brand)}
+  svg{display:block;width:100%;height:auto;max-width:940px;margin:0 auto}
+  .ln{stroke:var(--border-strong);stroke-width:1.4;fill:none}
+  .box{fill:var(--panel);stroke:var(--border-strong);stroke-width:1.3}
+  .box.f{fill:var(--brand-soft);stroke:var(--brand)}.box.s{fill:var(--panel-2)}
+  .box.g{fill:var(--ok-soft);stroke:var(--ok)}.box.w{fill:var(--warn-soft);stroke:var(--warn)}
+  .lbl{fill:var(--text);font-size:12px;font-family:var(--sans)}.lbl.s{fill:var(--text-soft);font-size:11px}
+  .lbl.h{fill:var(--brand);font-size:12.5px;font-weight:700}
+  .band{fill:var(--bg-soft);stroke:var(--border);stroke-width:1}
+  .toc-inline{columns:2;column-gap:30px}.toc-inline a{display:block;padding:3px 0;color:var(--text-soft)}
+  .json{font-family:var(--mono);font-size:12px;background:var(--bg-soft);padding:12px 14px;border-radius:10px;color:var(--text-soft);overflow-x:auto}
+  .muted{color:var(--text-mute);font-size:12px}
+  .kbd{font-family:var(--mono);font-size:11px;background:var(--bg-soft);border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;padding:1px 6px}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:3px}
+  .dot.on{background:var(--ok)}.dot.half{background:var(--warn)}.dot.off{background:var(--border-strong)}
+  .swatch{display:inline-block;width:16px;height:16px;border-radius:4px;vertical-align:middle;margin-right:6px;border:1px solid var(--border)}
+  .steps{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .step{background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:6px 11px;font-size:12.5px}
+  .step b{color:var(--brand)}
+  .vchg{font-size:12.5px}.vchg td{padding:6px 10px}
+  footer{color:var(--text-mute);font-size:12px;text-align:center;padding:28px 0 0;border-top:1px solid var(--border)}
+  @media print{.topbar .btn,.sidebar,.filterbar,.tabs,#toTop,.readbar,.lightbox{display:none!important}.svg-wrap{cursor:auto}.svg-wrap::after{content:none}.tab-panel{display:block!important;page-break-inside:avoid}body{background:#fff}.panel,.card,.svg-wrap{box-shadow:none}.shell{display:block}.main{max-width:100%;padding:0}section{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="readbar" id="readbar"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#8a98ad"/>
+    </marker>
+  </defs>
+</svg>
+<div class="topbar">
+  <div class="logo"><span class="mk">速</span> 速码 suma</div>
+  <span class="sub">一栈式智能研发平台 · 架构 / PRD / 功能 / 交互规格 v1.0.0（发布基线）</span>
+  <span class="spacer"></span>
+  <button class="btn" id="themeBtn">🌗 主题</button>
+  <button class="btn primary" id="exportBtn">⤓ 导出 PDF</button>
+</div>
+
+<div class="shell">
+  <nav class="sidebar" id="sidebar">
+    <div class="grp">概览</div>
+    <a href="#s0">文档信息 · 版本变更</a>
+    <a href="#s1">执行摘要 · 成熟度</a>
+    <div class="grp">需求与架构</div>
+    <a href="#s2">需求全景 · 用户故事 · NFR</a>
+    <a href="#s3">总体架构</a>
+    <a href="#s4">领域模型 · 数据架构</a>
+    <a href="#s5">调度与执行引擎</a>
+    <div class="grp">功能与设计</div>
+    <a href="#s6">功能清单 · 12 域</a>
+    <a href="#s7">扩展性 · 插件 · 适配</a>
+    <a href="#s8">配置中心 · 特性开关</a>
+    <a href="#s9">智能 · 自动化</a>
+    <a href="#s10">交互与可视化规范</a>
+    <a href="#s11">权限与安全</a>
+    <div class="grp">交付</div>
+    <a href="#s12">部署 · 可观测 · 高可用</a>
+    <a href="#s13">非功能需求 · 质量门禁</a>
+    <a href="#s14">实施缺口分析</a>
+    <a href="#s15">路线图 · 迭代</a>
+    <a href="#s16">并发协作 · AI SOP</a>
+    <a href="#s17">版本迭代 · 缺陷治理</a>
+    <a href="#s18">计费计量 · 成本治理</a>
+    <a href="#s19">模型管理 · AI 网关</a>
+    <a href="#s20">附录 · 术语 · 技术栈</a>
+  </nav>
+
+  <main class="main">
+
+    <!-- 0 -->
+    <section id="s0">
+      <h1>速码 suma · 一栈式智能研发平台</h1>
+      <p class="lead">本文件是 <b>速码（suma）</b> 的<strong>架构设计 / PRD 需求 / 功能规格 / 交互规范 / 非功能约束</strong>主文档（<b>v1.0.0 正式发布基线</b>，由 v1.0–v1.3 迭代收敛而成）。基于 <code>D:\codes\ai-dev-os\suma</code> 真实实现梳理，融合 multica / workbuddy / opencode / zed / codex / cursor / claude / qoder / harness / dsh / Octop / hermes / spec-kit / bubbletea 能力，覆盖<strong>想法、需求、设计、架构、任务、应用、团队、成员、工作、智能体、模型、工具、专家团队、技能、计费计量、知识库、记忆、事件、调度、任务分配、测试、缺陷、版本迭代、版本管理、版本发布、运维</strong>的 AI 时代全栈一站式团队化企业化组织化智能研发管理闭环；各 AI 开发工具统一对接、统一分发指派、统一管控、团队化分布式高效协作。</p>
+      <div class="grid c4" style="margin-top:16px">
+        <div class="card"><div class="kpi"><span class="v">suma</span><span class="l">速码 / 一栈式智能研发</span></div></div>
+        <div class="card"><div class="kpi"><span class="v">1.0.0</span><span class="l">统一开发基线</span></div></div>
+        <div class="card"><div class="kpi"><span class="v">Go+React</span><span class="l">控制面 + Web/桌面/CLI</span></div></div>
+        <div class="card"><div class="kpi"><span class="v">中 / 英</span><span class="l">i18next 国际化</span></div></div>
+      </div>
+
+      <div class="panel" style="margin-top:18px;padding:14px 18px">
+        <h3 style="margin-top:2px">版本变更</h3>
+        <table class="vchg">
+          <thead><tr><th style="width:70px">版本</th><th>要点</th></tr></thead>
+          <tbody>
+            <tr><td>v1.0</td><td>初版：现状、分层架构、11 域、数据/部署、需求追溯、路线图</td></tr>
+            <tr><td>v1.1</td><td>细化：现状看板、8 能力簇、领域关系、状态机、权限图、缺口分析、Tab 交互</td></tr>
+            <tr><td>v1.2</td><td>全面增强：六边形架构、服务拆分、用户故事与 NFR、调度深潜、功能清单、插件 SPI、适配矩阵、配置中心与特性开关、自动化引擎、模型路由、交互规范、可观测与质量门禁</td></tr>
+            <tr><td>v1.3</td><td>全栈生命周期增强：10 大能力簇（新增 I 版本追溯 / J 计费成本）、全栈价值流全景图、事件体系与事件目录、版本迭代与缺陷全流程治理专章、计费计量与成本治理专章、开发工具全矩阵（cursor/claude/qoder…）、harness 框架适配层、智能输入与命令面板交互规范、功能清单扩至 64 项、第 ⑫ 域全链路追溯、部署形态对比与升级策略</td></tr>
+            <tr><td><b>v1.0.0</b></td><td><b>发布基线：内容收敛定稿；新增能力雷达图、DevTools 统一管控协作拓扑、功能清单全文搜索、阅读进度条与返回顶部、Tab 状态记忆、快捷键（T 切主题 / F 聚焦搜索）；确立 R1.0.0 对外契约冻结口径</b></td></tr>
+            <tr><td><b>v1.0.0-r2</b></td><td><b>修订：修复表头幽灵双层渲染（移除 overflow 面板内的竖向吸顶 th）、表格视觉精修（加粗表头/斑马纹/悬停高亮）；新增 7.6 开发框架与工具生态全景（前后端框架、CLI 调用、模型选择、微前端）、7.7 统一 CLI 与模型选择规范；适配矩阵扩展开发框架与 CLI 维度</b></td></tr>
+            <tr><td><b>v1.0.0-r3</b></td><td><b>参照 cindy（makecindy/cindy）增强：新增 3.6 增强版系统总体架构图（多端/鉴权 realm/Harness 抽象/模型供给四通道）；新增第 19 章「模型管理与 AI 网关」专章（模型供给四通道、注册表、路由与降级、凭证隔离、评测基线、观测与成本、配套图）；功能清单扩至 80 项（F-65~F-80：Harness 抽象与热切换、会话归属平台、BYO 订阅授权、本地/托管模型、设备配对与多设备续跑、Skip-Sign-In 本地态、工具二进制校验分发等）；缺口新增 G17~G19</b></td></tr>
+            <tr><td><b>v1.0.0-r4</b></td><td><b>可视化与交互修订：修复 3.1 图第⑦带标签被盒子遮挡、3.6 图第⑥带标签横向重叠；新增 SVG 图点击放大灯箱（Esc/点击关闭）、标题悬停锚点（点击复制链接）、Tab 切换淡入动画、图卡悬停高亮与放大提示</b></td></tr>
+            <tr><td><b>v1.0.0-r5</b></td><td><b>修复灯箱「点击放大」失效根因：原 `#toTop` 节点位于脚本标签之后，脚本同步执行时 `getElementById('toTop')` 返回 null 并在 `toTop.onclick=` 处抛错，导致整段脚本中断、灯箱从未初始化。改为将 `#toTop` 与灯箱 `#lb/#lbInner` 节点前置到脚本之前，灯箱引用静态节点、点击 `stopPropagation` 防误关、遮罩背景加 `rgba` 回退色；脚本完整执行，灯箱 / 搜索记忆 / 快捷键均恢复</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <h3 style="margin-top:4px">阅读路径</h3>
+        <div class="toc-inline">
+          <a href="#s1">1. 执行摘要 · 成熟度</a><a href="#s2">2. 需求全景 · 用户故事 · NFR</a>
+          <a href="#s3">3. 总体架构</a><a href="#s4">4. 领域模型 · 数据</a>
+          <a href="#s5">5. 调度与执行引擎</a><a href="#s6">6. 功能清单 · 11 域</a>
+          <a href="#s7">7. 扩展性 · 插件 · 适配</a><a href="#s8">8. 配置中心 · 特性开关</a>
+          <a href="#s9">9. 智能 · 自动化</a><a href="#s10">10. 交互与可视化</a>
+          <a href="#s11">11. 权限与安全</a><a href="#s12">12. 部署 · 可观测</a>
+          <a href="#s13">13. NFR · 质量门禁</a><a href="#s14">14. 缺口分析</a>
+          <a href="#s15">15. 路线图</a><a href="#s16">16. 并发协作 · AI SOP</a>
+          <a href="#s17">17. 版本迭代 · 缺陷治理</a><a href="#s18">18. 计费计量 · 成本治理</a>
+          <a href="#s19">19. 模型管理 · AI 网关</a><a href="#s20">20. 附录</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1 -->
+    <section id="s1">
+      <h2>1 · 执行摘要与成熟度</h2>
+      <p class="lead">速码是<strong>分布式多项目 / 多团队 / 多人 / 多智能体</strong>的一栈式智能研发平台，连接<em>想法 → 项目 → 需求 → 设计 → 任务 → 智能体执行 → 独立测试 → 人工验收 → 版本发布 → 问题回流</em>，提供浏览器 SaaS、桌面端、CLI 与开放 API 多形态入口。</p>
+
+      <h3>1.1 交付与就绪度</h3>
+      <div class="grid c3">
+        <div class="card"><div class="t">交付完成度（92 项）</div><div class="bar"><i style="width:63%"></i></div><div class="prog"><span>已限定实现 58</span><span>63%</span></div><div class="muted" style="margin-top:6px">34 项待办 + 新增项；不代表生产验收。</div></div>
+        <div class="card"><div class="t">核心域就绪度</div><div class="bar"><i style="width:78%"></i></div><div class="prog"><span>组织/需求/任务/发布/知识</span><span>78%</span></div><div class="muted" style="margin-top:6px">编排、多工具执行、门禁、发布治理领先。</div></div>
+        <div class="card"><div class="t">多端与生态</div><div class="bar"><i style="width:55%"></i></div><div class="prog"><span>Web/桌面/CLI 就绪</span><span>55%</span></div><div class="muted" style="margin-top:6px">SSO、移动端、A2A、统一权限中台为缺口。</div></div>
+      </div>
+
+      <h3>1.2 能力成熟度矩阵</h3>
+      <div class="panel" style="padding:0;overflow:auto">
+        <table>
+          <thead><tr><th>能力维度</th><th>成熟度</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>项目管理 / 需求 / 设计</td><td><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot half"></span><span class="dot off"></span></td><td>主流程完整；UED/产品化编辑器待增强</td></tr>
+            <tr><td>调度 / 执行 / Runner</td><td><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot half"></span><span class="dot off"></span></td><td>持久 DAG + 执行池；分层公平/跨机规模待验收</td></tr>
+            <tr><td>智能体 / 工具集成</td><td><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot half"></span><span class="dot off"></span></td><td>Codex/OpenCode/Octop/原生；工作流平台扩展中</td></tr>
+            <tr><td>知识 / 记忆 / 技能</td><td><span class="dot on"></span><span class="dot on"></span><span class="dot half"></span><span class="dot off"></span><span class="dot off"></span></td><td>版本化已实现；向量检索/自动萃取待深化</td></tr>
+            <tr><td>权限 / 安全 / 隔离</td><td><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot half"></span><span class="dot off"></span></td><td>RBAC 完整；SSO 与统一权限中台待建</td></tr>
+            <tr><td>交互 / 可视化</td><td><span class="dot on"></span><span class="dot on"></span><span class="dot half"></span><span class="dot half"></span><span class="dot off"></span></td><td>工作台可用；实时协作/主题/导出待完善</td></tr>
+            <tr><td>部署 / 运维</td><td><span class="dot on"></span><span class="dot on"></span><span class="dot half"></span><span class="dot off"></span><span class="dot off"></span></td><td>四种拓扑；告警/监控待建，生产验收待做</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note">设计原则：业务状态、运行态、测试证据、人工验收、部署是<strong>互不相同的事实</strong>；不做假指标、静默降级、模拟生产验收；所有跨项目操作<strong>服务端授权</strong>；浏览器端不持有密钥。</div>
+
+      <h3>1.3 能力雷达（v1.0.0 基线）</h3>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 560 456" role="img" aria-label="能力雷达图">
+          <g font-family="var(--sans)">
+            <g stroke="var(--border)" fill="none">
+              <polygon points="280,60 424,144 424,308 280,392 136,308 136,144"/>
+              <polygon points="280,104 394,170 394,294 280,360 166,294 166,170"/>
+              <polygon points="280,148 363,196 363,280 280,328 197,280 197,196"/>
+              <polygon points="280,192 333,222 333,266 280,296 227,266 227,222"/>
+              <line x1="280" y1="40" x2="280" y2="412"/><line x1="126" y1="139" x2="434" y2="393"/><line x1="434" y1="139" x2="126" y2="393"/>
+            </g>
+            <polygon points="280,110 386,180 363,280 280,330 206,272 216,180" fill="color-mix(in srgb,var(--brand) 22%,transparent)" stroke="var(--brand)" stroke-width="2"/>
+            <g fill="var(--brand)"><circle cx="280" cy="110" r="4"/><circle cx="386" cy="180" r="4"/><circle cx="363" cy="280" r="4"/><circle cx="280" cy="330" r="4"/><circle cx="206" cy="272" r="4"/><circle cx="216" cy="180" r="4"/></g>
+            <g class="lbl" text-anchor="middle">
+              <text x="280" y="40">项目管理 / 需求 74%</text>
+              <text x="448" y="134">调度执行 78%</text>
+              <text x="448" y="400">智能体 / 工具 72%</text>
+              <text x="280" y="414" text-anchor="middle">知识 / 记忆 / 技能 62%</text>
+              <text x="112" y="400" text-anchor="end">权限 / 安全 68%</text>
+              <text x="112" y="134" text-anchor="end">交互 / 可视化 60%</text>
+            </g>
+            <text class="lbl s" x="280" y="440" text-anchor="middle">综合就绪 69% · 剩余缺口集中在 P0：SSO / 移动端 / 配置中心 / 告警体系（见第 14 节）</text>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section id="s2">
+      <h2>2 · 需求全景 · 用户故事 · NFR</h2>
+      <p class="lead">29+ 条诉求聚合为 <b>10 大能力簇（A–J）</b>；补充典型用户故事与非功能需求，形成可验收的 PRD 骨架。</p>
+
+      <h3>2.1 能力簇</h3>
+      <div class="grid c4">
+        <div class="card"><div class="t">A 组织与协作</div><div class="d">账号/组织/团队/角色/权限/SSO；人+智能体+工具混合团队；成员/工作分配；隔离与审计。</div></div>
+        <div class="card"><div class="t">B 项目与需求</div><div class="d">想法/项目/子项目/微应用；需求拆解/PRD/UED/产品化/技术架构设计；任务拆解与分配。</div></div>
+        <div class="card"><div class="t">C 执行与调度</div><div class="d">任务派发/DAG/Pipeline/进度回写；执行池；事件总线；测试/验收/门禁。</div></div>
+        <div class="card"><div class="t">D 智能体与工具</div><div class="d">模型网关与智能选模；codex/cursor/claude/qoder/workbuddy/zed/opencode 等 DevTools；harness 框架；MCP/A2A/插件/技能。</div></div>
+        <div class="card"><div class="t">E 知识与记忆</div><div class="d">知识库/记忆/技能/规范/质量；萃取、向量检索与跨项目同步迭代。</div></div>
+        <div class="card"><div class="t">F 运维与治理</div><div class="d">发布/部署/监控/告警/问题诊断；bug/issue/缺陷全流程；问题智能回流需求池。</div></div>
+        <div class="card"><div class="t">G 多端与开放</div><div class="d">Web/桌面/移动/CLI；开放 API/Webhook/消息通道（微信/钉钉/企微）。</div></div>
+        <div class="card"><div class="t">H 体验与智能</div><div class="d">可视化配置/智能输入自动补全/智能选模/命令面板/中英文国际化。</div></div>
+        <div class="card"><div class="t">I 版本与追溯</div><div class="d">应用级 semver 版本管理；需求迭代/功能迭代关联；微应用依赖识别与联动迭代；全链路追溯矩阵。</div></div>
+        <div class="card"><div class="t">J 计费与成本</div><div class="d">Token 计量计费/配额分配/预算管控/成本看板/超限拦截与降级，避免资源浪费。</div></div>
+      </div>
+
+      <h3>2.2 典型用户故事（节选）</h3>
+      <div class="panel" style="padding:0;overflow:auto">
+        <table>
+          <thead><tr><th style="width:60px">编号</th><th>用户故事</th><th>验收要点</th></tr></thead>
+          <tbody>
+            <tr><td>US-01</td><td>作为项目负责人，我想把一句想法拆解为带验收标准的需求与任务，以便快速启动。</td><td>拆解结果可编辑、可保存、可追溯来源</td></tr>
+            <tr><td>US-02</td><td>作为开发者，我想把任务派发给 Codex/OpenCode 等工具并看到实时进度。</td><td>派发成功、进度回写、可停止、可核对未知结果</td></tr>
+            <tr><td>US-03</td><td>作为测试，我想对准确候选跑独立测试，并给出测试事实。</td><td>候选可追溯、测试与自测分离、结果留证</td></tr>
+            <tr><td>US-04</td><td>作为负责人，我想对交付做正式验收并发布版本。</td><td>权限校验、验收决定不可篡改、发布集合不可变</td></tr>
+            <tr><td>US-05</td><td>作为运维，我想让线上问题自动诊断并回流需求池。</td><td>诊断有据、回流可追踪、避免重复建单</td></tr>
+            <tr><td>US-06</td><td>作为管理员，我想可视化配置模型/工具/权限并支持回滚。</td><td>配置校验、版本化、审计、回滚可用</td></tr>
+            <tr><td>US-07</td><td>作为平台方，我想对接企业 SSO 与消息通道。</td><td>OIDC/SAML 登录闭环、消息可达</td></tr>
+            <tr><td>US-08</td><td>作为成本负责人，我想按团队/项目管控 Token 配额。</td><td>计量准确、超限拦截、账单可导出</td></tr>
+            <tr><td>US-09</td><td>作为架构师，我想让需求变更自动触发关联微应用的依赖影响分析与联动迭代。</td><td>依赖图自动识别、受影响应用清单、迭代计划可一键生成</td></tr>
+            <tr><td>US-10</td><td>作为项目经理，我想以「工作」视角查看每个成员/智能体的负载与产出。</td><td>负载视图、产出可追溯、可重新均衡分配</td></tr>
+            <tr><td>US-11</td><td>作为测试负责人，我想让 bug/缺陷按严重度分级并自动路由（修复/回流需求池/升级）。</td><td>分级 SLA、自动路由、去重合并、闭环可统计</td></tr>
+            <tr><td>US-12</td><td>作为版本管理员，我想对微应用做独立 semver 发布并管理兼容范围。</td><td>版本不可变、兼容矩阵、回滚可用</td></tr>
+            <tr><td>US-13</td><td>作为平台管理员，我想统一管理 cursor/claude/qoder/codex 等工具的接入凭证与使用权限。</td><td>凭证集中托管、按组织/项目授权、用量可见</td></tr>
+            <tr><td>US-14</td><td>作为开发者，我想在 IDE 中用自然语言智能补全需求/任务/配置，少手动填写。</td><td>一句话生成草稿、可编辑确认、字段级智能填充</td></tr>
+            <tr><td>US-15</td><td>作为 SRE，我想订阅关键事件并在移动端/企微收到分级告警。</td><td>事件订阅、分级路由、可达与去噪</td></tr>
+            <tr><td>US-16</td><td>作为管理员，我想在单机/私有化/分布式 SaaS 间平滑升降部署形态。</td><td>同一代码与数据模型、迁移工具与升级路径明确</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>2.3 参考平台能力对标</h3>
+      <div class="panel" style="padding:0;overflow:auto">
+        <table>
+          <thead><tr><th style="min-width:110px">平台</th><th>核心能力</th><th>suma 映射</th><th style="width:80px">状态</th></tr></thead>
+          <tbody>
+            <tr><td><b>multica</b></td><td>分布式多团队多 Agent 编排</td><td>expert_team / dag / execution_pool / 多 Runner</td><td><span class="tag ok">已具备</span></td></tr>
+            <tr><td><b>workbuddy</b></td><td>工作台、技能、MCP、自动化、记忆</td><td>agent-runtime / mcp / automation / knowledge</td><td><span class="tag ok">已具备</span></td></tr>
+            <tr><td><b>opencode</b></td><td>本地编码 Agent、终端集成</td><td>opencode_execution / workspace_terminal</td><td><span class="tag ok">已具备</span></td></tr>
+            <tr><td><b>zed</b></td><td>协作编辑、实时多人</td><td>Yjs/LiveKit（规划）</td><td><span class="tag warn">规划中</span></td></tr>
+            <tr><td><b>codex</b></td><td>自主编码、并发任务</td><td>codex_execution / 并发执行池</td><td><span class="tag ok">已具备</span></td></tr>
+            <tr><td><b>cursor</b></td><td>AI IDE、Composer 多文件编辑</td><td>DevTools 适配器 / 工作台代码区</td><td><span class="tag warn">适配中</span></td></tr>
+            <tr><td><b>claude (code)</b></td><td>Agent 编码、子代理、技能</td><td>agent-runtime / skill 体系</td><td><span class="tag warn">适配中</span></td></tr>
+            <tr><td><b>qoder</b></td><td>AI 编码工作台、规格驱动</td><td>requirement_design / workspace</td><td><span class="tag warn">适配中</span></td></tr>
+            <tr><td><b>harness 框架</b></td><td>评测/编排 harness（含 deepseek-harness 等）</td><td>evaluation_harness / test_plan 插件层</td><td><span class="tag warn">适配中</span></td></tr>
+            <tr><td><b>dsh</b></td><td>分布式 shell / 分发</td><td>execution_pool / runner</td><td><span class="tag warn">部分</span></td></tr>
+            <tr><td><b>Octop</b></td><td>仓库/PR/发布治理</td><td>octop_execution / repository_integration / release</td><td><span class="tag ok">已具备</span></td></tr>
+            <tr><td><b>hermes</b></td><td>通用 Agent 框架</td><td>agent-runtime / tool contract</td><td><span class="tag ok">已具备</span></td></tr>
+            <tr><td><b>spec-kit</b></td><td>规范驱动开发</td><td>requirement_design / PRD</td><td><span class="tag ok">已具备</span></td></tr>
+            <tr><td><b>bubbletea</b></td><td>TUI 框架</td><td>suma-cli</td><td><span class="tag ok">已具备</span></td></tr>
+            <tr><td><b>cindy</b></td><td>Harness 抽象（Claude Code/Codex/Pi 可切换且 session 归平台）、BYO 订阅与密钥、多设备 device-link、Orca 多智能体编排、Skip-Sign-In 本地态、设计系统</td><td>harness 抽象层 / modelgateway 四通道供给 / 多端续跑 / expert_team 编排 / 桌面独立降级态 / 设计令牌</td><td><span class="tag warn">部分</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section id="s3">
+      <h2>3 · 总体架构</h2>
+
+      <h3>3.1 分层架构</h3>
+      <div class="svg-wrap" style="margin-top:10px">
+        <svg viewBox="0 0 920 560" role="img" aria-label="分层架构">
+          <rect class="band" x="20" y="16" width="880" height="70" rx="12"/><rect class="band" x="20" y="96" width="880" height="70" rx="12"/>
+          <rect class="band" x="20" y="176" width="880" height="70" rx="12"/><rect class="band" x="20" y="256" width="880" height="70" rx="12"/>
+          <rect class="band" x="20" y="336" width="880" height="70" rx="12"/><rect class="band" x="20" y="416" width="880" height="70" rx="12"/>
+          <rect class="band" x="20" y="496" width="880" height="52" rx="12"/>
+          <text class="lbl h" x="32" y="35" style="opacity:.7">① 接入层</text><text class="lbl h" x="32" y="115" style="opacity:.7">② 应用层</text>
+          <text class="lbl h" x="32" y="195" style="opacity:.7">③ 领域服务层</text><text class="lbl h" x="32" y="275" style="opacity:.7">④ 智能编排层</text>
+          <text class="lbl h" x="32" y="355" style="opacity:.7">⑤ AI 与工具集成层</text><text class="lbl h" x="32" y="435" style="opacity:.7">⑥ 数据层</text>
+          <text class="lbl h" x="32" y="511" style="opacity:.7">⑦ 基础设施层</text>
+          <g>
+            <rect class="box" x="40" y="42" width="150" height="32" rx="8"/><text class="lbl" x="115" y="63" text-anchor="middle">Web SaaS</text>
+            <rect class="box" x="200" y="42" width="150" height="32" rx="8"/><text class="lbl" x="275" y="63" text-anchor="middle">桌面 Electron</text>
+            <rect class="box" x="360" y="42" width="150" height="32" rx="8"/><text class="lbl" x="435" y="63" text-anchor="middle">CLI (suma)</text>
+            <rect class="box" x="520" y="42" width="150" height="32" rx="8"/><text class="lbl" x="595" y="63" text-anchor="middle">开放 API/Webhook</text>
+            <rect class="box" x="680" y="42" width="200" height="32" rx="8"/><text class="lbl" x="780" y="63" text-anchor="middle">消息通道 微信/钉钉/企微</text>
+
+            <rect class="box f" x="40" y="122" width="200" height="32" rx="8"/><text class="lbl" x="140" y="143" text-anchor="middle">项目管理门户</text>
+            <rect class="box f" x="250" y="122" width="200" height="32" rx="8"/><text class="lbl" x="350" y="143" text-anchor="middle">协作工作台 (IDE)</text>
+            <rect class="box f" x="460" y="122" width="170" height="32" rx="8"/><text class="lbl" x="545" y="143" text-anchor="middle">管理员后台</text>
+            <rect class="box f" x="640" y="122" width="240" height="32" rx="8"/><text class="lbl" x="760" y="143" text-anchor="middle">开发者集成 platform/http</text>
+
+            <rect class="box" x="40" y="202" width="200" height="32" rx="8"/><text class="lbl" x="140" y="223" text-anchor="middle">组织/权限/SSO</text>
+            <rect class="box" x="250" y="202" width="200" height="32" rx="8"/><text class="lbl" x="350" y="223" text-anchor="middle">项目/需求/设计</text>
+            <rect class="box" x="460" y="202" width="200" height="32" rx="8"/><text class="lbl" x="560" y="223" text-anchor="middle">任务/测试/验收</text>
+            <rect class="box" x="670" y="202" width="210" height="32" rx="8"/><text class="lbl" x="775" y="223" text-anchor="middle">发布/版本/Issue 修复</text>
+
+            <rect class="box" x="40" y="282" width="210" height="32" rx="8"/><text class="lbl" x="145" y="303" text-anchor="middle">DAG 持久调度</text>
+            <rect class="box" x="260" y="282" width="200" height="32" rx="8"/><text class="lbl" x="360" y="303" text-anchor="middle">Pipeline 编排</text>
+            <rect class="box" x="470" y="282" width="190" height="32" rx="8"/><text class="lbl" x="565" y="303" text-anchor="middle">事件总线/Outbox</text>
+            <rect class="box" x="670" y="282" width="210" height="32" rx="8"/><text class="lbl" x="775" y="303" text-anchor="middle">智能规划/拆解 Agent</text>
+
+            <rect class="box" x="40" y="362" width="200" height="32" rx="8"/><text class="lbl" x="140" y="383" text-anchor="middle">模型网关</text>
+            <rect class="box" x="250" y="362" width="200" height="32" rx="8"/><text class="lbl" x="350" y="383" text-anchor="middle">Agent 运行时</text>
+            <rect class="box" x="460" y="362" width="200" height="32" rx="8"/><text class="lbl" x="560" y="383" text-anchor="middle">MCP / A2A 适配</text>
+            <rect class="box" x="670" y="362" width="210" height="32" rx="8"/><text class="lbl" x="775" y="383" text-anchor="middle">DevTools 适配器</text>
+
+            <rect class="box" x="40" y="442" width="200" height="32" rx="8"/><text class="lbl" x="140" y="463" text-anchor="middle">事务库 OB/PG/SQLite</text>
+            <rect class="box" x="250" y="442" width="200" height="32" rx="8"/><text class="lbl" x="350" y="463" text-anchor="middle">向量/多模 Lance</text>
+            <rect class="box" x="460" y="442" width="200" height="32" rx="8"/><text class="lbl" x="560" y="463" text-anchor="middle">文件/对象存储</text>
+            <rect class="box" x="670" y="442" width="210" height="32" rx="8"/><text class="lbl" x="775" y="463" text-anchor="middle">缓存/消息队列</text>
+
+            <rect class="box" x="40" y="518" width="210" height="26" rx="8"/><text class="lbl s" x="145" y="535" text-anchor="middle">容器 / K8s</text>
+            <rect class="box" x="260" y="518" width="210" height="26" rx="8"/><text class="lbl s" x="365" y="535" text-anchor="middle">可观测</text>
+            <rect class="box" x="480" y="518" width="200" height="26" rx="8"/><text class="lbl s" x="580" y="535" text-anchor="middle">配置/密钥中心</text>
+            <rect class="box" x="690" y="518" width="190" height="26" rx="8"/><text class="lbl s" x="785" y="535" text-anchor="middle">CI/CD</text>
+          </g>
+        </svg>
+      </div>
+
+      <h3>3.2 六边形 / 端口适配器架构</h3>
+      <p class="lead">领域内核不依赖外部框架；一切外部能力经端口（Port）与适配器（Adapter）接入，保证可替换、可测试、可扩展。</p>
+      <div class="svg-wrap" style="margin-top:10px">
+        <svg viewBox="0 0 920 320" role="img" aria-label="端口适配器架构">
+          <g font-family="var(--sans)">
+            <rect class="box s" x="20" y="30" width="180" height="250" rx="12"/>
+            <text class="lbl h" x="110" y="52" text-anchor="middle">入站适配器</text>
+            <rect class="box" x="36" y="66" width="148" height="30" rx="7"/><text class="lbl" x="110" y="86" text-anchor="middle">HTTP / REST</text>
+            <rect class="box" x="36" y="104" width="148" height="30" rx="7"/><text class="lbl" x="110" y="124" text-anchor="middle">CLI</text>
+            <rect class="box" x="36" y="142" width="148" height="30" rx="7"/><text class="lbl" x="110" y="162" text-anchor="middle">Web UI</text>
+            <rect class="box" x="36" y="180" width="148" height="30" rx="7"/><text class="lbl" x="110" y="200" text-anchor="middle">Webhook / MQ</text>
+            <rect class="box" x="36" y="218" width="148" height="30" rx="7"/><text class="lbl" x="110" y="238" text-anchor="middle">消息通道</text>
+
+            <rect class="box f" x="230" y="30" width="120" height="250" rx="12"/>
+            <text class="lbl h" x="290" y="52" text-anchor="middle">应用端口</text>
+            <text class="lbl s" x="290" y="80" text-anchor="middle">Command</text>
+            <text class="lbl s" x="290" y="110" text-anchor="middle">Query</text>
+            <text class="lbl s" x="290" y="140" text-anchor="middle">Event</text>
+            <text class="lbl s" x="290" y="170" text-anchor="middle">Policy</text>
+            <text class="lbl s" x="290" y="200" text-anchor="middle">Scheduler</text>
+            <text class="lbl s" x="290" y="230" text-anchor="middle">Tool/Model</text>
+
+            <rect class="box g" x="380" y="60" width="180" height="190" rx="14"/>
+            <text class="lbl h" x="470" y="90" text-anchor="middle">领域内核</text>
+            <text class="lbl s" x="470" y="116" text-anchor="middle">组织 / 项目 / 需求</text>
+            <text class="lbl s" x="470" y="140" text-anchor="middle">任务 / 运行 / 验收</text>
+            <text class="lbl s" x="470" y="164" text-anchor="middle">发布 / 版本 / 知识</text>
+            <text class="lbl s" x="470" y="188" text-anchor="middle">不依赖框架</text>
+            <text class="lbl s" x="470" y="212" text-anchor="middle">可单测 / 纯逻辑</text>
+
+            <rect class="box f" x="590" y="30" width="120" height="250" rx="12"/>
+            <text class="lbl h" x="650" y="52" text-anchor="middle">出站端口</text>
+            <text class="lbl s" x="650" y="80" text-anchor="middle">Repository</text>
+            <text class="lbl s" x="650" y="110" text-anchor="middle">VectorStore</text>
+            <text class="lbl s" x="650" y="140" text-anchor="middle">EventBus</text>
+            <text class="lbl s" x="650" y="170" text-anchor="middle">ModelProvider</text>
+            <text class="lbl s" x="650" y="200" text-anchor="middle">ToolProvider</text>
+            <text class="lbl s" x="650" y="230" text-anchor="middle">Notifier</text>
+
+            <rect class="box s" x="740" y="30" width="160" height="250" rx="12"/>
+            <text class="lbl h" x="820" y="52" text-anchor="middle">出站适配器</text>
+            <text class="lbl s" x="820" y="80" text-anchor="middle">OceanBase/PG/SQLite</text>
+            <text class="lbl s" x="820" y="110" text-anchor="middle">Lance</text>
+            <text class="lbl s" x="820" y="140" text-anchor="middle">RocketMQ/Kafka</text>
+            <text class="lbl s" x="820" y="170" text-anchor="middle">OpenAI/Claude/本地</text>
+            <text class="lbl s" x="820" y="200" text-anchor="middle">Codex/OpenCode/Octop</text>
+            <text class="lbl s" x="820" y="230" text-anchor="middle">微信/钉钉/企微</text>
+
+            <g class="ln">
+              <line x1="200" y1="155" x2="228" y2="155" marker-end="url(#ar)"/>
+              <line x1="350" y1="155" x2="378" y2="155" marker-end="url(#ar)"/>
+              <line x1="560" y1="155" x2="588" y2="155" marker-end="url(#ar)"/>
+              <line x1="710" y1="155" x2="738" y2="155" marker-end="url(#ar)"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <h3>3.3 服务拆分与模块边界</h3>
+      <div class="panel" style="padding:0;overflow:auto">
+        <table>
+          <thead><tr><th style="width:130px">服务/模块</th><th>职责</th><th>依赖</th><th>扩展方式</th></tr></thead>
+          <tbody>
+            <tr><td>身份权限</td><td>组织/团队/角色/权限/SSO/审计</td><td>事务库、审计</td><td>AuthProvider 插件</td></tr>
+            <tr><td>项目需求</td><td>项目/应用/需求/设计/版本</td><td>事务库、文件</td><td>领域事件</td></tr>
+            <tr><td>任务调度</td><td>任务/DAG/运行/执行池</td><td>事务库、MQ、Runner</td><td>调度策略插件</td></tr>
+            <tr><td>智能体工具</td><td>Agent 运行时、模型网关、工具适配</td><td>模型、DevTools</td><td>Provider 插件</td></tr>
+            <tr><td>质量验收</td><td>测试计划、独立测试、门禁、验收</td><td>Runner、事务库</td><td>规则插件</td></tr>
+            <tr><td>发布运维</td><td>发布候选/集合/部署/Issue/诊断</td><td>仓库、部署器、MQ</td><td>Provider 插件</td></tr>
+            <tr><td>知识记忆</td><td>知识/记忆/技能/检索</td><td>Lance、事务库</td><td>Embedding 插件</td></tr>
+            <tr><td>平台工程</td><td>配置中心、特性开关、可观测、计量</td><td>全服务</td><td>横切能力</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.4 关键设计边界</h3>
+      <ul>
+        <li><b>控制面 / Runner 分离</b>：控制面拥有业务与执行状态；Runner 仅证明已授权执行事实并保留可重传回执。</li>
+        <li><b>事务内零副作用</b>：事务内不执行模型、工具、网络请求或长时任务。</li>
+        <li><b>检索库是可重建投影</b>：Lance / 索引投影不能批准业务动作。</li>
+        <li><b>事件至少一次</b>：业务效果靠操作回执、版本、幂等与结果核对。</li>
+        <li><b>浏览器端不持有</b>：数据库、模型或存储主密钥。</li>
+      </ul>
+
+      <h3>3.5 AI 时代全栈价值流全景</h3>
+      <p class="lead">从「想法」到「运维」的<strong>一站式团队化企业化组织化智能化</strong>闭环：左列为业务对象流，中列为支撑能力（团队/智能体/模型/工具/技能/知识/记忆/事件/计费），右列为治理与回流。</p>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 920 430" role="img" aria-label="全栈价值流全景">
+          <g font-family="var(--sans)">
+            <text class="lbl h" x="460" y="22" text-anchor="middle">业务主链（左→右）</text>
+            <rect class="box f" x="14" y="40" width="88" height="40" rx="8"/><text class="lbl s" x="58" y="65" text-anchor="middle">想法</text>
+            <rect class="box" x="112" y="40" width="88" height="40" rx="8"/><text class="lbl s" x="156" y="65" text-anchor="middle">需求</text>
+            <rect class="box" x="210" y="40" width="88" height="40" rx="8"/><text class="lbl s" x="254" y="65" text-anchor="middle">设计/架构</text>
+            <rect class="box" x="308" y="40" width="88" height="40" rx="8"/><text class="lbl s" x="352" y="65" text-anchor="middle">任务</text>
+            <rect class="box" x="406" y="40" width="88" height="40" rx="8"/><text class="lbl s" x="450" y="65" text-anchor="middle">应用</text>
+            <rect class="box" x="504" y="40" width="88" height="40" rx="8"/><text class="lbl s" x="548" y="65" text-anchor="middle">测试</text>
+            <rect class="box g" x="602" y="40" width="96" height="40" rx="8"/><text class="lbl s" x="650" y="65" text-anchor="middle">版本发布</text>
+            <rect class="box w" x="710" y="40" width="88" height="40" rx="8"/><text class="lbl s" x="754" y="65" text-anchor="middle">运维</text>
+            <rect class="box s" x="810" y="40" width="96" height="40" rx="8"/><text class="lbl s" x="858" y="65" text-anchor="middle">问题/缺陷</text>
+            <g class="ln">
+              <line x1="102" y1="60" x2="110" y2="60" marker-end="url(#ar)"/><line x1="200" y1="60" x2="208" y2="60" marker-end="url(#ar)"/>
+              <line x1="298" y1="60" x2="306" y2="60" marker-end="url(#ar)"/><line x1="396" y1="60" x2="404" y2="60" marker-end="url(#ar)"/>
+              <line x1="494" y1="60" x2="502" y2="60" marker-end="url(#ar)"/><line x1="592" y1="60" x2="600" y2="60" marker-end="url(#ar)"/>
+              <line x1="698" y1="60" x2="706" y2="60" marker-end="url(#ar)"/><line x1="798" y1="60" x2="806" y2="60" marker-end="url(#ar)"/>
+              <path d="M858,80 C858,110 100,110 58,80" marker-end="url(#ar)"/>
+            </g>
+            <text class="lbl s" x="460" y="106" text-anchor="middle">缺陷智能回流需求池（去重 · 归因 · 升级）</text>
+
+            <text class="lbl h" x="460" y="140" text-anchor="middle">支撑能力带（全链路复用）</text>
+            <rect class="box s" x="14" y="156" width="200" height="56" rx="9"/><text class="lbl" x="114" y="180" text-anchor="middle">团队 / 成员 / 工作</text><text class="lbl s" x="114" y="198" text-anchor="middle">人 + 智能体 + 开发工具混合编队</text>
+            <rect class="box s" x="232" y="156" width="200" height="56" rx="9"/><text class="lbl" x="332" y="180" text-anchor="middle">智能体 / 模型 / 工具</text><text class="lbl s" x="332" y="198" text-anchor="middle">专家团队 · 智能选模 · DevTools 矩阵</text>
+            <rect class="box s" x="450" y="156" width="200" height="56" rx="9"/><text class="lbl" x="550" y="180" text-anchor="middle">技能 / 知识库 / 记忆</text><text class="lbl s" x="550" y="198" text-anchor="middle">版本化 · 向量检索 · 自动萃取</text>
+            <rect class="box s" x="668" y="156" width="238" height="56" rx="9"/><text class="lbl" x="787" y="180" text-anchor="middle">事件 / 调度 / 计费计量</text><text class="lbl s" x="787" y="198" text-anchor="middle">事件总线 · DAG · 配额账本</text>
+            <g class="ln">
+              <line x1="114" y1="212" x2="114" y2="240" marker-end="url(#ar)"/><line x1="332" y1="212" x2="332" y2="240" marker-end="url(#ar)"/>
+              <line x1="550" y1="212" x2="550" y2="240" marker-end="url(#ar)"/><line x1="787" y1="212" x2="787" y2="240" marker-end="url(#ar)"/>
+            </g>
+
+            <text class="lbl h" x="460" y="266" text-anchor="middle">治理带（事实分离 · 全程留痕）</text>
+            <rect class="box g" x="14" y="282" width="200" height="56" rx="9"/><text class="lbl" x="114" y="306" text-anchor="middle">质量门禁</text><text class="lbl s" x="114" y="324" text-anchor="middle">代码门禁 + 交付门禁</text>
+            <rect class="box g" x="232" y="282" width="200" height="56" rx="9"/><text class="lbl" x="332" y="306" text-anchor="middle">验收与追溯</text><text class="lbl s" x="332" y="324" text-anchor="middle">独立测试 · 人工验收 · 追溯矩阵</text>
+            <rect class="box g" x="450" y="282" width="200" height="56" rx="9"/><text class="lbl" x="550" y="306" text-anchor="middle">版本与发布治理</text><text class="lbl s" x="550" y="324" text-anchor="middle">semver · 不可变 · 可回滚</text>
+            <rect class="box g" x="668" y="282" width="238" height="56" rx="9"/><text class="lbl" x="787" y="306" text-anchor="middle">权限 / 审计 / 安全</text><text class="lbl s" x="787" y="324" text-anchor="middle">RBAC · 组织隔离 · 密钥托管</text>
+
+            <text class="lbl s" x="460" y="378" text-anchor="middle">版本迭代闭环：需求迭代 → 功能迭代 → 关联依赖联动迭代 → 知识/技能/Agent 同步升级 → 部署验证 → 缺陷修复跟进</text>
+            <text class="lbl s" x="460" y="400" text-anchor="middle">部署形态：分布式 SaaS · 私有化 · 单机 —— 同一代码与数据模型，平滑升降</text>
+            <text class="lbl s" x="460" y="422" text-anchor="middle">DevTools：codex · cursor · claude · qoder · workbuddy · zed · opencode · octop · harness 框架 · dsh —— 统一接入、统一鉴权、统一计量</text>
+          </g>
+        </svg>
+      </div>
+
+      <h3>3.6 增强版系统总体架构（含 Harness 抽象与模型供给）</h3>
+      <p class="lead">在原七层架构基础上补入<strong>鉴权 realm 路由、Harness 抽象层、模型供给四通道、多设备会话续跑</strong>，形成面向 AI 时代的增强版总体架构。</p>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 920 430" role="img" aria-label="增强版系统总体架构">
+          <g font-family="var(--sans)">
+            <rect class="band" x="16" y="14" width="888" height="60" rx="11"/>
+            <text class="lbl h" x="30" y="34" style="opacity:.7">① 多端接入层</text>
+            <rect class="box" x="30" y="40" width="140" height="28" rx="7"/><text class="lbl s" x="100" y="58" text-anchor="middle">Web SaaS</text>
+            <rect class="box" x="180" y="40" width="140" height="28" rx="7"/><text class="lbl s" x="250" y="58" text-anchor="middle">桌面 Electron</text>
+            <rect class="box" x="330" y="40" width="130" height="28" rx="7"/><text class="lbl s" x="395" y="58" text-anchor="middle">移动（Flutter）</text>
+            <rect class="box" x="470" y="40" width="120" height="28" rx="7"/><text class="lbl s" x="530" y="58" text-anchor="middle">CLI</text>
+            <rect class="box" x="600" y="40" width="150" height="28" rx="7"/><text class="lbl s" x="675" y="58" text-anchor="middle">开放 API / Webhook</text>
+            <rect class="box g" x="760" y="40" width="130" height="28" rx="7"/><text class="lbl s" x="825" y="58" text-anchor="middle">设备配对 device-link</text>
+
+            <rect class="band" x="16" y="82" width="888" height="56" rx="11"/>
+            <text class="lbl h" x="30" y="102" style="opacity:.7">② 接入与鉴权层</text>
+            <rect class="box f" x="30" y="106" width="180" height="26" rx="6"/><text class="lbl s" x="120" y="123" text-anchor="middle">网关 / 限流 / 灰度路由</text>
+            <rect class="box f" x="220" y="106" width="180" height="26" rx="6"/><text class="lbl s" x="310" y="123" text-anchor="middle">Auth Realm 路由（组织区域发现）</text>
+            <rect class="box f" x="410" y="106" width="160" height="26" rx="6"/><text class="lbl s" x="490" y="123" text-anchor="middle">SSO / OIDC / SAML / LDAP</text>
+            <rect class="box f" x="580" y="106" width="160" height="26" rx="6"/><text class="lbl s" x="660" y="123" text-anchor="middle">RBAC / 租户隔离</text>
+            <rect class="box" x="750" y="106" width="140" height="26" rx="6"/><text class="lbl s" x="820" y="123" text-anchor="middle">Skip-Sign-In 本地态</text>
+
+            <rect class="band" x="16" y="146" width="888" height="66" rx="11"/>
+            <text class="lbl h" x="30" y="166" style="opacity:.7">③ 控制面（编排与治理）</text>
+            <rect class="box" x="30" y="172" width="150" height="34" rx="7"/><text class="lbl s" x="105" y="193" text-anchor="middle">想法/需求/设计</text>
+            <rect class="box" x="190" y="172" width="150" height="34" rx="7"/><text class="lbl s" x="265" y="193" text-anchor="middle">DAG 调度 / 执行池</text>
+            <rect class="box" x="350" y="172" width="180" height="34" rx="7"/><text class="lbl s" x="440" y="193" text-anchor="middle">多智能体编排（规划/并行实现/独立评审）</text>
+            <rect class="box" x="540" y="172" width="150" height="34" rx="7"/><text class="lbl s" x="615" y="193" text-anchor="middle">事件总线 / Outbox</text>
+            <rect class="box" x="700" y="172" width="190" height="34" rx="7"/><text class="lbl s" x="795" y="193" text-anchor="middle">门禁 / 验收 / 发布 / 计量</text>
+
+            <rect class="band" x="16" y="220" width="888" height="66" rx="11"/>
+            <text class="lbl h" x="30" y="240" style="opacity:.7">④ Harness / 工具抽象层</text>
+            <rect class="box s" x="30" y="246" width="130" height="34" rx="7"/><text class="lbl s" x="95" y="267" text-anchor="middle">claude-code</text>
+            <rect class="box s" x="170" y="246" width="120" height="34" rx="7"/><text class="lbl s" x="230" y="267" text-anchor="middle">codex</text>
+            <rect class="box s" x="300" y="246" width="100" height="34" rx="7"/><text class="lbl s" x="350" y="267" text-anchor="middle">Pi / 自研</text>
+            <rect class="box s" x="410" y="246" width="120" height="34" rx="7"/><text class="lbl s" x="470" y="267" text-anchor="middle">opencode</text>
+            <rect class="box s" x="540" y="246" width="120" height="34" rx="7"/><text class="lbl s" x="600" y="267" text-anchor="middle">cursor / qoder</text>
+            <rect class="box s" x="670" y="246" width="120" height="34" rx="7"/><text class="lbl s" x="730" y="267" text-anchor="middle">octop / dsh</text>
+            <rect class="box g" x="800" y="246" width="90" height="34" rx="7"/><text class="lbl s" x="845" y="267" text-anchor="middle">能力探测</text>
+            <text class="lbl s" x="460" y="308" text-anchor="middle">统一契约：能力声明 → 派发 → 进度回写 → 候选回执 → 凭证托管 → 计量（会话与上下文归属平台，切换 Harness 为交接/重建而非共享内部状态）</text>
+
+            <rect class="band" x="16" y="318" width="888" height="56" rx="11"/>
+            <text class="lbl h" x="30" y="338" style="opacity:.7">⑤ 模型供给层（四通道 + 网关）</text>
+            <rect class="box f" x="30" y="342" width="180" height="26" rx="6"/><text class="lbl s" x="120" y="359" text-anchor="middle">订阅授权（OAuth）</text>
+            <rect class="box f" x="220" y="342" width="180" height="26" rx="6"/><text class="lbl s" x="310" y="359" text-anchor="middle">自带 API Key（BYO）</text>
+            <rect class="box f" x="410" y="342" width="160" height="26" rx="6"/><text class="lbl s" x="490" y="359" text-anchor="middle">本地模型</text>
+            <rect class="box f" x="580" y="342" width="160" height="26" rx="6"/><text class="lbl s" x="660" y="359" text-anchor="middle">平台托管模型服务</text>
+            <rect class="box w" x="750" y="342" width="140" height="26" rx="6"/><text class="lbl s" x="820" y="359" text-anchor="middle">路由/降级/灰度/计量</text>
+
+            <rect class="band" x="16" y="382" width="888" height="42" rx="11"/>
+            <text class="lbl h" x="30" y="402" style="opacity:.7">⑥ 数据与基础设施</text>
+            <rect class="box" x="160" y="388" width="130" height="26" rx="6"/><text class="lbl s" x="225" y="406" text-anchor="middle">事务库 OB/PG/SQLite</text>
+            <rect class="box" x="300" y="388" width="120" height="26" rx="6"/><text class="lbl s" x="360" y="406" text-anchor="middle">Lance 向量</text>
+            <rect class="box" x="430" y="388" width="120" height="26" rx="6"/><text class="lbl s" x="490" y="406" text-anchor="middle">文件/对象存储</text>
+            <rect class="box" x="560" y="388" width="120" height="26" rx="6"/><text class="lbl s" x="620" y="406" text-anchor="middle">Redis / MQ</text>
+            <rect class="box" x="690" y="388" width="120" height="26" rx="6"/><text class="lbl s" x="750" y="406" text-anchor="middle">配置/密钥中心</text>
+            <rect class="box" x="820" y="388" width="76" height="26" rx="6"/><text class="lbl s" x="858" y="406" text-anchor="middle">可观测</text>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section id="s4">
+      <h2>4 · 领域模型与数据架构</h2>
+      <h3>4.1 核心领域对象关系</h3>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 920 300" role="img" aria-label="领域对象关系">
+          <g font-family="var(--sans)">
+            <rect class="box f" x="20" y="24" width="150" height="40" rx="9"/><text class="lbl" x="95" y="49" text-anchor="middle">Organization</text>
+            <rect class="box" x="200" y="24" width="150" height="40" rx="9"/><text class="lbl" x="275" y="49" text-anchor="middle">Team / Member</text>
+            <rect class="box" x="380" y="24" width="150" height="40" rx="9"/><text class="lbl" x="455" y="49" text-anchor="middle">Project</text>
+            <rect class="box" x="560" y="24" width="160" height="40" rx="9"/><text class="lbl" x="640" y="49" text-anchor="middle">Application</text>
+            <rect class="box" x="750" y="24" width="140" height="40" rx="9"/><text class="lbl" x="820" y="49" text-anchor="middle">CodeVersion</text>
+
+            <rect class="box" x="20" y="96" width="150" height="40" rx="9"/><text class="lbl" x="95" y="121" text-anchor="middle">Idea</text>
+            <rect class="box" x="200" y="96" width="150" height="40" rx="9"/><text class="lbl" x="275" y="121" text-anchor="middle">Requirement</text>
+            <rect class="box" x="380" y="96" width="150" height="40" rx="9"/><text class="lbl" x="455" y="121" text-anchor="middle">ReqDesign</text>
+            <rect class="box" x="560" y="96" width="160" height="40" rx="9"/><text class="lbl" x="640" y="121" text-anchor="middle">Task</text>
+            <rect class="box" x="750" y="96" width="140" height="40" rx="9"/><text class="lbl" x="820" y="121" text-anchor="middle">Run</text>
+
+            <rect class="box g" x="200" y="168" width="150" height="40" rx="9"/><text class="lbl" x="275" y="193" text-anchor="middle">CodeCandidate</text>
+            <rect class="box g" x="380" y="168" width="150" height="40" rx="9"/><text class="lbl" x="455" y="193" text-anchor="middle">TestPlan</text>
+            <rect class="box g" x="560" y="168" width="160" height="40" rx="9"/><text class="lbl" x="640" y="193" text-anchor="middle">FormalReview</text>
+            <rect class="box w" x="750" y="168" width="140" height="40" rx="9"/><text class="lbl" x="820" y="193" text-anchor="middle">Release</text>
+
+            <rect class="box" x="20" y="240" width="150" height="40" rx="9"/><text class="lbl" x="95" y="265" text-anchor="middle">ExpertTeam</text>
+            <rect class="box" x="200" y="240" width="150" height="40" rx="9"/><text class="lbl" x="275" y="265" text-anchor="middle">ModelExec</text>
+            <rect class="box" x="380" y="240" width="150" height="40" rx="9"/><text class="lbl" x="455" y="265" text-anchor="middle">UsageLedger</text>
+            <rect class="box" x="560" y="240" width="160" height="40" rx="9"/><text class="lbl" x="640" y="265" text-anchor="middle">Knowledge/Skill</text>
+            <rect class="box" x="750" y="240" width="140" height="40" rx="9"/><text class="lbl" x="820" y="265" text-anchor="middle">Issue</text>
+
+            <g class="ln">
+              <line x1="170" y1="44" x2="198" y2="44"/><line x1="350" y1="44" x2="378" y2="44"/><line x1="530" y1="44" x2="558" y2="44"/><line x1="720" y1="44" x2="748" y2="44"/>
+              <line x1="95" y1="64" x2="95" y2="94"/><line x1="170" y1="116" x2="198" y2="116"/><line x1="350" y1="116" x2="378" y2="116"/><line x1="530" y1="116" x2="558" y2="116"/><line x1="720" y1="116" x2="748" y2="116"/>
+              <line x1="820" y1="136" x2="820" y2="166"/><line x1="720" y1="188" x2="748" y2="188"/><line x1="530" y1="188" x2="558" y2="188"/><line x1="350" y1="188" x2="378" y2="188"/><line x1="275" y1="208" x2="275" y2="238"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <h3>4.2 关键实体与不变量</h3>
+      <div class="panel" style="padding:0;overflow:auto">
+        <table>
+          <thead><tr><th style="width:150px">实体</th><th>关键属性</th><th>不变量</th></tr></thead>
+          <tbody>
+            <tr><td>Project</td><td>id, org, name, status, owner</td><td>归属唯一组织；权限边界</td></tr>
+            <tr><td>Application</td><td>id, project, repo, codeScope, currentVersion</td><td>代码归属明确；版本只追加</td></tr>
+            <tr><td>Requirement</td><td>id, project, acceptance, priority, status</td><td>状态机受控；验收标准非空</td></tr>
+            <tr><td>Task</td><td>id, requirement, deps, assignee, status</td><td>依赖无环；派发需就绪</td></tr>
+            <tr><td>Run</td><td>id, task, planVersion, attempt, state</td><td>固定计划；候选可追溯</td></tr>
+            <tr><td>CodeCandidate</td><td>id, run, sha, files, basis</td><td>内容不可变；来源可核</td></tr>
+            <tr><td>FormalReview</td><td>id, candidate, reviewer, decision</td><td>需权限；决定不可篡改</td></tr>
+            <tr><td>UsageLedger</td><td>id, model, tokens, cost, scope</td><td>只追加；计量可审计</td></tr>
+            <tr><td>DomainEvent</td><td>id, type, subject, payload, occurredAt</td><td>不可变；至少一次投递；幂等消费键</td></tr>
+            <tr><td>WorkItem</td><td>id, assignee(人/Agent/工具), workload, status</td><td>归属唯一主体；负载可统计可均衡</td></tr>
+            <tr><td>Defect</td><td>id, severity(P0–P3), source, sla, linkedIssue</td><td>分级 SLA；去重合并；回流可追溯</td></tr>
+            <tr><td>AppVersion</td><td>id, app, semver, compatRange, releaseSet</td><td>只追加；兼容矩阵显式；回滚指针</td></tr>
+            <tr><td>ConfigVersion</td><td>id, scope, key, value, operator, diff</td><td>版本化；审计；一键回滚</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>4.3 存储选型</h3>
+      <div class="panel" style="padding:0;overflow:auto;margin-top:8px">
+        <table>
+          <thead><tr><th>职责</th><th>选型</th><th>一致性</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>事务/权威源</td><td>OceanBase / PostgreSQL / SQLite</td><td>强一致</td><td>组织、项目、需求、任务、运行、验收、版本</td></tr>
+            <tr><td>向量/多模</td><td>Lance / LanceDB</td><td>最终一致（可重建）</td><td>知识、记忆、技能、代码语义检索</td></tr>
+            <tr><td>文件/对象</td><td>本地文件系统 / S3 / OSS</td><td>—</td><td>候选、产物、制品、文档（CAS）</td></tr>
+            <tr><td>缓存/队列</td><td>Redis + RocketMQ/Kafka</td><td>至少一次</td><td>锁/预算、事件总线、Outbox、告警</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">一致性：事务内只做状态变更与事件入队；模型/工具/网络在 Runner 侧异步；检索投影与消息均可重建。</div>
+    </section>
+
+    <!-- 5 -->
+    <section id="s5">
+      <h2>5 · 调度与执行引擎（深潜）</h2>
+      <p class="lead">持久 DAG + 执行池 + 至少一次事件；强调固定计划、幂等、租约与未知结果核对。</p>
+
+      <h3>5.1 端到端生命周期</h3>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 920 150" role="img" aria-label="生命周期">
+          <g font-family="var(--sans)">
+            <rect class="box f" x="14" y="46" width="96" height="44" rx="9"/><text class="lbl" x="62" y="64" text-anchor="middle">想法</text><text class="lbl s" x="62" y="80" text-anchor="middle">Idea</text>
+            <rect class="box" x="128" y="46" width="96" height="44" rx="9"/><text class="lbl" x="176" y="64" text-anchor="middle">项目</text><text class="lbl s" x="176" y="80" text-anchor="middle">Project</text>
+            <rect class="box" x="242" y="46" width="96" height="44" rx="9"/><text class="lbl" x="290" y="64" text-anchor="middle">需求</text><text class="lbl s" x="290" y="80" text-anchor="middle">PRD/UED</text>
+            <rect class="box" x="356" y="46" width="96" height="44" rx="9"/><text class="lbl" x="404" y="64" text-anchor="middle">设计</text><text class="lbl s" x="404" y="80" text-anchor="middle">架构/技术</text>
+            <rect class="box" x="470" y="46" width="96" height="44" rx="9"/><text class="lbl" x="518" y="64" text-anchor="middle">任务</text><text class="lbl s" x="518" y="80" text-anchor="middle">拆解/派发</text>
+            <rect class="box" x="584" y="46" width="96" height="44" rx="9"/><text class="lbl" x="632" y="64" text-anchor="middle">执行</text><text class="lbl s" x="632" y="80" text-anchor="middle">Agent/Tool</text>
+            <rect class="box" x="698" y="46" width="96" height="44" rx="9"/><text class="lbl" x="746" y="64" text-anchor="middle">验收</text><text class="lbl s" x="746" y="80" text-anchor="middle">测试/门禁</text>
+            <rect class="box f" x="812" y="46" width="96" height="44" rx="9"/><text class="lbl" x="860" y="64" text-anchor="middle">发布</text><text class="lbl s" x="860" y="80" text-anchor="middle">版本/部署</text>
+            <g class="ln">
+              <line x1="110" y1="68" x2="126" y2="68" marker-end="url(#ar)"/><line x1="224" y1="68" x2="240" y2="68" marker-end="url(#ar)"/><line x1="338" y1="68" x2="354" y2="68" marker-end="url(#ar)"/>
+              <line x1="452" y1="68" x2="468" y2="68" marker-end="url(#ar)"/><line x1="566" y1="68" x2="582" y2="68" marker-end="url(#ar)"/><line x1="680" y1="68" x2="696" y2="68" marker-end="url(#ar)"/><line x1="794" y1="68" x2="810" y2="68" marker-end="url(#ar)"/>
+              <path d="M860,90 C860,138 120,138 62,92" marker-end="url(#ar)"/>
+            </g>
+            <text class="lbl s" x="460" y="140" text-anchor="middle">运维 / 诊断 → 问题回流需求池</text>
+          </g>
+        </svg>
+      </div>
+
+      <h3>5.2 DAG 调度与执行池</h3>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 920 290" role="img" aria-label="DAG 调度">
+          <g font-family="var(--sans)">
+            <rect class="box f" x="20" y="40" width="120" height="42" rx="9"/><text class="lbl" x="80" y="66" text-anchor="middle">提交任务</text>
+            <rect class="box" x="170" y="40" width="120" height="42" rx="9"/><text class="lbl" x="230" y="66" text-anchor="middle">计划编译</text>
+            <rect class="box" x="320" y="40" width="120" height="42" rx="9"/><text class="lbl" x="380" y="66" text-anchor="middle">就绪队列</text>
+            <rect class="box" x="470" y="40" width="150" height="42" rx="9"/><text class="lbl" x="545" y="66" text-anchor="middle">执行池 (多 Runner)</text>
+            <rect class="box g" x="650" y="40" width="120" height="42" rx="9"/><text class="lbl" x="710" y="66" text-anchor="middle">结果回写</text>
+            <rect class="box" x="800" y="40" width="100" height="42" rx="9"/><text class="lbl" x="850" y="66" text-anchor="middle">后继解锁</text>
+            <g class="ln">
+              <line x1="140" y1="61" x2="168" y2="61" marker-end="url(#ar)"/><line x1="290" y1="61" x2="318" y2="61" marker-end="url(#ar)"/>
+              <line x1="440" y1="61" x2="468" y2="61" marker-end="url(#ar)"/><line x1="620" y1="61" x2="648" y2="61" marker-end="url(#ar)"/><line x1="770" y1="61" x2="798" y2="61" marker-end="url(#ar)"/>
+            </g>
+            <rect class="box s" x="320" y="130" width="120" height="46" rx="9"/><text class="lbl" x="380" y="150" text-anchor="middle">配额 / 公平</text><text class="lbl s" x="380" y="166" text-anchor="middle">WFQ / DRR</text>
+            <rect class="box s" x="470" y="130" width="150" height="46" rx="9"/><text class="lbl" x="545" y="150" text-anchor="middle">租约 / fence</text><text class="lbl s" x="545" y="166" text-anchor="middle">防双跑</text>
+            <rect class="box s" x="650" y="130" width="120" height="46" rx="9"/><text class="lbl" x="710" y="150" text-anchor="middle">重试 / 退避</text><text class="lbl s" x="710" y="166" text-anchor="middle">幂等键</text>
+            <rect class="box w" x="800" y="130" width="100" height="46" rx="9"/><text class="lbl" x="850" y="150" text-anchor="middle">补偿/核对</text><text class="lbl s" x="850" y="166" text-anchor="middle">未知结果</text>
+            <g class="ln">
+              <line x1="380" y1="82" x2="380" y2="128"/><line x1="545" y1="82" x2="545" y2="128"/><line x1="710" y1="82" x2="710" y2="128"/><line x1="850" y1="82" x2="850" y2="128"/>
+            </g>
+            <text class="lbl s" x="460" y="230" text-anchor="middle">语义：依赖无环 · 固定计划版本 · 至少一次投递 · 结果以回执为准 · 可停止与恢复</text>
+            <text class="lbl s" x="460" y="252" text-anchor="middle">失败策略：重试(退避) / 转人工 / 回滚 / 补偿；不确定外部副作用需重新核对，不静默重放</text>
+          </g>
+        </svg>
+      </div>
+
+      <h3>5.3 调度能力清单</h3>
+      <div class="grid c3">
+        <div class="card"><div class="t">优先级与公平</div><div class="d">多级优先级 + 加权公平（WFQ/DRR），防止单项目饿死；分层配额。</div></div>
+        <div class="card"><div class="t">重试与退避</div><div class="d">指数退避、最大次数、幂等键、可重试错误分类。</div></div>
+        <div class="card"><div class="t">租约与防双跑</div><div class="d">节点租约 + fence token，保证同一 run 不被并发领取。</div></div>
+        <div class="card"><div class="t">未知结果核对</div><div class="d">外部副作用不确定时进入核对态，不自动重放。</div></div>
+        <div class="card"><div class="t">补偿与恢复</div><div class="d">失败补偿、断点恢复、服务重启后从持久前沿继续。</div></div>
+        <div class="card"><div class="t">可观测</div><div class="d">队列深度、等待时长、吞吐、失败率、租约过期告警。</div></div>
+      </div>
+
+      <h3>5.4 状态机</h3>
+      <div class="grid c2">
+        <div class="card"><div class="t">Task</div><div class="d"><code>pending → ready → dispatched → running → (succeeded | failed | canceled)</code><br><span class="muted">依赖满足才 ready；失败可重试或转人工。</span></div></div>
+        <div class="card"><div class="t">Run</div><div class="d"><code>created → claimed → executing → (completed | failed | stopped)</code><br><span class="muted">候选由 Run 产出；独立测试与验收是后续独立事实。</span></div></div>
+        <div class="card"><div class="t">Defect（缺陷）</div><div class="d"><code>opened → triaged → assigned → fixing → verifying → (closed | reopened | escalated)</code><br><span class="muted">按严重度挂 SLA；重复自动合并；无法修复可回流需求池。</span></div></div>
+        <div class="card"><div class="t">Release</div><div class="d"><code>draft → candidate → tested → approved → released → (stable | rolled-back)</code><br><span class="muted">集合不可变；回滚生成新指针，不篡改历史。</span></div></div>
+      </div>
+
+      <h3>5.5 事件体系（Event backbone）</h3>
+      <p class="lead">一切跨模块协同以<strong>领域事件</strong>驱动：Outbox 落库 → 总线投递 → 订阅方幂等消费；自动化、告警、进度回写、缺陷回流、计量均挂在事件目录上。</p>
+      <div class="panel" style="padding:0;overflow:auto">
+        <table>
+          <thead><tr><th style="width:190px">事件</th><th>载荷</th><th>典型订阅方</th></tr></thead>
+          <tbody>
+            <tr><td><code>idea.created</code></td><td>ideaId, org, author</td><td>智能拆解 Agent、需求池看板</td></tr>
+            <tr><td><code>requirement.changed</code></td><td>reqId, changeType, diff</td><td>依赖影响分析、联动迭代规划</td></tr>
+            <tr><td><code>task.dispatched / progressed</code></td><td>taskId, runId, progress</td><td>进度看板、消息通道通知</td></tr>
+            <tr><td><code>run.completed / failed</code></td><td>runId, candidateId, evidence</td><td>测试计划、诊断 Agent、计量账本</td></tr>
+            <tr><td><code>candidate.tested</code></td><td>candidateId, verdict, logs</td><td>验收队列、质量门禁</td></tr>
+            <tr><td><code>release.approved / rolled-back</code></td><td>releaseSetId, semver</td><td>部署器、运维看板、公告通道</td></tr>
+            <tr><td><code>defect.detected</code></td><td>defectId, severity, source</td><td>分级路由、SLA 计时、需求回流</td></tr>
+            <tr><td><code>quota.exceeded</code></td><td>scope, tokens, budget</td><td>拦截器、降级策略、成本告警</td></tr>
+            <tr><td><code>knowledge.distilled</code></td><td>skillId, version, sources</td><td>技能库、向量索引、团队推荐</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">事件三原则：<b>不可变</b>（只追加）、<b>至少一次</b>（消费方幂等）、<b>可回放</b>（投影与索引可从事件重建）。</div>
+    </section>
+
+    <!-- 6 -->
+    <section id="s6">
+      <h2>6 · 功能清单与 12 域详细设计</h2>
+      <p class="lead">先看功能清单（编号/优先级/状态），再看各域交互与接口。点击标签切换域。</p>
+
+      <h3>6.1 功能清单（64 项）</h3>
+      <div class="filterbar" id="fFilter">
+        <span class="chip active" data-f="all">全部</span><span class="chip" data-f="P0">P0</span>
+        <span class="chip" data-f="P1">P1</span><span class="chip" data-f="P2">P2</span>
+        <span class="searchbox"><span aria-hidden="true">🔍</span><input id="fSearch" type="text" placeholder="搜索功能 / 编号 / 域…" aria-label="搜索功能清单" /><span class="cnt" id="fCnt"></span></span>
+        <span class="kbd-hint">快捷键：<span class="kbd">F</span> 聚焦搜索 · <span class="kbd">T</span> 切换主题 · <span class="kbd">⌘K</span> 浏览器查找</span>
+      </div>
+      <div class="panel" style="padding:0;overflow:auto">
+        <table id="ftable">
+          <thead><tr><th style="width:52px">编号</th><th>功能</th><th>域</th><th style="width:56px">优先级</th><th style="width:82px">状态</th></tr></thead>
+          <tbody>
+            <tr data-p="P0"><td>F-01</td><td>组织/团队/成员管理</td><td>①</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P0"><td>F-02</td><td>RBAC 角色权限</td><td>①</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P0"><td>F-03</td><td>企业 SSO（OIDC/SAML）</td><td>①</td><td>P0</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P1"><td>F-04</td><td>统一权限中台 SDK</td><td>①</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P0"><td>F-05</td><td>项目/子项目/微应用</td><td>②</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P0"><td>F-06</td><td>应用代码版本与依赖观察</td><td>②</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-07</td><td>微应用依赖图与影响分析</td><td>②</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P0"><td>F-08</td><td>需求拆解与验收标准</td><td>③</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P0"><td>F-09</td><td>PRD / 技术设计 / 版本化</td><td>③</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-10</td><td>UED / 产品化设计编辑器</td><td>③</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P1"><td>F-11</td><td>智能拆解与补全</td><td>③</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P0"><td>F-12</td><td>任务派发与进度回写</td><td>④</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P0"><td>F-13</td><td>持久 DAG 与执行池</td><td>④</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-14</td><td>分层公平与跨机规模</td><td>④</td><td>P1</td><td><span class="tag warn">待验收</span></td></tr>
+            <tr data-p="P1"><td>F-15</td><td>Pipeline 图形化编排</td><td>④</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P0"><td>F-16</td><td>专家团队编排与交接</td><td>⑤</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-17</td><td>实时多人协作</td><td>⑤</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P0"><td>F-18</td><td>模型网关与多厂商</td><td>⑥</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P0"><td>F-19</td><td>Codex/OpenCode/Octop 调度</td><td>⑥</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-20</td><td>智能选模与参数</td><td>⑥</td><td>P1</td><td><span class="tag warn">强化中</span></td></tr>
+            <tr data-p="P1"><td>F-21</td><td>工作流平台对接</td><td>⑥</td><td>P1</td><td><span class="tag warn">扩展中</span></td></tr>
+            <tr data-p="P0"><td>F-22</td><td>项目知识/记忆/技能</td><td>⑦</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-23</td><td>技能向量检索</td><td>⑦</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P1"><td>F-24</td><td>自动萃取与推荐</td><td>⑦</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P0"><td>F-25</td><td>Token 计量与账本</td><td>⑧</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-26</td><td>配额分配与计费</td><td>⑧</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P0"><td>F-27</td><td>发布/版本/部署</td><td>⑨</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P0"><td>F-28</td><td>Issue 智能回流</td><td>⑨</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P0"><td>F-29</td><td>智能诊断</td><td>⑨</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-30</td><td>告警/预警体系</td><td>⑨</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P0"><td>F-31</td><td>MCP 接入</td><td>⑩</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-32</td><td>A2A 协议</td><td>⑩</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P0"><td>F-33</td><td>自动化事件入口</td><td>⑩</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-34</td><td>消息通道（微信/钉钉/企微）</td><td>⑩</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P0"><td>F-35</td><td>Web SaaS</td><td>⑪</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P0"><td>F-36</td><td>桌面端 Electron</td><td>⑪</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P0"><td>F-37</td><td>CLI</td><td>⑪</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P0"><td>F-38</td><td>移动端 Flutter</td><td>⑪</td><td>P0</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P1"><td>F-39</td><td>可视化配置中心</td><td>平台</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P0"><td>F-40</td><td>中英文国际化</td><td>全端</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-41</td><td>想法池（Idea Inbox）与智能孵化</td><td>②</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P1"><td>F-42</td><td>成员/智能体工作负载视图与均衡</td><td>⑤</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P0"><td>F-43</td><td>事件目录与订阅管理</td><td>④</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P0"><td>F-44</td><td>缺陷分级（P0–P3）与 SLA 计时</td><td>⑨</td><td>P0</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P0"><td>F-45</td><td>缺陷去重合并与自动路由</td><td>⑨</td><td>P0</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P1"><td>F-46</td><td>微应用依赖联动迭代规划</td><td>②</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P0"><td>F-47</td><td>应用级 semver 与兼容矩阵</td><td>⑨</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-48</td><td>需求↔任务↔候选↔版本全链路追溯矩阵</td><td>⑫</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P1"><td>F-49</td><td>智能输入与字段级补全</td><td>全端</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P1"><td>F-50</td><td>全局命令面板（⌘K）与全局搜索</td><td>全端</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P1"><td>F-51</td><td>cursor / claude / qoder DevTools 适配</td><td>⑥</td><td>P1</td><td><span class="tag warn">适配中</span></td></tr>
+            <tr data-p="P1"><td>F-52</td><td>harness 评测框架适配层</td><td>⑥</td><td>P1</td><td><span class="tag warn">适配中</span></td></tr>
+            <tr data-p="P0"><td>F-53</td><td>工具凭证集中托管与授权</td><td>⑥</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-54</td><td>成本看板与按域分摊</td><td>⑧</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P1"><td>F-55</td><td>预算分层与超限降级策略</td><td>⑧</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P1"><td>F-56</td><td>部署形态升降级与数据迁移工具</td><td>⑪</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P2"><td>F-57</td><td>技能市场与跨组织共享</td><td>⑦</td><td>P2</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P1"><td>F-58</td><td>知识/技能随版本同步迭代</td><td>⑦</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P1"><td>F-59</td><td>移动端告警与审批卡片</td><td>⑪</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P1"><td>F-60</td><td>评审协作（评论/评审流/通知）</td><td>⑤</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P2"><td>F-61</td><td>审计报表与合规导出</td><td>⑪</td><td>P2</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P2"><td>F-62</td><td>压测与故障注入演练</td><td>⑪</td><td>P2</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P1"><td>F-63</td><td>智能调度决策（优先级自学习）</td><td>④</td><td>P1</td><td><span class="tag warn">强化中</span></td></tr>
+            <tr data-p="P1"><td>F-64</td><td>多语言扩展框架（语种包）</td><td>全端</td><td>P1</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P0"><td>F-65</td><td>Harness 抽象层（claude-code/codex/Pi/自研）</td><td>⑥</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-66</td><td>Harness 热切换与引擎上下文交接</td><td>⑥</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P0"><td>F-67</td><td>会话与上下文归属平台（不共享内部状态）</td><td>⑥</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
+            <tr data-p="P1"><td>F-68</td><td>模型供给四通道（订阅/密钥/本地/托管）</td><td>⑥</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P1"><td>F-69</td><td>订阅授权（OAuth）复用已有订阅额度</td><td>⑥</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P1"><td>F-70</td><td>BYO API Key 加密托管与脱敏展示</td><td>⑥</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P1"><td>F-71</td><td>本地模型接入（离线/内网/隐私场景）</td><td>⑥</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P2"><td>F-72</td><td>平台托管模型服务与统一计费</td><td>⑧</td><td>P2</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P1"><td>F-73</td><td>模型能力注册表（上下文/能力/价格/限流）</td><td>⑥</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P1"><td>F-74</td><td>模型健康探测与自动摘除/恢复</td><td>⑥</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P2"><td>F-75</td><td>模型灰度发布与 AB 评测对比</td><td>⑥</td><td>P2</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P1"><td>F-76</td><td>模型评测集与回归基线（harness 报告）</td><td>⑥</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P1"><td>F-77</td><td>设备配对 device-link 与多设备续跑</td><td>⑪</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P1"><td>F-78</td><td>Skip-Sign-In 本地态与能力降级标识</td><td>⑪</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
+            <tr data-p="P2"><td>F-79</td><td>工具二进制随应用分发与 sha256 校验</td><td>⑪</td><td>P2</td><td><span class="tag bad">待办</span></td></tr>
+            <tr data-p="P1"><td>F-80</td><td>模型权限矩阵（组织/项目/角色/环境）</td><td>⑥</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>6.2 12 域详细设计</h3>
+      <div class="tabs" id="domTabs">
+        <button class="tab active" data-d="d1">① 组织权限</button><button class="tab" data-d="d2">② 项目管理</button>
+        <button class="tab" data-d="d3">③ 需求设计</button><button class="tab" data-d="d4">④ 任务调度</button>
+        <button class="tab" data-d="d5">⑤ 团队协作</button><button class="tab" data-d="d6">⑥ 智能体工具</button>
+        <button class="tab" data-d="d7">⑦ 知识记忆</button><button class="tab" data-d="d8">⑧ 成本计量</button>
+        <button class="tab" data-d="d9">⑨ 运维治理</button><button class="tab" data-d="d10">⑩ 集成开放</button><button class="tab" data-d="d11">⑪ 多端形态</button>
+        <button class="tab" data-d="d12">⑫ 全链路追溯</button>
+      </div>
+
+      <div class="tab-panel active" id="d1">
+        <div class="grid c2">
+          <div class="card"><div class="t">核心能力</div><div class="d"><ul><li>多租户组织/团队/成员/专家团队/Agent</li><li>RBAC 角色权限菜单，服务端授权</li><li>SSO（OIDC/SAML）</li><li>审计留痕</li></ul></div></div>
+          <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>组织切换器 + 邀请</li><li>权限矩阵勾选</li><li>SSO 配置向导</li></ul></div></div>
+        </div>
+        <p><b>实体</b>：<code>Organization/Team/Member/Role/Permission/Invitation</code>　<b>接口</b>：<code>/governance/*</code>、<code>/auth/*</code></p>
+        <p><span class="tag ok">F-01/02 已实现</span> <span class="tag bad">F-03 SSO 待办</span> <span class="tag warn">F-04 权限中台待建</span></p>
+      </div>
+      <div class="tab-panel" id="d2">
+        <div class="grid c2">
+          <div class="card"><div class="t">核心能力</div><div class="d"><ul><li>想法→项目→子项目→微应用</li><li>应用代码归属与版本</li><li>依赖识别与影响</li></ul></div></div>
+          <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>项目卡片 + 健康度</li><li>依赖图</li><li>版本时间线</li></ul></div></div>
+        </div>
+        <p><b>实体</b>：<code>Idea/Project/Application/CodeVersion/Dependency</code>　<b>接口</b>：<code>/projects/*</code>、<code>/applications/*</code></p>
+        <p><span class="tag ok">F-05/06 已实现</span> <span class="tag warn">F-07 依赖图待增强</span></p>
+      </div>
+      <div class="tab-panel" id="d3">
+        <div class="grid c2">
+          <div class="card"><div class="t">核心能力</div><div class="d"><ul><li>需求拆解/优先级/验收标准</li><li>PRD/UED/产品化/技术设计</li><li>版本化与追溯</li><li>智能拆解</li></ul></div></div>
+          <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>列表/看板/树</li><li>拆解树拖拽</li><li>Monaco 编辑 + 版本对比</li></ul></div></div>
+        </div>
+        <p><b>实体</b>：<code>Requirement/ReqDesign/Adoption/Traceability</code>　<b>接口</b>：<code>/requirements/*</code></p>
+        <p><span class="tag ok">F-08/09 已实现</span> <span class="tag warn">F-10 UED 待增强</span> <span class="tag warn">F-11 智能拆解部分</span></p>
+      </div>
+      <div class="tab-panel" id="d4">
+        <div class="grid c2">
+          <div class="card"><div class="t">核心能力</div><div class="d"><ul><li>持久 DAG/固定计划/并发</li><li>进度回写/停止/核对</li><li>Pipeline/事件</li><li>公平/配额</li></ul></div></div>
+          <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>DAG 图（React-Flow+elk）</li><li>甘特/进度</li><li>运行详情+日志</li></ul></div></div>
+        </div>
+        <p><b>实体</b>：<code>Task/Dependency/Run/RunNode/Attempt</code>　<b>接口</b>：<code>/scheduling/*</code>、<code>/runs/*</code></p>
+        <p><span class="tag ok">F-12/13 已实现</span> <span class="tag warn">F-14 待验收</span> <span class="tag warn">F-15 部分</span></p>
+      </div>
+      <div class="tab-panel" id="d5">
+        <div class="grid c2">
+          <div class="card"><div class="t">核心能力</div><div class="d"><ul><li>人+智能体+工具团队</li><li>专家团队编排/交接</li></ul></div></div>
+          <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>成员卡</li><li>编排画布</li><li>交接时间线</li></ul></div></div>
+        </div>
+        <p><b>实体</b>：<code>ExpertTeam/Plan/Dispatch/Handoff</code>　<b>接口</b>：<code>/expert-teams/*</code>、<code>/dispatch/*</code></p>
+        <p><span class="tag ok">F-16 已实现</span> <span class="tag bad">F-17 实时协作待办</span></p>
+      </div>
+      <div class="tab-panel" id="d6">
+        <div class="grid c2">
+          <div class="card"><div class="t">核心能力</div><div class="d"><ul><li>Agent 运行时/工具契约</li><li>模型网关/智能选模</li><li>Codex/OpenCode/Octop/原生</li><li>工作流平台</li></ul></div></div>
+          <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>工具库存+能力矩阵</li><li>模型选择器</li><li>执行详情+回执</li></ul></div></div>
+        </div>
+        <p><b>实体</b>：<code>Tool/ModelProvider/Model/ModelExecution/HarnessSession</code>　<b>接口</b>：<code>/tools/*</code>、<code>/models/*</code>、<code>/mcp</code></p>
+        <p><b>模型管理要点</b>：供给四通道（订阅 OAuth / BYO Key / 本地 / 托管）· 能力注册表 · 健康探测 · 智能选模与降级灰度 · 凭证隔离 · 评测基线 · 选择理由入账本（详见第 19 章）</p>
+        <p><span class="tag ok">F-18/19/53/65/67 已实现</span> <span class="tag warn">F-20/68/71/73/74/76/80 待增强</span> <span class="tag bad">F-69/72/75 待办</span></p>
+      </div>
+      <div class="tab-panel" id="d7">
+        <div class="grid c2">
+          <div class="card"><div class="t">核心能力</div><div class="d"><ul><li>知识/记忆/规范/技能版本化</li><li>审阅发布/共享/提案</li><li>向量检索/萃取</li></ul></div></div>
+          <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>知识树+检索</li><li>技能卡+版本</li><li>记忆时间线</li></ul></div></div>
+        </div>
+        <p><b>实体</b>：<code>Knowledge/Memory/Skill/SkillVersion</code>　<b>接口</b>：<code>/knowledge/*</code>、<code>/skills/*</code></p>
+        <p><span class="tag ok">F-22 已实现</span> <span class="tag warn">F-23/24 待增强</span></p>
+      </div>
+      <div class="tab-panel" id="d8">
+        <div class="grid c2">
+          <div class="card"><div class="t">核心能力</div><div class="d"><ul><li>Token 计量/账本</li><li>配额/预算</li><li>计费看板</li></ul></div></div>
+          <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>用量趋势</li><li>配额表单</li><li>超限告警</li></ul></div></div>
+        </div>
+        <p><b>实体</b>：<code>UsageLedger/Budget/Quota</code>　<b>接口</b>：<code>/usage/*</code>、<code>/budgets/*</code></p>
+        <p><span class="tag ok">F-25 已实现</span> <span class="tag warn">F-26 待增强</span></p>
+      </div>
+      <div class="tab-panel" id="d9">
+        <div class="grid c2">
+          <div class="card"><div class="t">核心能力</div><div class="d"><ul><li>发布候选/集合/部署/有序发布</li><li>智能诊断</li><li>Issue 回流</li><li>告警看板</li></ul></div></div>
+          <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>发布流水线</li><li>Issue 看板</li><li>诊断报告</li></ul></div></div>
+        </div>
+        <p><b>实体</b>：<code>ReleaseCandidate/ReleaseSet/DeploymentPlan/Issue</code>　<b>接口</b>：<code>/releases/*</code>、<code>/issues/*</code></p>
+        <p><span class="tag ok">F-27/28/29 已实现</span> <span class="tag bad">F-30 告警待建</span></p>
+      </div>
+      <div class="tab-panel" id="d10">
+        <div class="grid c2">
+          <div class="card"><div class="t">核心能力</div><div class="d"><ul><li>MCP/A2A</li><li>消息通道</li><li>开放 API/Webhook</li><li>自动化入口</li></ul></div></div>
+          <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>连接器市场</li><li>Webhook 配置</li><li>通道绑定</li></ul></div></div>
+        </div>
+        <p><b>实体</b>：<code>Connector/Webhook/ChannelBinding/Ingress</code>　<b>接口</b>：<code>/mcp</code>、<code>/automation/*</code></p>
+        <p><span class="tag ok">F-31/33 已实现</span> <span class="tag bad">F-32 A2A 待办</span> <span class="tag warn">F-34 部分</span></p>
+      </div>
+      <div class="tab-panel" id="d11">
+        <div class="grid c2">
+          <div class="card"><div class="t">核心能力</div><div class="d"><ul><li>Web/桌面/CLI</li><li>移动端 Flutter</li><li>统一设计语言</li></ul></div></div>
+          <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>响应式 1366/768/390</li><li>主题切换</li><li>CLI 一键登录</li></ul></div></div>
+        </div>
+        <p><b>代码</b>：<code>apps/web</code>、<code>apps/desktop</code>、<code>cmd</code>、<code>packages/ui</code></p>
+        <p><span class="tag ok">F-35/36/37 已实现</span> <span class="tag bad">F-38 移动端待建</span> <span class="tag bad">F-56 升降级迁移待办</span></p>
+      </div>
+      <div class="tab-panel" id="d12">
+        <div class="grid c2">
+          <div class="card"><div class="t">核心能力</div><div class="d"><ul><li>需求↔设计↔任务↔运行↔候选↔测试↔验收↔版本↔缺陷 全链路追溯矩阵</li><li>变更影响分析（前向/后向）</li><li>合规审计报表与证据链导出</li><li>事件回放与投影重建</li></ul></div></div>
+          <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>追溯关系图（任一对象为中心展开）</li><li>影响清单 + 一键生成联动迭代计划</li><li>审计时间线（谁/何时/改了什么/依据）</li></ul></div></div>
+        </div>
+        <p><b>实体</b>：<code>TraceLink/AuditRecord/EventLog/ImpactAnalysis</code>　<b>接口</b>：<code>/trace/*</code>、<code>/audit/*</code></p>
+        <p><span class="tag warn">F-48 追溯矩阵待增强</span> <span class="tag ok">事件日志已实现</span> <span class="tag warn">F-61 审计报表待增强</span></p>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section id="s7">
+      <h2>7 · 扩展性 · 插件 · 适配</h2>
+      <p class="lead">所有外部能力经 SPI + 适配器接入；新增模型/工具/存储/通道不改内核。</p>
+      <h3>7.1 插件 / SPI 架构</h3>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 920 200" role="img" aria-label="插件 SPI">
+          <g font-family="var(--sans)">
+            <rect class="box f" x="20" y="60" width="160" height="60" rx="10"/><text class="lbl" x="100" y="88" text-anchor="middle">宿主 / 控制面</text><text class="lbl s" x="100" y="106" text-anchor="middle">加载 / 校验 / 隔离</text>
+            <rect class="box" x="220" y="60" width="140" height="60" rx="10"/><text class="lbl" x="290" y="88" text-anchor="middle">SPI 注册表</text><text class="lbl s" x="290" y="106" text-anchor="middle">manifest / 版本</text>
+            <rect class="box s" x="400" y="16" width="220" height="40" rx="8"/><text class="lbl" x="510" y="41" text-anchor="middle">ToolProvider（工具）</text>
+            <rect class="box s" x="400" y="66" width="220" height="40" rx="8"/><text class="lbl" x="510" y="91" text-anchor="middle">ModelProvider（模型）</text>
+            <rect class="box s" x="400" y="116" width="220" height="40" rx="8"/><text class="lbl" x="510" y="141" text-anchor="middle">Storage / Notifier / Auth</text>
+            <rect class="box g" x="660" y="16" width="230" height="40" rx="8"/><text class="lbl" x="775" y="41" text-anchor="middle">Codex / OpenCode / Octop</text>
+            <rect class="box g" x="660" y="66" width="230" height="40" rx="8"/><text class="lbl" x="775" y="91" text-anchor="middle">OpenAI / Claude / 本地 / 百炼</text>
+            <rect class="box g" x="660" y="116" width="230" height="40" rx="8"/><text class="lbl" x="775" y="141" text-anchor="middle">S3/OSS · 微信/钉钉/企微 · SSO</text>
+            <g class="ln">
+              <line x1="180" y1="90" x2="218" y2="90" marker-end="url(#ar)"/>
+              <line x1="360" y1="90" x2="398" y2="46" marker-end="url(#ar)"/><line x1="360" y1="90" x2="398" y2="86" marker-end="url(#ar)"/><line x1="360" y1="90" x2="398" y2="136" marker-end="url(#ar)"/>
+              <line x1="620" y1="36" x2="658" y2="36"/><line x1="620" y1="86" x2="658" y2="86"/><line x1="620" y1="136" x2="658" y2="136"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <h3>7.2 适配矩阵</h3>
+      <div class="panel" style="padding:0;overflow:auto;margin-top:8px">
+        <table>
+          <thead><tr><th style="width:110px">类别</th><th>已支持</th><th>扩展</th></tr></thead>
+          <tbody>
+            <tr><td>DevTools</td><td>Codex、OpenCode、Octop、原生 Runner</td><td>workbuddy、zed、cursor、claude、qoder、dsh —— 经统一 ToolProvider 契约接入（任务派发 / 进度回写 / 回执核对）</td></tr>
+            <tr><td>Harness 框架</td><td>内置测试计划 / 诊断</td><td>deepseek-harness、hermes-agent、自研 harness —— 经 EvaluationHarness SPI 接入（评测集 / 评分器 / 报告）</td></tr>
+            <tr><td>模型</td><td>多厂商网关</td><td>OpenAI、Claude、Gemini、百炼、coze、dify、Pi、本地推理</td></tr>
+            <tr><td>存储</td><td>OceanBase/PG/SQLite、Lance、S3/OSS</td><td>MinIO、HDFS、其他向量库</td></tr>
+            <tr><td>消息</td><td>Webhook、MQ</td><td>微信、钉钉、企微、飞书、Slack</td></tr>
+            <tr><td>认证</td><td>本地账号 + RBAC</td><td>OIDC、SAML、LDAP、OAuth2</td></tr>
+            <tr><td>协议</td><td>MCP、OpenAPI</td><td>A2A、gRPC、LSP（编辑器级）</td></tr>
+            <tr><td>开发框架</td><td>Go / Node.js / React 19 / Electron</td><td>Spring Boot、Vue3（qiankun/WuJie 微前端）、Flutter、Python —— 项目模板 + 规范库统一分发</td></tr>
+            <tr><td>CLI 生态</td><td>suma CLI（本地/SAAS 双模式）</td><td>第三方 CLI 经 ToolProvider 契约接入：能力探测 → 任务下发 → 进度回写 → 回执核对</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>7.3 DevTools 统一接入契约</h3>
+      <div class="panel" style="padding:0;overflow:auto;margin-top:8px">
+        <table>
+          <thead><tr><th style="width:130px">契约点</th><th>要求</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>能力声明</td><td>manifest 注册能力/限制</td><td>支持语言、仓库形态、并发度、沙箱要求</td></tr>
+            <tr><td>任务派发</td><td>统一 Dispatch 请求</td><td>含任务上下文、验收标准、资源约束</td></tr>
+            <tr><td>进度回写</td><td>标准化进度事件</td><td>阶段/百分比/日志流，幂等键防重</td></tr>
+            <tr><td>结果回执</td><td>候选 + 证据</td><td>diff、测试输出、来源依据，可核对</td></tr>
+            <tr><td>凭证托管</td><td>集中托管不落地</td><td>按组织/项目/工具三维授权</td></tr>
+            <tr><td>健康与计量</td><td>心跳 + 用量上报</td><td>可用性探测、Token/时长计量入账本</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>7.4 DevTools 统一管控协作拓扑</h3>
+      <p class="lead">各 AI 开发工具（codex / cursor / claude / qoder / workbuddy / zed / opencode / octop / dsh / harness 框架）<strong>统一对接、统一分发指派、统一管控、统一计量</strong>，团队化分布式高效协作。</p>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 920 330" role="img" aria-label="DevTools 统一管控协作拓扑">
+          <g font-family="var(--sans)">
+            <rect class="box f" x="330" y="20" width="260" height="56" rx="10"/><text class="lbl h" x="460" y="44" text-anchor="middle">suma 控制面（统一管控中枢）</text><text class="lbl s" x="460" y="64" text-anchor="middle">任务编排 · 权限 · 配额 · 计量 · 审计</text>
+            <rect class="box" x="140" y="120" width="200" height="48" rx="9"/><text class="lbl" x="240" y="140" text-anchor="middle">统一分发指派</text><text class="lbl s" x="240" y="158" text-anchor="middle">智能选工具 · 负载均衡 · 重试</text>
+            <rect class="box" x="380" y="120" width="200" height="48" rx="9"/><text class="lbl" x="480" y="140" text-anchor="middle">统一进度回写</text><text class="lbl s" x="480" y="158" text-anchor="middle">事件流 · 幂等回执 · 候选留证</text>
+            <rect class="box" x="620" y="120" width="200" height="48" rx="9"/><text class="lbl" x="720" y="140" text-anchor="middle">统一凭证与授权</text><text class="lbl s" x="720" y="158" text-anchor="middle">集中托管 · 三维授权 · 不落地</text>
+            <g class="ln">
+              <line x1="380" y1="76" x2="250" y2="118" marker-end="url(#ar)"/><line x1="460" y1="76" x2="470" y2="118" marker-end="url(#ar)"/><line x1="540" y1="76" x2="690" y2="118" marker-end="url(#ar)"/>
+            </g>
+            <rect class="box g" x="20" y="216" width="150" height="40" rx="8"/><text class="lbl s" x="95" y="241" text-anchor="middle">codex</text>
+            <rect class="box g" x="180" y="216" width="150" height="40" rx="8"/><text class="lbl s" x="255" y="241" text-anchor="middle">cursor</text>
+            <rect class="box g" x="340" y="216" width="150" height="40" rx="8"/><text class="lbl s" x="415" y="241" text-anchor="middle">claude</text>
+            <rect class="box g" x="500" y="216" width="150" height="40" rx="8"/><text class="lbl s" x="575" y="241" text-anchor="middle">qoder</text>
+            <rect class="box g" x="660" y="216" width="150" height="40" rx="8"/><text class="lbl s" x="735" y="241" text-anchor="middle">workbuddy</text>
+            <rect class="box g" x="820" y="216" width="90" height="40" rx="8"/><text class="lbl s" x="865" y="241" text-anchor="middle">zed</text>
+            <rect class="box" x="100" y="272" width="180" height="40" rx="8"/><text class="lbl s" x="190" y="297" text-anchor="middle">opencode</text>
+            <rect class="box" x="300" y="272" width="180" height="40" rx="8"/><text class="lbl s" x="390" y="297" text-anchor="middle">octop</text>
+            <rect class="box" x="500" y="272" width="180" height="40" rx="8"/><text class="lbl s" x="590" y="297" text-anchor="middle">dsh</text>
+            <rect class="box" x="700" y="272" width="180" height="40" rx="8"/><text class="lbl s" x="790" y="297" text-anchor="middle">harness 框架</text>
+            <g class="ln">
+              <line x1="240" y1="168" x2="120" y2="214" marker-end="url(#ar)"/><line x1="300" y1="168" x2="260" y2="214" marker-end="url(#ar)"/>
+              <line x1="480" y1="168" x2="420" y2="214" marker-end="url(#ar)"/><line x1="480" y1="168" x2="570" y2="214" marker-end="url(#ar)"/>
+              <line x1="620" y1="168" x2="730" y2="214" marker-end="url(#ar)"/><line x1="620" y1="168" x2="850" y2="214" marker-end="url(#ar)"/>
+              <line x1="300" y1="168" x2="200" y2="270" marker-end="url(#ar)"/><line x1="480" y1="168" x2="395" y2="270" marker-end="url(#ar)"/>
+              <line x1="480" y1="168" x2="590" y2="270" marker-end="url(#ar)"/><line x1="620" y1="168" x2="780" y2="270" marker-end="url(#ar)"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <h3>7.5 多租户与隔离</h3>
+      <div class="grid c3">
+        <div class="card"><div class="t">数据隔离</div><div class="d">组织为租户边界；查询强制带 org 过滤；跨租户禁止。</div></div>
+        <div class="card"><div class="t">执行隔离</div><div class="d">Runner 独立工作树、独立凭证、目录白名单。</div></div>
+        <div class="card"><div class="t">资源隔离</div><div class="d">配额/预算/并发上限按组织与项目分层。</div></div>
+      </div>
+
+      <h3>7.6 开发框架与工具生态全景</h3>
+      <div class="panel" style="padding:0;overflow:auto;margin-top:8px">
+        <table>
+          <thead><tr><th style="width:120px">生态层</th><th>纳入管理的对象</th><th>平台提供的统一能力</th></tr></thead>
+          <tbody>
+            <tr><td>AI 编码工具</td><td>codex / cursor / claude / qoder / workbuddy / zed / opencode / octop / dsh</td><td>统一接入契约、任务分发、进度回写、凭证托管、用量计量、能力矩阵</td></tr>
+            <tr><td>Harness 框架</td><td>deepseek-harness / hermes-agent / 自研评测 harness</td><td>EvaluationHarness SPI：评测集 / 评分器 / 报告统一接入</td></tr>
+            <tr><td>AI 模型</td><td>OpenAI / Claude / Gemini / 百炼 / coze / dify / Pi / 本地推理</td><td>模型网关、智能选模（成本/质量/延迟）、权限与成本管控</td></tr>
+            <tr><td>后端框架</td><td>Spring Boot / Node.js / Go / Python</td><td>项目模板、开发规范库、脚手架生成、依赖治理</td></tr>
+            <tr><td>前端框架</td><td>React / Vue3 / Flutter / 小程序</td><td>微前端（qiankun/WuJie）接入规范、组件库统一分发、设计令牌</td></tr>
+            <tr><td>CLI 工具</td><td>suma CLI + 各工具自带 CLI</td><td>统一认证（device flow）、上下文同步、任务拉取、结果上报</td></tr>
+            <tr><td>CI/CD 与仓库</td><td>GitHub / GitLab / CNB / Jenkins 类流水线</td><td>Webhook 事件、PR 门禁、发布触发、制品登记</td></tr>
+            <tr><td>协作与消息</td><td>微信 / 钉钉 / 企微 / 飞书 / Slack</td><td>分级通知、审批卡片、缺陷流转、移动端触达</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>7.7 统一 CLI 与模型选择规范</h3>
+      <div class="grid c2">
+        <div class="card"><div class="t">CLI 调用规范</div><div class="d"><ul><li>双模式：<code>--local</code> 单机自包含 / <code>--server</code> 对接控制面（SAAS）</li><li>认证：设备码登录，令牌安全存储于系统钥匙串，自动续期</li><li>命令面：<code>idea / req / task / run / test / release / issue / skill / config / model</code></li><li>输出三态：人类友好表格 / <code>--json</code> 机器可读 / 流式进度</li><li>自动化：任务拉取、进度上报、结果回执均幂等可重放</li></ul></div></div>
+        <div class="card"><div class="t">模型选择规范</div><div class="d"><ul><li>四级来源：CLI 显式 <code>--model</code> &gt; 项目配置 &gt; 智能路由策略 &gt; 平台默认</li><li>智能路由按复杂度×成本×延迟评估，超限自动降级或请求加额</li><li>选择结果与理由写入用量账本，可审计可回放</li><li>CLI/工作台统一模型选择器组件，中英文提示一致</li></ul></div></div>
+      </div>
+      <div class="note">示例：<code>suma task dispatch T-1024 --tool codex --model auto --budget 200k-tokens</code> → 控制面校验配额 → 派发 → 进度流回写 → 候选回执入库。所有 CLI 与 Web 共用同一契约与权限。</div>
+    </section>
+
+    <!-- 8 -->
+    <section id="s8">
+      <h2>8 · 配置中心与特性开关</h2>
+      <p class="lead">分层合并 + 校验 + 版本化 + 审计 + 回滚；支持可视化编辑与特性灰度。</p>
+      <h3>8.1 配置分层</h3>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 920 180" role="img" aria-label="配置分层">
+          <g font-family="var(--sans)">
+            <rect class="box" x="20" y="60" width="120" height="40" rx="8"/><text class="lbl" x="80" y="85" text-anchor="middle">平台默认</text>
+            <rect class="box" x="160" y="60" width="100" height="40" rx="8"/><text class="lbl" x="210" y="85" text-anchor="middle">组织</text>
+            <rect class="box" x="280" y="60" width="100" height="40" rx="8"/><text class="lbl" x="330" y="85" text-anchor="middle">项目</text>
+            <rect class="box" x="400" y="60" width="100" height="40" rx="8"/><text class="lbl" x="450" y="85" text-anchor="middle">环境</text>
+            <rect class="box" x="520" y="60" width="110" height="40" rx="8"/><text class="lbl" x="575" y="85" text-anchor="middle">用户/会话</text>
+            <rect class="box f" x="660" y="60" width="110" height="40" rx="8"/><text class="lbl" x="715" y="85" text-anchor="middle">合并生效</text>
+            <rect class="box g" x="800" y="60" width="100" height="40" rx="8"/><text class="lbl" x="850" y="85" text-anchor="middle">特性开关</text>
+            <g class="ln">
+              <line x1="140" y1="80" x2="158" y2="80" marker-end="url(#ar)"/><line x1="260" y1="80" x2="278" y2="80" marker-end="url(#ar)"/>
+              <line x1="380" y1="80" x2="398" y2="80" marker-end="url(#ar)"/><line x1="500" y1="80" x2="518" y2="80" marker-end="url(#ar)"/>
+              <line x1="630" y1="80" x2="658" y2="80" marker-end="url(#ar)"/><line x1="770" y1="80" x2="798" y2="80" marker-end="url(#ar)"/>
+            </g>
+            <text class="lbl s" x="460" y="140" text-anchor="middle">覆盖顺序：用户 &gt; 环境 &gt; 项目 &gt; 组织 &gt; 默认；每项含 schema 校验、默认值、版本、审计</text>
+          </g>
+        </svg>
+      </div>
+
+      <h3>8.2 配置项示例</h3>
+      <div class="panel" style="padding:0;overflow:auto;margin-top:8px">
+        <table>
+          <thead><tr><th>配置</th><th>作用域</th><th>类型</th><th>默认</th><th>校验</th></tr></thead>
+          <tbody>
+            <tr><td>model.default</td><td>平台/项目</td><td>string</td><td>auto</td><td>必须存在且可用</td></tr>
+            <tr><td>model.routing.policy</td><td>项目</td><td>enum</td><td>cost</td><td>cost/quality/latency</td></tr>
+            <tr><td>scheduler.maxConcurrency</td><td>组织</td><td>int</td><td>16</td><td>1–1024</td></tr>
+            <tr><td>scheduler.fairness</td><td>平台</td><td>enum</td><td>wfq</td><td>fifo/wfq/drr</td></tr>
+            <tr><td>retry.maxAttempts</td><td>项目</td><td>int</td><td>3</td><td>0–10</td></tr>
+            <tr><td>quota.tokens.monthly</td><td>组织/项目</td><td>int</td><td>—</td><td>&gt;0</td></tr>
+            <tr><td>feature.a2a</td><td>平台</td><td>bool</td><td>false</td><td>—</td></tr>
+            <tr><td>security.allowRoots</td><td>项目</td><td>list</td><td>—</td><td>白名单路径</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">配置要求：每次变更生成版本与操作 ID；支持 diff 预览、灰度、一键回滚；敏感项加密存储并脱敏展示。</div>
+    </section>
+
+    <!-- 9 -->
+    <section id="s9">
+      <h2>9 · 智能 · 自动化</h2>
+      <h3>9.1 智能编排与模型路由</h3>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 920 210" role="img" aria-label="智能编排与模型路由">
+          <g font-family="var(--sans)">
+            <rect class="box f" x="20" y="30" width="120" height="40" rx="9"/><text class="lbl" x="80" y="55" text-anchor="middle">请求/任务</text>
+            <rect class="box" x="170" y="30" width="130" height="40" rx="9"/><text class="lbl" x="235" y="55" text-anchor="middle">复杂度评估</text>
+            <rect class="box" x="330" y="30" width="150" height="40" rx="9"/><text class="lbl" x="405" y="55" text-anchor="middle">路由策略</text>
+            <rect class="box g" x="510" y="30" width="180" height="40" rx="9"/><text class="lbl" x="600" y="55" text-anchor="middle">模型池</text>
+            <rect class="box" x="720" y="30" width="180" height="40" rx="9"/><text class="lbl" x="810" y="55" text-anchor="middle">用量账本/配额</text>
+            <g class="ln">
+              <line x1="140" y1="50" x2="168" y2="50" marker-end="url(#ar)"/><line x1="300" y1="50" x2="328" y2="50" marker-end="url(#ar)"/>
+              <line x1="480" y1="50" x2="508" y2="50" marker-end="url(#ar)"/><line x1="690" y1="50" x2="718" y2="50" marker-end="url(#ar)"/>
+            </g>
+            <text class="lbl s" x="405" y="90" text-anchor="middle">成本 / 质量 / 延迟</text>
+            <text class="lbl s" x="600" y="90" text-anchor="middle">GPT / Claude / Gemini / 本地 / 百炼</text>
+            <rect class="box s" x="170" y="130" width="130" height="40" rx="9"/><text class="lbl" x="235" y="155" text-anchor="middle">智能诊断</text>
+            <rect class="box s" x="330" y="130" width="150" height="40" rx="9"/><text class="lbl" x="405" y="155" text-anchor="middle">任务拆解/规划</text>
+            <rect class="box s" x="510" y="130" width="180" height="40" rx="9"/><text class="lbl" x="600" y="155" text-anchor="middle">知识/技能萃取</text>
+            <text class="lbl s" x="460" y="200" text-anchor="middle">原则：AI 只产出建议/候选，不自动批准业务动作；成本超限自动降级或拦截</text>
+          </g>
+        </svg>
+      </div>
+
+      <h3>9.2 自动化引擎</h3>
+      <div class="panel" style="padding:0;overflow:auto;margin-top:8px">
+        <table>
+          <thead><tr><th style="width:100px">要素</th><th>说明</th><th>示例</th></tr></thead>
+          <tbody>
+            <tr><td>触发 Trigger</td><td>事件 / 定时 / Webhook</td><td><code>task.failed</code>、cron、<code>/hook/ci</code></td></tr>
+            <tr><td>条件 Condition</td><td>表达式 / 标签 / 阈值</td><td><code>failure.count &gt; 3 &amp;&amp; env == 'prod'</code></td></tr>
+            <tr><td>动作 Action</td><td>派发 / 通知 / 转状态 / 建 Issue</td><td>dispatch(agent)、notify(wecom)、openIssue()</td></tr>
+            <tr><td>守卫 Guard</td><td>权限 / 配额 / 冷却</td><td>配额不足则跳过并告警</td></tr>
+            <tr><td>审计 Audit</td><td>每次执行留痕</td><td>规则版本、输入、结果</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>9.3 智能能力清单</h3>
+      <div class="grid c3">
+        <div class="card"><div class="t">规划 / 拆解</div><div class="d">需求→任务树，带依赖与验收建议。</div></div>
+        <div class="card"><div class="t">选型 / 路由</div><div class="d">按复杂度、成本、延迟选模型与工具。</div></div>
+        <div class="card"><div class="t">诊断 / 修复</div><div class="d">失败归因、修复建议、可回退。</div></div>
+        <div class="card"><div class="t">萃取 / 推荐</div><div class="d">从交付中提炼知识、技能、规范。</div></div>
+        <div class="card"><div class="t">预警</div><div class="d">异常检测、趋势预警、主动上报。</div></div>
+        <div class="card"><div class="t">成本优化</div><div class="d">超限降级、缓存、批处理。</div></div>
+      </div>
+
+      <h3>9.4 智能输入与自动配置</h3>
+      <div class="grid c3">
+        <div class="card"><div class="t">一句话起步</div><div class="d">输入一句想法/需求 → 生成 PRD 草稿、任务树、配置建议；全程可编辑确认，AI 只产草稿不直接生效。</div></div>
+        <div class="card"><div class="t">字段级智能补全</div><div class="d">表单按上下文推荐取值（负责人、优先级、模型、配额）；历史相似项一键引用。</div></div>
+        <div class="card"><div class="t">使用中自动创建</div><div class="d">CLI / 工作台首次使用自动创建项目、应用、技能绑定；缺配置时给出最小可用默认并提示确认。</div></div>
+      </div>
+
+      <h3>9.5 智能调度决策</h3>
+      <div class="grid c3">
+        <div class="card"><div class="t">优先级自学习</div><div class="d">按 SLA 违约风险、业务价值、历史耗时动态调整队列优先级（人在环确认阈值）。</div></div>
+        <div class="card"><div class="t">资源画像</div><div class="d">为任务画像（语言/规模/依赖），匹配最优工具与 Runner，减少试错。</div></div>
+        <div class="card"><div class="t">自适应参数</div><div class="d">按负载调并发、速率、批大小；异常自动收敛并回写策略库。</div></div>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section id="s10">
+      <h2>10 · 交互与可视化规范</h2>
+      <h3>10.1 页面地图</h3>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 920 310" role="img" aria-label="页面地图">
+          <g font-family="var(--sans)">
+            <rect class="box f" x="20" y="110" width="120" height="40" rx="9"/><text class="lbl" x="80" y="135" text-anchor="middle">登录 / SSO</text>
+            <rect class="box f" x="180" y="110" width="130" height="40" rx="9"/><text class="lbl" x="245" y="135" text-anchor="middle">总览 Dashboard</text>
+
+            <rect class="box" x="360" y="30" width="150" height="40" rx="9"/><text class="lbl" x="435" y="55" text-anchor="middle">项目空间</text>
+            <rect class="box" x="360" y="110" width="150" height="40" rx="9"/><text class="lbl" x="435" y="135" text-anchor="middle">工作台 (IDE)</text>
+            <rect class="box" x="360" y="190" width="150" height="40" rx="9"/><text class="lbl" x="435" y="215" text-anchor="middle">知识中心</text>
+            <rect class="box" x="360" y="250" width="150" height="40" rx="9"/><text class="lbl" x="435" y="275" text-anchor="middle">管理后台</text>
+
+            <rect class="box s" x="560" y="16" width="330" height="60" rx="8"/><text class="lbl s" x="725" y="40" text-anchor="middle">需求 · 设计 · 任务 · 版本 · 依赖</text><text class="lbl s" x="725" y="60" text-anchor="middle">列表 / 看板 / 树 / 甘特</text>
+            <rect class="box s" x="560" y="88" width="330" height="60" rx="8"/><text class="lbl s" x="725" y="112" text-anchor="middle">代码 · 终端 · DAG · 执行 · 候选</text><text class="lbl s" x="725" y="132" text-anchor="middle">Monaco / xterm / React-Flow</text>
+            <rect class="box s" x="560" y="160" width="330" height="60" rx="8"/><text class="lbl s" x="725" y="184" text-anchor="middle">知识 · 记忆 · 技能 · 检索</text><text class="lbl s" x="725" y="204" text-anchor="middle">树 / 卡片 / 时间线</text>
+            <rect class="box s" x="560" y="232" width="330" height="60" rx="8"/><text class="lbl s" x="725" y="256" text-anchor="middle">组织 · 权限 · 配置 · 计费 · 告警</text><text class="lbl s" x="725" y="276" text-anchor="middle">矩阵 / 表单 / 图表</text>
+
+            <g class="ln">
+              <line x1="140" y1="130" x2="178" y2="130" marker-end="url(#ar)"/>
+              <line x1="310" y1="130" x2="358" y2="50" marker-end="url(#ar)"/><line x1="310" y1="130" x2="358" y2="130" marker-end="url(#ar)"/>
+              <line x1="310" y1="130" x2="358" y2="210" marker-end="url(#ar)"/><line x1="310" y1="130" x2="358" y2="270" marker-end="url(#ar)"/>
+              <line x1="510" y1="50" x2="558" y2="46"/><line x1="510" y1="130" x2="558" y2="118"/><line x1="510" y1="210" x2="558" y2="190"/><line x1="510" y1="270" x2="558" y2="262"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <h3>10.2 页面状态与反馈</h3>
+      <div class="panel" style="padding:0;overflow:auto;margin-top:8px">
+        <table>
+          <thead><tr><th style="width:120px">状态</th><th>要求</th></tr></thead>
+          <tbody>
+            <tr><td>空态</td><td>说明用途 + 主操作引导（如「新建需求」）</td></tr>
+            <tr><td>加载</td><td>骨架屏优先；长任务显示进度与可取消</td></tr>
+            <tr><td>错误</td><td>错误码 + 可读原因 + 重试；不吞错</td></tr>
+            <tr><td>无权限</td><td>明确所需角色 + 申请入口</td></tr>
+            <tr><td>离线/降级</td><td>明确标识不可用能力，不静默假成功</td></tr>
+            <tr><td>危险操作</td><td>二次确认 + 影响范围 + 操作回执</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>10.3 组件与交互模式</h3>
+      <div class="grid c3">
+        <div class="card"><div class="t">核心组件</div><div class="d"><ul><li>DataTable：排序/筛选/批量/列配置</li><li>Kanban / Tree / Gantt</li><li>GraphCanvas：DAG/依赖/追溯图</li><li>CodeEditor / Terminal</li><li>Wizard / Drawer / CommandPalette</li></ul></div></div>
+        <div class="card"><div class="t">交互模式</div><div class="d"><ul><li>先总览后下钻，最多 3 层</li><li>右侧详情抽屉，保留上下文</li><li>批量操作需明确选中态</li><li>快捷键 <span class="kbd">⌘K</span> 命令面板</li></ul></div></div>
+        <div class="card"><div class="t">无障碍与响应式</div><div class="d"><ul><li>键盘可达、焦点可见</li><li>对比度 ≥ WCAG AA</li><li>断点 1366 / 1024 / 768 / 390</li><li>明暗主题 + 中英文</li></ul></div></div>
+        <div class="card"><div class="t">智能输入模式</div><div class="d"><ul><li>「AI 起草 · 人确认」：AI 产出带来源引用的草稿，字段可逐项采纳/修改</li><li>表单智能填充：输入焦点离开后按上下文推荐，<span class="kbd">Tab</span> 采纳</li><li>自然语言命令：面板输入「把 P0 缺陷都指给 agent-x」→ 结构化操作预览后执行</li></ul></div></div>
+        <div class="card"><div class="t">命令面板与全局搜索</div><div class="d"><ul><li><span class="kbd">⌘K</span>：命令 + 对象混合搜索（需求/任务/Run/知识/技能/配置）</li><li>支持前缀过滤 <span class="kbd">&gt;</span> 命令、<span class="kbd">#</span> 对象、<span class="kbd">?</span> 帮助</li><li>最近使用与上下文推荐优先</li></ul></div></div>
+        <div class="card"><div class="t">进度与长任务反馈</div><div class="d"><ul><li>DAG 节点实时状态 + 阶段日志流（可折叠）</li><li>长任务显示 ETA、可取消、可核对</li><li>失败给出「诊断」入口而非只报错</li></ul></div></div>
+      </div>
+
+      <h3>10.4 设计令牌</h3>
+      <div class="panel" style="margin-top:8px">
+        <p><span class="swatch" style="background:#2f6df6"></span><code>brand #2f6df6</code>　
+        <span class="swatch" style="background:#1f9d57"></span><code>ok #1f9d57</code>　
+        <span class="swatch" style="background:#c9821a"></span><code>warn #c9821a</code>　
+        <span class="swatch" style="background:#d6453d"></span><code>bad #d6453d</code></p>
+        <p class="muted">圆角 8–14px · 阴影轻量 · 间距 4/8/12/16/24 · 字号 12/13/14/16/21/28 · 明暗双主题</p>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section id="s11">
+      <h2>11 · 权限与安全</h2>
+      <div class="grid c2">
+        <div class="card"><div class="t">RBAC 模型</div><div class="d">User/Agent → Role → Permission → Resource → Scope。服务端强制鉴权，跨项目校验，审计留痕。</div></div>
+        <div class="card"><div class="t">安全基线</div><div class="d"><ul><li>密码 ≥12 位；凭据不落 Git</li><li>目录白名单，文件不越权</li><li>浏览器不持有主密钥</li><li>变更带版本与稳定操作 ID</li></ul></div></div>
+      </div>
+      <div class="note warn">外部副作用不确定时进入核对态，禁止静默重放；敏感配置加密存储、脱敏展示。</div>
+    </section>
+
+    <!-- 12 -->
+    <section id="s12">
+      <h2>12 · 部署 · 可观测 · 高可用</h2>
+      <h3>12.1 四种拓扑</h3>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 920 200" role="img" aria-label="部署拓扑">
+          <g font-family="var(--sans)">
+            <rect class="box f" x="20" y="30" width="270" height="66" rx="10"/><text class="lbl h" x="155" y="54" text-anchor="middle">桌面独立</text><text class="lbl s" x="155" y="74" text-anchor="middle">Electron + 本机控制面 + SQLite + Lance</text>
+            <rect class="box f" x="325" y="30" width="270" height="66" rx="10"/><text class="lbl h" x="460" y="54" text-anchor="middle">单机 / 私有团队</text><text class="lbl s" x="460" y="74" text-anchor="middle">浏览器 + 控制面 + Runner + SQLite/OB</text>
+            <rect class="box f" x="630" y="30" width="270" height="66" rx="10"/><text class="lbl h" x="765" y="54" text-anchor="middle">分布式 SaaS</text><text class="lbl s" x="765" y="74" text-anchor="middle">多控制面 + OceanBase + 对象存储 + 多 Runner</text>
+            <rect class="box" x="325" y="126" width="270" height="56" rx="10"/><text class="lbl h" x="460" y="150" text-anchor="middle">跨机 Runner 集群</text><text class="lbl s" x="460" y="170" text-anchor="middle">租约/fence · 持久回执 · 配额 · 容灾</text>
+            <line class="ln" x1="460" y1="96" x2="460" y2="124" marker-end="url(#ar)"/>
+          </g>
+        </svg>
+      </div>
+      <h3>12.2 部署形态对比</h3>
+      <div class="panel" style="padding:0;overflow:auto;margin-top:8px">
+        <table>
+          <thead><tr><th style="width:110px">形态</th><th>适用</th><th>组件</th><th>数据</th><th>升级路径</th></tr></thead>
+          <tbody>
+            <tr><td>桌面独立</td><td>个人/离线</td><td>Electron 内嵌控制面 + 本机 Runner</td><td>SQLite + Lance + 本地文件</td><td>导出快照 → 单机/私有化</td></tr>
+            <tr><td>单机 / 私有化</td><td>小团队、内网</td><td>单控制面 + Runner 同机</td><td>SQLite/PG + Lance + 本地/内网对象存储</td><td>扩容控制面 → 分布式</td></tr>
+            <tr><td>分布式私有化</td><td>企业多团队</td><td>多控制面 + Runner 集群 + LB</td><td>OceanBase/PG 集群 + 共享对象存储</td><td>对接企业 SSO/LDAP → SaaS 化</td></tr>
+            <tr><td>分布式 SaaS</td><td>多租户公有云</td><td>多控制面多可用区 + 多 Runner 池</td><td>OceanBase 多租户 + 对象存储 + Redis/MQ</td><td>租户级迁移/导出工具</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">同一代码与数据模型支撑四种形态；形态间迁移提供<b>快照导出/导入 + schema 升级工具</b>，升级采用滚动发布 + 版本兼容矩阵。</div>
+
+      <h3>12.3 可观测与高可用</h3>
+      <div class="grid c3">
+        <div class="card"><div class="t">指标 Metrics</div><div class="d">QPS、P95、错误率、队列深度、等待时长、Token 用量。</div></div>
+        <div class="card"><div class="t">日志 Logs</div><div class="d">结构化日志 + 关联 traceId/runId；脱敏。</div></div>
+        <div class="card"><div class="t">追踪 Traces</div><div class="d">请求 → 调度 → Runner → 模型/工具全链路。</div></div>
+        <div class="card"><div class="t">告警 Alerting</div><div class="d">阈值 + 异常检测；分级通知（站内/企微/钉钉）。</div></div>
+        <div class="card"><div class="t">高可用</div><div class="d">多副本、租约 fence、数据库容灾、断点恢复。</div></div>
+        <div class="card"><div class="t">备份恢复</div><div class="d">事务库定期备份；对象存储版本；恢复演练。</div></div>
+      </div>
+    </section>
+
+    <!-- 13 -->
+    <section id="s13">
+      <h2>13 · 非功能需求与质量门禁</h2>
+      <h3>13.1 NFR</h3>
+      <div class="panel" style="padding:0;overflow:auto">
+        <table>
+          <thead><tr><th style="width:90px">类别</th><th>指标 / 要求</th></tr></thead>
+          <tbody>
+            <tr><td>性能</td><td>读接口 P95 &lt; 300ms；写接口 P95 &lt; 800ms；派发延迟 &lt; 1s</td></tr>
+            <tr><td>可用性</td><td>核心服务 99.9%；任务不因单节点故障丢失</td></tr>
+            <tr><td>扩展性</td><td>水平扩展控制面与 Runner；单日 10k+ 任务</td></tr>
+            <tr><td>安全</td><td>RBAC + 审计 + 密钥不落地 + 目录白名单</td></tr>
+            <tr><td>可维护性</td><td>分层/六边形、契约化、注释齐全、结构化日志</td></tr>
+            <tr><td>可移植性</td><td>单机/私有/分布式/SaaS 同一代码</td></tr>
+            <tr><td>国际化</td><td>中/英完整；可扩展语种</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>13.2 质量门禁（Quality Gates）</h3>
+      <div class="grid c2">
+        <div class="card"><div class="t">代码门禁</div><div class="d"><ul><li>类型检查 / 静态分析通过</li><li>关键路径必有测试</li><li>禁止提交密钥/密钥文件</li><li>格式化与注释规范</li></ul></div></div>
+        <div class="card"><div class="t">交付门禁</div><div class="d"><ul><li>候选可追溯、独立测试通过</li><li>人工验收明确通过</li><li>发布集合不可变、部署可回滚</li><li>变更附设计文档与证据</li></ul></div></div>
+      </div>
+    </section>
+
+    <!-- 14 -->
+    <section id="s14">
+      <h2>14 · 实施缺口分析</h2>
+      <div class="filterbar" id="gFilter">
+        <span class="chip active" data-f="all">全部</span><span class="chip" data-f="P0">P0</span><span class="chip" data-f="P1">P1</span><span class="chip" data-f="P2">P2</span>
+      </div>
+      <div class="panel" style="padding:0;overflow:auto">
+        <table id="gtable">
+          <thead><tr><th style="width:44px">ID</th><th>缺口</th><th>影响</th><th>方案</th><th style="width:58px">优先级</th></tr></thead>
+          <tbody>
+            <tr data-p="P0"><td>G1</td><td>企业 SSO</td><td>阻碍私有化落地</td><td>OIDC/SAML 适配 + 向导</td><td><span class="tag bad">P0</span></td></tr>
+            <tr data-p="P0"><td>G2</td><td>移动端 Flutter APP</td><td>移动场景不可用</td><td>Flutter 工程 + 开放 API</td><td><span class="tag bad">P0</span></td></tr>
+            <tr data-p="P0"><td>G3</td><td>可视化配置中心</td><td>配置手工易错</td><td>配置中心 UI + 版本化</td><td><span class="tag bad">P0</span></td></tr>
+            <tr data-p="P0"><td>G4</td><td>告警/预警体系</td><td>故障发现滞后</td><td>事件总线 + 阈值告警</td><td><span class="tag bad">P0</span></td></tr>
+            <tr data-p="P1"><td>G5</td><td>智能输入/自动配置</td><td>人工操作多</td><td>场景化智能填充</td><td><span class="tag warn">P1</span></td></tr>
+            <tr data-p="P1"><td>G6</td><td>A2A / 插件框架</td><td>生态互操作弱</td><td>协议适配 + 插件注册</td><td><span class="tag warn">P1</span></td></tr>
+            <tr data-p="P1"><td>G7</td><td>实时多人协作</td><td>无法协同编辑</td><td>Yjs/LiveKit</td><td><span class="tag warn">P1</span></td></tr>
+            <tr data-p="P1"><td>G8</td><td>技能向量检索</td><td>技能复用低效</td><td>Lance 向量 + 元数据</td><td><span class="tag warn">P1</span></td></tr>
+            <tr data-p="P1"><td>G9</td><td>微应用依赖治理 UI</td><td>依赖不透明</td><td>依赖图 + 影响分析</td><td><span class="tag warn">P1</span></td></tr>
+            <tr data-p="P1"><td>G10</td><td>统一权限中台</td><td>重复建设</td><td>权限 SDK/中台</td><td><span class="tag warn">P1</span></td></tr>
+            <tr data-p="P2"><td>G11</td><td>计费/支付</td><td>商业化不完整</td><td>计费引擎 + 支付</td><td><span class="tag mut">P2</span></td></tr>
+            <tr data-p="P2"><td>G12</td><td>多平台安装包</td><td>部署体验</td><td>electron-builder 多目标</td><td><span class="tag mut">P2</span></td></tr>
+            <tr data-p="P2"><td>G13</td><td>跨机规模验收</td><td>大规模稳定性未知</td><td>压测 + 故障注入</td><td><span class="tag mut">P2</span></td></tr>
+            <tr data-p="P1"><td>G14</td><td>部署形态升降级与迁移工具</td><td>形态间迁移成本高</td><td>快照导出/导入 + schema 升级工具</td><td><span class="tag warn">P1</span></td></tr>
+            <tr data-p="P1"><td>G15</td><td>缺陷 SLA 与治理增强</td><td>问题闭环不规范</td><td>统一 Defect 模型 + SLA 路由 + 回流去重</td><td><span class="tag warn">P1</span></td></tr>
+            <tr data-p="P1"><td>G16</td><td>cursor/claude/qoder 适配</td><td>工具矩阵不全</td><td>ToolProvider 契约接入 + 凭证托管</td><td><span class="tag warn">P1</span></td></tr>
+            <tr data-p="P1"><td>G17</td><td>Harness 抽象与热切换（会话归平台）</td><td>工具切换丢失上下文</td><td>Harness SPI + 引擎上下文交接/重建</td><td><span class="tag warn">P1</span></td></tr>
+            <tr data-p="P1"><td>G18</td><td>模型供给四通道与凭证托管</td><td>BYO 订阅/密钥与本地模型难用</td><td>订阅 OAuth + Key 加密托管 + 本地推理适配</td><td><span class="tag warn">P1</span></td></tr>
+            <tr data-p="P2"><td>G19</td><td>设备配对与多设备续跑</td><td>换设备中断</td><td>device-link 配对 + 会话云端续跑</td><td><span class="tag mut">P2</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 15 -->
+    <section id="s15">
+      <h2>15 · 路线图与迭代</h2>
+      <div class="grid c3">
+        <div class="card"><div class="t">阶段一 · 基座补齐（P0）</div><div class="d"><ul><li>企业 SSO</li><li>可视化配置中心</li><li>告警/预警</li><li>移动端启动</li></ul><span class="muted">验收：SSO 闭环、配置可回滚、告警可触发</span></div></div>
+        <div class="card"><div class="t">阶段二 · 智能增强（P1）</div><div class="d"><ul><li>智能输入/自动配置</li><li>A2A/插件框架</li><li>技能向量检索</li><li>智能选模强化</li><li>Harness 抽象与热切换（G17）</li><li>模型供给四通道与凭证托管（G18）</li><li>模型健康探测与灰度</li></ul><span class="muted">验收：一键生成、检索命中率、Harness 切换不丢会话、模型可降级可灰度</span></div></div>
+        <div class="card"><div class="t">阶段三 · 协作与规模（P1/P2）</div><div class="d"><ul><li>实时协作</li><li>依赖治理 UI 与联动迭代</li><li>缺陷 SLA 治理闭环</li><li>跨机压测</li><li>多平台安装包</li><li>部署形态迁移工具</li></ul><span class="muted">验收：多人协同、跨机调度、缺陷闭环率、安装可用</span></div></div>
+      </div>
+      <div class="note">提交约定：阶段性验证后提交 <code>git@github.com:ai-mada/suma.git</code> <code>dev</code> 分支，遵循 <code>type(scope): desc [T-id]</code>，附设计与精简证据。</div>
+    </section>
+
+    <!-- 16 -->
+    <section id="s16">
+      <h2>16 · 并发协作与 AI SOP</h2>
+      <div class="grid c3">
+        <div class="card"><div class="t">① 文件所有权</div><div class="d">按域分配文件，避免冲突。</div></div>
+        <div class="card"><div class="t">② 单一集成者</div><div class="d">共享契约由集成者守约。</div></div>
+        <div class="card"><div class="t">③ 聚焦验证</div><div class="d">只跑变更相关检查，复用证据。</div></div>
+        <div class="card"><div class="t">④ 里程碑</div><div class="d">集成里程碑跑完整套件。</div></div>
+        <div class="card"><div class="t">⑤ 事实分离</div><div class="d">业务/运行/测试/验收/部署分别记录。</div></div>
+        <div class="card"><div class="t">⑥ 文档同步</div><div class="d">设计、契约、证据统一进 docs。</div></div>
+      </div>
+      <div class="note">并行分组：<b>组A</b> P0 缺口；<b>组B</b> 智能化；<b>组C</b> 可视化与交互；<b>集成者</b> 守 contracts 与 dev 合入。</div>
+    </section>
+
+    <!-- 17 -->
+    <section id="s17">
+      <h2>17 · 版本迭代与缺陷全流程治理</h2>
+      <p class="lead">覆盖「需求迭代 → 功能迭代 → 版本发布 → 部署验证 → 缺陷修复跟进」的一站式全链路迭代闭环，含微应用依赖联动。</p>
+
+      <h3>17.1 版本迭代闭环</h3>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 920 200" role="img" aria-label="版本迭代闭环">
+          <g font-family="var(--sans)">
+            <rect class="box f" x="20" y="60" width="130" height="44" rx="9"/><text class="lbl" x="85" y="79" text-anchor="middle">需求迭代</text><text class="lbl s" x="85" y="96" text-anchor="middle">PRD 变更/版本化</text>
+            <rect class="box" x="180" y="60" width="130" height="44" rx="9"/><text class="lbl" x="245" y="79" text-anchor="middle">功能迭代</text><text class="lbl s" x="245" y="96" text-anchor="middle">任务/候选/验收</text>
+            <rect class="box" x="340" y="60" width="140" height="44" rx="9"/><text class="lbl" x="410" y="79" text-anchor="middle">依赖联动迭代</text><text class="lbl s" x="410" y="96" text-anchor="middle">受影响微应用清单</text>
+            <rect class="box g" x="510" y="60" width="130" height="44" rx="9"/><text class="lbl" x="575" y="79" text-anchor="middle">版本发布</text><text class="lbl s" x="575" y="96" text-anchor="middle">semver/兼容矩阵</text>
+            <rect class="box" x="670" y="60" width="120" height="44" rx="9"/><text class="lbl" x="730" y="79" text-anchor="middle">部署验证</text><text class="lbl s" x="730" y="96" text-anchor="middle">灰度/回滚</text>
+            <rect class="box w" x="810" y="60" width="90" height="44" rx="9"/><text class="lbl" x="855" y="79" text-anchor="middle">缺陷</text><text class="lbl s" x="855" y="96" text-anchor="middle">跟进闭环</text>
+            <g class="ln">
+              <line x1="150" y1="82" x2="178" y2="82" marker-end="url(#ar)"/><line x1="310" y1="82" x2="338" y2="82" marker-end="url(#ar)"/>
+              <line x1="480" y1="82" x2="508" y2="82" marker-end="url(#ar)"/><line x1="640" y1="82" x2="668" y2="82" marker-end="url(#ar)"/><line x1="790" y1="82" x2="808" y2="82" marker-end="url(#ar)"/>
+              <path d="M855,104 C855,160 85,160 85,104" marker-end="url(#ar)"/>
+            </g>
+            <text class="lbl s" x="470" y="160" text-anchor="middle">知识/技能/Agent/工具随版本同步迭代升级 · 问题修复回流需求池</text>
+            <text class="lbl s" x="470" y="184" text-anchor="middle">版本不可变 · 回滚生成新指针 · 全程追溯矩阵留证</text>
+          </g>
+        </svg>
+      </div>
+
+      <h3>17.2 缺陷全流程（bug / issue / 问题 / 缺陷统一模型）</h3>
+      <div class="grid c3">
+        <div class="card"><div class="t">来源与采集</div><div class="d"><ul><li>线上告警 / 监控自动建单</li><li>测试失败 / 门禁拦截</li><li>用户反馈（消息通道）</li><li>诊断 Agent 归因建议</li></ul></div></div>
+        <div class="card"><div class="t">分诊与路由</div><div class="d"><ul><li>严重度 P0–P3 × SLA 计时</li><li>相似去重自动合并</li><li>可修 → 派发 Agent；不可修 → 回流需求池升级需求</li></ul></div></div>
+        <div class="card"><div class="t">闭环与统计</div><div class="d"><ul><li>修复 → 独立验证 → 随版本发布</li><li>重开 / 升级 / 转需求全程留痕</li><li>逃逸率 / 修复周期 / 回流率看板</li></ul></div></div>
+      </div>
+
+      <h3>17.3 治理规则</h3>
+      <div class="panel" style="padding:0;overflow:auto;margin-top:8px">
+        <table>
+          <thead><tr><th style="width:170px">规则</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>缺陷唯一编号</td><td>跨来源统一 Defect 模型，避免同一问题多头跟踪</td></tr>
+            <tr><td>SLA 分级</td><td>P0：立即响应/当日修复；P1：24h；P2：迭代内；P3：排期</td></tr>
+            <tr><td>回流去重</td><td>回流需求池前查相似需求，命中则关联不重复建</td></tr>
+            <tr><td>版本包含证明</td><td>每个缺陷记录「修复版本 + 验证证据」，发布集合可追溯</td></tr>
+            <tr><td>知识沉淀</td><td>修复完成后自动萃取为知识/技能候选（人工确认入库）</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 18 -->
+    <section id="s18">
+      <h2>18 · 计费计量与成本治理</h2>
+      <p class="lead">面向 SaaS 与私有化的<strong>Token 消耗计量计费、配额分配管控、预算与降级</strong>体系，避免资源浪费。</p>
+
+      <h3>18.1 计量维度与账本</h3>
+      <div class="panel" style="padding:0;overflow:auto">
+        <table>
+          <thead><tr><th style="width:150px">维度</th><th>计量内容</th><th>归集口径</th></tr></thead>
+          <tbody>
+            <tr><td>模型调用</td><td>input/output tokens、缓存命中、批次折扣</td><td>组织 → 项目 → 应用 → 任务 → Run</td></tr>
+            <tr><td>工具执行</td><td>执行时长、Runner 资源（CPU/内存折算）</td><td>工具 → 项目 → Run</td></tr>
+            <tr><td>知识/检索</td><td>向量查询次数、存储量</td><td>知识库 → 项目</td></tr>
+            <tr><td>平台功能</td><td>席位、流水线执行次数、存储配额</td><td>组织（SaaS 计费单元）</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>18.2 配额与预算分层</h3>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 920 160" role="img" aria-label="配额分层">
+          <g font-family="var(--sans)">
+            <rect class="box f" x="20" y="50" width="150" height="44" rx="9"/><text class="lbl" x="95" y="69" text-anchor="middle">组织预算</text><text class="lbl s" x="95" y="86" text-anchor="middle">月度/年度</text>
+            <rect class="box" x="200" y="50" width="150" height="44" rx="9"/><text class="lbl" x="275" y="69" text-anchor="middle">项目配额</text><text class="lbl s" x="275" y="86" text-anchor="middle">Token/并发/存储</text>
+            <rect class="box" x="380" y="50" width="150" height="44" rx="9"/><text class="lbl" x="455" y="69" text-anchor="middle">团队配额</text><text class="lbl s" x="455" y="86" text-anchor="middle">成员/Agent 份额</text>
+            <rect class="box" x="560" y="50" width="150" height="44" rx="9"/><text class="lbl" x="635" y="69" text-anchor="middle">任务级限额</text><text class="lbl s" x="635" y="86" text-anchor="middle">单 Run 上限</text>
+            <rect class="box g" x="740" y="50" width="160" height="44" rx="9"/><text class="lbl" x="820" y="69" text-anchor="middle">拦截/降级</text><text class="lbl s" x="820" y="86" text-anchor="middle">软限告警 · 硬限拦截</text>
+            <g class="ln">
+              <line x1="170" y1="72" x2="198" y2="72" marker-end="url(#ar)"/><line x1="350" y1="72" x2="378" y2="72" marker-end="url(#ar)"/>
+              <line x1="530" y1="72" x2="558" y2="72" marker-end="url(#ar)"/><line x1="710" y1="72" x2="738" y2="72" marker-end="url(#ar)"/>
+            </g>
+            <text class="lbl s" x="460" y="130" text-anchor="middle">策略：软限(80%)告警与降级路由 → 硬限(100%)拦截并通知 → 超支需审批加额；所有决策留审计</text>
+          </g>
+        </svg>
+      </div>
+
+      <h3>18.3 成本治理能力</h3>
+      <div class="grid c3">
+        <div class="card"><div class="t">成本看板</div><div class="d">按组织/项目/团队/模型/工具多维下钻；趋势与异常标记。</div></div>
+        <div class="card"><div class="t">账单与对账</div><div class="d">计量账本只追加；与厂商账单对账；可导出（CSV/API）。</div></div>
+        <div class="card"><div class="t">优化策略</div><div class="d"><ul><li>模型降级路由（超额切低成本模型）</li><li>提示/结果缓存复用</li><li>批处理与非高峰调度</li></ul></div></div>
+        <div class="card"><div class="t">审批流</div><div class="d">加额申请、预算变更走审批卡片（Web/移动/企微）。</div></div>
+        <div class="card"><div class="t">SaaS 计费单元</div><div class="d">席位 + 用量套餐 + 预付费包；私有化按授权+支持计费。</div></div>
+        <div class="card"><div class="t">防滥用</div><div class="d">异常用量检测（刷量/死循环 Agent）自动熔断并告警。</div></div>
+      </div>
+    </section>
+
+    <!-- 19 : 模型管理 -->
+    <section id="s19">
+      <h2>19 · 模型管理与 AI 网关（模型能力专章）</h2>
+      <p class="lead">统一的<strong>模型供给、注册、路由、观测、成本与治理</strong>能力：一个网关纳管「订阅授权 / 自带密钥 / 本地模型 / 平台托管」四种供给，向上对 CLI、Web、桌面、移动、智能体与 Harness 提供一致的模型选择体验。对应实现：<code>internal/modelgateway</code>、<code>internal/modelcontract</code>、<code>internal/dispatchrecommendationcontract</code>。</p>
+
+      <h3>19.1 模型供给四通道</h3>
+      <div class="svg-wrap" style="margin-top:8px">
+        <svg viewBox="0 0 920 240" role="img" aria-label="模型供给与网关">
+          <g font-family="var(--sans)">
+            <rect class="box s" x="20" y="30" width="180" height="50" rx="9"/><text class="lbl" x="110" y="52" text-anchor="middle">订阅授权 OAuth</text><text class="lbl s" x="110" y="70" text-anchor="middle">复用已有 Claude/Codex 订阅</text>
+            <rect class="box s" x="220" y="30" width="180" height="50" rx="9"/><text class="lbl" x="310" y="52" text-anchor="middle">自带 API Key</text><text class="lbl s" x="310" y="70" text-anchor="middle">组织/个人密钥加密托管</text>
+            <rect class="box s" x="420" y="30" width="180" height="50" rx="9"/><text class="lbl" x="510" y="52" text-anchor="middle">本地模型</text><text class="lbl s" x="510" y="70" text-anchor="middle">离线/内网/隐私场景</text>
+            <rect class="box s" x="620" y="30" width="180" height="50" rx="9"/><text class="lbl" x="710" y="52" text-anchor="middle">平台托管服务</text><text class="lbl s" x="710" y="70" text-anchor="middle">开箱即用、统一计费</text>
+            <g class="ln">
+              <line x1="200" y1="55" x2="238" y2="110" marker-end="url(#ar)"/><line x1="400" y1="55" x2="368" y2="110" marker-end="url(#ar)"/>
+              <line x1="600" y1="55" x2="552" y2="110" marker-end="url(#ar)"/><line x1="800" y1="55" x2="732" y2="110" marker-end="url(#ar)"/>
+            </g>
+            <rect class="box f" x="238" y="110" width="444" height="48" rx="10"/><text class="lbl h" x="460" y="131" text-anchor="middle">模型网关（统一契约 · 凭证隔离 · 限流 · 缓存）</text><text class="lbl s" x="460" y="150" text-anchor="middle">ModelProvider SPI · 能力注册表 · 健康探测 · 幂等回执</text>
+            <line class="ln" x1="460" y1="158" x2="460" y2="180" marker-end="url(#ar)"/>
+            <rect class="box g" x="150" y="180" width="620" height="46" rx="10"/><text class="lbl h" x="460" y="201" text-anchor="middle">路由与成本治理：复杂度 × 成本 × 延迟 × 配额 → 选模 → 降级/灰度 → 用量账本</text><text class="lbl s" x="460" y="219" text-anchor="middle">上层调用方（CLI/Web/移动端/智能体/Harness）无感知切换</text>
+          </g>
+        </svg>
+      </div>
+
+      <h3>19.2 模型注册与能力表</h3>
+      <div class="panel" style="padding:0;overflow:auto">
+        <table>
+          <thead><tr><th style="width:130px">字段</th><th>说明</th><th style="width:200px">治理作用</th></tr></thead>
+          <tbody>
+            <tr><td>身份与版本</td><td>厂商 / 模型名 / 版本快照 / 别名</td><td>版本锁定，避免静默升级破坏基线</td></tr>
+            <tr><td>能力声明</td><td>上下文窗口、最大输出、函数调用、视觉、流式</td><td>任务可行性前置校验</td></tr>
+            <tr><td>成本画像</td><td>输入/输出单价、缓存折扣、批处理折扣</td><td>成本预估与预算拦截</td></tr>
+            <tr><td>限流与配额</td><td>RPM/TPM、并发上限、订阅额度</td><td>软限降级、硬限拦截</td></tr>
+            <tr><td>健康状态</td><td>可用性、错误率、P95 延迟（滚动窗口）</td><td>自动摘除与恢复</td></tr>
+            <tr><td>适用范围</td><td>组织/项目/角色/环境可见性与可用权限</td><td>权限矩阵与合规隔离</td></tr>
+            <tr><td>评测基线</td><td>评测集得分、回归基线、harness 报告</td><td>升级前对比，防止能力回退</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>19.3 路由、降级与灰度</h3>
+      <div class="grid c3">
+        <div class="card"><div class="t">智能选模</div><div class="d">按任务复杂度（规模/语言/依赖）× 成本上限 × 延迟要求评分排序；结果写入账本并可回放。</div></div>
+        <div class="card"><div class="t">多级降级</div><div class="d">超配额 → 降级到低成本模型；健康异常 → 切备用通道；本地模式 → 仅本地模型；全程标识不静默。</div></div>
+        <div class="card"><div class="t">灰度与 AB</div><div class="d">按组织/项目百分比灰度新模型，绑定评测集对比，达标放量、回退有据。</div></div>
+        <div class="card"><div class="t">凭证隔离</div><div class="d">订阅令牌与个人密钥按组织/项目/工具三维隔离；浏览器端不持有主密钥；密钥加密存储+脱敏展示。</div></div>
+        <div class="card"><div class="t">缓存与复用</div><div class="d">提示前缀缓存、语义结果缓存、批处理合并，直接降低 Token 消耗。</div></div>
+        <div class="card"><div class="t">观测与审计</div><div class="d">每次选择记录「模型+理由+成本+结果」，支持按项目/成员/Agent 下钻分析。</div></div>
+      </div>
+
+      <h3>19.4 与 Harness / 工具的关系</h3>
+      <div class="note">模型与 Harness 解耦：Harness（claude-code / codex / Pi 等）决定「怎么干」，模型网关决定「用哪个模型干」。切换 Harness 时会话与上下文归属平台，仅做交接或引擎上下文重建，不共享其内部状态；切换模型不改会话归属。</div>
+      <div class="grid c3">
+        <div class="card"><div class="t">Harness 选择</div><div class="d">按任务类型选择规划型/实现型/评审型 harness，可热切换。</div></div>
+        <div class="card"><div class="t">模型选择</div><div class="d">每个 harness 独立指定或继承项目策略（auto / 指定 / 预算约束）。</div></div>
+        <div class="card"><div class="t">统一计量</div><div class="d">不论通道与 harness，用量统一入账本，按组织/项目/人/Agent 分摊。</div></div>
+      </div>
+    </section>
+
+    <!-- 20 : 附录 -->
+    <section id="s20">
+      <h2>20 · 附录</h2>
+      <h3>20.1 术语</h3>
+      <div class="panel" style="padding:0;overflow:auto">
+        <table>
+          <thead><tr><th style="width:140px">术语</th><th>含义</th></tr></thead>
+          <tbody>
+            <tr><td>Run</td><td>一次具有固定流程及输入依据的执行活动</td></tr>
+            <tr><td>CodeCandidate</td><td>某次执行产出的准确代码结果，可追溯</td></tr>
+            <tr><td>IndependentTest</td><td>独立执行者对准确候选产生的测试事实</td></tr>
+            <tr><td>FormalReview</td><td>有权限的人对准确交付依据的接受/退回</td></tr>
+            <tr><td>ReleaseSet</td><td>一组应用代码版本与发布候选的不可变关联</td></tr>
+            <tr><td>Defect</td><td>bug/issue/问题/缺陷的统一领域模型，带严重度与 SLA</td></tr>
+            <tr><td>DomainEvent</td><td>领域内已发生事实的不可变记录，驱动自动化与追溯</td></tr>
+            <tr><td>WorkItem</td><td>分配给人/智能体/工具的工作单元，用于负载与产出统计</td></tr>
+            <tr><td>EvaluationHarness</td><td>评测框架适配层：评测集、评分器与报告的统一 SPI</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>20.2 技术栈</h3>
+      <div class="panel" style="padding:0;overflow:auto;margin-top:8px">
+        <table>
+          <thead><tr><th style="width:100px">层</th><th>选型</th></tr></thead>
+          <tbody>
+            <tr><td>后端</td><td>Go 1.26+</td></tr>
+            <tr><td>Web</td><td>React 19 + Vite + TypeScript</td></tr>
+            <tr><td>桌面</td><td>Electron 35+ / electron-builder</td></tr>
+            <tr><td>移动</td><td>Flutter（待建）</td></tr>
+            <tr><td>CLI</td><td>Go（cmd/suma）</td></tr>
+            <tr><td>事务库</td><td>OceanBase / PostgreSQL / SQLite</td></tr>
+            <tr><td>向量</td><td>Lance / LanceDB</td></tr>
+            <tr><td>消息</td><td>Redis + RocketMQ/Kafka</td></tr>
+            <tr><td>协议</td><td>MCP / A2A / OpenAPI</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>速码 suma · 一栈式智能研发平台 · 架构 / PRD / 功能 / 交互规格 v1.0.0-r5 · 参照 multica / cindy / workbuddy / octop / opencode / zed / codex / harness 等增强 · 2026-10-29</footer>
+  </main>
+</div>
+
+<button id="toTop" title="返回顶部" aria-label="返回顶部">↑</button>
+<div class="lightbox" id="lb" aria-hidden="true"><div class="lb-inner" id="lbInner" title="点击关闭"></div></div>
+
+<script>
+  const root=document.documentElement;
+  const savedT=localStorage.getItem('suma-theme');
+  if(savedT) root.setAttribute('data-theme',savedT);
+  document.getElementById('themeBtn').onclick=()=>{
+    const cur=root.getAttribute('data-theme')==='dark'?'light':'dark';
+    root.setAttribute('data-theme',cur); localStorage.setItem('suma-theme',cur);
+  };
+  document.getElementById('exportBtn').onclick=()=>window.print();
+
+  // tabs
+  const tabs=document.querySelectorAll('#domTabs .tab');
+  tabs.forEach(t=>t.onclick=()=>{
+    tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active');
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    const el=document.getElementById(t.dataset.d); if(el) el.classList.add('active');
+  });
+
+  // filters (features + gaps)
+  function bindFilter(barId, tableId){
+    const bar=document.getElementById(barId); if(!bar) return;
+    bar.addEventListener('click',e=>{
+      const c=e.target.closest('.chip'); if(!c) return;
+      [...bar.children].forEach(x=>x.classList.remove('active')); c.classList.add('active');
+      const f=c.dataset.f;
+      document.querySelectorAll('#'+tableId+' tbody tr').forEach(r=>{
+        r.style.display=(f==='all'||r.dataset.p===f)?'':'none';
+      });
+    });
+  }
+  bindFilter('fFilter','ftable'); bindFilter('gFilter','gtable');
+
+  // sidebar active
+  const links=[...document.querySelectorAll('.sidebar a')];
+  const secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+  const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const id='#'+e.target.id;links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')===id));}});},{rootMargin:'-50% 0px -50% 0px'});
+  secs.forEach(s=>s&&obs.observe(s));
+
+  // ---------- v1.0.0 交互增强 ----------
+  // 阅读进度条 + 返回顶部
+  const readbar=document.getElementById('readbar'), toTop=document.getElementById('toTop');
+  addEventListener('scroll',()=>{
+    const h=document.documentElement;
+    const p=h.scrollTop/((h.scrollHeight-h.clientHeight)||1);
+    readbar.style.width=(p*100).toFixed(2)+'%';
+    toTop.classList.toggle('show',h.scrollTop>600);
+  },{passive:true});
+  toTop.onclick=()=>scrollTo({top:0,behavior:'smooth'});
+
+  // 功能清单全文搜索（与优先级筛选叠加）
+  const fSearch=document.getElementById('fSearch'), fCnt=document.getElementById('fCnt');
+  let fText='';
+  function applyFeatureFilter(){
+    const bar=document.getElementById('fFilter');
+    const active=bar.querySelector('.chip.active'); const f=active?active.dataset.f:'all';
+    let n=0;
+    document.querySelectorAll('#ftable tbody tr').forEach(r=>{
+      const okP=(f==='all'||r.dataset.p===f);
+      const okT=!fText||r.textContent.toLowerCase().includes(fText);
+      const show=okP&&okT; r.style.display=show?'':'none'; if(show)n++;
+    });
+    fCnt.textContent=n+' 项';
+  }
+  fSearch.addEventListener('input',()=>{fText=fSearch.value.trim().toLowerCase();applyFeatureFilter();});
+  document.getElementById('fFilter').addEventListener('click',e=>{if(e.target.closest('.chip'))applyFeatureFilter();});
+  applyFeatureFilter();
+
+  // Tab 状态记忆
+  const tabsAll=[...document.querySelectorAll('#domTabs .tab')];
+  const savedTab=localStorage.getItem('suma-domain-tab');
+  if(savedTab){const t=tabsAll.find(x=>x.dataset.d===savedTab); if(t) t.click();}
+  tabsAll.forEach(t=>t.addEventListener('click',()=>localStorage.setItem('suma-domain-tab',t.dataset.d)));
+
+  // 快捷键：T 切主题 / F 聚焦搜索（输入框内不触发）
+  addEventListener('keydown',e=>{
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    const tag=(document.activeElement&&document.activeElement.tagName)||'';
+    if(tag==='INPUT'||tag==='TEXTAREA') return;
+    if(e.key==='t'||e.key==='T'){document.getElementById('themeBtn').click();}
+    if(e.key==='f'||e.key==='F'){e.preventDefault();fSearch.focus();fSearch.select();}
+  });
+
+  // SVG 图灯箱：点击放大查看，Esc/点击遮罩关闭
+  const lb=document.getElementById('lb'), lbInner=document.getElementById('lbInner');
+  if(lb && lbInner){
+    document.querySelectorAll('.svg-wrap').forEach(w=>{
+      w.setAttribute('title','点击放大查看图表');
+      w.addEventListener('click',e=>{
+        e.stopPropagation();
+        const svg=w.querySelector('svg'); if(!svg) return;
+        const clone=svg.cloneNode(true);
+        clone.style.maxWidth='100%'; clone.style.height='auto';
+        lbInner.innerHTML=''; lbInner.appendChild(clone);
+        lb.classList.add('open'); lb.setAttribute('aria-hidden','false');
+      });
+    });
+    const closeLb=()=>{lb.classList.remove('open'); lb.setAttribute('aria-hidden','true');};
+    lb.addEventListener('click',closeLb);
+    lb.addEventListener('keydown',e=>{if(e.key==='Escape')closeLb();});
+    addEventListener('keydown',e=>{if(e.key==='Escape'&&lb.classList.contains('open'))closeLb();});
+  }
+
+  // 标题锚点：悬停显示 #，点击复制链接
+  document.querySelectorAll('section h2, section h3').forEach((h,i)=>{
+    const id='h-'+h.textContent.trim().replace(/^[0-9·\s]+/,'').replace(/\s+/g,'-').slice(0,24)||('h-'+i);
+    h.id=id;
+    const a=document.createElement('a');a.className='hlink';a.href='#'+id;a.textContent='#';a.title='复制本节链接';
+    a.addEventListener('click',e=>{
+      e.preventDefault();
+      const url=location.origin+location.pathname+'#'+id;
+      if(navigator.clipboard) navigator.clipboard.writeText(url).catch(()=>{});
+      history.replaceState(null,'','#'+id);
+    });
+    h.appendChild(a);
+  });
+</script>
+</body>
+</html>
