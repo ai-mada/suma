@@ -16943,6 +16943,142 @@
         ],
         "type": "object"
       },
+      "ProjectFocus": {
+        "additionalProperties": false,
+        "properties": {
+          "observed_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectFocusSection"
+            },
+            "maxItems": 4,
+            "minItems": 4,
+            "readOnly": true,
+            "type": "array"
+          }
+        },
+        "required": [
+          "project_id",
+          "observed_at",
+          "sections"
+        ],
+        "type": "object"
+      },
+      "ProjectFocusItem": {
+        "additionalProperties": false,
+        "properties": {
+          "priority": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "task_unstarted",
+              "run_queued",
+              "run_active",
+              "run_waiting",
+              "run_paused",
+              "run_succeeded_review_pending",
+              "task_blocked",
+              "run_failed",
+              "run_reconciling",
+              "run_cancelled",
+              "run_missing",
+              "run_basis_changed",
+              "run_basis_unavailable"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_state": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_status": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_version": {
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "title": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "updated_at": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "title",
+          "task_version",
+          "task_status",
+          "run_id",
+          "run_state",
+          "reason",
+          "updated_at",
+          "priority"
+        ],
+        "type": "object"
+      },
+      "ProjectFocusSection": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectFocusItem"
+            },
+            "maxItems": 6,
+            "readOnly": true,
+            "type": "array"
+          },
+          "key": {
+            "enum": [
+              "planning",
+              "execution",
+              "review",
+              "attention"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "truncated": {
+            "readOnly": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "key",
+          "total",
+          "items",
+          "truncated"
+        ],
+        "type": "object"
+      },
       "ProjectGrant": {
         "properties": {
           "email": {
@@ -74315,6 +74451,162 @@
           "agent",
           "runner"
         ],
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/project-focus": {
+      "get": {
+        "description": "Current project-authorized transactional read of disjoint actionable task sections. Exact totals and at most six original task/run facts per section. A completed run awaiting review does not prove test coverage, eligibility or formal acceptance. This endpoint never probes tools, dispatches or mutates tasks.",
+        "operationId": "get_project-focus",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectFocus"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-read-only": true,
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
       }
     },

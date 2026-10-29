@@ -198,7 +198,7 @@ export function ToolWorkspace({
           {t("development.tools.return_to_task_dispatch")}</a>
       </div>
       <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={pending || action.busy} onWorker={() => { action.clearError(); setDialog({kind:'worker'}); }} onRegister={openRegister} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
-      <ToolSetupGuide id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen}/>
+      <ToolSetupGuide project={project} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen}/>
       {returnRun && (
         <a
           onClick={(event) => {

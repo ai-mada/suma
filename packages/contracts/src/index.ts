@@ -3459,6 +3459,28 @@ export interface ProjectExecutionRoute {
   grant_id: string;
   grant_version: number;
 }
+export interface ProjectFocus {
+  project_id: string;
+  observed_at: string;
+  sections: (ProjectFocusSection)[];
+}
+export interface ProjectFocusItem {
+  task_id: string;
+  title: string;
+  task_version: number;
+  task_status: string;
+  run_id: string;
+  run_state: string;
+  reason: string;
+  updated_at: string;
+  priority: string;
+}
+export interface ProjectFocusSection {
+  key: string;
+  total: number;
+  items: (ProjectFocusItem)[];
+  truncated: boolean;
+}
 export interface ProjectGrant {
   project_id: string;
   user_id: string;

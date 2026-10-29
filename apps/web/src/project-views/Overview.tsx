@@ -4,6 +4,7 @@ import {api,ApiError,query,time} from '../api';
 import {Badge,Empty,ErrorNotice,Loading} from '../ui';
 import {formatDateTime,formatNumber,tr,useLocale} from '../i18n';
 import {useProjectRead} from './useProjectRead';
+import {ProjectFocus} from './ProjectFocus';
 import {acceptancePercent,activityPresentation,attentionKinds,emptyOverview,overviewCount,validAttentionPage,type AttentionKind,type AttentionPage,type OverviewActivity,type OverviewData} from './overview-model';
 import './Overview.css';
 
@@ -11,23 +12,34 @@ type Destination='overview'|'requirements'|'development'|'quality'|'operations'|
 type OverviewProps={project:string;refresh:number;navigate:(view:Destination,sub?:string)=>void;openRecord:(id:string)=>void;onOpenRisks:()=>void;onOpenApplications:()=>void;onIntelligent?:()=>void};
 const t=(key:string,values?:Record<string,string>)=>tr('project-overview.'+key,values);
 async function readOverview(project:string){return api<OverviewData>('/overview'+query(project));}
+const recordCards=[{key:'requirements',to:'requirements'},{key:'tasks',to:'development',sub:'tasks'},{key:'runs',to:'development',sub:'runs'},{key:'issues',to:'quality'}] as const;
 const journey=[{key:'requirements',icon:Layers,view:'requirements'},{key:'collaboration',icon:Users,view:'settings',sub:'members'},{key:'workflow',icon:GitBranch,view:'development',sub:'workflows'},{key:'acceptance',icon:ShieldCheck,view:'quality'}] as const;
 function countText(value:unknown){const count=overviewCount(value);return count===undefined?'—':formatNumber(count);}
+function recordCountText(value:number|{total?:number}|undefined){return countText(typeof value==='number'?value:value?.total);}
 function dateText(value:string){return formatDateTime(value+'T00:00:00Z',{year:'numeric',month:'short',day:'numeric',timeZone:'UTC'});}
 
 export function Overview({project,refresh,navigate,openRecord,onOpenRisks,onOpenApplications,onIntelligent}:OverviewProps){
  useLocale();const [localRefresh,setLocalRefresh]=useState(0),generation=refresh+':'+localRefresh;
+ const [denial,setDenial]=useState<{project:string;generation:string;error:unknown}>();
  const read=useCallback(async(scope:string)=>({generation,data:await readOverview(scope)}),[generation]),snapshot=useProjectRead(project,refresh+localRefresh,read);
- if(snapshot.error)return <ErrorNotice error={snapshot.error}/>;
- if(!snapshot.data||snapshot.data.generation!==generation)return <Loading/>;
- return <OverviewContent key={project+':'+generation} data={snapshot.data.data} project={project} navigate={navigate} openRecord={openRecord} onOpenRisks={onOpenRisks} onOpenApplications={onOpenApplications} onIntelligent={onIntelligent} onRefresh={()=>setLocalRefresh(value=>value+1)}/>;
+ const denied=denial?.project===project&&denial.generation===generation?denial.error:snapshot.error instanceof ApiError&&[401,403,404].includes(snapshot.error.status)?snapshot.error:undefined;
+ const retry=()=>setLocalRefresh(value=>value+1);
+ if(denied)return <ErrorNotice error={denied} onRetry={retry}/>;
+ return <div className="project-overview">
+  {snapshot.error?<ErrorNotice error={snapshot.error} onRetry={retry}/>:!snapshot.data||snapshot.data.generation!==generation?<Loading/>:<OverviewContent key={'overview:'+project+':'+generation} data={snapshot.data.data} project={project} navigate={navigate} openRecord={openRecord} onOpenRisks={onOpenRisks} onOpenApplications={onOpenApplications} onIntelligent={onIntelligent} onRefresh={retry} onDenied={error=>setDenial({project,generation,error})}/>}
+  <FocusDiagnostics key={'focus:'+project+':'+generation} project={project} navigate={navigate} openRecord={openRecord}/>
+ </div>;
 }
 
-function OverviewContent({data,project,navigate,openRecord,onOpenRisks,onOpenApplications,onIntelligent,onRefresh}:Omit<OverviewProps,'refresh'>&{data:OverviewData;onRefresh:()=>void}){
- const [selected,setSelected]=useState<AttentionKind>('review'),[accessError,setAccessError]=useState<unknown>(),[deliveryStale,setDeliveryStale]=useState(false);
+function FocusDiagnostics({project,navigate,openRecord}:Pick<OverviewProps,'project'|'navigate'|'openRecord'>){
+ const [open,setOpen]=useState(false);
+ return <details className="pf-diagnostics" data-focus-diagnostics onToggle={event=>setOpen(event.currentTarget.open)}><summary><span>{tr('project-focus.diagnostics')}</span><small>{tr('project-focus.diagnostics_hint')}</small></summary>{open&&<ProjectFocus project={project} refresh={0} navigate={navigate} openRecord={openRecord}/>}</details>;
+}
+
+function OverviewContent({data,project,navigate,openRecord,onOpenRisks,onOpenApplications,onIntelligent,onRefresh,onDenied}:Omit<OverviewProps,'refresh'>&{data:OverviewData;onRefresh:()=>void;onDenied:(error:unknown)=>void}){
+ const [selected,setSelected]=useState<AttentionKind>('review'),[deliveryStale,setDeliveryStale]=useState(false);
  const delivery=data.delivery?.scope==='whole_project'?data.delivery:undefined,percent=acceptancePercent(delivery),milestones=data.milestones;
  const metrics=[{key:'accepted',value:delivery?.accepted_tasks,icon:Check},{key:'running',value:delivery?.running_tasks,icon:Play},{key:'review',value:delivery?.review_tasks,icon:ClipboardCheck,tab:'review'},{key:'blocked',value:delivery?.blocked_tasks,icon:Pause,tab:'blocked'}] as const;
- if(accessError)return <ErrorNotice error={accessError}/>;
  return <div className="project-overview">
   <header className="po-header"><div><span className="eyebrow">{tr('workbench.overview.eyebrow')}</span><h1>{data.project?.title||data.project?.name||t('project')}</h1><p>{data.project?.description||t('description')}</p></div><div className="po-header-actions"><button type="button" className="primary" onClick={()=>navigate('requirements')}><Plus size={15} aria-hidden="true"/>{t('new_requirement')}</button>{onIntelligent&&<button type="button" className="intent-entry" aria-haspopup="dialog" onClick={onIntelligent}><Sparkles size={15} aria-hidden="true"/>{tr('intent-operations.title')}</button>}</div></header>
   <div className="po-layout"><div className="po-main">
@@ -40,13 +52,14 @@ function OverviewContent({data,project,navigate,openRecord,onOpenRisks,onOpenApp
     <div className="po-metrics">{metrics.map(metric=>{const content=<><span className="po-metric-label"><metric.icon size={15} aria-hidden="true"/>{t('metric.'+metric.key)}</span><strong>{countText(metric.value)}</strong><small>{t('metric_hint.'+metric.key)}</small></>;return 'tab'in metric?<button type="button" className={'po-metric po-metric-'+metric.key} key={metric.key} onClick={()=>{setSelected(metric.tab);document.getElementById('overview-attention-panel')?.scrollIntoView?.({block:'nearest'});}}>{content}</button>:<div className={'po-metric po-metric-'+metric.key} key={metric.key}>{content}</div>;})}</div>
     <div className="po-delivery-foot"><span>{t('waiting_count',{count:countText(delivery?.waiting_tasks)})}</span><span>{t('reconciling_count',{count:countText(delivery?.reconciling_tasks)})}</span>{data.as_of&&<time dateTime={data.as_of}>{t('as_of',{at:time(data.as_of)})}</time>}</div>
    </section>
-   <AttentionQueue project={project} data={data} selected={selected} onSelect={setSelected} openRecord={openRecord} navigate={navigate} onDenied={setAccessError} onQueueChanged={()=>setDeliveryStale(true)}/>
+   <AttentionQueue project={project} data={data} selected={selected} onSelect={setSelected} openRecord={openRecord} navigate={navigate} onDenied={onDenied} onQueueChanged={()=>setDeliveryStale(true)}/>
    <section className="panel po-activity"><div className="po-section-heading"><div><h2>{tr('workbench.overview.activity')}</h2><p>{t('activity_scope')}</p></div><Activity size={17} aria-hidden="true"/></div>{data.activity?.length?<div className="po-activity-list">{data.activity.slice(0,8).map((item,index)=><ActivityRow item={item} key={item.id||index}/>)}</div>:<Empty title={tr('workbench.overview.no_activity')} description={tr('workbench.overview.no_activity_hint')}/>}</section>
   </div><aside className="po-aside" aria-label={t('project_context')}>
    <section className="panel po-milestones"><div className="po-section-heading"><div><h2>{t('milestones')}</h2><p>{t('milestone_scope')}</p></div><CalendarDays size={17} aria-hidden="true"/></div>{milestones&&Array.isArray(milestones.items)&&overviewCount(milestones.total)!==undefined?milestones.items.length?<><ul>{milestones.items.map(item=><li key={item.id}><span className="po-milestone-dot"/><div><strong>{item.title}</strong><time dateTime={item.target_date}>{dateText(item.target_date)}</time></div><Badge state={item.status}/></li>)}</ul><p className="po-aside-note">{t('milestone_count',{loaded:formatNumber(milestones.items.length),total:formatNumber(milestones.total)})}</p></>:<p className="po-empty-copy">{t('no_milestones')}</p>:<p className="po-empty-copy">{t('not_reported')}</p>}<button type="button" className="po-section-link" onClick={()=>navigate('development','planning')}>{t('open_planning')}<ArrowRight size={14} aria-hidden="true"/></button></section>
    <section className="panel po-context-card"><ShieldAlert size={19} aria-hidden="true"/><h2>{t('risks')}</h2><p>{t('risks_hint')}</p><button type="button" className="po-section-link" onClick={onOpenRisks}>{t('open_risks')}<ArrowRight size={14} aria-hidden="true"/></button></section>
    <section className="panel po-context-card"><Box size={19} aria-hidden="true"/><h2>{t('applications')}</h2><p>{t('applications_hint')}</p><button type="button" className="po-section-link" onClick={onOpenApplications}>{t('open_applications')}<ArrowRight size={14} aria-hidden="true"/></button></section>
   </aside></div>
+  <details className="pf-records"><summary>{tr('project-focus.records')}</summary><div className="pf-record-counts">{recordCards.map(card=><button type="button" key={card.key} onClick={()=>navigate(card.to,'sub'in card?card.sub:undefined)}><span>{tr('workbench.overview.count.'+card.key)}</span><strong>{recordCountText(data.counts?.[card.key])}</strong></button>)}</div></details>
   {emptyOverview(data)&&<section className="quick-path po-first-steps"><span className="eyebrow">{tr('workbench.overview.journey')}</span><div>{journey.map((step,index)=><button type="button" onClick={()=>navigate(step.view,'sub'in step?step.sub:undefined)} key={step.key}><span className="path-number">{formatNumber(index+1,{minimumIntegerDigits:2})}</span><step.icon size={21} aria-hidden="true"/><span><strong>{tr('workbench.overview.step.'+step.key)}</strong><small>{tr('workbench.overview.step_hint.'+step.key)}</small></span><ChevronRight size={16} aria-hidden="true"/></button>)}</div></section>}
  </div>;
 }

@@ -2,10 +2,12 @@
 
 更新：2026-10-29。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–26 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。
 
+当前T-EXPERIENCE-133深化[企业研发工作台需求与架构](../product/enterprise-workbench.md)：保留全量交付与分页关注，按需展开准确分类和原运行依据诊断；新增四类客户端可信无密钥配置导出及其他工具手动指南。8项Go、67项Web、类型／6673键中英／生产构建及合同检查通过，GUI实际渲染仍待验。见[当前报告](../quality/enterprise-experience-verification.md)／[摘要](../quality/enterprise-experience-summary.json)，完整58／34／92不变。
+
 当前 T-EXPERIENCE-131：首页项目全量交付统计及当前权限下的分页读取、导航视觉基础、IDE渐进展开代码完成，本阶段定向检查及中英／明暗／桌面／390px隔离浏览器验证通过；完整前端1236项通过，全量Go仍有已记录失败。[设计](../design/unified-experience.md)、[权威计划深化分组](implementation-plan.md#统一体验与全平台深化)、[阶段报告](../quality/unified-experience-verification.md)及[摘要](../quality/unified-experience-summary.json)分别记录范围和证据。完整文档编辑、排期容量、智能自动化策略、多端离线与正式交付仍待办，原58／34／92状态及既有阶段证据保持不变。
 
 
-当前T-BASELINE-131将已验收基线真正用于后续终端开发：原管理员锚点B、采用提交M、新候选N分别保存，当前认证导入、明确候选授权、独立同提交JUnit与正式Review闭环，上游退回阻止新的验收。16项Go专项、9项Web、类型／语言／构建及真实Windows双Worker旅程通过；GUI当前未验。见[合同](../../contracts/terminal-baseline-development.md)、[报告](../quality/terminal-baseline-development-verification.md)和[摘要](../quality/terminal-baseline-development-summary.json)，58／34／92不变。
+前序T-BASELINE-131将已验收基线真正用于后续终端开发：原管理员锚点B、采用提交M、新候选N分别保存，当前认证导入、明确候选授权、独立同提交JUnit与正式Review闭环，上游退回阻止新的验收。16项Go专项、9项Web、类型／语言／构建及真实Windows双Worker旅程通过；GUI当前未验。见[合同](../../contracts/terminal-baseline-development.md)、[报告](../quality/terminal-baseline-development-verification.md)和[摘要](../quality/terminal-baseline-development-summary.json)，58／34／92不变。
 
 前序T130推进[终端原执行核对与代码候选](../development/interactive-development.md)：原会话停止证明、未知输入逐项确认及按失败关闭，与明确授权的候选预览、单独启动、同SHA独立Worker测试、人工Review和问题回流分别保留。已验收精确候选可显式绑定另一未启动任务的基线，不自动派发。实现与边界见[合同](../../contracts/terminal-recovery-candidates.md)、[架构](../architecture/interactive-terminal.md)、[交互](../design/terminal-recovery.md)、[当前专项报告](../quality/terminal-recovery-candidates-verification.md)和[摘要](../quality/terminal-recovery-candidates-summary.json)；检查数量、实际恢复故障、界面与本机链路以该报告为准。
 

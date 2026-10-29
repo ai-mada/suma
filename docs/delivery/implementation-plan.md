@@ -2,6 +2,8 @@
 
 更新：2026-10-29。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。
 
+T-EXPERIENCE-133继续完整平台的项目进度／工作台／开发工具接入：实现有界授权交付焦点、依据失效分流、简洁中英交互及四类项目MCP配置导出。领域、自动化、调度、配置及部署边界见[企业设计](../product/enterprise-workbench.md)，实际验证与GUI／厂商／数据库缺口见[报告](../quality/enterprise-experience-verification.md)。58／34／92范围不变。
+
 当前 T-EXPERIENCE-131 落实[统一体验设计](../design/unified-experience.md)的首个切片：首页项目全量交付统计及当前权限下的分页读取、导航与视觉基础、IDE 渐进展开代码完成。本阶段定向检查及中英／明暗／桌面／390px隔离浏览器验证通过；完整前端1236项通过，全量Go仍有已记录失败；见[阶段报告](../quality/unified-experience-verification.md)与[摘要](../quality/unified-experience-summary.json)。完整文档编辑、排期容量、智能自动化策略和多端离线仍待交付；下列深化分组只细化原范围，58／34／92状态不变。
 
 T-BASELINE-131继续P2／P4／P5交付：采用基线→真实终端→明确候选→独立同提交测试→Review→来源失效阻断与问题回流，阶段实证见[报告](../quality/terminal-baseline-development-verification.md)／[摘要](../quality/terminal-baseline-development-summary.json)。完整平台范围及58／34／92不变；GUI与跨主机／跨平台验收仍待完成。

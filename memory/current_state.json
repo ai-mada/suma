@@ -8,7 +8,7 @@
     "summary": "docs/quality/tool-discovery-summary.json",
     "scope": "Read current authorized private/Pool Runner inventory; fresh-only bounded adoption, manual/file protection, node switching, explicit retry, original paused registration and separate enabling retained.",
     "verification": "80 unique Web focused cases,11 Go discovery cases, existing tool profile regressions and contract generator suite/check; isolated final types/6513 locales/build; actual SQLite/control/Node probe/Runner/browser CNEN1440/390 automatic adoption, manual restoration, paused registration, enable and revoke.",
-    "limits": "No remote installation/probe, model health, commercial invocation or production claim; full project suite not rerun; unrelated terminal/desktop work preserved. Remote push awaits explicit current authorization after automatic review rejection."
+    "limits": "No remote installation/probe, model health, commercial invocation or production claim; full project suite not rerun; unrelated terminal/desktop work preserved."
   },
   "management_workspaces": {
     "stage": "T-MGMT-131",
@@ -33,13 +33,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-EXPERIENCE-131",
-  "updated_at": "2026-10-29T08:57:40.071Z",
+  "stage": "T-EXPERIENCE-133",
+  "updated_at": "2026-10-29T09:08:30.745508+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/unified-experience-verification.md",
-  "current_summary": "docs/quality/unified-experience-summary.json",
+  "current_evidence": "docs/quality/enterprise-experience-verification.md",
+  "current_summary": "docs/quality/enterprise-experience-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -199,5 +199,13 @@
     "remaining": "Complete document/design editing, shared planning drafts and capacity, stable acceptance identities and test library, team/portfolio/release extensions, intelligent and event automation policies, knowledge/skill distribution, capability and cost governance, Yjs collaboration, multi-device synchronization and bounded offline permits, mobile/channels/SSO/commercial connections, real provider/multi-host/database/device/production acceptance.",
     "baseline_item_status": "58 limited implemented / 34 pending / 92 total unchanged; accepted enhancement groups refine the existing P0-P7 and requirements1-26 scope without closing full items.",
     "deployment": "not performed"
+  },
+  "enterprise_experience": {
+    "stage": "T-EXPERIENCE-133",
+    "status": "scoped_verified_gui_not_verified",
+    "report": "docs/quality/enterprise-experience-verification.md",
+    "summary": "docs/quality/enterprise-experience-summary.json",
+    "scope": "Preserved combined whole-project overview; lazy authorized bounded task/basis diagnostics;4 secret-free client formats+4 guide-only entries; full58/34/92 remains.",
+    "verification": "8 distinct Go checks;67 scoped Web cases with targeted5-case integration repair and45 unchanged tool cases reused; final types/6673 locales/build/contracts.0 models; currentGUI and real vendor/other database servers unverified."
   }
 }

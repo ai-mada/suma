@@ -1,0 +1,285 @@
+{
+  "stage": "T-EXPERIENCE-133",
+  "date": "2026-10-29",
+  "product_version": "1.0.0",
+  "status": "scoped_service_component_types_locales_and_build_verified_gui_not_verified",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "parent": "3e09a51349bd874a02293d6a6ad5fd520137fefd",
+    "inventory": ".cache/e2e/experience-133/source-inventory.json",
+    "sha256": "f6fd91898198ed5873a1d5230c0f8e042cf2138246b678097705de9d5931d4f8",
+    "owned_files": 32,
+    "policy": "Preserved concurrent committed overview3e09a51 and all foreign staged desktop work; own sources frozen by exact hashes after merge/repair. No full source-copy or duplicate authority."
+  },
+  "implementation": {
+    "project_focus": "Current authorized transactional task/current-run counts; maximum6 per section; stale protected task binding excluded from review; no eligibility or test-pass inference.",
+    "overview": "Preserved whole-project delivery progress, paged attention, milestone/team/application/run paths; optional lazy task planning/original-basis diagnostics, independent503 and shared permission-denial clearing, isolated CSS and CN/EN.",
+    "developer_clients": {
+      "secret_free_project_exports": [
+        "Cursor",
+        "Claude Code",
+        "Codex",
+        "OpenCode"
+      ],
+      "guide_only": [
+        "Qoder",
+        "Zed",
+        "WorkBuddy",
+        "Harness"
+      ],
+      "actual_vendor_connections_verified": false,
+      "source": "docs/integrations/developer-clients.md"
+    },
+    "enterprise_design": "Canonical requirement/architecture/extension/deployment boundaries in docs/product/enterprise-workbench.md; full platform ledger retained."
+  },
+  "checks": {
+    "go_top_tests": [
+      "TestCanonicalTemplateGrammarAndCatalogSnapshot",
+      "TestCatalogKnownMessagesAreBilingualAndKeepMachineFields",
+      "TestProjectFocusBoundedExactCountsAndStableOrder",
+      "TestProjectFocusContractPreservesBoundedReadFacts",
+      "TestProjectFocusCurrentAuthorizationAndStrictHTTP",
+      "TestProjectFocusExactCurrentRunAndDisjointFacts",
+      "TestProjectFocusScopedMissingRunAndReconcilingNode",
+      "TestProjectFocusSucceededSourceDriftAndUnavailableProof"
+    ],
+    "go_count": 8,
+    "web_cases": 67,
+    "new_web_cases": 10,
+    "web_suites": [
+      {
+        "path": "src/developer-connection.test.tsx",
+        "cases": 13
+      },
+      {
+        "path": "src/DeveloperClientConnections.test.tsx",
+        "cases": 4
+      },
+      {
+        "path": "src/ToolSetupGuide.test.tsx",
+        "cases": 7
+      },
+      {
+        "path": "src/ToolWorkspace.test.tsx",
+        "cases": 21
+      },
+      {
+        "path": "src/project-views/ProjectFocus.test.tsx",
+        "cases": 4
+      }
+    ],
+    "full_web_typecheck": true,
+    "catalog_keys": 6673,
+    "production_hardcodes": 0,
+    "web_production_build": true,
+    "generated_contract_check": true,
+    "public_models": 698,
+    "api_paths": 323,
+    "schema_definitions": 699,
+    "go_receipts": [
+      {
+        "path": ".cache/e2e/experience-133/go/20261029T085658525Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./internal/localization",
+          "./cmd/suma-contracts",
+          "-run",
+          "^(TestProjectFocus.*|TestCanonicalTemplateGrammarAndCatalogSnapshot|TestCatalogKnownMessagesAreBilingualAndKeepMachineFields)$",
+          "-json",
+          "-count=1",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 1,
+        "sha256": "61303fec53b568f78ac9b3b95c1364e5859177c6503756f7d4e38b6a2d7e004a",
+        "stdout_sha256": "f1ba917ce4c54be3f84b9ee3e3361dd4f7eaa8ea3c89f1eee53d0d0ac61e869c",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/e2e/experience-133/go/20261029T085835360Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "sha256": "6715013f4081bb53e31ed61df61b95c565ca6c095e18900e635d88bdc3d9386c",
+        "stdout_sha256": "a2116c4f3d46a1a42726b9294e8bb7f30915f9cf1585793eb6d4a70ed2ea29d1",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/e2e/experience-133/go/20261029T090003428Z.command.json",
+        "arguments": [
+          "test",
+          "./cmd/suma-contracts",
+          "-run",
+          "^TestProjectFocusContractPreservesBoundedReadFacts$",
+          "-json",
+          "-count=1",
+          "-timeout",
+          "1m"
+        ],
+        "exit_code": 0,
+        "sha256": "d3edec6fb7bc9dfb70cb893623ffaf1741070ff4726e1278d22a8ee5867f4a12",
+        "stdout_sha256": "e11d185948655a8ed6e386994cd7f662ba5d8c06cf8c671c258b7c7cd5bf1507",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/e2e/experience-133/go/20261029T090348315Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "sha256": "ad7823997349d42fbec368feb33b3c98bb290693667937917de3ade1f9475bbf",
+        "stdout_sha256": "8c8ee3d84db1eb71b836b95b656110a22a99a6b4559b048c3426d6b8301329d0",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/e2e/experience-133/go/20261029T091839103Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "sha256": "7e8248c59d74352530b506257de5afa4eae135ccb2c8d65e06f5c8a28986390f",
+        "stdout_sha256": "afe264ee7961c8dbe5e0411cc2b69af4c82007e3f5b2f336e62fa4389e92914c",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/e2e/experience-133/go/20261029T091905749Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./cmd/suma-contracts",
+          "-run",
+          "^TestProjectFocus",
+          "-json",
+          "-count=1",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 0,
+        "sha256": "dfa977411db2f0e0f56335c6a746ddbd10dee6758710eb9aa6a90f0169a75880",
+        "stdout_sha256": "8bb2a640eda9671ce73bc20961b0ecc85f3de1acbe86c2231dd744f7964cee98",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/e2e/experience-133/go/20261029T092335692Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "sha256": "e3bd19f2c2f56694a81020cb3f66d0c3e5eb034b0231782ce816e6e18a99b26c",
+        "stdout_sha256": "7e7fc3f5bd6abacbb85f9b515561d20155ba1eb31a132a310c7c894342c437b8",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "web_static_checks": [
+      {
+        "check": "typecheck",
+        "arguments": [
+          "node",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit"
+        ],
+        "exit_code": 0,
+        "seconds": 42.321,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "check": "i18n",
+        "arguments": [
+          "node",
+          "scripts/check-i18n.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 2.12,
+        "stdout_sha256": "58d38f996433e4b467253ca94d0cd3f41d2fc4e97a38c3eed39f7ff54231c65f",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "check": "build",
+        "arguments": [
+          "node",
+          "node_modules/vite/bin/vite.js",
+          "build",
+          "--outDir",
+          "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\experience-133\\web-dist"
+        ],
+        "exit_code": 0,
+        "seconds": 72.973,
+        "stdout_sha256": "f08dd2aed4135ed8a71e14263727656e6258e004e94f72cdd71e3ed188236794",
+        "stderr_sha256": "ccb6bf354a0674eeb1e49df9a880a000b75240079fdb849282bb899d81eeb58c"
+      }
+    ],
+    "independent_review": "No evidenced blocker in project/identity endpoint validation, export secret exclusion, stale read/copy scope, or official four formats. Read-only, no extra builds.",
+    "initial_failure": "Contract registration called before api variable declaration. Moved to established registration section; only affected contract test rerun. Backend/localization passed originally; raw exit1 retained.",
+    "initial_web_cases": 49,
+    "integration_web_cases": 22,
+    "integration_initial_passed": 17,
+    "integration_initial_failed": 5,
+    "integration_repair_passed": 5,
+    "unchanged_tool_cases_reused": 45,
+    "source_inventory_verified_unchanged": true,
+    "integration_failure": "Concurrent overview commit/stash restoration caused2 source conflicts, preserved10 versions. Combined sibling components reused the same React key, causing stale UI reconciliation. Namespaced keys;5 failing overview checks passed on targeted rerun.2 old always-mounted request assertions restored to lazy load contract. All original paging/denial/scope assertions retained.",
+    "integrated_web_static_checks": [
+      {
+        "check": "integrated-typecheck",
+        "arguments": [
+          "node",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit"
+        ],
+        "exit_code": 0,
+        "seconds": 22.35,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "check": "integrated-i18n",
+        "arguments": [
+          "node",
+          "scripts/check-i18n.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 2.5,
+        "stdout_sha256": "90b59683eac29fe9ad863eeab3284a5256d40692416d7e9413cb864f2dc73871",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "check": "integrated-build",
+        "arguments": [
+          "node",
+          "node_modules/vite/bin/vite.js",
+          "build",
+          "--outDir",
+          "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\experience-133\\integrated-web-dist"
+        ],
+        "exit_code": 0,
+        "seconds": 59.805,
+        "stdout_sha256": "3e172c3c39f79f0295fb9a9e47665c770f6d6a651f12cf9af38e6b793bb5fc41",
+        "stderr_sha256": "ccb6bf354a0674eeb1e49df9a880a000b75240079fdb849282bb899d81eeb58c"
+      }
+    ],
+    "document_links": 828,
+    "schema_references": 3061,
+    "final_source_inventory_verified_unchanged": true
+  },
+  "limits": [
+    "Actual browser inventory reports local browser use disabled in Work settings; no alternate browser bypass or settings change. GUI rendering, narrow viewport and theme/font checks unverified.",
+    "Actual SQLite and authenticated HTTP handler fixtures only; OceanBase/PostgreSQL query dialects implemented but not exercised on real servers in this stage.",
+    "Exported files are configuration fragments, not vendor login, live connection, CLI execution, model health or full tool parity.",
+    "No model calls, remote probes, installations, deployment, production acceptance, new dependency, SDK rebuild or repeated full suite.",
+    "Existing large Vite chunks remain; this stage makes no capacity/SLO/performance claim."
+  ]
+}

@@ -586,6 +586,18 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch {
+	case path == "project-focus" && r.Method == http.MethodGet:
+		// Focus is a scoped read model over formal task/run facts. Its current
+		// authorization and bounded SQL snapshot live in the domain service;
+		// neither URL filters nor cached browser counts can redefine its scope.
+		values := r.URL.Query()
+		if len(values) != 1 || len(values["project_id"]) != 1 || values.Get("project_id") != project {
+			writeError(w, invalid("Invalid project focus query"))
+			return
+		}
+		w.Header().Set("Cache-Control", "no-store")
+		out, err := s.Service.GetProjectFocus(ctx, actor, project)
+		respond(w, http.StatusOK, out, err)
 	case parts[0] == "workspace":
 		if s.workspaceDesktopBindingHTTP(w, r, actor, project, path, m) {
 			return

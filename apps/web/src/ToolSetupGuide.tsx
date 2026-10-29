@@ -4,6 +4,7 @@ import {tr as t,useLocale} from './i18n';
 import './ToolSetupGuide.css';
 import {OctopHarnessSetup} from './OctopHarnessSetup';
 import {octopHarnessPreset} from './octop-execution-model';
+import {DeveloperClientConnections} from './DeveloperClientConnections';
 
 type Preset='junit'|'operations'|'codex'|'codebuddy'|'harness'|'planner'|'extractor'|'diagnosis'|'native-coder'|'octop'|'recommendation';
 // These are local administrator templates, never a registration or live
@@ -22,7 +23,7 @@ const presets={
  harness:{'harness-develop':{adapter:'harness',protocol:'dsh-multica-jsonl-v1',executable:'dsh',args:['--profile','multica','--stdio'],input:'dsh-jsonl',read_only:false}},
 } as const;
 
-export function ToolSetupGuide({id,expanded,onExpandedChange}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void}={}){
+export function ToolSetupGuide({id,expanded,onExpandedChange,project}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string}={}){
  useLocale();
  const [selected,setSelected]=useState<Preset>('codex'),[copied,setCopied]=useState(''),[failed,setFailed]=useState(false);
  const [launchMode,setLaunchMode]=useState<'native'|'node'>('native'),[entry,setEntry]=useState('');
@@ -69,6 +70,7 @@ export function ToolSetupGuide({id,expanded,onExpandedChange}:{id?:string;expand
    <p className="muted">{t('cli-setup.shared_pool')}</p>
    <p className="muted">{t('cli-setup.boundary')}</p>
    </>}
+   {project&&<DeveloperClientConnections project={project}/>}
   </div>
  </details>;
 }
