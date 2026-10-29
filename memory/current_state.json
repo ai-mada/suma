@@ -1,5 +1,15 @@
 {
   "project": "suma",
+  "workbuddy_cloud_submission": {
+    "stage": "T-WORKBUDDY-143",
+    "date": "2026-10-30",
+    "status": "internal_foundation_verified_not_dispatchable",
+    "contract": "contracts/workbuddy-cloud-submission.md",
+    "architecture": "docs/architecture/workbuddy-cloud-submission.md",
+    "report": "docs/quality/workbuddy-cloud-submission-verification.md",
+    "verification": "27 deduplicated Go checks: 8 protocol, 14 journal/composition/model recovery, 5 terminal recovery regressions. Actual loopback HTTP and durable restart/failure fixtures; no UI change.",
+    "limits": "Not registered for dispatch. OAuth/current authorization, ACP, budgets, artifacts/candidates, independent testing, vendor and multi-host acceptance remain. Full platform goal continues."
+  },
   "shared_task_views": {
     "stage": "T-VIEWS-138",
     "date": "2026-10-29",

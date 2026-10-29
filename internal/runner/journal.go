@@ -16,16 +16,17 @@ import (
 )
 
 type entry struct {
-	Assignment        Assignment                `json:"assignment"`
-	Result            *Result                   `json:"result,omitempty"`
-	Acked             bool                      `json:"acked"`
-	Progress          []Progress                `json:"progress,omitempty"`
-	ProgressTruncated bool                      `json:"progress_truncated,omitempty"`
-	ArtifactPending   *artifactTransfer         `json:"artifact_pending,omitempty"`
-	CandidatePending  *candidateTransfer        `json:"candidate_pending,omitempty"`
-	ModelGateway      *modelGatewayCheckpoint   `json:"model_gateway,omitempty"`
-	WorkspaceTrace    *workspaceTraceCheckpoint `json:"workspace_trace,omitempty"`
-	Terminal          *terminalCheckpoint       `json:"terminal,omitempty"`
+	Assignment        Assignment                  `json:"assignment"`
+	Result            *Result                     `json:"result,omitempty"`
+	Acked             bool                        `json:"acked"`
+	Progress          []Progress                  `json:"progress,omitempty"`
+	ProgressTruncated bool                        `json:"progress_truncated,omitempty"`
+	ArtifactPending   *artifactTransfer           `json:"artifact_pending,omitempty"`
+	CandidatePending  *candidateTransfer          `json:"candidate_pending,omitempty"`
+	ModelGateway      *modelGatewayCheckpoint     `json:"model_gateway,omitempty"`
+	WorkspaceTrace    *workspaceTraceCheckpoint   `json:"workspace_trace,omitempty"`
+	Terminal          *terminalCheckpoint         `json:"terminal,omitempty"`
+	WorkBuddy         *workBuddyJournalCheckpoint `json:"workbuddy,omitempty"`
 }
 type Journal struct {
 	mu                    sync.Mutex
@@ -89,6 +90,11 @@ func OpenJournal(dir string) (*Journal, error) {
 		return nil, err
 	}
 	for k, e := range j.entries {
+		if e.WorkBuddy != nil {
+			if err = validWorkBuddyCheckpoint(e.Assignment, k, *e.WorkBuddy); err != nil || workBuddyMixed(e) {
+				return nil, fmt.Errorf("invalid WorkBuddy checkpoint or mixed execution channel")
+			}
+		}
 		if e.Terminal != nil {
 			if err = j.validateTerminalCheckpoint(e.Assignment, *e.Terminal); err != nil {
 				return nil, err

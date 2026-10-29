@@ -1,0 +1,28 @@
+{
+  "stage": "T-WORKBUDDY-143",
+  "date": "2026-10-30",
+  "version": "1.0.0",
+  "status": "internal_foundation_verified_not_dispatchable",
+  "base": "86fb65e",
+  "full_platform_complete": false,
+  "scope": "Internal WorkBuddy cloud task HTTP protocol, original-attempt durable preparation and exact-task read recovery; not registered for execution",
+  "verification": {
+    "deduplicated_top_level_go": 27,
+    "protocol": {"passed": 8, "seconds": 0.219},
+    "journal_and_composition": {"passed": 14, "seconds": 0.539},
+    "terminal_regressions": {"passed": 5, "seconds": 7.621},
+    "changed_files_diff_check": "passed",
+    "browser": "not_applicable_no_UI_change",
+    "vendor_task": "not_executed",
+    "physical_multi_host": "not_verified"
+  },
+  "evidence": [
+    ".cache/workbuddy-143/protocol-tests.log",
+    ".cache/workbuddy-143/journal-tests.jsonl",
+    ".cache/workbuddy-143/terminal-regression.jsonl",
+    ".cache/workbuddy-143/journal-summary.json"
+  ],
+  "invariants": ["At most one create permit per durable original assignment", "Prepared never automatically re-posts", "Known task queries exact original ID", "Credential/request/scope drift fails closed", "ACP and provider credentials are excluded from returned task facts", "Unknown provider states do not imply acceptance"],
+  "remaining": ["OAuth authorization and installation", "Server-current eligibility and credential ownership", "ACP progress and human input", "Usage and budget admission", "Artifacts and fixed code candidate", "Independent testing and acceptance", "Vendor and distributed verification"],
+  "existing_GUI_stages": "139/140/141/142 remain independently pending; no browser acceptance inferred"
+}

@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-143：[协议与持久提交验证](workbuddy-cloud-submission-verification.md)／[摘要](workbuddy-cloud-submission-summary.json)。27项去重Go通过，覆盖准确HTTP、单次准备、并发／重启、未知不重发、保存失败及原终端恢复。仅内部底层，未开放为可派发云工具；正式OAuth、ACP、预算、候选、厂商与多机验收继续待办。本阶段没有UI变更，139–142的GUI待验状态保留。
+
 T-INBOX-138：[个人收件箱限定验证](notification-inbox-verification.md)与[摘要](notification-inbox-summary.json)。37个Go顶层、完整Web1510项、类型／7079双语／合同／隔离构建，以及23项实际浏览器和7项真实Suma CLI检查通过；原始失败及修复保留。仅任务分配来源，完整通知／工具／数据库／规模仍待交付，58／34／92不变。
 
 T-TASKS-137：[统一任务工作台限定验证](task-collection-verification.md)与[摘要](task-collection-summary.json)。当前权限、统一行查询／字面条件、四种排序、三类有界分组、独立列分页、命名偏好、纳秒排序与恢复已定向检查；实际界面证据与最终源码差异分别记录。完整平台／其他数据库／规模和厂商仍待交付，58／34／92不变。

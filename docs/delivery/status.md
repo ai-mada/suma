@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-143已验证云任务协议与持久单次提交底层，27项去重Go通过，见[合同](../../contracts/workbuddy-cloud-submission.md)、[架构](../architecture/workbuddy-cloud-submission.md)与[专项证据](../quality/workbuddy-cloud-submission-verification.md)。此阶段没有UI变更；正式OAuth、ACP、当前资格／预算、云候选和真实厂商接入仍待实施。内部模块尚未开放为可派发工具，139–142的独立GUI待验项及完整平台范围保留。
+
 T-INBOX-138限定实现当前人员任务分配收件箱：原事务真实来源、规范接收人、当前权限／来源水合、序号分页、本人已读与归档、原操作恢复，以及同源Suma CLI。见[合同](../../contracts/notification-inbox.md)、[产品要求](../product/notification-inbox.md)、[架构](../architecture/notification-inbox.md)、[交互与AI SOP](../design/notification-inbox.md)及[实际验证](../quality/notification-inbox-verification.md)。讨论提及、审批／告警多源路由、订阅偏好与通道outbox仍待交付，58／34／92不变。
 
 T-VIEWS-138已限定交付服务端个人／项目共享任务视图、在线跨设备读取、版本冲突比较、原操作重试与归档墓碑，并保留本机原件。9项Go领域、3项CLI、43项Web回归以及24项实际浏览器、7项真实CLI检查通过，见[证据](../quality/shared-task-views-verification.md)与[合同](../../contracts/shared-task-views.md)。同人双浏览器不代表物理多机；离线同步、实时协作、工具扩展与全平台目标继续待办，58／34／92不变。以下早期阶段的“共享视图待办”由本条限定范围推进。
