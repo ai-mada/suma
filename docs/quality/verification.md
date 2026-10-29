@@ -1,6 +1,8 @@
 # 1.0.0 验证入口
 
-T-WORKBUDDY-143：[协议与持久提交验证](workbuddy-cloud-submission-verification.md)／[摘要](workbuddy-cloud-submission-summary.json)。27项去重Go通过，覆盖准确HTTP、单次准备、并发／重启、未知不重发、保存失败及原终端恢复。仅内部底层，未开放为可派发云工具；正式OAuth、ACP、预算、候选、厂商与多机验收继续待办。本阶段没有UI变更，139–142的GUI待验状态保留。
+T-ADAPTERS-139：[限定验证](adapter-connections-verification.md)／[摘要](adapter-connections-summary.json)。状态scoped_verified，覆盖此前139待验状态。复用43项独立Web（11项复验包含在内）、9项Go、类型／7156语言键和合同检查；用户重新授权后新增25项真实GUI通过，覆盖中英、桌面／390px、明暗及键盘代表性流程，修复移动标题被固定页头遮挡。53.28秒隔离构建来自当前合成前端工作区，与既有139后端核验本阶段API和交互；不表示其他在途页面、厂商执行或生产验收。审批容量拒绝、恢复和缺陷证据均保留。
+
+T-WORKBUDDY-143：[协议与持久提交验证](workbuddy-cloud-submission-verification.md)／[摘要](workbuddy-cloud-submission-summary.json)。27项去重Go通过，覆盖准确HTTP、单次准备、并发／重启、未知不重发、保存失败及原终端恢复。仅内部底层，未开放为可派发云工具；正式OAuth、ACP、预算、候选、厂商与多机验收继续待办。本阶段没有UI变更，其他阶段分别验收，以各自当前记录为准。
 
 T-INBOX-138：[个人收件箱限定验证](notification-inbox-verification.md)与[摘要](notification-inbox-summary.json)。37个Go顶层、完整Web1510项、类型／7079双语／合同／隔离构建，以及23项实际浏览器和7项真实Suma CLI检查通过；原始失败及修复保留。仅任务分配来源，完整通知／工具／数据库／规模仍待交付，58／34／92不变。
 

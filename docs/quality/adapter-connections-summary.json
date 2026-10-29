@@ -1,0 +1,277 @@
+{
+  "stage": "T-ADAPTERS-139",
+  "date": "2026-10-30",
+  "product_version": "1.0.0",
+  "baseline": "86fb65e1168bd84f92aa8d758204e34b4d04f6a3",
+  "status": "scoped_verified",
+  "scope": "Current-authorized source adapter catalog and exact links into existing configuration flows; no new vendor execution adapter",
+  "environment": {
+    "os": "Windows",
+    "go": "1.26.10",
+    "node": "22.16.0",
+    "scratch": "repository .cache only"
+  },
+  "backend": {
+    "top_level_passed": 9,
+    "toolcontract": 6,
+    "platform": 3
+  },
+  "web": {
+    "files": 5,
+    "passed": 43,
+    "failed": 0,
+    "duration_seconds": 9.31,
+    "receipt": "original tool execution output; not rerun for JSON",
+    "affected_rerun": {
+      "files": 2,
+      "passed": 11,
+      "duration_seconds": 6.29,
+      "included_in_unique_total": true
+    }
+  },
+  "typecheck": "passed",
+  "localization": {
+    "paired_keys": 7156,
+    "production_hardcoded": 0,
+    "status": "passed"
+  },
+  "generator": {
+    "full_package_tests": "passed",
+    "duration_seconds": 0.961,
+    "generate": "passed",
+    "check": "passed",
+    "go_models": 730,
+    "api_paths": 338,
+    "openapi_schemas_including_error": 731,
+    "added_paths": [
+      "/adapter-catalog"
+    ],
+    "added_schemas": [
+      "AdapterCapability",
+      "AdapterCatalogPage",
+      "AdapterDescriptor"
+    ],
+    "changed_existing_paths": [],
+    "changed_existing_schemas": [],
+    "existing_typescript_unchanged": true,
+    "evidence_directory": ".cache/adapter-catalog/contracts"
+  },
+  "browser": {
+    "status": "scoped_verified",
+    "preview": "http://127.0.0.1:43959",
+    "method": "Built-in browser, actual control API and SQLite fixture",
+    "passed": 25,
+    "checks": [
+      {
+        "name": "keyboard opens native directory",
+        "passed": true
+      },
+      {
+        "name": "search has explicit empty result",
+        "passed": true
+      },
+      {
+        "name": "WorkBuddy cloud is planned with corrected limitation",
+        "passed": true
+      },
+      {
+        "name": "planned cloud has no setup action",
+        "passed": true
+      },
+      {
+        "name": "CodeBuddy CLI has an independent entry",
+        "passed": true
+      },
+      {
+        "name": "Harness explains concrete runtime verification",
+        "passed": true
+      },
+      {
+        "name": "Harness opens concrete DSH profile guide",
+        "passed": true
+      },
+      {
+        "name": "Harness guide names exact fixed protocol",
+        "passed": true
+      },
+      {
+        "name": "Codex app-server opens exact protocol form",
+        "passed": true
+      },
+      {
+        "name": "empty actual inventory cannot save a configuration",
+        "passed": true
+      },
+      {
+        "name": "keyboard closes configuration without writing",
+        "passed": true
+      },
+      {
+        "name": "reverse MCP direction has seven distinct clients",
+        "passed": true
+      },
+      {
+        "name": "Qoder selects its manual client guide",
+        "passed": true
+      },
+      {
+        "name": "Codex selects its client configuration",
+        "passed": true
+      },
+      {
+        "name": "client configuration references token environment and project",
+        "passed": true
+      },
+      {
+        "name": "folding and reopening preserves selected client",
+        "passed": true
+      },
+      {
+        "name": "390px has no document horizontal overflow",
+        "passed": true
+      },
+      {
+        "name": "English mobile connection details are localized",
+        "passed": true
+      },
+      {
+        "name": "fixed header does not obscure mobile detail title after repair",
+        "passed": true
+      },
+      {
+        "name": "English dark mobile remains within 390px",
+        "passed": true
+      },
+      {
+        "name": "desktop dark has no horizontal overflow",
+        "passed": true
+      },
+      {
+        "name": "Chinese light mobile keeps runtime title visible",
+        "passed": true
+      },
+      {
+        "name": "stop request does not become host stop proof",
+        "passed": true
+      },
+      {
+        "name": "protocol source remains available on demand",
+        "passed": true
+      },
+      {
+        "name": "catalog collapses while daily configurations remain accessible",
+        "passed": true
+      }
+    ],
+    "failures_repaired": [
+      {
+        "name": "mobile detail title hidden by fixed header",
+        "fix": "scroll-margin-top 88px",
+        "verified": true
+      }
+    ],
+    "automation_corrections": [
+      "press native summary instead of child span",
+      "use visible Open client configuration label"
+    ],
+    "final_artifact_reviewed": true,
+    "receipt": "dist/quality/adapter-139/browser-final-summary.json",
+    "history": [
+      "2026-10-29: final origin approval rejected due to review model capacity; verification stopped without alternate route.",
+      "2026-10-30: user explicitly authorized resumed browser verification; final scoped checks passed."
+    ],
+    "scope": "Only T-ADAPTERS-139 catalog and exact existing configuration flows; not acceptance of 140/141/142 pages or vendor execution",
+    "screenshots": [
+      {
+        "path": "dist/quality/adapter-139/final-cn-desktop-light.jpg",
+        "sha256": "ca45ec4f6a16176927905e7bd08d18d408f802ba9378bdc8b9d260c7f231f616"
+      },
+      {
+        "path": "dist/quality/adapter-139/final-cn-mobile-light.jpg",
+        "sha256": "276e18225aafb33f113ca6e6bf8ab809afb51ef03d583bf690947dc0934e5f99"
+      },
+      {
+        "path": "dist/quality/adapter-139/final-en-mobile-dark.jpg",
+        "sha256": "e1edc1c652afc31339c78b6392c9934e1e8cec0f2c0ebe7f248e70f51a96ac67"
+      }
+    ],
+    "before_repair": {
+      "path": "dist/quality/adapter-139/before-scroll-offset-cn-mobile.jpg",
+      "sha256": "becc0b7da12d57a319692b54509758322641141ee9656c9eb31c07777fa01d6d"
+    }
+  },
+  "build": {
+    "status": "passed",
+    "frontend": {
+      "command": "node node_modules/vite/bin/vite.js build --outDir ../../.cache/adapter-139/web-acceptance",
+      "exit_code": 0,
+      "seconds": 53.28,
+      "change": "Mobile detail scroll-margin-top:16px -> 88px; fixed-header title overlap repaired",
+      "warning": "Existing chunks over500kB",
+      "validation": "Actual final scoped browser journey; control binary unchanged"
+    },
+    "backend": {
+      "overlay": "Committed HEAD cmd/suma-control/main.go used instead of unrelated desktop work",
+      "exit_code": 0,
+      "go": "1.26.10",
+      "proxy": "off",
+      "cgo": 0,
+      "command": ".cache/toolchains/go1.26.10/go/bin/go.exe build -overlay .cache/adapter-139/overlay.json -o .cache/adapter-139/bin/suma-control-verified.exe ./cmd/suma-control",
+      "cache": ".cache/adapter-139/go-cache",
+      "temp": ".cache/adapter-139/tmp"
+    },
+    "evidence": ".cache/adapter-139/build-verified-summary.json",
+    "evidence_kind": "Post-build file snapshot, not independently captured compiler input manifest",
+    "artifacts": {
+      "web_index_sha256": "7924cd7a2352713cb19bccea1a0543fa713ce85b87bc18cbb76e7676d7680ea5",
+      "control_sha256": "d0658f43eb0f9d1a47720d189c3c5ad1aa43d1420eb667f6ef2ac755da4d8ecf"
+    },
+    "previous_frontend": {
+      "warning": "Existing chunks over500kB",
+      "command": "node node_modules/vite/bin/vite.js build --outDir ../../.cache/adapter-139/web-verified",
+      "exit_code": 0,
+      "seconds": 41.27
+    },
+    "previous_artifacts": {
+      "web_index_sha256": "3c3bca9bb0bd6d2f01bc78356d8389dff9ad7dac105432b0fd0736468b3a9575",
+      "control_sha256": "d0658f43eb0f9d1a47720d189c3c5ad1aa43d1420eb667f6ef2ac755da4d8ecf"
+    },
+    "evidence_scope": "Earlier web-verified receipt retained; final acceptance build time supplied by integrator, artifact hashes read from actual files. No complete compiler-input claim.",
+    "acceptance_receipt": ".cache/adapter-139/acceptance-after.json",
+    "selected_source_snapshot": {
+      "before": ".cache/adapter-139/acceptance-before.json",
+      "after": ".cache/adapter-139/acceptance-after.json",
+      "changed": [],
+      "files": {
+        "apps/web/src/DeveloperClientConnections.tsx": "30a811c531524e16fc270230a9cab00d831fe6c7ebf68a83e2e43038886d4c87",
+        "apps/web/src/ToolWorkspace.tsx": "956b22c09521c0d291ea4dcff823511f28045e47662a7f957d825cbf1d76fa6d",
+        "apps/web/src/AdapterConnections.css": "48699e607931174a34d447b6b626a7733f6f63e1923afc8b592710ff8909106e",
+        "apps/web/src/AdapterConnections.tsx": "15cb0f838d996a4ac4ebfefe87f4e5f260de60affa2ca412f1df36658012da7f",
+        "apps/web/src/ToolSetupGuide.tsx": "f1da5f324a9344b00430bf9a6022d0097db3fa4cd810e50733ff953d22cd0136"
+      },
+      "scope": "Five selected 139 sources stable during acceptance build; not a full compiler input manifest or equality to old web-verified bundle"
+    },
+    "acceptance_workspace": "Current composite frontend workspace includes other pending App/140/141/142 work; paired with existing 139 control binary for 25 scoped catalog/current-API checks only. Not a hermetic 139-only build or acceptance of other pages/APIs."
+  },
+  "new_dependencies": 0,
+  "multica_reference": {
+    "commit": "2083970b51c03c0773188636c24a96acd09ad4c3",
+    "use": "behavior reference only; no source/style/brand copied"
+  },
+  "limitations": [
+    "No vendor model or task invocation",
+    "No real installation or physical multi-host acceptance",
+    "No production deployment",
+    "WorkBuddy cloud remains planned and distinct from CodeBuddy CLI",
+    "Stop proof and profile candidate readiness remain evidence-dependent",
+    "Inbox and shared-view evidence is not counted in this stage"
+  ],
+  "http": {
+    "html_matches": true,
+    "catalog_count": 20,
+    "harness_runtime_limit_verified": true,
+    "scope": "Actual isolated HTTP; does not prove browser or vendor acceptance"
+  },
+  "commit": "Scoped verification complete; integrator prepares isolated stage commit. No commit/push performed by documentation agent.",
+  "submission_baseline": "00a0b0c8da55236b75a709dcb9a79c19f0e60bc8"
+}

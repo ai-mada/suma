@@ -41,6 +41,191 @@
         ],
         "type": "object"
       },
+      "AdapterCapability": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "enum": [
+              "task_start",
+              "history_read",
+              "session_load",
+              "new_turn",
+              "interrupted_resume",
+              "cancel_request",
+              "terminal_observation",
+              "host_stop_proof",
+              "usage_observation",
+              "provider_billing",
+              "candidate_capture",
+              "independent_test",
+              "model_selection",
+              "gateway_budget",
+              "workspace_read",
+              "workspace_write",
+              "human_input",
+              "configuration_export",
+              "project_access"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "limitations": {
+            "description": "Machine-readable limitation codes for localized explanatory text, not executable actions.",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "source_refs": {
+            "description": "Stable repository source or contract references. These do not authorize commands or expose secrets.",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "support": {
+            "description": "Source capability for this exact entrypoint. Missing verification never implies supported.",
+            "enum": [
+              "supported",
+              "unsupported",
+              "unverified"
+            ],
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "support",
+          "source_refs",
+          "limitations"
+        ],
+        "type": "object"
+      },
+      "AdapterCatalogPage": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AdapterDescriptor"
+            },
+            "maxItems": 64,
+            "readOnly": true,
+            "type": "array"
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "as_of",
+          "items"
+        ],
+        "type": "object"
+      },
+      "AdapterDescriptor": {
+        "additionalProperties": false,
+        "properties": {
+          "adapter": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "capabilities": {
+            "items": {
+              "$ref": "#/components/schemas/AdapterCapability"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "direction": {
+            "description": "suma_to_tool executes through the declared Suma adapter; tool_to_suma connects an external client to Suma. Neither implies the reverse direction.",
+            "enum": [
+              "suma_to_tool",
+              "tool_to_suma"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "entrypoint_kind": {
+            "enum": [
+              "cli",
+              "sdk",
+              "app_server",
+              "mcp_client",
+              "cloud_api"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "implementation": {
+            "description": "Implementation state of this exact entrypoint, not provider health or project dispatch eligibility.",
+            "enum": [
+              "implemented",
+              "guide_only",
+              "planned"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "limitations": {
+            "description": "Machine-readable limitation codes for localized explanatory text, not executable actions.",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "product": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "protocol": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "setup_kind": {
+            "enum": [
+              "runner_profile",
+              "client_export",
+              "manual_guide"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "source_refs": {
+            "description": "Stable repository source or contract references. These do not authorize commands or expose secrets.",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "product",
+          "entrypoint_kind",
+          "direction",
+          "implementation",
+          "setup_kind",
+          "capabilities",
+          "source_refs",
+          "limitations"
+        ],
+        "type": "object"
+      },
       "ApplicationCodeScope": {
         "additionalProperties": false,
         "properties": {
@@ -36458,6 +36643,166 @@
           "runner"
         ],
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/adapter-catalog": {
+      "get": {
+        "description": "Current human project-authorized read of maintained source adapter capabilities and connection directions. Implemented is source support, not installed, healthy, authorized to execute or vendor-verified. No credentials, runtime observations or task execution are returned. Unknown or duplicate query fields are rejected; only project_id is accepted. Response is no-store.",
+        "operationId": "get_adapter-catalog",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdapterCatalogPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
       }
     },
     "/agent/tools": {

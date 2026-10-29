@@ -8,6 +8,30 @@ export interface AccountPreferences {
 export interface Acknowledgement {
   acknowledged: boolean;
 }
+export interface AdapterCapability {
+  key: string;
+  support: string;
+  source_refs: (string)[];
+  limitations: (string)[];
+}
+export interface AdapterCatalogPage {
+  project_id: string;
+  as_of: string;
+  items: (AdapterDescriptor)[];
+}
+export interface AdapterDescriptor {
+  id: string;
+  product: string;
+  entrypoint_kind: string;
+  direction: string;
+  adapter?: string;
+  protocol?: string;
+  implementation: string;
+  setup_kind: string;
+  capabilities: (AdapterCapability)[];
+  source_refs: (string)[];
+  limitations: (string)[];
+}
 export interface ApplicationCodeScope {
   id: string;
   target_id: string;

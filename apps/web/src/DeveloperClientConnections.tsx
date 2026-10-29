@@ -9,11 +9,12 @@ import {developerClientArtifact,developerClients,type DeveloperClientID} from '.
 import './DeveloperClientConnections.css';
 
 type Snapshot={project:string;api:ApiCaller;revision:number;data?:DeveloperConnectionMetadata;error?:unknown};
-export function DeveloperClientConnections({project}:{project:string}){
+export function DeveloperClientConnections({project,request}:{project:string;request?:{client:DeveloperClientID;nonce:number}}){
  const api=useApi(),view=useApiView(),locale=useLocale(),id=useId();
  const [open,setOpen]=useState(false),[client,setClient]=useState<DeveloperClientID>('cursor'),[revision,setRevision]=useState(0),[snapshot,setSnapshot]=useState<Snapshot>(),[feedback,setFeedback]=useState<'copied'|'downloaded'|'manual'>();
  const epoch=useRef(0),action=useRef(0),currentContext=useRef(''),fallback=useRef<HTMLTextAreaElement>(null);
  const user=view?.userID,organization=view?.organizationID;
+ useEffect(()=>{if(request&&developerClients.some(item=>item.id===request.client)){setClient(request.client);setOpen(true);setFeedback(undefined);}},[request?.client,request?.nonce]);
  useEffect(()=>{
   const current=++epoch.current,controller=new AbortController();setSnapshot(undefined);setFeedback(undefined);++action.current;
   if(open&&project)void api<unknown>('/developer-connection'+query(project),undefined,'GET',undefined,controller.signal).then(value=>{

@@ -1,4 +1,4 @@
-import {useId,useState} from 'react';
+import {useEffect,useId,useState} from 'react';
 import {Check,Copy,Terminal} from 'lucide-react';
 import {tr as t,useLocale} from './i18n';
 import './ToolSetupGuide.css';
@@ -23,9 +23,10 @@ const presets={
  harness:{'harness-develop':{adapter:'harness',protocol:'dsh-multica-jsonl-v1',executable:'dsh',args:['--profile','multica','--stdio'],input:'dsh-jsonl',read_only:false}},
 } as const;
 
-export function ToolSetupGuide({id,expanded,onExpandedChange,project}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string}={}){
+export function ToolSetupGuide({id,expanded,onExpandedChange,project,presetRequest}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void;project?:string;presetRequest?:{preset:'harness'|'octop';nonce:number}}={}){
  useLocale();
  const [selected,setSelected]=useState<Preset>('codex'),[copied,setCopied]=useState(''),[failed,setFailed]=useState(false);
+ useEffect(()=>{if(presetRequest){setSelected(presetRequest.preset);setCopied('');setFailed(false);}},[presetRequest?.preset,presetRequest?.nonce]);
  const [launchMode,setLaunchMode]=useState<'native'|'node'>('native'),[entry,setEntry]=useState('');
  const entryHint=useId();
  const [model,setModel]=useState(''),[endpoint,setEndpoint]=useState('');

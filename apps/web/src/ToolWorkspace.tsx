@@ -40,6 +40,9 @@ import {ToolDiscoveryPanel} from './ToolDiscoveryPanel';
 import "./tool.css";
 import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
+import {AdapterConnections,type AdapterDescriptor} from './AdapterConnections';
+import {DeveloperClientConnections} from './DeveloperClientConnections';
+import type {DeveloperClientID} from './developer-client-connections-model';
 import type { ProjectPoolRunnerPage } from "../../../packages/contracts/src";
 import {
   ToolIdentity,
@@ -56,7 +59,7 @@ type Props = {
   panel: string;
 };
 type Dialog =
-  | { kind: "create" }
+  | { kind: "create"; adapter?:AdapterDescriptor }
   | { kind: "worker" }
   | {
       kind: "decision";
@@ -89,6 +92,8 @@ export function ToolWorkspace({
     [receipt, setReceipt] = useState<{key:string;name:string;scope:string}>();
   const contextKey=JSON.stringify([session.organization.id,session.user.id,project]);
   const guideID = useId();
+  const [connectionSelection,setConnectionSelection]=useState<{context:string;nonce:number;client?:DeveloperClientID;preset?:'harness'|'octop'}>();
+  const connection=connectionSelection?.context===contextKey?connectionSelection:undefined;
   const recovery = useMemo(
     () =>
       new ToolWriteRecovery(session.organization.id +
@@ -158,8 +163,18 @@ export function ToolWorkspace({
     setDialog({kind:'create'});
   }
   function openGuide() {
+    setConnectionSelection(undefined);
     setGuideOpen(true);
     requestAnimationFrame(() => document.getElementById(guideID)?.querySelector('summary')?.focus());
+  }
+  function setupConnection(descriptor:AdapterDescriptor){
+    if(pending||action.busy||!canLeave()||descriptor.implementation==='planned')return;
+    if(descriptor.direction==='suma_to_tool'&&descriptor.setup_kind==='runner_profile'&&descriptor.implementation==='implemented'&&descriptor.adapter&&descriptor.protocol){
+      action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'create',adapter:descriptor});return;
+    }
+    const clients:Record<string,DeveloperClientID>={'cursor-client':'cursor','claude-code-client':'claude-code','codex-client':'codex','opencode-client':'opencode','qoder-client':'qoder','zed-client':'zed','workbuddy-connector':'workbuddy'};
+    if(descriptor.direction==='tool_to_suma'&&clients[descriptor.id]){setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,client:clients[descriptor.id]}));setGuideOpen(true);return;}
+    if(descriptor.id==='harness-guide'&&descriptor.setup_kind==='manual_guide'){setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,preset:'harness'}));setGuideOpen(true);}
   }
   function saved(path: string, value: unknown) {
     setDialog(undefined);
@@ -198,7 +213,15 @@ export function ToolWorkspace({
           {t("development.tools.return_to_task_dispatch")}</a>
       </div>
       <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={pending || action.busy} onWorker={() => { action.clearError(); setDialog({kind:'worker'}); }} onRegister={openRegister} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
-      <ToolSetupGuide project={project} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen}/>
+      <details className="panel adapter-catalog-disclosure" key={contextKey}>
+        <summary>
+          <ChevronRight aria-hidden="true" size={20}/>
+          <span className="adapter-catalog-disclosure-copy"><strong>{t('adapter-connections.title')}</strong><span>{t('adapter-connections.intro')}</span></span>
+          <span className="adapter-catalog-disclosure-action"><span className="when-closed">{t('adapter-connections.open_catalog')}</span><span className="when-open">{t('adapter-connections.close_catalog')}</span></span>
+        </summary>
+        <AdapterConnections project={project} onSetup={setupConnection}/>
+      </details>
+      {connection?.client?<section className="panel"><button type="button" onClick={openGuide}>{t('adapter-connections.return_guide')}</button><DeveloperClientConnections key={contextKey} project={project} request={{client:connection.client,nonce:connection.nonce}}/></section>:<ToolSetupGuide project={project} id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen} presetRequest={connection?.preset?{preset:connection.preset,nonce:connection.nonce}:undefined}/>}
       {returnRun && (
         <a
           onClick={(event) => {
@@ -499,8 +522,9 @@ export function ToolWorkspace({
         )}
         {dialog?.kind === "create" && (
           <ToolProfileForm
-            key={contextKey}
+            key={contextKey+":"+(dialog.adapter?.id||"")}
             project={project}
+            adapter={dialog.adapter}
             workers={workers}
             sharedWorkers={sharedWorkers}
             action={action}
@@ -615,6 +639,7 @@ export function ToolWorkspace({
 }
 function ToolProfileForm({
   project,
+  adapter,
   workers,
   sharedWorkers,
   action,
@@ -622,6 +647,7 @@ function ToolProfileForm({
   onCancel,
 }: {
   project: string;
+  adapter?:AdapterDescriptor;
   workers: IdentityRead;
   sharedWorkers: SharedIdentityRead;
   action: ToolAction;
@@ -639,13 +665,15 @@ function ToolProfileForm({
     [source,setSource] = useState<'none'|'manual'|'discovery'>('none'),
     [manualRevision,setManualRevision] = useState(0),
     [worker, setWorker] = useState("");
-  const selected = observations.find(
+  const matchesAdapter=(item:ToolObservation)=>!adapter||(item.profile.adapter===adapter.adapter&&item.profile.protocol===adapter.protocol);
+  const matchingObservations=observations.filter(matchesAdapter);
+  const selected = matchingObservations.find(
       (item) => item.profile.command_id === command,
     ),
     blocked = action.busy || !!action.pending;
   const formID=useId();
   const identityReady=!!currentToolIdentity(worker,workers,sharedWorkers);
-  const next=!identityReady?'identity':importing?'reading':!manifest.trim()?'inventory':error?'invalid':!observations.length?'empty':!selected?.available?'choose':!name.trim()?'name':'ready';
+  const next=!identityReady?'identity':importing?'reading':!manifest.trim()?'inventory':error?'invalid':!matchingObservations.length?'empty':!selected?.available?'choose':!name.trim()?'name':'ready';
   function inspectManifest(text:string) {
     setManifest(text);
     setObservations([]);
@@ -654,7 +682,7 @@ function ToolProfileForm({
     if (!text.trim()) return;
     try {
       const rows = parseToolManifest(text);
-      const available = rows.filter(item=>item.available);
+      const available = rows.filter(item=>item.available&&matchesAdapter(item));
       setObservations(rows);
       if (available.length===1) {
         setCommand(available[0].profile.command_id);
@@ -689,6 +717,8 @@ function ToolProfileForm({
       }}
     >
       {!!submitError && <ErrorNotice error={renderDiagnostic(submitError)} />}
+      {adapter&&<div className="tool-form-intro" role="status"><strong>{adapter.product}</strong><p>{t('adapter-connections.selected_execution',{adapter:adapter.adapter||'',protocol:adapter.protocol||''})}</p></div>}
+      {adapter&&manifest.trim()&&!error&&!matchingObservations.length&&<p className="warning" role="status">{t('adapter-connections.no_matching_inventory')}</p>}
       <p className="tool-form-intro">
         {t('tool-discovery.form_intro')}</p>
       <fieldset className="form-fields" disabled={blocked}>
@@ -723,9 +753,9 @@ function ToolProfileForm({
         </section>
         <section className="tool-form-section" aria-labelledby={formID+'-configuration'}>
         <h3 id={formID+'-configuration'}><span aria-hidden="true">{formatNumber(3)}</span>{t('tool-workspace.form_configuration')}</h3>
-        {observations.length > 0 && (
+        {matchingObservations.length > 0 && (
           <>
-            <p className={'tool-import-result '+(observations.some(item=>item.available)?'':'needs-attention')} role="status"><ShieldCheck size={16}/>{t('tool-workspace.import_result',{count:formatNumber(observations.length),available:formatNumber(observations.filter(item=>item.available).length)})}</p>
+            <p className={'tool-import-result '+(matchingObservations.some(item=>item.available)?'':'needs-attention')} role="status"><ShieldCheck size={16}/>{t('tool-workspace.import_result',{count:formatNumber(matchingObservations.length),available:formatNumber(matchingObservations.filter(item=>item.available).length)})}</p>
             <Field label={t("development.tools.choose_an_inventory_configuration")}>
               <select
                 required
@@ -733,7 +763,7 @@ function ToolProfileForm({
                 onChange={(event) => {setCommand(event.target.value);if(!nameEdited)setName(event.target.value);}}
               >
                 <option value="">{t("development.tools.choose_a_probed_fixed_configuration")}</option>
-                {observations.map((item) => (
+                {matchingObservations.map((item) => (
                   <option
                     key={item.profile.command_id}
                     value={item.profile.command_id}
@@ -745,7 +775,7 @@ function ToolProfileForm({
               </select>
             </Field>
             <div className="tool-observations">
-              {observations
+              {matchingObservations
                 .filter((item) => !item.available)
                 .map((item) => (
                   <article key={item.profile.command_id}>

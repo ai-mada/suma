@@ -176,6 +176,9 @@ func generate() (map[string]any, string) {
 	for _, v := range modelExecutionModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range adapterCatalogModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range toolDiscoveryModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -412,6 +415,7 @@ func generate() (map[string]any, string) {
 	workspaceWriteContracts(add, api)
 	workspaceFileContracts(add, api)
 	modelExecutionContracts(add, api)
+	adapterCatalogContracts(add, api)
 	toolDiscoveryContracts(add, api)
 	workspaceGitContracts(add, api)
 	workspaceTreeContracts(add, api)

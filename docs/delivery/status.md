@@ -1,6 +1,8 @@
 # 1.0.0 当前交付状态
 
-T-WORKBUDDY-143已验证云任务协议与持久单次提交底层，27项去重Go通过，见[合同](../../contracts/workbuddy-cloud-submission.md)、[架构](../architecture/workbuddy-cloud-submission.md)与[专项证据](../quality/workbuddy-cloud-submission-verification.md)。此阶段没有UI变更；正式OAuth、ACP、当前资格／预算、云候选和真实厂商接入仍待实施。内部模块尚未开放为可派发工具，139–142的独立GUI待验项及完整平台范围保留。
+T-ADAPTERS-139已限定验证当前授权的20入口统一工具接入目录及已有配置接续：执行／客户端方向、源码能力和限制分开，默认收起并保留选择。后端9项、Web43项独立用例（受影响11项复验包含在内）、类型／7156语言键、生成合同及隔离构建通过；用户重新授权后完成25项实际GUI检查，覆盖中英、键盘、桌面／390px与明暗代表性状态，修复固定页头遮挡移动详情标题。阶段scoped_verified，本记录覆盖此前139待验状态；厂商执行与其他在途页面仍单独验收。见[合同](../../contracts/adapter-catalog.md)、[设计](../design/adapter-connections.md)和[当前证据](../quality/adapter-connections-verification.md)。WorkBuddy云执行仍planned且与CodeBuddy分开，Harness按具体协议／版本登记；未新增厂商适配、真实安装、多机或生产验收，58／34／92不变。
+
+T-WORKBUDDY-143已验证云任务协议与持久单次提交底层，27项去重Go通过，见[合同](../../contracts/workbuddy-cloud-submission.md)、[架构](../architecture/workbuddy-cloud-submission.md)与[专项证据](../quality/workbuddy-cloud-submission-verification.md)。此阶段没有UI变更；正式OAuth、ACP、当前资格／预算、云候选和真实厂商接入仍待实施。内部模块尚未开放为可派发工具，其他阶段分别验收，以各自当前记录为准；完整平台范围保留。
 
 T-INBOX-138限定实现当前人员任务分配收件箱：原事务真实来源、规范接收人、当前权限／来源水合、序号分页、本人已读与归档、原操作恢复，以及同源Suma CLI。见[合同](../../contracts/notification-inbox.md)、[产品要求](../product/notification-inbox.md)、[架构](../architecture/notification-inbox.md)、[交互与AI SOP](../design/notification-inbox.md)及[实际验证](../quality/notification-inbox-verification.md)。讨论提及、审批／告警多源路由、订阅偏好与通道outbox仍待交付，58／34／92不变。
 
