@@ -1445,18 +1445,14 @@ export interface CapacityEntry {
   name: string;
   kind: string;
   week_start: string;
-  version: number;
+  calendar_version: number;
+  days: (ResourceCalendarDay)[];
   available_hours: number | null;
   allocated_hours: number;
   unestimated_tasks: number;
-}
-export interface CapacityWriteRequest {
-  project_id: string;
-  member_id: string;
-  week_start: string;
-  available_hours: number | null;
-  expected_version: number;
-  idempotency_key: string;
+  unscheduled_tasks: number;
+  distribution_unknown_tasks: number;
+  distribution_unknown_hours: number;
 }
 export interface CodeBaselineBinding {
   protocol: string;
@@ -4700,6 +4696,34 @@ export interface RequirementTraceabilityTask {
 export interface ReservedExecution {
   run_id: string;
   node_id: string;
+}
+export interface ResourceCalendar {
+  project_id: string;
+  member_id: string;
+  version: number;
+  schedule: ResourceCalendarSchedule;
+  updated_at: string;
+  can_edit: boolean;
+}
+export interface ResourceCalendarDay {
+  date: string;
+  available_hours: number | null;
+  source: string;
+}
+export interface ResourceCalendarException {
+  date: string;
+  available_hours: number | null;
+  note: string;
+}
+export interface ResourceCalendarSaveRequest {
+  project_id: string;
+  expected_version: number;
+  idempotency_key: string;
+  schedule: ResourceCalendarSchedule;
+}
+export interface ResourceCalendarSchedule {
+  weekdays: (number | null)[];
+  exceptions: (ResourceCalendarException)[];
 }
 export interface ResourceRequest {
   name: string;

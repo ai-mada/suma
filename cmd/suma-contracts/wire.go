@@ -229,14 +229,6 @@ type ScheduleRequest struct {
 	Changes        []ScheduleChange `json:"changes"`
 	IdempotencyKey string           `json:"idempotency_key"`
 }
-type CapacityWriteRequest struct {
-	ProjectID       string   `json:"project_id"`
-	MemberID        string   `json:"member_id"`
-	WeekStart       string   `json:"week_start"`
-	AvailableHours  *float64 `json:"available_hours"`
-	ExpectedVersion int      `json:"expected_version"`
-	IdempotencyKey  string   `json:"idempotency_key"`
-}
 type BaselineCaptureRequest struct {
 	ProjectID      string `json:"project_id"`
 	Title          string `json:"title"`
@@ -251,5 +243,5 @@ type RunnerProgressRequest struct {
 }
 
 func extraModels() []any {
-	return []any{platform.PlanningPeriod{}, platform.TaskPlan{}, platform.PlannedTask{}, platform.CapacityEntry{}, platform.BaselineSummary{}, SessionResponse{}, OrganizationSummary{}, OrganizationMember{}, OrganizationMemberUpdate{}, InvitationMetadata{}, InvitationCreation{}, Team{}, TeamMember{}, ProjectGrant{}, PlanningResponse{}, BaselineDetail{}, Acknowledgement{}, NodeProgressData{}, OrganizationCreateRequest{}, SwitchOrganizationRequest{}, OrganizationMemberWriteRequest{}, InvitationCreateRequest{}, InvitationAcceptRequest{}, VersionedOperation{}, TeamWriteRequest{}, TeamMemberWriteRequest{}, ProjectAccessWriteRequest{}, PlanningPeriodWriteRequest{}, ScheduleRequest{}, CapacityWriteRequest{}, BaselineCaptureRequest{}, RunnerProgressRequest{}}
+	return []any{platform.PlanningPeriod{}, platform.TaskPlan{}, platform.PlannedTask{}, platform.CapacityEntry{}, platform.BaselineSummary{}, SessionResponse{}, OrganizationSummary{}, OrganizationMember{}, OrganizationMemberUpdate{}, InvitationMetadata{}, InvitationCreation{}, Team{}, TeamMember{}, ProjectGrant{}, PlanningResponse{}, BaselineDetail{}, Acknowledgement{}, NodeProgressData{}, OrganizationCreateRequest{}, SwitchOrganizationRequest{}, OrganizationMemberWriteRequest{}, InvitationCreateRequest{}, InvitationAcceptRequest{}, VersionedOperation{}, TeamWriteRequest{}, TeamMemberWriteRequest{}, ProjectAccessWriteRequest{}, PlanningPeriodWriteRequest{}, ScheduleRequest{}, platform.ResourceCalendar{}, platform.ResourceCalendarSaveRequest{}, BaselineCaptureRequest{}, RunnerProgressRequest{}}
 }

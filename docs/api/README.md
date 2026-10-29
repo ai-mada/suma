@@ -84,7 +84,7 @@ Go导出域模型直接反射，包括PlanningPeriod、TaskPlan、PlannedTask、
 | runs/{id}/events/stream | 持久SSE回放、当前权限重验、断线游标续传；GET events 为每页128条历史 |
 | runner/claim、heartbeat、results、progress | 真实领取、取消意图、当前尝试的真实进展与持久ACK |
 | planning、iterations、milestones | 全项目计划指标、任务窗口、迭代及里程碑完成门禁 |
-| planning/schedule、planning/capacity | 双版本原子排期与周一开始的nullable资源工时 |
+| planning/schedule、planning/capacity、resource-calendars/{member_id} | 双版本原子排期、版本化工作日历与按可用小时加权的周估算；[日历合同](../../contracts/resource-calendars.md) |
 | planning/baselines、planning/baselines/{id} | 全范围不可变捕获、分页快照与全范围当前比较 |
 | workspace、workspace/binding、workspace/file | 授权本地文本编辑、原文件摘要＋工作区上下文CAS及不可变原回执；[字段与未受理证明](../../contracts/workspace-file-context.md) |
 | search、capabilities | 来源可定位检索与分层能力报告 |

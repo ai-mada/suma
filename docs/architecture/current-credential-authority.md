@@ -193,7 +193,7 @@ automation/tool activation 属于持久授权。管理 Create/enable/pause/revis
 
 ## 6. 受保护读与 SSE：本阶段第二轮
 
-将全部现有受保护应用数据读取登记在 read registry，签名消费 Actor，使用短 current-authority transaction 取得投影／结果；不能只在 outer HTTP 再查一次 token，然后在别的事务读取成功 receipt/raw data。写入回执恢复在第一轮必须完成。第二轮范围包括 auth/session/projects、组织／成员／邀请／team／grant、pool／route／machine metadata、所有 record 列表／详情、planning/capacity/baseline、workflow/run/event/attempt/tool history、automation/ingress 配置／历史／delivery、tool profile、artifact/worker、environment/plan/deployment/provider inspect、workspace binding/tree/file、preferences、overview/search/agent read tools。
+将全部现有受保护应用数据读取登记在 read registry，签名消费 Actor，使用短 current-authority transaction 取得投影／结果；不能只在 outer HTTP 再查一次 token，然后在别的事务读取成功 receipt/raw data。写入回执恢复在第一轮必须完成。第二轮范围包括 auth/session/projects、组织／成员／邀请／team／grant、pool／route／machine metadata、所有 record 列表／详情、planning/capacity/calendar/baseline、workflow/run/event/attempt/tool history、automation/ingress 配置／历史／delivery、tool profile、artifact/worker、environment/plan/deployment/provider inspect、workspace binding/tree/file、preferences、overview/search/agent read tools。
 
 与当前约定一致，读取只获得当前权限下的该次 snapshot；命令提交后已经交付的字节无法撤回。大文件先在受授权事务固化 immutable reference/size/hash，再流式返回；开始发送前重新验证当前 Actor，逐块暂停/超时/复连另有明确 streaming budget，不持 DB 锁等待慢客户端。敏感配置与原文不允许靠过时 outer Principal 才开始传输。需要驱动写权限的 credential 行锁不得放进 SQL `ReadOnly:true` transaction；称为“无业务写入的权限事务”，允许专用协调锁计数变化，不能冒称完全无 SQL 写。
 

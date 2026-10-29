@@ -97,6 +97,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.validateWorkspaceInitialSchema(ctx); err != nil {
 		return err
 	}
+	if err := s.validateResourceCalendarInitialSchema(ctx); err != nil {
+		return err
+	}
 	if err := store.InitializeBaseline(ctx, s.DB, s.Dialect, "platform", "suma_", store.InitialDataContract); err != nil {
 		return err
 	}

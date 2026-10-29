@@ -2,6 +2,8 @@
 
 更新：2026-10-29。当前只有 **1.0.0** 产品基线，完整平台仍在实现与验收中。入口按领域组织，当前能力由交付状态统一维护；专项设计、合同、英文说明、验证报告与精简摘要保留各自范围，不把历史阶段编号当成产品版本或当前完成状态。
 
+- [资源工作日历合同](../contracts/resource-calendars.md) · [架构](architecture/resource-calendars.md) · [交互](design/resource-calendars.md) · [限定验证](quality/resource-calendars-verification.md)：工作制／日期例外、未知／0、按可用小时分摊与原操作恢复。
+
 - [企业智能研发工作台](product/enterprise-workbench.md) · [项目焦点设计](design/project-focus.md) · [客户端接入](integrations/developer-clients.md) · [限定验证](quality/enterprise-experience-verification.md)：当前事实、统一管控、简洁交互与明确接入范围。
 
 - [已验收基线上的终端迭代合同](../contracts/terminal-baseline-development.md) · [限定实际验证](quality/terminal-baseline-development-verification.md) · [精简摘要](quality/terminal-baseline-development-summary.json)：后续任务真实导入原候选、授权封存新代码、独立同提交测试及来源失效门禁；当前GUI未验。

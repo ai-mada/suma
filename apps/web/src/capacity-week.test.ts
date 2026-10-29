@@ -7,7 +7,7 @@ import {CapacityView,CapacityWeekPicker} from './Planning';
 import {applyCapacityWeekInput,capacityScopeMatches,isCapacityWeek,planningRequestPath,type Capacity} from './planning-model';
 import {modalFocusTarget} from './modal-focus';
 afterEach(()=>vi.unstubAllGlobals());
-const row:Capacity={member_id:'resource-a',name:'真实资源',kind:'human',week_start:'2026-10-19',version:1,available_hours:40,allocated_hours:8,unestimated_tasks:0};
+const row:Capacity={member_id:'resource-a',name:'真实资源',kind:'human',week_start:'2026-10-19',calendar_version:1,days:[],available_hours:40,allocated_hours:8,unestimated_tasks:0,unscheduled_tasks:0,distribution_unknown_tasks:0,distribution_unknown_hours:0};
 describe('capacity week native input and route consumers',()=>{
  it('uses the native widget value to update the shared route and actual API request week',async()=>{
   let route=parseWorkbenchRoute('?project=project-a&view=development&sub=planning&layout=capacity&week=2026-10-19');

@@ -45,11 +45,27 @@ func (s *Server) planning(w http.ResponseWriter, r *http.Request, actor Actor, p
 			respondList(w, out, e)
 			return true
 		}
-		if r.Method == "POST" {
-			out, e := s.Service.SaveCapacity(ctx, actor, project, m)
-			respond(w, 200, out, e)
+		writeError(w, missing())
+		return true
+	}
+	if len(parts) == 2 && parts[0] == "resource-calendars" {
+		if r.Method == http.MethodGet {
+			out, e := s.Service.GetResourceCalendar(ctx, actor, project, parts[1])
+			respond(w, http.StatusOK, out, e)
 			return true
 		}
+		if r.Method == http.MethodPut {
+			req, e := decodeResourceCalendarSave(m)
+			if e != nil {
+				writeError(w, e)
+				return true
+			}
+			out, e := s.Service.SaveResourceCalendar(ctx, actor, project, parts[1], req)
+			respond(w, http.StatusOK, out, e)
+			return true
+		}
+		writeError(w, missing())
+		return true
 	}
 	if path == "planning/baselines" {
 		if r.Method == "GET" {

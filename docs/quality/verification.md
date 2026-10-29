@@ -14,6 +14,7 @@ T-TERMINAL-130：原终端失联后持久交换先于结果、准确停止／未
 
 | 当前范围 | 验证与限制 |
 | --- | --- |
+| T-CALENDAR-134 资源工作日历 | [合同](../../contracts/resource-calendars.md)、[报告](resource-calendars-verification.md)、[摘要](resource-calendars-summary.json)：七日工作制／例外、完整区间可用小时分摊、未知与0、原回执及当前资格；36项Go、103项Web证据及类型／中英／构建通过，GUI及真实数据库／HR／工时／生产未验 |
 | T-EXPERIENCE-133 项目焦点与开发客户端 | [需求／架构](../product/enterprise-workbench.md)、[报告](enterprise-experience-verification.md)、[摘要](enterprise-experience-summary.json)：服务端准确分类与原依据、独立读取及任务下钻、四类无密钥项目配置导出；8项Go／67项Web及类型／语言／构建通过，GUI与真实厂商／多数据库矩阵未验 |
 | T-BASELINE-131 已验收基线上的终端迭代 | [报告](terminal-baseline-development-verification.md)、[摘要](terminal-baseline-development-summary.json)、[合同](../../contracts/terminal-baseline-development.md)：B／M／N来源、受保护当前导入、明确候选授权、独立同SHA测试与验收递归；16项Go／9项Web及本机Windows真实交接通过，GUI未验，全平台仍在实施 |
 | T-DISCOVERY-132 执行工具自动发现 | [合同](../../contracts/tool-execution.md)、[中文操作](../development/tool-discovery.md)／[English](../en/tool-discovery.md)、[报告](tool-discovery-verification.md)、[摘要](tool-discovery-summary.json)：授权节点真实上报自动填入、60秒／失权／未上报分态、人工草稿与重试恢复；80项Web、11项Go、合同及隔离类型／语言／构建通过，真实Node探测／Runner／SQLite／中英390暂停登记启用撤权闭环。读取不远程安装或执行，不代表模型健康或生产验收 |

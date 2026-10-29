@@ -35,21 +35,25 @@ type PlannedTask struct {
 	Plan TaskPlan `json:"plan"`
 }
 type CapacityEntry struct {
-	MemberID         string   `json:"member_id"`
-	Name             string   `json:"name"`
-	Kind             string   `json:"kind"`
-	WeekStart        string   `json:"week_start"`
-	Version          int      `json:"version"`
-	AvailableHours   *float64 `json:"available_hours"`
-	AllocatedHours   float64  `json:"allocated_hours"`
-	UnestimatedTasks int      `json:"unestimated_tasks"`
+	MemberID                 string                `json:"member_id"`
+	Name                     string                `json:"name"`
+	Kind                     string                `json:"kind"`
+	WeekStart                string                `json:"week_start"`
+	CalendarVersion          int                   `json:"calendar_version"`
+	Days                     []ResourceCalendarDay `json:"days"`
+	AvailableHours           *float64              `json:"available_hours"`
+	AllocatedHours           float64               `json:"allocated_hours"`
+	UnestimatedTasks         int                   `json:"unestimated_tasks"`
+	UnscheduledTasks         int                   `json:"unscheduled_tasks"`
+	DistributionUnknownTasks int                   `json:"distribution_unknown_tasks"`
+	DistributionUnknownHours float64               `json:"distribution_unknown_hours"`
 }
 
 func (s *Service) InitializePlanning(ctx context.Context) error {
 	statements := []string{
 		`CREATE TABLE IF NOT EXISTS suma_planning_periods(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,kind VARCHAR(20) NOT NULL,version INTEGER NOT NULL,title VARCHAR(500) NOT NULL,description TEXT NOT NULL,status VARCHAR(30) NOT NULL,start_date VARCHAR(10) NOT NULL,end_date VARCHAR(10) NOT NULL,target_date VARCHAR(10) NOT NULL,goal TEXT NOT NULL,created_at VARCHAR(40) NOT NULL,updated_at VARCHAR(40) NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_task_plans(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,iteration_id VARCHAR(64) NOT NULL,milestone_id VARCHAR(64) NOT NULL,start_date VARCHAR(10) NOT NULL,due_date VARCHAR(10) NOT NULL,estimated_hours DOUBLE PRECISION,updated_at VARCHAR(40) NOT NULL,PRIMARY KEY(tenant_id,project_id,task_id))`,
-		`CREATE TABLE IF NOT EXISTS suma_capacity(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,member_id VARCHAR(64) NOT NULL,week_start VARCHAR(10) NOT NULL,version INTEGER NOT NULL,available_hours DOUBLE PRECISION,updated_at VARCHAR(40) NOT NULL,PRIMARY KEY(tenant_id,project_id,member_id,week_start))`,
+		`CREATE TABLE IF NOT EXISTS suma_resource_calendars(tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,member_id VARCHAR(64) NOT NULL,version INTEGER NOT NULL,schedule TEXT NOT NULL,updated_at VARCHAR(40) NOT NULL,PRIMARY KEY(tenant_id,project_id,member_id))`,
 		`CREATE TABLE IF NOT EXISTS suma_baselines(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,title VARCHAR(500) NOT NULL,created_by VARCHAR(64) NOT NULL,created_at VARCHAR(40) NOT NULL,task_count BIGINT NOT NULL,accepted_tasks BIGINT NOT NULL,estimated_tasks BIGINT NOT NULL,estimated_hours DOUBLE PRECISION NOT NULL)`,
 		`CREATE TABLE IF NOT EXISTS suma_baseline_tasks(baseline_id VARCHAR(64) NOT NULL,task_id VARCHAR(64) NOT NULL,task_version INTEGER NOT NULL,title VARCHAR(500) NOT NULL,description TEXT NOT NULL,status VARCHAR(40) NOT NULL,owner_id VARCHAR(64) NOT NULL,requirement_id VARCHAR(64) NOT NULL,depends_on TEXT NOT NULL,acceptance_criteria TEXT NOT NULL,plan_version INTEGER NOT NULL,iteration_id VARCHAR(64) NOT NULL,milestone_id VARCHAR(64) NOT NULL,start_date VARCHAR(10) NOT NULL,due_date VARCHAR(10) NOT NULL,estimated_hours DOUBLE PRECISION,PRIMARY KEY(baseline_id,task_id))`,
 	}
@@ -65,7 +69,7 @@ func validDate(value string) bool {
 		return true
 	}
 	date, e := time.Parse("2006-01-02", value)
-	return e == nil && date.Format("2006-01-02") == value
+	return e == nil && date.Year() >= 1 && date.Year() <= 9999 && date.Format("2006-01-02") == value
 }
 func finiteHours(value any, max float64) (*float64, error) {
 	if value == nil {

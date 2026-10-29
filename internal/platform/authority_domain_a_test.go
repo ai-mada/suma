@@ -54,6 +54,11 @@ func domainAActor(t *testing.T, s *Service, token string) Actor {
 
 func authorityDomainAFamily(t *testing.T, route, table string, success int, request func(*fixture) map[string]any) {
 	t.Helper()
+	authorityDomainAFamilyCommand(t, "POST", table, success, func(f *fixture) (string, map[string]any) { return route, request(f) })
+}
+
+func authorityDomainAFamilyCommand(t *testing.T, method, table string, success int, request func(*fixture) (string, map[string]any)) {
+	t.Helper()
 	for _, invalidation := range []string{"logout", "expiry"} {
 		for _, replay := range []bool{false, true} {
 			label := "fresh"
@@ -62,9 +67,9 @@ func authorityDomainAFamily(t *testing.T, route, table string, success int, requ
 			}
 			t.Run(invalidation+"/"+label, func(t *testing.T) {
 				f := newFixture(t)
-				body := request(f)
+				route, body := request(f)
 				if replay {
-					f.call("POST", route, body, success)
+					f.call(method, route, body, success)
 				}
 				actor, err := f.s.AuthenticateActor(context.Background(), f.cookie.Value)
 				if err != nil {
@@ -89,7 +94,7 @@ func authorityDomainAFamily(t *testing.T, route, table string, success int, requ
 				var once sync.Once
 				release := func() { once.Do(func() { close(gated.release) }) }
 				defer release()
-				req := httptest.NewRequest("POST", "http://suma.test/api/v1"+route, gated).WithContext(ctx)
+				req := httptest.NewRequest(method, "http://suma.test/api/v1"+route, gated).WithContext(ctx)
 				req.Header.Set("Content-Type", "application/json")
 				req.Header.Set("X-Suma-Expected-User", actor.Projection().ID)
 				req.Header.Set("X-Suma-Expected-Organization", actor.Projection().TenantID)
@@ -174,10 +179,10 @@ func TestAuthorityPlanningFamiliesFreshAndReplay(t *testing.T) {
 			return f.body(map[string]any{"changes": []any{map[string]any{"task_id": task["id"], "expected_task_version": task["version"], "expected_version": 0, "iteration_id": "", "milestone_id": "", "start_date": "2026-10-19", "due_date": "2026-10-25", "estimated_hours": 8}}, "idempotency_key": "authority-schedule-operation"})
 		})
 	})
-	t.Run("capacity", func(t *testing.T) {
-		authorityDomainAFamily(t, "/planning/capacity", "suma_capacity", 200, func(f *fixture) map[string]any {
-			member := f.call("POST", "/members", f.body(map[string]any{"title": "capacity authority member", "kind": "human", "data": map[string]any{"user_id": f.user.ID}}), 201)
-			return f.body(map[string]any{"member_id": member["id"], "week_start": "2026-10-19", "available_hours": 40, "expected_version": 0, "idempotency_key": "authority-capacity-operation"})
+	t.Run("resource_calendar", func(t *testing.T) {
+		authorityDomainAFamilyCommand(t, "PUT", "suma_resource_calendars", 200, func(f *fixture) (string, map[string]any) {
+			member := calendarTestMember(f)
+			return calendarTestPath(member), f.body(map[string]any{"expected_version": 0, "schedule": calendarTestSchedule(float64(8)), "idempotency_key": "authority-calendar-operation"})
 		})
 	})
 	t.Run("baseline", func(t *testing.T) {

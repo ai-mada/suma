@@ -70,11 +70,16 @@ it.each(['en-US','zh-CN'])('preserves real candidate and artifact option raw val
 
 it.each(['en-US','zh-CN'])('preserves raw resource name in actual capacity modal and keeps its draft in %s',async(locale)=>{
  const raw='{{week}} $t(flow.zoom_in) $& 用户';await setLocale('en-US',{persist:false});
- await act(async()=>root.render(<CapacityView project="p" week="2026-10-26" onWeek={()=>true} rows={[{member_id:'member',name:raw,kind:'human',week_start:'2026-10-26',version:1,available_hours:40,allocated_hours:0,unestimated_tasks:0}]} ready={true} pending={false} routeError="" onRefresh={()=>{}}/>));
- await act(async()=>[...host.querySelectorAll('button')].find(button=>button.textContent==='Set capacity')!.click());
- const dialog=document.querySelector<HTMLElement>('[role="dialog"]')!,hours=dialog.querySelector<HTMLInputElement>('input[name="hours"]')!;hours.value='12.5';hours.focus();
+ vi.stubGlobal('fetch',vi.fn(async()=>Response.json({project_id:'p',member_id:'member',version:1,can_edit:true,updated_at:'',schedule:{weekdays:[8,8,8,8,8,0,0],exceptions:[]}})));
+ await act(async()=>root.render(<CapacityView project="p" week="2026-10-26" onWeek={()=>true} rows={[{member_id:'member',name:raw,kind:'human',week_start:'2026-10-26',calendar_version:1,days:[],available_hours:40,allocated_hours:0,unestimated_tasks:0,unscheduled_tasks:0,distribution_unknown_tasks:0,distribution_unknown_hours:0}]} ready={true} pending={false} routeError="" onRefresh={()=>{}}/>));expect(fetch).not.toHaveBeenCalled();
+ await act(async()=>[...host.querySelectorAll('button')].find(button=>button.textContent==='Edit work calendar')!.click());
+ const dialog=document.querySelector<HTMLElement>('[role="dialog"]')!,hours=dialog.querySelector<HTMLInputElement>('input[name="weekday-0"]')!;
+ // Calendar fields keep a controlled draft. Dispatch the same native input
+ // event as a user edit instead of changing only the DOM's displayed value.
+ await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(hours,'12.5');hours.dispatchEvent(new Event('input',{bubbles:true}));});hours.focus();
  await act(async()=>{await setLocale(locale,{persist:false});});
  const paragraph=[...dialog.querySelectorAll('p')].find(p=>p.textContent?.includes('$t(flow.zoom_in)'))!;
  expect(paragraph.textContent).toBe(locale==='en-US'?`${raw} · Week starting Oct 26, 2026`:`${raw} · 2026年10月26日 开始的一周`);
- expect(document.querySelector('[role="dialog"]')).toBe(dialog);expect(document.activeElement).toBe(hours);expect(hours.value).toBe('12.5');expect(fetch).not.toHaveBeenCalled();
+ expect(document.querySelector('[role="dialog"]')).toBe(dialog);expect(document.activeElement).toBe(hours);expect(hours.value).toBe('12.5');expect(fetch).toHaveBeenCalledTimes(1);
+ let allowed=true;await act(async()=>{allowed=window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));});expect(allowed).toBe(false);
 });

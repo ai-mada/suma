@@ -153,10 +153,6 @@ func extendContracts(add operationAdder, paths map[string]any) {
 	response = op["responses"].(map[string]any)["200"].(map[string]any)
 	envelope = response["content"].(map[string]any)["application/json"].(map[string]any)["schema"].(map[string]any)
 	delete(envelope["properties"].(map[string]any), "next_cursor")
-	op = add("/planning/capacity", "post", "CapacityEntry", false, true)
-	request(op, "CapacityWriteRequest")
-	successStatus(op, "200")
-	op["description"] = "member_id is a project /members resource ID, not an organization user ID. Monday-based available_hours is nullable (unknown), with 0 explicitly meaning no available time. Planning hours do not represent machine execution quotas."
 	op = add("/planning/baselines", "get", "BaselineSummary", true, false)
 	successStatus(op, "200")
 	response = op["responses"].(map[string]any)["200"].(map[string]any)
@@ -229,10 +225,7 @@ func enhanceSchemas(schemas map[string]any) {
 	field("ScheduleChange", "expected_version", map[string]any{"minimum": 0})
 	field("ScheduleRequest", "changes", map[string]any{"minItems": 1, "maxItems": 200})
 	field("ScheduleChange", "estimated_hours", map[string]any{"description": "Required complete field. null is unknown; explicit 0 is known zero. Server accepts 0–100000 hours."})
-	for _, model := range []string{"CapacityEntry", "CapacityWriteRequest"} {
-		field(model, "week_start", map[string]any{"format": "date", "description": "Valid Monday in YYYY-MM-DD format."})
-	}
-	field("CapacityWriteRequest", "available_hours", map[string]any{"description": "null is unknown; numeric capacity must be 0–168 hours."})
+	field("CapacityEntry", "week_start", map[string]any{"format": "date", "description": "Valid Monday in YYYY-MM-DD format."})
 	field("PlanningCoverage", "task_metrics", map[string]any{"enum": []string{"whole_project"}})
 	field("PlanningCoverage", "timeline", map[string]any{"enum": []string{"loaded_tasks"}})
 	field("PlanningMetrics", "acceptance_percent", map[string]any{"description": "100 * accepted_tasks / total_tasks; null when total_tasks is zero."})
@@ -243,7 +236,7 @@ func enhanceSchemas(schemas map[string]any) {
 	for _, pair := range []struct {
 		model, name string
 		maximum     int
-	}{{"ScheduleChange", "estimated_hours", 100000}, {"CapacityWriteRequest", "available_hours", 168}} {
+	}{{"ScheduleChange", "estimated_hours", 100000}} {
 		branch := mapAtField(pair.model, pair.name)["anyOf"].([]any)[0].(map[string]any)
 		branch["minimum"], branch["maximum"] = 0, pair.maximum
 	}

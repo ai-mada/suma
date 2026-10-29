@@ -6508,6 +6508,7 @@
       "CapacityEntry": {
         "properties": {
           "allocated_hours": {
+            "readOnly": true,
             "type": "number"
           },
           "available_hours": {
@@ -6518,26 +6519,54 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "readOnly": true
+          },
+          "calendar_version": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/ResourceCalendarDay"
+            },
+            "maxItems": 7,
+            "minItems": 7,
+            "readOnly": true,
+            "type": "array"
+          },
+          "distribution_unknown_hours": {
+            "readOnly": true,
+            "type": "number"
+          },
+          "distribution_unknown_tasks": {
+            "readOnly": true,
+            "type": "integer"
           },
           "kind": {
+            "readOnly": true,
             "type": "string"
           },
           "member_id": {
+            "readOnly": true,
             "type": "string"
           },
           "name": {
+            "readOnly": true,
             "type": "string"
           },
           "unestimated_tasks": {
+            "readOnly": true,
             "type": "integer"
           },
-          "version": {
+          "unscheduled_tasks": {
+            "readOnly": true,
             "type": "integer"
           },
           "week_start": {
             "description": "Valid Monday in YYYY-MM-DD format.",
             "format": "date",
+            "readOnly": true,
             "type": "string"
           }
         },
@@ -6546,53 +6575,14 @@
           "name",
           "kind",
           "week_start",
-          "version",
+          "calendar_version",
+          "days",
           "available_hours",
           "allocated_hours",
-          "unestimated_tasks"
-        ],
-        "type": "object"
-      },
-      "CapacityWriteRequest": {
-        "properties": {
-          "available_hours": {
-            "anyOf": [
-              {
-                "maximum": 168,
-                "minimum": 0,
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "null is unknown; numeric capacity must be 0–168 hours."
-          },
-          "expected_version": {
-            "type": "integer"
-          },
-          "idempotency_key": {
-            "type": "string"
-          },
-          "member_id": {
-            "type": "string"
-          },
-          "project_id": {
-            "type": "string"
-          },
-          "week_start": {
-            "description": "Valid Monday in YYYY-MM-DD format.",
-            "format": "date",
-            "type": "string"
-          }
-        },
-        "required": [
-          "project_id",
-          "member_id",
-          "week_start",
-          "available_hours",
-          "expected_version",
-          "idempotency_key"
+          "unestimated_tasks",
+          "unscheduled_tasks",
+          "distribution_unknown_tasks",
+          "distribution_unknown_hours"
         ],
         "type": "object"
       },
@@ -22871,6 +22861,173 @@
         "required": [
           "run_id",
           "node_id"
+        ],
+        "type": "object"
+      },
+      "ResourceCalendar": {
+        "additionalProperties": false,
+        "properties": {
+          "can_edit": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "member_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/ResourceCalendarSchedule",
+            "readOnly": true
+          },
+          "updated_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "version": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "project_id",
+          "member_id",
+          "version",
+          "schedule",
+          "updated_at",
+          "can_edit"
+        ],
+        "type": "object"
+      },
+      "ResourceCalendarDay": {
+        "additionalProperties": false,
+        "properties": {
+          "available_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "date": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "base",
+              "exception",
+              "unknown"
+            ],
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "available_hours",
+          "source"
+        ],
+        "type": "object"
+      },
+      "ResourceCalendarException": {
+        "additionalProperties": false,
+        "properties": {
+          "available_hours": {
+            "anyOf": [
+              {
+                "maximum": 24,
+                "minimum": 0,
+                "multipleOf": 0.25,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "date": {
+            "format": "date",
+            "type": "string"
+          },
+          "note": {
+            "description": "At most200 Unicode codepoints of user-authored plain text.",
+            "maxLength": 200,
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "available_hours",
+          "note"
+        ],
+        "type": "object"
+      },
+      "ResourceCalendarSaveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/ResourceCalendarSchedule"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "idempotency_key",
+          "schedule"
+        ],
+        "type": "object"
+      },
+      "ResourceCalendarSchedule": {
+        "additionalProperties": false,
+        "properties": {
+          "exceptions": {
+            "items": {
+              "$ref": "#/components/schemas/ResourceCalendarException"
+            },
+            "maxItems": 366,
+            "type": "array"
+          },
+          "weekdays": {
+            "description": "Monday through Sunday; null means unknown and0 is explicitly unavailable.",
+            "items": {
+              "anyOf": [
+                {
+                  "maximum": 24,
+                  "minimum": 0,
+                  "multipleOf": 0.25,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "maxItems": 7,
+            "minItems": 7,
+            "type": "array"
+          }
+        },
+        "required": [
+          "weekdays",
+          "exceptions"
         ],
         "type": "object"
       },
@@ -69012,224 +69169,6 @@
           }
         ],
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
-      },
-      "post": {
-        "description": "member_id is a project /members resource ID, not an organization user ID. Monday-based available_hours is nullable (unknown), with 0 explicitly meaning no available time. Planning hours do not represent machine execution quotas.",
-        "operationId": "post_planning_capacity",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "project_id",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
-            "in": "header",
-            "name": "X-Suma-Expected-User",
-            "required": false,
-            "schema": {
-              "maxLength": 32,
-              "minLength": 32,
-              "pattern": "^[a-f0-9]{32}$",
-              "type": "string"
-            },
-            "x-required-for-credential-kind": "browser-session"
-          },
-          {
-            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
-            "in": "header",
-            "name": "X-Suma-Expected-Organization",
-            "required": false,
-            "schema": {
-              "maxLength": 32,
-              "minLength": 32,
-              "pattern": "^[a-f0-9]{32}$",
-              "type": "string"
-            },
-            "x-required-for-credential-kind": "browser-session"
-          },
-          {
-            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
-            "in": "header",
-            "name": "Accept-Language",
-            "schema": {
-              "maxLength": 8192,
-              "type": "string"
-            }
-          },
-          {
-            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
-            "in": "header",
-            "name": "X-Suma-Language",
-            "schema": {
-              "maxLength": 128,
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CapacityWriteRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CapacityEntry"
-                }
-              }
-            },
-            "description": "Successful response; creates may return 201",
-            "headers": {
-              "Content-Language": {
-                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
-                "schema": {
-                  "enum": [
-                    "zh-CN",
-                    "en-US"
-                  ],
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Invalid request",
-            "headers": {
-              "Content-Language": {
-                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
-                "schema": {
-                  "enum": [
-                    "zh-CN",
-                    "en-US"
-                  ],
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Unauthenticated",
-            "headers": {
-              "Content-Language": {
-                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
-                "schema": {
-                  "enum": [
-                    "zh-CN",
-                    "en-US"
-                  ],
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Forbidden",
-            "headers": {
-              "Content-Language": {
-                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
-                "schema": {
-                  "enum": [
-                    "zh-CN",
-                    "en-US"
-                  ],
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Version or operation conflict",
-            "headers": {
-              "Content-Language": {
-                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
-                "schema": {
-                  "enum": [
-                    "zh-CN",
-                    "en-US"
-                  ],
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "428": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            },
-            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
-            "headers": {
-              "Content-Language": {
-                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
-                "schema": {
-                  "enum": [
-                    "zh-CN",
-                    "en-US"
-                  ],
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "cookieAuth": []
-          },
-          {
-            "bearerAuth": []
-          }
-        ],
-        "x-browser-original-view": {
-          "account_only": false,
-          "is_authorization": false,
-          "mismatch_status": 403,
-          "missing_status": 428,
-          "required": true
-        },
-        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },
     "/planning/schedule": {
@@ -86424,6 +86363,396 @@
           }
         ],
         "x-request-schema-coverage": "exact id and required single project_id; one current project-read authorization transaction; no arbitrary projection filters"
+      }
+    },
+    "/resource-calendars/{member_id}": {
+      "get": {
+        "description": "Current authorized calendar. Version0 is unconfigured: seven unknown weekdays and no exceptions, not an assumed workweek.",
+        "operationId": "get_resource-calendars_member_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "member_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceCalendar"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      },
+      "put": {
+        "description": "Explicit full calendar replacement with current project/member authority, expected calendar version and stable operation receipt. Does not edit task plans or machine execution quotas.",
+        "operationId": "put_resource-calendars_member_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "member_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResourceCalendarSaveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceCalendar"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },
     "/risks": {

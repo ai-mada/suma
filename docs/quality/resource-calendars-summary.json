@@ -1,0 +1,221 @@
+{
+  "stage": "T-CALENDAR-134",
+  "date": "2026-10-29",
+  "product_version": "1.0.0",
+  "status": "scoped_work_calendar_kernel_sqlite_http_components_types_and_build_verified_gui_not_verified",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "parent": "a1c71f237ecce4239ed4469b2ebde693808ae0df",
+    "inventory": ".cache/e2e/calendar-134/source-inventory.json",
+    "sha256": "bfb1b0550017a43f7907ae6856bd812133f702e37dc4a436acaa1da022841402",
+    "files": 45,
+    "goal_source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
+    "policy": "Single current initial1.0.0 work calendar; obsolete weekly write removed, no aliases/backfill/DROP. Existing declared database can install the independent table; malformed calendar columns reject before initialization writes."
+  },
+  "implementation": {
+    "calendar": "Seven Monday-Sunday nullablequarterhour values, <=366 exact date exceptions, standalone current version/receipt/current resource authorization.",
+    "projection": "Full task range available-hour weights; explicit unknown/zero and partial-date diagnostics, no calendar-day fallback.",
+    "planning_source": "Whole original resource calendar and version in protected planning digest, including outside-week edits; no automatic adoption.",
+    "scope": "Project resource planning configuration; not attendance, worklog, machine quota, real HR approval or organizational capacity enforcement."
+  },
+  "checks": {
+    "distinct_go_top_tests": [
+      "TestAuthorityPlanningFamiliesFreshAndReplay",
+      "TestBaselineCapturesBeyondUIPageAndSeparatesScopeAndPlanChanges",
+      "TestCalendarExceptionsOverrideBaseWithoutConflatingUnknownAndZero",
+      "TestCalendarMondayAndDateOnlyBoundaries",
+      "TestCalendarReplacementPreservesExistingValueOnInvalidWrite",
+      "TestCalendarValidationRejectsInvalidHoursDatesAndExceptions",
+      "TestCalendarWeightHandlesLongDateRangesAndLeapDays",
+      "TestCalendarWeightsSplitCrossWeekEstimateByAvailableHours",
+      "TestCanonicalTemplateGrammarAndCatalogSnapshot",
+      "TestCapacityCountsOnlyWorkInSelectedCalendarWeek",
+      "TestCapacityExcludesRevokedHumansAndPreservesHistoricalRows",
+      "TestCapacityUnknownZeroAndCalendarWeightedWeeks",
+      "TestCatalogKnownMessagesAreBilingualAndKeepMachineFields",
+      "TestIntelligentPlanningAdmissionCredentialAndApplyRollback",
+      "TestIntelligentPlanningAlertCASAndScopedPages",
+      "TestIntelligentPlanningCreateAuthorityBudgetAndReplay",
+      "TestIntelligentPlanningHTTPResultAlertsReviseAndAtomicApply",
+      "TestIntelligentPlanningPoolHTTPResultAndCurrentCreator",
+      "TestIntelligentPlanningSourceDriftKeepsRealRunResult",
+      "TestIntelligentPlanningStrictModelSchema",
+      "TestIntelligentPlanningUnknownAndMalformedNeverAutoRetry",
+      "TestPlanningChecksLivePermissionInsteadOfStalePrincipalRole",
+      "TestPlanningPeriodRejectsWrongStringTypesWithoutErasingMetadata",
+      "TestPlanningRejectsFractionalCASAndIncompleteReplacement",
+      "TestPlanningRoutesPagingAndCoverage",
+      "TestPlanningScheduleBatchVersionReplayAndScope",
+      "TestResourceCalendarContractUsesOneCurrentCalendarAndExplicitUnknown",
+      "TestResourceCalendarDoesNotInferSingleDayFromPartialDatesAndKeepsZeroEstimate",
+      "TestResourceCalendarFullScheduleChangesFormalPlanningDigest",
+      "TestResourceCalendarMalformedDeclaredShapeRejectsBeforeInitializationWrites",
+      "TestResourceCalendarProjectsCurrentEditPermissionBeforeReceiptRecovery",
+      "TestResourceCalendarRechecksCurrentCredentialBeforeReadAndReplay",
+      "TestResourceCalendarRejectsUnsupportedWeekAndTaskDates",
+      "TestResourceCalendarUnknownReplacementCASAndOriginalReceipt",
+      "TestResourceCalendarValidatesCompleteQuarterHourSchedule",
+      "TestResourceCalendarWeeklyOverrideAndWeightedEffort"
+    ],
+    "go_count": 36,
+    "web_cases": 103,
+    "web_initial_passed": 101,
+    "web_initial_failed": 2,
+    "web_targeted_repair_passed": 2,
+    "new_web_cases": 10,
+    "web_typecheck": true,
+    "catalog_keys": 6722,
+    "production_hardcodes": 0,
+    "web_production_build": true,
+    "generated_contract_check": true,
+    "public_models": 702,
+    "api_paths": 324,
+    "schema_definitions": 703,
+    "go_receipts": [
+      {
+        "path": ".cache/e2e/calendar-134/go/20261029T094908644Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/planningcalendar",
+          "./internal/platform",
+          "./internal/localization",
+          "./cmd/suma-contracts",
+          "-run",
+          "^(TestCalendar.*|TestResourceCalendar.*|TestCapacity.*|TestPlanning.*|TestBaselineCapturesBeyondUIPageAndSeparatesScopeAndPlanChanges|TestAuthorityPlanningFamiliesFreshAndReplay|TestCanonicalTemplateGrammarAndCatalogSnapshot|TestCatalogKnownMessagesAreBilingualAndKeepMachineFields)$",
+          "-json",
+          "-count=1",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 0,
+        "sha256": "97ce5c3669de5974034c844abf730d5f781096cbe512db25192c3bfef07cb2f3",
+        "stdout_sha256": "0cc811b4882493b54e17616d637f431693999f3ad1a31e36975ea242c76d6669",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/e2e/calendar-134/go/20261029T095216599Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "sha256": "9b8a9323ca4f1aa3b8faecd2276c04dac1ec2d2e13bafe9619b8919daf3b1914",
+        "stdout_sha256": "76d8275bca7bc8fd1ec7e009d84908317a2f23f6069c79594c76afa78014323a",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/e2e/calendar-134/go/20261029T095843853Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "sha256": "5797549f6781dac8fe21cb75e7d1efcb61826625784318d489ee1856af0e35ec",
+        "stdout_sha256": "3015bc23d8b47911eefd222711430e98889b63e5867fe292cd2cfec0ef8a0d73",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": ".cache/e2e/calendar-134/go/20261029T100008322Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestIntelligentPlanning",
+          "-json",
+          "-count=1",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 0,
+        "sha256": "cc587c537bb3d9149f65f7b1f16c20f13d018a334d8a0e556da26eaab64b0c65",
+        "stdout_sha256": "cd20b92f7ca35bf5747f86fcb7c5f048179442dd91d8c44c76fc2f7266800235",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "web_static_checks": [
+      {
+        "check": "typecheck",
+        "arguments": [
+          "node",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit"
+        ],
+        "exit_code": 0,
+        "seconds": 22.098,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "check": "i18n",
+        "arguments": [
+          "node",
+          "scripts/check-i18n.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 1.497,
+        "stdout_sha256": "ee47959a6b3f8c29e81187b4213fdf557912a81c2417db102159133ebb2ea09c",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "check": "build",
+        "arguments": [
+          "node",
+          "node_modules/vite/bin/vite.js",
+          "build",
+          "--outDir",
+          "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\calendar-134\\web-dist"
+        ],
+        "exit_code": 0,
+        "seconds": 46.161,
+        "stdout_sha256": "43518f32c2a0490b0c8bd63463969d2b4622df0f523fa7d0eea283803a8d7e82",
+        "stderr_sha256": "ccb6bf354a0674eeb1e49df9a880a000b75240079fdb849282bb899d81eeb58c"
+      }
+    ],
+    "independent_review": "One exact public-note limit mismatch fixed: Unicode codepoints, not UTF8bytes. No other evidenced issue in scoped authority, current receipt recovery, null/zero, weights, body gate or no-fallback behavior.",
+    "repair": "Two locale consumer fixtures directly assigned DOM.value for a previously uncontrolled input. Added native setter+bubbling input event for the new controlled draft; retained12.5 expectation, raw name, focus/dialog/read count and added dirty-leave assertion. Product source not altered; only2 failed cases rerun.",
+    "full_suites_repeated": false,
+    "new_dependencies": 0,
+    "feature_model_calls": 0,
+    "commercial_calls": 0,
+    "sdk_rebuilds": 0,
+    "markdown_links": 1032,
+    "schema_references": 3070,
+    "source_hashes_verified_unchanged": true,
+    "intelligent_planning_cases": 8,
+    "documentation_only_integration": {
+      "from": "f8efb232271ff2dfc4de61efdc8fad4beea3dfda",
+      "to": "a1c71f237ecce4239ed4469b2ebde693808ae0df",
+      "changed_paths": [
+        "docs/README.md",
+        "docs/architecture/unified-capability-orchestration.md",
+        "docs/delivery/implementation-plan.md",
+        "docs/delivery/status.md",
+        "docs/design/prototypes/enterprise-workbench.css",
+        "docs/design/prototypes/enterprise-workbench.html",
+        "docs/design/prototypes/enterprise-workbench.js",
+        "docs/design/unified-experience.md",
+        "docs/integrations/development-tool-matrix.md",
+        "docs/quality/platform-design-summary.json",
+        "docs/quality/platform-design-verification.md",
+        "docs/quality/verification.md",
+        "memory/current_state.json",
+        "scripts/verify-enterprise-prototype.cjs"
+      ],
+      "runtime_sources_unchanged": true,
+      "checks_not_repeated": true
+    }
+  },
+  "limits": [
+    "Actual current browser inventory reports local browser use disabled in Work settings; no bypass/settings change. Actual rendering/narrow viewport/theme/font checks unverified.",
+    "SQLite and HTTP handler fixtures only; real OceanBase/PostgreSQL servers not validated this stage. Existing initialization and schema-column guard do not prove every database constraint/cluster recovery.",
+    "Current calendars are project planning configurations, not global employee capacity enforcement or leave approval. Actual worklogs, external calendar/HR sync, cross-project organizational capacity, history and forecasting remain pending.",
+    "No performance or capacity SLO claim. Weight is closed-form O(7+exceptions); project aggregation/tenant authorization scale still needs real load evidence.",
+    "Old user data never dropped or imported; actual deployment/upgrade, installers and production acceptance not performed."
+  ]
+}

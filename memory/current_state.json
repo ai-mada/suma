@@ -46,13 +46,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-EXPERIENCE-133",
-  "updated_at": "2026-10-29T09:08:30.745508+00:00",
+  "stage": "T-CALENDAR-134",
+  "updated_at": "2026-10-29T10:06:34.326667+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/enterprise-experience-verification.md",
-  "current_summary": "docs/quality/enterprise-experience-summary.json",
+  "current_evidence": "docs/quality/resource-calendars-verification.md",
+  "current_summary": "docs/quality/resource-calendars-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -220,5 +220,13 @@
     "summary": "docs/quality/enterprise-experience-summary.json",
     "scope": "Preserved combined whole-project overview; lazy authorized bounded task/basis diagnostics;4 secret-free client formats+4 guide-only entries; full58/34/92 remains.",
     "verification": "8 distinct Go checks;67 scoped Web cases with targeted5-case integration repair and45 unchanged tool cases reused; final types/6673 locales/build/contracts.0 models; currentGUI and real vendor/other database servers unverified."
+  },
+  "resource_calendars": {
+    "stage": "T-CALENDAR-134",
+    "status": "scoped_verified_gui_not_verified",
+    "report": "docs/quality/resource-calendars-verification.md",
+    "summary": "docs/quality/resource-calendars-summary.json",
+    "scope": "One versioned project resource calendar, date exceptions and complete-range effort by available hours; unknown/zero/incomplete kept separate; no legacy weekly write or import. Organization capacity/HR/worklogs remain fullscope pending.",
+    "verification": "36 distinctGo;103 Web with101 initial/2 fixture corrections; types/6722 locales/build/contracts; actual SQLiteHTTP, no models. GUI disabled and real otherDBs unverified."
   }
 }

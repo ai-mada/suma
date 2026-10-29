@@ -1,11 +1,12 @@
 import {tr as t,getLocale} from './i18n';
 import type {RecordItem} from './api';
+import type {CapacityEntry as GoCapacityEntry} from '../../../packages/contracts/src';
 
 export type Plan={version:number;iteration_id:string;milestone_id:string;start_date:string;due_date:string;estimated_hours:number|null};
 export type PlannedTask=RecordItem & {plan:Plan};
 export type Iteration={id:string;version:number;title:string;description:string;status:string;start_date:string;end_date:string;goal:string};
 export type Milestone={id:string;version:number;title:string;description:string;status:string;target_date:string};
-export type Capacity={member_id:string;name:string;kind:string;week_start:string;version:number;available_hours:number|null;allocated_hours:number;unestimated_tasks:number};
+export type Capacity=GoCapacityEntry;
 export type Baseline={id:string;title:string;created_at:string;task_count:number;accepted_tasks:number;estimated_tasks:number;estimated_hours:number};
 export type BaselineDetail=Baseline & {snapshot:{tasks:PlannedTask[];total:number;next_cursor?:string};comparison:{added_tasks:number;removed_tasks:number;definition_changed_tasks:number;plan_changed_tasks:number;accepted_tasks:number;total_tasks:number}};
 export type PlanningData={iterations:Iteration[];milestones:Milestone[];baselines:Baseline[];tasks:PlannedTask[];capacity:Capacity[];metrics:{total_tasks:number;accepted_tasks:number;blocked_tasks:number;scheduled_tasks:number;estimated_tasks:number;estimated_hours:number;overdue_tasks:number;acceptance_percent:number|null};as_of:string;total:number;next_cursor?:string;coverage?:unknown};

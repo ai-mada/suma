@@ -188,7 +188,7 @@ OIDC尚未实现；只保留内部sourceID/revision/current-state解析seam。�
 | 会话与项目 | auth/session、projects | 真实kind/source/currentmembership，API项目列表精确boundproject |
 | 治理 | organizations、organization/members/invitations、teams、team members、project-access | 不把scopeAPI提升组织治理；邀请不回显secret |
 | 记录与业务 | requirements/tasks/members/issues/documents/releases/tests/evidence列表详情，overview/capabilities，POST search | scope/role保持，current receipt与对象详情分开；upstream index不信任caller scope |
-| 计划 | planning、iterations/milestones、planning/capacity、baseline列表/详情/pages | snapshot/watermark、真实成员和项目角色 |
+| 计划 | planning、iterations/milestones、planning/capacity、resource-calendars/{member_id}、baseline列表/详情/pages | snapshot/watermark、真实成员和项目角色 |
 | DAG | workflows列表/固定版本，POST workflows/validate，runs列表/详情/events/stream，node scheduling/attempts/tool-events | immutable历史仍需当前读权限；SSE/batch复核；保留cursor/watermark/rawtext |
 | 工具与派发 | tool-profiles列表/详情，task-dispatch-plan详情 | 真实kind和当前项目范围；资格显示不等于命令授权 |
 | 调度／资源池 | scheduling policy/previews/queue，execution-pools/preview/grants/runners，project-execution grants/route/runners/preview | browser与machine metadata分开；拥有方与使用方project scope不混 |
@@ -257,7 +257,7 @@ Root 统一 shared types、用途矩阵、DAG、HTTP、生命周期、schema 初
 | 16 | `POST /issues/{id}/intake` → `IssueToRequirement` | source_gap | browser、projectAPI；Actor命令 → sameTx authorizedCommand → receipt/mutation | A |
 | 17 | `POST/PATCH /iterations,/milestones` → `SavePlanningPeriod` | source_gap | browser、projectAPI；Actor命令 → sameTx authorizedCommand → receipt/mutation | A |
 | 18 | `POST /planning/schedule` → `ScheduleTasks` | source_gap | browser、projectAPI；Actor命令 → sameTx authorizedCommand → receipt/mutation | A |
-| 19 | `POST /planning/capacity` → `SaveCapacity` | source_gap | browser、projectAPI；Actor命令 → sameTx authorizedCommand → receipt/mutation | A |
+| 19 | `PUT /resource-calendars/{member_id}` → `SaveResourceCalendar` | source_gap | browser、projectAPI；Actor命令 → sameTx authorizedCommand → receipt/mutation | A |
 | 20 | `POST /planning/baselines` → `CaptureBaseline` | source_gap | browser、projectAPI；Actor命令 → sameTx authorizedCommand → receipt/mutation | A |
 | 21 | `POST /workflows` → `Engine.PublishWithOperation` | source_gap | browser、projectAPI；Root authority variant；before捕获Actor并生成sameTx proof | Root共享/内核 |
 | 22 | `POST /runs` → `Engine.CreateRunBoundAuthorized` | source_gap | browser、projectAPI；Root authority variant；before捕获Actor并生成sameTx proof | Root共享/内核 |

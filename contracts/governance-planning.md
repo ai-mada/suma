@@ -1,10 +1,10 @@
 # Governance, planning and execution expansion
 
-Status: implementation contract, 2026-10-23. This extends the existing v1 contract. All writes use stable idempotency_key and expected_version; authenticated tenant comes from the session. API/Runner/Agent project tokens cannot use organization governance. Tests use repository-local temp/cache. Do not commit or push.
+Status: current initial1.0.0 contract, updated2026-10-29 / T-CALENDAR-134. All writes use stable idempotency_key and expected_version; authenticated tenant comes from the session. API/Runner/Agent project tokens cannot use organization governance. Tests use repository-local temp/cache. Stage commits/pushes follow current AGENTS and explicit session authorization.
 
 ## Organization and teams (governance agent)
 
-`Service.MigrateGovernance(ctx)` installs additional tables without removing current data. `Server.governance(w,r,p,path,m) bool` handles authenticated governance routes before normal project authorization; root performs body decoding and rejects all scoped tokens for these namespaces. `Service.AcceptInvitation(ctx,m)(Principal,string,error)` handles the public one-time invitation acceptance route; root sets cookie and returns normal session. `Service.SwitchOrganization(ctx,p,m)(Principal,string,error)` returns a new browser session; root handles cookie and normal session response.
+`Service.InitializeGovernance(ctx)` declares the current domain tables without importing historical data. `Server.governance(w,r,p,path,m) bool` handles authenticated governance routes before normal project authorization; root performs body decoding and rejects all scoped tokens for these namespaces. `Service.AcceptInvitation(ctx,m)(Principal,string,error)` handles the public one-time invitation acceptance route; root sets cookie and returns normal session. `Service.SwitchOrganization(ctx,p,m)(Principal,string,error)` returns a new browser session; root handles cookie and normal session response.
 
 - GET/POST `/organizations` -> list `{id,name,role}` / create with `{name,idempotency_key}`. Creation does not change active organization.
 - POST `/auth/switch` `{organization_id,idempotency_key}` -> normal session in chosen organization; current credentials must be browser sessions.
@@ -26,7 +26,7 @@ Governance owns internal/platform/governance*.go, governance*_test.go, docs/prod
 - GET/POST `/milestones`; PATCH `/milestones/{id}`. `{id,version,title,description,status:'planned'|'active'|'completed',target_date}`. Completing iteration/milestone requires all linked tasks accepted.
 - POST `/planning/schedule` `{changes:[{task_id,expected_task_version,expected_version:planVersionOr0,iteration_id,milestone_id,start_date,due_date,estimated_hours:number|null}],idempotency_key}`. Atomic batch with complete edited plan fields; scope, dates and references validated. It updates independent plan versions, never fabricates task acceptance or changes delivery scope.
 - GET/POST `/planning/baselines`: POST `{title,idempotency_key}` captures immutable task/plan scope, estimates and actual statuses; GET metadata includes snapshot. Capture is an explicit action. Scope changes and actual completion remain distinct from baseline assumptions.
-- POST `/planning/capacity` `{member_id,week_start:'YYYY-MM-DD' Monday,available_hours,expected_version:versionOr0,idempotency_key}`. Response includes version. Unknown capacity stays null; planning hours are separate from machine execution quotas.
+- GET `/planning/capacity` derives a Monday-based week from the current resource calendar. GET/PUT `/resource-calendars/{member_id}` owns the sole calendar write contract: seven Monday–Sunday nullable daily hours and bounded date exceptions, independent expected version and stable original operation. See [work calendar contract](resource-calendars.md). A complete task date interval is allocated by actual configured available-hour weights; missing boundaries, unknown days and zero denominator stay explicit. Planning estimates are separate from actual worklogs and machine quotas.
 
 ## UI (workbench agent)
 

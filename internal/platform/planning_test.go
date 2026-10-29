@@ -2,6 +2,7 @@ package platform
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 )
@@ -103,30 +104,28 @@ func TestBaselineCapturesBeyondUIPageAndSeparatesScopeAndPlanChanges(t *testing.
 	}
 }
 
-func TestCapacityUnknownZeroAndProRatedCalendarWeeks(t *testing.T) {
+func TestCapacityUnknownZeroAndCalendarWeightedWeeks(t *testing.T) {
 	f := newFixture(t)
-	member := f.call("POST", "/members", f.body(map[string]any{"title": "负责人", "kind": "human", "data": map[string]any{"user_id": f.user.ID}}), 201)
+	member := calendarTestMember(f)
 	task := f.call("POST", "/tasks", f.body(map[string]any{"title": "跨周工作", "owner_id": member["id"]}), 201)
 	change := f.planChange(task, 0)
-	change["due_date"] = "2026-11-01"
-	change["estimated_hours"] = 28
+	change["due_date"], change["estimated_hours"] = "2026-11-01", 28
 	f.call("POST", "/planning/schedule", f.body(map[string]any{"changes": []any{change}}), 200)
-	overview := f.call("GET", "/planning?project_id="+f.project+"&week_start=2026-10-19", nil, 200)
-	entry := overview["capacity"].([]any)[0].(map[string]any)
-	if entry["available_hours"] != nil || entry["allocated_hours"] != float64(14) {
-		t.Fatal("unknown capacity fabricated or weekly share double counted")
+	entry := f.call("GET", "/planning?project_id="+f.project+"&week_start=2026-10-19", nil, 200)["capacity"].([]any)[0].(map[string]any)
+	if entry["available_hours"] != nil || entry["allocated_hours"] != float64(0) || entry["distribution_unknown_hours"] != float64(28) {
+		t.Fatal("unknown calendar fabricated a weekly allocation", entry)
 	}
-	body := f.body(map[string]any{"member_id": member["id"], "week_start": "2026-10-19", "available_hours": 0, "expected_version": 0})
-	zero := f.call("POST", "/planning/capacity", body, 200)
-	if zero["available_hours"] != float64(0) {
-		t.Fatal("zero capacity lost")
+	f.call("PUT", calendarTestPath(member), f.body(map[string]any{"expected_version": 0, "schedule": calendarTestSchedule(float64(0))}), 200)
+	zero := f.call("GET", "/planning/capacity?project_id="+f.project+"&week_start=2026-10-19", nil, 200)["items"].([]any)[0].(map[string]any)
+	if zero["available_hours"] != float64(0) || zero["distribution_unknown_tasks"] != float64(1) {
+		t.Fatal("zero calendar lost or fabricated distribution", zero)
 	}
-	f.call("POST", "/planning/capacity", f.body(map[string]any{"member_id": member["id"], "week_start": "2026-10-19", "available_hours": 40, "expected_version": 0}), 409)
-	unknown := f.call("POST", "/planning/capacity", f.body(map[string]any{"member_id": member["id"], "week_start": "2026-10-19", "available_hours": nil, "expected_version": 1}), 200)
-	if unknown["available_hours"] != nil {
-		t.Fatal("explicit unknown not preserved")
+	f.call("PUT", calendarTestPath(member), f.body(map[string]any{"expected_version": 1, "schedule": calendarTestSchedule(float64(8))}), 200)
+	allocated := f.call("GET", "/planning/capacity?project_id="+f.project+"&week_start=2026-10-19", nil, 200)["items"].([]any)[0].(map[string]any)
+	if allocated["allocated_hours"] != float64(14) || allocated["available_hours"] != float64(40) {
+		t.Fatal("known repeated week did not distribute estimate", allocated)
 	}
-	f.call("POST", "/planning/capacity", f.body(map[string]any{"member_id": member["id"], "week_start": "2026-10-20", "available_hours": 40, "expected_version": 0}), 400)
+	f.call("GET", "/planning/capacity?project_id="+f.project+"&week_start=2026-10-20", nil, 400)
 }
 
 func TestPlanningChecksLivePermissionInsteadOfStalePrincipalRole(t *testing.T) {
@@ -180,7 +179,7 @@ func TestPlanningRejectsFractionalCASAndIncompleteReplacement(t *testing.T) {
 	change = f.planChange(task, 0)
 	change["expected_task_version"] = 1.25
 	f.call("POST", "/planning/schedule", f.body(map[string]any{"changes": []any{change}}), 400)
-	f.call("POST", "/planning/capacity", f.body(map[string]any{"member_id": "missing", "available_hours": 40, "expected_version": 0}), 400)
+	f.call("PUT", "/resource-calendars/missing", f.body(map[string]any{"expected_version": 0}), 400)
 }
 
 func TestProjectHumanIdentityCannotBeInventedDuplicatedOrReplaced(t *testing.T) {
@@ -203,28 +202,30 @@ func TestCapacityCountsOnlyWorkInSelectedCalendarWeek(t *testing.T) {
 	for _, check := range []struct {
 		week    string
 		unknown float64
-	}{{"2026-10-19", 1}, {"2026-11-02", 2}} {
+	}{{"2026-10-19", 0}, {"2026-11-02", 1}} {
 		items := f.call("GET", "/planning/capacity?project_id="+f.project+"&week_start="+check.week, nil, 200)["items"].([]any)
 		entry := items[0].(map[string]any)
-		if entry["unestimated_tasks"] != check.unknown || entry["allocated_hours"] != float64(0) {
+		if entry["unestimated_tasks"] != check.unknown || entry["unscheduled_tasks"] != float64(1) || entry["allocated_hours"] != float64(0) {
 			t.Fatalf("capacity includes work outside %s: %v", check.week, entry)
 		}
 	}
 }
 
-func TestCapacityRequiresExplicitHoursAndPreservesExistingValueOnInvalidWrite(t *testing.T) {
+func TestCalendarReplacementPreservesExistingValueOnInvalidWrite(t *testing.T) {
 	f := newFixture(t)
-	member := f.call("POST", "/members", f.body(map[string]any{"title": "显式容量", "kind": "human", "data": map[string]any{"user_id": f.user.ID}}), 201)
-	first := f.call("POST", "/planning/capacity", f.body(map[string]any{"member_id": member["id"], "week_start": "2026-10-19", "available_hours": 40, "expected_version": 0}), 200)
-	f.call("POST", "/planning/capacity", f.body(map[string]any{"member_id": member["id"], "week_start": "2026-10-19", "expected_version": first["version"]}), 400)
-	f.call("POST", "/planning/capacity", f.body(map[string]any{"member_id": member["id"], "week_start": "2026-10-19", "available_hours": "unknown", "expected_version": first["version"]}), 400)
+	member := calendarTestMember(f)
+	path := calendarTestPath(member)
+	first := f.call("PUT", path, f.body(map[string]any{"expected_version": 0, "schedule": calendarTestSchedule(float64(8))}), 200)
+	f.call("PUT", path, f.body(map[string]any{"expected_version": first["version"]}), 400)
+	f.call("PUT", path, f.body(map[string]any{"expected_version": first["version"], "schedule": calendarTestSchedule("unknown")}), 400)
 	current := f.call("GET", "/planning/capacity?project_id="+f.project+"&week_start=2026-10-19", nil, 200)["items"].([]any)[0].(map[string]any)
-	if current["available_hours"] != float64(40) || current["version"] != first["version"] {
-		t.Fatalf("invalid request changed known capacity: %v", current)
+	if current["available_hours"] != float64(40) || current["calendar_version"] != first["version"] {
+		t.Fatal("invalid request changed known calendar", current)
 	}
-	unknown := f.call("POST", "/planning/capacity", f.body(map[string]any{"member_id": member["id"], "week_start": "2026-10-19", "available_hours": nil, "expected_version": first["version"]}), 200)
+	f.call("PUT", path, f.body(map[string]any{"expected_version": first["version"], "schedule": calendarTestSchedule(nil)}), 200)
+	unknown := f.call("GET", "/planning/capacity?project_id="+f.project+"&week_start=2026-10-19", nil, 200)["items"].([]any)[0].(map[string]any)
 	if unknown["available_hours"] != nil {
-		t.Fatal("explicit unknown was rejected or converted to zero")
+		t.Fatal("explicit unknown was converted to zero")
 	}
 }
 
@@ -252,7 +253,8 @@ func TestCapacityExcludesRevokedHumansAndPreservesHistoricalRows(t *testing.T) {
 			f.cookie = ownerCookie
 			f.call("GET", "/auth/session", nil, 200)
 			resource := f.call("POST", "/members", f.body(map[string]any{"title": "已撤权资源", "kind": "human", "data": map[string]any{"user_id": userID}}), 201)
-			known := f.call("POST", "/planning/capacity", f.body(map[string]any{"member_id": resource["id"], "week_start": "2026-10-19", "available_hours": 40, "expected_version": 0}), 200)
+			request := f.body(map[string]any{"expected_version": 0, "schedule": calendarTestSchedule(float64(8))})
+			known := f.call("PUT", calendarTestPath(resource), request, 200)
 			if removal == "project" {
 				f.call("POST", "/project-access", map[string]any{"project_id": f.project, "user_id": userID, "action": "remove", "expected_version": 1, "idempotency_key": newID()}, 200)
 			} else {
@@ -262,13 +264,19 @@ func TestCapacityExcludesRevokedHumansAndPreservesHistoricalRows(t *testing.T) {
 			if current["total"] != float64(0) {
 				t.Fatalf("revoked human contributes current capacity: %v", current)
 			}
-			f.call("POST", "/planning/capacity", f.body(map[string]any{"member_id": resource["id"], "week_start": "2026-10-19", "available_hours": 35, "expected_version": known["version"]}), 400)
-			var hours float64
+			f.call("PUT", calendarTestPath(resource), f.body(map[string]any{"expected_version": known["version"], "schedule": calendarTestSchedule(float64(7))}), 403)
+			f.call("PUT", calendarTestPath(resource), request, 403)
+			f.call("GET", calendarTestPath(resource)+"?project_id="+f.project, nil, 403)
+			var payload string
 			var version int
-			if err := f.s.DB.QueryRow(`SELECT available_hours,version FROM suma_capacity WHERE tenant_id=? AND project_id=? AND member_id=? AND week_start=?`, f.user.TenantID, f.project, resource["id"], "2026-10-19").Scan(&hours, &version); err != nil {
+			if err := f.s.DB.QueryRow(`SELECT schedule,version FROM suma_resource_calendars WHERE tenant_id=? AND project_id=? AND member_id=?`, f.user.TenantID, f.project, resource["id"]).Scan(&payload, &version); err != nil {
 				t.Fatal(err)
 			}
-			if hours != 40 || version != 1 {
+			var schedule ResourceCalendarSchedule
+			if err := json.Unmarshal([]byte(payload), &schedule); err != nil {
+				t.Fatal(err)
+			}
+			if len(schedule.Weekdays) != 7 || schedule.Weekdays[0] == nil || *schedule.Weekdays[0] != 8 || version != 1 {
 				t.Fatal("revocation or rejected write changed historical capacity")
 			}
 		})

@@ -4,7 +4,9 @@
 
 更新：2026-10-29。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–26 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。
 
-当前T-EXPERIENCE-133深化[企业研发工作台需求与架构](../product/enterprise-workbench.md)：保留全量交付与分页关注，按需展开准确分类和原运行依据诊断；新增四类客户端可信无密钥配置导出及其他工具手动指南。8项Go、67项Web、类型／6673键中英／生产构建及合同检查通过，GUI实际渲染仍待验。见[当前报告](../quality/enterprise-experience-verification.md)／[摘要](../quality/enterprise-experience-summary.json)，完整58／34／92不变。
+当前T-CALENDAR-134推进原资源排期：版本化七日工作制及日期例外、按完整任务区间可用小时分摊、未知／0与未完整排期分开，正式智能规划绑定完整日历。中英编辑器与原回执／当前资格连通；[报告](../quality/resource-calendars-verification.md)和[摘要](../quality/resource-calendars-summary.json)记录SQLite／HTTP、DOM及类型／语言／构建证据。真实浏览器及组织容量／HR／工时／生产仍待交付，58／34／92不变。
+
+前序T-EXPERIENCE-133深化[企业研发工作台需求与架构](../product/enterprise-workbench.md)：保留全量交付与分页关注，按需展开准确分类和原运行依据诊断；新增四类客户端可信无密钥配置导出及其他工具手动指南。8项Go、67项Web、类型／6673键中英／生产构建及合同检查通过，GUI实际渲染仍待验。见[当前报告](../quality/enterprise-experience-verification.md)／[摘要](../quality/enterprise-experience-summary.json)，完整58／34／92不变。
 
 当前 T-EXPERIENCE-131：首页项目全量交付统计及当前权限下的分页读取、导航视觉基础、IDE渐进展开代码完成，本阶段定向检查及中英／明暗／桌面／390px隔离浏览器验证通过；完整前端1236项通过，全量Go仍有已记录失败。[设计](../design/unified-experience.md)、[权威计划深化分组](implementation-plan.md#统一体验与全平台深化)、[阶段报告](../quality/unified-experience-verification.md)及[摘要](../quality/unified-experience-summary.json)分别记录范围和证据。完整文档编辑、排期容量、智能自动化策略、多端离线与正式交付仍待办，原58／34／92状态及既有阶段证据保持不变。
 
@@ -49,7 +51,7 @@ T-PROJECT-121继续原P3／P5与需求7、10、12、13：正式项目风险登�
 | --- | --- | --- |
 | Octop 项目MCP与Harness执行 | 项目专用MCP及17项共享目录；公开Harness1.0.5／ACP0.12.1共用统一ModelBinding与Go网关，真实SSE、六工具、独立工作树、检查／封存及同SHA独立JUnit；中英文配置与可展开执行事实 | [接入](../integrations/octop.md)、[执行架构](../architecture/octop-execution.md)、[当前报告](../quality/model-gateway-verification.md)、[摘要](../quality/model-gateway-summary.json)分别记录官方SDK、本地模型协议、取消树停止与界面结果；完整Octop CLI／GUI、厂商账户、多主机、跨平台及生产仍待验 |
 | 身份、组织与治理 | 初始化、登录、会话、组织／项目隔离、真实账号、团队、邀请、角色、撤权及当前凭证授权 | [当前权限](../quality/current-authority-verification.md)、[平台验证](../quality/verification.md)；完整自定义角色／菜单、企业 SSO、OAuth／设备治理及跨数据库验收待办 |
-| 项目计划与进度 | 迭代、里程碑、版本化排期、完整项目不可变基线、当前比较、自然周估算分摊与真实业务指标 | [产品与治理](../product/governance.md)、[验证](../quality/verification.md)；计划估算不等于实际工时，人员日历、连续历史、预测和 portfolio 待办 |
+| 项目计划与进度 | 迭代、里程碑、版本化排期、完整项目不可变基线、当前比较、工作日历加权估算与真实业务指标 | [产品与治理](../product/governance.md)、[验证](../quality/verification.md)；计划估算不等于实际工时；当前工作制／日期例外见[日历报告](../quality/resource-calendars-verification.md)，外部HR／请假审批、连续历史、预测和portfolio待办 |
 | 业务任务依赖编辑与参考源码整合 | 当前项目完整任务图、图／表共享草稿、最多 100 项原子版本 CAS、全图校验、显式冲突处理及原操作回执恢复；修改撤销旧验收资格并保留执行快照 | [中文操作](../development/task-dependencies.md)／[English](../en/task-dependencies.md)、[合同](../../contracts/task-dependencies.md)、[源码适配清单](../integrations/referenced-conversation-integration.md)、[本阶段报告](../quality/task-dependencies-verification.md)；按实际参考源码重构当前 1.0.0，不是旧 Git 历史 cherry-pick；最多 1000 个任务完整图，实际 API 与界面复验结果以报告为准，分布式／大图性能／生产验收未由本阶段推断 |
 | 任务交付与质量链路 | 依赖图所选任务按需读取确切运行、完整节点／测试计数和每类 20 条正式引用；团队预览／派发、证据、人工验收、退回问题与专用来源映射的需求草稿连通 | [操作](../development/task-delivery-chain.md)／[English](../en/task-delivery-chain.md)、[合同](../../contracts/task-delivery-chain.md)、[限定报告](../quality/task-delivery-chain-verification.md)；本机自有 DSH 协议命令实际提交代码，另一 Runner 对同 SHA 执行 3 项断言，界面退回形成 1 个问题并回流 1 个需求草稿；下游 B 保持未启动并等待正式验收，非厂商智能编码效果、物理多机或生产验收 |
 | 自动化计划与逐例质量门禁 | 每任务单一计划、不可变草稿／发布修订、任务依据与需求精确版本；原Go DAG同运行绑定与固定候选独立测试、受限原JUnit采集、当前attempt逐例投影、Review重核及明确failed/error用例问题回流 | [中文指南](../development/test-plans.md)／[English](../en/test-plans.md)、[合同](../../contracts/test-plans.md)、[架构](../architecture/quality-evidence.md)、[阶段报告](../quality/test-plans-verification.md)、[摘要](../quality/test-plans-summary.json)保留对应阶段事实。没有人工passed或事后倒签；带计划运行不支持map／子流程／外部流程，完整Issue／TestCase管理和手工／应用／发布测试仍待交付；当前限定修复关单与重开见下一行 |

@@ -429,7 +429,7 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	}
 	project := r.URL.Query().Get("project_id")
 	var m map[string]any
-	if r.Method == "POST" || r.Method == "PATCH" || r.Method == http.MethodPut && len(parts) == 3 && parts[0] == "requirements" && parts[2] == "design" {
+	if r.Method == "POST" || r.Method == "PATCH" || r.Method == http.MethodPut && (len(parts) == 3 && parts[0] == "requirements" && parts[2] == "design" || len(parts) == 2 && parts[0] == "resource-calendars") {
 		if path == "runner/progress" {
 			m, err = decodeRunnerProgressEnvelope(r)
 		} else {

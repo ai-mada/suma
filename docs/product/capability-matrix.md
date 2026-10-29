@@ -77,7 +77,7 @@
 | 人类资源与团队身份 | [资源绑定界面](../../apps/web/src/ResourceIdentityFields.tsx)：人类项目资源绑定真实组织user_id，任务owner使用项目资源ID；团队human使用组织用户、Agent/tool使用项目资源 | 对应组织权限、资源绑定和前端身份回归 | 团队归属不授予项目访问；Agent/tool登记不代表连接可用，实际接入分别验收 |
 | 迭代、里程碑与原子排期 | [planning.go](../../internal/platform/planning.go)、[计划界面](../../apps/web/src/Planning.tsx)：计划独立版本、任务版本双校验、完整字段批次原子保存、关联任务验收完成门禁 | [计划回归](../../internal/platform/planning_test.go)、[前端表单消费者模型](../../apps/web/src/planning-governance.test.ts)；本轮浏览器结果见统一报告 | 不推断任务已验收；完整产品设计编辑、风险管理和组合规划仍待完成 |
 | 全量不可变项目基线 | [baselines.go](../../internal/platform/baselines.go)：事务捕获项目全部任务/计划、元数据列表、分页快照、全范围当前比较 | 对应不可变范围、分页及比较回归；最终结果见统一报告 | 全量指单个项目任务范围；连续进度历史、预测和portfolio全量统计尚未实现 |
-| 每周资源容量 | [planning_read.go](../../internal/platform/planning_read.go)：真实资源容量版本、nullable可用工时、已排估算按重合日历日期比例跨周分配、未完整分配提示 | 对应跨周分摊、未知/零工时和版本回归；实际结果见统一报告 | 这是人工计划估算，不是实际工时；人员工作制、工作日/节假日/请假、容量日历和工时消耗尚未实现 |
+| 资源工作日历与估算分摊 | [当前合同](../../contracts/resource-calendars.md)、[领域实现](../../internal/platform/resource_calendar.go)、[权重内核](../../internal/planningcalendar/calendar.go)：版本化七日工作制／日期例外、未知与0、完整区间按可用小时分摊、原操作与当前权限 | [限定报告](../quality/resource-calendars-verification.md)、[摘要](../quality/resource-calendars-summary.json)：SQLite／HTTP、算法、前端与当前数据合同以报告为准 | 计划估算不是实际出勤／工时；外部节假日、请假审批、跨项目组织容量、连续历史及生产数据库矩阵仍待交付 |
 | 项目指标与已加载范围 | 全项目任务SQL指标、任务时间线/基线分页及coverage；交付accepted与执行状态分别展示 | 对应范围与状态消费者回归 | 单项目全量指标不代表组织/跨项目portfolio汇总；风险登记与预测分析仍待实现 |
 | 完整产品设计与规划 | 已有需求表单、任务排期与文档记录入口 | 未形成完整产品编辑能力验收 | AI需求采集/评审/采用闭环、完整PRD/UED/架构产品编辑、可运行原型、风险闭环和组合规划仍在台账 |
 

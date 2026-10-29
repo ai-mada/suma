@@ -359,6 +359,7 @@ func generate() (map[string]any, string) {
 	var out strings.Builder
 	automationIngressSecurity(api)
 	projectFocusContracts(add, api)
+	resourceCalendarContracts(add, api)
 	projectKnowledgeContracts(add, api)
 	requirementDesignContracts(add, api)
 	taskDesignViewContracts(add, api)
