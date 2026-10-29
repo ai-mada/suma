@@ -1,0 +1,842 @@
+{
+  "stage": "T-TERMINAL-130",
+  "date": "2026-10-29",
+  "product_version": "1.0.0",
+  "status": "scoped_actual_windows_terminal_candidate_recovery_verified_browser_rendering_not_verified",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "sha256": "7824cfbec7007c291568f524ac3bbfd09c40da628c39ab98f88eb0773fd2b851",
+    "inventory": ".cache/e2e/terminal-130/source-inventory.json",
+    "files": 70,
+    "integration_parent": "d67efa9fb36b240e54f45d869b6471a14ce7e57f",
+    "isolated_check_source": ".cache/e2e/terminal-130/check-source",
+    "policy": "New current capabilities; no historical aliases/backfills or alternate scheduler."
+  },
+  "checks": {
+    "distinct_go_top_tests": [
+      "TestCandidateCompositionBaselineAcceptanceTraversesOriginalSources",
+      "TestCandidateCompositionBaselineDispatchFreezesAndRechecksCurrentAuthority",
+      "TestCanonicalTemplateGrammarAndCatalogSnapshot",
+      "TestCodeBaselineDigestAndInheritedAnchorContract",
+      "TestCodeBaselineRequiresOneExactAcceptedOrigin",
+      "TestTerminalCandidateChangedImportManifestCannotAuthorizeCheckEdits",
+      "TestTerminalCandidateInventoryRejectsLaterDriftAndProtectedEdits",
+      "TestTerminalCandidatePublicTemplateCannotGrantSourceAuthority",
+      "TestTerminalCandidateSealOnlyAcceptsCapturedFiles",
+      "TestTerminalExchangeCheckpointRejectsForeignAttemptAndChangedOperation",
+      "TestTerminalRestartImportsOnlyOriginalDurableStopAndLeavesEffectUnknown",
+      "TestTerminalRestartRecoversCapturedSourceBeforeFirstSnapshotExchange",
+      "TestTerminalReviewedRecoveryDisposesExpiredResultWithoutClaimingServerResultAck",
+      "TestTerminalStoppedExchangeSurvivesRunnerRestartBeforeResult",
+      "TestWorkspaceTerminalCandidateActualStoppedSourceIndependentQuality",
+      "TestWorkspaceTerminalExpiredOriginalStopRecoveryRetainsFailedDisposition",
+      "TestWorkspaceTerminalOriginalDispatchAndUnknownInput",
+      "TestWorkspaceTerminalOutputReplayAndOriginalStopProof",
+      "TestWorkspaceTerminalRecoveryCannotReplaceTreeStopProof",
+      "TestWorkspaceTerminalRecoverySeparatesOriginalStopAndUnknownEffectReview",
+      "TestWorkspaceTerminalRetainedBrowserReadback"
+    ],
+    "go_count": 21,
+    "go_count_excludes_browser_rendering": true,
+    "distinct_web_behavior_cases": 13,
+    "new_web_cases": 4,
+    "full_web_typecheck": true,
+    "isolated_web_build": true,
+    "generated_contract_check": true,
+    "api_paths": 320,
+    "openapi_schema_definitions": 690,
+    "catalog_keys_exact_staged_source": 6448,
+    "production_hardcodes_exact_staged_source": 0,
+    "documentation_check": {
+      "workspace_links_passed": true,
+      "workspace_markdown_documents": 359,
+      "api_paths": 320,
+      "api_schema_refs": 3038,
+      "own_stage_links_resolve": true,
+      "isolated_archive_full_docs": "15 inherited historical ignored-cache references absent; new stage links exist; no placeholder fabricated"
+    },
+    "version_check": "not repeated: product identity/version unchanged",
+    "native_sdk_builds": 0,
+    "new_dependencies": 0,
+    "go_receipts": [
+      {
+        "path": ".cache/mcp019-deps/20261029T071613787Z.command.json",
+        "bytes": 1515,
+        "sha256": "36242950cfef54d5adf1a6820cb9a957e4a1c070795d7193b3401883e402e67c",
+        "arguments": [
+          "test",
+          "./internal/runner",
+          "-run",
+          "^(TestTerminalStoppedExchangeSurvivesRunnerRestartBeforeResult|TestTerminalExchangeCheckpointRejectsForeignAttemptAndChangedOperation)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 0,
+        "working_directory": "D:/codes/ai-dev-os/suma (original wrapper fixed cwd)",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T071613787Z.stdout.txt",
+          "bytes": 377,
+          "sha256": "b315afabb1988d4ac0d79562b65514d82f06bde6cf5da8b3933f16a6228b98db"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T071613787Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T072224062Z.command.json",
+        "bytes": 1673,
+        "sha256": "835d2c7186b8b14445eccc418ec592a67c8d15edf263a9479092e8835eab15d8",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./internal/runner",
+          "./internal/candidatecompositioncontract",
+          "-run",
+          "^(TestWorkspaceTerminalRecovery|TestWorkspaceTerminalExpiredOriginal|TestTerminalStoppedExchange|TestTerminalExchangeCheckpoint|TestTerminalRestartImports|TestTerminalReviewedRecovery|TestCandidateCompositionContract)",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 0,
+        "working_directory": "D:/codes/ai-dev-os/suma (original wrapper fixed cwd)",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T072224062Z.stdout.txt",
+          "bytes": 2021,
+          "sha256": "a13f41a6ca48b7c217d92dffe33239bca3cbbd70db6797be0a3aeb4c993e807f"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T072224062Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T072304873Z.command.json",
+        "bytes": 1304,
+        "sha256": "86e70426798be5127af5a40d5d00b27d21860d27820818cdcb7c8911af478b44",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "working_directory": "D:/codes/ai-dev-os/suma (original wrapper fixed cwd)",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T072304873Z.stdout.txt",
+          "bytes": 70,
+          "sha256": "582f2c61517dd9d7aa2e809b1e8abd99a0107a246d923baabdba97b040f713e2"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T072304873Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T072535553Z.command.json",
+        "bytes": 1757,
+        "sha256": "9b359d89c561698bf0a90effb748ab494ee2386fe37df1fe88e185cf12f709a2",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./internal/runner",
+          "./internal/candidatecompositioncontract",
+          "./internal/localization",
+          "-run",
+          "^(TestWorkspaceTerminalRecovery|TestWorkspaceTerminalExpiredOriginal|TestTerminalRestartImports|TestTerminalReviewedRecovery|TestCodeBaselineRequiresOneExactAcceptedOrigin|TestCodeBaselineDigestAndInheritedAnchorContract|TestCanonicalTemplateGrammarAndCatalogSnapshot)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 0,
+        "working_directory": "D:/codes/ai-dev-os/suma (original wrapper fixed cwd)",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T072535553Z.stdout.txt",
+          "bytes": 732,
+          "sha256": "fec200fa1e802ff0e9e793b8760fe97001042a9e975484b73014052b827d0eeb"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T072535553Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T072614466Z.command.json",
+        "bytes": 1304,
+        "sha256": "deef794bfac605959c11a1202cc0b2d87e2e7f3dd33b214dfa4525bbcc9ba704",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "working_directory": "D:/codes/ai-dev-os/suma (original wrapper fixed cwd)",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T072614466Z.stdout.txt",
+          "bytes": 70,
+          "sha256": "582f2c61517dd9d7aa2e809b1e8abd99a0107a246d923baabdba97b040f713e2"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T072614466Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T072852432Z.command.json",
+        "bytes": 1451,
+        "sha256": "6e7c55b2e14fbb24af3d41fe387c834502a3eef9081be3268e0085a398f7fe6a",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestWorkspaceTerminalCandidateActualStoppedSourceIndependentQuality$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 1,
+        "working_directory": "D:/codes/ai-dev-os/suma (original wrapper fixed cwd)",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T072852432Z.stdout.txt",
+          "bytes": 571,
+          "sha256": "feb6246b4c7c7b598b6e364fee6c54a05918f3bea9f35b3d8f73288079593430"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T072852432Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T073050511Z.command.json",
+        "bytes": 1736,
+        "sha256": "40c4a1b5fb97d2f002d33b5cf938b5648bd7f7c96fe120f3eeec4f58797828f8",
+        "arguments": [
+          "test",
+          "./internal/runner",
+          "./internal/platform",
+          "-run",
+          "^(TestTerminalCandidateInventoryRejectsLaterDriftAndProtectedEdits|TestTerminalCandidateSealOnlyAcceptsCapturedFiles|TestTerminalCandidateChangedImportManifestCannotAuthorizeCheckEdits|TestCandidateCompositionBaselineAcceptanceTraversesOriginalSources|TestCandidateCompositionBaselineDispatchFreezesAndRechecksCurrentAuthority)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 0,
+        "working_directory": "D:/codes/ai-dev-os/suma (original wrapper fixed cwd)",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T073050511Z.stdout.txt",
+          "bytes": 1301,
+          "sha256": "679609221f5218904d7e74aa75ef1dddfa18ca93e74d37e334621b355c7eaa9d"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T073050511Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T073136056Z.command.json",
+        "bytes": 1451,
+        "sha256": "683e17a34b3ad4ebb882e4043621492d1a1c83cec5d296700bda750c37bc3205",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestWorkspaceTerminalCandidateActualStoppedSourceIndependentQuality$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 0,
+        "working_directory": "D:/codes/ai-dev-os/suma (original wrapper fixed cwd)",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T073136056Z.stdout.txt",
+          "bytes": 562,
+          "sha256": "ea0c3cab7df29b6766103a1f1aeba3ebb18eade9b5b3845a748b9e25327fe451"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T073136056Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T073336189Z.command.json",
+        "bytes": 1304,
+        "sha256": "ecb5912f39f195ee1a36c6e8423ed5fc8e6549a6694b63843a1cfad16d624327",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "working_directory": "D:/codes/ai-dev-os/suma (original wrapper fixed cwd)",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T073336189Z.stdout.txt",
+          "bytes": 70,
+          "sha256": "fb54147de412b12cfaf52d365b7110960bef932c7485d828a3e031d5ce1c5885"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T073336189Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T073806034Z.command.json",
+        "bytes": 1542,
+        "sha256": "6d96515081053ef8ec98a3b363d8dcca4b3e1a0b27429bd3d8d65c7b42250eea",
+        "arguments": [
+          "test",
+          "./internal/runner",
+          "./internal/platform",
+          "-run",
+          "^(TestTerminalRestartRecoversCapturedSourceBeforeFirstSnapshotExchange|TestTerminalCandidatePublicTemplateCannotGrantSourceAuthority)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 0,
+        "working_directory": "D:/codes/ai-dev-os/suma (original wrapper fixed cwd)",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T073806034Z.stdout.txt",
+          "bytes": 806,
+          "sha256": "b674a84fb3aba552437ae110675db068dad5ea632299bf5d4c3b799d696e4566"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T073806034Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T073908599Z.command.json",
+        "bytes": 1428,
+        "sha256": "42532ce7a1cfb1735788b9db6b825fa5ae3872ba927342afe542a278708a1206",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestWorkspaceTerminalRetainedBrowserReadback$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "5m"
+        ],
+        "exit_code": 0,
+        "working_directory": "D:/codes/ai-dev-os/suma (original wrapper fixed cwd)",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T073908599Z.stdout.txt",
+          "bytes": 345,
+          "sha256": "5c7a7c6f66a1602408860e24cc9c8e140b111937d42ed0800eb00909cf698281"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T073908599Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T074039647Z.command.json",
+        "bytes": 1319,
+        "sha256": "7ac50ce3020dd6e5ce355b086be9734b4ad2d92aa80bbc4463d036ff2b993683",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "working_directory": "D:/codes/ai-dev-os/suma (original wrapper fixed cwd)",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T074039647Z.stdout.txt",
+          "bytes": 69,
+          "sha256": "c0e89c8a268b7f5ab04578ac5e46aaa7628eb8b9a58c2ae81d98fd2bd397fd84"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T074039647Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T074316557Z.command.json",
+        "bytes": 1492,
+        "sha256": "2f57120a36a69cf3b15d7ad0cfcd694f05d1816e58327685dc74d5351a9878f1",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^(TestWorkspaceTerminalOriginalDispatchAndUnknownInput|TestWorkspaceTerminalOutputReplayAndOriginalStopProof)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 1,
+        "working_directory": "D:/codes/ai-dev-os/suma (original wrapper fixed cwd)",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T074316557Z.stdout.txt",
+          "bytes": 67,
+          "sha256": "207cc8bd19cba9758f55a27604aa90fdf14944823e80a361603ab1b8e2fa90d9"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T074316557Z.stderr.txt",
+          "bytes": 1453,
+          "sha256": "13d5f3c755eda502ac2ff8b0b4f83edac9c7a33ced04a2911e2bac881f3d9909"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T074623150Z.command.json",
+        "bytes": 1587,
+        "sha256": "c359c2ee2db7089626479de1fe6463b9a6e7a7fdbd45f6107ddb0cfd3887ab57",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^(TestWorkspaceTerminalOriginalDispatchAndUnknownInput|TestWorkspaceTerminalOutputReplayAndOriginalStopProof)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 1,
+        "working_directory": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\terminal-130\\check-source",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T074623150Z.stdout.txt",
+          "bytes": 67,
+          "sha256": "207cc8bd19cba9758f55a27604aa90fdf14944823e80a361603ab1b8e2fa90d9"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T074623150Z.stderr.txt",
+          "bytes": 242,
+          "sha256": "aacdff389a8052f102ba11d84a32942e9356aac4245080dfc66a937121fa2697"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T074901487Z.command.json",
+        "bytes": 1659,
+        "sha256": "0b0560050671ac8bc4f710dff5608b234576c81a14f2e8564e7ccf752ae99617",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^(TestWorkspaceTerminalOriginalDispatchAndUnknownInput|TestWorkspaceTerminalOutputReplayAndOriginalStopProof)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 0,
+        "working_directory": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\terminal-130\\check-source",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T074901487Z.stdout.txt",
+          "bytes": 329,
+          "sha256": "be9b9795d3885f4689fc5fe21d78e2ea7678a8ebbecf1ec66b7e79d00a044710"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T074901487Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T075026149Z.command.json",
+        "bytes": 1486,
+        "sha256": "f641b9bd4e862e05a53356f2c99f458097e26f5a637e4ec46a915beeebb2f014",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "working_directory": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\terminal-130\\check-source",
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T075026149Z.stdout.txt",
+          "bytes": 69,
+          "sha256": "c0e89c8a268b7f5ab04578ac5e46aaa7628eb8b9a58c2ae81d98fd2bd397fd84"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T075026149Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    ],
+    "web_receipts": [
+      {
+        "path": ".cache/e2e/terminal-130/i18n-final.command.json",
+        "bytes": 174,
+        "sha256": "d7b363b4a673ea7ca1676a78bac78dfca120f4be7f6ff7e36adc10d38e2fc8fc",
+        "exit_code": 0,
+        "command": "node apps/web/scripts/check-i18n.mjs",
+        "started_at": "2026-10-29T07:43:25.1294817Z",
+        "ended_at": "2026-10-29T07:43:27.5503936Z",
+        "stdout": {
+          "path": ".cache/e2e/terminal-130/i18n-final.stdout.txt",
+          "bytes": 102,
+          "sha256": "f840705863e37772a5160fd94e96fafabf64e36d3652e49ed34dd0936cfefd28"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-130/i18n-isolated-final.command.json",
+        "bytes": 314,
+        "sha256": "f4e0b81c24f5a36f19db00590bea10a37c94c868e33851efa7a5c9a584b4b8f1",
+        "started_at": "2026-10-29T07:50:18.6571307Z",
+        "command": "node apps/web/scripts/check-i18n.mjs --source-dir .cache/e2e/terminal-130/check-source/apps/web/src --catalog-dir .cache/e2e/terminal-130/check-source/apps/web/src/i18n/locales",
+        "ended_at": "2026-10-29T07:50:21.0019531Z",
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/e2e/terminal-130/i18n-isolated-final.stdout.txt",
+          "bytes": 102,
+          "sha256": "02080507d4212e9f734c4e11788ef10c57eda8f8705605b6ef7748528af5441f"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-130/i18n-isolated.command.json",
+        "bytes": 242,
+        "sha256": "09d575376aed0a1a0215cbbc179ff7747598bd902ac5c39169eadce977ea7ea9",
+        "started_at": "2026-10-29T07:49:17.6473505Z",
+        "working_directory": "isolated HEAD plus current stage sources",
+        "command": "node apps/web/scripts/check-i18n.mjs",
+        "ended_at": "2026-10-29T07:49:18.2148223Z",
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/e2e/terminal-130/i18n-isolated.stdout.txt",
+          "bytes": 1019,
+          "sha256": "a3ac1593533646dbaa945abe58e091bf0ff211b61ff4da1305e57233e9397668"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-130/i18n.command.json",
+        "bytes": 174,
+        "sha256": "03789b47e362b725e981eb59d9202a699227363e7911d63864013eec70428182",
+        "exit_code": 0,
+        "ended_at": "2026-10-29T07:34:11.1796488Z",
+        "started_at": "2026-10-29T07:34:08.5268357Z",
+        "command": "node apps/web/scripts/check-i18n.mjs",
+        "stdout": {
+          "path": ".cache/e2e/terminal-130/i18n.stdout.txt",
+          "bytes": 102,
+          "sha256": "02080507d4212e9f734c4e11788ef10c57eda8f8705605b6ef7748528af5441f"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-130/typecheck-final.command.json",
+        "bytes": 171,
+        "sha256": "e8f86d4abd5c0b4fbeac32b189376d6b2f6172ea4f08919306ee5097916c9b3f",
+        "ended_at": "2026-10-29T07:34:21.7650631Z",
+        "started_at": "2026-10-29T07:33:44.6995010Z",
+        "command": "pnpm --filter @suma/web typecheck",
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/e2e/terminal-130/typecheck-final.stdout.txt",
+          "bytes": 16,
+          "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-130/typecheck.command.json",
+        "bytes": 171,
+        "sha256": "1aeec3ecbcd67e6ff2393124baf07d6a5698988f957e0baf9e89921ee23f2252",
+        "command": "pnpm --filter @suma/web typecheck",
+        "exit_code": 2,
+        "ended_at": "2026-10-29T07:27:03.2052322Z",
+        "started_at": "2026-10-29T07:26:38.4180959Z",
+        "stdout": {
+          "path": ".cache/e2e/terminal-130/typecheck.stdout.txt",
+          "bytes": 1379,
+          "sha256": "fab950543362d0738eb9fbef6df1deabb520693af59a6419a8c0c96beeab4d3c"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-130/ui-focused.command.json",
+        "bytes": 281,
+        "sha256": "691f2e7e18c86bdaee7b6f4af757e6a5dd86d9cb7e3a3af4f82b5d4ad2ee8c38",
+        "ended_at": "2026-10-29T07:30:48.2219330Z",
+        "started_at": "2026-10-29T07:30:38.1762138Z",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/web exec vitest run TerminalRecoveryCandidate terminal-model terminal-hooks CandidateCompositionPanel TaskCodeBaselinePanel",
+        "stdout": {
+          "path": ".cache/e2e/terminal-130/ui-focused.stdout.txt",
+          "bytes": 1185,
+          "sha256": "c9fbc26b53bc1a89f26e71a9fe973254b0a38d24a2133be8a81edc82cd8a963b"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-130/web-build.command.json",
+        "bytes": 214,
+        "sha256": "74bd119f91eb7d1e542537fc133aec6fb6e243c620f0f2b968edffe6716d0867",
+        "command": "pnpm --filter @suma/web exec vite build --outDir .cache/e2e/terminal-130/web",
+        "exit_code": 0,
+        "started_at": "2026-10-29T07:34:08.5625401Z",
+        "ended_at": "2026-10-29T07:35:12.0166668Z",
+        "stdout": {
+          "path": ".cache/e2e/terminal-130/web-build.stdout.txt",
+          "bytes": 19675,
+          "sha256": "772c0acc220bac227f9eafb2a53fd56df983dafe699e2d9972a710eb7da377b1"
+        }
+      }
+    ]
+  },
+  "actual_windows_candidate": {
+    "go_exit_code": 0,
+    "duration_seconds": 15.03,
+    "result": {
+      "accepted_review_id": "647c155a15a83281811d8a9ae7f37019",
+      "base_commit": "2e2f155e57f6eb6606dcb05421c42856c04b69b1",
+      "candidate_commit": "0d8126fc64a7bd40c0af02852e45d6ea25a5e264",
+      "candidate_run_id": "bd30bc501d08ffe87b67e9122c7e4c5b",
+      "canonical_issue_id": "eed773d5334ca39211c455567942a6fa",
+      "canonical_requirement_id": "acfacea8f24a60adfcb7baf483fb74c2",
+      "customer_human_signoff": false,
+      "followup_binding": {
+        "protocol": "suma.code-baseline.v1",
+        "id": "8ca24e736ba51e6ed3aa2e74dcaabfe4",
+        "project_id": "7733439f701acb226aeef71c0815d97b",
+        "task_id": "d6898cac2c412bcac1ded7ca1f1bb578",
+        "task_version": 2,
+        "terminal_candidate_plan_id": "34d1fdce17dc8a952b2d493d5de67784",
+        "terminal_candidate_plan_version": 2,
+        "accepted_basis_sha256": "460ef3977736c7b56f5ad2aa748549ade81f1aa9da86d47ef92a9561d24beb9e",
+        "source": {
+          "schema_version": 1,
+          "transfer_id": "3a3f29d1124f40b6220f8eba117be377",
+          "project_id": "7733439f701acb226aeef71c0815d97b",
+          "state": "sealed",
+          "source": {
+            "run_id": "bd30bc501d08ffe87b67e9122c7e4c5b",
+            "node_id": "capture",
+            "attempt": 1,
+            "fence": 1,
+            "worker_id": "terminal-source-worker130"
+          },
+          "base_commit": "2e2f155e57f6eb6606dcb05421c42856c04b69b1",
+          "bundle_base_commit": "2e2f155e57f6eb6606dcb05421c42856c04b69b1",
+          "head_commit": "0d8126fc64a7bd40c0af02852e45d6ea25a5e264",
+          "evidence_sha256": "f67d76a335a3c829a0740bdbb4a1d41671f6c355d9537ea7ff8846954980d0ab",
+          "bundle_sha256": "300c064a6135f50e99d0f9f62f5ab47a1ebc7e4b56892d73ec23eb2dda5761b8",
+          "size_bytes": 506
+        },
+        "binding_sha256": "4c728febb2bc57948212dcbaed690a7965d108ed498889a535c2d249b04fb046"
+      },
+      "followup_task_id": "d6898cac2c412bcac1ded7ca1f1bb578",
+      "formal_cases_passed": 1,
+      "independent_source_repo": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\terminal-130\\actual-2\\independent-source",
+      "independent_worker": "terminal-independent-worker130",
+      "junit_sha256": "76248a6011d104c024dc43a4f6aaae5144c1f3ad757c0b66c5c5376e1a85f52a",
+      "kind": "actual_windows_pty_stopped_candidate_independent_git_http_junit_review",
+      "late_rejection_invalidates_followup_baseline": true,
+      "model_calls": 0,
+      "parent_checkouts_unchanged": true,
+      "producer_worker": "terminal-source-worker130",
+      "production_complete": false,
+      "project_id": "7733439f701acb226aeef71c0815d97b",
+      "rejected_review_id": "4391a6175254f3b99147fc429a5adde3",
+      "stage": "T-TERMINAL-130",
+      "task_id": "7cfa007f0b0f8a298b1e1dfe280447ca",
+      "terminal_candidate_plan_id": "34d1fdce17dc8a952b2d493d5de67784",
+      "terminal_candidate_plan_version": 2,
+      "terminal_journal_sha256": "bad8c9b10fb4783934795d75b742cedcf2c50b2b0121d258e6b970bf35caca9b",
+      "terminal_manifest_file_sha256": "7f77e8b3677356c661560f896939772fea5576bd336b5a025294ad6109dbcbf2",
+      "terminal_run_id": "terminal-2077ff3030007082102320b1947974ed",
+      "terminal_session_id": "2077ff3030007082102320b1947974ed",
+      "terminal_snapshot_sha256": "e0ba6a928436979af815913df83b9e0aaea06b247cfc7d5cee89c20ef78ed3e1"
+    },
+    "network": {
+      "original_operation_replays": 1,
+      "stopped_source_ack_lost_after_commit": true
+    },
+    "scope": "Actual ConPTY/fixed cmd and Node/Git/two Workers and separate repositories/HTTP/JUnit. Fixture owner API Review is not customer sign-off. Terminal modified source once in this successful attempt; initial failed assertion is retained separately.",
+    "source_database": {
+      "path": ".cache/e2e/terminal-130/actual-2/fixture.sqlite",
+      "bytes": 2584576,
+      "sha256": "780a9d691abfc7000bf188659d6335e27604ce6765d24935adf639e60937ee17"
+    },
+    "model_calls": 0,
+    "commercial_calls": 0,
+    "independent_test_commit": "0d8126fc64a7bd40c0af02852e45d6ea25a5e264",
+    "followup_started": false,
+    "later_rejection_invalidates_baseline": true
+  },
+  "recovery_scope": {
+    "runner_restart_http_and_sqlite_lease_tests_passed": true,
+    "no_pid_attach_or_shell_replay": true,
+    "missing_original_stop_stays_unknown": true,
+    "unknown_inputs_remain_unknown_after_explicit_review": true,
+    "reviewed_disposition_is_not_result_ack": true,
+    "captured_manifest_before_first_exchange_recovered_without_recapture": true,
+    "physical_host_crash_and_partition_matrix": "not verified"
+  },
+  "final_ui": {
+    "stage": "T-TERMINAL-130",
+    "status": "not_verified",
+    "reason": "Local browser use is disabled in Work settings",
+    "current_bundle_rendered": false,
+    "native_recovery_or_candidate_ui_mutations": 0,
+    "notes": "Stopped retained readback fixture explicitly; did not change browser settings or use an alternate automation route."
+  },
+  "readonly_fixture_lifecycle": {
+    "go_exit_code": 0,
+    "result": {
+      "authentication": "Normal owner test-account login may write only authentication state in the disposable copy",
+      "business_table_count": 134,
+      "business_tables_unchanged": true,
+      "copied_exact_source_bytes": true,
+      "denied_writes": [],
+      "kind": "actual_retained_terminal_browser_readback",
+      "new_model_requests": 0,
+      "new_pty_processes": 0,
+      "original_source_unchanged": true,
+      "project_id": "7733439f701acb226aeef71c0815d97b",
+      "scheduler_ticks": 0,
+      "source_db": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\terminal-130\\actual-2\\fixture.sqlite",
+      "source_db_sha256": "780a9d691abfc7000bf188659d6335e27604ce6765d24935adf639e60937ee17",
+      "stage": "T-TERMINAL-130",
+      "status": "closed_after_read_only_browser_readback",
+      "stop_reason": "explicit_stop",
+      "task_id": "7cfa007f0b0f8a298b1e1dfe280447ca",
+      "terminal_session_id": "2077ff3030007082102320b1947974ed",
+      "worker_runs": 0
+    },
+    "interpretation": "134 business/execution tables unchanged, original DB unchanged,0 new Worker/PTY/model. Generic fixture status text is not evidence of browser use; browser.public.json explicitly records no rendering."
+  },
+  "failures_preserved": [
+    {
+      "path": ".cache/e2e/terminal-130/typecheck.command.json",
+      "reason": "Missing non-null baseline guard and incomplete typed Node fixture; corrected without any cast; final typecheck passed."
+    },
+    {
+      "path": ".cache/e2e/terminal-130/actual/failure.public.json",
+      "reason": "Premature Review correctly blocked with400 run-not-succeeded; fixture incorrectly expected409. Corrected only fixture expectation; actual-2 new directory passed entire journey."
+    },
+    {
+      "reason": "Concurrent unrelated tool_discovery_test.go appeared before its DiscoverTools service, preventing shared-package compile. Other work untouched; exact HEAD plus own source isolated for remaining checks."
+    },
+    {
+      "reason": "D: insufficient free space caused isolated Go link truncation error. Kept source and receipts; only current process build temp moved to OS TEMP/suma-terminal-130/tmp. No global environment or user file cleanup."
+    },
+    {
+      "path": ".cache/e2e/terminal-130/i18n-isolated.command.json",
+      "reason": "Copied source had no installed TypeScript module. Reused original checker with supported --source-dir/--catalog-dir pointing to exact isolated source; no install or bypass; passed6448/hardcodes0."
+    },
+    {
+      "reason": "A read-only diff helper initially used Windows default text decoder on UTF8 output; corrected helper encoding only. Does not change product behavior."
+    },
+    {
+      "reason": "Isolated source full-doc check lacked15 inherited ignored historical cache references; ordinary workspace check passed359 documents; own stage docs resolve. Historical files left unchanged."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": ".cache/e2e/terminal-130/actual/failure.fixture.sqlite",
+      "bytes": 2560000,
+      "sha256": "60b604d43ae50c4921c1ca632fff3fd3c30ce7f98ae45f5716ad5efab33164b5"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/actual/failure.public.json",
+      "bytes": 581,
+      "sha256": "9a7ba046ecfec77b168670faffa13923ff5bcc86561515057c0338e8ac0f6262"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/actual-2/business-tables.public.json",
+      "bytes": 41366,
+      "sha256": "d5dabba2ef92df004a320c54965d8752513894d284c9f8d7e1b8760d48bfb8a8"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/actual-2/candidate-plan.public.json",
+      "bytes": 3808,
+      "sha256": "dffb4dc79189cd70d9426f004e731549ce900c2d01eb3ab434704f5290f75354"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/actual-2/database.public.json",
+      "bytes": 103,
+      "sha256": "a37498c7e6146be646c5b617d0833695fdba129f76ecbd3421ef5354d1c5d4e1"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/actual-2/delivery.public.json",
+      "bytes": 1958,
+      "sha256": "ba515f12bcb80859e5480830e08977b2fc7a23b2631785f9f143f67cc00c1006"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/actual-2/fixture.sqlite",
+      "bytes": 2584576,
+      "sha256": "780a9d691abfc7000bf188659d6335e27604ce6765d24935adf639e60937ee17"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/actual-2/network.public.json",
+      "bytes": 654,
+      "sha256": "f89aaa2b983f4864d66fbfe7e00fd65fd0186f3cd905af18cebe6bc37362e9b8"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/actual-2/quality.public.json",
+      "bytes": 1847,
+      "sha256": "4fdb54b7355664bb32ddffc01cb95e4affcd4a563d4e2a42dd5261950e15bbe4"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/actual-2/result.public.json",
+      "bytes": 3100,
+      "sha256": "6b26624e84555881694e18ae224d83fd40c48a5b86852fdd1f34f6d183940a6c"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/actual-2/terminal.public.json",
+      "bytes": 1046,
+      "sha256": "8c0a5f46d3d94520d204d255fb0118db42e0c73038370963fe06439dc9e93b2d"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/readback/browser.public.json",
+      "bytes": 338,
+      "sha256": "9925005deda046eb667692109b7fcea0045341f27c14544585744f8250c228ea"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/readback/readback.after.public.json",
+      "bytes": 46176,
+      "sha256": "7d51de856e9508a59513acc1ac777d04b818143b6cc97576e8d7a13dbfaaf3a1"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/readback/readback.before.public.json",
+      "bytes": 46176,
+      "sha256": "7d51de856e9508a59513acc1ac777d04b818143b6cc97576e8d7a13dbfaaf3a1"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/readback/result.public.json",
+      "bytes": 902,
+      "sha256": "42d4991efe63980e97074c37ad1142367f8b7b2a9718c928e1840511dc26ef56"
+    },
+    {
+      "path": ".cache/e2e/terminal-130/readback/web.files.public.json",
+      "bytes": 25598,
+      "sha256": "dc5e26f5cec5cb7419588f3231df47ffe167b477959b5147889bb763e46735dc"
+    }
+  ],
+  "pending": [
+    "Actual current CN/EN/390px browser rendering and recovery/candidate/handoff controls; local browser disabled by Work settings",
+    "Full cross-host crash/network-partition and Pool terminal journeys",
+    "Unix descendant containment/availability",
+    "Existing adopted-baseline terminal source, shell-created commits and complex multi-node candidate workflows",
+    "Multi-controller takeover, WebSocket, cgroup/container isolation, LSP/DAP",
+    "Three-system native installation, OceanBase real cluster, scale/vendor/payment/production acceptance",
+    "Full P0-P7 and original requirements1-26"
+  ],
+  "git_policy": {
+    "repository": "git@github.com:ai-mada/suma.git",
+    "branch": "dev",
+    "force": false,
+    "preserve_unrelated_changes": true,
+    "no_cache_temp_secrets_databases_logs_binaries": true,
+    "delivery_receipt": ".cache/e2e/terminal-130/git-delivery.json"
+  }
+}

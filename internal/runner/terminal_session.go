@@ -115,7 +115,13 @@ func ExecuteTerminalSession(ctx context.Context, a Assignment, cfg ExecConfig) R
 		}
 		defer closeObservation()
 	}
-	session, err := terminalruntime.Start(terminalruntime.Config{ID: id, Executable: executable, Args: append([]string{}, spec.Args...), WorkDir: workspace.Source, Env: env, JournalDir: filepath.Join(workspace.Directory, "terminal-journal"), Columns: authority.Columns, Rows: authority.Rows, MaxDuration: duration})
+	journalDirectory := filepath.Join(workspace.Directory, "terminal-journal")
+	if cfg.Journal != nil {
+		if err = cfg.Journal.checkpointTerminalRuntime(a, journalDirectory, workspace.Source, profile); err != nil {
+			return fail(err)
+		}
+	}
+	session, err := terminalruntime.Start(terminalruntime.Config{ID: id, Executable: executable, Args: append([]string{}, spec.Args...), WorkDir: workspace.Source, Env: env, JournalDir: journalDirectory, Columns: authority.Columns, Rows: authority.Rows, MaxDuration: duration})
 	if err != nil {
 		return fail(err)
 	}
@@ -162,7 +168,7 @@ func ExecuteTerminalSession(ctx context.Context, a Assignment, cfg ExecConfig) R
 			}
 			request.OutputChunks = append(request.OutputChunks, term.OutputChunk{Sequence: int64(chunk.Sequence), DataBase64: base64.StdEncoding.EncodeToString(chunk.Data)})
 		}
-		response, e := terminalExchangeOriginal(ctx, client, request)
+		response, e := terminalExchangeDurable(ctx, client, cfg.Journal, a, request)
 		if e != nil {
 			terminalError = e
 			break
@@ -277,6 +283,27 @@ func ExecuteTerminalSession(ctx context.Context, a Assignment, cfg ExecConfig) R
 		r.ToolEvidence.Terminal = "unknown"
 	} else if r.ExitCode == 0 && r.Error == "" && !r.Stopped {
 		r.ToolEvidence.Terminal = "completed"
+	}
+	// Transport loss must not strand the platform before the genuine local
+	// stop fact. This sends only original output/receipts and never consumes
+	// returned shell input. The durable outbox precedes the final result.
+	var sourceSHA string
+	if state.TreeStopped {
+		captureCtx, captureCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		sourceSHA, err = captureTerminalCandidateSource(captureCtx, a, cfg, workspace, id)
+		captureCancel()
+		// Candidate eligibility is a separate fact. A source snapshot refusal
+		// must not turn an already known shell/tree outcome into uncertainty.
+		if err != nil {
+			sourceSHA = ""
+		}
+	}
+	flushCtx, flushCancel := context.WithTimeout(context.Background(), 20*time.Second)
+	flushErr := flushStoppedTerminal(flushCtx, client, cfg.Journal, a, session, workspace.Source, id, sourceSHA, cfg.BaseCommit, ack)
+	flushCancel()
+	if flushErr != nil && cfg.Journal == nil {
+		r.OutcomeUnknown = true
+		r.ToolEvidence.Terminal = "unknown"
 	}
 	return r
 }

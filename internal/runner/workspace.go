@@ -495,6 +495,9 @@ func (a *attemptWorkspace) capture(ctx context.Context, result Result) (map[stri
 	if a.nativeEvidence != nil {
 		evidence["native_workspace"] = a.nativeEvidence
 	}
+	if err := appendTerminalCandidateEvidence(a, evidence); err != nil {
+		return nil, err
+	}
 	b, _ := json.MarshalIndent(evidence, "", "  ")
 	if err = writeEvidence(filepath.Join(dir, "evidence.json"), b); err != nil {
 		return nil, err

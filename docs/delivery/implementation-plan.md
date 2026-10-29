@@ -2,7 +2,7 @@
 
 更新：2026-10-29。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。
 
-当前T129实施[受控终端与讨论开发交接](../development/interactive-development.md)，复用唯一Go DAG、私有／Pool原租约和认证出站HTTP，专用terminal_session在独立attempt工作树运行真实PTY。xterm解析后ACK、同会话重连、未知输入不重放；原TaskDispatchPlan交接重新选择模型预算并明确启动，保留独立测试和人工验收。见[架构](../architecture/interactive-terminal.md)、[界面规范](../design/interactive-terminal.md)、[专项报告](../quality/interactive-development-verification.md)及[摘要](../quality/interactive-development-summary.json)。Windows原生键盘／ConPTY／树停止、原生开发同SHA独立测试／明确验收／问题回流及最终Web只读副本复核各有实际证据；11项必要Web行为、6348项双语目录及可见文本硬编码0项检查通过，来源和失败审计保留在报告。HTTP轮询、创建者固定epoch1、Unix完整containment、跨平台安装和商业提供方验收边界明确。该切片不关闭完整终端／IDE、SaaS或其他待办，58／34／92不变。
+当前T130实施[终端原执行核对与候选交付](../development/interactive-development.md)：已有真实停止证明与全部未知输入逐项确认后，仅按失败关闭原执行；停止快照的候选预览和启动分别授权，沿固定命令检查、同SHA独立Worker测试、正式Review及唯一问题回流交付，再显式绑定未启动后续任务的已验收基线。见[合同](../../contracts/terminal-recovery-candidates.md)、[架构](../architecture/interactive-terminal.md)、[交互](../design/terminal-recovery.md)、[当前报告](../quality/terminal-recovery-candidates-verification.md)及[摘要](../quality/terminal-recovery-candidates-summary.json)；实际恢复故障、界面、本机链路和检查数字以报告为准。T129的[原报告](../quality/interactive-development-verification.md)／[摘要](../quality/interactive-development-summary.json)保留历史范围。本切片不关闭完整恢复、Unix停止证明、物理多机、跨平台安装、完整IDE或生产待办，58／34／92不变。
 
 前序T-REPLY-128推进任务讨论到真实多轮智能体回复：明确模型、单次参数、近期消息范围和 Token／费用预算，沿原 Go 模型网关、唯一 DAG 与私有／Pool Runner 执行，并以准确回执追加助手消息。见[架构](../architecture/task-conversation-replies.md)、[合同](../../contracts/task-conversation-replies.md)、[开发与AI SOP](../development/task-conversation-replies.md)、[当前验证](../quality/task-conversation-replies-verification.md)和[摘要](../quality/task-conversation-replies-summary.json)。真实Go／Node原生CLI、本地受控提供方及网关HTTP已完成三轮／六条持久消息，第三轮由实际界面明确选择模型、输出512、近期20条、Token40000及CNY0.04费用上限后创建；实际中英文1366／390、刷新六条记录及原执行／用量已按报告限定验证。只读回复不会执行终端命令、修改任务开发运行或授予验收权。
 
@@ -88,7 +88,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 
 - [ ] 原生项目目录选择、账号／组织／项目授权、持久目录身份、正常重启及共享IDE实际闭环；本阶段实施中。
 - [ ] 多项目最近工作区、分支／任务上下文、多标签／拆分编辑、全局查找和完整文件操作；将绑定版本贯穿文件打开／保存，防止另一操作换根后相同路径／内容被误当作原编辑依据。
-- [ ] 完整PTY／LSP／DAP／预览，受控端口及同一权限／资源／取消与恢复语义。T129已实现专用DAG终端、独立attempt、原HTTP出站链路及Windows底层限定交互；Unix停止证明、跨平台实际、多控制者／WebSocket及完整安装仍待交付，见[当前架构](../architecture/interactive-terminal.md)。
+- [ ] 完整PTY／LSP／DAP／预览，受控端口及同一权限／资源／取消与恢复语义。T129提供专用DAG终端、独立attempt与Windows底层交互；T130增加原执行失败核对、明确候选预览／启动、独立测试及已验收基线交接。完整恢复故障、Unix停止证明、物理多机、跨平台实际、多控制者／WebSocket及完整安装仍待交付，见[当前架构](../architecture/interactive-terminal.md)和[T130范围](../quality/terminal-recovery-candidates-verification.md)。
 - [ ] 桌面本机与显式服务器连接、工具／模型／技能安装配置、智能开发／审查交付全链路、签名安装及多系统实际验收。
 
 ## P3 项目、需求、设计与团队

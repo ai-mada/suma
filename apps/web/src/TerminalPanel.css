@@ -31,5 +31,21 @@
 .terminal-facts dd{margin:0;overflow-wrap:anywhere}
 .terminal-input-issue{border:1px solid var(--amber);border-radius:5px;padding:9px 10px;margin:8px 0}
 .terminal-input-issue p{margin:0 0 7px;line-height:1.65}
+.terminal-recovery,.terminal-candidate,.terminal-candidate-handoff{border-top:1px solid var(--border);margin-top:10px;padding-top:6px;min-width:0}
+.terminal-subsection-toggle{display:flex;align-items:center;gap:8px;width:100%;padding:8px 0;background:transparent;border:0;text-align:left;font-weight:500}
+.terminal-subsection-toggle>svg:last-child{margin-left:auto}
+.terminal-subsection-body{display:grid;gap:9px;padding:3px 0 8px;min-width:0;overflow-wrap:anywhere}
+.terminal-subsection-body>.field{margin:0}
+.terminal-subsection-body select{width:100%;min-width:0;max-width:100%}
+.terminal-subsection-body>button{justify-self:start;min-height:34px}
+.terminal-subsection-body textarea{width:100%;min-height:75px;resize:vertical;line-height:1.6}
+.terminal-recovery-consent{display:flex;align-items:flex-start;gap:8px;line-height:1.65}
+.terminal-recovery-consent input{flex:0 0 auto;margin-top:4px}
+.terminal-recovery-consent small{display:block;color:var(--muted);font-size:11px;overflow-wrap:anywhere}
+.terminal-unknown-inputs ul{margin:5px 0;padding:0;list-style:none;display:grid;gap:8px;max-height:250px;overflow:auto}
+.terminal-candidate-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.terminal-candidate-fields .field{margin:0;min-width:0}
+.terminal-candidate ol small{display:block;color:var(--muted);overflow-wrap:anywhere}
 .workspace-terminal button:focus-visible,.workspace-terminal summary:focus-visible,.workspace-terminal a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:650px){.terminal-candidate-fields{grid-template-columns:minmax(0,1fr)}.terminal-subsection-body>button{width:100%;justify-content:center}}
 @media(max-width:650px){.terminal-body{padding:0 9px 10px}.terminal-create{grid-template-columns:minmax(0,1fr)}.terminal-create>.primary{width:100%;justify-content:center}.terminal-session-list>button{flex:1}.terminal-controls .terminal-stop{margin-left:0}.terminal-controls>button{flex:1;justify-content:center}.terminal-viewport{height:290px}.terminal-facts{grid-template-columns:85px minmax(0,1fr)}}

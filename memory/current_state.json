@@ -14,13 +14,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-TERMINAL-129",
-  "updated_at": "2026-10-29T06:36:40.769542+00:00",
+  "stage": "T-TERMINAL-130",
+  "updated_at": "2026-10-29T07:52:32.724171+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/interactive-development-verification.md",
-  "current_summary": "docs/quality/interactive-development-summary.json",
+  "current_evidence": "docs/quality/terminal-recovery-candidates-verification.md",
+  "current_summary": "docs/quality/terminal-recovery-candidates-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -66,7 +66,7 @@
     "scheduling": "One ready queue, accounts/ledger, complete current dependency semantics and fixed routes; persisted current restart remains.",
     "identity": "Current complete issuance/source/family/Grant/slot proof and transactional revocation; no inferred authority or migration status.",
     "workbench": "Local file snapshots and saves bind tenant/project/fresh binding/actual opened root identity; exact original receipt recovery, ordinary/native binding idempotency, explicit current-basis adoption, owner-isolated ephemeral draft retention. Actual browser/HTTP/restart verified. Full IDE and native GUI remain pending.",
-    "internationalization": "Extensible paired zh-CN/en-US6348 keys, production hardcodes0; current terminal CNEN1366/390, final read-only original session and scoped discussion-development form verified. Complete platform matrix remains open.",
+    "internationalization": "Extensible paired zh-CN/en-US6448 keys in exact staged source, hardcodes0;13 affected Web behavior cases and final typecheck/build pass. No current rendered/browser claim (local browser disabled).",
     "versioning": "Go product identity has one source; workspace/desktop/Helm check:version is1.0.0; protocol/workflow/data revisions independent.",
     "architecture": "Single initial1.0.0; one current OpenCode SDK path, no old JSONL parser/alias or duplicate dispatcher. Generated public types replace duplicate web DTOs; current native host/ledger reused.",
     "opencode": "Actual officialWindows1.19.4 CLI/SDK + owned deterministic model protocol, real host MCP/write/check/seal, twoWorker candidate/import/independent exactSHA test; currentstream client lifetime, single Go tree authority and compact CNEN status/drilldown. Not commercial model/billing or production evidence.",
@@ -90,24 +90,22 @@
     "mixed_quality_evidence": "Private run snapshot freezes exact registered package/build Tool+Release profiles, workers and artifact ancestry; package evidence is distinct from JUnit and cannot cover formal cases. Missing, changed or failed real package/build proof blocks the run even if JUnit passes; report-less unknown and package-only workflows rejected.",
     "application_release_rollouts": "Protected Go service-bound original subworkflow, exact per-member approvals/identities, lazy environment reservation, pause/drain, unknown original-operation reconciliation and explicit current resume; same-host actual static provider and read-only CNEN390 verified. Known failure/new revision, automatic composite rollback and full distributed/platform acceptance remain open.",
     "task_conversation_replies": "Protected read-only multi-turn native replies: explicit latest saved turn/context1..20/model/version/one-call output/budget/ack; original Go DAG+Runner+SDK+gateway; original callback recovery, exact assistant provenance, no duplicate message. Actual three local protocol turns, UI-created third, CNEN1366/390 and refresh verified. No interactive shell/code execution or production claim.",
-    "interactive_development": "Windows ConPTY/Job terminal in original single DAG, isolated attempt workspace, immutable input identity and no ambiguous replay; fixed creator epoch1, bounded output and real stop proof. Readonly current-Web original-session copy leaves133 business tables unchanged. Verified assistant reply can form a fresh reviewed native plan; real write/seal/candidate import/same-SHA independent test/fixture owner Review and issue intake passed with3 owned provider calls. Terminal does not itself create candidate/test/acceptance. Unix containment/expired-worker recovery/production remain pending."
+    "interactive_development": "Original durable terminal exchanges precede Result on restart; missing true stop stays unknown, exact reviewed failure disposition never result ACK or replay. Captured immutable source manifest recovered after crash before first exchange. Explicit stopped-source candidate preview/start reuses fixed command/parent seal/bundle/exact-SHA independent Worker/JUnit/fixture Review, accepted source adoption to unstarted task and canonical rejection issue/intake; original histories and current version revalidation retained. Actual Windows and focused tests verified, current browser rendering unavailable in Work settings; Unix/full distributed/production remain pending."
   },
   "verified": {
-    "current_report": "docs/quality/interactive-development-verification.md",
-    "current_summary": "docs/quality/interactive-development-summary.json",
-    "source_sha256": "379fd9b66bf9434922cc43bbfeb0f914b7fc78358a1fd4b97cbd61b0e4d99c0a",
-    "product_version": "1.0.0",
-    "distinct_go_top_tests_passed": 14,
-    "distinct_web_behavior_cases_passed": 11,
-    "sdk_tests": "not repeated; source unchanged and prior verified bundle reused",
+    "current_report": "docs/quality/terminal-recovery-candidates-verification.md",
+    "current_summary": "docs/quality/terminal-recovery-candidates-summary.json",
+    "source_sha256": "7824cfbec7007c291568f524ac3bbfd09c40da628c39ab98f88eb0773fd2b851",
+    "distinct_go_top_tests_passed": 21,
+    "distinct_web_behavior_cases_passed": 13,
     "typecheck": true,
     "generated_contract_check": true,
-    "catalog_keys": 6348,
-    "owned_model_requests": 3,
+    "catalog_keys": 6448,
+    "actual_windows_terminal_candidate_quality": true,
+    "browser_rendering": false,
+    "browser_gap": "Local browser use is disabled in Work settings",
+    "owned_model_requests": 0,
     "commercial_model_requests": 0,
-    "actual_native_development_and_independent_quality": true,
-    "actual_terminal_browser_original_result": "exit1 retained: derived Name comparison; all17 persisted columns equal original",
-    "actual_final_browser_readback": "exit0,133 business tables unchanged,0 new Worker/PTY/model",
     "production_complete": false
   },
   "production_integration_complete": false,
@@ -118,7 +116,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "ba8c31f86ff8ec11d96380b0723c08fb5ab9bdf9"
+    "previously_published_commit": "d67efa9fb36b240e54f45d869b6471a14ce7e57f"
   },
   "existing_preview": {
     "updated": false,
@@ -126,21 +124,20 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and requirements1–26, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance.",
-  "last_goal_turn_classification": "progress: T128 real native three-turn reply/model/budget/ack-loss recovery and actual CNEN responsive journey verified; full P0-P7/requirements1-26 active,58/34/92 unchanged. Git receipt records exact later delivery.",
+  "last_goal_turn_classification": "progress: protected recovery/candidate/baseline chain and actual same-SHA independent quality; full original goal stays active",
   "previous_goal_turn": "progress: T125 dependency-ordered original-plan rollout, actual ACK-loss reconciliation, pause/drain, unknown read projection and scoped CNEN390 evidence verified; Git delivery is recorded separately against the actual commit. Full P0-P7 and requirements1-26 remain active,58/34/92 unchanged.",
   "current_work": {
-    "stage": "T-TERMINAL-129",
-    "status": "scoped_verified_pending_git_delivery",
-    "source_sha256": "379fd9b66bf9434922cc43bbfeb0f914b7fc78358a1fd4b97cbd61b0e4d99c0a",
-    "report": "docs/quality/interactive-development-verification.md",
+    "stage": "T-TERMINAL-130",
+    "status": "scoped_verified_pending_git_delivery_with_explicit_browser_gap",
+    "report": "docs/quality/terminal-recovery-candidates-verification.md",
     "full_goal": "active: all original P0-P7 and requirements1-26 retained",
-    "next": "Complete exact lost-worker effect reconciliation and authorized terminal candidate handoff, then Unix containment and native cross-platform acceptance. No broad completion claim."
+    "next": "Current actual UI validation when browser setting permits; full lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation."
   },
   "previous_stage_verification": {
-    "stage": "T-REPLY-128",
-    "report": "docs/quality/task-conversation-replies-verification.md",
-    "summary": "docs/quality/task-conversation-replies-summary.json",
-    "source_sha256": "c59614176bdf1a59ac8d408d693b67512da789ec47d285f745e6354554e4ccf7"
+    "stage": "T-TERMINAL-129",
+    "report": "docs/quality/interactive-development-verification.md",
+    "summary": "docs/quality/interactive-development-summary.json",
+    "source_sha256": "379fd9b66bf9434922cc43bbfeb0f914b7fc78358a1fd4b97cbd61b0e4d99c0a"
   },
   "latest_request": {
     "reference_conversation": "6ae163e6-0700-83e9-bf86-623690b54884",

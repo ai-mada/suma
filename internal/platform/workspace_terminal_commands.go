@@ -88,7 +88,7 @@ func (s *Service) CommandWorkspaceTerminal(ctx context.Context, actor Actor, pro
 			return out, conflict(workspaceTerminalChanged)
 		}
 		var pending int
-		if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_workspace_terminal_inputs WHERE session_id=? AND state='accepted'`), id).Scan(&pending); err != nil {
+		if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_workspace_terminal_inputs WHERE session_id=? AND state IN ('accepted','offered')`), id).Scan(&pending); err != nil {
 			return out, err
 		}
 		if pending >= 32 {

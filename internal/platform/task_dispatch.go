@@ -113,6 +113,9 @@ func (s *Service) validateTaskDispatchPlanTx(ctx context.Context, tx *sql.Tx, en
 	if err := s.validateDispatchRecommendationProvenanceTx(ctx, tx, auth.target.tenantID, project, plan); err != nil {
 		return err
 	}
+	if err := s.validateWorkspaceTerminalCandidatePlanTx(ctx, tx, auth, project, plan); err != nil {
+		return err
+	}
 	p := auth.currentPrincipal
 	if plan.State != "ready" {
 		return conflict("计划已派发，不能创建另一运行；请打开原运行或恢复原操作")

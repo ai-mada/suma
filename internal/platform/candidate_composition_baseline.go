@@ -42,7 +42,7 @@ func (s *Service) checkTaskCodeBaselineTx(ctx context.Context, tx *sql.Tx, tenan
 	if current == nil || *current != b {
 		return compositionError(409, "baseline_changed", compositionBaseline)
 	}
-	basis, err := s.compositionAcceptedBasisTx(ctx, tx, Principal{TenantID: tenant}, project, b.CompositionID, b.CompositionVersion)
+	basis, err := s.codeBaselineAcceptedOriginTx(ctx, tx, Principal{TenantID: tenant}, project, b)
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,9 @@ func (s *Service) GetTaskCodeBaseline(ctx context.Context, actor Actor, project,
 	return out, nil
 }
 func (s *Service) BindTaskCodeBaseline(ctx context.Context, engine *dag.Engine, actor Actor, project, task string, req TaskCodeBaselineBindRequest) (out Record, err error) {
-	if req.ProjectID != project || !handoffID(project, false) || !handoffID(task, false) || !handoffID(req.CompositionID, false) || req.ExpectedTaskVersion < 1 || req.ExpectedBindingVersion < 0 || req.ExpectedCompositionVersion < 1 || !planningText(req.Reason, 2000) || !planningKey(req.IdempotencyKey) {
+	composition := handoffID(req.CompositionID, false) && req.ExpectedCompositionVersion > 0 && req.TerminalCandidatePlanID == "" && req.ExpectedTerminalCandidatePlanVersion == 0
+	terminal := handoffID(req.TerminalCandidatePlanID, false) && req.ExpectedTerminalCandidatePlanVersion > 0 && req.CompositionID == "" && req.ExpectedCompositionVersion == 0
+	if req.ProjectID != project || !handoffID(project, false) || !handoffID(task, false) || (!composition && !terminal) || req.ExpectedTaskVersion < 1 || req.ExpectedBindingVersion < 0 || !planningText(req.Reason, 2000) || !planningKey(req.IdempotencyKey) {
 		return out, compositionError(400, "invalid", compositionInvalid)
 	}
 	if !req.Acknowledge {
@@ -142,14 +144,15 @@ func (s *Service) BindTaskCodeBaseline(ctx context.Context, engine *dag.Engine, 
 	if oldVersion != req.ExpectedBindingVersion {
 		return out, compositionError(409, "baseline_changed", compositionBaseline)
 	}
-	basis, err := s.compositionAcceptedBasisTx(ctx, auth.tx, auth.currentPrincipal, project, req.CompositionID, req.ExpectedCompositionVersion)
+	binding := ccmp.CodeBaselineBinding{Protocol: ccmp.CodeBaselineProtocol, ID: newID(), ProjectID: project, TaskID: task, TaskVersion: out.Version + 1, CompositionID: req.CompositionID, CompositionVersion: req.ExpectedCompositionVersion, TerminalCandidatePlanID: req.TerminalCandidatePlanID, TerminalCandidatePlanVersion: req.ExpectedTerminalCandidatePlanVersion}
+	basis, err := s.codeBaselineAcceptedOriginTx(ctx, auth.tx, auth.currentPrincipal, project, binding)
 	if err != nil {
 		return out, err
 	}
 	if basis.TaskID == task {
 		return out, compositionError(400, "invalid", compositionInvalid)
 	}
-	binding := ccmp.CodeBaselineBinding{Protocol: ccmp.CodeBaselineProtocol, ID: newID(), ProjectID: project, TaskID: task, TaskVersion: out.Version + 1, CompositionID: req.CompositionID, CompositionVersion: req.ExpectedCompositionVersion, AcceptedBasisSHA256: basis.BasisSHA256, Source: basis.Source}
+	binding.AcceptedBasisSHA256, binding.Source = basis.BasisSHA256, basis.Source
 	binding.BindingSHA256, err = ccmp.CodeBaselineBindingDigest(binding)
 	if err != nil {
 		return out, err
@@ -225,7 +228,11 @@ func (s *Service) bindCodeBaselineExecutionTx(ctx context.Context, tx *sql.Tx, a
 		return err
 	}
 	r := codeBaselineExecution{Binding: b, Creator: expertCredentialSnapshot(auth.actor), Route: route}
-	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_candidate_composition_executions(run_id,tenant_id,project_id,plan_id,node_id,input_kind,payload)VALUES(?,?,?,?,?,'code_baseline',?)`), run, auth.target.tenantID, project, b.CompositionID, node, stringify(r))
+	originID := b.CompositionID
+	if b.TerminalCandidatePlanID != "" {
+		originID = b.TerminalCandidatePlanID
+	}
+	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_candidate_composition_executions(run_id,tenant_id,project_id,plan_id,node_id,input_kind,payload)VALUES(?,?,?,?,?,'code_baseline',?)`), run, auth.target.tenantID, project, originID, node, stringify(r))
 	return err
 }
 func (s *Service) readCodeBaselineExecutionTx(ctx context.Context, tx *sql.Tx, tenant, project, run, node string) (out *ccmp.CodeBaselineBinding, err error) {

@@ -22,6 +22,9 @@ func validWorkspaceTerminalExchange(r term.ExchangeRequest) bool {
 	if r.TreeStopped && r.State != "stopped" && r.State != "exited" && r.State != "reconciling" {
 		return false
 	}
+	if (r.SourceSnapshotSHA256 != "" || r.BaseCommit != "") && (!r.TreeStopped || !contentDigest.MatchString(r.SourceSnapshotSHA256) || !gitRevision.MatchString(r.BaseCommit)) {
+		return false
+	}
 	return true
 }
 
@@ -130,6 +133,12 @@ func (s *Service) exchangeWorkspaceTerminalTx(ctx context.Context, tx *sql.Tx, t
 	if replay && prior != requestSHA {
 		return out, conflict(workspaceTerminalChanged)
 	}
+	if r.RecoveryOperationID != "" {
+		// Reconcile the exact original outbox without importing late facts or
+		// pretending its final result was accepted. Attempt/fence/dispatch,
+		// process and directory identities have already been checked above.
+		return term.ExchangeResponse{SessionID: r.Session.ID, ControlEpoch: r.Session.ControlEpoch, Inputs: []term.Input{}, Columns: r.Session.Columns, Rows: r.Session.Rows, StopRequested: true, OutputAckSequence: r.Session.OutputLastSequence, RecoveryOperationID: r.RecoveryOperationID}, nil
+	}
 	previous := r.Session.Version
 	if !replay {
 		if r.TreeStopped && !req.TreeStopped {
@@ -141,6 +150,16 @@ func (s *Service) exchangeWorkspaceTerminalTx(ctx context.Context, tx *sql.Tx, t
 		}
 		if r.Session.Directory == "" {
 			r.Session.Directory = req.Directory
+		}
+		if req.SourceSnapshotSHA256 != "" {
+			if r.Session.SourceSnapshotSHA256 != "" && (r.Session.SourceSnapshotSHA256 != req.SourceSnapshotSHA256 || r.Session.BaseCommit != req.BaseCommit) {
+				return out, conflict(workspaceTerminalChanged)
+			}
+			if r.Session.SourceSnapshotSHA256 == "" {
+				r.Session.SourceSnapshotSHA256 = req.SourceSnapshotSHA256
+				r.Session.BaseCommit = req.BaseCommit
+				r.Session.Version++
+			}
 		}
 		for _, chunk := range req.OutputChunks {
 			if err = s.workspaceTerminalOutputTx(ctx, tx, &r, chunk); err != nil {
@@ -156,6 +175,18 @@ func (s *Service) exchangeWorkspaceTerminalTx(ctx context.Context, tx *sql.Tx, t
 		if req.TreeStopped {
 			r.TreeStopped = true
 			r.ExitCode = req.ExitCode
+			// An offered input may already have reached the PTY even if its
+			// receipt was lost. Stop proves no future write, never no past write.
+			if _, err = tx.ExecContext(ctx, s.q(`UPDATE suma_workspace_terminal_inputs SET data_base64='',state='delivery_unknown' WHERE session_id=? AND state='offered'`), r.Session.ID); err != nil {
+				return out, err
+			}
+			var unknown int
+			if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_workspace_terminal_inputs WHERE session_id=? AND state='delivery_unknown'`), r.Session.ID).Scan(&unknown); err != nil {
+				return out, err
+			}
+			if unknown > 0 {
+				r.Session.Reason = workspaceTerminalInputUnknown
+			}
 			if r.Session.Reason == workspaceTerminalInputUnknown {
 				r.Session.State = "reconciling"
 			} else {
@@ -218,11 +249,10 @@ func (s *Service) exchangeWorkspaceTerminalTx(ctx context.Context, tx *sql.Tx, t
 	}
 	out = term.ExchangeResponse{SessionID: r.Session.ID, ControlEpoch: r.Session.ControlEpoch, Inputs: []term.Input{}, Columns: r.Session.Columns, Rows: r.Session.Rows, StopRequested: !live || r.Session.State == "stop_requested" || r.TreeStopped, OutputAckSequence: r.Session.OutputLastSequence}
 	if live && r.Session.State == "running" && r.Session.Reason == "" {
-		rows, e := tx.QueryContext(ctx, s.q(`SELECT input_id,sequence,sha256,data_base64 FROM suma_workspace_terminal_inputs WHERE session_id=? AND state='accepted' ORDER BY sequence LIMIT 32`), r.Session.ID)
+		rows, e := tx.QueryContext(ctx, s.q(`SELECT input_id,sequence,sha256,data_base64 FROM suma_workspace_terminal_inputs WHERE session_id=? AND state IN ('accepted','offered') ORDER BY sequence LIMIT 32`), r.Session.ID)
 		if e != nil {
 			return out, e
 		}
-		defer rows.Close()
 		for rows.Next() {
 			var in term.Input
 			if e = rows.Scan(&in.InputID, &in.Sequence, &in.SHA256, &in.DataBase64); e != nil {
@@ -231,7 +261,14 @@ func (s *Service) exchangeWorkspaceTerminalTx(ctx context.Context, tx *sql.Tx, t
 			out.Inputs = append(out.Inputs, in)
 		}
 		if e = rows.Err(); e != nil {
+			rows.Close()
 			return out, e
+		}
+		rows.Close()
+		for _, input := range out.Inputs {
+			if _, e = tx.ExecContext(ctx, s.q(`UPDATE suma_workspace_terminal_inputs SET state='offered' WHERE session_id=? AND input_id=? AND state='accepted'`), r.Session.ID, input.InputID); e != nil {
+				return out, e
+			}
 		}
 	}
 	return out, nil
@@ -250,7 +287,7 @@ func (s *Service) workspaceTerminalInputReceiptTx(ctx context.Context, tx *sql.T
 	if sequence != in.Sequence || sha != in.SHA256 || in.BytesWritten > size || in.State == "delivered" && in.BytesWritten != size {
 		return conflict(workspaceTerminalChanged)
 	}
-	if state != "accepted" {
+	if state != "accepted" && state != "offered" {
 		if state == "delivery_unknown" && in.State == "delivered" && in.BytesWritten == size {
 			// The original single PTY write may finish after its caller timed
 			// out. This advances only its exact persisted identity; no input is

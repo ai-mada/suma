@@ -54,7 +54,32 @@ func (s *Server) candidateCompositionHTTP(w http.ResponseWriter, r *http.Request
 		respond(w, http.StatusOK, out, err)
 	case baseline && r.Method == http.MethodPost:
 		var req TaskCodeBaselineBindRequest
-		if reject(projectKnowledgeRequired(body, "project_id", "expected_task_version", "expected_binding_version", "composition_id", "expected_composition_version", "reason", "acknowledge", "idempotency_key")) || reject(compositionBodyIntegers(body, "expected_task_version", "expected_binding_version", "expected_composition_version")) || reject(strictAutomation(body, &req)) {
+		if reject(projectKnowledgeRequired(body, "project_id", "expected_task_version", "expected_binding_version", "reason", "acknowledge", "idempotency_key")) || reject(compositionBodyIntegers(body, "expected_task_version", "expected_binding_version")) {
+			return true
+		}
+		_, terminalOrigin := body["terminal_candidate_plan_id"]
+		if terminalOrigin {
+			if _, mixed := body["composition_id"]; mixed {
+				writeError(w, invalid(compositionInvalid))
+				return true
+			}
+			if _, mixed := body["expected_composition_version"]; mixed {
+				writeError(w, invalid(compositionInvalid))
+				return true
+			}
+			if reject(projectKnowledgeRequired(body, "terminal_candidate_plan_id", "expected_terminal_candidate_plan_version")) || reject(compositionBodyIntegers(body, "expected_terminal_candidate_plan_version")) {
+				return true
+			}
+		} else {
+			if _, mixed := body["expected_terminal_candidate_plan_version"]; mixed {
+				writeError(w, invalid(compositionInvalid))
+				return true
+			}
+			if reject(projectKnowledgeRequired(body, "composition_id", "expected_composition_version")) || reject(compositionBodyIntegers(body, "expected_composition_version")) {
+				return true
+			}
+		}
+		if reject(strictAutomation(body, &req)) {
 			return true
 		}
 		out, err := s.Service.BindTaskCodeBaseline(r.Context(), s.Engine, actor, project, parts[1], req)

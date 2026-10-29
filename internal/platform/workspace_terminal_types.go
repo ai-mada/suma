@@ -43,19 +43,21 @@ type PoolWorkspaceTerminalExchangeRequest struct {
 // Private metadata never grants the browser or an agent a machine credential.
 // A session owns its original isolated attempt, not the editor's shared tree.
 type workspaceTerminalRecord struct {
-	Session               term.Session              `json:"session"`
-	Task                  TaskContextRecord         `json:"task"`
-	TaskRunID             string                    `json:"task_run_id"`
-	Requirement           *TaskContextRecord        `json:"requirement"`
-	ToolProfileVersion    int                       `json:"tool_profile_version"`
-	ToolProfileSHA256     string                    `json:"tool_profile_sha256"`
-	Creator               string                    `json:"creator"`
-	CreatorCredentialHash string                    `json:"creator_credential_hash"`
-	Route                 dag.ProjectExecutionRoute `json:"route"`
-	ProcessID             int                       `json:"process_id"`
-	ExitCode              int                       `json:"exit_code"`
-	TreeStopped           bool                      `json:"tree_stopped"`
-	Attempt               int                       `json:"attempt"`
-	Fence                 int64                     `json:"fence"`
-	DispatchID            string                    `json:"dispatch_id"`
+	Session               term.Session                     `json:"session"`
+	Task                  TaskContextRecord                `json:"task"`
+	TaskRunID             string                           `json:"task_run_id"`
+	Requirement           *TaskContextRecord               `json:"requirement"`
+	ToolProfileVersion    int                              `json:"tool_profile_version"`
+	ToolProfileSHA256     string                           `json:"tool_profile_sha256"`
+	Creator               string                           `json:"creator"`
+	CreatorCredentialHash string                           `json:"creator_credential_hash"`
+	Route                 dag.ProjectExecutionRoute        `json:"route"`
+	ProcessID             int                              `json:"process_id"`
+	ExitCode              int                              `json:"exit_code"`
+	TreeStopped           bool                             `json:"tree_stopped"`
+	Attempt               int                              `json:"attempt"`
+	Fence                 int64                            `json:"fence"`
+	DispatchID            string                           `json:"dispatch_id"`
+	RecoveryOperationID   string                           `json:"recovery_operation_id"`
+	ReviewedUnknownInputs []WorkspaceTerminalRecoveryInput `json:"reviewed_unknown_inputs"`
 }

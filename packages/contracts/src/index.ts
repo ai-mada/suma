@@ -1464,8 +1464,10 @@ export interface CodeBaselineBinding {
   project_id: string;
   task_id: string;
   task_version: number;
-  composition_id: string;
-  composition_version: number;
+  composition_id?: string;
+  composition_version?: number;
+  terminal_candidate_plan_id?: string;
+  terminal_candidate_plan_version?: number;
   accepted_basis_sha256: string;
   source: CandidateBinding;
   binding_sha256: string;
@@ -5003,8 +5005,10 @@ export interface TaskCodeBaselineBindRequest {
   project_id: string;
   expected_task_version: number;
   expected_binding_version: number;
-  composition_id: string;
-  expected_composition_version: number;
+  composition_id?: string;
+  expected_composition_version?: number;
+  terminal_candidate_plan_id?: string;
+  expected_terminal_candidate_plan_version?: number;
   acknowledge: boolean;
   reason: string;
   idempotency_key: string;
@@ -5508,6 +5512,14 @@ export interface TeamWriteRequest {
   status?: string;
   expected_version?: number;
   idempotency_key: string;
+}
+export interface TerminalCandidateSource {
+  session_id: string;
+  session_version: number;
+  original: CandidateAssignmentRef;
+  base_commit: string;
+  snapshot_sha256: string;
+  plan_id: string;
 }
 export interface TestCaseEvidence {
   report_id: string;
@@ -6267,6 +6279,47 @@ export interface WorkspaceTaskQuality {
   skipped: number;
   not_run: number;
 }
+export interface WorkspaceTerminalCandidatePlan {
+  id: string;
+  project_id: string;
+  version: number;
+  state: string;
+  session_id: string;
+  session_version: number;
+  task_id: string;
+  task_version: number;
+  run_id: string;
+  created_at: string;
+  expires_at: string;
+  tool_profile_id: string;
+  tool_profile_version: number;
+  tool_profile_sha256: string;
+  worker_id: string;
+  workflow_id: string;
+  workflow_version: number;
+  producer_node_id: string;
+  context: TaskContext;
+  workflow: Workflow;
+  source: TerminalCandidateSource;
+  valid: boolean;
+  reason: string;
+}
+export interface WorkspaceTerminalCandidatePlanPage {
+  items: (WorkspaceTerminalCandidatePlan)[];
+  task_version: number;
+}
+export interface WorkspaceTerminalCandidatePreviewRequest {
+  project_id: string;
+  expected_session_version: number;
+  expected_task_version: number;
+  tool_profile_id: string;
+  expected_tool_version: number;
+  workflow_id: string;
+  workflow_version: number;
+  producer_node_id: string;
+  acknowledge_stopped_changes: boolean;
+  idempotency_key: string;
+}
 export interface WorkspaceTerminalCommandReceipt {
   session: WorkspaceTerminalSession;
   input: WorkspaceTerminalInputReceipt | null;
@@ -6323,6 +6376,40 @@ export interface WorkspaceTerminalPage {
   can_create: boolean;
   profiles_complete: boolean;
 }
+export interface WorkspaceTerminalRecoveryInput {
+  input_id: string;
+  sequence: number;
+  sha256: string;
+}
+export interface WorkspaceTerminalRecoveryReceipt {
+  session: WorkspaceTerminalSession;
+  recovery: WorkspaceTerminalRecoveryView;
+}
+export interface WorkspaceTerminalRecoveryRequest {
+  project_id: string;
+  expected_version: number;
+  expected_run_version: number;
+  run_id: string;
+  attempt: number;
+  fence: number;
+  dispatch_id: string;
+  unknown_inputs: (WorkspaceTerminalRecoveryInput)[];
+  reason: string;
+  idempotency_key: string;
+}
+export interface WorkspaceTerminalRecoveryView {
+  session_id: string;
+  run_id: string;
+  run_version: number;
+  run_state: string;
+  attempt: number;
+  fence: number;
+  dispatch_id: string;
+  tree_stopped: boolean;
+  unknown_inputs: (WorkspaceTerminalRecoveryInput)[];
+  can_recover: boolean;
+  reason: string;
+}
 export interface WorkspaceTerminalSession {
   id: string;
   project_id: string;
@@ -6347,6 +6434,8 @@ export interface WorkspaceTerminalSession {
   created_at: string;
   allowed_actions: (string)[];
   reason: string;
+  source_snapshot_sha256: string;
+  base_commit: string;
 }
 export interface WorkspaceTreeEntry {
   path: string;

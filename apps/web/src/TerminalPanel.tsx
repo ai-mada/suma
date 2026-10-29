@@ -11,6 +11,8 @@ import {useReplyRead} from './task-conversation-reply-hooks';
 import {terminalID, validTerminalCommand, validTerminalPage, validTerminalRecovery, validTerminalSession} from './terminal-model';
 import {useTerminalConnection, type TerminalWriter} from './terminal-hooks';
 import {TerminalViewport} from './TerminalViewport';
+import {TerminalRecoveryPanel} from './TerminalRecoveryPanel';
+import {TerminalCandidatePanel} from './TerminalCandidatePanel';
 import './TerminalPanel.css';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('terminal.' + key, values);
@@ -32,6 +34,8 @@ function TerminalScope({project, taskId = '', active = true, disabled = false, s
   const [profile, setProfile] = useState(''), [seconds, setSeconds] = useState('1200'), [consent, setConsent] = useState(false), [stopConsent, setStopConsent] = useState(false);
   const [denied, setDenied] = useState(false), [refresh, setRefresh] = useState(0), [observed, setObserved] = useState<WorkspaceTerminalSession>();
   const [writer, setWriter] = useState<TerminalWriter>();
+  const [recoveryLocked, setRecoveryLocked] = useState(false);
+  const [candidateLocked, setCandidateLocked] = useState(false);
   const alive = useRef(true), owner = useRef(api); owner.current = api;
   const refuse = useCallback(() => setDenied(true), []);
   const action = useWriteAction({scope: 'terminal-controls:' + scope, storage,
@@ -44,7 +48,7 @@ function TerminalScope({project, taskId = '', active = true, disabled = false, s
         value.session.control_epoch === request.body.control_epoch && value.session.version > Number(request.body.expected_version) &&
         (request.body.action !== 'ack' || value.session.output_ack_sequence >= Number(request.body.output_sequence));
     }});
-  const locked = action.busy || !!action.pending, blocked = denied || action.errorStatus === 401 || action.errorStatus === 403;
+  const locked = action.busy || !!action.pending || recoveryLocked || candidateLocked, blocked = denied || action.errorStatus === 401 || action.errorStatus === 403;
   const sessions = useReplyRead<WorkspaceTerminalPage>('/workspace/terminal-sessions' + query(project) + '&task_id=' + encodeURIComponent(taskId),
     open && active && !!taskId && !blocked, (value): value is WorkspaceTerminalPage => validTerminalPage(value, project, taskId), refuse, refresh);
   const detail = useReplyRead('/workspace/terminal-sessions/' + encodeURIComponent(selected) + query(project),
@@ -136,13 +140,17 @@ function TerminalScope({project, taskId = '', active = true, disabled = false, s
           {runtime.gap && <p role="status" className="terminal-warning">{t('output_gap')}</p>}
           {runtime.inputIssue && <div className="terminal-input-issue" role="alert"><p>{t(runtime.inputIssue === 'unknown' ? 'input_unknown' : 'input_rejected')}</p>
             <button type="button" disabled={locked || disabled} onClick={() => void runtime.acknowledgeInputIssue()}>{t('check_input')}</button></div>}
-          {!runtime.inputIssue && runtime.lastInput && <p className="terminal-note">{t(runtime.lastInput === 'delivered' ? 'input_delivered' : 'input_accepted')}</p>}
+          {!runtime.inputIssue && runtime.lastInput && <p className={runtime.lastInput === 'delivery_unknown' ? 'terminal-warning' : 'terminal-note'}>{t(runtime.lastInput === 'delivery_unknown' ? 'input_unknown_reviewed' : runtime.lastInput === 'delivered' ? 'input_delivered' : 'input_accepted')}</p>}
           <div hidden={detail.loading || !!detail.error}><TerminalViewport key={session.id} inputEnabled={runtime.acceptsInput} onReady={setConsumer} onInput={runtime.input} onResize={resize}/></div>
           <div className="terminal-controls"><button type="button" disabled={locked} onClick={() => {setDetached(value => !value); if (detached) setRefresh(value => value + 1);}}>{t(detached ? 'reconnect' : 'detach')}</button>
             {session.allowed_actions.includes('stop') && <><label><input type="checkbox" checked={stopConsent} disabled={locked || disabled} onChange={event => setStopConsent(event.target.checked)}/>{t('stop_confirm')}</label>
               <button type="button" className="terminal-stop" data-terminal-stop disabled={!stopConsent || locked || disabled} onClick={() => void runtime.control('stop')}><Square size={12}/>{t('stop')}</button></>}</div>
           {!session.allowed_actions.includes('input') && session.state === 'running' && <p className="terminal-note">{t('read_only')}</p>}
           <p className="terminal-note">{t('detach_hint')}</p>
+          <TerminalRecoveryPanel key={session.id} project={project} task={taskId} session={session} scope={scope}
+            active={open && active && !blocked} disabled={disabled || action.busy || !!action.pending || candidateLocked} onSession={sessionChange} onDenied={refuse} onLockChange={setRecoveryLocked}/>
+          <TerminalCandidatePanel key={'candidate:' + session.id} project={project} task={taskId} taskVersion={sessions.value?.task_version} session={session} scope={scope}
+            active={open && active && !blocked} disabled={disabled || action.busy || !!action.pending || recoveryLocked} onDenied={refuse} onLockChange={setCandidateLocked} onRefresh={() => setRefresh(value => value + 1)}/>
           <details><summary>{t('details')}</summary><dl className="terminal-facts"><dt>{t('directory')}</dt><dd>{session.directory}</dd><dt>{t('worker')}</dt><dd>{session.worker_id}</dd>
             <dt>{t('expires')}</dt><dd>{formatDateTime(session.expires_at, {dateStyle: 'short', timeStyle: 'medium'})}</dd></dl>
             <p className="terminal-note">{t('received', {sequence: formatNumber(session.output_last_sequence)})}</p>

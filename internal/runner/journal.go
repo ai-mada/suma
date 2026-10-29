@@ -25,6 +25,7 @@ type entry struct {
 	CandidatePending  *candidateTransfer        `json:"candidate_pending,omitempty"`
 	ModelGateway      *modelGatewayCheckpoint   `json:"model_gateway,omitempty"`
 	WorkspaceTrace    *workspaceTraceCheckpoint `json:"workspace_trace,omitempty"`
+	Terminal          *terminalCheckpoint       `json:"terminal,omitempty"`
 }
 type Journal struct {
 	mu                    sync.Mutex
@@ -88,6 +89,15 @@ func OpenJournal(dir string) (*Journal, error) {
 		return nil, err
 	}
 	for k, e := range j.entries {
+		if e.Terminal != nil {
+			if err = j.validateTerminalCheckpoint(e.Assignment, *e.Terminal); err != nil {
+				return nil, err
+			}
+			if err = j.importTerminalCheckpoint(&e); err != nil {
+				return nil, err
+			}
+			j.entries[k] = e
+		}
 		if e.WorkspaceTrace != nil {
 			if err = j.importWorkspaceTrace(&e); err != nil {
 				return nil, err
@@ -416,7 +426,7 @@ func (j *Journal) Pending() []Result {
 	defer j.mu.Unlock()
 	results := []Result{}
 	for _, e := range j.entries {
-		if !e.Acked && e.Result != nil {
+		if !e.Acked && e.Result != nil && (e.Terminal == nil || e.Terminal.ReconciliationOperationID == "") {
 			copy := *e.Result
 			copy.Assignment = cloneModelAssignment(copy.Assignment)
 			if copy.StartupFailure != nil {

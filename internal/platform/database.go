@@ -221,6 +221,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.InitializeWorkspaceTerminals(ctx); err != nil {
 		return err
 	}
+	if err := s.InitializeWorkspaceTerminalCandidates(ctx); err != nil {
+		return err
+	}
 	if err := s.InitializeTaskHandoffs(ctx); err != nil {
 		return err
 	}

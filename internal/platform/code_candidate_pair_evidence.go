@@ -143,5 +143,12 @@ func (s *Service) codeCandidateIndependentTestReadTx(ctx context.Context, tx *sq
 	if err = validateNativeWorkspaceEvidence(producer.Result.WorkspaceEvidence, producer.Result.ToolEvidence); err != nil {
 		return false, nil
 	}
+	terminalSource, err := s.workspaceTerminalCandidateExecutionTx(ctx, tx, p.TenantID, project, run, source)
+	if err != nil {
+		return false, err
+	}
+	if err = validateTerminalCandidateEvidence(producer.Result.WorkspaceEvidence, producer.Result.ToolEvidence, terminalSource); err != nil {
+		return false, nil
+	}
 	return true, nil
 }

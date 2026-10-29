@@ -14,7 +14,7 @@ export const terminalEnded = (session: WorkspaceTerminalSession) => ['exited', '
 export function validTerminalSession(value: unknown, project: string, task: string): value is WorkspaceTerminalSession {
   if (!object(value) || !keys(value, ['id', 'project_id', 'task_id', 'task_version', 'version', 'run_id', 'run_version', 'state',
     'tool_profile_id', 'tool_name', 'directory', 'worker_id', 'columns', 'rows', 'control_epoch', 'next_input_sequence',
-    'output_first_sequence', 'output_last_sequence', 'output_ack_sequence', 'expires_at', 'created_at', 'allowed_actions', 'reason'])) return false;
+    'output_first_sequence', 'output_last_sequence', 'output_ack_sequence', 'expires_at', 'created_at', 'allowed_actions', 'reason', 'source_snapshot_sha256', 'base_commit'])) return false;
   return terminalID(value.id) && value.project_id === project && value.task_id === task && positive(value.task_version) &&
     positive(value.version) && terminalID(value.run_id) && positive(value.run_version) && terminalStates.includes(value.state as typeof terminalStates[number]) &&
     terminalID(value.tool_profile_id) && text(value.tool_name) && text(value.directory) && text(value.worker_id) &&
@@ -22,7 +22,9 @@ export function validTerminalSession(value: unknown, project: string, task: stri
     positive(value.control_epoch) && positive(value.next_input_sequence) && natural(value.output_first_sequence) &&
     natural(value.output_last_sequence) && natural(value.output_ack_sequence) && value.output_ack_sequence <= value.output_last_sequence &&
     value.output_first_sequence <= value.output_last_sequence + 1 && text(value.expires_at) && Number.isFinite(Date.parse(value.expires_at)) &&
-    text(value.created_at) && Number.isFinite(Date.parse(value.created_at)) && text(value.reason) && Array.isArray(value.allowed_actions) &&
+    text(value.created_at) && Number.isFinite(Date.parse(value.created_at)) && text(value.reason) &&
+    text(value.source_snapshot_sha256) && (!value.source_snapshot_sha256 || /^[a-f0-9]{64}$/.test(value.source_snapshot_sha256)) &&
+    text(value.base_commit) && (!value.base_commit || /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value.base_commit)) && Array.isArray(value.allowed_actions) &&
     value.allowed_actions.every(action => actions.includes(String(action))) && new Set(value.allowed_actions).size === value.allowed_actions.length;
 }
 

@@ -106,6 +106,9 @@ func (c *Client) forPoolAssignment(a Assignment) (*Client, error) {
 }
 
 func replayPool(ctx context.Context, c *Client, j *Journal) error {
+	if err := ReplayTerminalExchanges(ctx, c, j); err != nil {
+		return err
+	}
 	if err := drainWorkspaceProgress(ctx, j, func(ctx context.Context, p Progress) error {
 		scoped, err := c.forPoolAssignment(p.Assignment)
 		if err != nil {

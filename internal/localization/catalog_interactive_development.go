@@ -47,6 +47,22 @@ var interactiveDevelopmentCatalog = func() []Definition {
 		{"handoff_consent", "Confirm the reviewed plan, selected model budget and real workspace execution", "请确认审阅后的计划、模型预算及实际工作区执行"},
 		{"handoff_profile", "Select an enabled writable native workspace development profile", "请选择已启用且支持原生工作区写入的开发配置"},
 		{"handoff_limit", "The reviewed development context exceeds 32000 UTF-8 bytes; reduce its scope", "已审阅的开发上下文超过32000个UTF-8字节，请缩小范围"},
+		{"recovery_approved", "The original terminal was reviewed and closed without replay", "原终端已审阅并结束，未重放输入"},
+		{"recovery_wait", "Wait for the original terminal attempt to require reconciliation", "请等待原终端执行进入待核对状态"},
+		{"recovery_permission", "Current project approval permission is required to review terminal recovery", "核对终端恢复需要当前项目审批权限"},
+		{"recovery_inputs", "Review every original unknown terminal input before closing its failed attempt", "请逐条审阅原未知输入，再结束失败的原执行"},
+		{"candidate_changed", "The stopped terminal candidate basis changed; inspect the original session and preview again", "已停止终端的候选依据已变化，请检查原会话并重新预览"},
+		{"candidate_consent", "Confirm the stopped terminal changes and exact current candidate workflow", "请确认已停止终端的改动及当前准确候选流程"},
+		{"candidate_workflow", "Terminal candidate workflow requires one fixed command and one independent candidate test", "终端候选流程需要一个固定命令及一个独立候选测试"},
+		{"candidate_producer", "Select the fixed command producer and its explicit candidate test", "请选择固定命令产出步骤及明确关联的候选测试"},
+		{"candidate_modes", "Terminal candidate workflow cannot mix protected input or model modes", "终端候选流程不能混用其他受保护输入或模型模式"},
+		{"candidate_parent", "Terminal source cannot inherit another candidate", "终端来源不能再继承另一候选"},
+		{"candidate_test_binding", "Independent test requires its exact current tool binding", "独立测试需要准确的当前工具绑定"},
+		{"candidate_independence", "Select a different Worker with a fixed isolated JUnit test profile", "请选择不同执行节点的固定独立JUnit测试配置"},
+		{"candidate_worker", "Select the original Worker and a fixed writable command profile", "请选择原执行节点及固定可写命令配置"},
+		{"candidate_baseline", "Terminal candidate cannot replace a task's adopted code baseline", "终端候选不能替换任务已采用的代码基线"},
+		{"candidate_snapshot", "The original terminal has no safe stopped source snapshot", "原终端尚无已安全停止的源码快照"},
+		{"candidate_protected", "Terminal candidate sources require an explicitly reviewed stopped-session plan", "终端候选来源需要经过明确审阅的停止会话计划"},
 	}
 	out := make([]Definition, 0, len(rows))
 	for _, row := range rows {

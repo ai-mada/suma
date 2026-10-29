@@ -38,6 +38,10 @@ type Session struct {
 	CreatedAt           string   `json:"created_at"`
 	AllowedActions      []string `json:"allowed_actions"`
 	Reason              string   `json:"reason"`
+	// Only a stopped original Runner can report this content manifest. It is
+	// source provenance for an explicit candidate plan, never test approval.
+	SourceSnapshotSHA256 string `json:"source_snapshot_sha256"`
+	BaseCommit           string `json:"base_commit"`
 }
 
 type CreateRequest struct {
@@ -103,31 +107,36 @@ type CommandReceipt struct {
 // same input identity; the Runner's durable write-intent ledger forbids writing
 // its bytes again. Outputs are acknowledged only after transactional storage.
 type ExchangeRequest struct {
-	SessionID     string         `json:"session_id"`
-	RunID         string         `json:"run_id"`
-	NodeID        string         `json:"node_id"`
-	Attempt       int            `json:"attempt"`
-	Fence         int64          `json:"fence"`
-	WorkerID      string         `json:"worker_id"`
-	DispatchID    string         `json:"dispatch_id"`
-	OperationID   string         `json:"operation_id"`
-	OutputChunks  []OutputChunk  `json:"output_chunks"`
-	InputReceipts []InputReceipt `json:"input_receipts"`
-	State         string         `json:"state"`
-	Directory     string         `json:"directory"`
-	ProcessID     int            `json:"process_id"`
-	TreeStopped   bool           `json:"tree_stopped"`
-	ExitCode      int            `json:"exit_code"`
-	Error         string         `json:"error"`
+	SessionID            string         `json:"session_id"`
+	RunID                string         `json:"run_id"`
+	NodeID               string         `json:"node_id"`
+	Attempt              int            `json:"attempt"`
+	Fence                int64          `json:"fence"`
+	WorkerID             string         `json:"worker_id"`
+	DispatchID           string         `json:"dispatch_id"`
+	OperationID          string         `json:"operation_id"`
+	OutputChunks         []OutputChunk  `json:"output_chunks"`
+	InputReceipts        []InputReceipt `json:"input_receipts"`
+	State                string         `json:"state"`
+	Directory            string         `json:"directory"`
+	ProcessID            int            `json:"process_id"`
+	TreeStopped          bool           `json:"tree_stopped"`
+	ExitCode             int            `json:"exit_code"`
+	Error                string         `json:"error"`
+	SourceSnapshotSHA256 string         `json:"source_snapshot_sha256"`
+	BaseCommit           string         `json:"base_commit"`
 }
 type ExchangeResponse struct {
-	SessionID         string  `json:"session_id"`
-	ControlEpoch      int64   `json:"control_epoch"`
-	Inputs            []Input `json:"inputs"`
-	Columns           int     `json:"columns"`
-	Rows              int     `json:"rows"`
-	StopRequested     bool    `json:"stop_requested"`
-	OutputAckSequence int64   `json:"output_ack_sequence"`
+	// RecoveryOperationID is an explicit reviewed disposition of this exact
+	// original dispatch, separate from a final-result acknowledgement.
+	RecoveryOperationID string  `json:"recovery_operation_id"`
+	SessionID           string  `json:"session_id"`
+	ControlEpoch        int64   `json:"control_epoch"`
+	Inputs              []Input `json:"inputs"`
+	Columns             int     `json:"columns"`
+	Rows                int     `json:"rows"`
+	StopRequested       bool    `json:"stop_requested"`
+	OutputAckSequence   int64   `json:"output_ack_sequence"`
 }
 
 func DecodeBytes(encoded string, maximum int) ([]byte, error) {

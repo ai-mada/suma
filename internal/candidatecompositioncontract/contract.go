@@ -31,16 +31,18 @@ type CandidateCompositionExecution struct {
 }
 
 type CodeBaselineBinding struct {
-	Protocol            string     `json:"protocol"`
-	ID                  string     `json:"id"`
-	ProjectID           string     `json:"project_id"`
-	TaskID              string     `json:"task_id"`
-	TaskVersion         int        `json:"task_version"`
-	CompositionID       string     `json:"composition_id"`
-	CompositionVersion  int        `json:"composition_version"`
-	AcceptedBasisSHA256 string     `json:"accepted_basis_sha256"`
-	Source              cc.Binding `json:"source"`
-	BindingSHA256       string     `json:"binding_sha256"`
+	Protocol                     string     `json:"protocol"`
+	ID                           string     `json:"id"`
+	ProjectID                    string     `json:"project_id"`
+	TaskID                       string     `json:"task_id"`
+	TaskVersion                  int        `json:"task_version"`
+	CompositionID                string     `json:"composition_id,omitempty"`
+	CompositionVersion           int        `json:"composition_version,omitempty"`
+	TerminalCandidatePlanID      string     `json:"terminal_candidate_plan_id,omitempty"`
+	TerminalCandidatePlanVersion int        `json:"terminal_candidate_plan_version,omitempty"`
+	AcceptedBasisSHA256          string     `json:"accepted_basis_sha256"`
+	Source                       cc.Binding `json:"source"`
+	BindingSHA256                string     `json:"binding_sha256"`
 }
 
 // A bundle read requires the current consumer's full assignment. It is not a
@@ -120,7 +122,9 @@ func ValidateCandidateCompositionExecution(e CandidateCompositionExecution) erro
 	return nil
 }
 func ValidateCodeBaselineBinding(b CodeBaselineBinding) error {
-	if b.Protocol != CodeBaselineProtocol || !validID(b.ID, 64) || !validID(b.ProjectID, 64) || !validID(b.TaskID, 64) || b.TaskVersion < 1 || !validID(b.CompositionID, 64) || b.CompositionVersion < 1 || !cc.ValidHash(b.AcceptedBasisSHA256) || !cc.ValidHash(b.BindingSHA256) || !b.Source.ValidSealed() || b.Source.ProjectID != b.ProjectID {
+	composition := validID(b.CompositionID, 64) && b.CompositionVersion > 0 && b.TerminalCandidatePlanID == "" && b.TerminalCandidatePlanVersion == 0
+	terminal := validID(b.TerminalCandidatePlanID, 64) && b.TerminalCandidatePlanVersion > 0 && b.CompositionID == "" && b.CompositionVersion == 0
+	if b.Protocol != CodeBaselineProtocol || !validID(b.ID, 64) || !validID(b.ProjectID, 64) || !validID(b.TaskID, 64) || b.TaskVersion < 1 || (!composition && !terminal) || !cc.ValidHash(b.AcceptedBasisSHA256) || !cc.ValidHash(b.BindingSHA256) || !b.Source.ValidSealed() || b.Source.ProjectID != b.ProjectID {
 		return fmt.Errorf("invalid fixed code baseline binding")
 	}
 	sha, err := CodeBaselineBindingDigest(b)

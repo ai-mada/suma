@@ -21,5 +21,8 @@ func (c *Client) TerminalExchange(ctx context.Context, request term.ExchangeRequ
 	if err == nil && (reply.SessionID != request.SessionID || reply.ControlEpoch < 1 || reply.OutputAckSequence < 0 || len(reply.Inputs) > 32 || reply.Columns < 2 || reply.Columns > 512 || reply.Rows < 1 || reply.Rows > 256) {
 		err = fmt.Errorf("Terminal exchange response is invalid")
 	}
+	if err == nil && reply.RecoveryOperationID != "" && (!reply.StopRequested || len(reply.Inputs) != 0 || len(reply.RecoveryOperationID) > 128) {
+		err = fmt.Errorf("Terminal recovery disposition is invalid")
+	}
 	return reply, err
 }

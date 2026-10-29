@@ -437,6 +437,9 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		if err != nil {
 			return fail(err.Error())
 		}
+		if err = applyTerminalCandidateSource(ctx, a, cfg, spec, workspace); err != nil {
+			return fail(err.Error())
+		}
 		root = workspace.Source
 	}
 	modelAttempt := workspace
@@ -1038,6 +1041,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		if native != nil || a.CodeBaseline != nil {
 			captureCtx = context.WithValue(captureCtx, nativeGitScope{}, true)
 		}
+		sealTerminalCandidate(ctx, a, workspace, &r)
 		r.WorkspaceEvidence, captureErr = workspace.capture(captureCtx, r)
 		if captureErr != nil {
 			r.ExitCode = -1

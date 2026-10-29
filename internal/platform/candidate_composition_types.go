@@ -95,14 +95,16 @@ type CandidateCompositionOptions struct {
 	Blockers    []string                           `json:"blockers"`
 }
 type TaskCodeBaselineBindRequest struct {
-	ProjectID                  string `json:"project_id"`
-	ExpectedTaskVersion        int    `json:"expected_task_version"`
-	ExpectedBindingVersion     int    `json:"expected_binding_version"`
-	CompositionID              string `json:"composition_id"`
-	ExpectedCompositionVersion int    `json:"expected_composition_version"`
-	Acknowledge                bool   `json:"acknowledge"`
-	Reason                     string `json:"reason"`
-	IdempotencyKey             string `json:"idempotency_key"`
+	ProjectID                            string `json:"project_id"`
+	ExpectedTaskVersion                  int    `json:"expected_task_version"`
+	ExpectedBindingVersion               int    `json:"expected_binding_version"`
+	CompositionID                        string `json:"composition_id,omitempty"`
+	ExpectedCompositionVersion           int    `json:"expected_composition_version,omitempty"`
+	TerminalCandidatePlanID              string `json:"terminal_candidate_plan_id,omitempty"`
+	ExpectedTerminalCandidatePlanVersion int    `json:"expected_terminal_candidate_plan_version,omitempty"`
+	Acknowledge                          bool   `json:"acknowledge"`
+	Reason                               string `json:"reason"`
+	IdempotencyKey                       string `json:"idempotency_key"`
 }
 type CandidateCompositionBaseline struct {
 	ProjectID string                    `json:"project_id"`

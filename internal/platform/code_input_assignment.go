@@ -20,6 +20,9 @@ func codeInputAssignmentRef(a dag.Assignment) cc.AssignmentRef {
 // Only platform-bound nodes can advertise a protected input mode. An
 // ordinary published command/config cannot acquire cross-run code access.
 func (s *Service) codeInputNodeEligibleTx(ctx context.Context, tx *sql.Tx, tenant, project, run, node string, spec dag.Node) (bool, error) {
+	if eligible, err := s.workspaceTerminalCandidateNodeEligibleTx(ctx, tx, tenant, project, run, node, spec); err != nil || !eligible {
+		return eligible, err
+	}
 	declaredComposition := spec.Config["purpose"] == "candidate_composition" || len(spec.Command) == 1 && spec.Command[0] == ccmp.CompositionCommand
 	declaredBaseline := spec.Config["code_baseline"] != nil
 	declaredRepair := spec.Config["purpose"] == "candidate_conflict_repair" || spec.Config["candidate_conflict_repair"] != nil
@@ -65,6 +68,9 @@ func sameCodeBaselineValue(value any, expected ccmp.CodeBaselineBinding) bool {
 }
 
 func (s *Service) checkCodeInputExecutionTx(ctx context.Context, tx *sql.Tx, tenant, project, run, node string, fresh bool) error {
+	if err := s.checkWorkspaceTerminalCandidateExecutionTx(ctx, tx, tenant, project, run, node, fresh); err != nil {
+		return err
+	}
 	if err := s.checkCandidateCompositionExecutionTx(ctx, tx, tenant, project, run, fresh); err != nil {
 		return err
 	}

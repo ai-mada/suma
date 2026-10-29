@@ -295,6 +295,12 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	s.applyLocalePreferences(w, r, actor)
+	if s.workspaceTerminalCandidateHTTP(w, r, actor, scope, boundProject, path, parts) {
+		return
+	}
+	if s.workspaceTerminalRecoveryHTTP(w, r, actor, scope, boundProject, parts) {
+		return
+	}
 	if s.workspaceTerminalHTTP(w, r, actor, scope, boundProject, path, parts) {
 		return
 	}
@@ -682,6 +688,10 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			var workflow dag.Workflow
 			if e := json.Unmarshal([]byte(stringify(raw)), &workflow); e != nil {
 				writeError(w, invalid("流程格式错误"))
+				return
+			}
+			if e := validatePublicTerminalCandidateWorkflow(workflow); e != nil {
+				writeError(w, e)
 				return
 			}
 			if len(parts) == 2 && parts[1] == "validate" {
@@ -1160,6 +1170,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				return err
 			}
 			if err := s.Service.validateCandidateCompositionRepairResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {
+				return err
+			}
+			if err := s.Service.validateWorkspaceTerminalCandidateResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {
 				return err
 			}
 			if err := s.Service.validateCodeBaselineResultTx(authority.ctx, tx, p.TenantID, project, result); err != nil {

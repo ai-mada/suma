@@ -85,6 +85,17 @@ func candidateCompositionContracts(add operationAdder, api map[string]any) {
 		field("CandidateCompositionRepairCreateRequest", name, map[string]any{"minimum": 1, "maximum": 2147483646})
 	}
 	field("TaskCodeBaselineBindRequest", "expected_binding_version", map[string]any{"minimum": 0, "maximum": 2147483646})
+	field("TaskCodeBaselineBindRequest", "expected_terminal_candidate_plan_version", map[string]any{"minimum": 1, "maximum": 2147483646})
+	for _, model := range []string{"CodeBaselineBinding", "TaskCodeBaselineBindRequest"} {
+		compositionVersion, terminalVersion := "composition_version", "terminal_candidate_plan_version"
+		if model == "TaskCodeBaselineBindRequest" {
+			compositionVersion, terminalVersion = "expected_composition_version", "expected_terminal_candidate_plan_version"
+		}
+		toolContractMap(api, "components", "schemas", model)["oneOf"] = []any{
+			map[string]any{"required": []string{"composition_id", compositionVersion}, "not": map[string]any{"anyOf": []any{map[string]any{"required": []string{"terminal_candidate_plan_id"}}, map[string]any{"required": []string{terminalVersion}}}}},
+			map[string]any{"required": []string{"terminal_candidate_plan_id", terminalVersion}, "not": map[string]any{"anyOf": []any{map[string]any{"required": []string{"composition_id"}}, map[string]any{"required": []string{compositionVersion}}}}},
+		}
+	}
 	for _, pair := range [][2]string{{"CandidateCompositionSourceRequest", "expected_task_version"}, {"CandidateCompositionCreateRequest", "expected_task_version"}, {"CandidateCompositionCreateRequest", "workflow_version"}, {"CandidateCompositionStartRequest", "expected_version"}, {"CandidateCompositionCommandRequest", "expected_version"}, {"TaskCodeBaselineBindRequest", "expected_task_version"}, {"TaskCodeBaselineBindRequest", "expected_composition_version"}} {
 		field(pair[0], pair[1], map[string]any{"minimum": 1, "maximum": 2147483646})
 	}

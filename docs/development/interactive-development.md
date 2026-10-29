@@ -1,12 +1,12 @@
 # 交互开发：终端、讨论交接与AI SOP
 
-状态：T129限定实现；产品1.0.0，2026-10-29。负责人：工作台、控制面、DAG和Runner领域。关联需求9、12、17、22、23及完整P0–P7／1–26；58项有限实现、34项待办、92项总账保持不变。
+状态：T130限定实现；产品1.0.0，2026-10-29。负责人：工作台、控制面、DAG和Runner领域。关联需求9、12、17、22、23及完整P0–P7／1–26；58项有限实现、34项待办、92项总账保持不变。
 
-[架构](../architecture/interactive-terminal.md)、[界面规范](../design/interactive-terminal.md)、[验证报告](../quality/interactive-development-verification.md)和[精简摘要](../quality/interactive-development-summary.json)分别说明实现、操作及证据。浏览器和原生开发真实结果按报告逐项记录，不能从组件检查推断通过。
+[架构](../architecture/interactive-terminal.md)、[终端界面](../design/interactive-terminal.md)、[恢复与交付交互](../design/terminal-recovery.md)、[T130合同](../../contracts/terminal-recovery-candidates.md)、[当前验证报告](../quality/terminal-recovery-candidates-verification.md)和[摘要](../quality/terminal-recovery-candidates-summary.json)分别说明实现、操作及证据。T129原终端和讨论开发记录保留在[历史报告](../quality/interactive-development-verification.md)／[摘要](../quality/interactive-development-summary.json)；组件检查不代替实际故障恢复、浏览器或跨平台验收。
 
 ## 两条明确入口
 
-交互终端用于当前任务的人工受控Shell操作。它由专用`terminal_session`节点、原Go DAG和实际Runner执行，使用独立attempt Git工作树，不使用IDE绑定的共享目录。自然退出或停止不产生候选、测试证明或正式验收。
+交互终端用于当前任务的人工受控Shell操作。它由专用`terminal_session`节点、原Go DAG和实际Runner执行，使用独立attempt Git工作树，不使用IDE绑定的共享目录。自然退出或停止不自动产生候选、测试证明或正式验收；停止修改须按下述独立授权流程交付。
 
 “从讨论转为开发”以已完成助手回复作为受保护出处，人工审阅后生成原生开发计划。本次重新选择模型、参数和预算；明确启动后沿原候选、独立测试及人工Review链路交付。助手文本、创建预览和实际编码分别表达。
 
@@ -35,7 +35,17 @@
 
 当前输入、resize及消费ACK由创建者身份控制，epoch固定为1；没有多人接管或跨标签独占控制功能。项目有写权限人员可请求停止。任务／需求、机器、工具、路由或权限变化后，不继续使用失效依据。
 
-活动终端支持原出站broker的只读实时文件检查；不能借此远程保存、封存候选、交接基线或验收。Shell的独立工作树不是OS安全沙箱，不据此宣称不可信多租户隔离完成。
+活动终端支持原出站broker的只读实时文件检查；该入口不能远程保存或验收。停止后的候选封存与基线交接使用独立受保护命令。Shell的独立工作树不是OS安全沙箱，不据此宣称不可信多租户隔离完成。
+
+## 中断核对与终端修改交付
+
+1. 在原会话展开“核对中断的执行”，读取原运行、尝试、栅栏、派发与真实进程树停止证明。没有停止证明只能等待原执行节点回报，不能人工声明进程已停。
+2. 当前审批人逐项核对全部交付未知输入，填写说明并明确按失败关闭原执行。确认只接受未知事实，不把输入改成已送达、不重放，也不把原运行改成成功。网络未知时核对同一原请求；当前恢复范围和未覆盖故障以专项报告为准。
+3. 在“将终端修改交给质量流程”读取已有交付计划；刷新和选择只查看原事实，不重复执行。选择新预览时，须已有停止快照，选择已发布的固定检查／候选测试流程及原Worker上的匹配检查配置，再明确授权创建预览。
+4. 核对固定任务、原基线、停止快照和检查流程，再单独授权启动。宿主从原缓存验证并复制修改到新工作树，固定检查后封存；另一Worker导入同一SHA独立测试。候选、JUnit、正式Review和问题回流继续沿现有质量链路，提前验收仍拒绝。
+5. 原任务已正式验收且仍绑定该精确运行后，可展开“交接已验收基线”，选择另一未启动任务，核对当前基线、填写理由并明确确认。此处只绑定候选基线，不启动后续执行；后续仍须单独派发、测试和验收。
+
+终端启动授权不包含候选封存授权，候选预览不包含执行授权，执行成功不包含人工验收。当前切片使用固定命令而非新模型调用；实际本机完整链路、恢复证据与当前界面范围由[T130报告](../quality/terminal-recovery-candidates-verification.md)及[摘要](../quality/terminal-recovery-candidates-summary.json)统一记录。
 
 ## 从回复交接开发
 
@@ -64,4 +74,4 @@
 
 Windows ConPTY／Job底层的中文、Ctrl-C、resize及前后台停止已有实际证据。Unix没有完整后代containment证明，Probe不宣称可用。SaaS隔离、多人接管、WebSocket、LSP／DAP、三系统实际安装及完整工作台保留待办；当前完整平台并未交付完成。
 
-*English: Select an exact task, explicitly authorize a dedicated shell profile, and reconnect only to its original terminal session. Accepted input, PTY delivery, command completion and tree stop are separate; ambiguous input is not replayed. To develop from a reply, review its protected provenance, add instructions/checks, select a fresh native coding profile and model budget, create the original dispatch preview, then explicitly start its reserved run. Existing candidate, independent-test and human-review gates still apply. Windows runtime, actual browser/development, Unix containment and cross-platform installation evidence remain separately scoped.*
+*English: Reconnect only to the original terminal session; ambiguous input is not replayed. T130 recovery requires actual persisted tree-stop proof, individual unknown-input acknowledgement and explicit failed-only closure. Stopped changes use separate candidate-preview and start consent, fixed checks, a new worktree and same-SHA tests on another Worker. Only current formal acceptance of that run permits an explicit baseline handoff to an unstarted task, without starting it. Reviewed discussion development still chooses a fresh native model budget through the original dispatch plan. Recovery scenarios, Windows/browser evidence, Unix containment, cross-platform installation and production remain separately scoped.*

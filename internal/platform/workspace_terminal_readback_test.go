@@ -108,7 +108,14 @@ func TestWorkspaceTerminalRetainedBrowserReadback(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	stage, host := "T-TERMINAL-129", "terminal-readback129.localhost"
 	owned := filepath.Join(root, ".cache", "e2e", "terminal-129")
+	// The current candidate journey reuses its own exact retained database;
+	// both stage roots remain explicit and the fixture still forbids writes.
+	if absolute, e := filepath.Abs(source); e == nil && under(filepath.Join(root, ".cache", "e2e", "terminal-130"), absolute) {
+		owned = filepath.Join(root, ".cache", "e2e", "terminal-130")
+		stage, host = "T-TERMINAL-130", "terminal-readback130.localhost"
+	}
 	web := workbenchRetainedDirectory(t, os.Getenv("SUMA_TERMINAL_WEB_DIR"), owned, false)
 	if _, err = os.Stat(filepath.Join(web, "index.html")); err != nil {
 		t.Fatal(err)
@@ -176,7 +183,7 @@ func TestWorkspaceTerminalRetainedBrowserReadback(t *testing.T) {
 	}
 	f := &fixture{t: t, s: service, e: engine, project: project, user: Principal{ID: ownerID, TenantID: tenant}}
 	beforeTask := workspaceTerminalTaskSQL(t, f, task)
-	server, origin, port := modelSelectionGUIServer(t, f, web, "terminal-readback129.localhost")
+	server, origin, port := modelSelectionGUIServer(t, f, web, host)
 	// This fixture is deliberately read-only beyond ordinary sign-in/out. If
 	// the UI tries to mutate a retained session it gets a real denial, never a
 	// simulated success or an acknowledgement that changes the stored run.
@@ -219,7 +226,7 @@ func TestWorkspaceTerminalRetainedBrowserReadback(t *testing.T) {
 		}
 		modelSelectionGUIJSON(t, filepath.Join(dir, "readback.before.public.json"), map[string]any{"business": before, "task": beforeTask})
 		modelSelectionGUIJSON(t, filepath.Join(dir, "readback.after.public.json"), map[string]any{"business": after, "task": afterTask})
-		modelSelectionGUIJSON(t, filepath.Join(dir, "result.public.json"), map[string]any{"stage": "T-TERMINAL-129", "kind": "actual_retained_terminal_browser_readback", "status": status, "stop_reason": stopReason, "source_db": source, "source_db_sha256": sourceSHA, "copied_exact_source_bytes": true, "original_source_unchanged": originalUnchanged, "business_tables_unchanged": unchanged, "business_table_count": len(before), "project_id": project, "task_id": task, "terminal_session_id": sessionID, "worker_runs": 0, "scheduler_ticks": 0, "new_pty_processes": 0, "new_model_requests": 0, "denied_writes": denied, "authentication": "Normal owner test-account login may write only authentication state in the disposable copy"})
+		modelSelectionGUIJSON(t, filepath.Join(dir, "result.public.json"), map[string]any{"stage": stage, "kind": "actual_retained_terminal_browser_readback", "status": status, "stop_reason": stopReason, "source_db": source, "source_db_sha256": sourceSHA, "copied_exact_source_bytes": true, "original_source_unchanged": originalUnchanged, "business_tables_unchanged": unchanged, "business_table_count": len(before), "project_id": project, "task_id": task, "terminal_session_id": sessionID, "worker_runs": 0, "scheduler_ticks": 0, "new_pty_processes": 0, "new_model_requests": 0, "denied_writes": denied, "authentication": "Normal owner test-account login may write only authentication state in the disposable copy"})
 	}()
 	modelSelectionGUIJSON(t, filepath.Join(dir, "web.files.public.json"), modelSelectionGUIWebFiles(t, web))
 	modelSelectionGUIJSON(t, filepath.Join(dir, "login.local.json"), map[string]any{"origin": origin, "email": "owner@example.test", "password": "test-password-strong-42", "project_id": project, "task_id": task, "terminal_session_id": sessionID, "allowed_actions": []string{"read_original_terminal", "switch_locale", "refresh", "inspect_390"}})
