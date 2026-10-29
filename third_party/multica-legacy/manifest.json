@@ -1,0 +1,34 @@
+{
+  "stage": "T-MULTICA-137",
+  "upstream": "https://github.com/multica-ai/multica",
+  "commit": "e6f840ca115740a6fb80786537405bcf049d6497",
+  "copyright": "Copyright 2025 Multica",
+  "source": {
+    "path": "apps/web/features/issues/components/board-view.tsx",
+    "function": "buildColumns",
+    "lines": [
+      77,
+      93
+    ],
+    "blob": "a33119a4d6bd1ff2a7e6adc9d509f023a7faa8ce",
+    "sha256": "b63b667e53231494e858ee24dbc31a3c7bd9b7effa7c40ab8dd78967c97f703d"
+  },
+  "license": {
+    "path": "third_party/multica-legacy/LICENSE",
+    "blob": "23456c21785fc2a7bbb6687b95de17140abc86c7",
+    "sha256": "062d056e48fee2e6cea78bc63f1a3d33464b4765bd9ab4719d29880860e6cd85",
+    "bytes": 11212,
+    "preservation": "Byte-for-byte original, including upstream appendix"
+  },
+  "adaptation": {
+    "path": "apps/web/src/multica-task-view.ts",
+    "function": "groupTaskRows",
+    "sha256": "9555e549bdc1844ee6a42b685cbae09b54cd0c8bfb6cc87756a250115d30f7ec",
+    "changes": [
+      "Suma task types and business status/owner/priority groups",
+      "Retain authorized backend order",
+      "No upstream DnD, store, styling or mutation implementation"
+    ]
+  },
+  "current_reference_only": "139b13a462c9a9757e18a17578a867eecd99851e"
+}

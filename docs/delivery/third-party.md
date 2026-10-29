@@ -8,6 +8,8 @@
 
 ## 参考项目与实际依赖分开记录
 
+2026-10-29，T-MULTICA-137首次实际改编Multica旧提交 `e6f840ca115740a6fb80786537405bcf049d6497` 的 `buildColumns` 分组算法，用于速码任务列表／看板。完整原LICENSE、版权、文件摘要和修改范围见[来源说明](../../third_party/multica-legacy/PROVENANCE.md)与[清单](../../third_party/multica-legacy/manifest.json)。当前 `139b13a…` 的受限源码只作功能参考；没有引入其运行权限旁路、保存视图实现或品牌素材。下表旧“未复制”结论仅对应原调查日期，不能覆盖此项新增采用。
+
 下表的“参考”是产品、架构或协议研究。锁定 README/提交不代表完整代码审计、源代码移植、完整产品接入或许可证逐文件审查。原始获取方法、README blob 和时间保留在 references.json。
 
 | 项目 | 锁定提交 / 基线 | 本项目用途与集成状态 |

@@ -1,13 +1,30 @@
 import {mondayOf} from './planning-model';
 import {parseAttempt} from './scheduling-model';
 export type WorkbenchView='overview'|'requirements'|'development'|'quality'|'operations'|'knowledge'|'settings';
-export type WorkbenchRoute={project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
+export type WorkbenchRoute={task_invalid?:string;task_status?:string;task_owner?:string;task_priority?:string;task_sort?:string;task_group?:string;project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
 const views:WorkbenchView[]=['overview','requirements','development','quality','operations','knowledge','settings'];
 const defaultSub:Partial<Record<WorkbenchView,string>>={development:'my-work',quality:'issues',operations:'releases',knowledge:'documents',settings:'organization'};
 export function parseWorkbenchRoute(search:string):WorkbenchRoute{
  const p=new URLSearchParams(search),view=views.includes(p.get('view') as WorkbenchView)?p.get('view') as WorkbenchView:'overview';
  const knowledgeKind=p.get('knowledge_kind');
- return {...(p.has('catalog_domain')?{catalog_domain:p.get('catalog_domain')||''}:{}),...(p.has('catalog_scenario')?{catalog_scenario:p.get('catalog_scenario')||''}:{}),...(['all','published','retired'].includes(p.get('catalog_state')||'')?{catalog_state:p.get('catalog_state') as WorkbenchRoute['catalog_state']}:{}),...(p.has('catalog_source')?{catalog_source:p.get('catalog_source')||''}:{}),...(['memory','spec','skill','all'].includes(knowledgeKind||'')?{knowledge_kind:knowledgeKind as WorkbenchRoute['knowledge_kind']}:{}),project:p.get('project')||'',view,sub:p.get('sub')||defaultSub[view]||'',record:p.get('record')||'',run:p.get('run')||'',node:p.get('node')||'',attempt:parseAttempt(p.get('attempt')||'')?p.get('attempt')!:'',q:p.get('q')||'',status:p.get('status')||'all',layout:p.get('layout')||'list',week:p.get('week')||mondayOf(),panel:p.get('panel')||''};
+ const taskScope=view==='development'&&(p.get('sub')||defaultSub[view])==='tasks';
+ const bounded=(value:string|null)=>value!==null&&new TextEncoder().encode(value).length<=64&&!/[\u0000-\u001f\u007f-\u009f]/.test(value)?value:undefined;
+ const invalidTask=taskScope&&(p.get('task_invalid')==='1'||Array.from(p.get('q')||'').length>200||/[\u0000-\u001f\u007f-\u009f]/.test(p.get('q')||'')||
+  ['task_status','task_priority'].some(key=>p.has(key)&&bounded(p.get(key))===undefined)||
+  p.has('status')&&p.get('status')!=='all'&&bounded(p.get('status'))===undefined||
+  p.has('task_owner')&&!/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(p.get('task_owner')||'')||
+  p.has('task_sort')&&!['updated_desc','created_desc','title_asc','priority_desc'].includes(p.get('task_sort')||'')||
+  p.has('task_group')&&!['status','owner','priority'].includes(p.get('task_group')||''));
+ const taskFields=taskScope?{
+  ...(invalidTask?{task_invalid:'1'}:{}),
+  task_status:bounded(p.get('task_status')),
+  task_owner:/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(p.get('task_owner')||'')?p.get('task_owner')!:undefined,
+  task_priority:bounded(p.get('task_priority')),
+  task_sort:['updated_desc','created_desc','title_asc','priority_desc'].includes(p.get('task_sort')||'')?p.get('task_sort')!:undefined,
+  task_group:['status','owner','priority'].includes(p.get('task_group')||'')?p.get('task_group')!:undefined,
+ }:{};
+
+ return {...taskFields,...(p.has('catalog_domain')?{catalog_domain:p.get('catalog_domain')||''}:{}),...(p.has('catalog_scenario')?{catalog_scenario:p.get('catalog_scenario')||''}:{}),...(['all','published','retired'].includes(p.get('catalog_state')||'')?{catalog_state:p.get('catalog_state') as WorkbenchRoute['catalog_state']}:{}),...(p.has('catalog_source')?{catalog_source:p.get('catalog_source')||''}:{}),...(['memory','spec','skill','all'].includes(knowledgeKind||'')?{knowledge_kind:knowledgeKind as WorkbenchRoute['knowledge_kind']}:{}),project:p.get('project')||'',view,sub:p.get('sub')||defaultSub[view]||'',record:p.get('record')||'',run:p.get('run')||'',node:p.get('node')||'',attempt:parseAttempt(p.get('attempt')||'')?p.get('attempt')!:'',q:p.get('q')||'',status:p.get('status')||'all',layout:p.get('layout')||'list',week:p.get('week')||mondayOf(),panel:p.get('panel')||''};
 }
 export function initializeSessionRoute(route:WorkbenchRoute,projects:{id:string}[]):WorkbenchRoute{return route.project||!projects.length?route:{...route,project:projects[0].id};}
 

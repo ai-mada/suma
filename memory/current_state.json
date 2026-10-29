@@ -249,5 +249,15 @@
     "scope": "Current canonical-human assigned tasks and context-aware command palette; existing task/details/workspace/current authority reused. No copied Multica code or assets under additional license conditions.",
     "verification": "16 distinct Go;34 new feature Web+14 completed navigation cases, targeted harness/label/alias repairs; final types/6885 locales/contracts/isolated build55.63s/version. Initial workerOOM retained, GUI disabled.",
     "remaining": "Full58/34/92; project server-grouped task board, notification lifecycle/recipient projection, formal personal review, real tool/multihost/database/device/production acceptance."
+  },
+  "multica_task_views": {
+    "stage": "T-MULTICA-137",
+    "date": "2026-10-29",
+    "status": "scoped_verified",
+    "report": "docs/quality/multica-task-views-verification.md",
+    "summary": "docs/quality/multica-task-views-summary.json",
+    "scope": "Authorized full-project task query, stable pagination, shared list/board grouping and browser-only personal views; narrow historical Multica grouping adaptation.",
+    "limits": "Shared/server views, cross-device sync, custom fields/swimlanes/bulk mutation and remaining Multica parity still pending. No new tool/provider or production acceptance; 58/34/92 unchanged.",
+    "verification": "Integrated e52bbb7;160 web files/1420 checks,27 actual browser/HTTP assertions,task+personal Go/contract/localization checks,713 schemas/331 APIs,types/6945 locales/build. Actual synthetic SQLite preview, no provider/production claim."
   }
 }

@@ -1,5 +1,7 @@
 # Multica参考、复用与当前交付
 
+后续T-MULTICA-137保留本阶段个人工作台和命令入口，并新增全项目任务查询／本机个人视图；仅对历史 `e6f840c…` 的分组算法进行少量源码改编。准确文件、原LICENSE及修改范围见[后续复用清单](multica-reuse.md)，下文“未复制”描述仅指T-MULTICA-136。
+
 状态：T-MULTICA-136；2026-10-29；负责人：主集成／协作领域。依据用户授权，以当前Suma初始1.0.0架构和完整P0–P7／需求1–26为准；[主规格](../suma-architecture-design.html#s21)、[合同](../../contracts/my-work.md)与[交互架构](../design/multica-collaboration.md)相互关联。
 
 ## 锁定源码与采用方式

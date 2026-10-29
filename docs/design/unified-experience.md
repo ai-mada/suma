@@ -1,5 +1,7 @@
 # 统一体验、智能协作与可靠自动化
 
+T-MULTICA-137生产增量：开发→任务采用全项目服务端查询，列表／看板共享筛选、排序和详情；按状态、负责人、优先级分组，区分已载入与全量匹配。保存视图为当前浏览器的账号／组织／项目偏好，明确保存、另存、删除确认及跨标签冲突；不称为共享或跨端视图。[复用与交互说明](../integrations/multica-reuse.md)、[查询合同](../../contracts/task-workspace.md)、[操作指南](../development/task-views.md)、[验证](../quality/multica-task-views-verification.md)。下述完整设计目标继续保留，旧样稿不替代新生产页验证。
+
 阶段：T-DESIGN-135（继续 T-PLATFORM-DESIGN-134）；日期：2026-10-29；产品：速码一栈式智能研发平台（suma）1.0.0。
 状态：既有增强设计的细化补充；新增目标待分阶段实现与验证。
 

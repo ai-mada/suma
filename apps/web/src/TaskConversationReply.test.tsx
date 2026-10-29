@@ -114,6 +114,22 @@ it('T128 retains the original unknown operation and validates the same binding b
   expect(writes().every(request => request.headers.get('X-Suma-Expected-Organization') === 'org-a')).toBe(true);
 });
 
+it('refreshes the current reply after a stop receipt without depending on a subsequent event', async () => {
+  await render(); await configure(); await click('[data-reply-create]');
+  const normal = send;
+  send = async (path, body) => {
+    if (path.endsWith('/commands') && body) {
+      server = {...server!, state: 'cancelling', version: 2, run_version: 2, run_state: 'cancelling', allowed_actions: []};
+      return Response.json(server);
+    }
+    return normal(path, body);
+  };
+  await click('[data-reply-cancel]');
+  expect(host.textContent).toContain('Actual stopping must still be confirmed');
+  expect(host.querySelector('[data-reply-cancel]')).toBeNull();
+  expect(writes().filter(item => item.path.endsWith('/commands'))).toHaveLength(1);
+});
+
 it('T128 uses actual run events only to refresh persisted reply facts, keeps stop-request distinct and supports an explicit next turn', async () => {
   await render(); await configure(); await click('[data-reply-create]'); expect(streams.length).toBeGreaterThan(0);
   const first = streams[streams.length - 1], before = writes().length;

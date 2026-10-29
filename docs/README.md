@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [Multica复用与任务工作台](integrations/multica-reuse.md) · [查询合同](../contracts/task-workspace.md) · [操作指南](development/task-views.md) · [限定验证](quality/multica-task-views-verification.md)：全项目查询、列表／看板分组和本机个人视图；来源及完整许可保留，共享／跨端视图继续待办。
+
 - [Multica参考与复用](integrations/multica-adoption.md) · [个人协作交互](design/multica-collaboration.md) · [生产合同](../contracts/my-work.md) · [限定验证](quality/multica-collaboration-verification.md)：当前人员任务、精确个人范围与上下文命令导航；主规格21.5同步当前代码及待交付边界。
 
 - [人员工时合同](../contracts/worklogs.md) · [领域架构](architecture/worklogs.md) · [操作与AI SOP](development/worklogs.md) · [English](en/worklogs.md) · [限定验证](quality/worklogs-verification.md)：明确人员登记、保留更正／作废历史、组织跨项目日上限和原操作恢复。

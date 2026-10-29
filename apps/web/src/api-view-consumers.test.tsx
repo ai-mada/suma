@@ -18,6 +18,7 @@ beforeEach(async()=>{
   if(path==='/account/preferences')return Response.json({user_id:user,locale:'',version:0,updated_at:''});
   if(path==='/organization/preferences')return Response.json({organization_id:organization,locale:'',version:0,updated_at:''});
   if(path==='/overview')return Response.json({counts:{},activity:[]});
+  if(path==='/task-workspace')return Response.json({items:[],total:0,as_of:'2026-10-29T00:00:00Z'});
   return Response.json({items:[],total:0});
  }));
 });

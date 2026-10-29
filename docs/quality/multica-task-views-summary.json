@@ -1,0 +1,192 @@
+{
+  "stage": "T-MULTICA-137",
+  "product_version": "1.0.0",
+  "date": "2026-10-29",
+  "source_baseline": "b5cd9fa8c9c1a76b58431c25be295b2518882c1c",
+  "scope": "Authorized task workspace and browser-only personal named views; limited historical grouping adaptation",
+  "counts_unchanged": "58 limited / 34 pending / 92 total",
+  "go": {
+    "task_workspace_tests": 8,
+    "contracts": "pass",
+    "localization": "pass after three source aliases added",
+    "generator": {
+      "models": 713,
+      "api_paths": 331
+    }
+  },
+  "web": {
+    "full": {
+      "files": 160,
+      "passed": 1420,
+      "failed": 0
+    },
+    "focused_task_cases": 92,
+    "typecheck": "pass",
+    "paired_locale_keys": 6945,
+    "hardcodes": 0,
+    "build": "pass; existing large-chunk warnings"
+  },
+  "browser": {
+    "stage": "T-MULTICA-137",
+    "date": "2026-10-29T12:02:02.072Z",
+    "kind": "actual App + Go HTTP + SQLite; synthetic owned records",
+    "checks": [
+      "Actual SQLite total125, first page100",
+      "Oldest task is outside default first page",
+      "Literal search finds task beyond first100",
+      "Second page25 without duplicate IDs",
+      "Actual App loads100 task rows",
+      "Load more retains original page",
+      "UI search uses full project",
+      "Board shares query and selected membership",
+      "Saved view restores full filter and board",
+      "Task detail opens formal object",
+      "Back restores search",
+      "Named view survives refresh",
+      "Delete asks confirmation",
+      "Cross-tab change keeps active filter",
+      "Named views isolated by project",
+      "Business status filter uses complete count",
+      "Dark theme applied",
+      "Mobile first task title remains in first screen",
+      "Mobile filters expand explicitly",
+      "Mobile page has no horizontal overflow",
+      "English renders localized task controls",
+      "English mobile page has no horizontal overflow",
+      "Integrated personal scope uses canonical resource",
+      "Command palette opens retained personal workspace",
+      "Command navigation opens task views without stale filters",
+      "No browser runtime errors",
+      "No external browser requests"
+    ],
+    "errors": [],
+    "external": [],
+    "screenshots": {
+      "dist/quality/multica-136/desktop-en-light.png": "ef0691db9cbd24873a5f5b05ca5762407398b34983cbc5d95ba1c34eb18731a7",
+      "dist/quality/multica-136/desktop-zh-dark.png": "06a5923ac8c97ebb8f15d164dc902dbc429615031af8e9a8c6095e3cd422328e",
+      "dist/quality/multica-136/desktop-zh-detail.png": "7d02848d9bf03f5e7b76e4ce1ab857639f89243deb204ca83a1dec89283948c1",
+      "dist/quality/multica-136/desktop-zh-light.png": "8b996e219e122454ef05d4a8b387820e4d5960f18adaa62255d9ff367c32f605",
+      "dist/quality/multica-136/desktop-zh-list.png": "c39c53fa2fc1e960a7b39743f90a8c7a09a456929b8444aad2f72c2ff1a12bf2",
+      "dist/quality/multica-136/integrated-command-palette.png": "1441b8a15476218d75364cdff2fd4e5f8c4b883a5906e15e35ae4ab25477e9c2",
+      "dist/quality/multica-136/integrated-my-work.png": "758a4a99b81113958cd43178bbfcfd77d579e2bb171a2a14c5a63e8ed5c9f82f",
+      "dist/quality/multica-136/mobile-en-light.png": "aee98396bbf7023d6760631c896d35efd9db2038525a7e44e5343b9a66553239",
+      "dist/quality/multica-136/mobile-zh-dark.png": "d288d56554fbaa29c4c5d09ed78853cccf71b1d83a47d9aaabcddd6abb3c9bc0"
+    },
+    "viewports": [
+      "1440x1000",
+      "390x844"
+    ],
+    "locales": [
+      "zh-CN",
+      "en-US"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ]
+  },
+  "source_sha256": {
+    "apps/web/src/App.tsx": "ee42db3ad0064594a61a199a51c65549be1b839e8d8d5d1b4d1ebdb9eff80846",
+    "apps/web/src/TaskConversationReply.test.tsx": "fda972195aa5636bf358ebb18a550ce197dc809b01978d6a0569ff9c2fb357b0",
+    "apps/web/src/TaskConversationReply.tsx": "ef0d4177e663083c40cd89de4e4cb1c4c16257b7d3d1281da85758525ecda10d",
+    "apps/web/src/TaskViews.css": "3081efe6c44eaec4b785b244e9cc882f2ae0f4ea0cd29d0bf24a3f7b79badb88",
+    "apps/web/src/TaskViews.test.tsx": "1840e42abd516f1d77a53aabb48ae570b6c2832d326de7201206c3d5a20b0e30",
+    "apps/web/src/TaskViews.tsx": "e9766b9e3868c1312db216159b710eef06735ab07e02b27c8aec0c99025c3ca4",
+    "apps/web/src/TaskViewsApp.test.tsx": "b78a802ec848e20a10c5feb81251ef582534c18bd2adb865a92f46c111ed2323",
+    "apps/web/src/TaskViewsQuery.test.tsx": "7b6ab10a568c095af53c66f4a3fa03906f531975d05707315301e1dda2828aa4",
+    "apps/web/src/api-view-consumers.test.tsx": "7a958a7720b9a13f213fa2b910547bc63cf93ec243c1ee701c6067a7d55c2fb5",
+    "apps/web/src/i18n/locales/domains/task-views.en-US.json": "cecc565abd32ef0576e7c27e638c470f7653df251f116764e55cdba0b88af248",
+    "apps/web/src/i18n/locales/domains/task-views.zh-CN.json": "c595e7fa32fd2e92ffe425179771e1572483082594be4e6beece7099002fe4b0",
+    "apps/web/src/multica-task-view.ts": "9555e549bdc1844ee6a42b685cbae09b54cd0c8bfb6cc87756a250115d30f7ec",
+    "apps/web/src/navigation.ts": "655e4ff75110123dd22535439a7b7aa650c7f0fb0b742f155336c644173dc63c",
+    "apps/web/src/record-navigation-dom.test.tsx": "d4d8b6d46cd152b268ff86d5a8afb5ab8cf007cff9b5b756f1007a2bb01d4b80",
+    "apps/web/src/task-design-provenance-consumers.test.tsx": "113ac5c542850c47cb381376f6ddf88e890a7bab35c6a5e2ba4be63e97d62b91",
+    "apps/web/src/task-review-current-run.test.tsx": "b719180153d56ddfb53b280da913c31d242a6956223b377ee9326bb141fa025e",
+    "apps/web/src/task-view-navigation.test.ts": "46276f0dd62520cdae424984c254a409db29c45747414a6fe0136c99b7d128da",
+    "apps/web/src/task-view-storage.test.ts": "50e3927e9f927c1b8c9d74c7217bc1864ff3bc52cf5f0819980b179346519f4b",
+    "apps/web/src/task-views-model.ts": "9f34409a36a7ba2bc914ba72d4e15d9cb2dbbca5688836ee365b4d76469d15fe",
+    "apps/web/src/task-views-storage.ts": "8ed88bc38a070cb8342c69eb0018d80d7ef2915deda963f12a2bdb90033defc3",
+    "cmd/suma-contracts/main.go": "28dbeabcb8870bcdfb7de8abac5a6acf6b4b07c59b74fb265228b6c48f73ba56",
+    "cmd/suma-contracts/task_workspace.go": "618cfc59814f633bce6d68340b9ceea2ea6807626a262e6906a9d7e5eb8e0e7b",
+    "cmd/suma-contracts/task_workspace_test.go": "40fbe0f37c94cc839fcd490aeab30572451de6fd8641d7834a6885cfa5954f06",
+    "contracts/task-workspace.md": "1dd3db57e4d30db04b043c095d7d7f1253a2d7b9fcd00aaa6732827e7ec84d83",
+    "internal/localization/catalog.go": "fd397ff2d1c078ee92587c15e5f733203b8478ae8b42a5c7bd80f00fe1efb44a",
+    "internal/localization/catalog_task_views.go": "cee62f543d86105d865d7545c35726d71a67484840aeb2fe4f6e441d8ef53981",
+    "internal/localization/catalog_tool_discovery.go": "b2a9fd4d91c6635bade61e0578ba578241e6b72217e82b625f16eba919a81c63",
+    "internal/platform/http.go": "b9b63d8b0572920030421aaad98a49e488edd745d30a80a7eadc28afc2adb03c",
+    "internal/platform/task_workspace_http.go": "c161c97ec8f0bfc31464d3796f3190b182c9912af1b3fc6b6b6652f484c548a5",
+    "internal/platform/task_workspace_read.go": "1e82a38988d6989a49217a2ca275600665d440b907ee270bd78b73b19e7edd26",
+    "internal/platform/task_workspace_test.go": "853d1da4955c5f95a12b7b4f07538d18fcfed12cf15f0dd910ac8aa4217d0638",
+    "packages/contracts/src/index.ts": "0c1c60d0e1cdf4a692e3ff4bc4589922d3aa1fcfc8385b425900196bdeb07c9d",
+    "scripts/verify-multica-task-views.cjs": "c8c6bee0cdd6dd97937d677d33483196adb40e460533cbcc2afeb7a11c21f82a"
+  },
+  "license_manifest": "third_party/multica-legacy/manifest.json",
+  "remaining": [
+    "Server/shared views and cross-device sync",
+    "Full swimlanes/custom fields/bulk edits",
+    "Remaining Multica mappings and tool/provider acceptance",
+    "Other databases, physical multi-host and production"
+  ],
+  "pre_integration": {
+    "source_baseline": "b5cd9fa8c9c1a76b58431c25be295b2518882c1c",
+    "web": {
+      "full": {
+        "files": 157,
+        "passed": 1386,
+        "failed": 0
+      },
+      "focused_task_cases": 92,
+      "typecheck": "pass",
+      "paired_locale_keys": 6858,
+      "hardcodes": 0,
+      "build": "pass; existing large-chunk warnings"
+    },
+    "go": {
+      "task_workspace_tests": 8,
+      "contracts": "pass",
+      "localization": "pass after three source aliases added",
+      "generator": {
+        "models": 711,
+        "api_paths": 330
+      }
+    },
+    "browser_checks": 24
+  },
+  "integration": {
+    "base": "e52bbb7b01628309ab445f0a035d677c00ed7e9b",
+    "retained": [
+      "Personal canonical-human task scope",
+      "Context command palette"
+    ],
+    "focused_web": 57,
+    "go": "TaskWorkspace + MyWork + contracts + localization passed",
+    "full_web": {
+      "files": 160,
+      "passed": 1420,
+      "failed": 0
+    },
+    "preview": "Matching integrated Go/control + web-integrated; owned synthetic SQLite only"
+  },
+  "build_sha256": {
+    ".cache/multica-136/web-integrated/index.html": "43389dc1b92996724247454fcea18704bd0a7ad5ab6b5b3fe525d7611022fde2",
+    ".cache/multica-136/bin/suma-control-integrated.exe": "0560f859e855f858cde67a6a271ac481745f45a534ca0db39de8047da1030448"
+  },
+  "docs_check": {
+    "new_references": "resolve",
+    "unresolved_historical_ignored_references": 15,
+    "unchanged_from_integration_base": [
+      "docs/architecture/failure-diagnosis.md",
+      "docs/design/failure-diagnosis.md",
+      "docs/product/failure-diagnosis.md",
+      "docs/quality/octop-integration-verification.md"
+    ],
+    "api_paths": 331,
+    "schema_references": 3122
+  },
+  "design_sha256": {
+    "docs/suma-architecture-design.html": "794b19dd56df207b4c1634e2cc7960d3a2495e04b2e29084d2b964e6d5df10fb",
+    "docs/design/unified-experience.md": "77621ed424991f865baaa7250b363ff1dcf8ce040ec8c5b7091eeb31fe0616da",
+    "docs/architecture/unified-capability-orchestration.md": "a1c89e63ea8bdf18ed786f8ea9b35454ba48bb5b95bb2b7e77a0f9b5cf611977",
+    "docs/integrations/multica-reuse.md": "854783fb88f4ae6525367c747a3f9b5b2b8b6b643de89df9b815ab7d509b132e"
+  }
+}

@@ -51,6 +51,7 @@ it('reads authoritative design provenance in task detail without a configured wo
     if (path === '/auth/session') return Response.json(session);
     if (path === '/overview') return Response.json({ counts: { tasks: 1 } });
     if (path === '/tasks') return Response.json({ items: [task], total: 1 });
+    if (path === '/task-workspace') return Response.json({ items: [task], total: 1, as_of: '2026-10-29T00:00:00Z' });
     if (path === '/tasks/' + taskId + '/design-context') return Response.json({ project_id: project, task_id: taskId, task_version: 7, bound: false, eligibility: 'none', current_requirement_version: 0, current_design_version: 0, current_published_revision: 0 });
     if (['/requirements', '/members', '/runs', '/organizations', '/workflows', '/tool-profiles'].includes(path)) return Response.json({ items: [], total: 0 });
     return Response.json({}, { status: 404 });
@@ -94,6 +95,7 @@ it('keeps one actual task design container through asynchronous refresh versions
     if (path === '/auth/session') return Response.json(session);
     if (path === '/overview') return Response.json({ counts: { tasks: 1 } });
     if (path === '/tasks') return Response.json({ items: [task], total: 1 });
+    if (path === '/task-workspace') return Response.json({ items: [task], total: 1, as_of: '2026-10-29T00:00:00Z' });
     if (path === '/tasks/' + taskId) return Response.json(task);
     if (path === '/tasks/' + taskId + '/design-context') { const version = task.version; return new Promise<Response>(resolve => pending.push({ resolve, version })); }
     if (['/requirements', '/members', '/runs', '/organizations', '/workflows', '/tool-profiles'].includes(path)) return Response.json({ items: [], total: 0 });

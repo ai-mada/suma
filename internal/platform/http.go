@@ -593,6 +593,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch {
+	case path == "task-workspace":
+		s.taskWorkspaceHTTP(w, r, actor, project)
 	case path == "project-focus" && r.Method == http.MethodGet:
 		// Focus is a scoped read model over formal task/run facts. Its current
 		// authorization and bounded SQL snapshot live in the domain service;

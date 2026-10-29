@@ -114,7 +114,11 @@ function ReplyScope({session, project, taskId, page, accessBlocked, disabled, re
   async function consume(value: Reply | undefined, caller: typeof api) {
     if (!value || !alive.current || owner.current !== caller) return;
     select(value.id); setAck(false); setNotice(value.state === 'completed' ? 'stored' : 'requested');
-    void history.read();
+    // A command may update the already selected reply. Selecting the same ID
+    // does not refetch its detail; refresh it explicitly after the receipt,
+    // without waiting for another SSE event to report a stop request.
+    await Promise.allSettled([history.read(), ...(selected === value.id ? [detail.read()] : [])]);
+    if (!alive.current || owner.current !== caller) return;
     if (value.state === 'completed' && !observed.current.has(value.message_id)) {
       observed.current.add(value.message_id); await callbacks.current.onMessagesRefresh();
     }

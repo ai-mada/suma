@@ -26,6 +26,7 @@ it('refreshes a completed linked run on opening review and retains an uncertain 
   else if(path==='/auth/session')value={user:{id:'review-user',name:'Reviewer',email:'review@example.test',role:'owner'},organization:{id:'review-org',name:'Review organization'},projects:[{id:project,version:1,title:'Review project'}]};
   else if(path==='/overview')value={counts:{tasks:1},activity:[]};
   else if(path==='/tasks')value={items:[task],total:1};
+  else if(path==='/task-workspace')value={items:[task],total:1,as_of:'2026-10-29T00:00:00Z'};
   else if(path==='/tasks/'+taskID)value=task;
   else if(path==='/runs/'+runID){linkedReads++;value=run(runID,state);}
   else if(path==='/runs')value={items:[run(runID,state),run(olderID,'succeeded')],total:2};

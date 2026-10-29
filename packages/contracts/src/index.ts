@@ -5581,6 +5581,12 @@ export interface TaskTestPlanContext {
   case_count: number;
   title: string;
 }
+export interface TaskWorkspacePage {
+  items: (Record)[];
+  total: number;
+  next_cursor: string;
+  as_of: string;
+}
 export interface Team {
   id: string;
   version: number;
