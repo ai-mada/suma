@@ -42,6 +42,8 @@ T-WORKSPACE-120在原P2／P4细化Go宿主真实操作的采集、原回执恢�
 
 ## 统一体验与全平台深化
 
+T-DESIGN-135在原范围内对照[架构主规格](../suma-architecture-design.html#s21)，将八个样稿入口扩展为十二个工作区：模型／Harness、团队／分工、事件／规则、架构／恢复形成独立操作路径；补齐想法撤销记录、问题修复周期、配置CAS示意与离线三方比较。实现仅限[可操作样稿](../design/prototypes/enterprise-workbench.html)，不计作生产接入。进一步交互和模块边界分别回写[统一设计](../design/unified-experience.md)与[编排架构](../architecture/unified-capability-orchestration.md)，[验证](../quality/design-workflows-verification.md)单独记录；不新增权威计划或缩减最终范围。
+
 T-PLATFORM-DESIGN-134（2026-10-29）进一步细化本节，依据源码 `3e09a51` 补充[11个业务闭环与统一交互](../design/unified-experience.md)、[能力编排／配置／调度／部署架构](../architecture/unified-capability-orchestration.md)、[开发工具与Harness官方接入矩阵](../integrations/development-tool-matrix.md)及[可点击工作台样稿](../design/prototypes/enterprise-workbench.html)。样稿八个入口用于评审跨领域旅程，不替换现有六个工作＋六个管理入口，不建立第二份权威计划；所有数据为示例，草稿只存内存，不调用模型、派发或部署。该阶段交付设计与交互样稿，不把待实现适配、通用配置继承、完整策略、多机或SaaS计为已实现，58／34／92不变。[验证范围](../quality/platform-design-verification.md)单独记录。
 
 后续沿下表原分组实施：先补服务端授权组合读取、稳定验收项与完整设计编辑，再统一排期／容量／团队交接；接入扩展先固定manifest、真实观察、当前授权及取消／核对／用量合同，再新增Cursor、Claude、Qoder、WorkBuddy等入口。Zed按编辑器调用平台的方向实现；CodeBuddy与WorkBuddy分别登记。配置预览与固定策略先于自主动作；准入竞争、背压与恢复实测先于多控制面和商业SaaS开放。各步骤继续在原P0–P7与需求条目中记录代码、厂商、目标系统及生产证据，不以设计完成勾选实现。

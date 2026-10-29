@@ -1,0 +1,180 @@
+{
+  "stage": "T-DESIGN-135",
+  "product_version": "1.0.0",
+  "date": "2026-10-29",
+  "source_baseline": "a1c71f2",
+  "integration_base": "57589dd",
+  "status": "design_and_prototype_verified_only",
+  "scope": {
+    "prototype_workspaces": 12,
+    "master_sections": 22,
+    "master_features": 80,
+    "master_diagrams": 18,
+    "production_source_changed": false,
+    "platform_counts_unchanged": "58 limited / 34 pending / 92 total"
+  },
+  "browser": {
+    "version": "156.0.8078.48",
+    "workflow_assertions": 80,
+    "regression_assertions": 44,
+    "total_assertions": 124,
+    "viewports": [
+      "1440x1000",
+      "390x844"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "locale": "zh-CN",
+    "reduced_motion": true,
+    "script_errors": [],
+    "external_requests": [],
+    "source_sha256": {
+      "docs/design/prototypes/enterprise-workbench.html": "57ad5cc77fe5b8a658c7f57d42d611661f6c74d9f211e2df82a51809bde03262",
+      "docs/design/prototypes/enterprise-workbench.css": "17b269fdcd63b0644220c4f5613496b248c10c225590c2d368b5fcfc2c908964",
+      "docs/design/prototypes/enterprise-workbench.js": "ec5d283ac25799c346db864b79c8c02da2a84699f63bbad96924c99648b939ea",
+      "scripts/verify-enterprise-prototype.cjs": "1e652c805870e89766049f925f52c7ef42a6a7eb983659929643c51a1cd95b63",
+      "docs/design/prototypes/workbench-capabilities.css": "6d50fafb5a7623f2a391f6173582fe0655890f039c0772dacc91b042456a78ae",
+      "docs/design/prototypes/workbench-capabilities.js": "bdf8bb1ae17ca0a425fef6785af01e47479f2c63930c93dcdafe8233e29071ce",
+      "docs/design/prototypes/workbench-collaboration.css": "fc45d28e6621dbad46bdc6b775810a7a1279edef0ff9acd64f50bf60a258261e",
+      "docs/design/prototypes/workbench-collaboration.js": "87937e24ffa1c1ff0461c169a92c207a98637422f8472f8303430d50d53a0cb1",
+      "docs/design/prototypes/workbench-delivery.css": "946ec7764cc73db0c995180cc7e71faae2694bd77190960c2ba4959a8fad5e62",
+      "docs/design/prototypes/workbench-delivery.js": "3188edb84e3e5e1c52f77d6ab9d55ed770ce6c1afd8c93bf79abf071a705fefd",
+      "docs/suma-architecture-design.html": "e0bb5ea8a73a74a27021c587a953a805cc87030774a61cb51d04afc66f59ae88",
+      "scripts/verify-design-workflows.cjs": "5d9b680b4df946868fe943ec461a289c1cc6ec5efbf04a83d981d4ef064f1587"
+    },
+    "workflow_checks": [
+      "Twelve registered workspaces render",
+      "Command ArrowUp starts at last result",
+      "Command palette opens matching workspace",
+      "Residency excludes remote candidate",
+      "Valid model selection saved as draft",
+      "Changed invalid limits block saving selection",
+      "Cross-supply comparison keeps both models",
+      "Running Harness cannot hand off",
+      "Stop request is not stopped proof",
+      "Unknown execution still blocks handoff",
+      "Handoff records explicit material without starting target",
+      "Idea preview treats input as text",
+      "Idea adoption can restore previous draft",
+      "Undo compares later edits before replacing them",
+      "Confirmed undo restores original and keeps local replacement copy",
+      "Fix creation remains a draft",
+      "Issue removed by filter returns focus to filter",
+      "Failed regression cannot close issue",
+      "Review acknowledgement required",
+      "Reopen keeps old evidence and resets new cycle",
+      "Issue empty state is actionable",
+      "User issue title is literal text in detail",
+      "Config cannot exceed organization limit",
+      "Source conflict preserves draft and rejects adoption",
+      "Source refresh preserves edited value",
+      "Revoked access blocks offline adoption",
+      "Offline resolution remains proposal",
+      "Reopened conflict keeps selected solution",
+      "Active task executor is locked",
+      "Assignment review explains before and after",
+      "Assignment undo restores saved owner",
+      "Assignment keeps keyboard focus after redraw",
+      "Self review blocks assignment confirmation",
+      "Load view shares project filter and shows unknown capacity",
+      "Allocation compares responsibility and review",
+      "Saved allocation separates executor and reviewer",
+      "Handoff draft does not imply receipt",
+      "Default repair limit is one",
+      "Event sequence separates approval dedupe and repeat failure",
+      "Repeated sequence remains idempotent",
+      "Unknown external effect permits reconciliation only",
+      "Found effect reuses original operation without duplicate create",
+      "Architecture links responsibilities and recovery",
+      "Desktop portfolio no document overflow",
+      "Desktop requirements no document overflow",
+      "Desktop planning no document overflow",
+      "Desktop teams no document overflow",
+      "Desktop execution no document overflow",
+      "Desktop automation no document overflow",
+      "Desktop connections no document overflow",
+      "Desktop models no document overflow",
+      "Desktop quality no document overflow",
+      "Desktop assets no document overflow",
+      "Desktop architecture no document overflow",
+      "Desktop configuration no document overflow",
+      "390px portfolio no document overflow",
+      "390px requirements no document overflow",
+      "390px planning no document overflow",
+      "390px teams no document overflow",
+      "390px execution no document overflow",
+      "390px automation no document overflow",
+      "390px connections no document overflow",
+      "390px models no document overflow",
+      "390px quality no document overflow",
+      "390px assets no document overflow",
+      "390px architecture no document overflow",
+      "390px configuration no document overflow",
+      "Mobile nav keeps keyboard focus",
+      "Mobile nav returns focus",
+      "Master document preserves 80 features",
+      "Master document has 22 sections",
+      "Feature search combines real count",
+      "Master domain tabs support keyboard",
+      "Graph opens native modal with keyboard",
+      "Graph close restores trigger focus",
+      "Chapter search filters navigation only",
+      "Master mobile directory returns focus",
+      "Master mobile has no document overflow",
+      "No unhandled browser errors",
+      "No external requests"
+    ]
+  },
+  "evidence_directory": "dist/quality/design-135",
+  "screenshots": [
+    {
+      "file": "dist/quality/design-135/architecture-dark.png",
+      "sha256": "04e2e398deb75eb15b6c5feb1429379e3d9ff279ddc78b240162fc47ff2aef48"
+    },
+    {
+      "file": "dist/quality/design-135/master-interaction-mapping.png",
+      "sha256": "4aa5850867773126e2110069f2e99febda12a88b70188f36b292efb4fb15c06c"
+    },
+    {
+      "file": "dist/quality/design-135/models-light.png",
+      "sha256": "1529a9a8a76757270174808fa3472fe18e8e5c50b5a8fe81a92ec40f6cd1dd5b"
+    },
+    {
+      "file": "dist/quality/design-135/teams-mobile-dark.png",
+      "sha256": "7332f5dec67ab3e20821aafc0e36fb2d7cac8e56ce0ec19eda5f4ff0fcf972fe"
+    },
+    {
+      "file": "dist/quality/design-135/baseline/desktop-overview-light.png",
+      "sha256": "628ee3f4f0d2386955db73ac9972057c52aa371e44fd843e66a516bf0bcdf539"
+    },
+    {
+      "file": "dist/quality/design-135/baseline/desktop-planning-dark.png",
+      "sha256": "752970388b1d3b3ec17c54416d9d55e1ba03ea25908ff4951e785c312db612f1"
+    },
+    {
+      "file": "dist/quality/design-135/baseline/mobile-connections-dark.png",
+      "sha256": "7e3e41d884d40b4c4a8a524df08f210d24ae1f0b759ae78b2e708ad6753c266b"
+    },
+    {
+      "file": "dist/quality/design-135/baseline/mobile-detail-light.png",
+      "sha256": "1c3235dd8d8da96f1ea2eeeafeecad97e1df588cd7f88ee7c01e28a2f2d709f5"
+    }
+  ],
+  "docs": {
+    "new_missing_links": 0,
+    "historical_missing_cache_references": 15,
+    "full_repository_exit_code": 1,
+    "baseline": "a1c71f2",
+    "note": "Final integration preserved b1439b3 and 57589dd; both stage entries retained in the two documentation conflicts. Fifteen missing historical cache references are in files unchanged from a1c71f2. All tested source hashes are unchanged after rebase.",
+    "openapi_paths": 329,
+    "schema_references": 3109,
+    "historic_reference_set_unchanged": true
+  },
+  "limits": [
+    "Synthetic memory-only prototype; no provider, model, dispatch, deployment or live device actions.",
+    "No English, assistive technology, physical mobile, production full-suite or integration acceptance.",
+    "Resource-calendar production evidence remains separate; no complete platform claim."
+  ]
+}

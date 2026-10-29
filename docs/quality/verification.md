@@ -2,6 +2,7 @@
 
 T-WORKLOG-135：[人员工时限定验证](worklogs-verification.md)、[摘要](worklogs-summary.json)。当前人员明确登记／更正／作废历史、跨项目每日整数上限、同源CLI、原操作恢复和计划父子页失权清除；34个不同Go顶层、17个不同Web用例、类型／6798项语言／合同／最终隔离构建及文档引用通过。原始初次失败与针对性修复留证，未重跑全平台；浏览器禁用、真实其他数据库、HR审批及完整平台继续待验收。
 
+T-DESIGN-135：[架构主文档与操作样稿验证](design-workflows-verification.md)、[摘要](design-workflows-summary.json)。覆盖模型供给与交接、团队分配、事件模拟、修复周期、配置冲突和离线提案；仅本地中文设计样稿与代表性浏览器场景，不是生产集成验收。
 
 T-PLATFORM-DESIGN-134：[全平台设计与样稿验证](platform-design-verification.md)、[紧凑摘要](platform-design-summary.json)。仅核查设计、官方接入依据和独立HTML样稿的浏览器交互；不改变生产实现或全套测试结论，未重复Go／生产前端套件。
 

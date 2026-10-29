@@ -1,16 +1,17 @@
 {
   "project": "suma",
   "enterprise_design": {
-    "stage": "T-PLATFORM-DESIGN-134",
+    "stage": "T-DESIGN-135",
     "date": "2026-10-29",
     "status": "design_and_prototype_verified_only",
-    "source_baseline": "3e09a51",
+    "source_baseline": "a1c71f2",
+    "master_spec": "docs/suma-architecture-design.html",
     "design": "docs/design/unified-experience.md",
     "architecture": "docs/architecture/unified-capability-orchestration.md",
     "tool_matrix": "docs/integrations/development-tool-matrix.md",
     "prototype": "docs/design/prototypes/enterprise-workbench.html",
-    "report": "docs/quality/platform-design-verification.md",
-    "summary": "docs/quality/platform-design-summary.json",
+    "report": "docs/quality/design-workflows-verification.md",
+    "summary": "docs/quality/design-workflows-summary.json",
     "limits": "Synthetic memory-only prototype; no production source changes, model calls, new adapters, provider acceptance, multi-host or SaaS claims. Existing 58 limited / 34 pending / 92 total unchanged."
   },
   "tool_discovery": {

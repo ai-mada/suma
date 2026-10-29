@@ -95,8 +95,8 @@
   .svg-wrap:hover{border-color:var(--brand)}
   .svg-wrap::after{content:"⤢ 点击放大";position:absolute;top:8px;right:12px;font-size:11px;color:var(--text-mute);background:var(--bg-soft);border:1px solid var(--border);border-radius:999px;padding:2px 9px;opacity:.85;pointer-events:none}
   .lightbox{position:fixed;inset:0;z-index:100;background:rgba(8,10,16,.86);background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(7px);display:none;align-items:center;justify-content:center;padding:28px}
-  .lightbox.open{display:flex}
-  .lightbox .lb-inner{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);max-width:1240px;width:100%;max-height:90vh;overflow:auto;padding:20px;cursor:zoom-out}
+  .lightbox[open]{display:flex}.lightbox{border:0;margin:0;width:100vw;max-width:none;height:100dvh;max-height:none;color:var(--text)}.lightbox::backdrop{background:rgba(8,10,16,.72)}.lb-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}.lb-toolbar p{margin:0}
+  .lightbox .lb-inner{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);max-width:1240px;width:100%;max-height:90vh;overflow:auto;padding:20px}
   .lightbox .lb-inner svg{max-width:100%;height:auto}
   .tab-panel.active{animation:fadeUp .22s ease}
   @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -124,6 +124,15 @@
   .vchg{font-size:12.5px}.vchg td{padding:6px 10px}
   footer{color:var(--text-mute);font-size:12px;text-align:center;padding:28px 0 0;border-top:1px solid var(--border)}
   @media print{.topbar .btn,.sidebar,.filterbar,.tabs,#toTop,.readbar,.lightbox{display:none!important}.svg-wrap{cursor:auto}.svg-wrap::after{content:none}.tab-panel{display:block!important;page-break-inside:avoid}body{background:#fff}.panel,.card,.svg-wrap{box-shadow:none}.shell{display:block}.main{max-width:100%;padding:0}section{break-inside:avoid}}
+  .evidence-label{font-size:12px;color:var(--text-mute);border-left:3px solid var(--brand);padding-left:9px;margin:0 0 10px}
+  #chapterSearch{width:100%;box-sizing:border-box;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:9px;margin:7px 0}
+  #chapterResults{display:block;font-size:12px;color:var(--text-mute);margin-bottom:12px}
+  :focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+  .tab-panel[hidden],.sidebar a[hidden]{display:none!important}
+  #chaptersBtn,.sidebar-close{display:none}.sidebar.open .sidebar-close{display:inline-flex;margin-bottom:12px}
+  @media(max-width:980px){#chaptersBtn{display:inline-flex}.sidebar.open{display:block;position:fixed;z-index:70;top:64px;left:0;bottom:0;width:min(320px,90vw);box-shadow:var(--shadow)}.topbar{gap:8px;padding:10px;flex-wrap:wrap}.topbar .sub{display:none}.btn{min-height:40px}section,h2,h3{scroll-margin-top:105px}}
+  @media print{.tab-panel[hidden]{display:block!important}}
+  @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -137,17 +146,20 @@
 </svg>
 <div class="topbar">
   <div class="logo"><span class="mk">速</span> 速码 suma</div>
-  <span class="sub">一栈式智能研发平台 · 架构 / PRD / 功能 / 交互规格 v1.0.0（发布基线）</span>
+  <span class="sub">一栈式智能研发平台 · 架构 / PRD / 功能 / 交互规格 v1.0.0 · 目标设计与限定实现</span>
   <span class="spacer"></span>
-  <button class="btn" id="themeBtn">🌗 主题</button>
+  <button class="btn" id="chaptersBtn" type="button" aria-controls="sidebar" aria-expanded="false">章节</button>
+  <button class="btn" id="themeBtn" type="button" aria-label="切换深色主题" aria-pressed="false">🌗 主题</button>
   <button class="btn primary" id="exportBtn">⤓ 导出 PDF</button>
 </div>
 
 <div class="shell">
-  <nav class="sidebar" id="sidebar">
+  <nav class="sidebar" id="sidebar" aria-label="文档章节">
+    <button class="btn sidebar-close" id="closeChaptersBtn" type="button" aria-label="关闭章节目录">关闭目录</button>
+    <label for="chapterSearch">查找章节</label><input id="chapterSearch" type="search" placeholder="标题或关键词…" aria-controls="chapterResults" /><span id="chapterResults" role="status" aria-live="polite"></span>
     <div class="grp">概览</div>
     <a href="#s0">文档信息 · 版本变更</a>
-    <a href="#s1">执行摘要 · 成熟度</a>
+    <a href="#s1">执行摘要 · 能力边界</a>
     <div class="grp">需求与架构</div>
     <a href="#s2">需求全景 · 用户故事 · NFR</a>
     <a href="#s3">总体架构</a>
@@ -170,14 +182,16 @@
     <a href="#s18">计费计量 · 成本治理</a>
     <a href="#s19">模型管理 · AI 网关</a>
     <a href="#s20">附录 · 术语 · 技术栈</a>
+    <a href="#s21">设计落到交互与实施</a>
   </nav>
 
   <main class="main">
 
     <!-- 0 -->
     <section id="s0">
+      <p class="evidence-label">设计入口 · 不替代实施台账</p>
       <h1>速码 suma · 一栈式智能研发平台</h1>
-      <p class="lead">本文件是 <b>速码（suma）</b> 的<strong>架构设计 / PRD 需求 / 功能规格 / 交互规范 / 非功能约束</strong>主文档（<b>v1.0.0 正式发布基线</b>，由 v1.0–v1.3 迭代收敛而成）。基于 <code>D:\codes\ai-dev-os\suma</code> 真实实现梳理，融合 multica / workbuddy / opencode / zed / codex / cursor / claude / qoder / harness / dsh / Octop / hermes / spec-kit / bubbletea 能力，覆盖<strong>想法、需求、设计、架构、任务、应用、团队、成员、工作、智能体、模型、工具、专家团队、技能、计费计量、知识库、记忆、事件、调度、任务分配、测试、缺陷、版本迭代、版本管理、版本发布、运维</strong>的 AI 时代全栈一站式团队化企业化组织化智能研发管理闭环；各 AI 开发工具统一对接、统一分发指派、统一管控、团队化分布式高效协作。</p>
+      <p class="lead">本文件是 <b>速码（suma）</b> 的<strong>架构设计 / PRD 需求 / 功能规格 / 交互规范 / 非功能约束</strong>阅读入口（<b>v1.0.0 目标设计基线，非发布验收</b>，由 v1.0–v1.3 迭代收敛而成）。基于 <code>D:\codes\ai-dev-os\suma</code> 真实实现梳理，融合 multica / workbuddy / opencode / zed / codex / cursor / claude / qoder / harness / dsh / Octop / hermes / spec-kit / bubbletea 能力，覆盖<strong>想法、需求、设计、架构、任务、应用、团队、成员、工作、智能体、模型、工具、专家团队、技能、计费计量、知识库、记忆、事件、调度、任务分配、测试、缺陷、版本迭代、版本管理、版本发布、运维</strong>的 AI 时代全栈一站式团队化企业化组织化智能研发管理闭环；各 AI 开发工具统一对接、统一分发指派、统一管控、团队化分布式高效协作。</p>
       <div class="grid c4" style="margin-top:16px">
         <div class="card"><div class="kpi"><span class="v">suma</span><span class="l">速码 / 一栈式智能研发</span></div></div>
         <div class="card"><div class="kpi"><span class="v">1.0.0</span><span class="l">统一开发基线</span></div></div>
@@ -186,7 +200,7 @@
       </div>
 
       <div class="panel" style="margin-top:18px;padding:14px 18px">
-        <h3 style="margin-top:2px">版本变更</h3>
+        <h3 style="margin-top:2px">版本变更</h3><p class="muted">以下为文档编写历史，不是产品发布或能力验收记录；当前边界以本轮校正、领域合同及专项证据为准。</p>
         <table class="vchg">
           <thead><tr><th style="width:70px">版本</th><th>要点</th></tr></thead>
           <tbody>
@@ -196,8 +210,9 @@
             <tr><td>v1.3</td><td>全栈生命周期增强：10 大能力簇（新增 I 版本追溯 / J 计费成本）、全栈价值流全景图、事件体系与事件目录、版本迭代与缺陷全流程治理专章、计费计量与成本治理专章、开发工具全矩阵（cursor/claude/qoder…）、harness 框架适配层、智能输入与命令面板交互规范、功能清单扩至 64 项、第 ⑫ 域全链路追溯、部署形态对比与升级策略</td></tr>
             <tr><td><b>v1.0.0</b></td><td><b>发布基线：内容收敛定稿；新增能力雷达图、DevTools 统一管控协作拓扑、功能清单全文搜索、阅读进度条与返回顶部、Tab 状态记忆、快捷键（T 切主题 / F 聚焦搜索）；确立 R1.0.0 对外契约冻结口径</b></td></tr>
             <tr><td><b>v1.0.0-r2</b></td><td><b>修订：修复表头幽灵双层渲染（移除 overflow 面板内的竖向吸顶 th）、表格视觉精修（加粗表头/斑马纹/悬停高亮）；新增 7.6 开发框架与工具生态全景（前后端框架、CLI 调用、模型选择、微前端）、7.7 统一 CLI 与模型选择规范；适配矩阵扩展开发框架与 CLI 维度</b></td></tr>
-            <tr><td><b>v1.0.0-r3</b></td><td><b>参照 cindy（makecindy/cindy）增强：新增 3.6 增强版系统总体架构图（多端/鉴权 realm/Harness 抽象/模型供给四通道）；新增第 19 章「模型管理与 AI 网关」专章（模型供给四通道、注册表、路由与降级、凭证隔离、评测基线、观测与成本、配套图）；功能清单扩至 80 项（F-65~F-80：Harness 抽象与热切换、会话归属平台、BYO 订阅授权、本地/托管模型、设备配对与多设备续跑、Skip-Sign-In 本地态、工具二进制校验分发等）；缺口新增 G17~G19</b></td></tr>
+            <tr><td><b>v1.0.0-r3</b></td><td><b>历史设计参考 cindy（makecindy/cindy）：新增 3.6 增强版系统总体架构图（多端/鉴权 realm/Harness 抽象/模型供给四通道）；新增第 19 章「模型管理与 AI 网关」专章（模型供给四通道、注册表、路由与降级、凭证隔离、评测基线、观测与成本、配套图）；功能清单扩至 80 项（F-65~F-80：Harness 抽象与热切换、会话归属平台、BYO 订阅授权、本地/托管模型、设备配对与多设备续跑、Skip-Sign-In 本地态、工具二进制校验分发等）；缺口新增 G17~G19</b></td></tr>
             <tr><td><b>v1.0.0-r4</b></td><td><b>可视化与交互修订：修复 3.1 图第⑦带标签被盒子遮挡、3.6 图第⑥带标签横向重叠；新增 SVG 图点击放大灯箱（Esc/点击关闭）、标题悬停锚点（点击复制链接）、Tab 切换淡入动画、图卡悬停高亮与放大提示</b></td></tr>
+            <tr><td><b>v1.0.0-r6</b></td><td>保留80项范围及全部原章节/SVG；移除无依据评分，校正模型、OAuth、交接、配置、自动修复与部署边界；新增第21章、章节搜索及键盘标签页。</td></tr>
             <tr><td><b>v1.0.0-r5</b></td><td><b>修复灯箱「点击放大」失效根因：原 `#toTop` 节点位于脚本标签之后，脚本同步执行时 `getElementById('toTop')` 返回 null 并在 `toTop.onclick=` 处抛错，导致整段脚本中断、灯箱从未初始化。改为将 `#toTop` 与灯箱 `#lb/#lbInner` 节点前置到脚本之前，灯箱引用静态节点、点击 `stopPropagation` 防误关、遮罩背景加 `rgba` 回退色；脚本完整执行，灯箱 / 搜索记忆 / 快捷键均恢复</b></td></tr>
           </tbody>
         </table>
@@ -206,7 +221,7 @@
       <div class="panel" style="margin-top:14px">
         <h3 style="margin-top:4px">阅读路径</h3>
         <div class="toc-inline">
-          <a href="#s1">1. 执行摘要 · 成熟度</a><a href="#s2">2. 需求全景 · 用户故事 · NFR</a>
+          <a href="#s1">1. 执行摘要 · 能力边界</a><a href="#s2">2. 需求全景 · 用户故事 · NFR</a>
           <a href="#s3">3. 总体架构</a><a href="#s4">4. 领域模型 · 数据</a>
           <a href="#s5">5. 调度与执行引擎</a><a href="#s6">6. 功能清单 · 11 域</a>
           <a href="#s7">7. 扩展性 · 插件 · 适配</a><a href="#s8">8. 配置中心 · 特性开关</a>
@@ -215,44 +230,46 @@
           <a href="#s13">13. NFR · 质量门禁</a><a href="#s14">14. 缺口分析</a>
           <a href="#s15">15. 路线图</a><a href="#s16">16. 并发协作 · AI SOP</a>
           <a href="#s17">17. 版本迭代 · 缺陷治理</a><a href="#s18">18. 计费计量 · 成本治理</a>
-          <a href="#s19">19. 模型管理 · AI 网关</a><a href="#s20">20. 附录</a>
+          <a href="#s19">19. 模型管理 · AI 网关</a><a href="#s20">20. 附录</a><a href="#s21">21. 交互与实施</a>
         </div>
       </div>
     </section>
 
     <!-- 1 -->
     <section id="s1">
-      <h2>1 · 执行摘要与成熟度</h2>
-      <p class="lead">速码是<strong>分布式多项目 / 多团队 / 多人 / 多智能体</strong>的一栈式智能研发平台，连接<em>想法 → 项目 → 需求 → 设计 → 任务 → 智能体执行 → 独立测试 → 人工验收 → 版本发布 → 问题回流</em>，提供浏览器 SaaS、桌面端、CLI 与开放 API 多形态入口。</p>
+      <p class="evidence-label">当前边界 · 按专项证据解释</p>
+      <h2>1 · 执行摘要与能力边界</h2>
+      <p class="lead">速码以<strong>分布式多项目 / 多团队 / 多人 / 多智能体</strong>的一栈式智能研发平台为目标，连接<em>想法 → 项目 → 需求 → 设计 → 任务 → 智能体执行 → 独立测试 → 人工验收 → 版本发布 → 问题回流</em>，规划浏览器SaaS、桌面、CLI与开放API多形态入口；实际支持与待验收范围以下表及状态页为准。</p>
 
-      <h3>1.1 交付与就绪度</h3>
+      <h3>1.1 设计范围与证据口径</h3>
       <div class="grid c3">
-        <div class="card"><div class="t">交付完成度（92 项）</div><div class="bar"><i style="width:63%"></i></div><div class="prog"><span>已限定实现 58</span><span>63%</span></div><div class="muted" style="margin-top:6px">34 项待办 + 新增项；不代表生产验收。</div></div>
-        <div class="card"><div class="t">核心域就绪度</div><div class="bar"><i style="width:78%"></i></div><div class="prog"><span>组织/需求/任务/发布/知识</span><span>78%</span></div><div class="muted" style="margin-top:6px">编排、多工具执行、门禁、发布治理领先。</div></div>
-        <div class="card"><div class="t">多端与生态</div><div class="bar"><i style="width:55%"></i></div><div class="prog"><span>Web/桌面/CLI 就绪</span><span>55%</span></div><div class="muted" style="margin-top:6px">SSO、移动端、A2A、统一权限中台为缺口。</div></div>
+        <div class="card"><div class="t">80 项目标功能</div><div class="d">F-01～F-80 保留完整设计范围。编号不是交付项统计，也不能换算完成率。</div></div>
+        <div class="card"><div class="t">已有受限实现</div><div class="d">DAG、需求设计、候选、独立测试与人工验收等存在限定证据；按领域和环境读取，不能外推到全平台。</div></div>
+        <div class="card"><div class="t">待真实验收</div><div class="d">厂商账户、物理多机、分布式数据库、完整多端与生产交付分别验收，不由配置和构建代替。</div></div>
       </div>
+      <div class="note">当前交付事实见 <a href="delivery/status.md">状态页</a>；唯一范围与排期见 <a href="delivery/implementation-plan.md">实施计划</a>。旧阶段 58/34/92 台账是限定实现分类，不是产品完成百分比。</div>
 
-      <h3>1.2 能力成熟度矩阵</h3>
+      <h3>1.2 能力边界矩阵</h3>
       <div class="panel" style="padding:0;overflow:auto">
         <table>
-          <thead><tr><th>能力维度</th><th>成熟度</th><th>说明</th></tr></thead>
+          <thead><tr><th>能力维度</th><th>证据层级</th><th>说明</th></tr></thead>
           <tbody>
-            <tr><td>项目管理 / 需求 / 设计</td><td><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot half"></span><span class="dot off"></span></td><td>主流程完整；UED/产品化编辑器待增强</td></tr>
-            <tr><td>调度 / 执行 / Runner</td><td><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot half"></span><span class="dot off"></span></td><td>持久 DAG + 执行池；分层公平/跨机规模待验收</td></tr>
-            <tr><td>智能体 / 工具集成</td><td><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot half"></span><span class="dot off"></span></td><td>Codex/OpenCode/Octop/原生；工作流平台扩展中</td></tr>
-            <tr><td>知识 / 记忆 / 技能</td><td><span class="dot on"></span><span class="dot on"></span><span class="dot half"></span><span class="dot off"></span><span class="dot off"></span></td><td>版本化已实现；向量检索/自动萃取待深化</td></tr>
-            <tr><td>权限 / 安全 / 隔离</td><td><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot half"></span><span class="dot off"></span></td><td>RBAC 完整；SSO 与统一权限中台待建</td></tr>
-            <tr><td>交互 / 可视化</td><td><span class="dot on"></span><span class="dot on"></span><span class="dot half"></span><span class="dot half"></span><span class="dot off"></span></td><td>工作台可用；实时协作/主题/导出待完善</td></tr>
-            <tr><td>部署 / 运维</td><td><span class="dot on"></span><span class="dot on"></span><span class="dot half"></span><span class="dot off"></span><span class="dot off"></span></td><td>四种拓扑；告警/监控待建，生产验收待做</td></tr>
+            <tr><td>项目管理 / 需求 / 设计</td><td><span class="tag warn">已有受限实现</span></td><td>需求设计与采用已有受限实现；完整UED/产品化编辑器待实现</td></tr>
+            <tr><td>调度 / 执行 / Runner</td><td><span class="tag warn">已有受限实现</span></td><td>持久 DAG + 执行池；分层公平/跨机规模待验收</td></tr>
+            <tr><td>智能体 / 工具集成</td><td><span class="tag warn">已有受限实现</span></td><td>Codex/OpenCode/Octop/原生；工作流平台扩展中</td></tr>
+            <tr><td>知识 / 记忆 / 技能</td><td><span class="tag warn">已有受限实现</span></td><td>版本化已实现；向量检索/自动萃取待深化</td></tr>
+            <tr><td>权限 / 安全 / 隔离</td><td><span class="tag warn">已有受限实现</span></td><td>固定角色与当前授权已有证据；自定义权限与企业SSO待实现</td></tr>
+            <tr><td>交互 / 可视化</td><td><span class="tag warn">已有受限实现</span></td><td>工作台可用；实时协作/主题/导出待完善</td></tr>
+            <tr><td>部署 / 运维</td><td><span class="tag warn">已有受限实现</span></td><td>四种目标拓扑；当前模板单控制面，集群、告警与生产待验收</td></tr>
           </tbody>
         </table>
       </div>
 
       <div class="note">设计原则：业务状态、运行态、测试证据、人工验收、部署是<strong>互不相同的事实</strong>；不做假指标、静默降级、模拟生产验收；所有跨项目操作<strong>服务端授权</strong>；浏览器端不持有密钥。</div>
 
-      <h3>1.3 能力雷达（v1.0.0 基线）</h3>
+      <h3>1.3 能力范围图（无成熟度评分）</h3>
       <div class="svg-wrap" style="margin-top:8px">
-        <svg viewBox="0 0 560 456" role="img" aria-label="能力雷达图">
+        <svg viewBox="0 0 560 456" role="img" aria-label="六类目标能力范围示意，不代表完成比例或成熟度">
           <g font-family="var(--sans)">
             <g stroke="var(--border)" fill="none">
               <polygon points="280,60 424,144 424,308 280,392 136,308 136,144"/>
@@ -261,17 +278,17 @@
               <polygon points="280,192 333,222 333,266 280,296 227,266 227,222"/>
               <line x1="280" y1="40" x2="280" y2="412"/><line x1="126" y1="139" x2="434" y2="393"/><line x1="434" y1="139" x2="126" y2="393"/>
             </g>
-            <polygon points="280,110 386,180 363,280 280,330 206,272 216,180" fill="color-mix(in srgb,var(--brand) 22%,transparent)" stroke="var(--brand)" stroke-width="2"/>
-            <g fill="var(--brand)"><circle cx="280" cy="110" r="4"/><circle cx="386" cy="180" r="4"/><circle cx="363" cy="280" r="4"/><circle cx="280" cy="330" r="4"/><circle cx="206" cy="272" r="4"/><circle cx="216" cy="180" r="4"/></g>
+            <polygon points="280,104 394,170 394,294 280,360 166,294 166,170" fill="color-mix(in srgb,var(--brand) 22%,transparent)" stroke="var(--brand)" stroke-width="2"/>
+            <g fill="var(--brand)"><circle cx="280" cy="104" r="4"/><circle cx="394" cy="170" r="4"/><circle cx="394" cy="294" r="4"/><circle cx="280" cy="360" r="4"/><circle cx="166" cy="294" r="4"/><circle cx="166" cy="170" r="4"/></g>
             <g class="lbl" text-anchor="middle">
-              <text x="280" y="40">项目管理 / 需求 74%</text>
-              <text x="448" y="134">调度执行 78%</text>
-              <text x="448" y="400">智能体 / 工具 72%</text>
-              <text x="280" y="414" text-anchor="middle">知识 / 记忆 / 技能 62%</text>
-              <text x="112" y="400" text-anchor="end">权限 / 安全 68%</text>
-              <text x="112" y="134" text-anchor="end">交互 / 可视化 60%</text>
+              <text x="280" y="40">项目管理 / 需求</text>
+              <text x="448" y="134">调度执行</text>
+              <text x="448" y="400">智能体 / 工具</text>
+              <text x="280" y="414" text-anchor="middle">知识 / 记忆 / 技能</text>
+              <text x="112" y="400" text-anchor="end">权限 / 安全</text>
+              <text x="112" y="134" text-anchor="end">交互 / 可视化</text>
             </g>
-            <text class="lbl s" x="280" y="440" text-anchor="middle">综合就绪 69% · 剩余缺口集中在 P0：SSO / 移动端 / 配置中心 / 告警体系（见第 14 节）</text>
+            <text class="lbl s" x="280" y="440" text-anchor="middle">等距节点仅表达范围；实现边界见矩阵，缺口见第 14 节</text>
           </g>
         </svg>
       </div>
@@ -279,6 +296,7 @@
 
     <!-- 2 -->
     <section id="s2">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>2 · 需求全景 · 用户故事 · NFR</h2>
       <p class="lead">29+ 条诉求聚合为 <b>10 大能力簇（A–J）</b>；补充典型用户故事与非功能需求，形成可验收的 PRD 骨架。</p>
 
@@ -293,7 +311,7 @@
         <div class="card"><div class="t">G 多端与开放</div><div class="d">Web/桌面/移动/CLI；开放 API/Webhook/消息通道（微信/钉钉/企微）。</div></div>
         <div class="card"><div class="t">H 体验与智能</div><div class="d">可视化配置/智能输入自动补全/智能选模/命令面板/中英文国际化。</div></div>
         <div class="card"><div class="t">I 版本与追溯</div><div class="d">应用级 semver 版本管理；需求迭代/功能迭代关联；微应用依赖识别与联动迭代；全链路追溯矩阵。</div></div>
-        <div class="card"><div class="t">J 计费与成本</div><div class="d">Token 计量计费/配额分配/预算管控/成本看板/超限拦截与降级，避免资源浪费。</div></div>
+        <div class="card"><div class="t">J 计费与成本</div><div class="d">Token观察、估算与收费分别管理；超限停止新准入，授权候选内新决策，不静默换供应商。</div></div>
       </div>
 
       <h3>2.2 典型用户故事（节选）</h3>
@@ -331,16 +349,16 @@
             <tr><td><b>opencode</b></td><td>本地编码 Agent、终端集成</td><td>opencode_execution / workspace_terminal</td><td><span class="tag ok">已具备</span></td></tr>
             <tr><td><b>zed</b></td><td>协作编辑、实时多人</td><td>Yjs/LiveKit（规划）</td><td><span class="tag warn">规划中</span></td></tr>
             <tr><td><b>codex</b></td><td>自主编码、并发任务</td><td>codex_execution / 并发执行池</td><td><span class="tag ok">已具备</span></td></tr>
-            <tr><td><b>cursor</b></td><td>AI IDE、Composer 多文件编辑</td><td>DevTools 适配器 / 工作台代码区</td><td><span class="tag warn">适配中</span></td></tr>
-            <tr><td><b>claude (code)</b></td><td>Agent 编码、子代理、技能</td><td>agent-runtime / skill 体系</td><td><span class="tag warn">适配中</span></td></tr>
-            <tr><td><b>qoder</b></td><td>AI 编码工作台、规格驱动</td><td>requirement_design / workspace</td><td><span class="tag warn">适配中</span></td></tr>
-            <tr><td><b>harness 框架</b></td><td>评测/编排 harness（含 deepseek-harness 等）</td><td>evaluation_harness / test_plan 插件层</td><td><span class="tag warn">适配中</span></td></tr>
-            <tr><td><b>dsh</b></td><td>分布式 shell / 分发</td><td>execution_pool / runner</td><td><span class="tag warn">部分</span></td></tr>
+            <tr><td><b>cursor</b></td><td>AI IDE、Composer 多文件编辑</td><td>DevTools 适配器 / 工作台代码区</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr><td><b>claude (code)</b></td><td>Agent 编码、子代理、技能</td><td>agent-runtime / skill 体系</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr><td><b>qoder</b></td><td>AI 编码工作台、规格驱动</td><td>requirement_design / workspace</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr><td><b>harness 框架</b></td><td>评测/编排 harness（含 deepseek-harness 等）</td><td>evaluation_harness / test_plan 插件层</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr><td><b>dsh</b></td><td>分布式 shell / 分发</td><td>execution_pool / runner</td><td><span class="tag warn">目标设计</span></td></tr>
             <tr><td><b>Octop</b></td><td>仓库/PR/发布治理</td><td>octop_execution / repository_integration / release</td><td><span class="tag ok">已具备</span></td></tr>
             <tr><td><b>hermes</b></td><td>通用 Agent 框架</td><td>agent-runtime / tool contract</td><td><span class="tag ok">已具备</span></td></tr>
             <tr><td><b>spec-kit</b></td><td>规范驱动开发</td><td>requirement_design / PRD</td><td><span class="tag ok">已具备</span></td></tr>
             <tr><td><b>bubbletea</b></td><td>TUI 框架</td><td>suma-cli</td><td><span class="tag ok">已具备</span></td></tr>
-            <tr><td><b>cindy</b></td><td>Harness 抽象（Claude Code/Codex/Pi 可切换且 session 归平台）、BYO 订阅与密钥、多设备 device-link、Orca 多智能体编排、Skip-Sign-In 本地态、设计系统</td><td>harness 抽象层 / modelgateway 四通道供给 / 多端续跑 / expert_team 编排 / 桌面独立降级态 / 设计令牌</td><td><span class="tag warn">部分</span></td></tr>
+            <tr><td><b>cindy</b></td><td>Harness 抽象（Claude Code/Codex/Pi 可切换且 session 归平台）、BYO 订阅与密钥、多设备 device-link、Orca 多智能体编排、Skip-Sign-In 本地态、设计系统</td><td>harness 抽象层 / modelgateway 四通道供给 / 多端续跑 / expert_team 编排 / 桌面独立降级态 / 设计令牌</td><td><span class="tag warn">目标设计</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -348,6 +366,7 @@
 
     <!-- 3 -->
     <section id="s3">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>3 · 总体架构</h2>
 
       <h3>3.1 分层架构</h3>
@@ -571,7 +590,7 @@
             <rect class="box s" x="540" y="246" width="120" height="34" rx="7"/><text class="lbl s" x="600" y="267" text-anchor="middle">cursor / qoder</text>
             <rect class="box s" x="670" y="246" width="120" height="34" rx="7"/><text class="lbl s" x="730" y="267" text-anchor="middle">octop / dsh</text>
             <rect class="box g" x="800" y="246" width="90" height="34" rx="7"/><text class="lbl s" x="845" y="267" text-anchor="middle">能力探测</text>
-            <text class="lbl s" x="460" y="308" text-anchor="middle">统一契约：能力声明 → 派发 → 进度回写 → 候选回执 → 凭证托管 → 计量（会话与上下文归属平台，切换 Harness 为交接/重建而非共享内部状态）</text>
+            <text class="lbl s" x="460" y="308" text-anchor="middle">目标合同：能力 → 派发 → 进度 → 候选 → 用量；只交接平台摘要，停止核对后新绑定</text>
 
             <rect class="band" x="16" y="318" width="888" height="56" rx="11"/>
             <text class="lbl h" x="30" y="338" style="opacity:.7">⑤ 模型供给层（四通道 + 网关）</text>
@@ -596,6 +615,7 @@
 
     <!-- 4 -->
     <section id="s4">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>4 · 领域模型与数据架构</h2>
       <h3>4.1 核心领域对象关系</h3>
       <div class="svg-wrap" style="margin-top:8px">
@@ -663,7 +683,7 @@
             <tr><td>事务/权威源</td><td>OceanBase / PostgreSQL / SQLite</td><td>强一致</td><td>组织、项目、需求、任务、运行、验收、版本</td></tr>
             <tr><td>向量/多模</td><td>Lance / LanceDB</td><td>最终一致（可重建）</td><td>知识、记忆、技能、代码语义检索</td></tr>
             <tr><td>文件/对象</td><td>本地文件系统 / S3 / OSS</td><td>—</td><td>候选、产物、制品、文档（CAS）</td></tr>
-            <tr><td>缓存/队列</td><td>Redis + RocketMQ/Kafka</td><td>至少一次</td><td>锁/预算、事件总线、Outbox、告警</td></tr>
+            <tr><td>缓存/队列</td><td>事务Outbox为当前基础；外部消息中间件为待选目标，不新增派发权威</td><td>至少一次</td><td>锁/预算、事件总线、Outbox、告警</td></tr>
           </tbody>
         </table>
       </div>
@@ -672,6 +692,7 @@
 
     <!-- 5 -->
     <section id="s5">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>5 · 调度与执行引擎（深潜）</h2>
       <p class="lead">持久 DAG + 执行池 + 至少一次事件；强调固定计划、幂等、租约与未知结果核对。</p>
 
@@ -711,7 +732,7 @@
               <line x1="140" y1="61" x2="168" y2="61" marker-end="url(#ar)"/><line x1="290" y1="61" x2="318" y2="61" marker-end="url(#ar)"/>
               <line x1="440" y1="61" x2="468" y2="61" marker-end="url(#ar)"/><line x1="620" y1="61" x2="648" y2="61" marker-end="url(#ar)"/><line x1="770" y1="61" x2="798" y2="61" marker-end="url(#ar)"/>
             </g>
-            <rect class="box s" x="320" y="130" width="120" height="46" rx="9"/><text class="lbl" x="380" y="150" text-anchor="middle">配额 / 公平</text><text class="lbl s" x="380" y="166" text-anchor="middle">WFQ / DRR</text>
+            <rect class="box s" x="320" y="130" width="120" height="46" rx="9"/><text class="lbl" x="380" y="150" text-anchor="middle">配额 / 公平</text><text class="lbl s" x="380" y="166" text-anchor="middle">准入份额</text>
             <rect class="box s" x="470" y="130" width="150" height="46" rx="9"/><text class="lbl" x="545" y="150" text-anchor="middle">租约 / fence</text><text class="lbl s" x="545" y="166" text-anchor="middle">防双跑</text>
             <rect class="box s" x="650" y="130" width="120" height="46" rx="9"/><text class="lbl" x="710" y="150" text-anchor="middle">重试 / 退避</text><text class="lbl s" x="710" y="166" text-anchor="middle">幂等键</text>
             <rect class="box w" x="800" y="130" width="100" height="46" rx="9"/><text class="lbl" x="850" y="150" text-anchor="middle">补偿/核对</text><text class="lbl s" x="850" y="166" text-anchor="middle">未知结果</text>
@@ -726,8 +747,8 @@
 
       <h3>5.3 调度能力清单</h3>
       <div class="grid c3">
-        <div class="card"><div class="t">优先级与公平</div><div class="d">多级优先级 + 加权公平（WFQ/DRR），防止单项目饿死；分层配额。</div></div>
-        <div class="card"><div class="t">重试与退避</div><div class="d">指数退避、最大次数、幂等键、可重试错误分类。</div></div>
+        <div class="card"><div class="t">优先级与公平</div><div class="d">现有Pool按成功准入次数维护租户/项目加权份额；不等于算力、Token或完成时间公平。规模与饥饿场景另验。</div></div>
+        <div class="card"><div class="t">重试与退避</div><div class="d">仅明确幂等且可重试的瞬态错误按原合同重试；模型请求未知时禁止重发。自动修复轮次单独限制。</div></div>
         <div class="card"><div class="t">租约与防双跑</div><div class="d">节点租约 + fence token，保证同一 run 不被并发领取。</div></div>
         <div class="card"><div class="t">未知结果核对</div><div class="d">外部副作用不确定时进入核对态，不自动重放。</div></div>
         <div class="card"><div class="t">补偿与恢复</div><div class="d">失败补偿、断点恢复、服务重启后从持久前沿继续。</div></div>
@@ -736,7 +757,7 @@
 
       <h3>5.4 状态机</h3>
       <div class="grid c2">
-        <div class="card"><div class="t">Task</div><div class="d"><code>pending → ready → dispatched → running → (succeeded | failed | canceled)</code><br><span class="muted">依赖满足才 ready；失败可重试或转人工。</span></div></div>
+        <div class="card"><div class="t">Run（执行态）</div><div class="d"><code>pending → ready → running → waiting / reconciling → succeeded / failed / skipped / cancelled</code><br><span class="muted">这是执行状态集合，不是每次必经顺序；任务业务接受独立，人审不能由运行成功代替。</span></div></div>
         <div class="card"><div class="t">Run</div><div class="d"><code>created → claimed → executing → (completed | failed | stopped)</code><br><span class="muted">候选由 Run 产出；独立测试与验收是后续独立事实。</span></div></div>
         <div class="card"><div class="t">Defect（缺陷）</div><div class="d"><code>opened → triaged → assigned → fixing → verifying → (closed | reopened | escalated)</code><br><span class="muted">按严重度挂 SLA；重复自动合并；无法修复可回流需求池。</span></div></div>
         <div class="card"><div class="t">Release</div><div class="d"><code>draft → candidate → tested → approved → released → (stable | rolled-back)</code><br><span class="muted">集合不可变；回滚生成新指针，不篡改历史。</span></div></div>
@@ -765,106 +786,107 @@
 
     <!-- 6 -->
     <section id="s6">
+      <p class="evidence-label">80项目标范围 · 非完成清单</p>
       <h2>6 · 功能清单与 12 域详细设计</h2>
-      <p class="lead">先看功能清单（编号/优先级/状态），再看各域交互与接口。点击标签切换域。</p>
+      <p class="lead">保留全部80项。目标设计表示完整能力尚待实现；已有受限实现只覆盖既有合同范围；待真实验收表示局部证据不足以证明目标环境。卡片接口名是设计索引，实际支持以生成合同与工具能力矩阵为准。</p>
 
-      <h3>6.1 功能清单（64 项）</h3>
+      <h3>6.1 功能清单（80 项目标范围）</h3>
       <div class="filterbar" id="fFilter">
-        <span class="chip active" data-f="all">全部</span><span class="chip" data-f="P0">P0</span>
-        <span class="chip" data-f="P1">P1</span><span class="chip" data-f="P2">P2</span>
-        <span class="searchbox"><span aria-hidden="true">🔍</span><input id="fSearch" type="text" placeholder="搜索功能 / 编号 / 域…" aria-label="搜索功能清单" /><span class="cnt" id="fCnt"></span></span>
-        <span class="kbd-hint">快捷键：<span class="kbd">F</span> 聚焦搜索 · <span class="kbd">T</span> 切换主题 · <span class="kbd">⌘K</span> 浏览器查找</span>
+        <button type="button" class="chip active" data-f="all">全部</button><button type="button" class="chip" data-f="P0">P0</button>
+        <button type="button" class="chip" data-f="P1">P1</button><button type="button" class="chip" data-f="P2">P2</button>
+        <span class="searchbox"><span aria-hidden="true">🔍</span><input id="fSearch" type="text" placeholder="搜索功能 / 编号 / 域…" aria-label="搜索功能清单" /><span class="cnt" id="fCnt" role="status" aria-live="polite"></span></span>
+        <span class="kbd-hint">快捷键：<span class="kbd">F</span> 聚焦搜索 · <span class="kbd">T</span> 切换主题 · <span class="kbd">Ctrl/⌘F</span> 浏览器查找</span>
       </div>
       <div class="panel" style="padding:0;overflow:auto">
         <table id="ftable">
           <thead><tr><th style="width:52px">编号</th><th>功能</th><th>域</th><th style="width:56px">优先级</th><th style="width:82px">状态</th></tr></thead>
           <tbody>
-            <tr data-p="P0"><td>F-01</td><td>组织/团队/成员管理</td><td>①</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P0"><td>F-02</td><td>RBAC 角色权限</td><td>①</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P0"><td>F-03</td><td>企业 SSO（OIDC/SAML）</td><td>①</td><td>P0</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P1"><td>F-04</td><td>统一权限中台 SDK</td><td>①</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P0"><td>F-05</td><td>项目/子项目/微应用</td><td>②</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P0"><td>F-06</td><td>应用代码版本与依赖观察</td><td>②</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-07</td><td>微应用依赖图与影响分析</td><td>②</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
-            <tr data-p="P0"><td>F-08</td><td>需求拆解与验收标准</td><td>③</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P0"><td>F-09</td><td>PRD / 技术设计 / 版本化</td><td>③</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-10</td><td>UED / 产品化设计编辑器</td><td>③</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
-            <tr data-p="P1"><td>F-11</td><td>智能拆解与补全</td><td>③</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P0"><td>F-12</td><td>任务派发与进度回写</td><td>④</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P0"><td>F-13</td><td>持久 DAG 与执行池</td><td>④</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-14</td><td>分层公平与跨机规模</td><td>④</td><td>P1</td><td><span class="tag warn">待验收</span></td></tr>
-            <tr data-p="P1"><td>F-15</td><td>Pipeline 图形化编排</td><td>④</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P0"><td>F-16</td><td>专家团队编排与交接</td><td>⑤</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-17</td><td>实时多人协作</td><td>⑤</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P0"><td>F-18</td><td>模型网关与多厂商</td><td>⑥</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P0"><td>F-19</td><td>Codex/OpenCode/Octop 调度</td><td>⑥</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-20</td><td>智能选模与参数</td><td>⑥</td><td>P1</td><td><span class="tag warn">强化中</span></td></tr>
-            <tr data-p="P1"><td>F-21</td><td>工作流平台对接</td><td>⑥</td><td>P1</td><td><span class="tag warn">扩展中</span></td></tr>
-            <tr data-p="P0"><td>F-22</td><td>项目知识/记忆/技能</td><td>⑦</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-23</td><td>技能向量检索</td><td>⑦</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
-            <tr data-p="P1"><td>F-24</td><td>自动萃取与推荐</td><td>⑦</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P0"><td>F-25</td><td>Token 计量与账本</td><td>⑧</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-26</td><td>配额分配与计费</td><td>⑧</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
-            <tr data-p="P0"><td>F-27</td><td>发布/版本/部署</td><td>⑨</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P0"><td>F-28</td><td>Issue 智能回流</td><td>⑨</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P0"><td>F-29</td><td>智能诊断</td><td>⑨</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-30</td><td>告警/预警体系</td><td>⑨</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P0"><td>F-31</td><td>MCP 接入</td><td>⑩</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-32</td><td>A2A 协议</td><td>⑩</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P0"><td>F-33</td><td>自动化事件入口</td><td>⑩</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-34</td><td>消息通道（微信/钉钉/企微）</td><td>⑩</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P0"><td>F-35</td><td>Web SaaS</td><td>⑪</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P0"><td>F-36</td><td>桌面端 Electron</td><td>⑪</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P0"><td>F-37</td><td>CLI</td><td>⑪</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P0"><td>F-38</td><td>移动端 Flutter</td><td>⑪</td><td>P0</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P1"><td>F-39</td><td>可视化配置中心</td><td>平台</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P0"><td>F-40</td><td>中英文国际化</td><td>全端</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-41</td><td>想法池（Idea Inbox）与智能孵化</td><td>②</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P1"><td>F-42</td><td>成员/智能体工作负载视图与均衡</td><td>⑤</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
-            <tr data-p="P0"><td>F-43</td><td>事件目录与订阅管理</td><td>④</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P0"><td>F-44</td><td>缺陷分级（P0–P3）与 SLA 计时</td><td>⑨</td><td>P0</td><td><span class="tag warn">待增强</span></td></tr>
-            <tr data-p="P0"><td>F-45</td><td>缺陷去重合并与自动路由</td><td>⑨</td><td>P0</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P1"><td>F-46</td><td>微应用依赖联动迭代规划</td><td>②</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
-            <tr data-p="P0"><td>F-47</td><td>应用级 semver 与兼容矩阵</td><td>⑨</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-48</td><td>需求↔任务↔候选↔版本全链路追溯矩阵</td><td>⑫</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
-            <tr data-p="P1"><td>F-49</td><td>智能输入与字段级补全</td><td>全端</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P1"><td>F-50</td><td>全局命令面板（⌘K）与全局搜索</td><td>全端</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P1"><td>F-51</td><td>cursor / claude / qoder DevTools 适配</td><td>⑥</td><td>P1</td><td><span class="tag warn">适配中</span></td></tr>
-            <tr data-p="P1"><td>F-52</td><td>harness 评测框架适配层</td><td>⑥</td><td>P1</td><td><span class="tag warn">适配中</span></td></tr>
-            <tr data-p="P0"><td>F-53</td><td>工具凭证集中托管与授权</td><td>⑥</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-54</td><td>成本看板与按域分摊</td><td>⑧</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
-            <tr data-p="P1"><td>F-55</td><td>预算分层与超限降级策略</td><td>⑧</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
-            <tr data-p="P1"><td>F-56</td><td>部署形态升降级与数据迁移工具</td><td>⑪</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P2"><td>F-57</td><td>技能市场与跨组织共享</td><td>⑦</td><td>P2</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P1"><td>F-58</td><td>知识/技能随版本同步迭代</td><td>⑦</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P1"><td>F-59</td><td>移动端告警与审批卡片</td><td>⑪</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P1"><td>F-60</td><td>评审协作（评论/评审流/通知）</td><td>⑤</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P2"><td>F-61</td><td>审计报表与合规导出</td><td>⑪</td><td>P2</td><td><span class="tag warn">待增强</span></td></tr>
-            <tr data-p="P2"><td>F-62</td><td>压测与故障注入演练</td><td>⑪</td><td>P2</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P1"><td>F-63</td><td>智能调度决策（优先级自学习）</td><td>④</td><td>P1</td><td><span class="tag warn">强化中</span></td></tr>
-            <tr data-p="P1"><td>F-64</td><td>多语言扩展框架（语种包）</td><td>全端</td><td>P1</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P0"><td>F-65</td><td>Harness 抽象层（claude-code/codex/Pi/自研）</td><td>⑥</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-66</td><td>Harness 热切换与引擎上下文交接</td><td>⑥</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
-            <tr data-p="P0"><td>F-67</td><td>会话与上下文归属平台（不共享内部状态）</td><td>⑥</td><td>P0</td><td><span class="tag ok">已实现</span></td></tr>
-            <tr data-p="P1"><td>F-68</td><td>模型供给四通道（订阅/密钥/本地/托管）</td><td>⑥</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P1"><td>F-69</td><td>订阅授权（OAuth）复用已有订阅额度</td><td>⑥</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P1"><td>F-70</td><td>BYO API Key 加密托管与脱敏展示</td><td>⑥</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P1"><td>F-71</td><td>本地模型接入（离线/内网/隐私场景）</td><td>⑥</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P2"><td>F-72</td><td>平台托管模型服务与统一计费</td><td>⑧</td><td>P2</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P1"><td>F-73</td><td>模型能力注册表（上下文/能力/价格/限流）</td><td>⑥</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
-            <tr data-p="P1"><td>F-74</td><td>模型健康探测与自动摘除/恢复</td><td>⑥</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
-            <tr data-p="P2"><td>F-75</td><td>模型灰度发布与 AB 评测对比</td><td>⑥</td><td>P2</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P1"><td>F-76</td><td>模型评测集与回归基线（harness 报告）</td><td>⑥</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P1"><td>F-77</td><td>设备配对 device-link 与多设备续跑</td><td>⑪</td><td>P1</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P1"><td>F-78</td><td>Skip-Sign-In 本地态与能力降级标识</td><td>⑪</td><td>P1</td><td><span class="tag warn">部分</span></td></tr>
-            <tr data-p="P2"><td>F-79</td><td>工具二进制随应用分发与 sha256 校验</td><td>⑪</td><td>P2</td><td><span class="tag bad">待办</span></td></tr>
-            <tr data-p="P1"><td>F-80</td><td>模型权限矩阵（组织/项目/角色/环境）</td><td>⑥</td><td>P1</td><td><span class="tag warn">待增强</span></td></tr>
+            <tr data-p="P0"><td>F-01</td><td>组织/团队/成员管理</td><td>①</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P0"><td>F-02</td><td>RBAC 角色权限</td><td>①</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P0"><td>F-03</td><td>企业 SSO（OIDC/SAML）</td><td>①</td><td>P0</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-04</td><td>统一权限中台 SDK</td><td>①</td><td>P1</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-05</td><td>项目/子项目/微应用</td><td>②</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P0"><td>F-06</td><td>应用代码版本与依赖观察</td><td>②</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P1"><td>F-07</td><td>微应用依赖图与影响分析</td><td>②</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-08</td><td>需求拆解与验收标准</td><td>③</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P0"><td>F-09</td><td>PRD / 技术设计 / 版本化</td><td>③</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P1"><td>F-10</td><td>UED / 产品化设计编辑器</td><td>③</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-11</td><td>智能拆解与补全</td><td>③</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-12</td><td>任务派发与进度回写</td><td>④</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P0"><td>F-13</td><td>持久 DAG 与执行池</td><td>④</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P1"><td>F-14</td><td>分层公平与跨机规模</td><td>④</td><td>P1</td><td><span class="tag warn">待真实验收</span></td></tr>
+            <tr data-p="P1"><td>F-15</td><td>Pipeline 图形化编排</td><td>④</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-16</td><td>专家团队编排与交接</td><td>⑤</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P1"><td>F-17</td><td>实时多人协作</td><td>⑤</td><td>P1</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-18</td><td>模型网关与多厂商</td><td>⑥</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P0"><td>F-19</td><td>Codex/OpenCode/Octop 调度</td><td>⑥</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P1"><td>F-20</td><td>智能选模与参数</td><td>⑥</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-21</td><td>工作流平台对接</td><td>⑥</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-22</td><td>项目知识/记忆/技能</td><td>⑦</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P1"><td>F-23</td><td>技能向量检索</td><td>⑦</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-24</td><td>自动萃取与推荐</td><td>⑦</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-25</td><td>Token 计量与账本</td><td>⑧</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P1"><td>F-26</td><td>配额分配与计费</td><td>⑧</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-27</td><td>发布/版本/部署</td><td>⑨</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P0"><td>F-28</td><td>Issue 智能回流</td><td>⑨</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P0"><td>F-29</td><td>智能诊断</td><td>⑨</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P1"><td>F-30</td><td>告警/预警体系</td><td>⑨</td><td>P1</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-31</td><td>MCP 接入</td><td>⑩</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P1"><td>F-32</td><td>A2A 协议</td><td>⑩</td><td>P1</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-33</td><td>自动化事件入口</td><td>⑩</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P1"><td>F-34</td><td>消息通道（微信/钉钉/企微）</td><td>⑩</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-35</td><td>Web SaaS</td><td>⑪</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P0"><td>F-36</td><td>桌面端 Electron</td><td>⑪</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P0"><td>F-37</td><td>CLI</td><td>⑪</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P0"><td>F-38</td><td>移动端 Flutter</td><td>⑪</td><td>P0</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-39</td><td>可视化配置中心</td><td>平台</td><td>P1</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-40</td><td>中英文国际化</td><td>全端</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P1"><td>F-41</td><td>想法池（Idea Inbox）与智能孵化</td><td>②</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-42</td><td>成员/智能体工作负载视图与均衡</td><td>⑤</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-43</td><td>事件目录与订阅管理</td><td>④</td><td>P0</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-44</td><td>缺陷分级（P0–P3）与 SLA 计时</td><td>⑨</td><td>P0</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-45</td><td>缺陷去重合并与自动路由</td><td>⑨</td><td>P0</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-46</td><td>微应用依赖联动迭代规划</td><td>②</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-47</td><td>应用级 semver 与兼容矩阵</td><td>⑨</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P1"><td>F-48</td><td>需求↔任务↔候选↔版本全链路追溯矩阵</td><td>⑫</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-49</td><td>智能输入与字段级补全</td><td>全端</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-50</td><td>全局命令面板（⌘K）与全局搜索</td><td>全端</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-51</td><td>cursor / claude / qoder DevTools 适配</td><td>⑥</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-52</td><td>harness 评测框架适配层</td><td>⑥</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-53</td><td>工具凭证集中托管与授权</td><td>⑥</td><td>P0</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P1"><td>F-54</td><td>成本看板与按域分摊</td><td>⑧</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-55</td><td>预算分层与超限降级策略</td><td>⑧</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-56</td><td>部署形态升降级与数据迁移工具</td><td>⑪</td><td>P1</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P2"><td>F-57</td><td>技能市场与跨组织共享</td><td>⑦</td><td>P2</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-58</td><td>知识/技能随版本同步迭代</td><td>⑦</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-59</td><td>移动端告警与审批卡片</td><td>⑪</td><td>P1</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-60</td><td>评审协作（评论/评审流/通知）</td><td>⑤</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P2"><td>F-61</td><td>审计报表与合规导出</td><td>⑪</td><td>P2</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P2"><td>F-62</td><td>压测与故障注入演练</td><td>⑪</td><td>P2</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-63</td><td>智能调度决策（优先级自学习）</td><td>④</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-64</td><td>多语言扩展框架（语种包）</td><td>全端</td><td>P1</td><td><span class="tag ok">已有受限实现</span></td></tr>
+            <tr data-p="P0"><td>F-65</td><td>Harness 抽象层（claude-code/codex/Pi/自研）</td><td>⑥</td><td>P0</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-66</td><td>Harness 热切换与引擎上下文交接</td><td>⑥</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P0"><td>F-67</td><td>平台讨论摘要与显式产物（不搬工具隐藏会话）</td><td>⑥</td><td>P0</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-68</td><td>模型供给四类目标（订阅/密钥/本地/托管）</td><td>⑥</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-69</td><td>订阅授权（OAuth）按官方工具与账户边界接入</td><td>⑥</td><td>P1</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-70</td><td>BYO API Key 加密托管与脱敏展示</td><td>⑥</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-71</td><td>本地模型接入（离线/内网/隐私场景）</td><td>⑥</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P2"><td>F-72</td><td>平台托管模型服务与统一计费</td><td>⑧</td><td>P2</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-73</td><td>模型能力注册表（上下文/能力/价格/限流）</td><td>⑥</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-74</td><td>模型健康探测与自动摘除/恢复</td><td>⑥</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P2"><td>F-75</td><td>模型灰度发布与 AB 评测对比</td><td>⑥</td><td>P2</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-76</td><td>模型评测集与回归基线（harness 报告）</td><td>⑥</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-77</td><td>设备配对 device-link 与多设备续跑</td><td>⑪</td><td>P1</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-78</td><td>Skip-Sign-In 本地态与能力降级标识</td><td>⑪</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
+            <tr data-p="P2"><td>F-79</td><td>工具二进制随应用分发与 sha256 校验</td><td>⑪</td><td>P2</td><td><span class="tag bad">目标设计</span></td></tr>
+            <tr data-p="P1"><td>F-80</td><td>模型权限矩阵（组织/项目/角色/环境）</td><td>⑥</td><td>P1</td><td><span class="tag warn">目标设计</span></td></tr>
           </tbody>
         </table>
       </div>
 
       <h3>6.2 12 域详细设计</h3>
-      <div class="tabs" id="domTabs">
+      <div class="tabs" id="domTabs" role="tablist" aria-label="功能领域">
         <button class="tab active" data-d="d1">① 组织权限</button><button class="tab" data-d="d2">② 项目管理</button>
         <button class="tab" data-d="d3">③ 需求设计</button><button class="tab" data-d="d4">④ 任务调度</button>
         <button class="tab" data-d="d5">⑤ 团队协作</button><button class="tab" data-d="d6">⑥ 智能体工具</button>
@@ -879,7 +901,7 @@
           <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>组织切换器 + 邀请</li><li>权限矩阵勾选</li><li>SSO 配置向导</li></ul></div></div>
         </div>
         <p><b>实体</b>：<code>Organization/Team/Member/Role/Permission/Invitation</code>　<b>接口</b>：<code>/governance/*</code>、<code>/auth/*</code></p>
-        <p><span class="tag ok">F-01/02 已实现</span> <span class="tag bad">F-03 SSO 待办</span> <span class="tag warn">F-04 权限中台待建</span></p>
+        <p><span class="tag ok">F-01/02 已有受限实现</span> <span class="tag bad">F-03 SSO 待办</span> <span class="tag warn">F-04 权限中台待建</span></p>
       </div>
       <div class="tab-panel" id="d2">
         <div class="grid c2">
@@ -887,7 +909,7 @@
           <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>项目卡片 + 健康度</li><li>依赖图</li><li>版本时间线</li></ul></div></div>
         </div>
         <p><b>实体</b>：<code>Idea/Project/Application/CodeVersion/Dependency</code>　<b>接口</b>：<code>/projects/*</code>、<code>/applications/*</code></p>
-        <p><span class="tag ok">F-05/06 已实现</span> <span class="tag warn">F-07 依赖图待增强</span></p>
+        <p><span class="tag ok">F-05/06 已有受限实现</span> <span class="tag warn">F-07 依赖图待增强</span></p>
       </div>
       <div class="tab-panel" id="d3">
         <div class="grid c2">
@@ -895,7 +917,7 @@
           <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>列表/看板/树</li><li>拆解树拖拽</li><li>Monaco 编辑 + 版本对比</li></ul></div></div>
         </div>
         <p><b>实体</b>：<code>Requirement/ReqDesign/Adoption/Traceability</code>　<b>接口</b>：<code>/requirements/*</code></p>
-        <p><span class="tag ok">F-08/09 已实现</span> <span class="tag warn">F-10 UED 待增强</span> <span class="tag warn">F-11 智能拆解部分</span></p>
+        <p><span class="tag ok">F-08/09 已有受限实现</span> <span class="tag warn">F-10 UED 待增强</span> <span class="tag warn">F-11 智能拆解部分</span></p>
       </div>
       <div class="tab-panel" id="d4">
         <div class="grid c2">
@@ -903,7 +925,7 @@
           <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>DAG 图（React-Flow+elk）</li><li>甘特/进度</li><li>运行详情+日志</li></ul></div></div>
         </div>
         <p><b>实体</b>：<code>Task/Dependency/Run/RunNode/Attempt</code>　<b>接口</b>：<code>/scheduling/*</code>、<code>/runs/*</code></p>
-        <p><span class="tag ok">F-12/13 已实现</span> <span class="tag warn">F-14 待验收</span> <span class="tag warn">F-15 部分</span></p>
+        <p><span class="tag ok">F-12/13 已有受限实现</span> <span class="tag warn">F-14 待验收</span> <span class="tag warn">F-15 部分</span></p>
       </div>
       <div class="tab-panel" id="d5">
         <div class="grid c2">
@@ -911,7 +933,7 @@
           <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>成员卡</li><li>编排画布</li><li>交接时间线</li></ul></div></div>
         </div>
         <p><b>实体</b>：<code>ExpertTeam/Plan/Dispatch/Handoff</code>　<b>接口</b>：<code>/expert-teams/*</code>、<code>/dispatch/*</code></p>
-        <p><span class="tag ok">F-16 已实现</span> <span class="tag bad">F-17 实时协作待办</span></p>
+        <p><span class="tag ok">F-16 已有受限实现</span> <span class="tag bad">F-17 实时协作待办</span></p>
       </div>
       <div class="tab-panel" id="d6">
         <div class="grid c2">
@@ -919,8 +941,8 @@
           <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>工具库存+能力矩阵</li><li>模型选择器</li><li>执行详情+回执</li></ul></div></div>
         </div>
         <p><b>实体</b>：<code>Tool/ModelProvider/Model/ModelExecution/HarnessSession</code>　<b>接口</b>：<code>/tools/*</code>、<code>/models/*</code>、<code>/mcp</code></p>
-        <p><b>模型管理要点</b>：供给四通道（订阅 OAuth / BYO Key / 本地 / 托管）· 能力注册表 · 健康探测 · 智能选模与降级灰度 · 凭证隔离 · 评测基线 · 选择理由入账本（详见第 19 章）</p>
-        <p><span class="tag ok">F-18/19/53/65/67 已实现</span> <span class="tag warn">F-20/68/71/73/74/76/80 待增强</span> <span class="tag bad">F-69/72/75 待办</span></p>
+        <p><b>模型管理目标</b>：供给四类（订阅 OAuth / BYO Key / 本地 / 托管）· 能力注册表 · 健康探测 · 智能选模与降级灰度 · 凭证隔离 · 评测基线 · 选择理由入账本（详见第 19 章）</p>
+        <p><span class="tag ok">F-18/19/53 已有受限实现；F-65/67 目标设计</span> <span class="tag warn">F-20/68/71/73/74/76/80 待增强</span> <span class="tag bad">F-69/72/75 待办</span></p>
       </div>
       <div class="tab-panel" id="d7">
         <div class="grid c2">
@@ -928,7 +950,7 @@
           <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>知识树+检索</li><li>技能卡+版本</li><li>记忆时间线</li></ul></div></div>
         </div>
         <p><b>实体</b>：<code>Knowledge/Memory/Skill/SkillVersion</code>　<b>接口</b>：<code>/knowledge/*</code>、<code>/skills/*</code></p>
-        <p><span class="tag ok">F-22 已实现</span> <span class="tag warn">F-23/24 待增强</span></p>
+        <p><span class="tag ok">F-22 已有受限实现</span> <span class="tag warn">F-23/24 待增强</span></p>
       </div>
       <div class="tab-panel" id="d8">
         <div class="grid c2">
@@ -936,7 +958,7 @@
           <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>用量趋势</li><li>配额表单</li><li>超限告警</li></ul></div></div>
         </div>
         <p><b>实体</b>：<code>UsageLedger/Budget/Quota</code>　<b>接口</b>：<code>/usage/*</code>、<code>/budgets/*</code></p>
-        <p><span class="tag ok">F-25 已实现</span> <span class="tag warn">F-26 待增强</span></p>
+        <p><span class="tag ok">F-25 已有受限实现</span> <span class="tag warn">F-26 待增强</span></p>
       </div>
       <div class="tab-panel" id="d9">
         <div class="grid c2">
@@ -944,7 +966,7 @@
           <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>发布流水线</li><li>Issue 看板</li><li>诊断报告</li></ul></div></div>
         </div>
         <p><b>实体</b>：<code>ReleaseCandidate/ReleaseSet/DeploymentPlan/Issue</code>　<b>接口</b>：<code>/releases/*</code>、<code>/issues/*</code></p>
-        <p><span class="tag ok">F-27/28/29 已实现</span> <span class="tag bad">F-30 告警待建</span></p>
+        <p><span class="tag ok">F-27/28/29 已有受限实现</span> <span class="tag bad">F-30 告警待建</span></p>
       </div>
       <div class="tab-panel" id="d10">
         <div class="grid c2">
@@ -952,7 +974,7 @@
           <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>连接器市场</li><li>Webhook 配置</li><li>通道绑定</li></ul></div></div>
         </div>
         <p><b>实体</b>：<code>Connector/Webhook/ChannelBinding/Ingress</code>　<b>接口</b>：<code>/mcp</code>、<code>/automation/*</code></p>
-        <p><span class="tag ok">F-31/33 已实现</span> <span class="tag bad">F-32 A2A 待办</span> <span class="tag warn">F-34 部分</span></p>
+        <p><span class="tag ok">F-31/33 已有受限实现</span> <span class="tag bad">F-32 A2A 待办</span> <span class="tag warn">F-34 部分</span></p>
       </div>
       <div class="tab-panel" id="d11">
         <div class="grid c2">
@@ -960,7 +982,7 @@
           <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>响应式 1366/768/390</li><li>主题切换</li><li>CLI 一键登录</li></ul></div></div>
         </div>
         <p><b>代码</b>：<code>apps/web</code>、<code>apps/desktop</code>、<code>cmd</code>、<code>packages/ui</code></p>
-        <p><span class="tag ok">F-35/36/37 已实现</span> <span class="tag bad">F-38 移动端待建</span> <span class="tag bad">F-56 升降级迁移待办</span></p>
+        <p><span class="tag ok">F-35/36/37 已有受限实现</span> <span class="tag bad">F-38 移动端待建</span> <span class="tag bad">F-56 升降级迁移待办</span></p>
       </div>
       <div class="tab-panel" id="d12">
         <div class="grid c2">
@@ -968,12 +990,13 @@
           <div class="card"><div class="t">交互要点</div><div class="d"><ul><li>追溯关系图（任一对象为中心展开）</li><li>影响清单 + 一键生成联动迭代计划</li><li>审计时间线（谁/何时/改了什么/依据）</li></ul></div></div>
         </div>
         <p><b>实体</b>：<code>TraceLink/AuditRecord/EventLog/ImpactAnalysis</code>　<b>接口</b>：<code>/trace/*</code>、<code>/audit/*</code></p>
-        <p><span class="tag warn">F-48 追溯矩阵待增强</span> <span class="tag ok">事件日志已实现</span> <span class="tag warn">F-61 审计报表待增强</span></p>
+        <p><span class="tag warn">F-48 追溯矩阵待增强</span> <span class="tag ok">事件日志已有受限实现</span> <span class="tag warn">F-61 审计报表待增强</span></p>
       </div>
     </section>
 
     <!-- 7 -->
     <section id="s7">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>7 · 扩展性 · 插件 · 适配</h2>
       <p class="lead">所有外部能力经 SPI + 适配器接入；新增模型/工具/存储/通道不改内核。</p>
       <h3>7.1 插件 / SPI 架构</h3>
@@ -1090,15 +1113,16 @@
       <h3>7.7 统一 CLI 与模型选择规范</h3>
       <div class="grid c2">
         <div class="card"><div class="t">CLI 调用规范</div><div class="d"><ul><li>双模式：<code>--local</code> 单机自包含 / <code>--server</code> 对接控制面（SAAS）</li><li>认证：设备码登录，令牌安全存储于系统钥匙串，自动续期</li><li>命令面：<code>idea / req / task / run / test / release / issue / skill / config / model</code></li><li>输出三态：人类友好表格 / <code>--json</code> 机器可读 / 流式进度</li><li>自动化：任务拉取、进度上报、结果回执均幂等可重放</li></ul></div></div>
-        <div class="card"><div class="t">模型选择规范</div><div class="d"><ul><li>四级来源：CLI 显式 <code>--model</code> &gt; 项目配置 &gt; 智能路由策略 &gt; 平台默认</li><li>智能路由按复杂度×成本×延迟评估，超限自动降级或请求加额</li><li>选择结果与理由写入用量账本，可审计可回放</li><li>CLI/工作台统一模型选择器组件，中英文提示一致</li></ul></div></div>
+        <div class="card"><div class="t">模型选择规范</div><div class="d"><ul><li>CLI显式选择也须在当前获授候选内；先校验策略、能力和预算，再采用新计划绑定</li><li>仅在固定且已授权候选内评估；超限先停止准入，再按策略形成新决策或申请加额</li><li>选择结果与理由写入用量账本，可审计可回放</li><li>CLI/工作台统一模型选择器组件，中英文提示一致</li></ul></div></div>
       </div>
       <div class="note">示例：<code>suma task dispatch T-1024 --tool codex --model auto --budget 200k-tokens</code> → 控制面校验配额 → 派发 → 进度流回写 → 候选回执入库。所有 CLI 与 Web 共用同一契约与权限。</div>
     </section>
 
     <!-- 8 -->
     <section id="s8">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>8 · 配置中心与特性开关</h2>
-      <p class="lead">分层合并 + 校验 + 版本化 + 审计 + 回滚；支持可视化编辑与特性灰度。</p>
+      <p class="lead">目标设计：字段级解析、预览与版本化采用。普通值来源为平台→组织→项目→本次计划；环境只收紧约束，团队模板明确采用。安全字段不能被用户或环境通用覆盖。</p>
       <h3>8.1 配置分层</h3>
       <div class="svg-wrap" style="margin-top:8px">
         <svg viewBox="0 0 920 180" role="img" aria-label="配置分层">
@@ -1107,20 +1131,20 @@
             <rect class="box" x="160" y="60" width="100" height="40" rx="8"/><text class="lbl" x="210" y="85" text-anchor="middle">组织</text>
             <rect class="box" x="280" y="60" width="100" height="40" rx="8"/><text class="lbl" x="330" y="85" text-anchor="middle">项目</text>
             <rect class="box" x="400" y="60" width="100" height="40" rx="8"/><text class="lbl" x="450" y="85" text-anchor="middle">环境</text>
-            <rect class="box" x="520" y="60" width="110" height="40" rx="8"/><text class="lbl" x="575" y="85" text-anchor="middle">用户/会话</text>
-            <rect class="box f" x="660" y="60" width="110" height="40" rx="8"/><text class="lbl" x="715" y="85" text-anchor="middle">合并生效</text>
+            <rect class="box" x="520" y="60" width="110" height="40" rx="8"/><text class="lbl" x="575" y="85" text-anchor="middle">本次计划</text>
+            <rect class="box f" x="660" y="60" width="110" height="40" rx="8"/><text class="lbl" x="715" y="85" text-anchor="middle">校验并固定</text>
             <rect class="box g" x="800" y="60" width="100" height="40" rx="8"/><text class="lbl" x="850" y="85" text-anchor="middle">特性开关</text>
             <g class="ln">
               <line x1="140" y1="80" x2="158" y2="80" marker-end="url(#ar)"/><line x1="260" y1="80" x2="278" y2="80" marker-end="url(#ar)"/>
               <line x1="380" y1="80" x2="398" y2="80" marker-end="url(#ar)"/><line x1="500" y1="80" x2="518" y2="80" marker-end="url(#ar)"/>
               <line x1="630" y1="80" x2="658" y2="80" marker-end="url(#ar)"/><line x1="770" y1="80" x2="798" y2="80" marker-end="url(#ar)"/>
             </g>
-            <text class="lbl s" x="460" y="140" text-anchor="middle">覆盖顺序：用户 &gt; 环境 &gt; 项目 &gt; 组织 &gt; 默认；每项含 schema 校验、默认值、版本、审计</text>
+            <text class="lbl s" x="460" y="140" text-anchor="middle">字段级解析：普通值可覆盖；授权取交集、额度取约束、秘密仅引用；来源/修订可追溯</text>
           </g>
         </svg>
       </div>
 
-      <h3>8.2 配置项示例</h3>
+      <h3>8.2 目标配置项示例（不是现有可写键目录）</h3>
       <div class="panel" style="padding:0;overflow:auto;margin-top:8px">
         <table>
           <thead><tr><th>配置</th><th>作用域</th><th>类型</th><th>默认</th><th>校验</th></tr></thead>
@@ -1128,19 +1152,20 @@
             <tr><td>model.default</td><td>平台/项目</td><td>string</td><td>auto</td><td>必须存在且可用</td></tr>
             <tr><td>model.routing.policy</td><td>项目</td><td>enum</td><td>cost</td><td>cost/quality/latency</td></tr>
             <tr><td>scheduler.maxConcurrency</td><td>组织</td><td>int</td><td>16</td><td>1–1024</td></tr>
-            <tr><td>scheduler.fairness</td><td>平台</td><td>enum</td><td>wfq</td><td>fifo/wfq/drr</td></tr>
-            <tr><td>retry.maxAttempts</td><td>项目</td><td>int</td><td>3</td><td>0–10</td></tr>
+            <tr><td>scheduler.fairness</td><td>平台</td><td>enum</td><td>固定准入份额</td><td>沿唯一Go调度器；不凭配置切换未实现算法</td></tr>
+            <tr><td>repair.maxRounds</td><td>项目策略</td><td>int</td><td>1</td><td>最多3轮；同失败指纹连续2次停止；与通用retry独立</td></tr>
             <tr><td>quota.tokens.monthly</td><td>组织/项目</td><td>int</td><td>—</td><td>&gt;0</td></tr>
             <tr><td>feature.a2a</td><td>平台</td><td>bool</td><td>false</td><td>—</td></tr>
             <tr><td>security.allowRoots</td><td>项目</td><td>list</td><td>—</td><td>白名单路径</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="note">配置要求：每次变更生成版本与操作 ID；支持 diff 预览、灰度、一键回滚；敏感项加密存储并脱敏展示。</div>
+      <div class="note">配置要求：每次变更生成版本与操作 ID；先预览与版本核对，再明确采用；恢复旧值也是新版本操作，不能抹去外部副作用。敏感项只使用秘密引用；当前安全范围须提交时复核。</div>
     </section>
 
     <!-- 9 -->
     <section id="s9">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>9 · 智能 · 自动化</h2>
       <h3>9.1 智能编排与模型路由</h3>
       <div class="svg-wrap" style="margin-top:8px">
@@ -1160,12 +1185,13 @@
             <rect class="box s" x="170" y="130" width="130" height="40" rx="9"/><text class="lbl" x="235" y="155" text-anchor="middle">智能诊断</text>
             <rect class="box s" x="330" y="130" width="150" height="40" rx="9"/><text class="lbl" x="405" y="155" text-anchor="middle">任务拆解/规划</text>
             <rect class="box s" x="510" y="130" width="180" height="40" rx="9"/><text class="lbl" x="600" y="155" text-anchor="middle">知识/技能萃取</text>
-            <text class="lbl s" x="460" y="200" text-anchor="middle">原则：AI 只产出建议/候选，不自动批准业务动作；成本超限自动降级或拦截</text>
+            <text class="lbl s" x="460" y="200" text-anchor="middle">原则：AI 只产出建议/候选，不自动批准业务动作；超限停止准入；候选重选须授权与新绑定</text>
           </g>
         </svg>
       </div>
 
       <h3>9.2 自动化引擎</h3>
+      <div class="note warn">自动修复默认1轮，策略最多3轮；同一失败指纹连续2次停止并升级人工。每轮独立候选与测试；未知副作用先核对。通用retry只按节点幂等、瞬态错误与原截止窗口处理，不共享修复轮次配置。</div>
       <div class="panel" style="padding:0;overflow:auto;margin-top:8px">
         <table>
           <thead><tr><th style="width:100px">要素</th><th>说明</th><th>示例</th></tr></thead>
@@ -1186,7 +1212,7 @@
         <div class="card"><div class="t">诊断 / 修复</div><div class="d">失败归因、修复建议、可回退。</div></div>
         <div class="card"><div class="t">萃取 / 推荐</div><div class="d">从交付中提炼知识、技能、规范。</div></div>
         <div class="card"><div class="t">预警</div><div class="d">异常检测、趋势预警、主动上报。</div></div>
-        <div class="card"><div class="t">成本优化</div><div class="d">超限降级、缓存、批处理。</div></div>
+        <div class="card"><div class="t">成本优化</div><div class="d">超限先阻止；固定候选内重决策，缓存复用核对授权与版本，批处理仍受预算约束。</div></div>
       </div>
 
       <h3>9.4 智能输入与自动配置</h3>
@@ -1206,6 +1232,7 @@
 
     <!-- 10 -->
     <section id="s10">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>10 · 交互与可视化规范</h2>
       <h3>10.1 页面地图</h3>
       <div class="svg-wrap" style="margin-top:8px">
@@ -1256,14 +1283,14 @@
         <div class="card"><div class="t">无障碍与响应式</div><div class="d"><ul><li>键盘可达、焦点可见</li><li>对比度 ≥ WCAG AA</li><li>断点 1366 / 1024 / 768 / 390</li><li>明暗主题 + 中英文</li></ul></div></div>
         <div class="card"><div class="t">智能输入模式</div><div class="d"><ul><li>「AI 起草 · 人确认」：AI 产出带来源引用的草稿，字段可逐项采纳/修改</li><li>表单智能填充：输入焦点离开后按上下文推荐，<span class="kbd">Tab</span> 采纳</li><li>自然语言命令：面板输入「把 P0 缺陷都指给 agent-x」→ 结构化操作预览后执行</li></ul></div></div>
         <div class="card"><div class="t">命令面板与全局搜索</div><div class="d"><ul><li><span class="kbd">⌘K</span>：命令 + 对象混合搜索（需求/任务/Run/知识/技能/配置）</li><li>支持前缀过滤 <span class="kbd">&gt;</span> 命令、<span class="kbd">#</span> 对象、<span class="kbd">?</span> 帮助</li><li>最近使用与上下文推荐优先</li></ul></div></div>
-        <div class="card"><div class="t">进度与长任务反馈</div><div class="d"><ul><li>DAG 节点实时状态 + 阶段日志流（可折叠）</li><li>长任务显示 ETA、可取消、可核对</li><li>失败给出「诊断」入口而非只报错</li></ul></div></div>
+        <div class="card"><div class="t">进度与长任务反馈</div><div class="d"><ul><li>DAG 节点实时状态 + 阶段日志流（可折叠）</li><li>显示真实阶段与等待原因；有依据才显示预测及范围，取消请求与实际停止分别展示</li><li>失败给出「诊断」入口而非只报错</li></ul></div></div>
       </div>
 
       <h3>10.4 设计令牌</h3>
       <div class="panel" style="margin-top:8px">
-        <p><span class="swatch" style="background:#2f6df6"></span><code>brand #2f6df6</code>　
-        <span class="swatch" style="background:#1f9d57"></span><code>ok #1f9d57</code>　
-        <span class="swatch" style="background:#c9821a"></span><code>warn #c9821a</code>　
+        <p><span class="swatch" style="background:#2f6df6"></span><code>brand #2f6df6</code>
+        <span class="swatch" style="background:#1f9d57"></span><code>ok #1f9d57</code>
+        <span class="swatch" style="background:#c9821a"></span><code>warn #c9821a</code>
         <span class="swatch" style="background:#d6453d"></span><code>bad #d6453d</code></p>
         <p class="muted">圆角 8–14px · 阴影轻量 · 间距 4/8/12/16/24 · 字号 12/13/14/16/21/28 · 明暗双主题</p>
       </div>
@@ -1271,6 +1298,7 @@
 
     <!-- 11 -->
     <section id="s11">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>11 · 权限与安全</h2>
       <div class="grid c2">
         <div class="card"><div class="t">RBAC 模型</div><div class="d">User/Agent → Role → Permission → Resource → Scope。服务端强制鉴权，跨项目校验，审计留痕。</div></div>
@@ -1281,6 +1309,7 @@
 
     <!-- 12 -->
     <section id="s12">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>12 · 部署 · 可观测 · 高可用</h2>
       <h3>12.1 四种拓扑</h3>
       <div class="svg-wrap" style="margin-top:8px">
@@ -1300,13 +1329,13 @@
           <thead><tr><th style="width:110px">形态</th><th>适用</th><th>组件</th><th>数据</th><th>升级路径</th></tr></thead>
           <tbody>
             <tr><td>桌面独立</td><td>个人/离线</td><td>Electron 内嵌控制面 + 本机 Runner</td><td>SQLite + Lance + 本地文件</td><td>导出快照 → 单机/私有化</td></tr>
-            <tr><td>单机 / 私有化</td><td>小团队、内网</td><td>单控制面 + Runner 同机</td><td>SQLite/PG + Lance + 本地/内网对象存储</td><td>扩容控制面 → 分布式</td></tr>
+            <tr><td>单机 / 私有化</td><td>小团队、内网</td><td>单控制面 + Runner 同机</td><td>SQLite/PG + Lance + 本地/内网对象存储</td><td>共享库/多实例竞争验收 → 分布式</td></tr>
             <tr><td>分布式私有化</td><td>企业多团队</td><td>多控制面 + Runner 集群 + LB</td><td>OceanBase/PG 集群 + 共享对象存储</td><td>对接企业 SSO/LDAP → SaaS 化</td></tr>
             <tr><td>分布式 SaaS</td><td>多租户公有云</td><td>多控制面多可用区 + 多 Runner 池</td><td>OceanBase 多租户 + 对象存储 + Redis/MQ</td><td>租户级迁移/导出工具</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="note">同一代码与数据模型支撑四种形态；形态间迁移提供<b>快照导出/导入 + schema 升级工具</b>，升级采用滚动发布 + 版本兼容矩阵。</div>
+      <div class="note">四种形态为目标；当前Helm固定单副本Recreate，不代表HA。共享库、多控制面、对象制品和恢复必须独立验收。当前1.0.0仅初始化匹配的新库，不提供历史schema升级或滚动兼容承诺，不清空原数据。</div>
 
       <h3>12.3 可观测与高可用</h3>
       <div class="grid c3">
@@ -1321,6 +1350,7 @@
 
     <!-- 13 -->
     <section id="s13">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>13 · 非功能需求与质量门禁</h2>
       <h3>13.1 NFR</h3>
       <div class="panel" style="padding:0;overflow:auto">
@@ -1347,9 +1377,10 @@
 
     <!-- 14 -->
     <section id="s14">
+      <p class="evidence-label">设计缺口 · 逐域核对</p>
       <h2>14 · 实施缺口分析</h2>
       <div class="filterbar" id="gFilter">
-        <span class="chip active" data-f="all">全部</span><span class="chip" data-f="P0">P0</span><span class="chip" data-f="P1">P1</span><span class="chip" data-f="P2">P2</span>
+        <button type="button" class="chip active" data-f="all">全部</button><button type="button" class="chip" data-f="P0">P0</button><button type="button" class="chip" data-f="P1">P1</button><button type="button" class="chip" data-f="P2">P2</button>
       </div>
       <div class="panel" style="padding:0;overflow:auto">
         <table id="gtable">
@@ -1368,10 +1399,10 @@
             <tr data-p="P2"><td>G11</td><td>计费/支付</td><td>商业化不完整</td><td>计费引擎 + 支付</td><td><span class="tag mut">P2</span></td></tr>
             <tr data-p="P2"><td>G12</td><td>多平台安装包</td><td>部署体验</td><td>electron-builder 多目标</td><td><span class="tag mut">P2</span></td></tr>
             <tr data-p="P2"><td>G13</td><td>跨机规模验收</td><td>大规模稳定性未知</td><td>压测 + 故障注入</td><td><span class="tag mut">P2</span></td></tr>
-            <tr data-p="P1"><td>G14</td><td>部署形态升降级与迁移工具</td><td>形态间迁移成本高</td><td>快照导出/导入 + schema 升级工具</td><td><span class="tag warn">P1</span></td></tr>
+            <tr data-p="P1"><td>G14</td><td>部署形态升降级与迁移工具</td><td>形态间迁移成本高</td><td>目标：一致性快照/恢复演练；不扩展当前1.0.0历史schema升级</td><td><span class="tag warn">P1</span></td></tr>
             <tr data-p="P1"><td>G15</td><td>缺陷 SLA 与治理增强</td><td>问题闭环不规范</td><td>统一 Defect 模型 + SLA 路由 + 回流去重</td><td><span class="tag warn">P1</span></td></tr>
             <tr data-p="P1"><td>G16</td><td>cursor/claude/qoder 适配</td><td>工具矩阵不全</td><td>ToolProvider 契约接入 + 凭证托管</td><td><span class="tag warn">P1</span></td></tr>
-            <tr data-p="P1"><td>G17</td><td>Harness 抽象与热切换（会话归平台）</td><td>工具切换丢失上下文</td><td>Harness SPI + 引擎上下文交接/重建</td><td><span class="tag warn">P1</span></td></tr>
+            <tr data-p="P1"><td>G17</td><td>Harness受控切换（平台摘要交接）</td><td>工具切换丢失上下文</td><td>Harness SPI + 停止证明/副作用核对 + 新绑定与平台摘要重建</td><td><span class="tag warn">P1</span></td></tr>
             <tr data-p="P1"><td>G18</td><td>模型供给四通道与凭证托管</td><td>BYO 订阅/密钥与本地模型难用</td><td>订阅 OAuth + Key 加密托管 + 本地推理适配</td><td><span class="tag warn">P1</span></td></tr>
             <tr data-p="P2"><td>G19</td><td>设备配对与多设备续跑</td><td>换设备中断</td><td>device-link 配对 + 会话云端续跑</td><td><span class="tag mut">P2</span></td></tr>
           </tbody>
@@ -1381,10 +1412,11 @@
 
     <!-- 15 -->
     <section id="s15">
+      <p class="evidence-label">路线分组 · 不另建权威计划</p>
       <h2>15 · 路线图与迭代</h2>
       <div class="grid c3">
         <div class="card"><div class="t">阶段一 · 基座补齐（P0）</div><div class="d"><ul><li>企业 SSO</li><li>可视化配置中心</li><li>告警/预警</li><li>移动端启动</li></ul><span class="muted">验收：SSO 闭环、配置可回滚、告警可触发</span></div></div>
-        <div class="card"><div class="t">阶段二 · 智能增强（P1）</div><div class="d"><ul><li>智能输入/自动配置</li><li>A2A/插件框架</li><li>技能向量检索</li><li>智能选模强化</li><li>Harness 抽象与热切换（G17）</li><li>模型供给四通道与凭证托管（G18）</li><li>模型健康探测与灰度</li></ul><span class="muted">验收：一键生成、检索命中率、Harness 切换不丢会话、模型可降级可灰度</span></div></div>
+        <div class="card"><div class="t">阶段二 · 智能增强（P1）</div><div class="d"><ul><li>智能输入/自动配置</li><li>A2A/插件框架</li><li>技能向量检索</li><li>智能选模强化</li><li>Harness 抽象与热切换（G17）</li><li>模型供给四通道与凭证托管（G18）</li><li>模型健康探测与灰度</li></ul><span class="muted">验收：一键生成、检索命中率、Harness停止核对与新绑定、平台摘要可追溯、模型在授权候选内重决策</span></div></div>
         <div class="card"><div class="t">阶段三 · 协作与规模（P1/P2）</div><div class="d"><ul><li>实时协作</li><li>依赖治理 UI 与联动迭代</li><li>缺陷 SLA 治理闭环</li><li>跨机压测</li><li>多平台安装包</li><li>部署形态迁移工具</li></ul><span class="muted">验收：多人协同、跨机调度、缺陷闭环率、安装可用</span></div></div>
       </div>
       <div class="note">提交约定：阶段性验证后提交 <code>git@github.com:ai-mada/suma.git</code> <code>dev</code> 分支，遵循 <code>type(scope): desc [T-id]</code>，附设计与精简证据。</div>
@@ -1392,6 +1424,7 @@
 
     <!-- 16 -->
     <section id="s16">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>16 · 并发协作与 AI SOP</h2>
       <div class="grid c3">
         <div class="card"><div class="t">① 文件所有权</div><div class="d">按域分配文件，避免冲突。</div></div>
@@ -1406,6 +1439,7 @@
 
     <!-- 17 -->
     <section id="s17">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>17 · 版本迭代与缺陷全流程治理</h2>
       <p class="lead">覆盖「需求迭代 → 功能迭代 → 版本发布 → 部署验证 → 缺陷修复跟进」的一站式全链路迭代闭环，含微应用依赖联动。</p>
 
@@ -1454,6 +1488,7 @@
 
     <!-- 18 -->
     <section id="s18">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>18 · 计费计量与成本治理</h2>
       <p class="lead">面向 SaaS 与私有化的<strong>Token 消耗计量计费、配额分配管控、预算与降级</strong>体系，避免资源浪费。</p>
 
@@ -1483,7 +1518,7 @@
               <line x1="170" y1="72" x2="198" y2="72" marker-end="url(#ar)"/><line x1="350" y1="72" x2="378" y2="72" marker-end="url(#ar)"/>
               <line x1="530" y1="72" x2="558" y2="72" marker-end="url(#ar)"/><line x1="710" y1="72" x2="738" y2="72" marker-end="url(#ar)"/>
             </g>
-            <text class="lbl s" x="460" y="130" text-anchor="middle">策略：软限(80%)告警与降级路由 → 硬限(100%)拦截并通知 → 超支需审批加额；所有决策留审计</text>
+            <text class="lbl s" x="460" y="130" text-anchor="middle">策略：目标阈值：软限告警 → 硬限拒绝新准入 → 授权加额或候选重决策；未知费用保留占用</text>
           </g>
         </svg>
       </div>
@@ -1492,7 +1527,7 @@
       <div class="grid c3">
         <div class="card"><div class="t">成本看板</div><div class="d">按组织/项目/团队/模型/工具多维下钻；趋势与异常标记。</div></div>
         <div class="card"><div class="t">账单与对账</div><div class="d">计量账本只追加；与厂商账单对账；可导出（CSV/API）。</div></div>
-        <div class="card"><div class="t">优化策略</div><div class="d"><ul><li>模型降级路由（超额切低成本模型）</li><li>提示/结果缓存复用</li><li>批处理与非高峰调度</li></ul></div></div>
+        <div class="card"><div class="t">优化策略</div><div class="d"><ul><li>模型重决策（停止准入，仅在固定已授权候选内新绑定）</li><li>提示/结果缓存复用</li><li>批处理与非高峰调度</li></ul></div></div>
         <div class="card"><div class="t">审批流</div><div class="d">加额申请、预算变更走审批卡片（Web/移动/企微）。</div></div>
         <div class="card"><div class="t">SaaS 计费单元</div><div class="d">席位 + 用量套餐 + 预付费包；私有化按授权+支持计费。</div></div>
         <div class="card"><div class="t">防滥用</div><div class="d">异常用量检测（刷量/死循环 Agent）自动熔断并告警。</div></div>
@@ -1501,14 +1536,16 @@
 
     <!-- 19 : 模型管理 -->
     <section id="s19">
+      <p class="evidence-label">目标设计 · 已有受限实现见合同，新增能力待实施与真实验收</p>
       <h2>19 · 模型管理与 AI 网关（模型能力专章）</h2>
-      <p class="lead">统一的<strong>模型供给、注册、路由、观测、成本与治理</strong>能力：一个网关纳管「订阅授权 / 自带密钥 / 本地模型 / 平台托管」四种供给，向上对 CLI、Web、桌面、移动、智能体与 Harness 提供一致的模型选择体验。对应实现：<code>internal/modelgateway</code>、<code>internal/modelcontract</code>、<code>internal/dispatchrecommendationcontract</code>。</p>
+      <p class="lead">目标是统一<strong>模型选择、能力说明、用量事实与治理交互</strong>，四类供给分别按协议接入。当前 <code>internal/modelgateway</code> 的共同Go网关仅覆盖原生编码与Octop；OpenCode、Codex及只读规划仍沿各自合同，不能宣称全工具统一鉴权、限流或硬预算。<a href="integrations/development-tool-matrix.md">工具能力矩阵</a>记录逐工具边界，<a href="architecture/model-gateway.md">网关合同</a>记录实际范围。</p>
+      <div class="note warn">订阅登录、API密钥、本地模型与托管服务是不同授权及计费合同。OAuth不自动授予通用API，也不保证订阅额度可用于网关；仅按官方许可的客户端能力接入。未验证的供给不显示可用。</div>
 
-      <h3>19.1 模型供给四通道</h3>
+      <h3>19.1 模型供给四类目标（逐类接入与验收）</h3>
       <div class="svg-wrap" style="margin-top:8px">
         <svg viewBox="0 0 920 240" role="img" aria-label="模型供给与网关">
           <g font-family="var(--sans)">
-            <rect class="box s" x="20" y="30" width="180" height="50" rx="9"/><text class="lbl" x="110" y="52" text-anchor="middle">订阅授权 OAuth</text><text class="lbl s" x="110" y="70" text-anchor="middle">复用已有 Claude/Codex 订阅</text>
+            <rect class="box s" x="20" y="30" width="180" height="50" rx="9"/><text class="lbl" x="110" y="52" text-anchor="middle">订阅授权 OAuth</text><text class="lbl s" x="110" y="70" text-anchor="middle">仅官方支持工具/范围内使用</text>
             <rect class="box s" x="220" y="30" width="180" height="50" rx="9"/><text class="lbl" x="310" y="52" text-anchor="middle">自带 API Key</text><text class="lbl s" x="310" y="70" text-anchor="middle">组织/个人密钥加密托管</text>
             <rect class="box s" x="420" y="30" width="180" height="50" rx="9"/><text class="lbl" x="510" y="52" text-anchor="middle">本地模型</text><text class="lbl s" x="510" y="70" text-anchor="middle">离线/内网/隐私场景</text>
             <rect class="box s" x="620" y="30" width="180" height="50" rx="9"/><text class="lbl" x="710" y="52" text-anchor="middle">平台托管服务</text><text class="lbl s" x="710" y="70" text-anchor="middle">开箱即用、统一计费</text>
@@ -1518,7 +1555,7 @@
             </g>
             <rect class="box f" x="238" y="110" width="444" height="48" rx="10"/><text class="lbl h" x="460" y="131" text-anchor="middle">模型网关（统一契约 · 凭证隔离 · 限流 · 缓存）</text><text class="lbl s" x="460" y="150" text-anchor="middle">ModelProvider SPI · 能力注册表 · 健康探测 · 幂等回执</text>
             <line class="ln" x1="460" y1="158" x2="460" y2="180" marker-end="url(#ar)"/>
-            <rect class="box g" x="150" y="180" width="620" height="46" rx="10"/><text class="lbl h" x="460" y="201" text-anchor="middle">路由与成本治理：复杂度 × 成本 × 延迟 × 配额 → 选模 → 降级/灰度 → 用量账本</text><text class="lbl s" x="460" y="219" text-anchor="middle">上层调用方（CLI/Web/移动端/智能体/Harness）无感知切换</text>
+            <rect class="box g" x="150" y="180" width="620" height="46" rx="10"/><text class="lbl h" x="460" y="201" text-anchor="middle">路由与成本治理：复杂度 × 成本 × 延迟 × 配额 → 选模 → 降级/灰度 → 用量账本</text><text class="lbl s" x="460" y="219" text-anchor="middle">选择变更可见；停止核对后新执行绑定，未知请求不重发</text>
           </g>
         </svg>
       </div>
@@ -1531,7 +1568,7 @@
             <tr><td>身份与版本</td><td>厂商 / 模型名 / 版本快照 / 别名</td><td>版本锁定，避免静默升级破坏基线</td></tr>
             <tr><td>能力声明</td><td>上下文窗口、最大输出、函数调用、视觉、流式</td><td>任务可行性前置校验</td></tr>
             <tr><td>成本画像</td><td>输入/输出单价、缓存折扣、批处理折扣</td><td>成本预估与预算拦截</td></tr>
-            <tr><td>限流与配额</td><td>RPM/TPM、并发上限、订阅额度</td><td>软限降级、硬限拦截</td></tr>
+            <tr><td>限流与配额</td><td>RPM/TPM、并发上限、订阅额度</td><td>软限告警；固定候选内新决策；可控范围硬限拒绝</td></tr>
             <tr><td>健康状态</td><td>可用性、错误率、P95 延迟（滚动窗口）</td><td>自动摘除与恢复</td></tr>
             <tr><td>适用范围</td><td>组织/项目/角色/环境可见性与可用权限</td><td>权限矩阵与合规隔离</td></tr>
             <tr><td>评测基线</td><td>评测集得分、回归基线、harness 报告</td><td>升级前对比，防止能力回退</td></tr>
@@ -1542,24 +1579,25 @@
       <h3>19.3 路由、降级与灰度</h3>
       <div class="grid c3">
         <div class="card"><div class="t">智能选模</div><div class="d">按任务复杂度（规模/语言/依赖）× 成本上限 × 延迟要求评分排序；结果写入账本并可回放。</div></div>
-        <div class="card"><div class="t">多级降级</div><div class="d">超配额 → 降级到低成本模型；健康异常 → 切备用通道；本地模式 → 仅本地模型；全程标识不静默。</div></div>
+        <div class="card"><div class="t">多级降级</div><div class="d">超配额或异常先停止准入；仅在固定且已授权候选内形成新决策与执行绑定。不得静默跨供应商、驻留区域或权限范围；未知副作用先核对。</div></div>
         <div class="card"><div class="t">灰度与 AB</div><div class="d">按组织/项目百分比灰度新模型，绑定评测集对比，达标放量、回退有据。</div></div>
-        <div class="card"><div class="t">凭证隔离</div><div class="d">订阅令牌与个人密钥按组织/项目/工具三维隔离；浏览器端不持有主密钥；密钥加密存储+脱敏展示。</div></div>
-        <div class="card"><div class="t">缓存与复用</div><div class="d">提示前缀缓存、语义结果缓存、批处理合并，直接降低 Token 消耗。</div></div>
+        <div class="card"><div class="t">凭证隔离</div><div class="d">订阅OAuth仅用于官方支持的工具与授权范围，不默认产生通用API或额度。平台不提取工具私有登录文件、不转换或转发其令牌；API秘密独立管理且仅引用。</div></div>
+        <div class="card"><div class="t">缓存与复用</div><div class="d">当前原响应缓存绑定attempt及请求摘要，用于原回执恢复。语义缓存与批处理为目标，须隔离租户、来源版本与授权；不承诺固定节省比例。</div></div>
         <div class="card"><div class="t">观测与审计</div><div class="d">每次选择记录「模型+理由+成本+结果」，支持按项目/成员/Agent 下钻分析。</div></div>
       </div>
 
       <h3>19.4 与 Harness / 工具的关系</h3>
-      <div class="note">模型与 Harness 解耦：Harness（claude-code / codex / Pi 等）决定「怎么干」，模型网关决定「用哪个模型干」。切换 Harness 时会话与上下文归属平台，仅做交接或引擎上下文重建，不共享其内部状态；切换模型不改会话归属。</div>
+      <div class="note">Harness切换是受控交接：先取得实际停止证明，或完成不确定副作用核对；再由新计划/attempt固定工具、模型、授权与候选依据。平台只拥有自身讨论、用户允许的摘要和显式产物，不搬运工具隐藏会话、内部推理或私有登录状态。平台摘要可用于新执行，不保证原工具会话无损续跑。</div>
       <div class="grid c3">
-        <div class="card"><div class="t">Harness 选择</div><div class="d">按任务类型选择规划型/实现型/评审型 harness，可热切换。</div></div>
+        <div class="card"><div class="t">Harness 选择</div><div class="d">按任务与资格选适配器；所谓热切换须完成停止/核对，再以新执行绑定启动。</div></div>
         <div class="card"><div class="t">模型选择</div><div class="d">每个 harness 独立指定或继承项目策略（auto / 指定 / 预算约束）。</div></div>
-        <div class="card"><div class="t">统一计量</div><div class="d">不论通道与 harness，用量统一入账本，按组织/项目/人/Agent 分摊。</div></div>
+        <div class="card"><div class="t">统一计量</div><div class="d">逐适配器记录已知、部分或未报告用量；共用展示不等于共用预算控制，供应商账单、估算与平台收费独立。</div></div>
       </div>
     </section>
 
     <!-- 20 : 附录 -->
     <section id="s20">
+      <p class="evidence-label">术语与目标选型 · 实际版本见锁文件</p>
       <h2>20 · 附录</h2>
       <h3>20.1 术语</h3>
       <div class="panel" style="padding:0;overflow:auto">
@@ -1590,44 +1628,130 @@
             <tr><td>CLI</td><td>Go（cmd/suma）</td></tr>
             <tr><td>事务库</td><td>OceanBase / PostgreSQL / SQLite</td></tr>
             <tr><td>向量</td><td>Lance / LanceDB</td></tr>
-            <tr><td>消息</td><td>Redis + RocketMQ/Kafka</td></tr>
+            <tr><td>消息</td><td>事务Outbox为当前基础；外部消息中间件为待选目标，不新增派发权威</td></tr>
             <tr><td>协议</td><td>MCP / A2A / OpenAPI</td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <footer>速码 suma · 一栈式智能研发平台 · 架构 / PRD / 功能 / 交互规格 v1.0.0-r5 · 参照 multica / cindy / workbuddy / octop / opencode / zed / codex / harness 等增强 · 2026-10-29</footer>
+    <section id="s21">
+      <p class="evidence-label">集成设计 · T-DESIGN-135 · 样稿不代表后端已实现</p>
+      <h2>21 · 设计落到交互与实施</h2>
+      <p class="lead">以交付、治理、运行三个视角串起完整80项范围。先看到正式对象和阻塞，再展开配置、执行和证据；样稿中的示例数据不是业务事实，也不启动真实任务。</p>
+      <div class="grid c3">
+        <a class="card" href="design/prototypes/enterprise-workbench.html#architecture"><div class="t">交付 · 架构与影响</div><div class="d">从需求和应用关系定位影响，沿版本、候选、测试与验收核对交付。目标界面，不以运行成功代替接受。</div></a>
+        <a class="card" href="design/prototypes/enterprise-workbench.html#teams"><div class="t">治理 · 团队与资格</div><div class="d">选择人、智能体和工具，核对真实归属、项目权限及执行容量；团队加入不自动取得项目访问。</div></a>
+        <a class="card" href="design/prototypes/enterprise-workbench.html#automation"><div class="t">运行 · 策略与核对</div><div class="d">查看触发、固定计划、当前attempt和阻塞；自动修复有轮次门禁，未知效果先核对。</div></a>
+      </div>
+      <h3>21.1 场景、入口与可执行下一步</h3>
+      <div class="panel" style="padding:0;overflow:auto"><table><thead><tr><th>用户场景</th><th>样稿入口</th><th>主操作与反馈</th><th>合同边界</th></tr></thead><tbody>
+        <tr><td>交付负责人核对架构变化与影响</td><td><a href="design/prototypes/enterprise-workbench.html#architecture">架构视图</a></td><td>定位受影响应用、关联需求与固定候选，展开测试和人工验收</td><td>观察图不自动形成代码依赖或发布批准；未覆盖来源显示未知</td></tr>
+        <tr><td>团队负责人安排人机协作</td><td><a href="design/prototypes/enterprise-workbench.html#teams">团队工作区</a></td><td>检查角色职责、获授项目、工具资格及实际阻塞，再预览派发</td><td>人员容量、执行槽位与模型预算分开；当前授权在启动时重核</td></tr>
+        <tr><td>管理员选择工具和模型</td><td><a href="design/prototypes/enterprise-workbench.html#models">模型与工具</a></td><td>筛选当前候选，查看供给、权限、驻留、用量能力，再固定选择</td><td>订阅不是通用API；不支持的鉴权与计费路径不可选</td></tr>
+        <tr><td>运维负责人启用受控自动化</td><td><a href="design/prototypes/enterprise-workbench.html#automation">自动化策略</a></td><td>预览范围、轮次、额度与门禁；分别查看触发、执行和停止证明</td><td>默认修复1轮、最多3轮，同指纹连续2次停止；未知外部效果不重发</td></tr>
+      </tbody></table></div>
+      <h3>21.2 跨域状态与配置矩阵</h3>
+      <div class="panel" style="padding:0;overflow:auto"><table><thead><tr><th>对象</th><th>谁拥有正式事实</th><th>界面显示</th><th>变更与恢复</th></tr></thead><tbody>
+        <tr><td>需求、设计与任务</td><td>项目与规划域</td><td>当前依据、修订、采用关系与缺口</td><td>版本冲突保留草稿，重新预览，不沿用旧批准</td></tr>
+        <tr><td>执行、模型与工具</td><td>唯一Go DAG、Runner及各适配器合同</td><td>运行/attempt、原路由、许可、已知或未知用量</td><td>原操作回执；跨工具切换须停止核对和新绑定</td></tr>
+        <tr><td>候选、测试与交付</td><td>质量与交付域</td><td>准确候选、独立测试、人工验收与发布分别展示</td><td>依据改变使当前资格失效；保留历史证据</td></tr>
+        <tr><td>安全配置与预算</td><td>当前授权与领域策略</td><td>值、来源、修订、约束及作用范围</td><td>授权取交集、额度共同约束，秘密只引用；不使用通用高优先级覆盖</td></tr>
+        <tr><td>知识与讨论</td><td>知识资产与平台讨论域</td><td>用户允许的摘要、来源与固定发布修订</td><td>新执行重建明确上下文，不搬工具隐藏会话和私有登录态</td></tr>
+      </tbody></table></div>
+      <h3>21.3 扩展与失败处理矩阵</h3>
+      <div class="panel" style="padding:0;overflow:auto"><table><thead><tr><th>能力或失败</th><th>交互反馈</th><th>服务端规则</th><th>必要验收</th></tr></thead><tbody>
+        <tr><td>插件/MCP/A2A连接</td><td>声明、配置、探测、授权与真实调用分别显示</td><td>版本化manifest、受限端口、原远端任务映射；不新增调度权威</td><td>真实协议调用、撤权、等待输入、取消与未知结果</td></tr>
+        <tr><td>预算耗尽或候选不可用</td><td>显示限制来源，提供加额或重新预览</td><td>停止新准入；固定已授权候选内新决策，不跨驻留边界静默替换</td><td>最后额度竞争、部分用量及无重复外发</td></tr>
+        <tr><td>网络断开或响应丢失</td><td>保持“结果待核对”，保留原请求</td><td>原幂等回执或匹配缓存恢复；未知作用不重放</td><td>断网、重启、原操作核对及事件续传</td></tr>
+        <tr><td>停止请求未获证明</td><td>区分停止中与已停止，阻止误导性继续按钮</td><td>保留原attempt和资源约束；旧fence不能改新执行</td><td>进程残留、迟到回调与安全交接</td></tr>
+        <tr><td>授权/来源在预览后改变</td><td>草稿不丢，显示失效依据及重新预览入口</td><td>提交事务复核，不能依赖前端按钮或旧授权快照</td><td>撤权竞争、原回执读取与跨租户拒绝</td></tr>
+        <tr><td>部署包和健康误判</td><td>进程、数据库、组件探测与生产验收分层</td><td>当前Helm单副本；集群需真实共享库和多实例竞争验收</td><td>真实主机、数据库与制品一致恢复</td></tr>
+      </tbody></table></div>
+      <h3>21.4 实施与阅读路径</h3>
+      <ol>
+        <li>冻结状态所有权、固定依据和强类型命令；共享接口由集成者维护，按文件归属并行。</li>
+        <li>将样稿操作映射到既有领域服务；新增字段级配置、能力资格和失败恢复只在相关合同内实现。</li>
+        <li>先验证授权、版本、幂等、预算和停止，再验证代表性中英/窄屏/键盘交互；真实厂商与生产另留证据。</li>
+        <li>交付同步唯一实施计划和状态，不把80项目标目录当已完成清单，不将静态样稿当功能验收。</li>
+      </ol>
+      <div class="note">配套：<a href="design/unified-experience.md">统一体验</a> · <a href="architecture/unified-capability-orchestration.md">能力编排架构</a> · <a href="integrations/development-tool-matrix.md">工具能力矩阵</a> · <a href="delivery/implementation-plan.md">唯一实施计划</a> · <a href="quality/verification.md">实际验证入口</a>。</div>
+    </section>
+
+    <footer>速码 suma · 一栈式智能研发平台 · 架构 / PRD / 功能 / 交互规格 v1.0.0-r6 · 设计边界校正与交互落地 · 参照 multica / cindy / workbuddy / octop / opencode / zed / codex / harness 等增强 · 2026-10-29</footer>
   </main>
 </div>
 
 <button id="toTop" title="返回顶部" aria-label="返回顶部">↑</button>
-<div class="lightbox" id="lb" aria-hidden="true"><div class="lb-inner" id="lbInner" title="点击关闭"></div></div>
+<dialog class="lightbox" id="lb" aria-label="图表放大查看"><div class="lb-inner"><div class="lb-toolbar"><p id="lbTitle">图表放大查看</p><button class="btn" type="button" id="lbClose" autofocus>关闭图表</button></div><div id="lbInner"></div></div></dialog>
 
 <script>
   const root=document.documentElement;
-  const savedT=localStorage.getItem('suma-theme');
-  if(savedT) root.setAttribute('data-theme',savedT);
-  document.getElementById('themeBtn').onclick=()=>{
-    const cur=root.getAttribute('data-theme')==='dark'?'light':'dark';
-    root.setAttribute('data-theme',cur); localStorage.setItem('suma-theme',cur);
-  };
+  const pref={get(key){try{return localStorage.getItem(key)}catch{return null}},set(key,value){try{localStorage.setItem(key,value)}catch{}}};
+  const themeBtn=document.getElementById('themeBtn');
+  function setTheme(theme){root.setAttribute('data-theme',theme);themeBtn.setAttribute('aria-pressed',String(theme==='dark'));themeBtn.setAttribute('aria-label',theme==='dark'?'切换浅色主题':'切换深色主题');themeBtn.textContent=theme==='dark'?'☀ 浅色主题':'☾ 深色主题';}
+  setTheme(pref.get('suma-theme')==='dark'?'dark':'light');
+  themeBtn.onclick=()=>{const theme=root.getAttribute('data-theme')==='dark'?'light':'dark';setTheme(theme);pref.set('suma-theme',theme);};
   document.getElementById('exportBtn').onclick=()=>window.print();
 
-  // tabs
-  const tabs=document.querySelectorAll('#domTabs .tab');
-  tabs.forEach(t=>t.onclick=()=>{
-    tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active');
-    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-    const el=document.getElementById(t.dataset.d); if(el) el.classList.add('active');
+  // Accessible tabs: arrow/Home/End navigation and one tab stop.
+  const tabs=[...document.querySelectorAll('#domTabs .tab')];
+  function activateTab(tab,focus=false){
+    tabs.forEach(t=>{const active=t===tab;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active));t.tabIndex=active?0:-1;const panel=document.getElementById(t.dataset.d);panel.classList.toggle('active',active);panel.hidden=!active;});
+    pref.set('suma-domain-tab',tab.dataset.d);if(focus)tab.focus();
+  }
+  tabs.forEach((tab,index)=>{
+    tab.id='tab-'+tab.dataset.d;tab.setAttribute('role','tab');tab.setAttribute('aria-controls',tab.dataset.d);
+    const panel=document.getElementById(tab.dataset.d);panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',tab.id);panel.tabIndex=0;
+    tab.onclick=()=>activateTab(tab);
+    tab.addEventListener('keydown',event=>{let next=index;if(event.key==='ArrowRight')next=(index+1)%tabs.length;else if(event.key==='ArrowLeft')next=(index+tabs.length-1)%tabs.length;else if(event.key==='Home')next=0;else if(event.key==='End')next=tabs.length-1;else return;event.preventDefault();activateTab(tabs[next],true);});
   });
+  activateTab(tabs.find(t=>t.dataset.d===pref.get('suma-domain-tab'))||tabs[0]);
+  const chapterSearch=document.getElementById('chapterSearch'),chapterResults=document.getElementById('chapterResults');
+  const chapterLinks=[...document.querySelectorAll('#sidebar a[href^="#s"]')];
+  chapterSearch.addEventListener('input',()=>{
+    const query=chapterSearch.value.trim().toLowerCase();let count=0;
+    chapterLinks.forEach(link=>{const section=document.getElementById(link.hash.slice(1));const hit=!query||(link.textContent+' '+[...section.querySelectorAll('h2,h3')].map(h=>h.firstChild.textContent).join(' ')).toLowerCase().includes(query);link.hidden=!hit;if(hit)count++;});
+    chapterResults.textContent=query?count+' 个匹配章节（正文保持完整）':'共 '+chapterLinks.length+' 个章节';
+  });
+  const chaptersBtn=document.getElementById('chaptersBtn'),sidebar=document.getElementById('sidebar');
+  const closeChaptersBtn=document.getElementById('closeChaptersBtn');
+  const drawerBackground=[document.querySelector('.main'),document.querySelector('.topbar'),document.getElementById('toTop')];
+  let drawerInertState=[];
+  function closeChapters(restoreFocus=true){
+    if(!sidebar.classList.contains('open'))return;
+    sidebar.classList.remove('open');chaptersBtn.setAttribute('aria-expanded','false');sidebar.removeAttribute('role');sidebar.removeAttribute('aria-modal');
+    drawerInertState.forEach(([el,inert])=>{el.inert=inert;});drawerInertState=[];
+    if(restoreFocus)(matchMedia('(max-width:980px)').matches?chaptersBtn:chapterSearch).focus();
+  }
+  chaptersBtn.onclick=()=>{
+    if(sidebar.classList.contains('open')){closeChapters();return;}
+    drawerInertState=drawerBackground.filter(Boolean).map(el=>[el,el.inert]);drawerInertState.forEach(([el])=>{el.inert=true;});
+    sidebar.classList.add('open');sidebar.setAttribute('role','dialog');sidebar.setAttribute('aria-modal','true');chaptersBtn.setAttribute('aria-expanded','true');chapterSearch.focus();
+  };
+  closeChaptersBtn.onclick=()=>closeChapters();
+  chapterLinks.forEach(a=>a.addEventListener('click',()=>{closeChapters(false);const h=document.getElementById(a.hash.slice(1)).querySelector('h1,h2');h.tabIndex=-1;h.focus({preventScroll:true});}));
+  sidebar.addEventListener('keydown',e=>{
+    if(!sidebar.classList.contains('open'))return;
+    if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeChapters();return;}
+    if(e.key==='Tab'){
+      const focusable=[...sidebar.querySelectorAll('button,input,a[href]')].filter(el=>!el.hidden&&el.offsetParent!==null&&!el.disabled);
+      const first=focusable[0],last=focusable[focusable.length-1];
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+    }
+  });
+  matchMedia('(max-width:980px)').addEventListener('change',e=>{if(!e.matches)closeChapters();});
+  chapterSearch.dispatchEvent(new Event('input'));
+  chapterSearch.addEventListener('keydown',e=>{if(e.key==='Enter'){const first=chapterLinks.find(a=>!a.hidden);if(first){first.click();document.getElementById(first.hash.slice(1)).querySelector('h1,h2')?.focus();}}if(e.key==='Escape'&&!sidebar.classList.contains('open')){chapterSearch.value='';chapterSearch.dispatchEvent(new Event('input'));}});
 
   // filters (features + gaps)
   function bindFilter(barId, tableId){
     const bar=document.getElementById(barId); if(!bar) return;
+    bar.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',String(c.classList.contains('active'))));
     bar.addEventListener('click',e=>{
       const c=e.target.closest('.chip'); if(!c) return;
-      [...bar.children].forEach(x=>x.classList.remove('active')); c.classList.add('active');
+      bar.querySelectorAll('.chip').forEach(x=>{x.classList.remove('active');x.setAttribute('aria-pressed','false');}); c.classList.add('active');c.setAttribute('aria-pressed','true');
       const f=c.dataset.f;
       document.querySelectorAll('#'+tableId+' tbody tr').forEach(r=>{
         r.style.display=(f==='all'||r.dataset.p===f)?'':'none';
@@ -1665,51 +1789,56 @@
       const okT=!fText||r.textContent.toLowerCase().includes(fText);
       const show=okP&&okT; r.style.display=show?'':'none'; if(show)n++;
     });
-    fCnt.textContent=n+' 项';
+    fCnt.textContent=n+' / '+document.querySelectorAll('#ftable tbody tr').length+' 项';
   }
   fSearch.addEventListener('input',()=>{fText=fSearch.value.trim().toLowerCase();applyFeatureFilter();});
   document.getElementById('fFilter').addEventListener('click',e=>{if(e.target.closest('.chip'))applyFeatureFilter();});
   applyFeatureFilter();
 
-  // Tab 状态记忆
-  const tabsAll=[...document.querySelectorAll('#domTabs .tab')];
-  const savedTab=localStorage.getItem('suma-domain-tab');
-  if(savedTab){const t=tabsAll.find(x=>x.dataset.d===savedTab); if(t) t.click();}
-  tabsAll.forEach(t=>t.addEventListener('click',()=>localStorage.setItem('suma-domain-tab',t.dataset.d)));
-
   // 快捷键：T 切主题 / F 聚焦搜索（输入框内不触发）
   addEventListener('keydown',e=>{
-    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    if(e.metaKey||e.ctrlKey||e.altKey||document.getElementById('lb').open||sidebar.classList.contains('open')) return;
     const tag=(document.activeElement&&document.activeElement.tagName)||'';
-    if(tag==='INPUT'||tag==='TEXTAREA') return;
+    if(tag==='INPUT'||tag==='TEXTAREA'||document.activeElement?.isContentEditable) return;
     if(e.key==='t'||e.key==='T'){document.getElementById('themeBtn').click();}
     if(e.key==='f'||e.key==='F'){e.preventDefault();fSearch.focus();fSearch.select();}
   });
 
-  // SVG 图灯箱：点击放大查看，Esc/点击遮罩关闭
-  const lb=document.getElementById('lb'), lbInner=document.getElementById('lbInner');
-  if(lb && lbInner){
-    document.querySelectorAll('.svg-wrap').forEach(w=>{
-      w.setAttribute('title','点击放大查看图表');
-      w.addEventListener('click',e=>{
-        e.stopPropagation();
-        const svg=w.querySelector('svg'); if(!svg) return;
-        const clone=svg.cloneNode(true);
-        clone.style.maxWidth='100%'; clone.style.height='auto';
-        lbInner.innerHTML=''; lbInner.appendChild(clone);
-        lb.classList.add('open'); lb.setAttribute('aria-hidden','false');
+  // Native modal isolates the background and supplies keyboard focus containment.
+  const lb=document.getElementById('lb'),lbInner=document.getElementById('lbInner'),lbClose=document.getElementById('lbClose');
+  let diagramTrigger=null,diagramSerial=0;
+  function closeDiagram(){if(lb.open)lb.close();}
+  lbClose.onclick=closeDiagram;
+  lb.addEventListener('cancel',e=>{e.preventDefault();closeDiagram();});
+  lb.addEventListener('click',e=>{if(e.target===lb)closeDiagram();});
+  lb.addEventListener('close',()=>{lbInner.replaceChildren();if(diagramTrigger?.isConnected)diagramTrigger.focus({preventScroll:true});diagramTrigger=null;});
+  document.querySelectorAll('.svg-wrap').forEach(w=>{
+    const source=w.querySelector('svg');if(!source)return;
+    const name=source.getAttribute('aria-label')||'图表';
+    w.tabIndex=0;w.setAttribute('role','button');w.setAttribute('aria-label','放大查看：'+name);w.setAttribute('aria-haspopup','dialog');w.setAttribute('aria-controls','lb');w.setAttribute('title','点击或按 Enter/空格放大图表');
+    function openDiagram(){
+      if(lb.open)return;
+      const clone=source.cloneNode(true),prefix='diagram-'+(++diagramSerial)+'-',ids=new Map();
+      [clone,...clone.querySelectorAll('[id]')].forEach(el=>{if(el.id){ids.set(el.id,prefix+el.id);el.id=prefix+el.id;}});
+      [clone,...clone.querySelectorAll('*')].forEach(el=>{
+        [...el.attributes].forEach(attr=>{
+          let value=attr.value;
+          ids.forEach((next,old)=>{value=value.split('url(#'+old+')').join('url(#'+next+')');if((attr.name==='href'||attr.name==='xlink:href')&&value==='#'+old)value='#'+next;});
+          if(attr.name==='aria-labelledby'||attr.name==='aria-describedby')value=value.split(/\s+/).map(id=>ids.get(id)||id).join(' ');
+          if(value!==attr.value)el.setAttribute(attr.name,value);
+        });
       });
-    });
-    const closeLb=()=>{lb.classList.remove('open'); lb.setAttribute('aria-hidden','true');};
-    lb.addEventListener('click',closeLb);
-    lb.addEventListener('keydown',e=>{if(e.key==='Escape')closeLb();});
-    addEventListener('keydown',e=>{if(e.key==='Escape'&&lb.classList.contains('open'))closeLb();});
-  }
+      clone.style.maxWidth='100%';clone.style.height='auto';lbInner.replaceChildren(clone);document.getElementById('lbTitle').textContent=name;
+      diagramTrigger=w;lb.showModal();lbClose.focus();
+    }
+    w.addEventListener('click',openDiagram);
+    w.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openDiagram();}});
+  });
 
   // 标题锚点：悬停显示 #，点击复制链接
   document.querySelectorAll('section h2, section h3').forEach((h,i)=>{
     const id='h-'+h.textContent.trim().replace(/^[0-9·\s]+/,'').replace(/\s+/g,'-').slice(0,24)||('h-'+i);
-    h.id=id;
+    h.id=id; h.tabIndex=-1;
     const a=document.createElement('a');a.className='hlink';a.href='#'+id;a.textContent='#';a.title='复制本节链接';
     a.addEventListener('click',e=>{
       e.preventDefault();

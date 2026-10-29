@@ -2,6 +2,8 @@
 
 T-WORKLOG-135推进原P3人员协作：开发→计划→工时及同源Go CLI，当前人员身份、任务版本、明确代办、更正／作废不可变历史、组织跨项目每日1440分钟事务上限与原操作恢复。见[合同](../../contracts/worklogs.md)、[架构](../architecture/worklogs.md)、[限定报告](../quality/worklogs-verification.md)和[摘要](../quality/worklogs-summary.json)。登记是人员声明，非自动测量、审批、工资或机器计费。完整58／34／92不变，真实GUI／其他数据库、HR／组织容量与全平台仍待交付。
 
+T-DESIGN-135继续深化[架构主规格](../suma-architecture-design.html#s21)及[统一体验](../design/unified-experience.md)：十二个可操作工作区，新增模型四通道／Harness接续、团队分工／负载、事件规则／未知核对、缺陷修复周期、配置继承与离线三方比较。主规格按来源分开当前事实、目标和待验；[阶段验证](../quality/design-workflows-verification.md)仅证明设计与本地合成样稿。无新增生产集成，58／34／92不变。
+
 本轮 T-PLATFORM-DESIGN-134 完成全平台设计细化与可点击样稿：[统一体验](../design/unified-experience.md)、[编排架构](../architecture/unified-capability-orchestration.md)、[工具／Harness矩阵](../integrations/development-tool-matrix.md)、[样稿](../design/prototypes/enterprise-workbench.html)。覆盖11项业务闭环、八个演示工作区、配置继承、调度背压和部署开放门槛；[验证报告](../quality/platform-design-verification.md)只证明设计样稿交互，不代表生产页面、新适配器或真实服务集成完成。源码实现基线仍为下述各专项，完整58／34／92保持不变。
 
 更新：2026-10-29。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–26 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。

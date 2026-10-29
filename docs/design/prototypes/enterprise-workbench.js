@@ -63,6 +63,8 @@ const state = {route:'portfolio',query:'',owner:'all',portfolioMode:innerWidth<7
 let previousFocus = null;
 let toastTimer;
 const main = $('#main');
+const extensionViews = new Map();
+const extensionActions = new Map();
 const calendarDay = day => day <= 31 ? `10/${day}` : `11/${day-31}`;
 const weeklyHours = (list, owner, start) => list.filter(t=>t.owner===owner).reduce((sum,t)=>sum+t.hours*Math.max(0,Math.min(t.end,start+6)-Math.max(t.start,start)+1)/(t.end-t.start+1),0);
 function heading(route,title,description,actions=''){return `<div class="page-heading"><div><div class="eyebrow">${icon(navItems.find(item=>item[0]===route)[1])}${navItems.find(item=>item[0]===route)[3]} <span class="muted">/ 示例工作区</span></div><h1>${title}</h1><p>${description}</p></div><div class="heading-actions">${actions}</div></div>`;}
@@ -70,9 +72,10 @@ function section(title,body,subtitle='',action='',classes=''){return `<section c
 function toast(message){$('#toast').textContent=message;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').textContent='',5500);}
 function render(){
   const focusAttributes=document.activeElement?.matches('[data-action]')?[...document.activeElement.attributes].filter(a=>a.name.startsWith('data-')).map(a=>[a.name,a.value]):null;
-  $('#navigation').innerHTML=navItems.map(([id,name,title])=>`<a href="#${id}" ${id===state.route?'aria-current="page"':''}>${icon(name)}<span>${title}</span></a>`).join('');
+  const groups=[['交付工作',['portfolio','requirements','planning','quality']],['协作与运行',['teams','execution','automation']],['能力与治理',['connections','models','assets','architecture','configuration']]];
+  $('#navigation').innerHTML=groups.map(([label,ids])=>`<div class="nav-group-label">${label}</div>${ids.map(id=>navItems.find(item=>item[0]===id)).filter(Boolean).map(([id,name,title])=>`<a href="#${id}" title="${title}" ${id===state.route?'aria-current="page"':''}>${icon(name)}<span>${title}</span></a>`).join('')}`).join('');
   $('#crumb').textContent=navItems.find(item=>item[0]===state.route)[2];
-  main.innerHTML=({portfolio,requirements,planning,execution,connections,quality,assets,configuration}[state.route])();
+  main.innerHTML=(extensionViews.get(state.route)||{portfolio,requirements,planning,execution,connections,quality,assets,configuration}[state.route])();
   if(focusAttributes){const equivalent=[...main.querySelectorAll('[data-action]')].find(el=>focusAttributes.every(([name,value])=>el.getAttribute(name)===value));equivalent?.focus({preventScroll:true});}
 }
 function navigate(route){
@@ -177,6 +180,7 @@ document.addEventListener('click',event=>{
   if(event.target.closest('#navigation a,.brand')){closeNavigation(false);if(event.target.closest('a').hash===location.hash)main.focus({preventScroll:true});}
   const target=event.target.closest('[data-action]');if(!target||target.disabled)return;
   const action=target.dataset.action;
+  if(extensionActions.has(action)){extensionActions.get(action)(target,event);return;}
   if(simpleDetails[action]){const [title,sub,body,next]=simpleDetails[action];showDetail(title,sub,`<div class="detail-section"><h3>当前依据</h3><p>${body}</p></div><div class="callout">${next}</div>`,button('返回原位置','close-detail'));return;}
   switch(action){
     case 'navigate': location.hash=target.dataset.route;break;
@@ -228,9 +232,14 @@ $('#menu-toggle').innerHTML=icon('menu');$('#theme-toggle').innerHTML=icon('moon
 $('#menu-toggle').addEventListener('click',()=>{const open=$('#sidebar').classList.toggle('mobile-open');$('#menu-toggle').setAttribute('aria-expanded',String(open));if(open){$('#sidebar').setAttribute('role','dialog');$('#sidebar').setAttribute('aria-modal','true');$('.workspace').inert=true;document.body.style.overflow='hidden';$('#nav-close').focus();}else closeNavigation();});
 $('#nav-close').addEventListener('click',()=>closeNavigation());
 $('#theme-toggle').addEventListener('click',()=>{const dark=document.documentElement.dataset.theme!=='dark';document.documentElement.dataset.theme=dark?'dark':'light';$('#theme-toggle').innerHTML=icon(dark?'sun':'moon');$('#theme-toggle').setAttribute('aria-label',dark?'切换为浅色主题':'切换为深色主题');});
-$('#help-button').addEventListener('click',()=>showModal('关于这份交互设计稿','<p class="prose">这是面向讨论与评审的可点击设计样稿。项目、日期、金额、任务与结果均为示例。页面不读取秘密、不连接真实服务，也不执行模型调用、任务派发或部署。</p><div class="callout spaced">试用路径：组织交付台 → 协调排期 → 审阅派发 → 质量与发布。草稿在页面切换中保留，刷新后恢复初始示例。</div><p class="prose spaced">八个入口用于集中演示跨领域流程，不替换当前产品的组织／项目导航。范围、实现状态与官方来源分别见统一体验设计、编排架构和开发工具接入矩阵。</p>'));
+$('#help-button').addEventListener('click',()=>showModal('关于这份交互设计稿','<p class="prose">这是面向讨论与评审的可点击设计样稿。项目、日期、金额、任务与结果均为示例。页面不读取秘密、不连接真实服务，也不执行模型调用、任务派发或部署。</p><div class="callout spaced">试用路径：组织交付台 → 协调排期 → 审阅派发 → 质量与发布。草稿在页面切换中保留，刷新后恢复初始示例。</div><p class="prose spaced">十二个工作区入口用于集中演示跨领域流程，不替换当前产品的组织／项目导航。范围、实现状态与官方来源分别见统一体验设计、编排架构和开发工具接入矩阵。</p>'));
 $('#drawer-backdrop').addEventListener('click',()=>closeDetail());
 document.addEventListener('keydown',event=>{if(event.key==='Escape'){if(!$('#detail').hidden)closeDetail();closeNavigation();}const trap=!$('#detail').hidden?$('#detail'):$('#sidebar').classList.contains('mobile-open')?$('#sidebar'):null;if(event.key==='Tab'&&trap){const focusable=[...trap.querySelectorAll('button:not(:disabled),a[href],input,select,textarea')].filter(el=>el.getClientRects().length);const first=focusable[0],last=focusable.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}});
 window.addEventListener('hashchange',()=>navigate(location.hash.slice(1)));
 window.matchMedia('(max-width:767px)').addEventListener('change',event=>{if(!event.matches)closeNavigation(false);if(!state.portfolioUserChoice){state.portfolioMode=event.matches?'cards':'table';if(state.route==='portfolio')render();}});
-state.route=navItems.some(item=>item[0]===location.hash.slice(1))?location.hash.slice(1):'portfolio';render();
+window.SumaPrototype={state,icon,button,pill,section,heading,showDetail,showModal,closeModal,closeDetail,toast,escapeHTML,render,navigate,
+  baseView(id){return {portfolio,requirements,planning,execution,connections,quality,assets,configuration}[id]();},
+  registerViews(views){for(const view of views){if(!navItems.some(item=>item[0]===view.id))navItems.push([view.id,view.icon||'grid',view.title,view.eyebrow||view.id.toUpperCase()]);extensionViews.set(view.id,view.render);}},
+  registerAction(name,handler){extensionActions.set(name,handler);},
+  start(){state.route=navItems.some(item=>item[0]===location.hash.slice(1))?location.hash.slice(1):'portfolio';render();}
+};

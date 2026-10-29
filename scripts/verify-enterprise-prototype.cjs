@@ -4,7 +4,7 @@ const {pathToFileURL}=require('node:url');
 const assert=require('node:assert/strict');
 const {chromium}=require(process.env.SUMA_PLAYWRIGHT_MODULE || 'playwright');
 (async()=>{
- const root=process.cwd(),out=path.join(root,'dist/quality/platform-design-134');fs.mkdirSync(out,{recursive:true});
+ const root=process.cwd(),out=path.join(root,process.env.SUMA_PROTOTYPE_EVIDENCE_DIR||'dist/quality/platform-design-134');fs.mkdirSync(out,{recursive:true});
  const browser=await chromium.launch({headless:true,executablePath:process.env.SUMA_CHROME_PATH || undefined});
  const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
  const errors=[],external=[],checks=[];
