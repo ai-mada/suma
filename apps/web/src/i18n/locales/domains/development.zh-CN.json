@@ -434,6 +434,7 @@
   "development.node.binding_option": "{{id}} · 当前绑定，未在已加载窗口内",
   "development.node.fixed_binding": "固定配置 <id>{{id}}</id> · <fingerprint>{{fingerprint}}</fingerprint>",
   "development.workflow.type.command": "命令",
+  "development.workflow.type.terminal_session": "交互终端",
   "development.workflow.type.test": "测试",
   "development.workflow.type.approval": "人工审批",
   "development.workflow.type.condition": "条件",

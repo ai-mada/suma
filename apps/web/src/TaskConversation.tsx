@@ -12,7 +12,8 @@ import {validConversationBody, validConversationReceipt, validConversationReques
 import {TaskConversationReply} from './TaskConversationReply';
 import './TaskConversation.css';
 
-type Props = {session: Session; project: string; taskId: string; refresh: number; accessBlocked: boolean};
+type Props = {session: Session; project: string; taskId: string; refresh: number; accessBlocked: boolean;
+  onDevelopmentStarted?: () => Promise<unknown> | void};
 const t = (key: string, values?: Record<string, unknown>) => tr('task-conversation.' + key, values);
 
 /** This is an immutable human/API discussion, not a synthetic agent transcript.
@@ -24,7 +25,7 @@ export function TaskConversation(props: Props) {
   return props.taskId ? <ConversationScope key={scope + ':' + caller.current.epoch} {...props} scope={scope}/> : null;
 }
 
-function ConversationScope({session, project, taskId, refresh, scope, accessBlocked}: Props & {scope: string}) {
+function ConversationScope({session, project, taskId, refresh, scope, accessBlocked, onDevelopmentStarted}: Props & {scope: string}) {
   useLocale();
   const api = useApi(), bodyID = useId();
   const [open, setOpen] = useState(false), [draft, setDraft] = useState('');
@@ -142,7 +143,7 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
       </>}
       <TaskConversationReply session={session} project={project} taskId={taskId} page={page}
         accessBlocked={denied} disabled={locked || !!text || !!read.error || !!read.loading || !page?.can_post}
-        refresh={refresh} onMessagesRefresh={read.read} onLockChange={setReplyLocked}/>
+        refresh={refresh} onMessagesRefresh={read.read} onLockChange={setReplyLocked} onDevelopmentStarted={onDevelopmentStarted}/>
     </div>}
   </section>;
 }

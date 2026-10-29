@@ -55,7 +55,7 @@ func ValidProtocol(protocol string) bool {
 // SupportsWorkspaceObservationProfile identifies profile kinds that can expose
 // an attempt workspace. Validation and current broker inventory remain separate.
 func SupportsWorkspaceObservationProfile(p Profile) bool {
-	return SupportsWorkspaceWriteProfile(p) || p.Adapter == "codex" && p.Protocol == cc.Protocol && !p.ReadOnly && p.WorkspaceToolsVersion == ""
+	return SupportsWorkspaceWriteProfile(p) || SupportsTerminalSessionProfile(p) || p.Adapter == "codex" && p.Protocol == cc.Protocol && !p.ReadOnly && p.WorkspaceToolsVersion == ""
 }
 
 // SupportsWorkspaceWriteProfile identifies the implemented host CAS bridge;
@@ -65,6 +65,9 @@ func SupportsWorkspaceWriteProfile(p Profile) bool {
 }
 
 func ValidateProfile(p Profile, complete bool) error {
+	if err := validateTerminalSessionProfile(p); err != nil {
+		return err
+	}
 	if p.TaskConversationReply != nil && !SupportsTaskConversationReplyProfile(p) {
 		return fmt.Errorf("invalid dedicated task conversation reply capability")
 	}

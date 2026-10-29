@@ -104,6 +104,7 @@ export function WorkflowNodeList({
             >
               <span className="workflow-node-choice-text">
                 <strong>{node.name}</strong>
+                {node.type === 'terminal_session' && <small>{t('development.workflow.type.terminal_session')}</small>}
                 <small>
                   {node.fence && node.fence > 0?t("development.responsive.attempt_fence",{attempt:attemptLabel(node),fence:node.fence}):attemptLabel(node)}
                 </small>

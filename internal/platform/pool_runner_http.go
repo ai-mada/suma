@@ -24,6 +24,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 		writeError(w, &APIError{401, "pool_runner_token_required", "资源池执行节点需要独立 Bearer 凭证", nil})
 		return true
 	}
+	if s.poolWorkspaceTerminalHTTP(w, r, token, path) {
+		return true
+	}
 	if s.poolWorkspaceWriteHTTP(w, r, token, path) {
 		return true
 	}
@@ -95,6 +98,13 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				return false, err
 			}
 			if err := s.Service.checkDispatchRecommendationExecutionTx(r.Context(), tx, scope.TenantID, scope.ProjectID, run); err != nil {
+				var apiErr *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Status >= 400 && apiErr.Status < 500 {
+					return false, nil
+				}
+				return false, err
+			}
+			if err := s.Service.checkWorkspaceTerminalExecutionTx(r.Context(), tx, scope.TenantID, scope.ProjectID, run, false); err != nil {
 				var apiErr *APIError
 				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Status >= 400 && apiErr.Status < 500 {
 					return false, nil
@@ -179,6 +189,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				return err
 			}
 			if err := s.Service.checkDispatchRecommendationExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID); err != nil {
+				return err
+			}
+			if err := s.Service.checkWorkspaceTerminalExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID, true); err != nil {
 				return err
 			}
 			if err := s.Service.checkTaskConversationReplyExecutionTx(r.Context(), tx, req.Assignment.TenantID, req.Assignment.ProjectID, req.Assignment.RunID); err != nil {
@@ -298,6 +311,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				return err
 			}
 			if err := s.Service.recordTaskConversationReplyOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {
+				return err
+			}
+			if err := s.Service.recordWorkspaceTerminalOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {
 				return err
 			}
 			if err := s.Service.recordKnowledgeIntelligenceOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result, authorize); err != nil {

@@ -83,6 +83,33 @@ function storage() {
 }
 afterEach(() => vi.unstubAllGlobals());
 describe("tool manifest and fixed task choices", () => {
+	it("imports dedicated terminal inventory without granting model, automation or workspace write capabilities", () => {
+		const terminal: ToolObservation = {
+			profile: { command_id: "interactive-shell", adapter: "command", protocol: "text-v1", profile_sha256: "e".repeat(64), executable_sha256: "f".repeat(64), tool_version: "1.0.0", read_only: false, terminal_session_protocol: "suma-pty-v1" },
+			available: true, reason: "Local ConPTY probe; session execution is separate",
+			workspace_observation_protocol: "workspace-observation-v1",
+		};
+		const before = JSON.stringify(terminal);
+		const imported = parseToolManifest(JSON.stringify({ schema_version: 1, execution_enabled: true, items: [terminal] }))[0];
+		expect(imported).toEqual(terminal);
+		expect(taskToolProtocol(imported.profile)).toBe(false);
+		expect(imported).not.toHaveProperty("workspace_write_protocol");
+		expect(JSON.stringify(terminal)).toBe(before);
+		for (const observation of [
+			{ ...terminal, env: { PRIVATE_KEY: "secret" } },
+			{ ...terminal, profile: { ...terminal.profile, env: { PRIVATE_KEY: "secret" } } },
+			{ ...terminal, profile: { ...terminal.profile, model_execution_protocol: "suma-model-execution-v1" } },
+			{ ...terminal, model_deployments: [{ deployment_id: "hidden-model" }] },
+			{ ...terminal, workspace_write_protocol: "workspace-write-v1" },
+			{ ...terminal, workspace_observation_protocol: "workspace-observation-v2" },
+			{ ...terminal, profile: { ...terminal.profile, terminal_session_protocol: "suma-pty-v2" } },
+			{ ...terminal, profile: { ...terminal.profile, terminal_session_protocol: null } },
+			{ ...terminal, profile: { ...terminal.profile, adapter: "suma", protocol: "suma-jsonl-v1" } },
+			{ ...terminal, profile: { ...terminal.profile, read_only: true } },
+			...(["workspace_tools_version", "test_report_protocol", "conflict_repair_protocol"] as const).map(field => ({ ...terminal, profile: { ...terminal.profile, [field]: "forged" } })),
+			...(["planning", "knowledge_extraction", "failure_diagnosis", "intelligent_operations", "task_conversation_reply", "dispatch_recommendation", "opencode_execution", "octop_execution"] as const).map(field => ({ ...terminal, profile: { ...terminal.profile, [field]: { protocol: "forged" } } })),
+		]) expect(() => parseToolManifest(JSON.stringify([observation]))).toThrow();
+	});
 	const nativeInventory = {
 		profile: { ...definition, workspace_tools_version: "attempt-workspace-v1", model_execution_protocol: "suma-model-execution-v1", conflict_repair_protocol: "suma.candidate-conflict-repair.v1" },
 		available: true,

@@ -149,6 +149,10 @@ function publicOrigin(value: unknown): boolean {
 }
 function validatePublicCapabilities(profile: Record<string, unknown>, observation: Record<string, unknown>) {
   const native = profile.adapter === "suma" && profile.protocol === "suma-jsonl-v1";
+  // A dedicated shell may expose live files for reading, but never borrows an
+  // agent's model, writable workspace tools, test proof or automation purpose.
+  const terminal = profile.terminal_session_protocol === "suma-pty-v1" && profile.adapter === "command" && profile.protocol === "text-v1" && profile.read_only === false && !profile.workspace_tools_version && !profile.model_execution_protocol && !profile.test_report_protocol && !profile.conflict_repair_protocol && !profile.planning && !profile.knowledge_extraction && !profile.failure_diagnosis && !profile.intelligent_operations && !profile.opencode_execution && !profile.octop_execution;
+  if (profile.terminal_session_protocol !== undefined && (typeof profile.terminal_session_protocol !== "string" || profile.terminal_session_protocol !== "" && !terminal)) invalidCapability();
   const openCode = profile.adapter === "opencode" && profile.protocol === "opencode-sdk-v1" && validOpenCodeCapability(profile.opencode_execution);
   const octop = profile.adapter === 'octop' && profile.protocol === 'octop-harness-acp-v1' && validOctopCapability(profile.octop_execution);
   if(profile.octop_execution!==undefined&&!octop||profile.adapter==='octop'&&(profile.protocol!=='octop-harness-acp-v1'||profile.read_only!==false||profile.model_execution_protocol!=='suma-model-execution-v1'||observation.available===true&&!octop||octop&&profile.workspace_tools_version!=='attempt-workspace-v1'))invalidCapability();
@@ -175,7 +179,7 @@ function validatePublicCapabilities(profile: Record<string, unknown>, observatio
   const read = observation.workspace_observation_protocol, write = observation.workspace_write_protocol;
   if (read !== undefined && typeof read !== "string" || write !== undefined && typeof write !== "string") invalidCapability();
   if (read || write) {
-    if ((!workspace && !codexWorkspace) || observation.available !== true || read !== "workspace-observation-v1" || write && (!workspace || write !== "workspace-write-v1")) invalidCapability();
+    if ((!workspace && !codexWorkspace && !terminal) || observation.available !== true || read !== "workspace-observation-v1" || write && (!workspace || write !== "workspace-write-v1")) invalidCapability();
   }
   if (observation.model_deployments !== undefined) {
     const deployments = observation.model_deployments;
@@ -222,6 +226,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
       "executable_sha256",
       "tool_version",
       "read_only",
+      "terminal_session_protocol",
       "workspace_tools_version", "model_execution_protocol", "conflict_repair_protocol", "test_report_protocol",
       "planning", "knowledge_extraction", "failure_diagnosis", "intelligent_operations", "opencode_execution", "octop_execution",
     ] satisfies (keyof ToolProfileDefinition)[]);

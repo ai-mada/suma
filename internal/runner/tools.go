@@ -449,6 +449,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 	}
 	for id, spec := range cfg.Commands {
 		spec = normalizedCommand(spec)
+		if err := validateTerminalSessionSpec(spec); err != nil {
+			return err
+		}
 		if _, err := localTaskConversationReplyCapability(spec); err != nil {
 			return err
 		}
@@ -526,6 +529,7 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 			defer func() { <-sem; done <- i }()
 			spec := normalizedCommand(cfg.Commands[id])
 			p := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec)}
+			p.TerminalSessionProtocol = terminalSessionProtocol(spec)
 			if spec.TaskConversationReply {
 				p.TaskConversationReply = &tc.TaskConversationReplyCapability{Protocol: tc.TaskConversationReplyProtocol}
 			}
@@ -568,6 +572,10 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 				return
 			}
 			o.Profile.ProfileSHA256 = digest
+			if err := probeTerminalSessionSpec(spec); err != nil {
+				fail(err.Error())
+				return
+			}
 			version, err := toolVersion(ctx, exe, spec, cfg.Secrets, cfg.Workspace)
 			if err != nil {
 				fail(err.Error())
@@ -667,6 +675,9 @@ func ToolCapabilities(items []tc.Observation) []string {
 
 func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec CommandSpec) (tc.Profile, string, error) {
 	spec = normalizedCommand(spec)
+	if err := probeTerminalSessionSpec(spec); err != nil {
+		return tc.Profile{}, "", err
+	}
 	if _, err := localTaskConversationReplyCapability(spec); err != nil {
 		return tc.Profile{}, "", err
 	}
@@ -715,6 +726,7 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 			return p, "", e
 		}
 		p = tc.Profile{CommandID: a.Command[0], Adapter: spec.Adapter, Protocol: spec.Protocol, ProfileSHA256: digest, ExecutableSHA256: sha, ToolVersion: version, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec)}
+		p.TerminalSessionProtocol = terminalSessionProtocol(spec)
 		p.OpenCodeExecution, err = localOpenCodeCapability(spec)
 		if err != nil {
 			return p, "", err
@@ -789,6 +801,9 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 	}
 	if p.ConflictRepairProtocol != expectedRepair {
 		return p, "", fmt.Errorf("conflict repair capability does not match local configuration")
+	}
+	if p.TerminalSessionProtocol != terminalSessionProtocol(spec) {
+		return p, "", fmt.Errorf("Terminal capability differs from local configuration")
 	}
 	expectedPlanning, err := localPlanningCapability(spec)
 	if err != nil || (p.Planning == nil) != (expectedPlanning == nil) || p.Planning != nil && *p.Planning != *expectedPlanning {

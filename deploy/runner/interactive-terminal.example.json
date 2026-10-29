@@ -1,0 +1,10 @@
+{
+  "terminal-cmd": {
+    "executable": "cmd.exe",
+    "args": ["/d", "/q", "/k"],
+    "adapter": "command",
+    "protocol": "text-v1",
+    "read_only": false,
+    "terminal_session": true
+  }
+}

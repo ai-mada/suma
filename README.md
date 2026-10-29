@@ -10,7 +10,8 @@
 - [需求验收追踪](docs/development/requirement-traceability.md)按当前正式版本连接发布、采用任务及确切运行，区分测试节点事实与人工验收；完整用例／应用版本矩阵继续待办。
 - [项目风险](docs/development/project-risks.md)支持正式登记、建议采用、责任／评估、任务处置、固定复核和关闭／重开；代码缓解复用当前正式验收与独立候选测试。
 - Go 持久 DAG、独立 Runner 和共享执行池支持固定计划、并发执行、进度回写、停止与未知结果核对。
-- [任务讨论与智能体回复](docs/development/task-conversation-replies.md)接入明确模型、单次参数、近期上下文及 Token／费用预算，复用原 Go 网关、DAG 与准确回复回执；[架构](docs/architecture/task-conversation-replies.md)、[合同](contracts/task-conversation-replies.md)及[当前验证](docs/quality/task-conversation-replies-verification.md)分别记录实现和验收范围。本地受控提供方的三轮／六条持久消息旅程及中英文1366／390实际界面已按报告限定验证。回复只生成文本，不执行终端命令、修改代码或验收成果；交互式 [PTY 终端](docs/architecture/interactive-terminal.md)仍待实现。
+- [交互终端与讨论开发交接](docs/development/interactive-development.md)使用原Go DAG和独立attempt工作树，真实PTY／xterm区分输入接受、送达、命令完成及停止结果；只重连原会话，不重发未知输入。Windows原生键盘、ConPTY终端及真实树停止已验证；原生交接沿新模型预算、原派发计划、同SHA独立Worker／JUnit、明确人工验收及问题回流通过本地受控旅程。最终Web只读复核不重复启动Worker、PTY或模型，实际范围与保留审计见[专项报告](docs/quality/interactive-development-verification.md)；HTTP轮询、创建者固定epoch1、Unix停止证明、跨平台及商业提供方验收仍分别限定。
+- [任务讨论与智能体回复](docs/development/task-conversation-replies.md)接入明确模型、单次参数、近期上下文及 Token／费用预算，复用原 Go 网关、DAG 与准确回复回执；[架构](docs/architecture/task-conversation-replies.md)、[合同](contracts/task-conversation-replies.md)及[当前验证](docs/quality/task-conversation-replies-verification.md)分别记录实现和验收范围。本地受控提供方的三轮／六条持久消息旅程及中英文1366／390实际界面已按报告限定验证。回复只生成文本，不执行终端命令、修改代码或验收成果；受控[PTY终端及明确开发交接](docs/development/interactive-development.md)的当前限定实现见T129入口，完整跨平台范围继续交付。
 - 原生智能体、受限外部 CLI 和 Codex app-server 复用隔离工作树、固定候选、独立测试及明确验收；工具或模型的可用范围以实际库存和专项证据为准。
 - 原生／OpenCode／Octop的Go宿主操作通过[工作区操作](docs/development/workspace-operations.md)关联真实调用、效果回执和确切尝试历史；SDK活动、本地采集、平台确认及独立测试分别表达。
 - 项目知识、记忆、规范和技能支持版本、审阅发布、授权共享及模型提案；专家团队支持逐任务配置、依赖编排和受控交接。

@@ -38,6 +38,7 @@ type CommandSpec struct {
 	IntelligentOperations  bool                   `json:"intelligent_operations,omitempty"`
 	DispatchRecommendation bool                   `json:"dispatch_recommendation,omitempty"`
 	TaskConversationReply  bool                   `json:"task_conversation_reply,omitempty"`
+	TerminalSession        bool                   `json:"terminal_session,omitempty"`
 	CandidateComposition   bool                   `json:"candidate_composition,omitempty"`
 	TestEvidence           bool                   `json:"test_evidence,omitempty"`
 	TestReport             bool                   `json:"test_report,omitempty"`
@@ -138,6 +139,7 @@ type ExecConfig struct {
 	ModelDeployments                     []ModelDeploymentSpec
 	WorkspaceObservations                *WorkspaceObservationRegistry
 	Artifacts                            *Client
+	TerminalClient                       *Client
 	Journal                              *Journal
 	resolvedArtifact                     *releasecontract.ArtifactBinding
 	candidateImport                      *cc.ImportReceipt
@@ -256,6 +258,12 @@ func (b *output) flushProgress() error {
 }
 func contains(a, b string) bool { return strings.Contains(a, b) }
 func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
+	if a.Type == "terminal_session" {
+		return ExecuteTerminalSession(ctx, a, cfg)
+	}
+	if len(a.Command) > 0 && cfg.Commands[a.Command[0]].TerminalSession {
+		return Result{Assignment: a, ExitCode: 1, Error: "Interactive shells require a protected terminal session"}
+	}
 	// Freeze nested reviewed bindings in the same wire form used by the
 	// journal and durable attempt. Typed in-process callers must not change
 	// identity merely because a saved attempt is decoded into JSON objects.

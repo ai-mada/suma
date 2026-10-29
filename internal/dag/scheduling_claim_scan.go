@@ -77,7 +77,7 @@ func capabilityFilter(caps []string) (string, []any) {
 	for _, c := range caps {
 		params = append(params, c)
 	}
-	return extra + ` AND ((q.node_type IN ('command','agent','test') AND ` + command + `) OR (q.node_type NOT IN ('command','agent','test') AND ` + other + `))`, params
+	return extra + ` AND ((q.node_type IN ('command','agent','test','terminal_session') AND ` + command + `) OR (q.node_type NOT IN ('command','agent','test','terminal_session') AND ` + other + `))`, params
 }
 
 // At most 16 indexed run heads and 64 matching node candidates per request.

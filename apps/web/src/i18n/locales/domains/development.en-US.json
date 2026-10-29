@@ -434,6 +434,7 @@
   "development.node.binding_option": "{{id}} · Current binding, outside loaded window",
   "development.node.fixed_binding": "Fixed configuration <id>{{id}}</id> · <fingerprint>{{fingerprint}}</fingerprint>",
   "development.workflow.type.command": "Command",
+  "development.workflow.type.terminal_session": "Interactive terminal",
   "development.workflow.type.test": "Test",
   "development.workflow.type.approval": "Human approval",
   "development.workflow.type.condition": "Condition",

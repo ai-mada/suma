@@ -1,0 +1,49 @@
+{
+  "stage": "T-TERMINAL-129",
+  "generated_at": "2026-10-29T06:09:08.790996+00:00",
+  "scope": "Pinned direct terminal declarations and copied upstream license bytes; not a binary SBOM or cross-platform delivery claim. Existing historical dependency snapshots remain historical.",
+  "direct_dependencies": [
+    {
+      "name": "github.com/aymanbagabas/go-pty",
+      "version": "v0.2.3",
+      "license": "MIT",
+      "license_file": "docs/delivery/licenses/go-pty-v0.2.3.LICENSE",
+      "license_sha256": "aa3df2110cf0f39305936b72071c4e894ffb6849970b8e6e2c9c583bd9be9adb",
+      "source": "https://github.com/aymanbagabas/go-pty/blob/v0.2.3/LICENSE"
+    },
+    {
+      "name": "@xterm/xterm",
+      "version": "6.0.0",
+      "license": "MIT",
+      "license_file": "docs/delivery/licenses/xterm-v6.0.0.LICENSE",
+      "license_sha256": "b569f629d00f2626a8100df2a1798210535621e42164dfd426a6fe5aac7b0ccd",
+      "source": "https://github.com/xtermjs/xterm.js/blob/6.0.0/LICENSE"
+    },
+    {
+      "name": "@xterm/addon-fit",
+      "version": "0.11.0",
+      "license": "MIT",
+      "license_file": "docs/delivery/licenses/xterm-addon-fit-v0.11.0.LICENSE",
+      "license_sha256": "e256f01188af527e4d06d21d06fbf785ae9c50d4b328bf03cbe0ba7f0aa4228f",
+      "source": "https://www.npmjs.com/package/@xterm/addon-fit/v/0.11.0"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "go.mod",
+      "sha256": "f21eec7aa0ca08e5760d0542f4ce4b8fd4b420578477ff32df9e89cd4a85eb08"
+    },
+    {
+      "path": "go.sum",
+      "sha256": "55c955a8c43c1b1cc2b81f380f63e616077bd71bc4360d0a33c5ff28b27446aa"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "aaecffea8c2f90fa7e4870b142cd703d58351a9731343ddb6eb7cdca8db2a7e4"
+    },
+    {
+      "path": "apps/web/package.json",
+      "sha256": "47ed523939d480c4bd14afbfbe1271c325749a9b2b8cd8b6a87c2403824d0542"
+    }
+  ]
+}

@@ -47,7 +47,7 @@ func capable(node *nodeState, capabilities []string) bool {
 	}
 	required, _ := node.spec.Config["capability"].(string)
 	commandRequired := ""
-	if node.Type == "command" || node.Type == "agent" || node.Type == "test" {
+	if node.Type == "command" || node.Type == "agent" || node.Type == "test" || node.Type == "terminal_session" {
 		if len(node.spec.Command) != 1 {
 			return false
 		}

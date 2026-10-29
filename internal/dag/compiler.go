@@ -7,7 +7,7 @@ import (
 )
 
 var identifier = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$`)
-var types = map[string]bool{"task": true, "command": true, "agent": true, "script": true, "test": true, "approval": true, "timer": true, "condition": true, "map": true, "join": true, "noop": true, "subworkflow": true, "external_workflow": true}
+var types = map[string]bool{"task": true, "command": true, "agent": true, "script": true, "test": true, "approval": true, "timer": true, "condition": true, "map": true, "join": true, "noop": true, "subworkflow": true, "external_workflow": true, "terminal_session": true}
 
 const maxExecutionTimeoutSeconds = 9223372036
 
@@ -41,7 +41,10 @@ func normalize(w Workflow) (Workflow, error) {
 			return w, dagDiagnostic(fmt.Errorf("%w: duplicate node %s", ErrInvalid, n.ID), "dag.node.duplicate", diagnosticParams{"node": n.ID})
 		}
 		seen[n.ID] = i
-		if n.Type == "command" || n.Type == "agent" || n.Type == "test" {
+		if n.Type == "terminal_session" && (n.MaxRetries != 0 || n.Idempotent || n.TimeoutSeconds < 60 || n.TimeoutSeconds > 3600) {
+			return w, fmt.Errorf("%w: terminal sessions require an explicit 60..3600 second limit and cannot retry", ErrInvalid)
+		}
+		if n.Type == "command" || n.Type == "agent" || n.Type == "test" || n.Type == "terminal_session" {
 			if len(n.Command) != 1 || !identifier.MatchString(n.Command[0]) {
 				return w, dagDiagnostic(fmt.Errorf("%w: command/agent/test require one allowlisted command identifier", ErrInvalid), "dag.node.command", nil)
 			}

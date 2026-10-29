@@ -343,6 +343,11 @@ func (s *Service) releaseClaimEligibleTx(ctx context.Context, tx *sql.Tx, auth *
 		return true, nil
 	}
 	// A task reply is a protected read-only managed run. Its own admission
+	if terminal, err := s.WorkspaceTerminalRunTx(ctx, tx, p.TenantID, project, run); err != nil {
+		return false, err
+	} else if terminal {
+		return true, nil
+	}
 	// rechecks the frozen context, creator and model; no deployment grant is used.
 	if _, reply, err := s.taskConversationReplyForRunTx(ctx, tx, p.TenantID, project, run); err != nil {
 		return false, err

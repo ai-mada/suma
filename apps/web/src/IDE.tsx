@@ -23,6 +23,7 @@ import {WorkspaceTree} from './WorkspaceTree';
 import {DesktopWorkspacePicker} from './DesktopWorkspacePicker';
 import {desktopWorkspaceBridge} from './desktop-workspace-model';
 import {WorkbenchTaskContext,type WorkbenchTaskContextProps} from './WorkbenchTaskContext';
+import {TerminalPanel} from './TerminalPanel';
 
 // All editor assets and workers are bundled locally. Monaco's ESM instance has
 // no public runtime NLS switch; the visible note states that precise boundary.
@@ -51,7 +52,7 @@ function ProjectIDE({project,session,selectedTask,refresh,onTaskSelect}:Workbenc
  <button type="button" id={sourceID+'-local-tab'} aria-controls={sourceID+'-local-panel'} role="tab" aria-selected={source==='local'} tabIndex={source==='local'?0:-1} onClick={()=>select('local')}>{t('remote-workspace.local')}</button>
  <button type="button" id={sourceID+'-remote-tab'} aria-controls={sourceID+'-remote-panel'} role="tab" aria-selected={source==='remote'} tabIndex={source==='remote'?0:-1} disabled={bindingBlocked} onClick={()=>select('remote')}>{t('remote-workspace.remote')}</button></div>
  <div id={sourceID+'-local-panel'} role="tabpanel" aria-labelledby={sourceID+'-local-tab'} hidden={source!=='local'}><LocalProjectIDE key={owner.current.epoch} project={project} scope={scope} active={source==='local'} onBindingBlocked={setBindingBlocked}/></div>
- <div id={sourceID+'-remote-panel'} role="tabpanel" aria-labelledby={sourceID+'-remote-tab'} hidden={source!=='remote'}>{remoteVisited&&<RemoteWorkspacePanel key={owner.current.epoch} project={project} active={source==='remote'}/>}</div></div>;
+ <div id={sourceID+'-remote-panel'} role="tabpanel" aria-labelledby={sourceID+'-remote-tab'} hidden={source!=='remote'}>{remoteVisited&&<RemoteWorkspacePanel key={owner.current.epoch} project={project} active={source==='remote'}/>}</div><TerminalPanel project={project} taskId={selectedTask} active disabled={bindingBlocked}/></div>;
 }
 function LocalProjectIDE({project,scope,active,onBindingBlocked}:{project:string;scope:string;active:boolean;onBindingBlocked:(blocked:boolean)=>void}){ const api=useApi();
  const locale=useLocale(),explorerID=useId();

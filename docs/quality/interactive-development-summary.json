@@ -1,0 +1,1048 @@
+{
+  "stage": "T-TERMINAL-129",
+  "date": "2026-10-29",
+  "product_version": "1.0.0",
+  "status": "scoped_native_development_and_windows_terminal_verified_with_preserved_original_fixture_failure",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "sha256": "379fd9b66bf9434922cc43bbfeb0f914b7fc78358a1fd4b97cbd61b0e4d99c0a",
+    "files": 97,
+    "inventory": ".cache/e2e/terminal-129/source-inventory.json",
+    "integration_parent": "ba8c31f86ff8ec11d96380b0723c08fb5ab9bdf9",
+    "previous_terminal_parent": "871723e7c647e6954b8afb50be34341e443f560a"
+  },
+  "checks": {
+    "distinct_go_top_tests": [
+      "TestCanonicalTemplateGrammarAndCatalogSnapshot",
+      "TestTaskDiscussionDevelopmentActualNativeAndIndependentQuality",
+      "TestTaskDiscussionDevelopmentPreservesSourceAndUsesOriginalDispatcher",
+      "TestTaskDiscussionDevelopmentRejectsStaleUnverifiedAndUnconsentedSources",
+      "TestTaskDiscussionDevelopmentStrictHTTPAndProjectScope",
+      "TestTerminalEnvironmentKeepsCredentialsAndUserHomesOutsideShell",
+      "TestTerminalExchangeReplaysExactOriginalAfterAcknowledgementLoss",
+      "TestTerminalRuntimeActualInputReceiptResizeAndTreeStop",
+      "TestTerminalRuntimeCrashIntentDoesNotInventDelivery",
+      "TestTerminalRuntimeOutputFileBoundAndExplicitReplayGap",
+      "TestWorkspaceTerminalOriginalDispatchAndUnknownInput",
+      "TestWorkspaceTerminalOutputReplayAndOriginalStopProof",
+      "TestWorkspaceTerminalRetainedBrowserReadback",
+      "TestWorkspaceTerminalTaskPersistenceAcrossCreateAndGet"
+    ],
+    "go_count": 14,
+    "distinct_web_behavior_cases": 11,
+    "skipped_web_cases_not_counted": 29,
+    "final_typecheck": true,
+    "final_isolated_web_build": true,
+    "generated_contract_check": true,
+    "generated_public_models": 681,
+    "openapi_schema_definitions": 682,
+    "api_paths": 315,
+    "catalog_keys": 6348,
+    "production_hardcodes": 0,
+    "terminal_paired_keys": 56,
+    "discussion_development_paired_keys": 36,
+    "documentation_check": {
+      "passed": true,
+      "command": "node scripts/check-docs.mjs",
+      "markdown_documents": 354,
+      "api_paths": 315,
+      "schema_references": 2993
+    },
+    "version_check": "not repeated: product identity/version unchanged",
+    "go_receipts": [
+      {
+        "path": ".cache/mcp019-deps/20261029T052246720Z.command.json",
+        "bytes": 1460,
+        "sha256": "79b4818b343d8dddece5a0b799b87d7363c4f9531c3128605e935bcdef966c59",
+        "arguments": [
+          "test",
+          "./internal/terminalruntime",
+          "./internal/runner",
+          "-run",
+          "^TestTerminal",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T052246720Z.stdout.txt",
+          "bytes": 401,
+          "sha256": "bf9006f12197bb51889f48fb7428310b3e888f9ca53e3b80f88863ae91a7adba"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T052246720Z.stderr.txt",
+          "bytes": 261,
+          "sha256": "1e583fb5a8a2d47d427f209b09f735acd619baf45f502958e621863ed3357bb8"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T052432942Z.command.json",
+        "bytes": 1428,
+        "sha256": "fceb9fd439b776ad927db11df877207d4f34030c35bf1c110a3efbfa1ede705c",
+        "arguments": [
+          "test",
+          "./internal/terminalruntime",
+          "./internal/runner",
+          "-run",
+          "^TestTerminal",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T052432942Z.stdout.txt",
+          "bytes": 801,
+          "sha256": "98cd1a4d0faec05c8930d3f9cde13604fdb4a12143a56d966a989ea32314fbba"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T052432942Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T052744797Z.command.json",
+        "bytes": 1483,
+        "sha256": "3f27c5461e5315663af1573a052c066e17915c54b9353b6ea3a3703c31abd42d",
+        "arguments": [
+          "test",
+          "./internal/terminalruntime",
+          "-run",
+          "^TestTerminalRuntime(ActualInputReceiptResizeAndTreeStop|OutputFileBoundAndExplicitReplayGap)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T052744797Z.stdout.txt",
+          "bytes": 589,
+          "sha256": "ca7884cff2299cf5bceb805249f4b9dce3cd95ff5f990eafa38cb2d8065f02a4"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T052744797Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T053119063Z.command.json",
+        "bytes": 1304,
+        "sha256": "b172fb6a37fe579f39aa80fa2f9c6c191f0f5e2ba19d74cb713a32f7645269cb",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T053119063Z.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T053119063Z.stderr.txt",
+          "bytes": 1122,
+          "sha256": "b3b00988ab13ebf654ca47a39cbd46556a94821bcb202d165e4f3deee746dc68"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T053304905Z.command.json",
+        "bytes": 1304,
+        "sha256": "acc078a630472fe5a5ad7e9e38271cafc9cc52b78801e433813eb3db3d134cba",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T053304905Z.stdout.txt",
+          "bytes": 70,
+          "sha256": "28442f8d6e6ae32e51f7b4c46ab02a58eb94a251fa7fda5cb8d55b7ca277b1f2"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T053304905Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T053327407Z.command.json",
+        "bytes": 1552,
+        "sha256": "436967a8879f7068aa1438558c6b8f6002fdc16db1d74249e5536204d021c762",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./internal/terminalruntime",
+          "./internal/runner",
+          "-run",
+          "^(TestTaskDiscussionDevelopment|TestWorkspaceTerminal|TestTerminalRuntimeActualInputReceiptResizeAndTreeStop)",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T053327407Z.stdout.txt",
+          "bytes": 1328,
+          "sha256": "bec44ff192e23dda18d57085a20445e8a2236346b7cb85750401fff0a76f0068"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T053327407Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T053536048Z.command.json",
+        "bytes": 1404,
+        "sha256": "a8cc84fb8924d00f3b84f2d130d182200eb7b80693e294e2f226e63b6838d356",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestWorkspaceTerminal",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T053536048Z.stdout.txt",
+          "bytes": 67,
+          "sha256": "207cc8bd19cba9758f55a27604aa90fdf14944823e80a361603ab1b8e2fa90d9"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T053536048Z.stderr.txt",
+          "bytes": 803,
+          "sha256": "364134bd88c0a7123ea3460f73ae608c005845d9e61ea5b453ed6730d3660c19"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T053650121Z.command.json",
+        "bytes": 1471,
+        "sha256": "7d4b548826aeeb28a6ba762e77998b98040323ca40b0bd26000eaaee4a783284",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestWorkspaceTerminal(OriginalDispatchAndUnknownInput|OutputReplayAndOriginalStopProof)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T053650121Z.stdout.txt",
+          "bytes": 329,
+          "sha256": "ea8a39e65306eeb646069e20a01224774651603591c5fb2df7496694697706bb"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T053650121Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T053812066Z.command.json",
+        "bytes": 1487,
+        "sha256": "739e70e05574903c9f467f5d5fb142ecab33e4aa5c77c71160b9ece0e939c99d",
+        "arguments": [
+          "test",
+          "./internal/localization",
+          "./cmd/suma-runner",
+          "./cmd/suma-control",
+          "-run",
+          "^TestCanonicalTemplateGrammarAndCatalogSnapshot$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T053812066Z.stdout.txt",
+          "bytes": 404,
+          "sha256": "694aca227a2ed88cd92e0094d20135f2afcfba19655ca0f7df6f97fe930cee3e"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T053812066Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T054036091Z.command.json",
+        "bytes": 1436,
+        "sha256": "a7b90ee7ecf0f24ced8273bfacaaecdbbc0c673f8abf6fa4757a1d55b7a5074a",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestWorkspaceTerminalOriginalDispatchAndUnknownInput$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T054036091Z.stdout.txt",
+          "bytes": 193,
+          "sha256": "d96b6ece6006653e5d8efed38cc191c2f3d1fbe1de5dd372631aff5a1cf80a16"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T054036091Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T054207113Z.command.json",
+        "bytes": 1438,
+        "sha256": "16fcae13d083d16ccc0b8d46247f184e97d9e95679a7243ec0cad89dbbec3c26",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestWorkspaceTerminalActualBrowserAndOriginalExchange$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "10m"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T054207113Z.stdout.txt",
+          "bytes": 467,
+          "sha256": "b402afd4b8f7035ee61dd73f5623c6a1fd275560d970dad79210bb067a3b2358"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T054207113Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T055001328Z.command.json",
+        "bytes": 1446,
+        "sha256": "bc0d4dd13d33de97b6b556931bd10b6b25dc760dc5e5518f5618647ba71c0f3f",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestTaskDiscussionDevelopmentActualNativeAndIndependentQuality$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T055001328Z.stdout.txt",
+          "bytes": 67,
+          "sha256": "207cc8bd19cba9758f55a27604aa90fdf14944823e80a361603ab1b8e2fa90d9"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T055001328Z.stderr.txt",
+          "bytes": 236,
+          "sha256": "145c3a3c173e4c3b15b440388bfeefac0230d30e3ad82acf34f3ebacaae4a1b9"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T055024475Z.command.json",
+        "bytes": 1446,
+        "sha256": "4df47058eaa440d96224bab27d44271576489bb26470ff56289bd8e0e7cdb3ad",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestTaskDiscussionDevelopmentActualNativeAndIndependentQuality$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T055024475Z.stdout.txt",
+          "bytes": 971,
+          "sha256": "dbbdf83b41a0d4291a0ca321dabe694a85491558f3eeb808b697ec99e16f4a7f"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T055024475Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T055546101Z.command.json",
+        "bytes": 1446,
+        "sha256": "16b7d7592e0f757b1e37d6a9e1aac5468bcd85020094a1c33879e6b39402f9a9",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestTaskDiscussionDevelopmentActualNativeAndIndependentQuality$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T055546101Z.stdout.txt",
+          "bytes": 215,
+          "sha256": "0bc65aee317b586c63a37226df7892f8f222c6c03430fb384eee7d8bc74c61c7"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T055546101Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T055801526Z.command.json",
+        "bytes": 1472,
+        "sha256": "612f8a54a45118ef34fd24a95d2d16de51948fed943360733602bb6b5168f8ee",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestWorkspaceTerminal(OriginalDispatchAndUnknownInput|TaskPersistenceAcrossCreateAndGet)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T055801526Z.stdout.txt",
+          "bytes": 532,
+          "sha256": "4afe5154aa85e2131c6c567c1276915942802ed26a927f56876c105068f2a34c"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T055801526Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T060312528Z.command.json",
+        "bytes": 1304,
+        "sha256": "6e9ff706f4ec5cb94b35c84797293b550242d265ac09234d64a456da8443d6b2",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T060312528Z.stdout.txt",
+          "bytes": 70,
+          "sha256": "28442f8d6e6ae32e51f7b4c46ab02a58eb94a251fa7fda5cb8d55b7ca277b1f2"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T060312528Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T062953748Z.command.json",
+        "bytes": 1319,
+        "sha256": "51947052db38de55ceb75e7b636eccfa0da40bc3b40f8b2c870959ac90d09131",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T062953748Z.stdout.txt",
+          "bytes": 69,
+          "sha256": "d6ed50aeaeac889f8bc8ddefb5266a0c5d2fb4b9db53b4daa5f35eb171c9535d"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T062953748Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T063007504Z.command.json",
+        "bytes": 1428,
+        "sha256": "1c71cd65591ba4f99b6eeaa8c5ca36faa62f130b860ff746a48966095fff336b",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestWorkspaceTerminalRetainedBrowserReadback$",
+          "-count=1",
+          "-timeout",
+          "5m",
+          "-v"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T063007504Z.stdout.txt",
+          "bytes": 67,
+          "sha256": "207cc8bd19cba9758f55a27604aa90fdf14944823e80a361603ab1b8e2fa90d9"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T063007504Z.stderr.txt",
+          "bytes": 185,
+          "sha256": "c54b3086738537f74672bc9386b7e9ddc6f3e0cab1a96f251cb5709474bde0f6"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T063033405Z.command.json",
+        "bytes": 1428,
+        "sha256": "9fcf47df3ea7a46b25202e1be2c1224f55f32a3af2f2ac72788c3cd700a36ad7",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestWorkspaceTerminalRetainedBrowserReadback$",
+          "-count=1",
+          "-timeout",
+          "5m",
+          "-v"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T063033405Z.stdout.txt",
+          "bytes": 347,
+          "sha256": "b2ead74efc31ec82d2de1bb36bb417db3cc3b93dafaa181fb8b7b1ac1428ced5"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T063033405Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    ],
+    "web_receipts": [
+      {
+        "path": ".cache/e2e/terminal-129/development-ui.command.json",
+        "bytes": 282,
+        "sha256": "12cbd3f1ecd28012fc21db5fca7fd3008fdcbac935f6a2adf3f2dba3efde35e8",
+        "started_at": "2026-10-29T06:05:08.8856144Z",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/web exec vitest run src/DiscussionDevelopmentPanel.test.tsx src/TaskConversationReply.test.tsx --maxWorkers=1 --minWorkers=1",
+        "ended_at": "2026-10-29T06:05:22.9511681Z",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/development-ui.stdout.txt",
+          "bytes": 1041,
+          "sha256": "52298f01b34a465dc92933d2956588fe56024551675f21770e77f4b9754e231f"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/i18n-final.command.json",
+        "bytes": 172,
+        "sha256": "ddd19c4da622f423d00dec5e21e056098b2c67e3416bf692d49c248b348f7e59",
+        "ended_at": "2026-10-29T05:54:57.4703445Z",
+        "started_at": "2026-10-29T05:54:53.9612608Z",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/web check:i18n",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/i18n-final.stdout.txt",
+          "bytes": 133,
+          "sha256": "9321733ccb364986c72449aeaed10edd8e38ff583d3bfa5e526e078dac0b6176"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/i18n.command.json",
+        "bytes": 172,
+        "sha256": "d8a8e049bde2c1b1dbacdeea2e8a215087ba0ea3357e10b2ebffe29ea0f8e707",
+        "exit_code": 0,
+        "ended_at": "2026-10-29T05:35:11.4082929Z",
+        "started_at": "2026-10-29T05:35:07.9735018Z",
+        "command": "pnpm --filter @suma/web check:i18n",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/i18n.stdout.txt",
+          "bytes": 133,
+          "sha256": "ebdcee64e064e883b6936de427b7197ff09a3ab2cbb0d321672c5beb31b60ba9"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/input-receipt-fixed.command.json",
+        "bytes": 234,
+        "sha256": "64168bc478fb02cd06b5f8f232ef7ee6b700cc34858642439abc5628461d4360",
+        "command": "pnpm --filter @suma/web exec vitest run src/terminal-model.test.ts --maxWorkers=1 --minWorkers=1",
+        "exit_code": 0,
+        "ended_at": "2026-10-29T05:40:53.3214271Z",
+        "started_at": "2026-10-29T05:40:49.8621670Z",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/input-receipt-fixed.stdout.txt",
+          "bytes": 285,
+          "sha256": "3fdac51aad04f9ede1fee856078cd48a1911561cfa0fc32e25c1230519cc930c"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/terminal-manifest.command.json",
+        "bytes": 272,
+        "sha256": "30dee055d47fb817f6ae5d06d81ba0a0a5a59588cc5dd26518bdd30486f6969f",
+        "started_at": "2026-10-29T06:21:14.8223885Z",
+        "ended_at": "2026-10-29T06:21:17.5125362Z",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/web exec vitest run src/tool-model.test.ts -t 'imports dedicated terminal inventory' --maxWorkers=1 --minWorkers=1",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/terminal-manifest.stdout.txt",
+          "bytes": 310,
+          "sha256": "7a19438ce36629113c2cd8d9b21b7d61e8795789dea258d1bb8a139b46cec43b"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/typecheck-delivery.command.json",
+        "bytes": 171,
+        "sha256": "41638c420dc7ff2532f4aa33bdbca816689bd5b42019b6240ad5e2295c3d0c9c",
+        "exit_code": 2,
+        "command": "pnpm --filter @suma/web typecheck",
+        "started_at": "2026-10-29T06:05:08.9118324Z",
+        "ended_at": "2026-10-29T06:05:37.9276213Z",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/typecheck-delivery.stdout.txt",
+          "bytes": 1302,
+          "sha256": "8de0353baf42f84eed53d01fcde084499d54b29197cb6022d996403b501338db"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/typecheck-final.command.json",
+        "bytes": 171,
+        "sha256": "abf95fa3ffb79dee56cf5a1861c6abac876cbd7402349a283cb8985f3af4f457",
+        "ended_at": "2026-10-29T05:55:20.8103146Z",
+        "command": "pnpm --filter @suma/web typecheck",
+        "exit_code": 0,
+        "started_at": "2026-10-29T05:54:53.9939124Z",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/typecheck-final.stdout.txt",
+          "bytes": 16,
+          "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/typecheck-release.command.json",
+        "bytes": 171,
+        "sha256": "953c10c94d449a238e184c26e25ac2248c348b2636cd7d8640ee6ab00a5f5c75",
+        "exit_code": 0,
+        "started_at": "2026-10-29T06:12:38.0532915Z",
+        "command": "pnpm --filter @suma/web typecheck",
+        "ended_at": "2026-10-29T06:13:08.6871840Z",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/typecheck-release.stdout.txt",
+          "bytes": 16,
+          "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/typecheck-verified.command.json",
+        "bytes": 171,
+        "sha256": "d9b018a80bc81345ed62b315214c8ac24941ed63dc0b8638687070273e887a41",
+        "ended_at": "2026-10-29T06:21:41.8401257Z",
+        "started_at": "2026-10-29T06:21:20.5813453Z",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/web typecheck",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/typecheck-verified.stdout.txt",
+          "bytes": 16,
+          "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/typecheck.command.json",
+        "bytes": 171,
+        "sha256": "9cbefe61140b8063dcf3f7ebecd73f8f12d2985fbc71bc87907d5b7add5c9154",
+        "ended_at": "2026-10-29T05:34:01.4971381Z",
+        "started_at": "2026-10-29T05:33:39.4590976Z",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/web typecheck",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/typecheck.stdout.txt",
+          "bytes": 16,
+          "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/ui-focused.command.json",
+        "bytes": 336,
+        "sha256": "2c547574afe9daccdfe71bca3116da4f8f9949b297bb68f454c02d12f3a1357f",
+        "started_at": "2026-10-29T05:34:55.7210806Z",
+        "exit_code": 0,
+        "ended_at": "2026-10-29T05:35:16.4853851Z",
+        "command": "pnpm --filter @suma/web exec vitest run src/terminal-model.test.ts src/terminal-hooks.test.tsx src/tool-write-model-execution.test.ts src/TaskConversationReply.test.tsx --maxWorkers=1 --minWorkers=1",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/ui-focused.stdout.txt",
+          "bytes": 985,
+          "sha256": "1ded08e819adaa07754d971912edc7513d9c201e4a679b573bacaa459d3126d9"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/web-build.command.json",
+        "bytes": 238,
+        "sha256": "5976f67d172573cf68e9a2deda1b28b0a0afd32ad657263ff73cba6bf40eca9c",
+        "started_at": "2026-10-29T05:38:00.1386550Z",
+        "ended_at": "2026-10-29T05:38:45.3797953Z",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/web exec vite build --outDir D:/codes/ai-dev-os/suma/.cache/e2e/terminal-129/web",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/web-build.stdout.txt",
+          "bytes": 19676,
+          "sha256": "5909e024ae403c24f2ea15499709ee572c1f901a3e97d75ea75b27f1afdec706"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/web-delivery.command.json",
+        "bytes": 247,
+        "sha256": "5bbad8615dd7ab28a5a1cfa43f726edf58e5545ea25e94dad9efa19548291995",
+        "command": "pnpm --filter @suma/web exec vite build --outDir D:/codes/ai-dev-os/suma/.cache/e2e/terminal-129/web-delivery",
+        "ended_at": "2026-10-29T05:55:46.0257376Z",
+        "exit_code": 0,
+        "started_at": "2026-10-29T05:54:53.9142264Z",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/web-delivery.stdout.txt",
+          "bytes": 21161,
+          "sha256": "5cd8b1e7e5f4a36bb853fb7b51f66b28267e8b0fb484426861113c255f486fda"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/web-final.command.json",
+        "bytes": 244,
+        "sha256": "69503e993eed0a5acd023847cf515f2705294b3b6f135ef5fb1618807a58dfa2",
+        "started_at": "2026-10-29T05:40:58.4214765Z",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/web exec vite build --outDir D:/codes/ai-dev-os/suma/.cache/e2e/terminal-129/web-final",
+        "ended_at": "2026-10-29T05:41:53.6023880Z",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/web-final.stdout.txt",
+          "bytes": 20666,
+          "sha256": "01ff713902ac993467123acd8155a1dd4b451df6cb262a30bdfef7e7625fdae7"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/web-ready.command.json",
+        "bytes": 244,
+        "sha256": "0ff185f9929a82985b0bf2cce9284d22dc36997fd63950060003325b8f28a373",
+        "ended_at": "2026-10-29T06:13:35.0876845Z",
+        "command": "pnpm --filter @suma/web exec vite build --outDir D:/codes/ai-dev-os/suma/.cache/e2e/terminal-129/web-ready",
+        "started_at": "2026-10-29T06:12:38.0721740Z",
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/web-ready.stdout.txt",
+          "bytes": 20666,
+          "sha256": "86da58eedcf0face4462777fc78890bf897a215631bd862ee0609eaeda5216eb"
+        }
+      },
+      {
+        "path": ".cache/e2e/terminal-129/web-verified.command.json",
+        "bytes": 247,
+        "sha256": "b30e053654e0d8a39b0705b00b55265e037bf908163e481f179b7ff47d44fd25",
+        "started_at": "2026-10-29T06:26:21.1121062Z",
+        "exit_code": 0,
+        "ended_at": "2026-10-29T06:27:06.6613829Z",
+        "command": "pnpm --filter @suma/web exec vite build --outDir D:/codes/ai-dev-os/suma/.cache/e2e/terminal-129/web-verified",
+        "stdout": {
+          "path": ".cache/e2e/terminal-129/web-verified.stdout.txt",
+          "bytes": 21161,
+          "sha256": "62e48c4bc3245ce4cafa075aeac7216f5d7381c670c83b5d043f284c570b7188"
+        }
+      }
+    ]
+  },
+  "actual_development": {
+    "status": "actual_native_handoff_independent_quality_and_issue_intake_passed",
+    "model_calls": 3,
+    "model_usage_attempts": 2,
+    "reported_tokens": 30,
+    "estimated_cost_micros": 39,
+    "commercial_model_calls": 0,
+    "producer_worker": "native-developer129",
+    "independent_worker": "independent-verifier129",
+    "candidate_commit": "ed2f098210535c3a94fcf8dd7b260a75a527002c",
+    "candidate_bundle_sha256": "b07717c2d360fd47d64f27ae0c9b5db65ba5d180fd3eb5e4a6f515f57986168d",
+    "candidate_bundle_bytes": 503,
+    "separate_repository_import": true,
+    "formal_quality_state": "passed",
+    "task_status": "accepted",
+    "accepted_by_fixture_owner_api": true,
+    "automatic_customer_acceptance": false,
+    "customer_human_signoff": false,
+    "administrator_checkouts_unchanged": true,
+    "database_sha256": "b4e5a6e175377d49872f1c5989952544fab31aab37face2afb6378f51f68ce52",
+    "test_report_sha256": "a8a63a0e7a996657c70208d547b1a591ea5422af94a85bcfdaae0a96a9b909b5"
+  },
+  "actual_terminal": {
+    "original_go_exit_code": 1,
+    "original_status": "failed",
+    "reason": "Create receipt omitted derived Name; Get added Name=Title. Original failure preserved; immutable original receipt and all17 persisted task columns separately audited equal.",
+    "native_keyboard_command": "echo terminal-ui-129>terminal-note.txt",
+    "windows_real_conpty": true,
+    "isolated_file_exists": true,
+    "parent_checkout_unchanged": true,
+    "cn_en_desktop_mobile_refresh": true,
+    "explicit_tree_stop_proof": true,
+    "input_receipts_and_chunks_include_replays": true,
+    "network": {
+      "exchange_http_requests": 1712,
+      "original_operation_replays": 1,
+      "postcommit_output_ack_lost": true,
+      "reported_input_receipts_including_replays": 39,
+      "successful_output_chunks_including_replays": 16,
+      "original_exchange_operation_count": 1711,
+      "original_operation_hashes_retained_in_raw_ignored_result": true
+    },
+    "formal_candidate": false,
+    "independent_test_claimed": false,
+    "human_acceptance": false,
+    "commercial_model_requests": 0
+  },
+  "final_readonly_browser_readback": {
+    "authentication": "Normal owner test-account login may write only authentication state in the disposable copy",
+    "business_table_count": 133,
+    "business_tables_unchanged": true,
+    "copied_exact_source_bytes": true,
+    "denied_writes": [],
+    "kind": "actual_retained_terminal_browser_readback",
+    "new_model_requests": 0,
+    "new_pty_processes": 0,
+    "original_source_unchanged": true,
+    "project_id": "25aecef0c8085ec31e048f13fb8f9aa7",
+    "scheduler_ticks": 0,
+    "source_db": "D:\\codes\\ai-dev-os\\suma\\.cache\\e2e\\terminal-129\\actual-ui\\fixture.sqlite",
+    "source_db_sha256": "ff06b4a5f51084f3b92a65bef90abda1d2ca415c12513f4ec9b1b33b08aee121",
+    "stage": "T-TERMINAL-129",
+    "status": "closed_after_read_only_browser_readback",
+    "stop_reason": "explicit_stop",
+    "task_id": "aa9b701ab01662913a4e6203d0e9d707",
+    "terminal_session_id": "77db6278d3926c2de886717aefa7d9be",
+    "worker_runs": 0
+  },
+  "sdk_reuse": {
+    "bundle": {
+      "path": ".cache/e2e/reply-128/native/suma-agent.bundle.mjs",
+      "bytes": 1011023,
+      "sha256": "f61c8d1b0d7ec7e91fbdb8e7bbe87874ee0d09e65ee6b43724ba5cdf213579cb"
+    },
+    "sdk_source_changed": false,
+    "new_sdk_builds": 0,
+    "commercial_calls": 0
+  },
+  "failures_preserved": [
+    {
+      "receipt_prefix": "20261029T052246720Z",
+      "reason": "New upstream x/exp constraints sum absent; runtime subtests passed but overall command setup failed."
+    },
+    {
+      "receipt_prefix": "20261029T052432942Z / 20261029T052744797Z",
+      "reason": "Real Ctrl-C foreground child did not stop; fixed in child-only Windows bootstrap and original runtime test passed later."
+    },
+    {
+      "receipt_prefix": "20261029T053119063Z",
+      "reason": "Constant/function identifier collision; compile fixed."
+    },
+    {
+      "receipt_prefix": "20261029T053327407Z",
+      "reason": "Terminal claim returned nil due SQL worker-kind omission; actual DAG claim tests passed after canonical filter fix. Passing sibling tests counted individually only."
+    },
+    {
+      "receipt_prefix": "20261029T053536048Z / 20261029T055001328Z / 20261029T063007504Z",
+      "reason": "Test fixture compile errors (digest type/method, unused imports); fixed before runtime."
+    },
+    {
+      "receipt_prefix": "20261029T054207113Z",
+      "reason": "Original browser journey ran and stopped real terminal; final task serialization check failed for derived Name; original failed result and DB preserved, audit17 columns and independent readback supplement."
+    },
+    {
+      "receipt_prefix": "20261029T055024475Z",
+      "reason": "Actual native fixture worktree cache outside dedicated repository; guard retained, paths corrected to each repository/.cache; fresh actual-2 passed, first attempt model calls0."
+    },
+    {
+      "receipt_path": ".cache/e2e/terminal-129/typecheck-delivery.command.json",
+      "reason": "Component fixture DTOs incomplete; exact current types fixed and final typecheck passed."
+    },
+    {
+      "browser": "Final narrow fullPage screenshot first failed; same tab regular viewport screenshot succeeded. No fixture or terminal execution repeated."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": ".cache/e2e/terminal-129/development-actual-2/result.public.json",
+      "bytes": 10899,
+      "sha256": "4b4e8ed565d0b0748f6b5038108dd6e5838dcbdbd264137d72b5ac920bd23067"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/development-actual-2/fixture.sqlite",
+      "bytes": 2670592,
+      "sha256": "b4e5a6e175377d49872f1c5989952544fab31aab37face2afb6378f51f68ce52"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/development-actual-2/model-http.public.json",
+      "bytes": 18871,
+      "sha256": "d9811e1978dd6c32b8f09cee16ea990a30c654edf44b9236d0b4ef122796fc0f"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/development-actual-2/candidate.bundle",
+      "bytes": 503,
+      "sha256": "b07717c2d360fd47d64f27ae0c9b5db65ba5d180fd3eb5e4a6f515f57986168d"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/development-actual-2/test-report.public.json",
+      "bytes": 307,
+      "sha256": "2065feb111931d9f2b9c5089e73bfe44e26bae3ebd5906b9e8fd7b3942cde159"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/development-actual-2/source.original.cjs",
+      "bytes": 27,
+      "sha256": "703cb2a470cfd0a2ea935122ac16338093078ba039d78aeda1e9442ffb5cc0a3"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/development-actual-2/source.fixed.cjs",
+      "bytes": 27,
+      "sha256": "b7fe0fbde04b24b85270a6b7006017ce20facbb63eff2f45e82b96bb2e100620"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/development-actual/result.public.json",
+      "bytes": 418,
+      "sha256": "1a7ff8022a9568296c5bc7c029b3f82dde89c2f938448031fd62e2c12724d203"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/development-actual/model-http.public.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/actual-ui/result.public.json",
+      "bytes": 190270,
+      "sha256": "f247b6bbb4f2d965c9dd3d251aefc5aef36e4b0f0ad2188896990db53f8646f0"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/actual-ui/fixture.sqlite",
+      "bytes": 3223552,
+      "sha256": "ff06b4a5f51084f3b92a65bef90abda1d2ca415c12513f4ec9b1b33b08aee121"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/actual-ui/task-immutability-audit.public.json",
+      "bytes": 4843,
+      "sha256": "c760aa41f36c22b0360a6c8830781c653f292bf8a3c41e3a4ce2c5ab02ca3e8a"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/actual-ui/web.files.public.json",
+      "bytes": 25597,
+      "sha256": "693e0cf76e69f4cf9eb1f073455c3e3d5ab01cd4b3c82e941637c345dabc1331"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/browser.public.json",
+      "bytes": 649,
+      "sha256": "a107a176a9ef596894f2cb3d0407ee0626bf6955e0ab36f68723dd84393c4e65"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/terminal-en-desktop.png",
+      "bytes": 95268,
+      "sha256": "a16770614282cd5ef8d9c416a963ded40877e92fafe31fcc6d17e2c72ef74f1f"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/terminal-en-mobile.png",
+      "bytes": 119262,
+      "sha256": "e53ef78cbec7eeb639d62dfb4cdf5e8f0f385d37d59717a8cadbb1e5f164c946"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/terminal-zh-mobile.png",
+      "bytes": 99500,
+      "sha256": "7aea4a3f6524a2842d5545af23e69b7360286469bd2473d5599b31164a626732"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/terminal-stopped-zh.png",
+      "bytes": 33191,
+      "sha256": "3309499586dfc96f1a0d8ba7c51755fd94d261c955a50c06af7cc9e37c72cd13"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/readback-ui/result.public.json",
+      "bytes": 903,
+      "sha256": "b15a147c5c1ef4b148cedba5f3d68bebb585d57adeda5c2e5f6ab89c67f857ae"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/readback-ui/readback.before.public.json",
+      "bytes": 45803,
+      "sha256": "a7bbcb42b41118dfe3075953aadabfc4f502d4b7cfa1c80192eae6682992fb10"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/readback-ui/readback.after.public.json",
+      "bytes": 45803,
+      "sha256": "a7bbcb42b41118dfe3075953aadabfc4f502d4b7cfa1c80192eae6682992fb10"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/readback-ui/web.files.public.json",
+      "bytes": 25597,
+      "sha256": "4c845447dcd8f8a2e9ad168aed6e59ff25e78dfdee2e6eaca4f876687bc97547"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/readback-ui/browser.public.json",
+      "bytes": 761,
+      "sha256": "11c78103b310c80d21f9f7fa40068d7a8ac3bc6eaacaac4664647a8c0075307f"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/readback-ui/fixture-copy.sqlite",
+      "bytes": 3223552,
+      "sha256": "9fa2d6cdeb4ec0c77e99b8fdc5e7bcd444216cb9ad52ea920111ef79fb56a592"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/readback-ui/terminal-zh-desktop.png",
+      "bytes": 125406,
+      "sha256": "989e0c387509fbe0ca469b39ef12ba692e638143bcf5ae5b920357c1991b452c"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/readback-ui/terminal-en-desktop.png",
+      "bytes": 153448,
+      "sha256": "2c86e4742109902f56e93c67ef52614a1b39a9b9bd02c32ef745faa2d0a97109"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/readback-ui/terminal-en-mobile.png",
+      "bytes": 40147,
+      "sha256": "8bba22e39bac24764f28e79c2d06b16699d556d962637a17ad3d7d5ecf7558d5"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/readback-ui/terminal-zh-mobile.png",
+      "bytes": 39362,
+      "sha256": "7b43f8168a1aceb2bea4e5b8cc2706557aea5796e33d934ce922f9543e9e173c"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/runtime-failure-20261029T052810.747598500Z/facts.public.json",
+      "bytes": 693,
+      "sha256": "e7677e5938022b5d9270e8cf885eca885120a3b949f410695008ccc38fdf0290"
+    },
+    {
+      "path": ".cache/e2e/terminal-129/runtime-failure-20261029T052810.747598500Z/output.bin",
+      "bytes": 996,
+      "sha256": "9b9b25fe298edb89864afcc112751c6c0c8be38d85bdb9fa3d7de24eaa87f6df"
+    }
+  ],
+  "pending": [
+    "Unix complete descendant containment and runtime availability",
+    "new terminal physical multi-host/Pool journey",
+    "complete lost-worker effect reconciliation and control takeover",
+    "explicit authorized terminal modifications into formal candidate",
+    "WebSocket, LSP and DAP",
+    "native Windows/macOS/Linux installation and SaaS OS isolation",
+    "commercial provider quality/billing, OceanBase real cluster, scale and production acceptance",
+    "full P0-P7 and requirements1-26"
+  ],
+  "git_policy": {
+    "target": "git@github.com:ai-mada/suma.git",
+    "branch": "dev",
+    "force": false,
+    "unrelated_changes_preserved": true,
+    "excluded": "Caches, credentials, databases, logs, screenshots, executable/bundle artifacts and other agents desktop/runtime changes",
+    "delivery_receipt": ".cache/e2e/terminal-129/git-delivery.json"
+  }
+}

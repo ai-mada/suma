@@ -295,6 +295,12 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	s.applyLocalePreferences(w, r, actor)
+	if s.workspaceTerminalHTTP(w, r, actor, scope, boundProject, path, parts) {
+		return
+	}
+	if s.taskDiscussionDevelopmentHTTP(w, r, actor, scope, boundProject, parts) {
+		return
+	}
 	if s.taskConversationReplyHTTP(w, r, actor, scope, boundProject, parts) {
 		return
 	}
@@ -782,6 +788,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 				if err := authority.before(tx); err != nil {
 					return err
 				}
+				if err := s.Service.authorizeWorkspaceTerminalRunCommandTx(authority.ctx, tx, authority.proof, project, parts[1], str(m, "action")); err != nil {
+					return err
+				}
 				if managed {
 					if _, err := s.Service.authorizeTaskConversationReplyRunCommandTx(authority.ctx, tx, authority.proof, project, parts[1], str(m, "action")); err != nil {
 						return err
@@ -984,6 +993,13 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				}
 				return false, err
 			}
+			if err := s.Service.checkWorkspaceTerminalExecutionTx(authority.ctx, tx, p.TenantID, project, run, false); err != nil {
+				var apiErr *APIError
+				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Status >= 400 && apiErr.Status < 500 {
+					return false, nil
+				}
+				return false, err
+			}
 			if err := s.Service.checkTaskConversationReplyExecutionTx(authority.ctx, tx, p.TenantID, project, run); err != nil {
 				var apiErr *APIError
 				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Status >= 400 && apiErr.Status < 500 {
@@ -1064,6 +1080,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 			if err := s.Service.checkDispatchRecommendationExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID); err != nil {
 				return err
 			}
+			if err := s.Service.checkWorkspaceTerminalExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID, true); err != nil {
+				return err
+			}
 			if err := s.Service.checkTaskConversationReplyExecutionTx(authority.ctx, tx, p.TenantID, project, a.RunID); err != nil {
 				return err
 			}
@@ -1117,6 +1136,9 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				return err
 			}
 			if err := s.Service.recordTaskConversationReplyOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {
+				return err
+			}
+			if err := s.Service.recordWorkspaceTerminalOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {
 				return err
 			}
 			if err := s.Service.recordKnowledgeIntelligenceOutcomeTx(authority.ctx, tx, p.TenantID, project, result, authorize); err != nil {

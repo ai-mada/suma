@@ -13,7 +13,7 @@ import (
 
 func workerNodeType(kind string) bool {
 	switch kind {
-	case "task", "command", "agent", "script", "test", "external_workflow":
+	case "task", "command", "agent", "script", "test", "external_workflow", "terminal_session":
 		return true
 	}
 	return false

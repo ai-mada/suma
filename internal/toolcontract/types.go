@@ -8,15 +8,16 @@ import (
 )
 
 type ToolExecutionProfile struct {
-	CommandID              string `json:"command_id"`
-	Adapter                string `json:"adapter"`
-	Protocol               string `json:"protocol"`
-	ProfileSHA256          string `json:"profile_sha256"`
-	ExecutableSHA256       string `json:"executable_sha256"`
-	ToolVersion            string `json:"tool_version"`
-	ReadOnly               bool   `json:"read_only"`
-	WorkspaceToolsVersion  string `json:"workspace_tools_version,omitempty"`
-	ModelExecutionProtocol string `json:"model_execution_protocol,omitempty"`
+	CommandID               string `json:"command_id"`
+	Adapter                 string `json:"adapter"`
+	Protocol                string `json:"protocol"`
+	ProfileSHA256           string `json:"profile_sha256"`
+	ExecutableSHA256        string `json:"executable_sha256"`
+	ToolVersion             string `json:"tool_version"`
+	ReadOnly                bool   `json:"read_only"`
+	TerminalSessionProtocol string `json:"terminal_session_protocol,omitempty"`
+	WorkspaceToolsVersion   string `json:"workspace_tools_version,omitempty"`
+	ModelExecutionProtocol  string `json:"model_execution_protocol,omitempty"`
 	// TestReportProtocol is a process-collected report capability of an isolated,
 	// administrator-designated test command. It grants no case acceptance.
 	TestReportProtocol string `json:"test_report_protocol,omitempty"`

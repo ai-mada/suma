@@ -34,7 +34,7 @@ function TaskContextScope({session,project,selectedTask,refresh,onTaskSelect}:Wo
   </>}
   {/* Keep same-owner drafts and original write identities alive on access loss;
       the discussion hides protected history and disables reads independently. */}
-  {selectedTask&&<TaskConversation session={session} project={project} taskId={selectedTask} refresh={refresh} accessBlocked={denied}/>}
+  {selectedTask&&<TaskConversation session={session} project={project} taskId={selectedTask} refresh={refresh} accessBlocked={denied} onDevelopmentStarted={read.read}/>}
  </section>;
 }
 

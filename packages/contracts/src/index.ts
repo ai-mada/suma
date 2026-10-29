@@ -5251,6 +5251,38 @@ export interface TaskDesignContextView {
   current_design_version: number;
   current_published_revision: number;
 }
+export interface TaskDiscussionDevelopmentCreateRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  reply_id: string;
+  expected_reply_version: number;
+  workflow_id: string;
+  workflow_version: number;
+  agent_node_id: string;
+  tool_profile_id: string;
+  expected_tool_version: number;
+  model_execution_selection: ModelSelection;
+  reviewed_goal: string;
+  acceptance_criteria: (string)[];
+  acknowledge_execution: boolean;
+  idempotency_key: string;
+}
+export interface TaskDiscussionDevelopmentPlan {
+  id: string;
+  project_id: string;
+  task_id: string;
+  version: number;
+  reply_id: string;
+  reply_version: number;
+  source_sha256: string;
+  message: TaskConversationMessage;
+  reviewed_goal: string;
+  acceptance_criteria: (string)[];
+  created_by: string;
+  created_at: string;
+  dispatch_plan: TaskDispatchPlan;
+}
 export interface TaskDispatchOptions {
   project_id: string;
   task_id: string;
@@ -5704,6 +5736,7 @@ export interface ToolExecutionProfile {
   executable_sha256: string;
   tool_version: string;
   read_only: boolean;
+  terminal_session_protocol?: string;
   workspace_tools_version?: string;
   model_execution_protocol?: string;
   test_report_protocol?: string;
@@ -6233,6 +6266,87 @@ export interface WorkspaceTaskQuality {
   errors: number;
   skipped: number;
   not_run: number;
+}
+export interface WorkspaceTerminalCommandReceipt {
+  session: WorkspaceTerminalSession;
+  input: WorkspaceTerminalInputReceipt | null;
+}
+export interface WorkspaceTerminalCommandRequest {
+  project_id: string;
+  expected_version: number;
+  control_epoch: number;
+  action: string;
+  input_id?: string;
+  input_sequence?: number;
+  data_base64?: string;
+  columns?: number;
+  rows?: number;
+  output_sequence?: number;
+  idempotency_key: string;
+}
+export interface WorkspaceTerminalCreateRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  tool_profile_id: string;
+  expected_tool_version: number;
+  columns: number;
+  rows: number;
+  timeout_seconds: number;
+  acknowledge_shell: boolean;
+  idempotency_key: string;
+}
+export interface WorkspaceTerminalInputReceipt {
+  input_id: string;
+  sequence: number;
+  sha256: string;
+  state: string;
+  bytes_written: number;
+}
+export interface WorkspaceTerminalOutputChunk {
+  sequence: number;
+  data_base64: string;
+}
+export interface WorkspaceTerminalOutputPage {
+  session_id: string;
+  control_epoch: number;
+  chunks: (WorkspaceTerminalOutputChunk)[];
+  first_sequence: number;
+  last_sequence: number;
+  gap: boolean;
+  state: string;
+}
+export interface WorkspaceTerminalPage {
+  items: (WorkspaceTerminalSession)[];
+  profiles: (ToolProfile)[];
+  task_version: number;
+  can_create: boolean;
+  profiles_complete: boolean;
+}
+export interface WorkspaceTerminalSession {
+  id: string;
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  version: number;
+  run_id: string;
+  run_version: number;
+  state: string;
+  tool_profile_id: string;
+  tool_name: string;
+  directory: string;
+  worker_id: string;
+  columns: number;
+  rows: number;
+  control_epoch: number;
+  next_input_sequence: number;
+  output_first_sequence: number;
+  output_last_sequence: number;
+  output_ack_sequence: number;
+  expires_at: string;
+  created_at: string;
+  allowed_actions: (string)[];
+  reason: string;
 }
 export interface WorkspaceTreeEntry {
   path: string;

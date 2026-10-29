@@ -2,9 +2,11 @@
 
 更新：2026-10-29。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。
 
-当前T-REPLY-128推进任务讨论到真实多轮智能体回复：明确模型、单次参数、近期消息范围和 Token／费用预算，沿原 Go 模型网关、唯一 DAG 与私有／Pool Runner 执行，并以准确回执追加助手消息。见[架构](../architecture/task-conversation-replies.md)、[合同](../../contracts/task-conversation-replies.md)、[开发与AI SOP](../development/task-conversation-replies.md)、[当前验证](../quality/task-conversation-replies-verification.md)和[摘要](../quality/task-conversation-replies-summary.json)。真实Go／Node原生CLI、本地受控提供方及网关HTTP已完成三轮／六条持久消息，第三轮由实际界面明确选择模型、输出512、近期20条、Token40000及CNY0.04费用上限后创建；实际中英文1366／390、刷新六条记录及原执行／用量已按报告限定验证。只读回复不会执行终端命令、修改任务开发运行或授予验收权。
+当前T129实施[受控终端与讨论开发交接](../development/interactive-development.md)，复用唯一Go DAG、私有／Pool原租约和认证出站HTTP，专用terminal_session在独立attempt工作树运行真实PTY。xterm解析后ACK、同会话重连、未知输入不重放；原TaskDispatchPlan交接重新选择模型预算并明确启动，保留独立测试和人工验收。见[架构](../architecture/interactive-terminal.md)、[界面规范](../design/interactive-terminal.md)、[专项报告](../quality/interactive-development-verification.md)及[摘要](../quality/interactive-development-summary.json)。Windows原生键盘／ConPTY／树停止、原生开发同SHA独立测试／明确验收／问题回流及最终Web只读副本复核各有实际证据；11项必要Web行为、6348项双语目录及可见文本硬编码0项检查通过，来源和失败审计保留在报告。HTTP轮询、创建者固定epoch1、Unix完整containment、跨平台安装和商业提供方验收边界明确。该切片不关闭完整终端／IDE、SaaS或其他待办，58／34／92不变。
 
-本阶段限定结果：固定模型／预算的真实多轮、原完成回执提交后丢失恢复，以及任务详情→工作台→讨论→追问→配置→真实回复和SSE运行中／已保存状态均有实际证据；六条记录刷新后保留，原执行及7输入／3输出Token可查看。自有标签、视口及隔离服务已显式关闭／恢复。持久任务讨论的发送、刷新及中英文视觉缺口由本次T128组合旅程补验；T127历史档案不改。后续完整供应商、多机、安装矩阵及生产验收仍待交付。交互式[PTY终端](../architecture/interactive-terminal.md)、语言／调试服务、自主代码开发及完整 P0–P7／需求1–26继续交付，58／34／92不变。
+前序T-REPLY-128推进任务讨论到真实多轮智能体回复：明确模型、单次参数、近期消息范围和 Token／费用预算，沿原 Go 模型网关、唯一 DAG 与私有／Pool Runner 执行，并以准确回执追加助手消息。见[架构](../architecture/task-conversation-replies.md)、[合同](../../contracts/task-conversation-replies.md)、[开发与AI SOP](../development/task-conversation-replies.md)、[当前验证](../quality/task-conversation-replies-verification.md)和[摘要](../quality/task-conversation-replies-summary.json)。真实Go／Node原生CLI、本地受控提供方及网关HTTP已完成三轮／六条持久消息，第三轮由实际界面明确选择模型、输出512、近期20条、Token40000及CNY0.04费用上限后创建；实际中英文1366／390、刷新六条记录及原执行／用量已按报告限定验证。只读回复不会执行终端命令、修改任务开发运行或授予验收权。
+
+T-REPLY-128限定结果：固定模型／预算的真实多轮、原完成回执提交后丢失恢复，以及任务详情→工作台→讨论→追问→配置→真实回复和SSE运行中／已保存状态均有实际证据；六条记录刷新后保留，原执行及7输入／3输出Token可查看。自有标签、视口及隔离服务已显式关闭／恢复。持久任务讨论的发送、刷新及中英文视觉缺口由本次T128组合旅程补验；T127历史档案不改。后续完整供应商、多机、安装矩阵及生产验收仍待交付。交互式[PTY终端](../architecture/interactive-terminal.md)、语言／调试服务、自主代码开发及完整 P0–P7／需求1–26继续交付，58／34／92不变。
 
 前序T-COLLAB-127继续原生任务协作：准确人／API作者、任务／需求／运行依据、事务内序号、纯文本消息、原回执恢复和双语工作台输入。见[合同](../../contracts/task-conversations.md)、[开发与AI SOP](../development/task-conversations.md)、[报告](../quality/task-conversations-verification.md)和[摘要](../quality/task-conversations-summary.json)。实际HTTP回执丢失恢复及接口／组件检查已通过；该阶段浏览器连接中断；持久讨论的当前视觉补验见T128实际组合旅程，原阶段档案保留。消息保存本身不启动智能体、执行或验收。真实持续模型回复及[PTY会话](../architecture/interactive-terminal.md)继续完整交付，58／34／92不变。
 
@@ -71,11 +73,11 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 - [x] 动态map持久展开、固定版本子流程、外部工作流协议、显式补偿运行。
 - [x] 节点attempt/fence、资源预留、持久回执、失联核对、取消实际停止。
 - [x] Runner命令许可、Windows进程树、原生智能体有限循环、外部CLI探测。
-- [x] Monaco本地按目录分页导航、摘要保存、草稿保护；[目录浏览与CLI](../quality/workspace-directory-verification.md)明确快照、当前权限与加载范围；工作流三视图与实际状态。 当前原生／Codex活动attempt支持真实出站list/read，原生CAS保存独立；见[Codex读取](../quality/codex-workspace-observation-verification.md)。协调远程写、Git、PTY/LSP/DAP仍待交付。
+- [x] Monaco本地按目录分页导航、摘要保存、草稿保护；[目录浏览与CLI](../quality/workspace-directory-verification.md)明确快照、当前权限与加载范围；工作流三视图与实际状态。 当前原生／Codex活动attempt支持真实出站list/read，原生CAS保存独立；见[Codex读取](../quality/codex-workspace-observation-verification.md)。协调远程写、Git、完整PTY/LSP/DAP仍待交付。
 - [x] 许可写命令的逐attempt隔离Git工作树、管理员固定仓库／基准、持久操作元数据与真实差异／状态／提交；固定候选经独立测试和明确批准后，支持本机提供方CAS快进，未知效果沿原操作核对。
 - [x] 当前attempt/worker/fence的真实有界进展、持久ACK和事件展示；重试/补偿使用运行固定定义的标记。T-DELIVERY-112 增加[本地 journal 只读摘要](../agents/runner-journal-inspection.md)，不调用运行时 OpenJournal、不读取凭据、不修改回执或重跑；持久拒绝原因与完整设备巡检仍不在此范围。
 - [x] 测试节点可选择固定command/agent候选来源；机器封存与跨Runner导入同SHA，在隔离工作树独立测试。多源合成／修复候选另测准确结果，明确验收后才绑定未开始任务基线。
-- [ ] 完整仓库授权、合并策略、冲突及未知效果恢复，真实终端、LSP/DAP、完整调试预览；当前本地审批快进、多源合成／独立修复及bundle交接已有证据，动态多分支／跨map／子流程候选继承及真正分布式Git制品传送仍待验收。
+- [ ] 完整仓库授权、合并策略、冲突及未知效果恢复，终端完整跨平台交付、LSP/DAP和完整调试预览；当前本地审批快进、多源合成／独立修复及bundle交接已有证据，动态多分支／跨map／子流程候选继承及真正分布式Git制品传送仍待验收。
 - [x] 持久增量前沿、边结算／就绪／唤醒索引、短事件提交尾锁、稳定领取回执、项目资源账本、分块展开与持久重试窗口；见[增量内核](../scheduler/incremental-kernel.md)与[限定验收](../quality/scheduling-verification.md)。
 - [x] 跨组织共享池、明确多项目独立机器身份、双边授权、固定任务/运行路由、持久租户/项目加权准入份额与共享账本；SQLite本机双项目真实并行、独立测试及故障回流见[阶段验收](../quality/execution-pool-verification.md)。
 - [ ] 全工具模型请求许可／速率、完整厂商成本结算、分布式数据库及目标吞吐验收；原生／Octop当前已有Go网关逐请求剩余输出许可，不代表供应商账单硬帽。持久回执安全压缩、空闲退避/抖动、领取限流及长期增长继续验证；空回执不能在未定义幂等失效窗口时直接删除。
@@ -86,7 +88,7 @@ React/TypeScript/Vite/Electron；Radix与统一设计令牌；Monaco；ReactFlow
 
 - [ ] 原生项目目录选择、账号／组织／项目授权、持久目录身份、正常重启及共享IDE实际闭环；本阶段实施中。
 - [ ] 多项目最近工作区、分支／任务上下文、多标签／拆分编辑、全局查找和完整文件操作；将绑定版本贯穿文件打开／保存，防止另一操作换根后相同路径／内容被误当作原编辑依据。
-- [ ] 真实PTY／LSP／DAP／预览，受控端口及同一权限／资源／取消与恢复语义。
+- [ ] 完整PTY／LSP／DAP／预览，受控端口及同一权限／资源／取消与恢复语义。T129已实现专用DAG终端、独立attempt、原HTTP出站链路及Windows底层限定交互；Unix停止证明、跨平台实际、多控制者／WebSocket及完整安装仍待交付，见[当前架构](../architecture/interactive-terminal.md)。
 - [ ] 桌面本机与显式服务器连接、工具／模型／技能安装配置、智能开发／审查交付全链路、签名安装及多系统实际验收。
 
 ## P3 项目、需求、设计与团队

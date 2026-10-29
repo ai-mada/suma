@@ -6,11 +6,11 @@
     "protocol": "suma-jsonl-v1",
     "input": "agent-jsonl",
     "read_only": false,
+    "model_execution_protocol": "suma-model-execution-v1",
     "native_workspace": {
       "checks": ["python-tests"],
       "runtime_manifest": "D:/work/suma/packages/agent-runtime/dist/suma-agent.manifest.json"
-    },
-    "env_from": ["SUMA_MODEL", "SUMA_MODEL_BASE_URL", "SUMA_MODEL_API_KEY", "SUMA_CONTROL_URL", "SUMA_AGENT_TOKEN", "SUMA_PROJECT_ID"]
+    }
   },
   "python-tests": {
     "executable": "python",

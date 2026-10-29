@@ -4,6 +4,8 @@
 
 关联：[P0/P7 实施计划](implementation-plan.md)、[能力矩阵](../product/capability-matrix.md)、[验证报告](../quality/verification.md)。证据：[锁定参考](../integrations/references.json)、[依赖与许可证文件哈希](third-party-dependencies.json)、[Go 依赖声明](../../go.mod)、[JS 锁文件](../../pnpm-lock.yaml)。本页记录来源和观察结果，不提供法律结论或分发许可保证。
 
+2026-10-29：T129交互终端实际引入`go-pty v0.2.3`、`@xterm/xterm 6.0.0`及`@xterm/addon-fit 0.11.0`，三个直接依赖均保留原MIT许可与文件摘要，见[本阶段增量清单](interactive-terminal-dependencies.json)。PTY带来的Go依赖最低版本调整以当前go.mod/go.sum为准；此增量是声明与本机包元数据，不将原六平台旧构建快照冒充当前二进制SBOM。
+
 ## 参考项目与实际依赖分开记录
 
 下表的“参考”是产品、架构或协议研究。锁定 README/提交不代表完整代码审计、源代码移植、完整产品接入或许可证逐文件审查。原始获取方法、README blob 和时间保留在 references.json。

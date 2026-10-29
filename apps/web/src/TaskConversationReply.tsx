@@ -5,6 +5,7 @@ import type {Session} from './api';
 import {query} from './api';
 import {useApi} from './api-context';
 import {formatDateTime, formatNumber, renderDiagnostic, tr, UiError, useLocale} from './i18n';
+import {DiscussionDevelopmentPanel} from './DiscussionDevelopmentPanel';
 import {ErrorNotice, Field, Loading} from './ui';
 import {ModelExecutionFacts, ModelExecutionPanel, type ModelChoice} from './ModelExecutionPanel';
 import {modelInteger} from './model-execution-model';
@@ -18,7 +19,8 @@ import './TaskConversationReply.css';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('task-reply.' + key, values);
 type Props = {session: Session; project: string; taskId: string; page?: TaskConversationPage; accessBlocked: boolean;
-  disabled: boolean; refresh: number; onMessagesRefresh: () => Promise<unknown>; onLockChange: (locked: boolean) => void};
+  disabled: boolean; refresh: number; onMessagesRefresh: () => Promise<unknown>; onLockChange: (locked: boolean) => void;
+  onDevelopmentStarted?: () => Promise<unknown> | void};
 const runHref = (project: string, run: string) => '?' + new URLSearchParams({project, view: 'development', sub: 'runs', run});
 const navigate = () => window.dispatchEvent(new Event('suma:navigate', {cancelable: true}));
 
@@ -31,7 +33,7 @@ export function TaskConversationReply(props: Props) {
   return <ReplyScope key={scope + ':' + owner.current.epoch} {...props} scope={scope}/>;
 }
 
-function ReplyScope({session, project, taskId, page, accessBlocked, disabled, refresh, onMessagesRefresh, onLockChange,
+function ReplyScope({session, project, taskId, page, accessBlocked, disabled, refresh, onMessagesRefresh, onLockChange, onDevelopmentStarted,
   scope}: Props & {scope: string}) {
   const api = useApi(), locale = useLocale(), id = useId(), storage = toolSessionStorage();
   const locator = 'suma-task-reply-locator:' + scope;
@@ -40,7 +42,7 @@ function ReplyScope({session, project, taskId, page, accessBlocked, disabled, re
   const [selected, setSelected] = useState(() => {try {const value = storage?.getItem(locator); return replyID(value) ? value : '';} catch {return '';}});
   const [revoked, setRevoked] = useState(false), [retry, setRetry] = useState(0), [notice, setNotice] = useState('');
   const [connection, setConnection] = useState<RunConnectionState>();
-  const callbacks = useRef({onMessagesRefresh, onLockChange}); callbacks.current = {onMessagesRefresh, onLockChange};
+  const callbacks = useRef({onMessagesRefresh, onLockChange, onDevelopmentStarted}); callbacks.current = {onMessagesRefresh, onLockChange, onDevelopmentStarted};
   const alive = useRef(true), owner = useRef(api); owner.current = api;
   useEffect(() => {alive.current = true; return () => {alive.current = false; callbacks.current.onLockChange(false);};}, []);
   const action = useWriteAction({scope: 'task-reply:' + scope, storage,
@@ -55,6 +57,7 @@ function ReplyScope({session, project, taskId, page, accessBlocked, disabled, re
     value => validReplyProfiles(value, project), refuse, retry);
   const detail = useReplyRead('/task-conversation-replies/' + encodeURIComponent(selected) + query(project),
     !!selected && !blocked, value => validReply(value, project, taskId, session.organization.id), refuse, refresh + retry);
+  const [developmentLocked,setDevelopmentLocked]=useState(false);
   const current = detail.value, locked = action.busy || !!action.pending;
   const candidates = inventory.value?.items.filter(replyProfile) || [], profile = candidates.find(item => item.id === profileID);
   const head = page?.items[page.items.length - 1];
@@ -67,9 +70,9 @@ function ReplyScope({session, project, taskId, page, accessBlocked, disabled, re
     !!current && current.source.reply_to_sequence === turn.sequence && current.state === 'completed');
   const allowed = !blocked && !disabled && !!page?.can_post && !!turn && !!head && !!limit && limit >= 1 && includesTurn &&
     !!profile && !!selection && model.ready && selection.parameters.max_steps === 1 && selection.parameters.max_output_tokens <= 8192 &&
-    ack && !active && !completed && !locked && !action.conflict && !action.persistenceBlocked && !history.loading && !history.error &&
+    ack && !active && !completed && !locked && !developmentLocked && !action.conflict && !action.persistenceBlocked && !history.loading && !history.error &&
     !inventory.loading && !inventory.error;
-  useEffect(() => {callbacks.current.onLockChange(locked);}, [locked]);
+  useEffect(() => {callbacks.current.onLockChange(locked||developmentLocked);}, [locked,developmentLocked]);
   useEffect(() => {if (writeDenied) setRevoked(true);}, [writeDenied]);
   useEffect(() => {if (action.pending) setOpen(true);}, [!!action.pending]);
   useEffect(() => {setAck(false);}, [head?.sequence, page?.task_version, windowSize, profileID]);
@@ -80,6 +83,13 @@ function ReplyScope({session, project, taskId, page, accessBlocked, disabled, re
     }
   }, [selected, history.value, !!action.pending, blocked]);
   const updateModel = useCallback((value: ModelChoice) => {setModel(value); setAck(false);}, []);
+  const developmentStarted = useCallback(() => {
+    // The start receipt is already verified and retained. Refresh current task
+    // and discussion facts independently; a failed read must not retry Start
+    // or clear the original plan/unknown write owned by the child panel.
+    void Promise.allSettled([Promise.resolve().then(() => callbacks.current.onMessagesRefresh()),
+      Promise.resolve().then(() => callbacks.current.onDevelopmentStarted?.())]);
+  }, []);
   const observed = useRef(new Set<string>());
   useEffect(() => {
     if (!current || current.state !== 'completed' || !current.message_id || observed.current.has(current.message_id) || blocked) return;
@@ -135,7 +145,7 @@ function ReplyScope({session, project, taskId, page, accessBlocked, disabled, re
 
   return <section className="task-reply" aria-label={t('title')}>
     <button type="button" className="task-reply-toggle" data-reply-toggle aria-expanded={open} aria-controls={id}
-      disabled={open && locked} onClick={() => setOpen(value => !value)}><Sparkles size={15} aria-hidden="true"/>
+      disabled={open && (locked || developmentLocked)} onClick={() => setOpen(value => !value)}><Sparkles size={15} aria-hidden="true"/>
       <span>{t('title')}</span>{!blocked && current && <small>{t('state.' + current.state)}</small>}
       <ChevronDown size={15} aria-hidden="true"/></button>
     {open && <div id={id} className="task-reply-body">
@@ -170,6 +180,7 @@ function ReplyScope({session, project, taskId, page, accessBlocked, disabled, re
             <p>{t('source_basis', {task: formatNumber(current.source.task.version), turn: formatNumber(current.source.reply_to_sequence)})}</p>
             <code>{current.source.sha256}</code></details>
           <details><summary>{t('model_basis')}</summary><ModelExecutionFacts binding={current.model_execution}/></details>
+          {current.state==='completed'&&<DiscussionDevelopmentPanel session={session} project={project} taskId={taskId} reply={current} page={page} disabled={disabled||locked} accessBlocked={blocked} onLockChange={setDevelopmentLocked} onRun={developmentStarted}/>}
         </div>}
         {!!selected && detail.loading && !current && <Loading/>}
         {!!selected && !!detail.error && !current && <ErrorNotice error={detail.error} onRetry={() => void detail.read()}/>}
@@ -194,7 +205,7 @@ function ReplyScope({session, project, taskId, page, accessBlocked, disabled, re
         {active && <p className="task-reply-muted">{t('active_hint')}</p>}
         {completed && <p className="task-reply-muted">{t('followup')}</p>}
         {!!history.value?.items.length && <details className="task-reply-history"><summary>{t('history')}</summary>
-          <ul>{history.value.items.map(item => <li key={item.id}><button type="button" disabled={locked} aria-pressed={selected === item.id}
+          <ul>{history.value.items.map(item => <li key={item.id}><button type="button" disabled={locked || developmentLocked} aria-pressed={selected === item.id}
             onClick={() => select(item.id)}>{t('history_item', {sequence: formatNumber(item.source.reply_to_sequence),
               at: formatDateTime(item.created_at, {dateStyle: 'short', timeStyle: 'short'})})} · {t('state.' + item.state)}</button></li>)}</ul>
           {history.value.next_cursor && <button type="button" disabled={locked || history.loading} onClick={() => void history.read(true)}>{t('more_history')}</button>}

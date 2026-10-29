@@ -136,6 +136,7 @@ func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Dura
 	results := make(chan Result, 1)
 	progress := make(chan struct{}, 1)
 	cfg := w.Exec
+	cfg.TerminalClient = w.Client
 	cfg.ToolInventory = w.currentInventory()
 	if cfg.Artifacts == nil {
 		cfg.Artifacts = w.Client

@@ -27,7 +27,7 @@ func ToolBinding(n Node) (id, sha string, bound bool, err error) {
 	}
 	id, idString := rawID.(string)
 	sha, shaString := rawSHA.(string)
-	if (n.Type != "agent" && n.Type != "test" && n.Type != "command") || n.Type == "command" && fixedOpenCode != nil || !idOK || !shaOK || !idString || !shaString || !toolcontract.ValidCommandID(id) || !toolcontract.ValidDigest(sha) || len(n.Command) != 1 || !toolcontract.ValidCommandID(n.Command[0]) {
+	if (n.Type != "agent" && n.Type != "test" && n.Type != "command" && n.Type != "terminal_session") || n.Type == "command" && fixedOpenCode != nil || !idOK || !shaOK || !idString || !shaString || !toolcontract.ValidCommandID(id) || !toolcontract.ValidDigest(sha) || len(n.Command) != 1 || !toolcontract.ValidCommandID(n.Command[0]) {
 		return "", "", false, dagDiagnostic(fmt.Errorf("%w: complete agent tool binding required", ErrInvalid), "dag.tool.binding", nil)
 	}
 	return id, sha, true, nil
@@ -71,6 +71,12 @@ func validateToolResult(n Node, r Result) error {
 		return nil
 	}
 	e := r.ToolEvidence
+	if n.Type == "terminal_session" && !toolcontract.SupportsTerminalSessionProfile(e.Profile) {
+		return fmt.Errorf("%w: terminal result requires its exact shell capability", ErrInvalid)
+	}
+	if n.Type != "terminal_session" && e.Profile.TerminalSessionProtocol != "" {
+		return fmt.Errorf("%w: terminal shells cannot execute as ordinary commands", ErrInvalid)
+	}
 	if err := toolcontract.ValidateEvidence(*e); err != nil {
 		return fmt.Errorf("%w: %v", ErrInvalid, err)
 	}

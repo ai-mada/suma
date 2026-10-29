@@ -9,7 +9,7 @@ export function validModelSelection(v: unknown): v is ModelSelection {
   if (!object(v) || !exact(v, ['deployment_id','deployment_revision','deployment_sha256','parameters','budget']) ||
       typeof v.deployment_id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/.test(v.deployment_id) ||
       !integer(v.deployment_revision,1,2147483647) || typeof v.deployment_sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(v.deployment_sha256) ||
-      !object(v.parameters) || !exact(v.parameters,['max_steps','max_output_tokens']) || !integer(v.parameters.max_steps,1,16) || !integer(v.parameters.max_output_tokens,1,32768)) return false;
+      !object(v.parameters) || !exact(v.parameters,['max_steps','max_output_tokens']) || !integer(v.parameters.max_steps,1,128) || !integer(v.parameters.max_output_tokens,1,131072)) return false;
   if (v.budget === undefined || v.budget === null) return true;
   if (!object(v.budget) || !exact(v.budget,['token_limit','cost_limit_micros','currency'])) return false;
   const b=v.budget, token=Object.hasOwn(b,'token_limit'), cost=Object.hasOwn(b,'cost_limit_micros');
