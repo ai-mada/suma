@@ -6,6 +6,7 @@
 
 | 当前入口 | 内容 |
 | --- | --- |
+| [原生开发工作台与完整参考对齐](design/reference-workbench.md) | T-WORKBENCH-126：先把正式任务、需求／设计、准确运行、计划用例和正式验收放到原IDE同一上下文，复用[冻结读取合同](../contracts/workspace-task-context.md)；[报告](quality/workspace-task-context-verification.md)／[摘要](quality/workspace-task-context-summary.json)记录当前授权HTTP与真实历史复读、中英文1366／390的限定结果。[116项公开产品／页面／交互映射](product/reference-platform-parity.md)完整保留Octop、WorkBuddy、Multica目标、来源版本、许可及缺口；[跨平台当前证据](product/platform-capability-delivery-matrix.md)不把适配器或该读取切片称为完整工作台完成。 |
 | [有序发布与异常恢复](development/application-release-rollouts.md) | T-ROLLOUT-125：全部原计划分别批准后，预览并明确启动同一Go DAG的依赖有序发布；暂停排空、原操作核对与重新预览后恢复，已健康成员不重复部署。[架构](architecture/application-release-rollouts.md)、[合同](../contracts/application-release-rollouts.md)、[English](en/application-release-rollouts.md)、[待完成验收报告](quality/application-release-rollouts-verification.md)、[验收摘要](quality/application-release-rollouts-summary.json)。实际旅程与界面结果待记录，完整58／34／92及全部待办保留。 |
 | [应用、源码版本与依赖](development/project-applications.md) | T-APPLICATION-123：项目内应用归属、原真实仓库集成来源、固定提交清单观察、人工依赖固定和不可变登记版本；[架构](architecture/project-applications.md)、[部署与资源边界](deployment/application-source-inspector.md)、[English](en/project-applications.md)、[术语](../GLOSSARY.md)。代码版本登记与发布部署分别管理，需求25完整范围继续保留。 |
 | [智能派发推荐](product/dispatch-recommendations.md) | T-ROUTING-122：有界真实工具／模型候选、单次只读分析、可编辑人工采用到原计划与明确启动；[架构与SOP](architecture/dispatch-recommendations.md)、[合同](../contracts/dispatch-recommendations.md)、[报告](quality/dispatch-recommendations-verification.md)、[摘要](quality/dispatch-recommendations-summary.json) |
@@ -40,6 +41,7 @@
 | 可操作的完整旅程 | [用户旅程](product/user-journeys.md) |
 | 实现与待办 | [实施计划](delivery/implementation-plan.md)、[交付状态](delivery/status.md) |
 | 产品交互与流程图 | [工作台](design/workbench.md)、[DAG 三视图](design/dag-interactions.md) |
+| 完整原生工作台及参考产品 | [交互规格与AI SOP](design/reference-workbench.md)、[逐项公开能力／界面／交付差距](product/reference-platform-parity.md)、[当前采用和证据](product/platform-capability-delivery-matrix.md) |
 | 全平台多语言与本地化 | [国际化规范](design/internationalization.md)、[账户与组织偏好](design/locale-preferences.md)、[偏好接口合同](../contracts/locale-preferences.md)、[偏好验收](quality/locale-preferences-verification.md)、[自有工作台迁移验收](quality/remaining-localization-verification.md)、[自有工作台摘要](quality/remaining-localization-summary.json)、[受控诊断架构](architecture/localized-diagnostics.md)、[后端诊断验收](quality/backend-diagnostics-verification.md)、[当前工具历史摘要](quality/attempt-tool-history-summary.json) |
 | English documentation | [English entry and translation status](en/README.md) |
 | 应用级迭代与问题全生命周期 | [需求24／25领域及验收基线](product/application-delivery.md)，待实现范围与现有局部基础分开记录 |

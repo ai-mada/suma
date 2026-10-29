@@ -4,6 +4,8 @@ package localization
 // These exact sources are display-only: plan digests, human approval reasons,
 // provider evidence, credentials and durable receipts are never translated.
 var releaseCatalog = []Definition{
+	// Read-only eligibility after the original operation was already dispatched.
+	{Key: "release.plan.already_executed", Texts: map[Locale]string{ZhCN: "计划已执行；查看实际部署，后续变更需要新计划", EnUS: "This plan has already been executed. View the actual deployment; further changes require a new plan."}},
 	// internal/platform/artifact_http.go:74
 	{Key: "release.artifact.download_assignment_required", Texts: map[Locale]string{ZhCN: "下载需携带当前测试执行身份", EnUS: "Downloads must include the current package-test execution identity."}},
 	// internal/platform/artifact_proofs.go:33

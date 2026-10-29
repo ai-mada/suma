@@ -1,0 +1,584 @@
+{
+  "stage": "T-WORKBENCH-126",
+  "date": "2026-10-29",
+  "status": "scoped_local_verified",
+  "product_version": "1.0.0",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "sha256": "3fc74a013b024f9631306f95ded3988879f11a1c5b087ec69153a32ff231ea45",
+    "changed_files": 33,
+    "inventory": ".cache/e2e/workbench-126/source-inventory.json",
+    "previous_published_commit": "9696bf9621bf3a4250cd3663cab08a484fea6de8"
+  },
+  "checks": {
+    "distinct_go_top_tests": [
+      "TestReleaseCatalogCoversExactOwnedSources",
+      "TestReleaseCatalogKeepsUnknownProviderEvidence",
+      "TestReleaseCatalogPreservesEvidenceAndAuthorityConstraints",
+      "TestWorkspaceTaskContextAcceptedExactFactsAndReadOnly",
+      "TestWorkspaceTaskContextActualRetainedSnapshotHTTP",
+      "TestWorkspaceTaskContextHTTPStrictReadOnly",
+      "TestWorkspaceTaskContextStaleDesignAndCurrentAuthority",
+      "TestWorkspaceTaskOptionsLiteralSearchAndScopedCursor"
+    ],
+    "go_count": 8,
+    "distinct_web_behavior_cases": 5,
+    "full_final_web_typecheck": true,
+    "generated_contract_check": true,
+    "generated_models": 662,
+    "api_paths": 304,
+    "catalog_keys": 6117,
+    "production_hardcodes": 0,
+    "documentation_check": true,
+    "version_check": "not repeated: no identity/package/version changes",
+    "go_receipts": [
+      {
+        "path": ".cache/mcp019-deps/20261029T022755943Z.command.json",
+        "bytes": 1304,
+        "sha256": "73059ea9ae14f3d7ac203e26eea71763eba78f173e9293dad1ee8ba3c94266c2",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T022755943Z.stdout.txt",
+          "bytes": 70,
+          "sha256": "1feb6d109624a6d01f626faee65c95392bcbac097272074983ba972f8364bce9"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T022920531Z.command.json",
+        "bytes": 1565,
+        "sha256": "d061ff74eed7e75ccf2805b576a96f9b7889671f3391d4d0c0ad27495daa6fe6",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./internal/localization",
+          "-run",
+          "^(TestWorkspaceTask(Context|Options)|TestReleaseCatalog(CoversExactOwnedSources|KeepsUnknownProviderEvidence|PreservesEvidenceAndAuthorityConstraints))",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T022920531Z.stdout.txt",
+          "bytes": 1403,
+          "sha256": "a350e27796b6e80e09e9af996feea5599eefe8dfa153671b85a16feeb8831593"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T023958901Z.command.json",
+        "bytes": 1458,
+        "sha256": "0a106d6807ada35b89710ff48a840bee99f2c69fe6c5367dd448b105d72a5ac5",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestWorkspaceTaskContext(AcceptedExactFactsAndReadOnly|HTTPStrictReadOnly)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T023958901Z.stdout.txt",
+          "bytes": 309,
+          "sha256": "96a0ce7b29720a25a709141f5bc4f60315e08e0cc90118dc9a8c893cb5a685f0"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T025918807Z.command.json",
+        "bytes": 1304,
+        "sha256": "85c0726703f6d22e9cbdba0802f6695c9f545fec34d796209e3a7dbd1f91b747",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T025918807Z.stdout.txt",
+          "bytes": 70,
+          "sha256": "1feb6d109624a6d01f626faee65c95392bcbac097272074983ba972f8364bce9"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T030241086Z.command.json",
+        "bytes": 1319,
+        "sha256": "911a715c887fc5b3eac849627b70ed709cd5cdcc3985ba09e819aa6e23f2bd52",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T030241086Z.stdout.txt",
+          "bytes": 69,
+          "sha256": "08b5f6730f35f0abaf6f731b53dd44b94a35d41518611094706fab3eb1de9bcd"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T030736535Z.command.json",
+        "bytes": 1434,
+        "sha256": "411d12a367caea13f780a3c70b7196bccfeeb38d4912c71db2409cc4f27fe2b4",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestWorkspaceTaskContextActualRetainedSnapshotHTTP$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "7m"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T030736535Z.stdout.txt",
+          "bytes": 349,
+          "sha256": "a6dcf1611d02b530fe20f1563836e6c5f7ab891c2af1d9ab44272aa08eebdadb"
+        }
+      }
+    ],
+    "web_receipts": [
+      {
+        "path": ".cache/e2e/workbench-126/build.command.json",
+        "bytes": 253,
+        "sha256": "a563a03bfca7d6f49440198a8e6f866a2642ea46619f64c0123c555a39283719",
+        "command": "pnpm --filter @suma/web exec vite build --outDir D:/codes/ai-dev-os/suma/.cache/e2e/workbench-126/web --emptyOutDir",
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/e2e/workbench-126/event-locale.command.json",
+        "bytes": 476,
+        "sha256": "7e6478d22cdf4a8819d7c2ef3c07cb6e84724469c6648af26a957391adfc1c80",
+        "command": [
+          "pnpm",
+          "--filter",
+          "@suma/web",
+          "exec",
+          "vitest",
+          "run",
+          "src/i18n/development-consumers.test.tsx",
+          "-t",
+          "localizes known platform events in live and persistent views while retaining protocol types, raw data and graph state",
+          "--maxWorkers",
+          "1",
+          "--minWorkers",
+          "1"
+        ],
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/e2e/workbench-126/i18n.command.json",
+        "bytes": 172,
+        "sha256": "a45e2a45c577c1d4f0b7ea6ec1d33b039d8ba61cb4ad74657f8fdf0cfa0cd041",
+        "command": "pnpm --filter @suma/web check:i18n",
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/e2e/workbench-126/typecheck.command.json",
+        "bytes": 171,
+        "sha256": "2d0c869b23e3e9d10e110a3e635b66868325c28dab706e1a1d56c6f0b3d59980",
+        "command": "pnpm --filter @suma/web typecheck",
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/e2e/workbench-126/ui-focused.command.json",
+        "bytes": 294,
+        "sha256": "31147211d395b1a30a598db26480c68560687fbef48acb92d06f6705736fc5e1",
+        "command": "pnpm --filter @suma/web exec vitest run src/WorkbenchTaskContext.test.tsx --maxWorkers=1 --minWorkers=1",
+        "exit_code": 1
+      },
+      {
+        "path": ".cache/e2e/workbench-126/ui-permission-fixed.command.json",
+        "bytes": 335,
+        "sha256": "613f22fd937cbd1080c96026097f06d2699e8067a8cf46f0e4ec1ea1c2fa21bc",
+        "command": "pnpm --filter @suma/web exec vitest run src/WorkbenchTaskContext.test.tsx -t \"T126 rejects late owner responses\" --maxWorkers=1 --minWorkers=1",
+        "exit_code": 0
+      },
+      {
+        "path": ".cache/e2e/workbench-126/docs.command.json",
+        "bytes": 153,
+        "sha256": "d5dd26144b6dba53dddc0b524e86491b4e39f7ff3c4c649978a3f8ea1e41e9d1",
+        "command": "pnpm check:docs",
+        "exit_code": 0
+      }
+    ],
+    "targeted_recovery": [
+      "Initial browser HTTP project binding failure fixed; only accepted-facts and strict HTTP cases rerun, exit0.",
+      "Initial UI permission case assertion expected Retry while existing common.retry renders Reload; corrected assertion only and reran that one case, exit0.",
+      "Cursor regex review false positive withdrawn after raw-byte inspection; no fake regex fix claimed."
+    ],
+    "documentation_documents": 343,
+    "documentation_schema_references": 2890
+  },
+  "actual": {
+    "kind": "actual_retained_execution_readback",
+    "status": "closed_without_new_execution",
+    "stop_reason": "explicit_stop",
+    "source_database_sha256": "8a45a7641d5609e5bbea9b6624868810081f3c407e93fade8de249d436738a2e",
+    "retained_database_sha256": "b2ba364ac6038c94dde955902c63582f4345aeb0857490d4ac825eec99a7f050",
+    "protected_tables": 34,
+    "seed_counts": {
+      "dag_attempts": 15,
+      "dag_events": 74,
+      "dag_nodes": 15,
+      "dag_runs": 7,
+      "suma_application_release_rollout_members": 2,
+      "suma_application_release_rollouts": 1,
+      "suma_application_release_set_plan_bindings": 2,
+      "suma_application_release_set_plan_groups": 1,
+      "suma_application_release_sets": 1,
+      "suma_application_versions": 2,
+      "suma_candidate_composition_executions": 0,
+      "suma_candidate_compositions": 0,
+      "suma_evidence": 0,
+      "suma_project_applications": 2,
+      "suma_release_approvals": 2,
+      "suma_release_artifacts": 2,
+      "suma_release_candidates": 2,
+      "suma_release_deployments": 2,
+      "suma_release_plans": 2,
+      "suma_repository_operations": 2,
+      "suma_repository_plans": 1,
+      "suma_requirements": 2,
+      "suma_reviews": 2,
+      "suma_task_code_baselines": 0,
+      "suma_task_run_provenance": 2,
+      "suma_tasks": 2,
+      "suma_test_plan_reports": 3,
+      "suma_test_plan_revisions": 4,
+      "suma_test_plan_runs": 2,
+      "suma_test_plans": 2,
+      "suma_usage_attempts": 9,
+      "suma_usage_facts": 9,
+      "suma_workspace_file_operations": 0,
+      "suma_workspace_writes": 0
+    },
+    "final_counts": {
+      "dag_attempts": 15,
+      "dag_events": 74,
+      "dag_nodes": 15,
+      "dag_runs": 7,
+      "suma_application_release_rollout_members": 2,
+      "suma_application_release_rollouts": 1,
+      "suma_application_release_set_plan_bindings": 2,
+      "suma_application_release_set_plan_groups": 1,
+      "suma_application_release_sets": 1,
+      "suma_application_versions": 2,
+      "suma_candidate_composition_executions": 0,
+      "suma_candidate_compositions": 0,
+      "suma_evidence": 0,
+      "suma_project_applications": 2,
+      "suma_release_approvals": 2,
+      "suma_release_artifacts": 2,
+      "suma_release_candidates": 2,
+      "suma_release_deployments": 2,
+      "suma_release_plans": 2,
+      "suma_repository_operations": 2,
+      "suma_repository_plans": 1,
+      "suma_requirements": 2,
+      "suma_reviews": 2,
+      "suma_task_code_baselines": 0,
+      "suma_task_run_provenance": 2,
+      "suma_tasks": 2,
+      "suma_test_plan_reports": 3,
+      "suma_test_plan_revisions": 4,
+      "suma_test_plan_runs": 2,
+      "suma_test_plans": 2,
+      "suma_usage_attempts": 9,
+      "suma_usage_facts": 9,
+      "suma_workspace_file_operations": 0,
+      "suma_workspace_writes": 0
+    },
+    "seed_protected_sha256": "0f4d817414e49f8af92d66a4323ad5b6167d1567de9c3ad4024dc58c0ead9c74",
+    "final_protected_sha256": "0f4d817414e49f8af92d66a4323ad5b6167d1567de9c3ad4024dc58c0ead9c74",
+    "source_provenance": [
+      {
+        "path": ".cache/e2e/rollout-125/actual-ui/fixture.sqlite",
+        "bytes": 2813952,
+        "sha256": "8a45a7641d5609e5bbea9b6624868810081f3c407e93fade8de249d436738a2e"
+      },
+      {
+        "path": ".cache/e2e/rollout-125/actual-ui/retained-data/release-artifacts/blobs/47f2220233407cff3ee59eb523ea2e92",
+        "bytes": 74,
+        "sha256": "4d33e1fbf571e587d53588cc6202d433dc981a59a4e7b4d33b3f1cb6417916fb"
+      },
+      {
+        "path": ".cache/e2e/rollout-125/actual-ui/retained-data/release-artifacts/blobs/8b6a405566c5bee6b38a02adbfb0d8ef",
+        "bytes": 444,
+        "sha256": "18f35e96138fec24516b76c27b72588940e138ea76bc2c1191c9ffc3a4f3411d"
+      },
+      {
+        "path": ".cache/e2e/rollout-125/actual-ui/retained-data/release-artifacts/blobs/fab5c740e083f7d9f5d4f6f505624c0a",
+        "bytes": 66,
+        "sha256": "095b622ff5eaddb5b6a5223e1250f65f685b8263bc4dcb3c159c5563c01fdb34"
+      },
+      {
+        "path": ".cache/e2e/rollout-125/actual-ui/base-source.tar",
+        "bytes": 10240,
+        "sha256": "3f7ac1d9a6741d7dc0f9b30e82a8e3901184b681d75b9dd6591876dfc710dc9b"
+      },
+      {
+        "path": ".cache/e2e/rollout-125/actual-ui/candidate-source.tar",
+        "bytes": 10240,
+        "sha256": "214213354639771460be9588152ed42842648af0202647576417429b7428d8ed"
+      }
+    ],
+    "source_files": [
+      {
+        "path": ".gitignore",
+        "bytes": 8,
+        "sha256": "70a213afeabe5ac38ae4c88b2c7002ce5068b91a3e57a032245ab809dc6fa460"
+      },
+      {
+        "path": "apps/web/package.json",
+        "bytes": 87,
+        "sha256": "d1b6f9d3037c762a82b1f5f1c8e2b1fdf4d98a09213caee5b8fecf56ffa0f8cd"
+      },
+      {
+        "path": "package.json",
+        "bytes": 101,
+        "sha256": "b5ed1fbc4ccb6adabf3329e897dddf39ef2bd21220640da39629b94a5842d824"
+      },
+      {
+        "path": "packages/library/package.json",
+        "bytes": 46,
+        "sha256": "d55baf92a68f2f6060a554cca74549cc2270a9a5ba3a37cc591abedc0a39adae"
+      },
+      {
+        "path": "pnpm-workspace.yaml",
+        "bytes": 40,
+        "sha256": "60ce4d1dbf137701a4683d171391c51662700c2f3e32a7caab8b2efc22540e65"
+      },
+      {
+        "path": "sum.cjs",
+        "bytes": 27,
+        "sha256": "b7fe0fbde04b24b85270a6b7006017ce20facbb63eff2f45e82b96bb2e100620"
+      }
+    ],
+    "tasks": [
+      {
+        "id": "e5aafb9225d8f62caad43213e43974b9",
+        "version": 3,
+        "status": "accepted",
+        "run": "a3f1faec5af8d8610d08692395a4a236",
+        "quality": "passed",
+        "formal_acceptance": true
+      },
+      {
+        "id": "b57453b429bc1e88a970e5d604fd7e76",
+        "version": 3,
+        "status": "accepted",
+        "run": "e725c8c21e302cc935a4f4fb7e138463",
+        "quality": "passed",
+        "formal_acceptance": true
+      }
+    ],
+    "new_executions": 0,
+    "model_calls": 0,
+    "provenance": "Current HTTP reads a separately copied, hash-pinned actual T125 execution history. Extracted source files are original bytes, not a live worktree or current candidate execution.",
+    "browser": {
+      "stage": "T-WORKBENCH-126",
+      "kind": "actual_retained_execution_readback",
+      "origin": "http://workbench126.localhost:49220",
+      "project_id": "62529610c1f3e2ba22348ef1cd500b93",
+      "task_before": "e5aafb9225d8f62caad43213e43974b9",
+      "task_after": "b57453b429bc1e88a970e5d604fd7e76",
+      "selected_url": "http://workbench126.localhost:49220/?project=62529610c1f3e2ba22348ef1cd500b93&view=development&sub=ide&status=all&layout=list&week=2026-10-26&panel=workbench-task%3Ab57453b429bc1e88a970e5d604fd7e76",
+      "verified_steps": [
+        "authenticated isolated account",
+        "exact task plus separate business/execution/plan/formal-review facts",
+        "original sum.cjs displayed",
+        "original linked requirement expanded",
+        "submitted server search Prepare returned one task",
+        "selected other task",
+        "reload restored exact selected task",
+        "English desktop and390",
+        "Chinese desktop and390"
+      ],
+      "viewport390": {
+        "documentWidth": 375,
+        "taskWidth": 338.66668701171875,
+        "width": 390
+      },
+      "new_executions": 0,
+      "model_calls": 0,
+      "not_verified": [
+        "real browser unsaved-navigation prompt",
+        "design-adoption content absent from retained tasks",
+        "keyboard and full device/theme matrix",
+        "new independent execution"
+      ],
+      "captured_at": "2026-10-29T03:11:43.889Z"
+    }
+  },
+  "efficiency": {
+    "web_builds": 1,
+    "sdk_builds": 0,
+    "model_calls": 0,
+    "new_executions": 0,
+    "broad_suites": 0,
+    "checks": "Changed behavior only, failures targeted; no repeated vendor/model/build/deployment journey."
+  },
+  "evidence": {
+    "artifacts": [
+      {
+        "path": ".cache/e2e/workbench-126/source-inventory.json",
+        "bytes": 5892,
+        "sha256": "521b56c14c0f2427d8402cf3a0a3e7f5397236b27f35d75ad7126b2fab8e980a"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/browser.public.json",
+        "bytes": 1310,
+        "sha256": "0911b02dc4d347406fbcce0b5414104e885497773d45e52efaaee874faf5141e"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/review.public.json",
+        "bytes": 1785,
+        "sha256": "271abb8b4bd2b295ce77594e8d0e538663edc327833fc2966b86ebc607268259"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/actual-ui/result.public.json",
+        "bytes": 14610,
+        "sha256": "08b4c5bfe9d8dca1c16a0b441440c523ebd04f8b573782f679d59edae30dc6b1"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/actual-ui/web.files.public.json",
+        "bytes": 25139,
+        "sha256": "b6003e27211b489e7e4e47326578ae7fff78639d425d8e57296693690e018828"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/actual-ui/retained-fixture.sqlite",
+        "bytes": 2822144,
+        "sha256": "b2ba364ac6038c94dde955902c63582f4345aeb0857490d4ac825eec99a7f050"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/workbench-en-390.png",
+        "bytes": 58795,
+        "sha256": "eba379fcea22ee94255ff808a17a44ddc3d18d5a7c05d7d5bd03d790328eaa99"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/workbench-en-desktop.png",
+        "bytes": 95988,
+        "sha256": "c47354e8e37b8f340d9470cbf66001c35996d17124b01e0e059add9b3ca62be6"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/workbench-zh-390.png",
+        "bytes": 46995,
+        "sha256": "f191e594779bd44967ba7afac9ede01bdfc08cd8059cce5c5df357e7d063c34a"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/workbench-zh-desktop.png",
+        "bytes": 128352,
+        "sha256": "ee2a5e6293b0a0e922bac7b9c22fae5db523ff21084b25ba074cd044b8e3416a"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/build.stdout.txt",
+        "bytes": 19487,
+        "sha256": "bc3a99475bfe89f86708e251970d6fc3c477043a0581eedf704a00f016a8ed4d"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/event-locale.stdout.txt",
+        "bytes": 461,
+        "sha256": "ac1f8880db74837c9d5c3fad6050be4a008aab83852ca727d6bf4a39846c82cc"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/i18n.stdout.txt",
+        "bytes": 133,
+        "sha256": "4c010e9aab8e6f2e68241e8ba9786176fa2c92b44d3bd8af86d888af8f53db44"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/typecheck.stdout.txt",
+        "bytes": 16,
+        "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/ui-focused.stdout.txt",
+        "bytes": 1554,
+        "sha256": "d6c18f099948722228d3803b978cefb455fe3e6b770e69e08e6101cc3dc21987"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/ui-permission-fixed.stdout.txt",
+        "bytes": 323,
+        "sha256": "11b80f44bba5dd0e22940bf2cd56930b0f0238af18e70d835cc7842e1374d4de"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/actual-ui/base-source.tar",
+        "bytes": 10240,
+        "sha256": "3f7ac1d9a6741d7dc0f9b30e82a8e3901184b681d75b9dd6591876dfc710dc9b"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/actual-ui/candidate-source.tar",
+        "bytes": 10240,
+        "sha256": "214213354639771460be9588152ed42842648af0202647576417429b7428d8ed"
+      },
+      {
+        "path": ".cache/e2e/workbench-126/docs.stdout.txt",
+        "bytes": 136,
+        "sha256": "9969964982a3f02c50f1b82500d2a2e4202236fe0e2cbed76171439b368b98fe"
+      }
+    ],
+    "not_in_git": "Raw logs, screenshots, archives, databases, local login credentials, dependencies and build outputs remain ignored."
+  },
+  "review": {
+    "stage": "T-WORKBENCH-126",
+    "review": "read-only closure of three previous findings",
+    "method": "current source inspection only; no tests, builds or Git mutations",
+    "findings": [
+      {
+        "id": "task-id-consistency",
+        "state": "closed for generated/supported ASCII record IDs",
+        "evidence": [
+          "apps/web/src/navigation.ts:16-18",
+          "cmd/suma-contracts/workspace_task_context.go:21"
+        ],
+        "result": "Task navigation accepts dot-safe 1..64 ASCII identifiers except dot/dotdot, and OpenAPI maxLength now64 with explicit64-byte backend bound. Backend generic handoffID remains broader than UI supported record identifiers; normal Record creation generates IDs server-side."
+      },
+      {
+        "id": "cursor-regex",
+        "state": "withdrawn false positive",
+        "evidence": [
+          "apps/web/src/workbench-task-model.ts:33"
+        ],
+        "result": "Raw source byte inspection confirms single backslash x escapes for C0/DEL character ranges. Earlier double escaping was tool JSON rendering. Cursor max length now4096 matching API."
+      },
+      {
+        "id": "nested-design-link-guard",
+        "state": "closed",
+        "evidence": [
+          "apps/web/src/WorkbenchTaskContext.tsx:39"
+        ],
+        "result": "TaskContextFacts intercepts descendant anchor clicks through capture, so RequirementDesignFacts original requirement link uses the same existing cancelable navigation guard."
+      }
+    ],
+    "narrow_limitations": [
+      "Source inspection does not replace full platform parity, PTY, LSP/DAP, office or distributed acceptance evidence.",
+      "Current task selection is read context and does not bind a workspace or authorize execution."
+    ],
+    "code_edits": 0,
+    "new_tests": 0,
+    "new_builds": 0
+  },
+  "remaining": [
+    "Complete all P0-P7 and requirements1..26 with58 limited/34 pending/92 unchanged.",
+    "Full Octop/WorkBuddy/Multica native functions and end-to-end interactions;116 mapped public operations are a gap baseline, not parity certification.",
+    "Persistent chat, real PTY/LSP/DAP/full Git writes/office/browser and desktop capabilities, real multi-host/vendor/installer/production acceptance.",
+    "Browser unsaved-navigation and adopted-design content, keyboard and full viewport/theme matrix not verified by this historical replay; focused component tests cover changed guard behavior."
+  ],
+  "git_delivery": {
+    "repository": "git@github.com:ai-mada/suma.git",
+    "branch": "dev",
+    "forced": false,
+    "verification_receipt": ".cache/e2e/workbench-126/git-delivery.json"
+  }
+}

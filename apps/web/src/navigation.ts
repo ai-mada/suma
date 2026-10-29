@@ -11,6 +11,15 @@ export function parseWorkbenchRoute(search:string):WorkbenchRoute{
 }
 export function initializeSessionRoute(route:WorkbenchRoute,projects:{id:string}[]):WorkbenchRoute{return route.project||!projects.length?route:{...route,project:projects[0].id};}
 
+/** The selected task is reading context, independent of the editor source.
+ * Keep the run locator empty so an IDE refresh cannot switch into Run view. */
+export function workbenchTaskID(panel:string):string{const id=panel.startsWith('workbench-task:')?panel.slice('workbench-task:'.length):'';return /^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(id)?id:'';}
+export function locateWorkbenchTask(id:string,canLeave:()=>boolean,update:(change:(route:WorkbenchRoute)=>WorkbenchRoute)=>void):boolean{
+ if(id&&!/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(id)||!canLeave())return false;
+ update(route=>({...route,view:'development',sub:'ide',panel:id?'workbench-task:'+id:'',record:'',run:'',node:'',attempt:'',q:'',layout:'list'}));
+ return true;
+}
+
 /** A risk locator is one navigation operation. In particular, a rejected
  * leave guard cannot still write a risk ID into a baseline's record field. */
 export function locateProjectRisk(id:string,canLeave:()=>boolean,update:(change:(route:WorkbenchRoute)=>WorkbenchRoute)=>void):boolean{

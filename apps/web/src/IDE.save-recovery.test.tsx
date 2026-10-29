@@ -7,6 +7,7 @@ import {IDE} from './IDE';
 import {ApiViewProvider} from './api-context';
 import {setLocale} from './i18n';
 
+const taskContextProps={session:{user:{id:'fixture',name:'Editor',email:'editor@example.test'},organization:{id:'fixture-org',name:'Org'},projects:[]},selectedTask:'',refresh:0,onTaskSelect:()=>true};
 const commands=vi.hoisted(()=>({current:undefined as {run:()=>void|Promise<void>}|undefined}));
 vi.mock('@monaco-editor/react',async()=>{
  const {createElement,useEffect,useRef}=await import('react');
@@ -56,7 +57,7 @@ it('hides the original draft in another account and restores its exact unknown o
   throw Error('Unexpected request '+url.pathname);
  }));
  host=document.createElement('div');document.body.append(host);root=createRoot(host);
- const render=()=>root!.render(<ApiViewProvider session={session()}><IDE project={project}/></ApiViewProvider>);
+ const render=()=>root!.render(<ApiViewProvider session={session()}><IDE {...taskContextProps} project={project}/></ApiViewProvider>);
  async function settle(ready:()=>boolean){for(let i=0;i<40;i++){await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});if(ready())return;}expect(ready()).toBe(true);}
  const button=(text:string)=>[...host!.querySelectorAll('button')].find(item=>item.textContent===text);
  const editor=()=>host!.querySelector<HTMLTextAreaElement>('textarea[aria-label="Mock local code editor"]')!;
@@ -100,7 +101,7 @@ it('keeps a rebound workspace draft and model until an explicit current read and
   throw Error('Unexpected request '+url.pathname);
  }));
  host=document.createElement('div');document.body.append(host);root=createRoot(host);
- await act(async()=>root!.render(<IDE project={project}/>));
+ await act(async()=>root!.render(<IDE {...taskContextProps} project={project}/>));
  const button=(text:string)=>[...host!.querySelectorAll<HTMLButtonElement>('button')].find(item=>item.textContent?.trim()===text);
  async function settle(ready:()=>boolean){for(let i=0;i<40;i++){await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});if(ready())return;}expect(ready()).toBe(true);}
  await settle(()=>!!button(path));await act(async()=>button(path)!.click());await settle(()=>!!host!.querySelector('textarea'));
@@ -138,7 +139,7 @@ it('keeps a late old-account acknowledgement from clearing its hidden operation 
   throw Error('Unexpected request '+url.pathname);
  }));
  host=document.createElement('div');document.body.append(host);root=createRoot(host);
- const render=()=>root!.render(<ApiViewProvider session={session()}><IDE project={project}/></ApiViewProvider>);
+ const render=()=>root!.render(<ApiViewProvider session={session()}><IDE {...taskContextProps} project={project}/></ApiViewProvider>);
  const button=(text:string)=>[...host!.querySelectorAll<HTMLButtonElement>('button')].find(item=>item.textContent?.trim()===text);
  async function settle(ready:()=>boolean){for(let i=0;i<40;i++){await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});if(ready())return;}expect(ready()).toBe(true);}
  await act(async()=>render());await settle(()=>!!button(path));await act(async()=>button(path)!.click());await settle(()=>!!host!.querySelector('textarea'));
@@ -173,7 +174,7 @@ it('releases an unknown operation only on its exact not-accepted proof and keeps
  host=document.createElement('div');document.body.append(host);root=createRoot(host);
  const button=(text:string)=>[...host!.querySelectorAll<HTMLButtonElement>('button')].find(item=>item.textContent?.trim()===text);
  async function settle(ready:()=>boolean){for(let i=0;i<40;i++){await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});if(ready())return;}expect(ready()).toBe(true);}
- await act(async()=>root!.render(<IDE project={project}/>));await settle(()=>!!button(path));await act(async()=>button(path)!.click());await settle(()=>!!host!.querySelector('textarea'));
+ await act(async()=>root!.render(<IDE {...taskContextProps} project={project}/>));await settle(()=>!!button(path));await act(async()=>button(path)!.click());await settle(()=>!!host!.querySelector('textarea'));
  const editor=host.querySelector<HTMLTextAreaElement>('textarea')!;await act(async()=>{Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value')!.set!.call(editor,draft);editor.dispatchEvent(new Event('input',{bubbles:true}));});
  await act(async()=>button('Save')!.click());await settle(()=>!!button('Recover previous save'));await act(async()=>button('Recover previous save')!.click());await settle(()=>!!button('Read current file'));
  expect(writes).toEqual([writes[0],writes[0]]);expect(reads).toHaveLength(1);expect(editor.value).toBe(draft);expect(button('Recover previous save')).toBeUndefined();expect(button('Save')?.disabled).toBe(true);expect(button('Read current file')?.disabled).toBe(false);

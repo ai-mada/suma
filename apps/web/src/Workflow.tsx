@@ -79,6 +79,7 @@ const workflowEventKeys:Record<string,string>={
  retry_blocked:'development.workflow.event_name.retry_blocked',
  child_run_created:'development.workflow.event_name.child_run_created',
  child_run_completed:'development.workflow.event_name.child_run_completed',
+ bound_execution_paused:'development.workflow.event_name.bound_execution_paused',
  subworkflow_timeout:'development.workflow.event_name.subworkflow_timeout',
 };
 function WorkflowEventTitle({event,history=false}:{event:Pick<RunEvent,'type'|'sequence'>;history?:boolean}){useLocale();const key=Object.hasOwn(workflowEventKeys,event.type)?workflowEventKeys[event.type]:undefined;return <strong>{history&&`#${event.sequence} · `}<span>{key?t(key):event.type}</span>{key&&<> · <code>{event.type}</code></>}</strong>;}

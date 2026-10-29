@@ -4,13 +4,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-ROLLOUT-125",
-  "updated_at": "2026-10-29T01:58:58.196613+00:00",
+  "stage": "T-WORKBENCH-126",
+  "updated_at": "2026-10-29T03:15:15.476272+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/application-release-rollouts-verification.md",
-  "current_summary": "docs/quality/application-release-rollouts-summary.json",
+  "current_evidence": "docs/quality/workspace-task-context-verification.md",
+  "current_summary": "docs/quality/workspace-task-context-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -81,22 +81,24 @@
     "application_release_rollouts": "Protected Go service-bound original subworkflow, exact per-member approvals/identities, lazy environment reservation, pause/drain, unknown original-operation reconciliation and explicit current resume; same-host actual static provider and read-only CNEN390 verified. Known failure/new revision, automatic composite rollback and full distributed/platform acceptance remain open."
   },
   "verified": {
-    "current_report": "docs/quality/application-release-rollouts-verification.md",
-    "current_summary": "docs/quality/application-release-rollouts-summary.json",
-    "source_sha256": "32004e91675b2a8871c204d96c4f0b185747e51f04183a18f50260664eeafb78",
+    "current_report": "docs/quality/workspace-task-context-verification.md",
+    "current_summary": "docs/quality/workspace-task-context-summary.json",
+    "source_sha256": "3fc74a013b024f9631306f95ded3988879f11a1c5b087ec69153a32ff231ea45",
     "product_version": "1.0.0",
-    "distinct_go_top_tests_passed": 15,
-    "distinct_web_behavior_cases_passed": 4,
+    "distinct_go_top_tests_passed": 8,
+    "distinct_web_behavior_cases_passed": 5,
     "typecheck": true,
     "generated_contract_check": true,
-    "catalog_keys": 6042,
-    "actual_os_http_journey_passed": true,
+    "catalog_keys": 6117,
+    "actual_retained_history_http_passed": true,
     "actual_browser_verified": true,
+    "actual_browser_scope": "CNEN1366/390, two accepted tasks, server search, switch, refresh and original source display; no new execution",
+    "protected_tables_unchanged": 34,
     "owned_model_requests": 0,
     "commercial_vendor_calls": 0,
     "web_builds": 1,
-    "source_inspector_builds": 0,
     "native_sdk_builds": 0,
+    "new_executions": 0,
     "production_complete": false
   },
   "production_integration_complete": false,
@@ -107,7 +109,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "72a1e4194d8049bf24af193a4575d50a6141a818"
+    "previously_published_commit": "9696bf9621bf3a4250cd3663cab08a484fea6de8"
   },
   "existing_preview": {
     "updated": false,
@@ -115,28 +117,24 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and requirements1–26, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance.",
-  "last_goal_turn_classification": "progress: T125 dependency-ordered original-plan rollout, actual ACK-loss reconciliation, pause/drain, unknown read projection and scoped CNEN390 evidence verified; Git delivery is recorded separately against the actual commit. Full P0-P7 and requirements1-26 remain active,58/34/92 unchanged.",
-  "previous_goal_turn": "progress: T124 exact immutable application release sets, independent artifact/JUnit quality, original signed per-member deployment and actual partial/healthy facts implemented, verified and staged for delivery; full P0-P7/requirements1-26 active,58/34/92 unchanged.",
+  "last_goal_turn_classification": "progress: T126 current-authorized task context API, native IDE integration,116 public reference operation map and actual retained HTTP/CNEN1366/390 readback verified; preparing stage commit and normal dev push. Full objective remains active.",
+  "previous_goal_turn": "progress: T125 dependency-ordered original-plan rollout, actual ACK-loss reconciliation, pause/drain, unknown read projection and scoped CNEN390 evidence verified; Git delivery is recorded separately against the actual commit. Full P0-P7 and requirements1-26 remain active,58/34/92 unchanged.",
   "current_work": {
-    "stage": "T-ROLLOUT-125",
-    "status": "verified",
-    "implementation": "Dependency-ordered original-plan rollout and explicit original-operation recovery",
+    "stage": "T-WORKBENCH-126",
+    "status": "scoped_local_verified_pending_git_delivery",
+    "implementation": "Native task-driven workspace with one current-authorized read composition, exact task/run/quality facts, professional bilingual progressive disclosure and explicit current reference-platform parity gaps",
     "remaining": [
-      "Complete P0-P7 and requirements1-26;58/34/92 unchanged",
-      "Known failure recovery through a newly approved plan revision; composite automatic rollback",
-      "Automatic per-application builds and composite multi-origin/commit artifacts",
-      "Complete Octop/CLI/GUI/vendor/MCP/A2A capability coverage and physical multi-host/production acceptance",
-      "OceanBase/PostgreSQL matrix and native multi-platform signing/installers",
-      "Local static demo and fixture Review do not represent customer sign-off or production approval",
-      "Runtime internationalization follow-up: original-plan already-executed blocker and bound_execution_paused event label; static paired catalogs do not prove all runtime translations."
-    ],
-    "git_delivery_receipt": ".cache/e2e/rollout-125/git-delivery.json"
+      "Complete all P0-P7 and requirements1..26 with58 limited/34 pending/92 unchanged.",
+      "Full Octop/WorkBuddy/Multica native functions and end-to-end interactions;116 mapped public operations are a gap baseline, not parity certification.",
+      "Persistent chat, real PTY/LSP/DAP/full Git writes/office/browser and desktop capabilities, real multi-host/vendor/installer/production acceptance.",
+      "Browser unsaved-navigation and adopted-design content, keyboard and full viewport/theme matrix not verified by this historical replay; focused component tests cover changed guard behavior."
+    ]
   },
   "previous_stage_verification": {
-    "stage": "T-RELEASESET-124",
-    "report": "docs/quality/application-release-sets-verification.md",
-    "summary": "docs/quality/application-release-sets-summary.json",
-    "source_sha256": "eacdc53e753448a95539c78e9b62a2b829bc087e183df78cd3facbd794be87b7"
+    "stage": "T-ROLLOUT-125",
+    "report": "docs/quality/application-release-rollouts-verification.md",
+    "summary": "docs/quality/application-release-rollouts-summary.json",
+    "source_sha256": "32004e91675b2a8871c204d96c4f0b185747e51f04183a18f50260664eeafb78"
   },
   "latest_request": {
     "reference_conversation": "6ae163e6-0700-83e9-bf86-623690b54884",

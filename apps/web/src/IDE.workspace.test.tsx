@@ -7,6 +7,7 @@ import {IDE} from './IDE';
 import {ApiViewProvider} from './api-context';
 import {setLocale} from './i18n';
 
+const taskContextProps={session:{user:{id:'u',name:'Editor',email:'e@example.test'},organization:{id:'o',name:'Org'},projects:[]},selectedTask:'',refresh:0,onTaskSelect:()=>true};
 const commands=vi.hoisted(()=>({current:undefined as {run:()=>void|Promise<void>}|undefined}));
 vi.mock('@monaco-editor/react',async()=>{
  const {createElement,useEffect,useRef}=await import('react');
@@ -46,7 +47,7 @@ it('requires an explicit desktop bind and enters the acknowledged project worksp
   throw Error('Unexpected request '+url.pathname);
  }));
  host=document.createElement('div');document.body.append(host);root=createRoot(host);
- await act(async()=>root!.render(<ApiViewProvider session={{user:{id:'u',name:'Editor',email:'e@example.test'},organization:{id:'o',name:'Org'}}}><IDE project="p"/></ApiViewProvider>));
+ await act(async()=>root!.render(<ApiViewProvider session={{user:{id:'u',name:'Editor',email:'e@example.test'},organization:{id:'o',name:'Org'}}}><IDE {...taskContextProps} project="p"/></ApiViewProvider>));
  const button=(name:string)=>[...host!.querySelectorAll<HTMLButtonElement>('button')].find(item=>item.textContent?.trim()===name);
  for(let i=0;i<20&&!button('Choose project folder');i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});
  expect(button('Choose project folder')).toBeDefined();
@@ -65,7 +66,7 @@ it('does not offer workspace binding when deployment disabled it, in either lang
   return Response.json({configured:false,binding_available:false,reason:'Forbidden workspace detail'});
  }));
  host=document.createElement('div');document.body.append(host);root=createRoot(host);let navigated=0;
- await act(async()=>root!.render(<ApiViewProvider session={{user:{id:'u',name:'Editor',email:'e@example.test'},organization:{id:'o',name:'Org'}}}><nav aria-label="Project"><button type="button" onClick={()=>{if(window.dispatchEvent(new Event('suma:navigate',{cancelable:true})))navigated++;}}>Overview</button></nav><IDE project="p"/></ApiViewProvider>));
+ await act(async()=>root!.render(<ApiViewProvider session={{user:{id:'u',name:'Editor',email:'e@example.test'},organization:{id:'o',name:'Org'}}}><nav aria-label="Project"><button type="button" onClick={()=>{if(window.dispatchEvent(new Event('suma:navigate',{cancelable:true})))navigated++;}}>Overview</button></nav><IDE {...taskContextProps} project="p"/></ApiViewProvider>));
  for(let i=0;i<30&&!host.querySelector('.settings-panel');i++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});
  expect(host.textContent).toContain('Local workspace is not enabled');
  expect(host.textContent).toContain('Ask the deployment administrator to configure an allowed workspace directory before binding this project');
@@ -100,7 +101,7 @@ it('keeps the editing model and draft through Git navigation, then saves once th
   throw Error('Unexpected request '+url.pathname);
  }));
  host=document.createElement('div');document.body.append(host);root=createRoot(host);
- await act(async()=>root!.render(<ApiViewProvider session={{user:{id:'u',name:'Editor',email:'e@example.test'},organization:{id:'o',name:'Org'}}}><IDE project="p"/></ApiViewProvider>));
+ await act(async()=>root!.render(<ApiViewProvider session={{user:{id:'u',name:'Editor',email:'e@example.test'},organization:{id:'o',name:'Org'}}}><IDE {...taskContextProps} project="p"/></ApiViewProvider>));
  const button=(name:string)=>[...host!.querySelectorAll('button')].find(item=>item.textContent?.trim()===name||item.getAttribute('aria-label')===name)!;
  async function settle(ready:()=>boolean){for(let i=0;i<40;i++){await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});if(ready())return;}expect(ready()).toBe(true);}
  await settle(()=>!!button('src'));await act(async()=>button('src').click());await settle(()=>!!button('main.ts'));await act(async()=>button('main.ts').click());await settle(()=>!!host!.querySelector('textarea'));

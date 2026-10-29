@@ -1,44 +1,43 @@
 # 参考平台能力与当前交付边界
 
-产品统一为 **1.0.0**。本页只维护参考能力映射；当前实现／证据以[交付状态](../delivery/status.md)为准，完整P0–P7与需求1–22仍见[实施计划](../delivery/implementation-plan.md)。初始化、流程／数据修订和第三方协议版本分别管理，不保留旧产品入口或兼容适配。
+产品统一为 **1.0.0**。完整P0–P7与需求1–26及58项限定实现／34待办／92总账保持不变，见[交付状态](../delivery/status.md)和[实施计划](../delivery/implementation-plan.md)。[Octop、WorkBuddy、Multica逐项产品能力表](reference-platform-parity.md)列明公开功能、页面、交互、实现及证据差距，[原生工作台规格](../design/reference-workbench.md)定义完整体验；不能以适配器清单替代完整产品能力。
 
-OpenCode当前采用[固定SDK合同](../../contracts/opencode-sdk.md)，普通／专家模型选择见[当前跨入口设计](../architecture/model-selection-workflows.md)，活动工作区见[当前读取设计](../architecture/codex-workspace-observation.md)。各自证据保持范围，不能组合成整个平台生产验收。
+当前T-WORKBENCH-126推进原生IDE中的正式任务、需求／设计、负责人、准确运行、计划用例及正式验收同页关联，复用[任务上下文合同](../../contracts/workspace-task-context.md)。[限定报告](../quality/workspace-task-context-verification.md)及[摘要](../quality/workspace-task-context-summary.json)由实际验证生成，不提前声明通过。选择任务不改工作区绑定、不派发或批准；PTY、LSP／DAP、持续聊天和办公协作仍完整保留为待交付目标。
 
-## 判定规则
+## 证据规则
 
-“源码实现”要求有明确模块与合同；“本地／协议验证”只证明列出的夹具或本机行为；“真实工具”要求具体版本、实际账户／CLI及完整执行回执；“生产验收”要求真实部署、隔离、恢复与容量证据。配置示例、界面相似、可执行文件存在和HTTP200均不能代替后三类证据。当前下表没有任何整个平台获得生产验收结论。
+源码实现须有明确领域和合同；本地／协议验证只证明报告所列源码、环境与场景；真实厂商运行需要准确CLI／SDK、实际账户和完整回执；生产验收还需部署、隔离、恢复及容量证据。旧报告保留原范围，新变更不自动继承通过。业务验收、执行成功、独立测试与发布健康分别表达。
 
-## 逐平台对齐
+## 逐平台采用
 
-“对齐方向”是速码要交付的能力分类，不是对参考平台全部功能的穷举。外部原始接口变化应再固定提交／版本，不能从名称猜测参数。
+| 平台与固定来源 | 当前速码实现及对应证据 | 完整产品仍需交付的能力 |
+| --- | --- | --- |
+| 原生模型选择与预算 | [统一Go网关](../architecture/model-gateway.md)及[当前报告](../quality/model-gateway-verification.md)：原生与Octop共享冻结模型、参数、费率、attempt额度及真实请求账本；[跨普通／专家／修复入口](../quality/model-selection-workflows-verification.md)和[智能推荐](../quality/dispatch-recommendations-verification.md)分别限定 | 多供应商完整协议与报价、外部账单核对、长期调优／路由、真实账户及生产；部分usage不能补零，配置额度不代表绝对供应商账单保证。 |
+| [Multica当前README](https://github.com/multica-ai/multica/blob/b2e58d0bf8a8e113b9c7bc895f4213f08442833a/README.md) | Go DAG、共享池、专家计划、独立工作树与候选／基线；[团队编排](../quality/expert-team-orchestration-verification.md)、[候选修订](../quality/candidate-repair-revisions-verification.md)、[任务交付](../quality/task-delivery-chain-verification.md)。最新／本地／历史来源及逐项差距见[专表M01–M32](reference-platform-parity.md) | 原生多轮对话与运行内引导、完整事项配置／共享视图、Squad会话、Inbox、各Git／IM服务、真实多物理机器和安装矩阵。当前许可有额外托管／商业嵌入条件，不按纯Apache2复制到速码SaaS。 |
+| [Hermes](https://github.com/NousResearch/hermes-agent/commit/cb757fac59c92b49e9b8f2910e5cd7ab75efffdd) | 原生工具／技能、记忆及知识提案有对应基础，见[项目知识](../quality/project-knowledge-verification.md)；这些不是Hermes实际运行证据 | 完整Hermes协议、账号、会话、技能／记忆消费、取消与恢复；历史探测不作为当前可用证明。 |
+| [OpenCode](https://github.com/anomalyco/opencode/tree/148842ef7cb1bc34192b3fff57d0f9721ab9c801) | [固定官方SDK／server1.19.4](../../contracts/opencode-sdk.md)、六工具及Go宿主封存；[实际CLI配自有模型端点](../quality/opencode-actual-execution-verification.md)完成两Worker编码／候选交接／独立测试 | 商业模型质量／身份／费用、完整会话恢复、IDE功能、物理多机／跨平台运行与生产。 |
+| [Zed](https://github.com/zed-industries/zed/commit/e96ffb0fd3cc43ec56dcff421146f5e823b13841) | [Monaco工作台](../../apps/web/src/IDE.tsx)、[文本与保存](../quality/workspace-file-context-verification.md)、[目录](../quality/workspace-directory-verification.md)、[只读Git](../quality/workspace-git-verification.md)；本阶段接原正式任务上下文 | 真实PTY、LSP、DAP、调试、预览、协作、多根工作区、受管Git写操作和远端完整IDE；打开外部IDE不等于接入其能力。 |
+| [spec-kit](https://github.com/github/spec-kit/commit/27d14e20c187c1f2916540ea201ecbdc9f8ed588) | [需求／设计提案](../architecture/requirement-design.md)、[追踪](../quality/requirement-traceability-verification.md)、任务版本及验收基础 | 完整spec-kit CLI互操作、SPEC到设计／代码／独立测试／发布的持续版本追踪和冲突治理。 |
+| [Bubble Tea](https://github.com/charmbracelet/bubbletea/commit/f9df43c4f2c021d8740a2628d59cd810a862eb98) | [直接依赖v1.3.10](../../go.mod)、[正式API只读TUI](../../internal/cli/tui.go) | 完整可操作终端工作台、键盘旅程、跨平台安装与真实恢复；只读列表不是完整IDE。 |
+| [DeepSeek Harness／DSH](https://github.com/deepseek-ai/deepseek-harness/commit/687f282e8625c6b8d11ff58211a90524be2e4317) | [既有JSONL／Node合同](../integrations/team-cli-runtime.md)；[本地真实进程、双向输入和停止证据](../quality/team-cli-verification.md) | 真实dsh厂商任务、完整模型与会话语义、恢复／质量及生产；协议夹具不代表完整上游产品。 |
+| Codex | [官方app-server合同](../../contracts/codex-app-server.md)、[真实CLI＋自有Responses端点编码](../quality/codex-app-server-verification.md)；[专家与修复跨入口](../quality/model-selection-workflows-verification.md)覆盖逐任务原生／Codex选择，原生修复显式选择；[活动工作区](../quality/codex-workspace-observation-verification.md)有独立范围 | 真实供应商账户／效果／结算、完整会话及等待输入、Codex专用修复工作区、远程IDE与生产。自有端点协议不等于付费厂商运行；Codex用量及提醒不冒充原生enforce预算。 |
+| [WorkBuddy官方文档](https://www.codebuddy.cn/docs/workbuddy/Overview) | 项目、执行、技能／知识、原件和自动化有基础；官方功能及交互拆为[W01–W52](reference-platform-parity.md)，不使用CodeBuddy CLI或第三方OpenWorkBuddy冒充官方产品 | 完整本地／云会话、产物与人机双写、专家／插件／连接器、任务流转、终端／浏览器、邮箱／IM、网站／小程序／云服务、个人记忆、安装及商业交付。 |
+| [OpenWorkBuddy固定来源](https://github.com/CatCatUncle/openworkbuddy/tree/2e76920dabc3ac057283148ccaa5f8dbb0489530) | 研究0.17.5公开交互、桌面与办公合同；[来源和许可](../integrations/development-platform-reference-extensions.md)保留原记录 | 独立第三方项目，无实际互操作证据；PolyForm Noncommercial不按宽松许可拷入速码SaaS，完整办公／多入口仍须独立实现。 |
+| [Octop固定产品1.0.3b1](https://github.com/TencentCloud/Octop/tree/890111b7879665840414ca28ab168b05b0db0921) | [项目MCP](../quality/octop-integration-verification.md)、公开Harness1.0.5／ACP0.12.1受控编码，共用Go网关、六工具、候选和质量；[当前证据](../quality/model-gateway-verification.md)。原生页面及公开功能见[O01–O32](reference-platform-parity.md) | 完整专家／Teams会话、共享资源／记忆、连接器OAuth、浏览器／终端／桌面、多渠道、插件及安装；完整Octop CLI／GUI、厂商和分布式生产须独立验收。单个SDK不能关闭其余产品能力。 |
 
-| 参考与对齐方向 | 速码源码实现 | 本地／协议证据 | 真实工具与生产差距 |
-| --- | --- | --- | --- |
-| 原生模型选择与预算（平台能力） | [部署与绑定合同](../../internal/modelcontract/model.go)、[当前模型选项](../../internal/platform/model_execution.go)、原固定Plan、Runner本地允许清单和attempt账务钩子 | [036实际证据](../quality/model-execution-verification.md)：限定本地真实native CLI请求使用准确模型／参数，原费率与预算进入同一账本；GUI固定预览已验证 | 原生Suma保留硬预算与冻结运营方费率，每tool一份当前匹配费率；团队逐任务原生选择在040验证。041新增独立Codex单任务选择，配置ACK／partial用量／observe-only明确分开；其他CLI、团队／修复独立Codex选择、自动策略、厂商账单与生产继续实施 |
-| [Multica](https://github.com/multica-ai/multica/tree/a47a1ced0c71bdb113a43facce4675442acb9001)：团队、机器、任务与工作区协同 | Go DAG、共享池与双向Grant、专家团队计划、候选合成／修订和固定基线 | [团队依赖编排](../quality/expert-team-orchestration-verification.md)、[033实际闭环](../quality/candidate-repair-revisions-verification.md)：同机两Runner、独立工作树与独立测试 | Multica外部服务互操作、跨物理机器与规模／生产验收未完成；不能将同机进程称为真实远端集群 |
-| [Hermes](https://github.com/NousResearch/hermes-agent/commit/cb757fac59c92b49e9b8f2910e5cd7ab75efffdd)：工具、技能、记忆与长期智能执行 | 原生Suma内核、受限项目工具、技能目录与知识提案 | 原生工具／技能和提案有各自本地证据，不是Hermes运行证据 | 历史Hermes版本探测退出1，完整协议／会话／取消／恢复接入未验证；不标记可用 |
-| [OpenCode](https://github.com/anomalyco/opencode/tree/148842ef7cb1bc34192b3fff57d0f9721ab9c801)：SDK／编码执行 | 固定官方SDK／server1.19.4、六工具、当前轮MCP连接、原生宿主账本／封存、Go停止证明、运行事实与测试入口 | [当前设计](../architecture/opencode-execution.md)、[实际限定证据](../quality/opencode-actual-execution-verification.md)：真实官方CLI配自有模型协议完成两Worker编码／候选交接／独立测试 | 商业模型效果／身份／结算、会话恢复、完整IDE、物理多机／跨平台运行与生产继续待办 |
-| [Zed](https://github.com/zed-industries/zed/commit/e96ffb0fd3cc43ec56dcff421146f5e823b13841)：完整IDE与协作工作台 | [Monaco工作台](../../apps/web/src/IDE.tsx)、[工作区接口](../../internal/platform/workspace.go)、[只读Git状态与准确文本](../../internal/platform/workspace_git.go) | [035限定本地验证](../quality/workspace-git-verification.md)：真实Git只读状态、index／worktree准确差异、切换保留草稿及Monaco原生Ctrl/Cmd+S | 终端PTY、LSP／DAP、调试、预览与实时协作、受管Git写操作、远程IDE及链接工作树的项目仓库授权仍待实现／验收；完整IDE旅程未验收，打开外部IDE不等于接入其开发能力 |
-| [spec-kit](https://github.com/github/spec-kit/commit/27d14e20c187c1f2916540ea201ecbdc9f8ed588)：规范驱动需求、设计与拆解 | 需求／设计提案、批准快照、可审阅任务与版本化执行合同 | 既有需求设计本地验证见[能力矩阵](capability-matrix.md) | 没有完整spec-kit CLI执行互操作证据；规范正文、开发产物及质量门禁仍需持续追踪同一需求版本 |
-| [Bubble Tea](https://github.com/charmbracelet/bubbletea/commit/f9df43c4f2c021d8740a2628d59cd810a862eb98)：成熟终端交互 | [go.mod](../../go.mod)直接依赖v1.3.10；[TUI](../../internal/cli/tui.go)复用正式API | CLI／TUI已有定向检查，非终端模式有明确输出语义 | 当前只读TUI不能描述为完整交互IDE或自主开发终端；跨平台安装与完整操作旅程仍待验收 |
-| [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness/commit/687f282e8625c6b8d11ff58211a90524be2e4317)／DSH：编码执行协议 | [Harness／DSH适配](../integrations/team-cli-runtime.md)固定Multica JSONL与原生／Node入口 | 本地真实进程、双向输入、终态、进程停止和ACK验证 | 本地协议夹具不等于完整DeepSeek Harness产品或真实dsh／厂商运行；第三方会话恢复仍待接入 |
-| Codex：编码CLI与开发工具 | 已有受限Codex JSONL适配、管理员固定命令及项目MCP配置；[developer check](../../internal/cli/developer_connection.go)复用官方MCP SDK检查速码端点 | [工具记录](../integrations/tools.md)保留历史安装／帮助探测；[036原生模型证据](../quality/model-execution-verification.md)与[只读MCP诊断](../quality/developer-connection036-verification.md)分别记录 | 外部Codex CLI独立模型选择及真实厂商编码任务未验收；只读检查不证明Codex客户端已连接，也不完成远程IDE／[出站broker](../architecture/remote-workspace-broker.md)。历史版本不代表当前库存，原生Suma结果不算作Codex厂商任务 |
-| WorkBuddy：办公／开发工具与消息入口 | 统一工具注册、执行和集成边界可复用 | [官方连接器参考与当前边界](../integrations/team-cli-runtime.md) | WorkBuddy客户端／连接器真实执行未验收；不与CodeBuddy CLI或OpenWorkBuddy混称 |
-| [OpenWorkBuddy](https://github.com/CatCatUncle/openworkbuddy/tree/2e76920dabc3ac057283148ccaa5f8dbb0489530)：多形态入口、办公交付与共享技能／记忆 | 原生内核、桌面生命周期、技能与知识有基础模块 | 固定0.17.5源码／许可已核对；没有该产品实际接入证据 | 办公文件导入编辑导出、多形态一致会话、配额与真实安装需交付；该参考为PolyFormNC，当前只研究合同／交互，无源码复制 |
-| [Octop](https://github.com/TencentCloud/Octop/tree/890111b7879665840414ca28ab168b05b0db0921)：专家、ACP／MCP与多入口 | 项目MCP读取，以及公开Harness1.0.5／ACP0.12.1受控编码，共用Go模型网关、工作区事实、候选与原Go DAG；本阶段[有序发布](../architecture/application-release-rollouts.md)复用同一调度、状态回写与恢复基础，没有新增Octop发布控制台 | [Harness当前限定证据](../quality/model-gateway-verification.md)与[项目MCP证据](../quality/octop-integration-verification.md)分别记录；T-ROLLOUT-125[报告](../quality/application-release-rollouts-verification.md)／[摘要](../quality/application-release-rollouts-summary.json)的实际结果待记录 | 完整Octop CLI／GUI、厂商账户、OAuth、消息入口、专家／记忆／技能同步及跨团队隔离仍须独立交付；本阶段不是Octop厂商运行或完整分布式生产验收 |
+CodeBuddy是已实现受限执行合同的另一CLI，见[团队运行时](../integrations/team-cli-runtime.md)；它不替代WorkBuddy，也不使其他CLI自动获得整体终态、取消和恢复。各工具来源与版本独立，不因为名称相似共享证据。
 
-CodeBuddy是另一个已实现受限适配合同的工具，见[团队CLI运行时](../integrations/team-cli-runtime.md)及[本地证据](../quality/team-cli-verification.md)。它既不替代WorkBuddy，也不使其他CLI自动获得整体终态或取消能力。
+## 原生产品交付顺序
 
-## 优先级与验收产物
+| 优先级 | 完整纵向能力 | 正式边界与完成判据 |
+| --- | --- | --- |
+| 当前T-WORKBENCH-126 | IDE中选择真实任务，读取需求／设计、负责人、准确运行和逐例质量，进入原派发／测试／Review | 原[任务上下文读取](../../contracts/workspace-task-context.md)和CAS编辑共存；刷新／中英／权限／原保存恢复留证。选择任务不自动绑定该任务工作树，不创建、派发或验收。 |
+| P1 原生任务协作 | 目标、可编辑计划、固定资料、持续消息、实际步骤和产物同页 | 持久会话与运行分别建模，真实送达／未知／停止事实；独立测试和人审门禁继续权威。 |
+| P1 工具和模型 | 当前库存、模型、参数／预算和人工采用到原计划 | [智能推荐](../architecture/dispatch-recommendations.md)已有限定交付；后续补完整目录、动态会话和真实厂商。未知价格不参与伪造评分。 |
+| P2 完整IDE | 多标签／搜索、真实PTY、语言服务、调试、Git写入、预览和远端工作区 | 复用当前目录授权、隔离attempt及唯一Go DAG，完成真实编辑→运行→调试→独立质量／恢复旅程。 |
+| P2 专家与资产 | 专家／团队、技能／插件／MCP、知识／记忆、版本／共享／授权 | 资源配置到任务真实消费，成果提炼经审阅采用；删除／撤权后不再进上下文，秘密不随共享包流转。 |
+| P3 办公、多入口及部署 | 办公原件、浏览器／桌面、IM／邮箱、应用交付、跨端安装及SaaS | 各格式、服务、设备、存储和安装目标分别真实验收；SSO、数据库、支付／商业、跨物理机器与容量按完整台账交付。 |
 
-| 优先级 | 当前及下一项实际纵向能力 | 可复用模块与必须补齐的边界 | 完成判据 |
-| --- | --- | --- | --- |
-| P1 当前可用工具选择 | 从真实任务／流程／节点读取候选，解释不可用与不兼容原因；明确采用推荐后再预览派发 | [工具档案](../../internal/platform/tool_profiles.go)、[任务派发](../../internal/platform/task_dispatch.go)、[当前专家授权](../../internal/platform/expert_team_orchestration_authority.go)；分页、实时库存、路由与权限分别校验 | 通过界面选择真实候选，固定工具版本后执行；过期库存、撤权、错误路由阻止新工作；推荐不自动批准／派发 |
-| P1 模型选择与成本 | 036已限定贯通原生固定选择／封闭参数／attempt预算→真实native执行→usage账本，GUI固定预览、中英／键盘／刷新已验证；040已补专家团队逐任务selection，后续补外部CLI、修复入口及完整模型授权／报价 | [PRD](model-execution.md)、[架构与检查点](../architecture/model-execution.md)、[AI SOP](../operations/model-execution.md)、[English](../en/model-execution.md)；当前每工具最新一份匹配费率，旧Plan／attempt固定原费率；未知费用不能排成“最便宜” | 原任务GUI准确预览通过后才关闭该交互待办；厂商／生产、完整报价／授权与策略分别留证，不将固定排序称为最优AI决策 |
-| P2 完整IDE | 先保证编辑／保存／切换与冲突恢复可靠，再接终端、语言服务、调试、Git与预览 | 复用现有工作区与独立attempt，客户端不自行执行命令或突破路径授权 | 用户在同一项目／工作树完成编辑、运行、调试、差异审阅、独立测试及证据定位；断线／冲突不丢内容 |
-| P2 技能、知识与记忆 | 统一版本与当前权限，授权检索、提案萃取、评估、采用与同步 | [技能目录](../../internal/platform/skill_catalog.go)、[项目知识](../../internal/platform/project_knowledge_service.go)及现有检索基础 | 检索结果与模型上下文再授权，过期／删除片段不回流；跨工具消费同一正式版本；私人凭据与未审查插件不进入共享内容 |
-| P3 多入口与分布式交付 | 先完成真实官方CLI／平台适配，再接多物理机器、消息渠道、桌面及移动端 | 共用身份、DAG、持久事件、配额、幂等操作与停止／核对合同 | 外部账户和机器真实执行、断线重传、取消确认、未知结果核对及独立测试；Windows/macOS/Linux安装、SaaS／私有部署分别留证 |
+所有页面须中文／英文完整标签、加载／空态／错误／无权限／断线／冲突与原操作恢复，支持键盘、窄屏和可恢复深链。基础设施、渠道、SSO、OceanBase、多模态、对象存储、安装升级及生产容量仍按[完整实施计划](../delivery/implementation-plan.md)推进。本矩阵不新增整项勾选、不删减目标，也不把设计规格当实现证据。
 
-每项均须中文／英文完整标签、简单折叠交互、加载／空态／失败／无权限状态及可恢复深链。权限、租户／组织／项目隔离、预算和人工门禁是统一控制面能力，不能由某个CLI或前端局部配置绕过。真实多模态存储、分布式数据库、SSO、渠道、跨平台安装与生产容量仍按[完整台账](../delivery/implementation-plan.md)推进。
-
-*English: This is an implementation and evidence gap matrix, not feature parity certification. Stage 036 locally verifies fixed native model execution and attempt accounting; the original GUI preview is still being completed. Independent selection for external CLIs and expert teams, a multi-model quotation catalogue, remote IDE/broker, and vendor/production acceptance remain pending. A one-shot read-only MCP check does not establish a connected external client or remote workspace.*
+*English: Full native product workflows and interfaces remain the target. The detailed Octop/WorkBuddy/Multica parity backlog covers their public capabilities, not just adapter names. Current native/Octop gateway execution, real Codex/OpenCode protocol runs, expert model selection and reviewed dispatch recommendations have separate scoped evidence. The T-WORKBENCH-126 task context is a bounded native IDE slice; terminal, full IDE, continuous collaboration, office formats, channels, multi-device installation and production remain independent deliverables. No full parity or production certification is claimed.*

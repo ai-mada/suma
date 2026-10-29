@@ -770,6 +770,7 @@
   "development.workflow.event_name.retry_blocked": "Retry blocked",
   "development.workflow.event_name.child_run_created": "Child run created",
   "development.workflow.event_name.child_run_completed": "Child run completed",
+  "development.workflow.event_name.bound_execution_paused": "Managed child execution paused",
   "development.workflow.event_name.subworkflow_timeout": "Child workflow timed out",
   "development.workflow.graph_canvas_aria": "Workflow canvas",
   "development.workflow.graph_controls_aria": "Canvas controls",

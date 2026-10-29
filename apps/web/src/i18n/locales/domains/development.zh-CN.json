@@ -770,6 +770,7 @@
   "development.workflow.event_name.retry_blocked": "重试受阻",
   "development.workflow.event_name.child_run_created": "子运行已创建",
   "development.workflow.event_name.child_run_completed": "子运行已结束",
+  "development.workflow.event_name.bound_execution_paused": "受控子执行已暂停",
   "development.workflow.event_name.subworkflow_timeout": "子工作流已超时",
   "development.workflow.graph_canvas_aria": "工作流画布",
   "development.workflow.graph_controls_aria": "画布控制",

@@ -6065,6 +6065,69 @@ export interface WorkspaceOperationEvent {
   error_code?: string;
   replayed?: boolean;
 }
+export interface WorkspaceTask {
+  id: string;
+  version: number;
+  title: string;
+  description: string;
+  acceptance_criteria: (string)[];
+  status: string;
+  priority: string;
+  owner_id: string;
+  requirement_id: string;
+  run_id: string;
+}
+export interface WorkspaceTaskContext {
+  project_id: string;
+  observed_at: string;
+  task: WorkspaceTask;
+  requirement: TaskContextRecord | null;
+  owner: WorkspaceTaskOwner | null;
+  design: WorkspaceTaskDesign;
+  delivery: TaskDelivery;
+  quality: WorkspaceTaskQuality;
+}
+export interface WorkspaceTaskDesign {
+  state: string;
+  context: RequirementDesignContext | null;
+}
+export interface WorkspaceTaskOption {
+  id: string;
+  version: number;
+  title: string;
+  status: string;
+  priority: string;
+}
+export interface WorkspaceTaskOwner {
+  id: string;
+  version: number;
+  name: string;
+  kind: string;
+  status: string;
+}
+export interface WorkspaceTaskPage {
+  project_id: string;
+  search: string;
+  items: (WorkspaceTaskOption)[];
+  total: number;
+  limit: number;
+  next_cursor: string;
+}
+export interface WorkspaceTaskQuality {
+  plan_id: string;
+  revision: number;
+  plan_sha256: string;
+  run_id: string;
+  run_state: string;
+  state: string;
+  basis_current: boolean;
+  total: number;
+  passed: number;
+  failed: number;
+  errors: number;
+  skipped: number;
+  not_run: number;
+}
 export interface WorkspaceTreeEntry {
   path: string;
   name: string;

@@ -22,6 +22,7 @@ import {bindWorkspaceSaveShortcut,type WorkspaceSaveShortcutState} from './works
 import {WorkspaceTree} from './WorkspaceTree';
 import {DesktopWorkspacePicker} from './DesktopWorkspacePicker';
 import {desktopWorkspaceBridge} from './desktop-workspace-model';
+import {WorkbenchTaskContext,type WorkbenchTaskContextProps} from './WorkbenchTaskContext';
 
 // All editor assets and workers are bundled locally. Monaco's ESM instance has
 // no public runtime NLS switch; the visible note states that precise boundary.
@@ -33,11 +34,11 @@ type LocalDraft={workspace?:WorkspaceMetadata;file:FileState;content:string;requ
 // small process-memory recovery window; file contents are not browser storage.
 const localDrafts=new Map<string,LocalDraft>();
 function retainLocalDraft(scope:string,draft:LocalDraft){localDrafts.delete(scope);localDrafts.set(scope,draft);while(localDrafts.size>12)localDrafts.delete(localDrafts.keys().next().value!);}
-export function IDE({project}:{project:string}){
+export function IDE(props:WorkbenchTaskContextProps){
  useLocale();
- return project?<ProjectIDE key={project} project={project}/>:<Empty title={t('workspace.select_project')}/>;
+ return props.project?<ProjectIDE key={props.project} {...props}/>:<Empty title={t('workspace.select_project')}/>;
 }
-function ProjectIDE({project}:{project:string}){
+function ProjectIDE({project,session,selectedTask,refresh,onTaskSelect}:WorkbenchTaskContextProps){
  const api=useApi(),view=useApiView();useLocale();
  const scope=view?JSON.stringify([view.userID,view.organizationID,project]):'';
  const sourceID=useId();
@@ -46,7 +47,7 @@ function ProjectIDE({project}:{project:string}){
  const [remoteVisited,setRemoteVisited]=useState(source==='remote');
  const [bindingBlocked,setBindingBlocked]=useState(false);
  function select(value:'local'|'remote'){if(bindingBlocked)return;if(value==='remote')setRemoteVisited(true);setSource(value);try{sessionStorage.setItem('suma-ide-source:'+project,value);}catch{/* UI preference only; source content is never cached. */}}
- return <div><div className="ide-sources" role="tablist" aria-label={t('remote-workspace.source')} onKeyDown={event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const next=event.key==='Home'?'local':event.key==='End'?'remote':source==='local'?'remote':'local';select(next);event.currentTarget.querySelectorAll<HTMLButtonElement>('[role=tab]')[next==='local'?0:1]?.focus();}}}>
+ return <div><WorkbenchTaskContext session={session} project={project} selectedTask={selectedTask} refresh={refresh} onTaskSelect={onTaskSelect}/><div className="ide-sources" role="tablist" aria-label={t('remote-workspace.source')} onKeyDown={event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const next=event.key==='Home'?'local':event.key==='End'?'remote':source==='local'?'remote':'local';select(next);event.currentTarget.querySelectorAll<HTMLButtonElement>('[role=tab]')[next==='local'?0:1]?.focus();}}}>
  <button type="button" id={sourceID+'-local-tab'} aria-controls={sourceID+'-local-panel'} role="tab" aria-selected={source==='local'} tabIndex={source==='local'?0:-1} onClick={()=>select('local')}>{t('remote-workspace.local')}</button>
  <button type="button" id={sourceID+'-remote-tab'} aria-controls={sourceID+'-remote-panel'} role="tab" aria-selected={source==='remote'} tabIndex={source==='remote'?0:-1} disabled={bindingBlocked} onClick={()=>select('remote')}>{t('remote-workspace.remote')}</button></div>
  <div id={sourceID+'-local-panel'} role="tabpanel" aria-labelledby={sourceID+'-local-tab'} hidden={source!=='local'}><LocalProjectIDE key={owner.current.epoch} project={project} scope={scope} active={source==='local'} onBindingBlocked={setBindingBlocked}/></div>

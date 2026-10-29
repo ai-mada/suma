@@ -9,6 +9,7 @@ import (
 // These sources come from the frozen producer inventory, independently of the
 // display catalog. Removing a mapping must leave a failing consumer contract.
 var releaseDiagnosticSources = []string{
+	"计划已执行；查看实际部署，后续变更需要新计划",
 	"下载需携带当前测试执行身份",
 	"停止或结果未知的执行不能形成成功制品证明",
 	"制品证明必须来自同一固定源码，构建及包测试不得改变代码",
@@ -158,7 +159,7 @@ var releaseDiagnosticSources = []string{
 }
 
 func TestReleaseCatalogCoversExactOwnedSources(t *testing.T) {
-	if len(releaseDiagnosticSources) != 146 || len(releaseCatalog) != 146 {
+	if len(releaseDiagnosticSources) != 147 || len(releaseCatalog) != 147 {
 		t.Fatalf("release diagnostic coverage changed: sources=%d definitions=%d", len(releaseDiagnosticSources), len(releaseCatalog))
 	}
 	seen := map[string]bool{}

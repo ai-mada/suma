@@ -206,6 +206,7 @@ const platformEventCases = [
   ["retry_blocked", "Retry blocked", "重试受阻"],
   ["child_run_created", "Child run created", "子运行已创建"],
   ["child_run_completed", "Child run completed", "子运行已结束"],
+  ["bound_execution_paused", "Managed child execution paused", "受控子执行已暂停"],
   ["subworkflow_timeout", "Child workflow timed out", "子工作流已超时"],
 ] as const;
 it("localizes known platform events in live and persistent views while retaining protocol types, raw data and graph state", async () => {
