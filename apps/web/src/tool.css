@@ -22,9 +22,12 @@
 }
 .tool-columns {
   display: grid;
-  grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   align-items: start;
+}
+.tool-columns.with-detail {
+  grid-template-columns: minmax(270px, .85fr) minmax(0, 1.15fr);
 }
 .tool-list,
 .tool-detail {
@@ -299,7 +302,7 @@
   }
 }
 @media (max-width: 850px) {
-  .tool-columns {
+  .tool-columns, .tool-columns.with-detail {
     grid-template-columns: 1fr;
   }
   .tool-columns.with-detail > .tool-list {

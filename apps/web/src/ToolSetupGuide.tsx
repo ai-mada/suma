@@ -22,7 +22,7 @@ const presets={
  harness:{'harness-develop':{adapter:'harness',protocol:'dsh-multica-jsonl-v1',executable:'dsh',args:['--profile','multica','--stdio'],input:'dsh-jsonl',read_only:false}},
 } as const;
 
-export function ToolSetupGuide(){
+export function ToolSetupGuide({id,expanded,onExpandedChange}:{id?:string;expanded?:boolean;onExpandedChange?:(open:boolean)=>void}={}){
  useLocale();
  const [selected,setSelected]=useState<Preset>('codex'),[copied,setCopied]=useState(''),[failed,setFailed]=useState(false);
  const [launchMode,setLaunchMode]=useState<'native'|'node'>('native'),[entry,setEntry]=useState('');
@@ -42,7 +42,7 @@ export function ToolSetupGuide(){
  const [commandName,command]=Object.entries(presets[selected])[0];
  const configuration=JSON.stringify({[commandName]:nativeCoder?{...command,args:[entry],native_workspace:{checks:checkIDs,runtime_manifest:manifest,...(allowRepair?{conflict_repair:true}:{})}}:structured?{...command,args:[entry],env:{SUMA_MODEL:model.trim(),SUMA_MODEL_BASE_URL:endpoint},env_from:operations||extractor||diagnosis?['SUMA_MODEL_API_KEY']:['SUMA_MODEL_API_KEY','SUMA_CONTROL_URL','SUMA_AGENT_TOKEN','SUMA_PROJECT_ID']}:nodeMode?{...command,executable:'node',args:[entry,...command.args]}:command},null,2);
  async function copy(){if(!canCopy)return;try{await navigator.clipboard.writeText(configuration);setCopied(configuration);setFailed(false);}catch{setFailed(true);}}
- return <details className="tool-cli-setup">
+ return <details id={id} className="tool-cli-setup" open={expanded} onToggle={event=>onExpandedChange?.(event.currentTarget.open)}>
   <summary><Terminal size={15}/>{t('cli-setup.title')}</summary>
   <div className="tool-cli-setup-body">
    <p className="muted">{t('cli-setup.intro')}</p>

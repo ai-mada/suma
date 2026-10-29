@@ -1,7 +1,7 @@
 import {useApi} from './api-context';
 import { Trans } from "./i18n/Trans";
 import { tr as t, useLocale, formatDateTime, formatNumber, renderDiagnostic } from "./i18n";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import {
   ChevronRight,
   Plus,
@@ -9,6 +9,10 @@ import {
   ShieldCheck,
   Terminal,
   X,
+  Pause,
+  Play,
+  Search,
+  CircleHelp,
 } from "lucide-react";
 import { api, query, type Session } from "./api";
 import { Empty, ErrorNotice, Field, Loading, Modal } from "./ui";
@@ -28,7 +32,8 @@ import {
   type ToolObservation,
   type ToolProfile,
 } from "./tool-model";
-import { ToolProfileFacts } from "./ToolFacts";
+import { ToolProfileFacts, toolReason } from "./ToolFacts";
+import { ToolReadiness, matchesToolFilter, type ToolFilter } from './ToolReadiness';
 import "./tool.css";
 import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
@@ -75,7 +80,10 @@ export function ToolWorkspace({
       token?: string;
     }>(),
     [revealed, setRevealed] = useState(false),
-    [live, setLive] = useState(true);
+    [live, setLive] = useState(true),
+    [filter, setFilter] = useState<ToolFilter>('all'),
+    [guideOpen, setGuideOpen] = useState(false);
+  const guideID = useId();
   const recovery = useMemo(
     () =>
       new ToolWriteRecovery(session.organization.id +
@@ -106,30 +114,48 @@ export function ToolWorkspace({
         : "",
       refresh + revision,
     );
+  const refreshAll = useCallback(() => {
+    if (!profiles.loading) void profiles.read();
+    if (!workers.loading) void workers.read();
+    if (!sharedWorkers.loading) void sharedWorkers.read();
+    if (selected && !detail.loading) void detail.read();
+  }, [profiles.loading, profiles.read, workers.loading, workers.read, sharedWorkers.loading, sharedWorkers.read, selected, detail.loading, detail.read]);
   useEffect(() => {
     if (!live) return;
-    const timer = setInterval(() => void profiles.read(), 10000);
+    const timer = setInterval(() => {
+      if (document.visibilityState !== 'hidden') refreshAll();
+    }, 10000);
     return () => clearInterval(timer);
-  }, [live, profiles.read]);
-  useEffect(() => {
-    if (!selected) return;
-    const timer = setInterval(() => void detail.read(), 10000);
-    return () => clearInterval(timer);
-  }, [selected, detail.read]);
+  }, [live, refreshAll]);
   const pending = !!action.pending,
     current = detail.data,
     stale = detail.loading || !!detail.error,
-    filtered = profiles.items?.filter((profile) =>
+    uncertain = profiles.loading || !!profiles.error || !profiles.items,
+    filtered = profiles.items?.filter((profile) => matchesToolFilter(profile, filter) &&
       (
         profile.name +
         " " +
         profile.worker_id +
         " " +
-        profile.profile.command_id
+        profile.profile.command_id + ' ' + profile.profile.adapter
       )
         .toLowerCase()
-        .includes(search.toLowerCase()),
+        .includes(search.trim().toLowerCase()),
     );
+  const identitiesKnown = !!workers.data && !workers.loading && !workers.error && !!sharedWorkers.data && !sharedWorkers.loading && !sharedWorkers.error;
+  const identityCount = new Set([
+    ...(workers.data?.items || []), ...(sharedWorkers.data?.items || []),
+  ].filter(item => item.status === 'active').map(item => item.worker_id)).size;
+  function openRegister() {
+    action.clearError();
+    void workers.read();
+    void sharedWorkers.read();
+    setDialog({kind:'create'});
+  }
+  function openGuide() {
+    setGuideOpen(true);
+    requestAnimationFrame(() => document.getElementById(guideID)?.querySelector('summary')?.focus());
+  }
   function saved(path: string, value: unknown) {
     setDialog(undefined);
     setRevision((before) => before + 1);
@@ -163,7 +189,8 @@ export function ToolWorkspace({
         >
           {t("development.tools.return_to_task_dispatch")}</a>
       </div>
-      <ToolSetupGuide/>
+      <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={pending || action.busy} onWorker={() => { action.clearError(); setDialog({kind:'worker'}); }} onRegister={openRegister} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
+      <ToolSetupGuide id={guideID} expanded={guideOpen} onExpandedChange={setGuideOpen}/>
       {returnRun && (
         <a
           onClick={(event) => {
@@ -182,12 +209,14 @@ export function ToolWorkspace({
         >
           {t("development.tools.return_to_the_original_run_and_selected")}</a>
       )}
-      <div className="info-strip">
-        <ShieldCheck size={18} />
-        <p>
-          {t("development.tools.configuration_probing_actual_execution_and_acceptance_are")}</p>
-      </div>
       <ToolRecoveryNotice action={action} onRestored={saved} />
+      <div className="tool-refresh-bar">
+        <small>{live ? t("development.tools.auto_refresh") : t("development.tools.auto_refresh_paused")}</small>
+        <div className="inline">
+          <button className="text-button" onClick={() => setLive(value=>!value)}>{live?<Pause size={13}/>:<Play size={13}/>} {t(live?'tool-workspace.pause_refresh':'tool-workspace.resume_refresh')}</button>
+          <button aria-label={t("development.tools.refresh_tool_configurations")} disabled={profiles.loading} onClick={refreshAll}><RefreshCw size={14}/>{t('tool-workspace.refresh')}</button>
+        </div>
+      </div>
       <div className={"tool-columns " + (selected ? "with-detail" : "")}>
         <section className="panel tool-list">
           <div className="list-toolbar">
@@ -196,37 +225,26 @@ export function ToolWorkspace({
             </span>
             <div className="inline">
               <button
-                className="icon-button"
-                aria-label={t("development.tools.refresh_tool_configurations")}
-                disabled={profiles.loading}
-                onClick={() => {
-                  setLive(true);
-                  void profiles.read();
-                }}
-              >
-                <RefreshCw size={15} />
-              </button>
-              <button
                 className="primary"
                 disabled={pending || action.busy}
-                onClick={() => {
-                  action.clearError();
-                  void sharedWorkers.read();
-                  setDialog({ kind: "create" });
-                }}
+                onClick={openRegister}
               >
                 <Plus size={14} />
                 {t("development.tools.register_configuration")}</button>
             </div>
           </div>
+          <div className="tool-filter-tabs" role="group" aria-label={t('tool-workspace.filter')}>
+            {(['all','available','paused','attention','revoked'] as ToolFilter[]).map(value => <button key={value} aria-pressed={filter===value} onClick={() => setFilter(value)}>{t('tool-workspace.filter.'+value)} <span>{uncertain?'—':formatNumber(profiles.items?.filter(item=>matchesToolFilter(item,value)).length||0)}</span></button>)}
+          </div>
           <div className="filter-toolbar">
+            <Search size={16} aria-hidden="true"/>
             <input
               aria-label={t("development.tools.search_loaded_tool_configurations")}
               placeholder={t("development.tools.filter_by_name_worker_or_command")}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
-            <small>
+            <small aria-live="polite">
               {t("development.tools.loaded_count",{loaded:formatNumber(profiles.items?.length||0),total:formatNumber(profiles.total)})}
             </small>
           </div>
@@ -263,31 +281,27 @@ export function ToolWorkspace({
                   <span>
                     <strong>{profile.name}</strong>
                     <small>
-                      {profile.worker_id} · {profile.profile.command_id}
+                      {profile.profile.adapter} · {profile.worker_id} · {profile.profile.command_id}
                     </small>
-                    <small>
-                      {toolStateNames[profile.state]} ·{" "}
-                      {profile.available ? t("development.tools.dispatchable_at_last_read") : t("development.tools.current_conditions_unconfirmed")}
-                    </small>
+                    {profile.reason && <small className="tool-resource-reason">{toolReason(profile.reason, profile.reason_diagnostic)}</small>}
                   </span>
+                  <span className={'tool-status-pill '+(!uncertain&&profile.state==='enabled'&&profile.available?'available':profile.state)}>{uncertain?t('tool-workspace.unconfirmed'):profile.state==='enabled'&&profile.available?t('tool-workspace.eligible'):profile.state==='enabled'?t('tool-workspace.filter.attention'):toolStateNames[profile.state]}</span>
                   <ChevronRight size={15} />
                 </button>
               ))}
             </div>
           ) : (
             <Empty
-              title={search ? t("development.tools.no_matching_configurations_in_this_window") : t("development.tools.no_execution_tools_registered")}
+              title={search || filter!=='all' ? t("development.tools.no_matching_configurations_in_this_window") : t("development.tools.no_execution_tools_registered")}
               description={
-                search
+                search || filter!=='all'
                   ? t("development.tools.adjust_the_filter_or_load_more")
                   : t("development.tools.register_an_execution_worker_identity_then_choose")
               }
+              action={search || filter!=='all'?<button onClick={() => {setSearch('');setFilter('all');}}>{t('tool-workspace.clear_filters')}</button>:<button onClick={openGuide}><CircleHelp size={14}/>{t('tool-workspace.setup_guide')}</button>}
             />
           )}
-          <div className="list-footer">
-            <small>
-              {live ? t("development.tools.auto_refresh") : t("development.tools.auto_refresh_paused")}</small>
-            {profiles.next_cursor && (
+          {profiles.next_cursor && <div className="list-footer">
               <button
                 disabled={profiles.loading}
                 onClick={() => {
@@ -296,8 +310,7 @@ export function ToolWorkspace({
                 }}
               >
                 {t("development.tools.load_more_configurations")}</button>
-            )}
-          </div>
+          </div>}
         </section>
         {selected && (
           <section className="panel tool-detail">
@@ -329,7 +342,7 @@ export function ToolWorkspace({
               {detail.loading && <p role="status">{t("development.tools.reading_current_dispatch_conditions")}</p>}
               {current && (
                 <>
-                  <ToolProfileFacts profile={current} />
+                  <ToolProfileFacts profile={current} confirmed={!stale} />
                   {stale && (
                     <p className="warning">
                       {t("development.tools.the_last_read_is_retained_current_connection")}</p>
@@ -386,6 +399,7 @@ export function ToolWorkspace({
           </section>
         )}
       </div>
+      <div className="tool-boundary-note"><ShieldCheck size={16}/><p>{t("development.tools.configuration_probing_actual_execution_and_acceptance_are")}</p></div>
       <section className="panel tool-workers">
         <div className="tool-section-heading">
           <div>
@@ -608,11 +622,30 @@ function ToolProfileForm({
     [command, setCommand] = useState(""),
     [error, setError] = useState<unknown>(""),
     [name, setName] = useState(""),
+    [nameEdited, setNameEdited] = useState(false),
     [worker, setWorker] = useState("");
   const selected = observations.find(
       (item) => item.profile.command_id === command,
     ),
     blocked = action.busy || !!action.pending;
+  function inspectManifest(text:string) {
+    setManifest(text);
+    setObservations([]);
+    setCommand('');
+    setError('');
+    if (!text.trim()) return;
+    try {
+      const rows = parseToolManifest(text);
+      const available = rows.filter(item=>item.available);
+      setObservations(rows);
+      if (available.length===1) {
+        setCommand(available[0].profile.command_id);
+        if (!nameEdited) setName(available[0].profile.command_id);
+      } else if (!nameEdited) setName('');
+    } catch (error) {
+      setError(error);
+    }
+  }
   return (
     <form
       className="tool-form"
@@ -645,7 +678,7 @@ function ToolProfileForm({
             required
             maxLength={200}
             value={name}
-            onChange={(event) => setName(event.target.value)}
+            onChange={(event) => { setName(event.target.value); setNameEdited(true); }}
           />
         </Field>
         <ToolIdentity
@@ -661,11 +694,7 @@ function ToolProfileForm({
           <textarea
             rows={7}
             value={manifest}
-            onChange={(event) => {
-              setManifest(event.target.value);
-              setObservations([]);
-              setCommand("");
-            }}
+            onChange={(event) => inspectManifest(event.target.value)}
             placeholder={
               '{"items":[{"profile":{…},"available":true,"reason":""}]}'
             }
@@ -673,25 +702,17 @@ function ToolProfileForm({
         </Field>
         <button
           type="button"
-          onClick={() => {
-            try {
-              const rows = parseToolManifest(manifest);
-              setObservations(rows);
-              setCommand("");
-              setError("");
-            } catch (error) {
-              setError(error);
-            }
-          }}
+          onClick={() => inspectManifest(manifest)}
         >
           {t("development.tools.validate_inventory_fields")}</button>
         {observations.length > 0 && (
           <>
+            <p className="tool-import-result" role="status"><ShieldCheck size={16}/>{t('tool-workspace.import_result',{count:formatNumber(observations.length),available:formatNumber(observations.filter(item=>item.available).length)})}</p>
             <Field label={t("development.tools.choose_an_inventory_configuration")}>
               <select
                 required
                 value={command}
-                onChange={(event) => setCommand(event.target.value)}
+                onChange={(event) => {setCommand(event.target.value);if(!nameEdited)setName(event.target.value);}}
               >
                 <option value="">{t("development.tools.choose_a_probed_fixed_configuration")}</option>
                 {observations.map((item) => (

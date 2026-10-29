@@ -62,7 +62,7 @@ function stamp(value?: string) {
     ? formatDateTime(value, { dateStyle: "short", timeStyle: "medium", hour12: false }) + " · " + value
     : t("development.facts.no_official_observation_yet");
 }
-export function ToolProfileFacts({ profile }: { profile: ToolProfile }) { useLocale();
+export function ToolProfileFacts({ profile, confirmed = true }: { profile: ToolProfile; confirmed?: boolean }) { useLocale();
   return (
     <section className="tool-facts" aria-label={t("development.tools.fixed_tool_configuration")}>
       <div className="tool-section-heading">
@@ -103,7 +103,7 @@ export function ToolProfileFacts({ profile }: { profile: ToolProfile }) { useLoc
         <dd>{stamp(profile.last_seen_at)}</dd>
         <dt>{t("development.facts.current_dispatch_conditions")}</dt>
         <dd>
-          {profile.available
+          {confirmed && profile.available
             ? t("development.facts.dispatchable_at_last_read_verified_again_at")
             : t("development.facts.dispatch_eligibility_unconfirmed")}
         </dd>

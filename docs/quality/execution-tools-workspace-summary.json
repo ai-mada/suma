@@ -1,0 +1,20 @@
+{
+  "stage": "T-TOOLUX-129",
+  "date": "2026-10-29",
+  "scope": "Execution tools settings and existing setup lifecycle",
+  "targeted_tests": {"passed": 58, "failed": 0, "new_behavior_cases": 10},
+  "full_web_tests": {"total": 1195, "passed": 1192, "failed": 3, "baseline_failures": true},
+  "typecheck": true,
+  "i18n_check": true,
+  "catalog_keys": 6348,
+  "isolated_web_build": true,
+  "browser": {"desktop": "1440x1000", "mobile": "390x844", "locales": ["zh-CN", "en-US"], "dark_theme": true, "mobile_detail_refresh": true, "horizontal_overflow": false, "page_errors": 0},
+  "actual_loopback_sqlite_ui": true,
+  "actual_local_probe_and_runner_report": true,
+  "actual_enable_pause_reload_reenable_revoke": true,
+  "commercial_model_requests": 0,
+  "task_executions": 0,
+  "production_complete": false,
+  "artifacts": "dist/quality/execution-tools-129",
+  "report": "docs/quality/execution-tools-workspace-verification.md"
+}

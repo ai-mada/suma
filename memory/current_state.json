@@ -1,5 +1,15 @@
 {
   "project": "suma",
+  "execution_tools_ux": {
+    "stage": "T-TOOLUX-129",
+    "status": "scoped_verified",
+    "date": "2026-10-29",
+    "report": "docs/quality/execution-tools-workspace-verification.md",
+    "summary": "docs/quality/execution-tools-workspace-summary.json",
+    "scope": "Full-width list, truthful readiness guidance, state filters, shared refresh controls, automatic strict inventory parsing and editable name suggestions; explicit paused registration and enabling preserved.",
+    "verification": "58 focused checks; typecheck, i18n and isolated build; real browser CN/EN desktop/390; actual SQLite/HTTP/local Node probe/Runner registration-enable-pause-reload-reenable-revoke.",
+    "full_web_suite": "1192 passed, 3 pre-existing failures documented; no full-platform completion claim."
+  },
   "name": "速码一栈式智能研发平台",
   "current_version": "1.0.0",
   "phase": "implementation",
