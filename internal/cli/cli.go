@@ -137,6 +137,9 @@ func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out i
 	if len(args) > 0 && args[0] == "workspace" {
 		return workspaceGitCommand(ctx, c, args[1:], out)
 	}
+	if len(args) > 0 && args[0] == "task-views" {
+		return sharedTaskViewsCommand(ctx, c, args[1:], in, out)
+	}
 	if len(args) > 1 && args[0] == "tasks" && args[1] == "dispatch-options" {
 		return taskDispatchOptionsCommand(ctx, c, args[2:], out)
 	}

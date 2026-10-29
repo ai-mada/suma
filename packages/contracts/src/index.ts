@@ -4927,6 +4927,61 @@ export interface SessionResponse {
   projects: (Record)[];
   setup_required: boolean;
 }
+export interface SharedTaskView {
+  id: string;
+  project_id: string;
+  owner_id: string;
+  name: string;
+  visibility: string;
+  version: number;
+  state: string;
+  preferences: SharedTaskViewPreferences;
+  created_at: string;
+  updated_at: string;
+  can_edit: boolean;
+  can_delete: boolean;
+}
+export interface SharedTaskViewArchiveRequest {
+  project_id: string;
+  expected_version: number;
+  idempotency_key: string;
+}
+export interface SharedTaskViewCreateRequest {
+  project_id: string;
+  name: string;
+  visibility: string;
+  preferences: SharedTaskViewPreferences;
+  idempotency_key: string;
+}
+export interface SharedTaskViewPage {
+  project_id: string;
+  items: (SharedTaskView)[];
+  total: number;
+  limit: number;
+  next_cursor: string;
+  as_of: string;
+}
+export interface SharedTaskViewPreferences {
+  q: string;
+  status: string;
+  status_unset?: boolean;
+  owner_id: string;
+  priority: string;
+  requirement_id?: string;
+  unassigned?: boolean;
+  priority_unset?: boolean;
+  sort: string;
+  layout: string;
+  group_by: string;
+}
+export interface SharedTaskViewUpdateRequest {
+  project_id: string;
+  name: string;
+  visibility: string;
+  preferences: SharedTaskViewPreferences;
+  expected_version: number;
+  idempotency_key: string;
+}
 export interface SkillCatalogAdoptRequest {
   project_id: string;
   expected_version: number;

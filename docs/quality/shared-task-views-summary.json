@@ -1,0 +1,71 @@
+{
+  "stage": "T-VIEWS-138",
+  "date": "2026-10-29",
+  "baseline": "b915632",
+  "go": 9,
+  "cli_tests": 3,
+  "web": 43,
+  "browser": {
+    "date": "2026-10-29T14:00:50.96Z",
+    "scope": "Actual Go HTTP/SQLite and Chrome; owned synthetic fixture, two independent contexts for same-user cross-device behavior",
+    "checks": [
+      "Local saved view is never uploaded automatically",
+      "Save leaves original browser preference intact",
+      "Independent browser context reads personal server view",
+      "Project shared view appears after explicit refresh",
+      "Real competing update rejects stale CAS and preserves draft",
+      "Conflict comparison exposes server revision and retained draft",
+      "Explicit reviewed replacement advances revision",
+      "Copy defaults to private",
+      "Archive requires explicit confirmation",
+      "Archived copy is absent on another device",
+      "zh-CN collapsed page has no horizontal overflow",
+      "zh-CN expanded synced-view controls fit viewport",
+      "zh-CN save modal fits viewport",
+      "zh-CN modal can cancel without mutation",
+      "en-US collapsed page has no horizontal overflow",
+      "en-US expanded synced-view controls fit viewport",
+      "en-US save modal fits viewport",
+      "en-US modal can cancel without mutation",
+      "No mobile runtime errors",
+      "zh-CN final desktop reads persisted shared revision 3",
+      "zh-CN final desktop has no page overflow",
+      "en-US final desktop reads persisted shared revision 3",
+      "en-US final desktop has no page overflow",
+      "Final desktop has no runtime errors or external requests"
+    ],
+    "main_passed_before_css_fix": 10,
+    "final_mobile_checks": 9,
+    "final_desktop_checks": 5,
+    "reused_scope": "Main mutation journey on final backend + web-final; only subsequent change is TaskCollection table-scroll positioning. Mobile and desktop rerun on web-mobile-final without temporary CSS.",
+    "prior_failures": [
+      "Expected identity headers missing on UI writes: fixed, 8 focused tests and actual main journey passed.",
+      "Hidden absolute table label escaped scroll container at390px (scrollWidth596): root CSS containing block fix; final CN/EN width390 passed."
+    ],
+    "runtime_errors": [],
+    "external_requests": [],
+    "limitations": "Two browser contexts are one user; other-user/private authorization covered by backend tests, not this browser probe. No offline sync or physical device assertion."
+  },
+  "actual_cli": {
+    "date": "2026-10-29T13:55:21.954Z",
+    "scope": "Actual compiled CLI + Go HTTP + SQLite; independent owned synthetic project; scoped API token passed only through process environment",
+    "checks": [
+      "Actual CLI create with body-only project and scoped API identity",
+      "Original create replay returns same view",
+      "Actual get preserves literal conditions",
+      "Actual CLI update preserves exact observed version",
+      "Actual CLI archive returns versioned tombstone",
+      "Archived view absent from active list",
+      "Tombstone cannot be edited or deleted again"
+    ]
+  },
+  "generated_models": 721,
+  "generated_paths": 335,
+  "full_platform_suite": "Not rerun; focused stage checks plus complete generator/localization/type checks",
+  "sha256": {
+    ".cache/shared-views/cli-actual-summary.json": "7f5f8d28b6687bd0641fa435d308a975ca4e2c0b0dd898f6e4ff254710892cbd",
+    ".cache/shared-views/bin/suma-control-final.exe": "3a60cceb32fe68ba3bc150e1f7eca158dd831b9a07e00f5351650600d06a8b64",
+    ".cache/shared-views/web-mobile-final/index.html": "06aa8dd35c29649d044551daef7228befebd2d2b131c43fee6f0e206409d1ec1",
+    "dist/quality/shared-views-138/browser-summary.json": "cf6411d1029901d12b30e22f539d0ec073d2a4b7a235aded29ed59ff4c3775b6"
+  }
+}

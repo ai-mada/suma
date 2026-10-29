@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+T-VIEWS-138已限定实现原M07服务端个人／项目共享视图，设计见[共享视图](../design/shared-task-views.md)、合同见[正式接口](../../contracts/shared-task-views.md)。沿同一任务查询与当前授权保存版本化筛选；保留本机偏好，在线跨设备读取与离线协作分别验收。实际检查见[阶段报告](../quality/shared-task-views-verification.md)，不改变完整平台能力统计。
+
 T-MULTICA-136优先推进Multica式个人协作和统一命令导航，生产读取仍由原当前权威与任务状态提供。见[参考与采用范围](../integrations/multica-adoption.md)、[生产合同](../../contracts/my-work.md)与[限定验证](../quality/multica-collaboration-verification.md)。下列交付顺序细化原P3及全平台易用性，不改变完整P0–P7／需求1–26或58／34／92总账。
 
 - [x] 当前人员规范资源→完整本人任务查询／计数／分页，草稿与当前自定义状态展示，详情和工作区接续。

@@ -42,6 +42,7 @@ var cliMessages = map[string]cliMessage{
 	compositionCLIRevisionInvalid: {"cli.candidate_composition.revision_basis_required", "修复计划修订需要准确计划、任务、冲突和所选流程／工具版本、明确确认、理由及原操作标识"},
 	modelOptionsUsage:             {"cli.model_execution.usage", "模型选项需要：models options --tool 工具ID --expected-tool-version 当前版本"},
 	dispatchOptionsCLIUsage:       {"cli.task_dispatch_options.usage", "任务工具推荐需要：tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID；可选 --limit 1..200 与 --before 原分页游标"},
+	sharedTaskViewUsage:           {"cli.shared_task_views.usage", "task-views 需要 list、get ID、create --file JSON、update ID --file JSON 或 archive ID --file JSON，并提供 --project"},
 	taskCollectionCLIUsage:        {"cli.task_collection.usage", "任务集合参数无效：通用参数为 --q、--status 或 --status-unset、--owner 或 --unassigned、--priority 或 --priority-unset、--requirement；tasks list 接受 --sort、--limit 1–100 与 --cursor 原游标；tasks groups 接受 --group-by status、owner 或 priority、--group-limit 1–100 与 --group-cursor 原分组游标"},
 	workspaceWriteUsage:           {"cli.workspace_save.usage", "工作区保存需要：save --file JSON [--wait]、save-status ID [--wait] 或 inspect-save ID --expected-version 版本 [--operation 原操作标识] [--wait]"},
 	workspaceWriteUnconfirmed:     {"cli.workspace_save.unconfirmed", "尚未确认文件已保存；再次保存前请核对原保存命令"},
@@ -173,9 +174,9 @@ func (c *client) text(zh, en string) string {
 
 func helpForLocale(locale localization.Locale) string {
 	if locale == localization.EnUS {
-		return strings.Replace(help, "--timeout 15s", "--timeout 15s --language en-US|zh-CN", 1) + projectContextHelp(locale) + handoffsHelp(locale) + skillCatalogHelp(locale) + expertPlansHelp(locale) + failureDiagnosisHelp(locale) + candidateCompositionHelp(locale) + worklogsHelp(locale) + taskCollectionHelp(locale)
+		return strings.Replace(help, "--timeout 15s", "--timeout 15s --language en-US|zh-CN", 1) + projectContextHelp(locale) + handoffsHelp(locale) + skillCatalogHelp(locale) + expertPlansHelp(locale) + failureDiagnosisHelp(locale) + candidateCompositionHelp(locale) + worklogsHelp(locale) + taskCollectionHelp(locale) + sharedTaskViewsHelp(locale)
 	}
-	return helpZH + projectContextHelp(locale) + handoffsHelp(locale) + skillCatalogHelp(locale) + expertPlansHelp(locale) + failureDiagnosisHelp(locale) + candidateCompositionHelp(locale) + worklogsHelp(locale) + taskCollectionHelp(locale)
+	return helpZH + projectContextHelp(locale) + handoffsHelp(locale) + skillCatalogHelp(locale) + expertPlansHelp(locale) + failureDiagnosisHelp(locale) + candidateCompositionHelp(locale) + worklogsHelp(locale) + taskCollectionHelp(locale) + sharedTaskViewsHelp(locale)
 }
 
 func projectContextHelp(locale localization.Locale) string {

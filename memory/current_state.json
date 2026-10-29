@@ -1,5 +1,15 @@
 {
   "project": "suma",
+  "shared_task_views": {
+    "stage": "T-VIEWS-138",
+    "date": "2026-10-29",
+    "status": "scoped_verified",
+    "contract": "contracts/shared-task-views.md",
+    "design": "docs/design/shared-task-views.md",
+    "report": "docs/quality/shared-task-views-verification.md",
+    "scope": "Server-owned private/project task view preferences; current authority, immutable visibility, CAS, original-operation recovery and archive tombstones. Existing local preferences retained.",
+    "limits": "Online reread only; no offline execution, CRDT, real-time sync, physical multi-host or production claim. Full platform scope remains active."
+  },
   "enterprise_design": {
     "stage": "T-DESIGN-135",
     "date": "2026-10-29",

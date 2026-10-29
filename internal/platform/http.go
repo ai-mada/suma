@@ -298,6 +298,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.handleWorklogs(w, r, actor, scope, boundProject, parts) {
 		return
 	}
+	if s.handleSharedTaskViews(w, r, actor, scope, boundProject, parts) {
+		return
+	}
 	if s.workspaceTerminalCandidateHTTP(w, r, actor, scope, boundProject, path, parts) {
 		return
 	}
