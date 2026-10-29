@@ -112,6 +112,9 @@ func (s *Service) ListTaskConversation(ctx context.Context, actor Actor, project
 	for left, right := 0, len(out.Items)-1; left < right; left, right = left+1, right-1 {
 		out.Items[left], out.Items[right] = out.Items[right], out.Items[left]
 	}
+	if err = s.taskConversationMessageMetadataTx(ctx, auth.tx, auth.target.tenantID, project, taskID, out.Items); err != nil {
+		return TaskConversationPage{}, err
+	}
 	return out, auth.assertTx(auth.tx, auth.target, purposeProjectRead)
 }
 

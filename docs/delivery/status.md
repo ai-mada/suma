@@ -2,7 +2,11 @@
 
 更新：2026-10-29。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–26 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。
 
-当前T-COLLAB-127继续原生任务协作：准确人／API作者、任务／需求／运行依据、事务内序号、纯文本消息、原回执恢复和双语工作台输入。见[合同](../../contracts/task-conversations.md)、[开发与AI SOP](../development/task-conversations.md)、[报告](../quality/task-conversations-verification.md)和[摘要](../quality/task-conversations-summary.json)。实际HTTP回执丢失恢复及接口／组件检查已通过；浏览器连接中断，当前视觉验收待补；消息保存不启动智能体、执行或验收。真实持续模型回复及[PTY会话](../architecture/interactive-terminal.md)继续完整交付，58／34／92不变。
+当前T-REPLY-128推进任务讨论到真实多轮智能体回复：明确模型、单次参数、近期消息范围和 Token／费用预算，沿原 Go 模型网关、唯一 DAG 与私有／Pool Runner 执行，并以准确回执追加助手消息。见[架构](../architecture/task-conversation-replies.md)、[合同](../../contracts/task-conversation-replies.md)、[开发与AI SOP](../development/task-conversation-replies.md)、[当前验证](../quality/task-conversation-replies-verification.md)和[摘要](../quality/task-conversation-replies-summary.json)。真实Go／Node原生CLI、本地受控提供方及网关HTTP已完成三轮／六条持久消息，第三轮由实际界面明确选择模型、输出512、近期20条、Token40000及CNY0.04费用上限后创建；实际中英文1366／390、刷新六条记录及原执行／用量已按报告限定验证。只读回复不会执行终端命令、修改任务开发运行或授予验收权。
+
+本阶段限定结果：固定模型／预算的真实多轮、原完成回执提交后丢失恢复，以及任务详情→工作台→讨论→追问→配置→真实回复和SSE运行中／已保存状态均有实际证据；六条记录刷新后保留，原执行及7输入／3输出Token可查看。自有标签、视口及隔离服务已显式关闭／恢复。持久任务讨论的发送、刷新及中英文视觉缺口由本次T128组合旅程补验；T127历史档案不改。后续完整供应商、多机、安装矩阵及生产验收仍待交付。交互式[PTY终端](../architecture/interactive-terminal.md)、语言／调试服务、自主代码开发及完整 P0–P7／需求1–26继续交付，58／34／92不变。
+
+前序T-COLLAB-127继续原生任务协作：准确人／API作者、任务／需求／运行依据、事务内序号、纯文本消息、原回执恢复和双语工作台输入。见[合同](../../contracts/task-conversations.md)、[开发与AI SOP](../development/task-conversations.md)、[报告](../quality/task-conversations-verification.md)和[摘要](../quality/task-conversations-summary.json)。实际HTTP回执丢失恢复及接口／组件检查已通过；该阶段浏览器连接中断；持久讨论的当前视觉补验见T128实际组合旅程，原阶段档案保留。消息保存本身不启动智能体、执行或验收。真实持续模型回复及[PTY会话](../architecture/interactive-terminal.md)继续完整交付，58／34／92不变。
 
 前序T-WORKBENCH-126推进原生IDE任务上下文：同一当前授权快照中的任务、需求／采用设计、准确运行、计划用例和正式验收，配套可折叠双语界面及原证据链接。见[合同](../../contracts/workspace-task-context.md)、[AI SOP](../development/workspace-task-context.md)、[完整工作台交互](../design/reference-workbench.md)、[116项参考产品操作与缺口](../product/reference-platform-parity.md)、[报告](../quality/workspace-task-context-verification.md)和[摘要](../quality/workspace-task-context-summary.json)。当前授权HTTP、真实历史复读和中英文1366／390界面已验证，范围以摘要为准；选择任务不绑定代码目录或授予执行／验收权。完整会话、PTY、办公及全平台目标保留，58／34／92不变。
 

@@ -16,6 +16,7 @@ const message = (sequence = 1, body = 'Original task note', version = 7): TaskCo
   id: 'message-' + sequence, sequence, task_version: version, body,
   author_id: 'user-a', author_name: 'Recorded person', actor_kind: 'human',
   created_at: '2026-10-29T04:00:00Z', requirement_id: 'req-a', requirement_version: 2, run_id: 'run-a',
+  reply_id: '', reply_to_sequence: 0, execution_run_id: '',
 });
 const page = (items: TaskConversationMessage[] = [], task_version = 7): TaskConversationPage => ({
   project_id: 'project-a', task_id: 'task-a', task_version, can_post: true,

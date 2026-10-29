@@ -65,6 +65,9 @@ func SupportsWorkspaceWriteProfile(p Profile) bool {
 }
 
 func ValidateProfile(p Profile, complete bool) error {
+	if p.TaskConversationReply != nil && !SupportsTaskConversationReplyProfile(p) {
+		return fmt.Errorf("invalid dedicated task conversation reply capability")
+	}
 	if p.DispatchRecommendation != nil && !SupportsDispatchRecommendationProfile(p) {
 		return fmt.Errorf("invalid dedicated dispatch recommendation capability")
 	}
@@ -85,7 +88,7 @@ func ValidateProfile(p Profile, complete bool) error {
 	if p.Protocol == cc.Protocol && (p.Adapter != "codex" || p.ReadOnly || p.ModelExecutionProtocol != "" || p.WorkspaceToolsVersion != "" || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil) {
 		return fmt.Errorf("invalid Codex app-server capability")
 	}
-	if p.ModelExecutionProtocol != "" && !SupportsDispatchRecommendationProfile(p) && (p.ModelExecutionProtocol != modelcontract.Protocol || p.ReadOnly || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil || p.IntelligentOperations != nil || !(p.Adapter == "suma" && p.Protocol == "suma-jsonl-v1" && p.WorkspaceToolsVersion == "attempt-workspace-v1" || SupportsOctopExecutionProfile(p) || !complete && p.Adapter == "octop" && p.Protocol == OctopProtocol && p.WorkspaceToolsVersion == "" && p.OctopExecution == nil)) {
+	if p.ModelExecutionProtocol != "" && !SupportsDispatchRecommendationProfile(p) && !SupportsTaskConversationReplyProfile(p) && (p.ModelExecutionProtocol != modelcontract.Protocol || p.ReadOnly || p.Planning != nil || p.KnowledgeExtraction != nil || p.FailureDiagnosis != nil || p.IntelligentOperations != nil || !(p.Adapter == "suma" && p.Protocol == "suma-jsonl-v1" && p.WorkspaceToolsVersion == "attempt-workspace-v1" || SupportsOctopExecutionProfile(p) || !complete && p.Adapter == "octop" && p.Protocol == OctopProtocol && p.WorkspaceToolsVersion == "" && p.OctopExecution == nil)) {
 		return fmt.Errorf("invalid native model execution capability")
 	}
 	// A capability advertisement is accepted only for the existing native

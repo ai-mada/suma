@@ -32,5 +32,8 @@
   "task-conversation.send": "Send note",
   "task-conversation.sending": "Saving note…",
   "task-conversation.invalid_read": "The task discussion response could not be verified. Previous content was cleared.",
-  "task-conversation.refresh_failed": "Current discussion context could not be loaded. Your draft is preserved."
+  "task-conversation.refresh_failed": "Current discussion context could not be loaded. Your draft is preserved.",
+  "task-conversation.actor.assistant": "Assistant",
+  "task-conversation.reply_execution": "Open original reply execution",
+  "task-conversation.reply_to": "Reply to message {{sequence}}"
 }

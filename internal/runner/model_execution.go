@@ -65,6 +65,10 @@ func validateModelDeployments(items []ModelDeploymentSpec) error {
 }
 
 func validateModelExecutionSpec(spec CommandSpec) error {
+	if spec.TaskConversationReply {
+		_, err := localTaskConversationReplyCapability(spec)
+		return err
+	}
 	if spec.DispatchRecommendation {
 		_, err := localDispatchRecommendationCapability(spec)
 		return err

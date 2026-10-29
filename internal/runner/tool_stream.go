@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	drc "github.com/ai-mada/suma/internal/dispatchrecommendationcontract"
+	tcrc "github.com/ai-mada/suma/internal/taskconversationreplycontract"
 	"io"
 	"strconv"
 	"strings"
@@ -487,7 +488,7 @@ func (s *toolStream) suma(m map[string]any) {
 		}
 	}
 	oneCallPurpose, fixedModel := oneCallModelProfile(s.profile)
-	if s.profile.DispatchRecommendation != nil && s.modelBinding == nil {
+	if (s.profile.DispatchRecommendation != nil || s.profile.TaskConversationReply != nil) && s.modelBinding == nil {
 		s.invalid("dispatch recommendation requires its host model binding")
 		return
 	}
@@ -598,6 +599,12 @@ func (s *toolStream) suma(m map[string]any) {
 		if strings.TrimSpace(textAt(m, "output")) == "" || s.requestPending {
 			s.invalid("missing completed output")
 			return
+		}
+		if s.profile.TaskConversationReply != nil {
+			if _, err := tcrc.Parse(textAt(m, "output")); err != nil {
+				s.invalid("task conversation reply output does not match its closed reply contract")
+				return
+			}
 		}
 		if s.profile.DispatchRecommendation != nil {
 			if _, err := drc.ParseProposal(textAt(m, "output")); err != nil {

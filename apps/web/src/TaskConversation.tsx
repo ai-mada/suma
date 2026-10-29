@@ -9,6 +9,7 @@ import {toolSessionStorage} from './tool-hooks';
 import {useLeaveGuard, useWriteAction, WriteNotice} from './write-action';
 import {useTaskConversationRead} from './task-conversation-hooks';
 import {validConversationBody, validConversationReceipt, validConversationRequest} from './task-conversation-model';
+import {TaskConversationReply} from './TaskConversationReply';
 import './TaskConversation.css';
 
 type Props = {session: Session; project: string; taskId: string; refresh: number; accessBlocked: boolean};
@@ -27,7 +28,7 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
   useLocale();
   const api = useApi(), bodyID = useId();
   const [open, setOpen] = useState(false), [draft, setDraft] = useState('');
-  const [revoked, setRevoked] = useState(false), [accessRetry, setAccessRetry] = useState(0);
+  const [revoked, setRevoked] = useState(false), [accessRetry, setAccessRetry] = useState(0), [replyLocked, setReplyLocked] = useState(false);
   const [saved, setSaved] = useState<TaskConversationMessage>(), [blocked, setBlocked] = useState(false);
   const action = useWriteAction({scope: 'task-conversation:' + scope, storage: toolSessionStorage(),
     validateRequest: request => validConversationRequest(request, project, taskId),
@@ -49,7 +50,7 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
   useEffect(() => { if (writeDenied) setRevoked(true); }, [writeDenied]);
 
   function toggle() {
-    if (open && (text || locked)) { setBlocked(true); return; }
+    if (open && (text || locked || replyLocked)) { setBlocked(true); return; }
     setOpen(value => !value); setBlocked(false);
   }
   function follow(event: MouseEvent<HTMLAnchorElement>) {
@@ -83,7 +84,7 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
 
   return <section className="task-conversation" aria-label={t('title')}>
     <h3><button type="button" className="task-conversation-toggle" aria-expanded={open}
-      aria-controls={bodyID} disabled={open && locked} onClick={toggle} data-conversation-toggle>
+      aria-controls={bodyID} disabled={open && (locked || replyLocked)} onClick={toggle} data-conversation-toggle>
       <MessageSquare size={15} aria-hidden="true"/><span>{t('title')}</span>
       <ChevronDown size={15} className={open ? 'is-open' : ''} aria-hidden="true"/>
     </button></h3>
@@ -119,6 +120,8 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
                   <span>{t('task_version', {version: formatNumber(message.task_version)})}</span>
                   {message.requirement_id && <span>{t('requirement_version', {version: formatNumber(message.requirement_version)})}</span>}
                   {message.run_id && <a href={'?' + new URLSearchParams({project, view: 'development', sub: 'runs', run: message.run_id})} onClick={follow}>{t('original_run')}</a>}
+                  {message.reply_id && <span>{t('reply_to', {sequence: formatNumber(message.reply_to_sequence)})}</span>}
+                  {message.execution_run_id && <a href={'?' + new URLSearchParams({project, view: 'development', sub: 'runs', run: message.execution_run_id})} onClick={follow}>{t('reply_execution')}</a>}
                 </div></details>
               </article>
             </li>)}
@@ -137,6 +140,9 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
           </form>
         </>}
       </>}
+      <TaskConversationReply session={session} project={project} taskId={taskId} page={page}
+        accessBlocked={denied} disabled={locked || !!text || !!read.error || !!read.loading || !page?.can_post}
+        refresh={refresh} onMessagesRefresh={read.read} onLockChange={setReplyLocked}/>
     </div>}
   </section>;
 }

@@ -81,6 +81,9 @@ func oneCallModelRequest(a Assignment, purpose string) (map[string]any, error) {
 }
 
 func oneCallModelProfile(p tc.Profile) (purpose, model string) {
+	if p.TaskConversationReply != nil {
+		return "task conversation reply", ""
+	}
 	if p.DispatchRecommendation != nil {
 		return "dispatch recommendation", ""
 	}

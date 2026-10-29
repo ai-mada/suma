@@ -32,5 +32,8 @@
   "task-conversation.send": "发送消息",
   "task-conversation.sending": "正在保存消息…",
   "task-conversation.invalid_read": "无法核验任务讨论的返回内容，此前内容已清除。",
-  "task-conversation.refresh_failed": "无法读取当前讨论依据，已保留你的草稿。"
+  "task-conversation.refresh_failed": "无法读取当前讨论依据，已保留你的草稿。",
+  "task-conversation.actor.assistant": "智能体",
+  "task-conversation.reply_execution": "打开原回复执行",
+  "task-conversation.reply_to": "回复消息 {{sequence}}"
 }

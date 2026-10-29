@@ -33,5 +33,6 @@
   "model-execution.fixed_budget": "本次预算：{{tokens}} Token · {{cost}}",
   "model-execution.inherited": "沿用组织／项目策略",
   "model-execution.codex_not_supported": "此入口尚不支持 Codex 执行，请选择受支持的原生修复工具。",
-  "model-execution.setup_deployments": "在 Runner 的 model_deployments 允许列表中配置模型与凭据引用。原生开发和 Octop 在任务预演中统一选择固定模型版本、参数及预算；供应商凭据由 Go 保存和使用，不传给编码进程。"
+  "model-execution.setup_deployments": "在 Runner 的 model_deployments 允许列表中配置模型与凭据引用。原生开发和 Octop 在任务预演中统一选择固定模型版本、参数及预算；供应商凭据由 Go 保存和使用，不传给编码进程。",
+  "model-execution.context_window": "所选模型上下文窗口：{{tokens}} Token。预算预留遵循当前平台规则。"
 }

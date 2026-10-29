@@ -288,6 +288,11 @@ func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []st
 			return "", err
 		}
 	}
+	if spec.TaskConversationReply {
+		if err = probeTaskConversationReply(ctx, exe, spec); err != nil {
+			return "", err
+		}
+	}
 	if spec.DispatchRecommendation {
 		if err = probeDispatchRecommendation(ctx, exe, spec); err != nil {
 			return "", err
@@ -444,6 +449,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 	}
 	for id, spec := range cfg.Commands {
 		spec = normalizedCommand(spec)
+		if _, err := localTaskConversationReplyCapability(spec); err != nil {
+			return err
+		}
 		if _, err := localDispatchRecommendationCapability(spec); err != nil {
 			return err
 		}
@@ -518,6 +526,9 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 			defer func() { <-sem; done <- i }()
 			spec := normalizedCommand(cfg.Commands[id])
 			p := tc.Profile{CommandID: id, Adapter: spec.Adapter, Protocol: spec.Protocol, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec)}
+			if spec.TaskConversationReply {
+				p.TaskConversationReply = &tc.TaskConversationReplyCapability{Protocol: tc.TaskConversationReplyProtocol}
+			}
 			if spec.DispatchRecommendation {
 				p.DispatchRecommendation = &tc.DispatchRecommendationCapability{Protocol: tc.DispatchRecommendationProtocol}
 			}
@@ -615,6 +626,11 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 				fail(err.Error())
 				return
 			}
+			o.Profile.TaskConversationReply, err = localTaskConversationReplyCapability(spec)
+			if err != nil {
+				fail(err.Error())
+				return
+			}
 			o.Profile.DispatchRecommendation, err = localDispatchRecommendationCapability(spec)
 			if err != nil {
 				fail(err.Error())
@@ -651,6 +667,9 @@ func ToolCapabilities(items []tc.Observation) []string {
 
 func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec CommandSpec) (tc.Profile, string, error) {
 	spec = normalizedCommand(spec)
+	if _, err := localTaskConversationReplyCapability(spec); err != nil {
+		return tc.Profile{}, "", err
+	}
 	if _, err := localDispatchRecommendationCapability(spec); err != nil {
 		return tc.Profile{}, "", err
 	}
@@ -731,6 +750,10 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 		if err != nil {
 			return p, "", err
 		}
+		p.TaskConversationReply, err = localTaskConversationReplyCapability(spec)
+		if err != nil {
+			return p, "", err
+		}
 		p.DispatchRecommendation, err = localDispatchRecommendationCapability(spec)
 		if err != nil {
 			return p, "", err
@@ -782,6 +805,10 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 	expectedOperations, err := localIntelligentOperationsCapability(spec)
 	if err != nil || (p.IntelligentOperations == nil) != (expectedOperations == nil) || p.IntelligentOperations != nil && *p.IntelligentOperations != *expectedOperations {
 		return p, "", fmt.Errorf("intelligent operations capability does not match local configuration")
+	}
+	expectedReply, err := localTaskConversationReplyCapability(spec)
+	if err != nil || (p.TaskConversationReply == nil) != (expectedReply == nil) || p.TaskConversationReply != nil && *p.TaskConversationReply != *expectedReply {
+		return p, "", fmt.Errorf("task conversation reply capability does not match local configuration")
 	}
 	expectedRecommendation, err := localDispatchRecommendationCapability(spec)
 	if err != nil || (p.DispatchRecommendation == nil) != (expectedRecommendation == nil) || p.DispatchRecommendation != nil && *p.DispatchRecommendation != *expectedRecommendation {

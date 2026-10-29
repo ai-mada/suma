@@ -5043,6 +5043,9 @@ export interface TaskConversationMessage {
   requirement_id: string;
   requirement_version: number;
   run_id: string;
+  reply_id: string;
+  reply_to_sequence: number;
+  execution_run_id: string;
 }
 export interface TaskConversationPage {
   project_id: string;
@@ -5053,6 +5056,78 @@ export interface TaskConversationPage {
   total: number;
   limit: number;
   next_before: number;
+}
+export interface TaskConversationReply {
+  id: string;
+  project_id: string;
+  task_id: string;
+  version: number;
+  state: string;
+  locale: string;
+  run_id: string;
+  run_version: number;
+  run_state: string;
+  source: TaskConversationReplySource;
+  tool_profile_id: string;
+  tool_profile_version: number;
+  tool_profile_sha256: string;
+  assistant_name: string;
+  model_execution: ModelBinding;
+  message_id: string;
+  message_sequence: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  basis_current: boolean;
+  reason: string;
+  allowed_actions: (string)[];
+}
+export interface TaskConversationReplyCapability {
+  protocol: string;
+}
+export interface TaskConversationReplyCommandRequest {
+  project_id: string;
+  expected_version: number;
+  expected_run_version: number;
+  action: string;
+  idempotency_key: string;
+}
+export interface TaskConversationReplyCoverage {
+  total: number;
+  included: number;
+  first_sequence: number;
+  last_sequence: number;
+  complete: boolean;
+}
+export interface TaskConversationReplyCreateRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  expected_last_sequence: number;
+  reply_to_sequence: number;
+  context_message_limit: number;
+  tool_profile_id: string;
+  expected_tool_version: number;
+  model_execution_selection: ModelSelection;
+  locale: string;
+  acknowledge_model_use: boolean;
+  idempotency_key: string;
+}
+export interface TaskConversationReplyPage {
+  items: (TaskConversationReply)[];
+  total: number;
+  limit: number;
+  next_cursor: string;
+}
+export interface TaskConversationReplySource {
+  sha256: string;
+  task: TaskContextRecord;
+  requirement: TaskContextRecord | null;
+  task_run_id: string;
+  messages: (TaskConversationMessage)[];
+  coverage: TaskConversationReplyCoverage;
+  reply_to_sequence: number;
+  execution_route: ProjectExecutionRoute;
 }
 export interface TaskDelivery {
   test_plan_id?: string;
@@ -5637,6 +5712,7 @@ export interface ToolExecutionProfile {
   knowledge_extraction?: KnowledgeExtractionCapability | null;
   intelligent_operations?: IntelligentOperationsCapability | null;
   dispatch_recommendation?: DispatchRecommendationCapability | null;
+  task_conversation_reply?: TaskConversationReplyCapability | null;
   failure_diagnosis?: FailureDiagnosisCapability | null;
   opencode_execution?: OpenCodeExecutionCapability | null;
   octop_execution?: OctopExecutionCapability | null;

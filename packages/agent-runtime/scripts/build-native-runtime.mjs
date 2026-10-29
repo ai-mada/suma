@@ -5,7 +5,12 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {dirname,resolve,join,isAbsolute} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-const root=fileURLToPath(new URL('../',import.meta.url)),output=join(root,'dist','suma-agent.bundle.mjs');
+const root=fileURLToPath(new URL('../',import.meta.url));
+// Verification and packaging can isolate outputs without replacing a running
+// Runner's installed bundle. The override is local to the build process.
+const configuredOutput=process.env.SUMA_NATIVE_RUNTIME_OUT_DIR;
+if(configuredOutput&&!isAbsolute(configuredOutput))throw Error('Native runtime output directory must be absolute');
+const outputDirectory=configuredOutput||join(root,'dist'),output=join(outputDirectory,'suma-agent.bundle.mjs');
 const builtins=new Set(builtinModules.map(name=>name.replace(/^node:/,'')));
 await mkdir(dirname(output),{recursive:true});
 const result=await build({absWorkingDir:root,entryPoints:['src/cli.ts'],outfile:output,bundle:true,format:'esm',platform:'node',target:'node22',metafile:true,sourcemap:false,legalComments:'inline',treeShaking:true,
@@ -24,5 +29,5 @@ for(const input of Object.keys(result.metafile.inputs)){
 }
 if(dependencies['@modelcontextprotocol/client']!=='2.4.0')throw Error('Native bundle did not close over the fixed official MCP client');
 const bytes=await readFile(output),manifest={schema_version:1,entry:'suma-agent.bundle.mjs',entry_sha256:createHash('sha256').update(bytes).digest('hex'),external_imports:[...external].sort(),dependencies:Object.fromEntries(Object.entries(dependencies).sort(([a],[b])=>a.localeCompare(b)))};
-await writeFile(join(root,'dist','suma-agent.manifest.json'),JSON.stringify(manifest,null,2)+'\n','utf8');
+await writeFile(join(outputDirectory,'suma-agent.manifest.json'),JSON.stringify(manifest,null,2)+'\n','utf8');
 process.stdout.write('Native runtime bundle and schema-version-1 manifest written.\n');

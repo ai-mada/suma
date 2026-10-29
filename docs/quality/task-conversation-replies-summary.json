@@ -1,0 +1,573 @@
+{
+  "stage": "T-REPLY-128",
+  "date": "2026-10-29",
+  "product_version": "1.0.0",
+  "status": "scoped_real_native_conversation_and_actual_ui_verified",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "sha256": "c59614176bdf1a59ac8d408d693b67512da789ec47d285f745e6354554e4ccf7",
+    "changed_files": 66,
+    "inventory": ".cache/e2e/reply-128/source-inventory.json",
+    "previous_published_commit": "dcfc3d9497ecf71fc98ffb57fd1c3f35a93c8f61"
+  },
+  "checks": {
+    "distinct_go_top_tests": [
+      "TestModelExecutionInventoryDriftAndMissingSelectionPreventStart",
+      "TestNativeCatalogPreservesCompleteOriginalBilingualContent",
+      "TestNativeCatalogRenderingKeepsExactParameterGrammarAndValidation",
+      "TestNativeCatalogSnapshotsCannotChangeFormattingOrExpandTheAllowlist",
+      "TestTaskConversationReplyActualTwoTurnGatewayAndRecovery",
+      "TestTaskConversationReplyClosedOutput",
+      "TestTaskConversationReplyManagedTurnAndOriginalReceipt",
+      "TestTaskConversationReplyRequiresFrozenReadOnlyGateway",
+      "TestTaskConversationReplyStaleCompletionAndCancellation",
+      "TestTaskConversationReplyStrictScopeAndContextWindow"
+    ],
+    "go_count": 10,
+    "distinct_web_behavior_cases": 9,
+    "sdk_cases": 2,
+    "full_final_web_typecheck": true,
+    "generated_contract_check": true,
+    "generated_models": 671,
+    "api_paths": 308,
+    "catalog_keys": 6211,
+    "native_message_keys": 69,
+    "production_hardcodes": 0,
+    "documentation_check": true,
+    "version_check": "not repeated; product identity and version manifests unchanged",
+    "go_receipts": [
+      {
+        "path": ".cache/mcp019-deps/20261029T042347035Z.command.json",
+        "bytes": 1304,
+        "sha256": "6b82cb2a4d37c696bac15e4fa3a9e32860d2dabaceaf481c57ea789ef68b2cab",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T042347035Z.stdout.txt",
+          "bytes": 70,
+          "sha256": "6016db599a302dcb94d9ec552045bf6520c0819f3e0831ec245e3f53a1b969de"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T042347035Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T042542283Z.command.json",
+        "bytes": 1567,
+        "sha256": "6c35ec30276f4da692004d4c7cc16321cb8b6c769ce9cb7e5d3fea13eabbd3db",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "./internal/runner",
+          "./internal/toolcontract",
+          "./internal/taskconversationreplycontract",
+          "./internal/localization",
+          "-run",
+          "^(TestTaskConversationReply|TestNativeCatalog)",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T042542283Z.stdout.txt",
+          "bytes": 3874,
+          "sha256": "1cc5a6c56f682567875e753fa757e7e7be42694486753cd0e7bcfe63cae696b7"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T042542283Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T043050334Z.command.json",
+        "bytes": 1565,
+        "sha256": "c2d2a75226e16c571f14c6eb17cdfe0dccfcb4ccf77c47f4127b28697b0e2fd7",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^(TestTaskConversationReply(ManagedTurnAndOriginalReceipt|StaleCompletionAndCancellation|StrictScopeAndContextWindow)|TestModelExecutionInventoryDriftAndMissingSelectionPreventStart)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T043050334Z.stdout.txt",
+          "bytes": 1509,
+          "sha256": "544ca372980b90fc8702f366742a79760580f793ee1653b86a9a135c7514fdcc"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T043050334Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T043320566Z.command.json",
+        "bytes": 1436,
+        "sha256": "7b44a6c5af962c179365cae4f77a598d3c6aa300f58ca9e5162b85a8bdbb46a5",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestTaskConversationReplyStrictScopeAndContextWindow$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T043320566Z.stdout.txt",
+          "bytes": 540,
+          "sha256": "f848393a806ea64ceebf3b1e7a32c086c7a0ae9709bf5603fe92d141ee1a7022"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T043320566Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T043646754Z.command.json",
+        "bytes": 1436,
+        "sha256": "7e1695be12456718ddf8fc1f23533624334393c57ca681739b8545ef60b1a28d",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestTaskConversationReplyStrictScopeAndContextWindow$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T043646754Z.stdout.txt",
+          "bytes": 639,
+          "sha256": "4a83ae352a535ddb13cd12663769918d44e21eb266f3ce4aef7a4a706077e262"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T043646754Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T043922057Z.command.json",
+        "bytes": 1436,
+        "sha256": "18efd1c27668a6ea7255c20a4edc8c51f733d1f44849581bfebb1769d4422e00",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestTaskConversationReplyStrictScopeAndContextWindow$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "2m"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T043922057Z.stdout.txt",
+          "bytes": 193,
+          "sha256": "333f7cc427aa776d8a9e42c3ee56e7ef9ab8f74e6f6cfb542cef9a19d3799271"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T043922057Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T045236490Z.command.json",
+        "bytes": 1319,
+        "sha256": "a67f1f432a0081f16f31da54758abacf8d6f8a95610e550f02eb92dc503d6baf",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T045236490Z.stdout.txt",
+          "bytes": 69,
+          "sha256": "ab82b9ea749bee7ce1cc53fa8cff7b1ebc78ae02464e3b97612559d153288da3"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T045236490Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T045327292Z.command.json",
+        "bytes": 1441,
+        "sha256": "906fd9e3b11407d94b3f1af308c019fb96e4ec79e2bcb22a0bdd31ebdc6c0903",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestTaskConversationReplyActualTwoTurnGatewayAndRecovery$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "10m"
+        ],
+        "exit_code": 1,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T045327292Z.stdout.txt",
+          "bytes": 67,
+          "sha256": "207cc8bd19cba9758f55a27604aa90fdf14944823e80a361603ab1b8e2fa90d9"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T045327292Z.stderr.txt",
+          "bytes": 189,
+          "sha256": "79e2d4b88b7d5cbe71b0c38b40dbd4ede759c86637624f06684edcb79be52b05"
+        }
+      },
+      {
+        "path": ".cache/mcp019-deps/20261029T045404075Z.command.json",
+        "bytes": 1441,
+        "sha256": "afe0c4bc1258d5088e56986d306031f321c6080f8433a680fae2e6f2db1ff532",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestTaskConversationReplyActualTwoTurnGatewayAndRecovery$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "10m"
+        ],
+        "exit_code": 0,
+        "stdout": {
+          "path": ".cache/mcp019-deps/20261029T045404075Z.stdout.txt",
+          "bytes": 1420,
+          "sha256": "55435cfdfb8c0af399ab19e5af3aeee60def95416bfdcca68d4570f8fd281224"
+        },
+        "stderr": {
+          "path": ".cache/mcp019-deps/20261029T045404075Z.stderr.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    ],
+    "other_receipts": [
+      {
+        "path": ".cache/e2e/reply-128/docs.command.json",
+        "bytes": 165,
+        "sha256": "e36f686046cbd8130901b2fcdf6df5b9ac253ff671aed7905325f7ea07b5bba6",
+        "exit_code": 0,
+        "command": "node scripts/check-docs.mjs",
+        "stdout": {
+          "path": ".cache/e2e/reply-128/docs.stdout.txt",
+          "bytes": 105,
+          "sha256": "631ab39c9580e14e57c55d08f21bb611393b5b576f18dc151515c67d5824cbfd"
+        }
+      },
+      {
+        "path": ".cache/e2e/reply-128/i18n.command.json",
+        "bytes": 172,
+        "sha256": "59930f52be94331319f905686b6f2c0928cb20cf7ed25ace806dfe118d82eb81",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/web check:i18n",
+        "stdout": {
+          "path": ".cache/e2e/reply-128/i18n.stdout.txt",
+          "bytes": 133,
+          "sha256": "78bf76d45d09c7f943ff7e1f226d0166dcd6825586103ccc1ea2d0fcd31a5dd1"
+        }
+      },
+      {
+        "path": ".cache/e2e/reply-128/sdk-build.command.json",
+        "bytes": 402,
+        "sha256": "3edd8924b29ca6ffd0db146fff44bc3564eee55359c5313ccbc4bc3e2bec0ece",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/agent-runtime exec tsc --outDir D:/codes/ai-dev-os/suma/.cache/e2e/reply-128/sdk-tests; SUMA_NATIVE_RUNTIME_OUT_DIR=D:/codes/ai-dev-os/suma/.cache/e2e/reply-128/native pnpm --filter @suma/agent-runtime exec node scripts/build-native-runtime.mjs",
+        "stdout": {
+          "path": ".cache/e2e/reply-128/sdk-build.stdout.txt",
+          "bytes": 62,
+          "sha256": "938a7a520b4a73c0147ee6531961d1cd29b6a61880933d096ae1a90ca135fd04"
+        }
+      },
+      {
+        "path": ".cache/e2e/reply-128/sdk-tests-linked.command.json",
+        "bytes": 366,
+        "sha256": "016b6eec4766fbd554b5051064e82316c453e666267f6e54492486333a6609e0",
+        "exit_code": 0,
+        "command": "node --test .cache/e2e/reply-128/sdk-tests/tests/task-conversation-reply.test.js",
+        "stdout": {
+          "path": ".cache/e2e/reply-128/sdk-tests-linked.stdout.txt",
+          "bytes": 728,
+          "sha256": "26531b404db8f0e0f21129a8ee4be50e18264c63cf3f77d43eb1d06db50217ea"
+        }
+      },
+      {
+        "path": ".cache/e2e/reply-128/sdk-tests-resolved.command.json",
+        "bytes": 393,
+        "sha256": "425e800b322d0265dd0aae52c982846913ecdc33fc9825d194a6f377f84362e7",
+        "exit_code": 1,
+        "command": "node --test .cache/e2e/reply-128/sdk-tests/tests/task-conversation-reply.test.js",
+        "stdout": {
+          "path": ".cache/e2e/reply-128/sdk-tests-resolved.stdout.txt",
+          "bytes": 1706,
+          "sha256": "023cf5c6bb116b0089f4bcd62f90ac77aa7e7cda71c92759394aa1fd157e30d3"
+        }
+      },
+      {
+        "path": ".cache/e2e/reply-128/sdk-tests.command.json",
+        "bytes": 218,
+        "sha256": "ee6ff52a65fb6857c3af883fcfe6c70b629c2db0fa828ed9aa2ac8e4f8f6c8e9",
+        "exit_code": 1,
+        "command": "node --test .cache/e2e/reply-128/sdk-tests/tests/task-conversation-reply.test.js",
+        "stdout": {
+          "path": ".cache/e2e/reply-128/sdk-tests.stdout.txt",
+          "bytes": 1706,
+          "sha256": "8c9a1b2ff32e9a4d746f0f387b93473ec16d373e42a12dc0b984235d190c3fd8"
+        }
+      },
+      {
+        "path": ".cache/e2e/reply-128/typecheck-final.command.json",
+        "bytes": 255,
+        "sha256": "96dd4514f42c938c78fb588612f78d8fdfdf60843de3793b7ae7f4373d05bb13",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/web typecheck",
+        "stdout": {
+          "path": ".cache/e2e/reply-128/typecheck-final.stdout.txt",
+          "bytes": 16,
+          "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+        }
+      },
+      {
+        "path": ".cache/e2e/reply-128/typecheck.command.json",
+        "bytes": 171,
+        "sha256": "b546581264a69efb22c1f73d6c3b49b3933c893c2744527a7fc4a9e15b55d3b2",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/web typecheck",
+        "stdout": {
+          "path": ".cache/e2e/reply-128/typecheck.stdout.txt",
+          "bytes": 16,
+          "sha256": "5a3973f79ed9becd5f23c4feff467513814de7ea381d75a4d2e339aa8b8edca9"
+        }
+      },
+      {
+        "path": ".cache/e2e/reply-128/ui-event-coalesced.command.json",
+        "bytes": 280,
+        "sha256": "b822c56c9589605bbacddf43c83b086730d09c98c338dbd12d7d2c0fcb61284d",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/web exec vitest run src/TaskConversationReply.test.tsx -t \"T128 uses actual run events\" --maxWorkers=1 --minWorkers=1",
+        "stdout": {
+          "path": ".cache/e2e/reply-128/ui-event-coalesced.stdout.txt",
+          "bytes": 470,
+          "sha256": "76542ddb0a4dde47da5e1e41a6c2db76d171761fe198fa1c29374034acdd5278"
+        }
+      },
+      {
+        "path": ".cache/e2e/reply-128/ui-focused.command.json",
+        "bytes": 275,
+        "sha256": "cb3a168019f2a29224e532bdbe19d64219ec8568fa3673cbd4397c4d1f040f58",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/web exec vitest run src/TaskConversationReply.test.tsx src/TaskConversation.test.tsx --maxWorkers=1 --minWorkers=1",
+        "stdout": {
+          "path": ".cache/e2e/reply-128/ui-focused.stdout.txt",
+          "bytes": 1283,
+          "sha256": "bda077f78b4f87c837d8603be15f710ca7b5022c790fec2ff757ee07dd1dadbd"
+        }
+      },
+      {
+        "path": ".cache/e2e/reply-128/web-build.command.json",
+        "bytes": 235,
+        "sha256": "43d0e00555dafb7752746f94d9d745e9395fb76a353b03cd65f37a53e46032e0",
+        "exit_code": 0,
+        "command": "pnpm --filter @suma/web exec vite build --outDir D:/codes/ai-dev-os/suma/.cache/e2e/reply-128/web",
+        "stdout": {
+          "path": ".cache/e2e/reply-128/web-build.stdout.txt",
+          "bytes": 18839,
+          "sha256": "7d93a2e7333215f807857a79c6fbb4e418598c0677a53bc0b46e1e9dd52ceb1b"
+        }
+      }
+    ]
+  },
+  "actual": {
+    "kind": "real Go / OS Node native CLI / gateway HTTP / SQLite against an owned deterministic protocol provider",
+    "model_requests": 3,
+    "commercial_model_calls": 0,
+    "messages": 6,
+    "settled_usage_attempts": 3,
+    "reported_tokens": 30,
+    "operator_rate_estimated_cost_micros": 39,
+    "currency": "CNY",
+    "original_postcommit_callback_ack_lost": true,
+    "same_original_result_operation_replayed": 1,
+    "durable_result_outbox_restart_verified": false,
+    "ui_third_turn": true,
+    "ui_parameters": {
+      "max_steps": 1,
+      "max_output_tokens": 512,
+      "context_message_limit": 20,
+      "actual_included_messages": 5,
+      "token_budget": 40000,
+      "cost_budget_micros": 40000
+    },
+    "task_version_run_status_unchanged": true,
+    "source_file_unchanged": true,
+    "interactive_terminal_commands": 0,
+    "ui": {
+      "stage": "T-REPLY-128",
+      "browser_recovered": true,
+      "actual_ui_followup_created": true,
+      "human_marker": "T128 browser follow-up",
+      "messages_before": 4,
+      "messages_after": 6,
+      "reply_state": "completed",
+      "profile_version": 2,
+      "max_steps": 1,
+      "max_output_tokens": 512,
+      "token_budget": 40000,
+      "cost_budget_micros": 40000,
+      "currency": "CNY",
+      "context_count": 5,
+      "refresh_persisted_messages": 6,
+      "original_run_opened": true,
+      "locales": [
+        "zh-CN",
+        "en-US"
+      ],
+      "widths": [
+        1366,
+        390
+      ],
+      "mobile_scroll_width": 375,
+      "mobile_viewport": 390,
+      "commercial_model_calls": 0,
+      "terminal_commands": 0,
+      "viewport_reset": true,
+      "own_tab_closed": true
+    }
+  },
+  "integration_failures_preserved": {
+    "go_test_failures": [
+      "TestTaskConversationReplyManagedTurnAndOriginalReceipt",
+      "TestTaskConversationReplyStaleCompletionAndCancellation",
+      "TestTaskConversationReplyStrictScopeAndContextWindow"
+    ],
+    "causes": [
+      "Missing protected read-only reply worker admission corrected without granting deployment permission.",
+      "API cross-project guard returns403; fixture expectations corrected.",
+      "Organization inherited role and original worker inventory invalidation were correctly enforced; authority fixture corrected.",
+      "Unused reflect import introduced by final runtime fixture revision removed before actual execution.",
+      "SDK test ESM resolution fixed with one task-owned exact package link to the already installed pinned package; no dependency install."
+    ],
+    "note": "No model request occurred in the compile failure; the actual three-turn journey ran once. Failed receipts retained. Original two SDK resolution failures did not execute SDK test bodies."
+  },
+  "review": {
+    "independent_platform_review": "No blocking issue found in original attempt/fence/model authority, private/Pool admission, scope, cancellation, unknown locking and task isolation.",
+    "browser_recovery": "Existing IAB browser rebound after inventory; actual new-tab navigation/read/close succeeded; no app restart or user tab closure.",
+    "supersedes_visual_gap": "T128 combined actual task-detail/workspace/send/refresh/CNEN1366/390 journey supplies the prior T127 missing discussion visual evidence; historical T127 reports unchanged."
+  },
+  "remaining": [
+    "Interactive PTY/full terminal, LSP/DAP and automatic code-development handoff remain unimplemented.",
+    "Expired Runner without original SDK final receipt requires a separate recovery contract; no invented success.",
+    "Commercial provider quality/billing, physical multi-host, native installers and production acceptance not verified by this phase.",
+    "Full P0-P7 and requirements1-26 remain active; no ledger row declared complete."
+  ],
+  "artifacts": [
+    {
+      "path": ".cache/e2e/reply-128/browser-recovery.public.json",
+      "bytes": 293,
+      "sha256": "c523bebc156b58ea493a528e0dee75aa66f9845642ba34a19174dfd2d9ef2c36"
+    },
+    {
+      "path": ".cache/e2e/reply-128/browser.public.json",
+      "bytes": 698,
+      "sha256": "b914e6f460f6b95e353ec051d2567954b49179996279fdae39d83ab72f6aa750"
+    },
+    {
+      "path": ".cache/e2e/reply-128/modules-link-replacement.public.json",
+      "bytes": 251,
+      "sha256": "7c704943b65d08af87ade507119f066a356c47548f76b93eb3a42239980c7f96"
+    },
+    {
+      "path": ".cache/e2e/reply-128/model-budget-zh.png",
+      "bytes": 201269,
+      "sha256": "14a5bae9014dd95f41179cde4cc08a063b5b8efd7fe7dbbcdf1cc31eba3e8d35"
+    },
+    {
+      "path": ".cache/e2e/reply-128/reply-zh-desktop.png",
+      "bytes": 171048,
+      "sha256": "003e8b26ab9e89cd7d28d988593e4f57e8323011081991c8e07f3eb622a2d125"
+    },
+    {
+      "path": ".cache/e2e/reply-128/reply-en-desktop.png",
+      "bytes": 201018,
+      "sha256": "ca7488941723e95502f1cf37046f54a0ce894d5cb8844b0d8ee50af41d1e0531"
+    },
+    {
+      "path": ".cache/e2e/reply-128/reply-zh-mobile.png",
+      "bytes": 104593,
+      "sha256": "b07e798fbe0dd591cc21dacf6c1651112a082c0f58c1d37aefb231d8d808d434"
+    },
+    {
+      "path": ".cache/e2e/reply-128/reply-en-mobile.png",
+      "bytes": 125615,
+      "sha256": "2966166f85bd8a4c7b36ab4223fdd4e2e930a073895630df8d6330f35121c4f0"
+    },
+    {
+      "path": ".cache/e2e/reply-128/reply-final-desktop.png",
+      "bytes": 73199,
+      "sha256": "bbc362ccda058a7ef286bd26399a41a78c99b1d017c4cec80fe19357a59f8031"
+    },
+    {
+      "path": ".cache/e2e/reply-128/original-run-en.png",
+      "bytes": 100942,
+      "sha256": "4650ea5ed6bcff423288984a817c058af073133716c756fdcfe5ea3e517288b5"
+    },
+    {
+      "path": ".cache/e2e/reply-128/native/suma-agent.bundle.mjs",
+      "bytes": 1011023,
+      "sha256": "f61c8d1b0d7ec7e91fbdb8e7bbe87874ee0d09e65ee6b43724ba5cdf213579cb"
+    },
+    {
+      "path": ".cache/e2e/reply-128/native/suma-agent.manifest.json",
+      "bytes": 508,
+      "sha256": "d0f5c66ce1d682734105bb0f002a32ba718ef4f7edee738c7e1dbeb0be41971a"
+    },
+    {
+      "path": ".cache/e2e/reply-128/actual-ui/fixture.sqlite",
+      "bytes": 2596864,
+      "sha256": "4f052240ede2032452dd10aedb354232018aa902cd8c28756e1f062babda8076"
+    },
+    {
+      "path": ".cache/e2e/reply-128/actual-ui/model-http.public.json",
+      "bytes": 16682,
+      "sha256": "3941a1c9c004f8ce96c3313635709cb4a2403cf44f6c6418f804c808a6a54aed"
+    },
+    {
+      "path": ".cache/e2e/reply-128/actual-ui/result.public.json",
+      "bytes": 15242,
+      "sha256": "51e969be36bd7cc40ae49a7a5ac29c6eaa282fba2de128520fd3f5d3efe7d546"
+    },
+    {
+      "path": ".cache/e2e/reply-128/actual-ui/web.files.public.json",
+      "bytes": 25139,
+      "sha256": "5825a46b4f545edc6b341d92c98e279ebac4ebf4146e8cbae77da6a32a0fabb8"
+    }
+  ],
+  "artifact_policy": "Only source, generated public contracts, necessary documentation, this hash summary and project state are committed. Raw DB, provider transcript, screenshots, built bundles, journals, credentials and temporary files stay ignored. Concurrent desktop/control edits are excluded."
+}

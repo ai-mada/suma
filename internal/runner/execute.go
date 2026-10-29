@@ -37,6 +37,7 @@ type CommandSpec struct {
 	FailureDiagnosis       bool                   `json:"failure_diagnosis,omitempty"`
 	IntelligentOperations  bool                   `json:"intelligent_operations,omitempty"`
 	DispatchRecommendation bool                   `json:"dispatch_recommendation,omitempty"`
+	TaskConversationReply  bool                   `json:"task_conversation_reply,omitempty"`
 	CandidateComposition   bool                   `json:"candidate_composition,omitempty"`
 	TestEvidence           bool                   `json:"test_evidence,omitempty"`
 	TestReport             bool                   `json:"test_report,omitempty"`
@@ -431,7 +432,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		root = workspace.Source
 	}
 	modelAttempt := workspace
-	if spec.DispatchRecommendation {
+	if spec.DispatchRecommendation || spec.TaskConversationReply {
 		modelAttempt, err = prepareReadOnlyModelAttempt(a, cfg)
 		if err != nil {
 			return fail(err.Error())
@@ -482,7 +483,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if a.Type == "agent" {
 		goal, _ := a.Config["goal"].(string)
 		goalLimit := 32000
-		if spec.DispatchRecommendation {
+		if spec.DispatchRecommendation || spec.TaskConversationReply {
 			goalLimit = 64000
 		}
 		if strings.TrimSpace(goal) == "" || len(goal) > goalLimit {
@@ -491,7 +492,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		switch spec.Input {
 		case "agent-jsonl":
 			input := map[string]any{"goal": goal, "request_id": digest([]byte(key(a)))}
-			if spec.DispatchRecommendation && modelExecution != nil {
+			if (spec.DispatchRecommendation || spec.TaskConversationReply) && modelExecution != nil {
 				input["model_execution"] = modelExecution.Binding
 			}
 			for name, value := range purposeInput {
@@ -947,7 +948,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 				r.Error = "Octop process-stop evidence requires reconciliation"
 			}
 		}
-		if (profile.Planning != nil || profile.KnowledgeExtraction != nil || profile.FailureDiagnosis != nil || profile.IntelligentOperations != nil || profile.DispatchRecommendation != nil) && stream.terminal == "completed" && stream.bad == nil {
+		if (profile.Planning != nil || profile.KnowledgeExtraction != nil || profile.FailureDiagnosis != nil || profile.IntelligentOperations != nil || profile.DispatchRecommendation != nil || profile.TaskConversationReply != nil) && stream.terminal == "completed" && stream.bad == nil {
 			r.Output = stream.completionOutput
 		} else {
 			r.Output = stream.output.String() + r.Output

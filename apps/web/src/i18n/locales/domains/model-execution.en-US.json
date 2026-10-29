@@ -33,5 +33,6 @@
   "model-execution.fixed_budget": "Attempt budget: {{tokens}} tokens · {{cost}}",
   "model-execution.inherited": "Use organization/project policy",
   "model-execution.codex_not_supported": "This entry does not support Codex execution. Select a supported native repair tool.",
-  "model-execution.setup_deployments": "Configure models and credential references in the Runner model_deployments allowlist. Native coding and Octop share task model revision, parameter and budget selection; Go retains and uses provider credentials without forwarding them to the coding process."
+  "model-execution.setup_deployments": "Configure models and credential references in the Runner model_deployments allowlist. Native coding and Octop share task model revision, parameter and budget selection; Go retains and uses provider credentials without forwarding them to the coding process.",
+  "model-execution.context_window": "Selected model context window: {{tokens}} tokens. Budget reservations follow the current platform policy."
 }

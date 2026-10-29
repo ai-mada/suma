@@ -14,6 +14,9 @@ type TaskConversationMessage struct {
 	RequirementID      string `json:"requirement_id"`
 	RequirementVersion int    `json:"requirement_version"`
 	RunID              string `json:"run_id"`
+	ReplyID            string `json:"reply_id"`
+	ReplyToSequence    int64  `json:"reply_to_sequence"`
+	ExecutionRunID     string `json:"execution_run_id"`
 }
 
 // TaskConversationPage returns the latest bounded window in chronological

@@ -212,6 +212,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.InitializeTaskConversations(ctx); err != nil {
 		return err
 	}
+	if err := s.InitializeTaskConversationReplies(ctx); err != nil {
+		return err
+	}
 	if err := s.InitializeTaskHandoffs(ctx); err != nil {
 		return err
 	}

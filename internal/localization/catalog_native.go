@@ -6,6 +6,10 @@ package localization
 // placeholders use the common named-dot-v1 grammar. SourceTemplate is private
 // provenance and does not register an English source alias.
 var nativeCatalog = []Definition{
+	{Key: "native.conversation.invalid_goal", SourceTemplate: "A frozen conversation input of 1–64000 UTF-8 bytes is required", Texts: map[Locale]string{ZhCN: "固定会话输入必须包含 1–64000 个 UTF-8 字节", EnUS: "A frozen conversation input of 1–64000 UTF-8 bytes is required"}},
+	{Key: "native.conversation.request_limit", SourceTemplate: "Conversation request exceeded the 512 KiB transport limit", Texts: map[Locale]string{ZhCN: "会话请求超过 512 KiB 传输上限", EnUS: "Conversation request exceeded the 512 KiB transport limit"}},
+	{Key: "native.conversation.output_invalid", SourceTemplate: "Task conversation reply does not match its closed text schema.", Texts: map[Locale]string{ZhCN: "任务会话回复不符合受限文本结构。", EnUS: "Task conversation reply does not match its closed text schema."}},
+	{Key: "native.conversation.tools_forbidden", SourceTemplate: "Task conversation replies cannot request or execute tools.", Texts: map[Locale]string{ZhCN: "任务会话回复不能请求或执行工具。", EnUS: "Task conversation replies cannot request or execute tools."}},
 	{Key: "native.dispatch_recommendation.request_limit", SourceTemplate: "Recommendation request exceeded the 512 KiB transport limit", Texts: map[Locale]string{ZhCN: "推荐请求超过 512 KiB 传输上限", EnUS: "Recommendation request exceeded the 512 KiB transport limit"}},
 	{Key: "native.dispatch_recommendation.invalid_goal", SourceTemplate: "A recommendation input of 1–64000 UTF-8 bytes is required", Texts: map[Locale]string{ZhCN: "推荐输入必须包含 1–64000 个 UTF-8 字节", EnUS: "A recommendation input of 1–64000 UTF-8 bytes is required"}},
 	{Key: "native.dispatch_recommendation.output_invalid", SourceTemplate: "Dispatch recommendation output does not match the closed proposal schema.", Texts: map[Locale]string{ZhCN: "推荐输出不符合受限提案结构。", EnUS: "Dispatch recommendation output does not match the closed proposal schema."}},
@@ -77,6 +81,8 @@ var nativeCatalog = []Definition{
 // future native-prefixed key does not become trusted through its prefix alone.
 func IsNativeMessageKey(key string) bool {
 	switch key {
+	case "native.conversation.invalid_goal", "native.conversation.request_limit", "native.conversation.output_invalid", "native.conversation.tools_forbidden":
+		return true
 	case "native.dispatch_recommendation.request_limit", "native.dispatch_recommendation.invalid_goal", "native.dispatch_recommendation.output_invalid", "native.dispatch_recommendation.tools_forbidden", "native.dispatch_recommendation.output_too_large":
 		return true
 	case

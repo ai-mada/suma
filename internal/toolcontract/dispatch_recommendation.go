@@ -22,5 +22,5 @@ func ValidateDispatchRecommendationCapability(p DispatchRecommendationCapability
 }
 
 func SupportsDispatchRecommendationProfile(p Profile) bool {
-	return p.Adapter == "suma" && p.Protocol == "suma-jsonl-v1" && p.ReadOnly && p.ModelExecutionProtocol == modelcontract.Protocol && p.WorkspaceToolsVersion == "" && p.TestReportProtocol == "" && p.ConflictRepairProtocol == "" && p.Planning == nil && p.KnowledgeExtraction == nil && p.FailureDiagnosis == nil && p.IntelligentOperations == nil && p.OpenCodeExecution == nil && p.OctopExecution == nil && p.DispatchRecommendation != nil && ValidateDispatchRecommendationCapability(*p.DispatchRecommendation) == nil
+	return p.Adapter == "suma" && p.Protocol == "suma-jsonl-v1" && p.ReadOnly && p.ModelExecutionProtocol == modelcontract.Protocol && p.WorkspaceToolsVersion == "" && p.TestReportProtocol == "" && p.ConflictRepairProtocol == "" && p.Planning == nil && p.KnowledgeExtraction == nil && p.FailureDiagnosis == nil && p.IntelligentOperations == nil && p.OpenCodeExecution == nil && p.OctopExecution == nil && p.TaskConversationReply == nil && p.DispatchRecommendation != nil && ValidateDispatchRecommendationCapability(*p.DispatchRecommendation) == nil
 }

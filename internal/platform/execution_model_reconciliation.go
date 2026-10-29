@@ -16,6 +16,9 @@ var _ dag.LiveReadOnlyCompletionReconciler = (*Service)(nil)
 // platform-created single-call read-only model purposes may resolve that
 // uncertainty automatically. Ordinary CLIs keep explicit reconciliation.
 func (s *Service) CheckLiveReadOnlyCompletionTx(ctx context.Context, tx *sql.Tx, scope dag.LiveReadOnlyCompletion, previous, final dag.Result) (bool, error) {
+	if scope.Spec.Config["purpose"] == "task_conversation_reply" {
+		return s.checkTaskConversationReplyCompletionTx(ctx, tx, scope, previous, final)
+	}
 	if scope.Spec.Config["purpose"] == "dispatch_recommendation" {
 		return s.checkDispatchRecommendationCompletionTx(ctx, tx, scope, previous, final)
 	}

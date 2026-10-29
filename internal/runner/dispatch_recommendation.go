@@ -18,7 +18,7 @@ func localDispatchRecommendationCapability(spec CommandSpec) (*tc.DispatchRecomm
 	if !spec.DispatchRecommendation {
 		return nil, nil
 	}
-	if spec.Adapter != "suma" || spec.Protocol != "suma-jsonl-v1" || spec.Input != "agent-jsonl" || !spec.ReadOnly || spec.ModelExecutionProtocol != mc.Protocol || spec.NativeWorkspace != nil || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis || spec.IntelligentOperations || spec.TestEvidence || spec.TestReport || spec.CandidateComposition || spec.ArtifactInput || spec.ArtifactOutput != "" || spec.CodexAppServer != nil || spec.OpenCode != nil || len(spec.Env) != 0 || len(spec.EnvFrom) != 0 {
+	if spec.Adapter != "suma" || spec.Protocol != "suma-jsonl-v1" || spec.Input != "agent-jsonl" || !spec.ReadOnly || spec.ModelExecutionProtocol != mc.Protocol || spec.TaskConversationReply || spec.NativeWorkspace != nil || spec.Planning || spec.KnowledgeExtraction || spec.FailureDiagnosis || spec.IntelligentOperations || spec.TestEvidence || spec.TestReport || spec.CandidateComposition || spec.ArtifactInput || spec.ArtifactOutput != "" || spec.CodexAppServer != nil || spec.OpenCode != nil || len(spec.Env) != 0 || len(spec.EnvFrom) != 0 {
 		return nil, fmt.Errorf("dispatch recommendation requires a dedicated read-only host-model profile without tools or provider environment")
 	}
 	return &tc.DispatchRecommendationCapability{Protocol: tc.DispatchRecommendationProtocol}, nil

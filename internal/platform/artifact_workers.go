@@ -342,6 +342,13 @@ func (s *Service) releaseClaimEligibleTx(ctx context.Context, tx *sql.Tx, auth *
 	} else if composition {
 		return true, nil
 	}
+	// A task reply is a protected read-only managed run. Its own admission
+	// rechecks the frozen context, creator and model; no deployment grant is used.
+	if _, reply, err := s.taskConversationReplyForRunTx(ctx, tx, p.TenantID, project, run); err != nil {
+		return false, err
+	} else if reply {
+		return true, nil
+	}
 	// Recommendation is a registered read-only analysis, never a deployment.
 	// Its dedicated admission hook rechecks the original credential and basis.
 	if _, recommendation, err := s.dispatchRecommendationForRunTx(ctx, tx, p.TenantID, project, run); err != nil {

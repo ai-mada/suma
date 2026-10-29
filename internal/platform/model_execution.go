@@ -19,7 +19,7 @@ const (
 )
 
 func supportsModelExecution(p ToolProfile) bool {
-	if supportsDispatchRecommendationModel(p) {
+	if supportsSingleCallReadOnlyModel(p) {
 		return true
 	}
 	return p.Profile.ModelExecutionProtocol == modelcontract.Protocol && !p.Profile.ReadOnly && p.Profile.WorkspaceToolsVersion == "attempt-workspace-v1" && (p.Profile.Adapter == "suma" && p.Profile.Protocol == "suma-jsonl-v1" || supportsOctopExecution(p))
@@ -29,6 +29,12 @@ func supportsModelExecution(p ToolProfile) bool {
 // one bounded model request, and the same Go-owned provider/budget authority.
 func supportsDispatchRecommendationModel(p ToolProfile) bool {
 	return tc.SupportsDispatchRecommendationProfile(p.Profile)
+}
+
+// Single-call read-only purposes share the model/budget authority, without
+// inheriting workspace capabilities or a second model configuration path.
+func supportsSingleCallReadOnlyModel(p ToolProfile) bool {
+	return supportsDispatchRecommendationModel(p) || tc.SupportsTaskConversationReplyProfile(p.Profile)
 }
 func matchingModelRate(rate *UsageRateRevision, profile ToolProfile, d modelcontract.Deployment) bool {
 	return rate != nil && rate.ToolProfileID == profile.ID && rate.ProfileSHA256 == profile.Profile.ProfileSHA256 && rate.ModelDeploymentID == d.ID && rate.ModelDeploymentRevision == d.Revision && rate.ModelDeploymentSHA256 == d.SHA256 && rate.Model == d.Model && rate.EndpointOrigin == d.EndpointOrigin
@@ -48,10 +54,13 @@ func (s *Service) currentModelDeploymentsTx(ctx context.Context, tx *sql.Tx, ten
 }
 func (s *Service) GetModelExecutionOptions(ctx context.Context, actor Actor, project string, req ModelExecutionOptionsRequest) (out ModelExecutionOptions, err error) {
 	out.Items = []ModelExecutionOption{}
+	if !taskConversationActor(actor) {
+		return out, forbidden()
+	}
 	if req.ProjectID != project || !handoffID(project, false) || !handoffID(req.ToolProfileID, false) || req.ExpectedToolVersion < 1 {
 		return out, invalid(modelExecutionInvalid)
 	}
-	err = s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: ""}, purposeBrowserProjectRead, func(auth *authorizedCommand) error {
+	err = s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project, resourceID: ""}, purposeProjectRead, func(auth *authorizedCommand) error {
 		p, e := s.toolProfileTx(auth.ctx, auth.tx, auth.currentPrincipal, project, req.ToolProfileID)
 		if e != nil {
 			return e
@@ -108,7 +117,7 @@ func (s *Service) GetModelExecutionOptions(ctx context.Context, actor Actor, pro
 		}
 		out.Supported = true
 		out.ParameterLimits = &modelcontract.Parameters{MaxSteps: modelcontract.MaxSteps, MaxOutputTokens: modelcontract.MaxOutputTokens}
-		if supportsDispatchRecommendationModel(p) {
+		if supportsSingleCallReadOnlyModel(p) {
 			out.ParameterLimits = &modelcontract.Parameters{MaxSteps: 1, MaxOutputTokens: 8192}
 		}
 		for _, d := range deployments {
@@ -116,7 +125,7 @@ func (s *Service) GetModelExecutionOptions(ctx context.Context, actor Actor, pro
 				return invalid(modelExecutionInvalid)
 			}
 			option := ModelExecutionOption{Deployment: d, CostState: "unpriced", DefaultParameters: modelcontract.Parameters{MaxSteps: 8, MaxOutputTokens: 4096}, InputTokenReservation: d.ContextWindow * 8, OutputTokenReservation: 4096}
-			if supportsDispatchRecommendationModel(p) {
+			if supportsSingleCallReadOnlyModel(p) {
 				option.DefaultParameters.MaxSteps = 1
 				option.InputTokenReservation = d.ContextWindow
 			}
@@ -142,7 +151,7 @@ func (s *Service) buildModelExecutionTx(ctx context.Context, tx *sql.Tx, tenant,
 	if modelcontract.ValidateSelection(*selection) != nil {
 		return nil, invalid(modelExecutionInvalid)
 	}
-	if supportsDispatchRecommendationModel(profile) && (selection.Parameters.MaxSteps != 1 || selection.Parameters.MaxOutputTokens > 8192) {
+	if supportsSingleCallReadOnlyModel(profile) && (selection.Parameters.MaxSteps != 1 || selection.Parameters.MaxOutputTokens > 8192) {
 		return nil, invalid(modelExecutionInvalid)
 	}
 	_, deployments, err := s.currentModelDeploymentsTx(ctx, tx, tenant, project, profile)

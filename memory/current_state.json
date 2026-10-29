@@ -4,13 +4,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-COLLAB-127",
-  "updated_at": "2026-10-29T03:54:17.239087+00:00",
+  "stage": "T-REPLY-128",
+  "updated_at": "2026-10-29T05:02:06.555110+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/task-conversations-verification.md",
-  "current_summary": "docs/quality/task-conversations-summary.json",
+  "current_evidence": "docs/quality/task-conversation-replies-verification.md",
+  "current_summary": "docs/quality/task-conversation-replies-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -56,7 +56,7 @@
     "scheduling": "One ready queue, accounts/ledger, complete current dependency semantics and fixed routes; persisted current restart remains.",
     "identity": "Current complete issuance/source/family/Grant/slot proof and transactional revocation; no inferred authority or migration status.",
     "workbench": "Local file snapshots and saves bind tenant/project/fresh binding/actual opened root identity; exact original receipt recovery, ordinary/native binding idempotency, explicit current-basis adoption, owner-isolated ephemeral draft retention. Actual browser/HTTP/restart verified. Full IDE and native GUI remain pending.",
-    "internationalization": "Extensible paired zh-CN/en-US6042keys, production hardcodes0; actual dependency-rollout facts and current source/operation/run links verified in CNEN390. Full platform/multi-device acceptance remains open.",
+    "internationalization": "Extensible paired zh-CN/en-US6211keys, production hardcodes0; current actual task-discussion/reply/model-budget/original-run CNEN1366/390 verified. Full platform/multi-device acceptance remains open.",
     "versioning": "Go product identity has one source; workspace/desktop/Helm check:version is1.0.0; protocol/workflow/data revisions independent.",
     "architecture": "Single initial1.0.0; one current OpenCode SDK path, no old JSONL parser/alias or duplicate dispatcher. Generated public types replace duplicate web DTOs; current native host/ledger reused.",
     "opencode": "Actual officialWindows1.19.4 CLI/SDK + owned deterministic model protocol, real host MCP/write/check/seal, twoWorker candidate/import/independent exactSHA test; currentstream client lifetime, single Go tree authority and compact CNEN status/drilldown. Not commercial model/billing or production evidence.",
@@ -78,26 +78,29 @@
     "project_applications": "Current qualified team/hierarchy/governed code scope; original independently accepted applied commit; dedicated readonly source capability, trusted bounded npm/pnpm parser; immutable version, manual exact dependency pins, lightweight transactional graph/SCC/reverse impact; simple bilingual workbench. Actual Git/independent Worker/JUnit/fixture Review/provider apply and read-only CNEN390 verified. Full release sets/subproject ACL/all-language/runtime/cross-app deployment remain open.",
     "application_release_sets": "Exact reviewed immutable app versions and independent artifact candidates, source/build tasks separate, exact declared closure and known-incompatible gate; original per-member signed pending plans, current provenance at approval/execution/effect and actual partial/health facts. Same-host real static-demo build/package/JUnit/Review/provider journey and bilingual390readonly UI verified. No group approval or second dispatcher.",
     "mixed_quality_evidence": "Private run snapshot freezes exact registered package/build Tool+Release profiles, workers and artifact ancestry; package evidence is distinct from JUnit and cannot cover formal cases. Missing, changed or failed real package/build proof blocks the run even if JUnit passes; report-less unknown and package-only workflows rejected.",
-    "application_release_rollouts": "Protected Go service-bound original subworkflow, exact per-member approvals/identities, lazy environment reservation, pause/drain, unknown original-operation reconciliation and explicit current resume; same-host actual static provider and read-only CNEN390 verified. Known failure/new revision, automatic composite rollback and full distributed/platform acceptance remain open."
+    "application_release_rollouts": "Protected Go service-bound original subworkflow, exact per-member approvals/identities, lazy environment reservation, pause/drain, unknown original-operation reconciliation and explicit current resume; same-host actual static provider and read-only CNEN390 verified. Known failure/new revision, automatic composite rollback and full distributed/platform acceptance remain open.",
+    "task_conversation_replies": "Protected read-only multi-turn native replies: explicit latest saved turn/context1..20/model/version/one-call output/budget/ack; original Go DAG+Runner+SDK+gateway; original callback recovery, exact assistant provenance, no duplicate message. Actual three local protocol turns, UI-created third, CNEN1366/390 and refresh verified. No interactive shell/code execution or production claim."
   },
   "verified": {
-    "current_report": "docs/quality/task-conversations-verification.md",
-    "current_summary": "docs/quality/task-conversations-summary.json",
-    "source_sha256": "fcecfba9d4397d07e23608f04c3bb6ae048e11def01cb30990aff4d9ba3919c0",
+    "current_report": "docs/quality/task-conversation-replies-verification.md",
+    "current_summary": "docs/quality/task-conversation-replies-summary.json",
+    "source_sha256": "c59614176bdf1a59ac8d408d693b67512da789ec47d285f745e6354554e4ccf7",
     "product_version": "1.0.0",
-    "distinct_go_top_tests_passed": 5,
-    "distinct_web_behavior_cases_passed": 6,
+    "distinct_go_top_tests_passed": 10,
+    "distinct_web_behavior_cases_passed": 9,
+    "sdk_cases_passed": 2,
     "typecheck": true,
     "generated_contract_check": true,
-    "catalog_keys": 6151,
-    "actual_http_original_receipt_verified": true,
-    "actual_browser_verified": false,
-    "actual_browser_gap": "CUA transport closed; currentvisualjourney pending, no oldscreenshots asproof",
-    "protected_tables_unchanged": 34,
-    "owned_model_requests": 0,
+    "catalog_keys": 6211,
+    "actual_original_postcommit_callback_replay_verified": true,
+    "actual_browser_verified": true,
+    "actual_browser_gap": null,
+    "owned_model_requests": 3,
+    "commercial_model_requests": 0,
     "web_builds": 1,
-    "native_sdk_builds": 0,
-    "new_executions": 0,
+    "native_sdk_builds": 1,
+    "new_executions": 3,
+    "interactive_terminal_commands": 0,
     "production_complete": false
   },
   "production_integration_complete": false,
@@ -108,7 +111,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "65004fa00f7f123dbb276f29829bc8812c5721ec"
+    "previously_published_commit": "dcfc3d9497ecf71fc98ffb57fd1c3f35a93c8f61"
   },
   "existing_preview": {
     "updated": false,
@@ -116,25 +119,24 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and requirements1–26, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance.",
-  "last_goal_turn_classification": "progress: T127 durable human/API discussion, original transactional recovery, guarded workbench draft, schema/locales and actual post-commit HTTP ACK-loss recovery verified; current actual browser transport unavailable. Full original goal remains active.",
+  "last_goal_turn_classification": "progress: T128 real native three-turn reply/model/budget/ack-loss recovery and actual CNEN responsive journey verified; full P0-P7/requirements1-26 active,58/34/92 unchanged. Git receipt records exact later delivery.",
   "previous_goal_turn": "progress: T125 dependency-ordered original-plan rollout, actual ACK-loss reconciliation, pause/drain, unknown read projection and scoped CNEN390 evidence verified; Git delivery is recorded separately against the actual commit. Full P0-P7 and requirements1-26 remain active,58/34/92 unchanged.",
   "current_work": {
-    "stage": "T-COLLAB-127",
-    "status": "scoped_api_components_verified_visual_pending",
-    "implementation": "Durable native task discussion with original human/API authorship, exact task/requirement/run basis, transactional sequence, idempotent original recovery and bilingual workbench composer; full unified-gateway assistant and PTY targets remain active.",
-    "contract": "contracts/task-conversations.md",
+    "stage": "T-REPLY-128",
+    "status": "scoped_verified_pending_git_delivery",
+    "implementation": "Protected read-only multi-turn native replies: explicit latest saved turn/context1..20/model/version/one-call output/budget/ack; original Go DAG+Runner+SDK+gateway; original callback recovery, exact assistant provenance, no duplicate message. Actual three local protocol turns, UI-created third, CNEN1366/390 and refresh verified. No interactive shell/code execution or production claim.",
     "remaining": [
-      "Full P0-P7 and requirements1..26,58 limited/34 pending/92 unchanged.",
-      "Current visual journey pending browser transport recovery; no claim from component tests or prior T126screenshots.",
-      "Continuous model replies with explicit ModelBinding/budget/DAG/attempt evidence, attachments, live push, private multichat and offline synchronization.",
-      "Real crossplatform PTY/LSP/DAP/fullGit/office, physicalmulti-host, databases, installers and production acceptance."
+      "Interactive PTY/full terminal, LSP/DAP and automatic code-development handoff remain unimplemented.",
+      "Expired Runner without original SDK final receipt requires a separate recovery contract; no invented success.",
+      "Commercial provider quality/billing, physical multi-host, native installers and production acceptance not verified by this phase.",
+      "Full P0-P7 and requirements1-26 remain active; no ledger row declared complete."
     ]
   },
   "previous_stage_verification": {
-    "stage": "T-WORKBENCH-126",
-    "report": "docs/quality/workspace-task-context-verification.md",
-    "summary": "docs/quality/workspace-task-context-summary.json",
-    "source_sha256": "3fc74a013b024f9631306f95ded3988879f11a1c5b087ec69153a32ff231ea45"
+    "stage": "T-COLLAB-127",
+    "report": "docs/quality/task-conversations-verification.md",
+    "summary": "docs/quality/task-conversations-summary.json",
+    "source_sha256": "fcecfba9d4397d07e23608f04c3bb6ae048e11def01cb30990aff4d9ba3919c0"
   },
   "latest_request": {
     "reference_conversation": "6ae163e6-0700-83e9-bf86-623690b54884",

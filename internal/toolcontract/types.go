@@ -26,6 +26,7 @@ type ToolExecutionProfile struct {
 	KnowledgeExtraction    *KnowledgeExtractionCapability    `json:"knowledge_extraction,omitempty"`
 	IntelligentOperations  *IntelligentOperationsCapability  `json:"intelligent_operations,omitempty"`
 	DispatchRecommendation *DispatchRecommendationCapability `json:"dispatch_recommendation,omitempty"`
+	TaskConversationReply  *TaskConversationReplyCapability  `json:"task_conversation_reply,omitempty"`
 	FailureDiagnosis       *FailureDiagnosisCapability       `json:"failure_diagnosis,omitempty"`
 	// OpenCodeExecution is the immutable administrator configuration acknowledged
 	// by the pinned SDK/server probe, not an independently selectable deployment.
@@ -70,6 +71,7 @@ func EqualProfile(a, b Profile) bool {
 	ao, bo := a.OpenCodeExecution, b.OpenCodeExecution
 	at, bt := a.OctopExecution, b.OctopExecution
 	ad, bd := a.DispatchRecommendation, b.DispatchRecommendation
+	ac, bc := a.TaskConversationReply, b.TaskConversationReply
 	a.Planning, b.Planning = nil, nil
 	a.KnowledgeExtraction, b.KnowledgeExtraction = nil, nil
 	a.IntelligentOperations, b.IntelligentOperations = nil, nil
@@ -77,6 +79,10 @@ func EqualProfile(a, b Profile) bool {
 	a.OpenCodeExecution, b.OpenCodeExecution = nil, nil
 	a.OctopExecution, b.OctopExecution = nil, nil
 	a.DispatchRecommendation, b.DispatchRecommendation = nil, nil
+	a.TaskConversationReply, b.TaskConversationReply = nil, nil
+	if !(ac == nil && bc == nil || ac != nil && bc != nil && *ac == *bc) {
+		return false
+	}
 	if !(ad == nil && bd == nil || ad != nil && bd != nil && *ad == *bd) {
 		return false
 	}
@@ -84,6 +90,10 @@ func EqualProfile(a, b Profile) bool {
 }
 
 func CloneProfile(p Profile) Profile {
+	if p.TaskConversationReply != nil {
+		value := *p.TaskConversationReply
+		p.TaskConversationReply = &value
+	}
 	if p.DispatchRecommendation != nil {
 		value := *p.DispatchRecommendation
 		p.DispatchRecommendation = &value

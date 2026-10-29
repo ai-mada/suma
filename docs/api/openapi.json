@@ -24433,7 +24433,8 @@
           "actor_kind": {
             "enum": [
               "human",
-              "api"
+              "api",
+              "assistant"
             ],
             "readOnly": true,
             "type": "string"
@@ -24454,9 +24455,23 @@
             "readOnly": true,
             "type": "string"
           },
+          "execution_run_id": {
+            "readOnly": true,
+            "type": "string"
+          },
           "id": {
             "readOnly": true,
             "type": "string"
+          },
+          "reply_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "reply_to_sequence": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
           },
           "requirement_id": {
             "readOnly": true,
@@ -24492,7 +24507,10 @@
           "created_at",
           "requirement_id",
           "requirement_version",
-          "run_id"
+          "run_id",
+          "reply_id",
+          "reply_to_sequence",
+          "execution_run_id"
         ],
         "type": "object"
       },
@@ -24550,6 +24568,387 @@
           "total",
           "limit",
           "next_before"
+        ],
+        "type": "object"
+      },
+      "TaskConversationReply": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "assistant_name": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "basis_current": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "created_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "created_by": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "locale": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "message_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "message_sequence": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "model_execution": {
+            "$ref": "#/components/schemas/ModelBinding",
+            "description": "The exact server-reserved model deployment, one-call parameters, token/cost allowance and rate basis. No provider credentials.",
+            "readOnly": true
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "reason": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_state": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_version": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "source": {
+            "$ref": "#/components/schemas/TaskConversationReplySource",
+            "readOnly": true
+          },
+          "state": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "tool_profile_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "tool_profile_sha256": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "tool_profile_version": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "updated_at": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "version": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "task_id",
+          "version",
+          "state",
+          "locale",
+          "run_id",
+          "run_version",
+          "run_state",
+          "source",
+          "tool_profile_id",
+          "tool_profile_version",
+          "tool_profile_sha256",
+          "assistant_name",
+          "model_execution",
+          "message_id",
+          "message_sequence",
+          "created_by",
+          "created_at",
+          "updated_at",
+          "basis_current",
+          "reason",
+          "allowed_actions"
+        ],
+        "type": "object"
+      },
+      "TaskConversationReplyCapability": {
+        "properties": {
+          "protocol": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol"
+        ],
+        "type": "object"
+      },
+      "TaskConversationReplyCommandRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "cancel"
+            ],
+            "type": "string"
+          },
+          "expected_run_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "expected_run_version",
+          "action",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "TaskConversationReplyCoverage": {
+        "additionalProperties": false,
+        "properties": {
+          "complete": {
+            "readOnly": true,
+            "type": "boolean"
+          },
+          "first_sequence": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "included": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "last_sequence": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "total": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "included",
+          "first_sequence",
+          "last_sequence",
+          "complete"
+        ],
+        "type": "object"
+      },
+      "TaskConversationReplyCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledge_model_use": {
+            "const": true,
+            "type": "boolean"
+          },
+          "context_message_limit": {
+            "description": "Explicit recent context window; oversized context is rejected, never silently trimmed or summarized.",
+            "maximum": 20,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_last_sequence": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_task_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_tool_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "locale": {
+            "enum": [
+              "zh-CN",
+              "en-US"
+            ],
+            "type": "string"
+          },
+          "model_execution_selection": {
+            "$ref": "#/components/schemas/ModelSelection"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "reply_to_sequence": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "task_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "tool_profile_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "task_id",
+          "expected_task_version",
+          "expected_last_sequence",
+          "reply_to_sequence",
+          "context_message_limit",
+          "tool_profile_id",
+          "expected_tool_version",
+          "model_execution_selection",
+          "locale",
+          "acknowledge_model_use",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "TaskConversationReplyPage": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TaskConversationReply"
+            },
+            "maxItems": 50,
+            "readOnly": true,
+            "type": "array"
+          },
+          "limit": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "next_cursor": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "next_cursor"
+        ],
+        "type": "object"
+      },
+      "TaskConversationReplySource": {
+        "additionalProperties": false,
+        "properties": {
+          "coverage": {
+            "$ref": "#/components/schemas/TaskConversationReplyCoverage",
+            "readOnly": true
+          },
+          "execution_route": {
+            "$ref": "#/components/schemas/ProjectExecutionRoute",
+            "readOnly": true
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/TaskConversationMessage"
+            },
+            "maxItems": 20,
+            "readOnly": true,
+            "type": "array"
+          },
+          "reply_to_sequence": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "requirement": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TaskContextRecord"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "sha256": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "task": {
+            "$ref": "#/components/schemas/TaskContextRecord",
+            "readOnly": true
+          },
+          "task_run_id": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "sha256",
+          "task",
+          "requirement",
+          "task_run_id",
+          "messages",
+          "coverage",
+          "reply_to_sequence",
+          "execution_route"
         ],
         "type": "object"
       },
@@ -27507,6 +27906,90 @@
             "if": {
               "properties": {
                 "message_key": {
+                  "const": "native.conversation.invalid_goal"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.conversation.request_limit"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.conversation.output_invalid"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
+                  "const": "native.conversation.tools_forbidden"
+                }
+              },
+              "required": [
+                "message_key"
+              ]
+            },
+            "then": {
+              "properties": {
+                "message_params": {
+                  "additionalProperties": false,
+                  "properties": {},
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "message_key": {
                   "const": "native.dispatch_recommendation.request_limit"
                 }
               },
@@ -28901,6 +29384,10 @@
         "properties": {
           "message_key": {
             "enum": [
+              "native.conversation.invalid_goal",
+              "native.conversation.request_limit",
+              "native.conversation.output_invalid",
+              "native.conversation.tools_forbidden",
               "native.dispatch_recommendation.request_limit",
               "native.dispatch_recommendation.invalid_goal",
               "native.dispatch_recommendation.output_invalid",
@@ -29441,6 +29928,16 @@
           "read_only": {
             "description": "Administrator policy declaration; not a generic operating-system sandbox attestation.",
             "type": "boolean"
+          },
+          "task_conversation_reply": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TaskConversationReplyCapability"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "test_report_protocol": {
             "description": "Explicit administrator-enabled capture on an isolated command test. Discovery does not prove a test run, passing cases or human acceptance.",
@@ -94296,6 +94793,819 @@
           }
         ],
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/task-conversation-replies": {
+      "get": {
+        "description": "Explicit read-only multi-turn task assistant using one managed DAG run, a fixed current model deployment/parameters/budget, frozen task/requirement/message context and one original model request. It never replaces the task run, dispatches development commands or accepts delivery. Only a verified exact original attempt/fence/model receipt can append an assistant message. Unknown work remains blocked; cancel requests are not stopped-process evidence.",
+        "operationId": "get_task-conversation-replies",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact task in the current authorized project.",
+            "in": "query",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Bounded reply history.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Original reply ID scoped to the same tenant/project/task for an earlier page.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "maxLength": 64,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskConversationReplyPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      },
+      "post": {
+        "description": "Explicit read-only multi-turn task assistant using one managed DAG run, a fixed current model deployment/parameters/budget, frozen task/requirement/message context and one original model request. It never replaces the task run, dispatches development commands or accepts delivery. Only a verified exact original attempt/fence/model receipt can append an assistant message. Unknown work remains blocked; cancel requests are not stopped-process evidence.",
+        "operationId": "post_task-conversation-replies",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskConversationReplyCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskConversationReply"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/task-conversation-replies/{id}": {
+      "get": {
+        "description": "Explicit read-only multi-turn task assistant using one managed DAG run, a fixed current model deployment/parameters/budget, frozen task/requirement/message context and one original model request. It never replaces the task run, dispatches development commands or accepts delivery. Only a verified exact original attempt/fence/model receipt can append an assistant message. Unknown work remains blocked; cancel requests are not stopped-process evidence.",
+        "operationId": "get_task-conversation-replies_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskConversationReply"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/task-conversation-replies/{id}/commands": {
+      "post": {
+        "description": "Explicit read-only multi-turn task assistant using one managed DAG run, a fixed current model deployment/parameters/budget, frozen task/requirement/message context and one original model request. It never replaces the task run, dispatches development commands or accepts delivery. Only a verified exact original attempt/fence/model receipt can append an assistant message. Unknown work remains blocked; cancel requests are not stopped-process evidence.",
+        "operationId": "post_task-conversation-replies_id_commands",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": false,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskConversationReplyCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskConversationReply"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },
     "/task-conversations": {

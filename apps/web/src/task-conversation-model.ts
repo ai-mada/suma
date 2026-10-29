@@ -23,16 +23,21 @@ export function validConversationBody(value: unknown): value is string {
 }
 
 const messageKeys = ['id', 'sequence', 'task_version', 'body', 'author_id',
-  'author_name', 'actor_kind', 'created_at', 'requirement_id', 'requirement_version', 'run_id'];
+  'author_name', 'actor_kind', 'created_at', 'requirement_id', 'requirement_version', 'run_id',
+  'reply_id', 'reply_to_sequence', 'execution_run_id'];
 
 export function validConversationMessage(value: unknown): value is TaskConversationMessage {
   if (!object(value) || !keys(value, messageKeys)) return false;
   return identifier(value.id) && positive(value.sequence) && positive(value.task_version) &&
     validConversationBody(value.body) && identifier(value.author_id) && text(value.author_name) &&
-    ['human', 'api'].includes(String(value.actor_kind)) && text(value.created_at) &&
+    ['human', 'api', 'assistant'].includes(String(value.actor_kind)) && text(value.created_at) &&
     Number.isFinite(Date.parse(value.created_at)) && optionalID(value.requirement_id) &&
     natural(value.requirement_version) && (value.requirement_id === ''
-      ? value.requirement_version === 0 : value.requirement_version > 0) && optionalRunID(value.run_id);
+      ? value.requirement_version === 0 : value.requirement_version > 0) && optionalRunID(value.run_id) &&
+    (value.actor_kind === 'assistant'
+      ? identifier(value.reply_id) && positive(value.reply_to_sequence) && value.reply_to_sequence < value.sequence &&
+        text(value.execution_run_id) && value.execution_run_id !== '' && optionalRunID(value.execution_run_id)
+      : value.reply_id === '' && value.reply_to_sequence === 0 && value.execution_run_id === '');
 }
 
 /** Validate each bounded server page before merging it into the displayed
