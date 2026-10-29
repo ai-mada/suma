@@ -1,0 +1,566 @@
+{
+  "stage": "T-ROLLOUT-125",
+  "date": "2026-10-29",
+  "status": "scoped_local_verified",
+  "product_version": "1.0.0",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "sha256": "32004e91675b2a8871c204d96c4f0b185747e51f04183a18f50260664eeafb78",
+    "changed_files": 50,
+    "deleted": [],
+    "inventory": ".cache/e2e/rollout-125/source-inventory.json",
+    "previous_published_commit": "72a1e4194d8049bf24af193a4575d50a6141a818"
+  },
+  "checks": {
+    "distinct_go_top_tests": [
+      "TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery",
+      "TestApplicationReleaseRolloutCommandsRequireExactLiveDomainPermit",
+      "TestApplicationReleaseRolloutDigestPinsOriginalPlansAndDependencyOrder",
+      "TestApplicationReleaseRolloutStrictHTTPAndAPIReadOnly",
+      "TestAuthorityParticipantsExpandLocksWithoutAuthority",
+      "TestBoundSubworkflowManagedAuthorityAndOriginalIdentity",
+      "TestBoundSubworkflowPauseDrainsCurrentChild",
+      "TestBoundSubworkflowScopeCleanupOnRejectedWake",
+      "TestBoundSubworkflowScopeProvesExactLockWithoutExpandingOrganizations",
+      "TestBoundSubworkflowUnknownPausesWithoutRedispatch",
+      "TestPersistedReleaseScopeRequiresActualBrowserCredentialAndCurrentRights",
+      "TestPoolHTTPBilateralGrantAndExplicitCurrentScope",
+      "TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier",
+      "TestSubworkflowPauseResumeAndCancelWaitForActualStop",
+      "TestSubworkflowPinsVersionAndPropagatesCompletion"
+    ],
+    "go_count": 15,
+    "web_behavior_cases": 4,
+    "full_final_web_typecheck": true,
+    "generated_contract_check": true,
+    "generated_models": 655,
+    "api_paths": 302,
+    "schema_changes": [],
+    "catalog_keys": 6042,
+    "production_hardcodes": 0,
+    "documentation_check": true,
+    "version_check": true
+  },
+  "actual": {
+    "candidate_commit": "c8404be0005fb0e571079396d844f80fbb6485b7",
+    "customer_human_signoff": false,
+    "model_calls": 0,
+    "parent_run_id": "rollout-109445ec663f3095abed5ca5aa986590",
+    "plan_group_id": "f3efb4e7f9327b042840cbb01e909e27",
+    "provider_post_counts": {
+      "deploy-1eb2b64081579c476067515b9923b90c": 1,
+      "deploy-83e1f3ecc44b229e4d3170b8a755c7b2": 1
+    },
+    "release_set_id": "f1bd4c0d5eb117e1de886d3ca25df8fe",
+    "release_set_sha256": "22d70ea5b3de741c6b0187b5b5fd468f02ad54de9d5181e3849ef965a66bea19",
+    "rollout_id": "109445ec663f3095abed5ca5aa986590",
+    "stage": "T-ROLLOUT-125",
+    "static_demo_only": true,
+    "paused_after_library": {
+      "state": "paused",
+      "pause_reason": "rollout_paused_by_user",
+      "run_version": 3,
+      "basis_current": true,
+      "items": [
+        {
+          "application_id": "6985c5025ccab5fd4703f440fe2affab",
+          "parent_node_state": "pending",
+          "child_run_state": "",
+          "deployment_operation_id": "",
+          "deployment_state": "",
+          "effect_state": "",
+          "health_state": ""
+        },
+        {
+          "application_id": "9ad18bc3e373cdd25f8f5bc6fefebe4e",
+          "parent_node_state": "waiting",
+          "child_run_state": "succeeded",
+          "deployment_operation_id": "deploy-83e1f3ecc44b229e4d3170b8a755c7b2",
+          "deployment_state": "deployed_healthy",
+          "effect_state": "applied",
+          "health_state": "passed"
+        }
+      ],
+      "blockers": [],
+      "allowed_actions": [
+        "resume",
+        "cancel"
+      ]
+    },
+    "unknown_after_web": {
+      "state": "paused",
+      "pause_reason": "rollout_operation_unknown",
+      "run_version": 5,
+      "basis_current": false,
+      "items": [
+        {
+          "application_id": "6985c5025ccab5fd4703f440fe2affab",
+          "parent_node_state": "waiting",
+          "child_run_state": "running",
+          "deployment_operation_id": "deploy-1eb2b64081579c476067515b9923b90c",
+          "deployment_state": "queued",
+          "effect_state": "not_started",
+          "health_state": "not_checked"
+        },
+        {
+          "application_id": "9ad18bc3e373cdd25f8f5bc6fefebe4e",
+          "parent_node_state": "succeeded",
+          "child_run_state": "succeeded",
+          "deployment_operation_id": "deploy-83e1f3ecc44b229e4d3170b8a755c7b2",
+          "deployment_state": "deployed_healthy",
+          "effect_state": "applied",
+          "health_state": "passed"
+        }
+      ],
+      "blockers": [
+        {
+          "code": "rollout_operation_unknown",
+          "application_id": "6985c5025ccab5fd4703f440fe2affab",
+          "ref_id": "f7324cdfdcf1514d3cebe4202eba71bc"
+        }
+      ],
+      "allowed_actions": [
+        "cancel"
+      ]
+    },
+    "final": {
+      "state": "succeeded",
+      "pause_reason": "",
+      "run_version": 7,
+      "basis_current": true,
+      "items": [
+        {
+          "application_id": "6985c5025ccab5fd4703f440fe2affab",
+          "parent_node_state": "succeeded",
+          "child_run_state": "succeeded",
+          "deployment_operation_id": "deploy-1eb2b64081579c476067515b9923b90c",
+          "deployment_state": "deployed_healthy",
+          "effect_state": "applied",
+          "health_state": "passed"
+        },
+        {
+          "application_id": "9ad18bc3e373cdd25f8f5bc6fefebe4e",
+          "parent_node_state": "succeeded",
+          "child_run_state": "succeeded",
+          "deployment_operation_id": "deploy-83e1f3ecc44b229e4d3170b8a755c7b2",
+          "deployment_state": "deployed_healthy",
+          "effect_state": "applied",
+          "health_state": "passed"
+        }
+      ],
+      "blockers": [],
+      "allowed_actions": []
+    }
+  },
+  "browser": {
+    "status": "scoped_actual_read_only_verified",
+    "origin": "http://rollout125.localhost:51794",
+    "project_id": "62529610c1f3e2ba22348ef1cd500b93",
+    "set_id": "f1bd4c0d5eb117e1de886d3ca25df8fe",
+    "rollout_id": "109445ec663f3095abed5ca5aa986590",
+    "parent_run_id": "rollout-109445ec663f3095abed5ca5aa986590",
+    "checks": {
+      "chinese": true,
+      "english": true,
+      "desktop_1366": true,
+      "narrow_390": true,
+      "horizontal_overflow": false,
+      "keyboard_focus": true,
+      "refresh_exact_locator": true,
+      "original_plan_approval_link": true,
+      "parent_actual_run_link": true,
+      "original_effect_and_health": true,
+      "browser_business_mutations": 0
+    },
+    "screenshots": [
+      "rollout-zh-desktop.png",
+      "rollout-en-desktop.png",
+      "rollout-en-390.png",
+      "rollout-zh-390.png"
+    ],
+    "limitations": [
+      "Readonly browser inspected final actual facts; pause/resume/reconciliation mutations executed by the owned HTTP test, not through browser.",
+      "Full platform internationalization audit remains open; the original plan already-executed blocker contains Chinese in English and the generic event timeline shows bound_execution_paused as its technical kind."
+    ]
+  },
+  "resources": {
+    "model_requests": 0,
+    "commercial_vendor_calls": 0,
+    "actual_journey_attempts": 3,
+    "completed_actual_journeys": 2,
+    "last_actual_replay": "Only the real ordering/ACK-loss/recovery journey repeated after unknown-read projection correction; no browser hold or new Web build",
+    "first_actual_attempt": "Owned transport ACK loss raced real effect authorization; provider never became healthy; fixture timing corrected without relaxing production gates",
+    "web_builds_completed": 1,
+    "source_inspector_builds": 0,
+    "native_sdk_builds": 0,
+    "octop_sdk_builds": 0,
+    "go_commands_sequential": true,
+    "browser_business_mutations": 0,
+    "browser_guard_unchanged": true,
+    "owned_processes_terminal": true
+  },
+  "evidence": {
+    "go_receipts": [
+      {
+        "command": ".cache/mcp019-deps/20261028T232806371Z.command.json",
+        "arguments": [
+          "run",
+          "./.cache/e2e/rollout-125/golden"
+        ],
+        "exit_code": 0,
+        "passed_top_level": [],
+        "failed_top_level": [],
+        "stdout_sha256": "f59c85a130d41440ce23397c0bb17f4d13c07cde90e4b680423d24dac624fdef"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T233344617Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts"
+        ],
+        "exit_code": 0,
+        "passed_top_level": [],
+        "failed_top_level": [],
+        "stdout_sha256": "c79d70a281289678177168e713cc1fe8d6be8cfac1ab1d21a05c6565079cb758"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T233427796Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/dag",
+          "./internal/platform",
+          "-run",
+          "^(TestBoundSubworkflow|TestPersistedReleaseScope|TestApplicationReleaseRollout(Digest|StrictHTTP|Commands))",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "4m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": [
+          "TestApplicationReleaseRolloutCommandsRequireExactLiveDomainPermit",
+          "TestApplicationReleaseRolloutDigestPinsOriginalPlansAndDependencyOrder",
+          "TestApplicationReleaseRolloutStrictHTTPAndAPIReadOnly",
+          "TestBoundSubworkflowManagedAuthorityAndOriginalIdentity",
+          "TestBoundSubworkflowPauseDrainsCurrentChild",
+          "TestBoundSubworkflowScopeCleanupOnRejectedWake",
+          "TestBoundSubworkflowScopeProvesExactLockWithoutExpandingOrganizations",
+          "TestBoundSubworkflowUnknownPausesWithoutRedispatch",
+          "TestPersistedReleaseScopeRequiresActualBrowserCredentialAndCurrentRights"
+        ],
+        "failed_top_level": [],
+        "stdout_sha256": "e64273988f73006e9ff3da8334eaf79d5fbdd3573bd02444c64b9b8a3be0de40"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T233619109Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/dag",
+          "./internal/platform",
+          "-run",
+          "^(TestSubworkflowPinsVersionAndPropagatesCompletion|TestSubworkflowPauseResumeAndCancelWaitForActualStop|TestPoolHTTPBilateralGrantAndExplicitCurrentScope|TestAuthorityParticipantsExpandLocksWithoutAuthority|TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier)$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "3m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": [
+          "TestAuthorityParticipantsExpandLocksWithoutAuthority",
+          "TestPoolHTTPBilateralGrantAndExplicitCurrentScope",
+          "TestReleaseDeploymentRealCandidateAtomicExecuteTicketsAndUnknownBarrier",
+          "TestSubworkflowPauseResumeAndCancelWaitForActualStop",
+          "TestSubworkflowPinsVersionAndPropagatesCompletion"
+        ],
+        "failed_top_level": [],
+        "stdout_sha256": "78063cd3e1a455bbc995ca2d749f9de8c078d090889a3e80d72e242e790cf535"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261028T234223412Z.command.json",
+        "arguments": [
+          "run",
+          "./cmd/suma-contracts",
+          "-check"
+        ],
+        "exit_code": 0,
+        "passed_top_level": [],
+        "failed_top_level": [],
+        "stdout_sha256": "f15df32c9fbbd8b942e62e23b64f7bc67b572d1e12157352945cea63c01e1e28"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261029T013958026Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "7m"
+        ],
+        "exit_code": 1,
+        "passed_top_level": [],
+        "failed_top_level": [
+          "TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery"
+        ],
+        "stdout_sha256": "1db29a61d3cd41eae5d421bdce01f355d21b16fdd3d6a657d1628dd1c6aa731a"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261029T014900870Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "7m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": [
+          "TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery"
+        ],
+        "failed_top_level": [],
+        "stdout_sha256": "27dadcb5adc7f7d21a93bd834ffb1bf5f78b4a94686da9a447bc77f13cf59a3a"
+      },
+      {
+        "command": ".cache/mcp019-deps/20261029T015806626Z.command.json",
+        "arguments": [
+          "test",
+          "./internal/platform",
+          "-run",
+          "^TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery$",
+          "-count=1",
+          "-v",
+          "-timeout",
+          "4m"
+        ],
+        "exit_code": 0,
+        "passed_top_level": [
+          "TestApplicationReleaseRolloutActualOrderedPauseAndUnknownRecovery"
+        ],
+        "failed_top_level": [],
+        "stdout_sha256": "a8fbd37f2c2ba2578a44bc76d5d19b7c3a32813d5f99f6cb7fb9fa2a6bf96f82"
+      }
+    ],
+    "web_cases": [
+      {
+        "case_prefix": "T125 matches the real Go canonical golden",
+        "receipt": ".cache/e2e/rollout-125/ui-focused-fixed.stdout.txt",
+        "case_passed": true,
+        "command_exit_code": 1,
+        "stdout_sha256": "a1a22c253ccbd89fd8f5dff5f4be9d0dfcaeeea46f187a61e3494f5c52be74f0"
+      },
+      {
+        "case_prefix": "T125 previews original approval blockers",
+        "receipt": ".cache/e2e/rollout-125/ui-focused-fixed.stdout.txt",
+        "case_passed": true,
+        "command_exit_code": 1,
+        "stdout_sha256": "a1a22c253ccbd89fd8f5dff5f4be9d0dfcaeeea46f187a61e3494f5c52be74f0"
+      },
+      {
+        "case_prefix": "T125 requires original-operation reconciliation",
+        "receipt": ".cache/e2e/rollout-125/ui-failed-two.stdout.txt",
+        "case_passed": true,
+        "command_exit_code": 1,
+        "stdout_sha256": "0df7390e418cf7e45439168d5ee67fedddb0c8140ff90303b2cc801545699354"
+      },
+      {
+        "case_prefix": "T125 loads an old group",
+        "receipt": ".cache/e2e/rollout-125/ui-failed-one.stdout.txt",
+        "case_passed": true,
+        "command_exit_code": 0,
+        "stdout_sha256": "7351a8e47ee24ad3142d784e85c8bf2c672cd365a85403f75b3d9d6c62f54a84"
+      }
+    ],
+    "web_attempt_logs": [
+      {
+        "path": ".cache/e2e/rollout-125/ui-failed-one.stdout.txt",
+        "sha256": "7351a8e47ee24ad3142d784e85c8bf2c672cd365a85403f75b3d9d6c62f54a84"
+      },
+      {
+        "path": ".cache/e2e/rollout-125/ui-failed-two.stdout.txt",
+        "sha256": "0df7390e418cf7e45439168d5ee67fedddb0c8140ff90303b2cc801545699354"
+      },
+      {
+        "path": ".cache/e2e/rollout-125/ui-focused-fixed.stdout.txt",
+        "sha256": "a1a22c253ccbd89fd8f5dff5f4be9d0dfcaeeea46f187a61e3494f5c52be74f0"
+      },
+      {
+        "path": ".cache/e2e/rollout-125/ui-focused.stdout.txt",
+        "sha256": "b8e88d6fb92ef892c8532f1a809f6f79b6be79c22f99e76c0aa0cdb5e1e5f49f"
+      }
+    ],
+    "typecheck": ".cache/e2e/rollout-125/typecheck.stdout.txt",
+    "i18n": ".cache/e2e/rollout-125/i18n.stdout.txt",
+    "web_build": ".cache/e2e/rollout-125/web-build.stdout.txt",
+    "web_inventory": ".cache/e2e/rollout-125/web-inventory.json",
+    "actual_full_receipt": {
+      "path": ".cache/e2e/rollout-125/actual-ui/result.public.json",
+      "sha256": "f63a2902fcb024326c0e5939b18b0f768d5bfd1cefef893e48b5f65cfe4847d9",
+      "git_include": false
+    },
+    "artifacts": [
+      {
+        "path": ".cache/e2e/rollout-125/actual-ui/fixture.sqlite",
+        "bytes": 2813952,
+        "sha256": "8a45a7641d5609e5bbea9b6624868810081f3c407e93fade8de249d436738a2e",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/rollout-125/actual-ui/base-source.tar",
+        "bytes": 10240,
+        "sha256": "3f7ac1d9a6741d7dc0f9b30e82a8e3901184b681d75b9dd6591876dfc710dc9b",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/rollout-125/actual-ui/candidate-source.tar",
+        "bytes": 10240,
+        "sha256": "214213354639771460be9588152ed42842648af0202647576417429b7428d8ed",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/rollout-125/actual-ui/retained-data/release-artifacts/blobs/47f2220233407cff3ee59eb523ea2e92",
+        "bytes": 74,
+        "sha256": "4d33e1fbf571e587d53588cc6202d433dc981a59a4e7b4d33b3f1cb6417916fb",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/rollout-125/actual-ui/retained-data/release-artifacts/blobs/8b6a405566c5bee6b38a02adbfb0d8ef",
+        "bytes": 444,
+        "sha256": "18f35e96138fec24516b76c27b72588940e138ea76bc2c1191c9ffc3a4f3411d",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/rollout-125/actual-ui/retained-data/release-artifacts/blobs/fab5c740e083f7d9f5d4f6f505624c0a",
+        "bytes": 66,
+        "sha256": "095b622ff5eaddb5b6a5223e1250f65f685b8263bc4dcb3c159c5563c01fdb34",
+        "git_include": false
+      }
+    ],
+    "screenshots": [
+      {
+        "path": ".cache/e2e/rollout-125/rollout-zh-desktop.png",
+        "bytes": 49820,
+        "sha256": "7f0285f459bd80b7fea4bd3064511d4fdd4f1971dc353f5367be44b7c640f686",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/rollout-125/rollout-en-desktop.png",
+        "bytes": 60727,
+        "sha256": "06d6d1888ccf36536c748a6ddce9c5de06188b6d19605592723a2576cc1991eb",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/rollout-125/rollout-en-390.png",
+        "bytes": 29490,
+        "sha256": "2ff14b4f55a99d1e97bfb3f35b2ebd41a6df34b179f78cbd67ef62caae9435fd",
+        "git_include": false
+      },
+      {
+        "path": ".cache/e2e/rollout-125/rollout-zh-390.png",
+        "bytes": 28447,
+        "sha256": "9d5adad505bda601c89fd2ebc5841035e5fb99171c90dd424c95e79f2a3a61fe",
+        "git_include": false
+      }
+    ]
+  },
+  "remaining": [
+    "Complete P0-P7 and requirements1-26;58/34/92 unchanged",
+    "Known failure recovery through a newly approved plan revision; composite automatic rollback",
+    "Automatic per-application builds and composite multi-origin/commit artifacts",
+    "Complete Octop/CLI/GUI/vendor/MCP/A2A capability coverage and physical multi-host/production acceptance",
+    "OceanBase/PostgreSQL matrix and native multi-platform signing/installers",
+    "Local static demo and fixture Review do not represent customer sign-off or production approval",
+    "Runtime internationalization follow-up: original-plan already-executed blocker and bound_execution_paused event label; static paired catalogs do not prove all runtime translations."
+  ],
+  "current_actual_projection_recheck": {
+    "candidate_commit": "a01e6cd3ca1ef2a5fa4e043402ec9e6c6da9507d",
+    "customer_human_signoff": false,
+    "model_calls": 0,
+    "parent_run_id": "rollout-ed0907ad757d720aab730d1f9211d0b3",
+    "plan_group_id": "cc7c33159c49bf3cd3ad6ce592a631e9",
+    "provider_post_counts": {
+      "deploy-3693d37f922333d0f0d578546dbb558c": 1,
+      "deploy-fe349aeb068556ab2506a815f4ded893": 1
+    },
+    "release_set_id": "31ce5664d038640cc6a61b93e3fee44e",
+    "release_set_sha256": "a651110ea447d53b8ce48b974e60369d29c099606a274aad8babf11895c39a46",
+    "rollout_id": "ed0907ad757d720aab730d1f9211d0b3",
+    "stage": "T-ROLLOUT-125",
+    "static_demo_only": true,
+    "unknown_after_web": {
+      "state": "paused",
+      "pause_reason": "rollout_operation_unknown",
+      "run_version": 5,
+      "basis_current": false,
+      "items": [
+        {
+          "application_id": "399f2dc2175c1dd789fd693dbb62863d",
+          "parent_node_state": "succeeded",
+          "child_run_state": "succeeded",
+          "deployment_operation_id": "deploy-3693d37f922333d0f0d578546dbb558c",
+          "deployment_state": "deployed_healthy",
+          "effect_state": "applied",
+          "health_state": "passed"
+        },
+        {
+          "application_id": "7830e7776b000394f27718250862ac38",
+          "parent_node_state": "waiting",
+          "child_run_state": "running",
+          "deployment_operation_id": "deploy-fe349aeb068556ab2506a815f4ded893",
+          "deployment_state": "reconciling",
+          "effect_state": "unknown",
+          "health_state": "unknown"
+        }
+      ],
+      "blockers": [
+        {
+          "code": "rollout_operation_unknown",
+          "application_id": "7830e7776b000394f27718250862ac38",
+          "ref_id": "abf5c412fc65b0f05a7ff711ad19bf83"
+        }
+      ],
+      "allowed_actions": [
+        "cancel"
+      ]
+    },
+    "final": {
+      "state": "succeeded",
+      "pause_reason": "",
+      "run_version": 7,
+      "basis_current": true,
+      "items": [
+        {
+          "application_id": "399f2dc2175c1dd789fd693dbb62863d",
+          "parent_node_state": "succeeded",
+          "child_run_state": "succeeded",
+          "deployment_operation_id": "deploy-3693d37f922333d0f0d578546dbb558c",
+          "deployment_state": "deployed_healthy",
+          "effect_state": "applied",
+          "health_state": "passed"
+        },
+        {
+          "application_id": "7830e7776b000394f27718250862ac38",
+          "parent_node_state": "succeeded",
+          "child_run_state": "succeeded",
+          "deployment_operation_id": "deploy-fe349aeb068556ab2506a815f4ded893",
+          "deployment_state": "deployed_healthy",
+          "effect_state": "applied",
+          "health_state": "passed"
+        }
+      ],
+      "blockers": [],
+      "allowed_actions": []
+    },
+    "full_receipt": ".cache/e2e/rollout-125/current-actual-receipt.public.json",
+    "stdout_sha256": "a8fbd37f2c2ba2578a44bc76d5d19b7c3a32813d5f99f6cb7fb9fa2a6bf96f82"
+  }
+}

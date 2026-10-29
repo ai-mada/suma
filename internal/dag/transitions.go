@@ -203,6 +203,9 @@ func (t *transaction) advance(r *runState) error {
 		return t.finishRun(r)
 	}
 	for processed := 0; processed < 2048; processed++ {
+		if r.State == "paused" {
+			return t.finishRun(r)
+		}
 		id, err := t.nextNodeWork(r)
 		if err != nil {
 			return err

@@ -2,7 +2,7 @@
 
 更新：2026-10-29。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–26 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。
 
-T-RELEASESET-124推进应用准确代码版本与独立制品候选的正式版本集、精确依赖闭包、原逐项部署计划及真实部分／健康状态；同时补齐固定包测试与JUnit共同参与的质量门禁。[架构与SOP](../architecture/application-release-sets.md)、[当前证据](../quality/application-release-sets-verification.md)。多来源构建、有序跨应用自动推广及完整平台继续待办，58／34／92不变。
+当前T-ROLLOUT-125在准确应用版本、独立制品候选与原计划组上推进受保护的依赖有序发布：原计划分别批准后明确启动，暂停排空，未知／失败暂停，原操作核对及新预览后明确恢复，已健康子项不重做。[架构](../architecture/application-release-rollouts.md)、[操作与AI SOP](../development/application-release-rollouts.md)、[合同](../../contracts/application-release-rollouts.md)、[English](../en/application-release-rollouts.md)、[限定验收报告](../quality/application-release-rollouts-verification.md)和[摘要](../quality/application-release-rollouts-summary.json)。真实本地源码／独立测试／原提供方部署、暂停排空与回执丢失核对恢复，以及中英文390只读界面已验证，范围详见报告；多来源构建、灰度流量、协调回退与完整平台继续待办，58／34／92不变。
 
 T-ROUTING-122继续原P2／P4与需求13、14、21、26：真实有界候选、统一Go网关的一次只读模型建议、可编辑人工采用及原计划明确启动，复用现有独立质量链路。设计及边界见[架构](../architecture/dispatch-recommendations.md)和[报告](../quality/dispatch-recommendations-verification.md)，58／34／92不变。
 

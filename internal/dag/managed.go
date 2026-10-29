@@ -37,9 +37,11 @@ func (e *Engine) CreateManagedRunBound(ctx context.Context, tenant, project, run
 			}
 			return err
 		}
+		t.allowBoundCreation = true
 		if err = t.validateReferences(tenant, project, w); err != nil {
 			return err
 		}
+		t.allowBoundCreation = false
 		if err = t.exec("INSERT INTO dag_workflows(tenant_id,project_id,id,version,name,spec)VALUES(?,?,?,?,?,?)", tenant, project, w.ID, 1, w.Name, encoded(w)); err != nil {
 			return err
 		}

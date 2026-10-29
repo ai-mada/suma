@@ -203,6 +203,9 @@ func (s *Service) releasePlanBasisReadTx(ctx context.Context, tx *sql.Tx, p Prin
 	if err := s.applicationReleaseSetPlanBasisTx(ctx, tx, p, project, plan); err != nil {
 		return err
 	}
+	if err := s.applicationReleaseRolloutPlanBasisTx(ctx, tx, p, project, plan); err != nil {
+		return err
+	}
 	env, err := s.releaseEnvironmentTx(ctx, tx, p.TenantID, project, plan.Content.EnvironmentID, current)
 	if err != nil {
 		return err
@@ -382,7 +385,7 @@ func (s *Service) ExecuteReleasePlan(ctx context.Context, actor Actor, project, 
 	var receiptHash string
 	var replay bool
 	var auth *authorizedCommand
-	workflow := dag.Workflow{Name: "受控发布 " + id, Nodes: []dag.Node{{ID: plan.Content.ReservedExecution.NodeID, Name: "发布与健康检查", Type: "external_workflow", Idempotent: false, TimeoutSeconds: 300, MaxRetries: 0, Config: map[string]any{"plugin": plan.Content.ProviderID, "workflow": rc.ReleaseProtocol, "input": map[string]any{}}}}}
+	workflow := originalReleaseExecutionWorkflow(plan)
 	_, err = engine.CreateManagedRunBound(ctx, p.TenantID, project, plan.Content.ReservedExecution.RunID, "release-"+id, workflow, func(tx *sql.Tx) error {
 		var e error
 		auth, e = s.releaseBrowserTx(ctx, tx, actor, project, true)
@@ -410,6 +413,9 @@ func (s *Service) ExecuteReleasePlan(ctx context.Context, actor Actor, project, 
 		if e != nil {
 			return e
 		}
+		if e = s.guardOriginalReleasePlanOwnershipTx(ctx, tx, p, project, id); e != nil {
+			return e
+		}
 		if current.ExecutionOperationID != "" {
 			return conflict("计划已派发，请读取已有部署")
 		}
@@ -418,42 +424,9 @@ func (s *Service) ExecuteReleasePlan(ctx context.Context, actor Actor, project, 
 		if replay {
 			return conflict("回执与管理执行状态不一致")
 		}
-		current, e := s.currentReleasePlanTx(ctx, tx, p.TenantID, project, id)
+		var e error
+		out, e = s.bindOriginalReleasePlanExecutionTx(ctx, tx, auth, project, id, run)
 		if e != nil {
-			return e
-		}
-		if current.State != "approved" || current.Approval == nil || current.Approval.Decision != "approved" || current.Approval.PlanSHA256 != current.SHA256 {
-			return releaseConflict("release_approval_required", "此固定计划尚未批准")
-		}
-		if e = s.releaseActorAdminTx(ctx, tx, p.TenantID, project, current.Approval.ActorID); e != nil {
-			return e
-		}
-		if e = s.currentReleasePlanBasisTx(ctx, tx, p, project, current, ""); e != nil {
-			return e
-		}
-		env, e := s.releaseEnvironmentTx(ctx, tx, p.TenantID, project, current.Content.EnvironmentID, true)
-		if e != nil {
-			return e
-		}
-		op := "deploy-" + newID()
-		oldEnv := env.Version
-		env.Version++
-		env.Generation = current.Content.Generation
-		env.BarrierOperationID = op
-		env.UpdatedAt = now()
-		if e = s.saveReleaseJSON(ctx, tx, "environments", p.TenantID, project, env.ID, oldEnv, env); e != nil {
-			return e
-		}
-		out = ReleaseDeployment{OperationID: op, ProjectID: project, Version: 1, PlanID: id, PlanRevision: current.Revision, PlanSHA256: current.SHA256, EnvironmentID: env.ID, ProviderID: env.ProviderID, Generation: env.Generation, ArtifactID: current.Content.ArtifactID, ArtifactSHA256: current.Content.ArtifactSHA256, RunID: run, NodeID: current.Content.ReservedExecution.NodeID, State: "queued", EffectState: "not_started", HealthState: "not_checked", ApprovedBy: current.Approval.ActorID, ExecutedBy: p.ID, CreatedAt: now(), UpdatedAt: now(), AllowedActions: []string{"reconcile"}, Blockers: []ReleaseBlocker{}}
-		if _, e = tx.ExecContext(ctx, s.q(`INSERT INTO suma_release_deployments(operation_id,tenant_id,project_id,version,run_id,node_id,approved_by,executed_by,data)VALUES(?,?,?,?,?,?,?,?,?)`), op, p.TenantID, project, 1, run, out.NodeID, out.ApprovedBy, out.ExecutedBy, stringify(out)); e != nil {
-			return e
-		}
-		oldPlan := current.Version
-		current.Version++
-		current.State = "executing"
-		current.ExecutionOperationID = op
-		current.AllowedActions = []string{"revoke"}
-		if e = s.saveReleaseJSON(ctx, tx, "plans", p.TenantID, project, id, oldPlan, current); e != nil {
 			return e
 		}
 		return s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, receiptHash, out)

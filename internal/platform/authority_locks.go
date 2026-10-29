@@ -163,5 +163,12 @@ func (s *Service) lockOrganization(ctx context.Context, tx *sql.Tx, tenant strin
 		return err
 	}
 	_, err = tx.ExecContext(ctx, s.q(`UPDATE suma_governance_locks SET sequence=sequence+1 WHERE tenant_id=?`), tenant)
+	if err == nil {
+		s.authorityBudgetMu.Lock()
+		if value, ok := s.authorityBudgets.Load(tx); ok {
+			value.(*authorityTxBudget).lockedOrganizations[tenant] = true
+		}
+		s.authorityBudgetMu.Unlock()
+	}
 	return err
 }

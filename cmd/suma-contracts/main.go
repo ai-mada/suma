@@ -193,6 +193,9 @@ func generate() (map[string]any, string) {
 	for _, v := range dispatchRecommendationModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range applicationReleaseRolloutModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range applicationReleaseSetModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -348,6 +351,7 @@ func generate() (map[string]any, string) {
 	projectRiskContracts(add, api)
 	projectApplicationContracts(add, api)
 	applicationReleaseSetContracts(add, api)
+	applicationReleaseRolloutContracts(add, api)
 	dispatchRecommendationContracts(add, api)
 	usageAccountingContracts(add, api)
 	skillCatalogContracts(add, api)

@@ -225,6 +225,104 @@ export interface ApplicationQualityExecutionPage {
   next_case?: string;
   cases: (ApplicationQualityCase)[];
 }
+export interface ApplicationReleaseRollout {
+  id: string;
+  project_id: string;
+  release_set_id: string;
+  release_set_sha256: string;
+  plan_group_id: string;
+  plan_group_sha256: string;
+  parent_run_id: string;
+  members: (ApplicationReleaseRolloutMember)[];
+  snapshot_sha256: string;
+  started_preview_sha256: string;
+  reason: string;
+  created_by: string;
+  created_at: string;
+}
+export interface ApplicationReleaseRolloutCommandRequest {
+  project_id: string;
+  expected_run_version: number;
+  expected_rollout_sha256: string;
+  action: string;
+  expected_preview_sha256: string;
+  reason: string;
+  idempotency_key: string;
+}
+export interface ApplicationReleaseRolloutItem {
+  application_id: string;
+  parent_node_state: string;
+  child_run_state: string;
+  deployment_operation_id: string;
+  deployment_state: string;
+  effect_state: string;
+  health_state: string;
+}
+export interface ApplicationReleaseRolloutMember {
+  application_id: string;
+  application_name: string;
+  plan_id: string;
+  plan_revision: number;
+  plan_version: number;
+  plan_sha256: string;
+  parent_node_id: string;
+  binding_id: string;
+  child_run_id: string;
+  child_node_id: string;
+  depends_on: (string)[];
+}
+export interface ApplicationReleaseRolloutPage {
+  items: (ApplicationReleaseRolloutView)[];
+  total: number;
+  next_cursor: string;
+  can_preview: boolean;
+}
+export interface ApplicationReleaseRolloutPreview {
+  rollout: ApplicationReleaseRollout;
+  preview_sha256: string;
+  can_start: boolean;
+  blockers: (ApplicationReleaseSetBlocker)[];
+}
+export interface ApplicationReleaseRolloutPreviewRequest {
+  project_id: string;
+  plan_group_id: string;
+  expected_set_sha256: string;
+  expected_plan_group_sha256: string;
+  reason: string;
+}
+export interface ApplicationReleaseRolloutResumePreview {
+  rollout_id: string;
+  rollout_sha256: string;
+  run_version: number;
+  preview_sha256: string;
+  can_resume: boolean;
+  blockers: (ApplicationReleaseSetBlocker)[];
+}
+export interface ApplicationReleaseRolloutResumePreviewRequest {
+  project_id: string;
+  expected_run_version: number;
+  expected_rollout_sha256: string;
+}
+export interface ApplicationReleaseRolloutStartRequest {
+  project_id: string;
+  plan_group_id: string;
+  expected_set_sha256: string;
+  expected_plan_group_sha256: string;
+  reason: string;
+  expected_preview_sha256: string;
+  idempotency_key: string;
+}
+export interface ApplicationReleaseRolloutView {
+  rollout: ApplicationReleaseRollout;
+  plan_group: ApplicationReleaseSetPlanGroup;
+  run_version: number;
+  state: string;
+  pause_reason: string;
+  basis_current: boolean;
+  items: (ApplicationReleaseRolloutItem)[];
+  blockers: (ApplicationReleaseSetBlocker)[];
+  allowed_actions: (string)[];
+}
 export interface ApplicationReleaseSet {
   id: string;
   project_id: string;

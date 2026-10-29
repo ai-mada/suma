@@ -41,6 +41,11 @@ type Server struct {
 }
 
 func (s *Server) Handler() http.Handler {
+	// Configure once before HTTP/scheduler work. Ordinary workflows cannot
+	// manufacture the service-owned child binding or its current authority.
+	if s.Engine != nil && s.Engine.BoundSubworkflows == nil {
+		s.Engine.BoundSubworkflows = s.Service
+	}
 	s.mux = http.NewServeMux()
 	s.mux.Handle("/api/v1/mcp/projects/", s.NewMCPHandler())
 	s.mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -533,6 +538,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.failureDiagnosisHTTP(w, r, actor, scope, project, parts, m) {
+		return
+	}
+	if s.applicationReleaseRolloutHTTP(w, r, actor, scope, project, parts, m) {
 		return
 	}
 	if s.applicationReleaseSetHTTP(w, r, actor, scope, project, parts, m) {

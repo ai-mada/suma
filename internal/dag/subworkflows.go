@@ -66,6 +66,14 @@ func (t *transaction) validateReferences(tenant, project string, w Workflow) err
 				n = template
 			}
 			if n.Type == "subworkflow" {
+				if _, bound, err := boundSubworkflowBinding(n); err != nil {
+					return err
+				} else if bound {
+					if !t.allowBoundCreation || t.e.BoundSubworkflows == nil {
+						return fmt.Errorf("%w: service-bound subworkflow requires a managed execution", ErrInvalid)
+					}
+					continue
+				}
 				id, version, err := subReference(n)
 				if err != nil {
 					return err
@@ -89,6 +97,9 @@ func (t *transaction) createRun(tenant, project string, w Workflow, bind func(*s
 	return t.createRunID(tenant, project, uid(), w, bind)
 }
 func (t *transaction) createRunID(tenant, project, runID string, w Workflow, bind func(*sql.Tx, string) error) (*runState, error) {
+	if err := t.beforeScope(tenant, project); err != nil {
+		return nil, err
+	}
 	route, routeErr := t.newRunRoute(tenant, project)
 	if routeErr != nil {
 		return nil, routeErr
@@ -144,6 +155,11 @@ func (t *transaction) createRunID(tenant, project, runID string, w Workflow, bin
 	return r, nil
 }
 func (t *transaction) spawnSubrun(r *runState, n *nodeState) error {
+	if ref, bound, err := t.boundRef(r, n, true); err != nil {
+		return err
+	} else if bound {
+		return t.spawnBoundSubrun(r, n, ref)
+	}
 	id, version, err := subReference(n.spec)
 	if err != nil {
 		return err
@@ -195,6 +211,11 @@ func (t *transaction) resolveSubruns(r *runState) (bool, error) {
 		var state string
 		if err := t.row("SELECT state FROM dag_runs WHERE id=? AND tenant_id=? AND project_id=?", n.ChildRunID, r.TenantID, r.ProjectID).Scan(&state); err != nil {
 			return false, err
+		}
+		if blocked, err := t.checkBoundChild(r, n, n.ChildRunID, state); err != nil {
+			return false, err
+		} else if blocked {
+			continue
 		}
 		if !terminal(state) && n.wake > 0 && n.wake <= t.now {
 			child, err := t.loadFull(r.TenantID, r.ProjectID, n.ChildRunID)
@@ -251,9 +272,6 @@ func (t *transaction) resolveSubruns(r *runState) (bool, error) {
 	return changed, nil
 }
 func (t *transaction) propagateParent(child *runState) error {
-	if !terminal(child.State) {
-		return nil
-	}
 	var parentID, nodeID string
 	var attempt int
 	err := t.row("SELECT parent_run_id,node_id,attempt FROM dag_subruns WHERE child_run_id=?", child.ID).Scan(&parentID, &nodeID, &attempt)
@@ -269,6 +287,14 @@ func (t *transaction) propagateParent(child *runState) error {
 	}
 	n := parent.find(nodeID)
 	if n == nil || n.Attempt != attempt || n.State != "waiting" {
+		return nil
+	}
+	if blocked, err := t.checkBoundChild(parent, n, child.ID, child.State); err != nil {
+		return err
+	} else if blocked {
+		return t.saveQuiet(parent)
+	}
+	if !terminal(child.State) {
 		return nil
 	}
 	if err = t.event(parent, nodeID, "child_run_completed", map[string]any{"child_run_id": child.ID, "state": child.State, "attempt": attempt}); err != nil {
@@ -296,6 +322,11 @@ func (t *transaction) controlSubruns(r *runState, action string) error {
 			return err
 		}
 		if terminal(child.State) {
+			continue
+		}
+		if _, bound, err := boundSubworkflowBinding(n.spec); err != nil {
+			return err
+		} else if bound && (action == "pause" || action == "resume") {
 			continue
 		}
 		var flag int

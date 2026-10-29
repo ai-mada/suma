@@ -6,6 +6,7 @@
 
 | 当前入口 | 内容 |
 | --- | --- |
+| [有序发布与异常恢复](development/application-release-rollouts.md) | T-ROLLOUT-125：全部原计划分别批准后，预览并明确启动同一Go DAG的依赖有序发布；暂停排空、原操作核对与重新预览后恢复，已健康成员不重复部署。[架构](architecture/application-release-rollouts.md)、[合同](../contracts/application-release-rollouts.md)、[English](en/application-release-rollouts.md)、[待完成验收报告](quality/application-release-rollouts-verification.md)、[验收摘要](quality/application-release-rollouts-summary.json)。实际旅程与界面结果待记录，完整58／34／92及全部待办保留。 |
 | [应用、源码版本与依赖](development/project-applications.md) | T-APPLICATION-123：项目内应用归属、原真实仓库集成来源、固定提交清单观察、人工依赖固定和不可变登记版本；[架构](architecture/project-applications.md)、[部署与资源边界](deployment/application-source-inspector.md)、[English](en/project-applications.md)、[术语](../GLOSSARY.md)。代码版本登记与发布部署分别管理，需求25完整范围继续保留。 |
 | [智能派发推荐](product/dispatch-recommendations.md) | T-ROUTING-122：有界真实工具／模型候选、单次只读分析、可编辑人工采用到原计划与明确启动；[架构与SOP](architecture/dispatch-recommendations.md)、[合同](../contracts/dispatch-recommendations.md)、[报告](quality/dispatch-recommendations-verification.md)、[摘要](quality/dispatch-recommendations-summary.json) |
 | [项目风险](development/project-risks.md) | T-PROJECT-121：正式风险与模型建议分开，责任／评估、关联任务处置、固定复核与关闭／重开；[English](en/project-risks.md)、[PRD](product/project-risks.md)、[合同](../contracts/project-risks.md)、[架构](architecture/project-risks.md)、[报告](quality/project-risks-verification.md)、[摘要](quality/project-risks-summary.json) |

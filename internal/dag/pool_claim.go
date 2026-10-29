@@ -73,6 +73,11 @@ func (e *Engine) ClaimPoolWithOperation(ctx context.Context, request PoolClaimRe
 		if slot >= authority.MaxSlots {
 			return dagDiagnostic(fmt.Errorf("%w: slot outside registered capacity", ErrInvalid), "dag.pool.slot_capacity", nil)
 		}
+		for _, scope := range authority.Scopes {
+			if err := t.beforeScope(scope.TenantID, scope.ProjectID); err != nil {
+				return err
+			}
+		}
 		if err := e.guardPoolTx(ctx, t.tx, request.PoolID); err != nil {
 			return err
 		}

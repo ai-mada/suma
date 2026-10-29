@@ -256,7 +256,7 @@ func actualApplicationRuntimeHold(t *testing.T, f *fixture, source actualFixedCa
 	if dir == "" || web == "" {
 		t.Fatal("both owned application GUI directories are required")
 	}
-	if options.CacheDirectory != "application-123" && options.CacheDirectory != "release-set-124" {
+	if options.CacheDirectory != "application-123" && options.CacheDirectory != "release-set-124" && options.CacheDirectory != "rollout-125" {
 		t.Fatal("unknown owned application evidence stage")
 	}
 	root, err := filepath.Abs(filepath.Join("..", "..", ".cache", "e2e", options.CacheDirectory))

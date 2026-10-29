@@ -35,7 +35,7 @@ flowchart LR
 
 ## Execute, observe and recover
 
-Open each original release plan, inspect its current basis, explicitly approve it with the appropriate role, then explicitly execute it. Existing Go DAG, Runner, provider authorization, artifact transfer, activation, health checks and result reconciliation remain authoritative. There is no group approval or group execution endpoint.
+Open each original release plan, inspect its current basis, explicitly approve it with the appropriate role, then explicitly execute it. For dependency ordering, approve all original plans first and use a separate [ordered-rollout preview and explicit start](application-release-rollouts.md). Existing Go DAG, Runner, provider authorization, artifact transfer, activation, health checks and result reconciliation remain authoritative. A plan group grants no deployment approval.
 
 The set view projects each original plan and operation. One healthy member and one unexecuted member remain separate facts; the group must not become green from one success. Failed or unknown effects retain their original operation and environment barriers. Recovery and rollback follow the original per-operation protocols; preparation is not an atomic cross-environment rollout or an automatic ordering policy.
 

@@ -22,6 +22,14 @@ func (e *Engine) CommandWithHook(ctx context.Context, tenant, project, runID, ac
 func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runID, action, operationID string, expectedVersion int, payload map[string]any, before func(*sql.Tx) error, after func(*sql.Tx, Run) error) (Run, error) {
 	var out Run
 	err := e.writeBefore(ctx, before, func(t *transaction) error {
+		if err := t.beforeScope(tenant, project); err != nil {
+			return err
+		}
+		if t.e.BoundSubworkflows != nil {
+			if err := t.e.BoundSubworkflows.AuthorizeBoundRunCommandTx(ctx, t.tx, tenant, project, runID, action); err != nil {
+				return err
+			}
+		}
 		scope := "command:" + runID
 		hash := fingerprint(map[string]any{"action": action, "payload": payload})
 		previous, err := t.operation(tenant, project, scope, operationID, hash)

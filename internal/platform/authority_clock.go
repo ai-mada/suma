@@ -18,10 +18,13 @@ func authoritySetRetry(err error) bool {
 }
 
 type authorityTxBudget struct {
-	deadline time.Time
-	timer    *time.Timer
-	ctx      context.Context
-	cancel   context.CancelFunc
+	// Populated only after the actual governance row has been locked.
+	// This is a serialization proof, never a permission or identity proof.
+	lockedOrganizations map[string]bool
+	deadline            time.Time
+	timer               *time.Timer
+	ctx                 context.Context
+	cancel              context.CancelFunc
 }
 
 func (s *Service) txAuthorityBudget(ctx context.Context, tx *sql.Tx) *authorityTxBudget {
@@ -32,7 +35,7 @@ func (s *Service) txAuthorityBudget(ctx context.Context, tx *sql.Tx) *authorityT
 		deadline = parent
 	}
 	budgetCtx, budgetCancel := context.WithDeadline(ctx, deadline)
-	candidate := &authorityTxBudget{deadline: deadline, ctx: budgetCtx, cancel: budgetCancel}
+	candidate := &authorityTxBudget{deadline: deadline, ctx: budgetCtx, cancel: budgetCancel, lockedOrganizations: map[string]bool{}}
 	actual, loaded := s.authorityBudgets.LoadOrStore(tx, candidate)
 	budget := actual.(*authorityTxBudget)
 	if loaded {

@@ -92,8 +92,12 @@ func normalize(w Workflow) (Workflow, error) {
 			}
 		}
 		if n.Type == "subworkflow" {
-			if _, _, err := subReference(n); err != nil {
+			if _, bound, err := boundSubworkflowBinding(n); err != nil {
 				return w, err
+			} else if !bound {
+				if _, _, err := subReference(n); err != nil {
+					return w, err
+				}
 			}
 		}
 		if n.Type == "external_workflow" {

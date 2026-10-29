@@ -179,6 +179,9 @@ func (e *Engine) WriteProjectExecutionRouteTx(ctx context.Context, tx *sql.Tx, t
 }
 
 func (t *transaction) guardExecution(tenant, project, runID string) error {
+	if err := t.beforeScope(tenant, project); err != nil {
+		return err
+	}
 	if err := GuardExecutionScopeTx(t.ctx, t.tx, t.e.dialect, tenant, project, runID); err != nil {
 		return err
 	}

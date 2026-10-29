@@ -1,6 +1,6 @@
 # HTTP、事件与客户端合同
 
-当前任务协作新增[业务依赖图合同](../../contracts/task-dependencies.md)和[交付与质量投影合同](../../contracts/task-delivery-chain.md)：`/task-dependencies` 的完整图／原子 CAS 与 `GET /tasks/{id}/delivery` 的确切当前运行摘要分别建模；后者每类引用最多 20 条，不提供执行或验收授权。[Runner 本地诊断](../../contracts/runner-journal-inspection.md)是本机只读命令，不是服务端巡检接口。当前限定证据见[交付链路报告](../quality/task-delivery-chain-verification.md)。
+当前阶段T-ROLLOUT-125提供[有序发布合同](../../contracts/application-release-rollouts.md)：`/application-release-sets/{set_id}/rollouts`预览／明确启动、父子运行读取、恢复预览及生命周期命令，复用各自已批准的原计划与唯一Go DAG，不授予集合级批准。见[领域架构](../architecture/application-release-rollouts.md)、[操作与AI SOP](../development/application-release-rollouts.md)、[待完成验收报告](../quality/application-release-rollouts-verification.md)与[摘要](../quality/application-release-rollouts-summary.json)；源码与合同不预先表示实际验证通过。原[业务依赖图](../../contracts/task-dependencies.md)、[任务交付与质量](../../contracts/task-delivery-chain.md)及[Runner只读诊断](../../contracts/runner-journal-inspection.md)继续保留各自权限和范围。
 
 ## 多语言显示合同（实施中）
 

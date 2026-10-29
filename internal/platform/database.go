@@ -200,6 +200,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.InitializeApplicationReleaseSets(ctx); err != nil {
 		return err
 	}
+	if err := s.InitializeApplicationReleaseRollouts(ctx); err != nil {
+		return err
+	}
 	if err := s.InitializeDispatchRecommendations(ctx); err != nil {
 		return err
 	}

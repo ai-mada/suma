@@ -2,7 +2,7 @@
 
 更新：2026-10-29。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。
 
-T-RELEASESET-124推进应用准确代码版本与独立制品候选的正式版本集、精确依赖闭包、原逐项部署计划及真实部分／健康状态；同时补齐固定包测试与JUnit共同参与的质量门禁。[架构与SOP](../architecture/application-release-sets.md)、[当前证据](../quality/application-release-sets-verification.md)。多来源构建、有序跨应用自动推广及完整平台继续待办，58／34／92不变。
+当前T-ROLLOUT-125在准确应用版本、独立制品候选与原计划组上推进受保护的依赖有序发布：原计划分别批准后明确启动，暂停排空，未知／失败暂停，原操作核对及新预览后明确恢复，已健康子项不重做。[架构](../architecture/application-release-rollouts.md)、[操作与AI SOP](../development/application-release-rollouts.md)、[合同](../../contracts/application-release-rollouts.md)、[English](../en/application-release-rollouts.md)、[限定验收报告](../quality/application-release-rollouts-verification.md)和[摘要](../quality/application-release-rollouts-summary.json)。真实本地源码／独立测试／原提供方部署、暂停排空与回执丢失核对恢复，以及中英文390只读界面已验证，范围详见报告；多来源构建、灰度流量、协调回退与完整平台继续待办，58／34／92不变。
 
 [产品基线](../product/v1-baseline.md)记录完整编号范围和单一新库初始化策略，[交付状态](status.md)集中当前实现与限制，[文档索引](../README.md)提供领域设计／合同／专项证据。本台账保留各阶段的原始能力范围，删除重复阶段流水和历史测试数字。
 

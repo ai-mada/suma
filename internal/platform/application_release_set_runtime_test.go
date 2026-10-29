@@ -25,7 +25,24 @@ func applicationReleaseSetRuntimeHold(t *testing.T, h *actualApplicationFixture,
 	actualApplicationRuntimeHold(t, h.f, h.delivery, h.manifests, receipt, actualApplicationHoldOptions{CacheDirectory: "release-set-124", DirectoryEnvironment: "SUMA_RELEASE_SET_UI_DIR", WebEnvironment: "SUMA_RELEASE_SET_WEB_DIR", Hostname: "releaseset124.localhost", Kind: "actual_application_release_set", AdditionalTables: []string{"suma_application_release_sets", "suma_application_release_set_plan_groups", "suma_application_release_set_plan_bindings", "suma_release_candidates", "suma_release_artifacts", "suma_artifact_proofs", "suma_release_plans", "suma_release_deployments", "suma_release_environments"}, ProtectedQueries: []string{`SELECT payload FROM suma_application_release_sets ORDER BY id`, `SELECT payload FROM suma_application_release_set_plan_groups ORDER BY id`, `SELECT data FROM suma_release_plans ORDER BY id`, `SELECT data FROM suma_release_deployments ORDER BY operation_id`, `SELECT data FROM suma_release_environments ORDER BY id`}})
 }
 
-func TestApplicationReleaseSetActualArtifactsPlansAndIndependentDeployment(t *testing.T) {
+// This fixture stops at prepared, unapproved original plans. Ordered-rollout
+// verification can reuse the exact source/build journey without running a
+// second positive deployment chain or replacing actual provider observations.
+type actualReleaseSetFixture struct {
+	application               *actualApplicationFixture
+	candidates                map[string]ReleaseCandidate
+	registered                ApplicationReleaseSetView
+	group                     ApplicationReleaseSetPlanGroupView
+	environments              map[string]ReleaseEnvironment
+	provider                  *deployer.Server
+	client                    *runner.Client
+	config                    runner.ExecConfig
+	providerID                string
+	providerKey, transportKey string
+}
+
+func newActualReleaseSetFixture(t *testing.T, wrapControl, wrapManagement func(http.Handler) http.Handler) *actualReleaseSetFixture {
+	t.Helper()
 	h := newActualApplicationFixture(t)
 	f := h.f
 	ctx := context.Background()
@@ -52,12 +69,22 @@ func TestApplicationReleaseSetActualArtifactsPlansAndIndependentDeployment(t *te
 	f.s.ReleaseProviders = []ReleaseProviderConfig{{ID: providerID, TenantID: f.user.TenantID, ProjectID: f.project, TokenHash: digest(providerKey), SiteIDs: []string{"library-static124", "web-static124"}}}
 	deploymentWorker := f.call("POST", "/release-workers", f.body(map[string]any{"worker_id": "release-set-deployer124", "profiles": []any{}, "deployment": true, "idempotency_key": newID()}), 201)
 	client := &runner.Client{BaseURL: h.control.URL, Token: deploymentWorker["token"].(string), ProjectID: f.project}
-	provider, err := deployer.New(deployer.Config{ProviderID: providerID, Root: filepath.Join(t.TempDir(), "actual-set-provider"), ControlURL: h.control.URL, ControlTokenEnv: "SUMA_SET_CONTROL124", ReconcileTokenEnv: "SUMA_SET_RECONCILE124", Workers: map[string]string{"release-set-deployer124": "SUMA_SET_TRANSPORT124"}, Sites: map[string]deployer.SiteConfig{"library-static124": {Address: "127.0.0.1:0"}, "web-static124": {Address: "127.0.0.1:0"}}})
+	providerControl := h.control.URL
+	if wrapControl != nil {
+		wrapped := httptest.NewServer(wrapControl(f.handler))
+		t.Cleanup(wrapped.Close)
+		providerControl = wrapped.URL
+	}
+	provider, err := deployer.New(deployer.Config{ProviderID: providerID, Root: filepath.Join(t.TempDir(), "actual-set-provider"), ControlURL: providerControl, ControlTokenEnv: "SUMA_SET_CONTROL124", ReconcileTokenEnv: "SUMA_SET_RECONCILE124", Workers: map[string]string{"release-set-deployer124": "SUMA_SET_TRANSPORT124"}, Sites: map[string]deployer.SiteConfig{"library-static124": {Address: "127.0.0.1:0"}, "web-static124": {Address: "127.0.0.1:0"}}})
 	if err != nil {
 		t.Fatal("start actual two-site provider", err)
 	}
 	t.Cleanup(func() { _ = provider.Close() })
-	management := httptest.NewServer(provider.Handler())
+	managementHandler := provider.Handler()
+	if wrapManagement != nil {
+		managementHandler = wrapManagement(managementHandler)
+	}
+	management := httptest.NewServer(managementHandler)
 	t.Cleanup(management.Close)
 	f.s.ReleaseProviders[0].Origin = management.URL
 	f.s.ReleaseProviders[0].ReconcileToken = reconcileKey
@@ -85,6 +112,15 @@ func TestApplicationReleaseSetActualArtifactsPlansAndIndependentDeployment(t *te
 		}
 	}
 	cfg := runner.ExecConfig{AllowExec: true, Artifacts: client, External: map[string]runner.ExternalSpec{providerID: {URL: management.URL, TokenEnv: "SUMA_SET_TRANSPORT124", Protocol: rc.ReleaseProtocol}}}
+	return &actualReleaseSetFixture{application: h, candidates: candidates, registered: registered, group: group, environments: environments, provider: provider, client: client, config: cfg, providerID: providerID, providerKey: providerKey, transportKey: transportKey}
+}
+
+func TestApplicationReleaseSetActualArtifactsPlansAndIndependentDeployment(t *testing.T) {
+	p := newActualReleaseSetFixture(t, nil, nil)
+	h, candidates, registered, group := p.application, p.candidates, p.registered, p.group
+	f, provider, client, cfg, providerID := h.f, p.provider, p.client, p.config, p.providerID
+	providerKey, transportKey := p.providerKey, p.transportKey
+	ctx := context.Background()
 	var partial ApplicationReleaseSetView
 	for index, app := range []string{"library", "web"} {
 		appID := h.library.ID

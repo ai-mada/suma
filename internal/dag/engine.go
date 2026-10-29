@@ -24,15 +24,19 @@ type Engine struct {
 	// Configure once before starting concurrent scheduler or HTTP work.
 	AttemptAccounting     AttemptAccounting
 	AttemptReconciliation LiveReadOnlyCompletionReconciler
+	BoundSubworkflows     BoundSubworkflowHandler
 }
 type transaction struct {
-	e          *Engine
-	tx         *sql.Tx
-	ctx        context.Context
-	now        int64
-	events     []pendingEvent
-	projects   map[string]bool
-	familyRoot string
+	e                  *Engine
+	tx                 *sql.Tx
+	ctx                context.Context
+	now                int64
+	events             []pendingEvent
+	projects           map[string]bool
+	familyRoot         string
+	scopes             map[string]bool
+	scopeCleanups      []func()
+	allowBoundCreation bool
 }
 type pendingEvent struct {
 	runID, tenant, project, node, kind, at string
@@ -166,6 +170,7 @@ func (e *Engine) writeBefore(ctx context.Context, before func(*sql.Tx) error, fn
 		}
 	}
 	t := &transaction{e: e, tx: tx, ctx: ctx, projects: map[string]bool{}}
+	defer func() { _ = tx.Rollback(); t.closeScopes() }()
 	clock := "SELECT unixepoch('now')"
 	if e.dialect == "postgres" {
 		clock = "SELECT CAST(EXTRACT(EPOCH FROM clock_timestamp()) AS BIGINT)"
@@ -284,6 +289,9 @@ func (t *transaction) flushEvents() error {
 	return nil
 }
 func (t *transaction) guardProject(tenant, project string) error {
+	if err := t.beforeScope(tenant, project); err != nil {
+		return err
+	}
 	key := tenant + "\x00" + project
 	if t.projects == nil {
 		t.projects = map[string]bool{}
