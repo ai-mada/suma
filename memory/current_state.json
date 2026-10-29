@@ -1,5 +1,14 @@
 {
   "project": "suma",
+  "management_workspaces": {
+    "stage": "T-MGMT-131",
+    "status": "scoped_verified",
+    "date": "2026-10-29",
+    "report": "docs/quality/management-workspaces-verification.md",
+    "summary": "docs/quality/management-workspaces-summary.json",
+    "scope": "Independent project/team/model/tool/billing/organization areas, current project and model directories, one navigation catalog and SVG design; existing authorization, unsaved-operation protection and sole Go/ledger authorities retained.",
+    "verification": "38 focused checks; full web typecheck, paired locales and production build; actual App with synthetic HTTP in CN/EN at1440/390; independent review and real-catalog/budget-block regression. Real Runner discovery is the next stage."
+  },
   "execution_tools_ux": {
     "stage": "T-TOOLUX-130",
     "status": "scoped_verified",
