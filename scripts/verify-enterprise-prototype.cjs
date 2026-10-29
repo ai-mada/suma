@@ -1,0 +1,81 @@
+const fs=require('node:fs');
+const path=require('node:path');
+const {pathToFileURL}=require('node:url');
+const assert=require('node:assert/strict');
+const {chromium}=require(process.env.SUMA_PLAYWRIGHT_MODULE || 'playwright');
+(async()=>{
+ const root=process.cwd(),out=path.join(root,'dist/quality/platform-design-134');fs.mkdirSync(out,{recursive:true});
+ const browser=await chromium.launch({headless:true,executablePath:process.env.SUMA_CHROME_PATH || undefined});
+ const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
+ const errors=[],external=[],checks=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ page.on('request',r=>{if(/^https?:/.test(r.url()))external.push(r.url());});
+ const check=(name,value)=>{assert.ok(value,name);checks.push(name);};
+ const route=async name=>{await page.evaluate(n=>location.hash=n,name);await page.waitForFunction(n=>document.querySelector('nav a[aria-current="page"]')?.hash==='#'+n,name);};
+ const action=name=>page.locator(`[data-action="${name}"]:visible:not([inert] *)`).first();
+ const close=async()=>{if(await page.locator('#modal').isVisible())await action('close-modal').click();if(await page.locator('#detail').isVisible())await action('close-detail').click();};
+ try{
+  await page.goto(pathToFileURL(path.join(root,'docs/design/prototypes/enterprise-workbench.html')).href);
+  await page.waitForLoadState('networkidle');
+  check('Explicit synthetic-data disclosure',await page.locator('.prototype-note').innerText().then(s=>s.includes('不连接真实项目')));
+  await page.locator('#project-query').fill('星云');await action('project').click();await action('close-detail').click();
+  check('Project filter and focus preserved after details',await page.locator('#project-query').inputValue()==='星云'&&await action('project').evaluate(el=>document.activeElement===el));
+  await route('planning');await page.locator('#plan-owner').selectOption('周弈');
+  await page.locator('[data-action="schedule"][data-id="TASK-108"]').click();
+  await page.locator('[name="start"]').fill('2026-10-15');await page.locator('[name="end"]').fill('2026-10-10');await action('schedule-save').click();
+  check('Invalid date order rejected',await page.locator('#schedule-error').innerText().then(s=>s.includes('不能早于')));
+  await page.locator('[name="start"]').fill('2026-10-10');await page.locator('[name="end"]').fill('2026-10-13');await action('schedule-save').click();
+  check('Draft tracks exactly one change',await page.locator('.draft-bar').innerText().then(s=>s.includes('已调整 1 项')));
+  await page.locator('[data-action="plan-view"][data-mode="table"]').click();
+  check('View switch restores keyboard focus',await page.locator('[data-action="plan-view"][data-mode="table"]').evaluate(el=>el===document.activeElement));
+  check('Shared draft appears in task table',await page.locator('#plan-content').innerText().then(s=>s.includes('10/10 — 10/13')));
+  await page.locator('[data-action="plan-view"][data-mode="capacity"]').click();
+  check('Shared capacity reflects revised dates',await page.locator('#plan-content').innerText().then(s=>s.includes('29h / 32h')));
+  await action('plan-diff').click();check('Change review shows before and after',await page.locator('#modal').innerText().then(s=>s.includes('10/12 — 10/16')&&s.includes('10/10 — 10/13')));await close();
+  await action('undo-plan').click();check('Undo clears draft',await action('save-plan').isDisabled());
+  await page.locator('#plan-owner').selectOption('all');await page.locator('[data-action="plan-view"][data-mode="table"]').click();
+  await page.locator('[data-action="schedule"][data-id="TASK-104"]').click();check('Accepted history read only',await page.locator('[name="start"]').isDisabled());await close();
+  await route('requirements');await page.locator('#requirement-body').fill('我的实际草稿：保留准确原请求。');await action('suggestion').click();
+  check('Suggestion comparison uses current draft',await page.locator('#modal').innerText().then(s=>s.includes('我的实际草稿')));
+  await action('apply-suggestion').click();check('Assumption acknowledgement required',await page.locator('#modal').isVisible());
+  await page.locator('#suggestion-consent').check();await action('apply-suggestion').click();
+  await page.locator('[data-action="chapter"][data-id="technical"]').click();await page.locator('[data-action="chapter"][data-id="product"]').click();
+  check('Chapter changes preserve draft',await page.locator('#requirement-body').inputValue().then(s=>s.includes('我的实际草稿')&&s.includes('验收补充')));
+  const saved=await page.locator('#requirement-body').inputValue();await route('portfolio');await route('requirements');
+  check('Route changes preserve requirement draft',await page.locator('#requirement-body').inputValue()===saved);
+  await action('suggestion').click();await page.locator('#suggestion-consent').check();await action('apply-suggestion').click();
+  check('Repeated suggestion not duplicated',await page.locator('#requirement-body').inputValue()===saved);
+  await route('connections');await page.locator('#tool-query').fill('Zed');await action('tool-detail').click();
+  check('Editor integration direction explicit',await page.locator('#detail').innerText().then(s=>s.includes('Zed → 速码')));
+  await action('connect-wizard').click();await action('wizard-next').click();await page.locator('#wizard-scope').selectOption('insight');await action('wizard-next').click();
+  check('Wizard preserves scope and labels unverified',await page.locator('#modal').innerText().then(s=>s.includes('洞察数据中台')&&s.includes('未执行')));await action('wizard-next').click();
+  await route('configuration');await page.locator('#automation-mode').selectOption('controlled');
+  check('Policy not applied before review',await page.locator('#automation-mode').inputValue()==='assist');await action('apply-policy').click();
+  check('Policy applied only in prototype',await page.locator('#automation-mode').inputValue()==='controlled');
+  await route('execution');await action('dispatch').click();await action('confirm-demo-dispatch').click();
+  check('Dispatch preview does not claim real run',await page.locator('#detail').innerText().then(s=>s.includes('没有创建运行')&&s.includes('未提交')));await close();
+  await route('portfolio');await page.locator('#project-query').fill('');
+  await page.waitForFunction(()=>!document.querySelector('#toast').textContent);await page.evaluate(()=>{document.activeElement.blur();window.scrollTo(0,0);});await page.screenshot({path:path.join(out,'desktop-overview-light.png'),fullPage:true});
+  for(const name of ['portfolio','requirements','planning','execution','connections','quality','assets','configuration']){
+   await route(name);check(`Desktop ${name} has no document overflow`,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  }
+  await route('planning');await page.locator('[data-action="plan-view"][data-mode="timeline"]').click();await page.locator('#theme-toggle').click();
+  await page.screenshot({path:path.join(out,'desktop-planning-dark.png'),fullPage:true});
+  await page.setViewportSize({width:390,height:844});await route('portfolio');check('Mobile project list defaults to readable cards',await page.locator('.project-cards').count()===1);
+  await page.locator('#menu-toggle').click();check('Mobile navigation isolates background',await page.locator('.workspace').evaluate(el=>el.inert));
+  await page.keyboard.press('Escape');check('Mobile navigation returns keyboard focus',await page.locator('#menu-toggle').evaluate(el=>document.activeElement===el));
+  await page.locator('#menu-toggle').click();await page.locator('#navigation a[href="#quality"]').click();
+  check('Mobile navigation enters selected view',await page.locator('h1').innerText().then(s=>s.includes('完成结论')));
+  for(const name of ['portfolio','requirements','planning','execution','connections','quality','assets','configuration']){
+   await route(name);check(`390px ${name} has no document overflow`,await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  }
+  await route('connections');await page.locator('#tool-query').fill('');await page.evaluate(()=>{document.activeElement.blur();window.scrollTo(0,0);});await page.screenshot({path:path.join(out,'mobile-connections-dark.png'),fullPage:false});
+  await page.locator('#theme-toggle').click();await route('portfolio');await action('attention-plan').click();
+  check('Mobile detail is full viewport',await page.locator('#detail').evaluate(el=>el.getBoundingClientRect().width===innerWidth));
+  await page.keyboard.press('Shift+Tab');check('Detail focus trap stays inside dialog',await page.evaluate(()=>document.querySelector('#detail').contains(document.activeElement)));
+  await page.screenshot({path:path.join(out,'mobile-detail-light.png'),fullPage:false});await close();
+  check('No browser script errors',errors.length===0);check('No external network requests',external.length===0);
+  const sourceHashes=Object.fromEntries(['docs/design/prototypes/enterprise-workbench.html','docs/design/prototypes/enterprise-workbench.css','docs/design/prototypes/enterprise-workbench.js','scripts/verify-enterprise-prototype.cjs'].map(file=>[file,require('node:crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex')]));const result={sourceHashes,stage:'T-PLATFORM-DESIGN-134',kind:'synthetic design prototype only',date:new Date().toISOString(),browser:await browser.version(),viewports:['1440x1000','390x844'],themes:['light','dark'],locale:'zh-CN',checks:checks.length,passed:checks,errors,external};
+  fs.writeFileSync(path.join(out,'browser-results.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result,null,2));
+ }catch(error){await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});throw error;}finally{await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});

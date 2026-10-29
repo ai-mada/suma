@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>速码 · 企业交付工作台交互设计</title>
+  <link rel="stylesheet" href="enterprise-workbench.css">
+</head>
+<body>
+  <a class="skip" href="#main">跳到工作区</a>
+  <div class="prototype-note">交互设计样稿 <span>示例数据 · 不连接真实项目 · 不执行模型、派发或部署</span><span class="note-stage">T-PLATFORM-DESIGN-134</span></div>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="样稿导航">
+      <button type="button" class="icon-button mobile-nav-close" id="nav-close" aria-label="关闭导航并返回">关闭导航 ×</button>
+      <a class="brand" href="#portfolio"><span class="brand-mark">速</span><span>速码<span class="brand-en">SUMA WORKSPACE</span></span></a>
+      <div class="workspace-label"><span class="workspace-avatar">星</span><div>星河科技<small>组织空间 · 示例</small></div></div>
+      <div class="nav-caption">组织交付</div>
+      <nav id="navigation"></nav>
+      <div class="sidebar-bottom"><span class="avatar">林</span><div>林清 <small>项目负责人 · 样稿角色</small></div></div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar">
+        <button class="icon-button" id="menu-toggle" aria-label="展开导航" aria-expanded="false" aria-controls="sidebar"></button>
+        <div class="breadcrumb">星河科技 <span>/</span> <b id="crumb">组织交付台</b></div>
+        <div class="top-actions"><span class="local-indicator">本地交互样稿</span><button class="icon-button" id="theme-toggle" aria-label="切换为深色主题"></button><button class="icon-button" id="help-button" aria-label="查看样稿说明"></button></div>
+      </header>
+      <main id="main" tabindex="-1"></main>
+    </div>
+  </div>
+  <div id="drawer-backdrop" hidden></div>
+  <aside id="detail" class="detail" role="dialog" aria-modal="true" aria-labelledby="detail-title" hidden></aside>
+  <dialog id="modal" aria-labelledby="modal-title"></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="enterprise-workbench.js"></script>
+</body>
+</html>

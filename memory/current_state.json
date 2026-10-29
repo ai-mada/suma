@@ -1,5 +1,18 @@
 {
   "project": "suma",
+  "enterprise_design": {
+    "stage": "T-PLATFORM-DESIGN-134",
+    "date": "2026-10-29",
+    "status": "design_and_prototype_verified_only",
+    "source_baseline": "3e09a51",
+    "design": "docs/design/unified-experience.md",
+    "architecture": "docs/architecture/unified-capability-orchestration.md",
+    "tool_matrix": "docs/integrations/development-tool-matrix.md",
+    "prototype": "docs/design/prototypes/enterprise-workbench.html",
+    "report": "docs/quality/platform-design-verification.md",
+    "summary": "docs/quality/platform-design-summary.json",
+    "limits": "Synthetic memory-only prototype; no production source changes, model calls, new adapters, provider acceptance, multi-host or SaaS claims. Existing 58 limited / 34 pending / 92 total unchanged."
+  },
   "tool_discovery": {
     "stage": "T-DISCOVERY-132",
     "status": "scoped_verified",

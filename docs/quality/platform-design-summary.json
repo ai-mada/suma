@@ -1,0 +1,73 @@
+{
+  "stage": "T-PLATFORM-DESIGN-134",
+  "product_version": "1.0.0",
+  "date": "2026-10-29",
+  "source_baseline": "3e09a51",
+  "status": "design_and_prototype_verified_only",
+  "scope": {
+    "business_loops": 11,
+    "prototype_workspaces": 8,
+    "integration_matrix_rows": 11,
+    "production_source_changed": false,
+    "platform_counts_unchanged": "58 limited / 34 pending / 92 total"
+  },
+  "browser": {
+    "version": "156.0.8078.48",
+    "assertions_passed": 44,
+    "viewports": [
+      "1440x1000",
+      "390x844"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "locale": "zh-CN",
+    "script_errors": 0,
+    "external_http_requests": 0,
+    "source_sha256": {
+      "docs/design/prototypes/enterprise-workbench.html": "e231fb7aee0449398f9190fdb7269a8ad922ea22c74002fbcc302704b4cbffea",
+      "docs/design/prototypes/enterprise-workbench.css": "17b269fdcd63b0644220c4f5613496b248c10c225590c2d368b5fcfc2c908964",
+      "docs/design/prototypes/enterprise-workbench.js": "975f17194a4587fb76d74d54366ef9b0a908417847147fc19b74cf4955d80a48",
+      "scripts/verify-enterprise-prototype.cjs": "a030ce1b9538b62b8e81d11e8d1143eb341b02724cb9afbb51027334126cc0a6"
+    }
+  },
+  "docs": {
+    "changed_documents": 8,
+    "new_missing_links": 0,
+    "full_repository_exit_code": 1,
+    "baseline_missing_references": 15,
+    "current_missing_references": 15,
+    "baseline": "3e09a51",
+    "historic_reference_set_unchanged": true,
+    "openapi_paths": 323,
+    "schema_references": 3061,
+    "upstream_html_reference_restored": "f8efb23 restored the previously missing architecture HTML; remaining 15 cache references unchanged"
+  },
+  "evidence_directory": "dist/quality/platform-design-134",
+  "screenshots": [
+    {
+      "file": "desktop-overview-light.png",
+      "sha256": "929c42f1c9102f4b96c126543f273478a2560bb0c2a8fd2cfb63a99eb0e9bf03"
+    },
+    {
+      "file": "desktop-planning-dark.png",
+      "sha256": "3697aa94668d5eeacef58bc07c94c68106cffb4418a2f29abd167220e79ab2a0"
+    },
+    {
+      "file": "mobile-connections-dark.png",
+      "sha256": "f4518ed6e72ce073acf30019346a7d10a2751b0946c4ba29f77d3e5e77f8cfe0"
+    },
+    {
+      "file": "mobile-detail-light.png",
+      "sha256": "1c3235dd8d8da96f1ea2eeeafeecad97e1df588cd7f88ee7c01e28a2f2d709f5"
+    }
+  ],
+  "limits": [
+    "Synthetic data and memory-only state; no production/model/provider/deployment calls.",
+    "Chinese representative design interactions only; full accessibility and English acceptance pending.",
+    "Production Go/Web suites not rerun; prior full Go failures remain.",
+    "New adapters, stable acceptance-item service contracts, persistent collaboration, offline, multi-host and SaaS remain implementation work."
+  ],
+  "integration_base": "f8efb23"
+}

@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-PLATFORM-DESIGN-134：[全平台设计与样稿验证](platform-design-verification.md)、[紧凑摘要](platform-design-summary.json)。仅核查设计、官方接入依据和独立HTML样稿的浏览器交互；不改变生产实现或全套测试结论，未重复Go／生产前端套件。
+
 更新：2026-10-29。当前只有单一 **1.0.0** 产品基线，当前唯一数据合同为 `suma-initial-quality-v1`；完整平台继续实施。本页按能力指向准确报告，不重复阶段流水、旧测试数字或旧数据库升级说明。详细过程仍可从专项档案与 Git 追溯。
 
 T-EXPERIENCE-131：项目全量交付事实、有权限分页、导航视觉基础和IDE渐进展开，见[限定报告](unified-experience-verification.md)与[紧凑摘要](unified-experience-summary.json)。实际隔离HTTP／SQLite页面已验证中英、明暗、桌面与390px及编辑器草稿保留；前端整合1236项通过。本阶段后端专项通过，全量Go仍有失败与环境限制，报告逐项区分，不能视为全平台或生产通过。

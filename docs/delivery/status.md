@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+本轮 T-PLATFORM-DESIGN-134 完成全平台设计细化与可点击样稿：[统一体验](../design/unified-experience.md)、[编排架构](../architecture/unified-capability-orchestration.md)、[工具／Harness矩阵](../integrations/development-tool-matrix.md)、[样稿](../design/prototypes/enterprise-workbench.html)。覆盖11项业务闭环、八个演示工作区、配置继承、调度背压和部署开放门槛；[验证报告](../quality/platform-design-verification.md)只证明设计样稿交互，不代表生产页面、新适配器或真实服务集成完成。源码实现基线仍为下述各专项，完整58／34／92保持不变。
+
 更新：2026-10-29。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–26 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。
 
 当前T-EXPERIENCE-133深化[企业研发工作台需求与架构](../product/enterprise-workbench.md)：保留全量交付与分页关注，按需展开准确分类和原运行依据诊断；新增四类客户端可信无密钥配置导出及其他工具手动指南。8项Go、67项Web、类型／6673键中英／生产构建及合同检查通过，GUI实际渲染仍待验。见[当前报告](../quality/enterprise-experience-verification.md)／[摘要](../quality/enterprise-experience-summary.json)，完整58／34／92不变。
