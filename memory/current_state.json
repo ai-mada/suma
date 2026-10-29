@@ -237,5 +237,17 @@
     "summary": "docs/quality/worklogs-summary.json",
     "scope": "Explicit current-human manual minutes, immutable corrections/voids, organization cross-project daily integer cap and original-operation recovery. No legacy import/inferred time. Full58/34/92 remains.",
     "verification": "34 distinct Go top checks;17 distinct Web cases after targeted2 assertion fixes and2 new planning authority cases; types/6798 locales/contracts; currentGUI disabled and real otherDBs pending."
+  },
+  "multica_collaboration": {
+    "stage": "T-MULTICA-136",
+    "date": "2026-10-29",
+    "status": "scoped_verified_gui_not_verified",
+    "reference_commit": "139b13a462c9a9757e18a17578a867eecd99851e",
+    "report": "docs/quality/multica-collaboration-verification.md",
+    "summary": "docs/quality/multica-collaboration-summary.json",
+    "adoption": "docs/integrations/multica-adoption.md",
+    "scope": "Current canonical-human assigned tasks and context-aware command palette; existing task/details/workspace/current authority reused. No copied Multica code or assets under additional license conditions.",
+    "verification": "16 distinct Go;34 new feature Web+14 completed navigation cases, targeted harness/label/alias repairs; final types/6885 locales/contracts/isolated build55.63s/version. Initial workerOOM retained, GUI disabled.",
+    "remaining": "Full58/34/92; project server-grouped task board, notification lifecycle/recipient projection, formal personal review, real tool/multihost/database/device/production acceptance."
   }
 }

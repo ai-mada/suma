@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [Multica参考与复用](integrations/multica-adoption.md) · [个人协作交互](design/multica-collaboration.md) · [生产合同](../contracts/my-work.md) · [限定验证](quality/multica-collaboration-verification.md)：当前人员任务、精确个人范围与上下文命令导航；主规格21.5同步当前代码及待交付边界。
+
 - [人员工时合同](../contracts/worklogs.md) · [领域架构](architecture/worklogs.md) · [操作与AI SOP](development/worklogs.md) · [English](en/worklogs.md) · [限定验证](quality/worklogs-verification.md)：明确人员登记、保留更正／作废历史、组织跨项目日上限和原操作恢复。
 
 更新：2026-10-29。当前只有 **1.0.0** 产品基线，完整平台仍在实现与验收中。入口按领域组织，当前能力由交付状态统一维护；专项设计、合同、英文说明、验证报告与精简摘要保留各自范围，不把历史阶段编号当成产品版本或当前完成状态。

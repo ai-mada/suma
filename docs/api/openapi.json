@@ -13979,6 +13979,101 @@
         ],
         "type": "object"
       },
+      "MyWorkPage": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Record"
+            },
+            "maxItems": 50,
+            "readOnly": true,
+            "type": "array"
+          },
+          "limit": {
+            "maximum": 50,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "next_cursor": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "resource_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "resource_name": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "resource_status": {
+            "enum": [
+              "active",
+              "unbound",
+              "inactive"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "status_counts": {
+            "items": {
+              "$ref": "#/components/schemas/MyWorkStatusCount"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "total": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "user_id": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "user_id",
+          "resource_id",
+          "resource_name",
+          "resource_status",
+          "items",
+          "total",
+          "limit",
+          "next_cursor",
+          "status_counts",
+          "as_of"
+        ],
+        "type": "object"
+      },
+      "MyWorkStatusCount": {
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "status",
+          "total"
+        ],
+        "type": "object"
+      },
       "NativeWorkspaceCheckResult": {
         "additionalProperties": false,
         "properties": {
@@ -65367,6 +65462,214 @@
             "bearerAuth": []
           }
         ],
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/my-work": {
+      "get": {
+        "description": "Current human's assigned tasks resolved from the canonical project resource binding. Exact filtered count and status totals, bounded live keyset pages, current authorization on every request. Does not infer personal review assignments, handoff receipt, execution success or acceptance. No caller-supplied user/owner identity. Database-native case semantics apply to literal title/description search.",
+        "operationId": "get_my-work",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Literal title/description text, at most200 Unicode codepoints; not a wildcard expression.",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Selected business state. Status counts cover the same person/text over all nonarchived states, including additional current business statuses.",
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "default": "all",
+              "enum": [
+                "all",
+                "draft",
+                "todo",
+                "in_progress",
+                "in_review",
+                "accepted",
+                "blocked",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Bounded page size.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque canonical cursor bound to current user/project/resource/version and all filters; pages are live, not a historical snapshot.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "maxLength": 4096,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyWorkPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "runner",
+          "agent"
+        ],
+        "x-read-only": true,
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
       }
     },

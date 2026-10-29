@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-MULTICA-136基于已核对上游／本地一致SHA139b13a，独立实现个人任务完整范围查询与命令面板，复用既有任务／工作区／权限和Radix等组件；[参考采用](../integrations/multica-adoption.md)、[生产合同](../../contracts/my-work.md)、[交互](../design/multica-collaboration.md)及[限定证据](../quality/multica-collaboration-verification.md)。当前Multica许可附加托管／品牌等条件，本阶段未复制其代码／样式。全项目服务端分组分页、正式通知收件箱、审核分配及完整平台继续待办，58／34／92不变。
+
 T-WORKLOG-135推进原P3人员协作：开发→计划→工时及同源Go CLI，当前人员身份、任务版本、明确代办、更正／作废不可变历史、组织跨项目每日1440分钟事务上限与原操作恢复。见[合同](../../contracts/worklogs.md)、[架构](../architecture/worklogs.md)、[限定报告](../quality/worklogs-verification.md)和[摘要](../quality/worklogs-summary.json)。登记是人员声明，非自动测量、审批、工资或机器计费。完整58／34／92不变，真实GUI／其他数据库、HR／组织容量与全平台仍待交付。
 
 T-DESIGN-135继续深化[架构主规格](../suma-architecture-design.html#s21)及[统一体验](../design/unified-experience.md)：十二个可操作工作区，新增模型四通道／Harness接续、团队分工／负载、事件规则／未知核对、缺陷修复周期、配置继承与离线三方比较。主规格按来源分开当前事实、目标和待验；[阶段验证](../quality/design-workflows-verification.md)仅证明设计与本地合成样稿。无新增生产集成，58／34／92不变。

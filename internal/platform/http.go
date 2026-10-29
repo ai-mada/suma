@@ -475,6 +475,10 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.taskDesignViewHTTP(w, r, actor, project, parts) {
 		return
 	}
+	if path == "my-work" {
+		s.myWorkHTTP(w, r, actor, project)
+		return
+	}
 	if path == "developer-connection" && r.Method == http.MethodGet {
 		out, err := s.DeveloperConnection(ctx, actor, project)
 		respond(w, http.StatusOK, out, err)

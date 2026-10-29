@@ -1,0 +1,126 @@
+{
+  "stage": "T-MULTICA-136",
+  "date": "2026-10-29",
+  "product_version": "1.0.0",
+  "status": "scoped_sqlite_http_components_types_locales_build_verified_gui_not_verified",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "parent": "b5cd9fa8c9c1a76b58431c25be295b2518882c1c",
+    "inventory": ".cache/e2e/multica-136/source-inventory.json",
+    "sha256": "8319b09ec5a70030b50d24366bf07c0205b7fd2010a089bff3ccaca4b1e4d9f1",
+    "files": 33,
+    "goal_source_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558"
+  },
+  "reference": {
+    "commit": "139b13a462c9a9757e18a17578a867eecd99851e",
+    "upstream_verified": true,
+    "direct_code_or_asset_copy": false,
+    "license": "Multica License with additional hosted/commercial/branding conditions; reference only"
+  },
+  "implementation": {
+    "personal": "Current canonical human binding; complete SQL owner/text/status counts and live bounded pages, actual draft/custom states retained; no guessed reviewer/handoff recipient.",
+    "commands": "Existing Radix/navigation/sourceDestination, scoped static memory recents,250ms query/cancellation/generation, keyboard and leave guard, paired language and alias catalogs.",
+    "architecture": "Existing current-authority read transaction, task details/workspace and sole Go scheduler unchanged; one normal owner index, no new table or compatibility path."
+  },
+  "checks": {
+    "go_count": 16,
+    "distinct_go_top_tests": [
+      "TestCanonicalTemplateGrammarAndCatalogSnapshot",
+      "TestCatalogKnownMessagesAreBilingualAndKeepMachineFields",
+      "TestMyWorkCanonicalHumanWholeScopeAndLivePagination",
+      "TestMyWorkContractKeepsIdentityServerOwned",
+      "TestMyWorkCurrentCanonicalBindingChangesInvalidateCursor",
+      "TestMyWorkCurrentHumanCredentialsAndRevocation",
+      "TestMyWorkDraftAndCustomStatesRemainInCurrentCounts",
+      "TestMyWorkHTTPClosedQueriesAndBounds",
+      "TestMyWorkLiteralSearchStatusCountsAndCanonicalCursor",
+      "TestMyWorkUnboundInactiveAndInconsistentResourceFailClosed",
+      "TestProjectFocusBoundedExactCountsAndStableOrder",
+      "TestProjectFocusContractPreservesBoundedReadFacts",
+      "TestProjectFocusCurrentAuthorizationAndStrictHTTP",
+      "TestProjectFocusExactCurrentRunAndDisjointFacts",
+      "TestProjectFocusScopedMissingRunAndReconcilingNode",
+      "TestProjectFocusSucceededSourceDriftAndUnavailableProof"
+    ],
+    "web_distinct_passed": 48,
+    "new_feature_web_cases": 34,
+    "reused_navigation_cases": 14,
+    "web_initial": {
+      "overall": "failed_worker_out_of_memory",
+      "total": 44,
+      "completed_passes": 34,
+      "assertion_failures": 0,
+      "policy": "Only completed independent file cases reused; incomplete palette cases rerun."
+    },
+    "web_affected": {
+      "total": 32,
+      "passed": 31,
+      "failed": 1
+    },
+    "web_targeted_repair_passed": 1,
+    "web_alias_passed": 2,
+    "diagnosis": "Full fake clock blocked native Response/React scheduling before component resolution; debounce-only fake clock proved same case156ms under512MB. Sole later assertion used wrong established Reload label; targeted repaired. All temporary diagnostics removed.",
+    "typecheck": "Final exit0",
+    "i18n": {
+      "keys": 6885,
+      "production_hardcodes": 0,
+      "passed": true
+    },
+    "version": "1.0.0 packages/Go/desktop/Helm consistent",
+    "contracts": {
+      "models": 712,
+      "paths": 330,
+      "schemas": 713,
+      "generated_check": true,
+      "semantic_delta": {
+        "schemas": {
+          "added": [
+            "MyWorkPage",
+            "MyWorkStatusCount"
+          ],
+          "removed": [],
+          "changed": []
+        },
+        "paths": {
+          "added": [
+            "/my-work"
+          ],
+          "removed": [],
+          "changed": []
+        }
+      }
+    },
+    "build": {
+      "exit_code": 0,
+      "seconds": 55.63,
+      "output": ".cache/e2e/multica-136/web-dist",
+      "existing_chunk_warning": true
+    },
+    "docs": "387 Markdown local links;330 API paths/3116 references; master local links and inline JS syntax passed."
+  },
+  "evidence": {
+    "stage": ".cache/e2e/multica-136",
+    "browser": "CUA browserCount0; Local browser use is disabled in Work settings; no bypass, screenshot or rendered claim.",
+    "policy": "Raw logs/testJSON/DB/build outputs ignored; compact summary and source/docs committed."
+  },
+  "resource_policy": {
+    "new_dependencies": 0,
+    "model_calls": 0,
+    "deployments": 0,
+    "reference_worktree_modified": false,
+    "active_preview_replaced": false,
+    "full_suite_repeated": false
+  },
+  "remaining": [
+    "Actual browser/theme/390px/keyboard/device verification",
+    "Server project-wide task grouping/per-column pages/shared views",
+    "Notification read/archive, recipient projection and formal personal review assignment",
+    "Real provider/tool/multi-host/OceanBase/PostgreSQL/production acceptance",
+    "Complete P0-P7 and requirements1-26"
+  ]
+}

@@ -121,6 +121,9 @@ func generate() (map[string]any, string) {
 	for _, v := range worklogModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range myWorkModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range schedulingModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -364,6 +367,7 @@ func generate() (map[string]any, string) {
 	projectFocusContracts(add, api)
 	resourceCalendarContracts(add, api)
 	worklogContracts(add, api)
+	myWorkContracts(add, api)
 	projectKnowledgeContracts(add, api)
 	requirementDesignContracts(add, api)
 	taskDesignViewContracts(add, api)

@@ -1,5 +1,8 @@
 # 1.0.0 验证入口
 
+T-MULTICA-136：[个人协作与命令入口限定验证](multica-collaboration-verification.md)、[摘要](multica-collaboration-summary.json)。当前规范人员任务、精确SQL范围和命令导航接入既有任务／工作区；16个不同Go顶层、新功能Web34项及已完成导航14项、类型／6885语言／合同／最终隔离构建通过。初批worker异常和针对性修复单独留证，浏览器禁用、完整看板／通知／厂商及生产仍待交付；参考SHA139b13a，本轮独立实现，无参考代码或品牌复制。
+
+
 T-WORKLOG-135：[人员工时限定验证](worklogs-verification.md)、[摘要](worklogs-summary.json)。当前人员明确登记／更正／作废历史、跨项目每日整数上限、同源CLI、原操作恢复和计划父子页失权清除；34个不同Go顶层、17个不同Web用例、类型／6798项语言／合同／最终隔离构建及文档引用通过。原始初次失败与针对性修复留证，未重跑全平台；浏览器禁用、真实其他数据库、HR审批及完整平台继续待验收。
 
 T-DESIGN-135：[架构主文档与操作样稿验证](design-workflows-verification.md)、[摘要](design-workflows-summary.json)。覆盖模型供给与交接、团队分配、事件模拟、修复周期、配置冲突和离线提案；仅本地中文设计样稿与代表性浏览器场景，不是生产集成验收。

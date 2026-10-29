@@ -2825,6 +2825,23 @@ export interface ModelSelection {
   parameters: ModelParameters;
   budget?: ModelBudget | null;
 }
+export interface MyWorkPage {
+  project_id: string;
+  user_id: string;
+  resource_id: string;
+  resource_name: string;
+  resource_status: string;
+  items: (Record)[];
+  total: number;
+  limit: number;
+  next_cursor: string;
+  status_counts: (MyWorkStatusCount)[];
+  as_of: string;
+}
+export interface MyWorkStatusCount {
+  status: string;
+  total: number;
+}
 export interface NativeWorkspaceCheckResult {
   operation_id: string;
   check_id: string;
