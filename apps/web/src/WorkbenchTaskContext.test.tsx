@@ -42,6 +42,35 @@ it('T126 restores a selected task outside the picker with one exact read and swi
  await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('计划用例通过');expect(host.textContent).toContain('尚未正式验收');expect(host.textContent).toContain('不会将编辑器目录绑定');expect(fetch).toHaveBeenCalledTimes(1);
 });
 
+it('keeps current business and acceptance facts distinct from a changed original run in the collapsed summary',async()=>{
+ const value=context();value.delivery.run_basis_state='changed';
+ vi.stubGlobal('fetch',vi.fn(async()=>Response.json(value)));
+ await render();await settle(()=>!!host.querySelector('.workbench-task-summary'));
+ const summary=host.querySelector('.workbench-task-summary')!;
+ expect(summary.textContent).toContain('Current task');expect(summary.textContent).toContain('Original run snapshot');
+ expect(summary.textContent).toContain('Task basis changed');expect(summary.textContent).toContain('Not formally accepted');
+ expect(host.querySelector<HTMLDetailsElement>('.workbench-task-details')?.open).toBe(false);
+ expect(host.querySelector('[data-conversation-toggle]')?.getAttribute('aria-expanded')).toBe('false');
+});
+
+it('clears expanded old-project facts and ignores their late refresh when the same task id opens in another project',async()=>{
+ const late=deferred<Response>();let oldReads=0;
+ vi.stubGlobal('fetch',vi.fn(async(input:string)=>{const url=new URL(String(input),location.href),project=url.searchParams.get('project_id')!;
+  if(project==='p'&&++oldReads>1)return late.promise;
+  return Response.json(context('task-a',project,project==='p'?'Private first project task':'Second project task'));
+ }));
+ await render();await settle(()=>!!host.querySelector('.workbench-task-summary'));
+ await click(host.querySelector<HTMLElement>('.workbench-task-details summary')!);
+ expect(host.querySelector<HTMLDetailsElement>('.workbench-task-details')?.open).toBe(true);
+ await click(button('Refresh context'));await render('task-a','u','second-project');
+ await settle(()=>host.textContent!.includes('Second project task'));
+ expect(host.textContent).not.toContain('Private first project task');
+ expect(host.querySelector<HTMLDetailsElement>('.workbench-task-details')?.open).toBe(false);
+ await act(async()=>late.resolve(Response.json(context('task-a','p','Late private first project task'))));
+ expect(host.textContent).not.toContain('Late private first project task');
+ expect(host.querySelector('.workbench-task-selected')?.textContent).toBe('Second project task');
+});
+
 it('T126 performs explicit literal search and pagination while rejected task changes preserve the original context and picker',async()=>{
  const searches:string[]=[],selected:string[]=[];let blocked=true;
  const guard=(event:Event)=>{if(blocked)event.preventDefault();};window.addEventListener('suma:navigate',guard);

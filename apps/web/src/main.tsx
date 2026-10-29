@@ -6,5 +6,6 @@ import {App} from './App';
 import {ErrorBoundary} from './ErrorBoundary';
 import '@xyflow/react/dist/style.css';
 import './style.css';
+import './experience-foundation.css';
 initializeBrowserLocale();void loadServerCatalog();
 createRoot(document.getElementById('root')!).render(<React.StrictMode><LanguageProvider><ErrorBoundary><App/></ErrorBoundary></LanguageProvider></React.StrictMode>);

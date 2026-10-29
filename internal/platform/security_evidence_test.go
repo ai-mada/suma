@@ -48,21 +48,25 @@ func TestScopedTokensCannotEscapeThroughEarlyRoutes(t *testing.T) {
 			f.bearer("POST", "/auth/tokens", key, map[string]any{"project_id": f.project}, 403)
 			f.bearer("POST", "/projects", key, map[string]any{"title": "逃逸项目", "idempotency_key": newID()}, 403)
 			f.bearer("GET", "/overview?project_id="+other["id"].(string), key, nil, 403)
+			f.bearer("GET", "/overview/attention?kind=review&project_id="+other["id"].(string), key, nil, 403)
 			if kind == "api" {
 				out := f.bearer("GET", "/projects", key, nil, 200)
 				if out["total"] != float64(1) {
 					t.Fatal("project scope leaked")
 				}
 				f.bearer("GET", "/overview?project_id="+f.project, key, nil, 200)
+				f.bearer("GET", "/overview/attention?kind=review&project_id="+f.project, key, nil, 200)
 			} else {
 				f.bearer("GET", "/projects", key, nil, 403)
 				f.bearer("GET", "/overview?project_id="+f.project, key, nil, 403)
+				f.bearer("GET", "/overview/attention?kind=review&project_id="+f.project, key, nil, 403)
 			}
 			if kind == "agent" {
 				f.bearer("GET", "/agent/tools?project_id="+f.project, key, nil, 200)
 			}
 			f.bearer("POST", "/auth/logout", key, map[string]any{}, 200)
 			f.bearer("GET", "/projects", key, nil, 401)
+			f.bearer("GET", "/overview/attention?kind=review&project_id="+f.project, key, nil, 401)
 		})
 	}
 }

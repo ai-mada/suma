@@ -6,6 +6,7 @@ import {afterEach,expect,it,vi} from 'vitest';
 import {IDE} from './IDE';
 import {ApiViewProvider} from './api-context';
 import {setLocale} from './i18n';
+import type {WorkspaceTaskContext} from '../../../packages/contracts/src';
 
 const taskContextProps={session:{user:{id:'u',name:'Editor',email:'e@example.test'},organization:{id:'o',name:'Org'},projects:[]},selectedTask:'',refresh:0,onTaskSelect:()=>true};
 const commands=vi.hoisted(()=>({current:undefined as {run:()=>void|Promise<void>}|undefined}));
@@ -32,6 +33,44 @@ vi.mock('monaco-editor/esm/vs/language/html/html.worker?worker',()=>({default:cl
 let root:Root|undefined,host:HTMLDivElement|undefined;
 afterEach(async()=>{if(root)await act(async()=>root!.unmount());root=undefined;host?.remove();commands.current=undefined;vi.unstubAllGlobals();vi.restoreAllMocks();});
 const digest=async(value:string)=>Array.from(new Uint8Array(await webcrypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),byte=>byte.toString(16).padStart(2,'0')).join('');
+
+it('keeps the same editor and both drafts while task basis and workspace guidance are toggled',async()=>{
+ vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);vi.stubGlobal('crypto',webcrypto);await setLocale('en-US',{persist:false});sessionStorage.clear();
+ const project='compact-workspace',path='main.ts',content='original source',draft='unsaved source',discussion='unsent discussion';
+ const counts={total:0,waiting:0,running:0,succeeded:0,failed:0,skipped:0,reconciling:0,other:0,limit:20,complete:true,items:[]};
+ const context:WorkspaceTaskContext={project_id:project,observed_at:'2026-10-29T01:00:00Z',task:{id:'task-a',version:2,title:'Current task',description:'Task objective',acceptance_criteria:[],status:'in_review',priority:'medium',owner_id:'',requirement_id:'',run_id:'run-a'},requirement:null,owner:null,design:{state:'none',context:null},delivery:{project_id:project,task_id:'task-a',task_version:2,task_status:'in_review',run_basis_state:'current',formal_acceptance:false,run:{run_id:'run-a',version:3,state:'succeeded',nodes:counts,tests:counts},expert_plans:{scope:'current_run',total:0,limit:20,complete:true,items:[]},issues:{scope:'current_run',total:0,limit:20,complete:true,items:[]}},quality:{plan_id:'',revision:0,plan_sha256:'',run_id:'',run_state:'',state:'none',basis_current:false,total:0,passed:0,failed:0,errors:0,skipped:0,not_run:0}};
+ const writes:RequestInit[]=[];
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
+  if(init?.body)writes.push(init);const url=new URL(String(input),location.href);
+  if(url.pathname==='/api/v1/workspace/task-context')return Response.json(context);
+  if(url.pathname==='/api/v1/task-conversations')return Response.json({project_id:project,task_id:'task-a',task_version:2,can_post:true,items:[],total:0,limit:20,next_before:0});
+  if(url.pathname==='/api/v1/workspace')return Response.json({project_id:project,configured:true,binding_available:false,desktop_binding_available:false,binding_sha256:'a'.repeat(64),binding_path_sha256:'b'.repeat(64),binding_operation_id:'',name:'Owned workspace'});
+  if(url.pathname==='/api/v1/workspace/tree')return Response.json({project_id:project,directory:'',entries:[{path,name:path,kind:'file'}],limit:100,next_cursor:'',snapshot_sha256:'d'.repeat(64),observed_at:'2026-10-29T01:00:00Z'});
+  if(url.pathname==='/api/v1/workspace/file')return Response.json({project_id:project,path,content,hash:await digest(content),language:'typescript',workspace_name:'Owned workspace',context_sha256:'a'.repeat(64)});
+  throw Error('Unexpected request '+url.pathname);
+ }));
+ host=document.createElement('div');document.body.append(host);root=createRoot(host);
+ await act(async()=>root!.render(<ApiViewProvider session={taskContextProps.session}><IDE {...taskContextProps} project={project} selectedTask="task-a"/></ApiViewProvider>));
+ const button=(name:string)=>[...host!.querySelectorAll<HTMLButtonElement>('button')].find(item=>item.textContent?.trim()===name)!;
+ async function settle(ready:()=>boolean){for(let i=0;i<40;i++){if(ready())return;await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});}expect(ready()).toBe(true);}
+ await settle(()=>!!button(path));await act(async()=>button(path).click());await settle(()=>!!host!.querySelector('[aria-label="Mock code editor"]'));
+ const editing=host.querySelector<HTMLTextAreaElement>('[aria-label="Mock code editor"]')!;
+ async function type(field:HTMLTextAreaElement,value:string){await act(async()=>{Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value')!.set!.call(field,value);field.dispatchEvent(new Event('input',{bubbles:true}));});}
+ await type(editing,draft);
+ const basis=host.querySelector<HTMLDetailsElement>('.workbench-task-details')!,help=host.querySelector<HTMLDetailsElement>('.ide-guidance');
+ expect(basis.open).toBe(false);expect(help).not.toBeNull();expect(help!.open).toBe(false);
+ await act(async()=>host!.querySelector<HTMLButtonElement>('[data-conversation-toggle]')!.click());await settle(()=>!!host!.querySelector('[name=conversation_body]'));
+ const compose=host.querySelector<HTMLTextAreaElement>('[name=conversation_body]')!;await type(compose,discussion);
+ for(const disclosure of [basis,help!])for(let count=0;count<2;count++)await act(async()=>disclosure.querySelector('summary')!.click());
+ expect(host.querySelector('[aria-label="Mock code editor"]')).toBe(editing);expect(editing.value).toBe(draft);
+ expect(host.querySelector('[name=conversation_body]')).toBe(compose);expect(compose.value).toBe(discussion);
+ await act(async()=>host!.querySelector<HTMLButtonElement>('[data-conversation-toggle]')!.click());
+ expect(host.querySelector('[data-conversation-toggle]')?.getAttribute('aria-expanded')).toBe('true');expect(compose.value).toBe(discussion);
+ await act(async()=>{expect(window.dispatchEvent(new Event('suma:navigate',{cancelable:true}))).toBe(false);});expect(writes).toHaveLength(0);
+ await type(compose,'');await act(async()=>host!.querySelector<HTMLButtonElement>('[data-conversation-toggle]')!.click());
+ await act(async()=>host!.querySelector<HTMLButtonElement>('[data-conversation-toggle]')!.click());
+ expect(host.querySelector('[aria-label="Mock code editor"]')).toBe(editing);expect(editing.value).toBe(draft);
+});
 
 it('requires an explicit desktop bind and enters the acknowledged project workspace',async()=>{
  vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);vi.stubGlobal('crypto',webcrypto);await setLocale('en-US',{persist:false});

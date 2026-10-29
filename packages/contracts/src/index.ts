@@ -3020,6 +3020,47 @@ export interface OrganizationSummary {
   name: string;
   role: string;
 }
+export interface OverviewAttentionItem {
+  id: string;
+  title: string;
+  status: string;
+  owner_id: string;
+  owner_name: string;
+  run_id: string;
+  run_state: string;
+  updated_at: string;
+  due_date: string;
+}
+export interface OverviewAttentionPage {
+  kind: string;
+  items: (OverviewAttentionItem)[];
+  total: number;
+  next_cursor: string;
+  as_of: string;
+  date_basis: string;
+}
+export interface OverviewDelivery {
+  scope: string;
+  total_tasks: number;
+  scope_tasks: number;
+  accepted_tasks: number;
+  cancelled_tasks: number;
+  running_tasks: number;
+  waiting_tasks: number;
+  review_tasks: number;
+  blocked_tasks: number;
+  reconciling_tasks: number;
+}
+export interface OverviewMilestone {
+  id: string;
+  title: string;
+  target_date: string;
+  status: string;
+}
+export interface OverviewMilestones {
+  items: (OverviewMilestone)[];
+  total: number;
+}
 export interface ParsedTestReport {
   cases: (TestReportCase)[];
   total: number;

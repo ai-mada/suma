@@ -591,6 +591,8 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		s.workspace(w, r, actor, project, path, m)
+	case path == "overview/attention" && r.Method == "GET":
+		s.overviewAttentionHTTP(w, r, actor, project)
 	case path == "overview" && r.Method == "GET":
 		// Filesystem/health probes finish before taking the bounded SQL proof.
 		capabilities := s.capabilities(ctx)

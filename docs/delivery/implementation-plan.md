@@ -2,9 +2,11 @@
 
 更新：2026-10-29。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。
 
+当前 T-EXPERIENCE-131 落实[统一体验设计](../design/unified-experience.md)的首个切片：首页项目全量交付统计及当前权限下的分页读取、导航与视觉基础、IDE 渐进展开代码完成。本阶段定向检查及中英／明暗／桌面／390px隔离浏览器验证通过；完整前端1236项通过，全量Go仍有已记录失败；见[阶段报告](../quality/unified-experience-verification.md)与[摘要](../quality/unified-experience-summary.json)。完整文档编辑、排期容量、智能自动化策略和多端离线仍待交付；下列深化分组只细化原范围，58／34／92状态不变。
+
 T-BASELINE-131继续P2／P4／P5交付：采用基线→真实终端→明确候选→独立同提交测试→Review→来源失效阻断与问题回流，阶段实证见[报告](../quality/terminal-baseline-development-verification.md)／[摘要](../quality/terminal-baseline-development-summary.json)。完整平台范围及58／34／92不变；GUI与跨主机／跨平台验收仍待完成。
 
-当前T130实施[终端原执行核对与候选交付](../development/interactive-development.md)：已有真实停止证明与全部未知输入逐项确认后，仅按失败关闭原执行；停止快照的候选预览和启动分别授权，沿固定命令检查、同SHA独立Worker测试、正式Review及唯一问题回流交付，再显式绑定未启动后续任务的已验收基线。见[合同](../../contracts/terminal-recovery-candidates.md)、[架构](../architecture/interactive-terminal.md)、[交互](../design/terminal-recovery.md)、[当前报告](../quality/terminal-recovery-candidates-verification.md)及[摘要](../quality/terminal-recovery-candidates-summary.json)；实际恢复故障、界面、本机链路和检查数字以报告为准。T129的[原报告](../quality/interactive-development-verification.md)／[摘要](../quality/interactive-development-summary.json)保留历史范围。本切片不关闭完整恢复、Unix停止证明、物理多机、跨平台安装、完整IDE或生产待办，58／34／92不变。
+前序T130实施[终端原执行核对与候选交付](../development/interactive-development.md)：已有真实停止证明与全部未知输入逐项确认后，仅按失败关闭原执行；停止快照的候选预览和启动分别授权，沿固定命令检查、同SHA独立Worker测试、正式Review及唯一问题回流交付，再显式绑定未启动后续任务的已验收基线。见[合同](../../contracts/terminal-recovery-candidates.md)、[架构](../architecture/interactive-terminal.md)、[交互](../design/terminal-recovery.md)、[当前报告](../quality/terminal-recovery-candidates-verification.md)及[摘要](../quality/terminal-recovery-candidates-summary.json)；实际恢复故障、界面、本机链路和检查数字以报告为准。T129的[原报告](../quality/interactive-development-verification.md)／[摘要](../quality/interactive-development-summary.json)保留历史范围。本切片不关闭完整恢复、Unix停止证明、物理多机、跨平台安装、完整IDE或生产待办，58／34／92不变。
 
 前序T-REPLY-128推进任务讨论到真实多轮智能体回复：明确模型、单次参数、近期消息范围和 Token／费用预算，沿原 Go 模型网关、唯一 DAG 与私有／Pool Runner 执行，并以准确回执追加助手消息。见[架构](../architecture/task-conversation-replies.md)、[合同](../../contracts/task-conversation-replies.md)、[开发与AI SOP](../development/task-conversation-replies.md)、[当前验证](../quality/task-conversation-replies-verification.md)和[摘要](../quality/task-conversation-replies-summary.json)。真实Go／Node原生CLI、本地受控提供方及网关HTTP已完成三轮／六条持久消息，第三轮由实际界面明确选择模型、输出512、近期20条、Token40000及CNY0.04费用上限后创建；实际中英文1366／390、刷新六条记录及原执行／用量已按报告限定验证。只读回复不会执行终端命令、修改任务开发运行或授予验收权。
 
@@ -31,6 +33,21 @@ T-WORKSPACE-120在原P2／P4细化Go宿主真实操作的采集、原回执恢�
 ## 扩展需求与阶段对应
 
 完整需求1–26逐项见[统一范围表](../product/v1-baseline.md)。参考能力与全栈闭环贯穿全部阶段；身份／可视配置／交互属于P0、P1、P3、P7；CLI／模型／专家团队／仓库／智能规划／IDE属于P2–P5；技能、知识、记忆及同步属于P1、P3、P6；渠道／移动端／SaaS／商业化属于P4、P6、P7。需求26以P0统一合同贯穿各域。编号不是完成标记，全部能力均需独立实现与实际验收。
+
+## 统一体验与全平台深化
+
+2026-10-29 接受的[深化设计](../design/unified-experience.md)并入本权威计划，覆盖原 P0–P7 与需求1–26；以下是交付分组及验收范围，不新增完成勾选、不重算原92项台账。T-EXPERIENCE-131只交付第一组中的首页、导航视觉基础与IDE渐进展开切片。
+
+| 交付分组 | 对应原阶段 | 完整深化范围与当前边界 |
+| --- | --- | --- |
+| 公共体验与项目工作区 | P0、P2、P3、P5 | 紫色明暗主题、14／12／16px排版与24／18px标题、4px间距尺度、36／44px控件、键盘与窄屏单视图；首页使用服务端真实全量统计及有权限的待处理分页，交付、执行、测试和人工验收分别表达，未知不记零或成功。IDE保留编辑器，逐层展开任务、文件／Git、讨论、执行与证据；排期列表、时间线、资源三视图共享草稿。T131首页／导航／IDE切片代码完成，定向检查通过，隔离浏览器验证待完成；完整排期交互与其他领域体验继续待办。 |
+| 需求、设计、质量与组合交付 | P1、P3、P5、P6 | 稳定验收项身份、章节式PRD／UED／架构正文及依据面板、完整文档编辑、用例库与质量追溯、团队负载与容量日历、跨项目组合规划、应用及发布扩展。已有版本化设计、任务和质量合同继续复用；完整编辑产品、容量／工时和组合生命周期待交付。 |
+| 智能协作与可靠自动化 | P0、P2、P3、P4、P5、P7 | 从已有讨论、目标或事件形成结构化方案；服务端重验当前授权、来源、预算和项目策略，正式计划沿唯一Go DAG执行，重规划仅修改未开始部分。默认辅助模式，受控执行／自主维护须显式授权；自动修复默认一次、最多三次，同一失败连续两次停止，未知副作用先核对。继续建设事件自动化、知识／技能分发、能力连接、用量成本治理及真实提供方验证；现有单次建议和人工采用不替代这些完整策略。 |
+| 协作、多设备与正式交付 | P1、P4、P6、P7 | Web、桌面、CLI与移动共享身份和领域事实；Yjs协作草稿与正式版本／发布分离，结构化业务命令不以CRDT自动合并。桌面／CLI离线许可默认4小时且可收紧，绑定设备、计划、工具、目录、额度和截止时间，重启不延长；云模型仍经在线网关，重连重新授权、核对候选并独立测试，不直接验收。设备撤权与缓存删除的离线延迟须明确；移动、渠道、SSO、商业连接、跨库／多机及生产验收继续待办。 |
+
+领域边界保留身份、项目规划、执行、质量交付、知识、能力连接、配额计费、协作通知各自正式状态。业务更新、当前授权、原回执与outbox同事务，检索、通知和统计采用投影。TanStack Table、Tiptap／Yjs／Hocuspocus、ECharts按具体阶段需要采用，沿用现有Monaco及ReactFlow／ELK；安装组件不构成交付。
+
+每个切片分别验证权限、来源变化、CAS、原操作恢复和受影响旅程，补充代表性中英文、桌面／390px、键盘与明暗主题。真实提供方、物理多机、跨数据库、移动真机和生产分别留证；保护既有数据与活动预览，隔离构建仅使用任务忽略目录。
 
 ## 既定架构
 

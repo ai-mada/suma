@@ -34,7 +34,7 @@ beforeEach(async () => {
         if (path === base) {
             const latest = { ...revision(current.latest_revision + 1), content: body.content, tasks: body.tasks, requirement: { ...current.requirement, version: body.expected_requirement_version } };
             current = { ...current, version: current.version + 1, latest_revision: latest.revision, has_draft: true, latest };
-            return Response.json({ ...current, version: 0 });
+            return Response.json(current);
         }
         if (path === base + '/commands') {
             const published = { ...current.latest!, revision: current.latest_revision + 1, state: body.action === 'publish' ? 'published' : 'retired' };
@@ -68,6 +68,13 @@ async function confirm() { await act(async () => document.querySelector<HTMLInpu
 const t = (key: string) => tr('requirement-design.' + key);
 it('treats version zero as an editable empty design and saves an incomplete draft without creating tasks', async () => {
     current = { ...current, version: 0, latest_revision: 0, has_draft: false, latest: undefined };
+    const saveDraft = send;
+    send = async (path, body) => {
+        await saveDraft(path, body);
+        // The service returns publication diagnostics for this incomplete draft.
+        current = { ...current, validation: [{code:'experience_required',field:'experience'}, {code:'technical_required',field:'technical'}, {code:'tasks_required',field:'tasks'}, {code:'criterion_uncovered',field:'tasks',criterion_index:1}] };
+        return Response.json(current);
+    };
     await render();
     expect(document.body.textContent).toContain(t('empty'));
     await fill(document.querySelector<HTMLTextAreaElement>('textarea[name=product]')!, raw);

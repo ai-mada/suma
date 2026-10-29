@@ -14827,6 +14827,207 @@
         ],
         "type": "object"
       },
+      "OverviewAttentionItem": {
+        "additionalProperties": false,
+        "properties": {
+          "due_date": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "owner_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "owner_name": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_state": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "status": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "title": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "updated_at": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "status",
+          "owner_id",
+          "owner_name",
+          "run_id",
+          "run_state",
+          "updated_at",
+          "due_date"
+        ],
+        "type": "object"
+      },
+      "OverviewAttentionPage": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "date_basis": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OverviewAttentionItem"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "kind": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "next_cursor": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "total": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "items",
+          "total",
+          "next_cursor",
+          "as_of",
+          "date_basis"
+        ],
+        "type": "object"
+      },
+      "OverviewDelivery": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted_tasks": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "blocked_tasks": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "cancelled_tasks": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "reconciling_tasks": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "review_tasks": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "running_tasks": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "scope": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "scope_tasks": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "total_tasks": {
+            "readOnly": true,
+            "type": "integer"
+          },
+          "waiting_tasks": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "scope",
+          "total_tasks",
+          "scope_tasks",
+          "accepted_tasks",
+          "cancelled_tasks",
+          "running_tasks",
+          "waiting_tasks",
+          "review_tasks",
+          "blocked_tasks",
+          "reconciling_tasks"
+        ],
+        "type": "object"
+      },
+      "OverviewMilestone": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "status": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "target_date": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "title": {
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "target_date",
+          "status"
+        ],
+        "type": "object"
+      },
+      "OverviewMilestones": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OverviewMilestone"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "total": {
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "type": "object"
+      },
       "ParsedTestReport": {
         "additionalProperties": false,
         "properties": {
@@ -66152,6 +66353,7 @@
     },
     "/overview": {
       "get": {
+        "description": "Single current-authorized project snapshot. delivery uses whole-project task counts and only exact linked runs; scope_tasks excludes cancelled tasks. attention contains bounded review/blocked/overdue/reconciling pages. milestones lists at most six dated unfinished milestones ordered by target date. Neither execution nor in_review proves independent tests or acceptance. as_of and overdue date basis are UTC.",
         "operationId": "get_overview",
         "parameters": [
           {
@@ -66319,6 +66521,197 @@
             "bearerAuth": []
           }
         ],
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/overview/attention": {
+      "get": {
+        "description": "Current-authorized project attention queue; exact full matching count with bounded updated_at/id pages. Cursors bind tenant, project, queue and UTC date. No approval or test eligibility is inferred.",
+        "operationId": "get_overview_attention",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Project queue, not a personal approval assignment.",
+            "in": "query",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "enum": [
+                "review",
+                "blocked",
+                "overdue",
+                "reconciling"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Bounded page size.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 6,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque scope-bound current queue cursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "maxLength": 1024,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverviewAttentionPage"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-read-only": true,
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
       }
     },

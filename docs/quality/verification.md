@@ -2,6 +2,8 @@
 
 更新：2026-10-29。当前只有单一 **1.0.0** 产品基线，当前唯一数据合同为 `suma-initial-quality-v1`；完整平台继续实施。本页按能力指向准确报告，不重复阶段流水、旧测试数字或旧数据库升级说明。详细过程仍可从专项档案与 Git 追溯。
 
+T-EXPERIENCE-131：项目全量交付事实、有权限分页、导航视觉基础和IDE渐进展开，见[限定报告](unified-experience-verification.md)与[紧凑摘要](unified-experience-summary.json)。实际隔离HTTP／SQLite页面已验证中英、明暗、桌面与390px及编辑器草稿保留；前端整合1236项通过。本阶段后端专项通过，全量Go仍有失败与环境限制，报告逐项区分，不能视为全平台或生产通过。
+
 T-TERMINAL-129：真实Windows ConPTY终端、原输入／输出回执、受保护讨论到原生开发预览与明确启动，以及同SHA独立测试、夹具账号显式Review和问题回流，见[当前限定报告](interactive-development-verification.md)及[精简摘要](interactive-development-summary.json)。原浏览器终端夹具派生Name字段误判保留exit1，以17列持久审计和最终Web只读回看133表不变分别补证；商业调用0，Unix完整containment、物理多机、三系统安装和生产仍待验。
 
 T-TERMINAL-130：原终端失联后持久交换先于结果、准确停止／未知输入分开审阅、明确授权候选预览与单独启动，以及真实同SHA独立JUnit／Review／后续基线／退回问题回流，见[当前报告](terminal-recovery-candidates-verification.md)和[摘要](terminal-recovery-candidates-summary.json)。最终浏览器被Work设置禁用，未进行本轮渲染／窄屏验收；只读HTTP副本134表不变不能当作界面通过。完整平台和跨系统／多机仍待交付。

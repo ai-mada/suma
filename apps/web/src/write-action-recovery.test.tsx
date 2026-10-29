@@ -57,5 +57,11 @@ it('retains malformed success as the original uncertain operation and validates 
 });
 
 it('keeps the original response validator with an unknown operation across provider and validator changes',async()=>{
- const original=(value:unknown)=>!!value&&typeof value==='object'&&(value as {id?:unknown}).id==='knowledge-a';await render(a,sessionStorage,original);await run();await render(b,sessionStorage,()=>false);mode='success';expect(await run()).toBeUndefined();expect(hook.pending).toBeDefined();await render(a,sessionStorage,original);expect(await run()).toMatchObject({id:'knowledge-a'});expect(writes).toHaveLength(2);expect(hook.pending).toBeUndefined();
+ const original=vi.fn((value:unknown)=>!!value&&typeof value==='object'&&(value as {id?:unknown}).id==='knowledge-a'),replacement=vi.fn(()=>false);
+ await render(a,sessionStorage,original);await run();const request=structuredClone(writes[0].body);
+ await render(b,sessionStorage,replacement);mode='success';expect(await run()).toBeUndefined();expect(hook.pending).toBeDefined();expect(original).not.toHaveBeenCalled();expect(replacement).not.toHaveBeenCalled();
+ // A response observed in another view cannot acknowledge the original owner's
+ // operation. That owner rereads its exact idempotent request before validation.
+ await render(a,sessionStorage,replacement);expect(await run()).toMatchObject({id:'knowledge-a'});expect(writes).toHaveLength(3);expect(hook.pending).toBeUndefined();
+ expect(original).toHaveBeenCalledTimes(1);expect(replacement).not.toHaveBeenCalled();for(const write of writes){expect(write.body).toEqual(request);expect(write.headers.get('X-Suma-Expected-User')).toBe(a.user.id);expect(write.headers.get('X-Suma-Expected-Organization')).toBe(a.organization.id);}
 });

@@ -29,7 +29,7 @@ vi.mock("elkjs/lib/elk.bundled.js", () => ({ default: class {
   async layout(graph: object) { return graph; }
 } }));
 const project = "development-project";
-const session = { user: { id: "user", role: "owner" }, organization: { id: "org" } } as Session;
+const session: Session = { user: { id: "user", name: "Owner", email: "owner@example.test", role: "owner" }, organization: { id: "org", name: "Organization" }, projects: [{ id: project, version: 1, title: "Project", role: "admin" }] };
 const task = { id: "task-original", project_id: project, title: "原始任务 <strong>原文</strong>", version: 4 } as RecordItem;
 const flow: Workflow = { id: "flow-original", name: "原始流程", version: 3, nodes: [
   { id: "agent-original", name: "原始开发节点", type: "agent" },

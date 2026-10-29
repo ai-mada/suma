@@ -62,7 +62,7 @@ it('retains legacy generic APIError key and raw-alias behavior alongside bound d
  ]});
  await act(async()=>root.render(<><ErrorNotice error={new ApiError(409,'limit_reached','Original API reason',undefined,{message_key:'pool.limit',message_params:{limit:0}})}/><ErrorNotice error="共享池已暂停"/><ToolProfileFacts profile={profile}/></>));
  expect([...host.querySelectorAll('[role="alert"]')].map(alert=>alert.textContent)).toEqual(['Limit 0','Pool paused']);
- expect(host.querySelector('.warning p')?.textContent).toBe('Tool profile is paused and is not authorized for dispatch');expect(host.querySelector('details code')?.textContent).toBe(profile.reason);
+ expect(host.querySelector('.tool-dispatch-status p:last-child')?.textContent).toBe('Tool profile is paused and is not authorized for dispatch');expect(host.querySelector('[data-tool-technical] > details code')?.textContent).toBe(profile.reason);
 });
 it('does not swallow unknown English raw reasons behind a generic warning',()=>{
  expect(toolReason('external credential broker denied scope')).toBe('external credential broker denied scope');
@@ -71,12 +71,12 @@ it('does not swallow unknown English raw reasons behind a generic warning',()=>{
 it('keeps the existing disclosure, focus, raw data and requests unchanged across locale and late catalog',async()=>{
  const fetch=vi.fn();vi.stubGlobal('fetch',fetch);setServerCatalog({...catalog,messages:[]});
  const before=JSON.stringify(profile);await act(async()=>root.render(<ToolProfileFacts profile={profile}/>));
- const details=host.querySelector('details')!,summary=details.querySelector('summary')!;details.open=true;summary.focus();
- expect(host.querySelector('.warning p')?.textContent).toBe(profile.reason);
+ const technical=host.querySelector<HTMLDetailsElement>('[data-tool-technical]')!,details=technical.querySelector('details')!,summary=details.querySelector('summary')!;technical.open=true;details.open=true;summary.focus();
+ expect(host.querySelector('.tool-dispatch-status p:last-child')?.textContent).toBe(profile.reason);
  await act(async()=>setServerCatalog(catalog));
- expect(host.querySelector('.warning p')?.textContent).toBe('Tool profile is paused and is not authorized for dispatch');
+ expect(host.querySelector('.tool-dispatch-status p:last-child')?.textContent).toBe('Tool profile is paused and is not authorized for dispatch');
  await act(async()=>{await setLocale('zh-CN',{persist:false});});
- expect(host.querySelector('details')).toBe(details);expect(details.open).toBe(true);expect(document.activeElement).toBe(summary);
+ expect(host.querySelector('[data-tool-technical]')).toBe(technical);expect(technical.open).toBe(true);expect(technical.querySelector('details')).toBe(details);expect(details.open).toBe(true);expect(document.activeElement).toBe(summary);
  expect(details.querySelector('code')?.textContent).toBe(profile.reason);expect(JSON.stringify(profile)).toBe(before);expect(fetch).not.toHaveBeenCalled();
 });
 it.each(['enable','pause'] as const)('preserves the real %s dialog confirmation, raw disclosure and focus without locale requests',async(decision)=>{
@@ -89,10 +89,10 @@ it.each(['enable','pause'] as const)('preserves the real %s dialog confirmation,
  const launch=[...host.querySelectorAll('button')].find(button=>button.textContent===(decision==='enable'?'Review and enable':'Pause configuration'));
  expect(launch).toBeTruthy();await act(async()=>launch!.click());
  const dialog=document.querySelector<HTMLElement>('[role="dialog"]')!;expect(dialog).not.toBeNull();
- expect(dialog.querySelector('.warning p')?.textContent).toBe('Tool profile is paused and is not authorized for dispatch');
+ expect(dialog.querySelector('.tool-dispatch-status p:last-child')?.textContent).toBe('Tool profile is paused and is not authorized for dispatch');
  const checkbox=dialog.querySelector<HTMLInputElement>('input[type="checkbox"]')!;await act(async()=>checkbox.click());expect(checkbox.checked).toBe(true);
- const details=dialog.querySelector('details')!,summary=details.querySelector('summary')!;details.open=true;summary.focus();const count=fetch.mock.calls.length;
+ const technical=dialog.querySelector<HTMLDetailsElement>('[data-tool-technical]')!,details=technical.querySelector('details')!,summary=details.querySelector('summary')!;technical.open=true;details.open=true;summary.focus();const count=fetch.mock.calls.length;
  await act(async()=>{await setLocale('zh-CN',{persist:false});});
  expect(document.querySelector('[role="dialog"]')).toBe(dialog);expect(dialog.querySelector('input[type="checkbox"]')).toBe(checkbox);expect(checkbox.checked).toBe(true);
- expect(dialog.querySelector('details')).toBe(details);expect(details.open).toBe(true);expect(document.activeElement).toBe(summary);expect(details.querySelector('code')?.textContent).toBe(profile.reason);expect(fetch.mock.calls).toHaveLength(count);
+ expect(dialog.querySelector('[data-tool-technical]')).toBe(technical);expect(technical.open).toBe(true);expect(technical.querySelector('details')).toBe(details);expect(details.open).toBe(true);expect(document.activeElement).toBe(summary);expect(details.querySelector('code')?.textContent).toBe(profile.reason);expect(fetch.mock.calls).toHaveLength(count);
 });

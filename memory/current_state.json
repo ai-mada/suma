@@ -33,13 +33,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-BASELINE-131",
-  "updated_at": "2026-10-29T08:38:51.492482+00:00",
+  "stage": "T-EXPERIENCE-131",
+  "updated_at": "2026-10-29T08:57:40.071Z",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/terminal-baseline-development-verification.md",
-  "current_summary": "docs/quality/terminal-baseline-development-summary.json",
+  "current_evidence": "docs/quality/unified-experience-verification.md",
+  "current_summary": "docs/quality/unified-experience-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -125,7 +125,8 @@
     "browser_gap": "Local browser use is disabled in Work settings",
     "owned_model_requests": 0,
     "commercial_model_requests": 0,
-    "production_complete": false
+    "production_complete": false,
+    "stage": "T-BASELINE-131"
   },
   "production_integration_complete": false,
   "validation_policy": "Affected checks and targeted failure replay only; no broad model tests or unnecessary full-suite repeats.",
@@ -184,5 +185,19 @@
     "summary": "docs/quality/terminal-baseline-development-summary.json",
     "scope": "Accepted baseline imported under current authority before a follow-up terminal; selected M and admin B retained; explicit candidate N, independent exact-commit tests, fixture owner Review and upstream rejection revalidation. Full platform58/34/92 unchanged.",
     "verification": "16 distinct Go top tests,9 web cases, generated contracts, web typecheck/i18n/build, actual Windows PTY/Git/HTTP/JUnit two-step continuation;0 model calls. Current GUI not verified."
+  },
+  "unified_experience": {
+    "stage": "T-EXPERIENCE-131",
+    "status": "scoped_verified_with_full_go_failures",
+    "date": "2026-10-29",
+    "design": "docs/design/unified-experience.md",
+    "plan": "docs/delivery/implementation-plan.md",
+    "report": "docs/quality/unified-experience-verification.md",
+    "summary": "docs/quality/unified-experience-summary.json",
+    "scope": "Project-wide delivery facts and currently authorized pagination; shared visual/navigation foundation; progressive IDE disclosure preserving the editor and existing navigation guards. Code complete within this slice only.",
+    "verification": "Full web 1236/1236; final Overview 28/28; current scoped Go, generated contracts, typecheck, i18n6601 and isolated production/browser checks passed. Full Go remains failed: 4 packages, 76 initial top-level failures; environmental rechecks 10/21 passed. See report for limits.",
+    "remaining": "Complete document/design editing, shared planning drafts and capacity, stable acceptance identities and test library, team/portfolio/release extensions, intelligent and event automation policies, knowledge/skill distribution, capability and cost governance, Yjs collaboration, multi-device synchronization and bounded offline permits, mobile/channels/SSO/commercial connections, real provider/multi-host/database/device/production acceptance.",
+    "baseline_item_status": "58 limited implemented / 34 pending / 92 total unchanged; accepted enhancement groups refine the existing P0-P7 and requirements1-26 scope without closing full items.",
+    "deployment": "not performed"
   }
 }

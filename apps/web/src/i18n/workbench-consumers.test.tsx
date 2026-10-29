@@ -28,7 +28,7 @@ beforeEach(async()=>{
   if(path==='/auth/session')data={user:{id:'a'.repeat(32),name:'原始负责人',email:'fixture@example.test',role:'owner'},organization:{id:'b'.repeat(32),name:'原始组织'},projects:projects.map(p=>missingVersion?{...p,version:undefined}:p)};
   else if(path==='/account/preferences')data={user_id:'a'.repeat(32),locale:'',version:0,updated_at:''};
   else if(path==='/organization/preferences')data={organization_id:'b'.repeat(32),locale:'',version:0,updated_at:''};
-  else if(path==='/overview')data={project:projects.find(p=>p.id===project),counts:{requirements:2,tasks:1000,runs:1,issues:0},activity:[{id:'activity-original',title:'用户活动原文 <code>操作</code>',actor_name:'原始成员',at:'2026-10-24T00:00:00Z'},{id:'conversation-original',kind:'task_conversation.posted',title:'Task conversation message',created_at:'2026-10-29T00:00:00Z'}]};
+  else if(path==='/overview')data={project:projects.find(p=>p.id===project),counts:{requirements:2,tasks:1000,runs:1,issues:0},delivery:{scope:'whole_project',total_tasks:1000,scope_tasks:1000,accepted_tasks:340,cancelled_tasks:0,running_tasks:1,waiting_tasks:0,review_tasks:finishedOnly?0:1,blocked_tasks:0,reconciling_tasks:0},attention:{review:{kind:'review',items:finishedOnly?[]:[{...task,status:'review',owner_id:'',owner_name:'',run_id:'',run_state:'',updated_at:'2026-10-29T00:00:00Z',due_date:''}],total:finishedOnly?0:1,next_cursor:'',as_of:'2026-10-29T00:00:00Z',date_basis:'UTC'}},activity:[{id:'activity-original',title:'用户活动原文 <code>操作</code>',actor_name:'原始成员',at:'2026-10-24T00:00:00Z'},{id:'conversation-original',kind:'task_conversation.posted',title:'Task conversation message',created_at:'2026-10-29T00:00:00Z'}]};
   else if(path==='/tasks')data={items:[{...task,status:finishedOnly?'accepted':'running'}],total:1};
   else if(path==='/runs')data={items:[{id:'run-original',workflow_name:'用户流程 <strong>原件</strong>',workflow_version:4,version:8,state:'succeeded',created_at:'2026-10-24T00:00:00Z'}],total:1};
   else if(path==='/capabilities')data=await capabilities(project);
@@ -46,13 +46,13 @@ async function chooseProject(project:string){const select=host.querySelector<HTM
 async function submitSearch(value:string){const input=host.querySelector<HTMLInputElement>('.knowledge-search input')!;await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(input,value);input.dispatchEvent(new Event('input',{bubbles:true}));});await act(async()=>{input.form!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));});await settle();}
 
 it('translates overview facts and actions without changing user content or refetching on language changes',async()=>{
- await render('overview');expect(host.textContent).toContain('Turn the next step into shared progress.');expect(host.textContent).toContain('Task discussion message recorded');
+ await render('overview');expect(host.textContent).toContain('Task delivery');expect(host.textContent).toContain('Task discussion message recorded');
  expect(host.textContent).toContain(projects[0].description);expect(host.textContent).toContain(task.title);
- expect(host.querySelector('.metric-grid')?.textContent).toContain('1,000');expect(host.textContent).toContain('用户活动原文 <code>操作</code>');
- const requests=vi.mocked(fetch).mock.calls.length;await language('zh-CN');expect(host.textContent).toContain('把下一步，变成共同的进展。');expect(host.textContent).toContain('已记录任务讨论消息');expect(host.textContent).not.toContain('PROJECT HOME');expect(host.textContent).toContain('项目首页');expect(host.textContent).toContain(task.title);expect(vi.mocked(fetch).mock.calls).toHaveLength(requests);expect(writes).toHaveLength(0);
+ expect(host.querySelector('[data-overview-delivery]')?.textContent).toContain('1,000');expect(host.textContent).toContain('用户活动原文 <code>操作</code>');
+ const requests=vi.mocked(fetch).mock.calls.length;await language('zh-CN');expect(host.textContent).toContain('任务交付');expect(host.textContent).toContain('已记录任务讨论消息');expect(host.textContent).not.toContain('PROJECT HOME');expect(host.querySelector('.po-header h1')?.textContent).toBe(projects[0].title);expect(host.textContent).toContain(task.title);expect(vi.mocked(fetch).mock.calls).toHaveLength(requests);expect(writes).toHaveLength(0);
 });
-it('reports an empty active loaded window when all loaded tasks have finished without claiming the full project is done',async()=>{
- finishedOnly=true;await render('overview');expect(host.textContent).toContain('No active tasks in the loaded records');expect(host.textContent).toContain('Open the task list to inspect the full project.');expect(host.querySelector('.metric-grid')?.textContent).toContain('1,000');
+it('keeps an empty review queue distinct from the full-project delivery result',async()=>{
+ finishedOnly=true;await render('overview');expect(host.textContent).toContain('No tasks pending review');expect(host.textContent).toContain('This is the current project queue, not an overall delivery result.');expect(host.querySelector('[data-overview-delivery]')?.textContent).toContain('1,000');expect(host.querySelector('[role=progressbar]')?.getAttribute('aria-valuenow')).toBe('34');
 });
 it('uses complete execution summary labels and keeps raw workflow titles and request identity on locale changes',async()=>{
  await render('development','runs');expect(host.textContent).toContain('Loaded executions: 1 of 1');expect(host.textContent).toContain('Nodes and output are read separately in run details.');expect(host.textContent).toContain('用户流程 <strong>原件</strong>');

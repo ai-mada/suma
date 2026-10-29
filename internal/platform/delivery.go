@@ -476,7 +476,30 @@ func (s *Service) overviewTx(ctx context.Context, auth *authorizedCommand, proje
 		}
 		activity = append(activity, map[string]any{"id": id, "type": kind, "kind": kind, "object_id": object, "title": title, "created_at": at, "at": at})
 	}
-	return map[string]any{"project": map[string]any{"id": project, "title": name, "name": name, "description": description}, "counts": counts, "activity": activity, "as_of": now()}, rows.Err()
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	if err = rows.Close(); err != nil {
+		return nil, err
+	}
+	at := now()
+	delivery, err := s.overviewDeliveryTx(ctx, auth, project)
+	if err != nil {
+		return nil, err
+	}
+	attention := map[string]OverviewAttentionPage{}
+	for _, kind := range []string{"review", "blocked", "overdue", "reconciling"} {
+		page, err := s.overviewAttentionTx(ctx, auth, project, kind, 6, "", at)
+		if err != nil {
+			return nil, err
+		}
+		attention[kind] = page
+	}
+	milestones, err := s.overviewMilestonesTx(ctx, auth, project)
+	if err != nil {
+		return nil, err
+	}
+	return map[string]any{"project": map[string]any{"id": project, "title": name, "name": name, "description": description}, "counts": counts, "activity": activity, "as_of": at, "delivery": delivery, "attention": attention, "milestones": milestones}, nil
 }
 
 func (s *Service) Search(ctx context.Context, actor Actor, project, query string) (map[string]any, error) {

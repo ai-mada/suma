@@ -48,10 +48,10 @@ afterEach(() => {
   }
 });
 describe("internationalization CI catalog contract", () => {
-  it('rejects interpolated template fragments and hardcoded copy in any newly added production module',()=>{
-    for(const source of ['export const text="未翻译";','export const text=`原始错误 ${id}`;','export const text=`${id}错误${value}状态`;','export const text=<span>新增硬编码</span>;']){
-      const result=check('{}','{}',{}, {'future/Feature.tsx':source});expect(result.status,result.stdout).toBe(1);expect(result.stderr).toContain('new hardcoded UI text future/Feature.tsx');
-    }
+  // Each audit starts a separate Node process; keep its existing timeout per
+  // independent source case instead of accumulating four startups in one test.
+  it.each(['export const text="未翻译";','export const text=`原始错误 ${id}`;','export const text=`${id}错误${value}状态`;','export const text=<span>新增硬编码</span>;'])('rejects interpolated template fragments and hardcoded copy in any newly added production module (case %#)',(source)=>{
+    const result=check('{}','{}',{}, {'future/Feature.tsx':source});expect(result.status,result.stdout).toBe(1);expect(result.stderr).toContain('new hardcoded UI text future/Feature.tsx');
   });
   it('keeps the native language-name exception specific to its selector',()=>{
     expect(check('{}','{}',{}, {'i18n/LanguageSelector.tsx':'export const native="简体中文";'}).status).toBe(0);

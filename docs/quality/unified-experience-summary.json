@@ -1,0 +1,152 @@
+{
+  "stage": "T-EXPERIENCE-131",
+  "date": "2026-10-29",
+  "status": "scoped_verified_with_full_go_failures",
+  "product_version": "1.0.0",
+  "full_platform_complete": false,
+  "production_complete": false,
+  "deployed": false,
+  "base_commit": "51f54410d1c514cd4ffa89095452fc25e8215bc9",
+  "source_manifest_sha256": "db72f82fe915f0f2ee4f3472514c78f44435e7428b2b831b102c2f22b197ebd2",
+  "source_files": 36,
+  "scope": [
+    "Authorized whole-project delivery facts and bounded attention queues",
+    "Shared visual tokens, collapsible navigation and mobile focus containment",
+    "Compact IDE task context retaining editor and unsaved drafts",
+    "Current snapshot staleness and explicit authorized refresh"
+  ],
+  "checks": {
+    "generated_contract": {
+      "passed": true,
+      "models": 695,
+      "paths": 322
+    },
+    "go_scoped": {
+      "passed": true,
+      "top_level_tests": 5,
+      "command": "go test ./internal/platform -run 'TestProjectOverview|TestScopedTokensCannotEscapeThroughEarlyRoutes' -count=1"
+    },
+    "web_full": {
+      "total": 1236,
+      "passed": 1236,
+      "failed": 0,
+      "report_sha256": "e95763c8f1b541d3f4567d564061d1e8a53290922c96627e3526118a74db8474",
+      "note": "Integration suite after terminal-130 merge; final snapshot-staleness change verified separately below."
+    },
+    "web_final_overview": {
+      "total": 28,
+      "passed": 28,
+      "failed": 0,
+      "report_sha256": "f973e25fb57d1dd627763d0e5d354c696432422a0a50faf60bca5feb3c9e5f93"
+    },
+    "typecheck": true,
+    "i18n": {
+      "paired_keys": 6601,
+      "production_hardcodes": 0
+    },
+    "production_build": {
+      "passed": true,
+      "output": ".cache/unified-experience/web",
+      "large_chunk_warning": true
+    },
+    "browser": {
+      "passed": true,
+      "actual_http": true,
+      "actual_sqlite": true,
+      "synthetic_project": true,
+      "commercial_requests": 0,
+      "checks": {
+        "single_project_heading": true,
+        "intelligent_entry_preserved": true,
+        "changed_total_restarts_page": true,
+        "authorized_pagination": true,
+        "stale_snapshot_refresh": true,
+        "task_font": "14px",
+        "task_drilldown": true,
+        "overdue_scope": true,
+        "navigation_preference": true,
+        "mobile_focus_restore": true,
+        "editor_first_screen": {
+          "x": 248,
+          "y": 491.5625,
+          "width": 1168,
+          "height": 620
+        },
+        "editor_retained_on_disclosure": true,
+        "reduced_motion": true
+      },
+      "screenshots": [
+        {
+          "file": "overview-stale-zh.png",
+          "sha256": "b2c5f3de3956128fe501cedb55e7d301f4f6ad3fc108db91138387c40920e521"
+        },
+        {
+          "file": "overview-desktop-zh.png",
+          "sha256": "fdac6962bf3ca168b21042f502a40a8418b66e42cf2b80c2bcc92c3bcc0cfd67"
+        },
+        {
+          "file": "overview-desktop-en-dark.png",
+          "sha256": "15fcae322b5ccd5587bec52679f635402df66b45935aa5fb01be92ef3d73edf4"
+        },
+        {
+          "file": "overview-mobile-en-dark.png",
+          "sha256": "43ffb4271e0111e124783e741c18f875f4558f290742ec67e86cf8cd8f6af90c"
+        },
+        {
+          "file": "overview-mobile-zh.png",
+          "sha256": "0e99c7967da53569568ff038d9e090e2885ed0a69c5d13ba19b0b748d8de87a4"
+        },
+        {
+          "file": "ide-desktop-zh.png",
+          "sha256": "35c0c0fb2bccf832806464141b4af9abfd4905b2e9c6c98790291195661c8808"
+        },
+        {
+          "file": "ide-mobile-zh.png",
+          "sha256": "4263252c7135071db14306affe7d33ea25ec1adccc912dae7ec0bce670d67b49"
+        }
+      ],
+      "errors": []
+    },
+    "web_latest_merge": {
+      "total": 42,
+      "passed": 42,
+      "failed": 0,
+      "report_sha256": "fde2cee28ef6a0447c45fb17f4cd5d6f8c09989b2d713e78aca614d674ee7e79",
+      "note": "After preserving management, discovery and terminal-baseline stages, affected navigation, overview and bilingual consumers rechecked."
+    }
+  },
+  "go_full": {
+    "passed": false,
+    "passed_packages": 27,
+    "failed_packages": [
+      "internal/platform",
+      "internal/repositoryprovider",
+      "internal/runner",
+      "internal/terminalruntime"
+    ],
+    "top_level_failures": 76,
+    "package_timeout": "internal/platform: 10m package deadline while TestRunStreamActualHTTPIdleHeartbeatsAndCleanRotation had run 5s; package elapsed 640.942s.",
+    "full_suite_head": "d67efa9fb36b240e54f45d869b6471a14ce7e57f",
+    "dirty": true,
+    "classification": "Environment-related Git paths, missing runtime bundles and package timeout identified. Scoped rechecks also retain model selection, native capability, workspace scope, tool profile and heartbeat failures. No pristine baseline comparison and no blanket exemption.",
+    "rechecks": {
+      "distinct_tests": 21,
+      "passed": 10,
+      "failed": 11
+    },
+    "details_sha256": "0372abe22a718f17d75c68f1b155e7d8f9d42ce4009d2dfe60e1e79231db2521"
+  },
+  "evidence": {
+    "directory": "dist/quality/unified-experience-131",
+    "browser_sha256": "8bd6efabe16cee8fcc781e0c962e891718a920c72daffc9fc225c2574664bd92",
+    "short_temp_cleanup_sha256": "813f4b3e7724009db459e0b41f3dd67ffc710f7ff57adc2960b7390d5a971658",
+    "raw_logs_committed": false,
+    "databases_committed": false
+  },
+  "remaining": [
+    "Full-platform design/editor/planning/team/quality/release/knowledge/governance flows",
+    "Intelligent policy orchestration and bounded event automation",
+    "Multi-device/offline permits/mobile/SSO/commercial connections",
+    "Full Go integration failures, cross-database/multi-host/device and production acceptance"
+  ]
+}
