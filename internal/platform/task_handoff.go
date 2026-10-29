@@ -195,6 +195,15 @@ func (s *Service) CommandTaskHandoff(ctx context.Context, actor Actor, project, 
 		if count != 1 {
 			return out, conflict(handoffBasisChanged)
 		}
+		// Acceptance is the actual assignment transition, not its earlier
+		// proposal. Hydrate the saved version before projecting the same event.
+		assigned, e := s.getRecordTx(ctx, auth, project, "tasks", task.ID)
+		if e != nil {
+			return out, e
+		}
+		if e = s.projectTaskAssignmentNotificationTx(ctx, auth, task.OwnerID, assigned); e != nil {
+			return out, e
+		}
 		if e = s.InvalidateDependentsTx(ctx, auth.tx, auth, project, []string{task.ID}, false); e != nil {
 			return out, e
 		}

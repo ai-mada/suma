@@ -278,5 +278,14 @@
     "summary": "docs/quality/task-collection-summary.json",
     "scope": "One task reader, bounded groups, current authorization, local views and exact time order; original execution/quality authorities remain. Full58/34/92 unchanged.",
     "verification": "33 unique Go top-level checks;161 distinct focused Web;final types,6996 locales/contracts/build; actual browser48 assertions:27main+12groups+4controlled-recovery+5preference-format. One fullWeb integration1472/1474 with2 outdated mocks repaired by14original assertions; no full repeat. Explicit preference format/storage UI regressions passed."
+  },
+  "notification_inbox": {
+    "stage": "T-INBOX-138",
+    "date": "2026-10-29",
+    "status": "scoped_verified",
+    "report": "docs/quality/notification-inbox-verification.md",
+    "summary": "docs/quality/notification-inbox-summary.json",
+    "scope": "Canonical current-human task assignment events in original transactions; private lifecycle/CAS/receipt,live task hydration,project inbox and CLI. Full58/34/92 unchanged.",
+    "verification": "37 distinctGo top tests;Web1510,types,7079locales/contracts/build;23actualbrowser and7actualCLI assertions. No external tools/model/production acceptance."
   }
 }

@@ -143,6 +143,9 @@ func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out i
 	if len(args) > 1 && args[0] == "tasks" && args[1] == "dispatch-options" {
 		return taskDispatchOptionsCommand(ctx, c, args[2:], out)
 	}
+	if len(args) > 0 && args[0] == "inbox" {
+		return notificationInboxCommand(ctx, c, args[1:], out)
+	}
 	if len(args) > 1 && args[0] == "tasks" && args[1] == "run-history" {
 		return taskRunHistoryCommand(ctx, c, args[2:], out)
 	}

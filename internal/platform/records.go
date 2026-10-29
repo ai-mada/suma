@@ -376,6 +376,7 @@ func (s *Service) Update(ctx context.Context, actor Actor, project, kind, id str
 		return r, invalid(issueRepairProtected)
 	}
 	oldBasis := taskBasis(r)
+	previousOwner := r.OwnerID
 	originalKind := r.Kind
 	originalUser, _ := r.Data["user_id"].(string)
 	oldVersion := r.Version
@@ -442,6 +443,13 @@ func (s *Service) Update(ctx context.Context, actor Actor, project, kind, id str
 	n, _ := result.RowsAffected()
 	if n != 1 {
 		return r, conflict("保存冲突")
+	}
+	// A notification is a transactionally derived assignment fact. Unrelated
+	// edits do not resend it, and projection failure must roll back this write.
+	if kind == "tasks" && r.OwnerID != "" && r.OwnerID != previousOwner {
+		if err = s.projectTaskAssignmentNotificationTx(ctx, auth, previousOwner, r); err != nil {
+			return r, err
+		}
 	}
 	if kind == "requirements" {
 		rows, e := tx.QueryContext(ctx, s.q(`SELECT id FROM suma_tasks WHERE tenant_id=? AND project_id=? AND requirement_id=?`), p.TenantID, project, id)
@@ -561,5 +569,13 @@ func (s *Service) insertCommandRecord(ctx context.Context, tx *sql.Tx, auth *aut
 	if r.TenantID != auth.target.tenantID || !tables[kind] {
 		return forbidden()
 	}
-	return s.insertRecord(ctx, tx, r, kind)
+	if err := s.insertRecord(ctx, tx, r, kind); err != nil {
+		return err
+	}
+	// This shared insertion seam covers normal tasks, decomposition, adopted
+	// designs and repair tasks; no after-commit browser callback can lose it.
+	if kind == "tasks" && r.OwnerID != "" {
+		return s.projectTaskAssignmentNotificationTx(ctx, auth, "", r)
+	}
+	return nil
 }

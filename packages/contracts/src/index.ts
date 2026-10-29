@@ -2963,6 +2963,61 @@ export interface NonSecretDeploymentRequest {
   artifact_sha256: string;
   assignment: AssignmentRef;
 }
+export interface NotificationInboxCommand {
+  project_id: string;
+  expected_version: number;
+  action: string;
+  idempotency_key: string;
+}
+export interface NotificationInboxCommandReceipt {
+  idempotency_key: string;
+  notification_id: string;
+  version: number;
+  action: string;
+  read: boolean;
+  archived: boolean;
+  read_at: string;
+  archived_at: string;
+  updated_at: string;
+}
+export interface NotificationInboxCounts {
+  inbox: number;
+  unread: number;
+  archived: number;
+}
+export interface NotificationInboxItem {
+  id: string;
+  version: number;
+  sequence: string;
+  kind: string;
+  task_id: string;
+  source_task_version: number;
+  source_resource_id: string;
+  created_at: string;
+  read: boolean;
+  archived: boolean;
+  read_at: string;
+  archived_at: string;
+  source_available: boolean;
+  assignment_current: boolean;
+  current_task?: NotificationInboxTask | null;
+}
+export interface NotificationInboxPage {
+  project_id: string;
+  user_id: string;
+  limit: number;
+  items: (NotificationInboxItem)[];
+  total: number;
+  counts: NotificationInboxCounts;
+  next_cursor: string;
+  as_of: string;
+}
+export interface NotificationInboxTask {
+  id: string;
+  version: number;
+  title: string;
+  status: string;
+}
 export interface OctopExecutionCapability {
   harness_version: string;
   acp_sdk_version: string;

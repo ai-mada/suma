@@ -215,7 +215,7 @@ func (s *Service) PreviewRequirementDesign(ctx context.Context, actor Actor, pro
 	return
 }
 
-func (s *Service) writeDesignTaskTx(ctx context.Context, auth *authorizedCommand, project string, r Record, oldVersion int) error {
+func (s *Service) writeDesignTaskTx(ctx context.Context, auth *authorizedCommand, project string, r Record, oldVersion int, oldOwner string) error {
 	if e := assertDesignWrite(auth, project); e != nil {
 		return e
 	}
@@ -229,6 +229,9 @@ func (s *Service) writeDesignTaskTx(ctx context.Context, auth *authorizedCommand
 	}
 	if n != 1 {
 		return conflict("设计采用时任务已变化，请重新预览")
+	}
+	if r.OwnerID != "" && r.OwnerID != oldOwner {
+		return s.projectTaskAssignmentNotificationTx(ctx, auth, oldOwner, r)
 	}
 	return nil
 }
@@ -357,7 +360,7 @@ func (s *Service) AdoptRequirementDesign(ctx context.Context, actor Actor, proje
 				out.Tasks = append(out.Tasks, RequirementDesignAdoptedTask{Key: c.Key, TaskID: r.ID, Version: r.Version, Action: c.Action})
 				continue
 			}
-			old := r.Version
+			old, oldOwner := r.Version, r.OwnerID
 			r.Version++
 			r.UpdatedAt = stamp
 			if c.Action == "exclude" {
@@ -373,7 +376,7 @@ func (s *Service) AdoptRequirementDesign(ctx context.Context, actor Actor, proje
 			delete(r.Data, "requirement_version")
 			delete(r.Data, "dependency_basis")
 			r.Data["acceptance_invalidated_reason"] = "需求设计采用依据已变化"
-			if e = s.writeDesignTaskTx(ctx, auth, project, r, old); e != nil {
+			if e = s.writeDesignTaskTx(ctx, auth, project, r, old, oldOwner); e != nil {
 				return RequirementDesignAdoption{}, e
 			}
 		}

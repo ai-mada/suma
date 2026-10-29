@@ -9,6 +9,7 @@ export type PaletteSearchResult={items:PaletteSearchRow[];total:number;limit:num
 const projectPages:PalettePage[]=[
  {id:'overview',labelKey:'command-palette.page.overview',keywordsKey:'command-palette.keywords.overview',target:{view:'overview',sub:''},projectRequired:true},
  {id:'my-work',labelKey:'command-palette.page.my-work',keywordsKey:'command-palette.keywords.my-work',target:{view:'development',sub:'my-work'},projectRequired:true},
+ {id:'inbox',labelKey:'notification-inbox.title',keywordsKey:'notification-inbox.keywords',target:{view:'development',sub:'inbox'},projectRequired:true},
  {id:'tasks',labelKey:'shell.tabs.tasks',keywordsKey:'command-palette.keywords.tasks',target:{view:'development',sub:'tasks'},projectRequired:true},
  {id:'ide',labelKey:'shell.tabs.workspace',keywordsKey:'command-palette.keywords.ide',target:{view:'development',sub:'ide'},projectRequired:true},
  {id:'runs',labelKey:'shell.tabs.runs',keywordsKey:'command-palette.keywords.runs',target:{view:'development',sub:'runs'},projectRequired:true},

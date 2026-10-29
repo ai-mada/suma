@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-INBOX-138限定实现当前人员任务分配收件箱：原事务真实来源、规范接收人、当前权限／来源水合、序号分页、本人已读与归档、原操作恢复，以及同源Suma CLI。见[合同](../../contracts/notification-inbox.md)、[产品要求](../product/notification-inbox.md)、[架构](../architecture/notification-inbox.md)、[交互与AI SOP](../design/notification-inbox.md)及[实际验证](../quality/notification-inbox-verification.md)。讨论提及、审批／告警多源路由、订阅偏好与通道outbox仍待交付，58／34／92不变。
+
 T-VIEWS-138已限定交付服务端个人／项目共享任务视图、在线跨设备读取、版本冲突比较、原操作重试与归档墓碑，并保留本机原件。9项Go领域、3项CLI、43项Web回归以及24项实际浏览器、7项真实CLI检查通过，见[证据](../quality/shared-task-views-verification.md)与[合同](../../contracts/shared-task-views.md)。同人双浏览器不代表物理多机；离线同步、实时协作、工具扩展与全平台目标继续待办，58／34／92不变。以下早期阶段的“共享视图待办”由本条限定范围推进。
 
 T-TASKS-137将任务工作台整合为同一正式入口：四种排序、本机命名视图、完整范围统计、三类有界分组与列分页；统一当前权限、字面筛选、纳秒排序、跨列版本去重及异常恢复。见[合同](../../contracts/task-workspace.md)、[交互与AI SOP](../design/task-collection.md)和[专项证据](../quality/task-collection-verification.md)。原有团队派发、独立测试、验收及问题回流权威保留；共享视图、其他数据库实测、规模和全平台仍待交付，58／34／92不变。

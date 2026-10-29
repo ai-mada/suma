@@ -81,7 +81,7 @@ T-MULTICA-137当前增量：[逐文件复用说明](../integrations/multica-reus
 | M24 M0/M2 | Autopilot创建事项或仅运行两模式 | 局部：定时触发，E6 | 明确离线时排队／跳过和是否创建业务对象。 |
 | M25 M2 | Cron、Webhook、事件过滤及投递历史 | 局部：自动化／签名入口，E6 | 同入口下简单规则编辑和可解释触发／拒绝历史。 |
 | M26 M1 | 事项事件／时间／条件唤醒 | 局部：DAG Timer/Signal，E6 | 对业务事项的可见唤醒规则与去重投递，不另建调度器。 |
-| M27 M0/M2 | Inbox订阅、未读、处理／归档和通知偏好 | 待交付：已有告警并非统一收件箱 | 审批、阻塞、完成统一路由至准确任务和attempt。 |
+| M27 M0/M2 | Inbox订阅、未读、处理／归档和通知偏好 | 局部：[任务分配收件与私有生命周期](../quality/notification-inbox-verification.md)；订阅／偏好及其他来源待交付 | 审批、阻塞、完成统一路由至准确任务和attempt。 |
 | M28 M0 | 按Agent、事项、运行查看用量与成本 | 局部：Go真实账本，E3 | 分层可下钻汇总、缺usage／未知账单明确表达。 |
 | M29 M0/M2 | GitHub、GitLab、Gitea／Forgejo的PR及CI镜像 | 局部：受控仓库集成，E8 | 每提供方真实OAuth／Webhook／PR／CI状态，不能仅靠本地Git。 |
 | M30 M0 | 桌面自动注册本机Runtime，Web与移动访问 | 局部：桌面／Web，E1 | Windows/macOS/Linux实机安装；移动端及同会话跨端体验。 |

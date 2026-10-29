@@ -131,6 +131,9 @@ func generate() (map[string]any, string) {
 	for _, v := range sharedTaskViewModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range notificationInboxModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range schedulingModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -378,6 +381,7 @@ func generate() (map[string]any, string) {
 	taskWorkspaceContracts(add, api)
 	taskCollectionContracts(add, api)
 	sharedTaskViewContracts(add, api)
+	notificationInboxContracts(add, api)
 	projectKnowledgeContracts(add, api)
 	requirementDesignContracts(add, api)
 	taskDesignViewContracts(add, api)

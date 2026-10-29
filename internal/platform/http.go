@@ -316,6 +316,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.taskConversationReplyHTTP(w, r, actor, scope, boundProject, parts) {
 		return
 	}
+	if s.notificationInboxHTTP(w, r, actor, scope, boundProject, parts) {
+		return
+	}
 	if s.taskConversationHTTP(w, r, actor, scope, boundProject, parts) {
 		return
 	}

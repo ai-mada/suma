@@ -1,0 +1,226 @@
+{
+  "stage": "T-INBOX-138",
+  "date": "2026-10-29",
+  "product_version": "1.0.0",
+  "status": "scoped_verified",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "parent": "25f759cfc6a1d3d73e74e4fa75436eaee13e8227",
+    "goal_source_sha256": "fc620c3f9d61a38e29e57ede11f68efd653cb6d162f3eb46421c53d714363558",
+    "inventory": ".cache/e2e/inbox-138/source-inventory.json",
+    "inventory_sha256": "4c93e2e806dfecf20253c64c2fdec54614eb5a33fdd61836de180b6c748d9a40",
+    "inventory_files": 50,
+    "partial_verification": "HEAD plus this stage entry only; other desktop verification content stays local."
+  },
+  "implementation": {
+    "events": "Same original task transaction; canonical active human + current read qualification; exact created/changed assignment, per-source/receiver uniqueness, no recipient guessing or history inference.",
+    "sources": [
+      "insertCommandRecord:normal/decomposition/adopted-design/repair creation",
+      "records.Update:changed owner",
+      "writeDesignTaskTx:changed adopted owner",
+      "accepted handoff:exact saved task version"
+    ],
+    "read": "Current person/project; full counts and bounded immutable BIGINT-string sequence cursor; current task hydration only, unavailable sources have no cached title.",
+    "actions": "Viewer-own read/unread/archive/restore; current authorization,CAS and original title-free receipt; no task state/dispatch/approval mutation.",
+    "ui": "Project inbox+command destination+dedicated validated route; explicit actions,original-operation recovery,current denial clearing,CNEN/keyboard/390 layout.",
+    "cli": "Suma inbox list plus explicit original-version/operation lifecycle commands, no implicit paging or writes."
+  },
+  "verification": {
+    "go_unique_top_level": 37,
+    "go_receipts": [
+      ".cache/e2e/inbox-138/go/20261029T144344759Z.command.json",
+      ".cache/e2e/inbox-138/go/20261029T145112329Z.command.json"
+    ],
+    "go_tests": [
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestNotificationInboxContractKeepsRecipientAndSourcesServerOwned"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestRequirementDesignContractSeparatesDraftPreviewAndApproval"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestHandoffsRequestContract"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLICommandsPreserveExplicitOriginalRequest"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLICurrentFailureIsNotRetriedOrTranslated"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLIHelpAndLocalUsageLanguages"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLIInvalidParametersNeverReachTransport"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLIListScopeAndOpaqueSequence"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLIRecoveryRequiresSameCallerVersionAndOperation"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/localization",
+        "name": "TestCanonicalTemplateGrammarAndCatalogSnapshot"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/localization",
+        "name": "TestCatalogKnownMessagesAreBilingualAndKeepMachineFields"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxAcceptedHandoffAndDecompositionSources"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxCurrentPermissionRevocationBeforePageOrReceiptReplay"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxDesignAdoptionCreatesAndReassignsExactRecipient"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxHTTPClosedQueriesCommandsAndCredentialKinds"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxInitialDomainStartsEmptyAndReopensWithoutSourceInference"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxInitialSchemaRejectsPartialAndMissingConstraintsBeforeWrites"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxNonhumanUnboundAndUnchangedOwnersDoNotGuessRecipients"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxProjectionFailureRollsBackSourceAndCounter"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxProjectionVerifiesSavedSourceAndDeduplicatesWithinTransaction"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxSequencePagingCountsAndCursorScope"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxSourceAssignmentsReplayAndHydrateCurrentTask"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxViewerPersonalCASReplayAndNoProjectWrite"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestRequirementDesignDraftDiagnosticsAndStructure"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestRequirementDesignIntegrationCurrentAuthorityBeforeSuccessfulReceipts"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestRequirementDesignIntegrationDeltaReusesIdentityAndArchivesExcludedTasks"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestRequirementDesignIntegrationFixedContextAndCombinedBudget"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestRequirementDesignIntegrationNewPublicationRejectsOldRunAndPreview"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestRequirementDesignIntegrationSourceScopeValidationAndAtomicRollback"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestRequirementDesignPublicationDeltaAndMetadata"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskHandoffAcceptInvalidatesEvidenceWithoutNewExecution"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskHandoffDriftCanReturnOrWithdrawWithoutTaskMutation"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskHandoffHTTPRejectsAmbiguousScopeAndVersions"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskHandoffReceiptsRequireCurrentAuthorityAndExactBody"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskHandoffRecipientIdentityTeamAndReadProjection"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskHandoffRejectsChangedBasisAndUnsafeRuns"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskHandoffTwoConnectionCASAndStableTaskPaging"
+      }
+    ],
+    "web_files": 168,
+    "web_passed": 1510,
+    "web_receipt": ".cache/e2e/inbox-138/web-integration.json",
+    "focused_initial": {
+      "passed": 32,
+      "total": 33,
+      "failure": "Root navigation test asserted presence of an omitted undefined field; retained filter assertions and corrected absence check."
+    },
+    "typecheck": "Final passed after Boolean render guard narrowed an unknown refusal value.",
+    "locales_own_check": 7079,
+    "production_hardcodes": 0,
+    "contracts": "Generated check passed;337 paths/3178 refs at document check.",
+    "isolated_web_build_seconds": 47.57,
+    "real_cli_checks": 7,
+    "real_cli_receipt": ".cache/e2e/inbox-138/cli-actual-summary.json",
+    "browser_checks": 23,
+    "browser_receipt": "dist/quality/inbox-138/browser-summary.json",
+    "browser_receipt_sha256": "ee34fc50308f86d56b17618144e5ea6b98744e695960cefa1a47a6892ae825ac",
+    "browser_scope": "Actual frozen App + Go HTTP + SQLite, owned current-recipient fixture23. Browser-injected403 checks client clearing/recovery only, not backend revocation.",
+    "visual_review": [
+      "inbox-top-mobile-en-light.png",
+      "inbox-top-desktop-zh-dark.png"
+    ],
+    "control_build": "Go overlay uses committed cmd/suma-control/main.go while preserving unrelated desktop entrypoint changes; current platform domain source and fresh isolated SQLite runtime.",
+    "generated_contract_delta": {
+      "new_schemas": 6,
+      "new_paths": 2,
+      "existing_semantic_changes": 0
+    }
+  },
+  "limits": [
+    "Only task-assignment notifications; mentions,review/block/completion routing,subscriptions,notification outbox channels and cross-project aggregation remain pending.",
+    "No full platform/backend suite,real OceanBase/PostgreSQL,multi-host,commercial provider or production acceptance.",
+    "Browser403 injected checks client clearing; real current revocation separately tested in Go.",
+    "Existing build chunk-size advisories retained; no new dependencies.",
+    "Parallel adapter/desktop work and separate conflict audit files excluded from this stage."
+  ]
+}

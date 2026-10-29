@@ -1,12 +1,17 @@
 import {mondayOf} from './planning-model';
 import {parseAttempt} from './scheduling-model';
 export type WorkbenchView='overview'|'requirements'|'development'|'quality'|'operations'|'knowledge'|'settings';
-export type WorkbenchRoute={task_invalid?:string;task_status?:string;task_owner?:string;task_priority?:string;task_sort?:string;task_group?:string;task_requirement?:string;task_unassigned?:boolean;task_priority_unset?:boolean;task_status_unset?:boolean;project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
+export type WorkbenchRoute={inbox_filter?:'inbox'|'unread'|'archived';inbox_invalid?:string;task_invalid?:string;task_status?:string;task_owner?:string;task_priority?:string;task_sort?:string;task_group?:string;task_requirement?:string;task_unassigned?:boolean;task_priority_unset?:boolean;task_status_unset?:boolean;project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
 const views:WorkbenchView[]=['overview','requirements','development','quality','operations','knowledge','settings'];
 const defaultSub:Partial<Record<WorkbenchView,string>>={development:'my-work',quality:'issues',operations:'releases',knowledge:'documents',settings:'organization'};
 export function parseWorkbenchRoute(search:string):WorkbenchRoute{
  const p=new URLSearchParams(search),view=views.includes(p.get('view') as WorkbenchView)?p.get('view') as WorkbenchView:'overview';
  const knowledgeKind=p.get('knowledge_kind');
+ const inboxScope=view==='development'&&(p.get('sub')||defaultSub[view])==='inbox';
+ const inboxValue=p.get('inbox_filter'),inboxValid=inboxValue==='inbox'||inboxValue==='unread'||inboxValue==='archived';
+ const inboxInvalid=inboxScope&&(p.get('inbox_invalid')==='1'||p.getAll('inbox_filter').length>1||p.getAll('inbox_invalid').length>1||p.has('inbox_filter')&&!inboxValid);
+ const inboxFields=inboxScope?{inbox_filter:inboxValid?inboxValue as 'inbox'|'unread'|'archived':undefined,...(inboxInvalid?{inbox_invalid:'1'}:{})}:{};
+
  const taskScope=view==='development'&&(p.get('sub')||defaultSub[view])==='tasks';
  // Task filters are one literal contract, independent of layout or grouping.
  const bounded=(value:string|null)=>value!==null&&Array.from(value).length<=200&&!/[\u0000-\u001f\u007f-\u009f]/.test(value)?value:undefined;
@@ -33,7 +38,7 @@ export function parseWorkbenchRoute(search:string):WorkbenchRoute{
   task_group:['status','owner','priority'].includes(p.get('task_group')||'')?p.get('task_group')!:undefined,
  }:{};
 
- return {...taskFields,...(p.has('catalog_domain')?{catalog_domain:p.get('catalog_domain')||''}:{}),...(p.has('catalog_scenario')?{catalog_scenario:p.get('catalog_scenario')||''}:{}),...(['all','published','retired'].includes(p.get('catalog_state')||'')?{catalog_state:p.get('catalog_state') as WorkbenchRoute['catalog_state']}:{}),...(p.has('catalog_source')?{catalog_source:p.get('catalog_source')||''}:{}),...(['memory','spec','skill','all'].includes(knowledgeKind||'')?{knowledge_kind:knowledgeKind as WorkbenchRoute['knowledge_kind']}:{}),project:p.get('project')||'',view,sub:p.get('sub')||defaultSub[view]||'',record:p.get('record')||'',run:p.get('run')||'',node:p.get('node')||'',attempt:parseAttempt(p.get('attempt')||'')?p.get('attempt')!:'',q:p.get('q')||'',status:p.get('status')||'all',layout:p.get('layout')||'list',week:p.get('week')||mondayOf(),panel:p.get('panel')||''};
+ return {...inboxFields,...taskFields,...(p.has('catalog_domain')?{catalog_domain:p.get('catalog_domain')||''}:{}),...(p.has('catalog_scenario')?{catalog_scenario:p.get('catalog_scenario')||''}:{}),...(['all','published','retired'].includes(p.get('catalog_state')||'')?{catalog_state:p.get('catalog_state') as WorkbenchRoute['catalog_state']}:{}),...(p.has('catalog_source')?{catalog_source:p.get('catalog_source')||''}:{}),...(['memory','spec','skill','all'].includes(knowledgeKind||'')?{knowledge_kind:knowledgeKind as WorkbenchRoute['knowledge_kind']}:{}),project:p.get('project')||'',view,sub:p.get('sub')||defaultSub[view]||'',record:p.get('record')||'',run:p.get('run')||'',node:p.get('node')||'',attempt:parseAttempt(p.get('attempt')||'')?p.get('attempt')!:'',q:p.get('q')||'',status:p.get('status')||'all',layout:p.get('layout')||'list',week:p.get('week')||mondayOf(),panel:p.get('panel')||''};
 }
 export function initializeSessionRoute(route:WorkbenchRoute,projects:{id:string}[]):WorkbenchRoute{return route.project||!projects.length?route:{...route,project:projects[0].id};}
 
@@ -95,3 +100,6 @@ export function sourceHref(project:string,source:unknown):string|undefined {
  const route=sourceDestination(project,source);
  return route?'?'+new URLSearchParams(route):undefined;
 }
+
+/** Notification filters belong to one current human/project reading scope. */
+export function resetInboxScope(route:WorkbenchRoute):WorkbenchRoute{return {...route,inbox_filter:undefined,inbox_invalid:undefined};}

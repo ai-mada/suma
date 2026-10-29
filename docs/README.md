@@ -1,5 +1,9 @@
 # 速码 1.0.0 文档索引
 
+- [当前人员收件箱](product/notification-inbox.md) · [合同](../contracts/notification-inbox.md) · [架构](architecture/notification-inbox.md) · [交互与AI SOP](design/notification-inbox.md) · [English](en/notification-inbox.md) · [限定验证](quality/notification-inbox-verification.md)：真实任务分配来源、私有已读归档及同源CLI。
+- [服务端个人／共享任务视图](design/shared-task-views.md) · [实际验证](quality/shared-task-views-verification.md)：沿原当前权限在线跨设备读取；完整离线仍待交付。
+
+
 任务工作台当前统一合同与设计：[有界分组及当前范围](design/task-collection.md)、[正式接口](../contracts/task-workspace.md)、[English](en/task-collection.md)、[限定验证](quality/task-collection-verification.md)。
 
 
