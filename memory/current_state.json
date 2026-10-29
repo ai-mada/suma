@@ -4,13 +4,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-WORKBENCH-126",
-  "updated_at": "2026-10-29T03:15:15.476272+00:00",
+  "stage": "T-COLLAB-127",
+  "updated_at": "2026-10-29T03:54:17.239087+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/workspace-task-context-verification.md",
-  "current_summary": "docs/quality/workspace-task-context-summary.json",
+  "current_evidence": "docs/quality/task-conversations-verification.md",
+  "current_summary": "docs/quality/task-conversations-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -81,21 +81,20 @@
     "application_release_rollouts": "Protected Go service-bound original subworkflow, exact per-member approvals/identities, lazy environment reservation, pause/drain, unknown original-operation reconciliation and explicit current resume; same-host actual static provider and read-only CNEN390 verified. Known failure/new revision, automatic composite rollback and full distributed/platform acceptance remain open."
   },
   "verified": {
-    "current_report": "docs/quality/workspace-task-context-verification.md",
-    "current_summary": "docs/quality/workspace-task-context-summary.json",
-    "source_sha256": "3fc74a013b024f9631306f95ded3988879f11a1c5b087ec69153a32ff231ea45",
+    "current_report": "docs/quality/task-conversations-verification.md",
+    "current_summary": "docs/quality/task-conversations-summary.json",
+    "source_sha256": "fcecfba9d4397d07e23608f04c3bb6ae048e11def01cb30990aff4d9ba3919c0",
     "product_version": "1.0.0",
-    "distinct_go_top_tests_passed": 8,
-    "distinct_web_behavior_cases_passed": 5,
+    "distinct_go_top_tests_passed": 5,
+    "distinct_web_behavior_cases_passed": 6,
     "typecheck": true,
     "generated_contract_check": true,
-    "catalog_keys": 6117,
-    "actual_retained_history_http_passed": true,
-    "actual_browser_verified": true,
-    "actual_browser_scope": "CNEN1366/390, two accepted tasks, server search, switch, refresh and original source display; no new execution",
+    "catalog_keys": 6151,
+    "actual_http_original_receipt_verified": true,
+    "actual_browser_verified": false,
+    "actual_browser_gap": "CUA transport closed; currentvisualjourney pending, no oldscreenshots asproof",
     "protected_tables_unchanged": 34,
     "owned_model_requests": 0,
-    "commercial_vendor_calls": 0,
     "web_builds": 1,
     "native_sdk_builds": 0,
     "new_executions": 0,
@@ -109,7 +108,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "9696bf9621bf3a4250cd3663cab08a484fea6de8"
+    "previously_published_commit": "65004fa00f7f123dbb276f29829bc8812c5721ec"
   },
   "existing_preview": {
     "updated": false,
@@ -117,24 +116,25 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and requirements1–26, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance.",
-  "last_goal_turn_classification": "progress: T126 current-authorized task context API, native IDE integration,116 public reference operation map and actual retained HTTP/CNEN1366/390 readback verified; preparing stage commit and normal dev push. Full objective remains active.",
+  "last_goal_turn_classification": "progress: T127 durable human/API discussion, original transactional recovery, guarded workbench draft, schema/locales and actual post-commit HTTP ACK-loss recovery verified; current actual browser transport unavailable. Full original goal remains active.",
   "previous_goal_turn": "progress: T125 dependency-ordered original-plan rollout, actual ACK-loss reconciliation, pause/drain, unknown read projection and scoped CNEN390 evidence verified; Git delivery is recorded separately against the actual commit. Full P0-P7 and requirements1-26 remain active,58/34/92 unchanged.",
   "current_work": {
-    "stage": "T-WORKBENCH-126",
-    "status": "scoped_local_verified_pending_git_delivery",
-    "implementation": "Native task-driven workspace with one current-authorized read composition, exact task/run/quality facts, professional bilingual progressive disclosure and explicit current reference-platform parity gaps",
+    "stage": "T-COLLAB-127",
+    "status": "scoped_api_components_verified_visual_pending",
+    "implementation": "Durable native task discussion with original human/API authorship, exact task/requirement/run basis, transactional sequence, idempotent original recovery and bilingual workbench composer; full unified-gateway assistant and PTY targets remain active.",
+    "contract": "contracts/task-conversations.md",
     "remaining": [
-      "Complete all P0-P7 and requirements1..26 with58 limited/34 pending/92 unchanged.",
-      "Full Octop/WorkBuddy/Multica native functions and end-to-end interactions;116 mapped public operations are a gap baseline, not parity certification.",
-      "Persistent chat, real PTY/LSP/DAP/full Git writes/office/browser and desktop capabilities, real multi-host/vendor/installer/production acceptance.",
-      "Browser unsaved-navigation and adopted-design content, keyboard and full viewport/theme matrix not verified by this historical replay; focused component tests cover changed guard behavior."
+      "Full P0-P7 and requirements1..26,58 limited/34 pending/92 unchanged.",
+      "Current visual journey pending browser transport recovery; no claim from component tests or prior T126screenshots.",
+      "Continuous model replies with explicit ModelBinding/budget/DAG/attempt evidence, attachments, live push, private multichat and offline synchronization.",
+      "Real crossplatform PTY/LSP/DAP/fullGit/office, physicalmulti-host, databases, installers and production acceptance."
     ]
   },
   "previous_stage_verification": {
-    "stage": "T-ROLLOUT-125",
-    "report": "docs/quality/application-release-rollouts-verification.md",
-    "summary": "docs/quality/application-release-rollouts-summary.json",
-    "source_sha256": "32004e91675b2a8871c204d96c4f0b185747e51f04183a18f50260664eeafb78"
+    "stage": "T-WORKBENCH-126",
+    "report": "docs/quality/workspace-task-context-verification.md",
+    "summary": "docs/quality/workspace-task-context-summary.json",
+    "source_sha256": "3fc74a013b024f9631306f95ded3988879f11a1c5b087ec69153a32ff231ea45"
   },
   "latest_request": {
     "reference_conversation": "6ae163e6-0700-83e9-bf86-623690b54884",

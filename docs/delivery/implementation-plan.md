@@ -2,7 +2,9 @@
 
 更新：2026-10-29。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。
 
-当前T-WORKBENCH-126继续原P2／P3／P5：原IDE任务选择、需求／设计、准确执行、计划用例及人工Review，按[读取合同](../../contracts/workspace-task-context.md)和[AI SOP](../development/workspace-task-context.md)并行实施；[实际证据](../quality/workspace-task-context-verification.md)及[摘要](../quality/workspace-task-context-summary.json)记录当前阶段范围。完整[工作台规格](../design/reference-workbench.md)和[116项公开参考能力映射](../product/reference-platform-parity.md)不替代实现或缩减原目标，58／34／92不变。
+当前T-COLLAB-127继续原生任务协作：准确人／API作者、任务／需求／运行依据、事务内序号、纯文本消息、原回执恢复和双语工作台输入。见[合同](../../contracts/task-conversations.md)、[开发与AI SOP](../development/task-conversations.md)、[报告](../quality/task-conversations-verification.md)和[摘要](../quality/task-conversations-summary.json)。实际HTTP回执丢失恢复及接口／组件检查已通过；浏览器连接中断，当前视觉验收待补；消息保存不启动智能体、执行或验收。真实持续模型回复及[PTY会话](../architecture/interactive-terminal.md)继续完整交付，58／34／92不变。
+
+前序T-WORKBENCH-126继续原P2／P3／P5：原IDE任务选择、需求／设计、准确执行、计划用例及人工Review，按[读取合同](../../contracts/workspace-task-context.md)和[AI SOP](../development/workspace-task-context.md)并行实施；[实际证据](../quality/workspace-task-context-verification.md)及[摘要](../quality/workspace-task-context-summary.json)记录当前阶段范围。完整[工作台规格](../design/reference-workbench.md)和[116项公开参考能力映射](../product/reference-platform-parity.md)不替代实现或缩减原目标，58／34／92不变。
 
 前序T-ROLLOUT-125在准确应用版本、独立制品候选与原计划组上推进受保护的依赖有序发布：原计划分别批准后明确启动，暂停排空，未知／失败暂停，原操作核对及新预览后明确恢复，已健康子项不重做。[架构](../architecture/application-release-rollouts.md)、[操作与AI SOP](../development/application-release-rollouts.md)、[合同](../../contracts/application-release-rollouts.md)、[English](../en/application-release-rollouts.md)、[限定验收报告](../quality/application-release-rollouts-verification.md)和[摘要](../quality/application-release-rollouts-summary.json)。真实本地源码／独立测试／原提供方部署、暂停排空与回执丢失核对恢复，以及中英文390只读界面已验证，范围详见报告；多来源构建、灰度流量、协调回退与完整平台继续待办，58／34／92不变。
 

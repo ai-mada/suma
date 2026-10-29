@@ -8,6 +8,7 @@ import {RequirementDesignFacts} from './RequirementDesignFacts';
 import {useWorkbenchTaskPicker,useWorkbenchTaskRead} from './workbench-task-hooks';
 import {workbenchTaskLinks} from './workbench-task-model';
 import './WorkbenchTaskContext.css';
+import {TaskConversation} from './TaskConversation';
 
 const t=(key:string,values?:Record<string,unknown>)=>tr('workbench-task.'+key,values);
 export type WorkbenchTaskContextProps={session:Session;project:string;selectedTask:string;refresh:number;onTaskSelect:(id:string)=>boolean};
@@ -17,7 +18,7 @@ export type WorkbenchTaskContextProps={session:Session;project:string;selectedTa
 export function WorkbenchTaskContext(props:WorkbenchTaskContextProps){
  return <TaskContextScope key={JSON.stringify([props.session.user.id,props.session.organization.id,props.project])} {...props}/>;
 }
-function TaskContextScope({project,selectedTask,refresh,onTaskSelect}:WorkbenchTaskContextProps){
+function TaskContextScope({session,project,selectedTask,refresh,onTaskSelect}:WorkbenchTaskContextProps){
  useLocale();const ids=useId(),[choosing,setChoosing]=useState(false),[search,setSearch]=useState(''),[denied,setDenied]=useState(false),[retry,setRetry]=useState(0),[blocked,setBlocked]=useState(false);
  const forbidden=()=>setDenied(true),read=useWorkbenchTaskRead(project,selectedTask,refresh+retry,denied,forbidden),picker=useWorkbenchTaskPicker(project,choosing,denied,forbidden),value=read.value;
  useEffect(()=>setBlocked(false),[selectedTask]);
@@ -31,6 +32,9 @@ function TaskContextScope({project,selectedTask,refresh,onTaskSelect}:WorkbenchT
    {read.loading&&<Loading/>}{!!read.error&&<ErrorNotice error={read.error} onRetry={()=>void read.read()}/>}
    {value?<><div className="workbench-task-summary" aria-label={t('summary')}><span><small>{t('business')}</small><Badge state={value.task.status}/></span><span><small>{t('execution')}</small>{value.delivery.run?<Badge state={value.delivery.run.state}/>:<strong>{t('basis.'+value.delivery.run_basis_state)}</strong>}</span><span><small>{t('plan_cases')}</small><strong>{t('quality.'+value.quality.state)}</strong></span><span><small>{t('acceptance')}</small><strong>{t(value.delivery.formal_acceptance?'accepted':'not_accepted')}</strong></span></div><details className="workbench-task-details"><summary><span>{t('details')}</span><ChevronDown size={14}/></summary><TaskContextFacts value={value} follow={follow}/></details></>:!selectedTask&&!choosing&&<p className="workbench-task-empty">{t('empty')}</p>}
   </>}
+  {/* Keep same-owner drafts and original write identities alive on access loss;
+      the discussion hides protected history and disables reads independently. */}
+  {selectedTask&&<TaskConversation session={session} project={project} taskId={selectedTask} refresh={refresh} accessBlocked={denied}/>}
  </section>;
 }
 

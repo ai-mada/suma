@@ -295,6 +295,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	s.applyLocalePreferences(w, r, actor)
+	if s.taskConversationHTTP(w, r, actor, scope, boundProject, parts) {
+		return
+	}
 	if s.workspaceTaskContextHTTP(w, r, actor, scope, boundProject, parts) {
 		return
 	}

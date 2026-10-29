@@ -5024,6 +5024,36 @@ export interface TaskContextRecord {
   description: string;
   acceptance_criteria: (string)[];
 }
+export interface TaskConversationAppendRequest {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  body: string;
+  idempotency_key: string;
+}
+export interface TaskConversationMessage {
+  id: string;
+  sequence: number;
+  task_version: number;
+  body: string;
+  author_id: string;
+  author_name: string;
+  actor_kind: string;
+  created_at: string;
+  requirement_id: string;
+  requirement_version: number;
+  run_id: string;
+}
+export interface TaskConversationPage {
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  can_post: boolean;
+  items: (TaskConversationMessage)[];
+  total: number;
+  limit: number;
+  next_before: number;
+}
 export interface TaskDelivery {
   test_plan_id?: string;
   project_id: string;

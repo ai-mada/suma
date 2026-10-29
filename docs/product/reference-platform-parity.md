@@ -2,6 +2,8 @@
 
 状态：1.0.0产品范围与缺口基线，2026-10-29公开资料审计；速码代码基线`9696bf9`。负责人：产品、工作台、智能体与平台领域。关联需求1–26，尤其9、10、11、12、21、23、25、26。本文是完整工作台与产品能力的交付要求，不把“有适配器”“装有CLI”当作功能完成。现有58项限定实现／34项待办／92项总账不因新增审计行而改变。
 
+当前T-COLLAB-127增加人／API持久任务讨论、准确依据及原消息回执恢复，[合同](../../contracts/task-conversations.md)、[报告](../quality/task-conversations-verification.md)和[摘要](../quality/task-conversations-summary.json)限定其证据。它不提供智能体回复、实时消费或私密多会话，不把下表相应完整功能标成完成。
+
 当前T-WORKBENCH-126先贯通原生IDE中的正式任务、需求／设计、负责人、准确执行、计划用例和正式验收同页读取，见[冻结合同](../../contracts/workspace-task-context.md)、[限定验收报告](../quality/workspace-task-context-verification.md)及[摘要](../quality/workspace-task-context-summary.json)。它不变更当前文件目录，不绑定任务工作树或授予派发／验收权；完整会话、PTY、办公和以下全部目标继续推进，本切片当前授权HTTP、真实历史复读及中英文1366／390已按报告限定验证；不构成全工作台或平台全部能力完成。
 
 关联：[工作台交互设计](../design/reference-workbench.md)、[跨参考平台交付矩阵](platform-capability-delivery-matrix.md)、[完整本地工作台架构](../architecture/local-development-workbench.md)、[实施计划](../delivery/implementation-plan.md)。
