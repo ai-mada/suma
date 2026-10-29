@@ -136,3 +136,21 @@ it('shows the latest file failure instead of an older JSON parse error',async()=
  await render();await click('登记配置');await change(document.querySelector<HTMLTextAreaElement>('.tool-form textarea')!,'{"items":');
  const file=new File(['x'],'tools.json');Object.defineProperty(file,'size',{value:262145});const input=document.querySelector<HTMLInputElement>('[data-tool-inventory-file]')!;Object.defineProperty(input,'files',{configurable:true,value:[file]});await act(async()=>input.dispatchEvent(new Event('change',{bubbles:true})));await settle();expect(document.querySelector('[data-tool-import-error]')?.textContent).toContain('256 KiB');
 });
+
+function reported(worker:string,command='detected') {return {project_id:'p',worker_id:worker,state:'fresh',as_of:'2026-10-29T08:00:00Z',observed_at:'2026-10-29T08:00:00Z',expires_at:'2026-10-29T08:01:00Z',items:[{profile:{...definition,command_id:command},available:true,reason:''}]};}
+function withDiscovery(read:(worker:string)=>Promise<Response>){const base=vi.mocked(fetch).getMockImplementation()!;vi.mocked(fetch).mockImplementation((input,init)=>{const url=new URL(String(input),'http://local.test');return url.pathname.endsWith('/tool-discovery')?read(url.searchParams.get('worker_id')!):base(input,init);});}
+it('automatically reads the selected node and registers its actual sole tool paused without manual JSON',async()=>{
+ workers=[{id:'w',worker_id:'runner',status:'active',version:1}];withDiscovery(async worker=>new Response(JSON.stringify(reported(worker)),{status:200}));
+ await render();await click('登记配置');await change(document.querySelector<HTMLSelectElement>('.tool-form select')!,'runner');
+ expect(document.querySelector<HTMLInputElement>('.tool-form input[maxlength="200"]')!.value).toBe('detected');expect(document.querySelector('.tool-form .tool-context')).not.toBeNull();expect(writes).toHaveLength(0);
+ await act(async()=>document.querySelector('.tool-form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle();expect(writes).toHaveLength(1);expect(writes[0].body).toMatchObject({worker_id:'runner',profile:{...definition,command_id:'detected'}});expect(host.querySelector('[data-tool-receipt]')?.textContent).toContain('暂停');
+});
+it('clears a detected configuration on node change but preserves a manual draft and name until explicit adoption',async()=>{
+ workers=[{id:'w',worker_id:'runner',status:'active',version:1},{id:'w2',worker_id:'runner2',status:'active',version:1}];let finish!:(response:Response)=>void;
+ withDiscovery(async worker=>worker==='runner'?new Response(JSON.stringify(reported(worker)),{status:200}):new Promise(resolve=>{finish=resolve;}));
+ await render();await click('登记配置');const node=document.querySelector<HTMLSelectElement>('.tool-form select')!;await change(node,'runner');expect(document.querySelector('.tool-form .tool-context')).not.toBeNull();
+ await change(node,'runner2');expect(document.querySelector('.tool-form .tool-context')).toBeNull();
+ const manual=JSON.stringify({items:[{profile:{...definition,command_id:'manual'},available:true,reason:''}]});await change(document.querySelector<HTMLTextAreaElement>('.tool-form textarea')!,manual);await change(document.querySelector<HTMLInputElement>('.tool-form input[maxlength="200"]')!,'My tool');
+ await act(async()=>finish(new Response(JSON.stringify(reported('runner2','node-two')),{status:200})));await settle();expect(document.querySelector<HTMLTextAreaElement>('.tool-form textarea')!.value).toBe(manual);expect(document.querySelector<HTMLInputElement>('.tool-form input[maxlength="200"]')!.value).toBe('My tool');
+ await act(async()=>document.querySelector<HTMLButtonElement>('[data-tool-discovery-adopt]')!.click());await settle();expect(document.querySelector<HTMLTextAreaElement>('.tool-form textarea')!.value).toContain('node-two');expect(document.querySelector<HTMLInputElement>('.tool-form input[maxlength="200"]')!.value).toBe('My tool');expect(writes).toHaveLength(0);
+});

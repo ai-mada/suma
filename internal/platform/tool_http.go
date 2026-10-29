@@ -3,6 +3,9 @@ package platform
 import "net/http"
 
 func (s *Server) toolProfilesHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, path string, parts []string, project string, m map[string]any) bool {
+	if s.toolDiscoveryHTTP(w, r, actor, scope, project, parts) {
+		return true
+	}
 	if len(parts) == 0 || parts[0] != "tool-profiles" {
 		return false
 	}

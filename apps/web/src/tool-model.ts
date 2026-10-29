@@ -151,17 +151,30 @@ function validatePublicCapabilities(profile: Record<string, unknown>, observatio
   const native = profile.adapter === "suma" && profile.protocol === "suma-jsonl-v1";
   // A dedicated shell may expose live files for reading, but never borrows an
   // agent's model, writable workspace tools, test proof or automation purpose.
-  const terminal = profile.terminal_session_protocol === "suma-pty-v1" && profile.adapter === "command" && profile.protocol === "text-v1" && profile.read_only === false && !profile.workspace_tools_version && !profile.model_execution_protocol && !profile.test_report_protocol && !profile.conflict_repair_protocol && !profile.planning && !profile.knowledge_extraction && !profile.failure_diagnosis && !profile.intelligent_operations && !profile.opencode_execution && !profile.octop_execution;
+  const terminal = profile.terminal_session_protocol === "suma-pty-v1" && profile.adapter === "command" && profile.protocol === "text-v1" && profile.read_only === false && !profile.workspace_tools_version && !profile.model_execution_protocol && !profile.test_report_protocol && !profile.conflict_repair_protocol && !profile.planning && !profile.knowledge_extraction && !profile.failure_diagnosis && !profile.intelligent_operations && !profile.dispatch_recommendation && !profile.task_conversation_reply && !profile.opencode_execution && !profile.octop_execution;
   if (profile.terminal_session_protocol !== undefined && (typeof profile.terminal_session_protocol !== "string" || profile.terminal_session_protocol !== "" && !terminal)) invalidCapability();
   const openCode = profile.adapter === "opencode" && profile.protocol === "opencode-sdk-v1" && validOpenCodeCapability(profile.opencode_execution);
   const octop = profile.adapter === 'octop' && profile.protocol === 'octop-harness-acp-v1' && validOctopCapability(profile.octop_execution);
   if(profile.octop_execution!==undefined&&!octop||profile.adapter==='octop'&&(profile.protocol!=='octop-harness-acp-v1'||profile.read_only!==false||profile.model_execution_protocol!=='suma-model-execution-v1'||observation.available===true&&!octop||octop&&profile.workspace_tools_version!=='attempt-workspace-v1'))invalidCapability();
   if (profile.opencode_execution !== undefined && !openCode || profile.adapter === "opencode" && (!openCode || profile.read_only!==false || profile.workspace_tools_version!=="attempt-workspace-v1")) invalidCapability();
+  // These purposes use the existing host gateway, with no independent model
+  // configuration and no workspace/automation authority. Match the Go
+  // SupportsDispatchRecommendationProfile/SupportsTaskConversationReplyProfile
+  // contract without manufacturing an enabled administrator ToolProfile.
+  let gatewayPurpose = false;
+  for (const [field, protocol] of [["dispatch_recommendation", "suma-dispatch-recommendation-v1"], ["task_conversation_reply", "suma-task-conversation-reply-v1"]] as const) {
+    if (profile[field] === undefined || profile[field] === null) continue;
+    const capability = record(profile[field]);
+    fields(capability, ["protocol"]);
+    if (gatewayPurpose || capability.protocol !== protocol || !native || profile.read_only !== true || profile.model_execution_protocol !== "suma-model-execution-v1" || profile.workspace_tools_version || profile.test_report_protocol || profile.conflict_repair_protocol || profile.planning || profile.knowledge_extraction || profile.failure_diagnosis || profile.intelligent_operations || profile.opencode_execution || profile.octop_execution) invalidCapability();
+    gatewayPurpose = true;
+  }
   const workspace = (native || openCode || octop) && profile.read_only === false && profile.workspace_tools_version === "attempt-workspace-v1";
+  if (native && workspace && profile.model_execution_protocol !== "suma-model-execution-v1") invalidCapability();
   const codexWorkspace = profile.adapter === "codex" && profile.protocol === "codex-app-server-v1" && profile.read_only === false && validCodexCatalog(observation.codex_catalog);
   for (const [field, protocol, permitted] of [
     ["workspace_tools_version", "attempt-workspace-v1", workspace],
-    ["model_execution_protocol", "suma-model-execution-v1", native && workspace || profile.adapter === "octop" && profile.protocol === "octop-harness-acp-v1" && profile.read_only === false],
+    ["model_execution_protocol", "suma-model-execution-v1", gatewayPurpose || native && workspace || profile.adapter === "octop" && profile.protocol === "octop-harness-acp-v1" && profile.read_only === false],
     ["conflict_repair_protocol", "suma.candidate-conflict-repair.v1", native && workspace],
   ] as const) {
     if (profile[field] !== undefined && profile[field] !== "" && (profile[field] !== protocol || !permitted)) invalidCapability();
@@ -228,7 +241,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
       "read_only",
       "terminal_session_protocol",
       "workspace_tools_version", "model_execution_protocol", "conflict_repair_protocol", "test_report_protocol",
-      "planning", "knowledge_extraction", "failure_diagnosis", "intelligent_operations", "opencode_execution", "octop_execution",
+      "planning", "knowledge_extraction", "failure_diagnosis", "intelligent_operations", "dispatch_recommendation", "task_conversation_reply", "opencode_execution", "octop_execution",
     ] satisfies (keyof ToolProfileDefinition)[]);
     if (
       typeof profile.command_id !== "string" ||

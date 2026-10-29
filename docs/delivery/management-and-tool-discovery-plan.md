@@ -24,8 +24,9 @@
 
 ## Stage T-DISCOVERY-132
 
-- [ ] Inspect current inventory storage and authorization; freeze minimal read contract before editing.
-- [ ] Test current project/private/Pool scopes, expiry, no report, revocation and public data boundary before implementing a bounded read.
-- [ ] Integrate selected-worker automatic reads with strict parsing, generation isolation, explicit source adoption and file/paste fallback.
-- [ ] Verify real local probe/Runner report → browser discovery → paused registration → explicit enable, failure recovery and current authority.
-- [ ] Update contracts, state and compact evidence; independent review, stage commit and normal dev push.
+- [x] Inspect current inventory storage and authorization; freeze minimal read contract before editing.
+- [x] Test current project/private/Pool scopes, expiry, no report, revocation and public data boundary before implementing a bounded read.
+- [x] Integrate selected-worker automatic reads with strict parsing, generation isolation, explicit source adoption and file/paste fallback.
+- [x] Verify real local probe/Runner report → browser discovery → paused registration → explicit enable, failure recovery and current authority.
+- [x] Update contracts, state and compact evidence; independent review and local stage commit. Evidence: `docs/quality/tool-discovery-verification.md`.
+- Remote push pending explicit current authorization after automatic review rejected remote transfer; local commits proceed independently.

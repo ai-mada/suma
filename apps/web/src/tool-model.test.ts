@@ -83,6 +83,49 @@ function storage() {
 }
 afterEach(() => vi.unstubAllGlobals());
 describe("tool manifest and fixed task choices", () => {
+	it("T132 imports both real gateway-bound read-only purposes in a mixed Runner report", () => {
+		const observed = ([
+			["dispatch_recommendation", "suma-dispatch-recommendation-v1"],
+			["task_conversation_reply", "suma-task-conversation-reply-v1"],
+		] as const).map(([field, protocol]) => ({
+			profile: { ...definition, command_id: field, read_only: true, model_execution_protocol: "suma-model-execution-v1", [field]: { protocol } },
+			available: true, reason: "installed executable and protocol probe; model authentication and task success unverified",
+			model_deployments: nativeInventory.model_deployments,
+		}));
+		const items = [nativeInventory, ...observed], original = JSON.stringify(items);
+		expect(parseToolManifest(JSON.stringify({schema_version: 1, execution_enabled: true, items}))).toEqual(items);
+		expect(JSON.stringify(items)).toBe(original);
+		for (const observation of observed) {
+			const unavailable = { ...observation, available: false, reason: "execution is disabled by the local administrator", model_deployments: undefined,
+				profile: { ...observation.profile, profile_sha256: "", executable_sha256: "", tool_version: "" } };
+			expect(parseToolManifest(JSON.stringify([unavailable]))[0]).toEqual(JSON.parse(JSON.stringify(unavailable)));
+		}
+	});
+	it("T132 keeps gateway purposes closed, mutually exclusive, read-only and free of independent provider inputs", () => {
+		for (const [field, protocol, other, otherProtocol] of [
+			["dispatch_recommendation", "suma-dispatch-recommendation-v1", "task_conversation_reply", "suma-task-conversation-reply-v1"],
+			["task_conversation_reply", "suma-task-conversation-reply-v1", "dispatch_recommendation", "suma-dispatch-recommendation-v1"],
+		] as const) {
+			const original = { profile: { ...definition, read_only: true, model_execution_protocol: "suma-model-execution-v1", [field]: { protocol } }, available: true, reason: "fixed read-only gateway purpose", model_deployments: nativeInventory.model_deployments };
+			for (const patch of [
+				{ read_only: false }, { model_execution_protocol: undefined }, { model_execution_protocol: "other" },
+				{ adapter: "command", protocol: "text-v1" }, { workspace_tools_version: "attempt-workspace-v1" },
+				{ conflict_repair_protocol: "suma.candidate-conflict-repair.v1" }, { test_report_protocol: "suma-junit-report-v1" },
+				{ [other]: { protocol: otherProtocol } }, { [field]: { protocol: "forged" } },
+				{ [field]: { protocol, model: "independent-model" } }, { [field]: { protocol, api_key: "secret" } },
+				{ planning: { protocol: "suma-schedule-plan-v1", model: "ambient", endpoint_origin: "https://example.test" } },
+				{ profile_sha256: "A".repeat(64) }, { env: { TOKEN: "secret" } },
+			]) expect(() => parseToolManifest(JSON.stringify([{ ...original, profile: { ...original.profile, ...patch } }]))).toThrow();
+			for (const patch of [
+				{ workspace_observation_protocol: "workspace-observation-v1" }, { workspace_write_protocol: "workspace-write-v1" },
+				{ model_deployments: [{ ...nativeInventory.model_deployments[0], api_key: "secret" }] },
+				{ model_deployments: [{ ...nativeInventory.model_deployments[0], endpoint_origin: "https://user:secret@example.test" }] },
+			]) expect(() => parseToolManifest(JSON.stringify([{ ...original, ...patch }]))).toThrow();
+		}
+	});
+	it("T132 requires the existing host gateway for native writable workspace inventory", () => {
+		expect(() => parseToolManifest(JSON.stringify([{ ...nativeInventory, model_deployments: undefined, profile: { ...nativeInventory.profile, model_execution_protocol: undefined } }]))).toThrow();
+	});
 	it("imports dedicated terminal inventory without granting model, automation or workspace write capabilities", () => {
 		const terminal: ToolObservation = {
 			profile: { command_id: "interactive-shell", adapter: "command", protocol: "text-v1", profile_sha256: "e".repeat(64), executable_sha256: "f".repeat(64), tool_version: "1.0.0", read_only: false, terminal_session_protocol: "suma-pty-v1" },

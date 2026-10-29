@@ -1,5 +1,15 @@
 {
   "project": "suma",
+  "tool_discovery": {
+    "stage": "T-DISCOVERY-132",
+    "status": "scoped_verified",
+    "date": "2026-10-29",
+    "report": "docs/quality/tool-discovery-verification.md",
+    "summary": "docs/quality/tool-discovery-summary.json",
+    "scope": "Read current authorized private/Pool Runner inventory; fresh-only bounded adoption, manual/file protection, node switching, explicit retry, original paused registration and separate enabling retained.",
+    "verification": "80 unique Web focused cases,11 Go discovery cases, existing tool profile regressions and contract generator suite/check; isolated final types/6513 locales/build; actual SQLite/control/Node probe/Runner/browser CNEN1440/390 automatic adoption, manual restoration, paused registration, enable and revoke.",
+    "limits": "No remote installation/probe, model health, commercial invocation or production claim; full project suite not rerun; unrelated terminal/desktop work preserved. Remote push awaits explicit current authorization after automatic review rejection."
+  },
   "management_workspaces": {
     "stage": "T-MGMT-131",
     "status": "scoped_verified",

@@ -5714,6 +5714,15 @@ export interface ToolDiagnostic {
   message_key: string;
   message_params?: { [key: string]: unknown };
 }
+export interface ToolDiscovery {
+  project_id: string;
+  worker_id: string;
+  state: string;
+  as_of: string;
+  observed_at?: string;
+  expires_at?: string;
+  items: (ToolObservation)[];
+}
 export interface ToolEvent {
   schema_version: number;
   command_id: string;

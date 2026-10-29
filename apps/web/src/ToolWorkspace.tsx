@@ -36,6 +36,7 @@ import {
 import { ToolProfileFacts, toolReason } from "./ToolFacts";
 import { ToolReadiness, matchesToolFilter, type ToolFilter } from './ToolReadiness';
 import {ToolInventoryField} from './ToolInventoryField';
+import {ToolDiscoveryPanel} from './ToolDiscoveryPanel';
 import "./tool.css";
 import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
@@ -635,6 +636,8 @@ function ToolProfileForm({
     [importing, setImporting] = useState(false),
     [name, setName] = useState(""),
     [nameEdited, setNameEdited] = useState(false),
+    [source,setSource] = useState<'none'|'manual'|'discovery'>('none'),
+    [manualRevision,setManualRevision] = useState(0),
     [worker, setWorker] = useState("");
   const selected = observations.find(
       (item) => item.profile.command_id === command,
@@ -687,7 +690,7 @@ function ToolProfileForm({
     >
       {!!submitError && <ErrorNotice error={renderDiagnostic(submitError)} />}
       <p className="tool-form-intro">
-        <Trans i18nKey="development.tools.inventory_instructions" components={{command:<code/>}}/></p>
+        {t('tool-discovery.form_intro')}</p>
       <fieldset className="form-fields" disabled={blocked}>
         <section className="tool-form-section" aria-labelledby={formID+'-identity'}>
         <h3 id={formID+'-identity'}><span aria-hidden="true">{formatNumber(1)}</span>{t('tool-workspace.form_identity')}</h3>
@@ -697,13 +700,18 @@ function ToolProfileForm({
           value={worker}
           onChange={(value) => {
             setWorker(value);
+            setImporting(false);
+            if(source==='discovery') {inspectManifest('');setSource('none');if(!nameEdited)setName('');}
             if (action.conflict) action.clearError();
           }}
         />
         </section>
         <section className="tool-form-section" aria-labelledby={formID+'-inventory'}>
-        <h3 id={formID+'-inventory'}><span aria-hidden="true">{formatNumber(2)}</span>{t('tool-workspace.form_inventory')}</h3>
-        <ToolInventoryField value={manifest} error={error} disabled={blocked} onChange={inspectManifest} onReading={setImporting}/>
+        <h3 id={formID+'-inventory'}><span aria-hidden="true">{formatNumber(2)}</span>{t('tool-discovery.inventory_source')}</h3>
+        <ToolDiscoveryPanel project={project} worker={worker} authorized={identityReady} disabled={blocked||importing} autoAdopt={source==='none'} manualRevision={manualRevision} onAdopt={items=>{inspectManifest(JSON.stringify({items}));setSource('discovery');}}/>
+        <details className="tool-manual-inventory"><summary>{t('tool-discovery.manual_inventory')}</summary>
+        <p className="tool-form-intro"><Trans i18nKey="development.tools.inventory_instructions" components={{command:<code/>}}/></p>
+        <ToolInventoryField key={worker} value={manifest} error={error} disabled={blocked} onChange={text=>{setSource('manual');setManualRevision(n=>n+1);inspectManifest(text);}} onReading={reading=>{setImporting(reading);if(reading){setSource('manual');setManualRevision(n=>n+1);}}}/>
         <button
           type="button"
           className="text-button"
@@ -711,6 +719,7 @@ function ToolProfileForm({
           onClick={() => inspectManifest(manifest)}
         >
           {t("development.tools.validate_inventory_fields")}</button>
+        </details>
         </section>
         <section className="tool-form-section" aria-labelledby={formID+'-configuration'}>
         <h3 id={formID+'-configuration'}><span aria-hidden="true">{formatNumber(3)}</span>{t('tool-workspace.form_configuration')}</h3>
