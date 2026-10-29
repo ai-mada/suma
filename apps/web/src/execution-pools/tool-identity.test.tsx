@@ -128,6 +128,8 @@ async function mount() {
   await settle();
 }
 function field(label: string) {
+  const explicit = [...document.querySelectorAll<HTMLLabelElement>('label[for]')].find(e=>e.textContent===label);
+  if(explicit)return document.getElementById(explicit.htmlFor) as HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement;
   return [...document.querySelectorAll("label.field")]
     .find((e) => e.firstElementChild?.textContent === label)
     ?.querySelector("input,textarea,select") as

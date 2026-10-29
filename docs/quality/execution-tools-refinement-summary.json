@@ -1,0 +1,22 @@
+{
+  "stage": "T-TOOLUX-130",
+  "date": "2026-10-29",
+  "base_commit": "aa21114",
+  "scope": "Execution tool registration, local inventory input, profile facts and action feedback",
+  "focused_tests": {"tool_cases_passed": 68, "locale_cases_passed": 2, "new_behavior_cases": 9, "failed": 0},
+  "isolated_full_web_typecheck": true,
+  "isolated_catalog_keys": 6379,
+  "production_hardcodes": 0,
+  "isolated_production_build": true,
+  "actual_sqlite_http_runner_flow": true,
+  "actual_local_json_file_import": true,
+  "late_reads_and_manual_names_preserved": true,
+  "keyboard_focus_not_obscured": true,
+  "browser_widths": [1440, 390, 375, 844],
+  "commercial_model_requests": 0,
+  "task_executions": 0,
+  "full_web_suite_rerun": false,
+  "production_complete": false,
+  "artifacts": "dist/quality/execution-tools-130",
+  "report": "docs/quality/execution-tools-refinement-verification.md"
+}

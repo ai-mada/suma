@@ -1,4 +1,14 @@
 .tool-readiness{border:1px solid var(--border);border-radius:10px;background:var(--surface);overflow:hidden;min-width:0}
+.tool-journey-disclosure{border-top:1px solid var(--border);background:var(--surface-soft)}
+.tool-journey-disclosure>summary{padding:10px 22px;color:var(--muted);font-size:11px;cursor:pointer}
+.tool-journey-disclosure>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+.tool-journey-disclosure>.tool-setup-journey{border-top:0;padding-top:6px}
+.tool-save-receipt{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;border:1px solid color-mix(in srgb,var(--green) 22%,var(--border));border-radius:8px;background:color-mix(in srgb,var(--green) 5%,var(--surface));color:var(--green);font-size:12px;line-height:1.75}
+.tool-save-receipt>svg{margin-top:3px;flex-shrink:0}
+.tool-save-receipt p{flex:1;overflow-wrap:anywhere}
+.tool-save-receipt .icon-button{color:var(--green)}
+.tool-workspace .tool-detail>.detail-top{border-bottom:1px solid var(--border)}
+@media(max-width:600px){.tool-workspace button{min-height:44px}.tool-workspace .icon-button{min-width:44px}.tool-journey-disclosure>summary{min-height:44px;padding:13px 16px}.tool-save-receipt{padding:12px}.tool-readiness .tool-readiness-main button{margin-left:0}.tool-readiness-main p{font-size:12px}.tool-workspace .tool-readiness-foot button{min-height:44px}}
 .tool-refresh-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--muted);font-size:11px;flex-wrap:wrap}
 .tool-refresh-bar small{line-height:1.6;flex:1;min-width:180px}
 .tool-refresh-bar .inline{margin-left:auto}

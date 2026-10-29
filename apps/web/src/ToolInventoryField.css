@@ -1,0 +1,39 @@
+.tool-inventory-field{display:grid;gap:9px;min-width:0}
+.tool-inventory-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tool-inventory-heading>label:first-child{font-size:12px;font-weight:500}
+.tool-file-button{position:relative;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border-strong);border-radius:6px;padding:7px 10px;min-height:36px;color:var(--accent);background:var(--surface);font-size:12px;cursor:pointer;overflow:hidden}
+.tool-file-button:hover{background:var(--accent-soft)}
+.tool-file-button:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.tool-file-button input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;padding:0}
+.tool-file-button:has(input:disabled){opacity:.5;cursor:not-allowed}
+.tool-inventory-field>p{font-size:12px;line-height:1.7}
+.tool-inventory-field textarea{width:100%;font-size:12px;line-height:1.65;min-height:132px}
+.tool-inventory-field textarea[aria-invalid=true]{border-color:var(--red)}
+.tool-file-status{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);overflow-wrap:anywhere}
+.tool-file-status:empty{display:none}
+.tool-inline-error{color:var(--red);font-size:12px;line-height:1.7}
+.tool-form-section{display:grid;gap:12px;padding:18px 0;border-bottom:1px solid var(--border);min-width:0}
+.tool-form-section:first-child{padding-top:0}
+.tool-form-section:last-child{border-bottom:0;padding-bottom:0}
+.tool-form-section>h3{display:flex;align-items:center;gap:9px;font-size:13px}
+.tool-form-section>h3>span{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:11px}
+.tool-form-section .field small{font-size:11px;line-height:1.65;color:var(--muted);font-weight:400}
+.tool-form-section .text-button{justify-self:start}
+.tool-form-intro{font-size:12px;line-height:1.8;color:var(--muted)}
+.tool-form-next{display:flex;gap:8px;align-items:flex-start;padding:12px 14px;border-radius:6px;font-size:12px;line-height:1.7;color:var(--muted);background:var(--surface-soft);border:1px solid var(--border)}
+.tool-form-next.ready{color:var(--green);background:color-mix(in srgb,var(--green) 6%,var(--surface));border-color:color-mix(in srgb,var(--green) 22%,var(--border))}
+.tool-form-next svg{flex-shrink:0;margin-top:2px}
+.tool-profile-submit{flex-shrink:0;display:grid;gap:12px;background:var(--surface);border-top:1px solid var(--border);padding:14px 0 0}
+.tool-profile-submit .dialog-actions{margin:0;border:0;padding-top:0}
+.tool-form-section :is(input,select,textarea,button,summary){scroll-margin-block:12px}
+.tool-import-result.needs-attention{color:var(--amber)}
+.tool-import-fingerprint{font-size:11px;border-top:1px solid var(--border);margin-top:10px;padding-top:10px}
+.tool-import-fingerprint summary{cursor:pointer;color:var(--muted)}
+.tool-import-fingerprint code{display:block;margin-top:10px;overflow-wrap:anywhere;word-break:break-all}
+.dialog:has(.tool-form-section){width:min(680px,calc(100vw - 32px));height:min(900px,calc(100dvh - 48px));display:flex;flex-direction:column;overflow:hidden}
+.dialog:has(.tool-form-section)>.dialog-heading,.dialog:has(.tool-form-section)>.dialog-language{flex-shrink:0}
+.dialog:has(.tool-form-section)>.tool-form{display:flex;flex-direction:column;gap:12px;flex:1;min-height:0;overflow:hidden}
+.dialog:has(.tool-form-section) .form-fields{display:block;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:6px;scroll-padding:12px}
+.dialog:has(.tool-form-section) .tool-form-intro{flex-shrink:0;max-height:86px;overflow-y:auto}
+@media(max-width:600px){.tool-file-button{min-height:44px}.dialog:has(.tool-form-section){width:calc(100vw - 20px);padding:18px;max-height:calc(100dvh - 24px)}.dialog:has(.tool-form-section) button,.dialog:has(.tool-form-section) select,.dialog:has(.tool-form-section) input:not([type=checkbox]):not([type=file]){min-height:44px}.tool-form-section{padding:16px 0}.tool-form-section .tool-context{padding:12px}.tool-form-section .tool-context strong{overflow-wrap:anywhere}.tool-form .dialog-actions{flex-wrap:wrap}.tool-form .dialog-actions button{flex:1}}
+@media(max-width:600px){.dialog:has(.tool-form-section){height:calc(100dvh - 24px)}.tool-profile-submit{gap:10px;padding-top:10px}.tool-profile-submit .tool-form-next{font-size:11px;padding:9px 11px}.dialog:has(.tool-form-section) .tool-form-intro{max-height:64px}}

@@ -13,6 +13,7 @@ import {
   Play,
   Search,
   CircleHelp,
+  CheckCircle2,
 } from "lucide-react";
 import { api, query, type Session } from "./api";
 import { Empty, ErrorNotice, Field, Loading, Modal } from "./ui";
@@ -34,6 +35,7 @@ import {
 } from "./tool-model";
 import { ToolProfileFacts, toolReason } from "./ToolFacts";
 import { ToolReadiness, matchesToolFilter, type ToolFilter } from './ToolReadiness';
+import {ToolInventoryField} from './ToolInventoryField';
 import "./tool.css";
 import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
@@ -82,7 +84,9 @@ export function ToolWorkspace({
     [revealed, setRevealed] = useState(false),
     [live, setLive] = useState(true),
     [filter, setFilter] = useState<ToolFilter>('all'),
-    [guideOpen, setGuideOpen] = useState(false);
+    [guideOpen, setGuideOpen] = useState(false),
+    [receipt, setReceipt] = useState<{key:string;name:string;scope:string}>();
+  const contextKey=JSON.stringify([session.organization.id,session.user.id,project]);
   const guideID = useId();
   const recovery = useMemo(
     () =>
@@ -161,6 +165,9 @@ export function ToolWorkspace({
     setRevision((before) => before + 1);
     if (!value || typeof value !== "object") return;
     const result = value as Record<string, unknown>;
+    if(path==='/tool-profiles')setReceipt({key:'registered',name:String(result.name||''),scope:contextKey});
+    else if(path.startsWith('/tool-profiles/')&&['enabled','paused','revoked'].includes(String(result.state)))setReceipt({key:String(result.state),name:String(result.name||''),scope:contextKey});
+    else if(path.startsWith('/release-workers/'))setReceipt({key:'worker_revoked',name:String(result.worker_id||''),scope:contextKey});
     if (path === "/release-workers") {
       setRevealed(false);
       setCredential({
@@ -210,6 +217,7 @@ export function ToolWorkspace({
           {t("development.tools.return_to_the_original_run_and_selected")}</a>
       )}
       <ToolRecoveryNotice action={action} onRestored={saved} />
+      {receipt?.scope===contextKey&&<div className="tool-save-receipt" data-tool-receipt role="status"><CheckCircle2 size={18} aria-hidden="true"/><p>{t('tool-workspace.receipt.'+receipt.key,{name:receipt.name})}</p><button className="icon-button" aria-label={t('tool-workspace.dismiss_receipt')} onClick={()=>setReceipt(undefined)}><X size={16}/></button></div>}
       <div className="tool-refresh-bar">
         <small>{live ? t("development.tools.auto_refresh") : t("development.tools.auto_refresh_paused")}</small>
         <div className="inline">
@@ -342,11 +350,11 @@ export function ToolWorkspace({
               {detail.loading && <p role="status">{t("development.tools.reading_current_dispatch_conditions")}</p>}
               {current && (
                 <>
-                  <ToolProfileFacts profile={current} confirmed={!stale} />
                   {stale && (
                     <p className="warning">
                       {t("development.tools.the_last_read_is_retained_current_connection")}</p>
                   )}
+                  <ToolProfileFacts key={current.id} profile={current} confirmed={!stale}>
                   <div className="tool-action-bar">
                     {current.state !== "revoked" && (
                       <>
@@ -393,6 +401,7 @@ export function ToolWorkspace({
                       </>
                     )}
                   </div>
+                  </ToolProfileFacts>
                 </>
               )}
             </div>
@@ -489,6 +498,7 @@ export function ToolWorkspace({
         )}
         {dialog?.kind === "create" && (
           <ToolProfileForm
+            key={contextKey}
             project={project}
             workers={workers}
             sharedWorkers={sharedWorkers}
@@ -621,6 +631,8 @@ function ToolProfileForm({
     [observations, setObservations] = useState<ToolObservation[]>([]),
     [command, setCommand] = useState(""),
     [error, setError] = useState<unknown>(""),
+    [submitError, setSubmitError] = useState<unknown>(''),
+    [importing, setImporting] = useState(false),
     [name, setName] = useState(""),
     [nameEdited, setNameEdited] = useState(false),
     [worker, setWorker] = useState("");
@@ -628,6 +640,9 @@ function ToolProfileForm({
       (item) => item.profile.command_id === command,
     ),
     blocked = action.busy || !!action.pending;
+  const formID=useId();
+  const identityReady=!!currentToolIdentity(worker,workers,sharedWorkers);
+  const next=!identityReady?'identity':importing?'reading':!manifest.trim()?'inventory':error?'invalid':!observations.length?'empty':!selected?.available?'choose':!name.trim()?'name':'ready';
   function inspectManifest(text:string) {
     setManifest(text);
     setObservations([]);
@@ -651,13 +666,14 @@ function ToolProfileForm({
       className="tool-form"
       onSubmit={async (event) => {
         event.preventDefault();
-        setError("");
+        setSubmitError("");
+        if(importing)return;
         if (!currentToolIdentity(worker, workers, sharedWorkers)) {
-          setError(t("tools.identity.authorization_unconfirmed"));
+          setSubmitError(t("tools.identity.authorization_unconfirmed"));
           return;
         }
         if (!selected?.available) {
-          setError(t("development.tools.choose_an_available_probed_configuration_with_complete"));
+          setSubmitError(t("development.tools.choose_an_available_probed_configuration_with_complete"));
           return;
         }
         const result = await action.run<ToolProfile>("/tool-profiles", {
@@ -669,18 +685,12 @@ function ToolProfileForm({
         if (result) onSaved(result);
       }}
     >
-      {!!error && <ErrorNotice error={renderDiagnostic(error)} />}
-      <p>
+      {!!submitError && <ErrorNotice error={renderDiagnostic(submitError)} />}
+      <p className="tool-form-intro">
         <Trans i18nKey="development.tools.inventory_instructions" components={{command:<code/>}}/></p>
       <fieldset className="form-fields" disabled={blocked}>
-        <Field label={t("development.tools.configuration_name")}>
-          <input
-            required
-            maxLength={200}
-            value={name}
-            onChange={(event) => { setName(event.target.value); setNameEdited(true); }}
-          />
-        </Field>
+        <section className="tool-form-section" aria-labelledby={formID+'-identity'}>
+        <h3 id={formID+'-identity'}><span aria-hidden="true">{formatNumber(1)}</span>{t('tool-workspace.form_identity')}</h3>
         <ToolIdentity
           local={workers}
           shared={sharedWorkers}
@@ -690,24 +700,23 @@ function ToolProfileForm({
             if (action.conflict) action.clearError();
           }}
         />
-        <Field label={t("development.tools.local_non_secret_tool_inventory")}>
-          <textarea
-            rows={7}
-            value={manifest}
-            onChange={(event) => inspectManifest(event.target.value)}
-            placeholder={
-              '{"items":[{"profile":{…},"available":true,"reason":""}]}'
-            }
-          />
-        </Field>
+        </section>
+        <section className="tool-form-section" aria-labelledby={formID+'-inventory'}>
+        <h3 id={formID+'-inventory'}><span aria-hidden="true">{formatNumber(2)}</span>{t('tool-workspace.form_inventory')}</h3>
+        <ToolInventoryField value={manifest} error={error} disabled={blocked} onChange={inspectManifest} onReading={setImporting}/>
         <button
           type="button"
+          className="text-button"
+          disabled={importing}
           onClick={() => inspectManifest(manifest)}
         >
           {t("development.tools.validate_inventory_fields")}</button>
+        </section>
+        <section className="tool-form-section" aria-labelledby={formID+'-configuration'}>
+        <h3 id={formID+'-configuration'}><span aria-hidden="true">{formatNumber(3)}</span>{t('tool-workspace.form_configuration')}</h3>
         {observations.length > 0 && (
           <>
-            <p className="tool-import-result" role="status"><ShieldCheck size={16}/>{t('tool-workspace.import_result',{count:formatNumber(observations.length),available:formatNumber(observations.filter(item=>item.available).length)})}</p>
+            <p className={'tool-import-result '+(observations.some(item=>item.available)?'':'needs-attention')} role="status"><ShieldCheck size={16}/>{t('tool-workspace.import_result',{count:formatNumber(observations.length),available:formatNumber(observations.filter(item=>item.available).length)})}</p>
             <Field label={t("development.tools.choose_an_inventory_configuration")}>
               <select
                 required
@@ -738,6 +747,9 @@ function ToolProfileForm({
             </div>
           </>
         )}
+        <Field label={t("development.tools.configuration_name")} hint={t('tool-workspace.name_help')}>
+          <input required maxLength={200} value={name} onChange={event=>{setName(event.target.value);setNameEdited(true);}}/>
+        </Field>
         {selected && (
           <div className="tool-context">
             <strong>
@@ -747,10 +759,13 @@ function ToolProfileForm({
               {selected.profile.tool_version} ·{" "}
               {selected.profile.read_only ? t("development.tools.read_only") : t("development.tools.write_permitted_separate_worktree")}
             </p>
-            <code>{selected.profile.profile_sha256}</code>
+            <details className="tool-import-fingerprint"><summary>{t('development.facts.configuration_fingerprint')}</summary><code>{selected.profile.profile_sha256}</code></details>
           </div>
         )}
+        </section>
       </fieldset>
+      <div className="tool-profile-submit">
+      <p id={formID+'-next'} data-tool-form-next className={'tool-form-next '+(next==='ready'?'ready':'')} aria-live="polite">{next==='ready'&&<ShieldCheck size={16} aria-hidden="true"/>}{t('tool-workspace.form_next.'+next)}</p>
       <div className="dialog-actions">
         <button type="button" disabled={blocked} onClick={onCancel}>
           {t("development.workflow.cancel")}</button>
@@ -758,14 +773,17 @@ function ToolProfileForm({
           className="primary"
           disabled={
             blocked ||
+            importing ||
             action.conflict ||
             !selected?.available ||
             !worker ||
             !currentToolIdentity(worker, workers, sharedWorkers) ||
             !name.trim()
           }
+          aria-describedby={formID+'-next'}
         >
-          {t("development.tools.save_as_paused_configuration")}</button>
+          {action.busy?t('tool-workspace.saving'):t("development.tools.save_as_paused_configuration")}</button>
+      </div>
       </div>
     </form>
   );

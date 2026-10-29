@@ -33,8 +33,11 @@ export function ToolReadiness({items,total,uncertain,identitiesKnown,identityCou
       <span><Radio size={14}/>{uncertain?t('tool-workspace.unconfirmed'):t('tool-workspace.loaded_scope',{count:formatNumber(items?.length??0),total:formatNumber(total)})}</span>
       <button className="text-button" onClick={onGuide}><CircleHelp size={14}/>{t('tool-workspace.setup_guide')}</button>
     </div>
+    <details key={items?.length?'configured':'empty'} className="tool-journey-disclosure" open={!items?.length}>
+    <summary>{t('tool-workspace.setup_journey')}</summary>
     <ol className="tool-setup-journey" aria-label={t('tool-workspace.setup_journey')}>
       {['identity','probe','register','review'].map((step,index)=><li key={step}><span>{formatNumber(index+1)}</span><div><strong>{t('tool-workspace.step.'+step)}</strong><small>{t('tool-workspace.step_help.'+step)}</small></div>{index===3?<ShieldCheck size={16}/>:<ArrowRight size={14}/>}</li>)}
     </ol>
+    </details>
   </section>;
 }

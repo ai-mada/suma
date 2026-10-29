@@ -3,6 +3,8 @@ import {OctopExecutionFacts} from './OctopExecutionFacts';
 import {openCodeRunFacts,type OpenCodeRunTest} from './opencode-run-model';
 import {ExecutionModelFacts} from './ExecutionModelFacts';
 import { Trans } from "./i18n/Trans";
+import type {ReactNode} from 'react';
+import {CheckCircle2, CircleHelp, PauseCircle, ShieldOff} from 'lucide-react';
 import { NativeToolMessage } from "./NativeToolMessage";
 import { renderDisplayDiagnostic } from "./display-diagnostic";
 import { tr as t, useLocale, formatDateTime, formatNumber } from "./i18n";
@@ -27,6 +29,7 @@ import {
   type TaskContextRecord,
 } from "./tool-model";
 import "./tool.css";
+import './ToolProfileFacts.css';
 export function TaskDispatchRunFacts({
   plan,
   onRun,
@@ -62,7 +65,10 @@ function stamp(value?: string) {
     ? formatDateTime(value, { dateStyle: "short", timeStyle: "medium", hour12: false }) + " · " + value
     : t("development.facts.no_official_observation_yet");
 }
-export function ToolProfileFacts({ profile, confirmed = true }: { profile: ToolProfile; confirmed?: boolean }) { useLocale();
+export function ToolProfileFacts({ profile, confirmed = true, children }: { profile: ToolProfile; confirmed?: boolean; children?:ReactNode }) { useLocale();
+  const available=confirmed&&profile.state==='enabled'&&profile.available;
+  const tone=!confirmed?'unknown':available?'available':profile.state==='paused'?'paused':profile.state==='revoked'?'revoked':'attention';
+  const StatusIcon=available?CheckCircle2:profile.state==='paused'?PauseCircle:profile.state==='revoked'?ShieldOff:CircleHelp;
   return (
     <section className="tool-facts" aria-label={t("development.tools.fixed_tool_configuration")}>
       <div className="tool-section-heading">
@@ -71,42 +77,33 @@ export function ToolProfileFacts({ profile, confirmed = true }: { profile: ToolP
           {toolStateNames[profile.state] || profile.state}
         </span>
       </div>
+      <div className={'tool-dispatch-status '+tone}>
+        <StatusIcon size={20} aria-hidden="true"/>
+        <div><strong>{available?t('tool-workspace.eligible'):t('development.facts.dispatch_eligibility_unconfirmed')}</strong>
+          <p>{!confirmed?t('tool-workspace.detail_unknown'):available?t('tool-workspace.detail_ready'):profile.state==='paused'?t('tool-workspace.detail_paused'):profile.state==='revoked'?t('tool-workspace.detail_revoked'):toolReason(profile.reason,profile.reason_diagnostic)||t('tool-workspace.detail_unknown')}</p>
+          {confirmed&&!available&&profile.state!=='enabled'&&profile.reason&&<p className="tool-profile-reason">{toolReason(profile.reason,profile.reason_diagnostic)}</p>}
+        </div>
+      </div>
+      {children}
       <dl>
         <dt>{t("development.tools.execution_worker_identity")}</dt>
         <dd>
           <code>{profile.worker_id}</code>
         </dd>
-        <dt>{t("development.facts.command_and_protocol")}</dt>
+        <dt>{t("tool-workspace.command")}</dt>
         <dd>
-          {profile.profile.command_id} · {profile.profile.adapter} /{" "}
-          {profile.profile.protocol}
+          {profile.profile.command_id} · {profile.profile.adapter}
         </dd>
         <dt>{t("development.facts.fixed_version")}</dt>
         <dd>{profile.profile.tool_version}</dd>
-        <dt>{t("development.facts.operation_version")}</dt>
-        <dd>v{profile.version}</dd>
         <dt>{t("development.facts.execution_permission")}</dt>
         <dd>
           {profile.profile.read_only
             ? t("development.facts.read_only_command")
             : t("development.facts.write_permitted_worktree_isolated_per_attempt")}
         </dd>
-        <dt>{t("development.facts.configuration_fingerprint")}</dt>
-        <dd>
-          <code>{profile.profile.profile_sha256}</code>
-        </dd>
-        <dt>{t("development.facts.executable_fingerprint")}</dt>
-        <dd>
-          <code>{profile.profile.executable_sha256}</code>
-        </dd>
         <dt>{t("development.facts.last_report")}</dt>
-        <dd>{stamp(profile.last_seen_at)}</dd>
-        <dt>{t("development.facts.current_dispatch_conditions")}</dt>
-        <dd>
-          {confirmed && profile.available
-            ? t("development.facts.dispatchable_at_last_read_verified_again_at")
-            : t("development.facts.dispatch_eligibility_unconfirmed")}
-        </dd>
+        <dd>{profile.last_seen_at?<time dateTime={profile.last_seen_at}>{formatDateTime(profile.last_seen_at,{dateStyle:'short',timeStyle:'medium'})}</time>:t('development.facts.no_official_observation_yet')}</dd>
       </dl>
       <p className="muted">
         {t("development.facts.version_and_probing_do_not_prove_model")}</p>
@@ -114,15 +111,20 @@ export function ToolProfileFacts({ profile, confirmed = true }: { profile: ToolP
       {profile.profile.adapter==='octop'&&profile.profile.protocol==='octop-harness-acp-v1'&&<OctopExecutionFacts capability={profile.profile.octop_execution}/>}
       {'workspace_tools_version' in profile.profile&&profile.profile.workspace_tools_version==='attempt-workspace-v1'&&<p className="muted">{t('native-workspace.capability')}</p>}
       {profile.profile.conflict_repair_protocol==='suma.candidate-conflict-repair.v1'&&<p className="muted">{t('candidate-conflict-repair.capability')}</p>}
-      {profile.reason && (
-        <div className="warning">
-          <p>{toolReason(profile.reason, profile.reason_diagnostic)}</p>
-          <details>
+      <details data-tool-technical>
+        <summary>{t('tool-workspace.technical_details')}</summary>
+        <dl>
+          <dt>{t('development.facts.command_and_protocol')}</dt><dd>{profile.profile.command_id} · {profile.profile.adapter} / {profile.profile.protocol}</dd>
+          <dt>{t('development.facts.operation_version')}</dt><dd>v{profile.version}</dd>
+          <dt>{t('development.facts.configuration_fingerprint')}</dt><dd><code>{profile.profile.profile_sha256}</code></dd>
+          <dt>{t('development.facts.executable_fingerprint')}</dt><dd><code>{profile.profile.executable_sha256}</code></dd>
+          <dt>{t('development.facts.last_report')}</dt><dd>{stamp(profile.last_seen_at)}</dd>
+        </dl>
+        {profile.reason&&<details>
             <summary>{t("development.facts.original_reason")}</summary>
             <code>{profile.reason}</code>
-          </details>
-        </div>
-      )}
+        </details>}
+      </details>
       {profile.observation && (
         <details>
           <summary>{t("development.facts.latest_non_secret_observation")}</summary>

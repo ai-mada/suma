@@ -87,3 +87,52 @@ it('invalidates the parsed selection when inventory content becomes invalid',asy
  await change(textarea,JSON.stringify({items:[{profile:definition,available:true,reason:''}]}));await change(textarea,'{"items":');
  expect(document.querySelector('.tool-form .tool-context')).toBeNull();expect(document.querySelector<HTMLButtonElement>('.dialog-actions .primary')!.disabled).toBe(true);expect(writes).toHaveLength(0);
 });
+it('imports a bounded local JSON file without uploading it and shows the paused-save receipt',async()=>{
+ workers=[{id:'w',worker_id:'runner',status:'active',version:1}];await render();await click('登记配置');
+ const file=new File(['inventory'],'tools.json',{type:'application/json'});Object.defineProperty(file,'text',{value:async()=>JSON.stringify({items:[{profile:definition,available:true,reason:''}]})});
+ const input=document.querySelector<HTMLInputElement>('[data-tool-inventory-file]');expect(input).not.toBeNull();Object.defineProperty(input!,'files',{configurable:true,value:[file]});await act(async()=>input!.dispatchEvent(new Event('change',{bubbles:true})));await settle();
+ expect(document.querySelector<HTMLInputElement>('.tool-form input[maxlength="200"]')!.value).toBe('check');expect(writes).toHaveLength(0);
+ await change(document.querySelector<HTMLSelectElement>('.tool-form select')!,'runner');await act(async()=>document.querySelector('.tool-form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle();
+ expect(host.querySelector('[data-tool-receipt]')?.textContent).toContain('已登记配置');expect(host.querySelector('[data-tool-receipt]')?.textContent).toContain('暂停');expect(writes).toHaveLength(1);
+});
+it('keeps newer typed content when a previous file read finishes late',async()=>{
+ await render();await click('登记配置');let finish!:(text:string)=>void;const file=new File(['inventory'],'tools.json');Object.defineProperty(file,'text',{value:()=>new Promise(resolve=>{finish=resolve;})});
+ const input=document.querySelector<HTMLInputElement>('[data-tool-inventory-file]');expect(input).not.toBeNull();Object.defineProperty(input!,'files',{configurable:true,value:[file]});await act(async()=>input!.dispatchEvent(new Event('change',{bubbles:true})));
+ const text=JSON.stringify({items:[{profile:{...definition,command_id:'typed'},available:true,reason:''}]});await change(document.querySelector<HTMLTextAreaElement>('.tool-form textarea')!,text);await act(async()=>finish(JSON.stringify({items:[{profile:definition,available:true,reason:''}]})));await settle();
+ expect(document.querySelector<HTMLTextAreaElement>('.tool-form textarea')!.value).toBe(text);expect(document.querySelector<HTMLInputElement>('.tool-form input[maxlength="200"]')!.value).toBe('typed');expect(writes).toHaveLength(0);
+});
+it('rejects oversized files before reading them and explains the next missing registration step',async()=>{
+ await render();await click('登记配置');const file=new File(['x'],'tools.json');Object.defineProperty(file,'size',{value:262145});const read=vi.fn();Object.defineProperty(file,'text',{value:read});
+ const input=document.querySelector<HTMLInputElement>('[data-tool-inventory-file]');expect(input).not.toBeNull();Object.defineProperty(input!,'files',{configurable:true,value:[file]});await act(async()=>input!.dispatchEvent(new Event('change',{bubbles:true})));await settle();
+ expect(read).not.toHaveBeenCalled();expect(document.querySelector('[data-tool-import-error]')?.textContent).toContain('256');expect(document.querySelector('[data-tool-form-next]')?.textContent).toContain('执行节点');expect(writes).toHaveLength(0);
+});
+it('presents current dispatch state before technical fingerprints and collapses setup steps for configured projects',async()=>{
+ items=[{...profile('ready','enabled',true),reason:'reported'}];await render();await act(async()=>host.querySelector<HTMLButtonElement>('.tool-resource')!.click());await settle();
+ const technical=host.querySelector<HTMLDetailsElement>('[data-tool-technical]');expect(technical).not.toBeNull();expect(technical!.open).toBe(false);expect(technical!.textContent).toContain('a'.repeat(64));
+ expect(host.querySelector('.tool-facts .tool-dispatch-status')?.className).toContain('available');expect(host.querySelector('.tool-facts .warning')).toBeNull();expect(host.querySelector<HTMLDetailsElement>('.tool-journey-disclosure')?.open).toBe(false);
+});
+it('blocks saving the previous profile during a file read and preserves it on a local read failure',async()=>{
+ workers=[{id:'w',worker_id:'runner',status:'active',version:1}];await render();await click('登记配置');await change(document.querySelector<HTMLSelectElement>('.tool-form select')!,'runner');
+ const original=JSON.stringify({items:[{profile:definition,available:true,reason:''}]});await change(document.querySelector<HTMLTextAreaElement>('.tool-form textarea')!,original);
+ let reject!:(error:Error)=>void;const file=new File(['x'],'tools.json');Object.defineProperty(file,'text',{value:()=>new Promise((_resolve,fail)=>{reject=fail;})});const input=document.querySelector<HTMLInputElement>('[data-tool-inventory-file]')!;Object.defineProperty(input,'files',{configurable:true,value:[file]});await act(async()=>input.dispatchEvent(new Event('change',{bubbles:true})));
+ expect(document.querySelector<HTMLButtonElement>('.dialog-actions .primary')!.disabled).toBe(true);await act(async()=>document.querySelector('.tool-form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));expect(writes).toHaveLength(0);
+ await act(async()=>reject(Error('local read failed')));await settle();expect(document.querySelector<HTMLTextAreaElement>('.tool-form textarea')!.value).toBe(original);expect(document.querySelector('[data-tool-import-error]')?.textContent).toContain('原有草稿已保留');
+});
+it('shows inline invalid-file diagnostics and clears them when the inventory is corrected',async()=>{
+ await render();await click('登记配置');const textarea=document.querySelector<HTMLTextAreaElement>('.tool-form textarea')!;
+ await change(textarea,'{"items":');expect(textarea.getAttribute('aria-invalid')).toBe('true');const errorID=textarea.getAttribute('aria-describedby')!.split(' ').at(-1)!;expect(document.getElementById(errorID)?.getAttribute('role')).toBe('alert');
+ await change(textarea,JSON.stringify({items:[{profile:definition,available:false,reason:'missing local executable'}]}));expect(textarea.getAttribute('aria-invalid')).toBe('false');expect(document.querySelector('.tool-import-result.needs-attention')).not.toBeNull();expect(document.querySelector<HTMLButtonElement>('.dialog-actions .primary')!.disabled).toBe(true);
+});
+it('hides an operation receipt from a different project scope',async()=>{
+ workers=[{id:'w',worker_id:'runner',status:'active',version:1}];await render();await click('登记配置');await change(document.querySelector<HTMLSelectElement>('.tool-form select')!,'runner');await change(document.querySelector<HTMLTextAreaElement>('.tool-form textarea')!,JSON.stringify({items:[{profile:definition,available:true,reason:''}]}));await act(async()=>document.querySelector('.tool-form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle();expect(host.querySelector('[data-tool-receipt]')).not.toBeNull();
+ await act(async()=>root.render(<ToolWorkspace project="other" session={session} selected="" onSelect={()=>{}} refresh={0} panel=""/>));await settle();expect(host.querySelector('[data-tool-receipt]')).toBeNull();
+});
+it('preserves a name edited while an inventory file is being read',async()=>{
+ await render();await click('登记配置');let finish!:(text:string)=>void;const file=new File(['inventory'],'tools.json');Object.defineProperty(file,'text',{value:()=>new Promise(resolve=>{finish=resolve;})});
+ const input=document.querySelector<HTMLInputElement>('[data-tool-inventory-file]')!;Object.defineProperty(input,'files',{configurable:true,value:[file]});await act(async()=>input.dispatchEvent(new Event('change',{bubbles:true})));
+ await change(document.querySelector<HTMLInputElement>('.tool-form input[maxlength="200"]')!,'Team chosen name');await act(async()=>finish(JSON.stringify({items:[{profile:definition,available:true,reason:''}]})));await settle();expect(document.querySelector<HTMLInputElement>('.tool-form input[maxlength="200"]')!.value).toBe('Team chosen name');
+});
+it('shows the latest file failure instead of an older JSON parse error',async()=>{
+ await render();await click('登记配置');await change(document.querySelector<HTMLTextAreaElement>('.tool-form textarea')!,'{"items":');
+ const file=new File(['x'],'tools.json');Object.defineProperty(file,'size',{value:262145});const input=document.querySelector<HTMLInputElement>('[data-tool-inventory-file]')!;Object.defineProperty(input,'files',{configurable:true,value:[file]});await act(async()=>input.dispatchEvent(new Event('change',{bubbles:true})));await settle();expect(document.querySelector('[data-tool-import-error]')?.textContent).toContain('256 KiB');
+});
