@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-TOOLS-151：[工具快速接入限定验证](tool-quick-connect-verification.md)／[摘要](tool-quick-connect-summary.json)。14个不同Go顶层通过、1环境符号链接跳过，55个Web定向用例、15个原生候选场景、最终类型／7499双语／隔离构建通过。15项实际GUI／HTTP／生产preload与IPC核对了自动匹配、一次暂停登记、一次明确启用和当时fresh available；中英图片已目视。合成探测CLI不代表供应方开发，本机托管Runner和自动启动仍待交付。自有fixture Runner验收后停止，不夸持续在线；58／34／92不变。
+
 T-MULTICA-BULK-150：[批量负责人限定验证](task-owner-changes-verification.md)／[摘要](task-owner-changes-summary.json)。24个Go顶层／14子场景、24个不同Web用例，原CLI／生成合同／语言和隔离构建检查通过；23项实际本机断言与5项最终只读核对分别记录，最终中英图片已目视。C／D仅按原正文及操作ID恢复、各+1版本且各1通知；同窗口GUI刷新恢复仍有测试宿主缺口。源码、旧r3行为与最终r4仅文案变化按摘要映射，不重跑无关全套，完整58／34／92不变。
 
 T-HANDOFF-INBOX-148：[交接收件与准确定位验证](task-handoff-inbox-verification.md)／[摘要](task-handoff-inbox-summary.json)。原事务通知、准确GET、来源反向校验及独立草稿已限定检查；16项真实本机GUI／HTTP通过，打开0业务写、一次明确退回及exact v2／returned一致、通知仍unread。两次截图timeout，视觉图片待验；责任接收不等于Review，完整58／34／92不变。

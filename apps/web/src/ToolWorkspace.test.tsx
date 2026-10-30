@@ -31,6 +31,16 @@ async function render(){await act(async()=>root.render(<View/>));await settle();
 it('offers the first actionable setup step directly from an empty workspace',async()=>{
  await render();expect(host.textContent).toContain('下一步');await click('登记执行节点');expect(document.querySelector('[role=dialog] input[pattern]')).not.toBeNull();expect(writes).toHaveLength(0);
 });
+it('clears node facts on an actor switch while preserving the old uncertain operation without replay',async()=>{
+ workers=[{id:'old-node',worker_id:'old-scope-runner',status:'active',version:1}];
+ const key='suma-tool-recovery-v1:o:u:p:profiles',pending=JSON.stringify({path:'/tool-profiles',method:'POST',idempotency_key:'original-operation',body:{project_id:'p',worker_id:'old-scope-runner',name:'Original',profile:definition}});
+ sessionStorage.setItem(key,pending);await render();expect(host.textContent).toContain('old-scope-runner');
+ const base=vi.mocked(fetch).getMockImplementation()!,pendingReads:((response:Response)=>void)[]=[];
+ vi.mocked(fetch).mockImplementation(async(input,init)=>/\/(?:release-workers|project-execution\/runners)\?/.test(String(input))?new Promise(resolve=>pendingReads.push(resolve)):base(input,init));
+ await act(async()=>root.render(<ToolWorkspace project="p" session={{...session,user:{...session.user,id:'other-user'}}} selected="" onSelect={()=>{}} refresh={0} panel=""/>));await settle();
+ expect(host.textContent).not.toContain('old-scope-runner');expect(sessionStorage.getItem(key)).toBe(pending);expect(writes).toHaveLength(0);
+ await act(async()=>pendingReads.forEach(resolve=>resolve(Response.json({items:[],as_of:'2026-10-29T05:00:00Z'}))));await settle();expect(host.textContent).not.toContain('old-scope-runner');expect(writes).toHaveLength(0);
+});
 it('filters by actual dispatch eligibility and keeps name/adapter search combined',async()=>{
  items=[profile('ready','enabled',true),profile('review','paused',false),profile('offline','enabled',false),profile('retired','revoked',false)];await render();
  await click('可派发 1');expect([...host.querySelectorAll('.tool-resource strong')].map(e=>e.textContent)).toEqual(['ready']);

@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+当前T-TOOLS-151按用户工具注册／连接优先级交付[快速接入](../product/tool-quick-connect.md)：工具选择→唯一节点／配置自动匹配→暂停登记→明确启用，以及只读本机安装检测。[合同](../../contracts/tool-quick-connect.md)、[架构](../architecture/tool-quick-connect.md)、[交互与AI SOP](../design/tool-quick-connect.md)和[限定证据](../quality/tool-quick-connect-verification.md)区分安装、身份、fresh库存、启用和执行。下一步补本机受保护凭据交付、加密journal、未知发行核对及托管Runner生命周期，避免让用户复制token／拼接命令；当前不能称完整本机一键连接，完整P0–P7／58／34／92继续保留。
+
 当前T-MULTICA-BULK-150推进[Multica M07](../integrations/multica-priority-map.md)中的批量负责人切片：明确有界选择→当前人员→预览／确认→同事务采用→原操作核对；既有专家团队派发保留。实现、交互、CLI与AI SOP见[需求](../product/task-owner-changes.md)、[架构](../architecture/task-owner-changes.md)、[设计](../design/task-owner-changes.md)和[限定证据](../quality/task-owner-changes-verification.md)。其他批量动作、本机工具自动接入、完整P0–P7和58／34／92继续交付；不会把本片计为整项完成。
 
 最近交付T-HANDOFF-INBOX-148沿原任务协作推进[交接请求收件与准确定位](../product/task-handoff-inbox.md)：同事务请求通知、准确GET、当前caller隔离、独立草稿和明确版本采用；责任接收不代替正式Review。限定检查及16项实际本机GUI／HTTP已记录于[报告](../quality/task-handoff-inbox-verification.md)和[摘要](../quality/task-handoff-inbox-summary.json)，视觉图片仍待验；完整P0–P7／需求1–26及58 limited／34 pending／92总账保留。

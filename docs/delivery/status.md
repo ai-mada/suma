@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+最近交付T-TOOLS-151：[工具快速接入](../product/tool-quick-connect.md)以选择工具为入口，唯一已授权节点和新鲜匹配配置自动采用，名称自动建议，暂停登记后原地引导明确启用，高级配置与原回执恢复保留。桌面复用同一control程序新增受限安装检测，支持Codex／CodeBuddy／dsh，不暴露命令权或凭据。14个不同Go顶层通过、1符号链接场景跳过，Web55、原生15及实际GUI／HTTP／IPC15项通过；中英1366／390图片已目视。真实Runner上报使用明确合成探测CLI，未开发／请求模型；见[报告](../quality/tool-quick-connect-verification.md)／[摘要](../quality/tool-quick-connect-summary.json)。本机凭据托管、Runner自动启动及已有未上报身份的简化连接仍待交付；58／34／92不变。
+
 最近交付T-MULTICA-BULK-150：[批量负责人分配](../product/task-owner-changes.md)将最多16个明确任务、当前真人资源、准确版本、预览摘要与影响确认放在同一流程。复用普通任务更新的同事务核心；全部预验后采用，未变项不空更新，通知与依赖失效原子保存，未知结果只核对原正文／操作ID。24个Go顶层和24个不同Web用例通过，23项实际本机断言与5项最终只读核对分开记录，最终中文1366／英文390深色图片已目视。实际GUI刷新恢复受测试宿主限制，已按原API恢复且无重复；见[合同](../../contracts/task-owner-changes.md)、[报告](../quality/task-owner-changes-verification.md)与[摘要](../quality/task-owner-changes-summary.json)。不等于全部M07或平台验收，完整58／34／92不变。
 
 最近交付T-HANDOFF-INBOX-148：[交接请求](../product/task-handoff-inbox.md)在原事务通知原接收人，私有反向绑定后从个人收件箱准确定位；接收责任与正式Review分开。限定检查及16项实际本机GUI／HTTP通过，一次明确退回由exact GET核对v2／returned，通知仍未读；两次截图timeout，视觉图片待验。见[合同](../../contracts/task-handoff-inbox.md)、[报告](../quality/task-handoff-inbox-verification.md)及[摘要](../quality/task-handoff-inbox-summary.json)。完整58 limited／34 pending／92总项不变。

@@ -99,3 +99,12 @@
 ## 验证范围
 
 `internal/cli` 的 HTTP 合同测试覆盖项目与 Bearer 身份、服务端错误和退出状态、文件操作身份稳定性、固定版本启动、流程发布、事件游标、超时无重试、重定向不转发凭证、取消及非 TTY 退出。Bubble Tea 模型测试覆盖只读项目切换和旧响应隔离。实际交互终端的键盘/尺寸行为需要单独实机验收；模型测试和可执行产物构建不代表完整跨终端验收。
+
+## 本机工具安装检测（T-TOOLS-151）
+
+`suma-control --discover-installed-tools --local-tool codex-jsonl --language en-US`
+与`suma-runner --discover-installed-tools --local-tool codebuddy-cli --language zh-CN`
+共用固定安装／版本／协议探测；省略local-tool检测三个已支持入口。
+模式在业务凭据、数据库和执行日志初始化前返回，不启动服务或任务。
+报告仅为安装事实与本机模板，不能导入成平台授权或派发证据。
+工具暂停登记、独立启用及未知操作恢复见[快速接入合同](../../contracts/tool-quick-connect.md)。

@@ -28,8 +28,19 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	app := commandlocale.New("suma-control", "速码控制面服务", "suma control service", out, stderr, lookup)
 	addr := app.String("addr", app.Env("SUMA_ADDR", "127.0.0.1:4310"), "监听地址", "listen address")
 	maintenance := app.Bool("maintenance", false, "升级核验模式：暂停业务命令及后台调度和投影", "upgrade verification: pause business commands and background scheduling/projection")
+	discoverInstalled := app.Bool("discover-installed-tools", false, "只读检测本机已安装工具，不启动控制服务或读取业务凭据", "detect installed local tools without starting the service or reading business credentials")
+	localTool := app.String("local-tool", "", "本机检测类型：codex-jsonl、codebuddy-cli、dsh-multica；空值检测全部", "local detection entry: codex-jsonl, codebuddy-cli or dsh-multica; empty selects all")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	if *discoverInstalled {
+		if *maintenance {
+			return app.Failure("本机检测不能与服务维护模式混用", "Local detection cannot be combined with service maintenance")
+		}
+		return runInstalledToolDiscovery(app, *localTool)
+	}
+	if *localTool != "" {
+		return app.Failure("--local-tool 只能与 --discover-installed-tools 使用", "--local-tool requires --discover-installed-tools")
 	}
 	logger := slog.New(slog.NewTextHandler(stderr, nil))
 	data := app.Env("SUMA_DATA_DIR", ".suma")

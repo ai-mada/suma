@@ -8,9 +8,12 @@ const {waitForHealth,allowedNavigation,terminateService}=require('./lifecycle.cj
 const {resolveLocale,message,localError}=require('./localization.cjs');
 const {CHANNEL,loadWorkspaceKey,createDirectoryPicker,developmentOverrides,ensurePrivateDirectory,controlEnvironment}=require('./workspace-grants.cjs');
 const {createWorkBuddyOAuthController}=require('./oauth-window.cjs');
+const {CHANNEL:TOOL_DISCOVERY_CHANNEL,createInstalledToolDiscoveryController}=require('./installed-tools.cjs');
 const OAUTH_CHANNEL='suma:open-workbuddy-authorization';
 let oauthController;
 function disposeOAuth(){ipcMain.removeHandler(OAUTH_CHANNEL);oauthController?.dispose();oauthController=undefined;}
+let installedToolController;let installedToolStop=Promise.resolve();
+function disposeInstalledTools(){ipcMain.removeHandler(TOOL_DISCOVERY_CHANNEL);if(installedToolController)installedToolStop=installedToolController.dispose();installedToolController=undefined;return installedToolStop;}
 let service;let window;let shuttingDown=false;let quitRequested=false;let locale='zh-CN';let origin='';let overrides;let configurationError;
 try{overrides=developmentOverrides(__dirname,process.env,app.isPackaged);if(overrides)app.setPath('userData',ensurePrivateDirectory(overrides.userData))}catch{configurationError='desktop_configuration_invalid'}
 function availablePort(){return new Promise((resolvePort,reject)=>{const server=net.createServer();server.once('error',reject);server.listen(0,'127.0.0.1',()=>{const port=server.address().port;server.close(error=>error?reject(error):resolvePort(port))})})}
@@ -49,11 +52,15 @@ async function start(){
  ipcMain.handle(CHANNEL,createDirectoryPicker({key,dialog,getWindow:()=>window,getOrigin:()=>origin,isShuttingDown:()=>shuttingDown}));
  oauthController=createWorkBuddyOAuthController({BrowserWindow,parent:window,origin});
  ipcMain.handle(OAUTH_CHANNEL,(event,request)=>oauthController.open(event,request));
- window.once('ready-to-show',()=>window.show());window.once('closed',()=>{disposeOAuth();window=undefined});await window.loadURL(origin);
+ // Installation checks reuse this distribution's exact control executable in
+ // its credential-free CLI mode; no second runtime is downloaded or installed.
+ installedToolController=createInstalledToolDiscoveryController({parent:window,origin,binary,tempDirectory:ensurePrivateDirectory(join(data,'.cache','tool-discovery'))});
+ ipcMain.handle(TOOL_DISCOVERY_CHANNEL,(event,request)=>installedToolController.discover(event,request));
+ window.once('ready-to-show',()=>window.show());window.once('closed',()=>{disposeOAuth();disposeInstalledTools();window=undefined});await window.loadURL(origin);
 }
 if(!configurationError&&!app.requestSingleInstanceLock()){app.quit()}else{
  app.on('second-instance',()=>{if(window){if(window.isMinimized())window.restore();window.focus()}});
  app.whenReady().then(start).catch(async error=>{shuttingDown=true;dialog.showErrorBox(message(locale,'startup_failed'),error.message);try{await stopService()}catch(stopError){dialog.showErrorBox(message(locale,'shutdown_failed'),stopError.message)}finally{app.quit()}});
  app.on('window-all-closed',()=>app.quit());
- app.on('before-quit',event=>{if(quitRequested)return;event.preventDefault();shuttingDown=true;disposeOAuth();ipcMain?.removeHandler(CHANNEL);void stopService().catch(error=>dialog.showErrorBox(message(locale,'shutdown_failed'),error.message)).finally(()=>{quitRequested=true;app.quit()})});
+ app.on('before-quit',event=>{if(quitRequested)return;event.preventDefault();shuttingDown=true;disposeOAuth();const discoveryStopped=disposeInstalledTools();ipcMain?.removeHandler(CHANNEL);void discoveryStopped.then(stopService).catch(error=>dialog.showErrorBox(message(locale,'shutdown_failed'),error.message)).finally(()=>{quitRequested=true;app.quit()})});
 }

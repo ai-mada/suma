@@ -1,5 +1,26 @@
 {
   "project": "suma",
+  "tool_quick_connect": {
+    "stage": "T-TOOLS-151",
+    "date": "2026-10-30",
+    "status": "scoped_verified_managed_runner_pending",
+    "contract": "contracts/tool-quick-connect.md",
+    "product": "docs/product/tool-quick-connect.md",
+    "architecture": "docs/architecture/tool-quick-connect.md",
+    "design": "docs/design/tool-quick-connect.md",
+    "report": "docs/quality/tool-quick-connect-verification.md",
+    "summary": "docs/quality/tool-quick-connect-summary.json",
+    "source_sha256": "82ea1f698d0351d5863322e29b6306741a7dcbeee6bb9cbada3c3d9c52349460",
+    "scope": "Tool-first compact wizard; single authorized node and fresh exact Profile auto-fill; paused registration then explicit enable; optional fixed desktop read-only installed CLI probe.",
+    "verification": "Go14 distinct top pass/1 symlink skip; Web55; native candidate15; final types/i18n7499/build; actual GUI/HTTP/production IPC15 with inspected CN1366/EN390 images.",
+    "actual_runtime": "Actual independent SQLite/current actor/Runner with synthetic probe-only CLI; one paused registration and one explicit enable; exact GET available at fresh verification; tasks0/runs0/model0. Fixture Runner stopped afterward to avoid idle probes.",
+    "pending": [
+      "Managed local worker credential delivery/encrypted journal/automatic startup",
+      "Simplified connection for an existing registered but unreported identity",
+      "Real vendor coding/authentication and otherDB/multihost/scale/installer/production acceptance"
+    ],
+    "ledger_unchanged": "58 limited /34 pending /92 total"
+  },
   "task_owner_changes": {
     "stage": "T-MULTICA-BULK-150",
     "date": "2026-10-30",

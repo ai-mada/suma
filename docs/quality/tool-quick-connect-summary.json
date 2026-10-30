@@ -1,0 +1,292 @@
+{
+  "stage": "T-TOOLS-151",
+  "date": "2026-10-30",
+  "version": "1.0.0",
+  "status": "scoped_verified_managed_runner_pending",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "stage": "T-TOOLS-151",
+    "base": "a7073c2abdd9849b51a7371cee210fd428712f1b",
+    "source_sha256": "82ea1f698d0351d5863322e29b6306741a7dcbeee6bb9cbada3c3d9c52349460",
+    "source_algorithm": "SHA256 compact JSON sorted changed [{path,sha256}]; unchanged source from exact base archive",
+    "source_files": [
+      {
+        "path": "apps/desktop/src/installed-tools.cjs",
+        "sha256": "4cda9948b26fe9b13e4f33ae59e2664b4e0c7335bbb9c80d943ebe62baf55919"
+      },
+      {
+        "path": "apps/desktop/src/main.cjs",
+        "sha256": "010c69a028b744f57c5591e74fb69b78afefcfc3c028fbdcbd65b5ba96346f85"
+      },
+      {
+        "path": "apps/desktop/src/preload.cjs",
+        "sha256": "afe038a57f4b08b50d3cb80e3e7091eacd68520794b27fb57b68511f4ef2d200"
+      },
+      {
+        "path": "apps/desktop/tests/installed-tools.test.cjs",
+        "sha256": "32a2140133344b6c33ffcb6da01ae9620e55b430285955b0c3cc4c98ff1aead7"
+      },
+      {
+        "path": "apps/desktop/tests/oauth-bridge-main.test.cjs",
+        "sha256": "d42c4556590d79be70ee7a757c07928b497a11b18ed8fd2fc1e171e8b6fcdde7"
+      },
+      {
+        "path": "apps/desktop/tests/workspace-grants.test.cjs",
+        "sha256": "2fcb39fd30e38b5cb71ab7f30e540ff71950b9aedffe7ad5c23800611c109a98"
+      },
+      {
+        "path": "apps/web/src/AdapterConnectionsIntegration.test.tsx",
+        "sha256": "f25548360cdadbd7813e5cad7d82ec6ee7267fed6ef6e8569f8eaa8e4c40d708"
+      },
+      {
+        "path": "apps/web/src/ToolQuickConnect.css",
+        "sha256": "a49532c78eb72be404cb997c6a4fda5ced71d4ea14c08c5af0cb4b07a4ac785c"
+      },
+      {
+        "path": "apps/web/src/ToolQuickConnect.test.tsx",
+        "sha256": "96e40d9b02108a29777458b43d1ab5ec83b4278954355ba67b13cbde56972974"
+      },
+      {
+        "path": "apps/web/src/ToolQuickConnect.tsx",
+        "sha256": "ecedd54bdbc011bfaa3f42347a23b89c295fb9639d580d7a4eab953ed3848f9b"
+      },
+      {
+        "path": "apps/web/src/ToolReadiness.tsx",
+        "sha256": "35fcf82b1b658ecb8cdb28281d11cc036a2f86a8f49f262d1634f0e335f29330"
+      },
+      {
+        "path": "apps/web/src/ToolWorkspace.test.tsx",
+        "sha256": "6aa00eaaf712833a3808b4d17be0e96587507af73cc3b814043b71f838ba388d"
+      },
+      {
+        "path": "apps/web/src/ToolWorkspace.tsx",
+        "sha256": "8604ed3da149f63ae4df71992b3a9241bf0bc2297ca94898b0ab8695b4b3f166"
+      },
+      {
+        "path": "apps/web/src/i18n/locales/domains/tool-quick-connect.en-US.json",
+        "sha256": "8318f6d48426003a64ad83a182a35c40a2df6354b21c2fed52b5d3787e379a32"
+      },
+      {
+        "path": "apps/web/src/i18n/locales/domains/tool-quick-connect.zh-CN.json",
+        "sha256": "be404cffb99b2f3bd906d394018a1e712d8fdfe87ae43883883ebee4f925ea6f"
+      },
+      {
+        "path": "apps/web/src/tool-quick-connect-model.test.ts",
+        "sha256": "fd3d71f45b2ac103d9c4c95411a23ceedd882d4480d10782eba957f0e89cde75"
+      },
+      {
+        "path": "apps/web/src/tool-quick-connect-model.ts",
+        "sha256": "5ff5a5946b87133c5625a8ad85edc8222754522199f91a87f53509b6423c5ac4"
+      },
+      {
+        "path": "cmd/suma-control/local_tools.go",
+        "sha256": "931e2856f8ea61bc7aaf89da05eb5eb715ec5b75cfa2354c725af1d587627f12"
+      },
+      {
+        "path": "cmd/suma-control/local_tools_test.go",
+        "sha256": "8863c06c6f59e6caa19d4a1d7010c0b6e394f235523e18c077d8c3dc262b6c36"
+      },
+      {
+        "path": "cmd/suma-control/main.go",
+        "sha256": "91fcc2cff2c394a2ee9dcba5159d856f27d75fa196b76b665f0427fdcf352300"
+      },
+      {
+        "path": "cmd/suma-runner/local_tools.go",
+        "sha256": "c16e721b39b5e5fcd3f94cf075627e895563b879dedf8b9f085eaeb6db4752f4"
+      },
+      {
+        "path": "cmd/suma-runner/local_tools_mode_test.go",
+        "sha256": "885edf8ac8591bc1a759a2104a6b2a528494f54ee169ebab36e567cb5affc875"
+      },
+      {
+        "path": "cmd/suma-runner/local_tools_test.go",
+        "sha256": "807af5de7695710fc6f9fda5504b827062e9bb23f32f9cfde76e95c533ba4d42"
+      },
+      {
+        "path": "cmd/suma-runner/main.go",
+        "sha256": "e1326cd078ae788378c10781481638fa48c7026dfdb4481d5251f6871ec34b51"
+      },
+      {
+        "path": "internal/runner/local_tool_discovery.go",
+        "sha256": "4a3468dad19cbb756c9679d6689fcb9c98538f4a84ea73eb6825ec2eca0f1b5b"
+      },
+      {
+        "path": "internal/runner/local_tool_discovery_test.go",
+        "sha256": "98643054f664c2a471fb626761991d8cac0282dc7e6f939ff063639e9d665bba"
+      }
+    ],
+    "artifacts": [
+      {
+        "name": "control",
+        "path": ".cache/e2e/tools151/candidate/bin/suma-control.exe",
+        "bytes": 42369536,
+        "sha256": "adcca096c9181370a1b54d4222d876f0ca513bf7f0649280838312334b0bd545"
+      },
+      {
+        "name": "runner",
+        "path": ".cache/e2e/tools151/candidate/bin/suma-runner.exe",
+        "bytes": 20916736,
+        "sha256": "d5985b940eb02f796205709909c966ad8d9be0fa54b9b170470ed34db4fa17fb"
+      },
+      {
+        "name": "web_index",
+        "path": ".cache/e2e/tools151/candidate/web/index.html",
+        "bytes": 415,
+        "sha256": "487af804f96709286e3d3fb913fb4e7937bad60b9799519ed19a4f317e166905"
+      }
+    ],
+    "web_checks": [
+      {
+        "name": "types",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "D:\\codes\\ai-dev-os\\suma\\node_modules\\.pnpm\\typescript@5.7.3\\node_modules\\typescript\\bin\\tsc",
+          "--noEmit"
+        ],
+        "cwd": "D:/codes/ai-dev-os/suma/.cache/e2e/tools151/candidate/src/apps/web",
+        "exit_code": 0,
+        "elapsed_ms": 45573
+      },
+      {
+        "name": "i18n",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "D:/codes/ai-dev-os/suma/.cache/e2e/tools151/candidate/src/apps/web/scripts/check-i18n.mjs"
+        ],
+        "cwd": "D:/codes/ai-dev-os/suma/.cache/e2e/tools151/candidate/src/apps/web",
+        "exit_code": 0,
+        "elapsed_ms": 3721
+      },
+      {
+        "name": "build",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "D:\\codes\\ai-dev-os\\suma\\node_modules\\.pnpm\\vite@6.1.0_@types+node@22.20.5_jiti@2.7.0_yaml@2.9.1\\node_modules\\vite\\bin\\vite.js",
+          "build",
+          "--outDir",
+          "D:/codes/ai-dev-os/suma/.cache/e2e/tools151/candidate/web",
+          "--configLoader",
+          "runner"
+        ],
+        "cwd": "D:/codes/ai-dev-os/suma/.cache/e2e/tools151/candidate/src/apps/web",
+        "exit_code": 0,
+        "elapsed_ms": 83321
+      }
+    ],
+    "excluded": "149 WorkBuddy ACP dependency/code/docs; unrelated startup/desktop packaging/knowledge/shared historical WIP; runtime credentials, journals, databases and caches.",
+    "format_only_after_verification": {
+      "path": "apps/web/src/ToolQuickConnect.tsx",
+      "reason": "Remove the single trailing JSX whitespace reported by git diff --check; no logical/type/locale change.",
+      "verified_runtime_file_sha256": "ecedd54bdbc011bfaa3f42347a23b89c295fb9639d580d7a4eab953ed3848f9b",
+      "final_committed_file_sha256": "2b5229c5886c02104a99a18faf77c2e8fb5a661343bec8a3c9d35d605920fd8e",
+      "emitted_javascript_identical": true,
+      "emitted_javascript_sha256": "86dbdae955f1d009eff00255071f9f92afd717830b3c29de652b6ab9b7a62c57",
+      "verification": "Installed TypeScript5.7.3 transpileModule with ReactJSX/ES2022/ESNext; no repeated build or GUI."
+    },
+    "final_committed_source_sha256": "c5dd65fd731443373b355c48f17b61fccc5c5bc1194ca6eaa95e31f8b5ac353a"
+  },
+  "go": {
+    "original_discovery_and_cli": {
+      "top_pass": 12,
+      "subcases_pass": 14,
+      "top_skip": 1,
+      "failed": false,
+      "sha256": "2097a938134efa2050b4a661a22dc6ffe41c0d157668e6827527439490f9e392"
+    },
+    "candidate_mode_and_cli": {
+      "top_pass": 4,
+      "subcases_pass": 3,
+      "top_skip": 0,
+      "failed": false,
+      "sha256": "c5654c725c8c943431314d4dd4759a6c1c6b0bc911eac9885d6dc96a5cd6fd52"
+    },
+    "deduplicated_top_pass": 14,
+    "top_skip": 1,
+    "deduplication": "Candidate4 = two new mode tests + two already counted CLI tests; original12 + new2. No full package/platform suite.",
+    "skip_reason": "Windows directory symlink privilege unavailable",
+    "root_initial_red": "Mode guard cases failed before flags were implemented. The follow-up test expected exit2 for app.Failure, corrected to the existing contract exit1; retained raw logs, no hidden product failure."
+  },
+  "web": {
+    "distinct_focused_passed": 55,
+    "component_passed": 9,
+    "model_passed": 4,
+    "existing_tool_workspace": 22,
+    "existing_discovery": 16,
+    "existing_catalog_integration": 4,
+    "source_sha256": "d4d67802be39a865e1628b040b4b3768d62c9d95ea6272a47c89eb5d19ea99c1",
+    "scope": "Affected cases only; prior same-input passes reused. No repeated full Web suite.",
+    "fixed_regressions": [
+      "Old node/credential facts hidden immediately on actor/org/project change; original storage operation not replayed.",
+      "Successful registration received during node-refresh loading retained and later shown as paused; never offers a duplicate new registration.",
+      "Advanced routing follows the tool currently selected in the wizard."
+    ],
+    "final_types_exit": 0,
+    "paired_locale_keys": 7499,
+    "production_hardcodes": 0,
+    "final_build_exit": 0
+  },
+  "native": {
+    "candidate_passed": 15,
+    "controller_and_preload": 11,
+    "affected_bridge": 4,
+    "no_new_dependency": true,
+    "review": "Independent review found Unix cancellation/admission and version-bound mismatch; fixed SIGTERM cancellation, real child close, abort-before-spawn, bounded stop and 256-byte version contract.",
+    "logs": [
+      ".cache/e2e/tools151/native/final-candidate.txt",
+      ".cache/e2e/tools151/native/candidate-bridge.txt"
+    ]
+  },
+  "actual_gui": {
+    "assertions": 15,
+    "registration": 1,
+    "explicit_enable": 1,
+    "paused_version": 1,
+    "enabled_version": 2,
+    "available_at_fresh_verification": true,
+    "fixture": "Actual Go/SQLite/Runner/current actor with synthetic probe-only CodeBuddy-compatible Node entry; tasks0/runs0. Not a vendor coding or login claim.",
+    "native_IPC": {
+      "actual_calls": 1,
+      "status": "observed",
+      "adapter_id": "codebuddy-cli",
+      "installed": false,
+      "launch_supported": false,
+      "reason_code": "not_installed",
+      "command_authority_exposed": false,
+      "renderer_node_exposed": false
+    },
+    "source_sha256": "82ea1f698d0351d5863322e29b6306741a7dcbeee6bb9cbada3c3d9c52349460",
+    "receipt": ".cache/e2e/tools151/browser/receipt.json",
+    "receipt_sha256": "ea9525252aac24083c62ea1e5c58bd6a472a66a88fda5aee8abe0f9f42ffe86f",
+    "screenshots": [
+      {
+        "name": "quick-connect-zh-desktop.png",
+        "bytes": 255783,
+        "sha256": "eb0f2589483bd09b9f703f34fc71d394a4e46653d134d09b7a31fc52299d8514"
+      },
+      {
+        "name": "paused-en-narrow.png",
+        "bytes": 69523,
+        "sha256": "c2760163969b5ef3360ea5d42db4823c79ee43b8b191de7b385710656daa753d"
+      },
+      {
+        "name": "enabled-en-narrow.png",
+        "bytes": 61156,
+        "sha256": "b789c08d7cce265f07c23e690f2525d1abdbf250f6bb35dae0a74b618836c51f"
+      }
+    ],
+    "visual_review": "CN1366 and EN390 screenshots actually inspected; no viewport overflow or renderer error observed."
+  },
+  "limits": [
+    "No managed local Runner credential delivery, encrypted journal or automatic startup.",
+    "Local install scan is currently shown in the no-node branch. An unreported existing node still needs connection/configuration via the guide.",
+    "Installed CLI, registered identity, fresh observation, enabled profile, model account and completed task remain different facts.",
+    "Native actual CodeBuddy result was not_installed; synthetic CodeBuddy protocol fixture supplied Runner inventory.",
+    "No vendor model/coding, otherDB, physical multihost, scale, cross-platform installer or production acceptance."
+  ],
+  "third_party": "No copied reference source and no new package dependency in151; existing Runner/React/Radix/Electron/Go reused.149 SDK/protocol source is excluded from this candidate."
+}

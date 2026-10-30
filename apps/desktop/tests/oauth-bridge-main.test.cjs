@@ -24,7 +24,8 @@ async function mainHarness(){
   './lifecycle.cjs':{waitForHealth:async()=>{},allowedNavigation:()=>true,terminateService:async()=>{stopped++;},startupExitError:()=>Error('exit')},
   './localization.cjs':{resolveLocale:()=> 'en-US',message:(_locale,key)=>key,localError:(_locale,key)=>Error(key)},
   './workspace-grants.cjs':{CHANNEL:'suma:choose-project-directory',developmentOverrides:()=>null,ensurePrivateDirectory:x=>x,loadWorkspaceKey:()=>Buffer.alloc(32),controlEnvironment:()=>({}),createDirectoryPicker:()=>async()=>({status:'cancelled'})},
-  './oauth-window.cjs':{createWorkBuddyOAuthController:value=>{options=value;return controller;}}
+  './oauth-window.cjs':{createWorkBuddyOAuthController:value=>{options=value;return controller;}},
+  './installed-tools.cjs':{CHANNEL:'suma:discover-installed-tools',createInstalledToolDiscoveryController:()=>({discover:async()=>({status:'failed'}),dispose:()=>Promise.resolve()})}
  };
  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../src/main.cjs'),'utf8'),{__dirname:path.join(__dirname,'../src'),process:{platform:'win32',arch:'x64',env:{}},Buffer,require:name=>dependencies[name]||require(name)});
  for(let n=0;n<20&&!loaded;n++)await new Promise(resolve=>setImmediate(resolve));
@@ -49,7 +50,7 @@ test('desktop shutdown removes OAuth admission and disposes before existing serv
  const h=await mainHarness();let prevented=false;
  h.app.emit('before-quit',{preventDefault(){prevented=true;}});
  assert.equal(prevented,true);assert.equal(h.handlers.has(channel),false);assert.equal(h.disposed,1);
- assert.equal(h.stopped,1);h.window.close();assert.equal(h.disposed,1);
+ await new Promise(resolve=>setImmediate(resolve));assert.equal(h.stopped,1);h.window.close();assert.equal(h.disposed,1);
  await new Promise(resolve=>setImmediate(resolve));
 });
 

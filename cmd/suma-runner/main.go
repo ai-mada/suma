@@ -35,9 +35,20 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	externalConfig := app.String("external-config", "", "管理员 JSON 配置：外部工作流插件端点和凭证环境变量名", "administrator JSON map of external workflow plugin endpoints and token environment names")
 	allow := app.Bool("allow-exec", false, "允许执行本地允许列表中的命令", "enable execution of local allowlisted commands")
 	describe := app.Bool("describe-tools", false, "只读探测本地程序、版本及协议；不读取平台凭证或请求模型", "read-only local executable/version/protocol observations; no platform token or model request")
+	discoverInstalled := app.Bool("discover-installed-tools", false, "只读检测本机已安装的开发工具，不读取执行凭据或启动任务", "read-only detection of installed developer tools; no worker credentials or tasks")
+	localTool := app.String("local-tool", "", "本机检测类型：codex-jsonl、codebuddy-cli、dsh-multica；空值检测全部", "local detection entry: codex-jsonl, codebuddy-cli or dsh-multica; empty selects all")
 	poolConfig := app.String("pool-config", "", "独立资源池机器及各项目执行范围的私有 JSON 配置", "private JSON configuration of an independent pool machine and per-project execution scopes")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	if *discoverInstalled {
+		if *base != "http://127.0.0.1:4310" || *project != "" || *id != "" || *workspace != "." || *repository != "" || *baseCommit != "" || *worktrees != "" || *preflight != "" || *state != ".cache/runner" || *inspectState || *commands != "" || *modelDeployments != "" || *externalConfig != "" || *poolConfig != "" || *allow || *describe {
+			return app.Failure("本机安装检测不能与执行器、工作区、凭据或命令配置参数混用", "Installed-tool detection cannot be combined with worker, workspace, credential or command configuration")
+		}
+		return runInstalledToolDiscovery(app, *localTool)
+	}
+	if *localTool != "" {
+		return app.Failure("--local-tool 只能与 --discover-installed-tools 使用", "--local-tool requires --discover-installed-tools")
 	}
 	// This branch must precede every credential/configuration read and runtime
 	// OpenJournal call: opening a live journal can itself mutate durable state.

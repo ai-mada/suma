@@ -40,6 +40,8 @@ import {ToolDiscoveryPanel} from './ToolDiscoveryPanel';
 import "./tool.css";
 import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
+import {ToolQuickConnect} from './ToolQuickConnect';
+import {validQuickConnectReceipt} from './tool-quick-connect-model';
 import {AdapterConnections,type AdapterDescriptor} from './AdapterConnections';
 import {DeveloperClientConnections} from './DeveloperClientConnections';
 import {WorkBuddyConnections} from './WorkBuddyConnections';
@@ -61,6 +63,7 @@ type Props = {
 };
 type Dialog =
   | { kind: "create"; adapter?:AdapterDescriptor }
+  | { kind: "quick"; adapter?:AdapterDescriptor }
   | { kind: "worker" }
   | {
       kind: "decision";
@@ -71,7 +74,12 @@ type Dialog =
 function canLeave() {
   return window.dispatchEvent(new Event("suma:navigate", { cancelable: true }));
 }
-export function ToolWorkspace({
+export function ToolWorkspace(props:Props) {
+  // Node observations, one-time credentials and dialogs belong to this exact
+  // actor/project. Original uncertain writes remain in their scoped recovery key.
+  return <ScopedToolWorkspace key={JSON.stringify([props.session.organization.id,props.session.user.id,props.project])} {...props}/>;
+}
+function ScopedToolWorkspace({
   project,
   session,
   selected,
@@ -102,7 +110,8 @@ export function ToolWorkspace({
           session.user.id +
           ":" +
           project +
-          ":profiles", toolSessionStorage(), api),
+          ":profiles", toolSessionStorage(), api,
+        (value, request) => request.path !== '/tool-profiles' || validQuickConnectReceipt(value, request.body)),
     [session.organization.id, session.user.id, project, api],
   );
   const action = useToolAction(recovery, () => setDialog(undefined)),
@@ -163,6 +172,12 @@ export function ToolWorkspace({
     void sharedWorkers.read();
     setDialog({kind:'create'});
   }
+  function openQuickConnect() {
+    action.clearError();
+    void workers.read();
+    void sharedWorkers.read();
+    setDialog({kind:'quick'});
+  }
   function openGuide() {
     setConnectionSelection(undefined);
     setGuideOpen(true);
@@ -171,7 +186,7 @@ export function ToolWorkspace({
   function setupConnection(descriptor:AdapterDescriptor){
     if(pending||action.busy||!canLeave()||descriptor.implementation==='planned')return;
     if(descriptor.direction==='suma_to_tool'&&descriptor.setup_kind==='runner_profile'&&descriptor.implementation==='implemented'&&descriptor.adapter&&descriptor.protocol){
-      action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'create',adapter:descriptor});return;
+      action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',adapter:descriptor});return;
     }
     const clients:Record<string,DeveloperClientID>={'cursor-client':'cursor','claude-code-client':'claude-code','codex-client':'codex','opencode-client':'opencode','qoder-client':'qoder','zed-client':'zed','workbuddy-connector':'workbuddy'};
     if(descriptor.direction==='tool_to_suma'&&clients[descriptor.id]){setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,client:clients[descriptor.id]}));setGuideOpen(true);return;}
@@ -213,7 +228,7 @@ export function ToolWorkspace({
         >
           {t("development.tools.return_to_task_dispatch")}</a>
       </div>
-      <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={pending || action.busy} onWorker={() => { action.clearError(); setDialog({kind:'worker'}); }} onRegister={openRegister} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
+      <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={pending || action.busy} onWorker={() => { action.clearError(); setDialog({kind:'worker'}); }} onRegister={openQuickConnect} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
       <WorkBuddyConnections project={project} panel={panel}/>
       <details className="panel adapter-catalog-disclosure" key={contextKey}>
         <summary>
@@ -261,10 +276,11 @@ export function ToolWorkspace({
               <button
                 className="primary"
                 disabled={pending || action.busy}
-                onClick={openRegister}
+                onClick={openQuickConnect}
               >
                 <Plus size={14} />
-                {t("development.tools.register_configuration")}</button>
+                {t('tool-quick-connect.title')}</button>
+              <details className="tool-quick-advanced"><summary>{t('tool-quick-connect.advanced')}</summary><button type="button" disabled={pending||action.busy} onClick={openRegister}>{t('development.tools.register_configuration')}</button></details>
             </div>
           </div>
           <div className="tool-filter-tabs" role="group" aria-label={t('tool-workspace.filter')}>
@@ -501,7 +517,9 @@ export function ToolWorkspace({
           if (!action.busy && !action.pending) setDialog(undefined);
         }}
         title={
-          dialog?.kind === "create"
+          dialog?.kind === "quick"
+            ? t('tool-quick-connect.title')
+            : dialog?.kind === "create"
             ? t("development.tools.register_fixed_tool_configuration")
             : dialog?.kind === "worker"
               ? t("development.tools.register_execution_worker_identity")
@@ -534,6 +552,18 @@ export function ToolWorkspace({
             onCancel={() => setDialog(undefined)}
           />
         )}
+        {dialog?.kind === 'quick' && <ToolQuickConnect
+          key={contextKey+':'+(dialog.adapter?.id||'')}
+          project={project}
+          adapter={dialog.adapter}
+          workers={workers}
+          sharedWorkers={sharedWorkers}
+          action={action}
+          onRegistered={value=>{setReceipt({key:'registered',name:value.name,scope:contextKey});void profiles.read();onSelect(value.id);}}
+          onEnable={profile=>{action.clearError();setDialog({kind:'decision',action:'enable',profile});}}
+          onAdvanced={adapter=>{action.clearError();setDialog({kind:'create',adapter});}}
+          onWorker={()=>{action.clearError();setDialog({kind:'worker'});}}
+        />}
         {dialog?.kind === "worker" && (
           <WorkerForm
             project={project}
