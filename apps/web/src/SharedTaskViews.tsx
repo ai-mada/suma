@@ -12,9 +12,9 @@ type Props={scope:TaskViewScope;preferences:TaskViewPreferences;onChange:(value:
 type Draft={name:string;visibility:'private'|'project';preferences:TaskViewPreferences;editing?:SharedTaskView;remove?:boolean};
 type Write={path:string;method:string;body:Record<string,unknown>;remove:boolean};
 const deniedError=(error:unknown)=>error instanceof ApiError&&[401,403,404].includes(error.status);
-const comparable=(p:TaskViewPreferences)=>JSON.stringify([p.q,p.status,p.owner_id,p.priority,p.requirement_id||'',!!p.unassigned,!!p.priority_unset,!!p.status_unset,p.sort,p.layout,p.group_by]);
+const comparable=(p:TaskViewPreferences)=>JSON.stringify([p.q,p.status,p.owner_id,p.priority,p.requirement_id||'',!!p.unassigned,!!p.priority_unset,!!p.status_unset,p.iteration_id||'',!!p.iteration_unset,p.sort,p.layout,p.group_by]);
 /** Project only the saved-view contract; route object/detail state is never uploaded. */
-export function sharedViewPreferences(p:TaskViewPreferences):TaskViewPreferences{return {q:p.q,status:p.status,owner_id:p.owner_id,priority:p.priority,sort:p.sort,layout:p.layout,group_by:p.group_by,requirement_id:p.requirement_id||undefined,unassigned:p.unassigned||undefined,priority_unset:p.priority_unset||undefined,status_unset:p.status_unset||undefined};}
+export function sharedViewPreferences(p:TaskViewPreferences):TaskViewPreferences{return {q:p.q,status:p.status,owner_id:p.owner_id,priority:p.priority,sort:p.sort,layout:p.layout,group_by:p.group_by,requirement_id:p.requirement_id||undefined,iteration_id:p.iteration_id||undefined,iteration_unset:p.iteration_unset||undefined,unassigned:p.unassigned||undefined,priority_unset:p.priority_unset||undefined,status_unset:p.status_unset||undefined};}
 export function SharedTaskViews(props:Props){return <ScopedSharedTaskViews key={JSON.stringify(props.scope)} {...props}/>;}
 function ScopedSharedTaskViews({scope,preferences,onChange,denied=false}:Props){
  useLocale();const project=scope[2],query='?project_id='+encodeURIComponent(project);
@@ -45,6 +45,6 @@ function ScopedSharedTaskViews({scope,preferences,onChange,denied=false}:Props){
 
 
 function PreferenceSummary({value}: {value:TaskViewPreferences}){
- const values=[['task-views.search',value.q],['task-views.business_status',value.status_unset?tr('task-views.unspecified'):value.status?stateLabel(value.status):''],['records.assignee',value.unassigned?tr('records.unassigned'):value.owner_id],['records.priority',value.priority_unset?tr('task-views.unspecified'):value.priority?(['urgent','high','medium','low'].includes(value.priority)?tr('common.priority.'+value.priority):value.priority):''],['records.linked_requirement',value.requirement_id],['task-views.sort',tr('task-views.sort_'+value.sort)],['task-views.group',tr('task-views.group_'+value.group_by)],['task-views.layout',tr(value.layout==='list'?'records.list_view':'records.board_view')]];
+ const values=[['task-views.search',value.q],['task-views.business_status',value.status_unset?tr('task-views.unspecified'):value.status?stateLabel(value.status):''],['records.assignee',value.unassigned?tr('records.unassigned'):value.owner_id],['records.priority',value.priority_unset?tr('task-views.unspecified'):value.priority?(['urgent','high','medium','low'].includes(value.priority)?tr('common.priority.'+value.priority):value.priority):''],['records.linked_requirement',value.requirement_id],['task-collection.iteration',value.iteration_unset?tr('task-collection.iteration_unset'):value.iteration_id],['task-views.sort',tr('task-views.sort_'+value.sort)],['task-views.group',tr(value.group_by==='iteration'?'task-collection.group_iteration':'task-views.group_'+value.group_by)],['task-views.layout',tr(value.layout==='list'?'records.list_view':'records.board_view')]];
  return <dl>{values.map(([key,text])=><div key={key}><dt>{tr(key!)}</dt><dd>{text||tr('shared-task-views.any')}</dd></div>)}</dl>;
 }

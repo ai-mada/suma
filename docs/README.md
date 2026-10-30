@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [任务迭代与共享泳道](quality/task-iterations-verification.md) · [正式查询合同](../contracts/task-workspace.md) · [共享视图合同](../contracts/shared-task-views.md) · [交互设计](design/shared-task-views.md) · [摘要](quality/task-iterations-summary.json)：T-MULTICA-ITERATION-156按正式排期筛选和分组，保留任务／排期两维版本，在线双账号共享范围与撤权已实际验证。筛选默认收起，中英1366／390代表界面通过；完整离线、其他数据库和生产继续原计划。
+
 - [正式云任务Runner](product/workbuddy-cloud-runner.md) · [执行与恢复合同](../contracts/workbuddy-cloud-runner.md) · [架构](architecture/workbuddy-cloud-runner.md) · [交互与AI SOP](design/workbuddy-cloud-runner.md) · [限定验收](quality/workbuddy-cloud-runner-verification.md) · [摘要](quality/workbuddy-cloud-runner-summary.json)：T-WORKBUDDY-RUNNER-155，正式领取、固定委派、中央一次创建、原操作恢复和保护性等待已接线；17项真实本机业务与3项只读视觉检查通过，中英文／窄屏已目视。供应方完成不代表代码或业务验收，完整平台范围保留。
 
 - [WorkBuddy云任务工作区](quality/workbuddy-cloud-execution-verification.md) · [合同](../contracts/workbuddy-cloud-execution.md) · [架构](architecture/workbuddy-cloud-execution.md) · [摘要](quality/workbuddy-cloud-execution-summary.json)：T-WORKBUDDY-CLOUD-152，原运行节点内的本人委派、准确来源和供应方任务核对已接通；控制面以原attempt机器资格提供持久一次创建，未知作用保留原操作。源码、定向检查、隔离构建及真实界面各自范围以专项报告为准，完整自动DAG领取／Execute、ACP协作、可信制品、独立测试和正式验收继续交付。

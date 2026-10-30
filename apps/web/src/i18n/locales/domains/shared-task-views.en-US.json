@@ -11,7 +11,7 @@
   "shared-task-views.delete": "Delete synced view",
   "shared-task-views.name": "View name",
   "shared-task-views.visibility": "Who can use this view?",
-  "shared-task-views.scope_hint": "Views save filters and layout. Sharing never grants access to tasks.",
+  "shared-task-views.scope_hint": "Save filters, iteration criteria and layout. Sharing never grants access to tasks.",
   "shared-task-views.online": "Saved on the server for this project. Sign in on another device to use it.",
   "shared-task-views.empty": "No synced views yet. Save your current filters to use them again.",
   "shared-task-views.version": "Revision {{version}}",

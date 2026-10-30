@@ -1,9 +1,9 @@
 import {expect,it,vi} from 'vitest';
-import {appendTaskCollectionPage,reconcileTaskCollectionPages,TaskCollectionReadQueue,taskCollectionColumnScope,taskCollectionPath,taskCollectionScopeKey,validTaskCollectionFilter,validTaskCollectionPage,validTaskCollectionSummary,type TaskCollectionPageView} from './task-collection-model';
+import {appendTaskCollectionPage,reconcileTaskCollectionPages,TaskCollectionReadQueue,taskCollectionColumnScope,taskCollectionGroupKey,taskCollectionPath,taskCollectionScopeKey,validTaskCollectionFilter,validTaskCollectionPage,validTaskCollectionSummary,type TaskCollectionPageView} from './task-collection-model';
 
 const scope={project:'project-a',userID:'user-a',organizationID:'org-a',q:'',status:'all',layout:'list'};
 const task=(patch:Record<string,unknown>={})=>({id:'task-a',project_id:'project-a',version:1,title:'Current task',status:'todo',owner_id:'human-a',priority:'high',requirement_id:'req-a',updated_at:'2026-10-29T02:00:00Z',...patch});
-const page=(patch:Record<string,unknown>={})=>({project_id:'project-a',as_of:'2026-10-29T03:00:00Z',items:[task()],total:1,limit:20,next_cursor:'',...patch});
+const page=(patch:Record<string,unknown>={})=>{const value={project_id:'project-a',as_of:'2026-10-29T03:00:00Z',items:[task()],total:1,limit:20,next_cursor:'',...patch};return {...value,task_plans:Object.hasOwn(patch,'task_plans')?patch.task_plans:value.items.map(row=>({task_id:row.id,iteration_id:'',plan_version:0}))};};
 
 it('uses literal full-scope filters, and distinguishes all tasks from the literal all state',()=>{
  const filtered={...scope,q:' 50%_中 + ',task_owner:'human-a',task_priority:'high',task_requirement:'req-a'};
@@ -25,15 +25,15 @@ it('rejects wrong project, owner, requirement, priority and status page facts',(
  expect(validTaskCollectionPage(page({items:[task({status:'all'})]}),scope,'all')).toBe(true);expect(validTaskCollectionPage(page(),scope,'all')).toBe(false);expect(validTaskCollectionPage(page({items:[task({owner_id:''})]}),{...scope,task_unassigned:true},'')).toBe(true);
 });
 
-it('retains the higher record version across keyset pages and refuses shrinking live totals',()=>{
+it('rejects decreasing record versions across keyset pages and refuses shrinking live totals',()=>{
  const before=page({items:[task({version:3})],total:2}) as unknown as TaskCollectionPageView,next=page({items:[task({version:2}),task({id:'task-b'})],total:2}) as unknown as TaskCollectionPageView;
- expect(appendTaskCollectionPage(before,next)?.items[0].version).toBe(3);expect(appendTaskCollectionPage(before,{...next,total:1})).toBeUndefined();
+ expect(appendTaskCollectionPage(before,next)).toBeUndefined();expect(appendTaskCollectionPage(before,page({items:[task({version:4}),task({id:'task-b'})],total:2}) as TaskCollectionPageView)?.items[0].version).toBe(4);expect(appendTaskCollectionPage(before,{...next,total:1})).toBeUndefined();
 });
 
 it('shows a moved task once at its highest loaded version and marks both live columns changed',()=>{
- const groups=[{key:'todo'},{key:'in_progress'}],pages={todo:{page:{items:[task({version:2})]}},in_progress:{page:{items:[task({version:3,status:'in_progress'})]}}};
+ const groups=[{key:'todo'},{key:'in_progress'}],pages={todo:{page:page({items:[task({version:2})]}) as TaskCollectionPageView},in_progress:{page:page({items:[task({version:3,status:'in_progress'})]}) as TaskCollectionPageView}};
  const reconciled=reconcileTaskCollectionPages(groups,pages);expect(reconciled.rows).toHaveLength(1);expect(reconciled.rows[0].version).toBe(3);expect(reconciled.rowsByGroup.get('todo')).toEqual([]);expect([...reconciled.changed].sort()).toEqual(['in_progress','todo']);
- const ambiguous=reconcileTaskCollectionPages(groups,{...pages,todo:{page:{items:[task({version:3})]}}});expect(ambiguous.rows).toEqual([]);expect(ambiguous.changed.size).toBe(2);
+ const ambiguous=reconcileTaskCollectionPages(groups,{...pages,todo:{page:page({items:[task({version:3})]}) as TaskCollectionPageView}});expect(ambiguous.rows).toEqual([]);expect(ambiguous.changed.size).toBe(2);
 });
 
 it('bounds concurrent requests and never sends an aborted queued request',async()=>{
@@ -52,4 +52,45 @@ it('keeps global criteria and sort when paging owner, priority or empty-status g
 
 it('accepts a bounded group-header page without equating its counts to the full project scope',()=>{
  const partial={project_id:'project-a',group_by:'owner',as_of:'2026-10-29T03:00:00Z',total:1000,groups:[{key:'human-a',total:3}],groups_total:120,groups_limit:20,next_group_cursor:'next-groups'};expect(validTaskCollectionSummary(partial,'project-a','owner')).toBe(true);expect(validTaskCollectionSummary({...partial,groups_total:0},'project-a','owner')).toBe(false);expect(validTaskCollectionSummary({...partial,groups:[{key:'human-a',total:1001}]},'project-a','owner')).toBe(false);
+});
+
+
+it('keeps exact and unset iteration scopes mutually exclusive in every read and lane',()=>{
+ const base={...scope,task_iteration:'iteration-done',task_group:'iteration',task_owner:'human-a',task_sort:'title_asc'};
+ for(const kind of ['summary','items'] as const){const query=new URLSearchParams(taskCollectionPath(base,kind).split('?')[1]);expect(query.get('iteration_id')).toBe('iteration-done');expect(query.has('iteration_unset')).toBe(false);expect(query.get('owner_id')).toBe('human-a');}
+ const unset=taskCollectionColumnScope(base,'');expect(unset).toMatchObject({task_iteration:'',task_iteration_unset:true,task_owner:'human-a'});
+ const exact=taskCollectionColumnScope(unset,'unset');expect(exact).toMatchObject({task_iteration:'unset',task_iteration_unset:false});
+ expect(new URLSearchParams(taskCollectionPath(unset,'items').split('?')[1]).get('iteration_unset')).toBe('true');
+ expect(new URLSearchParams(taskCollectionPath(exact,'items').split('?')[1]).has('iteration_unset')).toBe(false);
+ expect(validTaskCollectionFilter(base)).toBe(true);expect(validTaskCollectionFilter({...base,task_iteration_unset:true})).toBe(false);expect(validTaskCollectionFilter({...base,task_iteration:'../other'})).toBe(false);
+ expect(taskCollectionScopeKey(scope)).not.toBe(taskCollectionScopeKey(base));expect(taskCollectionScopeKey(scope)).not.toBe(taskCollectionScopeKey(unset));
+});
+
+it('requires one exact authoritative plan per task and never infers a relation from record data',()=>{
+ const planned=page({items:[task({data:{iteration_id:'forged'},iteration_id:'forged'})],task_plans:[{task_id:'task-a',iteration_id:'iteration-a',plan_version:4}]}) as TaskCollectionPageView;
+ expect(validTaskCollectionPage(planned,{...scope,task_iteration:'iteration-a'},'')).toBe(true);
+ expect(taskCollectionGroupKey(planned.items[0],'iteration',planned.task_plans[0])).toBe('iteration-a');expect(taskCollectionGroupKey(planned.items[0],'iteration')).toBeUndefined();
+ expect(validTaskCollectionPage(planned,{...scope,task_iteration_unset:true},'')).toBe(false);
+ const invalid=[undefined,null,[],[{task_id:'other',iteration_id:'',plan_version:0}],[{task_id:'task-a',iteration_id:'iteration-a',plan_version:0}],[{task_id:'task-a',iteration_id:'',plan_version:-1}],[{task_id:'task-a',iteration_id:'',plan_version:1.1}],[{task_id:'task-a',iteration_id:'../foreign',plan_version:1}],[{task_id:'task-a',iteration_id:'',plan_version:1,approval:true}],[{task_id:'task-a',iteration_id:'',plan_version:1},{task_id:'task-a',iteration_id:'',plan_version:1}]];
+ for(const task_plans of invalid)expect(validTaskCollectionPage({...planned,task_plans},scope,'')).toBe(false);
+ expect(validTaskCollectionPage(page({task_plans:[{task_id:'task-a',iteration_id:'',plan_version:5}]}),{...scope,task_iteration_unset:true},'')).toBe(true);
+});
+
+it('keeps the dominating plan after a plan-only iteration move independently of response ordering',()=>{
+ const make=(iteration_id:string,plan_version:number,version=1)=>page({items:[task({version})],task_plans:[{task_id:'task-a',iteration_id,plan_version}]}) as TaskCollectionPageView;
+ const pages={a:{page:make('a',3)},b:{page:make('b',4)}};
+ for(const keys of [['a','b'],['b','a']]){const result=reconcileTaskCollectionPages(keys.map(key=>({key})),pages,'iteration');expect(result.rows.map(row=>row.id)).toEqual(['task-a']);expect(result.rowsByGroup.get('a')).toEqual([]);expect(result.rowsByGroup.get('b')).toHaveLength(1);expect(result.task_plans).toEqual([{task_id:'task-a',iteration_id:'b',plan_version:4}]);expect(result.changed.size).toBe(2);}
+});
+
+it('hides incomparable record/plan pairs and same-plan association conflicts until a fresh read',()=>{
+ const make=(iteration_id:string,plan_version:number,version:number)=>page({items:[task({version})],task_plans:[{task_id:'task-a',iteration_id,plan_version}]}) as TaskCollectionPageView;
+ for(const [left,right] of [[make('a',5,2),make('b',4,3)],[make('a',5,2),make('b',5,3)],[make('a',5,2),make('b',5,2)]]){
+  const result=reconcileTaskCollectionPages([{key:'a'},{key:'b'}],{a:{page:left},b:{page:right}},'iteration');expect(result.rows).toEqual([]);expect(result.task_plans).toEqual([]);expect([...result.changed].sort()).toEqual(['a','b']);
+ }
+});
+
+it('compares plan versions on continuation even when the task version does not change',()=>{
+ const make=(iteration_id:string,plan_version:number,version=2)=>page({items:[task({version})],task_plans:[{task_id:'task-a',iteration_id,plan_version}]}) as TaskCollectionPageView;
+ const first=make('a',3);expect(appendTaskCollectionPage(first,make('b',4))?.task_plans[0]).toEqual({task_id:'task-a',iteration_id:'b',plan_version:4});
+ expect(appendTaskCollectionPage(first,make('b',3))).toBeUndefined();expect(appendTaskCollectionPage(first,make('b',2,3))).toBeUndefined();expect(appendTaskCollectionPage(first,make('a',4,1))).toBeUndefined();
 });

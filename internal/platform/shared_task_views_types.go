@@ -3,17 +3,19 @@ package platform
 // SharedTaskViewPreferences stores only declarative task selection and layout.
 // It never carries task contents, authority, execution actions or paging state.
 type SharedTaskViewPreferences struct {
-	Q             string `json:"q"`
-	Status        string `json:"status"`
-	StatusUnset   bool   `json:"status_unset,omitempty"`
-	OwnerID       string `json:"owner_id"`
-	Priority      string `json:"priority"`
-	RequirementID string `json:"requirement_id,omitempty"`
-	Unassigned    bool   `json:"unassigned,omitempty"`
-	PriorityUnset bool   `json:"priority_unset,omitempty"`
-	Sort          string `json:"sort"`
-	Layout        string `json:"layout"`
-	GroupBy       string `json:"group_by"`
+	Q              string `json:"q"`
+	Status         string `json:"status"`
+	StatusUnset    bool   `json:"status_unset,omitempty"`
+	OwnerID        string `json:"owner_id"`
+	Priority       string `json:"priority"`
+	RequirementID  string `json:"requirement_id,omitempty"`
+	IterationID    string `json:"iteration_id,omitempty"`
+	IterationUnset bool   `json:"iteration_unset,omitempty"`
+	Unassigned     bool   `json:"unassigned,omitempty"`
+	PriorityUnset  bool   `json:"priority_unset,omitempty"`
+	Sort           string `json:"sort"`
+	Layout         string `json:"layout"`
+	GroupBy        string `json:"group_by"`
 }
 type SharedTaskView struct {
 	ID          string                    `json:"id"`

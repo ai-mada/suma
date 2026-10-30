@@ -11,7 +11,7 @@
   "shared-task-views.delete": "删除同步视图",
   "shared-task-views.name": "视图名称",
   "shared-task-views.visibility": "谁可以使用此视图？",
-  "shared-task-views.scope_hint": "视图只保存筛选与布局；共享不会授予任务访问权限。",
+  "shared-task-views.scope_hint": "保存筛选、迭代条件与布局。共享视图不授予任务访问权。",
   "shared-task-views.online": "保存在服务端当前项目，换设备登录后可以继续使用。",
   "shared-task-views.empty": "还没有同步视图，可保存当前筛选以便再次使用。",
   "shared-task-views.version": "修订 {{version}}",

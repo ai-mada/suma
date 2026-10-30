@@ -5197,6 +5197,8 @@ export interface SharedTaskViewPreferences {
   owner_id: string;
   priority: string;
   requirement_id?: string;
+  iteration_id?: string;
+  iteration_unset?: boolean;
   unassigned?: boolean;
   priority_unset?: boolean;
   sort: string;
@@ -6102,9 +6104,15 @@ export interface TaskWorkspacePage {
   project_id: string;
   limit: number;
   items: (Record)[];
+  task_plans: (TaskWorkspacePlanRef)[];
   total: number;
   next_cursor: string;
   as_of: string;
+}
+export interface TaskWorkspacePlanRef {
+  task_id: string;
+  iteration_id: string;
+  plan_version: number;
 }
 export interface Team {
   id: string;

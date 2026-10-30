@@ -30,7 +30,7 @@ func normalizeTaskCollectionGroupOptions(options TaskCollectionGroupOptions) (Ta
 	if options.Limit == 0 {
 		options.Limit = 20
 	}
-	if options.GroupBy != "status" && options.GroupBy != "owner" && options.GroupBy != "priority" || options.Limit < 1 || options.Limit > 100 || len(options.Cursor) > 4096 {
+	if options.GroupBy != "status" && options.GroupBy != "owner" && options.GroupBy != "priority" && options.GroupBy != "iteration" || options.Limit < 1 || options.Limit > 100 || len(options.Cursor) > 4096 {
 		return options, invalid(taskCollectionInvalid)
 	}
 	return options, nil
@@ -77,7 +77,7 @@ func (s *Service) TaskCollectionSummary(ctx context.Context, actor Actor, projec
 	if err != nil {
 		return out, err
 	}
-	column := map[string]string{"status": "status", "owner": "owner_id", "priority": "priority"}[options.GroupBy]
+	column := map[string]string{"status": "status", "owner": "owner_id", "priority": "priority", "iteration": "iteration_key"}[options.GroupBy]
 	err = s.withCurrentRead(ctx, actor, commandTarget{tenantID: actor.credential.tenantID, projectID: project}, purposeProjectRead, func(auth *authorizedCommand) error {
 		if err := assertProjectRead(auth, project); err != nil {
 			return err
@@ -102,6 +102,11 @@ func (s *Service) TaskCollectionSummary(ctx context.Context, actor Actor, projec
 			}
 		}
 		where, args := taskWorkspaceWhere(auth.target.tenantID, project, q)
+		if options.GroupBy == "iteration" {
+			// Materialize the scalar relation as a derived column before grouping;
+			// aggregate clauses must not depend on ungrouped outer task columns.
+			where = ` FROM (SELECT ` + taskWorkspaceIterationKey + ` AS iteration_key` + where + `) task_iteration_groups`
+		}
 		if countErr := auth.tx.QueryRowContext(bounded, s.q(`SELECT COUNT(*),COUNT(DISTINCT `+column+`)`+where), args...).Scan(&out.Total, &out.GroupsTotal); countErr != nil {
 			return countErr
 		}

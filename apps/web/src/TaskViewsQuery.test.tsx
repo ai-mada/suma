@@ -10,7 +10,7 @@ type PendingRead={path:string;body:unknown;method?:string;signal?:AbortSignal;re
 type HarnessProps={scope:TaskViewScope;view:TaskViewPreferences;refresh:number};
 const originalScope:TaskViewScope=['user-a','org-a','project-a'];
 const row=(id:string,project='project-a'):RecordItem=>({id,project_id:project,version:1,title:'Task '+id,status:'todo',owner_id:'member-a',priority:'high'});
-const response=(ids:string[],total=ids.length,cursor='',project='project-a'):TaskWorkspacePage=>({items:ids.map(id=>row(id,project)),total,next_cursor:cursor,as_of:'2026-10-29T11:00:00Z'});
+const response=(ids:string[],total=ids.length,cursor='',project='project-a'):TaskWorkspacePage=>({items:ids.map(id=>row(id,project)),task_plans:ids.map(task_id=>({task_id,iteration_id:'',plan_version:0})),total,next_cursor:cursor,as_of:'2026-10-29T11:00:00Z'});
 let host:HTMLDivElement,root:Root,pending:PendingRead[],api:ApiCaller,latest:ReturnType<typeof useTaskWorkspacePage>;
 
 function Harness({scope,view,refresh}:HarnessProps){
@@ -182,4 +182,16 @@ describe('authorized task workspace query window',()=>{
   await resolve(2,response(['fresh'],1));await resolve(1,response(['stale-refresh'],8));
   expect(latest.items?.map(item=>item.id)).toEqual(['fresh']);expect(latest.total).toBe(1);
  });
+});
+
+
+it('invalidates iteration membership immediately and ignores a late response from the prior exact scope',async()=>{
+ await render({...defaultTaskView,iteration_id:'iteration-a',group_by:'iteration'});await advance();expect(parameters(0).iteration_id).toBe('iteration-a');
+ await render({...defaultTaskView,iteration_unset:true,group_by:'iteration'});expect(latest.items).toBeUndefined();expect(latest.task_plans).toEqual([]);expect(pending[0].signal?.aborted).toBe(true);await advance();expect(parameters(1).iteration_unset).toBe('true');expect(parameters(1)).not.toHaveProperty('iteration_id');
+ await resolve(1,response(['current-unlinked']));await resolve(0,{...response(['old-iteration']),task_plans:[{task_id:'old-iteration',iteration_id:'iteration-a',plan_version:3}]});expect(latest.items?.map(row=>row.id)).toEqual(['current-unlinked']);
+});
+
+it('rejects missing or contradictory formal planning proof and prevents a conflicting continuation',async()=>{
+ await render({...defaultTaskView,iteration_id:'iteration-a'});await advance();await resolve(0,{...response(['one']),task_plans:[]});expect(latest.items).toBeUndefined();expect(latest.error).toMatchObject({ui_key:'workspace.pagination.invalid_page'});
+ await act(async()=>{void latest.reload();});await resolve(1,{...response(['one'],2,'next'),task_plans:[{task_id:'one',iteration_id:'iteration-a',plan_version:3}]});await more();await resolve(2,{...response(['one','two'],2),task_plans:[{task_id:'one',iteration_id:'iteration-a',plan_version:2},{task_id:'two',iteration_id:'iteration-a',plan_version:1}]});expect(latest.items).toBeUndefined();expect(latest.task_plans).toEqual([]);expect(latest.error).toMatchObject({ui_key:'task-views.window_changed'});
 });

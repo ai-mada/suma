@@ -1,5 +1,23 @@
 {
   "project": "suma",
+  "task_iterations": {
+    "stage": "T-MULTICA-ITERATION-156",
+    "version": "1.0.0",
+    "date": "2026-10-30",
+    "status": "windows_sqlite_online_views_scoped_verified",
+    "previous_goal_turn": "progress: T155 source and visual fixes committed/pushed, actual17 business and3 read-only checks completed",
+    "report": "docs/quality/task-iterations-verification.md",
+    "summary": "docs/quality/task-iterations-summary.json",
+    "formal_source": "suma_task_plans.iteration_id and independent plan_version; task Record.Data does not define membership",
+    "verification": "7 new Go top cases within platform33/29 named subcases and contract69 composition; Web200 focused including46 new overlaps the1779 full run. Original3 full-Web and2 old contract-fixture failures were corrected and affected checks passed; no second full suite. Final types and7673 paired locale keys passed.",
+    "integration_checks": "Root independently verified52 delivered file hashes, inspected both actual screenshots, reviewed formal SQL/plan-ref authority, and passed one current-tree typecheck plus7673-key localization check after integrating94db6b6 facts; no repeated Go/Web suites or builds.",
+    "actual": "8 HTTP seed assertions and11 distinct two-account GUI checks counted separately; one shared view save and one project-access revoke, no task modification/run/model/vendor call. Chinese1366 and English390 dark screenshots inspected; language persisted as device preference only.",
+    "runtime_scope": "Isolated22c3b9c base plus owned T156 inputs; integrating HEAD94db6b6 waiting-label fixes and unrelated knowledge WIP preserved. Two snapshots/asset states and failed driver selectors retained without duplicate view save.",
+    "closeout": "Electron closed normally; own control process terminated only after exact executable path and creation-time checks, not claimed as graceful exit. Database and original evidence retained.",
+    "ledger_unchanged": "58 limited /34 pending /92 total",
+    "full_platform_complete": false,
+    "limits": "Online shared scope only; no physical second device, full offline conflict recovery, other database, scale, installer or production acceptance."
+  },
   "workbuddy_cloud_runner": {
     "stage": "T-WORKBUDDY-RUNNER-155",
     "version": "1.0.0",

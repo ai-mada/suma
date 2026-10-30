@@ -180,3 +180,11 @@ describe('local personal task views',()=>{
   expect(values.size).toBe(0);
  });
 });
+
+
+it('persists exact and unlinked iteration preferences without conflating literal IDs or leaking scope',()=>{
+ const exact:SavedTaskView={...view(),preferences:{...view().preferences,iteration_id:'unset',group_by:'iteration'}};
+ const unlinked:SavedTaskView={...view(),id:'unlinked',preferences:{...view().preferences,iteration_unset:true,group_by:'iteration'}};
+ const {storage}=memoryStorage();const result=writeTaskViews(storage,scope,[exact,unlinked],null);expect(result.error).toBeNull();expect(readTaskViews(storage,scope).collection?.views).toEqual([exact,unlinked]);expect(readTaskViews(storage,['other','org-a','project-a']).collection?.views).toEqual([]);
+ for(const invalid of [{iteration_id:'unset',iteration_unset:true},{iteration_id:'../other'},{iteration_unset:'true'}]){const entry={...view(),preferences:{...view().preferences,...invalid}};const raw=encode([entry]),isolated=memoryStorage(raw);expect(readTaskViews(isolated.storage,scope).error).toBe('corrupt');expect(isolated.values.get(taskViewsKey(scope))).toBe(raw);}
+});

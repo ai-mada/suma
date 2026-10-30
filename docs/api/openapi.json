@@ -25813,9 +25813,20 @@
               "",
               "status",
               "owner",
-              "priority"
+              "priority",
+              "iteration"
             ],
             "type": "string"
+          },
+          "iteration_id": {
+            "description": "Exact formal planning iteration ID; empty means unrestricted. Mutually exclusive with iteration_unset=true. Unknown or other-project IDs match nothing; completed iterations remain selectable.",
+            "maxLength": 64,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          },
+          "iteration_unset": {
+            "description": "Select no planning row or an empty formal iteration. True is mutually exclusive with nonempty iteration_id.",
+            "type": "boolean"
           },
           "layout": {
             "default": "list",
@@ -30568,6 +30579,15 @@
             "readOnly": true,
             "type": "string"
           },
+          "task_plans": {
+            "description": "Exactly one formal planning reference per task in this page's items, observed in the same current-authorized read transaction. This is not a task payload field or a frozen cross-page snapshot.",
+            "items": {
+              "$ref": "#/components/schemas/TaskWorkspacePlanRef"
+            },
+            "maxItems": 100,
+            "readOnly": true,
+            "type": "array"
+          },
           "total": {
             "readOnly": true,
             "type": "integer"
@@ -30577,9 +30597,41 @@
           "project_id",
           "limit",
           "items",
+          "task_plans",
           "total",
           "next_cursor",
           "as_of"
+        ],
+        "type": "object"
+      },
+      "TaskWorkspacePlanRef": {
+        "additionalProperties": false,
+        "properties": {
+          "iteration_id": {
+            "description": "Formal suma_task_plans iteration reference. Empty covers either no planning row or an existing row without an iteration; plan_version distinguishes them.",
+            "maxLength": 64,
+            "readOnly": true,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          },
+          "plan_version": {
+            "description": "Zero only when no planning row exists; otherwise the observed planning CAS version, including an empty iteration association. Distinct from task.version.",
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "task_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string",
+            "x-max-utf8-bytes": 64
+          }
+        },
+        "required": [
+          "task_id",
+          "iteration_id",
+          "plan_version"
         ],
         "type": "object"
       },
@@ -103831,6 +103883,24 @@
             }
           },
           {
+            "description": "Exact formal planning iteration identifier, never task payload JSON. Empty or omitted is unrestricted; mutually exclusive with iteration_unset=true. Unknown or other-project IDs match nothing. Completed iterations remain selectable.",
+            "in": "query",
+            "name": "iteration_id",
+            "schema": {
+              "maxLength": 64,
+              "type": "string",
+              "x-max-utf8-bytes": 64
+            }
+          },
+          {
+            "description": "Match tasks with no planning row or an empty formal iteration. True is mutually exclusive with nonempty iteration_id.",
+            "in": "query",
+            "name": "iteration_unset",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "description": "Match genuinely unassigned owners; true is mutually exclusive with nonempty owner_id.",
             "in": "query",
             "name": "unassigned",
@@ -103855,7 +103925,7 @@
             }
           },
           {
-            "description": "Current task grouping field. Empty keys are genuine unset data.",
+            "description": "Current task grouping field. Iteration uses the formal planning relation, including completed iterations; its empty key combines no planning row and an empty iteration. Group keys never grant task access.",
             "in": "query",
             "name": "group_by",
             "schema": {
@@ -103863,7 +103933,8 @@
               "enum": [
                 "status",
                 "owner",
-                "priority"
+                "priority",
+                "iteration"
               ],
               "type": "string"
             }
@@ -110799,6 +110870,24 @@
               "maxLength": 64,
               "type": "string",
               "x-max-utf8-bytes": 64
+            }
+          },
+          {
+            "description": "Exact formal planning iteration identifier, never task payload JSON. Empty or omitted is unrestricted; mutually exclusive with iteration_unset=true. Unknown or other-project IDs match nothing. Completed iterations remain selectable.",
+            "in": "query",
+            "name": "iteration_id",
+            "schema": {
+              "maxLength": 64,
+              "type": "string",
+              "x-max-utf8-bytes": 64
+            }
+          },
+          {
+            "description": "Match tasks with no planning row or an empty formal iteration. True is mutually exclusive with nonempty iteration_id.",
+            "in": "query",
+            "name": "iteration_unset",
+            "schema": {
+              "type": "boolean"
             }
           },
           {

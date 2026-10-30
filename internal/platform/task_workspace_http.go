@@ -46,7 +46,7 @@ func parseTaskWorkspaceQuery(r *http.Request, project string, summary bool) (Tas
 			if entries[0] == "" {
 				return q, TaskCollectionGroupOptions{}, invalid(taskWorkspaceInvalid)
 			}
-		case "q", "status", "status_unset", "owner_id", "priority", "requirement_id", "unassigned", "priority_unset":
+		case "q", "status", "status_unset", "owner_id", "priority", "requirement_id", "unassigned", "priority_unset", "iteration_id", "iteration_unset":
 		case "sort", "limit", "cursor":
 			if summary || entries[0] == "" {
 				return q, TaskCollectionGroupOptions{}, invalid(taskWorkspaceInvalid)
@@ -63,7 +63,8 @@ func parseTaskWorkspaceQuery(r *http.Request, project string, summary bool) (Tas
 		return q, TaskCollectionGroupOptions{}, invalid(taskWorkspaceInvalid)
 	}
 	q = TaskWorkspaceQuery{Q: values.Get("q"), Status: values.Get("status"), OwnerID: values.Get("owner_id"), Priority: values.Get("priority"), RequirementID: values.Get("requirement_id"), Sort: values.Get("sort"), Cursor: values.Get("cursor"), Limit: 100}
-	for name, target := range map[string]*bool{"unassigned": &q.Unassigned, "priority_unset": &q.PriorityUnset, "status_unset": &q.StatusUnset} {
+	q.IterationID = values.Get("iteration_id")
+	for name, target := range map[string]*bool{"unassigned": &q.Unassigned, "priority_unset": &q.PriorityUnset, "status_unset": &q.StatusUnset, "iteration_unset": &q.IterationUnset} {
 		if values.Has(name) {
 			switch values.Get(name) {
 			case "true":

@@ -1,0 +1,313 @@
+{
+  "stage": "T-MULTICA-ITERATION-156",
+  "date": "2026-10-30",
+  "status": "scoped_verified",
+  "scope": "Current-authorized formal iteration filtering/grouping, exact per-page task-plan references and online shared task views.",
+  "source": {
+    "runtime_base": "22c3b9c93054aef8b930f2caa9a77e55e1e27a18",
+    "integrating_head": "94db6b62c2f62b18fe64b5c58bfa886226e4e07e",
+    "owned_files": 50,
+    "frozen_manifest_sha256": "fa74d62f3d55186db8824b858567db3fb788906c5f0c10605094c9280bda9e86",
+    "frozen_files_match": true,
+    "runtime_source_sha256": "6e046332fe02d721eeaa66c2c5893592cca9b6008480b19dde0b1bdef0923b11",
+    "binary_sha256": "c611127e660a4e583f49970a2a94502e2a94d58644699027ee85755eb11846ae",
+    "web_v2_index_sha256": "b3e5938a8e9d8c9d85218a112c3a2b4ae04ad51e7ed55a9e44af39ccf878c50c",
+    "note": "Runtime v2 snapshot retains 48 files. Final delivery 50 includes two recovered prior-stage test fixtures and three documentation-only edits; runtime production inputs unchanged. Concurrent T155 facts and TaskConversationKnowledge changes are excluded."
+  },
+  "verification": {
+    "platform": {
+      "new_top_level_passed": 5,
+      "prior_top_level_passed": 28,
+      "prior_named_subcases_passed": 29,
+      "focused_package_seconds": 2.819
+    },
+    "contracts": {
+      "new_top_level_passed": 2,
+      "unique_full_suite_top_level": 69,
+      "first_passed": 67,
+      "first_failed": 2,
+      "old_failed_recheck_passed": 2,
+      "full_suite_rerun": false,
+      "models": 783,
+      "paths": 370
+    },
+    "web": {
+      "focused_unique": 200,
+      "ui_unique": 162,
+      "root_unique": 38,
+      "first_full_total": 1779,
+      "first_full_passed": 1776,
+      "first_full_failed": 3,
+      "affected_recovery_passed": 13,
+      "recovery_new_cases": 0,
+      "recovery_production_changes": 0,
+      "full_suite_rerun": false
+    },
+    "types": {
+      "first_errors": 2,
+      "first_exit": 2,
+      "first_recovery_ms": 31259,
+      "final_fixture_recovery_ms": 26183,
+      "final_exit": 0
+    },
+    "i18n": {
+      "keys": 7673,
+      "production_hardcodes": 0
+    },
+    "builds": {
+      "web_v1_ms": 66378,
+      "web_v2_ms": 61933,
+      "web_exit": 0,
+      "go_build_count": 1,
+      "go_ms_reported_by_integrator": 9752
+    }
+  },
+  "counting": [
+    "New contract tests and the two repaired enum assertions are within 69, not additional.",
+    "Web 200 focused and 1779 full overlap; no addition. The affected 13 are rechecks, not new tests.",
+    "Root 38 includes 11 distinct invalid-catalog parameter rows with one test title.",
+    "GUI 11 includes six same-v2 checks retained at a read-only checkpoint; do not add attempts. HTTP and GUI layers stay separate."
+  ],
+  "failures_preserved": {
+    "platform_red": "Missing new fields caused compile failure, not an executed assertion failure.",
+    "contract": "Two old notification enum assertions omitted task_followed; affected two passed after test-only correction.",
+    "full_web": {
+      "failed_cases": [
+        {
+          "file": "DesktopToolConnector.test.tsx",
+          "name": "hides reconnection after an authorization refusal and translates the management actions without repeating a mutation"
+        },
+        {
+          "file": "WorkbenchTaskContext.test.tsx",
+          "name": "T126 restores a selected task outside the picker with one exact read and switches complete bilingual facts without another request"
+        },
+        {
+          "file": "WorkbenchTaskContext.test.tsx",
+          "name": "clears expanded old-project facts and ignores their late refresh when the same task id opens in another project"
+        }
+      ],
+      "root_causes": [
+        "Desktop connection permission state blocks reconnect correctly; EN/CN assertions referenced obsolete permission text and now assert current account/credential-expiry/new-authorization wording explicitly.",
+        "TaskSubscriptionControl154 adds an independent GET while discussion is collapsed. Exact context test counted all fetches as context, and the cross-project deferred fixture incremented old context-read count for this subscription, swallowing the actual refresh. Explicit URL branches now return a scope-bound v0 subscription and track context reads independently."
+      ],
+      "reproduction": "10/13 before fixture correction; retained, not newly counted.",
+      "recovery": "13/13, 6.817s, zero production changes; no full rerun."
+    },
+    "browser": {
+      "attempts": [
+        {
+          "attempt": 1,
+          "phase": "literal_iteration_filters",
+          "retained_checks": 4,
+          "writes": 0,
+          "non_read_http": 0,
+          "timeout_ms": 15000,
+          "kind": "driver_selector_timeout",
+          "checkpoint_sha256": "4e1f2c80479e8aea5f631bf79bcc052144fb7b94fd731facce3635ae2afaa833"
+        },
+        {
+          "attempt": 2,
+          "phase": "save_one_project_view",
+          "retained_checks": 6,
+          "writes": 0,
+          "non_read_http": 0,
+          "timeout_ms": 15000,
+          "kind": "driver_selector_timeout",
+          "checkpoint_sha256": "a03f1c10de2ffbbd8912f92ec8521f79418049e4b467117715fd418162da67ea"
+        }
+      ],
+      "causes": [
+        "Board accessible text order differs from initial locator assumption.",
+        "Visibility label exact-match assumption used ASCII question mark."
+      ],
+      "resume": "Both interruptions were read-only; original checkpoint preserved and final run resumed save after six same-v2 checks."
+    },
+    "initial_visual": "Default-expanded desktop filters consumed first viewport. Existing disclosure now defaults closed, followed by v2 build and final manual visual review."
+  },
+  "http": {
+    "distinct_assertions": 8,
+    "formal_writes_including_seed": 11,
+    "reads": 6,
+    "retries": 0,
+    "model_calls": 0,
+    "provider_calls": 0
+  },
+  "gui": {
+    "distinct_assertions": 11,
+    "checks": [
+      "desktop opens with filters collapsed and real tasks above the fold",
+      "exact iteration keeps two formal tasks and URL locator",
+      "unlinked iteration includes absent plan and empty plan, excluding payload guesses",
+      "completed iteration remains selectable and its empty scope stays empty",
+      "board uses the same all-task scope and formal iteration grouping",
+      "unknown exact ID is retained with a verification label instead of widening",
+      "one explicit shared-view save retains exact iteration and layout",
+      "a separately authenticated viewer applies the same saved scope without a write",
+      "English dark 390px keeps the selected iteration and avoids page overflow",
+      "current revocation clears protected task rows and iteration names",
+      "saved object remains a single versioned view without task mutations"
+    ],
+    "renderer_errors": 0,
+    "shared_view_post_count": 1,
+    "shared_view_response": "201 version 1",
+    "formal_revocation_post_count": 1,
+    "formal_mutations_total": 2,
+    "server_locale_posts": 0,
+    "locale_change": "Device preference only; English dark screenshot verified.",
+    "task_run_mutations": 0,
+    "model_calls": 0,
+    "provider_calls": 0,
+    "accounts": "Two real authenticated synthetic accounts in independent session partitions, not two physical devices.",
+    "screenshots": [
+      {
+        "path": "dist/quality/task-iterations-156/iterations-zh-1366.png",
+        "sha256": "f1a09c5404d3b92541f692de71de54554b92042a21765b772a308d86d3936938",
+        "bytes": 173331,
+        "manual_review": "passed_by_root",
+        "delivery_copy": "completed_hash_verified"
+      },
+      {
+        "path": "dist/quality/task-iterations-156/iterations-en-390-dark.png",
+        "sha256": "7f8e29f922729381e4af87cd1c9e2de43c44837770b742736a4dcd68ed9be44f",
+        "bytes": 94353,
+        "manual_review": "passed_by_root",
+        "delivery_copy": "completed_hash_verified"
+      }
+    ]
+  },
+  "mutation_accounting": {
+    "seed_formal_writes": 11,
+    "gui_formal_writes": 2,
+    "combined_formal_writes": 13,
+    "note": "Do not add repeated internal transport observations or all HTTP requests to this mutation count."
+  },
+  "service_cleanup": {
+    "status": "stopped",
+    "process_id": 146088,
+    "identity": "Exact executable path and UTC creation ticks verified.",
+    "method": "PowerShell Stop-Process",
+    "process_absent": true,
+    "graceful_shutdown_claimed": false,
+    "control_exit_code_claimed": false,
+    "database_preserved": true,
+    "deleted_files": 0,
+    "electron": "Normal close / exit 0 reported by integrator."
+  },
+  "environment": {
+    "os": "Windows",
+    "go": "1.26.10; CGO=0; GOTOOLCHAIN=local; GOWORK=off; GOENV=off; GOPROXY=off",
+    "modcache": ".cache/go-mod-runtime",
+    "gocache": ".cache/workbuddy-152/go-cache",
+    "temp": "Process-local task .cache only",
+    "web": "Installed Node / Vitest 3.0.5 / jsdom / TypeScript / Vite",
+    "gui": "Installed Electron via Playwright _electron, software offscreen; isolated profile and SQLite loopback service"
+  },
+  "command_evidence": "Exact captured Web argv/cwd and hashes remain in ignored evidence-draft.json and checks receipts. Go outcome logs do not retain argv; no historical flags reconstructed. Original Go calls remain in integrator session.",
+  "platform_ledger": {
+    "total": 92,
+    "limited": 58,
+    "pending": 34,
+    "unchanged": true
+  },
+  "remaining": [
+    "Physical multi-device and full offline conflict recovery.",
+    "Other databases, distributed scale, installers, real supplier and production acceptance."
+  ],
+  "evidence": [
+    {
+      "path": ".cache/task-iteration-156/frozen-source.json",
+      "sha256": "8b60769fb0fb9f1b067800b8fd58822030f4935e21cf5758d4410c6e653e719c"
+    },
+    {
+      "path": ".cache/task-iteration-156/runtime-candidate-v2.json",
+      "sha256": "dc954510d74626a43d722925d27700f5c2036d5451cb5018f21ce78067ca356c"
+    },
+    {
+      "path": ".cache/task-iteration-156/query-regressions.log",
+      "sha256": "6332e56312ee8db97c9ccbb41e597a79e11ad2b8880fd3ad564bb9d825064e2f"
+    },
+    {
+      "path": ".cache/task-iteration-156/contracts-suite.log",
+      "sha256": "3b40474296d40728ee687f6fe5a0fc59d425a1a1eb7d2bf77920ab50a5d40c9b"
+    },
+    {
+      "path": ".cache/task-iteration-156/contracts-inbox-recovery.log",
+      "sha256": "0c11df9e3702e82c6dbc754e4ed1217b1d377bd332f37da313fade327575bf5c"
+    },
+    {
+      "path": ".cache/task-iteration-156/contracts-check.log",
+      "sha256": "89fbaf5cb140b5e6179a8a10fa776066b9d2de1840cbab24fcb761fbeb60298d"
+    },
+    {
+      "path": ".cache/task-iteration-156/checks/web-suite-results.json",
+      "sha256": "eff6b8cc9cad5569fecaf5328c2378b11a55ef4ddfe5c87ab9ddf934f93105ab"
+    },
+    {
+      "path": ".cache/task-iteration-156/stage/evidence/web/integration-fixture-summary.json",
+      "sha256": "dd0412db32e16d0615f4c96881192272f0a2162051f9d9ac2bb8ca3666a549bd"
+    },
+    {
+      "path": ".cache/task-iteration-156/stage/evidence/web/integration-fixture-green.json",
+      "sha256": "93ffa8ad276ee63224396545f6131469f6b4d1cef3e023ad731bb891ab3e8fc9"
+    },
+    {
+      "path": ".cache/task-iteration-156/checks/types-fixtures.json",
+      "sha256": "09d15bff9e45af4b6e3fb14ab35f2707ea28eb5a3680d7d20d2cfa9193476eda"
+    },
+    {
+      "path": ".cache/task-iteration-156/checks/web-v2.json",
+      "sha256": "aaf354cf1996f9f0b49363b6b658c7948827869fa0b81d67d29127d0724099ff"
+    },
+    {
+      "path": ".cache/task-iteration-156/gui/http-verification.json",
+      "sha256": "ff878c4c2225e5ce54e73307c5804f9a3f1ae21f8276537bfec93cb95b5f8a44"
+    },
+    {
+      "path": ".cache/task-iteration-156/gui/browser-receipt.json",
+      "sha256": "37b6017caac55fd7fd5ecaba769fef8de4c0b8b31d46d296ff548d9450adb001"
+    },
+    {
+      "path": ".cache/task-iteration-156/gui/stop-proof.json",
+      "sha256": "7215e9ac8a976c159cb5f1da2c9a84067461b285172db2bb93eb0bd11f207bd1"
+    }
+  ],
+  "delivery": {
+    "directory": "dist/quality/task-iterations-156",
+    "manifest": "dist/quality/task-iterations-156/artifact-manifest.json",
+    "manifest_sha256": "3ba5f89740db9df4679241cadf369f01401b2659df80fe77a90df735f6925d76",
+    "files": [
+      {
+        "name": "iterations-zh-1366.png",
+        "bytes": 173331,
+        "sha256": "f1a09c5404d3b92541f692de71de54554b92042a21765b772a308d86d3936938"
+      },
+      {
+        "name": "iterations-en-390-dark.png",
+        "bytes": 94353,
+        "sha256": "7f8e29f922729381e4af87cd1c9e2de43c44837770b742736a4dcd68ed9be44f"
+      },
+      {
+        "name": "verification-receipt.json",
+        "bytes": 2358,
+        "sha256": "1245102fdb351179636097f1c447b4ac3323fce1001da8cc0bd07382309f2d15"
+      }
+    ],
+    "screenshots_visually_inspected": true,
+    "private_material_delivered": false,
+    "contents": "Two final screenshots and sanitized verification receipt; no cookie, operation body, database or private state."
+  },
+  "product_version": "1.0.0",
+  "report": "docs/quality/task-iterations-verification.md",
+  "contracts": [
+    "contracts/task-workspace.md",
+    "contracts/shared-task-views.md"
+  ],
+  "design": "docs/design/shared-task-views.md",
+  "full_platform_complete": false,
+  "documentation_check": {
+    "markdown_documents": 466,
+    "api_paths": 370,
+    "schema_references": 3419,
+    "exit_code": 0
+  }
+}

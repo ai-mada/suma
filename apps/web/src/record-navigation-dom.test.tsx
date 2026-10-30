@@ -69,10 +69,10 @@ beforeEach(() => {
       else if (path === "/overview")
         value = { counts: { requirements: 1, tasks: 1 }, activity: [] };
       else if (path === "/tasks") value = { items: [task], total: 1 };
-      else if (path === "/task-workspace") value = { items: [task], total: 1, as_of: "2026-10-29T00:00:00Z" };
+      else if (path === "/task-workspace") value = { items: [task], task_plans: [{task_id: task.id, iteration_id: "", plan_version: 0}], total: 1, as_of: "2026-10-29T00:00:00Z" };
       else if (path === "/tasks/" + taskID) value = task;
       else if (path === "/requirements/" + requirementID) value = requirement;
-      else if (["/requirements", "/members", "/runs"].includes(path))
+      else if (["/iterations", "/requirements", "/members", "/runs"].includes(path))
         value = { items: [], total: 0 };
       else throw Error("Unexpected fixture request " + path);
       return new Response(JSON.stringify(value), {

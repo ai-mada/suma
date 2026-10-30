@@ -36,10 +36,12 @@ it('T126 validates one exact task projection and keeps test counts distinct from
 });
 
 it('T126 restores a selected task outside the picker with one exact read and switches complete bilingual facts without another request',async()=>{
- const fetch=vi.fn(async(input:string)=>{const url=new URL(String(input),location.href);expect(url.pathname).toBe('/api/v1/workspace/task-context');expect(url.searchParams.get('task_id')).toBe('task-a');return Response.json(designedContext());});vi.stubGlobal('fetch',fetch);
- await render();await settle(()=>!!host.querySelector('.workbench-task-summary'));expect(fetch).toHaveBeenCalledTimes(1);expect(host.textContent).toContain('Plan cases passed');expect(host.textContent).toContain('Not formally accepted');expect(host.querySelector<HTMLDetailsElement>('.workbench-task-details')?.open).toBe(false);expect(host.textContent).toContain('Independent code sources');expect(host.textContent).toContain('does not bind this editor');
+ const contextRead=vi.fn(async(url:URL)=>{expect(url.pathname).toBe('/api/v1/workspace/task-context');expect(url.searchParams.get('project_id')).toBe('p');expect(url.searchParams.get('task_id')).toBe('task-a');return Response.json(designedContext());});
+ const subscriptionRead=vi.fn(async(url:URL)=>{expect(url.pathname).toBe('/api/v1/tasks/task-a/subscription');expect(url.searchParams.get('project_id')).toBe('p');return Response.json({project_id:'p',task_id:'task-a',user_id:'u',version:0,following:false,updated_at:''});});
+ const fetch=vi.fn(async(input:string,init?:RequestInit)=>{const url=new URL(String(input),location.href);expect(init?.method).toBe('GET');return url.pathname==='/api/v1/tasks/task-a/subscription'?subscriptionRead(url):contextRead(url);});vi.stubGlobal('fetch',fetch);
+ await render();await settle(()=>!!host.querySelector('.workbench-task-summary'));expect(contextRead).toHaveBeenCalledTimes(1);expect(subscriptionRead).toHaveBeenCalledTimes(1);expect(fetch).toHaveBeenCalledTimes(2);expect(host.textContent).toContain('Plan cases passed');expect(host.textContent).toContain('Not formally accepted');expect(host.querySelector<HTMLDetailsElement>('.workbench-task-details')?.open).toBe(false);expect(host.textContent).toContain('Independent code sources');expect(host.textContent).toContain('does not bind this editor');
  expect(host.querySelector<HTMLDetailsElement>('.workbench-task-requirement')?.open).toBe(false);expect(host.textContent).toContain('Original requirement objective');expect(host.textContent).toContain('Requirement criterion');expect(host.textContent).toContain('Requirement version: 4');
- await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('计划用例通过');expect(host.textContent).toContain('尚未正式验收');expect(host.textContent).toContain('不会将编辑器目录绑定');expect(fetch).toHaveBeenCalledTimes(1);
+ await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('计划用例通过');expect(host.textContent).toContain('尚未正式验收');expect(host.textContent).toContain('不会将编辑器目录绑定');expect(contextRead).toHaveBeenCalledTimes(1);expect(subscriptionRead).toHaveBeenCalledTimes(1);expect(fetch).toHaveBeenCalledTimes(2);
 });
 
 it('keeps current business and acceptance facts distinct from a changed original run in the collapsed summary',async()=>{
@@ -54,8 +56,11 @@ it('keeps current business and acceptance facts distinct from a changed original
 });
 
 it('clears expanded old-project facts and ignores their late refresh when the same task id opens in another project',async()=>{
- const late=deferred<Response>();let oldReads=0;
- vi.stubGlobal('fetch',vi.fn(async(input:string)=>{const url=new URL(String(input),location.href),project=url.searchParams.get('project_id')!;
+ const late=deferred<Response>();let oldReads=0;const contextProjects:string[]=[],subscriptionProjects:string[]=[];
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{const url=new URL(String(input),location.href),project=url.searchParams.get('project_id')!;
+  expect(init?.method).toBe('GET');
+  if(url.pathname==='/api/v1/tasks/task-a/subscription'){subscriptionProjects.push(project);return Response.json({project_id:project,task_id:'task-a',user_id:'u',version:0,following:false,updated_at:''});}
+  expect(url.pathname).toBe('/api/v1/workspace/task-context');expect(url.searchParams.get('task_id')).toBe('task-a');contextProjects.push(project);
   if(project==='p'&&++oldReads>1)return late.promise;
   return Response.json(context('task-a',project,project==='p'?'Private first project task':'Second project task'));
  }));
@@ -68,7 +73,7 @@ it('clears expanded old-project facts and ignores their late refresh when the sa
  expect(host.querySelector<HTMLDetailsElement>('.workbench-task-details')?.open).toBe(false);
  await act(async()=>late.resolve(Response.json(context('task-a','p','Late private first project task'))));
  expect(host.textContent).not.toContain('Late private first project task');
- expect(host.querySelector('.workbench-task-selected')?.textContent).toBe('Second project task');
+ expect(host.querySelector('.workbench-task-selected')?.textContent).toBe('Second project task');expect(contextProjects).toEqual(['p','p','second-project']);expect(subscriptionProjects).toEqual(['p','second-project']);
 });
 
 it('T126 performs explicit literal search and pagination while rejected task changes preserve the original context and picker',async()=>{

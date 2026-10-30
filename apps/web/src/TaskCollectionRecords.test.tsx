@@ -23,8 +23,9 @@ beforeEach(async()=>{vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);localStorage
   if(path==='/overview')return Response.json({counts:{tasks:2,requirements:0},activity:[],capabilities:[]});
   if(path.startsWith('/task-collection/')&&denied)return Response.json({error:{code:'forbidden',message:'Current project access refused'}},{status:403});
   if(path==='/task-collection/summary')return Response.json({project_id:'project-a',group_by:url.searchParams.get('group_by')||'status',groups_total:1,groups_limit:20,next_group_cursor:'',as_of:'2026-10-29T03:00:00Z',total:1,groups:[{key:url.searchParams.get('group_by')==='owner'?'human-a':url.searchParams.get('group_by')==='priority'?'high':'draft',total:1}]});
-  if(path==='/task-workspace'){const limit=Number(url.searchParams.get('limit')||100);return Response.json({project_id:'project-a',limit,as_of:'2026-10-29T03:01:00Z',items:limit===100?[record('loaded-task','Loaded filtered task'),record('prerequisite-task','Independent prerequisite')]:[record('loaded-task','Loaded filtered task')],total:limit===100?2:1,next_cursor:''});}
+  if(path==='/task-workspace'){const limit=Number(url.searchParams.get('limit')||100);return Response.json({project_id:'project-a',limit,as_of:'2026-10-29T03:01:00Z',items:limit===100?[record('loaded-task','Loaded filtered task'),record('prerequisite-task','Independent prerequisite')]:[record('loaded-task','Loaded filtered task')],task_plans:(limit===100?['loaded-task','prerequisite-task']:['loaded-task']).map(task_id=>({task_id,iteration_id:'',plan_version:0})),total:limit===100?2:1,next_cursor:''});}
   if(path==='/tasks/outside-task')return Response.json(record('outside-task','Outside filter details '+version,'todo',version));
+  if(path==='/iterations')return Response.json({items:[],total:0});
   if(path==='/members')return Response.json({items:[{...record('human-a','Private member name','active'),kind:'human',data:{user_id:'user-a'}}],total:1});
   return Response.json({project_id:'project-a',items:[],total:0,next_cursor:''});
  }));
@@ -82,7 +83,7 @@ it('hides editor and picker facts on a same-project user and organization switch
  expect(host.textContent).not.toContain('Late original account private name');
  for(let round=0;round<3;round++){
   const current=pending.splice(0);await act(async()=>{for(const read of current){
-   const data=read.path==='/members'?{items:[{...record('human-b','Fresh account picker name','active'),kind:'human',data:{user_id:'user-b'}}],total:1}:read.path==='/requirements'?{items:[],total:0}:read.path==='/tasks/outside-task'?record('outside-task','Fresh account selected details','todo'):read.path.endsWith('/summary')?{project_id:'project-a',group_by:'status',groups_total:1,groups_limit:20,next_group_cursor:'',as_of:'2026-10-29T03:00:00Z',total:1,groups:[{key:'draft',total:1}]}:{project_id:'project-a',as_of:'2026-10-29T03:01:00Z',items:[record('new-task','Fresh account loaded task')],total:1,limit:20,next_cursor:''};read.resolve(Response.json(data));
+   const data=read.path==='/members'?{items:[{...record('human-b','Fresh account picker name','active'),kind:'human',data:{user_id:'user-b'}}],total:1}:read.path==='/requirements'?{items:[],total:0}:read.path==='/tasks/outside-task'?record('outside-task','Fresh account selected details','todo'):read.path.endsWith('/summary')?{project_id:'project-a',group_by:'status',groups_total:1,groups_limit:20,next_group_cursor:'',as_of:'2026-10-29T03:00:00Z',total:1,groups:[{key:'draft',total:1}]}:{project_id:'project-a',as_of:'2026-10-29T03:01:00Z',items:[record('new-task','Fresh account loaded task')],task_plans:[{task_id:'new-task',iteration_id:'',plan_version:0}],total:1,limit:20,next_cursor:''};read.resolve(Response.json(data));
   }});
  }
  await settle(()=>host.textContent?.includes('Fresh account picker name')??false);expect(host.textContent).not.toContain('Late original account private name');expect(host.textContent).not.toContain('Original private picker name');
@@ -93,7 +94,7 @@ it.each(['current identity','old identity'])('treats prerequisite HTTP404 under 
  vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
   const url=new URL(String(input),location.href),path=url.pathname.replace(/^\/api\/v1/,''),headers=new Headers(init?.headers),organization=headers.get('X-Suma-Expected-Organization');
   if(path==='/task-workspace'&&url.searchParams.get('limit')==='100')return new Promise<Response>(resolve=>{finish=resolve;});
-  if(organization==='org-b'&&path==='/task-workspace')return Response.json({project_id:'project-a',as_of:'2026-10-29T04:00:00Z',limit:20,items:[record('fresh-task','Fresh identity task')],total:1,next_cursor:''});
+  if(organization==='org-b'&&path==='/task-workspace')return Response.json({project_id:'project-a',as_of:'2026-10-29T04:00:00Z',limit:20,items:[record('fresh-task','Fresh identity task')],task_plans:[{task_id:'fresh-task',iteration_id:'',plan_version:0}],total:1,next_cursor:''});
   if(organization==='org-b'&&path==='/tasks/outside-task')return Response.json(record('outside-task','Fresh identity details','todo'));
   return original(input,init);
  }));

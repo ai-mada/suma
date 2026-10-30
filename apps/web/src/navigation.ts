@@ -1,7 +1,7 @@
 import {mondayOf} from './planning-model';
 import {parseAttempt} from './scheduling-model';
 export type WorkbenchView='overview'|'requirements'|'development'|'quality'|'operations'|'knowledge'|'settings';
-export type WorkbenchRoute={conversation_message?:string;inbox_filter?:'inbox'|'unread'|'archived';inbox_invalid?:string;task_invalid?:string;task_status?:string;task_owner?:string;task_priority?:string;task_sort?:string;task_group?:string;task_requirement?:string;task_unassigned?:boolean;task_priority_unset?:boolean;task_status_unset?:boolean;project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
+export type WorkbenchRoute={conversation_message?:string;inbox_filter?:'inbox'|'unread'|'archived';inbox_invalid?:string;task_invalid?:string;task_status?:string;task_owner?:string;task_priority?:string;task_sort?:string;task_group?:string;task_requirement?:string;task_iteration?:string;task_iteration_unset?:boolean;task_unassigned?:boolean;task_priority_unset?:boolean;task_status_unset?:boolean;project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
 const views:WorkbenchView[]=['overview','requirements','development','quality','operations','knowledge','settings'];
 const defaultSub:Partial<Record<WorkbenchView,string>>={development:'my-work',quality:'issues',operations:'releases',knowledge:'documents',settings:'organization'};
 /** Formal task sources retain a locator only in one unambiguous task scope.
@@ -26,26 +26,28 @@ export function parseWorkbenchRoute(search:string):WorkbenchRoute{
  // Task filters are one literal contract, independent of layout or grouping.
  const bounded=(value:string|null)=>value!==null&&Array.from(value).length<=200&&!/[\u0000-\u001f\u007f-\u009f]/.test(value)?value:undefined;
  const boundedID=(value:string|null)=>value!==null&&(value===''||/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(value))?value:undefined;
- const flags=['task_unassigned','task_priority_unset','task_status_unset'] as const;
+ const flags=['task_unassigned','task_priority_unset','task_status_unset','task_iteration_unset'] as const;
  const invalidTask=taskScope&&(p.get('task_invalid')==='1'||bounded(p.get('q')||'')===undefined||
-  ['q','task_invalid','task_status','task_owner','task_priority','task_sort','task_group','task_requirement',...flags].some(key=>p.getAll(key).length>1)||
+  ['q','task_invalid','task_status','task_owner','task_priority','task_sort','task_group','task_requirement','task_iteration',...flags].some(key=>p.getAll(key).length>1)||
   ['task_status','task_priority'].some(key=>p.has(key)&&(bounded(p.get(key))===undefined||!!p.get(key)&&!p.get(key)!.trim()))||
-  ['task_owner','task_requirement'].some(key=>p.has(key)&&boundedID(p.get(key))===undefined)||
+  ['task_owner','task_requirement','task_iteration'].some(key=>p.has(key)&&boundedID(p.get(key))===undefined)||
   flags.some(key=>p.has(key)&&!['true','false'].includes(p.get(key)||''))||
   p.get('task_unassigned')==='true'&&!!p.get('task_owner')||
   p.get('task_status_unset')==='true'&&!!p.get('task_status')||
   p.get('task_priority_unset')==='true'&&!!p.get('task_priority')||
+  p.get('task_iteration_unset')==='true'&&!!p.get('task_iteration')||
   p.has('task_sort')&&!['updated_desc','created_desc','title_asc','priority_desc'].includes(p.get('task_sort')||'')||
-  p.has('task_group')&&!['status','owner','priority'].includes(p.get('task_group')||''));
+  p.has('task_group')&&!['status','owner','priority','iteration'].includes(p.get('task_group')||''));
  const taskFields=taskScope?{
   ...(invalidTask?{task_invalid:'1'}:{}),
   task_status:bounded(p.get('task_status')),
   task_owner:boundedID(p.get('task_owner')),
   task_priority:bounded(p.get('task_priority')),
   task_requirement:boundedID(p.get('task_requirement')),
+  task_iteration:boundedID(p.get('task_iteration')),
   ...Object.fromEntries(flags.filter(key=>p.get(key)==='true'||p.get(key)==='false').map(key=>[key,p.get(key)==='true'])),
   task_sort:['updated_desc','created_desc','title_asc','priority_desc'].includes(p.get('task_sort')||'')?p.get('task_sort')!:undefined,
-  task_group:['status','owner','priority'].includes(p.get('task_group')||'')?p.get('task_group')!:undefined,
+  task_group:['status','owner','priority','iteration'].includes(p.get('task_group')||'')?p.get('task_group')!:undefined,
  }:{};
 
  return {...messageFields,...inboxFields,...taskFields,...(p.has('catalog_domain')?{catalog_domain:p.get('catalog_domain')||''}:{}),...(p.has('catalog_scenario')?{catalog_scenario:p.get('catalog_scenario')||''}:{}),...(['all','published','retired'].includes(p.get('catalog_state')||'')?{catalog_state:p.get('catalog_state') as WorkbenchRoute['catalog_state']}:{}),...(p.has('catalog_source')?{catalog_source:p.get('catalog_source')||''}:{}),...(['memory','spec','skill','all'].includes(knowledgeKind||'')?{knowledge_kind:knowledgeKind as WorkbenchRoute['knowledge_kind']}:{}),project:p.get('project')||'',view,sub:p.get('sub')||defaultSub[view]||'',record:p.get('record')||'',run:p.get('run')||'',node:p.get('node')||'',attempt:parseAttempt(p.get('attempt')||'')?p.get('attempt')!:'',q:p.get('q')||'',status:p.get('status')||'all',layout:p.get('layout')||'list',week:p.get('week')||mondayOf(),panel:taskDetailLocatorPanel(p,taskScope)};
@@ -54,7 +56,7 @@ export function initializeSessionRoute(route:WorkbenchRoute,projects:{id:string}
 
 /** Resource and requirement filters belong to one project. A project switch
  * clears them together; ordinary task/detail navigation can retain the view. */
-export function resetTaskCollectionScope(route:WorkbenchRoute):WorkbenchRoute{return {...route,conversation_message:undefined,task_invalid:undefined,task_status:undefined,task_owner:undefined,task_priority:undefined,task_sort:undefined,task_group:undefined,task_requirement:undefined,task_unassigned:undefined,task_priority_unset:undefined,task_status_unset:undefined};}
+export function resetTaskCollectionScope(route:WorkbenchRoute):WorkbenchRoute{return {...route,conversation_message:undefined,task_invalid:undefined,task_status:undefined,task_owner:undefined,task_priority:undefined,task_sort:undefined,task_group:undefined,task_requirement:undefined,task_iteration:undefined,task_iteration_unset:undefined,task_unassigned:undefined,task_priority_unset:undefined,task_status_unset:undefined};}
 
 /** The selected task is reading context, independent of the editor source.
  * Keep the run locator empty so an IDE refresh cannot switch into Run view. */

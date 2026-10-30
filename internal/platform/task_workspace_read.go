@@ -18,29 +18,42 @@ const (
 )
 
 type TaskWorkspaceQuery struct {
-	Q             string `json:"q,omitempty"`
-	Status        string `json:"status,omitempty"`
-	StatusUnset   bool   `json:"status_unset,omitempty"`
-	OwnerID       string `json:"owner_id,omitempty"`
-	Priority      string `json:"priority,omitempty"`
-	RequirementID string `json:"requirement_id,omitempty"`
-	Unassigned    bool   `json:"unassigned,omitempty"`
-	PriorityUnset bool   `json:"priority_unset,omitempty"`
-	Sort          string `json:"sort,omitempty"`
-	Limit         int    `json:"limit,omitempty"`
-	Cursor        string `json:"cursor,omitempty"`
+	Q              string `json:"q,omitempty"`
+	Status         string `json:"status,omitempty"`
+	StatusUnset    bool   `json:"status_unset,omitempty"`
+	OwnerID        string `json:"owner_id,omitempty"`
+	Priority       string `json:"priority,omitempty"`
+	RequirementID  string `json:"requirement_id,omitempty"`
+	IterationID    string `json:"iteration_id,omitempty"`
+	IterationUnset bool   `json:"iteration_unset,omitempty"`
+	Unassigned     bool   `json:"unassigned,omitempty"`
+	PriorityUnset  bool   `json:"priority_unset,omitempty"`
+	Sort           string `json:"sort,omitempty"`
+	Limit          int    `json:"limit,omitempty"`
+	Cursor         string `json:"cursor,omitempty"`
 }
 
 // Each page describes current authorized facts. AsOf is the observation time,
 // not a frozen cross-request snapshot: later edits can change totals or order.
 type TaskWorkspacePage struct {
-	ProjectID  string   `json:"project_id"`
-	Limit      int      `json:"limit"`
-	Items      []Record `json:"items"`
-	Total      int      `json:"total"`
-	NextCursor string   `json:"next_cursor"`
-	AsOf       string   `json:"as_of"`
+	ProjectID  string                 `json:"project_id"`
+	Limit      int                    `json:"limit"`
+	Items      []Record               `json:"items"`
+	TaskPlans  []TaskWorkspacePlanRef `json:"task_plans"`
+	Total      int                    `json:"total"`
+	NextCursor string                 `json:"next_cursor"`
+	AsOf       string                 `json:"as_of"`
 }
+
+// TaskWorkspacePlanRef comes from the planning domain, never task payload data.
+// A zero plan version means there is no plan; an existing plan can have no iteration.
+type TaskWorkspacePlanRef struct {
+	TaskID      string `json:"task_id"`
+	IterationID string `json:"iteration_id"`
+	PlanVersion int    `json:"plan_version"`
+}
+
+const taskWorkspaceIterationKey = `COALESCE((SELECT p.iteration_id FROM suma_task_plans p WHERE p.tenant_id=suma_tasks.tenant_id AND p.project_id=suma_tasks.project_id AND p.task_id=suma_tasks.id),'')`
 
 type taskWorkspaceCursor struct {
 	Version int    `json:"version"`
@@ -65,6 +78,9 @@ func taskWorkspaceText(value string) bool {
 }
 
 func normalizeTaskWorkspaceQuery(q TaskWorkspaceQuery) (TaskWorkspaceQuery, error) {
+	if !handoffID(q.IterationID, true) || q.IterationUnset && q.IterationID != "" {
+		return q, invalid(taskWorkspaceInvalid)
+	}
 	// Search and exact values remain literal. Whitespace cannot silently select
 	// a different task set; empty owner/priority are selected by explicit flags.
 	if !taskWorkspaceText(q.Q) || utf8.RuneCountInString(q.Q) > 200 || len(q.Cursor) > 4096 || !handoffID(q.OwnerID, true) || !handoffID(q.RequirementID, true) || q.Unassigned && q.OwnerID != "" || q.PriorityUnset && q.Priority != "" || q.StatusUnset && q.Status != "" {
@@ -237,6 +253,9 @@ func (s *Service) taskWorkspaceTx(ctx context.Context, auth *authorizedCommand, 
 	if err = rows.Err(); err != nil {
 		return TaskWorkspacePage{}, err
 	}
+	if err = rows.Close(); err != nil {
+		return TaskWorkspacePage{}, err
+	}
 	if len(out.Items) > q.Limit {
 		out.Items = out.Items[:q.Limit]
 		last := out.Items[q.Limit-1]
@@ -256,6 +275,45 @@ func (s *Service) taskWorkspaceTx(ctx context.Context, auth *authorizedCommand, 
 			}
 		}
 		out.NextCursor = taskWorkspaceCursorEncode(position)
+	}
+	out.TaskPlans, err = s.taskWorkspacePlanRefs(ctx, auth, project, out.Items)
+	if err != nil {
+		return TaskWorkspacePage{}, err
+	}
+	return out, nil
+}
+
+// Read only this bounded page's plan relations in the same authorized transaction.
+func (s *Service) taskWorkspacePlanRefs(ctx context.Context, auth *authorizedCommand, project string, items []Record) ([]TaskWorkspacePlanRef, error) {
+	out := make([]TaskWorkspacePlanRef, len(items))
+	if len(items) == 0 {
+		return out, nil
+	}
+	positions := make(map[string]int, len(items))
+	args := []any{auth.target.tenantID, project}
+	marks := make([]string, len(items))
+	for i, item := range items {
+		out[i].TaskID = item.ID
+		positions[item.ID] = i
+		args = append(args, item.ID)
+		marks[i] = "?"
+	}
+	rows, err := auth.tx.QueryContext(ctx, s.q(`SELECT task_id,iteration_id,version FROM suma_task_plans WHERE tenant_id=? AND project_id=? AND task_id IN (`+strings.Join(marks, ",")+`)`), args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var plan TaskWorkspacePlanRef
+		if err = rows.Scan(&plan.TaskID, &plan.IterationID, &plan.PlanVersion); err != nil {
+			return nil, err
+		}
+		if i, ok := positions[plan.TaskID]; ok {
+			out[i] = plan
+		}
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
 	}
 	return out, nil
 }
@@ -294,6 +352,13 @@ func taskWorkspaceWhere(tenant, project string, q TaskWorkspaceQuery) (string, [
 	if q.RequirementID != "" {
 		where += ` AND requirement_id=?`
 		args = append(args, q.RequirementID)
+	}
+	if q.IterationID != "" {
+		where += ` AND ` + taskWorkspaceIterationKey + `=?`
+		args = append(args, q.IterationID)
+	}
+	if q.IterationUnset {
+		where += ` AND ` + taskWorkspaceIterationKey + `=''`
 	}
 	return where, args
 }

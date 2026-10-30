@@ -16,6 +16,7 @@ beforeEach(async()=>{
   if(path==='/organization/preferences')return Response.json({organization_id:'org-a',version:0,locale:''});
   if(path==='/overview')return Response.json({counts:{tasks:205},activity:[]});
   if(lookupFailure&&path===lookupFailure.path&&(!lookupFailure.more||url.searchParams.has('cursor')))return Response.json({error:{code:'forbidden',message:'Current project access revoked'}},{status:lookupFailure.status});
+  if(path==='/iterations')return Response.json({items:[],total:0});
   if(path==='/members')return Response.json({items:[{id:'member-a',project_id:'project-a',name:'Assignee A',version:1},{id:'member-last',project_id:'project-a',name:'Last assignee',version:1}],total:3,next_cursor:'members-next'});
   if(path==='/task-collection/summary'){
    const filtered=url.searchParams.get('owner_id')==='member-last',empty=url.searchParams.get('owner_id')==='missing-owner',total=empty?0:filtered?1:205,group_by=url.searchParams.get('group_by')||'status';
@@ -24,7 +25,7 @@ beforeEach(async()=>{
   if(path==='/task-workspace'){
    queries.push(new URLSearchParams(url.search));const filtered=url.searchParams.get('owner_id')==='member-last',empty=url.searchParams.get('owner_id')==='missing-owner',cursor=url.searchParams.get('cursor'),limit=Number(url.searchParams.get('limit')||100),start=cursor==='last-page'?200:cursor?100:0;
    const items=Array.from({length:empty?0:filtered?1:cursor==='last-page'?5:limit},(_,index)=>({id:filtered?'task-205':'task-'+(start+index+1),project_id:url.searchParams.get('project_id'),version:1,title:filtered?'Task beyond first page':'Task '+(start+index),status:'todo',owner_id:filtered?'member-last':'member-a',priority:'medium',created_at:'2026-10-29T00:00:00Z',updated_at:'2026-10-29T00:00:00Z'}));
-   return Response.json({project_id:url.searchParams.get('project_id'),limit,items,total:empty?0:filtered?1:205,next_cursor:empty||filtered||cursor==='last-page'?'':cursor?'last-page':'next-page',as_of:'2026-10-29T00:00:00Z'});
+   return Response.json({project_id:url.searchParams.get('project_id'),limit,items,task_plans:items.map(row=>({task_id:row.id,iteration_id:'',plan_version:0})),total:empty?0:filtered?1:205,next_cursor:empty||filtered||cursor==='last-page'?'':cursor?'last-page':'next-page',as_of:'2026-10-29T00:00:00Z'});
   }
   return Response.json({items:[],total:0});
  }));
@@ -86,4 +87,51 @@ it.each(['member-last','missing-owner'])('reads prerequisite candidates independ
  const more=[...modal.querySelectorAll<HTMLButtonElement>('button')].find(button=>button.textContent?.trim()==='Load more prerequisite tasks')!;
  await act(async()=>more.click());await settle();expect(queries.at(-1)?.get('cursor')).toBe('next-page');expect(queries.at(-1)?.get('owner_id')).toBeNull();
  expect(modal.textContent).toContain('Loaded 200 of 205 prerequisite candidates');expect(modal.querySelector<HTMLInputElement>('input[name="depends_on"]')?.value).toBe('task-1');
+});
+
+
+function iterationRow(id:string,project='project-a',title='Current iteration') {return {id,project_id:project,version:1,title,description:'',status:'active',start_date:'',end_date:'',goal:''};}
+async function changeProject(target:'topbar'|'sidebar',project='project-b'){
+ if(target==='sidebar'){const button=[...host.querySelectorAll<HTMLButtonElement>('.project-list button')].find(button=>button.textContent?.includes(project==='project-b'?'Project B':'Project A'))!;expect(button).toBeTruthy();await act(async()=>button.click());}
+ else{const picker=host.querySelector<HTMLSelectElement>('.breadcrumbs select')!;await act(async()=>{picker.value=project;picker.dispatchEvent(new Event('change',{bubbles:true}));});}
+ await settle();
+}
+it.each([['topbar','exact'],['sidebar','exact'],['topbar','unlinked'],['sidebar','unlinked']] as const)('resets iteration criteria when the %s project switch leaves an %s view',async(target,kind)=>{
+ const original=fetch;
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
+  const url=new URL(String(input),location.href),path=url.pathname.replace(/^\/api\/v1/,'');
+  if(path==='/iterations')return Response.json({items:[iterationRow('iteration-a',url.searchParams.get('project_id')||'')],total:1});
+  const response=await original(input,init);if(path!=='/task-workspace'||!url.searchParams.has('iteration_id'))return response;
+  const value=await response.json();return Response.json({...value,task_plans:value.items.map((row:{id:string})=>({task_id:row.id,iteration_id:url.searchParams.get('iteration_id'),plan_version:1}))});
+ }));
+ history.replaceState(null,'','/?project=project-a&view=development&sub=tasks&'+(kind==='exact'?'task_iteration=iteration-a':'task_iteration_unset=true'));
+ await act(async()=>root.render(<App/>));await settle();expect(host.querySelectorAll('[data-task-id]')).toHaveLength(20);
+ await changeProject(target);const route=new URLSearchParams(location.search);expect(route.get('project')).toBe('project-b');expect(route.has('task_iteration')).toBe(false);expect(route.has('task_iteration_unset')).toBe(false);expect(queries.at(-1)?.get('project_id')).toBe('project-b');expect(queries.at(-1)?.has('iteration_id')).toBe(false);expect(queries.at(-1)?.has('iteration_unset')).toBe(false);expect(host.querySelectorAll('[data-task-id]')).toHaveLength(20);
+});
+
+it.each(['tab','main navigation'] as const)('clears iteration criteria when leaving tasks through %s',async target=>{
+ history.replaceState(null,'','/?project=project-a&view=development&sub=tasks&task_iteration_unset=true');await act(async()=>root.render(<App/>));await settle();
+ const button=target==='tab'?[...host.querySelectorAll<HTMLButtonElement>('.page-tabs [role=tab]')].find(button=>button.textContent===tr('shell.tabs.runs')):host.querySelector<HTMLButtonElement>('.sidebar nav button[aria-label="'+tr('nav.overview')+'"]');expect(button).toBeTruthy();await act(async()=>button!.click());await settle();expect(new URLSearchParams(location.search).has('task_iteration_unset')).toBe(false);expect(new URLSearchParams(location.search).has('task_iteration')).toBe(false);
+});
+
+it('clears private tasks and the editor immediately on iteration denial while another catalog is pending',async()=>{
+ const original=fetch;let stalled=false,waiting=false;
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
+  const path=new URL(String(input),location.href).pathname.replace(/^\/api\/v1/,'');
+  if(stalled&&path==='/requirements'){waiting=true;return new Promise<Response>((_resolve,reject)=>{init?.signal?.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true});});}
+  return original(input,init);
+ }));
+ await act(async()=>root.render(<App/>));await settle();expect(host.querySelectorAll('[data-task-id]')).toHaveLength(20);await act(async()=>host.querySelector<HTMLButtonElement>('.records-panel .list-toolbar button.primary')!.click());const title=document.querySelector<HTMLInputElement>('input[name=title]')!;await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(title,'Private pending editor title');title.dispatchEvent(new Event('input',{bubbles:true}));});
+ stalled=true;lookupFailure={path:'/iterations',status:403};await act(async()=>host.querySelector<HTMLButtonElement>('button[aria-label="'+tr('shell.refresh')+'"]')!.click());await settle();expect(waiting).toBe(true);expect(host.querySelectorAll('[data-task-id]')).toHaveLength(0);expect(document.querySelector('[role=dialog]')).toBeNull();expect(document.querySelector('input[name=title]')).toBeNull();expect(host.textContent).not.toContain('Assignee A');expect(host.textContent).toContain('Current project access revoked');
+});
+
+it('ignores a late old-project iteration catalog after a project scope change',async()=>{
+ const original=fetch;let oldCatalog!:(response:Response)=>void;
+ vi.stubGlobal('fetch',vi.fn(async(input:string,init?:RequestInit)=>{
+  const url=new URL(String(input),location.href),path=url.pathname.replace(/^\/api\/v1/,'');
+  if(path==='/iterations'){if(url.searchParams.get('project_id')==='project-a')return new Promise<Response>(resolve=>{oldCatalog=resolve;});return Response.json({items:[iterationRow('iteration-b','project-b','Fresh B iteration')],total:1});}
+  return original(input,init);
+ }));
+ await act(async()=>root.render(<App/>));await settle();expect(typeof oldCatalog).toBe('function');await changeProject('topbar');const picker=host.querySelector<HTMLSelectElement>('[aria-labelledby=task-filter-iteration]')!;expect(picker.textContent).toContain('Fresh B iteration');
+ await act(async()=>oldCatalog(Response.json({items:[iterationRow('old-private','project-a','Late private A iteration')],total:1})));await settle();expect(picker.textContent).toContain('Fresh B iteration');expect(host.textContent).not.toContain('Late private A iteration');expect(host.textContent).not.toContain('Current project access revoked');
 });

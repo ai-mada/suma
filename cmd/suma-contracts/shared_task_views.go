@@ -60,15 +60,17 @@ func sharedTaskViewContracts(add operationAdder, api map[string]any) {
 	for _, name := range []string{"q", "status", "priority"} {
 		field("SharedTaskViewPreferences", name, map[string]any{"maxLength": 200})
 	}
-	for _, name := range []string{"owner_id", "requirement_id"} {
+	for _, name := range []string{"owner_id", "requirement_id", "iteration_id"} {
 		field("SharedTaskViewPreferences", name, map[string]any{"maxLength": 64, "x-max-utf8-bytes": 64})
 	}
 	field("SharedTaskViewPreferences", "status", map[string]any{"description": "Exact literal status. Empty means unrestricted; mutually exclusive with status_unset=true."})
 	field("SharedTaskViewPreferences", "priority", map[string]any{"description": "Exact literal priority. Empty means unrestricted; mutually exclusive with priority_unset=true."})
 	field("SharedTaskViewPreferences", "owner_id", map[string]any{"description": "Literal resource ID; __unassigned__ has no special meaning. Mutually exclusive with unassigned=true."})
+	field("SharedTaskViewPreferences", "iteration_id", map[string]any{"description": "Exact formal planning iteration ID; empty means unrestricted. Mutually exclusive with iteration_unset=true. Unknown or other-project IDs match nothing; completed iterations remain selectable."})
+	field("SharedTaskViewPreferences", "iteration_unset", map[string]any{"description": "Select no planning row or an empty formal iteration. True is mutually exclusive with nonempty iteration_id."})
 	field("SharedTaskViewPreferences", "sort", map[string]any{"enum": []string{"", "updated_desc", "created_desc", "title_asc", "priority_desc"}, "default": "updated_desc"})
 	field("SharedTaskViewPreferences", "layout", map[string]any{"enum": []string{"", "list", "board"}, "default": "list"})
-	field("SharedTaskViewPreferences", "group_by", map[string]any{"enum": []string{"", "status", "owner", "priority"}, "default": "status"})
+	field("SharedTaskViewPreferences", "group_by", map[string]any{"enum": []string{"", "status", "owner", "priority", "iteration"}, "default": "status"})
 	for _, model := range []string{"SharedTaskView", "SharedTaskViewPage"} {
 		for _, value := range toolContractMap(schemas, model, "properties") {
 			value.(map[string]any)["readOnly"] = true

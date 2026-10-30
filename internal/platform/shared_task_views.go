@@ -24,7 +24,7 @@ func (s *Service) InitializeSharedTaskViews(ctx context.Context) error {
 }
 
 func normalizeSharedTaskViewPreferences(p SharedTaskViewPreferences) (SharedTaskViewPreferences, error) {
-	q, err := normalizeTaskWorkspaceQuery(TaskWorkspaceQuery{Q: p.Q, Status: p.Status, StatusUnset: p.StatusUnset, OwnerID: p.OwnerID, Priority: p.Priority, RequirementID: p.RequirementID, Unassigned: p.Unassigned, PriorityUnset: p.PriorityUnset, Sort: p.Sort})
+	q, err := normalizeTaskWorkspaceQuery(TaskWorkspaceQuery{Q: p.Q, Status: p.Status, StatusUnset: p.StatusUnset, OwnerID: p.OwnerID, Priority: p.Priority, RequirementID: p.RequirementID, IterationID: p.IterationID, IterationUnset: p.IterationUnset, Unassigned: p.Unassigned, PriorityUnset: p.PriorityUnset, Sort: p.Sort})
 	if err != nil {
 		return p, err
 	}
@@ -35,7 +35,7 @@ func normalizeSharedTaskViewPreferences(p SharedTaskViewPreferences) (SharedTask
 	if p.GroupBy == "" {
 		p.GroupBy = "status"
 	}
-	if p.Layout != "list" && p.Layout != "board" || p.GroupBy != "status" && p.GroupBy != "owner" && p.GroupBy != "priority" {
+	if p.Layout != "list" && p.Layout != "board" || p.GroupBy != "status" && p.GroupBy != "owner" && p.GroupBy != "priority" && p.GroupBy != "iteration" {
 		return p, invalid(sharedTaskViewInvalid)
 	}
 	return p, nil

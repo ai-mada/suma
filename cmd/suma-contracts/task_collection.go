@@ -15,7 +15,7 @@ func taskCollectionContracts(add operationAdder, api map[string]any) {
 	op["x-disallowed-token-scopes"] = []string{"runner", "agent"}
 	op["description"] = "Current-authorized aggregate of the same task scope as /task-workspace. Total covers all matched tasks; groups contains only a bounded current group page. Separate requests are live reads, not a frozen snapshot. Does not mutate, dispatch, test or approve."
 	appendTaskWorkspaceFilters(op)
-	appendQuery(op, queryParameter("group_by", "Current task grouping field. Empty keys are genuine unset data.", map[string]any{"type": "string", "enum": []string{"status", "owner", "priority"}, "default": "status"}))
+	appendQuery(op, queryParameter("group_by", "Current task grouping field. Iteration uses the formal planning relation, including completed iterations; its empty key combines no planning row and an empty iteration. Group keys never grant task access.", map[string]any{"type": "string", "enum": []string{"status", "owner", "priority", "iteration"}, "default": "status"}))
 	appendQuery(op, queryParameter("group_limit", "Maximum group headers; loading more is explicit and independent of task-row pagination.", map[string]any{"type": "integer", "minimum": 1, "maximum": 100, "default": 20}))
 	appendQuery(op, queryParameter("group_cursor", "Opaque continuation bound to current identity, project, base filters, grouping and group limit.", map[string]any{"type": "string", "minLength": 1, "maxLength": 4096}))
 	schemas := toolContractMap(api, "components", "schemas")

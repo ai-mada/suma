@@ -1,7 +1,7 @@
 .task-collection{min-width:0}.task-collection .list-toolbar{flex-wrap:wrap;gap:12px}.task-collection .list-toolbar>.inline{flex-wrap:wrap}.task-collection .list-count{white-space:nowrap}
 .task-collection-controls-toggle{display:none}.task-collection-observed summary{cursor:pointer;font-size:14px;line-height:1.5}.task-collection-observed[open] p{margin-top:8px}
 @media(max-width:760px){.task-collection-controls-toggle{display:block;margin:8px 12px;width:calc(100% - 24px);text-align:left}.task-collection-controls:not(.expanded){display:none}}
-.task-collection-filters{display:grid;grid-template-columns:minmax(180px,1.5fr) repeat(4,minmax(110px,1fr));gap:12px;padding:0 18px 16px;align-items:start}
+.task-collection-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px;padding:0 18px 16px;align-items:start}
 .task-collection-filters>label,.task-collection-query{display:grid;gap:6px;min-width:0;font-size:var(--font-secondary);color:var(--muted)}
 .task-collection-filters select,.task-collection-filters input{width:100%;min-width:0}.task-collection-query .filter-input{width:100%}.task-collection-query .filter-input input{width:100%;min-width:0}
 .task-collection-filters>label>button{font-size:var(--font-secondary);justify-self:start;background:transparent;border:0;padding:0;min-height:28px}
@@ -24,3 +24,8 @@
 .task-collection .row-title span{overflow-wrap:anywhere}.task-collection .owner-cell{overflow-wrap:anywhere;white-space:normal}.task-collection .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 @media(max-width:1100px){.task-collection-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.task-collection-query{grid-column:1/-1}}
 @media(max-width:600px){.task-collection-filters{padding:0 12px 12px;gap:10px}.task-collection .list-toolbar{padding:12px}.task-collection-board{grid-auto-flow:row;grid-template-columns:minmax(0,1fr);grid-auto-columns:auto;padding:12px}.task-collection button{min-height:44px}.task-collection-filters>label>button{min-height:36px}.task-collection-observed,.task-collection-selection-help{padding:12px}.task-collection-page-footer{padding:12px}.task-collection-filters>label{overflow-wrap:anywhere}}
+
+.task-collection .task-iteration-filter>small{font-size:12px;line-height:1.65;color:var(--muted)}
+.task-collection .task-iteration-context{display:block;white-space:normal;font-size:12px;line-height:1.65;color:var(--muted);overflow-wrap:anywhere}
+.task-collection :is(button,input,select,summary):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:600px){.task-collection-filters{grid-template-columns:minmax(0,1fr)}.task-collection-filters :is(input,select){min-height:44px;font-size:14px}.task-collection .task-collection-filters>label>button{min-height:44px}}

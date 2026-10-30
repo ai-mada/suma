@@ -52,13 +52,13 @@ it('reads authoritative task provenance and keeps a dirty review-request draft o
     if (path === '/overview') return Response.json({ counts: { tasks: 1 } });
     if (path === '/tasks') return Response.json({ items: [task], total: 1 });
     if (path === '/task-collection/summary') return Response.json({ project_id: project, total: 1, group_by: 'status', groups: [{ key: task.status, total: 1 }], groups_total: 1, groups_limit: 20, next_group_cursor: '', as_of: '2026-10-29T00:00:00Z' });
-    if (path === '/task-workspace') return Response.json({ project_id: project, limit: 20, items: [task], total: 1, next_cursor: '', as_of: '2026-10-29T00:00:00Z' });
+    if (path === '/task-workspace') return Response.json({ project_id: project, limit: 20, items: [task], task_plans: [{task_id: task.id, iteration_id: '', plan_version: 0}], total: 1, next_cursor: '', as_of: '2026-10-29T00:00:00Z' });
     if (path === '/tasks/' + taskId) return Response.json(task);
     // An authorized task with no review requests has an empty page, not a
     // 404 that correctly revokes the parent task's protected reading scope.
     if (path === '/task-review-requests') return Response.json({ project_id: project, task_id: taskId, task_version: task.version, can_request: true, limit: 20, items: [], total: 0, next_cursor: '', pending_request_id: '' });
     if (path === '/tasks/' + taskId + '/design-context') return Response.json({ project_id: project, task_id: taskId, task_version: 7, bound: false, eligibility: 'none', current_requirement_version: 0, current_design_version: 0, current_published_revision: 0 });
-    if (['/requirements', '/members', '/runs', '/organizations', '/workflows', '/tool-profiles'].includes(path)) return Response.json({ items: [], total: 0 });
+    if (['/iterations', '/requirements', '/members', '/runs', '/organizations', '/workflows', '/tool-profiles'].includes(path)) return Response.json({ items: [], total: 0 });
     return Response.json({}, { status: 404 });
   }));
   await act(async () => { root = createRoot(host); root.render(<App />); }); await settle();
@@ -123,11 +123,11 @@ it('keeps one actual task design container through asynchronous refresh versions
     if (path === '/overview') return Response.json({ counts: { tasks: 1 } });
     if (path === '/tasks') return Response.json({ items: [task], total: 1 });
     if (path === '/task-collection/summary') return Response.json({ project_id: project, total: 1, group_by: 'status', groups: [{ key: task.status, total: 1 }], groups_total: 1, groups_limit: 20, next_group_cursor: '', as_of: '2026-10-29T00:00:00Z' });
-    if (path === '/task-workspace') return Response.json({ project_id: project, limit: 20, items: [task], total: 1, next_cursor: '', as_of: '2026-10-29T00:00:00Z' });
+    if (path === '/task-workspace') return Response.json({ project_id: project, limit: 20, items: [task], task_plans: [{task_id: task.id, iteration_id: '', plan_version: 0}], total: 1, next_cursor: '', as_of: '2026-10-29T00:00:00Z' });
     if (path === '/tasks/' + taskId) return Response.json(task);
     if (path === '/task-review-requests') return Response.json({ project_id: project, task_id: taskId, task_version: task.version, can_request: true, limit: 20, items: [], total: 0, next_cursor: '', pending_request_id: '' });
     if (path === '/tasks/' + taskId + '/design-context') { const version = task.version; return new Promise<Response>(resolve => pending.push({ resolve, version })); }
-    if (['/requirements', '/members', '/runs', '/organizations', '/workflows', '/tool-profiles'].includes(path)) return Response.json({ items: [], total: 0 });
+    if (['/iterations', '/requirements', '/members', '/runs', '/organizations', '/workflows', '/tool-profiles'].includes(path)) return Response.json({ items: [], total: 0 });
     return Response.json({}, { status: 404 });
   }));
   const one = () => { expect(host.querySelectorAll('.task-design-provenance')).toHaveLength(1); expect(document.body.querySelectorAll('.task-design-provenance')).toHaveLength(1); };

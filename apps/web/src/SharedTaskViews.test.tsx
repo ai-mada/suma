@@ -7,12 +7,12 @@ import {defaultTaskView} from './task-views-model';
 import {ApiError} from './api';
 import {setLocale} from './i18n';
 const call=vi.hoisted(()=>vi.fn());vi.mock('./api',async original=>({...await original<typeof import('./api')>(),api:call}));
-let host:HTMLDivElement,root:Root;const change=vi.fn(()=>true);
+let host:HTMLDivElement,root:Root;const change=vi.fn((_value:typeof defaultTaskView)=>true);
 const row:SharedTaskView={id:'view-a',project_id:'project-a',owner_id:'user-a',name:'Team backlog',visibility:'project',version:1,state:'active',preferences:{...defaultTaskView,status:'todo'},created_at:'2026-10-29T00:00:00Z',updated_at:'2026-10-29T00:00:00Z',can_edit:true,can_delete:true};
 const page=(items=[row])=>({project_id:'project-a',items,total:items.length,limit:20,as_of:'now'});
 beforeEach(async()=>{vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);await setLocale('en-US',{persist:false});call.mockReset();change.mockClear();call.mockResolvedValue(page());host=document.createElement('div');document.body.append(host);root=createRoot(host);});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();});
-async function render(user='user-a',denied=false){await act(async()=>root.render(<SharedTaskViews scope={[user,'org-a','project-a']} preferences={defaultTaskView} onChange={change} denied={denied}/>));}
+async function render(user='user-a',denied=false,preferences=defaultTaskView){await act(async()=>root.render(<SharedTaskViews scope={[user,'org-a','project-a']} preferences={preferences} onChange={change} denied={denied}/>));}
 async function click(text:string){const b=[...document.querySelectorAll('button')].find(b=>b.textContent?.trim()===text);expect(b,text).toBeTruthy();await act(async()=>b!.click());}
 async function input(el:HTMLInputElement|HTMLSelectElement,value:string){await act(async()=>{const proto=el instanceof HTMLInputElement?HTMLInputElement.prototype:HTMLSelectElement.prototype;Object.getOwnPropertyDescriptor(proto,'value')!.set!.call(el,value);el.dispatchEvent(new Event(el instanceof HTMLInputElement?'input':'change',{bubbles:true}));});}
 const dialog=()=>document.querySelector('[role=dialog]')!;
@@ -25,3 +25,13 @@ it('ignores a previous identity response after changing account',async()=>{let r
 it('requires explicit archive confirmation and leaves current filters unchanged',async()=>{await render();await input(host.querySelector('select')!,'view-a');change.mockClear();await click('Delete synced view');expect(call.mock.calls).toHaveLength(1);const b=[...dialog().querySelectorAll('button')].find(b=>b.textContent==='Delete synced view')!;call.mockResolvedValueOnce({...row,state:'archived',version:2});await act(async()=>b.click());expect(call.mock.calls.at(-1)![0]).toBe('/task-views/view-a/archive');expect(call.mock.calls.at(-1)![1]).toMatchObject({expected_version:1});expect(change).not.toHaveBeenCalled();expect(host.textContent).not.toContain('Team backlog');});
 
 it('compares the latest server revision with the retained draft before an explicit CAS replacement',async()=>{await render();await input(host.querySelector('select')!,'view-a');await click('Update view');await input(dialog().querySelector('input')!,'My retained draft');call.mockRejectedValueOnce(new ApiError(409,'conflict','Changed'));await click('Save');call.mockResolvedValueOnce({...row,name:'Changed elsewhere',version:3,preferences:{...defaultTaskView,status:'blocked'}});await click('Load latest revision');expect(dialog().textContent).toContain('Changed elsewhere');expect(dialog().textContent).toContain('My retained draft');expect(dialog().textContent).toContain('Blocked');call.mockResolvedValueOnce({...row,name:'My retained draft',version:4});await click('Update current revision with my draft');expect(call.mock.calls.at(-1)![1]).toMatchObject({expected_version:3,name:'My retained draft'});});
+
+
+it('loads server-owned iteration criteria independently of local views and preserves exact IDs',async()=>{
+ const preferences={...defaultTaskView,iteration_id:'completed-iteration',group_by:'iteration' as const};call.mockResolvedValueOnce(page([{...row,preferences}]));await render();await input(host.querySelector('select')!,'view-a');expect(change).toHaveBeenLastCalledWith(expect.objectContaining({iteration_id:'completed-iteration',group_by:'iteration'}));expect(change.mock.calls.at(-1)?.[0]).not.toHaveProperty('iteration_unset',true);
+});
+
+it('keeps iteration criteria and the original CAS operation through unknown save recovery after current filters change',async()=>{
+ const preferences={...defaultTaskView,iteration_id:'completed-iteration',group_by:'iteration' as const};await render('user-a',false,preferences);await input(host.querySelector('select')!,'view-a');await click('Update view');await input(dialog().querySelector('input')!,'Iteration view draft');call.mockRejectedValueOnce(new ApiError(0,'timeout','Timeout'));await click('Save');const original=call.mock.calls.at(-1)!;expect(original[1]).toMatchObject({expected_version:1,preferences:{iteration_id:'completed-iteration',group_by:'iteration'}});
+ await render('user-a',false,{...defaultTaskView,iteration_unset:true});expect(dialog().textContent).toContain('completed-iteration');call.mockResolvedValueOnce({...row,name:'Iteration view draft',version:2,preferences});await click('Check by retrying');expect(call.mock.calls.at(-1)?.[1]).toEqual(original[1]);expect(call.mock.calls.at(-1)?.[1].preferences).not.toHaveProperty('iteration_unset',true);
+});

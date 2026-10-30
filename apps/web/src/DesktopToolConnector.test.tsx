@@ -45,9 +45,9 @@ it('loads the existing project-folder picker only when the native connection nee
 });
 it('hides reconnection after an authorization refusal and translates the management actions without repeating a mutation',async()=>{
  await render();manage.mockImplementation(async()=>({status:'failed',code:'managed_runner_access_changed'}));await click('connect');
- expect(button('connect')).toBeNull();expect(host.textContent).toContain('Current access must be restored');expect(onConnected).not.toHaveBeenCalled();
+ expect(button('connect')).toBeNull();expect(host.textContent).toContain('Check current account permissions and the node credential expiry.');expect(host.textContent).toContain('Expired credentials require new authorization.');expect(onConnected).not.toHaveBeenCalled();
  manage.mockImplementation(async()=>({status:'failed',code:'managed_runner_busy'}));await click('status');expect(button('connect')).toBeNull();
- await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('本机连接');expect(host.textContent).toContain('当前访问权限');expect(manage.mock.calls.map(call=>call[0].action)).toEqual(['status','connect','status']);
+ await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('本机连接');expect(host.textContent).toContain('当前账号权限及节点凭据有效期');expect(host.textContent).toContain('凭据过期需要重新授权');expect(manage.mock.calls.map(call=>call[0].action)).toEqual(['status','connect','status']);
 });
 it('refreshes the same original node after a confirmed stop and explicit reconnect, without repeating callbacks for status reads',async()=>{
  manage.mockImplementation(async()=>connection('connected',{worker_id:worker}));await render();expect(onConnected).toHaveBeenCalledExactlyOnceWith(worker);

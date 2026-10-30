@@ -6,7 +6,9 @@ export type TaskViewPreferences={
  priority:string;
  sort:'updated_desc'|'created_desc'|'title_asc'|'priority_desc';
  layout:'list'|'board';
- group_by:'status'|'owner'|'priority';
+ group_by:'status'|'owner'|'priority'|'iteration';
+ iteration_id?:string;
+ iteration_unset?:boolean;
  requirement_id?:string;
  unassigned?:boolean;
  priority_unset?:boolean;
@@ -44,16 +46,16 @@ function exactObject(value:unknown,keys:readonly string[]):value is Record<strin
 function validPreferences(value:unknown):value is TaskViewPreferences{
  if(value===null||typeof value!=='object'||Array.isArray(value))return false;
  const prototype=Object.getPrototypeOf(value);if(prototype!==Object.prototype&&prototype!==null)return false;
- const required=['q','status','owner_id','priority','sort','layout','group_by'],optional=['requirement_id','unassigned','priority_unset','status_unset'];
+ const required=['q','status','owner_id','priority','sort','layout','group_by'],optional=['requirement_id','iteration_id','iteration_unset','unassigned','priority_unset','status_unset'];
  const keys=Reflect.ownKeys(value);if(!required.every(key=>Object.hasOwn(value,key))||keys.some(key=>typeof key!=='string'||!required.includes(key)&&!optional.includes(key)))return false;
  const candidate=value as Record<string,unknown>;
- if(candidate.requirement_id!==undefined&&(typeof candidate.requirement_id!=='string'||candidate.requirement_id!==''&&!ownerIdentifier.test(candidate.requirement_id)))return false;
- for(const key of ['unassigned','priority_unset','status_unset'])if(candidate[key]!==undefined&&typeof candidate[key]!=='boolean')return false;
- if(candidate.unassigned&&candidate.owner_id!==''||candidate.priority_unset&&candidate.priority!==''||candidate.status_unset&&candidate.status!=='')return false;
+ for(const key of ['requirement_id','iteration_id'])if(candidate[key]!==undefined&&(typeof candidate[key]!=='string'||candidate[key]!==''&&!ownerIdentifier.test(candidate[key])))return false;
+ for(const key of ['unassigned','priority_unset','status_unset','iteration_unset'])if(candidate[key]!==undefined&&typeof candidate[key]!=='boolean')return false;
+ if(candidate.unassigned&&candidate.owner_id!==''||candidate.priority_unset&&candidate.priority!==''||candidate.status_unset&&candidate.status!==''||candidate.iteration_unset&&!!candidate.iteration_id)return false;
  return typeof candidate.q==='string'&&Array.from(candidate.q).length<=200&&!controls.test(candidate.q)&&shortFilter(candidate.status)&&shortFilter(candidate.priority)
   &&typeof candidate.owner_id==='string'&&(candidate.owner_id===''||ownerIdentifier.test(candidate.owner_id))
   &&['updated_desc','created_desc','title_asc','priority_desc'].includes(candidate.sort as string)
-  &&['list','board'].includes(candidate.layout as string)&&['status','owner','priority'].includes(candidate.group_by as string);
+  &&['list','board'].includes(candidate.layout as string)&&['status','owner','priority','iteration'].includes(candidate.group_by as string);
 }
 function validCollection(value:unknown):value is TaskViewCollection{
  if(!exactObject(value,['format','views'])||value.format!==taskViewsFormat||!Array.isArray(value.views)||value.views.length>20)return false;

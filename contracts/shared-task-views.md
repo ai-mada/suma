@@ -8,7 +8,7 @@
 
 每次读写及回执重放都重新验证当前身份、组织、项目、凭证与对象资格。Runner／Agent身份拒绝。private仅作者可读写，仍需项目读取权，其他人员包括管理员不可读取；project视图对当前有项目读取权的人员可见，修改／归档需项目写入权且为作者或当前组织owner／admin，不包含只有项目reviewer资格的人员。共享视图不授予任务访问权。can_edit／can_delete由当前资格计算，不能由请求填写或从旧回执继承。
 
-`SharedTaskViewPreferences` 只包含 `q,status,status_unset,owner_id,priority,requirement_id,unassigned,priority_unset,sort,layout,group_by`。筛选沿任务查询字面语义，不引入all或__unassigned__哨兵；空字段标志与对应非空精确值互斥。q／status／priority最多200个Unicode字符；资源引用最多64字节。省略条件为不限范围；sort默认updated_desc，layout默认list，group_by默认status。其枚举分别为四种正式排序、list／board、status／owner／priority。未知、重复及null字段拒绝，不能通过未识别数据默默扩大范围。
+`SharedTaskViewPreferences` 只包含 `q,status,status_unset,owner_id,priority,requirement_id,iteration_id,iteration_unset,unassigned,priority_unset,sort,layout,group_by`。筛选沿任务查询字面语义，不引入all或__unassigned__哨兵；空字段标志与对应非空精确值互斥。q／status／priority最多200个Unicode字符；资源引用最多64字节。省略条件为不限范围；sort默认updated_desc，layout默认list，group_by默认status。其枚举分别为四种正式排序、list／board、status／owner／priority／iteration。未知、重复及null字段拒绝，不能通过未识别数据默默扩大范围。
 
 ## HTTP与分页
 
@@ -39,3 +39,7 @@ GET单对象允许读取当前有资格的archived墓碑；列表不包含墓碑
 初始化遵循当前组件基线声明，发现未登记域schema先拒绝，不清空用户数据或引入历史兼容回填。已有浏览器本机视图保持独立，只有用户明确保存才成为服务器对象；不自动上传旧本机内容。
 
 本阶段跨设备能力是多个已授权客户端读取同一服务端对象。完整离线许可、设备水位、CRDT、双向同步、外部工具接入、其他数据库及物理多机验收继续按唯一实施计划推进。
+
+## T-MULTICA-ITERATION-156：迭代工作入口
+
+保存并原样恢复 `iteration_id`／`iteration_unset` 和 `group_by=iteration`。名称与任务归属不存入偏好；应用时按当前项目资格重新读正式迭代目录及 `suma_task_plans`。已完成迭代保留；未知或已不可见的ID显示待核对并保留精确条件，不能当作未关联或不限。更改筛选与保存视图不改任务、排期、批准或执行。复用现有JSON偏好、CAS及原操作回执，不增表、迁移或自动回填。

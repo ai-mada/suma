@@ -23,7 +23,7 @@ func TestTaskHandoffInboxContractUsesExactReadAndPrivateSourceBinding(t *testing
 		t.Fatal("exact reads must not scan history pages or infer another task", queries)
 	}
 	item := mapAt(api, "components", "schemas", "NotificationInboxItem")
-	if !reflect.DeepEqual(mapAt(item, "properties", "kind")["enum"], []string{"task_assigned", "task_mentioned", "task_review_requested", "task_handoff_requested"}) {
+	if !reflect.DeepEqual(mapAt(item, "properties", "kind")["enum"], []string{"task_assigned", "task_mentioned", "task_review_requested", "task_handoff_requested", "task_followed"}) {
 		t.Fatal("a source domain overwrote the complete inbox kind contract")
 	}
 	if mapAt(item, "properties", "handoff_id")["readOnly"] != true {
