@@ -35,7 +35,7 @@ function planFixture(): WorkspaceTerminalCandidatePlan {
     run_id: 'candidate-run-a', created_at: stamp, expires_at: '2099-10-29T12:00:00Z', tool_profile_id: tool.id, tool_profile_version: 2, tool_profile_sha256: tool.profile.profile_sha256,
     worker_id: terminal.worker_id, workflow_id: flow.id, workflow_version: 2, producer_node_id: 'check',
     context: {task: {id: task, version: 3, title: 'Formal task', description: 'Original scope', acceptance_criteria: ['Original formal criterion']}}, source,
-    workflow: {...flow, id: 'fixed-candidate-flow', version: 1, nodes: [{...flow.nodes[0], config: {terminal_candidate_source: source}}, flow.nodes[1]]}, valid: true, reason: ''};
+    workflow: {...flow, nodes: [{...flow.nodes[0], config: {terminal_candidate_source: source}}, flow.nodes[1]]}, valid: true, reason: ''};
 }
 const candidateFixture = (): CandidateBinding => ({schema_version: 1, transfer_id: 'transfer-a', project_id: project, state: 'sealed',
   source: {run_id: 'candidate-run-a', node_id: 'check', attempt: 1, fence: 1, worker_id: 'worker-a'}, base_commit: 'a'.repeat(40), head_commit: 'f'.repeat(40),
@@ -109,7 +109,7 @@ it('previews stopped changes first and requires fresh separate consent to start 
       writes.push({path, body});
       if (path.endsWith('/candidate-plans')) {saved = planFixture(); return saved;}
       saved = {...saved!, state: 'started', version: 2};
-      return {id: saved.run_id, project_id: project, workflow_id: saved.workflow.id, workflow_version: saved.workflow.version};
+      return {id: saved.run_id, project_id: project, workflow_id: 'managed-' + saved.run_id, workflow_version: 1};
     }
     if (path.includes('/recovery?')) return {...recovery, run_state: 'failed', can_recover: false};
     if (path.startsWith('/workspace/terminal-sessions/terminal-a/candidate-plans?')) return {items: saved ? [saved] : [], task_version: 3};
@@ -131,6 +131,7 @@ it('previews stopped changes first and requires fresh separate consent to start 
     await click(host.querySelector('input[type=checkbox]')); await click(start);
     expect(writes).toHaveLength(2); expect(writes[1].path).toBe('/workspace/terminal-candidate-plans/candidate-plan-a/start');
     expect(writes[1].body.expected_version).toBe(1); expect(writes.every(write => !write.path.includes('/review'))).toBe(true);
+    expect(host.textContent).toContain('Checks and candidate quality workflow started');
     expect(host.querySelector('a')?.getAttribute('href')).toContain('run=candidate-run-a');
     sessionStorage.clear(); saved = {...saved!, valid: false, reason: 'Current source task basis changed'};
     await act(async () => {root.render(<TerminalCandidatePanel key="fresh-readback" project={project} task={task} taskVersion={8} session={{...terminal, state: 'stopped'}} scope="candidate-scope" active disabled
@@ -160,7 +161,7 @@ it('binds a terminal source only after current formal acceptance of its exact ru
     if (path.startsWith('/tasks/task-a/delivery?')) return {project_id: project, task_id: task, task_version: 4, task_status: accepted ? 'accepted' : 'awaiting_review',
       formal_acceptance: accepted, run_basis_state: 'current', run: {run_id: plan.run_id, version: 5, state: 'succeeded', nodes: summary, tests: summary},
       expert_plans: {scope: 'current_run', total: 0, limit: 20, complete: true, items: []}, issues: {scope: 'current_run', total: 0, limit: 20, complete: true, items: []}};
-    if (path.startsWith('/runs/')) return {id: plan.run_id, project_id: project, version: 5, state: 'succeeded', workflow_id: plan.workflow.id, workflow_version: plan.workflow.version,
+    if (path.startsWith('/runs/')) return {id: plan.run_id, project_id: project, version: 5, state: 'succeeded', workflow_id: 'managed-' + plan.run_id, workflow_version: 1,
       nodes: [{id: 'check', state: 'succeeded', workspace_evidence: {candidate_bundle: candidate}}, {id: 'verify', state: 'succeeded'}]};
     if (path.startsWith('/tasks?')) return {items: [{id: 'target-a', project_id: project, title: 'Follow-up', version: targetVersion, status: 'draft', run_id: ''},
       {id: 'started-task', project_id: project, title: 'Already started', version: 1, run_id: 'another-run'}], total: 2};

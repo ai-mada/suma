@@ -24,7 +24,7 @@
   "codex-execution.rerouted": "CLI 报告模型改路由",
   "codex-execution.thread": "会话",
   "codex-execution.turn": "轮次",
-  "codex-execution.invalid_response": "返回结果与原任务或 Codex 配置不一致，已保留原操作，可恢复后核对。",
+  "codex-execution.invalid_response": "返回结果与原任务或工具执行配置不一致，已保留原操作，可恢复后核对。",
   "codex-execution.effort_none": "不使用推理",
   "codex-execution.effort_minimal": "最少",
   "codex-execution.effort_low": "低",

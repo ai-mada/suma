@@ -14,6 +14,7 @@ import {useWriteAction, WriteNotice} from './write-action';
 import {useReplyRead} from './task-conversation-reply-hooks';
 import {dispatchOptionsPath, validDispatchOptions, type DispatchOptionsScope} from './task-dispatch-options-model';
 import {developmentCriteria, developmentGoal, validDiscussionDevelopment, validDiscussionDevelopmentReceipt, validDiscussionDevelopmentRequest} from './discussion-development-model';
+import {validManagedTaskDispatchRun} from './task-dispatch-response';
 import './DiscussionDevelopmentPanel.css';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('discussion-development.' + key, values);
@@ -56,8 +57,7 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
       if (!match || !object(value) || value.project_id !== project) return false;
       const original = await api<unknown>('/task-discussion-development-plans/' + encodeURIComponent(match[1]) + query(project));
       return validDiscussionDevelopment(original, project, taskId) && original.id === match[1] && original.version >= Number(request.body.expected_version) &&
-        original.dispatch_plan.state === 'started' && value.id === original.dispatch_plan.run_id &&
-        value.workflow_id === original.dispatch_plan.workflow.id && value.workflow_version === original.dispatch_plan.workflow.version;
+        validManagedTaskDispatchRun(value, original.dispatch_plan, project);
     }});
   const locked = action.busy || !!action.pending, blocked = accessBlocked || denied || action.errorStatus === 401 || action.errorStatus === 403;
   const workflows = useReplyRead('/workflows' + query(project), open && !blocked && !selected, validWorkflows, refuse, refresh);

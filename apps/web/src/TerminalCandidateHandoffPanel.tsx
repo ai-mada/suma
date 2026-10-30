@@ -11,6 +11,7 @@ import {useReplyCollection, useReplyRead} from './task-conversation-reply-hooks'
 import {validTaskDelivery} from './task-delivery-model';
 import {compositionBinding, compositionRecovery, compositionText, validCodeBaseline, validCompositionTask} from './candidate-composition-model';
 import {TerminalBaselineFacts} from './TerminalBaselineFacts';
+import {validManagedRunIdentity} from './task-dispatch-response';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('terminal.' + key, values);
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
@@ -42,7 +43,7 @@ export function TerminalCandidateHandoffPanel({project, plan, scope, active, dis
     (value): value is TaskDelivery => validTaskDelivery(value, project, plan.task_id), refuse, refresh);
   const run = useReplyRead('/runs/' + encodeURIComponent(plan.run_id) + query(project), open && active && !blocked,
     (value): value is Run => object(value) && value.id === plan.run_id && value.project_id === project && typeof value.version === 'number' &&
-      typeof value.state === 'string' && value.workflow_id === plan.workflow.id && value.workflow_version === plan.workflow.version &&
+      typeof value.state === 'string' && validManagedRunIdentity(value, project, plan.run_id) &&
       Array.isArray(value.nodes) && value.nodes.every(node => object(node) && typeof node.id === 'string' && typeof node.state === 'string'), refuse, refresh);
   const tasks = useReplyCollection('/tasks' + query(project) + '&limit=100', 'cursor', open && active && !blocked,
     (value): value is {items: RecordItem[]; total: number; next_cursor?: string} => object(value) && Array.isArray(value.items) && value.items.length <= 100 &&

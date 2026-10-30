@@ -14,6 +14,7 @@ import {terminalCandidatePreviewReceipt, terminalCandidateProducers, terminalCan
   validTerminalCandidateRequest, validTerminalCandidateTools, validTerminalCandidateWorkflows, validTerminalCandidatePage} from './terminal-candidate-model';
 import {TerminalCandidateHandoffPanel} from './TerminalCandidateHandoffPanel';
 import {TerminalBaselineFacts} from './TerminalBaselineFacts';
+import {validManagedRunIdentity} from './task-dispatch-response';
 
 const t = (key: string, values?: Record<string, unknown>) => tr('terminal.' + key, values);
 type Props = {project: string; task: string; taskVersion?: number; session: WorkspaceTerminalSession; scope: string; active: boolean; disabled: boolean;
@@ -40,8 +41,7 @@ export function TerminalCandidatePanel({project, task, taskVersion, session, sco
       if (!match || !object(value) || value.project_id !== project) return false;
       const original = await api<unknown>('/workspace/terminal-candidate-plans/' + encodeURIComponent(match[1]) + query(project));
       return validTerminalCandidatePlan(original, project, task, session.id) && original.id === match[1] && terminalCandidateMatchesSession(original, session) &&
-        original.version >= Number(request.body.expected_version) && original.state === 'started' && value.id === original.run_id &&
-        value.workflow_id === original.workflow.id && value.workflow_version === original.workflow.version;
+        original.version >= Number(request.body.expected_version) && original.state === 'started' && validManagedRunIdentity(value, project, original.run_id);
     }});
   const locked = action.busy || !!action.pending || handoffLocked, blocked = action.errorStatus === 401 || action.errorStatus === 403;
   const refuse = useCallback(() => callbacks.current.onDenied(), []);

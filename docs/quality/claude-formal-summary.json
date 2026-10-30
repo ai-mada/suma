@@ -1,0 +1,441 @@
+{
+  "stage": "T-CLAUDE-FORMAL-159",
+  "version": "1.0.0",
+  "date": "2026-10-30",
+  "status": "scoped_formal_worker_http_gui_feedback_verified",
+  "report": "docs/quality/claude-formal-verification.md",
+  "contract": "contracts/claude-cli.md",
+  "prior_implementation_report": "docs/quality/claude-cli-verification.md",
+  "full_platform_complete": false,
+  "ledger_unchanged": "58 limited /34 pending /92 total",
+  "runtime": {
+    "control_sha256": "f5f83b56b4ca362e3119ecce7ccaa1beb21998310fdbabeca9b625ac01da5097",
+    "runner_sha256": "44a2826536195f291576cafdd0924365c145f72d0af5bde7eb110c09e64e5bad",
+    "fixture_binary_sha256": "405836cf0b3516759d59a0c044fe9080924fe9f3adea2eab2c8bcd3e79bd4087",
+    "reused_platform_builds": 3,
+    "new_platform_binary_builds": 0,
+    "fixture_compiles": 1,
+    "initial_ui_index_sha256": "735e0bd788b217a9831272562980066ef1f780f7e35f575fd36d63bb3068fdd1",
+    "final_ui_index_sha256": "2af2aecde0cc153a0982d3f1c77412efc4472dfd6babd5bbf8908a8d4aa18adb",
+    "final_ui_source_sha256": "b0f3e48e4bede631ead5efdf150784eaf50ffb5c5e3031ba7ca5ddd47cd15295",
+    "final_ui_entry": "/assets/index-Dc5q6aaT.js",
+    "final_ui_build_seconds": 48.17,
+    "final_ui_build_exit_code": 0,
+    "isolated_types_exit_code": 0,
+    "paired_locale_keys": 7705,
+    "production_hardcodes": 0
+  },
+  "preparation": {
+    "assertions": 10,
+    "checks": [
+      "normal setup creates the sole owned project and identity",
+      "developer receives a real registered worker credential",
+      "tester receives a real registered worker credential",
+      "separate reviewer account has project review access and a canonical human resource",
+      "task belongs to the original requirement and human owner",
+      "developer starts paused and cannot be dispatched automatically",
+      "tester starts paused and cannot be dispatched automatically",
+      "developer formal Worker inventory matches the still-paused immutable profile",
+      "tester formal Worker inventory matches the still-paused immutable profile",
+      "published workflow binds a different independent test identity and the original candidate source"
+    ],
+    "http_journal_requests": 46,
+    "read_transports": 30,
+    "post_transports": 16,
+    "successful_post_transports": 15,
+    "rejected_post_transports": 1,
+    "initial_business_setup_and_workflow_mutations": 14,
+    "additional_review_request_mutations": 1,
+    "not_including_browser_or_worker_transports": true
+  },
+  "formal": {
+    "assertions": 7,
+    "checks": [
+      "original run succeeded while human task acceptance remains a separate fact",
+      "different registered workers retain first attempt/fence and bound tool identities",
+      "developer seals one clean real commit through the original candidate channel",
+      "independent worker imports the same fixed candidate and tests it without modifying its commit",
+      "one native fixture execution receives the complete fixed task context on stdin",
+      "both bound repository heads and the original dirty draft remain unchanged",
+      "tool evidence confirms the fixed CLI model and partial observed usage only"
+    ],
+    "run": {
+      "id": "45dcca7671ba25fcbdf390e14a9be736",
+      "state": "succeeded",
+      "workflow_id": "managed-45dcca7671ba25fcbdf390e14a9be736",
+      "workflow_version": 1
+    },
+    "independent_local_worker_identities": 2,
+    "physical_multihost": false,
+    "candidate": {
+      "commit": "3b048d070fbd169c02e2a7897035fc2e63dbd25a",
+      "evidence_sha256": "8486298bea98d5d77917378b98e93b9f619fc1758f34d76866873bc078712032",
+      "bundle_sha256": "e5b063328d20bba603b7c6177ced4332f43e8a2b8e021dc9695c9963894f543a",
+      "transfer_id": "7a448bd83f81bdd7b418bf2d0c395037",
+      "imported_by": "claude159-tester"
+    },
+    "complete_fixed_stdin_sha256": "555bb335328f86c5c99ac94d25bdd000f0a79c4f270054db9d55d6771f5b0436",
+    "complete_fixed_stdin_bytes": 1264,
+    "native_task_invocations": 1,
+    "real_vendor_calls": 0,
+    "model_calls": 0,
+    "original_dirty_draft_and_both_repository_heads_preserved": true,
+    "journals": {
+      "developer": {
+        "entry_count": 1,
+        "result_acked": true,
+        "pending_results": 0,
+        "run_id": "45dcca7671ba25fcbdf390e14a9be736",
+        "node_id": "develop",
+        "attempt": 1,
+        "fence": 1
+      },
+      "tester": {
+        "entry_count": 1,
+        "result_acked": true,
+        "pending_results": 0,
+        "run_id": "45dcca7671ba25fcbdf390e14a9be736",
+        "node_id": "test",
+        "attempt": 1,
+        "fence": 1
+      }
+    },
+    "junit": {
+      "protocol": "suma-junit-report-v1",
+      "sha256": "5a4066d72953d08108ac06f51c6dce8ae9cf79ec169ce859c61829c78705ef37",
+      "bytes": 341,
+      "testcases": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "published_task_test_plan_seeded": false
+    }
+  },
+  "gui": {
+    "counts_are_separate_scopes": true,
+    "initial": {
+      "assertions": 7,
+      "checks": [
+        "original task dialog shows the fixed configured model and no platform model selector",
+        "GUI preview freezes the exact task, workflow, fixed model and test profile",
+        "starting requires a separate explicit confirmation",
+        "one GUI Start creates the original formal run",
+        "different registered Workers complete the original first attempts",
+        "both completed nodes retain exact tool profile evidence",
+        "GUI execution has no renderer exception or external request"
+      ],
+      "post_transports": 2,
+      "original_start_transports": 1,
+      "original_gui_receipt_validation_failed": true,
+      "renderer_errors": 0,
+      "driver_exit_code": 1
+    },
+    "same_start_recovery": {
+      "assertions": 2,
+      "checks": [
+        "recovery displays the exact previously emitted original operation key",
+        "the real same-run receipt clears the original pending operation and opens its run"
+      ],
+      "post_transports": 1,
+      "same_body_and_operation_key": true,
+      "run_id": "45dcca7671ba25fcbdf390e14a9be736",
+      "initial_pending_in_new_window": false,
+      "request_source": "Harness reload of the exact original GUI-emitted non-secret body/key after verified original-window closure; not automatic cross-window persistence.",
+      "automatic_cross_window_persistence_verified": false,
+      "driver_exit_code": 1,
+      "after_recovery_failure": "networkidle wait timed out on the real live SSE page after the original operation had been successfully acknowledged and cleared"
+    },
+    "readonly_views": {
+      "assertions": 5,
+      "checks": [
+        "selected original run displays both configured and actual CLI-reported fixed models",
+        "partial observed usage is labelled separately from complete totals",
+        "English dark 390px keeps the run and its fixed-model facts within the viewport",
+        "same-key recovery leaves exactly one formal run and one native task invocation",
+        "read-only final views issue no write, external request or renderer exception"
+      ],
+      "writes": 0,
+      "external_requests": 0,
+      "renderer_errors": 0,
+      "driver_exit_code": 0
+    },
+    "reviewer": {
+      "assertions": 7,
+      "checks": [
+        "the real separate reviewer opens the exact original request from the personal inbox",
+        "opening the source and filling review does not mark the inbox read or submit a decision",
+        "one explicit human rejection blocks the original task without changing its run",
+        "the original request decision and returned issue share the authoritative review identity",
+        "the notification remains unread and the completed execution remains succeeded",
+        "the reviewer can still read the same fixed execution evidence after rejecting its delivery",
+        "reviewer GUI has no extra mutation, external request or renderer error"
+      ],
+      "decision_transports": 1,
+      "driver_exit_code": 0,
+      "external_requests": 0,
+      "renderer_errors": 0
+    },
+    "human_domain_browser_post_transports": 4,
+    "unique_new_browser_mutations": 3,
+    "one_same_key_start_replay": true,
+    "total_formal_runs": 1,
+    "no_start_or_development_repeated": true
+  },
+  "feedback": {
+    "task": {
+      "id": "4e7ea2bbddee7c89b9082c6bc2f8ba2e",
+      "version": 3,
+      "status": "blocked",
+      "run_id": "45dcca7671ba25fcbdf390e14a9be736"
+    },
+    "request": {
+      "id": "b95f2c0c92169a597efde40951304114",
+      "state": "closed",
+      "review_id": "998a95a98418022bae5936182cd851a5",
+      "decision": "rejected"
+    },
+    "issue": {
+      "id": "245765b15acf8d63930ae8c297e82c74",
+      "version": 1,
+      "status": "open",
+      "task_id": "4e7ea2bbddee7c89b9082c6bc2f8ba2e",
+      "run_id": "45dcca7671ba25fcbdf390e14a9be736",
+      "review_id": "998a95a98418022bae5936182cd851a5"
+    },
+    "notification": {
+      "id": "7d73f2313075f056fc10493a42046200",
+      "read": false
+    },
+    "execution_state": "succeeded",
+    "human_acceptance": "rejected; not accepted or deployed",
+    "issue_cycle": "open; full repair and reacceptance remain separate work"
+  },
+  "verification": {
+    "affected_test_files": 3,
+    "affected_cases_passed": 6,
+    "distinct_new_cases": 3,
+    "enhanced_existing_cases": 3,
+    "unrelated_old_cases_not_run": 2,
+    "skipped_not_counted_as_pass": true,
+    "red_failures": {
+      "direct": 3,
+      "discussion": 1,
+      "terminal_variants": 2
+    },
+    "green_log": {
+      "exit_code": 0,
+      "tool_chunk": "5851e4",
+      "passed": 6,
+      "unrelated_terminal_tests_skipped": 2,
+      "log": ".cache/claude-formal-159/all-response-variants-green.log",
+      "log_sha256": "b58c4775e553b17c2cc8179055633a905ab047a0898b3e8177ec97c8efb1e873"
+    },
+    "broader_suites_rerun": false,
+    "go_tests_rerun": false,
+    "new_go_platform_binary_builds": 0,
+    "fixture_compiles": 1,
+    "new_isolated_ui_builds": 1,
+    "ui_build_seconds": 48.17,
+    "ui_build_exit": 0,
+    "types_exit": 0,
+    "paired_locale_keys": 7705,
+    "production_hardcodes": 0,
+    "build_chunk_size_warning_preserved": true,
+    "initial_gui_whole_journey_success_claimed": false,
+    "gui_scope_totals_not_merged": true
+  },
+  "source_fix": {
+    "actual_paths": [
+      "Direct task Start receipt",
+      "Discussion development Start receipt",
+      "Terminal candidate Start receipt",
+      "Terminal candidate handoff Run read"
+    ],
+    "root_cause": "A managed Run was incorrectly compared with the published/source workflow identity. CreateManagedRunBound fixes workflow_id to managed-<reserved_run_id> and version to1 while the Plan retains source workflow facts.",
+    "binding": "Shared current-authorized Plan and reserved run_id binding; original authority, nodes, provenance and model validation retained.",
+    "other_plan_source_comparisons_not_findings": true,
+    "peer_files": 7,
+    "peer_product_sources": 4,
+    "peer_test_sources": 3,
+    "root_tool_neutral_locale_inputs": 2,
+    "owned_ui_inputs": 9,
+    "files": [
+      {
+        "path": "apps/web/src/task-dispatch-response.ts",
+        "sha256": "b4352da13e4413e3e3de75b2df46e505b3fab54349a288f073476a94f5ea1481"
+      },
+      {
+        "path": "apps/web/src/task-dispatch-response.test.ts",
+        "sha256": "874caec5f1ec3031a1793f09a4d9ea8a8ae1e1c0b0a3b68e71db16330f70be95"
+      },
+      {
+        "path": "apps/web/src/DiscussionDevelopmentPanel.tsx",
+        "sha256": "504cff9d711047d985bec0c26d03cb8b716a5557b90fc2682f503a67f928a71a"
+      },
+      {
+        "path": "apps/web/src/DiscussionDevelopmentPanel.test.tsx",
+        "sha256": "b103c4e849e2f2a21dde5ac20410a5d48a98e67803be157f841e1ac6b1d7bbbd"
+      },
+      {
+        "path": "apps/web/src/TerminalCandidatePanel.tsx",
+        "sha256": "afc4f1d7d4aac59223b84f42fd5c8e4c7e74977e3c0e8cbaacf9935e495eb928"
+      },
+      {
+        "path": "apps/web/src/TerminalCandidateHandoffPanel.tsx",
+        "sha256": "391a404e82e3df42aefc457a13a261dc9c7d127950d02c992532a17c47d71a4c"
+      },
+      {
+        "path": "apps/web/src/TerminalRecoveryCandidate.test.tsx",
+        "sha256": "3c18ed33b9bbc67ff40f7175576e9f13122042ea2385556b57f3e2fa6ec86cc8"
+      },
+      {
+        "path": "apps/web/src/i18n/locales/domains/codex-execution.zh-CN.json",
+        "sha256": "4c8d07b21ba5c7b5c623b80d3e622374e2ef7ce49607f626229538c7b8405879"
+      },
+      {
+        "path": "apps/web/src/i18n/locales/domains/codex-execution.en-US.json",
+        "sha256": "28b5ea7e885c29a01dc0a2f7215badbb1b49431c5bdc3904a147d4f34300188d"
+      }
+    ],
+    "actual_terminal_or_discussion_journeys_added": 0
+  },
+  "source_sets": {
+    "base": "8042114b73d166443140a50e01972a3546f5fc01",
+    "isolated_candidate_source_sha256": "b0f3e48e4bede631ead5efdf150784eaf50ffb5c5e3031ba7ca5ddd47cd15295",
+    "isolated_candidate_archive_sha256": "da74c18a358e26539a75beb23e482b0a05c0b2c43c5dc0c685f6f372e0b67fb3",
+    "initial_ui_index_sha256": "735e0bd788b217a9831272562980066ef1f780f7e35f575fd36d63bb3068fdd1",
+    "final_ui_index_sha256": "2af2aecde0cc153a0982d3f1c77412efc4472dfd6babd5bbf8908a8d4aa18adb",
+    "scope": "Exact159 response fixes plus two tool-neutral locale copy edits; excludes all in-progress160 and unrelated WIP.",
+    "all160_inputs_excluded": true,
+    "go_controller_and_runner_rebuilt": false
+  },
+  "recovery_boundary": {
+    "original_window_closed_and_absence_audited": true,
+    "session_storage_disappeared_with_original_window": true,
+    "new_window_initial_pending": false,
+    "original_body_and_key_reloaded_by_test_host": true,
+    "original_same_run_replay_acknowledged": true,
+    "automatic_cross_window_persistence_implemented_or_verified": false,
+    "full_goal_gap_retained": true,
+    "networkidle_timeout_after_two_recovery_checks": true,
+    "following_five_view_checks_readonly": true,
+    "no_new_start_or_development": true
+  },
+  "exceptions": {
+    "invitation_accept_missing_key_rejected_400_retained": true,
+    "no_invitation_or_successful_mutation_recreated": true,
+    "initial_modal_language_selector_driver_timeout_before_any_write_retained": true,
+    "actual_managed_receipt_bug_retained_and_fixed_in_four_paths": true,
+    "initial_browser_close_protocol_exception_retained": true,
+    "original_browser_absence_audited": "original-browser-process-audit.json",
+    "sse_wait_driver_timeout_retained_with_completed_recovery_checks": true,
+    "element_readiness_readonly_continuation_no_write": true
+  },
+  "exception_notes": [
+    "Missing invitation acceptance key was rejected400; no successful invitation or mutation recreated.",
+    "Initial language-selector driver timeout occurred before writes.",
+    "Actual four-path managed Run receipt product defect was fixed; initial driver exit1 retained.",
+    "Original browser-close protocol exception and exact absence audit retained.",
+    "The recovery driver exit1 was an SSE networkidle timeout after successful acknowledgement; read-only continuation did not repeat POST."
+  ],
+  "screenshots": [
+    {
+      "name": "claude-formal-zh-1366.png",
+      "bytes": 193101,
+      "sha256": "368a2805d8dbe2a5c50db3ff0f9e9588167e3050bbe17b41a7da4bba6d349ea8"
+    },
+    {
+      "name": "claude-formal-en-390-dark-viewport.png",
+      "bytes": 62941,
+      "sha256": "0c907e72bb33062284b0c6f03793363a0f8a516929278bda72fc8e2e2ac19339"
+    }
+  ],
+  "visual_inspection": {
+    "performed": true,
+    "method": "view_image",
+    "desktop": "Chinese1366 owner original run",
+    "phone": "English390 dark reviewer same original run after rejection, viewport only",
+    "long_phone_screenshot_preserved_but_not_delivered": true
+  },
+  "evidence_inputs": [
+    {
+      "path": "dist/quality/claude-formal-159/verification-summary.json",
+      "sha256": "da2973446e54763891379cc532f7e26c2a6421a7d341226742cc548450d0a978"
+    },
+    {
+      "path": "dist/quality/claude-formal-159/manifest.json",
+      "sha256": "72e27974175f60a643ffae4f0820d8c1047c1e31f42322bc379d4daa019a7bcd"
+    },
+    {
+      "path": ".cache/claude-formal-159/all-managed-response-fix-freeze.json",
+      "sha256": "e1e4abbc4e6c5de298fd9bbba2d8f540a7d12ddd31bc314eb05a549f4e39dba0"
+    },
+    {
+      "path": ".cache/claude-formal-159/candidate-source.json",
+      "sha256": "3105fe4a3a0075b0ac40ff93cf0dda2a3624e3475ea2899be15d2cb95c5da0a5"
+    }
+  ],
+  "delivery_manifest_verified_by_report_writer": true,
+  "closeout": {
+    "stops": [
+      {
+        "method": "Stop-Process after completed HTTP results; not a graceful shutdown claim",
+        "stopped_at": "2026-10-30T14:41:10.513446Z",
+        "identity_verified": true,
+        "role": "developer",
+        "pid": 130132,
+        "journal_retained": true
+      },
+      {
+        "method": "Stop-Process after completed HTTP results; not a graceful shutdown claim",
+        "stopped_at": "2026-10-30T14:41:10.5603122Z",
+        "identity_verified": true,
+        "role": "tester",
+        "pid": 148800,
+        "journal_retained": true
+      },
+      {
+        "method": "Stop-Process",
+        "data_retained": true,
+        "stopped_at": "2026-10-30T14:41:10.5964453Z",
+        "identity_verified": true,
+        "pid": 129016
+      }
+    ],
+    "exact_process_absence_verified": true,
+    "method": "Stop-Process with exact executable and UTC creation-time checks",
+    "graceful_worker_or_control_shutdown_claimed": false,
+    "wrapper_sessions": {
+      "initial_control": 88592,
+      "final_control": 99332,
+      "workers": 89170,
+      "terminal_exit_codes": 0
+    },
+    "owned_browsers_closed": true,
+    "database_journals_repositories_and_original_evidence_retained": true,
+    "unique_files_deleted": 0
+  },
+  "privacy": {
+    "credentials_or_cookies_delivered": false,
+    "private_http_bodies_delivered": false,
+    "journals_or_databases_delivered": false,
+    "raw_fixed_task_input_delivered": false
+  },
+  "limits": [
+    "Controlled protocol fixture; no real Claude installation/login/provider task or model billing verified.",
+    "Two local registered identities; not physical second-host, shared Pool, distributed control or production acceptance.",
+    "Only original159 formal run and exact candidate; discussion and terminal variants have focused component coverage only.",
+    "New-window pending request was absent and reloaded by the test host from the actual original request; cross-window automatic persistence remains unimplemented/unverified.",
+    "Human rejection correctly creates an open issue; this is not repair/retest/reacceptance, application release, merge or deployment.",
+    "No published per-case task test plan was seeded; JUnit is actual independent command evidence.",
+    "Existing platform P0–P7 and all requirements remain in scope."
+  ],
+  "additional_limits": [
+    "Other databases, scale and installers not accepted.",
+    "Full repair, retest, reacceptance, merge, release and deployment remain separate facts."
+  ],
+  "documents_only_change": true,
+  "tests_builds_or_git_run_during_report_writing": false,
+  "private_sources_read_for_report": false,
+  "missing_logs_or_commands_invented": false
+}

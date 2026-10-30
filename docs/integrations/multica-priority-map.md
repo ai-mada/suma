@@ -24,11 +24,11 @@ T-MULTICA-BULK-150已限定实现下述M07首片：[需求](../product/task-owne
 
 | Multica能力 | Suma当前事实 | 尚缺范围 |
 | --- | --- | --- |
-| M06任务查询／列表／看板／保存视图 | 已有统一授权分页、完整分组计数、本机视图及服务端private/project视图；见[查询合同](../../contracts/task-workspace.md)、[共享视图合同](../../contracts/shared-task-views.md) | 列配置、泳道、完整跨端同步与离线协作 |
+| M06任务查询／列表／看板／保存视图 | 原统一授权分页／完整分组及private/project视图已接通；156补正式迭代筛选和泳道，见[限定验收](../quality/task-iterations-verification.md) | 显示列160在途；完整跨端／离线协作、其他批量和规模仍待验 |
 | M07多选与批量编辑 | T-MULTICA-BULK-150已限定实现最多16项明确任务的批量负责人、当前人员、预览／版本校验、同事务采用与通知、原操作恢复；见[合同](../../contracts/task-owner-changes.md)及[证据](../quality/task-owner-changes-verification.md)。原团队安排保留 | 其他批量动作、全查询隐式全选、分组看板同等多选及完整M07仍待交付 |
 | M09／M27讨论与个人收件箱 | 已有原分配、精准提及、验收／交接请求及154本人任务关注的原消息同事务通知、去重和准确消息定位；见[关注合同](../../contracts/task-subscriptions.md)及[限定证据](../quality/task-subscriptions-verification.md) | 偏好降噪、其他事件、邮件／IM、跨项目聚合、多机／其他数据库与规模验收 |
-| M15技能更新与分发 | 部分：已有固定发布修订、组织目录、显式更新与目标项目采用，旧采用不会自动升级；见[技能合同](../../contracts/skill-catalog.md) | 更新差异、支持文件、外部包来源及签名安装 |
-| M11–M20工具与团队执行 | 部分：原唯一Go DAG、Runner／Pool、真实发现、固定档案、团队预览及准确attempt事实；153补三adapter本机托管连接，Windows真实DPAPI／正式Worker／17项实际检查见[报告](../quality/desktop-managed-runner-verification.md)，暂停／独立启用沿151 | 24小时明确续权与原节点处置、每工具真实鉴权／运行／取消、OS选择器／其他系统存储及多主机验收；WorkBuddy云派发沿独立阶段，见[工具矩阵](development-tool-matrix.md) |
+| M15技能更新与分发 | 固定发布修订、组织目录、显式更新及目标草稿采用；157补准确修订差异／纯文本、本地Monaco、刷新与撤权清理，见[限定验收](../quality/skill-revision-compare-verification.md) | 内建SDK命令NLS、支持文件、外部包及签名安装仍待完成或待验 |
+| M11–M20工具与团队执行 | 153本机托管、155正式云Runner等待／恢复和158固定Claude CLI已接线；159补[正式协议链路及回流](../quality/claude-formal-verification.md)，保留唯一Go DAG／Runner及准确attempt事实 | 真实供应方、跨窗口自动持久恢复、24小时续权、物理多机、其他系统及完整工具集合继续待验 |
 
 ## 原三个切片（首片150已限定交付）
 

@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-CLAUDE-FORMAL-159：[正式CLI交付与问题回流](../quality/claude-formal-verification.md)及[摘要](../quality/claude-formal-summary.json)限定验收完成。一个原Run沿双本机Worker、真实Git候选和独立Node／JUnit通过，Review退回后任务阻塞并关联Issue，Run仍成功；四个前端入口误比原工作流身份的问题已统一修复。6项受影响Web检查、独立类型／7705语言键和一次UI构建通过；准备、HTTP、GUI与恢复分别计数。恢复依赖测试宿主重载原body／key，不代表跨窗口自动持久；真实供应方／物理多机／其他系统及生产仍待验，完整58／34／92不变。
+
 T-SKILL-COMPARE-157：[固定技能修订比较](../design/skill-revision-compare.md)及[限定验证](../quality/skill-revision-compare-verification.md)。默认收起，两个准确版本对照、纯文本后备与明确采用当前版本沿原草稿审核；刷新／重开不回显旧正文，差异模型释放不影响IDE。复用本地Monaco，27项不同Web（15新增）及最终类型通过；7准备断言、15实际功能交互、2最终只读布局分开记录，中英1366／390已目视。真实界面发现的销毁异常及窄屏双栏已修复，13次正式写分为seed12与撤权1，无采纳重写或模型调用。内建SDK命令语言、其他数据库、多机及生产继续待验，58／34／92不变。
 
 T-CLAUDE-CLI-158：[Claude CLI执行接入](../integrations/claude-cli.md)、[架构](../architecture/claude-cli-execution.md)及[限定验证](../quality/claude-cli-verification.md)。固定完整模型、实际版本／帮助门禁、私有／Pool派发、原工作树及代码候选已接线；权限拒绝、未知结果和未完成工具不能冒充成功，组织／项目强制预算均拒绝此观测能力。15个不同新增Go顶层、Node1／Web4、最终类型和7705对文案通过；控制面、Runner、组合Web分别构建成功。本机原生协议夹具执行及同提交独立Node测试通过；GUI、正式Worker.Run／HTTP与真实Claude供应方调用尚未验，完整58／34／92不变。

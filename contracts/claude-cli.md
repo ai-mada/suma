@@ -1,6 +1,6 @@
 # Claude Code 前台CLI执行合同
 
-T-CLAUDE-CLI-158，速码1.0.0。状态：实施与定向验证中；本机未发现Claude入口，未安装、登录或调用真实厂商。协议夹具、正式平台联调与厂商实测分别记录。保留完整58／34／92范围。
+T-CLAUDE-CLI-158，速码1.0.0。状态：固定CLI实现及159受控正式Worker／HTTP／GUI链路已限定验证；本机未发现真实Claude安装，未登录或调用真实厂商。协议夹具、正式平台联调与厂商实测分别记录。保留完整58／34／92范围。
 
 ## 身份与固定宿主策略
 
@@ -54,3 +54,9 @@ assistant文本只作进度。tool_use／tool_result必须同一ID闭合，不�
 - [官方结果类型](https://code.claude.com/docs/en/agent-sdk/typescript#sdkresultmessage)与[用量说明](https://code.claude.com/docs/en/agent-sdk/cost-tracking)：可选reason、deferred／queued与部分用量。
 
 定向回归分别验证参数／权限边界、版本与help、会话／模型／终态、权限拒绝与部分用量、真实本机协议子进程、工作树候选与独立测试、原操作及两级预算拒绝。受控协议夹具不代表真实Claude已安装或厂商任务通过。最终一次相关集成构建及中英／窄屏实际界面由root协调；不改T156／157在途入口，不提前宣称通过。
+
+## T-CLAUDE-FORMAL-159：正式运行回执
+
+原计划保留发布来源流程，实际受托管运行使用准确保留的run_id及`managed-<run_id>`工作流、版本1。直接任务、讨论开发、终端候选和候选交接共用准确运行身份核对，各入口仍独立验证当前项目、原计划／来源、状态、节点和模型资格。读取原计划失败时保留原操作，不用新Start替代恢复。
+
+受控协议夹具已沿正式双Worker、HTTP领取／结果、真实候选、同提交Node／JUnit及独立测试账号Review退回验证；原Run保持成功，任务阻塞并关联Issue。跨窗口操作持久性未证明：新窗口没有原pending，测试宿主仅重载原请求后恢复；它不构成产品自动持久恢复。实际范围及失败见[正式链路报告](../docs/quality/claude-formal-verification.md)。真实厂商、物理多机、其他系统与生产继续待验。

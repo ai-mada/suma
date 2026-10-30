@@ -62,7 +62,7 @@ it('T129 reviews fresh coding selection and edited instructions, creates only a 
   await setLocale('en-US', {persist: false}); sessionStorage.clear(); vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
   const host = document.createElement('div'); document.body.append(host); const root = createRoot(host);
   const writes: {path: string; body: Record<string, any>; headers: Headers}[] = [];
-  let saved: TaskDiscussionDevelopmentPlan | undefined;
+  let saved: TaskDiscussionDevelopmentPlan | undefined, originalWorkflowReceipt = true;
   const onRun = vi.fn(), lock = vi.fn();
   vi.stubGlobal('fetch', vi.fn(async (input: string, init?: RequestInit) => {
     const path = String(input).replace('/api/v1', ''), body = init?.body ? JSON.parse(String(init.body)) : undefined;
@@ -75,7 +75,7 @@ it('T129 reviews fresh coding selection and edited instructions, creates only a 
       const plan: TaskDispatchPlan = {id: 'development-plan', project_id: project, version: 1, state: 'ready', task_id: task, task_version: 7,
         workflow_id: workflow.id, workflow_version: 2, agent_node_id: 'code', tool_profile_id: tool.id, tool_profile_version: tool.version,
         tool_profile_sha256: tool.profile.profile_sha256, run_id: 'development-run', created_at: stamp, expires_at: '2099-10-29T06:00:00Z', context: {task: sourceTask, knowledge: [fixedKnowledge]},
-        workflow: {...workflow, id: 'fixed-development-flow', version: 1, nodes: [{...workflow.nodes[0], max_retries: 0,
+        workflow: {...workflow, nodes: [{...workflow.nodes[0], max_retries: 0,
           config: {goal: body.reviewed_goal, tool_profile_id: tool.id, tool_profile_sha256: tool.profile.profile_sha256, model_execution: binding}}, workflow.nodes[1]]},
         model_execution: binding, valid: true, reason: ''};
       saved = {id: plan.id, project_id: project, task_id: task, version: plan.version, reply_id: previousReply.id, reply_version: previousReply.version,
@@ -85,7 +85,7 @@ it('T129 reviews fresh coding selection and edited instructions, creates only a 
     }
     if (path === '/task-discussion-development-plans/development-plan/start' && body && saved) {
       saved = {...saved, version: 2, dispatch_plan: {...saved.dispatch_plan, version: 2, state: 'started'}};
-      return Response.json({id: 'development-run', project_id: project, workflow_id: 'fixed-development-flow', workflow_version: 1, state: 'running'}, {status: 201});
+      return Response.json({id: 'development-run', project_id: project, workflow_id: originalWorkflowReceipt ? workflow.id : 'managed-development-run', workflow_version: originalWorkflowReceipt ? workflow.version : 1, state: 'running'}, {status: 201});
     }
     if (path.startsWith('/task-discussion-development-plans/development-plan?') && saved) return Response.json(saved);
     return Response.json({error: {code: 'not_found', message: 'Unexpected fixture request'}}, {status: 404});
@@ -122,10 +122,16 @@ it('T129 reviews fresh coding selection and edited instructions, creates only a 
     expect(host.querySelector<HTMLButtonElement>('[data-development-start]')!.disabled).toBe(true); expect(onRun).not.toHaveBeenCalled();
     await click('.discussion-development-consent input'); await click('[data-development-start]');
     expect(writes).toHaveLength(2); expect(writes[1].path).toBe('/task-discussion-development-plans/development-plan/start');
-    expect(writes[1].body.expected_version).toBe(1); expect(onRun).toHaveBeenCalledExactlyOnceWith('development-run');
+    expect(writes[1].body.expected_version).toBe(1); expect(onRun).not.toHaveBeenCalled();
+    // A published-workflow receipt cannot clear the original Start intent.
+    // Recover the same body/key after reading the exact started plan.
+    expect(host.querySelector('[role="status"] button')).not.toBeNull();
+    originalWorkflowReceipt = false; await click('[role="status"] button');
+    expect(writes).toHaveLength(3); expect(writes[2].body).toEqual(writes[1].body);
+    expect(onRun).toHaveBeenCalledExactlyOnceWith('development-run');
     expect(writes.every(write => !write.path.includes('/review') && !write.path.includes('/accept'))).toBe(true);
     await render(8); // A current-context refresh retains the original plan/run.
-    expect(host.querySelector('a[href*="run=development-run"]')).not.toBeNull(); expect(writes).toHaveLength(2);
+    expect(host.querySelector('a[href*="run=development-run"]')).not.toBeNull(); expect(writes).toHaveLength(3);
     expect(host.textContent).toContain('Original assistant proposal');
   } finally {await act(async () => root.unmount()); host.remove(); vi.unstubAllGlobals(); vi.restoreAllMocks(); await setLocale('zh-CN', {persist: false});}
 });

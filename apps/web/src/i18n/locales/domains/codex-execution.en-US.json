@@ -24,7 +24,7 @@
   "codex-execution.rerouted": "CLI-reported model reroutes",
   "codex-execution.thread": "Thread",
   "codex-execution.turn": "Turn",
-  "codex-execution.invalid_response": "The response does not match the original task or Codex configuration. The original operation was kept for recovery.",
+  "codex-execution.invalid_response": "The response does not match the original task or tool execution configuration. The original operation was kept for recovery.",
   "codex-execution.effort_none": "No reasoning",
   "codex-execution.effort_minimal": "Minimal",
   "codex-execution.effort_low": "Low",

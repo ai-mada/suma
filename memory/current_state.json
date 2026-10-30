@@ -1,5 +1,22 @@
 {
   "project": "suma",
+  "claude_formal_execution": {
+    "stage": "T-CLAUDE-FORMAL-159",
+    "version": "1.0.0",
+    "date": "2026-10-30",
+    "status": "scoped_formal_worker_http_gui_feedback_verified",
+    "previous_goal_turn": "progress: iteration156, CLI158 and skill157 code plus actual evidence committed and pushed; full92-item objective remains active",
+    "report": "docs/quality/claude-formal-verification.md",
+    "summary": "docs/quality/claude-formal-summary.json",
+    "source_sha256": "b0f3e48e4bede631ead5efdf150784eaf50ffb5c5e3031ba7ca5ddd47cd15295",
+    "fix": "Four confirmed current-plan/managed-run identity mismatches fixed with shared predicate; original project/source/state/nodes/model and reserved-run checks retained.",
+    "verification": "Affected3 Web files6 cases (3new/3enhanced),2 unselected skipped. One isolated UI build48.17s/types0 and7705 paired keys/0 hardcodes; prior platform binaries reused, only fixture compiled once.",
+    "actual": "One real formal Run with two local Worker identities, owned native protocol fixture, exact commit candidate and independent Node/JUnit1pass; current independent reviewer rejected once, task blocked and linked Issue open while Run remains succeeded. Preparation/HTTP/GUI/recovery scopes remain separately counted.",
+    "recovery_limit": "Old browser process confirmed absent; new window read no same-scope pending. Test host restored the original body/key; product cross-window automatic persistence remains incomplete.",
+    "closeout": "Exact owned process paths/UTC creation times verified before Stop-Process, absence confirmed; wrappers0 do not imply graceful native shutdown. Original data and journals retained.",
+    "ledger_unchanged": "58 limited /34 pending /92 total",
+    "full_platform_complete": false
+  },
   "skill_revision_compare": {
     "stage": "T-SKILL-COMPARE-157",
     "version": "1.0.0",
