@@ -40,8 +40,11 @@ function validate(path: string, body: unknown) {
   if (!body || typeof body !== "object" || Array.isArray(body))
     throw new UiError("development.errors.request_invalid");
 }
+const independentOwner = () => true;
+const ownershipError = (key: 'changed' | 'unconfirmed' | 'cleanup_failed') => new UiError('operation-ownership.' + key);
 export class ToolWriteRecovery {
   private value?: ToolPendingRequest;
+  private raw?: string;
   private initialError = "";
   private busy = false;
   private key: string;
@@ -53,87 +56,102 @@ export class ToolWriteRecovery {
   ) {
     this.key = "suma-tool-recovery-v1:" + scope;
     try {
-      const raw = storage?.getItem(this.key);
-      if (raw) {
+      if (!storage) return;
+      const raw = storage.getItem(this.key);
+      if (raw !== null) {
         const value = JSON.parse(raw) as ToolPendingRequest;
         validate(value.path, value.body);
-        if (!value.idempotency_key || !["POST", "PATCH"].includes(value.method))
-          throw Error("invalid");
+        if (!value.idempotency_key || !["POST", "PATCH"].includes(value.method)) throw Error("invalid");
         this.value = value;
+        this.raw = raw;
       }
     } catch {
-      this.initialError =
-        t("development.errors.tool_recovery_unreadable");
+      this.initialError = t("development.errors.tool_recovery_unreadable");
     }
   }
-  get pending() {
-    return this.value ? copy(this.value) : undefined;
-  }
-  get error() {
-    return renderDiagnostic(this.initialError);
-  }
-  async restore<T = unknown>(): Promise<T> {
+  get pending() { return this.value ? copy(this.value) : undefined; }
+  get error() { return renderDiagnostic(this.initialError); }
+  async restore<T = unknown>(ownsRequest: () => boolean = independentOwner): Promise<T> {
+    this.assertOwner(ownsRequest);
     if (!this.value) throw new UiError("development.errors.no_tool_pending");
-    return this.run<T>(this.value.path, this.value.body, this.value.method);
+    return this.run<T>(this.value.path, this.value.body, this.value.method, ownsRequest);
   }
-  async run<T = unknown>(
-    path: string,
-    body: Record<string, unknown>,
-    method: "POST" | "PATCH" = "POST",
-  ): Promise<T> {
+  async run<T = unknown>(path: string, body: Record<string, unknown>, method: "POST" | "PATCH" = "POST", ownsRequest: () => boolean = independentOwner): Promise<T> {
+    this.assertOwner(ownsRequest);
     if (this.initialError) throw new Error(this.initialError);
     if (this.busy) throw new UiError("development.errors.tool_receipt_pending");
     const restoring = !!this.value;
-    if (!this.value) {
-      validate(path, body);
-      const request = {
-        path,
-        body: copy(body),
-        method,
-        idempotency_key: operation(),
-      };
-      try {
-        if (!this.storage) throw Error("unavailable");
-        this.storage.setItem(this.key, JSON.stringify(request));
-      } catch {
-        throw new UiError("development.errors.tool_storage_unavailable");
-      }
-      this.value = request;
-    }
-    const request = this.value;
     this.busy = true;
     try {
-      const result = await this.send<T>(
-        request.path,
-        { ...request.body, idempotency_key: request.idempotency_key },
-        request.method,
-      );
+      if (!this.value) {
+        if (this.readStored() !== null) throw ownershipError('unconfirmed');
+        validate(path, body);
+        const request: ToolPendingRequest = { path, body: copy(body), method, idempotency_key: operation() };
+        const raw = JSON.stringify(request);
+        this.assertOwner(ownsRequest);
+        if (this.readStored() !== null) throw ownershipError('unconfirmed');
+        try {
+          if (!this.storage) throw Error('unavailable');
+          this.storage.setItem(this.key, raw);
+        } catch {
+          // This error is confined to staging, before any transport call.
+          throw new UiError("development.errors.tool_storage_unavailable");
+        }
+        this.value = request;
+        this.raw = raw;
+      }
+      const request = this.value, raw = this.raw;
+      if (!request || raw === undefined) throw ownershipError('unconfirmed');
+      this.assertRequest(request, raw, ownsRequest);
+      let result: T;
+      try {
+        result = await this.send<T>(request.path, { ...request.body, idempotency_key: request.idempotency_key }, request.method);
+      } catch (error) {
+        this.assertRequest(request, raw, ownsRequest);
+        // Only a fresh transport refusal proves this send did not commit.
+        // Validator and journal errors never enter this branch.
+        if (!restoring && error instanceof ApiError && error.status >= 400 && error.status < 500) this.clear(request, raw, ownsRequest);
+        throw error;
+      }
+      this.assertRequest(request, raw, ownsRequest);
       if (this.validateResponse) {
         let accepted = false;
         try { accepted = await this.validateResponse(result, copy(request)); } catch { /* The effect is still uncertain. */ }
+        this.assertRequest(request, raw, ownsRequest);
         if (!accepted) throw new UiError("codex-execution.invalid_response");
       }
-      this.clear();
+      this.clear(request, raw, ownsRequest);
       return result;
-    } catch (error) {
-      if (
-        !restoring &&
-        error instanceof ApiError &&
-        error.status > 0 &&
-        error.status < 500
-      )
-        this.clear();
-      throw error;
     } finally {
       this.busy = false;
     }
   }
-  private clear() {
-    this.value = undefined;
+  private assertOwner(ownsRequest: () => boolean) {
+    let owned = false;
+    try { owned = ownsRequest(); } catch { /* An unprovable owner cannot consume. */ }
+    if (!owned) throw ownershipError('changed');
+  }
+  private readStored(): string | null {
     try {
-      this.storage?.removeItem(this.key);
-    } catch {
-      /* Original identity remains safe to replay after refresh. */
-    }
+      if (!this.storage) throw Error('unavailable');
+      const raw = this.storage.getItem(this.key);
+      if (raw !== null && typeof raw !== 'string') throw Error('invalid');
+      return raw;
+    } catch { throw ownershipError('unconfirmed'); }
+  }
+  private assertRequest(request: ToolPendingRequest, raw: string, ownsRequest: () => boolean) {
+    this.assertOwner(ownsRequest);
+    if (this.value !== request || this.raw !== raw) throw ownershipError('changed');
+    if (this.readStored() !== raw) throw ownershipError('unconfirmed');
+    this.assertOwner(ownsRequest);
+  }
+  private clear(request: ToolPendingRequest, raw: string, ownsRequest: () => boolean) {
+    this.assertRequest(request, raw, ownsRequest);
+    try {
+      if (!this.storage) throw Error('unavailable');
+      this.storage.removeItem(this.key);
+    } catch { throw ownershipError('cleanup_failed'); }
+    this.value = undefined;
+    this.raw = undefined;
   }
 }

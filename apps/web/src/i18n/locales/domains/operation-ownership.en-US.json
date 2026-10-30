@@ -1,0 +1,5 @@
+{
+  "operation-ownership.changed": "This execution no longer owns the original operation. Reopen its view to check it.",
+  "operation-ownership.unconfirmed": "The original operation cannot be confirmed. Keep the same request and check again.",
+  "operation-ownership.cleanup_failed": "The response arrived, but its recovery record could not be cleared. Keep the original request and check again."
+}

@@ -1,5 +1,7 @@
 # Multica下一步复用优先级
 
+T-OPERATION-OWNERSHIP-162沿当前工具连接／派发恢复补齐调用和原记录归属；独立实现、无新增上游源码复制。[合同](../../contracts/tool-operation-recovery.md)与[53项定向／3组组件浏览器证据](../quality/tool-operation-ownership-verification.md)限定其范围。后续最终消费确认、跨窗口持久及其他恢复对象仍待交付，不外推完整M11–M20或平台完成，58／34／92不变。
+
 T-WORKBUDDY-CLOUD-152：[本阶段WorkBuddy云任务工作区](../quality/workbuddy-cloud-execution-verification.md)继续原能力范围。原运行节点内的本人委派、准确来源和供应方任务核对已接通；控制面以原attempt机器资格提供持久一次创建，未知作用保留原操作。源码、定向检查、隔离构建及真实界面各自范围以专项报告为准，完整自动DAG领取／Execute、ACP协作、可信制品、独立测试和正式验收继续交付。 新复制Multica产品源码0，完整58／34／92不变。
 
 

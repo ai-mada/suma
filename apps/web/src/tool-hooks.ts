@@ -1,5 +1,5 @@
 import { tr, useLocale, renderDiagnostic } from "./i18n";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ApiError, api } from "./api";
 import { EntityPager } from "./pagination";
 import { useLeaveGuard } from "./write-action";
@@ -97,89 +97,69 @@ export function useToolList<T extends { id: string }>(
   }, [read, refresh]);
   return { ...page, read };
 }
-export function useToolAction(
-  recovery: Pick<ToolWriteRecovery, "pending" | "error" | "run" | "restore">,
-  onDefer?: () => void,
-) {
+type ToolRecovery = Pick<ToolWriteRecovery, "pending" | "error" | "run" | "restore">;
+type ActionState = { recovery: ToolRecovery; busy: boolean; error: unknown; conflict: boolean; deferred: boolean; sequence: number; ticket?: number };
+export function useToolAction(recovery: ToolRecovery, onDefer?: () => void) {
   useLocale();
-  const epoch = useRef(0);
-  useEffect(() => {
-    const generation = ++epoch.current;
+  const currentRecovery = useRef(recovery), holder = useRef<ActionState | undefined>(undefined), lifetime = useRef<{ active: boolean } | undefined>(undefined);
+  currentRecovery.current = recovery;
+  if (!holder.current || holder.current.recovery !== recovery) holder.current = { recovery, busy: false, error: "", conflict: false, deferred: false, sequence: 0 };
+  const current = holder.current;
+  const [, render] = useState(0);
+  useLayoutEffect(() => {
+    const owner = { active: true };
+    lifetime.current = owner;
+    current.busy = false;
+    current.ticket = undefined;
     return () => {
-      if (epoch.current === generation) epoch.current++;
+      owner.active = false;
+      if (lifetime.current === owner) lifetime.current = undefined;
+      current.busy = false;
+      current.ticket = undefined;
     };
   }, [recovery]);
-  const [busy, setBusy] = useState(false),
-    [error, setError] = useState<unknown>(""),
-    [conflict, setConflict] = useState(false),
-    [deferred, setDeferred] = useState(false),
-    [, render] = useState(0);
+  const isCurrent = () => holder.current === current && currentRecovery.current === recovery && !!lifetime.current?.active;
+  const notify = () => { if (isCurrent()) render(value => value + 1); };
+  const setError = (value: unknown) => { if (isCurrent()) { current.error = typeof value === 'function' ? value(current.error) : value; notify(); } };
   const pending = recovery.pending;
-  useLeaveGuard(busy || (!!pending && !deferred), setError);
-  async function perform<T>(send: () => Promise<T>) {
-    if (busy) return;
-    const generation = epoch.current;
-    setBusy(true);
-    setError("");
-    setConflict(false);
-    setDeferred(false);
+  useLeaveGuard(current.busy || (!!pending && !current.deferred), setError);
+  async function perform<T>(send: (ownsRequest: () => boolean) => Promise<T>) {
+    if (!isCurrent() || current.busy) return;
+    const owner = lifetime.current, ticket = ++current.sequence;
+    current.ticket = ticket;
+    current.busy = true;
+    current.error = "";
+    current.conflict = false;
+    current.deferred = false;
+    const ownsRequest = () => isCurrent() && lifetime.current === owner && !!owner?.active && current.ticket === ticket && current.busy;
+    notify();
     try {
-      const value = await send();
-      // An old actor/project result must not navigate the current workbench.
-      if (generation === epoch.current) return value;
+      const value = await send(ownsRequest);
+      if (ownsRequest()) return value;
     } catch (error) {
-      if (generation !== epoch.current) return undefined;
-      setError({
-        source: error,
-        originalRefusal:
-          !!recovery.pending &&
-          error instanceof ApiError &&
-          error.status > 0 &&
-          error.status < 500,
-      });
-      setConflict(
-        error instanceof ApiError && error.status === 409 && !recovery.pending,
-      );
+      if (!ownsRequest()) return undefined;
+      current.error = { source: error, originalRefusal: !!recovery.pending && error instanceof ApiError && error.status >= 400 && error.status < 500 };
+      current.conflict = error instanceof ApiError && error.status === 409 && !recovery.pending;
       return undefined;
     } finally {
-      if (generation === epoch.current) {
-        setBusy(false);
-        render((value) => value + 1);
+      if (ownsRequest()) {
+        current.busy = false;
+        current.ticket = undefined;
+        notify();
       }
     }
   }
   return {
-    busy,
-    error:
-      renderDiagnostic(recovery.error) ||
-      (error && typeof error === "object" && "source" in error
-        ? toolError(error.source) +
-          ("originalRefusal" in error && error.originalRefusal
-            ? tr("common.originalRefusal")
-            : "")
-        : error
-          ? toolError(error)
-          : ""),
-    conflict,
+    busy: current.busy,
+    error: renderDiagnostic(recovery.error) || (current.error && typeof current.error === 'object' && 'source' in current.error ? toolError(current.error.source) + ('originalRefusal' in current.error && current.error.originalRefusal ? tr('common.originalRefusal') : '') : current.error ? toolError(current.error) : ''),
+    conflict: current.conflict,
     pending,
-    deferred,
+    deferred: current.deferred,
     setError,
-    clearError: () => {
-      setError("");
-      setConflict(false);
-    },
-    defer: () => {
-      if (!busy && pending) {
-        setDeferred(true);
-        onDefer?.();
-      }
-    },
-    run: <T>(
-      path: string,
-      body: Record<string, unknown>,
-      method: "POST" | "PATCH" = "POST",
-    ) => perform<T>(() => recovery.run<T>(path, body, method)),
-    restore: <T>() => perform<T>(() => recovery.restore<T>()),
+    clearError: () => { if (isCurrent()) { current.error = ''; current.conflict = false; notify(); } },
+    defer: () => { if (isCurrent() && !current.busy && recovery.pending) { current.deferred = true; notify(); onDefer?.(); } },
+    run: <T>(path: string, body: Record<string, unknown>, method: 'POST' | 'PATCH' = 'POST') => perform<T>(ownsRequest => recovery.run<T>(path, body, method, ownsRequest)),
+    restore: <T>() => perform<T>(ownsRequest => recovery.restore<T>(ownsRequest)),
   };
 }
 export type ToolAction = ReturnType<typeof useToolAction>;

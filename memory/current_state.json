@@ -1,5 +1,20 @@
 {
   "project": "suma",
+  "tool_operation_ownership": {
+    "stage": "T-OPERATION-OWNERSHIP-162",
+    "version": "1.0.0",
+    "date": "2026-10-30",
+    "status": "scoped_53_web_and_3_browser_component_groups_verified_with_driver_teardown_error",
+    "contract": "contracts/tool-operation-recovery.md",
+    "report": "docs/quality/tool-operation-ownership-verification.md",
+    "summary": "docs/quality/tool-operation-ownership-summary.json",
+    "source_sha256": "36cb89ccaee658857a53e0ce5c2861153628e217e75f7072cc1cff353c4a399f",
+    "verification": "53 distinct Web checks (11 new), one types0 and7722 paired keys/0 hardcodes; independent read-only review. No full suite, build, backend or global storage change.",
+    "actual": "3 real browser-component groups passed with controlled boundaries; no business HTTP/Run/Runner/model. Driver exit1 during shutdown, native quit/closed and subsequent exact owned-process absence separately recorded.",
+    "remaining": "Final UI-consumption/confirmed locator, stable authority and recovery epoch, cross-window provider, other journal classes and full-platform acceptance remain.",
+    "ledger_unchanged": "58 limited /34 pending /92 total",
+    "full_platform_complete": false
+  },
   "task_columns": {
     "stage": "T-TASK-COLUMNS-160",
     "version": "1.0.0",

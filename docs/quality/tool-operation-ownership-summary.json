@@ -1,0 +1,121 @@
+{
+  "stage": "T-OPERATION-OWNERSHIP-162",
+  "version": "1.0.0",
+  "date": "2026-10-30",
+  "base_commit": "ac0ea01b0e7a85eb16591e82e5fd1891784ab2d5",
+  "status": "scoped_53_web_and_3_browser_component_groups_verified_with_driver_teardown_error",
+  "contract": "contracts/tool-operation-recovery.md",
+  "report": "docs/quality/tool-operation-ownership-verification.md",
+  "source_sha256": "36cb89ccaee658857a53e0ce5c2861153628e217e75f7072cc1cff353c4a399f",
+  "source_manifest": {
+    "path": ".cache/operation-ownership-162/tool-operation-freeze.json",
+    "sha256": "5d1a32d29b6c482b3dc18388197a757e69e7dcb63c57bf259d90488ddcf8f440"
+  },
+  "implementation": {
+    "files": 5,
+    "production": 2,
+    "new_locale_keys": 3,
+    "new_dependencies": 0,
+    "new_upstream_code_copied": 0,
+    "backend_or_schema_change": false,
+    "global_storage_change": false
+  },
+  "web": {
+    "distinct_passed": 53,
+    "new": 11,
+    "existing": 42,
+    "filtered_not_run": 50,
+    "logs": [
+      {
+        "path": ".cache/operation-ownership-162/logs/tool-ownership-green.json",
+        "passed": 11,
+        "filtered": 0,
+        "sha256": "9320964312cbd5769b5a631df8c2e3d80a696d92902704f0cb0a04f9f7b85067"
+      },
+      {
+        "path": ".cache/operation-ownership-162/logs/existing-recovery.json",
+        "passed": 5,
+        "filtered": 31,
+        "sha256": "e89cd1543eae2b57b411364411734c5fd5918395d3d39b2bc029c5c8c2c498ac"
+      },
+      {
+        "path": ".cache/operation-ownership-162/logs/existing-components.json",
+        "passed": 32,
+        "filtered": 0,
+        "sha256": "173ff379512f9c6720099d6d1944904f486b2bcb82e6a88e02a70c8de2fc811a"
+      },
+      {
+        "path": ".cache/operation-ownership-162/logs/shared-hook-consumers.json",
+        "passed": 5,
+        "filtered": 19,
+        "sha256": "8f76e8ae54f8c5f2317fa508f4257480cebc923fc3917f0bdd581539b21eecd4"
+      }
+    ]
+  },
+  "checks": {
+    "documentation": {
+      "exit": 0,
+      "tool_chunk": "5ea25e",
+      "markdown_files": 475,
+      "api_paths": 370,
+      "schema_references": 3423,
+      "command": "node scripts/check-docs.mjs"
+    },
+    "typecheck": {
+      "exit": 0,
+      "tool_chunk": "d0b519",
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "cwd": "apps/web",
+      "log": ".cache/operation-ownership-162/logs/types.log"
+    },
+    "i18n": {
+      "exit": 0,
+      "tool_chunk": "31a32e",
+      "paired_keys": 7722,
+      "production_hardcodes": 0,
+      "command": "node scripts/check-i18n.mjs",
+      "cwd": "apps/web",
+      "log": ".cache/operation-ownership-162/logs/i18n.log"
+    },
+    "independent_review": "no blocking finding for the declared synchronous proof-and-clear scope; read-only, no tests or runtime",
+    "builds": 0,
+    "full_suites": 0
+  },
+  "actual": {
+    "passed_groups": 3,
+    "scope": "Real product recovery class and React hook, real browser sessionStorage; controlled transport/validation/storage faults; not full App or server/vendor acceptance.",
+    "business_http_requests": 0,
+    "renderer_errors": 0,
+    "models": 0,
+    "runs": 0,
+    "runner": 0,
+    "driver_exit": 1,
+    "driver_shutdown_error": "Page.handleJavaScriptDialog: No dialog is showing",
+    "owned_processes_remaining": 0,
+    "vite_normal_close_unconfirmed": true,
+    "artifact_manifest": {
+      "path": "dist/quality/tool-operation-ownership-162/artifact-manifest.json",
+      "sha256": "3245f29de524d01cc40335651520643a2aa1bb0747061c49cea43d4ece444a47"
+    }
+  },
+  "red": {
+    "initial": {
+      "failed": 3,
+      "passed": 0
+    },
+    "expanded": {
+      "failed": 10,
+      "passed": 1
+    },
+    "initial_three_included_in_final_eleven": true,
+    "logs_retained_under": ".cache/operation-ownership-162/logs/"
+  },
+  "boundaries": [
+    "Linearizes at synchronous owner/request/raw proof immediately before removal; unmount after clear and before outer Promise consumption can still discard navigation without retaining journal.",
+    "Other recovery journal classes used by the shared hook were not repaired; selected existing consumers only regressed.",
+    "No process-death durable recovery, cross-window/distributed CAS, stable service rebinding or final UI-consumption confirmation.",
+    "No full App, vendor, other OS/database, physical multihost, scale or production acceptance."
+  ],
+  "ledger_unchanged": "58 limited /34 pending /92 total",
+  "full_platform_complete": false
+}

@@ -1,0 +1,5 @@
+{
+  "operation-ownership.changed": "本次执行已不再持有原操作，请重新打开原界面核对。",
+  "operation-ownership.unconfirmed": "原操作暂时无法确认，请保留同一份请求并再次核对。",
+  "operation-ownership.cleanup_failed": "响应已到达，但恢复记录未能清除。请保留原请求并再次核对。"
+}
