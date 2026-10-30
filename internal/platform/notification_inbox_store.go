@@ -103,7 +103,7 @@ func (s *Service) insertNotificationInboxTx(ctx context.Context, auth *authorize
 	if err := assertProjectCommand(auth.tx, auth, project); err != nil {
 		return "", err
 	}
-	if (source.Kind != "task_assigned" && source.Kind != "task_mentioned" && source.Kind != "task_review_requested") || !handoffID(source.TaskID, false) || !handoffID(source.ResourceID, false) || !handoffID(source.RecipientUserID, false) || !handoffID(source.EventKey, false) || source.TaskVersion < 1 {
+	if (source.Kind != "task_assigned" && source.Kind != "task_mentioned" && source.Kind != "task_review_requested" && source.Kind != "task_handoff_requested") || !handoffID(source.TaskID, false) || !handoffID(source.ResourceID, false) || !handoffID(source.RecipientUserID, false) || !handoffID(source.EventKey, false) || source.TaskVersion < 1 {
 		return "", conflict(notificationInboxSourceChanged)
 	}
 	var existing string

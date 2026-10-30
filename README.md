@@ -4,6 +4,8 @@
 
 当前统一开发基线为 **1.0.0**，完整平台仍在实现与验收中。产品范围与初始化策略见 [1.0.0 基线](docs/product/v1-baseline.md)，实际能力与限制见 [交付状态](docs/delivery/status.md)，完整 P0–P7 和扩展需求 1–26 见 [实施计划](docs/delivery/implementation-plan.md)。当前58项有限实现、34项待办，共92项；新增全平台智能输入／配置进入待办。
 
+最近交付：[交接请求收件与准确定位](docs/product/task-handoff-inbox.md)沿原事务通知接收人，从收件箱直达准确交接，责任接收仍独立于正式Review。16项实际本机GUI／HTTP断言通过，视觉图片仍待验；见[报告](docs/quality/task-handoff-inbox-verification.md)及[摘要](docs/quality/task-handoff-inbox-summary.json)，完整58／34／92不变。
+
 ## 当前能力
 
 - 组织、项目、团队、需求、版本化设计、任务与质量门禁共用当前身份、权限和操作回执。

@@ -41,6 +41,5 @@ func taskConversationMentionContracts(add operationAdder, api map[string]any) {
 	field("TaskConversationMessage", "mentions", map[string]any{"maxItems": 20, "description": "Server-resolved immutable recipient snapshots at posting; omitted when absent. Shared hydration preserves frozen assistant/development source digests across later renames or revocation."})
 	field("TaskConversationMentionTargetPage", "items", map[string]any{"maxItems": 50})
 	field("TaskConversationMentionTargetPage", "limit", map[string]any{"minimum": 1, "maximum": 50})
-	field("NotificationInboxItem", "kind", map[string]any{"enum": []string{"task_assigned", "task_mentioned"}})
 	field("NotificationInboxItem", "message_id", map[string]any{"minLength": 1, "maxLength": 64, "description": "Exact original mentioned message; only returned when task, human/API source and immutable recipient relation are intact."})
 }

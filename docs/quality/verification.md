@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-HANDOFF-INBOX-148：[交接收件与准确定位验证](task-handoff-inbox-verification.md)／[摘要](task-handoff-inbox-summary.json)。原事务通知、准确GET、来源反向校验及独立草稿已限定检查；16项真实本机GUI／HTTP通过，打开0业务写、一次明确退回及exact v2／returned一致、通知仍unread。两次截图timeout，视觉图片待验；责任接收不等于Review，完整58／34／92不变。
+
 T-CONTEXT-145：[固定资料引用验证](task-conversation-knowledge-verification.md)／[摘要](task-conversation-knowledge-summary.json)。125个Go顶层／148个子场景、36项Web、类型／7312双语键／合同／隔离构建及真实OS Node两轮本地模型协议通过；5项实际GUI通过，工具更新后的4组代表性界面观察仍待补。知识pin经原回复与开发Start核验，无静默升级；商业模型、完整平台与生产不据此验收。
 
 T-MENTIONS-140：[定向与真实接口报告](task-conversation-mentions-verification.md)／[紧凑摘要](task-conversation-mentions-summary.json)。46项独立Go、56项Web、完整类型／7191语言键／合同／构建及12项本机双账号HTTP-CLI检查通过；最终浏览器因审批容量限制待验，未提交／推送。其他阶段结果及桌面在途内容保留。

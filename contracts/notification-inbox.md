@@ -4,7 +4,7 @@
 
 ## 权威与真实来源
 
-收件箱是当前人员的个人投影，不代替任务、调度、预算、测试、审批或验收。事件只能来自平台任务创建／负责人变化的正式事务：普通任务、需求拆解、设计采用、问题修复任务及已接受交接。创建任务或旧负责人不同于新负责人时，为新负责人的规范活跃人员资源生成 `task_assigned`；自分配也记录实际事件。没有规范账号绑定的人员、智能体、工具或非活跃资源不会被猜测为接收人。
+收件箱是当前人员的个人投影，不代替任务、调度、预算、测试、审批或验收。任务分配事件来自任务创建／负责人变化的正式事务：普通任务、需求拆解、设计采用、问题修复任务及已接受交接。创建任务或旧负责人不同于新负责人时，为新负责人的规范活跃人员资源生成 `task_assigned`；自分配也记录实际事件。提及、审核责任与待接收交接各来自对应的正式源事务。没有规范账号绑定的人员、智能体、工具或非活跃资源不会被猜测为接收人。
 
 内部投影核对已保存的准确任务ID、版本、负责人及规范人员绑定，并在同一源事务中写入接收记录与序号。源事件标识由任务ID、提交版本及新资源ID构成；同源／同接收人唯一约束、原事务回执及回滚共同防止重复或孤立通知。通知写入失败使该源事务失败，不能悄悄丢失。不得增加可任意创建系统通知的公开接口。
 
@@ -14,13 +14,15 @@
 
 `task_mentioned`由人员／用户API明确选择接收人的讨论原事务产生，不要求接收人是任务负责人。它与分配事件共用序号及唯一插入权威；来源消息、固定人员关系、反向通知绑定与当前任务共同决定链接是否可用。详细语义以[精准提及合同](task-conversation-mentions.md)为准。
 
+`task_handoff_requested`在创建交接的原事务中写给固定接收账号，来源为准确handoff ID。当前任务、同范围正式交接行及私有`notification_id`反向关系必须一致，才返回可选`handoff_id`；损坏来源隐藏任务水合和定位。接受后的分配事件独立保留，打开来源不写已读或接受责任。具体校验与准确读取以[交接收件合同](task-handoff-inbox.md)为准。
+
 `GET /api/v1/notification-inbox?project_id=...` 仅允许浏览器或当前有权的用户API身份，拒绝Runner／Agent。身份与组织从认证凭据推导；不能传接收人覆盖当前用户。每页重新核验当前账号／组织／项目读取权限，计数与行及来源水合同一事务；响应no-store。
 
 参数仅有project_id、filter、limit、cursor，未知／重复／空显式枚举拒绝。filter为inbox（默认，所有未归档）、unread（未读且未归档）、archived（已归档）；limit默认20、范围1–50。
 
 `NotificationInboxPage`：project_id、user_id、limit、items、total、counts、next_cursor、as_of。counts为inbox／unread／archived三项完整当前范围计数，total是所选filter的匹配量。items是当前有界页，不是完整项目列表。
 
-`NotificationInboxItem`：id、version、sequence（十进制字符串）、kind=task_assigned／task_mentioned／task_review_requested、task_id、source_task_version、source_resource_id、created_at、read、archived、read_at、archived_at、source_available、assignment_current、可选current_task、message_id或review_request_id。只有对应完整来源才返回其定位ID；消息提及见[精准提及合同](task-conversation-mentions.md)，明确验收责任及原Review决定见[验收请求合同](task-review-requests.md)。取消／已决定的请求保留个人事件，打开来源不等于已读或验收。
+`NotificationInboxItem`：id、version、sequence（十进制字符串）、kind=task_assigned／task_mentioned／task_review_requested／task_handoff_requested、task_id、source_task_version、source_resource_id、created_at、read、archived、read_at、archived_at、source_available、assignment_current、可选current_task、message_id或review_request_id。只有对应完整来源才返回其定位ID；消息提及见[精准提及合同](task-conversation-mentions.md)，明确验收责任及原Review决定见[验收请求合同](task-review-requests.md)。取消／已决定的请求保留个人事件，打开来源不等于已读或验收。
 
 `NotificationInboxTask`只包含id、version、title、status；source_available=false时不得返回current_task。assignment_current仅在当前来源可用且当前负责人仍为原资源时为true，不据此宣称执行或验收完成。
 

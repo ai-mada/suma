@@ -17,6 +17,7 @@ func TestHandoffsRequestContract(t *testing.T) {
 		body                              map[string]any
 	}{
 		{"list", "GET", "/api/v1/task-handoffs", "before=previous-id&limit=5&project_id=project-one&task_id=task-1", "en-US", []string{"handoffs", "list", "--task", "task-1", "--limit", "5", "--before", "previous-id"}, nil},
+		{"get", "GET", "/api/v1/task-handoffs/handoff-1", "project_id=project-one&task_id=task-1", "en-US", []string{"handoffs", "get", "handoff-1", "--task", "task-1"}, nil},
 		{"create", "POST", "/api/v1/task-handoffs", "project_id=project-one", "zh-CN", []string{"handoffs", "create", "--task", "task-1", "--version", "12", "--to-resource", "human-1", "--to-team", "team-1", "--note", "中文 unchanged", "--operation", "original-create-key"}, map[string]any{"project_id": "project-one", "task_id": "task-1", "expected_task_version": json.Number("12"), "to_resource_id": "human-1", "to_team_id": "team-1", "note": "中文 unchanged", "idempotency_key": "original-create-key"}},
 		{"accept", "POST", "/api/v1/task-handoffs/handoff-1/commands", "project_id=project-one", "en-US", []string{"handoffs", "accept", "handoff-1", "--version", "2", "--reason", "明确接收 raw", "--operation", "original-accept-key", "--acknowledge-invalidation"}, map[string]any{"project_id": "project-one", "expected_version": json.Number("2"), "action": "accept", "reason": "明确接收 raw", "idempotency_key": "original-accept-key", "acknowledge_invalidation": true}},
 		{"return", "POST", "/api/v1/task-handoffs/handoff-1/commands", "project_id=project-one", "zh-CN", []string{"handoffs", "return", "handoff-1", "--version", "2", "--reason", "退回补充 raw", "--operation", "original-return-key"}, map[string]any{"project_id": "project-one", "expected_version": json.Number("2"), "action": "return", "reason": "退回补充 raw", "idempotency_key": "original-return-key", "acknowledge_invalidation": false}},
@@ -53,6 +54,25 @@ func TestHandoffsRequestContract(t *testing.T) {
 			}
 		})
 	}
+	t.Run("exact-get-requires-id-and-task-without-write-options", func(t *testing.T) {
+		calls := 0
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { calls++; w.WriteHeader(500) }))
+		defer server.Close()
+		for _, args := range [][]string{
+			{"handoffs", "get"}, {"handoffs", "get", "handoff-1"}, {"handoffs", "get", "--task", "task-1"},
+			{"handoffs", "get", "", "--task", "task-1"}, {"handoffs", "get", "handoff-1", "--task", ""},
+			{"handoffs", "get", "handoff-1", "--task", "task-1", "--version", "1"},
+			{"handoffs", "get", "handoff-1", "--task", "task-1", "--operation", "original-key"},
+		} {
+			code, _, stderr := contextInvoke(t, server.URL, "zh-CN", "", args...)
+			if code != 2 || stderr == "" {
+				t.Fatalf("incomplete or write-shaped exact read accepted: %v code=%d error=%s", args, code, stderr)
+			}
+		}
+		if calls != 0 || !requestIsReadOnly("GET", "/api/v1/task-handoffs/handoff-1?task_id=task-1") {
+			t.Fatal("invalid exact read reached HTTP or exact GET was classified as a write")
+		}
+	})
 	t.Run("acknowledgement-and-required-write-options", func(t *testing.T) {
 		calls := 0
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { calls++; w.WriteHeader(500) }))
@@ -103,7 +123,7 @@ func TestHandoffsRequestContract(t *testing.T) {
 		defer server.Close()
 		for _, locale := range []string{"zh-CN", "en-US"} {
 			code, out, stderr := contextInvoke(t, server.URL, locale, "", "handoffs", "--help")
-			if code != 0 || stderr != "" || !strings.Contains(out, "--acknowledge-invalidation") || locale == "zh-CN" && !strings.Contains(out, "任务交接") || locale == "en-US" && !strings.Contains(out, "Task handoffs") {
+			if code != 0 || stderr != "" || !strings.Contains(out, "handoffs get HANDOFF_ID --task TASK_ID") || !strings.Contains(out, "--acknowledge-invalidation") || locale == "zh-CN" && !strings.Contains(out, "任务交接") || locale == "en-US" && !strings.Contains(out, "Task handoffs") {
 				t.Fatalf("missing bilingual help: %d %s %s", code, out, stderr)
 			}
 			code, _, stderr = contextInvoke(t, server.URL, locale, "", "handoffs", "return", "handoff-1", "--version", "1", "--reason", "原意见", "--operation", "original-return-key")

@@ -1,0 +1,39 @@
+# Multica下一步复用优先级
+
+日期：2026-10-30。此文档补充[既有采用记录](multica-adoption.md)和[源码复用清单](multica-reuse.md)，以[主规格21章](../suma-architecture-design.html#s21)及[唯一实施计划](../delivery/implementation-plan.md)为准。完整范围仍为58项限定实现／34项待交付／92项；以下是原范围内的候选切片，不是新增完成项或已实现接口。
+
+## 核对基线与源码边界
+
+- 本地参考目录为 `D:\codes\github\multica`，工作树HEAD保留 `bf8970aa33922f394c6ba69d07e42c3da7775f3d`，读取前后 `git status --short` 均为空。主集成只读核对并获准fetch的远端main快照为 `fe23bd1161498537d9b87ad93f22a26abff5cd0a`，提交时间2026-10-30 11:56:41+08:00；本文件当前版引用锁定该远端快照。对两个提交的LICENSE、NOTICE、选择／批量辅助逻辑、订阅handler／hook和技能刷新对话文件进行定向Git对象比较，均无变化，原行号继续成立。工作树未切换；既有采用记录的 `139b13a…` 仍是其历史阶段基线，不替换其证据。
+- 当前[LICENSE](https://github.com/multica-ai/multica/blob/fe23bd1161498537d9b87ad93f22a26abff5cd0a/LICENSE#L19-L118)把附加条件与Apache正文合为整体：第三方托管／商业嵌入、界面品牌及非界面来源说明分别受约束。未取得相应商业授权及品牌豁免，不把该版代码、界面、图标或样式直接搬入Suma；本次仅作行为和边界参考。
+- 旧提交 `e6f840ca115740a6fb80786537405bcf049d6497` 的完整LICENSE blob仍为 `23456c21785fc2a7bbb6687b95de17140abc86c7`，与现存[原许可及来源说明](../../third_party/multica-legacy/PROVENANCE.md)一致。历史源码可按该准确快照单独评估；不得借历史许可复制后来的新增代码。实际采用时应更新来源清单、目标文件和摘要，保留完整原许可、版权与修改说明。
+
+## 当前覆盖
+
+| Multica能力 | Suma当前事实 | 尚缺范围 |
+| --- | --- | --- |
+| M06任务查询／列表／看板／保存视图 | 已有统一授权分页、完整分组计数、本机视图及服务端private/project视图；见[查询合同](../../contracts/task-workspace.md)、[共享视图合同](../../contracts/shared-task-views.md) | 列配置、泳道、完整跨端同步与离线协作 |
+| M07多选与批量编辑 | 部分：`TaskCollection.tsx:91`已有列表checkbox及16项上限；`TaskViews.tsx:38–40`已有选择与团队安排。当前选择服务于原团队计划 | 普通任务批量负责人、预览、冲突与统一回执；当前分组看板卡片没有同等多选入口 |
+| M09／M27讨论与个人收件箱 | 已有持久讨论、精确提及、分配及验收请求来源、个人已读／归档；见[收件箱合同](../../contracts/notification-inbox.md)。交接来源属于T148集成范围，最终验收由集成记录确认 | 自主订阅、偏好降噪、其他来源、邮件／IM与跨项目聚合 |
+| M15技能更新与分发 | 部分：已有固定发布修订、组织目录、显式更新与目标项目采用，旧采用不会自动升级；见[技能合同](../../contracts/skill-catalog.md) | 更新差异、支持文件、外部包来源及签名安装 |
+| M11–M20工具与团队执行 | 部分：复用唯一Go DAG、Runner／Pool、真实发现、固定工具档案、团队预览及准确attempt事实；见[工具矩阵](development-tool-matrix.md) | 每工具的真实鉴权／运行／取消和多主机验收；WorkBuddy云派发仍按其独立阶段推进 |
+
+## 三个依次推进的切片
+
+| 顺序 | 可独立验收的用户闭环 | Multica准确参考 | Suma实现接缝与边界 |
+| --- | --- | --- | --- |
+| 1，建议立即开始 | 在任务列表选择最多16项，选择一个当前有效人员负责人，预览每项原负责人／版本与变更影响，再明确一次提交 | 历史[selection-store.ts:5–35](https://github.com/multica-ai/multica/blob/e6f840ca115740a6fb80786537405bcf049d6497/apps/web/features/issues/stores/selection-store.ts#L5-L35)；[batch-action-toolbar.tsx:43–54、146–156](https://github.com/multica-ai/multica/blob/e6f840ca115740a6fb80786537405bcf049d6497/apps/web/features/issues/components/batch-action-toolbar.tsx#L43-L54)。前者blob `5647e8e03a71f74ce12bf346edd2a1d451a1f2f0`，后者 `4246433cca979316fce57c2b4be05a9c570de0f2` | 沿用当前选择与任务查询；新受保护批量命令只处理负责人。复用`records.go`普通更新的当前权限、任务依据、验收资格失效和通知语义，以及`task_dependencies.go:208–317`的整批CAS／原操作回执模式。首片采用同一有界选择，不加入全查询隐式全选、状态批改、删除或自动派发 |
+| 2 | 用户明确关注／取消关注当前任务；订阅后新讨论进入本人现有收件箱，打开准确消息 | 当前[subscriber.go:57–112](https://github.com/multica-ai/multica/blob/fe23bd1161498537d9b87ad93f22a26abff5cd0a/server/internal/handler/subscriber.go#L57-L112)及[use-issue-subscribers.ts](https://github.com/multica-ai/multica/blob/fe23bd1161498537d9b87ad93f22a26abff5cd0a/packages/views/issues/hooks/use-issue-subscribers.ts)仅作行为参考。旧版同名handler允许请求覆盖接收人，不能直接沿用其权限边界 | 新建本人任务订阅领域；当前身份固定接收人，CAS和原回执。`task_conversation.go:126`的原消息事务产生有界收件投影，复用`notification_inbox_store.go:99`的唯一插入权威；与精确提及按同源／同人规则去重。取消关注只影响未来事件；不回删原通知，不开放替他人订阅或外部通道 |
+| 3 | 在共享技能详情中选择两个准确目录修订，查看来源与正文差异；明确采用所选当前有效版本形成项目草稿 | 当前[refresh-skill-dialog.tsx:45–94](https://github.com/multica-ai/multica/blob/fe23bd1161498537d9b87ad93f22a26abff5cd0a/packages/views/skills/components/refresh-skill-dialog.tsx#L45-L94)只参考“说明来源→确认→更新后重读”的流程；其源码和样式不复制 | 复用`SkillCatalogRevisions`、`GetSkillCatalog`、`AdoptSkillCatalog`及现有`SkillCatalogWorkspace.tsx`；只比较服务端当前授权的不可变正文。已安装的`@monaco-editor/react`／Monaco可提供按需加载的只读差异视图，窄屏以可切换单栏等价呈现。保留现有显式采用／审核，不增加外网拉包、脚本执行、自动覆盖或任务上下文升级 |
+
+## 第一片的具体约束
+
+现有`Service.Update`在`records.go:331–493`自行开始并提交事务，不能循环调用它来声称批量原子性。应将必要的普通任务更新语义提取为同事务内部函数，由单项与批量入口共用；批量入口先在当前授权事务读取全部所选任务并检查预期版本，再写入。任一任务冲突、资源失效或通知投影失败则整批回滚；网络结果未知时保留原正文与操作ID核对，禁止换ID盲重试。
+
+负责人属于`taskBasis`（`records.go:495–496`）。当前单项更新会撤销旧任务验收资格、保留运行历史并失效相关依赖；批量预览必须把该真实影响显示给用户，提交继续使用同一规则。`projectTaskAssignmentNotificationTx`（`notification_inbox_store.go:38–88`）与任务写入处于同一事务；不另造通知通道。负责人分配与受保护交接、专家团队派发仍是各自明确操作。
+
+界面沿用当前React、Radix Dialog、Lucide和中英词条；工具栏只在有选择时出现，默认显示选中数量、负责人和预览入口，详情按需展开。历史selection-store的不可变集合操作仅在能减少现有重复逻辑时小量改编为纯函数；无需引入其Zustand、TanStack Query、Sonner或Next运行层，更不为35行逻辑新建一套全局状态。历史toolbar只提供流程参考，使用Suma既有视觉与操作保护。
+
+第一片的有效验收覆盖：多人跨项目／撤权拒绝；单项版本变化导致整批零写入；通知失败回滚；提交后丢失响应的原操作恢复且通知不重复；负责人变化沿用当前验收／依赖失效；已有团队安排入口保留；中文／English桌面与390px键盘操作。只运行相关检查和代表性交互，不以该片宣称全部M07或平台完成。
+
+本次仅调查并形成此文档，未复制新源码、修改产品、安装依赖、调用供应方或执行产品测试；也未将计划接口登记为已实现能力。提交与阶段验收由主集成统一处理。

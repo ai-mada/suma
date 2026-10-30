@@ -59,12 +59,43 @@ func taskHandoffRequired(m map[string]any, fields ...string) error {
 	return nil
 }
 
+func taskHandoffDetailQuery(r *http.Request) (url.Values, error) {
+	bad := func() (url.Values, error) { return nil, invalid("交接筛选或分页参数无效") }
+	if len(r.URL.RawQuery) > 8192 {
+		return bad()
+	}
+	values, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil || len(values) != 2 {
+		return bad()
+	}
+	for key, items := range values {
+		if len(items) != 1 || key != "project_id" && key != "task_id" || !handoffID(items[0], false) {
+			return bad()
+		}
+	}
+	return values, nil
+}
+
 func (s *Server) taskHandoffHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope string, parts []string, project string, m map[string]any) bool {
 	if len(parts) == 0 || parts[0] != "task-handoffs" {
 		return false
 	}
 	if scope != "" && scope != "api" {
 		writeError(w, forbidden())
+		return true
+	}
+	if len(parts) == 2 && r.Method == http.MethodGet {
+		values, err := taskHandoffDetailQuery(r)
+		if err != nil {
+			writeError(w, err)
+			return true
+		}
+		if values.Get("project_id") != project {
+			writeError(w, invalid("交接请求的项目范围不一致"))
+			return true
+		}
+		out, err := s.Service.GetTaskHandoff(r.Context(), actor, project, values.Get("task_id"), parts[1])
+		respond(w, http.StatusOK, out, err)
 		return true
 	}
 	values, limit, err := taskHandoffQuery(r)

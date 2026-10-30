@@ -3045,6 +3045,7 @@ export interface NotificationInboxItem {
   current_task?: NotificationInboxTask | null;
   message_id?: string;
   review_request_id?: string;
+  handoff_id?: string;
 }
 export interface NotificationInboxPage {
   project_id: string;

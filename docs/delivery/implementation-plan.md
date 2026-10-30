@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+最近交付T-HANDOFF-INBOX-148沿原任务协作推进[交接请求收件与准确定位](../product/task-handoff-inbox.md)：同事务请求通知、准确GET、当前caller隔离、独立草稿和明确版本采用；责任接收不代替正式Review。限定检查及16项实际本机GUI／HTTP已记录于[报告](../quality/task-handoff-inbox-verification.md)和[摘要](../quality/task-handoff-inbox-summary.json)，视觉图片仍待验；完整P0–P7／需求1–26及58 limited／34 pending／92总账保留。
+
 T-CONTEXT-145继续原资料、知识与任务协作范围：[需求](../product/task-conversation-knowledge.md)、[合同](../../contracts/task-conversation-knowledge.md)、[架构](../architecture/task-conversation-knowledge.md)及[交互与AI SOP](../design/task-conversation-knowledge.md)固定最多16个已发布的准确知识引用：讨论保存引用，助手从真实backing Reply继承依赖，批准正文在模型Source中只保存一次，再传入原开发上下文；原预览与Start再次核验。默认收起选择器、按需历史、不静默升级与中英交互沿既有组件；Multica2083970b仅作行为参考，未复制该受限版本源码或界面。
 
 [限定验证](../quality/task-conversation-knowledge-verification.md)及[摘要](../quality/task-conversation-knowledge-summary.json)记录Go125个顶层／148个子场景通过、1项跳过，Web36项、类型／7312对语言键／生成合同／隔离构建及两轮真实本机Node／HTTP协议链路通过。实际GUI仅5项通过；工具热更新后技能缺失，继续待验新草稿保留原发布、重发布使旧pin失效、英文390px暗色／键盘／触控及viewer历史读取／禁止发表4组。商业模型、完整GUI和平台验收继续原范围，完整P0–P7／需求1–26及58 limited／34 pending／92总账不变。

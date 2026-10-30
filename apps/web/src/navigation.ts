@@ -4,6 +4,14 @@ export type WorkbenchView='overview'|'requirements'|'development'|'quality'|'ope
 export type WorkbenchRoute={conversation_message?:string;inbox_filter?:'inbox'|'unread'|'archived';inbox_invalid?:string;task_invalid?:string;task_status?:string;task_owner?:string;task_priority?:string;task_sort?:string;task_group?:string;task_requirement?:string;task_unassigned?:boolean;task_priority_unset?:boolean;task_status_unset?:boolean;project:string;view:WorkbenchView;sub:string;record:string;run:string;node:string;attempt:string;q:string;status:string;layout:string;week:string;panel:string;knowledge_kind?:'memory'|'spec'|'skill'|'all';catalog_domain?:string;catalog_scenario?:string;catalog_state?:'all'|'published'|'retired';catalog_source?:string};
 const views:WorkbenchView[]=['overview','requirements','development','quality','operations','knowledge','settings'];
 const defaultSub:Partial<Record<WorkbenchView,string>>={development:'my-work',quality:'issues',operations:'releases',knowledge:'documents',settings:'organization'};
+/** Formal task sources retain a locator only in one unambiguous task scope.
+ * Parsing never opens, marks read or decides the source. */
+function taskDetailLocatorPanel(params:URLSearchParams,taskScope:boolean):string{
+ const panel=params.get('panel')||'',review=panel.startsWith('task-review:'),handoff=panel.startsWith('task-handoff:');
+ if(!review&&!handoff)return panel;
+ if(!taskScope||params.getAll('panel').length!==1||params.getAll('record').length!==1||!/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(params.get('record')||''))return '';
+ return (review?taskReviewRequestID(panel):taskHandoffID(panel))?panel:'';
+}
 export function parseWorkbenchRoute(search:string):WorkbenchRoute{
  const p=new URLSearchParams(search),view=views.includes(p.get('view') as WorkbenchView)?p.get('view') as WorkbenchView:'overview';
  const knowledgeKind=p.get('knowledge_kind');
@@ -40,7 +48,7 @@ export function parseWorkbenchRoute(search:string):WorkbenchRoute{
   task_group:['status','owner','priority'].includes(p.get('task_group')||'')?p.get('task_group')!:undefined,
  }:{};
 
- return {...messageFields,...inboxFields,...taskFields,...(p.has('catalog_domain')?{catalog_domain:p.get('catalog_domain')||''}:{}),...(p.has('catalog_scenario')?{catalog_scenario:p.get('catalog_scenario')||''}:{}),...(['all','published','retired'].includes(p.get('catalog_state')||'')?{catalog_state:p.get('catalog_state') as WorkbenchRoute['catalog_state']}:{}),...(p.has('catalog_source')?{catalog_source:p.get('catalog_source')||''}:{}),...(['memory','spec','skill','all'].includes(knowledgeKind||'')?{knowledge_kind:knowledgeKind as WorkbenchRoute['knowledge_kind']}:{}),project:p.get('project')||'',view,sub:p.get('sub')||defaultSub[view]||'',record:p.get('record')||'',run:p.get('run')||'',node:p.get('node')||'',attempt:parseAttempt(p.get('attempt')||'')?p.get('attempt')!:'',q:p.get('q')||'',status:p.get('status')||'all',layout:p.get('layout')||'list',week:p.get('week')||mondayOf(),panel:(p.get('panel')||'').startsWith('task-review:')?taskScope&&!!boundedID(p.get('record'))&&p.getAll('panel').length===1&&taskReviewRequestID(p.get('panel')||'')?p.get('panel')!:'':p.get('panel')||''};
+ return {...messageFields,...inboxFields,...taskFields,...(p.has('catalog_domain')?{catalog_domain:p.get('catalog_domain')||''}:{}),...(p.has('catalog_scenario')?{catalog_scenario:p.get('catalog_scenario')||''}:{}),...(['all','published','retired'].includes(p.get('catalog_state')||'')?{catalog_state:p.get('catalog_state') as WorkbenchRoute['catalog_state']}:{}),...(p.has('catalog_source')?{catalog_source:p.get('catalog_source')||''}:{}),...(['memory','spec','skill','all'].includes(knowledgeKind||'')?{knowledge_kind:knowledgeKind as WorkbenchRoute['knowledge_kind']}:{}),project:p.get('project')||'',view,sub:p.get('sub')||defaultSub[view]||'',record:p.get('record')||'',run:p.get('run')||'',node:p.get('node')||'',attempt:parseAttempt(p.get('attempt')||'')?p.get('attempt')!:'',q:p.get('q')||'',status:p.get('status')||'all',layout:p.get('layout')||'list',week:p.get('week')||mondayOf(),panel:taskDetailLocatorPanel(p,taskScope)};
 }
 export function initializeSessionRoute(route:WorkbenchRoute,projects:{id:string}[]):WorkbenchRoute{return route.project||!projects.length?route:{...route,project:projects[0].id};}
 
@@ -60,6 +68,11 @@ export function locateWorkbenchTask(id:string,canLeave:()=>boolean,update:(chang
 /** A review responsibility link opens the original task detail, never a new
  * approval surface or an automatic acceptance action. */
 export function taskReviewRequestID(panel:string):string{const id=panel.startsWith('task-review:')?panel.slice('task-review:'.length):'';return /^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(id)?id:'';}
+export function taskHandoffID(panel:string):string{const id=panel.startsWith('task-handoff:')?panel.slice('task-handoff:'.length):'';return /^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(id)?id:'';}
+export function locateTaskHandoff(task:string,id:string,canLeave:()=>boolean,update:(change:(route:WorkbenchRoute)=>WorkbenchRoute)=>void):boolean{
+ if(!/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(task)||!taskHandoffID('task-handoff:'+id)||!canLeave())return false;
+ update(route=>({...resetTaskCollectionScope(route),view:'development',sub:'tasks',record:task,panel:'task-handoff:'+id,run:'',node:'',attempt:'',q:'',status:'all',layout:'list',conversation_message:undefined,inbox_filter:undefined,inbox_invalid:undefined}));return true;
+}
 export function locateTaskReviewRequest(task:string,id:string,canLeave:()=>boolean,update:(change:(route:WorkbenchRoute)=>WorkbenchRoute)=>void):boolean{
  if(!/^(?!\.{1,2}$)[A-Za-z0-9_.-]{1,64}$/.test(task)||!taskReviewRequestID('task-review:'+id)||!canLeave())return false;
  update(route=>({...resetTaskCollectionScope(route),view:'development',sub:'tasks',record:task,panel:'task-review:'+id,run:'',node:'',attempt:'',q:'',status:'all',layout:'list',inbox_filter:undefined,inbox_invalid:undefined}));return true;

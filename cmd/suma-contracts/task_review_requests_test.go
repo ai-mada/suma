@@ -27,7 +27,7 @@ func TestTaskReviewRequestContractsKeepFormalDecisionSeparate(t *testing.T) {
 		t.Fatal("responsibility cannot shortcut formal Review")
 	}
 	kinds := mapAt(api, "components", "schemas", "NotificationInboxItem", "properties", "kind")["enum"].([]string)
-	if len(kinds) != 3 || kinds[2] != "task_review_requested" {
+	if len(kinds) != 4 || kinds[2] != "task_review_requested" || kinds[3] != "task_handoff_requested" {
 		t.Fatal("real request source not registered", kinds)
 	}
 }

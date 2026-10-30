@@ -82,6 +82,5 @@ func taskReviewRequestContracts(add operationAdder, api map[string]any) {
 	field("TaskReviewRequest", "state", map[string]any{"enum": []string{"pending", "cancelled", "closed"}})
 	field("TaskReviewDecision", "decision", map[string]any{"enum": []string{"accepted", "rejected"}})
 	field("TaskReviewRequest", "binding_current", map[string]any{"description": "Only direct task version/basis and run identity/version/state consistency. Never acceptance eligibility or proof of current full quality gates."})
-	field("NotificationInboxItem", "kind", map[string]any{"enum": []string{"task_assigned", "task_mentioned", "task_review_requested"}})
 	field("NotificationInboxItem", "review_request_id", map[string]any{"minLength": 1, "maxLength": 64, "description": "Exact intact responsibility request with matching recipient and original notification relationship; no authority is granted."})
 }

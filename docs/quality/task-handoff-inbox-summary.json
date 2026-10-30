@@ -1,0 +1,291 @@
+{
+  "stage": "T-HANDOFF-INBOX-148",
+  "date": "2026-10-30",
+  "version": "1.0.0",
+  "status": "scoped_verified_visual_image_pending",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "base": "a7f5b01784313aabab2ee693fe2255b2da3e9af2",
+    "source_sha256": "387404bba5b20ed091f42f6ad4ac5895b9d5771abf93e6c27f684e9358600562",
+    "meaning": "Committed base archive plus exact148 source overrides and independently generated contracts. No147 or unrelated WIP.",
+    "snapshot": ".cache/e2e/handoff148/candidate/source-snapshot.json",
+    "manifest": ".cache/e2e/handoff148/candidate/manifest.json",
+    "excluded": "Active147 remains independent; this148 candidate excludes147, desktop, control-entry and unrelated uncommitted WIP.",
+    "generated": {
+      "docs/api/openapi.json": "aa373fea020ad97388291e3879feb49e2ccfba3a6507b16953078e79ac370c5e",
+      "packages/contracts/src/index.ts": "18316186f4e8c2d8cfb7611775876daf869a7de43da894ae650f5084dfae8b94"
+    },
+    "control_sha256": "6f5c3977ea24f405614e784ad5145cdf8104562dba406d5d4dd9d46bc22307ec",
+    "web_index_sha256": "03e5bfa5d6aff7f976eef5bca129e7bbebaecda57d81346a0036367f84a14b83",
+    "commit_text_normalization": {
+      "method": "CRLF to LF only in staged text blobs; frozen build sources and artifact hashes remain unchanged.",
+      "manifest": ".cache/e2e/handoff148/candidate/staged-manifest.json",
+      "semantic_change": false,
+      "verification": "Review normalized candidate bytes and git diff --cached --check; no redundant build/test for newline-only normalization."
+    }
+  },
+  "environment": {
+    "os": "Windows",
+    "go": "1.26.10, local repository toolchain",
+    "policy": "Existing scoped test/build receipts reused; actual GUI/HTTP evidence added separately. No test suites or builds repeated by this documentation task."
+  },
+  "go": {
+    "counting": "Package/test identity; nested cases separate. Earlier failures and candidate rechecks are retained without duplicate additions. Not a full-platform run.",
+    "platform": {
+      "receipt": ".cache/e2e/handoff148/backend/20261030T034303216Z.command.json",
+      "command": [
+        "go",
+        "test",
+        "./internal/platform",
+        "-run",
+        "^(TestTaskHandoff|TestNotificationInbox|TestTaskReview|TestTaskConversationMention)",
+        "-count=1",
+        "-json"
+      ],
+      "exit_code": 0,
+      "top_passed": 44,
+      "nested_passed": 36,
+      "stdout_sha256": "db25b33bb0f934c5dc0adc27b43714b18e3153782de963c3ecf0cf5e691583ca",
+      "passed_including_nested": 80,
+      "new_top_included": 8
+    },
+    "cli": {
+      "top_passed": 1,
+      "nested_passed": 10,
+      "source": "Final independent candidate",
+      "test": "TestHandoffsRequestContract",
+      "receipt": ".cache/e2e/handoff148/integration/candidate-go/20261030T041330790Z.command.json",
+      "counted_again_in_candidate_smoke": false
+    },
+    "contracts_full": {
+      "receipt": ".cache/e2e/handoff148/integration/go/20261030T034826472Z.command.json",
+      "command": [
+        "go",
+        "test",
+        "-json",
+        "./cmd/suma-contracts",
+        "-count=1",
+        "-timeout=90s"
+      ],
+      "exit_code": 0,
+      "top_passed": 59,
+      "nested_passed": 5,
+      "stdout_sha256": "7d5ce02d5e4460154393d806554df2a011ffd07b6eef88e270a4081cfa879763",
+      "scope": "Complete cmd/suma-contracts package in the integration working checkout; not the final candidate full package."
+    },
+    "candidate_smoke": {
+      "receipt": ".cache/e2e/handoff148/integration/candidate-go/20261030T041330790Z.command.json",
+      "command": [
+        "go",
+        "test",
+        "-json",
+        "./internal/platform",
+        "./cmd/suma-contracts",
+        "./internal/cli",
+        "-run",
+        "^(TestTaskHandoffInbox|TestHandoffsRequestContract)",
+        "-count=1",
+        "-timeout=120s"
+      ],
+      "exit_code": 0,
+      "top_passed": 10,
+      "nested_passed": 26,
+      "stdout_sha256": "a52ed9c4a95abe65fdb0b30b7c66808177e8c99bec03ed7fa706ed28c1b7f20d",
+      "packages": {
+        "platform": {
+          "top": 8,
+          "nested": 16
+        },
+        "contracts": {
+          "top": 1,
+          "nested": 0
+        },
+        "cli": {
+          "top": 1,
+          "nested": 10
+        }
+      },
+      "added_to_unique_counts": false,
+      "meaning": "Exact candidate replay; platform and contract rechecks plus CLI already reported above."
+    }
+  },
+  "web": {
+    "focused_unique_passed": 43,
+    "navigation_unique_passed": 5,
+    "total_unique_selected": 48,
+    "breakdown": {
+      "inbox": 29,
+      "panel_model_initial": 13,
+      "review_regression_added": 1,
+      "affected_decision_recheck_included": 4
+    },
+    "focused_summary": ".cache/e2e/handoff148/ui/summary.json",
+    "navigation_report": ".cache/e2e/handoff148/integration/candidate-navigation.json",
+    "navigation_report_sha256": "2c5a087d9495bd8fc1e003f5c4b01232115785976e49630d2f5ec22720d71e42",
+    "commands": {
+      "inbox_green": "npm.cmd exec -- vitest run src/notification-inbox-model.test.ts src/NotificationInbox.test.tsx",
+      "panel_green": "pnpm --filter @suma/web exec vitest run src/TaskHandoffPanel.test.tsx src/task-handoff-model.test.ts",
+      "exact_failure_recheck": "pnpm --filter @suma/web exec vitest run src/TaskHandoffPanel.test.tsx --testNamePattern \"exact read failure|explicit invalidation|independent proposal|adopts its new version\""
+    },
+    "warning": "One React act() warning from the existing Inbox unknown-command test; all assertions passed.",
+    "full_web_suite_run": false
+  },
+  "candidate_validation": {
+    "generated_contracts": {
+      "models": 746,
+      "paths": 346,
+      "generate_exit": 0,
+      "check_exit": 0,
+      "generate_receipt": ".cache/e2e/handoff148/integration/candidate-go/20261030T041008237Z.command.json",
+      "check_receipt": ".cache/e2e/handoff148/integration/candidate-go/20261030T041015936Z.command.json"
+    },
+    "types": {
+      "exit_code": 0,
+      "command": "tsc --noEmit",
+      "log": ".cache/e2e/handoff148/integration/candidate-types.log",
+      "log_sha256": "f760a0e794573e1b73b91406a354863264386d1c2f6438d1cb1aadfbf33ac6c1"
+    },
+    "i18n": {
+      "exit_code": 0,
+      "paired_keys": 7323,
+      "production_hardcodes": 0,
+      "command": "node scripts/check-i18n.mjs",
+      "log": ".cache/e2e/handoff148/integration/candidate-i18n.log",
+      "log_sha256": "34fc01c546461b1a64b1a1a071ad050d0ea9dbec1523b8325a9c2b2790600b63"
+    },
+    "web_build": {
+      "exit_code": 0,
+      "seconds": 52.34,
+      "log": ".cache/e2e/handoff148/integration/candidate-build.log",
+      "log_sha256": "65cec9f954ec590d3dbd88c372ce873da587b6e9dca74c49d09656e10c405055",
+      "warning": "Existing large chunk warning retained; no performance acceptance."
+    },
+    "control_build": {
+      "exit_code": 0,
+      "command": [
+        "go",
+        "build",
+        "-buildvcs=false",
+        "-o",
+        "D:/codes/ai-dev-os/suma/.cache/e2e/handoff148/candidate/bin/suma-control.exe",
+        "./cmd/suma-control"
+      ],
+      "receipt": ".cache/e2e/handoff148/integration/candidate-go/20261030T041707576Z.command.json"
+    }
+  },
+  "audit": {
+    "backend_red": {
+      "receipts": [
+        ".cache/e2e/handoff148/backend/20261030T033915260Z.command.json",
+        ".cache/e2e/handoff148/backend/20261030T034017414Z.command.json"
+      ],
+      "findings": [
+        "Missing pending request notification.",
+        "Two fixtures initially referenced a nonexistent receipt table.",
+        "After fixture correction: notification failure did not roll back handoff and exact GET returned404."
+      ],
+      "resolution": "Corrected fixture table; original-transaction notification, private reverse binding and exact HTTP implemented. Focused green then44-top selection passed."
+    },
+    "ui_red": {
+      "inbox_failed": 2,
+      "panel_failed": 4,
+      "receipts": [
+        ".cache/e2e/handoff148/ui/inbox/red.command.txt",
+        ".cache/e2e/handoff148/ui/panel-red.command.txt"
+      ],
+      "resolution": "Intact handoff kind/locator and callback, exact focus, independent drafts and explicit version adoption."
+    },
+    "independent_review": {
+      "severity": "P2",
+      "finding": "P2: exact read failure could fall back to a history item and re-enable a decision",
+      "resolution": "Every edited decision requires a successful independent exact source; no history fallback when exact is absent or failed",
+      "red_log": ".cache/e2e/handoff148/ui/exact-failure-red.log",
+      "green_log": ".cache/e2e/handoff148/ui/exact-failure-green.log",
+      "rechecked": 4,
+      "unique_new": 1
+    }
+  },
+  "browser": {
+    "status": "scoped_verified_visual_image_pending",
+    "actual_gui_passed": true,
+    "passed_unique": 16,
+    "runtime": "Electron35.7.5 with installed Playwright SDK; isolated owned hidden renderer, localhost43961",
+    "origin": "http://127.0.0.1:43961",
+    "receipt": ".cache/e2e/handoff148/browser/receipt.json",
+    "receipt_sha256": "28a1bca52932b472b95f7af1ae563f8c3551b1a3e3d28b18bb07a1605d170498",
+    "checks": [
+      "source initially pending",
+      "current recipient sees exact handoff notification",
+      "source opens matching project/task/handoff URL",
+      "exact source card receives keyboard focus",
+      "source opening issues no business mutation",
+      "opening preserves pending state/version",
+      "opening does not auto read notification",
+      "original command reconciled without repeating",
+      "one original handoff command only",
+      "returned notification remains unread",
+      "refresh restores exact returned source",
+      "terminal source exposes no further decision",
+      "English exact source and returned state render",
+      "narrow handoff stays inside viewport",
+      "language and narrow read trigger no mutation",
+      "no renderer error observed"
+    ],
+    "business_writes": 1,
+    "writes": [
+      {
+        "method": "POST",
+        "path": "/api/v1/task-handoffs/ddfcf7607c97045de1a0e9212fc0647b/commands"
+      }
+    ],
+    "opening_business_writes": 0,
+    "opening_marks_read": false,
+    "explicit_decision": "return",
+    "independent_exact_result": {
+      "version": 2,
+      "state": "returned"
+    },
+    "notification_after_decision": {
+      "read": false
+    },
+    "renderer_errors_observed": 0,
+    "external_accounts": false,
+    "no_models_or_tools": true,
+    "no_formal_review": true,
+    "visual_images": {
+      "status": "pending",
+      "screenshot_attempts": 2,
+      "result": "timeout",
+      "accepted_images": 0,
+      "meaning": "390px DOM geometry only; no visual image, full layout or theme acceptance."
+    },
+    "transient_success_text": {
+      "observed_across_parent_refresh": false,
+      "counted_as_pass": false,
+      "authoritative_result": "Exact source persisted and independently reconciled as v2 returned."
+    },
+    "initial_probe_correction": "Initial script inspected a nonexistent notification state field; corrected to read/archived. Both were reads of original data; no repeated command.",
+    "prior_windows_attempt": "Target URL review did not obtain confirmation; that attempt stopped. Isolated owned localhost Electron evidence is recorded separately.",
+    "production_claim": false
+  },
+  "git_delivery": {
+    "status": "pending_final_integration_record",
+    "commit": null,
+    "pushed": false
+  },
+  "limits": [
+    "Focused Go/UI/HTTP/CLI and candidate build evidence; no full-platform suite claim.",
+    "16 actual local GUI/HTTP checks passed; two hidden-window screenshots timed out and visual image acceptance remains pending.",
+    "Transient success wording was not observed across parent refresh; authoritative exact source result remained consistent.",
+    "No model/tool execution, external provider, formal Review, physical multihost, other database, installation, scale or production acceptance.",
+    "Responsibility acceptance is distinct from formal Task Review.",
+    "Full P0-P7 and requirements1-26 remain active;58/34/92 unchanged."
+  ],
+  "report": "docs/quality/task-handoff-inbox-verification.md",
+  "recorded_at": "2026-10-30T04:42:04.041685+00:00"
+}

@@ -31,6 +31,7 @@ type NotificationInboxItem struct {
 	CurrentTask       *NotificationInboxTask `json:"current_task,omitempty"`
 	MessageID         string                 `json:"message_id,omitempty"`
 	ReviewRequestID   string                 `json:"review_request_id,omitempty"`
+	HandoffID         string                 `json:"handoff_id,omitempty"`
 }
 
 type NotificationInboxPage struct {

@@ -1,5 +1,22 @@
 {
   "project": "suma",
+  "task_handoff_inbox": {
+    "stage": "T-HANDOFF-INBOX-148",
+    "date": "2026-10-30",
+    "status": "scoped_verified_visual_image_pending",
+    "contract": "contracts/task-handoff-inbox.md",
+    "product": "docs/product/task-handoff-inbox.md",
+    "architecture": "docs/architecture/task-handoff-inbox.md",
+    "design": "docs/design/task-handoff-inbox.md",
+    "report": "docs/quality/task-handoff-inbox-verification.md",
+    "summary": "docs/quality/task-handoff-inbox-summary.json",
+    "verified_runtime_source_sha256": "387404bba5b20ed091f42f6ad4ac5895b9d5771abf93e6c27f684e9358600562",
+    "scope": "Original-transaction handoff request notification; private reverse source binding; exact task/project read and inbox locator; current caller isolation, separate drafts and explicit version adoption.",
+    "verification": "Existing scoped Go/Web/contracts/types/i18n/isolated build evidence plus16 unique actual owned localhost GUI/HTTP assertions; one explicit return independently read as v2 returned, notification still unread.",
+    "browser_receipt": ".cache/e2e/handoff148/browser/receipt.json",
+    "visual_images": "Two hidden-window screenshot timeouts; visual image acceptance pending.",
+    "limits": "Responsibility acceptance is not formal Review. No external account, model/tool execution, physical multihost, other database or production acceptance. Full58/34/92 unchanged."
+  },
   "workbuddy_cloud_submission": {
     "stage": "T-WORKBUDDY-143",
     "date": "2026-10-30",

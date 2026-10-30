@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {parseWorkbenchRoute,resetInboxScope} from './navigation';
+import {locateTaskHandoff,parseWorkbenchRoute,resetInboxScope,taskHandoffID} from './navigation';
 import {switchedRoute} from './governance-model';
 import {palettePages} from './command-palette-model';
 import type {Session} from './api';
@@ -19,5 +19,21 @@ describe('current notification reading route',()=>{
  });
  it('offers one project-scoped command destination without a guessed receiver',()=>{
   const entries=palettePages.filter(page=>page.id==='inbox');expect(entries).toHaveLength(1);expect(entries[0]).toMatchObject({projectRequired:true,target:{view:'development',sub:'inbox'}});
+ });
+ it('restores an exact handoff only inside an unambiguous task detail scope',()=>{
+  const prefix='?project=p&view=development&sub=tasks&record=task-a&';
+  expect(taskHandoffID(parseWorkbenchRoute(prefix+'panel=task-handoff:handoff-a').panel)).toBe('handoff-a');
+  for(const fields of ['panel=task-handoff:..','panel=task-handoff:a%2Fb','panel=task-handoff:a&panel=task-handoff:b','panel=task-handoff:a&record=task-b'])expect(parseWorkbenchRoute(prefix+fields).panel).toBe('');
+  expect(parseWorkbenchRoute('?project=p&view=development&sub=inbox&record=task-a&panel=task-handoff:a').panel).toBe('');
+  expect(parseWorkbenchRoute('?project=p&view=development&sub=tasks&panel=task-handoff:a').panel).toBe('');
+ });
+ it('keeps an unsaved current scope until explicit navigation succeeds',()=>{
+  let route=parseWorkbenchRoute('?project=p&view=development&sub=inbox&inbox_filter=unread');
+  const before=route,update=(change:(value:typeof route)=>typeof route)=>{route=change(route);};
+  expect(locateTaskHandoff('task-a','handoff-a',()=>false,update)).toBe(false);expect(route).toBe(before);
+  expect(locateTaskHandoff('task-a','../other',()=>true,update)).toBe(false);expect(route).toBe(before);
+  expect(locateTaskHandoff('task-a','handoff-a',()=>true,update)).toBe(true);
+  expect(route).toMatchObject({project:'p',view:'development',sub:'tasks',record:'task-a',panel:'task-handoff:handoff-a',run:'',node:'',attempt:'',layout:'list'});
+  expect(route.inbox_filter).toBeUndefined();expect(route.conversation_message).toBeUndefined();
  });
 });

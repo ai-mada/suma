@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import {act} from 'react';
+import {act,type ComponentProps} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import {ApiViewProvider} from './api-context';
@@ -16,7 +16,7 @@ let root:Root|undefined,host:HTMLDivElement,reads:{path:string;signal?:AbortSign
 beforeEach(async()=>{await setLocale('en-US',{persist:false});localStorage.clear();sessionStorage.clear();reads=[];writes=[];host=document.createElement('div');document.body.append(host);vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);});
 afterEach(async()=>{if(root)await act(async()=>root?.unmount());root=undefined;host.remove();await setLocale('zh-CN',{persist:false});vi.unstubAllGlobals();vi.restoreAllMocks();});
 async function settle(){for(let n=0;n<4;n++)await act(async()=>{await new Promise(resolve=>setTimeout(resolve,0));});}
-async function render(s=session,p=project,id=task,onChanged:()=>void|Promise<void>=()=>{}){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={s}><TaskHandoffPanel session={s} project={p} taskId={id} taskVersion={7} refresh={0} onChanged={onChanged}/></ApiViewProvider>);});await settle();}
+async function render(s=session,p=project,id=task,onChanged:()=>void|Promise<void>=()=>{},extra:Partial<ComponentProps<typeof TaskHandoffPanel>>={}){await act(async()=>{root??=createRoot(host);root.render(<ApiViewProvider session={s}><TaskHandoffPanel session={s} project={p} taskId={id} taskVersion={7} refresh={0} onChanged={onChanged} {...extra}/></ApiViewProvider>);});await settle();}
 function transport(reply:(path:string,options?:RequestInit)=>Promise<Response>){vi.stubGlobal('fetch',vi.fn(async(input:string,options?:RequestInit)=>{const path=String(input).replace(/^\/api\/v1/,'');if(options?.body)writes.push({path,body:JSON.parse(String(options.body)),headers:new Headers(options.headers)});else reads.push({path,signal:options?.signal});return reply(path,options);}));}
 async function click(selector:string){const element=host.querySelector<HTMLElement>(selector);expect(element,selector).not.toBeNull();await act(async()=>element!.click());await settle();}
 async function change(selector:string,value:string){const element=host.querySelector<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>(selector)!;expect(element,selector).not.toBeNull();const prototype=element instanceof HTMLSelectElement?HTMLSelectElement.prototype:element instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;await act(async()=>{Object.getOwnPropertyDescriptor(prototype,'value')!.set!.call(element,value);element.dispatchEvent(new Event(element instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});}
@@ -43,7 +43,7 @@ it('keeps the exact create operation, target resource and original text after an
 
 it('requires explicit invalidation acknowledgement and treats handoff acceptance separately from task approval',async()=>{
  const current={...page(),items:[handoff()],total:1,can_create:false};const changed=vi.fn();
- transport(async(_path,options)=>options?.body?Response.json({...handoff(),state:'accepted',version:2,result_task_version:8}):Response.json(current));
+ transport(async(path,options)=>options?.body?Response.json({...handoff(),state:'accepted',version:2,result_task_version:8,allowed_actions:[],decision_reason:JSON.parse(String(options.body)).reason}):Response.json(path.startsWith('/task-handoffs/handoff-a?')?handoff():current));
  await render({...session,user:{...session.user,id:'user-b'}},project,task,changed);await click('[data-handoff-toggle]');await click('[data-handoff-command=accept]');
  const accept=host.querySelector<HTMLButtonElement>('[data-handoff-decision] button.primary')!;expect(accept.disabled).toBe(true);expect(host.textContent).toContain('downstream');
  await click('[name=acknowledge_invalidation]');expect(accept.disabled).toBe(false);await submit('[data-handoff-decision]');
@@ -57,4 +57,53 @@ it('aborts obsolete reads and hides old account/project facts and recovery after
  await render(other,'project-other','task-other');expect(signal?.aborted).toBe(true);expect(host.querySelector('[aria-expanded=false]')).not.toBeNull();expect(reads).toHaveLength(1);
  await act(async()=>previous(Response.json({...page(),items:[handoff()],total:1})));await settle();expect(host.textContent).not.toContain(raw);expect(host.querySelector('[data-handoff-item]')).toBeNull();
  transport(async()=>Response.json({error:{code:'forbidden',message:'Current access denied'}},{status:403}));await click('[data-handoff-toggle]');expect(host.textContent).toContain('Current access denied');expect(host.textContent).not.toContain(raw);expect(writes).toHaveLength(0);
+});
+
+it('opens and focuses an exact historical handoff outside the bounded page without writing or changing its count',async()=>{
+ const exact={...handoff(),id:'handoff-old',state:'withdrawn',allowed_actions:[],decision_by:'user-a',decision_at:'2026-10-26T01:00:00Z',decision_reason:'Original withdrawal'};
+ transport(async path=>Response.json(path.startsWith('/task-handoffs/handoff-old?')?exact:page()));
+ await render(session,project,task,()=>{},{selectedHandoff:'handoff-old'});
+ expect(reads.some(read=>read.path==='/task-handoffs/handoff-old?project_id='+project+'&task_id='+task)).toBe(true);
+ const card=host.querySelector<HTMLElement>('[data-handoff-located="handoff-old"]');expect(card).not.toBeNull();expect(document.activeElement).toBe(card);
+ expect(card?.textContent).toContain('Original withdrawal');expect(host.querySelector('.task-handoff-history-head')?.textContent).toContain('0 / 0');
+ expect(writes).toHaveLength(0);expect(reads.every(read=>!read.path.includes('before='))).toBe(true);
+});
+
+it('preserves an independent proposal draft when a different decision succeeds and across remounts',async()=>{
+ const current={...page(),items:[handoff()],total:1};
+ transport(async(path,options)=>Response.json(options?.body?{...handoff(),state:'returned',version:2,decision_by:'user-b',decision_at:'2026-10-26T01:00:00Z',decision_reason:'Please clarify',basis_current:false,allowed_actions:[]}:path.startsWith('/task-handoffs/handoff-a?')?handoff():current));
+ await render();await click('[data-handoff-toggle]');await change('[name=recipient]','resource-b');await change('[name=note]','Keep my separate proposal');
+ await click('[data-handoff-command=return]');await change('[name=reason]','Please clarify');await submit('[data-handoff-decision]');
+ expect(host.querySelector<HTMLTextAreaElement>('[name=note]')?.value).toBe('Keep my separate proposal');
+ await act(async()=>root?.unmount());root=undefined;await render();await click('[data-handoff-toggle]');
+ expect(host.querySelector<HTMLTextAreaElement>('[name=note]')?.value).toBe('Keep my separate proposal');
+ expect(host.querySelector<HTMLSelectElement>('[name=recipient]')?.value).toBe('resource-b');
+});
+
+it('retains a decision reason on refresh and adopts its new version only explicitly with a fresh acceptance acknowledgement',async()=>{
+ let revision=1;
+ transport(async(path,options)=>Response.json(options?.body?{...handoff(),version:3,state:'accepted',allowed_actions:[],decision_reason:JSON.parse(String(options.body)).reason}:path.startsWith('/task-handoffs/handoff-a?')?{...handoff(),version:revision}:{...page(),items:[{...handoff(),version:revision}],total:1,can_create:false}));
+ await render();await click('[data-handoff-toggle]');await click('[data-handoff-command=accept]');await change('[name=reason]','Keep this acceptance note');await click('[name=acknowledge_invalidation]');
+ revision=2;await render(session,project,task,()=>{},{refresh:1});
+ expect(host.querySelector<HTMLTextAreaElement>('[name=reason]')?.value).toBe('Keep this acceptance note');expect(host.querySelector<HTMLButtonElement>('[data-handoff-decision] button.primary')?.disabled).toBe(true);
+ await click('[data-handoff-adopt-decision]');expect(host.querySelector<HTMLInputElement>('[name=acknowledge_invalidation]')?.checked).toBe(false);
+ await click('[name=acknowledge_invalidation]');await submit('[data-handoff-decision]');expect(writes[0].body.expected_version).toBe(2);
+});
+
+it('revokes every protected card and input on an exact read refusal without deleting the scoped draft',async()=>{
+ let denied=false;const onForbidden=vi.fn();
+ transport(async path=>denied&&path.startsWith('/task-handoffs/handoff-a?')?Response.json({error:{code:'forbidden',message:'Current access denied'}},{status:403}):Response.json(path.startsWith('/task-handoffs/handoff-a?')?handoff():page()));
+ await render(session,project,task,()=>{},{selectedHandoff:'handoff-a',onForbidden});await change('[name=note]','Preserve my private draft');
+ denied=true;await render(session,project,task,()=>{},{selectedHandoff:'handoff-a',onForbidden,refresh:1});
+ expect(onForbidden).toHaveBeenCalled();expect(host.querySelector('[data-handoff-item]')).toBeNull();expect(host.querySelector('[name=note]')).toBeNull();expect(host.textContent).not.toContain(raw);expect(writes).toHaveLength(0);
+ expect(Object.values(sessionStorage).join(' ')).toContain('Preserve my private draft');
+});
+
+it('keeps the selected decision disabled after an exact read failure even when its history page still contains that handoff',async()=>{
+ let failed=false;
+ transport(async path=>path.startsWith('/task-handoffs/handoff-a?')?(failed?Response.json({error:{code:'unavailable',message:'Exact source unavailable'}},{status:500}):Response.json(handoff())):Response.json({...page(),items:[handoff()],total:1,can_create:false}));
+ await render(session,project,task,()=>{},{selectedHandoff:'handoff-a'});await click('[data-handoff-command=accept]');await change('[name=reason]','Preserve the original reason');await click('[name=acknowledge_invalidation]');
+ expect(host.querySelector<HTMLButtonElement>('[data-handoff-decision] button.primary')?.disabled).toBe(false);
+ failed=true;await render(session,project,task,()=>{},{selectedHandoff:'handoff-a',refresh:1});
+ expect(host.querySelector<HTMLButtonElement>('[data-handoff-decision] button.primary')?.disabled).toBe(true);expect(host.querySelector<HTMLTextAreaElement>('[name=reason]')?.value).toBe('Preserve the original reason');expect(writes).toHaveLength(0);
 });

@@ -50,7 +50,10 @@ func notificationInboxContracts(add operationAdder, api map[string]any) {
 	field("NotificationInboxCommand", "expected_version", map[string]any{"minimum": 1, "maximum": 2147483646})
 	field("NotificationInboxCommand", "action", map[string]any{"enum": []string{"read", "unread", "archive", "restore"}})
 	field("NotificationInboxCommand", "idempotency_key", map[string]any{"minLength": 8, "maxLength": 128, "x-max-utf8-bytes": 128})
-	field("NotificationInboxItem", "kind", map[string]any{"enum": []string{"task_assigned"}})
+	// Source domains contribute fields below; the inbox owns the complete kind
+	// enumeration so a later domain cannot silently remove another source.
+	field("NotificationInboxItem", "kind", map[string]any{"enum": []string{"task_assigned", "task_mentioned", "task_review_requested", "task_handoff_requested"}})
+	field("NotificationInboxItem", "handoff_id", map[string]any{"minLength": 1, "maxLength": 64, "description": "Exact handoff ID only when the current task, immutable recipient/basis and reverse private notification binding all match. Opening is a read, never acceptance or marking the notification read."})
 	field("NotificationInboxItem", "sequence", map[string]any{"type": "string", "pattern": "^[1-9][0-9]{0,18}$", "description": "Positive signed BIGINT decimal string; never coerce to an imprecise JSON number."})
 	field("NotificationInboxPage", "items", map[string]any{"maxItems": 50})
 	field("NotificationInboxPage", "limit", map[string]any{"minimum": 1, "maximum": 50})

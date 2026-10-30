@@ -9,6 +9,7 @@ func taskHandoffModels() []any {
 func taskHandoffContracts(add operationAdder, api map[string]any) {
 	for _, route := range []struct{ path, method, input, output, status string }{
 		{"/task-handoffs", "get", "", "TaskHandoffPage", "200"},
+		{"/task-handoffs/{id}", "get", "", "TaskHandoff", "200"},
 		{"/task-handoffs", "post", "TaskHandoffCreateRequest", "TaskHandoff", "201"},
 		{"/task-handoffs/{id}/commands", "post", "TaskHandoffCommandRequest", "TaskHandoff", "200"},
 	} {
@@ -19,11 +20,16 @@ func taskHandoffContracts(add operationAdder, api map[string]any) {
 		if route.input != "" {
 			request(op, route.input)
 		} else {
+			op["x-read-only"] = true
 			task := queryParameter("task_id", "Required current-project task.", map[string]any{"type": "string", "minLength": 1, "maxLength": 64})
 			task["required"] = true
 			appendQuery(op, task)
-			appendQuery(op, queryParameter("limit", "Bounded page size, exact decimal integer.", map[string]any{"type": "integer", "minimum": 1, "maximum": 100, "default": 20}))
-			appendQuery(op, queryParameter("before", "Existing handoff ID within the same tenant/project/task; stable created_at/id descending keyset.", map[string]any{"type": "string", "maxLength": 64}))
+			if route.path == "/task-handoffs" {
+				appendQuery(op, queryParameter("limit", "Bounded page size, exact decimal integer.", map[string]any{"type": "integer", "minimum": 1, "maximum": 100, "default": 20}))
+				appendQuery(op, queryParameter("before", "Existing handoff ID within the same tenant/project/task; stable created_at/id descending keyset.", map[string]any{"type": "string", "maxLength": 64}))
+			} else {
+				op["description"] = "Read the exact handoff under current project/task authority and recompute its current basis and allowed actions. No historical page scan, recipient directory enumeration, notification read, responsibility acceptance or formal Review. Unknown/duplicate query fields and cross-task bindings are rejected."
+			}
 		}
 	}
 	schemas := toolContractMap(api, "components", "schemas")

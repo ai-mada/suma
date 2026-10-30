@@ -30,9 +30,21 @@ func handoffsCommand(ctx context.Context, c *client, args []string, out io.Write
 		return err
 	}
 	if len(args) == 0 {
-		return usage("handoffs requires list, create, accept, return, or withdraw; use handoffs --help")
+		return usage("handoffs requires list, get, create, accept, return, or withdraw; use handoffs --help")
 	}
 	const path = "/api/v1/task-handoffs"
+	if args[0] == "get" {
+		if len(args) < 2 || !handoffCLIIdentifier(args[1], false) {
+			return usage("handoff get requires ID and --task")
+		}
+		fs := commandFlags("handoffs get")
+		task := fs.String("task", "", "exact task ID in the current project")
+		if fs.Parse(args[2:]) != nil || fs.NArg() != 0 || !handoffCLIIdentifier(*task, false) {
+			return usage("handoff get requires ID and --task")
+		}
+		query := url.Values{"task_id": {*task}}
+		return contextRead(ctx, c, path+"/"+url.PathEscape(args[1])+"?"+query.Encode(), out)
+	}
 	if args[0] == "list" {
 		fs := commandFlags("handoffs list")
 		task := fs.String("task", "", "task ID")
@@ -82,7 +94,7 @@ func handoffsCommand(ctx context.Context, c *client, args []string, out io.Write
 		body := map[string]any{"action": args[0], "expected_version": *version, "reason": *reason, "idempotency_key": *operation, "acknowledge_invalidation": *ack}
 		return handoffCLIWrite(ctx, c, path+"/"+url.PathEscape(args[1])+"/commands", body, out)
 	}
-	return usage("handoffs requires list, create, accept, return, or withdraw; use handoffs --help")
+	return usage("handoffs requires list, get, create, accept, return, or withdraw; use handoffs --help")
 }
 
 func handoffCLIWrite(ctx context.Context, c *client, path string, body map[string]any, out io.Writer) error {
@@ -106,13 +118,15 @@ func handoffsHelp(locale localization.Locale) string {
 const handoffsHelpEN = `
 Task handoffs (global flags, including --project, go before the command):
   handoffs list --task ID [--limit 1..100] [--before NEXT_CURSOR]
+  handoffs get HANDOFF_ID --task TASK_ID
   handoffs create --task ID --version TASK_VERSION --to-resource HUMAN_RESOURCE_ID
                   [--to-team TEAM_ID] --note TEXT --operation KEY
   handoffs accept ID --version HANDOFF_VERSION --reason TEXT --operation KEY
                   --acknowledge-invalidation
   handoffs return|withdraw ID --version HANDOFF_VERSION --reason TEXT --operation KEY
 
-List is read-only. Create and decisions use explicit version and operation keys.
+List and get are read-only. Get opens the exact handoff in its original task.
+Create and decisions use explicit version and operation keys.
 Accept transfers responsibility and invalidates previous execution/acceptance evidence;
 it does not run or accept the task. Only the designated account may accept/return;
 only the sender may withdraw. The server rechecks current access and fixed basis.
@@ -123,13 +137,14 @@ No automatic retry, account switching, permission grant or task execution occurs
 const handoffsHelpZH = `
 任务交接（--project 等全局参数放在命令前）：
   handoffs list --task ID [--limit 1..100] [--before NEXT_CURSOR]
+  handoffs get HANDOFF_ID --task TASK_ID
   handoffs create --task ID --version TASK_VERSION --to-resource HUMAN_RESOURCE_ID
                   [--to-team TEAM_ID] --note TEXT --operation KEY
   handoffs accept ID --version HANDOFF_VERSION --reason TEXT --operation KEY
                   --acknowledge-invalidation
   handoffs return|withdraw ID --version HANDOFF_VERSION --reason TEXT --operation KEY
 
-list 只读。发起和决定必须提供明确版本与操作标识。
+list 和 get 只读，get 在原任务范围打开准确交接。发起和决定必须提供明确版本与操作标识。
 接收会转移负责人并使旧执行／验收依据失效，不会运行或验收任务。
 仅指定账号可接收／退回，仅发起人可撤回；服务端重核当前权限及固定依据。
 结果未知时保留原调用者、路径、正文和操作标识；不自动重试、切换账号、授权或执行。

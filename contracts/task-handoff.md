@@ -1,6 +1,6 @@
-# T-P4-022 团队任务交接合同
+# 团队任务交接合同
 
-状态：本地实现与必要验证完成；沿用已批准平台架构，完整 P0–P7 保持进行。用户要求优先并发功能开发，仅做新增行为、权限、事务和代表性交互必要检查。
+状态：初始产品1.0.0，T-HANDOFF-INBOX-148补充[请求通知与准确定位](task-handoff-inbox.md)；沿用既有责任交接与正式验收边界，完整P0–P7保持进行。实现和实际验证分别记录。
 
 ## 业务与状态
 
@@ -15,6 +15,7 @@
 ## HTTP 与共享 DTO
 
 - GET /api/v1/task-handoffs?project_id=P&task_id=T&limit=20&before=ID：limit 默认20，1..100；before 为本任务已有交接 ID，稳定 created_at/id 降序游标。返回 TaskHandoffPage；items bounded，total 正式总数，next_cursor=下一页 before ID，无更多为字符串空。不得用其它项目的游标。
+- GET /api/v1/task-handoffs/{id}?project_id=P&task_id=T：当前授权下直接读取准确TaskHandoff并重新投影依据和允许动作；不枚举历史或接收人，不写通知状态。
 - POST /api/v1/task-handoffs：TaskHandoffCreateRequest → TaskHandoff。
 - POST /api/v1/task-handoffs/{id}/commands：TaskHandoffCommandRequest → TaskHandoff。
 
@@ -30,8 +31,8 @@ Page：items:TaskHandoff[],total,next_cursor,recipients:TaskHandoffRecipient[],c
 
 ## 文件所有权与集成
 
-- 后端代理独占 internal/platform/task_handoff*.go（含 DTO、领域、迁移方法、必要测试）。Service：MigrateTaskHandoffs(ctx)、TaskHandoffs(ctx,actor,project,taskID string,limit int,before string)(TaskHandoffPage,error)、CreateTaskHandoff(ctx,actor,project string,req TaskHandoffCreateRequest)(TaskHandoff,error)、CommandTaskHandoff(ctx,actor,project,id string,req TaskHandoffCommandRequest)(TaskHandoff,error)。复用 authority transaction、commandReceipt/activity、dag.GuardProjectTx。不要修改 shared database.go/http.go/records.go。
+- 后端代理独占 internal/platform/task_handoff*.go（含 DTO、领域、迁移方法、必要测试）。Service：InitializeTaskHandoffs(ctx)、TaskHandoffs(ctx,actor,project,taskID string,limit int,before string)(TaskHandoffPage,error)、CreateTaskHandoff(ctx,actor,project string,req TaskHandoffCreateRequest)(TaskHandoff,error)、CommandTaskHandoff(ctx,actor,project,id string,req TaskHandoffCommandRequest)(TaskHandoff,error)。复用 authority transaction、commandReceipt/activity、dag.GuardProjectTx。不要修改 shared database.go/http.go/records.go。
 - 前端代理独占 TaskHandoffPanel.tsx、TaskHandoffPanel.css、task-handoff 中英目录及必要组件测试；使用生成合同类型、既有 api-context/write-action/tool-read。props session,project,taskId,taskVersion,refresh,onChanged。默认折叠；单一接收人、可选团队、说明；分页历史、明确接收影响，来源按需展开。只在展开后读取，不增加仪表盘或新导航。
 - Root 拥有 HTTP 接线、database.go 迁移接线、OpenAPI/生成类型、App.tsx 入口、宿主本地化、文档/证据、最终构建与必要联调/提交。
 
-当前原预览为021，session90230／control229668／holder223492，不得覆盖活动静态目录、停止服务、改原库／账号，先隔离构建。仅本地阶段提交，不能 push。
+活动预览、构建隔离与阶段Git交付遵循当前AGENTS.md和用户授权。交接记录及通知的业务历史保留，不包含旧进程、旧预览或过期交付规则。

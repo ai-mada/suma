@@ -86,7 +86,11 @@ func (s *Service) CreateTaskHandoff(ctx context.Context, actor Actor, project st
 	if err != nil {
 		return out, err
 	}
-	if _, err = auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_task_handoffs(id,tenant_id,project_id,task_id,version,state,created_at,payload) VALUES(?,?,?,?,?,?,?,?)`), out.ID, auth.target.tenantID, project, task.ID, out.Version, out.State, out.CreatedAt, stringify(out)); err != nil {
+	notificationID, err := s.insertNotificationInboxTx(ctx, auth, project, notificationInboxSource{Kind: "task_handoff_requested", TaskID: task.ID, TaskVersion: basis.TaskVersion, ResourceID: out.ToResourceID, EventKey: out.ID, RecipientUserID: out.ToUserID})
+	if err != nil {
+		return out, err
+	}
+	if _, err = auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_task_handoffs(id,tenant_id,project_id,task_id,version,state,created_at,payload) VALUES(?,?,?,?,?,?,?,?)`), out.ID, auth.target.tenantID, project, task.ID, out.Version, out.State, out.CreatedAt, stringify(taskHandoffStored{TaskHandoff: out, NotificationID: notificationID})); err != nil {
 		return out, err
 	}
 	if _, err = auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_task_handoff_pending(tenant_id,project_id,task_id,handoff_id) VALUES(?,?,?,?)`), auth.target.tenantID, project, task.ID, out.ID); err != nil {
@@ -136,10 +140,11 @@ func (s *Service) CommandTaskHandoff(ctx context.Context, actor Actor, project, 
 		return out, err
 	}
 	defer cleanup()
-	out, err = s.taskHandoffTx(ctx, auth, project, id)
+	stored, err := s.taskHandoffStoredTx(ctx, auth, project, id)
 	if err != nil {
 		return out, err
 	}
+	out = stored.TaskHandoff
 	if err = s.handoffDecisionActorTx(ctx, auth, out, req.Action); err != nil {
 		return out, err
 	}
@@ -238,7 +243,7 @@ func (s *Service) CommandTaskHandoff(ctx context.Context, actor Actor, project, 
 			}
 		}
 	}
-	result, err := auth.tx.ExecContext(ctx, s.q(`UPDATE suma_task_handoffs SET version=?,state=?,payload=? WHERE tenant_id=? AND project_id=? AND id=? AND version=? AND state='pending'`), out.Version, out.State, stringify(out), auth.target.tenantID, project, out.ID, req.ExpectedVersion)
+	result, err := auth.tx.ExecContext(ctx, s.q(`UPDATE suma_task_handoffs SET version=?,state=?,payload=? WHERE tenant_id=? AND project_id=? AND id=? AND version=? AND state='pending'`), out.Version, out.State, stringify(taskHandoffStored{TaskHandoff: out, NotificationID: stored.NotificationID}), auth.target.tenantID, project, out.ID, req.ExpectedVersion)
 	if err != nil {
 		return out, err
 	}

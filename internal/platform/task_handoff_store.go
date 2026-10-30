@@ -3,7 +3,6 @@ package platform
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"strings"
 	"unicode/utf8"
@@ -55,23 +54,26 @@ func handoffText(value string) bool {
 }
 
 func (s *Service) taskHandoffTx(ctx context.Context, auth *authorizedCommand, project, id string) (TaskHandoff, error) {
-	var out TaskHandoff
+	out, err := s.taskHandoffStoredTx(ctx, auth, project, id)
+	return out.TaskHandoff, err
+}
+
+func (s *Service) taskHandoffStoredTx(ctx context.Context, auth *authorizedCommand, project, id string) (taskHandoffStored, error) {
+	var out taskHandoffStored
 	if err := assertProjectRead(auth, project); err != nil {
 		return out, err
 	}
-	var raw, state string
+	var raw, state, taskID string
 	var version int
-	err := auth.tx.QueryRowContext(ctx, s.q(`SELECT version,state,payload FROM suma_task_handoffs WHERE tenant_id=? AND project_id=? AND id=?`), auth.target.tenantID, project, id).Scan(&version, &state, &raw)
+	err := auth.tx.QueryRowContext(ctx, s.q(`SELECT task_id,version,state,payload FROM suma_task_handoffs WHERE tenant_id=? AND project_id=? AND id=?`), auth.target.tenantID, project, id).Scan(&taskID, &version, &state, &raw)
 	if errors.Is(err, sql.ErrNoRows) {
 		return out, missing()
 	}
 	if err != nil {
 		return out, err
 	}
-	if err = json.Unmarshal([]byte(raw), &out); err != nil {
-		return out, err
-	}
-	if out.ID != id || out.ProjectID != project || out.Version != version || out.State != state {
+	var valid bool
+	if out, valid = decodeTaskHandoffPayload(raw, id, project, taskID, state, version); !valid {
 		return out, conflict(handoffVersion)
 	}
 	return out, nil

@@ -1,5 +1,10 @@
 # 速码 1.0.0 文档索引
 
+- [交接请求收件与准确定位](product/task-handoff-inbox.md) · [合同](../contracts/task-handoff-inbox.md) · [架构](architecture/task-handoff-inbox.md) · [交互与AI SOP](design/task-handoff-inbox.md) · [English](en/task-handoff-inbox.md) · [验证](quality/task-handoff-inbox-verification.md) · [摘要](quality/task-handoff-inbox-summary.json)：原事务通知、准确历史与独立责任决定；16项实际本机GUI／HTTP通过，视觉图片待验。
+
+- [Multica后续复用调查](integrations/multica-priority-map.md)
+  仅记录准确来源、许可边界和候选优先级，不代表拟议功能已经实现。
+
 - [讨论固定资料](product/task-conversation-knowledge.md) · [合同](../contracts/task-conversation-knowledge.md) · [架构](architecture/task-conversation-knowledge.md) · [交互与AI SOP](design/task-conversation-knowledge.md) · [English](en/task-conversation-knowledge.md) · [当前证据](quality/task-conversation-knowledge-verification.md) · [摘要](quality/task-conversation-knowledge-summary.json)：准确发布引用→历史→真实回复→原开发预览／Start；实际GUI仅5项通过、4组待验，本机协议证据不代表商业模型或完整平台验收。
 
 - [验收责任请求](product/task-review-requests.md) · [合同](../contracts/task-review-requests.md) · [架构](architecture/task-review-requests.md) · [交互与AI SOP](design/task-review-requests.md) · [English](en/task-review-requests.md) · [当前证据](quality/task-review-requests-verification.md)：明确人员、准确交付、原Review与问题回流；实现与36项实际GUI见[整合验证](quality/collaboration-integration-verification.md)。

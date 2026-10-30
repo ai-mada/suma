@@ -27,11 +27,12 @@ export function notificationInboxCommandPath(notificationID:string){return '/not
 /** Source facts are hydrated by this authorized read only. An unavailable
  * source has no cached task title or actionable task locator in the UI. */
 export function validNotificationInboxItem(value:unknown):value is NotificationInboxItem{
- if(!object(value)||!id(value.id)||!version(value.version)||!validNotificationInboxSequence(value.sequence)||!['task_assigned','task_mentioned','task_review_requested'].includes(String(value.kind))||!id(value.task_id)||!version(value.source_task_version)||!id(value.source_resource_id)||!instant(value.created_at)||typeof value.read!=='boolean'||typeof value.archived!=='boolean'||!stateTime(value.read,value.read_at)||!stateTime(value.archived,value.archived_at)||typeof value.source_available!=='boolean'||typeof value.assignment_current!=='boolean')return false;
- if(value.kind!=='task_mentioned'&&value.message_id!==undefined||value.kind!=='task_review_requested'&&value.review_request_id!==undefined||value.kind!=='task_assigned'&&value.assignment_current)return false;
- if(!value.source_available)return value.current_task===undefined&&value.message_id===undefined&&value.review_request_id===undefined&&!value.assignment_current;
+ if(!object(value)||!id(value.id)||!version(value.version)||!validNotificationInboxSequence(value.sequence)||!['task_assigned','task_mentioned','task_review_requested','task_handoff_requested'].includes(String(value.kind))||!id(value.task_id)||!version(value.source_task_version)||!id(value.source_resource_id)||!instant(value.created_at)||typeof value.read!=='boolean'||typeof value.archived!=='boolean'||!stateTime(value.read,value.read_at)||!stateTime(value.archived,value.archived_at)||typeof value.source_available!=='boolean'||typeof value.assignment_current!=='boolean')return false;
+ if(value.kind!=='task_mentioned'&&value.message_id!==undefined||value.kind!=='task_review_requested'&&value.review_request_id!==undefined||value.kind!=='task_handoff_requested'&&value.handoff_id!==undefined||value.kind!=='task_assigned'&&value.assignment_current)return false;
+ if(!value.source_available)return value.current_task===undefined&&value.message_id===undefined&&value.review_request_id===undefined&&value.handoff_id===undefined&&!value.assignment_current;
  if(value.kind==='task_mentioned'&&!id(value.message_id))return false;
  if(value.kind==='task_review_requested'&&!id(value.review_request_id))return false;
+ if(value.kind==='task_handoff_requested'&&!id(value.handoff_id))return false;
  const task=value.current_task;
  return object(task)&&task.id===value.task_id&&version(task.version)&&typeof task.title==='string'&&typeof task.status==='string';
 }

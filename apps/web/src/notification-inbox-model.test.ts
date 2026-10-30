@@ -7,6 +7,15 @@ const page=(patch:Record<string,unknown>={})=>({project_id:'project-a',user_id:'
 const request=(patch:Record<string,unknown>={})=>({path:notificationInboxCommandPath('notice-a'),method:'POST',idempotency_key:'original-operation-a',body:{project_id:'project-a',expected_version:1,action:'read',idempotency_key:'original-operation-a'},...patch});
 const receipt=(patch:Record<string,unknown>={})=>({idempotency_key:'original-operation-a',notification_id:'notice-a',version:2,action:'read',read:true,archived:false,read_at:'2026-10-29T04:00:00Z',archived_at:'',updated_at:'2026-10-29T04:00:00Z',...patch});
 
+it('opens only an intact handoff source and rejects cross-kind or unavailable handoff locators',()=>{
+ const handoff={kind:'task_handoff_requested',assignment_current:false,handoff_id:'handoff-original'};
+ expect(validNotificationInboxItem(row(handoff))).toBe(true);
+ for(const patch of [{handoff_id:undefined},{handoff_id:'../foreign'},{handoff_id:''},{assignment_current:true},{message_id:'message-a'},{review_request_id:'request-a'}])expect(validNotificationInboxItem(row({...handoff,...patch}))).toBe(false);
+ for(const kind of ['task_assigned','task_mentioned','task_review_requested'])expect(validNotificationInboxItem(row({kind,handoff_id:'handoff-original',message_id:kind==='task_mentioned'?'message-a':undefined,review_request_id:kind==='task_review_requested'?'request-a':undefined,assignment_current:kind==='task_assigned'}))).toBe(false);
+ expect(validNotificationInboxItem(row({...handoff,source_available:false,current_task:undefined,handoff_id:undefined}))).toBe(true);
+ expect(validNotificationInboxItem(row({...handoff,source_available:false,current_task:undefined}))).toBe(false);
+});
+
 it('opens only an intact review-request source and rejects cross-kind source aliases',()=>{
  expect(validNotificationInboxItem(row({kind:'task_review_requested',assignment_current:false,review_request_id:'request-a'}))).toBe(true);
  expect(validNotificationInboxItem(row({kind:'task_review_requested',assignment_current:false}))).toBe(false);

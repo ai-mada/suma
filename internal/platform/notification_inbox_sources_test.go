@@ -14,8 +14,9 @@ func TestNotificationInboxAcceptedHandoffAndDecompositionSources(t *testing.T) {
 		t.Fatal("receiver has no assignment yet")
 	}
 	proposal := h.send(t)
-	if inboxPage(t, f, h.receiver, "inbox", 20, "").Total != 0 || inboxPage(t, f, f.actor, "inbox", 20, "").Total != ownerBefore {
-		t.Fatal("handoff proposal generated an assignment event")
+	proposed := inboxPage(t, f, h.receiver, "inbox", 20, "")
+	if proposed.Total != 1 || len(proposed.Items) != 1 || proposed.Items[0].Kind != "task_handoff_requested" || proposed.Items[0].HandoffID != proposal.ID || proposed.Items[0].AssignmentCurrent || inboxPage(t, f, f.actor, "inbox", 20, "").Total != ownerBefore {
+		t.Fatal("handoff proposal did not preserve request and assignment distinctions")
 	}
 	command := handoffCommand(h, "accept", proposal.Version)
 	accepted, err := f.s.CommandTaskHandoff(ctx, h.receiver, f.project, proposal.ID, command)
@@ -24,15 +25,15 @@ func TestNotificationInboxAcceptedHandoffAndDecompositionSources(t *testing.T) {
 	}
 	current := h.current(t)
 	page := inboxPage(t, f, h.receiver, "inbox", 20, "")
-	if accepted.State != "accepted" || page.Total != 1 || len(page.Items) != 1 || current.OwnerID != h.resource.ID || current.Version != accepted.ResultTaskVersion {
+	if accepted.State != "accepted" || page.Total != 2 || len(page.Items) != 2 || current.OwnerID != h.resource.ID || current.Version != accepted.ResultTaskVersion {
 		t.Fatalf("handoff did not commit its real assignment: %+v task=%+v inbox=%+v", accepted, current, page)
 	}
 	item := page.Items[0]
-	if item.TaskID != current.ID || item.SourceResourceID != h.resource.ID || item.SourceTaskVersion != current.Version || !item.AssignmentCurrent || item.CurrentTask == nil || item.CurrentTask.Version != current.Version || item.CurrentTask.Title != current.Title {
+	if item.Kind != "task_assigned" || item.TaskID != current.ID || item.SourceResourceID != h.resource.ID || item.SourceTaskVersion != current.Version || !item.AssignmentCurrent || item.CurrentTask == nil || item.CurrentTask.Version != current.Version || item.CurrentTask.Title != current.Title {
 		t.Fatalf("handoff notification differs from exact committed task: %+v task=%+v", item, current)
 	}
 	again, err := f.s.CommandTaskHandoff(ctx, h.receiver, f.project, proposal.ID, command)
-	if err != nil || again.ID != accepted.ID || inboxPage(t, f, h.receiver, "inbox", 20, "").Total != 1 || h.current(t).Version != current.Version {
+	if err != nil || again.ID != accepted.ID || inboxPage(t, f, h.receiver, "inbox", 20, "").Total != 2 || h.current(t).Version != current.Version {
 		t.Fatalf("accepted handoff replay duplicated source: %+v %v", again, err)
 	}
 	if old := inboxPage(t, f, f.actor, "inbox", 20, ""); old.Total != ownerBefore || old.Items[0].AssignmentCurrent {
@@ -51,11 +52,11 @@ func TestNotificationInboxAcceptedHandoffAndDecompositionSources(t *testing.T) {
 		t.Fatal(err)
 	}
 	page = inboxPage(t, f, h.receiver, "inbox", 20, "")
-	if page.Total != 2 || page.Items[0].TaskID != actual.ID || page.Items[0].SourceTaskVersion != actual.Version || page.Items[0].SourceResourceID != actual.OwnerID || actual.OwnerID != h.resource.ID {
+	if page.Total != 3 || page.Items[0].TaskID != actual.ID || page.Items[0].SourceTaskVersion != actual.Version || page.Items[0].SourceResourceID != actual.OwnerID || actual.OwnerID != h.resource.ID {
 		t.Fatalf("decomposition did not project exact source: %+v task=%+v", page, actual)
 	}
 	replayed, err := f.s.Decompose(ctx, f.actor, f.project, h.requirement.ID, body)
-	if err != nil || len(replayed) != 1 || replayed[0].ID != actual.ID || inboxPage(t, f, h.receiver, "inbox", 20, "").Total != 2 {
+	if err != nil || len(replayed) != 1 || replayed[0].ID != actual.ID || inboxPage(t, f, h.receiver, "inbox", 20, "").Total != 3 {
 		t.Fatalf("decomposition replay duplicated notification: %+v %v", replayed, err)
 	}
 }
