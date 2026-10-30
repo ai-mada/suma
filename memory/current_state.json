@@ -17,6 +17,26 @@
     "visual_images": "Two hidden-window screenshot timeouts; visual image acceptance pending.",
     "limits": "Responsibility acceptance is not formal Review. No external account, model/tool execution, physical multihost, other database or production acceptance. Full58/34/92 unchanged."
   },
+  "workbuddy_connections": {
+    "stage": "T-WORKBUDDY-CONNECTIONS-147",
+    "date": "2026-10-30",
+    "status": "scoped_verified_visual_image_pending",
+    "contract": "contracts/workbuddy-connections.md",
+    "product": "docs/product/workbuddy-connections.md",
+    "architecture": "docs/architecture/workbuddy-connections.md",
+    "design": "docs/design/workbuddy-connections.md",
+    "report": "docs/quality/workbuddy-connections-verification.md",
+    "summary": "docs/quality/workbuddy-connections-summary.json",
+    "native_report": "docs/quality/workbuddy-desktop-oauth-verification.md",
+    "scope": "Mature x/oauth2, current project/human owner/original browser nonce, encrypted grants and token generations; unknown effects do not obtain another provider POST. Folded Web manager and exact connection reads.",
+    "desktop": "Four-ID narrow IPC; same-Session isolated child with no preload/Node. Callback return focuses parent; only when there is no draft, unconfirmed write or opening in progress may the page GET the exact original connection. No reload or inferred connected state.",
+    "verification": "Existing scoped protocol/platform/bridge/Web checks and final candidate generation/types/i18n/build retained without duplicate counts;18 actual GUI/HTTP assertions passed with exact Go/Web and production preload/controller, one authorization POST and no inferred connected state.",
+    "limits": "No real supplier account, cloud dispatch/ACP, physical multihost or production acceptance; full58/34/92 unchanged.",
+    "verified_runtime_source_sha256": "8d2354f06604f0f47219d9cfb9849d0825b74c8aeab3a51c78cfe8d40705170f",
+    "browser_receipt": ".cache/e2e/workbuddy-147-integration/candidate/browser/receipt.json",
+    "native_success_scope": "Earlier local native fixture observed its own successful callback. Final candidate used synthetic client configuration and blocked external provider traffic; it did not obtain a real vendor grant.",
+    "visual_images": "Hidden-window visual images not accepted; English/390px DOM evidence is not image acceptance."
+  },
   "workbuddy_cloud_submission": {
     "stage": "T-WORKBUDDY-143",
     "date": "2026-10-30",

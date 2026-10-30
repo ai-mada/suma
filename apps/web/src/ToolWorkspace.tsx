@@ -42,6 +42,7 @@ import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
 import {AdapterConnections,type AdapterDescriptor} from './AdapterConnections';
 import {DeveloperClientConnections} from './DeveloperClientConnections';
+import {WorkBuddyConnections} from './WorkBuddyConnections';
 import type {DeveloperClientID} from './developer-client-connections-model';
 import type { ProjectPoolRunnerPage } from "../../../packages/contracts/src";
 import {
@@ -213,6 +214,7 @@ export function ToolWorkspace({
           {t("development.tools.return_to_task_dispatch")}</a>
       </div>
       <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={pending || action.busy} onWorker={() => { action.clearError(); setDialog({kind:'worker'}); }} onRegister={openRegister} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
+      <WorkBuddyConnections project={project} panel={panel}/>
       <details className="panel adapter-catalog-disclosure" key={contextKey}>
         <summary>
           <ChevronRight aria-hidden="true" size={20}/>

@@ -6387,6 +6387,69 @@ export interface VersionedOperation {
   expected_version: number;
   idempotency_key: string;
 }
+export interface WorkBuddyAuthorization {
+  id: string;
+  version: number;
+  connection: WorkBuddyConnection;
+  authorization_url?: string;
+  expires_at: string;
+  state: string;
+}
+export interface WorkBuddyAuthorizationRequest {
+  project_id: string;
+  connection_id?: string;
+  expected_version?: number;
+  scopes: (string)[];
+  idempotency_key: string;
+}
+export interface WorkBuddyCallbackRequest {
+  state: string;
+  code?: string;
+  error?: string;
+}
+export interface WorkBuddyCallbackResult {
+  project_id: string;
+  connection_id: string;
+  state: string;
+  redirect_url: string;
+}
+export interface WorkBuddyConnection {
+  id: string;
+  project_id: string;
+  version: number;
+  owner_id: string;
+  client_id: string;
+  open_id: string;
+  scopes: (string)[];
+  state: string;
+  grant_generation: number;
+  token_generation: number;
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
+  last_error: string;
+  allowed_actions: (string)[];
+}
+export interface WorkBuddyConnectionPage {
+  project_id: string;
+  configured: boolean;
+  available_scopes: (string)[];
+  can_authorize: boolean;
+  items: (WorkBuddyConnection)[];
+  limit: number;
+  next_cursor: string;
+}
+export interface WorkBuddyDisconnectRequest {
+  project_id: string;
+  expected_version: number;
+  reason: string;
+  idempotency_key: string;
+}
+export interface WorkBuddyRefreshRequest {
+  project_id: string;
+  expected_version: number;
+  idempotency_key: string;
+}
 export interface Workflow {
   id: string;
   name: string;

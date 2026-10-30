@@ -34,6 +34,9 @@ type Server struct {
 	// destinations from client Host or forwarding headers.
 	PublicURL       string
 	PublicURLSource string
+	// WorkBuddy stores explicit browser-owned provider grants only. A saved
+	// connection does not register a task executor or bypass Runner admission.
+	WorkBuddy *WorkBuddyConnections
 	// Maintenance freezes business commands while operators verify an upgrade.
 	// Authentication remains available; the control process also pauses projectors.
 	Maintenance bool
@@ -183,6 +186,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	path := strings.Trim(strings.TrimPrefix(r.URL.Path, "/api/v1/"), "/")
 	parts := strings.Split(path, "/")
+	if workBuddyOAuthCallbackLanding(w, r) {
+		return
+	}
 	if s.automationIngressPublicHTTP(w, r, path, parts) {
 		return
 	}
@@ -295,6 +301,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	s.applyLocalePreferences(w, r, actor)
+	if s.workBuddyConnectionsHTTP(w, r, actor, scope, boundProject, parts, s.WorkBuddy) {
+		return
+	}
 	if s.handleWorklogs(w, r, actor, scope, boundProject, parts) {
 		return
 	}

@@ -94,6 +94,11 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 		logger.Error(app.Text("业务数据库结构迁移失败", "migrate business schema"), "event", "control.business_schema_migrate", "error", err)
 		return 1
 	}
+	workBuddy, err := configureWorkBuddyConnections(service, publicURL, app.Getenv)
+	if err != nil {
+		logger.Error(app.Text("WorkBuddy连接配置失败", "WorkBuddy connection configuration failed"), "event", "control.workbuddy_configuration", "error", err)
+		return 1
+	}
 	engine, err := dag.New(db, store.Dialect(driver))
 	if err != nil {
 		logger.Error(app.Text("执行数据库结构迁移失败", "migrate execution schema"), "event", "control.execution_schema_migrate", "error", err)
@@ -102,6 +107,7 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	engine.AttemptAccounting = service
 	engine.AttemptReconciliation = service
 	server := &platform.Server{BuildVersion: version, Service: service, Engine: engine, WebDir: app.Env("SUMA_WEB_DIR", "apps/web/dist"), AllowedOrigins: strings.FieldsFunc(app.Env("SUMA_ALLOWED_ORIGINS", "http://127.0.0.1:5173,http://localhost:5173"), func(r rune) bool { return r == ',' }), SetupToken: app.Getenv("SUMA_SETUP_TOKEN"), PublicURL: publicURL, PublicURLSource: publicURLSource, Maintenance: *maintenance}
+	server.WorkBuddy = workBuddy
 	httpServer := &http.Server{Addr: *addr, Handler: server.Handler(), ReadHeaderTimeout: 10 * time.Second, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

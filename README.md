@@ -6,6 +6,8 @@
 
 最近交付：[交接请求收件与准确定位](docs/product/task-handoff-inbox.md)沿原事务通知接收人，从收件箱直达准确交接，责任接收仍独立于正式Review。16项实际本机GUI／HTTP断言通过，视觉图片仍待验；见[报告](docs/quality/task-handoff-inbox-verification.md)及[摘要](docs/quality/task-handoff-inbox-summary.json)，完整58／34／92不变。
 
+当前[WorkBuddy账号授权](docs/product/workbuddy-connections.md)沿成熟OAuth SDK管理当前项目本人的连接；浏览器与桌面同会话授权分别核验，桌面返回仅在无草稿／未确认写入时GET原连接，不reload或自动标为已连接。工具页默认收起；[连接证据](docs/quality/workbuddy-connections-verification.md)与[原生窗口证据](docs/quality/workbuddy-desktop-oauth-verification.md)分开记录，最终候选18项实际本机GUI／HTTP通过；视觉图片、真实供应方账号和云派发仍待验。
+
 ## 当前能力
 
 - 组织、项目、团队、需求、版本化设计、任务与质量门禁共用当前身份、权限和操作回执。

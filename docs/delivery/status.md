@@ -2,6 +2,8 @@
 
 最近交付T-HANDOFF-INBOX-148：[交接请求](../product/task-handoff-inbox.md)在原事务通知原接收人，私有反向绑定后从个人收件箱准确定位；接收责任与正式Review分开。限定检查及16项实际本机GUI／HTTP通过，一次明确退回由exact GET核对v2／returned，通知仍未读；两次截图timeout，视觉图片待验。见[合同](../../contracts/task-handoff-inbox.md)、[报告](../quality/task-handoff-inbox-verification.md)及[摘要](../quality/task-handoff-inbox-summary.json)。完整58 limited／34 pending／92总项不变。
 
+当前T-WORKBUDDY-CONNECTIONS-147：[账号授权](../product/workbuddy-connections.md)复用成熟x/oauth2、当前项目本人／原浏览器nonce核验、在库加密及grant／token代次，未知兑换／刷新不重复供应方POST。Web默认收起；桌面四ID窄IPC打开同Session、无preload／Node的隔离子窗，返回聚焦且仅在无草稿／未确认写入时GET原连接，不reload或自动认定已连接。既有检查、原生协议样例及最终候选18项实际本机GUI／HTTP见[连接报告](../quality/workbuddy-connections-verification.md)、[摘要](../quality/workbuddy-connections-summary.json)和[窗口证据](../quality/workbuddy-desktop-oauth-verification.md)。最终候选以合成应用配置阻断供应方外网，失败不冒充已连接且只读恢复不重复POST；视觉图片、真实供应方授权、云派发／ACP、多机及生产待验，完整58／34／92不变。
+
 T-CONTEXT-145已限定实现[讨论固定资料](../product/task-conversation-knowledge.md)：明确选择最多16个已发布知识的准确ID／修订／SHA，按需读取准确历史，历史可读不授予新消费资格；助手仅从真实completed backing Reply继承依赖，批准正文在模型Source中固定一次，并沿原开发预览与Start重验当前授权／资格。选择器默认收起，失效pin不静默升级，提供中英交互；见[合同](../../contracts/task-conversation-knowledge.md)、[架构](../architecture/task-conversation-knowledge.md)及[交互与AI SOP](../design/task-conversation-knowledge.md)。
 
 [阶段证据](../quality/task-conversation-knowledge-verification.md)及[摘要](../quality/task-conversation-knowledge-summary.json)记录125个Go顶层、148个子场景通过，另1项跳过；Web36项、类型／7312对语言键／生成合同／隔离构建及真实OS Node子进程两轮本机HTTP模型协议链路通过。实际GUI仅5项通过，后续4组因工具热更新后技能缺失仍待验；不代表完整GUI、商业模型或平台验收。完整P0–P7、需求1–26及58 limited／34 pending／92总项不变。

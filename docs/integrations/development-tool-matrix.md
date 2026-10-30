@@ -72,6 +72,21 @@ MCP、ACP、A2A 各自版本与产品 1.0.0 独立，不增加产品历史兼容
 - WorkBuddy 文档中的 link 与 sandbox URL 示例形式有差异，实现须验证允许的 origin 与响应形态，不能任意拼接地址。
 - DSH 当前限定 profile 的握手成功不证明所有 DeepSeek Harness 插件或新版本兼容。
 
+### 2.3 WorkBuddy云任务的未来实施注意（2026-10-30只读复核）
+
+本段不改变WorkBuddy云入口的planned状态，也不是厂商任务验收。官方Open API已提供OAuth授权码／令牌刷新，以及Bearer鉴权的`POST /openapi/v2/tasks`（JSON prompt及可选name）、任务分页列表和单任务查询；查询可取得新的ACP凭据。ACP使用SSE接收、JSON-RPC发送，连接标识关联双通道；产物提供私有通知和REST读取。任务创建未明确幂等键，取消结果未明确对应取消接口；兑换码的request_id不能套用于任务。产物说明与任务响应的link示例形式不同，不能直接推定一个通用下载根路径。来源：[官方Open API](https://open.workbuddy.cn/docs/openapi)。
+
+本次未找到该`/openapi/v2/tasks`的官方SDK；腾讯官方确有另一企业端点的[workbuddyenterprise Python SDK](https://github.com/TencentCloud/tencentcloud-sdk-python/blob/master/tencentcloud/workbuddyenterprise/v20260709/workbuddyenterprise_client.py)，不能用名称相近推定可直接复用此任务接口。不得用社区账号代理、企业管理API或CodeBuddy CLI代替用户授权的云任务协议。
+
+实现建议基于当前速码合同，需在开发阶段验证：
+
+- 先实现独立强类型HTTP模块和本机协议测试。沿原DAG／Worker／PoolWorker／Journal固定准确attempt、来源、凭据版本与请求摘要，不增加外部调度器。
+- 当前`internal/runner/external.go`固定`/runs`、dispatch_id及`/cancel`，不直接套用为WorkBuddy。复用事件、回执和未知效果处理机制，需要独立协议分支与持久检查点。
+- 发出创建请求前持久化提交意图；响应丢失保留待核对。已知task ID查询原任务；标题、时间或列表相似性不能证明原操作身份，不能自动重建。
+- ACP重连仅恢复读取，不默认重发prompt；首次创建与初始prompt的执行关系需真实验明。权限请求仍经过速码当前策略，超时不能默认批准。
+- 固定可信HTTPS来源及重定向策略，凭据不随任意产物URL转发；产物需字节限制、摘要及隔离导入。外部产物不能直接成为Git候选、独立测试或正式验收事实。
+- 云模型用量、费用、硬预算、取消与远端停止分别验证。本地连接结束不等于云执行停止；源码实现、协议夹具、用户授权及真实任务证据分别记录。
+
 ## 3. 四层 AdapterManifest 设计
 
 本节是拟新增公共合同；具体字段由实现阶段统一生成到 Go、TypeScript 与 OpenAPI。

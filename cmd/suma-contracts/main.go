@@ -140,6 +140,9 @@ func generate() (map[string]any, string) {
 	for _, v := range taskReviewRequestModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range workBuddyConnectionModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range schedulingModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -412,6 +415,7 @@ func generate() (map[string]any, string) {
 	taskConversationReplyContracts(add, api)
 	taskConversationMentionContracts(add, api)
 	taskReviewRequestContracts(add, api)
+	workBuddyConnectionContracts(add, api)
 	interactiveDevelopmentContracts(add, api)
 	dispatchRecommendationContracts(add, api)
 	usageAccountingContracts(add, api)

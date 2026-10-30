@@ -5,6 +5,8 @@
 - [Multica后续复用调查](integrations/multica-priority-map.md)
   仅记录准确来源、许可边界和候选优先级，不代表拟议功能已经实现。
 
+- [WorkBuddy账号授权](product/workbuddy-connections.md) · [合同](../contracts/workbuddy-connections.md) · [架构](architecture/workbuddy-connections.md) · [交互与AI SOP](design/workbuddy-connections.md) · [English](en/workbuddy-connections.md) · [连接证据](quality/workbuddy-connections-verification.md) · [摘要](quality/workbuddy-connections-summary.json) · [原生窗口证据](quality/workbuddy-desktop-oauth-verification.md)：当前项目／本人／原浏览器nonce绑定、同Session隔离子窗与安全恢复；原生协议样例及最终候选18项实际本机GUI／HTTP分别验证；视觉图片、真实供应方及云派发仍待验。
+
 - [讨论固定资料](product/task-conversation-knowledge.md) · [合同](../contracts/task-conversation-knowledge.md) · [架构](architecture/task-conversation-knowledge.md) · [交互与AI SOP](design/task-conversation-knowledge.md) · [English](en/task-conversation-knowledge.md) · [当前证据](quality/task-conversation-knowledge-verification.md) · [摘要](quality/task-conversation-knowledge-summary.json)：准确发布引用→历史→真实回复→原开发预览／Start；实际GUI仅5项通过、4组待验，本机协议证据不代表商业模型或完整平台验收。
 
 - [验收责任请求](product/task-review-requests.md) · [合同](../contracts/task-review-requests.md) · [架构](architecture/task-review-requests.md) · [交互与AI SOP](design/task-review-requests.md) · [English](en/task-review-requests.md) · [当前证据](quality/task-review-requests-verification.md)：明确人员、准确交付、原Review与问题回流；实现与36项实际GUI见[整合验证](quality/collaboration-integration-verification.md)。

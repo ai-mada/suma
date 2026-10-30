@@ -1,0 +1,63 @@
+{
+  "stage": "T-WORKBUDDY-CONNECTIONS-147",
+  "date": "2026-10-30",
+  "status": "scoped_native_module_and_matched_entry_verified_visual_and_vendor_pending",
+  "source": "apps/desktop/src/oauth-window.cjs",
+  "source_sha256": "3f5819eaa6e13cbf23a2179f5c437cfa81fa52089a0f2fb65579b47cfc0b0904",
+  "unit": {
+    "unique": 15,
+    "initial": 12,
+    "new_session_checks": 2,
+    "new_description_check": 1,
+    "affected_rechecks": 4,
+    "syntax_exit_code": 0,
+    "result": "passed"
+  },
+  "shared_bridge": {
+    "new_unique": 3,
+    "existing_rechecks": 2,
+    "result": "passed",
+    "receipt": ".cache/workbuddy-147-desktop/bridge-summary.json"
+  },
+  "web_native": {
+    "new_unique": 7,
+    "result": "passed",
+    "log": ".cache/workbuddy-147-desktop/web-native-green.log"
+  },
+  "native": {
+    "runtime": "Electron 35.7.5",
+    "observed_source_sha256": "32186cdd17f75817a70547285b7c738ca02de0e893a559e9e7d8086188267213",
+    "later_delta": "Optional access_denied error_description parsing only verified by focused unit red/green; native journeys without description retain original observation scope",
+    "scope": "Actual BrowserWindow and same Session with local synthetic protocol, not vendor authorization",
+    "result": "representative_observations_passed",
+    "receipt": ".cache/workbuddy-147-desktop/native/receipt.json",
+    "receipt_sha256": "fa4a7fb55e0df7a099b544e5fde3dbcb55a7d45c5a6f369fdaadf6e1b056bb26",
+    "created_windows": 5,
+    "closed_windows": 5,
+    "observations": [
+      "current identity and authorization reads retain original view and session",
+      "child has no Node or parent preload bridge",
+      "exact callback clears query and preserves parent draft",
+      "extra popup refused",
+      "cross-origin escape closes child before protocol handler",
+      "parent close removes active child and exits fixture"
+    ],
+    "first_attempt": "terminal failure after window creation; original error not retained",
+    "second_attempt": "parent page ERR_FAILED, GPU child 0xc0000135; owned process explicitly terminated and terminal handle confirmed",
+    "successful_attempt": "reviewed local execution; fixture-only hardware acceleration disabled; production flags unchanged",
+    "gui_cleanup": "all fixture windows closed; shutdown observed"
+  },
+  "limits": [
+    "No real vendor registration, account, grant or official exchange.",
+    "No final visual images, complete device/theme/key matrix, installation or production default GPU acceptance.",
+    "No cloud dispatch, ACP or complete platform acceptance;58/34/92 unchanged."
+  ],
+  "matched_entry": {
+    "source_sha256": "8d2354f06604f0f47219d9cfb9849d0825b74c8aeab3a51c78cfe8d40705170f",
+    "candidate_bridge_recheck": 5,
+    "unique_new_added_by_recheck": 0,
+    "actual_gui_http": 18,
+    "receipt": ".cache/e2e/workbuddy-147-integration/candidate/browser/receipt.json",
+    "scope": "Production preload/controller on exact candidate; outside vendor navigation blocked by owned fixture. Does not replace prior separate successful local callback observations or prove real vendor exchange."
+  }
+}

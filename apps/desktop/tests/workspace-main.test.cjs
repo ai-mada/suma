@@ -15,7 +15,7 @@ async function mainHarness(t,environment={}){
  const handlers=new Map(),events=new Map(),dialogs=[],spawns=[];let ownedWindow;
  const app={isPackaged:false,getLocale:()=> 'en-US',getPath:()=>userData,setPath:()=>{},requestSingleInstanceLock:()=>true,on:(name,fn)=>events.set(name,fn),quit:()=>{},whenReady:()=>Promise.resolve()};
  class Window extends EventEmitter{
-  constructor(options){super();this.options=options;ownedWindow=this;const mainFrame={url:'about:blank'};this.webContents={mainFrame,isDestroyed:()=>false,getURL:()=>mainFrame.url,setWindowOpenHandler:()=>{},on:()=>{},session:{setPermissionRequestHandler:()=>{},setPermissionCheckHandler:()=>{}}}}
+  constructor(options){super();this.options=options;ownedWindow=this;const mainFrame={url:'about:blank'};this.webContents=Object.assign(new EventEmitter(),{mainFrame,isDestroyed:()=>false,getURL:()=>mainFrame.url,setWindowOpenHandler:()=>{},session:{setPermissionRequestHandler:()=>{},setPermissionCheckHandler:()=>{}}})}
   isDestroyed(){return false} async loadURL(url){this.webContents.mainFrame.url=url} show(){} close(){this.emit('closed')}
  }
  const child=new EventEmitter();Object.assign(child,{pid:123,exitCode:null,signalCode:null,kill(){this.signalCode='SIGTERM';queueMicrotask(()=>this.emit('exit',null,'SIGTERM'));return true}});
@@ -34,10 +34,10 @@ async function mainHarness(t,environment={}){
  return {handlers,events,spawns,window:ownedWindow};
 }
 
-test('main exposes only the directory picker on its exact owned frame and pins local database',async t=>{
+test('main exposes fixed picker and OAuth channels while guarding the owned picker frame and local database',async t=>{
  const h=await mainHarness(t,{SUMA_DB_DRIVER:'postgres',SUMA_DB_DSN:'postgres://untrusted.example',SUMA_WORKSPACE_ROOT:'untrusted-root'});
- assert.equal(h.handlers.size,1,'one fixed native picker handler must exist');
- const handler=[...h.handlers.values()][0];assert.equal(typeof handler,'function');
+ assert.deepEqual([...h.handlers.keys()].sort(),['suma:choose-project-directory','suma:open-workbuddy-authorization']);
+ const handler=h.handlers.get('suma:choose-project-directory');assert.equal(typeof handler,'function');
  const env=h.spawns[0][2].env;
  const target=path.join(repository,'.cache/desktop',`${process.platform}-${process.arch}`);
  assert.equal(h.spawns[0][0],path.join(target,'control',process.platform==='win32'?'suma-control.exe':'suma-control'));

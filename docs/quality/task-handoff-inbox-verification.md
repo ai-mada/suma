@@ -1,6 +1,6 @@
 # 交接请求收件箱与准确定位验证
 
-T-HANDOFF-INBOX-148，初始产品1.0.0，2026-10-30。状态：scoped_verified_visual_image_pending；限定实现、检查及实际GUI／HTTP通过，视觉图片和最终Git交付待记录。负责人：任务协作／通知／前端交互与主集成。完整P0–P7、需求1–26及58 limited／34 pending／92总项保持进行。
+T-HANDOFF-INBOX-148，初始产品1.0.0，2026-10-30。状态：scoped_verified_visual_image_pending；限定实现、检查及实际GUI／HTTP通过，视觉图片待验，原实现已提交并推送dev。负责人：任务协作／通知／前端交互与主集成。完整P0–P7、需求1–26及58 limited／34 pending／92总项保持进行。
 
 ## 验证范围与来源
 
@@ -56,6 +56,10 @@ T-HANDOFF-INBOX-148，初始产品1.0.0，2026-10-30。状态：scoped_verified_
 
 隐藏窗口截图两次timeout，没有可接纳的视觉图片，因此状态保留visual_image_pending。390px的DOM几何检查不能代替截图布局、主题或视觉图片验收。此前Windows目标URL审核未获确认后已停止该次尝试；本次独立自有Electron／本机证据与该次尝试分开。
 
-本阶段没有模型、工具执行、外部供应方或正式Review，不构成商业模型、物理多机、其他数据库、安装、规模或生产验收。Git提交／推送由主集成按最终实际结果另记，完整58 limited／34 pending／92总项不变。缓存、数据库、原始日志、凭据、二进制和截图不纳入Git交付。
+本阶段没有模型、工具执行、外部供应方或正式Review，不构成商业模型、物理多机、其他数据库、安装、规模或生产验收。实现提交已正常推送dev，远端结果由主集成核对，完整58 limited／34 pending／92总项不变。缓存、数据库、原始日志、凭据、二进制和截图不纳入Git交付。
 
 提交前统一CRLF为LF，仅规范文本换行，冻结构建源码与产物摘要仍保留原值；准确映射见本机staged-manifest。该格式调整无语义变化，不重复测试或构建，提交前另核对暂存内容与空白检查。
+
+## 实现交付记录
+
+`implementation_commit=b1bfd36b0a6d974cf6a03c780e93bfcbf72db10c`已正常推送`git@github.com:ai-mada/suma.git`的`dev`，主集成已核对远端准确提交；`pushed=true`、`remote_verified=true`。此段为提交后的交付证据补记，不改变原运行来源、16项GUI／HTTP结果或视觉图片待验边界。

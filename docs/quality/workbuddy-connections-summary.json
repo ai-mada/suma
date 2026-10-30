@@ -1,0 +1,153 @@
+{
+  "stage": "T-WORKBUDDY-CONNECTIONS-147",
+  "date": "2026-10-30",
+  "status": "scoped_verified_visual_image_and_vendor_pending",
+  "scope": "Owner-private platform OAuth connections, one-use browser callback, explicit refresh, local disconnect and tool workspace UI; not cloud dispatch",
+  "contract": "contracts/workbuddy-connections.md",
+  "architecture": "docs/architecture/workbuddy-connections.md",
+  "checks": {
+    "oauth_package": {
+      "top_level": 15,
+      "new_oauth": 7,
+      "existing_task_protocol": 8,
+      "seconds": 0.384,
+      "exit_code": 0,
+      "command": "go test ./internal/workbuddy -count=1 -v"
+    },
+    "platform_final_integration": {
+      "top_level": 24,
+      "subcases": 29,
+      "commands": 13,
+      "storage": 8,
+      "http_and_reads": 3,
+      "seconds": 16.701,
+      "exit_code": 0,
+      "command": "go test ./internal/platform -run '^TestWorkBuddyConnections' -count=1 -timeout=90s -v",
+      "log": ".cache/workbuddy-147/platform-integration.log"
+    },
+    "web_connections": {
+      "unique": 26,
+      "existing": 19,
+      "new_native": 7,
+      "affected_existing_rechecks": 3,
+      "result": "passed_with_scoped_reuse"
+    },
+    "web_affected_original": {
+      "files": 3,
+      "tests": 29,
+      "result": "passed"
+    },
+    "web_typecheck": {
+      "final_native_integration_runs": 1,
+      "exit_code": 0,
+      "log": ".cache/workbuddy-147-desktop/web-final-typecheck.log",
+      "candidate_exit_code": 0,
+      "candidate_log": ".cache/e2e/workbuddy-147-integration/candidate/candidate-types.log"
+    },
+    "locales": {
+      "paired_keys": 7402,
+      "production_hardcodes": 0,
+      "exit_code": 0,
+      "scope": "Exact isolated candidate based on committed148; no unrelated WIP or149."
+    },
+    "contracts": {
+      "models": 754,
+      "paths": 353,
+      "generator_exit_code": 0,
+      "check_exit_code": 0,
+      "scope": "Exact isolated candidate"
+    },
+    "control_configuration": {
+      "top_level": 1,
+      "subcases": 4,
+      "result": "passed"
+    },
+    "isolated_build": {
+      "result": "passed",
+      "control_exit_code": 0,
+      "web_exit_code": 0,
+      "web_reported_duration": "1m 14s",
+      "log": ".cache/e2e/workbuddy-147-integration/candidate/candidate-build.log",
+      "artifacts": {
+        "bin/suma-control.exe": "cd6182e557eadfb414a730719d8d9e0923091248b40cc7a8f1fa13eab3b420c7",
+        "web/index.html": "c5e439468231f334dbd8c5521b6f4bb2d56ea5e0d06d031d8addf73fbb85fe3e"
+      },
+      "warning": "Existing Vite large-chunk warning retained; no performance acceptance claim."
+    },
+    "desktop_oauth_module": {
+      "unique_unit_checks": 15,
+      "result": "module_and_local_native_fixture_verified_with_scoped_reuse",
+      "report": "docs/quality/workbuddy-desktop-oauth-verification.md"
+    },
+    "desktop_bridge": {
+      "new_unique": 3,
+      "existing_affected_rechecks": 2,
+      "passed": 5,
+      "seconds": 0.248055,
+      "syntax_exit_code": 0,
+      "receipt": ".cache/workbuddy-147-desktop/bridge-summary.json",
+      "candidate_recheck": {
+        "passed": 5,
+        "duration_ms": 254.0542,
+        "new_unique_added": 0,
+        "log": ".cache/e2e/workbuddy-147-integration/candidate/desktop-bridge.log"
+      }
+    },
+    "actual_browser": {
+      "result": "18_unique_local_checks_passed",
+      "receipt": ".cache/e2e/workbuddy-147-integration/candidate/browser/receipt.json",
+      "receipt_sha256": "5ee26a6f92d3bdbd4bf1561a99a16c4562ca77982af0ce4d718f3c8dafa01092",
+      "checks": [
+        "authorization panel is folded by default",
+        "folded panel performs no private connection read",
+        "current owner reads configured connection list",
+        "request requires explicit scope selection",
+        "one explicit authorization request persisted",
+        "prepared account is not reported connected",
+        "production preload dispatches exactly four scope IDs",
+        "native child shares session without Node or preload",
+        "external provider request is blocked by fixture",
+        "authorization leaves parent URL and document intact",
+        "failed external navigation cannot create a connected grant",
+        "native open never repeats authorization POST",
+        "original authorization result read without repeat POST",
+        "English original connection renders with pending identity",
+        "refresh does not recover a private authorization URL",
+        "narrow authorization stays inside viewport",
+        "read-only continuation triggers no mutation",
+        "no read-phase renderer error"
+      ],
+      "runtime": "Electron35.7.5, installed Playwright SDK, exact candidate Go/Web and production preload/controller; owned hidden localhost43962",
+      "scope": "Exact candidate with production preload/controller and current original actor; synthetic client config, outside network blocked, one POST and read-only continuation.",
+      "real_vendor_authorization": false,
+      "visual_images_accepted": 0
+    }
+  },
+  "evidence": {
+    "web_receipt": ".cache/workbuddy-147-ui/verification-summary.json",
+    "source_inventory": ".cache/workbuddy-147/source-inventory.json",
+    "source_inventory_sha256": "00e7ab089eadcc097a6d3121edf1a346ec1ddb1fd1be00647eeab4d1bf2e874a",
+    "platform_log_sha256": "42034ebf6139acc345ff4492bb5afcc07ec4dc265073198dd7b388ed9d4d3226",
+    "report": "docs/quality/workbuddy-connections-verification.md",
+    "matched_candidate": {
+      "source_sha256": "8d2354f06604f0f47219d9cfb9849d0825b74c8aeab3a51c78cfe8d40705170f",
+      "snapshot": ".cache/e2e/workbuddy-147-integration/candidate/source-snapshot.json",
+      "base": "b1bfd36b0a6d974cf6a03c780e93bfcbf72db10c",
+      "source_files": 42,
+      "normalization": "Candidate text uses LF; raw frozen worktree source receipts retained. Only newline normalization, no behavioral changes.",
+      "excluded": "Unrelated packaging/startup, knowledge WIP and149 future sources."
+    }
+  },
+  "limits": [
+    "Real localhost HTTP/platform/native interaction only; no official application or provider account acceptance.",
+    "18 actual GUI/HTTP assertions and prior separately scoped native callback observations; no accepted final hidden-window visual image, full theme/device or production packaging proof.",
+    "No cloud executor registered; ACP, dispatch authorization, budgets, artifacts/candidates and independent tests remain.",
+    "No physical multihost, other database, scale, production or full platform acceptance;58/34/92 unchanged."
+  ],
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  }
+}
