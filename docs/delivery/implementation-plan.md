@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+当前T-MULTICA-DESKTOP-153已限定交付[桌面本机连接](../product/desktop-managed-runner.md)：明确连接→OS私有加密journal→HMAC摘要登记→固定control正式Worker→本次启动后新fresh库存→151暂停配置与独立启用；[合同](../../contracts/desktop-managed-runner.md)、[架构](../architecture/desktop-managed-runner.md)、[交互与AI SOP](../design/desktop-managed-runner.md)及[17项实际验证](../quality/desktop-managed-runner-verification.md)绑定准确候选。Windows软件离屏／DPAPI及原节点正常重开、恢复、停止已验，0任务／运行／模型调用；首次小数秒解析失败修复后沿同一原操作续验。以下151本机托管待办由本片限定推进，历史范围不回写。下一步继续明确24小时续权／原节点处置、真实工具账号／模型／取消、真实OS选择器、macOS／Linux系统存储、安装包及多机验收；不自动换token，不以连接替代任务成果或全部M11–M20。完整P0–P7／58／34／92继续保留。
+
 并行T-WORKBUDDY-ACP-149完成[准确Session访问与ACP底层](../architecture/workbuddy-cloud-submission.md)，沿成熟SDK类型实现固定SSE／POST及明确历史／prompt／权限／cancel语义，[限定证据](../quality/workbuddy-acp-verification.md)绑定准确源码。原DAG的人／机器当前授权、attempt fence、持久一次云提交和进度回写留待T-WORKBUDDY-CLOUD-152共享接线与验收；不能由私有SDK存在推定正式云派发可用。本机托管Runner自动连接继续保持工具接入主优先级，完整58／34／92不变。
 
 当前T-TOOLS-151按用户工具注册／连接优先级交付[快速接入](../product/tool-quick-connect.md)：工具选择→唯一节点／配置自动匹配→暂停登记→明确启用，以及只读本机安装检测。[合同](../../contracts/tool-quick-connect.md)、[架构](../architecture/tool-quick-connect.md)、[交互与AI SOP](../design/tool-quick-connect.md)和[限定证据](../quality/tool-quick-connect-verification.md)区分安装、身份、fresh库存、启用和执行。下一步补本机受保护凭据交付、加密journal、未知发行核对及托管Runner生命周期，避免让用户复制token／拼接命令；当前不能称完整本机一键连接，完整P0–P7／58／34／92继续保留。

@@ -4,7 +4,9 @@
 
 当前统一开发基线为 **1.0.0**，完整平台仍在实现与验收中。产品范围与初始化策略见 [1.0.0 基线](docs/product/v1-baseline.md)，实际能力与限制见 [交付状态](docs/delivery/status.md)，完整 P0–P7 和扩展需求 1–26 见 [实施计划](docs/delivery/implementation-plan.md)。当前58项有限实现、34项待办，共92项；新增全平台智能输入／配置进入待办。
 
-最近交付：[工具快速接入](docs/product/tool-quick-connect.md)将工具选择、节点匹配、真实库存自动填入、暂停登记和明确启用串在同一简洁面板；桌面增加Codex／CodeBuddy／dsh只读安装检测。55项Web定向检查及15项实际GUI／HTTP／原生IPC验证通过，中英1366／390图片已检查；[报告](docs/quality/tool-quick-connect-verification.md)／[摘要](docs/quality/tool-quick-connect-summary.json)保留本机凭据托管与Runner自动启动待办，完整58／34／92不变。
+最近交付：[桌面本机工具连接](docs/product/desktop-managed-runner.md)将Codex／CodeBuddy／dsh的目录绑定、安全凭据托管、真实执行节点启动与停止恢复接到原工具快速接入面板；真实库存到达后自动填写配置，暂停登记与明确启用仍分开。Windows本机17项实际检查通过，中英1366／390界面已检查；[验证报告](docs/quality/desktop-managed-runner-verification.md)记录合成只读工具范围、24小时续权、真实供应方编码及跨平台安装等待验边界。完整58／34／92不变。
+
+此前交付：[工具快速接入](docs/product/tool-quick-connect.md)将工具选择、节点匹配、真实库存自动填入、暂停登记和明确启用串在同一简洁面板；桌面增加Codex／CodeBuddy／dsh只读安装检测。55项Web定向检查及15项实际GUI／HTTP／原生IPC验证通过，中英1366／390图片已检查；[报告](docs/quality/tool-quick-connect-verification.md)／[摘要](docs/quality/tool-quick-connect-summary.json)保留本机凭据托管与Runner自动启动待办，完整58／34／92不变。
 
 当前[WorkBuddy账号授权](docs/product/workbuddy-connections.md)沿成熟OAuth SDK管理当前项目本人的连接；浏览器与桌面同会话授权分别核验，桌面返回仅在无草稿／未确认写入时GET原连接，不reload或自动标为已连接。工具页默认收起；[连接证据](docs/quality/workbuddy-connections-verification.md)与[原生窗口证据](docs/quality/workbuddy-desktop-oauth-verification.md)分开记录，最终候选18项实际本机GUI／HTTP通过；视觉图片、真实供应方账号和云派发仍待验。
 

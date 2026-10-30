@@ -91,7 +91,9 @@ func TestToolDiscoveryStaleNeverReturnsHistoricalItems(t *testing.T) {
 		t.Fatal(err)
 	}
 	boundary, err := f.s.DiscoverTools(ctx, f.actor, f.project, profile.WorkerID)
-	if err != nil || boundary.State != "stale" || len(boundary.Items) != 0 || boundary.ExpiresAt > boundary.AsOf {
+	boundaryExpiry, expiryErr := time.Parse(time.RFC3339Nano, boundary.ExpiresAt)
+	boundaryAsOf, asOfErr := time.Parse(time.RFC3339Nano, boundary.AsOf)
+	if err != nil || boundary.State != "stale" || len(boundary.Items) != 0 || expiryErr != nil || asOfErr != nil || boundaryExpiry.After(boundaryAsOf) {
 		t.Fatal("inventory remained fresh at the sixty-second database boundary", err)
 	}
 	if _, err := f.s.ReportToolInventory(ctx, toolActorForTest(t, f, token), f.project, request); err != nil {

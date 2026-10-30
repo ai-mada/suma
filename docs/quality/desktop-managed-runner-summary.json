@@ -1,0 +1,259 @@
+{
+  "stage": "T-MULTICA-DESKTOP-153",
+  "date": "2026-10-30",
+  "product_version": "1.0.0",
+  "status": "windows_native_http_ui_scoped_verified",
+  "ledger": {
+    "scoped_implemented": 58,
+    "pending": 34,
+    "total": 92,
+    "changed": false
+  },
+  "sources": {
+    "base": "fc4cebe057ef246454e2a5be3adad7c04a6a955a",
+    "algorithm": "SHA256 compact JSON sorted changed [{path,sha256}]; unchanged source supplied by exact base archive",
+    "initial": {
+      "artifact": ".cache/e2e/managed153/candidate/final-source.json",
+      "inputs": 44,
+      "sha256": "eefb84a99ab85631fff8ead73570efd935fc4ce966449d9347c778233c192161",
+      "web_index_sha256": "aa35c5d34e60a57b8ff0b3f73af5e64144e4ff79a4acdd0767b9428d11869966",
+      "build_elapsed_ms": 65232
+    },
+    "verified_runtime": {
+      "artifact": ".cache/e2e/managed153/candidate/final-source-r2.json",
+      "inputs": 46,
+      "sha256": "388a1a7dbc48cdeb5a518ae80ab89feb2e9f8a28d00883640fd18a9de7184427",
+      "web_index_sha256": "68fc6a8a8838ab4af2ca1477d5c44a4ff82140316f223ad7dc7e07cac1d05882",
+      "build_elapsed_ms": 78848,
+      "changed_since_initial": [
+        "apps/web/src/tool-discovery-model.ts",
+        "apps/web/src/tool-discovery-model.test.ts"
+      ],
+      "go_rebuilt": false,
+      "native_runtime_changed": false
+    },
+    "control_sha256": "eb36303495faae44f0acf14d9028164029b2cb8d601453fd10300e9ad7f95ae1",
+    "post_verification_reconciliation": {
+      "runtime_changed": false,
+      "main_wiring_test": "apps/desktop/tests/workspace-main.test.cjs",
+      "main_wiring_test_passed": 1,
+      "documentation_updated": true,
+      "final_commit_source_hash_is_separate_from_historical_runtime_hash": true,
+      "native_test_line_endings": "Two CRLF locations per native test file normalize to the exact candidate LF bytes; production controller and journal raw bytes match candidate. No rerun for line endings.",
+      "final_formatting": "Removed empty final lines from two native test files; production inputs unchanged, no duplicate rerun."
+    }
+  },
+  "verification_groups": {
+    "backend": {
+      "top_pass": 18,
+      "subcase_pass": 19,
+      "evidence": ".cache/managed153-backend-evidence.json",
+      "raw_logs": [
+        ".cache/managed153-backend-test.jsonl",
+        ".cache/managed153-credential-regression.jsonl"
+      ],
+      "full_command_saved": false
+    },
+    "tool_time_precision": {
+      "top_pass_unique": 14,
+      "subcase_pass_unique": 8,
+      "evidence": ".cache/managed153-tool-time-evidence.json",
+      "initial_failed_top": 1,
+      "failure": "Old assertion compared mixed-precision RFC3339 strings lexically; parsed time comparison fixed the assertion and its targeted rerun passed.",
+      "full_command_saved": false
+    },
+    "candidate_go": {
+      "top_pass": 29,
+      "subcase_pass": 34,
+      "packages": {
+        "cmd/suma-control": 4,
+        "internal/runner": 4,
+        "internal/platform": 21
+      },
+      "command": [
+        "go",
+        "test",
+        "./cmd/suma-control",
+        "./internal/runner",
+        "./internal/platform",
+        "-run",
+        "^(TestDesktop|TestToolInventorySubsecond)",
+        "-json",
+        "-count=1",
+        "-timeout=90s"
+      ],
+      "command_record": ".cache/e2e/managed153/candidate/go/20261030T072808122Z.command.json",
+      "exit_code": 0
+    },
+    "locale": {
+      "top_pass": 3,
+      "subcase_pass": 0,
+      "overlapping_candidate_platform_tests": 1,
+      "command": [
+        "go",
+        "test",
+        "./internal/platform",
+        "./internal/localization",
+        "-run",
+        "^(TestDesktopRunnerDiagnostics|TestCatalog)",
+        "-json",
+        "-count=1",
+        "-timeout=45s"
+      ],
+      "command_record": ".cache/e2e/managed153/integration/go/20261030T071453107Z.command.json",
+      "exit_code": 0
+    },
+    "web": {
+      "stage_scope_unique": 25,
+      "original_stage_scope_unique": 23,
+      "new_fractional_parser_cases": 2,
+      "overlapping_affected_rerun_pass": 28,
+      "affected_rerun_files": {
+        "tool-discovery-model.test.ts": 2,
+        "ToolDiscoveryPanel.test.tsx": 16,
+        "ToolQuickConnect.test.tsx": 10
+      },
+      "affected_command": "npm test -- --run src/tool-discovery-model.test.ts src/ToolDiscoveryPanel.test.tsx src/ToolQuickConnect.test.tsx",
+      "logs": [
+        ".cache/managed153/ui/focused.log",
+        ".cache/managed153/ui/review-fixes.log",
+        ".cache/managed153/ui/fractional-inventory.log"
+      ],
+      "types_exit_codes": [
+        0,
+        0
+      ],
+      "i18n_key_counts": [
+        7528,
+        7528
+      ],
+      "production_hardcodes": [
+        0,
+        0
+      ],
+      "build_exit_codes": [
+        0,
+        0
+      ],
+      "command_records": [
+        ".cache/e2e/managed153/candidate/web-checks.json",
+        ".cache/e2e/managed153/candidate/web-r2-checks.json"
+      ]
+    },
+    "native_node": {
+      "new_distinct_cases": 29,
+      "baseline_existing_cases": 15,
+      "initial_batch_pass": 41,
+      "initial_new_cases": 26,
+      "later_new_cases": 3,
+      "affected_reruns": [
+        4,
+        4,
+        7
+      ],
+      "one_final_29_or_44_suite_run": false,
+      "raw_logs_persisted": false,
+      "evidence": ".cache/e2e/managed153/native-summary.json",
+      "evidence_kind": "Observed command/result/tool-output identifiers; summary only, not fabricated raw stdout."
+    },
+    "root_bridge": {
+      "prior_observed_bridge_cases": 4,
+      "main_wiring_cases": 1,
+      "pass": 5,
+      "main_wiring_log": ".cache/e2e/managed153/main-bridge.txt",
+      "prior_evidence_kind": "Root observed tool output; not part of the native29 summary.",
+      "new_product_runtime_changes": false
+    },
+    "go_counts_must_not_be_summed": true,
+    "go_overlap_notes": [
+      "Backend focused10 also appears in candidate platform tests.",
+      "One precision case overlaps credential regressions and one overlaps candidate tests.",
+      "One locale platform diagnosis case overlaps candidate tests."
+    ],
+    "repeated_runs_are_not_new_unique_cases": true
+  },
+  "actual": {
+    "unique_checks": 17,
+    "command": "node .cache/e2e/managed153/browser/continue.cjs",
+    "environment": {
+      "os": "Windows",
+      "electron": "35.7.5",
+      "node": "22.16.0",
+      "software_offscreen": true,
+      "os_store": "actual Windows DPAPI"
+    },
+    "production_narrow_ipc": [
+      "project directory signing",
+      "installed tool discovery",
+      "managed local Runner"
+    ],
+    "formal_go_worker": true,
+    "worker_count": 1,
+    "registration_operations": 1,
+    "registration_transports": 5,
+    "all_registration_transports_same_body_digest_worker_operation": true,
+    "formal_worker_processes": 5,
+    "all_formal_processes_exit0_and_close": true,
+    "paused_profile_registrations": 1,
+    "separate_explicit_enables": 1,
+    "graceful_whole_electron_restart": true,
+    "logout_stops_worker": true,
+    "tasks": 0,
+    "runs": 0,
+    "model_calls": 0,
+    "synthetic_probe_only": true,
+    "os_directory_dialog": "Fixture returns the owned Git root; production signer and Go binding are real; OS chooser UI is not accepted.",
+    "visual_images_inspected": true,
+    "receipt": "dist/quality/desktop-managed-runner-153/receipt.json",
+    "raw_receipt_original_stage": "T-LOCAL-RUNNER-153",
+    "receipt_sha256": "bf2779f09855dfbbf0e99ceb475a3921bfcee652f29ce1ec1e2d85c52a16db2b"
+  },
+  "failure_continuation": {
+    "initial_actual_phase": "first_real_connect",
+    "initial_failure": "15s wait for quick configuration name timed out after real native connection; Web seconds-only timestamp parser rejected fractional fresh inventory.",
+    "raw_failure_kept_locally": true,
+    "diagnostic_close_observation_failure_kept_locally": true,
+    "parser_regressions_observed_red_then_green": 2,
+    "parser_fix": "Strict UTC fractions 0..9, Gregorian millisecond roundtrip, BigInt epoch nanoseconds, exact60s TTL, conservative floor remainingMs and unchanged timestamp strings.",
+    "same_original_journal_worker_token_and_operation": true,
+    "new_worker_issued_to_hide_failure": false
+  },
+  "delivery": {
+    "directory": "dist/quality/desktop-managed-runner-153",
+    "manifest": "dist/quality/desktop-managed-runner-153/delivery-manifest.json",
+    "images": [
+      {
+        "name": "connected-zh-1366.png",
+        "sha256": "9d1812326f365f29339509fe0a60ccc631bf16c6ddaa8cc051dc8dc5f668413c"
+      },
+      {
+        "name": "paused-en-390.png",
+        "sha256": "473ae219385cf7638dda963c656ff5bcfdd6e64176aedd7785654e4b80d48b9a"
+      },
+      {
+        "name": "enabled-en-390.png",
+        "sha256": "e738670ccfc11abae5780ae6cb5f6d6e565e76a0e3171d048658624a116532a7"
+      }
+    ],
+    "credentials_private_journal_or_database_delivered": false,
+    "private_fixture_preserved": true
+  },
+  "reference": {
+    "multica_pin": "890628511e423864d21c694231277805ce9f113c",
+    "local_worktree_head": "4157f5b26e3acbbd53ae5abbb659c579dc7320eb",
+    "five_reference_sources_and_license_equal": true,
+    "new_product_source_copied": 0
+  },
+  "remaining": [
+    "Real vendor installation, authentication and coding",
+    "Native OS directory chooser UI",
+    "Forced-crash recovery",
+    "macOS/Linux credential stores",
+    "Other databases and multiple hosts",
+    "Installer acceptance",
+    "Scale and production acceptance",
+    "Explicit renewal and original-node resolution after the 24-hour Grant"
+  ],
+  "automatic_token_replacement": false,
+  "full_platform_complete": false
+}

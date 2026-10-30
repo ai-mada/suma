@@ -124,7 +124,7 @@ func (s *Service) toolProfileObservationTx(ctx context.Context, tx *sql.Tx, p Pr
 
 func (s *Service) toolProfileObservationLockedTx(ctx context.Context, tx *sql.Tx, tenant, project string, out ToolProfile) (ToolProfile, error) {
 	p := Principal{TenantID: tenant} // projection/scope only; never an authority source
-	clock, err := s.automationClock(ctx, tx)
+	clock, err := s.toolInventoryClock(ctx, tx)
 	if err != nil {
 		return out, err
 	}

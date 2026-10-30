@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-MULTICA-DESKTOP-153：[桌面托管Runner限定验证](desktop-managed-runner-verification.md)／[机器摘要](desktop-managed-runner-summary.json)。Windows Electron35.7.5软件离屏、真实DPAPI、生产三窄IPC、HMAC摘要发行与正式Go Worker的17项实际检查通过；唯一worker／原发行操作、五个正式进程exit0／close、一次暂停登记／独立启用、正常重开及logout停止分别核对，0任务／运行／模型调用。首次GUI在整秒解析器拒绝Nano库存处失败，Web修复后沿同worker／journal续验；44／46历史候选摘要保留，Go／原生未重编。中文1366／英文390图片已目视；测试按报告分组去重，不相加。151旧托管待办由本条限定推进；真实OS对话框、供应方、强制崩溃、其他系统凭据存储、安装包及生产仍未验，24小时续权交互待办，58／34／92不变。
+
 T-WORKBUDDY-ACP-149：[准确Session与ACP协议限定验证](workbuddy-acp-verification.md)／[摘要](workbuddy-acp-summary.json)。client23顶层／101子场景与最终ACP33／62合计56／163；旧ACP结果被替代而不叠加。精确18文件、SDK增量和8份日志摘要独立核对，未重复运行同源检查。仅私有协议模块，无新增UI、公共派发、真实厂商账号或生产验收，完整58／34／92不变。
 
 T-TOOLS-151：[工具快速接入限定验证](tool-quick-connect-verification.md)／[摘要](tool-quick-connect-summary.json)。14个不同Go顶层通过、1环境符号链接跳过，55个Web定向用例、15个原生候选场景、最终类型／7499双语／隔离构建通过。15项实际GUI／HTTP／生产preload与IPC核对了自动匹配、一次暂停登记、一次明确启用和当时fresh available；中英图片已目视。合成探测CLI不代表供应方开发，本机托管Runner和自动启动仍待交付。自有fixture Runner验收后停止，不夸持续在线；58／34／92不变。

@@ -1,5 +1,28 @@
 {
   "project": "suma",
+  "desktop_managed_runner": {
+    "stage": "T-MULTICA-DESKTOP-153",
+    "date": "2026-10-30",
+    "status": "windows_local_scoped_verified",
+    "contract": "contracts/desktop-managed-runner.md",
+    "product": "docs/product/desktop-managed-runner.md",
+    "architecture": "docs/architecture/desktop-managed-runner.md",
+    "design": "docs/design/desktop-managed-runner.md",
+    "report": "docs/quality/desktop-managed-runner-verification.md",
+    "summary": "docs/quality/desktop-managed-runner-summary.json",
+    "scope": "Explicit managed Codex/CodeBuddy/dsh connection; current identity and Git binding; OS-encrypted original credential journal; formal Go Worker through private stdin; fresh inventory; stop, same-worker recovery and logout guard.",
+    "verification": "17 distinct actual Windows software-offscreen/DPAPI/HTTP/formal Worker checks; inspected CN1366/EN390 images; 25 unique focused Web; isolated types/7528 paired locales/build; scoped Go and Node groups retained without duplicate counts.",
+    "actual_runtime": "One original issuance and worker; five transports preserve body, operation and digest; five formal Worker processes closed exit0; synthetic probe-only CodeBuddy, tasks0/runs0/model0.",
+    "runtime_source_sha256": "388a1a7dbc48cdeb5a518ae80ab89feb2e9f8a28d00883640fd18a9de7184427",
+    "reference": "Multica remote890628511e423864d21c694231277805ce9f113c; preserved local4157f5b26e3acbbd53ae5abbb659c579dc7320eb; relevant blobs identical, new copied product source0.",
+    "pending": [
+      "Explicit 24-hour credential renewal and original-node disposition",
+      "Real vendor installation, authentication and coding",
+      "Native OS chooser, forced crash, macOS/Linux credentials, other databases, installation, multihost, scale and production acceptance"
+    ],
+    "ledger_unchanged": "58 limited /34 pending /92 total",
+    "full_platform_complete": false
+  },
   "workbuddy_acp": {
     "stage": "T-WORKBUDDY-ACP-149",
     "date": "2026-10-30",
@@ -32,7 +55,8 @@
       "Simplified connection for an existing registered but unreported identity",
       "Real vendor coding/authentication and otherDB/multihost/scale/installer/production acceptance"
     ],
-    "ledger_unchanged": "58 limited /34 pending /92 total"
+    "ledger_unchanged": "58 limited /34 pending /92 total",
+    "followup": "Managed local connection delivered with scoped Windows evidence in T-MULTICA-DESKTOP-153; original151 evidence and pending entries remain historical."
   },
   "task_owner_changes": {
     "stage": "T-MULTICA-BULK-150",

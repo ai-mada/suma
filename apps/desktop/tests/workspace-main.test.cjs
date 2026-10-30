@@ -25,6 +25,7 @@ async function mainHarness(t,environment={}){
   if(id==='node:fs')return {...fs,existsSync:()=>true};
   if(id==='node:child_process')return {spawn:(...args)=>{spawns.push(args);return child}};
   if(id==='./lifecycle.cjs')return {...require('../src/lifecycle.cjs'),waitForHealth:async()=>{}};
+  if(id==='./local-service-port.cjs')return {...require('../src/local-service-port.cjs'),reserveLocalServicePort:async port=>port};
   if(id.startsWith('./'))return require(path.join(__dirname,'../src',id));
   return require(id);
  }};
@@ -34,9 +35,9 @@ async function mainHarness(t,environment={}){
  return {handlers,events,spawns,window:ownedWindow};
 }
 
-test('main exposes fixed picker and OAuth channels while guarding the owned picker frame and local database',async t=>{
+test('main exposes only fixed workspace, OAuth, discovery and managed channels with the owned frame and local database',async t=>{
  const h=await mainHarness(t,{SUMA_DB_DRIVER:'postgres',SUMA_DB_DSN:'postgres://untrusted.example',SUMA_WORKSPACE_ROOT:'untrusted-root'});
- assert.deepEqual([...h.handlers.keys()].sort(),['suma:choose-project-directory','suma:open-workbuddy-authorization']);
+ assert.deepEqual([...h.handlers.keys()].sort(),['suma:choose-project-directory','suma:discover-installed-tools','suma:manage-local-runner','suma:open-workbuddy-authorization']);
  const handler=h.handlers.get('suma:choose-project-directory');assert.equal(typeof handler,'function');
  const env=h.spawns[0][2].env;
  const target=path.join(repository,'.cache/desktop',`${process.platform}-${process.arch}`);
@@ -50,5 +51,8 @@ test('main exposes fixed picker and OAuth channels while guarding the owned pick
  assert.equal(cancelled.status,'cancelled');
  const refused=await handler({sender:{},senderFrame:h.window.webContents.mainFrame},request);
  assert.equal(refused.status,'failed');assert.equal(refused.code,'sender_invalid');
+ const managed=h.handlers.get('suma:manage-local-runner');
+ const denied=await managed({sender:{},senderFrame:h.window.webContents.mainFrame},{...request,adapter_id:'codebuddy-cli',action:'status'});
+ assert.equal(denied.status,'failed');assert.equal(denied.code,'managed_runner_request_rejected');
  assert.equal(h.window.options.webPreferences.contextIsolation,true);assert.equal(h.window.options.webPreferences.sandbox,true);assert.equal(h.window.options.webPreferences.nodeIntegration,false);
 });

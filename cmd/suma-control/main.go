@@ -30,8 +30,15 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	maintenance := app.Bool("maintenance", false, "升级核验模式：暂停业务命令及后台调度和投影", "upgrade verification: pause business commands and background scheduling/projection")
 	discoverInstalled := app.Bool("discover-installed-tools", false, "只读检测本机已安装工具，不启动控制服务或读取业务凭据", "detect installed local tools without starting the service or reading business credentials")
 	localTool := app.String("local-tool", "", "本机检测类型：codex-jsonl、codebuddy-cli、dsh-multica；空值检测全部", "local detection entry: codex-jsonl, codebuddy-cli or dsh-multica; empty selects all")
+	managedRunner := app.Bool("desktop-managed-runner", false, "由桌面私有管道管理项目执行节点，不启动控制服务", "run the project worker through the private desktop pipe, without starting the control service")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	if *managedRunner {
+		if *maintenance || *discoverInstalled || *localTool != "" {
+			return app.Failure("本机托管执行模式不能与服务或检测参数混用", "Managed local execution cannot be combined with service or detection options")
+		}
+		return runDesktopManagedRunner(app, os.Stdin)
 	}
 	if *discoverInstalled {
 		if *maintenance {

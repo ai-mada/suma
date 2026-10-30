@@ -75,7 +75,7 @@ func (s *Service) discoverToolsTx(ctx context.Context, actor Actor, project, wor
 	if projectState != "active" {
 		return ToolDiscovery{}, forbidden()
 	}
-	clock, err := s.automationClock(ctx, tx)
+	clock, err := s.toolInventoryClock(ctx, tx)
 	if err != nil {
 		return ToolDiscovery{}, err
 	}
@@ -92,7 +92,7 @@ func (s *Service) discoverToolsTx(ctx context.Context, actor Actor, project, wor
 			return ToolDiscovery{}, forbidden()
 		}
 	}
-	out := ToolDiscovery{ProjectID: project, WorkerID: worker, State: "unreported", AsOf: automationStamp(clock), Items: []toolcontract.Observation{}}
+	out := ToolDiscovery{ProjectID: project, WorkerID: worker, State: "unreported", AsOf: clock.UTC().Format(time.RFC3339Nano), Items: []toolcontract.Observation{}}
 	var observedAt, raw string
 	err = tx.QueryRowContext(ctx, s.q(`SELECT observed_at,items FROM suma_tool_inventories WHERE tenant_id=? AND project_id=? AND worker_id=?`), target.tenantID, project, worker).Scan(&observedAt, &raw)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -100,10 +100,10 @@ func (s *Service) discoverToolsTx(ctx context.Context, actor Actor, project, wor
 	}
 	if err == nil {
 		out.State = "stale"
-		observed, parseErr := time.Parse(time.RFC3339, observedAt)
+		observed, parseErr := time.Parse(time.RFC3339Nano, observedAt)
 		if parseErr == nil {
-			out.ObservedAt = automationStamp(observed)
-			out.ExpiresAt = automationStamp(observed.Add(60 * time.Second))
+			out.ObservedAt = observed.UTC().Format(time.RFC3339Nano)
+			out.ExpiresAt = observed.Add(60 * time.Second).UTC().Format(time.RFC3339Nano)
 			if !observed.After(clock) && clock.Before(observed.Add(60*time.Second)) {
 				out.Items, err = decodeToolDiscoveryItems(raw)
 				if err != nil {

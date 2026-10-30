@@ -5,10 +5,29 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/toolcontract"
 )
+
+// Inventory observations need the database's actual subsecond time so a new
+// local worker report can be distinguished from a report earlier in the same
+// second. Keep this clock local to tool freshness; authority policy and other
+// domains retain their existing database clock and timestamp contracts.
+func (s *Service) toolInventoryClock(ctx context.Context, q governanceQuery) (time.Time, error) {
+	query := `SELECT strftime('%Y-%m-%dT%H:%M:%fZ','now')`
+	if s.Dialect == "postgres" {
+		query = `SELECT to_char(clock_timestamp() AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`
+	} else if s.Dialect == "oceanbase" {
+		query = `SELECT DATE_FORMAT(UTC_TIMESTAMP(6),'%Y-%m-%dT%H:%i:%s.%fZ')`
+	}
+	var value string
+	if err := q.QueryRowContext(ctx, query).Scan(&value); err != nil {
+		return time.Time{}, err
+	}
+	return time.Parse(time.RFC3339Nano, value)
+}
 
 func (s *Service) ReportToolInventory(ctx context.Context, actor Actor, project string, req ToolInventoryRequest) (ToolInventoryReceipt, error) {
 	var out ToolInventoryReceipt
@@ -44,11 +63,11 @@ func (s *Service) ReportToolInventory(ctx context.Context, actor Actor, project 
 		err = json.Unmarshal([]byte(hash), &out)
 		return out, err
 	}
-	clock, err := s.automationClock(ctx, tx)
+	clock, err := s.toolInventoryClock(ctx, tx)
 	if err != nil {
 		return out, err
 	}
-	out = ToolInventoryReceipt{Acknowledged: true, ObservedAt: automationStamp(clock)}
+	out = ToolInventoryReceipt{Acknowledged: true, ObservedAt: clock.UTC().Format(time.RFC3339Nano)}
 	var old string
 	err = tx.QueryRowContext(ctx, s.q(`SELECT observed_at FROM suma_tool_inventories WHERE tenant_id=? AND project_id=? AND worker_id=?`), p.TenantID, project, req.WorkerID).Scan(&old)
 	if errors.Is(err, sql.ErrNoRows) {

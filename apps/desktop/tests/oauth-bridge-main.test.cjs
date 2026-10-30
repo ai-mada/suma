@@ -20,12 +20,13 @@ async function mainHarness(){
   electron:{app,BrowserWindow:Window,dialog:{showErrorBox(){throw Error('unexpected startup dialog');}},ipcMain:{handle:(name,fn)=>handlers.set(name,fn),removeHandler:name=>handlers.delete(name)}},
   'node:child_process':{spawn:()=>child},
   'node:fs':{existsSync:()=>true,lstatSync:()=>{throw Object.assign(Error(),{code:'ENOENT'});}},
-  'node:net':{createServer:()=>({once(){},listen(_port,_host,done){done();},address:()=>({port:49147}),close(done){done();}})},
+  './local-service-port.cjs':{selectLocalServicePort:()=>49147,reserveLocalServicePort:async()=>49147},
   './lifecycle.cjs':{waitForHealth:async()=>{},allowedNavigation:()=>true,terminateService:async()=>{stopped++;},startupExitError:()=>Error('exit')},
   './localization.cjs':{resolveLocale:()=> 'en-US',message:(_locale,key)=>key,localError:(_locale,key)=>Error(key)},
   './workspace-grants.cjs':{CHANNEL:'suma:choose-project-directory',developmentOverrides:()=>null,ensurePrivateDirectory:x=>x,loadWorkspaceKey:()=>Buffer.alloc(32),controlEnvironment:()=>({}),createDirectoryPicker:()=>async()=>({status:'cancelled'})},
   './oauth-window.cjs':{createWorkBuddyOAuthController:value=>{options=value;return controller;}},
-  './installed-tools.cjs':{CHANNEL:'suma:discover-installed-tools',createInstalledToolDiscoveryController:()=>({discover:async()=>({status:'failed'}),dispose:()=>Promise.resolve()})}
+  './installed-tools.cjs':{CHANNEL:'suma:discover-installed-tools',createInstalledToolDiscoveryController:()=>({discover:async()=>({status:'failed'}),dispose:()=>Promise.resolve()})},
+  './managed-local-runner.cjs':{CHANNEL:'suma:manage-local-runner',createManagedLocalRunnerController:()=>({manage:async()=>({status:'failed'}),dispose:()=>Promise.resolve()})}
  };
  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../src/main.cjs'),'utf8'),{__dirname:path.join(__dirname,'../src'),process:{platform:'win32',arch:'x64',env:{}},Buffer,require:name=>dependencies[name]||require(name)});
  for(let n=0;n<20&&!loaded;n++)await new Promise(resolve=>setImmediate(resolve));

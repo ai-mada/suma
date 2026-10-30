@@ -32,7 +32,7 @@ node apps/desktop/scripts/package.cjs --platform linux --arch arm64 --format all
 
 ## 运行与数据生命周期
 
-主进程持有单实例锁，选择loopback空闲端口并启动专属SQLite控制面，健康就绪后加载窗口。打包后读取`resources/control`与`resources/web`。关闭时请求子服务退出、等待并核对终止；当前不会自动启动Runner或自动恢复服务。
+主进程持有单实例锁，默认在loopback固定端口`4319`启动专属SQLite控制面，健康就绪后加载窗口；可用`SUMA_DESKTOP_PORT`明确选择1024–65535端口，冲突直接提示，不自动切换或连接已有服务。固定origin保留原凭据与执行journal的身份；改变端口不会迁移旧执行。打包后读取`resources/control`与`resources/web`。关闭时先停止托管Runner，再停止本机控制面并核对终止；应用重开不会自动派发或启动节点。
 
 业务数据位于`<Electron userData>/data/suma.db`，目录私钥位于`userData/desktop-workspace.key`；原项目文件留在所选目录。启动拒绝链接或错误类型的密钥／数据位置，清除或覆盖继承的数据库、工作区根与服务地址配置。数据库、私钥、原始制品及项目目录身份须一起考虑备份恢复，不能靠删除密钥／数据修复权限。
 
@@ -44,7 +44,15 @@ node apps/desktop/scripts/package.cjs --platform linux --arch arm64 --format all
 
 原ACK是该操作提交时的事实；界面另读当前绑定后才展示目录，读取失败只刷新，不重复POST。账号／项目切换忽略迟到结果。未知请求仅保留于有上限的内存，关闭／刷新前提示，不能承诺进程重启后恢复该内存槽。
 
-读取、目录、Git与保存复用项目根证明及已打开目录句柄；无效证明不降级为宽根。窗口保持sandbox、contextIsolation、webSecurity及禁用nodeIntegration；preload只暴露平台／版本和单用途目录选择。平台与已知诊断支持中英文，代码、用户正文和未知系统错误保留原文。
+读取、目录、Git与保存复用项目根证明及已打开目录句柄；无效证明不降级为宽根。窗口保持sandbox、contextIsolation、webSecurity及禁用nodeIntegration；preload只暴露平台／版本、单用途目录选择、账号授权、只读安装探测和固定本机Runner操作，不开放通用命令或文件系统。平台与已知诊断支持中英文，代码、用户正文和未知系统错误保留原文。
+
+## 简单连接本机开发工具
+
+在工具管理选择Codex、CodeBuddy或dsh，点击“连接本机工具”，绑定已有Git代码目录后明确启动。主进程先将私有凭据写入系统安全存储支持的加密journal，再仅提交摘要登记；原正式Go Worker通过私有stdin接收凭据。没有安全存储时明确不可用，不降级为明文。新鲜真实库存到达后，原快速接入面板自动填入配置；登记后暂停，检查权限后单独启用。
+
+Stop等待实际进程关闭；明确重连沿同一个节点及原发行操作。正常应用重开仅恢复准备状态，退出账号会重新核验并停止节点。24小时授权到期后的明确续权仍待交付，不自动生成新凭据。[完整操作与English](../product/desktop-managed-runner.md) · [合同](../../contracts/desktop-managed-runner.md) · [专项验证](../quality/desktop-managed-runner-verification.md)。
+
+Windows真实DPAPI、生产preload、Go Worker与HTTP的17项实际检查通过，中英1366／390图像已检查；仅合成只读CLI，0任务／0模型。软件离屏验证不代表普通GPU桌面、OS原生目录对话框、正式安装或macOS／Linux验收，原打包及GPU问题记录继续有效。
 
 ## 当前验证与待办
 

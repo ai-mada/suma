@@ -81,3 +81,13 @@ it('retains a matched paused POST receipt during same-scope identity loading wit
  props.workers=identity(['one']);await render();expect(host.querySelector('[data-quick-enable]')).not.toBeNull();expect(host.querySelector('[data-quick-register]')).toBeNull();expect(props.onRegistered).toHaveBeenCalledOnce();expect(run).toHaveBeenCalledOnce();
  await render({...session,user:{...session.user,id:'other'}});expect(host.querySelector('[data-quick-enable]')).toBeNull();expect(host.textContent).not.toContain('Registered “codex-team”');expect(run).toHaveBeenCalledOnce();
 });
+it('manages a local connection beside an old unreported identity, refreshes both node sources and selects the exact connected node',async()=>{
+ const project='1'.repeat(32),local='desktop-'+'4'.repeat(32),currentSession={...session,user:{...session.user,id:'2'.repeat(32)},organization:{...session.organization,id:'3'.repeat(32)}};
+ props.project=project;props.workers=identity(['old']);const oldRead=props.workers.read,sharedRead=props.sharedWorkers.read;
+ const manageLocalTool=vi.fn(async(request:{action:string})=>({status:'ok',connection:{project_id:project,adapter_id:'codex-jsonl',phase:request.action==='connect'?'connected':'unconfigured',...(request.action==='connect'?{worker_id:local}:{})}}));
+ vi.stubGlobal('sumaDesktop',{platform:'win32',version:'1.0.0',manageLocalTool});
+ reply=async path=>Response.json(path.startsWith('/adapter-catalog')?{project_id:project,as_of:'2026-10-30T08:00:20Z',items:[adapter]}:{...report(new URL(path,'https://example.test').searchParams.get('worker_id')!),project_id:project,state:new URL(path,'https://example.test').searchParams.get('worker_id')==='old'?'unreported':'fresh',...(new URL(path,'https://example.test').searchParams.get('worker_id')==='old'?{items:[],observed_at:'',expires_at:''}:{})});
+ await render(currentSession);await change('[data-quick-tool]','codex-jsonl');expect(host.querySelector('[data-local-tool-connect]')).not.toBeNull();await click('[data-local-tool-connect]');expect(oldRead).toHaveBeenCalledOnce();expect(sharedRead).toHaveBeenCalledOnce();
+ props.workers=identity(['old',local]);await render(currentSession);expect(host.querySelector<HTMLSelectElement>('[data-quick-worker]')?.value).toBe(local);expect(host.querySelector<HTMLInputElement>('[data-quick-name]')?.value).toBe('codex-team');
+ await click('[data-quick-register]');expect(host.querySelector('[data-quick-enable]')).not.toBeNull();expect(host.querySelector('[data-local-tool-stop]')).not.toBeNull();expect(manageLocalTool.mock.calls.filter(call=>call[0].action==='connect')).toHaveLength(1);
+});

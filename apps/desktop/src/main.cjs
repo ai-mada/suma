@@ -1,22 +1,24 @@
 'use strict';
-const {app,BrowserWindow,dialog,ipcMain}=require('electron');
+const {app,BrowserWindow,dialog,ipcMain,safeStorage}=require('electron');
 const {spawn}=require('node:child_process');
 const {existsSync,lstatSync}=require('node:fs');
 const {join,resolve}=require('node:path');
-const net=require('node:net');
+const {selectLocalServicePort,reserveLocalServicePort}=require('./local-service-port.cjs');
 const {waitForHealth,allowedNavigation,terminateService}=require('./lifecycle.cjs');
 const {resolveLocale,message,localError}=require('./localization.cjs');
 const {CHANNEL,loadWorkspaceKey,createDirectoryPicker,developmentOverrides,ensurePrivateDirectory,controlEnvironment}=require('./workspace-grants.cjs');
 const {createWorkBuddyOAuthController}=require('./oauth-window.cjs');
 const {CHANNEL:TOOL_DISCOVERY_CHANNEL,createInstalledToolDiscoveryController}=require('./installed-tools.cjs');
+const {CHANNEL:MANAGED_RUNNER_CHANNEL,createManagedLocalRunnerController}=require('./managed-local-runner.cjs');
 const OAUTH_CHANNEL='suma:open-workbuddy-authorization';
 let oauthController;
 function disposeOAuth(){ipcMain.removeHandler(OAUTH_CHANNEL);oauthController?.dispose();oauthController=undefined;}
 let installedToolController;let installedToolStop=Promise.resolve();
 function disposeInstalledTools(){ipcMain.removeHandler(TOOL_DISCOVERY_CHANNEL);if(installedToolController)installedToolStop=installedToolController.dispose();installedToolController=undefined;return installedToolStop;}
+let managedRunnerController;let managedRunnerStop=Promise.resolve();
+function disposeManagedRunner(){ipcMain.removeHandler(MANAGED_RUNNER_CHANNEL);if(managedRunnerController)managedRunnerStop=managedRunnerController.dispose();managedRunnerController=undefined;return managedRunnerStop;}
 let service;let window;let shuttingDown=false;let quitRequested=false;let locale='zh-CN';let origin='';let overrides;let configurationError;
 try{overrides=developmentOverrides(__dirname,process.env,app.isPackaged);if(overrides)app.setPath('userData',ensurePrivateDirectory(overrides.userData))}catch{configurationError='desktop_configuration_invalid'}
-function availablePort(){return new Promise((resolvePort,reject)=>{const server=net.createServer();server.once('error',reject);server.listen(0,'127.0.0.1',()=>{const port=server.address().port;server.close(error=>error?reject(error):resolvePort(port))})})}
 async function stopService(){await terminateService(service,5000,locale)}
 async function start(){
  // app.getLocale 在 ready 之后读取；SUMA_LANGUAGE 只覆盖本进程显示偏好。
@@ -39,7 +41,9 @@ async function start(){
   data=ensurePrivateDirectory(join(app.getPath('userData'),'data'));
   try{const database=lstatSync(join(data,'suma.db'));if(!database.isFile()||database.isSymbolicLink())throw Error('invalid local database')}catch(error){if(error.code!=='ENOENT')throw error}
  }catch{throw localError(locale,'desktop_data_failed')}
- const port=await availablePort();origin=`http://127.0.0.1:${port}`;
+ let port;try{port=selectLocalServicePort(process.env)}catch{throw localError(locale,'desktop_port_invalid')}
+ try{await reserveLocalServicePort(port)}catch{throw localError(locale,'desktop_port_unavailable')}
+ origin=`http://127.0.0.1:${port}`;
  const environment=controlEnvironment(process.env,{data,web,origin,key});
  // Fixed packaged resources, never renderer input or inherited executable
  // settings. The Go service pins their real-file hashes before first use.
@@ -56,11 +60,13 @@ async function start(){
  // its credential-free CLI mode; no second runtime is downloaded or installed.
  installedToolController=createInstalledToolDiscoveryController({parent:window,origin,binary,tempDirectory:ensurePrivateDirectory(join(data,'.cache','tool-discovery'))});
  ipcMain.handle(TOOL_DISCOVERY_CHANNEL,(event,request)=>installedToolController.discover(event,request));
- window.once('ready-to-show',()=>window.show());window.once('closed',()=>{disposeOAuth();disposeInstalledTools();window=undefined});await window.loadURL(origin);
+ managedRunnerController=createManagedLocalRunnerController({parent:window,origin,binary,key,userData:app.getPath('userData'),safeStorage,discover:(event,request)=>installedToolController.discover(event,request)});
+ ipcMain.handle(MANAGED_RUNNER_CHANNEL,(event,request)=>managedRunnerController.manage(event,request));
+ window.once('ready-to-show',()=>window.show());window.once('closed',()=>{disposeOAuth();disposeInstalledTools();disposeManagedRunner();window=undefined});await window.loadURL(origin);
 }
 if(!configurationError&&!app.requestSingleInstanceLock()){app.quit()}else{
  app.on('second-instance',()=>{if(window){if(window.isMinimized())window.restore();window.focus()}});
  app.whenReady().then(start).catch(async error=>{shuttingDown=true;dialog.showErrorBox(message(locale,'startup_failed'),error.message);try{await stopService()}catch(stopError){dialog.showErrorBox(message(locale,'shutdown_failed'),stopError.message)}finally{app.quit()}});
  app.on('window-all-closed',()=>app.quit());
- app.on('before-quit',event=>{if(quitRequested)return;event.preventDefault();shuttingDown=true;disposeOAuth();const discoveryStopped=disposeInstalledTools();ipcMain?.removeHandler(CHANNEL);void discoveryStopped.then(stopService).catch(error=>dialog.showErrorBox(message(locale,'shutdown_failed'),error.message)).finally(()=>{quitRequested=true;app.quit()})});
+ app.on('before-quit',event=>{if(quitRequested)return;event.preventDefault();shuttingDown=true;disposeOAuth();const localChildrenStopped=Promise.all([disposeManagedRunner(),disposeInstalledTools()]);ipcMain?.removeHandler(CHANNEL);void localChildrenStopped.then(stopService).catch(error=>dialog.showErrorBox(message(locale,'shutdown_failed'),error.message)).finally(()=>{quitRequested=true;app.quit()})});
 }

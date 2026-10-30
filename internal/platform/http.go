@@ -301,6 +301,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	s.applyLocalePreferences(w, r, actor)
+	if s.desktopRunnerHTTP(w, r, actor, scope, boundProject, path) {
+		return
+	}
 	if s.workBuddyConnectionsHTTP(w, r, actor, scope, boundProject, parts, s.WorkBuddy) {
 		return
 	}

@@ -14,6 +14,8 @@ function resolveLocale(appLocale,environment={}){
  return normalizeLocale(environment.SUMA_LANGUAGE)||normalizeLocale(appLocale)||'zh-CN';
 }
 const messages=Object.freeze({
+ desktop_port_invalid:Object.freeze({'zh-CN':'本机端口配置无效。SUMA_DESKTOP_PORT 需为 1024–65535 的整数，默认 4319。','en-US':'Invalid local port. SUMA_DESKTOP_PORT must be an integer from 1024 to 65535; the default is 4319.'}),
+ desktop_port_unavailable:Object.freeze({'zh-CN':'本机端口已被占用或不可使用。请关闭占用程序，或配置其他 SUMA_DESKTOP_PORT；速码不会连接未知服务或自动换端口。','en-US':'The local port is occupied or unavailable. Close its owner or configure another SUMA_DESKTOP_PORT. Suma will not attach to an unknown service or silently change ports.'}),
  startup_failed:Object.freeze({'zh-CN':'速码无法启动','en-US':'Suma could not start'}),
  service_stopped_title:Object.freeze({'zh-CN':'速码服务已停止','en-US':'Suma service stopped'}),
  service_stopped:Object.freeze({'zh-CN':'本地服务已停止，请重启速码以重新连接。','en-US':'The local service stopped. Restart Suma to reconnect.'}),

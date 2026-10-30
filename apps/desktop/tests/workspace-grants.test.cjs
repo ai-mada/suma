@@ -86,6 +86,6 @@ test('preload exposes only the fixed bridge and keeps IPC failures opaque',async
  const electron={contextBridge:{exposeInMainWorld:(name,value)=>{assert.equal(name,'sumaDesktop');exposed=value}},ipcRenderer:{invoke:async(...args)=>{calls.push(args);if(reject)throw Error('private diagnostic');return {status:'cancelled'}}}};
  const source=fs.readFileSync(path.join(__dirname,'../src/preload.cjs'),'utf8');
  vm.runInNewContext(source,{process:{platform:'win32'},require:id=>{assert.equal(id,'electron');return electron}});
- assert.equal(Object.keys(exposed).sort().join(','),'chooseProjectDirectory,discoverInstalledTools,openWorkBuddyAuthorization,platform,version');assert.equal((await exposed.chooseProjectDirectory(scope())).status,'cancelled');assert.equal(calls[0][0],grants.CHANNEL);
+ assert.equal(Object.keys(exposed).sort().join(','),'chooseProjectDirectory,discoverInstalledTools,manageLocalTool,openWorkBuddyAuthorization,platform,version');assert.equal((await exposed.chooseProjectDirectory(scope())).status,'cancelled');assert.equal(calls[0][0],grants.CHANNEL);
  reject=true;const failed=await exposed.chooseProjectDirectory(scope());assert.equal(failed.code,'desktop_unavailable');assert.equal(Object.keys(failed).sort().join(','),'code,status');
 });

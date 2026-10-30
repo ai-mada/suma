@@ -35,7 +35,22 @@ func (s *Service) InitializeCredentialAuthority(ctx context.Context) error {
 
 func (s *Service) persistCredential(ctx context.Context, tx *sql.Tx, p Principal, kind actorKind, ref credentialRef, label, expiry, issuedAt, operation string) (string, error) {
 	token := newID() + newID()
-	ref.digest = digest(token)
+	if err := s.persistCredentialDigestTx(ctx, tx, p, kind, ref, label, expiry, issuedAt, operation, digest(token)); err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+// Ordinary issuers still create their secret above. A trusted desktop may
+// pre-persist its own random secret and register only its exact digest.
+func (s *Service) persistCredentialDigestTx(ctx context.Context, tx *sql.Tx, p Principal, kind actorKind, ref credentialRef, label, expiry, issuedAt, operation, tokenDigest string) error {
+	if len(tokenDigest) != 64 || strings.ToLower(tokenDigest) != tokenDigest {
+		return forbidden()
+	}
+	if _, err := hex.DecodeString(tokenDigest); err != nil {
+		return forbidden()
+	}
+	ref.digest = tokenDigest
 	queries := []struct {
 		query string
 		args  []any
@@ -47,10 +62,10 @@ func (s *Service) persistCredential(ctx context.Context, tx *sql.Tx, p Principal
 	}
 	for _, q := range queries {
 		if _, err := tx.ExecContext(ctx, s.q(q.query), q.args...); err != nil {
-			return "", err
+			return err
 		}
 	}
-	return token, nil
+	return nil
 }
 
 func (s *Service) newBrowserSessionTx(ctx context.Context, tx *sql.Tx, p Principal, sourceKind string) (string, error) {
