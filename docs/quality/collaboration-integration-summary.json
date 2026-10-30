@@ -2,7 +2,7 @@
   "stage": "T-COLLAB-144",
   "version": "1.0.0",
   "date": "2026-10-30",
-  "status": "implementation_verified_gui_remaining",
+  "status": "scoped_verified",
   "stages": [
     "T-MENTIONS-140",
     "T-TEAM-EXECUTION-141",
@@ -47,18 +47,24 @@
     }
   },
   "browser": {
+    "status": "scoped_verified",
     "origin": "http://127.0.0.1:43959",
-    "status": "pending_final_test_plan_saves_and_modal_guard",
-    "evidence_directory": "dist/quality/collaboration-140-142",
+    "total": 36,
+    "passed": 36,
+    "failed": 0,
+    "evidence": "docs/quality/collaboration-browser-summary.json",
+    "final_source_sha256": "c450f983e52ce91b3bbb274381c7bdf392b2195379edc5fb308b5fa31ada3dfd",
+    "final_entry_sha256": "85d9cea9e3e876887e7615a7ea33cca9ffaa83eda67da23210e3d32033e7264f",
+    "actual_results": {
+      "test_plan_version": 4,
+      "test_plan_revision": 4,
+      "test_plan_published_revision": 0,
+      "new_review_request_id": "e6b532ed684538d529b770c8c09f676a",
+      "new_review_request_state": "pending",
+      "formal_review_submitted_by_gui": false
+    },
     "no_database_reset": true,
-    "observed_checks": 28,
-    "observed_passed": 26,
-    "pre_fix_issues": [
-      "test-plan-current-project-write-role",
-      "test-plan-actual-save-command"
-    ],
-    "corrected_gui": "Not yet observed. Actual HTTP/DOM repairs passed; the coordinating browser chat reports waitingOnApproval. No approval bypass.",
-    "working_evidence_sha256": "047002fcf28102437b7f71adee11c32e9a30cb592c59596f50a7256d611fa166"
+    "initial_issues": "Retained with final resolved verification; old asset retained by dirty beforeunload was explicitly reloaded before final dual-role saves."
   },
   "source_reference": {
     "multica": "2083970b51c03c0773188636c24a96acd09ad4c3",
@@ -88,5 +94,5 @@
     ],
     "team_history": "See T-TEAM-EXECUTION-141 report; 9 top-level focused backend checks, including persisted waiting history."
   },
-  "commit_policy": "Commit the reviewed implementation/evidence scope to dev; do not claim final GUI acceptance. Exclude all cache, databases, binaries, screenshots, secrets and unrelated desktop/planning work."
+  "commit_policy": "Verified scoped144 implementation already63bcc39; final GUI evidence delivered separately. No145 GUI/full-platform claim. Cache, data, credentials, artifacts and unrelated work excluded."
 }

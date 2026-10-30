@@ -1,12 +1,12 @@
 # 1.0.0 当前交付状态
 
-T-COLLAB-144整合人员讨论提及、团队准确执行跟进和审核责任请求，补齐真实会话角色、测试计划PUT及草稿导航／Review保护。源码、真实HTTP、组件及匹配构建已验证；实际GUI已观察26项，最终保存／模态保护操作仍待工具审批，不记通过。见[整合报告](../quality/collaboration-integration-verification.md)与[摘要](../quality/collaboration-integration-summary.json)。实现阶段提交dev，完整58／34／92及P0–P7目标继续推进。
+T-COLLAB-144人员提及、团队准确执行跟进与审核责任已完成限定整合和36项真实GUI验证；双角色保存、准确资产／历史、草稿保护及原决定边界均通过，独立接口复核v4仍未发布且新请求pending。见[整合报告](../quality/collaboration-integration-verification.md)和[浏览器证据](../quality/collaboration-browser-summary.json)。源码63bcc39已推dev，最终证据独立交付；全包Go未完整及全平台58／34／92范围继续保留。
 
 T-REVIEW-142已接通验收责任请求→同事务个人收件→原Review准确决定／问题回流；修复测试计划developer／reviewer操作遗漏，任务结论统一accepted／rejected。93项独立Go、58项Web、完整类型／7292语言键／合同／隔离构建及12项实际三账号Runner-HTTP-CLI检查通过，见[需求](../product/task-review-requests.md)、[架构](../architecture/task-review-requests.md)、[交互与AI SOP](../design/task-review-requests.md)和[限定报告](../quality/task-review-requests-verification.md)。binding_current不代表质量门禁通过；最终GUI状态以T-COLLAB-144整合报告为准；完整58／34／92不变。
 
 T-WORKBUDDY-143已验证云任务协议与持久单次提交底层，27项去重Go通过，见[合同](../../contracts/workbuddy-cloud-submission.md)、[架构](../architecture/workbuddy-cloud-submission.md)与[专项证据](../quality/workbuddy-cloud-submission-verification.md)。此阶段没有UI变更；正式OAuth、ACP、当前资格／预算、云候选和真实厂商接入仍待实施。内部模块尚未开放为可派发工具，其他阶段分别验收，以各自当前记录为准；完整平台范围保留。
 
-T-TEAM-EXECUTION-141增强原团队计划的准确步骤与等待原因：历史attempt不再冒充当前执行，完整状态分类与最多24项节点明细分开，原run／node／attempt入口和读取时间可回查。8项后端、24项前端、类型／7228双语键／生成合同及隔离构建通过；见[设计](../design/expert-team-execution.md)和[专项证据](../quality/expert-team-execution-verification.md)。实际浏览器仍待验，本阶段实现及剩余GUI按T-COLLAB-144记录；58／34／92完整范围保留。
+T-TEAM-EXECUTION-141增强原团队计划的准确步骤与等待原因：历史attempt不再冒充当前执行，完整状态分类与最多24项节点明细分开，原run／node／attempt入口和读取时间可回查。8项后端、24项前端、类型／7228双语键／生成合同及隔离构建通过；见[设计](../design/expert-team-execution.md)和[专项证据](../quality/expert-team-execution-verification.md)。实际浏览器已通过，本阶段实现及剩余GUI按T-COLLAB-144记录；58／34／92完整范围保留。
 
 T-MENTIONS-140接通明确人员讨论→同事务个人通知→准确原消息定位，并提供discussion CLI。46项独立Go、56项Web、完整类型／7191对语言键、合同及隔离构建通过；两个本机账号完成12项实际接口／CLI检查。见[需求](../product/task-conversation-mentions.md)、[架构与来源](../architecture/task-conversation-mentions.md)、[交互与AI SOP](../design/task-conversation-mentions.md)、[限定报告](../quality/task-conversation-mentions-verification.md)。本域实际GUI与剩余项目见T-COLLAB-144整合报告；完整58／34／92不变。
 

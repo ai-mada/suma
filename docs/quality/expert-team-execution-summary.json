@@ -3,7 +3,7 @@
   "date": "2026-10-30",
   "product_version": "1.0.0",
   "git_base": "f5fedde",
-  "status": "implementation_verified_gui_remaining",
+  "status": "scoped_verified",
   "full_platform_complete": false,
   "scope": "Exact bound-run execution facts in existing expert team plans; full-state classification and bounded 24-node display; no new execution authority",
   "checks": {
@@ -38,23 +38,28 @@
     "history_regression": ".cache/team-execution-141/history-tests.log"
   },
   "browser": {
-    "status": "representative_passed_integration_pending",
-    "reason": "Exact facts, links, back, CN/EN, desktop/390px, themes and keyboard observed. Corrected pause notice observed on matched corrected build; related team source inputs unchanged in final build.",
+    "status": "scoped_verified",
+    "reason": "Representative actual matched-app GUI verified; corrected pause notice retested. Final 140/142 plan save and Review guard also completed. No full-release or multihost claim.",
     "remaining": [
-      "Final corrected test-plan saves and Review draft guard in integration scope"
+      "actual browser 30-node truncation",
+      "actual revocation and fault injection",
+      "physical multihost and production acceptance"
     ],
-    "evidence": "dist/quality/collaboration-140-142/browser-checks-working.json"
+    "evidence": "dist/quality/collaboration-140-142/browser-final-summary.json",
+    "final_source_sha256": "c450f983e52ce91b3bbb274381c7bdf392b2195379edc5fb308b5fa31ada3dfd",
+    "final_entry_sha256": "85d9cea9e3e876887e7615a7ea33cca9ffaa83eda67da23210e3d32033e7264f"
   },
   "limits": [
     "Database and DOM fixtures are not vendor executions",
     "No physical multi-host or production claim",
     "No new WorkBuddy cloud executor",
     "139/140 evidence not counted again",
-    "Reviewed implementation delivery follows T-COLLAB-144; final GUI gaps remain explicit. No deployment or production acceptance."
+    "Platform broad package timed out180s; focused passes are separate"
   ],
   "integration": {
     "stage": "T-COLLAB-144",
     "report": "docs/quality/collaboration-integration-verification.md",
-    "final_gui": "Current team pause notice rechecked; remaining corrected test-plan saves/modal guard pending tool approval."
-  }
+    "final_gui": "Completed representative GUI verification, including final corrected plan saves and both Review draft guards; full release matrix remains separate."
+  },
+  "implementation_commit": "63bcc392529338494087a92e4ba37e29b3163200"
 }

@@ -13,14 +13,15 @@
   "expert_team_execution": {
     "stage": "T-TEAM-EXECUTION-141",
     "date": "2026-10-30",
-    "status": "pending_final_browser",
+    "status": "scoped_verified",
     "contract": "contracts/expert-team-orchestration.md",
     "design": "docs/design/expert-team-execution.md",
     "report": "docs/quality/expert-team-execution-verification.md",
     "summary": "docs/quality/expert-team-execution-summary.json",
     "scope": "Exact run/node/attempt facts and causes in existing team plans; full-state classification, 24-node bound and current-authorized read-only projection; history and meaningful CAS preserved.",
     "verification": "8 platform and 24 Web checks, types/7228 locale keys, generator736models340paths, isolated44.17s Web build; selected build inputs unchanged. Actual browser pending after prior origin approval rejection; no commit/push.",
-    "limits": "No new scheduler, retry authority, vendor executor, physical multi-host or production acceptance. WorkBuddy cloud remains planned; full platform goal continues."
+    "limits": "No new scheduler, retry authority, vendor executor, physical multi-host or production acceptance. WorkBuddy cloud remains planned; full platform goal continues.",
+    "integration_browser": "docs/quality/collaboration-browser-summary.json"
   },
   "adapter_connections": {
     "stage": "T-ADAPTERS-139",
@@ -92,7 +93,7 @@
   "phase": "implementation",
   "status": "in_progress",
   "stage": "T-COLLAB-144",
-  "updated_at": "2026-10-30T00:34:46.678176+00:00",
+  "updated_at": "2026-10-30T01:35:11.531768+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
@@ -325,19 +326,20 @@
   "task_conversation_mentions": {
     "stage": "T-MENTIONS-140",
     "date": "2026-10-30",
-    "status": "implemented_targeted_and_actual_http_cli_verified_browser_pending",
+    "status": "scoped_verified",
     "contract": "contracts/task-conversation-mentions.md",
     "design": "docs/design/task-conversation-mentions.md",
     "report": "docs/quality/task-conversation-mentions-verification.md",
     "summary": "docs/quality/task-conversation-mentions-summary.json",
     "verification": "46 unique Go;56 focused Web;complete types;7191 paired locale keys;734 models/340 paths;isolated build;12 actual two-account HTTP/CLI checks",
     "commit": "pending final GUI condition; working index empty",
-    "limits": "No actual browser, external providers, AI execution, other databases, physical multihost or production acceptance. Full platform remains active."
+    "limits": "No actual browser, external providers, AI execution, other databases, physical multihost or production acceptance. Full platform remains active.",
+    "integration_browser": "docs/quality/collaboration-browser-summary.json"
   },
   "task_review_requests": {
     "stage": "T-REVIEW-142",
     "date": "2026-10-30",
-    "status": "implemented_targeted_actual_runner_http_cli_verified_browser_pending",
+    "status": "scoped_verified",
     "contract": "contracts/task-review-requests.md",
     "report": "docs/quality/task-review-requests-verification.md",
     "summary": "docs/quality/task-review-requests-summary.json",
@@ -347,16 +349,17 @@
       "actual": 12,
       "locale_keys": 7292
     },
-    "limits": "No browser, vendor, model, code candidate certification, other database or production acceptance; no commit/push; full platform active."
+    "limits": "No browser, vendor, model, code candidate certification, other database or production acceptance; no commit/push; full platform active.",
+    "integration_browser": "docs/quality/collaboration-browser-summary.json"
   },
   "collaboration_integration": {
     "stage": "T-COLLAB-144",
-    "status": "implementation_verified_gui_remaining",
+    "status": "scoped_verified",
     "source_sha256": "c450f983e52ce91b3bbb274381c7bdf392b2195379edc5fb308b5fa31ada3dfd",
     "report": "docs/quality/collaboration-integration-verification.md",
     "summary": "docs/quality/collaboration-integration-summary.json",
     "scope": "140 explicit mentions,141 exact execution facts,142 review responsibility and test-plan fixes; original authority/test/acceptance boundaries retained.",
-    "verification": "Full Web integration attempted, affected fixtures/components and types passed. Three Go packages passed; platform full180s run incomplete, failing fixtures and affected HTTP/execution cases rechecked. Actual GUI26of28 observed; corrected final saves/guard pending approval.",
+    "verification": "Scoped implementation63bcc39 and36actual joint browser checks passed, final exact asset verified and actual API v4/unpublished/pending facts confirmed. Full180s Go platform run remains incomplete; independent145 not accepted by this evidence.",
     "full_platform_complete": false
   }
 }

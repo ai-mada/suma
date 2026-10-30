@@ -6,7 +6,7 @@ T-TEAM-EXECUTION-141：[准确执行跟进报告](expert-team-execution-verifica
 
 T-REVIEW-142：[报告](task-review-requests-verification.md)／[摘要](task-review-requests-summary.json)。93项独立Go、58项Web、类型／7292语言键／合同／构建和12项真实本机三账号HTTP-CLI-Runner检查通过，最终GUI缺口与实现提交见T-COLLAB-144。历史及他人阶段证据保留。
 
-T-COLLAB-144：[整合报告](collaboration-integration-verification.md)／[摘要](collaboration-integration-summary.json)。140／141／142实现、真实接口和受影响检查已收口，26项GUI已观察；修复后的最终保存／Review草稿保护GUI待工具审批。先提交可审阅实现，不宣称全部GUI或后端全包通过。完整平台目标继续。
+T-COLLAB-144：[整合报告](collaboration-integration-verification.md)／[浏览器证据](collaboration-browser-summary.json)。36项实际GUI全部通过，准确最终资产、双角色保存v4未发布和两个Review入口草稿保护已复核；源码63bcc39，最终证据独立提交。全平台及未完整后端套件不据此宣称通过。
 
 T-ADAPTERS-139：[限定验证](adapter-connections-verification.md)／[摘要](adapter-connections-summary.json)。状态scoped_verified，覆盖此前139待验状态。复用43项独立Web（11项复验包含在内）、9项Go、类型／7156语言键和合同检查；用户重新授权后新增25项真实GUI通过，覆盖中英、桌面／390px、明暗及键盘代表性流程，修复移动标题被固定页头遮挡。53.28秒隔离构建来自当前合成前端工作区，与既有139后端核验本阶段API和交互；不表示其他在途页面、厂商执行或生产验收。审批容量拒绝、恢复和缺陷证据均保留。
 

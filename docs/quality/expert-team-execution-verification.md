@@ -28,11 +28,13 @@
 
 - 通过正式API、当前身份和本地受控DSH协议准备三份专家计划：真实审批等待、真实协议缺失整体结束消息后的reconciling、尚未领取的ready排队。没有直接写数据库、商业模型调用或制造accepted；原Runner已核实停止。对象与准确节点／attempt记录见 `.cache/team-execution-141/live/{ready.json,readback.json,stop-proof.json}`。
 - 实际GUI确认waiting与queued计入等待，executing为0；协议中断显示效果待核对、保留attempt1，不自动重试；attempt0深链不伪造attempt1，原run／node／attempt1与浏览器返回计划均准确。中文桌面浅色、英文390px深色、长原因／Runner换行和键盘焦点已检查。暂停waiting计划后原运行继续等待，读取时间从07:58:44更新至07:59:54，未手动刷新。原始截图与逐项记录见 `dist/quality/collaboration-140-142/`。
-- 实际暂停成功后出现错误的草稿离开提示。回归先复现失败，修复为同一计划的回执只原位重新读取，不重复触发导航；一般离开保护、未知操作恢复不放宽。`TeamTaskDispatchDialog.test.tsx` 10项通过，8.56秒（单文件受影响复验，非新增10项）。
+- 实际暂停成功后出现错误的草稿离开提示。回归先复现失败，修复为同一计划的回执只原位重新读取，不重复触发导航；一般离开保护、未知操作恢复不放宽。`TeamTaskDispatchDialog.test.tsx` 10项通过，8.56秒（单文件受影响复验，非新增10项）。修正构建中对原排队计划实际提交暂停，原运行保持等待、正式验收0，成功后不再出现草稿误提示。只读变体核查确认新建预览入口直接定位路由，带离开保护的运行入口仅打开已有计划，未发现可达的新建变体。
 - 审查发现历史修订仍把queued计为Executing、waiting_execution计为Blocked。新增 `TestExpertTeamExecutionHistoryCountsAfterPendingRevision` 先复现失败，修复后history／projection相关9个顶层用例通过，5.146秒。命令：`go test ./internal/platform -run 'TestExpertTeam(ExecutionHistoryCountsAfterPendingRevision|ExecutionProjection|CurrentModelExcludesOriginalOnlyHistoryAndUsesRevisionTime|PlanCommandsReviseOnlyPendingStopAndReplay|OrchestrationReconcilingNodeProjection|OrchestrationBoundedFairDueAndNoopVersion)' -count=1 -v`。日志 `.cache/team-execution-141/{history-red.log,history-tests.log}`。验证历史明细与列表统计一致、不保存动态观察、不重写旧修订、不改变运行和attempt；合成节点状态仅证明分类规则。
+
+最终联合源摘要为 `c450f983e52ce91b3bbb274381c7bdf392b2195379edc5fb308b5fa31ada3dfd`；最终Web入口为 `85d9cea9e3e876887e7615a7ea33cca9ffaa83eda67da23210e3d32033e7264f`。实现已随 `63bcc392529338494087a92e4ba37e29b3163200` 提交并正常推送dev。之后补完最终测试计划双角色真实保存和两处Review草稿保护：最终页面审核人保存至v3，开发者再读后保存至v4，仍未发布；未产生GUI正式验收。联合36项代表性检查全部通过，初轮失败及修复复验分别留存；此总数涵盖140／141／142，不作为本域新增36项计数。报告为 `dist/quality/collaboration-140-142/browser-final-summary.json`，整合限制见[联合验证](collaboration-integration-verification.md)。临时浏览器标签已关闭，视口与语言偏好恢复。
 
 ## 尚未验证
 
-上述暂停提示与历史统计修复等待统一新构建后的受影响GUI复验。实际浏览器未覆盖30节点截断、真实撤权与故障注入，继续沿用有明确范围的Go／DOM证据。140／142联调中发现的测试计划角色和新请求运行读取问题由原范围修复后复验；整个联合阶段尚未据此提交或推送。
+实际浏览器未覆盖30节点截断、真实撤权与故障注入，继续沿用有明确范围的Go／DOM证据。历史统计修复由准确revision详情／列表回归验证，浏览器未将其伪装成真实多机调度。platform广泛检查达到180秒超时；CLI、合同、本地化及受影响定向检查的通过不代表platform全包通过。
 
 未新增WorkBuddy云任务执行协议、厂商模型调用、物理多机或生产验收。WorkBuddy官方协议核查只补入[接入矩阵](../integrations/development-tool-matrix.md)，不把研究或目录标识视为可执行集成。完整团队自治、工具接入、离线同步和平台范围继续保留。

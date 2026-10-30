@@ -1,0 +1,274 @@
+{
+  "stage": "T-COLLAB-144",
+  "date": "2026-10-30T01:30:25.595Z",
+  "status": "scoped_verified",
+  "full_platform_complete": false,
+  "origin": "http://127.0.0.1:43959",
+  "implementation_commit": "63bcc392529338494087a92e4ba37e29b3163200",
+  "final_source_sha256": "c450f983e52ce91b3bbb274381c7bdf392b2195379edc5fb308b5fa31ada3dfd",
+  "final_entry_sha256": "85d9cea9e3e876887e7615a7ea33cca9ffaa83eda67da23210e3d32033e7264f",
+  "final_observed_entry_asset": "/assets/index-CdZlBaPw.js",
+  "total": 36,
+  "passed": 36,
+  "failed": 0,
+  "actual_results": {
+    "test_plan_version": 4,
+    "test_plan_revision": 4,
+    "test_plan_published_revision": 0,
+    "new_review_request_id": "e6b532ed684538d529b770c8c09f676a",
+    "new_review_request_state": "pending",
+    "formal_review_submitted_by_gui": false
+  },
+  "limitations": [
+    "Representative GUI checks across matching builds; unchanged passing paths reused, not a full release matrix",
+    "Developer savev2 used final control with earlier retained Web asset; reviewer savev3 and developer savev4 explicitly confirmed final asset and no guard warning",
+    "Original platform package180s timed out; focused passes do not imply full package pass",
+    "No vendor model or multihost/production acceptance",
+    "CDP past-event read returned no PUT and truncated buffer; normal UI resumed, no approval bypass"
+  ],
+  "checks": [
+    {
+      "name": "typed-at-does-not-select",
+      "pass": true,
+      "detail": "Only explicit recipient selection creates a mention",
+      "at": "2026-10-29T23:49:07.471Z"
+    },
+    {
+      "name": "remove-selected-recipient",
+      "pass": true,
+      "detail": "Selected recipient removed without clearing text",
+      "at": "2026-10-29T23:49:27.602Z"
+    },
+    {
+      "name": "mention-message-saved",
+      "pass": true,
+      "detail": "Saved post shows immutable recipient; composer reset to 0/20",
+      "at": "2026-10-29T23:49:38.928Z"
+    },
+    {
+      "name": "dirty-navigation-keeps-draft",
+      "pass": true,
+      "detail": "Attempted task-tab navigation left current draft and recipient intact; no confirmation dialog was exposed by browser driver",
+      "at": "2026-10-29T23:50:01.454Z"
+    },
+    {
+      "name": "reload-recovers-mention-draft",
+      "pass": true,
+      "detail": "DOM textbox restored GUI-140 draft and verified same resource ID",
+      "at": "2026-10-29T23:50:37.618Z"
+    },
+    {
+      "name": "older-message-exact-focus",
+      "pass": true,
+      "detail": "Exact original outside recent20 focused and highlighted; recent window remains20/24",
+      "at": "2026-10-29T23:51:54.188Z"
+    },
+    {
+      "name": "opening-source-does-not-read",
+      "pass": true,
+      "detail": "Unread count unchanged after opening source",
+      "at": "2026-10-29T23:51:54.270Z"
+    },
+    {
+      "name": "review-inbox-exact-request",
+      "pass": true,
+      "detail": "Pending original request resolved to exact task; opening did not make a Review",
+      "at": "2026-10-29T23:52:07.242Z"
+    },
+    {
+      "name": "opens-original-review-dialog",
+      "pass": true,
+      "detail": "Original successful run selected, no review submission",
+      "at": "2026-10-29T23:52:07.272Z"
+    },
+    {
+      "name": "review-original-run-link",
+      "pass": true,
+      "detail": "Run90284225 original assertion/test node attempt1, succeeded; no code acceptance inference",
+      "at": "2026-10-29T23:52:23.828Z"
+    },
+    {
+      "name": "historical-formal-decision-preserved",
+      "pass": true,
+      "detail": "Closed original Review remains valid after task revision; cancelled history offers no write",
+      "at": "2026-10-29T23:52:39.503Z"
+    },
+    {
+      "name": "review-history-mobile-no-overflow",
+      "pass": true,
+      "detail": "390 viewport dark; full run ID wraps; formal decision and original actor readable",
+      "at": "2026-10-29T23:52:58.155Z"
+    },
+    {
+      "name": "team-approval-is-waiting",
+      "pass": true,
+      "detail": "Current running run with gate waiting remains waiting1/executing0; node attempt0 link has no invented attempt",
+      "at": "2026-10-29T23:54:55.351Z"
+    },
+    {
+      "name": "team-exact-zero-attempt-link",
+      "pass": true,
+      "detail": "Gate original node, no fabricated attempt1",
+      "at": "2026-10-29T23:55:02.448Z"
+    },
+    {
+      "name": "team-real-interruption-awaits-reconciliation",
+      "pass": true,
+      "detail": "Real DSH process lacks whole terminal; attempt1, no retry or formal acceptance",
+      "at": "2026-10-29T23:55:18.834Z"
+    },
+    {
+      "name": "team-exact-attempt-link",
+      "pass": true,
+      "detail": "Original run/node/attempt1 shown",
+      "at": "2026-10-29T23:55:19.568Z"
+    },
+    {
+      "name": "team-back-restores-plan",
+      "pass": true,
+      "detail": "Browser Back returns exact original plan and opens plan dialog",
+      "at": "2026-10-29T23:55:19.821Z"
+    },
+    {
+      "name": "team-en-mobile-keyboard",
+      "pass": true,
+      "detail": "390 dark English: Tab/ShiftTab links focus visibly; long reason and runner wrap",
+      "at": "2026-10-29T23:55:49.638Z"
+    },
+    {
+      "name": "team-queued-not-executing",
+      "pass": true,
+      "detail": "Original develop ready attempt0 counted Waiting1, executing0",
+      "at": "2026-10-29T23:55:57.437Z"
+    },
+    {
+      "name": "mentions-en-mobile-keyboard",
+      "pass": true,
+      "detail": "Keyboard Enter expanded/search/selected/removed; ShiftTab returns prior control; no send without body",
+      "at": "2026-10-29T23:56:34.214Z"
+    },
+    {
+      "name": "review-request-explicit-cancel",
+      "pass": true,
+      "detail": "Cancelled explicitly with reason; original request history retained",
+      "at": "2026-10-29T23:57:04.091Z"
+    },
+    {
+      "name": "review-create-run-source",
+      "pass": true,
+      "status": "resolved_verified",
+      "detail": "Exact taskv2/run90284225v3 adopted; eligible reviewer selected; explicit new request saved, no Review written",
+      "at": "2026-10-29T23:57:46.372Z"
+    },
+    {
+      "name": "team-paused-waiting-still-refreshes",
+      "pass": true,
+      "detail": "Paused plan still displays original waiting run; observed timestamp advanced without manual refresh",
+      "at": "2026-10-29T23:59:57.821Z"
+    },
+    {
+      "name": "team-pause-success-notice",
+      "pass": true,
+      "status": "resolved_verified",
+      "detail": "Corrected matched build: explicit pause succeeds with no draft/pending warning; current run remains waiting and accepted0",
+      "at": "2026-10-29T23:59:57.869Z"
+    },
+    {
+      "name": "test-plan-current-project-write-role",
+      "pass": true,
+      "status": "resolved_verified",
+      "detail": "Actual developer and reviewer roles show permitted editing; reviewer final UI saved v3 after reading developer v2",
+      "at": "2026-10-30T00:00:39.835Z"
+    },
+    {
+      "name": "team-cn-desktop-light",
+      "pass": true,
+      "detail": "1440x900 light: current facts/unknown reason/attempt/links visible, focus outlined",
+      "at": "2026-10-30T00:00:39.865Z"
+    },
+    {
+      "name": "review-create-after-cancel",
+      "pass": true,
+      "detail": "New pending request and original cancelled history are distinct; composer cleared",
+      "at": "2026-10-30T00:10:51.797Z"
+    },
+    {
+      "name": "test-plan-actual-save-command",
+      "pass": true,
+      "status": "resolved_verified",
+      "detail": "Exact registered PUT now accepts actual developer savev2 and reviewer savev3, source/task remains current; no publish",
+      "at": "2026-10-30T00:12:09.843Z"
+    },
+    {
+      "name": "final-build-assets",
+      "pass": true,
+      "detail": "Earlier dirty beforeunload retained old asset; after successful no-dirty reload, final manifest asset confirmed",
+      "at": "2026-10-30T01:27:27.436Z"
+    },
+    {
+      "name": "developer-actual-save",
+      "pass": true,
+      "detail": "Actual PUT saved developer original draft to v2/revision2; no published revision",
+      "at": "2026-10-30T01:27:27.449Z"
+    },
+    {
+      "name": "reviewer-actual-save",
+      "pass": true,
+      "detail": "Reviewer reads developer v2 then saves v3/revision3; final Web asset, same-id confirmation has no leave-guard warning",
+      "at": "2026-10-30T01:28:11.337Z"
+    },
+    {
+      "name": "developer-final-ui-save",
+      "pass": true,
+      "detail": "Final Web developer rereads reviewer v3, explicitly saves v4 with no redundant navigation/guard; remains unpublished",
+      "at": "2026-10-30T01:28:54.270Z"
+    },
+    {
+      "name": "review-unsent-draft-blocks-modal",
+      "pass": true,
+      "detail": "Original Review blocked before modal opens; unsent note retained and clear draft remains accessible",
+      "at": "2026-10-30T01:29:12.394Z"
+    },
+    {
+      "name": "review-clear-draft-restores-open-close",
+      "pass": true,
+      "detail": "After explicit clearing, original modal opens and closes; no Review submitted",
+      "at": "2026-10-30T01:29:13.250Z"
+    },
+    {
+      "name": "review-pending-cancel-draft-blocks-modal",
+      "pass": true,
+      "detail": "Pending card original Review respects unsent cancellation draft; pending request unchanged",
+      "at": "2026-10-30T01:29:24.729Z"
+    },
+    {
+      "name": "review-pending-card-clear-restores-open-close",
+      "pass": true,
+      "detail": "Return abandons only local cancellation draft; original Review then opens/closes; pending remains pending",
+      "at": "2026-10-30T01:29:48.593Z"
+    }
+  ],
+  "evidence": {
+    "directory": "dist/quality/collaboration-140-142",
+    "browser_summary_sha256": "dec3addbfad479bd12a9c1642065df4a9d21744ab0a6bebf2cd80c7ec0a02fd7",
+    "screenshots_sha256": {
+      "developer-plan-saved-final-cn-desktop-light.jpg": "c416539df6d1900de24d905657a9f305fc4ea9f284edeefa495b8191a1fc8357",
+      "mentions-en-mobile-dark.jpg": "03e9b9d2731adf4c0b7a92d5158810ba4bf58a491f185c22b87a6de014a4e089",
+      "older-mention-cn-desktop-light.jpg": "7e15e76715b09f271b1d3daa2cece89342178d29a12601e5f137916ceded8a8a",
+      "original-review-cn-desktop-light.jpg": "4b0a48899c128f72bd14ab28ee79719f18f30a72dc1086ee967d6e5548bd1950",
+      "review-create-source-before-fix.jpg": "3b82a805859d755b09aea9b3b01048dbfd62a1c3175b3fa632891ef25a5acf8d",
+      "review-history-cn-mobile-dark.jpg": "bacce746dd741f2d26ee9b27d66a8efb1a640ed645ac224e485b125ad80f0126",
+      "review-pending-final-cn-desktop-light.jpg": "b8ab9c5339aa0fb7546ff643f2d6b499a692fdbc13cada5a233446523ecfd31c",
+      "review-request-after-fix-cn-desktop-light.jpg": "ec47ef964a07ec91b4e9185ba22f3f18bf8b1d1725ddd4714ccd4d7ce0bd0eca",
+      "reviewer-plan-saved-final-cn-desktop-light.jpg": "3982474b482d9e43adab5718a8cf1d7187c43bdff00b2329d5d1a28aff8ba854",
+      "team-pause-after-fix-cn-desktop-light.jpg": "029aba33dad2af87bc9e69c0241aae83d7c011ae548c1c3279abac449991499b",
+      "team-paused-cn-desktop-dark.jpg": "d006c83eb7abb4b4619deb7935c50e18723a50ec10cd0347dc16fd1e672d5e50",
+      "team-unknown-cn-desktop-dark.jpg": "a0d7ab63b62f02def3599d085cba631cb553bf1ac7f8616882f74ffddf29ab36",
+      "team-unknown-cn-desktop-light.jpg": "a819970cdd3501fcd2591cb670936959dfba046e415c4746e99bf3c662e0ef9f",
+      "team-unknown-en-mobile-dark.jpg": "173482902e69d12459a49c99154be8af8b3f6666ac5289121a19233849b3c125",
+      "test-plan-save-before-fix-cn-desktop-light.jpg": "74f04eee0ccc66d15ab5098419ea16421fc8b8491201aeb8b3870eb1b2525dee"
+    },
+    "api_read_receipt": ".cache/e2e/collaboration-140-142/corrected-final/build/final-ui-api-read.json",
+    "screenshots_committed": false
+  }
+}

@@ -2,7 +2,7 @@
   "stage": "T-MENTIONS-140",
   "date": "2026-10-30",
   "version": "1.0.0",
-  "status": "implementation_verified_gui_remaining",
+  "status": "scoped_verified",
   "full_platform_complete": false,
   "base": "86fb65e1168bd84f92aa8d758204e34b4d04f6a3",
   "ledger": {
@@ -235,8 +235,8 @@
     "initial_go": "Interrupted held read transaction in new single-connection test fixture; fixed and reran affected batch with90s cap. Not counted as passed.",
     "initial_types": "Optional ref type fixed; complete typecheck passed.",
     "initial_cli": "Generic API added disallowed project query; server400/no message. Dedicated discussion command now preserves exact original body.",
-    "browser": "Earlier capacity rejection is historical. User restored the same local origin; joint record has26 observed passes and2 pre-fix issues. Final corrected test-plan/guard GUI remains pending tool approval.",
-    "commit": "Reviewed implementation/evidence scope is prepared for dev. Final GUI is explicitly pending; excluded files remain untouched."
+    "browser": "Same authorized43959 origin; exact final asset verified;36joint checks passed, initial product issues retained and resolved. No approval bypass or formal Review submitted.",
+    "commit": "Implementation63bcc39; final scoped GUI evidence delivered separately; excluded data/artifacts preserved."
   },
   "source": {
     "inventory": ".cache/e2e/mentions-140/source-inventory.json",
@@ -255,6 +255,6 @@
     "report": "docs/quality/collaboration-integration-verification.md",
     "summary": "docs/quality/collaboration-integration-summary.json",
     "source_sha256": "c450f983e52ce91b3bbb274381c7bdf392b2195379edc5fb308b5fa31ada3dfd",
-    "final_gui": "pending; do not treat local HTTP or DOM as GUI acceptance"
+    "final_gui": "36 joint scoped browser checks passed; see docs/quality/collaboration-browser-summary.json. No145/full-platform claim."
   }
 }

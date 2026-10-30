@@ -1,8 +1,8 @@
 # 速码 1.0.0 文档索引
 
-- [验收责任请求](product/task-review-requests.md) · [合同](../contracts/task-review-requests.md) · [架构](architecture/task-review-requests.md) · [交互与AI SOP](design/task-review-requests.md) · [English](en/task-review-requests.md) · [当前证据](quality/task-review-requests-verification.md)：明确人员、准确交付、原Review与问题回流；实现及剩余GUI见[整合验证](quality/collaboration-integration-verification.md)。
+- [验收责任请求](product/task-review-requests.md) · [合同](../contracts/task-review-requests.md) · [架构](architecture/task-review-requests.md) · [交互与AI SOP](design/task-review-requests.md) · [English](en/task-review-requests.md) · [当前证据](quality/task-review-requests-verification.md)：明确人员、准确交付、原Review与问题回流；实现与36项实际GUI见[整合验证](quality/collaboration-integration-verification.md)。
 
-- [任务讨论精准提及](product/task-conversation-mentions.md) · [合同](../contracts/task-conversation-mentions.md) · [架构](architecture/task-conversation-mentions.md) · [交互与AI SOP](design/task-conversation-mentions.md) · [English](en/task-conversation-mentions.md)：明确人员、同事务通知、准确原消息定位及专用discussion CLI；当前实现与剩余GUI见[整合验证](quality/collaboration-integration-verification.md)。
+- [任务讨论精准提及](product/task-conversation-mentions.md) · [合同](../contracts/task-conversation-mentions.md) · [架构](architecture/task-conversation-mentions.md) · [交互与AI SOP](design/task-conversation-mentions.md) · [English](en/task-conversation-mentions.md)：明确人员、同事务通知、准确原消息定位及专用discussion CLI；当前实现与实际GUI见[整合验证](quality/collaboration-integration-verification.md)。
 
 - [当前人员收件箱](product/notification-inbox.md) · [合同](../contracts/notification-inbox.md) · [架构](architecture/notification-inbox.md) · [交互与AI SOP](design/notification-inbox.md) · [English](en/notification-inbox.md) · [限定验证](quality/notification-inbox-verification.md)：真实任务分配来源、私有已读归档及同源CLI。
 - [服务端个人／共享任务视图](design/shared-task-views.md) · [实际验证](quality/shared-task-views-verification.md)：沿原当前权限在线跨设备读取；完整离线仍待交付。

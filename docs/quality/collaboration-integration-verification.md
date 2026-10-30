@@ -1,6 +1,6 @@
 # 人员协作与交付衔接整合验证
 
-阶段：T-COLLAB-144，初始版本1.0.0，2026-10-30。负责人：主集成与协作领域。覆盖T-MENTIONS-140、T-TEAM-EXECUTION-141、T-REVIEW-142；状态implementation_verified_gui_remaining。完整平台仍为58 limited／34 pending／92项，未宣布P0–P7完成。
+阶段：T-COLLAB-144，初始版本1.0.0，2026-10-30。负责人：主集成与协作领域。覆盖T-MENTIONS-140、T-TEAM-EXECUTION-141、T-REVIEW-142；状态scoped_verified。完整平台仍为58 limited／34 pending／92项，未宣布P0–P7完成。
 
 ## 交付行为
 
@@ -23,7 +23,7 @@
 
 后端四个受影响包尝试完整检查：CLI、合同和本地化三个包完整通过；platform在180秒包预算结束时中断，不能称为全包通过。发现的既存测试问题分别为只读工具固定旧数量、严格Actor审计允许项遗漏和候选修复夹具缺少明确模型选择，修正仅涉及测试，生产门禁未放松。两项真实仓库apply在更短的仓库忽略目录TEMP下分别通过；原长路径失败保留，支持Windows路径环境解释。Codex工作区出站读取／取消也定向通过，原包超时不归因于单个用例耗时；安装版Codex实测的显式依赖未提供，仍为skip。
 
-真实浏览器在用户重新授权的同一`127.0.0.1:43959`进行，控制面和Web按源摘要匹配，保留原测试数据库、凭据、旧构建和失败截图，不重置数据掩盖问题。首轮发现的问题按上节修复；修正构建的最终GUI结果见[整合摘要](collaboration-integration-summary.json)。当前工作记录28项，26项已观察通过；两项测试计划问题的源码、真实HTTP和组件修复已通过，但最终开发／审核双角色保存及Review草稿保护的GUI复验仍未完成。协作验收会话显示waitingOnApproval，不尝试绕过或把只读HTTP／组件通过记作GUI通过。为减少等待消耗，先提交可审阅的实现与证据，完整目标继续推进。
+真实浏览器在用户重新授权的同一`127.0.0.1:43959`进行，控制面和Web按源摘要匹配，保留原测试数据库、凭据、旧构建和失败截图，不重置数据掩盖问题。首轮发现的问题按上节修复；修正构建的最终GUI结果见[整合摘要](collaboration-integration-summary.json)。最终36项独立检查全部通过；前期问题保留并标为resolved_verified。开发者原保存到v2后，发现旧未保存保护阻止首次reload，使旧页面资产继续驻留；在无dirty状态真实reload并确认最终资产index-CdZlBaPw后，审核者保存v3、开发者再保存v4均无误提示，published_revision保持0。两个原Review入口均验证有草稿阻止打开／保留内容、清理后正常开闭，未提交正式Review。接口只读复核v4、最后作者及新请求pending一致，见[浏览器证据](collaboration-browser-summary.json)。
 
 ## 交付边界
 
