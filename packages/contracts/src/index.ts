@@ -1504,6 +1504,23 @@ export interface CloudAssignmentBinding {
   delegation_version: number;
   delegation_sha256: string;
 }
+export interface CloudCollaborationSource {
+  project_id: string;
+  run_id: string;
+  node_id: string;
+  submission_id: string;
+  submission_version: number;
+  task_id: string;
+  node_spec_sha256: string;
+  request_sha256: string;
+}
+export interface CloudCollaborationView {
+  source: CloudCollaborationSource;
+  version: number;
+  latest_load?: CloudHistoryLoad;
+  last_loaded?: CloudHistoryLoad;
+  allowed_actions: (string)[];
+}
 export interface CloudCreateRequest {
   project_id: string;
   delegation_id: string;
@@ -1544,6 +1561,41 @@ export interface CloudDelegation {
   state: string;
   created_at: string;
   updated_at: string;
+}
+export interface CloudHistoryEntry {
+  sequence: number;
+  kind: string;
+  text?: string;
+}
+export interface CloudHistoryLoad {
+  id: string;
+  version: number;
+  operation_id: string;
+  head_version_at_start: number;
+  source: CloudCollaborationSource;
+  state: string;
+  coverage: string;
+  started_at: string;
+  deadline_at: string;
+  overdue: boolean;
+  finished_at?: string;
+  entry_count: number;
+  unsupported_count: number;
+  text_bytes: number;
+  error_code?: string;
+}
+export interface CloudHistoryLoadRequest {
+  project_id: string;
+  expected_submission_version: number;
+  expected_version: number;
+  idempotency_key: string;
+}
+export interface CloudHistoryPage {
+  load: CloudHistoryLoad;
+  items: (CloudHistoryEntry)[];
+  total: number;
+  next_after: number;
+  has_more: boolean;
 }
 export interface CloudLookupRequest {
   project_id: string;

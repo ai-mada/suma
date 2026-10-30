@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [原云任务会话加载](../contracts/workbuddy-cloud-collaboration.md) · [架构与AI SOP](architecture/workbuddy-cloud-collaboration.md) · [限定验证](quality/workbuddy-cloud-collaboration-verification.md) · [摘要](quality/workbuddy-cloud-collaboration-summary.json)：T-WORKBUDDY-CLOUD-COLLAB-164贯通明确连接、当前授权私有存档、原请求恢复及本地分页；13项真实App／HTTP检查、中英1366／390界面已复核，受控SDK不代表真实厂商或完整人工协作。
+
 - [云任务状态与暂停交互](../contracts/workbuddy-cloud-status-ui.md) · [限定验证](quality/workbuddy-cloud-status-verification.md) · [摘要](quality/workbuddy-cloud-status-summary.json)：T-WORKBUDDY-CLOUD-UI-163让供应方状态、原观察时间和安全失败提示默认可见，平台暂停独立表达；29项定向及3组组件浏览器验证，中英代表图已复核，无新增动作或轮询。
 
 - [工具连接与派发回执归属](../contracts/tool-operation-recovery.md) · [限定验证](quality/tool-operation-ownership-verification.md) · [摘要](quality/tool-operation-ownership-summary.json)：T-OPERATION-OWNERSHIP-162修复校验期间旧界面／旧记录误清理，保留原操作恢复；53项定向检查及3个浏览器组件组通过，关闭驱动异常和最终消费／跨窗口缺口分别记录。

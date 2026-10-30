@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-CLOUD-COLLAB-164：[原会话协作合同](../../contracts/workbuddy-cloud-collaboration.md)、[架构与AI SOP](../architecture/workbuddy-cloud-collaboration.md)及[限定证据](../quality/workbuddy-cloud-collaboration-verification.md)。已有准确原任务上，明确一次ACP加载形成本人私有有界快照，丢响应以同body／key恢复同一记录，本地分页／普通刷新不再Attach；覆盖始终未核实。Go平台14、闭合合同14、公共同源Schema1及Web33项分别通过，最终类型／7777对语言通过。真实App／授权HTTP／SQLite的13项检查使用受控SDK，55条按50＋5读取，原Run仍running、节点仍waiting且attempt／fence未变；中英代表图已复核。原驱动与首捕获退出1、同窗口最终续验0分别保留；源码未改、未另起加载。真实厂商、完整输入／权限／停止协作、多机与生产仍待验，58／34／92不变。
+
 T-WORKBUDDY-CLOUD-UI-163：[状态与交互合同](../../contracts/workbuddy-cloud-status-ui.md)及[限定证据](../quality/workbuddy-cloud-status-verification.md)。供应方原状态／观察／安全失败提示移到详情外，平台暂停独立显示，原关键状态优先级与权限动作不变。29项不同Web（2新增）、一次类型及7723对语言检查通过；3组真实组件可见性／键盘、中文1366与英文390代表图已复核。整页截图疑点经一次只读测量确认无产品溢出，原图保留、三组未重跑；窗口／进程正常退出。合成组件不代表完整App或供应方验收，58／34／92不变。
 
 T-OPERATION-OWNERSHIP-162：[工具操作恢复合同](../../contracts/tool-operation-recovery.md)与[限定证据](../quality/tool-operation-ownership-verification.md)。发送／校验／清理核对当前调用和原记录，删除失败保留pending；同步ticket防重复及旧finally，三个中英错误词条。53项不同Web、类型及7722对语言检查通过，3个实际浏览器组件组通过；驱动关闭退出1、原生关闭及进程不存在分别留证，无完整App／厂商调用。保护以删除前同步核对为界，最终消费确认、跨窗口持久和其他journal仍待交付，完整58／34／92不变。

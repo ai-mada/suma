@@ -1,5 +1,23 @@
 {
   "project": "suma",
+  "workbuddy_cloud_collaboration": {
+    "stage": "T-WORKBUDDY-CLOUD-COLLAB-164",
+    "version": "1.0.0",
+    "date": "2026-10-31",
+    "status": "scoped_original_session_snapshot_http_app_verified_controlled_sdk",
+    "contract": "contracts/workbuddy-cloud-collaboration.md",
+    "architecture": "docs/architecture/workbuddy-cloud-collaboration.md",
+    "report": "docs/quality/workbuddy-cloud-collaboration-verification.md",
+    "summary": "docs/quality/workbuddy-cloud-collaboration-summary.json",
+    "source_sha256": "f7f6af9e40482c5f49ff0d44a553e0d3c0ddf519498ce334a9a142acd3b8a7de",
+    "implementation": "Explicit exact-task ACP load through existing fixed SDK; owner-private bounded snapshots, current authorization, immutable original-request recovery, local sequence paging and unverified coverage. No automatic attach or Prompt/permission/Cancel.",
+    "verification": "Go platform14 (12new/2old), closed contract14 (5new/9old), public schema1new; Web33 distinct (25new/8old), final types0 and7777 paired keys/0 production hardcodes. Independent cross-layer review fixed GET source-conflict clearing; existing public paths/schemas unchanged.",
+    "actual": "Real App/current owner/HTTP/SQLite with controlled official SDK fixture:13 distinct checks, one load, identical-body/key recovery,50+5 local pages and no refresh Attach. Run running/node waiting, original attempt/fence unchanged. CN1366x960/EN390x844 independently viewed.",
+    "closeout": "Third driver exit1 and first capture helper exit1 retained; same-window idle/capture continuation exit0, no new history operation or source change. All owned runtimes closed normally; private SQLite backup retained and original task temp paths cleaned. Only one opt-in Go fixture compile, no full Web build.",
+    "remaining": "Real vendor, full input/permission/stop/live collaboration, waiting_input GUI, shared transcript access, cross-window recovery, other databases/OS, physical multihost, scale and production remain unverified.",
+    "ledger_unchanged": "58 limited /34 pending /92 total",
+    "full_platform_complete": false
+  },
   "workbuddy_cloud_status_ui": {
     "stage": "T-WORKBUDDY-CLOUD-UI-163",
     "version": "1.0.0",

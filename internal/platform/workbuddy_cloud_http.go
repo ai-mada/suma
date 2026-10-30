@@ -29,7 +29,7 @@ func cloudHTTPHeaders(w http.ResponseWriter) {
 // view before calling this handler. Domain commands recheck current authority.
 func (s *Server) workBuddyCloudHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, boundProject string, parts []string, c *WorkBuddyConnections) bool {
 	machine := len(parts) >= 2 && parts[0] == "runner" && parts[1] == "workbuddy-cloud-submissions"
-	browser := len(parts) >= 1 && (parts[0] == "workbuddy-cloud-delegations" || parts[0] == "workbuddy-cloud-submissions" || parts[0] == "workbuddy-cloud-nodes")
+	browser := len(parts) >= 1 && (parts[0] == "workbuddy-cloud-delegations" || parts[0] == "workbuddy-cloud-submissions" || parts[0] == "workbuddy-cloud-nodes" || parts[0] == "workbuddy-cloud-history-loads")
 	if !machine && !browser {
 		return false
 	}
@@ -40,6 +40,9 @@ func (s *Server) workBuddyCloudHTTP(w http.ResponseWriter, r *http.Request, acto
 	}
 	if c == nil {
 		writeError(w, &APIError{503, workBuddyUnavailable, workBuddyUnavailable, nil})
+		return true
+	}
+	if s.workBuddyCloudCollaborationHTTP(w, r, actor, scope, boundProject, parts, c) {
 		return true
 	}
 	if machine {

@@ -3,12 +3,16 @@ import {webcrypto} from 'node:crypto';
 import {act} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
-import type {CloudDelegation,CloudNodeView,CloudSubmission,WorkBuddyConnection} from '../../../packages/contracts/src';
+import type {CloudCollaborationSource,CloudDelegation,CloudNodeView,CloudSubmission,WorkBuddyConnection} from '../../../packages/contracts/src';
 import {ApiViewProvider} from './api-context';
 import type {Session} from './api';
 import {setLocale} from './i18n';
 import {WorkBuddyCloudTaskWorkspace} from './WorkBuddyCloudTaskWorkspace';
 import {cloudRequestDigest} from './workbuddy-cloud-task-model';
+
+// The new domain's HTTP and recovery are covered by its own real component tests.
+// Keep the original workspace's transport checks isolated and assert its source wiring.
+vi.mock('./WorkBuddyCloudCollaboration',()=>({WorkBuddyCloudCollaboration:({source,disabled}:{source:CloudCollaborationSource;disabled?:boolean})=><output data-collaboration-source={JSON.stringify(source)} data-collaboration-disabled={disabled?'yes':'no'}/>}));
 
 const session:Session={user:{id:'user-a',name:'A',email:'a@example.test'},organization:{id:'org-a',name:'Organization'},projects:[]},stamp='2026-10-30T00:00:00Z';
 let host:HTMLDivElement,root:Root|undefined,node:CloudNodeView,account:WorkBuddyConnection,calls:{path:string;body?:Record<string,unknown>;headers:Headers}[];
@@ -60,6 +64,7 @@ it('restores a lost delegation response after remount with the same body/key and
 it('does not expose another members connection or discard project-readable cloud progress on its private404',async()=>{
  node={...node,submission:submission(),allowed_actions:[]};transport(async path=>path.startsWith('/workbuddy-connections/')?Response.json({error:{code:'not_found',message:'Not found'}},{status:404}):Response.json(node));
  await render();expect(host.textContent).toContain('vendor-task-a');expect(host.textContent).toContain('working');expect(host.textContent).not.toContain(account.open_id);expect(host.textContent).not.toContain('Access changed');expect(host.querySelector('[data-cloud-action="refresh"]')).toBeNull();
+ expect(JSON.parse(host.querySelector('[data-collaboration-source]')!.getAttribute('data-collaboration-source')!)).toEqual({project_id:'project-a',run_id:'run-a',node_id:'node-a',submission_id:node.submission!.id,submission_version:node.submission!.version,task_id:'vendor-task-a',node_spec_sha256:node.node_spec_sha256,request_sha256:node.request_sha256});
 });
 
 it('uses only the human observe endpoint and removes protected source after a current permission refusal',async()=>{
@@ -67,6 +72,7 @@ it('uses only the human observe endpoint and removes protected source after a cu
  transport(async(path,body)=>body?Response.json({error:{code:'forbidden',message:'Access changed'}},{status:403}):Response.json(path.startsWith('/workbuddy-cloud-nodes?')?node:account));
  await render();await click('[data-cloud-action="refresh"]');expect(calls.find(call=>call.body)?.path).toBe('/workbuddy-cloud-submissions/submission-a/observe');
  expect(host.textContent).toContain('Access changed');expect(host.textContent).not.toContain('Approved cloud task');expect(host.textContent).not.toContain('vendor-task-a');expect(host.querySelector('[data-cloud-action="delegate"]')).toBeNull();
+ expect(host.querySelector('[data-collaboration-source]')).toBeNull();
 });
 
 it('retires late reads on a project/run change before fetching a stale private connection',async()=>{

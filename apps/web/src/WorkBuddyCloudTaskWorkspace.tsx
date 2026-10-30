@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
+import {WorkBuddyCloudCollaboration} from './WorkBuddyCloudCollaboration';
 import type {CloudNodeView,WorkBuddyConnection} from '../../../packages/contracts/src';
 import {ApiError,type ApiCaller} from './api';
 import {useApi,useApiView} from './api-context';
@@ -155,5 +156,6 @@ function CloudTaskController({project,runID,nodeID,revision,execution,taskTitle,
   {!denied&&current.current?.connectionFailed&&node&&<p className="cloud-task-hint" role="status">{t('connection_read_failed')}</p>}
   {!denied&&<WriteNotice action={action}/>}
   <WorkBuddyCloudTaskPanel model={model} onDelegate={delegate} onRevoke={revoke} onRefresh={observe} onReload={reload} onReconcile={reconcile}/>
+  {!denied&&node?.submission?.state==='task_known'&&node.submission.task&&<WorkBuddyCloudCollaboration source={{project_id:project,run_id:runID,node_id:nodeID,submission_id:node.submission.id,submission_version:node.submission.version,task_id:node.submission.task.task_id,node_spec_sha256:node.node_spec_sha256,request_sha256:node.request_sha256}} revision={revision} disabled={!!current.current?.reading||!!current.current?.sourceFailed}/>}
  </div>;
 }

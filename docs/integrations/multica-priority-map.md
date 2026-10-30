@@ -1,5 +1,7 @@
 # Multica下一步复用优先级
 
+T-WORKBUDDY-CLOUD-COLLAB-164沿原工具／节点工作区增加准确原会话显式加载与私有存档，复用现有固定ACP SDK、本人授权与原任务事实；独立实现，无新增Multica源码复制。[合同](../../contracts/workbuddy-cloud-collaboration.md)、[架构](../architecture/workbuddy-cloud-collaboration.md)及[13项真实App／HTTP限定证据](../quality/workbuddy-cloud-collaboration-verification.md)分别记录能力与边界。输入／权限／取消／实时协作及完整M11–M20继续实施，不将一次加载推断为完整供应方产品或平台完成，58／34／92不变。
+
 T-WORKBUDDY-CLOUD-UI-163沿原云任务工作区补齐默认可见观察与独立平台暂停，原未知／失联／停止等优先级不变。[合同](../../contracts/workbuddy-cloud-status-ui.md)与[29项定向／3组组件及代表图证据](../quality/workbuddy-cloud-status-verification.md)限定其范围。独立实现，无新增上游源码、动作或轮询，不外推完整M11–M20／供应方产品或平台完成，58／34／92不变。
 
 T-OPERATION-OWNERSHIP-162沿当前工具连接／派发恢复补齐调用和原记录归属；独立实现、无新增上游源码复制。[合同](../../contracts/tool-operation-recovery.md)与[53项定向／3组组件浏览器证据](../quality/tool-operation-ownership-verification.md)限定其范围。后续最终消费确认、跨窗口持久及其他恢复对象仍待交付，不外推完整M11–M20或平台完成，58／34／92不变。

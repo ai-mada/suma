@@ -1,0 +1,216 @@
+{
+  "stage": "T-WORKBUDDY-CLOUD-COLLAB-164",
+  "version": "1.0.0",
+  "date": "2026-10-31",
+  "base_commit": "24cce4a11922bbe2df70f9f61273f5bb67343df3",
+  "status": "isolated_original_session_load_http_app_and_archive_scoped_verified",
+  "contract": "contracts/workbuddy-cloud-collaboration.md",
+  "report": "docs/quality/workbuddy-cloud-collaboration-verification.md",
+  "source_sha256": "f7f6af9e40482c5f49ff0d44a553e0d3c0ddf519498ce334a9a142acd3b8a7de",
+  "source_evidence": {
+    "inputs": 45,
+    "scope": "Feature and required runtime inventory; not an entire repository source copy",
+    "frozen_before_and_after_actual": true,
+    "fingerprint": ".cache/workbuddy-cloud-collab-164/actual/source-fingerprint.json",
+    "fingerprint_sha256": "ff436e3b8bd40d79af8e17cd57cb91fada948e1d7becf1ce93da9760e5e2e8e7",
+    "backend": ".cache/workbuddy-cloud-collab-164/backend-evidence.json",
+    "backend_sha256": "03c07a125f57432299b0063bccee56d2dee9cb6470352496326059d6753238f2",
+    "web": ".cache/workbuddy-cloud-collab-164/web-evidence.json",
+    "web_sha256": "127548c7a16a450fa99578a6ae8b564614832b1364031beede1099848f618f93"
+  },
+  "implementation": {
+    "explicit_original_session_load": true,
+    "archive_get_or_paging_attaches": false,
+    "current_owner_source_and_project_authority": true,
+    "immutable_original_operation_receipt": true,
+    "coverage": "unverified",
+    "local_sequence_is_provider_cursor": false,
+    "safe_literal_entries_only": true,
+    "prompt_permission_cancel_implemented": false,
+    "full_manual_collaboration_complete": false,
+    "new_dependencies": 0,
+    "upstream_source_copy": 0
+  },
+  "checks": {
+    "go_platform": {
+      "passed": 14,
+      "new": 12,
+      "existing": 2,
+      "exit": 0,
+      "seconds": 8.219,
+      "log": ".cache/workbuddy-cloud-collab-164/backend-final.jsonl"
+    },
+    "go_contract": {
+      "passed": 14,
+      "new": 5,
+      "existing": 9,
+      "exit": 0,
+      "seconds": 0.15,
+      "log": ".cache/workbuddy-cloud-collab-164/backend-contract-final.jsonl"
+    },
+    "go_public_contract": {
+      "passed": 1,
+      "new": 1,
+      "exit": 0,
+      "tool_chunk": "1cdc19",
+      "test": "TestWorkBuddyCloudCollaborationContractsBindOriginalLoadAndPrivateArchive",
+      "empty_file_not_used_as_json_result": ".cache/workbuddy-cloud-collab-164/contracts-test.jsonl"
+    },
+    "web": {
+      "distinct_passed": 33,
+      "new": 25,
+      "existing": 8,
+      "model": 16,
+      "new_component": 9,
+      "existing_workspace": 8,
+      "exit": 0,
+      "counting": "Final component9 includes prior new cases; original Workspace8 and focused model fixture repair are not counted again."
+    },
+    "public_generation": {
+      "exit": 0,
+      "tool_chunk": "a69ced",
+      "declared_models": 791,
+      "generated_schemas": 792,
+      "paths": 373,
+      "new_paths": 3,
+      "new_schemas": 6,
+      "existing_path_or_schema_drift": 0,
+      "empty_file_not_used_as_stdout": ".cache/workbuddy-cloud-collab-164/contract-generation.log"
+    },
+    "typecheck": {
+      "exit": 0,
+      "tool_chunk": "e539b1",
+      "log": ".cache/workbuddy-cloud-collab-164/types-final.log",
+      "log_bytes": 0,
+      "meaning": "Quiet tsc success; exit0 is from the actual tool record. Earlier overdue:null negative fixture diagnostic is retained in types.log."
+    },
+    "i18n": {
+      "exit": 0,
+      "tool_chunk": "b6595e",
+      "paired_keys": 7777,
+      "production_hardcodes": 0,
+      "log": ".cache/workbuddy-cloud-collab-164/i18n-final.log",
+      "log_bytes": 102
+    },
+    "documentation": {
+      "status": "passed_once_after_report_write",
+      "exit": 0,
+      "tool_chunk": "67e42e",
+      "command": "node scripts/check-docs.mjs",
+      "markdown_files": 478,
+      "api_paths": 373,
+      "schema_references": 3446
+    },
+    "independent_review": "Source-conflict protected clearing and stale-read invalidation addressed; Root final backend9/Web9/actual45 hashes verified unchanged.",
+    "full_suites": 0,
+    "full_web_builds": 0,
+    "actual_go_fixture_compilations": 1
+  },
+  "actual": {
+    "fixture": "Real Service/Engine/SQLite/HTTP and full App/ActorView/Run workspace, existing controlled fixed ACP SDK HTTP/SSE fixture; not real vendor",
+    "accepted_isolated_attempt": 3,
+    "passed_distinct_checks": 13,
+    "checks": [
+      "Real auth/session owner and project ActorView",
+      "Initial metadata version0 and zero Attach",
+      "Actual cloud workspace and one shared React runtime before history write",
+      "Explicit load committed before controlled browser response loss",
+      "Local reread retains pending original operation without Attach",
+      "Same raw body/key restores the same loaded/unverified load",
+      "Local50+5 stable sequence pagination without external history request",
+      "Normal App refresh restores stored page without Attach",
+      "Visible unverified-coverage boundary",
+      "Normal-idle narrow keyboard focus, visible2px outline and44px target",
+      "Original run/node/version/reason/attempt/fence unchanged",
+      "Only initialize/load, no Prompt/Cancel/permission answer or extra task from history actions",
+      "No renderer or unexpected business-write failure"
+    ],
+    "sdk": {
+      "session_access": 1,
+      "attach": 1,
+      "initialize": 1,
+      "session_load": 1,
+      "acp_posts": 2,
+      "unexpected_rpc": 0
+    },
+    "history_post_transports": 2,
+    "load_entities": 1,
+    "controlled_known_task_seed_in_accepted_fixture": 1,
+    "new_provider_task_from_history_actions": 0,
+    "earlier_isolated_fixtures": {"count": 2, "controlled_known_task_seed_each": 1, "attach_each": 0, "history_operations_each": 0, "counted_as_final_journey": false},
+    "entries": 55,
+    "local_pages": [50, 5],
+    "coverage": "unverified",
+    "original_body_sha256": "6c84a6eb47cf14c70fdd24fa9f736a72322a8ab376f052c1c7d4f45e485417b3",
+    "original_key_sha256": "637f59588b4e836509740d679b686cf695900ad27f0bb8fc71d1e276fb08a580",
+    "original_wait": {
+      "run_state": "running",
+      "node_state": "waiting",
+      "reason": "cloud.observation_unconfirmed",
+      "attempt": 1,
+      "fence": 1,
+      "run_version": 3,
+      "unchanged": true,
+      "waiting_input_gui_claimed": false
+    },
+    "source_and_build": {
+      "frozen_inputs": 45,
+      "binary_sha256": "18b1ef9ba016f7be70eef5d4f50297407be6f33d4263a5f583439bec192e085c",
+      "fixture_source_sha256": "eda7ea7cb2d7a2b4d227f3a9e5517f1cb1d46d55e0843688e1197799f6782e49",
+      "go_compilations": 1,
+      "go_recompiled_after_first_run": false,
+      "full_web_builds": 0,
+      "source_copy": false,
+      "real_entry": "apps/web/index.html",
+      "real_entry_sha256": "3fb2912e8457702afcde94e3e24aec80a8f6c626f742a2ccc703036b03457ca5"
+    },
+    "command_history": [
+      {"attempt": 1, "exit": 1, "checks_before_stop": 0, "history_operations": 0, "reason": "Mixed optimizer React generations", "archive": ".cache/workbuddy-cloud-collab-164/actual/attempt-01"},
+      {"attempt": 2, "exit": 1, "checks_before_stop": 2, "history_operations": 0, "reason": "Overstrict entry-v fixture guard; all entry hashes need not match", "archive": ".cache/workbuddy-cloud-collab-164/actual/attempt-02"},
+      {"attempt": 3, "command": "verify.cjs", "exit": 1, "checks_before_stop": 9, "history_operations": 1, "reason": "Keyboard assertion raced responsive focus; original live environment retained", "tool_start": "6be8b2", "tool_completion": "d8e042"},
+      {"attempt": 3, "command": "recheck-idle-keyboard.cjs", "exit": 0, "new_business_operations": 0, "raw_stdout_file": null, "tool_chunk": "a93516"},
+      {"attempt": 3, "command": "finish-live.cjs first capture", "exit": 1, "new_business_operations": 0, "reason": "Expected844px but captured843px; original image/log retained", "tool_chunk": "eca742"},
+      {"attempt": 3, "command": "finish-live.cjs same-window final continuation", "exit": 0, "new_business_operations": 0, "tool_chunk": "92fc0a"}
+    ],
+    "earlier_read_checks_added_to_final13": false,
+    "new_fixture_after_history_post": false,
+    "raw_stdout_stderr_preserved": true,
+    "tool_only_outputs_reconstructed": false,
+    "root_visual_review": "Passed: Root independently read safe receipt and visually reviewed final CN1366x960 and EN390x844 viewport PNGs.",
+    "screenshots": [
+      {"name": "cloud-collaboration-zh-1366-final.png", "width": 1366, "height": 960, "capture": "viewport", "sha256": "f781a548c340c0f1772d21c421bcd1a0804cc5d33954d94f075fb13532533074"},
+      {"name": "cloud-collaboration-en-390-final-v2.png", "width": 390, "height": 844, "capture": "viewport", "sha256": "86f0885ef10a897c7d0161caf115311ee8d9fafc6685a7ca33cef0e3941ba2c8"}
+    ],
+    "close_proof": {"window": true, "native_window": true, "quit": true, "electron_exit": true, "vite_exit": true, "go_host_exit": true},
+    "owned_processes_absent": true,
+    "force_stop": false,
+    "original_temp_database_and_data_directory_absent": true,
+    "private_snapshot": {
+      "retained": true,
+      "bytes": 2846720,
+      "sha256": "188cd4a6fc9765e0109d41a08d7957c8dc040dcfbdcf292b81ede27c55fb6a63",
+      "method": "Parameterized SQLite VACUUM INTO absent private target after HTTP close, before helper cleanup",
+      "readonly_counts": {"heads": 1, "loads": 1, "entries": 55, "submissions": 1},
+      "unchanged_by_readonly_audit": true,
+      "delivered": false
+    },
+    "safe_receipt": ".cache/workbuddy-cloud-collab-164/actual/receipt.json",
+    "safe_receipt_sha256": "388eccdf0e225e677bec2358abda5027f35660538909ee27e7ed93c4f53ed0c2",
+    "safe_actual_summary": ".cache/workbuddy-cloud-collab-164/actual/actual-summary.json",
+    "safe_actual_summary_sha256": "34ed8e97482922b8279af9b6ca3248f31579e0645ff38941e706bb9421044f98",
+    "artifact_manifest": {"path": "dist/quality/workbuddy-cloud-collab-164/artifact-manifest.json", "sha256": "0574c564b93effd178308ad6db72b5eb2cec0bec615f5eb8c7f71ad4d6f9c3df", "safe_files": 11},
+    "private_cookie_ticket_key_database_or_raw_body_delivered": false,
+    "runs_started_by_ui": 0,
+    "models": 0,
+    "new_runner_executions": 0
+  },
+  "boundaries": [
+    "Controlled original-task SDK/HTTP/SSE fixture, not real WorkBuddy account/provider or production.",
+    "Loaded confirms this collection only; coverage remains unverified, local sequence is not a provider cursor, and original waiting state is not released.",
+    "No Prompt turn, permission handling, active Cancel/remote stop, full history guarantee, shared team archive or complete manual collaboration.",
+    "No waiting_input GUI, additional roles, physical mobile devices, multihost, other database/OS, scale, installer or new real Runner acceptance."
+  ],
+  "ledger_unchanged": "58 limited /34 pending /92 total; full31 requirements and P0-P7 retained",
+  "full_manual_collaboration_complete": false,
+  "full_platform_complete": false
+}
