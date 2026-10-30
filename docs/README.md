@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [云任务状态与暂停交互](../contracts/workbuddy-cloud-status-ui.md) · [限定验证](quality/workbuddy-cloud-status-verification.md) · [摘要](quality/workbuddy-cloud-status-summary.json)：T-WORKBUDDY-CLOUD-UI-163让供应方状态、原观察时间和安全失败提示默认可见，平台暂停独立表达；29项定向及3组组件浏览器验证，中英代表图已复核，无新增动作或轮询。
+
 - [工具连接与派发回执归属](../contracts/tool-operation-recovery.md) · [限定验证](quality/tool-operation-ownership-verification.md) · [摘要](quality/tool-operation-ownership-summary.json)：T-OPERATION-OWNERSHIP-162修复校验期间旧界面／旧记录误清理，保留原操作恢复；53项定向检查及3个浏览器组件组通过，关闭驱动异常和最终消费／跨窗口缺口分别记录。
 
 - [任务显示列](design/task-columns.md) · [合同](../contracts/task-columns.md) · [限定验收](quality/task-columns-verification.md) · [摘要](quality/task-columns-summary.json)：T-TASK-COLUMNS-160提供简洁列显示／排序，本机和共享视图同源，原保存响应丢失后不重复创建；18项实际检查及中英代表图已复核。

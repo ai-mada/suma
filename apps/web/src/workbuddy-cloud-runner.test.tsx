@@ -37,6 +37,18 @@ afterEach(async()=>{if(root)await act(async()=>root?.unmount());root=undefined;h
 async function render(value:WorkBuddyCloudTaskModel,onReload=vi.fn(async()=>{})){
  await act(async()=>{root??=createRoot(host);root.render(<WorkBuddyCloudTaskPanel model={value} onDelegate={async()=>({kind:'confirmed'})} onRevoke={async()=>({kind:'confirmed'})} onRefresh={async()=>({kind:'confirmed'})} onReload={onReload}/>);});
 }
+
+it('keeps platform pause visible beside an existing provider task without replacing a critical reason',async()=>{
+ const value=model();value.execution=execution({runState:'paused',nodeState:'waiting'});
+ for(const [reason,phase] of [['','known'],['cloud.runner_disconnected','runner_disconnected']]){
+  value.execution={...value.execution!,reason};await render(value);
+  expect(host.querySelector('[data-cloud-runner-phase]')?.getAttribute('data-cloud-runner-phase')).toBe(phase);
+  const pause=host.querySelector('[data-cloud-platform-paused]');expect(pause).not.toBeNull();expect(pause?.closest('details:not([open])')).toBeNull();expect(pause?.textContent).toContain('Original run paused');
+  const provider=host.querySelector('.cloud-task-provider-state');expect(provider?.textContent).toBe('completed');expect(provider?.closest('details:not([open])')).toBeNull();
+  expect(host.querySelector<HTMLDetailsElement>('[data-cloud-execution-details]')?.open).toBe(false);
+  expect(host.querySelectorAll('button')).toHaveLength(2);
+ }
+});
 it('shows one next action with collapsed exact execution facts and unreported cost',async()=>{
  await render(model());expect(host.querySelector('[data-cloud-runner-phase]')?.textContent).toContain('Platform delivery evidence required');
  expect(host.querySelector<HTMLDetailsElement>('[data-cloud-execution-details]')?.open).toBe(false);

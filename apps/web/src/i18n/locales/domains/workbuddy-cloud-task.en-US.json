@@ -17,6 +17,7 @@
   "workbuddy-cloud-task.runner_hint_awaiting_submission": "A formal Runner claimed this attempt. No saved cloud creation result is available yet.",
   "workbuddy-cloud-task.runner_status_run_paused": "Original run paused",
   "workbuddy-cloud-task.runner_hint_run_paused": "Use the original run controls to resume. Delegation does not start or resume a run.",
+  "workbuddy-cloud-task.platform_paused_boundary": "Pausing the platform run does not confirm that the original WorkBuddy task stopped. Use the original run controls to resume.",
   "workbuddy-cloud-task.runner_status_remote_unknown": "Provider result unknown",
   "workbuddy-cloud-task.runner_hint_remote_unknown": "The original cloud task remains fixed. Query it explicitly; an unknown provider status never authorizes another creation.",
   "workbuddy-cloud-task.runner_status_waiting_input": "Provider waiting for input",

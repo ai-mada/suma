@@ -1,5 +1,20 @@
 {
   "project": "suma",
+  "workbuddy_cloud_status_ui": {
+    "stage": "T-WORKBUDDY-CLOUD-UI-163",
+    "version": "1.0.0",
+    "date": "2026-10-31",
+    "status": "windows_component_observation_and_pause_visible_scoped_verified",
+    "contract": "contracts/workbuddy-cloud-status-ui.md",
+    "report": "docs/quality/workbuddy-cloud-status-verification.md",
+    "summary": "docs/quality/workbuddy-cloud-status-summary.json",
+    "source_sha256": "a42c1d5cb99a08f2a8df37514f44fe1ab6dbdc42e9779c90ca279fbbc7aa6851",
+    "implementation": "Provider observation and safe old-read warning visible outside technical details; independent platform pause notice preserves original phase priority. No model/Workspace/backend/actions/polling/dependency change.",
+    "verification": "29 distinct Web checks (2new/27existing), one types0 and7723 paired keys/0 hardcodes; read-only independent review.",
+    "actual": "3 real component groups, one read-only final EN capture continuation, no business/model calls; CN1366 and accurate EN390 viewport independently viewed. Original373 capture retained; both native/dev runtimes closed normally, exact PIDs absent.",
+    "ledger_unchanged": "58 limited /34 pending /92 total",
+    "full_platform_complete": false
+  },
   "tool_operation_ownership": {
     "stage": "T-OPERATION-OWNERSHIP-162",
     "version": "1.0.0",

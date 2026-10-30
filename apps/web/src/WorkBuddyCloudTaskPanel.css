@@ -37,6 +37,11 @@
 .workbuddy-cloud-task .cloud-task-facts dd{margin:0;overflow-wrap:anywhere;font-size:14px;line-height:1.65}
 .workbuddy-cloud-task .cloud-task-facts code{font-size:inherit;white-space:normal;overflow-wrap:anywhere}
 .cloud-task-provider-state{font-weight:600}
+.cloud-task-observation{display:grid;gap:8px;min-width:0}
+.cloud-task-platform-paused{display:flex;align-items:flex-start;gap:9px;padding-inline-start:12px;border-inline-start:2px solid var(--border,#dce1ea);min-width:0}
+.cloud-task-platform-paused>svg{flex:none;margin-top:3px;color:var(--muted,#596579)}
+.cloud-task-platform-paused>div{min-width:0;overflow-wrap:anywhere}
+.cloud-task-platform-paused p{margin:4px 0 0;font-size:14px;color:var(--muted,#596579)}
 .cloud-task-hint{font-size:12px;line-height:1.65;color:var(--muted,#596579);margin:0;overflow-wrap:anywhere}
 .cloud-task-inline-error{font-size:14px;margin:0;overflow-wrap:anywhere}
 .cloud-task-form{display:grid;gap:16px;min-width:0}

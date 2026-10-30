@@ -21,6 +21,20 @@ async function click(selector:string){const element=host.querySelector<HTMLEleme
 async function change(selector:string,value:string){const element=host.querySelector<HTMLSelectElement>(selector)!;expect(element,selector).not.toBeNull();await act(async()=>{Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value')!.set!.call(element,value);element.dispatchEvent(new Event('change',{bubbles:true}));});}
 async function approve(){await change('[data-cloud-field="connection"]','connection-a');await change('[data-cloud-field="duration"]','60');await click('[data-cloud-field="acknowledge"]');}
 
+it('exposes the original provider observation and safe read failure while execution details stay closed',async()=>{
+ const value=base(),observedAt='2026-10-30T00:00:00Z';
+ value.actions={delegate:false,revoke:false,refresh:true};
+ value.submission={id:'submission-a',version:3,state:'task_known',taskID:'provider-original',providerStatus:'completed',observedAt,lastError:'private provider diagnostic'};
+ await render(value);
+ expect(host.querySelector<HTMLDetailsElement>('[data-cloud-execution-details]')?.open).toBe(false);
+ const status=host.querySelector('.cloud-task-provider-state'),observed=host.querySelector('time[datetime="'+observedAt+'"]'),failure=host.querySelector('.cloud-task-inline-error');
+ expect(status?.textContent).toBe('completed');expect(status?.closest('details:not([open])')).toBeNull();
+ expect(observed).not.toBeNull();expect(observed?.closest('details:not([open])')).toBeNull();
+ expect(failure).not.toBeNull();expect(failure?.closest('details:not([open])')).toBeNull();
+ expect(host.textContent).not.toContain('private provider diagnostic');
+ expect(host.querySelector('code')?.closest('details:not([open])')).not.toBeNull();
+});
+
 it('requires an eligible exact-node connection, explicit duration and acknowledgement before delegation',async()=>{
  const onDelegate=vi.fn((_draft:WorkBuddyCloudDelegateDraft)=>confirmed());await render(base(),{onDelegate});
  expect(onDelegate).not.toHaveBeenCalled();expect(host.querySelector<HTMLButtonElement>('[data-cloud-action="delegate"]')!.disabled).toBe(true);

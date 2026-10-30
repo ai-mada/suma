@@ -1,0 +1,118 @@
+{
+  "stage": "T-WORKBUDDY-CLOUD-UI-163",
+  "version": "1.0.0",
+  "date": "2026-10-31",
+  "base_commit": "95ba1a122a97349b80a45f33667f1859b197ddfd",
+  "status": "windows_component_observation_and_pause_visible_scoped_verified",
+  "contract": "contracts/workbuddy-cloud-status-ui.md",
+  "report": "docs/quality/workbuddy-cloud-status-verification.md",
+  "source_sha256": "a42c1d5cb99a08f2a8df37514f44fe1ab6dbdc42e9779c90ca279fbbc7aa6851",
+  "source_evidence": {
+    "path": ".cache/workbuddy-cloud-ui-163/evidence.json",
+    "sha256": "02d2f4e4804af6c83deca4efd32cfe09827805034faa577a91c012fd1fe9c46d",
+    "inputs": 8,
+    "changed_files": 6
+  },
+  "implementation": {
+    "production_files": 2,
+    "test_files": 2,
+    "locale_files": 2,
+    "new_locale_pairs": 1,
+    "model_or_workspace_changed": false,
+    "new_dependencies": 0,
+    "new_upstream_source_copied": 0,
+    "new_buttons": 0,
+    "new_polling": 0,
+    "backend_or_permission_changes": false
+  },
+  "checks": {
+    "documentation": {
+      "exit": 0,
+      "tool_chunk": "07498c",
+      "markdown_files": 476,
+      "api_paths": 370,
+      "schema_references": 3423,
+      "command": "node scripts/check-docs.mjs"
+    },
+    "red": {
+      "passed": 0,
+      "failed": 2,
+      "filtered_not_run": 21,
+      "tool_chunk": "b73fda"
+    },
+    "green": {
+      "distinct_passed": 29,
+      "new": 2,
+      "existing": 27,
+      "files": 3,
+      "tool_chunk": "84ee69",
+      "sha256": "4362f293efa70322ac9e0964d47cc7015d10b3661df2d3c13debc875f8e72afa"
+    },
+    "typecheck": {
+      "exit": 0,
+      "tool_chunk": "74bc68",
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "cwd": "apps/web",
+      "log": ".cache/workbuddy-cloud-ui-163/types.log"
+    },
+    "i18n": {
+      "exit": 0,
+      "tool_chunk": "328d72",
+      "paired_keys": 7723,
+      "production_hardcodes": 0,
+      "command": "node scripts/check-i18n.mjs",
+      "cwd": "apps/web",
+      "log": ".cache/workbuddy-cloud-ui-163/i18n.log"
+    },
+    "independent_review": "No blocking finding; frozen8 inputs verified, read-only with no repeated testing.",
+    "full_suites": 0,
+    "full_builds": 0
+  },
+  "actual": {
+    "groups": 3,
+    "fixture_only": true,
+    "real_component_dom": true,
+    "business_http_requests": 0,
+    "action_calls": 0,
+    "runs": 0,
+    "models": 0,
+    "runner": 0,
+    "command_exit": 0,
+    "tool_chunk": "b8990d",
+    "raw_logs": true,
+    "visual_continuation": {
+      "states": 1,
+      "original_groups_rerun": 0,
+      "command_exit": 0,
+      "tool_chunk": "5b917b",
+      "conclusion_sha256": "640def9641e05f79d3c1fdaf6caf22e62a9a5a0b6dfc0b90c00ad1ae3c83feff",
+      "source_changed": false,
+      "scrollbars_hidden": false,
+      "zoom_changed": false
+    },
+    "root_visual_review": "pass: CN1366x960 fullPage and EN390x844 viewport; original EN373x871 retained as capture evidence.",
+    "normal_close": true,
+    "owned_processes_absent": true,
+    "force_stop": false,
+    "artifact_manifest": {
+      "path": "dist/quality/workbuddy-cloud-ui-163/artifact-manifest.json",
+      "sha256": "a7d1ea27e8fc1916c5100d40520e450c40de7018d1570c774ae3365c92e02c44"
+    }
+  },
+  "bootstrap_history": {
+    "failed_before_node_launch": true,
+    "tool_chunk": "a122d8",
+    "reason": "Get-Command returned two Node application paths; cache wrapper now selects the first.",
+    "receipt": ".cache/workbuddy-cloud-ui-163/gui/command-receipt.bootstrap-01.json",
+    "sha256": "9398f71083ddbdb1389ac12864c514387990ae0b95f24b6da506ba06c699d138",
+    "original_raw_stdout_file": null,
+    "product_changed": false
+  },
+  "boundaries": [
+    "Synthetic current model props and actual components, not a full App/authorized HTTP/provider acceptance.",
+    "Platform pause and provider observation remain independent; no remote stop, code/test/human-acceptance or billing inference.",
+    "Physical devices, other OS/database, multihost, scale, installers and production remain unverified."
+  ],
+  "ledger_unchanged": "58 limited /34 pending /92 total",
+  "full_platform_complete": false
+}

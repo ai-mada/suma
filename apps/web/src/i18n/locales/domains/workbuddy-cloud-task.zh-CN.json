@@ -17,6 +17,7 @@
   "workbuddy-cloud-task.runner_hint_awaiting_submission": "正式执行器已领取本次尝试，尚无已保存的云创建结果。",
   "workbuddy-cloud-task.runner_status_run_paused": "原运行已暂停",
   "workbuddy-cloud-task.runner_hint_run_paused": "请使用原运行控制恢复；保存委派不会自动启动或恢复运行。",
+  "workbuddy-cloud-task.platform_paused_boundary": "平台暂停不代表 WorkBuddy 原任务已停止。如需继续，请使用原运行的恢复操作。",
   "workbuddy-cloud-task.runner_status_remote_unknown": "供应方结果未知",
   "workbuddy-cloud-task.runner_hint_remote_unknown": "保留准确原云任务，可明确查询；供应方状态未知不授予再次创建资格。",
   "workbuddy-cloud-task.runner_status_waiting_input": "供应方等待输入",
