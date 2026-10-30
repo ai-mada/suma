@@ -4,7 +4,7 @@
 
 当前统一开发基线为 **1.0.0**，完整平台仍在实现与验收中。产品范围与初始化策略见 [1.0.0 基线](docs/product/v1-baseline.md)，实际能力与限制见 [交付状态](docs/delivery/status.md)，完整 P0–P7 和扩展需求 1–26 见 [实施计划](docs/delivery/implementation-plan.md)。当前58项有限实现、34项待办，共92项；新增全平台智能输入／配置进入待办。
 
-最近交付：[交接请求收件与准确定位](docs/product/task-handoff-inbox.md)沿原事务通知接收人，从收件箱直达准确交接，责任接收仍独立于正式Review。16项实际本机GUI／HTTP断言通过，视觉图片仍待验；见[报告](docs/quality/task-handoff-inbox-verification.md)及[摘要](docs/quality/task-handoff-inbox-summary.json)，完整58／34／92不变。
+最近交付：[批量负责人分配](docs/product/task-owner-changes.md)支持最多16个明确选择、真实人员匹配、只读预览与一次原子提交；不变项不重复更新，通知和依赖失效沿原事务。限定检查、23项实际本机断言及5项最终只读核对见[报告](docs/quality/task-owner-changes-verification.md)／[摘要](docs/quality/task-owner-changes-summary.json)；最终中英截图已检查，刷新后的GUI恢复仍有宿主验收缺口。完整58／34／92不变。
 
 当前[WorkBuddy账号授权](docs/product/workbuddy-connections.md)沿成熟OAuth SDK管理当前项目本人的连接；浏览器与桌面同会话授权分别核验，桌面返回仅在无草稿／未确认写入时GET原连接，不reload或自动标为已连接。工具页默认收起；[连接证据](docs/quality/workbuddy-connections-verification.md)与[原生窗口证据](docs/quality/workbuddy-desktop-oauth-verification.md)分开记录，最终候选18项实际本机GUI／HTTP通过；视觉图片、真实供应方账号和云派发仍待验。
 

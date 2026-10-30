@@ -362,6 +362,67 @@ func (s *Service) Update(ctx context.Context, actor Actor, project, kind, id str
 		err = json.Unmarshal([]byte(hash), &r)
 		return r, err
 	}
+	r, err := s.updateCommandRecordTx(ctx, auth, project, kind, id, m)
+	if err != nil {
+		return r, err
+	}
+	if kind == "requirements" {
+		rows, e := tx.QueryContext(ctx, s.q(`SELECT id FROM suma_tasks WHERE tenant_id=? AND project_id=? AND requirement_id=?`), p.TenantID, project, id)
+		if e != nil {
+			return r, e
+		}
+		ids := []string{}
+		for rows.Next() {
+			var taskID string
+			if e = rows.Scan(&taskID); e != nil {
+				rows.Close()
+				return r, e
+			}
+			ids = append(ids, taskID)
+		}
+		e = rows.Err()
+		rows.Close()
+		if e != nil {
+			return r, e
+		}
+		if err = s.InvalidateDependentsTx(ctx, tx, auth, project, ids, true); err != nil {
+			return r, err
+		}
+	}
+	if kind == "tasks" {
+		if err = s.InvalidateDependentsTx(ctx, tx, auth, project, []string{id}, false); err != nil {
+			return r, err
+		}
+	}
+	if kind == "documents" {
+		if err = s.indexEvent(ctx, tx, r, "upsert"); err != nil {
+			return r, err
+		}
+	}
+	if err = s.commandActivity(ctx, auth, kind+".updated", id, r.Title); err != nil {
+		return r, err
+	}
+	if err = s.saveCommandReceipt(ctx, auth, key, hash, r); err != nil {
+		return r, err
+	}
+	return r, tx.Commit()
+}
+
+// updateCommandRecordTx applies the ordinary update in its original authority
+// transaction. The caller owns graph invalidation, activity, receipt and commit,
+// so an atomic batch can write all roots before invalidating their dependents.
+func (s *Service) updateCommandRecordTx(ctx context.Context, auth *authorizedCommand, project, kind, id string, m map[string]any) (Record, error) {
+	if auth == nil || !tables[kind] {
+		return Record{}, forbidden()
+	}
+	tx := auth.tx
+	if err := assertProjectCommand(tx, auth, project); err != nil {
+		return Record{}, err
+	}
+	if err := rejectProtectedRecordProvenanceInput(m); err != nil {
+		return Record{}, err
+	}
+	p := auth.currentPrincipal
 	r, err := scanRecord(tx.QueryRowContext(ctx, s.q(`SELECT `+recordColumns+` FROM suma_`+kind+` WHERE tenant_id=? AND project_id=? AND id=?`), p.TenantID, project, id))
 	if errors.Is(err, sql.ErrNoRows) {
 		return r, missing()
@@ -433,6 +494,9 @@ func (s *Service) Update(ctx context.Context, actor Actor, project, kind, id str
 	if err = s.validateRecord(ctx, tx, auth, r, kind); err != nil {
 		return r, err
 	}
+	if r.Version >= 2147483647 {
+		return r, conflict(recordVersionExhausted)
+	}
 	r.Version++
 	r.Name = r.Title
 	r.UpdatedAt = now()
@@ -451,50 +515,14 @@ func (s *Service) Update(ctx context.Context, actor Actor, project, kind, id str
 			return r, err
 		}
 	}
-	if kind == "requirements" {
-		rows, e := tx.QueryContext(ctx, s.q(`SELECT id FROM suma_tasks WHERE tenant_id=? AND project_id=? AND requirement_id=?`), p.TenantID, project, id)
-		if e != nil {
-			return r, e
-		}
-		ids := []string{}
-		for rows.Next() {
-			var taskID string
-			if e = rows.Scan(&taskID); e != nil {
-				rows.Close()
-				return r, e
-			}
-			ids = append(ids, taskID)
-		}
-		e = rows.Err()
-		rows.Close()
-		if e != nil {
-			return r, e
-		}
-		if err = s.InvalidateDependentsTx(ctx, tx, auth, project, ids, true); err != nil {
-			return r, err
-		}
-	}
-	if kind == "tasks" {
-		if err = s.InvalidateDependentsTx(ctx, tx, auth, project, []string{id}, false); err != nil {
-			return r, err
-		}
-	}
-	if kind == "documents" {
-		if err = s.indexEvent(ctx, tx, r, "upsert"); err != nil {
-			return r, err
-		}
-	}
-	if err = s.commandActivity(ctx, auth, kind+".updated", id, r.Title); err != nil {
-		return r, err
-	}
-	if err = s.saveCommandReceipt(ctx, auth, key, hash, r); err != nil {
-		return r, err
-	}
-	return r, tx.Commit()
+	return r, nil
 }
 func taskBasis(r Record) string {
 	return digest(stringify(map[string]any{"title": r.Title, "description": r.Description, "owner_id": r.OwnerID, "requirement_id": r.RequirementID, "depends_on": r.DependsOn, "acceptance_criteria": r.AcceptanceCriteria}))
 }
+
+const recordVersionExhausted = "Record version limit reached; review the record before changing it"
+
 func (s *Service) indexEvent(ctx context.Context, tx *sql.Tx, r Record, action string) error {
 	if r.Status == "archived" || r.Status == "deleted" {
 		action = "delete"

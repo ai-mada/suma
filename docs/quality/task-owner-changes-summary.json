@@ -1,0 +1,352 @@
+{
+  "stage": "T-MULTICA-BULK-150",
+  "date": "2026-10-30",
+  "version": "1.0.0",
+  "status": "scoped_verified_with_gui_recovery_gap",
+  "draft": false,
+  "full_platform_complete": false,
+  "production_complete": false,
+  "deployment_performed": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "candidate_base": "cff64b653ebb20de1140e649dfb89a4db4799438",
+    "changed_input_count": 29,
+    "source_sha256": "80aec2ef227a690384aad162b8e1c878cc4612f59aa2e33c0a697873c3319dcc",
+    "algorithm": "sha256 compact JSON sorted [{path,sha256}] UTF-8; 29 explicit changed source/contract inputs; base archive supplies unchanged files",
+    "receipt": ".cache/e2e/bulk150/candidate/final-source.json",
+    "receipt_sha256": "a7f3c97bf36ff8faeff222e0fc3d4329c34c40c5b9d5961d011afc396ae2bc5b",
+    "manifest": ".cache/e2e/bulk150/candidate/manifest.json",
+    "ui_owned_source_sha256": "92be18d95feffad7ea45897c251078da14a032c8a7a5d782b2eef12f5bab4a5c",
+    "control": {
+      "name": "control",
+      "path": ".cache/e2e/bulk150/candidate/bin/suma-control.exe",
+      "bytes": 42162176,
+      "sha256": "9fd3e32638511910d71c7313bf98b16373e534e8e6aba89088ef812248ae1a25"
+    },
+    "web_r4_index": {
+      "name": "web_index",
+      "path": ".cache/e2e/bulk150/candidate/web-r4/index.html",
+      "bytes": 415,
+      "sha256": "4c856a39159f500a34995f996e7e83f7904b5dab6391b3341efec9124ef5364e"
+    },
+    "web_r4_inventory_sha256": "b1c0770a30de226d259021fd643e9ede7ec64fbebcce9a953689adb44da3c393",
+    "excluded": "149 SDK/package/GoMod,151 and unrelated desktop/startup/knowledge/shared WIP; credentials, databases, raw private journals and caches.",
+    "revision_mapping": {
+      "r3": "Complete logic including guarded-Modal authority recheck; backend and actual transaction/interaction evidence.",
+      "r4": "Only two English labels and the existing real-i18n expected strings changed; no logic or DTO change. Types and Go reused; final locale/build and read-only visual evidence are r4."
+    }
+  },
+  "counting_rule": "Scopes remain separate. Backend nested cases are not new top-level cases; full contract/localization packages overlap Root selections; smoke adds no unique count. UI24 is the union of19 component and5 model cases; rechecks add zero. Actual23 assertions and final5 read-only source/visual checks are separate phases.",
+  "backend": {
+    "receipt": ".cache/e2e/bulk150/backend/go/20261030T051418968Z.command.json",
+    "command": [
+      "go",
+      "test",
+      "./internal/platform",
+      "-run",
+      "^(TestTaskOwnerChanges.*|TestNotificationInboxSourceAssignmentsReplayAndHydrateCurrentTask|TestNotificationInboxProjectionFailureRollsBackSourceAndCounter|TestTaskDependenciesOrdinaryTaskWritesRejectDuplicateEdges|TestTaskDependenciesCrossProjectAndAcceptanceInvalidation|TestAuthorityRecordFamiliesFreshAndReplay|TestTaskHandoffAcceptInvalidatesEvidenceWithoutNewExecution|TestAuthoritySourceContractProduction)$",
+      "-json",
+      "-count=1",
+      "-timeout=150s"
+    ],
+    "exit_code": 0,
+    "packages": {
+      "github.com/ai-mada/suma/internal/platform": {
+        "top": 24,
+        "nested": 14
+      }
+    },
+    "failures": [],
+    "stdout_sha256": "c3c75da6fb48e7e6da51a624d3be9bed07a8cced79db0c9d2050df3b2afc07dc",
+    "unique_top_passed": 24,
+    "nested_passed": 14,
+    "new_top_included": 17,
+    "original_top_regressions_included": 7,
+    "full_platform_suite": false
+  },
+  "ui": {
+    "unique_passed": 24,
+    "component_passed": 19,
+    "model_passed": 5,
+    "complete24_rerun": false,
+    "counting": "Initial17 plus6 authority/interpolation cases plus1 in-modal access recheck journey. English-only recheck is already included.",
+    "domain_keys_per_language": 54,
+    "summary": ".cache/e2e/bulk150/ui/summary.json",
+    "authority_recheck": {
+      "route": "GET /task-owner-targets?project_id=P&limit=1",
+      "scope": "Expected user/organization, exact project/current caller/epoch, strict limit1 closed DTO; discard people; current parent refusal still wins; success callback does not reset retired write. Explicit original Restore remains required.",
+      "affected_check": {
+        "log": ".cache/e2e/bulk150/ui/in-modal-access-green.log",
+        "log_sha256": "d76627ae1c1915e65c37d8e9a62bc3856d1c59c37efc1df940ed548edb0406d8",
+        "passed": 3,
+        "new_included": 1,
+        "existing_included": 2,
+        "already_in_unique_count": true
+      }
+    },
+    "english_copy_recheck": {
+      "log": ".cache/e2e/bulk150/ui/english-count-copy.log",
+      "log_sha256": "4b23b8409a87b6bae70e382930d36a690d6d0c2d87a1290891c95641212fcfff",
+      "command": "pnpm --filter @suma/web exec vitest run src/TaskOwnerChanges.test.tsx -t 'interpolates real bilingual'",
+      "passed": 1,
+      "new_unique": 0,
+      "already_in_unique_count": true
+    },
+    "integration": "Actual task route uses TaskRecordsScope -> TaskViews.selectionActions, always mounted for zero-selection recovery; original team arrange path retained."
+  },
+  "root_go_integration": {
+    "receipt": ".cache/e2e/bulk150/integration/go/20261030T051817089Z.command.json",
+    "command": [
+      "go",
+      "test",
+      "./internal/cli",
+      "./cmd/suma-contracts",
+      "./internal/localization",
+      "-run",
+      "^(TestTaskOwnersCLI|TestTaskOwnerChangesPublicContract|TestCatalog)",
+      "-count=1",
+      "-json",
+      "-timeout=90s"
+    ],
+    "exit_code": 0,
+    "packages": {
+      "github.com/ai-mada/suma/internal/cli": {
+        "top": 2,
+        "nested": 9
+      },
+      "github.com/ai-mada/suma/internal/localization": {
+        "top": 2,
+        "nested": 0
+      },
+      "github.com/ai-mada/suma/cmd/suma-contracts": {
+        "top": 1,
+        "nested": 0
+      }
+    },
+    "failures": [],
+    "stdout_sha256": "8bfda9d703b69425ddf80d45adf423f64181328e62ded22cf105687158a3bea8",
+    "top_passed": 5,
+    "nested_passed": 9,
+    "not_added_to_full_package_counts": true
+  },
+  "candidate_go_packages": {
+    "full_contracts_and_localization": {
+      "receipt": ".cache/e2e/bulk150/candidate/go/20261030T052102214Z.command.json",
+      "command": [
+        "go",
+        "test",
+        "./cmd/suma-contracts",
+        "./internal/localization",
+        "-count=1",
+        "-json",
+        "-timeout=90s"
+      ],
+      "exit_code": 0,
+      "packages": {
+        "github.com/ai-mada/suma/internal/localization": {
+          "top": 38,
+          "nested": 65
+        },
+        "github.com/ai-mada/suma/cmd/suma-contracts": {
+          "top": 60,
+          "nested": 5
+        }
+      },
+      "failures": [],
+      "stdout_sha256": "d28d0b48d4bf3f7ba2fc241e128156567e29655605179c6e0e097aa122592505"
+    },
+    "contract_generation": {
+      "models": 764,
+      "paths": 356,
+      "exit_code": 0,
+      "receipt": ".cache/e2e/bulk150/candidate/go/20261030T052121900Z.command.json"
+    },
+    "control_build": {
+      "exit_code": 0,
+      "receipt": ".cache/e2e/bulk150/candidate/go/20261030T052224869Z.command.json"
+    },
+    "smoke": {
+      "receipt": ".cache/e2e/bulk150/candidate/go/20261030T052228145Z.command.json",
+      "command": [
+        "go",
+        "test",
+        "./internal/cli",
+        "./internal/platform",
+        "-run",
+        "^(TestTaskOwnersCLI|TestTaskOwnerChangesHTTPPreviewMixedOwnersAndOriginalReceipt)$",
+        "-count=1",
+        "-json",
+        "-timeout=90s"
+      ],
+      "exit_code": 0,
+      "packages": {
+        "github.com/ai-mada/suma/internal/platform": {
+          "top": 1,
+          "nested": 0
+        }
+      },
+      "failures": [],
+      "stdout_sha256": "a3d638736378d46b4dc7839edd894abfc1124274e08aa099f07579e34e0f8aff",
+      "added_to_unique_counts": false,
+      "limitation": "Anchored TestTaskOwnersCLI matched no suffixed CLI tests. Only one platform test passed; no candidate CLI claim."
+    },
+    "reused_after_r4": "Go and public DTO inputs unchanged; no new Go run for English-only copy."
+  },
+  "candidate_web": {
+    "r3_types": {
+      "log": ".cache/e2e/bulk150/candidate/candidate-types-r3.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "reused_for_r4": true
+    },
+    "r3_i18n": {
+      "log": ".cache/e2e/bulk150/candidate/candidate-i18n-r3.log",
+      "log_sha256": "7f4958f4fc6dbfac15edf4075e51717409bd21a0aed0eeffe716606d1d1dd24d",
+      "exit_code": 0,
+      "paired_keys": 7456,
+      "production_hardcodes": 0
+    },
+    "r3_build": {
+      "log": ".cache/e2e/bulk150/candidate/candidate-build-r3.log",
+      "log_sha256": "8ccfefe4f3138267ec058032a658ff33eeec4e9757051846e2a85875cfc1abf6",
+      "exit_code": 0,
+      "elapsed_seconds": 91,
+      "elapsed_literal": "1m 31s"
+    },
+    "r4_i18n": {
+      "log": ".cache/e2e/bulk150/candidate/candidate-i18n-r4.log",
+      "log_sha256": "7f4958f4fc6dbfac15edf4075e51717409bd21a0aed0eeffe716606d1d1dd24d",
+      "exit_code": 0,
+      "paired_keys": 7456,
+      "production_hardcodes": 0
+    },
+    "r4_build": {
+      "log": ".cache/e2e/bulk150/candidate/candidate-build-r4.log",
+      "log_sha256": "28dd68369d6b2751f3e04cfa9c12291ab44a6793f993ad9bd543239ee2791d94",
+      "exit_code": 0,
+      "elapsed_seconds": 72,
+      "elapsed_literal": "1m 12s"
+    },
+    "warning": "Existing chunks larger than500kB; this is not performance acceptance.",
+    "r2_used_as_final_evidence": false
+  },
+  "browser": {
+    "status": "bounded_actual_and_final_visual_verified_with_reload_gap",
+    "receipt": ".cache/e2e/bulk150/candidate/browser/receipt.json",
+    "receipt_sha256": "7338ea32deaa9a3e56f8e2ac616b69d2dfdef62f0b4857f9f3163960967e3a9b",
+    "actual_assertions": 23,
+    "retained_happy_assertions": 16,
+    "original_operation_closeout_assertions": 7,
+    "happy_repeated": false,
+    "actual_assertions_build": "Web-r3 with the same frozen control; r4 has no logic change.",
+    "runtime": "Owned localhost43963, isolated SQLite/current actual human sessions, Electron35.7.5 software offscreen renderer with installed Playwright.",
+    "C": {
+      "recovery": "original_API_after_new_window_sessionStorage_loss",
+      "version_increments": 1,
+      "assignment_notifications": 1,
+      "operation_sha256": "43d088f914bde0fc76a65728ea07f054617dcfae3d8d9a990ffcbdbdd6000afc"
+    },
+    "D": {
+      "created_fixtures": 1,
+      "recovery": "original_API_after_offscreen_beforeunload_limitation",
+      "same_window_reload": false,
+      "version_increments": 1,
+      "assignment_notifications": 1,
+      "operation_sha256": "869f59ed5b201280c005506f9a2480b877e15d040338ea8c01ff963dbc20daaa"
+    },
+    "same_window_gui_reload_restore_verified": false,
+    "gui_gap": "D real pending was observed after a committed response was aborted. Hidden-host beforeunload prevented navigation; one bounded attachment could not install the main-host acceptance seam. Original API reconciliation succeeded. No E fixture or fabricated pending was used. Component refresh checks do not close this actual GUI gap.",
+    "final_readonly_visual": {
+      "build": "Web-r4",
+      "checks": 5,
+      "checks_added_to_actual_assertions": false,
+      "details": [
+        "served HTML and entry assets match the exact final Web-r4 build",
+        "Chinese desktop shows real final-build preview counts in dark theme",
+        "English390 preview and apply labels display actual counts with neutral grammar and no literal placeholders",
+        "final visual inspection issued only one read-only preview and no write request",
+        "no renderer error occurred during the final read-only visual pass"
+      ],
+      "preview_reads": 1,
+      "business_write_requests": 0,
+      "preview_counts": {
+        "changed_count": 1,
+        "unchanged_count": 0,
+        "can_apply": true
+      },
+      "web_index_sha256": "4c856a39159f500a34995f996e7e83f7904b5dab6391b3341efec9124ef5364e",
+      "entry_assets": [
+        {
+          "path": "/assets/index-D_koU3fM.js",
+          "sha256": "3c6ac1950f8ce197359be3d41e7f988204559f50551cb93fb739697c4a570a01"
+        },
+        {
+          "path": "/assets/index-VFVE1rJw.css",
+          "sha256": "73e7bf36be1e37c9b2585fd22c3f8cfdbcd7dded7c83254d0df3e5d9b552da0d"
+        }
+      ],
+      "manual_images_reviewed": true,
+      "screenshots": [
+        {
+          "name": "final-preview-zh-desktop-r4.png",
+          "sha256": "f0a12d7be2d2cfec675b63a0eb8ee812cfabbb082b8136dfaf70e59dc44eef33",
+          "bytes": 292471
+        },
+        {
+          "name": "final-preview-en-dark-narrow-r4.png",
+          "sha256": "a8acd5eac396c29d74314d135a2062d81dae981bd05a9f843cd2cd6161005253",
+          "bytes": 61447
+        }
+      ]
+    },
+    "retained_r3_screenshots": [
+      "preview-zh-desktop-viewport.png",
+      "preview-en-narrow.png"
+    ],
+    "harness_notes": [
+      "Original happy16 checks retained; broad navigation-dialog locator corrected without redoing the successful write.",
+      "New BrowserWindow had no original C sessionStorage; C was reconciled only with its original journal command.",
+      "One D fixture was created, response was committed and aborted, real pending was recorded.",
+      "One bounded existing-window attachment attempted the normal Electron host will-prevent-unload acceptance; limitations are represented in D.recovery."
+    ],
+    "private_fixtures_printed_or_delivered": false,
+    "model_or_provider_calls": 0,
+    "formal_delivery_reviews": 0
+  },
+  "delivery": {
+    "directory": "dist/quality/task-owner-changes-150",
+    "manifest": "dist/quality/task-owner-changes-150/artifact-manifest.json",
+    "manifest_sha256": "65ffec87a592f64bd2ddd7d4bd8b3a48a6f30d4b7654c3eeb26957c4fbec655b",
+    "files": 7,
+    "private_credentials_requests_journals_included": false,
+    "screenshots_hashed_before_copy": true
+  },
+  "review_and_corrections": {
+    "independent_read_review": "Root reported original P2 and the in-modal access-recheck deadlock path resolved; read review adds no test count.",
+    "regressions": "Exact numeric bounds/409, closed request and receipt, same-scope stale preview, parent-disabled adoption, real interpolation, synchronous authority clearing, retired late writes, and reachable guarded-Modal authority recheck followed by explicit original restore.",
+    "raw_red_and_harness_evidence_retained": true
+  },
+  "remaining": [
+    "Actual same-window GUI reload then explicit UI Restore on a host with accepted beforeunload.",
+    "Other database servers, physical multihost, scale, install/device and production acceptance.",
+    "Full P0-P7 and requirements1-26,58 limited/34 pending/92 total remain active."
+  ],
+  "git_delivery": {
+    "status": "recorded_by_integrator_separately",
+    "performed_by_this_report_update": false
+  },
+  "report_update": {
+    "product_source_changed": false,
+    "tests_rerun": false,
+    "builds_rerun": false,
+    "browser_rerun": false,
+    "git_used": false,
+    "candidate_copies": "Same two quality files are copied to candidate/src at matching paths."
+  },
+  "report": "docs/quality/task-owner-changes-verification.md",
+  "recorded_at": "2026-10-30T06:13:41.517202+00:00"
+}

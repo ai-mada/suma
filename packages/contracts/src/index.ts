@@ -5763,6 +5763,76 @@ export interface TaskHandoffTeam {
   team_version: number;
   membership_version: number;
 }
+export interface TaskOwnerChangePreview {
+  project_id: string;
+  owner: TaskOwnerTarget;
+  tasks: (TaskOwnerChangePreviewItem)[];
+  changed_count: number;
+  unchanged_count: number;
+  preview_sha256: string;
+  can_apply: boolean;
+}
+export interface TaskOwnerChangePreviewItem {
+  task_id: string;
+  version: number;
+  title: string;
+  status: string;
+  owner_id: string;
+  owner_name: string;
+  run_id: string;
+  will_change: boolean;
+}
+export interface TaskOwnerChangePreviewRequest {
+  project_id: string;
+  owner_id: string;
+  expected_owner_version: number;
+  tasks: (TaskOwnerSelection)[];
+}
+export interface TaskOwnerChangeReceipt {
+  task_id: string;
+  previous_version: number;
+  version: number;
+  previous_owner_id: string;
+  owner_id: string;
+  status: string;
+  owner_changed: boolean;
+}
+export interface TaskOwnerChangeRequest {
+  project_id: string;
+  owner_id: string;
+  expected_owner_version: number;
+  tasks: (TaskOwnerSelection)[];
+  preview_sha256: string;
+  acknowledge_invalidation: boolean;
+  idempotency_key: string;
+}
+export interface TaskOwnerChangeResult {
+  project_id: string;
+  operation_id: string;
+  changes: (TaskOwnerChangeReceipt)[];
+}
+export interface TaskOwnerSelection {
+  task_id: string;
+  expected_version: number;
+}
+export interface TaskOwnerTarget {
+  resource_id: string;
+  resource_version: number;
+  user_id: string;
+  name: string;
+}
+export interface TaskOwnerTargetPage {
+  project_id: string;
+  items: (TaskOwnerTarget)[];
+  total: number;
+  limit: number;
+  next_cursor: string;
+}
+export interface TaskOwnerTargetQuery {
+  q?: string;
+  limit?: number;
+  cursor?: string;
+}
 export interface TaskPlan {
   version: number;
   iteration_id: string;

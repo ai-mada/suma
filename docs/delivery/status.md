@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+最近交付T-MULTICA-BULK-150：[批量负责人分配](../product/task-owner-changes.md)将最多16个明确任务、当前真人资源、准确版本、预览摘要与影响确认放在同一流程。复用普通任务更新的同事务核心；全部预验后采用，未变项不空更新，通知与依赖失效原子保存，未知结果只核对原正文／操作ID。24个Go顶层和24个不同Web用例通过，23项实际本机断言与5项最终只读核对分开记录，最终中文1366／英文390深色图片已目视。实际GUI刷新恢复受测试宿主限制，已按原API恢复且无重复；见[合同](../../contracts/task-owner-changes.md)、[报告](../quality/task-owner-changes-verification.md)与[摘要](../quality/task-owner-changes-summary.json)。不等于全部M07或平台验收，完整58／34／92不变。
+
 最近交付T-HANDOFF-INBOX-148：[交接请求](../product/task-handoff-inbox.md)在原事务通知原接收人，私有反向绑定后从个人收件箱准确定位；接收责任与正式Review分开。限定检查及16项实际本机GUI／HTTP通过，一次明确退回由exact GET核对v2／returned，通知仍未读；两次截图timeout，视觉图片待验。见[合同](../../contracts/task-handoff-inbox.md)、[报告](../quality/task-handoff-inbox-verification.md)及[摘要](../quality/task-handoff-inbox-summary.json)。完整58 limited／34 pending／92总项不变。
 
 当前T-WORKBUDDY-CONNECTIONS-147：[账号授权](../product/workbuddy-connections.md)复用成熟x/oauth2、当前项目本人／原浏览器nonce核验、在库加密及grant／token代次，未知兑换／刷新不重复供应方POST。Web默认收起；桌面四ID窄IPC打开同Session、无preload／Node的隔离子窗，返回聚焦且仅在无草稿／未确认写入时GET原连接，不reload或自动认定已连接。既有检查、原生协议样例及最终候选18项实际本机GUI／HTTP见[连接报告](../quality/workbuddy-connections-verification.md)、[摘要](../quality/workbuddy-connections-summary.json)和[窗口证据](../quality/workbuddy-desktop-oauth-verification.md)。最终候选以合成应用配置阻断供应方外网，失败不冒充已连接且只读恢复不重复POST；视觉图片、真实供应方授权、云派发／ACP、多机及生产待验，完整58／34／92不变。

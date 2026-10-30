@@ -27,6 +27,9 @@ func requestIsReadOnly(method, path string) bool {
 	if err != nil || !strings.HasPrefix(u.Path, "/api/v1/") {
 		return false
 	}
+	if u.Path == "/api/v1/task-owner-changes/preview" {
+		return true
+	}
 	parts := strings.Split(strings.TrimPrefix(u.Path, "/api/v1/"), "/")
 	return len(parts) == 4 && parts[0] == "requirements" && contextID(parts[1]) && parts[2] == "design" && parts[3] == "preview"
 }

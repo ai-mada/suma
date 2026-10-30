@@ -1,5 +1,22 @@
 {
   "project": "suma",
+  "task_owner_changes": {
+    "stage": "T-MULTICA-BULK-150",
+    "date": "2026-10-30",
+    "status": "scoped_verified_gui_reload_recovery_pending",
+    "contract": "contracts/task-owner-changes.md",
+    "product": "docs/product/task-owner-changes.md",
+    "architecture": "docs/architecture/task-owner-changes.md",
+    "design": "docs/design/task-owner-changes.md",
+    "report": "docs/quality/task-owner-changes-verification.md",
+    "summary": "docs/quality/task-owner-changes-summary.json",
+    "verified_runtime_source_sha256": "80aec2ef227a690384aad162b8e1c878cc4612f59aa2e33c0a697873c3319dcc",
+    "scope": "At most16 explicit tasks, current canonical human owner, readonly version/digest preview, atomic changed-owner adoption, existing dependency invalidation and assignment notices; original operation recovery; unchanged owners skip empty writes.",
+    "verification": "24 Go top/14 nested,24 distinct Web; scoped CLI/contracts/localization; final isolated build.23 actual assertions and5 final readonly checks recorded separately; final CN1366 andEN390 dark images inspected.",
+    "recovery": "C/D actual lost responses reconciled by their original API body/key; versions and notices not duplicated. Same-window GUI reload recovery remains a host-limited validation gap.",
+    "browser_receipt": "dist/quality/task-owner-changes-150/receipt.json",
+    "limits": "No automatic dispatch or formalReview, no otherDB/vendor/multihost/scale/installer/production acceptance. Full58/34/92 unchanged."
+  },
   "task_handoff_inbox": {
     "stage": "T-HANDOFF-INBOX-148",
     "date": "2026-10-30",

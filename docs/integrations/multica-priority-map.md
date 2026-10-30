@@ -1,5 +1,7 @@
 # Multica下一步复用优先级
 
+T-MULTICA-BULK-150已限定实现下述M07首片：[需求](../product/task-owner-changes.md)、[同事务架构](../architecture/task-owner-changes.md)、[交互与AI SOP](../design/task-owner-changes.md)、[专项证据](../quality/task-owner-changes-verification.md)。调查段落保留为原设计依据；当前实现提取了单项／批量共用事务核心，已验证明确选择、预览、原子采用及原操作核对。全部M07、其他批量动作和完整平台仍未完成；没有新增复制参考源码，许可边界不变。
+
 日期：2026-10-30。此文档补充[既有采用记录](multica-adoption.md)和[源码复用清单](multica-reuse.md)，以[主规格21章](../suma-architecture-design.html#s21)及[唯一实施计划](../delivery/implementation-plan.md)为准。完整范围仍为58项限定实现／34项待交付／92项；以下是原范围内的候选切片，不是新增完成项或已实现接口。
 
 ## 核对基线与源码边界

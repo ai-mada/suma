@@ -28,6 +28,7 @@ Global flags (before command): --control http://127.0.0.1:4310 --project ID
 Read commands:
   --version                   Print product release version without an API request
   doctor | projects | requirements | tasks | runs | workflows
+  task-owners --help          Preview and atomically change explicit task owners
   run show ID
   run events ID [--after SEQUENCE]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID
@@ -172,6 +173,9 @@ func dispatch(ctx context.Context, c *client, args []string, in io.Reader, out i
 	}
 	if len(args) > 0 && args[0] == "skill-catalog" {
 		return skillCatalogCommand(ctx, c, args[1:], in, out)
+	}
+	if len(args) > 0 && args[0] == "task-owners" {
+		return taskOwnersCommand(ctx, c, args[1:], in, out)
 	}
 	if len(args) > 0 && args[0] == "handoffs" {
 		return handoffsCommand(ctx, c, args[1:], out)

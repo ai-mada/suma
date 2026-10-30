@@ -134,6 +134,8 @@ var cliMessages = map[string]cliMessage{
 	"invalid delivery receipt; outcome may be unknown; retry the same delivery ID and exact body":                                           {"cli.webhook.receipt_invalid", "投递回执无效，结果可能未知；请使用相同投递标识和原始正文重试"},
 	"invalid list response":                     {"cli.tui.list_invalid", "列表响应无效"},
 	"terminal session ended or could not start": {"cli.tui.failed", "终端会话已结束或无法启动"},
+	taskOwnersUsage:                             {"cli.task_owners.action", "task-owners 需要 targets、preview 或 apply，请查看 --help"},
+	taskOwnersInvalid:                           {"cli.task_owners.invalid", "负责人变更请求需要准确任务和人员版本；采用还需要预览摘要、明确确认及原操作编号"},
 	"handoffs requires list, get, create, accept, return, or withdraw; use handoffs --help":                          {"cli.handoff.action_required", "handoffs 需要 list、get、create、accept、return 或 withdraw，请查看 handoffs --help"},
 	"handoff get requires ID and --task":                                                                             {"cli.handoff.get_options", "handoff get 需要交接 ID 和 --task"},
 	"invalid handoff list options; provide --task and limit 1..100":                                                  {"cli.handoff.list_options", "交接列表参数无效，请提供 --task，limit 须为 1–100"},
@@ -248,6 +250,7 @@ const helpZH = `suma — 速码控制面客户端
 只读命令：
   --version                   输出产品发布版本，不请求 API
   doctor | projects | requirements | tasks | runs | workflows
+  task-owners --help          预览并原子变更明确所选任务的负责人
   run show ID
   run events ID [--after SEQUENCE]
   tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID

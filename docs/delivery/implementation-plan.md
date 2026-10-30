@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+当前T-MULTICA-BULK-150推进[Multica M07](../integrations/multica-priority-map.md)中的批量负责人切片：明确有界选择→当前人员→预览／确认→同事务采用→原操作核对；既有专家团队派发保留。实现、交互、CLI与AI SOP见[需求](../product/task-owner-changes.md)、[架构](../architecture/task-owner-changes.md)、[设计](../design/task-owner-changes.md)和[限定证据](../quality/task-owner-changes-verification.md)。其他批量动作、本机工具自动接入、完整P0–P7和58／34／92继续交付；不会把本片计为整项完成。
+
 最近交付T-HANDOFF-INBOX-148沿原任务协作推进[交接请求收件与准确定位](../product/task-handoff-inbox.md)：同事务请求通知、准确GET、当前caller隔离、独立草稿和明确版本采用；责任接收不代替正式Review。限定检查及16项实际本机GUI／HTTP已记录于[报告](../quality/task-handoff-inbox-verification.md)和[摘要](../quality/task-handoff-inbox-summary.json)，视觉图片仍待验；完整P0–P7／需求1–26及58 limited／34 pending／92总账保留。
 
 当前T-WORKBUDDY-CONNECTIONS-147继续[WorkBuddy连接管理](../product/workbuddy-connections.md)：成熟x/oauth2、当前项目本人／原浏览器绑定、加密代次和未知副作用原操作核对；桌面采用四ID窄IPC及同Session隔离授权子窗，返回只按安全条件读取原连接，保留父页草稿。原生协议样例及最终候选18项实际本机GUI／HTTP分别验证，既有模块／接线／组件检查与复验见[连接报告](../quality/workbuddy-connections-verification.md)、[摘要](../quality/workbuddy-connections-summary.json)及[窗口证据](../quality/workbuddy-desktop-oauth-verification.md)，不重复累加。最终候选未向供应方外网发出授权，视觉图片、真实供应方授权、云派发／ACP、预算／产物／候选、独立测试、多机及生产继续待办；完整P0–P7／需求1–26和58／34／92保留。

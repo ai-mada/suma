@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-MULTICA-BULK-150：[批量负责人限定验证](task-owner-changes-verification.md)／[摘要](task-owner-changes-summary.json)。24个Go顶层／14子场景、24个不同Web用例，原CLI／生成合同／语言和隔离构建检查通过；23项实际本机断言与5项最终只读核对分别记录，最终中英图片已目视。C／D仅按原正文及操作ID恢复、各+1版本且各1通知；同窗口GUI刷新恢复仍有测试宿主缺口。源码、旧r3行为与最终r4仅文案变化按摘要映射，不重跑无关全套，完整58／34／92不变。
+
 T-HANDOFF-INBOX-148：[交接收件与准确定位验证](task-handoff-inbox-verification.md)／[摘要](task-handoff-inbox-summary.json)。原事务通知、准确GET、来源反向校验及独立草稿已限定检查；16项真实本机GUI／HTTP通过，打开0业务写、一次明确退回及exact v2／returned一致、通知仍unread。两次截图timeout，视觉图片待验；责任接收不等于Review，完整58／34／92不变。
 
 T-WORKBUDDY-CONNECTIONS-147：[连接验证](workbuddy-connections-verification.md)／[摘要](workbuddy-connections-summary.json)与[原生窗口证据](workbuddy-desktop-oauth-verification.md)分别记录成熟OAuth SDK、原浏览器／项目本人授权、加密代次、未知不重POST、窄IPC及同Session子窗。既有模块、桥接、Web及受影响复验不重复相加；本机原生协议样例和最终精确候选18项实际GUI／HTTP分别通过。候选使用production preload／controller及合成配置，单次授权POST、同Session四ID子窗、失败不冒充connected、英文／390px DOM和只读恢复有证据；视觉图片、真实供应方成功授权、云派发／ACP、多机与生产未验收，58／34／92不变。

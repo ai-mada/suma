@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [批量负责人分配](product/task-owner-changes.md) · [合同](../contracts/task-owner-changes.md) · [架构](architecture/task-owner-changes.md) · [交互与AI SOP](design/task-owner-changes.md) · [English](en/task-owner-changes.md) · [报告](quality/task-owner-changes-verification.md) · [摘要](quality/task-owner-changes-summary.json)：明确有界选择、同事务采用与通知、原操作恢复；中英最终界面已检查，实际GUI刷新恢复仍待补验。
+
 - [交接请求收件与准确定位](product/task-handoff-inbox.md) · [合同](../contracts/task-handoff-inbox.md) · [架构](architecture/task-handoff-inbox.md) · [交互与AI SOP](design/task-handoff-inbox.md) · [English](en/task-handoff-inbox.md) · [验证](quality/task-handoff-inbox-verification.md) · [摘要](quality/task-handoff-inbox-summary.json)：原事务通知、准确历史与独立责任决定；16项实际本机GUI／HTTP通过，视觉图片待验。
 
 - [Multica后续复用调查](integrations/multica-priority-map.md)

@@ -139,6 +139,9 @@ func (s *Service) InvalidateDependentsTx(ctx context.Context, tx *sql.Tx, auth *
 		if !ok || task.Status != "accepted" || rootSet[id] && !includeRoots {
 			continue
 		}
+		if task.Version >= 2147483647 {
+			return conflict(recordVersionExhausted)
+		}
 		delete(task.Data, "verified_run_id")
 		task.Data["acceptance_invalidated_reason"] = "需求、前置任务或关联执行依据已变化"
 		res, e := tx.ExecContext(ctx, s.q(`UPDATE suma_tasks SET status='in_progress',version=version+1,updated_at=?,data=? WHERE tenant_id=? AND project_id=? AND id=? AND version=?`), now(), stringify(task.Data), p.TenantID, project, id, task.Version)
