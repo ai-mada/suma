@@ -23,6 +23,22 @@ function transport(reply?:(path:string,init?:RequestInit)=>Response|undefined|Pr
 }));}
 async function settle(){for(let i=0;i<6;i++)await act(async()=>{await Promise.resolve();await Promise.resolve();});}
 async function render(patch:Partial<NotificationInboxProps>={}){props={...props,...patch};const session:Session={user:{id:props.userID,name:'User',email:'user@example.test'},organization:{id:props.organizationID,name:'Organization'},projects:[]};await act(async()=>root.render(<ApiViewProvider session={session}><NotificationInbox {...props}/></ApiViewProvider>));await settle();}
+
+it('opens the exact original review request without accepting or marking the notification read',async()=>{
+ const onReviewRequest=vi.fn();records=[item({kind:'task_review_requested',assignment_current:false,review_request_id:'request-old'})];transport();await render({onReviewRequest});expect(host.textContent).toContain('You were asked to review a task delivery');expect(host.textContent).not.toContain('Assignment has changed');
+ await click('.notification-inbox-source');expect(onReviewRequest).toHaveBeenCalledWith('task-a','request-old');expect(props.onTask).not.toHaveBeenCalled();expect(writes).toHaveLength(0);expect(reads).toHaveLength(1);
+ await act(async()=>{await setLocale('zh-CN',{persist:false});});expect(host.textContent).toContain('有人请你验收任务交付');
+ records=[item({kind:'task_review_requested',assignment_current:false,source_available:false,current_task:undefined})];await render({refresh:1});expect(host.querySelector('.notification-inbox-source')).toBeNull();
+});
+
+it('opens a mention at its exact original discussion without marking read or changing assignment semantics',async()=>{
+ const onMessage=vi.fn();records=[item({kind:'task_mentioned',assignment_current:false,message_id:'message-old'})];transport();await render({onMessage});
+ expect(host.textContent).toContain('You were mentioned in a task discussion');expect(host.textContent).not.toContain('Assignment has changed');
+ expect(host.querySelector('.notification-inbox-source')?.getAttribute('aria-label')).toContain('Open discussion');
+ await click('.notification-inbox-source');expect(onMessage).toHaveBeenCalledWith('task-a','message-old');expect(props.onTask).not.toHaveBeenCalled();expect(writes).toHaveLength(0);expect(reads).toHaveLength(1);
+ await act(async()=>{await setLocale('zh-CN',{persist:false});});expect(host.textContent).toContain('有人在任务讨论中提及了你');
+ records=[item({kind:'task_mentioned',assignment_current:false,source_available:false,current_task:undefined})];await render({refresh:1});expect(host.querySelector('.notification-inbox-source')).toBeNull();expect(writes).toHaveLength(0);
+});
 async function click(selector:string){const target=host.querySelector<HTMLButtonElement>(selector);expect(target,selector).not.toBeNull();await act(async()=>target!.click());await settle();}
 
 it('shows real complete counts and current source facts, and opening the task never marks it read',async()=>{

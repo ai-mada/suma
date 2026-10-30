@@ -22,7 +22,9 @@ T-P4-007在共享池合同基础上增加账户／组织偏好，当前生成切
 
 `POST /auth/tokens` 必须给稳定 `idempotency_key`，明确签发独立 24 小时 Grant。同键同正文恢复时在同一固定到期 slot 轮换秘密、撤销上一次秘密；响应仍是 token／expiry／label／scope／project。秘密不存入成功回执。普通浏览器退出撤销该 session family，不撤销独立 token 或已批准的持久 activation。网络结果未知时保持原操作标识与正文，不读取新会话后悄悄切换请求身份。
 
-实现进度和验收边界见[当前权威性合同](../../contracts/current-credential-authority.md)。此段描述正在集成的 014 源码，当前已验收运行包仍是 013。
+会话的 `projects[].role` 是同一当前授权事务读取的有效项目角色，取值为 `admin`、`reviewer`、`developer`、`viewer`。组织 owner／admin 继承的项目管理能力投影为 `admin`；其他成员只列出当前实际授权的项目及角色。它不是项目自定义 `data`、资源标签或浏览器授予的权限；撤权后下一次读取即移除。领域写入仍独立核验当前授权，已选测试计划的保存／发布／停用入口使用该计划的 `allowed_actions`。
+
+实现进度和验收边界见[当前权威性合同](../../contracts/current-credential-authority.md)。
 
 ## 生成与校验范围
 

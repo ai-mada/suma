@@ -1,4 +1,4 @@
-import {useEffect,useId,useState,type MouseEvent} from 'react';
+import {useCallback,useEffect,useId,useState,type MouseEvent} from 'react';
 import {ChevronDown,RefreshCw,Search,X} from 'lucide-react';
 import type {WorkspaceTaskContext} from '../../../packages/contracts/src';
 import {type Session,stateLabel} from './api';
@@ -11,16 +11,16 @@ import './WorkbenchTaskContext.css';
 import {TaskConversation} from './TaskConversation';
 
 const t=(key:string,values?:Record<string,unknown>)=>tr('workbench-task.'+key,values);
-export type WorkbenchTaskContextProps={session:Session;project:string;selectedTask:string;refresh:number;onTaskSelect:(id:string)=>boolean};
+export type WorkbenchTaskContextProps={session:Session;project:string;selectedTask:string;selectedMessage?:string;refresh:number;onTaskSelect:(id:string)=>boolean};
 /** A route-selected task is reference context, never an implicit workspace or
  * execution binding. Keep this sibling of both editors so source-tab changes
  * cannot destroy their drafts or pending original-save identities. */
 export function WorkbenchTaskContext(props:WorkbenchTaskContextProps){
  return <TaskContextScope key={JSON.stringify([props.session.user.id,props.session.organization.id,props.project])} {...props}/>;
 }
-function TaskContextScope({session,project,selectedTask,refresh,onTaskSelect}:WorkbenchTaskContextProps){
+function TaskContextScope({session,project,selectedTask,selectedMessage,refresh,onTaskSelect}:WorkbenchTaskContextProps){
  useLocale();const ids=useId(),[choosing,setChoosing]=useState(false),[search,setSearch]=useState(''),[denied,setDenied]=useState(false),[retry,setRetry]=useState(0),[blocked,setBlocked]=useState(false);
- const forbidden=()=>setDenied(true),read=useWorkbenchTaskRead(project,selectedTask,refresh+retry,denied,forbidden),picker=useWorkbenchTaskPicker(project,choosing,denied,forbidden),value=read.value;
+ const forbidden=useCallback(()=>setDenied(true),[]),read=useWorkbenchTaskRead(project,selectedTask,refresh+retry,denied,forbidden),picker=useWorkbenchTaskPicker(project,choosing,denied,forbidden),value=read.value;
  useEffect(()=>setBlocked(false),[selectedTask]);
  function select(id:string){if(onTaskSelect(id)){setChoosing(false);setBlocked(false);}else setBlocked(true);}
  function follow(event:MouseEvent<HTMLElement>){if(!window.dispatchEvent(new Event('suma:navigate',{cancelable:true}))){event.preventDefault();setBlocked(true);}}
@@ -34,7 +34,7 @@ function TaskContextScope({session,project,selectedTask,refresh,onTaskSelect}:Wo
   </>}
   {/* Keep same-owner drafts and original write identities alive on access loss;
       the discussion hides protected history and disables reads independently. */}
-  {selectedTask&&<TaskConversation session={session} project={project} taskId={selectedTask} refresh={refresh} accessBlocked={denied} onDevelopmentStarted={read.read}/>}
+  {selectedTask&&<TaskConversation session={session} project={project} taskId={selectedTask} selectedMessage={selectedMessage} refresh={refresh+retry} accessBlocked={denied} onAccessDenied={forbidden} onDevelopmentStarted={read.read}/>}
  </section>;
 }
 

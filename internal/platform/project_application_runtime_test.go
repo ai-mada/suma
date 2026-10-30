@@ -98,7 +98,16 @@ func newActualApplicationFixture(t *testing.T) *actualApplicationFixture {
 		result := runner.Execute(ctx, *assignment, integrationCfg)
 		result.OperationID = newID()
 		if result.ExitCode != 0 || result.Error != "" || result.OutcomeUnknown {
-			t.Fatalf("actual repository %s failed: exit=%d error=%s", phase, result.ExitCode, result.Error)
+			// Keep the original accepted observation reason: a new provider GET
+			// may replace it with the generic missing-Git-receipt observation.
+			var observation ri.RepositoryObservation
+			if evidence := result.IntegrationEvidence; evidence != nil {
+				var raw string
+				if err := f.s.DB.QueryRowContext(ctx, f.s.q(`SELECT data FROM suma_repository_observations WHERE tenant_id=? AND project_id=? AND operation_id=? AND version=?`), f.user.TenantID, f.project, evidence.OperationID, evidence.Version).Scan(&raw); err == nil {
+					_ = json.Unmarshal([]byte(raw), &observation)
+				}
+			}
+			t.Fatalf("actual repository %s failed: exit=%d error=%s output=%q provider_phase=%q provider_state=%q provider_reason=%q", phase, result.ExitCode, result.Error, result.Output, observation.Phase, observation.State, observation.Reason)
 		}
 		if err = client.Complete(ctx, result); err != nil {
 			t.Fatal("actual repository result rejected", phase, err)

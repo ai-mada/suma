@@ -134,6 +134,12 @@ func generate() (map[string]any, string) {
 	for _, v := range notificationInboxModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range taskConversationMentionModels() {
+		schema(reflect.TypeOf(v))
+	}
+	for _, v := range taskReviewRequestModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range schedulingModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -176,10 +182,10 @@ func generate() (map[string]any, string) {
 	for _, v := range modelExecutionModels() {
 		schema(reflect.TypeOf(v))
 	}
-	for _, v := range adapterCatalogModels() {
+	for _, v := range toolDiscoveryModels() {
 		schema(reflect.TypeOf(v))
 	}
-	for _, v := range toolDiscoveryModels() {
+	for _, v := range adapterCatalogModels() {
 		schema(reflect.TypeOf(v))
 	}
 	for _, v := range projectFocusModels() {
@@ -404,6 +410,8 @@ func generate() (map[string]any, string) {
 	projectOverviewContracts(add, api)
 	taskConversationContracts(add, api)
 	taskConversationReplyContracts(add, api)
+	taskConversationMentionContracts(add, api)
+	taskReviewRequestContracts(add, api)
 	interactiveDevelopmentContracts(add, api)
 	dispatchRecommendationContracts(add, api)
 	usageAccountingContracts(add, api)
@@ -415,8 +423,8 @@ func generate() (map[string]any, string) {
 	workspaceWriteContracts(add, api)
 	workspaceFileContracts(add, api)
 	modelExecutionContracts(add, api)
-	adapterCatalogContracts(add, api)
 	toolDiscoveryContracts(add, api)
+	adapterCatalogContracts(add, api)
 	workspaceGitContracts(add, api)
 	workspaceTreeContracts(add, api)
 	desktopWorkspaceContracts(add, api)

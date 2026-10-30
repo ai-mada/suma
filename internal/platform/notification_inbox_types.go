@@ -29,6 +29,8 @@ type NotificationInboxItem struct {
 	SourceAvailable   bool                   `json:"source_available"`
 	AssignmentCurrent bool                   `json:"assignment_current"`
 	CurrentTask       *NotificationInboxTask `json:"current_task,omitempty"`
+	MessageID         string                 `json:"message_id,omitempty"`
+	ReviewRequestID   string                 `json:"review_request_id,omitempty"`
 }
 
 type NotificationInboxPage struct {

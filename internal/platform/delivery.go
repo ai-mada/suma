@@ -191,9 +191,6 @@ func (s *Service) Review(ctx context.Context, actor Actor, project, id string, m
 	if reason == "" || len(reason) > 5000 {
 		return Record{}, invalid("请填写验收意见")
 	}
-	if decision == "approved" {
-		decision = "accepted"
-	}
 	if decision != "accepted" && decision != "rejected" {
 		return Record{}, invalid("验收结论应为 accepted 或 rejected")
 	}
@@ -318,6 +315,9 @@ func (s *Service) Review(ctx context.Context, actor Actor, project, id string, m
 	}
 	reviewID := newID()
 	if _, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_reviews(id,tenant_id,project_id,task_id,task_version,run_id,reviewer_id,decision,reason,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)`), reviewID, p.TenantID, project, id, r.Version, runID, p.ID, decision, reason, now()); err != nil {
+		return r, err
+	}
+	if err = s.completeTaskReviewRequestTx(ctx, auth, r, reviewID); err != nil {
 		return r, err
 	}
 	old := r.Version

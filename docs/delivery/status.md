@@ -1,8 +1,16 @@
 # 1.0.0 当前交付状态
 
-T-ADAPTERS-139已限定验证当前授权的20入口统一工具接入目录及已有配置接续：执行／客户端方向、源码能力和限制分开，默认收起并保留选择。后端9项、Web43项独立用例（受影响11项复验包含在内）、类型／7156语言键、生成合同及隔离构建通过；用户重新授权后完成25项实际GUI检查，覆盖中英、键盘、桌面／390px与明暗代表性状态，修复固定页头遮挡移动详情标题。阶段scoped_verified，本记录覆盖此前139待验状态；厂商执行与其他在途页面仍单独验收。见[合同](../../contracts/adapter-catalog.md)、[设计](../design/adapter-connections.md)和[当前证据](../quality/adapter-connections-verification.md)。WorkBuddy云执行仍planned且与CodeBuddy分开，Harness按具体协议／版本登记；未新增厂商适配、真实安装、多机或生产验收，58／34／92不变。
+T-COLLAB-144整合人员讨论提及、团队准确执行跟进和审核责任请求，补齐真实会话角色、测试计划PUT及草稿导航／Review保护。源码、真实HTTP、组件及匹配构建已验证；实际GUI已观察26项，最终保存／模态保护操作仍待工具审批，不记通过。见[整合报告](../quality/collaboration-integration-verification.md)与[摘要](../quality/collaboration-integration-summary.json)。实现阶段提交dev，完整58／34／92及P0–P7目标继续推进。
+
+T-REVIEW-142已接通验收责任请求→同事务个人收件→原Review准确决定／问题回流；修复测试计划developer／reviewer操作遗漏，任务结论统一accepted／rejected。93项独立Go、58项Web、完整类型／7292语言键／合同／隔离构建及12项实际三账号Runner-HTTP-CLI检查通过，见[需求](../product/task-review-requests.md)、[架构](../architecture/task-review-requests.md)、[交互与AI SOP](../design/task-review-requests.md)和[限定报告](../quality/task-review-requests-verification.md)。binding_current不代表质量门禁通过；最终GUI状态以T-COLLAB-144整合报告为准；完整58／34／92不变。
 
 T-WORKBUDDY-143已验证云任务协议与持久单次提交底层，27项去重Go通过，见[合同](../../contracts/workbuddy-cloud-submission.md)、[架构](../architecture/workbuddy-cloud-submission.md)与[专项证据](../quality/workbuddy-cloud-submission-verification.md)。此阶段没有UI变更；正式OAuth、ACP、当前资格／预算、云候选和真实厂商接入仍待实施。内部模块尚未开放为可派发工具，其他阶段分别验收，以各自当前记录为准；完整平台范围保留。
+
+T-TEAM-EXECUTION-141增强原团队计划的准确步骤与等待原因：历史attempt不再冒充当前执行，完整状态分类与最多24项节点明细分开，原run／node／attempt入口和读取时间可回查。8项后端、24项前端、类型／7228双语键／生成合同及隔离构建通过；见[设计](../design/expert-team-execution.md)和[专项证据](../quality/expert-team-execution-verification.md)。实际浏览器仍待验，本阶段实现及剩余GUI按T-COLLAB-144记录；58／34／92完整范围保留。
+
+T-MENTIONS-140接通明确人员讨论→同事务个人通知→准确原消息定位，并提供discussion CLI。46项独立Go、56项Web、完整类型／7191对语言键、合同及隔离构建通过；两个本机账号完成12项实际接口／CLI检查。见[需求](../product/task-conversation-mentions.md)、[架构与来源](../architecture/task-conversation-mentions.md)、[交互与AI SOP](../design/task-conversation-mentions.md)、[限定报告](../quality/task-conversation-mentions-verification.md)。本域实际GUI与剩余项目见T-COLLAB-144整合报告；完整58／34／92不变。
+
+T-ADAPTERS-139已限定验证当前授权的20入口统一工具接入目录及已有配置接续：执行／客户端方向、源码能力和限制分开，默认收起并保留选择。后端9项、Web43项独立用例（受影响11项复验包含在内）、类型／7156语言键、生成合同及隔离构建通过；用户重新授权后完成25项实际GUI检查，覆盖中英、键盘、桌面／390px与明暗代表性状态，修复固定页头遮挡移动详情标题。阶段scoped_verified，本记录覆盖此前139待验状态；厂商执行与其他在途页面仍单独验收。见[合同](../../contracts/adapter-catalog.md)、[设计](../design/adapter-connections.md)和[当前证据](../quality/adapter-connections-verification.md)。WorkBuddy云执行仍planned且与CodeBuddy分开，Harness按具体协议／版本登记；未新增厂商适配、真实安装、多机或生产验收，58／34／92不变。
 
 T-INBOX-138限定实现当前人员任务分配收件箱：原事务真实来源、规范接收人、当前权限／来源水合、序号分页、本人已读与归档、原操作恢复，以及同源Suma CLI。见[合同](../../contracts/notification-inbox.md)、[产品要求](../product/notification-inbox.md)、[架构](../architecture/notification-inbox.md)、[交互与AI SOP](../design/notification-inbox.md)及[实际验证](../quality/notification-inbox-verification.md)。讨论提及、审批／告警多源路由、订阅偏好与通道outbox仍待交付，58／34／92不变。
 

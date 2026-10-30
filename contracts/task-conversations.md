@@ -18,7 +18,7 @@ GET `/api/v1/task-conversations?project_id&task_id&limit&before`：当前会话�
 
 `TaskConversationMessage`：`id,sequence,task_version,body,author_id,author_name,actor_kind,created_at,requirement_id,requirement_version,run_id`。人／API发送回执的`actor_kind`为`human`或`api`，历史可包含平台核验后生成的`assistant`；没有关联需求时ID为空、版本为0，没有关联运行时ID为空。新增必需字段`reply_id,reply_to_sequence,execution_run_id`：人／API为空／0，助手必须来自受保护关系，见[智能回复合同](task-conversation-replies.md)。全部字段必需，不返回原Record.Data、凭据、环境、执行命令或输出。
 
-POST `/api/v1/task-conversations`：`TaskConversationAppendRequest {project_id,task_id,expected_task_version,body,idempotency_key}`，返回201和原`TaskConversationMessage`。严格拒绝未知属性、作者／角色伪造、重复查询参数、路径和数字的非规范形式。支持当前浏览器和当前项目API身份，Runner和Agent凭据不通过此入口写入人类消息。
+POST `/api/v1/task-conversations`：`TaskConversationAppendRequest {project_id,task_id,expected_task_version,body,idempotency_key,mention_resource_ids?}`，返回201和原`TaskConversationMessage`。可选明确人员提及与不可变mentions快照见[精准提及合同](task-conversation-mentions.md)，无提及时省略。严格拒绝未知属性、作者／角色伪造、重复查询参数、路径和数字的非规范形式。支持当前浏览器和当前项目API身份，Runner和Agent凭据不通过此入口写入人类消息。
 
 ## 权限、事务与恢复
 

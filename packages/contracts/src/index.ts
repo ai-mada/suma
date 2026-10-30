@@ -2060,6 +2060,23 @@ export interface ExpertTeamDependencyFact {
   task_version: number;
   run_id?: string;
 }
+export interface ExpertTeamExecutionFact {
+  run_id: string;
+  observed_at: string;
+  nodes_total: number;
+  nodes: (ExpertTeamExecutionNodeFact)[];
+  truncated: boolean;
+}
+export interface ExpertTeamExecutionNodeFact {
+  node_id: string;
+  name: string;
+  type: string;
+  state: string;
+  reason: string;
+  attempt: number;
+  worker_id: string;
+  ready_at: string;
+}
 export interface ExpertTeamPlan {
   id: string;
   project_id: string;
@@ -2099,6 +2116,7 @@ export interface ExpertTeamPlanCreateRequest {
   idempotency_key: string;
 }
 export interface ExpertTeamPlanItem {
+  execution?: ExpertTeamExecutionFact | null;
   task_id: string;
   task_version: number;
   task_basis_sha256: string;
@@ -3025,6 +3043,8 @@ export interface NotificationInboxItem {
   source_available: boolean;
   assignment_current: boolean;
   current_task?: NotificationInboxTask | null;
+  message_id?: string;
+  review_request_id?: string;
 }
 export interface NotificationInboxPage {
   project_id: string;
@@ -5286,6 +5306,26 @@ export interface TaskConversationAppendRequest {
   expected_task_version: number;
   body: string;
   idempotency_key: string;
+  mention_resource_ids?: (string)[];
+}
+export interface TaskConversationMention {
+  resource_id: string;
+  user_id: string;
+  name_at_post: string;
+}
+export interface TaskConversationMentionTarget {
+  resource_id: string;
+  user_id: string;
+  name: string;
+  resource_version: number;
+}
+export interface TaskConversationMentionTargetPage {
+  project_id: string;
+  task_id: string;
+  limit: number;
+  items: (TaskConversationMentionTarget)[];
+  total: number;
+  next_cursor: string;
 }
 export interface TaskConversationMessage {
   id: string;
@@ -5302,6 +5342,14 @@ export interface TaskConversationMessage {
   reply_id: string;
   reply_to_sequence: number;
   execution_run_id: string;
+  mentions?: (TaskConversationMention)[];
+}
+export interface TaskConversationMessageDetail {
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  can_post: boolean;
+  message: TaskConversationMessage;
 }
 export interface TaskConversationPage {
   project_id: string;
@@ -5706,6 +5754,91 @@ export interface TaskPlan {
   start_date: string;
   due_date: string;
   estimated_hours: number | null;
+}
+export interface TaskReviewDecision {
+  review_id: string;
+  reviewer_user_id: string;
+  decision: string;
+  reason: string;
+  created_at: string;
+}
+export interface TaskReviewRequest {
+  id: string;
+  version: number;
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  run_id: string;
+  run_version: number;
+  task_basis_sha256: string;
+  requester_user_id: string;
+  requester_name_at_request: string;
+  reviewer_resource_id: string;
+  reviewer_user_id: string;
+  reviewer_name_at_request: string;
+  note: string;
+  state: string;
+  created_at: string;
+  updated_at: string;
+  cancelled_by_user_id: string;
+  cancel_reason: string;
+  closed_review_id: string;
+  binding_current: boolean;
+  reviewer_available: boolean;
+  is_current_assignee: boolean;
+  can_cancel: boolean;
+  source_available: boolean;
+  decision?: TaskReviewDecision | null;
+}
+export interface TaskReviewRequestCommand {
+  project_id: string;
+  expected_version: number;
+  action: string;
+  reason: string;
+  idempotency_key: string;
+}
+export interface TaskReviewRequestCreate {
+  project_id: string;
+  task_id: string;
+  expected_task_version: number;
+  run_id: string;
+  expected_run_version: number;
+  reviewer_resource_id: string;
+  note: string;
+  idempotency_key: string;
+}
+export interface TaskReviewRequestDetail {
+  project_id: string;
+  task_id: string;
+  task_title: string;
+  task_version: number;
+  can_request: boolean;
+  request: TaskReviewRequest;
+}
+export interface TaskReviewRequestPage {
+  project_id: string;
+  task_id: string;
+  task_version: number;
+  can_request: boolean;
+  limit: number;
+  items: (TaskReviewRequest)[];
+  total: number;
+  next_cursor: string;
+  pending_request_id: string;
+}
+export interface TaskReviewTarget {
+  resource_id: string;
+  user_id: string;
+  name: string;
+  resource_version: number;
+}
+export interface TaskReviewTargetPage {
+  project_id: string;
+  task_id: string;
+  limit: number;
+  items: (TaskReviewTarget)[];
+  total: number;
+  next_cursor: string;
 }
 export interface TaskRunProvenance {
   task_id: string;

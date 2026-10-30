@@ -1,0 +1,16 @@
+.task-conversation-mentions{min-width:0;padding:8px 0;border-top:1px solid var(--border)}
+.task-conversation-mentions-heading{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.task-conversation-mentions-heading>button{display:flex;gap:6px;align-items:center;font-size:11px;min-height:32px}
+.task-conversation-mentions-heading small,.task-conversation-mentions-options small{color:var(--muted)}
+.task-conversation-mentions-selected{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:8px 0;padding:0}
+.task-conversation-mentions-selected li{display:flex;align-items:center;gap:4px;max-width:100%;padding:2px 4px 2px 8px;border:1px solid var(--border);border-radius:5px;background:var(--accent-soft);overflow-wrap:anywhere}
+.task-conversation-mentions-selected .icon-button{min-width:28px;min-height:28px}
+.task-conversation-mentions-selected .is-unavailable,.task-conversation-mentions-warning{color:var(--warning,var(--text))}
+.task-conversation-mentions-picker{padding:10px;margin-top:8px;border:1px solid var(--border);border-radius:6px;background:var(--surface,var(--panel))}
+.task-conversation-mentions-picker>label{display:block;margin-bottom:6px;font-weight:500}
+.task-conversation-mentions-search{display:flex;gap:6px}.task-conversation-mentions-search input{min-width:0;flex:1;width:100%}
+.task-conversation-mentions-options{list-style:none;padding:0;margin:8px 0;display:grid;gap:4px;max-height:220px;overflow:auto}
+.task-conversation-mentions-options button{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;min-height:34px;text-align:left;overflow-wrap:anywhere}
+.task-conversation-mentions-options button[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent)}
+.task-conversation-mentions button:focus-visible,.task-conversation-mentions input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:450px){.task-conversation-mentions-heading{align-items:flex-start}.task-conversation-mentions-heading>small{width:100%}.task-conversation-mentions-options button{align-items:flex-start;flex-direction:column;gap:3px}}

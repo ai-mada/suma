@@ -1,0 +1,260 @@
+{
+  "stage": "T-MENTIONS-140",
+  "date": "2026-10-30",
+  "version": "1.0.0",
+  "status": "implementation_verified_gui_remaining",
+  "full_platform_complete": false,
+  "base": "86fb65e1168bd84f92aa8d758204e34b4d04f6a3",
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "verification": {
+    "go_unique_top_level": 46,
+    "go_receipts": [
+      ".cache/e2e/mentions-140/go/20261029T155457605Z.command.json",
+      ".cache/e2e/mentions-140/go/20261029T155813268Z.command.json"
+    ],
+    "go_tests": [
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestNotificationInboxContractKeepsRecipientAndSourcesServerOwned"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestTaskConversationMentionContractsKeepSelectionAndImmutableSourceExplicit"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLICommandsPreserveExplicitOriginalRequest"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLICurrentFailureIsNotRetriedOrTranslated"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLIHelpAndLocalUsageLanguages"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLIInvalidParametersNeverReachTransport"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLIListScopeAndOpaqueSequence"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLIRecoveryRequiresSameCallerVersionAndOperation"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskDiscussionsCLIExactScopedReadParameters"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskDiscussionsCLIHelpLanguages"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskDiscussionsCLIInvalidLocalInputNeverReachesTransport"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskDiscussionsCLIPostKeepsOriginalPayloadAndHasNoQuery"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskDiscussionsCLIUnconfirmedPostDoesNotRetryOrReplaceOperation"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/localization",
+        "name": "TestCanonicalTemplateGrammarAndCatalogSnapshot"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/localization",
+        "name": "TestCatalogKnownMessagesAreBilingualAndKeepMachineFields"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxAcceptedHandoffAndDecompositionSources"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxCurrentPermissionRevocationBeforePageOrReceiptReplay"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxDesignAdoptionCreatesAndReassignsExactRecipient"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxHTTPClosedQueriesCommandsAndCredentialKinds"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxInitialDomainStartsEmptyAndReopensWithoutSourceInference"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxInitialSchemaRejectsPartialAndMissingConstraintsBeforeWrites"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxNonhumanUnboundAndUnchangedOwnersDoNotGuessRecipients"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxProjectionFailureRollsBackSourceAndCounter"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxProjectionVerifiesSavedSourceAndDeduplicatesWithinTransaction"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxSequencePagingCountsAndCursorScope"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxSourceAssignmentsReplayAndHydrateCurrentTask"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxViewerPersonalCASReplayAndNoProjectWrite"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationConcurrentAppendAndHistory"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationCurrentAuthorityAndAcceptedTask"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationImmutableContextAndOriginalReceipt"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationMentionInboxCorruptionRetainsPrivateEventWithoutSource"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationMentionTargetsPagedCurrentScopeAndClosedHTTP"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationMentionsCanonicalRecipientsAndImmutableReplay"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationMentionsFailureRollsBackMessageReceiptAndInboxSequence"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationMentionsFrozenReplyAndDevelopmentSource"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationMentionsHTTPClosedInputAndExactDetailPrivacy"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationMentionsInitialSchemaRejectsPartialBeforeOtherWrites"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationMentionsPlainJSONAndExactOldMessageDetail"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationMentionsRejectInvalidRecipientsAsOneAtomicRequest"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationReplyManagedTurnAndOriginalReceipt"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationReplyStaleCompletionAndCancellation"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationReplyStrictScopeAndContextWindow"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationStrictHTTPAndScope"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskDiscussionDevelopmentPreservesSourceAndUsesOriginalDispatcher"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskDiscussionDevelopmentRejectsStaleUnverifiedAndUnconsentedSources"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskDiscussionDevelopmentStrictHTTPAndProjectScope"
+      }
+    ],
+    "web_files": 8,
+    "web_passed": 56,
+    "web_failed": 0,
+    "types": "pass",
+    "locale_pairs": 7191,
+    "production_hardcodes": 0,
+    "generated_models": 734,
+    "api_paths": 340,
+    "isolated_build_seconds": 43.44,
+    "actual_http_cli": {
+      "date": "2026-10-29T15:59:28.752Z",
+      "kind": "Actual compiled Go control + SQLite + compiled Suma CLI; two owned loopback synthetic accounts",
+      "checks": [
+        "Actual CLI current directory includes canonical project viewer",
+        "Compiled dedicated CLI sends exact human mention with immutable recipient",
+        "Original CLI operation recovers exact message without another append",
+        "Original lies outside latest20 and plaintext notes have no invented mentions",
+        "Only actual recipient receives one intact mention notification",
+        "Sender does not receive another persons mention",
+        "Viewer can read exact older message via CLI/HTTP without write rights",
+        "Viewer private read and original receipt use same CLI",
+        "Current rename preserves exact immutable source snapshot",
+        "Committed original send recovers after target becomes inactive",
+        "New invalid target rejects entire send without duplicate message or inbox event",
+        "Mentions/private state preserve formal task version/run/status"
+      ],
+      "limits": "No browser, external provider, AI execution, physical multihost, other database or production acceptance."
+    }
+  },
+  "audit": {
+    "initial_go": "Interrupted held read transaction in new single-connection test fixture; fixed and reran affected batch with90s cap. Not counted as passed.",
+    "initial_types": "Optional ref type fixed; complete typecheck passed.",
+    "initial_cli": "Generic API added disallowed project query; server400/no message. Dedicated discussion command now preserves exact original body.",
+    "browser": "Earlier capacity rejection is historical. User restored the same local origin; joint record has26 observed passes and2 pre-fix issues. Final corrected test-plan/guard GUI remains pending tool approval.",
+    "commit": "Reviewed implementation/evidence scope is prepared for dev. Final GUI is explicitly pending; excluded files remain untouched."
+  },
+  "source": {
+    "inventory": ".cache/e2e/mentions-140/source-inventory.json",
+    "sha256": "9ae532b50d5782be3515817c9ee441f24fff8bb65bcb442b3250ed7dfa1a8369",
+    "paths": 61,
+    "shared_files": "Include frozen T-ADAPTERS-139 context in shared generator/http/catalog/generated/docs; preserve stage separation before any eventual commit. No desktop or control-entry WIP included."
+  },
+  "limits": [
+    "Actual final GUI pending",
+    "No external providers or AI execution",
+    "No other database or physical multi-host",
+    "No production or full-platform acceptance"
+  ],
+  "integration": {
+    "stage": "T-COLLAB-144",
+    "report": "docs/quality/collaboration-integration-verification.md",
+    "summary": "docs/quality/collaboration-integration-summary.json",
+    "source_sha256": "c450f983e52ce91b3bbb274381c7bdf392b2195379edc5fb308b5fa31ada3dfd",
+    "final_gui": "pending; do not treat local HTTP or DOM as GUI acceptance"
+  }
+}

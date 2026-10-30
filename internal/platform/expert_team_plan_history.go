@@ -111,6 +111,7 @@ func (s *Service) ExpertTeamPlanRevisions(ctx context.Context, engine *dag.Engin
 		if err = json.Unmarshal([]byte(raw), &p); err != nil {
 			break
 		}
+		clearExpertTeamExecution(&p)
 		p.CanStart = false
 		p.AllowedActions = []string{}
 		p.CreatedAt = createdAt
@@ -151,6 +152,7 @@ func (s *Service) GetExpertTeamPlanRevision(ctx context.Context, engine *dag.Eng
 		return out, err
 	}
 	err = json.Unmarshal([]byte(raw), &out)
+	clearExpertTeamExecution(&out)
 	out.CanStart = false
 	out.AllowedActions = []string{}
 	out.CreatedAt = createdAt

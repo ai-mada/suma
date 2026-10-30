@@ -148,10 +148,13 @@ func (s *Service) taskConversationMessageMetadataTx(ctx context.Context, tx *sql
 	if err = rows.Err(); err != nil {
 		return err
 	}
+	if err = rows.Close(); err != nil {
+		return err
+	}
 	for _, item := range items {
 		if item.ActorKind == "assistant" && item.ReplyID == "" || item.ActorKind != "assistant" && item.ActorKind != "human" && item.ActorKind != "api" {
 			return conflict(conversationReplyInvalid)
 		}
 	}
-	return nil
+	return s.taskConversationMentionsMetadataTx(ctx, tx, tenant, project, task, items)
 }

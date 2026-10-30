@@ -1,0 +1,462 @@
+{
+  "stage": "T-REVIEW-142",
+  "date": "2026-10-30",
+  "version": "1.0.0",
+  "status": "implementation_verified_gui_remaining",
+  "full_platform_complete": false,
+  "scope": "明确当前规范审核人员、准确task/run绑定、请求与通知原子提交、有界历史、取消及原回执、原Review关联实际决定、原退回问题回流；含专用CLI和原任务详情面板。",
+  "git_base": "00a0b0c8da55236b75a709dcb9a79c19f0e60bc8",
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "checks": {
+    "go_unique_top_level": 93,
+    "go_receipts": [
+      ".cache/e2e/review-142/go/20261029T162856364Z.command.json",
+      ".cache/e2e/review-142/go/20261029T163112829Z.command.json",
+      ".cache/e2e/review-142/go/20261029T164352922Z.command.json"
+    ],
+    "go_tests": [
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestAdapterCatalogContractIsReadOnlyAndSeparatesDirectionFromSupport"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestApplicationToolContractDeclaresEffectsWithoutVerifiedConnection"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestAttemptToolHistoryContractKeepsOpaqueWindowAndRawEvents"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestAutomationAndStreamContractsMatchDistinctFactAndAuthority"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestCandidateTransferContractKeepsMachineScopeAndBinaryBytes"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestCheckModeReportsDriftWithoutWriting"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestCurrentAuthorityContractsDistinguishBrowserViewAndScopedAPI"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestDispatchRecommendationContractsKeepReadAnalysisAndHumanAdoptionDistinct"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestDisplayDiagnosticPublishedContract"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestDisplaySourceGenerationRetainsExactApprovedDefinitions"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestDisplaySourcesArtifactIsStandalone"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestEmbeddedTaskAndNullablePlanningWire"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestExecutionPoolContractsSeparateHumanAndMachineAuthority"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestExpertTeamExecutionContractPreservesBoundedReadOnlyFacts"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestGovernanceAndRunnerSecurityAndSecretBoundaries"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestIngressContractsKeepSignatureAndSessionAuthoritySeparate"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestIntelligentOperationsRoutesSeparateReadOnlyPreviewFromWrites"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestIntelligentOperationsSchemasCloseActionPayloadsAndCommands"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestIssueRepairContractKeepsClosureAsCurrentHumanCommand"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestLocalePreferencesContractsKeepBrowserIdentityAndExplicitVersion"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestModelClosureAndDeterministicGeneration"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestModelSelectionRequestsMatchNonNullHTTPContract"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestMyWorkContractKeepsIdentityServerOwned"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestNativeDiagnosticContractVersionAndEventScope"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestNativeLocalizationGeneratedArtifactExists"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestNativeLocalizationGenerationIsDeterministicAndComplete"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestNativeLocalizationGenerationRejectsUntrustedOrIncompleteDefinitions"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestNotificationInboxContractKeepsRecipientAndSourcesServerOwned"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestOctopContractKeepsPublicStopAndConfigurationFacts"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestPlanningRoutesPagingAndCoverage"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestProjectFocusContractPreservesBoundedReadFacts"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestProjectKnowledgeContractKeepsApprovalAndFixedContext"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestProjectRiskContractKeepsAdviceAndQualityAuthoritySeparate"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestReleasePagingAndExactDecisionSchemas"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestReleaseRoutesWireAndAuthorityBoundaries"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestRequirementDesignContractSeparatesDraftPreviewAndApproval"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestRequirementTraceabilityReadContract"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestResourceCalendarContractUsesOneCurrentCalendarAndExplicitUnknown"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestSchedulingContractsExposeActualAdmissionAndDurableAttempts"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestSharedTaskViewsContractKeepsScopesVersionsAndClosedPreferences"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestTaskCollectionContractSharesLiteralFiltersAndBoundsGroupPages"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestTaskConversationMentionContractsKeepSelectionAndImmutableSourceExplicit"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestTaskDeliveryBoundedReadContract"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestTaskDependencyGraphAndAtomicChangeContracts"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestTaskDesignViewContractKeepsReadAndOriginalSnapshot"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestTaskReviewRequestContractsKeepFormalDecisionSeparate"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestTaskWorkspaceContractIsScopedReadWithoutBusinessMutation"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestTestPlansRoutesPreserveCurrentAuthorityAndOriginalEvidence"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestTestPlansSchemasKeepIncompleteDraftsAndCaseProofSeparate"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestToolDiscoveryContract"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestToolExecutionContractsKeepProfilesAndRunFactsSeparate"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestWorkflowValidationContractSeparatesRawEvidenceAndPresentation"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestWorklogContractPreservesHumanSnapshotsAndExplicitWriteBasis"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestWorkspaceFileTypedContextContract"
+      },
+      {
+        "package": "github.com/ai-mada/suma/cmd/suma-contracts",
+        "name": "TestWorkspaceOperationContractsSeparateHostAuthorityFromSDK"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLICommandsPreserveExplicitOriginalRequest"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLICurrentFailureIsNotRetriedOrTranslated"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLIHelpAndLocalUsageLanguages"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLIInvalidParametersNeverReachTransport"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLIListScopeAndOpaqueSequence"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestNotificationInboxCLIRecoveryRequiresSameCallerVersionAndOperation"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskReviewRequestsCLIExactScopedReadsAndSinglePage"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskReviewRequestsCLIHelpLanguages"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskReviewRequestsCLIInvalidInputNeverUsesTransport"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskReviewRequestsCLIOriginalWritesHaveNoQueryOrNewOperation"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/cli",
+        "name": "TestTaskReviewRequestsCLIUnconfirmedAndForbiddenDoNotRetry"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/localization",
+        "name": "TestCanonicalTemplateGrammarAndCatalogSnapshot"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/localization",
+        "name": "TestCatalogKnownMessagesAreBilingualAndKeepMachineFields"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestAuthorityReviewRechecksBothTransactions"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxAcceptedHandoffAndDecompositionSources"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxCurrentPermissionRevocationBeforePageOrReceiptReplay"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxDesignAdoptionCreatesAndReassignsExactRecipient"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxHTTPClosedQueriesCommandsAndCredentialKinds"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxInitialDomainStartsEmptyAndReopensWithoutSourceInference"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxInitialSchemaRejectsPartialAndMissingConstraintsBeforeWrites"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxNonhumanUnboundAndUnchangedOwnersDoNotGuessRecipients"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxProjectionFailureRollsBackSourceAndCounter"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxProjectionVerifiesSavedSourceAndDeduplicatesWithinTransaction"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxSequencePagingCountsAndCursorScope"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxSourceAssignmentsReplayAndHydrateCurrentTask"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestNotificationInboxViewerPersonalCASReplayAndNoProjectWrite"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestReviewRejectsWorkspaceCandidateNotCoveredByTests"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskConversationMentionsCanonicalRecipientsAndImmutableReplay"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskDeliveryHTTPUndispatchedReadOnlySnapshot"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskDeliveryRejectedReviewCreatesOneTrustedIssue"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskReviewRequestBrokenSourcesDoNotInventDecisionOrInboxLink"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskReviewRequestsCanonicalTargetsOriginalReplayAndCancellation"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskReviewRequestsHTTPClosedWritesExactHistoryAndNoReadEffects"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskReviewRequestsInitialSchemaRejectsPartialAndMissingUniquenessBeforeWrites"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskReviewRequestsOriginalReviewClosesOnlyItsExactRequestAndKeepsQualityFeedback"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskReviewRequestsProjectionFailureRollsBackPendingReceiptAndSequence"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskReviewRequestsStaleBindingAndCurrentCallerAuthorization"
+      },
+      {
+        "package": "github.com/ai-mada/suma/internal/platform",
+        "name": "TestTaskReviewTargetsPagedCanonicalApprovalRolesAndClosedHTTP"
+      }
+    ],
+    "web_unique": 58,
+    "web_files": 8,
+    "web_initial": {
+      "passed": 57,
+      "failed": 1
+    },
+    "web_affected": {
+      "passed": 9,
+      "failed": 0,
+      "included_not_added": true
+    },
+    "types": "pass",
+    "i18n_paired_keys": 7292,
+    "production_hardcodes": 0,
+    "schemas": 745,
+    "api_paths": 344,
+    "isolated_build_seconds": 41.76,
+    "actual": {
+      "date": "2026-10-29T16:38:40.343Z",
+      "scope": "Actual compiled Go control, SQLite, compiled Runner, real Node non-code assertions, compiled CLI and three owned accounts on one loopback host",
+      "checks": [
+        "Actual current target directory contains reviewer and excludes project viewer",
+        "Compiled CLI creates exact pending responsibility with canonical approver",
+        "Original create replay returns same immutable receipt",
+        "Exactly one owned review notification routes to exact request",
+        "Different currently authorized approver retains original formal Review authority",
+        "Closed request points to one real formal decision and has no pending slot",
+        "Old Review replay cannot close a new responsibility request",
+        "Explicit cancellation recovers original receipt and leaves task accepted",
+        "Assigned reviewer rejection closes exact request and creates trusted issue feedback",
+        "Rejected Review replay does not duplicate source issue",
+        "Private historical notifications survive cancellation and formal decisions",
+        "Initial1.0.0 rejects approved alias without changing task or responsibility history"
+      ],
+      "limits": "No browser, model, external vendor, code candidate certification, other database, physical multihost or production acceptance.",
+      "canonical_decision_verified_at": "2026-10-29T16:46:00.839Z"
+    },
+    "docs": "418 Markdown local links and344 API paths/3233 schema references passed",
+    "version": "All product/package/Go/desktop/Helm identities1.0.0",
+    "diff_whitespace": "passed",
+    "git_index": "empty"
+  },
+  "audit": {
+    "fixture_failure": "Workspace missing; authoritative inventory, empty journal, node ready attempt/fence0 and only creation/ready events proved no execution. Preserved original run, created owned directory, new credential/worker, resumed same run. No reset/forged result.",
+    "web_failure": "Write-only identity header wrongly assumed on GET in new fixture. Test-only correction; 9 affected checks pass.",
+    "variant_check": "Original editor-role gate fixed; narrow production role scan found no other high-confidence equivalent instance.",
+    "browser": "Earlier capacity rejection is historical. User restored the same local origin; joint record has26 observed passes and2 pre-fix issues. Final corrected test-plan/guard GUI remains pending tool approval.",
+    "commit": "Reviewed implementation/evidence scope is prepared for dev. Final GUI is explicitly pending; excluded files remain untouched."
+  },
+  "source": {
+    "inventory": ".cache/e2e/review-142/source-inventory.json",
+    "sha256": "430b1064cd740f39903cd6d96bffebd424644034bfab7ecc90cfd8462e20ad4d",
+    "files": 58,
+    "shared_context": "Frozen139/140/141 registrations, types and documentation retained. Separate desktop/control-entry/WorkBuddy work excluded; actual runtime uses committed control main overlay."
+  },
+  "limits": [
+    "Final actual GUI pending",
+    "Actual non-code assertion does not certify code candidate",
+    "No vendor/model/other-database/physical-multi-host/production acceptance"
+  ],
+  "integration": {
+    "stage": "T-COLLAB-144",
+    "report": "docs/quality/collaboration-integration-verification.md",
+    "summary": "docs/quality/collaboration-integration-summary.json",
+    "source_sha256": "c450f983e52ce91b3bbb274381c7bdf392b2195379edc5fb308b5fa31ada3dfd",
+    "final_gui": "pending; do not treat local HTTP or DOM as GUI acceptance"
+  }
+}

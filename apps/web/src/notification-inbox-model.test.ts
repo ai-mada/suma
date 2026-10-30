@@ -7,6 +7,25 @@ const page=(patch:Record<string,unknown>={})=>({project_id:'project-a',user_id:'
 const request=(patch:Record<string,unknown>={})=>({path:notificationInboxCommandPath('notice-a'),method:'POST',idempotency_key:'original-operation-a',body:{project_id:'project-a',expected_version:1,action:'read',idempotency_key:'original-operation-a'},...patch});
 const receipt=(patch:Record<string,unknown>={})=>({idempotency_key:'original-operation-a',notification_id:'notice-a',version:2,action:'read',read:true,archived:false,read_at:'2026-10-29T04:00:00Z',archived_at:'',updated_at:'2026-10-29T04:00:00Z',...patch});
 
+it('opens only an intact review-request source and rejects cross-kind source aliases',()=>{
+ expect(validNotificationInboxItem(row({kind:'task_review_requested',assignment_current:false,review_request_id:'request-a'}))).toBe(true);
+ expect(validNotificationInboxItem(row({kind:'task_review_requested',assignment_current:false}))).toBe(false);
+ expect(validNotificationInboxItem(row({kind:'task_review_requested',assignment_current:true,review_request_id:'request-a'}))).toBe(false);
+ expect(validNotificationInboxItem(row({kind:'task_review_requested',assignment_current:false,review_request_id:'request-a',message_id:'message-a'}))).toBe(false);
+ expect(validNotificationInboxItem(row({review_request_id:'request-a'}))).toBe(false);
+ expect(validNotificationInboxItem(row({kind:'task_review_requested',assignment_current:false,source_available:false,current_task:undefined}))).toBe(true);
+ expect(validNotificationInboxItem(row({kind:'task_review_requested',assignment_current:false,source_available:false,current_task:undefined,review_request_id:'request-a'}))).toBe(false);
+});
+
+it('requires an exact message locator only for an available mention source and keeps assignment semantics separate',()=>{
+ expect(validNotificationInboxItem(row({kind:'task_mentioned',assignment_current:false,message_id:'message-a'}))).toBe(true);
+ expect(validNotificationInboxItem(row({kind:'task_mentioned',assignment_current:false}))).toBe(false);
+ expect(validNotificationInboxItem(row({kind:'task_mentioned',assignment_current:true,message_id:'message-a'}))).toBe(false);
+ expect(validNotificationInboxItem(row({kind:'task_mentioned',assignment_current:false,source_available:false,current_task:undefined}))).toBe(true);
+ expect(validNotificationInboxItem(row({kind:'task_mentioned',assignment_current:false,source_available:false,current_task:undefined,message_id:'message-a'}))).toBe(false);
+ expect(validNotificationInboxItem(row({message_id:'message-a'}))).toBe(false);
+});
+
 it('keeps signed BIGINT sequences exact above JavaScript numeric precision and validates descending order',()=>{
  expect(validNotificationInboxSequence('9223372036854775807')).toBe(true);for(const value of ['0','01','1e3','9223372036854775808',9007199254740993])expect(validNotificationInboxSequence(value)).toBe(false);
  const ordered=page({items:[row(),row({id:'notice-b',sequence:'9007199254740992'})],total:2,counts:{inbox:2,unread:2,archived:0}});expect(validNotificationInboxPage(ordered,'project-a','user-a','inbox')).toBe(true);expect(validNotificationInboxPage({...ordered,items:[...ordered.items].reverse()},'project-a','user-a','inbox')).toBe(false);

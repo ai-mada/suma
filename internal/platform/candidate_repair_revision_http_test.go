@@ -26,7 +26,7 @@ func TestCandidateRepairRevisionHTTPIngressAndHistory(t *testing.T) {
 	f.call("GET", path+"/repair-revision-context"+query+"&project_id="+f.project, nil, 400)
 	f.call("GET", path+"/repair-revision-context"+query+"&unknown=1", nil, 400)
 	f.call("GET", path+"/repair-revision-context?project_id=unowned", nil, 404)
-	r := CandidateCompositionRepairRevisionRequest{ProjectID: f.project, ExpectedVersion: parent.Version, ExpectedTaskVersion: int(view["task_version"].(float64)), ExpectedConflictSHA256: view["conflict_basis"].(map[string]any)["sha256"].(string), WorkflowID: repair.WorkflowID, WorkflowVersion: repair.WorkflowVersion, ProducerNodeID: repair.ProducerNodeID, ToolProfileID: repair.ToolProfileID, ExpectedToolVersion: repair.ExpectedToolVersion, Reason: "Reviewed replacement before any execution", Acknowledge: true, IdempotencyKey: newID()}
+	r := CandidateCompositionRepairRevisionRequest{ModelExecutionSelection: repair.ModelExecutionSelection, ProjectID: f.project, ExpectedVersion: parent.Version, ExpectedTaskVersion: int(view["task_version"].(float64)), ExpectedConflictSHA256: view["conflict_basis"].(map[string]any)["sha256"].(string), WorkflowID: repair.WorkflowID, WorkflowVersion: repair.WorkflowVersion, ProducerNodeID: repair.ProducerNodeID, ToolProfileID: repair.ToolProfileID, ExpectedToolVersion: repair.ExpectedToolVersion, Reason: "Reviewed replacement before any execution", Acknowledge: true, IdempotencyKey: newID()}
 	for _, field := range []string{"expected_version", "expected_task_version", "workflow_version", "expected_tool_version"} {
 		for _, value := range []any{nil, "1", json.Number("1.0"), json.Number("1e0")} {
 			bad := candidateJSON(t, r)

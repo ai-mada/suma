@@ -1,0 +1,92 @@
+{
+  "stage": "T-COLLAB-144",
+  "version": "1.0.0",
+  "date": "2026-10-30",
+  "status": "implementation_verified_gui_remaining",
+  "stages": [
+    "T-MENTIONS-140",
+    "T-TEAM-EXECUTION-141",
+    "T-REVIEW-142"
+  ],
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "go_full_integration": {
+    "command_receipt": ".cache/e2e/collaboration-140-142/go/20261029T233957613Z.command.json",
+    "complete_packages": {
+      "internal/cli": 94,
+      "cmd/suma-contracts": 55,
+      "internal/localization": 38
+    },
+    "platform": "Incomplete: 180-second package timeout. Previously failing fixtures and two actual repository operations were checked again in focused runs; not a full-package pass.",
+    "reconciliation": ".cache/e2e/collab-144/go-reconciliation.json",
+    "installed_codex": "Skipped: explicit opt-in/executable dependency not supplied."
+  },
+  "web": {
+    "initial_full": ".cache/e2e/collaboration-140-142/build/web-integration.json",
+    "affected_provenance": ".cache/e2e/collaboration-140-142/build/web-affected.json",
+    "gui_fixes": ".cache/e2e/collaboration-140-142/build/gui-fixes-web.json",
+    "initial_full_status": "Two stale read fixtures corrected, then affected checks passed. Final changed interactions checked separately; unique counts reconciled after final focused run.",
+    "gui_fixes_result": {
+      "passed": 28,
+      "failed": 0,
+      "note": "Overlaps prior tests; do not add counts."
+    },
+    "final_affected": {
+      "receipt": ".cache/e2e/collaboration-140-142/build/final-affected-web.json",
+      "passed": 25,
+      "failed": 0,
+      "note": "Complete current TestPlansWorkspace and App provenance/Review guard files. Earlier modal-guard RED preserved."
+    },
+    "final_types": {
+      "exit": 0,
+      "receipt": ".cache/e2e/collaboration-140-142/build/final-typecheck.txt"
+    }
+  },
+  "browser": {
+    "origin": "http://127.0.0.1:43959",
+    "status": "pending_final_test_plan_saves_and_modal_guard",
+    "evidence_directory": "dist/quality/collaboration-140-142",
+    "no_database_reset": true,
+    "observed_checks": 28,
+    "observed_passed": 26,
+    "pre_fix_issues": [
+      "test-plan-current-project-write-role",
+      "test-plan-actual-save-command"
+    ],
+    "corrected_gui": "Not yet observed. Actual HTTP/DOM repairs passed; the coordinating browser chat reports waitingOnApproval. No approval bypass.",
+    "working_evidence_sha256": "047002fcf28102437b7f71adee11c32e9a30cb592c59596f50a7256d611fa166"
+  },
+  "source_reference": {
+    "multica": "2083970b51c03c0773188636c24a96acd09ad4c3",
+    "adoption": "Behavior/technical reference; no current restricted-source code or asset copy."
+  },
+  "limits": "Local scoped collaboration acceptance only; no provider/model, code-candidate certification, physical multihost, other database, scale, installation or production acceptance. Complete platform goal remains active.",
+  "recorded_at": "2026-10-30T00:34:46.678176+00:00",
+  "build": {
+    "source_sha256": "c450f983e52ce91b3bbb274381c7bdf392b2195379edc5fb308b5fa31ada3dfd",
+    "control_sha256": "68492506746091b343418a993135d147e7b11b77be9632b0a3b8d24ebb2af5c9",
+    "index_sha256": "85d9cea9e3e876887e7615a7ea33cca9ffaa83eda67da23210e3d32033e7264f",
+    "production_sources_unchanged": true,
+    "runtime_receipt": ".cache/e2e/collaboration-140-142/corrected-final/build/runtime-manifest.json",
+    "build_seconds": 42.34,
+    "data_reset": false
+  },
+  "go_additional": {
+    "http_red": ".cache/e2e/collaboration-140-142/go/20261030T001549479Z.command.json",
+    "http_green": ".cache/e2e/collaboration-140-142/go/20261030T001627448Z.command.json",
+    "green_tests": [
+      "TestIdentitySessionCurrentProjectRoles",
+      "TestTestPlanHTTPDraftSaveUsesCurrentRoleAndOriginalReceipt"
+    ],
+    "fixture_recovery_receipts": [
+      ".cache/e2e/collaboration-140-142/go/20261030T000330849Z.command.json",
+      ".cache/e2e/collaboration-140-142/go/20261030T000533453Z.command.json"
+    ],
+    "team_history": "See T-TEAM-EXECUTION-141 report; 9 top-level focused backend checks, including persisted waiting history."
+  },
+  "commit_policy": "Commit the reviewed implementation/evidence scope to dev; do not claim final GUI acceptance. Exclude all cache, databases, binaries, screenshots, secrets and unrelated desktop/planning work."
+}

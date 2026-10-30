@@ -90,8 +90,8 @@ func (s *Service) notificationInboxTx(ctx context.Context, auth *authorizedComma
 		args = append(args, before)
 	}
 	// Hydrate only current bounded source fields. No title/body snapshot exists.
-	joins := ` FROM suma_notification_inbox n LEFT JOIN suma_tasks t ON t.tenant_id=n.tenant_id AND t.project_id=n.project_id AND t.id=n.task_id`
-	query := `SELECT n.id,n.version,n.sequence,n.kind,n.task_id,n.source_task_version,n.source_resource_id,n.created_at,n.read_at,n.archived_at,COALESCE(t.id,''),COALESCE(t.version,0),COALESCE(t.title,''),COALESCE(t.status,''),COALESCE(t.owner_id,'')` + joins + where[len(` FROM suma_notification_inbox n`):] + ` ORDER BY n.sequence DESC LIMIT ?`
+	joins := ` FROM suma_notification_inbox n LEFT JOIN suma_tasks t ON t.tenant_id=n.tenant_id AND t.project_id=n.project_id AND t.id=n.task_id LEFT JOIN suma_task_conversation_mentions cm ON n.kind='task_mentioned' AND cm.tenant_id=n.tenant_id AND cm.project_id=n.project_id AND cm.task_id=n.task_id AND cm.notification_id=n.id AND cm.resource_id=n.source_resource_id AND cm.recipient_user_id=n.recipient_user_id AND cm.ordinal>=0 AND cm.ordinal<20 LEFT JOIN suma_task_conversation_messages msg ON msg.tenant_id=n.tenant_id AND msg.project_id=n.project_id AND msg.task_id=n.task_id AND msg.id=cm.message_id AND msg.task_version=n.source_task_version AND msg.actor_kind IN ('human','api') LEFT JOIN suma_task_review_requests rq ON n.kind='task_review_requested' AND rq.tenant_id=n.tenant_id AND rq.project_id=n.project_id AND rq.task_id=n.task_id AND rq.notification_id=n.id AND rq.reviewer_resource_id=n.source_resource_id AND rq.reviewer_user_id=n.recipient_user_id AND rq.task_version=n.source_task_version AND rq.state IN ('pending','cancelled','closed')`
+	query := `SELECT n.id,n.version,n.sequence,n.kind,n.task_id,n.source_task_version,n.source_resource_id,n.created_at,n.read_at,n.archived_at,COALESCE(t.id,''),COALESCE(t.version,0),COALESCE(t.title,''),COALESCE(t.status,''),COALESCE(t.owner_id,''),COALESCE(msg.id,''),n.source_event_key,n.recipient_user_id,COALESCE(rq.id,'')` + joins + where[len(` FROM suma_notification_inbox n`):] + ` ORDER BY n.sequence DESC LIMIT ?`
 	args = append(args, limit+1)
 	rows, err := auth.tx.QueryContext(ctx, s.q(query), args...)
 	if err != nil {
@@ -101,21 +101,33 @@ func (s *Service) notificationInboxTx(ctx context.Context, auth *authorizedComma
 	for rows.Next() {
 		var item NotificationInboxItem
 		var task NotificationInboxTask
-		var owner string
+		var owner, messageID, eventKey, recipient, reviewRequestID string
 		var sequence int64
-		if err = rows.Scan(&item.ID, &item.Version, &sequence, &item.Kind, &item.TaskID, &item.SourceTaskVersion, &item.SourceResourceID, &item.CreatedAt, &item.ReadAt, &item.ArchivedAt, &task.ID, &task.Version, &task.Title, &task.Status, &owner); err != nil {
+		if err = rows.Scan(&item.ID, &item.Version, &sequence, &item.Kind, &item.TaskID, &item.SourceTaskVersion, &item.SourceResourceID, &item.CreatedAt, &item.ReadAt, &item.ArchivedAt, &task.ID, &task.Version, &task.Title, &task.Status, &owner, &messageID, &eventKey, &recipient, &reviewRequestID); err != nil {
 			return out, err
 		}
-		if sequence < 1 || item.Version < 1 || item.SourceTaskVersion < 1 || item.Kind != "task_assigned" {
+		if sequence < 1 || item.Version < 1 || item.SourceTaskVersion < 1 || item.Kind != "task_assigned" && item.Kind != "task_mentioned" && item.Kind != "task_review_requested" {
 			return out, conflict("The notification source is invalid")
 		}
 		item.Sequence = strconv.FormatInt(sequence, 10)
 		item.Read = item.ReadAt != ""
 		item.Archived = item.ArchivedAt != ""
 		item.SourceAvailable = task.ID != ""
+		if item.Kind == "task_mentioned" {
+			item.SourceAvailable = item.SourceAvailable && handoffID(messageID, false) && eventKey == taskConversationMentionEventKey(messageID, item.SourceResourceID, recipient)
+			if item.SourceAvailable {
+				item.MessageID = messageID
+			}
+		}
+		if item.Kind == "task_review_requested" {
+			item.SourceAvailable = item.SourceAvailable && handoffID(reviewRequestID, false) && eventKey == taskReviewRequestEventKey(reviewRequestID, item.SourceResourceID, recipient)
+			if item.SourceAvailable {
+				item.ReviewRequestID = reviewRequestID
+			}
+		}
 		if item.SourceAvailable {
 			item.CurrentTask = &task
-			item.AssignmentCurrent = owner == item.SourceResourceID
+			item.AssignmentCurrent = item.Kind == "task_assigned" && owner == item.SourceResourceID
 		}
 		out.Items = append(out.Items, item)
 	}

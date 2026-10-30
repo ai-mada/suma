@@ -36,7 +36,7 @@ func taskConversationActor(actor Actor) bool {
 func validTaskConversationAppend(req TaskConversationAppendRequest) bool {
 	return handoffID(req.ProjectID, false) && handoffID(req.TaskID, false) && req.ExpectedTaskVersion > 0 && req.ExpectedTaskVersion <= 2147483646 &&
 		utf8.ValidString(req.Body) && len(req.Body) <= 32000 && utf8.RuneCountInString(req.Body) <= 8000 &&
-		strings.TrimSpace(req.Body) != "" && !strings.ContainsRune(req.Body, 0) && planningKey(req.IdempotencyKey)
+		strings.TrimSpace(req.Body) != "" && !strings.ContainsRune(req.Body, 0) && planningKey(req.IdempotencyKey) && validTaskConversationMentionIDs(req.MentionResourceIDs)
 }
 
 const taskConversationColumns = `id,sequence,task_version,body,author_id,author_name,actor_kind,created_at,requirement_id,requirement_version,run_id`
@@ -191,6 +191,9 @@ func (s *Service) AppendTaskConversation(ctx context.Context, actor Actor, proje
 	_, err = auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_task_conversation_messages(tenant_id,project_id,task_id,`+taskConversationColumns+`)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`),
 		auth.target.tenantID, project, task.ID, out.ID, out.Sequence, out.TaskVersion, out.Body, out.AuthorID, out.AuthorName, out.ActorKind, out.CreatedAt, out.RequirementID, out.RequirementVersion, out.RunID)
 	if err != nil {
+		return TaskConversationMessage{}, err
+	}
+	if err = s.projectTaskConversationMentionsTx(ctx, auth, project, task.ID, &out, req.MentionResourceIDs); err != nil {
 		return TaskConversationMessage{}, err
 	}
 	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, out); err != nil {

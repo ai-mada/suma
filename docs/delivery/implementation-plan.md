@@ -1,8 +1,16 @@
 # 1.0.0 完整实施计划
 
-T-ADAPTERS-139限定完成20入口当前授权目录与原配置流程接续，默认收起并保留选择。后端9项、Web43项独立用例（受影响11项复验包含在内）、类型／7156语言键、生成合同及隔离构建通过；用户重新授权后完成25项实际GUI检查，覆盖中英、键盘、桌面／390px与明暗代表性状态，修复固定页头遮挡移动详情标题。阶段scoped_verified；厂商执行与其他在途页面仍单独验收。[合同](../../contracts/adapter-catalog.md)、[交互设计](../design/adapter-connections.md)及[阶段证据](../quality/adapter-connections-verification.md)记录范围与此前审批受阻／重新授权后的恢复。继续沿原矩阵补齐Cursor／Claude／Qoder／WorkBuddy云执行及真实设备、厂商和分布式验证；WorkBuddy不能用CodeBuddy代替，Harness固定具体协议。完整P0–P7与58／34／92总账不变。
+T-COLLAB-144整合人员讨论提及、团队准确执行跟进和审核责任请求，补齐真实会话角色、测试计划PUT及草稿导航／Review保护。源码、真实HTTP、组件及匹配构建已验证；实际GUI已观察26项，最终保存／模态保护操作仍待工具审批，不记通过。见[整合报告](../quality/collaboration-integration-verification.md)与[摘要](../quality/collaboration-integration-summary.json)。实现阶段提交dev，完整58／34／92及P0–P7目标继续推进。
+
+T-REVIEW-142继续原明确审核责任待办：规范当前审核人员、固定交付请求、私有通知与原Review关联，见[合同](../../contracts/task-review-requests.md)及[当前报告](../quality/task-review-requests-verification.md)。最终GUI仍待验；没有关闭多源路由／偏好／通道或完整质量体系的复合待办。
 
 T-WORKBUDDY-143推进原WorkBuddy云任务接入的内部协议与持久提交基础：[合同](../../contracts/workbuddy-cloud-submission.md)、[架构](../architecture/workbuddy-cloud-submission.md)、[27项定向验证](../quality/workbuddy-cloud-submission-verification.md)。固定原attempt与请求摘要，未知创建不重复POST，已知ID只查询原任务；尚未接入Execute／能力发现。正式OAuth、ACP、权限／预算、云候选、独立测试、厂商和多机验收继续原范围，完整平台目标不变。
+
+T-TEAM-EXECUTION-141继续原团队执行跟进：准确运行节点、真实等待原因、全量状态分类、有界明细与原对象处理入口已实现并完成定向检查；[设计](../design/expert-team-execution.md)、[领域合同](../../contracts/expert-team-orchestration.md)及[验证](../quality/expert-team-execution-verification.md)保留范围。动态读取不写历史，不引入第二调度器；实际浏览器待验。下一步继续原工具接入、团队协作与质量交付范围，WorkBuddy云任务须独立处理单次创建、未知回执及原任务核对，不套用通用external运行协议。全平台目标及58／34／92总账不变。
+
+T-MENTIONS-140继续Multica人员协作：明确提及、事务收件投影、旧消息定位与专用CLI已完成定向及本机接口验证，见[当前报告](../quality/task-conversation-mentions-verification.md)。最终GUI仍待完成，未关闭多源通知／偏好／通道的复合待办，也未关闭完整平台目标。
+
+T-ADAPTERS-139限定完成20入口当前授权目录与原配置流程接续，默认收起并保留选择。后端9项、Web43项独立用例（受影响11项复验包含在内）、类型／7156语言键、生成合同及隔离构建通过；用户重新授权后完成25项实际GUI检查，覆盖中英、键盘、桌面／390px与明暗代表性状态，修复固定页头遮挡移动详情标题。阶段scoped_verified；厂商执行与其他在途页面仍单独验收。[合同](../../contracts/adapter-catalog.md)、[交互设计](../design/adapter-connections.md)及[阶段证据](../quality/adapter-connections-verification.md)记录范围与此前审批受阻／重新授权后的恢复。继续沿原矩阵补齐Cursor／Claude／Qoder／WorkBuddy云执行及真实设备、厂商和分布式验证；WorkBuddy不能用CodeBuddy代替，Harness固定具体协议。完整P0–P7与58／34／92总账不变。
 
 T-VIEWS-138已限定实现原M07服务端个人／项目共享视图，设计见[共享视图](../design/shared-task-views.md)、合同见[正式接口](../../contracts/shared-task-views.md)。沿同一任务查询与当前授权保存版本化筛选；保留本机偏好，在线跨设备读取与离线协作分别验收。实际检查见[阶段报告](../quality/shared-task-views-verification.md)，不改变完整平台能力统计。
 

@@ -1,6 +1,6 @@
 # 个人通知收件箱合同
 
-状态：T-INBOX-138，初始产品1.0.0；负责人：协作领域／主集成。继续Multica M24／M25／M27及原项目／团队协作目标。完整平台与P0–P7范围保持不变。设计、实现和实测边界在本阶段交付时分别更新。
+状态：T-INBOX-138来源、T-MENTIONS-140精准提及及T-REVIEW-142验收责任扩展，初始产品1.0.0；负责人：协作领域／主集成。继续Multica M09／M24／M25／M27及原项目／团队协作目标。完整平台与P0–P7范围保持不变。设计、实现和实测边界在各阶段交付时分别更新。
 
 ## 权威与真实来源
 
@@ -12,13 +12,15 @@
 
 ## 读取合同
 
+`task_mentioned`由人员／用户API明确选择接收人的讨论原事务产生，不要求接收人是任务负责人。它与分配事件共用序号及唯一插入权威；来源消息、固定人员关系、反向通知绑定与当前任务共同决定链接是否可用。详细语义以[精准提及合同](task-conversation-mentions.md)为准。
+
 `GET /api/v1/notification-inbox?project_id=...` 仅允许浏览器或当前有权的用户API身份，拒绝Runner／Agent。身份与组织从认证凭据推导；不能传接收人覆盖当前用户。每页重新核验当前账号／组织／项目读取权限，计数与行及来源水合同一事务；响应no-store。
 
 参数仅有project_id、filter、limit、cursor，未知／重复／空显式枚举拒绝。filter为inbox（默认，所有未归档）、unread（未读且未归档）、archived（已归档）；limit默认20、范围1–50。
 
 `NotificationInboxPage`：project_id、user_id、limit、items、total、counts、next_cursor、as_of。counts为inbox／unread／archived三项完整当前范围计数，total是所选filter的匹配量。items是当前有界页，不是完整项目列表。
 
-`NotificationInboxItem`：id、version、sequence（十进制字符串）、kind=task_assigned、task_id、source_task_version、source_resource_id、created_at、read、archived、read_at、archived_at、source_available、assignment_current、可选current_task。
+`NotificationInboxItem`：id、version、sequence（十进制字符串）、kind=task_assigned／task_mentioned／task_review_requested、task_id、source_task_version、source_resource_id、created_at、read、archived、read_at、archived_at、source_available、assignment_current、可选current_task、message_id或review_request_id。只有对应完整来源才返回其定位ID；消息提及见[精准提及合同](task-conversation-mentions.md)，明确验收责任及原Review决定见[验收请求合同](task-review-requests.md)。取消／已决定的请求保留个人事件，打开来源不等于已读或验收。
 
 `NotificationInboxTask`只包含id、version、title、status；source_available=false时不得返回current_task。assignment_current仅在当前来源可用且当前负责人仍为原资源时为true，不据此宣称执行或验收完成。
 
@@ -40,4 +42,4 @@ read／unread只变已读状态，archive／restore只变归档状态；恢复�
 
 身份／组织／项目变化同步清理私有列表与目标；401／403／404范围拒绝清除整个范围。旧身份响应不能覆盖当前页面。读失败可重试；命令结果未知时保留原操作标识和预期版本供明确恢复，阻止导航丢弃未核对命令。中英同一词条、主题和键盘焦点；390px行内操作自然换行，不要求拖拽。
 
-本阶段只实现任务分配来源。讨论提及、审核请求、告警、消息通道、邮件／IM可靠投递、偏好降噪与跨项目聚合属于完整后续计划；不把当前读投影称为全部通知或智能预警已完成。
+T-INBOX-138原阶段只实现任务分配来源；T-MENTIONS-140增加明确人员提及，T-REVIEW-142增加明确验收责任请求，验证结果分别记录。运行审批、告警、消息通道、邮件／IM可靠投递、偏好降噪与跨项目聚合属于完整后续计划；不把当前读投影称为全部通知或智能预警已完成。

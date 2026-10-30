@@ -1,5 +1,6 @@
-import type {TaskConversationMessage, TaskConversationPage} from '../../../packages/contracts/src';
+import type {TaskConversationMessage, TaskConversationMessageDetail, TaskConversationPage} from '../../../packages/contracts/src';
 import type {WriteRecoveryRequest} from './write-action';
+import {validMentionResourceIDs} from './task-conversation-mentions-model';
 
 const object = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -27,7 +28,17 @@ const messageKeys = ['id', 'sequence', 'task_version', 'body', 'author_id',
   'reply_id', 'reply_to_sequence', 'execution_run_id'];
 
 export function validConversationMessage(value: unknown): value is TaskConversationMessage {
-  if (!object(value) || !keys(value, messageKeys)) return false;
+  if (!object(value) || !keys(value, [...messageKeys, ...(Object.hasOwn(value, 'mentions') ? ['mentions'] : [])])) return false;
+  if (Object.hasOwn(value, 'mentions')) {
+    if (!Array.isArray(value.mentions) || !value.mentions.length || value.mentions.length > 20 || value.actor_kind === 'assistant') return false;
+    const resources = new Set(), users = new Set();
+    for (const mention of value.mentions) {
+      if (!object(mention) || !keys(mention, ['resource_id', 'user_id', 'name_at_post']) ||
+        !identifier(mention.resource_id) || !identifier(mention.user_id) || !text(mention.name_at_post) ||
+        resources.has(mention.resource_id) || users.has(mention.user_id)) return false;
+      resources.add(mention.resource_id); users.add(mention.user_id);
+    }
+  }
   return identifier(value.id) && positive(value.sequence) && positive(value.task_version) &&
     validConversationBody(value.body) && identifier(value.author_id) && text(value.author_name) &&
     ['human', 'api', 'assistant'].includes(String(value.actor_kind)) && text(value.created_at) &&
@@ -62,7 +73,9 @@ export function validConversationPage(value: unknown, project: string, task: str
 export function validConversationRequest(request: WriteRecoveryRequest, project: string, task: string): boolean {
   const body = request.body;
   return request.path === '/task-conversations' && request.method === 'POST' &&
-    keys(body, ['project_id', 'task_id', 'expected_task_version', 'body', 'idempotency_key']) &&
+    keys(body, ['project_id', 'task_id', 'expected_task_version', 'body', 'idempotency_key',
+      ...(Object.hasOwn(body, 'mention_resource_ids') ? ['mention_resource_ids'] : [])]) &&
+    (!Object.hasOwn(body, 'mention_resource_ids') || validMentionResourceIDs(body.mention_resource_ids)) &&
     body.project_id === project && body.task_id === task && positive(body.expected_task_version) &&
     validConversationBody(body.body) && body.idempotency_key === request.idempotency_key;
 }
@@ -70,5 +83,12 @@ export function validConversationRequest(request: WriteRecoveryRequest, project:
 export function validConversationReceipt(value: unknown, request: WriteRecoveryRequest, userID: string): boolean {
   return validConversationMessage(value) && value.body === request.body.body &&
     value.task_version === request.body.expected_task_version &&
-    value.actor_kind === 'human' && value.author_id === userID;
+    value.actor_kind === 'human' && value.author_id === userID &&
+    JSON.stringify(value.mentions?.map(mention => mention.resource_id) || []) === JSON.stringify(request.body.mention_resource_ids || []);
+}
+
+export function validConversationMessageDetail(value: unknown, project: string, task: string, message: string): value is TaskConversationMessageDetail {
+  return object(value) && keys(value, ['project_id', 'task_id', 'task_version', 'can_post', 'message']) &&
+    value.project_id === project && value.task_id === task && positive(value.task_version) && typeof value.can_post === 'boolean' &&
+    validConversationMessage(value.message) && value.message.id === message && value.message.task_version <= value.task_version;
 }

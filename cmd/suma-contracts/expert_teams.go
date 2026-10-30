@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func expertTeamModels() []any {
-	return []any{platform.ExpertTeamRoleRequest{}, platform.ExpertTeamRole{}, platform.ExpertTeamConfiguration{}, platform.ExpertTeamSaveRequest{}, platform.ExpertTeamCommandRequest{}, platform.ExpertTeamConfigurationPage{}, platform.ExpertTeamPlanItemRequest{}, platform.ExpertTeamPlanCreateRequest{}, platform.ExpertTeamPlanItem{}, platform.ExpertTeamPlan{}, platform.ExpertTeamPlanStartRequest{}, platform.ExpertTeamPlanProgress{}, platform.ExpertTeamDependencyFact{}, platform.ExpertTeamPlanCommandRequest{}, platform.ExpertTeamPlanPage{}}
+	return []any{platform.ExpertTeamRoleRequest{}, platform.ExpertTeamRole{}, platform.ExpertTeamConfiguration{}, platform.ExpertTeamSaveRequest{}, platform.ExpertTeamCommandRequest{}, platform.ExpertTeamConfigurationPage{}, platform.ExpertTeamPlanItemRequest{}, platform.ExpertTeamPlanCreateRequest{}, platform.ExpertTeamPlanItem{}, platform.ExpertTeamPlan{}, platform.ExpertTeamPlanStartRequest{}, platform.ExpertTeamPlanProgress{}, platform.ExpertTeamDependencyFact{}, platform.ExpertTeamPlanCommandRequest{}, platform.ExpertTeamPlanPage{}, platform.ExpertTeamExecutionFact{}, platform.ExpertTeamExecutionNodeFact{}}
 }
 
 func expertTeamContracts(add operationAdder, api map[string]any) {
@@ -75,7 +75,21 @@ func expertTeamContracts(add operationAdder, api map[string]any) {
 	field("ExpertTeamPlanCommandRequest", "reason", map[string]any{"minLength": 1, "maxLength": 2000, "x-max-utf8-bytes": 2000})
 	field("ExpertTeamPlanCommandRequest", "acknowledge", map[string]any{"const": true, "description": "Explicit activation/control decision; stop prevents new tasks and does not report active processes stopped."})
 	field("ExpertTeamPlanCommandRequest", "items", map[string]any{"minItems": 1, "maxItems": 16, "description": "Explicit unstarted changes only; started task/run/source tuples remain immutable."})
-	field("ExpertTeamPlanItem", "state", map[string]any{"enum": []string{"waiting_dependencies", "ready", "queued", "running", "awaiting_review", "accepted", "blocked", "stopped"}})
+	field("ExpertTeamPlanItem", "state", map[string]any{"enum": []string{"waiting_dependencies", "ready", "queued", "waiting_execution", "executing", "execution_unknown", "awaiting_review", "accepted", "blocked", "stopped"}})
+	field("ExpertTeamPlanItem", "execution", map[string]any{"readOnly": true, "description": "Current authorized projection of this item's exact bound run; omitted for unstarted items and historical revisions. Does not grant execution, cancellation, retry or acceptance authority."})
+	for _, model := range []string{"ExpertTeamExecutionFact", "ExpertTeamExecutionNodeFact"} {
+		toolContractMap(api, "components", "schemas", model)["additionalProperties"] = false
+		for _, property := range toolContractMap(api, "components", "schemas", model, "properties") {
+			property.(map[string]any)["readOnly"] = true
+		}
+	}
+	field("ExpertTeamExecutionFact", "observed_at", map[string]any{"format": "date-time"})
+	field("ExpertTeamExecutionFact", "nodes_total", map[string]any{"minimum": 0, "description": "Count across the exact full run, not only the displayed subset."})
+	field("ExpertTeamExecutionFact", "nodes", map[string]any{"maxItems": 24, "description": "Prioritized by unknown states or reconciling, cancelling, failed, blocked or paused, waiting, running, ready, pending, then succeeded/skipped/cancelled; node_id breaks ties within each group."})
+	field("ExpertTeamExecutionFact", "truncated", map[string]any{"description": "True when nodes omits part of the full run; never treat the subset as a complete execution graph."})
+	field("ExpertTeamExecutionNodeFact", "attempt", map[string]any{"minimum": 0})
+	field("ExpertTeamExecutionNodeFact", "reason", map[string]any{"description": "Actual source node reason, possibly empty; not a closed diagnostic code or inferred resource failure."})
+	field("ExpertTeamExecutionNodeFact", "ready_at", map[string]any{"description": "Original readiness timestamp, or an empty string when absent."})
 	field("ExpertTeamPlan", "revision", map[string]any{"minimum": 1})
 	field("ExpertTeamPlan", "graph_sha256", map[string]any{"pattern": "^[a-f0-9]{64}$"})
 	field("ExpertTeamPlan", "state", map[string]any{"enum": []string{"ready", "active", "paused", "completed", "stopped"}})

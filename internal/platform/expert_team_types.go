@@ -92,6 +92,7 @@ type ExpertTeamPlanCreateRequest struct {
 }
 
 type ExpertTeamPlanItem struct {
+	Execution       *ExpertTeamExecutionFact   `json:"execution,omitempty"`
 	TaskID          string                     `json:"task_id"`
 	TaskVersion     int                        `json:"task_version"`
 	TaskBasisSHA256 string                     `json:"task_basis_sha256"`

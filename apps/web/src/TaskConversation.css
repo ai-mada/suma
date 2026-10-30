@@ -14,6 +14,10 @@
 .task-conversation-messages time{margin-left:auto}
 .task-conversation-actor{font-size:10px;padding:1px 5px;border:1px solid var(--border);border-radius:4px}
 .task-conversation-message-text{white-space:pre-wrap;line-height:1.65;margin:7px 0}
+.task-conversation-messages>li.is-located{outline:2px solid var(--accent);outline-offset:2px;border-radius:7px;scroll-margin-block:12px}
+.task-conversation-located{margin:12px 0;padding-top:10px;border-top:1px solid var(--border)}
+.task-conversation-recorded-mentions{display:flex;flex-wrap:wrap;gap:6px;color:var(--muted);margin:6px 0}
+.task-conversation-recorded-mentions ul{display:flex;flex-wrap:wrap;gap:4px 8px;list-style:none;margin:0;padding:0;color:var(--text)}
 .task-conversation-messages summary{font-size:11px;color:var(--muted);cursor:pointer}
 .task-conversation-basis{display:flex;gap:8px 16px;flex-wrap:wrap;font-size:11px;margin-top:6px;color:var(--muted)}
 .task-conversation form{display:grid;gap:7px;margin-top:12px}

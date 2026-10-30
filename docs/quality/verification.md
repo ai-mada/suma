@@ -1,5 +1,13 @@
 # 1.0.0 验证入口
 
+T-MENTIONS-140：[定向与真实接口报告](task-conversation-mentions-verification.md)／[紧凑摘要](task-conversation-mentions-summary.json)。46项独立Go、56项Web、完整类型／7191语言键／合同／构建及12项本机双账号HTTP-CLI检查通过；最终浏览器因审批容量限制待验，未提交／推送。其他阶段结果及桌面在途内容保留。
+
+T-TEAM-EXECUTION-141：[准确执行跟进报告](expert-team-execution-verification.md)／[摘要](expert-team-execution-summary.json)。8项后端、24项前端、类型／7228双语键、生成器及44.17秒隔离构建通过；指定构建输入前后摘要一致。最终浏览器与实现提交按T-COLLAB-144记录；未重复计算139／140结果。
+
+T-REVIEW-142：[报告](task-review-requests-verification.md)／[摘要](task-review-requests-summary.json)。93项独立Go、58项Web、类型／7292语言键／合同／构建和12项真实本机三账号HTTP-CLI-Runner检查通过，最终GUI缺口与实现提交见T-COLLAB-144。历史及他人阶段证据保留。
+
+T-COLLAB-144：[整合报告](collaboration-integration-verification.md)／[摘要](collaboration-integration-summary.json)。140／141／142实现、真实接口和受影响检查已收口，26项GUI已观察；修复后的最终保存／Review草稿保护GUI待工具审批。先提交可审阅实现，不宣称全部GUI或后端全包通过。完整平台目标继续。
+
 T-ADAPTERS-139：[限定验证](adapter-connections-verification.md)／[摘要](adapter-connections-summary.json)。状态scoped_verified，覆盖此前139待验状态。复用43项独立Web（11项复验包含在内）、9项Go、类型／7156语言键和合同检查；用户重新授权后新增25项真实GUI通过，覆盖中英、桌面／390px、明暗及键盘代表性流程，修复移动标题被固定页头遮挡。53.28秒隔离构建来自当前合成前端工作区，与既有139后端核验本阶段API和交互；不表示其他在途页面、厂商执行或生产验收。审批容量拒绝、恢复和缺陷证据均保留。
 
 T-WORKBUDDY-143：[协议与持久提交验证](workbuddy-cloud-submission-verification.md)／[摘要](workbuddy-cloud-submission-summary.json)。27项去重Go通过，覆盖准确HTTP、单次准备、并发／重启、未知不重发、保存失败及原终端恢复。仅内部底层，未开放为可派发云工具；正式OAuth、ACP、预算、候选、厂商与多机验收继续待办。本阶段没有UI变更，其他阶段分别验收，以各自当前记录为准。

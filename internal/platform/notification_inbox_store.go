@@ -85,42 +85,64 @@ func (s *Service) projectTaskAssignmentNotificationTx(ctx context.Context, auth 
 		Version  int
 		Resource string
 	}{nextTask.ID, nextTask.Version, nextTask.OwnerID}))
+	_, err = s.insertNotificationInboxTx(ctx, auth, nextTask.ProjectID, notificationInboxSource{Kind: "task_assigned", TaskID: nextTask.ID, TaskVersion: nextTask.Version, ResourceID: nextTask.OwnerID, EventKey: eventKey, RecipientUserID: user})
+	return err
+}
+
+// Source callers validate their persisted business event before reaching this
+// sole sequence/row writer. It cannot be invoked through a public command.
+type notificationInboxSource struct {
+	Kind, TaskID, ResourceID, EventKey, RecipientUserID string
+	TaskVersion                                         int
+}
+
+func (s *Service) insertNotificationInboxTx(ctx context.Context, auth *authorizedCommand, project string, source notificationInboxSource) (string, error) {
+	if auth == nil {
+		return "", forbidden()
+	}
+	if err := assertProjectCommand(auth.tx, auth, project); err != nil {
+		return "", err
+	}
+	if (source.Kind != "task_assigned" && source.Kind != "task_mentioned" && source.Kind != "task_review_requested") || !handoffID(source.TaskID, false) || !handoffID(source.ResourceID, false) || !handoffID(source.RecipientUserID, false) || !handoffID(source.EventKey, false) || source.TaskVersion < 1 {
+		return "", conflict(notificationInboxSourceChanged)
+	}
 	var existing string
-	err = auth.tx.QueryRowContext(ctx, s.q(`SELECT id FROM suma_notification_inbox WHERE tenant_id=? AND project_id=? AND source_event_key=? AND recipient_user_id=?`), auth.target.tenantID, nextTask.ProjectID, eventKey, user).Scan(&existing)
+	err := auth.tx.QueryRowContext(ctx, s.q(`SELECT id FROM suma_notification_inbox WHERE tenant_id=? AND project_id=? AND source_event_key=? AND recipient_user_id=? AND kind=? AND task_id=? AND source_task_version=? AND source_resource_id=?`), auth.target.tenantID, project, source.EventKey, source.RecipientUserID, source.Kind, source.TaskID, source.TaskVersion, source.ResourceID).Scan(&existing)
 	if err == nil {
-		return nil
+		return existing, nil
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
-		return err
+		return "", err
 	}
 	insert := `INSERT INTO suma_notification_inbox_sequences(tenant_id,project_id,last_sequence) VALUES(?,?,0) ON CONFLICT(tenant_id,project_id) DO NOTHING`
 	if s.Dialect == "oceanbase" {
 		insert = `INSERT IGNORE INTO suma_notification_inbox_sequences(tenant_id,project_id,last_sequence) VALUES(?,?,0)`
 	}
-	if _, err = auth.tx.ExecContext(ctx, s.q(insert), auth.target.tenantID, nextTask.ProjectID); err != nil {
-		return err
+	if _, err = auth.tx.ExecContext(ctx, s.q(insert), auth.target.tenantID, project); err != nil {
+		return "", err
 	}
-	result, err := auth.tx.ExecContext(ctx, s.q(`UPDATE suma_notification_inbox_sequences SET last_sequence=last_sequence+1 WHERE tenant_id=? AND project_id=? AND last_sequence>=0 AND last_sequence<?`), auth.target.tenantID, nextTask.ProjectID, int64(1<<63-1))
+	result, err := auth.tx.ExecContext(ctx, s.q(`UPDATE suma_notification_inbox_sequences SET last_sequence=last_sequence+1 WHERE tenant_id=? AND project_id=? AND last_sequence>=0 AND last_sequence<?`), auth.target.tenantID, project, int64(1<<63-1))
 	if err != nil {
-		return err
+		return "", err
 	}
 	count, err := result.RowsAffected()
 	if err != nil {
-		return err
+		return "", err
 	}
 	if count != 1 {
-		return conflict(notificationInboxSequenceFailed)
+		return "", conflict(notificationInboxSequenceFailed)
 	}
 	var sequence int64
-	if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT last_sequence FROM suma_notification_inbox_sequences WHERE tenant_id=? AND project_id=?`), auth.target.tenantID, nextTask.ProjectID).Scan(&sequence); err != nil {
-		return err
+	if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT last_sequence FROM suma_notification_inbox_sequences WHERE tenant_id=? AND project_id=?`), auth.target.tenantID, project).Scan(&sequence); err != nil {
+		return "", err
 	}
 	if sequence < 1 {
-		return conflict(notificationInboxSequenceFailed)
+		return "", conflict(notificationInboxSequenceFailed)
 	}
 	at := auth.checkedAt.UTC().Format(time.RFC3339Nano)
-	_, err = auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_notification_inbox(id,tenant_id,project_id,recipient_user_id,sequence,kind,task_id,source_task_version,source_resource_id,source_event_key,version,created_at,read_at,archived_at,updated_at) VALUES(?,?,?,?,?,'task_assigned',?,?,?,?,1,?,'','',?)`), newID(), auth.target.tenantID, nextTask.ProjectID, user, sequence, nextTask.ID, nextTask.Version, nextTask.OwnerID, eventKey, at, at)
-	return err
+	id := newID()
+	_, err = auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_notification_inbox(id,tenant_id,project_id,recipient_user_id,sequence,kind,task_id,source_task_version,source_resource_id,source_event_key,version,created_at,read_at,archived_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,1,?,'','',?)`), id, auth.target.tenantID, project, source.RecipientUserID, sequence, source.Kind, source.TaskID, source.TaskVersion, source.ResourceID, source.EventKey, at, at)
+	return id, err
 }
 
 type notificationInboxStored struct {

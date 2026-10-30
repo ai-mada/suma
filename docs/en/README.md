@@ -1,5 +1,9 @@
 # suma 1.0.0 documentation
 
+- [Delivery review responsibility](task-review-requests.md): explicit current approvers, fixed delivery requests, transactional personal notifications and the existing formal Review/issue-feedback authority. Actual local protocol/Runner checks passed; final browser acceptance is pending.
+
+- [Explicit discussion mentions](task-conversation-mentions.md): current people selection, transactional personal notifications, exact original-message navigation and the dedicated discussion CLI. Final browser acceptance remains pending.
+
 suma is an intelligent development platform for teams, projects, requirements, design, execution, testing, human acceptance, releases and issue feedback. The full P0–P7 scope and accepted requirements1–26 remain in progress: 58 bounded implementations, 34 pending items, 92 total. T-REPLY-128 connects durable task discussion to explicitly selected models, parameters, context and budgets through the existing Go gateway and DAG. A real Go/Node native-CLI journey through a controlled local provider completed three turns and six durable messages. The third turn was created through the product interface, and actual CN/EN1366/390, refresh and original-execution checks passed within the report’s scope. A read-only assistant reply does not execute terminal commands, change code or grant acceptance; T130’s terminal recovery, explicit candidate and accepted-baseline handoff have their own bounded implementation and verification scope; T129 evidence is retained. Business acceptance, execution state, test evidence and deployment remain distinct facts.
 
 There is one current **1.0.0** product baseline, with fresh schema initialization and no historical compatibility or automatic legacy database upgrades. Protocol, workflow and business revisions remain independent. Current saved facts, user originals and scoped verification records are preserved.

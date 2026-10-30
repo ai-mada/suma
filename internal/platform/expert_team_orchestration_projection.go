@@ -71,6 +71,7 @@ func (s *Service) expertTeamProjectFactsTx(ctx context.Context, tx *sql.Tx, tena
 	for _, item := range plan.Items {
 		selected[item.TaskID] = item
 	}
+	clearExpertTeamExecution(&plan)
 	plan.Progress = ExpertTeamPlanProgress{Total: len(plan.Items)}
 	plan.Blockers = []string{}
 	for i := range plan.Items {
@@ -120,8 +121,12 @@ func (s *Service) expertTeamProjectFactsTx(ctx context.Context, tx *sql.Tx, tena
 			}
 		} else {
 			var state string
-			var reconciling int
-			if err := tx.QueryRowContext(ctx, s.q(`SELECT r.state, (SELECT COUNT(*) FROM dag_nodes n WHERE n.run_id=r.id AND n.state='reconciling') FROM dag_runs r WHERE r.tenant_id=? AND r.project_id=? AND r.id=?`), tenant, plan.ProjectID, item.RunID).Scan(&state, &reconciling); err != nil {
+
+			if err := tx.QueryRowContext(ctx, s.q(`SELECT r.state FROM dag_runs r WHERE r.tenant_id=? AND r.project_id=? AND r.id=?`), tenant, plan.ProjectID, item.RunID).Scan(&state); err != nil {
+				return plan, err
+			}
+			summary, err := s.expertTeamExecutionSummaryTx(ctx, tx, tenant, plan.ProjectID, item.RunID)
+			if err != nil {
 				return plan, err
 			}
 			item.RunState = state
@@ -130,7 +135,9 @@ func (s *Service) expertTeamProjectFactsTx(ctx context.Context, tx *sql.Tx, tena
 				return plan, err
 			}
 			switch {
-			case reconciling > 0:
+			case !expertTeamKnownRunState(state) || summary.unknown > 0 || summary.total == 0:
+				item.State = "execution_unknown"
+			case summary.blocked > 0:
 				item.State = "blocked"
 				item.Blockers = append(item.Blockers, expertRunBlocked)
 			case task.RunID != item.RunID:
@@ -151,24 +158,20 @@ func (s *Service) expertTeamProjectFactsTx(ctx context.Context, tx *sql.Tx, tena
 			case state == "failed" || state == "cancelled" || state == "skipped" || state == "reconciling" || state == "paused" || state == "cancelling" || state == "succeeded":
 				item.State = "blocked"
 				item.Blockers = append(item.Blockers, expertRunBlocked)
+			case summary.running > 0:
+				item.State = "executing"
+			case summary.waiting > 0:
+				item.State = "waiting_execution"
 			default:
-				var attempts int
-				if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM dag_nodes WHERE run_id=? AND attempt>0`), item.RunID).Scan(&attempts); err != nil {
-					return plan, err
-				}
-				if attempts == 0 {
-					item.State = "queued"
-				} else {
-					item.State = "executing"
-				}
+				item.State = "queued"
 			}
 		}
 		switch item.State {
-		case "waiting_dependencies":
+		case "waiting_dependencies", "queued", "waiting_execution":
 			plan.Progress.Waiting++
 		case "ready":
 			plan.Progress.Ready++
-		case "queued", "executing":
+		case "executing":
 			plan.Progress.Executing++
 		case "awaiting_review":
 			plan.Progress.AwaitingReview++
@@ -215,11 +218,11 @@ func (s *Service) expertTeamPlanProjectionTx(ctx context.Context, engine *dag.En
 	out.Progress = ExpertTeamPlanProgress{Total: len(out.Items)}
 	for _, item := range out.Items {
 		switch item.State {
-		case "waiting_dependencies":
+		case "waiting_dependencies", "queued", "waiting_execution":
 			out.Progress.Waiting++
 		case "ready":
 			out.Progress.Ready++
-		case "queued", "executing":
+		case "executing":
 			out.Progress.Executing++
 		case "awaiting_review":
 			out.Progress.AwaitingReview++
@@ -256,6 +259,16 @@ func (s *Service) expertTeamPlanProjectionTx(ctx context.Context, engine *dag.En
 	} else if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return out, err
 	}
+	observedAt := now()
+	for i := range out.Items {
+		if out.Items[i].RunID == "" {
+			continue
+		}
+		out.Items[i].Execution, err = s.expertTeamExecutionFactTx(ctx, auth.tx, auth.target.tenantID, out.ProjectID, out.Items[i].RunID, observedAt)
+		if err != nil {
+			return out, err
+		}
+	}
 	return out, nil
 }
 
@@ -289,6 +302,8 @@ func (s *Service) projectExpertTeamPlanFacts(ctx context.Context, tenant, projec
 	if err != nil {
 		return old, err
 	}
+	clearExpertTeamExecution(&old)
+	clearExpertTeamExecution(&out)
 	// User read eligibility never becomes a persisted system action.
 	old.Valid, out.Valid = false, false
 	old.CanStart, out.CanStart = false, false

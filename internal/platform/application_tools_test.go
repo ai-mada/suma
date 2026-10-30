@@ -240,13 +240,36 @@ func TestApplicationToolsCurrentViewerCannotRecoverWriteReceipts(t *testing.T) {
 		t.Fatal(err)
 	}
 	list, err := f.s.ApplicationTools(context.Background(), api, f.project)
-	if err != nil || len(list.Items) != 10 {
-		t.Fatalf("viewer list %d: %v", len(list.Items), err)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Discovery must expose only the current read tools with their declared
+	// credential scopes, rather than a count that predates catalogue additions.
+	expectedReads := map[string][]string{
+		"project.overview":            {"agent", "api"},
+		"project.tasks":               {"agent", "api"},
+		"project.search":              {"agent", "api"},
+		"project.knowledge":           {"agent", "api"},
+		"project.requirements":        {"api"},
+		"project.requirement":         {"api"},
+		"project.task":                {"api"},
+		"project.requirement_design":  {"api"},
+		"project.task_design":         {"api"},
+		"project.knowledge_list":      {"api"},
+		"project.skill_catalog_list":  {"api"},
+		"project.skill_catalog_get":   {"api"},
+		"project.task_delivery":       {"api"},
+		"project.quality_execution":   {"api"},
 	}
 	for _, definition := range list.Items {
-		if !definition.ReadOnly {
-			t.Fatal("viewer discovered draft mutation")
+		scopes, exists := expectedReads[definition.Name]
+		if !exists || !definition.ReadOnly || !reflect.DeepEqual(definition.CredentialScopes, scopes) {
+			t.Fatalf("viewer discovered unexpected tool or permission: %s read_only=%t scopes=%v", definition.Name, definition.ReadOnly, definition.CredentialScopes)
 		}
+		delete(expectedReads, definition.Name)
+	}
+	if len(expectedReads) != 0 {
+		t.Fatalf("viewer lost permitted read tools: %v", expectedReads)
 	}
 	for _, body := range []string{args, strings.Replace(args, "application-viewer-replay", "application-viewer-fresh", 1)} {
 		if _, err = applicationCall(t, f, api, "project.requirement_draft_create", body); applicationStatus(err) != 403 {

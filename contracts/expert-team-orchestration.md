@@ -109,6 +109,54 @@ identifiers and same-transaction binding. Multiple controllers must be safe.
 Run it in a maintenance-aware bounded background worker, independently from the
 DAG lease/ready tick, without network/model/process work in SQL transactions.
 
+## T-TEAM-EXECUTION-141 exact execution projection
+
+Extend the existing plan item read model with a bounded, read-only projection of
+that item's bound run. Current project authorization remains mandatory. Never
+substitute the task's latest run, another plan's run, or a different attempt.
+Unstarted items do not acquire fabricated run/node links. Source node state and
+actual reasons remain separate from task acceptance and plan orchestration state.
+
+Return at most 24 nodes, prioritizing exceptional and active work, with full-run
+node count and an explicit truncation indicator. Counts and collection scope must
+be clear; the selected subset is not a complete graph or a progress denominator.
+Preserve exact run/node/attempt references for navigation into existing controls.
+Missing or unreadable execution data does not mean successful or failed execution.
+
+Frozen wire extension: `ExpertTeamPlanItem.execution` is optional
+`ExpertTeamExecutionFact {run_id, observed_at, nodes_total, nodes, truncated}`.
+`observed_at` is RFC3339. `nodes` contains at most 24
+`ExpertTeamExecutionNodeFact {node_id, name, type, state, reason, attempt,
+worker_id, ready_at}` entries; every node field is present, `attempt >= 0`, and
+`ready_at` is an empty string when absent. `reason` is actual source text, not a
+closed code enum. Sort by unknown states or reconciling, cancelling, failed,
+blocked or paused, waiting, running, ready, pending, then succeeded/skipped/cancelled;
+node_id breaks ties within each group. Whole-run state and total
+are derived before truncation, never inferred from the first 24 nodes.
+
+The item-state enum gains `waiting_execution` and `execution_unknown`.
+Queued and waiting_execution count under plan `progress.waiting`; only actual
+running node facts yield the existing item state `executing` and count under
+`progress.executing`; node state running is not an item-state name. Execution_unknown contributes to
+`progress.blocked` for attention but is displayed neutrally as reconciliation
+required, not a confirmed failure. No new endpoint is added. Current authorized
+reads and current command responses may contain execution; unstarted items and
+historical revision reads omit it.
+
+Waiting for dependencies/resources, a cancellation request, confirmed terminal
+state and unknown effects are distinct facts. Unknown effects lead to original
+run reconciliation, never automatic retry. This projection introduces no command,
+scheduler, authorization grant, model call or acceptance transition; it does not
+rewrite plan revision history or received execution facts. Existing current-action
+checks remain authoritative. UI behavior is specified in
+[expert team execution](../docs/design/expert-team-execution.md).
+
+Dynamic execution detail and observed_at are not persisted into the plan payload
+and do not alone change the business version or cause spurious CAS conflicts.
+The original controller still versions genuine derived business-state changes
+under the existing orchestration rules; this is not a promise that execution
+state transitions never change a plan version.
+
 ## UI and actual verification
 
 Enhance the existing team dispatch dialog/list entry. Show a topological list

@@ -16,6 +16,7 @@ func (s *Server) taskConversationHTTP(w http.ResponseWriter, r *http.Request, ac
 	if len(parts) == 0 || parts[0] != "task-conversations" {
 		return false
 	}
+	w.Header().Set("Cache-Control", "no-store")
 	if !taskConversationActor(actor) || scope != "" && scope != "api" {
 		writeError(w, forbidden())
 		return true

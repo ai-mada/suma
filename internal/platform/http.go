@@ -319,6 +319,12 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	if s.notificationInboxHTTP(w, r, actor, scope, boundProject, parts) {
 		return
 	}
+	if s.taskConversationMentionHTTP(w, r, actor, scope, boundProject, parts) {
+		return
+	}
+	if s.taskReviewRequestsHTTP(w, r, actor, scope, boundProject, parts) {
+		return
+	}
 	if s.taskConversationHTTP(w, r, actor, scope, boundProject, parts) {
 		return
 	}
@@ -438,7 +444,9 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	}
 	project := r.URL.Query().Get("project_id")
 	var m map[string]any
-	if r.Method == "POST" || r.Method == "PATCH" || r.Method == http.MethodPut && (len(parts) == 3 && parts[0] == "requirements" && parts[2] == "design" || len(parts) == 2 && parts[0] == "resource-calendars") {
+	// Only registered PUT contracts decode a JSON body here. In particular the
+	// test-plan draft save must reach its closed DTO and current authority checks.
+	if r.Method == "POST" || r.Method == "PATCH" || r.Method == http.MethodPut && (len(parts) == 3 && parts[0] == "requirements" && parts[2] == "design" || len(parts) == 2 && (parts[0] == "resource-calendars" || parts[0] == "test-plans")) {
 		if path == "runner/progress" {
 			m, err = decodeRunnerProgressEnvelope(r)
 		} else {
@@ -485,12 +493,12 @@ func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 		s.myWorkHTTP(w, r, actor, project)
 		return
 	}
-	if path == "task-collection/summary" {
-		s.taskCollectionSummaryHTTP(w, r, actor, project)
-		return
-	}
 	if path == "adapter-catalog" {
 		s.adapterCatalogHTTP(w, r, actor, project)
+		return
+	}
+	if path == "task-collection/summary" {
+		s.taskCollectionSummaryHTTP(w, r, actor, project)
 		return
 	}
 	if path == "developer-connection" && r.Method == http.MethodGet {
@@ -890,7 +898,7 @@ func (s *Server) session(w http.ResponseWriter, r *http.Request, actor Actor) {
 	err := s.Service.withCurrentRead(r.Context(), actor, commandTarget{tenantID: actor.credential.tenantID, projectID: organizationScope}, purposeOrganizationRead, func(auth *authorizedCommand) error {
 		ctx, cancel := context.WithDeadline(r.Context(), auth.deadline)
 		defer cancel()
-		projects, err := s.Service.identityProjectsTx(ctx, auth)
+		projects, err := s.Service.identitySessionProjectsTx(ctx, auth)
 		if err != nil {
 			return err
 		}

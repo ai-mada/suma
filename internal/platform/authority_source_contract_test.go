@@ -286,6 +286,41 @@ func (i *authoritySourceIndex) hasPrincipalParameter(f *ast.FuncDecl) bool {
 	return false
 }
 
+// These private factories restore an original persisted credential, not an
+// Actor from a caller's Principal or user ID. Callback factories recheck the
+// live credential and membership in their authority transaction; restored
+// observation/team actors enter the existing current-authority guard before
+// any effect. Keep this exception at the reviewed method, not its whole file.
+// Identity mutation, Principal fallback and all other rules still apply.
+func (i *authoritySourceIndex) reviewedActorConstructor(filename string, n ast.Node) bool {
+	var method string
+	switch filename {
+	case "command_persisted_browser.go":
+		method = "persistedBrowserProjectWriteLockedTx"
+	case "expert_team_orchestration_authority.go":
+		method = "restoreExpertTeamActor"
+	case "task_conversation_reply_outcome.go":
+		method = "taskConversationReplyCreatorTx"
+	case "workspace_observation_authority.go":
+		method = "workspaceObservationCallerActorTx"
+	case "workspace_terminal.go":
+		method = "workspaceTerminalCreatorTx"
+	default:
+		return false
+	}
+	for parent := i.parents[n]; parent != nil; parent = i.parents[parent] {
+		switch parent := parent.(type) {
+		case *ast.FuncLit:
+			// A new nested factory needs its own review, even inside a reviewed
+			// method. Do not accidentally inherit its enclosing method's grant.
+			return false
+		case *ast.FuncDecl:
+			return parent.Name.Name == method && parent.Recv != nil && len(parent.Recv.List) == 1 && i.canonical(authoritySourceType(parent.Recv.List[0].Type)) == "Service"
+		}
+	}
+	return false
+}
+
 func authoritySourceViolations(file *ast.File, filename string, index *authoritySourceIndex, fset *token.FileSet) []string {
 	if file.Name.Name != "platform" {
 		return nil
@@ -299,7 +334,7 @@ func authoritySourceViolations(file *ast.File, filename string, index *authority
 		switch n := n.(type) {
 		case *ast.CompositeLit:
 			kind := index.literalType(n)
-			if kind == "Actor" && !trusted && !authorityZeroExpression(n) {
+			if kind == "Actor" && !trusted && !authorityZeroExpression(n) && !index.reviewedActorConstructor(filename, n) {
 				add(n, "nonzero Actor construction outside trusted source")
 			}
 			if kind == index.canonical("Principal") {
@@ -402,6 +437,17 @@ func TestAuthoritySourceContractCalibration(t *testing.T) {
 		{"local_scope_copy", "domain.go", `package platform;func F(a Actor){id:=a.credential.projectID;id="other";_=id}`, false},
 		{"kernel_api", "engine.go", `package dag;func(e *Engine)Publish(tenant,project string){}`, false},
 		{"trusted_constructor", "command_actor.go", `package platform;func F(){_=Actor{kind:actorBrowser}}`, false},
+		{"persisted_browser_factory", "command_persisted_browser.go", `package platform;func(s *Service)persistedBrowserProjectWriteLockedTx(){_=Actor{kind:actorBrowser}}`, false},
+		{"persisted_team_factory", "expert_team_orchestration_authority.go", `package platform;func(s *Service)restoreExpertTeamActor(){_=Actor{kind:actorBrowser}}`, false},
+		{"persisted_reply_factory", "task_conversation_reply_outcome.go", `package platform;func(s *Service)taskConversationReplyCreatorTx(){_=Actor{kind:actorBrowser}}`, false},
+		{"persisted_observation_factory", "workspace_observation_authority.go", `package platform;func(s *Service)workspaceObservationCallerActorTx(){_=Actor{kind:actorBrowser}}`, false},
+		{"persisted_terminal_factory", "workspace_terminal.go", `package platform;func(s *Service)workspaceTerminalCreatorTx(){_=Actor{kind:actorBrowser}}`, false},
+		{"reviewed_file_other_method", "command_persisted_browser.go", `package platform;func(s *Service)unreviewed(){_=Actor{kind:actorBrowser}}`, true},
+		{"reviewed_method_wrong_file", "domain.go", `package platform;func(s *Service)persistedBrowserProjectWriteLockedTx(){_=Actor{kind:actorBrowser}}`, true},
+		{"reviewed_method_wrong_receiver", "command_persisted_browser.go", `package platform;func(s *Untrusted)persistedBrowserProjectWriteLockedTx(){_=Actor{kind:actorBrowser}}`, true},
+		{"reviewed_name_free_function", "command_persisted_browser.go", `package platform;func persistedBrowserProjectWriteLockedTx(){_=Actor{kind:actorBrowser}}`, true},
+		{"reviewed_method_nested_factory", "command_persisted_browser.go", `package platform;func(s *Service)persistedBrowserProjectWriteLockedTx(){_=func(){_=Actor{kind:actorBrowser}}}`, true},
+		{"reviewed_method_identity_mutation", "command_persisted_browser.go", `package platform;func(s *Service)persistedBrowserProjectWriteLockedTx(a Actor){_=Actor{kind:actorBrowser};a.kind=actorBrowser}`, true},
 		{"forged_actor", "domain.go", `package platform;func F(){_=Actor{kind:actorBrowser}}`, true},
 		{"pointer_literal", "domain.go", `package platform;func F(){_=&Actor{credential:credentialRef{digest:"forged"}}}`, true},
 		{"type_alias", "domain.go", `package platform;type borrowed=Actor;func F(){_=borrowed{kind:actorBrowser}}`, true},

@@ -180,11 +180,11 @@ func (s *Service) saveExpertTeamPlanRevisionTx(ctx context.Context, auth *author
 	out.Progress = ExpertTeamPlanProgress{Total: len(out.Items)}
 	for _, item := range out.Items {
 		switch item.State {
-		case "waiting_dependencies":
+		case "waiting_dependencies", "queued", "waiting_execution":
 			out.Progress.Waiting++
 		case "ready":
 			out.Progress.Ready++
-		case "queued", "executing":
+		case "executing":
 			out.Progress.Executing++
 		case "awaiting_review":
 			out.Progress.AwaitingReview++

@@ -39,7 +39,7 @@ func TestCandidateRepairRevisionReadyPreservesTaskAndOriginalPlan(t *testing.T) 
 	if err != nil || !view.CanRevise || view.EligibilityMode != "ready" || view.ConflictBasis == nil || view.RecoveryBasis != nil {
 		t.Fatal(view, err)
 	}
-	r := CandidateCompositionRepairRevisionRequest{ProjectID: f.project, ExpectedVersion: parent.Version, ExpectedTaskVersion: view.TaskVersion, ExpectedConflictSHA256: view.ConflictBasis.SHA256, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, ProducerNodeID: req.ProducerNodeID, ToolProfileID: req.ToolProfileID, ExpectedToolVersion: req.ExpectedToolVersion, Reason: "Explicitly review replacement execution inputs", Acknowledge: true, IdempotencyKey: newID()}
+	r := CandidateCompositionRepairRevisionRequest{ModelExecutionSelection: req.ModelExecutionSelection, ProjectID: f.project, ExpectedVersion: parent.Version, ExpectedTaskVersion: view.TaskVersion, ExpectedConflictSHA256: view.ConflictBasis.SHA256, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, ProducerNodeID: req.ProducerNodeID, ToolProfileID: req.ToolProfileID, ExpectedToolVersion: req.ExpectedToolVersion, Reason: "Explicitly review replacement execution inputs", Acknowledge: true, IdempotencyKey: newID()}
 	child, err := service.ReviseCandidateCompositionRepair(ctx, f.e, f.actor, f.project, parent.ID, r)
 	if err != nil || child.ID == parent.ID || child.TaskID != parent.TaskID || child.RunID != "" || child.State != "ready" || child.RepairRevision == nil || child.RepairRevision.Ordinal != 2 || child.RepairRevision.ParentPlanID != parent.ID || !child.RepairRevision.IsCurrent {
 		t.Fatal(child, err)
@@ -141,7 +141,7 @@ func TestCandidateRepairRevisionCertifiedFailureNewRunAndOriginalReceipt(t *test
 	if err != nil {
 		t.Fatal(err)
 	}
-	r := CandidateCompositionRepairRevisionRequest{ProjectID: f.project, ExpectedVersion: parent.Version, ExpectedTaskVersion: view.TaskVersion, ExpectedConflictSHA256: view.ConflictBasis.SHA256, ExpectedRecoverySHA256: view.RecoveryBasis.SHA256, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, ProducerNodeID: req.ProducerNodeID, ToolProfileID: healthy.ID, ExpectedToolVersion: healthy.Version, Reason: "Replace disabled tool after certified startup failure", Acknowledge: true, IdempotencyKey: newID()}
+	r := CandidateCompositionRepairRevisionRequest{ModelExecutionSelection: req.ModelExecutionSelection, ProjectID: f.project, ExpectedVersion: parent.Version, ExpectedTaskVersion: view.TaskVersion, ExpectedConflictSHA256: view.ConflictBasis.SHA256, ExpectedRecoverySHA256: view.RecoveryBasis.SHA256, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, ProducerNodeID: req.ProducerNodeID, ToolProfileID: healthy.ID, ExpectedToolVersion: healthy.Version, Reason: "Replace disabled tool after certified startup failure", Acknowledge: true, IdempotencyKey: newID()}
 	tasks, runs := expertCount(t, f, "suma_tasks"), expertCount(t, f, "dag_runs")
 	child, err := f.s.ReviseCandidateCompositionRepair(ctx, f.e, f.actor, f.project, parent.ID, r)
 	if err != nil || child.TaskID != parent.TaskID || child.RunID != "" || child.ToolProfileID != healthy.ID {
@@ -205,7 +205,7 @@ func TestCandidateRepairRevisionMissingProofAndConcurrentCAS(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		r := CandidateCompositionRepairRevisionRequest{ProjectID: f.project, ExpectedVersion: p.Version, ExpectedTaskVersion: view.TaskVersion, ExpectedConflictSHA256: view.ConflictBasis.SHA256, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, ProducerNodeID: req.ProducerNodeID, ToolProfileID: req.ToolProfileID, ExpectedToolVersion: req.ExpectedToolVersion, Reason: "Concurrent reviewed revision", Acknowledge: true}
+		r := CandidateCompositionRepairRevisionRequest{ModelExecutionSelection: req.ModelExecutionSelection, ProjectID: f.project, ExpectedVersion: p.Version, ExpectedTaskVersion: view.TaskVersion, ExpectedConflictSHA256: view.ConflictBasis.SHA256, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, ProducerNodeID: req.ProducerNodeID, ToolProfileID: req.ToolProfileID, ExpectedToolVersion: req.ExpectedToolVersion, Reason: "Concurrent reviewed revision", Acknowledge: true}
 		var group sync.WaitGroup
 		results := make(chan error, 2)
 		for i := 0; i < 2; i++ {
@@ -257,7 +257,7 @@ func TestCandidateRepairRevisionFreshConflictCASAndAtomicInvalidSelection(t *tes
 	if err != nil || !view.CanRevise || view.ConflictBasis.SHA256 == old.ConflictBasis.SHA256 {
 		t.Fatal(view, err)
 	}
-	r := CandidateCompositionRepairRevisionRequest{ProjectID: f.project, ExpectedVersion: p.Version, ExpectedTaskVersion: view.TaskVersion, ExpectedConflictSHA256: old.ConflictBasis.SHA256, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, ProducerNodeID: req.ProducerNodeID, ToolProfileID: req.ToolProfileID, ExpectedToolVersion: req.ExpectedToolVersion, Reason: "Review changed original task freshness", Acknowledge: true, IdempotencyKey: newID()}
+	r := CandidateCompositionRepairRevisionRequest{ModelExecutionSelection: req.ModelExecutionSelection, ProjectID: f.project, ExpectedVersion: p.Version, ExpectedTaskVersion: view.TaskVersion, ExpectedConflictSHA256: old.ConflictBasis.SHA256, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, ProducerNodeID: req.ProducerNodeID, ToolProfileID: req.ToolProfileID, ExpectedToolVersion: req.ExpectedToolVersion, Reason: "Review changed original task freshness", Acknowledge: true, IdempotencyKey: newID()}
 	_, err = f.s.ReviseCandidateCompositionRepair(ctx, f.e, f.actor, f.project, p.ID, r)
 	expertStatus(t, err, 409)
 	r.ExpectedConflictSHA256 = view.ConflictBasis.SHA256
@@ -290,7 +290,7 @@ func TestCandidateRepairRevisionStartRechecksPredecessorAndAllAttempts(t *testin
 		if err != nil {
 			t.Fatal(err)
 		}
-		r := CandidateCompositionRepairRevisionRequest{ProjectID: f.project, ExpectedVersion: p.Version, ExpectedTaskVersion: view.TaskVersion, ExpectedConflictSHA256: view.ConflictBasis.SHA256, ExpectedRecoverySHA256: view.RecoveryBasis.SHA256, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, ProducerNodeID: req.ProducerNodeID, ToolProfileID: req.ToolProfileID, ExpectedToolVersion: req.ExpectedToolVersion, Reason: "Review safe replacement", Acknowledge: true, IdempotencyKey: newID()}
+		r := CandidateCompositionRepairRevisionRequest{ModelExecutionSelection: req.ModelExecutionSelection, ProjectID: f.project, ExpectedVersion: p.Version, ExpectedTaskVersion: view.TaskVersion, ExpectedConflictSHA256: view.ConflictBasis.SHA256, ExpectedRecoverySHA256: view.RecoveryBasis.SHA256, WorkflowID: req.WorkflowID, WorkflowVersion: req.WorkflowVersion, ProducerNodeID: req.ProducerNodeID, ToolProfileID: req.ToolProfileID, ExpectedToolVersion: req.ExpectedToolVersion, Reason: "Review safe replacement", Acknowledge: true, IdempotencyKey: newID()}
 		child, err := f.s.ReviseCandidateCompositionRepair(ctx, f.e, f.actor, f.project, p.ID, r)
 		if err != nil {
 			t.Fatal(err)

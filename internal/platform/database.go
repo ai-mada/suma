@@ -109,6 +109,12 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.validateNotificationInboxInitialSchema(ctx); err != nil {
 		return err
 	}
+	if err := s.validateTaskConversationMentionsInitialSchema(ctx); err != nil {
+		return err
+	}
+	if err := s.validateTaskReviewRequestsInitialSchema(ctx); err != nil {
+		return err
+	}
 	if err := store.InitializeBaseline(ctx, s.DB, s.Dialect, "platform", "suma_", store.InitialDataContract); err != nil {
 		return err
 	}
@@ -237,6 +243,12 @@ func (s *Service) Initialize(ctx context.Context) error {
 		return err
 	}
 	if err := s.InitializeTaskConversations(ctx); err != nil {
+		return err
+	}
+	if err := s.InitializeTaskConversationMentions(ctx); err != nil {
+		return err
+	}
+	if err := s.InitializeTaskReviewRequests(ctx); err != nil {
 		return err
 	}
 	if err := s.InitializeTaskConversationReplies(ctx); err != nil {
