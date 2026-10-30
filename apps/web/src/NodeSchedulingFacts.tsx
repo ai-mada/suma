@@ -1,10 +1,10 @@
 import { tr as t, useLocale, formatNumber } from "./i18n";
 import { useEffect, useRef } from "react";
-import { ApiError, query, stateLabel } from "./api";
+import { ApiError, query } from "./api";
 import { ErrorNotice, Loading } from "./ui";
 import { useToolRead } from "./tool-hooks";
 import { useSchedulingPage } from "./scheduling-hooks";
-import { AdmissionFacts, AttemptFacts } from "./SchedulingFacts";
+import { AdmissionFacts, AttemptFacts, schedulingNodeStateLabel } from "./SchedulingFacts";
 import { AttemptToolEventHistory } from "./AttemptToolEventHistory";
 import {
   admissionCurrent,
@@ -148,7 +148,7 @@ export function NodeSchedulingFacts({
                   onAttempt(String(item.attempt));
                 }}
               >
-                {t("development.attempts.attempt_summary",{attempt:formatNumber(item.attempt),state:stateLabel(item.state),fence:item.fence})}
+                {t("development.attempts.attempt_summary",{attempt:formatNumber(item.attempt),state:schedulingNodeStateLabel(item.state),fence:item.fence})}
               </a>
             </li>
           ))}

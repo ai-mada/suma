@@ -1,6 +1,6 @@
 # Governed cloud task execution and recovery
 
-Suma 1.0.0 · T-WORKBUDDY-RUNNER-155 · Implementation integrated; joint verification in progress. [Contract](../../contracts/workbuddy-cloud-runner.md), [architecture](../architecture/workbuddy-cloud-runner.md), [interaction and AI SOP](../design/workbuddy-cloud-runner.md).
+Suma 1.0.0 · T-WORKBUDDY-RUNNER-155 · Scoped Windows/SQLite verification passed. [Contract](../../contracts/workbuddy-cloud-runner.md), [architecture](../architecture/workbuddy-cloud-runner.md), [interaction and AI SOP](../design/workbuddy-cloud-runner.md), [evidence and limits](../quality/workbuddy-cloud-runner-verification.md).
 
 1. Open the original workflow node and explicitly delegate one creation using your own current connection.
 2. A qualified private or Pool Runner claims the immutable assignment. A connection or installed tool alone never grants execution authority.

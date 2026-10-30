@@ -1,6 +1,6 @@
 # 正式云执行器的运行事实
 
-T-WORKBUDDY-RUNNER-155，速码1.0.0。状态：合同冻结、实现与定向检查中，正式Runner／实际界面联合验收待完成。以[正式Runner合同](../../contracts/workbuddy-cloud-runner.md)和[152单次提交合同](../../contracts/workbuddy-cloud-execution.md)为准，不新增调度或供应方创建权威。
+T-WORKBUDDY-RUNNER-155，速码1.0.0。状态：Windows隔离SQLite、正式Runner与合成供应方的两条实际旅程已限定验证，最终界面只读复查完成。以[正式Runner合同](../../contracts/workbuddy-cloud-runner.md)和[152单次提交合同](../../contracts/workbuddy-cloud-execution.md)为准，不新增调度或供应方创建权威。
 
 ## 原运行内的下一步
 
@@ -29,7 +29,7 @@ cloud.remote_unknown、waiting_input、interrupted、authorization_changed和obs
 
 [模型投影](../../apps/web/src/workbuddy-cloud-task-model.ts)只解释已有事实，没有新持久状态机。[Panel](../../apps/web/src/WorkBuddyCloudTaskPanel.tsx)复用React、Lucide、原生details、统一中英词条和既有容器样式。继承原运行共享刷新及合并读取，不为卡片增加计时轮询。
 
-NodeSchedulingFacts仍负责当前准入与准确attempt历史；ToolExecutionFacts只消费真实工具证据。没有Tool／Workspace／Artifact／Test证据就不伪造终态或候选。云等待仍是既有DAG waiting，在本面板明确表达等待云端事实，避免误写成等待审批。
+NodeSchedulingFacts仍负责当前准入与准确attempt历史；ToolExecutionFacts只消费真实工具证据。没有Tool／Workspace／Artifact／Test证据就不伪造终态或候选。云等待仍是既有DAG waiting，在本面板明确表达等待云端事实。当前派发条件、执行状态和attempt历史统一将waiting表述为“节点等待中”；只有明确approval_required阻塞解释为等待人工审批，不改全局状态文案。
 
 精确云节点隐藏手填“确认实际结果”入口；普通云失败也不提供通用重试。只有failed、cloud.not_created且原节点Idempotent允许时，才显示原重试入口，预算与次数等仍由原服务端策略重验。服务端同时拒绝用通用success或换attempt绕过未知；界面隐藏不是安全边界。
 
@@ -45,6 +45,10 @@ task_known之后可明确观察准确原ID。供应方创建未知且没有ID时
 
 主状态与风险提示使用成对中英词条；准确ID和供应方状态保持原文。详情默认收起，可用Tab、Enter和Space操作；原生焦点及至少44px按钮沿152样式，窄侧栏与390px单列呈现，长ID和原因可换行。确认范围改变撤掉确认项，当前身份／主来源拒绝移除受保护内容。
 
-新增定向回归覆盖领取后未提交、prepared不冒充创建、已知task不推断成功、等待交付／失联／取消分离、一个主操作和折叠详情、机器未知与浏览器恢复隔离，以及中文可访问详情。本轮不重复152／154既有整组，也不先运行Vite构建。
+新增定向回归覆盖领取后未提交、prepared不冒充创建、已知task不推断成功、等待交付／失联／取消分离、一个主操作和折叠详情、机器未知与浏览器恢复隔离，以及中文可访问详情。实际截图发现通用事实组件把waiting误写为审批后，补充一个组件回归区分普通节点等待与明确审批阻塞；未重复152／154既有整组。
 
-后续实际旅程必须使用正式Worker.Run及正常HTTP领取，不用152专用夹具直接Create代替；真实一次创建、原响应丢失后同body恢复、供应方unknown不重建、completed不绿、下游未启动与取消未假停各自留证。联合构建及CN1366／EN390图片与键盘验收由主集成协调后记录；目前不预填通过。完整58项限定实现／34项待交付／92项总数不变，ACP、可信候选、独立测试、真实厂商、多机、其他数据库及生产继续原计划。
+实际完成17项HTTP／GUI检查，使用独立OS子进程的正式Worker.Run、正常登记凭据及原HTTP claim／heartbeat／Create／Lookup／result。正常旅程与Create已保存但ACK丢失后同journal重开旅程，各只有一次供应方POST、同一attempt；供应方completed后原节点仍waiting／cloud.delivery_required，下游pending，用量未报告，不宣称停止或验收。三个执行子进程与Electron均已真实关闭。合成供应方未调用模型。
+
+17项业务证据对应efffc75b产品快照；最终等待文案修正对应7b09f20b快照，Go输入和执行器二进制不变。必要前端重建后只读原两项任务，完成3项视觉／键盘检查及CN1366浅色、EN390深色三张图片；零写请求、零重新领取／委派／创建，业务计数保持不变。原截图、构建和首次失败均保留，未把只读检查计为重跑业务。
+
+首个临时夹具因机器未正式登记而在claim前退出，随后驱动未保存一次性凭据，临时数据库到期自动清理；它没有产生claim或供应方创建，不算通过。上述成功旅程在明确新建的持久v2隔离环境完成，并不声称恢复首个数据库或其凭据。实际范围仅Windows软件离屏、SQLite、私有Runner及合成OAuth／任务供应方；Pool多机、真实供应方、ACP、可信候选、独立测试／验收、其他数据库、安装与生产继续原计划。完整58项限定实现／34项待交付／92项总数不变。

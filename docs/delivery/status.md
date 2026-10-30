@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-WORKBUDDY-RUNNER-155：[正式云执行与恢复限定验收](../quality/workbuddy-cloud-runner-verification.md)及[安全摘要](../quality/workbuddy-cloud-runner-summary.json)。私有／Pool正式领取固定原委派与attempt，中央一次创建、机器只读lookup、原生Worker持久恢复及保护性waiting已接通；供应方completed不等于交付或验收。工具目录直达原账号面板，保持草稿与权限；实际目视发现的通用waiting误称审批已修正。44个新增Go顶层、11个不同Web用例（10新增）、完整类型／7665语言键及合同检查通过；17项真实本机Worker-HTTP／GUI业务检查和3项只读视觉复核分开记录，每旅程仅一次供应方POST。首轮夹具失败与v2新环境均如实保留；服务／子进程正常收尾，持久数据保留。真实供应方、机器ACP、云候选、独立测试／正式验收、多机及生产继续完整目标，58／34／92不变。源码`22c3b9c`已推dev，验收与视觉修正随本记录提交。
+
 T-WORKBUDDY-CLOUD-152：[本阶段WorkBuddy云任务工作区](../quality/workbuddy-cloud-execution-verification.md)。原运行节点内的本人委派、准确来源和供应方任务核对已接通；控制面以原attempt机器资格提供持久一次创建，未知作用保留原操作。源码、定向检查、隔离构建及真实界面各自范围以专项报告为准，完整自动DAG领取／Execute、ACP协作、可信制品、独立测试和正式验收继续交付。 完整58／34／92不变。
 
 

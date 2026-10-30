@@ -1,6 +1,6 @@
 # 云执行的正式调度、持久恢复与效果核对
 
-版本1.0.0；阶段T-WORKBUDDY-RUNNER-155；负责人：主集成代理；状态：实现完成、联合验收中。关联：[需求](../product/workbuddy-cloud-runner.md)、[合同](../../contracts/workbuddy-cloud-runner.md)、[152中央创建架构](workbuddy-cloud-execution.md)。
+版本1.0.0；阶段T-WORKBUDDY-RUNNER-155；负责人：主集成代理；状态：Windows／SQLite限定验收通过。关联：[需求](../product/workbuddy-cloud-runner.md)、[合同](../../contracts/workbuddy-cloud-runner.md)、[152中央创建架构](workbuddy-cloud-execution.md)、[验收证据与边界](../quality/workbuddy-cloud-runner-verification.md)。
 
 ## 边界与数据流
 

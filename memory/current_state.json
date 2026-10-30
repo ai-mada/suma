@@ -1,5 +1,26 @@
 {
   "project": "suma",
+  "workbuddy_cloud_runner": {
+    "stage": "T-WORKBUDDY-RUNNER-155",
+    "version": "1.0.0",
+    "date": "2026-10-30",
+    "status": "windows_sqlite_formal_worker_http_gui_scoped_verified",
+    "code_commit": "22c3b9c93054aef8b930f2caa9a77e55e1e27a18",
+    "remote_branch": "dev",
+    "source_sha256": "7b09f20b048dbbdae6291c71411ece4fc8ba59e1f36e41ab62c3f9389b5e1e6c",
+    "business_source_sha256": "efffc75b1f10facbb1dc563940ab4516af6b5f9ad07482fdabee09c6687430ae",
+    "contract": "contracts/workbuddy-cloud-runner.md",
+    "architecture": "docs/architecture/workbuddy-cloud-runner.md",
+    "report": "docs/quality/workbuddy-cloud-runner-verification.md",
+    "summary": "docs/quality/workbuddy-cloud-runner-summary.json",
+    "verification": "44 new distinct Go top tests; 11 distinct Web cases including 10 new; final snapshot full types, 7665 paired locale keys, 464 pre-delivery local documentation links and 370 API/3418 schema references passed. Related existing/repeated checks are not counted as new tests.",
+    "actual": "Fresh persistent v2 SQLite/Go/Electron and synthetic provider: 17 actual formal Worker HTTP/GUI checks across two journeys; each claim/attempt/Create/provider POST/result remained1, same-journal crash recovery only looked up the original task. Both nodes wait for delivery evidence, downstream pending, usage unreported, no acceptance claimed. A screenshot exposed generic waiting mislabeled as approval; one new component case and three GET-only visual checks verified the narrow fix without repeating business journeys.",
+    "exception_history": "V1 failed before any claim/provider create: missing registered identity, then one-time credential persistence error; its temporary DB expired. Failures/evidence retained. V2 is a fresh environment, not restoration of V1. No production source was weakened.",
+    "runtime_closeout": "Owned v2 service exited0 after stop signal; all3 Worker processes closed (one expected kill), both Electron runs closed, persistent DB/journals/DPAPI ciphertext retained; plaintext credential absent.",
+    "ledger_unchanged": "58 limited /34 pending /92 total",
+    "full_platform_complete": false,
+    "limits": "Provider completion waits for platform evidence; ACP machine authority, cloud candidates, independent testing/acceptance, real supplier, other databases, multihost, installers and production remain separate full-platform work."
+  },
   "workbuddy_cloud_execution": {
     "stage": "T-WORKBUDDY-CLOUD-152",
     "date": "2026-10-30",

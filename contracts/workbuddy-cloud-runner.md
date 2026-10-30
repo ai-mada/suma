@@ -1,6 +1,6 @@
 # 正式云工作流 Runner 与持久恢复合同
 
-阶段：T-WORKBUDDY-RUNNER-155；速码1.0.0；状态：合同冻结、实现中，未验收。继续完整研发平台目标，复用[152中央创建合同](workbuddy-cloud-execution.md)、现有Go DAG、正式Worker、机器权限、journal与outbox；不新增第二个任务调度器或供应方创建路径。
+阶段：T-WORKBUDDY-RUNNER-155；速码1.0.0；状态：合同冻结，Windows／SQLite限定验收通过，见[证据与边界](../docs/quality/workbuddy-cloud-runner-verification.md)。继续完整研发平台目标，复用[152中央创建合同](workbuddy-cloud-execution.md)、现有Go DAG、正式Worker、机器权限、journal与outbox；不新增第二个任务调度器或供应方创建路径。
 
 ## 领取与固定输入
 

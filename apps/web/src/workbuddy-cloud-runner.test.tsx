@@ -5,6 +5,8 @@ import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import {setLocale} from './i18n';
 import {cloudRunnerPhase,type CloudRunFacts} from './workbuddy-cloud-task-model';
 import {WorkBuddyCloudTaskPanel,type WorkBuddyCloudTaskModel} from './WorkBuddyCloudTaskPanel';
+import {AdmissionFacts,AttemptFacts} from './SchedulingFacts';
+import type {NodeAdmission} from './scheduling-model';
 
 const execution=(change:Partial<CloudRunFacts>={}):CloudRunFacts=>({runVersion:7,runState:'running',nodeState:'running',reason:'',attempt:1,fence:2,workerID:'formal-worker',...change});
 const model=():WorkBuddyCloudTaskModel=>({scopeKey:'owner/org/project/run/cloud',sourceVersion:'version7',state:'ready',task:{title:'Formal cloud task',runLabel:'Run original',nodeLabel:'Cloud original',prompt:'Approved immutable request',requestDigest:'a'.repeat(64),nodeDigest:'b'.repeat(64)},connections:[],actions:{delegate:false,revoke:false,refresh:true},delegation:{id:'delegation',version:2,state:'active',expiresAt:'2030-01-01T00:00:00Z',connectionLabel:'Fixed account',createsConsumed:1},submission:{id:'submission',version:2,state:'task_known',taskID:'provider-original',providerStatus:'completed',observedAt:'2026-10-30T00:00:00Z'},execution:execution({nodeState:'waiting',reason:'cloud.delivery_required'})});
@@ -54,4 +56,14 @@ it('renders Chinese stop uncertainty with keyboard-operable details and the orig
  expect(host.querySelector('[data-cloud-runner-phase]')?.textContent).toContain('远端停止未确认');
  const summary=host.querySelector<HTMLElement>('[data-cloud-execution-details] > summary')!;summary.focus();expect(document.activeElement).toBe(summary);
  expect(host.textContent).toContain('formal-worker');expect(host.textContent).toContain('cloud.stop_unconfirmed');expect(host.querySelector('[data-cloud-runner-phase]')?.textContent).toBe('远端停止未确认');expect(host.textContent).not.toContain('等待审批');
+});
+it('labels waiting execution facts without implying approval unless an approval blocker exists',async()=>{
+ const snapshot:NodeAdmission={run_id:'run',node_id:'cloud',run_version:7,node_state:'waiting',attempt:1,fence:2,policy_version:1,evaluated_at:'2026-10-30T00:00:00Z',status:'blocked',blockers:[{code:'node_waiting',source:'node',message:''}],requests:[],reservations:[]};
+ await act(async()=>{root=createRoot(host);root.render(<><AdmissionFacts snapshot={snapshot}/><AttemptFacts attempt={{run_id:'run',node_id:'cloud',attempt:1,fence:2,worker_id:'formal-worker',state:'waiting',started_at:'2026-10-30T00:00:00Z',completed_at:'',result_source:'unreported'}}/></>);});
+ expect(host.querySelector('.scheduling-facts > p')?.textContent).toContain('Node waiting');
+ expect(host.textContent).not.toMatch(/approval/i);
+ snapshot.blockers=[{code:'approval_required',source:'node',message:''}];
+ await act(async()=>root!.render(<AdmissionFacts snapshot={snapshot}/>));
+ expect(host.querySelector('.scheduling-facts > p')?.textContent).toContain('Node waiting');
+ expect(host.querySelector('.scheduling-blockers')?.textContent).toContain('Awaiting human approval');
 });

@@ -1,6 +1,6 @@
 # 正式云任务执行与恢复需求
 
-版本1.0.0；阶段T-WORKBUDDY-RUNNER-155；负责人：主集成代理；状态：实现完成、联合验收中。依据：[执行合同](../../contracts/workbuddy-cloud-runner.md)、[架构](../architecture/workbuddy-cloud-runner.md)、[交互与操作规程](../design/workbuddy-cloud-runner.md)。
+版本1.0.0；阶段T-WORKBUDDY-RUNNER-155；负责人：主集成代理；状态：Windows／SQLite限定验收通过。依据：[执行合同](../../contracts/workbuddy-cloud-runner.md)、[架构](../architecture/workbuddy-cloud-runner.md)、[交互与操作规程](../design/workbuddy-cloud-runner.md)、[验收证据与边界](../quality/workbuddy-cloud-runner-verification.md)。
 
 用户在原节点授权一次云任务创建，速码分配给有资格的执行节点。用户始终看到原运行、原尝试和原云任务；失联、撤权、取消和未知回执不生成替代任务，也不能把供应方完成当成代码验收通过。
 

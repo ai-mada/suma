@@ -91,6 +91,8 @@ export const schedulingResourceLabel = (name: string) =>
   resourceNames[name] || name;
 export const schedulingUnitLabel = (unit?: string) =>
   unit ? unitNames[unit] || unit : t("common.unit.unknown");
+export const schedulingNodeStateLabel = (state: string) =>
+  state === "waiting" ? t("development.scheduling.node_waiting") : stateLabel(state);
 function blockerTitle(blocker: SchedulingBlocker) {
   if (blocker.source === "pool") {
     const names: Record<string, string> = {
@@ -292,7 +294,7 @@ export function AdmissionFacts({
       <h4>{t("development.facts.current_dispatch_conditions")}</h4>
       <p>
         <strong>{admissionNames[snapshot.status] || snapshot.status}</strong> ·{" "}
-        {stateLabel(snapshot.node_state)}
+        {schedulingNodeStateLabel(snapshot.node_state)}
       </p>
       <small>
         {t("development.scheduling.evaluation_versions",{at:time(snapshot.evaluated_at),run:snapshot.run_version,policy:snapshot.policy_version})}
@@ -425,7 +427,7 @@ export function AttemptFacts({ attempt }: { attempt: ExecutionAttempt }) { useLo
         <dt>{t("development.scheduling.result_source")}</dt>
         <dd>{sourceNames[source] || t("development.scheduling.source_unreported")}</dd>
         <dt>{t("development.scheduling.persistent_execution_state")}</dt>
-        <dd>{stateLabel(attempt.state)}</dd>
+        <dd>{schedulingNodeStateLabel(attempt.state)}</dd>
         <dt>{t("development.scheduling.execution_identity")}</dt>
         <dd>
           <code>{attempt.worker_id || t("development.scheduling.not_provided_yet")}</code>
@@ -462,7 +464,7 @@ export function AttemptFacts({ attempt }: { attempt: ExecutionAttempt }) { useLo
         <section aria-label={t("development.scheduling.fixed_child_workflow_result")}>
           <h5>{t("development.scheduling.fixed_child_workflow_result")}</h5>
           <code>{attempt.child_run_id || t("development.scheduling.child_run_id_not_provided_yet")}</code>
-          <p>{t("development.scheduling.persistent_state_value",{state:stateLabel(attempt.state)})}</p>
+          <p>{t("development.scheduling.persistent_state_value",{state:schedulingNodeStateLabel(attempt.state)})}</p>
         </section>
       )}
       {result && source !== "not_loaded" && source !== "unreported" ? (
