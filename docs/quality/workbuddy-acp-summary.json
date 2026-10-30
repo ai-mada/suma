@@ -1,0 +1,176 @@
+{
+  "stage": "T-WORKBUDDY-ACP-149",
+  "date": "2026-10-30",
+  "version": "1.0.0",
+  "status": "internal_protocol_scoped_verified_not_dispatchable",
+  "base": "a7073c2",
+  "full_platform_complete": false,
+  "scope": "Exact session access, pinned SDK types, fixed SSE/POST transport, strict decode, handshake/history and explicit turn/permission handling. No public dispatch or UI registration.",
+  "verification": {
+    "deduplicated_top_level_go": 56,
+    "named_subcases": 163,
+    "new_stage_top_level_go": 41,
+    "client": {
+      "top_level": 23,
+      "subcases": 101,
+      "seconds": 2.319,
+      "evidence": "integration-tests.log workbuddy package only",
+      "reuse": "Same source and test hashes; ACP part superseded, not added"
+    },
+    "acp_final": {
+      "top_level": 33,
+      "subcases": 62,
+      "seconds": 0.624,
+      "transport": 8,
+      "codec": 10,
+      "session": 15,
+      "command": ".cache/toolchains/go1.26.10/go/bin/go.exe test ./internal/workbuddyacp -count=1 -timeout=90s -v",
+      "evidence": "acp-stage-integration.log",
+      "exit_code": 0
+    },
+    "history_records": 96,
+    "affected_final_session": {
+      "top_level": 15,
+      "subcases": 12,
+      "seconds": 0.376,
+      "included_in_acp_not_added": true
+    },
+    "environment": {
+      "go": "1.26.10/windows",
+      "CGO_ENABLED": "0",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GOPROXY": "off",
+      "GOMODCACHE": ".cache/go-mod-runtime",
+      "GOCACHE": ".cache/workbuddy-149/go-cache",
+      "GOTMPDIR": ".cache/workbuddy-149/tmp",
+      "TEMP": ".cache/workbuddy-149/tmp",
+      "TMP": ".cache/workbuddy-149/tmp"
+    },
+    "dependency": "Pinned SDK v0.13.5, standard checksum, isolated offline type build and go mod verify; not a final binary SBOM",
+    "review": "Independent incremental source review: cancel fence and history handshake; no identified remaining P1/P2 in reviewed delta",
+    "browser": "Not applicable: no UI changed by149",
+    "vendor": "Not executed",
+    "race": "Not executed",
+    "physical_multihost": "Not verified",
+    "full_platform_suite": "Not rerun; source-scoped affected checks only"
+  },
+  "sources": [
+    {
+      "path": "go.mod",
+      "sha256": "7ff0666a7fd3dc9fc6ec26ce139d03796d13709b063f1051e8bb289344ae9467"
+    },
+    {
+      "path": "go.sum",
+      "sha256": "e794a7aa0d915dd5f3cec2b7a4bb061fe8569939373791c92006365718ac5dbf"
+    },
+    {
+      "path": "internal/workbuddy/client.go",
+      "sha256": "5cc6603669af2ea727cd1465fac67184bf77703e422e871e51b770c036edd96b"
+    },
+    {
+      "path": "internal/workbuddy/session_access.go",
+      "sha256": "28f5b2246990a933339ec6a5371d763c9a0efb04475b60e69de77b79c7566a7f"
+    },
+    {
+      "path": "internal/workbuddy/session_access_test.go",
+      "sha256": "b4e2b443d66627777dd2b40bb885a02ede0853a9b605ee6d64db44e170f738e2"
+    },
+    {
+      "path": "internal/workbuddyacp/transport.go",
+      "sha256": "a85baffba7dad0a03cc540f44b9ebf7eae984ac861f07b87d4d34c401a82b0da"
+    },
+    {
+      "path": "internal/workbuddyacp/transport_test.go",
+      "sha256": "23cd9efbac2fa356827886536ea9df1f0a390cbe9e10ca12a8ac72cd4180048e"
+    },
+    {
+      "path": "internal/workbuddyacp/error.go",
+      "sha256": "969c5b8ca0357d2aa3be57012d9687bba48461e35cdb48355a8123380970a154"
+    },
+    {
+      "path": "internal/workbuddyacp/codec.go",
+      "sha256": "729118f52462b3276228c5d09f12b80652fd1835e31b18e3cc4b8dcb46345899"
+    },
+    {
+      "path": "internal/workbuddyacp/codec_test.go",
+      "sha256": "8e9113c18a2252b9a56f990e8c229ca465cf490df017e0c59903d6ca700f5179"
+    },
+    {
+      "path": "internal/workbuddyacp/session.go",
+      "sha256": "0c48b2e6efe96669de2fee7500976ff12be20f48c4ba14b968004c275892a789"
+    },
+    {
+      "path": "internal/workbuddyacp/session_test.go",
+      "sha256": "4671e3b3a07f076c5f491c55f868d97ec8c5dc9fdb913fd40b0ebbee346c1588"
+    },
+    {
+      "path": "contracts/workbuddy-cloud-submission.md",
+      "sha256": "1b2e6243c3f8cffec06ca287d7e304693a2af6db11b705f6a7d2dd0135bc75f1"
+    },
+    {
+      "path": "docs/architecture/workbuddy-cloud-submission.md",
+      "sha256": "9302c0876923e9f53fa328cf4d8d59a1702b14687c2c1948706869e333565ffc"
+    },
+    {
+      "path": "docs/delivery/third-party.md",
+      "sha256": "745cbce1a8dac5af39295a72a12c291b04184e82c382e6bf51409ea074b62e28"
+    },
+    {
+      "path": "docs/delivery/workbuddy-acp-dependencies.json",
+      "sha256": "321464d0ae5e8dbbf400371e126a5c078e6e93413501e7dac99f6dd1aaac8da4"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cache/workbuddy-149/integration-tests.log",
+      "sha256": "5b1e89d952ff8192466bbb89b749937b1673ab8b2e03d591931dc9bb078da510"
+    },
+    {
+      "path": ".cache/workbuddy-149/acp-stage-integration.log",
+      "sha256": "953767f3b01367580ebacd35d0be1a88d90c44b8246acf007bf888178bf151be"
+    },
+    {
+      "path": ".cache/workbuddy-149/session-load-capability-green.log",
+      "sha256": "a97255d811b70b58ea284bd4a240a44f0a30b3ceff4485bedb3b97764e343d51"
+    },
+    {
+      "path": ".cache/workbuddy-149/session-load-capability-red.log",
+      "sha256": "9ecade0d673831db49c69daefedaf8ce5d34648a04a14b160861496521051704"
+    },
+    {
+      "path": ".cache/workbuddy-149/session-history-red.log",
+      "sha256": "a82567d6cc4188646303ed9c904d76187ba4f68789427bcd6ed6e4bb72f08234"
+    },
+    {
+      "path": ".cache/workbuddy-149/session-history-green.log",
+      "sha256": "e895662c4d8807872fbd96c9a478a402099e3c8ca76430e299aed9aedbea1b38"
+    },
+    {
+      "path": ".cache/workbuddy-149/session-cancel-fence-red.log",
+      "sha256": "609260bc0d35b35a870eb9eccd06be91591ad9e5d9037c2a5ab28522b112b86c"
+    },
+    {
+      "path": ".cache/workbuddy-149/session-cancel-fence-green.log",
+      "sha256": "57364a23a84b8bb2c95cb82fa44ecc7b65d71af6ca0139c5ba76ec255520daaa"
+    }
+  ],
+  "remaining": [
+    "Current-authorized owner delegation and original DAG machine attempt proxy",
+    "Cross-replica durable create permit and exact-task recovery",
+    "Durable progress, permission decisions and team task UI",
+    "Initial REST-created cloud task cancellation and real stop proof",
+    "Usage and enforce budget capabilities",
+    "Trusted artifacts, fixed candidates, independent testing and human acceptance",
+    "Real vendor, multiple physical hosts, installation and production acceptance"
+  ],
+  "invariants": [
+    "No automatic reconnect or replay of unknown writes",
+    "Exact session/connection/request and turn correspondence",
+    "HTTP acknowledgement is not RPC completion or task acceptance",
+    "No auto permission approval, secret JSON or raw error payload",
+    "History sink must return promptly and bind its own I/O context",
+    "Missing loadSession capability rejects before load"
+  ]
+}

@@ -81,7 +81,7 @@ func canonicalOrigin(raw string) (string, error) {
 	return "http://" + host, nil
 }
 func validToken(token string) bool {
-	if len(token) == 0 || len(token) > 8192 {
+	if len(token) == 0 || len(token) > 8192 || token[0] == '=' {
 		return false
 	}
 	padding := false

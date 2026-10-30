@@ -1,0 +1,19 @@
+{
+  "stage": "T-WORKBUDDY-ACP-149",
+  "date": "2026-10-30",
+  "status": "pinned_source_dependency_and_local_metadata_not_final_binary_sbom",
+  "module": "github.com/coder/acp-go-sdk",
+  "version": "v0.13.5",
+  "commit": "0845a3bb9eddda5bfc22a94dd3598c90cb842451",
+  "source": "https://github.com/coder/acp-go-sdk/tree/v0.13.5",
+  "license_source": "https://github.com/coder/acp-go-sdk/blob/v0.13.5/LICENSE",
+  "license_observed": "Apache-2.0; Copyright 2025 Coder Technologies, Inc.",
+  "license_sha256": "3cf3fec4549ad049b3defd633001ce9e89923cdaee3d45d5ff4686750706e3cd",
+  "module_sum": "h1:LI9jq5xon7xslaYlnoktvTVyDlE37yIk2daT7N9ASYk=",
+  "go_mod_sum": "h1:yKzM/3R9uELp4+nBAwwtkS0aN1FOFjo11CNPy37yFko=",
+  "minimum_go": "1.21",
+  "additional_require_directives": 0,
+  "scope": "Reuse protocol types and JSON structures; fixed SSE/POST transport and current Suma authority remain separate. SDK connection APIs that automatically send cancellation are not used.",
+  "verification": "Downloaded with standard proxy and checksum verification; isolated types probe built offline and go mod verify passed. Root go.mod/go.sum pin adds only this module.",
+  "limits": "No vendor call, production acceptance or final packaged-runtime dependency inventory. Existing historical dependency snapshots remain historical."
+}

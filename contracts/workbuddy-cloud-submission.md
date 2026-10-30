@@ -1,6 +1,6 @@
 # WorkBuddy云任务单次提交与原任务读取
 
-阶段：T-WORKBUDDY-143；速码1.0.0。此合同限定尚未开放的云任务HTTP协议、原attempt的持久检查点及单次提交恢复底层。不是完整执行适配器，不新增公共API、工具目录能力、自动派发入口或供应商验收。WorkBuddy云入口仍为planned；CodeBuddy CLI及通用external workflow保持各自协议。
+阶段：T-WORKBUDDY-143，T-WORKBUDDY-ACP-149继续实现内部会话协议；速码1.0.0。此合同限定尚未开放的云任务HTTP协议、原attempt的持久检查点及单次提交恢复底层。不是完整执行适配器，不新增公共API、工具目录能力、自动派发入口或供应商验收。WorkBuddy云入口仍为planned；CodeBuddy CLI及通用external workflow保持各自协议。
 
 ## 协议边界
 
@@ -48,8 +48,24 @@ HTTP模块不决定用户权限，Journal不授予执行资格。原调用方必
 
 不在HTTP客户端中创建后台调度、无限轮询、隐式刷新凭据或自动修复循环；读取和创建均受调用上下文约束。已有任务读取失败保持原ID和原记录，不重置检查点。任何“从未知改为可重新提交”的操作都需要后续明确核对合同，当前不提供。
 
+## 准确会话读取与ACP通道
+
+149新增`Client.GetSessionAccess(ctx, taskID)`，仍只调用原准确任务GET。返回的`SessionAccess`绑定相同Task.ID／SessionID，ACPURL与Ticket禁止JSON及格式化诊断输出，不能进入普通Task读取投影。Available只表示两项材料齐备，不能表示当前平台授权、有效期、连通或健康；缺少任一材料时不返回半张票据。官方`expire_at`为Unix秒token期限，缺失保留未知；消费时仍须重核已知期限和当前资格。
+
+当前只接受官方网关`https://acp.workbuddy.cn/sessions/{准确taskID}`。文档另有直连sandbox示例，但没有完整可信来源合同，不推导通配来源、不拼sandboxLink或产物下载地址。已知但未支持的来源返回安全的unsupported_session_endpoint。Bearer令牌至少含一个有效的非padding字符，不能把纯`=`接纳为配置或票据。
+
+ACP使用固定同一链接的GET SSE和POST JSON-RPC：GET取得单一Acp-Connection-Id，POST只回送该准确标识及ACP Ticket。HTTP2xx只表示发送接纳；最终结果从SSE关联原请求。没有已核实的事件重放／Last-Event-ID、发送幂等或未知prompt查询合同，不自动重连、刷新票据、重发输入或发送取消RPC。取消本地等待、关闭连接和远端回合结束分别表达。
+
+传输以1MiB帧、32项队列／背压及调用上下文限制资源；UTF-8、SSE多行／注释／边界及断流明确处理。帧绑定原接收连接，provider的事件ID不是速码游标。SDK固定`github.com/coder/acp-go-sdk v0.13.5`，复用当前13类更新及权限结构；不启用其会自动取消的连接层。解码前核验JSON唯一键、来源session和已知discriminator，再检查SDK分支；未知扩展保留准确原文和unsupported，不猜为成功消息。
+
+类型化会话操作沿Initialize→Load准确原任务，不再次发送创建正文。明确追加输入、权限选项和取消请求各有原请求标识；旧连接／旧请求的选择不能作用于新连接。同HTTP发送与准确RPC回应分别记录，只有匹配原prompt的stopReason能说明该回合结束；它不能证明云进程停止、代码候选、独立测试或人工验收。控制面派发代理仍需组合原DAG授权、所有者委派、attempt/fence和预算规则，协议客户端本身不决定这些资格。
+
+ACP v1必须先确认initialize回应明确`loadSession:true`；缺省不尝试load。加载会重放完整历史，`Setup.OnHistory`可由可信调用方顺序持久消费无RPC ID的通知；不额外堆积整段历史。回调须及时返回并把自身I/O绑定上下文；拒绝即中止本次握手，错误不透出回调正文。未提供回调时保留32条明确内存边界，不静默丢弃。权限请求及未匹配回应仍有界保留给正式处理，不能作为历史自动响应。握手并行接收SSE及等待POST，只有两项都成功才完成，失败关闭本次连接并等待自有发送协程退出。
+
+权限选择绑定本次连接、准确请求、选项和回合；取消意图禁止之后正向授权。取消通知尚在发送或结果未知时，独立屏障阻止新prompt，防止旧取消作用于新回合。当前`Session.Cancel`只处理本连接已知追加prompt；REST创建已在运行的初始任务取消与停止证明仍须后续控制面合同，不能用本机关闭补成已停止。
+
 ## 本阶段验证与未实现部分
 
 本地协议测试应覆盖准确方法／路径／鉴权、201与200的响应形态、分页、身份不符、错误及有界响应；持久测试覆盖首次发送、重复／并发、重启、prepared崩溃窗口、保存失败、错误scope和变化依据。结果由专项质量记录维护，不在本合同预填通过数量。
 
-仍缺正式OAuth用户授权与授权实例管理、ACP进度及续谈、权限请求、用量与硬预算能力、取消／停止证明、云产物导入、准确Git候选、独立测试、真实厂商及多机验收。调用协议夹具不能关闭这些范围。架构及恢复理由见[设计](../docs/architecture/workbuddy-cloud-submission.md)。
+147已实现并限定验证[正式OAuth连接](workbuddy-connections.md)，149继续本节内部ACP代码。执行委派／当前机器授权代理、进度持久化与团队界面、用量与硬预算能力、取消／停止证明、云产物导入、准确Git候选、独立测试、真实厂商及多机验收仍需交付。调用协议夹具不能关闭这些范围。架构及恢复理由见[设计](../docs/architecture/workbuddy-cloud-submission.md)。

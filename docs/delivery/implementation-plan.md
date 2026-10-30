@@ -1,5 +1,7 @@
 # 1.0.0 完整实施计划
 
+并行T-WORKBUDDY-ACP-149完成[准确Session访问与ACP底层](../architecture/workbuddy-cloud-submission.md)，沿成熟SDK类型实现固定SSE／POST及明确历史／prompt／权限／cancel语义，[限定证据](../quality/workbuddy-acp-verification.md)绑定准确源码。原DAG的人／机器当前授权、attempt fence、持久一次云提交和进度回写留待T-WORKBUDDY-CLOUD-152共享接线与验收；不能由私有SDK存在推定正式云派发可用。本机托管Runner自动连接继续保持工具接入主优先级，完整58／34／92不变。
+
 当前T-TOOLS-151按用户工具注册／连接优先级交付[快速接入](../product/tool-quick-connect.md)：工具选择→唯一节点／配置自动匹配→暂停登记→明确启用，以及只读本机安装检测。[合同](../../contracts/tool-quick-connect.md)、[架构](../architecture/tool-quick-connect.md)、[交互与AI SOP](../design/tool-quick-connect.md)和[限定证据](../quality/tool-quick-connect-verification.md)区分安装、身份、fresh库存、启用和执行。下一步补本机受保护凭据交付、加密journal、未知发行核对及托管Runner生命周期，避免让用户复制token／拼接命令；当前不能称完整本机一键连接，完整P0–P7／58／34／92继续保留。
 
 当前T-MULTICA-BULK-150推进[Multica M07](../integrations/multica-priority-map.md)中的批量负责人切片：明确有界选择→当前人员→预览／确认→同事务采用→原操作核对；既有专家团队派发保留。实现、交互、CLI与AI SOP见[需求](../product/task-owner-changes.md)、[架构](../architecture/task-owner-changes.md)、[设计](../design/task-owner-changes.md)和[限定证据](../quality/task-owner-changes-verification.md)。其他批量动作、本机工具自动接入、完整P0–P7和58／34／92继续交付；不会把本片计为整项完成。

@@ -8,6 +8,7 @@ require (
 	github.com/aymanbagabas/go-pty v0.2.3
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/x/ansi v0.10.1
+	github.com/coder/acp-go-sdk v0.13.5
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/mattn/go-isatty v0.0.20

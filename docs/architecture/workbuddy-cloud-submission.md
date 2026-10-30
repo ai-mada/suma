@@ -1,20 +1,38 @@
 # WorkBuddy云任务提交底层与恢复边界
 
-阶段：T-WORKBUDDY-143；产品1.0.0；[合同](../../contracts/workbuddy-cloud-submission.md)。沿原[工具接入矩阵](../integrations/development-tool-matrix.md)推进，当前仅实现内部协议与持久恢复基础，未开放到工具目录、计划派发或公共API。WorkBuddy云保持planned，完整平台目标仍由唯一实施计划管理。
+阶段：T-WORKBUDDY-143及T-WORKBUDDY-ACP-149；产品1.0.0；[合同](../../contracts/workbuddy-cloud-submission.md)。沿原[工具接入矩阵](../integrations/development-tool-matrix.md)推进，当前实现内部任务协议、持久恢复及ACP会话基础，未开放到工具目录、计划派发或公共API。WorkBuddy云保持planned，完整平台目标仍由唯一实施计划管理。
 
 ## 模块职责
 
 | 模块 | 拥有的事实与职责 |
 | --- | --- |
 | internal/workbuddy | 强类型任务创建、单任务读取和分页HTTP；固定提供方协议、响应边界及安全字段投影 |
+| internal/workbuddyacp | 固定原会话SSE／POST、SDK类型解码、准确握手／回合、权限选择与显式取消；不决定平台授权或任务验收 |
 | internal/runner/workbuddy_journal.go | 原Assignment下持久提交检查点；一次发送资格、固定依据和准确供应方task_id |
 | Runner组合helper | 在检查点成功持久后进行一次创建；恢复只核对原记录，返回真实结果或待核对 |
 | 现有DAG／Worker／PoolWorker | 保持唯一调度、租约与执行身份；本阶段不增加并行调度系统 |
-| 后续正式接入 | 用户授权、凭据托管、当前权限、进度及预算与候选门禁；不由HTTP库自行推定 |
+| 控制面授权连接 | 147已实现独立OAuth、加密保管、原用户范围及刷新／断开；不因有连接就允许执行 |
+| 后续正式接入 | 原DAG的当前机器资格、所有者委派、进度持久化、预算及候选门禁；不由协议库自行推定 |
 
 组合helper为`internal/runner/workbuddy_submission.go`的未导出函数submitWorkBuddyTask，尚未接入Execute或能力发现。模块存在不改变工具目录planned状态，也不形成UI／CLI可派发入口。
 
-现有external workflow使用/runs、dispatch_id和/cancel，不能把URL替换成WorkBuddy便当作兼容。独立HTTP模块复用Go标准库与现有仓库技术，不引入新依赖、不复制商业实现。
+现有external workflow使用/runs、dispatch_id和/cancel，不能把URL替换成WorkBuddy便当作兼容。143独立HTTP模块复用Go标准库；149新增固定的Apache-2.0 ACP社区SDK类型依赖，见[增量来源](../delivery/workbuddy-acp-dependencies.json)，不复制商业实现。
+
+## ACP会话与准确回合
+
+会话读取只使用原准确任务GET，完整token／link仍不进入公共Task对象。ACP只接纳已核实的官方网关及相同session ID；缺材料保留待查询，缺有效期保留未知，不猜sandbox或下载地址。新的包复用SDK类型，单独实现SSE＋POST桥，避开SDK连接层自动发送的取消操作。
+
+Attach依次完成真实initialize及load回应，不重新发送创建正文。HTTP接纳、协议回应、provider回合结束和速码交付分层表达。每次RPC使用独立随机wire ID；稳定caller操作ID保留在本机映射及防重发集合中。已排队的旧响应、另一连接的数据或只有相似公开操作ID的消息不能结束当前回合。准确RPC错误产生关联的失败事件并释放当前槽位，不能伪装成功或让旧权限仍可决定。
+
+依据[ACP v1会话合同](https://github.com/agentclientprotocol/agent-client-protocol/blob/main/docs/protocol/v1/session-setup.mdx)，只有明确声明loadSession能力才调用load。完整历史在load回应前重放；可信OnHistory回调顺序消费通知，控制消息保留到正式处理。发送及SSE读取并行，不能等HTTP确认才开始读历史。回调拒绝或上下文取消结束本次握手，既不重发，也不自动授权权限请求。回调I/O由调用方使用上下文约束，不声称能强制终止任意调用方代码。
+
+权限引用固定原连接、原请求、实际选项和当前回合；不接受调用者自造选择或旧连接重放。明确Cancel才发送已接收权限的cancelled响应及session/cancel，未知步骤不重复，确定未发步骤才能恢复；等待取消和关闭本地流都不自动外发。原prompt的合法stopReason说明该回合结束，并不证明远端进程停止。未知扩展保留原文，不因不识别而补成正式成功事实。
+
+取消外发屏障独立于当前回合；旧回合退休不能让仍在途的无回合ID取消命中新prompt。当前取消操作仅对应本连接已知追加prompt，REST创建即运行的初始任务尚无完整停止链路。该缺口、原DAG代理及进度团队页面继续实施，不能把协议验证当作功能开放。
+
+协议会话中的连接标记、队列和防重发集合只管理当前进程的协议生命周期。它们不能成为跨副本业务权威，也不能替代持久操作回执。后续控制面代理须绑定已有run/node/attempt/fence、当前授权主体和原连接授权代次；长期OAuth及ACP票据保留在控制面。跨设备只引用正式对象，不能把加入团队当作借用其他成员凭据的授权。
+
+分布式接入还须保存连接持有者与有期限租约，每次新外发重核当前资格和fence。持有者失联后可核对原task，但不能重发未知prompt或沿用旧权限引用；重连显示事件缺口，不把本地序号冒充供应方续传水位。这是仍需实现的控制面／Runner组合边界，不是此协议包已经完成的多机验收。
 
 ## 为什么prepared不能自动重试
 

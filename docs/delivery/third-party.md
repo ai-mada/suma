@@ -6,6 +6,8 @@
 
 2026-10-29：T129交互终端实际引入`go-pty v0.2.3`、`@xterm/xterm 6.0.0`及`@xterm/addon-fit 0.11.0`，三个直接依赖均保留原MIT许可与文件摘要，见[本阶段增量清单](interactive-terminal-dependencies.json)。PTY带来的Go依赖最低版本调整以当前go.mod/go.sum为准；此增量是声明与本机包元数据，不将原六平台旧构建快照冒充当前二进制SBOM。
 
+2026-10-30：T-WORKBUDDY-ACP-149固定`github.com/coder/acp-go-sdk v0.13.5`，用于ACP类型与结构化消息；新增SSE传输不启用SDK的自动取消连接层。模块最低Go1.21、无额外require，Apache-2.0声明、原LICENSE摘要及校验值见[增量记录](workbuddy-acp-dependencies.json)。当前为源依赖／本机协议验证，不作为厂商或最终分发SBOM验收。
+
 ## 参考项目与实际依赖分开记录
 
 2026-10-29，T-MULTICA-137首次实际改编Multica旧提交 `e6f840ca115740a6fb80786537405bcf049d6497` 的 `buildColumns` 分组算法，用于速码任务列表／看板。完整原LICENSE、版权、文件摘要和修改范围见[来源说明](../../third_party/multica-legacy/PROVENANCE.md)与[清单](../../third_party/multica-legacy/manifest.json)。当前 `139b13a…` 的受限源码只作功能参考；没有引入其运行权限旁路、保存视图实现或品牌素材。下表旧“未复制”结论仅对应原调查日期，不能覆盖此项新增采用。

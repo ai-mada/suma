@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-WORKBUDDY-ACP-149：[准确Session与ACP协议限定验证](workbuddy-acp-verification.md)／[摘要](workbuddy-acp-summary.json)。client23顶层／101子场景与最终ACP33／62合计56／163；旧ACP结果被替代而不叠加。精确18文件、SDK增量和8份日志摘要独立核对，未重复运行同源检查。仅私有协议模块，无新增UI、公共派发、真实厂商账号或生产验收，完整58／34／92不变。
+
 T-TOOLS-151：[工具快速接入限定验证](tool-quick-connect-verification.md)／[摘要](tool-quick-connect-summary.json)。14个不同Go顶层通过、1环境符号链接跳过，55个Web定向用例、15个原生候选场景、最终类型／7499双语／隔离构建通过。15项实际GUI／HTTP／生产preload与IPC核对了自动匹配、一次暂停登记、一次明确启用和当时fresh available；中英图片已目视。合成探测CLI不代表供应方开发，本机托管Runner和自动启动仍待交付。自有fixture Runner验收后停止，不夸持续在线；58／34／92不变。
 
 T-MULTICA-BULK-150：[批量负责人限定验证](task-owner-changes-verification.md)／[摘要](task-owner-changes-summary.json)。24个Go顶层／14子场景、24个不同Web用例，原CLI／生成合同／语言和隔离构建检查通过；23项实际本机断言与5项最终只读核对分别记录，最终中英图片已目视。C／D仅按原正文及操作ID恢复、各+1版本且各1通知；同窗口GUI刷新恢复仍有测试宿主缺口。源码、旧r3行为与最终r4仅文案变化按摘要映射，不重跑无关全套，完整58／34／92不变。

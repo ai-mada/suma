@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [WorkBuddy ACP协议底层](architecture/workbuddy-cloud-submission.md) · [合同](../contracts/workbuddy-cloud-submission.md) · [SDK与许可](delivery/workbuddy-acp-dependencies.json) · [验证](quality/workbuddy-acp-verification.md) · [摘要](quality/workbuddy-acp-summary.json)：T-WORKBUDDY-ACP-149固定Session访问、成熟SDK类型和SSE／POST传输，56个Go顶层／163子场景通过；仅内部协议，不代表正式云派发或真实供应方验收。
+
 - [工具快速接入](product/tool-quick-connect.md) · [合同](../contracts/tool-quick-connect.md) · [架构](architecture/tool-quick-connect.md) · [交互与AI SOP](design/tool-quick-connect.md) · [English](en/tool-quick-connect.md) · [验证](quality/tool-quick-connect-verification.md) · [摘要](quality/tool-quick-connect-summary.json)：真实节点自动匹配、暂停登记与明确启用、桌面只读安装检测；完整本机一键连接仍待交付。
 
 - [批量负责人分配](product/task-owner-changes.md) · [合同](../contracts/task-owner-changes.md) · [架构](architecture/task-owner-changes.md) · [交互与AI SOP](design/task-owner-changes.md) · [English](en/task-owner-changes.md) · [报告](quality/task-owner-changes-verification.md) · [摘要](quality/task-owner-changes-summary.json)：明确有界选择、同事务采用与通知、原操作恢复；中英最终界面已检查，实际GUI刷新恢复仍待补验。

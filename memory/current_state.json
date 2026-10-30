@@ -1,5 +1,18 @@
 {
   "project": "suma",
+  "workbuddy_acp": {
+    "stage": "T-WORKBUDDY-ACP-149",
+    "date": "2026-10-30",
+    "status": "internal_protocol_scoped_verified_not_dispatchable",
+    "architecture": "docs/architecture/workbuddy-cloud-submission.md",
+    "contract": "contracts/workbuddy-cloud-submission.md",
+    "report": "docs/quality/workbuddy-acp-verification.md",
+    "summary": "docs/quality/workbuddy-acp-summary.json",
+    "sdk": "github.com/coder/acp-go-sdk v0.13.5; fixed protocol types/codec only",
+    "scope": "Exact task session access; fixed SSE/POST, capability-qualified load/history, correlated prompt, explicit permissions and cancellation.",
+    "verification": "Client23 top/101 named subcases plus finalACP33/62 =56/163;18 exact delivery files and8 log digests independently checked, no duplicate rerun.",
+    "limits": "Internal protocol only. No public dispatch, UI registration, real vendor account or production acceptance. Central DAG current authorization/machine/attempt and persistent once-only creation remain152 work. Full58/34/92 unchanged."
+  },
   "tool_quick_connect": {
     "stage": "T-TOOLS-151",
     "date": "2026-10-30",
