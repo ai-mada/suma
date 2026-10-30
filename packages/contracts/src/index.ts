@@ -1479,6 +1479,26 @@ export interface CapacityEntry {
   distribution_unknown_tasks: number;
   distribution_unknown_hours: number;
 }
+export interface ClaudeExecutionCapability {
+  model: string;
+  model_source: string;
+  configuration_sha256: string;
+  budget_mode: string;
+  identity_evidence: string;
+  auth_strategy: string;
+}
+export interface ClaudeExecutionEvidence {
+  configuration_sha256: string;
+  session_id: string;
+  requested_model: string;
+  acknowledged_model: string;
+  result_subtype: string;
+  result_terminal_reason?: string;
+  result_is_error: boolean;
+  permission_denial_count: number;
+  deferred_tool_use?: boolean;
+  queued_turn_count?: number;
+}
 export interface CloudAssignmentBinding {
   delegation_id: string;
   delegation_version: number;
@@ -2937,6 +2957,7 @@ export interface ModelExecutionOption {
 export interface ModelExecutionOptions {
   parameter_limits?: ModelParameters | null;
   fixed_opencode?: OpenCodeExecutionCapability | null;
+  fixed_claude?: ClaudeExecutionCapability | null;
   codex_supported: boolean;
   codex_catalog?: CodexCatalog | null;
   codex_reason: string;
@@ -5764,6 +5785,7 @@ export interface TaskDispatchOptionsRequest {
 export interface TaskDispatchPlan {
   recommendation?: DispatchRecommendationProvenance;
   opencode_execution?: OpenCodeExecutionCapability | null;
+  claude_execution?: ClaudeExecutionCapability | null;
   codex_execution?: CodexBinding | null;
   model_execution?: ModelBinding | null;
   code_baseline?: CodeBaselineBinding | null;
@@ -6387,6 +6409,7 @@ export interface ToolEvidence {
   codex_execution?: CodexEvidence | null;
   opencode_execution?: OpenCodeExecutionEvidence | null;
   octop_execution?: OctopExecutionEvidence | null;
+  claude_execution?: ClaudeExecutionEvidence | null;
 }
 export interface ToolExecutionProfile {
   command_id: string;
@@ -6409,6 +6432,7 @@ export interface ToolExecutionProfile {
   failure_diagnosis?: FailureDiagnosisCapability | null;
   opencode_execution?: OpenCodeExecutionCapability | null;
   octop_execution?: OctopExecutionCapability | null;
+  claude_execution?: ClaudeExecutionCapability | null;
 }
 export interface ToolInventoryReceipt {
   acknowledged: boolean;

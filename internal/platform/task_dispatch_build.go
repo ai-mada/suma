@@ -26,7 +26,7 @@ func buildTaskDispatchWorkflow(source dag.Workflow, agentID, profileID string, p
 	if profile.ReadOnly {
 		return w, invalid("任务开发派发需要隔离工作树写入工具；只读工具请通过独立流程运行")
 	}
-	if profile.Adapter != "suma" && profile.Adapter != "codex" && profile.Adapter != "harness" && profile.Adapter != "codebuddy" && !tc.SupportsOpenCodeExecutionProfile(profile) && !tc.SupportsOctopExecutionProfile(profile) {
+	if profile.Adapter != "suma" && profile.Adapter != "codex" && profile.Adapter != "harness" && profile.Adapter != "codebuddy" && !tc.SupportsClaudeExecutionProfile(profile) && !tc.SupportsOpenCodeExecutionProfile(profile) && !tc.SupportsOctopExecutionProfile(profile) {
 		return w, invalid("任务智能体派发需要已核实的受支持结构化协议；通用命令请使用明确的命令流程")
 	}
 	chosen := -1
@@ -60,6 +60,18 @@ func buildTaskDispatchWorkflow(source dag.Workflow, agentID, profileID string, p
 	delete(n.Config, "codex_execution")
 	delete(n.Config, "opencode_execution")
 	delete(n.Config, "octop_execution")
+	delete(n.Config, "claude_execution")
+	if tc.SupportsClaudeExecutionProfile(profile) {
+		n.MaxRetries = 0
+		var fixed map[string]any
+		if err := json.Unmarshal([]byte(stringify(profile.ClaudeExecution)), &fixed); err != nil {
+			return w, err
+		}
+		n.Config["claude_execution"] = fixed
+		if _, err := tc.DecodeClaudeNodeConfiguration(n.Config); err != nil {
+			return w, invalid(claudeExecutionInvalid)
+		}
+	}
 	if tc.SupportsOpenCodeExecutionProfile(profile) {
 		// An uncertain external prompt must retain its original operation. The
 		// fixed public configuration is a reviewed fact, never caller selection.

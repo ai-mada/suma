@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {ensurePrivateDirectory}=require('./workspace-grants.cjs');
 const PROTOCOL='suma-desktop-managed-runner-journal-v1',MAX_BYTES=262144;
-const ID=/^[a-f0-9]{32}$/,HASH=/^[a-f0-9]{64}$/,ADAPTERS=new Set(['codex-jsonl','codebuddy-cli','dsh-multica']);
+const ID=/^[a-f0-9]{32}$/,HASH=/^[a-f0-9]{64}$/,ADAPTERS=new Set(['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli']);
 const PHASES=new Set(['unconfigured','needs_workspace','not_installed','unavailable','prepared','issuance_unknown','starting','connected','stopping','stopped','authorization_required','binding_changed','origin_changed','credential_unrecoverable','stop_unconfirmed','failed']);
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const exact=(value,keys)=>plain(value)&&Object.keys(value).sort().join(',')===[...keys].sort().join(',');

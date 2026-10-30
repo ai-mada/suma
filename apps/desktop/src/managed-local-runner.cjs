@@ -2,7 +2,7 @@
 const {spawn:spawnChild}=require('node:child_process'),path=require('node:path'),crypto=require('node:crypto');
 const {PROTOCOL,createManagedRunnerJournal,scopeKey,validScope,validOrigin}=require('./managed-local-runner-journal.cjs');
 const CHANNEL='suma:manage-local-runner';
-const TOOL_PROTOCOLS=Object.freeze({'codex-jsonl':['codex','codex-jsonl-v1'],'codebuddy-cli':['codebuddy','codebuddy-jsonl-v1'],'dsh-multica':['harness','dsh-multica-jsonl-v1']});
+const TOOL_PROTOCOLS=Object.freeze({'codex-jsonl':['codex','codex-jsonl-v1'],'codebuddy-cli':['codebuddy','codebuddy-jsonl-v1'],'dsh-multica':['harness','dsh-multica-jsonl-v1'],'claude-code-cli':['claude','claude-jsonl-v1']});
 const HASH=/^[a-f0-9]{64}$/,ID=/^[a-f0-9]{32}$/;
 const gitUnavailable=error=>error?.status===422&&['desktop_runner_head_unavailable','desktop_runner_repository_unsafe','desktop_runner_repository_unavailable'].includes(error.code);
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);

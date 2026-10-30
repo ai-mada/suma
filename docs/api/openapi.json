@@ -6783,6 +6783,95 @@
         ],
         "type": "object"
       },
+      "ClaudeExecutionCapability": {
+        "additionalProperties": false,
+        "properties": {
+          "auth_strategy": {
+            "const": "existing_cli_login",
+            "type": "string"
+          },
+          "budget_mode": {
+            "const": "observe_only",
+            "type": "string"
+          },
+          "configuration_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "identity_evidence": {
+            "const": "configuration_ack_only",
+            "type": "string"
+          },
+          "model": {
+            "maxLength": 256,
+            "pattern": "^claude-[a-z][a-z0-9-]*[0-9][a-z0-9.-]*$",
+            "type": "string"
+          },
+          "model_source": {
+            "const": "administrator_cli_argument",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model",
+          "model_source",
+          "configuration_sha256",
+          "budget_mode",
+          "identity_evidence",
+          "auth_strategy"
+        ],
+        "type": "object"
+      },
+      "ClaudeExecutionEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledged_model": {
+            "type": "string"
+          },
+          "configuration_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "deferred_tool_use": {
+            "type": "boolean"
+          },
+          "permission_denial_count": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "queued_turn_count": {
+            "maximum": 1000000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "requested_model": {
+            "type": "string"
+          },
+          "result_is_error": {
+            "type": "boolean"
+          },
+          "result_subtype": {
+            "type": "string"
+          },
+          "result_terminal_reason": {
+            "type": "string"
+          },
+          "session_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "configuration_sha256",
+          "session_id",
+          "requested_model",
+          "acknowledged_model",
+          "result_subtype",
+          "result_is_error",
+          "permission_denial_count"
+        ],
+        "type": "object"
+      },
       "CloudAssignmentBinding": {
         "additionalProperties": false,
         "properties": {
@@ -14910,6 +14999,17 @@
           },
           "codex_supported": {
             "type": "boolean"
+          },
+          "fixed_claude": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ClaudeExecutionCapability"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Fixed model acknowledged by the reviewed CLI configuration; observed usage only. Neither vendor identity proof, selectable gateway deployment nor a hard budget."
           },
           "fixed_opencode": {
             "anyOf": [
@@ -28776,6 +28876,17 @@
           "agent_node_id": {
             "type": "string"
           },
+          "claude_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ClaudeExecutionCapability"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Original fixed CLI configuration, rechecked against the producer and current authorized profile before any worktree or process effect."
+          },
           "code_baseline": {
             "anyOf": [
               {
@@ -33865,6 +33976,17 @@
           }
         ],
         "properties": {
+          "claude_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ClaudeExecutionEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Exact foreground session/model/result correlation. A terminal success requires the requested model, no denied permissions and no deferred work; independent candidate tests and human acceptance remain separate."
+          },
           "codex_execution": {
             "anyOf": [
               {
@@ -33958,6 +34080,17 @@
         "properties": {
           "adapter": {
             "type": "string"
+          },
+          "claude_execution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ClaudeExecutionCapability"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Administrator-fixed Claude Code foreground CLI configuration using its existing local login. No browser-supplied model, process arguments or credentials."
           },
           "command_id": {
             "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
@@ -69038,7 +69171,7 @@
     },
     "/model-execution/options": {
       "get": {
-        "description": "Current project-authorized worker native deployments or Codex app-server catalog. Native supported and Codex codex_supported are distinct. Codex model/effort confirms configuration only, with optional token notice and observed partial usage; it provides no native hard allowance or provider pricing. This read never invokes a model or dispatches work.",
+        "description": "Current project-authorized native deployments, Codex app-server catalog, or fixed OpenCode/Claude CLI configuration facts. Native supported and Codex codex_supported are distinct; fixed_claude does not make either true. External configuration acknowledgments and partial observed usage provide no native hard allowance, vendor identity proof or provider pricing. This read never invokes a model or dispatches work.",
         "operationId": "get_model-execution_options",
         "parameters": [
           {

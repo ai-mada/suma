@@ -445,5 +445,8 @@ func (s *Service) validateToolDispatchTx(ctx context.Context, tx *sql.Tx, auth *
 	if err := s.checkOpenCodeBudgetTx(ctx, tx, p.TenantID, project, out); err != nil {
 		return out, err
 	}
+	if err := s.checkClaudeBudgetTx(ctx, tx, p.TenantID, project, out); err != nil {
+		return out, err
+	}
 	return out, nil
 }

@@ -33,6 +33,7 @@ type ToolExecutionProfile struct {
 	// by the pinned SDK/server probe, not an independently selectable deployment.
 	OpenCodeExecution *OpenCodeExecutionCapability `json:"opencode_execution,omitempty"`
 	OctopExecution    *OctopExecutionCapability    `json:"octop_execution,omitempty"`
+	ClaudeExecution   *ClaudeExecutionCapability   `json:"claude_execution,omitempty"`
 }
 
 // PlanningCapability names a probed, fixed model configuration, not account health.
@@ -70,6 +71,7 @@ func EqualProfile(a, b Profile) bool {
 	ai, bi := a.IntelligentOperations, b.IntelligentOperations
 	af, bf := a.FailureDiagnosis, b.FailureDiagnosis
 	ao, bo := a.OpenCodeExecution, b.OpenCodeExecution
+	al, bl := a.ClaudeExecution, b.ClaudeExecution
 	at, bt := a.OctopExecution, b.OctopExecution
 	ad, bd := a.DispatchRecommendation, b.DispatchRecommendation
 	ac, bc := a.TaskConversationReply, b.TaskConversationReply
@@ -78,6 +80,7 @@ func EqualProfile(a, b Profile) bool {
 	a.IntelligentOperations, b.IntelligentOperations = nil, nil
 	a.FailureDiagnosis, b.FailureDiagnosis = nil, nil
 	a.OpenCodeExecution, b.OpenCodeExecution = nil, nil
+	a.ClaudeExecution, b.ClaudeExecution = nil, nil
 	a.OctopExecution, b.OctopExecution = nil, nil
 	a.DispatchRecommendation, b.DispatchRecommendation = nil, nil
 	a.TaskConversationReply, b.TaskConversationReply = nil, nil
@@ -87,10 +90,17 @@ func EqualProfile(a, b Profile) bool {
 	if !(ad == nil && bd == nil || ad != nil && bd != nil && *ad == *bd) {
 		return false
 	}
+	if !(al == nil && bl == nil || al != nil && bl != nil && *al == *bl) {
+		return false
+	}
 	return a == b && (ap == nil && bp == nil || ap != nil && bp != nil && *ap == *bp) && (ak == nil && bk == nil || ak != nil && bk != nil && *ak == *bk) && (ai == nil && bi == nil || ai != nil && bi != nil && *ai == *bi) && (af == nil && bf == nil || af != nil && bf != nil && *af == *bf) && (ao == nil && bo == nil || ao != nil && bo != nil && *ao == *bo) && (at == nil && bt == nil || at != nil && bt != nil && *at == *bt)
 }
 
 func CloneProfile(p Profile) Profile {
+	if p.ClaudeExecution != nil {
+		value := *p.ClaudeExecution
+		p.ClaudeExecution = &value
+	}
 	if p.TaskConversationReply != nil {
 		value := *p.TaskConversationReply
 		p.TaskConversationReply = &value
@@ -191,6 +201,7 @@ type ToolEvidence struct {
 	CodexExecution    *cc.Evidence               `json:"codex_execution,omitempty"`
 	OpenCodeExecution *OpenCodeExecutionEvidence `json:"opencode_execution,omitempty"`
 	OctopExecution    *OctopExecutionEvidence    `json:"octop_execution,omitempty"`
+	ClaudeExecution   *ClaudeExecutionEvidence   `json:"claude_execution,omitempty"`
 }
 
 type Profile = ToolExecutionProfile

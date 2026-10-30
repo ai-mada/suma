@@ -2,6 +2,7 @@ import {OpenCodeExecutionFacts} from './OpenCodeExecutionFacts';
 import {OctopExecutionFacts} from './OctopExecutionFacts';
 import {openCodeRunFacts,type OpenCodeRunTest} from './opencode-run-model';
 import {ExecutionModelFacts} from './ExecutionModelFacts';
+import {ClaudeExecutionFacts} from './ClaudeExecutionFacts';
 import { Trans } from "./i18n/Trans";
 import type {ReactNode} from 'react';
 import {CheckCircle2, CircleHelp, PauseCircle, ShieldOff} from 'lucide-react';
@@ -108,6 +109,7 @@ export function ToolProfileFacts({ profile, confirmed = true, children }: { prof
       <p className="muted">
         {t("development.facts.version_and_probing_do_not_prove_model")}</p>
       <OpenCodeExecutionFacts capability={profile.profile.opencode_execution}/>
+      <ClaudeExecutionFacts capability={profile.profile.claude_execution}/>
       {profile.profile.adapter==='octop'&&profile.profile.protocol==='octop-harness-acp-v1'&&<OctopExecutionFacts capability={profile.profile.octop_execution}/>}
       {'workspace_tools_version' in profile.profile&&profile.profile.workspace_tools_version==='attempt-workspace-v1'&&<p className="muted">{t('native-workspace.capability')}</p>}
       {profile.profile.conflict_repair_protocol==='suma.candidate-conflict-repair.v1'&&<p className="muted">{t('candidate-conflict-repair.capability')}</p>}

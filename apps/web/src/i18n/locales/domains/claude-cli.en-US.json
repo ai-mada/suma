@@ -1,0 +1,10 @@
+{
+ "claude-cli.title":"Claude Code CLI",
+ "claude-cli.configured_model":"Configured model",
+ "claude-cli.acknowledged_model":"Model reported by the CLI",
+ "claude-cli.fixed_policy":"The model is fixed in the local CLI profile. Usage is observed only; platform-enforced budgets are unavailable. Configuration and reported usage do not prove billing or acceptance.",
+ "claude-cli.permission_denied":"Tool requests denied by the CLI: {count}. A successful text response does not override those denials.",
+ "claude-cli.incomplete":"The original foreground execution remains incomplete. Do not create a replacement attempt or resume an arbitrary session.",
+ "claude-cli.install":"Install the native Claude Code 2.1.314 executable on the execution node and use that tool’s own login. Other versions remain unavailable until reviewed.",
+ "claude-cli.setup_policy":"This foreground profile allows file tools and only scoped Git status, diff, add and commit commands. It disables project extensions, MCP discovery and background tasks. Managed policies still apply. Built-in file restrictions are not a Bash operating-system sandbox; independent tests and human acceptance remain separate."
+}

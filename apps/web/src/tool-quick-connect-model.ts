@@ -20,8 +20,8 @@ export function validQuickConnectReceipt(value:unknown,request:Record<string,unk
 }
 
 export type InstalledToolFact={adapter_id:string;product:string;installed:boolean;launch_supported:boolean;executable?:string;version?:string;reason_code:string};
-export const localDiscoveryAdapters=new Set(['codex-jsonl','codebuddy-cli','dsh-multica']);
-const localProducts:Record<string,string>={'codex-jsonl':'Codex','codebuddy-cli':'CodeBuddy Code','dsh-multica':'DeepSeek Harness / dsh'};
+export const localDiscoveryAdapters=new Set(['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli']);
+const localProducts:Record<string,string>={'codex-jsonl':'Codex','codebuddy-cli':'CodeBuddy Code','dsh-multica':'DeepSeek Harness / dsh','claude-code-cli':'Claude Code'};
 const localReasons=new Set(['not_installed','unsupported_launcher','invalid_package','node_unavailable','probe_failed','workspace_required']);
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const keys=(value:Record<string,unknown>,allowed:string[])=>Object.keys(value).every(key=>allowed.includes(key));

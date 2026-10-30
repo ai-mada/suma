@@ -5,11 +5,13 @@ import './ToolSetupGuide.css';
 import {OctopHarnessSetup} from './OctopHarnessSetup';
 import {octopHarnessPreset} from './octop-execution-model';
 import {DeveloperClientConnections} from './DeveloperClientConnections';
+import {claudeCLIConfiguration,claudeCLIModel} from './claude-cli-model';
 
-type Preset='junit'|'operations'|'codex'|'codebuddy'|'harness'|'planner'|'extractor'|'diagnosis'|'native-coder'|'octop'|'recommendation';
+type Preset='junit'|'operations'|'codex'|'codebuddy'|'harness'|'planner'|'extractor'|'diagnosis'|'native-coder'|'octop'|'recommendation'|'claude';
 // These are local administrator templates, never a registration or live
 // inventory. The existing observation/import flow remains the authority.
 const presets={
+ claude:claudeCLIConfiguration(),
  recommendation:{'suma-dispatch-recommendation':{adapter:'suma',protocol:'suma-jsonl-v1',executable:'node',args:[] as string[],input:'agent-jsonl',read_only:true,dispatch_recommendation:true,model_execution_protocol:'suma-model-execution-v1'}},
  octop:octopHarnessPreset,
  junit:{'junit-tests':{adapter:'command',protocol:'text-v1',executable:'node',args:['--test','--test-reporter=junit','--test-reporter-destination={{test_report_path}}'],input:'none',read_only:false,test_evidence:true,test_report:true}},
@@ -32,9 +34,9 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,presetReque
  const [model,setModel]=useState(''),[endpoint,setEndpoint]=useState('');
  const [manifest,setManifest]=useState(''),[checks,setChecks]=useState(''),[allowRepair,setAllowRepair]=useState(false);
  const junit=selected==='junit',operations=selected==='operations',planner=selected==='planner',extractor=selected==='extractor',diagnosis=selected==='diagnosis',nativeCoder=selected==='native-coder',recommendation=selected==='recommendation',structured=operations||planner||extractor||diagnosis;
- const guideText=(name:'install'|'configure'|'register')=>recommendation?'dispatch-recommendation.setup_'+name:nativeCoder&&name==='configure'?'model-execution.setup_deployments':junit?'test-report-setup.'+name:operations?'intent-operations.setup_'+name:diagnosis?'failure-diagnosis-setup.'+name:extractor?'knowledge-extraction-setup.'+name:planner?'cli-setup.planner_'+name:'cli-setup.'+name;
+ const guideText=(name:'install'|'configure'|'register')=>selected==='claude'&&name==='install'?'claude-cli.install':recommendation?'dispatch-recommendation.setup_'+name:nativeCoder&&name==='configure'?'model-execution.setup_deployments':junit?'test-report-setup.'+name:operations?'intent-operations.setup_'+name:diagnosis?'failure-diagnosis-setup.'+name:extractor?'knowledge-extraction-setup.'+name:planner?'cli-setup.planner_'+name:'cli-setup.'+name;
  let validEndpoint=false;try{const u=new URL(endpoint);validEndpoint=(u.protocol==='https:'||u.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(u.hostname))&&!u.username&&!u.password&&!u.search&&!u.hash;}catch{/* Incomplete input is a draft, never configuration authority. */}
- const nodeMode=structured||nativeCoder||recommendation||!junit&&selected!=='codex'&&launchMode==='node';
+ const nodeMode=structured||nativeCoder||recommendation||!junit&&selected!=='codex'&&selected!=='claude'&&launchMode==='node';
  // The runner can be remote, so browser OS detection cannot select its launch
  // mode. This is a configuration preview; Go validates the actual local file.
  const validEntry=!/[\x00\r\n]/.test(entry)&&/\.(?:js|mjs|cjs)$/i.test(entry)&&(/^[a-z]:[\\/]/i.test(entry)||/^\/(?!\/)/.test(entry)||/^\\\\[^\\]+\\[^\\]+\\/.test(entry));
@@ -49,10 +51,10 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,presetReque
   <div className="tool-cli-setup-body">
    <p className="muted">{t('cli-setup.intro')}</p>
    <label className="tool-cli-setup-select">{t('cli-setup.tool')}<select value={selected} onChange={event=>{setSelected(event.target.value as Preset);setFailed(false);}}>
-    <option value="junit">{t('test-report-setup.tool')}</option><option value="recommendation">{t('dispatch-recommendation.setup_tool')}</option><option value="operations">{t('intent-operations.setup_tool')}</option><option value="native-coder">{t('candidate-conflict-repair.local_preset')}</option><option value="diagnosis">{t('failure-diagnosis-setup.tool')}</option><option value="extractor">{t('knowledge-extraction-setup.tool')}</option><option value="planner">{t('cli-setup.planner')}</option><option value="codex">Codex</option><option value="codebuddy">CodeBuddy Code</option><option value="harness">DeepSeek Harness / dsh</option><option value="octop">{t('octop-execution.title')}</option>
+    <option value="junit">{t('test-report-setup.tool')}</option><option value="recommendation">{t('dispatch-recommendation.setup_tool')}</option><option value="operations">{t('intent-operations.setup_tool')}</option><option value="native-coder">{t('candidate-conflict-repair.local_preset')}</option><option value="diagnosis">{t('failure-diagnosis-setup.tool')}</option><option value="extractor">{t('knowledge-extraction-setup.tool')}</option><option value="planner">{t('cli-setup.planner')}</option><option value="codex">Codex</option><option value="codebuddy">CodeBuddy Code</option><option value="claude">{t('claude-cli.title')}</option><option value="harness">DeepSeek Harness / dsh</option><option value="octop">{t('octop-execution.title')}</option>
    </select></label>
    {selected==='octop'?<OctopHarnessSetup/>:<>
-   {selected!=='codex'&&!structured&&!nativeCoder&&!recommendation&&!junit&&<label className="tool-cli-setup-select">{t('cli-setup.launch_mode')}<select value={launchMode} onChange={event=>{setLaunchMode(event.target.value as 'native'|'node');setFailed(false);}}>
+   {selected!=='codex'&&selected!=='claude'&&!structured&&!nativeCoder&&!recommendation&&!junit&&<label className="tool-cli-setup-select">{t('cli-setup.launch_mode')}<select value={launchMode} onChange={event=>{setLaunchMode(event.target.value as 'native'|'node');setFailed(false);}}>
     <option value="native">{t('cli-setup.native_mode')}</option><option value="node">{t('cli-setup.node_mode')}</option>
    </select></label>}
    {nodeMode&&<div className="tool-cli-setup-entry">
@@ -60,12 +62,13 @@ export function ToolSetupGuide({id,expanded,onExpandedChange,project,presetReque
     <p id={entryHint} className="muted">{t(structured?'cli-setup.planner_entry_help':'cli-setup.entry_help')}</p>
    </div>}
    {structured&&<div className="form-grid"><label>{t('cli-setup.model')}<input value={model} onChange={e=>setModel(e.target.value)} maxLength={200} autoComplete="off"/></label><label>{t('cli-setup.endpoint')}<input value={endpoint} onChange={e=>setEndpoint(e.target.value)} maxLength={2000} type="url" spellCheck={false} placeholder="https://provider.example/v1"/></label></div>}
+   {selected==='claude'&&<p>{t('claude-cli.configured_model')}: <code>{claudeCLIModel}</code></p>}
    {nativeCoder&&<><label>{t('candidate-conflict-repair.local_manifest')}<input name="native_runtime_manifest" value={manifest} onChange={event=>setManifest(event.target.value)} maxLength={2000} spellCheck={false} autoComplete="off"/></label><label>{t('candidate-conflict-repair.local_checks')}<input name="native_check_ids" value={checks} onChange={event=>setChecks(event.target.value)} maxLength={1616} spellCheck={false} autoComplete="off"/></label><p className="muted">{t('candidate-conflict-repair.local_checks_help')}</p><label className="check"><input name="native_conflict_repair" type="checkbox" checked={allowRepair} onChange={event=>setAllowRepair(event.target.checked)}/><span>{t('candidate-conflict-repair.local_opt_in')}</span></label><p className="muted">{t('candidate-conflict-repair.local_policy')}</p></>}
    <ol><li>{t(guideText('install'))}</li><li>{t(guideText('configure'))}</li><li>{t('cli-setup.observe')}</li><li>{t(guideText('register'))}</li></ol>
    <div className="tool-cli-setup-actions"><strong>{t('cli-setup.local_config')}</strong><button type="button" disabled={!canCopy} onClick={()=>void copy()}>{canCopy&&copied===configuration?<Check size={14}/>:<Copy size={14}/>} {t(canCopy&&copied===configuration?'cli-setup.copied':'cli-setup.copy')}</button></div>
    <pre tabIndex={0} aria-label={t('cli-setup.local_config')}>{configuration}</pre>
    {failed&&<p role="alert">{t('cli-setup.copy_failed')}</p>}
-   <p className="muted">{t(recommendation?'dispatch-recommendation.setup_policy':junit?'test-report-setup.policy':operations?'intent-operations.setup_policy':diagnosis?'failure-diagnosis-setup.policy':extractor?'knowledge-extraction-setup.policy':planner?'cli-setup.planner_policy':selected==='harness'?'cli-setup.harness_dependency':selected==='codebuddy'?'cli-setup.codebuddy_policy':'cli-setup.codex_policy')}</p>
+   <p className="muted">{t(selected==='claude'?'claude-cli.setup_policy':recommendation?'dispatch-recommendation.setup_policy':junit?'test-report-setup.policy':operations?'intent-operations.setup_policy':diagnosis?'failure-diagnosis-setup.policy':extractor?'knowledge-extraction-setup.policy':planner?'cli-setup.planner_policy':selected==='harness'?'cli-setup.harness_dependency':selected==='codebuddy'?'cli-setup.codebuddy_policy':'cli-setup.codex_policy')}</p>
    <p className="muted">{t(planner?'cli-setup.planner_probe':'cli-setup.probe_help')}</p>
    <code className="tool-cli-setup-command">{structured||recommendation?'suma-runner --commands commands.local.json --allow-exec --describe-tools':'suma-runner --commands commands.local.json --allow-exec --repository REPOSITORY --base-commit COMMIT --describe-tools'}</code>
    <p className="muted">{t('cli-setup.shared_pool')}</p>

@@ -33,6 +33,7 @@ type TaskContext struct {
 type TaskDispatchPlan struct {
 	Recommendation     *DispatchRecommendationProvenance `json:"recommendation,omitempty" wire:"nonnull"`
 	OpenCodeExecution  *tc.OpenCodeExecutionCapability   `json:"opencode_execution,omitempty"`
+	ClaudeExecution    *tc.ClaudeExecutionCapability     `json:"claude_execution,omitempty"`
 	CodexExecution     *cc.Binding                       `json:"codex_execution,omitempty"`
 	ModelExecution     *modelcontract.Binding            `json:"model_execution,omitempty"`
 	CodeBaseline       *ccmp.CodeBaselineBinding         `json:"code_baseline,omitempty"`

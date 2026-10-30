@@ -1,6 +1,7 @@
 import {validOpenCodeCapability} from './opencode-execution-model';
 import {validCodexCatalog} from './codex-execution-model';
 import {validOctopCapability} from './octop-execution-model';
+import {validClaudeCapability} from './claude-cli-model';
 import { tr as t, UiError } from "./i18n";
 import type { RecordItem, Workflow } from "./api";
 import type { ToolDiagnostic, ToolExecutionProfile, ToolObservation as ContractToolObservation, ToolProfile as ContractToolProfile } from "../../../packages/contracts/src";
@@ -120,6 +121,7 @@ const protocols: Record<string, string> = {
   opencode: "opencode-sdk-v1",
   harness: "dsh-multica-jsonl-v1",
   codebuddy: "codebuddy-jsonl-v1",
+  claude: "claude-jsonl-v1",
   octop: "octop-harness-acp-v1",
 };
 function record(value: unknown): Record<string, unknown> {
@@ -148,6 +150,8 @@ function publicOrigin(value: unknown): boolean {
   } catch { return false; }
 }
 function validatePublicCapabilities(profile: Record<string, unknown>, observation: Record<string, unknown>) {
+  const claude = profile.adapter === 'claude' && profile.protocol === 'claude-jsonl-v1' && validClaudeCapability(profile.claude_execution);
+  if(profile.claude_execution!==undefined&&(!claude||!['2.1.314','2.1.314 (Claude Code)'].includes(String(profile.tool_version)))||profile.adapter==='claude'&&(profile.protocol!=='claude-jsonl-v1'||profile.read_only!==false||observation.available===true&&!claude||profile.workspace_tools_version||profile.model_execution_protocol||profile.terminal_session_protocol||profile.test_report_protocol||profile.conflict_repair_protocol||profile.planning||profile.knowledge_extraction||profile.failure_diagnosis||profile.intelligent_operations||profile.dispatch_recommendation||profile.task_conversation_reply||profile.opencode_execution||profile.octop_execution))invalidCapability();
   const native = profile.adapter === "suma" && profile.protocol === "suma-jsonl-v1";
   // A dedicated shell may expose live files for reading, but never borrows an
   // agent's model, writable workspace tools, test proof or automation purpose.
@@ -241,7 +245,7 @@ export function parseToolManifest(text: string): ToolObservation[] {
       "read_only",
       "terminal_session_protocol",
       "workspace_tools_version", "model_execution_protocol", "conflict_repair_protocol", "test_report_protocol",
-      "planning", "knowledge_extraction", "failure_diagnosis", "intelligent_operations", "dispatch_recommendation", "task_conversation_reply", "opencode_execution", "octop_execution",
+      "planning", "knowledge_extraction", "failure_diagnosis", "intelligent_operations", "dispatch_recommendation", "task_conversation_reply", "opencode_execution", "octop_execution", "claude_execution",
     ] satisfies (keyof ToolProfileDefinition)[]);
     if (
       typeof profile.command_id !== "string" ||
@@ -307,15 +311,18 @@ export function toolBinding(
   } as Record<string, unknown>;
   delete config.tool_profile_id;
   delete config.tool_profile_sha256;
+  delete config.claude_execution;
   if (!profile) return { config };
   if (!profile.id || !digest.test(profile.profile.profile_sha256))
     throw new UiError("development.model.choose_an_official_tool_with_a_fixed");
   return {
     command: [profile.profile.command_id],
+    ...(profile.profile.adapter==='claude'?{max_retries:0}:{}),
     config: {
       ...config,
       tool_profile_id: profile.id,
       tool_profile_sha256: profile.profile.profile_sha256,
+      ...(profile.profile.adapter==='claude'&&validClaudeCapability(profile.profile.claude_execution)?{claude_execution:{...profile.profile.claude_execution}}:{}),
     },
   };
 }
@@ -326,6 +333,7 @@ export function taskToolProtocol(profile: ToolProfileDefinition) {
     (profile.adapter === "codex" && ["codex-jsonl-v1","codex-app-server-v1"].includes(profile.protocol)) ||
     (profile.adapter === "harness" && profile.protocol === "dsh-multica-jsonl-v1") ||
     (profile.adapter === "codebuddy" && profile.protocol === "codebuddy-jsonl-v1") ||
+    (profile.adapter === 'claude' && profile.protocol === 'claude-jsonl-v1' && validClaudeCapability(profile.claude_execution)) ||
     (profile.adapter === 'octop' && profile.protocol === 'octop-harness-acp-v1' && profile.read_only===false && profile.workspace_tools_version==='attempt-workspace-v1' && profile.model_execution_protocol==='suma-model-execution-v1' && validOctopCapability(profile.octop_execution))
   );
 }

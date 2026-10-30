@@ -50,6 +50,7 @@ type toolStream struct {
 	// contract. A terminal may close an interactive stdin, never mark a process stopped.
 	dshState       *dshStreamState
 	codebuddyState *codebuddyStreamState
+	claudeState    *claudeStreamState
 	openCodeState  *openCodeStreamState
 	octopState     *octopStreamState
 	onTerminal     func()
@@ -355,6 +356,8 @@ func (s *toolStream) line(raw []byte) {
 		s.dsh(m)
 	case "codebuddy-jsonl-v1":
 		s.codebuddy(m)
+	case tc.ClaudeProtocol:
+		s.claude(m)
 	case "suma-jsonl-v1":
 		if !nativeDisplayUnicode(raw) {
 			// Preserve the existing selected raw facts and terminal behavior, but
@@ -649,6 +652,13 @@ func (s *toolStream) finish() (*tc.Evidence, error) {
 		terminal = "unknown"
 	}
 	e := &tc.Evidence{Profile: s.profile, SessionID: s.session, Terminal: terminal, EventCount: s.count, Usage: s.usage, UsageState: s.coverage(), CodexExecution: cc.CloneEvidence(s.codexEvidence)}
+	if c := s.profile.ClaudeExecution; c != nil {
+		proof := tc.ClaudeExecutionEvidence{ConfigurationSHA256: c.ConfigurationSHA256, RequestedModel: c.Model}
+		if s.claudeState != nil {
+			proof = s.claudeState.proof
+		}
+		e.ClaudeExecution = &proof
+	}
 	if c := s.profile.OpenCodeExecution; c != nil {
 		proof := tc.OpenCodeExecutionEvidence{ConfigurationSHA256: c.ConfigurationSHA256, RequestedProvider: c.ProviderID, RequestedModel: c.Model}
 		if s.openCodeState != nil {

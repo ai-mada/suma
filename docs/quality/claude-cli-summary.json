@@ -1,0 +1,173 @@
+{
+  "stage": "T-CLAUDE-CLI-158",
+  "version": "1.0.0",
+  "date": "2026-10-30",
+  "status": "scoped_implementation_checks_and_windows_builds_passed_vendor_and_gui_pending",
+  "contract": "contracts/claude-cli.md",
+  "report": "docs/quality/claude-cli-verification.md",
+  "verification": {
+    "new_unique_go_top": 15,
+    "new_go_groups": {
+      "backend": 8,
+      "runner": 6,
+      "public_contract": 1
+    },
+    "existing_unique_go_top": 4,
+    "existing_go_groups": {
+      "backend_affected": 2,
+      "localization": 2
+    },
+    "backend_named_subcases": 11,
+    "node_new_distinct_cases": 1,
+    "web_new_distinct_cases": 4,
+    "repeated_contract_test_counted_again": false,
+    "full_historical_suite_run": false,
+    "single_all_tests_green_run_claimed": false,
+    "schemas_current_total": 785,
+    "api_paths_current_total": 370,
+    "contract_generation_exit": 0,
+    "types_initial_exit": 2,
+    "types_fixture_correction": "Added existing required codex_supported=false and codex_reason=empty string to the new options fixture; no API relaxation.",
+    "types_final_exit": 0,
+    "paired_locale_keys": 7705,
+    "production_ui_hardcodes": 0,
+    "combined_ui_build": {
+      "status": "passed",
+      "exit_code": 0,
+      "source_sha256": "9ac0d4578851ddcb37d6aca19b967adab12c5b9c6b715aa0c14118eb4cc6403d",
+      "seconds": 42.5,
+      "index_sha256": "735e0bd788b217a9831272562980066ef1f780f7e35f575fd36d63bb3068fdd1",
+      "log": ".cache/claude-cli-158/integration-build.log",
+      "chunk": "b3c8be"
+    },
+    "counting_note": "Targeted groups compose distinct checks. Existing regressions, repeated passes and named subcases are not additional new Go tops. Native-case internal Node candidate testing is not a second standalone Node case.",
+    "types_after_shared_skill_lifecycle_exit": 0
+  },
+  "actual": {
+    "backend_environment": "Windows SQLite domain tests and controlled test assembly; no actual HTTP-service or formal Worker.Run journey.",
+    "native": {
+      "entrypoint": "Runner.Execute",
+      "test": "TestClaudeCLI158NativeWorktreeAndIndependentCandidateTest",
+      "controlled_native_protocol_fixture": true,
+      "timeout_seconds": 45,
+      "package_duration_seconds": 9.152,
+      "exit_code": 0,
+      "metadata": ".cache/claude-cli-158/go/20261030T123517969Z.command.json",
+      "stdout": ".cache/claude-cli-158/go/20261030T123517969Z.stdout.txt",
+      "scope": [
+        "version/help",
+        "fixed-model drift rejected before writable workspace",
+        "isolated committed candidate",
+        "exact independent Node candidate test",
+        "unknown result",
+        "owned Windows cancellation"
+      ],
+      "worker_run_or_formal_http": false,
+      "real_claude_or_vendor_model": false
+    },
+    "gui_checks": 0,
+    "formal_worker_http_checks": 0,
+    "real_vendor_calls": 0,
+    "vendor_discovery": {
+      "path_directories_checked": 59,
+      "named_common_locations_checked": true,
+      "found": false,
+      "real_claude_version_executed": false,
+      "installed_or_logged_in": false
+    },
+    "production_acceptance_claimed": false
+  },
+  "runner_build": {
+    "successful_builds": 1,
+    "exit_code": 0,
+    "path": ".cache/claude-cli-158/bin/suma-runner.exe",
+    "sha256": "44a2826536195f291576cafdd0924365c145f72d0af5bde7eb110c09e64e5bad"
+  },
+  "source_sets": {
+    "backend": {
+      "files": 16,
+      "sha256": "a417ad4cbd95e94ff3b7be0773b8e1908193e08f0fe3bbb506e19541f40fd41b",
+      "hash_algorithm": "SHA256 of manifest-order path + NUL + file SHA256 + LF"
+    },
+    "runner_ui": {
+      "files": 35,
+      "sha256": "f4a20ffc62af8174451ec7683e91004da710a3bbbd12bc2d1587c614e3560568",
+      "hash_algorithm": "sha256(JSON.stringify(sorted path/sha256 array))"
+    },
+    "combined_candidate_verified": false
+  },
+  "evidence_inputs": [
+    {
+      "path": ".cache/claude-cli-158/backend-evidence.json",
+      "sha256": "ee3398c5cccf64023a70e1089d7f8f6ed86c276b371e63d36d7059b5fe6574d4"
+    },
+    {
+      "path": ".cache/claude-cli-158/runner-ui-evidence.json",
+      "sha256": "30d4d13b7d3b741fccd9069635387c65db20d17257aea54cea21154327a58e55"
+    },
+    {
+      "path": ".cache/claude-cli-158/root-integration-evidence.json",
+      "sha256": "392230bc559332dc788d52bf3b164f8370ca6b3d7a205a62156127dd61fcd7ce"
+    }
+  ],
+  "failure_history": [
+    {
+      "scope": "backend",
+      "fact": "Initial missing-symbol red exists only in tool stdout; no disk log is invented."
+    },
+    {
+      "scope": "backend",
+      "fact": "A fixture kept its transaction open before a database count and timed out at90s. The fixture now closes it first; only affected remaining checks reran."
+    },
+    {
+      "scope": "backend",
+      "fact": "A Pool fixture tried publishing version3 into an empty workflow domain. It was corrected to version1; only the affected Pool top reran."
+    },
+    {
+      "scope": "runner",
+      "fact": "Early fixtures had an undefined helper and an untrimmed commit. The real model-drift regression then exposed writable-workspace entry; product validation was moved before workspace creation."
+    },
+    {
+      "scope": "runner",
+      "fact": "A six-top shadow combination exhausted the default Go timeout. That run is failed, not counted as green, and does not establish that a product deadlock was diagnosed."
+    },
+    {
+      "scope": "runner",
+      "fact": "Later candidate-test fixture failures reused a spent execution context and reported an ignored-worktree-root error. Fixture phase bounds were corrected; final native top alone passed at9.152s with45s timeout."
+    },
+    {
+      "scope": "types",
+      "fact": "Initial exit2 came from missing existing required options fields in a new test fixture; fixture-only correction led to final exit0 without repeating the four Web cases for that correction."
+    }
+  ],
+  "evidence_limits": [
+    "Go overlay changes compiler input, not runtime source-file reads, main-tree integration or generated public schema acceptance.",
+    "Node/Web raw disk logs are null in the original record; actual tool receipts are retained and complete argv is not fabricated.",
+    "safe-mode/restricted and file-tool directory limits do not prove a general Bash OS sandbox; managed administrator policy retains priority.",
+    "Claude CLI configuration and reported tokens establish neither model gateway control, hard budget enforcement nor provider billing.",
+    "No test, build, clone or Git operation was performed while writing these two quality documents."
+  ],
+  "pending": [
+    "Actual browser Chinese/English, narrow-screen and keyboard checks",
+    "Formal Worker.Run and actual HTTP journey",
+    "Real Claude installation, login and supplier model execution",
+    "Other databases, operating systems, physical multihost, installers and production acceptance"
+  ],
+  "cloud_acp_implemented": false,
+  "ledger_unchanged": "58 limited /34 pending /92 total",
+  "full_platform_complete": false,
+  "control_build": {
+    "successful_builds": 1,
+    "exit_code": 0,
+    "path": ".cache/claude-cli-158/bin/suma-control.exe",
+    "sha256": "f5f83b56b4ca362e3119ecce7ccaa1beb21998310fdbabeca9b625ac01da5097",
+    "chunk": "58365d",
+    "scope": "Frozen source excluding unrelated control-startup WIP; compilation only."
+  },
+  "source": {
+    "base": "610785b82a2c95fdc7af8f436158e16d56015979",
+    "sha256": "9ac0d4578851ddcb37d6aca19b967adab12c5b9c6b715aa0c14118eb4cc6403d",
+    "manifest": "dist/quality/claude-cli-158/source-manifest.json",
+    "includes": "Exact reviewed T157/T158 inputs over610785b; unrelated WIP excluded."
+  }
+}

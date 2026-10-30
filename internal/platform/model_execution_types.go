@@ -22,6 +22,7 @@ type ModelExecutionOption struct {
 type ModelExecutionOptions struct {
 	ParameterLimits    *modelcontract.Parameters       `json:"parameter_limits,omitempty"`
 	FixedOpenCode      *tc.OpenCodeExecutionCapability `json:"fixed_opencode,omitempty"`
+	FixedClaude        *tc.ClaudeExecutionCapability   `json:"fixed_claude,omitempty"`
 	CodexSupported     bool                            `json:"codex_supported"`
 	CodexCatalog       *cc.Catalog                     `json:"codex_catalog,omitempty"`
 	CodexReason        string                          `json:"codex_reason"`

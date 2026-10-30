@@ -43,6 +43,7 @@ func localToolDirectory() []localToolDirectoryEntry {
 		{"codex-jsonl", "Codex", "codex", "@openai/codex", CommandSpec{Adapter: "codex", Protocol: "codex-jsonl-v1", Input: "goal", Args: []string{"exec", "--json", "--sandbox", "workspace-write", "--ephemeral", "-"}}},
 		{"codebuddy-cli", "CodeBuddy Code", "codebuddy", "@tencent-ai/codebuddy-code", CommandSpec{Adapter: "codebuddy", Protocol: "codebuddy-jsonl-v1", Input: "goal", Args: []string{"-p", "--input-format", "text", "--output-format", "stream-json", "--verbose", "--permission-mode", "acceptEdits"}}},
 		{"dsh-multica", "DeepSeek Harness / dsh", "dsh", "@deepseek-ai/dsh", CommandSpec{Adapter: "harness", Protocol: "dsh-multica-jsonl-v1", Input: "dsh-jsonl", Args: []string{"--profile", "multica", "--stdio"}}},
+		{"claude-code-cli", "Claude Code", "claude", "@anthropic-ai/claude-code", claudePreset()},
 	}
 }
 
@@ -178,6 +179,10 @@ func resolveLocalTool(entry localToolDirectoryEntry, paths []string) (CommandSpe
 			installed, reason = true, "invalid_package"
 			manifest, err := localToolPackageManifest(moduleRoot, entry.packageName)
 			if err != nil {
+				continue
+			}
+			if entry.binary == "claude" {
+				reason = "unsupported_launcher"
 				continue
 			}
 			if entry.binary == "codex" {

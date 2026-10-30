@@ -214,7 +214,7 @@ func (s *Service) registerDesktopRunner(parent context.Context, actor Actor, req
 		return out, desktopRunnerInvalid()
 	}
 	switch request.AdapterID {
-	case "codex-jsonl", "codebuddy-cli", "dsh-multica":
+	case "codex-jsonl", "codebuddy-cli", "dsh-multica", "claude-code-cli":
 	default:
 		return out, desktopRunnerInvalid()
 	}

@@ -3,7 +3,7 @@ const {spawn:spawnChild}=require('node:child_process');
 const path=require('node:path');
 
 const CHANNEL='suma:discover-installed-tools';
-const PRODUCTS=Object.freeze({'codex-jsonl':'Codex','codebuddy-cli':'CodeBuddy Code','dsh-multica':'DeepSeek Harness / dsh'});
+const PRODUCTS=Object.freeze({'codex-jsonl':'Codex','codebuddy-cli':'CodeBuddy Code','dsh-multica':'DeepSeek Harness / dsh','claude-code-cli':'Claude Code'});
 const REASONS=new Set(['not_installed','unsupported_launcher','invalid_package','node_unavailable','probe_failed','workspace_required']);
 const ID=/^[a-f0-9]{32}$/;
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);

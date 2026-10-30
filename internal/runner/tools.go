@@ -23,6 +23,9 @@ import (
 )
 
 func normalizedCommand(spec CommandSpec) CommandSpec {
+	if spec.Adapter == "claude" {
+		return normalizeClaudeCommand(spec)
+	}
 	if spec.Adapter == "" {
 		spec.Adapter = "command"
 	}
@@ -213,6 +216,9 @@ func toolVersion(ctx context.Context, exe string, spec CommandSpec, secrets []st
 	}
 	if spec.CandidateComposition {
 		return probeCompositionGit(ctx, exe)
+	}
+	if spec.Adapter == "claude" {
+		return claudeVersion(ctx, exe, spec, secrets)
 	}
 	if spec.Adapter == "harness" || spec.Adapter == "codebuddy" {
 		return teamCLIVersion(ctx, exe, spec, secrets)
@@ -491,6 +497,9 @@ func ValidateToolConfiguration(cfg ExecConfig) error {
 		if err := validateTeamCLICommand(spec); err != nil {
 			return err
 		}
+		if err := validateClaudeCommand(spec); err != nil {
+			return err
+		}
 		if err := validateNativeWorkspacePolicy(cfg, id, spec); err != nil {
 			return err
 		}
@@ -582,6 +591,11 @@ func DescribeTools(ctx context.Context, cfg ExecConfig) ([]tc.Observation, error
 				return
 			}
 			o.Profile.ToolVersion = version
+			o.Profile.ClaudeExecution, err = localClaudeCapability(spec)
+			if err != nil {
+				fail(err.Error())
+				return
+			}
 			if spec.Adapter == "opencode" {
 				o.Profile.OpenCodeExecution, err = localOpenCodeCapability(spec)
 				if err != nil {
@@ -727,6 +741,10 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 		}
 		p = tc.Profile{CommandID: a.Command[0], Adapter: spec.Adapter, Protocol: spec.Protocol, ProfileSHA256: digest, ExecutableSHA256: sha, ToolVersion: version, ReadOnly: spec.ReadOnly, ModelExecutionProtocol: spec.ModelExecutionProtocol, TestReportProtocol: testReportProtocol(spec)}
 		p.TerminalSessionProtocol = terminalSessionProtocol(spec)
+		p.ClaudeExecution, err = localClaudeCapability(spec)
+		if err != nil {
+			return p, "", err
+		}
 		p.OpenCodeExecution, err = localOpenCodeCapability(spec)
 		if err != nil {
 			return p, "", err
@@ -778,6 +796,10 @@ func launchProfile(ctx context.Context, a Assignment, cfg ExecConfig, spec Comma
 		return p, "", fmt.Errorf("test report capability does not match local configuration")
 	}
 	expectedOpenCode, err := localOpenCodeCapability(spec)
+	expectedClaude, claudeErr := localClaudeCapability(spec)
+	if claudeErr != nil || (p.ClaudeExecution == nil) != (expectedClaude == nil) || p.ClaudeExecution != nil && *p.ClaudeExecution != *expectedClaude {
+		return p, "", fmt.Errorf("Claude fixed configuration differs from local inventory")
+	}
 	if err != nil || (p.OpenCodeExecution == nil) != (expectedOpenCode == nil) || p.OpenCodeExecution != nil && *p.OpenCodeExecution != *expectedOpenCode {
 		return p, "", fmt.Errorf("OpenCode fixed configuration differs from local inventory")
 	}

@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-CLAUDE-CLI-158：[Claude CLI执行接入](../integrations/claude-cli.md)、[架构](../architecture/claude-cli-execution.md)及[限定验证](../quality/claude-cli-verification.md)。固定完整模型、实际版本／帮助门禁、私有／Pool派发、原工作树及代码候选已接线；权限拒绝、未知结果和未完成工具不能冒充成功，组织／项目强制预算均拒绝此观测能力。15个不同新增Go顶层、Node1／Web4、最终类型和7705对文案通过；控制面、Runner、组合Web分别构建成功。本机原生协议夹具执行及同提交独立Node测试通过；GUI、正式Worker.Run／HTTP与真实Claude供应方调用尚未验，完整58／34／92不变。
+
 T-MULTICA-ITERATION-156：[正式迭代任务与共享泳道](../quality/task-iterations-verification.md)及[摘要](../quality/task-iterations-summary.json)限定验收完成。列表／看板使用正式排期迭代，支持准确筛选、未关联迭代、迭代分组与跨账号在线共享视图；独立任务／排期版本避免迟到结果错误换列，撤权清除受保护内容，筛选默认收起。新增Go7项、Web46项包含于相关定向／集成结果，最终类型与7673语言键通过；8项HTTP准备与11项双账号实际交互分列，中文1366／英文390深色已目视。首轮旧夹具／驱动失败保留，仅复验受影响项；保存视图不改任务或启动执行。源码来源与强制停止方式据实记录，物理多设备、离线同步及生产仍未验，完整58／34／92不变。
 
 T-WORKBUDDY-RUNNER-155：[正式云执行与恢复限定验收](../quality/workbuddy-cloud-runner-verification.md)及[安全摘要](../quality/workbuddy-cloud-runner-summary.json)。私有／Pool正式领取固定原委派与attempt，中央一次创建、机器只读lookup、原生Worker持久恢复及保护性waiting已接通；供应方completed不等于交付或验收。工具目录直达原账号面板，保持草稿与权限；实际目视发现的通用waiting误称审批已修正。44个新增Go顶层、11个不同Web用例（10新增）、完整类型／7665语言键及合同检查通过；17项真实本机Worker-HTTP／GUI业务检查和3项只读视觉复核分开记录，每旅程仅一次供应方POST。首轮夹具失败与v2新环境均如实保留；服务／子进程正常收尾，持久数据保留。真实供应方、机器ACP、云候选、独立测试／正式验收、多机及生产继续完整目标，58／34／92不变。源码`22c3b9c`已推dev，验收与视觉修正随本记录提交。

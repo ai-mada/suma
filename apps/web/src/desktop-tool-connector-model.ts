@@ -5,7 +5,7 @@ export type DesktopToolPhase='unconfigured'|'needs_workspace'|'not_installed'|'u
 export type DesktopToolConnection={project_id:string;adapter_id:string;phase:DesktopToolPhase;worker_id?:string;base_commit?:string;expires_at?:string;repository_name?:string};
 export type DesktopToolResult={status:'ok';connection:DesktopToolConnection}|{status:'failed';code:string};
 export type DesktopToolBridge=Readonly<{platform:'win32'|'darwin'|'linux';version:'1.0.0';manageLocalTool:(request:DesktopToolRequest)=>Promise<unknown>}>;
-const adapters=new Set(['codex-jsonl','codebuddy-cli','dsh-multica']);
+const adapters=new Set(['codex-jsonl','codebuddy-cli','dsh-multica','claude-code-cli']);
 const phases=new Set<DesktopToolPhase>(['unconfigured','needs_workspace','not_installed','unavailable','prepared','issuance_unknown','starting','connected','stopping','stopped','authorization_required','binding_changed','origin_changed','credential_unrecoverable','stop_unconfirmed','failed']);
 const record=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const exact=(value:Record<string,unknown>,keys:string[])=>Object.keys(value).length===keys.length&&keys.every(key=>Object.hasOwn(value,key));

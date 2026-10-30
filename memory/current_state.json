@@ -1,5 +1,22 @@
 {
   "project": "suma",
+  "claude_cli": {
+    "stage": "T-CLAUDE-CLI-158",
+    "version": "1.0.0",
+    "date": "2026-10-30",
+    "status": "fixed_cli_implementation_and_windows_protocol_fixture_verified_vendor_gui_pending",
+    "contract": "contracts/claude-cli.md",
+    "architecture": "docs/architecture/claude-cli-execution.md",
+    "report": "docs/quality/claude-cli-verification.md",
+    "summary": "docs/quality/claude-cli-summary.json",
+    "source_sha256": "9ac0d4578851ddcb37d6aca19b967adab12c5b9c6b715aa0c14118eb4cc6403d",
+    "implementation": "One reviewed native foreground CLI with administrator-fixed model and configuration; original private/Pool authority, isolated worktree, candidate and independent test chain reused.",
+    "verification": "15 distinct new Go top cases across separate backend/Runner/contract groups;4 existing checks separate, Node1/Web4. Root contracts785 schemas/370paths, final types,7705 paired locale keys and0 production hardcodes passed; Runner/control/Web each built once.",
+    "actual": "Formal Runner.Execute with owned native protocol fixture and exact candidate Node test passed9.152s under45s; no Worker.Run/HTTP journey, actual CLI GUI or real vendor model. Unknown work and permission denial never imply completion.",
+    "exception_history": "Original combined timeout and test fixture failures retained; only affected rechecks. Shared-skill lifecycle fix required one final types check; vendor installation/account is absent in inspected paths.",
+    "ledger_unchanged": "58 limited /34 pending /92 total",
+    "full_platform_complete": false
+  },
   "task_iterations": {
     "stage": "T-MULTICA-ITERATION-156",
     "version": "1.0.0",

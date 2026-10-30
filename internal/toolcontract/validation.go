@@ -46,10 +46,10 @@ func protocolPair(adapter, protocol string) bool {
 	if adapter == "codex" && protocol == cc.Protocol {
 		return true
 	}
-	return map[string]string{"octop": OctopProtocol, "command": "text-v1", "suma": "suma-jsonl-v1", "codex": "codex-jsonl-v1", "opencode": OpenCodeSDKProtocol, "harness": "dsh-multica-jsonl-v1", "codebuddy": "codebuddy-jsonl-v1"}[adapter] == protocol && protocol != ""
+	return map[string]string{"claude": ClaudeProtocol, "octop": OctopProtocol, "command": "text-v1", "suma": "suma-jsonl-v1", "codex": "codex-jsonl-v1", "opencode": OpenCodeSDKProtocol, "harness": "dsh-multica-jsonl-v1", "codebuddy": "codebuddy-jsonl-v1"}[adapter] == protocol && protocol != ""
 }
 func ValidProtocol(protocol string) bool {
-	return protocol == OctopProtocol || protocol == cc.Protocol || protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == OpenCodeSDKProtocol || protocol == "dsh-multica-jsonl-v1" || protocol == "codebuddy-jsonl-v1"
+	return protocol == ClaudeProtocol || protocol == OctopProtocol || protocol == cc.Protocol || protocol == "text-v1" || protocol == "suma-jsonl-v1" || protocol == "codex-jsonl-v1" || protocol == OpenCodeSDKProtocol || protocol == "dsh-multica-jsonl-v1" || protocol == "codebuddy-jsonl-v1"
 }
 
 // SupportsWorkspaceObservationProfile identifies profile kinds that can expose
@@ -65,6 +65,9 @@ func SupportsWorkspaceWriteProfile(p Profile) bool {
 }
 
 func ValidateProfile(p Profile, complete bool) error {
+	if err := validateClaudeProfile(p, complete); err != nil {
+		return err
+	}
 	if err := validateTerminalSessionProfile(p); err != nil {
 		return err
 	}
@@ -306,6 +309,9 @@ func ValidateEvent(e Event) error {
 	return nil
 }
 func ValidateEvidence(e Evidence) error {
+	if err := validateClaudeEvidence(e); err != nil {
+		return err
+	}
 	if err := validateOctopEvidence(e); err != nil {
 		return err
 	}

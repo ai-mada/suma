@@ -1,0 +1,10 @@
+{
+ "claude-cli.title":"Claude Code CLI",
+ "claude-cli.configured_model":"配置的模型",
+ "claude-cli.acknowledged_model":"CLI报告的模型",
+ "claude-cli.fixed_policy":"模型由本机CLI档案固定。平台仅观察用量，不支持强制预算；配置和用量报告不证明实际账单或验收。",
+ "claude-cli.permission_denied":"CLI拒绝了{count}项工具请求，成功文本不能覆盖这些拒绝事实。",
+ "claude-cli.incomplete":"原前台执行尚未完成，不要新建替代尝试或恢复任意会话。",
+ "claude-cli.install":"在执行节点安装Claude Code 2.1.314原生可执行文件，并使用工具自身登录；其他版本待审阅后接入。",
+ "claude-cli.setup_policy":"此前台档案允许文件工具及限定的Git状态、差异、暂存和提交命令，关闭项目扩展、MCP发现和后台任务。管理员策略仍优先；内建文件目录限制不是Bash的操作系统隔离。独立测试与人工验收继续单独记录。"
+}

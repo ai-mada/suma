@@ -64,6 +64,7 @@ func AdapterCatalog() []AdapterDescriptor {
 		run("octop-acp", "Octop Harness", "sdk", "octop", OctopProtocol, "contracts/octop-harness-acp.md", with("usage_observation", "model_selection", "gateway_budget", "workspace_read", "workspace_write"), []string{"provider_usage_may_be_partial"}),
 		run("dsh-multica", "DeepSeek Harness / DSH", "cli", "harness", "dsh-multica-jsonl-v1", "contracts/team-cli-runtime.md", with("usage_observation"), []string{"fixed_dsh_multica_profile", "foreground_only_no_resume", "provider_usage_may_be_partial"}),
 		run("codebuddy-cli", "CodeBuddy", "cli", "codebuddy", "codebuddy-jsonl-v1", "contracts/team-cli-runtime.md", with("usage_observation"), []string{"foreground_only_no_resume", "provider_usage_may_be_partial", "workbuddy_not_codebuddy"}),
+		run("claude-code-cli", "Claude Code", "cli", "claude", ClaudeProtocol, "contracts/claude-cli.md", with("usage_observation"), []string{"foreground_only_no_resume", "observe_only_budget", "provider_usage_may_be_partial", "fixed_claude_cli_configuration", "claude_cli_not_sdk", "claude_permissions_require_admin_policy"}),
 	}
 	for _, client := range []struct {
 		id, product string
@@ -186,6 +187,7 @@ func refineAdapterSources(d *AdapterDescriptor) {
 		"octop-acp":        "internal/runner/tool_octop.go",
 		"dsh-multica":      "internal/runner/tool_dsh.go#toolStream.dsh",
 		"codebuddy-cli":    "internal/runner/tool_codebuddy.go#toolStream.codebuddy",
+		"claude-code-cli":  "internal/runner/tool_claude.go#toolStream.claude",
 	}[d.ID]
 	for i := range d.Capabilities {
 		c := &d.Capabilities[i]

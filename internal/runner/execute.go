@@ -388,6 +388,12 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if err := openCodeExecutionRequest(a, spec, profile); err != nil {
 		return fail(err.Error())
 	}
+	if spec.Adapter == "claude" {
+		fixed, err := tc.DecodeClaudeNodeConfiguration(a.Config)
+		if err != nil || fixed == nil || profile.ClaudeExecution == nil || *fixed != *profile.ClaudeExecution {
+			return fail("Claude assignment differs from its current fixed CLI configuration")
+		}
+	}
 	if err := octopExecutionRequest(a, spec, profile); err != nil {
 		return fail(err.Error())
 	}
@@ -493,7 +499,7 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	var dshPipe io.WriteCloser
 	var codexPipe io.WriteCloser
 	var codexDriver *codexAppServer
-	if (spec.Adapter == "harness" || spec.Adapter == "codebuddy") && a.Type != "agent" {
+	if (spec.Adapter == "harness" || spec.Adapter == "codebuddy" || spec.Adapter == "claude") && a.Type != "agent" {
 		return fail("team CLI profiles require an agent node")
 	}
 	if a.Type == "agent" {

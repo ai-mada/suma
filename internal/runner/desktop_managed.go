@@ -60,7 +60,7 @@ func (input DesktopManagedRunnerInput) validate() error {
 	if input.Protocol != DesktopManagedRunnerProtocol || !desktopManagedHex(input.ProjectID, 32) || !strings.HasPrefix(input.WorkerID, "desktop-") || !desktopManagedHex(strings.TrimPrefix(input.WorkerID, "desktop-"), 32) || !desktopManagedHex(input.Token, 64) || !commitID.MatchString(input.BaseCommit) || !desktopManagedPath(input.Repository) || !desktopManagedPath(input.StateDirectory) {
 		return invalid
 	}
-	if input.AdapterID != "codex-jsonl" && input.AdapterID != "codebuddy-cli" && input.AdapterID != "dsh-multica" {
+	if input.AdapterID != "codex-jsonl" && input.AdapterID != "codebuddy-cli" && input.AdapterID != "dsh-multica" && input.AdapterID != "claude-code-cli" {
 		return invalid
 	}
 	u, err := url.Parse(input.ControlURL)
