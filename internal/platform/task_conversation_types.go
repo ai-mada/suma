@@ -3,21 +3,22 @@ package platform
 // TaskConversationMessage is an immutable collaboration note, not an execution
 // instruction. Its author and original task context are captured by the server.
 type TaskConversationMessage struct {
-	ID                 string                    `json:"id"`
-	Sequence           int64                     `json:"sequence"`
-	TaskVersion        int                       `json:"task_version"`
-	Body               string                    `json:"body"`
-	AuthorID           string                    `json:"author_id"`
-	AuthorName         string                    `json:"author_name"`
-	ActorKind          string                    `json:"actor_kind"`
-	CreatedAt          string                    `json:"created_at"`
-	RequirementID      string                    `json:"requirement_id"`
-	RequirementVersion int                       `json:"requirement_version"`
-	RunID              string                    `json:"run_id"`
-	ReplyID            string                    `json:"reply_id"`
-	ReplyToSequence    int64                     `json:"reply_to_sequence"`
-	ExecutionRunID     string                    `json:"execution_run_id"`
-	Mentions           []TaskConversationMention `json:"mentions,omitempty"`
+	ID                 string                               `json:"id"`
+	Sequence           int64                                `json:"sequence"`
+	TaskVersion        int                                  `json:"task_version"`
+	Body               string                               `json:"body"`
+	AuthorID           string                               `json:"author_id"`
+	AuthorName         string                               `json:"author_name"`
+	ActorKind          string                               `json:"actor_kind"`
+	CreatedAt          string                               `json:"created_at"`
+	RequirementID      string                               `json:"requirement_id"`
+	RequirementVersion int                                  `json:"requirement_version"`
+	RunID              string                               `json:"run_id"`
+	ReplyID            string                               `json:"reply_id"`
+	ReplyToSequence    int64                                `json:"reply_to_sequence"`
+	ExecutionRunID     string                               `json:"execution_run_id"`
+	Mentions           []TaskConversationMention            `json:"mentions,omitempty"`
+	Knowledge          []TaskConversationKnowledgeReference `json:"knowledge,omitempty"`
 }
 
 // TaskConversationPage returns the latest bounded window in chronological
@@ -35,10 +36,11 @@ type TaskConversationPage struct {
 }
 
 type TaskConversationAppendRequest struct {
-	ProjectID           string   `json:"project_id"`
-	TaskID              string   `json:"task_id"`
-	ExpectedTaskVersion int      `json:"expected_task_version"`
-	Body                string   `json:"body"`
-	IdempotencyKey      string   `json:"idempotency_key"`
-	MentionResourceIDs  []string `json:"mention_resource_ids,omitempty"`
+	ProjectID           string                      `json:"project_id"`
+	TaskID              string                      `json:"task_id"`
+	ExpectedTaskVersion int                         `json:"expected_task_version"`
+	Body                string                      `json:"body"`
+	IdempotencyKey      string                      `json:"idempotency_key"`
+	MentionResourceIDs  []string                    `json:"mention_resource_ids,omitempty"`
+	Knowledge           []ProjectKnowledgeReference `json:"knowledge,omitempty"`
 }

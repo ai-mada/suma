@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func projectKnowledgeModels() []any {
-	return []any{platform.ProjectKnowledgeReference{}, platform.ProjectKnowledgeSourceInput{}, platform.ProjectKnowledgeSource{}, platform.ProjectKnowledgeContextItem{}, platform.ProjectKnowledgeRevision{}, platform.ProjectKnowledgeSummary{}, platform.ProjectKnowledgeDetail{}, platform.ProjectKnowledgeList{}, platform.ProjectKnowledgeRevisionList{}, platform.ProjectKnowledgeWriteRequest{}, platform.ProjectKnowledgeExtractionRequest{}, platform.ProjectKnowledgeCommandRequest{}}
+	return []any{platform.ProjectKnowledgeReference{}, platform.ProjectKnowledgeSourceInput{}, platform.ProjectKnowledgeSource{}, platform.ProjectKnowledgeContextItem{}, platform.ProjectKnowledgeRevision{}, platform.ProjectKnowledgeRevisionDetail{}, platform.ProjectKnowledgeSummary{}, platform.ProjectKnowledgeDetail{}, platform.ProjectKnowledgeList{}, platform.ProjectKnowledgeRevisionList{}, platform.ProjectKnowledgeWriteRequest{}, platform.ProjectKnowledgeExtractionRequest{}, platform.ProjectKnowledgeCommandRequest{}}
 }
 
 func projectKnowledgeContracts(add operationAdder, api map[string]any) {
@@ -16,6 +16,7 @@ func projectKnowledgeContracts(add operationAdder, api map[string]any) {
 		{"/project-knowledge/{id}", "patch", "ProjectKnowledgeWriteRequest", "ProjectKnowledgeDetail", "200"},
 		{"/project-knowledge/{id}/commands", "post", "ProjectKnowledgeCommandRequest", "ProjectKnowledgeDetail", "200"},
 		{"/project-knowledge/{id}/revisions", "get", "", "ProjectKnowledgeRevisionList", "200"},
+		{"/project-knowledge/{id}/revisions/{revision}", "get", "", "ProjectKnowledgeRevisionDetail", "200"},
 	} {
 		op := add(route.path, route.method, route.output, false, route.input != "")
 		successStatus(op, route.status)
@@ -27,6 +28,16 @@ func projectKnowledgeContracts(add operationAdder, api map[string]any) {
 			op["x-required-project-authority"] = "current write and approval"
 		}
 		op["description"] = "Project-scoped reviewed text knowledge. memory/spec/skill are data, not executable plugins or permission grants. Every mutation appends an immutable revision and checks the current credential before a receipt. Draft edits preserve the prior publication; current source changes or retirement block new adoption, without rewriting old runs."
+		if route.path == "/project-knowledge/{id}/revisions/{revision}" {
+			op["x-read-only"] = true
+			op["description"] = "Read the exact immutable revision under current project read authority, with verified content digest. Never substitutes latest or grants eligibility for a new model request."
+			for _, raw := range op["parameters"].([]any) {
+				parameter := raw.(map[string]any)
+				if parameter["in"] == "path" && parameter["name"] == "revision" {
+					parameter["schema"] = map[string]any{"type": "integer", "minimum": 1, "maximum": 2147483647, "x-canonical-decimal": true}
+				}
+			}
+		}
 		if route.path == "/project-knowledge" && route.method == "get" {
 			appendQuery(op, queryParameter("kind", "Optional memory, spec or skill filter.", map[string]any{"type": "string", "enum": []string{"memory", "spec", "skill"}}))
 			appendQuery(op, queryParameter("state", "Current aggregate state; published may have a newer draft.", map[string]any{"type": "string", "enum": []string{"draft", "published", "retired"}}))

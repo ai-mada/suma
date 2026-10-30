@@ -15,7 +15,7 @@ import (
 )
 
 const taskDiscussionsCLIUsage = "discussion requires list --task ID, people --task ID, message MESSAGE_ID --task ID, or post --file JSON|-; use discussion --help"
-const taskDiscussionsCLIInput = "discussion post requires original project_id matching --project, task_id, integer expected_task_version, nonblank body, explicit idempotency_key, and optional unique mention_resource_ids; no author or role fields"
+const taskDiscussionsCLIInput = "discussion post requires original project_id matching --project, task_id, integer expected_task_version, nonblank body, explicit idempotency_key, and optional unique mention_resource_ids or exact knowledge references; no author or role fields"
 
 func taskDiscussionsCommand(ctx context.Context, c *client, args []string, input io.Reader, out io.Writer) error {
 	if len(args) == 1 && (args[0] == "help" || args[0] == "--help") || len(args) == 2 && (args[1] == "help" || args[1] == "--help") {
@@ -113,7 +113,7 @@ func validTaskDiscussionsCLIPost(body map[string]any, project string) bool {
 	}
 	for key := range body {
 		switch key {
-		case "project_id", "task_id", "expected_task_version", "body", "idempotency_key", "mention_resource_ids":
+		case "project_id", "task_id", "expected_task_version", "body", "idempotency_key", "mention_resource_ids", "knowledge":
 		default:
 			return false
 		}
@@ -134,6 +134,26 @@ func validTaskDiscussionsCLIPost(body map[string]any, project string) bool {
 		for _, value := range ids {
 			id, ok := value.(string)
 			if !ok || !compositionCLIIdentifier(id, 64) || seen[id] {
+				return false
+			}
+			seen[id] = true
+		}
+	}
+	if value, exists := body["knowledge"]; exists {
+		refs, ok := value.([]any)
+		if !ok || len(refs) > 16 {
+			return false
+		}
+		seen := map[string]bool{}
+		for _, raw := range refs {
+			ref, ok := raw.(map[string]any)
+			if !ok || len(ref) != 3 {
+				return false
+			}
+			id, idOK := ref["id"].(string)
+			revision, revisionOK := ref["revision"].(json.Number)
+			sha, shaOK := ref["sha256"].(string)
+			if !idOK || !compositionCLIIdentifier(id, 64) || seen[id] || !revisionOK || !taskDiscussionsCLIPositive(string(revision), 2147483647) || !shaOK || !compositionCLIHash(sha) {
 				return false
 			}
 			seen[id] = true
@@ -160,6 +180,7 @@ Reads are one bounded page or one exact message. Posting sends the original JSON
 without URL query parameters or a generated operation ID. The file must contain
 project_id matching --project, task_id, expected_task_version, body and idempotency_key.
 Optional mention_resource_ids retains the exact selected resource-ID order;
+optional knowledge contains at most16 exact id/revision/sha256 pins in the original order.
 the server rechecks current canonical human recipients. Plain @names remain text.
 Posting does not run a model, start development or accept a task. If its response
 is unconfirmed, explicitly repeat the same file and original caller to recover
@@ -176,6 +197,7 @@ const taskDiscussionsHelpZH = `
 读取每次返回一个有界页或准确消息。发送原JSON时不添加URL查询，不生成新操作ID。
 文件须包含与 --project 一致的 project_id，以及 task_id、expected_task_version、body、idempotency_key。
 可选 mention_resource_ids 保留所选资源ID的原顺序，由服务端重核当前规范人员；@名字仍是普通正文。
+可选 knowledge 包含最多16个准确 id/revision/sha256 引用，保留原顺序，由服务端核验发布资格。
 发帖不启动模型、开发执行或任务验收。回执未确认时，使用相同原文件与原调用者明确恢复，
 浏览器命令沿用操作时的 --expected-user／--expected-organization。--file - 从标准输入读取。
 `

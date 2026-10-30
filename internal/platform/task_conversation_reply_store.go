@@ -156,5 +156,8 @@ func (s *Service) taskConversationMessageMetadataTx(ctx context.Context, tx *sql
 			return conflict(conversationReplyInvalid)
 		}
 	}
-	return s.taskConversationMentionsMetadataTx(ctx, tx, tenant, project, task, items)
+	if err = s.taskConversationMentionsMetadataTx(ctx, tx, tenant, project, task, items); err != nil {
+		return err
+	}
+	return s.taskConversationKnowledgeMetadataTx(ctx, tx, tenant, project, task, items)
 }

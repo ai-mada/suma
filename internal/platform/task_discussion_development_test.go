@@ -19,8 +19,14 @@ func taskDiscussionDevelopmentFixture(t *testing.T) (*taskReplyFixture, TaskDisc
 	if err != nil || reply.State != "completed" {
 		t.Fatal(reply, err)
 	}
+	return h, taskDiscussionDevelopmentRequestForReply(t, h, reply)
+}
+
+func taskDiscussionDevelopmentRequestForReply(t *testing.T, h *taskReplyFixture, reply TaskConversationReply) TaskDiscussionDevelopmentCreateRequest {
+	t.Helper()
+	f, ctx := h.f, context.Background()
 	var profileID string
-	if err = f.s.DB.QueryRow(`SELECT id FROM suma_tool_profiles WHERE tenant_id=? AND project_id=? AND id<>?`, f.user.TenantID, f.project, h.profile.ID).Scan(&profileID); err != nil {
+	if err := f.s.DB.QueryRow(`SELECT id FROM suma_tool_profiles WHERE tenant_id=? AND project_id=? AND id<>?`, f.user.TenantID, f.project, h.profile.ID).Scan(&profileID); err != nil {
 		t.Fatal(err)
 	}
 	profile, err := f.s.GetToolProfile(ctx, f.actor, f.project, profileID)
@@ -39,7 +45,7 @@ func taskDiscussionDevelopmentFixture(t *testing.T) (*taskReplyFixture, TaskDisc
 	selection.DeploymentSHA256 = options.Items[0].Deployment.SHA256
 	selection.Parameters.MaxSteps, selection.Parameters.MaxOutputTokens = 2, 100
 	request := TaskDiscussionDevelopmentCreateRequest{ProjectID: f.project, TaskID: h.request.TaskID, ExpectedTaskVersion: h.request.ExpectedTaskVersion, ReplyID: reply.ID, ExpectedReplyVersion: reply.Version, WorkflowID: "engineering", WorkflowVersion: 1, AgentNodeID: "develop", ToolProfileID: profile.ID, ExpectedToolVersion: profile.Version, ModelExecutionSelection: selection, ReviewedGoal: "Implement the reviewed permission fix in the isolated worktree; preserve existing quality gates.", AcceptanceCriteria: []string{"Keep the independent exact-candidate test", "Return evidence for human acceptance"}, AcknowledgeExecution: true, IdempotencyKey: newID()}
-	return h, request
+	return request
 }
 
 func TestTaskDiscussionDevelopmentPreservesSourceAndUsesOriginalDispatcher(t *testing.T) {

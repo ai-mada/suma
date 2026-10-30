@@ -6,6 +6,7 @@ import {query} from './api';
 import {useApi} from './api-context';
 import {formatDateTime, formatNumber, renderDiagnostic, tr, UiError, useLocale} from './i18n';
 import {DiscussionDevelopmentPanel} from './DiscussionDevelopmentPanel';
+import {KnowledgeContextFacts} from './KnowledgeFacts';
 import {ErrorNotice, Field, Loading} from './ui';
 import {ModelExecutionFacts, ModelExecutionPanel, type ModelChoice} from './ModelExecutionPanel';
 import {modelInteger} from './model-execution-model';
@@ -182,7 +183,7 @@ function ReplyScope({session, project, taskId, page, accessBlocked, disabled, re
             included: formatNumber(current.source.coverage.included), total: formatNumber(current.source.coverage.total),
             first: formatNumber(current.source.coverage.first_sequence), last: formatNumber(current.source.coverage.last_sequence)})}</p>
             <p>{t('source_basis', {task: formatNumber(current.source.task.version), turn: formatNumber(current.source.reply_to_sequence)})}</p>
-            <code>{current.source.sha256}</code></details>
+            <code>{current.source.sha256}</code>{!!current.source.knowledge?.length && <div onClickCapture={event => {if (event.target instanceof Element && event.target.closest('a[href]') && !navigate()) event.preventDefault();}}><KnowledgeContextFacts project={project} items={current.source.knowledge}/></div>}</details>
           <details><summary>{t('model_basis')}</summary><ModelExecutionFacts binding={current.model_execution}/></details>
           {current.state==='completed'&&<DiscussionDevelopmentPanel session={session} project={project} taskId={taskId} reply={current} page={page} disabled={disabled||locked} accessBlocked={blocked} onLockChange={setDevelopmentLocked} onRun={developmentStarted}/>}
         </div>}

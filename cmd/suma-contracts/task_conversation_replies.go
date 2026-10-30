@@ -65,6 +65,7 @@ func taskConversationReplyContracts(add operationAdder, api map[string]any) {
 	}
 	field("TaskConversationReplyCommandRequest", "action", map[string]any{"enum": []string{"cancel"}})
 	field("TaskConversationReplySource", "messages", map[string]any{"maxItems": 20})
+	field("TaskConversationReplySource", "knowledge", map[string]any{"maxItems": 16, "description": "Approved exact knowledge consumed once from the selected messages, including dependencies inherited by verified assistants. Rechecked before new execution and publication; not executable authority."})
 	field("TaskConversationReplyPage", "items", map[string]any{"maxItems": 50})
 	field("TaskConversationReply", "model_execution", map[string]any{"description": "The exact server-reserved model deployment, one-call parameters, token/cost allowance and rate basis. No provider credentials."})
 	field("TaskConversationMessage", "actor_kind", map[string]any{"enum": []string{"human", "api", "assistant"}})

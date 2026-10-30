@@ -44,7 +44,7 @@ var cliMessages = map[string]cliMessage{
 	dispatchOptionsCLIUsage:       {"cli.task_dispatch_options.usage", "任务工具推荐需要：tasks dispatch-options TASK --expected-version N --workflow ID --workflow-version N --node ID；可选 --limit 1..200 与 --before 原分页游标"},
 	sharedTaskViewUsage:           {"cli.shared_task_views.usage", "task-views 需要 list、get ID、create --file JSON、update ID --file JSON 或 archive ID --file JSON，并提供 --project"},
 	taskDiscussionsCLIUsage:       {"cli.task_discussions.usage", "任务讨论需要 list --task、people --task、message 消息ID --task 或 post --file JSON|-；请查看 discussion --help"},
-	taskDiscussionsCLIInput:       {"cli.task_discussions.input", "讨论发送须保留与 --project 一致的 project_id、任务ID、正整数任务版本、非空原正文和明确原操作标识；可选唯一人员资源ID，不能指定作者或角色"},
+	taskDiscussionsCLIInput:       {"cli.task_discussions.input", "讨论发送须保留与 --project 一致的 project_id、任务ID、正整数任务版本、非空原正文和明确原操作标识；可选唯一人员资源ID或准确知识引用，不能指定作者或角色"},
 	inboxCLIUsage:                 {"cli.notification_inbox.usage", "个人收件箱命令：inbox list 支持 --filter inbox、unread 或 archived、--limit 1–50 与 --cursor；inbox read／unread／archive／restore 需要通知ID、--version 原版本与明确 --operation 原操作标识；均须提供 --project"},
 	taskCollectionCLIUsage:        {"cli.task_collection.usage", "任务集合参数无效：通用参数为 --q、--status 或 --status-unset、--owner 或 --unassigned、--priority 或 --priority-unset、--requirement；tasks list 接受 --sort、--limit 1–100 与 --cursor 原游标；tasks groups 接受 --group-by status、owner 或 priority、--group-limit 1–100 与 --group-cursor 原分组游标"},
 	workspaceWriteUsage:           {"cli.workspace_save.usage", "工作区保存需要：save --file JSON [--wait]、save-status ID [--wait] 或 inspect-save ID --expected-version 版本 [--operation 原操作标识] [--wait]"},

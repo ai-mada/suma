@@ -1,5 +1,7 @@
 # 1.0.0 验证入口
 
+T-CONTEXT-145：[固定资料引用验证](task-conversation-knowledge-verification.md)／[摘要](task-conversation-knowledge-summary.json)。125个Go顶层／148个子场景、36项Web、类型／7312双语键／合同／隔离构建及真实OS Node两轮本地模型协议通过；5项实际GUI通过，工具更新后的4组代表性界面观察仍待补。知识pin经原回复与开发Start核验，无静默升级；商业模型、完整平台与生产不据此验收。
+
 T-MENTIONS-140：[定向与真实接口报告](task-conversation-mentions-verification.md)／[紧凑摘要](task-conversation-mentions-summary.json)。46项独立Go、56项Web、完整类型／7191语言键／合同／构建及12项本机双账号HTTP-CLI检查通过；最终浏览器因审批容量限制待验，未提交／推送。其他阶段结果及桌面在途内容保留。
 
 T-TEAM-EXECUTION-141：[准确执行跟进报告](expert-team-execution-verification.md)／[摘要](expert-team-execution-summary.json)。8项后端、24项前端、类型／7228双语键、生成器及44.17秒隔离构建通过；指定构建输入前后摘要一致。最终浏览器与实现提交按T-COLLAB-144记录；未重复计算139／140结果。

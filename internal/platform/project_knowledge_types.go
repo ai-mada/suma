@@ -98,6 +98,14 @@ type ProjectKnowledgeList struct {
 	NextCursor string                    `json:"next_cursor"`
 }
 
+// ProjectKnowledgeRevisionDetail identifies an exact historical publication or
+// draft. Reading this immutable snapshot does not grant new-consumption eligibility.
+type ProjectKnowledgeRevisionDetail struct {
+	ProjectID   string                   `json:"project_id"`
+	KnowledgeID string                   `json:"knowledge_id"`
+	Snapshot    ProjectKnowledgeRevision `json:"snapshot"`
+}
+
 type ProjectKnowledgeListQuery struct {
 	Kind   string
 	State  string

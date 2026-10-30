@@ -230,7 +230,7 @@ func TestReleaseDiagnosticsHTTPPublicCatalogCanRedisplayFixedReason(t *testing.T
 			conflict = message
 		}
 	}
-	if count != 146 || conflict == nil || len(conflict["parameters"].([]any)) != 0 {
+	if count != 147 || conflict == nil || len(conflict["parameters"].([]any)) != 0 {
 		t.Fatalf("public release catalog is incomplete: count=%d conflict=%v", count, conflict)
 	}
 	texts := conflict["texts"].(map[string]any)

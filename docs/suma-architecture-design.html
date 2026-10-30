@@ -257,7 +257,7 @@
             <tr><td>项目管理 / 需求 / 设计</td><td><span class="tag warn">已有受限实现</span></td><td>需求设计与采用已有受限实现；完整UED/产品化编辑器待实现</td></tr>
             <tr><td>调度 / 执行 / Runner</td><td><span class="tag warn">已有受限实现</span></td><td>持久 DAG + 执行池；分层公平/跨机规模待验收</td></tr>
             <tr><td>智能体 / 工具集成</td><td><span class="tag warn">已有受限实现</span></td><td>Codex/OpenCode/Octop/原生；工作流平台扩展中</td></tr>
-            <tr><td>知识 / 记忆 / 技能</td><td><span class="tag warn">已有受限实现</span></td><td>版本化已实现；向量检索/自动萃取待深化</td></tr>
+            <tr><td>知识 / 记忆 / 技能</td><td><span class="tag warn">已有受限实现</span></td><td>版本化与<a href="product/task-conversation-knowledge.md">最多16个准确发布引用</a>沿讨论、真实回复及原开发预览／Start重验；准确历史按需读取，向量检索／自动萃取待深化</td></tr>
             <tr><td>权限 / 安全 / 隔离</td><td><span class="tag warn">已有受限实现</span></td><td>固定角色与当前授权已有证据；自定义权限与企业SSO待实现</td></tr>
             <tr><td>交互 / 可视化</td><td><span class="tag warn">已有受限实现</span></td><td>工作台可用；实时协作/主题/导出待完善</td></tr>
             <tr><td>部署 / 运维</td><td><span class="tag warn">已有受限实现</span></td><td>四种目标拓扑；当前模板单控制面，集群、告警与生产待验收</td></tr>
@@ -1675,7 +1675,7 @@
         <li>先验证授权、版本、幂等、预算和停止，再验证代表性中英/窄屏/键盘交互；真实厂商与生产另留证据。</li>
         <li>交付同步唯一实施计划和状态，不把80项目标目录当已完成清单，不将静态样稿当功能验收。</li>
       </ol>
-      <div class="note">配套：<a href="design/unified-experience.md">统一体验</a> · <a href="architecture/unified-capability-orchestration.md">能力编排架构</a> · <a href="integrations/development-tool-matrix.md">工具能力矩阵</a> · <a href="delivery/implementation-plan.md">唯一实施计划</a> · <a href="quality/verification.md">实际验证入口</a>。</div>
+      <div class="note">配套：<a href="design/unified-experience.md">统一体验</a> · <a href="architecture/unified-capability-orchestration.md">能力编排架构</a> · <a href="integrations/development-tool-matrix.md">工具能力矩阵</a> · <a href="delivery/implementation-plan.md">唯一实施计划</a> · <a href="quality/verification.md">实际验证入口</a>。T-CONTEXT-145固定资料见<a href="../contracts/task-conversation-knowledge.md">合同</a>、<a href="architecture/task-conversation-knowledge.md">来源架构</a>、<a href="design/task-conversation-knowledge.md">交互与AI SOP</a>及<a href="en/task-conversation-knowledge.md">English</a>；<a href="quality/task-conversation-knowledge-verification.md">限定证据</a>记录125个Go顶层／148个子场景、Web36项及两轮真实本机Node／HTTP协议链路。实际GUI仅5项通过、4组因工具热更新后技能缺失待验；不代表商业模型、完整GUI或平台验收，58／34／92不变。</div>
       <h3 id="multica-collaboration">21.5 Multica协作体验与当前人员工作入口</h3>
       <p>参考源码锁定为 <code>139b13a462c9a9757e18a17578a867eecd99851e</code>，本地与本轮上游核对一致。采用方式见<a href="integrations/multica-adoption.md">参考及许可记录</a>：当前Multica许可含托管、商业嵌入及品牌附加条件。本轮复用Suma既有成熟组件与领域能力，独立实现协作行为，未复制其代码、样式或品牌。</p>
       <div class="table-wrap"><table><thead><tr><th>入口</th><th>当前生产代码范围</th><th>正式边界</th></tr></thead><tbody>

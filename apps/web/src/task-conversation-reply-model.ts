@@ -3,6 +3,7 @@ import type {WriteRecoveryRequest} from './write-action';
 import {validConversationMessage} from './task-conversation-model';
 import {validModelBinding} from './model-execution-model';
 import {modelBindingMatchesSelection, validModelSelection} from './model-execution-input';
+import {conversationKnowledgeUnion, sameKnowledgePins, validKnowledgeContext} from './task-conversation-knowledge-model';
 
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 const closed = (value: Record<string, unknown>, names: string[]) => Object.keys(value).sort().join(',') === [...names].sort().join(',');
@@ -22,12 +23,15 @@ export const activeReply = (value: TaskConversationReply) => ['running', 'reconc
 /** The complete frozen context is checked before display. A context hash is
  * identity, never a grant; the server still owns source and run authorization. */
 export function validReplySource(value: unknown, project: string, task: string, tenant: string): value is TaskConversationReplySource {
-  if (!object(value) || !closed(value, ['sha256', 'task', 'requirement', 'task_run_id', 'messages', 'coverage', 'reply_to_sequence', 'execution_route']) ||
+  if (!object(value) || !closed(value, ['sha256', 'task', 'requirement', 'task_run_id', 'messages', 'coverage', 'reply_to_sequence', 'execution_route', ...(Object.hasOwn(value, 'knowledge') ? ['knowledge'] : [])]) ||
     !hash(value.sha256) || !record(value.task) || !object(value.task) || value.task.id !== task ||
     value.requirement !== null && !record(value.requirement) || value.task_run_id !== '' && !runID(value.task_run_id) ||
     !Array.isArray(value.messages) || !value.messages.length || value.messages.length > 20 || !value.messages.every(validConversationMessage) ||
     !positive(value.reply_to_sequence) || !object(value.coverage) || !object(value.execution_route)) return false;
   const messages = value.messages, coverage = value.coverage, route = value.execution_route;
+  const pins = conversationKnowledgeUnion(messages), knowledge = value.knowledge;
+  if (!pins || knowledge !== undefined && (!validKnowledgeContext(knowledge) || !knowledge.length) ||
+    !sameKnowledgePins(pins, knowledge === undefined ? [] : knowledge as NonNullable<TaskConversationReplySource['knowledge']>)) return false;
   if (!closed(coverage, ['total', 'included', 'first_sequence', 'last_sequence', 'complete']) ||
     !positive(coverage.total) || coverage.included !== messages.length || coverage.total < messages.length ||
     coverage.first_sequence !== messages[0].sequence || coverage.last_sequence !== messages[messages.length - 1].sequence ||

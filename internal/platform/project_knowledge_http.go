@@ -122,6 +122,16 @@ func (s *Server) projectKnowledgeHTTP(w http.ResponseWriter, r *http.Request, ac
 		}
 		out, err := s.Service.UpdateProjectKnowledge(r.Context(), actor, project, parts[1], request)
 		respond(w, 200, out, err)
+	case len(parts) == 4 && parts[2] == "revisions" && r.Method == http.MethodGet:
+		w.Header().Set("Cache-Control", "no-store")
+		values, err := url.ParseQuery(r.URL.RawQuery)
+		revision, parseErr := strconv.Atoi(parts[3])
+		if err != nil || len(values) != 1 || len(values["project_id"]) != 1 || values.Get("project_id") != project || project == "" || parseErr != nil || revision < 1 || revision > 2147483647 || strconv.Itoa(revision) != parts[3] {
+			writeError(w, invalid(projectKnowledgeRevisionInvalid))
+			return true
+		}
+		out, err := s.Service.GetProjectKnowledgeRevision(r.Context(), actor, project, parts[1], revision)
+		respond(w, http.StatusOK, out, err)
 	case len(parts) == 3 && parts[2] == "revisions" && r.Method == http.MethodGet:
 		query, err := projectKnowledgeQuery(r)
 		if err != nil || query.Kind != "" || query.State != "" || query.Query != "" {

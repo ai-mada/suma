@@ -29,6 +29,9 @@ func (req *TaskConversationAppendRequest) UnmarshalJSON(raw []byte) error {
 	if value, ok := fields["mention_resource_ids"]; ok && strings.TrimSpace(string(value)) == "null" {
 		return errors.New(taskConversationMentionInvalid)
 	}
+	if value, ok := fields["knowledge"]; ok && strings.TrimSpace(string(value)) == "null" {
+		return errors.New(taskConversationInvalid)
+	}
 	*req = TaskConversationAppendRequest(decoded)
 	return nil
 }

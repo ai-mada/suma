@@ -3,6 +3,7 @@ import type {WriteRecoveryRequest} from './write-action';
 import {validConversationMessage} from './task-conversation-model';
 import {validModelDispatchReceipt, validModelPlan} from './model-execution-model';
 import {validModelSelection} from './model-execution-input';
+import {sameKnowledgePins, validKnowledgeContext} from './task-conversation-knowledge-model';
 
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 const closed = (value: Record<string, unknown>, names: string[]) => Object.keys(value).sort().join(',') === [...names].sort().join(',');
@@ -25,6 +26,8 @@ export function validDiscussionDevelopment(value: unknown, project: string, task
     !developmentCriteria(value.acceptance_criteria) || !id(value.created_by) || typeof value.created_at !== 'string' ||
     !Number.isFinite(Date.parse(value.created_at)) || !object(value.dispatch_plan) || !validModelPlan(value.dispatch_plan)) return false;
   const plan = value.dispatch_plan;
+  if (!object(plan.context) || plan.context.knowledge !== undefined && !validKnowledgeContext(plan.context.knowledge) ||
+    !sameKnowledgePins(value.message.knowledge || [], (plan.context.knowledge || []) as NonNullable<TaskDiscussionDevelopmentPlan['dispatch_plan']['context']['knowledge']>)) return false;
   return plan.id === value.id && plan.version === value.version && plan.project_id === project && plan.task_id === task &&
     positive(plan.task_version) && typeof plan.valid === 'boolean' && typeof plan.reason === 'string' &&
     ['ready', 'started'].includes(String(plan.state)) && typeof plan.run_id === 'string' && !!plan.run_id &&

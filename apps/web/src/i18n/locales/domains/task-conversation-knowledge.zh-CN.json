@@ -1,0 +1,22 @@
+{
+  "task-conversation-knowledge.title": "添加项目资料",
+  "task-conversation-knowledge.hint": "明确选择已发布的准确修订。添加引用不会启动模型或开发运行。",
+  "task-conversation-knowledge.selected": "已选资料修订",
+  "task-conversation-knowledge.revision": "修订 {{revision}}",
+  "task-conversation-knowledge.remove": "移除 {{name}}",
+  "task-conversation-knowledge.unavailable": "已选资料不可用 · {{id}}",
+  "task-conversation-knowledge.checking": "正在核验已选资料 · {{id}}",
+  "task-conversation-knowledge.verify_required": "发送前，每个已选修订都须具备当前使用资格。不可用的引用会保留，直到你明确移除。",
+  "task-conversation-knowledge.conflict": "请先移除已选修订，再选择同一资料的其他修订。",
+  "task-conversation-knowledge.search_label": "查找已发布项目资料",
+  "task-conversation-knowledge.search": "搜索",
+  "task-conversation-knowledge.invalid_query": "请输入最多200个字符，且不含控制字符。",
+  "task-conversation-knowledge.showing": "已加载 {{loaded}} / {{total}} 项已发布资料",
+  "task-conversation-knowledge.options": "已发布资料",
+  "task-conversation-knowledge.empty": "没有匹配的已发布资料。",
+  "task-conversation-knowledge.more": "加载更多资料",
+  "task-conversation-knowledge.recorded": "原消息附带资料",
+  "task-conversation-knowledge.history": "准确资料修订",
+  "task-conversation-knowledge.history_hint": "此处展示原消息记录的修订。可以读取历史，不代表可以将其用于新的模型输入。",
+  "task-conversation-knowledge.invalid_read": "无法确认准确资料来源，请重试读取。"
+}

@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 // Exercise the real transport, including API draft/dispatch versus browser
@@ -97,8 +98,35 @@ func TestExpertTeamHTTPContractsAndAtomicDispatch(t *testing.T) {
 	}
 	first = bound.Items[0].Plan
 	f.call("POST", "/task-dispatch-plans/"+first.ID+"/start", TaskDispatchStartRequest{ProjectID: f.project, ExpectedVersion: first.Version, IdempotencyKey: newID()}, 409)
-	a, _ := json.Marshal(started["items"])
-	b, _ := json.Marshal(replayed["items"])
+	var replayedPlan ExpertTeamPlan
+	encodedReplay, _ := json.Marshal(replayed)
+	if json.Unmarshal(encodedReplay, &replayedPlan) != nil || len(bound.Items) != len(replayedPlan.Items) {
+		t.Fatal("invalid replayed plan or changed item count")
+	}
+	for i, original := range bound.Items {
+		again := replayedPlan.Items[i]
+		if again.TaskID != original.TaskID || again.RunID != original.RunID || again.DispatchPlanID != original.DispatchPlanID || again.Plan.ID != original.Plan.ID || again.Plan.RunID != original.Plan.RunID {
+			t.Fatal("API replay replaced original task/dispatch/run identities", i)
+		}
+		for _, item := range []ExpertTeamPlanItem{original, again} {
+			if item.Execution == nil {
+				continue
+			}
+			if item.Execution.RunID != original.RunID {
+				t.Fatal("current execution projection points at a different original run", i)
+			}
+			if _, err := time.Parse(time.RFC3339Nano, item.Execution.ObservedAt); err != nil {
+				t.Fatal("current execution projection has an invalid observation time", i, err)
+			}
+		}
+	}
+	// Both independently decoded responses retain the original effect, while
+	// T141 execution facts include a new observation time on each authorized
+	// read. Compare every other item field strictly, without freezing that clock.
+	clearExpertTeamExecution(&bound)
+	clearExpertTeamExecution(&replayedPlan)
+	a, _ := json.Marshal(bound.Items)
+	b, _ := json.Marshal(replayedPlan.Items)
 	if !bytes.Equal(a, b) {
 		t.Fatal("API replay replaced original run identities")
 	}

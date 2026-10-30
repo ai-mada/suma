@@ -54,7 +54,7 @@ func TestTaskDiscussionsCLIExactScopedReadParameters(t *testing.T) {
 }
 
 func TestTaskDiscussionsCLIPostKeepsOriginalPayloadAndHasNoQuery(t *testing.T) {
-	const input = `{"project_id":"project-one","task_id":"task-one","expected_task_version":2,"body":"  原正文\nline two  ","idempotency_key":"original-discussion-post","mention_resource_ids":["human-z","human-a"]}`
+	const input = `{"project_id":"project-one","task_id":"task-one","expected_task_version":2,"body":"  原正文\nline two  ","idempotency_key":"original-discussion-post","mention_resource_ids":["human-z","human-a"],"knowledge":[{"id":"reviewed-source","revision":2,"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}]}`
 	calls := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		calls++
@@ -64,7 +64,7 @@ func TestTaskDiscussionsCLIPostKeepsOriginalPayloadAndHasNoQuery(t *testing.T) {
 		decoder := json.NewDecoder(r.Body)
 		decoder.UseNumber()
 		var body map[string]any
-		if decoder.Decode(&body) != nil || !reflect.DeepEqual(body, map[string]any{"project_id": "project-one", "task_id": "task-one", "expected_task_version": json.Number("2"), "body": "  原正文\nline two  ", "idempotency_key": "original-discussion-post", "mention_resource_ids": []any{"human-z", "human-a"}}) {
+		if decoder.Decode(&body) != nil || !reflect.DeepEqual(body, map[string]any{"project_id": "project-one", "task_id": "task-one", "expected_task_version": json.Number("2"), "body": "  原正文\nline two  ", "idempotency_key": "original-discussion-post", "mention_resource_ids": []any{"human-z", "human-a"}, "knowledge": []any{map[string]any{"id": "reviewed-source", "revision": json.Number("2"), "sha256": strings.Repeat("a", 64)}}}) {
 			t.Error("post modified original body, version, operation or ordered resource IDs", body)
 		}
 		_, _ = w.Write([]byte(`{"id":"message-one","sequence":17,"body":"  原正文\nline two  ","actor_kind":"human","mentions":[{"resource_id":"human-z","user_id":"z","name_at_post":"Z原名"},{"resource_id":"human-a","user_id":"a","name_at_post":"A原名"}]}`))
@@ -126,6 +126,9 @@ func TestTaskDiscussionsCLIInvalidLocalInputNeverReachesTransport(t *testing.T) 
 		`{"project_id":"project-one","task_id":"task-one","expected_task_version":1e0,"body":"Text","idempotency_key":"original-key"}`,
 		`{"project_id":"project-one","task_id":"task-one","expected_task_version":1,"body":"Text","idempotency_key":"original-key","actor_kind":"assistant"}`,
 		`{"project_id":"project-one","task_id":"task-one","expected_task_version":1,"body":"Text","idempotency_key":"original-key","mention_resource_ids":["same","same"]}`,
+		`{"project_id":"project-one","task_id":"task-one","expected_task_version":1,"body":"Text","idempotency_key":"original-key","knowledge":null}`,
+		`{"project_id":"project-one","task_id":"task-one","expected_task_version":1,"body":"Text","idempotency_key":"original-key","knowledge":[{"id":"k","revision":2e0,"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}]}`,
+		`{"project_id":"project-one","task_id":"task-one","expected_task_version":1,"body":"Text","idempotency_key":"original-key","knowledge":[{"id":"k","revision":2,"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","content":"unreviewed text"}]}`,
 	} {
 		code, out, stderr := discussionCLIInvoke(t, server.URL, "en-US", input, "post", "--file", "-")
 		if code != 2 || out != "" || stderr == "" {

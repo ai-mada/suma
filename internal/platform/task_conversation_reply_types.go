@@ -24,6 +24,7 @@ type TaskConversationReplySource struct {
 	Coverage        TaskConversationReplyCoverage `json:"coverage"`
 	ReplyToSequence int64                         `json:"reply_to_sequence"`
 	ExecutionRoute  dag.ProjectExecutionRoute     `json:"execution_route"`
+	Knowledge       []ProjectKnowledgeContextItem `json:"knowledge,omitempty"`
 }
 
 type TaskConversationReply struct {

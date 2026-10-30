@@ -14,7 +14,7 @@
 - [任务讨论与智能体回复](docs/development/task-conversation-replies.md)接入明确模型、单次参数、近期上下文及 Token／费用预算，复用原 Go 网关、DAG 与准确回复回执；[架构](docs/architecture/task-conversation-replies.md)、[合同](contracts/task-conversation-replies.md)及[当前验证](docs/quality/task-conversation-replies-verification.md)分别记录实现和验收范围。本地受控提供方的三轮／六条持久消息旅程及中英文1366／390实际界面已按报告限定验证。回复只生成文本，不执行终端命令、修改代码或验收成果；受控[PTY终端及明确开发交接](docs/development/interactive-development.md)的当前限定实现见T130入口，完整跨平台范围继续交付。
 - 原生智能体、受限外部 CLI 和 Codex app-server 复用隔离工作树、固定候选、独立测试及明确验收；工具或模型的可用范围以实际库存和专项证据为准。
 - 原生／OpenCode／Octop的Go宿主操作通过[工作区操作](docs/development/workspace-operations.md)关联真实调用、效果回执和确切尝试历史；SDK活动、本地采集、平台确认及独立测试分别表达。
-- 项目知识、记忆、规范和技能支持版本、审阅发布、授权共享及模型提案；专家团队支持逐任务配置、依赖编排和受控交接。
+- 项目知识、记忆、规范和技能支持版本、审阅发布、授权共享及模型提案；[讨论固定资料](docs/product/task-conversation-knowledge.md)明确选择最多16个已发布的准确ID／修订／SHA，历史按需展开，真实回复沿原开发预览与Start重验来源。该阶段实际GUI仅5项通过、4组待验，范围见[专项证据](docs/quality/task-conversation-knowledge-verification.md)；专家团队支持逐任务配置、依赖编排和受控交接。
 - Monaco 工作区支持本地编辑、只读 Git 差异，以及当前原生执行工作区的小文本读取、CAS 保存和手工冲突比较。
 - 自动化、签名事件、用量账本、本机制品和静态站点发布已有各自限定实现与验证。
 

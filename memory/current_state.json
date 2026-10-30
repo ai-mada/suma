@@ -19,7 +19,7 @@
     "report": "docs/quality/expert-team-execution-verification.md",
     "summary": "docs/quality/expert-team-execution-summary.json",
     "scope": "Exact run/node/attempt facts and causes in existing team plans; full-state classification, 24-node bound and current-authorized read-only projection; history and meaningful CAS preserved.",
-    "verification": "8 platform and 24 Web checks, types/7228 locale keys, generator736models340paths, isolated44.17s Web build; selected build inputs unchanged. Actual browser pending after prior origin approval rejection; no commit/push.",
+    "verification": "8 platform and24 Web scoped checks, types/7228 locale keys and isolated build. Implementation63bcc39 and final36-check joint GUI evidence30d5c6b are recorded under T-COLLAB-144; no duplicate counts.",
     "limits": "No new scheduler, retry authority, vendor executor, physical multi-host or production acceptance. WorkBuddy cloud remains planned; full platform goal continues.",
     "integration_browser": "docs/quality/collaboration-browser-summary.json"
   },
@@ -92,13 +92,13 @@
   "current_version": "1.0.0",
   "phase": "implementation",
   "status": "in_progress",
-  "stage": "T-COLLAB-144",
-  "updated_at": "2026-10-30T01:35:11.531768+00:00",
+  "stage": "T-CONTEXT-145",
+  "updated_at": "2026-10-30T02:21:19.314186+00:00",
   "design_policy": "Single current initial release; no historical compatibility aliases, backfills or kernel behavior. Preserve current third-party protocol support, revisions, authorization and recovery.",
   "plan": "docs/delivery/implementation-plan.md",
   "product_baseline": "docs/product/v1-baseline.md",
-  "current_evidence": "docs/quality/collaboration-integration-verification.md",
-  "current_summary": "docs/quality/collaboration-integration-summary.json",
+  "current_evidence": "docs/quality/task-conversation-knowledge-verification.md",
+  "current_summary": "docs/quality/task-conversation-knowledge-summary.json",
   "scope": {
     "full_platform": "active: complete P0-P7 and accepted requirements1..26",
     "source_sha256": "d00900a14ca9909ea47f1ee2c266e2359a975c625b554715c494ed472a5089e9",
@@ -332,8 +332,8 @@
     "report": "docs/quality/task-conversation-mentions-verification.md",
     "summary": "docs/quality/task-conversation-mentions-summary.json",
     "verification": "46 unique Go;56 focused Web;complete types;7191 paired locale keys;734 models/340 paths;isolated build;12 actual two-account HTTP/CLI checks",
-    "commit": "pending final GUI condition; working index empty",
-    "limits": "No actual browser, external providers, AI execution, other databases, physical multihost or production acceptance. Full platform remains active.",
+    "commit": "Scoped implementation63bcc39 and final GUI evidence30d5c6b.",
+    "limits": "Final GUI evidence is in T-COLLAB-144. No external provider, other database, physical multihost or production acceptance; full platform remains active.",
     "integration_browser": "docs/quality/collaboration-browser-summary.json"
   },
   "task_review_requests": {
@@ -349,7 +349,7 @@
       "actual": 12,
       "locale_keys": 7292
     },
-    "limits": "No browser, vendor, model, code candidate certification, other database or production acceptance; no commit/push; full platform active.",
+    "limits": "Final GUI evidence and commits are in T-COLLAB-144; no vendor, commercial model, other database or production acceptance. Full platform remains active.",
     "integration_browser": "docs/quality/collaboration-browser-summary.json"
   },
   "collaboration_integration": {
@@ -360,6 +360,20 @@
     "summary": "docs/quality/collaboration-integration-summary.json",
     "scope": "140 explicit mentions,141 exact execution facts,142 review responsibility and test-plan fixes; original authority/test/acceptance boundaries retained.",
     "verification": "Scoped implementation63bcc39 and36actual joint browser checks passed, final exact asset verified and actual API v4/unpublished/pending facts confirmed. Full180s Go platform run remains incomplete; independent145 not accepted by this evidence.",
+    "full_platform_complete": false
+  },
+  "task_conversation_knowledge": {
+    "stage": "T-CONTEXT-145",
+    "date": "2026-10-30",
+    "status": "implementation_verified_partial_gui",
+    "contract": "contracts/task-conversation-knowledge.md",
+    "design": "docs/design/task-conversation-knowledge.md",
+    "report": "docs/quality/task-conversation-knowledge-verification.md",
+    "summary": "docs/quality/task-conversation-knowledge-summary.json",
+    "scope": "Explicit published exact knowledge pins through immutable human/assistant discussions, model context and the original development preview/Start; bounded historical reads and no silent upgrade.",
+    "verification": "125 unique Go top tests/148 subcases/1 skip;36 focused Web; full types,7312 paired locales, generated contracts, isolated builds and actual OS Node two-turn loopback model protocol. Five actual GUI checks plus exact-message/history read corroboration.",
+    "remaining": "Four representative GUI groups and temporary-tab cleanup pending after host-tool update. No commercial provider, OCR, new memory extraction, other database/device/scale/production acceptance; full58/34/92 remains active.",
+    "source_sha256": "67d4d0c213fecf96e8c25f50d56663e18520757123372d97b897b42394205a6d",
     "full_platform_complete": false
   }
 }

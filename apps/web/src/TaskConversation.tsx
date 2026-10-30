@@ -11,6 +11,9 @@ import {useTaskConversationMessage, useTaskConversationRead} from './task-conver
 import {validConversationBody, validConversationReceipt, validConversationRequest} from './task-conversation-model';
 import {conversationDraftKey, readConversationDraft, saveConversationDraft} from './task-conversation-mentions-model';
 import {mentionSelectionKey, TaskConversationMentions} from './TaskConversationMentions';
+import {TaskConversationKnowledge, RecordedConversationKnowledge} from './TaskConversationKnowledge';
+import {knowledgeSelectionKey} from './task-conversation-knowledge-model';
+import type {KnowledgeReference} from './knowledge-model';
 import {TaskConversationReply} from './TaskConversationReply';
 import './TaskConversation.css';
 
@@ -33,8 +36,10 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
   const api = useApi(), bodyID = useId();
   const storage = toolSessionStorage(), draftKey = conversationDraftKey(session.user.id, session.organization.id, project, taskId);
   const restored = useRef(readConversationDraft(storage, draftKey));
-  const [open, setOpen] = useState(!!selectedMessage || !!restored.current.draft.body || !!restored.current.draft.mention_resource_ids.length || !!restored.current.invalid);
+  const [open, setOpen] = useState(!!selectedMessage || !!restored.current.draft.body || !!restored.current.draft.mention_resource_ids.length || !!restored.current.draft.knowledge?.length || !!restored.current.invalid);
   const [draft, setDraft] = useState(restored.current.draft.body), [mentionIDs, setMentionIDs] = useState(restored.current.draft.mention_resource_ids);
+  const [knowledge, setKnowledge] = useState<KnowledgeReference[]>(restored.current.draft.knowledge || []);
+  const [knowledgeValidity, setKnowledgeValidity] = useState<{key: string; valid: boolean}>();
   const [invalidDraft, setInvalidDraft] = useState(!!restored.current.invalid), [draftStorageFailed, setDraftStorageFailed] = useState(false);
   const [mentionValidity, setMentionValidity] = useState<{key: string; valid: boolean}>();
   const [revoked, setRevoked] = useState(false), [accessRetry, setAccessRetry] = useState(0), [replyLocked, setReplyLocked] = useState(false);
@@ -51,19 +56,22 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
   const pendingBody = action.pending?.body.body;
   const text = typeof pendingBody === 'string' ? pendingBody : draft;
   const selectedIDs = Array.isArray(action.pending?.body.mention_resource_ids) ? action.pending.body.mention_resource_ids as string[] : action.pending ? [] : mentionIDs;
+  const selectedKnowledge = Array.isArray(action.pending?.body.knowledge) ? action.pending.body.knowledge as KnowledgeReference[] : action.pending ? [] : knowledge;
   const locked = action.busy || !!action.pending;
   const denied = accessBlocked || !!read.denied || !!located.denied || writeDenied || revoked;
   const page = denied ? undefined : read.page;
-  const dirty = !!draft || !!mentionIDs.length || invalidDraft;
+  const dirty = !!draft || !!mentionIDs.length || !!knowledge.length || invalidDraft;
   const mentionsReady = !mentionIDs.length || mentionValidity?.key === mentionSelectionKey(mentionIDs, refresh + accessRetry) && mentionValidity.valid;
+  const knowledgeReady = !knowledge.length || knowledgeValidity?.key === knowledgeSelectionKey(knowledge, refresh + accessRetry) && knowledgeValidity.valid;
   const changeValidity = useCallback((key: string, valid: boolean) => setMentionValidity(previous => previous?.key === key && previous.valid === valid ? previous : {key, valid}), []);
+  const changeKnowledgeValidity = useCallback((key: string, valid: boolean) => setKnowledgeValidity(previous => previous?.key === key && previous.valid === valid ? previous : {key, valid}), []);
   const directoryDenied = useCallback(() => { setRevoked(true); onAccessDenied?.(); }, [onAccessDenied]);
   useLeaveGuard((dirty || draftStorageFailed) && !action.pending, action.setError);
   useEffect(() => {
     if (invalidDraft) return;
-    try { if (storage || dirty) saveConversationDraft(storage, draftKey, {body: draft, mention_resource_ids: mentionIDs}); setDraftStorageFailed(false); }
+    try { if (storage || dirty) saveConversationDraft(storage, draftKey, {body: draft, mention_resource_ids: mentionIDs, ...(knowledge.length ? {knowledge} : {})}); setDraftStorageFailed(false); }
     catch { setDraftStorageFailed(true); }
-  }, [storage, draftKey, draft, mentionIDs, invalidDraft]);
+  }, [storage, draftKey, draft, mentionIDs, knowledge, invalidDraft]);
   useEffect(() => { if (selectedMessage) setOpen(true); }, [selectedMessage]);
   useEffect(() => { if (action.pending) setOpen(true); }, [!!action.pending]);
   // A rejected write revokes the visible read owner too. In-flight GETs are
@@ -77,16 +85,16 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
     if (target && target !== focused.current) { target.focus(); target.scrollIntoView?.({block: 'nearest'}); focused.current = target; }
   }, [selectedMessage, denied, open, page, located.value, bodyID]);
 
-  function clearDraft() { setDraft(''); setMentionIDs([]); setBlocked(false); }
+  function clearDraft() { setDraft(''); setMentionIDs([]); setKnowledge([]); setBlocked(false); }
   function retryDraftStorage(clearInvalid = false) {
     try {
-      saveConversationDraft(storage, draftKey, clearInvalid ? {body: '', mention_resource_ids: []} : {body: draft, mention_resource_ids: mentionIDs});
+      saveConversationDraft(storage, draftKey, clearInvalid ? {body: '', mention_resource_ids: []} : {body: draft, mention_resource_ids: mentionIDs, ...(knowledge.length ? {knowledge} : {})});
       setDraftStorageFailed(false); if (clearInvalid) {setInvalidDraft(false); clearDraft();}
     } catch {setDraftStorageFailed(true);}
   }
 
   function toggle() {
-    if (open && (text || selectedIDs.length || invalidDraft || draftStorageFailed || locked || replyLocked)) { setBlocked(true); return; }
+    if (open && (text || selectedIDs.length || selectedKnowledge.length || invalidDraft || draftStorageFailed || locked || replyLocked)) { setBlocked(true); return; }
     setOpen(value => !value); setBlocked(false);
   }
   function follow(event: MouseEvent<HTMLAnchorElement>) {
@@ -101,11 +109,12 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (locked || denied || invalidDraft || !mentionsReady || !page?.can_post || !validConversationBody(draft)) return;
+    if (locked || denied || invalidDraft || !mentionsReady || !knowledgeReady || !page?.can_post || !validConversationBody(draft)) return;
     setSaved(undefined); const caller = api;
     await acknowledged(await action.run<TaskConversationMessage>('/task-conversations', {
       project_id: project, task_id: taskId, expected_task_version: page.task_version, body: draft,
       ...(mentionIDs.length ? {mention_resource_ids: mentionIDs} : {}),
+      ...(knowledge.length ? {knowledge} : {}),
     }), caller);
   }
   async function restore() {
@@ -127,6 +136,7 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
         <time dateTime={message.created_at}>{formatDateTime(message.created_at, {dateStyle: 'short', timeStyle: 'short'})}</time></header>
         <p className="task-conversation-message-text">{message.body}</p>
         {!!message.mentions?.length && <div className="task-conversation-recorded-mentions"><small>{mt('recorded')}</small><ul aria-label={mt('recorded')}>{message.mentions.map(mention => <li key={mention.resource_id}>{mention.name_at_post || mention.resource_id}</li>)}</ul></div>}
+        <RecordedConversationKnowledge project={project} items={message.knowledge} refresh={refresh + accessRetry} onAccessDenied={directoryDenied}/>
         <details><summary>{t('basis')}</summary><div className="task-conversation-basis">
           <span>{t('task_version', {version: formatNumber(message.task_version)})}</span>
           {message.requirement_id && <span>{t('requirement_version', {version: formatNumber(message.requirement_version)})}</span>}
@@ -153,7 +163,7 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
         {!accessBlocked && <button type="button" onClick={() => { action.setError(''); setRevoked(false); setAccessRetry(value => value + 1); }}>{t('check_access')}</button>}
         {accessBlocked && <p>{t('check_parent_access')}</p>}
         {dirty && !action.pending && <p>{t('private_draft')}</p>}
-        {(!!text || !!selectedIDs.length) && <button type="button" disabled={locked} onClick={clearDraft}>{t('clear_draft')}</button>}
+        {(!!text || !!selectedIDs.length || !!selectedKnowledge.length) && <button type="button" disabled={locked} onClick={clearDraft}>{t('clear_draft')}</button>}
         {action.pending && <p>{t('pending_hint')}</p>}
       </div> : <>
         <WriteNotice action={action} onRebase={reloadBasis}/>
@@ -184,15 +194,18 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
             <TaskConversationMentions project={project} taskID={taskId} userID={session.user.id} organizationID={session.organization.id}
               selectedIDs={selectedIDs} onChange={ids => {setMentionIDs(ids); setSaved(undefined);}} disabled={locked || invalidDraft || !page.can_post || action.conflict}
               accessBlocked={denied} refresh={refresh + accessRetry} onValidityChange={changeValidity} onAccessDenied={directoryDenied}/>
+            <TaskConversationKnowledge project={project} taskID={taskId} userID={session.user.id} organizationID={session.organization.id}
+              selected={selectedKnowledge} onChange={pins => {setKnowledge(pins);setSaved(undefined);}} disabled={locked || invalidDraft || !page.can_post || action.conflict}
+              accessBlocked={denied} refresh={refresh + accessRetry} onValidityChange={changeKnowledgeValidity} onAccessDenied={directoryDenied}/>
             <div className="task-conversation-compose-footer"><small id={bodyID + '-hint'}>{t('characters', {count: formatNumber(Array.from(text).length)})}</small>
-              <div><button type="button" disabled={locked || !text && !selectedIDs.length} onClick={clearDraft}>{t('clear_draft')}</button>
-                <button type="submit" className="primary" disabled={locked || invalidDraft || !mentionsReady || !page.can_post || action.conflict || !validConversationBody(draft)}><Send size={14} aria-hidden="true"/>{action.busy ? t('sending') : t('send')}</button></div>
+              <div><button type="button" disabled={locked || !text && !selectedIDs.length && !selectedKnowledge.length} onClick={clearDraft}>{t('clear_draft')}</button>
+                <button type="submit" className="primary" disabled={locked || invalidDraft || !mentionsReady || !knowledgeReady || !page.can_post || action.conflict || !validConversationBody(draft)}><Send size={14} aria-hidden="true"/>{action.busy ? t('sending') : t('send')}</button></div>
             </div>
           </form>
         </>}
       </>}
       <TaskConversationReply session={session} project={project} taskId={taskId} page={page}
-        accessBlocked={denied} disabled={locked || dirty || !!text || !!selectedIDs.length || !!read.error || !!read.loading || !page?.can_post}
+        accessBlocked={denied} disabled={locked || dirty || !!text || !!selectedIDs.length || !!selectedKnowledge.length || !!read.error || !!read.loading || !page?.can_post}
         refresh={refresh} onMessagesRefresh={read.read} onLockChange={setReplyLocked} onDevelopmentStarted={onDevelopmentStarted}/>
     </div>}
   </section>;

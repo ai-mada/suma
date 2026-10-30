@@ -1,4 +1,6 @@
 import type {TaskConversationMentionTargetPage} from '../../../packages/contracts/src';
+import type {KnowledgeReference} from './knowledge-model';
+import {validKnowledgePins} from './task-conversation-knowledge-model';
 
 export const mentionLimit = 20;
 export const mentionID = (value: unknown): value is string =>
@@ -34,7 +36,7 @@ export function validMentionTargetPage(value: unknown, project: string, task: st
   return !selected || value.next_cursor === '' && value.total === value.items.length;
 }
 
-export type ConversationDraft = {body: string; mention_resource_ids: string[]};
+export type ConversationDraft = {body: string; mention_resource_ids: string[]; knowledge?: KnowledgeReference[]};
 type DraftStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 export const conversationDraftKey = (user: string, organization: string, project: string, task: string) =>
   'suma-task-conversation-draft-v1:' + JSON.stringify([user, organization, project, task]);
@@ -43,17 +45,17 @@ export function readConversationDraft(storage: DraftStorage | undefined, key: st
   try {
     const raw = storage?.getItem(key); if (!raw) return {draft: emptyDraft()};
     const value: unknown = JSON.parse(raw);
-    if (!object(value) || Object.keys(value).sort().join(',') !== 'body,format,mention_resource_ids' ||
+    if (!object(value) || Object.keys(value).sort().join(',') !== ['body','format','mention_resource_ids',...(Object.hasOwn(value,'knowledge')?['knowledge']:[])].sort().join(',') ||
       value.format !== 'suma-task-conversation-draft-v1' || typeof value.body !== 'string' ||
       value.body.length > 16000 || value.body.includes('\0') || /[\uD800-\uDFFF]/u.test(value.body) ||
-      !validMentionResourceIDs(value.mention_resource_ids)) return {draft: emptyDraft(), invalid: true};
-    return {draft: {body: value.body, mention_resource_ids: value.mention_resource_ids}};
+      !validMentionResourceIDs(value.mention_resource_ids) || Object.hasOwn(value,'knowledge') && !validKnowledgePins(value.knowledge)) return {draft: emptyDraft(), invalid: true};
+    return {draft: {body: value.body, mention_resource_ids: value.mention_resource_ids, ...(Object.hasOwn(value,'knowledge') ? {knowledge:value.knowledge as KnowledgeReference[]} : {})}};
   } catch { return {draft: emptyDraft(), invalid: true}; }
 }
 /** Only owner-authored text and canonical IDs are durable. Directory names,
  * current permissions and message/source snapshots never enter this draft. */
 export function saveConversationDraft(storage: DraftStorage | undefined, key: string, draft: ConversationDraft) {
   if (!storage) throw new Error('draft storage unavailable');
-  if (!draft.body && !draft.mention_resource_ids.length) storage.removeItem(key);
+  if (!draft.body && !draft.mention_resource_ids.length && !draft.knowledge?.length) storage.removeItem(key);
   else storage.setItem(key, JSON.stringify({format: 'suma-task-conversation-draft-v1', ...draft}));
 }

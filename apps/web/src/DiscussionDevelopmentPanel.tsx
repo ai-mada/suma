@@ -7,6 +7,7 @@ import {formatNumber, renderDiagnostic, tr, UiError, useLocale} from './i18n';
 import {ErrorNotice, Field, Loading} from './ui';
 import {ModelExecutionPanel, type ModelChoice} from './ModelExecutionPanel';
 import {TaskDispatchFacts} from './ToolFacts';
+import {KnowledgeContextFacts} from './KnowledgeFacts';
 import {toolSessionStorage} from './tool-hooks';
 import type {ToolProfile} from './tool-model';
 import {useWriteAction, WriteNotice} from './write-action';
@@ -130,6 +131,7 @@ function DevelopmentScope({session, project, taskId, reply, page, disabled, acce
           <p className="discussion-development-note">{t('boundary')}</p>
           <details><summary>{t('source_body')}</summary><p className="task-reply-copy">{plan.message.body}</p><code>{plan.source_sha256}</code></details>
           <details><summary>{t('review_plan')}</summary><TaskDispatchFacts plan={plan.dispatch_plan}/></details>
+          {!!plan.dispatch_plan.context.knowledge?.length && <div onClickCapture={event => {if (event.target instanceof Element && event.target.closest('a[href]')) follow(event);}}><KnowledgeContextFacts project={project} items={plan.dispatch_plan.context.knowledge}/></div>}
           {plan.dispatch_plan.state === 'started' ? <a href={'?' + new URLSearchParams({project, view: 'development', sub: 'runs', run: plan.dispatch_plan.run_id})}
             onClick={follow}>{t('open_run')} <ArrowUpRight size={12}/></a> : <>
             <p className="discussion-development-note">{t('start_separate')}</p>

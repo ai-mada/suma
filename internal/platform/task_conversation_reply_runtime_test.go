@@ -79,6 +79,15 @@ func TestTaskConversationReplyActualTwoTurnGatewayAndRecovery(t *testing.T) {
 	requirement := issueRepairRuntimeDecode[Record](t, f.call("POST", "/requirements", f.body(map[string]any{"title": "Continuous task conversation / 持续任务讨论", "description": "Keep model and budget configuration bound to each actual reply, without executing suggested actions."}), 201))
 	task := issueRepairRuntimeDecode[Record](t, f.call("POST", "/tasks", f.body(map[string]any{"title": "真实智能体多轮讨论 / Real assistant discussion", "description": "Discussion remains separate from code execution and formal acceptance.", "requirement_id": requirement.ID}), 201))
 	f.call("POST", "/workspace/binding", f.body(map[string]any{"path": code}), 200)
+	const approvedKnowledgeBody = "T145 approved project knowledge: preserve exact publication dependencies when the original human message leaves the reply window."
+	draft := issueRepairRuntimeDecode[ProjectKnowledgeDetail](t, f.call("POST", "/project-knowledge", knowledgeDraft(f, "spec", "Exact discussion knowledge / 准确讨论知识", approvedKnowledgeBody), 201))
+	published := issueRepairRuntimeDecode[ProjectKnowledgeDetail](t, f.call("POST", "/project-knowledge/"+draft.ID+"/commands", ProjectKnowledgeCommandRequest{ProjectID: f.project, ExpectedVersion: draft.Version, Action: "publish", IdempotencyKey: newID()}, 200))
+	if published.Published == nil || !published.PublishedEligible || published.Published.Content != approvedKnowledgeBody {
+		t.Fatal("the actual journey requires a real approved publication")
+	}
+	knowledgePin := ProjectKnowledgeReference{ID: published.ID, Revision: published.PublishedRevision, SHA256: published.PublishedSHA256}
+	expectedKnowledge := []ProjectKnowledgeContextItem{{ID: published.ID, Revision: published.PublishedRevision, Kind: published.Published.Kind, Title: published.Published.Title, Summary: published.Published.Summary, Content: approvedKnowledgeBody, SHA256: published.PublishedSHA256, Sources: []ProjectKnowledgeContextSource{}}}
+	expectedReference := []TaskConversationKnowledgeReference{{ID: knowledgePin.ID, Revision: knowledgePin.Revision, SHA256: knowledgePin.SHA256, TitleAtPost: published.Published.Title, KindAtPost: published.Published.Kind}}
 	const firstHuman = "请根据当前需求说明下一步。"
 	const followupHuman = "继续说明预算和执行门禁，不启动开发任务。"
 	answers := []string{"先确认需求和验收条目，再通过正式开发计划执行；此回复未运行终端、开发或测试。", "Use the explicit model budget and reviewed execution plan. The prior discussion is context, and no terminal or code task has been started.", "The UI-requested follow-up uses the selected model and budget. 两轮真实回复已作为固定上下文保留，本次仍未启动终端、开发、测试或验收。"}
@@ -159,8 +168,22 @@ func TestTaskConversationReplyActualTwoTurnGatewayAndRecovery(t *testing.T) {
 		}
 		message, ok := messages[1].(map[string]any)
 		content, _ := message["content"].(string)
-		if !ok || !strings.Contains(content, firstHuman) || turn >= 2 && (!strings.Contains(content, followupHuman) || !strings.Contains(content, answers[0]) || priorReplyID == "" || !strings.Contains(content, priorReplyID) || !strings.Contains(content, priorMessageID)) || turn == 3 && (!strings.Contains(content, "T128 browser follow-up") || !strings.Contains(content, answers[1])) {
+		if !ok || message["role"] != "user" || turn != 2 && !strings.Contains(content, firstHuman) || turn == 2 && strings.Contains(content, firstHuman) || turn >= 2 && (!strings.Contains(content, followupHuman) || !strings.Contains(content, answers[0]) || priorReplyID == "" || !strings.Contains(content, priorReplyID) || !strings.Contains(content, priorMessageID)) || turn == 3 && (!strings.Contains(content, "T128 browser follow-up") || !strings.Contains(content, answers[1])) {
 			t.Error("follow-up model context lacks original protected assistant and latest human message")
+			w.WriteHeader(400)
+			return
+		}
+		_, fixedJSON, hasFixedRequest := strings.Cut(content, "Fixed request:\n")
+		var fixed struct {
+			Source TaskConversationReplySource `json:"source"`
+		}
+		if !hasFixedRequest || json.Unmarshal([]byte(fixedJSON), &fixed) != nil || stringify(fixed.Source.Knowledge) != stringify(expectedKnowledge) || strings.Count(content, approvedKnowledgeBody) != 1 {
+			t.Error("the actual provider request must contain the exact approved knowledge body once")
+			w.WriteHeader(400)
+			return
+		}
+		if turn == 2 && (fixed.Source.Coverage != (TaskConversationReplyCoverage{Total: 3, Included: 2, FirstSequence: 2, LastSequence: 3, Complete: false}) || len(fixed.Source.Messages) != 2 || fixed.Source.Messages[0].ID != priorMessageID || fixed.Source.Messages[0].ActorKind != "assistant" || stringify(fixed.Source.Messages[0].Knowledge) != stringify(expectedReference) || fixed.Source.Messages[1].ActorKind != "human" || len(fixed.Source.Messages[1].Knowledge) != 0) {
+			t.Error("the actual second request lost the assistant's inherited pin or included the older human reference")
 			w.WriteHeader(400)
 			return
 		}
@@ -241,19 +264,28 @@ func TestTaskConversationReplyActualTwoTurnGatewayAndRecovery(t *testing.T) {
 		if turn == 1 {
 			text = followupHuman
 		}
-		note := issueRepairRuntimeDecode[TaskConversationMessage](t, f.call("POST", "/task-conversations", taskConversationRequest(f, task.ID, task.Version, text), 201))
+		post := taskConversationRequest(f, task.ID, task.Version, text)
+		if turn == 0 {
+			post.Knowledge = []ProjectKnowledgeReference{knowledgePin}
+		}
+		note := issueRepairRuntimeDecode[TaskConversationMessage](t, f.call("POST", "/task-conversations", post, 201))
 		sequence := int64(1 + turn*2)
 		if note.Sequence != sequence {
 			t.Fatal("human message ordering changed", note)
 		}
+		if turn == 0 && stringify(note.Knowledge) != stringify(expectedReference) || turn == 1 && len(note.Knowledge) != 0 {
+			t.Fatal("only the first human message may explicitly select the approved knowledge pin")
+		}
 		output := int64(512)
 		locale := "zh-CN"
+		contextLimit := 20
 		if turn == 1 {
 			output = 1024
 			locale = "en-US"
+			contextLimit = 2
 		}
 		selection := &mc.Selection{DeploymentID: deployment.ID, DeploymentRevision: deployment.Revision, DeploymentSHA256: deployment.SHA256, Parameters: mc.Parameters{MaxSteps: 1, MaxOutputTokens: output}, Budget: &mc.Budget{TokenLimit: &tokenLimit, CostLimitMicros: &costLimit, Currency: "CNY"}}
-		request := TaskConversationReplyCreateRequest{ProjectID: f.project, TaskID: task.ID, ExpectedTaskVersion: task.Version, ContextMessageLimit: 20, ExpectedLastSequence: sequence, ReplyToSequence: sequence, ToolProfileID: profile.ID, ExpectedToolVersion: profile.Version, ModelExecutionSelection: selection, Locale: locale, AcknowledgeModelUse: true, IdempotencyKey: newID()}
+		request := TaskConversationReplyCreateRequest{ProjectID: f.project, TaskID: task.ID, ExpectedTaskVersion: task.Version, ContextMessageLimit: contextLimit, ExpectedLastSequence: sequence, ReplyToSequence: sequence, ToolProfileID: profile.ID, ExpectedToolVersion: profile.Version, ModelExecutionSelection: selection, Locale: locale, AcknowledgeModelUse: true, IdempotencyKey: newID()}
 		reply := issueRepairRuntimeDecode[TaskConversationReply](t, f.call("POST", "/task-conversation-replies", request, 201))
 		duplicate := issueRepairRuntimeDecode[TaskConversationReply](t, f.call("POST", "/task-conversation-replies", request, 201))
 		if duplicate.ID != reply.ID || duplicate.RunID != reply.RunID {
@@ -261,6 +293,16 @@ func TestTaskConversationReplyActualTwoTurnGatewayAndRecovery(t *testing.T) {
 		}
 		if reply.ModelExecution == nil || reply.ModelExecution.Parameters.MaxOutputTokens != output || reply.ModelExecution.Budget == nil || *reply.ModelExecution.Budget.TokenLimit != tokenLimit {
 			t.Fatal("explicit model parameters or hard budget were not frozen")
+		}
+		expectedCoverage := TaskConversationReplyCoverage{Total: 1, Included: 1, FirstSequence: 1, LastSequence: 1, Complete: true}
+		if turn == 1 {
+			expectedCoverage = TaskConversationReplyCoverage{Total: 3, Included: 2, FirstSequence: 2, LastSequence: 3, Complete: false}
+		}
+		if reply.Source.Coverage != expectedCoverage || len(reply.Source.Messages) != expectedCoverage.Included || stringify(reply.Source.Knowledge) != stringify(expectedKnowledge) {
+			t.Fatal("the fixed reply source lost exact knowledge or misrepresented its recent window")
+		}
+		if turn == 1 && (reply.Source.Messages[0].ID != replies[0].MessageID || reply.Source.Messages[0].ActorKind != "assistant" || stringify(reply.Source.Messages[0].Knowledge) != stringify(expectedReference) || reply.Source.Messages[1].ID != note.ID || len(reply.Source.Messages[1].Knowledge) != 0 || strings.Contains(stringify(reply.Source.Messages), firstHuman)) {
+			t.Fatal("the second turn must inherit knowledge from the protected assistant after the original human leaves its window")
 		}
 		assignment, e := client.Claim(ctx, profile.WorkerID, []string{"command:reply128"})
 		if e != nil || assignment == nil || assignment.RunID != reply.RunID {
@@ -289,7 +331,7 @@ func TestTaskConversationReplyActualTwoTurnGatewayAndRecovery(t *testing.T) {
 			t.Fatal("real completed reply was not appended once", e, reply)
 		}
 		message := page.Items[len(page.Items)-1]
-		if message.ActorKind != "assistant" || message.Body != answers[turn] || message.ReplyID != reply.ID || message.ReplyToSequence != sequence || message.ExecutionRunID != reply.RunID || message.ID != reply.MessageID {
+		if message.ActorKind != "assistant" || message.Body != answers[turn] || message.ReplyID != reply.ID || message.ReplyToSequence != sequence || message.ExecutionRunID != reply.RunID || message.ID != reply.MessageID || stringify(message.Knowledge) != stringify(expectedReference) || stringify(reply.Source.Knowledge) != stringify(expectedKnowledge) || reply.Source.Coverage != expectedCoverage {
 			t.Fatal("assistant attribution lacks protected original runtime provenance", message)
 		}
 		current, e := f.s.Get(ctx, f.actor, f.project, "tasks", task.ID)
@@ -332,6 +374,7 @@ func TestTaskConversationReplyActualTwoTurnGatewayAndRecovery(t *testing.T) {
 		t.Fatal("two replies require two exact settled usage attempts", settled)
 	}
 	receipt := map[string]any{"stage": "T-REPLY-128", "kind": "actual_native_gateway_two_turn_conversation", "task_id": task.ID, "task_version": task.Version, "task_run_id": task.RunID, "task_status": task.Status, "reply_ids": []string{replies[0].ID, replies[1].ID}, "reply_run_ids": []string{replies[0].RunID, replies[1].RunID}, "message_ids": []string{replies[0].MessageID, replies[1].MessageID}, "messages": 4, "model_requests": 2, "reported_tokens": 20, "estimated_cost_micros": 26, "rate_id": rate.ID, "callback_ack_lost_after_commit": dropped, "original_callback_replays_after_loss": replayed, "bundle_sha256": bundleSHA, "source_sha256": dispatchRecommendationRuntimeHash([]byte(original)), "customer_human_signoff": false, "commercial_model_quality_verified": false, "terminal_executions": 0}
+	receipt["knowledge_stage"], receipt["knowledge_reference"], receipt["second_turn_coverage"] = "T-CONTEXT-145", knowledgePin, replies[1].Source.Coverage
 	t.Logf("actual_task_conversation_reply_receipt=%s", stringify(receipt))
 	snapshot := func() taskConversationReplyRuntimeSnapshot {
 		mu.Lock()

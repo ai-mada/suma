@@ -80,12 +80,26 @@ func (s *Service) taskConversationReplySourceTx(ctx context.Context, engine *dag
 	if err = s.taskConversationMessageMetadataTx(ctx, auth.tx, tenant, project, task.ID, out.Messages); err != nil {
 		return out, err
 	}
+	refs, err := taskConversationKnowledgeReferences(out.Messages)
+	if err != nil {
+		return out, err
+	}
+	if len(refs) > 0 {
+		out.Knowledge, err = s.resolvePublishedKnowledgeTx(ctx, auth, project, refs)
+		if err != nil {
+			return out, err
+		}
+	}
 	if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_task_conversation_messages WHERE tenant_id=? AND project_id=? AND task_id=?`), tenant, project, task.ID).Scan(&out.Coverage.Total); err != nil {
 		return out, err
 	}
 	out.Coverage.Included, out.Coverage.FirstSequence, out.Coverage.LastSequence = len(out.Messages), out.Messages[0].Sequence, head
 	out.Coverage.Complete = int64(len(out.Messages)) == out.Coverage.Total
-	if len(stringify(map[string]any{"task": out.Task, "requirement": out.Requirement, "messages": out.Messages})) > 32000 {
+	contextBody := map[string]any{"task": out.Task, "requirement": out.Requirement, "messages": out.Messages}
+	if len(out.Knowledge) > 0 {
+		contextBody["knowledge"] = out.Knowledge // Full approved text appears once.
+	}
+	if len(stringify(contextBody)) > 32000 {
 		return out, invalid(conversationReplyContext)
 	}
 	if engine == nil {
@@ -103,6 +117,14 @@ func (s *Service) taskConversationReplySourceTx(ctx context.Context, engine *dag
 // Check immutable inputs, not the live head: a collaborator can post a later
 // note while a fixed turn runs. The reply-to identity makes that ordering clear.
 func (s *Service) checkTaskConversationReplySourceTx(ctx context.Context, auth *authorizedCommand, a TaskConversationReply) error {
+	original := a.Source
+	original.SHA256 = ""
+	if a.Source.SHA256 == "" || digest(stringify(original)) != a.Source.SHA256 {
+		return conflict(conversationReplyChanged)
+	}
+	if err := checkTaskConversationKnowledgeSnapshot(a.Source.Messages, a.Source.Knowledge); err != nil {
+		return err
+	}
 	task, err := s.getRecordTx(ctx, auth, a.ProjectID, "tasks", a.TaskID)
 	if err != nil {
 		return err
@@ -136,6 +158,15 @@ func (s *Service) checkTaskConversationReplySourceTx(ctx context.Context, auth *
 			return e
 		}
 		if stringify(items[0]) != stringify(original) {
+			return conflict(conversationReplyChanged)
+		}
+	}
+	if len(a.Source.Knowledge) > 0 {
+		current, err := s.resolvePublishedKnowledgeTx(ctx, auth, a.ProjectID, knowledgeReferences(a.Source.Knowledge))
+		if err != nil {
+			return err
+		}
+		if stringify(current) != stringify(a.Source.Knowledge) {
 			return conflict(conversationReplyChanged)
 		}
 	}

@@ -11,6 +11,8 @@ import {setLocale} from './i18n';
 import {modelBinding} from './model-execution.test-support';
 
 const project = 'project-a', task = 'task-a', stamp = '2026-10-29T05:00:00Z';
+const knowledgePin = {id: 'knowledge-a', revision: 2, sha256: 'a'.repeat(64)};
+const fixedKnowledge = {...knowledgePin, kind: 'spec', title: 'Original published source', summary: '', content: 'Frozen knowledge in the development preview', sources: []};
 const identity: Session = {user: {id: 'user-a', name: 'Owner', email: 'owner@example.test'}, organization: {id: 'org-a', name: 'Org'}, projects: []};
 const sourceTask = {id: task, version: 7, title: 'Original task', description: 'Original formal scope', acceptance_criteria: ['Original formal criterion']};
 const note: TaskConversationMessage = {id: 'note-one', sequence: 1, task_version: 7, body: 'Discuss the change', author_id: 'user-a', author_name: 'Owner',
@@ -72,12 +74,12 @@ it('T129 reviews fresh coding selection and edited instructions, creates only a 
       const binding: ModelBinding = {...modelBinding, parameters: body.model_execution_selection.parameters, budget: body.model_execution_selection.budget};
       const plan: TaskDispatchPlan = {id: 'development-plan', project_id: project, version: 1, state: 'ready', task_id: task, task_version: 7,
         workflow_id: workflow.id, workflow_version: 2, agent_node_id: 'code', tool_profile_id: tool.id, tool_profile_version: tool.version,
-        tool_profile_sha256: tool.profile.profile_sha256, run_id: 'development-run', created_at: stamp, expires_at: '2099-10-29T06:00:00Z', context: {task: sourceTask},
+        tool_profile_sha256: tool.profile.profile_sha256, run_id: 'development-run', created_at: stamp, expires_at: '2099-10-29T06:00:00Z', context: {task: sourceTask, knowledge: [fixedKnowledge]},
         workflow: {...workflow, id: 'fixed-development-flow', version: 1, nodes: [{...workflow.nodes[0], max_retries: 0,
           config: {goal: body.reviewed_goal, tool_profile_id: tool.id, tool_profile_sha256: tool.profile.profile_sha256, model_execution: binding}}, workflow.nodes[1]]},
         model_execution: binding, valid: true, reason: ''};
       saved = {id: plan.id, project_id: project, task_id: task, version: plan.version, reply_id: previousReply.id, reply_version: previousReply.version,
-        source_sha256: '5'.repeat(64), message: assistant, reviewed_goal: body.reviewed_goal, acceptance_criteria: body.acceptance_criteria,
+        source_sha256: '5'.repeat(64), message: {...assistant, knowledge: [{...knowledgePin, title_at_post: fixedKnowledge.title, kind_at_post: fixedKnowledge.kind}]}, reviewed_goal: body.reviewed_goal, acceptance_criteria: body.acceptance_criteria,
         created_by: 'user-a', created_at: stamp, dispatch_plan: plan};
       return Response.json(saved, {status: 201});
     }
@@ -115,6 +117,8 @@ it('T129 reviews fresh coding selection and edited instructions, creates only a 
       model_execution_selection: {deployment_id: modelBinding.deployment.deployment_id, parameters: {max_steps: 32, max_output_tokens: 65536}, budget: {token_limit: 400000}}});
     expect(writes[0].body.model_execution_selection.deployment_id).not.toBe(previousReply.model_execution!.deployment.deployment_id);
     expect(writes[0].headers.get('X-Suma-Expected-User')).toBe('user-a');
+    expect(host.textContent).toContain(fixedKnowledge.content);
+    expect(Object.hasOwn(writes[0].body, 'knowledge')).toBe(false); // canonical preview inherits the original reply, never a second client selection
     expect(host.querySelector<HTMLButtonElement>('[data-development-start]')!.disabled).toBe(true); expect(onRun).not.toHaveBeenCalled();
     await click('.discussion-development-consent input'); await click('[data-development-start]');
     expect(writes).toHaveLength(2); expect(writes[1].path).toBe('/task-discussion-development-plans/development-plan/start');

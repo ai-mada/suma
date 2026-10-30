@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [讨论固定资料](product/task-conversation-knowledge.md) · [合同](../contracts/task-conversation-knowledge.md) · [架构](architecture/task-conversation-knowledge.md) · [交互与AI SOP](design/task-conversation-knowledge.md) · [English](en/task-conversation-knowledge.md) · [当前证据](quality/task-conversation-knowledge-verification.md) · [摘要](quality/task-conversation-knowledge-summary.json)：准确发布引用→历史→真实回复→原开发预览／Start；实际GUI仅5项通过、4组待验，本机协议证据不代表商业模型或完整平台验收。
+
 - [验收责任请求](product/task-review-requests.md) · [合同](../contracts/task-review-requests.md) · [架构](architecture/task-review-requests.md) · [交互与AI SOP](design/task-review-requests.md) · [English](en/task-review-requests.md) · [当前证据](quality/task-review-requests-verification.md)：明确人员、准确交付、原Review与问题回流；实现与36项实际GUI见[整合验证](quality/collaboration-integration-verification.md)。
 
 - [任务讨论精准提及](product/task-conversation-mentions.md) · [合同](../contracts/task-conversation-mentions.md) · [架构](architecture/task-conversation-mentions.md) · [交互与AI SOP](design/task-conversation-mentions.md) · [English](en/task-conversation-mentions.md)：明确人员、同事务通知、准确原消息定位及专用discussion CLI；当前实现与实际GUI见[整合验证](quality/collaboration-integration-verification.md)。
@@ -17,7 +19,7 @@
 
 - [人员工时合同](../contracts/worklogs.md) · [领域架构](architecture/worklogs.md) · [操作与AI SOP](development/worklogs.md) · [English](en/worklogs.md) · [限定验证](quality/worklogs-verification.md)：明确人员登记、保留更正／作废历史、组织跨项目日上限和原操作恢复。
 
-更新：2026-10-29。当前只有 **1.0.0** 产品基线，完整平台仍在实现与验收中。入口按领域组织，当前能力由交付状态统一维护；专项设计、合同、英文说明、验证报告与精简摘要保留各自范围，不把历史阶段编号当成产品版本或当前完成状态。
+更新：2026-10-30。当前只有 **1.0.0** 产品基线，完整平台仍在实现与验收中。入口按领域组织，当前能力由交付状态统一维护；专项设计、合同、英文说明、验证报告与精简摘要保留各自范围，不把历史阶段编号当成产品版本或当前完成状态。
 
 - [资源工作日历合同](../contracts/resource-calendars.md) · [架构](architecture/resource-calendars.md) · [交互](design/resource-calendars.md) · [限定验证](quality/resource-calendars-verification.md)：工作制／日期例外、未知／0、按可用小时分摊与原操作恢复。
 

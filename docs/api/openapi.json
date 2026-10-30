@@ -18203,6 +18203,25 @@
         ],
         "type": "object"
       },
+      "ProjectKnowledgeRevisionDetail": {
+        "properties": {
+          "knowledge_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ProjectKnowledgeRevision"
+          }
+        },
+        "required": [
+          "project_id",
+          "knowledge_id",
+          "snapshot"
+        ],
+        "type": "object"
+      },
       "ProjectKnowledgeRevisionList": {
         "properties": {
           "items": {
@@ -26063,6 +26082,14 @@
             "minLength": 8,
             "type": "string"
           },
+          "knowledge": {
+            "description": "Explicit exact current-published references; unique knowledge IDs. Never caller-provided content. Original receipt recovery precedes new consumption qualification.",
+            "items": {
+              "$ref": "#/components/schemas/ProjectKnowledgeReference"
+            },
+            "maxItems": 16,
+            "type": "array"
+          },
           "mention_resource_ids": {
             "description": "Explicit current canonical human resource IDs. No plain-text @ parsing; original operation recovery precedes new recipient validation. All recipients, message and notifications commit atomically.",
             "items": {
@@ -26089,6 +26116,50 @@
           "expected_task_version",
           "body",
           "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "TaskConversationKnowledgeReference": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "kind_at_post": {
+            "enum": [
+              "memory",
+              "spec",
+              "skill"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "revision": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "title_at_post": {
+            "maxLength": 200,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string",
+            "x-max-utf8-bytes": 200
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "sha256",
+          "title_at_post",
+          "kind_at_post"
         ],
         "type": "object"
       },
@@ -26222,6 +26293,15 @@
           "id": {
             "readOnly": true,
             "type": "string"
+          },
+          "knowledge": {
+            "description": "Immutable publication metadata at posting. Assistant references inherit an exact verified completed backing reply. Omitted when absent; historical read does not grant new consumption.",
+            "items": {
+              "$ref": "#/components/schemas/TaskConversationKnowledgeReference"
+            },
+            "maxItems": 16,
+            "readOnly": true,
+            "type": "array"
           },
           "mentions": {
             "description": "Server-resolved immutable recipient snapshots at posting; omitted when absent. Shared hydration preserves frozen assistant/development source digests across later renames or revocation.",
@@ -26705,6 +26785,15 @@
           "execution_route": {
             "$ref": "#/components/schemas/ProjectExecutionRoute",
             "readOnly": true
+          },
+          "knowledge": {
+            "description": "Approved exact knowledge consumed once from the selected messages, including dependencies inherited by verified assistants. Rechecked before new execution and publication; not executable authority.",
+            "items": {
+              "$ref": "#/components/schemas/ProjectKnowledgeContextItem"
+            },
+            "maxItems": 16,
+            "readOnly": true,
+            "type": "array"
           },
           "messages": {
             "items": {
@@ -78954,6 +79043,181 @@
             "bearerAuth": []
           }
         ],
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/project-knowledge/{id}/revisions/{revision}": {
+      "get": {
+        "description": "Read the exact immutable revision under current project read authority, with verified content digest. Never substitutes latest or grants eligibility for a new model request.",
+        "operationId": "get_project-knowledge_id_revisions_revision",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "revision",
+            "required": true,
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "x-canonical-decimal": true
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectKnowledgeRevisionDetail"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-read-only": true,
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
       }
     },

@@ -1,5 +1,9 @@
 # 1.0.0 完整实施计划
 
+T-CONTEXT-145继续原资料、知识与任务协作范围：[需求](../product/task-conversation-knowledge.md)、[合同](../../contracts/task-conversation-knowledge.md)、[架构](../architecture/task-conversation-knowledge.md)及[交互与AI SOP](../design/task-conversation-knowledge.md)固定最多16个已发布的准确知识引用：讨论保存引用，助手从真实backing Reply继承依赖，批准正文在模型Source中只保存一次，再传入原开发上下文；原预览与Start再次核验。默认收起选择器、按需历史、不静默升级与中英交互沿既有组件；Multica2083970b仅作行为参考，未复制该受限版本源码或界面。
+
+[限定验证](../quality/task-conversation-knowledge-verification.md)及[摘要](../quality/task-conversation-knowledge-summary.json)记录Go125个顶层／148个子场景通过、1项跳过，Web36项、类型／7312对语言键／生成合同／隔离构建及两轮真实本机Node／HTTP协议链路通过。实际GUI仅5项通过；工具热更新后技能缺失，继续待验新草稿保留原发布、重发布使旧pin失效、英文390px暗色／键盘／触控及viewer历史读取／禁止发表4组。商业模型、完整GUI和平台验收继续原范围，完整P0–P7／需求1–26及58 limited／34 pending／92总账不变。
+
 T-COLLAB-144人员提及、团队准确执行跟进与审核责任已完成限定整合和36项真实GUI验证；双角色保存、准确资产／历史、草稿保护及原决定边界均通过，独立接口复核v4仍未发布且新请求pending。见[整合报告](../quality/collaboration-integration-verification.md)和[浏览器证据](../quality/collaboration-browser-summary.json)。源码63bcc39已推dev，最终证据独立交付；全包Go未完整及全平台58／34／92范围继续保留。
 
 T-REVIEW-142继续原明确审核责任待办：规范当前审核人员、固定交付请求、私有通知与原Review关联，见[合同](../../contracts/task-review-requests.md)及[当前报告](../quality/task-review-requests-verification.md)。本阶段GUI已通过；没有关闭多源路由／偏好／通道或完整质量体系的复合待办。
@@ -25,7 +29,7 @@ T-MULTICA-136优先推进Multica式个人协作和统一命令导航，生产读
 
 T-WORKLOG-135补齐原P3人员明确登记、更正／作废历史、跨项目账号日期整数上限和中英工作台／CLI；[合同](../../contracts/worklogs.md)、[架构](../architecture/worklogs.md)与[证据](../quality/worklogs-verification.md)限定实现范围。HR／审批、自动计时、组织计划容量及全平台生产验收继续原范围，58／34／92总账不变。
 
-更新：2026-10-29。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。
+更新：2026-10-30。目标：速码一栈式智能研发平台。当前只有 **1.0.0** 产品基线；完整P0–P7和用户扩展需求1–26全部保留，完整产品和生产验收仍在进行中。
 
 T-CALENDAR-134完成当前资源工作制／日期例外配置、完整区间加权估算与原操作／权限边界，见[合同](../../contracts/resource-calendars.md)、[架构](../architecture/resource-calendars.md)和[限定报告](../quality/resource-calendars-verification.md)。完整组织容量、HR／请假审批、工时、历史与预测继续原P3范围，不改变58／34／92总账。
 

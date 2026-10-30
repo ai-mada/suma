@@ -1,0 +1,186 @@
+{
+  "stage": "T-CONTEXT-145",
+  "date": "2026-10-30",
+  "version": "1.0.0",
+  "status": "implementation_verified_partial_gui",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "source": {
+    "git_base": "63bcc392529338494087a92e4ba37e29b3163200",
+    "source_sha256": "67d4d0c213fecf96e8c25f50d56663e18520757123372d97b897b42394205a6d",
+    "production_files": 1265,
+    "control_entry": "Committed initial control entry overlay; unrelated desktop entry and later unreferenced WorkBuddy files excluded from this frozen build.",
+    "build_receipt": ".cache/e2e/context-145/build/artifact-manifest.json",
+    "control_sha256": "c7897d8d5cb3d21b2bfa8a2c097f60e59f906273ad5e2f6c9bba3be06ea91ea3",
+    "index_sha256": "e7084aa54ff7206466e91931c043966b3e6b0643466b31a7564fd2b8ed81c102",
+    "native_bundle_sha256": "f61c8d1b0d7ec7e91fbdb8e7bbe87874ee0d09e65ee6b43724ba5cdf213579cb"
+  },
+  "go": {
+    "policy": "Latest result per package/test identity; nested tests counted separately. Failed attempts retained. Scoped selections, not a full-platform run.",
+    "packages": {
+      "github.com/ai-mada/suma/internal/platform": {
+        "top_passed": 51,
+        "sub_passed": 111,
+        "skipped": 1
+      },
+      "github.com/ai-mada/suma/internal/localization": {
+        "top_passed": 23,
+        "sub_passed": 26,
+        "skipped": 0
+      },
+      "github.com/ai-mada/suma/cmd/suma-contracts": {
+        "top_passed": 40,
+        "sub_passed": 0,
+        "skipped": 0
+      },
+      "github.com/ai-mada/suma/internal/cli": {
+        "top_passed": 11,
+        "sub_passed": 11,
+        "skipped": 0
+      }
+    },
+    "receipts": [
+      {
+        "path": ".cache/e2e/context-145/go/20261030T010055633Z.command.json",
+        "exit": 1,
+        "passed_top": 0,
+        "failed": [],
+        "stdout_sha256": "d6589a6655bb3491b814e8dc9e7c305d745d1c6c55774b54de055240a0fb26ee"
+      },
+      {
+        "path": ".cache/e2e/context-145/go/20261030T010222171Z.command.json",
+        "exit": 0,
+        "passed_top": 12,
+        "failed": [],
+        "stdout_sha256": "a5ef73d99b44b57b98aacbccf7cd37f2e53110f4b0df6a0cc59ef88c8df87426"
+      },
+      {
+        "path": ".cache/e2e/context-145/go/20261030T010502442Z.command.json",
+        "exit": 0,
+        "passed_top": 1,
+        "failed": [],
+        "stdout_sha256": "d13749c8f22bfa2481cad12010b623ca49343eda20c89de79fa9102e5ce32a18"
+      },
+      {
+        "path": ".cache/e2e/context-145/go/20261030T010729055Z.command.json",
+        "exit": 1,
+        "passed_top": 109,
+        "failed": [
+          "TestTaskDiscussionsCLIPostKeepsOriginalPayloadAndHasNoQuery",
+          "TestExpertTeamHTTPContractsAndAtomicDispatch",
+          "TestReleaseDiagnosticsHTTPPublicCatalogCanRedisplayFixedReason"
+        ],
+        "stdout_sha256": "e667ee819e503f7bfa8174ddd99712055f3be02c9fae0572a0511a6697548ee0"
+      },
+      {
+        "path": ".cache/e2e/context-145/go/20261030T011354617Z.command.json",
+        "exit": 0,
+        "passed_top": 6,
+        "failed": [],
+        "stdout_sha256": "5226bbd3c5e3ec71fa56156f01e00a49f4dff678994769edc9fdda1699a3a18d"
+      },
+      {
+        "path": ".cache/e2e/context-145/go/20261030T011528124Z.command.json",
+        "exit": 0,
+        "passed_top": 1,
+        "failed": [],
+        "stdout_sha256": "b2289b45d5a217bc3089b4fb9837a70dbe18056de25119737004973bf351132f"
+      }
+    ]
+  },
+  "web": {
+    "focused_passed": 36,
+    "focused_failed": 0,
+    "focused_receipt": ".cache/e2e/context-145/web-focused.json",
+    "model_after_strict_enum": {
+      "passed": 4,
+      "failed": 0,
+      "receipt": ".cache/e2e/context-145/web-model-final.json",
+      "counted_again": false
+    },
+    "types": "Full noEmit passed; final enum guard preserves its boolean type and affected model checks passed.",
+    "i18n": {
+      "paired_keys": 7312,
+      "production_hardcodes": 0,
+      "receipt": ".cache/e2e/context-145/i18n.txt"
+    },
+    "build_seconds": 44.83
+  },
+  "actual_runtime": {
+    "test": "TestTaskConversationReplyActualTwoTurnGatewayAndRecovery",
+    "passed": true,
+    "provider": "Owned deterministic loopback compatibility fixture, not a commercial model.",
+    "proof": [
+      "Actual Go→OS Node bundle→local Go gateway→HTTP provider request",
+      "Explicitly published source content once in each actual request",
+      "Second window contains assistant plus human; original referenced human is outside",
+      "Exact source refs, context coverage, model binding and budget retained",
+      "Original callback/ACK loss recovered without duplicate request, message or usage",
+      "Original task and code remain unchanged"
+    ]
+  },
+  "audit": {
+    "initial_compile": "Root extracted a test helper but omitted its local err declaration; corrected only that fixture.",
+    "cli": "New knowledge JSON was initially rejected by existing CLI allowlist. Extended closed pins validation and bilingual help; original caller/body/key remain intact. Focused recheck passed.",
+    "baseline_tests": "Two unchanged-at63bcc39 assertions were stale: release catalog146→147; whole expert-team items comparison included dynamic observed_at. Corrected tests retain fixed IDs, models/workflows, bilingual key assertions and valid current observation.",
+    "browser": "Five ordinary GUI cases passed on the final145 build. Remaining GUI states explicitly pending after host-tool update removed CUA and the new browser SKILL.md was unavailable; no alternate control channel or write replay. Same binary/runtime restored only after its process handle disappeared and the port had no listener."
+  },
+  "limits": [
+    "No new binary attachment/OCR/vector ingestion, memory auto-extraction or retrieval ranking is claimed.",
+    "Current fixed inputs rechecked at create/admission/heartbeat/publication and original development Start; no per-byte provider/control-plane atomicity claim.",
+    "No supplier account, commercial model quality/billing, physical multihost, other database, installation, scale or production acceptance.",
+    "Full P0–P7 and requirements1–26 remain active."
+  ],
+  "recorded_at": "2026-10-30T02:21:19.314186+00:00",
+  "browser": {
+    "status": "partial_actual_gui_remaining",
+    "passed_count": 5,
+    "passed": [
+      "DOM entry matched the frozen web-r2 entry asset",
+      "Knowledge picker initially collapsed with no searchbox rendered",
+      "Explicit revision2 selection saved a real message and reset the composer",
+      "History modal showed exact revision2 approved text and matching SHA256",
+      "Closing history modal restored focus to its original reference button"
+    ],
+    "remaining": [
+      "New draft does not replace existing publication in actual picker",
+      "Republishing invalidates old selection without silently upgrading its pin",
+      "English390px dark keyboard and mobile44px visual verification",
+      "Viewer may read original history but cannot post",
+      "Temporary owned tab8 cleanup after official browser tooling is restored"
+    ],
+    "source_sha256": "67d4d0c213fecf96e8c25f50d56663e18520757123372d97b897b42394205a6d",
+    "index_sha256": "e7084aa54ff7206466e91931c043966b3e6b0643466b31a7564fd2b8ed81c102",
+    "screenshot": {
+      "path": "dist/quality/context-145/history-r2-cn-desktop-light.jpg",
+      "sha256": "b2ae9b3c9266197c49992067bb6c5273f5b96b554f703b3f43fe6ddd2a8f1319",
+      "committed": false
+    },
+    "interruption": "Host tool update explicitly removed cua_repl. New browser skill path was missing and its installed skills directory was empty; searched local skill roots without finding its SKILL.md. No new browser runtime was improvised and no denial was bypassed.",
+    "limits": "Five actual GUI checks only; no model request, task run or formal acceptance created. Backend/API/component checks are separate evidence."
+  },
+  "actual_gui_http_corroboration": {
+    "verified_at": "2026-10-30T02:20:06.849Z",
+    "source_sha256": "67d4d0c213fecf96e8c25f50d56663e18520757123372d97b897b42394205a6d",
+    "index_sha256": "e7084aa54ff7206466e91931c043966b3e6b0643466b31a7564fd2b8ed81c102",
+    "posted_human_messages": 1,
+    "message_id": "05c3aef75710af30a1462ebbd4dd3849",
+    "sequence": 1,
+    "knowledge": {
+      "id": "79c7d914ede8a2b61377e3a5224680cc",
+      "revision": 2,
+      "sha256": "a7e647b17d8d074097b6a6780fb68ddff763368f3424362ccad3728fd1ca19b2"
+    },
+    "exact_history_sha_matches": true,
+    "limits": "Read-only HTTP corroboration of the existing GUI post and exact history. No draft mutation, model call or acceptance."
+  },
+  "review": {
+    "status": "bounded_independent_review_no_new_findings",
+    "scope": "Pin transactions, assistant source seals and dependency union, current authorization boundaries, exact history endpoint, Web selection/recovery and focus components.",
+    "limits": "No duplicate tests, vendor, physical device or other database review."
+  }
+}

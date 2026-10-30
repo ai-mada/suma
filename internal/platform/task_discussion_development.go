@@ -73,7 +73,7 @@ func (s *Service) CreateTaskDiscussionDevelopmentPlan(ctx context.Context, engin
 	if profile.State != "enabled" || profile.Profile.ReadOnly || profile.Profile.Adapter != "suma" || profile.Profile.Protocol != "suma-jsonl-v1" || profile.Profile.WorkspaceToolsVersion != "attempt-workspace-v1" || profile.Profile.ModelExecutionProtocol != mc.Protocol {
 		return out, invalid(discussionDevelopmentProfile)
 	}
-	preview := TaskDispatchPreviewRequest{ProjectID: project, TaskID: request.TaskID, ExpectedTaskVersion: request.ExpectedTaskVersion, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: request.ToolProfileID, ExpectedToolVersion: request.ExpectedToolVersion, ModelExecutionSelection: request.ModelExecutionSelection, IdempotencyKey: request.IdempotencyKey}
+	preview := TaskDispatchPreviewRequest{ProjectID: project, TaskID: request.TaskID, ExpectedTaskVersion: request.ExpectedTaskVersion, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: request.ToolProfileID, ExpectedToolVersion: request.ExpectedToolVersion, ModelExecutionSelection: request.ModelExecutionSelection, Knowledge: knowledgeReferences(reply.Source.Knowledge), IdempotencyKey: request.IdempotencyKey}
 	plan, err := s.buildTaskDispatchSnapshotTx(ctx, engine, auth, project, preview)
 	if err != nil {
 		return out, err

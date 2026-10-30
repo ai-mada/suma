@@ -1,5 +1,9 @@
 # 1.0.0 当前交付状态
 
+T-CONTEXT-145已限定实现[讨论固定资料](../product/task-conversation-knowledge.md)：明确选择最多16个已发布知识的准确ID／修订／SHA，按需读取准确历史，历史可读不授予新消费资格；助手仅从真实completed backing Reply继承依赖，批准正文在模型Source中固定一次，并沿原开发预览与Start重验当前授权／资格。选择器默认收起，失效pin不静默升级，提供中英交互；见[合同](../../contracts/task-conversation-knowledge.md)、[架构](../architecture/task-conversation-knowledge.md)及[交互与AI SOP](../design/task-conversation-knowledge.md)。
+
+[阶段证据](../quality/task-conversation-knowledge-verification.md)及[摘要](../quality/task-conversation-knowledge-summary.json)记录125个Go顶层、148个子场景通过，另1项跳过；Web36项、类型／7312对语言键／生成合同／隔离构建及真实OS Node子进程两轮本机HTTP模型协议链路通过。实际GUI仅5项通过，后续4组因工具热更新后技能缺失仍待验；不代表完整GUI、商业模型或平台验收。完整P0–P7、需求1–26及58 limited／34 pending／92总项不变。
+
 T-COLLAB-144人员提及、团队准确执行跟进与审核责任已完成限定整合和36项真实GUI验证；双角色保存、准确资产／历史、草稿保护及原决定边界均通过，独立接口复核v4仍未发布且新请求pending。见[整合报告](../quality/collaboration-integration-verification.md)和[浏览器证据](../quality/collaboration-browser-summary.json)。源码63bcc39已推dev，最终证据独立交付；全包Go未完整及全平台58／34／92范围继续保留。
 
 T-REVIEW-142已接通验收责任请求→同事务个人收件→原Review准确决定／问题回流；修复测试计划developer／reviewer操作遗漏，任务结论统一accepted／rejected。93项独立Go、58项Web、完整类型／7292语言键／合同／隔离构建及12项实际三账号Runner-HTTP-CLI检查通过，见[需求](../product/task-review-requests.md)、[架构](../architecture/task-review-requests.md)、[交互与AI SOP](../design/task-review-requests.md)和[限定报告](../quality/task-review-requests-verification.md)。binding_current不代表质量门禁通过；最终GUI状态以T-COLLAB-144整合报告为准；完整58／34／92不变。
@@ -28,7 +32,7 @@ T-DESIGN-135继续深化[架构主规格](../suma-architecture-design.html#s21)�
 
 本轮 T-PLATFORM-DESIGN-134 完成全平台设计细化与可点击样稿：[统一体验](../design/unified-experience.md)、[编排架构](../architecture/unified-capability-orchestration.md)、[工具／Harness矩阵](../integrations/development-tool-matrix.md)、[样稿](../design/prototypes/enterprise-workbench.html)。覆盖11项业务闭环、八个演示工作区、配置继承、调度背压和部署开放门槛；[验证报告](../quality/platform-design-verification.md)只证明设计样稿交互，不代表生产页面、新适配器或真实服务集成完成。源码实现基线仍为下述各专项，完整58／34／92保持不变。
 
-更新：2026-10-29。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–26 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。
+更新：2026-10-30。产品统一开发基线为 **1.0.0**；完整 P0–P7 与扩展需求 1–26 继续实施，生产集成尚未完成。[基线与范围](../product/v1-baseline.md)确定产品合同，[实施计划](implementation-plan.md)保留完整待办，[文档索引](../README.md)集中各领域设计、合同和证据。
 
 当前T-CALENDAR-134推进原资源排期：版本化七日工作制及日期例外、按完整任务区间可用小时分摊、未知／0与未完整排期分开，正式智能规划绑定完整日历。中英编辑器与原回执／当前资格连通；[报告](../quality/resource-calendars-verification.md)和[摘要](../quality/resource-calendars-summary.json)记录SQLite／HTTP、DOM及类型／语言／构建证据。真实浏览器及组织计划容量／HR／生产仍待交付；人员明确登记由T-WORKLOG-135单独交付，58／34／92不变。
 

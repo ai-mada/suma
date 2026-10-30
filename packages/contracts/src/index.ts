@@ -3682,6 +3682,11 @@ export interface ProjectKnowledgeRevision {
   created_by: string;
   created_at: string;
 }
+export interface ProjectKnowledgeRevisionDetail {
+  project_id: string;
+  knowledge_id: string;
+  snapshot: ProjectKnowledgeRevision;
+}
 export interface ProjectKnowledgeRevisionList {
   items: (ProjectKnowledgeRevision)[];
   total: number;
@@ -5307,6 +5312,14 @@ export interface TaskConversationAppendRequest {
   body: string;
   idempotency_key: string;
   mention_resource_ids?: (string)[];
+  knowledge?: (ProjectKnowledgeReference)[];
+}
+export interface TaskConversationKnowledgeReference {
+  id: string;
+  revision: number;
+  sha256: string;
+  title_at_post: string;
+  kind_at_post: string;
 }
 export interface TaskConversationMention {
   resource_id: string;
@@ -5343,6 +5356,7 @@ export interface TaskConversationMessage {
   reply_to_sequence: number;
   execution_run_id: string;
   mentions?: (TaskConversationMention)[];
+  knowledge?: (TaskConversationKnowledgeReference)[];
 }
 export interface TaskConversationMessageDetail {
   project_id: string;
@@ -5432,6 +5446,7 @@ export interface TaskConversationReplySource {
   coverage: TaskConversationReplyCoverage;
   reply_to_sequence: number;
   execution_route: ProjectExecutionRoute;
+  knowledge?: (ProjectKnowledgeContextItem)[];
 }
 export interface TaskDelivery {
   test_plan_id?: string;

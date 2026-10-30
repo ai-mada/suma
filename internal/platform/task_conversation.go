@@ -36,7 +36,7 @@ func taskConversationActor(actor Actor) bool {
 func validTaskConversationAppend(req TaskConversationAppendRequest) bool {
 	return handoffID(req.ProjectID, false) && handoffID(req.TaskID, false) && req.ExpectedTaskVersion > 0 && req.ExpectedTaskVersion <= 2147483646 &&
 		utf8.ValidString(req.Body) && len(req.Body) <= 32000 && utf8.RuneCountInString(req.Body) <= 8000 &&
-		strings.TrimSpace(req.Body) != "" && !strings.ContainsRune(req.Body, 0) && planningKey(req.IdempotencyKey) && validTaskConversationMentionIDs(req.MentionResourceIDs)
+		strings.TrimSpace(req.Body) != "" && !strings.ContainsRune(req.Body, 0) && planningKey(req.IdempotencyKey) && validTaskConversationMentionIDs(req.MentionResourceIDs) && validTaskConversationKnowledgeReferences(req.Knowledge)
 }
 
 const taskConversationColumns = `id,sequence,task_version,body,author_id,author_name,actor_kind,created_at,requirement_id,requirement_version,run_id`
@@ -194,6 +194,9 @@ func (s *Service) AppendTaskConversation(ctx context.Context, actor Actor, proje
 		return TaskConversationMessage{}, err
 	}
 	if err = s.projectTaskConversationMentionsTx(ctx, auth, project, task.ID, &out, req.MentionResourceIDs); err != nil {
+		return TaskConversationMessage{}, err
+	}
+	if err = s.projectTaskConversationKnowledgeTx(ctx, auth, project, task.ID, &out, req.Knowledge); err != nil {
 		return TaskConversationMessage{}, err
 	}
 	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, out); err != nil {

@@ -87,6 +87,17 @@ async function configure() {await click('[data-reply-toggle]'); await change('[d
   await change('[data-model-select]', sha('a')); await change('[data-model-token-budget]', '600'); await click('[data-reply-consent]');}
 const writes = () => requests.filter(request => !!request.body);
 
+it('shows the server-frozen knowledge body in the original reply context without reading a current catalog', async () => {
+  server = reply();
+  const pin = {id: 'knowledge-a', revision: 2, sha256: sha('a')};
+  server.source.messages[0] = {...server.source.messages[0], knowledge: [{...pin, title_at_post: 'Recorded publication', kind_at_post: 'spec'}]};
+  server.source.knowledge = [{...pin, title: 'Recorded publication', kind: 'spec', summary: '', content: 'Frozen reply knowledge body', sources: []}];
+  await render(); await click('[data-reply-toggle]');
+  expect(host.textContent).toContain('Frozen reply knowledge body');
+  expect(requests.some(request => request.path.startsWith('/project-knowledge'))).toBe(false);
+  expect(writes()).toHaveLength(0);
+});
+
 it('T128 starts only an explicit saved-note reply with the selected model, one-call parameters and budget, preserving bilingual source text', async () => {
   await render(); expect(requests).toHaveLength(0); await configure();
   expect(host.textContent).toContain('Selected model context window: 32 tokens'); expect(writes()).toHaveLength(0);

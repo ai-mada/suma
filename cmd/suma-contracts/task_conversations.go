@@ -3,7 +3,7 @@ package main
 import "github.com/ai-mada/suma/internal/platform"
 
 func taskConversationModels() []any {
-	return []any{platform.TaskConversationMessage{}, platform.TaskConversationPage{}, platform.TaskConversationAppendRequest{}}
+	return []any{platform.TaskConversationMessage{}, platform.TaskConversationPage{}, platform.TaskConversationAppendRequest{}, platform.TaskConversationKnowledgeReference{}}
 }
 
 // Conversation messages are collaboration facts. Neither a persisted note nor
@@ -44,6 +44,16 @@ func taskConversationContracts(add operationAdder, api map[string]any) {
 	field("TaskConversationAppendRequest", "expected_task_version", map[string]any{"minimum": 1, "maximum": 2147483646})
 	field("TaskConversationAppendRequest", "idempotency_key", map[string]any{"minLength": 8, "maxLength": 128})
 	field("TaskConversationAppendRequest", "body", map[string]any{"minLength": 1, "maxLength": 8000, "x-max-utf8-bytes": 32000, "description": "Nonblank valid Unicode text without NUL. Original whitespace is preserved."})
+	field("TaskConversationAppendRequest", "knowledge", map[string]any{"maxItems": 16, "description": "Explicit exact current-published references; unique knowledge IDs. Never caller-provided content. Original receipt recovery precedes new consumption qualification."})
+	field("TaskConversationMessage", "knowledge", map[string]any{"maxItems": 16, "description": "Immutable publication metadata at posting. Assistant references inherit an exact verified completed backing reply. Omitted when absent; historical read does not grant new consumption."})
+	toolContractMap(schemas, "TaskConversationKnowledgeReference")["additionalProperties"] = false
+	for _, property := range toolContractMap(schemas, "TaskConversationKnowledgeReference", "properties") {
+		property.(map[string]any)["readOnly"] = true
+	}
+	field("TaskConversationKnowledgeReference", "revision", map[string]any{"minimum": 1, "maximum": 2147483647})
+	field("TaskConversationKnowledgeReference", "sha256", map[string]any{"pattern": "^[a-f0-9]{64}$"})
+	field("TaskConversationKnowledgeReference", "title_at_post", map[string]any{"minLength": 1, "maxLength": 200, "x-max-utf8-bytes": 200})
+	field("TaskConversationKnowledgeReference", "kind_at_post", map[string]any{"enum": []string{"memory", "spec", "skill"}})
 	field("TaskConversationMessage", "actor_kind", map[string]any{"enum": []string{"human", "api"}})
 	field("TaskConversationMessage", "sequence", map[string]any{"minimum": 1, "maximum": 9007199254740991})
 	field("TaskConversationPage", "next_before", map[string]any{"minimum": 0, "maximum": 9007199254740991})

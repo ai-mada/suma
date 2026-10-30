@@ -1,0 +1,22 @@
+{
+  "task-conversation-knowledge.title": "Add project knowledge",
+  "task-conversation-knowledge.hint": "Choose exact published revisions. Adding a reference does not start a model or development run.",
+  "task-conversation-knowledge.selected": "Selected knowledge revisions",
+  "task-conversation-knowledge.revision": "Revision {{revision}}",
+  "task-conversation-knowledge.remove": "Remove {{name}}",
+  "task-conversation-knowledge.unavailable": "Selected knowledge unavailable · {{id}}",
+  "task-conversation-knowledge.checking": "Checking selected knowledge · {{id}}",
+  "task-conversation-knowledge.verify_required": "Every selected revision must still be eligible before posting. Unavailable references remain here until you remove them.",
+  "task-conversation-knowledge.conflict": "Remove the selected revision before choosing a different revision of the same knowledge item.",
+  "task-conversation-knowledge.search_label": "Find published project knowledge",
+  "task-conversation-knowledge.search": "Search",
+  "task-conversation-knowledge.invalid_query": "Use at most 200 characters without control characters.",
+  "task-conversation-knowledge.showing": "Showing {{loaded}} of {{total}} published items",
+  "task-conversation-knowledge.options": "Published knowledge",
+  "task-conversation-knowledge.empty": "No published knowledge matches this search.",
+  "task-conversation-knowledge.more": "Load more knowledge",
+  "task-conversation-knowledge.recorded": "Knowledge attached to the original message",
+  "task-conversation-knowledge.history": "Exact knowledge revision",
+  "task-conversation-knowledge.history_hint": "This is the recorded revision. Historical read access does not make it eligible for a new model input.",
+  "task-conversation-knowledge.invalid_read": "The exact knowledge source could not be confirmed. Retry this read."
+}

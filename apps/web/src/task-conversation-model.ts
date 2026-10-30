@@ -1,6 +1,7 @@
 import type {TaskConversationMessage, TaskConversationMessageDetail, TaskConversationPage} from '../../../packages/contracts/src';
 import type {WriteRecoveryRequest} from './write-action';
 import {validMentionResourceIDs} from './task-conversation-mentions-model';
+import {sameKnowledgePins, validConversationKnowledge, validKnowledgePins} from './task-conversation-knowledge-model';
 
 const object = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -28,7 +29,8 @@ const messageKeys = ['id', 'sequence', 'task_version', 'body', 'author_id',
   'reply_id', 'reply_to_sequence', 'execution_run_id'];
 
 export function validConversationMessage(value: unknown): value is TaskConversationMessage {
-  if (!object(value) || !keys(value, [...messageKeys, ...(Object.hasOwn(value, 'mentions') ? ['mentions'] : [])])) return false;
+  if (!object(value) || !keys(value, [...messageKeys, ...(Object.hasOwn(value, 'mentions') ? ['mentions'] : []), ...(Object.hasOwn(value, 'knowledge') ? ['knowledge'] : [])])) return false;
+  if (Object.hasOwn(value, 'knowledge') && !validConversationKnowledge(value.knowledge)) return false;
   if (Object.hasOwn(value, 'mentions')) {
     if (!Array.isArray(value.mentions) || !value.mentions.length || value.mentions.length > 20 || value.actor_kind === 'assistant') return false;
     const resources = new Set(), users = new Set();
@@ -74,17 +76,20 @@ export function validConversationRequest(request: WriteRecoveryRequest, project:
   const body = request.body;
   return request.path === '/task-conversations' && request.method === 'POST' &&
     keys(body, ['project_id', 'task_id', 'expected_task_version', 'body', 'idempotency_key',
-      ...(Object.hasOwn(body, 'mention_resource_ids') ? ['mention_resource_ids'] : [])]) &&
+      ...(Object.hasOwn(body, 'mention_resource_ids') ? ['mention_resource_ids'] : []), ...(Object.hasOwn(body, 'knowledge') ? ['knowledge'] : [])]) &&
     (!Object.hasOwn(body, 'mention_resource_ids') || validMentionResourceIDs(body.mention_resource_ids)) &&
+    (!Object.hasOwn(body, 'knowledge') || validKnowledgePins(body.knowledge)) &&
     body.project_id === project && body.task_id === task && positive(body.expected_task_version) &&
     validConversationBody(body.body) && body.idempotency_key === request.idempotency_key;
 }
 
 export function validConversationReceipt(value: unknown, request: WriteRecoveryRequest, userID: string): boolean {
+  const requestedKnowledge = request.body.knowledge === undefined ? [] : request.body.knowledge;
   return validConversationMessage(value) && value.body === request.body.body &&
     value.task_version === request.body.expected_task_version &&
     value.actor_kind === 'human' && value.author_id === userID &&
-    JSON.stringify(value.mentions?.map(mention => mention.resource_id) || []) === JSON.stringify(request.body.mention_resource_ids || []);
+    JSON.stringify(value.mentions?.map(mention => mention.resource_id) || []) === JSON.stringify(request.body.mention_resource_ids || []) &&
+    validKnowledgePins(requestedKnowledge) && sameKnowledgePins(value.knowledge || [], requestedKnowledge);
 }
 
 export function validConversationMessageDetail(value: unknown, project: string, task: string, message: string): value is TaskConversationMessageDetail {
