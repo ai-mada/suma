@@ -1,0 +1,301 @@
+{
+  "stage": "T-SKILL-COMPARE-157",
+  "version": "1.0.0",
+  "date": "2026-10-30",
+  "status": "windows_sqlite_functional_and_final_responsive_layout_scoped_verified",
+  "contract": "contracts/skill-revision-compare.md",
+  "design": "docs/design/skill-revision-compare.md",
+  "report": "docs/quality/skill-revision-compare-verification.md",
+  "verification": {
+    "web_distinct_cases": 27,
+    "web_new_distinct_cases": 15,
+    "web_existing_distinct_cases": 12,
+    "progression": [
+      {
+        "phase": "initial_focused",
+        "distinct": 24,
+        "new": 12
+      },
+      {
+        "phase": "reopen_first_commit_fix",
+        "new_cases": 1,
+        "distinct_after": 25,
+        "new_after": 13
+      },
+      {
+        "phase": "lifecycle_and_refresh_fix",
+        "new_cases": 2,
+        "distinct_after": 27,
+        "new_after": 15
+      }
+    ],
+    "overlapping_pass_counts_not_added": [
+      7,
+      10
+    ],
+    "new_go_tests": 0,
+    "go_source_changed": false,
+    "go_rebuilt_for_stage": false,
+    "full_historical_suite_run": false,
+    "new_custom_paired_locale_keys": 21,
+    "t157_candidate_paired_locale_keys": 7694,
+    "t157_candidate_production_hardcodes": 0,
+    "main_tree_with_t158_paired_locale_keys": 7705,
+    "monaco_builtin_command_language_dynamically_switched": false,
+    "custom_bilingual_scope": "Comparison controls, source labels and errors; original approved bodies remain untranslated. This does not localize all installed SDK commands.",
+    "v3_build_duration_seconds": 47.45,
+    "v4_build_exit": 0,
+    "v4_types_exit": 0,
+    "v4_build_duration_seconds": 48.74,
+    "v4_read_only_layout_checks": {
+      "planned": 2,
+      "status": "passed",
+      "passed": 2,
+      "scope": "Read-only visual follow-up only; V3 functional15 not repeated."
+    },
+    "counting_note": "27 distinct Web cases include12 existing cases. Reopen green7/lifecycle green10 and repeated checks are not added in full. Unit Monaco boundaries do not prove real browser geometry or workers."
+  },
+  "preparation": {
+    "receipt": ".cache/skill-revision-157/gui/receipt.json",
+    "http_assertions": 7,
+    "requests": 18,
+    "seed_mutations": 12,
+    "reads": 6,
+    "driver_bad_read_404": 1,
+    "seed_writes_replayed": false,
+    "original_v1_adoption_draft_created_in_seed": true,
+    "source_project_read_denied_to_target_reader": true,
+    "additional_preparation3_record_claimed": false,
+    "not_added_to_gui_functional_check_count": true
+  },
+  "actual": {
+    "environment": "Isolated Windows SQLite/Electron software-offscreen with two real test identities and local ESM editor/TypeScript workers.",
+    "v1": {
+      "actual_local_diff_loaded": true,
+      "actual_local_typescript_worker_loaded": true,
+      "renderer_errors": 1,
+      "error": "TextModel got disposed before DiffEditorWidget model got reset",
+      "not_claimed_exception_free": true,
+      "receipt": ".cache/skill-revision-157/gui/ide-preflight.json"
+    },
+    "v3": {
+      "functional_checks": 15,
+      "initial_five_checks_reused_from_same_v3": true,
+      "formal_gui_mutations": 1,
+      "mutation_scope": "Permission withdrawal only",
+      "adoption_writes": 0,
+      "models": 0,
+      "providers": 0,
+      "external_requests": 0,
+      "unexpected_writes": 0,
+      "renderer_errors": 0,
+      "original_v1_draft_unchanged": true,
+      "actual_compared_pair": "v1 versus v2",
+      "same_revision_v1_v1_not_comparable": true,
+      "two_distinct_historical_revisions_gui_verified": false,
+      "two_distinct_historical_revisions_scope": "Unit tests only",
+      "workers": [
+        "local editor worker",
+        "local TypeScript worker"
+      ],
+      "source_font_px": 12,
+      "sha_font_px": 12,
+      "body_font_px": 14,
+      "receipt": ".cache/skill-revision-157/gui/browser-receipt.json"
+    },
+    "visual": {
+      "v3_english_390_inline_requirement_passed": false,
+      "finding": "The final V3 narrow screenshot still uses two narrow diff columns.",
+      "cause": "Installed SDK automatic inline is suppressed in screenReaderMode while accessibilitySupport is explicitly on; the automatic-inline option is a valid top-level option.",
+      "v4_fix_scope": "One Editor container uses ResizeObserver to select renderSideBySide from actual width, preserving accessibilitySupport:on.",
+      "final_visual_acceptance": "passed_scoped",
+      "review_receipt": ".cache/skill-revision-157/gui/review-required.json",
+      "final_geometry": [
+        {
+          "state": "narrow",
+          "viewport": 390,
+          "width": 310.66668701171875,
+          "original": 38,
+          "modified": 272.65625,
+          "inline_deleted_original_in_modified_pane": true,
+          "overflow": false
+        },
+        {
+          "state": "wide",
+          "viewport": 1366,
+          "width": 676.6666870117188,
+          "original": 338,
+          "modified": 338.65625,
+          "inline_deleted_original_in_modified_pane": false,
+          "overflow": false
+        }
+      ],
+      "final_review_receipt": "dist/quality/skill-revision-157/verification-summary.json"
+    },
+    "real_supplier_calls": 0,
+    "other_databases_verified": false,
+    "second_physical_device_verified": false,
+    "production_acceptance_claimed": false
+  },
+  "fixes": [
+    {
+      "kind": "product",
+      "scope": "Reopen, refresh and blocked-state first commits",
+      "behavior": "Fresh keyed read subtrees cannot restore cached approved text before current reads; parent adoption operation recovery remains intact."
+    },
+    {
+      "kind": "product",
+      "scope": "Installed DiffEditor wrapper lifecycle",
+      "behavior": "Layout cleanup detaches the owned widget before releasing only captured private comparison models; independent IDE models survive and the wrapper still owns widget disposal."
+    },
+    {
+      "kind": "visual",
+      "scope": "Narrow diff layout",
+      "behavior": "V3 visual failure led to explicit container-width layout while preserving screen-reader support; final V4 narrow inline and wide two-column checks passed without writes."
+    }
+  ],
+  "driver_and_setup_exceptions": [
+    "Stage dependency resolution initially lacked the root junction; no production change was needed for react/jsx-dev-runtime.",
+    "A preparation script initially used Windows default text decoding and failed before writing; subsequent reads/writes use explicit UTF-8.",
+    "Seed driver used nonexistent knowledge_id instead of returned ProjectKnowledgeDetail.id; its404 did not erase or replay the12 existing writes.",
+    "A GUI driver waited for a dialog although the original adoption UI is an inline form; preserved as a driver failure, not a product form defect.",
+    "Initial lifecycle fixture omitted the real parent's existing pair key; it was aligned before the specific disposal-order RED and not counted as another test.",
+    "An asset-switch driver retained an old process receipt after a PowerShell null LASTEXITCODE short-circuit; startup refused before creating a new process, then the old marker was archived after identity checks.",
+    "V4 first layout driver incorrectly expected the original pane to have zero width. Monaco retains a38px line-number gutter for inline mode. The original failure receipt/image were retained; only the geometry predicate was corrected, with no product source change or mutation replay."
+  ],
+  "source_sets": {
+    "base": "610785b82a2c95fdc7af8f436158e16d56015979",
+    "initial_owned_lf_sha256": "4f6e777be21b8e039ec95902534ef78aaa898d79641d2118f78a55037d635591",
+    "initial_tested_pre_lf_sha256": "5aed21a524d7c33958fd2b36be1f0e164b24d2aa3f95ae1f05c15bacb1f32902",
+    "line_ending_change": "CRLF to LF only; normalized bytes unchanged and no behavioral retest claimed for line endings.",
+    "lifecycle_owned_sha256": "c5dc5aefffcd3efaa77129b9cc84d7ab162cecacebfe2bb6010624fbd38e907f",
+    "v3_functional_candidate_sha256": "1c4750ff0373a2fd2604cd99a7e38414ecece204eca5cb08a8c2cb446d9fe230",
+    "v3_index_sha256": "7e90c6ee8a0c02c73f3773a6303b330cfc0d1afaf3e250ce6c143f64b41030b5",
+    "v4_build_source_sha256": "090cd6d595f1d83bad29f6a87b844b7bbff13c51280920306c32e5c9c18e36d9",
+    "v4_index_sha256": "f665f3c029f520f94a30d835ad50e6e6045a77c1e61db2aad646963f693bd6d7",
+    "v4_result_source": "Final real Electron read-only layout receipt plus root inspection of both exported PNGs.",
+    "reused_t156_binary_sha256": "c611127e660a4e583f49970a2a94502e2a94d58644699027ee85755eb11846ae",
+    "same_database_for_v3_asset_switch": true,
+    "reseeded_for_v3_asset_switch": false,
+    "final_owned16_sha256": "9b2f8ad1f2f84b2fb4801e96c846ce388e097ccb22db4304e6351a2bf30b09e6"
+  },
+  "v3_screenshots_before_final_visual_fix": [
+    {
+      "name": "skills-compare-zh-1366.png",
+      "sha256": "a838b09beaf90c4e14497caa080e9207c1d280a9d4baa03ea4571d79ead7bb68"
+    },
+    {
+      "name": "skills-compare-en-390-dark.png",
+      "sha256": "862812a694e43a1c7ac437a15f2986de1bb5ecb246046b2b776a78da92075f86",
+      "inline_layout_accepted": false
+    }
+  ],
+  "evidence_inputs": [
+    {
+      "path": ".cache/skill-revision-157/evidence.json",
+      "sha256": "0a250dc973a4be9f25e4c0e61173f28c0a1eacb51bda1f283e4f42f218748161"
+    },
+    {
+      "path": ".cache/skill-revision-157/fix-reopen-evidence.json",
+      "sha256": "cadf7a2d0998dc7ac2aea4c5bc34828459f718486bbfe4d88aade264f41655f9"
+    },
+    {
+      "path": ".cache/skill-revision-157/fix-lifecycle-evidence.json",
+      "sha256": "f0b4ea68f97fbfc4e01893a0ae4c13ca12c2b2a2da233b5d60ae3766ee86acea"
+    },
+    {
+      "path": ".cache/skill-revision-157/gui/browser-receipt.json",
+      "sha256": "b155981092b3fabd6730b7cbde416a7b1aa98165bf30b62323811bc9448d1c1a"
+    },
+    {
+      "path": ".cache/skill-revision-157/gui/receipt.json",
+      "sha256": "4ccaaef434c3aa4d33e2f18188b62776966147f73c09627c5a00f92924c1b514"
+    },
+    {
+      "path": ".cache/skill-revision-157/gui/v3-evidence-summary.json",
+      "sha256": "54e48728cf941ec994aae42b3333b52fb4308d8cc3451657816db949362bd609"
+    },
+    {
+      "path": ".cache/skill-revision-157/gui/review-required.json",
+      "sha256": "970f5ee01809c4a2bedc1847c0fd4aeae683844ed6e9103ade56a6f8f8f6bf4a"
+    },
+    {
+      "path": ".cache/skill-revision-157/gui/asset-switch-v3.json",
+      "sha256": "aac8b821d1d72e4299f44b7089e6d60ea5a9677030f7c2df2e94156e290459df"
+    },
+    {
+      "path": ".cache/skill-revision-157/gui/stop-v3-proof.json",
+      "sha256": "49dbd4a6f29a7ed8d007f75c6f5f3c40db2db2c4c9a44bdd9985d707c8f55ca4"
+    },
+    {
+      "path": ".cache/skill-revision-157/fix-inline-evidence.json",
+      "sha256": "edc1dd11850f94386d7f4256e2d9077643e53c3cbc9793ac5cc0e383cd126dfc"
+    },
+    {
+      "path": ".cache/skill-revision-157/gui/layout-receipt.json",
+      "sha256": "4f4a4b33b84675e376e40f710e3c2416680553435938eb8d01e3423e6a59ef54"
+    },
+    {
+      "path": ".cache/skill-revision-157/gui/final-evidence-summary.json",
+      "sha256": "9ca8f9d871975ed57905ccc79da7e797dbd83f4e04f22eb99af6a52e1712c882"
+    }
+  ],
+  "v3_closeout": {
+    "exact_process_identity_checked": true,
+    "stop_method": "Stop-Process",
+    "process_absent": true,
+    "graceful_exit_claimed": false,
+    "files_deleted": 0,
+    "database_profile_and_private_receipts_preserved": true,
+    "not_a_v4_final_closeout_receipt": true
+  },
+  "license": {
+    "multica_reference_pin": "890628511e423864d21c694231277805ce9f113c",
+    "copied_multica_product_source": 0,
+    "existing_dependencies": [
+      "monaco-editor0.52.2 MIT",
+      "@monaco-editor/react4.7.0 MIT"
+    ]
+  },
+  "pending": [
+    "Other databases, actual suppliers, physical multihost, scale, installers and production acceptance"
+  ],
+  "report_writer_changed_only_documents": true,
+  "tests_builds_or_git_run_during_report_writing": false,
+  "private_files_delivered": false,
+  "ledger_unchanged": "58 limited /34 pending /92 total",
+  "full_platform_complete": false,
+  "final_screenshots": [
+    {
+      "name": "skills-compare-en-390-dark.png",
+      "bytes": 141049,
+      "sha256": "b247bbfad2b74535cc0b29cdb2fed966a0a7994b86706c29c65de8c07013727c"
+    },
+    {
+      "name": "skills-compare-zh-1366.png",
+      "bytes": 249645,
+      "sha256": "6ce774b6699ca9a345344e8ffa54b9a1e8353093fdc3afb49aa54cc70e309de4"
+    }
+  ],
+  "final_visual_inspection": {
+    "performed": true,
+    "result": "390px dark inline diff has one readable body column and line-number gutter; 1366px light returns to two body columns; both fixed versions remain identified.",
+    "method": "view_image on both final PNG files",
+    "root_independently_inspected_both": true
+  },
+  "v4_closeout": {
+    "pid": 133244,
+    "identity_verified": true,
+    "stopped_at": "2026-10-30T13:41:28.2965022Z",
+    "method": "Stop-Process after exact executable and UTC creation time verification",
+    "absence_verified": true,
+    "startup_exec_session_exit_code": 0,
+    "data_retained": true,
+    "graceful_exit_claimed": false,
+    "files_deleted": 0
+  },
+  "artifact_manifest": {
+    "path": "dist/quality/skill-revision-157/manifest.json",
+    "sha256": "aeacdd29f525977db83ec7e2f14067025579b4f8110d6137d64f63e1b46bd71a"
+  }
+}

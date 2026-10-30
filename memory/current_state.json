@@ -1,5 +1,23 @@
 {
   "project": "suma",
+  "skill_revision_compare": {
+    "stage": "T-SKILL-COMPARE-157",
+    "version": "1.0.0",
+    "date": "2026-10-30",
+    "status": "windows_sqlite_functional_and_final_responsive_layout_scoped_verified",
+    "contract": "contracts/skill-revision-compare.md",
+    "design": "docs/design/skill-revision-compare.md",
+    "report": "docs/quality/skill-revision-compare-verification.md",
+    "summary": "docs/quality/skill-revision-compare-summary.json",
+    "source_sha256": "090cd6d595f1d83bad29f6a87b844b7bbff13c51280920306c32e5c9c18e36d9",
+    "implementation": "Fixed catalog revision comparison, explicit current-only draft adoption, shared local Monaco loader and own model lifecycle. Reopen/refresh/permission checks cannot briefly restore previous protected bodies.",
+    "verification": "27 distinct Web cases including15 new; final isolated types and7694 paired keys/0 hardcodes. Go unchanged and prior binary reused. Only actual source/visual failures caused affected checks and separate frozen builds.",
+    "actual": "7 preparation assertions and18 seed HTTP requests=12 writes/6 reads separate from15 real functional GUI checks onV3 and2 read-only final layouts onV4. One GUI permission revoke; no adoption/model/vendor writes. Chinese1366 and English390 dark final images independently inspected.",
+    "runtime_closeout": "Exact own PID/path/UTC creation time checked before Stop-Process; process absent and data retained. Startup wrapper exit0 is not a graceful server shutdown claim.",
+    "limits": "Built-in Monaco command NLS not dynamically switched. Other databases, physical multihost, scale, installers, vendor and production remain unverified.",
+    "ledger_unchanged": "58 limited /34 pending /92 total",
+    "full_platform_complete": false
+  },
   "claude_cli": {
     "stage": "T-CLAUDE-CLI-158",
     "version": "1.0.0",

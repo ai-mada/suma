@@ -1,0 +1,23 @@
+{
+  "skill-revision-compare.title": "比较修订",
+  "skill-revision-compare.intro": "对照两个固定目录版本的已批准原文。",
+  "skill-revision-compare.left": "左侧版本",
+  "skill-revision-compare.right": "右侧版本",
+  "skill-revision-compare.option": "目录 v{{version}} · 来源 r{{revision}}",
+  "skill-revision-compare.current": "当前",
+  "skill-revision-compare.choose": "选择一个版本",
+  "skill-revision-compare.source": "来源修订 {{revision}} · 知识版本 {{version}}",
+  "skill-revision-compare.sha": "固定来源 SHA-256",
+  "skill-revision-compare.not_enough": "目前仅有一个版本，需要第二个固定版本才能比较。",
+  "skill-revision-compare.different": "请选择两个不同版本。",
+  "skill-revision-compare.plain_text": "纯文本对照",
+  "skill-revision-compare.show_diff": "显示差异",
+  "skill-revision-compare.editor_failed": "本地比较器未能加载。可重试，或使用纯文本对照。",
+  "skill-revision-compare.retry_editor": "重试比较器",
+  "skill-revision-compare.retry_read": "重新读取当前技能与历史",
+  "skill-revision-compare.editor_label": "固定技能修订只读比较",
+  "skill-revision-compare.boundary": "历史仅供读取。采用当前有效版本会创建项目草稿，并继续原有审核；不会升级已有任务或运行。",
+  "skill-revision-compare.adopt_current": "采用当前版本 {{version}}…",
+  "skill-revision-compare.more": "加载更多修订",
+  "skill-revision-compare.invalid_read": "修订历史与当前固定技能不符，请重新读取。"
+}

@@ -1,0 +1,23 @@
+{
+  "skill-revision-compare.title": "Compare revisions",
+  "skill-revision-compare.intro": "Compare the original approved text of two fixed catalog versions.",
+  "skill-revision-compare.left": "Left version",
+  "skill-revision-compare.right": "Right version",
+  "skill-revision-compare.option": "Catalog v{{version}} · Source r{{revision}}",
+  "skill-revision-compare.current": "Current",
+  "skill-revision-compare.choose": "Choose a version",
+  "skill-revision-compare.source": "Source revision {{revision}} · Knowledge version {{version}}",
+  "skill-revision-compare.sha": "Fixed source SHA-256",
+  "skill-revision-compare.not_enough": "Only one version is available. A second fixed version is needed to compare.",
+  "skill-revision-compare.different": "Choose two different versions.",
+  "skill-revision-compare.plain_text": "Plain text comparison",
+  "skill-revision-compare.show_diff": "Show differences",
+  "skill-revision-compare.editor_failed": "The local comparison editor could not load. Retry it or use plain text comparison.",
+  "skill-revision-compare.retry_editor": "Retry comparison editor",
+  "skill-revision-compare.retry_read": "Read current skill and history again",
+  "skill-revision-compare.editor_label": "Read-only fixed skill revision comparison",
+  "skill-revision-compare.boundary": "History is read-only. Adopting the effective current version creates a project draft for the existing review process; it never upgrades existing tasks or runs.",
+  "skill-revision-compare.adopt_current": "Adopt current version {{version}}…",
+  "skill-revision-compare.more": "Load more revisions",
+  "skill-revision-compare.invalid_read": "The revision history does not match this fixed skill. Read it again."
+}

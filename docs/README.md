@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [固定技能修订比较](design/skill-revision-compare.md) · [合同](../contracts/skill-revision-compare.md) · [限定验证](quality/skill-revision-compare-verification.md) · [摘要](quality/skill-revision-compare-summary.json)：T-SKILL-COMPARE-157保留固定来源与原采纳审核；本地差异／纯文本、刷新权限清理及响应式布局已验证，中英代表界面已检查。
+
 - [Claude Code CLI接入](integrations/claude-cli.md) · [合同](../contracts/claude-cli.md) · [执行架构](architecture/claude-cli-execution.md) · [验证](quality/claude-cli-verification.md) · [摘要](quality/claude-cli-summary.json)：T-CLAUDE-CLI-158复用原正式派发、固定模型、工作树与独立测试链；本机协议夹具及前后端构建通过，真实CLI厂商、GUI与生产仍待验。
 
 - [任务迭代与共享泳道](quality/task-iterations-verification.md) · [正式查询合同](../contracts/task-workspace.md) · [共享视图合同](../contracts/shared-task-views.md) · [交互设计](design/shared-task-views.md) · [摘要](quality/task-iterations-summary.json)：T-MULTICA-ITERATION-156按正式排期筛选和分组，保留任务／排期两维版本，在线双账号共享范围与撤权已实际验证。筛选默认收起，中英1366／390代表界面通过；完整离线、其他数据库和生产继续原计划。
