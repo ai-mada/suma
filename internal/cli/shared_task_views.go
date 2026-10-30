@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -20,18 +21,62 @@ const sharedTaskViewUsage = "task-views requires list, get ID, create --file JSO
 // CLI wire shapes keep the small client independent of the control service.
 // Closed decoding rejects duplicate/unknown fields before JSON reserialization.
 type sharedTaskViewCLIPreferences struct {
-	Q             string `json:"q"`
-	Status        string `json:"status"`
-	StatusUnset   bool   `json:"status_unset"`
-	OwnerID       string `json:"owner_id"`
-	Priority      string `json:"priority"`
-	RequirementID string `json:"requirement_id"`
-	Unassigned    bool   `json:"unassigned"`
-	PriorityUnset bool   `json:"priority_unset"`
-	Sort          string `json:"sort"`
-	Layout        string `json:"layout"`
-	GroupBy       string `json:"group_by"`
+	Q              string   `json:"q"`
+	Status         string   `json:"status"`
+	StatusUnset    bool     `json:"status_unset"`
+	OwnerID        string   `json:"owner_id"`
+	Priority       string   `json:"priority"`
+	RequirementID  string   `json:"requirement_id"`
+	IterationID    string   `json:"iteration_id"`
+	IterationUnset bool     `json:"iteration_unset"`
+	Unassigned     bool     `json:"unassigned"`
+	PriorityUnset  bool     `json:"priority_unset"`
+	Sort           string   `json:"sort"`
+	Layout         string   `json:"layout"`
+	GroupBy        string   `json:"group_by"`
+	Columns        []string `json:"columns,omitempty"`
 }
+
+// Keep omission distinct from JSON null without changing the shared decoder.
+func (p *sharedTaskViewCLIPreferences) UnmarshalJSON(raw []byte) error {
+	type preferences sharedTaskViewCLIPreferences
+	var decoded preferences
+	if err := json.Unmarshal(raw, &decoded); err != nil {
+		return err
+	}
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &fields); err != nil {
+		return err
+	}
+	if value, ok := fields["columns"]; ok && bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+		return usage(sharedTaskViewUsage)
+	}
+	*p = sharedTaskViewCLIPreferences(decoded)
+	return nil
+}
+
+func validSharedTaskViewCLIColumns(columns []string) bool {
+	if columns == nil {
+		return true
+	}
+	if len(columns) < 1 || len(columns) > 5 || columns[0] != "title" {
+		return false
+	}
+	seen := map[string]bool{}
+	for _, column := range columns {
+		switch column {
+		case "title", "status", "priority", "owner", "updated":
+		default:
+			return false
+		}
+		if seen[column] {
+			return false
+		}
+		seen[column] = true
+	}
+	return true
+}
+
 type sharedTaskViewCLIWrite struct {
 	ProjectID       string                       `json:"project_id"`
 	Name            string                       `json:"name"`
@@ -125,7 +170,7 @@ func sharedTaskViewsCommand(ctx context.Context, c *client, args []string, in io
 		key = request.IdempotencyKey
 	} else {
 		var request sharedTaskViewCLIWrite
-		if woc.Decode(raw, &request) != nil || args[0] == "update" && request.ExpectedVersion < 1 || request.Name == "" || request.Visibility != "private" && request.Visibility != "project" {
+		if woc.Decode(raw, &request) != nil || args[0] == "update" && request.ExpectedVersion < 1 || request.Name == "" || request.Visibility != "private" && request.Visibility != "project" || !validSharedTaskViewCLIColumns(request.Preferences.Columns) {
 			return usage(sharedTaskViewUsage)
 		}
 		key = request.IdempotencyKey

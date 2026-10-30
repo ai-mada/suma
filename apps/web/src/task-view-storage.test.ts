@@ -188,3 +188,8 @@ it('persists exact and unlinked iteration preferences without conflating literal
  const {storage}=memoryStorage();const result=writeTaskViews(storage,scope,[exact,unlinked],null);expect(result.error).toBeNull();expect(readTaskViews(storage,scope).collection?.views).toEqual([exact,unlinked]);expect(readTaskViews(storage,['other','org-a','project-a']).collection?.views).toEqual([]);
  for(const invalid of [{iteration_id:'unset',iteration_unset:true},{iteration_id:'../other'},{iteration_unset:'true'}]){const entry={...view(),preferences:{...view().preferences,...invalid}};const raw=encode([entry]),isolated=memoryStorage(raw);expect(readTaskViews(isolated.storage,scope).error).toBe('corrupt');expect(isolated.values.get(taskViewsKey(scope))).toBe(raw);}
 });
+
+it('round trips exact column order and retains all original raw filters when an invalid column preference is rejected',()=>{
+ const saved={...view(),preferences:{...view().preferences,columns:['title','updated','owner']}};const {storage,values}=memoryStorage();expect(writeTaskViews(storage,scope,[saved],null).error).toBeNull();expect(readTaskViews(storage,scope).collection?.views[0].preferences).toEqual(saved.preferences);
+ const raw=encode([{...saved,preferences:{...saved.preferences,columns:null}}]);values.set(taskViewsKey(scope),raw);expect(readTaskViews(storage,scope)).toMatchObject({raw,collection:null,error:'corrupt'});expect(values.get(taskViewsKey(scope))).toBe(raw);
+});

@@ -5225,6 +5225,7 @@ export interface SharedTaskViewPreferences {
   sort: string;
   layout: string;
   group_by: string;
+  columns?: (string)[];
 }
 export interface SharedTaskViewUpdateRequest {
   project_id: string;

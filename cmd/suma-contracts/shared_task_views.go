@@ -71,6 +71,12 @@ func sharedTaskViewContracts(add operationAdder, api map[string]any) {
 	field("SharedTaskViewPreferences", "sort", map[string]any{"enum": []string{"", "updated_desc", "created_desc", "title_asc", "priority_desc"}, "default": "updated_desc"})
 	field("SharedTaskViewPreferences", "layout", map[string]any{"enum": []string{"", "list", "board"}, "default": "list"})
 	field("SharedTaskViewPreferences", "group_by", map[string]any{"enum": []string{"", "status", "owner", "priority", "iteration"}, "default": "status"})
+	field("SharedTaskViewPreferences", "columns", map[string]any{
+		"minItems": 1, "maxItems": 5, "uniqueItems": true,
+		"prefixItems": []any{map[string]any{"const": "title"}},
+		"items":       map[string]any{"type": "string", "enum": []string{"title", "status", "priority", "owner", "updated"}},
+		"description": "Exact visible data-column order. Title is fixed first; title alone hides all optional columns. Omission uses visual defaults title/status/priority/owner/updated and remains absent from the canonical operation body. Selection/open controls are separate; no task, query scope or permission changes.",
+	})
 	for _, model := range []string{"SharedTaskView", "SharedTaskViewPage"} {
 		for _, value := range toolContractMap(schemas, model, "properties") {
 			value.(map[string]any)["readOnly"] = true

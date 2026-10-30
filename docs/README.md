@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [任务显示列](design/task-columns.md) · [合同](../contracts/task-columns.md) · [限定验收](quality/task-columns-verification.md) · [摘要](quality/task-columns-summary.json)：T-TASK-COLUMNS-160提供简洁列显示／排序，本机和共享视图同源，原保存响应丢失后不重复创建；18项实际检查及中英代表图已复核。
+
 - [Claude正式派发、测试与问题回流](quality/claude-formal-verification.md) · [摘要](quality/claude-formal-summary.json) · [合同](../contracts/claude-cli.md)：T-CLAUDE-FORMAL-159完成受控协议的正式Worker／HTTP链路及原操作恢复，四个派发／交接入口统一运行身份核对；真实供应方和跨窗口自动持久恢复仍未验收。
 
 - [固定技能修订比较](design/skill-revision-compare.md) · [合同](../contracts/skill-revision-compare.md) · [限定验证](quality/skill-revision-compare-verification.md) · [摘要](quality/skill-revision-compare-summary.json)：T-SKILL-COMPARE-157保留固定来源与原采纳审核；本地差异／纯文本、刷新权限清理及响应式布局已验证，中英代表界面已检查。

@@ -1,0 +1,442 @@
+{
+  "stage": "T-TASK-COLUMNS-160",
+  "version": "1.0.0",
+  "date": "2026-10-30",
+  "status": "windows_sqlite_local_and_shared_columns_scoped_verified",
+  "contract": "contracts/task-columns.md",
+  "shared_view_contract": "contracts/shared-task-views.md",
+  "design": "docs/design/task-columns.md",
+  "report": "docs/quality/task-columns-verification.md",
+  "full_platform_complete": false,
+  "ledger_unchanged": "58 limited /34 pending /92 total",
+  "implementation": {
+    "allowed_columns": [
+      "title",
+      "status",
+      "priority",
+      "owner",
+      "updated"
+    ],
+    "default_columns": [
+      "title",
+      "status",
+      "priority",
+      "owner",
+      "updated"
+    ],
+    "title_first_and_unique": true,
+    "title_only_allowed": true,
+    "omission_preserved_in_canonical_request_hash": true,
+    "explicit_null_empty_duplicate_unknown_nonstring_oversized_rejected": true,
+    "selection_and_open_rails_outside_preferences": true,
+    "iteration_title_badge_unchanged": true,
+    "board_cards_unchanged": true,
+    "no_new_ddl_routes_or_task_state": true,
+    "cli_iteration_scope_fields_synchronized": true,
+    "frontend": {
+      "preference": "columns optional exact ordered visible IDs title/status/priority/owner/updated; title first and mandatory; undefined declared default; no default materialized into outgoing body.",
+      "display": "Native collapsed details, checkboxes and named up/down controls with focus retention, explicit restore default, title/selection/open rails protected, iteration badge unchanged, board cards unchanged.",
+      "membership": "columns excluded from taskQueryKey, taskWorkspacePath and collection read identity. Unit verifies no reread, preserved row selection and original next cursor.",
+      "restore": "Local strict allowlist and raw conflict semantics retain corrupt original data without auto-writing. URL preserves raw ID order/duplicates as arrays and retains q/status/owner when columns invalid. Explicit saved-view application uses the same current display preference.",
+      "formal_boundary": "Existing SharedTaskViews parser is not rewritten globally. New columns guard checks list, write receipt and current-item read before application. Explicit bad columns cause localized error. Malformed write receipt uses the existing unknown-original-command path; no fresh key, silent default or automatic retry.",
+      "pending_body": "Projection clones column arrays, compares omission and explicit default by displayed semantics, and keeps original request body/key unchanged even when the caller changes display or a200 receipt is malformed.",
+      "css": "Named table class overrides positional has-detail hiding at higher specificity, so configured cells and fixed rails are not accidentally hidden after reorder.",
+      "app": "Only two TaskCollection display prop insertions; exact reversal reproduces the baseline App bytes."
+    }
+  },
+  "verification": {
+    "backend_cli": {
+      "distinct_top": 9,
+      "new_top": 5,
+      "existing_top": 4,
+      "named_subcases": 20,
+      "exit_code": 0,
+      "evidence": ".cache/task-columns-160/backend/backend-evidence.json",
+      "sha256": "7ca1e1967ec78ccbd1abc19c91a0678bf68edc805ddd771b35e5196cb2a216b4"
+    },
+    "public_contract": {
+      "new_cases": 1,
+      "existing_cases": 1,
+      "exit_code": 0,
+      "tool_chunk": "76e3d3",
+      "tests": "TestTaskViewColumnsContractKeepsTitleAndOptionalCanonicalBody; TestSharedTaskViewsContractKeepsScopesVersionsAndClosedPreferences"
+    },
+    "web": {
+      "distinct_cases": 112,
+      "new_cases": 9,
+      "existing_cases": 103,
+      "exit_code": 0,
+      "evidence": ".cache/task-columns-160/evidence.json",
+      "sha256": "2c888af6dd6ed1efe2cd0cbfe81e5c521b2d01e1260b9548e8c24cd784847570",
+      "affected_rechecks_not_added": true
+    },
+    "integration": {
+      "types_initial_exit": 2,
+      "initial_failure": "One intentionally malformed columns:null test response used a typed fixture; no production type error.",
+      "types_final_exit": 0,
+      "types_final_tool_chunk": "7c0e96",
+      "types_log": ".cache/task-columns-160/integration-types-final.log",
+      "fixture_only_fix": ".cache/task-columns-160/fix-wire-fixture.json",
+      "production_change_for_type_fix": false,
+      "web_builds": 1,
+      "web_build_exit": 0,
+      "web_build_seconds": 50.6,
+      "control_builds": 1,
+      "control_build_exit": 0,
+      "paired_locale_keys": 7719,
+      "new_paired_keys": 14,
+      "production_hardcodes": 0,
+      "broad_suite_or_build_repeated_for_fixture": false
+    }
+  },
+  "actual": {
+    "stage": "T-TASK-COLUMNS-160",
+    "status": "actual_isolated_http_gui_verified",
+    "candidate": {
+      "stage": "T-TASK-COLUMNS-160",
+      "source": "D:/codes/ai-dev-os/suma/.cache/task-columns-160/src",
+      "binary": "D:/codes/ai-dev-os/suma/.cache/task-columns-160/bin/suma-control.exe",
+      "web": "D:/codes/ai-dev-os/suma/.cache/task-columns-160/web-dist",
+      "control_sha256": "85ccdb3971a3295c41a2962dc449d281086091a8954090936cccd82c2b621357",
+      "web_index_sha256": "cc5276141a424fd38722bd5cb8a0282d1200d077bac86dc6a8f68b158aef687b",
+      "compiled_source_sha256": "6af7fdab9a06d42582dbdf2b173d1b3aeca01a05967a092d53d1ded1742f49c7",
+      "source_sha256": "64e4438fc60fa724bddce01b2960ec06d9f6158bcc41bd24c5d8d8fd8b9893aa",
+      "post_compile_delta": "One negative-wire TEST fixture type boundary only; production inputs unchanged; no rebuild."
+    },
+    "accounts": 2,
+    "project_viewer": true,
+    "tasks": 2,
+    "passed": 18,
+    "checks": [
+      "normal invitation creates a second account with actual project viewer authority",
+      "default five columns keep selection and the actual task detail open",
+      "hide and keyboard reorder preserve every visible cell while detail is open",
+      "title-only retains mandatory title plus selection and open-detail controls",
+      "restore defaults removes explicit column override and preserves filters",
+      "column-only changes issue zero extra task-workspace/summary requests and zero business writes",
+      "column changes preserve selected task and original task versions/status",
+      "formal personal view API persists the exact ordered column preference",
+      "lost Save response commits one project view and leaves the original modal pending",
+      "explicit original Save recovery reuses byte-identical body/key and the same version1 entity",
+      "second account sees the project view and cannot see the owner personal view",
+      "real viewer applies the shared order without task or permission writes",
+      "refresh restores the exact column order from the current URL without a new view entity",
+      "narrow screen accepts real CDP touch input on the 44px label and retains the shared order",
+      "narrow reorder controls keep visible keyboard focus and enabled touch-sized targets",
+      "two original tasks retain all versions/status after private and shared view operations",
+      "display and view operations create no run, model or Runner execution",
+      "renderer finishes without exceptions"
+    ],
+    "column_order": {
+      "default": [
+        "title",
+        "status",
+        "priority",
+        "owner",
+        "updated"
+      ],
+      "shared": [
+        "title",
+        "updated",
+        "status",
+        "owner"
+      ],
+      "title_only": [
+        "title"
+      ]
+    },
+    "column_only_network": {
+      "before": {
+        "workspace": 1,
+        "summary": 1,
+        "writes": 0
+      },
+      "after": {
+        "workspace": 1,
+        "summary": 1,
+        "writes": 0
+      },
+      "additional_workspace": 0,
+      "additional_summary": 0,
+      "additional_writes": 0
+    },
+    "views": {
+      "personal": 1,
+      "project": 1,
+      "project_version": 1,
+      "original_save_transports": 2,
+      "project_entities": 1
+    },
+    "unknown_save": "Real upstream201 committed, browser response aborted; original modal remained open, explicit original-operation retry sent byte-identical body/key and returned same entity/version1.",
+    "fixture": {
+      "normal_http": true,
+      "accounts": "Real setup/invitation acceptance with actual project viewer grant",
+      "personal_view": "Formal HTTP API",
+      "project_view": "Explicit actual UI save, unknown response and original retry",
+      "direct_database_writes": 0
+    },
+    "driver_failures": [
+      {
+        "number": 1,
+        "phase": "formal_private_and_project_view_original_save",
+        "name": "TimeoutError",
+        "classification": "cache_locator",
+        "product_failure_claimed": false
+      },
+      {
+        "number": 2,
+        "phase": "formal_private_and_project_view_original_save",
+        "name": "TimeoutError",
+        "classification": "cache_locator",
+        "product_failure_claimed": false
+      },
+      {
+        "number": 3,
+        "phase": "formal_private_and_project_view_original_save",
+        "name": "TimeoutError",
+        "classification": "cache_locator",
+        "product_failure_claimed": false
+      },
+      {
+        "number": 4,
+        "phase": "formal_private_and_project_view_original_save",
+        "name": "TimeoutError",
+        "classification": "cache_locator",
+        "product_failure_claimed": false
+      },
+      {
+        "number": 5,
+        "phase": "actual_viewer_apply_and_reload",
+        "name": "TimeoutError",
+        "classification": "cache_locator",
+        "product_failure_claimed": false
+      },
+      {
+        "number": 6,
+        "phase": "narrow_touch_keyboard_and_final_images",
+        "name": "ReferenceError",
+        "classification": "cache_receipt_local_variable",
+        "product_failure_claimed": false
+      }
+    ],
+    "driver_failure_scope": "Initial collapsed controls, subsequent wrong embedded toggle/implicit label/modal visibility/viewer collapsed controls, then receipt-only missing local variable. All original failures retained; same accounts/database/tasks/windows retained, no reseed or second project save entity.",
+    "electron": "35.7.5",
+    "production_preload": true,
+    "software_offscreen": true,
+    "host_temp_set_before_playwright": true,
+    "viewports": {
+      "cn": {
+        "width": 1366,
+        "height": 960
+      },
+      "en": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    "touch": "Chromium CDP touch emulation against >=44px labels, not a physical device",
+    "final_desktop_layout": {
+      "read_only": true,
+      "api_requests": 0,
+      "original_images_archived": true
+    },
+    "screenshots": [
+      {
+        "name": "columns-zh-1366.png",
+        "bytes": 167453,
+        "sha256": "0223bc5c929b8675a17a8b9241b3e3f9825bf4e53cd5251e97627936816fed3f",
+        "pixel_width": 1366,
+        "pixel_height": 960
+      },
+      {
+        "name": "columns-en-390.png",
+        "bytes": 55925,
+        "sha256": "394f7f04da478cecd4e964cf3d58cd772dc6fd9ace9c00ef03bc46348fab0c74",
+        "pixel_width": 390,
+        "pixel_height": 844
+      }
+    ],
+    "runs": 0,
+    "model_calls": 0,
+    "runner_execution": 0,
+    "private_material_delivered": false,
+    "limits": "Owned Windows Electron software-offscreen, isolated SQLite and two real HTTP accounts; no physical device, visible OS-window, production data, other database, scale or model/provider acceptance."
+  },
+  "actual_scope_notes": {
+    "formal_personal_view_created_by_http": 1,
+    "formal_project_view_created_by_ui": 1,
+    "project_save_transports": 2,
+    "same_entity_version": 1,
+    "byte_identical_original_body_and_key": true,
+    "two_original_tasks_versions_and_status_unchanged": true,
+    "column_only_additional_workspace_gets": 0,
+    "column_only_additional_summary_gets": 0,
+    "column_only_additional_business_writes": 0,
+    "all_selected_detail_cells_display": "table-cell",
+    "run_count": 0,
+    "model_calls": 0,
+    "runner_execution": 0,
+    "touch_is_cdp_emulation": true,
+    "physical_touch_device_verified": false,
+    "root_independent_visual_inspection": "passed: root viewed both final Chinese1366 and English390 PNGs",
+    "final_zero_api_desktop_capture_not_counted_as_repeated18_checks": true
+  },
+  "source_sets": {
+    "base": "8042114b73d166443140a50e01972a3546f5fc01",
+    "compiled_source_sha256": "6af7fdab9a06d42582dbdf2b173d1b3aeca01a05967a092d53d1ded1742f49c7",
+    "type_checked_source_sha256": "64e4438fc60fa724bddce01b2960ec06d9f6158bcc41bd24c5d8d8fd8b9893aa",
+    "post_compile_changed_files": [
+      {
+        "path": "apps/web/src/SharedTaskViews.test.tsx",
+        "sha256": "0415a1aee4cc93032f96b04b6a995594e36e77e08b459c35485d28c4cbc4191a"
+      }
+    ],
+    "production_changed_after_build": false,
+    "post_compile_note": "Only malformed response test transport typing corrected. Original build inputs and assets retained; no repeated build.",
+    "scope": "Frozen160 implementation plus prior159 response fixes; unrelated WIP excluded.",
+    "control_sha256": "85ccdb3971a3295c41a2962dc449d281086091a8954090936cccd82c2b621357",
+    "web_index_sha256": "cc5276141a424fd38722bd5cb8a0282d1200d077bac86dc6a8f68b158aef687b"
+  },
+  "driver_records": {
+    "failures_preserved": 6,
+    "scope": "Owned cached drivers and receipt assembly only; no product change or repeated seed.",
+    "receipt": "dist/quality/task-columns-160/command-receipt.json",
+    "sha256": "c9aa7fc62cadb112a9c7c739f3f74de95deeb321bdd68d64a897ac2d11fb978c",
+    "raw_stdout_not_saved": true,
+    "tool_output_references_retained": true
+  },
+  "closeout": {
+    "electron": {
+      "closed": true,
+      "method": "await original ElectronApplication.close()",
+      "electron": "35.7.5",
+      "windows": [
+        {
+          "actor": "owner",
+          "closed": true
+        },
+        {
+          "actor": "viewer",
+          "closed": true
+        }
+      ],
+      "external_blocked": 0,
+      "at_utc": "2026-10-30T14:59:16.724Z"
+    },
+    "control": {
+      "method": "Stop-Process",
+      "stopped_at_utc": "2026-10-30T14:59:23.5211931Z",
+      "identity_verified": true,
+      "database_retained": true,
+      "process_absent": true,
+      "start_time_utc": "2026-10-30T14:52:48.9642534Z",
+      "binary": "D:\\codes\\ai-dev-os\\suma\\.cache\\task-columns-160\\bin\\suma-control.exe",
+      "pid": 128880,
+      "graceful_shutdown_claimed": false
+    },
+    "graceful_control_shutdown_claimed": false,
+    "database_retained": true
+  },
+  "evidence_inputs": [
+    {
+      "path": ".cache/task-columns-160/backend/backend-evidence.json",
+      "bytes": 12250,
+      "sha256": "7ca1e1967ec78ccbd1abc19c91a0678bf68edc805ddd771b35e5196cb2a216b4"
+    },
+    {
+      "path": ".cache/task-columns-160/evidence.json",
+      "bytes": 8013,
+      "sha256": "2c888af6dd6ed1efe2cd0cbfe81e5c521b2d01e1260b9548e8c24cd784847570"
+    },
+    {
+      "path": ".cache/task-columns-160/fix-wire-fixture.json",
+      "bytes": 1082,
+      "sha256": "353b6ebc5f7ecf0cd59c4fb94ecc58fd24a93c70dcd1525cf8354776a0354ea9"
+    },
+    {
+      "path": ".cache/task-columns-160/candidate-source.json",
+      "bytes": 369873,
+      "sha256": "f58b3240aaef6f94616d287df4a18c2372cfb73f49ace28c656eeafcea928fa6"
+    },
+    {
+      "path": ".cache/task-columns-160/candidate-source-types.json",
+      "bytes": 370311,
+      "sha256": "4b6e2a0d208f8be683dcc34658c5ee30c346c2b13fa704caf08613fb8e147df3"
+    },
+    {
+      "path": ".cache/task-columns-160/integration-types.log",
+      "bytes": 114,
+      "sha256": "0436e46855a6240063c474b5aa159c6748bc73b5e9c7e8bc5772525c6a4f87eb"
+    },
+    {
+      "path": ".cache/task-columns-160/integration-types-final.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".cache/task-columns-160/integration-i18n.log",
+      "bytes": 102,
+      "sha256": "5c140546089d423078527ac6b21f6af0227588643a3e5b6be1bc99ada57b270d"
+    },
+    {
+      "path": ".cache/task-columns-160/integration-build.log",
+      "bytes": 18248,
+      "sha256": "c694cb22defaeee057419494fc8baf1f2179c48cc002e2295d69ec0f759473bc"
+    },
+    {
+      "path": "dist/quality/task-columns-160/receipt.json",
+      "bytes": 6411,
+      "sha256": "b90f8db2f154c1426001a2b4a699d5264ec3bc3144e611122ae6cd4fbf61ec74"
+    },
+    {
+      "path": "dist/quality/task-columns-160/artifact-manifest.json",
+      "bytes": 1520,
+      "sha256": "16cc4208117347435cc5cc0d65380fea85524c7d3fa86e57e4673752be0a2dba"
+    },
+    {
+      "path": "dist/quality/task-columns-160/command-receipt.json",
+      "bytes": 5537,
+      "sha256": "c9aa7fc62cadb112a9c7c739f3f74de95deeb321bdd68d64a897ac2d11fb978c"
+    },
+    {
+      "path": "dist/quality/task-columns-160/native-close-receipt.json",
+      "bytes": 304,
+      "sha256": "97bb50cd772dc98d4f9634e3ef787140f46598b7952f65dad039b6a052ff6d44"
+    },
+    {
+      "path": "dist/quality/task-columns-160/stopped.json",
+      "bytes": 376,
+      "sha256": "86a6a93241f7971ee33ccb94eb61653c703f67cdda0fe5778641cf235272ca80"
+    }
+  ],
+  "artifact_manifest_sha256": "16cc4208117347435cc5cc0d65380fea85524c7d3fa86e57e4673752be0a2dba",
+  "artifact_manifest_files_checked": 6,
+  "artifact_manifest_verified_by_report_writer": true,
+  "privacy": {
+    "private_material_delivered": false,
+    "private_requests_delivered": false,
+    "private_database_or_credentials_delivered": false,
+    "private_sources_read_for_report": false
+  },
+  "reference": {
+    "multica_product_source_copied": 0,
+    "old_apache_object_read": "e6f840ca115740a6fb80786537405bcf049d6497:LICENSE and apps/web/features/issues/components/issues-header.tsx show existing card-property visibility toggles, not a ready ordered task-list-column adapter. No code was copied.",
+    "reuse": "Existing React/native controls, task table/filter/pagination, same saved-view storage and formal CAS/recovery; no new framework or dependency.",
+    "root_independent_visual_inspection": "Both final Chinese1366 and English390 PNGs independently inspected by root; header order, readable controls and focus confirmed."
+  },
+  "limits": [
+    "Owned Windows Electron software-offscreen with isolated SQLite and2 real HTTP accounts only.",
+    "Other databases, physical devices or multihost, full offline synchronization/conflict recovery, scale, installers and production unverified.",
+    "No run, model or Runner execution was performed; no actual supplier capability acceptance follows from this stage.",
+    "Root independent screenshot review remains a separate closeout check.",
+    "Full P0-P7 and58 limited/34 pending/92 total remain active."
+  ],
+  "tests_builds_or_git_run_during_report_writing": false,
+  "missing_logs_or_commands_invented": false,
+  "report_writer_changed_only_documents": true,
+  "compact_summary_provenance": {
+    "detailed_draft": ".cache/task-columns-160/quality-summary-draft.json",
+    "sha256": "bf2d26736cf7fb42087747f2eec4378f50fe70ad4c45b927fc32960f8c2f590b",
+    "detail_sources_preserved": true
+  }
+}

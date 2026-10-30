@@ -2,6 +2,26 @@ package main
 
 import "testing"
 
+func TestTaskViewColumnsContractKeepsTitleAndOptionalCanonicalBody(t *testing.T) {
+	api, _ := generate()
+	prefs := mapAt(api, "components", "schemas", "SharedTaskViewPreferences")
+	columns := mapAt(prefs, "properties", "columns")
+	if columns["type"] != "array" || columns["minItems"] != 1 || columns["maxItems"] != 5 || columns["uniqueItems"] != true {
+		t.Fatal("display columns must be a bounded, unique, nonempty array")
+	}
+	if columns["default"] != nil {
+		t.Fatal("an omitted preference must not materialize a new canonical request body")
+	}
+	first, ok := columns["prefixItems"].([]any)
+	if !ok || len(first) != 1 || first[0].(map[string]any)["const"] != "title" {
+		t.Fatal("title must remain the first visible data column")
+	}
+	ids, ok := mapAt(columns, "items")["enum"].([]string)
+	if !ok || len(ids) != 5 || ids[0] != "title" || ids[4] != "updated" {
+		t.Fatal("only current real task columns may be configured")
+	}
+}
+
 func TestSharedTaskViewsContractKeepsScopesVersionsAndClosedPreferences(t *testing.T) {
 	api, _ := generate()
 	paths := mapAt(api, "paths")

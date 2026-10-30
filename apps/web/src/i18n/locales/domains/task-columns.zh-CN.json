@@ -1,0 +1,16 @@
+{
+  "task-columns.title": "列",
+  "task-columns.column.title": "任务",
+  "task-columns.column.status": "状态",
+  "task-columns.column.priority": "优先级",
+  "task-columns.column.owner": "负责人",
+  "task-columns.column.updated": "更新时间",
+  "task-columns.fixed": "始终位于首列",
+  "task-columns.move_up": "上移{{name}}",
+  "task-columns.move_down": "下移{{name}}",
+  "task-columns.defaults": "恢复默认列",
+  "task-columns.hint": "仅改变显示。需明确保存视图才能保留此布局；看板卡片不变。",
+  "task-columns.invalid": "列配置无效，其余筛选条件已保留。恢复默认列后可显示列表。",
+  "task-columns.invalid_response": "保存视图返回的列配置无效，尚未应用。",
+  "task-columns.summary": "显示列：{{names}}"
+}

@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TASK-COLUMNS-160：[任务显示列](../design/task-columns.md)与[验收报告](../quality/task-columns-verification.md)限定完成。五种数据列按需显示／排序，标题固定，可只保留标题；本机、URL、个人／项目视图使用同一偏好，显式非法值拒绝，原回执摘要不变。后端CLI及schema6个新增／5个原回归、Web112项（9新增）、最终类型和7719语言键通过；一次前后端构建，18项实际检查与中英代表图已复核。列变化不额外查询任务、不改选择／版本；未知保存同body/key恢复同一第1版视图。原数据保留，其他数据库、多机、离线及生产待验，58／34／92不变。
+
 T-CLAUDE-FORMAL-159：[正式CLI交付与问题回流](../quality/claude-formal-verification.md)及[摘要](../quality/claude-formal-summary.json)限定验收完成。一个原Run沿双本机Worker、真实Git候选和独立Node／JUnit通过，Review退回后任务阻塞并关联Issue，Run仍成功；四个前端入口误比原工作流身份的问题已统一修复。6项受影响Web检查、独立类型／7705语言键和一次UI构建通过；准备、HTTP、GUI与恢复分别计数。恢复依赖测试宿主重载原body／key，不代表跨窗口自动持久；真实供应方／物理多机／其他系统及生产仍待验，完整58／34／92不变。
 
 T-SKILL-COMPARE-157：[固定技能修订比较](../design/skill-revision-compare.md)及[限定验证](../quality/skill-revision-compare-verification.md)。默认收起，两个准确版本对照、纯文本后备与明确采用当前版本沿原草稿审核；刷新／重开不回显旧正文，差异模型释放不影响IDE。复用本地Monaco，27项不同Web（15新增）及最终类型通过；7准备断言、15实际功能交互、2最终只读布局分开记录，中英1366／390已目视。真实界面发现的销毁异常及窄屏双栏已修复，13次正式写分为seed12与撤权1，无采纳重写或模型调用。内建SDK命令语言、其他数据库、多机及生产继续待验，58／34／92不变。

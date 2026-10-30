@@ -25907,6 +25907,28 @@
       "SharedTaskViewPreferences": {
         "additionalProperties": false,
         "properties": {
+          "columns": {
+            "description": "Exact visible data-column order. Title is fixed first; title alone hides all optional columns. Omission uses visual defaults title/status/priority/owner/updated and remains absent from the canonical operation body. Selection/open controls are separate; no task, query scope or permission changes.",
+            "items": {
+              "enum": [
+                "title",
+                "status",
+                "priority",
+                "owner",
+                "updated"
+              ],
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 1,
+            "prefixItems": [
+              {
+                "const": "title"
+              }
+            ],
+            "type": "array",
+            "uniqueItems": true
+          },
           "group_by": {
             "default": "status",
             "enum": [

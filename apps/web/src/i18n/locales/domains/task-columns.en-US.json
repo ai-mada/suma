@@ -1,0 +1,16 @@
+{
+  "task-columns.title": "Columns",
+  "task-columns.column.title": "Task",
+  "task-columns.column.status": "Status",
+  "task-columns.column.priority": "Priority",
+  "task-columns.column.owner": "Owner",
+  "task-columns.column.updated": "Updated",
+  "task-columns.fixed": "Always first",
+  "task-columns.move_up": "Move {{name}} up",
+  "task-columns.move_down": "Move {{name}} down",
+  "task-columns.defaults": "Restore default columns",
+  "task-columns.hint": "Display only. Save the view explicitly to keep this layout. Board cards stay unchanged.",
+  "task-columns.invalid": "The column configuration is invalid. Other filters are retained. Restore defaults to display the list.",
+  "task-columns.invalid_response": "The saved view returned an invalid column configuration. It has not been applied.",
+  "task-columns.summary": "Columns: {{names}}"
+}

@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
-import {parseWorkbenchRoute} from './navigation';
-import {defaultTaskView,taskViewFromRoute,taskViewToRoute,taskWorkspacePath} from './task-views-model';
+import {parseWorkbenchRoute,resetTaskCollectionScope} from './navigation';
+import {defaultTaskView,taskViewFromRoute,taskViewToRoute,taskWorkspacePath,taskQueryKey} from './task-views-model';
 import {groupTaskRows} from './multica-task-view';
 
 describe('task view route and grouped projections',()=>{
@@ -34,4 +34,10 @@ describe('task view route and grouped projections',()=>{
   expect(groups.map(group=>group.rows.map(row=>row.id))).toEqual([['a'],['b','c']]);
   expect(rows.map(row=>row.id)).toEqual(['b','a','c']);
  });
+});
+
+it('round trips display columns separately from task membership and retains all filters for malformed column links',()=>{
+ const selected={...defaultTaskView,q:'exact',status:'todo',owner_id:'member-a',columns:['title','updated','status']};const route=taskViewToRoute(selected);const url=new URLSearchParams({view:'development',sub:'tasks'});for(const [key,value]of Object.entries(route))if(value!==undefined)url.set(key,String(value));expect(taskViewFromRoute(parseWorkbenchRoute('?'+url))).toEqual(selected);expect(taskQueryKey(selected)).toBe(taskQueryKey({...selected,columns:['title']}));expect(taskWorkspacePath('project-a',selected)).not.toContain('columns');
+ const invalid=taskViewFromRoute(parseWorkbenchRoute('?view=development&sub=tasks&task_columns=title,unknown&task_owner=member-a&task_status=todo&q=exact'));expect(invalid).toMatchObject({q:'exact',status:'todo',owner_id:'member-a',columns:['title','unknown']});
+ const duplicate=taskViewFromRoute(parseWorkbenchRoute('?view=development&sub=tasks&task_columns=title,status&task_columns=title,owner&task_status=todo'));expect(duplicate.status).toBe('todo');expect(duplicate.columns).toEqual(['title','status','title','owner']);expect(resetTaskCollectionScope(parseWorkbenchRoute('?view=development&sub=tasks&task_columns=title,owner')).task_columns).toBeUndefined();
 });

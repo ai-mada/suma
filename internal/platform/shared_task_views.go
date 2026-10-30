@@ -23,6 +23,25 @@ func (s *Service) InitializeSharedTaskViews(ctx context.Context) error {
 	return store.EnsureIndex(ctx, s.DB, s.Dialect, "suma_shared_task_views_page", "suma_shared_task_views", "tenant_id", "project_id", "state", "id")
 }
 
+// The closed decoder permits null slices generally. This optional presentation
+// array accepts omission or an explicit ordered array, never JSON null.
+func (p *SharedTaskViewPreferences) UnmarshalJSON(raw []byte) error {
+	type preferences SharedTaskViewPreferences
+	var decoded preferences
+	if err := json.Unmarshal(raw, &decoded); err != nil {
+		return err
+	}
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &fields); err != nil {
+		return err
+	}
+	if value, ok := fields["columns"]; ok && strings.TrimSpace(string(value)) == "null" {
+		return errors.New(sharedTaskViewInvalid)
+	}
+	*p = SharedTaskViewPreferences(decoded)
+	return nil
+}
+
 func normalizeSharedTaskViewPreferences(p SharedTaskViewPreferences) (SharedTaskViewPreferences, error) {
 	q, err := normalizeTaskWorkspaceQuery(TaskWorkspaceQuery{Q: p.Q, Status: p.Status, StatusUnset: p.StatusUnset, OwnerID: p.OwnerID, Priority: p.Priority, RequirementID: p.RequirementID, IterationID: p.IterationID, IterationUnset: p.IterationUnset, Unassigned: p.Unassigned, PriorityUnset: p.PriorityUnset, Sort: p.Sort})
 	if err != nil {
@@ -37,6 +56,26 @@ func normalizeSharedTaskViewPreferences(p SharedTaskViewPreferences) (SharedTask
 	}
 	if p.Layout != "list" && p.Layout != "board" || p.GroupBy != "status" && p.GroupBy != "owner" && p.GroupBy != "priority" && p.GroupBy != "iteration" {
 		return p, invalid(sharedTaskViewInvalid)
+	}
+	// Preserve omission in the immutable command hash. The client resolves its
+	// display default; an explicit title-only sequence hides all optional columns.
+	if p.Columns != nil {
+		if len(p.Columns) < 1 || len(p.Columns) > 5 || p.Columns[0] != "title" {
+			return p, invalid(sharedTaskViewInvalid)
+		}
+		seen := map[string]bool{}
+		for _, column := range p.Columns {
+			switch column {
+			case "title", "status", "priority", "owner", "updated":
+			default:
+				return p, invalid(sharedTaskViewInvalid)
+			}
+			if seen[column] {
+				return p, invalid(sharedTaskViewInvalid)
+			}
+			seen[column] = true
+		}
+		p.Columns = append([]string(nil), p.Columns...)
 	}
 	return p, nil
 }

@@ -1,5 +1,8 @@
+import {taskColumns} from './task-columns-model';
+
 /** Personal display preferences only. This module stores no task or run facts. */
 export type TaskViewPreferences={
+ columns?:string[];
  q:string;
  status:string;
  owner_id:string;
@@ -46,9 +49,9 @@ function exactObject(value:unknown,keys:readonly string[]):value is Record<strin
 function validPreferences(value:unknown):value is TaskViewPreferences{
  if(value===null||typeof value!=='object'||Array.isArray(value))return false;
  const prototype=Object.getPrototypeOf(value);if(prototype!==Object.prototype&&prototype!==null)return false;
- const required=['q','status','owner_id','priority','sort','layout','group_by'],optional=['requirement_id','iteration_id','iteration_unset','unassigned','priority_unset','status_unset'];
+ const required=['q','status','owner_id','priority','sort','layout','group_by'],optional=['columns','requirement_id','iteration_id','iteration_unset','unassigned','priority_unset','status_unset'];
  const keys=Reflect.ownKeys(value);if(!required.every(key=>Object.hasOwn(value,key))||keys.some(key=>typeof key!=='string'||!required.includes(key)&&!optional.includes(key)))return false;
- const candidate=value as Record<string,unknown>;
+ const candidate=value as Record<string,unknown>;if(!taskColumns(candidate.columns))return false;
  for(const key of ['requirement_id','iteration_id'])if(candidate[key]!==undefined&&(typeof candidate[key]!=='string'||candidate[key]!==''&&!ownerIdentifier.test(candidate[key])))return false;
  for(const key of ['unassigned','priority_unset','status_unset','iteration_unset'])if(candidate[key]!==undefined&&typeof candidate[key]!=='boolean')return false;
  if(candidate.unassigned&&candidate.owner_id!==''||candidate.priority_unset&&candidate.priority!==''||candidate.status_unset&&candidate.status!==''||candidate.iteration_unset&&!!candidate.iteration_id)return false;

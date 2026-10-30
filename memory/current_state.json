@@ -1,5 +1,23 @@
 {
   "project": "suma",
+  "task_columns": {
+    "stage": "T-TASK-COLUMNS-160",
+    "version": "1.0.0",
+    "date": "2026-10-30",
+    "status": "windows_sqlite_local_and_shared_columns_scoped_verified",
+    "contract": "contracts/task-columns.md",
+    "design": "docs/design/task-columns.md",
+    "report": "docs/quality/task-columns-verification.md",
+    "summary": "docs/quality/task-columns-summary.json",
+    "source_sha256": "64e4438fc60fa724bddce01b2960ec06d9f6158bcc41bd24c5d8d8fd8b9893aa",
+    "compiled_source_sha256": "6af7fdab9a06d42582dbdf2b173d1b3aeca01a05967a092d53d1ded1742f49c7",
+    "implementation": "Five current data columns share optional exact ordering across URL/local/private/project preferences; title fixed first, title-only allowed, malformed input rejected, omitted defaults preserve original operation hashes. No task/DDL/route changes.",
+    "verification": "BackendCLI5 new/4 old plus public schema1 new/1 old; Web112 distinct including9 new. One malformed negative-wire fixture typing corrected, final types0; production unchanged, no repeated112 checks or build. One Web50.60s and one control build passed;7719 paired keys/0 hardcodes.",
+    "actual": "18 real checks on2 accounts/2tasks. Local changes preserve filters/selection/versions with0 task-workspace/summary GET or business writes; private/project view and same-body/key unknown save resolve to one version1 entity. Root inspected final Chinese1366/English390 images.",
+    "closeout": "Original ElectronApplication and2 windows closed; exact control path/UTC creation time checked before Stop-Process, absence confirmed, database retained. Six driver failures preserved, no reseed or product workaround.",
+    "ledger_unchanged": "58 limited /34 pending /92 total",
+    "full_platform_complete": false
+  },
   "claude_formal_execution": {
     "stage": "T-CLAUDE-FORMAL-159",
     "version": "1.0.0",

@@ -8,7 +8,7 @@
 
 每次读写及回执重放都重新验证当前身份、组织、项目、凭证与对象资格。Runner／Agent身份拒绝。private仅作者可读写，仍需项目读取权，其他人员包括管理员不可读取；project视图对当前有项目读取权的人员可见，修改／归档需项目写入权且为作者或当前组织owner／admin，不包含只有项目reviewer资格的人员。共享视图不授予任务访问权。can_edit／can_delete由当前资格计算，不能由请求填写或从旧回执继承。
 
-`SharedTaskViewPreferences` 只包含 `q,status,status_unset,owner_id,priority,requirement_id,iteration_id,iteration_unset,unassigned,priority_unset,sort,layout,group_by`。筛选沿任务查询字面语义，不引入all或__unassigned__哨兵；空字段标志与对应非空精确值互斥。q／status／priority最多200个Unicode字符；资源引用最多64字节。省略条件为不限范围；sort默认updated_desc，layout默认list，group_by默认status。其枚举分别为四种正式排序、list／board、status／owner／priority／iteration。未知、重复及null字段拒绝，不能通过未识别数据默默扩大范围。
+`SharedTaskViewPreferences` 只包含 `q,status,status_unset,owner_id,priority,requirement_id,iteration_id,iteration_unset,unassigned,priority_unset,sort,layout,group_by,columns`。筛选沿任务查询字面语义，不引入all或__unassigned__哨兵；空字段标志与对应非空精确值互斥。q／status／priority最多200个Unicode字符；资源引用最多64字节。省略条件为不限范围；sort默认updated_desc，layout默认list，group_by默认status。其枚举分别为四种正式排序、list／board、status／owner／priority／iteration。未知、重复及null字段拒绝，不能通过未识别数据默默扩大范围。
 
 ## HTTP与分页
 
@@ -43,3 +43,8 @@ GET单对象允许读取当前有资格的archived墓碑；列表不包含墓碑
 ## T-MULTICA-ITERATION-156：迭代工作入口
 
 保存并原样恢复 `iteration_id`／`iteration_unset` 和 `group_by=iteration`。名称与任务归属不存入偏好；应用时按当前项目资格重新读正式迭代目录及 `suma_task_plans`。已完成迭代保留；未知或已不可见的ID显示待核对并保留精确条件，不能当作未关联或不限。更改筛选与保存视图不改任务、排期、批准或执行。复用现有JSON偏好、CAS及原操作回执，不增表、迁移或自动回填。
+
+
+## T-TASK-COLUMNS-160：列表显示列
+
+columns使用完整可见数据列的准确顺序，title固定首项；省略保持默认展示且不改原操作摘要。严格输入、空值、顺序、URL和交互见[显示列合同](task-columns.md)。列不改变任务查询范围、任务数据或权限；个人／项目视图继续当前权限、CAS及原body／key恢复。
