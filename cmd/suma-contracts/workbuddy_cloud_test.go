@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/ai-mada/suma/internal/dag"
 )
 
 // Use the real existing schemas, shared browser-view decorator and reflected
@@ -47,6 +49,54 @@ func cloudContractFixture(t *testing.T) map[string]any {
 	workBuddyCloudContracts(add, api)
 	currentAuthorityContracts(api)
 	return api
+}
+
+func TestWorkBuddyCloudExecutionWireUsesActualClaimAndWaitModels(t *testing.T) {
+	api, _ := generate()
+	if models["Assignment"] != reflect.TypeOf(dag.Assignment{}) || models["Result"] != reflect.TypeOf(dag.Result{}) {
+		t.Fatal("cloud execution contract is detached from actual DAG models")
+	}
+	schemas := mapAt(api, "components", "schemas")
+	for _, name := range []string{"CloudAssignmentBinding", "CloudWaitEvidence"} {
+		if schemas[name] == nil || mapAt(schemas, name)["additionalProperties"] != false {
+			t.Fatal("execution evidence is missing or open", name)
+		}
+		fields := mapAt(schemas, name, "properties")
+		for _, secret := range []string{"prompt", "token", "url", "endpoint", "task_id", "access_token"} {
+			if fields[secret] != nil {
+				t.Fatal("execution evidence gained supplier authority", name, secret)
+			}
+		}
+	}
+	for _, item := range []struct{ model, field, target string }{{"Assignment", "workbuddy_cloud", "CloudAssignmentBinding"}, {"Result", "workbuddy_cloud_wait", "CloudWaitEvidence"}} {
+		field := mapAt(schemas, item.model, "properties", item.field)
+		variants, ok := field["anyOf"].([]any)
+		if !ok || len(variants) != 2 || variants[0].(map[string]any)["$ref"] != "#/components/schemas/"+item.target || field["description"] == nil {
+			t.Fatal("cloud field no longer refers to the actual optional Go type", item)
+		}
+	}
+	if mapAt(schemas, "Assignment", "properties", "workbuddy_cloud")["readOnly"] != true {
+		t.Fatal("Runner can select its own grant binding")
+	}
+	binding := mapAt(schemas, "CloudAssignmentBinding", "properties")
+	if mapAt(binding, "delegation_version")["maximum"] != 2147483647 || mapAt(binding, "delegation_version")["minimum"] != 1 || mapAt(binding, "delegation_sha256")["pattern"] != "^[0-9a-f]{64}$" {
+		t.Fatal("immutable binding lost exact persisted version/hash")
+	}
+	wait := mapAt(schemas, "CloudWaitEvidence", "properties")
+	if mapAt(wait, "protocol")["const"] != "workbuddy-cloud/v1" || mapAt(wait, "claim_id")["maxLength"] != 100 || mapAt(wait, "create_operation_id")["minLength"] != 8 || mapAt(wait, "create_operation_id")["maxLength"] != 128 {
+		t.Fatal("wait evidence lost exact claim/operation bounds")
+	}
+	if !reflect.DeepEqual(mapAt(wait, "cause")["enum"], []string{"creation_unconfirmed", "remote_unknown", "waiting_input", "delivery_required", "interrupted", "authorization_changed", "observation_unconfirmed"}) {
+		t.Fatal("wait evidence acquired fabricated completion or stop state")
+	}
+	conditions, ok := mapAt(schemas, "CloudWaitEvidence")["allOf"].([]any)
+	if !ok || len(conditions) != 1 {
+		t.Fatal("wait submission reference/version pair is unconstrained")
+	}
+	condition := conditions[0].(map[string]any)
+	if mapAt(condition, "else", "properties", "submission_version")["const"] != 0 || mapAt(condition, "then", "properties", "submission_version")["minimum"] != 1 {
+		t.Fatal("wait allows unknown task identity with known submission version")
+	}
 }
 
 func TestWorkBuddyCloudRoutesKeepBrowserAndMachineAuthoritySeparate(t *testing.T) {
@@ -131,6 +181,99 @@ func TestWorkBuddyCloudSchemasKeepOnceOnlyAndUnknownFacts(t *testing.T) {
 	for _, secret := range []string{"acp_token", "token", "link", "sandboxLink"} {
 		if mapAt(api, "components", "schemas", "Task", "properties")[secret] != nil {
 			t.Fatal("public task exposes provider access")
+		}
+	}
+}
+
+func TestWorkBuddyCloudLookupGeneratedRoutesAreMachineOnlyLocalReads(t *testing.T) {
+	api, _ := generate()
+	for _, prefix := range []string{"/runner", "/pool-runner"} {
+		path := prefix + "/workbuddy-cloud-submissions/lookup"
+		if mapAt(api, "paths")[path] == nil {
+			t.Fatal("missing exact cloud lookup route", path)
+		}
+		op := mapAt(api, "paths", path, "post")
+		scheme := "runnerAuth"
+		if prefix == "/pool-runner" {
+			scheme = "bearerAuth"
+		}
+		if !reflect.DeepEqual(op["security"], []any{map[string]any{scheme: []string{}}}) || op["x-browser-original-view"] != nil {
+			t.Fatal("lookup accepts non-machine credential", path)
+		}
+		if op["x-read-only"] != true || op["x-no-external-effects"] != true || op["x-query-parameters-forbidden"] != true {
+			t.Fatal("lookup acquired an external or query command surface", path)
+		}
+		for _, raw := range op["parameters"].([]any) {
+			if raw.(map[string]any)["in"] == "query" {
+				t.Fatal("lookup accepts query identity")
+			}
+		}
+		if mapAt(op, "requestBody", "content", "application/json", "schema")["$ref"] != "#/components/schemas/CloudLookupRequest" {
+			t.Fatal("lookup request is not typed")
+		}
+		responses := mapAt(op, "responses")
+		if responses["201"] != nil || mapAt(responses, "200", "content", "application/json", "schema")["$ref"] != "#/components/schemas/CloudLookupResult" {
+			t.Fatal("lookup creates a resource or has untyped result")
+		}
+		headers := mapAt(responses, "200", "headers")
+		if headers["Cache-Control"] == nil || mapAt(headers, "Cache-Control", "schema")["const"] != "no-store" {
+			t.Fatal("final generated lookup lost Cache-Control: no-store", path)
+		}
+		if headers["Referrer-Policy"] == nil || mapAt(headers, "Referrer-Policy", "schema")["const"] != "no-referrer" {
+			t.Fatal("final generated lookup lost Referrer-Policy: no-referrer", path)
+		}
+		if !strings.Contains(op["description"].(string), "not_found") || !strings.Contains(op["description"].(string), "not permission to Create") {
+			t.Fatal("absent record is described as execution permission")
+		}
+	}
+}
+
+func TestWorkBuddyCloudLookupGeneratedSchemasPreserveAbsenceAndExactState(t *testing.T) {
+	api, _ := generate()
+	schemas := mapAt(api, "components", "schemas")
+	for _, name := range []string{"CloudLookupRequest", "CloudLookupResult"} {
+		if schemas[name] == nil || mapAt(schemas, name)["additionalProperties"] != false {
+			t.Fatal("lookup schema missing or open", name)
+		}
+		fields := mapAt(schemas, name, "properties")
+		for _, key := range []string{"idempotency_key", "expected_version", "prompt", "task_id", "url", "token", "action"} {
+			if fields[key] != nil {
+				t.Fatal("lookup accepts command/provider authority", name, key)
+			}
+		}
+		if fields["assignment"] == nil || fields["project_id"] == nil || fields["delegation_id"] == nil {
+			t.Fatal("lookup lost original scope", name)
+		}
+		assignmentDescription := mapAt(fields, "assignment")["description"].(string)
+		if !strings.Contains(assignmentDescription, "does not require an active lease") || !strings.Contains(assignmentDescription, "does not authorize execution") || !strings.Contains(assignmentDescription, "same current attempt/fence/worker epoch") || !strings.Contains(assignmentDescription, "LeaseUntil, DispatchState") {
+			t.Fatal("lookup confuses original assignment recovery with live execution permission", name)
+		}
+	}
+	result := mapAt(schemas, "CloudLookupResult")
+	if !reflect.DeepEqual(mapAt(result, "properties", "state")["enum"], []string{"not_found", "prepared", "unknown", "task_known"}) {
+		t.Fatal("lookup fabricated business completion")
+	}
+	for _, raw := range mapAt(result, "properties") {
+		if raw.(map[string]any)["readOnly"] != true {
+			t.Fatal("lookup result became writable")
+		}
+	}
+	constraints, ok := result["allOf"].([]any)
+	if !ok || len(constraints) != 4 {
+		t.Fatal("lookup state/submission relationship is unspecified")
+	}
+	for _, raw := range constraints {
+		branch := raw.(map[string]any)
+		state := mapAt(branch, "if", "properties", "state")["const"].(string)
+		then := mapAt(branch, "then")
+		if state == "not_found" {
+			if !reflect.DeepEqual(mapAt(then, "not")["required"], []string{"submission"}) {
+				t.Fatal("not_found permits a submission")
+			}
+		} else {
+			if !reflect.DeepEqual(then["required"], []string{"submission"}) || mapAt(then, "properties", "submission", "properties", "state")["const"] != state {
+				t.Fatal("known lookup state can disagree with original submission", state)
+			}
 		}
 	}
 }

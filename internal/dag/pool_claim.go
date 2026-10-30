@@ -55,8 +55,12 @@ func (t *transaction) currentPoolScope(pool, tenant, project string) (PoolScope,
 // fencing, machine-slot binding, fair service and receipt in one transaction.
 // before owns live machine identity/organization authorization before pool locks;
 // eligible must not acquire new organization locks or perform external I/O.
-func (e *Engine) ClaimPoolWithOperation(ctx context.Context, request PoolClaimRequest, before func(*sql.Tx) (PoolClaimAuthority, error), eligible func(*sql.Tx, PoolScope, string, string) (bool, error)) (*Assignment, error) {
-	request, err := normalizePoolRequest(request)
+func (e *Engine) ClaimPoolWithOperation(ctx context.Context, request PoolClaimRequest, before func(*sql.Tx) (PoolClaimAuthority, error), eligible func(*sql.Tx, PoolScope, string, string) (bool, error), runnable ...*RunnableHook) (*Assignment, error) {
+	hook, err := runnableHook(runnable)
+	if err != nil {
+		return nil, err
+	}
+	request, err = normalizePoolRequest(request)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +120,7 @@ func (e *Engine) ClaimPoolWithOperation(ctx context.Context, request PoolClaimRe
 			}
 		}
 		hash := fingerprint(request)
-		previous, found, err := t.recoverPoolDispatch(request, authority, hash, allowed, eligible)
+		previous, found, err := t.recoverPoolDispatch(request, authority, hash, allowed, eligible, hook)
 		if err != nil {
 			return err
 		}
@@ -125,14 +129,14 @@ func (e *Engine) ClaimPoolWithOperation(ctx context.Context, request PoolClaimRe
 			return nil
 		}
 		if !authority.PoolActive {
-			return t.recordPoolDispatch(request, authority, hash, nil)
+			return t.recordPoolDispatch(request, authority, hash, nil, hook)
 		}
 		var occupied int
 		if err = t.row(`SELECT COUNT(*) FROM dag_execution_pool_slots WHERE pool_id=? AND runner_id=? AND slot_id=?`, request.PoolID, request.RunnerID, request.SlotID).Scan(&occupied); err != nil {
 			return err
 		}
 		if occupied > 0 {
-			return t.recordPoolDispatch(request, authority, hash, nil)
+			return t.recordPoolDispatch(request, authority, hash, nil, hook)
 		}
 		ranked, err := t.rankPoolScopes(request.PoolID, active)
 		if err != nil {
@@ -341,13 +345,13 @@ func (e *Engine) ClaimPoolWithOperation(ctx context.Context, request PoolClaimRe
 				if err = t.storePoolScan(request.PoolID, request.RunnerID, scanHash, ""); err != nil {
 					return err
 				}
-				return t.recordPoolDispatch(request, authority, hash, out)
+				return t.recordPoolDispatch(request, authority, hash, out, hook)
 			}
 		}
 		if err = t.storePoolScan(request.PoolID, request.RunnerID, scanHash, last); err != nil {
 			return err
 		}
-		return t.recordPoolDispatch(request, authority, hash, nil)
+		return t.recordPoolDispatch(request, authority, hash, nil, hook)
 	})
 	return out, err
 }
@@ -358,14 +362,20 @@ func (t *transaction) storePoolScan(pool, runner, hash, last string) error {
 	}
 	return t.exec(`UPDATE dag_execution_pool_scans SET last_scope=? WHERE pool_id=? AND runner_id=? AND request_scope_sha256=?`, last, pool, runner, hash)
 }
-func (t *transaction) recordPoolDispatch(in PoolClaimRequest, auth PoolClaimAuthority, hash string, a *Assignment) error {
+func (t *transaction) recordPoolDispatch(in PoolClaimRequest, auth PoolClaimAuthority, hash string, a *Assignment, hook *RunnableHook) error {
 	id := uid()
 	if a != nil {
 		id = a.DispatchID
 	}
-	return t.exec(`INSERT INTO dag_execution_pool_dispatches(pool_id,runner_id,operation_id,dispatch_id,request_sha256,credential_id,credential_version,assignment,created_at)VALUES(?,?,?,?,?,?,?,?,?)`, in.PoolID, in.RunnerID, in.OperationID, id, hash, auth.CredentialID, auth.CredentialVersion, encoded(a), stamp(t.now))
+	if err := t.bindRunnable(a, hook); err != nil {
+		return err
+	}
+	if err := t.exec(`INSERT INTO dag_execution_pool_dispatches(pool_id,runner_id,operation_id,dispatch_id,request_sha256,credential_id,credential_version,assignment,created_at)VALUES(?,?,?,?,?,?,?,?,?)`, in.PoolID, in.RunnerID, in.OperationID, id, hash, auth.CredentialID, auth.CredentialVersion, encoded(a), stamp(t.now)); err != nil {
+		return err
+	}
+	return t.recordExternalAssignment(a)
 }
-func (t *transaction) recoverPoolDispatch(in PoolClaimRequest, auth PoolClaimAuthority, hash string, allowed map[string]PoolScope, eligible func(*sql.Tx, PoolScope, string, string) (bool, error)) (*Assignment, bool, error) {
+func (t *transaction) recoverPoolDispatch(in PoolClaimRequest, auth PoolClaimAuthority, hash string, allowed map[string]PoolScope, eligible func(*sql.Tx, PoolScope, string, string) (bool, error), hook *RunnableHook) (*Assignment, bool, error) {
 	var raw, stored, credential string
 	var version int
 	err := t.row(`SELECT assignment,request_sha256,credential_id,credential_version FROM dag_execution_pool_dispatches WHERE pool_id=? AND runner_id=? AND operation_id=?`, in.PoolID, in.RunnerID, in.OperationID).Scan(&raw, &stored, &credential, &version)
@@ -404,6 +414,9 @@ func (t *transaction) recoverPoolDispatch(in PoolClaimRequest, auth PoolClaimAut
 		if n.lease > 0 {
 			a.LeaseUntil = stamp(n.lease)
 		}
+	}
+	if err = t.validateRunnableReplay(&a, hook); err != nil {
+		return nil, false, err
 	}
 	if a.DispatchState == "active" {
 		if !auth.PoolActive || scope.Status != "active" {
@@ -451,6 +464,31 @@ func ValidatePoolAssignmentTx(ctx context.Context, tx *sql.Tx, dialect string, a
 		return []any{x.DispatchID, x.TenantID, x.ProjectID, x.PoolID, x.PoolRunnerID, x.PoolSlotID, x.PoolGrantID, x.PoolGrantVersion, x.PoolCredentialID, x.PoolCredentialVersion, x.RunID, x.NodeID, x.WorkerID, x.Attempt, x.Fence}
 	}
 	if fingerprint(identity(a)) != fingerprint(identity(stored)) {
+		return ErrStale
+	}
+	if a.WorkBuddyCloud != nil && (stored.WorkBuddyCloud == nil || *a.WorkBuddyCloud != *stored.WorkBuddyCloud) {
+		return ErrStale
+	}
+	return nil
+}
+
+// ValidatePoolAssignmentEnvelopeTx additionally requires the protected binding
+// on full machine callback envelopes. AssignmentRef-only central protocols use
+// the tuple validator and their own mandatory external snapshot validation.
+func ValidatePoolAssignmentEnvelopeTx(ctx context.Context, tx *sql.Tx, dialect string, a Assignment) error {
+	if err := ValidatePoolAssignmentTx(ctx, tx, dialect, a); err != nil {
+		return err
+	}
+	e := &Engine{dialect: dialect}
+	var raw string
+	if err := tx.QueryRowContext(ctx, e.q(`SELECT assignment FROM dag_execution_pool_dispatches WHERE dispatch_id=? AND pool_id=? AND runner_id=?`), a.DispatchID, a.PoolID, a.PoolRunnerID).Scan(&raw); err != nil {
+		return ErrStale
+	}
+	var stored Assignment
+	if json.Unmarshal([]byte(raw), &stored) != nil {
+		return ErrStale
+	}
+	if fingerprint(a.WorkBuddyCloud) != fingerprint(stored.WorkBuddyCloud) {
 		return ErrStale
 	}
 	return nil

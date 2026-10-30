@@ -64,6 +64,14 @@ func (w *Worker) Run(ctx context.Context) error {
 		beat = 5 * time.Second
 	}
 	for ctx.Err() == nil {
+		for _, a := range w.Journal.pendingCloudExecutions() {
+			if a.WorkerID != w.ID {
+				return fmt.Errorf("cloud checkpoint belongs to another worker")
+			}
+			if err := w.runAssignment(ctx, a, beat); err != nil {
+				return err
+			}
+		}
 		for _, a := range w.Journal.pendingReleases() {
 			if a.WorkerID != w.ID {
 				return fmt.Errorf("release checkpoint belongs to another worker")
@@ -92,8 +100,7 @@ func (w *Worker) Run(ctx context.Context) error {
 			}
 			continue
 		}
-		capabilities := ToolCapabilities(w.currentInventory())
-		capabilities = append(capabilities, ExternalCapabilities(w.Exec.External)...)
+		capabilities := runnerCapabilities(w.Exec, ToolCapabilities(w.currentInventory()))
 		request, err := w.Journal.BeginClaim(w.Client.BaseURL, w.Client.ProjectID, w.ID, capabilities)
 		if err != nil {
 			return err
@@ -137,25 +144,28 @@ func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Dura
 	progress := make(chan struct{}, 1)
 	cfg := w.Exec
 	cfg.TerminalClient = w.Client
+	cfg.CloudClient = w.Client
 	cfg.ToolInventory = w.currentInventory()
 	if cfg.Artifacts == nil {
 		cfg.Artifacts = w.Client
 	}
 	cfg.Journal = w.Journal
-	registry := NewWorkspaceObservationRegistry(w.Client.ProjectID)
-	cfg.WorkspaceObservations = registry
-	observationDone := make(chan struct{})
-	go func() {
-		defer close(observationDone)
-		runWorkspaceObservationBroker(runCtx, w.Client, w.Journal, a, registry, beat)
-	}()
-	defer func() { cancel(); <-observationDone }()
-	writeDone := make(chan struct{})
-	go func() {
-		defer close(writeDone)
-		runWorkspaceWriteBroker(runCtx, w.Client, w.Journal, a, registry, beat)
-	}()
-	defer func() { cancel(); <-writeDone }()
+	if a.WorkBuddyCloud == nil {
+		registry := NewWorkspaceObservationRegistry(w.Client.ProjectID)
+		cfg.WorkspaceObservations = registry
+		observationDone := make(chan struct{})
+		go func() {
+			defer close(observationDone)
+			runWorkspaceObservationBroker(runCtx, w.Client, w.Journal, a, registry, beat)
+		}()
+		defer func() { cancel(); <-observationDone }()
+		writeDone := make(chan struct{})
+		go func() {
+			defer close(writeDone)
+			runWorkspaceWriteBroker(runCtx, w.Client, w.Journal, a, registry, beat)
+		}()
+		defer func() { cancel(); <-writeDone }()
+	}
 	cfg.Progress = func(message string) error {
 		if err := w.Journal.RecordProgress(a, message); err != nil {
 			return err
@@ -208,6 +218,9 @@ func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Dura
 	for {
 		select {
 		case r := <-results:
+			if a.WorkBuddyCloud != nil && r.WorkBuddyCloudWait == nil {
+				return fmt.Errorf("cloud checkpoint unavailable; original assignment retained")
+			}
 			if r.artifactPending || r.candidatePending {
 				return nil
 			}

@@ -8,10 +8,12 @@ import (
 	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
 	tr "github.com/ai-mada/suma/internal/testreportcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	wbc "github.com/ai-mada/suma/internal/workbuddycloudcontract"
 	wc "github.com/ai-mada/suma/internal/workspaceoperationcontract"
 )
 
 type Assignment struct {
+	WorkBuddyCloud          *wbc.CloudAssignmentBinding           `json:"workbuddy_cloud,omitempty"`
 	CandidateConflictRepair *ccc.CandidateConflictRepairExecution `json:"candidate_conflict_repair,omitempty"`
 	CandidateComposition    *ccc.CandidateCompositionExecution    `json:"candidate_composition,omitempty"`
 	CodeBaseline            *ccc.CodeBaselineBinding              `json:"code_baseline,omitempty"`
@@ -46,6 +48,7 @@ type Assignment struct {
 	ReleaseExecution        *releasecontract.ReleaseExecution     `json:"release_execution,omitempty"`
 }
 type Result struct {
+	WorkBuddyCloudWait  *wbc.CloudWaitEvidence  `json:"workbuddy_cloud_wait,omitempty"`
 	TestReport          *tr.TestReport          `json:"test_report,omitempty"`
 	StartupFailure      *ec.StartupFailureProof `json:"startup_failure,omitempty"`
 	IntegrationEvidence *rc.RepositoryResult    `json:"integration_evidence,omitempty"`
@@ -77,6 +80,7 @@ type Progress struct {
 // Result carries only completion fields on the wire, independently of the full durable assignment.
 func (r Result) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
+		WorkBuddyCloudWait  *wbc.CloudWaitEvidence            `json:"workbuddy_cloud_wait,omitempty"`
 		TestReport          *tr.TestReport                    `json:"test_report,omitempty"`
 		StartupFailure      *ec.StartupFailureProof           `json:"startup_failure,omitempty"`
 		IntegrationEvidence *rc.RepositoryResult              `json:"integration_evidence,omitempty"`
@@ -96,5 +100,5 @@ func (r Result) MarshalJSON() ([]byte, error) {
 		ArtifactEvidence    *releasecontract.ArtifactEvidence `json:"artifact_evidence,omitempty"`
 		ReleaseEvidence     *releasecontract.ReleaseResult    `json:"release_evidence,omitempty"`
 		ToolEvidence        *tc.Evidence                      `json:"tool_evidence,omitempty"`
-	}{r.TestReport, r.StartupFailure, r.IntegrationEvidence, r.RunID, r.NodeID, r.Attempt, r.Fence, r.WorkerID, r.ExitCode, r.Output, r.Error, r.FailureClass, r.OperationID, r.Stopped, r.OutcomeUnknown, r.WorkspaceEvidence, r.ArtifactEvidence, r.ReleaseEvidence, r.ToolEvidence})
+	}{r.WorkBuddyCloudWait, r.TestReport, r.StartupFailure, r.IntegrationEvidence, r.RunID, r.NodeID, r.Attempt, r.Fence, r.WorkerID, r.ExitCode, r.Output, r.Error, r.FailureClass, r.OperationID, r.Stopped, r.OutcomeUnknown, r.WorkspaceEvidence, r.ArtifactEvidence, r.ReleaseEvidence, r.ToolEvidence})
 }

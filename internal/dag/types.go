@@ -8,6 +8,7 @@ import (
 	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
 	tr "github.com/ai-mada/suma/internal/testreportcontract"
 	"github.com/ai-mada/suma/internal/toolcontract"
+	wbc "github.com/ai-mada/suma/internal/workbuddycloudcontract"
 )
 
 var (
@@ -94,6 +95,9 @@ type NodeRun struct {
 	AdmissionPolicyVersion int                               `json:"admission_policy_version,omitempty"`
 }
 type Assignment struct {
+	// WorkBuddyCloud is selected and persisted by the claim transaction, never
+	// inferred or replaced by a Runner from workflow configuration.
+	WorkBuddyCloud *wbc.CloudAssignmentBinding `json:"workbuddy_cloud,omitempty"`
 	// Code inputs are decorated from an exact managed run/node binding after
 	// claim. Workflow text and an arbitrary commit never authorize these modes.
 	CandidateComposition    *ccmp.CandidateCompositionExecution    `json:"candidate_composition,omitempty"`
@@ -130,6 +134,9 @@ type Assignment struct {
 	LeaseUntil              string                                 `json:"lease_until,omitempty"`
 }
 type Result struct {
+	// Cloud waits require a trusted control-plane resolver; the machine cannot
+	// turn a provider status into success or a remote stop receipt.
+	WorkBuddyCloudWait  *wbc.CloudWaitEvidence            `json:"workbuddy_cloud_wait,omitempty"`
 	TestReport          *tr.TestReport                    `json:"test_report,omitempty"`
 	StartupFailure      *ec.StartupFailureProof           `json:"startup_failure,omitempty"`
 	IntegrationEvidence *rc.RepositoryResult              `json:"integration_evidence,omitempty"`

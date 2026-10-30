@@ -267,6 +267,12 @@ func (s *Service) ValidatePoolToolResultTx(ctx context.Context, tx *sql.Tx, proo
 	if err != nil {
 		return err
 	}
+	if dag.WorkBuddyCloudNode(n) {
+		if result.WorkBuddyCloudWait == nil || result.ToolEvidence != nil || result.Stopped {
+			return cloudInvalid()
+		}
+		return nil
+	}
 	if result.ToolEvidence == nil {
 		if result.Stopped && p.Profile.Protocol == tc.OpenCodeSDKProtocol {
 			return invalid(opencodeExecutionInvalid)

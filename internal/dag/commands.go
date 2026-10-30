@@ -101,6 +101,9 @@ func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runI
 			if n == nil {
 				return ErrNotFound
 			}
+			if WorkBuddyCloudNode(n.spec) && n.Reason != "cloud.not_created" {
+				return dagDiagnostic(fmt.Errorf("%w: cloud effects must be reconciled before another attempt", ErrConflict), "dag.cloud.retry_requires_reconciliation", nil)
+			}
 			if r.State == "cancelling" || r.State == "cancelled" || n.State != "failed" || !n.spec.Idempotent {
 				return dagDiagnostic(fmt.Errorf("%w: retry requires failed idempotent node", ErrConflict), "dag.run.retry_node", nil)
 			}
@@ -151,6 +154,9 @@ func (e *Engine) CommandWithAuthority(ctx context.Context, tenant, project, runI
 		case "reconcile":
 			if n == nil {
 				return ErrNotFound
+			}
+			if WorkBuddyCloudNode(n.spec) {
+				return dagDiagnostic(fmt.Errorf("%w: original cloud operation requires service evidence", ErrConflict), "dag.cloud.manual_result_forbidden", nil)
 			}
 			if n.State != "reconciling" || reason == "" {
 				return dagDiagnostic(fmt.Errorf("%w: reconciliation needs unknown outcome and evidence reason", ErrConflict), "dag.run.reconciliation_evidence", nil)

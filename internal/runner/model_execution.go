@@ -201,6 +201,7 @@ func cloneOctopEvidence(value *tc.OctopExecutionEvidence) *tc.OctopExecutionEvid
 // Preserve the selected nested object when caller-owned maps are later reused.
 // Retain generic JSON values so durable assignment identity stays byte-stable.
 func cloneModelAssignment(value Assignment) Assignment {
+	value = cloneCloudAssignment(value)
 	value.CodeBaseline = cloneTerminalCodeBaseline(value.CodeBaseline)
 	for _, field := range []string{"model_execution", "codex_execution", "opencode_execution", "octop_execution", "code_baseline", "terminal_candidate_source"} {
 		selected, present := value.Config[field]

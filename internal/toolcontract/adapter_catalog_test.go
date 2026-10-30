@@ -25,16 +25,28 @@ func catalogCapability(t *testing.T, d AdapterDescriptor, key string) string {
 	t.Fatal("missing capability", key)
 	return ""
 }
-func TestAdapterCatalogDistinctDirectionsAndUnknownCloud(t *testing.T) {
+func TestAdapterCatalogDistinctDirectionsAndProtectedCloudStart(t *testing.T) {
 	cloud := catalogEntry(t, "workbuddy-cloud")
 	cli := catalogEntry(t, "codebuddy-cli")
-	if cloud.Product == cli.Product || cloud.Adapter != "" || cloud.Implementation != "planned" || cli.Implementation != "implemented" {
+	if cloud.Product == cli.Product || cloud.Adapter != "" || cloud.Protocol != "" || cloud.Implementation != "implemented" || cloud.SetupKind != "manual_guide" || cli.Implementation != "implemented" {
 		t.Fatal(cloud, cli)
 	}
 	for _, c := range cloud.Capabilities {
-		if c.Support != "unverified" {
-			t.Fatal("cloud advertised an implementation", c)
+		want := "unsupported"
+		if c.Key == "task_start" {
+			want = "supported"
 		}
+		if c.Support != want || len(c.SourceRefs) == 0 {
+			t.Fatal("cloud advertised more than protected task start", c)
+		}
+	}
+	for _, limit := range cloud.Limitations {
+		if limit == "no_execution_adapter" || strings.HasPrefix(limit, "host_stop_") || limit == "candidate_requires_workspace_artifacts" {
+			t.Fatal("cloud inherited local CLI admission", limit)
+		}
+	}
+	if !strings.Contains(strings.Join(cloud.SourceRefs, " "), "contracts/workbuddy-cloud-runner.md") {
+		t.Fatal("missing current protected cloud contract")
 	}
 	inbound := catalogEntry(t, "codex-client")
 	outbound := catalogEntry(t, "codex-app-server")

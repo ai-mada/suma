@@ -822,6 +822,7 @@ export interface ArtifactUploadState {
   missing_blobs: (string)[];
 }
 export interface Assignment {
+  workbuddy_cloud?: CloudAssignmentBinding | null;
   candidate_composition?: CandidateCompositionExecution | null;
   candidate_conflict_repair?: CandidateConflictRepairExecution | null;
   code_baseline?: CodeBaselineBinding | null;
@@ -1478,6 +1479,11 @@ export interface CapacityEntry {
   distribution_unknown_tasks: number;
   distribution_unknown_hours: number;
 }
+export interface CloudAssignmentBinding {
+  delegation_id: string;
+  delegation_version: number;
+  delegation_sha256: string;
+}
 export interface CloudCreateRequest {
   project_id: string;
   delegation_id: string;
@@ -1518,6 +1524,18 @@ export interface CloudDelegation {
   state: string;
   created_at: string;
   updated_at: string;
+}
+export interface CloudLookupRequest {
+  project_id: string;
+  delegation_id: string;
+  assignment: CandidateAssignmentRef;
+}
+export interface CloudLookupResult {
+  project_id: string;
+  delegation_id: string;
+  assignment: CandidateAssignmentRef;
+  state: string;
+  submission?: CloudSubmission | null;
 }
 export interface CloudNodeView {
   project_id: string;
@@ -1563,6 +1581,16 @@ export interface CloudSubmission {
   usage_state: string;
   created_at: string;
   updated_at: string;
+}
+export interface CloudWaitEvidence {
+  protocol: string;
+  claim_id: string;
+  assignment: CandidateAssignmentRef;
+  binding: CloudAssignmentBinding;
+  create_operation_id: string;
+  submission_id?: string;
+  submission_version?: number;
+  cause: string;
 }
 export interface CodeBaselineBinding {
   protocol: string;
@@ -4966,6 +4994,7 @@ export interface ResourceSnapshot {
   release_class: string;
 }
 export interface Result {
+  workbuddy_cloud_wait?: CloudWaitEvidence | null;
   test_report?: TestReport | null;
   startup_failure?: StartupFailureProof | null;
   integration_evidence?: RepositoryResult | null;

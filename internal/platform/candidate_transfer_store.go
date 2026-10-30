@@ -70,7 +70,7 @@ func (s *Service) candidateAuthorityTx(ctx context.Context, tx *sql.Tx, subject 
 		if subject.token == "" || a.TenantID != subject.tenant || a.ProjectID != subject.project || a.PoolID == "" || a.PoolRunnerID == "" || a.PoolSlotID == "" || a.PoolGrantID == "" || a.PoolGrantVersion < 1 || a.PoolCredentialID == "" || a.PoolCredentialVersion < 1 || a.DispatchID == "" {
 			return nil, forbidden()
 		}
-		out.machine, err = s.PoolRunnerAssignmentAuthorityTx(ctx, tx, subject.token, candidateDAGAssignment(a))
+		out.machine, err = s.poolRunnerAssignmentAuthorityByHashTx(ctx, tx, digest(subject.token), candidateDAGAssignment(a))
 		if err != nil {
 			return nil, err
 		}

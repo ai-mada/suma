@@ -84,15 +84,19 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 			break
 		}
 		var proof *poolMachineProof
+		cloud := s.Service.newCloudClaimAuthority(s.WorkBuddy)
 		a, err := s.Engine.ClaimPoolWithOperation(r.Context(), req, func(tx *sql.Tx) (dag.PoolClaimAuthority, error) {
 			var auth dag.PoolClaimAuthority
 			var err error
-			proof, auth, err = s.Service.authorizePoolRunnerTx(r.Context(), tx, token, req.RunnerID, req.Scopes)
+			proof, auth, err = cloud.beforePool(r.Context(), tx, token, req)
 			if err == nil && (proof.runner.PoolID != req.PoolID || proof.runner.WorkerID != req.WorkerID) {
 				return auth, forbidden()
 			}
 			return auth, err
 		}, func(tx *sql.Tx, scope dag.PoolScope, run, node string) (bool, error) {
+			if handled, allowed, err := cloud.eligibleTx(r.Context(), tx, scope.TenantID, scope.ProjectID, run, node); handled || err != nil {
+				return allowed, err
+			}
 			if err := s.Service.checkPlanningExecutionTx(r.Context(), tx, scope.TenantID, scope.ProjectID, run); err != nil {
 				var apiErr *APIError
 				if automationAuthorityFailure(err) || errors.As(err, &apiErr) && apiErr.Code == "planning_basis_changed" {
@@ -157,7 +161,7 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				return false, err
 			}
 			return s.Service.PoolToolClaimEligibleTx(r.Context(), tx, proof, scope, run, node)
-		})
+		}, cloud.runnableHook())
 		if err == nil && a != nil && a.DispatchState == "active" {
 			err = s.Service.decoratePoolRepositoryAssignment(r.Context(), token, a)
 			if err == nil {
@@ -350,7 +354,7 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 				return err
 			}
 			return s.Service.recordRepositoryIntegrationOutcomeTx(r.Context(), tx, a.TenantID, a.ProjectID, result)
-		})
+		}, s.WorkBuddy.cloudResultResolver(candidateSubject{pool: true, token: token, tenant: a.TenantID, project: a.ProjectID}))
 		if err == nil {
 			// Completion remains committed if projection is temporarily unavailable;
 			// the durable failed-event projector retries the same scoped issue.

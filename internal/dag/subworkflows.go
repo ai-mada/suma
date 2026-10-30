@@ -379,6 +379,13 @@ func (t *transaction) cancelRun(r *runState, reason string) error {
 		if terminal(n.State) {
 			continue
 		}
+		if WorkBuddyCloudNode(n.spec) && n.Attempt > 0 && n.State == "waiting" {
+			n.Reason = "cloud.stop_unconfirmed"
+			if err := t.event(r, n.ID, "cloud_stop_unconfirmed", map[string]any{"attempt": n.Attempt, "fence": n.Fence}); err != nil {
+				return err
+			}
+			continue
+		}
 		if n.State == "running" || n.State == "reconciling" {
 			n.Reason = "cancellation_requested"
 			if err := t.event(r, n.ID, "stop_requested", map[string]any{"worker_id": n.WorkerID, "fence": n.Fence}); err != nil {

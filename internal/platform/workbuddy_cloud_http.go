@@ -56,6 +56,14 @@ func (s *Server) workBuddyCloudHTTP(w http.ResponseWriter, r *http.Request, acto
 			}
 			out, err := c.CreateCloudTask(r.Context(), actor, boundProject, req)
 			respond(w, http.StatusCreated, out, err)
+		case len(parts) == 3 && parts[2] == "lookup":
+			var req wc.CloudLookupRequest
+			if cloudHTTPBody(r, &req) != nil || req.ProjectID != boundProject {
+				writeError(w, cloudInvalid())
+				return true
+			}
+			out, err := c.LookupCloudSubmission(r.Context(), actor, boundProject, req)
+			respond(w, http.StatusOK, out, err)
 		case len(parts) == 4 && parts[3] == "refresh":
 			var req wc.CloudRefreshRequest
 			if cloudHTTPBody(r, &req) != nil || req.ProjectID != boundProject {
@@ -165,6 +173,14 @@ func (s *Server) poolWorkBuddyCloudHTTP(w http.ResponseWriter, r *http.Request, 
 		}
 		out, err := c.CreatePoolCloudTask(r.Context(), token, req)
 		respond(w, http.StatusCreated, out, err)
+	case len(parts) == 3 && parts[2] == "lookup":
+		var req wc.CloudLookupRequest
+		if cloudHTTPBody(r, &req) != nil {
+			writeError(w, cloudInvalid())
+			return true
+		}
+		out, err := c.LookupPoolCloudSubmission(r.Context(), token, req)
+		respond(w, http.StatusOK, out, err)
 	case len(parts) == 4 && parts[3] == "refresh":
 		var req wc.CloudRefreshRequest
 		if cloudHTTPBody(r, &req) != nil {

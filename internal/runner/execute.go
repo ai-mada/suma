@@ -125,24 +125,26 @@ func nativeAgentInput(a Assignment, limits nativeAgentLimits, bridge NativeWorks
 }
 
 type ExecConfig struct {
-	AllowExec                            bool
-	Workspace                            string
-	Commands                             map[string]CommandSpec
-	Secrets                              []string
-	OutputLimit                          int
-	External                             map[string]ExternalSpec
-	Repository, BaseCommit, WorktreeRoot string
-	Progress                             func(string) error
-	ToolProgress                         func(tc.Event) error
-	WorkspaceProgress                    func(wc.Event) error
-	ToolInventory                        []tc.Observation
-	ModelDeployments                     []ModelDeploymentSpec
-	WorkspaceObservations                *WorkspaceObservationRegistry
-	Artifacts                            *Client
-	TerminalClient                       *Client
-	Journal                              *Journal
-	resolvedArtifact                     *releasecontract.ArtifactBinding
-	candidateImport                      *cc.ImportReceipt
+	AllowExec                             bool
+	Workspace                             string
+	Commands                              map[string]CommandSpec
+	Secrets                               []string
+	OutputLimit                           int
+	External                              map[string]ExternalSpec
+	Repository, BaseCommit, WorktreeRoot  string
+	Progress                              func(string) error
+	ToolProgress                          func(tc.Event) error
+	WorkspaceProgress                     func(wc.Event) error
+	ToolInventory                         []tc.Observation
+	ModelDeployments                      []ModelDeploymentSpec
+	WorkspaceObservations                 *WorkspaceObservationRegistry
+	Artifacts                             *Client
+	TerminalClient                        *Client
+	Journal                               *Journal
+	CloudClient                           *Client
+	CloudPollInterval, CloudObserveWindow time.Duration
+	resolvedArtifact                      *releasecontract.ArtifactBinding
+	candidateImport                       *cc.ImportReceipt
 }
 type output struct {
 	mu           sync.Mutex
@@ -258,6 +260,9 @@ func (b *output) flushProgress() error {
 }
 func contains(a, b string) bool { return strings.Contains(a, b) }
 func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
+	if cloudReserved(a) || a.WorkBuddyCloud != nil {
+		return executeWorkBuddyCloud(ctx, a, cfg)
+	}
 	if a.Type == "terminal_session" {
 		return ExecuteTerminalSession(ctx, a, cfg)
 	}

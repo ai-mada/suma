@@ -1048,9 +1048,13 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 		}
 		authority := s.Service.engineAuthority(r.Context(), actor, commandTarget{tenantID: p.TenantID, projectID: project, resourceID: claim.WorkerID}, purposeRunnerWrite)
 		defer authority.close()
+		cloud := s.Service.newCloudClaimAuthority(s.WorkBuddy)
 		a, e := s.Engine.ClaimWithOperation(authority.ctx, p.TenantID, project, claim.WorkerID, claim.IdempotencyKey, claim.Capabilities, func(tx *sql.Tx) error {
-			return authority.beforeRunner(tx, claim.WorkerID)
+			return cloud.beforePrivate(authority, tx, claim.WorkerID, claim.IdempotencyKey, claim.Capabilities)
 		}, func(tx *sql.Tx, run, node string) (bool, error) {
+			if handled, allowed, err := cloud.eligibleTx(authority.ctx, tx, p.TenantID, project, run, node); handled || err != nil {
+				return allowed, err
+			}
 			allowed, err := s.Service.releaseClaimEligibleTx(authority.ctx, tx, authority.proof, claim.WorkerID, run)
 			if err != nil || !allowed {
 				return allowed, err
@@ -1119,7 +1123,7 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				return false, err
 			}
 			return s.Service.toolClaimEligibleTx(authority.ctx, tx, authority.proof, claim.WorkerID, run, node)
-		})
+		}, cloud.runnableHook())
 		if e == nil && a != nil {
 			// The assignment's original authenticated scope is needed for host
 			// operation identities, including private Runner journal recovery.
@@ -1248,7 +1252,7 @@ func (s *Server) runner(w http.ResponseWriter, r *http.Request, actor Actor, pro
 				return err
 			}
 			return s.Service.recordRepositoryIntegrationOutcomeTx(authority.ctx, tx, p.TenantID, project, result)
-		})
+		}, s.WorkBuddy.cloudResultResolver(projectCandidateSubject(actor, project)))
 		if e == nil {
 			run, re := s.Engine.GetRun(r.Context(), p.TenantID, project, result.RunID)
 			if re == nil {

@@ -1,5 +1,7 @@
 # WorkBuddy云任务单次提交与原任务读取
 
+> T143协议验证的历史记录。当前1.0.0正式执行以[155合同](workbuddy-cloud-runner.md)为准：Runner直连创建helper及旧checkpoint已由中央唯一创建与正式Runner journal替代；下文旧源码位置只描述当时验证，不是当前入口，也不构成兼容要求。
+
 阶段：T-WORKBUDDY-143，T-WORKBUDDY-ACP-149继续实现内部会话协议；速码1.0.0。此合同限定尚未开放的云任务HTTP协议、原attempt的持久检查点及单次提交恢复底层。不是完整执行适配器，不新增公共API、工具目录能力、自动派发入口或供应商验收。WorkBuddy云入口仍为planned；CodeBuddy CLI及通用external workflow保持各自协议。
 
 ## 协议边界

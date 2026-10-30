@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -8,6 +9,7 @@ import (
 	"fmt"
 	cc "github.com/ai-mada/suma/internal/codexcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -16,17 +18,17 @@ import (
 )
 
 type entry struct {
-	Assignment        Assignment                  `json:"assignment"`
-	Result            *Result                     `json:"result,omitempty"`
-	Acked             bool                        `json:"acked"`
-	Progress          []Progress                  `json:"progress,omitempty"`
-	ProgressTruncated bool                        `json:"progress_truncated,omitempty"`
-	ArtifactPending   *artifactTransfer           `json:"artifact_pending,omitempty"`
-	CandidatePending  *candidateTransfer          `json:"candidate_pending,omitempty"`
-	ModelGateway      *modelGatewayCheckpoint     `json:"model_gateway,omitempty"`
-	WorkspaceTrace    *workspaceTraceCheckpoint   `json:"workspace_trace,omitempty"`
-	Terminal          *terminalCheckpoint         `json:"terminal,omitempty"`
-	WorkBuddy         *workBuddyJournalCheckpoint `json:"workbuddy,omitempty"`
+	Assignment        Assignment                `json:"assignment"`
+	Result            *Result                   `json:"result,omitempty"`
+	Acked             bool                      `json:"acked"`
+	Progress          []Progress                `json:"progress,omitempty"`
+	ProgressTruncated bool                      `json:"progress_truncated,omitempty"`
+	ArtifactPending   *artifactTransfer         `json:"artifact_pending,omitempty"`
+	CandidatePending  *candidateTransfer        `json:"candidate_pending,omitempty"`
+	ModelGateway      *modelGatewayCheckpoint   `json:"model_gateway,omitempty"`
+	WorkspaceTrace    *workspaceTraceCheckpoint `json:"workspace_trace,omitempty"`
+	Terminal          *terminalCheckpoint       `json:"terminal,omitempty"`
+	Cloud             *cloudExecutionCheckpoint `json:"workbuddy_cloud,omitempty"`
 }
 type Journal struct {
 	mu                    sync.Mutex
@@ -73,8 +75,13 @@ func OpenJournal(dir string) (*Journal, error) {
 		return nil, err
 	}
 	if err == nil {
-		if err = json.Unmarshal(b, &j.entries); err != nil || j.entries == nil {
+		decoder := json.NewDecoder(bytes.NewReader(b))
+		decoder.DisallowUnknownFields()
+		if err = decoder.Decode(&j.entries); err != nil || j.entries == nil {
 			return nil, fmt.Errorf("journal corrupt; refusing claims: %w", err)
+		}
+		if decoder.Decode(new(any)) != io.EOF {
+			return nil, fmt.Errorf("journal contains trailing data")
 		}
 	}
 	if err = j.loadInventory(); err != nil {
@@ -90,10 +97,20 @@ func OpenJournal(dir string) (*Journal, error) {
 		return nil, err
 	}
 	for k, e := range j.entries {
-		if e.WorkBuddy != nil {
-			if err = validWorkBuddyCheckpoint(e.Assignment, k, *e.WorkBuddy); err != nil || workBuddyMixed(e) {
-				return nil, fmt.Errorf("invalid WorkBuddy checkpoint or mixed execution channel")
+		if e.Cloud != nil {
+			if err = validCloudExecution(e.Assignment, *e.Cloud); err != nil || cloudMixed(e) || k != key(e.Assignment) {
+				return nil, fmt.Errorf("invalid cloud checkpoint or mixed execution channel")
 			}
+		}
+		if e.Assignment.WorkBuddyCloud != nil && (!cloudNode(e.Assignment) || e.Assignment.WorkBuddyCloud.Validate() != nil || cloudMixed(e)) {
+			return nil, fmt.Errorf("invalid protected cloud inbox")
+		}
+		if e.Assignment.WorkBuddyCloud != nil && e.Result != nil {
+			if !validCloudResult(e, *e.Result) {
+				return nil, fmt.Errorf("cloud outbox differs from original checkpoint")
+			}
+			e.Result.Assignment = cloneCloudAssignment(e.Assignment)
+			j.entries[k] = e
 		}
 		if e.Terminal != nil {
 			if err = j.validateTerminalCheckpoint(e.Assignment, *e.Terminal); err != nil {
@@ -136,7 +153,7 @@ func OpenJournal(dir string) (*Journal, error) {
 				j.entries[k] = e
 			}
 		}
-		if e.Result == nil && e.ArtifactPending == nil && e.CandidatePending == nil && e.Assignment.ReleaseExecution == nil && e.Assignment.RepositoryIntegration == nil {
+		if e.Result == nil && e.ArtifactPending == nil && e.CandidatePending == nil && e.Assignment.ReleaseExecution == nil && e.Assignment.RepositoryIntegration == nil && e.Assignment.WorkBuddyCloud == nil {
 			e.Result = &Result{Assignment: e.Assignment, ExitCode: -1, OutcomeUnknown: true, Error: "runner restart: execution outcome unknown; reconcile required", OperationID: operationID()}
 			if e.ModelGateway != nil {
 				e.Result.ToolEvidence, err = recoveredModelGatewayEvidence(e.Assignment, *e.ModelGateway)
@@ -231,6 +248,14 @@ func (j *Journal) Finish(r Result) error {
 		r.OperationID = operationID()
 	}
 	previous := e
+	if e.Assignment.WorkBuddyCloud != nil {
+		if !validCloudResult(e, r) {
+			return fmt.Errorf("cloud result requires its original waiting proof")
+		}
+		r.Assignment = e.Assignment
+		proof := *r.WorkBuddyCloudWait
+		r.WorkBuddyCloudWait = &proof
+	}
 	if r.StartupFailure != nil {
 		proof := *r.StartupFailure
 		proof.Profile = tc.CloneProfile(proof.Profile)
@@ -434,6 +459,10 @@ func (j *Journal) Pending() []Result {
 	for _, e := range j.entries {
 		if !e.Acked && e.Result != nil && (e.Terminal == nil || e.Terminal.ReconciliationOperationID == "") {
 			copy := *e.Result
+			if copy.WorkBuddyCloudWait != nil {
+				proof := *copy.WorkBuddyCloudWait
+				copy.WorkBuddyCloudWait = &proof
+			}
 			copy.Assignment = cloneModelAssignment(copy.Assignment)
 			if copy.StartupFailure != nil {
 				proof := *copy.StartupFailure

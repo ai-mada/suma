@@ -83,21 +83,28 @@ func (t *transaction) recoverDispatch(tenant, project, worker, operationID, hash
 	return &a, true, nil
 }
 
-func (t *transaction) recordDispatch(tenant, project, worker, operationID, hash string, a *Assignment, lease int64) error {
+func (t *transaction) recordDispatch(tenant, project, worker, operationID, hash string, a *Assignment, lease int64, hook *RunnableHook) error {
 	id := uid()
 	run, node := "", ""
 	attempt := 0
 	var fence int64
 	if a != nil {
+		a.TenantID, a.ProjectID = tenant, project
 		a.DispatchID = id
 		a.DispatchState = "active"
 		a.LeaseUntil = stamp(lease)
 		run, node, attempt, fence = a.RunID, a.NodeID, a.Attempt, a.Fence
+	}
+	if err := t.bindRunnable(a, hook); err != nil {
+		return err
 	}
 	var version int
 	err := t.row(`SELECT version FROM dag_scheduling_policies WHERE tenant_id=? AND project_id=?`, tenant, project).Scan(&version)
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
-	return t.exec(`INSERT INTO dag_dispatches(id,tenant_id,project_id,operation_id,request_sha256,worker_id,run_id,node_id,attempt,fence,policy_version,assignment,created_at)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`, id, tenant, project, operationID, hash, worker, run, node, attempt, fence, version, encoded(a), stamp(t.now))
+	if err = t.exec(`INSERT INTO dag_dispatches(id,tenant_id,project_id,operation_id,request_sha256,worker_id,run_id,node_id,attempt,fence,policy_version,assignment,created_at)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`, id, tenant, project, operationID, hash, worker, run, node, attempt, fence, version, encoded(a), stamp(t.now)); err != nil {
+		return err
+	}
+	return t.recordExternalAssignment(a)
 }

@@ -121,6 +121,13 @@ func (e *Engine) TickBatch(ctx context.Context, limit int) (TickReport, error) {
 						}
 						continue
 					}
+					if WorkBuddyCloudNode(n.spec) {
+						if err = t.parkCloudLease(r, n); err != nil {
+							return err
+						}
+						changed = true
+						continue
+					}
 					if err = t.transition(r, n, "reconciling", "lease expired; external outcome unknown"); err != nil {
 						return err
 					}

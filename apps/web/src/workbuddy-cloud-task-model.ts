@@ -4,6 +4,27 @@ import {readWorkBuddyConnection} from './workbuddy-connections-model';
 import type {WriteRecoveryRequest} from './write-action';
 
 export type CloudTaskScope={project:string;runID:string;nodeID:string;userID:string;organizationID:string};
+export type CloudRunFacts={runVersion:number;runState:string;nodeState:string;reason:string;attempt:number;fence:number;workerID:string};
+export type CloudRunnerPhase='not_delegated'|'delegated'|'revoked'|'unknown'|'known'|'not_created'|'waiting_qualification'|'awaiting_submission'|'run_paused'|'remote_unknown'|'waiting_input'|'delivery_required'|'interrupted'|'authorization_changed'|'observation_unconfirmed'|'runner_disconnected'|'stop_unconfirmed';
+type CloudRunnerSource={execution?:CloudRunFacts;delegation?:{state:string};submission?:{state:string;providerStatus?:string}};
+/** A presentation of persisted facts, never a second execution state machine. */
+export function cloudRunnerPhase({execution,delegation,submission}:CloudRunnerSource):CloudRunnerPhase{
+ const reason=execution?.reason;
+ if(reason==='cloud.stop_unconfirmed'||execution?.runState==='cancelling'&&!!submission)return 'stop_unconfirmed';
+ if(reason==='cloud.runner_disconnected')return 'runner_disconnected';
+ if(submission?.state==='prepared'||submission?.state==='unknown'||reason==='cloud.creation_unconfirmed')return 'unknown';
+ const reasons:Record<string,CloudRunnerPhase>={'cloud.remote_unknown':'remote_unknown','cloud.waiting_input':'waiting_input','cloud.delivery_required':'delivery_required','cloud.interrupted':'interrupted','cloud.authorization_changed':'authorization_changed','cloud.observation_unconfirmed':'observation_unconfirmed'};
+ if(reason&&reasons[reason])return reasons[reason];
+ if(submission?.state==='task_known')return 'known';
+ if(!submission&&reason==='cloud.not_created'&&['failed','cancelled'].includes(execution?.nodeState||''))return 'not_created';
+ if(delegation?.state==='revoked')return 'revoked';
+ if(delegation){
+  if(execution?.runState==='paused')return 'run_paused';
+  if(execution?.nodeState==='running'&&execution.attempt>0&&execution.fence>0&&execution.workerID)return 'awaiting_submission';
+  return execution?'waiting_qualification':'delegated';
+ }
+ return 'not_delegated';
+}
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 const fields=(value:Record<string,unknown>,required:string[],optional:string[]=[])=>required.every(key=>Object.hasOwn(value,key))&&Object.keys(value).every(key=>required.includes(key)||optional.includes(key));
 const bytes=(value:string)=>new TextEncoder().encode(value).length;

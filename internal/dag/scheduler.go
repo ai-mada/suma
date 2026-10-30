@@ -86,7 +86,11 @@ func (e *Engine) ClaimEligible(ctx context.Context, tenant, project, worker stri
 	return e.ClaimWithOperation(ctx, tenant, project, worker, uid(), capabilities, before, eligible)
 }
 
-func (e *Engine) ClaimWithOperation(ctx context.Context, tenant, project, worker, operationID string, capabilities []string, before func(*sql.Tx) error, eligible func(*sql.Tx, string, string) (bool, error)) (*Assignment, error) {
+func (e *Engine) ClaimWithOperation(ctx context.Context, tenant, project, worker, operationID string, capabilities []string, before func(*sql.Tx) error, eligible func(*sql.Tx, string, string) (bool, error), runnable ...*RunnableHook) (*Assignment, error) {
+	hook, err := runnableHook(runnable)
+	if err != nil {
+		return nil, err
+	}
 	if err := scopeValid(tenant, project); err != nil {
 		return nil, err
 	}
@@ -96,7 +100,7 @@ func (e *Engine) ClaimWithOperation(ctx context.Context, tenant, project, worker
 	if len(operationID) < 8 || len(operationID) > 128 {
 		return nil, dagDiagnostic(fmt.Errorf("%w: claim operation requires 8..128 characters", ErrInvalid), "dag.claim.operation", nil)
 	}
-	capabilities, err := normalizedCapabilities(capabilities)
+	capabilities, err = normalizedCapabilities(capabilities)
 	if err != nil {
 		return nil, err
 	}
@@ -111,6 +115,9 @@ func (e *Engine) ClaimWithOperation(ctx context.Context, tenant, project, worker
 			return err
 		}
 		if found {
+			if err = t.validateRunnableReplay(previous, hook); err != nil {
+				return err
+			}
 			if previous != nil && previous.DispatchState == "active" && eligible != nil {
 				allowed, err := eligible(t.tx, previous.RunID, previous.NodeID)
 				if err != nil {
@@ -256,9 +263,9 @@ func (e *Engine) ClaimWithOperation(ctx context.Context, tenant, project, worker
 				out.CandidateFence = pin.CandidateFence
 				out.CandidateEvidenceSHA256 = pin.CandidateEvidenceSHA256
 			}
-			return t.recordDispatch(tenant, project, worker, operationID, requestHash, out, n.lease)
+			return t.recordDispatch(tenant, project, worker, operationID, requestHash, out, n.lease, hook)
 		}
-		return t.recordDispatch(tenant, project, worker, operationID, requestHash, nil, 0)
+		return t.recordDispatch(tenant, project, worker, operationID, requestHash, nil, 0, hook)
 	})
 	return out, err
 }
@@ -316,8 +323,15 @@ func (e *Engine) Complete(ctx context.Context, tenant, project string, result Re
 // runs before dag_lock (organization authority lock order); commit runs after
 // the persisted final attempt, before activation and the operation receipt.
 // Both hooks must use tx only and must not call Engine or perform network IO.
-func (e *Engine) CompleteBound(ctx context.Context, tenant, project string, result Result, before func(*sql.Tx) error, commit func(*sql.Tx, string) error) error {
-	return e.completeBound(ctx, tenant, project, result, before, commit, false)
+func (e *Engine) CompleteBound(ctx context.Context, tenant, project string, result Result, before func(*sql.Tx) error, commit func(*sql.Tx, string) error, external ...ExternalResultResolver) error {
+	if len(external) > 1 {
+		return ErrInvalid
+	}
+	var resolve ExternalResultResolver
+	if len(external) == 1 {
+		resolve = external[0]
+	}
+	return e.completeBound(ctx, tenant, project, result, before, commit, false, resolve)
 }
 
 // CompleteManagedObservedBound resolves an expired managed attempt using a
@@ -328,10 +342,10 @@ func (e *Engine) CompleteManagedObservedBound(ctx context.Context, tenant, proje
 	if before == nil || commit == nil || (result.ReleaseEvidence == nil) == (result.IntegrationEvidence == nil) || result.ArtifactEvidence != nil || result.OutcomeUnknown || result.IntegrationEvidence != nil && (result.WorkspaceEvidence != nil || result.ToolEvidence != nil) {
 		return dagDiagnostic(fmt.Errorf("%w: managed resolution requires authority and terminal provider evidence", ErrInvalid), "dag.result.managed_resolution", nil)
 	}
-	return e.completeBound(ctx, tenant, project, result, before, commit, true)
+	return e.completeBound(ctx, tenant, project, result, before, commit, true, nil)
 }
 
-func (e *Engine) completeBound(ctx context.Context, tenant, project string, result Result, before func(*sql.Tx) error, commit func(*sql.Tx, string) error, managedResolution bool) error {
+func (e *Engine) completeBound(ctx context.Context, tenant, project string, result Result, before func(*sql.Tx) error, commit func(*sql.Tx, string) error, managedResolution bool, external ExternalResultResolver) error {
 	if err := validateFailureClass(result.FailureClass); err != nil {
 		return err
 	}
@@ -364,6 +378,14 @@ func (e *Engine) completeBound(ctx context.Context, tenant, project string, resu
 		n := r.find(result.NodeID)
 		if n == nil || n.Attempt != result.Attempt || n.Fence != result.Fence || n.WorkerID != result.WorkerID {
 			return ErrStale
+		}
+		// Cloud effects have an independent lifetime. Resolve the original
+		// assignment and central submission before ordinary process semantics.
+		if WorkBuddyCloudNode(n.spec) {
+			return t.completeCloudWait(r, n, result, hash, scope, before != nil && commit != nil && !managedResolution, external, commit)
+		}
+		if result.WorkBuddyCloudWait != nil {
+			return ErrInvalid
 		}
 		if managedResolution {
 			if n.State == "running" && n.lease > t.now {

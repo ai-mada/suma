@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/store"
 )
 
@@ -94,6 +95,9 @@ func (s *Service) validateWorkspaceInitialSchema(ctx context.Context) error {
 }
 
 func (s *Service) Initialize(ctx context.Context) error {
+	if err := dag.ValidateExternalAssignmentsInitialSchema(ctx, s.DB, s.Dialect); err != nil {
+		return err
+	}
 	if err := s.validateWorkspaceInitialSchema(ctx); err != nil {
 		return err
 	}

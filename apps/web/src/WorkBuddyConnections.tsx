@@ -17,10 +17,11 @@ const time=(value:string)=>value?formatDateTime(value):t('no_expiry');
 const canLeave=()=>window.dispatchEvent(new Event('suma:navigate',{cancelable:true}));
 
 /** A clean callback locator is a connection ID only, never OAuth callback data. */
-export function WorkBuddyConnections({project,panel}:{project:string;panel?:string}){
- useLocale();const view=useApiView(),context=JSON.stringify([view?.organizationID,view?.userID,project]),focusedID=panel?.match(/^workbuddy:([A-Za-z0-9][A-Za-z0-9_.-]{0,199})$/)?.[1]||'',disclosureKey=JSON.stringify([context,focusedID]),[disclosure,setDisclosure]=useState<{key:string;open:boolean}>(),id=useId(),open=disclosure?.key===disclosureKey?disclosure.open:!!focusedID;
+export function WorkBuddyConnections({project,panel,openRequest}:{project:string;panel?:string;openRequest?:number}){
+ useLocale();const view=useApiView(),context=JSON.stringify([view?.organizationID,view?.userID,project]),focusedID=panel?.match(/^workbuddy:([A-Za-z0-9][A-Za-z0-9_.-]{0,199})$/)?.[1]||'',disclosureKey=JSON.stringify([context,focusedID]),[disclosure,setDisclosure]=useState<{key:string;open:boolean}>(),id=useId(),open=disclosure?.key===disclosureKey?disclosure.open:!!focusedID||panel==='workbuddy',section=useRef<HTMLElement|null>(null);
+ useEffect(()=>{if(!openRequest&&panel!=='workbuddy')return;setDisclosure({key:disclosureKey,open:true});const frame=requestAnimationFrame(()=>{section.current?.scrollIntoView?.({block:'start',behavior:'auto'});section.current?.querySelector<HTMLButtonElement>('.workbuddy-disclosure')?.focus();});return()=>cancelAnimationFrame(frame);},[disclosureKey,openRequest,panel]);
  if(!project)return null;
- return <section className="panel workbuddy-connections" aria-label={t('title')}>
+ return <section ref={section} className="panel workbuddy-connections" aria-label={t('title')}>
   <button className="workbuddy-disclosure" type="button" aria-expanded={open} aria-controls={id} onClick={()=>{if(!canLeave())return;setDisclosure({key:disclosureKey,open:!open});}}><ChevronRight size={20} aria-hidden="true"/><span><strong>{t('title')}</strong><small>{t('intro')}</small></span><span className="workbuddy-disclosure-action">{t(open?'collapse':'expand')}</span></button>
   {open&&<div id={id}><ConnectionManager key={disclosureKey} project={project} context={context} focusedID={focusedID}/></div>}
  </section>;

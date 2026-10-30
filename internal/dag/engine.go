@@ -73,6 +73,9 @@ func New(db *sql.DB, dialect string) (*Engine, error) {
 	if dialect != "sqlite" && dialect != "oceanbase" && dialect != "postgres" {
 		return nil, dagDiagnostic(fmt.Errorf("%w: database dialect", ErrUnsupported), "dag.storage.dialect", nil)
 	}
+	if err := ValidateExternalAssignmentsInitialSchema(context.Background(), db, dialect); err != nil {
+		return nil, err
+	}
 	if err := store.InitializeBaseline(context.Background(), db, dialect, "dag", "dag_", store.InitialDataContract); err != nil {
 		return nil, err
 	}
@@ -99,6 +102,9 @@ func New(db *sql.DB, dialect string) (*Engine, error) {
 		return nil, fmt.Errorf("scheduling initialization: %w", err)
 	}
 	if err := e.initializePoolSchema(context.Background()); err != nil {
+		return nil, err
+	}
+	if err := e.initializeExternalAssignmentsSchema(context.Background()); err != nil {
 		return nil, err
 	}
 	return e, nil

@@ -57,7 +57,14 @@ func localizationContracts(api map[string]any) {
 			appendQuery(op, map[string]any{"in": "header", "name": "X-Suma-Language", "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.", "schema": map[string]any{"type": "string", "maxLength": 128}})
 			for code, response := range op["responses"].(map[string]any) {
 				r := response.(map[string]any)
-				r["headers"] = map[string]any{"Content-Language": map[string]any{"description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.", "schema": map[string]any{"type": "string", "enum": []string{"zh-CN", "en-US"}}}}
+				// Presentation metadata augments protocol headers. Replacing this map
+				// would silently discard security and cache controls declared by a domain.
+				headers, ok := r["headers"].(map[string]any)
+				if !ok {
+					headers = make(map[string]any)
+					r["headers"] = headers
+				}
+				headers["Content-Language"] = map[string]any{"description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.", "schema": map[string]any{"type": "string", "enum": []string{"zh-CN", "en-US"}}}
 				if code == "400" || code == "401" || code == "403" || code == "409" {
 					r["content"] = map[string]any{"application/json": map[string]any{"schema": map[string]any{"$ref": "#/components/schemas/Error"}}}
 				}

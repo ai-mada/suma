@@ -43,23 +43,40 @@ func cloudClientBinding(row workBuddyConnectionRow) string {
 	return digest(stringify([]any{row.ID, row.OwnerID, row.ClientID, row.OpenID, row.AppDigest, row.GrantGeneration, row.Scopes}))
 }
 func (w *WorkBuddyConnections) cloudGrantTx(ctx context.Context, tx *sql.Tx, tenant, project, owner, connection string, generation int, binding string) (workBuddyConnectionRow, *workbuddy.Client, error) {
-	row, err := w.rowTx(ctx, tx, tenant, project, connection, true)
+	row, err := w.cloudGrantMetadataTx(ctx, tx, tenant, project, owner, connection, generation, binding, true)
 	if err != nil {
 		return row, nil, err
 	}
+	grant, err := w.open(row)
+	if err != nil {
+		return row, nil, conflict(workBuddyUnavailable)
+	}
+	client, err := workbuddy.NewClient(workbuddy.Config{BaseURL: w.app.BaseURL, Token: grant.AccessToken, HTTPClient: w.app.HTTPClient})
+	if err != nil {
+		return row, nil, conflict(workBuddyUnavailable)
+	}
+	return row, client, nil
+}
+
+// Metadata admission never decrypts or forwards the provider credential.
+func (w *WorkBuddyConnections) cloudGrantMetadataTx(ctx context.Context, tx *sql.Tx, tenant, project, owner, connection string, generation int, binding string, requireUnexpired bool) (workBuddyConnectionRow, error) {
+	row, err := w.rowTx(ctx, tx, tenant, project, connection, true)
+	if err != nil {
+		return row, err
+	}
 	if row.OwnerID != owner {
-		return row, nil, missing()
+		return row, missing()
 	}
 	if err = w.workBuddyCommandApp(row); err != nil {
-		return row, nil, err
+		return row, err
 	}
 	clock, err := w.s.authorityNow(ctx, tx)
 	if err != nil {
-		return row, nil, err
+		return row, err
 	}
 	expiry, e := time.Parse(time.RFC3339Nano, row.ExpiresAt)
-	if row.State != "connected" || row.ActiveOperationID != "" || row.GrantGeneration != generation || e != nil || !clock.Before(expiry) || binding != "" && cloudClientBinding(row) != binding {
-		return row, nil, cloudConflict()
+	if row.State != "connected" || row.ActiveOperationID != "" || row.GrantGeneration != generation || e != nil || requireUnexpired && !clock.Before(expiry) || binding != "" && cloudClientBinding(row) != binding {
+		return row, cloudConflict()
 	}
 	scopes := map[string]bool{}
 	for _, s := range row.Scopes {
@@ -71,18 +88,10 @@ func (w *WorkBuddyConnections) cloudGrantTx(ctx context.Context, tx *sql.Tx, ten
 	}
 	for _, s := range []string{"user.task.readable", "user.task.invokable"} {
 		if !scopes[s] || !allowed[s] {
-			return row, nil, forbidden()
+			return row, forbidden()
 		}
 	}
-	grant, err := w.open(row)
-	if err != nil {
-		return row, nil, conflict(workBuddyUnavailable)
-	}
-	client, err := workbuddy.NewClient(workbuddy.Config{BaseURL: w.app.BaseURL, Token: grant.AccessToken, HTTPClient: w.app.HTTPClient})
-	if err != nil {
-		return row, nil, conflict(workBuddyUnavailable)
-	}
-	return row, client, nil
+	return row, nil
 }
 func (w *WorkBuddyConnections) cloudBudgetTx(ctx context.Context, tx *sql.Tx, tenant, project string) error {
 	if err := w.s.usageLockTx(ctx, tx, tenant); err != nil {
@@ -156,6 +165,9 @@ func (w *WorkBuddyConnections) cloudMachineAuthorityTx(ctx context.Context, tx *
 	}
 	out.candidate, err = w.s.candidateAuthorityTx(ctx, tx, subject, a)
 	if err != nil {
+		return out, err
+	}
+	if err = w.validateCloudDispatchBindingTx(ctx, tx, subject.tenant, subject.project, d.CloudDelegation, a); err != nil {
 		return out, err
 	}
 	if subject.pool {

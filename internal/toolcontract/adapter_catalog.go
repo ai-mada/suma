@@ -91,11 +91,9 @@ func AdapterCatalog() []AdapterDescriptor {
 		rows = append(rows, row)
 	}
 	rows = append(rows, adapterDescriptor("harness-guide", "Harness", "sdk", "suma_to_tool", "guide_only", "manual_guide", "", "", "docs/integrations/development-tool-matrix.md", nil, []string{"manual_runtime_verification"}))
-	for _, entry := range []struct{ id, product, kind string }{{"workbuddy-cloud", "WorkBuddy", "cloud_api"}, {"cursor-cli", "Cursor", "cli"}, {"claude-code-sdk", "Claude Code", "sdk"}, {"qoder-acp", "Qoder", "sdk"}} {
+	rows = append(rows, adapterDescriptor("workbuddy-cloud", "WorkBuddy", "cloud_api", "suma_to_tool", "implemented", "manual_guide", "", "", "contracts/workbuddy-cloud-runner.md", []string{"task_start"}, []string{"workbuddy_not_codebuddy", "cloud_fixed_delegation_required", "cloud_start_only", "cloud_delivery_not_verified", "cloud_budget_not_enforced"}))
+	for _, entry := range []struct{ id, product, kind string }{{"cursor-cli", "Cursor", "cli"}, {"claude-code-sdk", "Claude Code", "sdk"}, {"qoder-acp", "Qoder", "sdk"}} {
 		limits := []string{"no_execution_adapter"}
-		if entry.id == "workbuddy-cloud" {
-			limits = append(limits, "workbuddy_not_codebuddy")
-		}
 		rows = append(rows, adapterDescriptor(entry.id, entry.product, entry.kind, "suma_to_tool", "planned", "manual_guide", "", "", "docs/integrations/development-tool-matrix.md", nil, limits))
 	}
 	for i := range rows {
@@ -158,6 +156,15 @@ func DescribeAdapterProfile(p Profile) (AdapterDescriptor, error) {
 // name: candidates need an assignment and artifact channel; process containment
 // needs a platform-specific controller and actual per-attempt evidence.
 func refineAdapterSources(d *AdapterDescriptor) {
+	if d.ID == "workbuddy-cloud" {
+		d.SourceRefs = append(d.SourceRefs, "internal/runner/workbuddy_cloud_execution.go", "internal/platform/workbuddy_cloud_claim.go", "internal/platform/workbuddy_cloud_execution.go")
+		for i := range d.Capabilities {
+			if d.Capabilities[i].Key == "task_start" {
+				d.Capabilities[i].SourceRefs = append([]string(nil), d.SourceRefs...)
+			}
+		}
+		return
+	}
 	if d.Direction == "tool_to_suma" {
 		for i := range d.Capabilities {
 			if d.Capabilities[i].Key == "configuration_export" && d.Capabilities[i].Support == "supported" {

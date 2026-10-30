@@ -1,5 +1,7 @@
 # WorkBuddy云任务提交底层与恢复边界
 
+> 本文保留T143／T149的协议验证历史。当前正式领取、执行与恢复见[155架构](workbuddy-cloud-runner.md)；旧Runner直连创建helper已移除。ACP内部协议模块继续复用，机器ACP授权、候选交付及验收仍独立推进。下文planned和旧源码路径是阶段历史，不表示当前正式云外层执行仍未实现。
+
 阶段：T-WORKBUDDY-143及T-WORKBUDDY-ACP-149；产品1.0.0；[合同](../../contracts/workbuddy-cloud-submission.md)。沿原[工具接入矩阵](../integrations/development-tool-matrix.md)推进，当前实现内部任务协议、持久恢复及ACP会话基础，未开放到工具目录、计划派发或公共API。WorkBuddy云保持planned，完整平台目标仍由唯一实施计划管理。
 
 ## 模块职责

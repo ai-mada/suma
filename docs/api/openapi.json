@@ -3820,6 +3820,18 @@
           "type": {
             "type": "string"
           },
+          "workbuddy_cloud": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CloudAssignmentBinding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Claim-transaction-selected and persisted WorkBuddy delegation binding. Never inferred from workflow config or replaced by the Runner; current authority is rechecked before external actions.",
+            "readOnly": true
+          },
           "worker_id": {
             "type": "string"
           }
@@ -6771,6 +6783,33 @@
         ],
         "type": "object"
       },
+      "CloudAssignmentBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "delegation_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "delegation_sha256": {
+            "description": "Digest of immutable authorization identity. Mutable consumption/display fields are excluded; the digest does not establish current authority.",
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "delegation_version": {
+            "description": "Original delegation version fixed in the claim transaction, not a request to adopt the latest grant.",
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "delegation_id",
+          "delegation_version",
+          "delegation_sha256"
+        ],
+        "type": "object"
+      },
       "CloudCreateRequest": {
         "additionalProperties": false,
         "properties": {
@@ -7014,6 +7053,173 @@
           "state",
           "created_at",
           "updated_at"
+        ],
+        "type": "object"
+      },
+      "CloudLookupRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/CandidateAssignmentRef",
+            "description": "Original complete candidatecontract.AssignmentRef, preserving LeaseUntil, DispatchState and all pool fields. Current machine and grant authority and the same current attempt/fence/worker epoch must be verified. Reading stored facts does not require an active lease and does not authorize execution, a new supplier request or a new attempt."
+          },
+          "delegation_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "delegation_id",
+          "assignment"
+        ],
+        "type": "object"
+      },
+      "CloudLookupResult": {
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "state": {
+                  "const": "not_found"
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "submission"
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "state": {
+                  "const": "prepared"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "submission": {
+                  "properties": {
+                    "state": {
+                      "const": "prepared"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "submission"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "state": {
+                  "const": "unknown"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "submission": {
+                  "properties": {
+                    "state": {
+                      "const": "unknown"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "submission"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "state": {
+                  "const": "task_known"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "submission": {
+                  "properties": {
+                    "state": {
+                      "const": "task_known"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "submission"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/CandidateAssignmentRef",
+            "description": "Original complete candidatecontract.AssignmentRef, preserving LeaseUntil, DispatchState and all pool fields. Current machine and grant authority and the same current attempt/fence/worker epoch must be verified. Reading stored facts does not require an active lease and does not authorize execution, a new supplier request or a new attempt.",
+            "readOnly": true
+          },
+          "delegation_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "state": {
+            "description": "Original stored submission state. not_found is an authorized observation of absence, never a new Create permit or proof of no supplier effect.",
+            "enum": [
+              "not_found",
+              "prepared",
+              "unknown",
+              "task_known"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "submission": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CloudSubmission"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Required for prepared/unknown/task_known, absent for not_found. Must match this result's state, project, delegation and complete original assignment.",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "project_id",
+          "delegation_id",
+          "assignment",
+          "state"
         ],
         "type": "object"
       },
@@ -7341,6 +7547,97 @@
           "usage_state",
           "created_at",
           "updated_at"
+        ],
+        "type": "object"
+      },
+      "CloudWaitEvidence": {
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "else": {
+              "properties": {
+                "submission_version": {
+                  "const": 0
+                }
+              }
+            },
+            "if": {
+              "properties": {
+                "submission_id": {
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "submission_id"
+              ]
+            },
+            "then": {
+              "properties": {
+                "submission_version": {
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "submission_version"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/CandidateAssignmentRef",
+            "description": "Original complete AssignmentRef for the exact claim/attempt/fence/worker and pool identity. The trusted control-plane resolver checks this proof against the original claim and persisted submission."
+          },
+          "binding": {
+            "$ref": "#/components/schemas/CloudAssignmentBinding",
+            "description": "Original claim-selected binding; a machine cannot select a different delegation through a wait report."
+          },
+          "cause": {
+            "description": "Request for durable reconciliation, not successful completion, human acceptance or confirmed remote stop.",
+            "enum": [
+              "creation_unconfirmed",
+              "remote_unknown",
+              "waiting_input",
+              "delivery_required",
+              "interrupted",
+              "authorization_changed",
+              "observation_unconfirmed"
+            ],
+            "type": "string"
+          },
+          "claim_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "create_operation_id": {
+            "description": "Original stable control-plane Create operation; a wait does not authorize another supplier POST.",
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "protocol": {
+            "const": "workbuddy-cloud/v1",
+            "type": "string"
+          },
+          "submission_id": {
+            "maxLength": 64,
+            "type": "string"
+          },
+          "submission_version": {
+            "maximum": 2147483647,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "protocol",
+          "claim_id",
+          "assignment",
+          "binding",
+          "create_operation_id",
+          "cause"
         ],
         "type": "object"
       },
@@ -24568,6 +24865,17 @@
                 "type": "null"
               }
             ]
+          },
+          "workbuddy_cloud_wait": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CloudWaitEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Typed request to reconcile the original cloud effect through a trusted control-plane resolver. Not a success/acceptance or remote stop receipt; raw supplier status and this machine proof alone cannot complete the DAG or authorize another Create."
           },
           "worker_id": {
             "type": "string"
@@ -76228,6 +76536,12 @@
             },
             "description": "Created",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76235,6 +76549,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -76250,6 +76570,12 @@
             },
             "description": "Invalid request",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76257,6 +76583,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -76272,6 +76604,12 @@
             },
             "description": "Unauthenticated",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76279,6 +76617,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -76294,6 +76638,12 @@
             },
             "description": "Forbidden",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76303,12 +76653,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "404": {
             "description": "Object is absent or not currently visible to this identity.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76316,6 +76678,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -76331,6 +76699,12 @@
             },
             "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76340,12 +76714,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "503": {
             "description": "Cloud connection component is unavailable; configuration is not execution health.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76353,6 +76739,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -76371,6 +76763,283 @@
         ],
         "x-max-request-body-bytes": 65536,
         "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/pool-runner/workbuddy-cloud-submissions/lookup": {
+      "post": {
+        "description": "Read only the original control-plane submission under the current exact machine, project, delegation and assignment authority. No supplier request, Create, operation key or CAS mutation. not_found is the absence of a record at this authorized observation, not permission to Create. Prepared and unknown remain unresolved; no OAuth or ACP material is returned.",
+        "operationId": "post_pool-runner_workbuddy-cloud-submissions_lookup",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloudLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloudLookupResult"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Object is absent or not currently visible to this identity.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cloud connection component is unavailable; configuration is not execution health.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "browser",
+          "api",
+          "agent"
+        ],
+        "x-max-request-body-bytes": 65536,
+        "x-no-external-effects": true,
+        "x-query-parameters-forbidden": true,
+        "x-read-only": true,
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },
@@ -76429,6 +77098,12 @@
             },
             "description": "Successful response; creates may return 201",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76436,6 +77111,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -76451,6 +77132,12 @@
             },
             "description": "Invalid request",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76458,6 +77145,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -76473,6 +77166,12 @@
             },
             "description": "Unauthenticated",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76480,6 +77179,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -76495,6 +77200,12 @@
             },
             "description": "Forbidden",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76504,12 +77215,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "404": {
             "description": "Object is absent or not currently visible to this identity.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76517,6 +77240,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -76532,6 +77261,12 @@
             },
             "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76539,6 +77274,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -76547,6 +77288,12 @@
           "502": {
             "description": "Exact supplier GET failed. Original task identity and last verified observation remain stored.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76556,12 +77303,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "503": {
             "description": "Cloud connection component is unavailable; configuration is not execution health.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -76569,6 +77328,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -96582,6 +97347,12 @@
             },
             "description": "Created",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96589,6 +97360,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -96604,6 +97381,12 @@
             },
             "description": "Invalid request",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96611,6 +97394,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -96626,6 +97415,12 @@
             },
             "description": "Unauthenticated",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96633,6 +97428,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -96648,6 +97449,12 @@
             },
             "description": "Forbidden",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96657,12 +97464,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "404": {
             "description": "Object is absent or not currently visible to this identity.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96670,6 +97489,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -96685,6 +97510,12 @@
             },
             "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96694,12 +97525,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "503": {
             "description": "Cloud connection component is unavailable; configuration is not execution health.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96707,6 +97550,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -96725,6 +97574,283 @@
         ],
         "x-max-request-body-bytes": 65536,
         "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/runner/workbuddy-cloud-submissions/lookup": {
+      "post": {
+        "description": "Read only the original control-plane submission under the current exact machine, project, delegation and assignment authority. No supplier request, Create, operation key or CAS mutation. not_found is the absence of a record at this authorized observation, not permission to Create. Prepared and unknown remain unresolved; no OAuth or ACP material is returned.",
+        "operationId": "post_runner_workbuddy-cloud-submissions_lookup",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloudLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloudLookupResult"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Object is absent or not currently visible to this identity.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cloud connection component is unavailable; configuration is not execution health.",
+            "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "runnerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "browser",
+          "api",
+          "agent"
+        ],
+        "x-max-request-body-bytes": 65536,
+        "x-no-external-effects": true,
+        "x-query-parameters-forbidden": true,
+        "x-read-only": true,
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },
@@ -96783,6 +97909,12 @@
             },
             "description": "Successful response; creates may return 201",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96790,6 +97922,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -96805,6 +97943,12 @@
             },
             "description": "Invalid request",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96812,6 +97956,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -96827,6 +97977,12 @@
             },
             "description": "Unauthenticated",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96834,6 +97990,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -96849,6 +98011,12 @@
             },
             "description": "Forbidden",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96858,12 +98026,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "404": {
             "description": "Object is absent or not currently visible to this identity.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96871,6 +98051,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -96886,6 +98072,12 @@
             },
             "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96893,6 +98085,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -96901,6 +98099,12 @@
           "502": {
             "description": "Exact supplier GET failed. Original task identity and last verified observation remain stored.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96910,12 +98114,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "503": {
             "description": "Cloud connection component is unavailable; configuration is not execution health.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -96923,6 +98139,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -118779,6 +120001,12 @@
             },
             "description": "Created",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -118786,6 +120014,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -118801,6 +120035,12 @@
             },
             "description": "Invalid request",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -118808,6 +120048,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -118823,6 +120069,12 @@
             },
             "description": "Unauthenticated",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -118830,6 +120082,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -118845,6 +120103,12 @@
             },
             "description": "Forbidden",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -118854,12 +120118,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "404": {
             "description": "Object is absent or not currently visible to this identity.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -118867,6 +120143,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -118882,6 +120164,12 @@
             },
             "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -118889,6 +120177,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -118919,6 +120213,12 @@
           "503": {
             "description": "Cloud connection component is unavailable; configuration is not execution health.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -118926,6 +120226,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119010,6 +120316,12 @@
             },
             "description": "Successful response; creates may return 201",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119017,6 +120329,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119032,6 +120350,12 @@
             },
             "description": "Invalid request",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119039,6 +120363,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119054,6 +120384,12 @@
             },
             "description": "Unauthenticated",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119061,6 +120397,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119076,6 +120418,12 @@
             },
             "description": "Forbidden",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119085,12 +120433,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "404": {
             "description": "Object is absent or not currently visible to this identity.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119098,6 +120458,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119113,6 +120479,12 @@
             },
             "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119122,12 +120494,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "503": {
             "description": "Cloud connection component is unavailable; configuration is not execution health.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119135,6 +120519,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119237,6 +120627,12 @@
             },
             "description": "Successful response; creates may return 201",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119244,6 +120640,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119259,6 +120661,12 @@
             },
             "description": "Invalid request",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119266,6 +120674,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119281,6 +120695,12 @@
             },
             "description": "Unauthenticated",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119288,6 +120708,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119303,6 +120729,12 @@
             },
             "description": "Forbidden",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119312,12 +120744,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "404": {
             "description": "Object is absent or not currently visible to this identity.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119325,6 +120769,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119340,6 +120790,12 @@
             },
             "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119347,6 +120803,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119377,6 +120839,12 @@
           "503": {
             "description": "Cloud connection component is unavailable; configuration is not execution health.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119384,6 +120852,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119480,6 +120954,12 @@
             },
             "description": "Successful response; creates may return 201",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119487,6 +120967,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119502,6 +120988,12 @@
             },
             "description": "Invalid request",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119509,6 +121001,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119524,6 +121022,12 @@
             },
             "description": "Unauthenticated",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119531,6 +121035,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119546,6 +121056,12 @@
             },
             "description": "Forbidden",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119555,12 +121071,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "404": {
             "description": "Object is absent or not currently visible to this identity.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119568,6 +121096,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119583,6 +121117,12 @@
             },
             "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119592,12 +121132,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "503": {
             "description": "Cloud connection component is unavailable; configuration is not execution health.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119605,6 +121157,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119681,6 +121239,12 @@
             },
             "description": "Successful response; creates may return 201",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119688,6 +121252,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119703,6 +121273,12 @@
             },
             "description": "Invalid request",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119710,6 +121286,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119725,6 +121307,12 @@
             },
             "description": "Unauthenticated",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119732,6 +121320,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119747,6 +121341,12 @@
             },
             "description": "Forbidden",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119756,12 +121356,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "404": {
             "description": "Object is absent or not currently visible to this identity.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119769,6 +121381,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119784,6 +121402,12 @@
             },
             "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119793,12 +121417,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "503": {
             "description": "Cloud connection component is unavailable; configuration is not execution health.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119806,6 +121442,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119908,6 +121550,12 @@
             },
             "description": "Successful response; creates may return 201",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119915,6 +121563,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119930,6 +121584,12 @@
             },
             "description": "Invalid request",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119937,6 +121597,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119952,6 +121618,12 @@
             },
             "description": "Unauthenticated",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119959,6 +121631,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -119974,6 +121652,12 @@
             },
             "description": "Forbidden",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119983,12 +121667,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "404": {
             "description": "Object is absent or not currently visible to this identity.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -119996,6 +121692,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -120011,6 +121713,12 @@
             },
             "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -120018,6 +121726,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }
@@ -120048,6 +121762,12 @@
           "502": {
             "description": "Exact supplier GET failed. Original task identity and last verified observation remain stored.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -120057,12 +121777,24 @@
                   ],
                   "type": "string"
                 }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
+                  "type": "string"
+                }
               }
             }
           },
           "503": {
             "description": "Cloud connection component is unavailable; configuration is not execution health.",
             "headers": {
+              "Cache-Control": {
+                "schema": {
+                  "const": "no-store",
+                  "type": "string"
+                }
+              },
               "Content-Language": {
                 "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
                 "schema": {
@@ -120070,6 +121802,12 @@
                     "zh-CN",
                     "en-US"
                   ],
+                  "type": "string"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "const": "no-referrer",
                   "type": "string"
                 }
               }

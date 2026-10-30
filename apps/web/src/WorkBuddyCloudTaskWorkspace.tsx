@@ -6,9 +6,9 @@ import {tr,UiError,useLocale} from './i18n';
 import {toolSessionStorage} from './tool-hooks';
 import {useWriteAction,WriteNotice} from './write-action';
 import {WorkBuddyCloudTaskPanel,type WorkBuddyCloudActionResult,type WorkBuddyCloudDelegateDraft,type WorkBuddyCloudTaskModel} from './WorkBuddyCloudTaskPanel';
-import {cloudDelegateBody,cloudNodePath,cloudRecoveryAction,readCloudConnection,readCloudNode,validCloudReceipt,validCloudRecovery,validCloudScope,type CloudTaskScope} from './workbuddy-cloud-task-model';
+import {cloudDelegateBody,cloudNodePath,cloudRecoveryAction,readCloudConnection,readCloudNode,validCloudReceipt,validCloudRecovery,validCloudScope,type CloudTaskScope,type CloudRunFacts} from './workbuddy-cloud-task-model';
 
-type Props={project:string;runID:string;nodeID:string;revision?:number;taskTitle?:string;onChanged?:()=>void|Promise<void>};
+type Props={project:string;runID:string;nodeID:string;revision?:number;execution?:CloudRunFacts;taskTitle?:string;onChanged?:()=>void|Promise<void>};
 type ReadResult='ready'|'denied'|'failed';
 type Snapshot={caller:ApiCaller;node?:CloudNodeView;connection?:WorkBuddyConnection;reading:boolean;denied:boolean;sourceFailed:boolean;connectionFailed:boolean};
 const t=(key:string,values?:Record<string,unknown>)=>tr('workbuddy-cloud-task.'+key,values);
@@ -19,7 +19,7 @@ export function WorkBuddyCloudTaskWorkspace(props:Props){
  return <CloudTaskController key={key} {...props}/>;
 }
 
-function CloudTaskController({project,runID,nodeID,revision,taskTitle,onChanged}:Props){
+function CloudTaskController({project,runID,nodeID,revision,execution,taskTitle,onChanged}:Props){
  useLocale();const caller=useApi(),view=useApiView();
  const scope:CloudTaskScope={project,runID,nodeID,userID:view?.userID||'',organizationID:view?.organizationID||''};
  const scopeKey=JSON.stringify([scope.userID,scope.organizationID,project,runID,nodeID]);
@@ -141,6 +141,7 @@ function CloudTaskController({project,runID,nodeID,revision,taskTitle,onChanged}
  };
  const model:WorkBuddyCloudTaskModel={
   scopeKey,sourceVersion,state:!validCloudScope(scope)?'unavailable':denied?'denied':!node?(current.current?.reading||!current.current?'loading':'unavailable'):'ready',unavailableReason:validCloudScope(scope)?'source_missing':'permission_changed',
+  execution:execution?.runVersion===node?.run_version?execution:undefined,
   task:{title:taskTitle||node?.binding.request.name||t('source_task'),runLabel:t('source_run',{id:runID}),nodeLabel:t('source_node',{id:nodeID}),prompt:node?.binding.request.prompt||'',name:node?.binding.request.name,requestDigest:node?.request_sha256||'',nodeDigest:node?.node_spec_sha256||''},
   connections:connection?[{id:connection.id,label:connection.open_id||connection.id,version:connection.version,grantGeneration:connection.grant_generation,eligible:eligible&&!!node?.allowed_actions.includes('delegate'),unavailableReason:connection.grant_generation!==node?.binding.grant_generation?'node_mismatch':'connection_unavailable'}]:[],
   actions:{delegate:writesAllowed&&eligible&&!!node?.allowed_actions.includes('delegate')&&node.run_version<2147483647&&connection!.version<2147483647,revoke:writesAllowed&&!!node?.allowed_actions.includes('revoke'),refresh:writesAllowed&&eligible&&!!node?.allowed_actions.includes('observe')},

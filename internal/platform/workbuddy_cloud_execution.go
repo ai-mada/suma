@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/workbuddy"
 	wc "github.com/ai-mada/suma/internal/workbuddycloudcontract"
 )
@@ -35,6 +36,13 @@ func (w *WorkBuddyConnections) createCloudTask(ctx context.Context, subject cand
 		proof, err := w.cloudMachineAuthorityTx(bounded, tx, subject, req.DelegationID, req.Assignment, true)
 		if err != nil {
 			return err
+		}
+		snapshot, err := dag.ReadExternalAssignmentTx(bounded, tx, w.s.Dialect, subject.tenant, subject.project, req.Assignment.RunID, req.Assignment.NodeID, req.Assignment.Attempt)
+		if err != nil {
+			return err
+		}
+		if req.ExpectedVersion != snapshot.Binding.DelegationVersion {
+			return cloudConflict()
 		}
 		hash, replay, err := w.s.candidateReceipt(bounded, proof.candidate, req.IdempotencyKey, struct {
 			Kind    string

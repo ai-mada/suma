@@ -101,7 +101,7 @@ function ScopedToolWorkspace({
     [receipt, setReceipt] = useState<{key:string;name:string;scope:string}>();
   const contextKey=JSON.stringify([session.organization.id,session.user.id,project]);
   const guideID = useId();
-  const [connectionSelection,setConnectionSelection]=useState<{context:string;nonce:number;client?:DeveloperClientID;preset?:'harness'|'octop'}>();
+  const [connectionSelection,setConnectionSelection]=useState<{context:string;nonce:number;client?:DeveloperClientID;preset?:'harness'|'octop';cloud?:boolean}>();
   const connection=connectionSelection?.context===contextKey?connectionSelection:undefined;
   const recovery = useMemo(
     () =>
@@ -185,6 +185,7 @@ function ScopedToolWorkspace({
   }
   function setupConnection(descriptor:AdapterDescriptor){
     if(pending||action.busy||!canLeave()||descriptor.implementation==='planned')return;
+    if(descriptor.id==='workbuddy-cloud'&&descriptor.direction==='suma_to_tool'&&descriptor.entrypoint_kind==='cloud_api'&&descriptor.implementation==='implemented'&&descriptor.setup_kind==='manual_guide'&&!descriptor.adapter&&!descriptor.protocol){setConnectionSelection(previous=>({context:contextKey,nonce:(previous?.nonce||0)+1,cloud:true}));return;}
     if(descriptor.direction==='suma_to_tool'&&descriptor.setup_kind==='runner_profile'&&descriptor.implementation==='implemented'&&descriptor.adapter&&descriptor.protocol){
       action.clearError();void workers.read();void sharedWorkers.read();setDialog({kind:'quick',adapter:descriptor});return;
     }
@@ -229,7 +230,7 @@ function ScopedToolWorkspace({
           {t("development.tools.return_to_task_dispatch")}</a>
       </div>
       <ToolReadiness items={profiles.items} total={profiles.total} uncertain={uncertain} identitiesKnown={identitiesKnown} identityCount={identityCount} disabled={pending || action.busy} onWorker={() => { action.clearError(); setDialog({kind:'worker'}); }} onRegister={openQuickConnect} onGuide={openGuide} onSelect={id => { if(canLeave()) onSelect(id); }}/>
-      <WorkBuddyConnections project={project} panel={panel}/>
+      <WorkBuddyConnections project={project} panel={panel} openRequest={connection?.cloud?connection.nonce:undefined}/>
       <details className="panel adapter-catalog-disclosure" key={contextKey}>
         <summary>
           <ChevronRight aria-hidden="true" size={20}/>

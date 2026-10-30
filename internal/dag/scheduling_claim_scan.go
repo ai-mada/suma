@@ -87,6 +87,9 @@ func (t *transaction) claimCandidateBatch(tenant, project, worker string, caps [
 	return t.claimCandidateBatchPool(tenant, project, worker, caps, "", 64)
 }
 func (t *transaction) claimCandidateBatchPool(tenant, project, worker string, caps []string, pool string, limit int) ([]claimCandidate, error) {
+	return t.claimCandidateWindow(tenant, project, worker, caps, pool, limit, false)
+}
+func (t *transaction) claimCandidateWindow(tenant, project, worker string, caps []string, pool string, limit int, readOnly bool) ([]claimCandidate, error) {
 	out := []claimCandidate{}
 	if len(caps) == 0 {
 		return out, nil
@@ -181,8 +184,10 @@ func (t *transaction) claimCandidateBatchPool(tenant, project, worker string, ca
 			return nil, dagDiagnostic(fmt.Errorf("%w: claim scan bound exceeded", ErrInvalid), "dag.claim.scan_limit", nil)
 		}
 	}
-	if err = t.storeClaimScan(tenant, project, worker, hash, scan); err != nil {
-		return nil, err
+	if !readOnly {
+		if err = t.storeClaimScan(tenant, project, worker, hash, scan); err != nil {
+			return nil, err
+		}
 	}
 	return out, nil
 }

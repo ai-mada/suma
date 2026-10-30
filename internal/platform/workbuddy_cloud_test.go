@@ -26,13 +26,15 @@ type cloudFixture struct {
 	request          wc.CloudCreateRequest
 	actor            Actor
 	poolToken        string
+	claimToken       string
+	poolClaim        dag.PoolClaimRequest
 	creates, queries atomic.Int32
 }
 
 func newCloudFixture(t *testing.T, provider func(http.ResponseWriter, *http.Request)) *cloudFixture {
 	return newCloudFixtureMode(t, provider, false)
 }
-func newCloudFixtureMode(t *testing.T, provider func(http.ResponseWriter, *http.Request), pooled bool) *cloudFixture {
+func newCloudFixtureMode(t *testing.T, provider func(http.ResponseWriter, *http.Request), pooled bool, unclaimed ...bool) *cloudFixture {
 	t.Helper()
 	h := &cloudFixture{}
 	h.f, h.w = workBuddyCommandFixture(t, func(w http.ResponseWriter, r *http.Request) {
@@ -111,20 +113,34 @@ func newCloudFixtureMode(t *testing.T, provider func(http.ResponseWriter, *http.
 	}
 	token := h.f.call("POST", "/auth/tokens", h.f.body(map[string]any{"scope": "runner"}), 201)["token"].(string)
 	h.actor = domainCActor(t, h.f.s, token)
-	var assigned *dag.Assignment
+	h.claimToken = token
+	h.request = wc.CloudCreateRequest{ProjectID: h.f.project, DelegationID: h.delegation.ID, ExpectedVersion: h.delegation.Version, IdempotencyKey: newID()}
 	if pooled {
-		claim := dag.PoolClaimRequest{PoolID: poolID, RunnerID: poolRunnerID, WorkerID: poolWorkerID, SlotID: "0", OperationID: newID(), Scopes: []dag.PoolCapabilityScope{{TenantID: h.f.user.TenantID, ProjectID: h.f.project, Capabilities: []string{"external_workflow:workbuddy-cloud"}}}}
-		// The public pool endpoint deliberately does not advertise this private
-		// cloud protocol yet. Exercise the real scheduler and machine proof, with
-		// eligibility restricted to this exact delegated fixture node.
+		h.poolClaim = dag.PoolClaimRequest{PoolID: poolID, RunnerID: poolRunnerID, WorkerID: poolWorkerID, SlotID: "0", OperationID: newID(), Scopes: []dag.PoolCapabilityScope{{TenantID: h.f.user.TenantID, ProjectID: h.f.project, Capabilities: []string{"external_workflow:workbuddy-cloud"}}}}
+	}
+	if len(unclaimed) > 0 && unclaimed[0] {
+		return h
+	}
+	var assigned *dag.Assignment
+	cloud := h.f.s.newCloudClaimAuthority(h.w)
+	if pooled {
+		claim := h.poolClaim
 		assigned, err = h.f.e.ClaimPoolWithOperation(context.Background(), claim, func(tx *sql.Tx) (dag.PoolClaimAuthority, error) {
-			_, authority, e := h.f.s.authorizePoolRunnerTx(context.Background(), tx, h.poolToken, claim.RunnerID, claim.Scopes)
+			_, authority, e := cloud.beforePool(context.Background(), tx, h.poolToken, claim)
 			return authority, e
-		}, func(_ *sql.Tx, scope dag.PoolScope, runID, nodeID string) (bool, error) {
-			return scope.TenantID == h.f.user.TenantID && scope.ProjectID == h.f.project && runID == h.delegation.RunID && nodeID == h.delegation.NodeID, nil
-		})
+		}, func(tx *sql.Tx, scope dag.PoolScope, runID, nodeID string) (bool, error) {
+			_, allowed, e := cloud.eligibleTx(context.Background(), tx, scope.TenantID, scope.ProjectID, runID, nodeID)
+			return allowed, e
+		}, cloud.runnableHook())
 	} else {
-		assigned, err = h.f.e.Claim(context.Background(), h.f.user.TenantID, h.f.project, "cloud-worker", []string{"external_workflow:workbuddy-cloud"})
+		authority := h.f.s.engineAuthority(context.Background(), h.actor, commandTarget{tenantID: h.f.user.TenantID, projectID: h.f.project}, purposeRunnerWrite)
+		defer authority.close()
+		operation := newID()
+		caps := []string{"external_workflow:workbuddy-cloud"}
+		assigned, err = h.f.e.ClaimWithOperation(authority.ctx, h.f.user.TenantID, h.f.project, "cloud-worker", operation, caps, func(tx *sql.Tx) error { return cloud.beforePrivate(authority, tx, "cloud-worker", operation, caps) }, func(tx *sql.Tx, runID, nodeID string) (bool, error) {
+			_, allowed, e := cloud.eligibleTx(authority.ctx, tx, h.f.user.TenantID, h.f.project, runID, nodeID)
+			return allowed, e
+		}, cloud.runnableHook())
 	}
 	if err != nil || assigned == nil {
 		t.Fatal("claim", err)

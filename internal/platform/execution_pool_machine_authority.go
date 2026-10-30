@@ -139,7 +139,7 @@ func (s *Service) PoolRunnerAuthorityTx(ctx context.Context, tx *sql.Tx, token, 
 	}
 	return proof.runner, authority, nil
 }
-func (s *Service) authorizePoolRunnerTx(ctx context.Context, tx *sql.Tx, token, runnerID string, requested []dag.PoolCapabilityScope) (*poolMachineProof, dag.PoolClaimAuthority, error) {
+func (s *Service) authorizePoolRunnerTx(ctx context.Context, tx *sql.Tx, token, runnerID string, requested []dag.PoolCapabilityScope, participants ...*poolClaimParticipants) (*poolMachineProof, dag.PoolClaimAuthority, error) {
 	deadline := s.txAuthorityBudget(ctx, tx).deadline
 	ctx, cancel := context.WithDeadline(ctx, deadline)
 	defer cancel()
@@ -168,7 +168,16 @@ func (s *Service) authorizePoolRunnerTx(ctx context.Context, tx *sql.Tx, token, 
 		}
 		tenants = append(tenants, local.TenantID)
 	}
-	if err = s.poolOrderedOrganizationsTx(ctx, tx, tenants); err != nil {
+	if len(participants) > 1 {
+		return nil, authority, forbidden()
+	}
+	if len(participants) == 1 && participants[0] != nil {
+		p := participants[0]
+		err = s.lockHumanAuthorities(ctx, tx, p.users, append(tenants, p.organizations...), p.keys)
+	} else {
+		err = s.poolOrderedOrganizationsTx(ctx, tx, tenants)
+	}
+	if err != nil {
 		return nil, authority, err
 	}
 	discoveredOwner, discoveredPool := identity.owner, identity.runner.PoolID
@@ -198,7 +207,14 @@ func (s *Service) PoolRunnerAssignmentAuthorityTx(ctx context.Context, tx *sql.T
 	if token == "" {
 		return nil, forbidden()
 	}
-	return s.poolRunnerAssignmentAuthorityByHashTx(ctx, tx, digest(token), a)
+	proof, err := s.poolRunnerAssignmentAuthorityByHashTx(ctx, tx, digest(token), a)
+	if err != nil {
+		return nil, err
+	}
+	if err = dag.ValidatePoolAssignmentEnvelopeTx(ctx, tx, s.Dialect, a); err != nil {
+		return nil, err
+	}
+	return proof, nil
 }
 
 func (s *Service) poolRunnerAssignmentAuthorityByHashTx(ctx context.Context, tx *sql.Tx, tokenHash string, a dag.Assignment) (*poolMachineProof, error) {

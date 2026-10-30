@@ -4,6 +4,9 @@ package localization
 // SourceTemplate is canonical evidence; neither translation nor locale is persisted.
 // Bare sentinel keys are selected explicitly by a caller that owns that error identity.
 var dagCatalog = []Definition{
+	{Key: "dag.cloud.original_result_required", SourceTemplate: "invalid: protected cloud result requires original assignment reconciliation", Texts: map[Locale]string{ZhCN: "云执行回执需要核对原派发和原操作，不能代替完成或停止证明", EnUS: "The cloud result must be reconciled against its original assignment and operation; it cannot prove completion or a remote stop."}},
+	{Key: "dag.cloud.retry_requires_reconciliation", SourceTemplate: "conflict: cloud effects must be reconciled before another attempt", Texts: map[Locale]string{ZhCN: "请先核对原云任务的执行结果，再决定是否允许新的尝试", EnUS: "Reconcile the original cloud effect before permitting another attempt."}},
+	{Key: "dag.cloud.manual_result_forbidden", SourceTemplate: "conflict: original cloud operation requires service evidence", Texts: map[Locale]string{ZhCN: "云任务需要原操作的可信证据，不能手动确认成功或未执行", EnUS: "Cloud tasks require trusted evidence of the original operation; success or non-execution cannot be asserted manually."}},
 	{Key: "dag.tool.test_report", SourceTemplate: "invalid: test report differs from fixed test capability", Texts: map[Locale]string{ZhCN: "测试报告与固定测试工具能力不符", EnUS: "The test report does not match the fixed test capability."}},
 	{Key: "dag.run.managed_batch_request", SourceTemplate: "invalid: managed batch requires 1..16 unique reserved IDs, serializable workflows and authority hooks", Texts: map[Locale]string{ZhCN: "批量运行需要1至16个唯一预留标识、有效流程和授权校验", EnUS: "Managed batch requires 1..16 unique reserved IDs, valid workflows and authority hooks."}},
 	{Key: "dag.run.managed_batch_nodes", SourceTemplate: "invalid: managed batch requires at most 10000 top-level nodes", Texts: map[Locale]string{ZhCN: "批量运行的顶层节点总数不能超过10000", EnUS: "Managed batch cannot exceed 10000 top-level nodes."}},

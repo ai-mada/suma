@@ -309,6 +309,20 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 		}
 	}
 	for ctx.Err() == nil {
+		for _, a := range j.pendingCloudExecutions() {
+			local := w.local[scopeKey(a.TenantID, a.ProjectID)]
+			if local == nil || a.WorkerID != worker {
+				return fmt.Errorf("pool cloud recovery lacks its fixed local scope")
+			}
+			client, e := w.Client.forPoolAssignment(a)
+			if e != nil {
+				return e
+			}
+			executor := Worker{Client: client, Journal: j, ID: worker, Exec: local.Exec, inventory: local.currentInventory()}
+			if e = executor.runAssignment(ctx, a, beat); e != nil {
+				return e
+			}
+		}
 		for _, a := range j.pendingReleases() {
 			if a.RepositoryIntegration == nil || a.ReleaseExecution != nil {
 				return fmt.Errorf("pool recovery requires a repository integration binding")
@@ -364,7 +378,7 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 		for _, scope := range w.Config.Scopes {
 			local := w.local[scopeKey(scope.TenantID, scope.ProjectID)]
 			if active[scopeKey(scope.TenantID, scope.ProjectID)] && local.canClaimInventory() {
-				caps := append(ToolCapabilities(local.currentInventory()), ExternalCapabilities(local.Exec.External)...)
+				caps := runnerCapabilities(local.Exec, ToolCapabilities(local.currentInventory()))
 				scopes = append(scopes, PoolCapabilityScope{TenantID: scope.TenantID, ProjectID: scope.ProjectID, Capabilities: caps})
 			}
 		}
@@ -406,7 +420,7 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 			if local == nil {
 				return fmt.Errorf("dispatch lacks exact local project configuration")
 			}
-			if a.ReleaseExecution != nil || a.Type == "external_workflow" && a.RepositoryIntegration == nil {
+			if a.ReleaseExecution != nil || a.Type == "external_workflow" && a.RepositoryIntegration == nil && a.WorkBuddyCloud == nil {
 				return fmt.Errorf("pool external/deployment capability is not configured")
 			}
 			if e = j.Accept(*a); e != nil {
@@ -423,7 +437,7 @@ func (w *PoolWorker) runSlot(ctx context.Context, slot, worker string) error {
 			// Close the receive-to-launch authority gap. Session is only a hint;
 			// this exact dispatch is checked again before any child is created.
 			cancelled, authorityErr := client.Heartbeat(ctx, *a)
-			if cancelled || authorityErr != nil {
+			if (cancelled || authorityErr != nil) && a.WorkBuddyCloud == nil {
 				if e = j.Finish(Result{Assignment: *a, ExitCode: -1, Error: "pool execution not started: pre-launch authority unavailable or cancellation requested"}); e != nil {
 					return e
 				}

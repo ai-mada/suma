@@ -91,11 +91,14 @@ func (s *Service) authorizeTx(ctx context.Context, tx *sql.Tx, actor Actor, targ
 // Additional organization IDs coordinate persisted bilateral references. They
 // only enlarge the lock set; current authority still comes from Actor/target.
 // Callers resolve the real references before entry and recheck them under locks.
-func (s *Service) authorizeTxWithParticipants(ctx context.Context, tx *sql.Tx, actor Actor, target commandTarget, purpose commandPurpose, organizations []string) (*authorizedCommand, error) {
+func (s *Service) authorizeTxWithParticipants(ctx context.Context, tx *sql.Tx, actor Actor, target commandTarget, purpose commandPurpose, organizations []string, subjects ...string) (*authorizedCommand, error) {
 	if tx == nil || actor.kind == actorInvalid {
 		return nil, unauthenticated()
 	}
 	if actor.kind == actorDurableAutomation || actor.kind == actorDurableToolActivation || actor.kind == actorSignedIngress {
+		if len(subjects) > 0 {
+			return nil, forbidden()
+		}
 		return s.authorizeDelegationTx(ctx, tx, actor, target, purpose, organizations)
 	}
 	if actor.credential.digest == "" || actor.credential.subjectID == "" {
@@ -114,7 +117,7 @@ func (s *Service) authorizeTxWithParticipants(ctx context.Context, tx *sql.Tx, a
 	if target.tenantID == "" || target.tenantID != actor.credential.tenantID {
 		return nil, forbidden()
 	}
-	users := sortedAuthorityIDs([]string{actor.credential.subjectID, target.subjectID})
+	users := sortedAuthorityIDs(append([]string{actor.credential.subjectID, target.subjectID}, subjects...))
 	orgs := append([]string{target.tenantID}, organizations...)
 	for _, user := range users {
 		candidates, e := s.authorityOrganizations(bounded, tx, user)

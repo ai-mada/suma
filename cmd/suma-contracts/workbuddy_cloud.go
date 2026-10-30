@@ -8,7 +8,7 @@ import (
 )
 
 func workBuddyCloudModels() []any {
-	return []any{wc.NodeBinding{}, wc.CloudNodeView{}, wc.CloudDelegateRequest{}, wc.CloudCreateRequest{}, wc.CloudRefreshRequest{}, wc.CloudRevokeRequest{}, wc.CloudObserveRequest{}, wc.CloudDelegation{}, wc.CloudSubmission{}, workbuddy.Task{}, workbuddy.CreateRequest{}}
+	return []any{wc.NodeBinding{}, wc.CloudNodeView{}, wc.CloudDelegateRequest{}, wc.CloudCreateRequest{}, wc.CloudRefreshRequest{}, wc.CloudRevokeRequest{}, wc.CloudObserveRequest{}, wc.CloudLookupRequest{}, wc.CloudLookupResult{}, wc.CloudAssignmentBinding{}, wc.CloudWaitEvidence{}, wc.CloudDelegation{}, wc.CloudSubmission{}, workbuddy.Task{}, workbuddy.CreateRequest{}}
 }
 
 func workBuddyCloudContracts(add operationAdder, api map[string]any) {
@@ -20,8 +20,10 @@ func workBuddyCloudContracts(add operationAdder, api map[string]any) {
 		{"/workbuddy-cloud-submissions/{id}", "get", "", "CloudSubmission", "200"},
 		{"/workbuddy-cloud-submissions/{id}/observe", "post", "CloudObserveRequest", "CloudSubmission", "200"},
 		{"/runner/workbuddy-cloud-submissions", "post", "CloudCreateRequest", "CloudSubmission", "201"},
+		{"/runner/workbuddy-cloud-submissions/lookup", "post", "CloudLookupRequest", "CloudLookupResult", "200"},
 		{"/runner/workbuddy-cloud-submissions/{id}/refresh", "post", "CloudRefreshRequest", "CloudSubmission", "200"},
 		{"/pool-runner/workbuddy-cloud-submissions", "post", "CloudCreateRequest", "CloudSubmission", "201"},
+		{"/pool-runner/workbuddy-cloud-submissions/lookup", "post", "CloudLookupRequest", "CloudLookupResult", "200"},
 		{"/pool-runner/workbuddy-cloud-submissions/{id}/refresh", "post", "CloudRefreshRequest", "CloudSubmission", "200"},
 	} {
 		op := add(route.path, route.method, route.output, false, route.input != "")
@@ -63,6 +65,11 @@ func workBuddyCloudContracts(add operationAdder, api map[string]any) {
 		if route.path == "/workbuddy-cloud-delegations" || strings.HasSuffix(route.path, "/revoke") {
 			op["x-no-external-effects"] = true
 		}
+		if strings.HasSuffix(route.path, "/lookup") {
+			op["x-read-only"] = true
+			op["x-no-external-effects"] = true
+			op["description"] = "Read only the original control-plane submission under the current exact machine, project, delegation and assignment authority. No supplier request, Create, operation key or CAS mutation. not_found is the absence of a record at this authorized observation, not permission to Create. Prepared and unknown remain unresolved; no OAuth or ACP material is returned."
+		}
 		if route.path == "/workbuddy-cloud-nodes" {
 			for _, item := range []struct {
 				name string
@@ -84,7 +91,7 @@ func workBuddyCloudContracts(add operationAdder, api map[string]any) {
 			raw.(map[string]any)["headers"] = map[string]any{"Cache-Control": map[string]any{"schema": map[string]any{"type": "string", "const": "no-store"}}, "Referrer-Policy": map[string]any{"schema": map[string]any{"type": "string", "const": "no-referrer"}}}
 		}
 	}
-	models := []string{"NodeBinding", "CloudNodeView", "CloudDelegateRequest", "CloudCreateRequest", "CloudRefreshRequest", "CloudRevokeRequest", "CloudObserveRequest", "CloudDelegation", "CloudSubmission", "Task", "CreateRequest"}
+	models := []string{"NodeBinding", "CloudNodeView", "CloudDelegateRequest", "CloudCreateRequest", "CloudRefreshRequest", "CloudRevokeRequest", "CloudObserveRequest", "CloudLookupRequest", "CloudLookupResult", "CloudAssignmentBinding", "CloudWaitEvidence", "CloudDelegation", "CloudSubmission", "Task", "CreateRequest"}
 	schemas := toolContractMap(api, "components", "schemas")
 	field := func(model, key string, attrs map[string]any) {
 		for k, v := range attrs {
@@ -96,7 +103,7 @@ func workBuddyCloudContracts(add operationAdder, api map[string]any) {
 		model["additionalProperties"] = false
 		for key, raw := range toolContractMap(model, "properties") {
 			p := raw.(map[string]any)
-			if name == "CloudNodeView" || name == "CloudDelegation" || name == "CloudSubmission" || name == "Task" {
+			if name == "CloudNodeView" || name == "CloudLookupResult" || name == "CloudDelegation" || name == "CloudSubmission" || name == "Task" {
 				p["readOnly"] = true
 			}
 			switch key {
@@ -131,6 +138,17 @@ func workBuddyCloudContracts(add operationAdder, api map[string]any) {
 	field("CloudDelegation", "creates_consumed", map[string]any{"minimum": 0, "maximum": 1})
 	field("CloudDelegation", "state", map[string]any{"enum": []string{"active", "revoked"}})
 	field("CloudSubmission", "state", map[string]any{"enum": []string{"prepared", "unknown", "task_known"}})
+	field("CloudLookupResult", "state", map[string]any{"enum": []string{"not_found", "prepared", "unknown", "task_known"}, "description": "Original stored submission state. not_found is an authorized observation of absence, never a new Create permit or proof of no supplier effect."})
+	field("CloudLookupResult", "submission", map[string]any{"description": "Required for prepared/unknown/task_known, absent for not_found. Must match this result's state, project, delegation and complete original assignment."})
+	lookupConditions := []any{}
+	for _, state := range []string{"not_found", "prepared", "unknown", "task_known"} {
+		then := map[string]any{"not": map[string]any{"required": []string{"submission"}}}
+		if state != "not_found" {
+			then = map[string]any{"required": []string{"submission"}, "properties": map[string]any{"submission": map[string]any{"type": "object", "properties": map[string]any{"state": map[string]any{"const": state}}}}}
+		}
+		lookupConditions = append(lookupConditions, map[string]any{"if": map[string]any{"properties": map[string]any{"state": map[string]any{"const": state}}}, "then": then})
+	}
+	toolContractMap(schemas, "CloudLookupResult")["allOf"] = lookupConditions
 	field("CloudSubmission", "usage_state", map[string]any{"const": "unreported", "description": "No trustworthy supplier usage/bill; absent counters and costs are not zero."})
 	field("CloudSubmission", "last_error", map[string]any{"pattern": "^$|^[a-z][a-z0-9_]{0,79}$"})
 	field("CloudSubmission", "observed_at", map[string]any{"description": "UTC time of the last persisted exact supplier Task observation; empty until task_known."})
@@ -141,4 +159,24 @@ func workBuddyCloudContracts(add operationAdder, api map[string]any) {
 	for _, name := range []string{"CloudCreateRequest", "CloudRefreshRequest", "CloudSubmission"} {
 		field(name, "assignment", map[string]any{"description": "Exact current candidatecontract.AssignmentRef; complete pool scope when present. project/run/node must match the original delegation and current machine lease; IDs are not authority."})
 	}
+	for _, name := range []string{"CloudLookupRequest", "CloudLookupResult"} {
+		field(name, "assignment", map[string]any{"description": "Original complete candidatecontract.AssignmentRef, preserving LeaseUntil, DispatchState and all pool fields. Current machine and grant authority and the same current attempt/fence/worker epoch must be verified. Reading stored facts does not require an active lease and does not authorize execution, a new supplier request or a new attempt."})
+	}
+	field("CloudAssignmentBinding", "delegation_version", map[string]any{"minimum": 1, "maximum": 2147483647, "description": "Original delegation version fixed in the claim transaction, not a request to adopt the latest grant."})
+	field("CloudAssignmentBinding", "delegation_sha256", map[string]any{"pattern": "^[0-9a-f]{64}$", "description": "Digest of immutable authorization identity. Mutable consumption/display fields are excluded; the digest does not establish current authority."})
+	field("CloudWaitEvidence", "protocol", map[string]any{"const": wc.Protocol})
+	field("CloudWaitEvidence", "claim_id", map[string]any{"minLength": 1, "maxLength": 100})
+	field("CloudWaitEvidence", "create_operation_id", map[string]any{"minLength": 8, "maxLength": 128, "x-max-utf8-bytes": 128, "description": "Original stable control-plane Create operation; a wait does not authorize another supplier POST."})
+	field("CloudWaitEvidence", "assignment", map[string]any{"description": "Original complete AssignmentRef for the exact claim/attempt/fence/worker and pool identity. The trusted control-plane resolver checks this proof against the original claim and persisted submission."})
+	field("CloudWaitEvidence", "binding", map[string]any{"description": "Original claim-selected binding; a machine cannot select a different delegation through a wait report."})
+	field("CloudWaitEvidence", "submission_id", map[string]any{"maxLength": 64})
+	field("CloudWaitEvidence", "submission_version", map[string]any{"minimum": 0, "maximum": 2147483647})
+	field("CloudWaitEvidence", "cause", map[string]any{"enum": []string{"creation_unconfirmed", "remote_unknown", "waiting_input", "delivery_required", "interrupted", "authorization_changed", "observation_unconfirmed"}, "description": "Request for durable reconciliation, not successful completion, human acceptance or confirmed remote stop."})
+	toolContractMap(schemas, "CloudWaitEvidence")["allOf"] = []any{
+		map[string]any{"if": map[string]any{"required": []string{"submission_id"}, "properties": map[string]any{"submission_id": map[string]any{"minLength": 1}}}, "then": map[string]any{"required": []string{"submission_version"}, "properties": map[string]any{"submission_version": map[string]any{"minimum": 1}}}, "else": map[string]any{"properties": map[string]any{"submission_version": map[string]any{"const": 0}}}},
+	}
+	// These fields are reflected from dag.Assignment and dag.Result registered by
+	// generate(). Preserve their actual optional typed references and other modes.
+	field("Assignment", "workbuddy_cloud", map[string]any{"readOnly": true, "description": "Claim-transaction-selected and persisted WorkBuddy delegation binding. Never inferred from workflow config or replaced by the Runner; current authority is rechecked before external actions."})
+	field("Result", "workbuddy_cloud_wait", map[string]any{"description": "Typed request to reconcile the original cloud effect through a trusted control-plane resolver. Not a success/acceptance or remote stop receipt; raw supplier status and this machine proof alone cannot complete the DAG or authorize another Create."})
 }
