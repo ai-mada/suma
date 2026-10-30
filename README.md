@@ -1,5 +1,8 @@
 # 速码 suma
 
+本阶段T-WORKBUDDY-CLOUD-152：[所交付的WorkBuddy云任务工作区](docs/quality/workbuddy-cloud-execution-verification.md)。原运行节点内的本人委派、准确来源和供应方任务核对已接通；控制面以原attempt机器资格提供持久一次创建，未知作用保留原操作。源码、定向检查、隔离构建及真实界面各自范围以专项报告为准，完整自动DAG领取／Execute、ACP协作、可信制品、独立测试和正式验收继续交付。 完整58项限定实现／34项待交付／92项保持不变。
+
+
 本阶段T-MULTICA-FOLLOW-154：[所交付的当前人员任务关注](docs/quality/task-subscriptions-verification.md)。任务讨论旁用一个关注按钮管理个人偏好，正式讨论与最终assistant消息沿原事务通知当前有权关注者；与精准提及去重，取消后保留历史通知。37个不同Go领域顶层、59项Web及16项真实账号／HTTP／GUI检查限定通过，中英1366／390图片已检查；真实assistant GUI、其他数据库、多机、规模与生产仍待验。 完整58项限定实现／34项待交付／92项保持不变。
 
 

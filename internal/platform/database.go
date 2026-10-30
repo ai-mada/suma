@@ -121,6 +121,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.validateWorkBuddyConnectionsInitialSchema(ctx); err != nil {
 		return err
 	}
+	if err := s.validateWorkBuddyCloudInitialSchema(ctx); err != nil {
+		return err
+	}
 	if err := s.validateTaskReviewRequestsInitialSchema(ctx); err != nil {
 		return err
 	}
@@ -264,6 +267,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 		return err
 	}
 	if err := s.InitializeWorkBuddyConnections(ctx); err != nil {
+		return err
+	}
+	if err := s.InitializeWorkBuddyCloud(ctx); err != nil {
 		return err
 	}
 	if err := s.InitializeTaskReviewRequests(ctx); err != nil {

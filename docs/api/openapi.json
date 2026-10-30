@@ -6771,6 +6771,579 @@
         ],
         "type": "object"
       },
+      "CloudCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/CandidateAssignmentRef",
+            "description": "Exact current candidatecontract.AssignmentRef; complete pool scope when present. project/run/node must match the original delegation and current machine lease; IDs are not authority."
+          },
+          "delegation_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "delegation_id",
+          "expected_version",
+          "assignment",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "CloudDelegateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "connection_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "expected_connection_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expected_run_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "expires_at": {
+            "description": "Explicit UTC expiry. New delegations require expiry after authoritative database time and at most 24 hours later; reads preserve expired records.",
+            "format": "date-time",
+            "type": "string"
+          },
+          "grant_generation": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "max_creates": {
+            "const": 1,
+            "type": "integer"
+          },
+          "node_id": {
+            "maxLength": 150,
+            "minLength": 1,
+            "type": "string"
+          },
+          "node_spec_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "request_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "run_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "connection_id",
+          "expected_connection_version",
+          "grant_generation",
+          "run_id",
+          "node_id",
+          "expected_run_version",
+          "node_spec_sha256",
+          "request_sha256",
+          "expires_at",
+          "max_creates",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "CloudDelegation": {
+        "additionalProperties": false,
+        "properties": {
+          "client_binding_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "connection_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "connection_version_at_issue": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "creates_consumed": {
+            "maximum": 1,
+            "minimum": 0,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "expires_at": {
+            "description": "Explicit UTC expiry. New delegations require expiry after authoritative database time and at most 24 hours later; reads preserve expired records.",
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "grant_generation": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "max_creates": {
+            "const": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "node_id": {
+            "maxLength": 150,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "node_spec_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "owner_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "request_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "active",
+              "revoked"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "owner_id",
+          "connection_id",
+          "version",
+          "run_id",
+          "node_id",
+          "node_spec_sha256",
+          "connection_version_at_issue",
+          "grant_generation",
+          "client_binding_sha256",
+          "request_sha256",
+          "expires_at",
+          "max_creates",
+          "creates_consumed",
+          "state",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "CloudNodeView": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_actions": {
+            "description": "Current-authorized subset in this order. Revoke requires own active delegation; observe requires own known task and current original grant. No machine execution action.",
+            "items": {
+              "enum": [
+                "delegate",
+                "revoke",
+                "observe"
+              ],
+              "type": "string"
+            },
+            "maxItems": 3,
+            "readOnly": true,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "binding": {
+            "$ref": "#/components/schemas/NodeBinding",
+            "readOnly": true
+          },
+          "delegation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CloudDelegation"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "node_id": {
+            "maxLength": 150,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "node_spec_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "request_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          },
+          "submission": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CloudSubmission"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          }
+        },
+        "required": [
+          "project_id",
+          "run_id",
+          "node_id",
+          "run_version",
+          "node_spec_sha256",
+          "request_sha256",
+          "binding",
+          "allowed_actions"
+        ],
+        "type": "object"
+      },
+      "CloudObserveRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "CloudRefreshRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/CandidateAssignmentRef",
+            "description": "Exact current candidatecontract.AssignmentRef; complete pool scope when present. project/run/node must match the original delegation and current machine lease; IDs are not authority."
+          },
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "assignment",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "CloudRevokeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "maximum": 2147483646,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string",
+            "x-max-utf8-bytes": 128
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "expected_version",
+          "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "CloudSubmission": {
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "else": {
+              "properties": {
+                "observed_at": {
+                  "const": ""
+                },
+                "task": {
+                  "type": "null"
+                }
+              }
+            },
+            "if": {
+              "properties": {
+                "state": {
+                  "const": "task_known"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "observed_at": {
+                  "format": "date-time",
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "task": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              },
+              "required": [
+                "task"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/CandidateAssignmentRef",
+            "description": "Exact current candidatecontract.AssignmentRef; complete pool scope when present. project/run/node must match the original delegation and current machine lease; IDs are not authority.",
+            "readOnly": true
+          },
+          "created_at": {
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "delegation_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "last_error": {
+            "pattern": "^$|^[a-z][a-z0-9_]{0,79}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "node_id": {
+            "maxLength": 150,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "observed_at": {
+            "description": "UTC time of the last persisted exact supplier Task observation; empty until task_known.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "request_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "run_id": {
+            "maxLength": 100,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "prepared",
+              "unknown",
+              "task_known"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "task": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Task"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "updated_at": {
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "usage_state": {
+            "const": "unreported",
+            "description": "No trustworthy supplier usage/bill; absent counters and costs are not zero.",
+            "readOnly": true,
+            "type": "string"
+          },
+          "version": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "readOnly": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "delegation_id",
+          "version",
+          "run_id",
+          "node_id",
+          "assignment",
+          "request_sha256",
+          "state",
+          "observed_at",
+          "last_error",
+          "usage_state",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
       "CodeBaselineBinding": {
         "oneOf": [
           {
@@ -7111,6 +7684,26 @@
           "assignment",
           "caller_worker_id",
           "request_sha256"
+        ],
+        "type": "object"
+      },
+      "CreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 512,
+            "type": "string"
+          },
+          "prompt": {
+            "description": "Original immutable node prompt, not accepted by machine Create or human delegation commands.",
+            "maxLength": 262144,
+            "minLength": 1,
+            "type": "string",
+            "x-max-utf8-bytes": 262144
+          }
+        },
+        "required": [
+          "prompt"
         ],
         "type": "object"
       },
@@ -14706,6 +15299,30 @@
           "blockers",
           "requests",
           "reservations"
+        ],
+        "type": "object"
+      },
+      "NodeBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "connection_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "grant_generation": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "request": {
+            "$ref": "#/components/schemas/CreateRequest"
+          }
+        },
+        "required": [
+          "connection_id",
+          "grant_generation",
+          "request"
         ],
         "type": "object"
       },
@@ -25806,6 +26423,43 @@
         "required": [
           "organization_id",
           "idempotency_key"
+        ],
+        "type": "object"
+      },
+      "Task": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 512,
+            "readOnly": true,
+            "type": "string"
+          },
+          "status": {
+            "description": "Raw supplier status; unknown values are retained and do not establish Suma completion.",
+            "maxLength": 128,
+            "minLength": 1,
+            "readOnly": true,
+            "type": "string"
+          },
+          "task_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,200}$",
+            "readOnly": true,
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "status"
         ],
         "type": "object"
       },
@@ -75529,6 +76183,413 @@
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },
+    "/pool-runner/workbuddy-cloud-submissions": {
+      "post": {
+        "description": "Exact current machine assignment, owner grant, run/node/attempt/fence/lease and project authority. Pool credentials retain their full current bilateral grant and credential versions. Current authority precedes receipt recovery. One durable control-plane prepare permits one Create only; prepared/unknown never authorizes another POST, including another attempt. Refresh only reads the original supplier task. No OAuth or ACP material is returned.",
+        "operationId": "post_pool-runner_workbuddy-cloud-submissions",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloudCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloudSubmission"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Object is absent or not currently visible to this identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cloud connection component is unavailable; configuration is not execution health.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "browser",
+          "api",
+          "agent"
+        ],
+        "x-max-request-body-bytes": 65536,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/pool-runner/workbuddy-cloud-submissions/{id}/refresh": {
+      "post": {
+        "description": "Exact current machine assignment, owner grant, run/node/attempt/fence/lease and project authority. Pool credentials retain their full current bilateral grant and credential versions. Current authority precedes receipt recovery. One durable control-plane prepare permits one Create only; prepared/unknown never authorizes another POST, including another attempt. Refresh only reads the original supplier task. No OAuth or ACP material is returned.",
+        "operationId": "post_pool-runner_workbuddy-cloud-submissions_id_refresh",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloudRefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloudSubmission"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Object is absent or not currently visible to this identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Exact supplier GET failed. Original task identity and last verified observation remain stored.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cloud connection component is unavailable; configuration is not execution health.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "browser",
+          "api",
+          "agent"
+        ],
+        "x-max-request-body-bytes": 65536,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
     "/pool-runner/workspace-observations/claim": {
       "post": {
         "description": "Worker-authenticated lease for its exact active workspace. Monotonic observation lease fence; no source text is returned to the worker.",
@@ -95474,6 +96535,413 @@
         ],
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
         "x-required-token-scope": "runner"
+      }
+    },
+    "/runner/workbuddy-cloud-submissions": {
+      "post": {
+        "description": "Exact current machine assignment, owner grant, run/node/attempt/fence/lease and project authority. Pool credentials retain their full current bilateral grant and credential versions. Current authority precedes receipt recovery. One durable control-plane prepare permits one Create only; prepared/unknown never authorizes another POST, including another attempt. Refresh only reads the original supplier task. No OAuth or ACP material is returned.",
+        "operationId": "post_runner_workbuddy-cloud-submissions",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloudCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloudSubmission"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Object is absent or not currently visible to this identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cloud connection component is unavailable; configuration is not execution health.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "runnerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "browser",
+          "api",
+          "agent"
+        ],
+        "x-max-request-body-bytes": 65536,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/runner/workbuddy-cloud-submissions/{id}/refresh": {
+      "post": {
+        "description": "Exact current machine assignment, owner grant, run/node/attempt/fence/lease and project authority. Pool credentials retain their full current bilateral grant and credential versions. Current authority precedes receipt recovery. One durable control-plane prepare permits one Create only; prepared/unknown never authorizes another POST, including another attempt. Refresh only reads the original supplier task. No OAuth or ACP material is returned.",
+        "operationId": "post_runner_workbuddy-cloud-submissions_id_refresh",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloudRefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloudSubmission"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Object is absent or not currently visible to this identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Exact supplier GET failed. Original task identity and last verified observation remain stored.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cloud connection component is unavailable; configuration is not execution health.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "runnerAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "browser",
+          "api",
+          "agent"
+        ],
+        "x-max-request-body-bytes": 65536,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },
     "/runner/workspace-observations/claim": {
@@ -117238,6 +118706,1396 @@
         ],
         "x-read-only": true,
         "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/workbuddy-cloud-delegations": {
+      "post": {
+        "description": "Current browser project authority. Delegations are private to their original owner; safe submission facts are project-readable. Original node source is fixed. Explicit owner observe reads only the original task using the current original grant; it does not restore a machine lease, delegation, or execution permission. Local GETs never call the supplier.",
+        "operationId": "post_workbuddy-cloud-delegations",
+        "parameters": [
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloudDelegateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloudDelegation"
+                }
+              }
+            },
+            "description": "Created",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Object is absent or not currently visible to this identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cloud connection component is unavailable; configuration is not execution health.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-max-request-body-bytes": 65536,
+        "x-no-external-effects": true,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/workbuddy-cloud-delegations/{id}": {
+      "get": {
+        "description": "Current browser project authority. Delegations are private to their original owner; safe submission facts are project-readable. Original node source is fixed. Explicit owner observe reads only the original task using the current original grant; it does not restore a machine lease, delegation, or execution permission. Local GETs never call the supplier.",
+        "operationId": "get_workbuddy-cloud-delegations_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloudDelegation"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Object is absent or not currently visible to this identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cloud connection component is unavailable; configuration is not execution health.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-no-external-effects": true,
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/workbuddy-cloud-delegations/{id}/revoke": {
+      "post": {
+        "description": "Current browser project authority. Delegations are private to their original owner; safe submission facts are project-readable. Original node source is fixed. Explicit owner observe reads only the original task using the current original grant; it does not restore a machine lease, delegation, or execution permission. Local GETs never call the supplier.",
+        "operationId": "post_workbuddy-cloud-delegations_id_revoke",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloudRevokeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloudDelegation"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Object is absent or not currently visible to this identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cloud connection component is unavailable; configuration is not execution health.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-max-request-body-bytes": 65536,
+        "x-no-external-effects": true,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
+      }
+    },
+    "/workbuddy-cloud-nodes": {
+      "get": {
+        "description": "Current browser project authority. Delegations are private to their original owner; safe submission facts are project-readable. Original node source is fixed. Explicit owner observe reads only the original task using the current original grant; it does not restore a machine lease, delegation, or execution permission. Local GETs never call the supplier.",
+        "operationId": "get_workbuddy-cloud-nodes",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact original node scope; no list or inferred selection.",
+            "in": "query",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Exact original node scope; no list or inferred selection.",
+            "in": "query",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "maxLength": 150,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloudNodeView"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Object is absent or not currently visible to this identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cloud connection component is unavailable; configuration is not execution health.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-no-external-effects": true,
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/workbuddy-cloud-submissions/{id}": {
+      "get": {
+        "description": "Current browser project authority. Delegations are private to their original owner; safe submission facts are project-readable. Original node source is fixed. Explicit owner observe reads only the original task using the current original grant; it does not restore a machine lease, delegation, or execution permission. Local GETs never call the supplier.",
+        "operationId": "get_workbuddy-cloud-submissions_id",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloudSubmission"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Object is absent or not currently visible to this identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cloud connection component is unavailable; configuration is not execution health.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-no-external-effects": true,
+        "x-read-only": true,
+        "x-request-schema-coverage": "map-backed request envelope; field validation is specified by the handler and API guide"
+      }
+    },
+    "/workbuddy-cloud-submissions/{id}/observe": {
+      "post": {
+        "description": "Current browser project authority. Delegations are private to their original owner; safe submission facts are project-readable. Original node source is fixed. Explicit owner observe reads only the original task using the current original grant; it does not restore a machine lease, delegation, or execution permission. Local GETs never call the supplier.",
+        "operationId": "post_workbuddy-cloud-submissions_id_observe",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-User",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "Original rendered account/organization identity. Required for browser commands and exact retries; scoped API credentials do not need it. Compared with current identity, never used to select or authorize an account or organization.",
+            "in": "header",
+            "name": "X-Suma-Expected-Organization",
+            "required": true,
+            "schema": {
+              "maxLength": 32,
+              "minLength": 32,
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            "x-required-for-credential-kind": "browser-session"
+          },
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloudObserveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CloudSubmission"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Object is absent or not currently visible to this identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Exact version/source changed, consumed submission or uncertain external effect requires reconciliation. Never retry supplier Create.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "428": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Missing, duplicate or invalid original-view context for a browser command. Refresh the view; do not silently select another identity.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Exact supplier GET failed. Original task identity and last verified observation remain stored.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cloud connection component is unavailable; configuration is not execution health.",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "x-browser-original-view": {
+          "account_only": false,
+          "is_authorization": false,
+          "mismatch_status": 403,
+          "missing_status": 428,
+          "required": true
+        },
+        "x-disallowed-token-scopes": [
+          "api",
+          "agent",
+          "runner"
+        ],
+        "x-max-request-body-bytes": 65536,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced"
       }
     },
     "/workbuddy-connections": {

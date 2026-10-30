@@ -1,5 +1,20 @@
 {
   "project": "suma",
+  "workbuddy_cloud_execution": {
+    "stage": "T-WORKBUDDY-CLOUD-152",
+    "date": "2026-10-30",
+    "status": "windows_sqlite_http_gui_scoped_verified",
+    "contract": "contracts/workbuddy-cloud-execution.md",
+    "architecture": "docs/architecture/workbuddy-cloud-execution.md",
+    "report": "docs/quality/workbuddy-cloud-execution-verification.md",
+    "summary": "docs/quality/workbuddy-cloud-execution-summary.json",
+    "scope": "Current-owner delegation, exact frozen run/node workspace, attempt-authorized once-only creation and supplier-task observation; full automatic DAG execution/ACP/evidence acceptance remain pending.",
+    "ledger_unchanged": "58 limited /34 pending /92 total",
+    "full_platform_complete": false,
+    "verification": "88 distinct Go top tests, Web34, current combined types/7627 locale/build checks reused; isolated152 v3 CSS build and26 actual interactions plus3 layout checks, counted separately.",
+    "actual": "Real SQLite/Go/Electron and synthetic OAuth/task provider; known/unknown each one delegation, submission and provider POST. Exact original-operation recovery, revocation and CN/EN screenshots verified.",
+    "limits": "Complete public DAG claim/Runner Execute/ACP, real supplier, artifacts/candidates, independent tests/acceptance, physical multihost, native dialogs, installers and production remain pending."
+  },
   "task_subscriptions": {
     "stage": "T-MULTICA-FOLLOW-154",
     "date": "2026-10-30",

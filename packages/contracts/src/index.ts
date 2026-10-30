@@ -1478,6 +1478,92 @@ export interface CapacityEntry {
   distribution_unknown_tasks: number;
   distribution_unknown_hours: number;
 }
+export interface CloudCreateRequest {
+  project_id: string;
+  delegation_id: string;
+  expected_version: number;
+  assignment: CandidateAssignmentRef;
+  idempotency_key: string;
+}
+export interface CloudDelegateRequest {
+  project_id: string;
+  connection_id: string;
+  expected_connection_version: number;
+  grant_generation: number;
+  run_id: string;
+  node_id: string;
+  expected_run_version: number;
+  node_spec_sha256: string;
+  request_sha256: string;
+  expires_at: string;
+  max_creates: number;
+  idempotency_key: string;
+}
+export interface CloudDelegation {
+  id: string;
+  project_id: string;
+  owner_id: string;
+  connection_id: string;
+  version: number;
+  run_id: string;
+  node_id: string;
+  node_spec_sha256: string;
+  connection_version_at_issue: number;
+  grant_generation: number;
+  client_binding_sha256: string;
+  request_sha256: string;
+  expires_at: string;
+  max_creates: number;
+  creates_consumed: number;
+  state: string;
+  created_at: string;
+  updated_at: string;
+}
+export interface CloudNodeView {
+  project_id: string;
+  run_id: string;
+  node_id: string;
+  run_version: number;
+  node_spec_sha256: string;
+  request_sha256: string;
+  binding: NodeBinding;
+  delegation?: CloudDelegation | null;
+  submission?: CloudSubmission | null;
+  allowed_actions: (string)[];
+}
+export interface CloudObserveRequest {
+  project_id: string;
+  expected_version: number;
+  idempotency_key: string;
+}
+export interface CloudRefreshRequest {
+  project_id: string;
+  expected_version: number;
+  assignment: CandidateAssignmentRef;
+  idempotency_key: string;
+}
+export interface CloudRevokeRequest {
+  project_id: string;
+  expected_version: number;
+  idempotency_key: string;
+}
+export interface CloudSubmission {
+  id: string;
+  project_id: string;
+  delegation_id: string;
+  version: number;
+  run_id: string;
+  node_id: string;
+  assignment: CandidateAssignmentRef;
+  request_sha256: string;
+  state: string;
+  task?: Task | null;
+  observed_at: string;
+  last_error: string;
+  usage_state: string;
+  created_at: string;
+  updated_at: string;
+}
 export interface CodeBaselineBinding {
   protocol: string;
   id: string;
@@ -1549,6 +1635,10 @@ export interface ConsumeDeploymentAuthorization {
   assignment: AssignmentRef;
   caller_worker_id: string;
   request_sha256: string;
+}
+export interface CreateRequest {
+  prompt: string;
+  name?: string;
 }
 export interface DeploymentAuthorizationGrant {
   authorization_id: string;
@@ -2957,6 +3047,11 @@ export interface NodeAdmissionSnapshot {
   blockers: (SchedulingBlocker)[];
   requests: (ResourceRequest)[];
   reservations: (ResourceReservationSnapshot)[];
+}
+export interface NodeBinding {
+  connection_id: string;
+  grant_generation: number;
+  request: CreateRequest;
 }
 export interface NodeProgressData {
   operation_id: string;
@@ -5264,6 +5359,13 @@ export interface StartupFailureProof {
 export interface SwitchOrganizationRequest {
   organization_id: string;
   idempotency_key: string;
+}
+export interface Task {
+  task_id: string;
+  status: string;
+  name?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 export interface TaskCodeBaselineBindRequest {
   project_id: string;

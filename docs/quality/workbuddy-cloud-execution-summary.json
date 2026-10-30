@@ -1,0 +1,763 @@
+{
+  "stage": "T-WORKBUDDY-CLOUD-152",
+  "date": "2026-10-30",
+  "version": "1.0.0",
+  "status": "scoped_verified",
+  "full_platform_complete": false,
+  "base": "fc4cebe057ef246454e2a5be3adad7c04a6a955a",
+  "scope": "Current owner delegation, original DAG attempt machine proof, central durable once-only create, exact supplier task read, human observation, typed Runner control client, strict source/receipt validation and recoverable Web workspace.",
+  "verification": {
+    "unique_go_top": 88,
+    "new_stage_go_top": 28,
+    "existing_generator_regression_top": 60,
+    "platform_final": {
+      "top": 16,
+      "subcases": 12,
+      "seconds": 13.827,
+      "exit_code": 0,
+      "command": "go test ./internal/platform -run '^TestWorkBuddyCloud' -count=1 -timeout=90s -v"
+    },
+    "runner": {
+      "top": 5,
+      "subcases": 9,
+      "seconds": 0.395,
+      "exit_code": 0,
+      "command": "go test ./internal/runner -run '^TestWorkBuddyCloudClient' -count=1 -timeout=90s -v"
+    },
+    "shared_go_contract": {
+      "unique_top": 5,
+      "initial_four_seconds": 0.387,
+      "additive_one_seconds": 0.176,
+      "unchanged_checks_reused": true
+    },
+    "full_generator": {
+      "top": 62,
+      "subcases": 5,
+      "seconds": 1.92,
+      "exit_code": 0,
+      "new_top_included": 2
+    },
+    "code_generation": {
+      "models": 775,
+      "paths": 366,
+      "scope": "Fixed fc4+T152 tested candidate baseline, not final merged delivery",
+      "added_models": 11,
+      "added_paths": 10,
+      "check_exit_code": 0,
+      "existing_json_values_changed": 0,
+      "combined_expected_models": 778,
+      "combined_expected_paths": 368,
+      "combined_verification": "Pending coordinator regeneration after committed T154; never overwrite it with this candidate"
+    },
+    "web": {
+      "unique_checks": 34,
+      "initial_panel": 9,
+      "workspace": 7,
+      "model": 6,
+      "new_panel_recovery": 2,
+      "original_run_mount": 8,
+      "record_refresh": 2,
+      "repeated_affected_not_added": true,
+      "types_exit_code": 0,
+      "locale_keys": 7611,
+      "hardcodes": 0,
+      "supplier_offset_fix": "Independent review issue reproduced RED, six affected model cases PASS0.019s, final types0; platform UTC remains distinct"
+    },
+    "environment": {
+      "go": "1.26.10/windows",
+      "CGO_ENABLED": "0",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GOPROXY": "off",
+      "GOMODCACHE": ".cache/go-mod-runtime",
+      "GOCACHE": ".cache/workbuddy-152/go-cache",
+      "GOTMPDIR": ".cache/workbuddy-152/tmp",
+      "TEMP": ".cache/workbuddy-152/tmp",
+      "TMP": ".cache/workbuddy-152/tmp"
+    },
+    "source_scope": "The 34 scoped UI checks and 7611 locale keys describe the shared checked workspace including T153; reused after CSS-only change. Browser build-v2 and final CSS build-v3 use isolated candidate/src from fc4cebe057ef246454e2a5be3adad7c04a6a955a plus fixed T152 sources. No separate candidate locale-key count is claimed. Candidate 775/366 is the tested baseline only; combined delivery after T154 requires coordinator regeneration and verification.",
+    "vendor": "Not called",
+    "physical_multihost": "Not verified",
+    "public_pool_claim": "Not enabled",
+    "runner_execute": "Not registered",
+    "race": "Not executed",
+    "production": "Not accepted",
+    "browser": {
+      "passed": 26,
+      "checks": [
+        "original run and exact node route preserved",
+        "node source begins without delegation or cloud submission",
+        "keyboard moves from account to duration",
+        "explicit delegation starts disabled: cloud-known",
+        "account and duration alone do not approve delegation: cloud-known",
+        "one real delegated create bound to original attempt",
+        "known creation has one authoritative delegation and submission",
+        "real supplier offset time survives API and browser validation",
+        "read current source does not query provider",
+        "explicit observation records pending",
+        "second observation records completed without a second create",
+        "supplier completion remains separate from acceptance and unknown cost",
+        "full page reopening reads stored facts without provider GET",
+        "explicit delegation starts disabled: cloud-unknown",
+        "account and duration alone do not approve delegation: cloud-unknown",
+        "lost response retains original operation in session storage",
+        "actual full reload preserves captured original pending operation",
+        "reopening reconciles byte-identical original body and operation key",
+        "lost create remains unknown with one external POST",
+        "original-operation recovery did not duplicate authoritative records",
+        "unknown task offers no new delegation or blind provider query",
+        "390px cloud workspace has no horizontal overflow",
+        "English dark representative state is real",
+        "restored current project access reads original unknown cloud facts",
+        "current project revocation removes protected prompt and controls",
+        "no renderer exceptions"
+      ],
+      "status": "interaction_checks_passed_pending_visual_review",
+      "visual_review": "passed",
+      "visual_followup": "Original v2 captures retain the discovered facts-column bug. Final v3 fixes only CSS; see browser-style receipt and two manually inspected final images. All 26 business interaction checks retained.",
+      "screenshots": [
+        {
+          "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\workbuddy-152\\browser\\01-cn-desktop-source.png",
+          "sha256": "8cb2a62a2623c12cbfafdb8ca0ab7d345a4db79145d6be2923a4112feb05c0b1"
+        },
+        {
+          "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\workbuddy-152\\browser\\02-cn-desktop-completed.png",
+          "sha256": "397c5cb396ea505a12c6ad240ba57446476fe7a9ca48fe94c0c998a7dfd582df"
+        },
+        {
+          "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\workbuddy-152\\browser\\03-cn-desktop-unknown.png",
+          "sha256": "7069cebfdd85f5358a5e796f0df2a4e74b2b3d805e697bcf356336ab87600601"
+        },
+        {
+          "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\workbuddy-152\\browser\\04-en-mobile-dark-unknown.png",
+          "sha256": "484ba49b47875441b61c3c5716f33221775982c9fd7e68a61da01ded12d9edfc"
+        },
+        {
+          "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\workbuddy-152\\browser\\05-en-mobile-dark-access-removed.png",
+          "sha256": "ab2c89f2a09dea0dc3da2787a3b2f077ab0ea5506a280f59d25a1a0e49839745"
+        }
+      ],
+      "receipt": ".cache/workbuddy-152/browser/receipt.json",
+      "final_fixture": ".cache/workbuddy-152/browser-fixture/final.json",
+      "controlled_response_loss": true,
+      "fixture_driver": true,
+      "actual_vendor": false,
+      "style_followup": {
+        "passed": 3,
+        "checks": [
+          "1366px narrow inspector uses one readable fact column with >=170px items and >=12/14px labels/values",
+          "390px English dark facts retain one readable column and no horizontal overflow",
+          "English fact label words are not split into fragments"
+        ],
+        "status": "passed_pending_root_visual",
+        "visual_review": "passed",
+        "metrics": {
+          "desktop": {
+            "grids": [
+              {
+                "columns": "228.667px",
+                "items": [
+                  {
+                    "width": 228.6666717529297,
+                    "dt": 12,
+                    "dd": 14
+                  },
+                  {
+                    "width": 228.6666717529297,
+                    "dt": 12,
+                    "dd": 14
+                  },
+                  {
+                    "width": 228.6666717529297,
+                    "dt": 12,
+                    "dd": 14
+                  }
+                ]
+              },
+              {
+                "columns": "228.667px",
+                "items": [
+                  {
+                    "width": 228.6666717529297,
+                    "dt": 12,
+                    "dd": 14
+                  },
+                  {
+                    "width": 228.6666717529297,
+                    "dt": 12,
+                    "dd": 14
+                  },
+                  {
+                    "width": 228.6666717529297,
+                    "dt": 12,
+                    "dd": 14
+                  },
+                  {
+                    "width": 228.6666717529297,
+                    "dt": 12,
+                    "dd": 14
+                  }
+                ]
+              }
+            ],
+            "wordsUnbroken": true,
+            "noOverflow": true,
+            "viewport": 1366
+          },
+          "mobile": {
+            "grids": [
+              {
+                "columns": "302px",
+                "items": [
+                  {
+                    "width": 302,
+                    "dt": 12,
+                    "dd": 14
+                  },
+                  {
+                    "width": 302,
+                    "dt": 12,
+                    "dd": 14
+                  },
+                  {
+                    "width": 302,
+                    "dt": 12,
+                    "dd": 14
+                  }
+                ]
+              },
+              {
+                "columns": "302px",
+                "items": [
+                  {
+                    "width": 302,
+                    "dt": 12,
+                    "dd": 14
+                  },
+                  {
+                    "width": 302,
+                    "dt": 12,
+                    "dd": 14
+                  },
+                  {
+                    "width": 302,
+                    "dt": 12,
+                    "dd": 14
+                  },
+                  {
+                    "width": 302,
+                    "dt": 12,
+                    "dd": 14
+                  }
+                ]
+              }
+            ],
+            "wordsUnbroken": true,
+            "noOverflow": true,
+            "viewport": 390
+          }
+        },
+        "screenshots": [
+          {
+            "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\workbuddy-152\\browser-style\\01-cn-desktop-completed-facts.png",
+            "sha256": "df20e7b975608237c23407d65015d8d9287b9a7ab422337f8084f303d9765e5e"
+          },
+          {
+            "path": "D:\\codes\\ai-dev-os\\suma\\.cache\\workbuddy-152\\browser-style\\02-en-mobile-dark-completed-facts.png",
+            "sha256": "d6bc4090b9df351063724db93ee955d9deb4c507f41f01698e5967afa4f550d4"
+          }
+        ],
+        "source_css_hash": "4ad45cb11f3685524e903a9ce2e3bfae44009a9f76b4858e8db6240cfb5c7ad9",
+        "receipt": ".cache/workbuddy-152/browser-style/receipt.json",
+        "final_fixture": ".cache/workbuddy-152/style-fixture/final.json",
+        "counting": "Three final layout checks are separate from original business-interaction checks, not three additional business functions"
+      },
+      "recovery": {
+        "original_body_sha256": "461f3fe3708588c292fb2982103e9c19adc429abf09f8a09410c4f3f4794bb1f",
+        "replayed_body_sha256": "461f3fe3708588c292fb2982103e9c19adc429abf09f8a09410c4f3f4794bb1f",
+        "writes": 5,
+        "controlled_renderer_receipt_loss": true
+      },
+      "resolved_failures": [
+        {
+          "name": "hidden_beforeunload",
+          "resolution": "Fixture explicitly confirms leave; captured original storage restored to own window, real full reload and byte-identical UI reconciliation passed."
+        },
+        {
+          "name": "fixture_withdraw_helper_409",
+          "resolution": "Actual administrator login and current-version public project-access commands independently removed and restored exact member. No database state fabrication."
+        }
+      ],
+      "fixture_access_restored": true,
+      "final_project_grant_version": 5
+    }
+  },
+  "sources": [
+    {
+      "path": "apps/web/src/i18n/locales/domains/workbuddy-cloud-task.en-US.json",
+      "sha256": "f9949af1b74b7a997fe856e024920949e77d9643cc404d124b72762f83dabd1e"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/workbuddy-cloud-task.zh-CN.json",
+      "sha256": "858fd32df89174332a56a9b65554f6baaf8efd889dd30323e27375433945bfe7"
+    },
+    {
+      "path": "apps/web/src/workbuddy-cloud-task-model.test.ts",
+      "sha256": "ebaf1a0cb0430d841c063120d59dc2a965ad0e081608a126fdeb0cef3e3a4205"
+    },
+    {
+      "path": "apps/web/src/workbuddy-cloud-task-model.ts",
+      "sha256": "7985f378b84cc2365742451862345081348b5b224ea7969e8e6403d2af63b621"
+    },
+    {
+      "path": "apps/web/src/WorkBuddyCloudTaskPanel.css",
+      "sha256": "4ad45cb11f3685524e903a9ce2e3bfae44009a9f76b4858e8db6240cfb5c7ad9"
+    },
+    {
+      "path": "apps/web/src/WorkBuddyCloudTaskPanel.test.tsx",
+      "sha256": "408e01b39a3a2351c601f942e1da4afd2a452c314198c51a7288c3afd2ef81e8"
+    },
+    {
+      "path": "apps/web/src/WorkBuddyCloudTaskPanel.tsx",
+      "sha256": "b90a96ac3cefd31dec31c8263ff76de03a45185173dc4ee85165f262ed4062e4"
+    },
+    {
+      "path": "apps/web/src/WorkBuddyCloudTaskWorkspace.test.tsx",
+      "sha256": "5cc3f795a95e978f9bf628ce9e060b519ec75ed830d3630981fb4d6077d08b31"
+    },
+    {
+      "path": "apps/web/src/WorkBuddyCloudTaskWorkspace.tsx",
+      "sha256": "9720c0c4ed3cb8c3eb0c0334142f13ca8eda53b5746720cf878fd85aca412ec0"
+    },
+    {
+      "path": "apps/web/src/workflow-cloud-task-model.test.ts",
+      "sha256": "6a3dc05a68f854d5e6b59a745c283291dfc649f19cb5bb15101a3abbcaa74e45"
+    },
+    {
+      "path": "apps/web/src/workflow-cloud-task-model.ts",
+      "sha256": "99bfd844f0889a77236dc8d97cf231786befb3cf5e79f2f73cf80dfb976c00c8"
+    },
+    {
+      "path": "apps/web/src/Workflow.tsx",
+      "sha256": "6d78ca767701dc703887ee76f373c874ed31b99210ca83d7f7751a26fb592b9d"
+    },
+    {
+      "path": "apps/web/src/WorkflowCloudIntegration.test.tsx",
+      "sha256": "967a4933ea0938bf708dbf480b0289326323b96feb2f7d9247e8e9a5c08309c5"
+    },
+    {
+      "path": "cmd/suma-contracts/workbuddy_cloud_test.go",
+      "sha256": "2f18d6009cb263ecbf21a9d2c0dff25087b1940359e0a90ffdfed79851a2a39b"
+    },
+    {
+      "path": "cmd/suma-contracts/workbuddy_cloud.go",
+      "sha256": "0117f7ccfe363366122ef40d7a97257979616ce7473da0cd92550d9dcd1e027c"
+    },
+    {
+      "path": "contracts/workbuddy-cloud-execution.md",
+      "sha256": "95a8b7b253f950d35e9f325173de34d9ecfc988577e62543ae57cd238d3e3cd8"
+    },
+    {
+      "path": "docs/architecture/workbuddy-cloud-execution.md",
+      "sha256": "13057b19419cb909fe68b6d124bb623244c555c8a73c46051b151cfa0f76fd47"
+    },
+    {
+      "path": "docs/design/workbuddy-cloud-task.md",
+      "sha256": "6a12b6627d8abe91e39ce5e09de59ae7c6a6f6a000177522246edf1fdbea235b"
+    },
+    {
+      "path": "docs/quality/workbuddy-cloud-execution-verification.md",
+      "sha256": "02f468499175a29f8f3ea24649f120923812945b8324b6f51dfaff7ddc278e00"
+    },
+    {
+      "path": "internal/platform/workbuddy_cloud_authority.go",
+      "sha256": "b99c57f90d3900ecaf0c2fd8376a4e4fc2d7523773792bf175b138967acf4fd2"
+    },
+    {
+      "path": "internal/platform/workbuddy_cloud_delegation.go",
+      "sha256": "d20038e2e5799c90361a95a87aa859901ab960bda171ef20f62f35f446ef1cd2"
+    },
+    {
+      "path": "internal/platform/workbuddy_cloud_execution.go",
+      "sha256": "625e3d1c46e373c160cd00f7bdad43d4a64ec93d232ab8d16bad44f295010aeb"
+    },
+    {
+      "path": "internal/platform/workbuddy_cloud_http_test.go",
+      "sha256": "5a7a4dd4d76bb407a3953f35de8b59a4a322fa04396db14188ad4b01659e1271"
+    },
+    {
+      "path": "internal/platform/workbuddy_cloud_http.go",
+      "sha256": "863d4fff3c808c1c861fb4cc054c81c2e268a5f7574d0bbfeaddb2c9077f04b8"
+    },
+    {
+      "path": "internal/platform/workbuddy_cloud_integration_test.go",
+      "sha256": "a4cf130dceb6961b0d7b2f0c1b7ba96570c5b5861d8b503dcf0d0063631a43aa"
+    },
+    {
+      "path": "internal/platform/workbuddy_cloud_observe.go",
+      "sha256": "0f927982ccf7718f5eec45e95502b1e6e3d91f38ff88f2ebea507df116211545"
+    },
+    {
+      "path": "internal/platform/workbuddy_cloud_read_test.go",
+      "sha256": "59b2761bb094ab645f4df66bf61adfa073bcff9d08f32266dee931c2cc1a04cf"
+    },
+    {
+      "path": "internal/platform/workbuddy_cloud_read.go",
+      "sha256": "7ff615602cb670b83de7153d35bb48c441bac51eca2bf0c6861e8bd43e7a98a1"
+    },
+    {
+      "path": "internal/platform/workbuddy_cloud_store.go",
+      "sha256": "f07ad4dcac9dc27f019a4284b8086c5e590d9869abdfb0972791cea623ec07fc"
+    },
+    {
+      "path": "internal/platform/workbuddy_cloud_test.go",
+      "sha256": "9a1ba409bba93ad75c976f76d47cf1869a658b2a44d31983055589bb41ca0a4a"
+    },
+    {
+      "path": "internal/runner/workbuddy_cloud_client_test.go",
+      "sha256": "0ce5ef25159d0de91c8450db97fdfc981733166a319e853298e610a97a85bcc1"
+    },
+    {
+      "path": "internal/runner/workbuddy_cloud_client.go",
+      "sha256": "78b5969535543f500bba0d4fd2845042415c934b42a398183a7a0b063b2108fe"
+    },
+    {
+      "path": "internal/workbuddycloudcontract/types.go",
+      "sha256": "a293e5420a757e7b44838f391b8fb6a9ce913c00e963edbc3e88d3d2c8ec4df3"
+    },
+    {
+      "path": "internal/workbuddycloudcontract/validation_test.go",
+      "sha256": "91133a5264cfd2eb87a4180b24a01b3f75d0d86eee88747607bfcbf43216c17f"
+    },
+    {
+      "path": "internal/workbuddycloudcontract/validation.go",
+      "sha256": "b6c81ac87b4e33666c401fd00e2044641a69cb9615ec16419ffa54093fe7e391"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cache/workbuddy-152/platform-stage-integration.log",
+      "sha256": "084df611607f709571f32363f97e97fc79947dc5eae8cb52d25e4401c43c56f3"
+    },
+    {
+      "path": ".cache/workbuddy-152/runner/final.log",
+      "sha256": "8f2c97035faf48e29261246361c8902f96071579ec09e01cf1ebe866156c8ce8"
+    },
+    {
+      "path": ".cache/workbuddy-152/generator-suite.log",
+      "sha256": "be47acc9b88043f0079107913df08708f6b67a154b7af9a4cb5ae4216641339f"
+    },
+    {
+      "path": ".cache/workbuddy-152/generate-check.log",
+      "sha256": "21d7c9b325cd954ef3a94884405e7c57bd2bd2f0506a5d8dcdaf181f783495c2"
+    },
+    {
+      "path": ".cache/workbuddy-152-ui/workspace-model-final.log",
+      "sha256": "de330f2bdb4815aae8f81f8142978c384ae0285c9bcf12bc5854f78894dcfca3"
+    },
+    {
+      "path": ".cache/workbuddy-152-ui/panel-recovery-affected-final.log",
+      "sha256": "da6e34669d50fdb0c5ef8de51bc1d428c507cf3d758d065da82a084c817739aa"
+    },
+    {
+      "path": ".cache/workbuddy-152-ui/workspace-typecheck-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".cache/workbuddy-152-ui/workspace-i18n.log",
+      "sha256": "d0842f7e99c30e6d9384113653680a6bc0e967f476f42f3e0d8772b586e2ec6a"
+    },
+    {
+      "path": ".cache/workbuddy-152-ui/supplier-offset-model-green.log",
+      "sha256": "2e69b6b8034f0416aea4064486a549b1fcb538b9ab3c4d8b7a959a9ed99fd332"
+    },
+    {
+      "path": ".cache/workbuddy-152-ui/supplier-offset-summary.json",
+      "sha256": "538d0777b7b289c86d79a579aab102689296aed6505f3c29b20d19330ac4a0b2"
+    },
+    {
+      "path": ".cache/workbuddy-152-ui/run-mount-summary.json",
+      "sha256": "87ed89177d76d08783f8ce89206ca43f022c24223e3c5b4dcc12f274c2cde172"
+    },
+    {
+      "path": ".cache/workbuddy-152-ui/run-mount-sources.json",
+      "sha256": "666fed1758162580dd97e91af57042b710c13c094f86bd2205ce8490e8b18dcb"
+    },
+    {
+      "path": ".cache/workbuddy-152-ui/record-refresh-summary.json",
+      "sha256": "1056ea4b370fe78b5e44bccb7e2e4047a09f6c42813a339d24b772175c887337"
+    },
+    {
+      "path": ".cache/workbuddy-152-ui/record-refresh-sources.json",
+      "sha256": "b6ef5c4783241b5c007366a1564c440a741e987d06e0b0d591fc89c4c3996a47"
+    },
+    {
+      "path": ".cache/workbuddy-152/candidate/web-build-v2.log",
+      "sha256": "a0ad8b0d2114cb37847065a6367b4739b6b7f1201767ed30dcf2c7371ecea251"
+    },
+    {
+      "path": ".cache/workbuddy-152/browser/receipt.json",
+      "sha256": "91a91ce52af802122d0fa26ed3ef585763682df308fc72fd3368f2cab09da96d"
+    },
+    {
+      "path": ".cache/workbuddy-152/browser-fixture/final.json",
+      "sha256": "cccb79621d4dd48c6f49e2c7797a046a0e5ddf063a69bd7ff26ba5433bedbc38"
+    },
+    {
+      "path": ".cache/workbuddy-152/shared-152.patch",
+      "sha256": "d3fcb5061208ac210992f5a054cbbc8c74408902c241ea5e063d5f627f276524"
+    },
+    {
+      "path": ".cache/workbuddy-152/browser-style/receipt.json",
+      "sha256": "2118e8df6c8e30966de65794bf5e51a0dd6bb2d98379e9c3975827c4a38890a0"
+    },
+    {
+      "path": ".cache/workbuddy-152/style-fixture/final.json",
+      "sha256": "defaed1aaa852687db995e8699b03a6d2f6c83d541c16e43ad5545ff9ab221dd"
+    },
+    {
+      "path": ".cache/workbuddy-152-ui/facts-css-build/summary.json",
+      "sha256": "e17ce5ad37b422563d2f017cb4f344511dae710db366471d15bb1750e6891af0"
+    },
+    {
+      "path": ".cache/workbuddy-152/candidate/web-build-v3.log",
+      "sha256": "c672c58a08b27d492bd1276f57421d243f8e3fd2fee549cb05861ccb47a45c95"
+    },
+    {
+      "path": ".cache/workbuddy-152/browser-style/native-events.jsonl",
+      "sha256": "92b47ce8e02419258babc243ed494d71a3435684dba9ab1511454b1b00923f90"
+    },
+    {
+      "path": ".cache/workbuddy-152/style-fixture/go-fixture-live.log",
+      "sha256": "033a9229169bea99a70874a2dc9d2103691ccce11a4d2466fba136b6ed42bb13"
+    }
+  ],
+  "shared_changes": {
+    "patch": ".cache/workbuddy-152/shared-152.patch",
+    "additions": 16,
+    "deletions": 0,
+    "partial_files": [
+      "internal/platform/database.go",
+      "internal/platform/http.go",
+      "internal/platform/pool_runner_http.go",
+      "cmd/suma-contracts/main.go"
+    ],
+    "patch_check": "git apply --check succeeded against exact original four-file copy; exact-base reference only, no automatic application or Git repair",
+    "generated": [
+      "docs/api/openapi.json",
+      "packages/contracts/src/index.ts"
+    ],
+    "generated_merge": "Coordinator must regenerate combined authoritative Go after committed T154, expected 778 models/368 paths, and verify. Tested candidate 775/366 is evidence only and must not overwrite T154."
+  },
+  "remaining": [
+    "Public DAG claim eligibility and Runner Execute/progress integration",
+    "Durable ACP streaming, pending permission and cross-device team controls",
+    "Initial task cancellation and real remote stop proof",
+    "Trusted artifacts, fixed candidates, independent tests and acceptance",
+    "Supplier accounts, physical multiple hosts, deployment and production validation"
+  ],
+  "runtime_inputs": {
+    "path": ".cache/workbuddy-152/runtime-final-inputs.json",
+    "sha256": "a636f290e945bc920cfc56a74190eecf6f31c3f39d4fa84bd47a3189e30e59d9",
+    "source_sha256": "aabae26714fae51fb94fd49b704428cece0393908d17f845b132f4961c31d47d",
+    "base": "fc4cebe057ef246454e2a5be3adad7c04a6a955a",
+    "source_files": [
+      {
+        "path": "apps/web/src/WorkBuddyCloudTaskPanel.css",
+        "sha256": "4ad45cb11f3685524e903a9ce2e3bfae44009a9f76b4858e8db6240cfb5c7ad9"
+      },
+      {
+        "path": "apps/web/src/WorkBuddyCloudTaskPanel.test.tsx",
+        "sha256": "408e01b39a3a2351c601f942e1da4afd2a452c314198c51a7288c3afd2ef81e8"
+      },
+      {
+        "path": "apps/web/src/WorkBuddyCloudTaskPanel.tsx",
+        "sha256": "b90a96ac3cefd31dec31c8263ff76de03a45185173dc4ee85165f262ed4062e4"
+      },
+      {
+        "path": "apps/web/src/WorkBuddyCloudTaskWorkspace.test.tsx",
+        "sha256": "5cc3f795a95e978f9bf628ce9e060b519ec75ed830d3630981fb4d6077d08b31"
+      },
+      {
+        "path": "apps/web/src/WorkBuddyCloudTaskWorkspace.tsx",
+        "sha256": "9720c0c4ed3cb8c3eb0c0334142f13ca8eda53b5746720cf878fd85aca412ec0"
+      },
+      {
+        "path": "apps/web/src/Workflow.tsx",
+        "sha256": "6d78ca767701dc703887ee76f373c874ed31b99210ca83d7f7751a26fb592b9d"
+      },
+      {
+        "path": "apps/web/src/WorkflowCloudIntegration.test.tsx",
+        "sha256": "967a4933ea0938bf708dbf480b0289326323b96feb2f7d9247e8e9a5c08309c5"
+      },
+      {
+        "path": "apps/web/src/i18n/locales/domains/workbuddy-cloud-task.en-US.json",
+        "sha256": "f9949af1b74b7a997fe856e024920949e77d9643cc404d124b72762f83dabd1e"
+      },
+      {
+        "path": "apps/web/src/i18n/locales/domains/workbuddy-cloud-task.zh-CN.json",
+        "sha256": "858fd32df89174332a56a9b65554f6baaf8efd889dd30323e27375433945bfe7"
+      },
+      {
+        "path": "apps/web/src/workbuddy-cloud-task-model.test.ts",
+        "sha256": "ebaf1a0cb0430d841c063120d59dc2a965ad0e081608a126fdeb0cef3e3a4205"
+      },
+      {
+        "path": "apps/web/src/workbuddy-cloud-task-model.ts",
+        "sha256": "7985f378b84cc2365742451862345081348b5b224ea7969e8e6403d2af63b621"
+      },
+      {
+        "path": "apps/web/src/workflow-cloud-task-model.test.ts",
+        "sha256": "6a3dc05a68f854d5e6b59a745c283291dfc649f19cb5bb15101a3abbcaa74e45"
+      },
+      {
+        "path": "apps/web/src/workflow-cloud-task-model.ts",
+        "sha256": "99bfd844f0889a77236dc8d97cf231786befb3cf5e79f2f73cf80dfb976c00c8"
+      },
+      {
+        "path": "cmd/suma-contracts/workbuddy_cloud.go",
+        "sha256": "0117f7ccfe363366122ef40d7a97257979616ce7473da0cd92550d9dcd1e027c"
+      },
+      {
+        "path": "cmd/suma-contracts/workbuddy_cloud_test.go",
+        "sha256": "2f18d6009cb263ecbf21a9d2c0dff25087b1940359e0a90ffdfed79851a2a39b"
+      },
+      {
+        "path": "internal/platform/workbuddy_cloud_authority.go",
+        "sha256": "b99c57f90d3900ecaf0c2fd8376a4e4fc2d7523773792bf175b138967acf4fd2"
+      },
+      {
+        "path": "internal/platform/workbuddy_cloud_delegation.go",
+        "sha256": "d20038e2e5799c90361a95a87aa859901ab960bda171ef20f62f35f446ef1cd2"
+      },
+      {
+        "path": "internal/platform/workbuddy_cloud_execution.go",
+        "sha256": "625e3d1c46e373c160cd00f7bdad43d4a64ec93d232ab8d16bad44f295010aeb"
+      },
+      {
+        "path": "internal/platform/workbuddy_cloud_http.go",
+        "sha256": "863d4fff3c808c1c861fb4cc054c81c2e268a5f7574d0bbfeaddb2c9077f04b8"
+      },
+      {
+        "path": "internal/platform/workbuddy_cloud_http_test.go",
+        "sha256": "5a7a4dd4d76bb407a3953f35de8b59a4a322fa04396db14188ad4b01659e1271"
+      },
+      {
+        "path": "internal/platform/workbuddy_cloud_integration_test.go",
+        "sha256": "a4cf130dceb6961b0d7b2f0c1b7ba96570c5b5861d8b503dcf0d0063631a43aa"
+      },
+      {
+        "path": "internal/platform/workbuddy_cloud_observe.go",
+        "sha256": "0f927982ccf7718f5eec45e95502b1e6e3d91f38ff88f2ebea507df116211545"
+      },
+      {
+        "path": "internal/platform/workbuddy_cloud_read.go",
+        "sha256": "7ff615602cb670b83de7153d35bb48c441bac51eca2bf0c6861e8bd43e7a98a1"
+      },
+      {
+        "path": "internal/platform/workbuddy_cloud_read_test.go",
+        "sha256": "59b2761bb094ab645f4df66bf61adfa073bcff9d08f32266dee931c2cc1a04cf"
+      },
+      {
+        "path": "internal/platform/workbuddy_cloud_store.go",
+        "sha256": "f07ad4dcac9dc27f019a4284b8086c5e590d9869abdfb0972791cea623ec07fc"
+      },
+      {
+        "path": "internal/platform/workbuddy_cloud_test.go",
+        "sha256": "9a1ba409bba93ad75c976f76d47cf1869a658b2a44d31983055589bb41ca0a4a"
+      },
+      {
+        "path": "internal/runner/workbuddy_cloud_client.go",
+        "sha256": "78b5969535543f500bba0d4fd2845042415c934b42a398183a7a0b063b2108fe"
+      },
+      {
+        "path": "internal/runner/workbuddy_cloud_client_test.go",
+        "sha256": "0ce5ef25159d0de91c8450db97fdfc981733166a319e853298e610a97a85bcc1"
+      },
+      {
+        "path": "internal/workbuddycloudcontract/types.go",
+        "sha256": "a293e5420a757e7b44838f391b8fb6a9ce913c00e963edbc3e88d3d2c8ec4df3"
+      },
+      {
+        "path": "internal/workbuddycloudcontract/validation.go",
+        "sha256": "b6c81ac87b4e33666c401fd00e2044641a69cb9615ec16419ffa54093fe7e391"
+      },
+      {
+        "path": "internal/workbuddycloudcontract/validation_test.go",
+        "sha256": "91133a5264cfd2eb87a4180b24a01b3f75d0d86eee88747607bfcbf43216c17f"
+      },
+      {
+        "path": "internal/platform/database.go",
+        "sha256": "c4a7ccd12a9b3b4d3450c7ae6fc32b66a87897cb2fa02e6406514dee51228920",
+        "mode": "candidate_full_shared_file_fc4_plus_16_line_patch"
+      },
+      {
+        "path": "internal/platform/http.go",
+        "sha256": "5da4e0bf67dc4c4a152a17446b7bd827f0352bec58ddf799ca846c1de32c51b9",
+        "mode": "candidate_full_shared_file_fc4_plus_16_line_patch"
+      },
+      {
+        "path": "internal/platform/pool_runner_http.go",
+        "sha256": "0f5b30bf549e82d374eda5541b9f7d9d2e9a2f01090c997947f5996ba6dfcf27",
+        "mode": "candidate_full_shared_file_fc4_plus_16_line_patch"
+      },
+      {
+        "path": "cmd/suma-contracts/main.go",
+        "sha256": "ee90688a1dc63dac30eb26f80e6e6c977a17a322c2aac63be18ec532b0bb2236",
+        "mode": "candidate_full_shared_file_fc4_plus_16_line_patch"
+      }
+    ],
+    "generated_baseline": [
+      {
+        "path": "docs/api/openapi.json",
+        "sha256": "0d7010dc8c3f43d282209c2edee698111a38eb7de6fd01fabb1643e5f201a3c7"
+      },
+      {
+        "path": "packages/contracts/src/index.ts",
+        "sha256": "1bace5b3856f61a22f620fdd280d75a0ce08011fd10f8a3bf61623dd13aa9f47"
+      }
+    ],
+    "assets_v2": {
+      "count": 172,
+      "manifest": "dist/quality/workbuddy-cloud-152/runtime-inputs.json",
+      "manifest_sha256": "a636f290e945bc920cfc56a74190eecf6f31c3f39d4fa84bd47a3189e30e59d9",
+      "section": "assets_v2"
+    },
+    "assets_v3": {
+      "count": 172,
+      "manifest": "dist/quality/workbuddy-cloud-152/runtime-inputs.json",
+      "manifest_sha256": "a636f290e945bc920cfc56a74190eecf6f31c3f39d4fa84bd47a3189e30e59d9",
+      "section": "assets_v3"
+    },
+    "fixture_only_source_excluded": true
+  },
+  "artifacts": [
+    {
+      "path": "dist/quality/workbuddy-cloud-152/desktop-completed.png",
+      "sha256": "df20e7b975608237c23407d65015d8d9287b9a7ab422337f8084f303d9765e5e"
+    },
+    {
+      "path": "dist/quality/workbuddy-cloud-152/en-390-dark-completed.png",
+      "sha256": "d6bc4090b9df351063724db93ee955d9deb4c507f41f01698e5967afa4f550d4"
+    },
+    {
+      "path": "dist/quality/workbuddy-cloud-152/en-390-dark-access-removed.png",
+      "sha256": "ab2c89f2a09dea0dc3da2787a3b2f077ab0ea5506a280f59d25a1a0e49839745"
+    }
+  ],
+  "integrated_delivery": {
+    "parent": "c622da90e176b4e939ad7fb21cf601923ea4b6be",
+    "shared_hunks": 16,
+    "preserves_committed154": true,
+    "printed_models": 778,
+    "schema_components": 779,
+    "paths": 368,
+    "existing_contract_semantic_changes": 0,
+    "new_models": 11,
+    "new_paths": 10,
+    "core_compile_and_types_reused": ".cache/workbuddy-152/root-integration/web-follow154-checks.json",
+    "final152_css_verified_by_own_v3_build_and_actual_layout": true,
+    "whole_GUI_not_repeated": true
+  }
+}

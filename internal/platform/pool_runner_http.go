@@ -24,6 +24,9 @@ func (s *Server) poolRunnerHTTP(w http.ResponseWriter, r *http.Request, path str
 		writeError(w, &APIError{401, "pool_runner_token_required", "资源池执行节点需要独立 Bearer 凭证", nil})
 		return true
 	}
+	if s.poolWorkBuddyCloudHTTP(w, r, token, path, s.WorkBuddy) {
+		return true
+	}
 	if s.poolWorkspaceTerminalHTTP(w, r, token, path) {
 		return true
 	}
