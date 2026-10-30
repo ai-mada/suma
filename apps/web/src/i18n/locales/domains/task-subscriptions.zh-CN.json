@@ -1,0 +1,18 @@
+{
+ "task-subscriptions.follow":"关注任务",
+ "task-subscriptions.following":"已关注",
+ "task-subscriptions.unfollow":"取消关注任务",
+ "task-subscriptions.loading":"正在读取关注状态…",
+ "task-subscriptions.unavailable":"关注状态不可用",
+ "task-subscriptions.saving":"正在保存…",
+ "task-subscriptions.invalid_read":"关注状态与当前任务或账号不匹配，请重新读取。",
+ "task-subscriptions.access_changed":"当前任务关注状态不可用，请先核对访问权限。",
+ "task-subscriptions.refresh":"读取当前关注状态",
+ "task-subscriptions.refresh_failed":"未能确认当前关注状态。",
+ "task-subscriptions.confirmed":"原关注操作已确认，按钮状态以当前读取为准。",
+ "task-subscriptions.original_pending":"原关注操作仍需核对，读取当前状态不能替代原操作确认。",
+ "task-subscriptions.recover":"核对原关注操作",
+ "task-subscriptions.inbox_label":"已关注任务有新讨论",
+ "task-subscriptions.inbox_open_message":"打开讨论：{{title}}",
+ "task-subscriptions.inbox_created_at":"通知时间：{{at}}"
+}

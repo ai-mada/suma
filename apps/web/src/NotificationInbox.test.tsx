@@ -24,6 +24,15 @@ function transport(reply?:(path:string,init?:RequestInit)=>Response|undefined|Pr
 async function settle(){for(let i=0;i<6;i++)await act(async()=>{await Promise.resolve();await Promise.resolve();});}
 async function render(patch:Partial<NotificationInboxProps>={}){props={...props,...patch};const session:Session={user:{id:props.userID,name:'User',email:'user@example.test'},organization:{id:props.organizationID,name:'Organization'},projects:[]};await act(async()=>root.render(<ApiViewProvider session={session}><NotificationInbox {...props}/></ApiViewProvider>));await settle();}
 
+it('opens a followed task notification at its original message and keeps opening separate from marking read',async()=>{
+ records=[item({kind:'task_followed',assignment_current:false,source_resource_id:'subscription-a',message_id:'message-original'})];transport();await render();
+ expect(host.querySelector<HTMLButtonElement>('.notification-inbox-source')?.disabled).toBe(true);
+ const onMessage=vi.fn();await render({onMessage});expect(host.textContent).toContain('New discussion from a followed task');expect(host.textContent).not.toContain('Assignment has changed');expect(host.querySelector('.notification-inbox-source')?.getAttribute('aria-label')).toBe('Open discussion: Private assigned task');
+ await click('.notification-inbox-source');expect(onMessage).toHaveBeenCalledExactlyOnceWith('task-a','message-original');expect(props.onTask).not.toHaveBeenCalled();expect(writes).toHaveLength(0);expect(records[0].read).toBe(false);
+ await act(async()=>setLocale('zh-CN',{persist:false}));expect(host.textContent).toContain('已关注任务有新讨论');expect(host.querySelector('.notification-inbox-source')?.getAttribute('aria-label')).toBe('打开讨论：Private assigned task');
+ records=[item({kind:'task_followed',assignment_current:false,source_available:false,current_task:undefined,source_resource_id:'subscription-a'})];await render({refresh:1});expect(host.querySelector('.notification-inbox-source')).toBeNull();expect(host.textContent).not.toContain('Private assigned task');expect(writes).toHaveLength(0);
+});
+
 it('opens an exact handoff only through its callback without marking read or accepting responsibility',async()=>{
  const onHandoff=vi.fn();records=[item({kind:'task_handoff_requested',assignment_current:false,handoff_id:'handoff-original'})];transport();await render();
  const unavailable=host.querySelector<HTMLButtonElement>('.notification-inbox-source');expect(unavailable).not.toBeNull();expect(unavailable?.disabled).toBe(true);

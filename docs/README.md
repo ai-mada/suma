@@ -1,5 +1,8 @@
 # 速码 1.0.0 文档索引
 
+- [当前人员任务关注](quality/task-subscriptions-verification.md) · [合同](../contracts/task-subscriptions.md) · [架构](architecture/task-subscriptions.md) · [摘要](quality/task-subscriptions-summary.json)：T-MULTICA-FOLLOW-154，任务讨论旁用一个关注按钮管理个人偏好，正式讨论与最终assistant消息沿原事务通知当前有权关注者；与精准提及去重，取消后保留历史通知。37个不同Go领域顶层、59项Web及16项真实账号／HTTP／GUI检查限定通过，中英1366／390图片已检查；真实assistant GUI、其他数据库、多机、规模与生产仍待验。
+
+
 - [桌面本机连接](product/desktop-managed-runner.md) · [合同](../contracts/desktop-managed-runner.md) · [架构](architecture/desktop-managed-runner.md) · [交互与AI SOP](design/desktop-managed-runner.md) · [English](en/desktop-managed-runner.md) · [验证](quality/desktop-managed-runner-verification.md) · [摘要](quality/desktop-managed-runner-summary.json)：T-MULTICA-DESKTOP-153在Windows真实Electron软件离屏环境完成DPAPI、生产窄IPC、正式Go Worker、新鲜库存、暂停／独立启用、同节点恢复及退出登录停止，17项实际检查通过；首次GUI小数秒解析失败及原节点续验保留。只有1节点／1发行操作，0任务／运行／模型调用；OS目录对话框使用固定fixture，真实供应方、强制崩溃、macOS／Linux、安装包、规模及生产未验，24小时续权交互仍待办。后文151托管待办保留为阶段历史，由153限定推进；完整58／34／92不变。
 
 - [WorkBuddy ACP协议底层](architecture/workbuddy-cloud-submission.md) · [合同](../contracts/workbuddy-cloud-submission.md) · [SDK与许可](delivery/workbuddy-acp-dependencies.json) · [验证](quality/workbuddy-acp-verification.md) · [摘要](quality/workbuddy-acp-summary.json)：T-WORKBUDDY-ACP-149固定Session访问、成熟SDK类型和SSE／POST传输，56个Go顶层／163子场景通过；仅内部协议，不代表正式云派发或真实供应方验收。

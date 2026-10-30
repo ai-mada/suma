@@ -1,5 +1,8 @@
 # 1.0.0 当前交付状态
 
+T-MULTICA-FOLLOW-154：[本阶段当前人员任务关注](../quality/task-subscriptions-verification.md)。任务讨论旁用一个关注按钮管理个人偏好，正式讨论与最终assistant消息沿原事务通知当前有权关注者；与精准提及去重，取消后保留历史通知。37个不同Go领域顶层、59项Web及16项真实账号／HTTP／GUI检查限定通过，中英1366／390图片已检查；真实assistant GUI、其他数据库、多机、规模与生产仍待验。 完整58／34／92不变。
+
+
 最新T-MULTICA-DESKTOP-153：[桌面本机连接](../product/desktop-managed-runner.md)沿现有Go Worker／DAG完成OS加密journal、HMAC摘要发行、固定control私有stdin、启动后新水位库存及151暂停登记／独立启用。Windows Electron35.7.5软件离屏／真实DPAPI的17项实际GUI／HTTP／Worker检查通过，中英1366／390图片已目视；唯一节点／原发行操作保持，五次注册传输同正文／摘要／操作，五个正式Go子进程均exit0／close，0任务／运行／模型调用。首次GUI拒绝小数秒库存后仅修复Web解析器，沿原journal续验，见[报告](../quality/desktop-managed-runner-verification.md)及[摘要](../quality/desktop-managed-runner-summary.json)。本条限定覆盖151的托管待办，旧记录保留；24小时续权与原节点处置交互、真实供应方、真实OS选择器、强制崩溃、macOS／Linux、安装包、多机、规模及生产继续待办或待验，完整58／34／92不变。
 
 并行T-WORKBUDDY-ACP-149已限定完成[WorkBuddy准确Session访问与ACP底层](../architecture/workbuddy-cloud-submission.md)：固定供应方端点，成熟ACP SDK v0.13.5类型／编解码，SSE和HTTP独立读写，明确握手／load能力、准确历史、关联prompt、权限回执及取消。56个不同Go顶层／163子场景通过，18个交付文件及8份日志摘要核对一致；见[报告](../quality/workbuddy-acp-verification.md)、[摘要](../quality/workbuddy-acp-summary.json)及[SDK许可清单](workbuddy-acp-dependencies.json)。没有公共派发入口或UI接线，仍不把云工具登记为可派发；原DAG当前权限／机器／attempt绑定及持久一次派发留待T-WORKBUDDY-CLOUD-152，真实供应方和生产未验。工具快速接入和本机托管Runner仍按原优先级推进，58／34／92不变。

@@ -6,6 +6,7 @@ import {TaskConversation} from './TaskConversation';
 import {ApiViewProvider} from './api-context';
 import type {Session} from './api';
 import {setLocale} from './i18n';
+vi.mock('./TaskSubscriptionControl',()=>({TaskSubscriptionControl:()=>null}));
 import {conversationDraftKey} from './task-conversation-mentions-model';
 
 const pin={id:'knowledge-a',revision:2,sha256:'a'.repeat(64)};

@@ -7,6 +7,16 @@ const page=(patch:Record<string,unknown>={})=>({project_id:'project-a',user_id:'
 const request=(patch:Record<string,unknown>={})=>({path:notificationInboxCommandPath('notice-a'),method:'POST',idempotency_key:'original-operation-a',body:{project_id:'project-a',expected_version:1,action:'read',idempotency_key:'original-operation-a'},...patch});
 const receipt=(patch:Record<string,unknown>={})=>({idempotency_key:'original-operation-a',notification_id:'notice-a',version:2,action:'read',read:true,archived:false,read_at:'2026-10-29T04:00:00Z',archived_at:'',updated_at:'2026-10-29T04:00:00Z',...patch});
 
+it('requires the original message only for an available followed-task source and rejects incomplete or cross-kind locators',()=>{
+ const followed={kind:'task_followed',assignment_current:false,source_resource_id:'subscription-a',message_id:'message-original'};
+ expect(validNotificationInboxItem(row(followed))).toBe(true);
+ expect(validNotificationInboxPage(page({items:[row(followed)]}),'project-a','user-a','inbox')).toBe(true);
+ for(const patch of [{message_id:undefined},{message_id:'../other'},{assignment_current:true},{review_request_id:'review-a'},{handoff_id:'handoff-a'}])expect(validNotificationInboxItem(row({...followed,...patch}))).toBe(false);
+ expect(validNotificationInboxItem(row({...followed,source_available:false,current_task:undefined}))).toBe(false);
+ expect(validNotificationInboxItem(row({...followed,source_available:false,current_task:undefined,message_id:undefined}))).toBe(true);
+ expect(validNotificationInboxItem(row({message_id:'message-original'}))).toBe(false);
+});
+
 it('opens only an intact handoff source and rejects cross-kind or unavailable handoff locators',()=>{
  const handoff={kind:'task_handoff_requested',assignment_current:false,handoff_id:'handoff-original'};
  expect(validNotificationInboxItem(row(handoff))).toBe(true);

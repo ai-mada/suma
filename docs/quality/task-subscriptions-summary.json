@@ -1,0 +1,278 @@
+{
+  "stage": "T-MULTICA-FOLLOW-154",
+  "product_version": "1.0.0",
+  "date": "2026-10-30",
+  "status": "windows_sqlite_software_offscreen_scoped_verified",
+  "report": "docs/quality/task-subscriptions-verification.md",
+  "contract": "contracts/task-subscriptions.md",
+  "full_platform_complete": false,
+  "ledger": {
+    "limited_implemented": 58,
+    "pending": 34,
+    "total": 92,
+    "changed_by_stage": false
+  },
+  "scope": "Current browser/user-API personal task follow; observational version0; exact CAS and original-operation receipt; current-recipient same-transaction formal discussion notifications; private reverse source binding and exact-message inbox navigation.",
+  "runtime_source": {
+    "base": "ba007d2eeab8452361b3977f0357234e5c7dfcb9",
+    "provenance": "Exact committed153 archive + independent152 v2 source and 16-line shared-hook snapshots + frozen154; unrelated startup and TaskConversationKnowledge WIP excluded.",
+    "stage152_inputs": 42,
+    "stage154_inputs": 42,
+    "merged_unique_inputs": 79,
+    "source_sha256": "05fc56e46395b823adbda0da320e4eee3481cc219e6b3b8fe913c839993a3043",
+    "source_algorithm": "SHA256 of path-sorted {path,sha256} array serialized as compact JSON; unchanged files come from the exact base archive.",
+    "descriptor": ".cache/workbuddy-152/root-integration/synthesis.json",
+    "descriptor_sha256": "fbd34ad3b76c51e0e9589f09c2d32bc0a195ad45ffc05c594dd3696a1106058a",
+    "candidate": ".cache/e2e/follow154/browser/candidate.json",
+    "candidate_sha256": "5ebb56221a845dcd5bf6d0b80d23e6eb3c124f91bb05ac03ae39df1783501446",
+    "control_sha256": "479ec1773d71610762c3960cc91263fe56de973322ab39dc143ea8bae0a5a262",
+    "web_index_sha256": "ec7a484881f432372be2658a704203e95d7f9a74473e2d368c77cc3a84e9db8d",
+    "candidate_file_hashes_checked": 79,
+    "candidate_file_mismatches": 0,
+    "historical_descriptor_rewritten_for_later_docs": false,
+    "later_documentation_mapping": "Final status/entry documentation is reconciled separately; it is not retroactively made a compile input."
+  },
+  "verification": {
+    "go_domain": {
+      "distinct_top_pass": 37,
+      "named_subcase_pass": 9,
+      "new_distinct_top": 13,
+      "original_regression_top": 24,
+      "initial_top_pass": 35,
+      "initial_new_top": 11,
+      "batch_incremental_pass": 5,
+      "batch_new_top": 2,
+      "batch_rechecked_top": 3,
+      "final_strengthened_mixed_recheck": 1,
+      "final_recheck_adds_to_distinct_count": false,
+      "all_37_rerun_once_on_final_source": false,
+      "initial_evidence": ".cache/follow154-backend-evidence.json",
+      "initial_source_sha256": "2df57ac5984095ad6a32d4f8dc87313251e2201b3460320df7592e44870d552c",
+      "batch_evidence": ".cache/follow154-batch-evidence.json",
+      "batch_source_sha256": "9ed71e2a11216de0fb2ab79d52602ba07712c3e4fc34c2390109c1808d9a1f31",
+      "logs": [
+        ".cache/follow154-backend-integrated.jsonl",
+        ".cache/follow154-batch-test.jsonl",
+        ".cache/follow154-batch-mixed-final.jsonl"
+      ],
+      "environment": "Windows Go1.26.10, CGO0, SQLite, offline cached modules, process-local TEMP/TMP under repository D:.cache/go-tmp.",
+      "commands_source": "Executing agent's original tool history; JSONL outputs remain on disk. No original command file is fabricated.",
+      "coverage": [
+        "pure absent GET, viewer and current human/user-API identity",
+        "CAS, noop, max version and original receipt under current access",
+        "all current readers without human-resource membership or per-recipient identity locks",
+        "mention priority, human/API author exclusion and completed assistant requester delivery",
+        "message/reply/notification atomic rollback and duplicate projection",
+        "private source damage, revoked membership and mixed-page isolation"
+      ]
+    },
+    "generator": {
+      "distinct_top_pass": 3,
+      "new_top": 2,
+      "original_regression_top": 1,
+      "description_fix_rechecked_existing_top": 1,
+      "recheck_package_stdout_seconds": 0.32,
+      "command_records": ".cache/follow154/root-go/*.command.json",
+      "generate_exit_code": 0,
+      "check_exit_code": 0,
+      "before_printed_models": 775,
+      "after_printed_models": 778,
+      "before_json_components": 776,
+      "after_json_components": 779,
+      "existing_common_schema_count": 1,
+      "before_api_paths": 366,
+      "after_api_paths": 368,
+      "new_dtos": [
+        "TaskSubscription",
+        "TaskSubscriptionCommand",
+        "TaskSubscriptionReceipt"
+      ],
+      "new_paths": [
+        "/tasks/{task}/subscription",
+        "/tasks/{task}/subscription/commands"
+      ],
+      "existing_semantic_fields_changed": 4,
+      "existing_semantic_fields": [
+        "GET notification-inbox description",
+        "POST notification-inbox/{id}/commands description",
+        "NotificationInboxItem.kind enum",
+        "NotificationInboxItem.message_id description"
+      ]
+    },
+    "web": {
+      "files": 7,
+      "passed": 59,
+      "new_unique": 12,
+      "original_regressions": 47,
+      "new_breakdown": {
+        "subscription_model": 3,
+        "subscription_control": 7,
+        "inbox_model": 1,
+        "inbox_control": 1
+      },
+      "log": ".cache/follow154/ui/focused.log",
+      "log_sha256": "2198e804c22e65301ef571c69b1b4a66db7775c53b4ddf05d29d4daf49591a5f",
+      "frozen_source_list": ".cache/follow154/ui/source-hashes.json",
+      "frozen_sources": 15,
+      "typecheck": "passed; .cache/follow154/ui/types.log",
+      "i18n_paired_keys": 7627,
+      "production_hardcodes": 0,
+      "i18n_log": ".cache/follow154/ui/i18n.log",
+      "warnings": "Existing unknown-command inbox and pinned-knowledge regressions emitted React act warnings; no failing case."
+    },
+    "synthesized_web": {
+      "records": ".cache/workbuddy-152/root-integration/web-follow154-checks.json",
+      "records_sha256": "0d0e0ef33d6b0b21431f629092aeb7e0fe695ab63d9d07dc78a2ef6a4faddfb7",
+      "types": {
+        "exit_code": 0,
+        "elapsed_ms": 41684
+      },
+      "i18n": {
+        "exit_code": 0,
+        "elapsed_ms": 2114,
+        "paired_keys": 7627,
+        "production_hardcodes": 0
+      },
+      "build": {
+        "exit_code": 0,
+        "elapsed_ms": 52476
+      },
+      "i18n_stdout": ".cache/workbuddy-152/root-integration/follow154-i18n.stdout.txt",
+      "build_warning": "Vite chunks larger than 500kB; no performance acceptance inferred."
+    },
+    "actual": {
+      "receipt": "dist/quality/task-subscriptions-154/receipt.json",
+      "receipt_sha256": "479ba321d5cd646d555caac7dab904e3f7bdf041edfffebf342c49b141a3eeb5",
+      "command_receipt": ".cache/e2e/follow154/browser/command-receipt.json",
+      "runtime_summary": ".cache/e2e/follow154/browser/runtime-summary.json",
+      "executed_scripts_manifest": ".cache/e2e/follow154/browser/executed-v1/manifest.json",
+      "executed_verify_sha256": "adb401e1c3e0140135ee3dd8f5960629db72a6db38de6c637488cf2ad2ff27c6",
+      "command": "node .cache/e2e/follow154/browser/verify.cjs",
+      "command_cwd": "D:/codes/ai-dev-os/suma",
+      "exit_code": 0,
+      "tool_chunk": "68c47c",
+      "raw_stdout_log": null,
+      "raw_stderr_log": null,
+      "command_metadata_recorded_after_execution": true,
+      "environment": "Windows Electron35.7.5, production isolated preload, no renderer Node, software offscreen, owned localhost and isolated SQLite.",
+      "passed_distinct_checks": 16,
+      "first_run_ui_failures": 0,
+      "renderer_exceptions": 0,
+      "native_host_closed": true,
+      "accounts": 2,
+      "actual_viewer_invitation_acceptance": true,
+      "direct_database_writes": 0,
+      "tasks": 2,
+      "message_sources": 3,
+      "notifications": 2,
+      "preference_commands": 4,
+      "preference_transports": 5,
+      "final_preference_version": 4,
+      "lost_response": "Actual upstream commit200; intercepted response aborted before renderer receipt; explicit recovery reused exact original body/key and did not increment again.",
+      "fresh_get_did_not_clear_unknown": true,
+      "exact_message_open_did_not_mark_read": true,
+      "task_scope_switch": true,
+      "current_revocation": true,
+      "runs": 0,
+      "model_calls": 0,
+      "assistant_final_gui": false,
+      "assistant_final_evidence": "Go domain tests only; no GUI model or fabricated assistant message.",
+      "temporary_directory_limits": {
+        "electron_child_profile_session_cache_crash_logs": "Explicit D:/codes/ai-dev-os/suma/.cache/e2e/follow154/fixture paths.",
+        "parent_node_override_in_command": false,
+        "parent_values_at_execution": null,
+        "followup_parent_environment": "C:/Users/Administrator/AppData/Local/Temp",
+        "all_gui_temporary_files_on_D_claimed": false,
+        "unknown_parent_scratch_cleanup_claimed": false,
+        "fixture_only_launcher_corrected_after_original_scripts_preserved": true,
+        "fixture_correction_rerun": false,
+        "note": "Parent inherited TEMP/TMP; followup values are not presented as captured execution-time values. The future launcher was corrected without rerunning or changing original receipt/images; executed-v1 retains the original script bytes."
+      }
+    }
+  },
+  "retained_red_green": {
+    "source_query_regression": {
+      "red_command": "go test ./internal/platform -run '^TestTaskSubscriptionPageHydratesAtMost51SourcesWithOneBatchRead$' -count=1 -timeout=45s -v",
+      "red_exit_code": 1,
+      "red_elapsed_seconds": 0.902,
+      "red_observation": "reverse=51 message=51",
+      "red_raw_disk_log": null,
+      "red_evidence": "Original executing-agent tool output only; no disk red log reconstructed.",
+      "before_source_reads": 102,
+      "after_source_reads": 1,
+      "page_rows_with_cursor_sentinel": 51,
+      "boundary": "Only the new reverse/message source SQL for a human/API page, not the entire inbox/authority API or assistant backing queries.",
+      "assistant": "Grouped by task and deduplicated by message, complete original protected metadata retained; bounded split only on source-invalid failures."
+    },
+    "generator_description": "Later mention contract overwrote the shared message locator description; corrected ordering, strengthened and reran that existing test only, regenerated outputs. No new test count.",
+    "actual_gui_restart_to_hide_failure": false
+  },
+  "delivery": {
+    "directory": "dist/quality/task-subscriptions-154",
+    "manifest": "dist/quality/task-subscriptions-154/artifact-manifest.json",
+    "manifest_sha256": "234459d68f421c05a354293fffd89f77a5fd8b551f2f3bd2417cd3b777231864",
+    "all_four_manifest_files_bytes_and_hashes_checked": true,
+    "screenshots_visually_inspected": true,
+    "screenshots": [
+      {
+        "name": "followed-zh-1366.png",
+        "bytes": 153145,
+        "sha256": "d12ce600327cf4cc61ec86cff007df7409a7046b1e5525c38db9fb7326494c5f"
+      },
+      {
+        "name": "inbox-en-390.png",
+        "bytes": 69374,
+        "sha256": "56feb875b77993f780043df20bdb67ad8b63df20666ed4f5e78ffd3f05d945ce"
+      },
+      {
+        "name": "recovered-en-390.png",
+        "bytes": 64776,
+        "sha256": "1b3860def278246e599d4255f33c80e091aef00073abae2a355c005e205e45ac"
+      }
+    ],
+    "credentials_original_requests_or_private_state_delivered": false
+  },
+  "limits": [
+    "Windows software-offscreen and isolated SQLite only; no visible OS-window or full desktop installer acceptance.",
+    "No real vendor/commercial model, other database server, macOS/Linux, physical multihost, scale or production acceptance.",
+    "No OS chooser used in this stage; 153 credential-store evidence is not counted as 154 verification.",
+    "Final assistant coverage is domain evidence, not an actual GUI model run.",
+    "Mail, other notification channels, automatic follow rules and remaining full-platform scope remain pending."
+  ],
+  "documentation_closeout": {
+    "tests_repeated": false,
+    "build_repeated": false,
+    "gui_repeated": false,
+    "production_source_modified": false,
+    "historical_runtime_descriptors_modified": false
+  },
+  "independent_delivery": {
+    "base": "ba007d2eeab8452361b3977f0357234e5c7dfcb9",
+    "isolated_source": "D:\\codes\\ai-dev-os\\suma\\.cache\\follow154\\pure-candidate\\src",
+    "source_owned_inputs_match_actual_runtime": true,
+    "shared_differences": "Only the independent152 initialization/HTTP/generator hooks removed; all154 behavior remains identical.",
+    "printed_models": 767,
+    "schema_components": 768,
+    "paths": 358,
+    "wire_contract_is_subset_of_original_combined_runtime": true,
+    "types": {
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "D:\\codes\\ai-dev-os\\suma\\node_modules\\.pnpm\\typescript@5.7.3\\node_modules\\typescript\\bin\\tsc",
+        "--noEmit"
+      ],
+      "cwd": "D:/codes/ai-dev-os/suma/.cache/follow154/pure-candidate/src/apps/web",
+      "exit_code": 0,
+      "elapsed_ms": 32262,
+      "scope": "Independent154 without152; no full behavior or GUI repeat"
+    },
+    "go_existing_checks_reused": [
+      "TestTaskSubscriptionContractKeepsIdentityPrivateAndVersionZeroObservational",
+      "TestTaskSubscriptionContractRetainsAllInboxSourcesAndExactMessageLocator",
+      "TestTaskSubscriptionViewerCASNoopAndOriginalReceipt"
+    ],
+    "new_test_count": 0,
+    "gui_repeated": false,
+    "runtime_05fc_descriptor_and_artifacts_preserved": true
+  }
+}

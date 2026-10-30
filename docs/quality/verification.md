@@ -1,5 +1,8 @@
 # 1.0.0 验证入口
 
+T-MULTICA-FOLLOW-154限定结果：[验证报告](task-subscriptions-verification.md) · [机器摘要](task-subscriptions-summary.json)。任务讨论旁用一个关注按钮管理个人偏好，正式讨论与最终assistant消息沿原事务通知当前有权关注者；与精准提及去重，取消后保留历史通知。37个不同Go领域顶层、59项Web及16项真实账号／HTTP／GUI检查限定通过，中英1366／390图片已检查；真实assistant GUI、其他数据库、多机、规模与生产仍待验。 完整平台58／34／92不变。
+
+
 T-MULTICA-DESKTOP-153：[桌面托管Runner限定验证](desktop-managed-runner-verification.md)／[机器摘要](desktop-managed-runner-summary.json)。Windows Electron35.7.5软件离屏、真实DPAPI、生产三窄IPC、HMAC摘要发行与正式Go Worker的17项实际检查通过；唯一worker／原发行操作、五个正式进程exit0／close、一次暂停登记／独立启用、正常重开及logout停止分别核对，0任务／运行／模型调用。首次GUI在整秒解析器拒绝Nano库存处失败，Web修复后沿同worker／journal续验；44／46历史候选摘要保留，Go／原生未重编。中文1366／英文390图片已目视；测试按报告分组去重，不相加。151旧托管待办由本条限定推进；真实OS对话框、供应方、强制崩溃、其他系统凭据存储、安装包及生产仍未验，24小时续权交互待办，58／34／92不变。
 
 T-WORKBUDDY-ACP-149：[准确Session与ACP协议限定验证](workbuddy-acp-verification.md)／[摘要](workbuddy-acp-summary.json)。client23顶层／101子场景与最终ACP33／62合计56／163；旧ACP结果被替代而不叠加。精确18文件、SDK增量和8份日志摘要独立核对，未重复运行同源检查。仅私有协议模块，无新增UI、公共派发、真实厂商账号或生产验收，完整58／34／92不变。

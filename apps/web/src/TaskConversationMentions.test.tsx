@@ -6,6 +6,7 @@ import type {Session} from './api';
 import {ApiViewProvider} from './api-context';
 import {TaskConversation} from './TaskConversation';
 import {setLocale} from './i18n';
+vi.mock('./TaskSubscriptionControl',()=>({TaskSubscriptionControl:()=>null}));
 import {conversationDraftKey} from './task-conversation-mentions-model';
 
 const person = (id='a', name='Ada') => ({resource_id:'human-'+id,user_id:'person-'+id,name,resource_version:3});

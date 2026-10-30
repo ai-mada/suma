@@ -15,6 +15,7 @@ import {TaskConversationKnowledge, RecordedConversationKnowledge} from './TaskCo
 import {knowledgeSelectionKey} from './task-conversation-knowledge-model';
 import type {KnowledgeReference} from './knowledge-model';
 import {TaskConversationReply} from './TaskConversationReply';
+import {TaskSubscriptionControl} from './TaskSubscriptionControl';
 import './TaskConversation.css';
 
 type Props = {session: Session; project: string; taskId: string; refresh: number; accessBlocked: boolean;
@@ -149,11 +150,11 @@ function ConversationScope({session, project, taskId, refresh, scope, accessBloc
   }
 
   return <section className="task-conversation" aria-label={t('title')}>
-    <h3><button type="button" className="task-conversation-toggle" aria-expanded={open}
+    <div className="task-conversation-heading"><h3><button type="button" className="task-conversation-toggle" aria-expanded={open}
       aria-controls={bodyID} disabled={open && (locked || replyLocked)} onClick={toggle} data-conversation-toggle>
       <MessageSquare size={15} aria-hidden="true"/><span>{t('title')}</span>
       <ChevronDown size={15} className={open ? 'is-open' : ''} aria-hidden="true"/>
-    </button></h3>
+    </button></h3><TaskSubscriptionControl session={session} project={project} taskId={taskId} refresh={refresh+accessRetry} accessBlocked={denied} onAccessDenied={directoryDenied}/></div>
     {blocked && <p className="task-conversation-warning" role="status">{t('draft_guard')}</p>}
     {open && <div id={bodyID} className="task-conversation-body" aria-busy={!!read.loading}>
       <p className="task-conversation-hint">{t('boundary')}</p>

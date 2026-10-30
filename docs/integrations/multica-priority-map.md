@@ -1,5 +1,8 @@
 # Multica下一步复用优先级
 
+T-MULTICA-FOLLOW-154：[本阶段当前人员任务关注](../quality/task-subscriptions-verification.md)继续原能力范围。任务讨论旁用一个关注按钮管理个人偏好，正式讨论与最终assistant消息沿原事务通知当前有权关注者；与精准提及去重，取消后保留历史通知。37个不同Go领域顶层、59项Web及16项真实账号／HTTP／GUI检查限定通过，中英1366／390图片已检查；真实assistant GUI、其他数据库、多机、规模与生产仍待验。 新复制Multica产品源码0，完整58／34／92不变。
+
+
 T-MULTICA-DESKTOP-153已限定交付[桌面本机连接](../product/desktop-managed-runner.md)及[原操作合同](../../contracts/desktop-managed-runner.md)：三固定adapter复用成熟现有依赖、OS加密journal、原Go Worker／DAG和151暂停／独立启用。Windows软件离屏／DPAPI的17项实际检查、中英图片及首次GUI解析失败后的同节点续验见[报告](../quality/desktop-managed-runner-verification.md)。此片仍属M11–M20部分实现：24小时续权／原节点处置、真实供应方／OS选择器、强制崩溃、macOS／Linux、安装包、多机与生产继续待办或待验，58／34／92不变。下列150首片及原调查设计分别保留，不能再把已限定实现的批量负责人列为未开始。
 
 T-MULTICA-BULK-150已限定实现下述M07首片：[需求](../product/task-owner-changes.md)、[同事务架构](../architecture/task-owner-changes.md)、[交互与AI SOP](../design/task-owner-changes.md)、[专项证据](../quality/task-owner-changes-verification.md)。调查段落保留为原设计依据；当前实现提取了单项／批量共用事务核心，已验证明确选择、预览、原子采用及原操作核对。全部M07、其他批量动作和完整平台仍未完成；没有新增复制参考源码，许可边界不变。
@@ -20,7 +23,7 @@ T-MULTICA-BULK-150已限定实现下述M07首片：[需求](../product/task-owne
 | --- | --- | --- |
 | M06任务查询／列表／看板／保存视图 | 已有统一授权分页、完整分组计数、本机视图及服务端private/project视图；见[查询合同](../../contracts/task-workspace.md)、[共享视图合同](../../contracts/shared-task-views.md) | 列配置、泳道、完整跨端同步与离线协作 |
 | M07多选与批量编辑 | T-MULTICA-BULK-150已限定实现最多16项明确任务的批量负责人、当前人员、预览／版本校验、同事务采用与通知、原操作恢复；见[合同](../../contracts/task-owner-changes.md)及[证据](../quality/task-owner-changes-verification.md)。原团队安排保留 | 其他批量动作、全查询隐式全选、分组看板同等多选及完整M07仍待交付 |
-| M09／M27讨论与个人收件箱 | 已有持久讨论、精确提及、分配及验收请求来源、个人已读／归档；见[收件箱合同](../../contracts/notification-inbox.md)。交接来源属于T148集成范围，最终验收由集成记录确认 | 自主订阅、偏好降噪、其他来源、邮件／IM与跨项目聚合 |
+| M09／M27讨论与个人收件箱 | 已有原分配、精准提及、验收／交接请求及154本人任务关注的原消息同事务通知、去重和准确消息定位；见[关注合同](../../contracts/task-subscriptions.md)及[限定证据](../quality/task-subscriptions-verification.md) | 偏好降噪、其他事件、邮件／IM、跨项目聚合、多机／其他数据库与规模验收 |
 | M15技能更新与分发 | 部分：已有固定发布修订、组织目录、显式更新与目标项目采用，旧采用不会自动升级；见[技能合同](../../contracts/skill-catalog.md) | 更新差异、支持文件、外部包来源及签名安装 |
 | M11–M20工具与团队执行 | 部分：原唯一Go DAG、Runner／Pool、真实发现、固定档案、团队预览及准确attempt事实；153补三adapter本机托管连接，Windows真实DPAPI／正式Worker／17项实际检查见[报告](../quality/desktop-managed-runner-verification.md)，暂停／独立启用沿151 | 24小时明确续权与原节点处置、每工具真实鉴权／运行／取消、OS选择器／其他系统存储及多主机验收；WorkBuddy云派发沿独立阶段，见[工具矩阵](development-tool-matrix.md) |
 

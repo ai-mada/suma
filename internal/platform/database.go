@@ -109,6 +109,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 	if err := s.validateNotificationInboxInitialSchema(ctx); err != nil {
 		return err
 	}
+	if err := s.validateTaskSubscriptionsInitialSchema(ctx); err != nil {
+		return err
+	}
 	if err := s.validateTaskConversationMentionsInitialSchema(ctx); err != nil {
 		return err
 	}
@@ -249,6 +252,9 @@ func (s *Service) Initialize(ctx context.Context) error {
 		return err
 	}
 	if err := s.InitializeTaskConversations(ctx); err != nil {
+		return err
+	}
+	if err := s.InitializeTaskSubscriptions(ctx); err != nil {
 		return err
 	}
 	if err := s.InitializeTaskConversationMentions(ctx); err != nil {

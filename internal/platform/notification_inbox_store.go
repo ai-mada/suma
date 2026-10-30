@@ -103,11 +103,22 @@ func (s *Service) insertNotificationInboxTx(ctx context.Context, auth *authorize
 	if err := assertProjectCommand(auth.tx, auth, project); err != nil {
 		return "", err
 	}
-	if (source.Kind != "task_assigned" && source.Kind != "task_mentioned" && source.Kind != "task_review_requested" && source.Kind != "task_handoff_requested") || !handoffID(source.TaskID, false) || !handoffID(source.ResourceID, false) || !handoffID(source.RecipientUserID, false) || !handoffID(source.EventKey, false) || source.TaskVersion < 1 {
+	return s.insertNotificationInboxSourceTx(ctx, auth.tx, auth.target.tenantID, project, auth.checkedAt.UTC().Format(time.RFC3339Nano), source)
+}
+
+// Trusted domain projections share one sequence/row writer. The ordinary
+// authority wrapper above stays mandatory for public actor commands; the
+// completed-assistant path validates its persisted backing event separately
+// under the original machine transaction before calling this private core.
+func (s *Service) insertNotificationInboxSourceTx(ctx context.Context, tx *sql.Tx, tenant, project, at string, source notificationInboxSource) (string, error) {
+	if tx == nil || tenant == "" || project == "" || at == "" {
+		return "", forbidden()
+	}
+	if (source.Kind != "task_assigned" && source.Kind != "task_mentioned" && source.Kind != "task_review_requested" && source.Kind != "task_handoff_requested" && source.Kind != "task_followed") || !handoffID(source.TaskID, false) || !handoffID(source.ResourceID, false) || !handoffID(source.RecipientUserID, false) || !handoffID(source.EventKey, false) || source.TaskVersion < 1 {
 		return "", conflict(notificationInboxSourceChanged)
 	}
 	var existing string
-	err := auth.tx.QueryRowContext(ctx, s.q(`SELECT id FROM suma_notification_inbox WHERE tenant_id=? AND project_id=? AND source_event_key=? AND recipient_user_id=? AND kind=? AND task_id=? AND source_task_version=? AND source_resource_id=?`), auth.target.tenantID, project, source.EventKey, source.RecipientUserID, source.Kind, source.TaskID, source.TaskVersion, source.ResourceID).Scan(&existing)
+	err := tx.QueryRowContext(ctx, s.q(`SELECT id FROM suma_notification_inbox WHERE tenant_id=? AND project_id=? AND source_event_key=? AND recipient_user_id=? AND kind=? AND task_id=? AND source_task_version=? AND source_resource_id=?`), tenant, project, source.EventKey, source.RecipientUserID, source.Kind, source.TaskID, source.TaskVersion, source.ResourceID).Scan(&existing)
 	if err == nil {
 		return existing, nil
 	}
@@ -118,10 +129,10 @@ func (s *Service) insertNotificationInboxTx(ctx context.Context, auth *authorize
 	if s.Dialect == "oceanbase" {
 		insert = `INSERT IGNORE INTO suma_notification_inbox_sequences(tenant_id,project_id,last_sequence) VALUES(?,?,0)`
 	}
-	if _, err = auth.tx.ExecContext(ctx, s.q(insert), auth.target.tenantID, project); err != nil {
+	if _, err = tx.ExecContext(ctx, s.q(insert), tenant, project); err != nil {
 		return "", err
 	}
-	result, err := auth.tx.ExecContext(ctx, s.q(`UPDATE suma_notification_inbox_sequences SET last_sequence=last_sequence+1 WHERE tenant_id=? AND project_id=? AND last_sequence>=0 AND last_sequence<?`), auth.target.tenantID, project, int64(1<<63-1))
+	result, err := tx.ExecContext(ctx, s.q(`UPDATE suma_notification_inbox_sequences SET last_sequence=last_sequence+1 WHERE tenant_id=? AND project_id=? AND last_sequence>=0 AND last_sequence<?`), tenant, project, int64(1<<63-1))
 	if err != nil {
 		return "", err
 	}
@@ -133,15 +144,14 @@ func (s *Service) insertNotificationInboxTx(ctx context.Context, auth *authorize
 		return "", conflict(notificationInboxSequenceFailed)
 	}
 	var sequence int64
-	if err = auth.tx.QueryRowContext(ctx, s.q(`SELECT last_sequence FROM suma_notification_inbox_sequences WHERE tenant_id=? AND project_id=?`), auth.target.tenantID, project).Scan(&sequence); err != nil {
+	if err = tx.QueryRowContext(ctx, s.q(`SELECT last_sequence FROM suma_notification_inbox_sequences WHERE tenant_id=? AND project_id=?`), tenant, project).Scan(&sequence); err != nil {
 		return "", err
 	}
 	if sequence < 1 {
 		return "", conflict(notificationInboxSequenceFailed)
 	}
-	at := auth.checkedAt.UTC().Format(time.RFC3339Nano)
 	id := newID()
-	_, err = auth.tx.ExecContext(ctx, s.q(`INSERT INTO suma_notification_inbox(id,tenant_id,project_id,recipient_user_id,sequence,kind,task_id,source_task_version,source_resource_id,source_event_key,version,created_at,read_at,archived_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,1,?,'','',?)`), id, auth.target.tenantID, project, source.RecipientUserID, sequence, source.Kind, source.TaskID, source.TaskVersion, source.ResourceID, source.EventKey, at, at)
+	_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_notification_inbox(id,tenant_id,project_id,recipient_user_id,sequence,kind,task_id,source_task_version,source_resource_id,source_event_key,version,created_at,read_at,archived_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,1,?,'','',?)`), id, tenant, project, source.RecipientUserID, sequence, source.Kind, source.TaskID, source.TaskVersion, source.ResourceID, source.EventKey, at, at)
 	return id, err
 }
 

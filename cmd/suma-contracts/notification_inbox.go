@@ -29,7 +29,7 @@ func notificationInboxContracts(add operationAdder, api map[string]any) {
 	write["parameters"] = parameters
 	for _, op := range []map[string]any{read, write} {
 		op["x-disallowed-token-scopes"] = []string{"runner", "agent"}
-		op["description"] = "Current human/user-API project authority; recipient is derived from current identity. Only task assignments from original business transactions create notifications. Sources are hydrated from current tasks; unavailable sources have no cached title. Private read/archive commands require only project read authority and an owned notification, do not change tasks or approvals, and recover the original operation receipt after reauthorization."
+		op["description"] = "Current human/user-API project authority; recipient is derived from current identity. Only original task assignment, mention, review, handoff and followed-discussion transactions create notifications. Sources are hydrated from current tasks; unavailable sources have no cached title. Private read/archive commands require only project read authority and an owned notification, do not change tasks or approvals, and recover the original operation receipt after reauthorization."
 	}
 	schemas := toolContractMap(api, "components", "schemas")
 	for _, name := range []string{"NotificationInboxCounts", "NotificationInboxTask", "NotificationInboxItem", "NotificationInboxPage", "NotificationInboxCommand", "NotificationInboxCommandReceipt"} {
@@ -52,7 +52,7 @@ func notificationInboxContracts(add operationAdder, api map[string]any) {
 	field("NotificationInboxCommand", "idempotency_key", map[string]any{"minLength": 8, "maxLength": 128, "x-max-utf8-bytes": 128})
 	// Source domains contribute fields below; the inbox owns the complete kind
 	// enumeration so a later domain cannot silently remove another source.
-	field("NotificationInboxItem", "kind", map[string]any{"enum": []string{"task_assigned", "task_mentioned", "task_review_requested", "task_handoff_requested"}})
+	field("NotificationInboxItem", "kind", map[string]any{"enum": []string{"task_assigned", "task_mentioned", "task_review_requested", "task_handoff_requested", "task_followed"}})
 	field("NotificationInboxItem", "handoff_id", map[string]any{"minLength": 1, "maxLength": 64, "description": "Exact handoff ID only when the current task, immutable recipient/basis and reverse private notification binding all match. Opening is a read, never acceptance or marking the notification read."})
 	field("NotificationInboxItem", "sequence", map[string]any{"type": "string", "pattern": "^[1-9][0-9]{0,18}$", "description": "Positive signed BIGINT decimal string; never coerce to an imprecise JSON number."})
 	field("NotificationInboxPage", "items", map[string]any{"maxItems": 50})

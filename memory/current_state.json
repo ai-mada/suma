@@ -1,5 +1,21 @@
 {
   "project": "suma",
+  "task_subscriptions": {
+    "stage": "T-MULTICA-FOLLOW-154",
+    "date": "2026-10-30",
+    "status": "windows_sqlite_http_gui_scoped_verified",
+    "contract": "contracts/task-subscriptions.md",
+    "architecture": "docs/architecture/task-subscriptions.md",
+    "report": "docs/quality/task-subscriptions-verification.md",
+    "summary": "docs/quality/task-subscriptions-summary.json",
+    "scope": "Personal follow/unfollow, original-request recovery, transactional human/API/final-assistant discussion notifications, mention deduplication and exact private inbox navigation.",
+    "ledger_unchanged": "58 limited /34 pending /92 total",
+    "full_platform_complete": false,
+    "verification": "37 distinct domain Go top tests/9 subcases, 3 generator tests separately, Web59 (12 new), exact combined types/7627 locales/build, 16 actual HTTP/GUI checks.",
+    "runtime_source_sha256": "05fc56e46395b823adbda0da320e4eee3481cc219e6b3b8fe913c839993a3043",
+    "actual": "Two normal HTTP accounts, viewer invitation, four preference commands/five transports with same-body/key response-loss recovery; tasks2/messages3/notices2/runs0/models0; screenshotsCN1366/EN390.",
+    "limits": "Windows isolated SQLite/software-offscreen only. Final assistant source verified in domain tests, not this GUI. OtherDB/vendor/multihost/scale/installer/production pending."
+  },
   "desktop_managed_runner": {
     "stage": "T-MULTICA-DESKTOP-153",
     "date": "2026-10-30",

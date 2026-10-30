@@ -199,6 +199,9 @@ func (s *Service) AppendTaskConversation(ctx context.Context, actor Actor, proje
 	if err = s.projectTaskConversationKnowledgeTx(ctx, auth, project, task.ID, &out, req.Knowledge); err != nil {
 		return TaskConversationMessage{}, err
 	}
+	if err = s.projectTaskSubscriptionMessageTx(ctx, auth, project, task.ID, out.ID); err != nil {
+		return TaskConversationMessage{}, err
+	}
 	if err = s.saveCommandReceipt(ctx, auth, req.IdempotencyKey, hash, out); err != nil {
 		return TaskConversationMessage{}, err
 	}

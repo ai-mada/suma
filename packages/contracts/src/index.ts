@@ -5941,6 +5941,25 @@ export interface TaskRunProvenancePage {
   total: number;
   next_cursor: string;
 }
+export interface TaskSubscription {
+  project_id: string;
+  task_id: string;
+  user_id: string;
+  version: number;
+  following: boolean;
+  updated_at: string;
+}
+export interface TaskSubscriptionCommand {
+  project_id: string;
+  task_id: string;
+  expected_version: number;
+  action: string;
+  idempotency_key: string;
+}
+export interface TaskSubscriptionReceipt {
+  idempotency_key: string;
+  subscription: TaskSubscription;
+}
 export interface TaskTestPlanContext {
   revision: number;
   sha256: string;

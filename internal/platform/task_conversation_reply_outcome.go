@@ -243,5 +243,11 @@ func (s *Service) recordTaskConversationReplyOutcomeTx(ctx context.Context, tx *
 		}
 	}
 	record.Reply = a
-	return s.saveTaskConversationReplyTx(ctx, tx, tenant, record, previous)
+	if err = s.saveTaskConversationReplyTx(ctx, tx, tenant, record, previous); err != nil {
+		return err
+	}
+	if a.State == "completed" {
+		return s.projectTaskSubscriptionReplyTx(ctx, tx, tenant, project, a.TaskID, a.MessageID, a.ID)
+	}
+	return nil
 }

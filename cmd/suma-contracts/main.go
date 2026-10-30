@@ -134,6 +134,9 @@ func generate() (map[string]any, string) {
 	for _, v := range notificationInboxModels() {
 		schema(reflect.TypeOf(v))
 	}
+	for _, v := range taskSubscriptionModels() {
+		schema(reflect.TypeOf(v))
+	}
 	for _, v := range taskConversationMentionModels() {
 		schema(reflect.TypeOf(v))
 	}
@@ -418,6 +421,7 @@ func generate() (map[string]any, string) {
 	taskConversationContracts(add, api)
 	taskConversationReplyContracts(add, api)
 	taskConversationMentionContracts(add, api)
+	taskSubscriptionContracts(add, api)
 	taskReviewRequestContracts(add, api)
 	workBuddyConnectionContracts(add, api)
 	interactiveDevelopmentContracts(add, api)

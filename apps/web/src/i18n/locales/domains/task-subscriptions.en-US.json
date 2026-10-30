@@ -1,0 +1,18 @@
+{
+ "task-subscriptions.follow":"Follow task",
+ "task-subscriptions.following":"Following",
+ "task-subscriptions.unfollow":"Unfollow task",
+ "task-subscriptions.loading":"Reading follow state…",
+ "task-subscriptions.unavailable":"Follow state unavailable",
+ "task-subscriptions.saving":"Saving…",
+ "task-subscriptions.invalid_read":"The follow state did not match the current task and account. Read it again.",
+ "task-subscriptions.access_changed":"The current task follow state is unavailable. Check your access before continuing.",
+ "task-subscriptions.refresh":"Read current follow state",
+ "task-subscriptions.refresh_failed":"The current follow state could not be confirmed.",
+ "task-subscriptions.confirmed":"The original preference operation is confirmed. The button reflects the current read.",
+ "task-subscriptions.original_pending":"The original preference operation still needs checking. Reading the current state does not confirm that operation.",
+ "task-subscriptions.recover":"Check original follow operation",
+ "task-subscriptions.inbox_label":"New discussion from a followed task",
+ "task-subscriptions.inbox_open_message":"Open discussion: {{title}}",
+ "task-subscriptions.inbox_created_at":"Notified at {{at}}"
+}

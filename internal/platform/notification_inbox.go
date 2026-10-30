@@ -98,6 +98,7 @@ func (s *Service) notificationInboxTx(ctx context.Context, auth *authorizedComma
 		return out, err
 	}
 	defer rows.Close()
+	followed := []taskSubscriptionInboxSource{}
 	for rows.Next() {
 		var item NotificationInboxItem
 		var task NotificationInboxTask
@@ -107,7 +108,7 @@ func (s *Service) notificationInboxTx(ctx context.Context, auth *authorizedComma
 		if err = rows.Scan(&item.ID, &item.Version, &sequence, &item.Kind, &item.TaskID, &item.SourceTaskVersion, &item.SourceResourceID, &item.CreatedAt, &item.ReadAt, &item.ArchivedAt, &task.ID, &task.Version, &task.Title, &task.Status, &owner, &messageID, &eventKey, &recipient, &reviewRequestID, &handoffVersion, &handoffState, &handoffPayload); err != nil {
 			return out, err
 		}
-		if sequence < 1 || item.Version < 1 || item.SourceTaskVersion < 1 || item.Kind != "task_assigned" && item.Kind != "task_mentioned" && item.Kind != "task_review_requested" && item.Kind != "task_handoff_requested" {
+		if sequence < 1 || item.Version < 1 || item.SourceTaskVersion < 1 || item.Kind != "task_assigned" && item.Kind != "task_mentioned" && item.Kind != "task_review_requested" && item.Kind != "task_handoff_requested" && item.Kind != "task_followed" {
 			return out, conflict("The notification source is invalid")
 		}
 		item.Sequence = strconv.FormatInt(sequence, 10)
@@ -133,6 +134,12 @@ func (s *Service) notificationInboxTx(ctx context.Context, auth *authorizedComma
 				item.HandoffID = stored.ID
 			}
 		}
+		if item.Kind == "task_followed" {
+			if item.SourceAvailable {
+				followed = append(followed, taskSubscriptionInboxSource{item, task, eventKey, recipient})
+			}
+			item.SourceAvailable = false
+		}
 		if item.SourceAvailable {
 			item.CurrentTask = &task
 			item.AssignmentCurrent = item.Kind == "task_assigned" && owner == item.SourceResourceID
@@ -141,6 +148,28 @@ func (s *Service) notificationInboxTx(ctx context.Context, auth *authorizedComma
 	}
 	if err = rows.Err(); err != nil {
 		return out, err
+	}
+	if err = rows.Close(); err != nil {
+		return out, err
+	}
+	// Close the page cursor before one bounded reverse/source read and grouped
+	// protected assistant metadata validation on this same transaction.
+	available, sourceErr := s.taskSubscriptionInboxSourcesTx(ctx, auth.tx, auth.target.tenantID, project, auth.currentPrincipal.ID, followed)
+	if sourceErr != nil {
+		return out, sourceErr
+	}
+	tasks := map[string]NotificationInboxTask{}
+	for _, pending := range followed {
+		tasks[pending.item.ID] = pending.task
+	}
+	for i := range out.Items {
+		item := &out.Items[i]
+		if message, ok := available[item.ID]; ok {
+			item.SourceAvailable = true
+			item.MessageID = message
+			task := tasks[item.ID]
+			item.CurrentTask = &task
+		}
 	}
 	if len(out.Items) > limit {
 		out.Items = out.Items[:limit]

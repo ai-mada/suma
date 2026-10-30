@@ -9,6 +9,7 @@ import {validConversationBody, validConversationMessage} from './task-conversati
 import {ApiViewProvider} from './api-context';
 import type {Session} from './api';
 import {setLocale} from './i18n';
+vi.mock('./TaskSubscriptionControl',()=>({TaskSubscriptionControl:()=>null}));
 
 const session = (id = 'user-a'): Session => ({user: {id, name: id, email: id + '@example.test'},
   organization: {id: 'org-' + id, name: 'Organization'}, projects: []});
