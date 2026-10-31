@@ -4,6 +4,8 @@
 
 ## 配置、发现与选择
 
+T-CODEX-QUICK-CONNECT-175已提供[桌面原生快速连接](codex-quick-connect.md)，通过当前用户明确配置和实际目录生成下述固定配置，免手写命令文件；独立Runner仍可由管理员采用相同typed配置。
+
 新增精确工具协议 `adapter=codex / protocol=codex-app-server-v1`，JSONL适配器保持另一当前执行协议的独立含义。Runner本地管理员声明 `codex_app_server` 的 `provider_id`、完整 `base_url`、可选 `api_key_env_ref`，以及Windows上必须明确选择的 `windows_sandbox`（unelevated／elevated／mxc，无静默降级）；只允许固定 `app-server --listen stdio://` 及 `input=codex-app-server`。工作流不能设置本地provider、凭证、环境、进程参数或工作目录。
 
 每个探测／attempt新建独立CODEX_HOME，生成固定Responses协议配置；不复制用户登录文件。完整本地配置及生成策略版本形成摘要，密钥值不进入摘要、库存、计划或日志。项目配置不获得修改执行权限的来源地位。真实初始化和model/list通过后，当前Runner才报告公开 `codex_catalog`；版本／帮助检查不传凭证，不创建thread或turn。

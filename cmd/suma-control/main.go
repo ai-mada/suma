@@ -32,8 +32,15 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	localTool := app.String("local-tool", "", "本机检测类型，例如 codex-jsonl、claude-code-cli、qoder-acp；空值检测全部", "local detection entry, for example codex-jsonl, claude-code-cli or qoder-acp; empty selects all")
 	managedRunner := app.Bool("desktop-managed-runner", false, "由桌面私有管道管理项目执行节点，不启动控制服务", "run the project worker through the private desktop pipe, without starting the control service")
 	describeACP := app.Bool("describe-acp-models-stdin", false, "明确读取私有原生工具的模型目录，不发送开发目标", "explicitly read a private native tool model catalogue without sending a development goal")
+	describeCodex := app.Bool("describe-codex-models-stdin", false, "明确读取私有Codex原生模型目录，不发送开发目标", "explicitly read a private Codex model catalogue without sending a development goal")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	if *describeCodex {
+		if *describeACP || *maintenance || *discoverInstalled || *localTool != "" || *managedRunner {
+			return app.Failure("Codex目录读取不能与服务或其他工具模式混用", "Codex catalogue discovery cannot be combined with service or other tool modes")
+		}
+		return runCodexModelDiscovery(app, os.Stdin)
 	}
 	if *describeACP {
 		if *maintenance || *discoverInstalled || *localTool != "" || *managedRunner {

@@ -58,3 +58,19 @@ it('validates installation observations without converting them into dispatch pr
  expect(readInstalledToolDiscovery(withVersion('v'.repeat(256)),'codex-jsonl')?.version).toHaveLength(256);
  for(const version of ['v'.repeat(257),'版'.repeat(86),'version\u2028next','version\u2029next','version\nnext'])expect(readInstalledToolDiscovery(withVersion(version),'codex-jsonl')).toBeUndefined();
 });
+it('matches native Codex inventory to the exact confirmed connection configuration and catalogue',()=>{
+ const nativeAdapter={...adapter,id:'codex-app-server',protocol:'codex-app-server-v1'},nativeProfile={...profile,protocol:nativeAdapter.protocol};
+ const catalogue={protocol:nativeAdapter.protocol,configuration_sha256:'c'.repeat(64),catalog_sha256:'d'.repeat(64),models:[{model:'model-a',reasoning_efforts:[],default_reasoning_effort:''}]};
+ const observation={profile:nativeProfile,available:true,reason:'',codex_catalog:catalogue};
+ const proof={configuration_sha256:catalogue.configuration_sha256,catalog_sha256:catalogue.catalog_sha256,executable_sha256:nativeProfile.executable_sha256,tool_version:nativeProfile.tool_version};
+ expect(matchingQuickTools([observation],nativeAdapter,proof)).toEqual([observation]);
+ for(const patch of [{configuration_sha256:'e'.repeat(64)},{catalog_sha256:'e'.repeat(64)},{executable_sha256:'e'.repeat(64)},{tool_version:'different'}])expect(matchingQuickTools([observation],nativeAdapter,{...proof,...patch})).toEqual([]);
+ expect(matchingQuickTools([{...observation,available:false}],nativeAdapter,proof)).toEqual([]);
+ expect(matchingQuickTools([{profile:nativeProfile,available:true,reason:''}],nativeAdapter,proof)).toEqual([]);
+ expect(matchingQuickTools([observation],nativeAdapter)).toEqual([observation]);
+ expect(localDiscoveryAdapters.has('codex-app-server')).toBe(true);
+ const row={adapter_id:'codex-app-server',product:'Codex',installed:true,launch_supported:false,executable:'C:/tools/codex.exe',version:'codex-cli 0.134.0',executable_sha256:'a'.repeat(64),reason_code:'configuration_required'};
+ const report={status:'observed',report:{protocol:'suma-installed-tools-v1',items:[row]}};
+ expect(readInstalledToolDiscovery(report,'codex-app-server')).toEqual(row);
+ for(const patch of [{launch_supported:true},{executable_sha256:undefined},{reason_code:'workspace_required'},{command:['app-server']}])expect(readInstalledToolDiscovery({...report,report:{...report.report,items:[{...row,...patch}]}},'codex-app-server')).toBeUndefined();
+});

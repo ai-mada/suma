@@ -1,5 +1,7 @@
 # suma 1.0.0 documentation
 
+- [Native Codex quick connection](codex-quick-connect.md): T-CODEX-QUICK-CONNECT-175 connects actual installation detection, scoped provider settings, the real native catalogue and the existing managed Runner/paused-registration path. Focused components and the installed CLI catalogue passed; full desktop/vendor/model acceptance remains separate.
+
 - [Unified native tool confirmations](codex-human-requests.md): T-CODEX-HUMAN-REQUESTS-174 connects original ACP/Codex requests, explicit one-time human decisions, durable reply observations and exact operation recovery. Historical attempts remain read-only. See the scoped evidence for controlled protocol versus real vendor boundaries.
 
 - [Delivery review responsibility](task-review-requests.md): explicit current approvers, fixed delivery requests, transactional personal notifications and the existing formal Review/issue-feedback authority. Actual local protocol/Runner checks passed; final browser acceptance is pending.

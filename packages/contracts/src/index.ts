@@ -1993,6 +1993,15 @@ export interface CodexEvidence {
   rerouted_models?: (string)[];
   token_notice_exceeded: boolean;
 }
+export interface CodexModelDiscoveryResult {
+  protocol: string;
+  state: string;
+  executable_sha256: string;
+  tool_version: string;
+  configuration_sha256: string;
+  catalogue?: CodexCatalog;
+  error_code?: string;
+}
 export interface CodexModelOption {
   model: string;
   reasoning_efforts: (string)[];

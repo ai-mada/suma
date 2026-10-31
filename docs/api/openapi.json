@@ -9879,6 +9879,90 @@
         ],
         "type": "object"
       },
+      "CodexModelDiscoveryResult": {
+        "additionalProperties": false,
+        "oneOf": [
+          {
+            "not": {
+              "required": [
+                "error_code"
+              ]
+            },
+            "properties": {
+              "state": {
+                "const": "ready"
+              }
+            },
+            "required": [
+              "catalogue"
+            ]
+          },
+          {
+            "not": {
+              "required": [
+                "catalogue"
+              ]
+            },
+            "properties": {
+              "state": {
+                "enum": [
+                  "failed",
+                  "unknown"
+                ]
+              }
+            },
+            "required": [
+              "error_code"
+            ]
+          }
+        ],
+        "properties": {
+          "catalogue": {
+            "$ref": "#/components/schemas/CodexCatalog"
+          },
+          "configuration_sha256": {
+            "type": "string"
+          },
+          "error_code": {
+            "enum": [
+              "codex_discovery_invalid",
+              "codex_discovery_unknown",
+              "codex_discovery_installation_changed",
+              "codex_discovery_credential_unavailable",
+              "codex_discovery_catalogue_unavailable",
+              "codex_discovery_not_stopped",
+              "codex_discovery_failed"
+            ],
+            "type": "string"
+          },
+          "executable_sha256": {
+            "type": "string"
+          },
+          "protocol": {
+            "const": "suma-codex-model-discovery-v1",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "ready",
+              "failed",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "tool_version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol",
+          "state",
+          "executable_sha256",
+          "tool_version",
+          "configuration_sha256"
+        ],
+        "type": "object"
+      },
       "CodexModelOption": {
         "properties": {
           "default_reasoning_effort": {

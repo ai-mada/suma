@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"fmt"
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"io"
 	"os"
 	"path/filepath"
@@ -47,6 +48,7 @@ func localToolDirectory() []localToolDirectoryEntry {
 		{"claude-code-cli", "Claude Code", "claude", "@anthropic-ai/claude-code", claudePreset()},
 		{id: "cursor-cli", product: "Cursor"},
 		{id: "qoder-acp", product: "Qoder CLI"},
+		{"codex-app-server", "Codex", "codex", "@openai/codex", CommandSpec{Adapter: "codex", Protocol: cc.Protocol, Input: "codex-app-server", Args: []string{"app-server", "--listen", "stdio://"}}},
 	}
 }
 
@@ -110,6 +112,10 @@ func discoverInstalledTools(ctx context.Context, adapterID string, paths []strin
 	for index, entry := range entries {
 		go func(index int, entry localToolDirectoryEntry) {
 			defer func() { done <- struct{}{} }()
+			if entry.id == "codex-app-server" {
+				result.Items[index] = discoverLocalCodex(ctx, entry, paths, probe)
+				return
+			}
 			if entry.id == "qoder-acp" {
 				result.Items[index] = discoverLocalQoder(ctx, paths, probe)
 				return
@@ -154,6 +160,9 @@ func localToolDiscoveryVersion(ctx context.Context, spec CommandSpec) (string, e
 		}
 		defer cleanup()
 		return probeQoderNativeVersion(ctx, exe, directory, nil)
+	}
+	if spec.Adapter == "codex" && spec.Protocol == cc.Protocol {
+		return passiveCodexVersion(ctx, exe)
 	}
 	// Reuse each adapter's fixed version/help/protocol proof, without changing a
 	// writing development preset into a read-only execution profile.

@@ -692,7 +692,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "a41ef83427129f83d33845852bee869c72a75efa"
+    "previously_published_commit": "1e23263eb2d54b4cb584ab2e2c8b4af5f34cac40"
   },
   "existing_preview": {
     "updated": false,
@@ -703,11 +703,12 @@
   "last_goal_turn_classification": "progress: T173 native published skill plan/assignment/files/Codex catalogue and explicit invocation implemented,47focused/real installed no-Prompt directory/synthetic4visual verified. No model-use claim,4link skips and fullgoal gaps retained. Stage publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-CODEX-HUMAN-REQUESTS-174",
-    "status": "scoped_stage_verified_ready_for_authorized_commit",
-    "contract": "contracts/codex-human-requests.md",
+    "stage": "T-CODEX-QUICK-CONNECT-175",
+    "status": "scoped_source_and_real_catalogue_verified_ready_for_commit",
+    "contract": "contracts/codex-quick-connect.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
-    "next": "Prioritize Codex app-server automatic discovery and managed quick connection; reuse native config/catalogue and existing registration/inventory/explicit enable. Current code is implemented but automatic connection still exposes JSONL only. Mature frameworks first; minimal affected checks, no broader browser/environment suites. Preserve other work; stage commit/push dev now."
+    "priority": "Feature implementation and simple automatic tool onboarding first; reuse mature components and unchanged green results; no broad repeated verification.",
+    "next": "Publish verified native quick connection stage with precise control-main hunk staging; continue multi-tool connection diagnostics/credential lifecycle and original full platform scope."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -905,6 +906,28 @@
       "Persistent conversations, other native server requests and approval policies.",
       "Physical multi-host, other databases, full App/theme/device, installers, scale and production.",
       "Original31/P0-P7 platform; prior171 explicit GUI-stop gap retained."
+    ],
+    "full_platform_complete": false
+  },
+  "codex_quick_connect": {
+    "stage": "T-CODEX-QUICK-CONNECT-175",
+    "version": "1.0.0",
+    "date": "2026-10-31",
+    "status": "scoped_source_components_and_real_native_catalogue_verified",
+    "contract": "contracts/codex-quick-connect.md",
+    "product": "docs/product/codex-quick-connect.md",
+    "architecture": "docs/architecture/codex-quick-connect.md",
+    "design": "docs/design/codex-quick-connect.md",
+    "report": "docs/quality/codex-quick-connect-verification.md",
+    "summary": "docs/quality/codex-quick-connect-summary.json",
+    "implementation": "Existing native Codex capability now supports passive detection, scoped provider configuration, actual catalogue, original managed Runner/identity and exact new inventory, paused registration and explicit enable. Native-model choices remain in original task dispatch; no extra scheduler or secret copying.",
+    "verification": "38 distinct focused tops(13Go/9desktop/16Web;32new/6old),5Go subcases; one full TSC0/i18n8346paired0hardcodes;849declared/850schemas/394paths. Only affected schema closure and lifecycle fixes rerun.",
+    "actual": "One Go compile/two actual CLI commands exit0; exact installed CLI0.166 alpha SHA3097...,configuration_required/noCommand,9realcatalogue and Go/JS cfgdigest equal. Only private catalogue flow, no goal/thread/turn/login/model. No new browser/UI build or broad matrices. Shell preexecution failure before any compile/probe preserved; raw child PID/network not independently measured.",
+    "remaining": [
+      "Full authenticated desktop interaction and real registration/enable/coding journey for this new adapter.",
+      "Real provider account, model use, enforced native budget, billing and OS isolation acceptance.",
+      "Physical multi-host, other databases, all device/theme/platform/installers, scale and production.",
+      "All original31/P0-P7 goals; prior171 explicit GUI stop gap remains."
     ],
     "full_platform_complete": false
   }

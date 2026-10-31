@@ -3,7 +3,7 @@ const {spawn:spawnChild}=require('node:child_process');
 const path=require('node:path');
 
 const CHANNEL='suma:discover-installed-tools';
-const PRODUCTS=Object.freeze({'codex-jsonl':'Codex','codebuddy-cli':'CodeBuddy Code','dsh-multica':'DeepSeek Harness / dsh','claude-code-cli':'Claude Code','cursor-cli':'Cursor','qoder-acp':'Qoder CLI'});
+const PRODUCTS=Object.freeze({'codex-jsonl':'Codex','codebuddy-cli':'CodeBuddy Code','dsh-multica':'DeepSeek Harness / dsh','claude-code-cli':'Claude Code','cursor-cli':'Cursor','qoder-acp':'Qoder CLI','codex-app-server':'Codex'});
 const REASONS=new Set(['not_installed','unsupported_launcher','invalid_package','node_unavailable','probe_failed','workspace_required']);
 const CURSOR_REASONS=new Set(['not_installed','cursor_editor_only','cursor_agent_unverified','cursor_launcher_unsupported','cursor_scan_incomplete']);
 const ID=/^[a-f0-9]{32}$/;
@@ -18,7 +18,7 @@ function validInstalledToolReport(value,adapterID){
  if(!exact(value,['protocol','items'])||value.protocol!=='suma-installed-tools-v1'||!Array.isArray(value.items)||value.items.length!==1)return;
  const row=value.items[0];
  if(!plain(row)||Object.keys(row).some(key=>!['adapter_id','product','installed','launch_supported','executable','version','reason_code','command','executable_sha256'].includes(key))||row.adapter_id!==adapterID||row.product!==PRODUCTS[adapterID]||typeof row.installed!=='boolean'||typeof row.launch_supported!=='boolean')return;
- if(row.executable_sha256!==undefined&&(adapterID!=='qoder-acp'||!/^[a-f0-9]{64}$/.test(row.executable_sha256)))return;
+ if(row.executable_sha256!==undefined&&(!['qoder-acp','codex-app-server'].includes(adapterID)||!/^[a-f0-9]{64}$/.test(row.executable_sha256)))return;
  if(row.executable!==undefined&&(!text(row.executable,4096)||!path.isAbsolute(row.executable)))return;
  // Cursor currently exposes passive file observations only. Even a well-formed
  // executable is not vendor identity, a verified protocol or dispatch authority.
@@ -28,9 +28,10 @@ function validInstalledToolReport(value,adapterID){
   if(!CURSOR_REASONS.has(row.reason_code)||row.launch_supported!==false||Object.hasOwn(row,'command')||Object.hasOwn(row,'version'))return;
   const candidate=row.reason_code==='cursor_agent_unverified'||row.reason_code==='cursor_launcher_unsupported';
   if(row.installed!==candidate||candidate!==Object.hasOwn(row,'executable')||candidate&&!row.executable)return;
- }else if(adapterID==='qoder-acp'){
-  if(row.launch_supported||Object.hasOwn(row,'command')||!['not_installed','unsupported_launcher','probe_failed','acp_configuration_required'].includes(row.reason_code))return;
-  if(row.reason_code==='acp_configuration_required'&&(!row.installed||!row.executable||!row.version||!/^[a-f0-9]{64}$/.test(row.executable_sha256)))return;
+ }else if(adapterID==='qoder-acp'||adapterID==='codex-app-server'){
+  const configured=adapterID==='qoder-acp'?'acp_configuration_required':'configuration_required';
+  if(row.launch_supported||Object.hasOwn(row,'command')||!['not_installed','unsupported_launcher','probe_failed',configured].includes(row.reason_code))return;
+  if(row.reason_code===configured&&(!row.installed||!row.executable||!row.version||!/^[a-f0-9]{64}$/.test(row.executable_sha256)))return;
   if(row.reason_code==='not_installed'&&(row.installed||row.executable!==undefined||row.version!==undefined||row.executable_sha256!==undefined))return;
  }else if(!REASONS.has(row.reason_code))return;
  if(row.version!==undefined&&(!text(row.version,256)||/[\u2028\u2029]/u.test(row.version)))return;
@@ -38,7 +39,7 @@ function validInstalledToolReport(value,adapterID){
  const item={adapter_id:row.adapter_id,product:row.product,installed:row.installed,launch_supported:row.launch_supported,reason_code:row.reason_code};
  if(row.executable!==undefined)item.executable=row.executable;
  if(row.version!==undefined)item.version=row.version;
- if(adapterID==='qoder-acp'&&row.executable_sha256!==undefined)item.executable_sha256=row.executable_sha256;
+ if(['qoder-acp','codex-app-server'].includes(adapterID)&&row.executable_sha256!==undefined)item.executable_sha256=row.executable_sha256;
  return {protocol:value.protocol,items:[item]};
 }
 async function boundedJSON(response){

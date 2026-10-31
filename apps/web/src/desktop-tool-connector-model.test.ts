@@ -24,3 +24,11 @@ it('keeps Qoder fixed configuration facts scoped to the ACP connection',()=>{
  for(const patch of [{model:'bad\nmodel'},{model:'x'.repeat(257)},{tool_version:''},{executable_sha256:'bad'},{configuration_sha256:'A'.repeat(64)},{acp_selection:{installation_id:'private'}}])expect(readDesktopToolResult({status:'ok',connection:{...qoderConnection,...patch}},qoderScope)).toBeUndefined();
  expect(readDesktopToolResult({status:'ok',connection:{...qoderConnection,adapter_id:scope.adapterID}},scope)).toBeUndefined();
 });
+it('requires complete native Codex connection proof without inventing a fixed task model',()=>{
+ const codexScope={...scope,adapterID:'codex-app-server'},native={...connection,adapter_id:codexScope.adapterID,tool_version:'codex-cli 0.134.0',executable_sha256:'a'.repeat(64),configuration_sha256:'b'.repeat(64),catalog_sha256:'c'.repeat(64)};
+ expect(validDesktopToolScope(codexScope)).toBe(true);expect(readDesktopToolResult({status:'ok',connection:native},codexScope)).toEqual({status:'ok',connection:native});
+ for(const key of ['tool_version','executable_sha256','configuration_sha256','catalog_sha256']){const missing:Record<string,unknown>={...native};delete missing[key];expect(readDesktopToolResult({status:'ok',connection:missing},codexScope)).toBeUndefined();}
+ for(const patch of [{model:'fixed-by-connect'},{configuration_sha256:'bad'},{catalog_sha256:'bad'},{codex_configuration:{}},{codex_selection:{}}])expect(readDesktopToolResult({status:'ok',connection:{...native,...patch}},codexScope)).toBeUndefined();
+ expect(readDesktopToolResult({status:'ok',connection:{project_id:scope.project,adapter_id:codexScope.adapterID,phase:'unconfigured'}},codexScope)).toBeDefined();
+ expect(readDesktopToolResult({status:'ok',connection:{...connection,catalog_sha256:native.catalog_sha256}},scope)).toBeUndefined();
+});

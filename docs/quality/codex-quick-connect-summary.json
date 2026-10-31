@@ -1,0 +1,115 @@
+{
+  "stage": "T-CODEX-QUICK-CONNECT-175",
+  "version": "1.0.0",
+  "date": "2026-10-31",
+  "status": "scoped_source_components_and_real_native_catalogue_verified",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "focused": {
+    "distinct_top_level": 38,
+    "new": 32,
+    "affected_existing": 6,
+    "go": {
+      "distinct": 13,
+      "new": 10,
+      "affected_existing": 3
+    },
+    "desktop": {
+      "distinct": 9,
+      "new": 6,
+      "affected_existing": 3
+    },
+    "web": {
+      "distinct": 16,
+      "new": 16,
+      "affected_existing": 0
+    },
+    "go_subcases_separate": 5,
+    "skips": 0,
+    "old_full_suites_repeated": false,
+    "original_red_preserved": true,
+    "collection_failures_not_counted_as_behavior_red": true
+  },
+  "types": {
+    "full_web_runs": 1,
+    "full_web_exit": 0
+  },
+  "i18n": {
+    "full_runs": 1,
+    "paired_keys": 8346,
+    "hardcodes": 0,
+    "exit": 0
+  },
+  "contracts": {
+    "declared_models": 849,
+    "schemas": 850,
+    "paths": 394,
+    "generation_runs": 1,
+    "source": "Go CodexModelDiscoveryResult; existing CodexCatalog retained",
+    "new_http_routes": 0
+  },
+  "actual": {
+    "status": "passed_scoped_local_probe",
+    "go_compiles": 1,
+    "control_commands": 2,
+    "command_exits": [
+      0,
+      0
+    ],
+    "go_build_exit": 0,
+    "installed_cli_version": "codex-cli 0.166.0-alpha.5.1",
+    "installed_cli_sha256": "3097c909fb6d5cd63510d44aceb1d42df9f6e85722a3e447e477def1ecf60e16",
+    "installed": true,
+    "installed_reason": "configuration_required",
+    "unconfigured_command_absent": true,
+    "model_count": 9,
+    "catalogue_sha256": "8a468185b7d011333c169e7aa64f31900bd172641834f134ccd09e15712aee30",
+    "configuration_sha256": "0e9a5f26d45e9fe3bff8acee4068f2cd7ad5dc7d50a92c73ff26431ed5816484",
+    "go_javascript_digest_equal": true,
+    "provider_endpoint": "http://127.0.0.1:1/v1",
+    "api_key_env_ref_supplied": false,
+    "login_borrowed": false,
+    "task_thread_turn_sent": false,
+    "model_response_verified": false,
+    "account_health_verified": false,
+    "billing_verified": false,
+    "network_measured": false,
+    "child_pid_or_raw_exit_independently_measured": false,
+    "browser_runs": 0,
+    "ui_builds": 0,
+    "initial_preexecution_shell_failure": {
+      "exit": 1,
+      "go_compiles": 0,
+      "control_commands": 0,
+      "preserved": true
+    },
+    "evidence_sha256": "b8e225af7c2bd0a0362073bf1f99d536626b08d6c816ae7eb8453678e9317dd7"
+  },
+  "interface_scope": "Production leaf and actual managed/quick-connect parent interactions verified through focused component cases. No new browser infrastructure, image/device/theme matrix or full desktop GUI journey claimed.",
+  "independent_review": {
+    "cross_layer": true,
+    "scope": "Go/Desktop wire, configuration/catalogue digests, private credentials, source/expiry, original operation recovery, stopped reconfiguration and fresh inventory",
+    "confirmed_open_p1_p2": 0
+  },
+  "hygiene": {
+    "other_work_items": 21,
+    "other_files_byte_identical": 20,
+    "control_main_preservation": "Only two additive private-mode blocks; inverse exactly recovers original working bytes; stage a HEAD-based transformed blob, excluding pre-existing user import/schema-exit changes.",
+    "caches_credentials_databases_logs_binaries_or_images_in_git": false
+  },
+  "remaining": [
+    "Full authenticated desktop interaction and real registration/enable/coding journey for this new adapter.",
+    "Real provider account, model use, enforced native budget, billing and OS isolation acceptance.",
+    "Physical multi-host, other databases, all device/theme/platform/installers, scale and production.",
+    "All original31/P0-P7 goals; prior171 explicit GUI stop gap remains."
+  ],
+  "source_base_commit": "1e23263eb2d54b4cb584ab2e2c8b4af5f34cac40",
+  "artifact_directory": "dist/quality/codex-quick-connect-175"
+}

@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [Codex快速连接需求](product/codex-quick-connect.md) · [合同](../contracts/codex-quick-connect.md) · [架构与AI SOP](architecture/codex-quick-connect.md) · [简洁交互](design/codex-quick-connect.md) · [English](en/codex-quick-connect.md) · [限定验证](quality/codex-quick-connect-verification.md) · [摘要](quality/codex-quick-connect-summary.json)：T-CODEX-QUICK-CONNECT-175补齐原生检测、提供方配置／目录、原托管节点与准确登记。38项定向通过，本机真实9模型目录已核实；完整桌面旅程及真实模型不外推。
+
 - [原生工具确认需求](product/tool-confirmations.md) · [合同](../contracts/codex-human-requests.md) · [架构与AI SOP](architecture/codex-human-requests.md) · [简洁交互](design/codex-human-requests.md) · [English](en/codex-human-requests.md) · [限定验证](quality/codex-human-requests-verification.md) · [摘要](quality/codex-human-requests-summary.json)：T-CODEX-HUMAN-REQUESTS-174统一ACP／Codex一次请求、原操作恢复及持久执行观察；65项定向与9项受控协议实际检查通过，保留当前权限、原Runner／Pool和独立质量门禁。真实厂商及完整平台范围继续交付。
 
 - [Codex原生项目技能](../contracts/codex-native-skills.md) · [架构与AI SOP](architecture/codex-native-skills.md) · [交互](design/codex-native-skills.md) · [English](en/codex-native-skills.md) · [限定验证](quality/codex-native-skills-verification.md) · [摘要](quality/codex-native-skills-summary.json)：T-CODEX-SKILLS-173接通发布技能、受保护计划／Assignment、隔离文件及明确调用。47项不同定向检查、本机真实无Prompt目录与4项合成组件检查通过；4个链接子例跳过，真实模型使用及完整平台继续交付。

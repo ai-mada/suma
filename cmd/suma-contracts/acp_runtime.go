@@ -2,15 +2,17 @@ package main
 
 import (
 	ac "github.com/ai-mada/suma/internal/acpcontract"
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/platform"
 	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
 )
 
 func acpRuntimeModels() []any {
-	return []any{ac.Capability{}, ac.Evidence{}, ac.PermissionOption{}, ac.NativeSource{}, ac.Choice{}, pc.Request{}, pc.Choice{}, pc.Decision{}, pc.Permission{}, pc.List{}, pc.DecisionRequest{}, platform.ToolPermissionOpenRequest{}, platform.ToolPermissionPollRequest{}, platform.PoolToolPermissionOpenRequest{}, platform.PoolToolPermissionPollRequest{}, platform.ToolPermissionObservationRequest{}, platform.PoolToolPermissionObservationRequest{}, ac.ACPModelChoice{}, ac.ACPModelCatalogue{}, ac.ACPModelDiscoveryEvidence{}, ac.ACPModelDiscoveryResult{}}
+	return []any{ac.Capability{}, ac.Evidence{}, ac.PermissionOption{}, ac.NativeSource{}, ac.Choice{}, pc.Request{}, pc.Choice{}, pc.Decision{}, pc.Permission{}, pc.List{}, pc.DecisionRequest{}, platform.ToolPermissionOpenRequest{}, platform.ToolPermissionPollRequest{}, platform.PoolToolPermissionOpenRequest{}, platform.PoolToolPermissionPollRequest{}, platform.ToolPermissionObservationRequest{}, platform.PoolToolPermissionObservationRequest{}, ac.ACPModelChoice{}, ac.ACPModelCatalogue{}, ac.ACPModelDiscoveryEvidence{}, ac.ACPModelDiscoveryResult{}, cc.CodexModelDiscoveryResult{}}
 }
 
 func acpRuntimeContracts(add operationAdder, api map[string]any) {
+	codexDiscoveryContracts(api)
 	for _, route := range []struct {
 		path, method, input, output string
 		browser, readonly           bool

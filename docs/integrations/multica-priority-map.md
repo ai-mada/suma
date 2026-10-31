@@ -1,5 +1,7 @@
 # Multica下一步复用优先级
 
+T-CODEX-QUICK-CONNECT-175沿团队统一工具接入优先补齐Codex原生快捷路径：复用既有安装解析、成熟原生协议、加密Journal、原HMAC／机器身份和唯一Go调度，免手写commands，配置与任务模型选择分别管理。新增上游源码复制0；[合同](../../contracts/codex-quick-connect.md)、[架构与AI SOP](../architecture/codex-quick-connect.md)及[38定向／真实目录限定证据](../quality/codex-quick-connect-verification.md)记录当前范围。不是完整Multica／HelixHarness或所有工具能力完成，完整31／P0–P7范围保持。
+
 T-CODEX-HUMAN-REQUESTS-174继续优先补齐Multica式统一团队执行和Helix式恢复门禁：复用原权限表、唯一Go调度器、普通／Pool Runner及成熟原生协议，统一ACP／Codex一次确认、原请求核对和实际写入观察。当前依据固定上游及本机稳定schema，新增上游源码复制0，不将工具确认当成代码／业务验收。[合同](../../contracts/codex-human-requests.md)、[架构与AI SOP](../architecture/codex-human-requests.md)、[简洁交互](../design/codex-human-requests.md)和[限定证据](../quality/codex-human-requests-verification.md)分别记录；完整参考项目能力与31／P0–P7范围不变。
 
 T-CODEX-SKILLS-173沿已发布项目技能与团队固定输入推进Codex原生执行：复用原知识修订、任务及专家团队计划、唯一Go DAG、当前普通／Pool资格、独立HOME和原回合；新增准确文档／包摘要、真实目录核对和显式skill输入，不复制上游启动器或绕过审批。Multica／Helix固定参考及许可边界保持；[合同](../../contracts/codex-native-skills.md)、[架构与SOP](../architecture/codex-native-skills.md)与[47定向／本机目录／合成视觉证据](../quality/codex-native-skills-verification.md)限定范围。本机目录不是模型使用证明，其他工具原生技能、支持文件／签名包、持续协作及完整平台继续实施，58／34／92不变。
