@@ -1,0 +1,8 @@
+{
+  "tool-registration-preflight.title": "登记前检查",
+  "tool-registration-preflight.state.ready": "已确认",
+  "tool-registration-preflight.state.attention": "需处理",
+  "tool-registration-preflight.state.pending": "待核对",
+  "tool-registration-preflight.next": "下一步",
+  "tool-registration-preflight.review": "重新核对"
+}

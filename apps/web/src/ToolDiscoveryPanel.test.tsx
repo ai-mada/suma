@@ -2,7 +2,7 @@
 import {act} from 'react';
 import {createRoot, type Root} from 'react-dom/client';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {ApiViewProvider} from './api-context';
+import {ApiViewProvider,useApi} from './api-context';
 import {setLocale,formatDateTime} from './i18n';
 import {ToolDiscoveryPanel, type ToolDiscoveryPanelProps} from './ToolDiscoveryPanel';
 import {parseToolDiscovery} from './tool-discovery-model';
@@ -11,6 +11,7 @@ const project='project-a',worker='worker-a';
 const item={profile:{command_id:'check',adapter:'command',protocol:'text-v1',profile_sha256:'a'.repeat(64),executable_sha256:'b'.repeat(64),tool_version:'1.0',read_only:false},available:true,reason:''};
 const session={user:{id:'user-a',name:'Owner',email:'owner@example.test'},organization:{id:'org-a',name:'Org'},projects:[]};
 function report(currentWorker=worker,currentProject=project){return {project_id:currentProject,worker_id:currentWorker,state:'fresh',as_of:'2026-10-29T08:00:20Z',observed_at:'2026-10-29T08:00:00Z',expires_at:'2026-10-29T08:01:00Z',items:[structuredClone(item)]};}
+const adoptedSource=(currentWorker=worker,currentProject=project)=>expect.objectContaining({project:currentProject,worker:currentWorker,apiCaller:expect.any(Function),observedAt:report().observed_at,expiresAt:report().expires_at,deadline:expect.any(Number)});
 let root:Root,host:HTMLDivElement,adopt:ReturnType<typeof vi.fn>,requests:{path:string;init:RequestInit}[],reply:(path:string,init:RequestInit)=>Promise<Response>;
 beforeEach(async()=>{
  await setLocale('en-US',{persist:false});vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);
@@ -41,7 +42,7 @@ it('parses only exact scoped, self-consistent current reports and reuses the inv
 
 it('automatically reads the selected authorized identity and adopts each fresh report only once without writing',async()=>{
  await render();expect(requests).toHaveLength(1);expect(requests[0].path).toBe('/tool-discovery?project_id=project-a&worker_id=worker-a');expect(requests[0].init.method).toBe('GET');expect(requests[0].init.body).toBeUndefined();
- expect(adopt).toHaveBeenCalledExactlyOnceWith([item]);expect(host.querySelector('[data-tool-discovery-state="fresh"]')).not.toBeNull();
+ expect(adopt).toHaveBeenCalledExactlyOnceWith([item],adoptedSource());expect(host.querySelector('[data-tool-discovery-state="fresh"]')).not.toBeNull();
  await render({onAdopt:items=>adopt(items)});await act(async()=>setLocale('zh-CN',{persist:false}));expect(requests).toHaveLength(1);expect(adopt).toHaveBeenCalledTimes(1);
  await click('[data-tool-discovery-refresh]');expect(requests).toHaveLength(2);expect(adopt).toHaveBeenCalledTimes(1);
 });
@@ -62,16 +63,16 @@ it('preserves manual drafts until explicit adoption and never submits a surround
  let submits=0;
  await act(async()=>root.render(<form onSubmit={event=>{event.preventDefault();submits++;}}><ToolDiscoveryPanel project={project} worker={worker} authorized disabled={false} autoAdopt={false} onAdopt={adopt}/></form>));await settle();
  expect(adopt).not.toHaveBeenCalled();expect(host.querySelector<HTMLButtonElement>('[data-tool-discovery-adopt]')?.type).toBe('button');
- await click('[data-tool-discovery-adopt]');expect(adopt).toHaveBeenCalledExactlyOnceWith([item]);expect(submits).toBe(0);
+ await click('[data-tool-discovery-adopt]');expect(adopt).toHaveBeenCalledExactlyOnceWith([item],adoptedSource());expect(submits).toBe(0);
  await click('[data-tool-discovery-adopt]');expect(adopt).toHaveBeenCalledTimes(1);
 });
 
 it('allows explicit re-adoption of the same report after a manual draft change without resetting automatic deduplication',async()=>{
- await render({manualRevision:0});expect(adopt).toHaveBeenCalledExactlyOnceWith([item]);
+ await render({manualRevision:0});expect(adopt).toHaveBeenCalledExactlyOnceWith([item],adoptedSource());
  await render({manualRevision:1});expect(adopt).toHaveBeenCalledTimes(1);expect(host.querySelector('.tool-discovery-adopted')).toBeNull();
  await render({autoAdopt:false,manualRevision:1});expect(requests).toHaveLength(1);expect(adopt).toHaveBeenCalledTimes(1);
  expect(host.querySelector<HTMLButtonElement>('[data-tool-discovery-adopt]')?.disabled).toBe(false);
- await click('[data-tool-discovery-adopt]');expect(adopt).toHaveBeenNthCalledWith(2,[item]);expect(adopt).toHaveBeenCalledTimes(2);
+ await click('[data-tool-discovery-adopt]');expect(adopt).toHaveBeenNthCalledWith(2,[item],adoptedSource());expect(adopt).toHaveBeenCalledTimes(2);
  expect(host.querySelector<HTMLButtonElement>('[data-tool-discovery-adopt]')?.disabled).toBe(true);
  await click('[data-tool-discovery-adopt]');expect(adopt).toHaveBeenCalledTimes(2);
  await render({autoAdopt:true,manualRevision:1});await click('[data-tool-discovery-refresh]');expect(adopt).toHaveBeenCalledTimes(2);
@@ -88,7 +89,7 @@ it('aborts a previous identity read and ignores its late response after a worker
  const finishes=new Map<string,(value:Response)=>void>();reply=path=>new Promise(resolve=>{finishes.set(new URL(path,'https://example.test').searchParams.get('worker_id')!,resolve);});
  await render();await render({worker:'worker-b'});expect(requests[0].init.signal?.aborted).toBe(true);expect(host.querySelector('[data-tool-discovery-state="fresh"]')).toBeNull();
  await act(async()=>finishes.get(worker)!(Response.json(report())));await settle();expect(adopt).not.toHaveBeenCalled();
- await act(async()=>finishes.get('worker-b')!(Response.json(report('worker-b'))));await settle();expect(adopt).toHaveBeenCalledExactlyOnceWith([item]);
+ await act(async()=>finishes.get('worker-b')!(Response.json(report('worker-b'))));await settle();expect(adopt).toHaveBeenCalledExactlyOnceWith([item],adoptedSource('worker-b'));
 });
 
 it('isolates responses across project, user and organization changes',async()=>{
@@ -136,4 +137,24 @@ it('subtracts request time from the remaining database freshness interval',async
  vi.useFakeTimers({toFake:['setTimeout','clearTimeout','performance']});let finish!:(value:Response)=>void;reply=()=>new Promise(resolve=>{finish=resolve;});
  await render({autoAdopt:false});await act(async()=>vi.advanceTimersByTimeAsync(2000));await act(async()=>finish(Response.json({...report(),as_of:'2026-10-29T08:00:59Z'})));await settle();
  expect(host.querySelector('[data-tool-discovery-state="expired"]')).not.toBeNull();await click('[data-tool-discovery-adopt]');expect(adopt).not.toHaveBeenCalled();
+});
+
+it('adopts the original scoped caller and conservative deadline without renewing freshness on later adoption',async()=>{
+ vi.useFakeTimers({toFake:['setTimeout','clearTimeout','performance']});
+ let currentCaller!:ReturnType<typeof useApi>,finish!:(value:Response)=>void;
+ function Caller(){currentCaller=useApi();return null;}
+ reply=()=>new Promise(resolve=>{finish=resolve;});
+ async function draw(manualRevision=0,identity=session,readRevision=0){await act(async()=>root.render(<ApiViewProvider session={identity}><Caller/><ToolDiscoveryPanel project={project} worker={worker} authorized disabled={false} autoAdopt={false} manualRevision={manualRevision} readRevision={readRevision} onAdopt={adopt}/></ApiViewProvider>));await settle();}
+ const started=performance.now();await draw();const originalCaller=currentCaller;
+ await act(async()=>vi.advanceTimersByTimeAsync(2000));await act(async()=>finish(Response.json(report())));await settle();
+ await act(async()=>vi.advanceTimersByTimeAsync(3000));await click('[data-tool-discovery-adopt]');
+ expect(adopt).toHaveBeenCalledExactlyOnceWith([item],{project,worker,apiCaller:originalCaller,observedAt:report().observed_at,expiresAt:report().expires_at,deadline:started+40000});
+ const source=adopt.mock.calls[0][1];expect(source.deadline-performance.now()).toBe(35000);
+ await draw(1);await act(async()=>vi.advanceTimersByTimeAsync(1000));await click('[data-tool-discovery-adopt]');
+ expect(adopt).toHaveBeenNthCalledWith(2,[item],source);expect(requests).toHaveLength(1);
+ await draw(1,session,1);expect(requests).toHaveLength(2);await draw(1,session,1);expect(requests).toHaveLength(2);
+ await act(async()=>finish(Response.json({...report(),as_of:'2026-10-29T08:00:26Z'})));await settle();expect(adopt).toHaveBeenCalledTimes(2);
+ await draw(1,{...session,user:{...session.user,id:'user-b'}},1);expect(currentCaller).not.toBe(originalCaller);expect(source.apiCaller).toBe(originalCaller);expect(adopt).toHaveBeenCalledTimes(2);expect(requests).toHaveLength(3);
+ await act(async()=>finish(Response.json({...report(),as_of:'2026-10-29T08:00:26Z'})));await settle();await click('[data-tool-discovery-adopt]');
+ expect(adopt).toHaveBeenNthCalledWith(3,[item],{...source,apiCaller:currentCaller});expect(requests.every(request=>request.init.method==='GET')).toBe(true);
 });

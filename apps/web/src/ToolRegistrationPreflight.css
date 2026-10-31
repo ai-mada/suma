@@ -1,0 +1,20 @@
+.tool-registration-preflight{display:grid;gap:12px;min-width:0;padding:16px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;line-height:1.6}
+.tool-registration-preflight h4{margin:0;font-size:14px;font-weight:600}
+.tool-registration-preflight-checks{display:grid;gap:12px;list-style:none;margin:0;padding:0}
+.tool-registration-preflight-checks li{display:flex;align-items:flex-start;gap:10px;min-width:0}
+.tool-registration-preflight-icon{flex:none;margin-top:3px;color:var(--muted)}
+.tool-registration-preflight-checks [data-preflight-state=ready]>.tool-registration-preflight-icon{color:var(--green,var(--text))}
+.tool-registration-preflight-checks [data-preflight-state=attention]>.tool-registration-preflight-icon{color:var(--amber,var(--text))}
+.tool-registration-preflight-copy{flex:1;min-width:0;overflow-wrap:anywhere}
+.tool-registration-preflight-label{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:4px 12px}
+.tool-registration-preflight strong{font-size:14px;font-weight:600}
+.tool-registration-preflight-label span{color:var(--muted);font-size:14px}
+.tool-registration-preflight p{margin:2px 0 0;font-size:14px;overflow-wrap:anywhere}
+.tool-registration-preflight-copy p{color:var(--muted)}
+.tool-registration-preflight-next{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;border-top:1px solid var(--border);padding-top:12px}
+.tool-registration-preflight-next>div{flex:1 1 180px;min-width:0}
+.tool-registration-preflight-next button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;min-width:44px;max-width:100%;padding:8px 12px;box-sizing:border-box;font:inherit;white-space:normal;overflow-wrap:anywhere}
+.tool-registration-preflight-next button svg{flex:none}
+.tool-registration-preflight-next button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.tool-registration-preflight-next button:disabled{cursor:not-allowed}
+@media(max-width:600px){.tool-registration-preflight{padding:12px}.tool-registration-preflight-next{align-items:stretch}.tool-registration-preflight-next button{flex:1 1 100%}}

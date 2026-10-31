@@ -1,9 +1,12 @@
 'use strict';
 const {spawn:spawnChild}=require('node:child_process');
 const path=require('node:path');
+const crypto=require('node:crypto'),{performance}=require('node:perf_hooks');
+const {strictJSON}=require('./local-acp-validation.cjs');
 
 const CHANNEL='suma:discover-installed-tools';
 const PRODUCTS=Object.freeze({'codex-jsonl':'Codex','codebuddy-cli':'CodeBuddy Code','dsh-multica':'DeepSeek Harness / dsh','claude-code-cli':'Claude Code','cursor-cli':'Cursor','qoder-acp':'Qoder CLI','codex-app-server':'Codex'});
+const ADAPTERS=Object.freeze(Object.keys(PRODUCTS));
 const REASONS=new Set(['not_installed','unsupported_launcher','invalid_package','node_unavailable','probe_failed','workspace_required']);
 const CURSOR_REASONS=new Set(['not_installed','cursor_editor_only','cursor_agent_unverified','cursor_launcher_unsupported','cursor_scan_incomplete']);
 const ID=/^[a-f0-9]{32}$/;
@@ -42,6 +45,11 @@ function validInstalledToolReport(value,adapterID){
  if(['qoder-acp','codex-app-server'].includes(adapterID)&&row.executable_sha256!==undefined)item.executable_sha256=row.executable_sha256;
  return {protocol:value.protocol,items:[item]};
 }
+function validInstalledToolsBatch(value){
+ if(!exact(value,['protocol','items'])||value.protocol!=='suma-installed-tools-v1'||!Array.isArray(value.items)||value.items.length!==ADAPTERS.length)return;
+ const rows=new Map();for(const row of value.items){if(!plain(row)||!ADAPTERS.includes(row.adapter_id)||rows.has(row.adapter_id))return;const checked=validInstalledToolReport({protocol:value.protocol,items:[row]},row.adapter_id);if(!checked)return;rows.set(row.adapter_id,checked.items[0]);}
+ return {protocol:value.protocol,items:ADAPTERS.map(id=>rows.get(id))};
+}
 async function boundedJSON(response){
  if(!response?.ok||response.status!==200||response.redirected||!/^application\/json(?:;|$)/i.test(response.headers.get('content-type')||''))throw Error('response');
  const reader=response.body?.getReader();if(!reader)throw Error('response');const chunks=[];let length=0;
@@ -55,8 +63,15 @@ function scanEnvironment(environment,tempDirectory){
  // Overrides are process-local and never touch the user's environment.
  return {...clean,TEMP:tempDirectory,TMP:tempDirectory,TMPDIR:tempDirectory};
 }
-function createInstalledToolDiscoveryController({parent,origin,binary,tempDirectory,spawn=spawnChild,environment=process.env,deadlineMS=20000}){
- let disposed=false,active;
+function createInstalledToolDiscoveryController({parent,origin,binary,tempDirectory,spawn=spawnChild,environment=process.env,deadlineMS=20000,now=Date.now,monotonicNow=()=>performance.now()}){
+ let disposed=false,active,cache,lastScope;
+ const scopeKey=request=>[request.user_id,request.tenant_id,request.project_id].join(':');
+ function useScope(request){const key=scopeKey(request);if(lastScope!==key){lastScope=key;cache=undefined;}return key;}
+ function fresh(value){const elapsed=monotonicNow()-value.observedMono;return Number.isFinite(elapsed)&&elapsed>=0&&elapsed<60000;}
+ function projectResult(value,request,cached=false){
+  const report=structuredClone(value.report);if(request.action!=='scan')return {status:'observed',report:{protocol:report.protocol,items:[report.items.find(row=>row.adapter_id===request.adapter_id)]}};
+  return {status:'observed',report,scan:{...value.scan,cached}};
+ }
  const platform=new URL(origin);
  if(platform.origin!==origin||platform.protocol!=='http:'||platform.hostname!=='127.0.0.1'||!platform.port||!path.isAbsolute(binary)||!path.isAbsolute(tempDirectory))throw Error('Invalid desktop discovery configuration');
  const caller=event=>{
@@ -71,7 +86,7 @@ function createInstalledToolDiscoveryController({parent,origin,binary,tempDirect
   record.killTimer=setTimeout(()=>{if(!record.closed)terminate(record,'SIGKILL');},1500);record.killTimer.unref?.();
   record.stopTimer=setTimeout(()=>{if(!record.closed)record.fail?.(Error('stop_unconfirmed'));},3500);record.stopTimer.unref?.();
  }
- function dispose(){if(!disposed){disposed=true;if(active)stop(active);parent.removeListener('closed',dispose);parent.webContents.removeListener('destroyed',dispose);}if(!active)return Promise.resolve();const record=active;return new Promise(resolve=>{const timer=setTimeout(resolve,4000);record.settled.then(()=>{clearTimeout(timer);resolve();});});}
+ function dispose(){cache=undefined;lastScope=undefined;if(!disposed){disposed=true;if(active)stop(active);parent.removeListener('closed',dispose);parent.webContents.removeListener('destroyed',dispose);}if(!active)return Promise.resolve();const record=active;return new Promise(resolve=>{const timer=setTimeout(resolve,4000);record.settled.then(()=>{clearTimeout(timer);resolve();});});}
  parent.on('closed',dispose);parent.webContents.on('destroyed',dispose);
  async function authorize(record){
   const headers={Accept:'application/json','X-Suma-Expected-User':record.request.user_id,'X-Suma-Expected-Organization':record.request.tenant_id};
@@ -95,21 +110,44 @@ function createInstalledToolDiscoveryController({parent,origin,binary,tempDirect
    record.abort.signal.addEventListener('abort',aborted,{once:true});
    try{
     if(record.abort.signal.aborted)return finish(Error('cancelled'));
-    const child=spawn(binary,['--language='+record.request.locale,'--discover-installed-tools','--local-tool',record.request.adapter_id],{cwd:tempDirectory,env:scanEnvironment(environment,tempDirectory),stdio:['ignore','pipe','ignore'],windowsHide:true,shell:false,detached:process.platform!=='win32'});record.child=child;
+    const args=['--language='+record.request.locale,'--discover-installed-tools'];if(!record.batch)args.push('--local-tool',record.request.adapter_id);
+    const child=spawn(binary,args,{cwd:tempDirectory,env:scanEnvironment(environment,tempDirectory),stdio:['ignore','pipe','ignore'],windowsHide:true,shell:false,detached:process.platform!=='win32'});record.child=child;
     child.on('error',()=>finish(Error('spawn')));
     child.stdout.on('data',chunk=>{if(done)return;length+=chunk.length;if(length>262144){finish(Error('limit'));stop(record);}else chunks.push(Buffer.from(chunk));});
-    child.once('close',code=>{record.closed=true;clearTimeout(record.killTimer);clearTimeout(record.stopTimer);if(record.returned){if(active===record)active=undefined;record.resolveSettled();}if(done)return;if(code!==0||record.abort.signal.aborted)return finish(Error('probe'));try{const value=validInstalledToolReport(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks))),record.request.adapter_id);if(!value)throw Error('report');finish(null,value);}catch{finish(Error('report'));}});
+    child.once('close',code=>{record.closed=true;clearTimeout(record.killTimer);clearTimeout(record.stopTimer);if(record.returned){if(active===record)active=undefined;record.resolveSettled();}if(done)return;if(code!==0||record.abort.signal.aborted)return finish(Error('probe'));try{const raw=Buffer.concat(chunks),parsed=record.batch?strictJSON(raw):JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(raw)),value=record.batch?validInstalledToolsBatch(parsed):validInstalledToolReport(parsed,record.request.adapter_id);if(!value)throw Error('report');finish(null,value);}catch{finish(Error('report'));}});
    }catch{finish(Error('spawn'));}
   });
  }
- async function discover(event,request){
-  if(!caller(event)||!exact(request,['project_id','user_id','tenant_id','adapter_id','locale'])||!['project_id','user_id','tenant_id'].every(key=>typeof request[key]==='string'&&ID.test(request[key]))||typeof request.adapter_id!=='string'||!Object.hasOwn(PRODUCTS,request.adapter_id)||!['zh-CN','en-US'].includes(request.locale))return failure('discovery_request_rejected');
-  if(active)return failure('discovery_busy');
-  const record={event,request:{...request},abort:new AbortController(),child:null,closed:false,returned:false,settled:null,resolveSettled:null};record.settled=new Promise(resolve=>record.resolveSettled=resolve);active=record;
+ async function execute(record){
   const timer=setTimeout(()=>stop(record),deadlineMS);timer.unref?.();
-  try{await authorize(record);if(!caller(event))throw Error('authority');const report=await observe(record);await authorize(record);if(!caller(event))throw Error('authority');return {status:'observed',report};}
+  try{
+   await authorize(record);if(!caller(record.event))throw Error('authority');const report=await observe(record),observedMono=monotonicNow(),observedAt=now();await authorize(record);if(!caller(record.event)||record.abort.signal.aborted)throw Error('authority');
+   const result={status:'observed',report};
+   if(record.batch){result.scan={id:record.scanID,project_id:record.request.project_id,user_id:record.request.user_id,tenant_id:record.request.tenant_id,observed_at:new Date(observedAt).toISOString(),expires_at:new Date(observedAt+60000).toISOString(),cached:false};if(lastScope===record.scope&&fresh({observedMono}))cache={scope:record.scope,observedMono,result:structuredClone(result)};}
+   return result;
+  }
   catch{return failure('discovery_access_changed');}
   finally{clearTimeout(timer);record.returned=true;if(!record.child||record.closed){if(active===record)active=undefined;record.resolveSettled();}}
+ }
+ async function joined(record,event,request){
+  // The owner's timer ends with its scan. A join's independent HTTP reads may
+  // finish later, so bound them without giving that join control of the child.
+  const participant={event,request,abort:new AbortController()},ownerAborted=()=>participant.abort.abort(),timer=setTimeout(()=>participant.abort.abort(),deadlineMS);timer.unref?.();
+  record.abort.signal.addEventListener('abort',ownerAborted,{once:true});if(record.abort.signal.aborted)ownerAborted();
+  try{await authorize(participant);const result=await record.result;if(result.status!=='observed')return result;await authorize(participant);if(!caller(event)||participant.abort.signal.aborted)throw Error('authority');return projectResult(result,request);}catch{return failure('discovery_access_changed');}finally{clearTimeout(timer);record.abort.signal.removeEventListener('abort',ownerAborted);}
+ }
+ async function cachedResult(value,event,request){
+  const participant={event,request,abort:new AbortController()},timer=setTimeout(()=>participant.abort.abort(),deadlineMS);timer.unref?.();
+  try{await authorize(participant);if(!caller(event)||participant.abort.signal.aborted)throw Error('authority');if(cache!==value||lastScope!==value.scope||!fresh(value))return discover(event,request);return projectResult(value.result,request,true);}catch{if(cache===value)cache=undefined;return failure('discovery_access_changed');}finally{clearTimeout(timer);}
+ }
+ async function discover(event,request){
+  const batch=request?.action==='scan',base=['project_id','user_id','tenant_id','locale'];
+  const shape=batch?(exact(request,[...base,'action'])||exact(request,[...base,'action','force'])&&typeof request.force==='boolean'):exact(request,[...base,'adapter_id'])&&typeof request.adapter_id==='string'&&Object.hasOwn(PRODUCTS,request.adapter_id);
+  if(!caller(event)||!shape||!['project_id','user_id','tenant_id'].every(key=>typeof request[key]==='string'&&ID.test(request[key]))||!['zh-CN','en-US'].includes(request.locale))return failure('discovery_request_rejected');
+  const scope=useScope(request);
+  if(active)return active.batch&&active.scope===scope?joined(active,event,{...request}):failure('discovery_busy');
+  if(batch&&!request.force&&cache?.scope===scope&&fresh(cache))return cachedResult(cache,event,{...request});
+  const record={event,request:{...request},batch,scope,scanID:batch?crypto.randomBytes(16).toString('hex'):undefined,abort:new AbortController(),child:null,closed:false,returned:false,settled:null,resolveSettled:null};record.settled=new Promise(resolve=>record.resolveSettled=resolve);active=record;record.result=execute(record);return record.result;
  }
  return {discover,dispose};
 }

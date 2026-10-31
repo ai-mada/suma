@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-TOOL-ONBOARDING-176：[合同](../../contracts/tool-onboarding-scan.md)、[需求](../product/tool-onboarding.md)、[架构与AI SOP](../architecture/tool-onboarding.md)、[交互](../design/tool-onboarding.md)及[限定验证](../quality/tool-onboarding-verification.md)／[摘要](../quality/tool-onboarding-summary.json)。一次自动扫描七个接入项，复用原Go并行目录，60秒同范围观察缓存／合并等待／当前授权；高级登记保留原来源与过期预检，原未知请求恢复及手工暂停登记独立。27不同定向、一次全类型及两组精确修订语义、8381对中英词条通过；0Go编译，1次真实CLI约1.218秒，1次生产组件构建／5代表检查及两图已复核。完整桌面旅程、真实模型／多机／跨平台／生产及31／P0–P7／58／34／92继续交付，171显式GUI停止缺口保留。
+
 T-CODEX-QUICK-CONNECT-175：[合同](../../contracts/codex-quick-connect.md)、[需求](../product/codex-quick-connect.md)、[架构与AI SOP](../architecture/codex-quick-connect.md)、[交互](../design/codex-quick-connect.md)及[限定验证](../quality/codex-quick-connect-verification.md)／[摘要](../quality/codex-quick-connect-summary.json)。Codex原生能力接入自动检测、私有提供方配置、真实目录、原托管节点／新库存／暂停登记／明确启用；未知原操作及停止后明确换配置均保持来源。38不同定向、5Go子例、一次全类型与8346对词条通过；1Go编译／2真实CLI命令得到9模型目录且Go/JS摘要相同，0浏览器工程／UI构建。未证明完整桌面点击、真实账号模型／计费／OS隔离、跨平台／多机／生产；完整31／P0–P7／58／34／92和171显式GUI停止缺口继续交付。
 
 T-CODEX-HUMAN-REQUESTS-174：[合同](../../contracts/codex-human-requests.md)、[架构与AI SOP](../architecture/codex-human-requests.md)、[交互](../design/codex-human-requests.md)及[限定验证](../quality/codex-human-requests-verification.md)／[摘要](../quality/codex-human-requests-summary.json)。原权限领域显式区分ACP／Codex，准确一次决定、异步写入与持久观察沿普通／Pool当前资格和原回执贯通；65个不同定向检查、54个Go子例与9项真实HTTP／SQLite／原Worker／受控CLI／生产组件检查通过；两次验证器启动前问题原件保留，最后复用二进制及UI完成，无额外编译。两张中英局部图已查看，真实厂商／模型及正式验收不外推。完整31／P0–P7／58／34／92及原171显式GUI停止缺口保留。

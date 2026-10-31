@@ -1,6 +1,7 @@
 import {useCallback,useEffect,useId,useLayoutEffect,useRef,useState} from 'react';
 import {ClipboardCheck,RefreshCw} from 'lucide-react';
 import {useApi,useApiView} from './api-context';
+import type {ApiCaller} from './api';
 import {formatDateTime,formatNumber,tr,useLocale} from './i18n';
 import {toolError} from './tool-hooks';
 import type {ToolObservation} from './tool-model';
@@ -8,9 +9,10 @@ import {parseToolDiscovery,type ToolDiscoveryView} from './tool-discovery-model'
 import {ErrorNotice,Loading} from './ui';
 import './ToolDiscoveryPanel.css';
 
-export type ToolDiscoveryPanelProps={project:string;worker:string;authorized:boolean;disabled:boolean;autoAdopt:boolean;manualRevision?:number;onAdopt:(items:ToolObservation[])=>void};
+export type ToolDiscoveryAdoption=Readonly<{project:string;worker:string;apiCaller:ApiCaller;observedAt:string;expiresAt:string;deadline:number}>;
+export type ToolDiscoveryPanelProps={project:string;worker:string;authorized:boolean;disabled:boolean;autoAdopt:boolean;manualRevision?:number;readRevision?:number;onAdopt:(items:ToolObservation[],source:ToolDiscoveryAdoption)=>void};
 const t=(key:string,values?:Record<string,unknown>)=>tr('tool-discovery.'+key,values);
-type Snapshot={view:ToolDiscoveryView;deadline:number;reportKey:string};
+type Snapshot={view:ToolDiscoveryView;deadline:number;reportKey:string;apiCaller:ApiCaller};
 
 export function ToolDiscoveryPanel(props:ToolDiscoveryPanelProps){
  const view=useApiView();
@@ -18,11 +20,13 @@ export function ToolDiscoveryPanel(props:ToolDiscoveryPanelProps){
  return <DiscoveryScope key={JSON.stringify([view?.userID,view?.organizationID,props.project,props.worker,props.authorized])} {...props}/>;
 }
 
-function DiscoveryScope({project,worker,authorized,disabled,autoAdopt,manualRevision=0,onAdopt}:ToolDiscoveryPanelProps){
+function DiscoveryScope({project,worker,authorized,disabled,autoAdopt,manualRevision=0,readRevision=0,onAdopt}:ToolDiscoveryPanelProps){
  useLocale();const api=useApi(),headingID=useId(),epoch=useRef(0),controller=useRef<AbortController|undefined>(undefined),callback=useRef(onAdopt),adopted=useRef(new Set<string>());
- const [snapshot,setSnapshot]=useState<Snapshot>(),[loading,setLoading]=useState(false),[error,setError]=useState<unknown>(),[expired,setExpired]=useState(false),[usedReport,setUsedReport]=useState('');
+ const [storedSnapshot,setSnapshot]=useState<Snapshot>(),[loading,setLoading]=useState(false),[error,setError]=useState<unknown>(),[expired,setExpired]=useState(false),[usedReport,setUsedReport]=useState('');
+ const snapshot=storedSnapshot?.apiCaller===api?storedSnapshot:undefined;
  const active=!!project&&!!worker&&authorized;
  useLayoutEffect(()=>{callback.current=onAdopt;},[onAdopt]);
+ useLayoutEffect(()=>{adopted.current.clear();setUsedReport('');},[api]);
  useEffect(()=>{setUsedReport('');},[manualRevision]);
  const read=useCallback(async()=>{
   if(!active)return;
@@ -37,11 +41,11 @@ function DiscoveryScope({project,worker,authorized,disabled,autoAdopt,manualRevi
    // authority for a database report's remaining lifetime.
    const remaining=Math.max(0,view.remainingMs-Math.max(0,now-started));
    setExpired(view.state==='fresh'&&remaining<=0);
-   setSnapshot({view,deadline:now+remaining,reportKey:JSON.stringify([view.observedAt,view.items])});
+   setSnapshot({view,deadline:now+remaining,reportKey:JSON.stringify([view.observedAt,view.items]),apiCaller:api});
   }catch(problem){if(generation===epoch.current&&!abort.signal.aborted){setSnapshot(undefined);setError(problem);}}
   finally{if(generation===epoch.current&&!abort.signal.aborted)setLoading(false);}
  },[active,api,project,worker]);
- useEffect(()=>{void read();return()=>{epoch.current++;controller.current?.abort();};},[read]);
+ useEffect(()=>{void read();return()=>{epoch.current++;controller.current?.abort();};},[read,readRevision]);
  useEffect(()=>{
   if(snapshot?.view.state!=='fresh')return;
   const timeout=setTimeout(()=>setExpired(true),Math.max(0,snapshot.deadline-performance.now()));
@@ -49,8 +53,8 @@ function DiscoveryScope({project,worker,authorized,disabled,autoAdopt,manualRevi
  },[snapshot]);
  const usable=active&&!disabled&&!loading&&!expired&&snapshot?.view.state==='fresh';
  function adopt(automatic:boolean){
-  if(!usable||!snapshot||performance.now()>=snapshot.deadline||(automatic?adopted.current.has(snapshot.reportKey):usedReport===snapshot.reportKey))return;
-  adopted.current.add(snapshot.reportKey);setUsedReport(snapshot.reportKey);callback.current(snapshot.view.items);
+  if(!usable||!snapshot||!snapshot.view.observedAt||!snapshot.view.expiresAt||performance.now()>=snapshot.deadline||(automatic?adopted.current.has(snapshot.reportKey):usedReport===snapshot.reportKey))return;
+  adopted.current.add(snapshot.reportKey);setUsedReport(snapshot.reportKey);callback.current(snapshot.view.items,{project,worker,apiCaller:snapshot.apiCaller,observedAt:snapshot.view.observedAt,expiresAt:snapshot.view.expiresAt,deadline:snapshot.deadline});
  }
  useEffect(()=>{if(autoAdopt)adopt(true);},[autoAdopt,usable,snapshot]);
  const view=snapshot?.view,state=view?.state==='fresh'&&expired?'expired':view?.state;

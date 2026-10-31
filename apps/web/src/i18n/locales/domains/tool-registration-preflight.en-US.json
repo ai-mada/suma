@@ -1,0 +1,8 @@
+{
+  "tool-registration-preflight.title": "Before registration",
+  "tool-registration-preflight.state.ready": "Confirmed",
+  "tool-registration-preflight.state.attention": "Needs attention",
+  "tool-registration-preflight.state.pending": "Needs verification",
+  "tool-registration-preflight.next": "Next step",
+  "tool-registration-preflight.review": "Check again"
+}

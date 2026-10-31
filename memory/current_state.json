@@ -930,5 +930,27 @@
       "All original31/P0-P7 goals; prior171 explicit GUI stop gap remains."
     ],
     "full_platform_complete": false
+  },
+  "tool_onboarding": {
+    "stage": "T-TOOL-ONBOARDING-176",
+    "version": "1.0.0",
+    "date": "2026-10-31",
+    "status": "scoped_source_real_scan_and_synthetic_components_verified",
+    "contract": "contracts/tool-onboarding-scan.md",
+    "product": "docs/product/tool-onboarding.md",
+    "architecture": "docs/architecture/tool-onboarding.md",
+    "design": "docs/design/tool-onboarding.md",
+    "report": "docs/quality/tool-onboarding-verification.md",
+    "summary": "docs/quality/tool-onboarding-summary.json",
+    "implementation": "One passive full-directory scan through existing Go detection and desktop bridge; no new process service or dependency. Seven strict protocol entries, bounded last-scope monotonic cache, coalesced requests, independently bounded waiters, current actual authorization and no launch commands in renderer. Simple bilingual automatic scan/refresh/next-step selection; original configuration focus and per-adapter non-secret drafts. Advanced adopted inventory preserves caller/project/worker/expiry; original uncertain operation recovery and manual paused configuration remain independent.",
+    "verification": "27distinct(9Desktop/18Web;14new/13affectedold), once fullTSC0 then only2+2 revised-file semantics0;8381paired/0hardcodes. StrictMode and join-deadline P2 originalRED retained; unchanged green reused.",
+    "actual": "Zero Go build; one real reused-binary all-directory passive scan exit0/~1.218s/seven entries. One separate saved-output controlled replay, not joined branch. One synthetic production-component build/5browser checks/2Root-viewed images/normal Electron0; no fullApp or authenticated integration claim.",
+    "remaining": [
+      "Full authenticated desktop connection, registration, enable and real coding journey.",
+      "Real vendor/model/account/billing/OS isolation; complete tool and Harness ecosystem.",
+      "Physical multi-host, other databases, full device/theme/platform/installer matrix, scale and production.",
+      "All original 31 requirements/P0-P7; T171 explicit GUI stop gap remains."
+    ],
+    "full_platform_complete": false
   }
 }

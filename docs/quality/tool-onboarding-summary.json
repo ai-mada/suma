@@ -1,0 +1,260 @@
+{
+  "stage": "T-TOOL-ONBOARDING-176",
+  "version": "1.0.0",
+  "date": "2026-10-31",
+  "status": "scoped_source_real_scan_and_synthetic_components_verified",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "One passive full-directory scan through existing Go detection and desktop bridge; no new process service or dependency.",
+    "Seven strict protocol entries, bounded last-scope monotonic cache, coalesced requests, independently bounded waiters, current actual authorization and no launch commands in renderer.",
+    "Simple bilingual automatic scan/refresh/next-step selection; original configuration focus and per-adapter non-secret drafts.",
+    "Advanced adopted inventory preserves caller/project/worker/expiry; original uncertain operation recovery and manual paused configuration remain independent."
+  ],
+  "focused": {
+    "distinct_top_level": 27,
+    "new": 14,
+    "affected_existing": 13,
+    "desktop": {
+      "distinct": 9,
+      "new": 6,
+      "affected_existing": 3
+    },
+    "web": {
+      "distinct": 18,
+      "new": 8,
+      "affected_existing": 10
+    },
+    "repeated_runs_not_double_counted": true,
+    "filtered_unexecuted_cases_not_passes": true
+  },
+  "integration": {
+    "full_typecheck_exit": 0,
+    "revision_semantics": [
+      {
+        "files": 2,
+        "reason": "StrictMode lifecycle",
+        "diagnostics": 0
+      },
+      {
+        "files": 2,
+        "reason": "Explicit row selection focus",
+        "diagnostics": 0
+      }
+    ],
+    "paired_locale_keys": 8381,
+    "production_hardcodes": 0,
+    "new_go_builds": 0,
+    "go_tests": 0,
+    "schema_generation": 0,
+    "ui_component_builds": 1,
+    "full_app_builds": 0
+  },
+  "fixes": [
+    "StrictMode effect replay must not invalidate the only in-flight scan and leave busy forever.",
+    "A joined caller needs its own deadline after the scan owner finishes; its timeout must not stop the shared child.",
+    "Explicit entry selection focuses and scrolls to the original configuration, without auto-connecting or bypassing unresolved-operation locks."
+  ],
+  "actual": {
+    "scope": "One real Windows passive full-directory CLI, separate from saved-output replay and synthetic visual fixture",
+    "exit": 0,
+    "elapsed_ms": 1217.7404,
+    "control_binary_sha256": "b022af3e1cde216e57fa3c447f0c8faa724bf7b56f33b54794073b3524fb7e92",
+    "stdout_sha256": "bf2b6b2b7f699d0e668296f1d75a491beda43edf4cf4428944548536dac0cffc",
+    "entries": 7,
+    "codex_protocol_entries": 2,
+    "codex_product_count": 1,
+    "codex_version": "0.166.0-alpha.5.1",
+    "cursor": "cursor_scan_incomplete",
+    "not_observed_in_limited_search": [
+      "CodeBuddy Code",
+      "DeepSeek Harness / dsh",
+      "Claude Code",
+      "Qoder CLI"
+    ],
+    "native_child_pid_capture": false,
+    "network_traffic_measurement": false,
+    "saved_output_replay": {
+      "performed": true,
+      "scope": "Same output, production controller with controlled session/spawn; no second real CLI or desktop; pre-joined-revision source and unchanged batch/cache only",
+      "simulated_spawns": 1
+    }
+  },
+  "visual": {
+    "scope": "Synthetic production components, not full App or authenticated desktop",
+    "synthetic_data": true,
+    "checks": [
+      "CN initial scan once and seven protocol entries",
+      "Explicit refresh uses force without duplicate automatic scan",
+      "Explicit row selection calls the existing selection boundary only",
+      "English narrow view has no horizontal overflow and keyboard focus reaches actions",
+      "Expired inventory remains a visible registration preflight fact"
+    ],
+    "normal_exit": {
+      "code": 0,
+      "signal": null
+    },
+    "root_viewed_images": [
+      {
+        "path": ".cache/tool-onboarding-176/visual/cn-1366.png",
+        "sha256": "649d9ea0917ca1c62acc89c917c215bf3bdc63dc0b1dcdbb7aa573dd79c1509a"
+      },
+      {
+        "path": ".cache/tool-onboarding-176/visual/en-390-preflight.png",
+        "sha256": "0ab41997c5b911a15b081636545ec0cc1e36e27405f0e1dbc6bc279ab2056ad7"
+      }
+    ],
+    "subsequent_parent_focus_revision_not_in_fixture": true
+  },
+  "source_files": [
+    {
+      "path": "apps/desktop/src/installed-tools.cjs",
+      "sha256": "3350ca9a5b783e22e652e5931bbe75c6a79c9b62ab977b5a5e795ff44b690b33"
+    },
+    {
+      "path": "apps/desktop/tests/installed-tools-batch.test.cjs",
+      "sha256": "daf3f3ec4de456ace6679064364322f8ad16cad9fc2a44bd10739f76ea35dcea"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/local-tools-scan.en-US.json",
+      "sha256": "4a0a82fe7e271371e2df27cb319911d19291510be100d357970fa0cfcd65054c"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/local-tools-scan.zh-CN.json",
+      "sha256": "5cca558f5edf4b54879ce2f3dc208d002c8e100bfb6866aaee2793bd7e312aed"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-registration-preflight.en-US.json",
+      "sha256": "4ad11be077fe667d1ff413eaa667a568e9e36d180fbf3d0b2959c5aaa89624a1"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-registration-preflight.zh-CN.json",
+      "sha256": "81db1985827bb46d7b46d8ecb6dcfab011e98a97d00d2c465503e90b5fcba73d"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-workspace.en-US.json",
+      "sha256": "e2075be679be1e8da0a08d55695ead5c2603a80bcdd9e56ca3fe21cfc58cee39"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-workspace.zh-CN.json",
+      "sha256": "1aaaa921738b90b47b6426cd7c43b74f8deba74e5f5de38c136888d38681ba31"
+    },
+    {
+      "path": "apps/web/src/local-tools-scan-model.test.ts",
+      "sha256": "77f6f39c074711742724d91097c3c4a979e3b9bf296b688232738cd7bc472de8"
+    },
+    {
+      "path": "apps/web/src/local-tools-scan-model.ts",
+      "sha256": "6a3a8067d0c3e750723f9a8c18dc383bcb90f78805bedc5fc537d9e7fbb41647"
+    },
+    {
+      "path": "apps/web/src/LocalToolsScanPanel.css",
+      "sha256": "a4f4c3451dd34399f9098c9ce483e42f9cf2bafaa0338695e8f72f44954889aa"
+    },
+    {
+      "path": "apps/web/src/LocalToolsScanPanel.test.tsx",
+      "sha256": "be50d726b7c8b6ad193054adfcfe20212559e08332ae48a5169834f542375957"
+    },
+    {
+      "path": "apps/web/src/LocalToolsScanPanel.tsx",
+      "sha256": "17277834d83cb2ef825cf8e82cef1d1b88057ca9ad7565f39805a41a28fedd73"
+    },
+    {
+      "path": "apps/web/src/LocalToolsScanQuickConnect.test.tsx",
+      "sha256": "29f70f2181db6272530f1043d94001c8d7a52f4c70b63a07a6a763fcfcaee735"
+    },
+    {
+      "path": "apps/web/src/ToolDiscoveryPanel.test.tsx",
+      "sha256": "8597866c8f7191213ee87774c9273688970a6c6766fad6e7ca561365eee04b3c"
+    },
+    {
+      "path": "apps/web/src/ToolDiscoveryPanel.tsx",
+      "sha256": "f91e4855978758d60cb3ce6f3e88a4a91705ac334cc82a160951123eec171220"
+    },
+    {
+      "path": "apps/web/src/ToolQuickConnect.tsx",
+      "sha256": "84ca19e24c6ae1fde375dd307209bd25dd0212397a1cab26a64ae79915b83940"
+    },
+    {
+      "path": "apps/web/src/ToolRegistrationPreflight.css",
+      "sha256": "d4aa94490cedb0d1f6c9c919f0e73a3013450f129b6095c6279efff6ec719e9b"
+    },
+    {
+      "path": "apps/web/src/ToolRegistrationPreflight.tsx",
+      "sha256": "80566f871cea4a2d06d8f9f355c6cc43ff793cab5f7793e4c96e54a9d6a69565"
+    },
+    {
+      "path": "apps/web/src/ToolWorkspace.test.tsx",
+      "sha256": "9b1f8e319e3242993ec5e5d51a1a88bbc211aedf5a6d52dfbe215eb749de2b8f"
+    },
+    {
+      "path": "apps/web/src/ToolWorkspace.tsx",
+      "sha256": "bbee4740ade60818160accbda1e59fc0fbbca0dd1f9d1062c7c689dde26d936b"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cache/tool-onboarding-176/desktop/evidence.json",
+      "sha256": "ab68308c6352a740509fd68bf0c1a53d0006af078460c672d265bfb3ef09fbd0"
+    },
+    {
+      "path": ".cache/tool-onboarding-176/desktop/join-deadline-revision.json",
+      "sha256": "bab69e56515f1b39e0ca3027c2ef61e6ead1378493ee3a6d63fe31d98d2e3b7e"
+    },
+    {
+      "path": ".cache/tool-onboarding-176/web/frontend-summary.json",
+      "sha256": "c01818fb087ce9a63b41df6708dca1bed2144b555036c025266dc7c656a480bc"
+    },
+    {
+      "path": ".cache/tool-onboarding-preflight/web/frontend-summary.json",
+      "sha256": "7a7daa4c6c58c6a961ea12d137152ba96bbea9f0c3419383dd20e883f898f79b"
+    },
+    {
+      "path": ".cache/tool-onboarding-176/actual/evidence.json",
+      "sha256": "305c1cbf89dd6a9810680a2e049aa8c80c533487375405d947e2218f6d0bef7a"
+    },
+    {
+      "path": ".cache/tool-onboarding-176/actual/saved-output-replay.json",
+      "sha256": "01c529966d29683432f1f290b4ffc8005baea1b26744d16ae2a2044b03b33c8f"
+    },
+    {
+      "path": ".cache/tool-onboarding-176/visual/result.json",
+      "sha256": "a9bca6c57a247db991a231c9b2bbb61a6a00a196998e6c2e9d32ba13d2fef023"
+    },
+    {
+      "path": ".cache/tool-onboarding-176/typecheck.json",
+      "sha256": "7c6c4fc6d8dd33ca0392029f7fb08f5ee68dec60dd43aa5c22ac8629a891b0bc"
+    },
+    {
+      "path": ".cache/tool-onboarding-176/typecheck-revision.json",
+      "sha256": "bee615e00a1cdc5881275982b94a655b106a834bbc6623cab6b97d4c7e985b2a"
+    },
+    {
+      "path": ".cache/tool-onboarding-176/typecheck-selection-revision.json",
+      "sha256": "123c4cb69ba4c6c96b50388f282915a2eafcc31b1ee6491a3b1c466d7e32f1b5"
+    },
+    {
+      "path": ".cache/tool-onboarding-176/i18n.json",
+      "sha256": "cf350b7ad44cc40902c9104d806cec287e602587e8d474298d887de7f1cb4458"
+    },
+    {
+      "path": ".cache/tool-onboarding-176/review/summary.json",
+      "sha256": "7be0b314cd6f086a64225eeda6a02b26bfa6ad4760130d223724cdf5d083572b"
+    }
+  ],
+  "protected_unrelated_files": 21,
+  "protected_unrelated_changed": [],
+  "remaining": [
+    "Full authenticated desktop connection, registration, enable and real coding journey.",
+    "Real vendor/model/account/billing/OS isolation; complete tool and Harness ecosystem.",
+    "Physical multi-host, other databases, full device/theme/platform/installer matrix, scale and production.",
+    "All original 31 requirements/P0-P7; T171 explicit GUI stop gap remains."
+  ]
+}

@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [自动工具检查与登记](product/tool-onboarding.md) · [合同](../contracts/tool-onboarding-scan.md) · [架构与AI SOP](architecture/tool-onboarding.md) · [交互](design/tool-onboarding.md) · [English](en/tool-onboarding.md) · [限定验证](quality/tool-onboarding-verification.md)：T176以一次并行被动扫描接入原工具流程，补齐来源预检与原操作恢复；27定向通过，真实CLI和合成组件范围分别披露。
+
 - [Codex快速连接需求](product/codex-quick-connect.md) · [合同](../contracts/codex-quick-connect.md) · [架构与AI SOP](architecture/codex-quick-connect.md) · [简洁交互](design/codex-quick-connect.md) · [English](en/codex-quick-connect.md) · [限定验证](quality/codex-quick-connect-verification.md) · [摘要](quality/codex-quick-connect-summary.json)：T-CODEX-QUICK-CONNECT-175补齐原生检测、提供方配置／目录、原托管节点与准确登记。38项定向通过，本机真实9模型目录已核实；完整桌面旅程及真实模型不外推。
 
 - [原生工具确认需求](product/tool-confirmations.md) · [合同](../contracts/codex-human-requests.md) · [架构与AI SOP](architecture/codex-human-requests.md) · [简洁交互](design/codex-human-requests.md) · [English](en/codex-human-requests.md) · [限定验证](quality/codex-human-requests-verification.md) · [摘要](quality/codex-human-requests-summary.json)：T-CODEX-HUMAN-REQUESTS-174统一ACP／Codex一次请求、原操作恢复及持久执行观察；65项定向与9项受控协议实际检查通过，保留当前权限、原Runner／Pool和独立质量门禁。真实厂商及完整平台范围继续交付。

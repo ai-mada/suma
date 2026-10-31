@@ -3,7 +3,7 @@ import {CodexLocalConnector} from './CodexLocalConnector';
 import type {DesktopCodexConnectedProof} from './desktop-codex-connector-model';
 import {ToolConnectionDiagnostic} from './ToolConnectionDiagnostic';
 import {desktopACPBridge} from './desktop-acp-connector-model';
-import {useEffect,useId,useRef,useState} from 'react';
+import {useEffect,useId,useLayoutEffect,useRef,useState} from 'react';
 import {ArrowRight,CheckCircle2,Monitor,RefreshCw,Server,ShieldCheck} from 'lucide-react';
 import {useApi,useApiView} from './api-context';
 import {readAdapterCatalog,type AdapterDescriptor,type AdapterCatalogPage} from './AdapterConnections';
@@ -17,6 +17,8 @@ import type {ToolProfile} from './tool-model';
 import {DesktopToolConnector} from './DesktopToolConnector';
 import {desktopToolBridge,validDesktopToolScope} from './desktop-tool-connector-model';
 import {CursorConnectionGuide} from './CursorConnectionGuide';
+import {LocalToolsScanPanel} from './LocalToolsScanPanel';
+import {localToolsScanBridge,validLocalToolsScanScope} from './local-tools-scan-model';
 import './ToolQuickConnect.css';
 
 const t=(key:string,params?:Record<string,unknown>)=>tr('tool-quick-connect.'+key,params);
@@ -27,6 +29,7 @@ export function ToolQuickConnect(props:ToolQuickConnectProps){
 }
 function QuickConnectScope(props:ToolQuickConnectProps){
  useLocale();const api=useApi(),id=useId(),[revision,setRevision]=useState(0),[catalog,setCatalog]=useState<{caller:typeof api;revision:number;page?:AdapterCatalogPage;error?:unknown}>(),[selected,setSelected]=useState(props.adapter?.id||''),[localBlocked,setLocalBlocked]=useState(false);
+ const drafts=useRef(new Map<string,QuickToolDraft>()),toolChoice=useRef<HTMLSelectElement>(null);
  useEffect(()=>{
   const controller=new AbortController();let active=true;setCatalog(undefined);
   void api<unknown>('/adapter-catalog?project_id='+encodeURIComponent(props.project),undefined,'GET',undefined,controller.signal).then(value=>{
@@ -35,25 +38,30 @@ function QuickConnectScope(props:ToolQuickConnectProps){
   return()=>{active=false;controller.abort();};
  },[api,props.project,revision]);
  const current=catalog?.caller===api&&catalog.revision===revision?catalog:undefined,ordinary=current?.page?quickConnectAdapters(current.page.items):[],guide=current?.page?.items.find(isCursorConnectionGuide),adapters=guide?[...ordinary,guide]:ordinary,adapter=adapters.find(item=>item.id===selected),cursorGuide=!!adapter&&isCursorConnectionGuide(adapter),blocked=props.action.busy||!!props.action.pending||localBlocked;
+ function choose(adapterID:string){if(blocked||!adapters.some(item=>item.id===adapterID))return false;setSelected(adapterID);return true;}
  return <div className="tool-quick-connect">
   {!cursorGuide&&<p className="tool-quick-intro">{t('intro')}</p>}
   {!current?<Loading/>:current.error?<ErrorNotice error={current.error} onRetry={()=>setRevision(value=>value+1)}/>:<>
-   <Field label={t('tool')}><select data-quick-tool value={adapter?.id||''} disabled={blocked} onChange={event=>setSelected(event.target.value)} aria-describedby={cursorGuide?undefined:id}><option value="">{t('choose_tool')}</option>{adapters.map(item=><option key={item.id} value={item.id}>{isCursorConnectionGuide(item)?tr('cursor-connection.title'):<>{item.product} · {item.entrypoint_kind==='app_server'?t('app_server'):item.entrypoint_kind.toUpperCase()}</>}</option>)}</select></Field>
+   <LocalToolsScanPanel project={props.project} adapters={adapters} selectedAdapterID={adapter?.id} disabled={blocked} onSelect={item=>{if(choose(item.id)){toolChoice.current?.focus({preventScroll:true});toolChoice.current?.scrollIntoView?.({block:'start',behavior:'auto'});}}} onWorker={props.onWorker}/>
+   <Field label={t('tool')}><select ref={toolChoice} data-quick-tool value={adapter?.id||''} disabled={blocked} onChange={event=>event.target.value?choose(event.target.value):!blocked&&setSelected('')} aria-describedby={cursorGuide?undefined:id}><option value="">{t('choose_tool')}</option>{adapters.map(item=><option key={item.id} value={item.id}>{isCursorConnectionGuide(item)?tr('cursor-connection.title'):<>{item.product} · {item.entrypoint_kind==='app_server'?t('app_server'):item.entrypoint_kind.toUpperCase()}</>}</option>)}</select></Field>
    {!cursorGuide&&<p id={id} className="tool-quick-muted">{guide?tr('cursor-connection.picker_hint'):t('catalog_hint')}</p>}
-   {adapter&&(cursorGuide?<CursorConnectionGuide key={adapter.id} project={props.project} disabled={blocked}/>:<QuickToolConfiguration {...props} key={adapter.id} adapter={adapter} onLocalBlockedChange={setLocalBlocked}/>)}
+   {adapter&&(cursorGuide?<CursorConnectionGuide key={adapter.id} project={props.project} disabled={blocked}/>:<QuickToolConfiguration {...props} key={adapter.id} adapter={adapter} initialDraft={drafts.current.get(adapter.id)} onDraftChange={draft=>drafts.current.set(adapter.id,draft)} onLocalBlockedChange={setLocalBlocked}/>)}
   </>}
   {adapter?.id==='qoder-acp'&&!desktopACPBridge()&&<p className="tool-quick-muted">{tr('acp-runtime.setup_no_scan')}</p>}
   {!cursorGuide&&<div className="tool-quick-secondary"><button data-quick-advanced type="button" className="text-button" disabled={blocked} onClick={()=>props.onAdvanced(adapter)}>{adapter?.id==='qoder-acp'?tr('acp-runtime.setup_configure'):t('advanced')}</button></div>}
  </div>;
 }
 type InventorySnapshot={caller:ReturnType<typeof useApi>;key:string;view?:ToolDiscoveryView;deadline:number;error?:unknown};
-function QuickToolConfiguration({project,adapter,workers,sharedWorkers,action,onRegistered,onEnable,onWorker,onAdvanced,onLocalBlockedChange}:ToolQuickConnectProps&{adapter:AdapterDescriptor;onLocalBlockedChange:(blocked:boolean)=>void}){
- useLocale();const api=useApi(),[chosenWorker,setChosenWorker]=useState(''),[revision,setRevision]=useState(0),[snapshot,setSnapshot]=useState<InventorySnapshot>(),[expired,setExpired]=useState(false),[chosenCommand,setChosenCommand]=useState(''),[name,setName]=useState(''),[nameEdited,setNameEdited]=useState(false),[registered,setRegistered]=useState<ToolProfile>();
+type QuickToolDraft=Readonly<{chosenWorker:string;chosenCommand:string;name:string;nameEdited:boolean}>;
+function QuickToolConfiguration({project,adapter,workers,sharedWorkers,action,onRegistered,onEnable,onWorker,onAdvanced,onLocalBlockedChange,initialDraft,onDraftChange}:ToolQuickConnectProps&{adapter:AdapterDescriptor;onLocalBlockedChange:(blocked:boolean)=>void;initialDraft?:QuickToolDraft;onDraftChange:(draft:QuickToolDraft)=>void}){
+ useLocale();const api=useApi(),[chosenWorker,setChosenWorker]=useState(initialDraft?.chosenWorker||''),[revision,setRevision]=useState(0),[snapshot,setSnapshot]=useState<InventorySnapshot>(),[expired,setExpired]=useState(false),[chosenCommand,setChosenCommand]=useState(initialDraft?.chosenCommand||''),[name,setName]=useState(initialDraft?.name||''),[nameEdited,setNameEdited]=useState(initialDraft?.nameEdited||false),[registered,setRegistered]=useState<ToolProfile>();
+ useLayoutEffect(()=>{onDraftChange({chosenWorker,chosenCommand,name,nameEdited});},[chosenWorker,chosenCommand,name,nameEdited,onDraftChange]);
  const [localOperationBlocked,setLocalOperationBlocked]=useState(false),[nativeRegistrationReady,setNativeRegistrationReady]=useState(true),[nativeConnection,setNativeConnection]=useState<{caller:typeof api;connection:DesktopCodexConnectedProof}>(),currentCaller=useRef(api);currentCaller.current=api;
  useEffect(()=>{onLocalBlockedChange(localOperationBlocked);},[localOperationBlocked,onLocalBlockedChange]);
  useEffect(()=>()=>onLocalBlockedChange(false),[onLocalBlockedChange]);
  const confirmedNative=nativeConnection?.caller===api?nativeConnection.connection:undefined;
  const actor=useApiView(),managesLocal=!!desktopToolBridge()&&(adapter.id!=='qoder-acp'||!!desktopACPBridge())&&!!actor&&validDesktopToolScope({project,userID:actor.userID,organizationID:actor.organizationID,adapterID:adapter.id});
+ const scansLocal=!!localToolsScanBridge()&&!!actor&&validLocalToolsScanScope({project,userID:actor.userID,organizationID:actor.organizationID});
  const identitiesKnown=!!workers.data&&!workers.loading&&!workers.error&&!!sharedWorkers.data&&!sharedWorkers.loading&&!sharedWorkers.error;
  const nodes=identitiesKnown?quickConnectWorkers(workers.data!.items,sharedWorkers.data!.items):[],worker=confirmedNative?(nodes.includes(confirmedNative.worker_id)?confirmedNative.worker_id:''):nodes.includes(chosenWorker)?chosenWorker:nodes.length===1?nodes[0]:'',active=identitiesKnown&&!!worker;
  const key=JSON.stringify([worker,active,revision]),reportedReceipt=useRef('');
@@ -85,7 +93,7 @@ function QuickToolConfiguration({project,adapter,workers,sharedWorkers,action,on
  return <section className="tool-quick-configuration">
   {adapter.id==='qoder-acp'&&<details className="tool-quick-muted"><summary>{tr('acp-quick-connect.native_policy')}</summary><p>{tr('acp-runtime.setup_policy')}</p></details>}
    {adapter.id==='qoder-acp'?<QoderLocalConnector project={project} disabled={writeBlocked} secondary={!!receipt||available.length>0} onConnected={workerID=>{setChosenWorker(workerID);setRevision(value=>value+1);void workers.read();void sharedWorkers.read();}}/>:adapter.id==='codex-app-server'?<CodexLocalConnector project={project} disabled={writeBlocked} secondary={!!receipt||available.length>0} onBlockedChange={setLocalOperationBlocked} onRegistrationReadyChange={setNativeRegistrationReady} onConnected={proof=>{if(!alive.current||currentCaller.current!==api)return;setNativeConnection({caller:api,connection:{...proof}});setChosenWorker(proof.worker_id);setRevision(value=>value+1);void workers.read();void sharedWorkers.read();}}/>:<DesktopToolConnector project={project} adapterID={adapter.id} disabled={writeBlocked} secondary={!!receipt||available.length>0} onBlockedChange={setLocalOperationBlocked} onGuide={()=>onAdvanced(adapter)} onConnected={workerID=>{setChosenWorker(workerID);setRevision(value=>value+1);void workers.read();void sharedWorkers.read();}}/>}
-  {!identitiesKnown?<div className="tool-quick-node-state" role="status"><p>{t('reading_nodes')}</p>{workers.error&&<ErrorNotice error={workers.error} onRetry={()=>void workers.read()}/>} {sharedWorkers.error&&<ErrorNotice error={sharedWorkers.error} onRetry={()=>void sharedWorkers.read()}/>}</div>:!nodes.length?<div className="tool-quick-empty"><Server size={22} aria-hidden="true"/><div><strong>{t('no_node')}</strong><p>{t('no_node_hint')}</p><button data-quick-connect-worker type="button" className={managesLocal?'text-button':'primary'} disabled={blocked} onClick={onWorker}>{t('connect_node')}<ArrowRight size={15} aria-hidden="true"/></button></div>{!managesLocal&&<LocalInstallation project={project} adapter={adapter} onGuide={()=>onAdvanced(adapter)}/>}</div>:<>
+  {!identitiesKnown?<div className="tool-quick-node-state" role="status"><p>{t('reading_nodes')}</p>{workers.error&&<ErrorNotice error={workers.error} onRetry={()=>void workers.read()}/>} {sharedWorkers.error&&<ErrorNotice error={sharedWorkers.error} onRetry={()=>void sharedWorkers.read()}/>}</div>:!nodes.length?<div className="tool-quick-empty"><Server size={22} aria-hidden="true"/><div><strong>{t('no_node')}</strong><p>{t('no_node_hint')}</p><button data-quick-connect-worker type="button" className={managesLocal?'text-button':'primary'} disabled={blocked} onClick={onWorker}>{t('connect_node')}<ArrowRight size={15} aria-hidden="true"/></button></div>{!managesLocal&&!scansLocal&&<LocalInstallation project={project} adapter={adapter} onGuide={()=>onAdvanced(adapter)}/>}</div>:<>
    {nodes.length>1?<Field label={t('node')}><select data-quick-worker value={worker} disabled={blocked||!!receipt} onChange={event=>{setNativeConnection(undefined);setChosenWorker(event.target.value);}}><option value="">{t('choose_node')}</option>{nodes.map(node=><option key={node} value={node}>{node}</option>)}</select></Field>:<p className="tool-quick-node"><Server size={15} aria-hidden="true"/>{t('using_node',{node:worker})}</p>}
    {receipt?<div className="tool-quick-saved" role="status"><CheckCircle2 size={22} aria-hidden="true"/><div><strong>{t('registered',{name:receipt.name})}</strong><p>{t('paused_hint')}</p><button data-quick-enable type="button" className="primary" disabled={blocked} onClick={()=>onEnable(receipt)}>{t('enable')}<ArrowRight size={15} aria-hidden="true"/></button></div></div>:worker&&<>
     {!current?<Loading/>:current.error?<ErrorNotice error={toolError(current.error)} onRetry={()=>setRevision(value=>value+1)}/>:view&&<>

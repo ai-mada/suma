@@ -164,3 +164,34 @@ it('clears a detected configuration on node change but preserves a manual draft 
  await act(async()=>finish(new Response(JSON.stringify(reported('runner2','node-two')),{status:200})));await settle();expect(document.querySelector<HTMLTextAreaElement>('.tool-form textarea')!.value).toBe(manual);expect(document.querySelector<HTMLInputElement>('.tool-form input[maxlength="200"]')!.value).toBe('My tool');
  await act(async()=>document.querySelector<HTMLButtonElement>('[data-tool-discovery-adopt]')!.click());await settle();expect(document.querySelector<HTMLTextAreaElement>('.tool-form textarea')!.value).toContain('node-two');expect(document.querySelector<HTMLInputElement>('.tool-form input[maxlength="200"]')!.value).toBe('My tool');expect(writes).toHaveLength(0);
 });
+
+it('blocks registration when adopted discovery expires and preserves the name through an explicit fresh read',async()=>{
+ vi.useFakeTimers({toFake:['setTimeout','clearTimeout']});let now=1000;vi.spyOn(performance,'now').mockImplementation(()=>now);
+ workers=[{id:'w',worker_id:'runner',status:'active',version:1}];let discoveryReads=0;
+ withDiscovery(async worker=>{discoveryReads++;return Response.json(discoveryReads===1?reported(worker):{...reported(worker,'fresh-tool'),as_of:'2026-10-29T08:01:01Z',observed_at:'2026-10-29T08:01:00Z',expires_at:'2026-10-29T08:02:00Z'});});
+ await render();await click('登记配置');await change(document.querySelector<HTMLSelectElement>('.tool-form select')!,'runner');
+ await change(document.querySelector<HTMLInputElement>('.tool-form input[maxlength="200"]')!,'Team coding tool');
+ expect(document.querySelector<HTMLButtonElement>('.tool-form button.primary')!.disabled).toBe(false);
+ // An immediate submit must check the original deadline even before the timer renders.
+ now=61000;
+ await act(async()=>document.querySelector('.tool-form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle();
+ expect(writes).toHaveLength(0);
+ await act(async()=>vi.advanceTimersByTime(60000));await settle();
+ expect(document.querySelector<HTMLButtonElement>('.tool-form button.primary')!.disabled).toBe(true);
+ expect(document.querySelector('[data-preflight-check="inventory"]')?.getAttribute('data-preflight-state')).toBe('attention');
+ expect(document.querySelector<HTMLInputElement>('.tool-form input[maxlength="200"]')!.value).toBe('Team coding tool');
+ expect(discoveryReads).toBe(1);
+ // A failed file read must retain the adopted source as well as its text.
+ const file=new File(['x'],'replacement.json');Object.defineProperty(file,'text',{value:async()=>{throw Error('cannot read local file');}});
+ const input=document.querySelector<HTMLInputElement>('[data-tool-inventory-file]')!;Object.defineProperty(input,'files',{configurable:true,value:[file]});
+ await act(async()=>input.dispatchEvent(new Event('change',{bubbles:true})));await settle();
+ await act(async()=>document.querySelector('.tool-form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle();
+ expect(writes).toHaveLength(0);
+ await act(async()=>document.querySelector<HTMLButtonElement>('[data-preflight-review]')!.click());await settle();
+ expect(discoveryReads).toBe(2);expect(writes).toHaveLength(0);
+ await act(async()=>document.querySelector<HTMLButtonElement>('[data-tool-discovery-adopt]')!.click());await settle();
+ expect(document.querySelector<HTMLInputElement>('.tool-form input[maxlength="200"]')!.value).toBe('Team coding tool');
+ expect(document.querySelector<HTMLButtonElement>('.tool-form button.primary')!.disabled).toBe(false);
+ await act(async()=>document.querySelector('.tool-form')!.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));await settle();
+ expect(writes).toHaveLength(1);expect(writes[0].body).toMatchObject({worker_id:'runner',name:'Team coding tool',profile:{...definition,command_id:'fresh-tool'}});
+});

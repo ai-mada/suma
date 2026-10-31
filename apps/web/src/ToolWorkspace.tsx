@@ -36,7 +36,8 @@ import {
 import { ToolProfileFacts, toolReason } from "./ToolFacts";
 import { ToolReadiness, matchesToolFilter, type ToolFilter } from './ToolReadiness';
 import {ToolInventoryField} from './ToolInventoryField';
-import {ToolDiscoveryPanel} from './ToolDiscoveryPanel';
+import {ToolDiscoveryPanel,type ToolDiscoveryAdoption} from './ToolDiscoveryPanel';
+import {ToolRegistrationPreflight} from './ToolRegistrationPreflight';
 import "./tool.css";
 import { ToolRecoveryNotice } from "./ToolActions";
 import {ToolSetupGuide} from './ToolSetupGuide';
@@ -687,6 +688,7 @@ function ToolProfileForm({
   onSaved: (value: ToolProfile) => void;
   onCancel: () => void;
 }) { useLocale();
+  const caller=useApi();
   const [manifest, setManifest] = useState(""),
     [observations, setObservations] = useState<ToolObservation[]>([]),
     [command, setCommand] = useState(""),
@@ -698,6 +700,17 @@ function ToolProfileForm({
     [source,setSource] = useState<'none'|'manual'|'discovery'>('none'),
     [manualRevision,setManualRevision] = useState(0),
     [worker, setWorker] = useState("");
+  const [adoption,setAdoption]=useState<ToolDiscoveryAdoption>(),[discoveryExpired,setDiscoveryExpired]=useState(false),[discoveryReadRevision,setDiscoveryReadRevision]=useState(0);
+  useEffect(()=>{
+    if(source!=='discovery'||!adoption)return;
+    const timer=setTimeout(()=>setDiscoveryExpired(true),Math.max(0,adoption.deadline-performance.now()));
+    return()=>clearTimeout(timer);
+  },[source,adoption]);
+  function discoveryIssue(){
+    if(source!=='discovery')return;
+    if(!adoption||adoption.apiCaller!==caller||adoption.project!==project||adoption.worker!==worker)return 'source_changed' as const;
+    if(discoveryExpired||performance.now()>=adoption.deadline)return 'expired' as const;
+  }
   const matchesAdapter=(item:ToolObservation)=>!adapter||(item.profile.adapter===adapter.adapter&&item.profile.protocol===adapter.protocol);
   const matchingObservations=observations.filter(matchesAdapter);
   const selected = matchingObservations.find(
@@ -706,7 +719,8 @@ function ToolProfileForm({
     blocked = action.busy || !!action.pending;
   const formID=useId();
   const identityReady=!!currentToolIdentity(worker,workers,sharedWorkers);
-  const next=!identityReady?'identity':importing?'reading':!manifest.trim()?'inventory':error?'invalid':!matchingObservations.length?'empty':!selected?.available?'choose':!name.trim()?'name':'ready';
+  const issue=discoveryIssue();
+  const next=!identityReady?'identity':importing?'reading':issue??(!manifest.trim()?'inventory':error?'invalid':!matchingObservations.length?'empty':!selected?.available?'choose':!name.trim()?'name':'ready');
   function inspectManifest(text:string) {
     setManifest(text);
     setObservations([]);
@@ -734,6 +748,12 @@ function ToolProfileForm({
         if(importing)return;
         if (!currentToolIdentity(worker, workers, sharedWorkers)) {
           setSubmitError(t("tools.identity.authorization_unconfirmed"));
+          return;
+        }
+        const sourceIssue=discoveryIssue();
+        if(sourceIssue){
+          setSubmitError(t('tool-workspace.form_next.'+sourceIssue));
+          if(sourceIssue==='expired')setDiscoveryExpired(true);
           return;
         }
         if (!selected?.available) {
@@ -771,10 +791,13 @@ function ToolProfileForm({
         </section>
         <section className="tool-form-section" aria-labelledby={formID+'-inventory'}>
         <h3 id={formID+'-inventory'}><span aria-hidden="true">{formatNumber(2)}</span>{t('tool-discovery.inventory_source')}</h3>
-        <ToolDiscoveryPanel project={project} worker={worker} authorized={identityReady} disabled={blocked||importing} autoAdopt={source==='none'} manualRevision={manualRevision} onAdopt={items=>{inspectManifest(JSON.stringify({items}));setSource('discovery');}}/>
+        <ToolDiscoveryPanel project={project} worker={worker} authorized={identityReady} disabled={blocked||importing} autoAdopt={source==='none'} manualRevision={manualRevision} readRevision={discoveryReadRevision} onAdopt={(items,original)=>{
+          if(original.apiCaller!==caller||original.project!==project||original.worker!==worker||performance.now()>=original.deadline)return;
+          inspectManifest(JSON.stringify({items}));setAdoption(original);setDiscoveryExpired(false);setSubmitError('');setSource('discovery');
+        }}/>
         <details className="tool-manual-inventory"><summary>{t('tool-discovery.manual_inventory')}</summary>
         <p className="tool-form-intro"><Trans i18nKey="development.tools.inventory_instructions" components={{command:<code/>}}/></p>
-        <ToolInventoryField key={worker} value={manifest} error={error} disabled={blocked} onChange={text=>{setSource('manual');setManualRevision(n=>n+1);inspectManifest(text);}} onReading={reading=>{setImporting(reading);if(reading){setSource('manual');setManualRevision(n=>n+1);}}}/>
+        <ToolInventoryField key={worker} value={manifest} error={error} disabled={blocked} onChange={text=>{setSource('manual');setManualRevision(n=>n+1);inspectManifest(text);}} onReading={reading=>{setImporting(reading);if(reading){setSource(current=>current==='none'?'manual':current);setManualRevision(n=>n+1);}}}/>
         <button
           type="button"
           className="text-button"
@@ -835,6 +858,11 @@ function ToolProfileForm({
           </div>
         )}
         </section>
+        <ToolRegistrationPreflight checks={[
+          {id:'identity',label:t('tool-workspace.form_identity'),state:identityReady?'ready':'pending',detail:t(identityReady?'tool-workspace.preflight.identity_ready':'tool-workspace.form_next.identity')},
+          {id:'inventory',label:t('tool-discovery.inventory_source'),state:importing?'pending':issue||error?'attention':manifest.trim()&&matchingObservations.length?'ready':'pending',detail:importing?t('tool-workspace.form_next.reading'):issue?t('tool-workspace.form_next.'+issue):t(source==='discovery'?'tool-workspace.preflight.inventory_live':source==='manual'&&!error?'tool-workspace.preflight.inventory_manual':'tool-workspace.form_next.inventory')},
+          {id:'configuration',label:t('tool-workspace.form_configuration'),state:selected?.available&&name.trim()?'ready':'pending',detail:t(selected?.available&&name.trim()?'tool-workspace.preflight.configuration_ready':selected?.available?'tool-workspace.form_next.name':'tool-workspace.form_next.choose')},
+        ]} next={issue?t('tool-workspace.form_next.'+issue):undefined} disabled={blocked||importing} onReview={identityReady&&issue?()=>setDiscoveryReadRevision(value=>value+1):undefined} reviewLabel={t('tool-workspace.preflight.reread')}/>
       </fieldset>
       <div className="tool-profile-submit">
       <p id={formID+'-next'} data-tool-form-next className={'tool-form-next '+(next==='ready'?'ready':'')} aria-live="polite">{next==='ready'&&<ShieldCheck size={16} aria-hidden="true"/>}{t('tool-workspace.form_next.'+next)}</p>
@@ -847,6 +875,7 @@ function ToolProfileForm({
             blocked ||
             importing ||
             action.conflict ||
+            !!issue ||
             !selected?.available ||
             !worker ||
             !currentToolIdentity(worker, workers, sharedWorkers) ||
