@@ -53,10 +53,10 @@ type ToolPermissionOption struct {
 	Kind string `json:"kind"`
 }
 
-// PermissionRequest is sanitized before both the local journal and network.
-// Incomplete or redacted details cannot authorize an allow_once decision.
-type ToolPermissionRequest struct {
-	IdempotencyKey  string             `json:"idempotency_key"`
+// ACPToolPermissionSource retains the native session, tool and opaque options.
+// The platform's idempotency key, lifecycle and human identity live in the
+// separate toolpermissioncontract envelope, shared with other protocols.
+type ACPToolPermissionSource struct {
 	SessionID       string             `json:"session_id"`
 	ToolCallID      string             `json:"tool_call_id"`
 	Title           string             `json:"title"`
@@ -66,54 +66,13 @@ type ToolPermissionRequest struct {
 	Options         []PermissionOption `json:"options"`
 }
 
-// PermissionDecision is the current human decision; it grants no persistent
-// permission or approval for another request, process, attempt or task.
-type ToolPermissionDecision struct {
-	OptionID  string `json:"option_id"`
-	Kind      string `json:"kind"`
-	ActorID   string `json:"actor_id"`
-	DecidedAt string `json:"decided_at"`
+type ACPToolPermissionChoice struct {
+	OptionID string `json:"option_id"`
+	Kind     string `json:"kind"`
 }
 
-// Permission binds a durable request to one exact platform execution source.
-// AllowedActions is derived from current authority and is never a stored grant.
-type ToolPermission struct {
-	ID             string              `json:"id"`
-	ProjectID      string              `json:"project_id"`
-	RunID          string              `json:"run_id"`
-	NodeID         string              `json:"node_id"`
-	Attempt        int                 `json:"attempt"`
-	Fence          int64               `json:"fence"`
-	DispatchID     string              `json:"dispatch_id"`
-	WorkerID       string              `json:"worker_id"`
-	ProfileSHA256  string              `json:"profile_sha256"`
-	Version        int64               `json:"version"`
-	State          string              `json:"state"`
-	Request        PermissionRequest   `json:"request"`
-	Decision       *PermissionDecision `json:"decision,omitempty"`
-	CreatedAt      string              `json:"created_at"`
-	ExpiresAt      string              `json:"expires_at"`
-	AllowedActions []string            `json:"allowed_actions"`
-}
-
-type ToolPermissionList struct {
-	Items []Permission `json:"items"`
-}
-
-type ToolPermissionDecisionRequest struct {
-	ProjectID       string `json:"project_id"`
-	ExpectedVersion int64  `json:"expected_version"`
-	IdempotencyKey  string `json:"idempotency_key"`
-	OptionID        string `json:"option_id"`
-}
-
-// Short Go names follow the existing toolcontract Profile/Evidence convention;
-// generated public schemas keep the unambiguous domain-qualified names above.
 type Capability = ACPExecutionCapability
 type Evidence = ACPExecutionEvidence
 type PermissionOption = ToolPermissionOption
-type PermissionRequest = ToolPermissionRequest
-type PermissionDecision = ToolPermissionDecision
-type Permission = ToolPermission
-type PermissionList = ToolPermissionList
-type DecisionRequest = ToolPermissionDecisionRequest
+type NativeSource = ACPToolPermissionSource
+type Choice = ACPToolPermissionChoice

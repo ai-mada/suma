@@ -55,6 +55,7 @@ func codexSkillsDrain(t *testing.T, d *codexAppServer) []map[string]any {
 	d.input.mu.Lock()
 	raw := append([]byte(nil), d.input.pending...)
 	d.input.pending = nil
+	d.input.frames = nil
 	d.input.mu.Unlock()
 	var out []map[string]any
 	for _, line := range strings.Split(strings.TrimSpace(string(raw)), "\n") {
@@ -75,7 +76,7 @@ func codexSkillsThreadACK(t *testing.T, d *codexAppServer) {
 	codexSkillsDrain(t, d)
 	d.waiting, d.waitingID = "thread/start", "3"
 	d.requestID = 3
-	result := map[string]any{"thread": map[string]any{"id": "thread-173"}, "model": "owned-model-173", "modelProvider": "owned173", "reasoningEffort": "high", "cwd": d.root, "approvalPolicy": "never", "sandbox": map[string]any{"type": "workspaceWrite", "writableRoots": []string{d.root}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true}}
+	result := map[string]any{"thread": map[string]any{"id": "thread-173"}, "model": "owned-model-173", "modelProvider": "owned173", "reasoningEffort": "high", "cwd": d.root, "approvalPolicy": cc.ApprovalPolicy, "sandbox": map[string]any{"type": "workspaceWrite", "writableRoots": []string{d.root}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true}}
 	codexSkillsReply(t, d, "3", result)
 }
 

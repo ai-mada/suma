@@ -15,7 +15,7 @@ type Options struct {
 	Cwd, Goal, Model, ConfigSHA string
 	Secrets                     []string
 	Emit                        func(Event) error
-	Permission                  func(context.Context, ac.PermissionRequest) (ac.PermissionDecision, error)
+	Permission                  func(context.Context, ac.NativeSource) (ac.Choice, error)
 }
 type Event struct{ Kind, SessionID, Text, ToolCallID, ToolState string }
 type Result struct {

@@ -277,6 +277,67 @@
         ],
         "type": "object"
       },
+      "ACPToolPermissionChoice": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "allow_once",
+              "reject_once"
+            ],
+            "type": "string"
+          },
+          "option_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "option_id",
+          "kind"
+        ],
+        "type": "object"
+      },
+      "ACPToolPermissionSource": {
+        "additionalProperties": false,
+        "properties": {
+          "details": {
+            "type": "string"
+          },
+          "details_complete": {
+            "type": "boolean"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/ToolPermissionOption"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "tool_call_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "tool_call_id",
+          "title",
+          "kind",
+          "details",
+          "details_complete",
+          "options"
+        ],
+        "type": "object"
+      },
       "AccountPreferences": {
         "properties": {
           "locale": {
@@ -9448,6 +9509,228 @@
         ],
         "type": "object"
       },
+      "CodexApprovalChoice": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "enum": [
+              "accept",
+              "decline",
+              "cancel"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision"
+        ],
+        "type": "object"
+      },
+      "CodexApprovalEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "approval_id": {
+            "type": "string"
+          },
+          "item_id": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "observation": {
+            "$ref": "#/components/schemas/CodexApprovalObservation"
+          },
+          "params_sha256": {
+            "type": "string"
+          },
+          "permission_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "$ref": "#/components/schemas/CodexRPCRequestID"
+          },
+          "thread_id": {
+            "type": "string"
+          },
+          "turn_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "method",
+          "thread_id",
+          "turn_id",
+          "item_id",
+          "params_sha256"
+        ],
+        "type": "object"
+      },
+      "CodexApprovalFileChange": {
+        "additionalProperties": false,
+        "properties": {
+          "diff": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "add",
+              "delete",
+              "update"
+            ],
+            "type": "string"
+          },
+          "move_path": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "kind",
+          "diff"
+        ],
+        "type": "object"
+      },
+      "CodexApprovalObservation": {
+        "additionalProperties": false,
+        "description": "Cumulative original-machine observations. A resolved request can also be cleanup; it does not establish command execution, process stopping, tests or human acceptance. Original operation replay returns its stored snapshot, separately from current reads.",
+        "properties": {
+          "decision": {
+            "type": "string"
+          },
+          "decision_observed": {
+            "type": "boolean"
+          },
+          "failure_code": {
+            "type": "string"
+          },
+          "item_status": {
+            "enum": [
+              "inProgress",
+              "completed",
+              "failed",
+              "declined"
+            ],
+            "type": "string"
+          },
+          "params_sha256": {
+            "type": "string"
+          },
+          "reply_started": {
+            "type": "boolean"
+          },
+          "reply_written": {
+            "type": "boolean"
+          },
+          "request_resolved": {
+            "type": "boolean"
+          },
+          "sequence": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sequence",
+          "params_sha256",
+          "decision_observed",
+          "reply_started",
+          "reply_written",
+          "request_resolved"
+        ],
+        "type": "object"
+      },
+      "CodexApprovalRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "approval_id": {
+            "type": "string"
+          },
+          "binding_sha256": {
+            "type": "string"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/CodexApprovalFileChange"
+            },
+            "maxItems": 128,
+            "type": "array"
+          },
+          "command": {
+            "type": "string"
+          },
+          "cwd": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "details_complete": {
+            "type": "boolean"
+          },
+          "item_id": {
+            "type": "string"
+          },
+          "item_sha256": {
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "item/commandExecution/requestApproval",
+              "item/fileChange/requestApproval"
+            ],
+            "type": "string"
+          },
+          "params_sha256": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "request_id": {
+            "$ref": "#/components/schemas/CodexRPCRequestID"
+          },
+          "scope_supported": {
+            "type": "boolean"
+          },
+          "started_at_ms": {
+            "type": "integer"
+          },
+          "thread_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "turn_id": {
+            "type": "string"
+          },
+          "unsupported_reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "method",
+          "thread_id",
+          "turn_id",
+          "item_id",
+          "started_at_ms",
+          "binding_sha256",
+          "params_sha256",
+          "item_sha256",
+          "title",
+          "details",
+          "details_complete",
+          "scope_supported"
+        ],
+        "type": "object"
+      },
       "CodexBinding": {
         "properties": {
           "binding_sha256": {
@@ -9534,6 +9817,13 @@
           "acknowledged_reasoning_effort": {
             "type": "string"
           },
+          "approvals": {
+            "items": {
+              "$ref": "#/components/schemas/CodexApprovalEvidence"
+            },
+            "maxItems": 32,
+            "type": "array"
+          },
           "binding_sha256": {
             "type": "string"
           },
@@ -9608,6 +9898,28 @@
           "model",
           "reasoning_efforts",
           "default_reasoning_effort"
+        ],
+        "type": "object"
+      },
+      "CodexRPCRequestID": {
+        "additionalProperties": false,
+        "description": "Direction-specific original JSON-RPC identity. Number kind uses a canonical signed int64 decimal string, never a JavaScript floating point value.",
+        "properties": {
+          "kind": {
+            "enum": [
+              "string",
+              "number"
+            ],
+            "type": "string"
+          },
+          "value": {
+            "maxLength": 256,
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "value"
         ],
         "type": "object"
       },
@@ -20053,6 +20365,44 @@
           "project_id",
           "operation_id",
           "items"
+        ],
+        "type": "object"
+      },
+      "PoolToolPermissionObservationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/Assignment"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "observation": {
+            "$ref": "#/components/schemas/CodexApprovalObservation"
+          },
+          "permission_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "runner_id": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "runner_id",
+          "tenant_id",
+          "project_id",
+          "assignment",
+          "permission_id",
+          "idempotency_key",
+          "observation"
         ],
         "type": "object"
       },
@@ -36515,6 +36865,13 @@
         "properties": {
           "allowed_actions": {
             "items": {
+              "enum": [
+                "allow_once",
+                "reject_once",
+                "accept",
+                "decline",
+                "cancel"
+              ],
               "type": "string"
             },
             "type": "array"
@@ -36526,14 +36883,7 @@
             "type": "string"
           },
           "decision": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ToolPermissionDecision"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/ToolPermissionDecision"
           },
           "dispatch_id": {
             "type": "string"
@@ -36550,6 +36900,9 @@
           "node_id": {
             "type": "string"
           },
+          "observation": {
+            "$ref": "#/components/schemas/CodexApprovalObservation"
+          },
           "profile_sha256": {
             "type": "string"
           },
@@ -36563,6 +36916,12 @@
             "type": "string"
           },
           "state": {
+            "enum": [
+              "pending",
+              "decided",
+              "expired",
+              "superseded"
+            ],
             "type": "string"
           },
           "version": {
@@ -36591,25 +36950,117 @@
         ],
         "type": "object"
       },
-      "ToolPermissionDecision": {
+      "ToolPermissionChoice": {
         "additionalProperties": false,
+        "oneOf": [
+          {
+            "not": {
+              "required": [
+                "codex"
+              ]
+            },
+            "properties": {
+              "protocol": {
+                "const": "acp-stdio-v1"
+              }
+            },
+            "required": [
+              "acp"
+            ]
+          },
+          {
+            "not": {
+              "required": [
+                "acp"
+              ]
+            },
+            "properties": {
+              "protocol": {
+                "const": "codex-app-server-v1"
+              }
+            },
+            "required": [
+              "codex"
+            ]
+          }
+        ],
         "properties": {
-          "actor_id": {
-            "type": "string"
+          "acp": {
+            "$ref": "#/components/schemas/ACPToolPermissionChoice"
           },
-          "decided_at": {
-            "type": "string"
+          "codex": {
+            "$ref": "#/components/schemas/CodexApprovalChoice"
           },
-          "kind": {
-            "type": "string"
-          },
-          "option_id": {
+          "protocol": {
+            "enum": [
+              "acp-stdio-v1",
+              "codex-app-server-v1"
+            ],
             "type": "string"
           }
         },
         "required": [
-          "option_id",
-          "kind",
+          "protocol"
+        ],
+        "type": "object"
+      },
+      "ToolPermissionDecision": {
+        "additionalProperties": false,
+        "oneOf": [
+          {
+            "not": {
+              "required": [
+                "codex"
+              ]
+            },
+            "properties": {
+              "protocol": {
+                "const": "acp-stdio-v1"
+              }
+            },
+            "required": [
+              "acp"
+            ]
+          },
+          {
+            "not": {
+              "required": [
+                "acp"
+              ]
+            },
+            "properties": {
+              "protocol": {
+                "const": "codex-app-server-v1"
+              }
+            },
+            "required": [
+              "codex"
+            ]
+          }
+        ],
+        "properties": {
+          "acp": {
+            "$ref": "#/components/schemas/ACPToolPermissionChoice"
+          },
+          "actor_id": {
+            "type": "string"
+          },
+          "codex": {
+            "$ref": "#/components/schemas/CodexApprovalChoice"
+          },
+          "decided_at": {
+            "type": "string"
+          },
+          "protocol": {
+            "enum": [
+              "acp-stdio-v1",
+              "codex-app-server-v1"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol",
           "actor_id",
           "decided_at"
         ],
@@ -36617,25 +37068,69 @@
       },
       "ToolPermissionDecisionRequest": {
         "additionalProperties": false,
+        "oneOf": [
+          {
+            "not": {
+              "required": [
+                "codex"
+              ]
+            },
+            "properties": {
+              "protocol": {
+                "const": "acp-stdio-v1"
+              }
+            },
+            "required": [
+              "acp"
+            ]
+          },
+          {
+            "not": {
+              "required": [
+                "acp"
+              ]
+            },
+            "properties": {
+              "protocol": {
+                "const": "codex-app-server-v1"
+              }
+            },
+            "required": [
+              "codex"
+            ]
+          }
+        ],
         "properties": {
+          "acp": {
+            "$ref": "#/components/schemas/ACPToolPermissionChoice"
+          },
+          "codex": {
+            "$ref": "#/components/schemas/CodexApprovalChoice"
+          },
           "expected_version": {
             "type": "integer"
           },
           "idempotency_key": {
-            "type": "string"
-          },
-          "option_id": {
+            "maxLength": 128,
+            "minLength": 8,
             "type": "string"
           },
           "project_id": {
             "type": "string"
+          },
+          "protocol": {
+            "enum": [
+              "acp-stdio-v1",
+              "codex-app-server-v1"
+            ],
+            "type": "string"
           }
         },
         "required": [
+          "protocol",
           "project_id",
           "expected_version",
-          "idempotency_key",
-          "option_id"
+          "idempotency_key"
         ],
         "type": "object"
       },
@@ -36646,11 +37141,42 @@
             "items": {
               "$ref": "#/components/schemas/ToolPermission"
             },
+            "maxItems": 32,
             "type": "array"
           }
         },
         "required": [
           "items"
+        ],
+        "type": "object"
+      },
+      "ToolPermissionObservationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/Assignment"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
+            "type": "string"
+          },
+          "observation": {
+            "$ref": "#/components/schemas/CodexApprovalObservation"
+          },
+          "permission_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "assignment",
+          "permission_id",
+          "idempotency_key",
+          "observation"
         ],
         "type": "object"
       },
@@ -36681,6 +37207,12 @@
             "type": "string"
           },
           "kind": {
+            "enum": [
+              "allow_once",
+              "reject_once",
+              "allow_always",
+              "reject_always"
+            ],
             "type": "string"
           },
           "name": {
@@ -36716,44 +37248,62 @@
       },
       "ToolPermissionRequest": {
         "additionalProperties": false,
-        "properties": {
-          "details": {
-            "type": "string"
+        "description": "One exact native protocol branch, bounded to64KiB encoded JSON. No bare ACP fallback; identities are not translated between protocols.",
+        "oneOf": [
+          {
+            "not": {
+              "required": [
+                "codex"
+              ]
+            },
+            "properties": {
+              "protocol": {
+                "const": "acp-stdio-v1"
+              }
+            },
+            "required": [
+              "acp"
+            ]
           },
-          "details_complete": {
-            "type": "boolean"
+          {
+            "not": {
+              "required": [
+                "acp"
+              ]
+            },
+            "properties": {
+              "protocol": {
+                "const": "codex-app-server-v1"
+              }
+            },
+            "required": [
+              "codex"
+            ]
+          }
+        ],
+        "properties": {
+          "acp": {
+            "$ref": "#/components/schemas/ACPToolPermissionSource"
+          },
+          "codex": {
+            "$ref": "#/components/schemas/CodexApprovalRequest"
           },
           "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 8,
             "type": "string"
           },
-          "kind": {
-            "type": "string"
-          },
-          "options": {
-            "items": {
-              "$ref": "#/components/schemas/ToolPermissionOption"
-            },
-            "type": "array"
-          },
-          "session_id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "tool_call_id": {
+          "protocol": {
+            "enum": [
+              "acp-stdio-v1",
+              "codex-app-server-v1"
+            ],
             "type": "string"
           }
         },
         "required": [
           "idempotency_key",
-          "session_id",
-          "tool_call_id",
-          "title",
-          "kind",
-          "details",
-          "details_complete",
-          "options"
+          "protocol"
         ],
         "type": "object"
       },
@@ -79736,7 +80286,7 @@
     },
     "/pool-runner/tool-permissions": {
       "post": {
-        "description": "Exact original ACP process/attempt/fence and current human/machine authority. Saved decision, Runner observation, remote adoption, process stopping and quality evidence remain independent; a read never starts another agent.",
+        "description": "Exact original native ACP or Codex process/attempt/fence and current human/machine authority. Native identities and choices remain distinct. Saved decision, Runner observation, actual response writing, remote request clearing, item result, process stopping and quality remain independent; a read never starts an agent.",
         "operationId": "post_pool-runner_tool-permissions",
         "parameters": [
           {
@@ -79886,7 +80436,165 @@
           }
         ],
         "x-machine-only": true,
-        "x-max-request-body-bytes": 65536,
+        "x-max-request-body-bytes": 1048576,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-response-cache-control": "no-store"
+      }
+    },
+    "/pool-runner/tool-permissions/observations": {
+      "post": {
+        "description": "Exact original native ACP or Codex process/attempt/fence and current human/machine authority. Native identities and choices remain distinct. Saved decision, Runner observation, actual response writing, remote request clearing, item result, process stopping and quality remain independent; a read never starts an agent.",
+        "operationId": "post_pool-runner_tool-permissions_observations",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoolToolPermissionObservationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolPermission"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "poolRunnerAuth": []
+          }
+        ],
+        "x-machine-only": true,
+        "x-max-request-body-bytes": 1048576,
         "x-query-parameters-forbidden": true,
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
         "x-response-cache-control": "no-store"
@@ -79894,7 +80602,7 @@
     },
     "/pool-runner/tool-permissions/poll": {
       "post": {
-        "description": "Exact original ACP process/attempt/fence and current human/machine authority. Saved decision, Runner observation, remote adoption, process stopping and quality evidence remain independent; a read never starts another agent.",
+        "description": "Exact original native ACP or Codex process/attempt/fence and current human/machine authority. Native identities and choices remain distinct. Saved decision, Runner observation, actual response writing, remote request clearing, item result, process stopping and quality remain independent; a read never starts an agent.",
         "operationId": "post_pool-runner_tool-permissions_poll",
         "parameters": [
           {
@@ -80044,7 +80752,7 @@
           }
         ],
         "x-machine-only": true,
-        "x-max-request-body-bytes": 65536,
+        "x-max-request-body-bytes": 1048576,
         "x-no-agent-effects": true,
         "x-query-parameters-forbidden": true,
         "x-read-only": true,
@@ -100865,7 +101573,7 @@
     },
     "/runner/tool-permissions": {
       "post": {
-        "description": "Exact original ACP process/attempt/fence and current human/machine authority. Saved decision, Runner observation, remote adoption, process stopping and quality evidence remain independent; a read never starts another agent.",
+        "description": "Exact original native ACP or Codex process/attempt/fence and current human/machine authority. Native identities and choices remain distinct. Saved decision, Runner observation, actual response writing, remote request clearing, item result, process stopping and quality remain independent; a read never starts an agent.",
         "operationId": "post_runner_tool-permissions",
         "parameters": [
           {
@@ -101015,7 +101723,165 @@
           }
         ],
         "x-machine-only": true,
-        "x-max-request-body-bytes": 65536,
+        "x-max-request-body-bytes": 1048576,
+        "x-query-parameters-forbidden": true,
+        "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
+        "x-response-cache-control": "no-store"
+      }
+    },
+    "/runner/tool-permissions/observations": {
+      "post": {
+        "description": "Exact original native ACP or Codex process/attempt/fence and current human/machine authority. Native identities and choices remain distinct. Saved decision, Runner observation, actual response writing, remote request clearing, item result, process stopping and quality remain independent; a read never starts an agent.",
+        "operationId": "post_runner_tool-permissions_observations",
+        "parameters": [
+          {
+            "description": "BCP47 preference list. Supported locales zh-CN and en-US; default zh-CN. Presentation only, never authorization or operation identity.",
+            "in": "header",
+            "name": "Accept-Language",
+            "schema": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Explicit display choice. For verified browser identities: explicit header, account preference, current organization default, Accept-Language, then zh-CN. Other credentials keep request negotiation; display choice never grants authority.",
+            "in": "header",
+            "name": "X-Suma-Language",
+            "schema": {
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToolPermissionObservationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolPermission"
+                }
+              }
+            },
+            "description": "Successful response; creates may return 201",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid request",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Unauthenticated",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Forbidden",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Version or operation conflict",
+            "headers": {
+              "Content-Language": {
+                "description": "Negotiated request presentation language; does not imply every raw diagnostic or raw log is translated.",
+                "schema": {
+                  "enum": [
+                    "zh-CN",
+                    "en-US"
+                  ],
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "runnerAuth": []
+          }
+        ],
+        "x-machine-only": true,
+        "x-max-request-body-bytes": 1048576,
         "x-query-parameters-forbidden": true,
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
         "x-response-cache-control": "no-store"
@@ -101023,7 +101889,7 @@
     },
     "/runner/tool-permissions/poll": {
       "post": {
-        "description": "Exact original ACP process/attempt/fence and current human/machine authority. Saved decision, Runner observation, remote adoption, process stopping and quality evidence remain independent; a read never starts another agent.",
+        "description": "Exact original native ACP or Codex process/attempt/fence and current human/machine authority. Native identities and choices remain distinct. Saved decision, Runner observation, actual response writing, remote request clearing, item result, process stopping and quality remain independent; a read never starts an agent.",
         "operationId": "post_runner_tool-permissions_poll",
         "parameters": [
           {
@@ -101173,7 +102039,7 @@
           }
         ],
         "x-machine-only": true,
-        "x-max-request-body-bytes": 65536,
+        "x-max-request-body-bytes": 1048576,
         "x-no-agent-effects": true,
         "x-query-parameters-forbidden": true,
         "x-read-only": true,
@@ -105029,7 +105895,7 @@
     },
     "/runs/{run}/nodes/{node}/tool-permissions": {
       "get": {
-        "description": "Exact original ACP process/attempt/fence and current human/machine authority. Saved decision, Runner observation, remote adoption, process stopping and quality evidence remain independent; a read never starts another agent.",
+        "description": "Exact original native ACP or Codex process/attempt/fence and current human/machine authority. Native identities and choices remain distinct. Saved decision, Runner observation, actual response writing, remote request clearing, item result, process stopping and quality remain independent; a read never starts an agent.",
         "operationId": "get_runs_run_nodes_node_tool-permissions",
         "parameters": [
           {
@@ -121983,7 +122849,7 @@
     },
     "/tool-permissions/{id}/decision": {
       "post": {
-        "description": "Exact original ACP process/attempt/fence and current human/machine authority. Saved decision, Runner observation, remote adoption, process stopping and quality evidence remain independent; a read never starts another agent.",
+        "description": "Exact original native ACP or Codex process/attempt/fence and current human/machine authority. Native identities and choices remain distinct. Saved decision, Runner observation, actual response writing, remote request clearing, item result, process stopping and quality remain independent; a read never starts an agent.",
         "operationId": "post_tool-permissions_id_decision",
         "parameters": [
           {
@@ -122208,7 +123074,7 @@
           "agent",
           "runner"
         ],
-        "x-max-request-body-bytes": 65536,
+        "x-max-request-body-bytes": 1048576,
         "x-query-parameters-forbidden": true,
         "x-request-schema-coverage": "audited wire fields and basic constraints; cross-field, authorization, receipt and state gates remain server-enforced",
         "x-response-cache-control": "no-store"

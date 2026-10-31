@@ -692,7 +692,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "14e10b5871cef5efbe0248bc78d971640b674e74"
+    "previously_published_commit": "a41ef83427129f83d33845852bee869c72a75efa"
   },
   "existing_preview": {
     "updated": false,
@@ -703,13 +703,11 @@
   "last_goal_turn_classification": "progress: T173 native published skill plan/assignment/files/Codex catalogue and explicit invocation implemented,47focused/real installed no-Prompt directory/synthetic4visual verified. No model-use claim,4link skips and fullgoal gaps retained. Stage publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-CODEX-SKILLS-173",
-    "status": "scoped_verified",
-    "contract": "contracts/codex-native-skills.md",
-    "report": "docs/quality/codex-native-skills-verification.md",
-    "summary": "docs/quality/codex-native-skills-summary.json",
+    "stage": "T-CODEX-HUMAN-REQUESTS-174",
+    "status": "scoped_stage_verified_ready_for_authorized_commit",
+    "contract": "contracts/codex-human-requests.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
-    "next": "Normal stage dev publication with original21 preserved. Continue real model/full native skill workflow, complete Codex human requests/continuous sessions, distributed development and all remaining31/P0-P7. Publication receipt stored separately."
+    "next": "Prioritize Codex app-server automatic discovery and managed quick connection; reuse native config/catalogue and existing registration/inventory/explicit enable. Current code is implemented but automatic connection still exposes JSONL only. Mature frameworks first; minimal affected checks, no broader browser/environment suites. Preserve other work; stage commit/push dev now."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -886,6 +884,28 @@
     "verification": "125 unique Go top tests/148 subcases/1 skip;36 focused Web; full types,7312 paired locales, generated contracts, isolated builds and actual OS Node two-turn loopback model protocol. Five actual GUI checks plus exact-message/history read corroboration.",
     "remaining": "Four representative GUI groups and temporary-tab cleanup pending after host-tool update. No commercial provider, OCR, new memory extraction, other database/device/scale/production acceptance; full58/34/92 remains active.",
     "source_sha256": "67d4d0c213fecf96e8c25f50d56663e18520757123372d97b897b42394205a6d",
+    "full_platform_complete": false
+  },
+  "codex_human_requests": {
+    "stage": "T-CODEX-HUMAN-REQUESTS-174",
+    "version": "1.0.0",
+    "date": "2026-10-31",
+    "status": "scoped_source_contract_and_controlled_actual_verified",
+    "contract": "contracts/codex-human-requests.md",
+    "product": "docs/product/tool-confirmations.md",
+    "architecture": "docs/architecture/codex-human-requests.md",
+    "design": "docs/design/codex-human-requests.md",
+    "report": "docs/quality/codex-human-requests-verification.md",
+    "summary": "docs/quality/codex-human-requests-summary.json",
+    "implementation": "Single permission domain, explicit ACP/Codex native sources, fixed on-request configuration, async exact-once response intent/write/observations, original current Runner/Pool authority and operation receipts, compact bilingual UI. No legacy wire or automatic schema migration.",
+    "verification": "65 distinct tops (39Go/26Web),54 Go subcases; current native offline schema export; scoped source corrections only. Two P2 recovery/cancellation issues fixed through exact regression cases; unchanged suites reused.",
+    "actual": "9 real local HTTP/SQLite/Worker/production-panel checks with controlled native protocol; exact original200 fault recovery, typed same-item RPCs,1turn/2responses,0outbox. Original two verifier-bootstrap failures and blank diagnostic retained.2Go compile/1UIbuild total; final0build reuse;15PIDs absent, normalclose, native/browser0, no model/commands/candidate/test/human acceptance. Root viewed CN1366/EN390 partial originals; post-image heading copy separately recorded.",
+    "remaining": [
+      "Real Codex/vendor account, model and billing; OS sandbox and hard budget enforcement.",
+      "Persistent conversations, other native server requests and approval policies.",
+      "Physical multi-host, other databases, full App/theme/device, installers, scale and production.",
+      "Original31/P0-P7 platform; prior171 explicit GUI-stop gap retained."
+    ],
     "full_platform_complete": false
   }
 }

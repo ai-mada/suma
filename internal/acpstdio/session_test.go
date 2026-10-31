@@ -333,9 +333,9 @@ func TestPermissionOnlyExactOnceWithCompleteSafeDetails(t *testing.T) {
 	for _, mode := range []string{"allow", "reject", "always", "foreign_option", "redacted_allow", "redacted_reject", "completed_tool_reuse"} {
 		t.Run(mode, func(t *testing.T) {
 			var callbackCount int
-			options := Options{Secrets: []string{"private-password"}, Permission: func(_ context.Context, r ac.PermissionRequest) (ac.PermissionDecision, error) {
+			options := Options{Secrets: []string{"private-password"}, Permission: func(_ context.Context, r ac.NativeSource) (ac.Choice, error) {
 				callbackCount++
-				if r.IdempotencyKey == "" || r.ToolCallID != "tool:权限" || strings.Contains(r.Details, "private-password") {
+				if ac.ValidatePermissionSource(r) != nil || r.ToolCallID != "tool:权限" || strings.Contains(r.Details, "private-password") {
 					t.Error("unsafe permission request")
 				}
 				id, kind := "allow:一次", "allow_once"
@@ -351,7 +351,7 @@ func TestPermissionOnlyExactOnceWithCompleteSafeDetails(t *testing.T) {
 				if strings.HasPrefix(mode, "redacted") && r.DetailsComplete {
 					t.Error("redacted details declared complete")
 				}
-				return ac.PermissionDecision{OptionID: id, Kind: kind, ActorID: "current-human", DecidedAt: time.Now().UTC().Format(time.RFC3339Nano)}, nil
+				return ac.Choice{OptionID: id, Kind: kind}, nil
 			}}
 			r, s := runFixture(t, options, func(d *Driver, p map[string]json.RawMessage, s *fixtureState) {
 				m := methodOf(p)
@@ -418,8 +418,8 @@ func TestPermissionOnlyExactOnceWithCompleteSafeDetails(t *testing.T) {
 	t.Run("reply_delivered_before_writer_returns", func(t *testing.T) {
 		for _, writeFails := range []bool{false, true} {
 			ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
-			d, err := New(ctx, Options{Cwd: t.TempDir(), Goal: "Owned permission ordering fixture", Model: "performance", ConfigSHA: strings.Repeat("a", 64), Permission: func(_ context.Context, r ac.PermissionRequest) (ac.PermissionDecision, error) {
-				return ac.PermissionDecision{OptionID: r.Options[0].ID, Kind: "allow_once", ActorID: "current-human", DecidedAt: time.Now().UTC().Format(time.RFC3339Nano)}, nil
+			d, err := New(ctx, Options{Cwd: t.TempDir(), Goal: "Owned permission ordering fixture", Model: "performance", ConfigSHA: strings.Repeat("a", 64), Permission: func(_ context.Context, r ac.NativeSource) (ac.Choice, error) {
+				return ac.Choice{OptionID: r.Options[0].ID, Kind: "allow_once"}, nil
 			}})
 			if err != nil {
 				cancel()

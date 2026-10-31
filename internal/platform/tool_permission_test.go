@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/ai-mada/suma/internal/store"
 	"net/http/httptest"
 	"path/filepath"
 	"strings"
@@ -12,7 +11,9 @@ import (
 
 	ac "github.com/ai-mada/suma/internal/acpcontract"
 	"github.com/ai-mada/suma/internal/dag"
+	"github.com/ai-mada/suma/internal/store"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
 )
 
 type toolPermissionFixture struct {
@@ -24,8 +25,18 @@ type toolPermissionFixture struct {
 	pool       bool
 }
 
-func permissionRequest170() ac.PermissionRequest {
-	return ac.PermissionRequest{IdempotencyKey: "permission-original-170", SessionID: "session170", ToolCallID: "tool170", Title: "Write reviewed file", Kind: "edit", Details: "exact operation\nfile.go", DetailsComplete: true, Options: []ac.PermissionOption{{ID: "once", Name: "Allow once", Kind: "allow_once"}, {ID: "no", Name: "Reject once", Kind: "reject_once"}, {ID: "always", Name: "Always", Kind: "allow_always"}}}
+func permissionRequest170() pc.Request {
+	return pc.Request{IdempotencyKey: "permission-original-170", Protocol: ac.Protocol, ACP: &ac.ACPToolPermissionSource{SessionID: "session170", ToolCallID: "tool170", Title: "Write reviewed file", Kind: "edit", Details: "exact operation\nfile.go", DetailsComplete: true, Options: []ac.PermissionOption{{ID: "once", Name: "Allow once", Kind: "allow_once"}, {ID: "no", Name: "Reject once", Kind: "reject_once"}, {ID: "always", Name: "Always", Kind: "allow_always"}}}}
+}
+
+func permissionChoice170(option string) pc.Choice {
+	kind := "allow_once"
+	if option == "no" {
+		kind = "reject_once"
+	} else if option == "always" {
+		kind = "allow_always"
+	}
+	return pc.Choice{Protocol: ac.Protocol, ACP: &ac.ACPToolPermissionChoice{OptionID: option, Kind: kind}}
 }
 func newToolPermissionFixture(t *testing.T, pooled bool) toolPermissionFixture {
 	t.Helper()
@@ -94,13 +105,13 @@ func newToolPermissionFixture(t *testing.T, pooled bool) toolPermissionFixture {
 	}
 	return h
 }
-func (h toolPermissionFixture) open(ctx context.Context, r ac.PermissionRequest) (ac.Permission, error) {
+func (h toolPermissionFixture) open(ctx context.Context, r pc.Request) (pc.Permission, error) {
 	if h.pool {
 		return h.f.s.OpenPoolToolPermission(ctx, h.token, h.f.project, h.assignment, r)
 	}
 	return h.f.s.OpenToolPermission(ctx, h.actor, h.f.project, h.assignment, r)
 }
-func (h toolPermissionFixture) poll(ctx context.Context, id string) (ac.Permission, error) {
+func (h toolPermissionFixture) poll(ctx context.Context, id string) (pc.Permission, error) {
 	if h.pool {
 		return h.f.s.PollPoolToolPermission(ctx, h.token, h.f.project, h.assignment, id)
 	}
@@ -119,24 +130,24 @@ func TestToolPermissionCurrentSourceReceiptAndOnceDecision(t *testing.T) {
 	if err != nil || again.ID != p.ID {
 		t.Fatal("original request duplicated", err)
 	}
-	req.Details = "changed"
+	req.ACP.Details = "changed"
 	if _, err = h.open(ctx, req); err == nil {
 		t.Fatal("changed original body replayed")
 	}
-	decision := ac.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: p.Version, IdempotencyKey: "decision-original-170", OptionID: "once"}
+	decision := pc.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: p.Version, IdempotencyKey: "decision-original-170", Choice: permissionChoice170("once")}
 	p, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, decision)
-	if err != nil || p.State != "decided" || p.Decision == nil || p.Decision.Kind != "allow_once" {
+	if err != nil || p.State != "decided" || p.Decision == nil || p.Decision.ACP.Kind != "allow_once" {
 		t.Fatal("exact once decision", err)
 	}
 	replay, err := h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, decision)
 	if err != nil || replay.ID != p.ID || replay.Version != p.Version {
 		t.Fatal("original decision did not recover", err)
 	}
-	if _, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, ac.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: 1, IdempotencyKey: newID(), OptionID: "no"}); err == nil {
+	if _, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, pc.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: 1, IdempotencyKey: newID(), Choice: permissionChoice170("no")}); err == nil {
 		t.Fatal("decided source accepted a second effect")
 	}
 	observed, err := h.poll(ctx, p.ID)
-	if err != nil || observed.Decision == nil || observed.Decision.OptionID != "once" {
+	if err != nil || observed.Decision == nil || observed.Decision.ACP.OptionID != "once" {
 		t.Fatal("machine did not observe exact decision", err)
 	}
 	if _, err = h.f.s.DB.Exec(`UPDATE dag_nodes SET lease_until=0 WHERE run_id=? AND id=?`, h.assignment.RunID, h.assignment.NodeID); err != nil {
@@ -146,8 +157,8 @@ func TestToolPermissionCurrentSourceReceiptAndOnceDecision(t *testing.T) {
 		t.Fatal("old lease recovered executable request")
 	}
 	observed, err = h.poll(ctx, p.ID)
-	if err != nil || observed.State != "expired" || observed.Decision != nil {
-		t.Fatal("expired lease returned an executable decision", err)
+	if err != nil || observed.State != "expired" || observed.Decision == nil || len(observed.AllowedActions) != 0 {
+		t.Fatal("expired lease lost its historical decision or returned executable actions", err)
 	}
 	if _, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, decision); err != nil {
 		t.Fatal("safe old receipt required a new live operation", err)
@@ -158,28 +169,28 @@ func TestToolPermissionIncompleteAlwaysAndAttemptQuota(t *testing.T) {
 	h := newToolPermissionFixture(t, false)
 	ctx := context.Background()
 	req := permissionRequest170()
-	req.DetailsComplete = false
+	req.ACP.DetailsComplete = false
 	p, err := h.open(ctx, req)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, option := range []string{"once", "always"} {
-		if _, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, ac.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: p.Version, IdempotencyKey: newID(), OptionID: option}); err == nil {
+		if _, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, pc.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: p.Version, IdempotencyKey: newID(), Choice: permissionChoice170(option)}); err == nil {
 			t.Fatal("incomplete/always granted", option)
 		}
 	}
-	if _, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, ac.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: p.Version, IdempotencyKey: newID(), OptionID: "no"}); err != nil {
+	if _, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, pc.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: p.Version, IdempotencyKey: newID(), Choice: permissionChoice170("no")}); err != nil {
 		t.Fatal("exact rejection blocked", err)
 	}
 	for i := 1; i < 32; i++ {
 		req.IdempotencyKey = newID()
-		req.ToolCallID = newID()
+		req.ACP.ToolCallID = newID()
 		if _, err = h.open(ctx, req); err != nil {
 			t.Fatal("bounded prefix", i, err)
 		}
 	}
 	req.IdempotencyKey = newID()
-	req.ToolCallID = newID()
+	req.ACP.ToolCallID = newID()
 	if _, err = h.open(ctx, req); err == nil {
 		t.Fatal("33rd permission accepted")
 	}
@@ -240,7 +251,7 @@ func TestToolPermissionHTTPRejectsLossyRawAndHumanScope(t *testing.T) {
 	h.f.bearer("POST", "/runner/tool-permissions?project_id="+h.f.project, h.token, body, 400)
 	for _, scope := range []string{"api", "agent"} {
 		token := h.f.call("POST", "/auth/tokens", h.f.body(map[string]any{"scope": scope}), 201)["token"].(string)
-		h.f.bearer("POST", "/tool-permissions/"+p["id"].(string)+"/decision", token, ac.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: 1, IdempotencyKey: newID(), OptionID: "once"}, 403)
+		h.f.bearer("POST", "/tool-permissions/"+p["id"].(string)+"/decision", token, pc.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: 1, IdempotencyKey: newID(), Choice: permissionChoice170("once")}, 403)
 	}
 	h.f.call("GET", "/runs/"+h.assignment.RunID+"/nodes/"+h.assignment.NodeID+"/tool-permissions?project_id="+h.f.project, nil, 200)
 }
@@ -254,7 +265,7 @@ func TestToolPermissionQueuedAllowCannotCrossPauseOrBudgetChange(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			q := ac.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: 1, IdempotencyKey: newID(), OptionID: "once"}
+			q := pc.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: 1, IdempotencyKey: newID(), Choice: permissionChoice170("once")}
 			if _, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, q); err != nil {
 				t.Fatal(err)
 			}
@@ -267,7 +278,7 @@ func TestToolPermissionQueuedAllowCannotCrossPauseOrBudgetChange(t *testing.T) {
 				t.Fatal(err)
 			}
 			observed, err := h.poll(ctx, p.ID)
-			if err != nil || observed.State != "superseded" || observed.Decision != nil {
+			if err != nil || observed.State != "superseded" || observed.Decision == nil || len(observed.AllowedActions) != 0 {
 				t.Fatal("queued allow escaped current new-work authority", err)
 			}
 			if _, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, q); err != nil {
@@ -301,7 +312,7 @@ func TestToolPermissionCurrentAuthoritiesRecheckOriginalReceipts(t *testing.T) {
 		if err != nil || len(list.Items) != 1 || len(list.Items[0].AllowedActions) != 0 {
 			t.Fatal("read/developer acquired approval", err)
 		}
-		q := ac.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: 1, IdempotencyKey: newID(), OptionID: "once"}
+		q := pc.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: 1, IdempotencyKey: newID(), Choice: permissionChoice170("once")}
 		if _, err = h.f.s.DecideToolPermission(ctx, actor, p.ID, q); err == nil {
 			t.Fatal("developer decided permission")
 		}
@@ -348,7 +359,7 @@ func TestToolPermissionCurrentAuthoritiesRecheckOriginalReceipts(t *testing.T) {
 		if _, err = h.poll(ctx, p.ID); err == nil {
 			t.Fatal("paused profile retained permission delivery")
 		}
-		if _, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, ac.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: 1, IdempotencyKey: newID(), OptionID: "once"}); err == nil {
+		if _, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, pc.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: 1, IdempotencyKey: newID(), Choice: permissionChoice170("once")}); err == nil {
 			t.Fatal("paused profile accepted a human grant")
 		}
 	})
@@ -364,7 +375,7 @@ func TestToolPermissionDecisionReceiptRollbackIsAtomic(t *testing.T) {
 	if _, err = h.f.s.DB.Exec(`CREATE TRIGGER permission_receipt_fail BEFORE INSERT ON suma_operations WHEN NEW.operation_id='permission-receipt-fail170' BEGIN SELECT RAISE(ABORT,'controlled receipt storage failure'); END`); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, ac.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: 1, IdempotencyKey: "permission-receipt-fail170", OptionID: "once"}); err == nil {
+	if _, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, pc.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: 1, IdempotencyKey: "permission-receipt-fail170", Choice: permissionChoice170("once")}); err == nil {
 		t.Fatal("receipt failure ignored")
 	}
 	var version int
@@ -400,7 +411,7 @@ func TestToolPermissionBrowserHistoryLocatorPreservesFactWithoutGrant(t *testing
 	if err != nil {
 		t.Fatal(err)
 	}
-	q := ac.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: 1, IdempotencyKey: newID(), OptionID: "once"}
+	q := pc.DecisionRequest{ProjectID: h.f.project, ExpectedVersion: 1, IdempotencyKey: newID(), Choice: permissionChoice170("once")}
 	p, err = h.f.s.DecideToolPermission(ctx, h.f.actor, p.ID, q)
 	if err != nil {
 		t.Fatal(err)
@@ -409,7 +420,7 @@ func TestToolPermissionBrowserHistoryLocatorPreservesFactWithoutGrant(t *testing
 		t.Fatal(err)
 	}
 	list, err := h.f.s.ListToolPermissions(ctx, h.f.actor, h.f.project, p.RunID, p.NodeID)
-	if err != nil || len(list.Items) != 1 || list.Items[0].State != "decided" || list.Items[0].Decision == nil || list.Items[0].Decision.OptionID != "once" || len(list.Items[0].AllowedActions) != 0 {
+	if err != nil || len(list.Items) != 1 || list.Items[0].State != "decided" || list.Items[0].Decision == nil || list.Items[0].Decision.ACP.OptionID != "once" || len(list.Items[0].AllowedActions) != 0 {
 		t.Fatal("browser expired view erased human fact", err)
 	}
 	if _, err = h.f.s.DB.Exec(`UPDATE dag_nodes SET attempt=attempt+1,fence=fence+1 WHERE run_id=? AND id=?`, p.RunID, p.NodeID); err != nil {
@@ -421,14 +432,14 @@ func TestToolPermissionBrowserHistoryLocatorPreservesFactWithoutGrant(t *testing
 		t.Fatal("default current-attempt list inherited old grants")
 	}
 	history := h.f.call("GET", path+"&permission_id="+p.ID, nil, 200)
-	var restored ac.PermissionList
+	var restored pc.List
 	if err = json.Unmarshal([]byte(stringify(history)), &restored); err != nil || len(restored.Items) != 1 || restored.Items[0].State != "decided" || restored.Items[0].Decision == nil || restored.Items[0].Decision.ActorID != h.f.user.ID || len(restored.Items[0].AllowedActions) != 0 {
 		t.Fatal("exact history locator lost original fact", err)
 	}
 	h.f.call("GET", path+"&permission_id="+p.ID+"&permission_id="+p.ID, nil, 400)
 	h.f.call("GET", path+"&permission_id=", nil, 400)
 	h.f.call("GET", path+"&permission_id=unknown170", nil, 404)
-	if observed, e := h.poll(ctx, p.ID); e != nil || observed.State != "superseded" || observed.Decision != nil {
+	if observed, e := h.poll(ctx, p.ID); e != nil || observed.State != "superseded" || observed.Decision == nil || len(observed.AllowedActions) != 0 {
 		t.Fatal("historical lookup revived machine grant", e)
 	}
 }

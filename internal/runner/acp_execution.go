@@ -9,6 +9,7 @@ import (
 	ac "github.com/ai-mada/suma/internal/acpcontract"
 	"github.com/ai-mada/suma/internal/acpstdio"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
 )
 
 // Only the original Worker calls this bridge. Process creation, its tree,
@@ -27,26 +28,26 @@ func newACPExecutionBridge(ctx context.Context, a Assignment, cfg ExecConfig, pr
 	if profile.ACPExecution == nil || cfg.Journal == nil || !ok || goal == "" {
 		return nil, fmt.Errorf("ACP requires the original durable worker inbox")
 	}
-	if err := cfg.Journal.beginACPExecution(a, profile); err != nil {
+	if err := cfg.Journal.beginToolPermissionExecution(a, profile); err != nil {
 		return nil, err
 	}
 	b := &acpExecutionBridge{profile: tc.CloneProfile(profile), output: newOutput(cfg.OutputLimit, cfg.Secrets), cfg: cfg}
-	driver, err := acpstdio.New(ctx, acpstdio.Options{Cwd: root, Goal: goal, Model: profile.ACPExecution.Model, ConfigSHA: profile.ACPExecution.ConfigurationSHA256, Secrets: cfg.Secrets, Emit: b.emit, Permission: func(ctx context.Context, request ac.PermissionRequest) (ac.PermissionDecision, error) {
-		safe, err := safeACPPermission(request, cfg.Secrets)
+	driver, err := acpstdio.New(ctx, acpstdio.Options{Cwd: root, Goal: goal, Model: profile.ACPExecution.Model, ConfigSHA: profile.ACPExecution.ConfigurationSHA256, Secrets: cfg.Secrets, Emit: b.emit, Permission: func(ctx context.Context, source ac.NativeSource) (ac.Choice, error) {
+		safe, err := safeToolPermission(pc.Request{IdempotencyKey: operationID(), Protocol: ac.Protocol, ACP: &source}, cfg.Secrets)
 		if err != nil {
-			return ac.PermissionDecision{}, err
+			return ac.Choice{}, err
 		}
-		if err = cfg.Journal.recordACPPermission(a, safe); err != nil {
-			return ac.PermissionDecision{}, err
+		if err = cfg.Journal.recordToolPermission(a, safe); err != nil {
+			return ac.Choice{}, err
 		}
 		if cfg.ToolPermission == nil {
-			return ac.PermissionDecision{}, errACPPermission
+			return ac.Choice{}, errToolPermission
 		}
 		decision, err := cfg.ToolPermission(ctx, safe)
-		if err != nil || !acpDecisionMatches(safe, decision) {
-			return ac.PermissionDecision{}, errACPPermission
+		if err != nil || !pc.DecisionMatchesRequest(safe, decision) || decision.ACP == nil {
+			return ac.Choice{}, errToolPermission
 		}
-		return decision, nil
+		return *decision.ACP, nil
 	}})
 	if err != nil {
 		return nil, fmt.Errorf("ACP SDK session could not initialize")

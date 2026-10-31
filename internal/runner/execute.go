@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	ac "github.com/ai-mada/suma/internal/acpcontract"
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
 	cdx "github.com/ai-mada/suma/internal/codexcontract"
 	ec "github.com/ai-mada/suma/internal/executioncontract"
@@ -13,6 +12,7 @@ import (
 	mg "github.com/ai-mada/suma/internal/modelgateway"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
 	wc "github.com/ai-mada/suma/internal/workspaceoperationcontract"
 	"io"
 	"os"
@@ -137,7 +137,8 @@ type ExecConfig struct {
 	Repository, BaseCommit, WorktreeRoot  string
 	Progress                              func(string) error
 	ToolProgress                          func(tc.Event) error
-	ToolPermission                        func(context.Context, ac.PermissionRequest) (ac.PermissionDecision, error)
+	ToolPermission                        func(context.Context, pc.Request) (pc.Decision, error)
+	ToolPermissionPoll                    func(context.Context, string) (pc.Permission, error)
 	WorkspaceProgress                     func(wc.Event) error
 	ToolInventory                         []tc.Observation
 	ModelDeployments                      []ModelDeploymentSpec
@@ -841,6 +842,14 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			}
 			codexDriver = newCodexAppServer(profile, spec, cmd.Dir, root, a.Config["goal"].(string), codexBinding, stream)
 			defer codexDriver.Close()
+			if cfg.Journal != nil {
+				if err = cfg.Journal.beginToolPermissionExecution(a, profile); err != nil {
+					return fail("Codex durable approval checkpoint is unavailable")
+				}
+			}
+			if err = codexDriver.configureApprovals(ctx, codexPermissionHandler(a, cfg)); err != nil {
+				return fail("Codex human approval handler is unavailable")
+			}
 			if err = codexDriver.configureSkills(skillBundle, skillEvidence); err != nil {
 				if skillEvidence != nil {
 					skillEvidence.FailureCode = "configuration_invalid"

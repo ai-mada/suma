@@ -9,226 +9,290 @@ import (
 	"time"
 
 	ac "github.com/ai-mada/suma/internal/acpcontract"
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
 )
 
-var errACPPermission = errors.New("ACP permission requires the original current human decision")
+var errToolPermission = errors.New("tool permission requires the original current human decision")
+var errToolPermissionReconciliation = errors.New("tool permission source requires reconciliation; original journal retained")
 
-type acpPermissionCheckpoint struct {
-	Request      ac.PermissionRequest   `json:"request"`
-	PermissionID string                 `json:"permission_id,omitempty"`
-	Decision     *ac.PermissionDecision `json:"decision,omitempty"`
+type toolPermissionCheckpoint struct {
+	Request      pc.Request                   `json:"request"`
+	PermissionID string                       `json:"permission_id,omitempty"`
+	Decision     *pc.Decision                 `json:"decision,omitempty"`
+	Observation  *cc.CodexApprovalObservation `json:"observation,omitempty"`
+	Observations []toolPermissionObservation  `json:"observations,omitempty"`
 }
-type acpExecutionCheckpoint struct {
-	Profile  tc.Profile                         `json:"profile"`
-	Requests map[string]acpPermissionCheckpoint `json:"requests"`
+type toolPermissionExecutionCheckpoint struct {
+	Profile  tc.Profile                          `json:"profile"`
+	Requests map[string]toolPermissionCheckpoint `json:"requests"`
 }
 
-func cloneACPCheckpoint(value *acpExecutionCheckpoint) *acpExecutionCheckpoint {
+func cloneToolPermissionCheckpoint(value *toolPermissionExecutionCheckpoint) *toolPermissionExecutionCheckpoint {
 	if value == nil {
 		return nil
 	}
 	raw, _ := json.Marshal(value)
-	var result acpExecutionCheckpoint
+	var result toolPermissionExecutionCheckpoint
 	_ = json.Unmarshal(raw, &result)
 	return &result
 }
-func validACPCheckpoint(a Assignment, value *acpExecutionCheckpoint) error {
+func samePermissionValue(first, next any) bool {
+	a, ae := json.Marshal(first)
+	b, be := json.Marshal(next)
+	return ae == nil && be == nil && bytes.Equal(a, b)
+}
+func validToolPermissionCheckpoint(a Assignment, value *toolPermissionExecutionCheckpoint) error {
 	if value == nil {
 		return nil
 	}
-	if !tc.SupportsACPExecutionProfile(value.Profile) || len(a.Command) != 1 || value.Profile.CommandID != a.Command[0] || a.Type != "agent" || len(value.Requests) > 32 || value.Requests == nil {
-		return errACPPermission
+	p := value.Profile
+	if len(a.Command) != 1 || p.CommandID != a.Command[0] || a.Type != "agent" || a.WorkBuddyCloud != nil || len(value.Requests) > 32 || value.Requests == nil || a.Config["tool_profile_sha256"] != p.ProfileSHA256 {
+		return errToolPermission
 	}
-	fixed, err := tc.DecodeACPNodeConfiguration(a.Config)
-	if err != nil || fixed == nil || *fixed != *value.Profile.ACPExecution || a.Config["tool_profile_sha256"] != value.Profile.ProfileSHA256 {
-		return errACPPermission
+	switch p.Protocol {
+	case ac.Protocol:
+		fixed, err := tc.DecodeACPNodeConfiguration(a.Config)
+		if err != nil || fixed == nil || !tc.SupportsACPExecutionProfile(p) || *fixed != *p.ACPExecution {
+			return errToolPermission
+		}
+	case cc.Protocol:
+		if p.Adapter != "codex" {
+			return errToolPermission
+		}
+		if _, err := cc.DecodeBinding(a.Config["codex_execution"]); err != nil {
+			return errToolPermission
+		}
+	default:
+		return errToolPermission
 	}
 	for key, request := range value.Requests {
-		if key != request.Request.IdempotencyKey || ac.ValidatePermissionRequest(request.Request) != nil || request.Decision != nil && (request.PermissionID == "" || !acpDecisionMatches(request.Request, *request.Decision)) {
-			return errACPPermission
+		if key != request.Request.IdempotencyKey || request.Request.Protocol != p.Protocol || pc.ValidateRequest(request.Request) != nil || request.Decision != nil && (request.PermissionID == "" || !pc.DecisionMatchesRequest(request.Request, *request.Decision)) {
+			return errToolPermission
+		}
+		if request.Request.Codex != nil {
+			binding, err := cc.DecodeBinding(a.Config["codex_execution"])
+			if err != nil || request.Request.Codex.BindingSHA256 != binding.BindingSHA256 {
+				return errToolPermission
+			}
+		}
+		if err := validToolPermissionObservations(request); err != nil {
+			return err
 		}
 	}
 	return nil
 }
-func (j *Journal) beginACPExecution(a Assignment, p tc.Profile) error {
+func (j *Journal) beginToolPermissionExecution(a Assignment, p tc.Profile) error {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	k := key(a)
-	entry, ok := j.entries[k]
-	if !ok || entry.Result != nil || entry.ACP != nil || candidateRef(a) != candidateRef(entry.Assignment) || a.DispatchID != entry.Assignment.DispatchID {
-		return errACPPermission
+	e, ok := j.entries[k]
+	if !ok || e.Result != nil || e.ToolPermissions != nil || candidateRef(a) != candidateRef(e.Assignment) || a.DispatchID != e.Assignment.DispatchID {
+		return errToolPermission
 	}
-	checkpoint := &acpExecutionCheckpoint{Profile: tc.CloneProfile(p), Requests: map[string]acpPermissionCheckpoint{}}
-	if validACPCheckpoint(entry.Assignment, checkpoint) != nil {
-		return errACPPermission
+	checkpoint := &toolPermissionExecutionCheckpoint{Profile: tc.CloneProfile(p), Requests: map[string]toolPermissionCheckpoint{}}
+	if validToolPermissionCheckpoint(e.Assignment, checkpoint) != nil {
+		return errToolPermission
 	}
-	before := entry
-	entry.ACP = checkpoint
-	j.entries[k] = entry
+	before := e
+	e.ToolPermissions = checkpoint
+	j.entries[k] = e
 	if err := j.save(); err != nil {
 		j.entries[k] = before
 		return err
 	}
 	return nil
 }
-func (j *Journal) recordACPPermission(a Assignment, request ac.PermissionRequest) error {
-	if ac.ValidatePermissionRequest(request) != nil {
-		return errACPPermission
+func (j *Journal) recordToolPermission(a Assignment, request pc.Request) error {
+	if pc.ValidateRequest(request) != nil {
+		return errToolPermission
 	}
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	k := key(a)
-	entry, ok := j.entries[k]
-	if !ok || entry.Result != nil || entry.ACP == nil || candidateRef(a) != candidateRef(entry.Assignment) || a.DispatchID != entry.Assignment.DispatchID {
-		return errACPPermission
+	e, ok := j.entries[k]
+	if !ok || e.Result != nil || e.ToolPermissions == nil || candidateRef(a) != candidateRef(e.Assignment) || a.DispatchID != e.Assignment.DispatchID || request.Protocol != e.ToolPermissions.Profile.Protocol {
+		return errToolPermission
 	}
-	before := entry
-	entry.ACP = cloneACPCheckpoint(entry.ACP)
-	if original, exists := entry.ACP.Requests[request.IdempotencyKey]; exists {
-		first, _ := json.Marshal(original.Request)
-		next, _ := json.Marshal(request)
-		if !bytes.Equal(first, next) {
-			return errACPPermission
+	if request.Codex != nil {
+		binding, err := cc.DecodeBinding(e.Assignment.Config["codex_execution"])
+		if err != nil || request.Codex.BindingSHA256 != binding.BindingSHA256 {
+			return errToolPermission
+		}
+	}
+	if original, exists := e.ToolPermissions.Requests[request.IdempotencyKey]; exists {
+		if !samePermissionValue(original.Request, request) {
+			return errToolPermission
 		}
 		return nil
 	}
-	if len(entry.ACP.Requests) >= 32 {
-		return errACPPermission
+	if len(e.ToolPermissions.Requests) >= 32 {
+		return errToolPermission
 	}
+	before := e
+	e.ToolPermissions = cloneToolPermissionCheckpoint(e.ToolPermissions)
 	raw, _ := json.Marshal(request)
-	var safe ac.PermissionRequest
+	var safe pc.Request
 	_ = json.Unmarshal(raw, &safe)
-	entry.ACP.Requests[request.IdempotencyKey] = acpPermissionCheckpoint{Request: safe}
-	j.entries[k] = entry
+	e.ToolPermissions.Requests[request.IdempotencyKey] = toolPermissionCheckpoint{Request: safe}
+	j.entries[k] = e
 	if err := j.save(); err != nil {
 		j.entries[k] = before
 		return err
 	}
 	return nil
 }
-func (j *Journal) observeACPPermission(a Assignment, permission ac.Permission) error {
+func (j *Journal) observeToolPermission(a Assignment, permission pc.Permission) error {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	k := key(a)
-	entry, ok := j.entries[k]
-	if !ok || entry.Result != nil || entry.ACP == nil || candidateRef(a) != candidateRef(entry.Assignment) || a.DispatchID != entry.Assignment.DispatchID {
-		return errACPPermission
+	e, ok := j.entries[k]
+	if !ok || e.Result != nil || e.ToolPermissions == nil || candidateRef(a) != candidateRef(e.Assignment) || a.DispatchID != e.Assignment.DispatchID {
+		return errToolPermission
 	}
-	original, ok := entry.ACP.Requests[permission.Request.IdempotencyKey]
-	if !ok || !acpPermissionSource(a, entry.ACP.Profile.ProfileSHA256, permission, original.Request, permission.ProjectID) || original.PermissionID != "" && original.PermissionID != permission.ID {
-		return errACPPermission
+	original, ok := e.ToolPermissions.Requests[permission.Request.IdempotencyKey]
+	if !ok || !toolPermissionSource(a, e.ToolPermissions.Profile.ProfileSHA256, permission, original.Request, permission.ProjectID) || original.PermissionID != "" && original.PermissionID != permission.ID {
+		return errToolPermission
 	}
-	before := entry
-	entry.ACP = cloneACPCheckpoint(entry.ACP)
+	before := e
+	e.ToolPermissions = cloneToolPermissionCheckpoint(e.ToolPermissions)
+	original = e.ToolPermissions.Requests[permission.Request.IdempotencyKey]
 	original.PermissionID = permission.ID
-	// Observed is a local database/HTTP fact, never a provider adoption ACK.
-	if permission.State == "decided" {
-		if permission.Decision == nil || !acpDecisionMatches(original.Request, *permission.Decision) {
-			return errACPPermission
+	for i := range original.Observations {
+		if original.Observations[i].PermissionID == "" {
+			original.Observations[i].PermissionID = permission.ID
 		}
-		copy := *permission.Decision
-		original.Decision = &copy
 	}
-	entry.ACP.Requests[permission.Request.IdempotencyKey] = original
-	j.entries[k] = entry
+	// This is a persisted human decision, never a native response-write ACK.
+	if permission.State == "decided" {
+		if permission.Decision == nil || !pc.DecisionMatchesRequest(original.Request, *permission.Decision) || original.Decision != nil && !samePermissionValue(original.Decision, permission.Decision) {
+			return errToolPermission
+		}
+		raw, _ := json.Marshal(permission.Decision)
+		var d pc.Decision
+		_ = json.Unmarshal(raw, &d)
+		original.Decision = &d
+	}
+	e.ToolPermissions.Requests[permission.Request.IdempotencyKey] = original
+	j.entries[k] = e
 	if err := j.save(); err != nil {
 		j.entries[k] = before
 		return err
 	}
 	return nil
 }
-func acpDecisionMatches(request ac.PermissionRequest, decision ac.PermissionDecision) bool {
-	if ac.ValidatePermissionDecision(decision) != nil || decision.Kind != "allow_once" && decision.Kind != "reject_once" || decision.Kind == "allow_once" && !request.DetailsComplete {
-		return false
+func (j *Journal) toolPermission(a Assignment, request pc.Request) (toolPermissionCheckpoint, error) {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	e, ok := j.entries[key(a)]
+	if !ok || e.ToolPermissions == nil || candidateRef(a) != candidateRef(e.Assignment) || a.DispatchID != e.Assignment.DispatchID {
+		return toolPermissionCheckpoint{}, errToolPermission
 	}
-	for _, option := range request.Options {
-		if option.ID == decision.OptionID && option.Kind == decision.Kind {
-			return true
-		}
+	v, ok := cloneToolPermissionCheckpoint(e.ToolPermissions).Requests[request.IdempotencyKey]
+	if !ok || !samePermissionValue(v.Request, request) {
+		return toolPermissionCheckpoint{}, errToolPermission
 	}
-	return false
+	return v, nil
 }
-func safeACPPermission(request ac.PermissionRequest, secrets []string) (ac.PermissionRequest, error) {
-	if ac.ValidatePermissionRequest(request) != nil {
-		return ac.PermissionRequest{}, errACPPermission
+
+func safeToolPermission(request pc.Request, secrets []string) (pc.Request, error) {
+	if pc.ValidateRequest(request) != nil {
+		return pc.Request{}, errToolPermission
 	}
 	clean := func(value string) string {
 		out := newOutput(64<<10, secrets)
 		_, _ = out.Write([]byte(value))
 		return out.String()
 	}
-	for _, opaque := range []string{request.IdempotencyKey, request.SessionID, request.ToolCallID, request.Kind} {
-		if clean(opaque) != opaque {
-			return ac.PermissionRequest{}, errACPPermission
+	if clean(request.IdempotencyKey) != request.IdempotencyKey {
+		return pc.Request{}, errToolPermission
+	}
+	if request.ACP != nil {
+		r := *request.ACP
+		for _, opaque := range []string{r.SessionID, r.ToolCallID, r.Kind} {
+			if clean(opaque) != opaque {
+				return pc.Request{}, errToolPermission
+			}
+		}
+		r.Title, r.Details = clean(r.Title), clean(r.Details)
+		r.Options = append([]ac.PermissionOption{}, r.Options...)
+		if r.Title != request.ACP.Title || r.Details != request.ACP.Details {
+			r.DetailsComplete = false
+		}
+		for i := range r.Options {
+			if clean(r.Options[i].ID) != r.Options[i].ID {
+				return pc.Request{}, errToolPermission
+			}
+			name := clean(r.Options[i].Name)
+			if name != r.Options[i].Name {
+				r.DetailsComplete = false
+			}
+			r.Options[i].Name = name
+		}
+		request.ACP = &r
+	} else {
+		// Driver has already projected relative paths. Never rewrite identities,
+		// digests or native detail fields after their exact display was bound.
+		r := request.Codex
+		values := []string{r.RequestID.Kind, r.RequestID.Value, r.Method, r.ThreadID, r.TurnID, r.ItemID, r.ApprovalID, r.BindingSHA256, r.ParamsSHA256, r.ItemSHA256, r.Title, r.Details, r.UnsupportedReason, r.Command, r.CWD, r.Reason}
+		for _, change := range r.Changes {
+			values = append(values, change.Path, change.Kind, change.Diff, change.MovePath)
+		}
+		for _, value := range values {
+			if clean(value) != value {
+				return pc.Request{}, errToolPermission
+			}
 		}
 	}
-	before := request
-	request.Title, request.Details = clean(request.Title), clean(request.Details)
-	request.Options = append([]ac.PermissionOption{}, request.Options...)
-	if request.Title != before.Title || request.Details != before.Details {
-		request.DetailsComplete = false
-	}
-	for i := range request.Options {
-		if clean(request.Options[i].ID) != request.Options[i].ID {
-			return ac.PermissionRequest{}, errACPPermission
-		}
-		name := clean(request.Options[i].Name)
-		if name != request.Options[i].Name {
-			request.DetailsComplete = false
-		}
-		request.Options[i].Name = name
-	}
-	if ac.ValidatePermissionRequest(request) != nil {
-		return ac.PermissionRequest{}, errACPPermission
+	if pc.ValidateRequest(request) != nil {
+		return pc.Request{}, errToolPermission
 	}
 	return request, nil
 }
-func acpPermissionSource(a Assignment, profile string, p ac.Permission, request ac.PermissionRequest, project string) bool {
-	first, _ := json.Marshal(request)
-	received, _ := json.Marshal(p.Request)
-	return ac.ValidatePermission(p) == nil && p.ProjectID == project && p.RunID == a.RunID && p.NodeID == a.NodeID && p.Attempt == a.Attempt && p.Fence == a.Fence && p.DispatchID == a.DispatchID && p.WorkerID == a.WorkerID && p.ProfileSHA256 == profile && bytes.Equal(first, received)
+func toolPermissionSource(a Assignment, profile string, p pc.Permission, request pc.Request, project string) bool {
+	return pc.ValidatePermission(p) == nil && p.ProjectID == project && p.RunID == a.RunID && p.NodeID == a.NodeID && p.Attempt == a.Attempt && p.Fence == a.Fence && p.DispatchID == a.DispatchID && p.WorkerID == a.WorkerID && p.ProfileSHA256 == profile && samePermissionValue(request, p.Request)
 }
-func (c *Client) OpenToolPermission(ctx context.Context, a Assignment, request ac.PermissionRequest) (ac.Permission, error) {
-	var result ac.Permission
-	if ac.ValidatePermissionRequest(request) != nil {
-		return result, errACPPermission
+func (c *Client) OpenToolPermission(ctx context.Context, a Assignment, request pc.Request) (pc.Permission, error) {
+	var result pc.Permission
+	if pc.ValidateRequest(request) != nil {
+		return result, errToolPermission
 	}
 	err := c.post(ctx, "tool-permissions", map[string]any{"project_id": c.ProjectID, "assignment": a, "request": request}, &result)
 	if err == nil {
 		profile, _ := a.Config["tool_profile_sha256"].(string)
-		if !acpPermissionSource(a, profile, result, request, c.ProjectID) {
-			return ac.Permission{}, errACPPermission
+		if !toolPermissionSource(a, profile, result, request, c.ProjectID) {
+			return pc.Permission{}, errToolPermission
 		}
 	}
 	return result, err
 }
-func (c *Client) PollToolPermission(ctx context.Context, a Assignment, id string) (ac.Permission, error) {
-	var result ac.Permission
+func (c *Client) PollToolPermission(ctx context.Context, a Assignment, id string) (pc.Permission, error) {
+	var result pc.Permission
 	if !acpLocalText(id, 64) || strings.ContainsAny(id, "/\\") {
-		return result, errACPPermission
+		return result, errToolPermission
 	}
 	err := c.post(ctx, "tool-permissions/poll", map[string]any{"project_id": c.ProjectID, "assignment": a, "permission_id": id}, &result)
 	if err == nil {
 		profile, _ := a.Config["tool_profile_sha256"].(string)
-		if result.ID != id || !acpPermissionSource(a, profile, result, result.Request, c.ProjectID) {
-			return ac.Permission{}, errACPPermission
+		if result.ID != id || !toolPermissionSource(a, profile, result, result.Request, c.ProjectID) {
+			return pc.Permission{}, errToolPermission
 		}
 	}
 	return result, err
 }
-func (w *Worker) waitToolPermission(ctx context.Context, a Assignment, request ac.PermissionRequest, secrets []string) (ac.PermissionDecision, error) {
+func (w *Worker) waitToolPermission(ctx context.Context, a Assignment, request pc.Request, secrets []string) (pc.Decision, error) {
 	if w.Journal == nil || w.Client == nil {
-		return ac.PermissionDecision{}, errACPPermission
+		return pc.Decision{}, errToolPermission
 	}
-	request, err := safeACPPermission(request, secrets)
+	request, err := safeToolPermission(request, secrets)
 	if err != nil {
-		return ac.PermissionDecision{}, err
+		return pc.Decision{}, err
 	}
-	if err = w.Journal.recordACPPermission(a, request); err != nil {
-		return ac.PermissionDecision{}, err
+	if err = w.Journal.recordToolPermission(a, request); err != nil {
+		return pc.Decision{}, err
 	}
-	var permission ac.Permission
+	var permission pc.Permission
 	for attempt := 0; attempt < 3; attempt++ {
 		permission, err = w.Client.OpenToolPermission(ctx, a, request)
 		if err == nil {
@@ -236,37 +300,35 @@ func (w *Worker) waitToolPermission(ctx context.Context, a Assignment, request a
 		}
 		var status *runnerHTTPStatusError
 		if errors.As(err, &status) && status.Status >= 400 && status.Status < 500 && status.Status != 429 {
-			return ac.PermissionDecision{}, errACPPermission
+			return pc.Decision{}, errToolPermission
 		}
 		if attempt == 2 || !wait(ctx, 100*time.Millisecond) {
-			return ac.PermissionDecision{}, errACPPermission
+			return pc.Decision{}, errToolPermission
 		}
 	}
 	for {
-		if err = w.Journal.observeACPPermission(a, permission); err != nil {
-			return ac.PermissionDecision{}, errACPPermission
+		if err = w.Journal.observeToolPermission(a, permission); err != nil {
+			return pc.Decision{}, errToolPermission
 		}
 		switch permission.State {
 		case "decided":
-			if permission.Decision != nil && acpDecisionMatches(request, *permission.Decision) {
+			if permission.Decision != nil && pc.DecisionMatchesRequest(request, *permission.Decision) {
 				return *permission.Decision, nil
 			}
-			return ac.PermissionDecision{}, errACPPermission
-		case "expired", "superseded":
-			return ac.PermissionDecision{}, errACPPermission
+			return pc.Decision{}, errToolPermission
 		case "pending":
 		default:
-			return ac.PermissionDecision{}, errACPPermission
+			return pc.Decision{}, errToolPermission
 		}
 		if !wait(ctx, 250*time.Millisecond) {
-			return ac.PermissionDecision{}, errACPPermission
+			return pc.Decision{}, errToolPermission
 		}
 		next, pollErr := w.Client.PollToolPermission(ctx, a, permission.ID)
 		if pollErr != nil {
-			return ac.PermissionDecision{}, errACPPermission
+			return pc.Decision{}, errToolPermission
 		}
-		if !acpPermissionSource(a, permission.ProfileSHA256, next, request, w.Client.ProjectID) || next.ID != permission.ID || next.Version < permission.Version {
-			return ac.PermissionDecision{}, errACPPermission
+		if !toolPermissionSource(a, permission.ProfileSHA256, next, request, w.Client.ProjectID) || next.ID != permission.ID || next.Version < permission.Version {
+			return pc.Decision{}, errToolPermission
 		}
 		permission = next
 	}

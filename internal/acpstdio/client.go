@@ -91,7 +91,7 @@ func (d *Driver) RequestPermission(ctx context.Context, p sdk.RequestPermissionR
 			selected = option.Kind
 		}
 	}
-	if selected != "allow_once" && selected != "reject_once" || decision.Kind != selected || selected == "allow_once" && !req.DetailsComplete || ac.ValidatePermissionDecision(decision) != nil {
+	if selected != "allow_once" && selected != "reject_once" || decision.Kind != selected || selected == "allow_once" && !req.DetailsComplete || ac.ValidatePermissionChoice(decision) != nil {
 		d.fail("acp_permission_decision_invalid")
 		return sdk.RequestPermissionResponse{}, errors.New("acp_permission_decision_invalid")
 	}
@@ -101,9 +101,9 @@ func (d *Driver) RequestPermission(ctx context.Context, p sdk.RequestPermissionR
 	d.mu.Unlock()
 	return sdk.RequestPermissionResponse{Outcome: sdk.RequestPermissionOutcome{Selected: &sdk.RequestPermissionOutcomeSelected{OptionId: sdk.PermissionOptionId(decision.OptionID)}}}, nil
 }
-func permissionRequest(raw []byte, secrets []string) (ac.PermissionRequest, error) {
-	fail := func() (ac.PermissionRequest, error) {
-		return ac.PermissionRequest{}, errors.New("acp_permission_invalid")
+func permissionRequest(raw []byte, secrets []string) (ac.NativeSource, error) {
+	fail := func() (ac.NativeSource, error) {
+		return ac.NativeSource{}, errors.New("acp_permission_invalid")
 	}
 	params := object(raw)
 	call := object(params["toolCall"])
@@ -165,7 +165,7 @@ func permissionRequest(raw []byte, secrets []string) (ac.PermissionRequest, erro
 	if json.Unmarshal(params["options"], &options) != nil || len(options) == 0 || len(options) > 16 {
 		return fail()
 	}
-	out := ac.PermissionRequest{SessionID: session, ToolCallID: id, Title: title, Kind: kind, Details: string(details), DetailsComplete: complete, Options: []ac.PermissionOption{}}
+	out := ac.NativeSource{SessionID: session, ToolCallID: id, Title: title, Kind: kind, Details: string(details), DetailsComplete: complete, Options: []ac.PermissionOption{}}
 	seen := map[string]bool{}
 	for _, option := range options {
 		if !closed(option, "_meta", "optionId", "name", "kind") {
@@ -185,10 +185,6 @@ func permissionRequest(raw []byte, secrets []string) (ac.PermissionRequest, erro
 		out.DetailsComplete = out.DetailsComplete && !changed
 		out.Options = append(out.Options, ac.PermissionOption{ID: oid, Name: name, Kind: okind})
 	}
-	out.IdempotencyKey, e = operationID()
-	if e != nil {
-		return fail()
-	}
 	for {
 		encoded, err := json.Marshal(out)
 		if err != nil {
@@ -206,7 +202,7 @@ func permissionRequest(raw []byte, secrets []string) (ac.PermissionRequest, erro
 			return fail()
 		}
 	}
-	if ac.ValidatePermissionRequest(out) != nil {
+	if ac.ValidatePermissionSource(out) != nil {
 		return fail()
 	}
 	return out, nil

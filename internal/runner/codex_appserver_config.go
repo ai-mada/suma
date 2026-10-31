@@ -74,15 +74,16 @@ func codexReservedEnvironment(name string) bool {
 // endpoint and credential reference. Secret values are intentionally excluded.
 func CodexConfigurationDigest(spec CodexAppServerSpec) string {
 	raw, _ := json.Marshal(struct {
-		Version  int                `json:"version"`
-		Provider CodexAppServerSpec `json:"provider"`
-	}{2, spec})
+		Version        int                `json:"version"`
+		ApprovalPolicy string             `json:"approval_policy"`
+		Provider       CodexAppServerSpec `json:"provider"`
+	}{3, cc.ApprovalPolicy, spec})
 	return digest(raw)
 }
 
 func codexConfiguration(spec CodexAppServerSpec, root string) string {
 	q := strconv.Quote
-	text := "model_provider = " + q(spec.ProviderID) + "\napproval_policy = \"never\"\nsandbox_mode = \"workspace-write\"\nweb_search = \"disabled\"\n\n[sandbox_workspace_write]\nwritable_roots = [" + q(root) + "]\nnetwork_access = false\nexclude_tmpdir_env_var = true\nexclude_slash_tmp = true\n\n[features]\nmulti_agent = false\n\n[model_providers." + spec.ProviderID + "]\nname = " + q(spec.ProviderID) + "\nbase_url = " + q(spec.BaseURL) + "\nwire_api = \"responses\"\nrequires_openai_auth = false\nrequest_max_retries = 0\nstream_max_retries = 0\n"
+	text := "model_provider = " + q(spec.ProviderID) + "\napproval_policy = " + q(cc.ApprovalPolicy) + "\nsandbox_mode = \"workspace-write\"\nweb_search = \"disabled\"\n\n[sandbox_workspace_write]\nwritable_roots = [" + q(root) + "]\nnetwork_access = false\nexclude_tmpdir_env_var = true\nexclude_slash_tmp = true\n\n[features]\nmulti_agent = false\n\n[model_providers." + spec.ProviderID + "]\nname = " + q(spec.ProviderID) + "\nbase_url = " + q(spec.BaseURL) + "\nwire_api = \"responses\"\nrequires_openai_auth = false\nrequest_max_retries = 0\nstream_max_retries = 0\n"
 	if spec.APIKeyEnvRef != "" {
 		text += "env_key = " + q(spec.APIKeyEnvRef) + "\n"
 	}

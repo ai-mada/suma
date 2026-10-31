@@ -4,6 +4,8 @@
 
 ## 领域边界
 
+T-CODEX-HUMAN-REQUESTS-174的当前策略为固定`on-request`，明确包含在配置摘要版本3及thread／turn ACK。原命令／文件人工请求复用[统一工具确认领域](../../contracts/codex-human-requests.md)，同一权限表、当前普通／Pool资格及原回执；等待人类在协议锁外，实际写出与清理／item结果分别记录。其它策略、会话授权和真实厂商模型验收不由本片推定。下述P4-041实际记录保留原测试条件，不作为当前策略的重新验收。
+
 Codex配置确认与原生提供方回执分别建模。`CodexCatalog`／`CodexSelection`／`CodexBinding`／`CodexEvidence` 是模型域的独立合同；公开类型名称保持全局唯一，OpenAPI及TypeScript从Go来源生成。正式任务和DAG状态、执行器输出、候选代码、质量检查、人工验收及发布是独立事实。
 
 ```mermaid

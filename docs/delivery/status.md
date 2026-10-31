@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-CODEX-HUMAN-REQUESTS-174：[合同](../../contracts/codex-human-requests.md)、[架构与AI SOP](../architecture/codex-human-requests.md)、[交互](../design/codex-human-requests.md)及[限定验证](../quality/codex-human-requests-verification.md)／[摘要](../quality/codex-human-requests-summary.json)。原权限领域显式区分ACP／Codex，准确一次决定、异步写入与持久观察沿普通／Pool当前资格和原回执贯通；65个不同定向检查、54个Go子例与9项真实HTTP／SQLite／原Worker／受控CLI／生产组件检查通过；两次验证器启动前问题原件保留，最后复用二进制及UI完成，无额外编译。两张中英局部图已查看，真实厂商／模型及正式验收不外推。完整31／P0–P7／58／34／92及原171显式GUI停止缺口保留。
+
 T-CODEX-SKILLS-173：[合同](../../contracts/codex-native-skills.md)、[架构与AI SOP](../architecture/codex-native-skills.md)、[交互](../design/codex-native-skills.md)及[验证](../quality/codex-native-skills-verification.md)／[摘要](../quality/codex-native-skills-summary.json)。固定发布技能沿原任务／专家团队计划、当前普通／Pool资格与受保护Assignment物化到独立HOME，准确目录后显式调用，五种执行事实分别展示；移除缺包的历史兼容放行。31Go／16Web不同顶层通过，Go子例70过／4链接权限跳过；一次全类型4处新夹具诊断修正后3文件语义0，其余17源未变，8208对词条通过。本机当前CLI一次initialize／skills-list目录验证0模型、正常退出；一次组件构建及4项中英／390／键盘检查通过，合成数据不冒充真实模型。真实技能使用、完整Codex能力、物理多机／跨库／安装与31／P0–P7／58／34／92继续交付，原171显式UI停止缺口保留。
 
 T-DELIVERY-KNOWLEDGE-172：[合同](../../contracts/delivery-knowledge.md)、[架构与AI SOP](../architecture/delivery-knowledge.md)、[交互](../design/delivery-knowledge.md)及[验证](../quality/delivery-knowledge-verification.md)／[摘要](../quality/delivery-knowledge-summary.json)。正式验收来源固定Review、运行、测试及候选依据，复用知识提案、人工草稿、发布、目录及后续上下文；保留原操作恢复和来源漂移保护。23Go／20Web不同顶层、7单列子例、类型及8181对词条通过。一次Go／UI构建及6项真实授权HTTP／生产组件只读检查通过，17GET／0POST／17表不变、正常退出及两中英代表局部图留证；后补两项英文数量文案不重跑业务。真实模型、下一Codex执行、物理多机／其他数据库、完整App和31／P0–P7／58／34／92继续交付，171显式UI停止缺口保留。

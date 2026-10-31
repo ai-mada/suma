@@ -11,15 +11,17 @@ import (
 	"time"
 
 	ac "github.com/ai-mada/suma/internal/acpcontract"
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/dag"
 	"github.com/ai-mada/suma/internal/store"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
 )
 
-const toolPermissionInvalid = "Invalid ACP tool permission request"
-const toolPermissionChanged = "The ACP tool permission source changed; reload before deciding"
-const toolPermissionColumns = "id,tenant_id,project_id,run_id,node_id,attempt,fence,worker_id,dispatch_id,profile_id,profile_version,profile_payload,operation_id,request_sha256,session_id,tool_call_id,version,state,expires_at,assignment,payload"
-const toolPermissionDDL = `CREATE TABLE IF NOT EXISTS suma_tool_permissions(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,attempt INTEGER NOT NULL,fence BIGINT NOT NULL,worker_id VARCHAR(100) NOT NULL,dispatch_id VARCHAR(128) NOT NULL,profile_id VARCHAR(64) NOT NULL,profile_version INTEGER NOT NULL,profile_payload TEXT NOT NULL,operation_id VARCHAR(128) NOT NULL,request_sha256 VARCHAR(64) NOT NULL,session_id VARCHAR(128) NOT NULL,tool_call_id VARCHAR(128) NOT NULL,version BIGINT NOT NULL,state VARCHAR(32) NOT NULL,expires_at VARCHAR(40) NOT NULL,assignment TEXT NOT NULL,payload TEXT NOT NULL,UNIQUE(tenant_id,project_id,worker_id,operation_id),UNIQUE(tenant_id,project_id,run_id,node_id,attempt,fence,session_id,tool_call_id))`
+const toolPermissionInvalid = "Invalid tool permission request"
+const toolPermissionChanged = "The tool permission source changed; reload before deciding"
+const toolPermissionColumns = "id,tenant_id,project_id,run_id,node_id,attempt,fence,worker_id,dispatch_id,profile_id,profile_version,profile_payload,operation_id,request_sha256,source_session_sha256,source_request_sha256,version,state,expires_at,assignment,payload"
+const toolPermissionDDL = `CREATE TABLE IF NOT EXISTS suma_tool_permissions(id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL,project_id VARCHAR(64) NOT NULL,run_id VARCHAR(100) NOT NULL,node_id VARCHAR(150) NOT NULL,attempt INTEGER NOT NULL,fence BIGINT NOT NULL,worker_id VARCHAR(100) NOT NULL,dispatch_id VARCHAR(128) NOT NULL,profile_id VARCHAR(64) NOT NULL,profile_version INTEGER NOT NULL,profile_payload TEXT NOT NULL,operation_id VARCHAR(128) NOT NULL,request_sha256 VARCHAR(64) NOT NULL,source_session_sha256 VARCHAR(64) NOT NULL,source_request_sha256 VARCHAR(64) NOT NULL,version BIGINT NOT NULL,state VARCHAR(32) NOT NULL,expires_at VARCHAR(40) NOT NULL,assignment TEXT NOT NULL,payload TEXT NOT NULL,UNIQUE(tenant_id,project_id,worker_id,operation_id),UNIQUE(tenant_id,project_id,run_id,node_id,attempt,fence,source_session_sha256,source_request_sha256))`
 
 func (s *Service) validateToolPermissionsInitialSchema(ctx context.Context) error {
 	query := `SELECT COUNT(*) FROM sqlite_master WHERE type IN ('table','view') AND name='suma_tool_permissions'`
@@ -69,7 +71,7 @@ func (s *Service) validateToolPermissionsInitialSchema(ctx context.Context) erro
 	if err != nil {
 		return err
 	}
-	if primary != "id" || !unique["tenant_id,project_id,worker_id,operation_id"] || !unique["tenant_id,project_id,run_id,node_id,attempt,fence,session_id,tool_call_id"] {
+	if primary != "id" || !unique["tenant_id,project_id,worker_id,operation_id"] || !unique["tenant_id,project_id,run_id,node_id,attempt,fence,source_session_sha256,source_request_sha256"] {
 		return fmt.Errorf("%w: tool permission keys required", store.ErrInitialSchema)
 	}
 	return nil
@@ -86,7 +88,7 @@ func (s *Service) InitializeToolPermissions(ctx context.Context) error {
 }
 
 type toolPermissionRow struct {
-	value                          ac.Permission
+	value                          pc.Permission
 	tenant, profileID, requestHash string
 	profileVersion                 int
 	profile                        tc.Profile
@@ -97,37 +99,70 @@ func (toolPermissionRow) Format(s fmt.State, _ rune) {
 	_, _ = io.WriteString(s, "toolPermissionRow{redacted}")
 }
 func (s *Service) toolPermissionReadTx(ctx context.Context, tx *sql.Tx, tenant, project, id string) (r toolPermissionRow, err error) {
-	var raw, assignment, profile, requestKey, session, tool, state, expires string
+	var raw, assignment, profile, requestKey, sessionSHA, requestSHA, state, expires string
 	var version int64
-	var source ac.Permission
-	err = tx.QueryRowContext(ctx, s.q(`SELECT tenant_id,profile_id,profile_version,profile_payload,operation_id,request_sha256,session_id,tool_call_id,version,state,expires_at,assignment,payload,run_id,node_id,attempt,fence,worker_id,dispatch_id FROM suma_tool_permissions WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, id).Scan(&r.tenant, &r.profileID, &r.profileVersion, &profile, &requestKey, &r.requestHash, &session, &tool, &version, &state, &expires, &assignment, &raw, &source.RunID, &source.NodeID, &source.Attempt, &source.Fence, &source.WorkerID, &source.DispatchID)
+	var source pc.Permission
+	err = tx.QueryRowContext(ctx, s.q(`SELECT tenant_id,profile_id,profile_version,profile_payload,operation_id,request_sha256,source_session_sha256,source_request_sha256,version,state,expires_at,assignment,payload,run_id,node_id,attempt,fence,worker_id,dispatch_id FROM suma_tool_permissions WHERE tenant_id=? AND project_id=? AND id=?`), tenant, project, id).Scan(&r.tenant, &r.profileID, &r.profileVersion, &profile, &requestKey, &r.requestHash, &sessionSHA, &requestSHA, &version, &state, &expires, &assignment, &raw, &source.RunID, &source.NodeID, &source.Attempt, &source.Fence, &source.WorkerID, &source.DispatchID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return r, missing()
 	}
 	if err != nil {
 		return r, err
 	}
-	if json.Unmarshal([]byte(raw), &r.value) != nil || ac.ValidatePermission(r.value) != nil || json.Unmarshal([]byte(assignment), &r.assignment) != nil || json.Unmarshal([]byte(profile), &r.profile) != nil || r.value.ID != id || r.value.ProjectID != project || r.value.Version != version || r.value.State != state || r.value.ExpiresAt != expires || r.value.Request.IdempotencyKey != requestKey || r.value.Request.SessionID != session || r.value.Request.ToolCallID != tool || r.value.ProfileSHA256 != r.profile.ProfileSHA256 || !toolPermissionSameSource(r.value, r.assignment) || !toolPermissionSameSource(source, r.assignment) || r.requestHash != toolPermissionRequestHash(r.assignment, r.value.Request) {
+	if json.Unmarshal([]byte(raw), &r.value) != nil || pc.ValidatePermission(r.value) != nil || json.Unmarshal([]byte(assignment), &r.assignment) != nil || json.Unmarshal([]byte(profile), &r.profile) != nil || r.value.ID != id || r.value.ProjectID != project || r.value.Version != version || r.value.State != state || r.value.ExpiresAt != expires || r.value.Request.IdempotencyKey != requestKey || r.value.ProfileSHA256 != r.profile.ProfileSHA256 || !toolPermissionSameSource(r.value, r.assignment) || !toolPermissionSameSource(source, r.assignment) || r.requestHash != toolPermissionRequestHash(r.assignment, r.value.Request) {
+		return r, conflict(toolPermissionChanged)
+	}
+	actualSession, actualRequest, e := pc.RequestSourceDigests(r.value.Request)
+	if e != nil || actualSession != sessionSHA || actualRequest != requestSHA {
 		return r, conflict(toolPermissionChanged)
 	}
 	return r, nil
 }
-func toolPermissionRequestHash(a dag.Assignment, r ac.PermissionRequest) string {
+func toolPermissionRequestHash(a dag.Assignment, r pc.Request) string {
 	return digest(stringify(struct {
 		Assignment dag.Assignment
-		Request    ac.PermissionRequest
+		Request    pc.Request
 	}{a, r}))
 }
-func toolPermissionSameSource(p ac.Permission, a dag.Assignment) bool {
+func toolPermissionSameSource(p pc.Permission, a dag.Assignment) bool {
 	return p.RunID == a.RunID && p.NodeID == a.NodeID && p.Attempt == a.Attempt && p.Fence == a.Fence && p.WorkerID == a.WorkerID && p.DispatchID == a.DispatchID
+}
+
+func toolPermissionRequestMatchesBasis(request pc.Request, basis toolPermissionBasis) bool {
+	if pc.ValidateRequest(request) != nil || request.Protocol != basis.profile.Profile.Protocol {
+		return false
+	}
+	if request.Protocol == cc.Protocol {
+		binding, err := dag.CodexBinding(basis.node)
+		return err == nil && binding != nil && request.Codex != nil && request.Codex.BindingSHA256 == binding.BindingSHA256
+	}
+	return request.Protocol == ac.Protocol && request.ACP != nil
+}
+
+func toolPermissionChoiceAction(choice pc.Choice) string {
+	if choice.ACP != nil {
+		return choice.ACP.Kind
+	}
+	if choice.Codex != nil {
+		return choice.Codex.Decision
+	}
+	return ""
+}
+
+func toolPermissionObservationEnded(observation *cc.CodexApprovalObservation) bool {
+	return observation != nil && (observation.RequestResolved || observation.ItemStatus == "completed" || observation.ItemStatus == "failed" || observation.ItemStatus == "declined")
 }
 func (s *Service) toolPermissionSaveTx(ctx context.Context, tx *sql.Tx, r toolPermissionRow, before int64) error {
 	r.value.AllowedActions = []string{}
-	if ac.ValidatePermission(r.value) != nil || r.value.Version != before+1 {
+	if pc.ValidatePermission(r.value) != nil || r.value.Version != before+1 {
 		return invalid(toolPermissionInvalid)
 	}
 	if before == 0 {
-		_, err := tx.ExecContext(ctx, s.q(`INSERT INTO suma_tool_permissions(`+toolPermissionColumns+`)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`), r.value.ID, r.tenant, r.value.ProjectID, r.value.RunID, r.value.NodeID, r.value.Attempt, r.value.Fence, r.value.WorkerID, r.value.DispatchID, r.profileID, r.profileVersion, stringify(r.profile), r.value.Request.IdempotencyKey, r.requestHash, r.value.Request.SessionID, r.value.Request.ToolCallID, r.value.Version, r.value.State, r.value.ExpiresAt, stringify(r.assignment), stringify(r.value))
+		sessionSHA, requestSHA, err := pc.RequestSourceDigests(r.value.Request)
+		if err != nil {
+			return invalid(toolPermissionInvalid)
+		}
+		_, err = tx.ExecContext(ctx, s.q(`INSERT INTO suma_tool_permissions(`+toolPermissionColumns+`)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`), r.value.ID, r.tenant, r.value.ProjectID, r.value.RunID, r.value.NodeID, r.value.Attempt, r.value.Fence, r.value.WorkerID, r.value.DispatchID, r.profileID, r.profileVersion, stringify(r.profile), r.value.Request.IdempotencyKey, r.requestHash, sessionSHA, requestSHA, r.value.Version, r.value.State, r.value.ExpiresAt, stringify(r.assignment), stringify(r.value))
 		return err
 	}
 	result, err := tx.ExecContext(ctx, s.q(`UPDATE suma_tool_permissions SET version=?,state=?,payload=? WHERE tenant_id=? AND project_id=? AND id=? AND version=?`), r.value.Version, r.value.State, stringify(r.value), r.tenant, r.value.ProjectID, r.value.ID, before)
@@ -164,7 +199,15 @@ func (s *Service) toolPermissionBasisTx(ctx context.Context, tx *sql.Tx, tenant,
 	if err != nil {
 		return b, err
 	}
-	if !acpNodeMatchesProfile(b.node, b.profile) || !tc.SupportsACPExecutionProfile(b.profile.Profile) || b.profile.Profile.ProfileSHA256 != sha || b.profile.WorkerID != a.WorkerID {
+	qualified := false
+	switch b.profile.Profile.Protocol {
+	case ac.Protocol:
+		qualified = acpNodeMatchesProfile(b.node, b.profile) && tc.SupportsACPExecutionProfile(b.profile.Profile)
+	case cc.Protocol:
+		binding, e := dag.CodexBinding(b.node)
+		qualified = e == nil && binding != nil && supportsCodexExecution(b.profile)
+	}
+	if !qualified || b.profile.Profile.ProfileSHA256 != sha || b.profile.WorkerID != a.WorkerID {
 		return b, conflict(toolPermissionChanged)
 	}
 	// Pool callbacks deliberately carry only the original execution identity.
@@ -225,13 +268,15 @@ func (s *Service) toolPermissionCurrentProfileTx(ctx context.Context, tx *sql.Tx
 	}
 	return nil
 }
-func toolPermissionEffective(r toolPermissionRow, b toolPermissionBasis, now time.Time) ac.Permission {
+func toolPermissionEffective(r toolPermissionRow, b toolPermissionBasis, now time.Time) pc.Permission {
 	p := r.value
 	p.AllowedActions = []string{}
 	if b.attempt != p.Attempt || b.fence != p.Fence || b.worker != p.WorkerID || b.state != "running" || (b.runState != "running" && b.runState != "paused") {
 		p.State = "superseded"
 	} else if b.lease <= now.Unix() || b.deadline <= now.Unix() {
 		p.State = "expired"
+	} else if p.State == "pending" && toolPermissionObservationEnded(p.Observation) {
+		p.State = "superseded"
 	}
 	return p
 }
@@ -248,24 +293,23 @@ func (s *Service) toolPermissionWorkAllowedTx(ctx context.Context, tx *sql.Tx, t
 	}
 	return allow, nil
 }
-func (s *Service) toolPermissionDeliveryTx(ctx context.Context, tx *sql.Tx, r toolPermissionRow, b toolPermissionBasis, now time.Time) (ac.Permission, error) {
+func (s *Service) toolPermissionDeliveryTx(ctx context.Context, tx *sql.Tx, r toolPermissionRow, b toolPermissionBasis, now time.Time) (pc.Permission, error) {
 	p := toolPermissionEffective(r, b, now)
-	if p.State == "expired" || p.State == "superseded" {
-		p.Decision = nil
+	if p.Request.Protocol == cc.Protocol && p.State == "decided" && toolPermissionObservationEnded(p.Observation) {
+		p.State = "superseded"
 	}
-	if p.State == "decided" && p.Decision != nil && p.Decision.Kind == "allow_once" {
+	if p.State == "decided" && p.Decision != nil && pc.IsGrant(p.Decision.Choice) {
 		allowed, e := s.toolPermissionWorkAllowedTx(ctx, tx, r.tenant, p.ProjectID, b)
 		if e != nil {
-			return ac.Permission{}, e
+			return pc.Permission{}, e
 		}
 		if !allowed {
 			p.State = "superseded"
-			p.Decision = nil
 		}
 	}
 	return p, nil
 }
-func (s *Service) toolPermissionAllowsTx(ctx context.Context, tx *sql.Tx, tenant, project string, p ac.Permission, b toolPermissionBasis) ([]string, error) {
+func (s *Service) toolPermissionAllowsTx(ctx context.Context, tx *sql.Tx, tenant, project string, p pc.Permission, b toolPermissionBasis) ([]string, error) {
 	out := []string{}
 	if p.State != "pending" {
 		return out, nil
@@ -274,17 +318,14 @@ func (s *Service) toolPermissionAllowsTx(ctx context.Context, tx *sql.Tx, tenant
 	if err != nil {
 		return nil, err
 	}
-	allow = allow && p.Request.DetailsComplete
-	hasAllow, hasReject := false, false
-	for _, o := range p.Request.Options {
-		hasAllow = hasAllow || o.Kind == "allow_once"
-		hasReject = hasReject || o.Kind == "reject_once"
+	if toolPermissionObservationEnded(p.Observation) {
+		return out, nil
 	}
-	if allow && hasAllow {
-		out = append(out, "allow_once")
-	}
-	if hasReject {
-		out = append(out, "reject_once")
+	for _, action := range pc.AllowedActions(p.Request) {
+		if !allow && (action == "allow_once" || action == "accept") {
+			continue
+		}
+		out = append(out, action)
 	}
 	return out, nil
 }

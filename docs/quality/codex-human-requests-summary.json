@@ -1,0 +1,204 @@
+{
+  "stage": "T-CODEX-HUMAN-REQUESTS-174",
+  "version": "1.0.0",
+  "date": "2026-10-31",
+  "status": "scoped_source_contract_and_controlled_actual_verified",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "focused": {
+    "distinct_top_level": 65,
+    "new": 37,
+    "affected_existing": 28,
+    "go": {
+      "distinct": 39,
+      "new": 21,
+      "affected_existing": 18,
+      "pass": 39,
+      "skip": 0,
+      "fail": 0
+    },
+    "web": {
+      "distinct": 26,
+      "new": 16,
+      "affected_existing": 10,
+      "pass": 26
+    },
+    "go_subcases_separate": {
+      "distinct": 54,
+      "new": 24,
+      "affected_existing": 30,
+      "pass": 54,
+      "skip": 0,
+      "fail": 0
+    },
+    "old_full_suites_rerun": 0,
+    "go_summary_sha256": "3886100b3e04f34694bbb7b8dc8a615589125f50980105bb2274f8aedf4dad94",
+    "original_failed_runs_preserved": true
+  },
+  "types": {
+    "initial_full_web_exit": 2,
+    "initial_full_diagnostics": 1,
+    "final_affected_file_options_diagnostics": 0,
+    "final_affected_file_syntax_diagnostics": 0,
+    "final_affected_file_semantic_diagnostics": 0,
+    "other_frozen_sources_unchanged": 12,
+    "full_typecheck_repeated": false,
+    "post_copy_component_semantic_diagnostics": 0
+  },
+  "i18n": {
+    "paired_keys": 8279,
+    "hardcodes": 0,
+    "check_exit": 0,
+    "post_visual_added_pairs": 2,
+    "current_paired_keys": 8281,
+    "changed_domain_pairs_valid": 73,
+    "full_check_repeated": false,
+    "copy_revision_sha256": "a6a0cfb2e77a6ad3c89e740224c41be208fd2ee3b9f22fa54d353cc282bb24f5",
+    "copy_revision_scope": "Three files only: Codex generated command/file headings localized; ACP custom titles preserved. Exact component semantic0 and changed domain pairs checked; no new build, GUI, full suites or repeated full catalog check. Original images predate this label change."
+  },
+  "contracts": {
+    "declared_models": 848,
+    "schemas": 849,
+    "paths": 394,
+    "generation_runs": 1,
+    "generator_focused_tests": 2
+  },
+  "current_native_schema": {
+    "mode": "one offline stable schema export from the installed executable",
+    "executable_sha256": "3097c909fb6d5cd63510d44aceb1d42df9f6e85722a3e447e477def1ecf60e16",
+    "executable_unchanged": true,
+    "exit": 0,
+    "model_calls": 0,
+    "login": false,
+    "native_approval_model_execution": false
+  },
+  "independent_review": {
+    "closed_p2": [
+      "Original committed Open recovery must precede new-work pause admission; current source authority remains checked.",
+      "Cancel blocks unclaimed queued startup frames; existing approval write callbacks and explicit interrupts remain unchanged."
+    ],
+    "new_regressions": 2,
+    "prior_green_suites_repeated": false,
+    "raw_red_and_green_preserved": true
+  },
+  "actual": {
+    "status": "nine_checks_passed_reusing_existing_binary_and_ui",
+    "controlled_native_cli": true,
+    "real_vendor": false,
+    "model_calls": 0,
+    "first": {
+      "go_compile": 1,
+      "ui_build": 1,
+      "host_exit": 0,
+      "verify_exit": 1,
+      "ui_checks": 0,
+      "ui_posts": 0,
+      "runs": 1,
+      "attempts": 1,
+      "native_requests": 1,
+      "human_decisions": 0,
+      "candidates": 0,
+      "test_reports": 0,
+      "reviews": 0,
+      "provider_calls": 0,
+      "go_and_native_observed_pids_absent": 12,
+      "port44087_released": true,
+      "original_checkout_unchanged": true,
+      "snapshot_sha256": "957e138563d2853072359fe5e4a8897d893f3b9d874ccdf49c327c511c27b1eb",
+      "pending_journal_observations": 1,
+      "pending_journal_results": 1,
+      "browser_sdk_failure_cleanup": "normal versus force not verified; later task-owned main-process query empty",
+      "original_preserved": true
+    },
+    "diagnostic": {
+      "only_blank_browser": true,
+      "launch_exit": 0,
+      "actual_argc": 5,
+      "original_guard_would_reject": true,
+      "go_compile": 0,
+      "ui_build": 0,
+      "business_requests": 0
+    },
+    "retry1_bootstrap": {
+      "host_exit": 0,
+      "browser_native_exit": 0,
+      "ui_exit": 1,
+      "ui_checks": 0,
+      "ui_posts": 0,
+      "human_decisions": 0,
+      "failure": "Verifier queried network listeners for SDK command wrapper rather than actual native PID.",
+      "preserved_archive_receipt_sha256": "c446839332900668998c4bc3843656a4646e1572481b6c1c975f0f3d501a32a9"
+    },
+    "final": {
+      "independent_new_fixture": true,
+      "source_gate_files": 87,
+      "checks": 9,
+      "additional_go_compiles": 0,
+      "additional_ui_builds": 0,
+      "total_stage_go_compiles": 2,
+      "total_stage_ui_builds": 1,
+      "runs": 1,
+      "attempts": 1,
+      "permissions": 2,
+      "browser_post_transports": 3,
+      "distinct_human_decisions": 2,
+      "original_recovery_body_identical": true,
+      "execution_turn_starts": 1,
+      "native_permission_replies": 2,
+      "request_resolved": 2,
+      "final_item_status": "declined",
+      "run_state": "succeeded",
+      "candidates": 0,
+      "test_reports": 0,
+      "reviews": 0,
+      "provider_calls": 0,
+      "shell_commands_executed": 0,
+      "journal_pending_observations": 0,
+      "journal_pending_results": 0,
+      "journal_reconciliation_required": 0,
+      "snapshot_sha256": "0c71a7d046288c1df1a92425bc1cba2e92a8122c58338febc117c6f8f0352cf1",
+      "original_checkout_unchanged": true,
+      "host_exit": 0,
+      "browser_exit": 0,
+      "observed_pids_absent": 15,
+      "host_port44087_released": true,
+      "browser_listener_audit": "not_performed",
+      "force_stop_used": false
+    },
+    "images": [
+      {
+        "file": "ui-permissions-cn-1366.png",
+        "sha256": "b67e81b335683c536f1807a13aa77e18cf6f4c077b3f5cb654c82789b5492de0",
+        "width": 1366,
+        "height": 960
+      },
+      {
+        "file": "ui-permissions-en-390.png",
+        "sha256": "0dd0039537737cf983b67929c1355d6b7a30e25958f681012e8b34ae22461e3b",
+        "width": 390,
+        "height": 844
+      }
+    ],
+    "visual_scope": "Root viewed original CN1366 and EN390 representative scrolled production-component images. Not full App/theme/device coverage. Post-image localized Codex heading is recorded separately.",
+    "old_native_rpc_replayed": false
+  },
+  "remaining": [
+    "Real Codex/vendor account, model and billing; OS sandbox and hard budget enforcement.",
+    "Persistent conversations, other native server requests and approval policies.",
+    "Physical multi-host, other databases, full App/theme/device, installers, scale and production.",
+    "Original31/P0-P7 platform; prior171 explicit GUI-stop gap retained."
+  ],
+  "hygiene": {
+    "protected_other_work_items": 21,
+    "caches_private_databases_logs_screenshots_and_binaries_in_git": false
+  },
+  "artifact_directory": "dist/quality/codex-human-requests-174",
+  "source_base_commit": "a41ef83427129f83d33845852bee869c72a75efa"
+}

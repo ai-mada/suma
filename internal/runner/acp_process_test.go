@@ -15,6 +15,7 @@ import (
 
 	ac "github.com/ai-mada/suma/internal/acpcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
 )
 
 // Only the package's test executable speaks this controlled ACP agent. It is
@@ -162,15 +163,15 @@ func TestACPProcessCandidateAndIndependentSameCommitTest(t *testing.T) {
 		return tc.ValidateEvent(event)
 	}
 	var permissionCount int
-	cfg.ToolPermission = func(_ context.Context, request ac.PermissionRequest) (ac.PermissionDecision, error) {
+	cfg.ToolPermission = func(_ context.Context, request pc.Request) (pc.Decision, error) {
 		permissionCount++
 		j.mu.Lock()
-		_, persisted := j.entries[key(a)].ACP.Requests[request.IdempotencyKey]
+		_, persisted := j.entries[key(a)].ToolPermissions.Requests[request.IdempotencyKey]
 		j.mu.Unlock()
 		if !persisted {
 			t.Error("SDK permission reached callback before its durable request")
 		}
-		return ac.PermissionDecision{OptionID: "once", Kind: "allow_once", ActorID: "human170", DecidedAt: time.Now().UTC().Format(time.RFC3339Nano)}, nil
+		return pc.Decision{Choice: pc.Choice{Protocol: ac.Protocol, ACP: &ac.Choice{OptionID: "once", Kind: "allow_once"}}, ActorID: "human170", DecidedAt: time.Now().UTC().Format(time.RFC3339Nano)}, nil
 	}
 	result := Execute(context.Background(), a, cfg)
 	if result.ExitCode != 0 || result.Error != "" || result.OutcomeUnknown || result.ToolEvidence == nil || result.ToolEvidence.ACPExecution == nil {

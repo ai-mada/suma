@@ -22,7 +22,7 @@ func ValidateModelCatalogue(c ACPModelCatalogue) error {
 }
 func ValidateModelDiscoveryResult(r ACPModelDiscoveryResult) error {
 	e := r.Evidence
-	if r.Protocol != ModelDiscoveryProtocol || r.Runtime != "qoder" || !configurationDigest.MatchString(r.ExecutableSHA256) || !ValidFixedText(r.ToolVersion, 256) || !permText(r.AgentName, 256, false) || !permText(r.AgentVersion, 256, false) || e.PromptRequests < 0 || e.ConfigurationWrites < 0 || e.PermissionRequests < 0 || e.UnexpectedActivity < 0 || e.PromptRequests > 4096 || e.ConfigurationWrites > 4096 || e.PermissionRequests > 4096 || e.UnexpectedActivity > 4096 || e.HostProcessTreeStopped && !e.HostProcessStopped || e.SessionCloseAcknowledged && !e.SessionCloseRequested || e.SessionCloseRequested && !e.SessionCreated {
+	if r.Protocol != ModelDiscoveryProtocol || r.Runtime != "qoder" || !configurationDigest.MatchString(r.ExecutableSHA256) || !ValidFixedText(r.ToolVersion, 256) || !permissionText(r.AgentName, 256, false, false) || !permissionText(r.AgentVersion, 256, false, false) || e.PromptRequests < 0 || e.ConfigurationWrites < 0 || e.PermissionRequests < 0 || e.UnexpectedActivity < 0 || e.PromptRequests > 4096 || e.ConfigurationWrites > 4096 || e.PermissionRequests > 4096 || e.UnexpectedActivity > 4096 || e.HostProcessTreeStopped && !e.HostProcessStopped || e.SessionCloseAcknowledged && !e.SessionCloseRequested || e.SessionCloseRequested && !e.SessionCreated {
 		return ErrModelDiscoveryInvalid
 	}
 	switch r.State {

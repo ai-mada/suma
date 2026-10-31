@@ -55,6 +55,7 @@ type CodexBinding struct {
 // carried by the existing ToolEvidence counters with partial/unknown coverage.
 // Missing turn-start acknowledgements never authorize automatic replay/resume.
 type CodexEvidence struct {
+	Approvals                   []CodexApprovalEvidence `json:"approvals,omitempty"`
 	Skills                      *ExecutionSkillEvidence `json:"skills,omitempty"`
 	BindingSHA256               string                  `json:"binding_sha256"`
 	ThreadID                    string                  `json:"thread_id,omitempty"`
@@ -112,6 +113,13 @@ func CloneEvidence(e *Evidence) *Evidence {
 	}
 	copy := *e
 	copy.Skills = CloneExecutionSkillEvidence(e.Skills)
+	copy.Approvals = append([]CodexApprovalEvidence(nil), e.Approvals...)
+	for i := range copy.Approvals {
+		if e.Approvals[i].Observation != nil {
+			observation := *e.Approvals[i].Observation
+			copy.Approvals[i].Observation = &observation
+		}
+	}
 	copy.ReroutedModels = append([]string(nil), e.ReroutedModels...)
 	return &copy
 }
@@ -183,6 +191,17 @@ func ValidateBinding(b Binding) error {
 	return nil
 }
 func ValidateEvidence(e Evidence) error {
+	if len(e.Approvals) > 32 || len(e.Approvals) > 0 && !e.ConfigurationAcknowledged {
+		return fmt.Errorf("Codex approval evidence is invalid")
+	}
+	requests := map[string]bool{}
+	for _, request := range e.Approvals {
+		key := request.RequestID.Kind + ":" + request.RequestID.Value
+		if ValidateApprovalEvidence(request) != nil || request.ThreadID != e.ThreadID || request.TurnID != e.TurnID || requests[key] {
+			return fmt.Errorf("Codex approval identity differs from its original turn")
+		}
+		requests[key] = true
+	}
 	if e.Skills != nil && (ValidateExecutionSkillEvidence(*e.Skills) != nil || e.Skills.CatalogAcknowledged && !e.ConfigurationAcknowledged || e.Skills.TurnAcknowledged && e.TurnID == "") {
 		return fmt.Errorf("Codex skill evidence is invalid")
 	}
@@ -200,6 +219,11 @@ func ValidateEvidence(e Evidence) error {
 	return nil
 }
 func EvidenceMatchesBinding(b Binding, e Evidence) bool {
+	for _, request := range e.Approvals {
+		if !ApprovalEvidenceClosed(request) {
+			return false
+		}
+	}
 	return ValidateBinding(b) == nil && ValidateEvidence(e) == nil && e.BindingSHA256 == b.BindingSHA256 && e.RequestedModel == b.Model && e.RequestedReasoningEffort == b.ReasoningEffort && e.ConfigurationAcknowledged && e.TurnID != "" && (!e.TokenNoticeExceeded || b.TokenNoticeLimit != nil)
 }
 

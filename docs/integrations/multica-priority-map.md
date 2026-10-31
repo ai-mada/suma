@@ -1,5 +1,7 @@
 # Multica下一步复用优先级
 
+T-CODEX-HUMAN-REQUESTS-174继续优先补齐Multica式统一团队执行和Helix式恢复门禁：复用原权限表、唯一Go调度器、普通／Pool Runner及成熟原生协议，统一ACP／Codex一次确认、原请求核对和实际写入观察。当前依据固定上游及本机稳定schema，新增上游源码复制0，不将工具确认当成代码／业务验收。[合同](../../contracts/codex-human-requests.md)、[架构与AI SOP](../architecture/codex-human-requests.md)、[简洁交互](../design/codex-human-requests.md)和[限定证据](../quality/codex-human-requests-verification.md)分别记录；完整参考项目能力与31／P0–P7范围不变。
+
 T-CODEX-SKILLS-173沿已发布项目技能与团队固定输入推进Codex原生执行：复用原知识修订、任务及专家团队计划、唯一Go DAG、当前普通／Pool资格、独立HOME和原回合；新增准确文档／包摘要、真实目录核对和显式skill输入，不复制上游启动器或绕过审批。Multica／Helix固定参考及许可边界保持；[合同](../../contracts/codex-native-skills.md)、[架构与SOP](../architecture/codex-native-skills.md)与[47定向／本机目录／合成视觉证据](../quality/codex-native-skills-verification.md)限定范围。本机目录不是模型使用证明，其他工具原生技能、支持文件／签名包、持续协作及完整平台继续实施，58／34／92不变。
 
 T-DELIVERY-KNOWLEDGE-172优先加强验收成果、记忆、知识及技能复用：固定正式交付依据，沿原提案、采用、发布与后续任务上下文形成闭环。结合Multica `e8ae72c9dfc1b4474b61a9087f51b33cbee6a048`的团队任务经验及HelixHarness `44ffc536f73d8af525b4795ad10384c516898576`的Propose→Apply→Archive／固定证据思想，保持速码当前权限、事务、唯一DAG及Runner。没有复制新增上游源码、审批旁路或进程池；Helix原Apache2与NOTICE、改编材料许可分别核对。[架构及AI SOP](../architecture/delivery-knowledge.md)、[交互](../design/delivery-knowledge.md)与[43定向／6只读实际检查](../quality/delivery-knowledge-verification.md)记录限定范围；真实模型、物理分布式、自动技能优化评测和完整平台继续实施，58／34／92不变。

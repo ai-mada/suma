@@ -172,7 +172,7 @@ func TestCodexAppServerActualNoTurnAcknowledgement(t *testing.T) {
 		}
 		return text
 	}
-	expected := map[string]any{"model": binding.Model, "reasoningEffort": binding.ReasoningEffort, "modelProvider": spec.CodexAppServer.ProviderID, "cwd": workspace, "approvalPolicy": "never", "effectiveWritableRoots": []string{workspace}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true, "windowsSandbox": spec.CodexAppServer.WindowsSandbox}
+	expected := map[string]any{"model": binding.Model, "reasoningEffort": binding.ReasoningEffort, "modelProvider": spec.CodexAppServer.ProviderID, "cwd": workspace, "approvalPolicy": cc.ApprovalPolicy, "effectiveWritableRoots": []string{workspace}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true, "windowsSandbox": spec.CodexAppServer.WindowsSandbox}
 	receipt := map[string]any{"locked_executable_sha256": pin.SHA256, "configuration_sha256": binding.ConfigurationSHA256, "methods": methods, "request": params, "expected": expected, "ack": ack, "mismatch_field": mismatch, "provider_requests": providerRequests.Load(), "turn_requests": 0, "current_login_configuration_used": false, "process_exit_confirmed": processErr == nil && finishErr == nil}
 	raw, _ = json.MarshalIndent(receipt, "", "  ")
 	for name, data := range map[string]string{"public-expected-vs-ack.local.json": string(raw), "stdout.txt": strings.Join(frames, "\n"), "stderr.txt": diagnostic.String()} {

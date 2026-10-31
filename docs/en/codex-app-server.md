@@ -8,11 +8,13 @@ Control freezes a separate Codex binding into the task preview and node. Preview
 
 The existing runner still owns the worktree, process tree, output journal, candidate and result. One thread and turn are submitted after exact configuration acknowledgement. Unknown starts are not replayed or resumed automatically. Interrupt acknowledgements and confirmed process termination remain distinct facts.
 
+The current T-CODEX-HUMAN-REQUESTS-174 policy is fixed `on-request`, explicitly included in configuration digest version3 and thread/turn acknowledgement. Command and file approvals use the [unified tool-confirmation domain](codex-human-requests.md), current Runner/Pool authority, one-time human decisions and durable reply observations. Historical P4-041 evidence below retains its original execution conditions; it is not a new real-vendor acceptance of this policy.
+
 The browser reuses the current task dialog and design system. Chinese and English labels, explicit model/effort selection, optional notices, fixed facts and durable recovery have focused tests. Start responses are checked against the original plan’s reserved run before clearing intent.
 
 The installed CLI completed an isolated worktree edit through an owned Responses endpoint. Seven progress events and the original result were persisted; the ledger recorded 88 observed tokens, partial coverage and unknown cost. The final run made two owned HTTP requests. A prior failed coding attempt made two more; no vendor inference, formal tests or human acceptance was performed. Chinese/English configuration, fixed preview and refresh were checked without starting the separate GUI task.
 
-Original discovery, configuration and nested Windows token failures remain in the evidence. A normal host process was required to create the CLI’s inner restricted process; inner workspace-only/no-network/never-approval settings and PowerShell constrained language were retained. No global settings, ACLs or user login configuration were changed. This is not production OS-isolation attestation. Other CLI protocols, Codex expert/repair entry points, full remote IDE and the complete P0-P7 scope remain active.
+Original discovery, configuration and nested Windows token failures remain in the evidence. That earlier P4-041 run required a normal host process to create the CLI’s inner restricted process; its workspace-only/no-network/never-approval settings and PowerShell constrained language are preserved as historical test conditions. No global settings, ACLs or user login configuration were changed. This is not production OS-isolation attestation. Other CLI protocols, Codex expert/repair entry points, full remote IDE and the complete P0-P7 scope remain active.
 
 See the [verification](../quality/codex-app-server-verification.md) and [summary](../quality/codex-app-server-summary.json).
 

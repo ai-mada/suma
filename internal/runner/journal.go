@@ -18,18 +18,18 @@ import (
 )
 
 type entry struct {
-	Assignment        Assignment                `json:"assignment"`
-	Result            *Result                   `json:"result,omitempty"`
-	Acked             bool                      `json:"acked"`
-	Progress          []Progress                `json:"progress,omitempty"`
-	ProgressTruncated bool                      `json:"progress_truncated,omitempty"`
-	ArtifactPending   *artifactTransfer         `json:"artifact_pending,omitempty"`
-	CandidatePending  *candidateTransfer        `json:"candidate_pending,omitempty"`
-	ModelGateway      *modelGatewayCheckpoint   `json:"model_gateway,omitempty"`
-	WorkspaceTrace    *workspaceTraceCheckpoint `json:"workspace_trace,omitempty"`
-	Terminal          *terminalCheckpoint       `json:"terminal,omitempty"`
-	Cloud             *cloudExecutionCheckpoint `json:"workbuddy_cloud,omitempty"`
-	ACP               *acpExecutionCheckpoint   `json:"acp_execution,omitempty"`
+	Assignment        Assignment                         `json:"assignment"`
+	Result            *Result                            `json:"result,omitempty"`
+	Acked             bool                               `json:"acked"`
+	Progress          []Progress                         `json:"progress,omitempty"`
+	ProgressTruncated bool                               `json:"progress_truncated,omitempty"`
+	ArtifactPending   *artifactTransfer                  `json:"artifact_pending,omitempty"`
+	CandidatePending  *candidateTransfer                 `json:"candidate_pending,omitempty"`
+	ModelGateway      *modelGatewayCheckpoint            `json:"model_gateway,omitempty"`
+	WorkspaceTrace    *workspaceTraceCheckpoint          `json:"workspace_trace,omitempty"`
+	Terminal          *terminalCheckpoint                `json:"terminal,omitempty"`
+	Cloud             *cloudExecutionCheckpoint          `json:"workbuddy_cloud,omitempty"`
+	ToolPermissions   *toolPermissionExecutionCheckpoint `json:"tool_permissions,omitempty"`
 }
 type Journal struct {
 	mu                    sync.Mutex
@@ -98,7 +98,7 @@ func OpenJournal(dir string) (*Journal, error) {
 		return nil, err
 	}
 	for k, e := range j.entries {
-		if err = validACPCheckpoint(e.Assignment, e.ACP); err != nil {
+		if err = validToolPermissionCheckpoint(e.Assignment, e.ToolPermissions); err != nil {
 			return nil, err
 		}
 		if e.Cloud != nil {

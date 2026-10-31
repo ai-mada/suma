@@ -59,14 +59,14 @@ func codexAppServerFixtureProcess() bool {
 		case "model/list":
 			reply(map[string]any{"data": []any{map[string]any{"id": "fixture-catalog-041", "model": "owned-model-041", "supportedReasoningEfforts": []any{map[string]any{"reasoningEffort": "low"}, map[string]any{"reasoningEffort": "high"}}, "defaultReasoningEffort": "low"}}, "nextCursor": nil})
 		case "thread/start":
-			if textAt(p, "model") != "owned-model-041" || textAt(p, "modelProvider") != "owned041" || textAt(objectAt(p, "config"), "model_reasoning_effort") != "high" || textAt(p, "approvalPolicy") != "never" {
+			if textAt(p, "model") != "owned-model-041" || textAt(p, "modelProvider") != "owned041" || textAt(objectAt(p, "config"), "model_reasoning_effort") != "high" || textAt(p, "approvalPolicy") != cc.ApprovalPolicy {
 				os.Exit(74)
 			}
 			model := "owned-model-041"
 			if mode == "wrong-ack" {
 				model = "another-model"
 			}
-			reply(map[string]any{"thread": map[string]any{"id": "fixture-thread-041"}, "model": model, "modelProvider": "owned041", "reasoningEffort": "high", "cwd": p["cwd"], "approvalPolicy": "never", "sandbox": map[string]any{"type": "workspaceWrite", "writableRoots": []any{p["cwd"]}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true}})
+			reply(map[string]any{"thread": map[string]any{"id": "fixture-thread-041"}, "model": model, "modelProvider": "owned041", "reasoningEffort": "high", "cwd": p["cwd"], "approvalPolicy": cc.ApprovalPolicy, "sandbox": map[string]any{"type": "workspaceWrite", "writableRoots": []any{p["cwd"]}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true}})
 		case "turn/start":
 			if textAt(p, "threadId") != "fixture-thread-041" || textAt(p, "model") != "owned-model-041" || textAt(p, "effort") != "high" {
 				os.Exit(75)
@@ -213,6 +213,14 @@ func TestCodexAppServerLocalPolicyAndDurableReceiptIsolation(t *testing.T) {
 		t.Fatal("account context was inherited or explicit credential was lost")
 	}
 	configSHA := CodexConfigurationDigest(*spec.CodexAppServer)
+	policyBytes, _ := json.Marshal(struct {
+		Version        int                `json:"version"`
+		ApprovalPolicy string             `json:"approval_policy"`
+		Provider       CodexAppServerSpec `json:"provider"`
+	}{3, cc.ApprovalPolicy, *spec.CodexAppServer})
+	if configSHA != digest(policyBytes) || !strings.Contains(codexConfiguration(*spec.CodexAppServer, home), "approval_policy = \"on-request\"") || strings.Contains(codexConfiguration(*spec.CodexAppServer, home), "never") {
+		t.Fatal("native approval policy was absent from the immutable configuration")
+	}
 	copy := *spec.CodexAppServer
 	copy.BaseURL += "/different"
 	if configSHA == CodexConfigurationDigest(copy) || strings.Contains(codexConfiguration(*spec.CodexAppServer, home), "owned-ref-secret") {

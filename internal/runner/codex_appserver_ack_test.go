@@ -51,6 +51,7 @@ func TestCodexAppServerStopBeforeStartAcknowledgementSubmitsNothingNew(t *testin
 					methods = append(methods, textAt(request, "method"))
 				}
 				d.input.pending = nil
+				d.input.frames = nil
 				return methods
 			}
 			reply := func(id int, result any) {
@@ -84,7 +85,7 @@ func TestCodexAppServerStopBeforeStartAcknowledgementSubmitsNothingNew(t *testin
 					if phase == "thread/start" {
 						stop()
 					}
-					reply(3, map[string]any{"thread": map[string]any{"id": "stopped-thread-041"}, "model": binding.Model, "reasoningEffort": binding.ReasoningEffort, "modelProvider": "owned041", "cwd": root, "approvalPolicy": "never", "sandbox": map[string]any{"type": "workspaceWrite", "writableRoots": []any{root}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true}})
+					reply(3, map[string]any{"thread": map[string]any{"id": "stopped-thread-041"}, "model": binding.Model, "reasoningEffort": binding.ReasoningEffort, "modelProvider": "owned041", "cwd": root, "approvalPolicy": cc.ApprovalPolicy, "sandbox": map[string]any{"type": "workspaceWrite", "writableRoots": []any{root}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true}})
 				}
 			}
 			if got := drain(); len(got) != 0 {
@@ -126,7 +127,7 @@ func TestCodexAppServerThreadAcknowledgementExactEffectiveScope(t *testing.T) {
 		{"temporary_root", func(m map[string]any) { objectAt(m, "sandbox")["excludeTmpdirEnvVar"] = false }, "sandbox.excludeTmpdirEnvVar"},
 		{"slash_temporary_root", func(m map[string]any) { objectAt(m, "sandbox")["excludeSlashTmp"] = false }, "sandbox.excludeSlashTmp"},
 		{"cwd", func(m map[string]any) { m["cwd"] = other }, "cwd"},
-		{"approval", func(m map[string]any) { m["approvalPolicy"] = "on-request" }, "approvalPolicy"},
+		{"approval", func(m map[string]any) { m["approvalPolicy"] = "never" }, "approvalPolicy"},
 		{"model", func(m map[string]any) { m["model"] = "observed-other-model" }, "model"},
 	}
 	for _, test := range tests {
@@ -134,7 +135,7 @@ func TestCodexAppServerThreadAcknowledgementExactEffectiveScope(t *testing.T) {
 			profile := tc.Profile{CommandID: "ack-test", Adapter: "codex", Protocol: cc.Protocol}
 			stream := newToolStream(profile, nil, nil)
 			d := newCodexAppServer(profile, CommandSpec{CodexAppServer: &CodexAppServerSpec{WindowsSandbox: "unelevated", ProviderID: "owned041"}}, t.TempDir(), root, "fixture only", &cc.Binding{Model: "owned-model-041", ReasoningEffort: "high"}, stream)
-			m := map[string]any{"thread": map[string]any{"id": "ack-thread"}, "model": "owned-model-041", "modelProvider": "owned041", "reasoningEffort": "high", "cwd": root, "approvalPolicy": "never", "sandbox": map[string]any{"type": "workspaceWrite", "writableRoots": []any{root}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true}}
+			m := map[string]any{"thread": map[string]any{"id": "ack-thread"}, "model": "owned-model-041", "modelProvider": "owned041", "reasoningEffort": "high", "cwd": root, "approvalPolicy": cc.ApprovalPolicy, "sandbox": map[string]any{"type": "workspaceWrite", "writableRoots": []any{root}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true}}
 			test.change(m)
 			d.threadStart(m)
 			if test.mismatch == "" {
@@ -159,7 +160,7 @@ func TestCodexAppServerConfigurationPinsRestrictedWindowsBackend(t *testing.T) {
 	if runtime.GOOS == "windows" && !strings.Contains(config, "[windows]\nsandbox = \"unelevated\"") {
 		t.Fatal("Windows isolated home does not select the restricted backend")
 	}
-	for _, setting := range []string{"network_access = false", "exclude_tmpdir_env_var = true", "exclude_slash_tmp = true", "trust_level = \"untrusted\"", "approval_policy = \"never\""} {
+	for _, setting := range []string{"network_access = false", "exclude_tmpdir_env_var = true", "exclude_slash_tmp = true", "trust_level = \"untrusted\"", "approval_policy = \"" + cc.ApprovalPolicy + "\""} {
 		if !strings.Contains(config, setting) {
 			t.Fatalf("required restricted setting absent: %s", setting)
 		}

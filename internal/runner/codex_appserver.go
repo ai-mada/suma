@@ -21,11 +21,21 @@ type codexInput struct {
 	mu      sync.Mutex
 	changed *sync.Cond
 	pending []byte
+	frames  []codexInputFrame
 	closed  bool
+}
+
+type codexInputFrame struct {
+	raw    []byte
+	before func() error
+	after  func(error)
 }
 
 func newCodexInput() *codexInput { q := &codexInput{}; q.changed = sync.NewCond(&q.mu); return q }
 func (q *codexInput) enqueue(value any) error {
+	return q.enqueueReply(value, nil, nil)
+}
+func (q *codexInput) enqueueReply(value any, before func() error, after func(error)) error {
 	raw, err := json.Marshal(value)
 	if err != nil {
 		return err
@@ -35,22 +45,71 @@ func (q *codexInput) enqueue(value any) error {
 	if q.closed || len(raw)+len(q.pending) > 128<<10 {
 		return fmt.Errorf("Codex request queue unavailable")
 	}
-	q.pending = append(append(q.pending, raw...), '\n')
+	raw = append(raw, '\n')
+	q.pending = append(q.pending, raw...)
+	q.frames = append(q.frames, codexInputFrame{raw: raw, before: before, after: after})
 	q.changed.Broadcast()
 	return nil
 }
-func (q *codexInput) Read(p []byte) (int, error) {
+func (q *codexInput) take() (codexInputFrame, bool) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	for len(q.pending) == 0 && !q.closed {
+	for len(q.frames) == 0 && !q.closed {
 		q.changed.Wait()
 	}
-	if len(q.pending) == 0 {
-		return 0, io.EOF
+	if len(q.frames) == 0 {
+		return codexInputFrame{}, false
 	}
-	n := copy(p, q.pending)
-	q.pending = q.pending[n:]
-	return n, nil
+	frame := q.frames[0]
+	q.frames[0] = codexInputFrame{}
+	q.frames = q.frames[1:]
+	q.pending = q.pending[len(frame.raw):]
+	return frame, true
+}
+
+// One writer owns stdin. Callbacks run without either queue or stdout locks;
+// dequeueing bytes is never evidence that the underlying Write succeeded.
+func (q *codexInput) copyTo(w io.Writer) (total int64, err error) {
+	for {
+		frame, ok := q.take()
+		if !ok {
+			return total, nil
+		}
+		if frame.before != nil {
+			if err := frame.before(); err != nil {
+				if frame.after != nil {
+					frame.after(err)
+				}
+				continue
+			}
+		}
+		n, err := w.Write(frame.raw)
+		total += int64(n)
+		if err == nil && n != len(frame.raw) {
+			err = io.ErrShortWrite
+		}
+		if frame.after != nil {
+			frame.after(err)
+		}
+		if err != nil {
+			q.abort(err)
+			return total, err
+		}
+	}
+}
+func (q *codexInput) abort(err error) {
+	q.mu.Lock()
+	frames := q.frames
+	q.frames = nil
+	q.pending = nil
+	q.closed = true
+	q.changed.Broadcast()
+	q.mu.Unlock()
+	for _, frame := range frames {
+		if frame.after != nil {
+			frame.after(err)
+		}
+	}
 }
 func (q *codexInput) close() { q.mu.Lock(); q.closed = true; q.changed.Broadcast(); q.mu.Unlock() }
 
@@ -80,6 +139,7 @@ type codexAppServer struct {
 	stopping                                        atomic.Bool
 	skills                                          *cc.ExecutionSkillBundle
 	skillsConfigured                                bool
+	approvals                                       *codexApprovalSession
 }
 
 func newCodexAppServer(profile tc.Profile, spec CommandSpec, home, root, goal string, binding *cc.Binding, stream *toolStream) *codexAppServer {
@@ -91,19 +151,26 @@ func newCodexAppServer(profile tc.Profile, spec CommandSpec, home, root, goal st
 	d.request("initialize", map[string]any{"clientInfo": map[string]any{"name": "suma", "title": "suma Runner", "version": buildinfo.Version}, "capabilities": map[string]any{"experimentalApi": false, "requestAttestation": false, "explicitGatewayOauth": true, "optOutNotificationMethods": []string{"item/reasoning/textDelta", "item/reasoning/summaryTextDelta", "item/commandExecution/outputDelta", "item/agentMessage/delta", "rawResponse/completed"}}})
 	return d
 }
-func (d *codexAppServer) CopyInput(w io.Writer) (int64, error) { return io.Copy(w, d.input) }
-func (d *codexAppServer) Close() error                         { d.input.close(); return nil }
+func (d *codexAppServer) CopyInput(w io.Writer) (int64, error) { return d.input.copyTo(w) }
+func (d *codexAppServer) Close() error {
+	d.stopping.Store(true)
+	d.stopApprovals()
+	d.endApprovalInput()
+	d.input.close()
+	return nil
+}
 
 // exec.Cmd does not notify an io.Writer that stdout reached EOF. Validate its
 // final fragment explicitly before deriving terminal evidence; a prior valid
 // terminal cannot hide a truncated or malformed trailing protocol frame.
 func (d *codexAppServer) Finish() {
 	d.mu.Lock()
-	defer d.mu.Unlock()
 	if d.bad == nil && len(bytes.TrimSpace(d.pending)) != 0 {
 		d.frame(bytes.TrimSpace(d.pending))
 	}
 	d.pending = nil
+	d.mu.Unlock()
+	d.finishApprovals()
 }
 func (d *codexAppServer) request(method string, params any) {
 	if d.stopping.Load() || d.bad != nil || d.stream != nil && d.stream.bad != nil {
@@ -113,7 +180,15 @@ func (d *codexAppServer) request(method string, params any) {
 	}
 	d.requestID++
 	d.waiting, d.waitingID = method, strconv.Itoa(d.requestID)
-	if err := d.input.enqueue(map[string]any{"id": d.requestID, "method": method, "params": params}); err != nil {
+	// Startup frames may wait behind stdin writes. Claim them only while the
+	// attempt is active; closing the queue alone still drains queued frames.
+	before := func() error {
+		if d.stopping.Load() {
+			return fmt.Errorf("Codex request cancelled before write")
+		}
+		return nil
+	}
+	if err := d.input.enqueueReply(map[string]any{"id": d.requestID, "method": method, "params": params}, before, nil); err != nil {
 		d.fail("request queue unavailable")
 	}
 }
@@ -170,6 +245,10 @@ func (d *codexAppServer) frame(raw []byte) {
 	}
 	if method := textAt(m, "method"); method != "" {
 		if id, present := m["id"]; present {
+			if method == "item/commandExecution/requestApproval" || method == "item/fileChange/requestApproval" {
+				d.receiveApproval(id, method, objectAt(m, "params"))
+				return
+			}
 			// No permissions, external tools, user input or authentication can be
 			// delegated through a task. Reply with a protocol error and stop.
 			_ = d.input.enqueue(map[string]any{"id": id, "error": map[string]any{"code": -32601, "message": "suma Runner does not grant server-requested capabilities"}})
@@ -308,7 +387,7 @@ func (d *codexAppServer) modelList(result map[string]any) {
 }
 
 func (d *codexAppServer) threadStartParams() map[string]any {
-	params := map[string]any{"model": d.binding.Model, "modelProvider": d.spec.CodexAppServer.ProviderID, "cwd": d.root, "approvalPolicy": "never", "sandbox": "workspace-write", "ephemeral": true}
+	params := map[string]any{"model": d.binding.Model, "modelProvider": d.spec.CodexAppServer.ProviderID, "cwd": d.root, "approvalPolicy": cc.ApprovalPolicy, "sandbox": "workspace-write", "ephemeral": true}
 	if d.binding.ReasoningEffort != "" {
 		params["config"] = map[string]any{"model_reasoning_effort": d.binding.ReasoningEffort}
 	}
@@ -355,7 +434,7 @@ func (d *codexAppServer) policyMismatch(policy map[string]any, runtimeRoots any)
 }
 
 func (d *codexAppServer) configurationMismatch(result map[string]any, policyField, effortField string) string {
-	for _, check := range []struct{ field, expected string }{{"model", d.binding.Model}, {effortField, d.binding.ReasoningEffort}, {"modelProvider", d.spec.CodexAppServer.ProviderID}, {"approvalPolicy", "never"}} {
+	for _, check := range []struct{ field, expected string }{{"model", d.binding.Model}, {effortField, d.binding.ReasoningEffort}, {"modelProvider", d.spec.CodexAppServer.ProviderID}, {"approvalPolicy", cc.ApprovalPolicy}} {
 		if textAt(result, check.field) != check.expected {
 			return check.field
 		}
@@ -422,6 +501,10 @@ func (d *codexAppServer) scoped(p map[string]any, turn bool) bool {
 }
 func (d *codexAppServer) notification(method string, p map[string]any) {
 	switch method {
+	case "serverRequest/resolved":
+		d.resolveApproval(p)
+	case "item/started":
+		d.observeApprovalItem(p, false)
 	case "thread/started":
 		if d.binding == nil {
 			return
@@ -452,6 +535,9 @@ func (d *codexAppServer) notification(method string, p map[string]any) {
 		}
 		if d.terminalReceived {
 			d.fail("multiple turn terminals")
+			return
+		}
+		if d.deferApprovalTerminal(p) {
 			return
 		}
 		d.terminalReceived = true
@@ -496,6 +582,7 @@ func (d *codexAppServer) notification(method string, p map[string]any) {
 			return
 		}
 		item := objectAt(p, "item")
+		d.observeApprovalItem(p, true)
 		if textAt(item, "type") == "agentMessage" {
 			d.stream.event("message", textAt(item, "id"), textAt(item, "text"), "", nil)
 		}
@@ -554,6 +641,7 @@ func (d *codexAppServer) Cancel() error {
 	// Publish the stop before waiting for a stdout callback holding mu. A
 	// delayed acknowledgement must not start a new thread or turn meanwhile.
 	d.stopping.Store(true)
+	d.stopApprovals()
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	if d.evidence == nil || d.turn == "" || d.terminalReceived {

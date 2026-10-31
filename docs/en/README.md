@@ -1,5 +1,7 @@
 # suma 1.0.0 documentation
 
+- [Unified native tool confirmations](codex-human-requests.md): T-CODEX-HUMAN-REQUESTS-174 connects original ACP/Codex requests, explicit one-time human decisions, durable reply observations and exact operation recovery. Historical attempts remain read-only. See the scoped evidence for controlled protocol versus real vendor boundaries.
+
 - [Delivery review responsibility](task-review-requests.md): explicit current approvers, fixed delivery requests, transactional personal notifications and the existing formal Review/issue-feedback authority. Actual local protocol/Runner checks passed; final browser acceptance is pending.
 
 - [Explicit discussion mentions](task-conversation-mentions.md): current people selection, transactional personal notifications, exact original-message navigation and the dedicated discussion CLI. Final browser acceptance remains pending.

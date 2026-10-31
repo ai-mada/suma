@@ -2,9 +2,10 @@ package runner
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	ac "github.com/ai-mada/suma/internal/acpcontract"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
 	wc "github.com/ai-mada/suma/internal/workspaceoperationcontract"
 	"sync"
 	"time"
@@ -88,6 +89,9 @@ func (w *Worker) Run(ctx context.Context) error {
 			continue
 		}
 		if err := Replay(ctx, w.Client, w.Journal); err != nil {
+			if errors.Is(err, errToolPermissionReconciliation) {
+				return err
+			}
 			if !wait(ctx, poll) {
 				break
 			}
@@ -151,8 +155,11 @@ func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Dura
 		cfg.Artifacts = w.Client
 	}
 	cfg.Journal = w.Journal
-	cfg.ToolPermission = func(ctx context.Context, request ac.PermissionRequest) (ac.PermissionDecision, error) {
+	cfg.ToolPermission = func(ctx context.Context, request pc.Request) (pc.Decision, error) {
 		return w.waitToolPermission(ctx, a, request, cfg.Secrets)
+	}
+	cfg.ToolPermissionPoll = func(ctx context.Context, id string) (pc.Permission, error) {
+		return w.Client.PollToolPermission(ctx, a, id)
 	}
 	if a.WorkBuddyCloud == nil {
 		registry := NewWorkspaceObservationRegistry(w.Client.ProjectID)
@@ -213,6 +220,7 @@ func (w *Worker) runAssignment(ctx context.Context, a Assignment, beat time.Dura
 			case <-progress:
 			case <-retry.C:
 			}
+			_ = ReplayToolPermissionObservations(runCtx, w.Client, w.Journal)
 			_ = ReplayProgress(runCtx, w.Client, w.Journal)
 		}
 	}()

@@ -7,27 +7,27 @@ import (
 	"errors"
 	"time"
 
-	ac "github.com/ai-mada/suma/internal/acpcontract"
 	"github.com/ai-mada/suma/internal/dag"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
+	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
 )
 
-func (s *Service) OpenToolPermission(ctx context.Context, actor Actor, project string, a dag.Assignment, request ac.PermissionRequest) (ac.Permission, error) {
+func (s *Service) OpenToolPermission(ctx context.Context, actor Actor, project string, a dag.Assignment, request pc.Request) (pc.Permission, error) {
 	return s.toolPermissionMachine(ctx, actor, "", project, a, "", &request)
 }
-func (s *Service) PollToolPermission(ctx context.Context, actor Actor, project string, a dag.Assignment, id string) (ac.Permission, error) {
+func (s *Service) PollToolPermission(ctx context.Context, actor Actor, project string, a dag.Assignment, id string) (pc.Permission, error) {
 	return s.toolPermissionMachine(ctx, actor, "", project, a, id, nil)
 }
-func (s *Service) OpenPoolToolPermission(ctx context.Context, token, project string, a dag.Assignment, request ac.PermissionRequest) (ac.Permission, error) {
+func (s *Service) OpenPoolToolPermission(ctx context.Context, token, project string, a dag.Assignment, request pc.Request) (pc.Permission, error) {
 	return s.toolPermissionMachine(ctx, Actor{}, token, project, a, "", &request)
 }
-func (s *Service) PollPoolToolPermission(ctx context.Context, token, project string, a dag.Assignment, id string) (ac.Permission, error) {
+func (s *Service) PollPoolToolPermission(ctx context.Context, token, project string, a dag.Assignment, id string) (pc.Permission, error) {
 	return s.toolPermissionMachine(ctx, Actor{}, token, project, a, id, nil)
 }
 
-func (s *Service) toolPermissionMachine(ctx context.Context, actor Actor, token, project string, a dag.Assignment, id string, request *ac.PermissionRequest) (ac.Permission, error) {
-	var empty ac.Permission
-	if !handoffID(project, false) || a.ProjectID != project || !handoffID(a.TenantID, false) || a.RunID == "" || a.NodeID == "" || a.WorkerID == "" || a.Attempt < 1 || a.Fence < 1 || a.DispatchID == "" || request != nil && ac.ValidatePermissionRequest(*request) != nil || request == nil && !handoffID(id, false) {
+func (s *Service) toolPermissionMachine(ctx context.Context, actor Actor, token, project string, a dag.Assignment, id string, request *pc.Request) (pc.Permission, error) {
+	var empty pc.Permission
+	if !handoffID(project, false) || a.ProjectID != project || !handoffID(a.TenantID, false) || a.RunID == "" || a.NodeID == "" || a.WorkerID == "" || a.Attempt < 1 || a.Fence < 1 || a.DispatchID == "" || request != nil && pc.ValidateRequest(*request) != nil || request == nil && !handoffID(id, false) {
 		return empty, invalid(toolPermissionInvalid)
 	}
 	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
@@ -36,30 +36,10 @@ func (s *Service) toolPermissionMachine(ctx context.Context, actor Actor, token,
 	}
 	defer cancel()
 	defer tx.Rollback()
-	var b toolPermissionBasis
-	if token != "" {
-		if a.PoolID == "" {
-			return empty, forbidden()
-		}
-		if _, err = s.PoolRunnerAssignmentAuthorityTx(ctx, tx, token, a); err != nil {
-			return empty, err
-		}
-	} else {
-		if a.PoolID != "" || actor.kind != actorProjectRunner || actor.credential.tenantID != a.TenantID {
-			return empty, forbidden()
-		}
-		auth, e := s.runnerIdentityTx(ctx, tx, actor, project, a.WorkerID)
-		if e != nil {
-			return empty, e
-		}
-		if e = s.projectRunnerExecutionAuthorityTx(ctx, tx, auth, a.WorkerID, a.RunID); e != nil {
-			return empty, e
-		}
-	}
-	if err = dag.GuardExecutionScopeTx(ctx, tx, s.Dialect, a.TenantID, project, a.RunID); err != nil {
+	if _, err = s.toolPermissionMachineAuthorityTx(ctx, tx, actor, token, project, a); err != nil {
 		return empty, err
 	}
-	b, err = s.toolPermissionBasisTx(ctx, tx, a.TenantID, project, a)
+	b, err := s.toolPermissionBasisTx(ctx, tx, a.TenantID, project, a)
 	if err != nil {
 		return empty, err
 	}
@@ -68,6 +48,9 @@ func (s *Service) toolPermissionMachine(ctx context.Context, actor Actor, token,
 	}
 	if err = s.toolPermissionCurrentProfileTx(ctx, tx, a.TenantID, project, b, a); err != nil {
 		return empty, err
+	}
+	if request != nil && !toolPermissionRequestMatchesBasis(*request, b) {
+		return empty, conflict(toolPermissionChanged)
 	}
 	now, err := s.authorityNow(ctx, tx)
 	if err != nil {
@@ -78,14 +61,10 @@ func (s *Service) toolPermissionMachine(ctx context.Context, actor Actor, token,
 		if e != nil {
 			return empty, e
 		}
-		if !toolPermissionSameSource(r.value, a) || r.profileID != b.profile.ID || r.profileVersion != b.profile.Version || !tc.EqualProfile(r.profile, b.profile.Profile) {
+		if !toolPermissionSameSource(r.value, a) || r.profileID != b.profile.ID || r.profileVersion != b.profile.Version || !tc.EqualProfile(r.profile, b.profile.Profile) || !toolPermissionRequestMatchesBasis(r.value.Request, b) {
 			return empty, conflict(toolPermissionChanged)
 		}
 		return s.toolPermissionDeliveryTx(ctx, tx, r, b, now)
-	}
-	probe := toolPermissionRow{value: ac.Permission{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, DispatchID: a.DispatchID, WorkerID: a.WorkerID, State: "pending"}}
-	if toolPermissionEffective(probe, b, now).State != "pending" || b.runState != "running" {
-		return empty, conflict(toolPermissionChanged)
 	}
 	var existing string
 	err = tx.QueryRowContext(ctx, s.q(`SELECT id FROM suma_tool_permissions WHERE tenant_id=? AND project_id=? AND worker_id=? AND operation_id=?`), a.TenantID, project, a.WorkerID, request.IdempotencyKey).Scan(&existing)
@@ -102,21 +81,31 @@ func (s *Service) toolPermissionMachine(ctx context.Context, actor Actor, token,
 	if !errors.Is(err, sql.ErrNoRows) {
 		return empty, err
 	}
+	// Recover the original operation before new-work admission. Delivery still
+	// applies current lease/pause policy and cannot renew a previously decided grant.
+	probe := toolPermissionRow{value: pc.Permission{RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, DispatchID: a.DispatchID, WorkerID: a.WorkerID, State: "pending"}}
+	if toolPermissionEffective(probe, b, now).State != "pending" || b.runState != "running" {
+		return empty, conflict(toolPermissionChanged)
+	}
 	var count int
 	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_tool_permissions WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=?`), a.TenantID, project, a.RunID, a.NodeID, a.Attempt).Scan(&count); err != nil {
 		return empty, err
 	}
 	if count >= 32 {
-		return empty, conflict("ACP tool permission attempt limit reached")
+		return empty, conflict("Tool permission attempt limit reached")
 	}
-	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_tool_permissions WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND session_id=? AND tool_call_id=?`), a.TenantID, project, a.RunID, a.NodeID, a.Attempt, a.Fence, request.SessionID, request.ToolCallID).Scan(&count); err != nil {
+	sessionSHA, requestSHA, err := pc.RequestSourceDigests(*request)
+	if err != nil {
+		return empty, invalid(toolPermissionInvalid)
+	}
+	if err = tx.QueryRowContext(ctx, s.q(`SELECT COUNT(*) FROM suma_tool_permissions WHERE tenant_id=? AND project_id=? AND run_id=? AND node_id=? AND attempt=? AND fence=? AND source_session_sha256=? AND source_request_sha256=?`), a.TenantID, project, a.RunID, a.NodeID, a.Attempt, a.Fence, sessionSHA, requestSHA).Scan(&count); err != nil {
 		return empty, err
 	}
 	if count != 0 {
 		return empty, conflict(toolPermissionChanged)
 	}
 	r := toolPermissionRow{tenant: a.TenantID, profileID: b.profile.ID, profileVersion: b.profile.Version, profile: b.profile.Profile, assignment: a, requestHash: toolPermissionRequestHash(a, *request)}
-	r.value = ac.Permission{ID: newID(), ProjectID: project, RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, DispatchID: a.DispatchID, WorkerID: a.WorkerID, ProfileSHA256: b.profile.Profile.ProfileSHA256, Version: 1, State: "pending", Request: *request, CreatedAt: now.Format(time.RFC3339Nano), ExpiresAt: time.Unix(b.deadline, 0).UTC().Format(time.RFC3339Nano), AllowedActions: []string{}}
+	r.value = pc.Permission{ID: newID(), ProjectID: project, RunID: a.RunID, NodeID: a.NodeID, Attempt: a.Attempt, Fence: a.Fence, DispatchID: a.DispatchID, WorkerID: a.WorkerID, ProfileSHA256: b.profile.Profile.ProfileSHA256, Version: 1, State: "pending", Request: *request, CreatedAt: now.Format(time.RFC3339Nano), ExpiresAt: time.Unix(b.deadline, 0).UTC().Format(time.RFC3339Nano), AllowedActions: []string{}}
 	if err = s.toolPermissionSaveTx(ctx, tx, r, 0); err != nil {
 		return empty, err
 	}
@@ -164,12 +153,12 @@ func (s *Service) toolPermissionHumanTx(ctx context.Context, actor Actor, projec
 	return ctx, auth, r, close, nil
 }
 
-func (s *Service) DecideToolPermission(ctx context.Context, actor Actor, id string, request ac.DecisionRequest) (ac.Permission, error) {
-	var empty ac.Permission
+func (s *Service) DecideToolPermission(ctx context.Context, actor Actor, id string, request pc.DecisionRequest) (pc.Permission, error) {
+	var empty pc.Permission
 	if !actor.IsBrowser() {
 		return empty, forbidden()
 	}
-	if !handoffID(id, false) || ac.ValidateDecisionRequest(request) != nil {
+	if !handoffID(id, false) || pc.ValidateDecisionRequest(request) != nil {
 		return empty, invalid(toolPermissionInvalid)
 	}
 	ctx, auth, r, close, err := s.toolPermissionHumanTx(ctx, actor, request.ProjectID, id, purposeBrowserProjectApprove)
@@ -181,7 +170,7 @@ func (s *Service) DecideToolPermission(ctx context.Context, actor Actor, id stri
 	if err != nil {
 		return empty, err
 	}
-	if r.profileID != b.profile.ID || r.profileVersion != b.profile.Version || !tc.EqualProfile(r.profile, b.profile.Profile) {
+	if r.profileID != b.profile.ID || r.profileVersion != b.profile.Version || !tc.EqualProfile(r.profile, b.profile.Profile) || !toolPermissionRequestMatchesBasis(r.value.Request, b) {
 		return empty, conflict(toolPermissionChanged)
 	}
 	if err = s.toolPermissionCurrentProfileTx(ctx, auth.tx, r.tenant, request.ProjectID, b, r.assignment); err != nil {
@@ -194,15 +183,15 @@ func (s *Service) DecideToolPermission(ctx context.Context, actor Actor, id stri
 	// This does not recreate a permission, renew a lease, or authorize its delivery.
 	body := struct {
 		Kind, ID string
-		Request  ac.DecisionRequest
-	}{"acp_tool_permission_decision", id, request}
+		Request  pc.DecisionRequest
+	}{"tool_permission_decision", id, request}
 	hash, replay, err := s.commandReceipt(ctx, auth, request.IdempotencyKey, body)
 	if err != nil {
 		return empty, err
 	}
 	if replay {
-		var original ac.Permission
-		if json.Unmarshal([]byte(hash), &original) != nil || original.ID != id || original.Decision == nil || original.Decision.ActorID != auth.currentPrincipal.ID || original.Decision.OptionID != request.OptionID {
+		var original pc.Permission
+		if json.Unmarshal([]byte(hash), &original) != nil || original.ID != id || original.Decision == nil || original.Decision.ActorID != auth.currentPrincipal.ID || stringify(original.Decision.Choice) != stringify(request.Choice) || !pc.DecisionMatchesRequest(original.Request, *original.Decision) {
 			return empty, conflict(toolPermissionChanged)
 		}
 		return original, nil
@@ -215,15 +204,10 @@ func (s *Service) DecideToolPermission(ctx context.Context, actor Actor, id stri
 	if effective.State != "pending" || r.value.Version != request.ExpectedVersion {
 		return empty, conflict(toolPermissionChanged)
 	}
-	kind := ""
-	for _, option := range r.value.Request.Options {
-		if option.ID == request.OptionID {
-			kind = option.Kind
-		}
-	}
-	if kind != "allow_once" && kind != "reject_once" {
+	if !pc.ChoiceMatchesRequest(r.value.Request, request.Choice) {
 		return empty, invalid(toolPermissionInvalid)
 	}
+	kind := toolPermissionChoiceAction(request.Choice)
 	actions, err := s.toolPermissionAllowsTx(ctx, auth.tx, r.tenant, request.ProjectID, effective, b)
 	if err != nil {
 		return empty, err
@@ -238,7 +222,7 @@ func (s *Service) DecideToolPermission(ctx context.Context, actor Actor, id stri
 	before := r.value.Version
 	r.value.Version++
 	r.value.State = "decided"
-	r.value.Decision = &ac.PermissionDecision{OptionID: request.OptionID, Kind: kind, ActorID: auth.currentPrincipal.ID, DecidedAt: now.Format(time.RFC3339Nano)}
+	r.value.Decision = &pc.Decision{Choice: request.Choice, ActorID: auth.currentPrincipal.ID, DecidedAt: now.Format(time.RFC3339Nano)}
 	if err = s.toolPermissionSaveTx(ctx, auth.tx, r, before); err != nil {
 		return empty, err
 	}
@@ -251,8 +235,8 @@ func (s *Service) DecideToolPermission(ctx context.Context, actor Actor, id stri
 	return r.value, nil
 }
 
-func (s *Service) ListToolPermissions(ctx context.Context, actor Actor, project, run, node string, locator ...string) (ac.PermissionList, error) {
-	out := ac.PermissionList{Items: []ac.Permission{}}
+func (s *Service) ListToolPermissions(ctx context.Context, actor Actor, project, run, node string, locator ...string) (pc.List, error) {
+	out := pc.List{Items: []pc.Permission{}}
 	if !actor.IsBrowser() {
 		return out, forbidden()
 	}

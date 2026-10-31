@@ -65,6 +65,19 @@ export interface ACPModelDiscoveryResult {
   evidence: ACPModelDiscoveryEvidence;
   error_code?: string;
 }
+export interface ACPToolPermissionChoice {
+  option_id: string;
+  kind: string;
+}
+export interface ACPToolPermissionSource {
+  session_id: string;
+  tool_call_id: string;
+  title: string;
+  kind: string;
+  details: string;
+  details_complete: boolean;
+  options: (ToolPermissionOption)[];
+}
 export interface AccountPreferences {
   user_id: string;
   locale: string;
@@ -1894,6 +1907,58 @@ export interface CodeInputRequest {
   binding_id: string;
   transfer_id: string;
 }
+export interface CodexApprovalChoice {
+  decision: string;
+}
+export interface CodexApprovalEvidence {
+  permission_id?: string;
+  request_id: CodexRPCRequestID;
+  method: string;
+  thread_id: string;
+  turn_id: string;
+  item_id: string;
+  approval_id?: string;
+  params_sha256: string;
+  observation?: CodexApprovalObservation;
+}
+export interface CodexApprovalFileChange {
+  path: string;
+  kind: string;
+  diff: string;
+  move_path?: string;
+}
+export interface CodexApprovalObservation {
+  sequence: number;
+  params_sha256: string;
+  decision?: string;
+  decision_observed: boolean;
+  reply_started: boolean;
+  reply_written: boolean;
+  request_resolved: boolean;
+  item_status?: string;
+  failure_code?: string;
+}
+export interface CodexApprovalRequest {
+  request_id: CodexRPCRequestID;
+  method: string;
+  thread_id: string;
+  turn_id: string;
+  item_id: string;
+  started_at_ms: number;
+  approval_id?: string;
+  binding_sha256: string;
+  params_sha256: string;
+  item_sha256: string;
+  title: string;
+  details: string;
+  details_complete: boolean;
+  scope_supported: boolean;
+  unsupported_reason?: string;
+  command?: string;
+  cwd?: string;
+  changes?: (CodexApprovalFileChange)[];
+  reason?: string;
+}
 export interface CodexBinding {
   protocol: string;
   configuration_sha256: string;
@@ -1912,6 +1977,7 @@ export interface CodexCatalog {
   catalog_sha256: string;
 }
 export interface CodexEvidence {
+  approvals?: (CodexApprovalEvidence)[];
   skills?: ExecutionSkillEvidence | null;
   binding_sha256: string;
   thread_id?: string;
@@ -1931,6 +1997,10 @@ export interface CodexModelOption {
   model: string;
   reasoning_efforts: (string)[];
   default_reasoning_effort: string;
+}
+export interface CodexRPCRequestID {
+  kind: string;
+  value: string;
 }
 export interface CodexSelection {
   catalog_sha256: string;
@@ -3928,6 +3998,15 @@ export interface PoolToolInventoryRequest {
   project_id: string;
   operation_id: string;
   items: (ToolObservation)[];
+}
+export interface PoolToolPermissionObservationRequest {
+  runner_id: string;
+  tenant_id: string;
+  project_id: string;
+  assignment: Assignment;
+  permission_id: string;
+  idempotency_key: string;
+  observation: CodexApprovalObservation;
 }
 export interface PoolToolPermissionOpenRequest {
   runner_id: string;
@@ -6840,25 +6919,41 @@ export interface ToolPermission {
   version: number;
   state: string;
   request: ToolPermissionRequest;
-  decision?: ToolPermissionDecision | null;
+  decision?: ToolPermissionDecision;
+  observation?: CodexApprovalObservation;
   created_at: string;
   expires_at: string;
   allowed_actions: (string)[];
 }
+export interface ToolPermissionChoice {
+  protocol: string;
+  acp?: ACPToolPermissionChoice;
+  codex?: CodexApprovalChoice;
+}
 export interface ToolPermissionDecision {
-  option_id: string;
-  kind: string;
+  protocol: string;
+  acp?: ACPToolPermissionChoice;
+  codex?: CodexApprovalChoice;
   actor_id: string;
   decided_at: string;
 }
 export interface ToolPermissionDecisionRequest {
+  protocol: string;
+  acp?: ACPToolPermissionChoice;
+  codex?: CodexApprovalChoice;
   project_id: string;
   expected_version: number;
   idempotency_key: string;
-  option_id: string;
 }
 export interface ToolPermissionList {
   items: (ToolPermission)[];
+}
+export interface ToolPermissionObservationRequest {
+  project_id: string;
+  assignment: Assignment;
+  permission_id: string;
+  idempotency_key: string;
+  observation: CodexApprovalObservation;
 }
 export interface ToolPermissionOpenRequest {
   project_id: string;
@@ -6877,13 +6972,9 @@ export interface ToolPermissionPollRequest {
 }
 export interface ToolPermissionRequest {
   idempotency_key: string;
-  session_id: string;
-  tool_call_id: string;
-  title: string;
-  kind: string;
-  details: string;
-  details_complete: boolean;
-  options: (ToolPermissionOption)[];
+  protocol: string;
+  acp?: ACPToolPermissionSource;
+  codex?: CodexApprovalRequest;
 }
 export interface ToolProfile {
   id: string;

@@ -110,7 +110,7 @@ func (d *codexAppServer) startSkillAwareTurn() {
 		}
 		input[0].(map[string]any)["text"] = goal + "\n" + strings.Join(names, " ")
 	}
-	params := map[string]any{"threadId": d.thread, "model": d.binding.Model, "cwd": d.root, "approvalPolicy": "never", "sandboxPolicy": map[string]any{"type": "workspaceWrite", "writableRoots": []string{d.root}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true}, "input": input}
+	params := map[string]any{"threadId": d.thread, "model": d.binding.Model, "cwd": d.root, "approvalPolicy": cc.ApprovalPolicy, "sandboxPolicy": map[string]any{"type": "workspaceWrite", "writableRoots": []string{d.root}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true}, "input": input}
 	if d.binding.ReasoningEffort != "" {
 		params["effort"] = d.binding.ReasoningEffort
 	}

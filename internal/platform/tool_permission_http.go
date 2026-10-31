@@ -7,15 +7,16 @@ import (
 	"net/url"
 	"strings"
 
-	ac "github.com/ai-mada/suma/internal/acpcontract"
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/dag"
+	pc "github.com/ai-mada/suma/internal/toolpermissioncontract"
 	woc "github.com/ai-mada/suma/internal/workspaceobservationcontract"
 )
 
 type ToolPermissionOpenRequest struct {
-	ProjectID  string               `json:"project_id"`
-	Assignment dag.Assignment       `json:"assignment"`
-	Request    ac.PermissionRequest `json:"request"`
+	ProjectID  string         `json:"project_id"`
+	Assignment dag.Assignment `json:"assignment"`
+	Request    pc.Request     `json:"request"`
 }
 type ToolPermissionPollRequest struct {
 	ProjectID    string         `json:"project_id"`
@@ -24,23 +25,49 @@ type ToolPermissionPollRequest struct {
 }
 type PoolToolPermissionOpenRequest struct {
 	PoolRunnerAssignmentRequest
-	Request ac.PermissionRequest `json:"request"`
+	Request pc.Request `json:"request"`
 }
 type PoolToolPermissionPollRequest struct {
 	PoolRunnerAssignmentRequest
 	PermissionID string `json:"permission_id"`
 }
 
+type ToolPermissionObservationRequest struct {
+	ProjectID      string                      `json:"project_id"`
+	Assignment     dag.Assignment              `json:"assignment"`
+	PermissionID   string                      `json:"permission_id"`
+	IdempotencyKey string                      `json:"idempotency_key"`
+	Observation    cc.CodexApprovalObservation `json:"observation"`
+}
+
+type PoolToolPermissionObservationRequest struct {
+	PoolRunnerAssignmentRequest
+	PermissionID   string                      `json:"permission_id"`
+	IdempotencyKey string                      `json:"idempotency_key"`
+	Observation    cc.CodexApprovalObservation `json:"observation"`
+}
+
 func toolPermissionDecodeHTTP(r *http.Request, out any, fields ...string) error {
 	if r.URL.RawQuery != "" {
 		return invalid(toolPermissionInvalid)
 	}
-	raw, e := io.ReadAll(io.LimitReader(r.Body, (64<<10)+1))
-	if e != nil || len(raw) > 64<<10 {
+	// The transport includes the authoritative assignment and bounded native
+	// attachments. The typed Request retains its independent 64 KiB limit.
+	raw, e := io.ReadAll(io.LimitReader(r.Body, (1<<20)+1))
+	if e != nil || len(raw) > 1<<20 {
 		return invalid(toolPermissionInvalid)
 	}
 	var object map[string]json.RawMessage
-	if !json.Valid(raw) || json.Unmarshal(raw, &object) != nil || len(object) != len(fields) {
+	if !json.Valid(raw) || json.Unmarshal(raw, &object) != nil {
+		return invalid(toolPermissionInvalid)
+	}
+	if _, decision := out.(*pc.DecisionRequest); decision {
+		_, hasACP := object["acp"]
+		_, hasCodex := object["codex"]
+		if len(object) != len(fields)+1 || hasACP == hasCodex {
+			return invalid(toolPermissionInvalid)
+		}
+	} else if len(object) != len(fields) {
 		return invalid(toolPermissionInvalid)
 	}
 	for _, field := range fields {
@@ -56,7 +83,7 @@ func toolPermissionDecodeHTTP(r *http.Request, out any, fields ...string) error 
 }
 func (s *Server) toolPermissionsHTTP(w http.ResponseWriter, r *http.Request, actor Actor, scope, boundProject string, parts []string) bool {
 	path := strings.Join(parts, "/")
-	machine := path == "runner/tool-permissions" || path == "runner/tool-permissions/poll"
+	machine := path == "runner/tool-permissions" || path == "runner/tool-permissions/poll" || path == "runner/tool-permissions/observations"
 	list := len(parts) == 5 && parts[0] == "runs" && parts[2] == "nodes" && parts[4] == "tool-permissions"
 	decide := len(parts) == 3 && parts[0] == "tool-permissions" && parts[2] == "decision"
 	if !machine && !list && !decide {
@@ -71,7 +98,14 @@ func (s *Server) toolPermissionsHTTP(w http.ResponseWriter, r *http.Request, act
 		if r.Method != http.MethodPost {
 			return fail(invalid(toolPermissionInvalid))
 		}
-		if strings.HasSuffix(path, "/poll") {
+		if strings.HasSuffix(path, "/observations") {
+			var q ToolPermissionObservationRequest
+			if toolPermissionDecodeHTTP(r, &q, "project_id", "assignment", "permission_id", "idempotency_key", "observation") != nil || boundProject != "" && q.ProjectID != boundProject {
+				return fail(invalid(toolPermissionInvalid))
+			}
+			out, e := s.Service.ObserveToolPermission(r.Context(), actor, q.ProjectID, q.Assignment, q.PermissionID, q.IdempotencyKey, q.Observation)
+			respond(w, 200, out, e)
+		} else if strings.HasSuffix(path, "/poll") {
 			var q ToolPermissionPollRequest
 			if toolPermissionDecodeHTTP(r, &q, "project_id", "assignment", "permission_id") != nil || boundProject != "" && q.ProjectID != boundProject {
 				return fail(invalid(toolPermissionInvalid))
@@ -118,8 +152,8 @@ func (s *Server) toolPermissionsHTTP(w http.ResponseWriter, r *http.Request, act
 	if r.Method != http.MethodPost {
 		return fail(invalid(toolPermissionInvalid))
 	}
-	var q ac.DecisionRequest
-	if toolPermissionDecodeHTTP(r, &q, "project_id", "expected_version", "idempotency_key", "option_id") != nil || boundProject != "" && q.ProjectID != boundProject {
+	var q pc.DecisionRequest
+	if toolPermissionDecodeHTTP(r, &q, "project_id", "expected_version", "idempotency_key", "protocol") != nil || boundProject != "" && q.ProjectID != boundProject {
 		return fail(invalid(toolPermissionInvalid))
 	}
 	out, e := s.Service.DecideToolPermission(r.Context(), actor, parts[1], q)
@@ -127,7 +161,7 @@ func (s *Server) toolPermissionsHTTP(w http.ResponseWriter, r *http.Request, act
 	return true
 }
 func (s *Server) poolToolPermissionsHTTP(w http.ResponseWriter, r *http.Request, token, path string) bool {
-	if path != "pool-runner/tool-permissions" && path != "pool-runner/tool-permissions/poll" {
+	if path != "pool-runner/tool-permissions" && path != "pool-runner/tool-permissions/poll" && path != "pool-runner/tool-permissions/observations" {
 		return false
 	}
 	w.Header().Set("Cache-Control", "no-store")
@@ -135,7 +169,19 @@ func (s *Server) poolToolPermissionsHTTP(w http.ResponseWriter, r *http.Request,
 		writeError(w, invalid(toolPermissionInvalid))
 		return true
 	}
-	if strings.HasSuffix(path, "/poll") {
+	if strings.HasSuffix(path, "/observations") {
+		var q PoolToolPermissionObservationRequest
+		if e := toolPermissionDecodeHTTP(r, &q, "runner_id", "tenant_id", "project_id", "assignment", "permission_id", "idempotency_key", "observation"); e != nil {
+			writeError(w, e)
+			return true
+		}
+		if validatePoolEnvelope(q.PoolRunnerAssignmentRequest) != nil {
+			writeError(w, invalid(toolPermissionInvalid))
+			return true
+		}
+		out, e := s.Service.ObservePoolToolPermission(r.Context(), token, q.ProjectID, q.Assignment, q.PermissionID, q.IdempotencyKey, q.Observation)
+		respond(w, 200, out, e)
+	} else if strings.HasSuffix(path, "/poll") {
 		var q PoolToolPermissionPollRequest
 		if e := toolPermissionDecodeHTTP(r, &q, "runner_id", "tenant_id", "project_id", "assignment", "permission_id"); e != nil {
 			writeError(w, e)

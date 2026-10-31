@@ -4,6 +4,8 @@
 
 统一开发基线为 **1.0.0**。完整平台仍在实现与验收中：完整P0–P7、需求1–31及58项限定实现／34项待交付／92项总账见[实施计划](docs/delivery/implementation-plan.md)与[当前交付状态](docs/delivery/status.md)。
 
+T-CODEX-HUMAN-REQUESTS-174新增[统一工具确认](contracts/codex-human-requests.md)：ACP与Codex原生请求沿当前身份、原Runner及原回执一次处理，执行观察与人类决定分别保留；[架构与AI SOP](docs/architecture/codex-human-requests.md)、[简洁交互](docs/design/codex-human-requests.md)及[限定证据](docs/quality/codex-human-requests-verification.md)记录范围。完整平台仍按原计划交付。
+
 本阶段已实现[Codex原生项目技能](contracts/codex-native-skills.md)：明确选择的已发布技能沿原任务／专家团队计划进入独立执行目录，核对目录后显式传入原回合，五项执行凭证分别展示；[架构与AI SOP](docs/architecture/codex-native-skills.md)、[简洁交互](docs/design/codex-native-skills.md)及[限定证据](docs/quality/codex-native-skills-verification.md)记录设计与实际范围。已有[已验收交付经验](contracts/delivery-knowledge.md)、[原生工具快速连接](contracts/acp-quick-connect.md)及[ACP执行链路](docs/quality/acp-runtime-verification.md)继续复用；真实目录、合成组件、模型使用与生产验收分别记录。
 
 ## 当前能力
