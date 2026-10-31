@@ -1,0 +1,23 @@
+# Local Worker credential renewal
+
+T-DESKTOP-CREDENTIAL-178 · suma 1.0.0 · 2026-11-01. Status: scoped source, actual read-only CLI and representative synthetic components verified; full desktop and production acceptance remain open. Owner: main integration agent. See the [contract](../../contracts/desktop-runner-renewal.md), [product flow](../product/desktop-runner-renewal.md), [architecture and SOP](../architecture/desktop-runner-renewal.md), and [interaction design](../design/desktop-runner-renewal.md). This page does not claim real vendor or production acceptance.
+
+Renewal restores connectivity for an **idle, drained Worker** whose credential has expired. It preserves the original Worker, project, workspace, configuration and execution journal. Users explicitly renew from the existing tool connection card; the renderer supplies no new configuration, paths or secrets.
+
+Two deadlines remain independent. `credential_expires_at` and `credential_version` come from the Worker registration/renewal receipt or current reading. `expires_at` describes inventory freshness. Inventory freshness does not establish credential validity, and expiry does not mean revocation. Missing facts remain unknown.
+
+The original process must be confirmed closed. A private read-only CLI inspects its original lock and bounded journal/sidecars, including claim, inventory, execution, permission observations and workspace receipts. It creates or rewrites no state. Missing or genuinely empty never-started state can pass; pending, unknown, damaged or unrecognised state cannot. Its six private reasons are `active_worker`, `pending_execution`, `pending_receipt`, `unknown_outcome`, `invalid_state`, and `unreadable_state`; `safe=true` requires an empty reasons array.
+
+On Windows the inspector opens the existing lock read-only with `OPEN_EXISTING` and `FILE_SHARE_READ`: its metadata reads remain possible while the original Worker's required write access is excluded. The running Worker's exclusive sharing can also deny `Lstat`; explicit sharing violations indicate an active lock. Other failures remain unreadable. Unix uses a read-only, nonblocking file lock; actual platform evidence is recorded separately.
+
+Before sending `POST /desktop-runners/renew`, the main process atomically encrypts the new token, original request body and operation key. The current browser administrator and original HMAC source proof authorise the closed 13-field request. Only credential digests cross HTTP. The server verifies the current authority, original registration and holder before restoring an existing exact body/key receipt. A new renewal also requires the expected Worker version, previous digest, unrevoked authority and source, unchanged workspace and server-side execution/effect drain gates. Lease expiry is not proof of stopped execution.
+
+One transaction revokes the old authority/slot, issues the new digest, updates the original Worker version and 24-hour expiry, and records the receipt. Worker identity, profiles, deployment and creation facts remain intact. Failure rolls back the whole change. Revoked credentials cannot be revived through renewal.
+
+An uncertain response produces `renewal_unknown`. Reconcile that same renewal with its saved body/key/token; never generate another token or fall through to registration or connection. The public `renewal_reason` is one of `execution_pending`, `local_state_pending`, `credential_changed`, `access_changed`, `context_changed`, or `result_unknown`. These explain known refusals separately from uncertain transport. After restart, an unavailable finer reason can only become `result_unknown`.
+
+An exact acknowledged receipt returns to **prepared**. Users explicitly connect again; the original Worker restores permitted known receipts and publishes fresh inventory. Tool registration and enablement retain their separate flow: new profiles start paused and require explicit enablement. Neither renewal nor a connection acknowledgement proves a model response, completed task or human acceptance.
+
+The Chinese/English interface keeps deadlines, reasons and actions distinct, preserves keyboard focus and drafts, propagates busy/unknown state through tool selectors, and rejects late results from another account, organisation, project or tool scope.
+
+Dedicated recovery tickets for **expired old credentials with unresolved effects still bound to the old token** are not implemented in this stage. Preserve the original evidence for reconciliation. The complete 31-requirement, P0–P7 and 58 limited / 34 pending / 92 total platform scope remains active.

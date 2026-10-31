@@ -1,0 +1,382 @@
+{
+  "stage": "T-DESKTOP-CREDENTIAL-178",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "timezone": "Asia/Shanghai",
+  "status": "scoped_source_actual_readonly_cli_and_synthetic_components_verified",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "Original Worker/configuration/journal preserved; host encrypted pending request/key/new token before private HMAC digest renewal.",
+    "Current authority/holder/original registration/receipt/CAS/drain gates; old authority revoked and new digest/version/24h expiry applied atomically; no server-generated secret or task retry.",
+    "Read-only original state lock and typed sidecars, closed safe/reasons result; unknown effects never cleared by credential renewal.",
+    "Separate credential metadata/inventory expiry, exact renewal recovery, prepared then explicit connect, bilingual reasons and credential-version inventory callbacks."
+  ],
+  "focused": {
+    "distinct_top_level": 30,
+    "new": 19,
+    "affected_existing": 11,
+    "go": {
+      "platform": {
+        "distinct": 5,
+        "new": 4,
+        "affected_existing": 1
+      },
+      "runner": {
+        "distinct": 3,
+        "new": 3
+      },
+      "cli": {
+        "distinct": 2,
+        "new": 2
+      },
+      "distinct": 10,
+      "subcases_separate": 18
+    },
+    "desktop": {
+      "distinct": 7,
+      "new": 4,
+      "affected_existing": 3
+    },
+    "web": {
+      "distinct": 13,
+      "new": 6,
+      "affected_existing": 7
+    },
+    "repeated_runs_not_double_counted": true
+  },
+  "integration": {
+    "full_typecheck_exit": 0,
+    "paired_locale_keys": 8442,
+    "production_hardcodes": 0,
+    "go_builds": 1,
+    "sdk_builds": 0,
+    "public_schema_generation": 0,
+    "public_schema_reason": "Renewal extends existing private HMAC routes, not the public SDK.",
+    "full_go_suite": false,
+    "full_web_suite": false,
+    "ui_component_builds": 1,
+    "full_app_builds": 0
+  },
+  "actual": {
+    "scope": "Actual current control private CLI and real Windows filesystem/sharing observations; no service database, SDK, model or task execution",
+    "binary_sha256": "78ceca7ca051d71db871cb25c44ef8e37d37c1874aeb757f76234d8f35949a08",
+    "working_tree_contains_protected_user_delta": true,
+    "checks": [
+      {
+        "name": "empty",
+        "exit": 0,
+        "elapsed_ms": 340.6878,
+        "observation": {
+          "protocol": "suma-desktop-runner-renewal-check-v1",
+          "safe": true,
+          "reasons": []
+        },
+        "stdout_sha256": "545d1898ea75c43ae53aafe5c386196a4cf7fbae715c6fac03030c0365e94dcd"
+      },
+      {
+        "name": "active-lock",
+        "exit": 0,
+        "elapsed_ms": 88.3673,
+        "observation": {
+          "protocol": "suma-desktop-runner-renewal-check-v1",
+          "safe": false,
+          "reasons": [
+            "active_worker"
+          ]
+        },
+        "stdout_sha256": "a27fac829151b23529c3db59d42eb53833e970c7607d344d0c43e0363d17cd8b"
+      },
+      {
+        "name": "broken-state",
+        "exit": 0,
+        "elapsed_ms": 90.03080000000006,
+        "observation": {
+          "protocol": "suma-desktop-runner-renewal-check-v1",
+          "safe": false,
+          "reasons": [
+            "invalid_state"
+          ]
+        },
+        "stdout_sha256": "fbc2c73980eed71f6799bce47c17ffd94b2aeee201aafd09678d315a4f67f9e2"
+      }
+    ],
+    "original_bytes_unchanged": true,
+    "service_or_database": false,
+    "sdk_builds": 0,
+    "model_or_task_execution": false,
+    "descendant_pid_audit": false
+  },
+  "visual": {
+    "scope": "Synthetic production credential component; not real credentials or authenticated desktop integration",
+    "synthetic_data": true,
+    "checks": [
+      "Expired registered credential has its own version and explicit renewal action",
+      "Lost renewal response keeps original renewal recovery and does not connect",
+      "Original renewal acknowledgement adopts version2 and remains prepared",
+      "User explicitly connects after renewal; only then emits the original worker callback",
+      "English narrow credential facts and keyboard actions remain usable"
+    ],
+    "component_builds": 1,
+    "attempts": 2,
+    "first_failure": "AssertionError [ERR_ASSERTION]: false == true\n    at main (D:\\codes\\ai-dev-os\\suma\\.cache\\desktop-credential-178\\visual\\verify.cjs:15:369)",
+    "continuation": "Only EN keyboard check continued; last-button forward Tab document exit is valid, tested reverse focus to previous action. No production or fixture changes; CN actions and original build reused.",
+    "native_exits": [
+      {
+        "code": 0,
+        "signal": null
+      },
+      {
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "force_stop": false,
+    "root_viewed_images": [
+      {
+        "path": ".cache/desktop-credential-178/visual/cn-1366-unknown.png",
+        "sha256": "ed3a3d38436b9aece95b22c1c5d9f589c566169517809500cfe362a0aad7342f"
+      },
+      {
+        "path": ".cache/desktop-credential-178/visual/en-390.png",
+        "sha256": "c7b88a688ca8e52f9abe46337b6221e41fbab6fccf16d7fb4ea29aef735dad92"
+      }
+    ]
+  },
+  "retained_evidence_notes": [
+    "Windows initial Lstat/exclusive sharing and original test cleanup failure retained; only affected lock/state paths rerun.",
+    "Late cloud waiting/old-digest unresolved submission drain gap reproduced RED and fixed in original top case.",
+    "Web parallel log filename collision retained transparently; original tool outputs recovered as explicit receipts, not invented raw logs or redundant reruns."
+  ],
+  "source_files": [
+    {
+      "path": "apps/desktop/src/managed-local-runner-journal.cjs",
+      "sha256": "2783e8215b9609b7dc0193db448c5990bbb30c7698d3b2f188f878d78aafb4ee"
+    },
+    {
+      "path": "apps/desktop/src/managed-local-runner-renewal.cjs",
+      "sha256": "5a1bab486bc93bcf9406d57b9a3179f7c770ac9b443ebd2167e074422908a71c"
+    },
+    {
+      "path": "apps/desktop/src/managed-local-runner.cjs",
+      "sha256": "22b38d7b2e1a8e721bc3d852e2f9d55fb820e986e284e39a1b21bc6b805afbe6"
+    },
+    {
+      "path": "apps/desktop/tests/managed-local-runner-renewal.test.cjs",
+      "sha256": "11cedd1eed4cde6fc878cd42b0db6b726ca0bff55a3bdc97e1389e930566d30b"
+    },
+    {
+      "path": "apps/web/src/CodexLocalConnector.test.tsx",
+      "sha256": "c983656059c5f8d6f488b97df09c57ba56cea7a1a0a8940aac16e8fae966a097"
+    },
+    {
+      "path": "apps/web/src/CodexLocalConnector.tsx",
+      "sha256": "da82314e82f94b7f465ee13a4dc515792a10219db1222afc09ff87db6b63021d"
+    },
+    {
+      "path": "apps/web/src/desktop-tool-connector-model.test.ts",
+      "sha256": "c596b1adb81052f8e545e119380adb56a3e6ec944ac2e4dfbfd62557b9b18f8a"
+    },
+    {
+      "path": "apps/web/src/desktop-tool-connector-model.ts",
+      "sha256": "001a72ccd2b0bc1742fb6124723a04cff57dc1f9400591acb937cf6046d814e9"
+    },
+    {
+      "path": "apps/web/src/DesktopCredentialStatus.css",
+      "sha256": "27ac0f1a397f54ab6f72c9df8246acd72f3d2a14f3908c5ee53cad58acf5be16"
+    },
+    {
+      "path": "apps/web/src/DesktopCredentialStatus.tsx",
+      "sha256": "5b683c0f3544a16d41de0b16e8f587de9d8d13d7b5d361198b594cfea54e0e56"
+    },
+    {
+      "path": "apps/web/src/DesktopToolConnector.tsx",
+      "sha256": "12a3f376f632d189ba6f93bebf43f79b8b735aedf15cc8a09339b1c22587f0fa"
+    },
+    {
+      "path": "apps/web/src/DesktopToolRenewal.test.tsx",
+      "sha256": "13beba574173af4d2a488806b1a616816aed086b16a8259d49b4bc43454d13fa"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/desktop-credential-status.en-US.json",
+      "sha256": "02a2582c0b4e9d43e664260b993c9c6c542246630739c690dfefff9d5875b0ca"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/desktop-credential-status.zh-CN.json",
+      "sha256": "c40cdda2a7adca790f73b0c3fb0f4127d79890ce37b1c20c959ceb90b6eab1e2"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/desktop-tool-connector.en-US.json",
+      "sha256": "abb9a42e3912b860a8ca99bdf10553b5bcad08c549ca05c5a14e2607818a502a"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/desktop-tool-connector.zh-CN.json",
+      "sha256": "af3ace88968603a485f4e691670f0f1fcdbb9aa845c60021f13215e0e9022579"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-connection-diagnostics.en-US.json",
+      "sha256": "5c4f759825abab2f1b6a4660fb767bfb42ba759d34bece510b77f54e54947feb"
+    },
+    {
+      "path": "apps/web/src/i18n/locales/domains/tool-connection-diagnostics.zh-CN.json",
+      "sha256": "f31905f2bcd23f07543e9523631506f33558812dd52a0dc5410249b583993d77"
+    },
+    {
+      "path": "apps/web/src/OpenCodeLocalConnector.test.tsx",
+      "sha256": "67c778375458110b4977673afbe700f5bab412b31622852b870d761596bcea1f"
+    },
+    {
+      "path": "apps/web/src/OpenCodeLocalConnector.tsx",
+      "sha256": "366a352d0e1f7f3c03d0e0c4bc4480f9be9b22fd867ac5cd118a83f3ae44afa9"
+    },
+    {
+      "path": "apps/web/src/QoderLocalConnector.test.tsx",
+      "sha256": "acdaa2f7a0ba6f4d4da95b1d5bd994bc188498e6b6dda94ec19d617c5ee98dc4"
+    },
+    {
+      "path": "apps/web/src/QoderLocalConnector.tsx",
+      "sha256": "075bc4d484e41a075cfb29e091238c1b17562de7859ed1b606325cd57e9df19a"
+    },
+    {
+      "path": "apps/web/src/QoderQuickConnectCoordination.test.tsx",
+      "sha256": "d58dc59095118f05522e59beaf344ab744ad94220ecf370b50a71efc137019f4"
+    },
+    {
+      "path": "apps/web/src/tool-connection-diagnostics-model.test.ts",
+      "sha256": "bbc9c3c6f66e3fff38915ce09b1155f65c9261e53f0e9550ac13e1cdd80db895"
+    },
+    {
+      "path": "apps/web/src/tool-connection-diagnostics-model.ts",
+      "sha256": "8eb7ba033e40b72b98f5e268fe4d445da247276a13df5c0e2aa30fa625a3b143"
+    },
+    {
+      "path": "apps/web/src/ToolQuickConnect.tsx",
+      "sha256": "a2b5a56e744f9774a8ca9f818743064e0e461579ff243832b5b660684edb3a36"
+    },
+    {
+      "path": "cmd/suma-control/desktop_renewal_check_test.go",
+      "sha256": "cce82f41f69a820a47fc656ba3f7a6e094e9d16ea9b6c9c5cba287e3f6425964"
+    },
+    {
+      "path": "cmd/suma-control/desktop_renewal_check.go",
+      "sha256": "2e40193504c70db5caea8b28b16b7d724871de06f1bdad135fd0183ae82bbe6c"
+    },
+    {
+      "path": "cmd/suma-control/main.go",
+      "sha256": "4352712d7c3a4540fed9719a997ae5489955b7def7aac2cefb23fa535125d53d",
+      "working_tree_sha256": "08bc4efb36f0c350b6b2383a92b0aab9526567fd90fdd531439c6343ea5ce136",
+      "scope": "Only two additive private-mode hunks; original user delta excluded"
+    },
+    {
+      "path": "internal/platform/desktop_runner_http.go",
+      "sha256": "0870e6c11ba6f3ef45cda5532363716abc39f31f640c724b054d105874ff7e89"
+    },
+    {
+      "path": "internal/platform/desktop_runner_renewal_test.go",
+      "sha256": "1830baf78b7b77b10b86feb3b4fb822302b720587bbfa5fd0c27cf0d701ba2aa"
+    },
+    {
+      "path": "internal/platform/desktop_runner_renewal.go",
+      "sha256": "9c2d9443b5fda41d3de085c0c1ac6b493537dc6f4d51f95857bfd51a690d83c1"
+    },
+    {
+      "path": "internal/runner/desktop_renewal_check_test.go",
+      "sha256": "5bd812863262266a6a47030de692d325bf2be44d76c32f899f2180402d5f9a9f"
+    },
+    {
+      "path": "internal/runner/desktop_renewal_check.go",
+      "sha256": "00ff7fbd7610b2f12486ce33851603b88e4b466bd02c52b85fb4c8944fab911e"
+    },
+    {
+      "path": "internal/runner/desktop_renewal_lock_unix.go",
+      "sha256": "a03ddfc3a907db6bad1904598c1937ae92594837a6ea366b1e7bd73266aa9fdd"
+    },
+    {
+      "path": "internal/runner/desktop_renewal_lock_windows.go",
+      "sha256": "1b3a8a3c8309a3fbf3b23e892a7b3d041d99c16c360e1270fa75d2bab72ec558"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cache/desktop-credential-178/platform/evidence.json",
+      "sha256": "2eec27d846be4a6070b6cbb9d71519174afc50f0b2c3b0f16fab6825e3d5168b"
+    },
+    {
+      "path": ".cache/desktop-runner-renewal-178/runner/evidence.json",
+      "sha256": "b754ea9dcff80ea27ac38c8b028120446b27250a2d1497e4e704b2004668cc89"
+    },
+    {
+      "path": ".cache/desktop-runner-renewal-178/desktop/evidence.json",
+      "sha256": "3ff0a6290d51e178b671414bfef11c6e86b9ef8bb3acd06ceae16f00e6add061"
+    },
+    {
+      "path": ".cache/desktop-credential-lifecycle-178/web/frontend-summary.json",
+      "sha256": "40e1adadf0ac9bda834f78da17d2ff75cc3de5430da7d92a667d0691022e5763"
+    },
+    {
+      "path": ".cache/desktop-runner-renewal-178/review/desktop-review.json",
+      "sha256": "d53552f5a444c67eb5b380e82fee4ae226ec609f6c64bc18f8611b7a05e4cbd5"
+    },
+    {
+      "path": ".cache/desktop-credential-178/typecheck.json",
+      "sha256": "53ac151c0383cae8ee4fd4ea3286e23665e76ece0858f0f05b8dd131a21f05d1"
+    },
+    {
+      "path": ".cache/desktop-credential-178/i18n.json",
+      "sha256": "721bfbe17cdbdefdc1498ac398910317fe6117965f00ce687ada0b73021f114d"
+    },
+    {
+      "path": ".cache/desktop-credential-178/cli-tests.json",
+      "sha256": "06bf175f1e3ed607f5f8520becca70d0606117991250348858f85443e22efb67"
+    },
+    {
+      "path": ".cache/desktop-credential-178/actual/build.json",
+      "sha256": "4f07016d849f7f25e7d5034fbcc867c5d860a4af17eea6e2f73af0e9a38e7076"
+    },
+    {
+      "path": ".cache/desktop-credential-178/actual/evidence.json",
+      "sha256": "dbe5f3be519efc9df4299aea6f93fe70473cd6032d59993540c270c32c5fb978"
+    },
+    {
+      "path": ".cache/desktop-credential-178/visual/build.json",
+      "sha256": "66404d74e6dea7de7801ea9b51f76dffa5d8ebf166e278fe3407f06afecccd58"
+    },
+    {
+      "path": ".cache/desktop-credential-178/visual/result.attempt01.json",
+      "sha256": "0e89abc18e4a17f85227e6ac6ac82be34b3c1a500c5349dd5beac8b1252c943e"
+    },
+    {
+      "path": ".cache/desktop-credential-178/visual/result.en-only.json",
+      "sha256": "9e77cf7a927d04e8552bd5ad2210ead92dc3bf197f5e9e61e93dc95ce8312c7f"
+    },
+    {
+      "path": ".cache/desktop-credential-178/visual/result.json",
+      "sha256": "b28e7c6c60932c16a81f4c46a6565cdf10a3af3f62d78cb676f9084282b50885"
+    },
+    {
+      "path": ".cache/desktop-credential-178/integration/main-hunks.json",
+      "sha256": "2cd1ade94338504ad5ad132a340e304112685b848aab3600c1b18de6a593c2c7"
+    }
+  ],
+  "protected_user_work": {
+    "files": 21,
+    "raw_unchanged": 20,
+    "additive_hunk_file": "cmd/suma-control/main.go",
+    "before_sha256": "ddc5bb5c46c89cea00d0c696c931ed6f439a50db8320c4b3799ee0b67d3e7b86",
+    "inverse_sha256": "ddc5bb5c46c89cea00d0c696c931ed6f439a50db8320c4b3799ee0b67d3e7b86",
+    "user_delta_staged": false
+  },
+  "remaining": [
+    "Old expired authorization with unresolved old-token effects still blocks renewal; dedicated controlled recovery-ticket flow remains to implement.",
+    "Full authenticated desktop/OS secure-storage/vendor tool integration, physical multi-host and other databases.",
+    "Cross-platform native locks/installers, full device/theme/scale and production acceptance.",
+    "Original31/P0-P7 platform and prior171 explicit GUI-stop gap remain active."
+  ]
+}

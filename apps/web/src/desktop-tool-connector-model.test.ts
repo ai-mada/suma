@@ -3,6 +3,16 @@ import {desktopToolBridge,readDesktopToolResult,validDesktopToolScope} from './d
 
 const scope={project:'1'.repeat(32),userID:'2'.repeat(32),organizationID:'3'.repeat(32),adapterID:'codex-jsonl'};
 const connection={project_id:scope.project,adapter_id:'codex-jsonl',phase:'connected',worker_id:'desktop-'+'4'.repeat(32),base_commit:'a'.repeat(40),expires_at:'2099-01-01T00:00:00Z',repository_name:'project'};
+it('keeps credential registration expiry and version independent from inventory and renewal outcome',()=>{
+ const current={...connection,phase:'renewal_unknown',credential_expires_at:'2026-01-01T00:00:00.123456789Z',credential_version:2};
+ expect(readDesktopToolResult({status:'ok',connection:current},scope)).toEqual({status:'ok',connection:current});
+ for(const renewal_reason of ['execution_pending','local_state_pending','credential_changed','access_changed','context_changed','result_unknown'])expect(readDesktopToolResult({status:'ok',connection:{...current,renewal_reason}},scope)).toEqual({status:'ok',connection:{...current,renewal_reason}});
+ for(const renewal_reason of ['future_reason','secret=value','execution_pending\n',null,{}])expect(readDesktopToolResult({status:'ok',connection:{...current,renewal_reason}},scope)).toBeUndefined();
+ expect(readDesktopToolResult({status:'ok',connection},scope)?.status).toBe('ok');
+ const missing=readDesktopToolResult({status:'ok',connection},scope);if(missing?.status==='ok'){expect(missing.connection).not.toHaveProperty('credential_expires_at');expect(missing.connection).not.toHaveProperty('credential_version');}
+ for(const value of [{...current,credential_version:Number.MAX_SAFE_INTEGER},{...current,phase:'stopped'},{...current,phase:'connected'},{...connection,credential_version:1},{...connection,credential_expires_at:current.credential_expires_at}])expect(readDesktopToolResult({status:'ok',connection:value},scope)).toBeDefined();
+ for(const patch of [{credential_version:0},{credential_version:-1},{credential_version:1.5},{credential_version:Number.MAX_SAFE_INTEGER+1},{credential_version:'2'},{credential_expires_at:null},{credential_expires_at:'2026-02-30T00:00:00Z'},{credential_expires_at:'2026-01-01T00:00:00+00:00'},{credential_expires_at:'tomorrow'},{credential_sha256:'a'.repeat(64)},{project_id:'5'.repeat(32)}])expect(readDesktopToolResult({status:'ok',connection:{...current,...patch}},scope)).toBeUndefined();
+});
 it('requires all OpenCode original configuration facts on connected and rejects private setup metadata',()=>{
  const openScope={...scope,adapterID:'opencode-sdk'},native={...connection,adapter_id:openScope.adapterID,model:'vendor/model',tool_version:'1.19.4',executable_sha256:'a'.repeat(64),configuration_sha256:'b'.repeat(64),provider_id:'provider',endpoint_origin:'https://provider.example'};
  expect(validDesktopToolScope(openScope)).toBe(true);expect(readDesktopToolResult({status:'ok',connection:native},openScope)).toEqual({status:'ok',connection:native});

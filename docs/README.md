@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [本机工具凭据续期](product/desktop-runner-renewal.md) · [合同](../contracts/desktop-runner-renewal.md) · [架构与AI SOP](architecture/desktop-runner-renewal.md) · [交互](design/desktop-runner-renewal.md) · [English](en/desktop-runner-renewal.md) · [限定验证](quality/desktop-runner-renewal-verification.md)：T-DESKTOP-CREDENTIAL-178沿原Worker安全续期，未知结果核对原操作，明确连接后才读取新库存；30定向和真实只读CLI通过，完整生产验收仍待交付。
+
 - [OpenCode快捷连接](product/opencode-quick-connect.md) · [合同](../contracts/opencode-quick-connect.md) · [架构与AI SOP](architecture/opencode-quick-connect.md) · [交互](design/opencode-quick-connect.md) · [English](en/opencode-quick-connect.md) · [参考复用](integrations/opencode-quick-connect-reference.md) · [限定验证](quality/opencode-quick-connect-verification.md)：T-OPENCODE-QUICK-CONNECT-177复用原SDK与Worker，补齐安装／资源／配置与登记入口；40定向通过，真实SDK资产与合成组件证据分开。
 
 - [自动工具检查与登记](product/tool-onboarding.md) · [合同](../contracts/tool-onboarding-scan.md) · [架构与AI SOP](architecture/tool-onboarding.md) · [交互](design/tool-onboarding.md) · [English](en/tool-onboarding.md) · [限定验证](quality/tool-onboarding-verification.md)：T176以一次并行被动扫描接入原工具流程，补齐来源预检与原操作恢复；27定向通过，真实CLI和合成组件范围分别披露。

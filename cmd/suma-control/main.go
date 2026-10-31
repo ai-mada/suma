@@ -33,8 +33,15 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	managedRunner := app.Bool("desktop-managed-runner", false, "由桌面私有管道管理项目执行节点，不启动控制服务", "run the project worker through the private desktop pipe, without starting the control service")
 	describeACP := app.Bool("describe-acp-models-stdin", false, "明确读取私有原生工具的模型目录，不发送开发目标", "explicitly read a private native tool model catalogue without sending a development goal")
 	describeCodex := app.Bool("describe-codex-models-stdin", false, "明确读取私有Codex原生模型目录，不发送开发目标", "explicitly read a private Codex model catalogue without sending a development goal")
+	renewalCheck := app.Bool("desktop-runner-renewal-check-stdin", false, "只读核对原执行日志是否可续期，不启动服务或执行节点", "inspect original execution state for credential renewal without starting a service or worker")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	if *renewalCheck {
+		if *describeACP || *describeCodex || *maintenance || *discoverInstalled || *localTool != "" || *managedRunner {
+			return app.Failure("续期状态检查不能与服务或其他工具模式混用", "Renewal inspection cannot be combined with service or other tool modes")
+		}
+		return runDesktopRunnerRenewalCheck(app, os.Stdin)
 	}
 	if *describeCodex {
 		if *describeACP || *maintenance || *discoverInstalled || *localTool != "" || *managedRunner {

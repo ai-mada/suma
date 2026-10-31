@@ -11,6 +11,7 @@ import {validDesktopCodexSelection,type DesktopCodexSelection} from './desktop-c
 import {validDesktopOpenCodeSetup,type DesktopOpenCodeSetup} from './desktop-opencode-connector-model';
 import {openCodeEndpointOrigin} from './opencode-execution-model';
 import {ToolConnectionDiagnostic} from './ToolConnectionDiagnostic';
+import {DesktopCredentialStatus} from './DesktopCredentialStatus';
 import {tr,useLocale} from './i18n';
 import './DesktopToolConnector.css';
 
@@ -29,15 +30,17 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
  const intent=useRef({api,bridge,epoch:0}),mounted=useRef(true),inflight=useRef(false),reported=useRef(''),reportedConnection=useRef(''),workspaceRoot=useRef<HTMLDivElement>(null);
  if(intent.current.api!==api||intent.current.bridge!==bridge)intent.current={api,bridge,epoch:intent.current.epoch+1};
  const current=snapshot?.api===api&&snapshot.bridge===bridge?snapshot:undefined,connection=current?.connection;
- const phase=current?.refusal??(current?.uncertain?(current.uncertain==='stop'?'stop_unconfirmed':'issuance_unknown'):connection?.phase);
+ const renewalPending=current?.uncertain==='renew'||connection?.phase==='renewal_unknown';
+ const phase=current?.refusal??(renewalPending?'renewal_unknown':current?.uncertain?(current.uncertain==='stop'?'stop_unconfirmed':'issuance_unknown'):connection?.phase);
  const acp=scope.adapterID==='qoder-acp',codex=scope.adapterID==='codex-app-server',opencode=scope.adapterID==='opencode-sdk',native=acp||codex||opencode,originalRecovery=!!current?.uncertain||phase==='prepared'||phase==='issuance_unknown'||phase==='failed';
  const selectionValid=(acp?validDesktopACPSelection(acpSelection):codex?validDesktopCodexSelection(codexSelection):opencode?validDesktopOpenCodeSetup(opencodeSetup):false)&&typeof expectedConfigurationSHA==='string'&&/^[a-f0-9]{64}$/.test(expectedConfigurationSHA);
- const localBlocked=!!busy||workspaceBlocked||!!current?.uncertain||!!phase&&['prepared','issuance_unknown','starting','stopping','stop_unconfirmed'].includes(phase);
+ const localBlocked=!!busy||workspaceBlocked||!!current?.uncertain||!!phase&&['prepared','issuance_unknown','renewal_unknown','starting','stopping','stop_unconfirmed'].includes(phase);
  useEffect(()=>{onBlockedChange?.(localBlocked);},[localBlocked,onBlockedChange]);
  useEffect(()=>()=>onBlockedChange?.(false),[onBlockedChange]);
  const live=(epoch:number)=>mounted.current&&epoch===intent.current.epoch;
  function unconfirmed(previous:Snapshot|undefined,action:DesktopToolAction,code?:string):Snapshot{
   const before=previous?.api===api&&previous.bridge===bridge?previous:undefined,connection=before?.connection;
+  if(action==='renew'&&code==='managed_runner_renewal_blocked')return {...(before??{api,bridge}),failed:true,code};
   const priorRefusal=before?.refusal??(connection&&refusals.has(connection.phase)?connection.phase:undefined);
   const refusal=code==='managed_runner_access_changed'?'authorization_required':code&&refusals.has(code)?code as DesktopToolPhase:action==='status'?priorRefusal:undefined;
   const uncertain=action==='status'?before?.uncertain??(connection?.phase==='stopping'||connection?.phase==='stop_unconfirmed'?'stop':'status'):action;
@@ -45,6 +48,7 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
  }
  async function run(action:DesktopToolAction){
   if(inflight.current||action!=='status'&&(disabled||workspaceBlocked))return;
+  if(action==='connect'&&renewalPending||action==='renew'&&!canRenew)return;
   if(action==='connect'&&native&&!originalRecovery&&!selectionValid)return;
   const epoch=intent.current.epoch;inflight.current=true;setBusy(action);
   try{
@@ -79,7 +83,7 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
   if(acp&&(!expectedConfigurationSHA||connection.configuration_sha256!==expectedConfigurationSHA||!connection.model||!connection.tool_version||!connection.executable_sha256||acpSelection&&connection.model!==acpSelection.model_id)){reported.current='';return;}
   if(codex&&(!expectedConfigurationSHA||connection.configuration_sha256!==expectedConfigurationSHA||!connection.tool_version||!connection.executable_sha256||!connection.catalog_sha256)){reported.current='';return;}
   if(opencode&&(!expectedConfigurationSHA||connection.configuration_sha256!==expectedConfigurationSHA||!connection.model||!connection.provider_id||!connection.endpoint_origin||!connection.tool_version||!connection.executable_sha256||opencodeSetup&&(!validDesktopOpenCodeSetup(opencodeSetup)||connection.model!==opencodeSetup.model||connection.provider_id!==opencodeSetup.provider_id||connection.executable_sha256!==opencodeSetup.executable_sha256||connection.endpoint_origin!==openCodeEndpointOrigin(opencodeSetup.base_url)))){reported.current='';return;}
-  const identity=native?JSON.stringify([connection.worker_id,connection.configuration_sha256,connection.tool_version,connection.executable_sha256,connection.catalog_sha256]):connection.worker_id;
+  const identity=JSON.stringify(native?[connection.worker_id,connection.configuration_sha256,connection.tool_version,connection.executable_sha256,connection.catalog_sha256,connection.credential_version]:[connection.worker_id,connection.credential_version]);
   if(reported.current===identity)return;reported.current=identity;onConnected(connection.worker_id);
  },[current,connection,onConnected,acp,codex,opencode,native,expectedConfigurationSHA,acpSelection?.model_id,opencodeSetup]);
  useEffect(()=>{
@@ -89,19 +93,21 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
  },[connection,busy,current]);
  const blocked=!!busy||disabled||workspaceBlocked;
  const resume=!!current?.uncertain||phase==='prepared'||phase==='issuance_unknown'||phase==='failed';
- const canConnect=!!current&&(!native||originalRecovery||selectionValid)&&phase!=='connected'&&phase!=='starting'&&phase!=='stopping'&&phase!=='stop_unconfirmed'&&phase!=='needs_workspace'&&phase!=='binding_changed'&&phase!=='origin_changed'&&phase!=='credential_unrecoverable'&&phase!=='authorization_required';
+ const canConnect=!!current&&!renewalPending&&(!native||originalRecovery||selectionValid)&&phase!=='connected'&&phase!=='starting'&&phase!=='stopping'&&phase!=='stop_unconfirmed'&&phase!=='needs_workspace'&&phase!=='binding_changed'&&phase!=='origin_changed'&&phase!=='credential_unrecoverable'&&phase!=='authorization_required';
+ const canRenew=!!current&&(renewalPending||!current.uncertain&&!!connection?.worker_id&&!!connection.credential_expires_at&&!!connection.credential_version&&!!phase&&['stopped','prepared','authorization_required'].includes(phase));
  const canStop=!!connection?.worker_id&&(phase==='connected'||phase==='starting');
  const content=<>
   <p className="desktop-tool-description">{t('help')}</p>
-  <p role="status" className={current?.failed||phase==='stop_unconfirmed'?'desktop-tool-warning':'desktop-tool-state'}>{t(busy?busy==='status'?'checking':busy==='connect'?'connecting':'stopping':phase??'checking')}</p>
-  {current?.uncertain&&!current.refusal&&<p className="desktop-tool-warning">{t('unknown')}</p>}
+  <p role="status" className={current?.failed||phase==='stop_unconfirmed'||renewalPending?'desktop-tool-warning':'desktop-tool-state'}>{t(busy?busy==='status'?'checking':busy==='connect'?'connecting':busy==='renew'?'renewing':'stopping':phase??'checking')}</p>
+  {current?.uncertain&&!current.refusal&&!renewalPending&&<p className="desktop-tool-warning">{t('unknown')}</p>}
   {connection?.repository_name&&<p className="desktop-tool-repository">{connection.repository_name}</p>}
   <div className="desktop-tool-actions">
    {canConnect&&<button data-local-tool-connect type="button" className={secondary?'':'primary'} disabled={blocked} onClick={()=>void run('connect')}><Monitor size={15} aria-hidden="true"/>{t(resume?'resume':'connect')}</button>}
-   <button data-local-tool-status type="button" disabled={blocked} onClick={()=>void run('status')}><RefreshCw size={14} aria-hidden="true"/>{t(current?.uncertain||phase==='issuance_unknown'||phase==='stop_unconfirmed'?'check_original':'refresh')}</button>
+   <button data-local-tool-status type="button" disabled={blocked} onClick={()=>void run('status')}><RefreshCw size={14} aria-hidden="true"/>{t(!renewalPending&&(current?.uncertain||phase==='issuance_unknown'||phase==='stop_unconfirmed')?'check_original':'refresh')}</button>
    {canStop&&<button data-local-tool-stop type="button" disabled={blocked} onClick={()=>void run('stop')}><Square size={13} aria-hidden="true"/>{t('stop')}</button>}
   </div>
-  {(current?.code||current?.refusal)&&<ToolConnectionDiagnostic reasonCode={current.code??current.refusal} originalOperationPending={!!current.uncertain} disabled={blocked} onConfigure={onConfigure} onGuide={onGuide} onReconcile={()=>void run('status')} onWorkspace={phase==='needs_workspace'?()=>{workspaceRoot.current?.scrollIntoView?.({block:'center'});workspaceRoot.current?.focus();}:undefined}/>}
+  {(connection?.worker_id||renewalPending)&&<DesktopCredentialStatus credentialExpiresAt={connection?.credential_expires_at} credentialVersion={connection?.credential_version} inventoryExpiresAt={connection?.expires_at} renewalReason={connection?.renewal_reason} renewalUnknown={renewalPending} renewing={busy==='renew'} disabled={blocked} onRenew={canRenew?()=>void run('renew'):undefined}/>}
+  {(current?.code||current?.refusal)&&<ToolConnectionDiagnostic reasonCode={current.code??current.refusal} originalOperationPending={!!current.uncertain} disabled={blocked} onConfigure={onConfigure} onGuide={onGuide} onReconcile={()=>void run(renewalPending?'renew':'status')} onWorkspace={phase==='needs_workspace'?()=>{workspaceRoot.current?.scrollIntoView?.({block:'center'});workspaceRoot.current?.focus();}:undefined}/>}
   {phase==='needs_workspace'&&<div ref={workspaceRoot} tabIndex={-1}><ConnectorWorkspace api={api} project={scope.project} disabled={!!busy||disabled} onBlockedChange={setWorkspaceBlocked} onBound={()=>void run('status')}/></div>}
   <p className="desktop-tool-boundary">{t('boundary')}</p>
  </>;

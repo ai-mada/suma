@@ -35,7 +35,7 @@ func (s *Server) desktopRunnerHTTP(w http.ResponseWriter, r *http.Request, actor
 		writeError(w, &APIError{405, "method_not_allowed", "Unsupported request method", nil})
 		return true
 	}
-	if r.URL.RawQuery != "" || path != "desktop-runners/context" && path != "desktop-runners/register" {
+	if r.URL.RawQuery != "" || path != "desktop-runners/context" && path != "desktop-runners/register" && path != "desktop-runners/renew" {
 		writeError(w, desktopRunnerInvalid())
 		return true
 	}
@@ -54,6 +54,16 @@ func (s *Server) desktopRunnerHTTP(w http.ResponseWriter, r *http.Request, actor
 	body, err := decode(r)
 	if err != nil {
 		writeError(w, err)
+		return true
+	}
+	if path == "desktop-runners/renew" {
+		var request DesktopRunnerRenewalRequest
+		if err = releaseDecode(body, &request); err != nil {
+			writeError(w, desktopRunnerInvalid())
+			return true
+		}
+		out, e := s.Service.renewDesktopRunner(r.Context(), actor, request, proof)
+		respond(w, http.StatusOK, out, e)
 		return true
 	}
 	names := []string{"project_id", "user_id", "tenant_id"}

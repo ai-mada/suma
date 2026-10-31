@@ -703,12 +703,12 @@
   "last_goal_turn_classification": "progress: T173 native published skill plan/assignment/files/Codex catalogue and explicit invocation implemented,47focused/real installed no-Prompt directory/synthetic4visual verified. No model-use claim,4link skips and fullgoal gaps retained. Stage publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-OPENCODE-QUICK-CONNECT-177",
+    "stage": "T-DESKTOP-CREDENTIAL-178",
     "status": "scoped_verified",
-    "contract": "contracts/opencode-quick-connect.md",
+    "contract": "contracts/desktop-runner-renewal.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
-    "priority": "Parallel feature delivery, mature runtime reuse, simple bilingual onboarding and only changed behavior checks.",
-    "next": "Continue original full platform, tool credential lifecycle and real native/integration/installer acceptance; preserve current user delta and existing evidence."
+    "priority": "Parallel feature implementation; mature runtime reuse; simple bilingual onboarding; no repeated unrelated verification.",
+    "next": "Implement controlled recovery of expired old-token unresolved effects, continue remote/distributed tool and full original platform capabilities."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -972,6 +972,28 @@
       "Complete installer, signatures, release third-party notice audit and Windows/macOS/Linux native installation matrix.",
       "Physical multi-host, other databases, full devices/themes, scale and production.",
       "All original31/P0-P7 goals and prior171 explicit GUI-stop gap."
+    ],
+    "full_platform_complete": false
+  },
+  "desktop_runner_renewal": {
+    "stage": "T-DESKTOP-CREDENTIAL-178",
+    "version": "1.0.0",
+    "date": "2026-11-01",
+    "status": "scoped_source_actual_readonly_cli_and_synthetic_components_verified",
+    "contract": "contracts/desktop-runner-renewal.md",
+    "product": "docs/product/desktop-runner-renewal.md",
+    "architecture": "docs/architecture/desktop-runner-renewal.md",
+    "design": "docs/design/desktop-runner-renewal.md",
+    "report": "docs/quality/desktop-runner-renewal-verification.md",
+    "summary": "docs/quality/desktop-runner-renewal-summary.json",
+    "implementation": "Original Worker/configuration/journal preserved; host encrypted pending request/key/new token before private HMAC digest renewal. Current authority/holder/original registration/receipt/CAS/drain gates; old authority revoked and new digest/version/24h expiry applied atomically; no server-generated secret or task retry. Read-only original state lock and typed sidecars, closed safe/reasons result; unknown effects never cleared by credential renewal. Separate credential metadata/inventory expiry, exact renewal recovery, prepared then explicit connect, bilingual reasons and credential-version inventory callbacks.",
+    "verification": "30distinct(10Go/7Desktop/13Web;19new/11affectedold),18Go subcases; once TSC0/8442paired/0hardcodes. Current authority/drain/oldtoken/private HMAC and same-key recovery covered; source failures and parallel log collision retained.",
+    "actual": "1Go build/3real readonly privateCLI states pass and original bytes unchanged;0SDK build/model.1synthetic component build,4CN checks reused then only EN focus continuation,5total/2Root-viewed images/2normal exits0. No full authenticated desktop or production claim.",
+    "remaining": [
+      "Old expired authorization with unresolved old-token effects still blocks renewal; dedicated controlled recovery-ticket flow remains to implement.",
+      "Full authenticated desktop/OS secure-storage/vendor tool integration, physical multi-host and other databases.",
+      "Cross-platform native locks/installers, full device/theme/scale and production acceptance.",
+      "Original31/P0-P7 platform and prior171 explicit GUI-stop gap remain active."
     ],
     "full_platform_complete": false
   }

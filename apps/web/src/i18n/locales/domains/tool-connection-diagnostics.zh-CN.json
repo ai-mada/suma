@@ -1,5 +1,7 @@
 {
   "tool-connection-diagnostics.title": "连接诊断",
+  "tool-connection-diagnostics.reason.renewal_blocked": "续期条件尚未满足",
+  "tool-connection-diagnostics.hint.renewal_blocked": "请先核对原执行与停止状态。保留日志和原操作记录，不要更换身份或凭据绕过核对。",
   "tool-connection-diagnostics.reason.workspace_required": "选择项目工作区",
   "tool-connection-diagnostics.hint.workspace_required": "本机连接需要当前项目的工作区。请选择工作区后，再继续连接。",
   "tool-connection-diagnostics.reason.not_installed": "未发现可用安装",

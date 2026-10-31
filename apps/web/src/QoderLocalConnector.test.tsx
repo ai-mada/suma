@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import {act} from 'react';
+import {act,useState} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import {ApiViewProvider} from './api-context';
@@ -61,4 +61,18 @@ it('invalidates changed and expired drafts while preserving original status, sto
  await act(async()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(credential,'');credential.dispatchEvent(new Event('input',{bubbles:true}));});await settle();await select('[data-acp-model-select]',modelB);await act(async()=>vi.advanceTimersByTimeAsync(61000));await settle();expect(element('[data-acp-selection-ready]').getAttribute('data-acp-selection-ready')).toBe('false');
  await click('[data-local-tool-status]');expect(manage.mock.calls.at(-1)![0]).toEqual({...base,action:'status'});expect(onConnected).toHaveBeenCalledOnce();manageReply=async()=>managed('stopped');await click('[data-local-tool-stop]');expect(manage.mock.calls.at(-1)![0]).toEqual({...base,action:'stop'});const fresh=host.querySelector<HTMLButtonElement>('[data-local-tool-connect]');expect(!fresh||fresh.disabled).toBe(true);
  manageReply=async()=>managed('prepared');await click('[data-local-tool-status]');manageReply=async()=>managed('connected');await click('[data-local-tool-connect]');expect(manage.mock.calls.at(-1)![0]).toEqual({...base,action:'connect'});expect(inspect.mock.calls.filter(([request])=>request.action==='models')).toHaveLength(1);expect(onConnected).toHaveBeenCalledOnce();expect(fetch).not.toHaveBeenCalled();
+});
+
+it('reports model and managed uncertainty to the parent without disabling original recovery, and unlocks after confirmation',async()=>{
+ const onBlocked=vi.fn(),onReady=vi.fn();
+ function Parent(){const [blocked,setBlocked]=useState(false);return <ApiViewProvider session={session}><button data-parent-tool-picker disabled={blocked}>Choose tool</button><QoderLocalConnector project={project} onConnected={onConnected} onBlockedChange={value=>{onBlocked(value);setBlocked(value);}} onRegistrationReadyChange={onReady}/></ApiViewProvider>;}
+ await act(async()=>root.render(<Parent/>));await settle();expect(element<HTMLButtonElement>('[data-parent-tool-picker]').disabled).toBe(false);
+ await click('[data-acp-installations-inspect]');let finishModel!:(value:unknown)=>void,original='';inspectReply=request=>request.action==='models'?(original=request.operation_id,new Promise(resolve=>{finishModel=resolve;})):Promise.resolve(observation());
+ await click('[data-acp-models-discover]');expect(onBlocked).toHaveBeenLastCalledWith(true);expect(element<HTMLButtonElement>('[data-parent-tool-picker]').disabled).toBe(true);
+ await act(async()=>finishModel({status:'failed',code:'acp_discovery_unknown'}));await settle();expect(onBlocked).toHaveBeenLastCalledWith(true);expect(element<HTMLButtonElement>('[data-acp-observation-status]').disabled).toBe(false);
+ inspectReply=async request=>ready(request.action==='status'?request.operation_id||original:original);await click('[data-acp-observation-status]');expect(onBlocked).toHaveBeenLastCalledWith(false);await select('[data-acp-model-select]',modelA);
+ let finishConnect!:(value:unknown)=>void;manageReply=()=>new Promise(resolve=>{finishConnect=resolve;});await click('[data-local-tool-connect]');expect(onBlocked).toHaveBeenLastCalledWith(true);expect(element<HTMLSelectElement>('[data-acp-model-select]').disabled).toBe(true);expect(element<HTMLInputElement>('[data-acp-credential-reference]').disabled).toBe(true);
+ await act(async()=>finishConnect({status:'failed',code:'managed_runner_busy'}));await settle();expect(onBlocked).toHaveBeenLastCalledWith(true);expect(element<HTMLButtonElement>('[data-local-tool-status]').disabled).toBe(false);expect(element<HTMLButtonElement>('[data-acp-observation-status]').disabled).toBe(false);
+ manageReply=async()=>managed('connected');await click('[data-local-tool-status]');expect(onBlocked).toHaveBeenLastCalledWith(false);expect(onReady).toHaveBeenLastCalledWith(true);expect(element<HTMLButtonElement>('[data-parent-tool-picker]').disabled).toBe(false);expect(onConnected).toHaveBeenCalledExactlyOnceWith(worker);expect(inspect.mock.calls.filter(([request])=>request.action==='models')).toHaveLength(1);
+ vi.stubGlobal('sumaDesktop',undefined);await act(async()=>root.render(<Parent/>));await settle();expect(onBlocked).toHaveBeenLastCalledWith(false);expect(onReady).toHaveBeenLastCalledWith(false);expect(fetch).not.toHaveBeenCalled();
 });

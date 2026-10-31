@@ -7,10 +7,13 @@ it('limits an unresolved original operation to reconciliation even when a new se
   expect(value?.reason,reason).toBe('original_operation');
   expect(value?.actions,reason).toEqual(['reconcile']);
  }
- for(const reason of ['prepared','issuance_unknown','stop_unconfirmed','reading','unknown'])expect(toolConnectionDiagnostic(reason)?.actions,reason).toEqual(['reconcile']);
+ for(const reason of ['prepared','issuance_unknown','renewal_unknown','stop_unconfirmed','reading','unknown'])expect(toolConnectionDiagnostic(reason)?.actions,reason).toEqual(['reconcile']);
+ expect(toolConnectionDiagnostic('renewal_future')).toEqual({reason:'unknown',actions:[],rawCode:'renewal_future'});
 });
 
 it('maps current safe causes to explicit existing actions without guessing a retry for an unknown code',()=>{
+ expect(toolConnectionDiagnostic('managed_runner_renewal_blocked')).toEqual({reason:'renewal_blocked',actions:['reconcile'],rawCode:'managed_runner_renewal_blocked'});
+ expect(toolConnectionDiagnostic('managed_runner_renewal_blocked',true)).toEqual({reason:'original_operation',actions:['reconcile'],rawCode:'managed_runner_renewal_blocked'});
  for(const reason of ['workspace_required','needs_workspace'])expect(toolConnectionDiagnostic(reason)?.actions,reason).toEqual(['workspace']);
  for(const reason of ['not_installed','wrapper_only','unsupported_launcher','invalid_package','node_unavailable'])expect(toolConnectionDiagnostic(reason)?.actions,reason).toEqual(['guide','detect']);
  expect(toolConnectionDiagnostic('configuration_required')?.actions).toEqual(['configure']);

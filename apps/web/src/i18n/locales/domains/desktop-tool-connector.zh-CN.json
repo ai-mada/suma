@@ -8,6 +8,8 @@
  "desktop-tool-connector.stop":"停止本机节点",
  "desktop-tool-connector.checking":"正在读取本机连接…",
  "desktop-tool-connector.connecting":"正在连接本机…",
+ "desktop-tool-connector.renewing":"正在核对并续期原本机授权…",
+ "desktop-tool-connector.renewal_unknown":"原续期结果尚未确认，请核对原续期；原身份和请求保持不变。",
  "desktop-tool-connector.unknown":"原操作结果尚未确认。请先核对原连接；原记录保留在本机。",
  "desktop-tool-connector.unconfigured":"本机尚未连接。",
  "desktop-tool-connector.needs_workspace":"请明确选择并绑定当前项目的 Git 目录，再连接本机。",

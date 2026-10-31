@@ -1,5 +1,7 @@
 {
   "tool-connection-diagnostics.title": "Connection diagnostics",
+  "tool-connection-diagnostics.reason.renewal_blocked": "Renewal requirements are not met",
+  "tool-connection-diagnostics.hint.renewal_blocked": "Check the original execution and stop status first. Keep the logs and original operation records; do not replace the identity or credentials to bypass these checks.",
   "tool-connection-diagnostics.reason.workspace_required": "Choose the project workspace",
   "tool-connection-diagnostics.hint.workspace_required": "A local connection needs this project's workspace. Choose a workspace before continuing the connection.",
   "tool-connection-diagnostics.reason.not_installed": "No usable installation found",

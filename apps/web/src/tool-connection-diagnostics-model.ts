@@ -1,5 +1,5 @@
 export type ToolConnectionDiagnosticAction='detect'|'configure'|'workspace'|'guide'|'reconcile';
-export type ToolConnectionDiagnosticReason='workspace_required'|'not_installed'|'unsupported_launcher'|'invalid_package'|'node_unavailable'|'probe_failed'|'model_catalogue_unavailable'|'configuration_required'|'original_operation'|'authorization_required'|'binding_changed'|'origin_changed'|'credential_unrecoverable'|'unknown';
+export type ToolConnectionDiagnosticReason='workspace_required'|'not_installed'|'unsupported_launcher'|'invalid_package'|'node_unavailable'|'probe_failed'|'model_catalogue_unavailable'|'configuration_required'|'original_operation'|'authorization_required'|'binding_changed'|'origin_changed'|'credential_unrecoverable'|'renewal_blocked'|'unknown';
 export type ToolConnectionDiagnosticDescriptor=Readonly<{reason:ToolConnectionDiagnosticReason;actions:readonly ToolConnectionDiagnosticAction[];rawCode?:string}>;
 
 type Rule=Pick<ToolConnectionDiagnosticDescriptor,'reason'|'actions'>;
@@ -14,11 +14,12 @@ const rules:Readonly<Record<string,Rule>>={
  node_unavailable:{reason:'node_unavailable',actions:['guide','detect']},
  probe_failed:{reason:'probe_failed',actions:['detect','configure']},
  configuration_required:{reason:'configuration_required',actions:['configure']},
- prepared:original,issuance_unknown:original,stop_unconfirmed:original,reading:original,unknown:original,
+ prepared:original,issuance_unknown:original,renewal_unknown:original,stop_unconfirmed:original,reading:original,unknown:original,
  authorization_required:{reason:'authorization_required',actions:['reconcile']},
  binding_changed:{reason:'binding_changed',actions:['reconcile']},
  origin_changed:{reason:'origin_changed',actions:['reconcile']},
  credential_unrecoverable:{reason:'credential_unrecoverable',actions:['reconcile']},
+ managed_runner_renewal_blocked:{reason:'renewal_blocked',actions:['reconcile']},
  codex_discovery_invalid:{reason:'configuration_required',actions:['configure']},
  codex_discovery_credential_unavailable:{reason:'configuration_required',actions:['configure']},
  codex_discovery_catalogue_unavailable:{reason:'model_catalogue_unavailable',actions:['configure']},
