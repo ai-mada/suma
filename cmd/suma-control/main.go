@@ -34,8 +34,15 @@ func run(args []string, out, stderr io.Writer, lookup func(string) (string, bool
 	describeACP := app.Bool("describe-acp-models-stdin", false, "明确读取私有原生工具的模型目录，不发送开发目标", "explicitly read a private native tool model catalogue without sending a development goal")
 	describeCodex := app.Bool("describe-codex-models-stdin", false, "明确读取私有Codex原生模型目录，不发送开发目标", "explicitly read a private Codex model catalogue without sending a development goal")
 	renewalCheck := app.Bool("desktop-runner-renewal-check-stdin", false, "只读核对原执行日志是否可续期，不启动服务或执行节点", "inspect original execution state for credential renewal without starting a service or worker")
+	resultRecovery := app.Bool("desktop-runner-result-recovery-stdin", false, "离线核对原结果回执，不启动服务或执行节点", "recover original result receipts offline without starting a service or worker")
 	if stop, code := app.Parse(args, version); stop {
 		return code
+	}
+	if *resultRecovery {
+		if *renewalCheck || *describeACP || *describeCodex || *maintenance || *discoverInstalled || *localTool != "" || *managedRunner {
+			return app.Failure("结果核对不能与服务或其他工具模式混用", "Result recovery cannot be combined with service or other tool modes")
+		}
+		return runDesktopResultRecovery(app, os.Stdin)
 	}
 	if *renewalCheck {
 		if *describeACP || *describeCodex || *maintenance || *discoverInstalled || *localTool != "" || *managedRunner {

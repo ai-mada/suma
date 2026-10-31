@@ -1,0 +1,156 @@
+{
+  "stage": "T-DESKTOP-RESULT-RECOVERY-179",
+  "version": "1.0.0",
+  "date": "2026-11-01",
+  "timezone": "Asia/Shanghai",
+  "status": "scoped_source_actual_offline_cli_and_synthetic_components_verified",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "implementation": [
+    "Current browser administrator and original desktop HMAC/holder/registration/workspace source authorize lookup of immutable committed result receipts. Expired machine credentials remain unauthorized.",
+    "A shared plan binds the original journal, exact callback digest, server result fingerprint and textual int64 fence. A 60-second fact proof authorizes only local ACK reconciliation.",
+    "Offline prepare/apply/status hold the original lock; one atomic replacement changes only matched existing ACKs. Lost replies reuse the same plan. Missing receipts, unknown execution and sidecars are preserved.",
+    "Encrypted host recovery state exposes only a bilingual aggregate card. Original renewal HTTP receipt state is durable and distinct from display reasons; recovery, renewal, connection and enable remain separate."
+  ],
+  "focused": {
+    "distinct_top_level": 27,
+    "new": 21,
+    "affected_existing": 6,
+    "go": {
+      "platform": {
+        "distinct": 4,
+        "new": 3,
+        "affected_existing": 1,
+        "subcases": 16
+      },
+      "runner": {
+        "distinct": 4,
+        "new": 4,
+        "subcases": 5
+      },
+      "cli": {
+        "distinct": 2,
+        "new": 2
+      },
+      "shared_contract": {
+        "distinct": 1,
+        "new": 1
+      },
+      "distinct": 11,
+      "subcases_separate": 21
+    },
+    "desktop": {
+      "distinct": 6,
+      "new": 4,
+      "affected_existing": 2
+    },
+    "web": {
+      "distinct": 10,
+      "new": 7,
+      "affected_existing": 3
+    },
+    "repeated_runs_not_double_counted": true
+  },
+  "integration": {
+    "full_typecheck_exit": 0,
+    "paired_locale_keys": 8472,
+    "production_hardcodes": 0,
+    "go_builds": 1,
+    "sdk_builds": 0,
+    "public_schema_generation": 0,
+    "full_go_suite": false,
+    "full_web_suite": false,
+    "ui_component_builds": 1,
+    "gui_launches": 1,
+    "gui_checks": 6,
+    "root_viewed_images": 2,
+    "native_exit": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  "actual_cli": {
+    "observations": 3,
+    "actions": [
+      "prepare",
+      "apply",
+      "status"
+    ],
+    "executable_sha256": "b6537d26550f87903dadb59670a575a51fe47246e40337d441f559debc8350f3",
+    "node_go_proof_interop": true,
+    "large_numbers_preserved": true,
+    "scope": "Real private Go executable against owned controlled journal and Node-signed synthetic fact proof; no real server receipt, model, Worker or SDK"
+  },
+  "history": [
+    "Platform, Runner, desktop and Web meaningful REDs and focused fixes remain in owner evidence; repeated GREENs are not additional cases. Runner initially had an unused-import compile failure.",
+    "A bounded Web review found a recovery-status refusal classification bug; its new RED and the affected unknown-read regression passed after the exact fix.",
+    "The first actual CLI driver used unsupported --locale. It exited before private mode; original stderr and source are preserved. Only the driver was corrected to --language and the unchanged binary/fixture was reused."
+  ],
+  "evidence": [
+    {
+      "path": ".cache/desktop-result-recovery-179/platform/evidence.json",
+      "sha256": "6aeb161bfa0cd1802647001a623f31262ba113f40bb7c80795bca3281b7c5f75"
+    },
+    {
+      "path": ".cache/desktop-result-recovery-179/runner/evidence.json",
+      "sha256": "cc7c395452bcb28ca18dfa2dd7ab2e52b198f8f80e7e17b5a476ddd25ccc2583"
+    },
+    {
+      "path": ".cache/desktop-result-recovery-179/desktop/evidence.json",
+      "sha256": "9ecadfed623c0525cb5e43883fa240fc136ff171a22f12fd2e2573161f213bbd"
+    },
+    {
+      "path": ".cache/desktop-recovery-179/web/frontend-summary.json",
+      "sha256": "a4113e6e2114ef59b866de0aea1ca31da0ac97a4f2067df6a8b973cccc0ba854"
+    },
+    {
+      "path": ".cache/desktop-result-recovery-179/actual/result.json",
+      "sha256": "6d2ff11ae675c1cd22734ef042881b57d13f666862da568f7269b67d9105779b"
+    },
+    {
+      "path": ".cache/desktop-recovery-179/visual/result.json",
+      "sha256": "f204475a65a0f0acbc151756b330ca30b32e6c8251d3d34bb23295e181311e72"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261031T164931380Z.command.json",
+      "sha256": "46046176c9d100ad9190dc239d9cacef9e4a1420ca118846d2d033ccd8036c45"
+    },
+    {
+      "path": ".cache/follow155/root-go/20261031T165244017Z.command.json",
+      "sha256": "77db8b9ffe76cd9aa0db1622bb4936ec2992e3a29b7cd68c5b07ad997e458bf0"
+    }
+  ],
+  "images": [
+    {
+      "path": ".cache/desktop-recovery-179/visual/cn-1366-partial.png",
+      "sha256": "1c6565a00e69a121957a6f66a0d47c10447507640efa974b8b0531ef1a7cec6c",
+      "root_viewed": true
+    },
+    {
+      "path": ".cache/desktop-recovery-179/visual/en-390-unknown.png",
+      "sha256": "cc6e51fcf81022471c6ad69e3d79d011096de5ca0dd74706b87981b053179457",
+      "root_viewed": true
+    }
+  ],
+  "boundaries": [
+    "Actual CLI uses an owned controlled journal and a Node-signed synthetic fact proof; it is not an actual server receipt or vendor development execution. HTTP/SQLite server lookup and desktop transport are separately focused-tested.",
+    "GUI uses real production components with a synthetic native bridge, not a full authenticated desktop/server journey. No model or real task was invoked.",
+    "Only already-committed main-journal results are reconciled. Uncommitted effects, other outboxes, full distributed/cloud/remote tool recovery and formal task acceptance remain separate.",
+    "No OceanBase/PostgreSQL, physical multi-host, macOS/Linux, full installer or production-scale acceptance in this stage. The original31/P0-P7 scope and stage171 explicit-stop UI gap remain active.",
+    "Original21 working paths are protected; main.go contributes only two exact initial-mode hunks to the commit. The real binary was built from the current working tree with the preserved unrelated main.go delta; it is not a clean release artifact."
+  ],
+  "hygiene": {
+    "original_working_paths": 21,
+    "partial_stage_path": "cmd/suma-control/main.go",
+    "temporary_files_in_git": false,
+    "credentials_in_git": false,
+    "cache_receipts_remain_local": true
+  }
+}

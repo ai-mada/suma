@@ -8,6 +8,7 @@ const codexValidation=require('./local-codex-validation.cjs');
 const opencodeValidation=require('./local-opencode-validation.cjs');
 const {resolveOpenCodeAssets}=require('./local-opencode-assets.cjs');
 const {RENEW_FIELDS,digest,validRenewReceipt,createRenewalReadinessChecker}=require('./managed-local-runner-renewal.cjs');
+const {SCOPE_FIELDS,planSHA,projection:recoveryProjection,createResultRecoveryController}=require('./managed-local-runner-recovery.cjs');
 const CHANNEL='suma:manage-local-runner';
 const TOOL_PROTOCOLS=Object.freeze({'codex-jsonl':['codex','codex-jsonl-v1'],'codebuddy-cli':['codebuddy','codebuddy-jsonl-v1'],'dsh-multica':['harness','dsh-multica-jsonl-v1'],'claude-code-cli':['claude','claude-jsonl-v1'],'qoder-acp':['qoder','acp-stdio-v1'],'codex-app-server':['codex','codex-app-server-v1'],'opencode-sdk':['opencode','opencode-sdk-v1']});
 const HASH=/^[a-f0-9]{64}$/,ID=/^[a-f0-9]{32}$/;
@@ -38,7 +39,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
  function openJournal(){if(journalFinalized)throw Error('Managed runner controller is closed');return journal??=createManagedRunnerJournal({userData,safeStorage});}
  function save(record){openJournal().write(record.value);}
  function connection(scope,phase,record){
-  const value={project_id:scope.project_id,adapter_id:scope.adapter_id,phase},stored=record?.value;if(record?.renewalReason||stored?.pending_renew)value.renewal_reason=record?.renewalReason||'result_unknown';
+  const value={project_id:scope.project_id,adapter_id:scope.adapter_id,phase},stored=record?.value;if(record?.renewalReason||stored?.pending_renew)value.renewal_reason=record?.renewalReason||'result_unknown';if(stored?.pending_recovery)value.recovery=recoveryProjection(stored.pending_recovery);else if(stored?.last_recovery)value.recovery={...stored.last_recovery};
   if(stored){value.worker_id=stored.request.worker_id;value.base_commit=stored.base_commit;value.repository_name=path.basename(stored.repository_path);if(record.expiresAt)value.expires_at=record.expiresAt;const credential=record.currentWorker||stored.worker;if(credential)Object.assign(value,{credential_expires_at:credential.expires_at,credential_version:credential.version});
    const config=stored.acp_configuration;if(config)Object.assign(value,{model:config.model,tool_version:config.reviewed_version,executable_sha256:config.executable_sha256,configuration_sha256:config.configuration_sha256});
    const codex=stored.codex_configuration;if(codex)Object.assign(value,{tool_version:codex.reviewed_version,executable_sha256:codex.executable_sha256,configuration_sha256:codex.configuration_sha256,...(phase==='connected'&&record.catalogSHA?{catalog_sha256:record.catalogSHA}:{})});
@@ -51,15 +52,16 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   // A saved observation never proves that an old child is running now. An
   // explicit reconnect reuses its credential and the Runner's exclusive log.
   if(['starting','connected'].includes(value.phase))value.phase='prepared';else if(value.phase==='stopping')value.phase='stop_unconfirmed';
+  if(value.pending_recovery?.phase==='checking')value.pending_recovery.phase='unknown';
   const record={value,child:null,closed:true,stopping:null,guardBusy:false};records.set(id,record);return record;
  }
  function baseOptions(scope){return {credentials:'include',redirect:'error',cache:'no-store',signal:AbortSignal.timeout(5000),headers:{Accept:'application/json','X-Suma-Expected-User':scope.user_id,'X-Suma-Expected-Organization':scope.tenant_id}};}
  async function session(scope){if(!alive())throw Error('authority');const value=await boundedJSON(await parent.webContents.session.fetch(origin+'/api/v1/auth/session',{...baseOptions(scope),method:'GET'}));if(!alive()||value?.user?.id!==scope.user_id||value?.organization?.id!==scope.tenant_id)throw Error('authority');}
  async function signed(action,body,scope){
   const nonce=crypto.randomBytes(16).toString('hex'),expires=new Date(now()+60000).toISOString();
-  const fields=action==='context'?['project_id','user_id','tenant_id']:action==='renew'?RENEW_FIELDS:['project_id','user_id','tenant_id','worker_id','adapter_id','instance_id','expected_binding_sha256','base_commit','credential_sha256','idempotency_key'];
-  const options=baseOptions(scope);options.headers={...options.headers,'Content-Type':'application/json','X-Suma-Desktop-Nonce':nonce,'X-Suma-Desktop-Expires':expires,'X-Suma-Desktop-Signature':crypto.createHmac('sha256',privateKey).update(['suma-desktop-runner-v1',action,...fields.map(name=>body[name]),nonce,expires].join('\0')).digest('hex')};
-  return boundedJSON(await parent.webContents.session.fetch(origin+'/api/v1/desktop-runners/'+action,{...options,method:'POST',body:JSON.stringify(body)}));
+  const fields=action==='context'?['project_id','user_id','tenant_id']:action==='renew'?RENEW_FIELDS:['project_id','user_id','tenant_id','worker_id','adapter_id','instance_id','expected_binding_sha256','base_commit','credential_sha256','idempotency_key'],values=action==='recovery-receipts'?[...SCOPE_FIELDS.map(k=>body.scope[k]),body.recovery_operation_id,planSHA(body.plan)]:fields.map(name=>body[name]);
+  const options=baseOptions(scope);options.headers={...options.headers,'Content-Type':'application/json','X-Suma-Desktop-Nonce':nonce,'X-Suma-Desktop-Expires':expires,'X-Suma-Desktop-Signature':crypto.createHmac('sha256',privateKey).update(['suma-desktop-runner-v1',action,...values,nonce,expires].join('\0')).digest('hex')};
+  return boundedJSON(await parent.webContents.session.fetch(origin+'/api/v1/desktop-runners/'+(action==='recovery-receipts'?'recovery/receipts':action),{...options,method:'POST',body:JSON.stringify(body)}));
  }
  async function authorize(scope){
   await session(scope);const context=await signed('context',{project_id:scope.project_id,user_id:scope.user_id,tenant_id:scope.tenant_id},scope);await session(scope);
@@ -137,6 +139,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
  }
  async function renew(record,scope,event,locale){
   if(!record)return connection(scope,'unconfigured');
+  if(record.value.pending_recovery&&['prepared','checking','unknown'].includes(record.value.pending_recovery.phase)){record.renewalReason='local_state_pending';return connection(scope,record.value.phase,record);}
   if(record.value.phase==='stop_unconfirmed'||record.stopping||record.child&&!record.closed){record.renewalReason='local_state_pending';return connection(scope,record.value.phase,record);}
   if(!record.value.worker||record.value.phase==='issuance_unknown'){record.renewalReason='result_unknown';return connection(scope,'issuance_unknown',record);}
   if(!['stopped','prepared','authorization_required','failed','renewal_unknown'].includes(record.value.phase))return connection(scope,record.value.phase,record);
@@ -146,14 +149,14 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
    const worker=await currentWorker(record);if(!worker||worker.version!==record.value.worker.version){record.renewalReason=worker?'credential_changed':'access_changed';return connection(scope,'authorization_required',record);}
    await session(scope);if(!caller(event))throw Error('authority');
    const token=crypto.randomBytes(32).toString('hex'),r=record.value.request,request={project_id:r.project_id,user_id:r.user_id,tenant_id:r.tenant_id,worker_id:r.worker_id,adapter_id:r.adapter_id,instance_id:r.instance_id,expected_binding_sha256:r.expected_binding_sha256,base_commit:r.base_commit,registration_operation_id:r.idempotency_key,expected_worker_version:worker.version,previous_credential_sha256:digest(record.value.token),credential_sha256:digest(token),idempotency_key:'desktop-runner-renew-'+crypto.randomBytes(16).toString('hex')};
-   const prepared={...record.value,pending_renew:{token,request},phase:'renewal_unknown'};openJournal().write(prepared);record.value=prepared;record.renewalReason='result_unknown';
+   const prepared={...record.value,pending_renew:{token,request,receipt_state:'unknown'},phase:'renewal_unknown'};openJournal().write(prepared);record.value=prepared;record.renewalReason='result_unknown';
   }
-  if(record.value.phase!=='renewal_unknown')phase(record,'renewal_unknown');record.renewalReason='result_unknown';
+  const sending={...record.value,phase:'renewal_unknown',pending_renew:{...record.value.pending_renew,receipt_state:'unknown'}};openJournal().write(sending);record.value=sending;record.renewalReason='result_unknown';
   let out;try{out=await signed('renew',record.value.pending_renew.request,scope);if(!validRenewReceipt(out,record.value,record.value.pending_renew.request))throw Error('renewal receipt');}catch(error){
    if([401,403].includes(error.status)||error.status===409&&error.code==='desktop_runner_credential_changed'){record.renewalReason=error.status===409?'credential_changed':'access_changed';phase(record,'authorization_required');return connection(scope,'authorization_required',record);}
-   if(error.status===409&&error.code==='desktop_runner_context_changed'){record.renewalReason='context_changed';phase(record,'binding_changed');return connection(scope,'binding_changed',record);}record.renewalReason=error.status===409&&error.code==='desktop_runner_renewal_pending'?'execution_pending':'result_unknown';return connection(scope,'renewal_unknown',record);
+   if(error.status===409&&error.code==='desktop_runner_context_changed'){record.renewalReason='context_changed';phase(record,'binding_changed');return connection(scope,'binding_changed',record);}record.renewalReason=error.status===409&&error.code==='desktop_runner_renewal_pending'?'execution_pending':'result_unknown';if(record.renewalReason==='execution_pending'){const blocked={...record.value,pending_renew:{...record.value.pending_renew,receipt_state:'blocked'}};openJournal().write(blocked);record.value=blocked;}return connection(scope,'renewal_unknown',record);
   }
-  const pending=record.value.pending_renew,adopted={...record.value,token:pending.token,worker:out.worker,last_renewal:{request:pending.request,receipt:out,registration_sha256:digest(JSON.stringify(record.value.request))},phase:'prepared'};delete adopted.pending_renew;openJournal().write(adopted);record.value=adopted;record.currentWorker=undefined;record.expiresAt=undefined;record.renewalReason=undefined;
+  const pending=record.value.pending_renew,adopted={...record.value,token:pending.token,worker:out.worker,last_renewal:{request:pending.request,receipt:out,registration_sha256:digest(JSON.stringify(record.value.request))},phase:'prepared'};delete adopted.pending_renew;if(adopted.pending_recovery){adopted.last_recovery=recoveryProjection(adopted.pending_recovery);delete adopted.pending_recovery;}openJournal().write(adopted);record.value=adopted;record.currentWorker=undefined;record.expiresAt=undefined;record.renewalReason=undefined;
   const after=await authorize(scope);if(!caller(event)||!sameContext(record,after))return connection(scope,'binding_changed',record);
   if(!await checkWorker(record)){phase(record,'authorization_required');return connection(scope,'authorization_required',record);}await session(scope);return connection(scope,'prepared',record);
  }
@@ -167,8 +170,8 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
   const qoder=request?.adapter_id==='qoder-acp',configurable=qoder&&request?.action==='connect';
   const nativeCodex=request?.adapter_id==='codex-app-server',codexConfigurable=nativeCodex&&request?.action==='connect';
   const openCode=request?.adapter_id==='opencode-sdk';
-  if(!caller(event)||!fields(request,['action','project_id','user_id','tenant_id','adapter_id','locale'],configurable?['acp_selection','expected_configuration_sha256']:codexConfigurable?['codex_selection','expected_configuration_sha256']:openCode&&request?.action==='connect'?['opencode_setup']:[])||!['connect','status','stop','renew'].includes(request.action)||!['zh-CN','en-US'].includes(request.locale)||!validScope(requestScope(request))||Object.hasOwn(request,'expected_configuration_sha256')&&!HASH.test(request.expected_configuration_sha256)||Object.hasOwn(request,'acp_selection')&&(!fields(request.acp_selection,['installation_id','probe_id','model_id'])||!ID.test(request.acp_selection.installation_id)||!ID.test(request.acp_selection.probe_id)||typeof request.acp_selection.model_id!=='string'||!HASH.test(request.expected_configuration_sha256))||Object.hasOwn(request,'codex_selection')&&(!fields(request.codex_selection,['installation_id','probe_id'])||!ID.test(request.codex_selection.installation_id)||!ID.test(request.codex_selection.probe_id)||!HASH.test(request.expected_configuration_sha256))||Object.hasOwn(request,'opencode_setup')&&!opencodeValidation.validSetup(request.opencode_setup))return failure('managed_runner_request_rejected');
-  if(busy||(acp.isBusy()||codex.isBusy())&&['connect','renew'].includes(request.action))return failure('managed_runner_busy');busy=true;let resolveManage;activeManage=new Promise(resolve=>resolveManage=resolve);const scope=requestScope(request);let record,configuration;
+  if(!caller(event)||!fields(request,['action','project_id','user_id','tenant_id','adapter_id','locale'],configurable?['acp_selection','expected_configuration_sha256']:codexConfigurable?['codex_selection','expected_configuration_sha256']:openCode&&request?.action==='connect'?['opencode_setup']:[])||!['connect','status','stop','renew','recover','recovery-status'].includes(request.action)||!['zh-CN','en-US'].includes(request.locale)||!validScope(requestScope(request))||Object.hasOwn(request,'expected_configuration_sha256')&&!HASH.test(request.expected_configuration_sha256)||Object.hasOwn(request,'acp_selection')&&(!fields(request.acp_selection,['installation_id','probe_id','model_id'])||!ID.test(request.acp_selection.installation_id)||!ID.test(request.acp_selection.probe_id)||typeof request.acp_selection.model_id!=='string'||!HASH.test(request.expected_configuration_sha256))||Object.hasOwn(request,'codex_selection')&&(!fields(request.codex_selection,['installation_id','probe_id'])||!ID.test(request.codex_selection.installation_id)||!ID.test(request.codex_selection.probe_id)||!HASH.test(request.expected_configuration_sha256))||Object.hasOwn(request,'opencode_setup')&&!opencodeValidation.validSetup(request.opencode_setup))return failure('managed_runner_request_rejected');
+  if(busy||(acp.isBusy()||codex.isBusy())&&['connect','renew','recover'].includes(request.action))return failure('managed_runner_busy');busy=true;let resolveManage;activeManage=new Promise(resolve=>resolveManage=resolve);const scope=requestScope(request);let record,configuration;
   try{
    await session(scope);if(!caller(event))throw Error('authority');
    try{record=getRecord(scope);}catch{return connection(scope,'credential_unrecoverable');}
@@ -182,8 +185,10 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
    }
    if(!caller(event))throw Error('authority');
    if(record&&!sameContext(record,context)){if(request.action==='renew'||record.value.pending_renew)record.renewalReason='context_changed';await softStop(record,'binding_changed');return connection(scope,'binding_changed',record);}
+   if(request.action==='recover'||request.action==='recovery-status')return await recovery.inspect(record,scope,event,request.locale,request.action==='recovery-status');
    if(request.action==='renew')return await renew(record,scope,event,request.locale);
    if(record?.value.pending_renew)return connection(scope,['authorization_required','binding_changed','origin_changed','stop_unconfirmed'].includes(record.value.phase)?record.value.phase:'renewal_unknown',record);
+   if(request.action==='connect'&&record?.value.pending_recovery&&['prepared','checking','unknown'].includes(record.value.pending_recovery.phase))return connection(scope,record.value.phase,record);
    if(request.action==='status'){
     if(record&&record.child&&!record.closed){if(!await checkWorker(record))await softStop(record,'authorization_required');else await observe(record);}
     else if(record?.closed&&record.value.phase==='authorization_required'&&record.value.worker&&await checkWorker(record)){await session(scope);phase(record,'prepared');}
@@ -251,9 +256,10 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
  async function dispose(){
   if(disposing)return disposing;disposed=true;parent.removeListener('closed',dispose);parent.webContents.removeListener('destroyed',dispose);
   disposing=(async()=>{
-   const stoppingReadiness=readiness.dispose();
+   const stoppingReadiness=readiness.dispose(),stoppingRecovery=recovery.dispose();
    if(activeManage)await activeManage;
    await stoppingReadiness;
+   await stoppingRecovery;
    await acp.dispose();
    await codex.dispose();
    for(const record of records.values())clearInterval(record.guard);
@@ -266,6 +272,7 @@ function createManagedLocalRunnerController({parent,origin,binary,key,userData,s
  const acp=createLocalACPController({binary,probeDirectory:path.join(userData,'.cache','acp-probes'),credentialKey:privateKey,environment,spawn,caller,session,authorize,discover,journal:openJournal,now,busy:()=>busy||codex.isBusy()});
  const codex=createLocalCodexController({binary,probeDirectory:path.join(userData,'.cache','codex-probes'),credentialKey:privateKey,environment,spawn,caller,session,authorize,discover,journal:openJournal,now,busy:()=>busy||acp.isBusy()});
  const readiness=createRenewalReadinessChecker({binary,spawn,environment});
+ const recovery=createResultRecoveryController({binary,key:privateKey,spawn,environment,journal:openJournal,authorize,session,caller,sameContext,connection,lookup:(body,scope)=>signed('recovery-receipts',body,scope),readiness,now});
  return {manage,inspectACP:acp.inspect,dispose};
 }
 module.exports={CHANNEL,createManagedLocalRunnerController};

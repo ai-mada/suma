@@ -1,6 +1,6 @@
 # 速码 suma
 
-T-CODEX-QUICK-CONNECT-175新增[Codex原生快速连接](contracts/codex-quick-connect.md)：自动检测、可视化提供方配置、真实目录与原托管Runner接线，按准确新库存暂停登记并明确启用，免手写commands。已通过定向组件检查，并读取本机真实9项模型目录；[架构与AI SOP](docs/architecture/codex-quick-connect.md)、[交互](docs/design/codex-quick-connect.md)及[限定证据](docs/quality/codex-quick-connect-verification.md)区分完整桌面／模型与生产待验范围。
+T-DESKTOP-RESULT-RECOVERY-179补齐[原结果回执恢复](contracts/desktop-result-recovery.md)：当前授权核对原提交，离线原子补齐ACK，丢响应沿原计划恢复；简洁中英界面区分部分恢复、续期与明确连接。[架构与AI SOP](docs/architecture/desktop-result-recovery.md)及[限定验证](docs/quality/desktop-result-recovery-verification.md)记录实际范围。
 
 **速码一栈式智能研发平台**：连接想法、项目、需求、设计、任务、智能体执行、独立测试、人工验收、版本发布与问题回流，提供浏览器、桌面与CLI入口。
 

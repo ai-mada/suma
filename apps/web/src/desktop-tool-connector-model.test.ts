@@ -3,6 +3,23 @@ import {desktopToolBridge,readDesktopToolResult,validDesktopToolScope} from './d
 
 const scope={project:'1'.repeat(32),userID:'2'.repeat(32),organizationID:'3'.repeat(32),adapterID:'codex-jsonl'};
 const connection={project_id:scope.project,adapter_id:'codex-jsonl',phase:'connected',worker_id:'desktop-'+'4'.repeat(32),base_commit:'a'.repeat(40),expires_at:'2099-01-01T00:00:00Z',repository_name:'project'};
+it('reads result recovery metadata without replacing connection or credential facts',()=>{
+ const recovery={operation_id:'5'.repeat(32),phase:'partial',total:3,recovered:1,remaining:2},original={...connection,phase:'stopped',credential_version:2,credential_expires_at:'2026-01-01T00:00:00Z'};
+ expect(readDesktopToolResult({status:'ok',connection:{...original,recovery}},scope)).toEqual({status:'ok',connection:{...original,recovery}});
+ for(const phase of ['prepared','checking','unknown','complete','partial','blocked'])expect(readDesktopToolResult({status:'ok',connection:{...original,recovery:{...recovery,phase}}},scope)).toBeDefined();
+ for(const reason_code of ['no_saved_results','receipt_missing','receipt_mismatch','unsupported_pending','state_changed','source_changed','access_changed','invalid_state','active_worker','result_unknown','proof_expired'])expect(readDesktopToolResult({status:'ok',connection:{...original,recovery:{...recovery,reason_code}}},scope)).toBeDefined();
+ expect(readDesktopToolResult({status:'ok',connection:{...original,recovery:{...recovery,total:Number.MAX_SAFE_INTEGER,recovered:0,remaining:0}}},scope)).toBeDefined();
+ const absent=readDesktopToolResult({status:'ok',connection:original},scope);if(absent?.status==='ok')expect(absent.connection).not.toHaveProperty('recovery');
+});
+it('rejects malformed result recovery counters identities and private plan fields',()=>{
+ const recovery={operation_id:'5'.repeat(32),phase:'unknown',total:3,recovered:1,remaining:2};
+ const read=(value:unknown)=>readDesktopToolResult({status:'ok',connection:{...connection,recovery:value}},scope);
+ expect(read(recovery)).toBeDefined();
+ for(const patch of [{operation_id:'5'.repeat(31)},{operation_id:'A'.repeat(32)},{phase:'succeeded'},{reason_code:'future_reason'},{reason_code:'secret\nvalue'},{reason_code:null},{plan:{}},{proof:{}},{key:'secret'},{path:'private'},{secret:'value'}])expect(read({...recovery,...patch})).toBeUndefined();
+ for(const key of ['total','recovered','remaining'])for(const value of [-1,0.5,Number.MAX_SAFE_INTEGER+1,NaN,Infinity,'1',null])expect(read({...recovery,[key]:value})).toBeUndefined();
+ for(const key of Object.keys(recovery)){const missing:Record<string,unknown>={...recovery};delete missing[key];expect(read(missing)).toBeUndefined();}
+ for(const value of [null,[],Object.assign(Object.create({plan:{}}),recovery),Object.defineProperty({...recovery},'proof',{value:{}})])expect(read(value)).toBeUndefined();
+});
 it('keeps credential registration expiry and version independent from inventory and renewal outcome',()=>{
  const current={...connection,phase:'renewal_unknown',credential_expires_at:'2026-01-01T00:00:00.123456789Z',credential_version:2};
  expect(readDesktopToolResult({status:'ok',connection:current},scope)).toEqual({status:'ok',connection:current});

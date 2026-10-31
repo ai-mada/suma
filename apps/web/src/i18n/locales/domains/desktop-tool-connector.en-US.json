@@ -9,6 +9,8 @@
  "desktop-tool-connector.checking":"Reading local connection…",
  "desktop-tool-connector.connecting":"Connecting this computer…",
  "desktop-tool-connector.renewing":"Checking and renewing the original local authorization…",
+ "desktop-tool-connector.recovering":"Checking original receipts for saved execution results…",
+ "desktop-tool-connector.reading_recovery":"Reading the original receipt recovery state…",
  "desktop-tool-connector.renewal_unknown":"The original renewal is unconfirmed. Check that renewal; its identity and request are retained.",
  "desktop-tool-connector.unknown":"The original result is unconfirmed. Check the original connection before continuing; its record stays on this computer.",
  "desktop-tool-connector.unconfigured":"This computer is not connected.",

@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [原结果回执恢复](product/desktop-result-recovery.md) · [合同](../contracts/desktop-result-recovery.md) · [架构与AI SOP](architecture/desktop-result-recovery.md) · [交互](design/desktop-result-recovery.md) · [English](en/desktop-result-recovery.md) · [限定验证](quality/desktop-result-recovery-verification.md)：T179在原连接中核对已提交结果，丢响应复用原计划；27定向、3真实离线CLI观察及6合成界面检查通过，完整目标继续交付。
+
 - [本机工具凭据续期](product/desktop-runner-renewal.md) · [合同](../contracts/desktop-runner-renewal.md) · [架构与AI SOP](architecture/desktop-runner-renewal.md) · [交互](design/desktop-runner-renewal.md) · [English](en/desktop-runner-renewal.md) · [限定验证](quality/desktop-runner-renewal-verification.md)：T-DESKTOP-CREDENTIAL-178沿原Worker安全续期，未知结果核对原操作，明确连接后才读取新库存；30定向和真实只读CLI通过，完整生产验收仍待交付。
 
 - [OpenCode快捷连接](product/opencode-quick-connect.md) · [合同](../contracts/opencode-quick-connect.md) · [架构与AI SOP](architecture/opencode-quick-connect.md) · [交互](design/opencode-quick-connect.md) · [English](en/opencode-quick-connect.md) · [参考复用](integrations/opencode-quick-connect-reference.md) · [限定验证](quality/opencode-quick-connect-verification.md)：T-OPENCODE-QUICK-CONNECT-177复用原SDK与Worker，补齐安装／资源／配置与登记入口；40定向通过，真实SDK资产与合成组件证据分开。

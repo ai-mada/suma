@@ -700,15 +700,15 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T173 native published skill plan/assignment/files/Codex catalogue and explicit invocation implemented,47focused/real installed no-Prompt directory/synthetic4visual verified. No model-use claim,4link skips and fullgoal gaps retained. Stage publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
+  "last_goal_turn_classification": "progress: T179 source, exact historical receipt lookup, offline atomic ACK recovery, bilingual UI, focused checks and actual isolated CLI/component evidence delivered; full original goal active",
   "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-DESKTOP-CREDENTIAL-178",
+    "stage": "T-DESKTOP-RESULT-RECOVERY-179",
     "status": "scoped_verified",
-    "contract": "contracts/desktop-runner-renewal.md",
+    "contract": "contracts/desktop-result-recovery.md",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
     "priority": "Parallel feature implementation; mature runtime reuse; simple bilingual onboarding; no repeated unrelated verification.",
-    "next": "Implement controlled recovery of expired old-token unresolved effects, continue remote/distributed tool and full original platform capabilities."
+    "next": "Continue uncommitted-effect/outbox recovery, generic tool diagnostics and remote/distributed onboarding, then original platform domains without reducing the full scope."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -996,5 +996,28 @@
       "Original31/P0-P7 platform and prior171 explicit GUI-stop gap remain active."
     ],
     "full_platform_complete": false
+  },
+  "desktop_result_recovery": {
+    "stage": "T-DESKTOP-RESULT-RECOVERY-179",
+    "status": "scoped_verified",
+    "contract": "contracts/desktop-result-recovery.md",
+    "report": "docs/quality/desktop-result-recovery-verification.md",
+    "summary": "docs/quality/desktop-result-recovery-summary.json",
+    "focused": 27,
+    "actual_cli_observations": 3,
+    "synthetic_gui_checks": 6,
+    "implementation": [
+      "Current browser administrator and original desktop HMAC/holder/registration/workspace source authorize lookup of immutable committed result receipts. Expired machine credentials remain unauthorized.",
+      "A shared plan binds the original journal, exact callback digest, server result fingerprint and textual int64 fence. A 60-second fact proof authorizes only local ACK reconciliation.",
+      "Offline prepare/apply/status hold the original lock; one atomic replacement changes only matched existing ACKs. Lost replies reuse the same plan. Missing receipts, unknown execution and sidecars are preserved.",
+      "Encrypted host recovery state exposes only a bilingual aggregate card. Original renewal HTTP receipt state is durable and distinct from display reasons; recovery, renewal, connection and enable remain separate."
+    ],
+    "boundaries": [
+      "Actual CLI uses an owned controlled journal and a Node-signed synthetic fact proof; it is not an actual server receipt or vendor development execution. HTTP/SQLite server lookup and desktop transport are separately focused-tested.",
+      "GUI uses real production components with a synthetic native bridge, not a full authenticated desktop/server journey. No model or real task was invoked.",
+      "Only already-committed main-journal results are reconciled. Uncommitted effects, other outboxes, full distributed/cloud/remote tool recovery and formal task acceptance remain separate.",
+      "No OceanBase/PostgreSQL, physical multi-host, macOS/Linux, full installer or production-scale acceptance in this stage. The original31/P0-P7 scope and stage171 explicit-stop UI gap remain active.",
+      "Original21 working paths are protected; main.go contributes only two exact initial-mode hunks to the commit. The real binary was built from the current working tree with the preserved unrelated main.go delta; it is not a clean release artifact."
+    ]
   }
 }

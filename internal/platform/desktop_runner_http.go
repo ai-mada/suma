@@ -1,10 +1,13 @@
 package platform
 
 import (
+	"io"
 	"net"
 	"net/http"
 	"strconv"
 	"strings"
+
+	rc "github.com/ai-mada/suma/internal/desktoprecoverycontract"
 )
 
 func desktopRunnerLoopback(r *http.Request) bool {
@@ -35,7 +38,7 @@ func (s *Server) desktopRunnerHTTP(w http.ResponseWriter, r *http.Request, actor
 		writeError(w, &APIError{405, "method_not_allowed", "Unsupported request method", nil})
 		return true
 	}
-	if r.URL.RawQuery != "" || path != "desktop-runners/context" && path != "desktop-runners/register" && path != "desktop-runners/renew" {
+	if r.URL.RawQuery != "" || path != "desktop-runners/context" && path != "desktop-runners/register" && path != "desktop-runners/renew" && path != "desktop-runners/recovery/receipts" {
 		writeError(w, desktopRunnerInvalid())
 		return true
 	}
@@ -47,6 +50,17 @@ func (s *Server) desktopRunnerHTTP(w http.ResponseWriter, r *http.Request, actor
 			return true
 		}
 		*target = values[0]
+	}
+	if path == "desktop-runners/recovery/receipts" {
+		raw, err := io.ReadAll(http.MaxBytesReader(w, r.Body, rc.InputLimit))
+		var request DesktopResultRecoveryRequest
+		if err != nil || request.UnmarshalJSON(raw) != nil {
+			writeError(w, desktopRunnerInvalid())
+			return true
+		}
+		out, err := s.Service.desktopResultRecovery(r.Context(), actor, request, proof)
+		respond(w, http.StatusOK, out, err)
+		return true
 	}
 	// Decode the original bounded body before generic routing can discard
 	// duplicate keys; exact canonical string keys reject aliases and nulls.

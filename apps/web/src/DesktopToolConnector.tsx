@@ -12,6 +12,7 @@ import {validDesktopOpenCodeSetup,type DesktopOpenCodeSetup} from './desktop-ope
 import {openCodeEndpointOrigin} from './opencode-execution-model';
 import {ToolConnectionDiagnostic} from './ToolConnectionDiagnostic';
 import {DesktopCredentialStatus} from './DesktopCredentialStatus';
+import {DesktopRecoveryStatus} from './DesktopRecoveryStatus';
 import {tr,useLocale} from './i18n';
 import './DesktopToolConnector.css';
 
@@ -31,24 +32,31 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
  if(intent.current.api!==api||intent.current.bridge!==bridge)intent.current={api,bridge,epoch:intent.current.epoch+1};
  const current=snapshot?.api===api&&snapshot.bridge===bridge?snapshot:undefined,connection=current?.connection;
  const renewalPending=current?.uncertain==='renew'||connection?.phase==='renewal_unknown';
- const phase=current?.refusal??(renewalPending?'renewal_unknown':current?.uncertain?(current.uncertain==='stop'?'stop_unconfirmed':'issuance_unknown'):connection?.phase);
+ const recovery=connection?.recovery,recoveryRequestPending=current?.uncertain==='recover'||current?.uncertain==='recovery-status',recoveryUnsettled=!!recovery&&recovery.phase!=='complete';
+ // Receipt recovery is independent from the original credential lifecycle.
+ // Losing a read/apply response must not turn authorization_required into a new issuance.
+ const phase=current?.refusal??(renewalPending?'renewal_unknown':current?.uncertain&&!recoveryRequestPending?(current.uncertain==='stop'?'stop_unconfirmed':'issuance_unknown'):connection?.phase);
  const acp=scope.adapterID==='qoder-acp',codex=scope.adapterID==='codex-app-server',opencode=scope.adapterID==='opencode-sdk',native=acp||codex||opencode,originalRecovery=!!current?.uncertain||phase==='prepared'||phase==='issuance_unknown'||phase==='failed';
  const selectionValid=(acp?validDesktopACPSelection(acpSelection):codex?validDesktopCodexSelection(codexSelection):opencode?validDesktopOpenCodeSetup(opencodeSetup):false)&&typeof expectedConfigurationSHA==='string'&&/^[a-f0-9]{64}$/.test(expectedConfigurationSHA);
- const localBlocked=!!busy||workspaceBlocked||!!current?.uncertain||!!phase&&['prepared','issuance_unknown','renewal_unknown','starting','stopping','stop_unconfirmed'].includes(phase);
+ const localBlocked=!!busy||workspaceBlocked||!!current?.uncertain||recoveryUnsettled||!!phase&&['prepared','issuance_unknown','renewal_unknown','starting','stopping','stop_unconfirmed'].includes(phase);
  useEffect(()=>{onBlockedChange?.(localBlocked);},[localBlocked,onBlockedChange]);
  useEffect(()=>()=>onBlockedChange?.(false),[onBlockedChange]);
  const live=(epoch:number)=>mounted.current&&epoch===intent.current.epoch;
  function unconfirmed(previous:Snapshot|undefined,action:DesktopToolAction,code?:string):Snapshot{
   const before=previous?.api===api&&previous.bridge===bridge?previous:undefined,connection=before?.connection;
+  const explicitRefusal=code==='managed_runner_access_changed'?'authorization_required':code&&refusals.has(code)?code as DesktopToolPhase:undefined;
+  // Read failure keeps the original batch; an explicit access/source refusal
+  // still updates the credential facts instead of retaining a stale stopped state.
+  if(action==='recovery-status')return {...(before??{api,bridge}),failed:true,...(explicitRefusal?{refusal:explicitRefusal}:{}),...(code?{code}:{})};
   if(action==='renew'&&code==='managed_runner_renewal_blocked')return {...(before??{api,bridge}),failed:true,code};
   const priorRefusal=before?.refusal??(connection&&refusals.has(connection.phase)?connection.phase:undefined);
-  const refusal=code==='managed_runner_access_changed'?'authorization_required':code&&refusals.has(code)?code as DesktopToolPhase:action==='status'?priorRefusal:undefined;
+  const refusal=explicitRefusal??(action==='status'?priorRefusal:undefined);
   const uncertain=action==='status'?before?.uncertain??(connection?.phase==='stopping'||connection?.phase==='stop_unconfirmed'?'stop':'status'):action;
   return {api,bridge,connection,uncertain,failed:true,...(refusal?{refusal}:{}),...(code?{code}:before?.code?{code:before.code}:{})};
  }
  async function run(action:DesktopToolAction){
-  if(inflight.current||action!=='status'&&(disabled||workspaceBlocked))return;
-  if(action==='connect'&&renewalPending||action==='renew'&&!canRenew)return;
+  if(inflight.current||action!=='status'&&action!=='recovery-status'&&(disabled||workspaceBlocked))return;
+  if(action==='connect'&&(renewalPending||recoveryUnsettled||recoveryRequestPending)||action==='renew'&&!canRenew||action==='recover'&&!canRecover||action==='recovery-status'&&!canReadRecovery)return;
   if(action==='connect'&&native&&!originalRecovery&&!selectionValid)return;
   const epoch=intent.current.epoch;inflight.current=true;setBusy(action);
   try{
@@ -58,7 +66,7 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
    if(!live(epoch))return;const result=readDesktopToolResult(raw,scope);
    if(!result)throw Error('unconfirmed native response');
    if(result.status==='failed')setSnapshot(previous=>unconfirmed(previous,action,result.code));
-   else setSnapshot({api,bridge,connection:result.connection});
+   else setSnapshot(previous=>({api,bridge,connection:result.connection,...((action==='status'||action==='recovery-status')&&previous?.api===api&&previous.bridge===bridge&&previous.uncertain==='recover'&&!result.connection.recovery?{uncertain:'recover' as const}:{})}));
   }catch{if(live(epoch))setSnapshot(previous=>unconfirmed(previous,action));}
   finally{if(live(epoch)){inflight.current=false;setBusy(undefined);}}
  }
@@ -78,6 +86,7 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
   // of its inventory even though its worker identity remains unchanged.
   if(current.refusal){reported.current='';return;}
   if(current.uncertain||!connection)return;
+  if(connection.recovery&&connection.recovery.phase!=='complete'){reported.current='';return;}
   if(connection.phase!=='connected'){reported.current='';return;}
   if(!connection.worker_id)return;
   if(acp&&(!expectedConfigurationSHA||connection.configuration_sha256!==expectedConfigurationSHA||!connection.model||!connection.tool_version||!connection.executable_sha256||acpSelection&&connection.model!==acpSelection.model_id)){reported.current='';return;}
@@ -87,19 +96,22 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
   if(reported.current===identity)return;reported.current=identity;onConnected(connection.worker_id);
  },[current,connection,onConnected,acp,codex,opencode,native,expectedConfigurationSHA,acpSelection?.model_id,opencodeSetup]);
  useEffect(()=>{
-  if(busy||!connection||current?.uncertain)return;
+  if(busy||!connection||current?.uncertain||connection.recovery&&connection.recovery.phase!=='complete')return;
   const wait=connection.phase==='starting'||connection.phase==='stopping'?2000:connection.phase==='connected'&&connection.expires_at?Math.max(1000,Date.parse(connection.expires_at)-Date.now()):undefined;
   if(wait===undefined)return;const timer=setTimeout(()=>void run('status'),wait);return()=>clearTimeout(timer);
  },[connection,busy,current]);
  const blocked=!!busy||disabled||workspaceBlocked;
  const resume=!!current?.uncertain||phase==='prepared'||phase==='issuance_unknown'||phase==='failed';
- const canConnect=!!current&&!renewalPending&&(!native||originalRecovery||selectionValid)&&phase!=='connected'&&phase!=='starting'&&phase!=='stopping'&&phase!=='stop_unconfirmed'&&phase!=='needs_workspace'&&phase!=='binding_changed'&&phase!=='origin_changed'&&phase!=='credential_unrecoverable'&&phase!=='authorization_required';
- const canRenew=!!current&&(renewalPending||!current.uncertain&&!!connection?.worker_id&&!!connection.credential_expires_at&&!!connection.credential_version&&!!phase&&['stopped','prepared','authorization_required'].includes(phase));
+ const canConnect=!!current&&!renewalPending&&!recoveryUnsettled&&!recoveryRequestPending&&(!native||originalRecovery||selectionValid)&&phase!=='connected'&&phase!=='starting'&&phase!=='stopping'&&phase!=='stop_unconfirmed'&&phase!=='needs_workspace'&&phase!=='binding_changed'&&phase!=='origin_changed'&&phase!=='credential_unrecoverable'&&phase!=='authorization_required';
+ const registered=!!connection?.worker_id&&!!connection.credential_expires_at&&!!connection.credential_version;
+ const canRenew=!!current&&(renewalPending||!current.refusal&&!recoveryUnsettled&&!recoveryRequestPending&&!current.uncertain&&registered&&!!phase&&['stopped','prepared','authorization_required'].includes(phase));
+ const canRecover=!!current&&!current.refusal&&!renewalPending&&(!current.uncertain||recoveryRequestPending)&&registered&&!!phase&&['stopped','prepared','authorization_required','failed'].includes(phase);
+ const canReadRecovery=!!current&&!renewalPending&&(!!recovery||recoveryRequestPending);
  const canStop=!!connection?.worker_id&&(phase==='connected'||phase==='starting');
  const content=<>
   <p className="desktop-tool-description">{t('help')}</p>
-  <p role="status" className={current?.failed||phase==='stop_unconfirmed'||renewalPending?'desktop-tool-warning':'desktop-tool-state'}>{t(busy?busy==='status'?'checking':busy==='connect'?'connecting':busy==='renew'?'renewing':'stopping':phase??'checking')}</p>
-  {current?.uncertain&&!current.refusal&&!renewalPending&&<p className="desktop-tool-warning">{t('unknown')}</p>}
+  <p role="status" className={current?.failed||phase==='stop_unconfirmed'||renewalPending?'desktop-tool-warning':'desktop-tool-state'}>{t(busy?busy==='status'?'checking':busy==='connect'?'connecting':busy==='renew'?'renewing':busy==='recover'?'recovering':busy==='recovery-status'?'reading_recovery':'stopping':phase??'checking')}</p>
+  {current?.uncertain&&!current.refusal&&!renewalPending&&!recoveryRequestPending&&<p className="desktop-tool-warning">{t('unknown')}</p>}
   {connection?.repository_name&&<p className="desktop-tool-repository">{connection.repository_name}</p>}
   <div className="desktop-tool-actions">
    {canConnect&&<button data-local-tool-connect type="button" className={secondary?'':'primary'} disabled={blocked} onClick={()=>void run('connect')}><Monitor size={15} aria-hidden="true"/>{t(resume?'resume':'connect')}</button>}
@@ -107,7 +119,8 @@ function ConnectorScope({scope,api,bridge,disabled=false,secondary=false,onConne
    {canStop&&<button data-local-tool-stop type="button" disabled={blocked} onClick={()=>void run('stop')}><Square size={13} aria-hidden="true"/>{t('stop')}</button>}
   </div>
   {(connection?.worker_id||renewalPending)&&<DesktopCredentialStatus credentialExpiresAt={connection?.credential_expires_at} credentialVersion={connection?.credential_version} inventoryExpiresAt={connection?.expires_at} renewalReason={connection?.renewal_reason} renewalUnknown={renewalPending} renewing={busy==='renew'} disabled={blocked} onRenew={canRenew?()=>void run('renew'):undefined}/>}
-  {(current?.code||current?.refusal)&&<ToolConnectionDiagnostic reasonCode={current.code??current.refusal} originalOperationPending={!!current.uncertain} disabled={blocked} onConfigure={onConfigure} onGuide={onGuide} onReconcile={()=>void run(renewalPending?'renew':'status')} onWorkspace={phase==='needs_workspace'?()=>{workspaceRoot.current?.scrollIntoView?.({block:'center'});workspaceRoot.current?.focus();}:undefined}/>}
+  {(canRecover||recovery||recoveryRequestPending)&&<DesktopRecoveryStatus value={recovery} busy={busy==='recover'||busy==='recovery-status'} uncertain={recoveryRequestPending} disabled={blocked} onRecover={canRecover?()=>void run('recover'):undefined} onReadStatus={canReadRecovery?()=>void run('recovery-status'):undefined}/>}
+  {(current?.code||current?.refusal)&&<ToolConnectionDiagnostic reasonCode={current.code??current.refusal} originalOperationPending={!!current.uncertain} disabled={blocked} onConfigure={onConfigure} onGuide={onGuide} onReconcile={()=>void run(renewalPending?'renew':recoveryRequestPending?'recover':recovery?'recovery-status':'status')} onWorkspace={phase==='needs_workspace'?()=>{workspaceRoot.current?.scrollIntoView?.({block:'center'});workspaceRoot.current?.focus();}:undefined}/>}
   {phase==='needs_workspace'&&<div ref={workspaceRoot} tabIndex={-1}><ConnectorWorkspace api={api} project={scope.project} disabled={!!busy||disabled} onBlockedChange={setWorkspaceBlocked} onBound={()=>void run('status')}/></div>}
   <p className="desktop-tool-boundary">{t('boundary')}</p>
  </>;

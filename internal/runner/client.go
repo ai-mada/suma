@@ -92,7 +92,7 @@ func (c *Client) Heartbeat(ctx context.Context, a Assignment) (bool, error) {
 	return r.CancelRequested, err
 }
 func (c *Client) Complete(ctx context.Context, r Result) error {
-	return c.post(ctx, "results", map[string]any{"project_id": c.ProjectID, "result": r}, nil)
+	return c.post(ctx, "results", resultCallbackPayload(c.ProjectID, r), nil)
 }
 func (c *Client) Progress(ctx context.Context, p Progress) error {
 	if p.HostOperation != nil {
