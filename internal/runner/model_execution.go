@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	mc "github.com/ai-mada/suma/internal/modelcontract"
 	mg "github.com/ai-mada/suma/internal/modelgateway"
 	tc "github.com/ai-mada/suma/internal/toolcontract"
@@ -202,8 +203,9 @@ func cloneOctopEvidence(value *tc.OctopExecutionEvidence) *tc.OctopExecutionEvid
 // Retain generic JSON values so durable assignment identity stays byte-stable.
 func cloneModelAssignment(value Assignment) Assignment {
 	value = cloneCloudAssignment(value)
+	value.ExecutionSkills = cc.CloneExecutionSkillBundle(value.ExecutionSkills)
 	value.CodeBaseline = cloneTerminalCodeBaseline(value.CodeBaseline)
-	for _, field := range []string{"model_execution", "codex_execution", "opencode_execution", "octop_execution", "code_baseline", "terminal_candidate_source"} {
+	for _, field := range []string{"model_execution", "codex_execution", "execution_skills", "opencode_execution", "octop_execution", "code_baseline", "terminal_candidate_source"} {
 		selected, present := value.Config[field]
 		if !present {
 			continue

@@ -1,5 +1,7 @@
 # 速码 1.0.0 文档索引
 
+- [Codex原生项目技能](../contracts/codex-native-skills.md) · [架构与AI SOP](architecture/codex-native-skills.md) · [交互](design/codex-native-skills.md) · [English](en/codex-native-skills.md) · [限定验证](quality/codex-native-skills-verification.md) · [摘要](quality/codex-native-skills-summary.json)：T-CODEX-SKILLS-173接通发布技能、受保护计划／Assignment、隔离文件及明确调用。47项不同定向检查、本机真实无Prompt目录与4项合成组件检查通过；4个链接子例跳过，真实模型使用及完整平台继续交付。
+
 - [已验收交付经验](../contracts/delivery-knowledge.md) · [架构与AI SOP](architecture/delivery-knowledge.md) · [简洁交互](design/delivery-knowledge.md) · [限定验证](quality/delivery-knowledge-verification.md) · [摘要](quality/delivery-knowledge-summary.json)：T-DELIVERY-KNOWLEDGE-172接通正式依据、知识提案、独立采用／发布和后续任务准确上下文。43项不同定向检查及一次6项只读界面验证通过；真实模型、物理多机及完整平台继续交付。
 
 - [原生工具快速连接](../contracts/acp-quick-connect.md) · [架构与AI SOP](architecture/acp-quick-connect.md) · [简洁交互](design/acp-quick-connect.md)：T-ACP-QUICK-CONNECT-171已限定接通明确检测、实际模型目录、固定配置和原托管连接；49项定向／6项关键实际检查及两局部视口，显式停止按钮与真实厂商仍待验。

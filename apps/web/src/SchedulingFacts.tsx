@@ -2,6 +2,7 @@ import { Trans } from "./i18n/Trans";
 import { tr as t, useLocale, formatNumber } from "./i18n";
 import { stateLabel, time } from "./api";
 import { ToolExecutionFacts } from "./ToolFacts";
+import type {ExecutionSkillBundle} from '../../../packages/contracts/src';
 import {
   admissionNames,
   capacityLabel,
@@ -406,7 +407,7 @@ export function AdmissionFacts({
     </section>
   );
 }
-export function AttemptFacts({ attempt }: { attempt: ExecutionAttempt }) { useLocale();
+export function AttemptFacts({ attempt,executionSkills }: { attempt: ExecutionAttempt;executionSkills?:ExecutionSkillBundle }) { useLocale();
   const result = attempt.result,
     source = attempt.result_source;
   const sourceNames: Record<string, string> = {
@@ -495,6 +496,7 @@ export function AttemptFacts({ attempt }: { attempt: ExecutionAttempt }) { useLo
           <ToolExecutionFacts
             state={attempt.state}
             evidence={result.tool_evidence ?? undefined}
+            executionSkills={executionSkills}
           />
           {result.workspace_evidence && (
             <details>

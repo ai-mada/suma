@@ -7,6 +7,7 @@ import (
 	"fmt"
 	ac "github.com/ai-mada/suma/internal/acpcontract"
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
+	cdx "github.com/ai-mada/suma/internal/codexcontract"
 	ec "github.com/ai-mada/suma/internal/executioncontract"
 	mc "github.com/ai-mada/suma/internal/modelcontract"
 	mg "github.com/ai-mada/suma/internal/modelgateway"
@@ -426,6 +427,12 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	if codexErr != nil {
 		return fail(codexErr.Error())
 	}
+	skillBundle, skillErr := codexExecutionSkillsRequest(a, codexBinding)
+	if skillErr != nil {
+		return fail(skillErr.Error())
+	}
+	a.ExecutionSkills, r.Assignment.ExecutionSkills = skillBundle, skillBundle
+	var skillEvidence *cdx.ExecutionSkillEvidence
 	var nativeLimits nativeAgentLimits
 	if spec.NativeWorkspace != nil && spec.OpenCode == nil && spec.Adapter != "octop" {
 		limits, limitsErr := nativeExecutionLimits(a)
@@ -607,6 +614,15 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 		codexHome := filepath.Join(workspace.Directory, "codex-home")
 		if err = prepareCodexHome(spec, codexHome, root); err != nil {
 			return fail("Codex isolated configuration could not be prepared")
+		}
+		skillEvidence, err = mountCodexSkills(codexHome, skillBundle)
+		if skillEvidence != nil {
+			// Materialization is an occurred host fact even if a later startup
+			// check fails. No CLI acknowledgement is invented before launch.
+			r.ToolEvidence = &tc.Evidence{Profile: profile, Terminal: "failed", UsageState: tc.UsageUnreported, CodexExecution: &cdx.Evidence{BindingSHA256: codexBinding.BindingSHA256, RequestedModel: codexBinding.Model, RequestedReasoningEffort: codexBinding.ReasoningEffort, Skills: skillEvidence}}
+		}
+		if err != nil {
+			return fail("Codex isolated skill materialization failed")
 		}
 		cmd.Dir = codexHome
 		cmd.Env, environmentSecrets, err = codexEnvironment(spec, codexHome)
@@ -825,6 +841,12 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 			}
 			codexDriver = newCodexAppServer(profile, spec, cmd.Dir, root, a.Config["goal"].(string), codexBinding, stream)
 			defer codexDriver.Close()
+			if err = codexDriver.configureSkills(skillBundle, skillEvidence); err != nil {
+				if skillEvidence != nil {
+					skillEvidence.FailureCode = "configuration_invalid"
+				}
+				return fail("Codex skill invocation configuration is invalid")
+			}
 			cmd.Stdout = codexDriver
 		} else {
 			cmd.Stdout = stream
@@ -843,6 +865,12 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	latestDigest, digestErr := effectiveCommandProfileDigest(cfg, spec, latestSHA)
 	if digestErr != nil || latestDigest != profile.ProfileSHA256 || latestExecutable != executable {
 		return fail("tool profile changed before process launch")
+	}
+	if skillBundle != nil {
+		if err = verifyCodexSkillFiles(cmd.Dir, skillBundle); err != nil {
+			skillEvidence.FailureCode = "files_changed"
+			return fail("Codex isolated skill files changed before launch")
+		}
 	}
 	if workspace != nil {
 		workspace.State = "running"
@@ -984,6 +1012,15 @@ func Execute(ctx context.Context, a Assignment, cfg ExecConfig) Result {
 	} else if stream != nil {
 		if codexDriver != nil {
 			codexDriver.Finish()
+			if skillBundle != nil && processContainmentVerified {
+				if skillErr = verifyCodexSkillFiles(cmd.Dir, skillBundle); skillErr != nil {
+					skillEvidence.FailureCode = "files_changed"
+					r.ExitCode, r.OutcomeUnknown = -1, true
+					stream.invalid("Codex isolated skill files changed during execution")
+				} else {
+					skillEvidence.FilesVerified = true
+				}
+			}
 		}
 		invalidBeforeFinish := stream.bad != nil
 		evidence, streamErr := stream.finish()

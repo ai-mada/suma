@@ -53,6 +53,7 @@ func toolExecutionContracts(add operationAdder, paths map[string]any) {
 }
 
 func enhanceToolExecutionSchemas(schemas map[string]any) {
+	enhanceCodexSkillSchemas(schemas)
 	nativeDiagnosticContracts(schemas)
 	openCodeExecutionSchemas(schemas)
 	octopExecutionSchemas(schemas)

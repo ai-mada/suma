@@ -2,6 +2,7 @@ import {OpenCodeExecutionFacts} from './OpenCodeExecutionFacts';
 import {OctopExecutionFacts} from './OctopExecutionFacts';
 import {openCodeRunFacts,type OpenCodeRunTest} from './opencode-run-model';
 import {ExecutionModelFacts} from './ExecutionModelFacts';
+import type {ExecutionSkillBundle} from '../../../packages/contracts/src';
 import {ClaudeExecutionFacts} from './ClaudeExecutionFacts';
 import {ACPExecutionFacts} from './ACPExecutionFacts';
 import { Trans } from "./i18n/Trans";
@@ -320,6 +321,7 @@ export function ToolExecutionFacts({
   events = [],
   fixedOpenCode,
   modelBinding,
+  executionSkills,
   project,
   tests,
   workspaceOperations,
@@ -329,6 +331,7 @@ export function ToolExecutionFacts({
   events?: ToolEvent[];
   fixedOpenCode?:OpenCodeExecutionCapability;
   modelBinding?:ModelBinding;
+  executionSkills?:ExecutionSkillBundle;
   project?:string;
   tests?:OpenCodeRunTest[];
   workspaceOperations?:{scope:AttemptToolScope;events:readonly unknown[];evidence?:WorkspaceEvidence;profileSHA?:string;unconfirmed?:boolean};
@@ -336,7 +339,7 @@ export function ToolExecutionFacts({
   const openCode=openCodeRunFacts({state,evidence,events,fixedOpenCode}),octop=evidence?.profile.adapter==='octop'&&evidence.profile.protocol==='octop-harness-acp-v1',acp=evidence?.profile.adapter==='qoder'&&evidence.profile.protocol==='acp-stdio-v1';
   const host=workspaceOperations?workspaceOperationsForAttempt(workspaceOperations.events,workspaceOperations.scope,workspaceOperations.profileSHA):undefined;
   const hostFacts=workspaceOperations&&host?<WorkspaceOperations scope={workspaceOperations.scope} projection={host} workspaceEvidence={workspaceOperations.evidence} context="current" unconfirmed={workspaceOperations.unconfirmed}/>:null;
-  if (!evidence && !events.length&&!openCode&&!modelBinding) return hostFacts;
+  if (!evidence && !events.length&&!openCode&&!modelBinding&&!executionSkills) return hostFacts;
   const recent = toolEventRows(events).slice(-40),
     last = events.at(-1),
     session =
@@ -394,7 +397,7 @@ export function ToolExecutionFacts({
         <p className="muted">
           {t("development.facts.the_session_id_is_for_traceability_and")}</p>
       )}
-      <ExecutionModelFacts binding={modelBinding} evidence={evidence} state={state} openCodeRun={openCode} tests={tests} project={project}/>
+      <ExecutionModelFacts binding={modelBinding} executionSkills={executionSkills} evidence={evidence} state={state} openCodeRun={openCode} tests={tests} project={project}/>
       <UsageFacts
         usage={usage ?? undefined}
         usageState={usageState}

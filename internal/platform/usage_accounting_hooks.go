@@ -376,6 +376,9 @@ func (s *Service) RecordResultTx(ctx context.Context, tx *sql.Tx, ref dag.Accoun
 	if count > 0 {
 		return nil
 	}
+	if e = s.validateExecutionSkillResultTx(ctx, tx, ref.TenantID, ref.ProjectID, result); e != nil {
+		return e
+	}
 	startupZero, e := s.CertifiedCandidateRepairStartupFailureTx(ctx, tx, ref.TenantID, ref.ProjectID, result)
 	if e != nil {
 		return e

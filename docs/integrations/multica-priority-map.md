@@ -1,5 +1,7 @@
 # Multica下一步复用优先级
 
+T-CODEX-SKILLS-173沿已发布项目技能与团队固定输入推进Codex原生执行：复用原知识修订、任务及专家团队计划、唯一Go DAG、当前普通／Pool资格、独立HOME和原回合；新增准确文档／包摘要、真实目录核对和显式skill输入，不复制上游启动器或绕过审批。Multica／Helix固定参考及许可边界保持；[合同](../../contracts/codex-native-skills.md)、[架构与SOP](../architecture/codex-native-skills.md)与[47定向／本机目录／合成视觉证据](../quality/codex-native-skills-verification.md)限定范围。本机目录不是模型使用证明，其他工具原生技能、支持文件／签名包、持续协作及完整平台继续实施，58／34／92不变。
+
 T-DELIVERY-KNOWLEDGE-172优先加强验收成果、记忆、知识及技能复用：固定正式交付依据，沿原提案、采用、发布与后续任务上下文形成闭环。结合Multica `e8ae72c9dfc1b4474b61a9087f51b33cbee6a048`的团队任务经验及HelixHarness `44ffc536f73d8af525b4795ad10384c516898576`的Propose→Apply→Archive／固定证据思想，保持速码当前权限、事务、唯一DAG及Runner。没有复制新增上游源码、审批旁路或进程池；Helix原Apache2与NOTICE、改编材料许可分别核对。[架构及AI SOP](../architecture/delivery-knowledge.md)、[交互](../design/delivery-knowledge.md)与[43定向／6只读实际检查](../quality/delivery-knowledge-verification.md)记录限定范围；真实模型、物理分布式、自动技能优化评测和完整平台继续实施，58／34／92不变。
 
 T-ACP-QUICK-CONNECT-171沿M11／M12／M16／M17优先补齐真实本机工具接入：明确原生检测、实际模型目录、准确配置与原托管Runner／新库存／暂停登记／独立启用。参考当前Multica `e8ae72c9dfc1b4474b61a9087f51b33cbee6a048`的运行时适配和渐进交互，复用速码原链及成熟ACP SDK0.13.5，无新增受限Multica源码复制。[合同](../../contracts/acp-quick-connect.md)、[架构与AI SOP](../architecture/acp-quick-connect.md)、[交互](../design/acp-quick-connect.md)和[阶段验证](../quality/acp-quick-connect-verification.md)分别记录设计与证据；关键实际链已限定验证，显式停止按钮、真实厂商或全平台验收仍待完成，完整31／P0–P7／58／34／92不变。

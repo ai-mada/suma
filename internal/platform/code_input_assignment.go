@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
 	cc "github.com/ai-mada/suma/internal/candidatecontract"
+	codex "github.com/ai-mada/suma/internal/codexcontract"
 	"github.com/ai-mada/suma/internal/dag"
 )
 
@@ -20,6 +22,13 @@ func codeInputAssignmentRef(a dag.Assignment) cc.AssignmentRef {
 // Only platform-bound nodes can advertise a protected input mode. An
 // ordinary published command/config cannot acquire cross-run code access.
 func (s *Service) codeInputNodeEligibleTx(ctx context.Context, tx *sql.Tx, tenant, project, run, node string, spec dag.Node) (bool, error) {
+	if _, err := s.executionSkillsForNodeTx(ctx, tx, tenant, project, run, node, spec); err != nil {
+		var api *APIError
+		if errors.As(err, &api) && api.Status >= 400 && api.Status < 500 {
+			return false, nil
+		}
+		return false, err
+	}
 	if eligible, err := s.workspaceTerminalCandidateNodeEligibleTx(ctx, tx, tenant, project, run, node, spec); err != nil || !eligible {
 		return eligible, err
 	}
@@ -116,7 +125,12 @@ func (s *Service) validateCandidateInputAnchorTx(ctx context.Context, tx *sql.Tx
 // Decoration happens after the durable claim; recovery uses the same claim
 // operation. No new run is created when this current-authority check fails.
 func (s *Service) decorateCodeInputAssignment(ctx context.Context, subject candidateSubject, a *dag.Assignment) error {
-	if a == nil || a.Config["purpose"] != "candidate_composition" && a.Config["purpose"] != "candidate_conflict_repair" && a.Config["code_baseline"] == nil {
+	if a == nil {
+		return nil
+	}
+	a.ExecutionSkills = nil
+	_, skillsDeclared := a.Config["execution_skills"]
+	if !skillsDeclared && a.Config["purpose"] != "candidate_composition" && a.Config["purpose"] != "candidate_conflict_repair" && a.Config["code_baseline"] == nil {
 		return nil
 	}
 	ctx, tx, cancel, err := s.beginAuthorityTx(ctx)
@@ -135,6 +149,13 @@ func (s *Service) decorateCodeInputAssignment(ctx context.Context, subject candi
 	}
 	if !eligible {
 		return forbidden()
+	}
+	if stringify(a.Config["execution_skills"]) != stringify(authority.spec.Config["execution_skills"]) {
+		return forbidden()
+	}
+	a.ExecutionSkills, err = codex.DecodeExecutionSkillBundle(authority.spec.Config["execution_skills"])
+	if err != nil {
+		return invalid(codexSkillsInvalid)
 	}
 	if err = s.checkCandidateCompositionExecutionTx(ctx, tx, subject.tenant, subject.project, a.RunID, true); err != nil {
 		return err

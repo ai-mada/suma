@@ -888,6 +888,7 @@ export interface ArtifactUploadState {
   missing_blobs: (string)[];
 }
 export interface Assignment {
+  execution_skills?: ExecutionSkillBundle | null;
   workbuddy_cloud?: CloudAssignmentBinding | null;
   candidate_composition?: CandidateCompositionExecution | null;
   candidate_conflict_repair?: CandidateConflictRepairExecution | null;
@@ -1911,6 +1912,7 @@ export interface CodexCatalog {
   catalog_sha256: string;
 }
 export interface CodexEvidence {
+  skills?: ExecutionSkillEvidence | null;
   binding_sha256: string;
   thread_id?: string;
   turn_id?: string;
@@ -2460,6 +2462,39 @@ export interface ExecutionRouteView {
   grant_state?: string;
   allowed_actions: (string)[];
   as_of: string;
+}
+export interface ExecutionSkillBundle {
+  protocol: string;
+  documents: (ExecutionSkillDocument)[];
+  bundle_sha256: string;
+}
+export interface ExecutionSkillDocument {
+  id: string;
+  revision: number;
+  sha256: string;
+  title: string;
+  name: string;
+  description: string;
+  content: string;
+  content_sha256: string;
+  document_sha256: string;
+}
+export interface ExecutionSkillEvidence {
+  bundle_sha256: string;
+  documents: (ExecutionSkillReceipt)[];
+  materialized: boolean;
+  catalog_acknowledged: boolean;
+  invocation_requested: boolean;
+  turn_acknowledged: boolean;
+  files_verified: boolean;
+  failure_code?: string;
+}
+export interface ExecutionSkillReceipt {
+  id: string;
+  revision: number;
+  sha256: string;
+  name: string;
+  document_sha256: string;
 }
 export interface ExpertTeamCommandRequest {
   project_id: string;
@@ -6118,6 +6153,7 @@ export interface TaskDispatchOptionsRequest {
   before?: string;
 }
 export interface TaskDispatchPlan {
+  execution_skills?: ExecutionSkillBundle | null;
   acp_execution?: ACPExecutionCapability | null;
   recommendation?: DispatchRecommendationProvenance;
   opencode_execution?: OpenCodeExecutionCapability | null;

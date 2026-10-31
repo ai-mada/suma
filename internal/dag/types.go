@@ -3,6 +3,7 @@ package dag
 import (
 	"errors"
 	ccmp "github.com/ai-mada/suma/internal/candidatecompositioncontract"
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	ec "github.com/ai-mada/suma/internal/executioncontract"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
@@ -95,6 +96,9 @@ type NodeRun struct {
 	AdmissionPolicyVersion int                               `json:"admission_policy_version,omitempty"`
 }
 type Assignment struct {
+	// ExecutionSkills is resolved from the protected plan under the original
+	// authenticated claim, independently of arbitrary workflow configuration.
+	ExecutionSkills *cc.ExecutionSkillBundle `json:"execution_skills,omitempty"`
 	// WorkBuddyCloud is selected and persisted by the claim transaction, never
 	// inferred or replaced by a Runner from workflow configuration.
 	WorkBuddyCloud *wbc.CloudAssignmentBinding `json:"workbuddy_cloud,omitempty"`

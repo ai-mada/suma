@@ -12,6 +12,22 @@
     "target_design": "docs/suma-architecture-design.html",
     "stage_delivery_is_not_full_completion": true
   },
+  "codex_native_skills": {
+    "stage": "T-CODEX-SKILLS-173",
+    "version": "1.0.0",
+    "date": "2026-10-31",
+    "status": "scoped_source_contract_installed_directory_and_synthetic_visual_verified",
+    "contract": "contracts/codex-native-skills.md",
+    "architecture": "docs/architecture/codex-native-skills.md",
+    "design": "docs/design/codex-native-skills.md",
+    "report": "docs/quality/codex-native-skills-verification.md",
+    "summary": "docs/quality/codex-native-skills-summary.json",
+    "implementation": "Exact published skill revisions -> protected original task/expert plan and ordinary/Pool Assignment -> isolated native files -> exact directory -> explicit original turn; five independent facts and lean prompt. No new store, dispatcher, dependency or historical nil-bundle bypass.",
+    "verification": "47 distinct top-level (31Go/16Web;39new/8affected old),74Go subcases separate:70pass/4Windows symlink creation skips. Initial full Web4 fixture diagnostics corrected in3 exact files semantic0/other17 unchanged.8208paired/0hardcodes;837declared/838schemas/392paths; original failures retained.",
+    "actual": "One Go compile/one installed CLI initialize+initialized+skills/list, exact selected document/path/enabled,0model/thread/turn/auth or existing login, normal exit/empty job/3PIDsabsent/source27match. Separate synthetic component1build/4checks/2Root-viewed images/6staticreads/0API/POST/DB/model/CLI,normal close/portfree/source33match; later1Englishcount copy-only. Neither proves model skill use.",
+    "remaining": "Four Windows symlink cases skipped; actual link/junction coverage remains. Actual model skill reading/application and full code/candidate/independent-test/human-acceptance journey. Other native CLI formats, support files/signed packages, complete Codex human requests and continuous sessions. Physical multi-host, other databases, cross-platform installers, full App/device/theme, scale, production and original31/P0-P7; prior171 explicit GUI-stop gap remains.",
+    "full_platform_complete": false
+  },
   "delivery_knowledge": {
     "stage": "T-DELIVERY-KNOWLEDGE-172",
     "version": "1.0.0",
@@ -676,7 +692,7 @@
     "branch": "dev",
     "authorization": "User explicitly requested stage commits be pushed to this repository and branch.",
     "force_push": false,
-    "previously_published_commit": "38ea67e6847157d76aa84a702889868cfa4a3b38"
+    "previously_published_commit": "14e10b5871cef5efbe0248bc78d971640b674e74"
   },
   "existing_preview": {
     "updated": false,
@@ -684,16 +700,16 @@
     "reason": "The initial schema uses a separate empty database; existing data are preserved."
   },
   "remaining_work": "Continue complete P0–P7 and all original requirements1–31, including full issue/test/application-version lifecycle, generic intelligent configuration with actual target verification, external capabilities, multi-host/database/installer/GUI acceptance. Preserve the outstanding lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation. Full58limited/34pending/92total scope remains active.",
-  "last_goal_turn_classification": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
-  "previous_goal_turn": "progress: T125 dependency-ordered original-plan rollout, actual ACK-loss reconciliation, pause/drain, unknown read projection and scoped CNEN390 evidence verified; Git delivery is recorded separately against the actual commit. Full P0-P7 and requirements1-26 remain active,58/34/92 unchanged.",
+  "last_goal_turn_classification": "progress: T173 native published skill plan/assignment/files/Codex catalogue and explicit invocation implemented,47focused/real installed no-Prompt directory/synthetic4visual verified. No model-use claim,4link skips and fullgoal gaps retained. Stage publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
+  "previous_goal_turn": "progress: T172 formally accepted delivery knowledge source, original draft/publication/next context,43focused/6readonly actual/two partial images verified. Stage Git publication recorded separately. Full31/P0-P7/58limited/34pending/92total active.",
   "current_work": {
-    "stage": "T-DELIVERY-KNOWLEDGE-172",
+    "stage": "T-CODEX-SKILLS-173",
     "status": "scoped_verified",
-    "contract": "contracts/delivery-knowledge.md",
+    "contract": "contracts/codex-native-skills.md",
+    "report": "docs/quality/codex-native-skills-verification.md",
+    "summary": "docs/quality/codex-native-skills-summary.json",
     "full_goal": "active original31/P0-P7/58limited/34pending/92total",
-    "next": "Continue complete31/P0-P7 platform, real vendors, physical distributed execution, autonomous memory/skill evaluation and remaining storage/installers/production. Stage Git publication is separately recorded; preserve original21 WIP and do not mark full goal complete.",
-    "report": "docs/quality/delivery-knowledge-verification.md",
-    "summary": "docs/quality/delivery-knowledge-summary.json"
+    "next": "Normal stage dev publication with original21 preserved. Continue real model/full native skill workflow, complete Codex human requests/continuous sessions, distributed development and all remaining31/P0-P7. Publication receipt stored separately."
   },
   "terminal_130_historical_work": {
     "stage": "T-TERMINAL-130",
@@ -703,10 +719,10 @@
     "next": "Current actual UI validation when browser setting permits; full lost-host fault matrix, accepted-baseline terminal sources, Unix containment and cross-platform installation."
   },
   "previous_stage_verification": {
-    "stage": "T-ACP-QUICK-CONNECT-171",
-    "report": "docs/quality/acp-quick-connect-verification.md",
-    "summary": "docs/quality/acp-quick-connect-summary.json",
-    "published_commit": "38ea67e6847157d76aa84a702889868cfa4a3b38"
+    "stage": "T-DELIVERY-KNOWLEDGE-172",
+    "report": "docs/quality/delivery-knowledge-verification.md",
+    "summary": "docs/quality/delivery-knowledge-summary.json",
+    "published_commit": "14e10b5871cef5efbe0248bc78d971640b674e74"
   },
   "terminal_129_historical_verification": {
     "stage": "T-TERMINAL-129",

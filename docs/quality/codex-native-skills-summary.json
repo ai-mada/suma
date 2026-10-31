@@ -1,0 +1,143 @@
+{
+  "stage": "T-CODEX-SKILLS-173",
+  "version": "1.0.0",
+  "date": "2026-10-31",
+  "status": "scoped_source_contract_installed_directory_and_synthetic_visual_verified",
+  "full_platform_complete": false,
+  "full_goal": {
+    "status": "active",
+    "requirements": 31,
+    "phases": "P0-P7",
+    "limited": 58,
+    "pending": 34,
+    "total": 92
+  },
+  "focused": {
+    "distinct_top_level": 47,
+    "new": 39,
+    "affected_existing": 8,
+    "go": {
+      "distinct": 31,
+      "new": 23,
+      "affected_old": 8,
+      "pass": 31,
+      "skip": 0,
+      "fail": 0
+    },
+    "web": {
+      "distinct": 16,
+      "new": 16,
+      "affected_existing": 0
+    },
+    "go_subcases_separate": {
+      "distinct": 74,
+      "pass": 70,
+      "skip": 4,
+      "fail": 0,
+      "new": 50,
+      "new_pass": 46,
+      "new_skip": 4,
+      "affected_old": 24
+    },
+    "old_full_suites_rerun": 0
+  },
+  "types": {
+    "initial_full_web_exit": 2,
+    "initial_full_diagnostics": 4,
+    "fixture_files_completed": 3,
+    "final_affected_semantic_diagnostics": 0,
+    "other_frozen_sources_unchanged": 17,
+    "full_typecheck_repeated": false
+  },
+  "i18n": {
+    "paired_keys": 8208,
+    "hardcodes": 0,
+    "copy_only_delta": "One English count label changed to Skills: {{value}} after visual check. Same keys and placeholder; original images retained; no repeat build, GUI or business.",
+    "copy_revision_sha256": "03cebcba82c6bceb614746f4e38a2f4d662a29db543cff37e58848152151c4eb",
+    "initial_wrong_directory_preflight_retained": true
+  },
+  "contracts": {
+    "declared_models": 837,
+    "schemas": 838,
+    "paths": 392,
+    "generator_test_exit": 0,
+    "generation_runs": 1
+  },
+  "evidence": {
+    "go_summary_sha256": "58d5f37147dbfa3eda08d5b9d780328454228b57945780cac96a3b2558307cea",
+    "web_original_manifest_sha256": "4942d23ab334deb940dd8f50004cc32a25ff60983442275794dad045a7cdb1c7",
+    "web_fixture_revision_sha256": "c4ed29ed042734fdba64b45c7b9489dd72117faef627330821ad61bb61f45ec3",
+    "native_receipt_sha256": "61952229833647ddb213af0ed07164be45eb29ac74ffaab82822787e8d68b9ee"
+  },
+  "installed_directory": {
+    "scope": "Synthetic skill document, production Loader and actual installed CLI; not platform publication, full dispatch or model skill use.",
+    "go_compiles": 1,
+    "cli_starts": 1,
+    "methods": [
+      "initialize",
+      "initialized",
+      "skills/list"
+    ],
+    "provider_requests": 0,
+    "model_list_requests": 0,
+    "thread_requests": 0,
+    "turn_requests": 0,
+    "auth_requests": 0,
+    "existing_login_used": false,
+    "executable_bytes": 368970544,
+    "executable_sha256": "3097c909fb6d5cd63510d44aceb1d42df9f6e85722a3e447e477def1ecf60e16",
+    "document_bytes": 285,
+    "document_sha256": "66718b25ee310762d67e42a0c2c4992d5f67bb4f3f1a10207a8aa6b4ca70b479",
+    "cli_exit": 0,
+    "host_exit": 0,
+    "stdout_drained": true,
+    "empty_windows_job_before_finish": true,
+    "observed_processes_ended": 3,
+    "force_stop_used": false,
+    "source_inputs": 27,
+    "source_inputs_match": true
+  },
+  "visual": {
+    "status": "synthetic_component_scoped_passed",
+    "synthetic_data": true,
+    "component_builds": 1,
+    "checks_passed": 4,
+    "images": 2,
+    "static_requests": 6,
+    "api_requests": 0,
+    "http_post": 0,
+    "database": false,
+    "model_calls": 0,
+    "development_cli_calls": 0,
+    "full_app": false,
+    "all_normal_exits": true,
+    "force_stop_used": false,
+    "port_released": true,
+    "source_inputs": 33,
+    "post_run_copy_delta_only": true,
+    "original_summary_sha256": "8c42d4a0bd4055e531aa7dea1298d63e3335b39ba9003bf1dcef88f46b72fa2f"
+  },
+  "artifacts": {
+    "directory": "dist/quality/codex-native-skills-173",
+    "files": 6,
+    "manifest_sha256": "4b9c4bd69994afe2b3280aa85a257e59038e9f3545a4fb5a84c1e542130c7cf9",
+    "git_included": false
+  },
+  "references": {
+    "helixharness": "44ffc536f73d8af525b4795ad10384c516898576",
+    "multica": "e8ae72c9dfc1b4474b61a9087f51b33cbee6a048",
+    "upstream_source_copied": 0
+  },
+  "remaining": [
+    "Four Windows symlink cases skipped; actual link/junction coverage remains.",
+    "Actual model skill reading/application and full code/candidate/independent-test/human-acceptance journey.",
+    "Other native CLI formats, support files/signed packages, complete Codex human requests and continuous sessions.",
+    "Physical multi-host, other databases, cross-platform installers, full App/device/theme, scale, production and original31/P0-P7; prior171 explicit GUI-stop gap remains."
+  ],
+  "documentation": {
+    "markdown_documents": 507,
+    "api_paths": 392,
+    "schema_references": 3617,
+    "exit_code": 0
+  }
+}

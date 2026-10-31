@@ -32,6 +32,7 @@ type TaskContext struct {
 }
 
 type TaskDispatchPlan struct {
+	ExecutionSkills    *cc.ExecutionSkillBundle          `json:"execution_skills,omitempty"`
 	ACPExecution       *ac.Capability                    `json:"acp_execution,omitempty"`
 	Recommendation     *DispatchRecommendationProvenance `json:"recommendation,omitempty" wire:"nonnull"`
 	OpenCodeExecution  *tc.OpenCodeExecutionCapability   `json:"opencode_execution,omitempty"`

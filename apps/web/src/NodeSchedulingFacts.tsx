@@ -14,6 +14,7 @@ import {
   type ExecutionAttempt,
 } from "./scheduling-model";
 import "./scheduling.css";
+import type {ExecutionSkillBundle} from '../../../packages/contracts/src';
 export function NodeSchedulingFacts({
   project,
   run,
@@ -25,6 +26,7 @@ export function NodeSchedulingFacts({
   selectedAttempt,
   onAttempt,
   historyRefresh = 0,
+  executionSkills,
 }: {
   project: string;
   run: string;
@@ -36,6 +38,7 @@ export function NodeSchedulingFacts({
   selectedAttempt?: string;
   onAttempt: (value: string) => void;
   historyRefresh?: number | string;
+  executionSkills?:ExecutionSkillBundle;
 }) { useLocale();
   const detailRoot = useRef<HTMLDivElement>(null),
     listRoot = useRef<HTMLElement>(null),
@@ -196,7 +199,7 @@ export function NodeSchedulingFacts({
             record.node_id === node &&
             record.attempt === attempt ? (
               <div ref={detailRoot} tabIndex={-1} aria-label={t("development.attempts.selected_historical_attempt_details")}>
-                <AttemptFacts attempt={record} />
+                <AttemptFacts attempt={record} executionSkills={executionSkills}/>
                 <AttemptToolEventHistory key={JSON.stringify([project,run,node,record.attempt,record.fence,record.worker_id])} project={project} attempt={record} refresh={historyRefresh}/>
               </div>
             ) : !exact.loading && !exact.error ? (

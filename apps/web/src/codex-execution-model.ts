@@ -1,5 +1,6 @@
 import {tr} from './i18n';
 import type {CodexBinding, CodexCatalog, CodexSelection} from '../../../packages/contracts/src';
+import {validExecutionSkillPlan} from './codex-native-skills-model';
 
 const hash = (v: unknown): v is string => typeof v === 'string' && /^[a-f0-9]{64}$/.test(v);
 const identifier = (v: unknown, optional = false): v is string => typeof v === 'string' && (optional && v === '' || /^[A-Za-z0-9][A-Za-z0-9_.:/@+\-]{0,127}$/.test(v));
@@ -40,7 +41,12 @@ export function sameCodexBinding(left: unknown, right: CodexBinding): boolean {
 /** Recovery acknowledges only the original public model choice and task/tool
  * scope. An unrelated or malformed HTTP 200 keeps the durable operation key. */
 export function validCodexDispatchReceipt(value: unknown, body: Record<string,unknown>): boolean {
+ if(object(value)&&!validExecutionSkillPlan(value))return false;
  const selection=body.codex_execution_selection;
+ if(object(value)&&Object.hasOwn(value,'execution_skills')){
+  const knowledge=object(value.context)?value.context.knowledge:undefined;
+  if(selection===undefined||!Array.isArray(knowledge)||!Array.isArray(body.knowledge)||body.knowledge.length!==knowledge.length||!body.knowledge.every((ref,index)=>object(ref)&&object(knowledge[index])&&['id','revision','sha256'].every(key=>ref[key]===knowledge[index][key])))return false;
+ }
  if (selection === undefined) return true;
  if (!validCodexSelection(selection) || !object(value) || !identifier(value.id) || value.project_id!==body.project_id || value.task_id!==body.task_id || value.task_version!==body.expected_task_version || value.workflow_id!==body.workflow_id || value.workflow_version!==body.workflow_version || value.agent_node_id!==body.agent_node_id || value.tool_profile_id!==body.tool_profile_id || value.tool_profile_version!==body.expected_tool_version || !codexBindingPresent(value.codex_execution)) return false;
  const binding=value.codex_execution;

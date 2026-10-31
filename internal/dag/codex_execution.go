@@ -10,6 +10,14 @@ import (
 // configuration can never become an unbound legacy execution or a hard cap.
 func CodexBinding(n Node) (*cc.Binding, error) {
 	raw, exists := n.Config["codex_execution"]
+	if skills, selected := n.Config["execution_skills"]; selected {
+		if !exists || n.Type != "agent" {
+			return nil, fmt.Errorf("%w: native skills require a fixed Codex agent", ErrInvalid)
+		}
+		if bundle, err := cc.DecodeExecutionSkillBundle(skills); err != nil || bundle == nil {
+			return nil, fmt.Errorf("%w: invalid native skill bundle", ErrInvalid)
+		}
+	}
 	if !exists {
 		return nil, nil
 	}
@@ -33,6 +41,20 @@ func validateCodexResult(n Node, r Result) error {
 		return err
 	}
 	success := r.ExitCode == 0 && r.Error == "" && !r.Stopped && !r.OutcomeUnknown
+	bundle, err := cc.DecodeExecutionSkillBundle(n.Config["execution_skills"])
+	if err != nil {
+		return fmt.Errorf("%w: invalid fixed Codex skills", ErrInvalid)
+	}
+	var skills *cc.ExecutionSkillEvidence
+	if r.ToolEvidence != nil && r.ToolEvidence.CodexExecution != nil {
+		skills = r.ToolEvidence.CodexExecution.Skills
+	}
+	if skills != nil && (bundle == nil || !cc.ExecutionSkillEvidenceMatchesBundle(*bundle, *skills)) {
+		return fmt.Errorf("%w: Codex skill evidence differs from fixed node", ErrInvalid)
+	}
+	if success && bundle != nil && (skills == nil || !skills.Materialized || !skills.CatalogAcknowledged || !skills.InvocationRequested || !skills.TurnAcknowledged || !skills.FilesVerified || skills.FailureCode != "") {
+		return fmt.Errorf("%w: successful Codex run lacks complete skill evidence", ErrInvalid)
+	}
 	if success && (r.ToolEvidence == nil || r.ToolEvidence.CodexExecution == nil || !cc.EvidenceMatchesBinding(*b, *r.ToolEvidence.CodexExecution)) {
 		return fmt.Errorf("%w: Codex configuration evidence differs from fixed node", ErrInvalid)
 	}

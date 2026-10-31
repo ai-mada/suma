@@ -296,9 +296,17 @@ func (s *Service) buildTaskDispatchSnapshotWithSourceTx(ctx context.Context, eng
 	if err = bindCodexExecutionWorkflow(&derived, request.AgentNodeID, codexBinding); err != nil {
 		return out, err
 	}
+	executionSkills, err := taskExecutionSkills(profile.Profile, context)
+	if err != nil {
+		return out, err
+	}
+	if err = bindTaskExecutionSkills(&derived, request.AgentNodeID, executionSkills); err != nil {
+		return out, err
+	}
 	out = TaskDispatchPlan{ProjectID: project, Version: 1, State: "ready", TaskID: context.Task.ID, TaskVersion: context.Task.Version, WorkflowID: request.WorkflowID, WorkflowVersion: request.WorkflowVersion, AgentNodeID: request.AgentNodeID, ToolProfileID: profile.ID, ToolProfileVersion: profile.Version, ToolProfileSHA256: profile.Profile.ProfileSHA256, Context: context, CodeBaseline: context.CodeBaseline, Workflow: derived, ExecutionRoute: &route, Valid: true}
 	out.ModelExecution = modelBinding
 	out.CodexExecution = codexBinding
+	out.ExecutionSkills = executionSkills
 	out.OpenCodeExecution = toolcontract.CloneProfile(profile.Profile).OpenCodeExecution
 	out.ClaudeExecution = toolcontract.CloneProfile(profile.Profile).ClaudeExecution
 	out.ACPExecution = toolcontract.CloneProfile(profile.Profile).ACPExecution

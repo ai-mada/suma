@@ -78,6 +78,8 @@ type codexAppServer struct {
 	hasUsage                                        bool
 	bad                                             error
 	stopping                                        atomic.Bool
+	skills                                          *cc.ExecutionSkillBundle
+	skillsConfigured                                bool
 }
 
 func newCodexAppServer(profile tc.Profile, spec CommandSpec, home, root, goal string, binding *cc.Binding, stream *toolStream) *codexAppServer {
@@ -120,6 +122,9 @@ func (d *codexAppServer) fail(reason string) {
 		return
 	}
 	d.bad = fmt.Errorf("Codex app-server: %s", reason)
+	if d.evidence != nil && d.evidence.Skills != nil && d.evidence.Skills.FailureCode == "" {
+		d.evidence.Skills.FailureCode = "codex_skills_protocol_failed"
+	}
 	d.input.close()
 	if d.stream != nil {
 		d.stream.invalid("Codex app-server " + reason)
@@ -222,11 +227,16 @@ func (d *codexAppServer) frame(raw []byte) {
 		d.modelList(result)
 	case "thread/start":
 		d.threadStart(result)
+	case "skills/list":
+		d.skillsList(result)
 	case "turn/start":
 		if !d.selectTurn(objectAt(result, "turn")) {
 			return
 		}
 		d.turnAcknowledged = true
+		if d.evidence.Skills != nil {
+			d.evidence.Skills.TurnAcknowledged = true
+		}
 		if d.terminalReceived {
 			d.input.close()
 		}
@@ -384,11 +394,11 @@ func (d *codexAppServer) threadStart(result map[string]any) {
 	}
 	d.evidence.ConfigurationAcknowledged = true
 	d.stream.event("session_started", "", "", "", nil)
-	params := map[string]any{"threadId": thread, "model": d.binding.Model, "cwd": d.root, "approvalPolicy": "never", "sandboxPolicy": map[string]any{"type": "workspaceWrite", "writableRoots": []string{d.root}, "networkAccess": false, "excludeTmpdirEnvVar": true, "excludeSlashTmp": true}, "input": []any{map[string]any{"type": "text", "text": d.goal, "text_elements": []any{}}}}
-	if d.binding.ReasoningEffort != "" {
-		params["effort"] = d.binding.ReasoningEffort
+	if d.skills != nil {
+		d.request("skills/list", map[string]any{"cwds": []string{d.root}, "forceReload": true, "perCwdExtraUserRoots": []any{map[string]any{"cwd": d.root, "extraUserRoots": []string{filepath.Join(d.home, "skills")}}}})
+		return
 	}
-	d.request("turn/start", params)
+	d.startSkillAwareTurn()
 }
 func (d *codexAppServer) selectTurn(turn map[string]any) bool {
 	id := textAt(turn, "id")

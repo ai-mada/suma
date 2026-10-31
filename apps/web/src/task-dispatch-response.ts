@@ -6,6 +6,7 @@ import {validOpenCodeDispatchReceipt,validOpenCodePlan} from './opencode-executi
 import {validModelDispatchReceipt,validModelPlan} from './model-execution-model';
 import {validClaudeDispatchReceipt,validClaudePlan} from './claude-cli-model';
 import {validACPDispatchReceipt,validACPPlan} from './acp-execution-model';
+import {validExecutionSkillPlan} from './codex-native-skills-model';
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 /** Exact identity from CreateManagedRunBound; domain authorization stays with
  * each caller's current plan, source and permission checks. */
@@ -18,7 +19,7 @@ export function validManagedTaskDispatchRun(value:unknown,original:unknown,proje
  if(!object(value)||!object(original))return false;
  // CreateManagedRunBound keeps the published workflow in the preview, then
  // assigns the private workflow managed-<reserved run> with version 1.
- return validACPPlan(original)&&validClaudePlan(original)&&validOpenCodePlan(original)&&validModelPlan(original)&&original.project_id===project&&original.state==='started'&&typeof original.run_id==='string'&&validManagedRunIdentity(value,project,original.run_id);
+ return validExecutionSkillPlan(original)&&validACPPlan(original)&&validClaudePlan(original)&&validOpenCodePlan(original)&&validModelPlan(original)&&original.project_id===project&&original.state==='started'&&typeof original.run_id==='string'&&validManagedRunIdentity(value,project,original.run_id);
 }
 /** A Start response has no plan ID of its own. Confirm it against the original
  * plan's reserved run and derived workflow before clearing durable intent.

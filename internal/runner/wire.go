@@ -3,6 +3,7 @@ package runner
 import (
 	"encoding/json"
 	ccc "github.com/ai-mada/suma/internal/candidatecompositioncontract"
+	cc "github.com/ai-mada/suma/internal/codexcontract"
 	ec "github.com/ai-mada/suma/internal/executioncontract"
 	"github.com/ai-mada/suma/internal/releasecontract"
 	rc "github.com/ai-mada/suma/internal/repositoryintegrationcontract"
@@ -13,6 +14,7 @@ import (
 )
 
 type Assignment struct {
+	ExecutionSkills         *cc.ExecutionSkillBundle              `json:"execution_skills,omitempty"`
 	WorkBuddyCloud          *wbc.CloudAssignmentBinding           `json:"workbuddy_cloud,omitempty"`
 	CandidateConflictRepair *ccc.CandidateConflictRepairExecution `json:"candidate_conflict_repair,omitempty"`
 	CandidateComposition    *ccc.CandidateCompositionExecution    `json:"candidate_composition,omitempty"`

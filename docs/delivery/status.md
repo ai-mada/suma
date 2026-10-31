@@ -1,5 +1,7 @@
 # 1.0.0 当前交付状态
 
+T-CODEX-SKILLS-173：[合同](../../contracts/codex-native-skills.md)、[架构与AI SOP](../architecture/codex-native-skills.md)、[交互](../design/codex-native-skills.md)及[验证](../quality/codex-native-skills-verification.md)／[摘要](../quality/codex-native-skills-summary.json)。固定发布技能沿原任务／专家团队计划、当前普通／Pool资格与受保护Assignment物化到独立HOME，准确目录后显式调用，五种执行事实分别展示；移除缺包的历史兼容放行。31Go／16Web不同顶层通过，Go子例70过／4链接权限跳过；一次全类型4处新夹具诊断修正后3文件语义0，其余17源未变，8208对词条通过。本机当前CLI一次initialize／skills-list目录验证0模型、正常退出；一次组件构建及4项中英／390／键盘检查通过，合成数据不冒充真实模型。真实技能使用、完整Codex能力、物理多机／跨库／安装与31／P0–P7／58／34／92继续交付，原171显式UI停止缺口保留。
+
 T-DELIVERY-KNOWLEDGE-172：[合同](../../contracts/delivery-knowledge.md)、[架构与AI SOP](../architecture/delivery-knowledge.md)、[交互](../design/delivery-knowledge.md)及[验证](../quality/delivery-knowledge-verification.md)／[摘要](../quality/delivery-knowledge-summary.json)。正式验收来源固定Review、运行、测试及候选依据，复用知识提案、人工草稿、发布、目录及后续上下文；保留原操作恢复和来源漂移保护。23Go／20Web不同顶层、7单列子例、类型及8181对词条通过。一次Go／UI构建及6项真实授权HTTP／生产组件只读检查通过，17GET／0POST／17表不变、正常退出及两中英代表局部图留证；后补两项英文数量文案不重跑业务。真实模型、下一Codex执行、物理多机／其他数据库、完整App和31／P0–P7／58／34／92继续交付，171显式UI停止缺口保留。
 
 T-ACP-QUICK-CONNECT-171：[合同](../../contracts/acp-quick-connect.md)、[架构与AI SOP](../architecture/acp-quick-connect.md)、[交互](../design/acp-quick-connect.md)及[限定证据](../quality/acp-quick-connect-verification.md)。明确原生检测、无Prompt实际模型、原托管连接和准确新库存／暂停登记／独立启用已接通；49定向顶层、8137对语言、6关键实际检查与两代表局部图留证。三个驱动1保留：初始busy产品问题已修，空数组与最后窄屏导航为夹具问题；显式UI停止未验，真实app-close Worker停止0。Go4／UI2／probe2，0Prompt／vendor，原18产物与21项其他工作受保护。真实厂商、完整旅程及31／P0–P7／58／34／92继续交付。

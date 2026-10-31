@@ -1,6 +1,7 @@
 import {useEffect, useId, useState} from 'react';
 import {RefreshCw} from 'lucide-react';
-import type {CodexBinding, CodexCatalog, CodexEvidence, ModelExecutionOptions} from '../../../packages/contracts/src';
+import type {CodexBinding, CodexCatalog, CodexEvidence, ExecutionSkillBundle, ModelExecutionOptions} from '../../../packages/contracts/src';
+import {CodexNativeSkillFacts} from './CodexNativeSkillFacts';
 import {useApi} from './api-context';
 import {formatNumber, tr, UiError, useLocale} from './i18n';
 import {ErrorNotice, Field, Loading} from './ui';
@@ -44,11 +45,12 @@ export function CodexModelExecutionSelector({catalog,disabled,loading=false,erro
   </>}
  </section>;
 }
-export function CodexExecutionFacts({binding,evidence}:{binding?:CodexBinding|null;evidence?:CodexEvidence|null}) {
+export function CodexExecutionFacts({binding,evidence,skills}:{binding?:CodexBinding|null;evidence?:CodexEvidence|null;skills?:ExecutionSkillBundle|null}) {
  useLocale();if(!codexBindingPresent(binding)&&!evidence)return null;
  return <section className="model-execution" aria-label={t('frozen')}><h3>{t('frozen')}</h3>
   {binding&&<><strong>{binding.model}</strong><p>{t('effort')}: {binding.reasoning_effort?codexEffortLabel(binding.reasoning_effort):t('default_effort')}</p>{binding.token_notice_limit!=null&&<p>{t('notice_value',{count:formatNumber(binding.token_notice_limit)})}</p>}</>}
   {evidence&&<><p>{t('requested')}: {evidence.requested_model} · {evidence.requested_reasoning_effort?codexEffortLabel(evidence.requested_reasoning_effort):t('default_effort')}</p><p>{evidence.configuration_acknowledged?t('acknowledged',{model:evidence.acknowledged_model,effort:evidence.acknowledged_reasoning_effort?codexEffortLabel(evidence.acknowledged_reasoning_effort):t('default_effort')}):t('not_acknowledged')}</p>{evidence.token_notice_exceeded&&<p role="status" className="warning">{t('notice_exceeded')}</p>}{!!evidence.rerouted_models?.length&&<p>{t('rerouted')}: {evidence.rerouted_models.join(', ')}</p>}</>}
   <p className="muted">{t('boundary')}</p><details><summary>{t('basis')}</summary>{binding&&<code>{binding.binding_sha256}</code>}{evidence&&<p>{t('thread')}: {evidence.thread_id||'—'} · {t('turn')}: {evidence.turn_id||'—'}</p>}</details>
+  {evidence&&<CodexNativeSkillFacts mode="attempt" bundle={skills} evidence={evidence.skills}/>}
  </section>;
 }

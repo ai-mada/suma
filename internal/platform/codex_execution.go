@@ -121,6 +121,9 @@ func codexBindingInCatalog(b cc.Binding, catalog cc.Catalog) bool {
 }
 
 func (s *Service) validateCodexExecutionPlanTx(ctx context.Context, tx *sql.Tx, tenant, project string, p ToolProfile, plan TaskDispatchPlan) error {
+	if err := validateTaskExecutionSkills(plan, p.Profile); err != nil {
+		return err
+	}
 	if plan.ModelExecution != nil && plan.CodexExecution != nil {
 		return invalid(codexExecutionInvalid)
 	}

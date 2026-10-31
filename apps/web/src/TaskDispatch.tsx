@@ -1,4 +1,5 @@
 import {ExecutionModelFacts} from './ExecutionModelFacts';
+import {CodexNativeSkillFacts} from './CodexNativeSkillFacts';
 import {validateTaskDispatchResponse} from './task-dispatch-response';
 import {ModelExecutionPanel, type ModelChoice} from './ModelExecutionPanel';
 import {useApi} from './api-context';
@@ -412,6 +413,7 @@ export function TaskDispatchDialog({
           <>
             <TaskDispatchFacts plan={plan} />
             <ExecutionModelFacts binding={plan.model_execution} codex={plan.codex_execution} openCode={plan.opencode_execution} claude={plan.claude_execution} acp={plan.acp_execution}/>
+            {plan.codex_execution?<CodexNativeSkillFacts mode="plan" bundle={plan.execution_skills}/>:plan.context.knowledge?.some(item=>item.kind==='skill')&&<CodexNativeSkillFacts mode="text"/>}
             <RequirementDesignFacts project={project} value={plan.context.design??undefined}/>
             <KnowledgeContextFacts project={project} items={plan.context.knowledge}/>
             <TaskDispatchRunFacts plan={plan} onRun={onRun} />

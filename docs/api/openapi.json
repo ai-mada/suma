@@ -4026,6 +4026,16 @@
             ],
             "type": "string"
           },
+          "execution_skills": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExecutionSkillBundle"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "fence": {
             "type": "integer"
           },
@@ -9548,6 +9558,16 @@
             },
             "type": "array"
           },
+          "skills": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExecutionSkillEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "thread_id": {
             "type": "string"
           },
@@ -12386,6 +12406,173 @@
           "mode",
           "allowed_actions",
           "as_of"
+        ],
+        "type": "object"
+      },
+      "ExecutionSkillBundle": {
+        "additionalProperties": false,
+        "properties": {
+          "bundle_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutionSkillDocument"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "protocol": {
+            "enum": [
+              "suma-codex-skills-v1"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol",
+          "documents",
+          "bundle_sha256"
+        ],
+        "type": "object"
+      },
+      "ExecutionSkillDocument": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "description": "The service enforces this bound in UTF-8 bytes; no truncation.",
+            "maxLength": 16000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "content_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "description": {
+            "description": "The service enforces this bound in UTF-8 bytes; no truncation.",
+            "maxLength": 1000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "document_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "pattern": "^suma-[a-f0-9]{24}$",
+            "type": "string"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": {
+            "description": "The service enforces this bound in UTF-8 bytes; no truncation.",
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "sha256",
+          "title",
+          "name",
+          "description",
+          "content",
+          "content_sha256",
+          "document_sha256"
+        ],
+        "type": "object"
+      },
+      "ExecutionSkillEvidence": {
+        "additionalProperties": false,
+        "description": "Independent host materialization, CLI catalogue, invocation request, turn ACK and final byte verification. None proves model reading, skill effectiveness, independent tests or human acceptance.",
+        "properties": {
+          "bundle_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "catalog_acknowledged": {
+            "type": "boolean"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutionSkillReceipt"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "failure_code": {
+            "type": "string"
+          },
+          "files_verified": {
+            "type": "boolean"
+          },
+          "invocation_requested": {
+            "type": "boolean"
+          },
+          "materialized": {
+            "type": "boolean"
+          },
+          "turn_acknowledged": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "bundle_sha256",
+          "documents",
+          "materialized",
+          "catalog_acknowledged",
+          "invocation_requested",
+          "turn_acknowledged",
+          "files_verified"
+        ],
+        "type": "object"
+      },
+      "ExecutionSkillReceipt": {
+        "additionalProperties": false,
+        "properties": {
+          "document_sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "pattern": "^suma-[a-f0-9]{24}$",
+            "type": "string"
+          },
+          "revision": {
+            "maximum": 9007199254740991,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sha256": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "sha256",
+          "name",
+          "document_sha256"
         ],
         "type": "object"
       },
@@ -30887,6 +31074,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/ProjectExecutionRoute"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "execution_skills": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExecutionSkillBundle"
               },
               {
                 "type": "null"
